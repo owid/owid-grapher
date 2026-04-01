@@ -760,10 +760,19 @@ getPlainRouteWithROTransaction(
                 ? await getMinimalAuthorsByNames(trx, authorNames)
                 : []
 
+        // Resolve chart types
+        const { resolveSlideChartTypes } =
+            await import("../baker/SlideshowBaker.js")
+        const chartResolutions = await resolveSlideChartTypes(
+            trx,
+            config.slides
+        )
+
         const html = await renderSlideshowPage(
             { title: slideshow.title, slug: slideshow.slug, config },
             imageMetadata,
-            linkedAuthors
+            linkedAuthors,
+            chartResolutions
         )
         return res.send(html)
     }

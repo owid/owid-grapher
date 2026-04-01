@@ -189,6 +189,8 @@ function ChartRenderer(props: {
                     hideShareButton: true,
                     hideExploreTheDataButton: true,
                     hideRelatedQuestion: true,
+                    hideFullscreenButton: true,
+                    hideDownloadButton: true,
                     hideLogo: true,
                     hideTitle,
                     hideSubtitle,

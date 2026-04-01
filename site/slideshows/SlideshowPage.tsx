@@ -6,6 +6,7 @@ import {
     SiteFooterContext,
     ImageMetadata,
     LinkedAuthor,
+    ResolvedSlideChartInfo,
     SlideTemplate,
     SlideshowConfig,
     serializeJSONForHTML,
@@ -25,6 +26,7 @@ export interface SlideshowPageProps {
     linkedAuthors: LinkedAuthor[]
     slides: SlideshowConfig["slides"]
     imageMetadata: Record<string, ImageMetadata>
+    chartResolutions: Record<string, ResolvedSlideChartInfo>
 }
 
 export function SlideshowPage(props: SlideshowPageProps): React.ReactElement {
@@ -36,6 +38,7 @@ export function SlideshowPage(props: SlideshowPageProps): React.ReactElement {
         linkedAuthors,
         slides,
         imageMetadata,
+        chartResolutions,
     } = props
 
     const canonicalUrl = `${baseUrl}/slideshows/${slug}`
@@ -46,6 +49,7 @@ export function SlideshowPage(props: SlideshowPageProps): React.ReactElement {
         linkedAuthors,
         slides,
         imageMetadata,
+        chartResolutions,
     }
 
     // Collect all image URLs for preloading

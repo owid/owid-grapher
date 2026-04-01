@@ -4,6 +4,7 @@ import {
     ImageMetadata,
     LinkedAuthor,
     OwidGdocType,
+    ResolvedSlideChartInfo,
 } from "@ourworldindata/types"
 import { getCanonicalUrl } from "@ourworldindata/components"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -24,6 +25,8 @@ export interface SlideshowPresentationProps {
     linkedAuthors: LinkedAuthor[]
     slides: SlideshowConfig["slides"]
     imageMetadata: Record<string, ImageMetadata>
+    /** Pre-resolved chart type info, keyed by slide URL. Computed at bake time. */
+    chartResolutions: Record<string, ResolvedSlideChartInfo>
 }
 
 /**
@@ -39,6 +42,8 @@ export function SlideshowPresentation(props: {
     linkedAuthors?: LinkedAuthor[]
     slides: SlideshowConfig["slides"]
     imageMetadata: Record<string, ImageMetadata>
+    /** Pre-resolved chart type info. If not provided, falls back to client-side resolution. */
+    chartResolutions?: Record<string, ResolvedSlideChartInfo>
     /** Override chart rendering (used by admin editor for live MobX sync) */
     renderChart?: (
         url: string,
@@ -49,7 +54,14 @@ export function SlideshowPresentation(props: {
     /** Called when the user navigates (optional — for controlled mode) */
     onSlideChange?: (index: number) => void
 }): React.ReactElement {
-    const { authors, linkedAuthors, slides, imageMetadata, renderChart } = props
+    const {
+        authors,
+        linkedAuthors,
+        slides,
+        imageMetadata,
+        chartResolutions,
+        renderChart,
+    } = props
 
     // Support both controlled and uncontrolled modes
     const [internalIndex, setInternalIndex] = useState(0)
@@ -82,12 +94,13 @@ export function SlideshowPresentation(props: {
             return (
                 <SlideChartEmbed
                     url={url}
+                    resolvedInfo={chartResolutions?.[url]}
                     hideTitle={options.hideTitle}
                     hideSubtitle={options.hideSubtitle}
                 />
             )
         },
-        []
+        [chartResolutions]
     )
 
     const containerRef = useRef<HTMLDivElement>(null)

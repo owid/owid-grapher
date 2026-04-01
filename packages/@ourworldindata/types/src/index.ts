@@ -608,6 +608,7 @@ export {
     type SlideQuote,
     type SlideBigNumber,
     type Slide,
+    type ResolvedSlideChartInfo,
     type SlideshowConfig,
     SlideSchema,
     SlideshowConfigSchema,

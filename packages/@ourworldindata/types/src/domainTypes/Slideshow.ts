@@ -91,6 +91,16 @@ export type Slide =
     | SlideQuote
     | SlideBigNumber
 
+/**
+ * Pre-resolved chart info computed at bake time so the client
+ * doesn't need to probe multiple endpoints to determine the chart type.
+ * Keyed by the slide URL (e.g. "/grapher/life-expectancy?tab=table").
+ */
+export type ResolvedSlideChartInfo =
+    | { type: "grapher" }
+    | { type: "multi-dim"; configId: string }
+    | { type: "explorer" }
+
 export interface SlideshowConfig {
     slides: Slide[]
     /** Display name(s) of the author(s). Defaults to the creating user's name. */
