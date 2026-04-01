@@ -62,9 +62,19 @@ function PopulationPyramidHorizontal({
     const ageBucketsBySex = useMemo(() => {
         const male = populationBySex?.male ?? []
         const female = populationBySex?.female ?? []
+        const totalPop =
+            male.reduce((a, b) => a + b, 0) +
+            female.reduce((a, b) => a + b, 0)
+        const toPercent = (buckets: Record<string, number>) => {
+            const result: Record<string, number> = {}
+            for (const [k, v] of Object.entries(buckets)) {
+                result[k] = totalPop > 0 ? (v / totalPop) * 100 : 0
+            }
+            return result
+        }
         return {
-            male: groupByAgeRange(male),
-            female: groupByAgeRange(female),
+            male: toPercent(groupByAgeRange(male)),
+            female: toPercent(groupByAgeRange(female)),
         }
     }, [populationBySex])
 
@@ -86,7 +96,7 @@ function PopulationPyramidHorizontal({
             )
             return max
         }
-        return Math.ceil(computeMaxAgeGroupPopulation(simulation))
+        return computeMaxAgeGroupPopulation(simulation) * 1.1
     }, [simulation, yAxisScaleMode, ageBucketsBySex])
 
     const centerY = innerHeight / 2
@@ -355,7 +365,7 @@ function BarValueLabel({
             fill={color}
             style={{ pointerEvents: "none" }}
         >
-            {formatPopulationValueShort(value)}
+            {`${value.toFixed(1)}%`}
         </text>
     )
 }
@@ -561,7 +571,7 @@ function TopGridLabel({
     if (topTick === undefined) return null
     return (
         <GridLabel
-            valueText={formatPopulationAxisLabel(topTick)}
+            valueText={`${topTick.toFixed(1)}%`}
             labelText={labelText}
             x={innerWidth}
             y={yScale(topTick)}

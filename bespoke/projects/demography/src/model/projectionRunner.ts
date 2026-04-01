@@ -260,29 +260,31 @@ export function computeMaxAgeGroupPopulation(simulation: {
     const { data, forecastResults } = simulation
     let maxVal = 0
 
-    for (let year = START_YEAR; year <= HISTORICAL_END_YEAR; year++) {
-        const pop = getPopulationForYear(data, year)
-        if (!pop) continue
+    const updateMax = (pop: PopulationBySex) => {
+        const totalPop =
+            pop.male.reduce((a, b) => a + b, 0) +
+            pop.female.reduce((a, b) => a + b, 0)
+        if (totalPop === 0) return
         const maleGroups = groupByAgeRange(pop.male)
         const femaleGroups = groupByAgeRange(pop.female)
         for (const g of PYRAMID_AGE_GROUPS) {
-            maxVal = Math.max(maxVal, maleGroups[g] || 0, femaleGroups[g] || 0)
+            maxVal = Math.max(
+                maxVal,
+                ((maleGroups[g] || 0) / totalPop) * 100,
+                ((femaleGroups[g] || 0) / totalPop) * 100
+            )
         }
+    }
+
+    for (let year = START_YEAR; year <= HISTORICAL_END_YEAR; year++) {
+        const pop = getPopulationForYear(data, year)
+        if (pop) updateMax(pop)
     }
 
     if (forecastResults) {
         for (let year = HISTORICAL_END_YEAR + 1; year <= END_YEAR; year++) {
             const pop = forecastResults[year]?.population
-            if (!pop) continue
-            const maleGroups = groupByAgeRange(pop.male)
-            const femaleGroups = groupByAgeRange(pop.female)
-            for (const g of PYRAMID_AGE_GROUPS) {
-                maxVal = Math.max(
-                    maxVal,
-                    maleGroups[g] || 0,
-                    femaleGroups[g] || 0
-                )
-            }
+            if (pop) updateMax(pop)
         }
     }
 

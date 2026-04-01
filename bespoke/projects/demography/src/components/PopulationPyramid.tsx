@@ -111,10 +111,20 @@ function PopulationPyramid({
     const { ageBucketsBySex, medianAgeBucketBySex } = useMemo(() => {
         const male = populationBySex?.male ?? []
         const female = populationBySex?.female ?? []
+        const totalPop =
+            male.reduce((a, b) => a + b, 0) +
+            female.reduce((a, b) => a + b, 0)
+        const toPercent = (buckets: Record<string, number>) => {
+            const result: Record<string, number> = {}
+            for (const [k, v] of Object.entries(buckets)) {
+                result[k] = totalPop > 0 ? (v / totalPop) * 100 : 0
+            }
+            return result
+        }
         return {
             ageBucketsBySex: {
-                male: groupByAgeRange(male),
-                female: groupByAgeRange(female),
+                male: toPercent(groupByAgeRange(male)),
+                female: toPercent(groupByAgeRange(female)),
             },
             medianAgeBucketBySex: {
                 male: findAgeGroup(calculateMedianAge(male)),
@@ -125,16 +135,14 @@ function PopulationPyramid({
 
     const xAxisMax = useMemo(() => {
         if (xAxisScaleMode === "adaptive") {
-            // Max from current year only
             const max = Math.max(
                 ...Object.values(ageBucketsBySex.male),
                 ...Object.values(ageBucketsBySex.female),
                 0
             )
-            return Math.ceil(max * 1.1)
+            return max * 1.1
         } else {
-            // Max across all years
-            return Math.ceil(computeMaxAgeGroupPopulation(simulation) * 1.1)
+            return computeMaxAgeGroupPopulation(simulation) * 1.1
         }
     }, [simulation, xAxisScaleMode, ageBucketsBySex])
 
@@ -358,7 +366,7 @@ function PopulationPyramidHalf({
                 top={height}
                 scale={xScale}
                 numTicks={3}
-                tickFormat={(v) => formatPopulationAxisLabelShort(v as number)}
+                tickFormat={(v) => `${Math.round(v as number)}%`}
                 stroke="transparent"
                 tickStroke={GRAPHER_LIGHT_TEXT}
                 tickLength={4}
@@ -441,7 +449,7 @@ function BarValueLabel({
     fontSize: number
     barColor: string
 }) {
-    const text = formatPopulationValueShort(value)
+    const text = `${value.toFixed(1)}%`
     const tw = new TextWrap({ text, maxWidth: Infinity, fontSize })
     const labelWidth = tw.width + BAR_LABEL_PADDING * 2
 
