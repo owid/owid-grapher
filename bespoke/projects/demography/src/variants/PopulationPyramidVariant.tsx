@@ -2,7 +2,6 @@ import { useMemo, useState } from "react"
 import cx from "classnames"
 import { QueryClientProvider } from "@tanstack/react-query"
 
-import { DemographyControls } from "../components/DemographyControls.js"
 import {
     DemographyChartError,
     DemographySkeleton,
@@ -12,7 +11,11 @@ import { queryClient, useDemographyData } from "../helpers/fetch.js"
 import type { PopulationPyramidVariantConfig } from "../config.js"
 import { articulateEntity } from "@ourworldindata/utils"
 import { displayEntityName, groupAgeGroupsByZone } from "../helpers/utils.js"
-import { CountryData, type ParameterKey } from "../helpers/types.js"
+import {
+    CountryData,
+    DemographyMetadata,
+    type ParameterKey,
+} from "../helpers/types.js"
 import {
     useSimulation,
     computeStabilizedOverrides,
@@ -36,6 +39,7 @@ import {
     breakpointClass,
 } from "../helpers/useBreakpoint.js"
 import { useInitialEntityName } from "../helpers/useInitialEntityName.js"
+import { InlineEntitySelector } from "../components/InlineEntitySelector.js"
 
 export function PopulationPyramidVariantWithProviders(props: {
     container: HTMLDivElement
@@ -53,7 +57,6 @@ function PopulationPyramidVariant({
 }: {
     config: PopulationPyramidVariantConfig
 }): React.ReactElement {
-    const showControls = !config.hideControls
     const [entityName, setEntityName] = useInitialEntityName(config.region)
 
     const { metadata, entityData, isLoadingEntityData, status } =
@@ -73,18 +76,15 @@ function PopulationPyramidVariant({
                     breakpointClass(breakpoint)
                 )}
             >
-                {showControls && (
-                    <DemographyControls
-                        metadata={metadata}
-                        entityName={entityName}
-                        setEntityName={setEntityName}
-                    />
-                )}
                 <PopulationPyramidCaptionedChart
                     data={entityData}
+                    metadata={metadata}
+                    entityName={entityName}
+                    setEntityName={setEntityName}
                     isLoading={isLoadingEntityData}
                     title={config.title}
                     subtitle={config.subtitle}
+                    hideControls={config.hideControls}
                     hideTimeline={config.hideTimeline}
                     showAssumptionCharts={config.showAssumptionCharts}
                     initialTime={config.time}
@@ -102,9 +102,13 @@ function PopulationPyramidVariant({
 
 function PopulationPyramidCaptionedChart({
     data,
+    metadata,
+    entityName,
+    setEntityName,
     isLoading = false,
     title: titleOverride,
     subtitle: subtitleOverride,
+    hideControls,
     hideTimeline,
     showAssumptionCharts = false,
     initialTime,
@@ -114,9 +118,13 @@ function PopulationPyramidCaptionedChart({
     netMigrationRateAssumptions,
 }: {
     data: CountryData
+    metadata: DemographyMetadata
+    entityName: string
+    setEntityName: (name: string) => void
     isLoading?: boolean
     title?: string
     subtitle?: string
+    hideControls?: boolean
     hideTimeline?: boolean
     showAssumptionCharts?: boolean
     initialTime?: number
@@ -156,11 +164,21 @@ function PopulationPyramidCaptionedChart({
     const ageZones = useMemo(() => groupAgeGroupsByZone(), [])
     const projection = scenarioOverrides ? "custom" : "un"
 
-    const title =
-        titleOverride ??
-        (data.country === "World"
-            ? `Global age structure in ${year}`
-            : `Age structure of ${articulateEntity(displayEntityName(data.country))} in ${year}`)
+    const title: React.ReactNode = titleOverride ?? (
+        <>
+            Age structure of{" "}
+            {hideControls ? (
+                articulateEntity(displayEntityName(data.country))
+            ) : (
+                <InlineEntitySelector
+                    metadata={metadata}
+                    entityName={entityName}
+                    onChange={setEntityName}
+                />
+            )}{" "}
+            in {year}
+        </>
+    )
     const subtitle =
         subtitleOverride ??
         `The population of ${articulateEntity(displayEntityName(data.country))}, broken down by age and sex based on future projections. These are based on the user's fertility, life expectancy, and migration inputs to a demographic model.`
