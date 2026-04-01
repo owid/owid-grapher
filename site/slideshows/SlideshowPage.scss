@@ -9,6 +9,7 @@
 
 .SlideshowContainer {
     --footer-height: 64px;
+    --slide-aspect-ratio: 16 / 9;
     &--fullscreen {
         --footer-height: 0px;
     }
@@ -19,24 +20,24 @@
     flex-direction: column;
     max-width: 1200px;
     margin: 0 auto;
-    padding: 16px;
     gap: 12px;
     height: calc(100vh - var(--footer-height));
+    aspect-ratio: var(--slide-aspect-ratio);
+}
 
-    &--fullscreen {
-        max-width: none;
-        height: 100vh;
-        padding: 0;
-        background: #fff;
+.SlideshowPresentation--fullscreen {
+    max-width: none;
+    height: 100vh;
+    padding: 0;
+    background: #fff;
 
-        .SlideshowPresentation__slide {
-            flex: 1;
-            min-height: 0;
-        }
+    .SlideshowPresentation__slide {
+        flex: 1;
+        min-height: 0;
+    }
 
-        .SlideshowPresentation__footer {
-            padding: 8px 24px;
-        }
+    .SlideshowPresentation__footer {
+        padding: 8px 24px;
     }
 }
 
@@ -132,6 +133,15 @@
     @include owid-link-90;
 }
 
+.SlideshowPresentation {
+    .GrapherComponent {
+        .controlsRow,
+        .GrapherTimeline {
+            display: none;
+        }
+    }
+}
+
 // --- Slide content (shared with admin) ---
 
 .SlideGrapher {
@@ -144,6 +154,6 @@
 
 .SlideContent,
 .SlideGrapher {
-    aspect-ratio: 16 / 9;
+    aspect-ratio: var(--slide-aspect-ratio);
     height: auto;
 }

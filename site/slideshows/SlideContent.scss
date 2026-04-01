@@ -5,10 +5,12 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 32px;
+    padding: 64px;
     position: absolute;
     left: 0;
     top: 0;
+    container-type: inline-size;
+    container-name: slide-content;
 }
 
 .SlideGrapher,
@@ -81,13 +83,13 @@
 .SlideContent__slide-title {
     @include display-1-semibold;
     margin: 0;
-    font-size: 52px;
+    font-size: clamp(24px, 3cqw, 52px);
 }
 
 .SlideContent__slide-subtitle {
     color: $gray-80;
     @include body-1-regular;
-    font-size: 28px;
+    font-size: clamp(16px, 1.66cqw, 28px);
     margin: 0;
 }
 
