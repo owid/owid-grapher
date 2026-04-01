@@ -380,6 +380,7 @@ __metadata:
     "@types/react-dom": "npm:^19.2.3"
     "@typescript/native-preview": "npm:^7.0.0-dev.20260313.1"
     "@visx/axis": "npm:^3.12.0"
+    "@visx/drag": "npm:^3.12.0"
     "@visx/event": "npm:^3.3.0"
     "@visx/group": "npm:^3.12.0"
     "@visx/responsive": "npm:^3.12.0"
@@ -401,7 +402,7 @@ __metadata:
     vite-plugin-css-position: "npm:^2.0.9"
 <<<<<<< HEAD
     vitest: "npm:^4.1.2"
-||||||| parent of db4ba90941 (lock file)
+||||||| parent of a2924cf6bb (add @visx/drag)
     vitest: "npm:^3.2.1"
 <<<<<<< ours
 =======
@@ -420,7 +421,7 @@ __metadata:
     classnames: "npm:^2.5.1"
     react: "npm:^19.2.4"
     react-aria-components: "npm:^1.8.0"
->>>>>>> db4ba90941 (lock file)
+>>>>>>> a2924cf6bb (add @visx/drag)
 ||||||||| parent of 8e7b1a16f2 (test fix)
   languageName: unknown
   linkType: soft
