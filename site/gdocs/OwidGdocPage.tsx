@@ -13,6 +13,7 @@ import { CitationMeta } from "../CitationMeta.js"
 import { OwidGdoc } from "./OwidGdoc.js"
 import {
     checkIsAuthor,
+    checkIsDataInsight,
     getFeaturedImageFilename,
     OwidGdoc as OwidGdocUnionType,
     SiteFooterContext,
@@ -28,6 +29,7 @@ import { match, P } from "ts-pattern"
 import {
     ARCHIVED_THUMBNAIL_FILENAME,
     ArchiveContext,
+    OwidGdocDataInsightInterface,
     OwidGdocPostInterface,
     OwidGdocAuthorInterface,
     OwidGdocProfileInterface,
@@ -103,7 +105,10 @@ type JsonLdAuthor = Person | Organization
 
 function makeJsonLdAuthors(
     baseUrl: string,
-    gdoc: OwidGdocPostInterface | OwidGdocProfileInterface
+    gdoc:
+        | OwidGdocPostInterface
+        | OwidGdocProfileInterface
+        | OwidGdocDataInsightInterface
 ): JsonLdAuthor[] {
     return gdoc.content.authors.map((gdocAuthor) => {
         if (gdocAuthor.toLowerCase().includes("our world in data")) {
@@ -137,7 +142,10 @@ function JsonLdArticle({
     baseUrl,
     imageUrl,
 }: {
-    gdoc: OwidGdocPostInterface | OwidGdocProfileInterface
+    gdoc:
+        | OwidGdocPostInterface
+        | OwidGdocProfileInterface
+        | OwidGdocDataInsightInterface
     baseUrl: string
     imageUrl?: string
 }) {
@@ -235,10 +243,17 @@ function isProfilePredicate(
     return gdoc.content.type === OwidGdocType.Profile
 }
 
-function isArticleLikePredicate(
+function isJsonLdArticlePredicate(
     gdoc: OwidGdocUnionType
-): gdoc is OwidGdocPostInterface | OwidGdocProfileInterface {
-    return isPostPredicate(gdoc) || isProfilePredicate(gdoc)
+): gdoc is
+    | OwidGdocPostInterface
+    | OwidGdocProfileInterface
+    | OwidGdocDataInsightInterface {
+    return (
+        isPostPredicate(gdoc) ||
+        isProfilePredicate(gdoc) ||
+        checkIsDataInsight(gdoc)
+    )
 }
 
 function getAtomFeedProps(gdoc: OwidGdocUnionType): {
@@ -285,9 +300,9 @@ export default function OwidGdocPage({
     const pageTitle = getPageTitle(gdoc)
     const isOnArchivalPage = archiveContext?.type === "archive-page"
     const assetMaps = isOnArchivalPage ? archiveContext.assets : undefined
-    const isDataInsight = gdoc.content.type === OwidGdocType.DataInsight
+    const isDataInsight = checkIsDataInsight(gdoc)
     const isAuthor = checkIsAuthor(gdoc)
-    const isArticleLike = isArticleLikePredicate(gdoc)
+    const isJsonLdArticle = isJsonLdArticlePredicate(gdoc)
 
     let imageUrl
     if (
@@ -335,7 +350,7 @@ export default function OwidGdocPage({
                         canonicalUrl={canonicalUrl}
                     />
                 )}
-                {isArticleLike && (
+                {isJsonLdArticle && (
                     <JsonLdArticle
                         gdoc={gdoc}
                         baseUrl={baseUrl}
