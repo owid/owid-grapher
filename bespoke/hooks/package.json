@@ -1,0 +1,17 @@
+{
+    "name": "@owid/bespoke-hooks",
+    "private": true,
+    "type": "module",
+    "dependencies": {
+        "@ourworldindata/types": "link:../../packages/@ourworldindata/types",
+        "@ourworldindata/utils": "link:../../packages/@ourworldindata/utils",
+        "react": "^19.2.4"
+    },
+    "devDependencies": {
+        "@typescript/native-preview": "^7.0.0-dev.20260401.1"
+    },
+    "scripts": {
+        "build": "",
+        "typecheck": "tsgo --noEmit"
+    }
+}

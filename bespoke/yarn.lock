@@ -217,6 +217,12 @@ __metadata:
   languageName: node
   linkType: soft
 
+"@ourworldindata/types@link:../../packages/@ourworldindata/types::locator=%40owid%2Fbespoke-hooks%40workspace%3Ahooks":
+  version: 0.0.0-use.local
+  resolution: "@ourworldindata/types@link:../../packages/@ourworldindata/types::locator=%40owid%2Fbespoke-hooks%40workspace%3Ahooks"
+  languageName: node
+  linkType: soft
+
 "@ourworldindata/utils@link:../../../packages/@ourworldindata/utils::locator=%40owid%2Fbespoke-example%40workspace%3Aprojects%2Fexample":
   version: 0.0.0-use.local
   resolution: "@ourworldindata/utils@link:../../../packages/@ourworldindata/utils::locator=%40owid%2Fbespoke-example%40workspace%3Aprojects%2Fexample"
@@ -226,6 +232,12 @@ __metadata:
 "@ourworldindata/utils@link:../../packages/@ourworldindata/utils::locator=%40owid%2Fbespoke-components%40workspace%3Acomponents":
   version: 0.0.0-use.local
   resolution: "@ourworldindata/utils@link:../../packages/@ourworldindata/utils::locator=%40owid%2Fbespoke-components%40workspace%3Acomponents"
+  languageName: node
+  linkType: soft
+
+"@ourworldindata/utils@link:../../packages/@ourworldindata/utils::locator=%40owid%2Fbespoke-hooks%40workspace%3Ahooks":
+  version: 0.0.0-use.local
+  resolution: "@ourworldindata/utils@link:../../packages/@ourworldindata/utils::locator=%40owid%2Fbespoke-hooks%40workspace%3Ahooks"
   languageName: node
   linkType: soft
 
@@ -274,6 +286,17 @@ __metadata:
     sass: "npm:^1.87.0"
     vite: "npm:^8.0.0"
     vite-plugin-css-position: "npm:^2.0.9"
+  languageName: unknown
+  linkType: soft
+
+"@owid/bespoke-hooks@workspace:hooks":
+  version: 0.0.0-use.local
+  resolution: "@owid/bespoke-hooks@workspace:hooks"
+  dependencies:
+    "@ourworldindata/types": "link:../../packages/@ourworldindata/types"
+    "@ourworldindata/utils": "link:../../packages/@ourworldindata/utils"
+    "@typescript/native-preview": "npm:^7.0.0-dev.20260401.1"
+    react: "npm:^19.2.4"
   languageName: unknown
   linkType: soft
 
