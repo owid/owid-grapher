@@ -1,7 +1,6 @@
 import cx from "classnames"
 import { QueryClientProvider } from "@tanstack/react-query"
 
-import { DemographyControls } from "../components/DemographyControls.js"
 import { queryClient, useDemographyData } from "../helpers/fetch.js"
 import type { SimulationVariantConfig } from "../config.js"
 import { CHART_FOOTER_SOURCES } from "../helpers/constants.js"
@@ -11,12 +10,17 @@ import {
     DemographySkeleton,
     LoadingSpinner,
 } from "../components/DemographyLoadAndError.js"
-import { CountryData, ParameterKey } from "../helpers/types.js"
+import {
+    CountryData,
+    DemographyMetadata,
+    ParameterKey,
+} from "../helpers/types.js"
 import { articulateEntity } from "@ourworldindata/utils"
 import { displayEntityName } from "../helpers/utils.js"
 import { Frame } from "../../../../components/Frame/Frame.js"
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { SimulationContent } from "../components/SimulationContent.js"
+import { InlineEntitySelector } from "../components/InlineEntitySelector.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
 import {
     BreakpointProvider,
@@ -49,8 +53,6 @@ function SimulationVariant({
     if (status === "pending") return <DemographySkeleton />
     if (!metadata || !entityData) return <DemographyChartError />
 
-    const showControls = !config.hideControls
-
     return (
         <BreakpointProvider value={breakpoint}>
             <div
@@ -60,18 +62,15 @@ function SimulationVariant({
                     breakpointClass(breakpoint)
                 )}
             >
-                {showControls && (
-                    <DemographyControls
-                        metadata={metadata}
-                        entityName={entityName}
-                        setEntityName={setEntityName}
-                    />
-                )}
                 <SimulationCaptionedChart
                     data={entityData}
+                    metadata={metadata}
+                    entityName={entityName}
+                    setEntityName={setEntityName}
                     isLoading={isLoadingEntityData}
                     title={config.title}
                     subtitle={config.subtitle}
+                    hideControls={config.hideControls}
                     focusParameter={config.focusParameter}
                     stabilizingParameter={config.stabilizingParameter}
                     hidePopulationPyramid={config.hidePopulationPyramid}
@@ -83,28 +82,46 @@ function SimulationVariant({
 
 function SimulationCaptionedChart({
     data,
+    metadata,
+    entityName,
+    setEntityName,
     isLoading = false,
     title: titleOverride,
     subtitle: subtitleOverride,
+    hideControls,
     focusParameter,
     stabilizingParameter,
     hidePopulationPyramid,
 }: {
     data: CountryData
+    metadata: DemographyMetadata
+    entityName: string
+    setEntityName: (name: string) => void
     isLoading?: boolean
     title?: string
     subtitle?: string
+    hideControls?: boolean
     focusParameter?: ParameterKey
     stabilizingParameter?: ParameterKey
     hidePopulationPyramid?: boolean
 }) {
     const countryName = data.country
 
-    const title =
-        titleOverride ??
-        (countryName === "World"
-            ? "How many people will be there in 2100?"
-            : `How many people will live in ${articulateEntity(displayEntityName(countryName))} by 2100?`)
+    const title: React.ReactNode = titleOverride ?? (
+        <>
+            How many people will live in{" "}
+            {hideControls ? (
+                articulateEntity(displayEntityName(countryName))
+            ) : (
+                <InlineEntitySelector
+                    metadata={metadata}
+                    entityName={entityName}
+                    onChange={setEntityName}
+                />
+            )}{" "}
+            by 2100?
+        </>
+    )
     const subtitle =
         subtitleOverride ??
         "Demographers publish projections of how populations will change in the future. But what if fertility rates fall faster, or rebound? Or migration rates change? Adjust these assumptions and compare."
