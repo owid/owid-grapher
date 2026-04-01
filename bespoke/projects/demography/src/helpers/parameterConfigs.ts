@@ -10,16 +10,16 @@ import { getDeathsForYear, getMigrationRateForYear } from "./utils.js"
 import { ParameterKey } from "./types.js"
 
 interface ParameterConfig {
+    shortTitle: string
     title: string
     unit: string
     axisUnit: string
+    yPadding: number
+    yFloor?: number
     subtitle: (entityName: string) => string
     tooltipContent: string
     formatValue: (value: number) => string
-    computeHistorical: (
-        simulation: Simulation,
-        interactive?: boolean
-    ) => {
+    computeHistorical: (simulation: Simulation) => {
         points: { year: number; value: number }[]
         min: number
         max: number
@@ -28,9 +28,12 @@ interface ParameterConfig {
 
 export const parameterConfigByKey: Record<ParameterKey, ParameterConfig> = {
     fertilityRate: {
+        shortTitle: "Fertility",
         title: "Fertility Rate",
         unit: "births per woman",
         axisUnit: "births per woman",
+        yPadding: 2,
+        yFloor: 0,
         subtitle: () => "Average number of births per woman",
         tooltipContent:
             "Total fertility rate is the number of births a woman would have, if she experienced the birth rates of women of each age group in one particular year across her childbearing years.",
@@ -40,7 +43,7 @@ export const parameterConfigByKey: Record<ParameterKey, ParameterConfig> = {
                 numberAbbreviation: false,
                 trailingZeroes: true,
             }),
-        computeHistorical: (simulation, interactive = true) => {
+        computeHistorical: (simulation) => {
             const points = R.pipe(
                 HISTORICAL_TIME_RANGE,
                 R.map((year) => {
@@ -53,20 +56,21 @@ export const parameterConfigByKey: Record<ParameterKey, ParameterConfig> = {
                 R.filter(R.isDefined)
             )
 
-            if (interactive) {
-                // The y-points are draggable from 0-5 or 0-(max+1)
-                const max = Math.max(4, ...points.map((d) => d.value))
-                return { points, min: 0, max: Math.ceil(max + 1) }
-            } else {
-                const max = Math.max(3, ...points.map((d) => d.value))
-                return { points, min: 0, max: Math.ceil(max) + 0.5 }
+            const values = points.map((d) => d.value)
+            return {
+                points,
+                min: Math.min(...values),
+                max: Math.max(...values),
             }
         },
     },
     lifeExpectancy: {
-        title: "Life expectancy at birth",
+        shortTitle: "Life expectancy",
+        title: "Life Expectancy at Birth",
         unit: "years",
         axisUnit: "years",
+        yPadding: 10,
+        yFloor: 0,
         subtitle: () =>
             "Years a newborn is expected to live, given current mortality rates",
         tooltipContent:
@@ -76,7 +80,7 @@ export const parameterConfigByKey: Record<ParameterKey, ParameterConfig> = {
                 numDecimalPlaces: 0,
                 numberAbbreviation: false,
             }),
-        computeHistorical: (simulation, interactive = true) => {
+        computeHistorical: (simulation) => {
             const points = R.pipe(
                 HISTORICAL_TIME_RANGE,
                 R.map((year) => {
@@ -96,25 +100,19 @@ export const parameterConfigByKey: Record<ParameterKey, ParameterConfig> = {
             )
 
             const values = points.map((d) => d.value)
-            if (interactive) {
-                // The y-points are draggable from the nearest decade (e.g. 47 -> 40) to 130
-                const min = Math.min(100, ...values)
-                return { points, min: Math.floor(min / 10) * 10, max: 130 }
-            } else {
-                const min = Math.min(...values)
-                const max = Math.max(...values)
-                return {
-                    points,
-                    min: Math.floor(min / 5) * 5,
-                    max: Math.ceil(max / 5) * 5 + 5,
-                }
+            return {
+                points,
+                min: Math.min(...values),
+                max: Math.max(...values),
             }
         },
     },
     netMigrationRate: {
+        shortTitle: "Migration",
         title: "Net Migration Rate",
         unit: "per 1,000 population",
         axisUnit: "‰",
+        yPadding: 5,
         subtitle: (entityName: string) => {
             if (entityName === "World") return "Not applicable"
             const region = getRegionByName(entityName)
@@ -131,7 +129,7 @@ export const parameterConfigByKey: Record<ParameterKey, ParameterConfig> = {
                 showPlus: true,
                 trailingZeroes: true,
             }) + "‰",
-        computeHistorical: (simulation, interactive = true) => {
+        computeHistorical: (simulation) => {
             const points = R.pipe(
                 HISTORICAL_TIME_RANGE,
                 R.map((year) => ({
@@ -140,15 +138,10 @@ export const parameterConfigByKey: Record<ParameterKey, ParameterConfig> = {
                 }))
             )
             const values = points.map((d) => d.value)
-
-            const min = Math.min(0, ...values)
-            const max = Math.max(0, ...values)
-
-            const extra = interactive ? 5 : 0
             return {
                 points,
-                min: Math.floor(min / 5) * 5 - extra,
-                max: Math.ceil(max / 5) * 5 + extra,
+                min: Math.min(...values),
+                max: Math.max(...values),
             }
         },
     },

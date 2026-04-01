@@ -77,17 +77,26 @@ function DemographyParameterEditor({
     const stickyHover = useRef(false)
     const svgRef = useRef<SVGSVGElement>(null)
 
-    const {
-        points: historicalDataPoints,
-        min: minValue,
-        max: maxValue,
-    } = useMemo(
-        () => config.computeHistorical(simulation, interactive),
-        [simulation, config, interactive]
+    const { points: historicalDataPoints } = useMemo(
+        () => config.computeHistorical(simulation),
+        [simulation, config]
     )
 
     const controlPoints = simulation.scenarioParams[variant]
     const referencePoints = simulation.unwppScenarioParams[variant]
+    const referenceValues = Object.values(referencePoints)
+    const historicalValues = historicalDataPoints.map((d) => d.value)
+    const minValue = Math.max(
+        config.yFloor ?? -Infinity,
+        Math.min(
+            Math.min(...referenceValues) - config.yPadding,
+            Math.min(...historicalValues)
+        )
+    )
+    const maxValue = Math.max(
+        Math.max(...referenceValues) + config.yPadding,
+        Math.max(...historicalValues)
+    )
     const anyModified = CONTROL_YEARS.some(
         (yr) => Math.abs(controlPoints[yr] - referencePoints[yr]) >= 0.01
     )
@@ -375,15 +384,13 @@ function DemographyParameterEditor({
                     ))
                 })()}
 
-                {/* Projection start line */}
-                <line
-                    x1={projX}
-                    y1={innerHeight}
-                    x2={projX}
-                    y2={innerHeight - 20}
-                    stroke={GRAPHER_LIGHT_TEXT}
-                    strokeWidth={1}
-                    strokeDasharray="2,2"
+                {/* Projection area background */}
+                <rect
+                    x={projX}
+                    y={0}
+                    width={innerWidth - projX}
+                    height={innerHeight}
+                    fill={PROJECTION_BACKGROUND}
                 />
 
                 {/* Projection label */}
@@ -455,15 +462,11 @@ function DemographyParameterEditor({
                 {/* First historical point (1950) — always with value label */}
                 <PointLabelWithYear
                     x={xScale(firstHistoricalDataPoint.year)}
-                    y={yScale(firstHistoricalDataPoint.value)}
                     innerHeight={innerHeight}
-                    label={formatValue(firstHistoricalDataPoint.value)}
                     color={lineColor}
-                    labelColor={labelColor}
                     fontSize={fonts.pointLabel}
                     year={firstHistoricalDataPoint.year}
                     yearAnchor="start"
-                    valueLabelAnchor="start"
                     hidden={hiddenPointLabels.has("first-historical")}
                     hideTickMark
                 />
