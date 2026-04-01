@@ -3,15 +3,10 @@ import { useCallback, useMemo, useRef, useState } from "react"
 import { Tippy } from "@ourworldindata/utils"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCircleInfo } from "@fortawesome/free-solid-svg-icons"
-import {
-    DisclosureGroup,
-    Disclosure,
-    DisclosurePanel,
-    Button,
-} from "react-aria-components"
+import { Tabs, TabList, Tab, TabPanel } from "react-aria-components"
 import { LinePath } from "@visx/shape"
 import { scaleLinear } from "@visx/scale"
-import { Halo } from "@ourworldindata/components"
+import { GrapherTrendArrow, Halo } from "@ourworldindata/components"
 import { BezierArrow } from "../../../../components/BezierArrow/BezierArrow"
 import { CountryData, PARAMETER_KEYS, ParameterKey } from "../helpers/types"
 import {
@@ -43,6 +38,12 @@ import {
     GRAY_60,
     GRAPHER_LIGHT_TEXT,
 } from "@ourworldindata/grapher/src/color/ColorConstants.js"
+
+const PARAMETER_TAB_LABELS: Record<ParameterKey, string> = {
+    fertilityRate: "Fertility Rate",
+    lifeExpectancy: "Life expectancy",
+    netMigrationRate: "Net Migration",
+}
 
 export function SimulationContent({
     data,
@@ -80,92 +81,81 @@ export function SimulationContent({
         <div className="chart-content">
             <div className="container container-left">
                 <div className="input-panels">
-                    <DisclosureGroup
-                        className="input-accordion"
-                        defaultExpandedKeys={
-                            new Set([focusParameter ?? "fertilityRate"])
+                    <Tabs
+                        className="input-tabs"
+                        defaultSelectedKey={
+                            focusParameter ?? "fertilityRate"
                         }
                     >
+                        <TabList className="input-tabs__list">
+                            {PARAMETER_KEYS.map((key) => (
+                                <Tab
+                                    key={key}
+                                    id={key}
+                                    className="input-tabs__tab"
+                                >
+                                    {PARAMETER_TAB_LABELS[key]}
+                                </Tab>
+                            ))}
+                        </TabList>
                         {PARAMETER_KEYS.map((key) => {
                             const isWorldMigration =
                                 key === "netMigrationRate" &&
                                 data.country === "World"
                             const isMuted =
-                                (focusParameter && focusParameter !== key) ||
+                                (focusParameter &&
+                                    focusParameter !== key) ||
                                 isWorldMigration
                             const isNonInteractive =
-                                (focusParameter && focusParameter !== key) ||
+                                (focusParameter &&
+                                    focusParameter !== key) ||
                                 isWorldMigration
-                            const resetTarget =
-                                stabilizedOverrides?.[key] ??
-                                simulation.unwppScenarioParams[key]
-                            const canReset = Object.keys(
-                                resetTarget
-                            ).some(
-                                (k) =>
-                                    simulation.scenarioParams[key][
-                                        Number(k)
-                                    ] !== resetTarget[Number(k)]
-                            )
                             return (
-                                <Disclosure
+                                <TabPanel
                                     key={key}
                                     id={key}
-                                    className="input-accordion__item"
+                                    className="input-tabs__panel"
                                 >
-                                    <div className="input-accordion__header">
-                                        <Button
-                                            slot="trigger"
-                                            className="input-accordion__trigger"
-                                        >
-                                            <span className="input-accordion__trigger-title-row">
-                                                <span className="input-accordion__trigger-title">
-                                                    {parameterConfigByKey[key].title}
-                                                </span>
-                                                <span className="input-accordion__expand-icon">
-                                                    +
-                                                </span>
-                                            </span>
-                                            <span className="input-accordion__trigger-subtitle">
-                                                {parameterConfigByKey[key].subtitle(data.country)}
-                                            </span>
-                                            <CollapsedSummary
-                                                simulation={simulation}
-                                                variant={key}
-                                            />
-                                        </Button>
-                                    </div>
-                                    <DisclosurePanel className="input-accordion__panel">
-                                        <InputChartPanel
-                                            simulation={simulation}
-                                            variant={key}
-                                            interactive={!isNonInteractive}
-                                            lineColor={
-                                                isMuted
-                                                    ? BENCHMARK_LINE_COLOR
-                                                    : undefined
-                                            }
-                                            labelColor={
-                                                isMuted ? GRAY_60 : undefined
-                                            }
-                                            resetTarget={
-                                                stabilizedOverrides?.[key]
-                                            }
-                                            hideInfoIcon={isWorldMigration}
-                                            showProjectionLabel
-                                            className={cx({
-                                                "chart-panel--focus":
-                                                    focusParameter &&
-                                                    focusParameter === key,
-                                                "chart-panel--muted": isMuted,
-                                            })}
-                                        />
-                                    </DisclosurePanel>
-                                </Disclosure>
+                                    <InputChartPanel
+                                        simulation={simulation}
+                                        variant={key}
+                                        interactive={
+                                            !isNonInteractive
+                                        }
+                                        lineColor={
+                                            isMuted
+                                                ? BENCHMARK_LINE_COLOR
+                                                : undefined
+                                        }
+                                        labelColor={
+                                            isMuted
+                                                ? GRAY_60
+                                                : undefined
+                                        }
+                                        resetTarget={
+                                            stabilizedOverrides?.[
+                                                key
+                                            ]
+                                        }
+                                        hideInfoIcon={
+                                            isWorldMigration
+                                        }
+                                        showProjectionLabel
+                                        className={cx({
+                                            "chart-panel--focus":
+                                                focusParameter &&
+                                                focusParameter ===
+                                                    key,
+                                            "chart-panel--muted":
+                                                isMuted,
+                                        })}
+                                    />
+                                </TabPanel>
                             )
                         })}
-                    </DisclosureGroup>
+                    </Tabs>
                 </div>
+                <AssumptionsTable simulation={simulation} />
             </div>
             <div className="container container-right">
                 <div className="output-panels">
@@ -314,18 +304,9 @@ export function InputChartPanel({
                 "chart-panel--italic-subtitle": isWorldMigration,
             })}
             title={title}
-            titleSuffix={undefined}
             subtitle={subtitle}
             tooltipContent={hideInfoIcon ? undefined : tooltipContent}
             onReset={hasResetButton ? handleReset : undefined}
-            subheader={
-                interactive ? (
-                    <CollapsedSummary
-                        simulation={simulation}
-                        variant={variant}
-                    />
-                ) : undefined
-            }
             header={
                 interactive ? (
                     <PopulationChartLegend
@@ -420,6 +401,99 @@ export function ChartPanel({
     )
 }
 
+function AssumptionsTable({
+    simulation,
+}: {
+    simulation: Simulation
+}) {
+    return (
+        <table className="assumptions-table">
+            <thead>
+                <tr>
+                    <th></th>
+                    {PARAMETER_KEYS.map((key) => {
+                        return (
+                            <th key={key}>
+                                {PARAMETER_TAB_LABELS[key]}
+                                <Tippy
+                                    content={
+                                        parameterConfigByKey[key]
+                                            .tooltipContent
+                                    }
+                                    placement="top"
+                                >
+                                    <span className="assumptions-table__info-icon">
+                                        <FontAwesomeIcon
+                                            icon={faCircleInfo}
+                                            size="sm"
+                                        />
+                                    </span>
+                                </Tippy>
+                            </th>
+                        )
+                    })}
+                </tr>
+            </thead>
+            <tbody>
+                {CONTROL_YEARS.map((yr) => (
+                    <tr key={yr}>
+                        <td className="assumptions-table__year">
+                            In {yr}
+                        </td>
+                        {PARAMETER_KEYS.map((key) => {
+                            const config = parameterConfigByKey[key]
+                            const unit =
+                                key === "lifeExpectancy"
+                                    ? " years"
+                                    : key === "fertilityRate"
+                                      ? " births"
+                                      : ""
+                            const userVal =
+                                simulation.scenarioParams[key][yr]
+                            const refVal =
+                                simulation.unwppScenarioParams[key][
+                                    yr
+                                ]
+                            const isModified =
+                                Math.abs(userVal - refVal) >= 0.01
+                            const direction =
+                                userVal > refVal
+                                    ? "up"
+                                    : ("down" as const)
+                            return (
+                                <td
+                                    key={key}
+                                    className={
+                                        isModified
+                                            ? "assumptions-table__value--modified"
+                                            : "assumptions-table__value--default"
+                                    }
+                                >
+                                    {isModified && (
+                                        <span className="assumptions-table__arrow-circle">
+                                            <GrapherTrendArrow
+                                                direction={direction}
+                                                isColored={false}
+                                                className="assumptions-table__arrow"
+                                            />
+                                        </span>
+                                    )}
+                                    {config.formatValue(
+                                        isModified
+                                            ? userVal
+                                            : refVal
+                                    )}
+                                    {unit}
+                                </td>
+                            )
+                        })}
+                    </tr>
+                ))}
+            </tbody>
+        </table>
+    )
+}
+
 function CollapsedSummary({
     simulation,
     variant,
@@ -439,7 +513,7 @@ function CollapsedSummary({
     const referencePoints = simulation.unwppScenarioParams[variant]
 
     // Get the last historical value
-    const { points: historical } = config.computeHistorical(simulation, false)
+    const { points: historical } = config.computeHistorical(simulation)
     const lastHistorical = historical.at(-1)
 
     // Check which control years the user has modified
@@ -501,7 +575,7 @@ function CollapsedSparkline({
             points: historical,
             min,
             max,
-        } = config.computeHistorical(simulation, false)
+        } = config.computeHistorical(simulation)
 
         const lastHistorical = historical.at(-1)
         if (!lastHistorical)
@@ -548,8 +622,11 @@ function CollapsedSparkline({
             simulation.unwppScenarioParams[variant]
         )
 
-        const allValues = [
-            ...historical.map((d) => d.value),
+        const controlValues = Object.values(
+            simulation.scenarioParams[variant]
+        )
+        const historicalValues = historical.map((d) => d.value)
+        const allProjectionValues = [
             ...projection.map((d) => d.value),
             ...benchmark.map((d) => d.value),
         ]
@@ -557,8 +634,19 @@ function CollapsedSparkline({
             historicalPoints: historical,
             projectionPoints: [lastHistorical, ...projection],
             benchmarkPoints: [lastHistorical, ...benchmark],
-            minValue: Math.min(min, ...allValues),
-            maxValue: Math.max(max, ...allValues),
+            minValue: Math.max(
+                config.yFloor ?? -Infinity,
+                Math.min(
+                    Math.min(...controlValues) - config.yPadding,
+                    Math.min(...historicalValues),
+                    Math.min(...allProjectionValues)
+                )
+            ),
+            maxValue: Math.max(
+                Math.max(...controlValues) + config.yPadding,
+                Math.max(...historicalValues),
+                Math.max(...allProjectionValues)
+            ),
         }
     }, [simulation, variant, config])
     const points = [...historicalPoints, ...projectionPoints.slice(1)]
