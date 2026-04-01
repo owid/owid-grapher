@@ -751,7 +751,11 @@ function AxisY({
     fonts: PopulationChartFonts
 }) {
     const tickCount = innerHeight < 150 ? 2 : innerHeight < 250 ? 3 : 4
-    const ticks = yScale.ticks(tickCount)
+    const ticks = yScale
+        .ticks(tickCount)
+        .filter(
+            (t) => yScale(t) > fonts.yTick + 4 && yScale(t) < innerHeight - 4
+        )
 
     return (
         <>
