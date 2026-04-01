@@ -5,6 +5,7 @@ import { Bounds } from "@ourworldindata/utils"
 import { OwidDistinctColors } from "@ourworldindata/grapher/src/color/CustomSchemes.js"
 import {
     GRAY_100,
+    GRAY_80,
     GRAY_90,
 } from "@ourworldindata/grapher/src/color/ColorConstants.js"
 
@@ -13,6 +14,10 @@ import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
 
 import "./Chart.scss"
+import {
+    MarkdownTextWrap,
+    MarkdownTextWrapSvg,
+} from "@ourworldindata/components"
 
 export function Chart() {
     const { parentRef, width, height } = useParentSize()
@@ -31,6 +36,9 @@ export function Chart() {
     )
 }
 
+const MARKDOWN_TEXT = `**Demo of using _MarkdownTextWrap_**:
+Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.`
+
 function ChartArea({ width, height }: { width: number; height: number }) {
     if (width <= 0 || height <= 0) return null
 
@@ -39,6 +47,13 @@ function ChartArea({ width, height }: { width: number; height: number }) {
 
     // Bounds of the plotting area (typically without axes, legends, etc.)
     const innerBounds = bounds.pad(32)
+
+    const text = new MarkdownTextWrap({
+        text: MARKDOWN_TEXT,
+        fontSize: 12,
+        lineHeight: 1.2,
+        maxWidth: innerBounds.width - 20,
+    })
 
     return (
         <svg width={width} height={height} viewBox={bounds.toViewBox()}>
@@ -55,6 +70,13 @@ function ChartArea({ width, height }: { width: number; height: number }) {
                     label="Inner Bounds"
                     description="Plotting area, after reserving space for axes, legends, etc."
                     color={OwidDistinctColors.Maroon}
+                />
+
+                <MarkdownTextWrapSvg
+                    x={10}
+                    y={30}
+                    fill={GRAY_80}
+                    textWrap={text}
                 />
             </Group>
         </svg>

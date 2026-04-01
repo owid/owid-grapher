@@ -33,6 +33,8 @@
         "vite-plugin-css-position": "^2.0.9"
     },
     "devDependencies": {
+        "@rollup/plugin-swc": "^0.4.0",
+        "@swc/core": "^1.15.21",
         "@types/react": "^19.2.14",
         "@types/react-dom": "^19.2.3",
         "@typescript/native-preview": "^7.0.0-dev.20260313.1",
