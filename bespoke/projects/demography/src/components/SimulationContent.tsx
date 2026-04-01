@@ -207,7 +207,6 @@ function AgeStructurePanel({
     )
 }
 
-
 export function InputChartPanel({
     simulation,
     variant,
@@ -457,8 +456,6 @@ function AssumptionsTable({ simulation }: { simulation: Simulation }) {
     )
 }
 
-
-
 function SimpleYearSlider({
     selectedYear,
     onChange,
@@ -479,4 +476,3 @@ function SimpleYearSlider({
         </div>
     )
 }
-
