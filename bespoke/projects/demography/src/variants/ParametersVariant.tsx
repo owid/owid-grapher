@@ -141,8 +141,7 @@ function ParametersCaptionedChart({
                             simulation={simulation}
                             variant="netMigrationRate"
                             className={cx("parameters-panel", {
-                                "chart-panel--muted":
-                                    countryName === "World",
+                                "chart-panel--muted": countryName === "World",
                             })}
                             interactive={false}
                             lineColor={
@@ -151,9 +150,7 @@ function ParametersCaptionedChart({
                                     : undefined
                             }
                             labelColor={
-                                countryName === "World"
-                                    ? GRAY_60
-                                    : undefined
+                                countryName === "World" ? GRAY_60 : undefined
                             }
                             hideInfoIcon={countryName === "World"}
                         />

@@ -63,8 +63,7 @@ function PopulationPyramidHorizontal({
         const male = populationBySex?.male ?? []
         const female = populationBySex?.female ?? []
         const totalPop =
-            male.reduce((a, b) => a + b, 0) +
-            female.reduce((a, b) => a + b, 0)
+            male.reduce((a, b) => a + b, 0) + female.reduce((a, b) => a + b, 0)
         const toPercent = (buckets: Record<string, number>) => {
             const result: Record<string, number> = {}
             for (const [k, v] of Object.entries(buckets)) {

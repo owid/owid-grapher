@@ -1,8 +1,4 @@
-import {
-    Disclosure,
-    DisclosurePanel,
-    Button,
-} from "react-aria-components"
+import { Disclosure, DisclosurePanel, Button } from "react-aria-components"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faAngleRight } from "@fortawesome/free-solid-svg-icons"
 import { GRAY_60 } from "@ourworldindata/grapher/src/color/ColorConstants.js"
