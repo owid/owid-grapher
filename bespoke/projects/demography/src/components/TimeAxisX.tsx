@@ -30,7 +30,14 @@ export function TimeAxisX({
 }) {
     return (
         <g transform={`translate(0,${innerHeight})`}>
-            <line x1={0} y1={0} x2={innerWidth} y2={0} stroke={strokeColor} strokeLinecap="square" />
+            <line
+                x1={0}
+                y1={0}
+                x2={innerWidth}
+                y2={0}
+                stroke={strokeColor}
+                strokeLinecap="square"
+            />
             {yearLabels.map(([year]) => (
                 <line
                     key={year}

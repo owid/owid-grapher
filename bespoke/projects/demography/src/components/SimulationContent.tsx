@@ -83,9 +83,7 @@ export function SimulationContent({
                 <div className="input-panels">
                     <Tabs
                         className="input-tabs"
-                        defaultSelectedKey={
-                            focusParameter ?? "fertilityRate"
-                        }
+                        defaultSelectedKey={focusParameter ?? "fertilityRate"}
                     >
                         <TabList className="input-tabs__list">
                             {PARAMETER_KEYS.map((key) => (
@@ -103,12 +101,10 @@ export function SimulationContent({
                                 key === "netMigrationRate" &&
                                 data.country === "World"
                             const isMuted =
-                                (focusParameter &&
-                                    focusParameter !== key) ||
+                                (focusParameter && focusParameter !== key) ||
                                 isWorldMigration
                             const isNonInteractive =
-                                (focusParameter &&
-                                    focusParameter !== key) ||
+                                (focusParameter && focusParameter !== key) ||
                                 isWorldMigration
                             return (
                                 <TabPanel
@@ -119,35 +115,23 @@ export function SimulationContent({
                                     <InputChartPanel
                                         simulation={simulation}
                                         variant={key}
-                                        interactive={
-                                            !isNonInteractive
-                                        }
+                                        interactive={!isNonInteractive}
                                         lineColor={
                                             isMuted
                                                 ? BENCHMARK_LINE_COLOR
                                                 : undefined
                                         }
                                         labelColor={
-                                            isMuted
-                                                ? GRAY_60
-                                                : undefined
+                                            isMuted ? GRAY_60 : undefined
                                         }
-                                        resetTarget={
-                                            stabilizedOverrides?.[
-                                                key
-                                            ]
-                                        }
-                                        hideInfoIcon={
-                                            isWorldMigration
-                                        }
+                                        resetTarget={stabilizedOverrides?.[key]}
+                                        hideInfoIcon={isWorldMigration}
                                         showProjectionLabel
                                         className={cx({
                                             "chart-panel--focus":
                                                 focusParameter &&
-                                                focusParameter ===
-                                                    key,
-                                            "chart-panel--muted":
-                                                isMuted,
+                                                focusParameter === key,
+                                            "chart-panel--muted": isMuted,
                                         })}
                                     />
                                 </TabPanel>
@@ -163,7 +147,9 @@ export function SimulationContent({
                         className="population-panel"
                         title="Population"
                         subtitle="Historical estimates and projections of total population"
-                        header={<PopulationChartLegend modified={hasUserChanges} />}
+                        header={
+                            <PopulationChartLegend modified={hasUserChanges} />
+                        }
                     >
                         <ResponsivePopulationChart
                             simulation={simulation}
@@ -401,11 +387,7 @@ export function ChartPanel({
     )
 }
 
-function AssumptionsTable({
-    simulation,
-}: {
-    simulation: Simulation
-}) {
+function AssumptionsTable({ simulation }: { simulation: Simulation }) {
     const { ref: tableRef, getTippyContainer } =
         useTippyContainer<HTMLTableElement>()
     return (
@@ -425,8 +407,7 @@ function AssumptionsTable({
                                 {PARAMETER_TAB_LABELS[key]}
                                 <Tippy
                                     content={
-                                        parameterConfigByKey[key]
-                                            .tooltipContent
+                                        parameterConfigByKey[key].tooltipContent
                                     }
                                     placement="top"
                                     appendTo={getTippyContainer}
@@ -446,9 +427,7 @@ function AssumptionsTable({
             <tbody>
                 {CONTROL_YEARS.map((yr) => (
                     <tr key={yr}>
-                        <td className="assumptions-table__year">
-                            In {yr}
-                        </td>
+                        <td className="assumptions-table__year">In {yr}</td>
                         {PARAMETER_KEYS.map((key) => {
                             const config = parameterConfigByKey[key]
                             const unit =
@@ -457,18 +436,13 @@ function AssumptionsTable({
                                     : key === "fertilityRate"
                                       ? " births"
                                       : ""
-                            const userVal =
-                                simulation.scenarioParams[key][yr]
+                            const userVal = simulation.scenarioParams[key][yr]
                             const refVal =
-                                simulation.unwppScenarioParams[key][
-                                    yr
-                                ]
+                                simulation.unwppScenarioParams[key][yr]
                             const isModified =
                                 Math.abs(userVal - refVal) >= 0.01
                             const direction =
-                                userVal > refVal
-                                    ? "up"
-                                    : ("down" as const)
+                                userVal > refVal ? "up" : ("down" as const)
                             return (
                                 <td
                                     key={key}
@@ -612,11 +586,7 @@ function CollapsedSparkline({
                 ...params,
             }
             const pts: { year: number; value: number }[] = []
-            for (
-                let year = HISTORICAL_END_YEAR + 1;
-                year <= END_YEAR;
-                year++
-            ) {
+            for (let year = HISTORICAL_END_YEAR + 1; year <= END_YEAR; year++) {
                 pts.push({
                     year,
                     value: getInterpolatedValue(
@@ -630,16 +600,12 @@ function CollapsedSparkline({
             return pts
         }
 
-        const projection = buildProjection(
-            simulation.scenarioParams[variant]
-        )
+        const projection = buildProjection(simulation.scenarioParams[variant])
         const benchmark = buildProjection(
             simulation.unwppScenarioParams[variant]
         )
 
-        const controlValues = Object.values(
-            simulation.scenarioParams[variant]
-        )
+        const controlValues = Object.values(simulation.scenarioParams[variant])
         const historicalValues = historical.map((d) => d.value)
         const allProjectionValues = [
             ...projection.map((d) => d.value),
@@ -788,7 +754,11 @@ function CollapsedSparkline({
                             x={pt.x}
                             y={pt.y}
                             label={pt.label}
-                            color={pt.year <= HISTORICAL_END_YEAR ? DENIM_BLUE : projectionColor}
+                            color={
+                                pt.year <= HISTORICAL_END_YEAR
+                                    ? DENIM_BLUE
+                                    : projectionColor
+                            }
                             fontSize={fontSize}
                             dotRadius={dotRadius}
                             textAnchor={pt.textAnchor}
@@ -818,8 +788,7 @@ function SparklinePointLabel({
     textAnchor?: "start" | "middle" | "end"
 }) {
     // Above by default; below if the dot is too close to the top of the SVG
-    const labelY =
-        y < 20 ? y + fontSize / 2 + 8 : y - fontSize / 2 - 3
+    const labelY = y < 20 ? y + fontSize / 2 + 8 : y - fontSize / 2 - 3
 
     return (
         <>
