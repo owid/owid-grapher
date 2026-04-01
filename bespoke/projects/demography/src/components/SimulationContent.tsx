@@ -410,6 +410,12 @@ function AssumptionsTable({
         useTippyContainer<HTMLTableElement>()
     return (
         <table className="assumptions-table" ref={tableRef}>
+            <colgroup>
+                <col className="assumptions-table__col-year" />
+                <col />
+                <col />
+                <col />
+            </colgroup>
             <thead>
                 <tr>
                     <th></th>
@@ -472,21 +478,27 @@ function AssumptionsTable({
                                             : "assumptions-table__value--default"
                                     }
                                 >
-                                    {isModified && (
-                                        <span className="assumptions-table__arrow-circle">
-                                            <GrapherTrendArrow
-                                                direction={direction}
-                                                isColored={false}
-                                                className="assumptions-table__arrow"
-                                            />
-                                        </span>
+                                    {isModified ? (
+                                        <>
+                                            <span className="assumptions-table__ref-value">
+                                                {config.formatValue(refVal)}
+                                            </span>
+                                            <span className="assumptions-table__arrow-circle">
+                                                <GrapherTrendArrow
+                                                    direction={direction}
+                                                    isColored={false}
+                                                    className="assumptions-table__arrow"
+                                                />
+                                            </span>
+                                            {config.formatValue(userVal)}
+                                            {unit}
+                                        </>
+                                    ) : (
+                                        <>
+                                            {config.formatValue(refVal)}
+                                            {unit}
+                                        </>
                                     )}
-                                    {config.formatValue(
-                                        isModified
-                                            ? userVal
-                                            : refVal
-                                    )}
-                                    {unit}
                                 </td>
                             )
                         })}
