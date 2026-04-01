@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react"
+import cx from "classnames"
 import {
     SlideshowConfig,
     ImageMetadata,
@@ -165,24 +166,37 @@ export function SlideshowPresentation(props: {
 
     return (
         <div
-            ref={containerRef}
-            className={`SlideshowPresentation${isFullscreen ? " SlideshowPresentation--fullscreen" : ""}`}
+            className={cx({
+                SlideshowContainer: true,
+                "SlideshowContainer--fullscreen": isFullscreen,
+            })}
         >
-            {/* All slides are rendered simultaneously and toggled with
+            <div
+                ref={containerRef}
+                className={cx({
+                    SlideshowPresentation: true,
+                    "SlideshowPresentation--fullscreen": isFullscreen,
+                })}
+            >
+                {/* All slides are rendered simultaneously and toggled with
                 CSS display so that chart data is fetched upfront. */}
-            {slides.map((slide, i) => (
-                <div
-                    key={i}
-                    className="SlideshowPresentation__slide"
-                    style={{ display: i === currentIndex ? "block" : "none" }}
-                >
-                    <SlideRenderer
-                        slide={slide}
-                        imageMetadata={imageMetadata}
-                        renderChart={activeRenderChart}
-                    />
-                </div>
-            ))}
+                {slides.map((slide, i) => (
+                    <div
+                        key={i}
+                        className="SlideshowPresentation__slide"
+                        style={{
+                            visibility:
+                                i === currentIndex ? "visible" : "hidden",
+                        }}
+                    >
+                        <SlideRenderer
+                            slide={slide}
+                            imageMetadata={imageMetadata}
+                            renderChart={activeRenderChart}
+                        />
+                    </div>
+                ))}
+            </div>
             <div className="SlideshowPresentation__footer">
                 <span className="SlideshowPresentation__branding">
                     A presentation by{" "}
