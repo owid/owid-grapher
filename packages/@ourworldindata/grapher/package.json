@@ -13,14 +13,19 @@
                 "types": "./dist/grapher.d.ts",
                 "import": "./dist/grapher.js"
             },
-            "./dist/grapher.css": "./dist/grapher.css"
+            "./dist/grapher.css": "./dist/grapher.css",
+            "./cdn": "./dist/grapher.bundle.js"
         }
+    },
+    "peerDependencies": {
+        "react": "^18.0.0 || ^19.0.0",
+        "react-dom": "^18.0.0 || ^19.0.0"
     },
     "files": [
         "dist"
     ],
     "scripts": {
-        "build": "vite build"
+        "build": "vite build && vite build --mode cdn"
     },
     "directories": {
         "lib": "src"
@@ -77,6 +82,7 @@
         "@types/react": "^19.2.14",
         "@types/react-dom": "^19.2.3",
         "@types/topojson-client": "^3.1.5",
+        "vite": "^8.0.3",
         "vitest": "^4.1.2"
     },
     "license": "MIT"
