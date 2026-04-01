@@ -448,7 +448,7 @@ $panel-gap: 12px;
 .chart-panel {
     position: relative;
     background: white;
-    padding: 0;
+    padding: $panel-gap;
     border-radius: 2px;
     display: flex;
     flex-direction: column;
@@ -472,7 +472,7 @@ $panel-gap: 12px;
 
     .chart-panel__reset-btn {
         position: absolute;
-        top: 8px;
+        top: $panel-gap;
         right: $panel-gap;
         padding: 0;
         border: none;
@@ -491,31 +491,29 @@ $panel-gap: 12px;
 
     .chart-panel__title {
         font-size: 0.8125rem;
-        margin: 0;
-        padding: 8px $panel-gap 0;
+        margin: 0 0 4px;
         color: $dark-text;
     }
 
     .chart-panel__subtitle {
         font-size: 0.8125rem;
         margin: 0;
-        padding: 4px $panel-gap 0;
         color: $dark-text;
         line-height: 1.2;
     }
 
     .chart-panel__header {
-        padding: 8px $panel-gap 0;
+        margin-top: 8px;
     }
 
     .chart-panel__content {
         flex: 1;
         min-height: 0;
-        padding: 8px $panel-gap $panel-gap;
+        margin-top: 8px;
     }
 
     .chart-panel__footer {
-        padding: 0 $panel-gap $panel-gap;
+        margin-top: $panel-gap;
     }
 
     .chart-panel__title-unit {
