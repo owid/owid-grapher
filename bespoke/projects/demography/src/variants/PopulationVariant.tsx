@@ -1,7 +1,6 @@
 import cx from "classnames"
 import { QueryClientProvider } from "@tanstack/react-query"
 
-import { DemographyControls } from "../components/DemographyControls.js"
 import {
     DemographyChartError,
     DemographySkeleton,
@@ -13,7 +12,7 @@ import type { PopulationVariantConfig } from "../config.js"
 import { articulateEntity } from "@ourworldindata/utils"
 import { displayEntityName } from "../helpers/utils.js"
 
-import { CountryData } from "../helpers/types.js"
+import { CountryData, DemographyMetadata } from "../helpers/types.js"
 import { useSimulation } from "../helpers/useSimulation.js"
 
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
@@ -26,6 +25,7 @@ import {
     useContainerBreakpoint,
     breakpointClass,
 } from "../helpers/useBreakpoint.js"
+import { InlineEntitySelector } from "../components/InlineEntitySelector.js"
 
 export function PopulationVariantWithProviders(props: {
     container: HTMLDivElement
@@ -43,7 +43,6 @@ function PopulationVariant({
 }: {
     config: PopulationVariantConfig
 }): React.ReactElement {
-    const showControls = !config.hideControls
     const [entityName, setEntityName] = useInitialEntityName(config.region)
 
     const { metadata, entityData, isLoadingEntityData, status } =
@@ -63,18 +62,15 @@ function PopulationVariant({
                     breakpointClass(breakpoint)
                 )}
             >
-                {showControls && (
-                    <DemographyControls
-                        metadata={metadata}
-                        entityName={entityName}
-                        setEntityName={setEntityName}
-                    />
-                )}
                 <PopulationCaptionedChart
                     data={entityData}
+                    metadata={metadata}
+                    entityName={entityName}
+                    setEntityName={setEntityName}
                     isLoading={isLoadingEntityData}
                     title={config.title}
                     subtitle={config.subtitle}
+                    hideControls={config.hideControls}
                 />
             </div>
         </BreakpointProvider>
@@ -83,23 +79,41 @@ function PopulationVariant({
 
 function PopulationCaptionedChart({
     data,
+    metadata,
+    entityName,
+    setEntityName,
     isLoading = false,
     title: titleOverride,
     subtitle: subtitleOverride,
+    hideControls,
 }: {
     data: CountryData
+    metadata: DemographyMetadata
+    entityName: string
+    setEntityName: (name: string) => void
     isLoading?: boolean
     title?: string
     subtitle?: string
+    hideControls?: boolean
 }) {
     const simulation = useSimulation(data)
     const countryName = data.country
 
-    const title =
-        titleOverride ??
-        (countryName === "World"
-            ? "World population, 1950 to 2100"
-            : `Population of ${articulateEntity(displayEntityName(countryName))}, 1950 to 2100`)
+    const title: React.ReactNode = titleOverride ?? (
+        <>
+            Population of{" "}
+            {hideControls ? (
+                articulateEntity(displayEntityName(countryName))
+            ) : (
+                <InlineEntitySelector
+                    metadata={metadata}
+                    entityName={entityName}
+                    onChange={setEntityName}
+                />
+            )}
+            , 1950 to 2100
+        </>
+    )
     const subtitle =
         subtitleOverride ??
         "Historical estimates and projections of total population"
