@@ -15,24 +15,24 @@ export function CopySocialButton() {
     }
 
     function handleClick() {
-        const title =
+        let title =
             document.querySelector<HTMLElement>(
                 ".data-insight-body .display-3-semibold"
             )?.innerText ?? ""
+        if (!title.includes("—")) {
+            title += "—"
+        }
 
         const bodyEl = document.querySelector<HTMLElement>(
             ".data-insight-blocks"
         )
-        // innerText preserves paragraph breaks but strips HTML
-        let body = bodyEl?.innerText ?? ""
 
-        // The CTA renders inside .data-insight-blocks as a .cta element.
-        // Remove its text from the body so we can format it separately.
-        const ctaEl = bodyEl?.querySelector<HTMLElement>(".cta")
-        const ctaLinkEl = ctaEl?.querySelector<HTMLAnchorElement>("a")
-        if (ctaEl && body.includes(ctaEl.innerText)) {
-            body = body.replace(ctaEl.innerText, "").trimEnd()
-        }
+        const ctaLinkEl =
+            bodyEl?.querySelector<HTMLAnchorElement>(".cta a") ?? null
+        const paragraphs = bodyEl?.querySelectorAll("p") ?? []
+        const body = Array.from(paragraphs)
+            .map((p) => p.innerText)
+            .join("\n\n")
 
         const authorEls = document.querySelectorAll<HTMLElement>(
             ".data-insight-author"
@@ -55,7 +55,7 @@ export function CopySocialButton() {
         }
 
         if (ctaLinkEl) {
-            const ctaText = ctaLinkEl.innerText.trim()
+            const ctaText = ctaLinkEl.innerText.trim().replace(/[.:]+$/, "")
             const ctaUrl = ctaLinkEl.href
             parts.push(`${ctaText}: ${ctaUrl}`)
         }
