@@ -58,13 +58,13 @@ function DemographyParameterEditor({
     variant,
     interactive = true,
     lineColor = DENIM_BLUE,
-    projectionColor: projectionColorProp,
+    // projectionColor: projectionColorProp,
     labelColor = DENIM_BLUE,
     showProjectionLabel = false,
     width,
     height,
 }: DemographyParameterEditorProps & { width: number; height: number }) {
-    const projectionColor = projectionColorProp ?? lineColor
+    // const projectionColor = projectionColorProp ?? lineColor
     const config = parameterConfigByKey[variant]
     const fonts = getParameterChartFonts(widthToBreakpoint(width))
     const [hoveredYear, setHoveredYear] = useState<number | null>(null)
