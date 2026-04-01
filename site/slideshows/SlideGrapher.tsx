@@ -35,6 +35,8 @@ export interface SlideGrapherProps {
     hideTitle?: boolean
     /** Hide the Grapher's subtitle */
     hideSubtitle?: boolean
+    /** Called once when the chart is fully loaded, with its title and subtitle */
+    onChartReady?: (info: { title: string; subtitle: string }) => void
 }
 
 /**
@@ -120,6 +122,9 @@ export function SlideGrapher(props: SlideGrapherProps): React.ReactElement {
     // feedback loop when we programmatically apply query params.
     const isSuppressingReactionRef = useRef(false)
 
+    const onChartReadyRef = useRef(props.onChartReady)
+    onChartReadyRef.current = props.onChartReady
+
     // Wait for the Grapher to be fully ready (config + data loaded),
     // then set up the changedParams reaction. This completely avoids
     // the transient init noise that changedParams goes through while
@@ -134,6 +139,12 @@ export function SlideGrapher(props: SlideGrapherProps): React.ReactElement {
         const outerDispose = when(
             () => state.isReady,
             () => {
+                // Notify parent with the chart's title and subtitle
+                onChartReadyRef.current?.({
+                    title: state.currentTitle,
+                    subtitle: state.currentSubtitle,
+                })
+
                 innerDispose = reaction(
                     () => state.changedParams,
                     (changedParams) => {

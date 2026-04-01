@@ -24,6 +24,8 @@ interface SlideChartEmbedProps {
     onQueryStringChange?: (queryString: string) => void
     hideTitle?: boolean
     hideSubtitle?: boolean
+    /** Called once when the chart is fully loaded, with its title and subtitle */
+    onChartReady?: (info: { title: string; subtitle: string }) => void
 }
 
 /**
@@ -45,6 +47,7 @@ export function SlideChartEmbed(
         onQueryStringChange,
         hideTitle,
         hideSubtitle,
+        onChartReady,
     } = props
 
     const parsed = parseSlideChartUrl(url)
@@ -59,6 +62,7 @@ export function SlideChartEmbed(
                 onQueryStringChange={onQueryStringChange}
                 hideTitle={hideTitle}
                 hideSubtitle={hideSubtitle}
+                onChartReady={onChartReady}
             />
         )
     }
@@ -78,6 +82,7 @@ export function SlideChartEmbed(
             onQueryStringChange={onQueryStringChange}
             hideTitle={hideTitle}
             hideSubtitle={hideSubtitle}
+            onChartReady={onChartReady}
         />
     )
 }
@@ -92,8 +97,10 @@ function SlideExplorer(props: {
     onQueryStringChange?: (queryString: string) => void
     hideTitle?: boolean
     hideSubtitle?: boolean
+    onChartReady?: (info: { title: string; subtitle: string }) => void
 }): React.ReactElement {
-    const { url, onQueryStringChange, hideTitle, hideSubtitle } = props
+    const { url, onQueryStringChange, hideTitle, hideSubtitle, onChartReady } =
+        props
     const parsed = parseSlideChartUrl(url)
     const explorerRef = useRef<Explorer>(null)
     const onChangeRef = useRef(onQueryStringChange)
@@ -102,6 +109,8 @@ function SlideExplorer(props: {
     hideTitleRef.current = hideTitle
     const hideSubtitleRef = useRef(hideSubtitle)
     hideSubtitleRef.current = hideSubtitle
+    const onChartReadyRef = useRef(onChartReady)
+    onChartReadyRef.current = onChartReady
 
     const [explorerProps, setExplorerProps] = useState<ExplorerProps | null>(
         null
@@ -145,6 +154,10 @@ function SlideExplorer(props: {
                 () => explorer.grapherState?.isReady,
                 (isReady) => {
                     if (!isReady) return
+                    onChartReadyRef.current?.({
+                        title: explorer.grapherState.currentTitle,
+                        subtitle: explorer.grapherState.currentSubtitle,
+                    })
                     runInAction(() => {
                         explorer.grapherState.hideTitle =
                             hideTitleRef.current ?? false

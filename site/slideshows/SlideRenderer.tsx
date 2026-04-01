@@ -105,10 +105,7 @@ export function SlideRenderer(props: {
                             <ChartRenderer
                                 url={slide.url}
                                 hideTitle={!!slide.titleOverride}
-                                hideSubtitle={
-                                    !!slide.hideSubtitle ||
-                                    !!slide.subtitleOverride
-                                }
+                                hideSubtitle={!!slide.subtitleOverride}
                                 renderChart={renderChart}
                             />
                         </div>
