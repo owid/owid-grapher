@@ -395,7 +395,7 @@ function DemographyParameterEditor({
                 {showProjectionLabel && (
                     <text
                         x={projX + 6}
-                        y={innerHeight - 6}
+                        y={fonts.projectionAnnotation + 2}
                         fontSize={fonts.projectionAnnotation}
                         fill={GRAPHER_LIGHT_TEXT}
                     >
@@ -424,6 +424,12 @@ function DemographyParameterEditor({
                     fontSize={fonts.xTick}
                     labelOffset={YEAR_LABEL_OFFSET}
                     hideLabels={hoveredYear !== null}
+                    yearLabels={[
+                        [1950, "start"],
+                        [2030, "middle"],
+                        [2050, "middle"],
+                        [2100, "end"],
+                    ]}
                 />
 
                 {/* Historical line */}
@@ -470,7 +476,7 @@ function DemographyParameterEditor({
                 />
 
                 {/* Last historical point (2023) */}
-                <PointLabelWithYear
+                {/* <PointLabelWithYear
                     x={xScale(lastHistoricalDataPoint.year)}
                     y={
                         !interactive
@@ -488,9 +494,10 @@ function DemographyParameterEditor({
                     fontSize={fonts.pointLabel}
                     year={lastHistoricalDataPoint.year}
                     yearAnchor="middle"
+                    hideTickMark
                     hidden={hiddenPointLabels.has("last-historical")}
                     tickColor={axisColor}
-                />
+                /> */}
 
                 {/* Last projection point (2100) */}
                 {projectionPoints.length > 0 && (
