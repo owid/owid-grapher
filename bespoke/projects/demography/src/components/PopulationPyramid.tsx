@@ -25,8 +25,6 @@ import {
     groupByAgeRange,
     calculateMedianAge,
     findAgeGroup,
-    formatPopulationValueShort,
-    formatPopulationAxisLabelShort,
 } from "../helpers/utils"
 import { Bounds } from "@ourworldindata/utils"
 import type { AgeZone, AgeZoneWithBounds } from "../helpers/types.js"
@@ -108,7 +106,7 @@ function PopulationPyramid({
             : simulation.getPopulationForYear
     )(year)
 
-    const { ageBucketsBySex, medianAgeBucketBySex } = useMemo(() => {
+    const { ageBucketsBySex } = useMemo(() => {
         const male = populationBySex?.male ?? []
         const female = populationBySex?.female ?? []
         const totalPop =
@@ -520,7 +518,7 @@ function PopulationPyramidAxisX({
     triangle: { w: number; h: number }
     hoveredAgeGroup: string | null
 }) {
-    const isHovering = hoveredAgeGroup !== null
+    // const isHovering = hoveredAgeGroup !== null
     return (
         <>
             {/* Age group labels */}
@@ -692,25 +690,25 @@ function AgeZoneLabels({
     )
 }
 
-function Triangle({
-    x,
-    y,
-    direction,
-    size,
-}: {
-    x: number
-    y: number
-    direction: "left" | "right"
-    size: { w: number; h: number }
-}) {
-    const sign = direction === "right" ? -1 : 1
-    return (
-        <polygon
-            points={`${x + sign * size.w},${y - size.h} ${x + sign * size.w},${y + size.h} ${x},${y}`}
-            fill={GRAPHER_LIGHT_TEXT}
-        />
-    )
-}
+// function Triangle({
+//     x,
+//     y,
+//     direction,
+//     size,
+// }: {
+//     x: number
+//     y: number
+//     direction: "left" | "right"
+//     size: { w: number; h: number }
+// }) {
+//     const sign = direction === "right" ? -1 : 1
+//     return (
+//         <polygon
+//             points={`${x + sign * size.w},${y - size.h} ${x + sign * size.w},${y + size.h} ${x},${y}`}
+//             fill={GRAPHER_LIGHT_TEXT}
+//         />
+//     )
+// }
 
 /**
  * Compute the y position and height for each zone's background rect.

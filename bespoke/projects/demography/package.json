@@ -21,6 +21,7 @@
         "@ourworldindata/types": "link:../../../packages/@ourworldindata/types",
         "@ourworldindata/utils": "link:../../../packages/@ourworldindata/utils",
         "@react-stately/flags": "^3.1.2",
+        "@rollup/plugin-swc": "^0.4.0",
         "@tanstack/react-query": "^5.90.6",
         "@tippyjs/react": "^4.2.6",
         "@visx/axis": "^3.12.0",

@@ -1,13 +1,10 @@
 import cx from "classnames"
-import { useCallback, useMemo, useRef, useState } from "react"
+import { useCallback, useMemo, useState } from "react"
 import { Tippy } from "@ourworldindata/utils"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCircleInfo } from "@fortawesome/free-solid-svg-icons"
 import { Tabs, TabList, Tab, TabPanel } from "react-aria-components"
-import { LinePath } from "@visx/shape"
-import { scaleLinear } from "@visx/scale"
-import { GrapherTrendArrow, Halo } from "@ourworldindata/components"
-import { BezierArrow } from "../../../../components/BezierArrow/BezierArrow"
+import { GrapherTrendArrow } from "@ourworldindata/components"
 import { CountryData, PARAMETER_KEYS, ParameterKey } from "../helpers/types"
 import {
     useSimulation,
@@ -27,17 +24,11 @@ import {
     FULL_TIME_RANGE,
     BENCHMARK_LINE_COLOR,
     USER_MODIFIED_COLOR,
-    DENIM_BLUE,
-    PROJECTION_BACKGROUND,
 } from "../helpers/constants.js"
-import { getInterpolatedValue } from "../model/projectionRunner.js"
 import { PopulationChartLegend } from "./PopulationChartLegend.js"
 import { parameterConfigByKey } from "../helpers/parameterConfigs.js"
 import { useTippyContainer } from "../../../../hooks/useTippyContainer.js"
-import {
-    GRAY_60,
-    GRAPHER_LIGHT_TEXT,
-} from "@ourworldindata/grapher/src/color/ColorConstants.js"
+import { GRAY_60 } from "@ourworldindata/grapher/src/color/ColorConstants.js"
 
 const PARAMETER_TAB_LABELS: Record<ParameterKey, string> = {
     fertilityRate: "Fertility Rate",
@@ -70,7 +61,6 @@ export function SimulationContent({
 
     if (!simulation) return null
 
-    const title = makeTitle({ focusParameter })
     const hasUserChanges = simulation.activePreset !== "unwpp"
     const pyramidBarColor =
         hasUserChanges && year > HISTORICAL_END_YEAR
@@ -217,22 +207,6 @@ function AgeStructurePanel({
     )
 }
 
-function Container({
-    title,
-    children,
-    className,
-}: {
-    title: string
-    children: React.ReactNode
-    className?: string
-}) {
-    return (
-        <div className={cx("container", className)}>
-            <h3 className="container__title">{title}</h3>
-            {children}
-        </div>
-    )
-}
 
 export function InputChartPanel({
     simulation,
@@ -483,346 +457,7 @@ function AssumptionsTable({ simulation }: { simulation: Simulation }) {
     )
 }
 
-function CollapsedSummary({
-    simulation,
-    variant,
-}: {
-    simulation: Simulation
-    variant: ParameterKey
-}) {
-    const config = parameterConfigByKey[variant]
-    const formatVal = config.formatValue
-    const unit =
-        variant === "lifeExpectancy"
-            ? " years"
-            : variant === "fertilityRate"
-              ? " births"
-              : ""
-    const controlPoints = simulation.scenarioParams[variant]
-    const referencePoints = simulation.unwppScenarioParams[variant]
 
-    // Get the last historical value
-    const { points: historical } = config.computeHistorical(simulation)
-    const lastHistorical = historical.at(-1)
-
-    // Check which control years the user has modified
-    const modifiedYears = CONTROL_YEARS.filter(
-        (yr) => Math.abs(controlPoints[yr] - referencePoints[yr]) >= 0.01
-    )
-
-    const current = lastHistorical
-        ? `${formatVal(lastHistorical.value)}${unit} in ${lastHistorical.year}`
-        : ""
-
-    const isModified = modifiedYears.length > 0
-
-    let projectionText: string
-    if (isModified) {
-        const modified = modifiedYears.map(
-            (yr) => `${formatVal(controlPoints[yr])}${unit} by ${yr}`
-        )
-        projectionText = `set to ${modified.join(", ")}`
-    } else {
-        const endValue = controlPoints[CONTROL_YEARS[CONTROL_YEARS.length - 1]]
-        projectionText = `projected ${formatVal(endValue)}${unit} by ${CONTROL_YEARS[CONTROL_YEARS.length - 1]}`
-    }
-
-    return (
-        <span className="input-accordion__trigger-summary">
-            {current} →{" "}
-            <span
-                className={
-                    isModified
-                        ? "input-accordion__trigger-summary--modified"
-                        : undefined
-                }
-            >
-                {projectionText}
-            </span>
-        </span>
-    )
-}
-
-function CollapsedSparkline({
-    simulation,
-    variant,
-}: {
-    simulation: Simulation
-    variant: ParameterKey
-}) {
-    const config = parameterConfigByKey[variant]
-    const isModified = simulation.modifiedParameters.has(variant)
-
-    const {
-        historicalPoints,
-        projectionPoints,
-        benchmarkPoints,
-        minValue,
-        maxValue,
-    } = useMemo(() => {
-        const {
-            points: historical,
-            min,
-            max,
-        } = config.computeHistorical(simulation)
-
-        const lastHistorical = historical.at(-1)
-        if (!lastHistorical)
-            return {
-                historicalPoints: historical,
-                projectionPoints: [],
-                benchmarkPoints: [],
-                minValue: min,
-                maxValue: max,
-            }
-
-        const augmentedYears = [HISTORICAL_END_YEAR, ...CONTROL_YEARS]
-
-        const buildProjection = (
-            params: Record<number, number>
-        ): { year: number; value: number }[] => {
-            const aug: Record<number, number> = {
-                [HISTORICAL_END_YEAR]: lastHistorical.value,
-                ...params,
-            }
-            const pts: { year: number; value: number }[] = []
-            for (let year = HISTORICAL_END_YEAR + 1; year <= END_YEAR; year++) {
-                pts.push({
-                    year,
-                    value: getInterpolatedValue(
-                        aug,
-                        year,
-                        HISTORICAL_END_YEAR,
-                        augmentedYears
-                    ),
-                })
-            }
-            return pts
-        }
-
-        const projection = buildProjection(simulation.scenarioParams[variant])
-        const benchmark = buildProjection(
-            simulation.unwppScenarioParams[variant]
-        )
-
-        const controlValues = Object.values(simulation.scenarioParams[variant])
-        const historicalValues = historical.map((d) => d.value)
-        const allProjectionValues = [
-            ...projection.map((d) => d.value),
-            ...benchmark.map((d) => d.value),
-        ]
-        return {
-            historicalPoints: historical,
-            projectionPoints: [lastHistorical, ...projection],
-            benchmarkPoints: [lastHistorical, ...benchmark],
-            minValue: Math.max(
-                config.yFloor ?? -Infinity,
-                Math.min(
-                    Math.min(...controlValues) - config.yPadding,
-                    Math.min(...historicalValues),
-                    Math.min(...allProjectionValues)
-                )
-            ),
-            maxValue: Math.max(
-                Math.max(...controlValues) + config.yPadding,
-                Math.max(...historicalValues),
-                Math.max(...allProjectionValues)
-            ),
-        }
-    }, [simulation, variant, config])
-    const points = [...historicalPoints, ...projectionPoints.slice(1)]
-
-    const containerRef = useRef<HTMLDivElement>(null)
-    const [size, setSize] = useState({ width: 0, height: 0 })
-
-    const resizeRef = useCallback((node: HTMLDivElement | null) => {
-        containerRef.current = node
-        if (!node) return
-        const obs = new ResizeObserver((entries) => {
-            const { width, height } = entries[0].contentRect
-            setSize({ width, height })
-        })
-        obs.observe(node)
-        return () => obs.disconnect()
-    }, [])
-
-    if (points.length === 0) return null
-
-    const { width, height } = size
-    const dotRadius = 3
-    const fontSize = 10
-    const xScale = scaleLinear({
-        domain: [START_YEAR, END_YEAR],
-        range: [dotRadius, width - dotRadius],
-    })
-    const yScale = scaleLinear({
-        domain: [minValue, maxValue],
-        range: [height - 2, 2],
-        clamp: true,
-    })
-
-    const firstPoint = points[0]
-    const lastPoint = points[points.length - 1]
-    const projectionColor = isModified ? USER_MODIFIED_COLOR : DENIM_BLUE
-    const formatVal = config.formatValue
-
-    // Build labeled points with their screen positions
-    const controlPointYears = [2030, 2050] as const
-    const augmentedControlPoints = {
-        [HISTORICAL_END_YEAR]:
-            points.find((p) => p.year === HISTORICAL_END_YEAR)?.value ?? 0,
-        ...simulation.scenarioParams[variant],
-    }
-    const augmentedYears = [HISTORICAL_END_YEAR, ...CONTROL_YEARS]
-
-    const labeledPoints = [
-        ...(firstPoint
-            ? [
-                  {
-                      year: firstPoint.year,
-                      x: xScale(firstPoint.year),
-                      y: yScale(firstPoint.value),
-                      label: formatVal(firstPoint.value),
-                      textAnchor: "start" as const,
-                  },
-              ]
-            : []),
-        ...controlPointYears.map((yr) => {
-            const val = getInterpolatedValue(
-                augmentedControlPoints,
-                yr,
-                HISTORICAL_END_YEAR,
-                augmentedYears
-            )
-            return {
-                year: yr,
-                x: xScale(yr),
-                y: yScale(val),
-                label: formatVal(val),
-                textAnchor: "middle" as const,
-            }
-        }),
-        ...(lastPoint
-            ? [
-                  {
-                      year: lastPoint.year,
-                      x: xScale(lastPoint.year),
-                      y: yScale(lastPoint.value),
-                      label: formatVal(lastPoint.value),
-                      textAnchor: "end" as const,
-                  },
-              ]
-            : []),
-    ]
-
-    return (
-        <div ref={resizeRef} className="input-accordion__sparkline">
-            {width > 0 && height > 0 && (
-                <svg
-                    width={width}
-                    height={height}
-                    style={{ overflow: "visible" }}
-                >
-                    <LinePath
-                        data={benchmarkPoints}
-                        x={(d) => xScale(d.year)}
-                        y={(d) => yScale(d.value)}
-                        stroke={BENCHMARK_LINE_COLOR}
-                        strokeWidth={1.5}
-                        strokeDasharray="1,2"
-                        strokeLinecap="butt"
-                    />
-                    <LinePath
-                        data={historicalPoints}
-                        x={(d) => xScale(d.year)}
-                        y={(d) => yScale(d.value)}
-                        stroke={DENIM_BLUE}
-                        strokeWidth={1.5}
-                    />
-                    <LinePath
-                        data={projectionPoints}
-                        x={(d) => xScale(d.year)}
-                        y={(d) => yScale(d.value)}
-                        stroke={projectionColor}
-                        strokeWidth={1.5}
-                        strokeDasharray="1,2"
-                        strokeLinecap="butt"
-                    />
-                    {labeledPoints.map((pt) => (
-                        <SparklinePointLabel
-                            key={pt.year}
-                            x={pt.x}
-                            y={pt.y}
-                            label={pt.label}
-                            color={
-                                pt.year <= HISTORICAL_END_YEAR
-                                    ? DENIM_BLUE
-                                    : projectionColor
-                            }
-                            fontSize={fontSize}
-                            dotRadius={dotRadius}
-                            textAnchor={pt.textAnchor}
-                        />
-                    ))}
-                </svg>
-            )}
-        </div>
-    )
-}
-
-function SparklinePointLabel({
-    x,
-    y,
-    label,
-    color,
-    fontSize,
-    dotRadius,
-    textAnchor = "middle",
-}: {
-    x: number
-    y: number
-    label: string
-    color: string
-    fontSize: number
-    dotRadius: number
-    textAnchor?: "start" | "middle" | "end"
-}) {
-    // Above by default; below if the dot is too close to the top of the SVG
-    const labelY = y < 20 ? y + fontSize / 2 + 8 : y - fontSize / 2 - 3
-
-    return (
-        <>
-            <circle cx={x} cy={y} r={dotRadius} fill={color} />
-            <Halo id="sparkline-label" outlineWidth={3} outlineColor="#f0f4fa">
-                <text
-                    x={x}
-                    y={labelY}
-                    fontSize={fontSize}
-                    fontWeight={700}
-                    fill={color}
-                    textAnchor={textAnchor}
-                >
-                    {label}
-                </text>
-            </Halo>
-        </>
-    )
-}
-
-function ArrowFromInputToOutputPanels() {
-    return (
-        <svg className="container-arrow" viewBox="0 0 36 36">
-            <BezierArrow
-                start={[18, 6]}
-                end={[18, 30]}
-                color={GRAPHER_LIGHT_TEXT}
-                width={2}
-                headAnchor="end"
-                headLength={6}
-            />
-        </svg>
-    )
-}
 
 function SimpleYearSlider({
     selectedYear,
@@ -845,15 +480,3 @@ function SimpleYearSlider({
     )
 }
 
-function makeTitle({ focusParameter }: { focusParameter?: ParameterKey }) {
-    if (!focusParameter) return "Change these future assumptions"
-
-    switch (focusParameter) {
-        case "fertilityRate":
-            return "Change future assumptions about fertility"
-        case "lifeExpectancy":
-            return "Change future assumptions about life expectancy"
-        case "netMigrationRate":
-            return "Change future assumptions about migration"
-    }
-}
