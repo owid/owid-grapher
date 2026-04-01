@@ -332,10 +332,15 @@ $panel-gap: 12px;
 .assumptions-table {
     width: 100%;
     border-collapse: collapse;
+    table-layout: fixed;
     font-size: 0.8125rem;
     margin-top: $panel-gap;
     border: 1px solid $panel-border;
     border-radius: 2px;
+
+    .assumptions-table__col-year {
+        width: 62px;
+    }
 
     th {
         font-weight: 600;
@@ -380,8 +385,6 @@ $panel-gap: 12px;
         color: $dark-text;
         white-space: nowrap;
         border-right: 1px solid $panel-border;
-        width: 1%;
-        white-space: nowrap;
     }
 
     .assumptions-table__value--default,
@@ -398,6 +401,12 @@ $panel-gap: 12px;
         font-weight: 600;
     }
 
+    .assumptions-table__ref-value {
+        color: $dark-text;
+        font-weight: 400;
+        margin-right: 5px;
+    }
+
     .assumptions-table__arrow-circle {
         display: inline-flex;
         align-items: center;
@@ -406,7 +415,7 @@ $panel-gap: 12px;
         height: 13px;
         border-radius: 50%;
         background: #8c4569;
-        margin-right: 3px;
+        margin-right: 5px;
         vertical-align: middle;
         position: relative;
         top: -1px;
