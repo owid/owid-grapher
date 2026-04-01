@@ -10,7 +10,7 @@ import {
 } from "./CausesOfDeathConstants.js"
 
 export class CausesOfDeathMetadata {
-    private metadata: MetadataJson
+    private readonly metadata: MetadataJson
 
     dimensions: MetadataJson["dimensions"]
     categories: MetadataJson["categories"]
