@@ -51,6 +51,7 @@ import {
     LinkedChart,
     OwidGdocMinimalPostInterface,
     OwidGdocPublicationContext,
+    ResolvedSlideChartInfo,
     Slide,
 } from "@ourworldindata/types"
 import { formatPost } from "./formatWordpressPost.js"
@@ -842,7 +843,8 @@ export const renderSlideshowPage = async (
         config: { slides: Slide[]; authors?: string }
     },
     imageMetadata: Record<string, ImageMetadata>,
-    linkedAuthors: import("@ourworldindata/types").LinkedAuthor[] = []
+    linkedAuthors: LinkedAuthor[] = [],
+    chartResolutions: Record<string, ResolvedSlideChartInfo> = {}
 ) => {
     return renderToHtmlPage(
         <SlideshowPage
@@ -853,6 +855,7 @@ export const renderSlideshowPage = async (
             linkedAuthors={linkedAuthors}
             slides={slideshow.config.slides}
             imageMetadata={imageMetadata}
+            chartResolutions={chartResolutions}
         />
     )
 }

@@ -8,10 +8,18 @@ import {
     ImageMetadata,
     Slide,
     SlideTemplate,
+    ResolvedSlideChartInfo,
 } from "@ourworldindata/types"
+import {
+    searchParamsToMultiDimView,
+    MultiDimDataPageConfig,
+    Url,
+} from "@ourworldindata/utils"
 import { renderSlideshowPage } from "./siteRenderers.js"
 import { getImagesByFilenames } from "../db/model/Image.js"
 import { getMinimalAuthorsByNames } from "../db/model/Gdoc/GdocBase.js"
+import { getChartConfigBySlug } from "../db/model/Chart.js"
+import { getMultiDimDataPageBySlug } from "../db/model/MultiDimDataPage.js"
 
 /** Extract all image filenames referenced in the slides */
 function extractImageFilenames(slides: Slide[]): string[] {
@@ -22,6 +30,73 @@ function extractImageFilenames(slides: Slide[]): string[] {
         }
     }
     return filenames
+}
+
+/** Resolve the chart type for a slide URL by checking the DB */
+async function resolveChartInfo(
+    knex: db.KnexReadonlyTransaction,
+    url: string
+): Promise<ResolvedSlideChartInfo> {
+    const parsed = Url.fromURL(url)
+    const pathname = parsed.pathname ?? ""
+    const slug = parsed.slug ?? ""
+
+    if (pathname.startsWith("/explorers/")) {
+        return { type: "explorer" }
+    }
+
+    // Try as a regular grapher
+    try {
+        await getChartConfigBySlug(knex, slug)
+        return { type: "grapher" }
+    } catch {
+        // Not a grapher — try multi-dim
+    }
+
+    // Try as a multi-dim
+    const multiDim = await getMultiDimDataPageBySlug(knex, slug)
+    if (multiDim) {
+        const mdimConfig = MultiDimDataPageConfig.fromObject(multiDim.config)
+        const searchParams = new URLSearchParams(
+            parsed.queryStr?.replace(/^\?/, "") ?? ""
+        )
+        try {
+            const view = searchParamsToMultiDimView(
+                multiDim.config,
+                searchParams
+            )
+            return { type: "multi-dim", configId: view.fullConfigId }
+        } catch {
+            // Fall back to default view
+            const defaultDims = mdimConfig.filterToAvailableChoices(
+                {}
+            ).selectedChoices
+            const defaultView = mdimConfig.findViewByDimensions(defaultDims)
+            if (defaultView) {
+                return {
+                    type: "multi-dim",
+                    configId: defaultView.fullConfigId,
+                }
+            }
+        }
+    }
+
+    // Fallback: treat as grapher and let the client handle it
+    return { type: "grapher" }
+}
+
+/** Resolve chart types for all chart slides in a slideshow */
+export async function resolveSlideChartTypes(
+    knex: db.KnexReadonlyTransaction,
+    slides: Slide[]
+): Promise<Record<string, ResolvedSlideChartInfo>> {
+    const resolutions: Record<string, ResolvedSlideChartInfo> = {}
+    for (const slide of slides) {
+        if (slide.template === SlideTemplate.Chart && slide.url) {
+            resolutions[slide.url] = await resolveChartInfo(knex, slide.url)
+        }
+    }
+    return resolutions
 }
 
 export async function bakeAllPublishedSlideshows(
@@ -91,6 +166,17 @@ export async function bakeAllPublishedSlideshows(
             authorNames.includes(a.name)
         )
 
+        // Resolve chart types for all chart slides
+        const chartResolutions: Record<string, ResolvedSlideChartInfo> = {}
+        for (const slide of config.slides) {
+            if (slide.template === SlideTemplate.Chart && slide.url) {
+                chartResolutions[slide.url] = await resolveChartInfo(
+                    knex,
+                    slide.url
+                )
+            }
+        }
+
         const html = await renderSlideshowPage(
             {
                 title: slideshow.title,
@@ -98,7 +184,8 @@ export async function bakeAllPublishedSlideshows(
                 config,
             },
             imageMetadataByFilename,
-            linkedAuthors
+            linkedAuthors,
+            chartResolutions
         )
 
         const outDir = path.join(bakedSiteDir, "slideshows")
