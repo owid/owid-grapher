@@ -753,7 +753,7 @@ function DraggableControlPoint({
     controlLabelFontSize: number
     onValueChange: (value: number) => void
     onPointerEnter?: () => void
-    onPointerLeave?: () => void
+    onPointerLeave?: (e: React.PointerEvent) => void
 }) {
     const [isDragging, setIsDragging] = useState(false)
     const showBackground = highlighted || isDragging
