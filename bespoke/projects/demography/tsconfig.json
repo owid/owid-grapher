@@ -10,7 +10,21 @@
         "noEmit": true,
         "paths": {
             "owid-bespoke-types": ["../../shared/bespokeComponentTypes.ts"]
-        }
+        },
+        "lib": [
+            "dom",
+            "dom.iterable",
+            "es2020",
+            "es2021",
+            "es2022.array", // Array `at`
+            "es2022.error", // Error `cause`
+            "es2022.object", // Object `hasOwn`
+            "es2023.array", // Array `findLast`, `findLastIndex`, `toReversed`, `toSorted`, etc.
+            "es2024.collection", // `Map.groupBy`
+            "es2024.object", // `Object.groupBy`
+            "es2025.collection", // Set `union`, `intersection`, `difference` etc.
+            "es2025.iterator" // Iterator helpers: `map`, `filter`, `reduce`, `some`, `every`, `find`, etc.
+        ]
     },
     "include": ["src"]
 }
