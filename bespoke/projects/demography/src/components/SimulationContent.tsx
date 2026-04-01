@@ -70,6 +70,10 @@ export function SimulationContent({
     return (
         <div className="chart-content">
             <div className="container container-left">
+                <h3 className="container__title">
+                    <span className="container__step">①</span> Change these
+                    future assumptions
+                </h3>
                 <div className="input-panels">
                     <Tabs
                         className="input-tabs"
@@ -132,13 +136,21 @@ export function SimulationContent({
                 <AssumptionsTable simulation={simulation} />
             </div>
             <div className="container container-right">
+                <h3 className="container__title">
+                    <span className="container__step">②</span> See how they
+                    affect population projections
+                </h3>
                 <div className="output-panels">
                     <ChartPanel
                         className="population-panel"
                         title="Population"
                         subtitle="Historical estimates and projections of total population"
                         header={
-                            <PopulationChartLegend modified={hasUserChanges} />
+                            <PopulationChartLegend
+                                modified={hasUserChanges}
+                                userTooltip="(to do) This projection is based on the fertility, life expectancy, and migration assumptions you set. Change them in the panel on the left to see how they affect population size. Bla bla, bit of an explanation"
+                                benchmarkTooltip="(to do) This is the medium-variant projection from the UN World Population Prospects. Bla bla, bit of an explanation"
+                            />
                         }
                     >
                         <ResponsivePopulationChart

@@ -226,11 +226,20 @@ $panel-gap: 12px;
     flex-direction: column;
 
     .container__title {
-        @include grapher_h5-black-caps;
+        font-family: $sans-serif-font-stack;
+        font-size: 0.8125rem;
+        letter-spacing: 0.01em;
+        font-weight: 600;
+        // font-weight: 900;
+        // line-height: 1.3333;
+        // letter-spacing: 0.1em;
 
         margin: 0;
-        margin-bottom: $panel-gap !important;
-        font-size: 0.75rem;
+        margin-bottom: $panel-gap;
+    }
+
+    .container__step {
+        margin-right: 4px;
     }
 
     &.container-left {
@@ -581,6 +590,16 @@ $panel-gap: 12px;
 
     .population-chart-legend__label {
         color: $dark-text;
+    }
+
+    .population-chart-legend__info-icon {
+        cursor: help;
+        opacity: 0.6;
+        margin-left: -2px;
+
+        &:hover {
+            opacity: 1;
+        }
     }
 }
 
