@@ -7,6 +7,13 @@
 
 // --- Presentation layout ---
 
+.SlideshowContainer {
+    --footer-height: 64px;
+    &--fullscreen {
+        --footer-height: 0px;
+    }
+}
+
 .SlideshowPresentation {
     display: flex;
     flex-direction: column;
@@ -14,6 +21,7 @@
     margin: 0 auto;
     padding: 16px;
     gap: 12px;
+    height: calc(100vh - var(--footer-height));
 
     &--fullscreen {
         max-width: none;
@@ -33,17 +41,22 @@
 }
 
 .SlideshowPresentation__slide {
-    border: 1px solid #e0e0e0;
-    border-radius: 4px;
     overflow: hidden;
     background: #fff;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: calc(100vh - var(--footer-height));
 }
 
 .SlideshowPresentation__footer {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 4px 0;
+    padding: 0 16px;
+    border-top: $gray-30 1px solid;
+    height: var(--footer-height);
 }
 
 .SlideshowPresentation__branding {

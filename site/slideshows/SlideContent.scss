@@ -6,14 +6,33 @@
     align-items: center;
     justify-content: center;
     padding: 32px;
-    position: relative;
+    position: absolute;
+    left: 0;
+    top: 0;
 }
 
-.SlideGrapher {
+.SlideGrapher,
+.SlideContent__explorer-container {
     height: 100%;
 
     .GrapherComponent {
         border: none;
+    }
+    .HeaderHTML,
+    .controlsRow,
+    .GrapherTimeline,
+    .SourcesFooterHTML {
+        padding-top: 0 !important;
+        padding-left: 0 !important;
+    }
+
+    .HeaderHTML {
+        p,
+        span {
+            @include body-1-regular;
+            font-size: 28px !important;
+            margin: 0 !important;
+        }
     }
 }
 
@@ -60,8 +79,16 @@
 }
 
 .SlideContent__slide-title {
-    font-size: 20px;
-    margin-bottom: 16px;
+    @include display-1-semibold;
+    margin: 0;
+    font-size: 52px;
+}
+
+.SlideContent__slide-subtitle {
+    color: $gray-80;
+    @include body-1-regular;
+    font-size: 28px;
+    margin: 0;
 }
 
 .SlideContent__media-placeholder {
@@ -70,7 +97,6 @@
     align-items: center;
     justify-content: center;
     background: #f0f0f0;
-    border-radius: 4px;
     color: #999;
     font-size: 14px;
 }
@@ -80,7 +106,6 @@
     width: 100%;
     min-height: 0;
     object-fit: contain;
-    border-radius: 4px;
 }
 
 .SlideContent__author,
@@ -115,6 +140,7 @@
     color: #333;
     overflow-y: auto;
     white-space: pre-wrap;
+    @include body-1-regular;
 }
 
 .SlideContent__explorer-container {
