@@ -16,12 +16,7 @@ import {
 } from "../helpers/constants"
 import { GRAPHER_LIGHT_TEXT } from "@ourworldindata/grapher/src/color/ColorConstants.js"
 import { computeMaxAgeGroupPopulation } from "../model/projectionRunner"
-import {
-    groupByAgeRange,
-    parseAgeGroup,
-    formatPopulationValueShort,
-    formatPopulationAxisLabel,
-} from "../helpers/utils"
+import { groupByAgeRange, parseAgeGroup } from "../helpers/utils"
 import { Bounds } from "@ourworldindata/utils"
 import { TextWrap, TextWrapSvg } from "@ourworldindata/components"
 import { widthToBreakpoint } from "../helpers/useBreakpoint.js"
