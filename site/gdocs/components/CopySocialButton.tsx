@@ -37,16 +37,12 @@ export function CopySocialButton() {
         const authorEls = document.querySelectorAll<HTMLElement>(
             ".data-insight-author"
         )
-        const authors = Array.from(authorEls).map((el) =>
-            el.innerText.trim()
-        )
+        const authors = Array.from(authorEls).map((el) => el.innerText.trim())
 
         const parts = [title, body]
 
         if (authors.length === 1) {
-            parts.push(
-                `(This Data Insight was written by ${authors[0]}.)`
-            )
+            parts.push(`(This Data Insight was written by ${authors[0]}.)`)
         } else if (authors.length === 2) {
             parts.push(
                 `(This Data Insight was written by ${authors[0]} and ${authors[1]}.)`
