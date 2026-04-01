@@ -537,7 +537,12 @@ function EndpointLabels({
         <>
             {showBenchmark && (
                 <>
-                    <circle cx={x} cy={yBenchmark} r={4} fill={BENCHMARK_LINE_COLOR} />
+                    <circle
+                        cx={x}
+                        cy={yBenchmark}
+                        r={4}
+                        fill={BENCHMARK_LINE_COLOR}
+                    />
                     <Halo
                         id="benchmark-label"
                         outlineWidth={3}
