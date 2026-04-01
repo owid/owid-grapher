@@ -266,6 +266,12 @@ __metadata:
   languageName: node
   linkType: soft
 
+"@ourworldindata/types@link:../../packages/@ourworldindata/types::locator=%40owid%2Fbespoke-components%40workspace%3A..%2Fcomponents":
+  version: 0.0.0-use.local
+  resolution: "@ourworldindata/types@link:../../packages/@ourworldindata/types::locator=%40owid%2Fbespoke-components%40workspace%3A..%2Fcomponents"
+  languageName: node
+  linkType: soft
+
 "@ourworldindata/utils@link:../../../packages/@ourworldindata/utils::locator=%40owid%2Fbespoke-causes-of-death%40workspace%3Acauses-of-death":
   version: 0.0.0-use.local
   resolution: "@ourworldindata/utils@link:../../../packages/@ourworldindata/utils::locator=%40owid%2Fbespoke-causes-of-death%40workspace%3Acauses-of-death"
@@ -280,7 +286,13 @@ __metadata:
 
 "@ourworldindata/utils@link:../../../packages/@ourworldindata/utils::locator=%40owid%2Fbespoke-example%40workspace%3Aexample":
   version: 0.0.0-use.local
-  resolution: "@ourworldindata/types@link:../../packages/@ourworldindata/types::locator=%40owid%2Fbespoke-components%40workspace%3Acomponents"
+  resolution: "@ourworldindata/utils@link:../../../packages/@ourworldindata/utils::locator=%40owid%2Fbespoke-example%40workspace%3Aexample"
+  languageName: node
+  linkType: soft
+
+"@ourworldindata/utils@link:../../packages/@ourworldindata/utils::locator=%40owid%2Fbespoke-components%40workspace%3A..%2Fcomponents":
+  version: 0.0.0-use.local
+  resolution: "@ourworldindata/utils@link:../../packages/@ourworldindata/utils::locator=%40owid%2Fbespoke-components%40workspace%3A..%2Fcomponents"
   languageName: node
   linkType: soft
 
@@ -391,7 +403,26 @@ __metadata:
     tippy.js: "npm:^6.3.7"
     vite: "npm:^8.0.0"
     vite-plugin-css-position: "npm:^2.0.9"
+<<<<<<< HEAD
     vitest: "npm:^4.1.2"
+||||||| parent of 67653582b7 (fix)
+    vitest: "npm:^3.2.1"
+=======
+    vitest: "npm:^3.2.1"
+  languageName: unknown
+  linkType: soft
+
+"@owid/bespoke-components@workspace:../components":
+  version: 0.0.0-use.local
+  resolution: "@owid/bespoke-components@workspace:../components"
+  dependencies:
+    "@ourworldindata/types": "link:../../packages/@ourworldindata/types"
+    "@ourworldindata/utils": "link:../../packages/@ourworldindata/utils"
+    "@visx/drag": "npm:^3.12.0"
+    classnames: "npm:^2.5.1"
+    react: "npm:^19.2.4"
+    react-aria-components: "npm:^1.8.0"
+>>>>>>> 67653582b7 (fix)
   languageName: unknown
   linkType: soft
 
