@@ -240,7 +240,7 @@ function PopulationPyramid({
                         centerX={centerX + centerGap / 2}
                         gapWidth={centerGap}
                         yScale={yScale}
-                        medianAgeBucket={medianAgeBucketBySex}
+                        // medianAgeBucket={medianAgeBucketBySex}
                         fonts={fonts}
                         triangle={triangle}
                         hoveredAgeGroup={hoveredAgeGroup}
@@ -508,15 +508,15 @@ function PopulationPyramidAxisX({
     centerX,
     gapWidth,
     yScale,
-    medianAgeBucket,
+    // medianAgeBucket,
     fonts,
-    triangle,
+    triangle: _triangle,
     hoveredAgeGroup,
 }: {
     centerX: number
     gapWidth: number
     yScale: ReturnType<typeof scaleBand<string>>
-    medianAgeBucket: { male?: string; female?: string }
+    // medianAgeBucket: { male?: string; female?: string }
     fonts: PopulationPyramidFonts
     triangle: { w: number; h: number }
     hoveredAgeGroup: string | null
@@ -524,18 +524,20 @@ function PopulationPyramidAxisX({
     const isHovering = hoveredAgeGroup !== null
     return (
         <>
-            {/* Age group labels with median arrows */}
+            {/* Age group labels */}
             {AGE_GROUP_LABELS.map((ageGroupLabel) => {
                 const y = yScale(ageGroupLabel) ?? 0
                 const bandY = y + yScale.bandwidth() / 2
 
-                const isMaleMedian = ageGroupLabel === medianAgeBucket.male
-                const isFemaleMedian = ageGroupLabel === medianAgeBucket.female
-                const isMedian = isMaleMedian || isFemaleMedian
+                // TODO: re-add median arrows
+                // const isMaleMedian = ageGroupLabel === medianAgeBucket.male
+                // const isFemaleMedian = ageGroupLabel === medianAgeBucket.female
+                // const isMedian = isMaleMedian || isFemaleMedian
                 const isHovered = ageGroupLabel === hoveredAgeGroup
 
                 return (
                     <g key={ageGroupLabel}>
+                        {/* TODO: re-add median arrows
                         {isMaleMedian && !isHovering && (
                             <Triangle
                                 x={centerX - fonts.ageGroupLabel - triangle.w}
@@ -543,7 +545,7 @@ function PopulationPyramidAxisX({
                                 direction="right"
                                 size={triangle}
                             />
-                        )}
+                        )} */}
                         <text
                             x={centerX}
                             y={bandY}
@@ -553,13 +555,12 @@ function PopulationPyramidAxisX({
                             fill={
                                 isHovered
                                     ? GRAPHER_DARK_TEXT
-                                    : isMedian && !isHovering
-                                      ? GRAPHER_LIGHT_TEXT
-                                      : LABEL_COLOR
+                                    : LABEL_COLOR
                             }
                         >
                             {ageGroupLabel}
                         </text>
+                        {/* TODO: re-add median arrows
                         {isFemaleMedian && !isHovering && (
                             <Triangle
                                 x={centerX + fonts.ageGroupLabel + triangle.w}
@@ -567,7 +568,7 @@ function PopulationPyramidAxisX({
                                 direction="left"
                                 size={triangle}
                             />
-                        )}
+                        )} */}
                     </g>
                 )
             })}

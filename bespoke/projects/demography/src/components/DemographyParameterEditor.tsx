@@ -627,12 +627,7 @@ function DemographyParameterEditor({
                 {/* Draggable control points */}
                 {interactive &&
                     CONTROL_YEARS.map((year) => {
-                        const isPointModified =
-                            Math.abs(
-                                controlPoints[year] -
-                                    referencePoints[year]
-                            ) >= 0.01
-                        const pointColor = isPointModified
+                        const pointColor = anyModified
                             ? USER_MODIFIED_COLOR
                             : DENIM_BLUE
                         return (
@@ -642,7 +637,7 @@ function DemographyParameterEditor({
                                 cy={yScale(controlPoints[year])}
                                 value={controlPoints[year]}
                                 color={pointColor}
-                                modified={isPointModified}
+                                modified={anyModified}
                                 highlighted={hoveredYear === year}
                                 formatValue={formatValue}
                                 dragArrowFontSize={fonts.dragArrow}
