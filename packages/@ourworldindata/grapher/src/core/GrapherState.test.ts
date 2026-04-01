@@ -111,6 +111,13 @@ describe("hideFullScreenButton", () => {
     })
 })
 
+describe("hideDownloadButton", () => {
+    it("respects the explicit hideDownloadButton config", () => {
+        const grapher = new GrapherState({ hideDownloadButton: true })
+        expect(grapher.hideDownloadButton).toBe(true)
+    })
+})
+
 const unit = "% of children under 5"
 const name = "Some display name"
 const data = {

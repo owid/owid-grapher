@@ -37,6 +37,7 @@ export interface ActionButtonsManager extends ShareMenuManager {
     activeDownloadModalTab?: DownloadModalTabName
     isOnTableTab?: boolean
     hideFullScreenButton?: boolean
+    hideDownloadButton?: boolean
 }
 
 // keep in sync with sass variables in ActionButtons.scss
@@ -103,7 +104,7 @@ export class ActionButtons extends React.Component<ActionButtonsProps> {
             width += exploreTheDataButtonWithLabelWidth
         }
 
-        return width + (buttonCount - 1) * PADDING_BETWEEN_BUTTONS
+        return width + Math.max(0, buttonCount - 1) * PADDING_BETWEEN_BUTTONS
     }
 
     @computed get widthWithIconsOnly(): number {
@@ -122,7 +123,7 @@ export class ActionButtons extends React.Component<ActionButtonsProps> {
             remainingButtonCount--
         }
         width += remainingButtonCount * BUTTON_WIDTH_ICON_ONLY
-        width += (buttonCount - 1) * PADDING_BETWEEN_BUTTONS
+        width += Math.max(0, buttonCount - 1) * PADDING_BETWEEN_BUTTONS
 
         return width
     }
@@ -246,7 +247,7 @@ export class ActionButtons extends React.Component<ActionButtonsProps> {
     }
 
     @computed private get hasDownloadButton(): boolean {
-        return true
+        return !this.manager.hideDownloadButton
     }
 
     @computed private get hasDonateButton(): boolean {

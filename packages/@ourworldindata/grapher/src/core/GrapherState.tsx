@@ -576,6 +576,7 @@ export class GrapherState
     hideNote = false
     hideOriginUrl = false
     hideFullscreenButton = false
+    hideDownloadButton = false
     hideEntityControls = false
     hideShareButton = false
     hideExploreTheDataButton = true
@@ -733,6 +734,7 @@ export class GrapherState
             hideNote: observable,
             hideOriginUrl: observable,
             hideFullscreenButton: observable,
+            hideDownloadButton: observable,
             hideEntityControls: observable,
             enableMapSelection: observable,
             forceHideAnnotationFieldsInTitle: observable,
