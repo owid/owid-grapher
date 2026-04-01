@@ -28,6 +28,7 @@ import {
     SlideshowConfig,
 } from "@ourworldindata/types"
 import { slugify, Url } from "@ourworldindata/utils"
+import { toPlaintext } from "@ourworldindata/components"
 import { SlideshowEditTab } from "./SlideshowEditTab.js"
 import { SlideshowArrangeTab } from "./SlideshowArrangeTab.js"
 import { useImages } from "../useImages.js"
@@ -125,6 +126,30 @@ export function SlideshowEditorPage(props: {
             // takes a baseline snapshot, so by the time this callback is
             // called, it's a genuine user interaction.
             setIsDirty(true)
+        },
+        [currentSlideIndex]
+    )
+
+    const handleChartReady = useCallback(
+        (info: { title: string; subtitle: string }) => {
+            setSlides((prev) => {
+                const slide = prev[currentSlideIndex]
+                if (!slide || slide.template !== SlideTemplate.Chart)
+                    return prev
+                // Only auto-populate if the fields are empty
+                const updates: Partial<typeof slide> = {}
+                if (!slide.titleOverride && info.title) {
+                    updates.titleOverride = info.title
+                }
+                if (!slide.subtitleOverride && info.subtitle) {
+                    updates.subtitleOverride = toPlaintext(info.subtitle)
+                }
+                if (Object.keys(updates).length === 0) return prev
+                const next = [...prev]
+                next[currentSlideIndex] = { ...slide, ...updates }
+                return next
+            })
+            // Don't set isDirty — this is auto-population, not a user edit
         },
         [currentSlideIndex]
     )
@@ -304,6 +329,7 @@ export function SlideshowEditorPage(props: {
                                             }
                                             hideTitle={hideTitle}
                                             hideSubtitle={hideSubtitle}
+                                            onChartReady={handleChartReady}
                                         />
                                     )}
                                 />

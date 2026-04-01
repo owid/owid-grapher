@@ -41,7 +41,6 @@ export interface SlideChartOnly {
     url: string
     titleOverride?: string
     subtitleOverride?: string
-    hideSubtitle?: boolean
     hideLogo?: boolean
     text?: MarkdownText
 }
@@ -123,7 +122,6 @@ const SlideChartOnlySchema = z.object({
     titleOverride: z.string().optional(),
     subtitleOverride: z.string().optional(),
     text: z.string().optional(),
-    hideSubtitle: z.boolean().optional(),
     hideLogo: z.boolean().optional(),
 })
 

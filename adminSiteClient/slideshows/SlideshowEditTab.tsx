@@ -373,19 +373,6 @@ function TemplateOptionsEditor(props: {
                             placeholder="Text displayed beside the chart"
                         />
                     </label>
-                    <label>
-                        <input
-                            type="checkbox"
-                            checked={!!slide.hideSubtitle}
-                            onChange={(e) =>
-                                onUpdate({
-                                    ...slide,
-                                    hideSubtitle: e.target.checked || undefined,
-                                })
-                            }
-                        />{" "}
-                        Hide chart subtitle
-                    </label>
                     <HideLogoCheckbox slide={slide} onUpdate={onUpdate} />
                 </>
             )
