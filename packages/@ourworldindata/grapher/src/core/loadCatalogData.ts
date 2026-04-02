@@ -44,21 +44,31 @@ export const columnDefsByCatalogKey: Record<NumericCatalogKey, OwidColumnDef> =
         },
     }
 
-/** Loads indicator data from the OWID catalog */
-async function _loadCatalogData<K extends CatalogKey>(
+/** Resolves the URL for a catalog data file */
+function getCatalogDataUrl<K extends CatalogKey>(
     key: K,
     { baseUrl, assetMap }: { baseUrl: string; assetMap?: AssetMap }
-): Promise<CatalogDataForKey<K>> {
+): string {
     const assetKey = getCatalogAssetKey(key)
     const catalogPath = `${baseUrl}/external/owid_grapher/latest/${catalogPaths[key]}`
-    const url = readFromAssetMap(assetMap, {
+    return readFromAssetMap(assetMap, {
         path: assetKey,
         fallback: catalogPath,
     })
+}
+
+/** Loads indicator data from the OWID catalog */
+async function _loadCatalogData<K extends CatalogKey>(
+    key: K,
+    options: { baseUrl: string; assetMap?: AssetMap }
+): Promise<CatalogDataForKey<K>> {
+    const url = getCatalogDataUrl(key, options)
     return fetchJson(url)
 }
 
-export const loadCatalogData = _.memoize(_loadCatalogData)
+export const loadCatalogData = _.memoize(_loadCatalogData, (key, options) =>
+    getCatalogDataUrl(key, options)
+)
 
 /** Creates an OwidTable from numeric catalog data points */
 function catalogDataToOwidTable(
