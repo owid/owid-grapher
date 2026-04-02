@@ -21,7 +21,6 @@ export const BESPOKE_COMPONENT_REGISTRY: Record<
         scriptUrl: "/causes-of-death/index.js",
     },
     demography: {
-        scriptUrl:
-            "https://owid-public.owid.io/population-simulation-2026-03/assets/demography.js?nocache",
+        scriptUrl: "/demography/index.js",
     },
 }
