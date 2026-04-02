@@ -41,6 +41,7 @@ export type ImageParentContainer =
     | "span-6"
     | "span-7"
     | "span-8"
+    | "small-chart"
 
 const containerSizes: Record<ImageParentContainer, string> = {
     ["default"]: gridSpan8,
@@ -63,6 +64,7 @@ const containerSizes: Record<ImageParentContainer, string> = {
     ["span-6"]: gridSpan6,
     ["span-7"]: gridSpan7,
     ["span-8"]: gridSpan8,
+    ["small-chart"]: "300px",
 }
 
 export const LIGHTBOX_IMAGE_CLASS = "lightbox-image"
