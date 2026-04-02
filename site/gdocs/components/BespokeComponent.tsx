@@ -11,7 +11,10 @@ import urljoin from "url-join"
 // If `url` is already absolute, it will effectively just get passed through.
 const makeAbsoluteWithBaseUrl = (url: string, baseUrl: string | undefined) => {
     baseUrl = baseUrl?.trim()
-    if (!baseUrl) return undefined
+    if (!baseUrl) return url
+
+    // url is already absolute, so just return it as is
+    if (url.startsWith("http://") || url.startsWith("https://")) return url
 
     return urljoin(baseUrl, url)
 }
@@ -55,7 +58,8 @@ export function BespokeComponent({
     )
 
     const { scriptUrl, cssUrl } = useMemo(() => {
-        if (!definition) return { scriptUrl: undefined, cssUrl: undefined }
+        if (!definition || !BESPOKE_BASE_URL.trim())
+            return { scriptUrl: undefined, cssUrl: undefined }
 
         return {
             scriptUrl: makeAbsoluteWithBaseUrl(
