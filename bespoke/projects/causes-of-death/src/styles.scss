@@ -1,0 +1,158 @@
+.causes-of-death-page {
+    margin: 24px;
+    font-family: $sans-serif-font-stack;
+}
+
+.causes-of-death-chart {
+    color: $dark-text;
+}
+
+.causes-of-death-controls {
+    .causes-of-death-controls__content {
+        display: flex;
+        flex-direction: column;
+        row-gap: 16px;
+
+        @include sm-only {
+            row-gap: 8px;
+        }
+    }
+
+    .causes-of-death-controls__row {
+        display: flex;
+        column-gap: 16px;
+        row-gap: 16px;
+        align-items: center;
+
+        @include sm-only {
+            flex-direction: column;
+            align-items: flex-start;
+            row-gap: 8px;
+            column-gap: 8px;
+        }
+
+        > * {
+            flex: 1 1 0;
+
+            @include sm-only {
+                flex: 1 1 0;
+                width: 100%;
+            }
+        }
+
+        .causes-of-death-time-slider {
+            flex: 1 1 auto;
+            width: auto;
+
+            @include sm-only {
+                width: 100%;
+            }
+        }
+    }
+
+    @at-root {
+        .causes-of-death-controls__entity-dropdown-option {
+            svg {
+                color: $gray-60;
+                margin-left: 6px;
+            }
+        }
+    }
+}
+
+.causes-of-death-captioned-chart {
+    .causes-of-death-captioned-chart__chart-area {
+        position: relative;
+    }
+}
+
+.causes-of-death-header {
+    .causes-of-death-header__value--loading {
+        font-style: italic;
+        opacity: 0.3;
+    }
+}
+
+.causes-of-death-footer {
+    font-size: 0.875rem;
+
+    @include sm-only {
+        font-size: 0.75rem;
+    }
+}
+
+.causes-of-death-controls {
+    .causes-of-death-controls__title {
+        font-size: 10px;
+        font-weight: 900;
+        letter-spacing: 0.15em;
+        color: $light-text;
+        text-transform: uppercase;
+        margin: 0;
+        margin-bottom: 12px;
+    }
+}
+
+.causes-of-death-spinner {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: $gray-100;
+}
+
+.causes-of-death-skeleton {
+    position: relative;
+    width: min(100%, 900px);
+    height: 600px;
+    border: 1px solid $frame-color;
+
+    .causes-of-death-spinner {
+        color: $gray-60;
+    }
+}
+
+.causes-of-death-tooltip__value {
+    margin-top: 6px;
+    display: flex;
+    align-items: center;
+}
+
+.causes-of-death-tooltip__value .muted {
+    font-weight: 400;
+    font-size: 0.8em;
+    color: $light-text;
+}
+
+.tooltip-container > .Tooltip .content .variable + .variable {
+    border: none;
+}
+
+.causes-of-death-legend {
+    display: flex;
+    flex-wrap: wrap;
+    row-gap: 4px;
+    column-gap: 16px;
+    margin-bottom: 10px;
+
+    .causes-of-death-legend__item {
+        display: flex;
+        align-items: flex-start;
+        gap: 6px;
+        font-size: 0.8125rem;
+        line-height: 1;
+    }
+
+    .causes-of-death-legend__swatch {
+        width: 12px;
+        height: 12px;
+        flex-shrink: 0;
+    }
+}

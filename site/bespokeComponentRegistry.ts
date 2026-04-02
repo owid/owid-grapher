@@ -14,12 +14,8 @@ export const BESPOKE_COMPONENT_REGISTRY: Record<
     string,
     BespokeComponentDefinition
 > = {
-    example: {
-        scriptUrl: "/example/index.js",
+    "causes-of-death": {
+        scriptUrl:
+            "https://owid-public.owid.io/sophia-causes-of-death-2026-03/causes-of-death.js?nocache",
     },
-    // Example:
-    // "my-widget": {
-    //     scriptUrl: "/assets/bespoke/my-widget.mjs",
-    //     cssUrl: "/assets/bespoke/my-widget.css",
-    // },
 }
