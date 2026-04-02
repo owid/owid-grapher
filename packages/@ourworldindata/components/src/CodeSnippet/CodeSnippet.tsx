@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { HTMLAttributes, useEffect, useState } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCopy } from "@fortawesome/free-solid-svg-icons"
 import { canWriteToClipboard, copyToClipboard } from "@ourworldindata/utils"
@@ -16,6 +16,7 @@ export const CodeSnippet = ({
     // Useful for the admin, where we're often running in HTTP contexts, but have fallbacks
     // for copying to clipboard.
     forceShowCopyButton = false,
+    codeAttributes,
 }: {
     className?: string
     code: string
@@ -23,6 +24,7 @@ export const CodeSnippet = ({
     isTruncated?: boolean
     useMarkdown?: boolean
     forceShowCopyButton?: boolean
+    codeAttributes?: HTMLAttributes<HTMLElement> & Record<string, string>
 }) => {
     const [canCopy, setCanCopy] = useState(false)
     const [hasCopied, setHasCopied] = useState(false)
@@ -59,6 +61,7 @@ export const CodeSnippet = ({
                     className={cx("wp-code-snippet__code", {
                         "wp-code-snippet__code--is-truncated": isTruncated,
                     })}
+                    {...codeAttributes}
                 >
                     {useMarkdown ? (
                         <SimpleMarkdownText text={code} useParagraphs={false} />

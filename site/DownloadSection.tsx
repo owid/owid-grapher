@@ -26,6 +26,37 @@ import {
     SERVER_SIDE_DOWNLOAD_HELP_TEXT,
 } from "@ourworldindata/utils"
 
+type DownloadRewriteTarget =
+    | "download-full-data"
+    | "download-filtered-data"
+    | "api-csv"
+    | "api-metadata"
+    | "api-example-excel"
+    | "api-example-python"
+    | "api-example-r"
+    | "api-example-stata"
+
+function getDownloadRewriteAttrs(target: DownloadRewriteTarget): {
+    "data-owid-download-url-target": DownloadRewriteTarget
+} {
+    return { "data-owid-download-url-target": target }
+}
+
+function getCodeExampleRewriteTarget(name: string): DownloadRewriteTarget {
+    switch (name) {
+        case "Excel / Google Sheets":
+            return "api-example-excel"
+        case "Python with Pandas":
+            return "api-example-python"
+        case "R":
+            return "api-example-r"
+        case "Stata":
+            return "api-example-stata"
+        default:
+            throw new Error(`Unknown download code example: ${name}`)
+    }
+}
+
 function ApiAndCodeExamplesSection({
     downloadCtxBase,
     firstYColDef,
@@ -72,13 +103,23 @@ function ApiAndCodeExamplesSection({
                         <h5 className="downloads__code-label">
                             Data URL (CSV format)
                         </h5>
-                        <CodeSnippet code={csvUrl} theme="light" />
+                        <CodeSnippet
+                            code={csvUrl}
+                            theme="light"
+                            codeAttributes={getDownloadRewriteAttrs("api-csv")}
+                        />
                     </div>
                     <div>
                         <h5 className="downloads__code-label">
                             Metadata URL (JSON format)
                         </h5>
-                        <CodeSnippet code={metadataUrl} theme="light" />
+                        <CodeSnippet
+                            code={metadataUrl}
+                            theme="light"
+                            codeAttributes={getDownloadRewriteAttrs(
+                                "api-metadata"
+                            )}
+                        />
                     </div>
                 </section>
             </div>
@@ -102,6 +143,11 @@ function ApiAndCodeExamplesSection({
                                         <CodeSnippet
                                             code={snippet}
                                             theme="light"
+                                            codeAttributes={getDownloadRewriteAttrs(
+                                                getCodeExampleRewriteTarget(
+                                                    name
+                                                )
+                                            )}
                                         />
                                     </div>
                                 )
@@ -296,6 +342,9 @@ export default function DownloadSection({
                                     trackingNote="datapage_download_full_data--server"
                                     href={fullDownloadUrl}
                                     download={fullDownloadFilename}
+                                    {...getDownloadRewriteAttrs(
+                                        "download-full-data"
+                                    )}
                                 />
                                 <DownloadButtonLink
                                     title="Download displayed data"
@@ -304,6 +353,9 @@ export default function DownloadSection({
                                     trackingNote="datapage_download_filtered_data--server"
                                     href={filteredDownloadUrl}
                                     download={filteredDownloadFilename}
+                                    {...getDownloadRewriteAttrs(
+                                        "download-filtered-data"
+                                    )}
                                 />
                             </div>
                         </div>
