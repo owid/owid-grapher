@@ -5,6 +5,7 @@ import {
 } from "./enrichedToMarkdown.js"
 import {
     EnrichedBlockDataCallout,
+    EnrichedBlockSmallChart,
     EnrichedBlockText,
     LinkedCallouts,
 } from "@ourworldindata/types"
@@ -223,6 +224,85 @@ describe(enrichedBlocksToMarkdown, () => {
             })
 
             expect(result).toBeUndefined()
+        })
+    })
+
+    describe("small-chart", () => {
+        it("should render rows with image and text content", () => {
+            const block: EnrichedBlockSmallChart = {
+                type: "small-chart",
+                variant: "rows",
+                rows: [
+                    {
+                        image: "life-expectancy.png",
+                        url: "/grapher/life-expectancy",
+                        content: [
+                            {
+                                type: "text",
+                                parseErrors: [],
+                                value: [
+                                    {
+                                        spanType: "span-simple-text",
+                                        text: "Life expectancy has doubled.",
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                    {
+                        image: "gdp.png",
+                        url: "/grapher/gdp",
+                        content: [
+                            {
+                                type: "text",
+                                parseErrors: [],
+                                value: [
+                                    {
+                                        spanType: "span-simple-text",
+                                        text: "GDP has grown.",
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                ],
+                parseErrors: [],
+            }
+
+            expect(enrichedBlocksToMarkdown([block], false)).toBe(
+                "![](life-expectancy.png)\nLife expectancy has doubled.\n\n![](gdp.png)\nGDP has grown."
+            )
+        })
+
+        it("should render pull-quote variant with image and text content", () => {
+            const block: EnrichedBlockSmallChart = {
+                type: "small-chart",
+                variant: "pull-quote",
+                align: "right-center",
+                rows: [
+                    {
+                        image: "chart.png",
+                        url: "/grapher/test",
+                        content: [
+                            {
+                                type: "text",
+                                parseErrors: [],
+                                value: [
+                                    {
+                                        spanType: "span-simple-text",
+                                        text: "Pull-quote caption text.",
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                ],
+                parseErrors: [],
+            }
+
+            expect(enrichedBlocksToMarkdown([block], false)).toBe(
+                "![](chart.png)\nPull-quote caption text."
+            )
         })
     })
 })

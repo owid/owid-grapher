@@ -367,6 +367,14 @@ export function enrichedBlockToIndexableText(
                 { type: "simple-text" },
                 (b): string | undefined => b.value.text
             )
+            .with({ type: "small-chart" }, (b): string | undefined => {
+                const parts = b.rows.flatMap((row) =>
+                    row.content.map((contentBlock) =>
+                        enrichedBlockToIndexableText(contentBlock, options)
+                    )
+                )
+                return joinBlocksAsSentences(parts) || undefined
+            })
             .with({ type: "static-viz" }, (b): string | undefined =>
                 b.caption ? spansToIndexableText(b.caption, options) : undefined
             )

@@ -5,6 +5,7 @@ import {
     EnrichedBlockDataCallout,
     EnrichedBlockHeading,
     EnrichedBlockHtml,
+    EnrichedBlockSmallChart,
     EnrichedBlockTable,
     EnrichedBlockText,
     LinkedCallouts,
@@ -704,6 +705,83 @@ describe(enrichedBlocksToIndexableText, () => {
         ]
 
         expect(enrichedBlocksToIndexableText(blocks)).toBe("Item1; Item2")
+    })
+
+    it("should extract text content from small-chart rows", () => {
+        const block: EnrichedBlockSmallChart = {
+            type: "small-chart",
+            variant: "rows",
+            rows: [
+                {
+                    image: "chart1.png",
+                    url: "/grapher/life-expectancy",
+                    content: [
+                        {
+                            type: "text",
+                            parseErrors: [],
+                            value: [
+                                {
+                                    spanType: "span-simple-text",
+                                    text: "Life expectancy has doubled.",
+                                },
+                            ],
+                        },
+                    ],
+                },
+                {
+                    image: "chart2.png",
+                    url: "/grapher/gdp",
+                    content: [
+                        {
+                            type: "text",
+                            parseErrors: [],
+                            value: [
+                                {
+                                    spanType: "span-simple-text",
+                                    text: "GDP has grown.",
+                                },
+                            ],
+                        },
+                    ],
+                },
+            ],
+            parseErrors: [],
+        }
+
+        expect(enrichedBlocksToIndexableText([block])).toBe(
+            "Life expectancy has doubled. GDP has grown."
+        )
+    })
+
+    it("should extract text content from small-chart pull-quote variant", () => {
+        const block: EnrichedBlockSmallChart = {
+            type: "small-chart",
+            variant: "pull-quote",
+            align: "right-center",
+            rows: [
+                {
+                    image: "chart.png",
+                    url: "/grapher/life-expectancy",
+                    content: [
+                        {
+                            type: "text",
+                            parseErrors: [],
+                            value: [
+                                {
+                                    spanType: "span-simple-text",
+                                    text: "Pull-quote caption text.",
+                                },
+                            ],
+                        },
+                    ],
+                },
+            ],
+            parseErrors: [],
+        }
+
+        expect(enrichedBlocksToIndexableText([block])).toBe(
+            "Pull-quote caption text."
+        )
     })
 
     it("should add sentence separators only when the first block lacks terminal punctuation", () => {

@@ -166,6 +166,10 @@ import type {
     RawBlockPullQuote,
 } from "./archieMLComponents/PullQuote.js"
 import type {
+    EnrichedBlockSmallChart,
+    RawBlockSmallChart,
+} from "./archieMLComponents/SmallChart.js"
+import type {
     EnrichedBlockRecirc,
     RawBlockRecirc,
 } from "./archieMLComponents/Recirc.js"
@@ -259,6 +263,7 @@ export type OwidRawGdocBlock =
     | RawBlockPeopleRows
     | RawBlockPerson
     | RawBlockPullQuote
+    | RawBlockSmallChart
     | RawBlockGuidedChart
     | RawBlockRecirc
     | RawBlockResearchAndWriting
@@ -324,6 +329,7 @@ export type OwidEnrichedGdocBlock =
     | EnrichedBlockPeopleRows
     | EnrichedBlockPerson
     | EnrichedBlockPullQuote
+    | EnrichedBlockSmallChart
     | EnrichedBlockGuidedChart
     | EnrichedBlockRecirc
     | EnrichedBlockResearchAndWriting
@@ -435,6 +441,7 @@ export type * from "./archieMLComponents/Recirc.js"
 export type * from "./archieMLComponents/Script.js"
 export type * from "./archieMLComponents/SDGGrid.js"
 export type * from "./archieMLComponents/SDGToc.js"
+export * from "./archieMLComponents/SmallChart.js"
 export type * from "./archieMLComponents/SideBySide.js"
 export type * from "./archieMLComponents/SimpleText.js"
 export type * from "./archieMLComponents/StaticViz.js"
