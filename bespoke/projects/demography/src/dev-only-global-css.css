@@ -1,0 +1,7 @@
+/*
+// Styles for portaled react-aria overlays (e.g. dropdown menus) that render
+// outside the Shadow DOM. On the real site these are available globally;
+// importing them here ensures they're present on the demo page too.
+*/
+
+@import "demo.scss";
