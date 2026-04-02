@@ -1,19 +1,25 @@
 import * as _ from "lodash-es"
 import {
+    CsvDownloadType,
+    type DataDownloadContextBase,
     generateGrapherImageSrcSet,
+    getDownloadUrl,
     Grapher,
     GrapherState,
     loadCatalogData,
 } from "@ourworldindata/grapher"
 import {
+    type DownloadRewriteTarget,
     GrapherInterface,
     MultiDimDataPageConfigEnriched,
     R2GrapherConfigDirectory,
     AdditionalGrapherDataFetchFn,
+    GRAPHER_QUERY_PARAM_KEYS,
 } from "@ourworldindata/types"
 import {
     excludeUndefined,
     Bounds,
+    makeDownloadCodeExamples,
     searchParamsToMultiDimView,
 } from "@ourworldindata/utils"
 import { StatusError } from "itty-router"
@@ -359,6 +365,7 @@ export function rewriteMetaTags(
     let origin = ""
 
     const thumbnailUrl = `${url.pathname}.png${url.search}`
+    const downloadCtxBase = getDownloadContextBase(url)
 
     const rewriter = new HTMLRewriter()
         .on("picture[data-owid-populate-url-params] source", {
@@ -400,8 +407,94 @@ export function rewriteMetaTags(
                 element.setAttribute("content", origin + twitterThumbnailUrl)
             },
         })
+        .on("[data-owid-download-url-target]", {
+            element: (element) => {
+                const target = element.getAttribute(
+                    "data-owid-download-url-target"
+                )
+                if (!target) return
+
+                const rewrittenUrl = getRewrittenDownloadUrl(
+                    target as DownloadRewriteTarget,
+                    downloadCtxBase
+                )
+                if (!rewrittenUrl) return
+
+                const tagName = element.tagName.toLowerCase()
+                if (tagName === "a") {
+                    element.setAttribute("href", rewrittenUrl)
+                } else if (tagName === "code") {
+                    element.setInnerContent(rewrittenUrl)
+                }
+            },
+        })
 
     return rewriter.transform(page)
+}
+
+export function getDownloadContextBase(url: URL): DataDownloadContextBase {
+    const searchParams = new URLSearchParams(url.searchParams)
+    const externalSearchParams = new URLSearchParams()
+    const grapherQueryParamKeys = new Set<string>(GRAPHER_QUERY_PARAM_KEYS)
+
+    for (const [key, value] of url.searchParams.entries()) {
+        if (!grapherQueryParamKeys.has(key)) {
+            externalSearchParams.set(key, value)
+        }
+    }
+
+    return {
+        slug: url.pathname.split("/").at(-1) ?? "",
+        searchParams,
+        externalSearchParams,
+        baseUrl: `${url.origin}${url.pathname}`,
+    }
+}
+
+function getRewrittenDownloadUrl(
+    target: DownloadRewriteTarget,
+    downloadCtxBase: DataDownloadContextBase
+): string | undefined {
+    const csvUrl = getDownloadUrl("csv", {
+        ...downloadCtxBase,
+        csvDownloadType: CsvDownloadType.Full,
+        shortColNames: false,
+    })
+    const metadataUrl = getDownloadUrl("metadata.json", {
+        ...downloadCtxBase,
+        csvDownloadType: CsvDownloadType.Full,
+        shortColNames: false,
+    })
+    const codeExamples = makeDownloadCodeExamples(csvUrl, metadataUrl)
+
+    switch (target) {
+        case "download-full-data":
+            return getDownloadUrl("zip", {
+                ...downloadCtxBase,
+                csvDownloadType: CsvDownloadType.Full,
+                shortColNames: false,
+            })
+        case "download-filtered-data":
+            return getDownloadUrl("zip", {
+                ...downloadCtxBase,
+                csvDownloadType: CsvDownloadType.CurrentSelection,
+                shortColNames: false,
+            })
+        case "api-csv":
+            return csvUrl
+        case "api-metadata":
+            return metadataUrl
+        case "api-example-excel":
+            return codeExamples["Excel / Google Sheets"]
+        case "api-example-python":
+            return codeExamples["Python with Pandas"]
+        case "api-example-r":
+            return codeExamples["R"]
+        case "api-example-stata":
+            return codeExamples["Stata"]
+        default:
+            return undefined
+    }
 }
 
 /**

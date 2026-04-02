@@ -126,6 +126,7 @@ export {
     type Tickmark,
     type SeriesName,
     type LegacyGrapherQueryParams,
+    type DownloadRewriteTarget,
     GRAPHER_QUERY_PARAM_KEYS,
     type ChartRedirect,
     type DetailsMarker,
