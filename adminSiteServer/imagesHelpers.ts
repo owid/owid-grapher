@@ -127,9 +127,9 @@ export async function fetchGptGeneratedAltText(url: string) {
 - DO NOT mention colors unless the data doesn't make sense without them
 - When describing a number range, write "X to Y" not "X-Y".
 - If the image is a generic thumbnail or decorative, describe it in one short sentence.
-- DO NOT describe data sources, licenses, or footer metadata.
-Example 1: "Line chart of cumulative burnt area in Europe where the 2022 area is more than double the 2006 to 2021 average, and well above the range for the same period"
-Example 2: "Changes in forest area by world region since 1990 is a set of bar charts overlaid on a world map to compare forest cover between 1990 and 2025 across different continents. The visualization highlights that while forest area has expanded in regions like Europe and North and Central America, it has significantly declined in South America and parts of Asia. Oceania is shown to have had no change in its total forest area over this period."`,
+- Describe data sources and licenses (if specified)
+Example 1: "Line chart of cumulative burnt area in Europe where the 2022 area is more than double the 2006 to 2021 average, and well above the range for the same period. Source: Global Wildfire Information System (2025). License: CC BY to Our World in Data."
+Example 2: "Changes in forest area by world region since 1990 is a set of bar charts overlaid on a world map to compare forest cover between 1990 and 2025 across different continents. The visualization highlights that while forest area has expanded in regions like Europe and North and Central America, it has significantly declined in South America and parts of Asia. Oceania is shown to have had no change in its total forest area over this period. Data source: Food and Agriculture Organization of the United Nations, Global Forest Resources Assessment (2025). License: CC BY to Our World in Data."`,
             },
             {
                 role: "user",
