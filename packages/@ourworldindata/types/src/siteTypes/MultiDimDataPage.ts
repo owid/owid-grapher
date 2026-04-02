@@ -1,8 +1,13 @@
 import { OwidEnrichedGdocBlock } from "../gdocTypes/ArchieMlComponents.js"
-import { DataPageRelatedResearch, PrimaryTopic } from "../gdocTypes/Datapage.js"
+import {
+    DataPageDataV2,
+    DataPageRelatedResearch,
+    PrimaryTopic,
+} from "../gdocTypes/Datapage.js"
 import { ImageMetadata } from "../gdocTypes/Image.js"
 import { GrapherInterface } from "../grapherTypes/GrapherTypes.js"
 import {
+    FaqLink,
     IndicatorTitleWithFragments,
     OwidVariableWithSource,
 } from "../OwidVariable.js"
@@ -109,11 +114,17 @@ export type FaqEntryKeyedByGdocIdAndFragmentId = {
     faqs: Record<string, Record<string, OwidEnrichedGdocBlock[]>>
 }
 
+export interface MultiDimDataPageInitialViewData extends DataPageDataV2 {
+    faqs: FaqLink[]
+}
+
 export interface MultiDimDataPageProps {
     baseUrl: string
     canonicalUrl: string
     slug: string | null
     configObj: MultiDimDataPageConfigEnriched
+    initialViewData?: MultiDimDataPageInitialViewData
+    initialViewDimensions?: MultiDimDimensionChoices
     tagToSlugMap?: Record<string, string>
     faqEntries?: FaqEntryKeyedByGdocIdAndFragmentId
     primaryTopic?: PrimaryTopic

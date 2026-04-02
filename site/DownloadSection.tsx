@@ -124,6 +124,7 @@ export type DownloadSectionProps = {
     yColumns?: CoreColumn[]
     archivedChartInfo?: ArchiveContext
     distribution?: Distribution
+    hideRowCounts?: boolean
 }
 
 export default function DownloadSection({
@@ -136,6 +137,7 @@ export default function DownloadSection({
     yColumns,
     archivedChartInfo,
     distribution,
+    hideRowCounts,
 }: DownloadSectionProps) {
     const isOnArchivalPage = archivedChartInfo?.type === "archive-page"
 
@@ -206,10 +208,10 @@ export default function DownloadSection({
         (!tableForDownload && distribution?.allowed === false)
 
     const fullDownloadDescription = makeFullDownloadDescription(
-        tableForDownload?.numRows
+        hideRowCounts ? undefined : tableForDownload?.numRows
     )
     const filteredDownloadDescription = makeFilteredDownloadDescription({
-        numRows: filteredTableForDownload?.numRows,
+        numRows: hideRowCounts ? undefined : filteredTableForDownload?.numRows,
     })
 
     return (
