@@ -1,6 +1,5 @@
 .SlideContent {
     width: 100%;
-    height: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -19,22 +18,6 @@
 
     .GrapherComponent {
         border: none;
-    }
-    .HeaderHTML,
-    .controlsRow,
-    .GrapherTimeline,
-    .SourcesFooterHTML {
-        padding-top: 0 !important;
-        padding-left: 0 !important;
-    }
-
-    .HeaderHTML {
-        p,
-        span {
-            @include body-1-regular;
-            font-size: 28px !important;
-            margin: 0 !important;
-        }
     }
 }
 
@@ -74,8 +57,8 @@
 
 .SlideContent__logo {
     position: absolute;
-    top: 16px;
-    right: 16px;
+    top: 64px;
+    right: 64px;
     z-index: 2;
     line-height: 0;
 }

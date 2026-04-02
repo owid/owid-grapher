@@ -9,20 +9,18 @@
 
 .SlideshowContainer {
     --footer-height: 64px;
-    --slide-aspect-ratio: 16 / 9;
+    --slide-aspect-ratio: 4/3;
     &--fullscreen {
         --footer-height: 0px;
     }
 }
 
 .SlideshowPresentation {
-    display: flex;
-    flex-direction: column;
-    max-width: 1200px;
+    width: auto;
     margin: 0 auto;
-    gap: 12px;
-    height: calc(100vh - var(--footer-height));
+    max-height: calc(100vh - var(--footer-height));
     aspect-ratio: var(--slide-aspect-ratio);
+    position: relative;
 }
 
 .SlideshowPresentation--fullscreen {
@@ -44,11 +42,12 @@
 .SlideshowPresentation__slide {
     overflow: hidden;
     background: #fff;
+
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
-    height: calc(100vh - var(--footer-height));
+    height: 100%;
 }
 
 .SlideshowPresentation__footer {

@@ -85,6 +85,7 @@ export function SlideGrapher(props: SlideGrapherProps): React.ReactElement {
             hideExploreTheDataButton: true,
             hideRelatedQuestion: true,
             hideFullscreenButton: true,
+            hideControlsRow: true,
             hideDownloadButton: true,
             hideLogo: true,
             hideTitle: props.hideTitle ?? false,

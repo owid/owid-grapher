@@ -165,6 +165,7 @@ function SlideExplorer(props: {
                             hideSubtitleRef.current ?? false
                         explorer.grapherState.hideLogo = true
                         explorer.grapherState.hideFullscreenButton = true
+                        explorer.grapherState.hideControlsRow = true
                         explorer.grapherState.hideShareButton = true
                         explorer.grapherState.hideDownloadButton = true
                     })
