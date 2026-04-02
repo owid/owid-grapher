@@ -10,6 +10,7 @@ import {
     MultiDimDataPageProps,
     FaqEntryKeyedByGdocIdAndFragmentId,
     MultiDimDataPageConfigEnriched,
+    MultiDimDataPageInitialViewData,
     PostsGdocsVariablesFaqsTableName,
     DbPlainPostGdocVariableFaq,
     DbEnrichedImage,
@@ -41,6 +42,7 @@ import {
 } from "../db/model/MultiDimDataPage.js"
 import { MultiDimArchivalManifest } from "../serverUtils/archivalUtils.js"
 import { getLatestArchivedMultiDimPageVersions } from "../db/model/ArchivedMultiDimVersion.js"
+import { getDatapageDataV2 } from "../site/dataPage.js"
 
 const getLatestMultiDimArchivedVersionsIfEnabled = async (
     knex: db.KnexReadonlyTransaction,
@@ -130,6 +132,26 @@ export async function renderMultiDimDataPageFromConfig({
     const pageConfig = MultiDimDataPageConfig.fromObject(config)
     const variableIds = getRelevantVariableIds(config)
     const faqEntries = await getFaqEntries(knex, variableIds)
+    const initialViewDimensions = pageConfig.filterToAvailableChoices(
+        {}
+    ).selectedChoices
+    const initialView = pageConfig.findViewByDimensions(initialViewDimensions)
+
+    let initialViewData: MultiDimDataPageInitialViewData | undefined
+    const initialViewVariableId = initialView?.indicators?.y?.[0]?.id
+    if (initialView && initialViewVariableId) {
+        const variableMetadata = await getVariableMetadata(
+            initialViewVariableId
+        )
+        const mergedMetadata = pageConfig.mergeViewMetadata(
+            initialViewDimensions,
+            variableMetadata
+        )
+        initialViewData = {
+            ...getDatapageDataV2(mergedMetadata, initialView.config ?? {}),
+            faqs: mergedMetadata.presentation?.faqs ?? [],
+        }
+    }
 
     // PRIMARY TOPIC
     const primaryTopic = await getPrimaryTopic(knex, config.topicTags)
@@ -184,6 +206,8 @@ export async function renderMultiDimDataPageFromConfig({
         canonicalUrl,
         slug,
         configObj: pageConfig.config,
+        initialViewData,
+        initialViewDimensions,
         tagToSlugMap,
         faqEntries,
         primaryTopic,
