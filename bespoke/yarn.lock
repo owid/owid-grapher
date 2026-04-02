@@ -402,7 +402,7 @@ __metadata:
     vite-plugin-css-position: "npm:^2.0.9"
 <<<<<<< HEAD
     vitest: "npm:^4.1.2"
-||||||| parent of a2924cf6bb (add @visx/drag)
+||||||| parent of 8fe4471cb7 (lock file)
     vitest: "npm:^3.2.1"
 <<<<<<< ours
 =======
@@ -421,7 +421,7 @@ __metadata:
     classnames: "npm:^2.5.1"
     react: "npm:^19.2.4"
     react-aria-components: "npm:^1.8.0"
->>>>>>> a2924cf6bb (add @visx/drag)
+>>>>>>> 8fe4471cb7 (lock file)
 ||||||||| parent of 8e7b1a16f2 (test fix)
   languageName: unknown
   linkType: soft
@@ -3551,7 +3551,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"brace-expansion@npm:^5.0.2":
+"brace-expansion@npm:^5.0.5":
   version: 5.0.5
   resolution: "brace-expansion@npm:5.0.5"
   dependencies:
@@ -4466,11 +4466,11 @@ __metadata:
   linkType: hard
 
 "minimatch@npm:^10.2.2":
-  version: 10.2.4
-  resolution: "minimatch@npm:10.2.4"
+  version: 10.2.5
+  resolution: "minimatch@npm:10.2.5"
   dependencies:
-    brace-expansion: "npm:^5.0.2"
-  checksum: 10/aea4874e521c55bb60744685bbffe3d152e5460f84efac3ea936e6bbe2ceba7deb93345fec3f9bb17f7b6946776073a64d40ae32bf5f298ad690308121068a1f
+    brace-expansion: "npm:^5.0.5"
+  checksum: 10/19e87a931aff60ee7b9d80f39f817b8bfc54f61f8356ee3549fbf636dbccacacfec8d803eac73293955c4527cd085247dfc064bce4a5e349f8f3b85e2bf5da0f
   languageName: node
   linkType: hard
 
@@ -4896,9 +4896,9 @@ __metadata:
   linkType: hard
 
 "remeda@npm:^2.21.0":
-  version: 2.33.6
-  resolution: "remeda@npm:2.33.6"
-  checksum: 10/733967372cbe89150250576be49e8e6f7dcc7f319acf40af204fa3cdbfd305171742b05574c1245fe1f6926b007498df995d6682de52d370932ab1e99102e4ba
+  version: 2.33.7
+  resolution: "remeda@npm:2.33.7"
+  checksum: 10/3a2fd771d186bbf6459caf41c8463c3c5547d16b196949a08dac66232e70216f3a9af5f27b0c5f076326301c2d59f5b12cb70443d87a0cea09564744a693fa00
   languageName: node
   linkType: hard
 
