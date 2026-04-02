@@ -2,6 +2,7 @@ import {
     BlockSize,
     EnrichedBlockChart,
     EnrichedBlockPerson,
+    EnrichedBlockSmallChart,
     EnrichedBlockText,
     HorizontalAlign,
     OwidEnrichedGdocBlock,
@@ -100,6 +101,37 @@ export const enrichedBlockExamples: Record<
         },
         parseErrors: [],
     },
+    "small-chart": {
+        type: "small-chart",
+        variant: "rows",
+        kicker: "More views of this data",
+        title: "Daily incomes by decile",
+        source: "Global Carbon Budget (2025)",
+        rows: [
+            {
+                image: "life-expectancy-thumbnail.png",
+                url: "/grapher/life-expectancy",
+                content: [
+                    {
+                        type: "text",
+                        value: [
+                            {
+                                spanType: "span-simple-text",
+                                text: "Life expectancy has more than doubled.",
+                            },
+                        ],
+                        parseErrors: [],
+                    },
+                ],
+            },
+            {
+                image: "gdp-per-capita-thumbnail.png",
+                url: "/grapher/gdp-per-capita",
+                content: [],
+            },
+        ],
+        parseErrors: [],
+    } satisfies EnrichedBlockSmallChart,
     "all-charts": {
         type: "all-charts",
         heading: "All our charts on Poverty",
