@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { parseAuthors } from "./gdocUtils.js"
+import { extractUrl, parseAuthors } from "./gdocUtils.js"
 
 describe(parseAuthors, () => {
     it("defaults to 'Our World in Data team' when no authors given", () => {
@@ -44,5 +44,17 @@ describe(parseAuthors, () => {
                 "Hannah Ritchie": "data work",
             },
         })
+    })
+})
+
+describe(extractUrl, () => {
+    it("trims whitespace from hrefs extracted out of anchor tags", () => {
+        expect(
+            extractUrl(
+                '<a href="https://ourworldindata.org/grapher/national-poverty-line-vs-gdp-per-capita ">Chart</a>'
+            )
+        ).toBe(
+            "https://ourworldindata.org/grapher/national-poverty-line-vs-gdp-per-capita"
+        )
     })
 })

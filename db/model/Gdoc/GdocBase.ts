@@ -1210,7 +1210,7 @@ export class GdocBase implements OwidGdocBaseInterface {
                     ) {
                         linkErrors.push({
                             property: "content",
-                            message: `Grapher chart with slug ${link.target} does not exist or is not published`,
+                            message: `Grapher chart with slug "${link.target}" does not exist or is not published`,
                             type: OwidGdocErrorMessageType.Error,
                         })
                     }
@@ -1234,7 +1234,7 @@ export class GdocBase implements OwidGdocBaseInterface {
                     ) {
                         linkErrors.push({
                             property: "content",
-                            message: `Explorer chart with slug ${link.target} does not exist or is not published`,
+                            message: `Explorer chart with slug "${link.target}" does not exist or is not published`,
                             type: OwidGdocErrorMessageType.Error,
                         })
                     }
