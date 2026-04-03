@@ -580,6 +580,7 @@ export class GrapherState
     hideEntityControls = false
     hideShareButton = false
     hideExploreTheDataButton = true
+    hideControlsRow = false
     hideRelatedQuestion = false
     canHideExternalControlsInEmbed: boolean = false
     hideExternalControlsInEmbedUrl: boolean =
@@ -736,6 +737,7 @@ export class GrapherState
             hideFullscreenButton: observable,
             hideDownloadButton: observable,
             hideEntityControls: observable,
+            hideControlsRow: observable,
             enableMapSelection: observable,
             forceHideAnnotationFieldsInTitle: observable,
             hasTableTab: observable,

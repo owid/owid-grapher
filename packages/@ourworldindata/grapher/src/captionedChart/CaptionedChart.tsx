@@ -81,6 +81,9 @@ export interface CaptionedChartManager
     isFaceted?: boolean
     isExportingForWikimedia?: boolean
 
+    // controls
+    hideControlsRow?: boolean
+
     // timeline
     hasTimeline?: boolean
     timelineController?: TimelineController
@@ -178,6 +181,7 @@ abstract class AbstractCaptionedChart extends React.Component<CaptionedChartProp
     }
 
     @computed private get showControlsRow(): boolean {
+        if (this.manager.hideControlsRow) return false
         return ControlsRow.shouldShow(this.manager)
     }
 
