@@ -1,12 +1,15 @@
-import { FunctionalRouter, HandlerResponse } from "./FunctionalRouter.js"
-import { Request } from "express"
+import {
+    FunctionalRouter,
+    HandlerResponse,
+    CompatRequest,
+} from "./FunctionalRouter.js"
 import * as db from "../db/db.js"
 
 export function getRouteWithROTransaction<T>(
     router: FunctionalRouter,
     targetPath: string,
     handler: (
-        req: Request,
+        req: CompatRequest,
         res: HandlerResponse,
         trx: db.KnexReadonlyTransaction
     ) => Promise<T>
@@ -26,7 +29,7 @@ export function getRouteNonIdempotentWithRWTransaction<T>(
     router: FunctionalRouter,
     targetPath: string,
     handler: (
-        req: Request,
+        req: CompatRequest,
         res: HandlerResponse,
         trx: db.KnexReadWriteTransaction
     ) => Promise<T>
@@ -42,7 +45,7 @@ export function postRouteWithRWTransaction<T>(
     router: FunctionalRouter,
     targetPath: string,
     handler: (
-        req: Request,
+        req: CompatRequest,
         res: HandlerResponse,
         trx: db.KnexReadWriteTransaction
     ) => Promise<T>
@@ -58,7 +61,7 @@ export function postFileUploadWithRWTransaction<T>(
     router: FunctionalRouter,
     targetPath: string,
     handler: (
-        req: Request,
+        req: CompatRequest,
         res: HandlerResponse,
         trx: db.KnexReadWriteTransaction
     ) => Promise<T>
@@ -74,7 +77,7 @@ export function putRouteWithRWTransaction<T>(
     router: FunctionalRouter,
     targetPath: string,
     handler: (
-        req: Request,
+        req: CompatRequest,
         res: HandlerResponse,
         trx: db.KnexReadWriteTransaction
     ) => Promise<T>
@@ -90,7 +93,7 @@ export function patchRouteWithRWTransaction<T>(
     router: FunctionalRouter,
     targetPath: string,
     handler: (
-        req: Request,
+        req: CompatRequest,
         res: HandlerResponse,
         trx: db.KnexReadWriteTransaction
     ) => Promise<T>
@@ -106,7 +109,7 @@ export function deleteRouteWithRWTransaction<T>(
     router: FunctionalRouter,
     targetPath: string,
     handler: (
-        req: Request,
+        req: CompatRequest,
         res: HandlerResponse,
         trx: db.KnexReadWriteTransaction
     ) => Promise<T>

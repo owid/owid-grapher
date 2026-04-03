@@ -1,5 +1,6 @@
 import * as Sentry from "@sentry/node"
-import express from "express"
+import { Context, MiddlewareHandler } from "hono"
+import { getCookie, deleteCookie } from "hono/cookie"
 import * as db from "../db/db.js"
 import { CLOUDFLARE_AUD } from "../settings/serverSettings.js"
 import * as jose from "jose"
@@ -12,9 +13,24 @@ import { DbPlainUser } from "@ourworldindata/utils"
 import { execWrapper } from "../db/execWrapper.js"
 import { hashApiKey } from "../serverUtils/apiKey.js"
 
-export type Request = express.Request
+/**
+ * Hono Variables type — use `c.get("user")` / `c.set("user", ...)` in handlers.
+ */
+export type AppVariables = {
+    user: DbPlainUser
+}
 
-export type Response = express.Response<any, { user: DbPlainUser }>
+/** Convenience alias so handler files can keep `Request`-style naming. */
+export type HonoContext = Context<{ Variables: AppVariables }>
+
+/**
+ * Re-export compat types so handler files that import { Request } from
+ * "../authentication.js" or { Response } from "../authentication.js" keep working.
+ */
+export type {
+    CompatRequest as Request,
+    CompatResponse as Response,
+} from "./FunctionalRouter.js"
 
 const API_KEY_HEADER = "authorization"
 const ACT_AS_USER_HEADER = "x-act-as-user"
@@ -28,11 +44,11 @@ const jwks = jose.createRemoteJWKSet(
 )
 
 async function setAuthenticatedUser(
-    res: express.Response,
+    c: HonoContext,
     user: DbPlainUser,
     trx: db.KnexReadWriteTransaction
 ): Promise<void> {
-    res.locals.user = user
+    c.set("user", user)
     Sentry.setUser({
         email: user.email,
         username: user.fullName,
@@ -40,12 +56,10 @@ async function setAuthenticatedUser(
     await updateUserLastSeen(trx, user.id)
 }
 
-export async function cloudflareAuthMiddleware(
-    req: express.Request,
-    res: express.Response,
-    next: express.NextFunction
-) {
-    const jwt = req.cookies[CLOUDFLARE_COOKIE_NAME]
+export const cloudflareAuthMiddleware: MiddlewareHandler<{
+    Variables: AppVariables
+}> = async (c, next) => {
+    const jwt = getCookie(c, CLOUDFLARE_COOKIE_NAME)
     if (!jwt) return next()
 
     if (!CLOUDFLARE_AUD) {
@@ -91,19 +105,17 @@ export async function cloudflareAuthMiddleware(
     }
 
     await db.knexReadWriteTransaction(async (trx) => {
-        await setAuthenticatedUser(res, user, trx)
+        await setAuthenticatedUser(c, user, trx)
     })
     return next()
 }
 
-export async function apiKeyAuthMiddleware(
-    req: express.Request,
-    res: express.Response,
-    next: express.NextFunction
-) {
-    if (res.locals.user) return next()
+export const apiKeyAuthMiddleware: MiddlewareHandler<{
+    Variables: AppVariables
+}> = async (c, next) => {
+    if (c.get("user")) return next()
 
-    const apiKey = getApiKeyFromRequest(req)
+    const apiKey = getApiKeyFromRequest(c)
     if (!apiKey) return next()
 
     await db.knexReadWriteTransaction(async (trx) => {
@@ -125,7 +137,7 @@ export async function apiKeyAuthMiddleware(
         }
 
         let authenticatedUser = user
-        const actAsUserId = getActAsUserIdFromRequest(req)
+        const actAsUserId = getActAsUserIdFromRequest(c)
         if (!user.isSuperuser && actAsUserId !== undefined) {
             console.error("Non-superuser attempted to use x-act-as-user.", {
                 userId: user.id,
@@ -155,24 +167,22 @@ export async function apiKeyAuthMiddleware(
                 )
                 return
             }
-            logActAsUser(req, user.id, actAsUserId)
+            logActAsUser(c, user.id, actAsUserId)
             authenticatedUser = actAsUser
         }
 
-        await setAuthenticatedUser(res, authenticatedUser, trx)
+        await setAuthenticatedUser(c, authenticatedUser, trx)
         await updateApiKeyLastUsed(apiKeyRow.id, trx)
     })
     return next()
 }
 
-export async function tailscaleAuthMiddleware(
-    req: express.Request,
-    res: express.Response,
-    next: express.NextFunction
-) {
-    if (res.locals.user) return next()
+export const tailscaleAuthMiddleware: MiddlewareHandler<{
+    Variables: AppVariables
+}> = async (c, next) => {
+    if (c.get("user")) return next()
 
-    const clientIp = getClientIp(req)
+    const clientIp = getClientIp(c)
 
     if (!clientIp) {
         console.error("Could not determine client IP address.")
@@ -207,18 +217,16 @@ export async function tailscaleAuthMiddleware(
     }
 
     await db.knexReadWriteTransaction(async (trx) => {
-        await setAuthenticatedUser(res, user, trx)
+        await setAuthenticatedUser(c, user, trx)
     })
 
     return next()
 }
 
-export async function devAuthMiddleware(
-    _req: express.Request,
-    res: express.Response,
-    next: express.NextFunction
-) {
-    if (res.locals.user) return next()
+export const devAuthMiddleware: MiddlewareHandler<{
+    Variables: AppVariables
+}> = async (c, next) => {
+    if (c.get("user")) return next()
 
     const user = await getDevAdminUser()
     if (!user) {
@@ -229,35 +237,34 @@ export async function devAuthMiddleware(
     }
 
     await db.knexReadWriteTransaction(async (trx) => {
-        await setAuthenticatedUser(res, user, trx)
+        await setAuthenticatedUser(c, user, trx)
     })
     return next()
 }
 
-export function requireAdminAuthMiddleware(
-    _req: express.Request,
-    res: express.Response,
-    next: express.NextFunction
-) {
+export const requireAdminAuthMiddleware: MiddlewareHandler<{
+    Variables: AppVariables
+}> = async (c, next) => {
     // Authed urls shouldn't be cached
-    res.set("Cache-Control", "private, no-cache")
+    c.header("Cache-Control", "private, no-cache")
 
-    if (res.locals.user?.isActive) {
+    const user = c.get("user")
+    if (user?.isActive) {
         return next()
     }
 
-    const status = res.locals.user ? 403 : 401
+    const status = user ? 403 : 401
     const message =
         status === 403
             ? "User is inactive. Please contact an administrator."
             : "Unauthorized"
 
-    return res.status(status).send(message)
+    return c.text(message, status)
 }
 
-export async function logOut(_req: express.Request, res: express.Response) {
-    res.clearCookie(CLOUDFLARE_COOKIE_NAME)
-    return res.redirect("/admin")
+export async function logOut(c: HonoContext) {
+    deleteCookie(c, CLOUDFLARE_COOKIE_NAME)
+    return c.redirect("/admin")
 }
 
 async function getDevAdminUser(): Promise<DbPlainUser | undefined> {
@@ -268,19 +275,16 @@ async function getDevAdminUser(): Promise<DbPlainUser | undefined> {
     })
 }
 
-function getClientIp(req: express.Request): string | undefined {
-    let ip =
-        (req.headers["x-forwarded-for"] as string) ||
-        req.socket.remoteAddress ||
-        req.ip
+function getClientIp(c: HonoContext): string | undefined {
+    let ip = c.req.header("x-forwarded-for") || c.req.header("x-real-ip")
     if (ip && ip.startsWith("::ffff:")) {
         ip = ip.replace("::ffff:", "")
     }
     return ip
 }
 
-function getApiKeyFromRequest(req: express.Request): string | undefined {
-    const authorizationHeader = req.get(API_KEY_HEADER)
+function getApiKeyFromRequest(c: HonoContext): string | undefined {
+    const authorizationHeader = c.req.header(API_KEY_HEADER)
     if (!authorizationHeader) return undefined
     const trimmed = authorizationHeader.trim()
     if (!trimmed) return undefined
@@ -290,8 +294,8 @@ function getApiKeyFromRequest(req: express.Request): string | undefined {
     return token.length ? token : undefined
 }
 
-function getActAsUserIdFromRequest(req: express.Request): number | undefined {
-    const header = req.get(ACT_AS_USER_HEADER)
+function getActAsUserIdFromRequest(c: HonoContext): number | undefined {
+    const header = c.req.header(ACT_AS_USER_HEADER)
     if (!header) return undefined
     const trimmed = header.trim()
     if (!trimmed) return undefined
@@ -301,15 +305,15 @@ function getActAsUserIdFromRequest(req: express.Request): number | undefined {
 }
 
 function logActAsUser(
-    req: express.Request,
+    c: HonoContext,
     superuserId: number,
     actAsUserId: number
 ): void {
     console.info("Admin API key act-as", {
         superuserId,
         actAsUserId,
-        method: req.method,
-        path: req.originalUrl,
+        method: c.req.method,
+        path: c.req.url,
     })
 }
 
