@@ -288,7 +288,9 @@ abstract class AbstractHeader<
         )
     }
 
-    override render(): React.ReactElement {
+    override render(): React.ReactElement | null {
+        const hasContent = !!this.logo || this.showTitle || this.showSubtitle
+        if (!hasContent) return null
         return (
             <div
                 className="HeaderHTML"
@@ -335,9 +337,19 @@ export class StaticHeader extends AbstractHeader<StaticHeaderProps> {
         return 1.2
     }
 
-    override render(): React.ReactElement {
+    override render(): React.ReactElement | null {
         const { targetX: x, targetY: y } = this.props
-        const { title, logo, subtitle, manager, maxWidth } = this
+        const {
+            title,
+            logo,
+            subtitle,
+            manager,
+            maxWidth,
+            showTitle,
+            showSubtitle,
+        } = this
+        const hasContent = !!logo || showTitle || showSubtitle
+        if (!hasContent) return null
         return (
             <g id={makeFigmaId(GRAPHER_HEADER_CLASS)} className="HeaderView">
                 {logo &&
