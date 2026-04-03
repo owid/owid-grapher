@@ -472,7 +472,7 @@ export const getExplorerChecksumsFromDb = async (
     )
 }
 
-export const getNarrativeChartChecksumsFromDb = async (
+const getNarrativeChartChecksumsFromDb = async (
     knex: db.KnexReadonlyTransaction,
     names?: string[]
 ): Promise<NarrativeChartChecksumsResult[]> => {
@@ -645,7 +645,7 @@ function groupLinkedChartsByPost(
     return chartsByPost
 }
 
-export async function getImagesByPostId(
+async function getImagesByPostId(
     knex: db.KnexReadonlyTransaction,
     postIds: string[]
 ): Promise<Record<string, ArchivalImage[]>> {

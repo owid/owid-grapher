@@ -12,7 +12,7 @@ export const CustomColorSchemes: ColorSchemeInterface[] = []
 
 // Create some of our own!
 
-export const OwidDistinctColors = {
+const OwidDistinctColors = {
     Purple: "#6d3e91",
     DarkOrange: "#c05917",
     LightTeal: "#58ac8c",
@@ -62,7 +62,7 @@ const darkerColorReplacementsHexToReplacementColorName = {
 } as Record<string, string>
 
 // TODO: Make this into a lazy initialization
-export const OwidDistinctLinesColors = {
+const OwidDistinctLinesColors = {
     ..._.omit(OwidDistinctColors, Object.keys(DarkerOwidDistinctColors)),
     ...DarkerOwidDistinctColors,
 }
@@ -73,7 +73,7 @@ const OwidDistinctLinesColorNames = lazy(() =>
 )
 
 // Below are 5 variations of the same colors in different permutations
-export const CategoricalColorsPaletteA = [
+const CategoricalColorsPaletteA = [
     OwidDistinctColors.Denim,
     OwidDistinctColors.Maroon,
     OwidDistinctColors.OliveGreen,
@@ -88,7 +88,7 @@ export const CategoricalColorsPaletteA = [
     OwidDistinctColors.DarkOliveGreen,
 ]
 
-export const CategoricalColorsPaletteB = [
+const CategoricalColorsPaletteB = [
     OwidDistinctColors.Teal,
     OwidDistinctColors.MidnightBlue,
     OwidDistinctColors.DustyCoral,
@@ -104,7 +104,7 @@ export const CategoricalColorsPaletteB = [
     OwidDistinctColors.Peach,
 ]
 
-export const CategoricalColorsPaletteC = [
+const CategoricalColorsPaletteC = [
     OwidDistinctColors.Purple,
     OwidDistinctColors.DarkOrange,
     OwidDistinctColors.LightTeal,
@@ -131,7 +131,7 @@ export const CategoricalColorsPaletteC = [
     OwidDistinctColors.Coral,
 ]
 
-export const CategoricalColorsPaletteD = [
+const CategoricalColorsPaletteD = [
     OwidDistinctColors.DustyCoral,
     OwidDistinctColors.DarkOliveGreen,
     OwidDistinctColors.Camel,
@@ -144,7 +144,7 @@ export const CategoricalColorsPaletteD = [
     OwidDistinctColors.MidnightBlue,
 ]
 
-export const CategoricalColorsPaletteE = [
+const CategoricalColorsPaletteE = [
     OwidDistinctColors.DarkCopper,
     OwidDistinctColors.Peach,
     OwidDistinctColors.Blue,
@@ -196,7 +196,7 @@ const OwidDistinctLinesPalette = [
     OwidDistinctColors.DustyCoral,
 ]
 
-export const OwidDistinctLinesColorScheme = {
+const OwidDistinctLinesColorScheme = {
     name: ColorSchemeName["OwidDistinctLines"],
     displayName: "OWID Distinct (lines)",
     singleColorScale: false,
@@ -205,7 +205,7 @@ export const OwidDistinctLinesColorScheme = {
 }
 CustomColorSchemes.push(OwidDistinctLinesColorScheme)
 
-export const OwidCategoricalAScheme = {
+const OwidCategoricalAScheme = {
     name: ColorSchemeName["OwidCategoricalA"],
     displayName: "OWID categorical A",
     singleColorScale: false,
@@ -214,7 +214,7 @@ export const OwidCategoricalAScheme = {
 }
 CustomColorSchemes.push(OwidCategoricalAScheme)
 
-export const OwidCategoricalBScheme = {
+const OwidCategoricalBScheme = {
     name: ColorSchemeName["OwidCategoricalB"],
     displayName: "OWID categorical B",
     singleColorScale: false,
@@ -223,7 +223,7 @@ export const OwidCategoricalBScheme = {
 }
 CustomColorSchemes.push(OwidCategoricalBScheme)
 
-export const OwidCategoricalCScheme = {
+const OwidCategoricalCScheme = {
     name: ColorSchemeName["OwidCategoricalC"],
     displayName: "OWID categorical C",
     singleColorScale: false,
@@ -232,7 +232,7 @@ export const OwidCategoricalCScheme = {
 }
 CustomColorSchemes.push(OwidCategoricalCScheme)
 
-export const OwidCategoricalDScheme = {
+const OwidCategoricalDScheme = {
     name: ColorSchemeName["OwidCategoricalD"],
     displayName: "OWID categorical D",
     singleColorScale: false,
@@ -241,7 +241,7 @@ export const OwidCategoricalDScheme = {
 }
 CustomColorSchemes.push(OwidCategoricalDScheme)
 
-export const OwidCategoricalEScheme = {
+const OwidCategoricalEScheme = {
     name: ColorSchemeName["OwidCategoricalE"],
     displayName: "OWID categorical E",
     singleColorScale: false,
@@ -250,7 +250,7 @@ export const OwidCategoricalEScheme = {
 }
 CustomColorSchemes.push(OwidCategoricalEScheme)
 
-export const EnergyColors = {
+const EnergyColors = {
     Coal: OwidDistinctColors.Maroon,
     Oil: OwidDistinctColors.DustyCoral,
     Gas: OwidDistinctColors.Purple,
@@ -277,7 +277,7 @@ const EnergyColorPalette = [
     EnergyColors.OtherRenewables,
 ]
 
-export const OwidEnergy = {
+const OwidEnergy = {
     name: ColorSchemeName["OwidEnergy"],
     displayName: "OWID Energy",
     singleColorScale: false,
@@ -304,7 +304,7 @@ const EnergyColorsLinesNames = lazy(() =>
     getModifiedLinesNames(EnergyColorsNames())
 )
 
-export const OwidEnergyLines = getModifiedLinesColorScheme(OwidEnergy)
+const OwidEnergyLines = getModifiedLinesColorScheme(OwidEnergy)
 CustomColorSchemes.push(OwidEnergyLines)
 
 CustomColorSchemes.push({
@@ -321,7 +321,7 @@ CustomColorSchemes.push({
     colorSets: [CategoricalColorsPaletteA, CategoricalColorsPaletteC],
 })
 
-export const IncomeGroupColors = {
+const IncomeGroupColors = {
     HighIncome: "#0d8553",
     UpperMiddleIncome: "#a1cb81",
     LowerMiddleIncome: "#df9fdb",
@@ -447,7 +447,7 @@ const ContinentColorPalette = [
     ContinentColors.Antarctica,
 ]
 
-export const ContinentColorsColorScheme = {
+const ContinentColorsColorScheme = {
     name: ColorSchemeName.continents,
     displayName: "Continents",
     singleColorScale: false,
@@ -490,13 +490,13 @@ const ContinentColorsLinesNames = lazy(() =>
     getModifiedLinesNames(ContinentColorsNames())
 )
 
-export const ContinentColorsLinesColorScheme = getModifiedLinesColorScheme(
+const ContinentColorsLinesColorScheme = getModifiedLinesColorScheme(
     ContinentColorsColorScheme
 )
 
 CustomColorSchemes.push(ContinentColorsLinesColorScheme)
 
-export const SingleColorDenim = {
+const SingleColorDenim = {
     name: ColorSchemeName.SingleColorDenim,
     displayName: "Single color: Denim",
     singleColorScale: true,
@@ -506,7 +506,7 @@ export const SingleColorDenim = {
 
 CustomColorSchemes.push(SingleColorDenim)
 
-export const SingleColorTeal = {
+const SingleColorTeal = {
     name: ColorSchemeName.SingleColorTeal,
     displayName: "Single color: Teal",
     singleColorScale: true,
@@ -516,7 +516,7 @@ export const SingleColorTeal = {
 
 CustomColorSchemes.push(SingleColorTeal)
 
-export const SingleColorPurple = {
+const SingleColorPurple = {
     name: ColorSchemeName.SingleColorPurple,
     displayName: "Single color: Purple",
     singleColorScale: true,
@@ -526,7 +526,7 @@ export const SingleColorPurple = {
 
 CustomColorSchemes.push(SingleColorPurple)
 
-export const SingleColorDustyCoral = {
+const SingleColorDustyCoral = {
     name: ColorSchemeName.SingleColorDustyCoral,
     displayName: "Single color: Dusty coral",
     singleColorScale: true,
@@ -536,7 +536,7 @@ export const SingleColorDustyCoral = {
 
 CustomColorSchemes.push(SingleColorDustyCoral)
 
-export const SingleColorDarkCopper = {
+const SingleColorDarkCopper = {
     name: ColorSchemeName.SingleColorDarkCopper,
     displayName: "Single color: Dark copper",
     singleColorScale: true,
@@ -546,7 +546,7 @@ export const SingleColorDarkCopper = {
 
 CustomColorSchemes.push(SingleColorDarkCopper)
 
-export const SingleColorGradientDenim = {
+const SingleColorGradientDenim = {
     name: ColorSchemeName.SingleColorGradientDenim,
     displayName: "Single color gradient: Denim",
     singleColorScale: true,
@@ -566,7 +566,7 @@ export const SingleColorGradientDenim = {
     ],
 }
 CustomColorSchemes.push(SingleColorGradientDenim)
-export const SingleColorGradientTeal = {
+const SingleColorGradientTeal = {
     name: ColorSchemeName.SingleColorGradientTeal,
     displayName: "Single color gradient: Teal",
     singleColorScale: true,
@@ -587,7 +587,7 @@ export const SingleColorGradientTeal = {
 }
 CustomColorSchemes.push(SingleColorGradientTeal)
 
-export const SingleColorGradientPurple = {
+const SingleColorGradientPurple = {
     name: ColorSchemeName.SingleColorGradientPurple,
     displayName: "Single color gradient: Purple",
     singleColorScale: true,
@@ -608,7 +608,7 @@ export const SingleColorGradientPurple = {
 }
 CustomColorSchemes.push(SingleColorGradientPurple)
 
-export const SingleColorGradientDustyCoral = {
+const SingleColorGradientDustyCoral = {
     name: ColorSchemeName.SingleColorGradientDustyCoral,
     displayName: "Single color gradient: DustyCoral",
     singleColorScale: true,
@@ -628,7 +628,7 @@ export const SingleColorGradientDustyCoral = {
     ],
 }
 CustomColorSchemes.push(SingleColorGradientDustyCoral)
-export const SingleColorGradientDarkCopper = {
+const SingleColorGradientDarkCopper = {
     name: ColorSchemeName.SingleColorGradientDarkCopper,
     displayName: "Single color gradient: DarkCopper",
     singleColorScale: true,
@@ -649,7 +649,7 @@ export const SingleColorGradientDarkCopper = {
 }
 CustomColorSchemes.push(SingleColorGradientDarkCopper)
 
-export const BinaryMapPaletteA = {
+const BinaryMapPaletteA = {
     name: ColorSchemeName.BinaryMapPaletteA,
     displayName: "Binary map palette A",
     singleColorScale: false,
@@ -659,7 +659,7 @@ export const BinaryMapPaletteA = {
 
 CustomColorSchemes.push(BinaryMapPaletteA)
 
-export const BinaryMapPaletteB = {
+const BinaryMapPaletteB = {
     name: ColorSchemeName.BinaryMapPaletteB,
     displayName: "Binary map palette B",
     singleColorScale: false,
@@ -669,7 +669,7 @@ export const BinaryMapPaletteB = {
 
 CustomColorSchemes.push(BinaryMapPaletteB)
 
-export const BinaryMapPaletteC = {
+const BinaryMapPaletteC = {
     name: ColorSchemeName.BinaryMapPaletteC,
     displayName: "Binary map palette C",
     singleColorScale: false,
@@ -679,7 +679,7 @@ export const BinaryMapPaletteC = {
 
 CustomColorSchemes.push(BinaryMapPaletteC)
 
-export const BinaryMapPaletteD = {
+const BinaryMapPaletteD = {
     name: ColorSchemeName.BinaryMapPaletteD,
     displayName: "Binary map palette D",
     singleColorScale: false,
@@ -751,7 +751,7 @@ export const CategoricalMapPalette17 = [
     OwidMapColors.LightGreen,
 ]
 
-export const OwidCategoricalMapScheme = {
+const OwidCategoricalMapScheme = {
     name: ColorSchemeName.OwidCategoricalMap,
     displayName: "OWID Categorical Map",
     singleColorScale: false,
@@ -844,7 +844,7 @@ export const MapContinentColors = {
 
 export const DefaultColorScheme = OwidDistinctColorScheme
 
-export function getColorNameAndSemanticPalettes(
+function getColorNameAndSemanticPalettes(
     color: string,
     baseColorSchemeNames: Record<string, string>,
     continentsColorSchemeNames: Record<string, string>,

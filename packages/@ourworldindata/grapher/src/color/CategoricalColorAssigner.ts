@@ -5,7 +5,7 @@ import { getLeastUsedColor } from "./ColorUtils"
 
 type CategoryId = string
 export type CategoricalColorMap = Map<CategoryId, Color>
-export type CategoricalColorMapReadonly = ReadonlyMap<CategoryId, Color>
+type CategoricalColorMapReadonly = ReadonlyMap<CategoryId, Color>
 
 export interface CategoricalColorAssignerProps {
     colorScheme: ColorScheme

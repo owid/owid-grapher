@@ -126,7 +126,7 @@ async function validateChartIds(
     return found
 }
 
-export async function upsertExplorerCharts(
+async function upsertExplorerCharts(
     knex: KnexReadWriteTransaction,
     slug: string,
     config: ExplorerConfig
@@ -180,7 +180,7 @@ async function validateVariableIds(
     return found
 }
 
-export async function upsertExplorerVariables(
+async function upsertExplorerVariables(
     knex: KnexReadWriteTransaction,
     slug: string,
     config: ExplorerConfig

@@ -68,13 +68,6 @@ interface UpdateFields {
     updatedAt: Date
 }
 
-export async function updateExistingPatchConfig(
-    knex: db.KnexReadWriteTransaction,
-    params: UpdateFields & { configId: ConfigId }
-): Promise<void> {
-    await updateExistingConfig(knex, { ...params, column: "patch" })
-}
-
 export async function updateExistingFullConfig(
     knex: db.KnexReadWriteTransaction,
     params: UpdateFields & { configId: ConfigId }

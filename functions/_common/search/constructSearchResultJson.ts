@@ -1022,7 +1022,7 @@ function findTableSlotKey(
  * For aggregate regions: returns sibling regions at the same hierarchical level.
  * For the World entity: returns continents or income groups if available.
  */
-export async function selectPeerEntitiesForSearch({
+async function selectPeerEntitiesForSearch({
     grapherState,
     targetEntity,
 }: {

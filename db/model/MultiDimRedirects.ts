@@ -5,9 +5,9 @@ import {
 } from "@ourworldindata/types"
 import { MultiDimDataPageConfig } from "@ourworldindata/utils"
 
-export type MultiDimRedirectSourcePrefix = "/grapher/" | "/explorers/"
+type MultiDimRedirectSourcePrefix = "/grapher/" | "/explorers/"
 
-export interface MultiDimRedirectTarget {
+interface MultiDimRedirectTarget {
     targetSlug: string
     queryStr?: string
 }

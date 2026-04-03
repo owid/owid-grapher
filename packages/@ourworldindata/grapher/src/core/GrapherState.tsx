@@ -4143,7 +4143,7 @@ export class GrapherState
     }
 }
 
-export const defaultObject = objectWithPersistablesToObject(
+const defaultObject = objectWithPersistablesToObject(
     new GrapherState({}),
     grapherKeysToSerialize
 )

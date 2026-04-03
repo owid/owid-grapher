@@ -14,13 +14,6 @@ import {
 } from "@ourworldindata/types"
 import { diffGrapherConfigs } from "@ourworldindata/utils"
 
-export interface Chart {
-    id: number
-    title?: string
-    variantName?: string
-    isChild: boolean
-}
-
 export interface NarrativeChartEditorManager extends AbstractChartEditorManager {
     history: History
     narrativeChartId?: number

@@ -114,7 +114,7 @@ const renderDatapageIfApplicable = async (
  * Render a datapage if available, otherwise render a grapher page.
  */
 
-export const renderDataPageOrGrapherPage = async (
+const renderDataPageOrGrapherPage = async (
     grapher: GrapherInterface,
     knex: db.KnexReadonlyTransaction,
     {
@@ -403,7 +403,7 @@ const bakeGrapherPage = async (
     )
 }
 
-export interface BakeSingleGrapherChartArguments {
+interface BakeSingleGrapherChartArguments {
     id: number
     config: string
     bakedSiteDir: string
@@ -413,7 +413,7 @@ export interface BakeSingleGrapherChartArguments {
     archiveContextDictionary: Record<number, ArchiveContext | undefined>
 }
 
-export const bakeSingleGrapherChart = async (
+const bakeSingleGrapherChart = async (
     args: BakeSingleGrapherChartArguments,
     knex: db.KnexReadonlyTransaction
 ) => {

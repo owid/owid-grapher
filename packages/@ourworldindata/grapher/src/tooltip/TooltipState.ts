@@ -8,7 +8,7 @@ interface TooltipStateArgs {
     fade?: TooltipFadeMode
 }
 
-export class PlainTooltipState<T> {
+class PlainTooltipState<T> {
     position = new PointVector(0, 0)
 
     protected _target: T | undefined = undefined

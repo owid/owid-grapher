@@ -103,20 +103,20 @@ export interface MinimalMultiDimInfo {
     config: MultiDimDataPageConfigEnriched
 }
 
-export interface MinimalNarrativeChartInfo {
+interface MinimalNarrativeChartInfo {
     id: number
     name: string
     config: GrapherInterface
 }
 
-export interface MinimalImageInfo {
+interface MinimalImageInfo {
     id: number
     filename: string
     cloudflareId: string
     originalWidth: number
 }
 
-export const projBaseDir = findProjectBaseDir(__dirname)
+const projBaseDir = findProjectBaseDir(__dirname)
 if (!projBaseDir) throw new Error("Could not find project base directory")
 
 const IGNORED_FILES_PATTERNS = [
@@ -125,7 +125,7 @@ const IGNORED_FILES_PATTERNS = [
     /^images(\/.*)?$/,
     /^identifyadmin.html$/,
 ]
-export const copyPublicDir = async (archiveDir: string) => {
+const copyPublicDir = async (archiveDir: string) => {
     const publicDir = path.join(projBaseDir, "public")
     const archivalPublicDir = path.join(__dirname, "public")
     const targetDir = archiveDir
@@ -148,7 +148,7 @@ export const copyPublicDir = async (archiveDir: string) => {
     }
 }
 
-export const bakeDods = async (
+const bakeDods = async (
     knex: db.KnexReadonlyTransaction,
     archiveDir: string
 ) => {
@@ -164,9 +164,7 @@ export const bakeDods = async (
 }
 
 /** Fetches and archives catalog data files used for sorting in EntitySelector */
-export const bakeCatalogData = async (
-    archiveDir: string
-): Promise<AssetMap> => {
+const bakeCatalogData = async (archiveDir: string): Promise<AssetMap> => {
     const assetMap: AssetMap = {}
 
     await fs.mkdirp(path.join(archiveDir, "catalog"))
@@ -250,7 +248,7 @@ const bakeOwidMjsFile = async (
 // after we know the content-hashed filename of owid.map.mjs
 const ASSET_FILES = ["owid.mjs.map", "owid.mjs", "owid.css"]
 const IGNORED_FILES = [".vite"]
-export const bakeAssets = async (archiveDir: string) => {
+const bakeAssets = async (archiveDir: string) => {
     const srcDir = path.join(projBaseDir, "dist/assets-archive")
     const targetDir = path.join(archiveDir, "assets")
 
@@ -1178,7 +1176,7 @@ export async function generateChartVersionsFiles(
     )
 }
 
-export const bakeMultiDimDataPageForArchival = async (
+const bakeMultiDimDataPageForArchival = async (
     trx: db.KnexReadonlyTransaction,
     dir: string,
     multiDimInfo: MinimalMultiDimInfo,

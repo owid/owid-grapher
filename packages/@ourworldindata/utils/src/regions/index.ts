@@ -4,12 +4,9 @@ export {
     type Country,
     type IncomeGroup,
     type OwidIncomeGroupCode,
-    type OwidIncomeGroupName,
     type Continent,
     type Aggregate,
-    type BaseRegion,
     type RegionDataProvider,
-    type AggregateWithDefinedBy,
 } from "./regionsTypes.js"
 
 export { regions } from "./regions.js"

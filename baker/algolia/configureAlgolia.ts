@@ -15,7 +15,7 @@ import { PAGES_INDEX, CHARTS_INDEX } from "../../site/search/searchUtils.js"
 import { SearchIndexName } from "@ourworldindata/types"
 import { synonyms } from "../../site/search/synonymUtils.js"
 
-export const CONTENT_GRAPH_ALGOLIA_INDEX = getIndexName("graph")
+const CONTENT_GRAPH_ALGOLIA_INDEX = getIndexName("graph")
 
 export const getAlgoliaClient = (): SearchClient | undefined => {
     if (!ALGOLIA_ID || !ALGOLIA_SECRET_KEY) {

@@ -1,5 +1,4 @@
 import {
-    DbPlainChartSlugRedirect,
     DbPlainChart,
     GrapherInterface,
     DbRawChartConfig,
@@ -11,7 +10,6 @@ import {
     GrapherState,
     GRAPHER_IMAGE_WIDTH_2X,
 } from "@ourworldindata/grapher"
-import path from "path"
 import * as db from "../db/db.js"
 import { grapherSlugToExportFileKey } from "./GrapherBakingUtils.js"
 import { BAKED_GRAPHER_URL } from "../settings/clientSettings.js"
@@ -25,26 +23,6 @@ interface SvgFilenameFragments {
     width: number
     height: number
     queryStr?: string
-}
-
-export async function getGraphersAndRedirectsBySlug(
-    knex: db.KnexReadonlyTransaction
-) {
-    const { graphersBySlug, graphersById } =
-        await getPublishedGraphersBySlug(knex)
-
-    const redirectQuery = await db.knexRaw<
-        Pick<DbPlainChartSlugRedirect, "slug" | "chart_id">
-    >(knex, `SELECT slug, chart_id FROM chart_slug_redirects`)
-
-    for (const row of redirectQuery) {
-        const grapher = graphersById.get(row.chart_id)
-        if (grapher) {
-            graphersBySlug.set(row.slug, grapher)
-        }
-    }
-
-    return graphersBySlug
 }
 
 export async function getPublishedGraphersBySlug(
@@ -104,17 +82,6 @@ export function buildSvgOutFilename(
     })
     const outFilename = `${fileKey}_v${version}_${width}x${height}.svg`
     return outFilename
-}
-
-export function buildSvgOutFilepath(
-    outDir: string,
-    fragments: SvgFilenameFragments,
-    verbose: boolean = false
-) {
-    const outFilename = buildSvgOutFilename(fragments)
-    const outPath = path.join(outDir, outFilename)
-    if (verbose) console.log(outPath)
-    return outPath
 }
 
 export async function grapherToSVG(
