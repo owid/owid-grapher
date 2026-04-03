@@ -2,7 +2,7 @@ import { Hono, Context } from "hono"
 import fs from "fs/promises"
 import path from "path"
 import crypto from "crypto"
-import { MULTER_UPLOADS_DIRECTORY } from "../adminShared/validation.js"
+import { FILE_UPLOADS_DIRECTORY } from "../adminShared/validation.js"
 import { AppVariables, HonoContext } from "./authentication.js"
 
 type HonoApp = Hono<{ Variables: AppVariables }>
@@ -59,9 +59,9 @@ export class FunctionalRouter {
 
                 // Write to a temp file in the uploads directory so the
                 // handler's existing cleanup logic (fs.unlink) still works.
-                await fs.mkdir(MULTER_UPLOADS_DIRECTORY, { recursive: true })
+                await fs.mkdir(FILE_UPLOADS_DIRECTORY, { recursive: true })
                 const tmpName = crypto.randomBytes(16).toString("hex")
-                const tmpPath = path.join(MULTER_UPLOADS_DIRECTORY, tmpName)
+                const tmpPath = path.join(FILE_UPLOADS_DIRECTORY, tmpName)
                 const buffer = Buffer.from(await file.arrayBuffer())
                 await fs.writeFile(tmpPath, buffer)
 

@@ -9,7 +9,7 @@ import * as db from "../../db/db.js"
 import { HonoContext } from "../authentication.js"
 import { saveFileToAssetsR2 } from "../../serverUtils/r2/assetsR2Helpers.js"
 import path from "path"
-import { MULTER_UPLOADS_DIRECTORY } from "../../adminShared/validation.js"
+import { FILE_UPLOADS_DIRECTORY } from "../../adminShared/validation.js"
 
 export async function getFiles(
     _c: HonoContext,
@@ -32,7 +32,7 @@ export async function uploadFileToR2(
         throw new JsonError("No target path specified", 400)
     }
     const tmpPath = path.resolve(file.path)
-    const targetPath = path.resolve(MULTER_UPLOADS_DIRECTORY)
+    const targetPath = path.resolve(FILE_UPLOADS_DIRECTORY)
 
     if (!tmpPath.startsWith(targetPath + path.sep)) {
         throw new JsonError("Invalid file upload path", 400)

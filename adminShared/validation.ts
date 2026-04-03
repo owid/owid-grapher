@@ -6,4 +6,4 @@ export function isKebabCase(value: string): boolean {
     return KEBAB_CASE_REGEX.test(value)
 }
 
-export const MULTER_UPLOADS_DIRECTORY = "tmp-uploads/"
+export const FILE_UPLOADS_DIRECTORY = "tmp-uploads/"
