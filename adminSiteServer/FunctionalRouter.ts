@@ -1,10 +1,10 @@
 import { Hono, Context } from "hono"
-import multer from "multer"
+import fs from "fs/promises"
+import path from "path"
+import crypto from "crypto"
 import { MULTER_UPLOADS_DIRECTORY } from "../adminShared/validation.js"
 import { AppVariables, HonoContext } from "./authentication.js"
 import { DbPlainUser } from "@ourworldindata/utils"
-
-const upload = multer({ dest: MULTER_UPLOADS_DIRECTORY })
 
 type HonoApp = Hono<{ Variables: AppVariables }>
 
@@ -22,7 +22,12 @@ export interface CompatRequest {
     path: string
     originalUrl: string
     ip: string | undefined
-    file?: any // multer file
+    file?: {
+        path: string
+        originalname: string
+        mimetype: string
+        size: number
+    }
     get(name: string): string | undefined
 }
 
@@ -234,32 +239,38 @@ export class FunctionalRouter {
         targetPath: string,
         callback: (req: CompatRequest, res: HandlerResponse) => Promise<any>
     ) {
-        // For file uploads, we use multer via a Node.js-compatible adapter.
-        // The @hono/node-server adapter gives us access to the underlying
-        // Node request, so multer can process it.
         this.app.post(
             targetPath,
             async (c: Context<{ Variables: AppVariables }>) => {
-                const nodeReq = (c.env as any)?.incoming
-                const nodeRes = (c.env as any)?.outgoing
-                if (!nodeReq || !nodeRes) {
-                    return c.json(
-                        { error: "File upload requires Node.js server" },
-                        500
-                    )
+                // Parse multipart body natively via Hono
+                const parsed = await c.req.parseBody({ all: true })
+
+                const file = parsed["file"]
+                if (!(file instanceof File)) {
+                    return c.json({ error: "No file uploaded" }, 400)
                 }
 
-                // Run multer as a promise
-                await new Promise<void>((resolve, reject) => {
-                    upload.single("file")(nodeReq, nodeRes, (err: any) => {
-                        if (err) reject(err)
-                        else resolve()
-                    })
-                })
+                // Write to a temp file in the uploads directory so the
+                // handler's existing cleanup logic (fs.unlink) still works.
+                await fs.mkdir(MULTER_UPLOADS_DIRECTORY, { recursive: true })
+                const tmpName = crypto.randomBytes(16).toString("hex")
+                const tmpPath = path.join(MULTER_UPLOADS_DIRECTORY, tmpName)
+                const buffer = Buffer.from(await file.arrayBuffer())
+                await fs.writeFile(tmpPath, buffer)
 
-                const body = nodeReq.body || {}
+                // Build the remaining form fields as the body
+                const body: Record<string, any> = {}
+                for (const [key, value] of Object.entries(parsed)) {
+                    if (key !== "file") body[key] = value
+                }
+
                 const req = buildCompatRequest(c as HonoContext, body)
-                req.file = nodeReq.file
+                req.file = {
+                    path: tmpPath,
+                    originalname: file.name,
+                    mimetype: file.type,
+                    size: file.size,
+                }
                 const res = buildCompatResponse(c as HonoContext)
                 const result = await callback(req, res)
                 return c.json(result)

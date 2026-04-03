@@ -22,7 +22,7 @@ export async function getFiles(
 }
 
 export async function uploadFileToR2(
-    req: Request & { file?: Express.Multer.File },
+    req: Request,
     res: HandlerResponse,
     trx: db.KnexReadWriteTransaction
 ): Promise<{ success: boolean; path: string }> {
