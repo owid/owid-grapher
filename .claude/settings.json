@@ -5,7 +5,6 @@
             "Bash(grep:*)",
             "Bash(yarn typecheck)",
 
-            // Read-only access to GitHub using the `gh` cli tool
             "Bash(gh issue list:*)",
             "Bash(gh issue view:*)",
             "Bash(gh pr checks:*)",
