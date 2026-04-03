@@ -130,6 +130,12 @@ const chartIcons: Record<GrapherChartType, React.ReactElement> = {
         </svg>
     ),
 
+    // dumbbell
+    [GRAPHER_CHART_TYPES.Dumbbell]: (
+        // TODO: replace with actual dumbbell icon once we have one designed
+        <FontAwesomeIcon className="GrapherTabIcon" icon={faChartBar} />
+    ),
+
     // slope chart
     [GRAPHER_CHART_TYPES.SlopeChart]: (
         <svg

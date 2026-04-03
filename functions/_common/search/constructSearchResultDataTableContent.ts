@@ -11,6 +11,7 @@ import {
     SlopeChartState,
     StackedBarChartState,
     MarimekkoChartState,
+    DumbbellChartState,
     MapChartState,
     ChartState,
     makeChartState,
@@ -102,6 +103,12 @@ export function constructSearchResultDataTableContent(
             buildDataTableContentForMarimekkoChart({
                 ...props,
                 chartState: chartState as MarimekkoChartState,
+            })
+        )
+        .with(GRAPHER_TAB_NAMES.Dumbbell, () =>
+            buildDataTableContentForDumbbellChart({
+                ...props,
+                chartState: chartState as DumbbellChartState,
             })
         )
         .with(GRAPHER_TAB_NAMES.WorldMap, () =>
@@ -286,6 +293,55 @@ function buildDataTableContentForSlopeChart({
     const title = makeTableTitle(grapherState, chartState, formatColumn)
 
     return { rows, title }
+}
+
+function buildDataTableContentForDumbbellChart({
+    grapherState,
+    chartState,
+    maxRows,
+}: Args<DumbbellChartState>): SearchChartHitDataTableProps {
+    const formatColumn = chartState.formatColumn
+
+    let rows = chartState.series.map((series) => {
+        const start = series.start!
+        const end = series.end!
+
+        const formattedStartValue = formatColumn.formatValueShort(start.value)
+        const formattedEndValue = formatColumn.formatValueShort(end.value)
+
+        const trend =
+            formattedStartValue && formattedStartValue === formattedEndValue
+                ? "right"
+                : calculateTrendDirection(start.value, end.value)
+
+        const time =
+            chartState.mode === "time-range"
+                ? `${formatColumn.formatTime(start.time)}–${formatColumn.formatTime(end.time)}`
+                : formatColumn.formatTime(end.time)
+
+        return {
+            seriesName: series.seriesName,
+            label: series.displayName,
+            endValue: end.value,
+            color: series.color,
+            value: formattedEndValue,
+            startValue: formattedStartValue,
+            trend,
+            time,
+            timePreposition: "",
+            muted: series.focus!.background,
+        }
+    })
+
+    // Sort by end value in descending order
+    rows = _.orderBy(rows, [(row) => row.endValue], "desc")
+
+    // Take the first X rows if maxRows is specified
+    if (maxRows && maxRows > 0) rows = _.take(rows, maxRows)
+
+    const title = makeTableTitle(grapherState, chartState, formatColumn)
+
+    return { rows: rows.map((row) => _.omit(row, ["endValue"])), title }
 }
 
 function buildDataTableContentForStackedDiscreteBarChart({
