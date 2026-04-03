@@ -2,7 +2,6 @@ import {
     BlockSize,
     EnrichedBlockChart,
     EnrichedBlockPerson,
-    EnrichedBlockSmallChart,
     EnrichedBlockText,
     HorizontalAlign,
     OwidEnrichedGdocBlock,
@@ -101,9 +100,8 @@ export const enrichedBlockExamples: Record<
         },
         parseErrors: [],
     },
-    "small-chart": {
-        type: "small-chart",
-        variant: "rows",
+    "chart-rows": {
+        type: "chart-rows",
         kicker: "More views of this data",
         title: "Daily incomes by decile",
         source: "Global Carbon Budget (2025)",
@@ -127,11 +125,41 @@ export const enrichedBlockExamples: Record<
             {
                 image: "gdp-per-capita-thumbnail.png",
                 url: "/grapher/gdp-per-capita",
-                content: [],
+                content: [
+                    {
+                        type: "text",
+                        value: [
+                            {
+                                spanType: "span-simple-text",
+                                text: "GDP per capita has grown steadily.",
+                            },
+                        ],
+                        parseErrors: [],
+                    },
+                ],
             },
         ],
         parseErrors: [],
-    } satisfies EnrichedBlockSmallChart,
+    },
+    "pull-chart": {
+        type: "pull-chart",
+        align: "left-center",
+        image: "chart-thumbnail.png",
+        url: "/grapher/population",
+        content: [
+            {
+                type: "text",
+                value: [
+                    {
+                        spanType: "span-simple-text",
+                        text: "World population has grown rapidly.",
+                    },
+                ],
+                parseErrors: [],
+            },
+        ],
+        parseErrors: [],
+    },
     "all-charts": {
         type: "all-charts",
         heading: "All our charts on Poverty",

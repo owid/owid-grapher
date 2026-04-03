@@ -1733,6 +1733,20 @@ export function traverseEnrichedBlock(
                 traverseEnrichedBlock(node, callback, spanCallback)
             }
         })
+        .with({ type: "chart-rows" }, (block) => {
+            callback(block)
+            for (const row of block.rows) {
+                for (const node of row.content) {
+                    traverseEnrichedBlock(node, callback, spanCallback)
+                }
+            }
+        })
+        .with({ type: "pull-chart" }, (block) => {
+            callback(block)
+            for (const node of block.content) {
+                traverseEnrichedBlock(node, callback, spanCallback)
+            }
+        })
         .with(
             {
                 type: P.union(
@@ -1776,14 +1790,6 @@ export function traverseEnrichedBlock(
             },
             callback
         )
-        .with({ type: "small-chart" }, (smallChart) => {
-            callback(smallChart)
-            for (const row of smallChart.rows) {
-                for (const node of row.content) {
-                    traverseEnrichedBlock(node, callback, spanCallback)
-                }
-            }
-        })
         .exhaustive()
 }
 

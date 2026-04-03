@@ -4,8 +4,9 @@ import {
     stripCustomMarkdownComponents,
 } from "./enrichedToMarkdown.js"
 import {
+    EnrichedBlockChartRows,
     EnrichedBlockDataCallout,
-    EnrichedBlockSmallChart,
+    EnrichedBlockPullChart,
     EnrichedBlockText,
     LinkedCallouts,
 } from "@ourworldindata/types"
@@ -227,11 +228,10 @@ describe(enrichedBlocksToMarkdown, () => {
         })
     })
 
-    describe("small-chart", () => {
+    describe("chart-rows", () => {
         it("should render rows with image and text content", () => {
-            const block: EnrichedBlockSmallChart = {
-                type: "small-chart",
-                variant: "rows",
+            const block: EnrichedBlockChartRows = {
+                type: "chart-rows",
                 rows: [
                     {
                         image: "life-expectancy.png",
@@ -270,29 +270,26 @@ describe(enrichedBlocksToMarkdown, () => {
             }
 
             expect(enrichedBlocksToMarkdown([block], false)).toBe(
-                "![](life-expectancy.png)\nLife expectancy has doubled.\n\n![](gdp.png)\nGDP has grown."
+                "[![](life-expectancy.png)](/grapher/life-expectancy)\nLife expectancy has doubled.\n\n[![](gdp.png)](/grapher/gdp)\nGDP has grown."
             )
         })
+    })
 
-        it("should render pull-quote variant with image and text content", () => {
-            const block: EnrichedBlockSmallChart = {
-                type: "small-chart",
-                variant: "pull-quote",
+    describe("pull-chart", () => {
+        it("should render with image and text content", () => {
+            const block: EnrichedBlockPullChart = {
+                type: "pull-chart",
                 align: "right-center",
-                rows: [
+                image: "chart.png",
+                url: "/grapher/test",
+                content: [
                     {
-                        image: "chart.png",
-                        url: "/grapher/test",
-                        content: [
+                        type: "text",
+                        parseErrors: [],
+                        value: [
                             {
-                                type: "text",
-                                parseErrors: [],
-                                value: [
-                                    {
-                                        spanType: "span-simple-text",
-                                        text: "Pull-quote caption text.",
-                                    },
-                                ],
+                                spanType: "span-simple-text",
+                                text: "Pull-quote caption text.",
                             },
                         ],
                     },
@@ -301,7 +298,7 @@ describe(enrichedBlocksToMarkdown, () => {
             }
 
             expect(enrichedBlocksToMarkdown([block], false)).toBe(
-                "![](chart.png)\nPull-quote caption text."
+                "[![](chart.png)](/grapher/test)\nPull-quote caption text."
             )
         })
     })

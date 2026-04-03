@@ -1,6 +1,7 @@
 import * as _ from "lodash-es"
 import {
     DbInsertPostGdocComponent,
+    EnrichedBlockChartRows,
     EnrichedBlockKeyInsights,
     EnrichedBlockTable,
     OwidEnrichedGdocBlock,
@@ -34,6 +35,26 @@ function iterateKeyInsights<T extends EnrichedBlockKeyInsights>(
                 child: slide.content[j],
                 parentPath: `${parentPath}`,
                 path: `${parentPath}.insights[${i}].content[${j}]`,
+            })
+        }
+    }
+    return items
+}
+
+/** Specialized iteration function for the chart-rows block */
+function iterateChartRows<T extends EnrichedBlockChartRows>(
+    parent: T,
+    parentPath: string,
+    _prop: keyof T
+): ChildIterationInfo[] {
+    const items: ChildIterationInfo[] = []
+    for (let i = 0; i < parent.rows.length; i++) {
+        const row = parent.rows[i]
+        for (let j = 0; j < row.content.length; j++) {
+            items.push({
+                child: row.content[j],
+                parentPath: `${parentPath}`,
+                path: `${parentPath}.rows[${i}].content[${j}]`,
             })
         }
     }
@@ -350,6 +371,22 @@ export function enumerateGdocComponentsWithoutChildren(
                     path
                 )
             )
+            .with({ type: "chart-rows" }, (chartRows) =>
+                handleComponent(
+                    chartRows,
+                    [{ prop: "rows", iterator: iterateChartRows }],
+                    parentPath,
+                    path
+                )
+            )
+            .with({ type: "pull-chart" }, (pullChart) =>
+                handleComponent(
+                    pullChart,
+                    [{ prop: "content", iterator: iterateArrayProp }],
+                    parentPath,
+                    path
+                )
+            )
             .with(
                 {
                     type: P.union(
@@ -395,8 +432,7 @@ export function enumerateGdocComponentsWithoutChildren(
                         "static-viz",
                         "data-callout",
                         "country-profile-selector",
-                        "bespoke-component",
-                        "small-chart"
+                        "bespoke-component"
                     ),
                 },
                 (c) => handleComponent(c, [], parentPath, path)
