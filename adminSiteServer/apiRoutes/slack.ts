@@ -1,17 +1,16 @@
 import * as db from "../../db/db.js"
-import { Request } from "../authentication.js"
-import { HandlerResponse } from "../FunctionalRouter.js"
+import { HonoContext } from "../authentication.js"
 import { SLACK_BOT_OAUTH_TOKEN } from "../../settings/serverSettings"
 import { JsonError } from "@ourworldindata/types"
 
 export async function sendMessageToSlack(
-    req: Request,
-    _res: HandlerResponse,
+    c: HonoContext,
     _trx: db.KnexReadWriteTransaction
 ) {
     const url = "https://slack.com/api/chat.postMessage"
 
-    const { channel, blocks, username } = req.body
+    const body = await c.req.json()
+    const { channel, blocks, username } = body
 
     if (!channel) throw new JsonError("Channel missing")
     if (!blocks) throw new JsonError("Blocks missing")

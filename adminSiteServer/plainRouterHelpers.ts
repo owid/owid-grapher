@@ -1,137 +1,96 @@
-import { Hono, Context, Next } from "hono"
+import { Hono, Next } from "hono"
 import * as db from "../db/db.js"
-import {
-    CompatRequest,
-    FullResponse,
-    buildCompatRequest,
-    buildFullResponse,
-    parseBody,
-} from "./FunctionalRouter.js"
-import { AppVariables } from "./authentication.js"
+import { AppVariables, HonoContext } from "./authentication.js"
 
 type HonoApp = Hono<{ Variables: AppVariables }>
 
-async function wrapPlainHandler<T>(
-    c: Context<{ Variables: AppVariables }>,
-    handler: (
-        req: CompatRequest,
-        res: FullResponse,
-        trx: any,
-        next?: Next
-    ) => Promise<T>,
-    transactionFn: (cb: (trx: any) => Promise<T>) => Promise<T>,
-    next?: Next
-): Promise<Response> {
-    const body = await parseBody(c)
-    const req = buildCompatRequest(c as any, body)
-    const responseState = {
-        body: undefined as string | object | undefined,
-        statusCode: 200,
-    }
-    const res = buildFullResponse(c as any, responseState)
-
-    await transactionFn((transaction) => handler(req, res, transaction, next))
-
-    if (
-        responseState.body &&
-        typeof responseState.body === "object" &&
-        "__redirect" in responseState.body
-    ) {
-        return c.redirect((responseState.body as any).__redirect)
-    }
-
-    if (typeof responseState.body === "object") {
-        return c.json(responseState.body, responseState.statusCode as any)
-    }
-
-    return c.html(responseState.body || "", responseState.statusCode as any)
-}
-
-export function getPlainRouteWithROTransaction<T>(
+export function getPlainRouteWithROTransaction(
     router: HonoApp,
     targetPath: string,
     handler: (
-        req: CompatRequest,
-        res: FullResponse,
+        c: HonoContext,
         trx: db.KnexReadonlyTransaction,
-        next?: Next
-    ) => Promise<T>
+        next: Next
+    ) => Promise<Response | void>
 ) {
     return router.get(targetPath, async (c, next) => {
-        return wrapPlainHandler(c, handler, db.knexReadonlyTransaction, next)
+        return db.knexReadonlyTransaction((trx) =>
+            handler(c as HonoContext, trx, next)
+        )
     })
 }
 
-/** Usually get routes should be idempotent (caching and retry reasons among others),
-    but for example the gdoc preview route is not because it updates the gdoc in the DB after
-    fetching it from the google API.
- */
-export function getPlainRouteNonIdempotentWithRWTransaction<T>(
+export function getPlainRouteNonIdempotentWithRWTransaction(
     router: HonoApp,
     targetPath: string,
     handler: (
-        req: CompatRequest,
-        res: FullResponse,
+        c: HonoContext,
         trx: db.KnexReadWriteTransaction
-    ) => Promise<T>
+    ) => Promise<Response | void>
 ) {
     return router.get(targetPath, async (c) => {
-        return wrapPlainHandler(c, handler, db.knexReadWriteTransaction)
+        return db.knexReadWriteTransaction((trx) =>
+            handler(c as HonoContext, trx)
+        )
     })
 }
 
-export function postPlainRouteWithRWTransaction<T>(
+export function postPlainRouteWithRWTransaction(
     router: HonoApp,
     targetPath: string,
     handler: (
-        req: CompatRequest,
-        res: FullResponse,
+        c: HonoContext,
         trx: db.KnexReadWriteTransaction
-    ) => Promise<T>
+    ) => Promise<Response | void>
 ) {
     return router.post(targetPath, async (c) => {
-        return wrapPlainHandler(c, handler, db.knexReadWriteTransaction)
+        return db.knexReadWriteTransaction((trx) =>
+            handler(c as HonoContext, trx)
+        )
     })
 }
 
-export function putPlainRouteWithRWTransaction<T>(
+export function putPlainRouteWithRWTransaction(
     router: HonoApp,
     targetPath: string,
     handler: (
-        req: CompatRequest,
-        res: FullResponse,
+        c: HonoContext,
         trx: db.KnexReadWriteTransaction
-    ) => Promise<T>
+    ) => Promise<Response | void>
 ) {
     return router.put(targetPath, async (c) => {
-        return wrapPlainHandler(c, handler, db.knexReadWriteTransaction)
+        return db.knexReadWriteTransaction((trx) =>
+            handler(c as HonoContext, trx)
+        )
     })
 }
 
-export function patchPlainRouteWithRWTransaction<T>(
+export function patchPlainRouteWithRWTransaction(
     router: HonoApp,
     targetPath: string,
     handler: (
-        req: CompatRequest,
-        res: FullResponse,
+        c: HonoContext,
         trx: db.KnexReadWriteTransaction
-    ) => Promise<T>
+    ) => Promise<Response | void>
 ) {
     return router.patch(targetPath, async (c) => {
-        return wrapPlainHandler(c, handler, db.knexReadWriteTransaction)
+        return db.knexReadWriteTransaction((trx) =>
+            handler(c as HonoContext, trx)
+        )
     })
 }
 
-export function deletePlainRouteWithRWTransaction<T>(
+export function deletePlainRouteWithRWTransaction(
     router: HonoApp,
     targetPath: string,
     handler: (
-        req: CompatRequest,
-        res: FullResponse,
+        c: HonoContext,
         trx: db.KnexReadWriteTransaction
-    ) => Promise<T>
+    ) => Promise<Response | void>
 ) {
     return router.delete(targetPath, async (c) => {
-        return wrapPlainHandler(c, handler, db.knexReadWriteTransaction)
+        return db.knexReadWriteTransaction((trx) =>
+            handler(c as HonoContext, trx)
+        )
     })
 }

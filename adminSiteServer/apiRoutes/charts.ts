@@ -66,8 +66,7 @@ import * as db from "../../db/db.js"
 import { getLogsByChartId } from "../getLogsByChartId.js"
 import { getChartsRecords } from "../../baker/algolia/utils/charts.js"
 
-import { Request } from "../authentication.js"
-import { HandlerResponse } from "../FunctionalRouter.js"
+import { HonoContext } from "../authentication.js"
 import { DataInsightMinimalInformation } from "../../adminShared/AdminTypes.js"
 import {
     validateNewGrapherSlug,
@@ -576,11 +575,10 @@ export async function updateGrapherConfigsInR2(
 }
 
 export async function getChartsJson(
-    req: Request,
-    res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadonlyTransaction
 ) {
-    const limit = parseIntOrUndefined(req.query.limit as string) ?? 10000
+    const limit = parseIntOrUndefined(c.req.query("limit") as string) ?? 10000
     const charts = await db.knexRaw<OldChartFieldList>(
         trx,
         `-- sql
@@ -602,11 +600,10 @@ export async function getChartsJson(
 }
 
 export async function getChartsCsv(
-    req: Request,
-    res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadonlyTransaction
 ) {
-    const limit = parseIntOrUndefined(req.query.limit as string) ?? 10000
+    const limit = parseIntOrUndefined(c.req.query("limit") as string) ?? 10000
 
     // note: this query is extended from OldChart.listFields.
     const charts = await db.knexRaw(
@@ -655,26 +652,24 @@ export async function getChartsCsv(
     //     })
     // )
     // await Chart.assignTagsForCharts(charts)
-    res.setHeader("Content-disposition", "attachment; filename=charts.csv")
-    res.setHeader("content-type", "text/csv")
+    c.header("Content-disposition", "attachment; filename=charts.csv")
+    c.header("content-type", "text/csv")
     const csv = Papa.unparse(charts)
     return csv
 }
 
 export async function getChartConfigJson(
-    req: Request,
-    res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadonlyTransaction
 ) {
-    return expectChartById(trx, req.params.chartId)
+    return expectChartById(trx, c.req.param("chartId")!)
 }
 
 export async function getChartParentJson(
-    req: Request,
-    res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadonlyTransaction
 ) {
-    const chartId = expectInt(req.params.chartId)
+    const chartId = expectInt(c.req.param("chartId")!)
     const parent = await getParentByChartId(trx, chartId)
     const isInheritanceEnabled = await isInheritanceEnabledForChart(
         trx,
@@ -688,43 +683,39 @@ export async function getChartParentJson(
 }
 
 export async function getChartSettingsJson(
-    req: Request,
-    res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadonlyTransaction
 ) {
-    const chartId = expectInt(req.params.chartId)
+    const chartId = expectInt(c.req.param("chartId")!)
     const forceDatapage = await getForceDatapageByChartId(trx, chartId)
     return { forceDatapage }
 }
 
 export async function getChartPatchConfigJson(
-    req: Request,
-    res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadonlyTransaction
 ) {
-    const chartId = expectInt(req.params.chartId)
+    const chartId = expectInt(c.req.param("chartId")!)
     const config = await expectPatchConfigByChartId(trx, chartId)
     return config
 }
 
 export async function getChartLogsJson(
-    req: Request,
-    res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadonlyTransaction
 ) {
     return {
-        logs: await getLogsByChartId(trx, parseInt(req.params.chartId)),
+        logs: await getLogsByChartId(trx, parseInt(c.req.param("chartId")!)),
     }
 }
 
 export async function getChartReferencesJson(
-    req: Request,
-    res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadonlyTransaction
 ) {
     const references = {
         references: await getReferencesByChartId(
-            parseInt(req.params.chartId),
+            parseInt(c.req.param("chartId")!),
             trx
         ),
     }
@@ -732,24 +723,22 @@ export async function getChartReferencesJson(
 }
 
 export async function getChartRedirectsJson(
-    req: Request,
-    res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadonlyTransaction
 ) {
     return {
         redirects: await getRedirectsByChartId(
             trx,
-            parseInt(req.params.chartId)
+            parseInt(c.req.param("chartId")!)
         ),
     }
 }
 
 export async function getChartViewsJson(
-    req: Request,
-    res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadonlyTransaction
 ) {
-    const slug = await getChartSlugById(trx, parseInt(req.params.chartId))
+    const slug = await getChartSlugById(trx, parseInt(c.req.param("chartId")!))
     if (!slug) return {}
 
     const viewsBySlug = await db.knexRawFirst(
@@ -769,11 +758,10 @@ export async function getChartViewsJson(
 }
 
 export async function getChartTagsJson(
-    req: Request,
-    res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadonlyTransaction
 ) {
-    const chartId = expectInt(req.params.chartId)
+    const chartId = expectInt(c.req.param("chartId")!)
     const chartTags = await db.knexRaw<DbChartTagJoin>(
         trx,
         `-- sql
@@ -789,23 +777,24 @@ export async function getChartTagsJson(
 }
 
 export async function createChart(
-    req: Request,
-    res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadWriteTransaction
 ) {
     let shouldInherit: boolean | undefined
-    if (req.query.inheritance) {
-        shouldInherit = req.query.inheritance === "enable"
+    if (c.req.query("inheritance")) {
+        shouldInherit = c.req.query("inheritance") === "enable"
     }
     let forceDatapage: boolean | undefined
-    if (req.query.forceDatapage) {
-        forceDatapage = req.query.forceDatapage === "true"
+    if (c.req.query("forceDatapage")) {
+        forceDatapage = c.req.query("forceDatapage") === "true"
     }
+
+    const body = await c.req.json()
 
     try {
         const { chartId } = await saveGrapher(trx, {
-            user: res.locals.user,
-            newConfig: req.body,
+            user: c.get("user"),
+            newConfig: body,
             forceDatapage,
             shouldInherit,
         })
@@ -817,37 +806,38 @@ export async function createChart(
 }
 
 export async function setChartTagsHandler(
-    req: Request,
-    res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadWriteTransaction
 ) {
-    const chartId = expectInt(req.params.chartId)
+    const chartId = expectInt(c.req.param("chartId")!)
 
-    await setChartTags(trx, chartId, req.body.tags, res.locals.user.id)
+    const body = await c.req.json()
+    await setChartTags(trx, chartId, body.tags, c.get("user").id)
 
     return { success: true }
 }
 
 export async function updateChart(
-    req: Request,
-    res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadWriteTransaction
 ) {
     let shouldInherit: boolean | undefined
-    if (req.query.inheritance) {
-        shouldInherit = req.query.inheritance === "enable"
+    if (c.req.query("inheritance")) {
+        shouldInherit = c.req.query("inheritance") === "enable"
     }
     let forceDatapage: boolean | undefined
-    if (req.query.forceDatapage) {
-        forceDatapage = req.query.forceDatapage === "true"
+    if (c.req.query("forceDatapage")) {
+        forceDatapage = c.req.query("forceDatapage") === "true"
     }
 
-    const existingConfig = await expectChartById(trx, req.params.chartId)
+    const existingConfig = await expectChartById(trx, c.req.param("chartId")!)
+
+    const body = await c.req.json()
 
     try {
         const { chartId, savedPatch } = await saveGrapher(trx, {
-            user: res.locals.user,
-            newConfig: req.body,
+            user: c.get("user"),
+            newConfig: body,
             existingConfig,
             forceDatapage,
             shouldInherit,
@@ -869,11 +859,10 @@ export async function updateChart(
 }
 
 export async function deleteChart(
-    req: Request,
-    res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadWriteTransaction
 ) {
-    const chart = await expectChartById(trx, req.params.chartId)
+    const chart = await expectChartById(trx, c.req.param("chartId")!)
     if (chart.id) {
         const references = await getReferencesByChartId(chart.id, trx).then(
             (references) => Object.values(references).flat()
@@ -908,10 +897,7 @@ export async function deleteChart(
     }
 
     if (chart.isPublished)
-        await triggerStaticBuild(
-            res.locals.user,
-            `Deleting chart ${chart.slug}`
-        )
+        await triggerStaticBuild(c.get("user"), `Deleting chart ${chart.slug}`)
 
     await deleteGrapherConfigFromR2ByUUID(row.configId)
     if (chart.isPublished)
@@ -928,11 +914,10 @@ export async function deleteChart(
  * Returns the records that would be created when indexing this chart.
  */
 export async function getChartRecordsJson(
-    req: Request,
-    _res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadonlyTransaction
 ) {
-    const chartId = expectInt(req.params.chartId)
+    const chartId = expectInt(c.req.param("chartId")!)
     const records = await getChartsRecords(trx, { chartIds: [chartId] })
     return { records }
 }

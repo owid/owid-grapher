@@ -6,15 +6,13 @@ import {
 } from "@ourworldindata/types"
 import fs from "fs/promises"
 import * as db from "../../db/db.js"
-import { Request } from "../authentication.js"
-import { HandlerResponse } from "../FunctionalRouter.js"
+import { HonoContext } from "../authentication.js"
 import { saveFileToAssetsR2 } from "../../serverUtils/r2/assetsR2Helpers.js"
 import path from "path"
 import { MULTER_UPLOADS_DIRECTORY } from "../../adminShared/validation.js"
 
 export async function getFiles(
-    _req: Request,
-    _res: HandlerResponse,
+    _c: HonoContext,
     trx: db.KnexReadonlyTransaction
 ): Promise<{ files: DbPlainFile[] }> {
     const files = await trx(FilesTableName).select("*")
@@ -22,25 +20,25 @@ export async function getFiles(
 }
 
 export async function uploadFileToR2(
-    req: Request,
-    res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadWriteTransaction
 ): Promise<{ success: boolean; path: string }> {
-    if (!req.file) {
+    const file = c.get("uploadedFile")
+    if (!file) {
         throw new JsonError("No file uploaded", 400)
     }
-    const filePath = String(req.query.path)
+    const filePath = String(c.req.query("path"))
     if (!filePath) {
         throw new JsonError("No target path specified", 400)
     }
-    const tmpPath = path.resolve(req.file.path)
+    const tmpPath = path.resolve(file.path)
     const targetPath = path.resolve(MULTER_UPLOADS_DIRECTORY)
 
     if (!tmpPath.startsWith(targetPath + path.sep)) {
         throw new JsonError("Invalid file upload path", 400)
     }
 
-    const filename = req.file.originalname
+    const filename = file.originalname
 
     const preexistingFile = await trx(FilesTableName)
         .where({
@@ -64,7 +62,7 @@ export async function uploadFileToR2(
         const r2Response = await saveFileToAssetsR2(
             fileBuffer,
             r2Key,
-            req.file.mimetype
+            file.mimetype
         )
 
         if (!r2Response) {
@@ -77,7 +75,7 @@ export async function uploadFileToR2(
             filename,
             path: filePath,
             etag: removeEtagQuotes(r2Response.ETag),
-            createdBy: res.locals.user.id,
+            createdBy: c.get("user").id,
         }
 
         await db.knexRawInsert(
@@ -87,7 +85,7 @@ export async function uploadFileToR2(
                 path,
                 etag,
                 createdBy
-            ) 
+            )
              VALUES (?, ?, ?, ?)`,
             [
                 metadata.filename,

@@ -75,29 +75,26 @@ import { GdocPost } from "../../db/model/Gdoc/GdocPost.js"
 import { enqueueLightningChange } from "./routeUtils.js"
 import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
 import * as db from "../../db/db.js"
-import { Request } from "../authentication.js"
-import { HandlerResponse } from "../FunctionalRouter.js"
+import { HonoContext } from "../authentication.js"
 import { GdocAnnouncement } from "../../db/model/Gdoc/GdocAnnouncement.js"
 import { GdocProfile } from "../../db/model/Gdoc/GdocProfile.js"
 
 export async function getAllGdocIndexItems(
-    req: Request,
-    res: HandlerResponse,
+    _c: HonoContext,
     trx: db.KnexReadonlyTransaction
 ) {
     return getAllGdocIndexItemsOrderedByUpdatedAt(trx)
 }
 
 export async function getIndividualGdoc(
-    req: Request,
-    res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadWriteTransaction
 ) {
-    const id = req.params.id
-    const contentSource = req.query.contentSource as
+    const id = c.req.param("id")!
+    const contentSource = c.req.query("contentSource") as
         | GdocsContentSource
         | undefined
-    const acceptSuggestions = req.query.acceptSuggestions === "true"
+    const acceptSuggestions = c.req.query("acceptSuggestions") === "true"
 
     try {
         // Beware: if contentSource=gdocs this will update images in the DB+S3 even if the gdoc is published
@@ -112,11 +109,11 @@ export async function getIndividualGdoc(
             await updateGdocContentOnly(trx, id, gdoc)
         }
 
-        res.set("Cache-Control", "no-store")
+        c.header("Cache-Control", "no-store")
         return gdoc
     } catch (error) {
         console.error("Error fetching gdoc", error)
-        res.status(500)
+        c.status(500)
         return {
             error: { message: String(error), status: 500 },
         }
@@ -124,15 +121,14 @@ export async function getIndividualGdoc(
 }
 
 export async function getGdocCalloutCoverage(
-    req: Request,
-    res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadonlyTransaction
 ) {
-    const id = req.params.id
-    const contentSource = req.query.contentSource as
+    const id = c.req.param("id")!
+    const contentSource = c.req.query("contentSource") as
         | GdocsContentSource
         | undefined
-    const acceptSuggestions = req.query.acceptSuggestions === "true"
+    const acceptSuggestions = c.req.query("acceptSuggestions") === "true"
 
     const base = await getGdocBaseObjectById(trx, id, true)
     if (!base) throw new JsonError(`No Google Doc with id ${id} found`, 404)
@@ -263,11 +259,10 @@ export async function getGdocCalloutCoverage(
  * in data-callout blocks.
  */
 export async function getCalloutFunctionStrings(
-    req: Request,
-    res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadonlyTransaction
 ) {
-    const chartUrl = req.query.url as string | undefined
+    const chartUrl = c.req.query("url")
     if (!chartUrl) {
         throw new JsonError("Missing 'url' query parameter", 400)
     }
@@ -488,20 +483,20 @@ async function createRedirectForSlugChangeIfNeeded(
  * trigger a deploy.
  */
 export async function createOrUpdateGdoc(
-    req: Request,
-    res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadWriteTransaction
 ) {
-    const { id } = req.params
+    const id = c.req.param("id")!
+    const body = await c.req.json()
 
-    if (_.isEmpty(req.body)) {
+    if (_.isEmpty(body)) {
         return createOrLoadGdocById(trx, id)
     }
 
     const prevGdoc = await getAndLoadGdocById(trx, id)
     if (!prevGdoc) throw new JsonError(`No Google Doc with id ${id} found`)
 
-    const nextGdoc = gdocFromJSON(req.body)
+    const nextGdoc = gdocFromJSON(body)
     await nextGdoc.loadState(trx)
 
     await validateSlugCollisionsIfPublishing(trx, nextGdoc)
@@ -521,7 +516,7 @@ export async function createOrUpdateGdoc(
     )
 
     const upserted = await upsertGdoc(trx, nextGdoc)
-    await indexAndBakeGdocIfNeccesary(trx, res.locals.user, prevGdoc, nextGdoc)
+    await indexAndBakeGdocIfNeccesary(trx, c.get("user"), prevGdoc, nextGdoc)
 
     return upserted
 }
@@ -545,17 +540,17 @@ async function validateTombstoneRelatedLinkUrl(
 }
 
 export async function deleteGdoc(
-    req: Request,
-    res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadWriteTransaction
 ) {
-    const { id } = req.params
+    const id = c.req.param("id")!
 
     const gdoc = await getGdocBaseObjectById(trx, id, false)
     if (!gdoc) throw new JsonError(`No Google Doc with id ${id} found`)
 
     const gdocSlug = getCanonicalUrl("", gdoc)
-    const { tombstone } = req.body
+    const body = await c.req.json()
+    const { tombstone } = body
 
     if (tombstone) {
         await validateTombstoneRelatedLinkUrl(trx, tombstone.relatedLinkUrl)
@@ -612,18 +607,18 @@ export async function deleteGdoc(
                 [source, "/"]
             )
         }
-        await triggerStaticBuild(res.locals.user, `Deleting ${gdocSlug}`)
+        await triggerStaticBuild(c.get("user"), `Deleting ${gdocSlug}`)
     }
     return {}
 }
 
 export async function setGdocTags(
-    req: Request,
-    res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadWriteTransaction
 ) {
-    const { gdocId } = req.params
-    const { tagIds } = req.body
+    const gdocId = c.req.param("gdocId")!
+    const body = await c.req.json()
+    const { tagIds } = body
     const tagIdsAsObjects: { id: number }[] = tagIds.map((id: number) => ({
         id: id,
     }))
@@ -641,15 +636,14 @@ export async function setGdocTags(
  * (same pre-index cleanup as Algolia records, before chunk serialization).
  */
 export async function getPreviewGdocIndexRecords(
-    req: Request,
-    res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadonlyTransaction
 ): Promise<PagesIndexRecordsResponse | { plaintext: string | undefined }> {
-    const { id } = req.params
-    const contentSource = req.query.contentSource as
+    const id = c.req.param("id")!
+    const contentSource = c.req.query("contentSource") as
         | GdocsContentSource
         | undefined
-    const raw = req.query.raw === "true"
+    const raw = c.req.query("raw") === "true"
 
     try {
         const gdoc = await getAndLoadGdocById(trx, id, contentSource, false)
@@ -658,7 +652,7 @@ export async function getPreviewGdocIndexRecords(
             throw new JsonError(`No Google Doc with id ${id} found`)
         }
 
-        res.set("Cache-Control", "no-store")
+        c.header("Cache-Control", "no-store")
 
         if (raw) {
             const plaintext = getPreprocessedIndexableText(
@@ -732,8 +726,7 @@ export async function getPreviewGdocIndexRecords(
  * Used by the tag editor to determine if a tag's slug matches a published gdoc.
  */
 export async function getPublishedGdocTopicSlugs(
-    _req: Request,
-    _res: HandlerResponse,
+    _c: HonoContext,
     trx: db.KnexReadonlyTransaction
 ): Promise<{ slugs: string[] }> {
     const rows = await db.knexRaw<{ slug: string }>(

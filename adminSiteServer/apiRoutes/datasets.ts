@@ -20,12 +20,10 @@ import { expectInt } from "../../serverUtils/serverUtil.js"
 import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
 import * as db from "../../db/db.js"
 import * as lodash from "lodash-es"
-import { Request } from "../authentication.js"
-import { HandlerResponse } from "../FunctionalRouter.js"
+import { HonoContext } from "../authentication.js"
 
 export async function getDatasets(
-    req: Request,
-    _res: HandlerResponse,
+    _c: HonoContext,
     trx: db.KnexReadonlyTransaction
 ) {
     const datasets = await db.knexRaw<Record<string, any>>(
@@ -84,11 +82,10 @@ export async function getDatasets(
 }
 
 export async function getDataset(
-    req: Request,
-    _res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadonlyTransaction
 ) {
-    const datasetId = expectInt(req.params.datasetId)
+    const datasetId = expectInt(c.req.param("datasetId")!)
 
     const dataset = await db.knexRawFirst<Record<string, any>>(
         trx,
@@ -324,17 +321,17 @@ export async function getDataset(
 }
 
 export async function updateDataset(
-    req: Request,
-    _res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadWriteTransaction
 ) {
     // Only updates `nonRedistributable` and `tags`, other fields come from ETL
     // and are not editable
-    const datasetId = expectInt(req.params.datasetId)
+    const datasetId = expectInt(c.req.param("datasetId")!)
     const dataset = await getDatasetById(trx, datasetId)
     if (!dataset) throw new JsonError(`No dataset by id ${datasetId}`, 404)
 
-    const newDataset = (req.body as { dataset: any }).dataset
+    const body = await c.req.json()
+    const newDataset = (body as { dataset: any }).dataset
     await db.knexRaw(
         trx,
         `
@@ -345,12 +342,7 @@ export async function updateDataset(
             metadataEditedByUserId=?
         WHERE id=?
         `,
-        [
-            newDataset.nonRedistributable,
-            new Date(),
-            _res.locals.user.id,
-            datasetId,
-        ]
+        [newDataset.nonRedistributable, new Date(), c.get("user").id, datasetId]
     )
 
     const tagRows = newDataset.tags.map((tag: any) => [tag.id, datasetId])
@@ -370,11 +362,10 @@ export async function updateDataset(
 }
 
 export async function setArchived(
-    req: Request,
-    _res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadWriteTransaction
 ) {
-    const datasetId = expectInt(req.params.datasetId)
+    const datasetId = expectInt(c.req.param("datasetId")!)
     const dataset = await getDatasetById(trx, datasetId)
     if (!dataset) throw new JsonError(`No dataset by id ${datasetId}`, 404)
 
@@ -405,28 +396,28 @@ export async function setArchived(
 }
 
 export async function setTags(
-    req: Request,
-    _res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadWriteTransaction
 ) {
-    const datasetId = expectInt(req.params.datasetId)
+    const datasetId = expectInt(c.req.param("datasetId")!)
 
-    await setTagsForDataset(trx, datasetId, req.body.tagIds)
+    const body = await c.req.json()
+    await setTagsForDataset(trx, datasetId, body.tagIds)
 
     return { success: true }
 }
 
 export async function republishCharts(
-    req: Request,
-    _res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadWriteTransaction
 ) {
-    const datasetId = expectInt(req.params.datasetId)
+    const datasetId = expectInt(c.req.param("datasetId")!)
 
     const dataset = await getDatasetById(trx, datasetId)
     if (!dataset) throw new JsonError(`No dataset by id ${datasetId}`, 404)
 
-    if (req.body.republish) {
+    const body = await c.req.json()
+    if (body.republish) {
         await db.knexRaw(
             trx,
             `-- sql
@@ -446,7 +437,7 @@ export async function republishCharts(
     }
 
     await triggerStaticBuild(
-        _res.locals.user,
+        c.get("user"),
         `Republishing all charts in dataset ${dataset.name} (${dataset.id})`
     )
 

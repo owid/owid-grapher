@@ -1,6 +1,5 @@
 import { JsonError } from "@ourworldindata/types"
-import { Request } from "../authentication.js"
-import { HandlerResponse } from "../FunctionalRouter.js"
+import { HonoContext } from "../authentication.js"
 import * as db from "../../db/db.js"
 import * as Figma from "figma-api"
 import { FIGMA_API_KEY } from "../../settings/serverSettings.js"
@@ -8,11 +7,11 @@ import { FIGMA_API_KEY } from "../../settings/serverSettings.js"
 const figmaApi = new Figma.Api({ personalAccessToken: FIGMA_API_KEY })
 
 export async function getFigmaImageUrl(
-    req: Request,
-    _res: HandlerResponse,
+    c: HonoContext,
     _trx: db.KnexReadonlyTransaction
 ) {
-    const { fileId, nodeId } = req.query as Record<string, string>
+    const fileId = c.req.query("fileId") as string
+    const nodeId = c.req.query("nodeId") as string
 
     if (!fileId || !nodeId) throw new JsonError("fileId or nodeId missing")
 

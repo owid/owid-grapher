@@ -1,12 +1,10 @@
 import { JsonError, FlatTagGraph } from "@ourworldindata/types"
 import * as db from "../../db/db.js"
 import * as R from "remeda"
-import { Request } from "../authentication.js"
-import { HandlerResponse } from "../FunctionalRouter.js"
+import { HonoContext } from "../authentication.js"
 
 export async function handleGetFlatTagGraph(
-    req: Request,
-    res: HandlerResponse,
+    _c: HonoContext,
     trx: db.KnexReadonlyTransaction
 ) {
     const flatTagGraph = await db.getFlatTagGraph(trx)
@@ -14,11 +12,11 @@ export async function handleGetFlatTagGraph(
 }
 
 export async function handlePostTagGraph(
-    req: Request,
-    res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadWriteTransaction
 ) {
-    const tagGraph = req.body?.tagGraph as unknown
+    const body = await c.req.json()
+    const tagGraph = body?.tagGraph as unknown
     if (!tagGraph) {
         throw new JsonError("No tagGraph provided", 400)
     }

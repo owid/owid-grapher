@@ -3,8 +3,7 @@ import {
     DbPlainUser,
     ExplorersTableName,
 } from "@ourworldindata/types"
-import { Request } from "../authentication.js"
-import { HandlerResponse } from "../FunctionalRouter.js"
+import { HonoContext } from "../authentication.js"
 
 import { isValidSlug } from "../../serverUtils/serverUtil.js"
 
@@ -22,12 +21,12 @@ function validateExplorerSlug(slug: string): void {
 }
 
 export async function addExplorerTags(
-    req: Request,
-    _res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadonlyTransaction
 ) {
-    const { slug } = req.params
-    const { tagIds } = req.body
+    const slug = c.req.param("slug")!
+    const body = await c.req.json()
+    const { tagIds } = body
 
     validateExplorerSlug(slug)
 
@@ -44,11 +43,10 @@ export async function addExplorerTags(
 }
 
 export async function deleteExplorerTags(
-    req: Request,
-    _res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadonlyTransaction
 ) {
-    const { slug } = req.params
+    const slug = c.req.param("slug")!
     if (!isValidSlug(slug)) {
         throw new JsonError(`Invalid explorer slug ${slug}`)
     }
@@ -57,11 +55,10 @@ export async function deleteExplorerTags(
 }
 
 export async function handleGetExplorer(
-    req: Request,
-    res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadonlyTransaction
 ) {
-    const { slug } = req.params
+    const slug = c.req.param("slug")!
     validateExplorerSlug(slug)
     const explorer = await getExplorerBySlug(trx, slug)
     if (!explorer) {
@@ -71,16 +68,16 @@ export async function handleGetExplorer(
 }
 
 export async function handlePutExplorer(
-    req: Request,
-    res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadWriteTransaction
 ) {
-    const { slug } = req.params
+    const slug = c.req.param("slug")!
     validateExplorerSlug(slug)
 
-    const user: DbPlainUser = res.locals.user
+    const user: DbPlainUser = c.get("user")
 
-    const { tsv, commitMessage } = req.body
+    const body = await c.req.json()
+    const { tsv, commitMessage } = body
 
     // Update the explorer in the database
     await upsertExplorer(trx, {
@@ -127,14 +124,13 @@ export async function handlePutExplorer(
 }
 
 export async function handleDeleteExplorer(
-    req: Request,
-    res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadWriteTransaction
 ) {
-    const { slug } = req.params
+    const slug = c.req.param("slug")!
     validateExplorerSlug(slug)
 
-    const user: DbPlainUser = res.locals.user
+    const user: DbPlainUser = c.get("user")
 
     const explorer = await getExplorerBySlug(trx, slug)
     if (!explorer) {
@@ -174,11 +170,10 @@ export async function handleDeleteExplorer(
  * Returns the records that would be created when indexing this explorer.
  */
 export async function getExplorerRecordsJson(
-    req: Request,
-    _res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadonlyTransaction
 ) {
-    const { slug } = req.params
+    const slug = c.req.param("slug")!
     validateExplorerSlug(slug)
     const records = await getExplorerViewRecords(trx, {
         slug,

@@ -12,24 +12,21 @@ import {
 import { expectInt } from "../../serverUtils/serverUtil.js"
 import * as db from "../../db/db.js"
 import * as lodash from "lodash-es"
-import { Request } from "../authentication.js"
-import { HandlerResponse } from "../FunctionalRouter.js"
+import { HonoContext } from "../authentication.js"
 import { isSlugUsedInOtherGrapher } from "../validation.js"
 
 export async function getStaticVizListHandler(
-    _req: Request,
-    _res: HandlerResponse,
+    _c: HonoContext,
     trx: db.KnexReadonlyTransaction
 ) {
     return await getEnrichedStaticVizList(trx)
 }
 
 export async function getStaticVizByIdHandler(
-    req: Request,
-    _res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadonlyTransaction
 ) {
-    const staticVizId = expectInt(req.params.staticVizId)
+    const staticVizId = expectInt(c.req.param("staticVizId")!)
 
     const staticViz = await getEnrichedStaticVizById(trx, staticVizId)
 
@@ -39,11 +36,11 @@ export async function getStaticVizByIdHandler(
 }
 
 export async function createStaticViz(
-    req: Request,
-    res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadWriteTransaction
 ) {
-    const parseResult = StaticVizInsertSchema.safeParse(req.body)
+    const body = await c.req.json()
+    const parseResult = StaticVizInsertSchema.safeParse(body)
     if (!parseResult.success) {
         throw new JsonError(JSON.stringify(parseResult.error), 400)
     }
@@ -113,8 +110,8 @@ export async function createStaticViz(
     const now = new Date()
     const insertData = {
         ...parsedData,
-        createdBy: res.locals.user.id,
-        updatedBy: res.locals.user.id,
+        createdBy: c.get("user").id,
+        updatedBy: c.get("user").id,
         createdAt: now,
         updatedAt: now,
     }
@@ -135,13 +132,13 @@ export async function createStaticViz(
 }
 
 export async function updateStaticViz(
-    req: Request,
-    res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadWriteTransaction
 ) {
-    const staticVizId = expectInt(req.params.staticVizId)
+    const staticVizId = expectInt(c.req.param("staticVizId")!)
 
-    const parsedData = StaticVizUpdateSchema.safeParse(req.body)
+    const body = await c.req.json()
+    const parsedData = StaticVizUpdateSchema.safeParse(body)
     if (!parsedData.success) {
         throw new JsonError(JSON.stringify(parsedData.error), 400)
     }
@@ -236,7 +233,7 @@ export async function updateStaticViz(
 
     const finalUpdateData = {
         ...updatePayload,
-        updatedBy: res.locals.user.id,
+        updatedBy: c.get("user").id,
         updatedAt: new Date(),
     }
 
@@ -258,11 +255,10 @@ export async function updateStaticViz(
 }
 
 export async function deleteStaticViz(
-    req: Request,
-    _res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadWriteTransaction
 ) {
-    const staticVizId = expectInt(req.params.staticVizId)
+    const staticVizId = expectInt(c.req.param("staticVizId")!)
 
     const staticViz = await trx
         .table("static_viz")

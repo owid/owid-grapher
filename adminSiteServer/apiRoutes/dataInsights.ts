@@ -1,5 +1,4 @@
-import { Request } from "../authentication.js"
-import { HandlerResponse } from "../FunctionalRouter.js"
+import { HonoContext } from "../authentication.js"
 import {
     DbPlainNarrativeChart,
     DbRawChartConfig,
@@ -50,28 +49,28 @@ type DataInsightRow = Pick<
     }
 
 export async function getAllDataInsightIndexItems(
-    _req: Request,
-    _res: HandlerResponse,
+    _c: HonoContext,
     trx: db.KnexReadonlyTransaction
 ) {
     return getAllDataInsightIndexItemsOrderedByUpdatedAt(trx)
 }
 
 export async function createDataInsightGDoc(
-    req: Request,
-    res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadWriteTransaction
 ) {
     // Find the user's data insight folder
-    const targetFolder = res.locals.user.dataInsightFolderId
+    const targetFolder = c.get("user").dataInsightFolderId
     if (!targetFolder) {
         throw new Error(
-            `Data insight folder doesn't exist for ${res.locals.user.fullName}`
+            `Data insight folder doesn't exist for ${c.get("user").fullName}`
         )
     }
 
+    const body = await c.req.json()
+
     // Create a new GDoc from the template
-    const docTitle = req.body.title ?? "Untitled Data Insight"
+    const docTitle = body.title ?? "Untitled Data Insight"
     const gdocId = await createGdocFromTemplate(
         GDOCS_DATA_INSIGHT_API_TEMPLATE_ID,
         docTitle,
@@ -81,12 +80,12 @@ export async function createDataInsightGDoc(
     // Insert given information into the GDoc
     const previewLink = `https://admin.owid.io/admin/gdocs/${gdocId}/preview`
     const replacements = {
-        title: req.body.title ?? "",
-        authors: req.body.authors ?? "",
-        "grapher-url": req.body.grapherUrl ?? "",
-        "narrative-chart": req.body.narrativeChart ?? "",
-        "figma-url": req.body.figmaUrl ?? "",
-        filename: req.body.filename ?? "",
+        title: body.title ?? "",
+        authors: body.authors ?? "",
+        "grapher-url": body.grapherUrl ?? "",
+        "narrative-chart": body.narrativeChart ?? "",
+        "figma-url": body.figmaUrl ?? "",
+        filename: body.filename ?? "",
         "preview-link": previewLink,
     }
     await replacePlaceholdersInGdoc(gdocId, replacements)
@@ -281,8 +280,7 @@ export function getChartTypeFromConfigAndQueryParams(
 }
 
 export async function refreshDataInsights(
-    req: Request,
-    _res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadWriteTransaction
 ): Promise<{
     success: boolean
@@ -290,7 +288,8 @@ export async function refreshDataInsights(
     errored: number
     errors: Array<{ id: string; message: string }>
 }> {
-    const gdocIds: string[] = req.body.gdocIds
+    const body = await c.req.json()
+    const gdocIds: string[] = body.gdocIds
 
     // No-op if no IDs were provided
     if (gdocIds.length === 0)

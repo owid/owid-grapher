@@ -1,15 +1,13 @@
-import { Request } from "../authentication.js"
-import { HandlerResponse } from "../FunctionalRouter.js"
+import { HonoContext } from "../authentication.js"
 import { JsonError } from "@ourworldindata/utils"
 import * as db from "../../db/db.js"
 import { getChartConfigById } from "../../db/model/ChartConfigs.js"
 
 export async function getChartConfig(
-    req: Request,
-    res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadonlyTransaction
 ) {
-    const { chartConfigId } = req.params
+    const chartConfigId = c.req.param("chartConfigId")!
     const config = await getChartConfigById(trx, chartConfigId)
     if (config) return config
     throw new JsonError(`No chart config found for id ${chartConfigId}`, 404)

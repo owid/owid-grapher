@@ -42,12 +42,10 @@ import { updateExistingFullConfig } from "../../db/model/ChartConfigs.js"
 import { expectInt } from "../../serverUtils/serverUtil.js"
 import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
 import { updateGrapherConfigsInR2 } from "./charts.js"
-import { Request } from "../authentication.js"
-import { HandlerResponse } from "../FunctionalRouter.js"
+import { HonoContext } from "../authentication.js"
 
 export async function getEditorVariablesJson(
-    req: Request,
-    _res: HandlerResponse,
+    _c: HonoContext,
     trx: db.KnexReadonlyTransaction
 ) {
     const datasets = []
@@ -115,11 +113,10 @@ export async function getEditorVariablesJson(
 }
 
 export async function getVariableDataJson(
-    req: Request,
-    _res: HandlerResponse,
+    c: HonoContext,
     _trx: db.KnexReadonlyTransaction
 ) {
-    const variableStr = req.params.variableStr
+    const variableStr = c.req.param("variableStr")!
     if (!variableStr) throw new JsonError("No variable id given")
     if (variableStr.includes("+"))
         throw new JsonError(
@@ -133,11 +130,10 @@ export async function getVariableDataJson(
 }
 
 export async function getVariableMetadataJson(
-    req: Request,
-    _res: HandlerResponse,
+    c: HonoContext,
     _trx: db.KnexReadonlyTransaction
 ) {
-    const variableStr = req.params.variableStr
+    const variableStr = c.req.param("variableStr")!
     if (!variableStr) throw new JsonError("No variable id given")
     if (variableStr.includes("+"))
         throw new JsonError(
@@ -151,18 +147,16 @@ export async function getVariableMetadataJson(
 }
 
 export async function getVariablesJson(
-    req: Request,
-    _res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadonlyTransaction
 ) {
-    const limit = parseIntOrUndefined(req.query.limit as string) ?? 50
-    const query = req.query.search as string
+    const limit = parseIntOrUndefined(c.req.query("limit") as string) ?? 50
+    const query = c.req.query("search") as string
     return await searchVariables(query, limit, trx)
 }
 
 export async function getVariablesUsagesJson(
-    req: Request,
-    _res: HandlerResponse,
+    _c: HonoContext,
     trx: db.KnexReadonlyTransaction
 ) {
     const query = `-- sql
@@ -182,11 +176,10 @@ export async function getVariablesUsagesJson(
 }
 
 export async function getVariablesGrapherConfigETLPatchConfigJson(
-    req: Request,
-    _res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadonlyTransaction
 ) {
-    const variableId = expectInt(req.params.variableId)
+    const variableId = expectInt(c.req.param("variableId")!)
     const variable = await getGrapherConfigsForVariable(trx, variableId)
     if (!variable) {
         throw new JsonError(`Variable with id ${variableId} not found`, 500)
@@ -195,11 +188,10 @@ export async function getVariablesGrapherConfigETLPatchConfigJson(
 }
 
 export async function getVariablesGrapherConfigAdminPatchConfigJson(
-    req: Request,
-    _res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadonlyTransaction
 ) {
-    const variableId = expectInt(req.params.variableId)
+    const variableId = expectInt(c.req.param("variableId")!)
     const variable = await getGrapherConfigsForVariable(trx, variableId)
     if (!variable) {
         throw new JsonError(`Variable with id ${variableId} not found`, 500)
@@ -208,21 +200,19 @@ export async function getVariablesGrapherConfigAdminPatchConfigJson(
 }
 
 export async function getVariablesMergedGrapherConfigJson(
-    req: Request,
-    _res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadonlyTransaction
 ) {
-    const variableId = expectInt(req.params.variableId)
+    const variableId = expectInt(c.req.param("variableId")!)
     const config = await getMergedGrapherConfigForVariable(trx, variableId)
     return config ?? {}
 }
 
 export async function getVariablesVariableIdJson(
-    req: Request,
-    _res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadonlyTransaction
 ) {
-    const variableId = expectInt(req.params.variableId)
+    const variableId = expectInt(c.req.param("variableId")!)
 
     const variable = await fetchS3MetadataByPath(
         getVariableMetadataRoute(DATA_API_URL, variableId, { noCache: true })
@@ -310,17 +300,15 @@ export async function getVariablesVariableIdJson(
 }
 
 export async function putVariablesVariableIdGrapherConfigETL(
-    req: Request,
-    res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadWriteTransaction
 ) {
-    const variableId = expectInt(req.params.variableId)
+    const variableId = expectInt(c.req.param("variableId")!)
 
+    const body = await c.req.json()
     let validConfig: GrapherInterface
     try {
-        validConfig = migrateGrapherConfigToLatestVersionAndFailOnError(
-            req.body
-        )
+        validConfig = migrateGrapherConfigToLatestVersionAndFailOnError(body)
     } catch (err) {
         return {
             success: false,
@@ -348,7 +336,7 @@ export async function putVariablesVariableIdGrapherConfigETL(
 
     if (allUpdatedConfigs.some(({ isPublished }) => isPublished)) {
         await triggerStaticBuild(
-            res.locals.user,
+            c.get("user"),
             `Updating ETL config for variable ${variableId}`
         )
     }
@@ -357,11 +345,10 @@ export async function putVariablesVariableIdGrapherConfigETL(
 }
 
 export async function deleteVariablesVariableIdGrapherConfigETL(
-    req: Request,
-    res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadWriteTransaction
 ) {
-    const variableId = expectInt(req.params.variableId)
+    const variableId = expectInt(c.req.param("variableId")!)
 
     const variable = await getGrapherConfigsForVariable(trx, variableId)
     if (!variable) {
@@ -430,7 +417,7 @@ export async function deleteVariablesVariableIdGrapherConfigETL(
 
     if (allUpdatedConfigs.some(({ isPublished }) => isPublished)) {
         await triggerStaticBuild(
-            res.locals.user,
+            c.get("user"),
             `Updating ETL config for variable ${variableId}`
         )
     }
@@ -439,17 +426,15 @@ export async function deleteVariablesVariableIdGrapherConfigETL(
 }
 
 export async function putVariablesVariableIdGrapherConfigAdmin(
-    req: Request,
-    res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadWriteTransaction
 ) {
-    const variableId = expectInt(req.params.variableId)
+    const variableId = expectInt(c.req.param("variableId")!)
 
+    const body = await c.req.json()
     let validConfig: GrapherInterface
     try {
-        validConfig = migrateGrapherConfigToLatestVersionAndFailOnError(
-            req.body
-        )
+        validConfig = migrateGrapherConfigToLatestVersionAndFailOnError(body)
     } catch (err) {
         return {
             success: false,
@@ -477,7 +462,7 @@ export async function putVariablesVariableIdGrapherConfigAdmin(
 
     if (allUpdatedConfigs.some(({ isPublished }) => isPublished)) {
         await triggerStaticBuild(
-            res.locals.user,
+            c.get("user"),
             `Updating admin-authored config for variable ${variableId}`
         )
     }
@@ -486,11 +471,10 @@ export async function putVariablesVariableIdGrapherConfigAdmin(
 }
 
 export async function deleteVariablesVariableIdGrapherConfigAdmin(
-    req: Request,
-    res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadWriteTransaction
 ) {
-    const variableId = expectInt(req.params.variableId)
+    const variableId = expectInt(c.req.param("variableId")!)
 
     const variable = await getGrapherConfigsForVariable(trx, variableId)
     if (!variable) {
@@ -550,7 +534,7 @@ export async function deleteVariablesVariableIdGrapherConfigAdmin(
 
     if (allUpdatedConfigs.some(({ isPublished }) => isPublished)) {
         await triggerStaticBuild(
-            res.locals.user,
+            c.get("user"),
             `Updating admin-authored config for variable ${variableId}`
         )
     }
@@ -559,11 +543,10 @@ export async function deleteVariablesVariableIdGrapherConfigAdmin(
 }
 
 export async function getVariablesVariableIdChartsJson(
-    req: Request,
-    _res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadonlyTransaction
 ) {
-    const variableId = expectInt(req.params.variableId)
+    const variableId = expectInt(c.req.param("variableId")!)
     const charts = await getAllChartsForIndicator(trx, variableId)
     return charts.map((chart) => ({
         id: chart.chartId,

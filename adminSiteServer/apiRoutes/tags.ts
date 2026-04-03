@@ -13,16 +13,14 @@ import { expectInt } from "../../serverUtils/serverUtil.js"
 import { UNCATEGORIZED_TAG_ID } from "../../settings/serverSettings.js"
 import * as db from "../../db/db.js"
 import * as lodash from "lodash-es"
-import { Request } from "../authentication.js"
-import { HandlerResponse } from "../FunctionalRouter.js"
+import { HonoContext } from "../authentication.js"
 import * as R from "remeda"
 
 export async function getTagById(
-    req: Request,
-    _res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadonlyTransaction
 ) {
-    const tagId = expectInt(req.params.tagId) as number | null
+    const tagId = expectInt(c.req.param("tagId")!) as number | null
 
     // NOTE (Mispy): The "uncategorized" tag is special -- it represents all untagged stuff
     // Bit fiddly to handle here but more true to normalized schema than having to remember to add the special tag
@@ -156,12 +154,12 @@ export async function getTagById(
 }
 
 export async function updateTag(
-    req: Request,
-    _res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadWriteTransaction
 ) {
-    const tagId = expectInt(req.params.tagId)
-    const tag = (req.body as { tag: any }).tag
+    const tagId = expectInt(c.req.param("tagId")!)
+    const body = await c.req.json()
+    const tag = (body as { tag: any }).tag
     await db.knexRaw(
         trx,
         `UPDATE tags SET name=?, updatedAt=?, slug=?, searchableInAlgolia=? WHERE id=?`,
@@ -192,7 +190,7 @@ export async function updateTag(
             return {
                 success: true,
                 tagUpdateWarning: `The tag's slug has been updated, but there isn't a published topic page with the same slug. Are you sure you haven't made a typo?
-                
+
 You should probably just enable "Searchable in Algolia" for this tag and remove the slug until you've published the topic page.`,
             }
         }
@@ -201,11 +199,10 @@ You should probably just enable "Searchable in Algolia" for this tag and remove 
 }
 
 export async function createTag(
-    req: Request,
-    _res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadWriteTransaction
 ) {
-    const tag = req.body
+    const tag = await c.req.json()
     function validateTag(
         tag: unknown
     ): tag is { name: string; slug: string | null } {
@@ -245,19 +242,17 @@ export async function createTag(
 }
 
 export async function getAllTags(
-    req: Request,
-    _res: HandlerResponse,
+    _c: HonoContext,
     trx: db.KnexReadonlyTransaction
 ) {
     return { tags: await db.getMinimalTagsWithIsTopic(trx) }
 }
 
 export async function deleteTag(
-    req: Request,
-    _res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadWriteTransaction
 ) {
-    const tagId = expectInt(req.params.tagId)
+    const tagId = expectInt(c.req.param("tagId")!)
 
     await db.knexRaw(trx, `DELETE FROM tags WHERE id=?`, [tagId])
 

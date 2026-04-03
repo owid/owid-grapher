@@ -17,22 +17,20 @@ import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
 import * as db from "../../db/db.js"
 import * as lodash from "lodash-es"
 
-import { Request } from "../authentication.js"
-import { HandlerResponse } from "../FunctionalRouter.js"
+import { HonoContext } from "../authentication.js"
 import { logErrorAndMaybeCaptureInSentry } from "../../serverUtils/errorLog.js"
 
 export async function getImagesHandler(
-    _: Request,
-    res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadonlyTransaction
 ) {
     try {
         const images = await db.getCloudflareImages(trx)
-        res.set("Cache-Control", "no-store")
+        c.header("Cache-Control", "no-store")
         return { images }
     } catch (error) {
         console.error("Error fetching images", error)
-        res.status(500)
+        c.status(500)
         return {
             error: { message: String(error), status: 500 },
         }
@@ -40,11 +38,11 @@ export async function getImagesHandler(
 }
 
 export async function postImageHandler(
-    req: Request,
-    res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadonlyTransaction
 ) {
-    const { filename, type, content } = validateImagePayload(req.body)
+    const body = await c.req.json()
+    const { filename, type, content } = validateImagePayload(body)
 
     const { asBlob, dimensions, hash } = await processImageContent(
         content,
@@ -92,7 +90,7 @@ export async function postImageHandler(
             originalHeight: dimensions.height,
             cloudflareId,
             updatedAt: new Date().getTime(),
-            userId: res.locals.user.id,
+            userId: c.get("user").id,
             hash,
         })
     } catch (error) {
@@ -100,7 +98,7 @@ export async function postImageHandler(
             JSON.stringify({
                 ...extractSqlError(error),
                 filename,
-                userId: res.locals.user.id,
+                userId: c.get("user").id,
             })
         )
     }
@@ -121,11 +119,11 @@ export async function postImageHandler(
  * The old image is marked as replaced by the new image.
  */
 export async function putImageHandler(
-    req: Request,
-    res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadonlyTransaction
 ) {
-    const { type, content } = validateImagePayload(req.body)
+    const body = await c.req.json()
+    const { type, content } = validateImagePayload(body)
     const { asBlob, dimensions, hash } = await processImageContent(
         content,
         type
@@ -144,7 +142,7 @@ export async function putImageHandler(
         }
     }
 
-    const { id } = req.params
+    const id = c.req.param("id")!
 
     const image = await trx<DbEnrichedImage>("images")
         .where("id", "=", id)
@@ -178,7 +176,7 @@ export async function putImageHandler(
             originalHeight: dimensions.height,
             cloudflareId: newCloudflareId,
             updatedAt: new Date().getTime(),
-            userId: res.locals.user.id,
+            userId: c.get("user").id,
             defaultAlt: originalAltText,
             hash,
             version: image.version + 1,
@@ -188,7 +186,7 @@ export async function putImageHandler(
                 JSON.stringify({
                     ...extractSqlError(error),
                     filename: originalFilename,
-                    userId: res.locals.user.id,
+                    userId: c.get("user").id,
                 })
             )
         })
@@ -207,7 +205,7 @@ export async function putImageHandler(
     void extractAndStoreImageText(newImageId, newCloudflareId)
 
     await triggerStaticBuild(
-        res.locals.user,
+        c.get("user"),
         `Updating image "${originalFilename}"`
     )
 
@@ -218,11 +216,10 @@ export async function putImageHandler(
 }
 // Update alt text via patch
 export async function patchImageHandler(
-    req: Request,
-    res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadonlyTransaction
 ) {
-    const { id } = req.params
+    const id = c.req.param("id")!
 
     const image = await trx<DbEnrichedImage>("images")
         .where("id", "=", id)
@@ -232,8 +229,9 @@ export async function patchImageHandler(
         throw new JsonError(`No image found for id ${id}`, 404)
     }
 
+    const body = await c.req.json()
     const patchableImageProperties = ["defaultAlt"] as const
-    const patch = lodash.pick(req.body, patchableImageProperties)
+    const patch = lodash.pick(body, patchableImageProperties)
 
     if (Object.keys(patch).length === 0) {
         throw new JsonError("No patchable properties provided", 400)
@@ -246,7 +244,7 @@ export async function patchImageHandler(
             JSON.stringify({
                 ...extractSqlError(error),
                 id,
-                userId: res.locals.user.id,
+                userId: c.get("user").id,
             })
         )
     }
@@ -262,11 +260,10 @@ export async function patchImageHandler(
 }
 
 export async function deleteImageHandler(
-    req: Request,
-    _: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadonlyTransaction
 ) {
-    const { id } = req.params
+    const id = c.req.param("id")!
 
     const image = await trx<DbEnrichedImage>("images")
         .where("id", "=", id)
@@ -300,8 +297,7 @@ export async function deleteImageHandler(
 }
 
 export async function getImageUsageHandler(
-    _: Request,
-    __: HandlerResponse,
+    _c: HonoContext,
     trx: db.KnexReadonlyTransaction
 ) {
     const usage = await db.getImageUsage(trx)

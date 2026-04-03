@@ -42,8 +42,7 @@ import {
 } from "../../adminShared/validation.js"
 import * as db from "../../db/db.js"
 import { expectChartById } from "./charts.js"
-import { Request } from "../authentication.js"
-import { HandlerResponse } from "../FunctionalRouter.js"
+import { HonoContext } from "../authentication.js"
 import { getPublishedLinksTo } from "../../db/model/Link.js"
 import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
 import { getChartConfigById as _getChartConfigById } from "../../db/model/ChartConfigs.js"
@@ -171,8 +170,7 @@ async function getViewDimensions(
 }
 
 export async function getNarrativeCharts(
-    req: Request,
-    _res: HandlerResponse,
+    _c: HonoContext,
     trx: db.KnexReadonlyTransaction
 ) {
     type NarrativeChartRow = Pick<
@@ -249,11 +247,10 @@ export async function getNarrativeCharts(
 }
 
 export async function getNarrativeChartById(
-    req: Request,
-    res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadonlyTransaction
 ) {
-    const id = expectInt(req.params.id)
+    const id = expectInt(c.req.param("id")!)
 
     type NarrativeChartRow = Pick<
         DbPlainNarrativeChart,
@@ -462,13 +459,13 @@ export async function createNarrativeChart(
 }
 
 export async function updateNarrativeChart(
-    req: Request,
-    res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadWriteTransaction
 ) {
-    const id = expectInt(req.params.id)
-    const user: DbPlainUser = res.locals.user
-    const rawConfig = req.body.config as GrapherInterface
+    const id = expectInt(c.req.param("id")!)
+    const user: DbPlainUser = c.get("user")
+    const body = await c.req.json()
+    const rawConfig = body.config as GrapherInterface
     if (!rawConfig) {
         throw new JsonError("Invalid request", 400)
     }
@@ -556,11 +553,10 @@ export async function updateNarrativeChart(
 }
 
 export async function deleteNarrativeChart(
-    req: Request,
-    _res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadWriteTransaction
 ) {
-    const id = expectInt(req.params.id)
+    const id = expectInt(c.req.param("id")!)
 
     const {
         name,
@@ -601,11 +597,10 @@ export async function deleteNarrativeChart(
 }
 
 export async function getNarrativeChartReferences(
-    req: Request,
-    _res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadonlyTransaction
 ) {
-    const id = expectInt(req.params.id)
+    const id = expectInt(c.req.param("id")!)
     const name: string | undefined = await trx(NarrativeChartsTableName)
         .select("name")
         .where({ id })

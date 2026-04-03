@@ -2,8 +2,7 @@ import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
 import * as db from "../../db/db.js"
 import * as dodDb from "../../db/model/Dod.js"
 import { createDodLinkFromUrl } from "../../db/model/Link.js"
-import { Request } from "../authentication.js"
-import { HandlerResponse } from "../FunctionalRouter.js"
+import { HonoContext } from "../authentication.js"
 import { DodLinksTableName, DodsTableName } from "@ourworldindata/types"
 import { extractLinksFromMarkdown } from "@ourworldindata/utils"
 
@@ -31,14 +30,10 @@ async function updateLinksFromInsertedDod(
     }
 }
 
-export async function getDods(
-    _: Request,
-    res: HandlerResponse,
-    trx: db.KnexReadonlyTransaction
-) {
+export async function getDods(c: HonoContext, trx: db.KnexReadonlyTransaction) {
     try {
         const dods = await dodDb.getDods(trx)
-        res.set("Cache-Control", "no-store")
+        c.header("Cache-Control", "no-store")
         return { dods }
     } catch (error) {
         console.error("Error fetching dods", error)
@@ -53,13 +48,12 @@ export async function getDods(
  * grep "shouldFetchFromAdminApi" for more information
  */
 export async function getParsedDods(
-    _: Request,
-    res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadonlyTransaction
 ) {
     try {
         const dods = await dodDb.getParsedDodsDictionary(trx)
-        res.set("Cache-Control", "no-store")
+        c.header("Cache-Control", "no-store")
         return dods
     } catch (error) {
         console.error("Error fetching parsed dods", error)
@@ -70,13 +64,12 @@ export async function getParsedDods(
 }
 
 export async function getDodsUsage(
-    _: Request,
-    res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadonlyTransaction
 ) {
     try {
         const usage = await dodDb.getDodsUsage(trx)
-        res.set("Cache-Control", "no-store")
+        c.header("Cache-Control", "no-store")
         return usage
     } catch (error) {
         console.error("Error fetching dods usage", error)
@@ -87,12 +80,12 @@ export async function getDodsUsage(
 }
 
 export async function updateDod(
-    req: Request,
-    res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadWriteTransaction
 ) {
-    const id = Number(req.params.id)
-    const { content } = req.body
+    const id = Number(c.req.param("id")!)
+    const body = await c.req.json()
+    const { content } = body
 
     try {
         if (!id || !content) {
@@ -105,14 +98,14 @@ export async function updateDod(
             .update({
                 content,
                 updatedAt: new Date(),
-                lastUpdatedUserId: res.locals.user.id,
+                lastUpdatedUserId: c.get("user").id,
             })
             .where({ id })
 
         const dod = await trx(DodsTableName).first().where({ id })
 
         await updateLinksFromInsertedDod(trx, id)
-        await triggerStaticBuild(res.locals.user, `Dod ${id} updated`)
+        await triggerStaticBuild(c.get("user"), `Dod ${id} updated`)
 
         return { success: true, dod }
     } catch (error) {
@@ -124,11 +117,10 @@ export async function updateDod(
 }
 
 export async function deleteDod(
-    req: Request,
-    res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadWriteTransaction
 ) {
-    const { id } = req.params
+    const id = c.req.param("id")!
 
     try {
         if (!id) {
@@ -139,7 +131,7 @@ export async function deleteDod(
 
         // dod links are deleted automatically by ON DELETE CASCADE
         await trx(DodsTableName).delete().where({ id })
-        await triggerStaticBuild(res.locals.user, `Dod ${id} deleted`)
+        await triggerStaticBuild(c.get("user"), `Dod ${id} deleted`)
 
         return { success: true }
     } catch (error) {
@@ -151,11 +143,11 @@ export async function deleteDod(
 }
 
 export async function createDod(
-    req: Request,
-    res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadWriteTransaction
 ) {
-    const { content, name } = req.body
+    const body = await c.req.json()
+    const { content, name } = body
 
     try {
         if (!content) {
@@ -174,12 +166,12 @@ export async function createDod(
             content,
             createdAt: new Date(),
             updatedAt: new Date(),
-            lastUpdatedUserId: res.locals.user.id,
+            lastUpdatedUserId: c.get("user").id,
         })
 
         const id = result[0]
         await updateLinksFromInsertedDod(trx, id)
-        await triggerStaticBuild(res.locals.user, `Dod ${name} created`)
+        await triggerStaticBuild(c.get("user"), `Dod ${name} created`)
 
         return { success: true, id }
     } catch (error) {

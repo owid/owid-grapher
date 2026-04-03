@@ -25,12 +25,10 @@ import {
 import { saveGrapher } from "./charts.js"
 import * as db from "../../db/db.js"
 import * as lodash from "lodash-es"
-import { Request } from "../authentication.js"
-import { HandlerResponse } from "../FunctionalRouter.js"
+import { HonoContext } from "../authentication.js"
 
 export async function getChartBulkUpdate(
-    req: Request,
-    _res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadonlyTransaction
 ): Promise<BulkGrapherConfigResponse<BulkChartEditResponseRow>> {
     const context: OperationContext = {
@@ -39,11 +37,11 @@ export async function getChartBulkUpdate(
             chartBulkUpdateAllowedColumnNamesAndTypes,
     }
     const filterSExpr =
-        req.query.filter !== undefined
-            ? parseToOperation(req.query.filter as string, context)
+        c.req.query("filter") !== undefined
+            ? parseToOperation(c.req.query("filter") as string, context)
             : undefined
 
-    const offset = parseIntOrUndefined(req.query.offset as string) ?? 0
+    const offset = parseIntOrUndefined(c.req.query("offset") as string) ?? 0
 
     // Note that our DSL generates sql here that we splice directly into the SQL as text
     // This is a potential for a SQL injection attack but we control the DSL and are
@@ -90,11 +88,10 @@ export async function getChartBulkUpdate(
 }
 
 export async function updateBulkChartConfigs(
-    req: Request,
-    res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadWriteTransaction
 ) {
-    const patchesList = req.body as GrapherConfigPatch[]
+    const patchesList = (await c.req.json()) as GrapherConfigPatch[]
     const chartIds = new Set(patchesList.map((patch) => patch.id))
 
     const configsAndIds = await db.knexRaw<
@@ -126,7 +123,7 @@ export async function updateBulkChartConfigs(
 
     for (const [id, newConfig] of configMap.entries()) {
         await saveGrapher(trx, {
-            user: res.locals.user,
+            user: c.get("user"),
             newConfig,
             existingConfig: oldValuesConfigMap.get(id),
         })
@@ -136,8 +133,7 @@ export async function updateBulkChartConfigs(
 }
 
 export async function getVariableAnnotations(
-    req: Request,
-    _res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadonlyTransaction
 ): Promise<BulkGrapherConfigResponse<VariableAnnotationsResponseRow>> {
     const context: OperationContext = {
@@ -146,11 +142,11 @@ export async function getVariableAnnotations(
             variableAnnotationAllowedColumnNamesAndTypes,
     }
     const filterSExpr =
-        req.query.filter !== undefined
-            ? parseToOperation(req.query.filter as string, context)
+        c.req.query("filter") !== undefined
+            ? parseToOperation(c.req.query("filter") as string, context)
             : undefined
 
-    const offset = parseIntOrUndefined(req.query.offset as string) ?? 0
+    const offset = parseIntOrUndefined(c.req.query("offset") as string) ?? 0
 
     // Note that our DSL generates sql here that we splice directly into the SQL as text
     // This is a potential for a SQL injection attack but we control the DSL and are
@@ -199,11 +195,10 @@ export async function getVariableAnnotations(
 }
 
 export async function updateVariableAnnotations(
-    req: Request,
-    _res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadWriteTransaction
 ) {
-    const patchesList = req.body as GrapherConfigPatch[]
+    const patchesList = (await c.req.json()) as GrapherConfigPatch[]
     const variableIds = new Set(patchesList.map((patch) => patch.id))
 
     const configsAndIds = await db.knexRaw<

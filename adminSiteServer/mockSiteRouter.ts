@@ -96,43 +96,39 @@ import { AppVariables } from "./authentication.js"
 // todo: switch to an object literal where the key is the path and the value is the request handler? easier to test, reflect on, and manipulate
 const mockSiteRouter = new Hono<{ Variables: AppVariables }>()
 
-getPlainRouteWithROTransaction(
-    mockSiteRouter,
-    "/atom.xml",
-    async (req, res, trx) => {
-        res.set("Content-Type", "application/xml")
-        const atomFeed = await makeAtomFeed(trx)
-        res.send(atomFeed)
-    }
-)
+getPlainRouteWithROTransaction(mockSiteRouter, "/atom.xml", async (c, trx) => {
+    c.header("Content-Type", "application/xml")
+    const atomFeed = await makeAtomFeed(trx)
+    return c.html(atomFeed)
+})
 
 getPlainRouteWithROTransaction(
     mockSiteRouter,
     "/atom-no-topic-pages.xml",
-    async (req, res, trx) => {
-        res.set("Content-Type", "application/xml")
+    async (c, trx) => {
+        c.header("Content-Type", "application/xml")
         const atomFeedNoTopicPages = await makeAtomFeedNoTopicPages(trx)
-        res.send(atomFeedNoTopicPages)
+        return c.html(atomFeedNoTopicPages)
     }
 )
 
 getPlainRouteWithROTransaction(
     mockSiteRouter,
     `/${DATA_INSIGHTS_ATOM_FEED_NAME}`,
-    async (_, res, trx) => {
-        res.set("Content-Type", "application/xml")
+    async (_c, trx) => {
+        _c.header("Content-Type", "application/xml")
         const atomFeedDataInsights = await makeDataInsightsAtomFeed(trx)
-        res.send(atomFeedDataInsights)
+        return _c.html(atomFeedDataInsights)
     }
 )
 
 getPlainRouteWithROTransaction(
     mockSiteRouter,
     "/sitemap.xml",
-    async (req, res, trx) => {
-        res.set("Content-Type", "application/xml")
+    async (c, trx) => {
+        c.header("Content-Type", "application/xml")
         const sitemap = await makeSitemap(explorerAdminServer, trx)
-        res.send(sitemap)
+        return c.html(sitemap)
     }
 )
 
@@ -141,7 +137,7 @@ mockSiteRouter.get(
     async (c) => {
         c.header("Access-Control-Allow-Origin", "*")
         return c.json(
-            (await getVariableData(expectInt(c.req.param("variableId")))).data
+            (await getVariableData(expectInt(c.req.param("variableId")!))).data
         )
     }
 )
@@ -151,7 +147,7 @@ mockSiteRouter.get(
     async (c) => {
         c.header("Access-Control-Allow-Origin", "*")
         const variableData = await getVariableData(
-            expectInt(c.req.param("variableId"))
+            expectInt(c.req.param("variableId")!)
         )
         return c.json(variableData.metadata)
     }
@@ -167,25 +163,25 @@ const explorerAdminServer = new ExplorerAdminServer()
 getPlainRouteWithROTransaction(
     mockSiteRouter,
     `/${EXPLORERS_ROUTE_FOLDER}`,
-    async (_, res, trx) => {
-        return res.send(await renderExplorerIndexPage(trx))
+    async (_c, trx) => {
+        return _c.html(await renderExplorerIndexPage(trx))
     }
 )
 
 getPlainRouteWithROTransaction(
     mockSiteRouter,
     `/${EXPLORERS_ROUTE_FOLDER}/:slug`,
-    async (req, res, trx) => {
-        res.set("Access-Control-Allow-Origin", "*")
+    async (c, trx) => {
+        c.header("Access-Control-Allow-Origin", "*")
         const explorers =
             await explorerAdminServer.getAllPublishedExplorers(trx)
         const explorerProgram = explorers.find(
-            (program) => program.slug === req.params.slug
+            (program) => program.slug === c.req.param("slug")!
         )
         if (explorerProgram) {
             const explorerPage = await renderExplorerPage(explorerProgram, trx)
 
-            res.send(explorerPage)
+            return c.html(explorerPage)
         } else
             throw new JsonError(
                 "A published explorer with that slug was not found",
@@ -196,10 +192,10 @@ getPlainRouteWithROTransaction(
 getPlainRouteWithROTransaction(
     mockSiteRouter,
     "/{*splat}",
-    async (req, res, trx, next) => {
-        const explorerRedirect = getExplorerRedirectForPath(req.path)
+    async (c, trx, next) => {
+        const explorerRedirect = getExplorerRedirectForPath(c.req.path)
         // If no explorer redirect exists, continue to next handler
-        if (!explorerRedirect) return next?.()
+        if (!explorerRedirect) return next()
 
         const { migrationId, baseQueryStr } = explorerRedirect
         const { explorerSlug } = explorerUrlMigrationsById[migrationId]
@@ -213,15 +209,15 @@ getPlainRouteWithROTransaction(
                 baseQueryStr,
             },
         })
-        res.send(explorerPage)
+        return c.html(explorerPage)
     }
 )
 
 getPlainRouteWithROTransaction(
     mockSiteRouter,
     "/collection/top-charts",
-    async (_, res, trx) => {
-        return res.send(await renderTopChartsCollectionPage(trx))
+    async (_c, trx) => {
+        return _c.html(await renderTopChartsCollectionPage(trx))
     }
 )
 
@@ -232,49 +228,54 @@ mockSiteRouter.get("/collection/custom", async (c) => {
 getPlainRouteWithROTransaction(
     mockSiteRouter,
     "/grapher/by-uuid/:uuid.config.json",
-    async (req, res, trx) => {
+    async (c, trx) => {
         const chartRow = await db.knexRawFirst<Pick<DbRawChartConfig, "full">>(
             trx,
             "SELECT full FROM chart_configs WHERE id = ?",
-            [req.params.uuid]
+            [c.req.param("uuid")!]
         )
         if (!chartRow) throw new JsonError("No such chart", 404)
         const config = parseChartConfig(chartRow.full)
-        res.json(config)
+        return c.json(config)
     }
 )
 
 getPlainRouteWithROTransaction(
     mockSiteRouter,
     "/grapher/:slug.config.json",
-    async (req, res, trx) => {
-        const chartRow = await getChartConfigBySlug(trx, req.params.slug)
-        res.json(chartRow.config)
+    async (c, trx) => {
+        const chartRow = await getChartConfigBySlug(trx, c.req.param("slug")!)
+        return c.json(chartRow.config)
     }
 )
 
 getPlainRouteWithROTransaction(
     mockSiteRouter,
     "/multi-dim/:slug.json",
-    async (req, res, trx) => {
-        const multiDim = await getMultiDimDataPageBySlug(trx, req.params.slug, {
-            onlyPublished: false,
-        })
+    async (c, trx) => {
+        const multiDim = await getMultiDimDataPageBySlug(
+            trx,
+            c.req.param("slug")!,
+            {
+                onlyPublished: false,
+            }
+        )
         if (!multiDim) throw new JsonError("No such multi-dim", 404)
-        res.json(multiDim.config)
+        return c.json(multiDim.config)
     }
 )
 
 getPlainRouteWithROTransaction(
     mockSiteRouter,
     "/grapher/:slug",
-    async (req, res, trx) => {
-        const chartRow = await getChartConfigBySlug(trx, req.params.slug).catch(
-            console.error
-        )
+    async (c, trx) => {
+        const chartRow = await getChartConfigBySlug(
+            trx,
+            c.req.param("slug")!
+        ).catch(console.error)
         if (chartRow) {
             // XXX add dev-prod parity for this
-            res.set("Access-Control-Allow-Origin", "*")
+            c.header("Access-Control-Allow-Origin", "*")
 
             const previewDataPageOrGrapherPage =
                 await renderPreviewDataPageOrGrapherPage(
@@ -283,16 +284,14 @@ getPlainRouteWithROTransaction(
                     chartRow.forceDatapage,
                     trx
                 )
-            res.send(previewDataPageOrGrapherPage)
-            return
+            return c.html(previewDataPageOrGrapherPage)
         } else {
             const page = await renderMultiDimDataPageBySlug(
                 trx,
-                req.params.slug
+                c.req.param("slug")!
             ).catch(console.error)
             if (page) {
-                res.send(page)
-                return
+                return c.html(page)
             }
         }
 
@@ -300,14 +299,14 @@ getPlainRouteWithROTransaction(
     }
 )
 
-getPlainRouteWithROTransaction(mockSiteRouter, "/", async (_, res, trx) => {
+getPlainRouteWithROTransaction(mockSiteRouter, "/", async (_c, trx) => {
     const frontPage = await renderFrontPage(trx)
-    res.send(frontPage)
+    return _c.html(frontPage)
 })
 
-getPlainRouteWithROTransaction(mockSiteRouter, "/donate", async (_, res, trx) =>
-    res.send(await renderDonatePage(trx))
-)
+getPlainRouteWithROTransaction(mockSiteRouter, "/donate", async (_c, trx) => {
+    return _c.html(await renderDonatePage(trx))
+})
 
 mockSiteRouter.get("/thank-you", async (c) =>
     c.html(await renderThankYouPage())
@@ -320,8 +319,8 @@ mockSiteRouter.get("/subscribe", async (c) =>
 getPlainRouteWithROTransaction(
     mockSiteRouter,
     "/data-insights{/:pageNumberOrSlug}",
-    async (req, res, trx) => {
-        const topicName = req.query.topic as string | undefined
+    async (c, trx) => {
+        const topicName = c.req.query("topic")
         const topicSlug = topicName
             ? await getSlugForTopicTag(trx, topicName)
             : undefined
@@ -363,20 +362,20 @@ getPlainRouteWithROTransaction(
                 topicTag
             )
         }
-        const pageNumberOrSlug = req.params.pageNumberOrSlug
+        const pageNumberOrSlug = c.req.param("pageNumberOrSlug")!
         if (!pageNumberOrSlug) {
             const dataInsights = await GdocDataInsight.getPublishedDataInsights(
                 trx,
                 1,
                 topicTag?.slug
             )
-            return res.send(await renderIndexPage(1, dataInsights, topicTag))
+            return c.html(await renderIndexPage(1, dataInsights, topicTag))
         }
 
         const pageNumber = parseInt(pageNumberOrSlug)
         if (!isNaN(pageNumber)) {
             if (pageNumber < 1 || pageNumber > totalPageCount) {
-                return res.redirect(
+                return c.redirect(
                     `/data-insights${topicName ? queryParamsToStr({ topic: topicName }) : ""}`
                 )
             }
@@ -387,27 +386,24 @@ getPlainRouteWithROTransaction(
             )
             // if no data insights are found, return NotFound page
             if (dataInsights.length === 0) {
-                res.status(404)
-                return res.send(renderNotFoundPage())
+                return c.html(renderNotFoundPage(), 404)
             }
-            return res.send(
+            return c.html(
                 await renderIndexPage(pageNumber, dataInsights, topicTag)
             )
         }
 
         try {
-            return res.send(
-                await renderGdocsPageBySlug(
-                    trx,
-                    pageNumberOrSlug,
-                    [OwidGdocType.DataInsight],
-                    true
-                )
+            const page = await renderGdocsPageBySlug(
+                trx,
+                pageNumberOrSlug,
+                [OwidGdocType.DataInsight],
+                true
             )
+            return c.html(page!)
         } catch (e) {
             console.error(e)
-            res.status(404)
-            return res.send(renderNotFoundPage())
+            return c.html(renderNotFoundPage(), 404)
         }
     }
 )
@@ -415,19 +411,19 @@ getPlainRouteWithROTransaction(
 getPlainRouteWithROTransaction(
     mockSiteRouter,
     SEARCH_BASE_PATH,
-    async (_, res, trx) => {
-        res.send(await renderSearchPage(trx))
+    async (_c, trx) => {
+        return _c.html(await renderSearchPage(trx))
     }
 )
 
 getPlainRouteWithROTransaction(
     mockSiteRouter,
     "/datapage-preview/:id",
-    async (req, res, trx) => {
-        const variableId = expectInt(req.params.id)
+    async (c, trx) => {
+        const variableId = expectInt(c.req.param("id")!)
         const variableMetadata = await getVariableMetadata(variableId)
 
-        res.send(
+        return c.html(
             await renderDataPageV2(
                 {
                     variableId,
@@ -465,26 +461,22 @@ const handleLatestPageRequest = async (
     )
 }
 
-getPlainRouteWithROTransaction(
-    mockSiteRouter,
-    "/latest",
-    async (_, res, trx) => {
-        const latest = await handleLatestPageRequest(trx, 1)
-        res.send(latest)
-    }
-)
+getPlainRouteWithROTransaction(mockSiteRouter, "/latest", async (_c, trx) => {
+    const latest = await handleLatestPageRequest(trx, 1)
+    return _c.html(latest)
+})
 
 getPlainRouteWithROTransaction(
     mockSiteRouter,
     "/latest/page/:pageno",
-    async (req, res, trx) => {
-        const pagenum = parseInt(req.params.pageno, 10)
+    async (c, trx) => {
+        const pagenum = parseInt(c.req.param("pageno")!, 10)
         if (isNaN(pagenum) || pagenum < 1) {
             throw new Error("invalid page number")
         }
 
         const html = await handleLatestPageRequest(trx, pagenum)
-        res.send(html)
+        return c.html(html)
     }
 )
 
@@ -533,30 +525,28 @@ mockSiteRouter.get("/multiEmbedderTest", async (c) =>
 getPlainRouteWithROTransaction(
     mockSiteRouter,
     "/dods.json",
-    async (_, res, trx) => {
-        res.set("Access-Control-Allow-Origin", "*")
+    async (_c, trx) => {
+        _c.header("Access-Control-Allow-Origin", "*")
         const dods = await getParsedDodsDictionary(trx)
-        res.send(dods as any)
+        return _c.json(dods as any)
     }
 )
 
 getPlainRouteNonIdempotentWithRWTransaction(
     mockSiteRouter,
     "/team/:authorSlug",
-    async (req, res, trx) => {
+    async (c, trx) => {
         try {
             const page = await renderGdocsPageBySlug(
                 trx,
-                req.params.authorSlug,
+                c.req.param("authorSlug")!,
                 [OwidGdocType.Author],
                 true
             )
-            res.send(page)
-            return
+            return c.html(page!)
         } catch (e) {
             console.error(e)
-            res.status(404)
-            res.send(renderNotFoundPage())
+            return c.html(renderNotFoundPage(), 404)
         }
     }
 )
@@ -592,15 +582,13 @@ async function getTombstoneAttachments(
 getPlainRouteWithROTransaction(
     mockSiteRouter,
     "/deleted/:tombstoneSlug",
-    async (req, res, trx) => {
+    async (c, trx) => {
         const tombstone = await getTombstoneBySlug(
             trx,
-            req.params.tombstoneSlug
+            c.req.param("tombstoneSlug")!
         )
         if (!tombstone) {
-            res.status(404)
-            res.send(renderNotFoundPage())
-            return
+            return c.html(renderNotFoundPage(), 404)
         }
         const archivedVersions =
             await getLatestArchivedPostPageVersionsIfEnabled(trx, [
@@ -621,24 +609,23 @@ getPlainRouteWithROTransaction(
                 : undefined,
         }
         const attachments = await getTombstoneAttachments(trx, pageData)
-        res.status(404)
-        res.send(renderGdocTombstone(pageData, attachments))
+        return c.html(renderGdocTombstone(pageData, attachments), 404)
     }
 )
 
 getPlainRouteWithROTransaction(
     mockSiteRouter,
     "/topicTagGraph.json",
-    async (req, res, trx) => {
+    async (_c, trx) => {
         const headerMenu = await db.generateTopicTagGraph(trx)
-        res.send(headerMenu as any)
+        return _c.json(headerMenu as any)
     }
 )
 
 getPlainRouteWithROTransaction(
     mockSiteRouter,
     "/dataInsights.json",
-    async (req, res, trx) => {
+    async (_c, trx) => {
         const publishedDataInsights =
             await GdocDataInsight.getPublishedDataInsights(trx)
         const publishedDataInsightsForJson = publishedDataInsights.map((di) => {
@@ -666,19 +653,19 @@ getPlainRouteWithROTransaction(
 
             return rest
         })
-        res.send(publishedDataInsightsForJson as any)
+        return _c.json(publishedDataInsightsForJson as any)
     }
 )
 
 getPlainRouteWithROTransaction(
     mockSiteRouter,
     "/profile/:profileSlug/:entity",
-    async (req, res, trx) => {
-        const { profileSlug, entity: entityParam } = req.params
+    async (c, trx) => {
+        const profileSlug = c.req.param("profileSlug")!
+        const entityParam = c.req.param("entity")!
 
         if (!profileSlug || !entityParam) {
-            res.status(404)
-            return res.send(renderNotFoundPage())
+            return c.html(renderNotFoundPage(), 404)
         }
 
         try {
@@ -687,14 +674,12 @@ getPlainRouteWithROTransaction(
             ])
 
             if (!gdoc || gdoc.content.type !== OwidGdocType.Profile) {
-                res.status(404)
-                return res.send(renderNotFoundPage())
+                return c.html(renderNotFoundPage(), 404)
             }
 
             const entity = getRegionBySlug(entityParam)
             if (!entity) {
-                res.status(404)
-                return res.send(renderNotFoundPage())
+                return c.html(renderNotFoundPage(), 404)
             }
 
             const entitiesInScope = getEntitiesForProfile(
@@ -705,8 +690,7 @@ getPlainRouteWithROTransaction(
                 (profileEntity) => profileEntity.code === entity.code
             )
             if (!isEntityInScope) {
-                res.status(404)
-                return res.send(renderNotFoundPage())
+                return c.html(renderNotFoundPage(), 404)
             }
 
             const instantiatedProfile = await instantiateProfileForEntity(
@@ -716,54 +700,46 @@ getPlainRouteWithROTransaction(
             )
 
             if (!checkShouldProfileRender(instantiatedProfile.content)) {
-                res.status(404)
-                return res.send(renderNotFoundPage())
+                return c.html(renderNotFoundPage(), 404)
             }
 
-            return res.send(renderGdoc(instantiatedProfile, true))
+            return c.html(renderGdoc(instantiatedProfile, true))
         } catch (error) {
             console.error("Error loading profile:", error)
-            res.status(404)
-            return res.send(renderNotFoundPage())
+            return c.html(renderNotFoundPage(), 404)
         }
     }
 )
 
-getPlainRouteWithROTransaction(
-    mockSiteRouter,
-    "/{*splat}",
-    async (req, res, trx) => {
-        // Remove leading and trailing slashes
-        const slug = req.path.replace(/^\/|\/$/g, "")
+getPlainRouteWithROTransaction(mockSiteRouter, "/{*splat}", async (c, trx) => {
+    // Remove leading and trailing slashes
+    const slug = c.req.path.replace(/^\/|\/$/g, "")
 
-        try {
-            const page = await renderGdocsPageBySlug(
-                trx,
-                slug,
-                // filter out the namespaced types that are handled above
-                ALL_GDOC_TYPES.filter(
-                    (type) =>
-                        type !== OwidGdocType.Profile &&
-                        type !== OwidGdocType.DataInsight &&
-                        type !== OwidGdocType.Author
-                ),
-                true
-            )
-            res.send(page)
-            return
-        } catch (e) {
-            console.error(e)
-        }
-
-        try {
-            const page = await renderPageBySlug(slug, trx)
-            res.send(page)
-        } catch (e) {
-            console.error(e)
-            res.status(404)
-            res.send(renderNotFoundPage())
-        }
+    try {
+        const page = await renderGdocsPageBySlug(
+            trx,
+            slug,
+            // filter out the namespaced types that are handled above
+            ALL_GDOC_TYPES.filter(
+                (type) =>
+                    type !== OwidGdocType.Profile &&
+                    type !== OwidGdocType.DataInsight &&
+                    type !== OwidGdocType.Author
+            ),
+            true
+        )
+        return c.html(page!)
+    } catch (e) {
+        console.error(e)
     }
-)
+
+    try {
+        const page = await renderPageBySlug(slug, trx)
+        return c.html(page)
+    } catch (e) {
+        console.error(e)
+        return c.html(renderNotFoundPage(), 404)
+    }
+})
 
 export { mockSiteRouter }

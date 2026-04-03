@@ -49,8 +49,8 @@ adminRouter.get("/logout", async (c: HonoContext) => {
 getPlainRouteWithROTransaction(
     adminRouter,
     "/datasets/:datasetId.csv",
-    async (req, res, trx) => {
-        const datasetId = expectInt(req.params.datasetId)
+    async (c, trx) => {
+        const datasetId = expectInt(c.req.param("datasetId")!)
 
         const datasetName = (
             await db.knexRawFirst<Pick<DbPlainDataset, "name">>(
@@ -60,16 +60,22 @@ getPlainRouteWithROTransaction(
             )
         )?.name
 
-        res.attachment(filenamify(datasetName!) + ".csv")
+        c.header(
+            "Content-Disposition",
+            `attachment; filename="${filenamify(datasetName!) + ".csv"}"`
+        )
 
+        // For streaming CSV, we use a Node.js writable stream that collects
+        // chunks, then return the full response.
+        let csvContent = ""
         const writeStream = new Writable({
-            write(chunk, encoding, callback) {
-                res.write(chunk.toString())
+            write(chunk, _encoding, callback) {
+                csvContent += chunk.toString()
                 callback(null)
             },
         })
         await writeDatasetCSV(trx, datasetId, writeStream)
-        res.end()
+        return c.text(csvContent)
     }
 )
 
@@ -88,53 +94,55 @@ const explorerAdminServer = new ExplorerAdminServer()
 getPlainRouteWithROTransaction(
     adminRouter,
     `/${GetAllExplorersRoute}`,
-    async (_, res, trx) => {
-        res.json(await explorerAdminServer.getAllExplorersCommand(trx))
+    async (_c, trx) => {
+        return _c.json(await explorerAdminServer.getAllExplorersCommand(trx))
     }
 )
 
 getPlainRouteWithROTransaction(
     adminRouter,
     `/${GetAllExplorersTagsRoute}`,
-    async (_, res, trx) => {
-        return res.send({
+    async (c, trx) => {
+        return c.json({
             explorers: await db.getExplorerTags(trx),
-        } as any)
+        })
     }
 )
 
 getPlainRouteWithROTransaction(
     adminRouter,
     `/${EXPLORERS_PREVIEW_ROUTE}/:slug`,
-    async (req, res, knex) => {
-        const slug = slugify(req.params.slug)
+    async (c, trx) => {
+        const slug = slugify(c.req.param("slug")!)
 
-        if (slug === DefaultNewExplorerSlug)
-            return renderExplorerPage(
+        if (slug === DefaultNewExplorerSlug) {
+            const page = await renderExplorerPage(
                 new ExplorerProgram(DefaultNewExplorerSlug, ""),
-                knex,
+                trx,
                 { isPreviewing: true }
             )
+            return c.html(page)
+        }
         const explorer = await explorerAdminServer.getExplorerFromSlug(
-            knex,
+            trx,
             slug
         )
-        const explorerPage = await renderExplorerPage(explorer, knex, {
+        const explorerPage = await renderExplorerPage(explorer, trx, {
             isPreviewing: true,
         })
-
-        return res.send(explorerPage)
+        return c.html(explorerPage)
     }
 )
+
 getPlainRouteWithROTransaction(
     adminRouter,
     "/datapage-preview/:id",
-    async (req, res, trx) => {
-        const variableId = expectInt(req.params.id)
+    async (c, trx) => {
+        const variableId = expectInt(c.req.param("id")!)
         const variableMetadata = await getVariableMetadata(variableId)
         if (!variableMetadata) throw new JsonError("No such variable", 404)
 
-        res.send(
+        return c.html(
             await renderDataPageV2(
                 {
                     variableId,
@@ -151,12 +159,12 @@ getPlainRouteWithROTransaction(
 getPlainRouteWithROTransaction(
     adminRouter,
     "/charts/:id/preview",
-    async (req, res, trx) => {
-        const chartId = expectInt(req.params.id)
+    async (c, trx) => {
+        const chartId = expectInt(c.req.param("id")!)
         const chart = await getChartConfigById(trx, chartId)
         if (chart) {
-            const forceDatapage = req.query.forceDatapage
-                ? req.query.forceDatapage === "true"
+            const forceDatapage = c.req.query("forceDatapage")
+                ? c.req.query("forceDatapage") === "true"
                 : chart.forceDatapage
             const previewDataPageOrGrapherPage =
                 await renderPreviewDataPageOrGrapherPage(
@@ -165,8 +173,7 @@ getPlainRouteWithROTransaction(
                     forceDatapage,
                     trx
                 )
-            res.send(previewDataPageOrGrapherPage)
-            return
+            return c.html(previewDataPageOrGrapherPage)
         }
 
         throw new JsonError("No such chart", 404)
@@ -176,8 +183,8 @@ getPlainRouteWithROTransaction(
 getPlainRouteWithROTransaction(
     adminRouter,
     "/grapher/:slug",
-    async (req, res, trx) => {
-        const { slug } = req.params
+    async (c, trx) => {
+        const slug = c.req.param("slug")!
 
         // don't throw if no chart config is found since this is the case for
         // multi-dim data pages and we want to continue execution in that case
@@ -192,8 +199,7 @@ getPlainRouteWithROTransaction(
                     chart.forceDatapage,
                     trx
                 )
-            res.send(previewDataPageOrGrapherPage)
-            return
+            return c.html(previewDataPageOrGrapherPage)
         }
 
         const mdd =
@@ -207,8 +213,7 @@ getPlainRouteWithROTransaction(
                 config: mdd.config,
                 isPreviewing: true,
             })
-            res.send(renderedPage)
-            return
+            return c.html(renderedPage)
         }
 
         throw new JsonError("No such chart", 404)

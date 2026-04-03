@@ -3,16 +3,15 @@ import {
     TagsTableName,
     FeaturedMetricsTableName,
 } from "@ourworldindata/types"
-import { Request } from "../authentication.js"
-import { HandlerResponse } from "../FunctionalRouter.js"
+import { HonoContext } from "../authentication.js"
 import * as db from "../../db/db.js"
 
 export async function createFeaturedMetric(
-    req: Request,
-    _res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadonlyTransaction
 ) {
-    const { url, parentTagName, ranking, incomeGroup } = req.body
+    const body = await c.req.json()
+    const { url, parentTagName, ranking, incomeGroup } = body
 
     if (!url || !parentTagName || !ranking || !incomeGroup) {
         throw new JsonError("Missing required fields", 400)
@@ -66,11 +65,10 @@ export async function createFeaturedMetric(
 }
 
 export async function rerankFeaturedMetrics(
-    req: Request,
-    _res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadonlyTransaction
 ) {
-    const featuredMetrics = req.body
+    const featuredMetrics = await c.req.json()
 
     if (!featuredMetrics || !Array.isArray(featuredMetrics)) {
         throw new JsonError("Invalid payload signature", 400)
@@ -92,11 +90,10 @@ export async function rerankFeaturedMetrics(
 }
 
 export async function deleteFeaturedMetric(
-    req: Request,
-    _res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadonlyTransaction
 ) {
-    const { id } = req.params
+    const id = c.req.param("id")!
 
     const featuredMetric = await trx(FeaturedMetricsTableName)
         .where({ id })
@@ -119,8 +116,7 @@ export async function deleteFeaturedMetric(
 }
 
 export async function fetchFeaturedMetrics(
-    _req: Request,
-    _res: HandlerResponse,
+    _c: HonoContext,
     trx: db.KnexReadonlyTransaction
 ) {
     const featuredMetrics = await db.getFeaturedMetricsByParentTagName(trx)

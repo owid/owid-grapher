@@ -467,23 +467,19 @@ function EmbedTestPage(props: EmbedTestPageProps) {
     )
 }
 
-getPlainRouteWithROTransaction(
-    testPageRouter,
-    "/embeds",
-    async (req, res, trx) => {
-        const props = await propsFromQueryParams(trx, {
-            ...req.query,
-            originalUrl: req.originalUrl,
-        })
-        res.send(renderToHtmlPage(<EmbedTestPage {...props} />))
-    }
-)
+getPlainRouteWithROTransaction(testPageRouter, "/embeds", async (c, trx) => {
+    const props = await propsFromQueryParams(trx, {
+        ...c.req.query(),
+        originalUrl: c.req.url,
+    })
+    return c.html(renderToHtmlPage(<EmbedTestPage {...props} />))
+})
 
 getPlainRouteWithROTransaction(
     testPageRouter,
     "/embeds/:id",
-    async (req, res, trx) => {
-        const id = req.params.id
+    async (c, trx) => {
+        const id = c.req.param("id")!
         const chartRaw = await db.knexRawFirst<
             Pick<DbPlainChart, "id"> & { config: DbRawChartConfig["full"] }
         >(
@@ -503,16 +499,16 @@ getPlainRouteWithROTransaction(
                 ...chartRaw,
                 config: parseChartConfig(chartRaw.config),
             }
-            const viewProps = getViewPropsFromQueryParams(req.query)
+            const viewProps = getViewPropsFromQueryParams(c.req.query())
             const charts = [
                 {
                     id: chartEnriched.id,
                     slug: `${chartEnriched.config.slug}${
-                        req.query.tab ? `?tab=${req.query.tab}` : ""
+                        c.req.query("tab") ? `?tab=${c.req.query("tab")}` : ""
                     }`,
                 },
             ]
-            res.send(
+            return c.html(
                 renderToHtmlPage(
                     <EmbedTestPage
                         charts={charts}
@@ -522,7 +518,7 @@ getPlainRouteWithROTransaction(
                 )
             )
         } else {
-            res.send("Could not find chart ID")
+            return c.text("Could not find chart ID")
         }
     }
 )
@@ -670,30 +666,26 @@ function EmbedVariantsTestPage(
     )
 }
 
-getPlainRouteWithROTransaction(
-    testPageRouter,
-    "/previews",
-    async (req, res, trx) => {
-        const rows = await db.knexRaw<{ config: DbRawChartConfig["full"] }>(
-            trx,
-            `-- sql
+getPlainRouteWithROTransaction(testPageRouter, "/previews", async (c, trx) => {
+    const rows = await db.knexRaw<{ config: DbRawChartConfig["full"] }>(
+        trx,
+        `-- sql
                 SELECT cc.full as config
                 FROM charts ca
                 JOIN chart_configs cc
                 ON ca.configId = cc.id
                 LIMIT 200
             `
-        )
-        const charts = rows.map((row: any) => JSON.parse(row.config))
+    )
+    const charts = rows.map((row: any) => JSON.parse(row.config))
 
-        res.send(renderToHtmlPage(<PreviewTestPage charts={charts} />))
-    }
-)
+    return c.html(renderToHtmlPage(<PreviewTestPage charts={charts} />))
+})
 
 getPlainRouteWithROTransaction(
     testPageRouter,
     "/embedVariants",
-    async (req, res, trx) => {
+    async (c, trx) => {
         const rows = await db.knexRaw<{ config: DbRawChartConfig["full"] }>(
             trx,
             `-- sql
@@ -705,9 +697,9 @@ getPlainRouteWithROTransaction(
             `
         )
         const charts = rows.map((row: any) => JSON.parse(row.config))
-        const viewProps = getViewPropsFromQueryParams(req.query)
+        const viewProps = getViewPropsFromQueryParams(c.req.query())
 
-        res.send(
+        return c.html(
             renderToHtmlPage(
                 <EmbedVariantsTestPage
                     charts={charts}
@@ -718,37 +710,29 @@ getPlainRouteWithROTransaction(
     }
 )
 
-getPlainRouteWithROTransaction(
-    testPageRouter,
-    "/:slug.svg",
-    async (req, res, trx) => {
-        const grapher = await getChartConfigBySlug(trx, req.params.slug)
-        const svg = await grapherToSVG(grapher.config)
-        res.send(svg)
-    }
-)
+getPlainRouteWithROTransaction(testPageRouter, "/:slug.svg", async (c, trx) => {
+    const grapher = await getChartConfigBySlug(trx, c.req.param("slug")!)
+    const svg = await grapherToSVG(grapher.config)
+    return c.text(svg)
+})
 
-getPlainRouteWithROTransaction(
-    testPageRouter,
-    "/explorers",
-    async (req, res, trx) => {
-        let explorers = await explorerAdminServer.getAllPublishedExplorers(trx)
-        const viewProps = getViewPropsFromQueryParams(req.query)
-        const chartCreationMode = getChartCreationModeFromQueryParams(req.query)
+getPlainRouteWithROTransaction(testPageRouter, "/explorers", async (c, trx) => {
+    let explorers = await explorerAdminServer.getAllPublishedExplorers(trx)
+    const viewProps = getViewPropsFromQueryParams(c.req.query())
+    const chartCreationMode = getChartCreationModeFromQueryParams(c.req.query())
 
-        if (chartCreationMode) {
-            explorers = explorers.filter(
-                (explorer) => explorer.chartCreationMode === chartCreationMode
-            )
-        }
-
-        const slugs = explorers.map((explorer) => explorer.slug)
-
-        res.send(
-            renderToHtmlPage(<ExplorerTestPage slugs={slugs} {...viewProps} />)
+    if (chartCreationMode) {
+        explorers = explorers.filter(
+            (explorer) => explorer.chartCreationMode === chartCreationMode
         )
     }
-)
+
+    const slugs = explorers.map((explorer) => explorer.slug)
+
+    return c.html(
+        renderToHtmlPage(<ExplorerTestPage slugs={slugs} {...viewProps} />)
+    )
+})
 
 interface ExplorerTestPageProps {
     slugs: string[]

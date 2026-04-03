@@ -1,8 +1,5 @@
-import {
-    FunctionalRouter,
-    HandlerResponse,
-    CompatRequest,
-} from "./FunctionalRouter.js"
+import { FunctionalRouter } from "./FunctionalRouter.js"
+import { HonoContext } from "./authentication.js"
 import * as db from "../db/db.js"
 import { getNarrativeChartNameConfigMap } from "../db/model/NarrativeChart.js"
 import { getRouteWithROTransaction } from "./functionalRouterHelpers.js"
@@ -31,11 +28,7 @@ publicApiRouter.app.get("/health", async (c) => {
 getRouteWithROTransaction(
     publicApiRouter,
     "/narrative-chart-map",
-    async (
-        _req: CompatRequest,
-        _res: HandlerResponse,
-        trx: db.KnexReadonlyTransaction
-    ) => {
+    async (_c: HonoContext, trx: db.KnexReadonlyTransaction) => {
         const narrativeChartMap = await getNarrativeChartNameConfigMap(trx)
         return narrativeChartMap
     }

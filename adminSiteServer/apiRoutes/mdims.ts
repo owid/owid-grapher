@@ -24,8 +24,7 @@ import {
     setMultiDimSlug,
 } from "../multiDim.js"
 import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
-import { Request } from "../authentication.js"
-import { HandlerResponse } from "../FunctionalRouter.js"
+import { HonoContext } from "../authentication.js"
 import * as db from "../../db/db.js"
 import { getMdimViewRecords } from "../../baker/algolia/utils/mdimViews.js"
 import {
@@ -195,8 +194,7 @@ async function createSlugChangeRedirect(
 }
 
 export async function handleGetMultiDims(
-    _req: Request,
-    _res: HandlerResponse,
+    _c: HonoContext,
     trx: db.KnexReadonlyTransaction
 ) {
     try {
@@ -228,11 +226,10 @@ export async function handleGetMultiDims(
 }
 
 export async function handleGetMultiDim(
-    req: Request,
-    _res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadonlyTransaction
 ) {
-    const id = expectInt(req.params.id)
+    const id = expectInt(c.req.param("id")!)
     const row = await trx<DbPlainMultiDimDataPage>(MultiDimDataPagesTableName)
         .select("id", "catalogPath", "slug", "config", "updatedAt", "published")
         .where("id", id)
@@ -249,15 +246,15 @@ export async function handleGetMultiDim(
 }
 
 export async function handlePutMultiDim(
-    req: Request,
-    res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadWriteTransaction
 ) {
-    const { catalogPath } = req.params
+    const catalogPath = c.req.param("catalogPath")!
     if (!isValidCatalogPath(catalogPath)) {
         throw new JsonError(`Invalid multi-dim catalog path ${catalogPath}`)
     }
-    const { config: rawConfig } = req.body as {
+    const body = await c.req.json()
+    const { config: rawConfig } = body as {
         config: MultiDimDataPageConfigRaw
     }
     const id = await upsertMultiDim(trx, catalogPath, rawConfig)
@@ -270,7 +267,7 @@ export async function handlePutMultiDim(
             .first()) ?? {}
     if (publishedSlug) {
         await triggerStaticBuild(
-            res.locals.user,
+            c.get("user"),
             `Publishing multidimensional chart ${publishedSlug}`
         )
     }
@@ -278,16 +275,16 @@ export async function handlePutMultiDim(
 }
 
 export async function handlePatchMultiDim(
-    req: Request,
-    res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadWriteTransaction
 ) {
-    const id = expectInt(req.params.id)
+    const id = expectInt(c.req.param("id")!)
     let multiDim = await getMultiDimDataPageById(trx, id)
     if (!multiDim) {
         throw new JsonError(`Multi-dimensional data page not found`, 404)
     }
-    const { published, slug } = req.body
+    const body = await c.req.json()
+    const { published, slug } = body
     let action
     let previousSlug: string | undefined
     if (slug !== undefined && slug !== multiDim.slug) {
@@ -329,7 +326,7 @@ export async function handlePatchMultiDim(
     }
     if (action) {
         await triggerStaticBuild(
-            res.locals.user,
+            c.get("user"),
             `${action === "publish" ? "Publishing" : "Unpublishing"} multidimensional chart ${multiDim.slug}`
         )
     }
@@ -337,11 +334,10 @@ export async function handlePatchMultiDim(
 }
 
 export async function handleGetMultiDimRedirects(
-    req: Request,
-    _res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadonlyTransaction
 ) {
-    const multiDimId = expectInt(req.params.id)
+    const multiDimId = expectInt(c.req.param("id")!)
 
     const redirects = await db.knexRaw<{
         id: number
@@ -447,11 +443,10 @@ export async function handlePostMultiDimRedirect(
 }
 
 export async function handleDeleteMultiDimRedirect(
-    req: Request,
-    res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadWriteTransaction
 ) {
-    const redirectId = expectInt(req.params.redirectId)
+    const redirectId = expectInt(c.req.param("redirectId")!)
 
     const redirect = await trx<DbPlainMultiDimRedirect>(
         MultiDimRedirectsTableName
@@ -480,7 +475,7 @@ export async function handleDeleteMultiDimRedirect(
         viewConfigId
     )
     await triggerStaticBuild(
-        res.locals.user,
+        c.get("user"),
         `Deleting multi-dim redirect from '${redirect.source}' to '${targetDescription}'`
     )
 
@@ -488,8 +483,7 @@ export async function handleDeleteMultiDimRedirect(
 }
 
 export async function handleGetAllMultiDimRedirects(
-    _req: Request,
-    _res: HandlerResponse,
+    _c: HonoContext,
     trx: db.KnexReadonlyTransaction
 ) {
     const rows = await db.knexRaw<{
@@ -548,11 +542,10 @@ export async function handleGetAllMultiDimRedirects(
  * Returns the records that would be created when indexing this multi-dim.
  */
 export async function getMdimRecordsJson(
-    req: Request,
-    _res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadonlyTransaction
 ) {
-    const id = expectInt(req.params.id)
+    const id = expectInt(c.req.param("id")!)
     const records = await getMdimViewRecords(trx, { id })
     return { records }
 }

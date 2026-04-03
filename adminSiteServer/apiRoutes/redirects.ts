@@ -8,23 +8,21 @@ import {
 import { expectInt } from "../../serverUtils/serverUtil.js"
 import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
 import * as db from "../../db/db.js"
-import { Request } from "../authentication.js"
-import { HandlerResponse } from "../FunctionalRouter.js"
+import { HonoContext } from "../authentication.js"
 
 export async function handleGetSiteRedirects(
-    req: Request,
-    res: HandlerResponse,
+    _c: HonoContext,
     trx: db.KnexReadonlyTransaction
 ) {
     return { redirects: await getRedirects(trx) }
 }
 
 export async function handlePostNewSiteRedirect(
-    req: Request,
-    res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadWriteTransaction
 ) {
-    const { source, target } = req.body
+    const body = await c.req.json()
+    const { source, target } = body
     const sourceAsUrl = new URL(source, "https://ourworldindata.org")
     if (sourceAsUrl.pathname === "/")
         throw new JsonError("Cannot redirect from /", 400)
@@ -55,33 +53,31 @@ export async function handlePostNewSiteRedirect(
         [source, target]
     )
     await triggerStaticBuild(
-        res.locals.user,
+        c.get("user"),
         `Creating redirect id=${id} source=${source} target=${target}`
     )
     return { success: true, redirect: { id, source, target } }
 }
 
 export async function handleDeleteSiteRedirect(
-    req: Request,
-    res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadWriteTransaction
 ) {
-    const id = expectInt(req.params.id)
+    const id = expectInt(c.req.param("id")!)
     const redirect = await getRedirectById(trx, id)
     if (!redirect) {
         throw new JsonError(`No redirect found for id ${id}`, 404)
     }
     await db.knexRaw(trx, `DELETE FROM redirects WHERE id=?`, [id])
     await triggerStaticBuild(
-        res.locals.user,
+        c.get("user"),
         `Deleting redirect id=${id} source=${redirect.source} target=${redirect.target}`
     )
     return { success: true }
 }
 
 export async function handleGetRedirects(
-    req: Request,
-    res: HandlerResponse,
+    _c: HonoContext,
     trx: db.KnexReadonlyTransaction
 ) {
     return {
@@ -103,12 +99,12 @@ export async function handleGetRedirects(
 }
 
 export async function handlePostNewChartRedirect(
-    req: Request,
-    res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadWriteTransaction
 ) {
-    const chartId = expectInt(req.params.chartId)
-    const fields = req.body as { slug: string }
+    const chartId = expectInt(c.req.param("chartId")!)
+    const body = await c.req.json()
+    const fields = body as { slug: string }
     const result = await db.knexRawInsert(
         trx,
         `INSERT INTO chart_slug_redirects (chart_id, slug) VALUES (?, ?)`,
@@ -124,11 +120,10 @@ export async function handlePostNewChartRedirect(
 }
 
 export async function handleDeleteChartRedirect(
-    req: Request,
-    res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadWriteTransaction
 ) {
-    const id = expectInt(req.params.id)
+    const id = expectInt(c.req.param("id")!)
 
     const redirect = await db.knexRawFirst<DbPlainChartSlugRedirect>(
         trx,
@@ -140,7 +135,7 @@ export async function handleDeleteChartRedirect(
 
     await db.knexRaw(trx, `DELETE FROM chart_slug_redirects WHERE id=?`, [id])
     await triggerStaticBuild(
-        res.locals.user,
+        c.get("user"),
         `Deleting redirect from ${redirect.slug}`
     )
 

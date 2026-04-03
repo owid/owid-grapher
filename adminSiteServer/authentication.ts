@@ -18,19 +18,16 @@ import { hashApiKey } from "../serverUtils/apiKey.js"
  */
 export type AppVariables = {
     user: DbPlainUser
+    uploadedFile?: {
+        path: string
+        originalname: string
+        mimetype: string
+        size: number
+    }
 }
 
-/** Convenience alias so handler files can keep `Request`-style naming. */
+/** The Hono context type used across all handlers. */
 export type HonoContext = Context<{ Variables: AppVariables }>
-
-/**
- * Re-export compat types so handler files that import { Request } from
- * "../authentication.js" or { Response } from "../authentication.js" keep working.
- */
-export type {
-    CompatRequest as Request,
-    CompatResponse as Response,
-} from "./FunctionalRouter.js"
 
 const API_KEY_HEADER = "authorization"
 const ACT_AS_USER_HEADER = "x-act-as-user"

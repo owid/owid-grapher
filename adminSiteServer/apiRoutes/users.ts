@@ -4,11 +4,10 @@ import { parseIntOrUndefined } from "@ourworldindata/utils"
 import { getUserById, updateUser, insertUser } from "../../db/model/User.js"
 import { expectInt } from "../../serverUtils/serverUtil.js"
 import * as db from "../../db/db.js"
-import { Request } from "../authentication.js"
-import { HandlerResponse } from "../FunctionalRouter.js"
+import { HonoContext } from "../authentication.js"
+
 export async function getUsers(
-    req: Request,
-    _res: HandlerResponse,
+    _c: HonoContext,
     trx: db.KnexReadonlyTransaction
 ) {
     return {
@@ -30,44 +29,42 @@ export async function getUsers(
 }
 
 export async function getUserByIdHandler(
-    req: Request,
-    _res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadonlyTransaction
 ) {
-    const id = parseIntOrUndefined(req.params.userId)
+    const id = parseIntOrUndefined(c.req.param("userId"))
     if (!id) throw new JsonError("No user id given")
     const user = await getUserById(trx, id)
     return { user }
 }
 
 export async function deleteUser(
-    req: Request,
-    res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadWriteTransaction
 ) {
-    if (!res.locals.user.isSuperuser)
+    if (!c.get("user").isSuperuser)
         throw new JsonError("Permission denied", 403)
 
-    const userId = expectInt(req.params.userId)
+    const userId = expectInt(c.req.param("userId")!)
     await db.knexRaw(trx, `DELETE FROM users WHERE id=?`, [userId])
 
     return { success: true }
 }
 
 export async function updateUserHandler(
-    req: Request,
-    res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadWriteTransaction
 ) {
-    if (!res.locals.user.isSuperuser)
+    if (!c.get("user").isSuperuser)
         throw new JsonError("Permission denied", 403)
 
-    const userId = parseIntOrUndefined(req.params.userId)
+    const userId = parseIntOrUndefined(c.req.param("userId"))
     const user = userId !== undefined ? await getUserById(trx, userId) : null
     if (!user || userId === undefined) throw new JsonError("No such user", 404)
 
-    user.fullName = req.body.fullName
-    user.isActive = req.body.isActive
+    const body = await c.req.json()
+    user.fullName = body.fullName
+    user.isActive = body.isActive
 
     await updateUser(trx, userId, _.pick(user, ["fullName", "isActive"]))
 
@@ -75,14 +72,13 @@ export async function updateUserHandler(
 }
 
 export async function addUser(
-    req: Request,
-    res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadWriteTransaction
 ) {
-    if (!res.locals.user.isSuperuser)
+    if (!c.get("user").isSuperuser)
         throw new JsonError("Permission denied", 403)
 
-    const { email, fullName } = req.body
+    const { email, fullName } = await c.req.json()
 
     await insertUser(trx, {
         email,
@@ -93,23 +89,21 @@ export async function addUser(
 }
 
 export async function addImageToUser(
-    req: Request,
-    _res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadWriteTransaction
 ) {
-    const userId = expectInt(req.params.userId)
-    const imageId = expectInt(req.params.imageId)
+    const userId = expectInt(c.req.param("userId")!)
+    const imageId = expectInt(c.req.param("imageId")!)
     await trx("images").where({ id: imageId }).update({ userId })
     return { success: true }
 }
 
 export async function removeUserImage(
-    req: Request,
-    _res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadWriteTransaction
 ) {
-    const userId = expectInt(req.params.userId)
-    const imageId = expectInt(req.params.imageId)
+    const userId = expectInt(c.req.param("userId")!)
+    const imageId = expectInt(c.req.param("imageId")!)
     await trx("images").where({ id: imageId, userId }).update({ userId: null })
     return { success: true }
 }

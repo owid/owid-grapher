@@ -1,122 +1,73 @@
-import {
-    FunctionalRouter,
-    HandlerResponse,
-    CompatRequest,
-} from "./FunctionalRouter.js"
+import { FunctionalRouter } from "./FunctionalRouter.js"
+import { HonoContext } from "./authentication.js"
 import * as db from "../db/db.js"
 
 export function getRouteWithROTransaction<T>(
     router: FunctionalRouter,
     targetPath: string,
-    handler: (
-        req: CompatRequest,
-        res: HandlerResponse,
-        trx: db.KnexReadonlyTransaction
-    ) => Promise<T>
+    handler: (c: HonoContext, trx: db.KnexReadonlyTransaction) => Promise<T>
 ) {
-    return router.get(targetPath, (req, res) => {
-        return db.knexReadonlyTransaction((transaction) =>
-            handler(req, res, transaction)
-        )
+    return router.get(targetPath, (c) => {
+        return db.knexReadonlyTransaction((trx) => handler(c, trx))
     })
 }
 
-/** Usually get routes should be idempotent (caching and retry reasons among others),
-    but for example the gdoc preview route is not because it updates the gdoc in the DB after
-    fetching it from the google API.
- */
 export function getRouteNonIdempotentWithRWTransaction<T>(
     router: FunctionalRouter,
     targetPath: string,
-    handler: (
-        req: CompatRequest,
-        res: HandlerResponse,
-        trx: db.KnexReadWriteTransaction
-    ) => Promise<T>
+    handler: (c: HonoContext, trx: db.KnexReadWriteTransaction) => Promise<T>
 ) {
-    return router.get(targetPath, (req, res) => {
-        return db.knexReadWriteTransaction((transaction) =>
-            handler(req, res, transaction)
-        )
+    return router.get(targetPath, (c) => {
+        return db.knexReadWriteTransaction((trx) => handler(c, trx))
     })
 }
 
 export function postRouteWithRWTransaction<T>(
     router: FunctionalRouter,
     targetPath: string,
-    handler: (
-        req: CompatRequest,
-        res: HandlerResponse,
-        trx: db.KnexReadWriteTransaction
-    ) => Promise<T>
+    handler: (c: HonoContext, trx: db.KnexReadWriteTransaction) => Promise<T>
 ) {
-    return router.post(targetPath, (req, res) => {
-        return db.knexReadWriteTransaction((transaction) =>
-            handler(req, res, transaction)
-        )
+    return router.post(targetPath, (c) => {
+        return db.knexReadWriteTransaction((trx) => handler(c, trx))
     })
 }
 
 export function postFileUploadWithRWTransaction<T>(
     router: FunctionalRouter,
     targetPath: string,
-    handler: (
-        req: CompatRequest,
-        res: HandlerResponse,
-        trx: db.KnexReadWriteTransaction
-    ) => Promise<T>
+    handler: (c: HonoContext, trx: db.KnexReadWriteTransaction) => Promise<T>
 ) {
-    return router.postWithFileUpload(targetPath, async (req, res) => {
-        return db.knexReadWriteTransaction((transaction) =>
-            handler(req, res, transaction)
-        )
+    return router.postWithFileUpload(targetPath, (c) => {
+        return db.knexReadWriteTransaction((trx) => handler(c, trx))
     })
 }
 
 export function putRouteWithRWTransaction<T>(
     router: FunctionalRouter,
     targetPath: string,
-    handler: (
-        req: CompatRequest,
-        res: HandlerResponse,
-        trx: db.KnexReadWriteTransaction
-    ) => Promise<T>
+    handler: (c: HonoContext, trx: db.KnexReadWriteTransaction) => Promise<T>
 ) {
-    return router.put(targetPath, (req, res) => {
-        return db.knexReadWriteTransaction((transaction) =>
-            handler(req, res, transaction)
-        )
+    return router.put(targetPath, (c) => {
+        return db.knexReadWriteTransaction((trx) => handler(c, trx))
     })
 }
 
 export function patchRouteWithRWTransaction<T>(
     router: FunctionalRouter,
     targetPath: string,
-    handler: (
-        req: CompatRequest,
-        res: HandlerResponse,
-        trx: db.KnexReadWriteTransaction
-    ) => Promise<T>
+    handler: (c: HonoContext, trx: db.KnexReadWriteTransaction) => Promise<T>
 ) {
-    return router.patch(targetPath, (req, res) => {
-        return db.knexReadWriteTransaction((transaction) =>
-            handler(req, res, transaction)
-        )
+    return router.patch(targetPath, (c) => {
+        return db.knexReadWriteTransaction((trx) => handler(c, trx))
     })
 }
 
 export function deleteRouteWithRWTransaction<T>(
     router: FunctionalRouter,
     targetPath: string,
-    handler: (
-        req: CompatRequest,
-        res: HandlerResponse,
-        trx: db.KnexReadWriteTransaction
-    ) => Promise<T>
+    handler: (c: HonoContext, trx: db.KnexReadWriteTransaction) => Promise<T>
 ) {
-    return router.delete(targetPath, (req, res) => {
-        return db.knexReadWriteTransaction((transaction) =>
-            handler(req, res, transaction)
-        )
+    return router.delete(targetPath, (c) => {
+        return db.knexReadWriteTransaction((trx) => handler(c, trx))
     })
 }

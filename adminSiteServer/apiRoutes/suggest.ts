@@ -11,15 +11,13 @@ import {
     fetchGptGeneratedTextFromImage,
 } from "../imagesHelpers.js"
 import * as db from "../../db/db.js"
-import { Request } from "../authentication.js"
-import { HandlerResponse } from "../FunctionalRouter.js"
+import { HonoContext } from "../authentication.js"
 
 export async function suggestGptTopics(
-    req: Request,
-    _res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadonlyTransaction
 ): Promise<Record<"topics", DbChartTagJoin[]>> {
-    const chartId = parseIntOrUndefined(req.params.chartId)
+    const chartId = parseIntOrUndefined(c.req.param("chartId"))
     if (!chartId) throw new JsonError(`Invalid chart ID`, 400)
 
     const topics = await getGptTopicSuggestions(trx, chartId)
@@ -36,14 +34,13 @@ export async function suggestGptTopics(
 }
 
 export async function suggestGptAltTextForCloudflareImage(
-    req: Request,
-    _res: HandlerResponse,
+    c: HonoContext,
     trx: db.KnexReadonlyTransaction
 ): Promise<{
     success: true
     altText: string
 }> {
-    const imageId = parseIntOrUndefined(req.params.imageId)
+    const imageId = parseIntOrUndefined(c.req.param("imageId"))
     if (!imageId) throw new JsonError(`Invalid image ID`, 400)
     const image = await trx<DbEnrichedImage>("images")
         .where("id", imageId)
@@ -57,14 +54,13 @@ export async function suggestGptAltTextForCloudflareImage(
 }
 
 export async function suggestGptAltText(
-    req: Request,
-    _res: HandlerResponse,
+    c: HonoContext,
     _trx: db.KnexReadonlyTransaction
 ): Promise<{
     success: true
     altText: string
 }> {
-    const imageUrl = req.query.imageUrl
+    const imageUrl = c.req.query("imageUrl")
     if (!imageUrl) throw new JsonError(`No image URL provided`, 400)
     if (typeof imageUrl !== "string")
         throw new JsonError(`Invalid image URL provided`, 400)
@@ -94,14 +90,11 @@ export async function generateAltTextFromUrl(imageUrl: string): Promise<{
     return { success: true, altText }
 }
 
-export async function extractTextFromImage(
-    req: Request,
-    _res: HandlerResponse
-): Promise<{
+export async function extractTextFromImage(c: HonoContext): Promise<{
     success: true
     text: string
 }> {
-    const imageUrl = req.query.imageUrl
+    const imageUrl = c.req.query("imageUrl")
     if (!imageUrl) throw new JsonError(`No image URL provided`, 400)
     if (typeof imageUrl !== "string")
         throw new JsonError(`Invalid image URL provided`, 400)
