@@ -94,6 +94,7 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     hideDownloadButton?: boolean
 
     hideEntityControls?: boolean
+    hideControlsRow?: boolean
     forceHideAnnotationFieldsInTitle?: AnnotationFieldsInTitle
     hasTableTab?: boolean
     hideShareButton?: boolean

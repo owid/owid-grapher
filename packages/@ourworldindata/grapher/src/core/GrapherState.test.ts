@@ -118,6 +118,13 @@ describe("hideDownloadButton", () => {
     })
 })
 
+describe("hideControlsRow", () => {
+    it("respects the explicit hideControlsRow config", () => {
+        const grapher = new GrapherState({ hideControlsRow: true })
+        expect(grapher.hideControlsRow).toBe(true)
+    })
+})
+
 const unit = "% of children under 5"
 const name = "Some display name"
 const data = {
