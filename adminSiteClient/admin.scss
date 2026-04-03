@@ -19,6 +19,12 @@
 
 @import "@react-awesome-query-builder/antd/css/styles.css";
 
+@import "../packages/@ourworldindata/components/src/styles/colors.scss";
+@import "../packages/@ourworldindata/components/src/styles/variables.scss";
+@import "../packages/@ourworldindata/components/src/styles/mixins.scss";
+@import "../packages/@ourworldindata/components/src/styles/typography-constants.scss";
+@import "../packages/@ourworldindata/components/src/styles/typography.scss";
+
 @import "./GdocsIndexPage.scss";
 @import "./FeaturedMetricsPage.scss";
 @import "./FilesIndexPage.scss";
@@ -27,6 +33,8 @@
 @import "./SortableList.scss";
 @import "./StaticViz.scss";
 @import "./MultiDimDetailPage.scss";
+@import "../site/slideshows/SlideContent.scss";
+@import "./slideshows/Slideshows.scss";
 
 html {
     font-size: 14px;

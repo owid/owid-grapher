@@ -716,6 +716,70 @@ getPlainRouteWithROTransaction(
 
 getPlainRouteWithROTransaction(
     mockSiteRouter,
+    "/slideshows/:slug",
+    async (req, res, trx) => {
+        const { renderSlideshowPage } =
+            await import("../baker/siteRenderers.js")
+        const { getMinimalAuthorsByNames } =
+            await import("../db/model/Gdoc/GdocBase.js")
+        const slideshow = await trx("slideshows")
+            .where("slug", req.params.slug)
+            .first()
+
+        if (!slideshow) {
+            return res.status(404).send(renderNotFoundPage())
+        }
+
+        const config =
+            typeof slideshow.config === "string"
+                ? JSON.parse(slideshow.config)
+                : slideshow.config
+
+        // Collect image filenames from slides
+        const imageFilenames: string[] = []
+        for (const slide of config.slides) {
+            if (slide.template === "image" && slide.filename) {
+                imageFilenames.push(slide.filename)
+            }
+        }
+
+        const imageMetadata =
+            imageFilenames.length > 0
+                ? await getImageMetadataByFilenames(trx, imageFilenames)
+                : {}
+
+        // Resolve author names to linked author pages
+        const authorNames = config.authors
+            ? config.authors
+                  .split(",")
+                  .map((n: string) => n.trim())
+                  .filter(Boolean)
+            : []
+        const linkedAuthors =
+            authorNames.length > 0
+                ? await getMinimalAuthorsByNames(trx, authorNames)
+                : []
+
+        // Resolve chart types
+        const { resolveSlideChartTypes } =
+            await import("../baker/SlideshowBaker.js")
+        const chartResolutions = await resolveSlideChartTypes(
+            trx,
+            config.slides
+        )
+
+        const html = await renderSlideshowPage(
+            { title: slideshow.title, slug: slideshow.slug, config },
+            imageMetadata,
+            linkedAuthors,
+            chartResolutions
+        )
+        return res.send(html)
+    }
+)
+
+getPlainRouteWithROTransaction(
+    mockSiteRouter,
     "/{*splat}",
     async (req, res, trx) => {
         // Remove leading and trailing slashes
