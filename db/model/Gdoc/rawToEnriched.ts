@@ -1234,11 +1234,19 @@ function parseChartRows(raw: RawBlockChartRows): EnrichedBlockChartRows {
             continue
         }
 
-        const enrichedContent: EnrichedBlockText[] = row.content
-            ? row.content
-                  .map(parseRawBlocksToEnrichedBlocks)
-                  .filter((b): b is EnrichedBlockText => b?.type === "text")
+        const parsedContent = row.content
+            ? row.content.map(parseRawBlocksToEnrichedBlocks)
             : []
+        const enrichedContent = parsedContent.filter(
+            (b): b is EnrichedBlockText => b?.type === "text"
+        )
+        const droppedCount = parsedContent.length - enrichedContent.length
+        if (droppedCount > 0) {
+            parseErrors.push({
+                message: `chart-rows row content contains ${droppedCount} non-text block(s) that will be ignored. Only paragraphs are supported.`,
+                isWarning: true,
+            })
+        }
 
         if (enrichedContent.length === 0) {
             parseErrors.push({
@@ -1305,11 +1313,19 @@ function parsePullChart(raw: RawBlockPullChart): EnrichedBlockPullChart {
         parseErrors.push({ message: "pull-chart missing url property" })
     }
 
-    const enrichedContent: EnrichedBlockText[] = content
-        ? content
-              .map(parseRawBlocksToEnrichedBlocks)
-              .filter((b): b is EnrichedBlockText => b?.type === "text")
+    const parsedContent = content
+        ? content.map(parseRawBlocksToEnrichedBlocks)
         : []
+    const enrichedContent = parsedContent.filter(
+        (b): b is EnrichedBlockText => b?.type === "text"
+    )
+    const droppedCount = parsedContent.length - enrichedContent.length
+    if (droppedCount > 0) {
+        parseErrors.push({
+            message: `pull-chart content contains ${droppedCount} non-text block(s) that will be ignored. Only paragraphs are supported.`,
+            isWarning: true,
+        })
+    }
 
     if (enrichedContent.length === 0) {
         parseErrors.push({
