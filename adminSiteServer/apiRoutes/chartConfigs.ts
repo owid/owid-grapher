@@ -1,4 +1,4 @@
-import { Request } from "express"
+import { Request } from "../authentication.js"
 import { HandlerResponse } from "../FunctionalRouter.js"
 import { JsonError } from "@ourworldindata/utils"
 import * as db from "../../db/db.js"

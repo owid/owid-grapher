@@ -1,5 +1,5 @@
 import { JsonError } from "@ourworldindata/types"
-import { Request } from "express"
+import { Request } from "../authentication.js"
 import { HandlerResponse } from "../FunctionalRouter.js"
 import * as db from "../../db/db.js"
 import * as Figma from "figma-api"

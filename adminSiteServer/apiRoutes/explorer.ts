@@ -3,7 +3,7 @@ import {
     DbPlainUser,
     ExplorersTableName,
 } from "@ourworldindata/types"
-import { Request } from "express"
+import { Request } from "../authentication.js"
 import { HandlerResponse } from "../FunctionalRouter.js"
 
 import { isValidSlug } from "../../serverUtils/serverUtil.js"
