@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { unstable_batchedUpdates } from "react-dom"
 import { useSearchParams } from "react-router-dom-v5-compat"
 import * as Sentry from "@sentry/react"
+import { useIsClient } from "usehooks-ts"
 import {
     Grapher,
     GrapherState,
@@ -11,7 +12,6 @@ import {
     loadCatalogData,
 } from "@ourworldindata/grapher"
 import {
-    DataPageDataV2,
     joinTitleFragments,
     MultiDimDataPageConfig,
     extractMultiDimChoicesFromSearchParams,
@@ -22,17 +22,20 @@ import {
     ArchiveContext,
     DataPageRelatedResearch,
     FaqEntryKeyedByGdocIdAndFragmentId,
-    FaqLink,
     GRAPHER_TAB_QUERY_PARAMS,
     GrapherQueryParams,
+    HIDE_IF_JS_DISABLED_CLASSNAME,
+    HIDE_IF_JS_ENABLED_CLASSNAME,
     ImageMetadata,
     MultiDimDataPageConfigEnriched,
     MultiDimDimensionChoices,
+    MultiDimDataPageInitialViewData,
     PrimaryTopic,
 } from "@ourworldindata/types"
 import AboutThisData from "../AboutThisData.js"
 import TopicTags from "../TopicTags.js"
 import MetadataSection from "../MetadataSection.js"
+import GrapherImage from "../GrapherImage.js"
 import { useElementBounds, useMobxStateToReactState } from "../hooks.js"
 import { MultiDimSettingsPanel } from "./MultiDimDataPageSettingsPanel.js"
 import { getDatapageDataV2, processRelatedResearch } from "../dataPage.js"
@@ -73,6 +76,8 @@ export type MultiDimDataPageContentProps = {
     imageMetadata: Record<string, ImageMetadata>
     isPreviewing?: boolean
     archiveContext?: ArchiveContext
+    initialViewData?: MultiDimDataPageInitialViewData
+    initialViewDimensions?: MultiDimDimensionChoices
 }
 
 export type MultiDimDataPageData = Omit<
@@ -88,10 +93,6 @@ declare global {
     }
 }
 
-interface VariableDataPageData extends DataPageDataV2 {
-    faqs: FaqLink[]
-}
-
 export function DataPageContent({
     slug,
     canonicalUrl,
@@ -103,6 +104,8 @@ export function DataPageContent({
     tagToSlugMap,
     imageMetadata,
     archiveContext,
+    initialViewData,
+    initialViewDimensions,
 }: MultiDimDataPageContentProps) {
     const assetMap =
         archiveContext?.type === "archive-page"
@@ -127,7 +130,10 @@ export function DataPageContent({
     const grapherFigureRef = useRef<HTMLDivElement>(null)
     const [searchParams, setSearchParams] = useSearchParams()
     const [varDatapageData, setVarDatapageData] =
-        useState<VariableDataPageData | null>(null)
+        useState<MultiDimDataPageInitialViewData | null>(
+            initialViewData ?? null
+        )
+    const isClient = useIsClient()
 
     // Workaround to prevent a race condition when switching between views.
     // https://github.com/owid/owid-grapher/issues/5727
@@ -157,6 +163,16 @@ export function DataPageContent({
         )
         return config.filterToAvailableChoices(choices).selectedChoices
     }, [searchParams, config])
+
+    const displayedSettings = isClient
+        ? settings
+        : (initialViewDimensions ?? settings)
+    const displayedSearchParams = isClient
+        ? searchParams
+        : new URLSearchParams(initialViewDimensions)
+    const fallbackQueryString = initialViewDimensions
+        ? `?${new URLSearchParams(initialViewDimensions).toString()}`
+        : ""
 
     const updateGrapher = useCallback(
         (
@@ -408,25 +424,18 @@ export function DataPageContent({
         !!grapherStateRef.current
     )
 
-    const downloadProps = useMemo(() => {
-        if (!slug) return undefined
-        return {
-            slug,
-            baseUrl: `${BAKED_GRAPHER_URL}/${slug}`,
-            searchParams,
-            externalQueryParams: settings,
-            tableForDownload,
-            filteredTableForDownload,
-            yColumns,
-        }
-    }, [
-        slug,
-        searchParams,
-        settings,
-        tableForDownload,
-        filteredTableForDownload,
-        yColumns,
-    ])
+    const downloadProps = slug
+        ? {
+              slug,
+              baseUrl: `${BAKED_GRAPHER_URL}/${slug}`,
+              searchParams: displayedSearchParams,
+              externalQueryParams: displayedSettings,
+              tableForDownload,
+              filteredTableForDownload,
+              yColumns,
+              hideRowCounts: !isClient,
+          }
+        : undefined
 
     return (
         <AttachmentsContext.Provider
@@ -461,7 +470,7 @@ export function DataPageContent({
                         <div className="settings-row__wrapper col-start-2 span-cols-12 col-sm-start-2 span-sm-cols-12">
                             <MultiDimSettingsPanel
                                 config={config}
-                                settings={settings}
+                                settings={displayedSettings}
                                 onChange={handleSettingsChange}
                                 disabled={isLoadingView}
                             />
@@ -475,13 +484,32 @@ export function DataPageContent({
                             id="explore-the-data"
                             className="GrapherWithFallback full-width-on-mobile"
                         >
-                            <figure data-grapher-src ref={grapherFigureRef}>
+                            <figure
+                                className={HIDE_IF_JS_DISABLED_CLASSNAME}
+                                data-grapher-src
+                                ref={grapherFigureRef}
+                            >
                                 <Grapher
                                     grapherState={grapherStateRef.current}
                                 />
                             </figure>
+                            {slug && (
+                                <figure
+                                    className={`${HIDE_IF_JS_ENABLED_CLASSNAME} GrapherWithFallback__fallback`}
+                                >
+                                    <GrapherImage
+                                        slug={slug}
+                                        queryString={fallbackQueryString}
+                                        alt={config.config.title.title}
+                                        enablePopulatingUrlParams
+                                    />
+                                    <p>
+                                        Interactive visualization requires
+                                        JavaScript.
+                                    </p>
+                                </figure>
+                            )}
                         </div>
-                        <div className="js--show-warning-block-if-js-disabled" />
                         {varDatapageData && (
                             <AboutThisData
                                 datapageData={varDatapageData}
@@ -534,6 +562,8 @@ export function MultiDimDataPageContent({
     tagToSlugMap,
     imageMetadata,
     archiveContext,
+    initialViewData,
+    initialViewDimensions,
 }: MultiDimDataPageContentProps) {
     return isIframe ? (
         <MultiDim
@@ -555,6 +585,8 @@ export function MultiDimDataPageContent({
             tagToSlugMap={tagToSlugMap}
             imageMetadata={imageMetadata}
             archiveContext={archiveContext}
+            initialViewData={initialViewData}
+            initialViewDimensions={initialViewDimensions}
         />
     )
 }

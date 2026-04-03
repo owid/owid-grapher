@@ -711,6 +711,7 @@ export type {
     MultiDimDataPageConfigEnriched,
     MultiDimDataPageConfigPreProcessed,
     MultiDimDataPageConfigRaw,
+    MultiDimDataPageInitialViewData,
     MultiDimDataPageProps,
     FaqEntryKeyedByGdocIdAndFragmentId,
     Choice,

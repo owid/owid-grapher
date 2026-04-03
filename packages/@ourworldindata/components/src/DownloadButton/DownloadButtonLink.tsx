@@ -1,3 +1,4 @@
+import { AnchorHTMLAttributes } from "react"
 import cx from "classnames"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faDownload } from "@fortawesome/free-solid-svg-icons"
@@ -12,6 +13,7 @@ export function DownloadButtonLink({
     trackingNote,
     href,
     download,
+    ...anchorProps
 }: {
     className?: string
     title: string
@@ -20,13 +22,14 @@ export function DownloadButtonLink({
     trackingNote?: string
     href: string
     download?: string
-}) {
+} & AnchorHTMLAttributes<HTMLAnchorElement>) {
     return (
         <a
             className={cx("download-button download-button-link", className)}
             href={href}
             download={download}
             data-track-note={trackingNote}
+            {...anchorProps}
         >
             {icon && (
                 <div className="download-button__icon">
