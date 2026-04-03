@@ -1,4 +1,4 @@
-#slideshow-page {
+#slideshow-page-body {
     .site-footer,
     .donate-footer {
         display: none;
@@ -7,35 +7,27 @@
 
 // --- Presentation layout ---
 
-.SlideshowContainer {
+.slideshow-container {
     --footer-height: 64px;
-    --slide-aspect-ratio: 4/3;
-    &--fullscreen {
-        --footer-height: 0px;
-    }
+    height: calc(100vh - var(--footer-height));
 }
 
-.SlideshowPresentation {
-    width: auto;
-    margin: 0 auto;
-    max-height: calc(100vh - var(--footer-height));
-    aspect-ratio: var(--slide-aspect-ratio);
+.slideshow-container--fullscreen {
+    --footer-height: 0px;
+}
+
+.slides {
+    height: 100%;
     position: relative;
 }
 
-.SlideshowPresentation--fullscreen {
-    max-width: none;
+.slides--fullscreen {
+    max-height: unset;
     height: 100vh;
-    padding: 0;
-    background: #fff;
+    background-color: #fff;
 
-    .SlideshowPresentation__slide {
-        flex: 1;
-        min-height: 0;
-    }
-
-    .SlideshowPresentation__footer {
-        padding: 8px 24px;
+    .slideshow__footer {
+        display: none;
     }
 }
 
@@ -50,18 +42,25 @@
     height: 100%;
 }
 
-.SlideshowPresentation__footer {
+.slideshow__footer {
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 0 16px;
     border-top: $gray-30 1px solid;
     height: var(--footer-height);
+    position: absolute;
+    bottom: 0;
+    width: 100%;
 }
 
 .SlideshowPresentation__branding {
     font-size: 13px;
     color: #666;
+}
+
+.SlideshowPresentation__author-link {
+    @include owid-link-90;
 }
 
 .SlideshowPresentation__nav {
@@ -126,33 +125,4 @@
         background: #f5f5f5;
         border-color: #bbb;
     }
-}
-
-.SlideshowPresentation__author-link {
-    @include owid-link-90;
-}
-
-.SlideshowPresentation {
-    .GrapherComponent {
-        .controlsRow,
-        .GrapherTimeline {
-            display: none;
-        }
-    }
-}
-
-// --- Slide content (shared with admin) ---
-
-.SlideGrapher {
-    height: 100%;
-
-    .GrapherComponent {
-        border: none;
-    }
-}
-
-.SlideContent,
-.SlideGrapher {
-    aspect-ratio: var(--slide-aspect-ratio);
-    height: auto;
 }

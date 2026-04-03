@@ -160,44 +160,36 @@ export function SlideshowPresentation(props: {
         return () => window.removeEventListener("keydown", handleKeyDown)
     }, [])
 
-    if (slides.length === 0) return <div className="SlideshowPresentation" />
+    if (slides.length === 0) return <div className="slides" />
 
     const activeRenderChart = renderChart ?? defaultRenderChart
 
     return (
         <div
-            className={cx({
-                SlideshowContainer: true,
-                "SlideshowContainer--fullscreen": isFullscreen,
+            className={cx("slideshow-container", {
+                "slideshow-container--fullscreen": isFullscreen,
             })}
         >
             <div
                 ref={containerRef}
                 className={cx({
-                    SlideshowPresentation: true,
-                    "SlideshowPresentation--fullscreen": isFullscreen,
+                    slides: true,
+                    "slides--fullscreen": isFullscreen,
                 })}
             >
                 {/* All slides are rendered simultaneously and toggled with
                 CSS display so that chart data is fetched upfront. */}
                 {slides.map((slide, i) => (
-                    <div
+                    <SlideRenderer
                         key={i}
-                        className="SlideshowPresentation__slide"
-                        style={{
-                            visibility:
-                                i === currentIndex ? "visible" : "hidden",
-                        }}
-                    >
-                        <SlideRenderer
-                            slide={slide}
-                            imageMetadata={imageMetadata}
-                            renderChart={activeRenderChart}
-                        />
-                    </div>
+                        isHidden={i !== currentIndex}
+                        slide={slide}
+                        imageMetadata={imageMetadata}
+                        renderChart={activeRenderChart}
+                    />
                 ))}
             </div>
-            <div className="SlideshowPresentation__footer">
+            <div className="slideshow__footer">
                 <span className="SlideshowPresentation__branding">
                     A presentation by{" "}
                     <AuthorByline

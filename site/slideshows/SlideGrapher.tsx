@@ -87,6 +87,7 @@ export function SlideGrapher(props: SlideGrapherProps): React.ReactElement {
             hideFullscreenButton: true,
             hideControlsRow: true,
             hideDownloadButton: true,
+            hideTimeline: true,
             hideLogo: true,
             hideTitle: props.hideTitle ?? false,
             hideSubtitle: props.hideSubtitle ?? false,
@@ -197,7 +198,7 @@ export function SlideGrapher(props: SlideGrapherProps): React.ReactElement {
     ])
 
     return (
-        <div ref={containerRef} className="SlideGrapher">
+        <div ref={containerRef} className="slide__grapher-container">
             <GuidedChartContext.Provider value={guidedChartContextValue}>
                 <FetchingGrapher
                     key={slug}

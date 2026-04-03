@@ -77,7 +77,7 @@ export function SlideshowPage(props: SlideshowPageProps): React.ReactElement {
                     <link key={url} rel="preload" as="image" href={url} />
                 ))}
             </Head>
-            <body id="slideshow-page">
+            <body id="slideshow-page-body">
                 <main id="slideshow-page-container">
                     <SlideshowPresentation {...presentationProps} />
                 </main>

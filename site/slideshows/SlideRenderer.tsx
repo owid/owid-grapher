@@ -1,10 +1,11 @@
 import React from "react"
+import cx from "classnames"
 import { Slide, SlideTemplate, ImageMetadata } from "@ourworldindata/types"
 import { SimpleMarkdownText } from "@ourworldindata/components"
 import { OWID_LOGO_SVG } from "@ourworldindata/grapher/src/captionedChart/LogosSVG"
 import { CLOUDFLARE_IMAGES_URL } from "../../settings/clientSettings.js"
 import { GrapherFigureView } from "../GrapherFigureView.js"
-import { parseSlideChartUrl } from "./slideshowUtils.js"
+import { getSlideAspectRatio, parseSlideChartUrl } from "./slideshowUtils.js"
 
 /**
  * Pure slide rendering component shared between the baked site and the
@@ -23,13 +24,17 @@ export function SlideRenderer(props: {
         url: string,
         options: { hideTitle: boolean; hideSubtitle: boolean }
     ) => React.ReactElement
+    isHidden?: boolean
 }): React.ReactElement {
-    const { slide, imageMetadata, renderChart } = props
+    const { slide, imageMetadata, renderChart, isHidden } = props
+    const className = cx("slide", getSlideAspectRatio(slide), {
+        "slide--hidden": isHidden,
+    })
 
     switch (slide.template) {
         case SlideTemplate.Cover:
             return (
-                <div className="SlideContent SlideContent--cover">
+                <div className={`${className} SlideContent--cover`}>
                     {!slide.hideLogo && <SlideLogo />}
                     <h1>{slide.title || "Title"}</h1>
                     {slide.subtitle && <h2>{slide.subtitle}</h2>}
@@ -43,7 +48,7 @@ export function SlideRenderer(props: {
             )
         case SlideTemplate.Section:
             return (
-                <div className="SlideContent SlideContent--section">
+                <div className={`${className} SlideContent--section`}>
                     {!slide.hideLogo && <SlideLogo />}
                     <h1>{slide.title || "Section Title"}</h1>
                     {slide.subtitle && <h2>{slide.subtitle}</h2>}
@@ -51,19 +56,17 @@ export function SlideRenderer(props: {
             )
         case SlideTemplate.Image:
             return (
-                <div
-                    className={`SlideContent SlideContent--image${slide.text ? " SlideContent--with-text" : ""}`}
-                >
+                <div className={className}>
                     {!slide.hideLogo && <SlideLogo />}
                     {slide.slideTitle && (
-                        <h2 className="SlideContent__slide-title">
+                        <h2 className="slide-title">
                             <SimpleMarkdownText
                                 text={slide.slideTitle}
                                 useParagraphs={false}
                             />
                         </h2>
                     )}
-                    <div className="SlideContent__body">
+                    <div className="slide__body">
                         <div className="SlideContent__media">
                             <ImageRenderer
                                 filename={slide.filename}
@@ -71,7 +74,7 @@ export function SlideRenderer(props: {
                             />
                         </div>
                         {slide.text && (
-                            <div className="SlideContent__text">
+                            <div className="slide__text">
                                 <SimpleMarkdownText text={slide.text} />
                             </div>
                         )}
@@ -80,37 +83,33 @@ export function SlideRenderer(props: {
             )
         case SlideTemplate.Chart:
             return (
-                <div
-                    className={`SlideContent SlideContent--chart${slide.text ? " SlideContent--with-text" : ""}`}
-                >
+                <div className={className}>
                     {!slide.hideLogo && <SlideLogo />}
                     {slide.titleOverride && (
-                        <h2 className="SlideContent__slide-title">
+                        <h1 className="slide-title">
                             <SimpleMarkdownText
                                 text={slide.titleOverride}
                                 useParagraphs={false}
                             />
-                        </h2>
+                        </h1>
                     )}
                     {slide.subtitleOverride && (
-                        <h2 className="SlideContent__slide-subtitle">
+                        <p className="slide-subtitle">
                             <SimpleMarkdownText
                                 text={slide.subtitleOverride}
                                 useParagraphs={false}
                             />
-                        </h2>
+                        </p>
                     )}
-                    <div className="SlideContent__body">
-                        <div className="SlideContent__media">
-                            <ChartRenderer
-                                url={slide.url}
-                                hideTitle={!!slide.titleOverride}
-                                hideSubtitle={!!slide.subtitleOverride}
-                                renderChart={renderChart}
-                            />
-                        </div>
+                    <div className="slide-chart-content">
+                        <ChartRenderer
+                            url={slide.url}
+                            hideTitle={!!slide.titleOverride}
+                            hideSubtitle={!!slide.subtitleOverride}
+                            renderChart={renderChart}
+                        />
                         {slide.text && (
-                            <div className="SlideContent__text">
+                            <div className="slide__text">
                                 <SimpleMarkdownText text={slide.text} />
                             </div>
                         )}
@@ -119,13 +118,13 @@ export function SlideRenderer(props: {
             )
         case SlideTemplate.Blank:
             return (
-                <div className="SlideContent SlideContent--blank">
+                <div className={`${className} SlideContent--blank`}>
                     {!slide.hideLogo && <SlideLogo />}
                 </div>
             )
         default:
             return (
-                <div className="SlideContent SlideContent--placeholder">
+                <div className={`${className} SlideContent--placeholder`}>
                     <p>{slide.template}</p>
                 </div>
             )
@@ -201,7 +200,7 @@ function ChartRenderer(props: {
 function SlideLogo(): React.ReactElement {
     return (
         <span
-            className="SlideContent__logo"
+            className="slide-logo"
             dangerouslySetInnerHTML={{ __html: OWID_LOGO_SVG }}
         />
     )

@@ -311,30 +311,28 @@ export function SlideshowEditorPage(props: {
                     <div className="SlideshowEditorPage__sidebar">
                         <Tabs items={tabItems} />
                     </div>
-                    <div className="SlideshowEditorPage__canvas">
-                        <div className="SlideshowEditorPage__slide-preview">
-                            {currentSlide && (
-                                <SlideRenderer
-                                    slide={currentSlide}
-                                    imageMetadata={imageMetadata}
-                                    renderChart={(
-                                        url,
-                                        { hideTitle, hideSubtitle }
-                                    ) => (
-                                        <SlideChartEmbed
-                                            url={url}
-                                            grapherStateRef={grapherStateRef}
-                                            onQueryStringChange={
-                                                handleGrapherQueryStringChange
-                                            }
-                                            hideTitle={hideTitle}
-                                            hideSubtitle={hideSubtitle}
-                                            onChartReady={handleChartReady}
-                                        />
-                                    )}
-                                />
-                            )}
-                        </div>
+                    <div className="slide-editor__canvas">
+                        {currentSlide && (
+                            <SlideRenderer
+                                slide={currentSlide}
+                                imageMetadata={imageMetadata}
+                                renderChart={(
+                                    url,
+                                    { hideTitle, hideSubtitle }
+                                ) => (
+                                    <SlideChartEmbed
+                                        url={url}
+                                        grapherStateRef={grapherStateRef}
+                                        onQueryStringChange={
+                                            handleGrapherQueryStringChange
+                                        }
+                                        hideTitle={hideTitle}
+                                        hideSubtitle={hideSubtitle}
+                                        onChartReady={handleChartReady}
+                                    />
+                                )}
+                            />
+                        )}
                     </div>
                 </div>
 

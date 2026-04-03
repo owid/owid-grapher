@@ -33,8 +33,9 @@
 @import "./SortableList.scss";
 @import "./StaticViz.scss";
 @import "./MultiDimDetailPage.scss";
+@import "./slideshows/SlideshowAdmin.scss";
+// Slide content styles reused for slideshow preview
 @import "../site/slideshows/SlideContent.scss";
-@import "./slideshows/Slideshows.scss";
 
 html {
     font-size: 14px;

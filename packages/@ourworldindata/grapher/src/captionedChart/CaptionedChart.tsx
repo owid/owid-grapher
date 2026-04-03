@@ -258,7 +258,9 @@ abstract class AbstractCaptionedChart extends React.Component<CaptionedChartProp
     }
 
     @computed private get headerHeightWithPadding(): number {
-        return this.header.height + this.verticalPadding
+        return this.header.hasContent
+            ? this.header.height + this.verticalPadding
+            : 0
     }
 
     @computed private get footerHeightWithPadding(): number {

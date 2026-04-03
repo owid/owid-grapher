@@ -1,23 +1,46 @@
-.SlideContent {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 64px;
+.slide {
+    width: auto;
+    max-width: 100vw;
+    margin: 64px;
     position: absolute;
-    left: 0;
     top: 0;
     container-type: inline-size;
     container-name: slide-content;
+    left: calc(50% - 64px);
+    transform: translateX(-50%);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
 }
 
-.SlideGrapher,
-.SlideContent__explorer-container {
-    height: 100%;
+.slide--hidden {
+    visibility: hidden;
+}
 
+.slide--narrow {
+    aspect-ratio: 4/3;
+    height: min(calc(100% - 128px), 75vw);
+}
+
+.slide--wide {
+    aspect-ratio: 16/9;
+    height: min(calc(100% - 128px), 56.25vw);
+}
+
+.slide-chart-content {
+    flex: 1;
+    display: flex;
+    > div {
+        flex: 1;
+    }
+}
+
+.slide__grapher-container {
+    max-width: 100%;
     .GrapherComponent {
         border: none;
+        height: 100% !important;
+        overflow: hidden;
     }
 }
 
@@ -55,24 +78,25 @@
     align-items: stretch;
 }
 
-.SlideContent__logo {
+.slide-logo {
     position: absolute;
-    top: 64px;
-    right: 64px;
-    z-index: 2;
-    line-height: 0;
+    top: 0;
+    right: 0;
 }
 
-.SlideContent__slide-title {
+.slide-title {
     @include display-1-semibold;
     margin: 0;
-    font-size: clamp(24px, 3cqw, 52px);
+    font-size: 52px;
+    // not using cqw for now, because it makes the narrow/wide slides have different title sizes, which looks weird when navigating between them
+    // font-size: clamp(24px, 3cqw, 52px);
 }
 
-.SlideContent__slide-subtitle {
+.slide-subtitle {
     color: $gray-80;
     @include body-1-regular;
-    font-size: clamp(16px, 1.66cqw, 28px);
+    font-size: 22px;
+    // font-size: clamp(16px, 1.66cqw, 28px);
     margin: 0;
 }
 
@@ -99,26 +123,20 @@
     font-size: 14px;
 }
 
-// Two-column layout: media on the left, text on the right
-.SlideContent__body {
-    flex: 1;
-    display: flex;
-    min-height: 0;
-    gap: 24px;
+.slide__body {
+    width: 100%;
+    height: 100%;
 }
 
 .SlideContent__media {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
+    height: 100%;
 }
 
 .SlideContent--with-text .SlideContent__media {
     flex: 3;
 }
 
-.SlideContent__text {
+.slide__text {
     flex: 2;
     font-size: 14px;
     line-height: 1.6;
@@ -128,13 +146,6 @@
     @include body-1-regular;
 }
 
-.SlideContent__explorer-container {
-    .GrapherComponent {
-        border: none;
-    }
-}
-
-.SlideContent__explorer-container,
 .Explorer,
 .ExplorerFigure,
 .GrapherComponent {
