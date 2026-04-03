@@ -367,11 +367,17 @@ export function enrichedBlockToIndexableText(
                 { type: "simple-text" },
                 (b): string | undefined => b.value.text
             )
-            .with({ type: "small-chart" }, (b): string | undefined => {
+            .with({ type: "chart-rows" }, (b): string | undefined => {
                 const parts = b.rows.flatMap((row) =>
                     row.content.map((contentBlock) =>
                         enrichedBlockToIndexableText(contentBlock, options)
                     )
+                )
+                return joinBlocksAsSentences(parts) || undefined
+            })
+            .with({ type: "pull-chart" }, (b): string | undefined => {
+                const parts = b.content.map((contentBlock) =>
+                    enrichedBlockToIndexableText(contentBlock, options)
                 )
                 return joinBlocksAsSentences(parts) || undefined
             })

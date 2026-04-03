@@ -66,7 +66,8 @@ import {
     RawBlockLTPToc,
     RawBlockConditionalSection,
     RawBlockCountryProfileSelector,
-    RawBlockSmallChart,
+    RawBlockChartRows,
+    RawBlockPullChart,
 } from "@ourworldindata/types"
 import { spanToHtmlString } from "./gdocUtils.js"
 import { match, P } from "ts-pattern"
@@ -324,28 +325,43 @@ export function enrichedBlockToRawBlock(
                 },
             })
         )
-        .with(
-            { type: "small-chart" },
-            (b): RawBlockSmallChart => ({
+        .with({ type: "chart-rows" }, (b): RawBlockChartRows => {
+            const rawRows = b.rows.map((row) => ({
+                image: row.image,
+                url: row.url,
+                content: row.content.length
+                    ? row.content.map(
+                          (enriched) =>
+                              enrichedBlockToRawBlock(enriched) as RawBlockText
+                      )
+                    : undefined,
+            }))
+            return {
                 type: b.type,
                 value: {
-                    variant: b.variant,
-                    align: b.align,
                     kicker: b.kicker,
                     title: b.title,
                     source: b.source,
-                    rows: b.rows.map((row) => ({
-                        image: row.image,
-                        url: row.url,
-                        content: row.content.length
-                            ? row.content.map(
-                                  (enriched) =>
-                                      enrichedBlockToRawBlock(
-                                          enriched
-                                      ) as RawBlockText
-                              )
-                            : undefined,
-                    })),
+                    rows: rawRows,
+                },
+            }
+        })
+        .with(
+            { type: "pull-chart" },
+            (b): RawBlockPullChart => ({
+                type: b.type,
+                value: {
+                    align: b.align,
+                    image: b.image,
+                    url: b.url,
+                    content: b.content.length
+                        ? b.content.map(
+                              (enriched) =>
+                                  enrichedBlockToRawBlock(
+                                      enriched
+                                  ) as RawBlockText
+                          )
+                        : undefined,
                 },
             })
         )

@@ -5,7 +5,8 @@ import {
     EnrichedBlockDataCallout,
     EnrichedBlockHeading,
     EnrichedBlockHtml,
-    EnrichedBlockSmallChart,
+    EnrichedBlockChartRows,
+    EnrichedBlockPullChart,
     EnrichedBlockTable,
     EnrichedBlockText,
     LinkedCallouts,
@@ -707,10 +708,9 @@ describe(enrichedBlocksToIndexableText, () => {
         expect(enrichedBlocksToIndexableText(blocks)).toBe("Item1; Item2")
     })
 
-    it("should extract text content from small-chart rows", () => {
-        const block: EnrichedBlockSmallChart = {
-            type: "small-chart",
-            variant: "rows",
+    it("should extract text content from chart-rows", () => {
+        const block: EnrichedBlockChartRows = {
+            type: "chart-rows",
             rows: [
                 {
                     image: "chart1.png",
@@ -753,25 +753,20 @@ describe(enrichedBlocksToIndexableText, () => {
         )
     })
 
-    it("should extract text content from small-chart pull-quote variant", () => {
-        const block: EnrichedBlockSmallChart = {
-            type: "small-chart",
-            variant: "pull-quote",
+    it("should extract text content from pull-chart", () => {
+        const block: EnrichedBlockPullChart = {
+            type: "pull-chart",
             align: "right-center",
-            rows: [
+            image: "chart.png",
+            url: "/grapher/life-expectancy",
+            content: [
                 {
-                    image: "chart.png",
-                    url: "/grapher/life-expectancy",
-                    content: [
+                    type: "text",
+                    parseErrors: [],
+                    value: [
                         {
-                            type: "text",
-                            parseErrors: [],
-                            value: [
-                                {
-                                    spanType: "span-simple-text",
-                                    text: "Pull-quote caption text.",
-                                },
-                            ],
+                            spanType: "span-simple-text",
+                            text: "Pull-quote caption text.",
                         },
                     ],
                 },

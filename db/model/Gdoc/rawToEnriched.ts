@@ -152,12 +152,13 @@ import {
     RawBlockCookieNotice,
     PullQuoteAlignment,
     pullquoteAlignments,
-    EnrichedBlockSmallChart,
-    EnrichedBlockSmallChartRow,
-    RawBlockSmallChart,
-    SmallChartAlignment,
-    smallChartAlignments,
-    smallChartVariants,
+    EnrichedBlockChartRows,
+    ChartRowItem,
+    RawBlockChartRows,
+    EnrichedBlockPullChart,
+    RawBlockPullChart,
+    PullChartAlignment,
+    pullChartAlignments,
     RawBlockCountryProfileSelector,
     EnrichedBlockCountryProfileSelector,
     RawBlockExpander,
@@ -230,7 +231,8 @@ export function parseRawBlocksToEnrichedBlocks(
         .with({ type: "people-rows" }, parsePeopleRows)
         .with({ type: "person" }, parsePerson)
         .with({ type: "pull-quote" }, parsePullQuote)
-        .with({ type: "small-chart" }, parseSmallChart)
+        .with({ type: "chart-rows" }, parseChartRows)
+        .with({ type: "pull-chart" }, parsePullChart)
         .with({ type: "resource-panel" }, parseResourcePanel)
         .with({ type: "guided-chart" }, parseGuidedChart)
         .with(
@@ -1194,81 +1196,40 @@ const parsePullQuote = (raw: RawBlockPullQuote): EnrichedBlockPullQuote => {
     }
 }
 
-function parseSmallChart(raw: RawBlockSmallChart): EnrichedBlockSmallChart {
-    const createError = (error: ParseError): EnrichedBlockSmallChart => ({
-        type: "small-chart",
-        variant: "rows",
-        rows: [],
-        parseErrors: [error],
-    })
-
+function parseChartRows(raw: RawBlockChartRows): EnrichedBlockChartRows {
     if (typeof raw.value === "string") {
-        return createError({
-            message: "Value is a string, not an object with properties",
-        })
-    }
-
-    const { variant, align, kicker, title, source, rows } = raw.value
-    const parseErrors: ParseError[] = []
-
-    // Validate variant
-    const isValidVariant =
-        variant && validateRawEnum(smallChartVariants, variant)
-    const validVariant = isValidVariant ? variant : "rows"
-    if (variant && !isValidVariant) {
-        parseErrors.push({
-            message: `Invalid small-chart variant "${variant}". Must be one of ${smallChartVariants.join(", ")}. Defaulting to "rows".`,
-            isWarning: true,
-        })
-    }
-
-    // Validate align (only relevant for pull-quote)
-    let validAlign: SmallChartAlignment | undefined
-    if (align) {
-        if (validateRawEnum(smallChartAlignments, align)) {
-            validAlign = align
-        } else {
-            parseErrors.push({
-                message: `Invalid small-chart alignment "${align}". Must be one of ${smallChartAlignments.join(", ")}.`,
-                isWarning: true,
-            })
+        return {
+            type: "chart-rows",
+            rows: [],
+            parseErrors: [
+                {
+                    message: "Value is a string, not an object with properties",
+                },
+            ],
         }
     }
-    if (validVariant === "pull-quote" && !validAlign) {
-        validAlign = "left-center"
-    }
+
+    const { kicker, title, source, rows } = raw.value
+    const parseErrors: ParseError[] = []
 
     if (!rows || rows.length === 0) {
         parseErrors.push({
-            message: "small-chart must have at least one row item",
+            message: "chart-rows must have at least one row item",
         })
-        return {
-            type: "small-chart",
-            variant: validVariant,
-            rows: [],
-            parseErrors,
-        }
+        return { type: "chart-rows", rows: [], parseErrors }
     }
 
-    // Warn if pull-quote has multiple rows
-    if (validVariant === "pull-quote" && rows.length > 1) {
-        parseErrors.push({
-            message: `pull-quote variant should have only one row item, but ${rows.length} were provided. Only the first will be used.`,
-            isWarning: true,
-        })
-    }
-
-    const enrichedRows: EnrichedBlockSmallChartRow[] = []
+    const enrichedRows: ChartRowItem[] = []
     for (const row of rows) {
         if (!row.image) {
             parseErrors.push({
-                message: "small-chart row item missing image property",
+                message: "chart-rows row item missing image property",
             })
             continue
         }
         if (!row.url) {
             parseErrors.push({
-                message: "small-chart row item missing url property",
+                message: "chart-rows row item missing url property",
             })
             continue
         }
@@ -1279,6 +1240,14 @@ function parseSmallChart(raw: RawBlockSmallChart): EnrichedBlockSmallChart {
                   .filter((b): b is EnrichedBlockText => b?.type === "text")
             : []
 
+        if (enrichedContent.length === 0) {
+            parseErrors.push({
+                message:
+                    "chart-rows row item has no content. Consider adding text to accompany the chart thumbnail.",
+                isWarning: true,
+            })
+        }
+
         enrichedRows.push({
             image: row.image,
             url: row.url,
@@ -1286,18 +1255,76 @@ function parseSmallChart(raw: RawBlockSmallChart): EnrichedBlockSmallChart {
         })
     }
 
-    // Kicker defaults to "More views of this data" for rows variant
-    const validKicker =
-        validVariant === "rows" ? (kicker ?? "More views of this data") : kicker
-
     return {
-        type: "small-chart",
-        variant: validVariant,
-        align: validAlign,
-        kicker: validKicker,
+        type: "chart-rows",
+        kicker: kicker ?? "More views of this data",
         title,
         source,
         rows: enrichedRows,
+        parseErrors,
+    }
+}
+
+function parsePullChart(raw: RawBlockPullChart): EnrichedBlockPullChart {
+    if (typeof raw.value === "string") {
+        return {
+            type: "pull-chart",
+            image: "",
+            url: "",
+            content: [],
+            parseErrors: [
+                {
+                    message: "Value is a string, not an object with properties",
+                },
+            ],
+        }
+    }
+
+    const { align, image, url, content } = raw.value
+    const parseErrors: ParseError[] = []
+
+    let validAlign: PullChartAlignment | undefined
+    if (align) {
+        if (validateRawEnum(pullChartAlignments, align)) {
+            validAlign = align
+        } else {
+            parseErrors.push({
+                message: `Invalid pull-chart alignment "${align}". Must be one of ${pullChartAlignments.join(", ")}.`,
+                isWarning: true,
+            })
+        }
+    }
+    if (!validAlign) {
+        validAlign = "left-center"
+    }
+
+    if (!image) {
+        parseErrors.push({ message: "pull-chart missing image property" })
+    }
+    if (!url) {
+        parseErrors.push({ message: "pull-chart missing url property" })
+    }
+
+    const enrichedContent: EnrichedBlockText[] = content
+        ? content
+              .map(parseRawBlocksToEnrichedBlocks)
+              .filter((b): b is EnrichedBlockText => b?.type === "text")
+        : []
+
+    if (enrichedContent.length === 0) {
+        parseErrors.push({
+            message:
+                "pull-chart has no content. Consider adding text to accompany the chart thumbnail.",
+            isWarning: true,
+        })
+    }
+
+    return {
+        type: "pull-chart",
+        align: validAlign,
+        image: image ?? "",
+        url: url ?? "",
+        content: enrichedContent,
         parseErrors,
     }
 }
@@ -1383,10 +1410,10 @@ const parseGuidedChart = (
             if (node.type === "chart") {
                 chartCount++
             }
-            if (node.type === "small-chart" && (node.title || node.source)) {
+            if (node.type === "chart-rows" && (node.title || node.source)) {
                 contentErrors.push({
                     message:
-                        "small-chart inside a guided-chart should not have title or source — these are hidden in guided chart mode",
+                        "chart-rows inside a guided-chart should not have title or source — these are hidden in guided chart mode",
                     isWarning: true,
                 })
             }
