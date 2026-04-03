@@ -257,7 +257,12 @@ abstract class AbstractCaptionedChart extends React.Component<CaptionedChartProp
         )
     }
 
+    @computed private get showHeader(): boolean {
+        return this.header.height > 0
+    }
+
     @computed private get headerHeightWithPadding(): number {
+        if (!this.showHeader) return 0
         return this.header.height + this.verticalPadding
     }
 
@@ -323,8 +328,15 @@ abstract class AbstractCaptionedChart extends React.Component<CaptionedChartProp
                 }}
             >
                 {/* #1 Header */}
-                <Header manager={this.manager} maxWidth={this.maxWidth} />
-                <VerticalSpace height={this.verticalPadding} />
+                {this.showHeader && (
+                    <>
+                        <Header
+                            manager={this.manager}
+                            maxWidth={this.maxWidth}
+                        />
+                        <VerticalSpace height={this.verticalPadding} />
+                    </>
+                )}
 
                 {this.manager.isReady ? (
                     <>

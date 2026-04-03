@@ -288,7 +288,9 @@ abstract class AbstractHeader<
         )
     }
 
-    override render(): React.ReactElement {
+    override render(): React.ReactElement | null {
+        const hasContent = !!this.logo || this.showTitle || this.showSubtitle
+        if (!hasContent) return null
         return (
             <div
                 className="HeaderHTML"
