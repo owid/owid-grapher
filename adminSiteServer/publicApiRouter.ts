@@ -1,5 +1,8 @@
-import { FunctionalRouter, HandlerResponse } from "./FunctionalRouter.js"
-import { Request, Response } from "./authentication.js"
+import {
+    FunctionalRouter,
+    HandlerResponse,
+    CompatRequest,
+} from "./FunctionalRouter.js"
 import * as db from "../db/db.js"
 import { getNarrativeChartNameConfigMap } from "../db/model/NarrativeChart.js"
 import { getRouteWithROTransaction } from "./functionalRouterHelpers.js"
@@ -10,7 +13,7 @@ function rejectAfterDelay(ms: number) {
     return new Promise((resolve, reject) => setTimeout(reject, ms))
 }
 
-publicApiRouter.router.get("/health", async (req: Request, res: Response) => {
+publicApiRouter.app.get("/health", async (c) => {
     try {
         const sqlPromise = db.knexRaw(
             db.knexInstance() as db.KnexReadonlyTransaction,
@@ -18,10 +21,10 @@ publicApiRouter.router.get("/health", async (req: Request, res: Response) => {
         )
         const timeoutPromise = rejectAfterDelay(1500) // Wait 1.5 seconds at most
         await Promise.race([sqlPromise, timeoutPromise])
-        res.status(200).end("OK")
+        return c.text("OK", 200)
     } catch (e) {
-        res.status(500).end("Error querying the database")
         console.error("Error at health endpoint", e)
+        return c.text("Error querying the database", 500)
     }
 })
 
@@ -29,7 +32,7 @@ getRouteWithROTransaction(
     publicApiRouter,
     "/narrative-chart-map",
     async (
-        _req: Request,
+        _req: CompatRequest,
         _res: HandlerResponse,
         trx: db.KnexReadonlyTransaction
     ) => {

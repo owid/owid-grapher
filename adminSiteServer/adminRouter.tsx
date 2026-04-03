@@ -1,9 +1,9 @@
 // Misc non-SPA views
-import express, { Router } from "express"
+import { Hono } from "hono"
 import filenamify from "filenamify"
 import { Writable } from "stream"
 import { expectInt } from "../serverUtils/serverUtil.js"
-import { logOut } from "./authentication.js"
+import { logOut, AppVariables, HonoContext } from "./authentication.js"
 import * as db from "../db/db.js"
 import { writeDatasetCSV } from "../db/model/Dataset.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
@@ -30,22 +30,21 @@ import {
 } from "../db/model/MultiDimDataPage.js"
 import { renderMultiDimDataPageFromConfig } from "../baker/MultiDimBaker.js"
 
-const adminRouter = Router()
-
-// Parse incoming requests with JSON payloads http://expressjs.com/en/api.html
-adminRouter.use(express.json({ limit: "50mb" }))
+const adminRouter = new Hono<{ Variables: AppVariables }>()
 
 // None of these should be google indexed
-adminRouter.use(async (req, res, next) => {
-    res.set("X-Robots-Tag", "noindex")
-    return next()
+adminRouter.use("*", async (c, next) => {
+    await next()
+    c.header("X-Robots-Tag", "noindex")
 })
 
-adminRouter.get("/", async (req, res) => {
-    res.redirect(`/admin/charts`)
+adminRouter.get("/", async (c) => {
+    return c.redirect(`/admin/charts`)
 })
 
-adminRouter.get("/logout", logOut)
+adminRouter.get("/logout", async (c: HonoContext) => {
+    return logOut(c)
+})
 
 getPlainRouteWithROTransaction(
     adminRouter,
@@ -74,17 +73,14 @@ getPlainRouteWithROTransaction(
     }
 )
 
-adminRouter.get("/errorTest.csv", async (req, res) => {
+adminRouter.get("/errorTest.csv", async (c) => {
     // Add `table /admin/errorTest.csv?code=404` to test fetch download failures
-    const code = parseIntOrUndefined(req.query.code as string) ?? 400
-
-    res.status(code)
-
-    return `Simulating code ${code}`
+    const code = parseIntOrUndefined(c.req.query("code") ?? "") ?? 400
+    return c.text(`Simulating code ${code}`, code as any)
 })
 
-adminRouter.get("/nodeVersion", (req, res) => {
-    res.send(process.version)
+adminRouter.get("/nodeVersion", (c) => {
+    return c.text(process.version)
 })
 
 const explorerAdminServer = new ExplorerAdminServer()
@@ -93,7 +89,7 @@ getPlainRouteWithROTransaction(
     adminRouter,
     `/${GetAllExplorersRoute}`,
     async (_, res, trx) => {
-        res.send(await explorerAdminServer.getAllExplorersCommand(trx))
+        res.json(await explorerAdminServer.getAllExplorersCommand(trx))
     }
 )
 
@@ -103,7 +99,7 @@ getPlainRouteWithROTransaction(
     async (_, res, trx) => {
         return res.send({
             explorers: await db.getExplorerTags(trx),
-        })
+        } as any)
     }
 )
 

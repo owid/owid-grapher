@@ -1,6 +1,6 @@
 // Testing pages for comparing local charts against live versions
 
-import { Router } from "express"
+import { Hono } from "hono"
 
 import { renderToHtmlPage, expectInt } from "../serverUtils/serverUtil.js"
 import { getChartConfigBySlug } from "../db/model/Chart.js"
@@ -34,13 +34,14 @@ import { ExplorerChartCreationMode } from "@ourworldindata/explorer"
 import { getPlainRouteWithROTransaction } from "./plainRouterHelpers.js"
 
 import { GRAPHER_DYNAMIC_THUMBNAIL_URL } from "../settings/clientSettings.js"
+import { AppVariables } from "./authentication.js"
 
 const IS_LIVE = ADMIN_BASE_URL === "https://owid.cloud"
 const DEFAULT_COMPARISON_URL = "https://ourworldindata.org"
 
 const explorerAdminServer = new ExplorerAdminServer()
 
-const testPageRouter = Router()
+const testPageRouter = new Hono<{ Variables: AppVariables }>()
 
 interface ChartItem {
     id: number

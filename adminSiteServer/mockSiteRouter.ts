@@ -1,4 +1,5 @@
-import express, { Router } from "express"
+import { Hono } from "hono"
+import { serveStatic } from "@hono/node-server/serve-static"
 import path from "path"
 import * as R from "remeda"
 import {
@@ -90,12 +91,10 @@ import {
     instantiateProfileForEntity,
     GdocProfile,
 } from "../db/model/Gdoc/GdocProfile.js"
+import { AppVariables } from "./authentication.js"
 
 // todo: switch to an object literal where the key is the path and the value is the request handler? easier to test, reflect on, and manipulate
-const mockSiteRouter = Router()
-
-mockSiteRouter.use(express.urlencoded({ extended: true }))
-mockSiteRouter.use(express.json())
+const mockSiteRouter = new Hono<{ Variables: AppVariables }>()
 
 getPlainRouteWithROTransaction(
     mockSiteRouter,
@@ -139,25 +138,28 @@ getPlainRouteWithROTransaction(
 
 mockSiteRouter.get(
     "/grapher/data/variables/data/:variableId.json",
-    async (req, res) => {
-        res.set("Access-Control-Allow-Origin", "*")
-        res.json((await getVariableData(expectInt(req.params.variableId))).data)
+    async (c) => {
+        c.header("Access-Control-Allow-Origin", "*")
+        return c.json(
+            (await getVariableData(expectInt(c.req.param("variableId")))).data
+        )
     }
 )
 
 mockSiteRouter.get(
     "/grapher/data/variables/metadata/:variableId.json",
-    async (req, res) => {
-        res.set("Access-Control-Allow-Origin", "*")
+    async (c) => {
+        c.header("Access-Control-Allow-Origin", "*")
         const variableData = await getVariableData(
-            expectInt(req.params.variableId)
+            expectInt(c.req.param("variableId"))
         )
-        res.json(variableData.metadata)
+        return c.json(variableData.metadata)
     }
 )
 
-mockSiteRouter.get("/assets/embedCharts.js", async (req, res) => {
-    res.contentType("text/javascript").send(generateEmbedSnippet())
+mockSiteRouter.get("/assets/embedCharts.js", async (c) => {
+    c.header("Content-Type", "text/javascript")
+    return c.text(generateEmbedSnippet())
 })
 
 const explorerAdminServer = new ExplorerAdminServer()
@@ -196,7 +198,7 @@ getPlainRouteWithROTransaction(
     "/{*splat}",
     async (req, res, trx, next) => {
         const explorerRedirect = getExplorerRedirectForPath(req.path)
-        // If no explorer redirect exists, continue to next express handler
+        // If no explorer redirect exists, continue to next handler
         if (!explorerRedirect) return next?.()
 
         const { migrationId, baseQueryStr } = explorerRedirect
@@ -223,8 +225,8 @@ getPlainRouteWithROTransaction(
     }
 )
 
-mockSiteRouter.get("/collection/custom", async (_, res) => {
-    return res.send(renderDynamicCollectionPage())
+mockSiteRouter.get("/collection/custom", async (c) => {
+    return c.html(renderDynamicCollectionPage())
 })
 
 getPlainRouteWithROTransaction(
@@ -307,12 +309,12 @@ getPlainRouteWithROTransaction(mockSiteRouter, "/donate", async (_, res, trx) =>
     res.send(await renderDonatePage(trx))
 )
 
-mockSiteRouter.get("/thank-you", async (req, res) =>
-    res.send(await renderThankYouPage())
+mockSiteRouter.get("/thank-you", async (c) =>
+    c.html(await renderThankYouPage())
 )
 
-mockSiteRouter.get("/subscribe", async (req, res) =>
-    res.send(await renderSubscribePage())
+mockSiteRouter.get("/subscribe", async (c) =>
+    c.html(await renderSubscribePage())
 )
 
 getPlainRouteWithROTransaction(
@@ -385,7 +387,8 @@ getPlainRouteWithROTransaction(
             )
             // if no data insights are found, return NotFound page
             if (dataInsights.length === 0) {
-                return res.status(404).send(renderNotFoundPage())
+                res.status(404)
+                return res.send(renderNotFoundPage())
             }
             return res.send(
                 await renderIndexPage(pageNumber, dataInsights, topicTag)
@@ -403,7 +406,8 @@ getPlainRouteWithROTransaction(
             )
         } catch (e) {
             console.error(e)
-            return res.status(404).send(renderNotFoundPage())
+            res.status(404)
+            return res.send(renderNotFoundPage())
         }
     }
 )
@@ -435,12 +439,6 @@ getPlainRouteWithROTransaction(
             )
         )
     }
-)
-
-getPlainRouteWithROTransaction(
-    mockSiteRouter,
-    SEARCH_BASE_PATH,
-    async (_, res, trx) => res.send(await renderSearchPage(trx))
 )
 
 const handleLatestPageRequest = async (
@@ -490,38 +488,46 @@ getPlainRouteWithROTransaction(
     }
 )
 
-mockSiteRouter.use(
+mockSiteRouter.get(
     // Not all /app/uploads paths are going through formatting
     // and being rewritten as /uploads. E.g. blog index images paths
     // on front page.
-    ["/uploads", "/app/uploads"],
-    (req, res) => {
-        const assetPath = req.path.replace(/^\/(app\/)?uploads\//, "")
-        // Ensure no trailing slash on the base URL and manage the slash between URLs safely
+    "/uploads/*",
+    (c) => {
+        const assetPath = c.req.path.replace(/^\/(app\/)?uploads\//, "")
         const baseUrl = LEGACY_WORDPRESS_IMAGE_URL.replace(/\/+$/, "")
-        const path = assetPath.replace(/^\/+/, "")
-        const assetUrl = `${baseUrl}/${path}`
-        res.redirect(assetUrl)
+        const cleanPath = assetPath.replace(/^\/+/, "")
+        const assetUrl = `${baseUrl}/${cleanPath}`
+        return c.redirect(assetUrl)
     }
 )
 
-mockSiteRouter.use("/assets", express.static("dist/assets"))
+mockSiteRouter.get("/app/uploads/*", (c) => {
+    const assetPath = c.req.path.replace(/^\/(app\/)?uploads\//, "")
+    const baseUrl = LEGACY_WORDPRESS_IMAGE_URL.replace(/\/+$/, "")
+    const cleanPath = assetPath.replace(/^\/+/, "")
+    const assetUrl = `${baseUrl}/${cleanPath}`
+    return c.redirect(assetUrl)
+})
+
+mockSiteRouter.use("/assets/*", serveStatic({ root: "dist" }))
 
 mockSiteRouter.use(
-    "/fonts",
-    express.static(path.join(BASE_DIR, "public/fonts"), {
-        setHeaders: (res) => {
-            res.set("Access-Control-Allow-Origin", "*")
+    "/fonts/*",
+    serveStatic({
+        root: path.join(BASE_DIR, "public"),
+        onFound: (_path, c) => {
+            c.header("Access-Control-Allow-Origin", "*")
         },
     })
 )
 
-mockSiteRouter.use("/", express.static(path.join(BASE_DIR, "public")))
+mockSiteRouter.use("/*", serveStatic({ root: path.join(BASE_DIR, "public") }))
 
-mockSiteRouter.get("/feedback", async (req, res) => res.send(feedbackPage()))
+mockSiteRouter.get("/feedback", async (c) => c.html(feedbackPage()))
 
-mockSiteRouter.get("/multiEmbedderTest", async (req, res) =>
-    res.send(renderToHtmlPage(MultiEmbedderTestPage()))
+mockSiteRouter.get("/multiEmbedderTest", async (c) =>
+    c.html(renderToHtmlPage(MultiEmbedderTestPage()))
 )
 
 getPlainRouteWithROTransaction(
@@ -530,7 +536,7 @@ getPlainRouteWithROTransaction(
     async (_, res, trx) => {
         res.set("Access-Control-Allow-Origin", "*")
         const dods = await getParsedDodsDictionary(trx)
-        res.send(dods)
+        res.send(dods as any)
     }
 )
 
@@ -549,7 +555,8 @@ getPlainRouteNonIdempotentWithRWTransaction(
             return
         } catch (e) {
             console.error(e)
-            res.status(404).send(renderNotFoundPage())
+            res.status(404)
+            res.send(renderNotFoundPage())
         }
     }
 )
@@ -591,7 +598,8 @@ getPlainRouteWithROTransaction(
             req.params.tombstoneSlug
         )
         if (!tombstone) {
-            res.status(404).send(renderNotFoundPage())
+            res.status(404)
+            res.send(renderNotFoundPage())
             return
         }
         const archivedVersions =
@@ -613,7 +621,8 @@ getPlainRouteWithROTransaction(
                 : undefined,
         }
         const attachments = await getTombstoneAttachments(trx, pageData)
-        res.status(404).send(renderGdocTombstone(pageData, attachments))
+        res.status(404)
+        res.send(renderGdocTombstone(pageData, attachments))
     }
 )
 
@@ -622,7 +631,7 @@ getPlainRouteWithROTransaction(
     "/topicTagGraph.json",
     async (req, res, trx) => {
         const headerMenu = await db.generateTopicTagGraph(trx)
-        res.send(headerMenu)
+        res.send(headerMenu as any)
     }
 )
 
@@ -650,14 +659,14 @@ getPlainRouteWithROTransaction(
             // removes fields that are omitted from <DataInsightBody /> props
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const { markdown, publicationContext, revisionId, ...rest } = di
-            // removes data that isn't need for rendering the feed page (based on comments in DataInsightsIndexPageContent.tsx)
+            // removes data that isn't need for rendering the feed page (based on comments in DataInsightsIndexPage.tsx)
             // (but we kep tags b/c we need it to filter dataInsights.json)
             rest.linkedIndicators = {}
             rest.latestDataInsights = []
 
             return rest
         })
-        res.send(publishedDataInsightsForJson)
+        res.send(publishedDataInsightsForJson as any)
     }
 )
 
@@ -668,7 +677,8 @@ getPlainRouteWithROTransaction(
         const { profileSlug, entity: entityParam } = req.params
 
         if (!profileSlug || !entityParam) {
-            return res.status(404).send(renderNotFoundPage())
+            res.status(404)
+            return res.send(renderNotFoundPage())
         }
 
         try {
@@ -677,12 +687,14 @@ getPlainRouteWithROTransaction(
             ])
 
             if (!gdoc || gdoc.content.type !== OwidGdocType.Profile) {
-                return res.status(404).send(renderNotFoundPage())
+                res.status(404)
+                return res.send(renderNotFoundPage())
             }
 
             const entity = getRegionBySlug(entityParam)
             if (!entity) {
-                return res.status(404).send(renderNotFoundPage())
+                res.status(404)
+                return res.send(renderNotFoundPage())
             }
 
             const entitiesInScope = getEntitiesForProfile(
@@ -693,7 +705,8 @@ getPlainRouteWithROTransaction(
                 (profileEntity) => profileEntity.code === entity.code
             )
             if (!isEntityInScope) {
-                return res.status(404).send(renderNotFoundPage())
+                res.status(404)
+                return res.send(renderNotFoundPage())
             }
 
             const instantiatedProfile = await instantiateProfileForEntity(
@@ -703,13 +716,15 @@ getPlainRouteWithROTransaction(
             )
 
             if (!checkShouldProfileRender(instantiatedProfile.content)) {
-                return res.status(404).send(renderNotFoundPage())
+                res.status(404)
+                return res.send(renderNotFoundPage())
             }
 
             return res.send(renderGdoc(instantiatedProfile, true))
         } catch (error) {
             console.error("Error loading profile:", error)
-            return res.status(404).send(renderNotFoundPage())
+            res.status(404)
+            return res.send(renderNotFoundPage())
         }
     }
 )
@@ -745,7 +760,8 @@ getPlainRouteWithROTransaction(
             res.send(page)
         } catch (e) {
             console.error(e)
-            res.status(404).send(renderNotFoundPage())
+            res.status(404)
+            res.send(renderNotFoundPage())
         }
     }
 )
