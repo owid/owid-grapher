@@ -20,6 +20,7 @@ import DataInsightDateline from "../components/DataInsightDateline.js"
 import LatestDataInsights from "../components/LatestDataInsights.js"
 import { AttachmentsContext } from "../AttachmentsContext.js"
 import { BAKED_BASE_URL } from "../../../settings/clientSettings.js"
+import { CopySocialButton } from "../components/CopySocialButton.js"
 
 export const LatestDataInsightCards = (props: {
     latestDataInsights?: LatestDataInsight[]
@@ -161,6 +162,7 @@ export const DataInsightBody = (
                 <div className="data-insight-footer">
                     <RelatedTopicsList tags={props.tags ?? undefined} />
                     <CopyLinkButton slug={props.slug} />
+                    <CopySocialButton />
                 </div>
             </div>
         </div>
