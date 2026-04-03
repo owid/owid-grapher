@@ -613,5 +613,31 @@ ${links}`
             { type: "bespoke-component" },
             (_): string | undefined => undefined
         )
+        .with({ type: "chart-rows" }, (b): string | undefined => {
+            const rowTexts = b.rows.map((row) => {
+                const content = enrichedBlocksToMarkdown(
+                    row.content,
+                    exportComponents,
+                    options
+                )
+                return _.compact([
+                    `[![](${row.image})](${row.url})`,
+                    content,
+                ]).join("\n")
+            })
+            return rowTexts.join("\n\n") || undefined
+        })
+        .with({ type: "pull-chart" }, (b): string | undefined => {
+            const content = enrichedBlocksToMarkdown(
+                b.content,
+                exportComponents,
+                options
+            )
+            return (
+                _.compact([`[![](${b.image})](${b.url})`, content]).join(
+                    "\n"
+                ) || undefined
+            )
+        })
         .exhaustive()
 }

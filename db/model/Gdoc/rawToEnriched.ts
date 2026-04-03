@@ -152,6 +152,13 @@ import {
     RawBlockCookieNotice,
     PullQuoteAlignment,
     pullquoteAlignments,
+    EnrichedBlockChartRows,
+    ChartRowItem,
+    RawBlockChartRows,
+    EnrichedBlockPullChart,
+    RawBlockPullChart,
+    PullChartAlignment,
+    pullChartAlignments,
     RawBlockCountryProfileSelector,
     EnrichedBlockCountryProfileSelector,
     RawBlockExpander,
@@ -224,6 +231,8 @@ export function parseRawBlocksToEnrichedBlocks(
         .with({ type: "people-rows" }, parsePeopleRows)
         .with({ type: "person" }, parsePerson)
         .with({ type: "pull-quote" }, parsePullQuote)
+        .with({ type: "chart-rows" }, parseChartRows)
+        .with({ type: "pull-chart" }, parsePullChart)
         .with({ type: "resource-panel" }, parseResourcePanel)
         .with({ type: "guided-chart" }, parseGuidedChart)
         .with(
@@ -1187,6 +1196,155 @@ const parsePullQuote = (raw: RawBlockPullQuote): EnrichedBlockPullQuote => {
     }
 }
 
+function parseChartRows(raw: RawBlockChartRows): EnrichedBlockChartRows {
+    if (typeof raw.value === "string") {
+        return {
+            type: "chart-rows",
+            rows: [],
+            parseErrors: [
+                {
+                    message: "Value is a string, not an object with properties",
+                },
+            ],
+        }
+    }
+
+    const { kicker, title, source, rows } = raw.value
+    const parseErrors: ParseError[] = []
+
+    if (!rows || rows.length === 0) {
+        parseErrors.push({
+            message: "chart-rows must have at least one row item",
+        })
+        return { type: "chart-rows", rows: [], parseErrors }
+    }
+
+    const enrichedRows: ChartRowItem[] = []
+    for (const row of rows) {
+        if (!row.image) {
+            parseErrors.push({
+                message: "chart-rows row item missing image property",
+            })
+            continue
+        }
+        if (!row.url) {
+            parseErrors.push({
+                message: "chart-rows row item missing url property",
+            })
+            continue
+        }
+
+        const parsedContent = row.content
+            ? row.content.map(parseRawBlocksToEnrichedBlocks)
+            : []
+        const enrichedContent = parsedContent.filter(
+            (b): b is EnrichedBlockText => b?.type === "text"
+        )
+        const droppedCount = parsedContent.length - enrichedContent.length
+        if (droppedCount > 0) {
+            parseErrors.push({
+                message: `chart-rows row content contains ${droppedCount} non-text block(s) that will be ignored. Only paragraphs are supported.`,
+                isWarning: true,
+            })
+        }
+
+        if (enrichedContent.length === 0) {
+            parseErrors.push({
+                message:
+                    "chart-rows row item has no content. Consider adding text to accompany the chart thumbnail.",
+                isWarning: true,
+            })
+        }
+
+        enrichedRows.push({
+            image: row.image,
+            url: row.url,
+            content: enrichedContent,
+        })
+    }
+
+    return {
+        type: "chart-rows",
+        kicker: kicker ?? "More views of this data",
+        title,
+        source,
+        rows: enrichedRows,
+        parseErrors,
+    }
+}
+
+function parsePullChart(raw: RawBlockPullChart): EnrichedBlockPullChart {
+    if (typeof raw.value === "string") {
+        return {
+            type: "pull-chart",
+            image: "",
+            url: "",
+            content: [],
+            parseErrors: [
+                {
+                    message: "Value is a string, not an object with properties",
+                },
+            ],
+        }
+    }
+
+    const { align, image, url, content } = raw.value
+    const parseErrors: ParseError[] = []
+
+    let validAlign: PullChartAlignment | undefined
+    if (align) {
+        if (validateRawEnum(pullChartAlignments, align)) {
+            validAlign = align
+        } else {
+            parseErrors.push({
+                message: `Invalid pull-chart alignment "${align}". Must be one of ${pullChartAlignments.join(", ")}.`,
+                isWarning: true,
+            })
+        }
+    }
+    if (!validAlign) {
+        validAlign = "left-center"
+    }
+
+    if (!image) {
+        parseErrors.push({ message: "pull-chart missing image property" })
+    }
+    if (!url) {
+        parseErrors.push({ message: "pull-chart missing url property" })
+    }
+
+    const parsedContent = content
+        ? content.map(parseRawBlocksToEnrichedBlocks)
+        : []
+    const enrichedContent = parsedContent.filter(
+        (b): b is EnrichedBlockText => b?.type === "text"
+    )
+    const droppedCount = parsedContent.length - enrichedContent.length
+    if (droppedCount > 0) {
+        parseErrors.push({
+            message: `pull-chart content contains ${droppedCount} non-text block(s) that will be ignored. Only paragraphs are supported.`,
+            isWarning: true,
+        })
+    }
+
+    if (enrichedContent.length === 0) {
+        parseErrors.push({
+            message:
+                "pull-chart has no content. Consider adding text to accompany the chart thumbnail.",
+            isWarning: true,
+        })
+    }
+
+    return {
+        type: "pull-chart",
+        align: validAlign,
+        image: image ?? "",
+        url: url ?? "",
+        content: enrichedContent,
+        parseErrors,
+    }
+}
+
 function parseHybridLinks(rawLinks: RawHybridLink[]): {
     parsedLinks: EnrichedHybridLink[]
     parseErrors: ParseError[]
@@ -1267,6 +1425,13 @@ const parseGuidedChart = (
         traverseEnrichedBlock(block, (node) => {
             if (node.type === "chart") {
                 chartCount++
+            }
+            if (node.type === "chart-rows" && (node.title || node.source)) {
+                contentErrors.push({
+                    message:
+                        "chart-rows inside a guided-chart should not have title or source — these are hidden in guided chart mode",
+                    isWarning: true,
+                })
             }
             if (node.parseErrors.length) {
                 contentErrors.push(

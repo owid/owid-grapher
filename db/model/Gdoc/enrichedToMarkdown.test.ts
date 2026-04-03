@@ -4,7 +4,9 @@ import {
     stripCustomMarkdownComponents,
 } from "./enrichedToMarkdown.js"
 import {
+    EnrichedBlockChartRows,
     EnrichedBlockDataCallout,
+    EnrichedBlockPullChart,
     EnrichedBlockText,
     LinkedCallouts,
 } from "@ourworldindata/types"
@@ -223,6 +225,81 @@ describe(enrichedBlocksToMarkdown, () => {
             })
 
             expect(result).toBeUndefined()
+        })
+    })
+
+    describe("chart-rows", () => {
+        it("should render rows with image and text content", () => {
+            const block: EnrichedBlockChartRows = {
+                type: "chart-rows",
+                rows: [
+                    {
+                        image: "life-expectancy.png",
+                        url: "/grapher/life-expectancy",
+                        content: [
+                            {
+                                type: "text",
+                                parseErrors: [],
+                                value: [
+                                    {
+                                        spanType: "span-simple-text",
+                                        text: "Life expectancy has doubled.",
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                    {
+                        image: "gdp.png",
+                        url: "/grapher/gdp",
+                        content: [
+                            {
+                                type: "text",
+                                parseErrors: [],
+                                value: [
+                                    {
+                                        spanType: "span-simple-text",
+                                        text: "GDP has grown.",
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                ],
+                parseErrors: [],
+            }
+
+            expect(enrichedBlocksToMarkdown([block], false)).toBe(
+                "[![](life-expectancy.png)](/grapher/life-expectancy)\nLife expectancy has doubled.\n\n[![](gdp.png)](/grapher/gdp)\nGDP has grown."
+            )
+        })
+    })
+
+    describe("pull-chart", () => {
+        it("should render with image and text content", () => {
+            const block: EnrichedBlockPullChart = {
+                type: "pull-chart",
+                align: "right-center",
+                image: "chart.png",
+                url: "/grapher/test",
+                content: [
+                    {
+                        type: "text",
+                        parseErrors: [],
+                        value: [
+                            {
+                                spanType: "span-simple-text",
+                                text: "Pull-quote caption text.",
+                            },
+                        ],
+                    },
+                ],
+                parseErrors: [],
+            }
+
+            expect(enrichedBlocksToMarkdown([block], false)).toBe(
+                "[![](chart.png)](/grapher/test)\nPull-quote caption text."
+            )
         })
     })
 })
