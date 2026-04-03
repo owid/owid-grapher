@@ -371,6 +371,14 @@ export function enumerateGdocComponentsWithoutChildren(
                     path
                 )
             )
+            .with({ type: "guided-chart" }, (guidedChart) =>
+                handleComponent(
+                    guidedChart,
+                    [{ prop: "content", iterator: iterateArrayProp }],
+                    parentPath,
+                    path
+                )
+            )
             .with({ type: "chart-rows" }, (chartRows) =>
                 handleComponent(
                     chartRows,
@@ -403,7 +411,6 @@ export function enumerateGdocComponentsWithoutChildren(
                         "missing-data",
                         "prominent-link",
                         "pull-quote",
-                        "guided-chart",
                         "recirc",
                         "resource-panel",
                         "research-and-writing",
