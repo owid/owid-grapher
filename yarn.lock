@@ -2090,6 +2090,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@hono/zod-validator@npm:^0.7.6":
+  version: 0.7.6
+  resolution: "@hono/zod-validator@npm:0.7.6"
+  peerDependencies:
+    hono: ">=3.9.0"
+    zod: ^3.25.0 || ^4.0.0
+  checksum: 10/4610dfe671e2c559c64e13f77be9314f75902f1122a43773b5328cab26ef786af6055f38515ff08f216420936c76f9290a0db3aa88044afc13423d299bd77d78
+  languageName: node
+  linkType: hard
+
 "@humanfs/core@npm:^0.19.1":
   version: 0.19.1
   resolution: "@humanfs/core@npm:0.19.1"
@@ -11244,6 +11254,7 @@ __metadata:
     "@googleapis/drive": "npm:^20.1.0"
     "@handsontable/react": "npm:^15.1.0"
     "@hono/node-server": "npm:^1.19.12"
+    "@hono/zod-validator": "npm:^0.7.6"
     "@internationalized/date": "npm:^3.10.1"
     "@ourworldindata/components": "workspace:^"
     "@ourworldindata/core-table": "workspace:^"

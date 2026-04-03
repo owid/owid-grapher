@@ -76,6 +76,7 @@
         "@googleapis/drive": "^20.1.0",
         "@handsontable/react": "^15.1.0",
         "@hono/node-server": "^1.19.12",
+        "@hono/zod-validator": "^0.7.6",
         "@internationalized/date": "^3.10.1",
         "@ourworldindata/components": "workspace:^",
         "@ourworldindata/core-table": "workspace:^",

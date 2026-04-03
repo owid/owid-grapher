@@ -13,6 +13,7 @@ import {
     MultiDimDataPageConfig,
     queryParamsToStr,
     Url,
+    DbPlainUser,
 } from "@ourworldindata/utils"
 import { getMultiDimDataPageById } from "../../db/model/MultiDimDataPage.js"
 import { redirectWithSourceExists } from "../../db/model/Redirect.js"
@@ -32,7 +33,7 @@ import {
     validateMultiDimSlug,
     isValidCatalogPath,
 } from "../validation.js"
-import * as z from "zod"
+import { z } from "zod"
 
 function buildRedirectTargetDescription(
     multiDim: DbEnrichedMultiDimDataPage,
@@ -362,7 +363,7 @@ export async function handleGetMultiDimRedirects(
     return { redirects }
 }
 
-const postMultiDimRedirectSchema = z.object({
+export const postMultiDimRedirectSchema = z.object({
     source: z
         .string()
         .regex(
@@ -373,19 +374,12 @@ const postMultiDimRedirectSchema = z.object({
 })
 
 export async function handlePostMultiDimRedirect(
-    req: Request,
-    res: HandlerResponse,
+    multiDimId: number,
+    body: z.infer<typeof postMultiDimRedirectSchema>,
+    user: DbPlainUser,
     trx: db.KnexReadWriteTransaction
 ) {
-    const multiDimId = expectInt(req.params.id)
-    const parseResult = postMultiDimRedirectSchema.safeParse(req.body)
-    if (!parseResult.success) {
-        throw new JsonError(
-            `Invalid request: ${parseResult.error.message}`,
-            400
-        )
-    }
-    const { source, viewConfigId } = parseResult.data
+    const { source, viewConfigId } = body
 
     const multiDim = await getMultiDimDataPageById(trx, multiDimId)
     if (!multiDim) {
@@ -438,7 +432,7 @@ export async function handlePostMultiDimRedirect(
     )
 
     await triggerStaticBuild(
-        res.locals.user,
+        user,
         `Creating multi-dim redirect from '${source}' to '${targetDescription}'`
     )
 

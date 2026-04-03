@@ -12,6 +12,7 @@ import {
     getNarrativeCharts,
     getNarrativeChartById,
     createNarrativeChart,
+    createNarrativeChartSchema,
     updateNarrativeChart,
     deleteNarrativeChart,
     getNarrativeChartReferences,
@@ -59,6 +60,7 @@ import {
     handlePatchMultiDim,
     handleGetMultiDimRedirects,
     handlePostMultiDimRedirect,
+    postMultiDimRedirectSchema,
     handleDeleteMultiDimRedirect,
     handleGetAllMultiDimRedirects,
     getMdimRecordsJson,
@@ -120,6 +122,9 @@ import {
     getVariablesVariableIdChartsJson,
 } from "./apiRoutes/variables.js"
 import { FunctionalRouter } from "./FunctionalRouter.js"
+import { zValidator } from "@hono/zod-validator"
+import * as db from "../db/db.js"
+import { expectInt } from "../serverUtils/serverUtil.js"
 import {
     patchRouteWithRWTransaction,
     getRouteWithROTransaction,
@@ -273,7 +278,18 @@ getRouteWithROTransaction(
     "/narrative-charts/:id.config.json",
     getNarrativeChartById
 )
-postRouteWithRWTransaction(apiRouter, "/narrative-charts", createNarrativeChart)
+apiRouter.app.post(
+    "/narrative-charts",
+    zValidator("json", createNarrativeChartSchema),
+    async (c) => {
+        const data = c.req.valid("json")
+        const user = c.get("user")
+        const result = await db.knexReadWriteTransaction((trx) =>
+            createNarrativeChart(data, user.id, trx)
+        )
+        return c.json(result)
+    }
+)
 putRouteWithRWTransaction(
     apiRouter,
     "/narrative-charts/:id",
@@ -433,10 +449,18 @@ getRouteWithROTransaction(
     "/multi-dims/:id/redirects",
     handleGetMultiDimRedirects
 )
-postRouteWithRWTransaction(
-    apiRouter,
+apiRouter.app.post(
     "/multi-dims/:id/redirects",
-    handlePostMultiDimRedirect
+    zValidator("json", postMultiDimRedirectSchema),
+    async (c) => {
+        const body = c.req.valid("json")
+        const multiDimId = expectInt(c.req.param("id"))
+        const user = c.get("user")
+        const result = await db.knexReadWriteTransaction((trx) =>
+            handlePostMultiDimRedirect(multiDimId, body, user, trx)
+        )
+        return c.json(result)
+    }
 )
 deleteRouteWithRWTransaction(
     apiRouter,

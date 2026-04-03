@@ -24,7 +24,7 @@ import {
     DbInsertChartConfig,
 } from "@ourworldindata/types"
 import { diffGrapherConfigs, mergeGrapherConfigs } from "@ourworldindata/utils"
-import * as z from "zod"
+import { z } from "zod"
 import {
     ApiNarrativeChartOverview,
     DataInsightMinimalInformation,
@@ -408,7 +408,7 @@ async function createNarrativeChartFromMultiDimView(
     return { narrativeChartId, success: true }
 }
 
-const createNarrativeChartSchema = z.discriminatedUnion("type", [
+export const createNarrativeChartSchema = z.discriminatedUnion("type", [
     z.object({
         type: z.literal("chart"),
         name: z.string(),
@@ -424,15 +424,10 @@ const createNarrativeChartSchema = z.discriminatedUnion("type", [
 ])
 
 export async function createNarrativeChart(
-    req: Request,
-    res: HandlerResponse,
+    data: z.infer<typeof createNarrativeChartSchema>,
+    userId: number,
     trx: db.KnexReadWriteTransaction
 ) {
-    const parseResult = createNarrativeChartSchema.safeParse(req.body)
-    if (!parseResult.success) {
-        throw new JsonError(`Invalid request: ${parseResult.error}`, 400)
-    }
-    const { data } = parseResult
     if (!isKebabCase(data.name)) {
         return {
             success: false,
@@ -452,7 +447,7 @@ export async function createNarrativeChart(
             name,
             parentChartId,
             config,
-            res.locals.user.id
+            userId
         )
     } else {
         const { name, parentChartConfigId, config } = data
@@ -461,7 +456,7 @@ export async function createNarrativeChart(
             name,
             parentChartConfigId,
             config,
-            res.locals.user.id
+            userId
         )
     }
 }
