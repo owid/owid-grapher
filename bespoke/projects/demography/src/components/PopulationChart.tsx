@@ -63,6 +63,7 @@ interface PopulationChartProps {
     showCustomProjection?: boolean
     hideChangeAnnotation?: boolean
     showHistoricalAnnotation?: boolean
+    forceShowUserChanges?: boolean
 }
 
 function PopulationChart({
@@ -70,6 +71,7 @@ function PopulationChart({
     showCustomProjection = true,
     hideChangeAnnotation = false,
     showHistoricalAnnotation = false,
+    forceShowUserChanges = false,
     width,
     height,
 }: PopulationChartProps & { width: number; height: number }) {
@@ -213,7 +215,8 @@ function PopulationChart({
     }
 
     const hasUserChanges =
-        showCustomProjection && simulation.activePreset !== "unwpp"
+        showCustomProjection &&
+        (simulation.activePreset !== "unwpp" || forceShowUserChanges)
     const projectionColor = hasUserChanges ? USER_MODIFIED_COLOR : DENIM_BLUE
 
     // Show change annotation at the end year when not hovering,
@@ -425,6 +428,7 @@ export const ResponsivePopulationChart = memo(
         showCustomProjection,
         hideChangeAnnotation,
         showHistoricalAnnotation,
+        forceShowUserChanges,
     }: PopulationChartProps) {
         const { parentRef, width, height } = useParentSize()
         return (
@@ -435,6 +439,7 @@ export const ResponsivePopulationChart = memo(
                         showCustomProjection={showCustomProjection}
                         hideChangeAnnotation={hideChangeAnnotation}
                         showHistoricalAnnotation={showHistoricalAnnotation}
+                        forceShowUserChanges={forceShowUserChanges}
                         width={width}
                         height={height}
                     />

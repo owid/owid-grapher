@@ -104,7 +104,6 @@ $panel-gap: 12px;
     }
 
     .assumptions-panel {
-        border: 1px solid $gray-10;
     }
 
     .assumptions-panel .chart-panel__content {
@@ -215,6 +214,13 @@ $panel-gap: 12px;
     gap: $panel-gap * 4;
     width: 100%;
     height: 500px;
+
+    &.chart-content--no-pyramid {
+        .container-left,
+        .container-right {
+            flex: 1;
+        }
+    }
 }
 
 .container {
@@ -687,16 +693,13 @@ $panel-gap: 12px;
         }
     }
 
-    .container__title {
-        font-size: 0.6875rem;
-    }
-
     .population-chart-legend .population-chart-legend__item {
         font-size: 0.6875rem;
     }
 
     .chart-content {
         height: 460px;
+        gap: $panel-gap * 2;
     }
 }
 

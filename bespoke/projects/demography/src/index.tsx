@@ -75,7 +75,7 @@ export const VARIANTS = [
             focusParameter: "fertilityRate",
             stabilizingParameter: "fertilityRate",
         },
-        demoSize: "wide",
+        demoSize: "widest",
     },
     {
         name: "simulation",
@@ -87,7 +87,7 @@ export const VARIANTS = [
             focusParameter: "lifeExpectancy",
             stabilizingParameter: "lifeExpectancy",
         },
-        demoSize: "wide",
+        demoSize: "widest",
     },
     // {
     //     name: "populationPyramid",
@@ -119,7 +119,7 @@ export const VARIANTS = [
             focusParameter: "netMigrationRate",
             stabilizingParameter: "netMigrationRate",
         },
-        demoSize: "wide",
+        demoSize: "widest",
     },
     {
         name: "simulation",

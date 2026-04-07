@@ -484,16 +484,21 @@ function DemographyParameterEditor({
                     strokeWidth={2}
                 />
 
-                {/* UN WPP reference line */}
-                <LinePath
-                    data={[lastHistoricalDataPoint, ...unwppProjectionPoints]}
-                    x={(d) => xScale(d.year)}
-                    y={(d) => yScale(d.value)}
-                    stroke={anyModified ? BENCHMARK_LINE_COLOR : lineColor}
-                    strokeWidth={2}
-                    strokeDasharray="1,2"
-                    strokeLinecap="butt"
-                />
+                {/* UN WPP reference line — hidden in non-interactive mode when modified */}
+                {(interactive || !anyModified) && (
+                    <LinePath
+                        data={[
+                            lastHistoricalDataPoint,
+                            ...unwppProjectionPoints,
+                        ]}
+                        x={(d) => xScale(d.year)}
+                        y={(d) => yScale(d.value)}
+                        stroke={anyModified ? BENCHMARK_LINE_COLOR : lineColor}
+                        strokeWidth={2}
+                        strokeDasharray="1,2"
+                        strokeLinecap="butt"
+                    />
+                )}
 
                 {/* Projection line — only shown when the user has modified values */}
                 {anyModified && (
@@ -501,7 +506,7 @@ function DemographyParameterEditor({
                         data={[lastHistoricalDataPoint, ...projectionPoints]}
                         x={(d) => xScale(d.year)}
                         y={(d) => yScale(d.value)}
-                        stroke={USER_MODIFIED_COLOR}
+                        stroke={interactive ? USER_MODIFIED_COLOR : lineColor}
                         strokeWidth={2}
                         strokeDasharray="1,2"
                         strokeLinecap="butt"
@@ -727,13 +732,17 @@ function DemographyParameterEditor({
                                     : formatValue(hoveredValue)
                             }
                             color={
-                                anyModified && hoveredYear > HISTORICAL_END_YEAR
+                                interactive &&
+                                anyModified &&
+                                hoveredYear > HISTORICAL_END_YEAR
                                     ? USER_MODIFIED_COLOR
                                     : lineColor
                             }
                             fontSize={fonts.hoverLabel}
                             backgroundFill={
-                                anyModified && hoveredYear > HISTORICAL_END_YEAR
+                                interactive &&
+                                anyModified &&
+                                hoveredYear > HISTORICAL_END_YEAR
                                     ? USER_MODIFIED_COLOR
                                     : DENIM_BLUE
                             }
@@ -1024,7 +1033,7 @@ function HoverPointLabel({
     fontSize?: number
     backgroundFill?: string
 }) {
-    const textY = y < 20 ? y + fontSize / 2 + 6 : y - fontSize / 2 - 5
+    const textY = y < 20 ? y + fontSize / 2 + 10 : y - fontSize / 2 - 5
     const padX = 4
     const padY = 2
 

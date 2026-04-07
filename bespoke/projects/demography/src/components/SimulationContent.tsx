@@ -61,14 +61,19 @@ export function SimulationContent({
 
     if (!simulation) return null
 
-    const hasUserChanges = simulation.activePreset !== "unwpp"
+    const hasUserChanges =
+        simulation.activePreset !== "unwpp" || !!stabilizingParameter
     const pyramidBarColor =
         hasUserChanges && year > HISTORICAL_END_YEAR
             ? USER_MODIFIED_COLOR
             : undefined
 
     return (
-        <div className="chart-content">
+        <div
+            className={cx("chart-content", {
+                "chart-content--no-pyramid": hidePopulationPyramid,
+            })}
+        >
             <div className="container container-left">
                 <h3 className="container__title">
                     <span className="container__step">①</span> Change these
@@ -94,12 +99,8 @@ export function SimulationContent({
                             const isWorldMigration =
                                 key === "netMigrationRate" &&
                                 data.country === "World"
-                            const isMuted =
-                                (focusParameter && focusParameter !== key) ||
-                                isWorldMigration
-                            const isNonInteractive =
-                                (focusParameter && focusParameter !== key) ||
-                                isWorldMigration
+                            const isMuted = isWorldMigration
+                            const isNonInteractive = isWorldMigration
                             return (
                                 <TabPanel
                                     key={key}
@@ -122,9 +123,6 @@ export function SimulationContent({
                                         hideInfoIcon={isWorldMigration}
                                         showProjectionLabel
                                         className={cx({
-                                            "chart-panel--focus":
-                                                focusParameter &&
-                                                focusParameter === key,
                                             "chart-panel--muted": isMuted,
                                         })}
                                     />
@@ -157,6 +155,7 @@ export function SimulationContent({
                             simulation={simulation}
                             hideChangeAnnotation={!!stabilizingParameter}
                             showHistoricalAnnotation={!!stabilizingParameter}
+                            forceShowUserChanges={!!stabilizingParameter}
                         />
                     </ChartPanel>
                     {!hidePopulationPyramid && (
