@@ -70,5 +70,8 @@ playwright-report/
 # Typesense
 typesense-data/
 
+*.tsbuildinfo
+*.tgz
+
 .toolbox/
 .pi/
