@@ -28,7 +28,7 @@ export interface PopulationPyramidHorizontalProps {
     year: number
     yAxisScaleMode?: "fixed" | "adaptive"
     projection?: ProjectionType
-    barColor?: string
+    barColor?: { female: string; male: string } | string
 }
 
 function PopulationPyramidHorizontal({
@@ -40,8 +40,12 @@ function PopulationPyramidHorizontal({
     width,
     height,
 }: PopulationPyramidHorizontalProps & { width: number; height: number }) {
-    const effectiveFemaleColor = barColor ?? FEMALE_COLOR
-    const effectiveMaleColor = barColor ?? MALE_COLOR
+    const effectiveFemaleColor =
+        typeof barColor === "object"
+            ? barColor.female
+            : (barColor ?? FEMALE_COLOR)
+    const effectiveMaleColor =
+        typeof barColor === "object" ? barColor.male : (barColor ?? MALE_COLOR)
     const fonts = getHorizontalPyramidFonts(widthToBreakpoint(width))
     const margin = { top: 0, right: 0, bottom: 0, left: 0 }
 
