@@ -190,9 +190,7 @@ export function useInfiniteSearch<T extends SearchResponse<U>, U>({
             return queryFn(liteSearchClient, state, pageParam)
         },
         getNextPageParam: (lastPage) => {
-            let { page, nbPages } = lastPage
-            page = page ?? 0
-            nbPages = nbPages ?? 1
+            const { page = 0, nbPages = 1 } = lastPage
             return page < nbPages - 1 ? page + 1 : undefined
         },
         initialPageParam: 0,

@@ -449,7 +449,7 @@ export class StaticCaptionedChart extends AbstractCaptionedChart {
 
     renderSVGDetails(): React.ReactElement {
         let yOffset = 0
-        let previousOffset = 0
+        let previousOffset: number
         return (
             <>
                 <line
