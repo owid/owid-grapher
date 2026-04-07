@@ -1197,26 +1197,31 @@ const parsePullQuote = (raw: RawBlockPullQuote): EnrichedBlockPullQuote => {
 }
 
 function parseChartRows(raw: RawBlockChartRows): EnrichedBlockChartRows {
+    const createError = (
+        error: ParseError,
+        rows: EnrichedChartRowItem[] = []
+    ): EnrichedBlockChartRows => ({
+        type: "chart-rows",
+        kicker: "",
+        title: "",
+        source: "",
+        rows,
+        parseErrors: [error],
+    })
+
     if (typeof raw.value === "string") {
-        return {
-            type: "chart-rows",
-            rows: [],
-            parseErrors: [
-                {
-                    message: "Value is a string, not an object with properties",
-                },
-            ],
-        }
+        return createError({
+            message: "Value is a string, not an object with properties",
+        })
     }
 
     const { kicker, title, source, rows } = raw.value
     const parseErrors: ParseError[] = []
 
     if (!rows || rows.length === 0) {
-        parseErrors.push({
+        return createError({
             message: "chart-rows must have at least one row item",
         })
-        return { type: "chart-rows", rows: [], parseErrors }
     }
 
     const enrichedRows: EnrichedChartRowItem[] = []
@@ -1261,27 +1266,27 @@ function parseChartRows(raw: RawBlockChartRows): EnrichedBlockChartRows {
 
     return {
         type: "chart-rows",
-        kicker: kicker ?? "More views of this data",
-        title,
-        source,
+        kicker: kicker ?? "",
+        title: title ?? "",
+        source: source ?? "",
         rows: enrichedRows,
         parseErrors,
     }
 }
 
 function parsePullChart(raw: RawBlockPullChart): EnrichedBlockPullChart {
+    const createError = (error: ParseError): EnrichedBlockPullChart => ({
+        type: "pull-chart",
+        image: "",
+        url: "",
+        content: [],
+        parseErrors: [error],
+    })
+
     if (typeof raw.value === "string") {
-        return {
-            type: "pull-chart",
-            image: "",
-            url: "",
-            content: [],
-            parseErrors: [
-                {
-                    message: "Value is a string, not an object with properties",
-                },
-            ],
-        }
+        return createError({
+            message: "Value is a string, not an object with properties",
+        })
     }
 
     const { align, image, url, content } = raw.value
@@ -1298,15 +1303,12 @@ function parsePullChart(raw: RawBlockPullChart): EnrichedBlockPullChart {
             })
         }
     }
-    if (!validAlign) {
-        validAlign = "left-center"
-    }
 
     if (!image) {
-        parseErrors.push({ message: "pull-chart missing image property" })
+        return createError({ message: "pull-chart missing image property" })
     }
     if (!url) {
-        parseErrors.push({ message: "pull-chart missing url property" })
+        return createError({ message: "pull-chart missing url property" })
     }
 
     const enrichedContent = content?.map(parseText) ?? []
@@ -1330,8 +1332,8 @@ function parsePullChart(raw: RawBlockPullChart): EnrichedBlockPullChart {
     return {
         type: "pull-chart",
         align: validAlign,
-        image: image ?? "",
-        url: url ?? "",
+        image,
+        url,
         content: enrichedContent,
         parseErrors,
     }

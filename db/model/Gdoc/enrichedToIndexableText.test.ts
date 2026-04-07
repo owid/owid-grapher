@@ -711,6 +711,9 @@ describe(enrichedBlocksToIndexableText, () => {
     it("should extract text content from chart-rows", () => {
         const block: EnrichedBlockChartRows = {
             type: "chart-rows",
+            kicker: "",
+            title: "",
+            source: "",
             rows: [
                 {
                     image: "chart1.png",

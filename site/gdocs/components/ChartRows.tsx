@@ -64,7 +64,9 @@ export default function ChartRows({
                 className
             )}
         >
-            {d.kicker && <p className="chart-rows__kicker">{d.kicker}</p>}
+            <p className="chart-rows__kicker">
+                {d.kicker || "More views of this data"}
+            </p>
             {!isInGuidedChart && d.title && (
                 <h4 className="chart-rows__title">{d.title}</h4>
             )}

@@ -25,8 +25,8 @@ export type RawBlockChartRows = {
 
 export type EnrichedBlockChartRows = {
     type: "chart-rows"
-    kicker?: string
-    title?: string
-    source?: string
+    kicker: string
+    title: string
+    source: string
     rows: EnrichedChartRowItem[]
 } & EnrichedBlockWithParseErrors
