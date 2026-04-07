@@ -195,9 +195,7 @@ function SlideExplorer(props: {
 
     if (!explorerProps) {
         return (
-            <div className="SlideContent__media-placeholder">
-                Loading explorer...
-            </div>
+            <div className="slide__media-placeholder">Loading explorer...</div>
         )
     }
 

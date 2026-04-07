@@ -59,20 +59,18 @@ export function SlideRenderer(props: {
                 <div className={className}>
                     {!slide.hideLogo && <SlideLogo />}
                     {slide.slideTitle && (
-                        <h2 className="slide-title">
+                        <h1 className="slide-title">
                             <SimpleMarkdownText
                                 text={slide.slideTitle}
                                 useParagraphs={false}
                             />
-                        </h2>
+                        </h1>
                     )}
-                    <div className="slide__body">
-                        <div className="SlideContent__media">
-                            <ImageRenderer
-                                filename={slide.filename}
-                                imageMetadata={imageMetadata}
-                            />
-                        </div>
+                    <div className="slide-chart-content">
+                        <ImageRenderer
+                            filename={slide.filename}
+                            imageMetadata={imageMetadata}
+                        />
                         {slide.text && (
                             <div className="slide__text">
                                 <SimpleMarkdownText text={slide.text} />
@@ -138,7 +136,7 @@ function ImageRenderer(props: {
     const { filename, imageMetadata } = props
 
     if (!filename) {
-        return <div className="SlideContent__media-placeholder">IMAGE</div>
+        return <div className="slide__media-placeholder">IMAGE</div>
     }
 
     const metadata = imageMetadata?.[filename]
@@ -147,12 +145,12 @@ function ImageRenderer(props: {
             <img
                 src={`${CLOUDFLARE_IMAGES_URL}/${metadata.cloudflareId}/w=960`}
                 alt={metadata.defaultAlt || filename}
-                className="SlideContent__media-image"
+                className="slide__image"
             />
         )
     }
 
-    return <div className="SlideContent__media-placeholder">{filename}</div>
+    return <div className="slide__media-placeholder">{filename}</div>
 }
 
 function ChartRenderer(props: {
@@ -175,7 +173,7 @@ function ChartRenderer(props: {
     // rendering requires the client-side SlideChartEmbed component.
     const parsed = parseSlideChartUrl(url)
     return (
-        <div className="SlideContent__grapher-container">
+        <div className="slide__grapher-container">
             <GrapherFigureView
                 slug={parsed.slug}
                 queryStr={parsed.queryString}

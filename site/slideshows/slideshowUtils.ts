@@ -17,7 +17,10 @@ export function parseSlideChartUrl(url: string): {
 export function getSlideAspectRatio(
     slide: Slide
 ): "slide--narrow" | "slide--wide" {
-    if (slide.template === SlideTemplate.Chart) {
+    if (
+        slide.template === SlideTemplate.Chart ||
+        slide.template === SlideTemplate.Image
+    ) {
         if (slide.text) {
             return "slide--wide"
         }
