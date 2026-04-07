@@ -68,8 +68,8 @@ function SimulationVariant({
                     entityName={entityName}
                     setEntityName={setEntityName}
                     isLoading={isLoadingEntityData}
-                    title={config.title}
                     subtitle={config.subtitle}
+                    breakpoint={breakpoint}
                     hideControls={config.hideControls}
                     focusParameter={config.focusParameter}
                     stabilizingParameter={config.stabilizingParameter}
@@ -92,23 +92,25 @@ function SimulationCaptionedChart({
     focusParameter,
     stabilizingParameter,
     hidePopulationPyramid,
+    breakpoint,
 }: {
     data: CountryData
     metadata: DemographyMetadata
     entityName: string
     setEntityName: (name: string) => void
     isLoading?: boolean
-    title?: string
     subtitle?: string
     hideControls?: boolean
     focusParameter?: ParameterKey
     stabilizingParameter?: ParameterKey
     hidePopulationPyramid?: boolean
+    breakpoint?: string
 }) {
     const countryName = data.country
 
-    const title: React.ReactNode = titleOverride ?? (
+    const title: React.ReactNode = (
         <>
+            {breakpoint && `[${breakpoint}] `}
             How many people will live in{" "}
             {hideControls ? (
                 articulateEntity(displayEntityName(countryName))

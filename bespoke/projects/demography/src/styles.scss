@@ -271,6 +271,12 @@ $panel-gap: 12px;
         flex-direction: column;
         background: none;
         padding: 0;
+
+        .breakpoint-medium &,
+        .breakpoint-small &,
+        .breakpoint-narrow & {
+            flex: 1;
+        }
     }
 }
 
@@ -677,27 +683,18 @@ $panel-gap: 12px;
 
         .age-distribution-panel {
             display: flex;
-            flex: 1;
-            min-height: 0;
-        }
-
-        .population-panel {
             flex: 2;
             min-height: 0;
         }
 
-        .chart-panel__title,
-        .chart-panel__subtitle {
-            font-size: 0.75rem;
+        .population-panel {
+            flex: 3;
+            min-height: 0;
         }
     }
 
-    .population-chart-legend .population-chart-legend__item {
-        font-size: 0.6875rem;
-    }
-
     .chart-content {
-        height: 460px;
+        height: 540px;
         gap: $panel-gap * 2;
     }
 }
@@ -750,6 +747,11 @@ $panel-gap: 12px;
 
         .age-distribution-panel {
             display: block;
+        }
+
+        .chart-panel__title,
+        .chart-panel__subtitle {
+            font-size: 0.75rem;
         }
     }
 
