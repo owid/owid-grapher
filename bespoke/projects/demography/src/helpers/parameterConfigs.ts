@@ -1,10 +1,17 @@
 import * as R from "remeda"
 import { formatValue, getRegionByName } from "@ourworldindata/utils"
-import { HISTORICAL_TIME_RANGE } from "./constants.js"
+import { HISTORICAL_TIME_RANGE, PROJECTION_TIME_RANGE } from "./constants.js"
 import {
     calculateTFRFromRaw,
     estimateLifeExpectancy,
 } from "../model/scenarios.js"
+import {
+    getProjectionFertilityForYear,
+    getProjectionDeathsForYear,
+    getProjectionMigrationRateForYear,
+    getProjectionPopulationForYear,
+    calculateTFR,
+} from "../model/model.js"
 import { Simulation } from "./useSimulation.js"
 import { getDeathsForYear, getMigrationRateForYear } from "./utils.js"
 import { ParameterKey } from "./types.js"
@@ -23,6 +30,9 @@ interface ParameterConfig {
         points: { year: number; value: number }[]
         min: number
         max: number
+    }
+    computeUnwppProjection: (simulation: Simulation) => {
+        points: { year: number; value: number }[]
     }
 }
 
@@ -62,6 +72,21 @@ export const parameterConfigByKey: Record<ParameterKey, ParameterConfig> = {
                 min: Math.min(...values),
                 max: Math.max(...values),
             }
+        },
+        computeUnwppProjection: (simulation) => {
+            const points = R.pipe(
+                PROJECTION_TIME_RANGE,
+                R.map((year) => {
+                    const fertility = getProjectionFertilityForYear(
+                        simulation.data,
+                        year
+                    )
+                    if (!fertility) return undefined
+                    return { year, value: calculateTFR(fertility) }
+                }),
+                R.filter(R.isDefined)
+            )
+            return { points }
         },
     },
     lifeExpectancy: {
@@ -106,6 +131,32 @@ export const parameterConfigByKey: Record<ParameterKey, ParameterConfig> = {
                 max: Math.max(...values),
             }
         },
+        computeUnwppProjection: (simulation) => {
+            const points = R.pipe(
+                PROJECTION_TIME_RANGE,
+                R.map((year) => {
+                    const deaths = getProjectionDeathsForYear(
+                        simulation.data,
+                        year
+                    )
+                    const pop = getProjectionPopulationForYear(
+                        simulation.data,
+                        year
+                    )
+                    if (!deaths || !pop) return undefined
+                    return {
+                        year,
+                        value: estimateLifeExpectancy(
+                            deaths,
+                            pop.female,
+                            pop.male
+                        ),
+                    }
+                }),
+                R.filter(R.isDefined)
+            )
+            return { points }
+        },
     },
     netMigrationRate: {
         shortTitle: "Migration",
@@ -143,6 +194,19 @@ export const parameterConfigByKey: Record<ParameterKey, ParameterConfig> = {
                 min: Math.min(...values),
                 max: Math.max(...values),
             }
+        },
+        computeUnwppProjection: (simulation) => {
+            const points = R.pipe(
+                PROJECTION_TIME_RANGE,
+                R.map((year) => ({
+                    year,
+                    value: getProjectionMigrationRateForYear(
+                        simulation.data,
+                        year
+                    ),
+                }))
+            )
+            return { points }
         },
     },
 }

@@ -92,21 +92,26 @@ function DemographyParameterEditor({
         [simulation, config]
     )
 
+    const { points: unwppProjectionPoints } = useMemo(
+        () => config.computeUnwppProjection(simulation),
+        [simulation, config]
+    )
+
     const controlPoints = simulation.scenarioParams[variant]
     const referencePoints = simulation.unwppScenarioParams[variant]
-    const referenceValues = Object.values(referencePoints)
+    const unwppValues = unwppProjectionPoints.map((d) => d.value)
     const historicalValues = historicalDataPoints.map((d) => d.value)
     const minValue =
         yMinOverride ??
         Math.max(
             config.yFloor ?? -Infinity,
             Math.min(
-                Math.min(...referenceValues) - config.yPadding,
+                Math.min(...unwppValues) - config.yPadding,
                 Math.min(...historicalValues)
             )
         )
     const maxValue = Math.max(
-        Math.max(...referenceValues) + config.yPadding,
+        Math.max(...unwppValues) + config.yPadding,
         Math.max(...historicalValues)
     )
     const anyModified = CONTROL_YEARS.some(
@@ -184,10 +189,6 @@ function DemographyParameterEditor({
         year: y,
         value: controlPoints[y],
     }))
-    const referenceDataPoints: DataPoint[] = CONTROL_YEARS.map((y) => ({
-        year: y,
-        value: referencePoints[y],
-    }))
 
     const projX = xScale(HISTORICAL_END_YEAR)
 
@@ -200,6 +201,11 @@ function DemographyParameterEditor({
         if (hoveredYear === null) return undefined
         if (hoveredYear <= HISTORICAL_END_YEAR) {
             return historicalDataPoints.find((d) => d.year === hoveredYear)
+                ?.value
+        }
+        // When unmodified, read from the fine-grained UN WPP data
+        if (!anyModified) {
+            return unwppProjectionPoints.find((d) => d.year === hoveredYear)
                 ?.value
         }
         // Augment control points with the historical anchor at HISTORICAL_END_YEAR
@@ -220,6 +226,8 @@ function DemographyParameterEditor({
         historicalDataPoints,
         controlPoints,
         lastHistoricalDataPoint,
+        anyModified,
+        unwppProjectionPoints,
     ])
 
     // Determine which static PointLabelWithYear elements overlap the hover elements.
@@ -478,25 +486,27 @@ function DemographyParameterEditor({
 
                 {/* UN WPP reference line */}
                 <LinePath
-                    data={[lastHistoricalDataPoint, ...referenceDataPoints]}
+                    data={[lastHistoricalDataPoint, ...unwppProjectionPoints]}
                     x={(d) => xScale(d.year)}
                     y={(d) => yScale(d.value)}
-                    stroke={BENCHMARK_LINE_COLOR}
+                    stroke={anyModified ? BENCHMARK_LINE_COLOR : lineColor}
                     strokeWidth={2}
                     strokeDasharray="1,2"
                     strokeLinecap="butt"
                 />
 
-                {/* Projection line */}
-                <LinePath
-                    data={[lastHistoricalDataPoint, ...projectionPoints]}
-                    x={(d) => xScale(d.year)}
-                    y={(d) => yScale(d.value)}
-                    stroke={anyModified ? USER_MODIFIED_COLOR : lineColor}
-                    strokeWidth={2}
-                    strokeDasharray="1,2"
-                    strokeLinecap="butt"
-                />
+                {/* Projection line — only shown when the user has modified values */}
+                {anyModified && (
+                    <LinePath
+                        data={[lastHistoricalDataPoint, ...projectionPoints]}
+                        x={(d) => xScale(d.year)}
+                        y={(d) => yScale(d.value)}
+                        stroke={USER_MODIFIED_COLOR}
+                        strokeWidth={2}
+                        strokeDasharray="1,2"
+                        strokeLinecap="butt"
+                    />
+                )}
 
                 {/* First historical point (1950) */}
                 <PointLabelWithYear
