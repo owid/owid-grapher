@@ -82,8 +82,8 @@ function PopulationPyramidVariant({
                     entityName={entityName}
                     setEntityName={setEntityName}
                     isLoading={isLoadingEntityData}
-                    title={config.title}
                     subtitle={config.subtitle}
+                    breakpoint={breakpoint}
                     hideControls={config.hideControls}
                     hideTimeline={config.hideTimeline}
                     showAssumptionCharts={config.showAssumptionCharts}
@@ -106,10 +106,10 @@ function PopulationPyramidCaptionedChart({
     entityName,
     setEntityName,
     isLoading = false,
-    title: titleOverride,
     subtitle: subtitleOverride,
     hideControls,
     hideTimeline,
+    breakpoint,
     showAssumptionCharts = false,
     initialTime,
     stabilizingParameter,
@@ -122,10 +122,10 @@ function PopulationPyramidCaptionedChart({
     entityName: string
     setEntityName: (name: string) => void
     isLoading?: boolean
-    title?: string
     subtitle?: string
     hideControls?: boolean
     hideTimeline?: boolean
+    breakpoint?: string
     showAssumptionCharts?: boolean
     initialTime?: number
     stabilizingParameter?: ParameterKey
@@ -164,7 +164,7 @@ function PopulationPyramidCaptionedChart({
     const ageZones = useMemo(() => groupAgeGroupsByZone(), [])
     const projection = scenarioOverrides ? "custom" : "un"
 
-    const title: React.ReactNode = titleOverride ?? (
+    const title: React.ReactNode = (
         <>
             Age structure of{" "}
             {hideControls ? (

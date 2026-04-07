@@ -26,9 +26,9 @@ const POPULATION_CHART_FONTS: Record<Breakpoint, PopulationChartFonts> = {
         projectionAnnotation: 11,
     },
     small: {
-        xTick: 11,
-        yTick: 11,
-        pointLabel: 11,
+        xTick: 12,
+        yTick: 12,
+        pointLabel: 12,
         changeAnnotation: 11,
         projectionAnnotation: 11,
     },
@@ -36,8 +36,8 @@ const POPULATION_CHART_FONTS: Record<Breakpoint, PopulationChartFonts> = {
         xTick: 11,
         yTick: 11,
         pointLabel: 11,
-        changeAnnotation: 11,
-        projectionAnnotation: 11,
+        changeAnnotation: 10,
+        projectionAnnotation: 10,
     },
 }
 
@@ -79,11 +79,11 @@ const PARAMETER_CHART_FONTS: Record<Breakpoint, ParameterChartFonts> = {
         dragArrow: 8,
     },
     small: {
-        xTick: 11,
-        yTick: 11,
-        pointLabel: 11,
-        controlLabel: 11,
-        hoverLabel: 11,
+        xTick: 12,
+        yTick: 12,
+        pointLabel: 12,
+        controlLabel: 12,
+        hoverLabel: 12,
         projectionAnnotation: 11,
         dragArrow: 8,
     },
@@ -93,7 +93,7 @@ const PARAMETER_CHART_FONTS: Record<Breakpoint, ParameterChartFonts> = {
         pointLabel: 11,
         controlLabel: 11,
         hoverLabel: 11,
-        projectionAnnotation: 11,
+        projectionAnnotation: 10,
         dragArrow: 8,
     },
 }
@@ -116,32 +116,32 @@ export interface PopulationPyramidFonts {
 
 const POPULATION_PYRAMID_FONTS: Record<Breakpoint, PopulationPyramidFonts> = {
     large: {
-        xTick: 13,
-        ageGroupLabel: 10.5,
+        xTick: 11,
+        ageGroupLabel: 11,
         sexLabel: 11,
         ageZoneLabel: 11,
-        hoverLabel: 10.5,
+        hoverLabel: 11,
     },
     medium: {
-        xTick: 13,
-        ageGroupLabel: 10.5,
+        xTick: 11,
+        ageGroupLabel: 11,
         sexLabel: 11,
         ageZoneLabel: 11,
-        hoverLabel: 10.5,
+        hoverLabel: 11,
     },
     small: {
         xTick: 11,
         ageGroupLabel: 11,
-        sexLabel: 12,
-        ageZoneLabel: 12,
+        sexLabel: 11,
+        ageZoneLabel: 11,
         hoverLabel: 11,
     },
     narrow: {
         xTick: 10,
-        ageGroupLabel: 9,
+        ageGroupLabel: 10,
         sexLabel: 10,
         ageZoneLabel: 10,
-        hoverLabel: 9,
+        hoverLabel: 10,
     },
 }
 
@@ -218,8 +218,8 @@ const AGE_ZONE_LEGEND_FONTS: Record<Breakpoint, AgeZoneLegendFonts> = {
     small: {
         totalPopulationLabel: 13,
         percentageLabel: 12,
-        ageZoneLabel: 13,
-        valueLabel: 13,
+        ageZoneLabel: 12,
+        valueLabel: 12,
     },
     narrow: {
         totalPopulationLabel: 12,

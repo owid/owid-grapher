@@ -1,5 +1,6 @@
 import cx from "classnames"
 import { useCallback, useMemo, useState } from "react"
+import { useBreakpoint } from "../helpers/useBreakpoint.js"
 import { Tippy } from "@ourworldindata/utils"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCircleInfo } from "@fortawesome/free-solid-svg-icons"
@@ -388,6 +389,8 @@ export function ChartPanel({
 }
 
 function AssumptionsTable({ simulation }: { simulation: Simulation }) {
+    const breakpoint = useBreakpoint()
+    const useShortTitles = breakpoint === "small" || breakpoint === "narrow"
     const { ref: tableRef, getTippyContainer } =
         useTippyContainer<HTMLTableElement>()
     return (
@@ -404,21 +407,27 @@ function AssumptionsTable({ simulation }: { simulation: Simulation }) {
                     {PARAMETER_KEYS.map((key) => {
                         return (
                             <th key={key}>
-                                {PARAMETER_TAB_LABELS[key]}
-                                <Tippy
-                                    content={
-                                        parameterConfigByKey[key].tooltipContent
-                                    }
-                                    placement="top"
-                                    appendTo={getTippyContainer}
-                                >
-                                    <span className="assumptions-table__info-icon">
-                                        <FontAwesomeIcon
-                                            icon={faCircleInfo}
-                                            size="sm"
-                                        />
-                                    </span>
-                                </Tippy>
+                                {useShortTitles
+                                    ? parameterConfigByKey[key].extraShortTitle
+                                    : PARAMETER_TAB_LABELS[key]}
+                                <span style={{ whiteSpace: "nowrap" }}>
+                                    {"\u00a0"}
+                                    <Tippy
+                                        content={
+                                            parameterConfigByKey[key]
+                                                .tooltipContent
+                                        }
+                                        placement="top"
+                                        appendTo={getTippyContainer}
+                                    >
+                                        <span className="assumptions-table__info-icon">
+                                            <FontAwesomeIcon
+                                                icon={faCircleInfo}
+                                                size="sm"
+                                            />
+                                        </span>
+                                    </Tippy>
+                                </span>
                             </th>
                         )
                     })}

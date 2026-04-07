@@ -68,9 +68,9 @@ function PopulationVariant({
                     entityName={entityName}
                     setEntityName={setEntityName}
                     isLoading={isLoadingEntityData}
-                    title={config.title}
                     subtitle={config.subtitle}
                     hideControls={config.hideControls}
+                    breakpoint={breakpoint}
                 />
             </div>
         </BreakpointProvider>
@@ -83,23 +83,23 @@ function PopulationCaptionedChart({
     entityName,
     setEntityName,
     isLoading = false,
-    title: titleOverride,
     subtitle: subtitleOverride,
     hideControls,
+    breakpoint,
 }: {
     data: CountryData
     metadata: DemographyMetadata
     entityName: string
     setEntityName: (name: string) => void
     isLoading?: boolean
-    title?: string
     subtitle?: string
     hideControls?: boolean
+    breakpoint?: string
 }) {
     const simulation = useSimulation(data)
     const countryName = data.country
 
-    const title: React.ReactNode = titleOverride ?? (
+    const title: React.ReactNode = (
         <>
             Population of{" "}
             {hideControls ? (
@@ -111,7 +111,7 @@ function PopulationCaptionedChart({
                     onChange={setEntityName}
                 />
             )}
-            , 1950 to 2100
+            , <span style={{ whiteSpace: "nowrap" }}>1950 to 2100</span>
         </>
     )
     const subtitle =

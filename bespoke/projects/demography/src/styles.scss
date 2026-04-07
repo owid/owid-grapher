@@ -54,9 +54,6 @@ $panel-gap: 12px;
     margin-top: 16px;
     background: $gray-5;
 
-    .breakpoint-narrow & {
-        margin-top: 10px;
-    }
     padding: 8px 10px;
 
     .demography-assumptions-disclosure__trigger {
@@ -74,10 +71,6 @@ $panel-gap: 12px;
 
         &:hover {
             color: $gray-100;
-        }
-
-        .breakpoint-narrow & {
-            font-size: 0.75rem;
         }
     }
 
@@ -109,19 +102,6 @@ $panel-gap: 12px;
     .assumptions-panel .chart-panel__content {
         flex: none;
         height: 60px;
-    }
-
-    .breakpoint-narrow & .assumptions-panel .chart-panel__title,
-    .breakpoint-narrow & .assumptions-panel .chart-panel__subtitle {
-        font-size: 0.6875rem;
-    }
-
-    .breakpoint-narrow & .assumptions-panel .chart-panel__title {
-        margin-bottom: 2px;
-    }
-
-    .breakpoint-narrow & .assumptions-panel .chart-panel__content {
-        height: 45px;
     }
 }
 
@@ -173,10 +153,6 @@ $panel-gap: 12px;
     .parameters-panel .chart-panel__content {
         flex: none;
         height: 100px;
-    }
-
-    .breakpoint-narrow & .parameters-panel .chart-panel__content {
-        height: 80px;
     }
 }
 
@@ -312,6 +288,9 @@ $panel-gap: 12px;
 
 .input-tabs__tab {
     flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     padding: 8px $panel-gap;
     background: none;
     border: none;
@@ -391,7 +370,7 @@ $panel-gap: 12px;
     }
 
     .assumptions-table__info-icon {
-        margin-left: 4px;
+        margin-left: 2px;
         cursor: help;
         opacity: 0.6;
 
@@ -707,7 +686,9 @@ $panel-gap: 12px;
     }
 
     .chart-content {
-        display: block;
+        display: flex;
+        flex-direction: column;
+        gap: $panel-gap * 2;
         height: auto;
     }
 
@@ -742,16 +723,11 @@ $panel-gap: 12px;
         }
 
         .pyramid-panel {
-            display: none;
-        }
-
-        .age-distribution-panel {
             display: block;
         }
 
-        .chart-panel__title,
-        .chart-panel__subtitle {
-            font-size: 0.75rem;
+        .age-distribution-panel {
+            display: none;
         }
     }
 
@@ -768,59 +744,25 @@ $panel-gap: 12px;
     }
 
     .population-panel .chart-panel__content {
-        height: 160px;
+        height: 220px;
     }
 
     .input-panels .chart-panel__content {
-        height: 60px;
+        height: 180px;
         touch-action: none;
     }
-}
 
-.breakpoint-narrow {
-    .chart-header .chart-header__title {
-        font-size: 1rem;
-        // margin-bottom: 4px;
-    }
+    .assumptions-table {
+        table-layout: auto;
+        word-break: break-word;
 
-    .chart-header .chart-header__subtitle {
-        font-size: 0.75rem;
-        // margin-bottom: 8px;
-    }
-
-    .output-panels {
-        .pyramid-panel {
-            display: block;
+        th {
+            text-align: left;
         }
 
-        .age-distribution-panel {
-            display: none;
+        .assumptions-table__info-icon {
+            margin-left: 0;
         }
-    }
-
-    .chart-footer {
-        font-size: 0.75rem;
-        margin-top: 8px;
-
-        .chart-footer__note {
-            font-size: 0.75rem;
-        }
-
-        .chart-footer__note-row .chart-footer__cc {
-            font-size: 0.75rem;
-        }
-    }
-
-    .container .container__title {
-        font-size: 0.6875rem;
-    }
-
-    .frame {
-        padding: 12px;
-    }
-
-    .container {
-        padding: 12px;
     }
 }
 

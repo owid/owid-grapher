@@ -38,7 +38,7 @@ import {
 // Labels reversed so 0-4 at bottom, oldest at top
 const AGE_GROUP_LABELS = [...PYRAMID_AGE_GROUPS].reverse()
 
-const PYRAMID_MARGIN = { top: 16, right: 3, bottom: 14, left: 3 }
+const PYRAMID_MARGIN = { top: 16, right: 3, bottom: 18, left: 3 }
 const CENTER_GAP_PADDING = 4
 
 const AGE_ZONE_LABEL_PADDING = 6 // gap + arrow + spacing

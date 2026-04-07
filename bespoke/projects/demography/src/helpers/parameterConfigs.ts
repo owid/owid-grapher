@@ -18,6 +18,7 @@ import { ParameterKey } from "./types.js"
 
 interface ParameterConfig {
     shortTitle: string
+    extraShortTitle: string
     title: string
     unit: string
     axisUnit: string
@@ -39,6 +40,7 @@ interface ParameterConfig {
 export const parameterConfigByKey: Record<ParameterKey, ParameterConfig> = {
     fertilityRate: {
         shortTitle: "Fertility",
+        extraShortTitle: "Fertility",
         title: "Fertility Rate",
         unit: "births per woman",
         axisUnit: "births per woman",
@@ -90,7 +92,8 @@ export const parameterConfigByKey: Record<ParameterKey, ParameterConfig> = {
         },
     },
     lifeExpectancy: {
-        shortTitle: "Life expectancy",
+        shortTitle: "Life Expectancy",
+        extraShortTitle: "Life Exp.",
         title: "Life Expectancy at Birth",
         unit: "years",
         axisUnit: "years",
@@ -160,6 +163,7 @@ export const parameterConfigByKey: Record<ParameterKey, ParameterConfig> = {
     },
     netMigrationRate: {
         shortTitle: "Migration",
+        extraShortTitle: "Migration",
         title: "Net Migration Rate",
         unit: "per 1,000 population",
         axisUnit: "‰",

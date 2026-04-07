@@ -110,7 +110,6 @@ function SimulationCaptionedChart({
 
     const title: React.ReactNode = (
         <>
-            {breakpoint && `[${breakpoint}] `}
             How many people will live in{" "}
             {hideControls ? (
                 articulateEntity(displayEntityName(countryName))
