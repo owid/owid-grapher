@@ -35,6 +35,10 @@
         }
     }
 
+    &__source-label {
+        font-weight: bold;
+    }
+
     &__rows-container {
         display: flex;
         flex-direction: column;

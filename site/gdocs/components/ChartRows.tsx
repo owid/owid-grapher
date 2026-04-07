@@ -77,7 +77,9 @@ export default function ChartRows({
             </div>
             {!isInGuidedChart && d.source && (
                 <p className="chart-rows__source">
-                    <strong>Data source: </strong>
+                    <span className="chart-rows__source-label">
+                        Data source:{" "}
+                    </span>
                     {d.source}
                 </p>
             )}
