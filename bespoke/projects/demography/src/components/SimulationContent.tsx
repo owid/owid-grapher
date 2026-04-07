@@ -24,6 +24,7 @@ import {
     FULL_TIME_RANGE,
     BENCHMARK_LINE_COLOR,
     USER_MODIFIED_COLOR,
+    USER_MODIFIED_COLOR_LIGHT,
 } from "../helpers/constants.js"
 import { PopulationChartLegend } from "./PopulationChartLegend.js"
 import { parameterConfigByKey } from "../helpers/parameterConfigs.js"
@@ -65,7 +66,10 @@ export function SimulationContent({
         simulation.activePreset !== "unwpp" || !!stabilizingParameter
     const pyramidBarColor =
         hasUserChanges && year > HISTORICAL_END_YEAR
-            ? USER_MODIFIED_COLOR
+            ? {
+                  female: USER_MODIFIED_COLOR_LIGHT,
+                  male: USER_MODIFIED_COLOR,
+              }
             : undefined
 
     return (
@@ -181,7 +185,7 @@ function AgeStructurePanel({
     simulation: Simulation
     year: number
     onYearChange: (year: number) => void
-    barColor?: string
+    barColor?: { female: string; male: string } | string
 }) {
     const title = `Age Structure in ${year}`
     const subtitle = "Population by age and sex"
@@ -450,24 +454,31 @@ function AssumptionsTable({ simulation }: { simulation: Simulation }) {
                                 >
                                     {isModified ? (
                                         <>
-                                            <span className="assumptions-table__ref-value">
+                                            <span
+                                                className="assumptions-table__ref-value"
+                                                style={{ whiteSpace: "nowrap" }}
+                                            >
                                                 {config.formatValue(refVal)}
                                             </span>
-                                            <span className="assumptions-table__arrow-circle">
-                                                <GrapherTrendArrow
-                                                    direction={direction}
-                                                    isColored={false}
-                                                    className="assumptions-table__arrow"
-                                                />
+                                            <span
+                                                style={{ whiteSpace: "nowrap" }}
+                                            >
+                                                <span className="assumptions-table__arrow-circle">
+                                                    <GrapherTrendArrow
+                                                        direction={direction}
+                                                        isColored={false}
+                                                        className="assumptions-table__arrow"
+                                                    />
+                                                </span>
+                                                {config.formatValue(userVal)}
+                                                {unit}
                                             </span>
-                                            {config.formatValue(userVal)}
-                                            {unit}
                                         </>
                                     ) : (
-                                        <>
+                                        <span style={{ whiteSpace: "nowrap" }}>
                                             {config.formatValue(refVal)}
                                             {unit}
-                                        </>
+                                        </span>
                                     )}
                                 </td>
                             )

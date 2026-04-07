@@ -52,6 +52,7 @@ export const PROJECTION_DASHARRAY = "1.5,3"
 
 export const BENCHMARK_LINE_COLOR = GRAY_60
 export const USER_MODIFIED_COLOR = "#8c4569"
+export const USER_MODIFIED_COLOR_LIGHT = "#b87a9a"
 export const HOVER_LINE_COLOR = "rgba(180, 180, 180, 0.4)"
 
 export const AGE_ZONE_BACKGROUND_OPACITY = 0.1

@@ -51,7 +51,7 @@ export interface PopulationPyramidProps {
     xAxisScaleMode?: "fixed" | "adaptive"
     ageZones?: AgeZone[]
     projection?: ProjectionType
-    barColor?: string
+    barColor?: { female: string; male: string } | string
 }
 
 function PopulationPyramid({
@@ -64,7 +64,10 @@ function PopulationPyramid({
     width,
     height,
 }: PopulationPyramidProps & { width: number; height: number }) {
-    const defaultBarColor = barColorProp ?? DENIM_BLUE
+    const defaultBarColor =
+        typeof barColorProp === "string"
+            ? barColorProp
+            : (barColorProp?.male ?? DENIM_BLUE)
     const bp = widthToBreakpoint(width)
     const fonts = getPopulationPyramidFonts(bp)
     const margin = { ...PYRAMID_MARGIN }

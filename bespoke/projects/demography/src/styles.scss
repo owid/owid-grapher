@@ -425,7 +425,6 @@ $panel-gap: 12px;
     .assumptions-table__ref-value {
         color: $dark-text;
         font-weight: 400;
-        margin-right: 5px;
     }
 
     .assumptions-table__arrow-circle {
@@ -436,6 +435,7 @@ $panel-gap: 12px;
         height: 13px;
         border-radius: 50%;
         background: #8c4569;
+        margin-left: 5px;
         margin-right: 5px;
         vertical-align: middle;
         position: relative;
