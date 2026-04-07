@@ -1,0 +1,48 @@
+{
+    "name": "@owid/bespoke-causes-of-death",
+    "private": true,
+    "type": "module",
+    "entrypoints": {
+        "js": "src/index.tsx",
+        "dev-only-global-css": "src/dev-only-global-css.css"
+    },
+    "scripts": {
+        "dev": "vite dev",
+        "build": "vite build",
+        "typecheck": "tsgo"
+    },
+    "dependencies": {
+        "@fortawesome/fontawesome-svg-core": "^6.7.2",
+        "@fortawesome/free-solid-svg-icons": "^6.7.2",
+        "@fortawesome/react-fontawesome": "^0.2.2",
+        "@ourworldindata/components": "link:../../../packages/@ourworldindata/components",
+        "@ourworldindata/core-table": "link:../../../packages/@ourworldindata/core-table",
+        "@ourworldindata/grapher": "link:../../../packages/@ourworldindata/grapher",
+        "@ourworldindata/types": "link:../../../packages/@ourworldindata/types",
+        "@ourworldindata/utils": "link:../../../packages/@ourworldindata/utils",
+        "@react-stately/flags": "^3.1.2",
+        "@rollup/plugin-swc": "^0.4.0",
+        "@tanstack/react-query": "^5.90.6",
+        "@visx/drag": "^3.12.0",
+        "classnames": "^2.5.1",
+        "d3": "^7.9.0",
+        "normalize.css": "^8.0.1",
+        "react": "^19.2.4",
+        "react-aria": "^3.41.1",
+        "react-aria-components": "^1.8.0",
+        "react-dom": "^19.2.4",
+        "remeda": "^2.21.0",
+        "ts-pattern": "^5.7.1",
+        "vite-plugin-css-position": "^2.0.9"
+    },
+    "devDependencies": {
+        "@types/d3": "^7.4.3",
+        "@types/react": "^19.2.14",
+        "@types/react-dom": "^19.2.3",
+        "@typescript/native-preview": "^7.0.0-dev.20260313.1",
+        "@vitejs/plugin-react": "^6.0.0",
+        "sass": "^1.87.0",
+        "vite": "^8.0.0",
+        "vitest": "^3.2.1"
+    }
+}
