@@ -21,7 +21,9 @@ import {
     Bounds,
     makeDownloadCodeExamples,
     searchParamsToMultiDimView,
+    escapeJSONStringForInlineScript,
 } from "@ourworldindata/utils"
+import * as Sentry from "@sentry/cloudflare"
 import { StatusError } from "itty-router"
 import { Env } from "./env.js"
 import { ImageOptions } from "./imageOptions.js"
@@ -352,7 +354,8 @@ export async function initGrapher(
 }
 
 /**
- * Update og:url, og:image, and twitter:image meta tags to include the search parameters.
+ * Update og:url, og:image, twitter:image meta tags, and JSON-LD image URL
+ * to include the search parameters.
  */
 export function rewriteMetaTags(
     url: URL,
@@ -366,6 +369,9 @@ export function rewriteMetaTags(
 
     const thumbnailUrl = `${url.pathname}.png${url.search}`
     const downloadCtxBase = getDownloadContextBase(url)
+
+    // Buffer for collecting JSON-LD script text across chunks
+    let jsonLdText = ""
 
     const rewriter = new HTMLRewriter()
         .on("picture[data-owid-populate-url-params] source", {
@@ -426,6 +432,21 @@ export function rewriteMetaTags(
                 } else if (tagName === "code") {
                     element.setInnerContent(rewrittenUrl)
                 }
+            },
+        })
+        .on('script[type="application/ld+json"]', {
+            element: (element) => {
+                jsonLdText = ""
+                element.onEndTag((endTag) => {
+                    if (!jsonLdText) return
+                    endTag.before(rewriteJsonLdText(jsonLdText, url), {
+                        html: true,
+                    })
+                })
+            },
+            text: (text) => {
+                jsonLdText += text.text
+                text.remove()
             },
         })
 
@@ -494,6 +515,28 @@ function getRewrittenDownloadUrl(
             return codeExamples["Stata"]
         default:
             return undefined
+    }
+}
+
+export function rewriteJsonLdText(jsonLdText: string, url: URL): string {
+    try {
+        const data = JSON.parse(jsonLdText) as {
+            image?: { contentUrl?: string }
+        }
+
+        if (data.image?.contentUrl) {
+            const imageUrl = new URL(data.image.contentUrl)
+            url.searchParams.forEach((value, key) => {
+                imageUrl.searchParams.set(key, value)
+            })
+            data.image.contentUrl = imageUrl.toString()
+        }
+
+        return escapeJSONStringForInlineScript(JSON.stringify(data))
+    } catch (e) {
+        console.error("Error rewriting JSON-LD", e)
+        Sentry.captureException(e)
+        return jsonLdText
     }
 }
 

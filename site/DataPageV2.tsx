@@ -33,6 +33,8 @@ import { DebugProvider } from "./gdocs/DebugProvider.js"
 import { Html } from "./Html.js"
 import { ArchiveContext, Distribution } from "@ourworldindata/types"
 import { DEFAULT_PAGE_DESCRIPTION } from "./dataPage.js"
+import { makeJsonLdGrapherImageUrl } from "./jsonLdHelpers.js"
+import { JsonLdDataPage } from "./jsonLd.js"
 
 export const DataPageV2 = (props: {
     grapher: GrapherInterface | undefined
@@ -76,6 +78,7 @@ export const DataPageV2 = (props: {
     )
     const imageWidth = "1200"
     const imageHeight = "628"
+    const mainImageUrl = makeJsonLdGrapherImageUrl(grapher?.slug)
 
     const variableIds: number[] = _.uniq(
         _.compact(grapher?.dimensions?.map((d) => d.variableId))
@@ -124,6 +127,15 @@ export const DataPageV2 = (props: {
             >
                 <meta property="og:image:width" content={imageWidth} />
                 <meta property="og:image:height" content={imageHeight} />
+                {!isOnArchivalPage && (
+                    <JsonLdDataPage
+                        baseUrl={baseUrl}
+                        grapher={grapher}
+                        datapageData={datapageData}
+                        canonicalUrl={canonicalUrlForHead}
+                        imageUrl={mainImageUrl}
+                    />
+                )}
                 <IFrameDetector />
                 <link rel="preconnect" href={dataApiOrigin} />
                 {variableIds.flatMap((variableId) =>

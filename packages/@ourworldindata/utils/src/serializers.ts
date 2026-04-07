@@ -1,6 +1,6 @@
 const jsonCommentDelimiter = "\n//EMBEDDED_JSON\n"
 
-const escapeJSONStringForInlineScript = (json: string): string =>
+export const escapeJSONStringForInlineScript = (json: string): string =>
     json
         .replace(/</g, "\\u003c")
         .replace(/\u2028/g, "\\u2028")

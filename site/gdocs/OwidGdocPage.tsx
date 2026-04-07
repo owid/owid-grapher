@@ -1,11 +1,4 @@
 import * as _ from "lodash-es"
-import type {
-    Article,
-    ProfilePage,
-    Person,
-    Organization,
-    WithContext,
-} from "schema-dts"
 import { Head } from "../Head.js"
 import { SiteHeader } from "../SiteHeader.js"
 import { SiteFooter } from "../SiteFooter.js"
@@ -31,7 +24,6 @@ import {
     ArchiveContext,
     OwidGdocDataInsightInterface,
     OwidGdocPostInterface,
-    OwidGdocAuthorInterface,
     OwidGdocProfileInterface,
 } from "@ourworldindata/types"
 import {
@@ -43,6 +35,7 @@ import { CLOUDFLARE_IMAGES_URL } from "../../settings/clientSettings.js"
 import { addPreferSmallFilenameToDataInsightImages } from "../gdocs/utils.js"
 import { AriaAnnouncerProvider } from "../AriaAnnouncerContext.js"
 import { AriaAnnouncer } from "../AriaAnnouncer.js"
+import { JsonLdArticle, JsonLdProfilePage } from "../jsonLd.js"
 
 declare global {
     interface Window {
@@ -99,132 +92,6 @@ function getPageDesc(gdoc: OwidGdocUnionType): string | undefined {
             () => ""
         )
         .exhaustive()
-}
-
-type JsonLdAuthor = Person | Organization
-
-function makeJsonLdAuthors(
-    baseUrl: string,
-    gdoc:
-        | OwidGdocPostInterface
-        | OwidGdocProfileInterface
-        | OwidGdocDataInsightInterface
-): JsonLdAuthor[] {
-    return gdoc.content.authors.map((gdocAuthor) => {
-        if (gdocAuthor.toLowerCase().includes("our world in data")) {
-            return {
-                "@type": "Organization",
-                name: "Our World in Data",
-                url: baseUrl,
-            } satisfies Organization
-        }
-        const author: Person = {
-            "@type": "Person",
-            name: gdocAuthor,
-        }
-        const linkedAuthor = gdoc.linkedAuthors?.find(
-            (linkedAuthor) => linkedAuthor.name === gdocAuthor
-        )
-        // URLs serve as unique IDs for authors, so we don't use the team page
-        // URL for authors, who don't have their own page.
-        if (linkedAuthor?.slug) {
-            author.url = getCanonicalUrl(baseUrl, {
-                slug: linkedAuthor.slug,
-                content: { type: OwidGdocType.Author },
-            })
-        }
-        return author
-    })
-}
-
-function JsonLdArticle({
-    gdoc,
-    baseUrl,
-    imageUrl,
-}: {
-    gdoc:
-        | OwidGdocPostInterface
-        | OwidGdocProfileInterface
-        | OwidGdocDataInsightInterface
-    baseUrl: string
-    imageUrl?: string
-}) {
-    const data: WithContext<Article> = {
-        "@context": "https://schema.org",
-        "@type": "Article",
-        headline: gdoc.content.title,
-        image: imageUrl ? [imageUrl] : [],
-        // NOTE: We don't set dateModified. We have gdoc.updatedAt, but that's
-        // not correct because the semantics of these fields is different.
-        // gdoc.updatedAt is the time the gdoc row was updated in the database,
-        // even if the content hasn't changed and can be even earlier than
-        // gdoc.publishedAt for articles scheduled for publication into the
-        // future.
-        datePublished: gdoc.publishedAt?.toISOString(),
-        author: makeJsonLdAuthors(baseUrl, gdoc),
-    }
-    return (
-        <script
-            type="application/ld+json"
-            dangerouslySetInnerHTML={{
-                __html: JSON.stringify(data),
-            }}
-        />
-    )
-}
-
-function JsonLdProfilePage({
-    gdoc,
-    baseUrl,
-    imageUrl,
-}: {
-    gdoc: OwidGdocAuthorInterface
-    baseUrl: string
-    imageUrl?: string
-}) {
-    const mainAuthorId = `#${gdoc.slug}`
-    const data: WithContext<ProfilePage> = {
-        "@context": "https://schema.org",
-        "@type": "ProfilePage",
-        // NOTE: We don't set dateModified. We have gdoc.updatedAt, but that's
-        // not correct because the semantics of these fields is different.
-        // gdoc.updatedAt is the time the gdoc row was updated in the database,
-        // even if the content hasn't changed and can be even earlier than
-        // gdoc.publishedAt for articles scheduled for publication into the
-        // future.
-        dateCreated: gdoc.publishedAt?.toISOString(),
-        mainEntity: {
-            "@id": mainAuthorId,
-            "@type": "Person",
-            name: gdoc.content.title,
-            jobTitle: gdoc.content.role,
-            description: gdoc.content.bio
-                ?.map((block) => spansToUnformattedPlainText(block.value))
-                .join(" "),
-            image: imageUrl,
-            url: getCanonicalUrl(baseUrl, gdoc),
-        },
-        hasPart: gdoc.latestWorkLinks?.slice(0, 10).map((work) => {
-            return {
-                "@type": "Article",
-                headline: work.title,
-                url: getCanonicalUrl(baseUrl, {
-                    slug: work.slug,
-                    content: { type: OwidGdocType.Article },
-                }),
-                datePublished: work.publishedAt,
-                author: { "@id": mainAuthorId },
-            }
-        }),
-    }
-    return (
-        <script
-            type="application/ld+json"
-            dangerouslySetInnerHTML={{
-                __html: JSON.stringify(data),
-            }}
-        />
-    )
 }
 
 function isPostPredicate(
