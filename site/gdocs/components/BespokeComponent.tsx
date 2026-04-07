@@ -138,13 +138,7 @@ export function BespokeComponent({
     }
 
     return (
-        <div
-            className={className}
-            style={{
-                position: "relative",
-                minHeight: 300,
-            }}
-        >
+        <div className={className}>
             {isLoading && <LoadingIndicator />}
             <div ref={containerRef}></div>
         </div>
