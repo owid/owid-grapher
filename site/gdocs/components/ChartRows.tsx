@@ -1,10 +1,13 @@
-import { EnrichedBlockChartRows, ChartRowItem } from "@ourworldindata/types"
+import {
+    EnrichedBlockChartRows,
+    EnrichedChartRowItem,
+} from "@ourworldindata/types"
 import { useGuidedChartLinkHandler } from "@ourworldindata/grapher"
 import cx from "classnames"
 import ChartThumbnail from "./ChartThumbnail.js"
 import Paragraph from "./Paragraph.js"
 
-function ChartRow({ row }: { row: ChartRowItem }) {
+function ChartRow({ row }: { row: EnrichedChartRowItem }) {
     const onGuidedChartLinkClick = useGuidedChartLinkHandler()
 
     const thumbnail = (

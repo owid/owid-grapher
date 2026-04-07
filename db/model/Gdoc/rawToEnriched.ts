@@ -153,7 +153,7 @@ import {
     PullQuoteAlignment,
     pullquoteAlignments,
     EnrichedBlockChartRows,
-    ChartRowItem,
+    EnrichedChartRowItem,
     RawBlockChartRows,
     EnrichedBlockPullChart,
     RawBlockPullChart,
@@ -1219,7 +1219,7 @@ function parseChartRows(raw: RawBlockChartRows): EnrichedBlockChartRows {
         return { type: "chart-rows", rows: [], parseErrors }
     }
 
-    const enrichedRows: ChartRowItem[] = []
+    const enrichedRows: EnrichedChartRowItem[] = []
     for (const row of rows) {
         if (!row.image) {
             parseErrors.push({

@@ -7,7 +7,7 @@ export type RawChartRowItem = {
     content?: RawBlockText[]
 }
 
-export type ChartRowItem = {
+export type EnrichedChartRowItem = {
     image: string
     url: string
     content: EnrichedBlockText[]
@@ -28,5 +28,5 @@ export type EnrichedBlockChartRows = {
     kicker?: string
     title?: string
     source?: string
-    rows: ChartRowItem[]
+    rows: EnrichedChartRowItem[]
 } & EnrichedBlockWithParseErrors
