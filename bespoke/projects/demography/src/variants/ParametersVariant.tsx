@@ -19,7 +19,12 @@ import { InputChartPanel } from "../components/SimulationContent.js"
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
 import { Frame } from "../../../../components/Frame/Frame.js"
-import { BENCHMARK_LINE_COLOR } from "../helpers/constants.js"
+import {
+    BENCHMARK_LINE_COLOR,
+    START_YEAR,
+    HISTORICAL_END_YEAR,
+    END_YEAR,
+} from "../helpers/constants.js"
 import { useInitialEntityName } from "../helpers/useInitialEntityName.js"
 import { GRAY_60 } from "@ourworldindata/grapher/src/color/ColorConstants.js"
 import {
@@ -101,6 +106,12 @@ function ParametersCaptionedChart({
     const simulation = useSimulation(data)
     const countryName = data.country
 
+    const yearLabels = [
+        [START_YEAR, "start"],
+        [HISTORICAL_END_YEAR, "middle"],
+        [END_YEAR, "end"],
+    ] as const
+
     const title: React.ReactNode = titleOverride ?? (
         <>
             Demographic assumptions for{" "}
@@ -126,16 +137,24 @@ function ParametersCaptionedChart({
                     <div className="demography-parameters__panels">
                         <InputChartPanel
                             simulation={simulation}
-                            variant="lifeExpectancy"
-                            className="parameters-panel"
-                            interactive={false}
-                            showProjectionLabel
-                        />
-                        <InputChartPanel
-                            simulation={simulation}
                             variant="fertilityRate"
                             className="parameters-panel"
                             interactive={false}
+                            showProjectionLabel
+                            yearLabels={yearLabels}
+                            maxGridLines={0}
+                            showEndpointLabels
+                            yMin={0}
+                        />
+                        <InputChartPanel
+                            simulation={simulation}
+                            variant="lifeExpectancy"
+                            className="parameters-panel"
+                            interactive={false}
+                            yearLabels={yearLabels}
+                            maxGridLines={0}
+                            showEndpointLabels
+                            yMin={0}
                         />
                         <InputChartPanel
                             simulation={simulation}
@@ -153,6 +172,9 @@ function ParametersCaptionedChart({
                                 countryName === "World" ? GRAY_60 : undefined
                             }
                             hideInfoIcon={countryName === "World"}
+                            yearLabels={yearLabels}
+                            maxGridLines={1}
+                            showEndpointLabels
                         />
                     </div>
                 )}

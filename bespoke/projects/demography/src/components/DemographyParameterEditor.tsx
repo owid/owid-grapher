@@ -42,6 +42,8 @@ const margin = {
     // left: 0.5 * SMALL_DOT_RADIUS,
 }
 
+type YearLabel = readonly [number, "start" | "middle" | "end"]
+
 interface DemographyParameterEditorProps {
     simulation: Simulation
     variant: ParameterKey
@@ -50,6 +52,10 @@ interface DemographyParameterEditorProps {
     projectionColor?: string
     labelColor?: string
     showProjectionLabel?: boolean
+    yearLabels?: readonly YearLabel[]
+    maxGridLines?: number
+    showEndpointLabels?: boolean
+    yMin?: number
 }
 
 interface DataPoint {
@@ -65,6 +71,10 @@ function DemographyParameterEditor({
     // projectionColor: projectionColorProp,
     labelColor = DENIM_BLUE,
     showProjectionLabel = false,
+    yearLabels: yearLabelsProp,
+    maxGridLines,
+    showEndpointLabels = false,
+    yMin: yMinOverride,
     width,
     height,
 }: DemographyParameterEditorProps & { width: number; height: number }) {
@@ -86,13 +96,15 @@ function DemographyParameterEditor({
     const referencePoints = simulation.unwppScenarioParams[variant]
     const referenceValues = Object.values(referencePoints)
     const historicalValues = historicalDataPoints.map((d) => d.value)
-    const minValue = Math.max(
-        config.yFloor ?? -Infinity,
-        Math.min(
-            Math.min(...referenceValues) - config.yPadding,
-            Math.min(...historicalValues)
+    const minValue =
+        yMinOverride ??
+        Math.max(
+            config.yFloor ?? -Infinity,
+            Math.min(
+                Math.min(...referenceValues) - config.yPadding,
+                Math.min(...historicalValues)
+            )
         )
-    )
     const maxValue = Math.max(
         Math.max(...referenceValues) + config.yPadding,
         Math.max(...historicalValues)
@@ -342,45 +354,54 @@ function DemographyParameterEditor({
         >
             <Group left={margin.left} top={margin.top}>
                 {/* Y-axis grid lines and labels */}
-                {(() => {
-                    const ticks = yScale
-                        .ticks(innerHeight < 80 ? 2 : 3)
-                        .filter(
-                            (t) => yScale(t) > 12 && yScale(t) < innerHeight - 4
+                {maxGridLines !== 0 &&
+                    (() => {
+                        const defaultCount = innerHeight < 80 ? 2 : 3
+                        let ticks = yScale
+                            .ticks(maxGridLines ?? defaultCount)
+                            .filter(
+                                (t) =>
+                                    yScale(t) > 12 &&
+                                    yScale(t) < innerHeight - 4
+                            )
+                        if (
+                            maxGridLines !== undefined &&
+                            ticks.length > maxGridLines
                         )
-                    const topTick = ticks[ticks.length - 1]
-                    return ticks.map((tick) => (
-                        <g key={tick}>
-                            <line
-                                x1={0}
-                                y1={yScale(tick)}
-                                x2={innerWidth}
-                                y2={yScale(tick)}
-                                stroke={
-                                    tick === 0
-                                        ? ZERO_LINE_COLOR
-                                        : GRID_LINE_COLOR
-                                }
-                                strokeWidth={1}
-                            />
-                            {(tick !== 0 || minValue < 0) && (
-                                <text
-                                    x={4}
-                                    y={yScale(tick) - 4}
-                                    fontSize={fonts.yTick}
-                                    fill={LABEL_COLOR}
-                                >
-                                    {Math.round(tick * 10) / 10}
-                                    {config.axisUnit === "‰"
-                                        ? "‰"
-                                        : tick === topTick
-                                          ? ` ${config.axisUnit}`
-                                          : ""}
-                                </text>
-                            )}
-                        </g>
-                    ))
-                })()}
+                            ticks = ticks.slice(0, maxGridLines)
+                        const topTick = ticks[ticks.length - 1]
+                        return ticks.map((tick) => (
+                            <g key={tick}>
+                                <line
+                                    x1={0}
+                                    y1={yScale(tick)}
+                                    x2={innerWidth}
+                                    y2={yScale(tick)}
+                                    stroke={
+                                        tick === 0
+                                            ? ZERO_LINE_COLOR
+                                            : GRID_LINE_COLOR
+                                    }
+                                    strokeWidth={1}
+                                />
+                                {(tick !== 0 || minValue < 0) && (
+                                    <text
+                                        x={0}
+                                        y={yScale(tick) - 4}
+                                        fontSize={fonts.yTick}
+                                        fill={LABEL_COLOR}
+                                    >
+                                        {Math.round(tick * 10) / 10}
+                                        {config.axisUnit === "‰"
+                                            ? "‰"
+                                            : tick === topTick
+                                              ? ` ${config.axisUnit}`
+                                              : ""}
+                                    </text>
+                                )}
+                            </g>
+                        ))
+                    })()}
 
                 {/* Projection area background */}
                 <rect
@@ -405,14 +426,26 @@ function DemographyParameterEditor({
 
                 {/* Zero line */}
                 {minValue <= 0 && maxValue >= 0 && (
-                    <line
-                        x1={0}
-                        y1={yScale(0)}
-                        x2={innerWidth}
-                        y2={yScale(0)}
-                        stroke={ZERO_LINE_COLOR}
-                        strokeWidth={1}
-                    />
+                    <g>
+                        <line
+                            x1={0}
+                            y1={yScale(0)}
+                            x2={innerWidth}
+                            y2={yScale(0)}
+                            stroke={ZERO_LINE_COLOR}
+                            strokeWidth={1}
+                        />
+                        {yMinOverride === 0 && (
+                            <text
+                                x={0}
+                                y={yScale(0) - 4}
+                                fontSize={fonts.yTick}
+                                fill={LABEL_COLOR}
+                            >
+                                0 {config.axisUnit}
+                            </text>
+                        )}
+                    </g>
                 )}
 
                 {/* X-axis */}
@@ -424,12 +457,14 @@ function DemographyParameterEditor({
                     fontSize={fonts.xTick}
                     labelOffset={YEAR_LABEL_OFFSET}
                     hideLabels={hoveredYear !== null}
-                    yearLabels={[
-                        [1950, "start"],
-                        [2030, "middle"],
-                        [2050, "middle"],
-                        [2100, "end"],
-                    ]}
+                    yearLabels={
+                        yearLabelsProp ?? [
+                            [1950, "start"],
+                            [2030, "middle"],
+                            [2050, "middle"],
+                            [2100, "end"],
+                        ]
+                    }
                 />
 
                 {/* Historical line */}
@@ -463,41 +498,47 @@ function DemographyParameterEditor({
                     strokeLinecap="butt"
                 />
 
-                {/* First historical point (1950) — always with value label */}
+                {/* First historical point (1950) */}
                 <PointLabelWithYear
                     x={xScale(firstHistoricalDataPoint.year)}
-                    innerHeight={innerHeight}
-                    color={lineColor}
-                    fontSize={fonts.pointLabel}
-                    year={firstHistoricalDataPoint.year}
-                    yearAnchor="start"
-                    hidden={hiddenPointLabels.has("first-historical")}
-                    hideTickMark
-                />
-
-                {/* Last historical point (2023) */}
-                {/* <PointLabelWithYear
-                    x={xScale(lastHistoricalDataPoint.year)}
                     y={
-                        !interactive
-                            ? yScale(lastHistoricalDataPoint.value)
+                        showEndpointLabels
+                            ? yScale(firstHistoricalDataPoint.value)
                             : undefined
                     }
                     innerHeight={innerHeight}
                     label={
-                        !interactive
-                            ? formatValue(lastHistoricalDataPoint.value)
+                        showEndpointLabels
+                            ? formatValue(firstHistoricalDataPoint.value)
                             : undefined
                     }
                     color={lineColor}
                     labelColor={labelColor}
                     fontSize={fonts.pointLabel}
-                    year={lastHistoricalDataPoint.year}
-                    yearAnchor="middle"
+                    year={firstHistoricalDataPoint.year}
+                    yearAnchor="start"
+                    valueLabelAnchor="start"
+                    hidden={hiddenPointLabels.has("first-historical")}
                     hideTickMark
-                    hidden={hiddenPointLabels.has("last-historical")}
-                    tickColor={axisColor}
-                /> */}
+                />
+
+                {/* Last historical point (2023) */}
+                {showEndpointLabels && (
+                    <PointLabelWithYear
+                        x={xScale(lastHistoricalDataPoint.year)}
+                        y={yScale(lastHistoricalDataPoint.value)}
+                        innerHeight={innerHeight}
+                        label={formatValue(lastHistoricalDataPoint.value)}
+                        color={lineColor}
+                        labelColor={labelColor}
+                        fontSize={fonts.pointLabel}
+                        year={lastHistoricalDataPoint.year}
+                        yearAnchor="middle"
+                        hideTickMark
+                        hidden={hiddenPointLabels.has("last-historical")}
+                        tickColor={axisColor}
+                    />
+                )}
 
                 {/* Last projection point (2100) */}
                 {projectionPoints.length > 0 && (
@@ -519,6 +560,7 @@ function DemographyParameterEditor({
                         fontSize={fonts.pointLabel}
                         year={projectionPoints.at(-1)!.year}
                         yearAnchor="end"
+                        valueLabelAnchor="end"
                         hidden={hiddenPointLabels.has("last-projection")}
                         hideTickMark
                     />
@@ -702,6 +744,10 @@ export const ResponsiveDemographyParameterEditor = memo(
         projectionColor,
         labelColor,
         showProjectionLabel,
+        yearLabels,
+        maxGridLines,
+        showEndpointLabels,
+        yMin,
     }: DemographyParameterEditorProps) {
         const { parentRef, width, height } = useParentSize()
         return (
@@ -715,6 +761,10 @@ export const ResponsiveDemographyParameterEditor = memo(
                         projectionColor={projectionColor}
                         labelColor={labelColor}
                         showProjectionLabel={showProjectionLabel}
+                        yearLabels={yearLabels}
+                        maxGridLines={maxGridLines}
+                        showEndpointLabels={showEndpointLabels}
+                        yMin={yMin}
                         width={width}
                         height={height}
                     />

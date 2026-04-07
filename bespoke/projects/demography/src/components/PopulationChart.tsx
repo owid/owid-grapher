@@ -780,7 +780,7 @@ function AxisY({
                         />
                         {tick > 0 && (
                             <text
-                                x={4}
+                                x={0}
                                 y={yScale(tick) - 4}
                                 fontSize={fonts.yTick}
                                 fill={LABEL_COLOR}

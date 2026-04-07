@@ -229,6 +229,10 @@ export function InputChartPanel({
     hideInfoIcon = false,
     resetTarget,
     showProjectionLabel,
+    yearLabels,
+    maxGridLines,
+    showEndpointLabels,
+    yMin,
 }: {
     simulation: Simulation
     variant: ParameterKey
@@ -239,6 +243,10 @@ export function InputChartPanel({
     hideInfoIcon?: boolean
     resetTarget?: Record<number, number>
     showProjectionLabel?: boolean
+    yearLabels?: readonly (readonly [number, "start" | "middle" | "end"])[]
+    maxGridLines?: number
+    showEndpointLabels?: boolean
+    yMin?: number
 }) {
     const {
         title,
@@ -300,6 +308,10 @@ export function InputChartPanel({
                 }
                 labelColor={labelColor}
                 showProjectionLabel={showProjectionLabel}
+                yearLabels={yearLabels}
+                maxGridLines={maxGridLines}
+                showEndpointLabels={showEndpointLabels}
+                yMin={yMin}
             />
         </ChartPanel>
     )
