@@ -3028,7 +3028,7 @@ __metadata:
     "@types/react": "npm:^19.2.14"
     "@types/react-dom": "npm:^19.2.3"
     classnames: "npm:^2.5.1"
-    lodash-es: "npm:^4.17.23"
+    lodash-es: "npm:^4.18.1"
     mdast-util-find-and-replace: "npm:^3.0.2"
     mdast-util-from-markdown: "npm:^2.0.2"
     mobx: "npm:^6.13.7"
@@ -3056,7 +3056,7 @@ __metadata:
     "@types/papaparse": "npm:^5.5.2"
     d3: "npm:^7.9.0"
     dayjs: "npm:^1.11.19"
-    lodash-es: "npm:^4.17.23"
+    lodash-es: "npm:^4.18.1"
     papaparse: "npm:^5.5.3"
     remeda: "npm:^2.32.0"
     vitest: "npm:^4.1.0"
@@ -3091,7 +3091,7 @@ __metadata:
     colorbrewer: "npm:^1.3.0"
     d3: "npm:^7.9.0"
     js-cookie: "npm:^3.0.5"
-    lodash-es: "npm:^4.17.23"
+    lodash-es: "npm:^4.18.1"
     mobx: "npm:^6.13.7"
     mobx-react: "npm:^7.6.0"
     mousetrap: "npm:^1.6.5"
@@ -3142,7 +3142,7 @@ __metadata:
     fparser: "npm:^3.1.0"
     indefinite: "npm:^2.5.2"
     js-cookie: "npm:^3.0.5"
-    lodash-es: "npm:^4.17.23"
+    lodash-es: "npm:^4.18.1"
     mobx: "npm:^6.13.7"
     mobx-react: "npm:^7.6.0"
     mousetrap: "npm:^1.6.5"
@@ -3185,7 +3185,7 @@ __metadata:
     dayjs: "npm:^1.11.19"
     fuzzysort: "npm:^3.1.0"
     js-cookie: "npm:^3.0.5"
-    lodash-es: "npm:^4.17.23"
+    lodash-es: "npm:^4.18.1"
     mobx: "npm:^6.13.7"
     mobx-react: "npm:^7.6.0"
     react: "npm:^19.2.4"
@@ -11634,7 +11634,7 @@ __metadata:
     json8-pointer: "npm:^1.0.6"
     knex: "npm:^3.1.0"
     lint-staged: "npm:^16.2.6"
-    lodash-es: "npm:^4.17.23"
+    lodash-es: "npm:^4.18.1"
     mdast-util-find-and-replace: "npm:^3.0.2"
     mdast-util-from-markdown: "npm:^2.0.2"
     minimist: "npm:^1.2.6"
@@ -12867,10 +12867,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lodash-es@npm:^4.17.21, lodash-es@npm:^4.17.23":
-  version: 4.17.23
-  resolution: "lodash-es@npm:4.17.23"
-  checksum: 10/1feae200df22eb0bd93ca86d485e77784b8a9fb1d13e91b66e9baa7a7e5e04be088c12a7e20c2250fc0bd3db1bc0ef0affc7d9e3810b6af2455a3c6bf6dde59e
+"lodash-es@npm:^4.17.21, lodash-es@npm:^4.18.1":
+  version: 4.18.1
+  resolution: "lodash-es@npm:4.18.1"
+  checksum: 10/8bfad225ef09ef42b04283cdaf7830efcc2ba29ae41b56501c74422155ee1ccaa1f0f6e8319def3451a1fe54dec501c8e4bee622bae2b2d98ac993731e0a5cce
   languageName: node
   linkType: hard
 
@@ -12896,9 +12896,9 @@ __metadata:
   linkType: hard
 
 "lodash@npm:^4.0.1, lodash@npm:^4.17.11, lodash@npm:^4.17.21":
-  version: 4.17.23
-  resolution: "lodash@npm:4.17.23"
-  checksum: 10/82504c88250f58da7a5a4289f57a4f759c44946c005dd232821c7688b5fcfbf4a6268f6a6cdde4b792c91edd2f3b5398c1d2a0998274432cff76def48735e233
+  version: 4.18.1
+  resolution: "lodash@npm:4.18.1"
+  checksum: 10/306fea53dfd39dad1f03d45ba654a2405aebd35797b673077f401edb7df2543623dc44b9effbb98f69b32152295fff725a4cec99c684098947430600c6af0c3f
   languageName: node
   linkType: hard
 
@@ -14126,7 +14126,7 @@ __metadata:
     cookie: "npm:^1.0.2"
     itty-router: "npm:^5.0.23"
     littlezipper: "npm:^0.1.5"
-    lodash-es: "npm:^4.17.23"
+    lodash-es: "npm:^4.18.1"
     react: "npm:^19.2.4"
     react-dom: "npm:^19.2.4"
     remeda: "npm:^2.32.0"
