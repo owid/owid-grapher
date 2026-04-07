@@ -63,7 +63,9 @@ export function InlineEntitySelector({
         <DialogTrigger isOpen={isOpen} onOpenChange={setIsOpen}>
             <Button className="inline-entity-selector__trigger">
                 {displayEntityName(entityName)}
-                <span className="inline-entity-selector__arrow">▾</span>
+                <span className="inline-entity-selector__arrow">
+                    {"\u00a0"}▾
+                </span>
             </Button>
             <Popover
                 className="inline-entity-selector__popover grapher-dropdown-menu"
