@@ -2,9 +2,15 @@ import cx from "classnames"
 import {
     LatestDataInsight,
     OwidGdocDataInsightInterface,
+    OwidEnrichedGdocBlock,
+    OwidGdocMinimalPostInterface,
     copyToClipboard,
+    formatInlineList,
     MinimalTag,
+    Span,
 } from "@ourworldindata/utils"
+import { getLinkType, getUrlTarget } from "@ourworldindata/components"
+import { ContentGraphLinkType } from "@ourworldindata/types"
 import { useContext, useState } from "react"
 import * as React from "react"
 import {
@@ -20,6 +26,7 @@ import DataInsightDateline from "../components/DataInsightDateline.js"
 import LatestDataInsights from "../components/LatestDataInsights.js"
 import { AttachmentsContext } from "../AttachmentsContext.js"
 import { BAKED_BASE_URL } from "../../../settings/clientSettings.js"
+import { getLinkedDocumentUrl } from "../utils.js"
 import { CopySocialButton } from "../components/CopySocialButton.js"
 
 export const LatestDataInsightCards = (props: {
@@ -96,6 +103,66 @@ function CopyLinkButton(props: { slug: string }) {
     )
 }
 
+function spansToPlainText(spans: Span[]): string {
+    return spans
+        .map((span): string => {
+            if (span.spanType === "span-simple-text") return span.text
+            if (span.spanType === "span-newline") return "\n"
+            return spansToPlainText(span.children)
+        })
+        .join("")
+}
+
+function resolveCtaUrl(
+    rawUrl: string,
+    linkedDocuments: Record<string, OwidGdocMinimalPostInterface>
+): string {
+    if (getLinkType(rawUrl) !== ContentGraphLinkType.Gdoc) return rawUrl
+    const target = getUrlTarget(rawUrl)
+    const doc = linkedDocuments[target]
+    if (!doc) return rawUrl
+    return getLinkedDocumentUrl(doc, rawUrl)
+}
+
+function buildSocialText(
+    title: string,
+    body: OwidEnrichedGdocBlock[],
+    authors: string[],
+    linkedDocuments: Record<string, OwidGdocMinimalPostInterface>
+): string {
+    let titleText = title
+    if (!titleText.includes("—")) {
+        titleText += "—"
+    }
+
+    const paragraphs: string[] = []
+    let ctaText: string | undefined
+    let ctaUrl: string | undefined
+
+    for (const block of body) {
+        if (block.type === "text") {
+            paragraphs.push(spansToPlainText(block.value))
+        } else if (block.type === "cta") {
+            ctaText = block.text.replace(/[.:]+$/, "")
+            ctaUrl = resolveCtaUrl(block.url, linkedDocuments)
+        }
+    }
+
+    const parts = [titleText, paragraphs.join("\n\n")]
+
+    if (authors.length > 0) {
+        parts.push(
+            `(This Data Insight was written by ${formatInlineList(authors, "and")}.)`
+        )
+    }
+
+    if (ctaText && ctaUrl) {
+        parts.push(`${ctaText}: ${ctaUrl}`)
+    }
+
+    return parts.join("\n\n")
+}
+
 export const DataInsightBody = (
     props: DataInsightProps & {
         anchor?: string
@@ -106,6 +173,7 @@ export const DataInsightBody = (
         shouldHideYearInDateline?: boolean
     }
 ) => {
+    const { linkedDocuments } = useContext(AttachmentsContext)
     const shouldLinkTitle = props.shouldLinkTitle
     const publishedAt = props.publishedAt ? new Date(props.publishedAt) : null
     return (
@@ -162,7 +230,14 @@ export const DataInsightBody = (
                 <div className="data-insight-footer">
                     <RelatedTopicsList tags={props.tags ?? undefined} />
                     <CopyLinkButton slug={props.slug} />
-                    <CopySocialButton />
+                    <CopySocialButton
+                        text={buildSocialText(
+                            props.content.title,
+                            props.content.body,
+                            props.content.authors,
+                            linkedDocuments
+                        )}
+                    />
                 </div>
             </div>
         </div>
