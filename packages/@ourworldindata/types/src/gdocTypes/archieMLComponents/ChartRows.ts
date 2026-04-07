@@ -1,11 +1,10 @@
-import type { OwidRawGdocBlock } from "../ArchieMlComponents.js"
 import { EnrichedBlockWithParseErrors } from "./generic.js"
-import { EnrichedBlockText } from "./Text.js"
+import { EnrichedBlockText, RawBlockText } from "./Text.js"
 
 export type RawChartRowItem = {
     image?: string
     url?: string
-    content?: OwidRawGdocBlock[]
+    content?: RawBlockText[]
 }
 
 export type ChartRowItem = {

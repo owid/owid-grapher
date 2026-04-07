@@ -1,6 +1,5 @@
-import type { OwidRawGdocBlock } from "../ArchieMlComponents.js"
 import { EnrichedBlockWithParseErrors } from "./generic.js"
-import { EnrichedBlockText } from "./Text.js"
+import { EnrichedBlockText, RawBlockText } from "./Text.js"
 
 export const pullChartAlignments = ["left-center", "right-center"] as const
 export type PullChartAlignment = (typeof pullChartAlignments)[number]
@@ -11,7 +10,7 @@ export type RawBlockPullChart = {
         align?: string
         image?: string
         url?: string
-        content?: OwidRawGdocBlock[]
+        content?: RawBlockText[]
     }
 }
 

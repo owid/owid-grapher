@@ -1234,18 +1234,14 @@ function parseChartRows(raw: RawBlockChartRows): EnrichedBlockChartRows {
             continue
         }
 
-        const parsedContent = row.content
-            ? row.content.map(parseRawBlocksToEnrichedBlocks)
-            : []
-        const enrichedContent = parsedContent.filter(
-            (b): b is EnrichedBlockText => b?.type === "text"
-        )
-        const droppedCount = parsedContent.length - enrichedContent.length
-        if (droppedCount > 0) {
-            parseErrors.push({
-                message: `chart-rows row content contains ${droppedCount} non-text block(s) that will be ignored. Only paragraphs are supported.`,
-                isWarning: true,
-            })
+        const enrichedContent = row.content?.map(parseText) ?? []
+        for (const block of enrichedContent) {
+            for (const error of block.parseErrors) {
+                parseErrors.push({
+                    ...error,
+                    message: `chart-rows row content: ${error.message}`,
+                })
+            }
         }
 
         if (enrichedContent.length === 0) {
@@ -1313,18 +1309,14 @@ function parsePullChart(raw: RawBlockPullChart): EnrichedBlockPullChart {
         parseErrors.push({ message: "pull-chart missing url property" })
     }
 
-    const parsedContent = content
-        ? content.map(parseRawBlocksToEnrichedBlocks)
-        : []
-    const enrichedContent = parsedContent.filter(
-        (b): b is EnrichedBlockText => b?.type === "text"
-    )
-    const droppedCount = parsedContent.length - enrichedContent.length
-    if (droppedCount > 0) {
-        parseErrors.push({
-            message: `pull-chart content contains ${droppedCount} non-text block(s) that will be ignored. Only paragraphs are supported.`,
-            isWarning: true,
-        })
+    const enrichedContent = content?.map(parseText) ?? []
+    for (const block of enrichedContent) {
+        for (const error of block.parseErrors) {
+            parseErrors.push({
+                ...error,
+                message: `pull-chart content: ${error.message}`,
+            })
+        }
     }
 
     if (enrichedContent.length === 0) {
