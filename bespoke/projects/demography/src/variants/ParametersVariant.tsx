@@ -75,9 +75,9 @@ function ParametersVariant({
                     entityName={entityName}
                     setEntityName={setEntityName}
                     isLoading={isLoadingEntityData}
-                    title={config.title}
                     subtitle={config.subtitle}
                     hideControls={config.hideControls}
+                    breakpoint={breakpoint}
                 />
             </div>
         </BreakpointProvider>
@@ -90,18 +90,18 @@ function ParametersCaptionedChart({
     entityName,
     setEntityName,
     isLoading = false,
-    title: titleOverride,
     subtitle: subtitleOverride,
     hideControls,
+    breakpoint,
 }: {
     data: CountryData
     metadata: DemographyMetadata
     entityName: string
     setEntityName: (name: string) => void
     isLoading?: boolean
-    title?: string
     subtitle?: string
     hideControls?: boolean
+    breakpoint?: string
 }) {
     const simulation = useSimulation(data)
     const countryName = data.country
@@ -112,7 +112,7 @@ function ParametersCaptionedChart({
         [END_YEAR, "end"],
     ] as const
 
-    const title: React.ReactNode = titleOverride ?? (
+    const title: React.ReactNode = (
         <>
             Demographic assumptions for{" "}
             {hideControls ? (
