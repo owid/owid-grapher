@@ -43,12 +43,13 @@ export function PopulationChartLegend({
                     {userLabel}
                 </span>
                 {userTooltip && (
-                    <Tippy content={userTooltip} placement="top" appendTo={getTippyContainer}>
+                    <Tippy
+                        content={userTooltip}
+                        placement="top"
+                        appendTo={getTippyContainer}
+                    >
                         <span className="population-chart-legend__info-icon">
-                            <FontAwesomeIcon
-                                icon={faCircleInfo}
-                                size="sm"
-                            />
+                            <FontAwesomeIcon icon={faCircleInfo} size="sm" />
                         </span>
                     </Tippy>
                 )}
@@ -70,12 +71,13 @@ export function PopulationChartLegend({
                     {benchmarkLabel}
                 </span>
                 {benchmarkTooltip && (
-                    <Tippy content={benchmarkTooltip} placement="top" appendTo={getTippyContainer}>
+                    <Tippy
+                        content={benchmarkTooltip}
+                        placement="top"
+                        appendTo={getTippyContainer}
+                    >
                         <span className="population-chart-legend__info-icon">
-                            <FontAwesomeIcon
-                                icon={faCircleInfo}
-                                size="sm"
-                            />
+                            <FontAwesomeIcon icon={faCircleInfo} size="sm" />
                         </span>
                     </Tippy>
                 )}
