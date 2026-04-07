@@ -17,8 +17,8 @@ import {
 import { GRAPHER_LIGHT_TEXT } from "@ourworldindata/grapher/src/color/ColorConstants.js"
 import { computeMaxAgeGroupPopulation } from "../model/projectionRunner"
 import { groupByAgeRange, parseAgeGroup } from "../helpers/utils"
-import { Bounds } from "@ourworldindata/utils"
-import { TextWrap, TextWrapSvg } from "@ourworldindata/components"
+import { Bounds, formatValue } from "@ourworldindata/utils"
+import { Halo, TextWrap, TextWrapSvg } from "@ourworldindata/components"
 import { widthToBreakpoint } from "../helpers/useBreakpoint.js"
 import { useDismissOnTouchOutside } from "../../../../hooks/useDismissOnTouchOutside.js"
 import { getHorizontalPyramidFonts } from "../helpers/fonts.js"
@@ -172,19 +172,19 @@ function PopulationPyramidHorizontal({
                     maleBaseline={centerY + centerGap / 2}
                     innerHeight={innerHeight}
                 />
-                <TopGridLabel
+                <GridLabels
                     yScale={yScaleFemale}
                     innerWidth={innerWidth}
+                    innerHeight={innerHeight}
                     fontSize={fonts.yTick}
-                    labelText="people"
                     labelColor={LABEL_COLOR}
                     position="above"
                 />
-                <TopGridLabel
+                <GridLabels
                     yScale={yScaleMale}
                     innerWidth={innerWidth}
+                    innerHeight={innerHeight}
                     fontSize={fonts.yTick}
-                    labelText="people"
                     labelColor={LABEL_COLOR}
                     position="below"
                 />
@@ -345,22 +345,24 @@ function BarValueLabel({
     const h = Math.abs(barY - baseline)
     const growsUp = barY < baseline
     const labelFontSize = fontSize
-    const labelY = growsUp ? y - 2 : y + h + 2
+    const labelY = growsUp ? y - 5 : y + h + 5
     const dominantBaseline = growsUp ? "auto" : "hanging"
 
     return (
-        <text
-            x={barX + barWidth / 2}
-            y={labelY}
-            textAnchor="middle"
-            dominantBaseline={dominantBaseline}
-            fontSize={labelFontSize}
-            fontWeight={700}
-            fill={color}
-            style={{ pointerEvents: "none" }}
-        >
-            {`${value.toFixed(1)}%`}
-        </text>
+        <Halo id="horizontal-pyramid-hover" outlineWidth={3}>
+            <text
+                x={barX + barWidth / 2}
+                y={labelY}
+                textAnchor="middle"
+                dominantBaseline={dominantBaseline}
+                fontSize={labelFontSize}
+                fontWeight={700}
+                fill={color}
+                style={{ pointerEvents: "none" }}
+            >
+                {`${value.toFixed(1)}%`}
+            </text>
+        </Halo>
     )
 }
 
@@ -545,40 +547,62 @@ function HorizontalGridLines({
     )
 }
 
-function TopGridLabel({
+function GridLabels({
     yScale,
     innerWidth,
+    innerHeight,
     fontSize,
-    labelText,
     labelColor,
     position,
 }: {
     yScale: ReturnType<typeof scaleLinear<number>>
     innerWidth: number
+    innerHeight: number
     fontSize: number
-    labelText: string
     labelColor: string
     position: "above" | "below"
 }) {
     const ticks = yScale.ticks(2).filter((t) => t > 0)
-    const topTick = ticks.at(-1)
-    if (topTick === undefined) return null
     return (
-        <GridLabel
-            valueText={`${topTick.toFixed(1)}%`}
-            labelText={labelText}
-            x={innerWidth}
-            y={yScale(topTick)}
-            fontSize={fontSize}
-            position={position}
-            labelColor={labelColor}
-        />
+        <>
+            {ticks.map((tick) => {
+                const y = yScale(tick)
+                const textWrap = new TextWrap({
+                    text: formatValue(tick, {
+                        numDecimalPlaces: 0,
+                        numberAbbreviation: false,
+                        unit: "%",
+                    }),
+                    maxWidth: Infinity,
+                    fontSize,
+                })
+                const textY =
+                    position === "above" ? y - textWrap.height - 1 : y + 2
+                // Skip if the label overflows the SVG area
+                if (textY < 0 || textY + textWrap.height > innerHeight)
+                    return null
+                return (
+                    <GridLabel
+                        key={tick}
+                        valueText={formatValue(tick, {
+                            numDecimalPlaces: 0,
+                            numberAbbreviation: false,
+                            unit: "%",
+                        })}
+                        x={innerWidth}
+                        y={y}
+                        fontSize={fontSize}
+                        position={position}
+                        labelColor={labelColor}
+                    />
+                )
+            })}
+        </>
     )
 }
 
 function GridLabel({
     valueText,
-    labelText,
     x,
     y,
     fontSize,
@@ -586,16 +610,14 @@ function GridLabel({
     labelColor,
 }: {
     valueText: string
-    labelText: string
     x: number
     y: number
     fontSize: number
     position: "above" | "below"
     labelColor: string
 }) {
-    const fullText = `${valueText} ${labelText}`
     const textWrap = new TextWrap({
-        text: fullText,
+        text: valueText,
         maxWidth: Infinity,
         fontSize,
     })

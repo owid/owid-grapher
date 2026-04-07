@@ -22,8 +22,8 @@ const POPULATION_CHART_FONTS: Record<Breakpoint, PopulationChartFonts> = {
         xTick: 12,
         yTick: 12,
         pointLabel: 12,
-        changeAnnotation: 12,
-        projectionAnnotation: 12,
+        changeAnnotation: 11,
+        projectionAnnotation: 11,
     },
     small: {
         xTick: 11,
@@ -75,7 +75,7 @@ const PARAMETER_CHART_FONTS: Record<Breakpoint, ParameterChartFonts> = {
         pointLabel: 12,
         controlLabel: 12,
         hoverLabel: 12,
-        projectionAnnotation: 12,
+        projectionAnnotation: 11,
         dragArrow: 8,
     },
     small: {
@@ -123,7 +123,7 @@ const POPULATION_PYRAMID_FONTS: Record<Breakpoint, PopulationPyramidFonts> = {
         hoverLabel: 10.5,
     },
     medium: {
-        xTick: 12,
+        xTick: 13,
         ageGroupLabel: 10.5,
         sexLabel: 11,
         ageZoneLabel: 11,
@@ -168,8 +168,8 @@ const HORIZONTAL_PYRAMID_FONTS: Record<Breakpoint, HorizontalPyramidFonts> = {
         hoverLabel: 10,
     },
     medium: {
-        yTick: 11,
-        xTick: 11,
+        yTick: 12,
+        xTick: 12,
         sexLabel: 9,
         hoverLabel: 10,
     },
