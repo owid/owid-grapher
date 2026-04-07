@@ -130,11 +130,6 @@ function buildSocialText(
     authors: string[],
     linkedDocuments: Record<string, OwidGdocMinimalPostInterface>
 ): string {
-    let titleText = title
-    if (!titleText.includes("—")) {
-        titleText += "—"
-    }
-
     const paragraphs: string[] = []
     let ctaText: string | undefined
     let ctaUrl: string | undefined
@@ -148,7 +143,7 @@ function buildSocialText(
         }
     }
 
-    const parts = [titleText, paragraphs.join("\n\n")]
+    const parts = [title, paragraphs.join("\n\n")]
 
     if (authors.length > 0) {
         parts.push(
