@@ -7,10 +7,10 @@
     "types": "src/index.ts",
     "publishConfig": {
         "main": "dist/grapher.js",
-        "types": "dist/grapher.d.ts",
+        "types": "dist/grapher.entry.d.ts",
         "exports": {
             ".": {
-                "types": "./dist/grapher.d.ts",
+                "types": "./dist/grapher.entry.d.ts",
                 "import": "./dist/grapher.js"
             },
             "./dist/grapher.css": "./dist/grapher.css",
@@ -22,10 +22,11 @@
         "react-dom": "^18.0.0 || ^19.0.0"
     },
     "files": [
-        "dist"
+        "dist",
+        "!dist/**/*.tsbuildinfo"
     ],
     "scripts": {
-        "build": "vite build && vite build --mode cdn"
+        "build": "vite build && vite build --mode cdn && tsgo -p tsconfig.build.json"
     },
     "directories": {
         "lib": "src"
@@ -38,10 +39,6 @@
         "@fortawesome/free-solid-svg-icons": "^6.7.2",
         "@fortawesome/react-fontawesome": "^0.2.2",
         "@internationalized/date": "^3.10.1",
-        "@ourworldindata/components": "workspace:^",
-        "@ourworldindata/core-table": "workspace:^",
-        "@ourworldindata/types": "workspace:^",
-        "@ourworldindata/utils": "workspace:^",
         "@react-spring/web": "^10.0.3",
         "@sentry/browser": "^10.40.0",
         "@sentry/react": "^10.40.0",
@@ -71,6 +68,10 @@
         "versor": "^0.2.0"
     },
     "devDependencies": {
+        "@ourworldindata/components": "workspace:^",
+        "@ourworldindata/core-table": "workspace:^",
+        "@ourworldindata/types": "workspace:^",
+        "@ourworldindata/utils": "workspace:^",
         "@testing-library/react": "^16.3.2",
         "@types/colorbrewer": "^1.0.32",
         "@types/d3": "^7.4.3",
@@ -82,7 +83,7 @@
         "@types/react": "^19.2.14",
         "@types/react-dom": "^19.2.3",
         "@types/topojson-client": "^3.1.5",
-        "vite": "^8.0.3",
+        "vite": "^8.0.5",
         "vitest": "^4.1.2"
     },
     "license": "MIT"

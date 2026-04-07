@@ -3157,7 +3157,7 @@ __metadata:
     ts-pattern: "npm:^5.8.0"
     url-join: "npm:^5.0.0"
     versor: "npm:^0.2.0"
-    vite: "npm:^8.0.3"
+    vite: "npm:^8.0.5"
     vitest: "npm:^4.1.2"
   peerDependencies:
     react: ^18.0.0 || ^19.0.0
@@ -17716,7 +17716,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vite@npm:^6.0.0 || ^7.0.0 || ^8.0.0, vite@npm:^8.0.3, vite@npm:^8.0.5":
+"vite@npm:^6.0.0 || ^7.0.0 || ^8.0.0, vite@npm:^8.0.5":
   version: 8.0.5
   resolution: "vite@npm:8.0.5"
   dependencies:
