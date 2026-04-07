@@ -1,24 +1,5 @@
 import type { Breakpoint } from "./useBreakpoint"
 
-// ── Shared defaults ──────────────────────────────────────────────────
-// Used as baseline values; individual charts can override.
-
-const TICK_L = 12
-const TICK_M = 11
-const TICK_S = 10
-
-const LABEL_L = 10
-const LABEL_M = 10
-const LABEL_S = 9
-
-const ANNOTATION_L = 11
-const ANNOTATION_M = 11
-const ANNOTATION_S = 10
-
-const SYMBOL_L = 8
-const SYMBOL_M = 8
-const SYMBOL_S = 7
-
 // ── PopulationChart ──────────────────────────────────────────────────
 
 export interface PopulationChartFonts {
@@ -31,32 +12,32 @@ export interface PopulationChartFonts {
 
 const POPULATION_CHART_FONTS: Record<Breakpoint, PopulationChartFonts> = {
     large: {
-        xTick: TICK_L,
-        yTick: TICK_L,
-        pointLabel: TICK_L,
-        changeAnnotation: ANNOTATION_L,
-        projectionAnnotation: ANNOTATION_L,
+        xTick: 12,
+        yTick: 12,
+        pointLabel: 12,
+        changeAnnotation: 11,
+        projectionAnnotation: 11,
     },
     medium: {
-        xTick: TICK_M + 1,
-        yTick: TICK_M + 1,
-        pointLabel: TICK_M + 1,
-        changeAnnotation: ANNOTATION_M + 1,
-        projectionAnnotation: ANNOTATION_M + 1,
+        xTick: 12,
+        yTick: 12,
+        pointLabel: 12,
+        changeAnnotation: 12,
+        projectionAnnotation: 12,
     },
     small: {
-        xTick: TICK_S + 1,
-        yTick: TICK_S + 1,
-        pointLabel: TICK_S + 1,
-        changeAnnotation: ANNOTATION_S + 1,
-        projectionAnnotation: ANNOTATION_S + 1,
+        xTick: 11,
+        yTick: 11,
+        pointLabel: 11,
+        changeAnnotation: 11,
+        projectionAnnotation: 11,
     },
     narrow: {
-        xTick: TICK_S + 1,
-        yTick: TICK_S + 1,
-        pointLabel: TICK_S + 1,
-        changeAnnotation: ANNOTATION_S + 1,
-        projectionAnnotation: ANNOTATION_S + 1,
+        xTick: 11,
+        yTick: 11,
+        pointLabel: 11,
+        changeAnnotation: 11,
+        projectionAnnotation: 11,
     },
 }
 
@@ -80,40 +61,40 @@ export interface ParameterChartFonts {
 
 const PARAMETER_CHART_FONTS: Record<Breakpoint, ParameterChartFonts> = {
     large: {
-        xTick: TICK_L,
-        yTick: TICK_L,
-        pointLabel: TICK_L,
-        controlLabel: TICK_L,
-        hoverLabel: TICK_L,
-        projectionAnnotation: ANNOTATION_L,
-        dragArrow: SYMBOL_L,
+        xTick: 12,
+        yTick: 12,
+        pointLabel: 12,
+        controlLabel: 12,
+        hoverLabel: 12,
+        projectionAnnotation: 11,
+        dragArrow: 8,
     },
     medium: {
-        xTick: TICK_M + 1,
-        yTick: TICK_M + 1,
-        pointLabel: TICK_M + 1,
-        controlLabel: TICK_M + 1,
-        hoverLabel: TICK_M + 1,
-        projectionAnnotation: ANNOTATION_M + 1,
-        dragArrow: SYMBOL_M,
+        xTick: 12,
+        yTick: 12,
+        pointLabel: 12,
+        controlLabel: 12,
+        hoverLabel: 12,
+        projectionAnnotation: 12,
+        dragArrow: 8,
     },
     small: {
-        xTick: TICK_S + 1,
-        yTick: TICK_S + 1,
-        pointLabel: TICK_S + 1,
-        controlLabel: TICK_S + 1,
-        hoverLabel: TICK_S + 1,
-        projectionAnnotation: ANNOTATION_S + 1,
-        dragArrow: SYMBOL_S + 1,
+        xTick: 11,
+        yTick: 11,
+        pointLabel: 11,
+        controlLabel: 11,
+        hoverLabel: 11,
+        projectionAnnotation: 11,
+        dragArrow: 8,
     },
     narrow: {
-        xTick: TICK_S + 1,
-        yTick: TICK_S + 1,
-        pointLabel: TICK_S + 1,
-        controlLabel: TICK_S + 1,
-        hoverLabel: TICK_S + 1,
-        projectionAnnotation: ANNOTATION_S + 1,
-        dragArrow: SYMBOL_S + 1,
+        xTick: 11,
+        yTick: 11,
+        pointLabel: 11,
+        controlLabel: 11,
+        hoverLabel: 11,
+        projectionAnnotation: 11,
+        dragArrow: 8,
     },
 }
 
@@ -135,32 +116,32 @@ export interface PopulationPyramidFonts {
 
 const POPULATION_PYRAMID_FONTS: Record<Breakpoint, PopulationPyramidFonts> = {
     large: {
-        xTick: TICK_L + 1,
-        ageGroupLabel: (LABEL_L + ANNOTATION_L) / 2,
-        sexLabel: ANNOTATION_L,
-        ageZoneLabel: ANNOTATION_L,
-        hoverLabel: (LABEL_L + ANNOTATION_L) / 2,
+        xTick: 13,
+        ageGroupLabel: 10.5,
+        sexLabel: 11,
+        ageZoneLabel: 11,
+        hoverLabel: 10.5,
     },
     medium: {
-        xTick: TICK_M + 1,
-        ageGroupLabel: (LABEL_M + ANNOTATION_M) / 2,
-        sexLabel: ANNOTATION_M,
-        ageZoneLabel: ANNOTATION_M,
-        hoverLabel: (LABEL_M + ANNOTATION_M) / 2,
+        xTick: 12,
+        ageGroupLabel: 10.5,
+        sexLabel: 11,
+        ageZoneLabel: 11,
+        hoverLabel: 10.5,
     },
     small: {
-        xTick: TICK_S + 1,
-        ageGroupLabel: ANNOTATION_S + 1,
-        sexLabel: ANNOTATION_M + 1,
-        ageZoneLabel: ANNOTATION_M + 1,
-        hoverLabel: ANNOTATION_S + 1,
+        xTick: 11,
+        ageGroupLabel: 11,
+        sexLabel: 12,
+        ageZoneLabel: 12,
+        hoverLabel: 11,
     },
     narrow: {
-        xTick: TICK_S,
-        ageGroupLabel: ANNOTATION_S - 1,
-        sexLabel: ANNOTATION_S,
-        ageZoneLabel: ANNOTATION_S,
-        hoverLabel: ANNOTATION_S - 1,
+        xTick: 10,
+        ageGroupLabel: 9,
+        sexLabel: 10,
+        ageZoneLabel: 10,
+        hoverLabel: 9,
     },
 }
 
@@ -181,28 +162,28 @@ export interface HorizontalPyramidFonts {
 
 const HORIZONTAL_PYRAMID_FONTS: Record<Breakpoint, HorizontalPyramidFonts> = {
     large: {
-        yTick: TICK_L,
-        xTick: TICK_L,
-        sexLabel: LABEL_L - 1,
-        hoverLabel: LABEL_L,
+        yTick: 12,
+        xTick: 12,
+        sexLabel: 9,
+        hoverLabel: 10,
     },
     medium: {
-        yTick: TICK_M,
-        xTick: TICK_M,
-        sexLabel: LABEL_M - 1,
-        hoverLabel: LABEL_M,
+        yTick: 11,
+        xTick: 11,
+        sexLabel: 9,
+        hoverLabel: 10,
     },
     small: {
-        yTick: TICK_S,
-        xTick: TICK_S,
-        sexLabel: LABEL_S - 1,
-        hoverLabel: LABEL_S,
+        yTick: 10,
+        xTick: 10,
+        sexLabel: 8,
+        hoverLabel: 9,
     },
     narrow: {
-        yTick: TICK_S,
-        xTick: TICK_S,
-        sexLabel: LABEL_S - 1,
-        hoverLabel: LABEL_S,
+        yTick: 10,
+        xTick: 10,
+        sexLabel: 8,
+        hoverLabel: 9,
     },
 }
 
@@ -235,8 +216,8 @@ const AGE_ZONE_LEGEND_FONTS: Record<Breakpoint, AgeZoneLegendFonts> = {
         valueLabel: 12,
     },
     small: {
-        totalPopulationLabel: 14,
-        percentageLabel: 13,
+        totalPopulationLabel: 13,
+        percentageLabel: 12,
         ageZoneLabel: 13,
         valueLabel: 13,
     },
