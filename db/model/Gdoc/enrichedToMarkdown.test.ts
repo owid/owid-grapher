@@ -229,9 +229,12 @@ describe(enrichedBlocksToMarkdown, () => {
     })
 
     describe("chart-rows", () => {
-        it("should render rows with image and text content", () => {
+        it("should render kicker, title, rows, and source", () => {
             const block: EnrichedBlockChartRows = {
                 type: "chart-rows",
+                kicker: "Key metrics",
+                title: "Health indicators",
+                source: "WHO Global Health Observatory",
                 rows: [
                     {
                         image: "life-expectancy.png",
@@ -270,7 +273,7 @@ describe(enrichedBlocksToMarkdown, () => {
             }
 
             expect(enrichedBlocksToMarkdown([block], false)).toBe(
-                "[![](life-expectancy.png)](/grapher/life-expectancy)\nLife expectancy has doubled.\n\n[![](gdp.png)](/grapher/gdp)\nGDP has grown."
+                "Key metrics\n### Health indicators\n\n[![](life-expectancy.png)](/grapher/life-expectancy)\nLife expectancy has doubled.\n\n[![](gdp.png)](/grapher/gdp)\nGDP has grown.\n\nData source: WHO Global Health Observatory"
             )
         })
     })

@@ -614,6 +614,10 @@ ${links}`
             (_): string | undefined => undefined
         )
         .with({ type: "chart-rows" }, (b): string | undefined => {
+            const header = _.compact([
+                b.kicker,
+                b.title ? `### ${b.title}` : undefined,
+            ]).join("\n")
             const rowTexts = b.rows.map((row) => {
                 const content = enrichedBlocksToMarkdown(
                     row.content,
@@ -625,7 +629,9 @@ ${links}`
                     content,
                 ]).join("\n")
             })
-            return rowTexts.join("\n\n") || undefined
+            const rows = rowTexts.join("\n\n") || undefined
+            const source = b.source ? `Data source: ${b.source}` : undefined
+            return _.compact([header, rows, source]).join("\n\n") || undefined
         })
         .with({ type: "pull-chart" }, (b): string | undefined => {
             const content = enrichedBlocksToMarkdown(
