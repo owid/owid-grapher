@@ -455,6 +455,7 @@ __metadata:
     "@ourworldindata/components": "link:../../../packages/@ourworldindata/components"
     "@ourworldindata/types": "link:../../../packages/@ourworldindata/types"
     "@ourworldindata/utils": "link:../../../packages/@ourworldindata/utils"
+    "@react-aria/overlays": "npm:^3.31.2"
     "@react-stately/flags": "npm:^3.1.2"
     "@types/d3": "npm:^7.4.3"
     "@types/react": "npm:^19.2.14"
@@ -4532,14 +4533,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"remeda@npm:^2.21.0":
-  version: 2.33.6
-  resolution: "remeda@npm:2.33.6"
-  checksum: 10/733967372cbe89150250576be49e8e6f7dcc7f319acf40af204fa3cdbfd305171742b05574c1245fe1f6926b007498df995d6682de52d370932ab1e99102e4ba
-  languageName: node
-  linkType: hard
-
-"remeda@npm:^2.32.0":
+"remeda@npm:^2.21.0, remeda@npm:^2.32.0":
   version: 2.33.7
   resolution: "remeda@npm:2.33.7"
   checksum: 10/3a2fd771d186bbf6459caf41c8463c3c5547d16b196949a08dac66232e70216f3a9af5f27b0c5f076326301c2d59f5b12cb70443d87a0cea09564744a693fa00
