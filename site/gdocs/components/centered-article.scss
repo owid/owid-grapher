@@ -886,6 +886,12 @@ div.raw-html-table__container {
     }
 }
 
+[class*="article-block__bespoke-component"] {
+    position: relative;
+    min-height: 300px;
+    margin: 32px 0 48px 0;
+}
+
 .article-block__chart-story {
     .chart-story__nav-arrow {
         cursor: pointer;
