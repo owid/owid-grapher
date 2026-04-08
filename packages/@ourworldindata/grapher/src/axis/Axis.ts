@@ -502,7 +502,11 @@ abstract class AbstractAxis {
             console.error(`Placed value is undefined for ${value}`)
             return value
         }
-        return parseFloat(placedValue.toFixed(1))
+        return this.snapToSubpixel(placedValue)
+    }
+
+    snapToSubpixel(value: number): number {
+        return parseFloat(value.toFixed(1))
     }
 
     /** This function returns the inverse of place - i.e. given a screen space
