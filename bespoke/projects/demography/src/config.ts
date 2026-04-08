@@ -10,6 +10,10 @@ const VARIANT_NAMES = [
 
 export type VariantName = (typeof VARIANT_NAMES)[number]
 
+export interface VariantProps<Config> {
+    config: Config
+}
+
 export interface SimulationVariantConfig {
     hideControls: boolean
     region?: string

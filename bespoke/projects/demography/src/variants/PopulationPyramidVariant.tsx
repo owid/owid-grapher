@@ -8,7 +8,7 @@ import {
     LoadingSpinner,
 } from "../components/DemographyLoadAndError.js"
 import { queryClient, useDemographyData } from "../helpers/fetch.js"
-import type { PopulationPyramidVariantConfig } from "../config.js"
+import type { PopulationPyramidVariantConfig, VariantProps } from "../config.js"
 import {
     entityNameForSentence,
     groupAgeGroupsByZone,
@@ -41,24 +41,11 @@ import {
     breakpointClass,
 } from "../helpers/useBreakpoint.js"
 import { useInitialEntityName } from "../helpers/useInitialEntityName.js"
-import { InlineEntitySelector } from "../components/InlineEntitySelector.js"
+import { EntityNameOrSelector } from "../components/EntityNameOrSelector.js"
 
-export function PopulationPyramidVariantWithProviders(props: {
-    container: HTMLDivElement
-    config: PopulationPyramidVariantConfig
-}): React.ReactElement {
-    return (
-        <QueryClientProvider client={queryClient}>
-            <PopulationPyramidVariant config={props.config} />
-        </QueryClientProvider>
-    )
-}
-
-function PopulationPyramidVariant({
+export function PopulationPyramidVariant({
     config,
-}: {
-    config: PopulationPyramidVariantConfig
-}): React.ReactElement {
+}: VariantProps<PopulationPyramidVariantConfig>): React.ReactElement {
     const [entityName, setEntityName] = useInitialEntityName(config.region)
 
     const { metadata, entityData, isLoadingEntityData, status } =
@@ -70,35 +57,41 @@ function PopulationPyramidVariant({
     if (!metadata || !entityData) return <DemographyChartError />
 
     return (
-        <BreakpointProvider value={breakpoint}>
-            <div
-                ref={rootRef}
-                className={cx(
-                    "demography-chart demography-chart__population-pyramid-variant",
-                    breakpointClass(breakpoint)
-                )}
-            >
-                <PopulationPyramidCaptionedChart
-                    data={entityData}
-                    metadata={metadata}
-                    entityName={entityName}
-                    setEntityName={setEntityName}
-                    isLoading={isLoadingEntityData}
-                    subtitle={config.subtitle}
-                    breakpoint={breakpoint}
-                    hideControls={config.hideControls}
-                    hideTimeline={config.hideTimeline}
-                    showAssumptionCharts={config.showAssumptionCharts}
-                    initialTime={config.time}
-                    stabilizingParameter={config.stabilizingParameter}
-                    fertilityRateAssumptions={config.fertilityRateAssumptions}
-                    lifeExpectancyAssumptions={config.lifeExpectancyAssumptions}
-                    netMigrationRateAssumptions={
-                        config.netMigrationRateAssumptions
-                    }
-                />
-            </div>
-        </BreakpointProvider>
+        <QueryClientProvider client={queryClient}>
+            <BreakpointProvider value={breakpoint}>
+                <div
+                    ref={rootRef}
+                    className={cx(
+                        "demography-chart demography-chart__population-pyramid-variant",
+                        breakpointClass(breakpoint)
+                    )}
+                >
+                    <PopulationPyramidCaptionedChart
+                        data={entityData}
+                        metadata={metadata}
+                        entityName={entityName}
+                        setEntityName={setEntityName}
+                        isLoading={isLoadingEntityData}
+                        title={config.title}
+                        subtitle={config.subtitle}
+                        hideControls={config.hideControls}
+                        hideTimeline={config.hideTimeline}
+                        showAssumptionCharts={config.showAssumptionCharts}
+                        initialTime={config.time}
+                        stabilizingParameter={config.stabilizingParameter}
+                        fertilityRateAssumptions={
+                            config.fertilityRateAssumptions
+                        }
+                        lifeExpectancyAssumptions={
+                            config.lifeExpectancyAssumptions
+                        }
+                        netMigrationRateAssumptions={
+                            config.netMigrationRateAssumptions
+                        }
+                    />
+                </div>
+            </BreakpointProvider>
+        </QueryClientProvider>
     )
 }
 
@@ -108,10 +101,10 @@ function PopulationPyramidCaptionedChart({
     entityName,
     setEntityName,
     isLoading = false,
+    title: titleOverride,
     subtitle: subtitleOverride,
     hideControls,
     hideTimeline,
-    _breakpoint,
     showAssumptionCharts = false,
     initialTime,
     stabilizingParameter,
@@ -124,10 +117,10 @@ function PopulationPyramidCaptionedChart({
     entityName: string
     setEntityName: (name: string) => void
     isLoading?: boolean
+    title?: string
     subtitle?: string
     hideControls?: boolean
     hideTimeline?: boolean
-    _breakpoint?: string
     showAssumptionCharts?: boolean
     initialTime?: number
     stabilizingParameter?: ParameterKey
@@ -166,18 +159,16 @@ function PopulationPyramidCaptionedChart({
     const ageZones = useMemo(() => groupAgeGroupsByZone(), [])
     const projection = scenarioOverrides ? "custom" : "un"
 
-    const title: React.ReactNode = (
+    const title: React.ReactNode = titleOverride ?? (
         <>
             Age structure of{" "}
-            {hideControls ? (
-                entityNameForSentence(data.country)
-            ) : (
-                <InlineEntitySelector
-                    metadata={metadata}
-                    entityName={entityName}
-                    onChange={setEntityName}
-                />
-            )}{" "}
+            <EntityNameOrSelector
+                hideControls={hideControls}
+                entityName={entityName}
+                countryName={data.country}
+                metadata={metadata}
+                onChange={setEntityName}
+            />{" "}
             in {year}
         </>
     )

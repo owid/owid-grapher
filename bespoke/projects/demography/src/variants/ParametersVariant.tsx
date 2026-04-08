@@ -7,9 +7,7 @@ import {
     LoadingSpinner,
 } from "../components/DemographyLoadAndError.js"
 import { queryClient, useDemographyData } from "../helpers/fetch.js"
-import type { ParametersVariantConfig } from "../config.js"
-
-import { entityNameForSentence } from "../helpers/utils.js"
+import type { ParametersVariantConfig, VariantProps } from "../config.js"
 
 import { CountryData, DemographyMetadata } from "../helpers/types.js"
 import { useSimulation } from "../helpers/useSimulation.js"
@@ -31,24 +29,11 @@ import {
     useContainerBreakpoint,
     breakpointClass,
 } from "../helpers/useBreakpoint.js"
-import { InlineEntitySelector } from "../components/InlineEntitySelector.js"
+import { EntityNameOrSelector } from "../components/EntityNameOrSelector.js"
 
-export function ParametersVariantWithProviders(props: {
-    container: HTMLDivElement
-    config: ParametersVariantConfig
-}): React.ReactElement {
-    return (
-        <QueryClientProvider client={queryClient}>
-            <ParametersVariant config={props.config} />
-        </QueryClientProvider>
-    )
-}
-
-function ParametersVariant({
+export function ParametersVariant({
     config,
-}: {
-    config: ParametersVariantConfig
-}): React.ReactElement {
+}: VariantProps<ParametersVariantConfig>): React.ReactElement {
     const [entityName, setEntityName] = useInitialEntityName(config.region)
 
     const { metadata, entityData, isLoadingEntityData, status } =
@@ -60,26 +45,28 @@ function ParametersVariant({
     if (!metadata || !entityData) return <DemographyChartError />
 
     return (
-        <BreakpointProvider value={breakpoint}>
-            <div
-                ref={rootRef}
-                className={cx(
-                    "demography-chart demography-chart__parameters-variant",
-                    breakpointClass(breakpoint)
-                )}
-            >
-                <ParametersCaptionedChart
-                    data={entityData}
-                    metadata={metadata}
-                    entityName={entityName}
-                    setEntityName={setEntityName}
-                    isLoading={isLoadingEntityData}
-                    subtitle={config.subtitle}
-                    hideControls={config.hideControls}
-                    breakpoint={breakpoint}
-                />
-            </div>
-        </BreakpointProvider>
+        <QueryClientProvider client={queryClient}>
+            <BreakpointProvider value={breakpoint}>
+                <div
+                    ref={rootRef}
+                    className={cx(
+                        "demography-chart demography-chart__parameters-variant",
+                        breakpointClass(breakpoint)
+                    )}
+                >
+                    <ParametersCaptionedChart
+                        data={entityData}
+                        metadata={metadata}
+                        entityName={entityName}
+                        setEntityName={setEntityName}
+                        isLoading={isLoadingEntityData}
+                        title={config.title}
+                        subtitle={config.subtitle}
+                        hideControls={config.hideControls}
+                    />
+                </div>
+            </BreakpointProvider>
+        </QueryClientProvider>
     )
 }
 
@@ -89,18 +76,18 @@ function ParametersCaptionedChart({
     entityName,
     setEntityName,
     isLoading = false,
+    title: titleOverride,
     subtitle: subtitleOverride,
     hideControls,
-    _breakpoint,
 }: {
     data: CountryData
     metadata: DemographyMetadata
     entityName: string
     setEntityName: (name: string) => void
     isLoading?: boolean
+    title?: string
     subtitle?: string
     hideControls?: boolean
-    _breakpoint?: string
 }) {
     const simulation = useSimulation(data)
     const countryName = data.country
@@ -111,18 +98,16 @@ function ParametersCaptionedChart({
         [END_YEAR, "end"],
     ] as const
 
-    const title: React.ReactNode = (
+    const title: React.ReactNode = titleOverride ?? (
         <>
             Demographic assumptions for{" "}
-            {hideControls ? (
-                entityNameForSentence(countryName)
-            ) : (
-                <InlineEntitySelector
-                    metadata={metadata}
-                    entityName={entityName}
-                    onChange={setEntityName}
-                />
-            )}
+            <EntityNameOrSelector
+                hideControls={hideControls}
+                entityName={entityName}
+                countryName={countryName}
+                metadata={metadata}
+                onChange={setEntityName}
+            />
         </>
     )
     const subtitle =
