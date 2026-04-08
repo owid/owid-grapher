@@ -145,5 +145,9 @@
 .ExplorerFigure,
 .GrapherComponent {
     height: 100%;
-    margin-left: -16px;
+
+    // align y ticks with slide header
+    &:has(.LineChart) {
+        margin-left: -16px;
+    }
 }

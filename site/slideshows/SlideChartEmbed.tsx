@@ -3,6 +3,10 @@ import { reaction, runInAction } from "mobx"
 import { GrapherState } from "@ourworldindata/grapher"
 import { ResolvedSlideChartInfo } from "@ourworldindata/types"
 import {
+    getSlideshowGrapherConfig,
+    parseSlideChartUrl,
+} from "./slideshowUtils.js"
+import {
     Explorer,
     ExplorerProps,
     buildExplorerProps,
@@ -13,7 +17,6 @@ import {
     GRAPHER_DYNAMIC_CONFIG_URL,
 } from "../../settings/clientSettings.js"
 import { SlideGrapher } from "./SlideGrapher.js"
-import { parseSlideChartUrl } from "./slideshowUtils.js"
 
 interface SlideChartEmbedProps {
     url: string
@@ -22,8 +25,8 @@ interface SlideChartEmbedProps {
     /** If provided, the GrapherState is stored on this ref (for admin editor). Otherwise each chart owns its own. */
     grapherStateRef?: React.RefObject<GrapherState | null>
     onQueryStringChange?: (queryString: string) => void
-    hideTitle?: boolean
-    hideSubtitle?: boolean
+    /** If true, show timeline and controls. If false, hide them. */
+    interactiveCharts?: boolean
     /** Called once when the chart is fully loaded, with its title and subtitle */
     onChartReady?: (info: { title: string; subtitle: string }) => void
 }
@@ -45,8 +48,7 @@ export function SlideChartEmbed(
         resolvedInfo,
         grapherStateRef,
         onQueryStringChange,
-        hideTitle,
-        hideSubtitle,
+        interactiveCharts,
         onChartReady,
     } = props
 
@@ -60,8 +62,7 @@ export function SlideChartEmbed(
             <SlideExplorer
                 url={url}
                 onQueryStringChange={onQueryStringChange}
-                hideTitle={hideTitle}
-                hideSubtitle={hideSubtitle}
+                interactiveCharts={interactiveCharts}
                 onChartReady={onChartReady}
             />
         )
@@ -80,8 +81,7 @@ export function SlideChartEmbed(
             initialQueryString={parsed.queryString}
             grapherStateRef={grapherStateRef}
             onQueryStringChange={onQueryStringChange}
-            hideTitle={hideTitle}
-            hideSubtitle={hideSubtitle}
+            interactiveCharts={interactiveCharts}
             onChartReady={onChartReady}
         />
     )
@@ -95,22 +95,18 @@ export function SlideChartEmbed(
 function SlideExplorer(props: {
     url: string
     onQueryStringChange?: (queryString: string) => void
-    hideTitle?: boolean
-    hideSubtitle?: boolean
+    interactiveCharts?: boolean
     onChartReady?: (info: { title: string; subtitle: string }) => void
 }): React.ReactElement {
-    const { url, onQueryStringChange, hideTitle, hideSubtitle, onChartReady } =
-        props
+    const { url, onQueryStringChange, interactiveCharts, onChartReady } = props
     const parsed = parseSlideChartUrl(url)
     const explorerRef = useRef<Explorer>(null)
     const onChangeRef = useRef(onQueryStringChange)
     onChangeRef.current = onQueryStringChange
-    const hideTitleRef = useRef(hideTitle)
-    hideTitleRef.current = hideTitle
-    const hideSubtitleRef = useRef(hideSubtitle)
-    hideSubtitleRef.current = hideSubtitle
     const onChartReadyRef = useRef(onChartReady)
     onChartReadyRef.current = onChartReady
+    const interactiveChartsRef = useRef(interactiveCharts)
+    interactiveChartsRef.current = interactiveCharts
 
     const [explorerProps, setExplorerProps] = useState<ExplorerProps | null>(
         null
@@ -158,16 +154,12 @@ function SlideExplorer(props: {
                         title: explorer.grapherState.currentTitle,
                         subtitle: explorer.grapherState.currentSubtitle,
                     })
+                    const config = getSlideshowGrapherConfig({
+                        interactiveCharts:
+                            interactiveChartsRef.current ?? false,
+                    })
                     runInAction(() => {
-                        explorer.grapherState.hideTitle =
-                            hideTitleRef.current ?? false
-                        explorer.grapherState.hideSubtitle =
-                            hideSubtitleRef.current ?? false
-                        explorer.grapherState.hideLogo = true
-                        explorer.grapherState.hideFullscreenButton = true
-                        explorer.grapherState.hideControlsRow = true
-                        explorer.grapherState.hideShareButton = true
-                        explorer.grapherState.hideDownloadButton = true
+                        Object.assign(explorer.grapherState, config)
                     })
                 },
                 { fireImmediately: true }

@@ -1,4 +1,47 @@
 import { Slide, SlideTemplate, Url } from "@ourworldindata/utils"
+import { GrapherProgrammaticInterface } from "@ourworldindata/grapher"
+
+/** Config applied to all slideshow chart embeds */
+const baseGrapherConfig: Partial<GrapherProgrammaticInterface> = {
+    hideLogo: true,
+    hideTitle: true,
+    hideSubtitle: true,
+    hideShareButton: true,
+    hideFullscreenButton: true,
+    hideRelatedQuestion: true,
+    isEmbeddedInAnOwidPage: true,
+}
+
+/** Additional config when charts should be non-interactive (presentation mode) */
+const minimalGrapherConfig: Partial<GrapherProgrammaticInterface> = {
+    hideTimeline: true,
+    hideControlsRow: true,
+    hideDownloadButton: true,
+    hideExploreTheDataButton: true,
+}
+
+/** Additional config when charts should be interactive */
+const interactiveGrapherConfig: Partial<GrapherProgrammaticInterface> = {
+    hideExploreTheDataButton: false,
+    hideDownloadButton: true,
+}
+
+/**
+ * Returns the Grapher config for a slideshow chart embed.
+ *
+ * @param interactiveCharts - If true, timeline and controls are shown.
+ *   If false, they're hidden for a cleaner presentation.
+ */
+export function getSlideshowGrapherConfig(options: {
+    interactiveCharts: boolean
+}): Partial<GrapherProgrammaticInterface> {
+    return {
+        ...baseGrapherConfig,
+        ...(options.interactiveCharts
+            ? interactiveGrapherConfig
+            : minimalGrapherConfig),
+    }
+}
 
 /** Parse a slide chart URL into its components */
 export function parseSlideChartUrl(url: string): {

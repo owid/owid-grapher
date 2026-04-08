@@ -39,8 +39,8 @@ export interface SlideChartOnly {
     template: SlideTemplate.Chart
     /** Relative URL path, e.g. "/grapher/life-expectancy?tab=table" or "/explorers/population" */
     url: string
-    titleOverride?: string
-    subtitleOverride?: string
+    title?: string
+    subtitle?: string
     hideLogo?: boolean
     text?: MarkdownText
 }
@@ -104,6 +104,8 @@ export interface SlideshowConfig {
     slides: Slide[]
     /** Display name(s) of the author(s). Defaults to the creating user's name. */
     authors?: string
+    /** If true, charts show timeline/controls. If false (default), charts are minimal. */
+    interactiveCharts?: boolean
 }
 
 // --- Zod schemas ---
@@ -119,8 +121,8 @@ const SlideImageOnlySchema = z.object({
 const SlideChartOnlySchema = z.object({
     template: z.literal(SlideTemplate.Chart),
     url: z.string().min(1),
-    titleOverride: z.string().optional(),
-    subtitleOverride: z.string().optional(),
+    title: z.string().optional(),
+    subtitle: z.string().optional(),
     text: z.string().optional(),
     hideLogo: z.boolean().optional(),
 })
@@ -174,6 +176,7 @@ export const SlideSchema = z.discriminatedUnion("template", [
 export const SlideshowConfigSchema = z.object({
     slides: z.array(SlideSchema),
     authors: z.string().optional(),
+    interactiveCharts: z.boolean().optional(),
 })
 
 export const SlideshowCreateSchema = z.object({

@@ -55,10 +55,7 @@ function slideHasContent(slide: Slide): boolean {
             return slide.filename !== null || !!slide.slideTitle || !!slide.text
         case SlideTemplate.Chart:
             return (
-                !!slide.url ||
-                !!slide.titleOverride ||
-                !!slide.subtitleOverride ||
-                !!slide.text
+                !!slide.url || !!slide.title || !!slide.subtitle || !!slide.text
             )
         case SlideTemplate.Section:
             return !!slide.title || !!slide.subtitle
@@ -335,26 +332,26 @@ function TemplateOptionsEditor(props: {
                         onChange={(url) => onUpdate({ ...slide, url })}
                     />
                     <label>
-                        Title override
+                        Title
                         <InlineMarkdownEditor
-                            value={slide.titleOverride ?? ""}
+                            value={slide.title ?? ""}
                             onChange={(text) =>
                                 onUpdate({
                                     ...slide,
-                                    titleOverride: text || undefined,
+                                    title: text || undefined,
                                 })
                             }
                             placeholder="Slide title"
                         />
                     </label>
                     <label>
-                        Subtitle override
+                        Subtitle
                         <InlineMarkdownEditor
-                            value={slide.subtitleOverride ?? ""}
+                            value={slide.subtitle ?? ""}
                             onChange={(text) =>
                                 onUpdate({
                                     ...slide,
-                                    subtitleOverride: text || undefined,
+                                    subtitle: text || undefined,
                                 })
                             }
                             placeholder="Slide subtitle"

@@ -6,6 +6,7 @@
 
 .SlideshowEditorPage__header {
     display: flex;
+    align-items: center;
     gap: 16px;
     padding: 16px;
     border-bottom: 1px solid #e8e8e8;
@@ -16,6 +17,12 @@
         gap: 4px;
         font-weight: 600;
         font-size: 13px;
+
+        &:has(input[type="checkbox"]) {
+            flex-direction: row;
+            align-items: center;
+            white-space: nowrap;
+        }
     }
 
     input[type="text"] {

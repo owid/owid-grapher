@@ -5,7 +5,11 @@ import { SimpleMarkdownText } from "@ourworldindata/components"
 import { OWID_LOGO_SVG } from "@ourworldindata/grapher/src/captionedChart/LogosSVG"
 import { CLOUDFLARE_IMAGES_URL } from "../../settings/clientSettings.js"
 import { GrapherFigureView } from "../GrapherFigureView.js"
-import { getSlideAspectRatio, parseSlideChartUrl } from "./slideshowUtils.js"
+import {
+    getSlideAspectRatio,
+    getSlideshowGrapherConfig,
+    parseSlideChartUrl,
+} from "./slideshowUtils.js"
 
 /**
  * Pure slide rendering component shared between the baked site and the
@@ -20,10 +24,7 @@ export function SlideRenderer(props: {
     slide: Slide
     imageMetadata?: Record<string, ImageMetadata>
     /** Override chart rendering (for SlideGrapher with live sync) */
-    renderChart?: (
-        url: string,
-        options: { hideTitle: boolean; hideSubtitle: boolean }
-    ) => React.ReactElement
+    renderChart?: (url: string) => React.ReactElement
     isHidden?: boolean
 }): React.ReactElement {
     const { slide, imageMetadata, renderChart, isHidden } = props
@@ -83,18 +84,18 @@ export function SlideRenderer(props: {
             return (
                 <div className={className}>
                     {!slide.hideLogo && <SlideLogo />}
-                    {slide.titleOverride && (
+                    {slide.title && (
                         <h1 className="slide-title">
                             <SimpleMarkdownText
-                                text={slide.titleOverride}
+                                text={slide.title}
                                 useParagraphs={false}
                             />
                         </h1>
                     )}
-                    {slide.subtitleOverride && (
+                    {slide.subtitle && (
                         <p className="slide-subtitle">
                             <SimpleMarkdownText
-                                text={slide.subtitleOverride}
+                                text={slide.subtitle}
                                 useParagraphs={false}
                             />
                         </p>
@@ -102,8 +103,6 @@ export function SlideRenderer(props: {
                     <div className="slide-chart-content">
                         <ChartRenderer
                             url={slide.url}
-                            hideTitle={!!slide.titleOverride}
-                            hideSubtitle={!!slide.subtitleOverride}
                             renderChart={renderChart}
                         />
                         {slide.text && (
@@ -155,17 +154,12 @@ function ImageRenderer(props: {
 
 function ChartRenderer(props: {
     url: string
-    hideTitle: boolean
-    hideSubtitle: boolean
-    renderChart?: (
-        url: string,
-        options: { hideTitle: boolean; hideSubtitle: boolean }
-    ) => React.ReactElement
+    renderChart?: (url: string) => React.ReactElement
 }): React.ReactElement {
-    const { url, hideTitle, hideSubtitle, renderChart } = props
+    const { url, renderChart } = props
 
     if (renderChart) {
-        return renderChart(url, { hideTitle, hideSubtitle })
+        return renderChart(url)
     }
 
     // Default SSR fallback: parse URL and render GrapherFigureView.
@@ -179,17 +173,9 @@ function ChartRenderer(props: {
                 queryStr={parsed.queryString}
                 isEmbeddedInAnOwidPage={true}
                 isEmbeddedInADataPage={false}
-                config={{
-                    hideShareButton: true,
-                    hideExploreTheDataButton: true,
-                    hideRelatedQuestion: true,
-                    hideFullscreenButton: true,
-                    hideControlsRow: true,
-                    hideDownloadButton: true,
-                    hideLogo: true,
-                    hideTitle,
-                    hideSubtitle,
-                }}
+                config={getSlideshowGrapherConfig({
+                    interactiveCharts: false,
+                })}
             />
         </div>
     )

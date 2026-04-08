@@ -28,6 +28,8 @@ export interface SlideshowPresentationProps {
     imageMetadata: Record<string, ImageMetadata>
     /** Pre-resolved chart type info, keyed by slide URL. Computed at bake time. */
     chartResolutions: Record<string, ResolvedSlideChartInfo>
+    /** If true, charts show timeline and controls. */
+    interactiveCharts?: boolean
 }
 
 /**
@@ -45,11 +47,10 @@ export function SlideshowPresentation(props: {
     imageMetadata: Record<string, ImageMetadata>
     /** Pre-resolved chart type info. If not provided, falls back to client-side resolution. */
     chartResolutions?: Record<string, ResolvedSlideChartInfo>
+    /** If true, show timeline and controls on charts. */
+    interactiveCharts?: boolean
     /** Override chart rendering (used by admin editor for live MobX sync) */
-    renderChart?: (
-        url: string,
-        options: { hideTitle: boolean; hideSubtitle: boolean }
-    ) => React.ReactElement
+    renderChart?: (url: string) => React.ReactElement
     /** Controlled slide index (optional — if omitted, manages its own state) */
     currentSlideIndex?: number
     /** Called when the user navigates (optional — for controlled mode) */
@@ -61,6 +62,7 @@ export function SlideshowPresentation(props: {
         slides,
         imageMetadata,
         chartResolutions,
+        interactiveCharts,
         renderChart,
     } = props
 
@@ -88,20 +90,16 @@ export function SlideshowPresentation(props: {
     // its own state (no shared grapherStateRef needed since all
     // slides are mounted simultaneously).
     const defaultRenderChart = useCallback(
-        (
-            url: string,
-            options: { hideTitle: boolean; hideSubtitle: boolean }
-        ): React.ReactElement => {
+        (url: string): React.ReactElement => {
             return (
                 <SlideChartEmbed
                     url={url}
                     resolvedInfo={chartResolutions?.[url]}
-                    hideTitle={options.hideTitle}
-                    hideSubtitle={options.hideSubtitle}
+                    interactiveCharts={interactiveCharts}
                 />
             )
         },
-        [chartResolutions]
+        [chartResolutions, interactiveCharts]
     )
 
     const containerRef = useRef<HTMLDivElement>(null)

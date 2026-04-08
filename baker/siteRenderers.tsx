@@ -840,7 +840,11 @@ export const renderSlideshowPage = async (
     slideshow: {
         title: string
         slug: string
-        config: { slides: Slide[]; authors?: string }
+        config: {
+            slides: Slide[]
+            authors?: string
+            interactiveCharts?: boolean
+        }
     },
     imageMetadata: Record<string, ImageMetadata>,
     linkedAuthors: LinkedAuthor[] = [],
@@ -856,6 +860,7 @@ export const renderSlideshowPage = async (
             slides={slideshow.config.slides}
             imageMetadata={imageMetadata}
             chartResolutions={chartResolutions}
+            interactiveCharts={slideshow.config.interactiveCharts}
         />
     )
 }

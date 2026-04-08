@@ -8,7 +8,7 @@ import {
 } from "react"
 import * as React from "react"
 import { useHistory } from "react-router-dom"
-import { Button, Tabs } from "antd"
+import { Button, Tabs, Tooltip } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     faPlus,
@@ -57,6 +57,7 @@ export function SlideshowEditorPage(props: {
     const [currentSlideIndex, setCurrentSlideIndex] = useState(0)
     const [isDirty, setIsDirty] = useState(false)
     const [isPublished, setIsPublished] = useState(0)
+    const [interactiveCharts, setInteractiveCharts] = useState(false)
 
     const { data: images = [] } = useImages()
     const imageMetadata = useMemo(() => {
@@ -82,6 +83,7 @@ export function SlideshowEditorPage(props: {
             setSlugIsCustom(true)
             setIsPublished(slideshow.isPublished)
             setAuthors(slideshow.config.authors ?? admin.username)
+            setInteractiveCharts(slideshow.config.interactiveCharts ?? false)
             if (slideshow.config.slides.length > 0) {
                 setSlides(slideshow.config.slides)
             }
@@ -138,11 +140,11 @@ export function SlideshowEditorPage(props: {
                     return prev
                 // Only auto-populate if the fields are empty
                 const updates: Partial<typeof slide> = {}
-                if (!slide.titleOverride && info.title) {
-                    updates.titleOverride = info.title
+                if (!slide.title && info.title) {
+                    updates.title = info.title
                 }
-                if (!slide.subtitleOverride && info.subtitle) {
-                    updates.subtitleOverride = toPlaintext(info.subtitle)
+                if (!slide.subtitle && info.subtitle) {
+                    updates.subtitle = toPlaintext(info.subtitle)
                 }
                 if (Object.keys(updates).length === 0) return prev
                 const next = [...prev]
@@ -189,6 +191,7 @@ export function SlideshowEditorPage(props: {
             const config: SlideshowConfig = {
                 slides,
                 authors: authors || undefined,
+                interactiveCharts: interactiveCharts || undefined,
             }
             const shouldPublish = opts?.publish || isPublished === 1
             const payload = {
@@ -224,6 +227,7 @@ export function SlideshowEditorPage(props: {
             slug,
             title,
             authors,
+            interactiveCharts,
             slides,
             history,
             isPublished,
@@ -305,6 +309,19 @@ export function SlideshowEditorPage(props: {
                             placeholder="Author name(s)"
                         />
                     </label>
+                    <Tooltip title="When enabled, charts show their timeline, tab controls, and download button. When disabled, charts are displayed in a minimal presentation mode.">
+                        <label>
+                            <input
+                                type="checkbox"
+                                checked={interactiveCharts}
+                                onChange={(e) => {
+                                    setInteractiveCharts(e.target.checked)
+                                    setIsDirty(true)
+                                }}
+                            />{" "}
+                            Interactive charts
+                        </label>
+                    </Tooltip>
                 </div>
 
                 <div className="SlideshowEditorPage__body">
@@ -316,18 +333,14 @@ export function SlideshowEditorPage(props: {
                             <SlideRenderer
                                 slide={currentSlide}
                                 imageMetadata={imageMetadata}
-                                renderChart={(
-                                    url,
-                                    { hideTitle, hideSubtitle }
-                                ) => (
+                                renderChart={(url) => (
                                     <SlideChartEmbed
                                         url={url}
                                         grapherStateRef={grapherStateRef}
                                         onQueryStringChange={
                                             handleGrapherQueryStringChange
                                         }
-                                        hideTitle={hideTitle}
-                                        hideSubtitle={hideSubtitle}
+                                        interactiveCharts={true}
                                         onChartReady={handleChartReady}
                                     />
                                 )}

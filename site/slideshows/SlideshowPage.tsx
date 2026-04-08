@@ -27,6 +27,7 @@ export interface SlideshowPageProps {
     slides: SlideshowConfig["slides"]
     imageMetadata: Record<string, ImageMetadata>
     chartResolutions: Record<string, ResolvedSlideChartInfo>
+    interactiveCharts?: boolean
 }
 
 export function SlideshowPage(props: SlideshowPageProps): React.ReactElement {
@@ -39,6 +40,7 @@ export function SlideshowPage(props: SlideshowPageProps): React.ReactElement {
         slides,
         imageMetadata,
         chartResolutions,
+        interactiveCharts,
     } = props
 
     const canonicalUrl = `${baseUrl}/slideshows/${slug}`
@@ -50,6 +52,7 @@ export function SlideshowPage(props: SlideshowPageProps): React.ReactElement {
         slides,
         imageMetadata,
         chartResolutions,
+        interactiveCharts,
     }
 
     // Collect all image URLs for preloading

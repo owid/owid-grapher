@@ -15,6 +15,7 @@ import {
     DATA_API_URL,
     GRAPHER_DYNAMIC_CONFIG_URL,
 } from "../../settings/clientSettings.js"
+import { getSlideshowGrapherConfig } from "./slideshowUtils.js"
 
 export interface SlideGrapherProps {
     /** Chart slug — used as the React key for remounting */
@@ -31,10 +32,8 @@ export interface SlideGrapherProps {
     grapherStateRef?: React.RefObject<GrapherState | null>
     /** Called when the user interacts with the Grapher and its params change */
     onQueryStringChange?: (queryString: string) => void
-    /** Hide the Grapher's built-in title (when the slide provides its own) */
-    hideTitle?: boolean
-    /** Hide the Grapher's subtitle */
-    hideSubtitle?: boolean
+    /** If true, show timeline and controls. If false, hide them. */
+    interactiveCharts?: boolean
     /** Called once when the chart is fully loaded, with its title and subtitle */
     onChartReady?: (info: { title: string; subtitle: string }) => void
 }
@@ -81,19 +80,11 @@ export function SlideGrapher(props: SlideGrapherProps): React.ReactElement {
         () => ({
             bakedGrapherURL: BAKED_GRAPHER_URL,
             adminBaseUrl: ADMIN_BASE_URL,
-            hideShareButton: true,
-            hideExploreTheDataButton: true,
-            hideRelatedQuestion: true,
-            hideFullscreenButton: true,
-            hideControlsRow: true,
-            hideDownloadButton: true,
-            hideTimeline: true,
-            hideLogo: true,
-            hideTitle: props.hideTitle ?? false,
-            hideSubtitle: props.hideSubtitle ?? false,
-            isEmbeddedInAnOwidPage: true,
+            ...getSlideshowGrapherConfig({
+                interactiveCharts: props.interactiveCharts ?? false,
+            }),
         }),
-        [props.hideTitle, props.hideSubtitle]
+        [props.interactiveCharts]
     )
 
     // When the slug changes, clear the ref so FetchingGrapher creates
@@ -185,17 +176,9 @@ export function SlideGrapher(props: SlideGrapherProps): React.ReactElement {
                     strToQueryParams(initialQueryString)
                 )
             }
-            // Re-apply display overrides for the new slide
-            state.hideTitle = props.hideTitle ?? false
-            state.hideSubtitle = props.hideSubtitle ?? false
         })
         isSuppressingReactionRef.current = false
-    }, [
-        initialQueryString,
-        grapherStateRef,
-        props.hideTitle,
-        props.hideSubtitle,
-    ])
+    }, [initialQueryString, grapherStateRef])
 
     return (
         <div ref={containerRef} className="slide__grapher-container">
