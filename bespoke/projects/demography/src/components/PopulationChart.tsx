@@ -229,8 +229,7 @@ function PopulationChartContent({
         return null
     }
 
-    const hasUserChanges =
-        showCustomProjection && simulation.activePreset !== "unwpp"
+    const hasUserChanges = showCustomProjection && simulation.isModified
     const projectionColor = hasUserChanges ? USER_MODIFIED_COLOR : DENIM_BLUE
 
     // Show change annotation at the end year when not hovering,

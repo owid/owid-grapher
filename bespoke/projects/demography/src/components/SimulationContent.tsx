@@ -66,7 +66,7 @@ export function SimulationContent({
         ? PARAMETER_KEYS.filter((k) => k !== "netMigrationRate")
         : PARAMETER_KEYS
 
-    const hasUserChanges = simulation.activePreset !== "unwpp"
+    const hasUserChanges = simulation.isModified
     const pyramidBarColor =
         hasUserChanges && year > HISTORICAL_END_YEAR
             ? {
