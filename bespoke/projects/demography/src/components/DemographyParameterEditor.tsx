@@ -27,7 +27,6 @@ import { TimeAxisX } from "./TimeAxisX.js"
 import { ParameterKey } from "../helpers/types.js"
 import { getInterpolatedValue } from "../model/projectionRunner.js"
 import { widthToBreakpoint } from "../helpers/useBreakpoint.js"
-import { useDismissOnTouchOutside } from "../../../../hooks/useDismissOnTouchOutside.js"
 import { getParameterChartFonts } from "../helpers/fonts.js"
 
 const SMALL_DOT_RADIUS = 3
@@ -82,9 +81,6 @@ function DemographyParameterEditor({
     const config = parameterConfigByKey[variant]
     const fonts = getParameterChartFonts(widthToBreakpoint(width))
     const [hoveredYear, setHoveredYear] = useState<number | null>(null)
-    const pointerDownPos = useRef<{ x: number; y: number } | null>(null)
-    const didSwipe = useRef(false)
-    const stickyHover = useRef(false)
     const svgRef = useRef<SVGSVGElement>(null)
 
     const { points: historicalDataPoints } = useMemo(
@@ -146,8 +142,8 @@ function DemographyParameterEditor({
 
     const axisColor = minValue === 0 ? ZERO_LINE_COLOR : "#ddd"
 
-    const handlePointerMove = useCallback(
-        (e: React.PointerEvent<SVGRectElement>) => {
+    const handleMouseMove = useCallback(
+        (e: React.MouseEvent<SVGRectElement>) => {
             const point = localPoint(e)
             if (!point) return
             const clampedX = Math.max(
@@ -168,19 +164,9 @@ function DemographyParameterEditor({
         [xScale, innerWidth]
     )
 
-    const handlePointerLeave = useCallback((e: React.PointerEvent) => {
-        // Don't dismiss on touch — sticky hover handles that
-        if (e.pointerType === "touch") return
+    const handleMouseLeave = useCallback(() => {
         setHoveredYear(null)
-        stickyHover.current = false
     }, [])
-
-    const dismissStickyHover = useCallback(() => {
-        if (!stickyHover.current) return
-        setHoveredYear(null)
-        stickyHover.current = false
-    }, [])
-    useDismissOnTouchOutside(svgRef, hoveredYear !== null, dismissStickyHover)
 
     const firstHistoricalDataPoint = historicalDataPoints[0]
     const lastHistoricalDataPoint = historicalDataPoints.at(-1)!
@@ -443,7 +429,7 @@ function DemographyParameterEditor({
                             stroke={ZERO_LINE_COLOR}
                             strokeWidth={1}
                         />
-                        {yMinOverride === 0 && (
+                        {yMinOverride === 0 && maxGridLines !== 0 && (
                             <text
                                 x={0}
                                 y={yScale(0) - 4}
@@ -590,49 +576,8 @@ function DemographyParameterEditor({
                     width={innerWidth + 40}
                     height={innerHeight}
                     fill="transparent"
-                    onPointerDown={(e) => {
-                        if (e.pointerType === "touch") {
-                            pointerDownPos.current = {
-                                x: e.clientX,
-                                y: e.clientY,
-                            }
-                            didSwipe.current = false
-                            e.currentTarget.setPointerCapture(e.pointerId)
-                        }
-                        stickyHover.current = false
-                        handlePointerMove(e)
-                    }}
-                    onPointerMove={(e) => {
-                        if (
-                            e.pointerType === "touch" &&
-                            pointerDownPos.current
-                        ) {
-                            const dx = e.clientX - pointerDownPos.current.x
-                            const dy = e.clientY - pointerDownPos.current.y
-                            if (dx * dx + dy * dy > 25) {
-                                didSwipe.current = true
-                            }
-                        }
-                        handlePointerMove(e)
-                    }}
-                    onPointerUp={(e) => {
-                        e.currentTarget.releasePointerCapture(e.pointerId)
-                        pointerDownPos.current = null
-                        if (e.pointerType === "touch" && !didSwipe.current) {
-                            // Tap — keep hover sticky
-                            stickyHover.current = true
-                        } else {
-                            setHoveredYear(null)
-                            stickyHover.current = false
-                        }
-                    }}
-                    onPointerCancel={(e) => {
-                        e.currentTarget.releasePointerCapture(e.pointerId)
-                        pointerDownPos.current = null
-                        setHoveredYear(null)
-                        stickyHover.current = false
-                    }}
-                    onPointerLeave={handlePointerLeave}
+                    onMouseMove={handleMouseMove}
+                    onMouseLeave={handleMouseLeave}
                 />
 
                 {/* Hover elements */}
@@ -714,8 +659,8 @@ function DemographyParameterEditor({
                                         [year]: value,
                                     })
                                 }
-                                onPointerEnter={() => setHoveredYear(year)}
-                                onPointerLeave={handlePointerLeave}
+                                onMouseEnter={() => setHoveredYear(year)}
+                                onMouseLeave={handleMouseLeave}
                             />
                         )
                     })}
@@ -806,8 +751,8 @@ function DraggableControlPoint({
     dragArrowFontSize,
     controlLabelFontSize,
     onValueChange,
-    onPointerEnter,
-    onPointerLeave,
+    onMouseEnter,
+    onMouseLeave,
 }: {
     cx: number
     cy: number
@@ -821,8 +766,8 @@ function DraggableControlPoint({
     dragArrowFontSize: number
     controlLabelFontSize: number
     onValueChange: (value: number) => void
-    onPointerEnter?: () => void
-    onPointerLeave?: (e: React.PointerEvent) => void
+    onMouseEnter?: () => void
+    onMouseLeave?: () => void
 }) {
     const [isDragging, setIsDragging] = useState(false)
     const showBackground = highlighted || isDragging
@@ -836,8 +781,8 @@ function DraggableControlPoint({
                 r={CONTROL_POINT_HIT_RADIUS}
                 fill="transparent"
                 cursor="ns-resize"
-                onPointerEnter={onPointerEnter}
-                onPointerLeave={onPointerLeave}
+                onMouseEnter={onMouseEnter}
+                onMouseLeave={onMouseLeave}
                 onPointerDown={(e) => {
                     e.currentTarget.setPointerCapture(e.pointerId)
                     setIsDragging(true)
