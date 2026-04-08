@@ -7,10 +7,10 @@ import type {
 } from "owid-bespoke-types"
 import StylesTarget from "vite-plugin-css-position/react"
 
-import { SimulationVariantWithProviders } from "./variants/SimulationVariant.js"
-import { PopulationVariantWithProviders } from "./variants/PopulationVariant.js"
-import { PopulationPyramidVariantWithProviders } from "./variants/PopulationPyramidVariant.js"
-import { ParametersVariantWithProviders } from "./variants/ParametersVariant.js"
+import { SimulationVariant } from "./variants/SimulationVariant.js"
+import { PopulationVariant } from "./variants/PopulationVariant.js"
+import { PopulationPyramidVariant } from "./variants/PopulationPyramidVariant.js"
+import { ParametersVariant } from "./variants/ParametersVariant.js"
 import { parseConfig, VariantName } from "./config.js"
 
 import "./index.scss"
@@ -22,25 +22,25 @@ enableShadowDOM()
 // export const VARIANTS = [
 //     {
 //         name: "simulation",
-//         component: SimulationVariantWithProviders,
+//         component: SimulationVariant,
 //         demoConfig: {},
 //         demoSize: "widest",
 //     },
 //     {
 //         name: "population",
-//         component: PopulationVariantWithProviders,
+//         component: PopulationVariant,
 //         demoConfig: {},
 //         demoSize: "wide",
 //     },
 //     {
 //         name: "populationPyramid",
-//         component: PopulationPyramidVariantWithProviders,
+//         component: PopulationPyramidVariant,
 //         demoConfig: {},
 //         demoSize: "narrow",
 //     },
 //     {
 //         name: "parameters",
-//         component: ParametersVariantWithProviders,
+//         component: ParametersVariant,
 //         demoConfig: {},
 //         demoSize: "narrow",
 //     },
@@ -49,7 +49,7 @@ enableShadowDOM()
 export const VARIANTS = [
     {
         name: "population",
-        component: PopulationVariantWithProviders,
+        component: PopulationVariant,
         demoConfig: {
             region: "South Korea",
             hideControls: "true",
@@ -58,7 +58,7 @@ export const VARIANTS = [
     },
     {
         name: "parameters",
-        component: ParametersVariantWithProviders,
+        component: ParametersVariant,
         demoConfig: {
             region: "South Korea",
             hideControls: "true",
@@ -67,7 +67,7 @@ export const VARIANTS = [
     },
     {
         name: "simulation",
-        component: SimulationVariantWithProviders,
+        component: SimulationVariant,
         demoConfig: {
             region: "South Korea",
             hideControls: "true",
@@ -79,7 +79,7 @@ export const VARIANTS = [
     },
     {
         name: "simulation",
-        component: SimulationVariantWithProviders,
+        component: SimulationVariant,
         demoConfig: {
             region: "South Korea",
             hideControls: "true",
@@ -91,7 +91,7 @@ export const VARIANTS = [
     },
     // {
     //     name: "populationPyramid",
-    //     component: PopulationPyramidVariantWithProviders,
+    //     component: PopulationPyramidVariant,
     //     demoConfig: {
     //         region: "South Korea",
     //         hideControls: "true",
@@ -100,7 +100,7 @@ export const VARIANTS = [
     // },
     {
         name: "populationPyramid",
-        component: PopulationPyramidVariantWithProviders,
+        component: PopulationPyramidVariant,
         demoConfig: {
             region: "South Korea",
             hideControls: "true",
@@ -111,7 +111,7 @@ export const VARIANTS = [
     },
     {
         name: "simulation",
-        component: SimulationVariantWithProviders,
+        component: SimulationVariant,
         demoConfig: {
             region: "South Korea",
             hideControls: "true",
@@ -123,7 +123,7 @@ export const VARIANTS = [
     },
     {
         name: "simulation",
-        component: SimulationVariantWithProviders,
+        component: SimulationVariant,
         demoConfig: {
             region: "South Korea",
         },
@@ -147,7 +147,7 @@ export const mount: BespokeComponentMountFn = (
     root.render(
         <>
             <StylesTarget />
-            <variant.component container={container} config={config} />
+            <variant.component config={config} />
         </>
     )
     return () => root.unmount()

@@ -2,7 +2,7 @@ import cx from "classnames"
 import { QueryClientProvider } from "@tanstack/react-query"
 
 import { queryClient, useDemographyData } from "../helpers/fetch.js"
-import type { SimulationVariantConfig } from "../config.js"
+import type { SimulationVariantConfig, VariantProps } from "../config.js"
 import { CHART_FOOTER_SOURCES } from "../helpers/constants.js"
 import { useInitialEntityName } from "../helpers/useInitialEntityName.js"
 import {
@@ -15,11 +15,11 @@ import {
     DemographyMetadata,
     ParameterKey,
 } from "../helpers/types.js"
-import { entityNameForSentence } from "../helpers/utils.js"
+
 import { Frame } from "../../../../components/Frame/Frame.js"
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { SimulationContent } from "../components/SimulationContent.js"
-import { InlineEntitySelector } from "../components/InlineEntitySelector.js"
+import { EntityNameOrSelector } from "../components/EntityNameOrSelector.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
 import {
     BreakpointProvider,
@@ -27,22 +27,9 @@ import {
     breakpointClass,
 } from "../helpers/useBreakpoint.js"
 
-export function SimulationVariantWithProviders(props: {
-    container: HTMLDivElement
-    config: SimulationVariantConfig
-}): React.ReactElement {
-    return (
-        <QueryClientProvider client={queryClient}>
-            <SimulationVariant config={props.config} />
-        </QueryClientProvider>
-    )
-}
-
-function SimulationVariant({
+export function SimulationVariant({
     config,
-}: {
-    config: SimulationVariantConfig
-}): React.ReactElement {
+}: VariantProps<SimulationVariantConfig>): React.ReactElement {
     const [entityName, setEntityName] = useInitialEntityName(config.region)
     const { breakpoint, ref: rootRef } = useContainerBreakpoint()
 
@@ -53,29 +40,31 @@ function SimulationVariant({
     if (!metadata || !entityData) return <DemographyChartError />
 
     return (
-        <BreakpointProvider value={breakpoint}>
-            <div
-                ref={rootRef}
-                className={cx(
-                    "demography-chart demography-chart__simulation-variant",
-                    breakpointClass(breakpoint)
-                )}
-            >
-                <SimulationCaptionedChart
-                    data={entityData}
-                    metadata={metadata}
-                    entityName={entityName}
-                    setEntityName={setEntityName}
-                    isLoading={isLoadingEntityData}
-                    subtitle={config.subtitle}
-                    breakpoint={breakpoint}
-                    hideControls={config.hideControls}
-                    focusParameter={config.focusParameter}
-                    stabilizingParameter={config.stabilizingParameter}
-                    hidePopulationPyramid={config.hidePopulationPyramid}
-                />
-            </div>
-        </BreakpointProvider>
+        <QueryClientProvider client={queryClient}>
+            <BreakpointProvider value={breakpoint}>
+                <div
+                    ref={rootRef}
+                    className={cx(
+                        "demography-chart demography-chart__simulation-variant",
+                        breakpointClass(breakpoint)
+                    )}
+                >
+                    <SimulationCaptionedChart
+                        data={entityData}
+                        metadata={metadata}
+                        entityName={entityName}
+                        setEntityName={setEntityName}
+                        isLoading={isLoadingEntityData}
+                        title={config.title}
+                        subtitle={config.subtitle}
+                        hideControls={config.hideControls}
+                        focusParameter={config.focusParameter}
+                        stabilizingParameter={config.stabilizingParameter}
+                        hidePopulationPyramid={config.hidePopulationPyramid}
+                    />
+                </div>
+            </BreakpointProvider>
+        </QueryClientProvider>
     )
 }
 
@@ -85,46 +74,44 @@ function SimulationCaptionedChart({
     entityName,
     setEntityName,
     isLoading = false,
-    title: _titleOverride,
+    title: titleOverride,
     subtitle: subtitleOverride,
     hideControls,
     focusParameter,
     stabilizingParameter,
     hidePopulationPyramid,
-    _breakpoint,
 }: {
     data: CountryData
     metadata: DemographyMetadata
     entityName: string
     setEntityName: (name: string) => void
     isLoading?: boolean
+    title?: string
     subtitle?: string
     hideControls?: boolean
     focusParameter?: ParameterKey
     stabilizingParameter?: ParameterKey
     hidePopulationPyramid?: boolean
-    breakpoint?: string
 }) {
     const countryName = data.country
 
-    const title: React.ReactNode =
-        hideControls && countryName === "World" ? (
-            <>How many people will there be by 2100?</>
-        ) : (
-            <>
-                How many people will live in{" "}
-                {hideControls ? (
-                    entityNameForSentence(countryName)
-                ) : (
-                    <InlineEntitySelector
-                        metadata={metadata}
-                        entityName={entityName}
-                        onChange={setEntityName}
-                    />
-                )}{" "}
-                by 2100?
-            </>
-        )
+    const title: React.ReactNode = titleOverride ? (
+        titleOverride
+    ) : hideControls && countryName === "World" ? (
+        <>How many people will there be by 2100?</>
+    ) : (
+        <>
+            How many people will live in{" "}
+            <EntityNameOrSelector
+                hideControls={hideControls}
+                entityName={entityName}
+                countryName={countryName}
+                metadata={metadata}
+                onChange={setEntityName}
+            />{" "}
+            by 2100?
+        </>
+    )
     const subtitle =
         subtitleOverride ??
         "Demographers publish projections of how populations will change in the future. But what if fertility rates fall faster, or rebound? Or migration rates change? Adjust these assumptions and compare."
