@@ -3,9 +3,18 @@ $panel-border: $blue-10;
 
 $panel-gap: 12px;
 
+.responsive-container {
+    width: 100%;
+    height: 100%;
+}
+
 .demography-chart {
     // max-width: 1200px;
     color: $dark-text;
+
+    .demography-chart__nowrap {
+        white-space: nowrap;
+    }
 
     // &.demography-chart__population-variant {
     //     max-width: 850px;
@@ -26,8 +35,8 @@ $panel-gap: 12px;
     }
 }
 
-.demography-population-only {
-    .demography-population-only__chart-area {
+.demography-population-variant {
+    .demography-population-variant__chart-area {
         position: relative;
         width: 100%;
         aspect-ratio: 2 / 1;
