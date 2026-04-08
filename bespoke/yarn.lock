@@ -5,6 +5,58 @@ __metadata:
   version: 8
   cacheKey: 10
 
+"@floating-ui/core@npm:^1.7.5":
+  version: 1.7.5
+  resolution: "@floating-ui/core@npm:1.7.5"
+  dependencies:
+    "@floating-ui/utils": "npm:^0.2.11"
+  checksum: 10/fecdc9b3ce93f02bf78a6114b93730a4cb9fa8234c62f9a949016186297a039c9f9cd3c5c81ff74b93ebddf0b32048c4af7a528afe7904b75423ed2e7491b888
+  languageName: node
+  linkType: hard
+
+"@floating-ui/dom@npm:^1.7.6":
+  version: 1.7.6
+  resolution: "@floating-ui/dom@npm:1.7.6"
+  dependencies:
+    "@floating-ui/core": "npm:^1.7.5"
+    "@floating-ui/utils": "npm:^0.2.11"
+  checksum: 10/84dff2ffdf85c8b92d7edafc543c55869abbeaeb3007fa983159467e050153b507a0f5fe8e84f88c3f28c35a82de9df9c20a6eef5560cbba3afae19141444ff2
+  languageName: node
+  linkType: hard
+
+"@floating-ui/react-dom@npm:^2.1.8":
+  version: 2.1.8
+  resolution: "@floating-ui/react-dom@npm:2.1.8"
+  dependencies:
+    "@floating-ui/dom": "npm:^1.7.6"
+  peerDependencies:
+    react: ">=16.8.0"
+    react-dom: ">=16.8.0"
+  checksum: 10/39c3e3e5538a111a3eadf1b9ca486d7dc17c7eb24b83a0ea9b4c189fa7dbe5abe01357388d8cf6a4badb2d3fec2b1090e10529537bde91acbcfe19b0a8d10f90
+  languageName: node
+  linkType: hard
+
+"@floating-ui/react@npm:^0.27.16":
+  version: 0.27.19
+  resolution: "@floating-ui/react@npm:0.27.19"
+  dependencies:
+    "@floating-ui/react-dom": "npm:^2.1.8"
+    "@floating-ui/utils": "npm:^0.2.11"
+    tabbable: "npm:^6.0.0"
+  peerDependencies:
+    react: ">=17.0.0"
+    react-dom: ">=17.0.0"
+  checksum: 10/4ebdc582544d0abf8f8011a6182af2ce4464e3a6a9a0fd4ff5facef161e73c6defa80240a7dc62f7cd2cbd5ecfb00b17c5dd5b10aa6e787cbc1ed963f323245c
+  languageName: node
+  linkType: hard
+
+"@floating-ui/utils@npm:^0.2.11":
+  version: 0.2.11
+  resolution: "@floating-ui/utils@npm:0.2.11"
+  checksum: 10/72150138ba1c274d757a1da85233202fa9fdfd2272ec1fb0883eb0ffdf138863af81573049ed2c20b98adb4b7ae2236065541ce14037fe328955089831a678d5
+  languageName: node
+  linkType: hard
+
 "@formatjs/ecma402-abstract@npm:2.3.6":
   version: 2.3.6
   resolution: "@formatjs/ecma402-abstract@npm:2.3.6"
@@ -206,6 +258,12 @@ __metadata:
   languageName: node
   linkType: soft
 
+"@ourworldindata/components@link:../../../packages/@ourworldindata/components::locator=%40owid%2Fbespoke-income-plots%40workspace%3Aprojects%2Fincome-plots":
+  version: 0.0.0-use.local
+  resolution: "@ourworldindata/components@link:../../../packages/@ourworldindata/components::locator=%40owid%2Fbespoke-income-plots%40workspace%3Aprojects%2Fincome-plots"
+  languageName: node
+  linkType: soft
+
 "@ourworldindata/core-table@link:../../../packages/@ourworldindata/core-table::locator=%40owid%2Fbespoke-causes-of-death%40workspace%3Aprojects%2Fcauses-of-death":
   version: 0.0.0-use.local
   resolution: "@ourworldindata/core-table@link:../../../packages/@ourworldindata/core-table::locator=%40owid%2Fbespoke-causes-of-death%40workspace%3Aprojects%2Fcauses-of-death"
@@ -242,6 +300,12 @@ __metadata:
   languageName: node
   linkType: soft
 
+"@ourworldindata/types@link:../../../packages/@ourworldindata/types::locator=%40owid%2Fbespoke-income-plots%40workspace%3Aprojects%2Fincome-plots":
+  version: 0.0.0-use.local
+  resolution: "@ourworldindata/types@link:../../../packages/@ourworldindata/types::locator=%40owid%2Fbespoke-income-plots%40workspace%3Aprojects%2Fincome-plots"
+  languageName: node
+  linkType: soft
+
 "@ourworldindata/types@link:../../packages/@ourworldindata/types::locator=%40owid%2Fbespoke-components%40workspace%3Acomponents":
   version: 0.0.0-use.local
   resolution: "@ourworldindata/types@link:../../packages/@ourworldindata/types::locator=%40owid%2Fbespoke-components%40workspace%3Acomponents"
@@ -263,6 +327,12 @@ __metadata:
 "@ourworldindata/utils@link:../../../packages/@ourworldindata/utils::locator=%40owid%2Fbespoke-example%40workspace%3Aprojects%2Fexample":
   version: 0.0.0-use.local
   resolution: "@ourworldindata/utils@link:../../../packages/@ourworldindata/utils::locator=%40owid%2Fbespoke-example%40workspace%3Aprojects%2Fexample"
+  languageName: node
+  linkType: soft
+
+"@ourworldindata/utils@link:../../../packages/@ourworldindata/utils::locator=%40owid%2Fbespoke-income-plots%40workspace%3Aprojects%2Fincome-plots":
+  version: 0.0.0-use.local
+  resolution: "@ourworldindata/utils@link:../../../packages/@ourworldindata/utils::locator=%40owid%2Fbespoke-income-plots%40workspace%3Aprojects%2Fincome-plots"
   languageName: node
   linkType: soft
 
@@ -371,6 +441,38 @@ __metadata:
     "@ourworldindata/utils": "link:../../packages/@ourworldindata/utils"
     "@typescript/native-preview": "npm:^7.0.0-dev.20260401.1"
     react: "npm:^19.2.4"
+  languageName: unknown
+  linkType: soft
+
+"@owid/bespoke-income-plots@workspace:projects/income-plots":
+  version: 0.0.0-use.local
+  resolution: "@owid/bespoke-income-plots@workspace:projects/income-plots"
+  dependencies:
+    "@floating-ui/react": "npm:^0.27.16"
+    "@fortawesome/fontawesome-svg-core": "npm:^6.7.2"
+    "@fortawesome/free-solid-svg-icons": "npm:^6.7.2"
+    "@fortawesome/react-fontawesome": "npm:^0.2.2"
+    "@ourworldindata/components": "link:../../../packages/@ourworldindata/components"
+    "@ourworldindata/types": "link:../../../packages/@ourworldindata/types"
+    "@ourworldindata/utils": "link:../../../packages/@ourworldindata/utils"
+    "@react-stately/flags": "npm:^3.1.2"
+    "@types/d3": "npm:^7.4.3"
+    "@types/react": "npm:^19.2.14"
+    "@types/react-dom": "npm:^19.2.3"
+    "@vitejs/plugin-react": "npm:^6.0.0"
+    classnames: "npm:^2.5.1"
+    d3: "npm:^7.9.0"
+    fast-kde: "npm:^0.2.2"
+    jotai: "npm:^2.15.1"
+    jotai-effect: "npm:^2.2.3"
+    react: "npm:^19.2.4"
+    react-aria-components: "npm:^1.14.0"
+    react-dom: "npm:^19.2.4"
+    remeda: "npm:^2.32.0"
+    sass: "npm:^1.87.0"
+    usehooks-ts: "npm:^3.1.1"
+    vite: "npm:^8.0.5"
+    vite-plugin-css-position: "npm:^2.0.9"
   languageName: unknown
   linkType: soft
 
@@ -3288,7 +3390,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"d3-color@npm:1 - 3, d3-color@npm:3":
+"d3-color@npm:1 - 3, d3-color@npm:3, d3-color@npm:^3.1.0":
   version: 3.1.0
   resolution: "d3-color@npm:3.1.0"
   checksum: 10/536ba05bfd9f4fcd6fa289b5974f5c846b21d186875684637e22bf6855e6aba93e24a2eb3712985c6af3f502fbbfa03708edb72f58142f626241a8a17258e545
@@ -3647,6 +3749,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"fast-kde@npm:^0.2.2":
+  version: 0.2.2
+  resolution: "fast-kde@npm:0.2.2"
+  dependencies:
+    d3-color: "npm:^3.1.0"
+  checksum: 10/8310d60a076a2be2b117955bdcfdae5a1711adc926f9384404a1c513adc1e65803ffb1e43a7585cb6adff38d07a2c49bb39cf675257c5bf0d521dc11ae7d93a3
+  languageName: node
+  linkType: hard
+
 "fdir@npm:^6.5.0":
   version: 6.5.0
   resolution: "fdir@npm:6.5.0"
@@ -3806,7 +3917,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jotai@npm:^2.18.1":
+"jotai-effect@npm:^2.2.3":
+  version: 2.2.3
+  resolution: "jotai-effect@npm:2.2.3"
+  peerDependencies:
+    jotai: ">=2.16.0"
+  checksum: 10/4be1474bd168ce023967aef0688babf0d1b600f922f55feaa000f51c6f7c91233101832cff0c24f2da90a90d34e0673aa005d2cd6f2a275fe84a906c69b6ab43
+  languageName: node
+  linkType: hard
+
+"jotai@npm:^2.15.1, jotai@npm:^2.18.1":
   version: 2.19.0
   resolution: "jotai@npm:2.19.0"
   peerDependencies:
@@ -3951,6 +4071,13 @@ __metadata:
     lightningcss-win32-x64-msvc:
       optional: true
   checksum: 10/098e61007f0d0ec8b5c50884e33b543b551d1ff21bc7b062434b6638fd0b8596858f823b60dfc2a4aa756f3cb120ad79f2b7f4a55b1bda2c0269ab8cf476f114
+  languageName: node
+  linkType: hard
+
+"lodash.debounce@npm:^4.0.8":
+  version: 4.0.8
+  resolution: "lodash.debounce@npm:4.0.8"
+  checksum: 10/cd0b2819786e6e80cb9f5cda26b1a8fc073daaf04e48d4cb462fa4663ec9adb3a5387aa22d7129e48eed1afa05b482e2a6b79bfc99b86886364449500cbb00fd
   languageName: node
   linkType: hard
 
@@ -4244,7 +4371,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-aria-components@npm:^1.8.0":
+"react-aria-components@npm:^1.14.0, react-aria-components@npm:^1.8.0":
   version: 1.16.0
   resolution: "react-aria-components@npm:1.16.0"
   dependencies:
@@ -4409,6 +4536,13 @@ __metadata:
   version: 2.33.6
   resolution: "remeda@npm:2.33.6"
   checksum: 10/733967372cbe89150250576be49e8e6f7dcc7f319acf40af204fa3cdbfd305171742b05574c1245fe1f6926b007498df995d6682de52d370932ab1e99102e4ba
+  languageName: node
+  linkType: hard
+
+"remeda@npm:^2.32.0":
+  version: 2.33.7
+  resolution: "remeda@npm:2.33.7"
+  checksum: 10/3a2fd771d186bbf6459caf41c8463c3c5547d16b196949a08dac66232e70216f3a9af5f27b0c5f076326301c2d59f5b12cb70443d87a0cea09564744a693fa00
   languageName: node
   linkType: hard
 
@@ -4602,6 +4736,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"tabbable@npm:^6.0.0":
+  version: 6.4.0
+  resolution: "tabbable@npm:6.4.0"
+  checksum: 10/0fe8fada2d97bd02058af2e0176bddca26b1100c069e0a096ac19ad8ef61bd0b4f0cf05e1dd68229b8f1cb6fe6bf4c34d50a5f4a3e26b150a92f89b7dc0a4916
+  languageName: node
+  linkType: hard
+
 "tar@npm:^7.5.4":
   version: 7.5.13
   resolution: "tar@npm:7.5.13"
@@ -4666,6 +4807,17 @@ __metadata:
   peerDependencies:
     react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
   checksum: 10/b40ad2847ba220695bff2d4ba4f4d60391c0fb4fb012faa7a4c18eb38b69181936f5edc55a522c4d20a788d1a879b73c3810952c9d0fd128d01cb3f22042c09e
+  languageName: node
+  linkType: hard
+
+"usehooks-ts@npm:^3.1.1":
+  version: 3.1.1
+  resolution: "usehooks-ts@npm:3.1.1"
+  dependencies:
+    lodash.debounce: "npm:^4.0.8"
+  peerDependencies:
+    react: ^16.8.0  || ^17 || ^18 || ^19 || ^19.0.0-rc
+  checksum: 10/4f5d6beab003d76f90c6a9b8b0cd5b61f24528fa3dbbf1a6d9c0a509cb80914074af911a92dab0bc07873f14f714771306f5271e1e8f09b94add1722da37debb
   languageName: node
   linkType: hard
 
