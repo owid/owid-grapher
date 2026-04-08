@@ -10,6 +10,7 @@ import {
     getSlideshowGrapherConfig,
     parseSlideChartUrl,
 } from "./slideshowUtils.js"
+import { match } from "ts-pattern"
 
 /**
  * Pure slide rendering component shared between the baked site and the
@@ -32,100 +33,90 @@ export function SlideRenderer(props: {
         "slide--hidden": isHidden,
     })
 
-    switch (slide.template) {
-        case SlideTemplate.Cover:
-            return (
-                <div className={`${className} SlideContent--cover`}>
-                    {!slide.hideLogo && <SlideLogo />}
-                    <h1>{slide.title || "Title"}</h1>
-                    {slide.subtitle && <h2>{slide.subtitle}</h2>}
-                    {slide.author && (
-                        <p className="SlideContent__author">{slide.author}</p>
-                    )}
-                    {slide.date && (
-                        <p className="SlideContent__date">{slide.date}</p>
-                    )}
-                </div>
-            )
-        case SlideTemplate.Section:
-            return (
-                <div className={`${className} SlideContent--section`}>
-                    {!slide.hideLogo && <SlideLogo />}
-                    <h1>{slide.title || "Section Title"}</h1>
-                    {slide.subtitle && <h2>{slide.subtitle}</h2>}
-                </div>
-            )
-        case SlideTemplate.Image:
-            return (
-                <div className={className}>
-                    {!slide.hideLogo && <SlideLogo />}
-                    {slide.slideTitle && (
-                        <h1 className="slide-title">
-                            <SimpleMarkdownText
-                                text={slide.slideTitle}
-                                useParagraphs={false}
-                            />
-                        </h1>
-                    )}
-                    <div className="slide-chart-content">
-                        <ImageRenderer
-                            filename={slide.filename}
-                            imageMetadata={imageMetadata}
+    return match(slide)
+        .with({ template: SlideTemplate.Cover }, (slide) => (
+            <div className={`${className} SlideContent--cover`}>
+                {!slide.hideLogo && <SlideLogo />}
+                <h1>{slide.title || "Title"}</h1>
+                {slide.subtitle && <h2>{slide.subtitle}</h2>}
+                {slide.author && (
+                    <p className="SlideContent__author">{slide.author}</p>
+                )}
+                {slide.date && (
+                    <p className="SlideContent__date">{slide.date}</p>
+                )}
+            </div>
+        ))
+        .with({ template: SlideTemplate.Section }, (slide) => (
+            <div className={`${className} SlideContent--section`}>
+                {!slide.hideLogo && <SlideLogo />}
+                <h1>{slide.title || "Section Title"}</h1>
+                {slide.subtitle && <h2>{slide.subtitle}</h2>}
+            </div>
+        ))
+        .with({ template: SlideTemplate.Image }, (slide) => (
+            <div className={className}>
+                {!slide.hideLogo && <SlideLogo />}
+                {slide.slideTitle && (
+                    <h1 className="slide-title">
+                        <SimpleMarkdownText
+                            text={slide.slideTitle}
+                            useParagraphs={false}
                         />
-                        {slide.text && (
-                            <div className="slide__text">
-                                <SimpleMarkdownText text={slide.text} />
-                            </div>
-                        )}
-                    </div>
+                    </h1>
+                )}
+                <div className="slide-chart-content">
+                    <ImageRenderer
+                        filename={slide.filename}
+                        imageMetadata={imageMetadata}
+                    />
+                    {slide.text && (
+                        <div className="slide__text">
+                            <SimpleMarkdownText text={slide.text} />
+                        </div>
+                    )}
                 </div>
-            )
-        case SlideTemplate.Chart:
-            return (
-                <div className={className}>
-                    {!slide.hideLogo && <SlideLogo />}
-                    {slide.title && (
-                        <h1 className="slide-title">
-                            <SimpleMarkdownText
-                                text={slide.title}
-                                useParagraphs={false}
-                            />
-                        </h1>
-                    )}
-                    {slide.subtitle && (
-                        <p className="slide-subtitle">
-                            <SimpleMarkdownText
-                                text={slide.subtitle}
-                                useParagraphs={false}
-                            />
-                        </p>
-                    )}
-                    <div className="slide-chart-content">
-                        <ChartRenderer
-                            url={slide.url}
-                            renderChart={renderChart}
+            </div>
+        ))
+        .with({ template: SlideTemplate.Chart }, (slide) => (
+            <div className={className}>
+                {!slide.hideLogo && <SlideLogo />}
+                {slide.title && (
+                    <h1 className="slide-title">
+                        <SimpleMarkdownText
+                            text={slide.title}
+                            useParagraphs={false}
                         />
-                        {slide.text && (
-                            <div className="slide__text">
-                                <SimpleMarkdownText text={slide.text} />
-                            </div>
-                        )}
-                    </div>
+                    </h1>
+                )}
+                {slide.subtitle && (
+                    <p className="slide-subtitle">
+                        <SimpleMarkdownText
+                            text={slide.subtitle}
+                            useParagraphs={false}
+                        />
+                    </p>
+                )}
+                <div className="slide-chart-content">
+                    <ChartRenderer url={slide.url} renderChart={renderChart} />
+                    {slide.text && (
+                        <div className="slide__text">
+                            <SimpleMarkdownText text={slide.text} />
+                        </div>
+                    )}
                 </div>
-            )
-        case SlideTemplate.Blank:
-            return (
-                <div className={`${className} SlideContent--blank`}>
-                    {!slide.hideLogo && <SlideLogo />}
-                </div>
-            )
-        default:
-            return (
-                <div className={`${className} SlideContent--placeholder`}>
-                    <p>{slide.template}</p>
-                </div>
-            )
-    }
+            </div>
+        ))
+        .with({ template: SlideTemplate.Blank }, (slide) => (
+            <div className={`${className} SlideContent--blank`}>
+                {!slide.hideLogo && <SlideLogo />}
+            </div>
+        ))
+        .otherwise((slide) => (
+            <div className={`${className} SlideContent--placeholder`}>
+                <p>{slide.template}</p>
+            </div>
+        ))
 }
 
 function ImageRenderer(props: {

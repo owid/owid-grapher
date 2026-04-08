@@ -1,5 +1,6 @@
 import { useContext, useState } from "react"
 import * as React from "react"
+import { match } from "ts-pattern"
 import { Button, Select, Upload } from "antd"
 import { useQueryClient } from "@tanstack/react-query"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -30,49 +31,53 @@ const POPULAR_TEMPLATES = [
 ]
 
 function makeDefaultSlideForTemplate(template: SlideTemplate): Slide {
-    switch (template) {
-        case SlideTemplate.Image:
-            return { template, filename: null }
-        case SlideTemplate.Chart:
-            return { template, url: "" }
-        case SlideTemplate.Section:
-            return { template, title: "" }
-        case SlideTemplate.Cover:
-            return { template, title: "" }
-        case SlideTemplate.Blank:
-            return { template }
-        case SlideTemplate.Quote:
-            return { template, quote: "" }
-        case SlideTemplate.BigNumber:
-            return { template, number: "", label: "" }
-    }
+    return match(template)
+        .with(SlideTemplate.Image, (t) => ({
+            template: t,
+            filename: null as string | null,
+        }))
+        .with(SlideTemplate.Chart, (t) => ({ template: t, url: "" }))
+        .with(SlideTemplate.Section, (t) => ({ template: t, title: "" }))
+        .with(SlideTemplate.Cover, (t) => ({ template: t, title: "" }))
+        .with(SlideTemplate.Blank, (t) => ({ template: t }))
+        .with(SlideTemplate.Quote, (t) => ({ template: t, quote: "" }))
+        .with(SlideTemplate.BigNumber, (t) => ({
+            template: t,
+            number: "",
+            label: "",
+        }))
+        .exhaustive()
 }
 
 /** Returns true if the slide has any user-entered content beyond defaults */
 function slideHasContent(slide: Slide): boolean {
-    switch (slide.template) {
-        case SlideTemplate.Image:
-            return slide.filename !== null || !!slide.slideTitle || !!slide.text
-        case SlideTemplate.Chart:
-            return (
-                !!slide.url || !!slide.title || !!slide.subtitle || !!slide.text
-            )
-        case SlideTemplate.Section:
-            return !!slide.title || !!slide.subtitle
-        case SlideTemplate.Cover:
-            return (
-                !!slide.title ||
-                !!slide.subtitle ||
-                !!slide.author ||
-                !!slide.date
-            )
-        case SlideTemplate.Blank:
-            return false
-        case SlideTemplate.Quote:
-            return !!slide.quote || !!slide.attribution
-        case SlideTemplate.BigNumber:
-            return !!slide.number || !!slide.label
-    }
+    return match(slide)
+        .with(
+            { template: SlideTemplate.Image },
+            (s) => s.filename !== null || !!s.slideTitle || !!s.text
+        )
+        .with(
+            { template: SlideTemplate.Chart },
+            (s) => !!s.url || !!s.title || !!s.subtitle || !!s.text
+        )
+        .with(
+            { template: SlideTemplate.Section },
+            (s) => !!s.title || !!s.subtitle
+        )
+        .with(
+            { template: SlideTemplate.Cover },
+            (s) => !!s.title || !!s.subtitle || !!s.author || !!s.date
+        )
+        .with({ template: SlideTemplate.Blank }, () => false)
+        .with(
+            { template: SlideTemplate.Quote },
+            (s) => !!s.quote || !!s.attribution
+        )
+        .with(
+            { template: SlideTemplate.BigNumber },
+            (s) => !!s.number || !!s.label
+        )
+        .exhaustive()
 }
 
 export function SlideshowEditTab(props: {
@@ -284,247 +289,234 @@ function TemplateOptionsEditor(props: {
 }): React.ReactElement {
     const { slide, onUpdate } = props
 
-    switch (slide.template) {
-        case SlideTemplate.Image:
-            return (
-                <>
-                    <ImageEditor
-                        filename={slide.filename}
-                        onChange={(filename) =>
-                            onUpdate({ ...slide, filename })
+    return match(slide)
+        .with({ template: SlideTemplate.Image }, (slide) => (
+            <>
+                <ImageEditor
+                    filename={slide.filename}
+                    onChange={(filename) => onUpdate({ ...slide, filename })}
+                />
+                <label>
+                    Slide title
+                    <InlineMarkdownEditor
+                        value={slide.slideTitle ?? ""}
+                        onChange={(e) =>
+                            onUpdate({
+                                ...slide,
+                                slideTitle: e || undefined,
+                            })
                         }
+                        placeholder="Slide title"
                     />
-                    <label>
-                        Slide title
-                        <InlineMarkdownEditor
-                            value={slide.slideTitle ?? ""}
-                            onChange={(e) =>
-                                onUpdate({
-                                    ...slide,
-                                    slideTitle: e || undefined,
-                                })
-                            }
-                            placeholder="Slide title"
-                        />
-                    </label>
-                    <label>
-                        Text (optional)
-                        <MarkdownEditor
-                            value={slide.text ?? ""}
-                            onChange={(text) =>
-                                onUpdate({
-                                    ...slide,
-                                    text: text || undefined,
-                                })
-                            }
-                            placeholder="Text displayed beside the image"
-                        />
-                    </label>
-                    <HideLogoCheckbox slide={slide} onUpdate={onUpdate} />
-                </>
-            )
-
-        case SlideTemplate.Chart:
-            return (
-                <>
-                    <ChartEditor
-                        url={slide.url}
-                        onChange={(url) => onUpdate({ ...slide, url })}
+                </label>
+                <label>
+                    Text (optional)
+                    <MarkdownEditor
+                        value={slide.text ?? ""}
+                        onChange={(text) =>
+                            onUpdate({
+                                ...slide,
+                                text: text || undefined,
+                            })
+                        }
+                        placeholder="Text displayed beside the image"
                     />
-                    <label>
-                        Title
-                        <InlineMarkdownEditor
-                            value={slide.title ?? ""}
-                            onChange={(text) =>
-                                onUpdate({
-                                    ...slide,
-                                    title: text || undefined,
-                                })
-                            }
-                            placeholder="Slide title"
-                        />
-                    </label>
-                    <label>
-                        Subtitle
-                        <InlineMarkdownEditor
-                            value={slide.subtitle ?? ""}
-                            onChange={(text) =>
-                                onUpdate({
-                                    ...slide,
-                                    subtitle: text || undefined,
-                                })
-                            }
-                            placeholder="Slide subtitle"
-                        />
-                    </label>
-                    <label>
-                        Text (optional)
-                        <MarkdownEditor
-                            value={slide.text ?? ""}
-                            onChange={(text) =>
-                                onUpdate({
-                                    ...slide,
-                                    text: text || undefined,
-                                })
-                            }
-                            placeholder="Text displayed beside the chart"
-                        />
-                    </label>
-                    <HideLogoCheckbox slide={slide} onUpdate={onUpdate} />
-                </>
-            )
-
-        case SlideTemplate.Section:
-            return (
-                <>
-                    <label>
-                        Title
-                        <input
-                            type="text"
-                            value={slide.title}
-                            onChange={(e) =>
-                                onUpdate({ ...slide, title: e.target.value })
-                            }
-                            placeholder="Section title"
-                        />
-                    </label>
-                    <label>
-                        Subtitle
-                        <input
-                            type="text"
-                            value={slide.subtitle ?? ""}
-                            onChange={(e) =>
-                                onUpdate({
-                                    ...slide,
-                                    subtitle: e.target.value || undefined,
-                                })
-                            }
-                            placeholder="Subtitle (optional)"
-                        />
-                    </label>
-                    <HideLogoCheckbox slide={slide} onUpdate={onUpdate} />
-                </>
-            )
-
-        case SlideTemplate.Cover:
-            return (
-                <>
-                    <label>
-                        Title
-                        <input
-                            type="text"
-                            value={slide.title}
-                            onChange={(e) =>
-                                onUpdate({ ...slide, title: e.target.value })
-                            }
-                            placeholder="Presentation title"
-                        />
-                    </label>
-                    <label>
-                        Subtitle
-                        <input
-                            type="text"
-                            value={slide.subtitle ?? ""}
-                            onChange={(e) =>
-                                onUpdate({
-                                    ...slide,
-                                    subtitle: e.target.value || undefined,
-                                })
-                            }
-                            placeholder="Subtitle (optional)"
-                        />
-                    </label>
-                    <label>
-                        Author
-                        <input
-                            type="text"
-                            value={slide.author ?? ""}
-                            onChange={(e) =>
-                                onUpdate({
-                                    ...slide,
-                                    author: e.target.value || undefined,
-                                })
-                            }
-                            placeholder="Author (optional)"
-                        />
-                    </label>
-                    <label>
-                        Date
-                        <input
-                            type="text"
-                            value={slide.date ?? ""}
-                            onChange={(e) =>
-                                onUpdate({
-                                    ...slide,
-                                    date: e.target.value || undefined,
-                                })
-                            }
-                            placeholder="Date (optional)"
-                        />
-                    </label>
-                    <HideLogoCheckbox slide={slide} onUpdate={onUpdate} />
-                </>
-            )
-
-        case SlideTemplate.Quote:
-            return (
-                <>
-                    <label>
-                        Quote
-                        <MarkdownEditor
-                            value={slide.quote}
-                            onChange={(quote) => onUpdate({ ...slide, quote })}
-                            placeholder="Supports **bold** and *italics*"
-                        />
-                    </label>
-                    <label>
-                        Attribution
-                        <input
-                            type="text"
-                            value={slide.attribution ?? ""}
-                            onChange={(e) =>
-                                onUpdate({
-                                    ...slide,
-                                    attribution: e.target.value || undefined,
-                                })
-                            }
-                            placeholder="Attribution (optional)"
-                        />
-                    </label>
-                    <HideLogoCheckbox slide={slide} onUpdate={onUpdate} />
-                </>
-            )
-
-        case SlideTemplate.BigNumber:
-            return (
-                <>
-                    <label>
-                        Number
-                        <input
-                            type="text"
-                            value={slide.number}
-                            onChange={(e) =>
-                                onUpdate({ ...slide, number: e.target.value })
-                            }
-                            placeholder="e.g. 7.8 billion"
-                        />
-                    </label>
-                    <label>
-                        Label
-                        <input
-                            type="text"
-                            value={slide.label}
-                            onChange={(e) =>
-                                onUpdate({ ...slide, label: e.target.value })
-                            }
-                            placeholder="e.g. World population"
-                        />
-                    </label>
-                    <HideLogoCheckbox slide={slide} onUpdate={onUpdate} />
-                </>
-            )
-
-        case SlideTemplate.Blank:
-            return <HideLogoCheckbox slide={slide} onUpdate={onUpdate} />
-    }
+                </label>
+                <HideLogoCheckbox slide={slide} onUpdate={onUpdate} />
+            </>
+        ))
+        .with({ template: SlideTemplate.Chart }, (slide) => (
+            <>
+                <ChartEditor
+                    url={slide.url}
+                    onChange={(url) => onUpdate({ ...slide, url })}
+                />
+                <label>
+                    Title
+                    <InlineMarkdownEditor
+                        value={slide.title ?? ""}
+                        onChange={(text) =>
+                            onUpdate({
+                                ...slide,
+                                title: text || undefined,
+                            })
+                        }
+                        placeholder="Slide title"
+                    />
+                </label>
+                <label>
+                    Subtitle
+                    <InlineMarkdownEditor
+                        value={slide.subtitle ?? ""}
+                        onChange={(text) =>
+                            onUpdate({
+                                ...slide,
+                                subtitle: text || undefined,
+                            })
+                        }
+                        placeholder="Slide subtitle"
+                    />
+                </label>
+                <label>
+                    Text (optional)
+                    <MarkdownEditor
+                        value={slide.text ?? ""}
+                        onChange={(text) =>
+                            onUpdate({
+                                ...slide,
+                                text: text || undefined,
+                            })
+                        }
+                        placeholder="Text displayed beside the chart"
+                    />
+                </label>
+                <HideLogoCheckbox slide={slide} onUpdate={onUpdate} />
+            </>
+        ))
+        .with({ template: SlideTemplate.Section }, (slide) => (
+            <>
+                <label>
+                    Title
+                    <input
+                        type="text"
+                        value={slide.title}
+                        onChange={(e) =>
+                            onUpdate({ ...slide, title: e.target.value })
+                        }
+                        placeholder="Section title"
+                    />
+                </label>
+                <label>
+                    Subtitle
+                    <input
+                        type="text"
+                        value={slide.subtitle ?? ""}
+                        onChange={(e) =>
+                            onUpdate({
+                                ...slide,
+                                subtitle: e.target.value || undefined,
+                            })
+                        }
+                        placeholder="Subtitle (optional)"
+                    />
+                </label>
+                <HideLogoCheckbox slide={slide} onUpdate={onUpdate} />
+            </>
+        ))
+        .with({ template: SlideTemplate.Cover }, (slide) => (
+            <>
+                <label>
+                    Title
+                    <input
+                        type="text"
+                        value={slide.title}
+                        onChange={(e) =>
+                            onUpdate({ ...slide, title: e.target.value })
+                        }
+                        placeholder="Presentation title"
+                    />
+                </label>
+                <label>
+                    Subtitle
+                    <input
+                        type="text"
+                        value={slide.subtitle ?? ""}
+                        onChange={(e) =>
+                            onUpdate({
+                                ...slide,
+                                subtitle: e.target.value || undefined,
+                            })
+                        }
+                        placeholder="Subtitle (optional)"
+                    />
+                </label>
+                <label>
+                    Author
+                    <input
+                        type="text"
+                        value={slide.author ?? ""}
+                        onChange={(e) =>
+                            onUpdate({
+                                ...slide,
+                                author: e.target.value || undefined,
+                            })
+                        }
+                        placeholder="Author (optional)"
+                    />
+                </label>
+                <label>
+                    Date
+                    <input
+                        type="text"
+                        value={slide.date ?? ""}
+                        onChange={(e) =>
+                            onUpdate({
+                                ...slide,
+                                date: e.target.value || undefined,
+                            })
+                        }
+                        placeholder="Date (optional)"
+                    />
+                </label>
+                <HideLogoCheckbox slide={slide} onUpdate={onUpdate} />
+            </>
+        ))
+        .with({ template: SlideTemplate.Quote }, (slide) => (
+            <>
+                <label>
+                    Quote
+                    <MarkdownEditor
+                        value={slide.quote}
+                        onChange={(quote) => onUpdate({ ...slide, quote })}
+                        placeholder="Supports **bold** and *italics*"
+                    />
+                </label>
+                <label>
+                    Attribution
+                    <input
+                        type="text"
+                        value={slide.attribution ?? ""}
+                        onChange={(e) =>
+                            onUpdate({
+                                ...slide,
+                                attribution: e.target.value || undefined,
+                            })
+                        }
+                        placeholder="Attribution (optional)"
+                    />
+                </label>
+                <HideLogoCheckbox slide={slide} onUpdate={onUpdate} />
+            </>
+        ))
+        .with({ template: SlideTemplate.BigNumber }, (slide) => (
+            <>
+                <label>
+                    Number
+                    <input
+                        type="text"
+                        value={slide.number}
+                        onChange={(e) =>
+                            onUpdate({ ...slide, number: e.target.value })
+                        }
+                        placeholder="e.g. 7.8 billion"
+                    />
+                </label>
+                <label>
+                    Label
+                    <input
+                        type="text"
+                        value={slide.label}
+                        onChange={(e) =>
+                            onUpdate({ ...slide, label: e.target.value })
+                        }
+                        placeholder="e.g. World population"
+                    />
+                </label>
+                <HideLogoCheckbox slide={slide} onUpdate={onUpdate} />
+            </>
+        ))
+        .with({ template: SlideTemplate.Blank }, (slide) => (
+            <HideLogoCheckbox slide={slide} onUpdate={onUpdate} />
+        ))
+        .exhaustive()
 }

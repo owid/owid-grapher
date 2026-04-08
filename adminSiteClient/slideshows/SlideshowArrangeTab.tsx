@@ -7,16 +7,19 @@ import {
     SlideTemplate,
     SLIDE_TEMPLATE_LABELS,
 } from "@ourworldindata/types"
+import { match } from "ts-pattern"
 
 function getSlideName(slide: Slide, index: number): string {
-    switch (slide.template) {
-        case SlideTemplate.Cover:
-            return slide.title || `Slide ${index + 1}`
-        case SlideTemplate.Section:
-            return slide.title || `Slide ${index + 1}`
-        default:
-            return `Slide ${index + 1}`
-    }
+    return match(slide)
+        .with(
+            { template: SlideTemplate.Cover },
+            (s) => s.title || `Slide ${index + 1}`
+        )
+        .with(
+            { template: SlideTemplate.Section },
+            (s) => s.title || `Slide ${index + 1}`
+        )
+        .otherwise(() => `Slide ${index + 1}`)
 }
 
 export function SlideshowArrangeTab(props: {

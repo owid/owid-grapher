@@ -1,4 +1,5 @@
 import { Slide, SlideTemplate, Url } from "@ourworldindata/utils"
+import { match } from "ts-pattern"
 import { GrapherProgrammaticInterface } from "@ourworldindata/grapher"
 
 /** Config applied to all slideshow chart embeds */
@@ -60,14 +61,12 @@ export function parseSlideChartUrl(url: string): {
 export function getSlideAspectRatio(
     slide: Slide
 ): "slide--narrow" | "slide--wide" {
-    if (
-        slide.template === SlideTemplate.Chart ||
-        slide.template === SlideTemplate.Image
-    ) {
-        if (slide.text) {
-            return "slide--wide"
-        }
-        return "slide--narrow"
-    }
-    return "slide--wide"
+    return match(slide)
+        .with(
+            { template: SlideTemplate.Chart },
+            { template: SlideTemplate.Image },
+            (s) =>
+                s.text ? ("slide--wide" as const) : ("slide--narrow" as const)
+        )
+        .otherwise(() => "slide--wide" as const)
 }

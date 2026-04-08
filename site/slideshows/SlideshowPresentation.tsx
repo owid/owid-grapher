@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react"
 import cx from "classnames"
+import { match } from "ts-pattern"
 import {
     SlideshowConfig,
     ImageMetadata,
@@ -132,27 +133,24 @@ export function SlideshowPresentation(props: {
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent): void => {
-            switch (e.key) {
-                case "ArrowLeft":
-                case "ArrowUp":
+            match(e.key)
+                .with("ArrowLeft", "ArrowUp", () => {
                     e.preventDefault()
                     goToPrevRef.current()
-                    break
-                case "ArrowRight":
-                case "ArrowDown":
-                case " ":
+                })
+                .with("ArrowRight", "ArrowDown", " ", () => {
                     e.preventDefault()
                     goToNextRef.current()
-                    break
-                case "Escape":
+                })
+                .with("Escape", () => {
                     if (isFullscreenRef.current) {
                         void document.exitFullscreen()
                     }
-                    break
-                case "f":
+                })
+                .with("f", () => {
                     toggleFullscreenRef.current()
-                    break
-            }
+                })
+                .otherwise(() => undefined)
         }
         window.addEventListener("keydown", handleKeyDown)
         return () => window.removeEventListener("keydown", handleKeyDown)
