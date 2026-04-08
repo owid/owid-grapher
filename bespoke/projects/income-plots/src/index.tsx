@@ -5,7 +5,7 @@ import StylesTarget from "vite-plugin-css-position/react"
 import type {
     BespokeComponentMountFn,
     BespokeComponentVariantsList,
-} from "../../../shared/bespokeComponentTypes.ts"
+} from "owid-bespoke-types"
 
 import { App } from "./components/App.tsx"
 import { ShadowRootContext } from "./ShadowRootContext.tsx"
