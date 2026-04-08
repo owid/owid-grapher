@@ -59,7 +59,7 @@ export function SlideshowPage(props: SlideshowPageProps): React.ReactElement {
             const metadata = imageMetadata[slide.filename]
             if (metadata?.cloudflareId) {
                 imageUrls.push(
-                    `${CLOUDFLARE_IMAGES_URL}/${metadata.cloudflareId}/w=960`
+                    `${CLOUDFLARE_IMAGES_URL}/${metadata.cloudflareId}/public`
                 )
             }
         }

@@ -143,7 +143,7 @@ function ImageRenderer(props: {
     if (metadata?.cloudflareId) {
         return (
             <img
-                src={`${CLOUDFLARE_IMAGES_URL}/${metadata.cloudflareId}/w=960`}
+                src={`${CLOUDFLARE_IMAGES_URL}/${metadata.cloudflareId}/public`}
                 alt={metadata.defaultAlt || filename}
                 className="slide__image"
             />

@@ -1,11 +1,9 @@
 .slide {
     width: auto;
-    max-width: 100vw;
+    max-width: calc(100vw - 128px);
     margin: 64px;
     position: absolute;
     top: 0;
-    container-type: inline-size;
-    container-name: slide-content;
     left: calc(50% - 64px);
     transform: translateX(-50%);
     overflow: hidden;
@@ -30,7 +28,7 @@
 .slide-chart-content {
     flex: 1;
     display: flex;
-    gap: 24px;
+    gap: 16px;
     min-height: 0;
 }
 
@@ -44,16 +42,28 @@
     }
 }
 
+.slide-logo {
+    position: absolute;
+    top: 0;
+    right: 0;
+}
+
+// --- Typography (scales with viewport width via vw) ---
+// In the admin editor, these are overridden to use cqw
+// (see SlideshowAdmin.scss) since the slides aren't viewport-width.
+
 .SlideContent--cover {
     text-align: center;
 
     h1 {
-        font-size: 36px;
+        @include display-1-semibold;
+        font-size: clamp(24px, 4vw, 48px);
         margin-bottom: 8px;
     }
 
     h2 {
-        font-size: 20px;
+        @include body-1-regular;
+        font-size: clamp(14px, 2vw, 24px);
         font-weight: 400;
         color: #666;
     }
@@ -63,36 +73,51 @@
     text-align: center;
 
     h1 {
-        font-size: 32px;
+        @include display-1-semibold;
+        font-size: clamp(22px, 3.5vw, 42px);
     }
 
     h2 {
-        font-size: 18px;
+        @include body-1-regular;
+        font-size: clamp(13px, 1.8vw, 22px);
         font-weight: 400;
         color: #666;
     }
 }
 
-.slide-logo {
-    position: absolute;
-    top: 0;
-    right: 0;
-}
-
 .slide-title {
     @include display-1-semibold;
+    font-size: clamp(20px, 3vw, 40px);
     margin: 0;
-    font-size: 52px;
-    // not using cqw for now, because it makes the narrow/wide slides have different title sizes, which looks weird when navigating between them
-    // font-size: clamp(24px, 3cqw, 52px);
 }
 
 .slide-subtitle {
-    color: $gray-80;
     @include body-1-regular;
-    font-size: 22px;
-    // font-size: clamp(16px, 1.66cqw, 28px);
+    font-size: clamp(13px, 1.6vw, 22px);
+    color: $gray-80;
     margin: 0;
+}
+
+.slide__text {
+    @include body-1-regular;
+    width: min(350px, 25%);
+    flex-shrink: 0;
+    color: #333;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    font-size: clamp(12px, 1.4vw, 18px);
+    > *:first-child {
+        margin-top: 8px;
+    }
+    > *:last-child {
+        margin-bottom: 0;
+    }
+}
+
+.SlideContent__author,
+.SlideContent__date {
+    color: #999;
+    font-size: clamp(11px, 1.2vw, 16px);
 }
 
 .slide__media-placeholder {
@@ -102,8 +127,10 @@
     justify-content: center;
     background: #f0f0f0;
     color: #999;
-    font-size: 14px;
+    font-size: clamp(11px, 1.2vw, 16px);
 }
+
+// --- Media ---
 
 .slide__image {
     flex: 1;
@@ -114,25 +141,9 @@
     object-fit: contain;
 }
 
-.SlideContent__author,
-.SlideContent__date {
-    color: #999;
-    font-size: 14px;
-}
-
-.slide__text {
-    width: 350px;
-    flex-shrink: 0;
-    font-size: 14px;
-    line-height: 1.6;
-    color: #333;
-    overflow-y: auto;
-    white-space: pre-wrap;
-    @include body-1-regular;
-}
-
 .Explorer,
 .ExplorerFigure,
 .GrapherComponent {
     height: 100%;
+    margin-left: -16px;
 }
