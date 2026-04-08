@@ -439,12 +439,13 @@ function AssumptionsTable({ simulation }: { simulation: Simulation }) {
                         <td className="assumptions-table__year">In {yr}</td>
                         {PARAMETER_KEYS.map((key) => {
                             const config = parameterConfigByKey[key]
-                            const unit =
-                                key === "lifeExpectancy"
-                                    ? " years"
-                                    : key === "fertilityRate"
-                                      ? " births"
-                                      : ""
+                            const unit = useShortTitles
+                                ? ""
+                                : key === "lifeExpectancy"
+                                  ? " years"
+                                  : key === "fertilityRate"
+                                    ? " births"
+                                    : ""
                             const userVal = simulation.scenarioParams[key][yr]
                             const refVal =
                                 simulation.unwppScenarioParams[key][yr]
