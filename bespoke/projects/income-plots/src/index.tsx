@@ -15,7 +15,6 @@ type IncomePlotVariantName = "distribution" | "upside-down"
 
 export const VARIANTS = [
     { name: "distribution", demoConfig: {} },
-    { name: "upside-down", demoConfig: {} },
 ] satisfies BespokeComponentVariantsList<IncomePlotVariantName>
 
 enableShadowDOM()
@@ -36,15 +35,7 @@ export const mount: BespokeComponentMountFn = (
     root.render(
         <ShadowRootContext.Provider value={container}>
             <StylesTarget />
-            <div
-                style={
-                    variant.name === "upside-down"
-                        ? { transform: "scaleY(-1)" }
-                        : undefined
-                }
-            >
-                <App />
-            </div>
+            <App />
         </ShadowRootContext.Provider>
     )
 
