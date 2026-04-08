@@ -351,7 +351,7 @@ export async function makeAtomFeedNoTopicPages(knex: KnexReadonlyTransaction) {
     return makeAtomFeedFromPosts({ posts, images })
 }
 
-export async function makeAtomFeedFromPosts({
+async function makeAtomFeedFromPosts({
     posts,
     images,
     title = "Our World in Data",
@@ -413,7 +413,7 @@ ${posts
     return feed
 }
 
-export async function makeAtomFeedFromDataInsights({
+async function makeAtomFeedFromDataInsights({
     dataInsights,
     htmlUrl = BAKED_BASE_URL,
     feedUrl = `${BAKED_BASE_URL}/atom.xml`,
@@ -589,7 +589,7 @@ export const renderProminentLinks = async (
     )
 }
 
-export const renderReusableBlock = async (
+const renderReusableBlock = async (
     html: string | undefined,
     containerPostId: number,
     knex: KnexReadonlyTransaction

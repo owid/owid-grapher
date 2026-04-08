@@ -11,8 +11,6 @@ import {
     EntityName,
     SeriesName,
     ColumnSlug,
-    GrapherTabName,
-    GRAPHER_TAB_NAMES,
     ProjectionColumnInfo,
     CoreValueType,
     PrimitiveType,
@@ -225,12 +223,6 @@ export function generateGrapherImageSrcSet(defaultSrc: string): string {
     return srcSet
 }
 
-export const isChartTab = (tab: GrapherTabName): boolean =>
-    tab !== GRAPHER_TAB_NAMES.Table && tab !== GRAPHER_TAB_NAMES.WorldMap
-
-export const isMapTab = (tab: GrapherTabName): boolean =>
-    tab === GRAPHER_TAB_NAMES.WorldMap
-
 export function combineHistoricalAndProjectionColumns(
     table: OwidTable,
     info: ProjectionColumnInfo,
@@ -343,7 +335,7 @@ export function getChartSvgProps({
 
 type SortKeyFn<T> = (item: T) => number | string | undefined
 
-export type SortKeyFunctions<T> = Record<SortBy, SortKeyFn<T>>
+type SortKeyFunctions<T> = Record<SortBy, SortKeyFn<T>>
 
 export function sortByConfig<T>(
     items: readonly T[],

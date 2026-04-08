@@ -295,10 +295,7 @@ export function parseRawBlocksToEnrichedBlocks(
         .exhaustive()
 }
 
-export function validateRawBoolean<
-    T extends string,
-    U extends { [K in T]?: any },
->(
+function validateRawBoolean<T extends string, U extends { [K in T]?: any }>(
     key: T,
     rawBlock: U
 ): { isValid: true } | { isValid: false; message: string } {
@@ -1392,7 +1389,7 @@ function parseOptionalEnum<const T extends readonly string[]>(
     return "invalid"
 }
 
-export const parseTable = (raw: RawBlockTable): EnrichedBlockTable => {
+const parseTable = (raw: RawBlockTable): EnrichedBlockTable => {
     const createError = (
         error: ParseError,
         template: TableTemplate = "header-row",
@@ -2349,7 +2346,7 @@ export function parseFaqs(
     }
 }
 
-export function parseExpandableParagraph(
+function parseExpandableParagraph(
     raw: RawBlockExpandableParagraph
 ): EnrichedBlockExpandableParagraph {
     const createError = (
@@ -3063,7 +3060,7 @@ function parseHomepageIntro(
     }
 }
 
-export const parseSocialLink = (raw: RawSocialLink): EnrichedSocialLink => {
+const parseSocialLink = (raw: RawSocialLink): EnrichedSocialLink => {
     const createError = (error: ParseError): EnrichedSocialLink => ({
         url: "",
         text: "",
@@ -3126,7 +3123,7 @@ export const parseSocials = (raw: RawBlockSocials): EnrichedBlockSocials => {
     }
 }
 
-export const parseScript = (raw: RawBlockScript): EnrichedBlockScript => {
+const parseScript = (raw: RawBlockScript): EnrichedBlockScript => {
     const createError = (error: ParseError): EnrichedBlockScript => ({
         type: "script",
         lines: [],

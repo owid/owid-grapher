@@ -2,7 +2,7 @@ import * as React from "react"
 import { forwardRef } from "react"
 import cx from "classnames"
 
-export type TextInputProps = React.InputHTMLAttributes<HTMLInputElement> & {
+type TextInputProps = React.InputHTMLAttributes<HTMLInputElement> & {
     className?: string
 }
 

@@ -9,7 +9,7 @@ import { Button, Col, Input, Row } from "antd"
 import { getPropertyMostCriticalError } from "./gdocsValidation.js"
 import { GdocsErrorHelp } from "./GdocsErrorHelp.js"
 
-export const BreadcrumbLine = ({
+const BreadcrumbLine = ({
     item,
     setItem,
     removeItem,

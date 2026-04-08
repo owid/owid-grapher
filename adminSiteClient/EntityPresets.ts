@@ -13,7 +13,7 @@ import {
 import { CoreColumn } from "@ourworldindata/core-table"
 import * as _ from "lodash-es"
 
-export interface EntityPreset {
+interface EntityPreset {
     id: string
     label: string
     description: string
@@ -93,7 +93,7 @@ export function sortEntitiesByLastValue(
  * When auto-selecting entities, we try these in order and use the first
  * one that has enough available entities.
  */
-export const STATIC_ENTITY_PRESETS: EntityPreset[] = [
+const STATIC_ENTITY_PRESETS: EntityPreset[] = [
     {
         id: "continents",
         label: "Continents",
@@ -117,7 +117,7 @@ export const STATIC_ENTITY_PRESETS: EntityPreset[] = [
     ),
 ]
 
-export interface AvailablePreset {
+interface AvailablePreset {
     preset: EntityPreset
     entities: EntityName[]
 }

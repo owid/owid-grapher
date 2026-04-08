@@ -20,11 +20,6 @@ import {
 } from "./BinningStrategyTypes.js"
 import { CatalogDataForKey, CatalogKey } from "../CatalogTypes.js"
 
-// Utility type that marks all properties of T that may be undefined as optional.
-export type UndefinedToOptional<T> = Partial<T> & {
-    [K in keyof T as undefined extends T[K] ? never : K]: T[K]
-}
-
 export interface Box {
     x: number
     y: number
@@ -396,17 +391,6 @@ export interface ColorScaleConfigInterface {
     customHiddenCategories: Record<string, true | undefined>
     legendDescription?: string
 }
-
-export const colorScaleConfigDefaults = {
-    binningStrategy: "auto",
-    customNumericValues: [],
-    customNumericLabels: [],
-    customNumericColors: [],
-
-    customCategoryColors: {},
-    customCategoryLabels: {},
-    customHiddenCategories: {},
-} satisfies ColorScaleConfigInterface
 
 export interface ColorSchemeInterface {
     name: string

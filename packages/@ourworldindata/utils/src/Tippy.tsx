@@ -15,7 +15,7 @@ export const Tippy = (props: CustomTippyProps): React.ReactElement => {
 // A Tippy instance that only evaluates `content` when the tooltip is shown.
 // Taken from https://gist.github.com/atomiks/520f4b0c7b537202a23a3059d4eec908
 // This will hopefully become supported in Tippy itself someday: See https://github.com/atomiks/tippyjs-react/issues/209
-export const LazyTippy = (props: TippyProps): React.ReactElement => {
+const LazyTippy = (props: TippyProps): React.ReactElement => {
     const [mounted, setMounted] = React.useState(false)
 
     const lazyPlugin = {

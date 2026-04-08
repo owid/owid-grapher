@@ -400,21 +400,6 @@ export const getTotalNumberOfCharts = (
     ).then((res) => res?.count ?? 0)
 }
 
-export const getTotalNumberOfInUseGrapherTags = (
-    knex: KnexReadonlyTransaction
-): Promise<number> => {
-    return knexRawFirst<{ count: number }>(
-        knex,
-        `
-        SELECT COUNT(DISTINCT(tagId)) AS count
-        FROM chart_tags
-        WHERE chartId IN (
-        SELECT id
-        FROM charts
-        WHERE publishedAt IS NOT NULL)`
-    ).then((res) => res?.count ?? 0)
-}
-
 /**
  * For usage with GdocFactory.load, until we refactor Gdocs to be entirely Knex-based.
  */

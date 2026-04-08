@@ -1,12 +1,9 @@
 import chunk from "chunk-text"
 
-export const chunkWords = (text: string, maxChunkLength: number): string[] =>
+const chunkWords = (text: string, maxChunkLength: number): string[] =>
     chunk(text, maxChunkLength)
 
-export const chunkSentences = (
-    text: string,
-    maxChunkLength: number
-): string[] => {
+const chunkSentences = (text: string, maxChunkLength: number): string[] => {
     // See https://stackoverflow.com/a/25736082/1983739
     // Not perfect, just works in most cases
     const sentenceRegex = /(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?|\n)\s/g

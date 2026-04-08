@@ -11,7 +11,7 @@ import {
 type Entity = { id: EntityId; code?: EntityCode; name?: EntityName }
 type TestDatum = { year: number; entity: Entity; value: string | number }
 
-export type TestData = TestDatum[]
+type TestData = TestDatum[]
 export type TestMetadata = OwidVariableWithSource
 
 const fakeRegions = regions.map((region: Region, index: number) => ({

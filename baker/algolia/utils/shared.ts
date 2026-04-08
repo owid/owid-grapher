@@ -248,7 +248,7 @@ export interface FeaturedMetricFailure {
     url: string
 }
 
-export interface FeaturedMetricRecordsResult {
+interface FeaturedMetricRecordsResult {
     records: ChartRecord[]
     failures: FeaturedMetricFailure[]
 }

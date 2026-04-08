@@ -49,7 +49,7 @@ export async function getLatestArchivedChartVersions(
     return await queryBuilder
 }
 
-export async function getLatestArchivedChartPageVersions(
+async function getLatestArchivedChartPageVersions(
     knex: db.KnexReadonlyTransaction,
     chartIds?: number[]
 ): Promise<Record<number, ArchivedPageVersion>> {

@@ -44,7 +44,7 @@ export async function getLatestArchivedExplorerVersions(
     return await queryBuilder
 }
 
-export async function getLatestArchivedExplorerPageVersions(
+async function getLatestArchivedExplorerPageVersions(
     knex: db.KnexReadonlyTransaction,
     slugs?: string[]
 ): Promise<Record<string, ArchivedPageVersion>> {

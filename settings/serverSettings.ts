@@ -42,7 +42,6 @@ export const BAKED_GRAPHER_URL: string =
 
 export const BLOG_POSTS_PER_PAGE: number =
     parseIntOrUndefined(serverSettings.BLOG_POSTS_PER_PAGE) ?? 21
-export const BLOG_SLUG: string = serverSettings.BLOG_SLUG ?? "latest"
 
 export const GRAPHER_DB_NAME: string = serverSettings.GRAPHER_DB_NAME ?? "owid"
 export const GRAPHER_DB_USER: string = serverSettings.GRAPHER_DB_USER ?? "root"
@@ -143,8 +142,6 @@ export const GRAPHER_CONFIG_R2_BUCKET_PATH: string | undefined =
 
 export const DATA_API_URL: string = clientSettings.DATA_API_URL
 export const CATALOG_URL: string = clientSettings.CATALOG_URL
-
-export const FEATURE_FLAGS = clientSettings.FEATURE_FLAGS
 
 export const BUILDKITE_API_ACCESS_TOKEN: string =
     serverSettings.BUILDKITE_API_ACCESS_TOKEN ?? ""

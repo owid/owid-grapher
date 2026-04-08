@@ -47,9 +47,7 @@ import { getChartConfigByUuid } from "../ChartConfigs.js"
  * This is useful for both GdocBase (via the getter) and for baking
  * instantiated profiles.
  */
-export function extractDataCalloutUrls(
-    body: OwidEnrichedGdocBlock[]
-): string[] {
+function extractDataCalloutUrls(body: OwidEnrichedGdocBlock[]): string[] {
     const callouts: Set<string> = new Set()
     for (const block of body) {
         traverseEnrichedBlock(block, (b) => {
@@ -256,7 +254,7 @@ async function prepareCalloutTableForExplorer(
  * Supports grapher URLs (/grapher/slug), explorer URLs (/explorers/slug),
  * and multi-dimensional data page URLs (/grapher/slug with multi-dim config).
  */
-export async function loadLinkedCalloutsForBlocks(
+async function loadLinkedCalloutsForBlocks(
     knex: db.KnexReadonlyTransaction,
     calloutUrls: string[]
 ): Promise<LinkedCallouts> {
@@ -400,7 +398,7 @@ export async function prepareCalloutTablesForProfile(
  * Used during profile baking after tables have been prepared once
  * with prepareCalloutTablesForProfile().
  */
-export function computeLinkedCalloutsFromPreparedTables(
+function computeLinkedCalloutsFromPreparedTables(
     calloutUrls: string[],
     preparedTables: Map<string, PreparedCalloutTable>
 ): LinkedCallouts {
@@ -459,7 +457,7 @@ export function checkShouldProfileRender(content: {
  * Clear data-callout blocks that have incomplete data.
  * This should be called after linkedCallouts are generated.
  */
-export function clearIncompleteDataCallouts(
+function clearIncompleteDataCallouts(
     content: { body?: OwidEnrichedGdocBlock[] },
     linkedCallouts: LinkedCallouts
 ): void {

@@ -471,7 +471,7 @@ class AddPeersSection extends React.Component<{
 }
 
 @observer
-export class EntitySelectionSection extends React.Component<{
+class EntitySelectionSection extends React.Component<{
     editor: AbstractChartEditor
 }> {
     dragKey: EntityName | undefined = undefined
@@ -642,7 +642,7 @@ export class EntitySelectionSection extends React.Component<{
 }
 
 @observer
-export class FocusSection extends React.Component<{
+class FocusSection extends React.Component<{
     editor: AbstractChartEditor
 }> {
     constructor(props: { editor: AbstractChartEditor }) {

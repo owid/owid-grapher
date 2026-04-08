@@ -17,7 +17,7 @@ import {
 import { match, P } from "ts-pattern"
 import * as cheerio from "cheerio"
 
-export function spanToSimpleString(s: Span): string {
+function spanToSimpleString(s: Span): string {
     return match(s)
         .with({ spanType: "span-simple-text" }, (span) => span.text)
         .with({ spanType: "span-newline" }, () => "\n")
@@ -124,14 +124,6 @@ export function spansToSimpleString(spans: Span[]): string {
         const result = spans.map(spanToSimpleString).join("")
         return result
     }
-}
-
-// Sometimes Google automatically linkifies a URL.
-// We always want the plaintext, not '<a href="www.ourworldindata.org">www.ourworldindata.org</a>'
-export function extractPlaintextUrl(html: string = ""): string {
-    if (html.trim().startsWith("http")) return html.trim()
-    const $ = cheerio.load(html)
-    return $("a").text()
 }
 
 // When we want the href, not the plaintext

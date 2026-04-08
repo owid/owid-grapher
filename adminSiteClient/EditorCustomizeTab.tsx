@@ -134,7 +134,7 @@ interface ColorSchemeSelectorProps {
 }
 
 @observer
-export class ColorSchemeSelector extends React.Component<ColorSchemeSelectorProps> {
+class ColorSchemeSelector extends React.Component<ColorSchemeSelectorProps> {
     constructor(props: ColorSchemeSelectorProps) {
         super(props)
         makeObservable(this)

@@ -1,10 +1,9 @@
 type Handler = () => any
 const handlers: Handler[] = []
 
-export const cleanup = async (): Promise<Handler[]> =>
-    await Promise.all(handlers)
+const cleanup = async (): Promise<Handler[]> => await Promise.all(handlers)
 
-export const exit = async (): Promise<never> => {
+const exit = async (): Promise<never> => {
     try {
         await cleanup()
         process.exit(0)

@@ -1,7 +1,7 @@
 import { sleep } from "@ourworldindata/utils"
 
-export const EMBEDDED_FONTS_CSS = "/fonts/embedded.css"
-export const IMPORT_FONTS_REGEX = /@import url\([^)]*?fonts\.css\)/
+const EMBEDDED_FONTS_CSS = "/fonts/embedded.css"
+const IMPORT_FONTS_REGEX = /@import url\([^)]*?fonts\.css\)/
 
 export interface GrapherExport {
     url: string

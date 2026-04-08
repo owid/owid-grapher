@@ -31,7 +31,7 @@ import { GdocAnnouncement } from "./Gdoc/GdocAnnouncement.js"
 import { GdocDataInsight } from "./Gdoc/GdocDataInsight.js"
 import { BLOG_POSTS_PER_PAGE } from "../../settings/serverSettings.js"
 
-export const postsTable = "posts"
+const postsTable = "posts"
 
 export const getPostIdFromSlug = (
     knex: db.KnexReadonlyTransaction,
@@ -55,13 +55,13 @@ export const getPostRawBySlug = async (
 ): Promise<DbRawPost | undefined> =>
     (await trx.table(postsTable).where({ slug }))[0]
 
-export const getPostRawById = async (
+const getPostRawById = async (
     trx: db.KnexReadonlyTransaction,
     id: number
 ): Promise<DbRawPost | undefined> =>
     (await trx.table(postsTable).where({ id }))[0]
 
-export const getPostEnrichedBySlug = async (
+const getPostEnrichedBySlug = async (
     trx: db.KnexReadonlyTransaction,
     slug: string
 ): Promise<DbEnrichedPost | undefined> => {
@@ -70,7 +70,7 @@ export const getPostEnrichedBySlug = async (
     return parsePostRow(post)
 }
 
-export const getPostEnrichedById = async (
+const getPostEnrichedById = async (
     trx: db.KnexReadonlyTransaction,
     id: number
 ): Promise<DbEnrichedPost | undefined> => {
@@ -355,7 +355,7 @@ export const getRelatedArticles = async (
     )
 }
 
-export interface RelatedResearchQueryResult {
+interface RelatedResearchQueryResult {
     title: string
     postSlug: string
     authors: string
