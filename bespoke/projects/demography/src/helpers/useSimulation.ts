@@ -42,8 +42,6 @@ import {
 } from "../model/model"
 import {
     calculateUNWPPScenario,
-    calculateDefaultScenario,
-    calculateFullTrendScenario,
     calculateTFRFromRaw,
     estimateLifeExpectancy,
     type ScenarioParams,
@@ -61,8 +59,6 @@ const SCENARIO_CONSTANTS: ScenarioConstants = {
     TREND_LATE_END,
 }
 
-export type PresetName = "unwpp" | "constant" | "trend"
-
 export interface Simulation {
     data: CountryData
     benchmarkResults: Record<number, YearResult>
@@ -71,9 +67,8 @@ export interface Simulation {
     unwppScenarioParams: ScenarioParams
     baselineParams: BaselineParams
     scenarioParams: ScenarioParams
-    activePreset: PresetName | null
+    isModified: boolean
     modifiedParameters: Set<ParameterKey>
-    applyPreset: (preset: PresetName) => void
     setScenarioParams: (params: ScenarioParams) => void
     getPopulationForYear: (year: number) => PopulationBySex | null
     getBenchmarkPopulationForYear: (year: number) => PopulationBySex | null
@@ -229,9 +224,6 @@ export function useSimulation(
 ): Simulation | null {
     const [scenarioParams, setScenarioParamsRaw] =
         useState<ScenarioParams | null>(null)
-    const [activePreset, setActivePreset] = useState<PresetName | null>(
-        initialScenarioOverrides ? null : "unwpp"
-    )
 
     const country = data.country
 
@@ -370,73 +362,16 @@ export function useSimulation(
         })
     }, [data, core, effectiveScenarioParams])
 
-    const applyPreset = useCallback(
-        (preset: PresetName) => {
-            if (!data || !core) return
-            setActivePreset(preset)
-
-            let params: ScenarioParams
-            switch (preset) {
-                case "unwpp":
-                    params = calculateUNWPPScenario(
-                        data,
-                        core.benchmarkResults,
-                        SCENARIO_CONSTANTS
-                    )
-                    break
-                case "constant":
-                    params = calculateDefaultScenario(
-                        data,
-                        core.benchmarkResults,
-                        SCENARIO_CONSTANTS
-                    )
-                    break
-                case "trend":
-                    params = calculateFullTrendScenario(
-                        data,
-                        core.benchmarkResults,
-                        SCENARIO_CONSTANTS
-                    )
-                    break
-            }
-            setScenarioParamsRaw(params)
-        },
-        [data, core]
-    )
-
-    const setScenarioParams = useCallback(
-        (params: ScenarioParams) => {
-            setScenarioParamsRaw(params)
-            // Check if params match UN WPP to restore preset indicator
-            if (core) {
-                const un = core.defaultScenario
-                const matches = CONTROL_YEARS.every(
-                    (y) =>
-                        Math.abs(
-                            params.fertilityRate[y] - un.fertilityRate[y]
-                        ) < 0.01 &&
-                        Math.abs(
-                            params.lifeExpectancy[y] - un.lifeExpectancy[y]
-                        ) < 0.01 &&
-                        Math.abs(
-                            params.netMigrationRate[y] - un.netMigrationRate[y]
-                        ) < 0.01
-                )
-                setActivePreset(matches ? "unwpp" : null)
-            } else {
-                setActivePreset(null)
-            }
-        },
-        [core]
-    )
+    const setScenarioParams = useCallback((params: ScenarioParams) => {
+        setScenarioParamsRaw(params)
+    }, [])
 
     // Reset scenario when country/overrides change
     useMemo(() => {
         if (core) {
             setScenarioParamsRaw(null)
-            setActivePreset(initialScenarioOverrides ? null : "unwpp")
         }
-    }, [core, initialScenarioOverrides])
+    }, [core])
 
     const getPopForYear = useCallback(
         (year: number): PopulationBySex | null => {
@@ -508,6 +443,8 @@ export function useSimulation(
         return modified
     }, [core, effectiveScenarioParams])
 
+    const isModified = modifiedParameters.size > 0
+
     if (!data || !core || !effectiveScenarioParams || !forecastResults)
         return null
 
@@ -519,9 +456,8 @@ export function useSimulation(
         unwppScenarioParams: core.defaultScenario,
         baselineParams: core.baselineParams,
         scenarioParams: effectiveScenarioParams,
-        activePreset,
+        isModified,
         modifiedParameters,
-        applyPreset,
         setScenarioParams,
         getPopulationForYear: getPopForYear,
         getBenchmarkPopulationForYear: getBenchmarkPopForYear,
