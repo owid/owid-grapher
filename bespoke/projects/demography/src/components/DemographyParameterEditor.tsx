@@ -31,7 +31,7 @@ import { getParameterChartFonts } from "../helpers/fonts.js"
 
 const SMALL_DOT_RADIUS = 3
 const CONTROL_POINT_RADIUS = 5
-const CONTROL_POINT_HIT_RADIUS = 20
+const CONTROL_POINT_HIT_RADIUS = 12
 const margin = {
     top: 0,
     // right: 0.5 * CONTROL_POINT_HIT_RADIUS,
