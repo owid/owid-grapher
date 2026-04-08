@@ -9,8 +9,7 @@ import {
 import { queryClient, useDemographyData } from "../helpers/fetch.js"
 import type { ParametersVariantConfig } from "../config.js"
 
-import { articulateEntity } from "@ourworldindata/utils"
-import { displayEntityName } from "../helpers/utils.js"
+import { entityNameForSentence } from "../helpers/utils.js"
 
 import { CountryData, DemographyMetadata } from "../helpers/types.js"
 import { useSimulation } from "../helpers/useSimulation.js"
@@ -92,7 +91,7 @@ function ParametersCaptionedChart({
     isLoading = false,
     subtitle: subtitleOverride,
     hideControls,
-    breakpoint,
+    _breakpoint,
 }: {
     data: CountryData
     metadata: DemographyMetadata
@@ -101,7 +100,7 @@ function ParametersCaptionedChart({
     isLoading?: boolean
     subtitle?: string
     hideControls?: boolean
-    breakpoint?: string
+    _breakpoint?: string
 }) {
     const simulation = useSimulation(data)
     const countryName = data.country
@@ -116,7 +115,7 @@ function ParametersCaptionedChart({
         <>
             Demographic assumptions for{" "}
             {hideControls ? (
-                articulateEntity(displayEntityName(countryName))
+                entityNameForSentence(countryName)
             ) : (
                 <InlineEntitySelector
                     metadata={metadata}
@@ -126,7 +125,9 @@ function ParametersCaptionedChart({
             )}
         </>
     )
-    const subtitle = subtitleOverride
+    const subtitle =
+        subtitleOverride ??
+        "Assumptions about fertility, life expectancy, and migration that underlie the UN's population medium projection"
 
     return (
         <Frame className="demography-parameters">

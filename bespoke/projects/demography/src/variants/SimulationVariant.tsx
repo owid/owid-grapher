@@ -15,8 +15,7 @@ import {
     DemographyMetadata,
     ParameterKey,
 } from "../helpers/types.js"
-import { articulateEntity } from "@ourworldindata/utils"
-import { displayEntityName } from "../helpers/utils.js"
+import { entityNameForSentence } from "../helpers/utils.js"
 import { Frame } from "../../../../components/Frame/Frame.js"
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { SimulationContent } from "../components/SimulationContent.js"
@@ -86,13 +85,13 @@ function SimulationCaptionedChart({
     entityName,
     setEntityName,
     isLoading = false,
-    title: titleOverride,
+    title: _titleOverride,
     subtitle: subtitleOverride,
     hideControls,
     focusParameter,
     stabilizingParameter,
     hidePopulationPyramid,
-    breakpoint,
+    _breakpoint,
 }: {
     data: CountryData
     metadata: DemographyMetadata
@@ -108,21 +107,24 @@ function SimulationCaptionedChart({
 }) {
     const countryName = data.country
 
-    const title: React.ReactNode = (
-        <>
-            How many people will live in{" "}
-            {hideControls ? (
-                articulateEntity(displayEntityName(countryName))
-            ) : (
-                <InlineEntitySelector
-                    metadata={metadata}
-                    entityName={entityName}
-                    onChange={setEntityName}
-                />
-            )}{" "}
-            by 2100?
-        </>
-    )
+    const title: React.ReactNode =
+        hideControls && countryName === "World" ? (
+            <>How many people will there be by 2100?</>
+        ) : (
+            <>
+                How many people will live in{" "}
+                {hideControls ? (
+                    entityNameForSentence(countryName)
+                ) : (
+                    <InlineEntitySelector
+                        metadata={metadata}
+                        entityName={entityName}
+                        onChange={setEntityName}
+                    />
+                )}{" "}
+                by 2100?
+            </>
+        )
     const subtitle =
         subtitleOverride ??
         "Demographers publish projections of how populations will change in the future. But what if fertility rates fall faster, or rebound? Or migration rates change? Adjust these assumptions and compare."

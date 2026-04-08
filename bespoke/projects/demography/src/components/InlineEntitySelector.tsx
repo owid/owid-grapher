@@ -20,7 +20,7 @@ import { getRegionByCode } from "@ourworldindata/utils"
 
 import { DemographyMetadata } from "../helpers/types.js"
 import { useUserCountryInformation } from "../helpers/fetch.js"
-import { displayEntityName } from "../helpers/utils.js"
+import { displayEntityName, entityNameForSentence } from "../helpers/utils.js"
 
 interface Option {
     value: string
@@ -62,7 +62,7 @@ export function InlineEntitySelector({
     return (
         <DialogTrigger isOpen={isOpen} onOpenChange={setIsOpen}>
             <Button className="inline-entity-selector__trigger">
-                {displayEntityName(entityName)}
+                {entityNameForSentence(entityName)}
                 <span className="inline-entity-selector__arrow">
                     {"\u00a0"}▾
                 </span>

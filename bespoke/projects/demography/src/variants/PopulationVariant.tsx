@@ -9,8 +9,7 @@ import {
 import { queryClient, useDemographyData } from "../helpers/fetch.js"
 import type { PopulationVariantConfig } from "../config.js"
 
-import { articulateEntity } from "@ourworldindata/utils"
-import { displayEntityName } from "../helpers/utils.js"
+import { entityNameForSentence } from "../helpers/utils.js"
 
 import { CountryData, DemographyMetadata } from "../helpers/types.js"
 import { useSimulation } from "../helpers/useSimulation.js"
@@ -85,7 +84,7 @@ function PopulationCaptionedChart({
     isLoading = false,
     subtitle: subtitleOverride,
     hideControls,
-    breakpoint,
+    _breakpoint,
 }: {
     data: CountryData
     metadata: DemographyMetadata
@@ -94,7 +93,7 @@ function PopulationCaptionedChart({
     isLoading?: boolean
     subtitle?: string
     hideControls?: boolean
-    breakpoint?: string
+    _breakpoint?: string
 }) {
     const simulation = useSimulation(data)
     const countryName = data.country
@@ -103,7 +102,7 @@ function PopulationCaptionedChart({
         <>
             Population of{" "}
             {hideControls ? (
-                articulateEntity(displayEntityName(countryName))
+                entityNameForSentence(countryName)
             ) : (
                 <InlineEntitySelector
                     metadata={metadata}

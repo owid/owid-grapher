@@ -23,14 +23,12 @@ import {
     HISTORICAL_END_YEAR,
     CONTROL_YEARS,
     FULL_TIME_RANGE,
-    BENCHMARK_LINE_COLOR,
     USER_MODIFIED_COLOR,
     USER_MODIFIED_COLOR_LIGHT,
 } from "../helpers/constants.js"
 import { PopulationChartLegend } from "./PopulationChartLegend.js"
 import { parameterConfigByKey } from "../helpers/parameterConfigs.js"
 import { useTippyContainer } from "../../../../hooks/useTippyContainer.js"
-import { GRAY_60 } from "@ourworldindata/grapher/src/color/ColorConstants.js"
 
 const PARAMETER_TAB_LABELS: Record<ParameterKey, string> = {
     fertilityRate: "Fertility Rate",
@@ -63,6 +61,11 @@ export function SimulationContent({
 
     if (!simulation) return null
 
+    const isWorld = data.country === "World"
+    const visibleParameterKeys = isWorld
+        ? PARAMETER_KEYS.filter((k) => k !== "netMigrationRate")
+        : PARAMETER_KEYS
+
     const hasUserChanges =
         simulation.activePreset !== "unwpp" || !!stabilizingParameter
     const pyramidBarColor =
@@ -90,7 +93,7 @@ export function SimulationContent({
                         defaultSelectedKey={focusParameter ?? "fertilityRate"}
                     >
                         <TabList className="input-tabs__list">
-                            {PARAMETER_KEYS.map((key) => (
+                            {visibleParameterKeys.map((key) => (
                                 <Tab
                                     key={key}
                                     id={key}
@@ -100,40 +103,20 @@ export function SimulationContent({
                                 </Tab>
                             ))}
                         </TabList>
-                        {PARAMETER_KEYS.map((key) => {
-                            const isWorldMigration =
-                                key === "netMigrationRate" &&
-                                data.country === "World"
-                            const isMuted = isWorldMigration
-                            const isNonInteractive = isWorldMigration
-                            return (
-                                <TabPanel
-                                    key={key}
-                                    id={key}
-                                    className="input-tabs__panel"
-                                >
-                                    <InputChartPanel
-                                        simulation={simulation}
-                                        variant={key}
-                                        interactive={!isNonInteractive}
-                                        lineColor={
-                                            isMuted
-                                                ? BENCHMARK_LINE_COLOR
-                                                : undefined
-                                        }
-                                        labelColor={
-                                            isMuted ? GRAY_60 : undefined
-                                        }
-                                        resetTarget={stabilizedOverrides?.[key]}
-                                        hideInfoIcon={isWorldMigration}
-                                        showProjectionLabel
-                                        className={cx({
-                                            "chart-panel--muted": isMuted,
-                                        })}
-                                    />
-                                </TabPanel>
-                            )
-                        })}
+                        {visibleParameterKeys.map((key) => (
+                            <TabPanel
+                                key={key}
+                                id={key}
+                                className="input-tabs__panel"
+                            >
+                                <InputChartPanel
+                                    simulation={simulation}
+                                    variant={key}
+                                    resetTarget={stabilizedOverrides?.[key]}
+                                    showProjectionLabel
+                                />
+                            </TabPanel>
+                        ))}
                     </Tabs>
                 </div>
                 <AssumptionsTable simulation={simulation} />
@@ -151,8 +134,7 @@ export function SimulationContent({
                         header={
                             <PopulationChartLegend
                                 modified={hasUserChanges}
-                                userTooltip="(to do) This projection is based on the fertility, life expectancy, and migration assumptions you set. Change them in the panel on the left to see how they affect population size. Bla bla, bit of an explanation"
-                                benchmarkTooltip="(to do) This is the medium-variant projection from the UN World Population Prospects. Bla bla, bit of an explanation"
+                                userTooltip="This projection is based on the fertility, life expectancy, and migration assumptions you set. Change them in the panel on the left to see how they affect population projections."
                             />
                         }
                     >
@@ -391,20 +373,24 @@ export function ChartPanel({
 function AssumptionsTable({ simulation }: { simulation: Simulation }) {
     const breakpoint = useBreakpoint()
     const useShortTitles = breakpoint === "small" || breakpoint === "narrow"
+    const isWorld = simulation.data.country === "World"
+    const visibleKeys = isWorld
+        ? PARAMETER_KEYS.filter((k) => k !== "netMigrationRate")
+        : PARAMETER_KEYS
     const { ref: tableRef, getTippyContainer } =
         useTippyContainer<HTMLTableElement>()
     return (
         <table className="assumptions-table" ref={tableRef}>
             <colgroup>
                 <col className="assumptions-table__col-year" />
-                <col />
-                <col />
-                <col />
+                {visibleKeys.map((key) => (
+                    <col key={key} />
+                ))}
             </colgroup>
             <thead>
                 <tr>
                     <th></th>
-                    {PARAMETER_KEYS.map((key) => {
+                    {visibleKeys.map((key) => {
                         return (
                             <th key={key}>
                                 {useShortTitles
@@ -437,7 +423,7 @@ function AssumptionsTable({ simulation }: { simulation: Simulation }) {
                 {CONTROL_YEARS.map((yr) => (
                     <tr key={yr}>
                         <td className="assumptions-table__year">In {yr}</td>
-                        {PARAMETER_KEYS.map((key) => {
+                        {visibleKeys.map((key) => {
                             const config = parameterConfigByKey[key]
                             const unit = useShortTitles
                                 ? ""
