@@ -1,34 +1,31 @@
 import { defineConfig } from "vite"
-import react from "@vitejs/plugin-react"
+import pluginReact from "@vitejs/plugin-react"
+import { viteCssPosition } from "vite-plugin-css-position"
+
+import { entrypoints } from "./package.json"
 
 export default defineConfig({
-    root: "./src",
-    base: "/admin",
-    define: {
-        "process.env.NODE_ENV": JSON.stringify("production"),
+    plugins: [
+        pluginReact(),
+        viteCssPosition({
+            enableDev: true,
+        }),
+    ],
+    resolve: {
+        dedupe: ["react", "react-dom", "@react-stately/flags"],
     },
     build: {
         lib: {
-            entry: ["main.tsx", "main.scss"],
-            fileName: "income-plots",
+            entry: entrypoints.js,
             formats: ["es"],
+            fileName: "index",
         },
-        emptyOutDir: true,
-        outDir: "../../../../dist/income-plots",
+        sourcemap: true,
+        outDir: "dist",
     },
-    esbuild: {
-        target: "es2024", // needed so decorators are compiled by esbuild
-    },
-    plugins: [
-        react({
-            babel: {
-                parserOpts: {
-                    plugins: ["decorators"], // needed so mobx decorators work correctly
-                },
-            },
-        }),
-    ],
-    server: {
-        allowedHosts: true,
+    define: {
+        "process.env.NODE_ENV": JSON.stringify(
+            process.env.NODE_ENV || "development"
+        ),
     },
 })
