@@ -7,7 +7,7 @@ import { EntityName, Time } from "@ourworldindata/types"
 import { DataRow } from "../helpers/CausesOfDeathConstants"
 import { ResponsiveCausesOfDeathTreemap } from "./CausesOfDeathTreemap"
 import {
-    formatCountryName,
+    formatEntityNameForSentence,
     formatCount,
 } from "../helpers/CausesOfDeathHelpers.js"
 import { CausesOfDeathMetadata } from "../helpers/CausesOfDeathMetadata.js"
@@ -92,12 +92,12 @@ function CausesOfDeathHeader({
     const location =
         entityName === "World"
             ? "globally"
-            : `in ${formatCountryName(entityName)}`
+            : `in ${formatEntityNameForSentence(entityName)}`
 
     const title =
         entityName === "World"
             ? `What did ${ageGroupName} die from in ${year}?`
-            : `What did ${ageGroupName} in ${formatCountryName(entityName)} die from in ${year}?`
+            : `What did ${ageGroupName} in ${formatEntityNameForSentence(entityName)} die from in ${year}?`
 
     return (
         <ChartHeader
