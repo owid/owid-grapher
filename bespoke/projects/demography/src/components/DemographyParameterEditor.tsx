@@ -31,7 +31,7 @@ import { getParameterChartFonts } from "../helpers/fonts.js"
 
 const SMALL_DOT_RADIUS = 3
 const CONTROL_POINT_RADIUS = 5
-const CONTROL_POINT_HIT_RADIUS = 12
+const CONTROL_POINT_HIT_RADIUS = 20
 const margin = {
     top: 0,
     // right: 0.5 * CONTROL_POINT_HIT_RADIUS,
@@ -341,7 +341,7 @@ function DemographyParameterEditor({
     return (
         <svg
             ref={svgRef}
-            width={width}
+            width={width + CONTROL_POINT_HIT_RADIUS}
             height={height}
             overflow="visible"
             style={{ display: "block", touchAction: "none" }}
@@ -715,7 +715,10 @@ export const ResponsiveDemographyParameterEditor = memo(
     }: DemographyParameterEditorProps) {
         const { parentRef, width, height } = useParentSize()
         return (
-            <div ref={parentRef} style={{ width: "100%", height: "100%" }}>
+            <div
+                ref={parentRef}
+                style={{ width: "100%", height: "100%", overflow: "visible" }}
+            >
                 {width > 0 && height > 0 ? (
                     <DemographyParameterEditor
                         simulation={simulation}
@@ -781,6 +784,7 @@ function DraggableControlPoint({
                 r={CONTROL_POINT_HIT_RADIUS}
                 fill="transparent"
                 cursor="ns-resize"
+                style={{ touchAction: "none" }}
                 onMouseEnter={onMouseEnter}
                 onMouseLeave={onMouseLeave}
                 onPointerDown={(e) => {
