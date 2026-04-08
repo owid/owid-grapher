@@ -60,13 +60,14 @@ export default function ChartRows({
         <div
             className={cx(
                 "chart-rows",
-                isInGuidedChart && "chart-rows--guided",
+                { "chart-rows--guided": isInGuidedChart },
+                { "chart-rows--standalone": !isInGuidedChart },
                 className
             )}
         >
-            <p className="chart-rows__kicker">
+            <span className="chart-rows__kicker">
                 {d.kicker || "More views of this data"}
-            </p>
+            </span>
             {!isInGuidedChart && d.title && (
                 <h4 className="chart-rows__title">{d.title}</h4>
             )}

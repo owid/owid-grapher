@@ -1,30 +1,18 @@
 .chart-rows {
-    margin-top: 16px;
     margin-bottom: 32px;
-    border-top: 1px solid $blue-10;
-    border-bottom: 1px solid $blue-10;
-    padding-top: 24px;
-    padding-bottom: 24px;
 }
 
 .chart-rows__kicker {
     @include h5-black-caps;
-    & {
-        color: $blue-50;
-        margin: 0 0 24px;
-    }
-
-    // Tighten gap when followed by a title
-    &:has(+ .chart-rows__title) {
-        margin-bottom: 2px;
-    }
+    display: block;
+    color: $blue-50;
 }
 
 .chart-rows__title {
     @include h2-bold;
     & {
         color: $blue-90;
-        margin: 0;
+        margin: 2px 0 0;
     }
 }
 
@@ -70,11 +58,10 @@
 
 .chart-rows .chart-thumbnail {
     flex-shrink: 0;
-    max-width: 300px;
+    width: 300px;
 
     @include sm-only {
-        max-width: unset;
-        width: calc(10 / 12 * 100%);
+        width: calc(10 / 12 * 100%); // emulating 10 columns without grid
     }
 }
 
@@ -91,17 +78,18 @@
     @include body-3-regular;
 }
 
-// Inside a guided chart: no outer borders, no margins, kicker only
-.chart-rows.chart-rows--guided {
-    margin-top: 0;
-    margin-bottom: 0;
-    border-top: none;
-    border-bottom: none;
-    padding-top: 0;
-    padding-bottom: 0;
+.chart-rows--standalone {
+    margin-top: 16px;
+    border-top: 1px solid $blue-10;
+    border-bottom: 1px solid $blue-10;
+    padding-top: 24px;
+    padding-bottom: 24px;
+}
 
+// Inside a guided chart: no source, no title, kicker only
+.chart-rows--guided {
     .chart-rows__rows-container {
-        margin-top: 0;
+        margin-top: 24px;
         margin-bottom: 0;
     }
 
