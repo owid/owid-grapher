@@ -18,6 +18,7 @@
         "@ourworldindata/components": "link:../../../packages/@ourworldindata/components",
         "@ourworldindata/types": "link:../../../packages/@ourworldindata/types",
         "@ourworldindata/utils": "link:../../../packages/@ourworldindata/utils",
+        "@react-aria/overlays": "^3.31.2",
         "@react-stately/flags": "^3.1.2",
         "classnames": "^2.5.1",
         "d3": "^7.9.0",
