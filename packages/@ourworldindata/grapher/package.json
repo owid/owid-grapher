@@ -7,10 +7,10 @@
     "types": "src/index.ts",
     "publishConfig": {
         "main": "dist/grapher.js",
-        "types": "dist/grapher.entry.d.ts",
+        "types": "dist/grapher.public.d.ts",
         "exports": {
             ".": {
-                "types": "./dist/grapher.entry.d.ts",
+                "types": "./dist/grapher.public.d.ts",
                 "import": "./dist/grapher.js"
             },
             "./dist/grapher.css": "./dist/grapher.css",
