@@ -9,8 +9,10 @@ import {
 } from "../components/DemographyLoadAndError.js"
 import { queryClient, useDemographyData } from "../helpers/fetch.js"
 import type { PopulationPyramidVariantConfig } from "../config.js"
-import { articulateEntity } from "@ourworldindata/utils"
-import { displayEntityName, groupAgeGroupsByZone } from "../helpers/utils.js"
+import {
+    entityNameForSentence,
+    groupAgeGroupsByZone,
+} from "../helpers/utils.js"
 import {
     CountryData,
     DemographyMetadata,
@@ -109,7 +111,7 @@ function PopulationPyramidCaptionedChart({
     subtitle: subtitleOverride,
     hideControls,
     hideTimeline,
-    breakpoint,
+    _breakpoint,
     showAssumptionCharts = false,
     initialTime,
     stabilizingParameter,
@@ -125,7 +127,7 @@ function PopulationPyramidCaptionedChart({
     subtitle?: string
     hideControls?: boolean
     hideTimeline?: boolean
-    breakpoint?: string
+    _breakpoint?: string
     showAssumptionCharts?: boolean
     initialTime?: number
     stabilizingParameter?: ParameterKey
@@ -168,7 +170,7 @@ function PopulationPyramidCaptionedChart({
         <>
             Age structure of{" "}
             {hideControls ? (
-                articulateEntity(displayEntityName(data.country))
+                entityNameForSentence(data.country)
             ) : (
                 <InlineEntitySelector
                     metadata={metadata}
@@ -181,7 +183,7 @@ function PopulationPyramidCaptionedChart({
     )
     const subtitle =
         subtitleOverride ??
-        `The population of ${articulateEntity(displayEntityName(data.country))}, broken down by age and sex based on future projections. These are based on the user's fertility, life expectancy, and migration inputs to a demographic model.`
+        `The population of ${entityNameForSentence(data.country)}, broken down by age and sex based on future projections. These are based on the user's fertility, life expectancy, and migration inputs to a demographic model.`
 
     return (
         <Frame className="demography-population-pyramid">

@@ -14,13 +14,31 @@ import type {
     DeathsByAgeGroup,
     AgeZone,
 } from "./types"
-import { formatValue } from "@ourworldindata/utils"
+import {
+    formatValue,
+    articulateEntity,
+    getRegionByName,
+} from "@ourworldindata/utils"
 import { OwidVariableRoundingMode } from "@ourworldindata/types"
 import { QueryStatus } from "@tanstack/react-query"
 
 /** Strip suffixes like " (UN)" from entity names for display */
 export function displayEntityName(name: string): string {
     return name.replace(/\s*\(UN\)$/, "")
+}
+
+/**
+ * Format an entity name for use in a sentence, e.g. "the United States"
+ * or "low-income countries". Handles articles and lowercasing for income groups.
+ */
+export function entityNameForSentence(name: string): string {
+    const display = displayEntityName(name)
+    if (display === "World") return "the world"
+    const region = getRegionByName(display)
+    if (region?.regionType === "income_group") {
+        return display.charAt(0).toLowerCase() + display.slice(1)
+    }
+    return articulateEntity(display)
 }
 
 export function formatPopulationValueShort(value: number): string {
