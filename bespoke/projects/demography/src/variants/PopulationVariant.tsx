@@ -9,6 +9,7 @@ import type { PopulationVariantConfig, VariantProps } from "../config.js"
 import type { CountryData, DemographyMetadata } from "../helpers/types.js"
 
 import { queryClient, useDemographyData } from "../helpers/fetch.js"
+import { START_YEAR, END_YEAR } from "../helpers/constants.js"
 import { useSimulation } from "../helpers/useSimulation.js"
 import { useInitialEntityName } from "../helpers/useInitialEntityName.js"
 import {
@@ -22,21 +23,13 @@ import {
     DemographySkeleton,
     LoadingSpinner,
 } from "../components/DemographyLoadAndError.js"
-import { ResponsivePopulationChart } from "../components/PopulationChart.js"
+import { PopulationChart } from "../components/PopulationChart.js"
 import { EntityNameOrSelector } from "../components/EntityNameOrSelector.js"
 
 export function PopulationVariant({
     config,
 }: VariantProps<PopulationVariantConfig>): React.ReactElement {
-    const [entityName, setEntityName] = useInitialEntityName(config.region)
-
-    const { metadata, entityData, isLoadingEntityData, status } =
-        useDemographyData(entityName)
-
     const { breakpoint, ref: rootRef } = useContainerBreakpoint()
-
-    if (status === "pending") return <DemographySkeleton />
-    if (!metadata || !entityData) return <DemographyChartError />
 
     return (
         <QueryClientProvider client={queryClient}>
@@ -48,23 +41,41 @@ export function PopulationVariant({
                         breakpointClass(breakpoint)
                     )}
                 >
-                    <PopulationCaptionedChart
-                        data={entityData}
-                        metadata={metadata}
-                        entityName={entityName}
-                        setEntityName={setEntityName}
-                        title={config.title}
-                        subtitle={config.subtitle}
-                        hideControls={config.hideControls}
-                        isLoading={isLoadingEntityData}
-                    />
+                    <FetchingPopulationVariant config={config} />
                 </div>
             </BreakpointProvider>
         </QueryClientProvider>
     )
 }
 
-function PopulationCaptionedChart({
+function FetchingPopulationVariant({
+    config,
+}: {
+    config: PopulationVariantConfig
+}): React.ReactElement {
+    const [entityName, setEntityName] = useInitialEntityName(config.region)
+
+    const { metadata, entityData, isLoadingEntityData, status } =
+        useDemographyData(entityName)
+
+    if (status === "pending") return <DemographySkeleton />
+    if (!metadata || !entityData) return <DemographyChartError />
+
+    return (
+        <CaptionedPopulationVariant
+            data={entityData}
+            metadata={metadata}
+            entityName={entityName}
+            setEntityName={setEntityName}
+            title={config.title}
+            subtitle={config.subtitle}
+            hideControls={config.hideControls}
+            isLoading={isLoadingEntityData}
+        />
+    )
+}
+
+function CaptionedPopulationVariant({
     data,
     metadata,
     entityName,
@@ -96,7 +107,10 @@ function PopulationCaptionedChart({
                 metadata={metadata}
                 onChange={setEntityName}
             />
-            , <span style={{ whiteSpace: "nowrap" }}>1950 to 2100</span>
+            ,{" "}
+            <span className="demography-chart__nowrap">
+                {START_YEAR} to {END_YEAR}
+            </span>
         </>
     )
     const subtitle =
@@ -104,17 +118,19 @@ function PopulationCaptionedChart({
         "Historical estimates and projections of total population"
 
     return (
-        <Frame className="demography-population-only">
+        <Frame className="demography-population-variant">
             <ChartHeader title={title} subtitle={subtitle} />
-            <div className="demography-population-only__chart-area">
+
+            <div className="demography-population-variant__chart-area">
                 {isLoading && <LoadingSpinner />}
                 {simulation && (
-                    <ResponsivePopulationChart
+                    <PopulationChart
                         simulation={simulation}
                         showCustomProjection={false}
                     />
                 )}
             </div>
+
             <ChartFooter
                 className="demography-footer"
                 source="Historical estimates and projections from the UN World Population Prospects"

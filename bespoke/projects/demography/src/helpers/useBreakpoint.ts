@@ -14,7 +14,7 @@ const THRESHOLDS = {
     medium: 1024,
 }
 
-export function widthToBreakpoint(width: number): Breakpoint {
+export function toBreakpoint(width: number): Breakpoint {
     if (width <= THRESHOLDS.narrow) return "narrow"
     if (width <= THRESHOLDS.small) return "small"
     if (width <= THRESHOLDS.medium) return "medium"
@@ -47,8 +47,7 @@ export function useContainerBreakpoint(): {
         const target = node?.parentElement
         if (!target) return
 
-        const update = () =>
-            setBreakpoint(widthToBreakpoint(target.clientWidth))
+        const update = () => setBreakpoint(toBreakpoint(target.clientWidth))
 
         const observer = new ResizeObserver(update)
         observer.observe(target)

@@ -229,7 +229,9 @@ export function useSimulation(
 ): Simulation | null {
     const [scenarioParams, setScenarioParamsRaw] =
         useState<ScenarioParams | null>(null)
-    const [activePreset, setActivePreset] = useState<PresetName | null>("unwpp")
+    const [activePreset, setActivePreset] = useState<PresetName | null>(
+        initialScenarioOverrides ? null : "unwpp"
+    )
 
     const country = data.country
 
@@ -428,13 +430,13 @@ export function useSimulation(
         [core]
     )
 
-    // Reset scenario when country changes
+    // Reset scenario when country/overrides change
     useMemo(() => {
         if (core) {
             setScenarioParamsRaw(null)
-            setActivePreset("unwpp")
+            setActivePreset(initialScenarioOverrides ? null : "unwpp")
         }
-    }, [core])
+    }, [core, initialScenarioOverrides])
 
     const getPopForYear = useCallback(
         (year: number): PopulationBySex | null => {

@@ -25,9 +25,9 @@ import {
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
 import { Frame } from "../../../../components/Frame/Frame.js"
-import { ResponsivePopulationPyramid } from "../components/PopulationPyramid.js"
+import { PopulationPyramid } from "../components/PopulationPyramid.js"
 import { ParameterChartsDisclosure } from "../components/ParameterChartsDisclosure.js"
-import { ResponsiveAgeZoneLegend } from "../components/AgeZoneLegend.js"
+import { AgeZoneLegend } from "../components/AgeZoneLegend.js"
 import { TimeSlider } from "../../../../components/TimeSlider/TimeSlider.js"
 import {
     CHART_FOOTER_SOURCES,
@@ -46,15 +46,7 @@ import { EntityNameOrSelector } from "../components/EntityNameOrSelector.js"
 export function PopulationPyramidVariant({
     config,
 }: VariantProps<PopulationPyramidVariantConfig>): React.ReactElement {
-    const [entityName, setEntityName] = useInitialEntityName(config.region)
-
-    const { metadata, entityData, isLoadingEntityData, status } =
-        useDemographyData(entityName)
-
     const { breakpoint, ref: rootRef } = useContainerBreakpoint()
-
-    if (status === "pending") return <DemographySkeleton />
-    if (!metadata || !entityData) return <DemographyChartError />
 
     return (
         <QueryClientProvider client={queryClient}>
@@ -66,36 +58,48 @@ export function PopulationPyramidVariant({
                         breakpointClass(breakpoint)
                     )}
                 >
-                    <PopulationPyramidCaptionedChart
-                        data={entityData}
-                        metadata={metadata}
-                        entityName={entityName}
-                        setEntityName={setEntityName}
-                        isLoading={isLoadingEntityData}
-                        title={config.title}
-                        subtitle={config.subtitle}
-                        hideControls={config.hideControls}
-                        hideTimeline={config.hideTimeline}
-                        showAssumptionCharts={config.showAssumptionCharts}
-                        initialTime={config.time}
-                        stabilizingParameter={config.stabilizingParameter}
-                        fertilityRateAssumptions={
-                            config.fertilityRateAssumptions
-                        }
-                        lifeExpectancyAssumptions={
-                            config.lifeExpectancyAssumptions
-                        }
-                        netMigrationRateAssumptions={
-                            config.netMigrationRateAssumptions
-                        }
-                    />
+                    <FetchingPopulationPyramidVariant config={config} />
                 </div>
             </BreakpointProvider>
         </QueryClientProvider>
     )
 }
 
-function PopulationPyramidCaptionedChart({
+function FetchingPopulationPyramidVariant({
+    config,
+}: {
+    config: PopulationPyramidVariantConfig
+}): React.ReactElement {
+    const [entityName, setEntityName] = useInitialEntityName(config.region)
+
+    const { metadata, entityData, isLoadingEntityData, status } =
+        useDemographyData(entityName)
+
+    if (status === "pending") return <DemographySkeleton />
+    if (!metadata || !entityData) return <DemographyChartError />
+
+    return (
+        <CaptionedPopulationPyramidVariant
+            data={entityData}
+            metadata={metadata}
+            entityName={entityName}
+            setEntityName={setEntityName}
+            isLoading={isLoadingEntityData}
+            title={config.title}
+            subtitle={config.subtitle}
+            hideControls={config.hideControls}
+            hideTimeline={config.hideTimeline}
+            showAssumptionCharts={config.showAssumptionCharts}
+            initialTime={config.time}
+            stabilizingParameter={config.stabilizingParameter}
+            fertilityRateAssumptions={config.fertilityRateAssumptions}
+            lifeExpectancyAssumptions={config.lifeExpectancyAssumptions}
+            netMigrationRateAssumptions={config.netMigrationRateAssumptions}
+        />
+    )
+}
+
+function CaptionedPopulationPyramidVariant({
     data,
     metadata,
     entityName,
@@ -183,13 +187,13 @@ function PopulationPyramidCaptionedChart({
                 {isLoading && <LoadingSpinner />}
                 {simulation && (
                     <div className="detailed-population-pyramid">
-                        <ResponsiveAgeZoneLegend
+                        <AgeZoneLegend
                             simulation={simulation}
                             year={year}
                             projection={projection}
                         />
                         <div className="detailed-population-pyramid__chart">
-                            <ResponsivePopulationPyramid
+                            <PopulationPyramid
                                 simulation={simulation}
                                 year={year}
                                 ageZones={ageZones}

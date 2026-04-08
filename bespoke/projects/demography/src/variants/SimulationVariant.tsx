@@ -30,14 +30,7 @@ import {
 export function SimulationVariant({
     config,
 }: VariantProps<SimulationVariantConfig>): React.ReactElement {
-    const [entityName, setEntityName] = useInitialEntityName(config.region)
     const { breakpoint, ref: rootRef } = useContainerBreakpoint()
-
-    const { metadata, entityData, isLoadingEntityData, status } =
-        useDemographyData(entityName)
-
-    if (status === "pending") return <DemographySkeleton />
-    if (!metadata || !entityData) return <DemographyChartError />
 
     return (
         <QueryClientProvider client={queryClient}>
@@ -49,26 +42,44 @@ export function SimulationVariant({
                         breakpointClass(breakpoint)
                     )}
                 >
-                    <SimulationCaptionedChart
-                        data={entityData}
-                        metadata={metadata}
-                        entityName={entityName}
-                        setEntityName={setEntityName}
-                        isLoading={isLoadingEntityData}
-                        title={config.title}
-                        subtitle={config.subtitle}
-                        hideControls={config.hideControls}
-                        focusParameter={config.focusParameter}
-                        stabilizingParameter={config.stabilizingParameter}
-                        hidePopulationPyramid={config.hidePopulationPyramid}
-                    />
+                    <FetchingSimulationVariant config={config} />
                 </div>
             </BreakpointProvider>
         </QueryClientProvider>
     )
 }
 
-function SimulationCaptionedChart({
+function FetchingSimulationVariant({
+    config,
+}: {
+    config: SimulationVariantConfig
+}): React.ReactElement {
+    const [entityName, setEntityName] = useInitialEntityName(config.region)
+
+    const { metadata, entityData, isLoadingEntityData, status } =
+        useDemographyData(entityName)
+
+    if (status === "pending") return <DemographySkeleton />
+    if (!metadata || !entityData) return <DemographyChartError />
+
+    return (
+        <CaptionedSimulationVariant
+            data={entityData}
+            metadata={metadata}
+            entityName={entityName}
+            setEntityName={setEntityName}
+            isLoading={isLoadingEntityData}
+            title={config.title}
+            subtitle={config.subtitle}
+            hideControls={config.hideControls}
+            focusParameter={config.focusParameter}
+            stabilizingParameter={config.stabilizingParameter}
+            hidePopulationPyramid={config.hidePopulationPyramid}
+        />
+    )
+}
+
+function CaptionedSimulationVariant({
     data,
     metadata,
     entityName,

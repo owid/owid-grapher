@@ -21,6 +21,7 @@ import {
     ZERO_LINE_COLOR,
     USER_MODIFIED_COLOR,
 } from "../helpers/constants"
+
 import { GRAPHER_LIGHT_TEXT } from "@ourworldindata/grapher/src/color/ColorConstants.js"
 import { TooltipCard } from "@ourworldindata/grapher/src/tooltip/TooltipCard.js"
 import { TooltipValue } from "@ourworldindata/grapher/src/tooltip/TooltipContents.js"
@@ -35,7 +36,7 @@ import {
 } from "../helpers/utils.js"
 import { TimeAxisX } from "./TimeAxisX.js"
 import { last } from "lodash-es"
-import { widthToBreakpoint } from "../helpers/useBreakpoint.js"
+import { toBreakpoint } from "../helpers/useBreakpoint.js"
 import { usePinnedTooltip } from "../../../../hooks/usePinnedTooltip.js"
 import {
     getPopulationChartFonts,
@@ -47,6 +48,11 @@ const margin = { top: 0, bottom: 16, left: 0, right: 0 }
 interface DataPoint {
     year: number
     value: number
+}
+
+interface TooltipState {
+    target: { year: number } | null
+    position: { x: number; y: number }
 }
 
 function pixelDistance(
@@ -61,29 +67,36 @@ function pixelDistance(
 interface PopulationChartProps {
     simulation: Simulation
     showCustomProjection?: boolean
-    hideChangeAnnotation?: boolean
     showHistoricalAnnotation?: boolean
-    forceShowUserChanges?: boolean
 }
 
-function PopulationChart({
+function PopulationChartContent({
     simulation,
-    showCustomProjection = true,
-    hideChangeAnnotation = false,
-    showHistoricalAnnotation = false,
-    forceShowUserChanges = false,
     width,
     height,
+    showCustomProjection = true,
+    showHistoricalAnnotation = false,
 }: PopulationChartProps & { width: number; height: number }) {
-    const breakpoint = widthToBreakpoint(width)
+    const breakpoint = toBreakpoint(width)
     const fonts = getPopulationChartFonts(breakpoint)
-    // Hover state for tooltip
-    const [hoveredYear, setHoveredYear] = useState<number | null>(null)
-    const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
 
-    const dismissTooltip = useCallback(() => setHoveredYear(null), [])
+    const [tooltipState, setTooltipState] = useState<TooltipState>({
+        target: null,
+        position: { x: 0, y: 0 },
+    })
+
+    const dismissTooltip = useCallback(
+        () => setTooltipState((prev) => ({ ...prev, target: null })),
+        []
+    )
+
     const { ref: chartRef, isPinned: pinTooltipToBottom } =
-        usePinnedTooltip<HTMLDivElement>(hoveredYear !== null, dismissTooltip)
+        usePinnedTooltip<HTMLDivElement>(
+            tooltipState.target !== null,
+            dismissTooltip
+        )
+
+    const hoveredYear = tooltipState.target?.year ?? null
 
     const historicalDataPoints = useMemo(
         () =>
@@ -159,9 +172,6 @@ function PopulationChart({
         nice: true,
     })
 
-    const lastProjectionDataPoint = last(projectionDataPoints)?.value
-    const lastBenchmarkDataPoint = last(benchmarkDataPoints)?.value
-
     const handleMouseMove = useCallback(
         (e: React.MouseEvent<SVGRectElement>) => {
             const point = localPoint(e)
@@ -176,14 +186,16 @@ function PopulationChart({
                 Math.min(END_YEAR, snappedYear)
             )
 
-            setHoveredYear(clampedYear)
-            setMousePosition({ x: point.x, y: point.y })
+            setTooltipState({
+                target: { year: clampedYear },
+                position: { x: point.x, y: point.y },
+            })
         },
         [xScale]
     )
 
     const handleMouseLeave = useCallback(() => {
-        setHoveredYear(null)
+        setTooltipState((prev) => ({ ...prev, target: null }))
     }, [])
 
     // Look up values at the hovered year
@@ -206,6 +218,9 @@ function PopulationChart({
         benchmarkDataPoints,
     ])
 
+    const lastProjectionDataPoint = last(projectionDataPoints)?.value
+    const lastBenchmarkDataPoint = last(benchmarkDataPoints)?.value
+
     // Shouldn't happen
     if (
         lastProjectionDataPoint === undefined ||
@@ -215,8 +230,7 @@ function PopulationChart({
     }
 
     const hasUserChanges =
-        showCustomProjection &&
-        (simulation.activePreset !== "unwpp" || forceShowUserChanges)
+        showCustomProjection && simulation.activePreset !== "unwpp"
     const projectionColor = hasUserChanges ? USER_MODIFIED_COLOR : DENIM_BLUE
 
     // Show change annotation at the end year when not hovering,
@@ -228,8 +242,7 @@ function PopulationChart({
         isHovering ? hoveredValues?.projection?.value : lastProjectionDataPoint,
         isHovering ? hoveredValues?.benchmark?.value : lastBenchmarkDataPoint
     )
-    const shouldShowChangeAnnotation =
-        !hideChangeAnnotation && hasUserChanges && dotDistance > 18
+    const shouldShowChangeAnnotation = hasUserChanges && dotDistance > 18
 
     return (
         <div ref={chartRef} style={{ position: "relative" }}>
@@ -395,8 +408,8 @@ function PopulationChart({
             {hoveredYear !== null && hoveredValues && (
                 <TooltipCard
                     id="population-chart-tooltip"
-                    x={mousePosition.x}
-                    y={mousePosition.y}
+                    x={tooltipState.position.x}
+                    y={tooltipState.position.y}
                     offsetX={15}
                     offsetY={-10}
                     title={String(hoveredYear)}
@@ -422,32 +435,26 @@ function PopulationChart({
     )
 }
 
-export const ResponsivePopulationChart = memo(
-    function ResponsivePopulationChart({
-        simulation,
-        showCustomProjection,
-        hideChangeAnnotation,
-        showHistoricalAnnotation,
-        forceShowUserChanges,
-    }: PopulationChartProps) {
-        const { parentRef, width, height } = useParentSize()
-        return (
-            <div ref={parentRef} style={{ width: "100%", height: "100%" }}>
-                {width > 0 && height > 0 ? (
-                    <PopulationChart
-                        simulation={simulation}
-                        showCustomProjection={showCustomProjection}
-                        hideChangeAnnotation={hideChangeAnnotation}
-                        showHistoricalAnnotation={showHistoricalAnnotation}
-                        forceShowUserChanges={forceShowUserChanges}
-                        width={width}
-                        height={height}
-                    />
-                ) : null}
-            </div>
-        )
-    }
-)
+export const PopulationChart = memo(function PopulationChart({
+    simulation,
+    showCustomProjection,
+    showHistoricalAnnotation,
+}: PopulationChartProps) {
+    const { parentRef, width, height } = useParentSize()
+    return (
+        <div ref={parentRef} className="responsive-container">
+            {width > 0 && height > 0 ? (
+                <PopulationChartContent
+                    simulation={simulation}
+                    showCustomProjection={showCustomProjection}
+                    showHistoricalAnnotation={showHistoricalAnnotation}
+                    width={width}
+                    height={height}
+                />
+            ) : null}
+        </div>
+    )
+})
 
 function HoverDots({
     x,

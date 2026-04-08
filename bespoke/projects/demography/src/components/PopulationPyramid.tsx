@@ -28,7 +28,7 @@ import {
 } from "../helpers/utils"
 import { Bounds } from "@ourworldindata/utils"
 import type { AgeZone, AgeZoneWithBounds } from "../helpers/types.js"
-import { widthToBreakpoint } from "../helpers/useBreakpoint.js"
+import { toBreakpoint } from "../helpers/useBreakpoint.js"
 import { useDismissOnTouchOutside } from "../../../../hooks/useDismissOnTouchOutside.js"
 import {
     getPopulationPyramidFonts,
@@ -54,7 +54,7 @@ export interface PopulationPyramidProps {
     barColor?: { female: string; male: string } | string
 }
 
-function PopulationPyramid({
+function PopulationPyramidContent({
     simulation,
     year,
     xAxisScaleMode = "fixed",
@@ -68,7 +68,7 @@ function PopulationPyramid({
         typeof barColorProp === "string"
             ? barColorProp
             : (barColorProp?.male ?? DENIM_BLUE)
-    const bp = widthToBreakpoint(width)
+    const bp = toBreakpoint(width)
     const fonts = getPopulationPyramidFonts(bp)
     const margin = { ...PYRAMID_MARGIN }
     const centerGap =
@@ -284,7 +284,7 @@ function PopulationPyramid({
     )
 }
 
-export function ResponsivePopulationPyramid({
+export function PopulationPyramid({
     simulation,
     year,
     xAxisScaleMode,
@@ -294,9 +294,9 @@ export function ResponsivePopulationPyramid({
 }: PopulationPyramidProps) {
     const { parentRef, width, height } = useParentSize()
     return (
-        <div ref={parentRef} style={{ width: "100%", height: "100%" }}>
+        <div ref={parentRef} className="responsive-container">
             {width > 0 && height > 0 ? (
-                <PopulationPyramid
+                <PopulationPyramidContent
                     simulation={simulation}
                     year={year}
                     ageZones={ageZones}

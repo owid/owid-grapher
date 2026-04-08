@@ -12,10 +12,10 @@ import {
     computeStabilizedOverrides,
     type Simulation,
 } from "../helpers/useSimulation"
-import { ResponsivePopulationChart } from "./PopulationChart.js"
-import { ResponsiveDemographyParameterEditor } from "./DemographyParameterEditor.js"
-import { ResponsivePopulationPyramid } from "./PopulationPyramid.js"
-import { ResponsivePopulationPyramidHorizontal } from "./PopulationPyramidHorizontal.js"
+import { PopulationChart } from "./PopulationChart.js"
+import { DemographyParameterEditor } from "./DemographyParameterEditor.js"
+import { PopulationPyramid } from "./PopulationPyramid.js"
+import { PopulationPyramidHorizontal } from "./PopulationPyramidHorizontal.js"
 import { TimeSlider } from "../../../../components/TimeSlider/TimeSlider.js"
 import {
     START_YEAR,
@@ -66,8 +66,7 @@ export function SimulationContent({
         ? PARAMETER_KEYS.filter((k) => k !== "netMigrationRate")
         : PARAMETER_KEYS
 
-    const hasUserChanges =
-        simulation.activePreset !== "unwpp" || !!stabilizingParameter
+    const hasUserChanges = simulation.activePreset !== "unwpp"
     const pyramidBarColor =
         hasUserChanges && year > HISTORICAL_END_YEAR
             ? {
@@ -138,11 +137,9 @@ export function SimulationContent({
                             />
                         }
                     >
-                        <ResponsivePopulationChart
+                        <PopulationChart
                             simulation={simulation}
-                            hideChangeAnnotation={!!stabilizingParameter}
                             showHistoricalAnnotation={!!stabilizingParameter}
-                            forceShowUserChanges={!!stabilizingParameter}
                         />
                     </ChartPanel>
                     {!hidePopulationPyramid && (
@@ -183,7 +180,7 @@ function AgeStructurePanel({
                 subtitle={subtitle}
                 footer={slider}
             >
-                <ResponsivePopulationPyramid
+                <PopulationPyramid
                     simulation={simulation}
                     year={year}
                     barColor={barColor}
@@ -195,7 +192,7 @@ function AgeStructurePanel({
                 subtitle={subtitle}
                 header={slider}
             >
-                <ResponsivePopulationPyramidHorizontal
+                <PopulationPyramidHorizontal
                     simulation={simulation}
                     year={year}
                     barColor={barColor}
@@ -282,7 +279,7 @@ export function InputChartPanel({
                 ) : undefined
             }
         >
-            <ResponsiveDemographyParameterEditor
+            <DemographyParameterEditor
                 simulation={simulation}
                 variant={variant}
                 interactive={interactive}

@@ -34,15 +34,7 @@ import { EntityNameOrSelector } from "../components/EntityNameOrSelector.js"
 export function ParametersVariant({
     config,
 }: VariantProps<ParametersVariantConfig>): React.ReactElement {
-    const [entityName, setEntityName] = useInitialEntityName(config.region)
-
-    const { metadata, entityData, isLoadingEntityData, status } =
-        useDemographyData(entityName)
-
     const { breakpoint, ref: rootRef } = useContainerBreakpoint()
-
-    if (status === "pending") return <DemographySkeleton />
-    if (!metadata || !entityData) return <DemographyChartError />
 
     return (
         <QueryClientProvider client={queryClient}>
@@ -54,23 +46,41 @@ export function ParametersVariant({
                         breakpointClass(breakpoint)
                     )}
                 >
-                    <ParametersCaptionedChart
-                        data={entityData}
-                        metadata={metadata}
-                        entityName={entityName}
-                        setEntityName={setEntityName}
-                        isLoading={isLoadingEntityData}
-                        title={config.title}
-                        subtitle={config.subtitle}
-                        hideControls={config.hideControls}
-                    />
+                    <FetchingParametersVariant config={config} />
                 </div>
             </BreakpointProvider>
         </QueryClientProvider>
     )
 }
 
-function ParametersCaptionedChart({
+function FetchingParametersVariant({
+    config,
+}: {
+    config: ParametersVariantConfig
+}): React.ReactElement {
+    const [entityName, setEntityName] = useInitialEntityName(config.region)
+
+    const { metadata, entityData, isLoadingEntityData, status } =
+        useDemographyData(entityName)
+
+    if (status === "pending") return <DemographySkeleton />
+    if (!metadata || !entityData) return <DemographyChartError />
+
+    return (
+        <CaptionedParametersVariant
+            data={entityData}
+            metadata={metadata}
+            entityName={entityName}
+            setEntityName={setEntityName}
+            isLoading={isLoadingEntityData}
+            title={config.title}
+            subtitle={config.subtitle}
+            hideControls={config.hideControls}
+        />
+    )
+}
+
+function CaptionedParametersVariant({
     data,
     metadata,
     entityName,

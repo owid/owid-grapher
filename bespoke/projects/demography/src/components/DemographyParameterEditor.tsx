@@ -26,7 +26,7 @@ import { parameterConfigByKey } from "../helpers/parameterConfigs.js"
 import { TimeAxisX } from "./TimeAxisX.js"
 import { ParameterKey } from "../helpers/types.js"
 import { getInterpolatedValue } from "../model/projectionRunner.js"
-import { widthToBreakpoint } from "../helpers/useBreakpoint.js"
+import { toBreakpoint } from "../helpers/useBreakpoint.js"
 import { getParameterChartFonts } from "../helpers/fonts.js"
 
 const SMALL_DOT_RADIUS = 3
@@ -62,7 +62,7 @@ interface DataPoint {
     value: number
 }
 
-function DemographyParameterEditor({
+function DemographyParameterEditorContent({
     simulation,
     variant,
     interactive = true,
@@ -79,7 +79,7 @@ function DemographyParameterEditor({
 }: DemographyParameterEditorProps & { width: number; height: number }) {
     // const projectionColor = projectionColorProp ?? lineColor
     const config = parameterConfigByKey[variant]
-    const fonts = getParameterChartFonts(widthToBreakpoint(width))
+    const fonts = getParameterChartFonts(toBreakpoint(width))
     const [hoveredYear, setHoveredYear] = useState<number | null>(null)
     const svgRef = useRef<SVGSVGElement>(null)
 
@@ -699,8 +699,8 @@ function DemographyParameterEditor({
     )
 }
 
-export const ResponsiveDemographyParameterEditor = memo(
-    function ResponsiveDemographyParameterEditor({
+export const DemographyParameterEditor = memo(
+    function DemographyParameterEditor({
         simulation,
         variant,
         interactive,
@@ -717,10 +717,11 @@ export const ResponsiveDemographyParameterEditor = memo(
         return (
             <div
                 ref={parentRef}
-                style={{ width: "100%", height: "100%", overflow: "visible" }}
+                className="responsive-container"
+                style={{ overflow: "visible" }}
             >
                 {width > 0 && height > 0 ? (
-                    <DemographyParameterEditor
+                    <DemographyParameterEditorContent
                         simulation={simulation}
                         variant={variant}
                         interactive={interactive}

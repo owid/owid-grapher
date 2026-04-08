@@ -26,7 +26,7 @@ import {
     COLOR_WORKING,
 } from "../helpers/constants.js"
 import { Bounds, formatValue } from "@ourworldindata/utils"
-import { widthToBreakpoint } from "../helpers/useBreakpoint.js"
+import { toBreakpoint } from "../helpers/useBreakpoint.js"
 import { getAgeZoneLegendFonts } from "../helpers/fonts.js"
 
 const BAR_PADDING_Y = 4
@@ -61,7 +61,7 @@ interface AnnotatedZone extends PlacedZone {
     valueWrap: TextWrap | undefined
 }
 
-function AgeZoneLegend({
+function AgeZoneLegendContent({
     simulation,
     year,
     projection = "custom",
@@ -72,7 +72,7 @@ function AgeZoneLegend({
             ? simulation.getBenchmarkAgeZonePopulation
             : simulation.getAgeZonePopulation
     )(year)
-    const fonts = getAgeZoneLegendFonts(widthToBreakpoint(width))
+    const fonts = getAgeZoneLegendFonts(toBreakpoint(width))
 
     const total =
         populationByAgeZone.young +
@@ -344,7 +344,7 @@ function AgeZoneLegendBox({
     )
 }
 
-export function ResponsiveAgeZoneLegend({
+export function AgeZoneLegend({
     simulation,
     year,
     projection,
@@ -353,7 +353,7 @@ export function ResponsiveAgeZoneLegend({
     return (
         <div ref={parentRef} className="detailed-population-pyramid__bar">
             {width > 0 && (
-                <AgeZoneLegend
+                <AgeZoneLegendContent
                     simulation={simulation}
                     year={year}
                     projection={projection}

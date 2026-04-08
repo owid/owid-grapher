@@ -19,7 +19,7 @@ import { computeMaxAgeGroupPopulation } from "../model/projectionRunner"
 import { groupByAgeRange, parseAgeGroup } from "../helpers/utils"
 import { Bounds, formatValue } from "@ourworldindata/utils"
 import { Halo, TextWrap, TextWrapSvg } from "@ourworldindata/components"
-import { widthToBreakpoint } from "../helpers/useBreakpoint.js"
+import { toBreakpoint } from "../helpers/useBreakpoint.js"
 import { useDismissOnTouchOutside } from "../../../../hooks/useDismissOnTouchOutside.js"
 import { getHorizontalPyramidFonts } from "../helpers/fonts.js"
 
@@ -31,7 +31,7 @@ export interface PopulationPyramidHorizontalProps {
     barColor?: { female: string; male: string } | string
 }
 
-function PopulationPyramidHorizontal({
+function PopulationPyramidHorizontalContent({
     simulation,
     year,
     yAxisScaleMode = "fixed",
@@ -46,7 +46,7 @@ function PopulationPyramidHorizontal({
             : (barColor ?? FEMALE_COLOR)
     const effectiveMaleColor =
         typeof barColor === "object" ? barColor.male : (barColor ?? MALE_COLOR)
-    const fonts = getHorizontalPyramidFonts(widthToBreakpoint(width))
+    const fonts = getHorizontalPyramidFonts(toBreakpoint(width))
     const margin = { top: 0, right: 0, bottom: 0, left: 0 }
 
     const innerWidth = width - margin.left - margin.right
@@ -256,14 +256,14 @@ function PopulationPyramidHorizontal({
     )
 }
 
-export function ResponsivePopulationPyramidHorizontal(
+export function PopulationPyramidHorizontal(
     props: PopulationPyramidHorizontalProps
 ) {
     const { parentRef, width, height } = useParentSize()
     return (
-        <div ref={parentRef} style={{ width: "100%", height: "100%" }}>
+        <div ref={parentRef} className="responsive-container">
             {width > 0 && height > 0 ? (
-                <PopulationPyramidHorizontal
+                <PopulationPyramidHorizontalContent
                     {...props}
                     width={width}
                     height={height}
