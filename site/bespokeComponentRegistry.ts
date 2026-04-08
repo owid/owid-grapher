@@ -32,4 +32,7 @@ export const BESPOKE_COMPONENT_REGISTRY: Record<
     "migrant-demographics": {
         scriptUrl: "/migrant-demographics/index.js",
     },
+    "income-plots": {
+        scriptUrl: "/income-plots/index.js",
+    },
 }
