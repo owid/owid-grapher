@@ -1,3 +1,4 @@
+import { useId } from "react"
 import {
     EnrichedBlockChartRows,
     EnrichedChartRowItem,
@@ -9,13 +10,15 @@ import Paragraph from "./Paragraph.js"
 
 function ChartRow({ row }: { row: EnrichedChartRowItem }) {
     const onGuidedChartLinkClick = useGuidedChartLinkHandler()
+    const contentId = useId()
 
     const thumbnail = (
         <ChartThumbnail image={row.image} containerType="chart-rows" />
     )
 
-    const content = row.content.length > 0 && (
-        <div className="chart-rows__row-content">
+    const hasContent = row.content.length > 0
+    const content = hasContent && (
+        <div id={contentId} className="chart-rows__row-content">
             {row.content.map((block, i) => (
                 <Paragraph key={i} d={block} className="article-block__text" />
             ))}
@@ -29,6 +32,7 @@ function ChartRow({ row }: { row: EnrichedChartRowItem }) {
                     className="chart-thumbnail"
                     onClick={() => onGuidedChartLinkClick(row.url)}
                     aria-label="Update chart to this view"
+                    aria-describedby={hasContent ? contentId : undefined}
                 >
                     {thumbnail}
                 </button>
@@ -39,7 +43,12 @@ function ChartRow({ row }: { row: EnrichedChartRowItem }) {
 
     return (
         <div className="chart-rows__row">
-            <a href={row.url} className="chart-thumbnail">
+            <a
+                href={row.url}
+                className="chart-thumbnail"
+                aria-label="See chart"
+                aria-describedby={hasContent ? contentId : undefined}
+            >
                 {thumbnail}
             </a>
             {content}
