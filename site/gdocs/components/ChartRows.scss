@@ -5,109 +5,109 @@
     border-bottom: 1px solid $blue-10;
     padding-top: 24px;
     padding-bottom: 24px;
+}
 
-    &__kicker {
-        @include h5-black-caps;
-        & {
-            color: $blue-50;
-            margin: 0 0 24px;
-        }
-
-        // Tighten gap when followed by a title
-        &:has(+ .chart-rows__title) {
-            margin-bottom: 2px;
-        }
+.chart-rows__kicker {
+    @include h5-black-caps;
+    & {
+        color: $blue-50;
+        margin: 0 0 24px;
     }
 
-    &__title {
-        @include h2-bold;
-        & {
-            color: $blue-90;
-            margin: 0;
-        }
+    // Tighten gap when followed by a title
+    &:has(+ .chart-rows__title) {
+        margin-bottom: 2px;
+    }
+}
+
+.chart-rows__title {
+    @include h2-bold;
+    & {
+        color: $blue-90;
+        margin: 0;
+    }
+}
+
+.chart-rows__source {
+    @include note-12-medium;
+    & {
+        color: $blue-50;
+        margin: 0;
+    }
+}
+
+.chart-rows__source-label {
+    font-weight: bold;
+}
+
+.chart-rows__rows-container {
+    display: flex;
+    flex-direction: column;
+    margin-top: 16px;
+    margin-bottom: 16px;
+}
+
+.chart-rows__row {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    padding: 24px 0;
+    border-bottom: 1px solid $blue-10;
+
+    &:first-child {
+        padding-top: 0;
     }
 
-    &__source {
-        @include note-12-medium;
-        & {
-            color: $blue-50;
-            margin: 0;
-        }
+    &:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
     }
 
-    &__source-label {
-        font-weight: bold;
-    }
-
-    &__rows-container {
-        display: flex;
+    @include sm-only {
         flex-direction: column;
-        margin-top: 16px;
-        margin-bottom: 16px;
     }
+}
 
-    &__row {
-        display: flex;
-        gap: 16px;
-        align-items: flex-start;
-        padding: 24px 0;
-        border-bottom: 1px solid $blue-10;
+.chart-rows .chart-thumbnail {
+    flex-shrink: 0;
+    max-width: 300px;
 
-        &:first-child {
-            padding-top: 0;
-        }
-
-        &:last-child {
-            border-bottom: none;
-            padding-bottom: 0;
-        }
-
-        @include sm-only {
-            flex-direction: column;
-        }
+    @include sm-only {
+        max-width: unset;
+        width: calc(10 / 12 * 100%);
     }
+}
 
-    .chart-thumbnail {
-        flex-shrink: 0;
-        max-width: 300px;
+.chart-rows__row-content {
+    flex: 1;
+    min-width: 0;
 
-        @include sm-only {
-            max-width: unset;
-            width: calc(10 / 12 * 100%);
-        }
+    > *:last-child {
+        margin-bottom: 0;
     }
+}
 
-    &__row-content {
-        flex: 1;
-        min-width: 0;
+.chart-rows__row-content .article-block__text {
+    @include body-3-regular;
+}
 
-        > *:last-child {
-            margin-bottom: 0;
-        }
-    }
+// Inside a guided chart: no outer borders, no margins, kicker only
+.chart-rows.chart-rows--guided {
+    margin-top: 0;
+    margin-bottom: 0;
+    border-top: none;
+    border-bottom: none;
+    padding-top: 0;
+    padding-bottom: 0;
 
-    &__row-content .article-block__text {
-        @include body-3-regular;
-    }
-
-    // Inside a guided chart: no outer borders, no margins, kicker only
-    &.chart-rows--guided {
+    .chart-rows__rows-container {
         margin-top: 0;
         margin-bottom: 0;
-        border-top: none;
-        border-bottom: none;
-        padding-top: 0;
-        padding-bottom: 0;
+    }
 
-        .chart-rows__rows-container {
-            margin-top: 0;
-            margin-bottom: 0;
-        }
-
-        // Keep the bottom divider on the last row
-        .chart-rows__row:last-child {
-            border-bottom: 1px solid $blue-10;
-            padding-bottom: 24px;
-        }
+    // Keep the bottom divider on the last row
+    .chart-rows__row:last-child {
+        border-bottom: 1px solid $blue-10;
+        padding-bottom: 24px;
     }
 }

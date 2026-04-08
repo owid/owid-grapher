@@ -20,30 +20,30 @@
             display: block;
         }
     }
+}
 
-    &__overlay {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        padding: 12px;
-        background: rgba(163, 199, 245, 0.3);
-        pointer-events: none;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        opacity: 0;
-        transition: opacity 0.2s ease-in-out;
-    }
+.chart-thumbnail__overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    padding: 12px;
+    background: rgba(163, 199, 245, 0.3);
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+}
 
-    &__cta {
-        @include label-2-medium;
-        background: $blue-70;
-        color: #fff;
-        padding: 8px 12px;
-        border-radius: 4px;
-    }
+.chart-thumbnail__cta {
+    @include label-2-medium;
+    background: $blue-70;
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 4px;
 }
 
 a.chart-thumbnail {
