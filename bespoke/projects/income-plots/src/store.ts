@@ -310,7 +310,7 @@ export const atomCurrentEntitiesSorted = atom((get) => {
     if (isSingleCountryMode) {
         return selectedCountryNames.toSorted()
     } else {
-        return [...Object.keys(REGION_COLORS)]
+        return Object.keys(REGION_COLORS)
     }
 })
 
