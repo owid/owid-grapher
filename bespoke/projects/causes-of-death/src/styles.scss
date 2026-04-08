@@ -67,6 +67,18 @@
 }
 
 .causes-of-death-header {
+    &.chart-header .chart-header__title {
+        @include sm-only {
+            font-size: 1.25rem;
+        }
+    }
+
+    &.chart-header .chart-header__subtitle {
+        @include sm-only {
+            font-size: 0.9375rem;
+        }
+    }
+
     .causes-of-death-header__value--loading {
         font-style: italic;
         opacity: 0.3;
