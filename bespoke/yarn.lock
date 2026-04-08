@@ -388,7 +388,7 @@ __metadata:
     "@types/d3": "npm:^7.4.3"
     "@types/react": "npm:^19.2.14"
     "@types/react-dom": "npm:^19.2.3"
-    "@typescript/native-preview": "npm:^7.0.0-dev.20260313.1"
+    "@typescript/native-preview": "npm:^7.0.0-dev.20260408.1"
     "@visx/drag": "npm:^3.12.0"
     "@vitejs/plugin-react": "npm:^6.0.0"
     classnames: "npm:^2.5.1"
@@ -413,7 +413,7 @@ __metadata:
   dependencies:
     "@ourworldindata/types": "link:../../packages/@ourworldindata/types"
     "@ourworldindata/utils": "link:../../packages/@ourworldindata/utils"
-    "@typescript/native-preview": "npm:^7.0.0-dev.20260401.1"
+    "@typescript/native-preview": "npm:^7.0.0-dev.20260408.1"
     "@visx/drag": "npm:^3.12.0"
     classnames: "npm:^2.5.1"
     react: "npm:^19.2.4"
@@ -483,7 +483,7 @@ __metadata:
     "@swc/core": "npm:^1.15.21"
     "@types/react": "npm:^19.2.14"
     "@types/react-dom": "npm:^19.2.3"
-    "@typescript/native-preview": "npm:^7.0.0-dev.20260313.1"
+    "@typescript/native-preview": "npm:^7.0.0-dev.20260408.1"
     "@visx/drag": "npm:^3.12.0"
     "@visx/group": "npm:^3.12.0"
     "@visx/responsive": "npm:^3.12.0"
@@ -506,7 +506,7 @@ __metadata:
   dependencies:
     "@ourworldindata/types": "link:../../packages/@ourworldindata/types"
     "@ourworldindata/utils": "link:../../packages/@ourworldindata/utils"
-    "@typescript/native-preview": "npm:^7.0.0-dev.20260401.1"
+    "@typescript/native-preview": "npm:^7.0.0-dev.20260408.1"
     react: "npm:^19.2.4"
   languageName: unknown
   linkType: soft
@@ -527,6 +527,7 @@ __metadata:
     "@types/d3": "npm:^7.4.3"
     "@types/react": "npm:^19.2.14"
     "@types/react-dom": "npm:^19.2.3"
+    "@typescript/native-preview": "npm:^7.0.0-dev.20260408.1"
     "@vitejs/plugin-react": "npm:^6.0.0"
     classnames: "npm:^2.5.1"
     d3: "npm:^7.9.0"
@@ -1711,7 +1712,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@typescript/native-preview@npm:^7.0.0-dev.20260313.1, @typescript/native-preview@npm:^7.0.0-dev.20260401.1":
+"@typescript/native-preview@npm:^7.0.0-dev.20260313.1, @typescript/native-preview@npm:^7.0.0-dev.20260408.1":
   version: 7.0.0-dev.20260507.1
   resolution: "@typescript/native-preview@npm:7.0.0-dev.20260507.1"
   dependencies:
