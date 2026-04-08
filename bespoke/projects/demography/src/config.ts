@@ -114,7 +114,8 @@ export function parseConfig(
 }
 
 function parseParameterKey(value: unknown): ParameterKey | undefined {
-    return isValidParameterKey(value) ? value : undefined
+    const trimmed = typeof value === "string" ? value.trim() : value
+    return isValidParameterKey(trimmed) ? trimmed : undefined
 }
 
 function parseInteger(value: unknown): number | undefined {
