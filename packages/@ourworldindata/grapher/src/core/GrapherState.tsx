@@ -1951,8 +1951,8 @@ export class GrapherState
         // No-op if the current tab is a map or table tab
         if (!isChartTab(tab)) return
 
-        // No-op if there is only a single chart tab
-        if (this.validChartTypes.length < 2) return
+        // Don't modify the selection for unusual scatters
+        if (this.isTimeScatter || this.isConnectedScatter) return
 
         const isChartTypeThatShowsAllEntities =
             this.isChartTypeThatShowsAllEntities(tab)
@@ -2865,6 +2865,16 @@ export class GrapherState
 
     @computed get supportsMultipleYColumns(): boolean {
         return !this.isScatter
+    }
+
+    /** Time scatters plot time on the x-axis */
+    @computed private get isTimeScatter(): boolean {
+        return !!this.isOnScatterTab && this.xColumnSlug === undefined
+    }
+
+    /** Connected scatters plot lines between points over time */
+    @computed private get isConnectedScatter(): boolean {
+        return this.isOnScatterTab && !this.areHandlesOnSameTime
     }
 
     @computed private get xDimension(): ChartDimension | undefined {
