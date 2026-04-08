@@ -114,6 +114,7 @@ export const REGION_COLORS = {
 }
 
 export const REGION_NAMES = Object.keys(REGION_COLORS)
+const REGION_NAME_SET = new Set(REGION_NAMES)
 
 export const assignColors = (arr: string[]) => {
     const map = new Map<string, string>(
@@ -132,39 +133,66 @@ export const computePercentageBelowLine = (
     countriesOrRegions: Set<string>
 ) => {
     const lineInLog2 = Math.log2(line)
+    const requestedCountries = new Set<string>()
+    const requestedRegions = new Set<string>()
+    const requestedWorld = countriesOrRegions.has(WORLD_ENTITY_NAME)
 
-    const map = new Map(
+    for (const entity of countriesOrRegions) {
+        if (entity === WORLD_ENTITY_NAME) continue
+        if (REGION_NAME_SET.has(entity)) requestedRegions.add(entity)
+        else requestedCountries.add(entity)
+    }
+
+    const totalsByEntity: Record<
+        string,
+        { totalPop: number; populationBelowLine: number }
+    > = {}
+    const addContribution = (
+        entity: string,
+        pop: number,
+        populationBelowLine: number
+    ) => {
+        const record = (totalsByEntity[entity] ??= {
+            totalPop: 0,
+            populationBelowLine: 0,
+        })
+
+        record.totalPop += pop
+        record.populationBelowLine += populationBelowLine
+    }
+
+    for (const record of rawData) {
+        const pop = record.pop
+        const matchesWorld = requestedWorld
+        const matchesRegion = requestedRegions.has(record.region)
+        const matchesCountry = requestedCountries.has(record.country)
+
+        if (!matchesWorld && !matchesRegion && !matchesCountry) continue
+
+        // SortedIndex finds the highest point that is lower than the set line, and so we can compute the number of people living below the line, in order to then compute the percentage of people living below the line for each entity and region (totalPopulationBelowLine / totalPopulation).
+        const index = R.sortedIndex(record.avgsLog2, lineInLog2)
+        const populationBelowLine = (index / 10) * pop
+
+        if (matchesWorld) {
+            addContribution(WORLD_ENTITY_NAME, pop, populationBelowLine)
+        }
+        if (matchesRegion) {
+            addContribution(record.region, pop, populationBelowLine)
+        }
+        if (matchesCountry) {
+            addContribution(record.country, pop, populationBelowLine)
+        }
+    }
+
+    return new Map(
         [...countriesOrRegions].map((entity) => {
-            const getFilterPredicate = (countryOrRegion: string) => {
-                if (countryOrRegion === WORLD_ENTITY_NAME) {
-                    return (_d: RawDataForYearRecord) => true
-                } else if (REGION_NAMES.includes(countryOrRegion)) {
-                    return (d: RawDataForYearRecord) =>
-                        d.region === countryOrRegion
-                } else {
-                    return (d: RawDataForYearRecord) =>
-                        d.country === countryOrRegion
-                }
-            }
-            const filterPred = getFilterPredicate(entity)
-
-            // If it's a country, then this is just a single record and the computation is simpler
-            const records = rawData.filter(filterPred)
-
-            const totalPop = R.sumBy(records, R.prop("pop"))
-            const percentagesWeighted = records.map((record) => {
-                const pop = record.pop
-                const index = R.sortedIndex(record.avgsLog2, lineInLog2)
-
-                return (index / 10) * pop
-            })
-
-            const percentageBelowLine = R.sum(percentagesWeighted) / totalPop
-
+            const totals = totalsByEntity[entity]
+            const percentageBelowLine = totals
+                ? totals.populationBelowLine / totals.totalPop
+                : NaN
             return [entity, percentageBelowLine]
         })
     )
-    return map
 }
 
 export const getTimeIntervalStr = (interval: TimeInterval) => {
