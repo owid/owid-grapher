@@ -344,22 +344,11 @@ function AgeZoneLegendBox({
     )
 }
 
-export function AgeZoneLegend({
-    simulation,
-    year,
-    projection,
-}: AgeZoneLegendProps) {
+export function AgeZoneLegend(props: AgeZoneLegendProps) {
     const { parentRef, width } = useParentSize({ debounceTime: 0 })
     return (
         <div ref={parentRef} className="detailed-population-pyramid__bar">
-            {width > 0 && (
-                <AgeZoneLegendContent
-                    simulation={simulation}
-                    year={year}
-                    projection={projection}
-                    width={width}
-                />
-            )}
+            {width > 0 && <AgeZoneLegendContent {...props} width={width} />}
         </div>
     )
 }

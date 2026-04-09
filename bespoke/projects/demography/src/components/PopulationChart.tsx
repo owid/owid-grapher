@@ -16,7 +16,7 @@ import {
     BENCHMARK_LINE_COLOR,
     PROJECTION_DASHARRAY,
     GRID_LINE_COLOR,
-    LABEL_COLOR,
+    GRID_LABEL_COLOR,
     HOVER_LINE_COLOR,
     ZERO_LINE_COLOR,
     USER_MODIFIED_COLOR,
@@ -434,23 +434,19 @@ function PopulationChartContent({
     )
 }
 
-export const PopulationChart = memo(function PopulationChart({
-    simulation,
-    showCustomProjection,
-    showHistoricalAnnotation,
-}: PopulationChartProps) {
+export const PopulationChart = memo(function PopulationChart(
+    props: PopulationChartProps
+) {
     const { parentRef, width, height } = useParentSize()
     return (
         <div ref={parentRef} className="responsive-container">
-            {width > 0 && height > 0 ? (
+            {width > 0 && height > 0 && (
                 <PopulationChartContent
-                    simulation={simulation}
-                    showCustomProjection={showCustomProjection}
-                    showHistoricalAnnotation={showHistoricalAnnotation}
+                    {...props}
                     width={width}
                     height={height}
                 />
-            ) : null}
+            )}
         </div>
     )
 })
@@ -794,7 +790,7 @@ function AxisY({
                                 x={0}
                                 y={yScale(tick) - 4}
                                 fontSize={fonts.yTick}
-                                fill={LABEL_COLOR}
+                                fill={GRID_LABEL_COLOR}
                             >
                                 {formatPopulationAxisLabel(tick) +
                                     (isTop ? " people" : "")}

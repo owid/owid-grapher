@@ -1,6 +1,5 @@
 import cx from "classnames"
 import { QueryClientProvider } from "@tanstack/react-query"
-
 import {
     DemographyChartError,
     DemographySkeleton,
@@ -17,13 +16,11 @@ import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
 import { Frame } from "../../../../components/Frame/Frame.js"
 import {
-    BENCHMARK_LINE_COLOR,
     START_YEAR,
     HISTORICAL_END_YEAR,
     END_YEAR,
 } from "../helpers/constants.js"
 import { useInitialEntityName } from "../helpers/useInitialEntityName.js"
-import { GRAY_60 } from "@ourworldindata/grapher/src/color/ColorConstants.js"
 import {
     BreakpointProvider,
     useContainerBreakpoint,
@@ -100,13 +97,9 @@ function CaptionedParametersVariant({
     hideControls?: boolean
 }) {
     const simulation = useSimulation(data)
-    const countryName = data.country
 
-    const yearLabels = [
-        [START_YEAR, "start"],
-        [HISTORICAL_END_YEAR, "middle"],
-        [END_YEAR, "end"],
-    ] as const
+    const countryName = data.country
+    const isWorld = countryName === "World"
 
     const title: React.ReactNode = titleOverride ?? (
         <>
@@ -137,9 +130,7 @@ function CaptionedParametersVariant({
                             className="parameters-panel"
                             interactive={false}
                             showProjectionLabel
-                            yearLabels={yearLabels}
                             maxGridLines={0}
-                            showEndpointLabels
                             yMin={0}
                         />
                         <InputChartPanel
@@ -147,31 +138,18 @@ function CaptionedParametersVariant({
                             variant="lifeExpectancy"
                             className="parameters-panel"
                             interactive={false}
-                            yearLabels={yearLabels}
                             maxGridLines={0}
-                            showEndpointLabels
                             yMin={0}
                         />
-                        <InputChartPanel
-                            simulation={simulation}
-                            variant="netMigrationRate"
-                            className={cx("parameters-panel", {
-                                "chart-panel--muted": countryName === "World",
-                            })}
-                            interactive={false}
-                            lineColor={
-                                countryName === "World"
-                                    ? BENCHMARK_LINE_COLOR
-                                    : undefined
-                            }
-                            labelColor={
-                                countryName === "World" ? GRAY_60 : undefined
-                            }
-                            hideInfoIcon={countryName === "World"}
-                            yearLabels={yearLabels}
-                            maxGridLines={1}
-                            showEndpointLabels
-                        />
+                        {!isWorld && (
+                            <InputChartPanel
+                                simulation={simulation}
+                                variant="netMigrationRate"
+                                className="parameters-panel"
+                                interactive={false}
+                                maxGridLines={1}
+                            />
+                        )}
                     </div>
                 )}
             </div>

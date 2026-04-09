@@ -485,10 +485,6 @@ $panel-gap: 12px;
         }
     }
 
-    &.chart-panel--italic-subtitle .chart-panel__subtitle {
-        font-style: italic;
-    }
-
     .chart-panel__reset-btn {
         position: absolute;
         top: $panel-gap;
@@ -574,14 +570,14 @@ $panel-gap: 12px;
     color: #8c4569;
 }
 
-.population-chart-legend {
+.projection-legend {
     display: flex;
     flex-wrap: wrap;
     row-gap: 4px;
     column-gap: 16px;
     margin-top: 0;
 
-    .population-chart-legend__item {
+    .projection-legend__item {
         display: flex;
         align-items: center;
         gap: 6px;
@@ -589,11 +585,11 @@ $panel-gap: 12px;
         line-height: 1;
     }
 
-    .population-chart-legend__label {
+    .projection-legend__label {
         color: $dark-text;
     }
 
-    .population-chart-legend__info-icon {
+    .projection-legend__info-icon {
         cursor: help;
         opacity: 0.6;
         margin-left: -2px;

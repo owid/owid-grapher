@@ -1,12 +1,15 @@
-import { HISTORICAL_END_YEAR } from "../helpers/constants.js"
+import {
+    END_YEAR,
+    HISTORICAL_END_YEAR,
+    START_YEAR,
+} from "../helpers/constants.js"
 import { GRAPHER_LIGHT_TEXT } from "@ourworldindata/grapher/src/color/ColorConstants.js"
+import type { YearLabel } from "../helpers/types.js"
 
-type YearLabel = readonly [number, "start" | "middle" | "end"]
-
-const DEFAULT_YEAR_LABELS: readonly YearLabel[] = [
-    [1950, "start"],
-    [HISTORICAL_END_YEAR, "middle"],
-    [2100, "end"],
+const DEFAULT_X_TICK_LABELS: YearLabel[] = [
+    { year: START_YEAR, position: "start" },
+    { year: HISTORICAL_END_YEAR, position: "middle" },
+    { year: END_YEAR, position: "end" },
 ]
 
 export function TimeAxisX({
@@ -17,7 +20,7 @@ export function TimeAxisX({
     fontSize = 11,
     labelOffset = 16,
     hideLabels = false,
-    yearLabels = DEFAULT_YEAR_LABELS,
+    xTickLabels = DEFAULT_X_TICK_LABELS,
 }: {
     xScale: (v: number) => number
     innerWidth: number
@@ -26,7 +29,7 @@ export function TimeAxisX({
     fontSize?: number
     labelOffset?: number
     hideLabels?: boolean
-    yearLabels?: readonly YearLabel[]
+    xTickLabels?: YearLabel[]
 }) {
     return (
         <g transform={`translate(0,${innerHeight})`}>
@@ -38,7 +41,7 @@ export function TimeAxisX({
                 stroke={strokeColor}
                 strokeLinecap="square"
             />
-            {yearLabels.map(([year]) => (
+            {xTickLabels.map(({ year }) => (
                 <line
                     key={year}
                     x1={xScale(year)}
@@ -49,12 +52,12 @@ export function TimeAxisX({
                 />
             ))}
             {!hideLabels &&
-                yearLabels.map(([year, anchor]) => (
+                xTickLabels.map(({ year, position }) => (
                     <text
                         key={year}
                         x={xScale(year)}
                         y={labelOffset}
-                        textAnchor={anchor}
+                        textAnchor={position}
                         fontSize={fontSize}
                         fill={GRAPHER_LIGHT_TEXT}
                     >

@@ -7,7 +7,7 @@ import type { ProjectionType } from "./PopulationPyramid.js"
 import {
     FEMALE_COLOR,
     GRID_LINE_COLOR,
-    LABEL_COLOR,
+    GRID_LABEL_COLOR,
     MALE_COLOR,
     PYRAMID_MAX_AGE,
     PYRAMID_AGE_GROUP_SIZE,
@@ -167,7 +167,7 @@ function PopulationPyramidHorizontalContent({
                     innerWidth={innerWidth}
                     innerHeight={innerHeight}
                     fontSize={fonts.yTick}
-                    labelColor={LABEL_COLOR}
+                    labelColor={GRID_LABEL_COLOR}
                     position="above"
                     unit={unit}
                 />
@@ -176,7 +176,7 @@ function PopulationPyramidHorizontalContent({
                     innerWidth={innerWidth}
                     innerHeight={innerHeight}
                     fontSize={fonts.yTick}
-                    labelColor={LABEL_COLOR}
+                    labelColor={GRID_LABEL_COLOR}
                     position="below"
                     unit={unit}
                 />
@@ -274,13 +274,13 @@ export function PopulationPyramidHorizontal(
     const { parentRef, width, height } = useParentSize()
     return (
         <div ref={parentRef} className="responsive-container">
-            {width > 0 && height > 0 ? (
+            {width > 0 && height > 0 && (
                 <PopulationPyramidHorizontalContent
                     {...props}
                     width={width}
                     height={height}
                 />
-            ) : null}
+            )}
         </div>
     )
 }

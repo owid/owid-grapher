@@ -47,17 +47,17 @@ enableShadowDOM()
 // ] satisfies BespokeComponentVariantsList<VariantName>
 
 export const VARIANTS = [
-    {
-        name: "simulation",
-        component: SimulationVariant,
-        demoConfig: {
-            region: "South Korea",
-            focusParameter: "lifeExpectancy",
-            stabilizingParameter: "lifeExpectancy",
-            populationPyramidUnit: "absolute",
-        },
-        demoSize: "widest",
-    },
+    // {
+    //     name: "simulation",
+    //     component: SimulationVariant,
+    //     demoConfig: {
+    //         region: "South Korea",
+    //         focusParameter: "lifeExpectancy",
+    //         stabilizingParameter: "lifeExpectancy",
+    //         populationPyramidUnit: "absolute",
+    //     },
+    //     demoSize: "widest",
+    // },
     {
         name: "population",
         component: PopulationVariant,
