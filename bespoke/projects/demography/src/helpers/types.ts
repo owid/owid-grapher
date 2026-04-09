@@ -57,6 +57,8 @@ export const PARAMETER_KEYS = [
 
 export type ParameterKey = (typeof PARAMETER_KEYS)[number]
 
+export type YearLabel = { year: number; position: "start" | "middle" | "end" }
+
 export function isValidParameterKey(value: unknown): value is ParameterKey {
     return (
         typeof value === "string" &&

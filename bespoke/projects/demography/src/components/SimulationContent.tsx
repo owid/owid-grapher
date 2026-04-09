@@ -26,7 +26,7 @@ import {
     USER_MODIFIED_COLOR,
     USER_MODIFIED_COLOR_LIGHT,
 } from "../helpers/constants.js"
-import { PopulationChartLegend } from "./PopulationChartLegend.js"
+import { ProjectionLegend } from "./ProjectionLegend.js"
 import { parameterConfigByKey } from "../helpers/parameterConfigs.js"
 import { useTippyContainer } from "../../../../hooks/useTippyContainer.js"
 
@@ -133,7 +133,7 @@ export function SimulationContent({
                         title="Population"
                         subtitle="Historical estimates and projections of total population"
                         header={
-                            <PopulationChartLegend
+                            <ProjectionLegend
                                 modified={hasUserChanges}
                                 userTooltip="This projection is based on the fertility, life expectancy, and migration assumptions you set. Change them in the panel on the left to see how they affect population projections."
                             />
@@ -214,28 +214,22 @@ export function InputChartPanel({
     variant,
     className,
     interactive = true,
-    lineColor,
-    labelColor,
     hideInfoIcon = false,
     resetTarget,
     showProjectionLabel,
-    yearLabels,
+    showLegend = interactive,
     maxGridLines,
-    showEndpointLabels,
     yMin,
 }: {
     simulation: Simulation
     variant: ParameterKey
     className?: string
     interactive?: boolean
-    lineColor?: string
-    labelColor?: string
     hideInfoIcon?: boolean
     resetTarget?: Record<number, number>
     showProjectionLabel?: boolean
-    yearLabels?: readonly (readonly [number, "start" | "middle" | "end"])[]
+    showLegend?: boolean
     maxGridLines?: number
-    showEndpointLabels?: boolean
     yMin?: number
 }) {
     const {
@@ -244,21 +238,19 @@ export function InputChartPanel({
         tooltipContent,
     } = parameterConfigByKey[variant]
     const subtitle = getSubtitle(simulation.data.country)
-    const isWorldMigration =
-        variant === "netMigrationRate" && simulation.data.country === "World"
+
     const isParameterModified = simulation.modifiedParameters.has(variant)
 
     // Reset target: explicit override (e.g. stabilized params), or UN WPP defaults
     const effectiveResetTarget =
         resetTarget ?? simulation.unwppScenarioParams[variant]
 
-    const hasResetButton =
-        interactive &&
-        Object.keys(effectiveResetTarget).some(
-            (k) =>
-                simulation.scenarioParams[variant][Number(k)] !==
-                effectiveResetTarget[Number(k)]
-        )
+    const isModifiedFromResetTarget = Object.keys(effectiveResetTarget).some(
+        (k) =>
+            simulation.scenarioParams[variant][Number(k)] !==
+            effectiveResetTarget[Number(k)]
+    )
+    const hasResetButton = interactive && isModifiedFromResetTarget
 
     const handleReset = useCallback(() => {
         simulation.setScenarioParams({
@@ -269,16 +261,14 @@ export function InputChartPanel({
 
     return (
         <ChartPanel
-            className={cx(className, {
-                "chart-panel--italic-subtitle": isWorldMigration,
-            })}
+            className={className}
             title={title}
             subtitle={subtitle}
             tooltipContent={hideInfoIcon ? undefined : tooltipContent}
             onReset={hasResetButton ? handleReset : undefined}
             header={
-                interactive ? (
-                    <PopulationChartLegend
+                showLegend ? (
+                    <ProjectionLegend
                         userLabel="Your assumptions"
                         benchmarkLabel="UN WPP assumptions"
                         modified={isParameterModified}
@@ -290,17 +280,8 @@ export function InputChartPanel({
                 simulation={simulation}
                 variant={variant}
                 interactive={interactive}
-                lineColor={lineColor}
-                projectionColor={
-                    !lineColor && isParameterModified
-                        ? USER_MODIFIED_COLOR
-                        : undefined
-                }
-                labelColor={labelColor}
                 showProjectionLabel={showProjectionLabel}
-                yearLabels={yearLabels}
                 maxGridLines={maxGridLines}
-                showEndpointLabels={showEndpointLabels}
                 yMin={yMin}
             />
         </ChartPanel>
@@ -309,10 +290,8 @@ export function InputChartPanel({
 
 export function ChartPanel({
     title,
-    titleSuffix,
     subtitle,
     tooltipContent,
-    subheader,
     children,
     header,
     footer,
@@ -320,10 +299,8 @@ export function ChartPanel({
     onReset,
 }: {
     title: string
-    titleSuffix?: React.ReactNode
     subtitle: string
     tooltipContent?: string
-    subheader?: React.ReactNode
     children?: React.ReactNode
     header?: React.ReactNode
     footer?: React.ReactNode
@@ -340,14 +317,11 @@ export function ChartPanel({
                     Reset
                 </button>
             )}
-            <h3 className="chart-panel__title">
-                {title}
-                {titleSuffix}
-            </h3>
+            <h3 className="chart-panel__title">{title}</h3>
             <p className="chart-panel__subtitle">
                 {subtitle}
                 {tooltipContent && (
-                    <span style={{ whiteSpace: "nowrap" }}>
+                    <span className="demography-chart__nowrap">
                         {"\u00a0"}
                         <Tippy
                             content={tooltipContent}
@@ -364,9 +338,6 @@ export function ChartPanel({
                     </span>
                 )}
             </p>
-            {subheader && (
-                <div className="chart-panel__subheader">{subheader}</div>
-            )}
             {header && <div className="chart-panel__header">{header}</div>}
             {children && <div className="chart-panel__content">{children}</div>}
             {footer && <div className="chart-panel__footer">{footer}</div>}

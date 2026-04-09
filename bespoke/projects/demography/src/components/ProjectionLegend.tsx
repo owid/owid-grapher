@@ -8,7 +8,7 @@ import {
 } from "../helpers/constants.js"
 import { useTippyContainer } from "../../../../hooks/useTippyContainer.js"
 
-export function PopulationChartLegend({
+export function ProjectionLegend({
     userLabel = "Your projection",
     benchmarkLabel = "UN WPP Medium projection",
     userTooltip,
@@ -25,8 +25,8 @@ export function PopulationChartLegend({
     const { ref: legendRef, getTippyContainer } =
         useTippyContainer<HTMLDivElement>()
     return (
-        <div className="population-chart-legend" ref={legendRef}>
-            <span className="population-chart-legend__item">
+        <div className="projection-legend" ref={legendRef}>
+            <span className="projection-legend__item">
                 <svg width="16" height="6">
                     <line
                         x1="0"
@@ -39,22 +39,20 @@ export function PopulationChartLegend({
                         strokeLinecap="butt"
                     />
                 </svg>
-                <span className="population-chart-legend__label">
-                    {userLabel}
-                </span>
+                <span className="projection-legend__label">{userLabel}</span>
                 {userTooltip && (
                     <Tippy
                         content={userTooltip}
                         placement="top"
                         appendTo={getTippyContainer}
                     >
-                        <span className="population-chart-legend__info-icon">
+                        <span className="projection-legend__info-icon">
                             <FontAwesomeIcon icon={faCircleInfo} size="sm" />
                         </span>
                     </Tippy>
                 )}
             </span>
-            <span className="population-chart-legend__item">
+            <span className="projection-legend__item">
                 <svg width="16" height="6">
                     <line
                         x1="0"
@@ -67,7 +65,7 @@ export function PopulationChartLegend({
                         strokeLinecap="butt"
                     />
                 </svg>
-                <span className="population-chart-legend__label">
+                <span className="projection-legend__label">
                     {benchmarkLabel}
                 </span>
                 {benchmarkTooltip && (
@@ -76,7 +74,7 @@ export function PopulationChartLegend({
                         placement="top"
                         appendTo={getTippyContainer}
                     >
-                        <span className="population-chart-legend__info-icon">
+                        <span className="projection-legend__info-icon">
                             <FontAwesomeIcon icon={faCircleInfo} size="sm" />
                         </span>
                     </Tippy>

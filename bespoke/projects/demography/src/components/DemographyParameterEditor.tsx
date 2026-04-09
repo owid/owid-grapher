@@ -1,4 +1,4 @@
-import { memo, useState, useMemo, useCallback, useRef } from "react"
+import { memo, useState, useMemo, useCallback } from "react"
 import { useParentSize } from "@visx/responsive"
 import { scaleLinear } from "@visx/scale"
 import { LinePath } from "@visx/shape"
@@ -17,45 +17,48 @@ import {
     ZERO_LINE_COLOR,
     USER_MODIFIED_COLOR,
     GRID_LINE_COLOR,
-    LABEL_COLOR,
+    GRID_LABEL_COLOR,
 } from "../helpers/constants"
 import { GRAPHER_LIGHT_TEXT } from "@ourworldindata/grapher/src/color/ColorConstants.js"
 import { Halo, TextWrap } from "@ourworldindata/components"
 import { Bounds } from "@ourworldindata/utils"
 import { parameterConfigByKey } from "../helpers/parameterConfigs.js"
 import { TimeAxisX } from "./TimeAxisX.js"
-import { ParameterKey } from "../helpers/types.js"
-import { getInterpolatedValue } from "../model/projectionRunner.js"
-import { toBreakpoint } from "../helpers/useBreakpoint.js"
-import { getParameterChartFonts } from "../helpers/fonts.js"
+import { ParameterKey, type YearLabel } from "../helpers/types.js"
+import { getParameterChartFonts } from "../helpers/fonts"
+import { toBreakpoint } from "../helpers/useBreakpoint"
+import { getInterpolatedValue } from "../model/projectionRunner"
 
 const SMALL_DOT_RADIUS = 3
 const CONTROL_POINT_RADIUS = 5
 const CONTROL_POINT_HIT_RADIUS = 12
-const margin = {
-    top: 0,
-    // right: 0.5 * CONTROL_POINT_HIT_RADIUS,
-    right: 0,
-    bottom: 14,
-    left: 0,
-    // left: 0.5 * SMALL_DOT_RADIUS,
-}
 
-type YearLabel = readonly [number, "start" | "middle" | "end"]
+const LINE_COLOR = DENIM_BLUE
+const LABEL_COLOR = DENIM_BLUE
+
+const margin = { top: 0, right: 0, bottom: 14, left: 0 }
 
 interface DemographyParameterEditorProps {
     simulation: Simulation
     variant: ParameterKey
     interactive?: boolean
-    lineColor?: string
-    projectionColor?: string
-    labelColor?: string
     showProjectionLabel?: boolean
-    yearLabels?: readonly YearLabel[]
     maxGridLines?: number
-    showEndpointLabels?: boolean
     yMin?: number
 }
+
+const INTERACTIVE_X_TICK_LABELS: YearLabel[] = [
+    { year: START_YEAR, position: "start" },
+    { year: 2030, position: "middle" },
+    { year: 2050, position: "middle" },
+    { year: END_YEAR, position: "end" },
+]
+
+const STATIC_X_TICK_LABELS: YearLabel[] = [
+    { year: START_YEAR, position: "start" },
+    { year: HISTORICAL_END_YEAR, position: "middle" },
+    { year: END_YEAR, position: "end" },
+]
 
 interface DataPoint {
     year: number
@@ -66,22 +69,16 @@ function DemographyParameterEditorContent({
     simulation,
     variant,
     interactive = true,
-    lineColor = DENIM_BLUE,
-    // projectionColor: projectionColorProp,
-    labelColor = DENIM_BLUE,
     showProjectionLabel = false,
-    yearLabels: yearLabelsProp,
     maxGridLines,
-    showEndpointLabels = false,
     yMin: yMinOverride,
     width,
     height,
 }: DemographyParameterEditorProps & { width: number; height: number }) {
-    // const projectionColor = projectionColorProp ?? lineColor
     const config = parameterConfigByKey[variant]
     const fonts = getParameterChartFonts(toBreakpoint(width))
+
     const [hoveredYear, setHoveredYear] = useState<number | null>(null)
-    const svgRef = useRef<SVGSVGElement>(null)
 
     const { points: historicalDataPoints } = useMemo(
         () => config.computeHistorical(simulation),
@@ -95,8 +92,10 @@ function DemographyParameterEditorContent({
 
     const controlPoints = simulation.scenarioParams[variant]
     const referencePoints = simulation.unwppScenarioParams[variant]
+
     const unwppValues = unwppProjectionPoints.map((d) => d.value)
     const historicalValues = historicalDataPoints.map((d) => d.value)
+
     const minValue =
         yMinOverride ??
         Math.max(
@@ -109,20 +108,6 @@ function DemographyParameterEditorContent({
     const maxValue = Math.max(
         Math.max(...unwppValues) + config.yPadding,
         Math.max(...historicalValues)
-    )
-    const anyModified = CONTROL_YEARS.some(
-        (yr) => Math.abs(controlPoints[yr] - referencePoints[yr]) >= 0.01
-    )
-    const formatValue = config.formatValue
-
-    const handleChange = useCallback(
-        (newPoints: Record<number, number>) => {
-            simulation.setScenarioParams({
-                ...simulation.scenarioParams,
-                [variant]: newPoints,
-            })
-        },
-        [simulation, variant]
     )
 
     const innerWidth = width - margin.left - margin.right
@@ -140,7 +125,196 @@ function DemographyParameterEditorContent({
         clamp: true,
     })
 
-    const axisColor = minValue === 0 ? ZERO_LINE_COLOR : "#ddd"
+    const controlDataPoints: DataPoint[] = CONTROL_YEARS.map((y) => ({
+        year: y,
+        value: controlPoints[y],
+    }))
+
+    const firstHistoricalDataPoint = historicalDataPoints[0]
+    const lastHistoricalDataPoint = historicalDataPoints.at(-1)!
+    const lastProjectionDataPoint = controlDataPoints.at(-1)!
+
+    const historicalEndX = xScale(HISTORICAL_END_YEAR)
+
+    const isModified = simulation.modifiedParameters.has(variant)
+
+    const xTickLabels = interactive
+        ? INTERACTIVE_X_TICK_LABELS
+        : STATIC_X_TICK_LABELS
+
+    const showValueLabels = !interactive
+
+    const controlYearSet = new Set<number>(CONTROL_YEARS)
+    const isHoveringControlPoint =
+        interactive && hoveredYear !== null && controlYearSet.has(hoveredYear)
+
+    // Look up hovered value — historical from data points, projection via interpolation
+    const hoveredValue = useMemo(() => {
+        if (hoveredYear === null) return undefined
+        if (hoveredYear <= HISTORICAL_END_YEAR) {
+            return historicalDataPoints.find((d) => d.year === hoveredYear)
+                ?.value
+        }
+        // When unmodified, read from the fine-grained UN WPP data
+        if (!isModified) {
+            return unwppProjectionPoints.find((d) => d.year === hoveredYear)
+                ?.value
+        }
+        // Augment control points with the historical anchor at HISTORICAL_END_YEAR
+        // so interpolation between 2023 and 2030 is correct
+        const augmentedPoints = {
+            [HISTORICAL_END_YEAR]: lastHistoricalDataPoint.value,
+            ...controlPoints,
+        }
+        const augmentedControlYears = [HISTORICAL_END_YEAR, ...CONTROL_YEARS]
+        return getInterpolatedValue(
+            augmentedPoints,
+            hoveredYear,
+            HISTORICAL_END_YEAR,
+            augmentedControlYears
+        )
+    }, [
+        hoveredYear,
+        historicalDataPoints,
+        controlPoints,
+        lastHistoricalDataPoint,
+        isModified,
+        unwppProjectionPoints,
+    ])
+
+    // Determine which static PointLabelWithYear elements overlap the hover elements.
+    // If either the year label or value label overlaps, hide both together.
+    const hiddenPointLabels = useMemo(() => {
+        const hidden = new Set<string>()
+
+        if (hoveredYear === null || hoveredValue === undefined) return hidden
+
+        const hoverX = xScale(hoveredYear)
+        const hoverXAxisLabelBounds = getXAxisLabelBounds({
+            x: hoverX,
+            innerHeight,
+            year: hoveredYear,
+            anchor: "middle",
+            fontSize: fonts.xTick,
+            labelOffset: YEAR_LABEL_OFFSET,
+        })
+
+        // Hover value label bounds (only when hoveredValue is defined)
+        const hoverValueBounds = getPointLabelBounds({
+            x: hoverX,
+            y: yScale(hoveredValue),
+            label: config.formatValue(hoveredValue),
+            fontSize: fonts.pointLabel,
+        })
+
+        interface StaticLabel {
+            key: string
+            year: number
+            yearAnchor: "start" | "middle" | "end"
+            x: number
+            valueBounds?: Bounds
+        }
+
+        const statics: StaticLabel[] = [
+            {
+                key: "first-historical",
+                year: firstHistoricalDataPoint.year,
+                yearAnchor: "start",
+                x: xScale(firstHistoricalDataPoint.year),
+                valueBounds: showValueLabels
+                    ? getPointLabelBounds({
+                          x: xScale(firstHistoricalDataPoint.year),
+                          y: yScale(firstHistoricalDataPoint.value),
+                          label: config.formatValue(
+                              firstHistoricalDataPoint.value
+                          ),
+                          fontSize: fonts.pointLabel,
+                      })
+                    : undefined,
+            },
+            {
+                key: "last-historical",
+                year: lastHistoricalDataPoint.year,
+                yearAnchor: "middle",
+                x: xScale(lastHistoricalDataPoint.year),
+                valueBounds: showValueLabels
+                    ? getPointLabelBounds({
+                          x: xScale(lastHistoricalDataPoint.year),
+                          y: yScale(lastHistoricalDataPoint.value),
+                          label: config.formatValue(
+                              lastHistoricalDataPoint.value
+                          ),
+                          fontSize: fonts.pointLabel,
+                      })
+                    : undefined,
+            },
+            {
+                key: "last-projection",
+                year: lastProjectionDataPoint.year,
+                yearAnchor: "end",
+                x: xScale(lastProjectionDataPoint.year),
+                valueBounds: showValueLabels
+                    ? getPointLabelBounds({
+                          x: xScale(lastProjectionDataPoint.year),
+                          y: yScale(lastProjectionDataPoint.value),
+                          label: config.formatValue(
+                              lastProjectionDataPoint.value
+                          ),
+                          fontSize: fonts.pointLabel,
+                      })
+                    : undefined,
+            },
+        ]
+
+        for (const s of statics) {
+            const sYearBounds = getXAxisLabelBounds({
+                x: s.x,
+                innerHeight,
+                year: s.year,
+                anchor: s.yearAnchor,
+                fontSize: fonts.xTick,
+                labelOffset: YEAR_LABEL_OFFSET,
+            })
+
+            // Check year-vs-year overlap
+            if (sYearBounds.intersects(hoverXAxisLabelBounds)) {
+                hidden.add(s.key)
+                continue
+            }
+
+            // Check value-vs-value overlap
+            if (s.valueBounds && hoverValueBounds) {
+                if (s.valueBounds.intersects(hoverValueBounds)) {
+                    hidden.add(s.key)
+                }
+            }
+        }
+        return hidden
+    }, [
+        hoveredYear,
+        hoveredValue,
+        xScale,
+        yScale,
+        innerHeight,
+        config,
+        fonts,
+        firstHistoricalDataPoint,
+        lastHistoricalDataPoint,
+        controlDataPoints,
+        showValueLabels,
+    ])
+
+    const axisColor = minValue === 0 ? ZERO_LINE_COLOR : GRID_LINE_COLOR
+
+    const handleChange = useCallback(
+        (newPoints: Record<number, number>) => {
+            simulation.setScenarioParams({
+                ...simulation.scenarioParams,
+                [variant]: newPoints,
+            })
+        },
+        [simulation, variant]
+    )
 
     const handleMouseMove = useCallback(
         (e: React.MouseEvent<SVGRectElement>) => {
@@ -168,240 +342,19 @@ function DemographyParameterEditorContent({
         setHoveredYear(null)
     }, [])
 
-    const firstHistoricalDataPoint = historicalDataPoints[0]
-    const lastHistoricalDataPoint = historicalDataPoints.at(-1)!
-
-    const projectionPoints: DataPoint[] = CONTROL_YEARS.map((y) => ({
-        year: y,
-        value: controlPoints[y],
-    }))
-
-    const projX = xScale(HISTORICAL_END_YEAR)
-
-    // Look up hovered value — historical from data points, projection via interpolation
-    const isControlYear =
-        interactive &&
-        hoveredYear !== null &&
-        (CONTROL_YEARS as readonly number[]).includes(hoveredYear)
-    const hoveredValue = useMemo(() => {
-        if (hoveredYear === null) return undefined
-        if (hoveredYear <= HISTORICAL_END_YEAR) {
-            return historicalDataPoints.find((d) => d.year === hoveredYear)
-                ?.value
-        }
-        // When unmodified, read from the fine-grained UN WPP data
-        if (!anyModified) {
-            return unwppProjectionPoints.find((d) => d.year === hoveredYear)
-                ?.value
-        }
-        // Augment control points with the historical anchor at HISTORICAL_END_YEAR
-        // so interpolation between 2023 and 2030 is correct
-        const augmentedPoints = {
-            [HISTORICAL_END_YEAR]: lastHistoricalDataPoint.value,
-            ...controlPoints,
-        }
-        const augmentedControlYears = [HISTORICAL_END_YEAR, ...CONTROL_YEARS]
-        return getInterpolatedValue(
-            augmentedPoints,
-            hoveredYear,
-            HISTORICAL_END_YEAR,
-            augmentedControlYears
-        )
-    }, [
-        hoveredYear,
-        historicalDataPoints,
-        controlPoints,
-        lastHistoricalDataPoint,
-        anyModified,
-        unwppProjectionPoints,
-    ])
-
-    // Determine which static PointLabelWithYear elements overlap the hover elements.
-    // If either the year label or value label overlaps, hide both together.
-    const hiddenPointLabels = useMemo(() => {
-        const hidden = new Set<string>()
-        if (hoveredYear === null) return hidden
-
-        const hx = xScale(hoveredYear)
-
-        // Hover year label bounds (always present)
-        const hoverYearBounds = yearLabelBounds(
-            hx,
-            innerHeight,
-            hoveredYear,
-            "middle",
-            fonts.xTick,
-            YEAR_LABEL_OFFSET
-        )
-
-        // Hover value label bounds (only when hoveredValue is defined)
-        const hoverValueBounds =
-            hoveredValue !== undefined
-                ? pointLabelBounds(
-                      hx,
-                      yScale(hoveredValue),
-                      formatValue(hoveredValue),
-                      fonts.pointLabel
-                  )
-                : undefined
-
-        interface StaticLabel {
-            key: string
-            year: number
-            yearAnchor: "start" | "middle" | "end"
-            x: number
-            valueBounds?: Bounds
-        }
-
-        const statics: StaticLabel[] = [
-            {
-                key: "first-historical",
-                year: firstHistoricalDataPoint.year,
-                yearAnchor: "start",
-                x: xScale(firstHistoricalDataPoint.year),
-                valueBounds: pointLabelBounds(
-                    xScale(firstHistoricalDataPoint.year),
-                    yScale(firstHistoricalDataPoint.value),
-                    formatValue(firstHistoricalDataPoint.value),
-                    fonts.pointLabel
-                ),
-            },
-            {
-                key: "last-historical",
-                year: lastHistoricalDataPoint.year,
-                yearAnchor: "middle",
-                x: xScale(lastHistoricalDataPoint.year),
-                valueBounds: !interactive
-                    ? pointLabelBounds(
-                          xScale(lastHistoricalDataPoint.year),
-                          yScale(lastHistoricalDataPoint.value),
-                          formatValue(lastHistoricalDataPoint.value),
-                          fonts.pointLabel
-                      )
-                    : undefined,
-            },
-        ]
-
-        if (projectionPoints.length > 0) {
-            const last = projectionPoints.at(-1)!
-            statics.push({
-                key: "last-projection",
-                year: last.year,
-                yearAnchor: "end",
-                x: xScale(last.year),
-                valueBounds: !interactive
-                    ? pointLabelBounds(
-                          xScale(last.year),
-                          yScale(last.value),
-                          formatValue(last.value),
-                          fonts.pointLabel
-                      )
-                    : undefined,
-            })
-        }
-
-        for (const s of statics) {
-            const sYearBounds = yearLabelBounds(
-                s.x,
-                innerHeight,
-                s.year,
-                s.yearAnchor,
-                fonts.xTick,
-                YEAR_LABEL_OFFSET
-            )
-
-            // Check year-vs-year overlap
-            if (sYearBounds.intersects(hoverYearBounds)) {
-                hidden.add(s.key)
-                continue
-            }
-
-            // Check value-vs-value overlap
-            if (s.valueBounds && hoverValueBounds) {
-                if (s.valueBounds.intersects(hoverValueBounds)) {
-                    hidden.add(s.key)
-                }
-            }
-        }
-        return hidden
-    }, [
-        hoveredYear,
-        hoveredValue,
-        xScale,
-        yScale,
-        innerHeight,
-        formatValue,
-        fonts,
-        firstHistoricalDataPoint,
-        lastHistoricalDataPoint,
-        projectionPoints,
-        interactive,
-    ])
-
     return (
         <svg
-            ref={svgRef}
             width={width + CONTROL_POINT_HIT_RADIUS}
             height={height}
             overflow="visible"
             style={{ display: "block", touchAction: "none" }}
         >
             <Group left={margin.left} top={margin.top}>
-                {/* Y-axis grid lines and labels */}
-                {maxGridLines !== 0 &&
-                    (() => {
-                        const defaultCount = innerHeight < 80 ? 2 : 3
-                        let ticks = yScale
-                            .ticks(maxGridLines ?? defaultCount)
-                            .filter(
-                                (t) =>
-                                    yScale(t) > 12 &&
-                                    yScale(t) < innerHeight - 4
-                            )
-                        if (
-                            maxGridLines !== undefined &&
-                            ticks.length > maxGridLines
-                        )
-                            ticks = ticks.slice(0, maxGridLines)
-                        const topTick = ticks[ticks.length - 1]
-                        return ticks.map((tick) => (
-                            <g key={tick}>
-                                <line
-                                    x1={0}
-                                    y1={yScale(tick)}
-                                    x2={innerWidth}
-                                    y2={yScale(tick)}
-                                    stroke={
-                                        tick === 0
-                                            ? ZERO_LINE_COLOR
-                                            : GRID_LINE_COLOR
-                                    }
-                                    strokeWidth={1}
-                                />
-                                {(tick !== 0 || minValue < 0) && (
-                                    <text
-                                        x={0}
-                                        y={yScale(tick) - 4}
-                                        fontSize={fonts.yTick}
-                                        fill={LABEL_COLOR}
-                                    >
-                                        {Math.round(tick * 10) / 10}
-                                        {config.axisUnit === "‰"
-                                            ? "‰"
-                                            : tick === topTick
-                                              ? ` ${config.axisUnit}`
-                                              : ""}
-                                    </text>
-                                )}
-                            </g>
-                        ))
-                    })()}
-
                 {/* Projection area background */}
                 <rect
-                    x={projX}
+                    x={historicalEndX}
                     y={0}
-                    width={innerWidth - projX}
+                    width={innerWidth - historicalEndX}
                     height={innerHeight}
                     fill={PROJECTION_BACKGROUND}
                 />
@@ -409,7 +362,7 @@ function DemographyParameterEditorContent({
                 {/* Projection label */}
                 {showProjectionLabel && (
                     <text
-                        x={projX + 6}
+                        x={historicalEndX + 6}
                         y={fonts.projectionAnnotation + 2}
                         fontSize={fonts.projectionAnnotation}
                         fill={GRAPHER_LIGHT_TEXT}
@@ -418,29 +371,16 @@ function DemographyParameterEditorContent({
                     </text>
                 )}
 
-                {/* Zero line */}
-                {minValue <= 0 && maxValue >= 0 && (
-                    <g>
-                        <line
-                            x1={0}
-                            y1={yScale(0)}
-                            x2={innerWidth}
-                            y2={yScale(0)}
-                            stroke={ZERO_LINE_COLOR}
-                            strokeWidth={1}
-                        />
-                        {yMinOverride === 0 && maxGridLines !== 0 && (
-                            <text
-                                x={0}
-                                y={yScale(0) - 4}
-                                fontSize={fonts.yTick}
-                                fill={LABEL_COLOR}
-                            >
-                                0 {config.axisUnit}
-                            </text>
-                        )}
-                    </g>
-                )}
+                {/* Y-axis grid lines and labels */}
+                <YAxisGridLines
+                    maxGridLines={maxGridLines}
+                    innerHeight={innerHeight}
+                    innerWidth={innerWidth}
+                    minValue={minValue}
+                    yScale={yScale}
+                    axisUnit={config.axisUnit}
+                    fontSize={fonts.yTick}
+                />
 
                 {/* X-axis */}
                 <TimeAxisX
@@ -451,27 +391,32 @@ function DemographyParameterEditorContent({
                     fontSize={fonts.xTick}
                     labelOffset={YEAR_LABEL_OFFSET}
                     hideLabels={hoveredYear !== null}
-                    yearLabels={
-                        yearLabelsProp ?? [
-                            [1950, "start"],
-                            [2030, "middle"],
-                            [2050, "middle"],
-                            [2100, "end"],
-                        ]
-                    }
+                    xTickLabels={xTickLabels}
                 />
+
+                {/* Zero line */}
+                {minValue <= 0 && maxValue >= 0 && (
+                    <line
+                        x1={0}
+                        y1={yScale(0)}
+                        x2={innerWidth}
+                        y2={yScale(0)}
+                        stroke={ZERO_LINE_COLOR}
+                        strokeWidth={1}
+                    />
+                )}
 
                 {/* Historical line */}
                 <LinePath
                     data={historicalDataPoints}
                     x={(d) => xScale(d.year)}
                     y={(d) => yScale(d.value)}
-                    stroke={lineColor}
+                    stroke={LINE_COLOR}
                     strokeWidth={2}
                 />
 
-                {/* UN WPP reference line — hidden in non-interactive mode when modified */}
-                {(interactive || !anyModified) && (
+                {/* UN WPP reference line — hidden when modified */}
+                {(interactive || !isModified) && (
                     <LinePath
                         data={[
                             lastHistoricalDataPoint,
@@ -479,20 +424,20 @@ function DemographyParameterEditorContent({
                         ]}
                         x={(d) => xScale(d.year)}
                         y={(d) => yScale(d.value)}
-                        stroke={anyModified ? BENCHMARK_LINE_COLOR : lineColor}
+                        stroke={isModified ? BENCHMARK_LINE_COLOR : LINE_COLOR}
                         strokeWidth={2}
                         strokeDasharray="1,2"
                         strokeLinecap="butt"
                     />
                 )}
 
-                {/* Projection line — only shown when the user has modified values */}
-                {anyModified && (
+                {/* Projection line — only shown when modified */}
+                {isModified && (
                     <LinePath
-                        data={[lastHistoricalDataPoint, ...projectionPoints]}
+                        data={[lastHistoricalDataPoint, ...controlDataPoints]}
                         x={(d) => xScale(d.year)}
                         y={(d) => yScale(d.value)}
-                        stroke={interactive ? USER_MODIFIED_COLOR : lineColor}
+                        stroke={interactive ? USER_MODIFIED_COLOR : LINE_COLOR}
                         strokeWidth={2}
                         strokeDasharray="1,2"
                         strokeLinecap="butt"
@@ -503,18 +448,18 @@ function DemographyParameterEditorContent({
                 <PointLabelWithYear
                     x={xScale(firstHistoricalDataPoint.year)}
                     y={
-                        showEndpointLabels
+                        showValueLabels
                             ? yScale(firstHistoricalDataPoint.value)
                             : undefined
                     }
                     innerHeight={innerHeight}
                     label={
-                        showEndpointLabels
-                            ? formatValue(firstHistoricalDataPoint.value)
+                        showValueLabels
+                            ? config.formatValue(firstHistoricalDataPoint.value)
                             : undefined
                     }
-                    color={lineColor}
-                    labelColor={labelColor}
+                    color={LINE_COLOR}
+                    labelColor={LABEL_COLOR}
                     fontSize={fonts.pointLabel}
                     year={firstHistoricalDataPoint.year}
                     yearAnchor="start"
@@ -524,14 +469,16 @@ function DemographyParameterEditorContent({
                 />
 
                 {/* Last historical point (2023) */}
-                {showEndpointLabels && (
+                {showValueLabels && (
                     <PointLabelWithYear
                         x={xScale(lastHistoricalDataPoint.year)}
                         y={yScale(lastHistoricalDataPoint.value)}
                         innerHeight={innerHeight}
-                        label={formatValue(lastHistoricalDataPoint.value)}
-                        color={lineColor}
-                        labelColor={labelColor}
+                        label={config.formatValue(
+                            lastHistoricalDataPoint.value
+                        )}
+                        color={LINE_COLOR}
+                        labelColor={LABEL_COLOR}
                         fontSize={fonts.pointLabel}
                         year={lastHistoricalDataPoint.year}
                         yearAnchor="middle"
@@ -542,34 +489,30 @@ function DemographyParameterEditorContent({
                 )}
 
                 {/* Last projection point (2100) */}
-                {projectionPoints.length > 0 && (
-                    <PointLabelWithYear
-                        x={xScale(projectionPoints.at(-1)!.year)}
-                        y={
-                            !interactive
-                                ? yScale(projectionPoints.at(-1)!.value)
-                                : undefined
-                        }
-                        innerHeight={innerHeight}
-                        label={
-                            !interactive
-                                ? formatValue(projectionPoints.at(-1)!.value)
-                                : undefined
-                        }
-                        color={lineColor}
-                        labelColor={labelColor}
-                        fontSize={fonts.pointLabel}
-                        year={projectionPoints.at(-1)!.year}
-                        yearAnchor="end"
-                        valueLabelAnchor="end"
-                        hidden={hiddenPointLabels.has("last-projection")}
-                        hideTickMark
-                    />
-                )}
+                <PointLabelWithYear
+                    x={xScale(lastProjectionDataPoint.year)}
+                    y={
+                        showValueLabels
+                            ? yScale(lastProjectionDataPoint.value)
+                            : undefined
+                    }
+                    innerHeight={innerHeight}
+                    label={
+                        showValueLabels
+                            ? config.formatValue(lastProjectionDataPoint.value)
+                            : undefined
+                    }
+                    color={LINE_COLOR}
+                    labelColor={LABEL_COLOR}
+                    fontSize={fonts.pointLabel}
+                    year={lastProjectionDataPoint.year}
+                    yearAnchor="end"
+                    valueLabelAnchor="end"
+                    hidden={hiddenPointLabels.has("last-projection")}
+                    hideTickMark
+                />
 
-                {/* Invisible interaction rect for hover — placed before control points so they get priority.
-                    Extended horizontally by 20px on each side so the hover
-                    doesn't disappear immediately at the chart edges. */}
+                {/* Invisible interaction rect for hover */}
                 <rect
                     x={-20}
                     y={0}
@@ -636,7 +579,7 @@ function DemographyParameterEditorContent({
                 {/* Draggable control points */}
                 {interactive &&
                     CONTROL_YEARS.map((year) => {
-                        const pointColor = anyModified
+                        const pointColor = isModified
                             ? USER_MODIFIED_COLOR
                             : DENIM_BLUE
                         return (
@@ -646,9 +589,9 @@ function DemographyParameterEditorContent({
                                 cy={yScale(controlPoints[year])}
                                 value={controlPoints[year]}
                                 color={pointColor}
-                                modified={anyModified}
+                                modified={isModified}
                                 highlighted={hoveredYear === year}
-                                formatValue={formatValue}
+                                formatValue={config.formatValue}
                                 dragArrowFontSize={fonts.dragArrow}
                                 controlLabelFontSize={fonts.controlLabel}
                                 yScale={yScale}
@@ -672,21 +615,21 @@ function DemographyParameterEditorContent({
                             x={xScale(hoveredYear)}
                             y={yScale(hoveredValue)}
                             label={
-                                isControlYear
+                                isHoveringControlPoint
                                     ? undefined
-                                    : formatValue(hoveredValue)
+                                    : config.formatValue(hoveredValue)
                             }
                             color={
                                 interactive &&
-                                anyModified &&
+                                isModified &&
                                 hoveredYear > HISTORICAL_END_YEAR
                                     ? USER_MODIFIED_COLOR
-                                    : lineColor
+                                    : LINE_COLOR
                             }
                             fontSize={fonts.hoverLabel}
                             backgroundFill={
                                 interactive &&
-                                anyModified &&
+                                isModified &&
                                 hoveredYear > HISTORICAL_END_YEAR
                                     ? USER_MODIFIED_COLOR
                                     : DENIM_BLUE
@@ -700,43 +643,17 @@ function DemographyParameterEditorContent({
 }
 
 export const DemographyParameterEditor = memo(
-    function DemographyParameterEditor({
-        simulation,
-        variant,
-        interactive,
-        lineColor,
-        projectionColor,
-        labelColor,
-        showProjectionLabel,
-        yearLabels,
-        maxGridLines,
-        showEndpointLabels,
-        yMin,
-    }: DemographyParameterEditorProps) {
+    function DemographyParameterEditor(props: DemographyParameterEditorProps) {
         const { parentRef, width, height } = useParentSize()
         return (
-            <div
-                ref={parentRef}
-                className="responsive-container"
-                style={{ overflow: "visible" }}
-            >
-                {width > 0 && height > 0 ? (
+            <div ref={parentRef} className="responsive-container">
+                {width > 0 && height > 0 && (
                     <DemographyParameterEditorContent
-                        simulation={simulation}
-                        variant={variant}
-                        interactive={interactive}
-                        lineColor={lineColor}
-                        projectionColor={projectionColor}
-                        labelColor={labelColor}
-                        showProjectionLabel={showProjectionLabel}
-                        yearLabels={yearLabels}
-                        maxGridLines={maxGridLines}
-                        showEndpointLabels={showEndpointLabels}
-                        yMin={yMin}
+                        {...props}
                         width={width}
                         height={height}
                     />
-                ) : null}
+                )}
             </div>
         )
     }
@@ -880,12 +797,17 @@ function DraggableControlPoint({
 }
 
 /** Compute the Bounds of a PointLabel's value text. */
-function pointLabelBounds(
-    x: number,
-    y: number,
-    label: string,
+function getPointLabelBounds({
+    x,
+    y,
+    label,
+    fontSize,
+}: {
+    x: number
+    y: number
+    label: string
     fontSize: number
-): Bounds {
+}): Bounds {
     const tw = new TextWrap({ text: label, maxWidth: Infinity, fontSize })
     const textY = y - fontSize / 2 - 3
     return new Bounds(
@@ -897,14 +819,21 @@ function pointLabelBounds(
 }
 
 /** Compute the Bounds of a year label below the x-axis. */
-function yearLabelBounds(
-    x: number,
-    innerHeight: number,
-    year: number,
-    anchor: "start" | "middle" | "end",
-    fontSize: number,
+function getXAxisLabelBounds({
+    x,
+    innerHeight,
+    year,
+    anchor,
+    fontSize,
+    labelOffset,
+}: {
+    x: number
+    innerHeight: number
+    year: number
+    anchor: "start" | "middle" | "end"
+    fontSize: number
     labelOffset: number
-): Bounds {
+}): Bounds {
     const tw = new TextWrap({
         text: String(year),
         maxWidth: Infinity,
@@ -926,6 +855,63 @@ function yearLabelBounds(
 
 // Font sizes for standalone functions are passed as parameters from the main component
 const YEAR_LABEL_OFFSET = 14
+
+function YAxisGridLines({
+    maxGridLines,
+    innerHeight,
+    innerWidth,
+    minValue,
+    yScale,
+    axisUnit,
+    fontSize,
+}: {
+    maxGridLines: number | undefined
+    innerHeight: number
+    innerWidth: number
+    minValue: number
+    yScale: ReturnType<typeof scaleLinear<number>>
+    axisUnit: string
+    fontSize: number
+}) {
+    const defaultCount = innerHeight < 80 ? 2 : 3
+    let ticks = yScale
+        .ticks(maxGridLines ?? defaultCount)
+        .filter((t) => yScale(t) > 12 && yScale(t) < innerHeight - 4)
+    if (maxGridLines !== undefined && ticks.length > maxGridLines)
+        ticks = ticks.slice(0, maxGridLines)
+    const topTick = ticks[ticks.length - 1]
+    return (
+        <>
+            {ticks.map((tick) => (
+                <g key={tick}>
+                    <line
+                        x1={0}
+                        y1={yScale(tick)}
+                        x2={innerWidth}
+                        y2={yScale(tick)}
+                        stroke={tick === 0 ? ZERO_LINE_COLOR : GRID_LINE_COLOR}
+                        strokeWidth={1}
+                    />
+                    {(tick !== 0 || minValue < 0) && (
+                        <text
+                            x={0}
+                            y={yScale(tick) - 4}
+                            fontSize={fontSize}
+                            fill={GRID_LABEL_COLOR}
+                        >
+                            {Math.round(tick * 10) / 10}
+                            {axisUnit === "‰"
+                                ? "‰"
+                                : tick === topTick
+                                  ? ` ${axisUnit}`
+                                  : ""}
+                        </text>
+                    )}
+                </g>
+            ))}
+        </>
+    )
+}
 
 function PointLabel({
     x,

@@ -10,7 +10,7 @@ import {
     AGE_ZONE_BACKGROUND_OPACITY,
     DENIM_BLUE,
     GRID_LINE_COLOR,
-    LABEL_COLOR,
+    GRID_LABEL_COLOR,
     PYRAMID_AGE_GROUPS,
 } from "../helpers/constants"
 import {
@@ -291,31 +291,17 @@ function PopulationPyramidContent({
     )
 }
 
-export function PopulationPyramid({
-    simulation,
-    year,
-    xAxisScaleMode,
-    ageZones,
-    projection,
-    barColor,
-    unit,
-}: PopulationPyramidProps) {
+export function PopulationPyramid(props: PopulationPyramidProps) {
     const { parentRef, width, height } = useParentSize()
     return (
         <div ref={parentRef} className="responsive-container">
-            {width > 0 && height > 0 ? (
+            {width > 0 && height > 0 && (
                 <PopulationPyramidContent
-                    simulation={simulation}
-                    year={year}
-                    ageZones={ageZones}
-                    xAxisScaleMode={xAxisScaleMode}
-                    projection={projection}
-                    barColor={barColor}
-                    unit={unit}
+                    {...props}
                     width={width}
                     height={height}
                 />
-            ) : null}
+            )}
         </div>
     )
 }
@@ -573,7 +559,9 @@ function PopulationPyramidAxisX({
                             textAnchor="middle"
                             dominantBaseline="central"
                             fontSize={fonts.ageGroupLabel}
-                            fill={isHovered ? GRAPHER_DARK_TEXT : LABEL_COLOR}
+                            fill={
+                                isHovered ? GRAPHER_DARK_TEXT : GRID_LABEL_COLOR
+                            }
                         >
                             {ageGroupLabel}
                         </text>
@@ -607,7 +595,7 @@ function PopulationPyramidAxisX({
                 y={-4}
                 textAnchor="middle"
                 fontSize={fonts.ageZoneLabel}
-                fill={LABEL_COLOR}
+                fill={GRID_LABEL_COLOR}
                 letterSpacing="0.05em"
             >
                 AGE
