@@ -85,6 +85,20 @@
     }
 }
 
+.slide--text {
+    padding: 64px;
+    align-items: flex-start;
+    justify-content: flex-start;
+}
+
+.slide-text__body {
+    @include body-1-regular;
+    font-size: clamp(14px, 1.6vw, 22px);
+    color: $blue-90;
+    margin-top: 16px;
+    max-width: 60%;
+}
+
 .slide--statement {
     padding: 64px;
     align-items: flex-start;

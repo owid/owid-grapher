@@ -100,6 +100,9 @@
     .slide-contents__list {
         font-size: clamp(16px, 2cqw, 28px);
     }
+    .slide-text__body {
+        font-size: clamp(14px, 1.6cqw, 22px);
+    }
     .slide-statement__text {
         font-size: clamp(24px, 4cqw, 52px);
     }

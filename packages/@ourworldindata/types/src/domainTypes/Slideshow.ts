@@ -8,6 +8,7 @@ export enum SlideTemplate {
     Blank = "blank",
     Statement = "statement",
     Contents = "contents",
+    Text = "text",
 }
 
 /** Canonical display labels for each slide template */
@@ -19,6 +20,7 @@ export const SLIDE_TEMPLATE_LABELS: Record<SlideTemplate, string> = {
     [SlideTemplate.Section]: "Section",
     [SlideTemplate.Blank]: "Blank",
     [SlideTemplate.Statement]: "Statement",
+    [SlideTemplate.Text]: "Text",
 }
 
 /**
@@ -82,6 +84,13 @@ export interface SlideContents {
     hideLogo?: boolean
 }
 
+export interface SlideText {
+    template: SlideTemplate.Text
+    title?: string
+    text: MarkdownText
+    hideLogo?: boolean
+}
+
 export type Slide =
     | SlideImageOnly
     | SlideChartOnly
@@ -90,6 +99,7 @@ export type Slide =
     | SlideBlank
     | SlideStatement
     | SlideContents
+    | SlideText
 
 /**
  * Pre-resolved chart info computed at bake time so the client
@@ -163,6 +173,13 @@ const SlideContentsSchema = z.object({
     hideLogo: z.boolean().optional(),
 })
 
+const SlideTextSchema = z.object({
+    template: z.literal(SlideTemplate.Text),
+    title: z.string().optional(),
+    text: z.string(),
+    hideLogo: z.boolean().optional(),
+})
+
 export const SlideSchema = z.discriminatedUnion("template", [
     SlideImageOnlySchema,
     SlideChartOnlySchema,
@@ -171,6 +188,7 @@ export const SlideSchema = z.discriminatedUnion("template", [
     SlideBlankSchema,
     SlideQuoteSchema,
     SlideContentsSchema,
+    SlideTextSchema,
 ])
 
 export const SlideshowConfigSchema = z.object({

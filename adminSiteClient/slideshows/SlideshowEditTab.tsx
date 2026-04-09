@@ -42,6 +42,7 @@ function makeDefaultSlideForTemplate(template: SlideTemplate): Slide {
         .with(SlideTemplate.Blank, (t) => ({ template: t }))
         .with(SlideTemplate.Statement, (t) => ({ template: t, text: "" }))
         .with(SlideTemplate.Contents, (t) => ({ template: t, text: "" }))
+        .with(SlideTemplate.Text, (t) => ({ template: t, text: "" }))
         .exhaustive()
 }
 
@@ -73,6 +74,7 @@ function slideHasContent(slide: Slide): boolean {
             { template: SlideTemplate.Contents },
             (s) => !!s.title || !!s.text
         )
+        .with({ template: SlideTemplate.Text }, (s) => !!s.title || !!s.text)
         .exhaustive()
 }
 
@@ -505,6 +507,32 @@ function TemplateOptionsEditor(props: {
                         value={slide.text}
                         onChange={(text) => onUpdate({ ...slide, text })}
                         placeholder="- **Bolded items** appear active&#10;- Other items appear muted"
+                    />
+                </label>
+                <HideLogoCheckbox slide={slide} onUpdate={onUpdate} />
+            </>
+        ))
+        .with({ template: SlideTemplate.Text }, (slide) => (
+            <>
+                <label>
+                    Title
+                    <InlineMarkdownEditor
+                        value={slide.title ?? ""}
+                        onChange={(text) =>
+                            onUpdate({
+                                ...slide,
+                                title: text || undefined,
+                            })
+                        }
+                        placeholder="Title (optional)"
+                    />
+                </label>
+                <label>
+                    Body text
+                    <MarkdownEditor
+                        value={slide.text}
+                        onChange={(text) => onUpdate({ ...slide, text })}
+                        placeholder="Supports **bold**, *italics*, and lists"
                     />
                 </label>
                 <HideLogoCheckbox slide={slide} onUpdate={onUpdate} />
