@@ -10,6 +10,12 @@
     align-items: center;
     margin-bottom: 40px;
 
+    .centered-article-container--linear-topic-page &, // e.g. /air-pollution
+    // e.g. /human-development-index
+    .centered-article-container--article & {
+        padding-top: 48px;
+    }
+
     .owid-btn {
         align-self: start;
         @include sm-only {
