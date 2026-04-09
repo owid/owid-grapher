@@ -356,7 +356,7 @@ $panel-gap: 12px;
         color: $dark-text;
         text-align: right;
         line-height: 1.15;
-        padding: 6px 8px;
+        padding: 6px 8px 6px 2px;
         border-bottom: 1px solid $panel-border;
         border-right: 1px solid $panel-border;
 
@@ -400,6 +400,7 @@ $panel-gap: 12px;
     .assumptions-table__value--default,
     .assumptions-table__value--modified {
         background: rgba(0, 0, 0, 0.02);
+        padding-left: 2px;
     }
 
     .assumptions-table__value--default {
@@ -761,10 +762,6 @@ $panel-gap: 12px;
     .assumptions-table {
         table-layout: auto;
         word-break: break-word;
-
-        th {
-            text-align: left;
-        }
 
         .assumptions-table__info-icon {
             margin-left: 0;

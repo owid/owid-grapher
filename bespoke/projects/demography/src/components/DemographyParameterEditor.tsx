@@ -663,7 +663,7 @@ function DraggableControlPoint({
                             text={formatValue(value)}
                             fontSize={controlLabelFontSize}
                             padX={4}
-                            padY={2}
+                            padY={1.5}
                             fill={modified ? USER_MODIFIED_COLOR : DENIM_BLUE}
                         />
                         <text
@@ -998,7 +998,7 @@ function HoverPointLabel({
 }) {
     const textY = y < 20 ? y + fontSize / 2 + 10 : y - fontSize / 2 - 5
     const padX = 4
-    const padY = 2
+    const padY = 1.5
 
     return (
         <>

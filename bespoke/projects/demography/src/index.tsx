@@ -47,17 +47,6 @@ enableShadowDOM()
 // ] satisfies BespokeComponentVariantsList<VariantName>
 
 export const VARIANTS = [
-    // {
-    //     name: "simulation",
-    //     component: SimulationVariant,
-    //     demoConfig: {
-    //         region: "South Korea",
-    //         focusParameter: "lifeExpectancy",
-    //         stabilizingParameter: "lifeExpectancy",
-    //         populationPyramidUnit: "absolute",
-    //     },
-    //     demoSize: "widest",
-    // },
     {
         name: "population",
         component: PopulationVariant,
@@ -86,7 +75,7 @@ export const VARIANTS = [
             focusParameter: "fertilityRate",
             stabilizingParameter: "fertilityRate",
         },
-        demoSize: "widest",
+        demoSize: "wide",
     },
     {
         name: "simulation",
@@ -130,7 +119,7 @@ export const VARIANTS = [
             focusParameter: "netMigrationRate",
             stabilizingParameter: "netMigrationRate",
         },
-        demoSize: "widest",
+        demoSize: "wide",
     },
     {
         name: "simulation",
