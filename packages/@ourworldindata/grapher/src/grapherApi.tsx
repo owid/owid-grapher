@@ -1,35 +1,29 @@
-import { createRoot, Root } from "react-dom/client"
-import { debounce } from "lodash-es"
+import { createRoot } from "react-dom/client"
+import { useEffect, useRef } from "react"
 import { GrapherInterface } from "@ourworldindata/types"
-import { Bounds } from "@ourworldindata/utils"
 import { OwidTable } from "@ourworldindata/core-table"
 import { Grapher } from "./core/Grapher.js"
 import { GrapherState } from "./core/GrapherState.js"
-import { FetchingGrapher } from "./core/FetchingGrapher.js"
 import { fetchInputTableForConfig } from "./core/loadGrapherTableHelpers.js"
+import { useElementBounds } from "./hooks.js"
 
 const DEFAULT_DATA_API_URL = "https://api.ourworldindata.org/v1/indicators/"
-const DEFAULT_CATALOG_URL = "https://catalog.ourworldindata.org"
 
 interface GrapherApiOptions {
     /** Grapher configuration object (chart type, dimensions, display, etc.) */
     config: GrapherInterface
     /**
      * Data to display. Can be:
-     * - a URL string to fetch data from (e.g. a data API endpoint)
+     * - a URL to fetch data from (e.g. a data API endpoint)
+     * - a string of CSV data
      * - an OwidTable instance with pre-loaded data
      */
-    data?: string | OwidTable
+    data?: URL | string | OwidTable
     /**
      * Base URL for the OWID data API.
      * Defaults to "https://api.ourworldindata.org/v1/indicators/"
      */
     dataApiUrl?: string
-    /**
-     * Base URL for the OWID catalog API.
-     * Defaults to "https://owid.cloud/admin/api/charts"
-     */
-    catalogUrl?: string
 }
 
 interface GrapherHandle {
@@ -39,108 +33,72 @@ interface GrapherHandle {
     dispose: () => void
 }
 
+/** Thin wrapper that observes the container's size via useElementBounds
+ *  and syncs it to grapherState.externalBounds (MobX observable).
+ *  Grapher is rendered once; subsequent size changes flow through MobX
+ *  without triggering a React re-render of this component's parent. */
+function BoundsObservingGrapher({
+    grapherState,
+    container,
+}: {
+    grapherState: GrapherState
+    container: HTMLElement
+}): React.ReactElement {
+    const containerRef = useRef<HTMLElement>(container)
+    const bounds = useElementBounds(containerRef)
+
+    useEffect(() => {
+        grapherState.externalBounds = bounds
+    }, [grapherState, bounds])
+
+    return <Grapher grapherState={grapherState} />
+}
+
 export function renderGrapherIntoContainer(
-    container: Element,
+    container: HTMLElement,
     options: GrapherApiOptions
 ): GrapherHandle {
-    const {
-        config,
-        data,
-        dataApiUrl = DEFAULT_DATA_API_URL,
-        catalogUrl = DEFAULT_CATALOG_URL,
-    } = options
+    const { config, data, dataApiUrl = DEFAULT_DATA_API_URL } = options
 
-    let reactRoot: Root
     let grapherState: GrapherState
 
     if (data instanceof OwidTable) {
-        // Data provided directly — render Grapher with the table
+        // Data provided directly
         grapherState = new GrapherState({
             ...config,
             table: data,
             isConfigReady: true,
             isDataReady: true,
         })
-
-        reactRoot = createRoot(container)
-        const renderWithBounds = (bounds: Bounds): void => {
-            grapherState.externalBounds = bounds
-            reactRoot.render(<Grapher grapherState={grapherState} />)
-        }
-
-        observeContainerSize(container, renderWithBounds)
-    } else if (typeof data === "string") {
-        // Data is a URL — fetch config, then load data from the URL
+    } else {
+        // Fetch data — from the given URL/string, or from the OWID data API
         grapherState = new GrapherState({
             ...config,
             isConfigReady: true,
             isDataReady: false,
         })
 
-        reactRoot = createRoot(container)
-        const renderWithBounds = (bounds: Bounds): void => {
-            grapherState.externalBounds = bounds
-            reactRoot.render(<Grapher grapherState={grapherState} />)
-        }
-
-        observeContainerSize(container, renderWithBounds)
-
-        // Fetch data from the provided URL
         void fetchInputTableForConfig({
             dimensions: config.dimensions,
             selectedEntityColors: config.selectedEntityColors,
-            dataApiUrl: data,
+            dataApiUrl: typeof data === "string" ? data : dataApiUrl,
         }).then((table) => {
             if (table) grapherState.inputTable = table
             grapherState.isDataReady = true
         })
-    } else {
-        // No data provided — use FetchingGrapher which handles
-        // fetching data from the OWID data API based on config.dimensions
-        grapherState = new GrapherState({
-            ...config,
-            isConfigReady: false,
-        })
-
-        reactRoot = createRoot(container)
-        const renderWithBounds = (bounds: Bounds): void => {
-            reactRoot.render(
-                <FetchingGrapher
-                    config={config}
-                    dataApiUrl={dataApiUrl}
-                    catalogUrl={catalogUrl}
-                    archiveContext={undefined}
-                    externalBounds={bounds}
-                />
-            )
-        }
-
-        observeContainerSize(container, renderWithBounds)
     }
+
+    // Render once — bounds updates flow through MobX, not re-renders
+    const reactRoot = createRoot(container)
+    reactRoot.render(
+        <BoundsObservingGrapher
+            grapherState={grapherState}
+            container={container}
+        />
+    )
 
     return {
         grapherState,
-        dispose: () => {
-            reactRoot.unmount()
-        },
+        dispose: () => reactRoot.unmount(),
     }
-}
-
-function observeContainerSize(
-    container: Element,
-    onResize: (bounds: Bounds) => void
-): void {
-    const resizeObserver = new ResizeObserver(
-        debounce(
-            (entries: ResizeObserverEntry[]) => {
-                const entry = entries[0]
-                if (!entry) return
-                if ((entry.target as HTMLElement).offsetParent === null) return
-                onResize(Bounds.fromRect(entry.contentRect))
-            },
-            400,
-            { leading: true }
-        )
-    )
-    resizeObserver.observe(container)
 }
