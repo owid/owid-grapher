@@ -19,7 +19,7 @@ export function TimeAxisX({
     strokeColor = GRAPHER_LIGHT_TEXT,
     fontSize = 11,
     labelOffset = 16,
-    hideLabels = false,
+    hiddenYears,
     xTickLabels = DEFAULT_X_TICK_LABELS,
 }: {
     xScale: (v: number) => number
@@ -28,7 +28,7 @@ export function TimeAxisX({
     strokeColor?: string
     fontSize?: number
     labelOffset?: number
-    hideLabels?: boolean
+    hiddenYears?: Set<number>
     xTickLabels?: YearLabel[]
 }) {
     return (
@@ -51,19 +51,19 @@ export function TimeAxisX({
                     stroke={strokeColor}
                 />
             ))}
-            {!hideLabels &&
-                xTickLabels.map(({ year, position }) => (
-                    <text
-                        key={year}
-                        x={xScale(year)}
-                        y={labelOffset}
-                        textAnchor={position}
-                        fontSize={fontSize}
-                        fill={GRAPHER_LIGHT_TEXT}
-                    >
-                        {year}
-                    </text>
-                ))}
+            {xTickLabels.map(({ year, position }) => (
+                <text
+                    key={year}
+                    x={xScale(year)}
+                    y={labelOffset}
+                    textAnchor={position}
+                    fontSize={fontSize}
+                    fill={GRAPHER_LIGHT_TEXT}
+                    opacity={hiddenYears?.has(year) ? 0 : 1}
+                >
+                    {year}
+                </text>
+            ))}
         </g>
     )
 }

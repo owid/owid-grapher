@@ -227,6 +227,33 @@ function DemographyParameterEditorContent({
         ]
     )
 
+    const hiddenXTickYears = useMemo(() => {
+        if (hoveredYear === null) return undefined
+        const hoverBounds = getXAxisLabelBounds({
+            x: xScale(hoveredYear),
+            innerHeight,
+            year: hoveredYear,
+            anchor: "middle",
+            fontSize: fonts.xTick,
+            labelOffset: YEAR_LABEL_OFFSET,
+        })
+        const hidden = new Set<number>()
+        for (const { year, position } of xTickLabels) {
+            const bounds = getXAxisLabelBounds({
+                x: xScale(year),
+                innerHeight,
+                year,
+                anchor: position,
+                fontSize: fonts.xTick,
+                labelOffset: YEAR_LABEL_OFFSET,
+            })
+            if (bounds.intersects(hoverBounds)) {
+                hidden.add(year)
+            }
+        }
+        return hidden.size > 0 ? hidden : undefined
+    }, [hoveredYear, xScale, innerHeight, fonts, xTickLabels])
+
     const handleChange = useCallback(
         (newPoints: Record<number, number>) => {
             simulation.setScenarioParams({
@@ -311,7 +338,7 @@ function DemographyParameterEditorContent({
                     strokeColor={axisColor}
                     fontSize={fonts.xTick}
                     labelOffset={YEAR_LABEL_OFFSET}
-                    hideLabels={hoveredYear !== null}
+                    hiddenYears={hiddenXTickYears}
                     xTickLabels={xTickLabels}
                 />
 
