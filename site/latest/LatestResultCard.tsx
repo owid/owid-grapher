@@ -1,10 +1,6 @@
 import * as React from "react"
 import { formatAuthors, OwidGdocType } from "@ourworldindata/utils"
-import {
-    ImageMetadata,
-    OwidEnrichedGdocBlock,
-    PageChronologicalRecord,
-} from "@ourworldindata/types"
+import { ImageMetadata, PageChronologicalRecord } from "@ourworldindata/types"
 import { AttachmentsContext } from "../gdocs/AttachmentsContext.js"
 import { getPrefixedGdocPath } from "@ourworldindata/components"
 import Image from "../gdocs/components/Image.js"
@@ -12,7 +8,7 @@ import { ArticleBlocks } from "../gdocs/components/ArticleBlocks.js"
 import DataInsightDateline from "../gdocs/components/DataInsightDateline.js"
 import LinkedAuthorComponent from "../gdocs/components/LinkedAuthor.js"
 import { Cta } from "../gdocs/components/Cta.js"
-import { ExpandableParagraph } from "../blocks/ExpandableParagraph.js"
+import { ExpandableText } from "./ExpandableText.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     faChartLine,
@@ -45,7 +41,6 @@ const KICKER_ICONS: Record<string, IconDefinition> = {
  */
 const CardMetadataRow = ({
     hit,
-    onTopicClick,
     selectedTopic,
 }: {
     hit: PageChronologicalRecord
@@ -208,28 +203,6 @@ const LatestDataInsightCard = ({
     )
 }
 
-const MEDIA_BLOCK_TYPES = new Set(["image", "cta"])
-
-/**
- * Split body blocks before the first image or CTA block. The author
- * byline is rendered between the two groups.
- */
-function splitBodyBeforeMedia(blocks: OwidEnrichedGdocBlock[]): {
-    textBlocks: OwidEnrichedGdocBlock[]
-    trailingBlocks: OwidEnrichedGdocBlock[]
-} {
-    const firstMediaIndex = blocks.findIndex((b) =>
-        MEDIA_BLOCK_TYPES.has(b.type)
-    )
-    if (firstMediaIndex === -1) {
-        return { textBlocks: blocks, trailingBlocks: [] }
-    }
-    return {
-        textBlocks: blocks.slice(0, firstMediaIndex),
-        trailingBlocks: blocks.slice(firstMediaIndex),
-    }
-}
-
 const LatestAnnouncementCard = ({
     hit,
     onTopicClick,
@@ -244,7 +217,6 @@ const LatestAnnouncementCard = ({
     const body = hit.announcementContent?.body ?? []
     const cta = hit.announcementContent?.cta
     const hasCta = cta && cta.url && cta.text
-    const { textBlocks, trailingBlocks } = splitBodyBeforeMedia(body)
 
     const authorByline = hit.authors.length > 0 && (
         <div className="latest-page__announcement-authors data-insight-authors body-3-medium">
@@ -281,34 +253,16 @@ const LatestAnnouncementCard = ({
                         {kicker && `${kicker}: `}
                         {hit.title}
                     </h2>
-                    <ExpandableParagraph
-                        className="latest-page__announcement-body"
-                        buttonVariant="slim"
-                    >
-                        {hasCta ? (
-                            <>
-                                <p>{hit.excerpt}</p>
-                                {authorByline}
-                                <Cta
-                                    shouldRenderLinks
-                                    text={cta.text}
-                                    url={cta.url}
-                                />
-                            </>
-                        ) : (
-                            <>
-                                <ArticleBlocks
-                                    blocks={textBlocks}
-                                    interactiveImages={false}
-                                />
-                                {authorByline}
-                                <ArticleBlocks
-                                    blocks={trailingBlocks}
-                                    interactiveImages={false}
-                                />
-                            </>
+                    <ExpandableText blocks={body}>
+                        {authorByline}
+                        {hasCta && (
+                            <Cta
+                                shouldRenderLinks
+                                text={cta.text}
+                                url={cta.url}
+                            />
                         )}
-                    </ExpandableParagraph>
+                    </ExpandableText>
                 </div>
             </article>
         </AttachmentsContext.Provider>

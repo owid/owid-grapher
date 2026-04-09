@@ -256,24 +256,12 @@
     margin-top: 16px;
 }
 
-.latest-page__announcement-body {
+.latest-page__announcement-content .expandable-text {
     @include text-block-override {
         @include body-2-regular;
     }
 
     [class*="article-block__"]:last-child {
         margin-bottom: 0;
-    }
-
-    .expandable-paragraph__content {
-        margin-bottom: 0;
-    }
-
-    .expandable-paragraph__expand-button {
-        color: $vermillion;
-
-        &:hover {
-            color: $vermillion;
-        }
     }
 }
