@@ -9,7 +9,7 @@ import {
     GRID_LINE_COLOR,
     LABEL_COLOR,
     MALE_COLOR,
-    MAX_AGE,
+    PYRAMID_MAX_AGE,
     PYRAMID_AGE_GROUP_SIZE,
     PYRAMID_AGE_GROUPS,
     ZERO_LINE_COLOR,
@@ -79,7 +79,7 @@ function PopulationPyramidHorizontalContent({
     const xScale = useMemo(
         () =>
             scaleLinear({
-                domain: [0, MAX_AGE + PYRAMID_AGE_GROUP_SIZE],
+                domain: [0, PYRAMID_MAX_AGE + PYRAMID_AGE_GROUP_SIZE],
                 range: [0, innerWidth],
             }),
         [innerWidth]
