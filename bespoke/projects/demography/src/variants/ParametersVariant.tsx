@@ -15,11 +15,6 @@ import { InputChartPanel } from "../components/SimulationContent.js"
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
 import { Frame } from "../../../../components/Frame/Frame.js"
-import {
-    START_YEAR,
-    HISTORICAL_END_YEAR,
-    END_YEAR,
-} from "../helpers/constants.js"
 import { useInitialEntityName } from "../helpers/useInitialEntityName.js"
 import {
     BreakpointProvider,
