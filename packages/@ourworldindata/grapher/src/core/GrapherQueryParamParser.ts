@@ -233,11 +233,7 @@ function parseGlobeRotationParam(
     if (value === undefined) return missing()
 
     const rotation = parseGlobeRotation(value)
-    if (
-        rotation?.length === 2 &&
-        !isNaN(rotation[0]) &&
-        !isNaN(rotation[1])
-    ) {
+    if (rotation?.length === 2 && !isNaN(rotation[0]) && !isNaN(rotation[1])) {
         return valid(rotation)
     }
 

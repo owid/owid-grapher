@@ -3588,10 +3588,7 @@ export class GrapherState
     }
 
     @computed private get hasRelatedQuestion(): boolean {
-        if (
-            this.hideRelatedQuestion ||
-            !this.relatedQuestions?.length
-        )
+        if (this.hideRelatedQuestion || !this.relatedQuestions?.length)
             return false
         const question = this.relatedQuestions[0]
         return !!question && !!question.text && !!question.url

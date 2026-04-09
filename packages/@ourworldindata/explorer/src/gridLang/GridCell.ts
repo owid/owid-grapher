@@ -63,8 +63,7 @@ export class GridCell implements ParsedCell {
 
         // It has a keyword but it is column >1
         const def = grammar[firstWordOnLine]
-        const positionalCellTypeDef =
-            def.positionalCellDefs?.[this.column - 2]
+        const positionalCellTypeDef = def.positionalCellDefs?.[this.column - 2]
         if (positionalCellTypeDef) return positionalCellTypeDef
         if (def.isHorizontalList && this.contents) return def // For now only return a def for lists if it is non-empty
         return NothingGoesThereCellDef

@@ -228,10 +228,9 @@ const StaticVizDownloadModal = ({
         [onClose]
     )
 
-    const grapherLink =
-        staticViz.grapherUrl?.trim().length
-            ? staticViz.grapherUrl
-            : undefined
+    const grapherLink = staticViz.grapherUrl?.trim().length
+        ? staticViz.grapherUrl
+        : undefined
 
     const hasTwoImages = imageOptions.length > 1
 
