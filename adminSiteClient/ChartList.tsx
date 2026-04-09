@@ -69,6 +69,8 @@ interface ChartListProps {
     charts: ChartListItem[]
     autofocusSearchInput?: boolean
     onDelete?: (chart: ChartListItem) => void
+    /** When true, don't read/write the search query to the URL (e.g. when embedded in a drawer) */
+    disableUrlSync?: boolean
 }
 
 @observer
@@ -144,7 +146,9 @@ export class ChartList extends React.Component<ChartListProps> {
     }
 
     override componentDidMount() {
-        this.searchInput = this.getSearchInputFromUrl()
+        if (!this.props.disableUrlSync) {
+            this.searchInput = this.getSearchInputFromUrl()
+        }
         void this.getTags()
     }
 
@@ -209,7 +213,9 @@ export class ChartList extends React.Component<ChartListProps> {
 
     @action.bound onSearchInput(input: string) {
         this.searchInput = input
-        this.setSearchInputInUrl(input)
+        if (!this.props.disableUrlSync) {
+            this.setSearchInputInUrl(input)
+        }
     }
 
     @action.bound onShowMore() {
