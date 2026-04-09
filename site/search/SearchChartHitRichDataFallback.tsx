@@ -1,5 +1,5 @@
 import { useIntersectionObserver } from "usehooks-ts"
-import { SearchChartHitComponentProps } from "@ourworldindata/types"
+import { SearchChartHitComponentProps } from "@ourworldindata/search-types"
 import { useMemo } from "react"
 import cx from "classnames"
 import {

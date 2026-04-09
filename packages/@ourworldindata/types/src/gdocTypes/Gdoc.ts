@@ -126,6 +126,14 @@ export const ALL_GDOC_TYPES: OwidGdocType[] = Object.values(
     OwidGdocType
 ) as OwidGdocType[]
 
+export const CHRONOLOGICAL_INDEX_TYPES = new Set<string>([
+    OwidGdocType.Article,
+    OwidGdocType.LinearTopicPage,
+    OwidGdocType.TopicPage,
+    OwidGdocType.DataInsight,
+    OwidGdocType.Announcement,
+])
+
 export interface OwidGdocBaseInterface {
     id: string
     slug: string

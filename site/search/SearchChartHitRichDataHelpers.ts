@@ -6,8 +6,8 @@ import {
     PreviewVariant,
     RichDataComponentVariant,
 } from "./SearchChartHitRichDataTypes.js"
+import { SearchChartHitComponentVariant } from "@ourworldindata/search-types"
 import {
-    SearchChartHitComponentVariant,
     GridSlotKey,
     LargeVariantGridSlotKey,
     MediumVariantGridSlotKey,

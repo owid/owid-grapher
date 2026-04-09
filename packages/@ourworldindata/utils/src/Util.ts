@@ -24,6 +24,7 @@ import {
     type OwidGdocAuthorInterface,
     type OwidGdoc,
     OwidGdocType,
+    CHRONOLOGICAL_INDEX_TYPES,
     type OwidGdocJSON,
     type Span,
     UserCountryInformation,
@@ -47,7 +48,6 @@ import {
     EXPLORE_DATA_SECTION_DEFAULT_TITLE,
     EXPLORE_DATA_SECTION_ID,
     OwidGdocAnnouncementInterface,
-    CHRONOLOGICAL_INDEX_TYPES,
 } from "@ourworldindata/types"
 import { Point, PointVector } from "./PointVector.js"
 import * as React from "react"

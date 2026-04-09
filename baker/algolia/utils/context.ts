@@ -1,5 +1,5 @@
 import * as db from "../../../db/db.js"
-import { ChartsIndexingContext, IndexingContext } from "@ourworldindata/types"
+import { ChartsIndexingContext, IndexingContext } from "@ourworldindata/search-types"
 import { getAnalyticsPageviewsByUrlObj } from "../../../db/model/Pageview.js"
 import { getChartRedirectSlugsByChartId } from "./charts.js"
 

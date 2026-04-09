@@ -1,14 +1,6 @@
 import * as _ from "lodash-es"
 import * as R from "remeda"
 import {
-    EntityName,
-    GRAPHER_TAB_QUERY_PARAMS,
-    GrapherQueryParams,
-    GrapherTabName,
-    GrapherTabQueryParam,
-    OwidGdocType,
-    TagGraphRoot,
-    TimeBounds,
     SearchIndexName,
     Filter,
     FilterType,
@@ -24,6 +16,16 @@ import {
     Ngram,
     WordPositioned,
     ScoredFilterPositioned,
+} from "@ourworldindata/search-types"
+import {
+    EntityName,
+    GRAPHER_TAB_QUERY_PARAMS,
+    GrapherQueryParams,
+    GrapherTabName,
+    GrapherTabQueryParam,
+    OwidGdocType,
+    TagGraphRoot,
+    TimeBounds,
 } from "@ourworldindata/types"
 import {
     Url,

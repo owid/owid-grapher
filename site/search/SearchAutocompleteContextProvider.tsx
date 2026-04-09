@@ -1,5 +1,5 @@
 import { useState, ReactNode, useRef, useCallback } from "react"
-import { Filter } from "@ourworldindata/types"
+import { Filter } from "@ourworldindata/search-types"
 import { SearchAutocompleteContext } from "./SearchAutocompleteContext.js"
 
 export function SearchAutocompleteContextProvider({

@@ -17,7 +17,7 @@ import {
     FilterType,
     SynonymMap,
     SearchResultType,
-} from "@ourworldindata/types"
+} from "@ourworldindata/search-types"
 import { getCanonicalUrl } from "@ourworldindata/components"
 import {
     ALGOLIA_ID,

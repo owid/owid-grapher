@@ -15,15 +15,12 @@ import pMap from "p-map"
 import { ExplorerAdminServer } from "../../../explorerAdminServer/ExplorerAdminServer.js"
 import { parseDelimited } from "@ourworldindata/core-table"
 import { toPlaintext } from "@ourworldindata/components"
+import { ChartRecord, ChartRecordType, ExplorerType, IndexingContext } from "@ourworldindata/search-types"
 import {
     ColumnTypeNames,
     CoreRow,
     MinimalExplorerInfo,
     OwidColumnDef,
-    ChartRecord,
-    ChartRecordType,
-    ExplorerType,
-    IndexingContext,
 } from "@ourworldindata/types"
 
 import * as db from "../../../db/db.js"

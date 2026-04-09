@@ -7,11 +7,8 @@ import {
     getUniqueNamesFromTagHierarchies,
     checkIsChronologicalFeedPost,
 } from "@ourworldindata/utils"
-import {
-    OwidGdocAnnouncementInterface,
-    PageChronologicalRecord,
-    SearchIndexName,
-} from "@ourworldindata/types"
+import { PageChronologicalRecord, SearchIndexName } from "@ourworldindata/search-types"
+import { OwidGdocAnnouncementInterface } from "@ourworldindata/types"
 import { gdocFromJSON } from "../../../db/model/Gdoc/GdocFactory.js"
 import { getAlgoliaClient } from "../configureAlgolia.js"
 import { getIndexName } from "../../../site/search/searchClient.js"

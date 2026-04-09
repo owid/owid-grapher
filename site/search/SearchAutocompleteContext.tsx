@@ -1,5 +1,5 @@
 import { createContext, useContext } from "react"
-import { Filter } from "@ourworldindata/types"
+import { Filter } from "@ourworldindata/search-types"
 
 export interface SearchAutocompleteContextType {
     activeIndex: number

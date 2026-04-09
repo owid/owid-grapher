@@ -11,7 +11,7 @@ import {
     FilterType,
     SearchResultType,
     SearchState,
-} from "@ourworldindata/types"
+} from "@ourworldindata/search-types"
 
 const emptyRegions: string[] = []
 const emptyTopics: string[] = []

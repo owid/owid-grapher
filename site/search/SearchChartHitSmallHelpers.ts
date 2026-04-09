@@ -1,10 +1,9 @@
 import { QueryStatus, useQuery } from "@tanstack/react-query"
+import { ChartRecordType, SearchChartHit } from "@ourworldindata/search-types"
 import {
-    ChartRecordType,
     EntityName,
     GrapherTabName,
     GrapherValuesJson,
-    SearchChartHit,
 } from "@ourworldindata/types"
 import { fetchJson } from "@ourworldindata/utils"
 import {

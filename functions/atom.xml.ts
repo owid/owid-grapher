@@ -1,9 +1,9 @@
 import * as Sentry from "@sentry/cloudflare"
 import {
     OwidGdocType,
-    SearchIndexName,
     CHRONOLOGICAL_INDEX_TYPES,
 } from "@ourworldindata/types"
+import { SearchIndexName } from "@ourworldindata/search-types"
 import { getCanonicalUrl } from "@ourworldindata/components"
 import { Env } from "./_common/env.js"
 import {

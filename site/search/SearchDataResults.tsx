@@ -5,7 +5,7 @@ import {
     SearchChartsResponse,
     SearchChartHit,
     SearchChartHitComponentVariant,
-} from "@ourworldindata/types"
+} from "@ourworldindata/search-types"
 import { SearchDataResultsSkeleton } from "./SearchDataResultsSkeleton.js"
 import { SearchChartHitComponent } from "./SearchChartHitComponent.js"
 import { SearchHorizontalDivider } from "./SearchHorizontalDivider.js"

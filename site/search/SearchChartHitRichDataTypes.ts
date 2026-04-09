@@ -1,4 +1,4 @@
-import { SearchChartHitComponentVariant } from "@ourworldindata/types"
+import { SearchChartHitComponentVariant } from "@ourworldindata/search-types"
 
 export type RichDataComponentVariant = Extract<
     SearchChartHitComponentVariant,

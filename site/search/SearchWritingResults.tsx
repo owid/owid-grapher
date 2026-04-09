@@ -2,14 +2,14 @@ import { useMediaQuery } from "usehooks-ts"
 import * as _ from "lodash-es"
 
 import {
-    OwidGdocType,
     FlatArticleHit,
     ProfileHit,
     SearchFlatArticleResponse,
     SearchProfileResponse,
     SearchTopicPageResponse,
     TopicPageHit,
-} from "@ourworldindata/types"
+} from "@ourworldindata/search-types"
+import { OwidGdocType } from "@ourworldindata/types"
 import { SMALL_BREAKPOINT_MEDIA_QUERY } from "../SiteConstants.js"
 import {
     searchQueryKeys,

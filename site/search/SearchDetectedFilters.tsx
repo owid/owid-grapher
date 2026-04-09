@@ -5,7 +5,7 @@ import {
     getFilterIcon,
     extractFiltersFromQuery,
 } from "./searchUtils.js"
-import { FilterType, ScoredFilterPositioned } from "@ourworldindata/types"
+import { FilterType, ScoredFilterPositioned } from "@ourworldindata/search-types"
 import { SearchFilterPill } from "./SearchFilterPill.js"
 
 /**

@@ -1,5 +1,5 @@
 import { match } from "ts-pattern"
-import { FilterType } from "@ourworldindata/types"
+import { FilterType } from "@ourworldindata/search-types"
 import { SearchFilterPill } from "./SearchFilterPill.js"
 import {
     buildFilterTestId,

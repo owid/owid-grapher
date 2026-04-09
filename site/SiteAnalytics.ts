@@ -2,6 +2,10 @@ import * as _ from "lodash-es"
 import { GrapherAnalytics, splitPathForGA4 } from "@ourworldindata/grapher"
 import {
     EventCategory,
+    type UserSurveyExperimentArm,
+    type UserSurveyRoleAnswer,
+} from "@ourworldindata/types"
+import {
     type SearchChartHit,
     type SearchState,
     type FlatArticleHit,
@@ -10,9 +14,7 @@ import {
     type DataInsightHit,
     type StackedArticleHit,
     FilterType,
-    type UserSurveyExperimentArm,
-    type UserSurveyRoleAnswer,
-} from "@ourworldindata/types"
+} from "@ourworldindata/search-types"
 import { getFilterNamesOfType } from "./search/searchUtils.js"
 import { findDOMParent } from "@ourworldindata/utils"
 

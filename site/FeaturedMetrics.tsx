@@ -1,10 +1,10 @@
 import { useQuery } from "@tanstack/react-query"
+import { FEATURED_METRICS_ID } from "@ourworldindata/types"
 import {
     SearchChartsResponse,
     SearchChartHit,
     SearchResultType,
-    FEATURED_METRICS_ID,
-} from "@ourworldindata/types"
+} from "@ourworldindata/search-types"
 import { SearchChartHitComponent } from "./search/SearchChartHitComponent.js"
 import { createTopicFilter, SEARCH_BASE_PATH } from "./search/searchUtils.js"
 import { stateToSearchParams } from "./search/searchState.js"

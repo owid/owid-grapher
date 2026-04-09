@@ -18,7 +18,7 @@ import {
     ChartRecord,
     ChartRecordType,
     IndexingContext,
-} from "@ourworldindata/types"
+} from "@ourworldindata/search-types"
 import { createMdimIndexingContext } from "./context.js"
 import {
     getRelevantVariableIds,

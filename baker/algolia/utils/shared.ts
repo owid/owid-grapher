@@ -14,11 +14,8 @@ import {
     getFeaturedMetricsByParentTagName,
     KnexReadonlyTransaction,
 } from "../../../db/db.js"
-import {
-    ChartRecord,
-    ChartRecordType,
-    ExpandedFeaturedMetric,
-} from "@ourworldindata/types"
+import { ChartRecord, ChartRecordType } from "@ourworldindata/search-types"
+import { ExpandedFeaturedMetric } from "@ourworldindata/types"
 import urljoin from "url-join"
 import * as R from "remeda"
 import { BAKED_BASE_URL } from "../../../settings/clientSettings.js"

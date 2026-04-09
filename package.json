@@ -80,6 +80,7 @@
         "@ourworldindata/core-table": "workspace:^",
         "@ourworldindata/explorer": "workspace:^",
         "@ourworldindata/grapher": "workspace:^",
+        "@ourworldindata/search-types": "workspace:^",
         "@ourworldindata/types": "workspace:^",
         "@ourworldindata/utils": "workspace:^",
         "@playwright/test": "^1.57.0",

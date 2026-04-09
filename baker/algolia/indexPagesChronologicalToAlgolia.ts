@@ -7,7 +7,7 @@ import * as db from "../../db/db.js"
 import { ALGOLIA_INDEXING } from "../../settings/serverSettings.js"
 import { getAlgoliaClient } from "./configureAlgolia.js"
 import { getIndexName } from "../../site/search/searchClient.js"
-import { SearchIndexName } from "@ourworldindata/types"
+import { SearchIndexName } from "@ourworldindata/search-types"
 import { getPagesChronologicalRecords } from "./utils/pagesChronological.js"
 
 const indexPagesChronologicalToAlgolia = async () => {

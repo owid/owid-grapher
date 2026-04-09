@@ -7,7 +7,7 @@ import {
     FilterType,
     SynonymMap,
     SearchActions,
-} from "@ourworldindata/types"
+} from "@ourworldindata/search-types"
 import {
     deserializeSet,
     createTopicFilter,

@@ -13,11 +13,11 @@ import { getMostViewedGrapherIdsByChartType } from "../../db/model/Chart.js"
 import { getAllPublishedMultiDimDataPages } from "../../db/model/MultiDimDataPage.js"
 import {
     ALL_GRAPHER_CHART_TYPES,
-    ExplorerType,
     GrapherInterface,
     ChartConfigsTableName,
     DbRawChartConfig,
 } from "@ourworldindata/types"
+import { ExplorerType } from "@ourworldindata/search-types"
 import { parseChartConfig, queryParamsToStr } from "@ourworldindata/utils"
 import { ExplorerProgram } from "@ourworldindata/explorer"
 

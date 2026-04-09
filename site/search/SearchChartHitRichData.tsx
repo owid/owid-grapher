@@ -10,6 +10,12 @@ import {
     mapGrapherTabNameToQueryParam,
 } from "@ourworldindata/grapher"
 import {
+    ChartRecordType,
+    SearchChartHit,
+    SearchChartHitComponentProps,
+    SearchChartHitComponentVariant,
+} from "@ourworldindata/search-types"
+import {
     EntityName,
     GRAPHER_TAB_NAMES,
     GrapherTabName,
@@ -19,10 +25,6 @@ import {
     LayoutSlot,
     GrapherSearchResultJson,
     GrapherQueryParams,
-    ChartRecordType,
-    SearchChartHit,
-    SearchChartHitComponentProps,
-    SearchChartHitComponentVariant,
 } from "@ourworldindata/types"
 import { Button } from "@ourworldindata/components"
 import { MEDIUM_BREAKPOINT_MEDIA_QUERY } from "../SiteConstants.js"

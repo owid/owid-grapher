@@ -19,9 +19,8 @@ import {
     DEFAULT_THUMBNAIL_FILENAME,
     DbEnrichedLatestWork,
     RESEARCH_AND_WRITING_DEFAULT_HEADING,
-    SearchResultType,
-    SearchState,
 } from "@ourworldindata/types"
+import { SearchResultType, SearchState } from "@ourworldindata/search-types"
 import {
     createTopicFilter,
     SEARCH_BASE_PATH,

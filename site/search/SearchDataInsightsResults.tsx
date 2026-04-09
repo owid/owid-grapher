@@ -5,7 +5,7 @@ import { SMALL_BREAKPOINT_MEDIA_QUERY } from "../SiteConstants.js"
 import {
     DataInsightHit,
     SearchDataInsightResponse,
-} from "@ourworldindata/types"
+} from "@ourworldindata/search-types"
 import { queryDataInsights, searchQueryKeys } from "./queries.js"
 import { SearchDataInsightHit } from "./SearchDataInsightHit.js"
 import { SearchResultHeader } from "./SearchResultHeader.js"

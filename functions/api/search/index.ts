@@ -7,7 +7,7 @@ import {
     SearchState,
     SearchValidationError,
 } from "./searchApi.js"
-import { FilterType, Filter, SearchUrlParam } from "@ourworldindata/types"
+import { FilterType, Filter, SearchUrlParam } from "@ourworldindata/search-types"
 
 const DEFAULT_HITS_PER_PAGE = 20
 const MAX_HITS_PER_PAGE = 100

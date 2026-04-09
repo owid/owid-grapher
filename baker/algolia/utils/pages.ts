@@ -19,11 +19,8 @@ import {
     articulateEntity,
 } from "@ourworldindata/utils"
 import { getAlgoliaClient } from "../configureAlgolia.js"
-import {
-    PageRecord,
-    OwidGdocProfileInterface,
-    OwidGdoc,
-} from "@ourworldindata/types"
+import { PageRecord } from "@ourworldindata/search-types"
+import { OwidGdocProfileInterface, OwidGdoc } from "@ourworldindata/types"
 import { getAnalyticsPageviewsByUrlObj } from "../../../db/model/Pageview.js"
 import { PAGES_INDEX } from "../../../site/search/searchUtils.js"
 import type { Hit, SearchClient } from "@algolia/client-search"

@@ -1,5 +1,6 @@
 import * as _ from "lodash-es"
 import { getCanonicalUrl } from "@ourworldindata/components"
+import { PagesIndexRecordsResponse } from "@ourworldindata/search-types"
 import {
     GdocsContentSource,
     DbInsertUser,
@@ -12,7 +13,6 @@ import {
     PostsGdocsXImagesTableName,
     PostsGdocsTableName,
     PostsGdocsComponentsTableName,
-    PagesIndexRecordsResponse,
     RedirectsTableName,
     OwidGdocType,
 } from "@ourworldindata/types"

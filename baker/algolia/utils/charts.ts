@@ -1,12 +1,14 @@
 import * as _ from "lodash-es"
 import {
-    KeyChartLevel,
-    ContentGraphLinkType,
-    parseChartConfig,
     ChartRecord,
     ChartRecordType,
     ChartsIndexingContext,
     IndexingContext,
+} from "@ourworldindata/search-types"
+import {
+    KeyChartLevel,
+    ContentGraphLinkType,
+    parseChartConfig,
     ChartSlugRedirectsTableName,
 } from "@ourworldindata/types"
 import * as db from "../../../db/db.js"

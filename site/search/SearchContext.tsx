@@ -3,9 +3,9 @@ import {
     SearchState,
     SynonymMap,
     TemplateConfig,
-    TagGraphRoot,
     SearchActions,
-} from "@ourworldindata/types"
+} from "@ourworldindata/search-types"
+import { TagGraphRoot } from "@ourworldindata/types"
 import { LiteClient } from "algoliasearch/lite"
 import { SiteAnalytics } from "../SiteAnalytics.js"
 

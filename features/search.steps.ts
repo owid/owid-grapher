@@ -1,6 +1,6 @@
 import { expect, Locator, Page } from "@playwright/test"
 import { createBdd } from "playwright-bdd"
-import { FilterType, SearchUrlParam } from "@ourworldindata/types"
+import { FilterType, SearchUrlParam } from "@ourworldindata/search-types"
 
 // No " and " → " & " transformation needed here because
 // buildFilterTestId in searchUtils.tsx already normalizes topic names

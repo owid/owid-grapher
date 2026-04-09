@@ -1,12 +1,12 @@
 import { useMemo } from "react"
 import { useQuery } from "@tanstack/react-query"
+import { FEATURED_DATA_INSIGHTS_ID } from "@ourworldindata/types"
 import {
     DataInsightHit,
     SearchDataInsightResponse,
     SearchResultType,
     SearchState,
-    FEATURED_DATA_INSIGHTS_ID,
-} from "@ourworldindata/types"
+} from "@ourworldindata/search-types"
 import { createTopicFilter } from "./search/searchUtils.js"
 import { queryDataInsights, searchQueryKeys } from "./search/queries.js"
 import { getLiteSearchClient } from "./search/searchClients.js"

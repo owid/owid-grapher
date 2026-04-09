@@ -1,10 +1,9 @@
+import { ChartRecord, ExplorerType } from "@ourworldindata/search-types"
 import {
     DbEnrichedVariable,
     FeaturedMetricIncomeGroup,
     GrapherInterface,
     GrapherTabName,
-    ChartRecord,
-    ExplorerType,
 } from "@ourworldindata/types"
 import { OwidIncomeGroupCode } from "@ourworldindata/utils"
 

@@ -1,5 +1,5 @@
 import { RadioButton } from "@ourworldindata/components"
-import { SearchResultType } from "@ourworldindata/types"
+import { SearchResultType } from "@ourworldindata/search-types"
 import { useSearchContext } from "./SearchContext.js"
 import {
     getEffectiveResultType,

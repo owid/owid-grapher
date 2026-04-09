@@ -4,7 +4,7 @@ import {
     PageRecord,
     PagesIndexRecordsResponse,
     PagesIndexRecordsResponseSchema,
-} from "@ourworldindata/types"
+} from "@ourworldindata/search-types"
 import { Alert, Card, Radio, Space, Spin, Tag } from "antd"
 import { useQuery } from "@tanstack/react-query"
 import JSONView from "@uiw/react-json-view"

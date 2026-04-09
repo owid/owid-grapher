@@ -1,9 +1,5 @@
-import {
-    TagGraphRoot,
-    FilterType,
-    TemplateConfig,
-    SearchResultType,
-} from "@ourworldindata/types"
+import { FilterType, TemplateConfig, SearchResultType } from "@ourworldindata/search-types"
+import { TagGraphRoot } from "@ourworldindata/types"
 import { LiteClient } from "algoliasearch/lite"
 import { useEffect, useMemo, useState } from "react"
 import { match } from "ts-pattern"

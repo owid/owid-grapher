@@ -6,6 +6,7 @@
         "@ourworldindata/core-table": "workspace:^",
         "@ourworldindata/explorer": "workspace:^",
         "@ourworldindata/grapher": "workspace:^",
+        "@ourworldindata/search-types": "workspace:^",
         "@ourworldindata/types": "workspace:^",
         "@ourworldindata/utils": "workspace:^",
         "@resvg/resvg-wasm": "^2.6.2",

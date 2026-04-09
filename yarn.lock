@@ -3161,6 +3161,16 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@ourworldindata/search-types@workspace:^, @ourworldindata/search-types@workspace:packages/@ourworldindata/search-types":
+  version: 0.0.0-use.local
+  resolution: "@ourworldindata/search-types@workspace:packages/@ourworldindata/search-types"
+  dependencies:
+    "@ourworldindata/types": "workspace:^"
+    instantsearch.js: "npm:^4.90.0"
+    zod: "npm:^4.1.11"
+  languageName: unknown
+  linkType: soft
+
 "@ourworldindata/types@workspace:^, @ourworldindata/types@workspace:packages/@ourworldindata/types":
   version: 0.0.0-use.local
   resolution: "@ourworldindata/types@workspace:packages/@ourworldindata/types"
@@ -11532,6 +11542,7 @@ __metadata:
     "@ourworldindata/core-table": "workspace:^"
     "@ourworldindata/explorer": "workspace:^"
     "@ourworldindata/grapher": "workspace:^"
+    "@ourworldindata/search-types": "workspace:^"
     "@ourworldindata/types": "workspace:^"
     "@ourworldindata/utils": "workspace:^"
     "@playwright/test": "npm:^1.57.0"
@@ -14116,6 +14127,7 @@ __metadata:
     "@ourworldindata/core-table": "workspace:^"
     "@ourworldindata/explorer": "workspace:^"
     "@ourworldindata/grapher": "workspace:^"
+    "@ourworldindata/search-types": "workspace:^"
     "@ourworldindata/types": "workspace:^"
     "@ourworldindata/utils": "workspace:^"
     "@resvg/resvg-wasm": "npm:^2.6.2"

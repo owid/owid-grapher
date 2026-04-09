@@ -11,7 +11,7 @@ import {
     formatFeaturedMetricFacetFilter,
 } from "./searchUtils"
 
-import { FilterType, SynonymMap } from "@ourworldindata/types"
+import { FilterType, SynonymMap } from "@ourworldindata/search-types"
 import { listedRegionsNames } from "@ourworldindata/utils"
 
 describe("Fuzzy search in search autocomplete", () => {

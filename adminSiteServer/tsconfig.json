@@ -12,6 +12,9 @@
             "path": "../packages/@ourworldindata/grapher"
         },
         {
+            "path": "../packages/@ourworldindata/search-types"
+        },
+        {
             "path": "../packages/@ourworldindata/types"
         },
         {

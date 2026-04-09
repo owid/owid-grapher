@@ -1,4 +1,4 @@
-import { FilterType, SearchState } from "@ourworldindata/types"
+import { FilterType, SearchState } from "@ourworldindata/search-types"
 import {
     getFilterNamesOfType,
     getSelectedTopic,

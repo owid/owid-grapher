@@ -1,6 +1,6 @@
 import { countries, excludeUndefined } from "@ourworldindata/utils"
 import * as R from "remeda"
-import { SynonymMap } from "@ourworldindata/types"
+import { SynonymMap } from "@ourworldindata/search-types"
 
 export const synonyms = [
     // Organizations

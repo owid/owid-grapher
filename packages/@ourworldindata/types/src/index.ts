@@ -205,6 +205,7 @@ export {
     type OwidGdoc,
     OwidGdocType,
     ALL_GDOC_TYPES,
+    CHRONOLOGICAL_INDEX_TYPES,
     type OwidGdocStickyNavItem,
     type OwidGdocJSON,
     type FaqDictionary,
@@ -795,4 +796,3 @@ export {
 } from "./endpointTypes/GrapherSearchResultJson.js"
 
 export * from "./analyticsTypes/analyticsTypes.js"
-export * from "./domainTypes/Search.js"

@@ -4,7 +4,7 @@ import {
     Filter,
     ChartRecordType,
     SearchChartHit,
-} from "@ourworldindata/types"
+} from "@ourworldindata/search-types"
 import { getIndexName, AlgoliaConfig } from "./algoliaClient.js"
 
 /**

@@ -6,7 +6,7 @@ import {
     faChartSimple,
 } from "@fortawesome/free-solid-svg-icons"
 import { TocHeadingWithTitleSupertitle } from "@ourworldindata/utils"
-import { SearchResultType, SearchState } from "@ourworldindata/types"
+import { SearchResultType, SearchState } from "@ourworldindata/search-types"
 import {
     createTopicFilter,
     SEARCH_BASE_PATH,

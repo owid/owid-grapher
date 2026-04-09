@@ -1,5 +1,4 @@
 import {
-    ExplorerType,
     GRAPHER_CHART_TYPES,
     GrapherChartType,
     GrapherTabName,
@@ -10,6 +9,7 @@ import {
     GRAPHER_TAB_NAMES,
     GrapherChartOrMapType,
 } from "@ourworldindata/types"
+import { ExplorerType } from "@ourworldindata/search-types"
 import {
     Bounds,
     mergeGrapherConfigs,

@@ -4,8 +4,8 @@ import type {
     Hit,
     HitHighlightResult,
 } from "instantsearch.js"
-import { OwidGdocType } from "../gdocTypes/Gdoc.js"
-import { GrapherTabName } from "../grapherTypes/GrapherTypes.js"
+import { OwidGdocType } from "@ourworldindata/types"
+import { GrapherTabName } from "@ourworldindata/types"
 import * as z from "zod/mini"
 
 export const PagesIndexRecordSchema = z.object({
@@ -359,10 +359,3 @@ export type ChartsIndexingContext = IndexingContext & {
     redirectsByChartId: Map<number, string[]>
 }
 
-export const CHRONOLOGICAL_INDEX_TYPES = new Set<string>([
-    OwidGdocType.Article,
-    OwidGdocType.LinearTopicPage,
-    OwidGdocType.TopicPage,
-    OwidGdocType.DataInsight,
-    OwidGdocType.Announcement,
-])

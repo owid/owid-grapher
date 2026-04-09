@@ -1,4 +1,4 @@
-import { ProfileHit } from "@ourworldindata/types"
+import { ProfileHit } from "@ourworldindata/search-types"
 import { countriesByName } from "@ourworldindata/utils"
 import { SearchTopicPageHit } from "./SearchTopicPageHit.js"
 

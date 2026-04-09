@@ -2,7 +2,8 @@ import cx from "classnames"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowRightLong } from "@fortawesome/free-solid-svg-icons"
 import { getCanonicalPath } from "@ourworldindata/components"
-import { OwidGdocType, ProfileHit, TopicPageHit } from "@ourworldindata/types"
+import { ProfileHit, TopicPageHit } from "@ourworldindata/search-types"
+import { OwidGdocType } from "@ourworldindata/types"
 
 function truncate(paragraphs: string[]) {
     const maxWords = 35
