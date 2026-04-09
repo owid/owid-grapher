@@ -1,8 +1,8 @@
-type Handler = () => any
+type Handler = () => Promise<any>
 const handlers: Handler[] = []
 
 export const cleanup = async (): Promise<Handler[]> =>
-    await Promise.all(handlers)
+    await Promise.all(handlers.map((handler) => handler()))
 
 export const exit = async (): Promise<never> => {
     try {

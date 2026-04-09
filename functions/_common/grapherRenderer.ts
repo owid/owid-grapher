@@ -55,31 +55,28 @@ async function fetchAndRenderGrapherToSvg(
     }
 
     grapherLogger.log("initGrapher")
-    const promises = []
-    promises.push(
-        fetchInputTableForConfig({
-            dimensions: grapher.grapherState.dimensions,
-            selectedEntityColors: grapher.grapherState.selectedEntityColors,
-            dataApiUrl: getDataApiUrl(env),
-        })
-    )
+    const fetchTablePromise = fetchInputTableForConfig({
+        dimensions: grapher.grapherState.dimensions,
+        selectedEntityColors: grapher.grapherState.selectedEntityColors,
+        dataApiUrl: getDataApiUrl(env),
+    })
+
+    let fetchDodsPromise: Promise<void> | undefined
     if (
         options.details &&
         grapher.grapherState.detailsOrderedByReference.length
     ) {
-        promises.push(
-            await fetch("https://ourworldindata.org/dods.json")
-                .then((r) => r.json())
-                .then((details) => {
-                    globalThis.window = { details }
-                })
-        )
+        fetchDodsPromise = fetch("https://ourworldindata.org/dods.json")
+            .then((r) => r.json())
+            .then((details) => {
+                globalThis.window = { details }
+            })
     }
 
-    const results = await Promise.all(promises) // Run these (potentially) two fetches in parallel
+    const inputTable = await fetchTablePromise // Run these (potentially) two fetches in parallel
+    await fetchDodsPromise
     grapherLogger.log("fetchDataAndDods")
 
-    const inputTable = results[0]
     if (inputTable) grapher.grapherState.inputTable = inputTable
 
     const svg = await grapher.grapherState.generateStaticSvg(
