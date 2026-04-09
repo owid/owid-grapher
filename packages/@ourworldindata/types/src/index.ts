@@ -605,7 +605,6 @@ export {
     type SlideChartOnly,
     type SlideSection,
     type SlideTitleSlide,
-    type SlideBlank,
     type SlideStatement,
     type SlideContents,
     type SlideText,

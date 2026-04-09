@@ -262,36 +262,6 @@ function TemplateOptionsEditor(props: {
                 <HideLogoCheckbox slide={slide} onUpdate={onUpdate} />
             </>
         ))
-        .with({ template: SlideTemplate.Section }, (slide) => (
-            <>
-                <label>
-                    Title
-                    <input
-                        type="text"
-                        value={slide.title}
-                        onChange={(e) =>
-                            onUpdate({ ...slide, title: e.target.value })
-                        }
-                        placeholder="Section title"
-                    />
-                </label>
-                <label>
-                    Subtitle
-                    <input
-                        type="text"
-                        value={slide.subtitle ?? ""}
-                        onChange={(e) =>
-                            onUpdate({
-                                ...slide,
-                                subtitle: e.target.value || undefined,
-                            })
-                        }
-                        placeholder="Subtitle (optional)"
-                    />
-                </label>
-                <HideLogoCheckbox slide={slide} onUpdate={onUpdate} />
-            </>
-        ))
         .with({ template: SlideTemplate.Cover }, (slide) => (
             <>
                 <label>
@@ -428,9 +398,6 @@ function TemplateOptionsEditor(props: {
                 </label>
                 <HideLogoCheckbox slide={slide} onUpdate={onUpdate} />
             </>
-        ))
-        .with({ template: SlideTemplate.Blank }, (slide) => (
-            <HideLogoCheckbox slide={slide} onUpdate={onUpdate} />
         ))
         .exhaustive()
 }

@@ -5,9 +5,9 @@ import {
     GrapherState,
     GuidedChartContext,
     GuidedChartContextValue,
+    useElementBounds,
 } from "@ourworldindata/grapher"
 import { queryParamsToStr, strToQueryParams } from "@ourworldindata/utils"
-import { useElementBounds } from "../hooks.js"
 import {
     ADMIN_BASE_URL,
     BAKED_GRAPHER_URL,

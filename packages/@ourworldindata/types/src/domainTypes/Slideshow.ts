@@ -3,9 +3,7 @@ import { z } from "zod"
 export enum SlideTemplate {
     Image = "image",
     Chart = "chart",
-    Section = "section",
     Cover = "cover",
-    Blank = "blank",
     Statement = "statement",
     Outline = "outline",
     Text = "text",
@@ -17,8 +15,6 @@ export const SLIDE_TEMPLATE_LABELS: Record<SlideTemplate, string> = {
     [SlideTemplate.Outline]: "Outline",
     [SlideTemplate.Image]: "Image",
     [SlideTemplate.Chart]: "Chart",
-    [SlideTemplate.Section]: "Section",
-    [SlideTemplate.Blank]: "Blank",
     [SlideTemplate.Statement]: "Statement",
     [SlideTemplate.Text]: "Text",
 }
@@ -48,7 +44,6 @@ export interface SlideChartOnly {
 }
 
 export interface SlideSection {
-    template: SlideTemplate.Section
     title: string
     subtitle?: string
     hideLogo?: boolean
@@ -60,11 +55,6 @@ export interface SlideTitleSlide {
     subtitle?: string
     author?: string
     date?: string
-    hideLogo?: boolean
-}
-
-export interface SlideBlank {
-    template: SlideTemplate.Blank
     hideLogo?: boolean
 }
 
@@ -94,9 +84,7 @@ export interface SlideText {
 export type Slide =
     | SlideImageOnly
     | SlideChartOnly
-    | SlideSection
     | SlideTitleSlide
-    | SlideBlank
     | SlideStatement
     | SlideContents
     | SlideText
@@ -138,24 +126,12 @@ const SlideChartOnlySchema = z.object({
     hideLogo: z.boolean().optional(),
 })
 
-const SlideSectionSchema = z.object({
-    template: z.literal(SlideTemplate.Section),
-    title: z.string(),
-    subtitle: z.string().optional(),
-    hideLogo: z.boolean().optional(),
-})
-
 const SlideTitleSlideSchema = z.object({
     template: z.literal(SlideTemplate.Cover),
     title: z.string(),
     subtitle: z.string().optional(),
     author: z.string().optional(),
     date: z.string().optional(),
-    hideLogo: z.boolean().optional(),
-})
-
-const SlideBlankSchema = z.object({
-    template: z.literal(SlideTemplate.Blank),
     hideLogo: z.boolean().optional(),
 })
 
@@ -183,9 +159,7 @@ const SlideTextSchema = z.object({
 export const SlideSchema = z.discriminatedUnion("template", [
     SlideImageOnlySchema,
     SlideChartOnlySchema,
-    SlideSectionSchema,
     SlideTitleSlideSchema,
-    SlideBlankSchema,
     SlideQuoteSchema,
     SlideContentsSchema,
     SlideTextSchema,

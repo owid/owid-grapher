@@ -15,10 +15,6 @@ function getSlideName(slide: Slide, index: number): string {
             { template: SlideTemplate.Cover },
             (s) => s.title || `Slide ${index + 1}`
         )
-        .with(
-            { template: SlideTemplate.Section },
-            (s) => s.title || `Slide ${index + 1}`
-        )
         .otherwise(() => `Slide ${index + 1}`)
 }
 

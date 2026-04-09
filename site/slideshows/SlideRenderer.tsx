@@ -47,13 +47,6 @@ export function SlideRenderer(props: {
                 )}
             </div>
         ))
-        .with({ template: SlideTemplate.Section }, (slide) => (
-            <div className={`${className} SlideContent--section`}>
-                {!slide.hideLogo && <SlideLogo />}
-                <h1>{slide.title || "Section Title"}</h1>
-                {slide.subtitle && <h2>{slide.subtitle}</h2>}
-            </div>
-        ))
         .with({ template: SlideTemplate.Image }, (slide) => (
             <div className={className}>
                 {!slide.hideLogo && <SlideLogo />}
@@ -105,11 +98,6 @@ export function SlideRenderer(props: {
                         </div>
                     )}
                 </div>
-            </div>
-        ))
-        .with({ template: SlideTemplate.Blank }, (slide) => (
-            <div className={`${className} SlideContent--blank`}>
-                {!slide.hideLogo && <SlideLogo />}
             </div>
         ))
         .with({ template: SlideTemplate.Outline }, (slide) => (

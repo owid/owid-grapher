@@ -10,9 +10,7 @@ export function makeDefaultSlideForTemplate(template: SlideTemplate): Slide {
             filename: null as string | null,
         }))
         .with(SlideTemplate.Chart, (t) => ({ template: t, url: "" }))
-        .with(SlideTemplate.Section, (t) => ({ template: t, title: "" }))
         .with(SlideTemplate.Cover, (t) => ({ template: t, title: "" }))
-        .with(SlideTemplate.Blank, (t) => ({ template: t }))
         .with(SlideTemplate.Statement, (t) => ({ template: t, text: "" }))
         .with(SlideTemplate.Outline, (t) => ({ template: t, text: "" }))
         .with(SlideTemplate.Text, (t) => ({ template: t, text: "" }))
