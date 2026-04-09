@@ -7,7 +7,6 @@ export enum SlideTemplate {
     Cover = "cover",
     Blank = "blank",
     Statement = "statement",
-    BigNumber = "big-number",
     Contents = "contents",
 }
 
@@ -20,7 +19,6 @@ export const SLIDE_TEMPLATE_LABELS: Record<SlideTemplate, string> = {
     [SlideTemplate.Section]: "Section",
     [SlideTemplate.Blank]: "Blank",
     [SlideTemplate.Statement]: "Statement",
-    [SlideTemplate.BigNumber]: "Big Number",
 }
 
 /**
@@ -76,14 +74,6 @@ export interface SlideStatement {
     hideLogo?: boolean
 }
 
-export interface SlideBigNumber {
-    template: SlideTemplate.BigNumber
-    number: string
-    label: string
-    slideTitle?: string
-    hideLogo?: boolean
-}
-
 export interface SlideContents {
     template: SlideTemplate.Contents
     title?: string
@@ -99,7 +89,6 @@ export type Slide =
     | SlideTitleSlide
     | SlideBlank
     | SlideStatement
-    | SlideBigNumber
     | SlideContents
 
 /**
@@ -167,14 +156,6 @@ const SlideQuoteSchema = z.object({
     hideLogo: z.boolean().optional(),
 })
 
-const SlideBigNumberSchema = z.object({
-    template: z.literal(SlideTemplate.BigNumber),
-    number: z.string(),
-    label: z.string(),
-    slideTitle: z.string().optional(),
-    hideLogo: z.boolean().optional(),
-})
-
 const SlideContentsSchema = z.object({
     template: z.literal(SlideTemplate.Contents),
     title: z.string().optional(),
@@ -189,7 +170,6 @@ export const SlideSchema = z.discriminatedUnion("template", [
     SlideTitleSlideSchema,
     SlideBlankSchema,
     SlideQuoteSchema,
-    SlideBigNumberSchema,
     SlideContentsSchema,
 ])
 

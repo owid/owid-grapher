@@ -144,11 +144,7 @@ export function SlideRenderer(props: {
                 )}
             </div>
         ))
-        .otherwise((slide) => (
-            <div className={`${className} SlideContent--placeholder`}>
-                <p>{slide.template}</p>
-            </div>
-        ))
+        .otherwise(() => <div></div>)
 }
 
 function ImageRenderer(props: {

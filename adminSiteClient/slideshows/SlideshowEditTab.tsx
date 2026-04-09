@@ -42,11 +42,6 @@ function makeDefaultSlideForTemplate(template: SlideTemplate): Slide {
         .with(SlideTemplate.Blank, (t) => ({ template: t }))
         .with(SlideTemplate.Statement, (t) => ({ template: t, text: "" }))
         .with(SlideTemplate.Contents, (t) => ({ template: t, text: "" }))
-        .with(SlideTemplate.BigNumber, (t) => ({
-            template: t,
-            number: "",
-            label: "",
-        }))
         .exhaustive()
 }
 
@@ -72,11 +67,6 @@ function slideHasContent(slide: Slide): boolean {
         .with({ template: SlideTemplate.Blank }, () => false)
         .with(
             { template: SlideTemplate.Statement },
-            (s) => !!s.quote || !!s.attribution
-        )
-        .with(
-            { template: SlideTemplate.BigNumber },
-            (s) => !!s.number || !!s.label
             (s) => !!s.text || !!s.attribution
         )
         .with(
@@ -489,33 +479,6 @@ function TemplateOptionsEditor(props: {
                             })
                         }
                         placeholder="Attribution (optional)"
-                    />
-                </label>
-                <HideLogoCheckbox slide={slide} onUpdate={onUpdate} />
-            </>
-        ))
-        .with({ template: SlideTemplate.BigNumber }, (slide) => (
-            <>
-                <label>
-                    Number
-                    <input
-                        type="text"
-                        value={slide.number}
-                        onChange={(e) =>
-                            onUpdate({ ...slide, number: e.target.value })
-                        }
-                        placeholder="e.g. 7.8 billion"
-                    />
-                </label>
-                <label>
-                    Label
-                    <input
-                        type="text"
-                        value={slide.label}
-                        onChange={(e) =>
-                            onUpdate({ ...slide, label: e.target.value })
-                        }
-                        placeholder="e.g. World population"
                     />
                 </label>
                 <HideLogoCheckbox slide={slide} onUpdate={onUpdate} />
