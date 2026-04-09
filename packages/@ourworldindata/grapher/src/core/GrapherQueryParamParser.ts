@@ -234,8 +234,7 @@ function parseGlobeRotationParam(
 
     const rotation = parseGlobeRotation(value)
     if (
-        rotation &&
-        rotation.length === 2 &&
+        rotation?.length === 2 &&
         !isNaN(rotation[0]) &&
         !isNaN(rotation[1])
     ) {

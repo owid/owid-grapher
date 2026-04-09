@@ -1442,7 +1442,7 @@ export const parseTable = (raw: RawBlockTable): EnrichedBlockTable => {
             for (const [cellIndex, cell] of cells.entries()) {
                 const enrichedCellContent: OwidEnrichedGdocBlock[] = []
                 const content = cell.value
-                if (!content || !content.length) {
+                if (!content?.length) {
                     enrichedCells.push({
                         type: "table-cell",
                         content: [],

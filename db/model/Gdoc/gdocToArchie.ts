@@ -318,7 +318,7 @@ function parseParagraph(
         return span
     } else if (element.horizontalRule) {
         return { type: "horizontal-rule" }
-    } else if (element.richLink && element.richLink.richLinkProperties) {
+    } else if (element.richLink?.richLinkProperties) {
         // Rich links are special "pills" that Google Docs creates for links to other Google Docs or Google Drive files
         const richLinkProperties = element.richLink.richLinkProperties
         if (!richLinkProperties.uri) return null

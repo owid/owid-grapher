@@ -415,10 +415,7 @@ export class EntityPicker extends React.Component<EntityPickerProps> {
 
     @action.bound private onSearchBlur(): void {
         // Do not allow focus on elements inside menu; shift focus back to search input.
-        if (
-            this.scrollContainerRef.current &&
-            this.scrollContainerRef.current.contains(document.activeElement)
-        ) {
+        if (this.scrollContainerRef.current?.contains(document.activeElement)) {
             this.focusSearch()
             return
         }

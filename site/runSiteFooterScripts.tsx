@@ -103,8 +103,7 @@ async function hydrateDataInsightsIndexPage() {
             let dataInsights = await response.json()
             dataInsights = dataInsights.filter(
                 (di: { tags: { name: string }[] }) =>
-                    di.tags &&
-                    di.tags.some(
+                    di.tags?.some(
                         (tag: { name: string }) => tag.name === topicName
                     )
             )

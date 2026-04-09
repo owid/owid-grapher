@@ -149,7 +149,7 @@ export const obtainAvailableEntitiesForGraphers = async (
             FROM charts c
             JOIN chart_configs cc ON c.configId = cc.id
             WHERE cc.full ->> "$.isPublished" = 'true'
-            ${chartIds && chartIds.length ? `AND c.id IN (${chartIds.join(",")})` : ""}
+            ${chartIds?.length ? `AND c.id IN (${chartIds.join(",")})` : ""}
         `
     )
 

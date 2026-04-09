@@ -273,7 +273,7 @@ function getClientIp(req: express.Request): string | undefined {
         (req.headers["x-forwarded-for"] as string) ||
         req.socket.remoteAddress ||
         req.ip
-    if (ip && ip.startsWith("::ffff:")) {
+    if (ip?.startsWith("::ffff:")) {
         ip = ip.replace("::ffff:", "")
     }
     return ip

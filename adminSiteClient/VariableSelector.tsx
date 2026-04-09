@@ -150,7 +150,7 @@ export class VariableSelector<
             )
             results = this.availableVariables.filter(filterFn)
         }
-        return results && results.length
+        return results?.length
             ? results // results.map((result) => result.obj)
             : []
     }

@@ -335,7 +335,7 @@ getPlainRouteWithROTransaction(
             await db.getPublishedDataInsightCount(trx, topicTag?.slug)
         )
 
-        if (topicTag && topicTag.slug !== undefined) {
+        if (topicTag?.slug !== undefined) {
             // if topic slug is not a valid topic, render all data insights
             const validTopicSlugs = await db
                 .getAllTopicTags(trx)

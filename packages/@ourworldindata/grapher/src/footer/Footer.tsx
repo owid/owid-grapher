@@ -388,7 +388,7 @@ abstract class AbstractFooter<
 
     @action.bound private onMouseMove(e: MouseEvent): void {
         const cc = this.base.current?.querySelector(".cclogo")
-        if (cc && cc.matches(":hover")) {
+        if (cc?.matches(":hover")) {
             const div = this.base.current as HTMLDivElement
             const grapher = div.closest(".GrapherComponent")
             if (grapher) {

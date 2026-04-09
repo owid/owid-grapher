@@ -47,7 +47,7 @@ import { InteractionState } from "../interaction/InteractionState"
 import * as R from "remeda"
 
 export const autoDetectYColumnSlugs = (manager: ChartManager): string[] => {
-    if (manager.yColumnSlugs && manager.yColumnSlugs.length)
+    if (manager.yColumnSlugs?.length)
         return manager.yColumnSlugs
     if (manager.yColumnSlug) return [manager.yColumnSlug]
     return manager.table.numericColumnSlugs

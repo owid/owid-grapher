@@ -565,7 +565,7 @@ const SourceAndCitationSection = ({ table }: { table?: OwidTable }) => {
     const otherSources =
         table?.columnsAsArray
             .map((col) => col.source)
-            .filter((s) => s !== undefined && s.dataPublishedBy !== undefined)
+            .filter((s) => s?.dataPublishedBy !== undefined)
             .map(
                 (s): OwidOrigin => ({
                     producer: s.dataPublishedBy,

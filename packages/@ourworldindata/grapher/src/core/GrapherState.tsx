@@ -2251,7 +2251,7 @@ export class GrapherState
         return this.detailsOrderedByReference.map((term, i) => {
             let text = `**${i + 1}.** `
             const detail: EnrichedDetail | undefined = window.details?.[term]
-            if (detail && detail.text) {
+            if (detail?.text) {
                 const lines = detail.text.split("\n")
                 const title = lines[0]
                 const description = lines.slice(2).join("\n")
@@ -3590,8 +3590,7 @@ export class GrapherState
     @computed private get hasRelatedQuestion(): boolean {
         if (
             this.hideRelatedQuestion ||
-            !this.relatedQuestions ||
-            !this.relatedQuestions.length
+            !this.relatedQuestions?.length
         )
             return false
         const question = this.relatedQuestions[0]

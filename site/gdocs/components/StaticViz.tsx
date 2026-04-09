@@ -229,7 +229,7 @@ const StaticVizDownloadModal = ({
     )
 
     const grapherLink =
-        staticViz.grapherUrl && staticViz.grapherUrl.trim().length
+        staticViz.grapherUrl?.trim().length
             ? staticViz.grapherUrl
             : undefined
 

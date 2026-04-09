@@ -784,7 +784,7 @@ export class Explorer
             if (slugs.length > 0) {
                 const baseSlugs = slugs.flatMap((slug) => {
                     const def = getColumnDef(slug)
-                    if (!def || !def.transform) return []
+                    if (!def?.transform) return []
                     const { params: transformParams = [] } =
                         parseTransformString(def.transform ?? "") ?? {}
                     const dataSlugsForTransform = transformParams

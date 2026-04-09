@@ -48,7 +48,7 @@ function validateParagraphChildren(
         if (child.type === "link") {
             const referencedDods = extractDetailsFromSyntax(child.url)
             const areAllReferencedDodsValid = referencedDods.every(
-                (dod) => dods && dods[dod]
+                (dod) => dods?.[dod]
             )
             return (
                 child &&
