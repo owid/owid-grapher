@@ -6,21 +6,21 @@ export enum SlideTemplate {
     Section = "section",
     Cover = "cover",
     Blank = "blank",
-    Quote = "quote",
+    Statement = "statement",
     BigNumber = "big-number",
     Contents = "contents",
 }
 
 /** Canonical display labels for each slide template */
 export const SLIDE_TEMPLATE_LABELS: Record<SlideTemplate, string> = {
+    [SlideTemplate.Cover]: "Cover",
+    [SlideTemplate.Contents]: "Contents",
     [SlideTemplate.Image]: "Image",
     [SlideTemplate.Chart]: "Chart",
     [SlideTemplate.Section]: "Section",
-    [SlideTemplate.Cover]: "Cover",
     [SlideTemplate.Blank]: "Blank",
-    [SlideTemplate.Quote]: "Quote",
+    [SlideTemplate.Statement]: "Statement",
     [SlideTemplate.BigNumber]: "Big Number",
-    [SlideTemplate.Contents]: "Contents",
 }
 
 /**
@@ -69,9 +69,9 @@ export interface SlideBlank {
 }
 
 export interface SlideStatement {
-    template: SlideTemplate.Quote
+    template: SlideTemplate.Statement
     /** The statement text — rendered large and bold */
-    quote: MarkdownText
+    text: MarkdownText
     attribution?: string
     hideLogo?: boolean
 }
@@ -161,8 +161,8 @@ const SlideBlankSchema = z.object({
 })
 
 const SlideQuoteSchema = z.object({
-    template: z.literal(SlideTemplate.Quote),
-    quote: z.string(),
+    template: z.literal(SlideTemplate.Statement),
+    text: z.string(),
     attribution: z.string().optional(),
     hideLogo: z.boolean().optional(),
 })

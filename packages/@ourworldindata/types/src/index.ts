@@ -606,7 +606,7 @@ export {
     type SlideSection,
     type SlideTitleSlide,
     type SlideBlank,
-    type SlideQuote,
+    type SlideStatement,
     type SlideBigNumber,
     type SlideContents,
     type Slide,

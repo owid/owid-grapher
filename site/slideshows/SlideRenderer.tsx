@@ -128,6 +128,22 @@ export function SlideRenderer(props: {
                 </div>
             </div>
         ))
+        .with({ template: SlideTemplate.Statement }, (slide) => (
+            <div className={`${className} slide--statement`}>
+                {!slide.hideLogo && <SlideLogo />}
+                <h1 className="slide-statement__text">
+                    <SimpleMarkdownText
+                        text={slide.text}
+                        useParagraphs={false}
+                    />
+                </h1>
+                {slide.attribution && (
+                    <p className="slide-statement__attribution">
+                        {slide.attribution}
+                    </p>
+                )}
+            </div>
+        ))
         .otherwise((slide) => (
             <div className={`${className} SlideContent--placeholder`}>
                 <p>{slide.template}</p>

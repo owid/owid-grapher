@@ -85,6 +85,26 @@
     }
 }
 
+.slide--statement {
+    padding: 64px;
+    align-items: flex-start;
+    justify-content: flex-start;
+}
+
+.slide-statement__text {
+    @include display-1-semibold;
+    font-size: clamp(24px, 4vw, 52px);
+    color: $blue-90;
+    margin: 0;
+}
+
+.slide-statement__attribution {
+    @include body-1-regular;
+    font-size: clamp(13px, 1.6vw, 22px);
+    color: $gray-80;
+    margin-top: 16px;
+}
+
 .slide--contents {
     padding: 64px;
     align-items: flex-start;

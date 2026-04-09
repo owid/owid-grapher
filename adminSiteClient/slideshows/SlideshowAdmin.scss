@@ -100,6 +100,12 @@
     .slide-contents__list {
         font-size: clamp(16px, 2cqw, 28px);
     }
+    .slide-statement__text {
+        font-size: clamp(24px, 4cqw, 52px);
+    }
+    .slide-statement__attribution {
+        font-size: clamp(13px, 1.6cqw, 22px);
+    }
 }
 
 .SlideshowEditorPage__footer {
