@@ -215,6 +215,7 @@ interface DualAxisViewProps {
     dualAxis: DualAxis
     highlightValue?: Point
     showTickMarks?: boolean
+    insetEdgeMarks?: boolean
     labelColor?: string
     tickColor?: string
     lineWidth?: number
@@ -230,6 +231,7 @@ export class DualAxisComponent extends React.Component<DualAxisViewProps> {
         const {
             dualAxis,
             showTickMarks,
+            insetEdgeMarks,
             labelColor,
             tickColor,
             lineWidth,
@@ -274,6 +276,7 @@ export class DualAxisComponent extends React.Component<DualAxisViewProps> {
                 bounds={bounds}
                 axis={horizontalAxis}
                 showTickMarks={showTickMarks}
+                insetEdgeMarks={insetEdgeMarks}
                 preferredAxisPosition={innerBounds.bottom}
                 labelColor={labelColor}
                 tickColor={tickColor}
@@ -425,6 +428,7 @@ export class HorizontalAxisComponent extends React.Component<{
     bounds: Bounds
     axis: HorizontalAxis
     showTickMarks?: boolean
+    insetEdgeMarks?: boolean
     preferredAxisPosition?: number
     labelColor?: string
     tickColor?: string
@@ -436,6 +440,7 @@ export class HorizontalAxisComponent extends React.Component<{
         bounds: Bounds
         axis: HorizontalAxis
         showTickMarks?: boolean
+        insetEdgeMarks?: boolean
         preferredAxisPosition?: number
         labelColor?: string
         tickColor?: string
@@ -468,6 +473,7 @@ export class HorizontalAxisComponent extends React.Component<{
             bounds,
             axis,
             showTickMarks,
+            insetEdgeMarks,
             preferredAxisPosition,
             labelColor,
             tickColor,
@@ -516,18 +522,39 @@ export class HorizontalAxisComponent extends React.Component<{
                 )}
                 {showTickMarks && (
                     <g id={makeFigmaId("tick-marks")}>
-                        {visibleTickLabels.map((label) => (
-                            <line
-                                key={label.value}
-                                id={makeFigmaId(label.formattedValue)}
-                                x1={axis.place(label.value)}
-                                y1={tickMarksYPosition - tickMarkWidth / 2}
-                                x2={axis.place(label.value)}
-                                y2={tickMarksYPosition + tickSize}
-                                stroke={SOLID_TICK_COLOR}
-                                strokeWidth={tickMarkWidth}
-                            />
-                        ))}
+                        {visibleTickLabels.map((label) => {
+                            let x = axis.place(label.value)
+
+                            // Nudge the first and last tick marks inward
+                            // by half the stroke width so they sit visually
+                            // inside the chart area
+                            if (insetEdgeMarks) {
+                                // Apply the rounding used by axis.place
+                                const rangeMin = axis.snapToSubpixel(
+                                    axis.rangeMin
+                                )
+                                const rangeMax = axis.snapToSubpixel(
+                                    axis.rangeMax
+                                )
+
+                                const halfStroke = tickMarkWidth / 2
+                                if (x <= rangeMin) x += halfStroke
+                                else if (x >= rangeMax) x -= halfStroke
+                            }
+
+                            return (
+                                <line
+                                    key={label.value}
+                                    id={makeFigmaId(label.formattedValue)}
+                                    x1={x}
+                                    y1={tickMarksYPosition - tickMarkWidth / 2}
+                                    x2={x}
+                                    y2={tickMarksYPosition + tickSize}
+                                    stroke={SOLID_TICK_COLOR}
+                                    strokeWidth={tickMarkWidth}
+                                />
+                            )
+                        })}
                     </g>
                 )}
                 {showTickLabels && (
