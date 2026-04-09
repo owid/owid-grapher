@@ -8,7 +8,8 @@ import { DataRow } from "../helpers/CausesOfDeathConstants"
 import { ResponsiveCausesOfDeathTreemap } from "./CausesOfDeathTreemap"
 import {
     formatEntityNameForSentence,
-    formatCount } from "../helpers/CausesOfDeathHelpers.js"
+    formatCount,
+} from "../helpers/CausesOfDeathHelpers.js"
 import { CausesOfDeathMetadata } from "../helpers/CausesOfDeathMetadata.js"
 import { CausesOfDeathSpinner } from "./CausesOfDeathSpinner.js"
 
