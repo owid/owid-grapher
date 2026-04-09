@@ -108,7 +108,7 @@ function CaptionedPopulationVariant({
                 onChange={setEntityName}
             />
             ,{" "}
-            <span className="demography-chart__nowrap">
+            <span className="nowrap">
                 {START_YEAR} to {END_YEAR}
             </span>
         </>
