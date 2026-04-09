@@ -347,7 +347,7 @@ export function ChartPanel({
 
 function AssumptionsTable({ simulation }: { simulation: Simulation }) {
     const breakpoint = useBreakpoint()
-    const useShortTitles = breakpoint === "small" || breakpoint === "narrow"
+    const useShortTitles = breakpoint === "small" || breakpoint === "narrow" || breakpoint === "medium"
     const isWorld = simulation.data.country === "World"
     const visibleKeys = isWorld
         ? PARAMETER_KEYS.filter((k) => k !== "netMigrationRate")
