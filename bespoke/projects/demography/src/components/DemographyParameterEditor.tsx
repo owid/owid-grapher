@@ -65,6 +65,18 @@ interface DataPoint {
     value: number
 }
 
+interface PointLabelInfo {
+    key: string
+    x: number
+    y?: number
+    label?: string
+    year: number
+    yearAnchor: "start" | "middle" | "end"
+    valueLabelAnchor?: "start" | "middle" | "end"
+    tickColor?: string
+    hidden: boolean
+}
+
 function DemographyParameterEditorContent({
     simulation,
     variant,
@@ -143,6 +155,7 @@ function DemographyParameterEditorContent({
         : STATIC_X_TICK_LABELS
 
     const showValueLabels = !interactive
+    const axisColor = minValue === 0 ? ZERO_LINE_COLOR : GRID_LINE_COLOR
 
     const controlYearSet = new Set<number>(CONTROL_YEARS)
     const isHoveringControlPoint =
@@ -182,129 +195,37 @@ function DemographyParameterEditorContent({
         unwppProjectionPoints,
     ])
 
-    // Determine which static PointLabelWithYear elements overlap the hover elements.
-    // If either the year label or value label overlaps, hide both together.
-    const hiddenPointLabels = useMemo(() => {
-        const hidden = new Set<string>()
-
-        if (hoveredYear === null || hoveredValue === undefined) return hidden
-
-        const hoverX = xScale(hoveredYear)
-        const hoverXAxisLabelBounds = getXAxisLabelBounds({
-            x: hoverX,
-            innerHeight,
-            year: hoveredYear,
-            anchor: "middle",
-            fontSize: fonts.xTick,
-            labelOffset: YEAR_LABEL_OFFSET,
-        })
-
-        // Hover value label bounds (only when hoveredValue is defined)
-        const hoverValueBounds = getPointLabelBounds({
-            x: hoverX,
-            y: yScale(hoveredValue),
-            label: config.formatValue(hoveredValue),
-            fontSize: fonts.pointLabel,
-        })
-
-        interface StaticLabel {
-            key: string
-            year: number
-            yearAnchor: "start" | "middle" | "end"
-            x: number
-            valueBounds?: Bounds
-        }
-
-        const statics: StaticLabel[] = [
-            {
-                key: "first-historical",
-                year: firstHistoricalDataPoint.year,
-                yearAnchor: "start",
-                x: xScale(firstHistoricalDataPoint.year),
-                valueBounds: showValueLabels
-                    ? getPointLabelBounds({
-                          x: xScale(firstHistoricalDataPoint.year),
-                          y: yScale(firstHistoricalDataPoint.value),
-                          label: config.formatValue(
-                              firstHistoricalDataPoint.value
-                          ),
-                          fontSize: fonts.pointLabel,
-                      })
-                    : undefined,
-            },
-            {
-                key: "last-historical",
-                year: lastHistoricalDataPoint.year,
-                yearAnchor: "middle",
-                x: xScale(lastHistoricalDataPoint.year),
-                valueBounds: showValueLabels
-                    ? getPointLabelBounds({
-                          x: xScale(lastHistoricalDataPoint.year),
-                          y: yScale(lastHistoricalDataPoint.value),
-                          label: config.formatValue(
-                              lastHistoricalDataPoint.value
-                          ),
-                          fontSize: fonts.pointLabel,
-                      })
-                    : undefined,
-            },
-            {
-                key: "last-projection",
-                year: lastProjectionDataPoint.year,
-                yearAnchor: "end",
-                x: xScale(lastProjectionDataPoint.year),
-                valueBounds: showValueLabels
-                    ? getPointLabelBounds({
-                          x: xScale(lastProjectionDataPoint.year),
-                          y: yScale(lastProjectionDataPoint.value),
-                          label: config.formatValue(
-                              lastProjectionDataPoint.value
-                          ),
-                          fontSize: fonts.pointLabel,
-                      })
-                    : undefined,
-            },
-        ]
-
-        for (const s of statics) {
-            const sYearBounds = getXAxisLabelBounds({
-                x: s.x,
+    const visiblePointLabels = useMemo(
+        () =>
+            findVisiblePointLabels({
+                firstHistoricalDataPoint,
+                lastHistoricalDataPoint,
+                lastProjectionDataPoint,
+                showValueLabels,
+                axisColor,
+                hoveredYear,
+                hoveredValue,
+                xScale,
+                yScale,
                 innerHeight,
-                year: s.year,
-                anchor: s.yearAnchor,
-                fontSize: fonts.xTick,
-                labelOffset: YEAR_LABEL_OFFSET,
-            })
-
-            // Check year-vs-year overlap
-            if (sYearBounds.intersects(hoverXAxisLabelBounds)) {
-                hidden.add(s.key)
-                continue
-            }
-
-            // Check value-vs-value overlap
-            if (s.valueBounds && hoverValueBounds) {
-                if (s.valueBounds.intersects(hoverValueBounds)) {
-                    hidden.add(s.key)
-                }
-            }
-        }
-        return hidden
-    }, [
-        hoveredYear,
-        hoveredValue,
-        xScale,
-        yScale,
-        innerHeight,
-        config,
-        fonts,
-        firstHistoricalDataPoint,
-        lastHistoricalDataPoint,
-        controlDataPoints,
-        showValueLabels,
-    ])
-
-    const axisColor = minValue === 0 ? ZERO_LINE_COLOR : GRID_LINE_COLOR
+                fonts,
+                formatValue: config.formatValue,
+            }),
+        [
+            firstHistoricalDataPoint,
+            lastHistoricalDataPoint,
+            lastProjectionDataPoint,
+            showValueLabels,
+            axisColor,
+            hoveredYear,
+            hoveredValue,
+            xScale,
+            yScale,
+            innerHeight,
+            fonts,
+            config,
+        ]
+    )
 
     const handleChange = useCallback(
         (newPoints: Record<number, number>) => {
@@ -444,73 +365,25 @@ function DemographyParameterEditorContent({
                     />
                 )}
 
-                {/* First historical point (1950) */}
-                <PointLabelWithYear
-                    x={xScale(firstHistoricalDataPoint.year)}
-                    y={
-                        showValueLabels
-                            ? yScale(firstHistoricalDataPoint.value)
-                            : undefined
-                    }
-                    innerHeight={innerHeight}
-                    label={
-                        showValueLabels
-                            ? config.formatValue(firstHistoricalDataPoint.value)
-                            : undefined
-                    }
-                    color={LINE_COLOR}
-                    labelColor={LABEL_COLOR}
-                    fontSize={fonts.pointLabel}
-                    year={firstHistoricalDataPoint.year}
-                    yearAnchor="start"
-                    valueLabelAnchor="start"
-                    hidden={hiddenPointLabels.has("first-historical")}
-                    hideTickMark
-                />
-
-                {/* Last historical point (2023) */}
-                {showValueLabels && (
+                {/* Endpoint labels (1950, 2023, 2100) */}
+                {visiblePointLabels.map((pl) => (
                     <PointLabelWithYear
-                        x={xScale(lastHistoricalDataPoint.year)}
-                        y={yScale(lastHistoricalDataPoint.value)}
+                        key={pl.key}
+                        x={pl.x}
+                        y={pl.y}
+                        label={pl.label}
+                        year={pl.year}
+                        yearAnchor={pl.yearAnchor}
+                        valueLabelAnchor={pl.valueLabelAnchor}
+                        tickColor={pl.tickColor}
+                        hidden={pl.hidden}
                         innerHeight={innerHeight}
-                        label={config.formatValue(
-                            lastHistoricalDataPoint.value
-                        )}
                         color={LINE_COLOR}
                         labelColor={LABEL_COLOR}
                         fontSize={fonts.pointLabel}
-                        year={lastHistoricalDataPoint.year}
-                        yearAnchor="middle"
                         hideTickMark
-                        hidden={hiddenPointLabels.has("last-historical")}
-                        tickColor={axisColor}
                     />
-                )}
-
-                {/* Last projection point (2100) */}
-                <PointLabelWithYear
-                    x={xScale(lastProjectionDataPoint.year)}
-                    y={
-                        showValueLabels
-                            ? yScale(lastProjectionDataPoint.value)
-                            : undefined
-                    }
-                    innerHeight={innerHeight}
-                    label={
-                        showValueLabels
-                            ? config.formatValue(lastProjectionDataPoint.value)
-                            : undefined
-                    }
-                    color={LINE_COLOR}
-                    labelColor={LABEL_COLOR}
-                    fontSize={fonts.pointLabel}
-                    year={lastProjectionDataPoint.year}
-                    yearAnchor="end"
-                    valueLabelAnchor="end"
-                    hidden={hiddenPointLabels.has("last-projection")}
-                    hideTickMark
-                />
+                ))}
 
                 {/* Invisible interaction rect for hover */}
                 <rect
@@ -794,6 +667,133 @@ function DraggableControlPoint({
             </g>
         </g>
     )
+}
+
+function findVisiblePointLabels({
+    firstHistoricalDataPoint,
+    lastHistoricalDataPoint,
+    lastProjectionDataPoint,
+    showValueLabels,
+    axisColor,
+    hoveredYear,
+    hoveredValue,
+    xScale,
+    yScale,
+    innerHeight,
+    fonts,
+    formatValue,
+}: {
+    firstHistoricalDataPoint: DataPoint
+    lastHistoricalDataPoint: DataPoint
+    lastProjectionDataPoint: DataPoint
+    showValueLabels: boolean
+    axisColor: string
+    hoveredYear: number | null
+    hoveredValue: number | undefined
+    xScale: (v: number) => number
+    yScale: (v: number) => number
+    innerHeight: number
+    fonts: { xTick: number; pointLabel: number }
+    formatValue: (v: number) => string
+}): PointLabelInfo[] {
+    const candidates: {
+        key: string
+        year: number
+        value: number
+        yearAnchor: "start" | "middle" | "end"
+        valueLabelAnchor?: "start" | "middle" | "end"
+        tickColor?: string
+    }[] = [
+        {
+            key: "first-historical",
+            year: firstHistoricalDataPoint.year,
+            value: firstHistoricalDataPoint.value,
+            yearAnchor: "start",
+            valueLabelAnchor: "start",
+        },
+        ...(showValueLabels
+            ? [
+                  {
+                      key: "last-historical",
+                      year: lastHistoricalDataPoint.year,
+                      value: lastHistoricalDataPoint.value,
+                      yearAnchor: "middle" as const,
+                      tickColor: axisColor,
+                  },
+              ]
+            : []),
+        {
+            key: "last-projection",
+            year: lastProjectionDataPoint.year,
+            value: lastProjectionDataPoint.value,
+            yearAnchor: "end",
+            valueLabelAnchor: "end",
+        },
+    ]
+
+    // Compute hover bounds for overlap detection
+    const hasHover = hoveredYear !== null && hoveredValue !== undefined
+    const hoverXAxisLabelBounds = hasHover
+        ? getXAxisLabelBounds({
+              x: xScale(hoveredYear),
+              innerHeight,
+              year: hoveredYear,
+              anchor: "middle",
+              fontSize: fonts.xTick,
+              labelOffset: YEAR_LABEL_OFFSET,
+          })
+        : undefined
+    const hoverValueBounds = hasHover
+        ? getPointLabelBounds({
+              x: xScale(hoveredYear),
+              y: yScale(hoveredValue),
+              label: formatValue(hoveredValue),
+              fontSize: fonts.pointLabel,
+          })
+        : undefined
+
+    return candidates.map((c) => {
+        const x = xScale(c.year)
+        const formattedLabel = formatValue(c.value)
+
+        // Check if this label overlaps the hover tooltip
+        let hidden = false
+        if (hoverXAxisLabelBounds) {
+            const yearBounds = getXAxisLabelBounds({
+                x,
+                innerHeight,
+                year: c.year,
+                anchor: c.yearAnchor,
+                fontSize: fonts.xTick,
+                labelOffset: YEAR_LABEL_OFFSET,
+            })
+            if (yearBounds.intersects(hoverXAxisLabelBounds)) {
+                hidden = true
+            } else if (showValueLabels && hoverValueBounds) {
+                const valueBounds = getPointLabelBounds({
+                    x,
+                    y: yScale(c.value),
+                    label: formattedLabel,
+                    fontSize: fonts.pointLabel,
+                })
+                if (valueBounds.intersects(hoverValueBounds)) {
+                    hidden = true
+                }
+            }
+        }
+
+        return {
+            key: c.key,
+            x,
+            y: showValueLabels ? yScale(c.value) : undefined,
+            label: showValueLabels ? formattedLabel : undefined,
+            year: c.year,
+            yearAnchor: c.yearAnchor,
+            valueLabelAnchor: c.valueLabelAnchor,
+            tickColor: c.tickColor,
+            hidden,
+        }
+    })
 }
 
 /** Compute the Bounds of a PointLabel's value text. */
