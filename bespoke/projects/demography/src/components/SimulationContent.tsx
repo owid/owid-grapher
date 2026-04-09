@@ -41,11 +41,13 @@ export function SimulationContent({
     focusParameter,
     stabilizingParameter,
     hidePopulationPyramid,
+    populationPyramidUnit,
 }: {
     data: CountryData
     focusParameter?: ParameterKey
     stabilizingParameter?: ParameterKey
     hidePopulationPyramid?: boolean
+    populationPyramidUnit?: "percent" | "absolute"
 }) {
     const [year, setYear] = useState(END_YEAR)
 
@@ -148,6 +150,7 @@ export function SimulationContent({
                             year={year}
                             onYearChange={setYear}
                             barColor={pyramidBarColor}
+                            populationPyramidUnit={populationPyramidUnit}
                         />
                     )}
                 </div>
@@ -161,11 +164,13 @@ function AgeStructurePanel({
     year,
     onYearChange,
     barColor,
+    populationPyramidUnit,
 }: {
     simulation: Simulation
     year: number
     onYearChange: (year: number) => void
     barColor?: { female: string; male: string } | string
+    populationPyramidUnit?: "percent" | "absolute"
 }) {
     const title = `Age Structure in ${year}`
     const subtitle = "Population by age and sex"
@@ -184,6 +189,7 @@ function AgeStructurePanel({
                     simulation={simulation}
                     year={year}
                     barColor={barColor}
+                    unit={populationPyramidUnit}
                 />
             </ChartPanel>
             <ChartPanel
@@ -196,6 +202,7 @@ function AgeStructurePanel({
                     simulation={simulation}
                     year={year}
                     barColor={barColor}
+                    unit={populationPyramidUnit}
                 />
             </ChartPanel>
         </>

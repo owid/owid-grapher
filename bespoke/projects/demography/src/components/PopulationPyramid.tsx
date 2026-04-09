@@ -25,6 +25,8 @@ import {
     groupByAgeRange,
     calculateMedianAge,
     findAgeGroup,
+    formatPopulationValueShort,
+    formatPopulationAxisLabelShort,
 } from "../helpers/utils"
 import { Bounds } from "@ourworldindata/utils"
 import type { AgeZone, AgeZoneWithBounds } from "../helpers/types.js"
@@ -52,6 +54,7 @@ export interface PopulationPyramidProps {
     ageZones?: AgeZone[]
     projection?: ProjectionType
     barColor?: { female: string; male: string } | string
+    unit?: "percent" | "absolute"
 }
 
 function PopulationPyramidContent({
@@ -61,6 +64,7 @@ function PopulationPyramidContent({
     ageZones,
     projection = "custom",
     barColor: barColorProp,
+    unit = "percent",
     width,
     height,
 }: PopulationPyramidProps & { width: number; height: number }) {
@@ -114,7 +118,8 @@ function PopulationPyramidContent({
         const female = populationBySex?.female ?? []
         const totalPop =
             male.reduce((a, b) => a + b, 0) + female.reduce((a, b) => a + b, 0)
-        const toPercent = (buckets: Record<string, number>) => {
+        const toBuckets = (buckets: Record<string, number>) => {
+            if (unit === "absolute") return buckets
             const result: Record<string, number> = {}
             for (const [k, v] of Object.entries(buckets)) {
                 result[k] = totalPop > 0 ? (v / totalPop) * 100 : 0
@@ -123,15 +128,15 @@ function PopulationPyramidContent({
         }
         return {
             ageBucketsBySex: {
-                male: toPercent(groupByAgeRange(male)),
-                female: toPercent(groupByAgeRange(female)),
+                male: toBuckets(groupByAgeRange(male)),
+                female: toBuckets(groupByAgeRange(female)),
             },
             medianAgeBucketBySex: {
                 male: findAgeGroup(calculateMedianAge(male)),
                 female: findAgeGroup(calculateMedianAge(female)),
             },
         }
-    }, [populationBySex])
+    }, [populationBySex, unit])
 
     const xAxisMax = useMemo(() => {
         if (xAxisScaleMode === "adaptive") {
@@ -142,9 +147,9 @@ function PopulationPyramidContent({
             )
             return max * 1.1
         } else {
-            return computeMaxAgeGroupPopulation(simulation) * 1.1
+            return computeMaxAgeGroupPopulation(simulation, unit) * 1.1
         }
-    }, [simulation, xAxisScaleMode, ageBucketsBySex])
+    }, [simulation, xAxisScaleMode, ageBucketsBySex, unit])
 
     const xScale = useMemo(() => {
         const domain = [0, xAxisMax]
@@ -220,6 +225,7 @@ function PopulationPyramidContent({
                         defaultBarColor={defaultBarColor}
                         side="male"
                         hoveredAgeGroup={hoveredAgeGroup}
+                        unit={unit}
                     />
 
                     <PopulationPyramidHalf
@@ -234,6 +240,7 @@ function PopulationPyramidContent({
                         defaultBarColor={defaultBarColor}
                         side="female"
                         hoveredAgeGroup={hoveredAgeGroup}
+                        unit={unit}
                     />
 
                     <PopulationPyramidAxisX
@@ -291,6 +298,7 @@ export function PopulationPyramid({
     ageZones,
     projection,
     barColor,
+    unit,
 }: PopulationPyramidProps) {
     const { parentRef, width, height } = useParentSize()
     return (
@@ -303,6 +311,7 @@ export function PopulationPyramid({
                     xAxisScaleMode={xAxisScaleMode}
                     projection={projection}
                     barColor={barColor}
+                    unit={unit}
                     width={width}
                     height={height}
                 />
@@ -325,6 +334,7 @@ function PopulationPyramidHalf({
     defaultBarColor = DENIM_BLUE,
     side,
     hoveredAgeGroup,
+    unit = "percent",
 }: {
     left: number
     xScale: ScaleLinear<number, number>
@@ -337,6 +347,7 @@ function PopulationPyramidHalf({
     defaultBarColor?: string
     side: "male" | "female"
     hoveredAgeGroup: string | null
+    unit?: "percent" | "absolute"
 }) {
     const zeroX = xScale(0)
     const halfWidth = Math.abs(xScale(0) - xScale(xScale.domain()[1]))
@@ -366,7 +377,11 @@ function PopulationPyramidHalf({
                 top={height}
                 scale={xScale}
                 numTicks={3}
-                tickFormat={(v) => `${Math.round(v as number)}%`}
+                tickFormat={(v) =>
+                    unit === "absolute"
+                        ? formatPopulationAxisLabelShort(v as number)
+                        : `${Math.round(v as number)}%`
+                }
                 stroke="transparent"
                 tickStroke={GRAPHER_LIGHT_TEXT}
                 tickLength={4}
@@ -422,6 +437,7 @@ function PopulationPyramidHalf({
                             z.ageGroups.includes(hoveredAgeGroup)
                         )?.color ?? defaultBarColor
                     }
+                    unit={unit}
                 />
             )}
         </Group>
@@ -438,6 +454,7 @@ function BarValueLabel({
     direction,
     fontSize,
     barColor,
+    unit = "percent",
 }: {
     value: number
     barWidth: number
@@ -448,8 +465,12 @@ function BarValueLabel({
     direction: "left" | "right"
     fontSize: number
     barColor: string
+    unit?: "percent" | "absolute"
 }) {
-    const text = `${value.toFixed(1)}%`
+    const text =
+        unit === "absolute"
+            ? formatPopulationValueShort(value)
+            : `${value.toFixed(1)}%`
     const tw = new TextWrap({ text, maxWidth: Infinity, fontSize })
     const labelWidth = tw.width + BAR_LABEL_PADDING * 2
 

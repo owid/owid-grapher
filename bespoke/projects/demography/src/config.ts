@@ -10,6 +10,8 @@ const VARIANT_NAMES = [
 
 export type VariantName = (typeof VARIANT_NAMES)[number]
 
+export type PopulationPyramidUnit = "percent" | "absolute"
+
 export interface VariantProps<Config> {
     config: Config
 }
@@ -22,6 +24,7 @@ export interface SimulationVariantConfig {
     focusParameter?: ParameterKey
     stabilizingParameter?: ParameterKey
     hidePopulationPyramid?: boolean
+    populationPyramidUnit?: PopulationPyramidUnit
 }
 
 export interface PopulationVariantConfig {
@@ -43,6 +46,7 @@ export interface PopulationPyramidVariantConfig {
     fertilityRateAssumptions?: Record<number, number>
     lifeExpectancyAssumptions?: Record<number, number>
     netMigrationRateAssumptions?: Record<number, number>
+    populationPyramidUnit?: PopulationPyramidUnit
 }
 
 export interface ParametersVariantConfig {
@@ -74,6 +78,9 @@ export function parseConfig(
                     raw.stabilizingParameter
                 ),
                 hidePopulationPyramid: parseBoolean(raw.hidePopulationPyramid),
+                populationPyramidUnit: parsePyramidUnit(
+                    raw.populationPyramidUnit
+                ),
             }
         case "population":
             return {
@@ -102,6 +109,9 @@ export function parseConfig(
                 ),
                 netMigrationRateAssumptions: parseControlPoints(
                     raw.netMigrationRateAssumptions
+                ),
+                populationPyramidUnit: parsePyramidUnit(
+                    raw.populationPyramidUnit
                 ),
             }
         case "parameters":
@@ -145,6 +155,11 @@ function parseControlPoints(
         }
     }
     return Object.keys(result).length > 0 ? result : undefined
+}
+
+function parsePyramidUnit(value: unknown): PopulationPyramidUnit | undefined {
+    if (value === "absolute" || value === "percent") return value
+    return undefined
 }
 
 function parseBoolean(value: unknown): boolean {

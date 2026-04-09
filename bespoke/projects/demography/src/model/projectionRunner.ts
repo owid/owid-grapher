@@ -253,10 +253,13 @@ export function runProjectionTrajectory({
     return trajectory
 }
 
-export function computeMaxAgeGroupPopulation(simulation: {
-    data: CountryData
-    forecastResults: Record<number, YearResult> | null
-}): number {
+export function computeMaxAgeGroupPopulation(
+    simulation: {
+        data: CountryData
+        forecastResults: Record<number, YearResult> | null
+    },
+    unit: "percent" | "absolute" = "percent"
+): number {
     const { data, forecastResults } = simulation
     let maxVal = 0
 
@@ -268,11 +271,19 @@ export function computeMaxAgeGroupPopulation(simulation: {
         const maleGroups = groupByAgeRange(pop.male)
         const femaleGroups = groupByAgeRange(pop.female)
         for (const g of PYRAMID_AGE_GROUPS) {
-            maxVal = Math.max(
-                maxVal,
-                ((maleGroups[g] || 0) / totalPop) * 100,
-                ((femaleGroups[g] || 0) / totalPop) * 100
-            )
+            if (unit === "absolute") {
+                maxVal = Math.max(
+                    maxVal,
+                    maleGroups[g] || 0,
+                    femaleGroups[g] || 0
+                )
+            } else {
+                maxVal = Math.max(
+                    maxVal,
+                    ((maleGroups[g] || 0) / totalPop) * 100,
+                    ((femaleGroups[g] || 0) / totalPop) * 100
+                )
+            }
         }
     }
 

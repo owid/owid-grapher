@@ -48,6 +48,17 @@ enableShadowDOM()
 
 export const VARIANTS = [
     {
+        name: "simulation",
+        component: SimulationVariant,
+        demoConfig: {
+            region: "South Korea",
+            focusParameter: "lifeExpectancy",
+            stabilizingParameter: "lifeExpectancy",
+            populationPyramidUnit: "absolute",
+        },
+        demoSize: "widest",
+    },
+    {
         name: "population",
         component: PopulationVariant,
         demoConfig: {
