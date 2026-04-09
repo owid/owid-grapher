@@ -27,7 +27,7 @@ import {
     AdditionalGrapherDataFetchFn,
     ArchiveContext,
 } from "@ourworldindata/types"
-import { useElementBounds } from "../hooks.js"
+import { useElementBounds } from "@ourworldindata/grapher"
 import { cachedGetGrapherConfigByUuid } from "./api.js"
 import MultiDimEmbedSettingsPanel from "./MultiDimEmbedSettingsPanel.js"
 import { useBaseGrapherConfig, useMultiDimAnalytics } from "./hooks.js"

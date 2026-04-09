@@ -176,5 +176,6 @@ export type {
 } from "./download.js"
 export {
     useDataApiDownloadConfig,
+    useElementBounds,
     useStateWithDebouncedClear,
 } from "./hooks.js"

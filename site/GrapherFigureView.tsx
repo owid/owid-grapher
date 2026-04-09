@@ -2,6 +2,7 @@ import { useMemo, useRef } from "react"
 import {
     FetchingGrapher,
     GrapherProgrammaticInterface,
+    useElementBounds,
 } from "@ourworldindata/grapher"
 import {
     ADMIN_BASE_URL,
@@ -10,7 +11,6 @@ import {
     DATA_API_URL,
     CATALOG_URL,
 } from "../settings/clientSettings.js"
-import { useElementBounds } from "./hooks.js"
 
 export interface GrapherFigureViewProps {
     slug?: string
