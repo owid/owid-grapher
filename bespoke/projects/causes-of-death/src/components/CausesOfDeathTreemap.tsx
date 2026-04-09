@@ -13,7 +13,7 @@ import {
     useChartDimensions,
     useScreenDimensions,
 } from "../../../../hooks/useDimensions"
-import { Bounds, getRelativeMouse } from "@ourworldindata/utils"
+import { Bounds, getRelativeMouse, isTouchDevice } from "@ourworldindata/utils"
 
 import { CausesOfDeathMetadata } from "../helpers/CausesOfDeathMetadata.js"
 import { CausesOfDeathTreemapTile } from "./CausesOfDeathTreemapTile.js"
@@ -163,6 +163,9 @@ function CausesOfDeathTreemap({
     )
 
     const onTileMouseLeave = useCallback(() => {
+        // On touch devices, tooltip dismissal is handled by usePinnedTooltip
+        if (isTouchDevice()) return
+
         // Delay hiding the tooltip to prevent flashing when moving between tiles
         timerRef.current = window.setTimeout(() => {
             setTooltipState((prev) => ({ ...prev, target: null }))
