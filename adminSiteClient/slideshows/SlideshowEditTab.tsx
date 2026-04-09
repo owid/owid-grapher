@@ -41,6 +41,7 @@ function makeDefaultSlideForTemplate(template: SlideTemplate): Slide {
         .with(SlideTemplate.Cover, (t) => ({ template: t, title: "" }))
         .with(SlideTemplate.Blank, (t) => ({ template: t }))
         .with(SlideTemplate.Quote, (t) => ({ template: t, quote: "" }))
+        .with(SlideTemplate.Contents, (t) => ({ template: t, text: "" }))
         .with(SlideTemplate.BigNumber, (t) => ({
             template: t,
             number: "",
@@ -76,6 +77,10 @@ function slideHasContent(slide: Slide): boolean {
         .with(
             { template: SlideTemplate.BigNumber },
             (s) => !!s.number || !!s.label
+        )
+        .with(
+            { template: SlideTemplate.Contents },
+            (s) => !!s.title || !!s.text
         )
         .exhaustive()
 }
@@ -510,6 +515,32 @@ function TemplateOptionsEditor(props: {
                             onUpdate({ ...slide, label: e.target.value })
                         }
                         placeholder="e.g. World population"
+                    />
+                </label>
+                <HideLogoCheckbox slide={slide} onUpdate={onUpdate} />
+            </>
+        ))
+        .with({ template: SlideTemplate.Contents }, (slide) => (
+            <>
+                <label>
+                    Title
+                    <InlineMarkdownEditor
+                        value={slide.title ?? ""}
+                        onChange={(text) =>
+                            onUpdate({
+                                ...slide,
+                                title: text || undefined,
+                            })
+                        }
+                        placeholder="Contents title"
+                    />
+                </label>
+                <label>
+                    Items (markdown list)
+                    <MarkdownEditor
+                        value={slide.text}
+                        onChange={(text) => onUpdate({ ...slide, text })}
+                        placeholder="- **Bolded items** appear active&#10;- Other items appear muted"
                     />
                 </label>
                 <HideLogoCheckbox slide={slide} onUpdate={onUpdate} />

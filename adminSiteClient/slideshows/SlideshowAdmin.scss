@@ -97,6 +97,9 @@
     .slide__media-placeholder {
         font-size: clamp(11px, 1.2cqw, 16px);
     }
+    .slide-contents__list {
+        font-size: clamp(16px, 2cqw, 28px);
+    }
 }
 
 .SlideshowEditorPage__footer {

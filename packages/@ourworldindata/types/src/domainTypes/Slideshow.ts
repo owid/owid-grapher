@@ -8,6 +8,7 @@ export enum SlideTemplate {
     Blank = "blank",
     Quote = "quote",
     BigNumber = "big-number",
+    Contents = "contents",
 }
 
 /** Canonical display labels for each slide template */
@@ -19,6 +20,7 @@ export const SLIDE_TEMPLATE_LABELS: Record<SlideTemplate, string> = {
     [SlideTemplate.Blank]: "Blank",
     [SlideTemplate.Quote]: "Quote",
     [SlideTemplate.BigNumber]: "Big Number",
+    [SlideTemplate.Contents]: "Contents",
 }
 
 /**
@@ -66,8 +68,9 @@ export interface SlideBlank {
     hideLogo?: boolean
 }
 
-export interface SlideQuote {
+export interface SlideStatement {
     template: SlideTemplate.Quote
+    /** The statement text — rendered large and bold */
     quote: MarkdownText
     attribution?: string
     hideLogo?: boolean
@@ -81,14 +84,23 @@ export interface SlideBigNumber {
     hideLogo?: boolean
 }
 
+export interface SlideContents {
+    template: SlideTemplate.Contents
+    title?: string
+    /** Markdown list — bolded items are styled as "active" */
+    text: MarkdownText
+    hideLogo?: boolean
+}
+
 export type Slide =
     | SlideImageOnly
     | SlideChartOnly
     | SlideSection
     | SlideTitleSlide
     | SlideBlank
-    | SlideQuote
+    | SlideStatement
     | SlideBigNumber
+    | SlideContents
 
 /**
  * Pre-resolved chart info computed at bake time so the client
@@ -163,6 +175,13 @@ const SlideBigNumberSchema = z.object({
     hideLogo: z.boolean().optional(),
 })
 
+const SlideContentsSchema = z.object({
+    template: z.literal(SlideTemplate.Contents),
+    title: z.string().optional(),
+    text: z.string(),
+    hideLogo: z.boolean().optional(),
+})
+
 export const SlideSchema = z.discriminatedUnion("template", [
     SlideImageOnlySchema,
     SlideChartOnlySchema,
@@ -171,6 +190,7 @@ export const SlideSchema = z.discriminatedUnion("template", [
     SlideBlankSchema,
     SlideQuoteSchema,
     SlideBigNumberSchema,
+    SlideContentsSchema,
 ])
 
 export const SlideshowConfigSchema = z.object({

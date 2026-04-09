@@ -85,6 +85,34 @@
     }
 }
 
+.slide--contents {
+    padding: 64px;
+    align-items: flex-start;
+}
+
+.slide-contents__list {
+    @include body-1-regular;
+    font-size: clamp(16px, 2vw, 28px);
+    color: $blue-30;
+    margin-top: 16px;
+
+    ul,
+    ol {
+        padding-left: 1.2em;
+        margin: 0;
+    }
+
+    li {
+        margin-bottom: 0.4em;
+    }
+
+    // Bolded items appear in a darker "active" color
+    strong {
+        color: $blue-90;
+        font-weight: 700;
+    }
+}
+
 .slide-title {
     @include display-1-semibold;
     font-size: clamp(20px, 3vw, 40px);
