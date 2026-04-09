@@ -397,9 +397,7 @@ export class GdocBase implements OwidGdocBaseInterface {
         const authorRoles = this.content.authorRoles
         // Build the full list of linked authors, including those without
         // a published author page (they still need their role applied).
-        const dbAuthorsByName = new Map(
-            dbAuthors.map((a) => [a.name, a])
-        )
+        const dbAuthorsByName = new Map(dbAuthors.map((a) => [a.name, a]))
         const authors: LinkedAuthor[] = this.content.authors.map((name) => {
             const dbAuthor = dbAuthorsByName.get(name)
             const role = authorRoles?.[name]
