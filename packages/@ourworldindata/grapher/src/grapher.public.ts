@@ -1,4 +1,5 @@
 export { Grapher } from "./core/Grapher.js"
 export { FetchingGrapher } from "./core/FetchingGrapher.js"
+export { OwidTable } from "@ourworldindata/core-table"
 export type { GrapherInterface } from "@ourworldindata/types"
 export * from "./grapherApi.js"
