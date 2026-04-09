@@ -321,7 +321,7 @@ export function ChartPanel({
             <p className="chart-panel__subtitle">
                 {subtitle}
                 {tooltipContent && (
-                    <span className="demography-chart__nowrap">
+                    <span className="nowrap">
                         {"\u00a0"}
                         <Tippy
                             content={tooltipContent}
@@ -347,7 +347,10 @@ export function ChartPanel({
 
 function AssumptionsTable({ simulation }: { simulation: Simulation }) {
     const breakpoint = useBreakpoint()
-    const useShortTitles = breakpoint === "small" || breakpoint === "narrow" || breakpoint === "medium"
+    const useShortTitles =
+        breakpoint === "small" ||
+        breakpoint === "narrow" ||
+        breakpoint === "medium"
     const isWorld = simulation.data.country === "World"
     const visibleKeys = isWorld
         ? PARAMETER_KEYS.filter((k) => k !== "netMigrationRate")
