@@ -24,8 +24,12 @@ export const TREND_EARLY_END = 2003
 export const TREND_LATE_START = 2020
 export const TREND_LATE_END = 2023
 
-// Maximum age tracked (131 single-year ages: 0 to 130)
-export const MAX_AGE = 130
+// Maximum age tracked internally (0..MAX_AGE, inclusive).
+export const MAX_AGE = 200
+
+// Keep display stable and readable: show 0-4 .. 125-129, then 130+.
+// Internally the model still tracks ages through MAX_AGE.
+export const PYRAMID_MAX_AGE = 130
 
 export const PYRAMID_AGE_GROUP_SIZE = 5
 
@@ -33,12 +37,12 @@ export const PYRAMID_AGE_GROUPS: string[] = (() => {
     const groups: string[] = []
     for (
         let start = 0;
-        start <= MAX_AGE - PYRAMID_AGE_GROUP_SIZE;
+        start <= PYRAMID_MAX_AGE - PYRAMID_AGE_GROUP_SIZE;
         start += PYRAMID_AGE_GROUP_SIZE
     ) {
         groups.push(`${start}-${start + PYRAMID_AGE_GROUP_SIZE - 1}`)
     }
-    groups.push(`${MAX_AGE}+`)
+    groups.push(`${PYRAMID_MAX_AGE}+`)
     return groups
 })()
 

@@ -1,6 +1,6 @@
 /**
  * Cohort-component population projection model.
- * Uses single-year ages (0-130) for accurate aging.
+ * Uses single-year ages (0-200) for accurate aging.
  */
 
 import {
@@ -99,26 +99,66 @@ function invLogit(z: number): number {
 
 /**
  * Apply a Kannisto-like old-age closure so mortality rises smoothly and monotonically.
+ * We anchor the closure at ages 85 and 100, then extend to MAX_AGE.
+ *
+ * Options can be used to relax closure guardrails for extreme longevity scenarios.
  */
-export function applyOldAgeClosure(rates: number[], sex: string): number[] {
+interface OldAgeClosureOptions {
+    startAge?: number
+    anchorAge?: number
+    minRateFloor?: number
+    minQStart?: number
+    minAnchorGap?: number
+    minSlope?: number
+}
+
+export function applyOldAgeClosure(
+    rates: number[],
+    sex: string,
+    options: OldAgeClosureOptions = {}
+): number[] {
     const closed = [...rates]
-    const startAge = 85
-    const anchorAge = 100
 
-    const qStartObserved = closed[startAge] ?? closed[80] ?? 0.05
+    const startAgeRaw = Number(options.startAge)
+    const startAge = Number.isFinite(startAgeRaw)
+        ? Math.max(0, Math.min(MAX_AGE - 1, Math.round(startAgeRaw)))
+        : 85
+
+    const anchorAgeRaw = Number(options.anchorAge)
+    const anchorAge = Number.isFinite(anchorAgeRaw)
+        ? Math.max(startAge + 1, Math.min(MAX_AGE, Math.round(anchorAgeRaw)))
+        : 100
+
+    const minRateFloor = Number.isFinite(Number(options.minRateFloor))
+        ? Math.max(1e-12, Number(options.minRateFloor))
+        : 1e-6
+    const minQStart = Number.isFinite(Number(options.minQStart))
+        ? Math.max(minRateFloor, Number(options.minQStart))
+        : Math.max(minRateFloor, 1e-5)
+    const minAnchorGap = Number.isFinite(Number(options.minAnchorGap))
+        ? Math.max(1e-8, Number(options.minAnchorGap))
+        : 0.01
+    const minSlope = Number.isFinite(Number(options.minSlope))
+        ? Math.max(0, Number(options.minSlope))
+        : 0.005
+
+    const qStartObserved =
+        closed[startAge] ?? closed[Math.max(0, startAge - 5)] ?? 0.05
     const qAnchorObserved =
-        closed[anchorAge] ?? closed[95] ?? (sex === "female" ? 0.55 : 0.6)
+        closed[anchorAge] ??
+        closed[Math.max(0, anchorAge - 5)] ??
+        (sex === "female" ? 0.55 : 0.6)
 
-    const qStart = clampProbability(qStartObserved, 1e-5, 0.98)
+    const qStart = clampProbability(qStartObserved, minQStart, 0.98)
     const qAnchor = clampProbability(
-        Math.max(qAnchorObserved, qStart + 0.01),
-        qStart + 1e-5,
+        Math.max(qAnchorObserved, qStart + minAnchorGap),
+        qStart + Math.max(minRateFloor, 1e-8),
         0.995
     )
 
     let slope = (logit(qAnchor) - logit(qStart)) / (anchorAge - startAge)
-    if (!Number.isFinite(slope) || slope < 0.005) {
-        slope = 0.005
+    if (!Number.isFinite(slope) || slope < minSlope) {
+        slope = minSlope
     }
 
     const intercept = logit(qStart)
@@ -126,7 +166,7 @@ export function applyOldAgeClosure(rates: number[], sex: string): number[] {
 
     for (let age = startAge; age <= MAX_AGE; age++) {
         let qx = invLogit(intercept + slope * (age - startAge))
-        qx = clampProbability(Math.max(qx, prev), 1e-6, 0.999)
+        qx = clampProbability(Math.max(qx, prev), minRateFloor, 0.999)
         closed[age] = qx
         prev = qx
     }
@@ -1026,6 +1066,14 @@ export function scaleFertilityToTFR(
     return baselineFertility.map((rate) => rate * scaleFactor)
 }
 
+/**
+ * Scale mortality rates to achieve a target life expectancy using binary search.
+ * Uses sex-specific, age-pattern-aware scaling and reapplies old-age closure.
+ *
+ * For extreme longevity targets, old-age closure guardrails are gradually relaxed
+ * (rather than abruptly disabled) so users can explore tail scenarios while
+ * keeping mortality strictly above zero at every age.
+ */
 export function scaleMortalityToLE(
     baselineMortality: { female: number[]; male: number[] },
     baseLE: number,
@@ -1048,36 +1096,71 @@ export function scaleMortalityToLE(
         return pattern
     }
 
+    interface ClosureProfile extends OldAgeClosureOptions {
+        minScaleFactor: number
+    }
+
+    function getClosureProfile(
+        baseSexLE: number,
+        targetSexLE: number
+    ): ClosureProfile {
+        const uplift = Math.max(0, targetSexLE - baseSexLE)
+        const fadeStart = 8 // Keep current guardrails for ordinary +few-years scenarios.
+        const fadeEnd = 40 // Fully relaxed only for very extreme longevity targets.
+        const relaxation = clamp(
+            (uplift - fadeStart) / (fadeEnd - fadeStart),
+            0,
+            1
+        )
+
+        function lerp(from: number, to: number): number {
+            return from + (to - from) * relaxation
+        }
+
+        return {
+            minAnchorGap: lerp(0.01, 0.00002),
+            minSlope: lerp(0.005, 0.00012),
+            minRateFloor: lerp(1e-6, 1e-9),
+            minQStart: lerp(1e-5, 1e-8),
+            minScaleFactor: lerp(0.01, 0.0001),
+        }
+    }
+
     const femalePattern = buildAgePattern("female")
     const malePattern = buildAgePattern("male")
 
     function scaleAndClose(
         rates: number[],
         sex: string,
-        scale: number
+        scale: number,
+        closureProfile: ClosureProfile
     ): number[] {
         const pattern = sex === "female" ? femalePattern : malePattern
-        const scaled = rates.map((rate, age) =>
-            Math.min(rate * Math.pow(scale, pattern[age]), 1)
-        )
-        return applyOldAgeClosure(scaled, sex)
+        const minRateFloor = closureProfile.minRateFloor ?? 1e-6
+        const scaled = rates.map((rate, age) => {
+            const adjusted = (rate || 0) * Math.pow(scale, pattern[age])
+            return clamp(adjusted, minRateFloor, 1)
+        })
+        return applyOldAgeClosure(scaled, sex, closureProfile)
     }
 
     function findScaleForSex(
         rates: number[],
         sex: string,
-        targetSexLE: number
+        targetSexLE: number,
+        baseSexLE: number
     ): number[] {
-        let lo = 0.01
+        const closureProfile = getClosureProfile(baseSexLE, targetSexLE)
+        let lo = closureProfile.minScaleFactor
         let hi = 5.0
-        let bestRates = scaleAndClose(rates, sex, 1)
+        let bestRates = scaleAndClose(rates, sex, 1, closureProfile)
         let bestDiff = Math.abs(
             calculateLifeExpectancy(bestRates) - targetSexLE
         )
 
-        for (let i = 0; i < 50; i++) {
+        for (let i = 0; i < 60; i++) {
             const mid = (lo + hi) / 2
-            const scaled = scaleAndClose(rates, sex, mid)
+            const scaled = scaleAndClose(rates, sex, mid, closureProfile)
             const le = calculateLifeExpectancy(scaled)
             const diff = Math.abs(le - targetSexLE)
             if (diff < bestDiff) {
@@ -1096,30 +1179,58 @@ export function scaleMortalityToLE(
         return bestRates
     }
 
+    const defaultClosureProfile = getClosureProfile(baseLE, baseLE)
+
+    // If target equals base, no scaling needed
     if (Math.abs(targetLE - baseLE) < 0.1) {
         return {
-            female: scaleAndClose(baselineMortality.female, "female", 1),
-            male: scaleAndClose(baselineMortality.male, "male", 1),
+            female: scaleAndClose(
+                baselineMortality.female,
+                "female",
+                1,
+                defaultClosureProfile
+            ),
+            male: scaleAndClose(
+                baselineMortality.male,
+                "male",
+                1,
+                defaultClosureProfile
+            ),
         }
     }
 
+    // Preserve the baseline female-male LE gap while matching the requested average LE.
     const femaleBaseLE = calculateLifeExpectancy(
-        scaleAndClose(baselineMortality.female, "female", 1)
+        scaleAndClose(
+            baselineMortality.female,
+            "female",
+            1,
+            defaultClosureProfile
+        )
     )
     const maleBaseLE = calculateLifeExpectancy(
-        scaleAndClose(baselineMortality.male, "male", 1)
+        scaleAndClose(baselineMortality.male, "male", 1, defaultClosureProfile)
     )
     const baselineGap = femaleBaseLE - maleBaseLE
     const targetFemaleLE = targetLE + baselineGap / 2
     const targetMaleLE = targetLE - baselineGap / 2
 
+    const scaledFemale = findScaleForSex(
+        baselineMortality.female,
+        "female",
+        targetFemaleLE,
+        femaleBaseLE
+    )
+    const scaledMale = findScaleForSex(
+        baselineMortality.male,
+        "male",
+        targetMaleLE,
+        maleBaseLE
+    )
+
     return {
-        female: findScaleForSex(
-            baselineMortality.female,
-            "female",
-            targetFemaleLE
-        ),
-        male: findScaleForSex(baselineMortality.male, "male", targetMaleLE),
+        female: scaledFemale,
+        male: scaledMale,
     }
 }
 
