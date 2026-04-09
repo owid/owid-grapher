@@ -112,7 +112,7 @@ export function SlideRenderer(props: {
                 {!slide.hideLogo && <SlideLogo />}
             </div>
         ))
-        .with({ template: SlideTemplate.Contents }, (slide) => (
+        .with({ template: SlideTemplate.Outline }, (slide) => (
             <div className={`${className} slide--contents`}>
                 {!slide.hideLogo && <SlideLogo />}
                 {slide.title && (

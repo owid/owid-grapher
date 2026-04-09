@@ -2,6 +2,23 @@ import { Slide, SlideTemplate, Url } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
 import { GrapherProgrammaticInterface } from "@ourworldindata/grapher"
 
+/** Create a default slide for a given template */
+export function makeDefaultSlideForTemplate(template: SlideTemplate): Slide {
+    return match(template)
+        .with(SlideTemplate.Image, (t) => ({
+            template: t,
+            filename: null as string | null,
+        }))
+        .with(SlideTemplate.Chart, (t) => ({ template: t, url: "" }))
+        .with(SlideTemplate.Section, (t) => ({ template: t, title: "" }))
+        .with(SlideTemplate.Cover, (t) => ({ template: t, title: "" }))
+        .with(SlideTemplate.Blank, (t) => ({ template: t }))
+        .with(SlideTemplate.Statement, (t) => ({ template: t, text: "" }))
+        .with(SlideTemplate.Outline, (t) => ({ template: t, text: "" }))
+        .with(SlideTemplate.Text, (t) => ({ template: t, text: "" }))
+        .exhaustive()
+}
+
 /** Config applied to all slideshow chart embeds */
 const baseGrapherConfig: Partial<GrapherProgrammaticInterface> = {
     hideLogo: true,

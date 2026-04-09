@@ -7,14 +7,14 @@ export enum SlideTemplate {
     Cover = "cover",
     Blank = "blank",
     Statement = "statement",
-    Contents = "contents",
+    Outline = "outline",
     Text = "text",
 }
 
 /** Canonical display labels for each slide template */
 export const SLIDE_TEMPLATE_LABELS: Record<SlideTemplate, string> = {
     [SlideTemplate.Cover]: "Cover",
-    [SlideTemplate.Contents]: "Contents",
+    [SlideTemplate.Outline]: "Outline",
     [SlideTemplate.Image]: "Image",
     [SlideTemplate.Chart]: "Chart",
     [SlideTemplate.Section]: "Section",
@@ -77,7 +77,7 @@ export interface SlideStatement {
 }
 
 export interface SlideContents {
-    template: SlideTemplate.Contents
+    template: SlideTemplate.Outline
     title?: string
     /** Markdown list — bolded items are styled as "active" */
     text: MarkdownText
@@ -167,7 +167,7 @@ const SlideQuoteSchema = z.object({
 })
 
 const SlideContentsSchema = z.object({
-    template: z.literal(SlideTemplate.Contents),
+    template: z.literal(SlideTemplate.Outline),
     title: z.string().optional(),
     text: z.string(),
     hideLogo: z.boolean().optional(),

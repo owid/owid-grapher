@@ -1,7 +1,7 @@
 import { useContext, useState } from "react"
 import * as React from "react"
 import { match } from "ts-pattern"
-import { Button, Select, Upload } from "antd"
+import { Button, Upload } from "antd"
 import { useQueryClient } from "@tanstack/react-query"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faImages, faUpload } from "@fortawesome/free-solid-svg-icons"
@@ -20,125 +20,16 @@ import {
 import { ImageSelectorModal } from "../ImageSelectorModal.js"
 import { InlineMarkdownEditor, MarkdownEditor } from "../MarkdownEditor.js"
 
-const TEMPLATE_OPTIONS = Object.entries(SLIDE_TEMPLATE_LABELS).map(
-    ([value, label]) => ({ value: value as SlideTemplate, label })
-)
-
-const POPULAR_TEMPLATES = [
-    SlideTemplate.Image,
-    SlideTemplate.Chart,
-    SlideTemplate.Section,
-]
-
-function makeDefaultSlideForTemplate(template: SlideTemplate): Slide {
-    return match(template)
-        .with(SlideTemplate.Image, (t) => ({
-            template: t,
-            filename: null as string | null,
-        }))
-        .with(SlideTemplate.Chart, (t) => ({ template: t, url: "" }))
-        .with(SlideTemplate.Section, (t) => ({ template: t, title: "" }))
-        .with(SlideTemplate.Cover, (t) => ({ template: t, title: "" }))
-        .with(SlideTemplate.Blank, (t) => ({ template: t }))
-        .with(SlideTemplate.Statement, (t) => ({ template: t, text: "" }))
-        .with(SlideTemplate.Contents, (t) => ({ template: t, text: "" }))
-        .with(SlideTemplate.Text, (t) => ({ template: t, text: "" }))
-        .exhaustive()
-}
-
-/** Returns true if the slide has any user-entered content beyond defaults */
-function slideHasContent(slide: Slide): boolean {
-    return match(slide)
-        .with(
-            { template: SlideTemplate.Image },
-            (s) => s.filename !== null || !!s.slideTitle || !!s.text
-        )
-        .with(
-            { template: SlideTemplate.Chart },
-            (s) => !!s.url || !!s.title || !!s.subtitle || !!s.text
-        )
-        .with(
-            { template: SlideTemplate.Section },
-            (s) => !!s.title || !!s.subtitle
-        )
-        .with(
-            { template: SlideTemplate.Cover },
-            (s) => !!s.title || !!s.subtitle || !!s.author || !!s.date
-        )
-        .with({ template: SlideTemplate.Blank }, () => false)
-        .with(
-            { template: SlideTemplate.Statement },
-            (s) => !!s.text || !!s.attribution
-        )
-        .with(
-            { template: SlideTemplate.Contents },
-            (s) => !!s.title || !!s.text
-        )
-        .with({ template: SlideTemplate.Text }, (s) => !!s.title || !!s.text)
-        .exhaustive()
-}
-
 export function SlideshowEditTab(props: {
     slide: Slide
     onUpdate: (slide: Slide) => void
 }): React.ReactElement {
     const { slide, onUpdate } = props
 
-    const handleTemplateChange = (template: SlideTemplate) => {
-        if (template === slide.template) return
-        if (
-            slideHasContent(slide) &&
-            !confirm(
-                "Changing the template will discard the current slide content. Continue?"
-            )
-        ) {
-            return
-        }
-        onUpdate(makeDefaultSlideForTemplate(template))
-    }
-
     return (
         <div className="SlideshowEditTab">
             <fieldset>
-                <legend>Select slide template</legend>
-
-                <div className="SlideshowEditTab__popular-templates">
-                    <p>Popular</p>
-                    <div className="SlideshowEditTab__template-buttons">
-                        {POPULAR_TEMPLATES.map((t) => {
-                            const option = TEMPLATE_OPTIONS.find(
-                                (o) => o.value === t
-                            )
-                            return (
-                                <button
-                                    key={t}
-                                    className={`SlideshowEditTab__template-button ${
-                                        slide.template === t
-                                            ? "SlideshowEditTab__template-button--active"
-                                            : ""
-                                    }`}
-                                    onClick={() => handleTemplateChange(t)}
-                                >
-                                    {option?.label}
-                                </button>
-                            )
-                        })}
-                    </div>
-                </div>
-
-                <div className="SlideshowEditTab__template-select">
-                    <p>Select from all</p>
-                    <Select
-                        value={slide.template}
-                        onChange={handleTemplateChange}
-                        options={TEMPLATE_OPTIONS}
-                        style={{ width: "100%" }}
-                    />
-                </div>
-            </fieldset>
-
-            <fieldset>
-                <legend>Template options</legend>
+                <legend>{SLIDE_TEMPLATE_LABELS[slide.template]} options</legend>
                 <TemplateOptionsEditor slide={slide} onUpdate={onUpdate} />
             </fieldset>
         </div>
@@ -486,7 +377,7 @@ function TemplateOptionsEditor(props: {
                 <HideLogoCheckbox slide={slide} onUpdate={onUpdate} />
             </>
         ))
-        .with({ template: SlideTemplate.Contents }, (slide) => (
+        .with({ template: SlideTemplate.Outline }, (slide) => (
             <>
                 <label>
                     Title

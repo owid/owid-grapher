@@ -8,7 +8,8 @@ import {
 } from "react"
 import * as React from "react"
 import { useHistory } from "react-router-dom"
-import { Button, Tabs, Tooltip } from "antd"
+import { Button, Dropdown, Tabs, Tooltip } from "antd"
+import type { MenuProps } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     faPlus,
@@ -25,22 +26,17 @@ import {
     ImageMetadata,
     Slide,
     SlideTemplate,
+    SLIDE_TEMPLATE_LABELS,
     SlideshowConfig,
 } from "@ourworldindata/types"
 import { slugify, Url } from "@ourworldindata/utils"
 import { toPlaintext } from "@ourworldindata/components"
 import { SlideshowEditTab } from "./SlideshowEditTab.js"
+import { makeDefaultSlideForTemplate } from "../../site/slideshows/slideshowUtils.js"
 import { SlideshowArrangeTab } from "./SlideshowArrangeTab.js"
 import { useImages } from "../useImages.js"
 import { SlideRenderer } from "../../site/slideshows/SlideRenderer.js"
 import { SlideChartEmbed } from "../../site/slideshows/SlideChartEmbed.js"
-
-function makeDefaultSlide(): Slide {
-    return {
-        template: SlideTemplate.Image,
-        filename: null,
-    }
-}
 
 export function SlideshowEditorPage(props: {
     slideshowId?: number
@@ -53,7 +49,9 @@ export function SlideshowEditorPage(props: {
     const [slug, setSlug] = useState("")
     const [slugIsCustom, setSlugIsCustom] = useState(false)
     const [authors, setAuthors] = useState(admin.username)
-    const [slides, setSlides] = useState<Slide[]>([makeDefaultSlide()])
+    const [slides, setSlides] = useState<Slide[]>([
+        makeDefaultSlideForTemplate(SlideTemplate.Cover),
+    ])
     const [currentSlideIndex, setCurrentSlideIndex] = useState(0)
     const [isDirty, setIsDirty] = useState(false)
     const [isPublished, setIsPublished] = useState(0)
@@ -156,16 +154,19 @@ export function SlideshowEditorPage(props: {
         [currentSlideIndex]
     )
 
-    const addSlide = useCallback(() => {
-        const newSlide = makeDefaultSlide()
-        setSlides((prev) => {
-            const next = [...prev]
-            next.splice(currentSlideIndex + 1, 0, newSlide)
-            return next
-        })
-        setCurrentSlideIndex((prev) => prev + 1)
-        setIsDirty(true)
-    }, [currentSlideIndex])
+    const addSlide = useCallback(
+        (template: SlideTemplate) => {
+            const newSlide = makeDefaultSlideForTemplate(template)
+            setSlides((prev) => {
+                const next = [...prev]
+                next.splice(currentSlideIndex + 1, 0, newSlide)
+                return next
+            })
+            setCurrentSlideIndex((prev) => prev + 1)
+            setIsDirty(true)
+        },
+        [currentSlideIndex]
+    )
 
     const duplicateSlide = useCallback(() => {
         setSlides((prev) => {
@@ -235,6 +236,14 @@ export function SlideshowEditorPage(props: {
     )
 
     const canSave = slug.trim().length > 0 && title.trim().length > 0
+
+    const addSlideMenuItems: MenuProps["items"] = Object.entries(
+        SLIDE_TEMPLATE_LABELS
+    ).map(([value, label]) => ({
+        key: value,
+        label,
+        onClick: () => addSlide(value as SlideTemplate),
+    }))
 
     const tabItems = [
         {
@@ -432,9 +441,14 @@ export function SlideshowEditorPage(props: {
                         >
                             <FontAwesomeIcon icon={faTrash} />
                         </Button>
-                        <Button size="small" onClick={addSlide}>
-                            <FontAwesomeIcon icon={faPlus} />
-                        </Button>
+                        <Dropdown
+                            menu={{ items: addSlideMenuItems }}
+                            trigger={["click"]}
+                        >
+                            <Button size="small">
+                                <FontAwesomeIcon icon={faPlus} />
+                            </Button>
+                        </Dropdown>
                     </div>
                 </div>
             </main>
