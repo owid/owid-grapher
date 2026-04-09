@@ -16,7 +16,12 @@ import {
 } from "../helpers/constants"
 import { GRAPHER_LIGHT_TEXT } from "@ourworldindata/grapher/src/color/ColorConstants.js"
 import { computeMaxAgeGroupPopulation } from "../model/projectionRunner"
-import { groupByAgeRange, parseAgeGroup } from "../helpers/utils"
+import {
+    groupByAgeRange,
+    parseAgeGroup,
+    formatPopulationValueShort,
+    formatPopulationAxisLabelShort,
+} from "../helpers/utils"
 import { Bounds, formatValue } from "@ourworldindata/utils"
 import { Halo, TextWrap, TextWrapSvg } from "@ourworldindata/components"
 import { toBreakpoint } from "../helpers/useBreakpoint.js"
@@ -29,6 +34,7 @@ export interface PopulationPyramidHorizontalProps {
     yAxisScaleMode?: "fixed" | "adaptive"
     projection?: ProjectionType
     barColor?: { female: string; male: string } | string
+    unit?: "percent" | "absolute"
 }
 
 function PopulationPyramidHorizontalContent({
@@ -37,6 +43,7 @@ function PopulationPyramidHorizontalContent({
     yAxisScaleMode = "fixed",
     projection = "custom",
     barColor,
+    unit = "percent",
     width,
     height,
 }: PopulationPyramidHorizontalProps & { width: number; height: number }) {
@@ -63,7 +70,8 @@ function PopulationPyramidHorizontalContent({
         const female = populationBySex?.female ?? []
         const totalPop =
             male.reduce((a, b) => a + b, 0) + female.reduce((a, b) => a + b, 0)
-        const toPercent = (buckets: Record<string, number>) => {
+        const toBuckets = (buckets: Record<string, number>) => {
+            if (unit === "absolute") return buckets
             const result: Record<string, number> = {}
             for (const [k, v] of Object.entries(buckets)) {
                 result[k] = totalPop > 0 ? (v / totalPop) * 100 : 0
@@ -71,10 +79,10 @@ function PopulationPyramidHorizontalContent({
             return result
         }
         return {
-            male: toPercent(groupByAgeRange(male)),
-            female: toPercent(groupByAgeRange(female)),
+            male: toBuckets(groupByAgeRange(male)),
+            female: toBuckets(groupByAgeRange(female)),
         }
-    }, [populationBySex])
+    }, [populationBySex, unit])
 
     const xScale = useMemo(
         () =>
@@ -94,8 +102,8 @@ function PopulationPyramidHorizontalContent({
             )
             return max
         }
-        return computeMaxAgeGroupPopulation(simulation) * 1.1
-    }, [simulation, yAxisScaleMode, ageBucketsBySex])
+        return computeMaxAgeGroupPopulation(simulation, unit) * 1.1
+    }, [simulation, yAxisScaleMode, ageBucketsBySex, unit])
 
     const centerY = innerHeight / 2
     const centerGap = fonts.xTick + 6
@@ -154,6 +162,24 @@ function PopulationPyramidHorizontalContent({
                     yScale={yScaleMale}
                     innerWidth={innerWidth}
                 />
+                <GridLabels
+                    yScale={yScaleFemale}
+                    innerWidth={innerWidth}
+                    innerHeight={innerHeight}
+                    fontSize={fonts.yTick}
+                    labelColor={LABEL_COLOR}
+                    position="above"
+                    unit={unit}
+                />
+                <GridLabels
+                    yScale={yScaleMale}
+                    innerWidth={innerWidth}
+                    innerHeight={innerHeight}
+                    fontSize={fonts.yTick}
+                    labelColor={LABEL_COLOR}
+                    position="below"
+                    unit={unit}
+                />
 
                 <AgeGroupBars
                     xScale={xScale}
@@ -176,22 +202,6 @@ function PopulationPyramidHorizontalContent({
                     maleBaseline={centerY + centerGap / 2}
                     innerHeight={innerHeight}
                 />
-                <GridLabels
-                    yScale={yScaleFemale}
-                    innerWidth={innerWidth}
-                    innerHeight={innerHeight}
-                    fontSize={fonts.yTick}
-                    labelColor={LABEL_COLOR}
-                    position="above"
-                />
-                <GridLabels
-                    yScale={yScaleMale}
-                    innerWidth={innerWidth}
-                    innerHeight={innerHeight}
-                    fontSize={fonts.yTick}
-                    labelColor={LABEL_COLOR}
-                    position="below"
-                />
 
                 <BarValueLabel
                     xScale={xScale}
@@ -200,6 +210,7 @@ function PopulationPyramidHorizontalContent({
                     color={effectiveFemaleColor}
                     hoveredAgeGroup={hoveredAgeGroup}
                     fontSize={fonts.hoverLabel}
+                    unit={unit}
                 />
                 <BarValueLabel
                     xScale={xScale}
@@ -208,6 +219,7 @@ function PopulationPyramidHorizontalContent({
                     color={effectiveMaleColor}
                     hoveredAgeGroup={hoveredAgeGroup}
                     fontSize={fonts.hoverLabel}
+                    unit={unit}
                 />
                 <HoverHitRects
                     xScale={xScale}
@@ -327,6 +339,7 @@ function BarValueLabel({
     color,
     hoveredAgeGroup,
     fontSize,
+    unit = "percent",
 }: {
     xScale: ReturnType<typeof scaleLinear<number>>
     yScale: ReturnType<typeof scaleLinear<number>>
@@ -334,6 +347,7 @@ function BarValueLabel({
     color: string
     hoveredAgeGroup: string | null
     fontSize: number
+    unit?: "percent" | "absolute"
 }) {
     if (!hoveredAgeGroup) return null
     const value = ageBuckets[hoveredAgeGroup] || 0
@@ -364,7 +378,9 @@ function BarValueLabel({
                 fill={color}
                 style={{ pointerEvents: "none" }}
             >
-                {`${value.toFixed(1)}%`}
+                {unit === "absolute"
+                    ? formatPopulationValueShort(value)
+                    : `${value.toFixed(1)}%`}
             </text>
         </Halo>
     )
@@ -558,6 +574,7 @@ function GridLabels({
     fontSize,
     labelColor,
     position,
+    unit = "percent",
 }: {
     yScale: ReturnType<typeof scaleLinear<number>>
     innerWidth: number
@@ -565,18 +582,23 @@ function GridLabels({
     fontSize: number
     labelColor: string
     position: "above" | "below"
+    unit?: "percent" | "absolute"
 }) {
     const ticks = yScale.ticks(2).filter((t) => t > 0)
+    const formatTick = (tick: number) =>
+        unit === "absolute"
+            ? formatPopulationAxisLabelShort(tick)
+            : formatValue(tick, {
+                  numDecimalPlaces: 0,
+                  numberAbbreviation: false,
+                  unit: "%",
+              })
     return (
         <>
             {ticks.map((tick) => {
                 const y = yScale(tick)
                 const textWrap = new TextWrap({
-                    text: formatValue(tick, {
-                        numDecimalPlaces: 0,
-                        numberAbbreviation: false,
-                        unit: "%",
-                    }),
+                    text: formatTick(tick),
                     maxWidth: Infinity,
                     fontSize,
                 })
@@ -588,11 +610,7 @@ function GridLabels({
                 return (
                     <GridLabel
                         key={tick}
-                        valueText={formatValue(tick, {
-                            numDecimalPlaces: 0,
-                            numberAbbreviation: false,
-                            unit: "%",
-                        })}
+                        valueText={formatTick(tick)}
                         x={innerWidth}
                         y={y}
                         fontSize={fontSize}

@@ -8,7 +8,11 @@ import {
     LoadingSpinner,
 } from "../components/DemographyLoadAndError.js"
 import { queryClient, useDemographyData } from "../helpers/fetch.js"
-import type { PopulationPyramidVariantConfig, VariantProps } from "../config.js"
+import type {
+    PopulationPyramidUnit,
+    PopulationPyramidVariantConfig,
+    VariantProps,
+} from "../config.js"
 import {
     entityNameForSentence,
     groupAgeGroupsByZone,
@@ -95,6 +99,7 @@ function FetchingPopulationPyramidVariant({
             fertilityRateAssumptions={config.fertilityRateAssumptions}
             lifeExpectancyAssumptions={config.lifeExpectancyAssumptions}
             netMigrationRateAssumptions={config.netMigrationRateAssumptions}
+            populationPyramidUnit={config.populationPyramidUnit}
         />
     )
 }
@@ -115,6 +120,7 @@ function CaptionedPopulationPyramidVariant({
     fertilityRateAssumptions,
     lifeExpectancyAssumptions,
     netMigrationRateAssumptions,
+    populationPyramidUnit,
 }: {
     data: CountryData
     metadata: DemographyMetadata
@@ -131,6 +137,7 @@ function CaptionedPopulationPyramidVariant({
     fertilityRateAssumptions?: Record<number, number>
     lifeExpectancyAssumptions?: Record<number, number>
     netMigrationRateAssumptions?: Record<number, number>
+    populationPyramidUnit?: PopulationPyramidUnit
 }) {
     const [year, setYear] = useState(initialTime ?? END_YEAR)
 
@@ -201,6 +208,7 @@ function CaptionedPopulationPyramidVariant({
                                     hideTimeline ? "adaptive" : "fixed"
                                 }
                                 projection={projection}
+                                unit={populationPyramidUnit}
                             />
                         </div>
                     </div>

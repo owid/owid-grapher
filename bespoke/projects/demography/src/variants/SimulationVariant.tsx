@@ -2,7 +2,11 @@ import cx from "classnames"
 import { QueryClientProvider } from "@tanstack/react-query"
 
 import { queryClient, useDemographyData } from "../helpers/fetch.js"
-import type { SimulationVariantConfig, VariantProps } from "../config.js"
+import type {
+    PopulationPyramidUnit,
+    SimulationVariantConfig,
+    VariantProps,
+} from "../config.js"
 import { CHART_FOOTER_SOURCES } from "../helpers/constants.js"
 import { useInitialEntityName } from "../helpers/useInitialEntityName.js"
 import {
@@ -75,6 +79,7 @@ function FetchingSimulationVariant({
             focusParameter={config.focusParameter}
             stabilizingParameter={config.stabilizingParameter}
             hidePopulationPyramid={config.hidePopulationPyramid}
+            populationPyramidUnit={config.populationPyramidUnit}
         />
     )
 }
@@ -91,6 +96,7 @@ function CaptionedSimulationVariant({
     focusParameter,
     stabilizingParameter,
     hidePopulationPyramid,
+    populationPyramidUnit,
 }: {
     data: CountryData
     metadata: DemographyMetadata
@@ -103,6 +109,7 @@ function CaptionedSimulationVariant({
     focusParameter?: ParameterKey
     stabilizingParameter?: ParameterKey
     hidePopulationPyramid?: boolean
+    populationPyramidUnit?: PopulationPyramidUnit
 }) {
     const countryName = data.country
 
@@ -137,6 +144,7 @@ function CaptionedSimulationVariant({
                     focusParameter={focusParameter}
                     stabilizingParameter={stabilizingParameter}
                     hidePopulationPyramid={hidePopulationPyramid}
+                    populationPyramidUnit={populationPyramidUnit}
                 />
             </div>
             <ChartFooter

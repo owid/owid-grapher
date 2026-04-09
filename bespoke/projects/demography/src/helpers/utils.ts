@@ -51,7 +51,7 @@ export function formatPopulationValueShort(value: number): string {
     }
     return formatValue(value, {
         roundingMode: OwidVariableRoundingMode.significantFigures,
-        numSignificantFigures: 1,
+        numSignificantFigures: 2,
         numberAbbreviation: "short",
     })
 }
