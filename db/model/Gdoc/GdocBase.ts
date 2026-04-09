@@ -390,17 +390,30 @@ export class GdocBase implements OwidGdocBaseInterface {
     }
 
     async loadLinkedAuthors(knex: db.KnexReadonlyTransaction): Promise<void> {
-        const authors = await getMinimalAuthorsByNames(
+        const dbAuthors = await getMinimalAuthorsByNames(
             knex,
             this.content.authors
         )
         const authorRoles = this.content.authorRoles
-        if (authorRoles) {
-            for (const author of authors) {
-                const role = authorRoles[author.name]
-                if (role) author.role = role
+        // Build the full list of linked authors, including those without
+        // a published author page (they still need their role applied).
+        const dbAuthorsByName = new Map(
+            dbAuthors.map((a) => [a.name, a])
+        )
+        const authors: LinkedAuthor[] = this.content.authors.map((name) => {
+            const dbAuthor = dbAuthorsByName.get(name)
+            const role = authorRoles?.[name]
+            if (dbAuthor) {
+                if (role) dbAuthor.role = role
+                return dbAuthor
             }
-        }
+            return {
+                name,
+                slug: null,
+                featuredImage: null,
+                ...(role ? { role } : {}),
+            }
+        })
         this.linkedAuthors = authors
     }
 

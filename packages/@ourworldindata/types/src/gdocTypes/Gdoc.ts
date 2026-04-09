@@ -38,9 +38,9 @@ export interface LatestDataInsight {
 
 export interface LinkedAuthor {
     name: string
-    slug: string
+    slug: string | null
     featuredImage: string | null
-    updatedAt: Date
+    updatedAt?: Date
     role?: string
 }
 

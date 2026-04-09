@@ -614,13 +614,22 @@ export class SiteBaker {
                     this._prefetchedAttachmentsCache.linkedIndicators,
                     linkedIndicatorIds
                 ),
-                linkedAuthors: this._prefetchedAttachmentsCache.linkedAuthors
-                    .filter((author) => authorNames.includes(author.name))
-                    .map((author) => {
-                        const role = authorRoles?.[author.name]
-                        if (role) return { ...author, role }
-                        return author
-                    }),
+                linkedAuthors: authorNames.map((name) => {
+                    const cached =
+                        this._prefetchedAttachmentsCache!.linkedAuthors.find(
+                            (a) => a.name === name
+                        )
+                    const role = authorRoles?.[name]
+                    if (cached) {
+                        return role ? { ...cached, role } : cached
+                    }
+                    return {
+                        name,
+                        slug: null,
+                        featuredImage: null,
+                        ...(role ? { role } : {}),
+                    }
+                }),
                 linkedNarrativeCharts: _.pick(
                     this._prefetchedAttachmentsCache.linkedNarrativeCharts,
                     linkedNarrativeChartNames
