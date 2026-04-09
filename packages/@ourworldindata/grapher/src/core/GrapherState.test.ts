@@ -2331,3 +2331,143 @@ describe("prepareTableForDownload", () => {
         expect(years).toEqual([2020])
     })
 })
+
+describe("adjustStateForTab", () => {
+    // Helper: create a grapher with data and multiple chart types
+    const createGrapher = (
+        overrides?: Partial<GrapherInterface>
+    ): GrapherState => {
+        const table = SynthesizeGDPTable({
+            entityCount: 3,
+            timeRange: [2000, 2010],
+        })
+        return new GrapherState({
+            table,
+            selectedEntityNames: table.availableEntityNames.slice(0, 2),
+            ySlugs: SampleColumnSlugs.GDP,
+            chartTypes: [
+                GRAPHER_CHART_TYPES.LineChart,
+                GRAPHER_CHART_TYPES.DiscreteBar,
+                GRAPHER_CHART_TYPES.StackedArea,
+                GRAPHER_CHART_TYPES.SlopeChart,
+            ],
+            ...overrides,
+        })
+    }
+
+    describe("time handle adjustment", () => {
+        it("collapses time range to single time when switching to a single-time tab", () => {
+            const grapher = createGrapher()
+
+            // Start with a time range
+            grapher.timelineHandleTimeBounds = [-Infinity, Infinity]
+            expect(grapher.startHandleTimeBound).not.toBe(
+                grapher.endHandleTimeBound
+            )
+
+            grapher.adjustStateForTab(GRAPHER_TAB_NAMES.DiscreteBar)
+
+            // A single time is now selected
+            expect(grapher.startHandleTimeBound).toBe(
+                grapher.endHandleTimeBound
+            )
+        })
+
+        it("expands single time to a range when switching to a range tab", () => {
+            const grapher = createGrapher()
+
+            // Start with a single time
+            grapher.timelineHandleTimeBounds = [2005, 2005]
+
+            grapher.adjustStateForTab(GRAPHER_TAB_NAMES.LineChart)
+
+            // A time range is now selected
+            expect(grapher.startHandleTimeBound).not.toBe(
+                grapher.endHandleTimeBound
+            )
+        })
+
+        it("does not modify handles if they already match the target tab's mode", () => {
+            const grapher = createGrapher()
+
+            // Already a range — switching to LineChart should be a no-op
+            grapher.timelineHandleTimeBounds = [2000, 2010]
+            grapher.adjustStateForTab(GRAPHER_TAB_NAMES.LineChart)
+            expect(grapher.timelineHandleTimeBounds).toEqual([2000, 2010])
+
+            // Already single time — switching to DiscreteBar should be a no-op
+            grapher.timelineHandleTimeBounds = [2005, 2005]
+            grapher.adjustStateForTab(GRAPHER_TAB_NAMES.DiscreteBar)
+            expect(grapher.timelineHandleTimeBounds).toEqual([2005, 2005])
+        })
+
+        it("collapses time range for StackedArea (range-preferred) tabs", () => {
+            const grapher = createGrapher()
+
+            // Start with a single time
+            grapher.timelineHandleTimeBounds = [2005, 2005]
+
+            grapher.adjustStateForTab(GRAPHER_TAB_NAMES.StackedArea)
+
+            // StackedArea prefers a range, so the single time should be expanded to a range
+            expect(grapher.startHandleTimeBound).not.toBe(
+                grapher.endHandleTimeBound
+            )
+        })
+    })
+
+    describe("entity selection adjustment", () => {
+        it("clears selection for all-entity chart type when selection matches authored", () => {
+            const grapher = createGrapher({
+                xSlug: SampleColumnSlugs.GDP,
+                chartTypes: [
+                    GRAPHER_CHART_TYPES.LineChart,
+                    GRAPHER_CHART_TYPES.ScatterPlot,
+                ],
+            })
+
+            expect(grapher.selection.hasSelection).toBe(true)
+
+            grapher.adjustStateForTab(GRAPHER_TAB_NAMES.ScatterPlot)
+
+            expect(grapher.selection.hasSelection).toBe(false)
+        })
+
+        it("preserves selection for all-entity chart types when user changed it", () => {
+            const grapher = createGrapher({
+                xSlug: SampleColumnSlugs.GDP,
+                chartTypes: [
+                    GRAPHER_CHART_TYPES.LineChart,
+                    GRAPHER_CHART_TYPES.ScatterPlot,
+                ],
+            })
+
+            // Simulate user changing the selection away from authored
+            grapher.selection.deselectEntity(
+                grapher.selection.selectedEntityNames[0]
+            )
+            expect(grapher.areSelectedEntitiesDifferentThanAuthors).toBe(true)
+
+            grapher.adjustStateForTab(GRAPHER_TAB_NAMES.ScatterPlot)
+
+            expect(grapher.selection.hasSelection).toBe(true)
+        })
+
+        it("restores authored selection when selection is empty", () => {
+            const grapher = createGrapher({
+                chartTypes: [GRAPHER_CHART_TYPES.LineChart],
+            })
+            const authoredSelection = grapher.selection.selectedEntityNames
+
+            // Clear selection
+            grapher.selection.clearSelection()
+            expect(grapher.selection.hasSelection).toBe(false)
+
+            grapher.adjustStateForTab(GRAPHER_TAB_NAMES.LineChart)
+
+            expect(grapher.selection.selectedEntityNames).toEqual(
+                authoredSelection
+            )
+        })
+    })
+})

@@ -1985,17 +1985,14 @@ export class GrapherState
         }
     }
 
-    @action.bound onChartSwitching(
-        _oldTab: GrapherTabName,
-        newTab: GrapherTabName
-    ): void {
+    @action.bound adjustStateForTab(tab: GrapherTabName): void {
         if (!this.isReady)
             console.warn(
-                "onChartSwitching has been called before grapher has loaded its data, this is probably a mistake"
+                "adjustStateForTab has been called before grapher has loaded its data, this is probably a mistake"
             )
 
-        this.ensureTimeHandlesAreSensibleForTab(newTab)
-        this.ensureEntitySelectionIsSensibleForTab(newTab)
+        this.ensureTimeHandlesAreSensibleForTab(tab)
+        this.ensureEntitySelectionIsSensibleForTab(tab)
 
         // Stop animation when switching to a tab where playback is disabled
         if (this.disablePlay && this.isTimelineAnimationActive) {
@@ -2063,7 +2060,7 @@ export class GrapherState
         oldTab: GrapherTabName,
         newTab: GrapherTabName
     ): void {
-        this.onChartSwitching(oldTab, newTab)
+        this.adjustStateForTab(newTab)
         this.syncEntitySelectionBetweenChartAndMap(oldTab, newTab)
         this.validateEntitySelectorState(newTab)
     }
