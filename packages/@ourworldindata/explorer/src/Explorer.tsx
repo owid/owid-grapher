@@ -532,13 +532,13 @@ export class Explorer
         // When switching between explorer views, we usually preserve the tab.
         // However, if the new chart doesn't support the previously selected tab,
         // Grapher automatically switches to a supported one. In such cases,
-        // we call onChartSwitching to make adjustments that ensure the new view
+        // we call adjustStateForTab to make adjustments that ensure the new view
         // is sensible (e.g. updating the time selection when switching from a
         // single-time chart like a discrete bar chart to a multi-time chart like
         // a line chart).
         const currentTab = this.grapherState.activeTab
         if (previousTab !== currentTab)
-            this.grapherState.onChartSwitching(previousTab, currentTab)
+            this.grapherState.adjustStateForTab(currentTab)
 
         this.analytics.logExplorerView(
             this.explorerProgram.slug,
