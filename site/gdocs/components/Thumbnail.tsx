@@ -2,7 +2,10 @@ import {
     ARCHIVED_THUMBNAIL_FILENAME,
     DEFAULT_THUMBNAIL_FILENAME,
 } from "@ourworldindata/types"
-import { GRAPHER_DYNAMIC_THUMBNAIL_URL } from "../../../settings/clientSettings"
+import {
+    EXPLORER_DYNAMIC_THUMBNAIL_URL,
+    GRAPHER_DYNAMIC_THUMBNAIL_URL,
+} from "../../../settings/clientSettings"
 import Image from "./Image"
 
 export const Thumbnail = ({
@@ -23,6 +26,8 @@ export const Thumbnail = ({
     if (
         (GRAPHER_DYNAMIC_THUMBNAIL_URL &&
             thumbnail.startsWith(GRAPHER_DYNAMIC_THUMBNAIL_URL)) ||
+        (EXPLORER_DYNAMIC_THUMBNAIL_URL &&
+            thumbnail.startsWith(EXPLORER_DYNAMIC_THUMBNAIL_URL)) ||
         thumbnail.endsWith(ARCHIVED_THUMBNAIL_FILENAME) ||
         thumbnail.endsWith(DEFAULT_THUMBNAIL_FILENAME)
     ) {

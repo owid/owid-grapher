@@ -31,6 +31,7 @@ import { archieToEnriched } from "./archieToEnriched.js"
 import { getChartConfigById, mapSlugsToIds } from "../Chart.js"
 import {
     BAKED_BASE_URL,
+    EXPLORER_DYNAMIC_THUMBNAIL_URL,
     GRAPHER_DYNAMIC_THUMBNAIL_URL,
     IS_ARCHIVE,
 } from "../../../settings/clientSettings.js"
@@ -58,7 +59,6 @@ import {
     ChartConfigType,
     NarrativeChartInfo,
     ContentGraphLinkType,
-    DEFAULT_THUMBNAIL_FILENAME,
     GrapherInterface,
     LatestDataInsight,
     LinkedAuthor,
@@ -1533,7 +1533,6 @@ export function makeExplorerLinkedChart(
         slug: string
         title?: string
         subtitle?: string
-        thumbnail?: string
         tags?: string[]
     },
     originalSlug: string,
@@ -1548,9 +1547,7 @@ export function makeExplorerLinkedChart(
         title: explorer.title ?? "",
         subtitle: explorer.subtitle ?? "",
         resolvedUrl: `${BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${originalSlug}`,
-        thumbnail:
-            explorer.thumbnail ||
-            `${BAKED_BASE_URL}/${DEFAULT_THUMBNAIL_FILENAME}`,
+        thumbnail: `${EXPLORER_DYNAMIC_THUMBNAIL_URL}/${originalSlug}.png`,
         tags: explorer.tags ?? [],
         archivedPageVersion: options?.archivedPageVersion,
     }
