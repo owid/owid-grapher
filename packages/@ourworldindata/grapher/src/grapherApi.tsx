@@ -1,6 +1,6 @@
 import { createRoot } from "react-dom/client"
 import { useEffect, useRef } from "react"
-import { GrapherInterface } from "@ourworldindata/types"
+import { GrapherInterface, OwidColumnDef } from "@ourworldindata/types"
 import { OwidTable } from "@ourworldindata/core-table"
 import { Grapher } from "./core/Grapher.js"
 import { GrapherState } from "./core/GrapherState.js"
@@ -9,22 +9,37 @@ import { useElementBounds } from "./hooks.js"
 
 const DEFAULT_DATA_API_URL = "https://api.ourworldindata.org/v1/indicators/"
 
-interface GrapherApiOptions {
+interface GrapherApiOptionsBase {
     /** Grapher configuration object (chart type, dimensions, display, etc.) */
     config: GrapherInterface
-    /**
-     * Data to display. Can be:
-     * - a URL to fetch data from (e.g. a data API endpoint)
-     * - a string of CSV data
-     * - an OwidTable instance with pre-loaded data
-     */
-    data?: URL | string | OwidTable
-    /**
-     * Base URL for the OWID data API.
-     * Defaults to "https://api.ourworldindata.org/v1/indicators/"
-     */
+}
+
+/** Provide a pre-built OwidTable directly as the chart's data source. */
+interface GrapherApiOptionsWithTable extends GrapherApiOptionsBase {
+    data: OwidTable
+}
+
+/** Fetch a CSV file from a URL and use it as the chart's data source. */
+interface GrapherApiOptionsWithCsv extends GrapherApiOptionsBase {
+    /** URL of a CSV file to fetch. Must have entityName, entityCode, entityId,
+     *  and year (or day) columns, plus one or more value columns. */
+    csvUrl: string
+    /** Column definitions to apply — use these to specify types and display
+     *  names for your value columns. */
+    columnDefs?: OwidColumnDef[]
+}
+
+/** Load data from the OWID data API (default behaviour). */
+interface GrapherApiOptionsWithApi extends GrapherApiOptionsBase {
+    /** Base URL for the OWID data API.
+     *  Defaults to "https://api.ourworldindata.org/v1/indicators/" */
     dataApiUrl?: string
 }
+
+type GrapherApiOptions =
+    | GrapherApiOptionsWithTable
+    | GrapherApiOptionsWithCsv
+    | GrapherApiOptionsWithApi
 
 interface GrapherHandle {
     /** The underlying GrapherState — use this to read or modify chart state programmatically */
@@ -58,20 +73,35 @@ export function renderGrapherIntoContainer(
     container: HTMLElement,
     options: GrapherApiOptions
 ): GrapherHandle {
-    const { config, data, dataApiUrl = DEFAULT_DATA_API_URL } = options
+    const { config } = options
 
     let grapherState: GrapherState
 
-    if (data instanceof OwidTable) {
-        // Data provided directly
+    if ("data" in options) {
+        // Pre-loaded table provided directly
         grapherState = new GrapherState({
             ...config,
-            table: data,
+            table: options.data,
             isConfigReady: true,
             isDataReady: true,
         })
+    } else if ("csvUrl" in options) {
+        // Fetch and parse a CSV file from the given URL
+        grapherState = new GrapherState({
+            ...config,
+            isConfigReady: true,
+            isDataReady: false,
+        })
+
+        void OwidTable.fromUrl(options.csvUrl, options.columnDefs).then(
+            (table) => {
+                grapherState.inputTable = table
+                grapherState.isDataReady = true
+            }
+        )
     } else {
-        // Fetch data — from the given URL/string, or from the OWID data API
+        // Fetch data from the OWID data API
+        const dataApiUrl = options.dataApiUrl ?? DEFAULT_DATA_API_URL
         grapherState = new GrapherState({
             ...config,
             isConfigReady: true,
@@ -81,7 +111,7 @@ export function renderGrapherIntoContainer(
         void fetchInputTableForConfig({
             dimensions: config.dimensions,
             selectedEntityColors: config.selectedEntityColors,
-            dataApiUrl: typeof data === "string" ? data : dataApiUrl,
+            dataApiUrl,
         }).then((table) => {
             if (table) grapherState.inputTable = table
             grapherState.isDataReady = true
