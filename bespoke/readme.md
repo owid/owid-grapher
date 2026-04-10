@@ -51,8 +51,7 @@ export const BESPOKE_COMPONENT_REGISTRY: Record<
     BespokeComponentDefinition
 > = {
     "income-plots": {
-        scriptUrl: "/assets/bespoke/income-plots.mjs",
-        cssUrl: "/assets/bespoke/income-plots.css", // optional
+        scriptUrl: "/income-plots/index.js",
     },
 }
 ```
