@@ -394,7 +394,15 @@ export class SiteBaker {
                 .getAllPublishedExplorersBySlugCached(knex)
                 .then((results) =>
                     _.mapValues(results, (explorer) => {
-                        return makeExplorerLinkedChart(explorer, explorer.slug)
+                        return makeExplorerLinkedChart(
+                            {
+                                slug: explorer.slug,
+                                title: explorer.explorerTitle,
+                                subtitle: explorer.explorerSubtitle,
+                                thumbnail: explorer.thumbnail,
+                            },
+                            explorer.slug
+                        )
                     })
                 )
             console.log(
