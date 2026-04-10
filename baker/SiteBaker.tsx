@@ -399,7 +399,6 @@ export class SiteBaker {
                                 slug: explorer.slug,
                                 title: explorer.explorerTitle,
                                 subtitle: explorer.explorerSubtitle,
-                                thumbnail: explorer.thumbnail,
                             },
                             explorer.slug
                         )
