@@ -1883,11 +1883,11 @@ export class GrapherState
     @action.bound private ensureHandlesAreOnDifferentTimes(): void {
         if (!this.areHandlesOnSameTime) return
 
-        const time = this.startTime // startTime = endTime
-        if (time === this.closestTimelineMinTime) {
-            this.timelineHandleTimeBounds = [time ?? -Infinity, Infinity]
+        const timeBound = this.endHandleTimeBound // same as startHandleTimeBound
+        if (this.startTime === this.closestTimelineMinTime) {
+            this.timelineHandleTimeBounds = [timeBound ?? -Infinity, Infinity]
         } else {
-            this.timelineHandleTimeBounds = [-Infinity, time ?? Infinity]
+            this.timelineHandleTimeBounds = [-Infinity, timeBound ?? Infinity]
         }
     }
 
