@@ -3,6 +3,7 @@ import { z } from "zod"
 export enum SlideTemplate {
     Image = "image",
     Chart = "chart",
+    TwoCharts = "two-charts",
     Cover = "cover",
     Statement = "statement",
     Outline = "outline",
@@ -15,6 +16,7 @@ export const SLIDE_TEMPLATE_LABELS: Record<SlideTemplate, string> = {
     [SlideTemplate.Outline]: "Outline",
     [SlideTemplate.Image]: "Image",
     [SlideTemplate.Chart]: "Chart",
+    [SlideTemplate.TwoCharts]: "Two Charts",
     [SlideTemplate.Statement]: "Statement",
     [SlideTemplate.Text]: "Text",
 }
@@ -84,9 +86,19 @@ export interface SlideText {
     hideLogo?: boolean
 }
 
+export interface SlideTwoCharts {
+    template: SlideTemplate.TwoCharts
+    url1: string
+    url2: string
+    title?: string
+    subtitle?: string
+    hideLogo?: boolean
+}
+
 export type Slide =
     | SlideImageOnly
     | SlideChartOnly
+    | SlideTwoCharts
     | SlideTitleSlide
     | SlideStatement
     | SlideContents
@@ -162,9 +174,19 @@ const SlideTextSchema = z.object({
     hideLogo: z.boolean().optional(),
 })
 
+const SlideTwoChartsSchema = z.object({
+    template: z.literal(SlideTemplate.TwoCharts),
+    url1: z.string().min(1),
+    url2: z.string().min(1),
+    title: z.string().optional(),
+    subtitle: z.string().optional(),
+    hideLogo: z.boolean().optional(),
+})
+
 export const SlideSchema = z.discriminatedUnion("template", [
     SlideImageOnlySchema,
     SlideChartOnlySchema,
+    SlideTwoChartsSchema,
     SlideTitleSlideSchema,
     SlideQuoteSchema,
     SlideContentsSchema,

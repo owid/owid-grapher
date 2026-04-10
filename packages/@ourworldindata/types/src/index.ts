@@ -603,6 +603,7 @@ export {
     type MarkdownText,
     type SlideImageOnly,
     type SlideChartOnly,
+    type SlideTwoCharts,
     type SlideSection,
     type SlideTitleSlide,
     type SlideStatement,

@@ -41,6 +41,25 @@
     min-height: 0;
 }
 
+.slide--two-charts {
+    padding: 32px;
+    align-items: stretch;
+}
+
+.slide-two-charts__content {
+    flex: 1;
+    display: flex;
+    gap: 16px;
+    min-height: 0;
+}
+
+.slide-two-charts__chart {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
 .slide__grapher-container {
     flex: 1;
     min-width: 0;
@@ -193,8 +212,7 @@
 .slide-title {
     @include display-1-semibold;
     @include slide-font-size(20px, 3, 40px);
-    // ensure the title doesn't overlap the logo
-    max-width: calc(100% - 90px);
+
     margin: 0;
 }
 
@@ -203,6 +221,12 @@
     @include slide-font-size(13px, 1.6, 22px);
     color: $gray-80;
     margin: 0;
+}
+
+.slide-title,
+.slide-subtitle {
+    // ensure the title doesn't overlap the logo
+    max-width: calc(100% - 90px);
 }
 
 .slide__text {

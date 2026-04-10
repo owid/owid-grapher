@@ -105,31 +105,55 @@ export function SlideshowEditorPage(props: {
 
     const grapherStateRef = useRef<GrapherState | null>(null)
 
-    const handleGrapherQueryStringChange = useCallback(
-        (queryString: string) => {
-            setSlides((prev) => {
-                const slide = prev[currentSlideIndex]
-                if (!slide || slide.template !== SlideTemplate.Chart)
-                    return prev
-                // Update the query string portion of the URL,
-                // preserving any hash fragment
-                const parsed = Url.fromURL(slide.url)
-                const basePath = parsed.originAndPath ?? ""
-                const hash = parsed.hash
-                const newUrl = queryString
-                    ? `${basePath}${queryString}${hash}`
-                    : `${basePath}${hash}`
-                if (slide.url === newUrl) return prev
-                const next = [...prev]
-                next[currentSlideIndex] = { ...slide, url: newUrl }
-                return next
-            })
-            // SlideGrapher gates its reaction behind when(isReady) and
-            // takes a baseline snapshot, so by the time this callback is
-            // called, it's a genuine user interaction.
-            setIsDirty(true)
+    const makeQueryStringChangeHandler = useCallback(
+        (urlField: "url" | "url1" | "url2") => {
+            return (queryString: string) => {
+                setSlides((prev) => {
+                    const slide = prev[currentSlideIndex]
+                    if (!slide) return prev
+                    const currentUrl =
+                        urlField === "url" &&
+                        slide.template === SlideTemplate.Chart
+                            ? slide.url
+                            : urlField === "url1" &&
+                                slide.template === SlideTemplate.TwoCharts
+                              ? slide.url1
+                              : urlField === "url2" &&
+                                  slide.template === SlideTemplate.TwoCharts
+                                ? slide.url2
+                                : undefined
+                    if (currentUrl === undefined) return prev
+                    const parsed = Url.fromURL(currentUrl)
+                    const basePath = parsed.originAndPath ?? ""
+                    const hash = parsed.hash
+                    const newUrl = queryString
+                        ? `${basePath}${queryString}${hash}`
+                        : `${basePath}${hash}`
+                    if (currentUrl === newUrl) return prev
+                    const next = [...prev]
+                    next[currentSlideIndex] = {
+                        ...slide,
+                        [urlField]: newUrl,
+                    }
+                    return next
+                })
+                setIsDirty(true)
+            }
         },
         [currentSlideIndex]
+    )
+
+    const handleGrapherQueryStringChange = useMemo(
+        () => makeQueryStringChangeHandler("url"),
+        [makeQueryStringChangeHandler]
+    )
+    const handleChart1QueryStringChange = useMemo(
+        () => makeQueryStringChangeHandler("url1"),
+        [makeQueryStringChangeHandler]
+    )
+    const handleChart2QueryStringChange = useMemo(
+        () => makeQueryStringChangeHandler("url2"),
+        [makeQueryStringChangeHandler]
     )
 
     const handleChartReady = useCallback(
@@ -349,17 +373,36 @@ export function SlideshowEditorPage(props: {
                             <SlideRenderer
                                 slide={currentSlide}
                                 imageMetadata={imageMetadata}
-                                renderChart={(url) => (
-                                    <SlideChartEmbed
-                                        url={url}
-                                        grapherStateRef={grapherStateRef}
-                                        onQueryStringChange={
-                                            handleGrapherQueryStringChange
-                                        }
-                                        interactiveCharts={true}
-                                        onChartReady={handleChartReady}
-                                    />
-                                )}
+                                renderChart={(url) => {
+                                    const isTwoCharts =
+                                        currentSlide.template ===
+                                        SlideTemplate.TwoCharts
+                                    // Determine which query string handler to use
+                                    const qsHandler = isTwoCharts
+                                        ? url === currentSlide.url2
+                                            ? handleChart2QueryStringChange
+                                            : handleChart1QueryStringChange
+                                        : handleGrapherQueryStringChange
+                                    return (
+                                        <SlideChartEmbed
+                                            url={url}
+                                            // Two-chart slides: each chart needs
+                                            // its own GrapherState, so don't share
+                                            grapherStateRef={
+                                                isTwoCharts
+                                                    ? undefined
+                                                    : grapherStateRef
+                                            }
+                                            onQueryStringChange={qsHandler}
+                                            interactiveCharts={true}
+                                            onChartReady={
+                                                isTwoCharts
+                                                    ? undefined
+                                                    : handleChartReady
+                                            }
+                                        />
+                                    )
+                                }}
                             />
                         )}
                         {currentSlide.template === SlideTemplate.Cover && (

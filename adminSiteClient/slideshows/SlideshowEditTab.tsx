@@ -438,5 +438,64 @@ function TemplateOptionsEditor(props: {
                 <HideLogoCheckbox slide={slide} onUpdate={onUpdate} />
             </>
         ))
+        .with({ template: SlideTemplate.TwoCharts }, (slide) => (
+            <>
+                <label>
+                    Title
+                    <InlineMarkdownEditor
+                        value={slide.title ?? ""}
+                        onChange={(text) =>
+                            onUpdate({
+                                ...slide,
+                                title: text || undefined,
+                            })
+                        }
+                        placeholder="Title (optional)"
+                    />
+                </label>
+                <label>
+                    Subtitle
+                    <InlineMarkdownEditor
+                        value={slide.subtitle ?? ""}
+                        onChange={(text) =>
+                            onUpdate({
+                                ...slide,
+                                subtitle: text || undefined,
+                            })
+                        }
+                        placeholder="Subtitle (optional)"
+                    />
+                </label>
+                <label>
+                    Chart 1 URL
+                    <input
+                        type="text"
+                        value={slide.url1}
+                        onChange={(e) =>
+                            onUpdate({
+                                ...slide,
+                                url1: normalizeChartUrl(e.target.value),
+                            })
+                        }
+                        placeholder="/grapher/slug or paste a full URL"
+                    />
+                </label>
+                <label>
+                    Chart 2 URL
+                    <input
+                        type="text"
+                        value={slide.url2}
+                        onChange={(e) =>
+                            onUpdate({
+                                ...slide,
+                                url2: normalizeChartUrl(e.target.value),
+                            })
+                        }
+                        placeholder="/grapher/slug or paste a full URL"
+                    />
+                </label>
+                <HideLogoCheckbox slide={slide} onUpdate={onUpdate} />
+            </>
+        ))
         .exhaustive()
 }

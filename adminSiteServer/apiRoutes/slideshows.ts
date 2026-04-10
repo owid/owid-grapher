@@ -20,6 +20,25 @@ import * as db from "../../db/db.js"
 import { Request } from "../authentication.js"
 import { HandlerResponse } from "../FunctionalRouter.js"
 
+function chartUrlToLink(
+    url: string
+): Omit<DbInsertSlideshowLink, "slideshowId"> {
+    const path = url.replace(/^https?:\/\/[^/]+/, "")
+    const isExplorer = path.startsWith("/explorers/")
+    const rest = isExplorer
+        ? path.slice("/explorers/".length)
+        : path.replace(/^\/grapher\//, "")
+    const [slug, qs] = rest.split("?", 2)
+    return {
+        target: slug,
+        linkType: isExplorer
+            ? ContentGraphLinkType.Explorer
+            : ContentGraphLinkType.Grapher,
+        queryString: qs ? `?${qs}` : "",
+        hash: "",
+    }
+}
+
 function extractLinksFromSlides(slides: Slide[]): {
     links: Omit<DbInsertSlideshowLink, "slideshowId">[]
     imageFilenames: string[]
@@ -31,21 +50,10 @@ function extractLinksFromSlides(slides: Slide[]): {
         if (slide.template === SlideTemplate.Image && slide.filename) {
             imageFilenames.push(slide.filename)
         } else if (slide.template === SlideTemplate.Chart && slide.url) {
-            // Parse the URL to extract the slug and query string
-            const path = slide.url.replace(/^https?:\/\/[^/]+/, "")
-            const isExplorer = path.startsWith("/explorers/")
-            const rest = isExplorer
-                ? path.slice("/explorers/".length)
-                : path.replace(/^\/grapher\//, "")
-            const [slug, qs] = rest.split("?", 2)
-            links.push({
-                target: slug,
-                linkType: isExplorer
-                    ? ContentGraphLinkType.Explorer
-                    : ContentGraphLinkType.Grapher,
-                queryString: qs ? `?${qs}` : "",
-                hash: "",
-            })
+            links.push(chartUrlToLink(slide.url))
+        } else if (slide.template === SlideTemplate.TwoCharts) {
+            if (slide.url1) links.push(chartUrlToLink(slide.url1))
+            if (slide.url2) links.push(chartUrlToLink(slide.url2))
         }
     }
 

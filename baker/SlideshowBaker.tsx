@@ -94,6 +94,19 @@ export async function resolveSlideChartTypes(
     for (const slide of slides) {
         if (slide.template === SlideTemplate.Chart && slide.url) {
             resolutions[slide.url] = await resolveChartInfo(knex, slide.url)
+        } else if (slide.template === SlideTemplate.TwoCharts) {
+            if (slide.url1) {
+                resolutions[slide.url1] = await resolveChartInfo(
+                    knex,
+                    slide.url1
+                )
+            }
+            if (slide.url2) {
+                resolutions[slide.url2] = await resolveChartInfo(
+                    knex,
+                    slide.url2
+                )
+            }
         }
     }
     return resolutions

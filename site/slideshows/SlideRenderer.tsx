@@ -94,7 +94,14 @@ export function SlideRenderer(props: {
                     </p>
                 )}
                 <div className="slide-chart-content">
-                    <ChartRenderer url={slide.url} renderChart={renderChart} />
+                    {slide.url ? (
+                        <ChartRenderer
+                            url={slide.url}
+                            renderChart={renderChart}
+                        />
+                    ) : (
+                        <div className="slide__media-placeholder">Chart</div>
+                    )}
                     {slide.text && (
                         <div
                             className={cx("slide__text", {
@@ -156,6 +163,53 @@ export function SlideRenderer(props: {
                     })}
                 >
                     <SimpleMarkdownText text={slide.text} />
+                </div>
+            </div>
+        ))
+        .with({ template: SlideTemplate.TwoCharts }, (slide) => (
+            <div className={`${className} slide--two-charts`}>
+                {!slide.hideLogo && <SlideLogo />}
+                {slide.title && (
+                    <h1 className="slide-title">
+                        <SimpleMarkdownText
+                            text={slide.title}
+                            useParagraphs={false}
+                        />
+                    </h1>
+                )}
+                {slide.subtitle && (
+                    <p className="slide-subtitle">
+                        <SimpleMarkdownText
+                            text={slide.subtitle}
+                            useParagraphs={false}
+                        />
+                    </p>
+                )}
+                <div className="slide-two-charts__content">
+                    <div className="slide-two-charts__chart">
+                        {slide.url1 ? (
+                            <ChartRenderer
+                                url={slide.url1}
+                                renderChart={renderChart}
+                            />
+                        ) : (
+                            <div className="slide__media-placeholder">
+                                Chart 1
+                            </div>
+                        )}
+                    </div>
+                    <div className="slide-two-charts__chart">
+                        {slide.url2 ? (
+                            <ChartRenderer
+                                url={slide.url2}
+                                renderChart={renderChart}
+                            />
+                        ) : (
+                            <div className="slide__media-placeholder">
+                                Chart 2
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
         ))
