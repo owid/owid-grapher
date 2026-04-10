@@ -1,0 +1,10 @@
+{
+    "formatter": [
+        {
+            "language_server": {
+                "name": "oxfmt"
+            }
+        }
+    ],
+    "format_on_save": "on"
+}
