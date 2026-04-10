@@ -87,7 +87,7 @@ export const VARIANTS = [
             focusParameter: "lifeExpectancy",
             stabilizingParameter: "lifeExpectancy",
         },
-        demoSize: "widest",
+        demoSize: "wide",
     },
     // {
     //     name: "populationPyramid",

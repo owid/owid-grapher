@@ -79,7 +79,7 @@ const PARAMETER_CHART_FONTS: Record<Breakpoint, ParameterChartFonts> = {
         dragArrow: 8,
     },
     small: {
-        xTick: 12,
+        xTick: 11,
         yTick: 12,
         pointLabel: 12,
         controlLabel: 12,

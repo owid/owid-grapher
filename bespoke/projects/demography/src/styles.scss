@@ -355,12 +355,14 @@ $panel-gap: 12px;
         color: $dark-text;
         white-space: nowrap;
         border-right: 1px solid $panel-border;
+        vertical-align: bottom;
     }
 
     .assumptions-table__value--default,
     .assumptions-table__value--modified {
         background: rgba(0, 0, 0, 0.02);
         padding-left: 2px;
+        vertical-align: bottom;
     }
 
     .assumptions-table__value--default {

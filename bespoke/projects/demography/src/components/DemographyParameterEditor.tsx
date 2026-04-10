@@ -434,6 +434,7 @@ function DemographyParameterEditorContent({
                         color={LINE_COLOR}
                         labelColor={LABEL_COLOR}
                         fontSize={fonts.pointLabel}
+                        yearFontSize={fonts.xTick}
                         hideTickMark
                     />
                 ))}
@@ -485,7 +486,7 @@ function DemographyParameterEditorContent({
                                           ? "end"
                                           : "middle"
                                 }
-                                fontSize={fonts.pointLabel}
+                                fontSize={fonts.xTick}
                                 fill={GRAPHER_LIGHT_TEXT}
                             >
                                 {hoveredYear}
@@ -1098,6 +1099,7 @@ function PointLabelWithYear({
     color,
     labelColor,
     fontSize = 9,
+    yearFontSize,
     year,
     yearAnchor = "middle",
     valueLabelAnchor,
@@ -1112,6 +1114,7 @@ function PointLabelWithYear({
     color: string
     labelColor?: string
     fontSize?: number
+    yearFontSize?: number
     year: number
     yearAnchor?: "start" | "middle" | "end"
     valueLabelAnchor?: "start" | "middle" | "end"
@@ -1150,7 +1153,7 @@ function PointLabelWithYear({
                     x={x}
                     y={innerHeight + YEAR_LABEL_OFFSET}
                     textAnchor={yearAnchor}
-                    fontSize={fontSize}
+                    fontSize={yearFontSize ?? fontSize}
                     fill={GRAPHER_LIGHT_TEXT}
                     opacity={hidden ? 0 : 1}
                 >
