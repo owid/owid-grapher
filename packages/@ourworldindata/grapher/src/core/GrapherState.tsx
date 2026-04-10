@@ -3224,6 +3224,10 @@ export class GrapherState
         return this.base.current || undefined
     }
 
+    @computed get isMultiDim(): boolean {
+        return !!this.manager?.analyticsContext?.mdimSlug
+    }
+
     @computed private get analyticsContext(): GrapherAnalyticsContext {
         const ctx = this.manager?.analyticsContext
         return {

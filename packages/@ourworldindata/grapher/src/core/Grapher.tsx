@@ -604,6 +604,9 @@ export class Grapher extends React.Component<GrapherProps> {
                             if (!this.hasLoggedGAViewEvent) {
                                 this.hasLoggedGAViewEvent = true
 
+                                // On multi-dim pages, the useMultiDimAnalytics hook
+                                // already fires grapher_view with viewConfigId — skip
+                                // here to avoid double-counting.
                                 if (this.grapherState.narrativeChartInfo) {
                                     this.grapherState.analytics.logGrapherView(
                                         this.grapherState.narrativeChartInfo
@@ -614,12 +617,13 @@ export class Grapher extends React.Component<GrapherProps> {
                                                     .narrativeChartInfo.name,
                                         }
                                     )
-                                    this.hasLoggedGAViewEvent = true
-                                } else if (this.grapherState.slug) {
+                                } else if (
+                                    this.grapherState.slug &&
+                                    !this.grapherState.isMultiDim
+                                ) {
                                     this.grapherState.analytics.logGrapherView(
                                         this.grapherState.slug
                                     )
-                                    this.hasLoggedGAViewEvent = true
                                 }
                             }
 
