@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Grapher Demo</title>
+        <link rel="stylesheet" href="https://ourworldindata.org/fonts.css" />
+        <link rel="stylesheet" href="dist/grapher.css" />
+        <style>
+            body {
+                font-family: system-ui, sans-serif;
+                margin: 0;
+                padding: 24px;
+                background: #f5f5f5;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+                margin: 0 0 4px;
+            }
+
+            h2 {
+                font-size: 1rem;
+                font-weight: 600;
+                margin: 32px 0 4px;
+                color: #444;
+                letter-spacing: 0.05em;
+            }
+
+            p {
+                margin: 0 0 12px;
+                color: #666;
+                font-size: 0.9rem;
+            }
+
+            .chart {
+                box-sizing: border-box;
+                width: 80%;
+                max-width: 1200px;
+                aspect-ratio: 850 / 600;
+                margin: 0 auto;
+                border: 1px solid #ddd;
+                background: #fff;
+            }
+
+            .chart * {
+                box-sizing: border-box;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Grapher Demo</h1>
+
+        <h2>fromTable — inline data</h2>
+        <p>
+            Data is constructed in-memory as an <code>OwidTable</code> and
+            passed directly.
+        </p>
+        <div id="grapher-table" class="chart"></div>
+
+        <h2>fromCsv — CSV file</h2>
+        <p>Data is fetched from <code>demo.csv</code> at runtime.</p>
+        <div id="grapher-csv" class="chart"></div>
+
+        <h2>fromApi — OWID data API</h2>
+        <p>
+            Data is fetched from the Our World in Data indicators API using a
+            variable ID.
+        </p>
+        <div id="grapher-api" class="chart"></div>
+
+        <script type="module">
+            import { GrapherLoader, OwidTable } from "./dist/grapher.bundle.js"
+
+            // --- fromTable ---------------------------------------------------
+            const table = new OwidTable(
+                `entityName,entityCode,entityId,year,gdpPerCapita
+United States,USA,1,2000,36330
+United States,USA,1,2005,44308
+United States,USA,1,2010,48468
+United States,USA,1,2015,56863
+United States,USA,1,2020,63544
+Germany,DEU,2,2000,23705
+Germany,DEU,2,2005,34730
+Germany,DEU,2,2010,41785
+Germany,DEU,2,2015,41103
+Germany,DEU,2,2020,46468
+Japan,JPN,3,2000,38532
+Japan,JPN,3,2005,36441
+Japan,JPN,3,2010,44508
+Japan,JPN,3,2015,34524
+Japan,JPN,3,2020,39918`,
+                [
+                    {
+                        slug: "gdpPerCapita",
+                        type: "Numeric",
+                        name: "GDP per capita",
+                        unit: "US dollars",
+                        shortUnit: "$",
+                        display: { numDecimalPlaces: 0 },
+                    },
+                ]
+            )
+
+            GrapherLoader.fromTable({
+                config: {
+                    title: "GDP per capita",
+                    selectedEntityNames: ["United States", "Germany", "Japan"],
+                },
+                data: table,
+            }).mount(document.getElementById("grapher-table"))
+
+            // --- fromCsv -----------------------------------------------------
+            GrapherLoader.fromCsv({
+                config: {
+                    title: "Population",
+                    selectedEntityNames: ["France", "Germany", "Brazil"],
+                },
+                csvUrl: "./demo.csv",
+                columnDefs: [
+                    {
+                        slug: "population",
+                        type: "Numeric",
+                        name: "Population",
+                        unit: "million people",
+                        display: { numDecimalPlaces: 0 },
+                    },
+                ],
+            }).mount(document.getElementById("grapher-csv"))
+
+            // --- fromApi -----------------------------------------------------
+            GrapherLoader.fromApi({
+                config: {
+                    title: "Life expectancy",
+                    selectedEntityNames: [
+                        "World",
+                        "Americas",
+                        "Europe",
+                        "Africa",
+                        "Asia",
+                    ],
+                    dimensions: [
+                        {
+                            property: "y",
+                            variableId: 1118466,
+                            display: {
+                                unit: "years",
+                                shortUnit: "years",
+                                numDecimalPlaces: 1,
+                            },
+                        },
+                    ],
+                },
+            }).mount(document.getElementById("grapher-api"))
+        </script>
+    </body>
+</html>
