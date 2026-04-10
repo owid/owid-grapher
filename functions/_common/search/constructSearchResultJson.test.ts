@@ -29,6 +29,8 @@ describe(getSortedGrapherTabsForChartHit, () => {
         WorldMap,
         SlopeChart,
         StackedArea,
+        StackedBar,
+        StackedDiscreteBar,
         DiscreteBar,
         Marimekko,
     } = GRAPHER_TAB_NAMES
@@ -89,6 +91,19 @@ describe(getSortedGrapherTabsForChartHit, () => {
         })
         const result = getSortedGrapherTabsForChartHit(grapherState)
         expect(result).toEqual([StackedArea, Table, WorldMap])
+    })
+
+    it("should work for stacked chart combinations", () => {
+        const grapherState = new GrapherState({
+            chartTypes: [StackedArea, StackedBar, StackedDiscreteBar],
+        })
+        const result = getSortedGrapherTabsForChartHit(grapherState)
+        expect(result).toEqual([
+            StackedArea,
+            Table,
+            StackedBar,
+            StackedDiscreteBar,
+        ])
     })
 })
 

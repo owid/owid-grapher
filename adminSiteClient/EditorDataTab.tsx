@@ -1137,7 +1137,7 @@ export class EditorDataTab<
 
 function shouldShowDataRangeButton(grapherState: GrapherState): boolean {
     // Data range selection doesn't make sense for stacked charts
-    if (grapherState.isStackedArea || grapherState.isStackedBar) return false
+    if (grapherState.hasStackedArea || grapherState.hasStackedBar) return false
 
     // Data range selection doesn't make sense for charts with multiple y-columns
     if (grapherState.yColumnSlugs.length > 1) return false

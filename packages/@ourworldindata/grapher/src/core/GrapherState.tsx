@@ -1756,9 +1756,7 @@ export class GrapherState
         )
     }
 
-    /**
-     * Plots time on the x-axis.
-     */
+    /** Plots time on the x-axis */
     @computed private get hasTimeDimension(): boolean {
         return this.isStackedBar || this.isStackedArea || this.isLineChart
     }
@@ -1915,6 +1913,14 @@ export class GrapherState
         ].includes(tabName as any)
     }
 
+    private readonly checkSingleTimeSelectionPreferred = (
+        tabName: GrapherTabName
+    ): boolean => {
+        // Scatter plots can show a time range, but a single time is preferred
+        // when the scatter is not the main chart, but a secondary tab
+        return !this.isScatter && tabName === GRAPHER_TAB_NAMES.ScatterPlot
+    }
+
     private readonly checkOnlyTimeRangeSelectionPossible = (
         tabName: GrapherTabName
     ): boolean => {
@@ -1924,12 +1930,13 @@ export class GrapherState
         ].includes(tabName as any)
     }
 
-    private readonly checkSingleTimeSelectionPreferred = (
+    private readonly checkTimeRangeSelectionPreferred = (
         tabName: GrapherTabName
     ): boolean => {
-        // Scatter plots can show a time range, but a single time is preferred
-        // when the scatter is not the main chart, but a secondary tab
-        return !this.isScatter && tabName === GRAPHER_TAB_NAMES.ScatterPlot
+        return [
+            GRAPHER_TAB_NAMES.StackedArea,
+            GRAPHER_TAB_NAMES.StackedBar,
+        ].includes(tabName as any)
     }
 
     @action.bound ensureTimeHandlesAreSensibleForTab(
@@ -1940,7 +1947,10 @@ export class GrapherState
             this.checkSingleTimeSelectionPreferred(tab)
         ) {
             this.ensureHandlesAreOnSameTime()
-        } else if (this.checkOnlyTimeRangeSelectionPossible(tab)) {
+        } else if (
+            this.checkOnlyTimeRangeSelectionPossible(tab) ||
+            this.checkTimeRangeSelectionPreferred(tab)
+        ) {
             this.ensureHandlesAreOnDifferentTimes()
         }
     }
