@@ -7,6 +7,7 @@ import {
 } from "./LogosSVG"
 import { LogoOption } from "@ourworldindata/types"
 import { makeFigmaId } from "@ourworldindata/utils"
+import { roundPixel } from "../chart/ChartUtils"
 
 interface LogoAttributes {
     svg: string
@@ -93,9 +94,7 @@ export class Logo {
         return (
             <g
                 id={makeFigmaId("logo")}
-                transform={`translate(${Math.round(
-                    targetX
-                )}, ${targetY}) scale(${parseFloat(scale.toFixed(2))})`}
+                transform={`translate(${roundPixel(targetX)}, ${roundPixel(targetY)}) scale(${roundPixel(scale)})`}
                 dangerouslySetInnerHTML={{ __html: svg }}
             />
         )

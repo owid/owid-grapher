@@ -7,6 +7,7 @@ import { Bar, BarShape, PlacedItem } from "./MarimekkoChartConstants"
 import { DualAxis } from "../axis/Axis"
 import { Bounds } from "@ourworldindata/utils"
 import { Halo } from "@ourworldindata/components"
+import { roundPixel } from "../chart/ChartUtils"
 
 interface MarimekkoInternalLabelsProps {
     items: PlacedItem[]
@@ -109,8 +110,8 @@ export class MarimekkoInternalLabels extends React.Component<MarimekkoInternalLa
                 {this.visibleLabels.map(({ label, bounds, color }) => (
                     <Halo key={label} id={label} outlineWidth={2}>
                         <text
-                            x={bounds.x}
-                            y={bounds.y}
+                            x={roundPixel(bounds.x)}
+                            y={roundPixel(bounds.y)}
                             fontSize={this.props.fontSize}
                             fill={color}
                         >

@@ -28,6 +28,7 @@ import {
 import { makeAxisLabel } from "./AxisUtils.js"
 import * as R from "remeda"
 import { isValidVerticalComparisonLineConfig } from "../comparisonLine/ComparisonLineHelpers"
+import { roundPixel } from "../chart/ChartUtils"
 
 interface TickLabelPlacement {
     value: number
@@ -502,11 +503,7 @@ abstract class AbstractAxis {
             console.error(`Placed value is undefined for ${value}`)
             return value
         }
-        return this.snapToSubpixel(placedValue)
-    }
-
-    snapToSubpixel(value: number): number {
-        return parseFloat(value.toFixed(1))
+        return roundPixel(placedValue)
     }
 
     /** This function returns the inverse of place - i.e. given a screen space

@@ -2,6 +2,7 @@ import * as React from "react"
 import { observer } from "mobx-react"
 import { dyFromAlign, makeFigmaId, VerticalAlign } from "@ourworldindata/utils"
 import { ColorScaleBin } from "../color/ColorScaleBin"
+import { roundPixel } from "../chart/ChartUtils"
 import { HorizontalCategoricalColorLegendState } from "./HorizontalCategoricalColorLegendState"
 import { SPACE_BETWEEN_CATEGORICAL_BINS } from "./HorizontalColorLegendConstants"
 
@@ -48,10 +49,10 @@ export const HorizontalCategoricalColorLegend = observer(
                             <rect
                                 id={makeFigmaId(mark.label.text)}
                                 key={`${mark.label}-${index}`}
-                                x={x + mark.x}
-                                y={y + mark.y}
-                                width={mark.rectSize}
-                                height={mark.rectSize}
+                                x={roundPixel(x + mark.x)}
+                                y={roundPixel(y + mark.y)}
+                                width={roundPixel(mark.rectSize)}
+                                height={roundPixel(mark.rectSize)}
                                 style={{ ...style, fill }}
                             />
                         )
@@ -64,8 +65,8 @@ export const HorizontalCategoricalColorLegend = observer(
                         return (
                             <text
                                 key={`${mark.label}-${index}`}
-                                x={x + mark.label.bounds.x}
-                                y={y + mark.label.bounds.y}
+                                x={roundPixel(x + mark.label.bounds.x)}
+                                y={roundPixel(y + mark.label.bounds.y)}
                                 dy={dyFromAlign(VerticalAlign.middle)}
                                 fontSize={mark.label.fontSize}
                                 fontWeight={style.fontWeight}
@@ -99,13 +100,15 @@ export const HorizontalCategoricalColorLegend = observer(
                             >
                                 {/* for hover interaction */}
                                 <rect
-                                    x={x + mark.x}
-                                    y={y + mark.y - rectPadding / 2}
-                                    height={mark.rectSize + rectPadding}
-                                    width={
+                                    x={roundPixel(x + mark.x)}
+                                    y={roundPixel(y + mark.y - rectPadding / 2)}
+                                    height={roundPixel(
+                                        mark.rectSize + rectPadding
+                                    )}
+                                    width={roundPixel(
                                         mark.width +
-                                        SPACE_BETWEEN_CATEGORICAL_BINS
-                                    }
+                                            SPACE_BETWEEN_CATEGORICAL_BINS
+                                    )}
                                     fill="#fff"
                                     opacity={0}
                                 />

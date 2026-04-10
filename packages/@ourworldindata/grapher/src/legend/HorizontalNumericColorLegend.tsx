@@ -12,6 +12,7 @@ import { ColorScaleBin, NumericBin } from "../color/ColorScaleBin"
 import { darkenColorForLine } from "../color/ColorUtils"
 import { HorizontalNumericColorLegendState } from "./HorizontalNumericColorLegendState"
 import { ARROW_SIZE } from "./HorizontalColorLegendConstants"
+import { roundPixel } from "../chart/ChartUtils"
 
 interface HorizontalNumericColorLegendProps {
     state: HorizontalNumericColorLegendState
@@ -55,14 +56,18 @@ export const HorizontalNumericColorLegend = observer(
                             <line
                                 key={index}
                                 id={makeFigmaId(label.text)}
-                                x1={x + label.bounds.x + label.bounds.width / 2}
-                                y1={bottomY - numericBinSize}
-                                x2={x + label.bounds.x + label.bounds.width / 2}
-                                y2={
+                                x1={roundPixel(
+                                    x + label.bounds.x + label.bounds.width / 2
+                                )}
+                                y1={roundPixel(bottomY - numericBinSize)}
+                                x2={roundPixel(
+                                    x + label.bounds.x + label.bounds.width / 2
+                                )}
+                                y2={roundPixel(
                                     bottomY +
-                                    label.bounds.y +
-                                    label.bounds.height
-                                }
+                                        label.bounds.y +
+                                        label.bounds.height
+                                )}
                                 stroke={
                                     label.raised && style.stroke
                                         ? darkenColorForLine(style.stroke)
@@ -86,10 +91,10 @@ export const HorizontalNumericColorLegend = observer(
                             return (
                                 <NumericBinRect
                                     key={index}
-                                    x={x + positionedBin.x}
-                                    y={bottomY - numericBinSize}
-                                    width={positionedBin.width}
-                                    height={numericBinSize}
+                                    x={roundPixel(x + positionedBin.x)}
+                                    y={roundPixel(bottomY - numericBinSize)}
+                                    width={roundPixel(positionedBin.width)}
+                                    height={roundPixel(numericBinSize)}
                                     fill={fill}
                                     stroke={style.stroke}
                                     strokeWidth={style.strokeWidth}
@@ -158,29 +163,37 @@ const NumericBinRect = (props: NumericBinRectProps): React.ReactElement => {
     const { isOpenLeft, isOpenRight, x, y, width, height, ...restProps } = props
     if (isOpenRight) {
         const a = ARROW_SIZE
-        const w = width - a
+        const w = roundPixel(width - a)
         const d = removeAllWhitespace(`
-            M ${x}, ${y}
+            M ${roundPixel(x)}, ${roundPixel(y)}
             l ${w}, 0
-            l ${a}, ${height / 2}
-            l ${-a}, ${height / 2}
-            l ${-w}, 0
+            l ${roundPixel(a)}, ${roundPixel(height / 2)}
+            l ${roundPixel(-a)}, ${roundPixel(height / 2)}
+            l ${roundPixel(-w)}, 0
             z
         `)
         return <path d={d} {...restProps} />
     } else if (isOpenLeft) {
         const a = ARROW_SIZE
-        const w = width - a
+        const w = roundPixel(width - a)
         const d = removeAllWhitespace(`
-            M ${x + a}, ${y}
+            M ${roundPixel(x + a)}, ${roundPixel(y)}
             l ${w}, 0
-            l 0, ${height}
-            l ${-w}, 0
-            l ${-a}, ${-height / 2}
+            l 0, ${roundPixel(height)}
+            l ${roundPixel(-w)}, 0
+            l ${roundPixel(-a)}, ${roundPixel(-height / 2)}
             z
         `)
         return <path d={d} {...restProps} />
     } else {
-        return <rect x={x} y={y} width={width} height={height} {...restProps} />
+        return (
+            <rect
+                x={roundPixel(x)}
+                y={roundPixel(y)}
+                width={roundPixel(width)}
+                height={roundPixel(height)}
+                {...restProps}
+            />
+        )
     }
 }

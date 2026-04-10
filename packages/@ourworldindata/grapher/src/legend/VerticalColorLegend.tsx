@@ -4,6 +4,7 @@ import { makeFigmaId } from "@ourworldindata/utils"
 import { TextWrapSvg } from "@ourworldindata/components"
 import { ColorScaleBin } from "../color/ColorScaleBin"
 import { VerticalColorLegendState } from "./VerticalColorLegendState"
+import { roundPixel } from "../chart/ChartUtils"
 
 interface VerticalColorLegendProps {
     state: VerticalColorLegendState
@@ -65,10 +66,10 @@ export const VerticalColorLegend = observer(function VerticalColorLegend({
                         <rect
                             id={makeFigmaId(s.textWrap.text)}
                             key={s.textWrap.text}
-                            x={x}
-                            y={renderedTextPosition[1] - rectSize}
-                            width={rectSize}
-                            height={rectSize}
+                            x={roundPixel(x)}
+                            y={roundPixel(renderedTextPosition[1] - rectSize)}
+                            width={roundPixel(rectSize)}
+                            height={roundPixel(rectSize)}
                             style={style}
                         />
                     )
@@ -97,10 +98,12 @@ export const VerticalColorLegend = observer(function VerticalColorLegend({
                                 style={{ cursor }}
                             >
                                 <rect
-                                    x={x}
-                                    y={y + s.yOffset - lineHeight / 2}
-                                    width={s.width}
-                                    height={s.height + lineHeight}
+                                    x={roundPixel(x)}
+                                    y={roundPixel(
+                                        y + s.yOffset - lineHeight / 2
+                                    )}
+                                    width={roundPixel(s.width)}
+                                    height={roundPixel(s.height + lineHeight)}
                                     fill="#fff"
                                     fillOpacity={0}
                                 />
