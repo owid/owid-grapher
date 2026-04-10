@@ -285,7 +285,11 @@ export {
     removeDiacritics,
 } from "./string.js"
 
-export { serializeJSONForHTML, deserializeJSONFromHTML } from "./serializers.js"
+export {
+    serializeJSONForHTML,
+    deserializeJSONFromHTML,
+    escapeJSONStringForInlineScript,
+} from "./serializers.js"
 
 export { PromiseCache } from "./PromiseCache.js"
 

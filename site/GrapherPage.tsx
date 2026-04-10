@@ -34,6 +34,8 @@ import { SiteHeader } from "./SiteHeader.js"
 import GrapherImage from "./GrapherImage.js"
 import { Html } from "./Html.js"
 import { DEFAULT_PAGE_DESCRIPTION } from "./dataPage.js"
+import { makeJsonLdGrapherImageUrl } from "./jsonLdHelpers.js"
+import { JsonLdDataPage } from "./jsonLd.js"
 
 export const GrapherPage = (props: {
     grapher: GrapherInterface
@@ -89,6 +91,7 @@ export const GrapherPage = (props: {
     )
     const imageWidth = "1200"
     const imageHeight = "628"
+    const mainImageUrl = makeJsonLdGrapherImageUrl(grapher.slug)
 
     const script = `const jsonConfig = ${serializeJSONForHTML({
         ...grapher,
@@ -114,6 +117,14 @@ window.renderSingleGrapherOnGrapherPage({ config: jsonConfig, dataApiUrl: "${DAT
             >
                 <meta property="og:image:width" content={imageWidth} />
                 <meta property="og:image:height" content={imageHeight} />
+                {!isOnArchivalPage && (
+                    <JsonLdDataPage
+                        baseUrl={baseUrl}
+                        grapher={grapher}
+                        canonicalUrl={canonicalUrl}
+                        imageUrl={mainImageUrl}
+                    />
+                )}
                 <IFrameDetector />
                 <link rel="preconnect" href={dataApiOrigin} />
                 {variableIds.flatMap((variableId) =>
