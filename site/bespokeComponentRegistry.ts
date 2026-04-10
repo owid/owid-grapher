@@ -20,4 +20,12 @@ export const BESPOKE_COMPONENT_REGISTRY: Record<
     "causes-of-death": {
         scriptUrl: "/causes-of-death/index.js",
     },
+    "income-plots": {
+        scriptUrl: "/income-plots/index.js",
+    },
+    "how-rich-are-you": {
+        scriptUrl:
+            "https://owid-public.owid.io/marcel-bespoke-data-viz-02-2026/how-rich-am-i/how-rich-am-i.mjs?nocache",
+        cssUrl: "https://owid-public.owid.io/marcel-bespoke-data-viz-02-2026/how-rich-am-i/how-rich-am-i.css?nocache",
+    },
 }
