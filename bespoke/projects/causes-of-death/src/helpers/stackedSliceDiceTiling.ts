@@ -153,19 +153,25 @@ export function stackedSliceDiceTiling<T>({
         const width = x1 - x0
         const height = y1 - y0
 
-        // No space to work with
-        if (width <= 0 || height <= 0) return
-
-        // Determine primary span based on orientation
-        const primarySpan = vertical ? width : height
-        const secondarySpan = vertical ? height : width
-
         // Extract numeric values from each child node (ensuring non-negative values)
         const values = children.map((c) => Math.max(0, c.value || 0))
         const total = R.sum(values)
 
-        // No values to work with
-        if (total === 0) return
+        // No space to work with or no values
+        if (width <= 0 || height <= 0 || total === 0) {
+            // Collapse all children to zero-area rectangles
+            for (const child of children) {
+                child.x0 = x0
+                child.x1 = x0
+                child.y0 = y0
+                child.y1 = y0
+            }
+            return
+        }
+
+        // Determine primary span based on orientation
+        const primarySpan = vertical ? width : height
+        const secondarySpan = vertical ? height : width
 
         // Helper: Convert value to proportional layout size
         // Example: If primarySpan=100px, total value=200, child value=50, then layout size=25px
@@ -323,7 +329,12 @@ function layoutChildrenSequentially<T>(
 
     const primarySpan = vertical ? x1 - x0 : y1 - y0
     const total = R.sum(list.map((d) => d.value))
-    if (!total || primarySpan <= 0) return
+
+    if (!total || primarySpan <= 0) {
+        // Collapse all children to zero-area rectangles
+        for (const d of list) setRect(d.node, { x0, y0, x1: x0, y1: y0 })
+        return
+    }
 
     let off = 0 // Running offset as we place each child
     for (const d of list) {

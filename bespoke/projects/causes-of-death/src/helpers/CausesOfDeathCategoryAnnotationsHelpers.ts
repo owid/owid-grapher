@@ -15,6 +15,7 @@ export interface Category {
     name: string
     total: number
     share: number
+    nodes: TreeNode[]
 }
 
 export interface TextFragment {
@@ -57,6 +58,7 @@ export function placeExternalCategoryAnnotations({
             name,
             total,
             share: total / numAllDeaths,
+            nodes: getNodesForCategory(treemapNodes, name),
         })),
         R.sortBy((category) => -category.share)
     )
@@ -105,10 +107,11 @@ function placeExternalCategoryAnnotation({
         .with("bottom", () => maxBy(treemapNodes, getY))
         .exhaustive()
 
-    // Check if there are any nodes that align with the top/bottom of the treemap
-    const categoryNodes = getNodesForCategory(treemapNodes, category.name)
-    const relevantNodes = categoryNodes.filter(
-        (node) => getY(node) === treemapY
+    // Check if there are any visible nodes that align with the top/bottom
+    // of the treemap
+    const visibleNodes = category.nodes.filter(isVisible)
+    const relevantNodes = visibleNodes.filter(
+        (node) => Math.abs(getY(node) - treemapY) <= 3
     )
     if (relevantNodes.length === 0) return undefined
 
@@ -207,6 +210,10 @@ function getNodesForCategory(treeNodes: TreeNode[], categoryName: string) {
         const category = nodeData.category
         return category === categoryName
     })
+}
+
+function isVisible(node: TreeNode) {
+    return node.x1 - node.x0 > 0 && node.y1 - node.y0 > 0
 }
 
 function combineBounds(bounds: Bounds[]): Bounds | undefined {

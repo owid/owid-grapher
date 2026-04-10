@@ -1,10 +1,21 @@
+import cx from "classnames"
+
 import { faCircleNotch } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 
-export function CausesOfDeathSpinner() {
+export function CausesOfDeathSpinner({ inline }: { inline?: boolean }) {
     return (
-        <div className="causes-of-death-spinner">
-            <FontAwesomeIcon icon={faCircleNotch} spin size="2x" />
+        <div
+            className={cx("causes-of-death-spinner", {
+                "causes-of-death-spinner--inline": inline,
+                "causes-of-death-spinner--standalone": !inline,
+            })}
+        >
+            <FontAwesomeIcon
+                icon={faCircleNotch}
+                spin
+                size={!inline ? "2x" : undefined}
+            />
         </div>
     )
 }

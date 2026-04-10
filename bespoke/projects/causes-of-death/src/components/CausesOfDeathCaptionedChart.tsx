@@ -113,6 +113,7 @@ function CausesOfDeathHeader({
                         })}
                     >
                         {formatCount(numTotalDeaths)}
+                        {isLoading && <CausesOfDeathSpinner inline />}
                     </span>
                     . Each rectangle within is proportional to the share of
                     deaths due to a particular cause.
