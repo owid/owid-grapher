@@ -182,6 +182,8 @@
 .slide-title {
     @include display-1-semibold;
     font-size: clamp(20px, 3vw, 40px);
+    // ensure the title doesn't overlap the logo
+    max-width: calc(100% - 90px);
     margin: 0;
 }
 

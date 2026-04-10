@@ -192,7 +192,7 @@ function SlideExplorer(props: {
     }
 
     return (
-        <div className="SlideContent__explorer-container">
+        <div className="slide__grapher-container">
             <Explorer
                 ref={explorerRef}
                 {...explorerProps}
