@@ -152,6 +152,13 @@ import {
     RawBlockCookieNotice,
     PullQuoteAlignment,
     pullquoteAlignments,
+    EnrichedBlockChartRows,
+    EnrichedChartRowItem,
+    RawBlockChartRows,
+    EnrichedBlockPullChart,
+    RawBlockPullChart,
+    PullChartAlignment,
+    pullChartAlignments,
     RawBlockCountryProfileSelector,
     EnrichedBlockCountryProfileSelector,
     RawBlockExpander,
@@ -222,6 +229,8 @@ export function parseRawBlocksToEnrichedBlocks(
         .with({ type: "people-rows" }, parsePeopleRows)
         .with({ type: "person" }, parsePerson)
         .with({ type: "pull-quote" }, parsePullQuote)
+        .with({ type: "chart-rows" }, parseChartRows)
+        .with({ type: "pull-chart" }, parsePullChart)
         .with({ type: "resource-panel" }, parseResourcePanel)
         .with({ type: "guided-chart" }, parseGuidedChart)
         .with(
@@ -1184,6 +1193,149 @@ const parsePullQuote = (raw: RawBlockPullQuote): EnrichedBlockPullQuote => {
     }
 }
 
+function parseChartRows(raw: RawBlockChartRows): EnrichedBlockChartRows {
+    const createError = (
+        error: ParseError,
+        rows: EnrichedChartRowItem[] = []
+    ): EnrichedBlockChartRows => ({
+        type: "chart-rows",
+        kicker: "",
+        title: "",
+        source: "",
+        rows,
+        parseErrors: [error],
+    })
+
+    if (typeof raw.value === "string") {
+        return createError({
+            message: "Value is a string, not an object with properties",
+        })
+    }
+
+    const { kicker, title, source, rows } = raw.value
+    const parseErrors: ParseError[] = []
+
+    if (!rows || rows.length === 0) {
+        return createError({
+            message: "chart-rows must have at least one row item",
+        })
+    }
+
+    const enrichedRows: EnrichedChartRowItem[] = []
+    for (const row of rows) {
+        if (!row.image) {
+            parseErrors.push({
+                message: "chart-rows row item missing image property",
+            })
+            continue
+        }
+        if (!row.url) {
+            parseErrors.push({
+                message: "chart-rows row item missing url property",
+            })
+            continue
+        }
+
+        const enrichedContent = row.content?.map(parseText) ?? []
+        for (const block of enrichedContent) {
+            for (const error of block.parseErrors) {
+                parseErrors.push({
+                    ...error,
+                    message: `chart-rows row content: ${error.message}`,
+                })
+            }
+        }
+
+        if (enrichedContent.length === 0) {
+            parseErrors.push({
+                message:
+                    "chart-rows row item has no content. Consider adding text to accompany the chart thumbnail.",
+                isWarning: true,
+            })
+        }
+
+        enrichedRows.push({
+            image: row.image,
+            url: row.url,
+            content: enrichedContent,
+        })
+    }
+
+    return {
+        type: "chart-rows",
+        kicker: kicker ?? "",
+        title: title ?? "",
+        source: source ?? "",
+        rows: enrichedRows,
+        parseErrors,
+    }
+}
+
+function parsePullChart(raw: RawBlockPullChart): EnrichedBlockPullChart {
+    const createError = (error: ParseError): EnrichedBlockPullChart => ({
+        type: "pull-chart",
+        image: "",
+        url: "",
+        content: [],
+        parseErrors: [error],
+    })
+
+    if (typeof raw.value === "string") {
+        return createError({
+            message: "Value is a string, not an object with properties",
+        })
+    }
+
+    const { align, image, url, content } = raw.value
+    const parseErrors: ParseError[] = []
+
+    let validAlign: PullChartAlignment | undefined
+    if (align) {
+        if (validateRawEnum(pullChartAlignments, align)) {
+            validAlign = align
+        } else {
+            parseErrors.push({
+                message: `Invalid pull-chart alignment "${align}". Must be one of ${pullChartAlignments.join(", ")}.`,
+                isWarning: true,
+            })
+        }
+    }
+
+    if (!image) {
+        return createError({ message: "pull-chart missing image property" })
+    }
+    if (!url) {
+        return createError({ message: "pull-chart missing url property" })
+    }
+
+    const enrichedContent = content?.map(parseText) ?? []
+    for (const block of enrichedContent) {
+        for (const error of block.parseErrors) {
+            parseErrors.push({
+                ...error,
+                message: `pull-chart content: ${error.message}`,
+            })
+        }
+    }
+
+    if (enrichedContent.length === 0) {
+        parseErrors.push({
+            message:
+                "pull-chart has no content. Consider adding text to accompany the chart thumbnail.",
+            isWarning: true,
+        })
+    }
+
+    return {
+        type: "pull-chart",
+        align: validAlign,
+        image,
+        url,
+        content: enrichedContent,
+        parseErrors,
+    }
+}
+
 function parseHybridLinks(rawLinks: RawHybridLink[]): {
     parsedLinks: EnrichedHybridLink[]
     parseErrors: ParseError[]
@@ -1264,6 +1416,13 @@ const parseGuidedChart = (
         traverseEnrichedBlock(block, (node) => {
             if (node.type === "chart") {
                 chartCount++
+            }
+            if (node.type === "chart-rows" && (node.title || node.source)) {
+                contentErrors.push({
+                    message:
+                        "chart-rows inside a guided-chart should not have title or source — these are hidden in guided chart mode",
+                    isWarning: true,
+                })
             }
             if (node.parseErrors.length) {
                 contentErrors.push(

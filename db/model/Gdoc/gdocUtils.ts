@@ -308,6 +308,14 @@ export function extractFilenamesFromBlock(
             },
             _.noop
         )
+        .with({ type: "chart-rows" }, (item) => {
+            item.rows.forEach((row) => {
+                if (row.image) filenames.add(row.image)
+            })
+        })
+        .with({ type: "pull-chart" }, (item) => {
+            if (item.image) filenames.add(item.image)
+        })
         .exhaustive()
     return [...filenames]
 }

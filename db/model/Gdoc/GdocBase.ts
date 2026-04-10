@@ -833,6 +833,24 @@ export class GdocBase implements OwidGdocBaseInterface {
                     text: block.title ?? "Country profile selector",
                 }),
             ])
+            .with({ type: "chart-rows" }, (block) =>
+                block.rows.map((row) =>
+                    createLinkFromUrl({
+                        url: row.url,
+                        sourceId: this.id,
+                        componentType: block.type,
+                        text: "",
+                    })
+                )
+            )
+            .with({ type: "pull-chart" }, (block) => [
+                createLinkFromUrl({
+                    url: block.url,
+                    sourceId: this.id,
+                    componentType: block.type,
+                    text: "",
+                }),
+            ])
             .with(
                 {
                     // no urls directly on any of these blocks

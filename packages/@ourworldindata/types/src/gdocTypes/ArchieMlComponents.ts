@@ -166,6 +166,14 @@ import type {
     RawBlockPullQuote,
 } from "./archieMLComponents/PullQuote.js"
 import type {
+    EnrichedBlockChartRows,
+    RawBlockChartRows,
+} from "./archieMLComponents/ChartRows.js"
+import type {
+    EnrichedBlockPullChart,
+    RawBlockPullChart,
+} from "./archieMLComponents/PullChart.js"
+import type {
     EnrichedBlockRecirc,
     RawBlockRecirc,
 } from "./archieMLComponents/Recirc.js"
@@ -255,6 +263,8 @@ export type OwidRawGdocBlock =
     | RawBlockPeopleRows
     | RawBlockPerson
     | RawBlockPullQuote
+    | RawBlockChartRows
+    | RawBlockPullChart
     | RawBlockGuidedChart
     | RawBlockRecirc
     | RawBlockResearchAndWriting
@@ -319,6 +329,8 @@ export type OwidEnrichedGdocBlock =
     | EnrichedBlockPeopleRows
     | EnrichedBlockPerson
     | EnrichedBlockPullQuote
+    | EnrichedBlockChartRows
+    | EnrichedBlockPullChart
     | EnrichedBlockGuidedChart
     | EnrichedBlockRecirc
     | EnrichedBlockResearchAndWriting
@@ -384,6 +396,7 @@ export * from "./archieMLComponents/PullQuote.js"
 export * from "./archieMLComponents/ResearchAndWriting.js"
 export * from "./archieMLComponents/ResourcePanel.js"
 export * from "./archieMLComponents/Socials.js"
+export * from "./archieMLComponents/PullChart.js"
 export * from "./archieMLComponents/Table.js"
 export type * from "./archieMLComponents/AdditionalCharts.js"
 export type * from "./archieMLComponents/Align.js"
@@ -393,6 +406,7 @@ export type * from "./archieMLComponents/BespokeComponent.js"
 export type * from "./archieMLComponents/Blockquote.js"
 export type * from "./archieMLComponents/Callout.js"
 export type * from "./archieMLComponents/Chart.js"
+export type * from "./archieMLComponents/ChartRows.js"
 export type * from "./archieMLComponents/ChartStory.js"
 export type * from "./archieMLComponents/Code.js"
 export type * from "./archieMLComponents/ConditionalSection.js"
