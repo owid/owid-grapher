@@ -234,7 +234,7 @@ describe("global legend", () => {
             chartTypeName: GRAPHER_CHART_TYPES.LineChart,
         })
 
-        const legend = chart.categoricalLegendData
+        const legend = chart["categoricalLegendData"]
         const colors = new Map(legend.map((bin) => [bin.value, bin.color]))
 
         expect(colors.size).toEqual(2)

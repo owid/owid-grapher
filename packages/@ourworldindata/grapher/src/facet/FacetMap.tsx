@@ -4,7 +4,6 @@ import {
     Bounds,
     GridParameters,
     HorizontalAlign,
-    Color,
     makeFigmaId,
     exposeInstanceOnWindow,
     SplitBoundsPadding,
@@ -34,14 +33,13 @@ import {
     PlacedMapFacetSeries,
 } from "./FacetMapConstants"
 import { OwidTable } from "@ourworldindata/core-table"
-import {
-    HorizontalCategoricalColorLegend,
-    HorizontalColorLegendManager,
-    HorizontalNumericColorLegend,
-} from "../legend/HorizontalColorLegends"
+import { HorizontalNumericColorLegend } from "../legend/HorizontalNumericColorLegend"
+import { HorizontalCategoricalColorLegend } from "../legend/HorizontalCategoricalColorLegend"
+import { HorizontalNumericColorLegendState } from "../legend/HorizontalNumericColorLegendState"
+import { HorizontalCategoricalColorLegendState } from "../legend/HorizontalCategoricalColorLegendState"
+import { ExternalColorLegendData } from "../legend/HorizontalColorLegendTypes"
 import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
 import { GRAPHER_DARK_TEXT, GRAY_30 } from "../color/ColorConstants"
-import { LegendStyleConfig } from "../legend/LegendStyleConfig"
 import { Emphasis } from "../interaction/Emphasis"
 import {
     MAP_LEGEND_MAX_WIDTH_RATIO,
@@ -63,7 +61,7 @@ import { MapConfig } from "../mapCharts/MapConfig"
 @observer
 export class FacetMap
     extends React.Component<FacetMapProps>
-    implements ChartState, HorizontalColorLegendManager
+    implements ChartState
 {
     private legendHoverBin: ColorScaleBin | undefined = undefined
 
@@ -364,68 +362,105 @@ export class FacetMap
     }
 
     @computed private get externalLegend():
-        | HorizontalColorLegendManager
+        | ExternalColorLegendData
         | undefined {
         return this.intermediateMapInstance.externalLegend
     }
 
-    @computed get legendX(): number {
+    @computed private get legendX(): number {
         return this.bounds.x
     }
 
-    @computed get numericLegendY(): number {
-        if (!this.numericLegend) return 0
+    @computed private get legendMaxWidth(): number {
+        return this.bounds.width * MAP_LEGEND_MAX_WIDTH_RATIO
+    }
+
+    @computed private get legendAlign(): HorizontalAlign {
+        return HorizontalAlign.center
+    }
+
+    @computed private get numericLegendData(): ColorScaleBin[] {
+        return this.externalLegend?.numericLegendData ?? []
+    }
+
+    @computed private get categoricalLegendData(): CategoricalBin[] {
+        return this.externalLegend?.categoricalLegendData ?? []
+    }
+
+    @computed private get numericLegendState():
+        | HorizontalNumericColorLegendState
+        | undefined {
+        return this.numericLegendData.length > 1
+            ? new HorizontalNumericColorLegendState(this.numericLegendData, {
+                  fontSize: this.fontSize,
+                  legendWidth: this.legendMaxWidth,
+                  legendMaxWidth: this.legendMaxWidth,
+                  legendTitle: this.externalLegend?.legendTitle,
+                  legendAlign: this.legendAlign,
+                  legendTickSize: this.externalLegend?.legendTickSize,
+                  numericBinSize: this.externalLegend?.numericBinSize,
+                  resolveLegendBinEmphasis: (bin) =>
+                      this.resolveLegendBinEmphasis(bin),
+                  legendStyleConfig: this.externalLegend?.legendStyleConfig,
+                  numericLegendStyleConfig:
+                      this.externalLegend?.numericLegendStyleConfig,
+              })
+            : undefined
+    }
+
+    @computed private get categoryLegendState():
+        | HorizontalCategoricalColorLegendState
+        | undefined {
+        return this.categoricalLegendData.length > 1
+            ? new HorizontalCategoricalColorLegendState(
+                  this.categoricalLegendData,
+                  {
+                      fontSize: this.fontSize,
+                      legendWidth: this.legendMaxWidth,
+                      legendMaxWidth: this.legendMaxWidth,
+                      legendAlign: this.legendAlign,
+                      resolveLegendBinEmphasis: (bin) =>
+                          this.resolveLegendBinEmphasis(bin),
+                      legendStyleConfig: this.externalLegend?.legendStyleConfig,
+                      categoricalLegendStyleConfig:
+                          this.externalLegend?.categoricalLegendStyleConfig,
+                  }
+              )
+            : undefined
+    }
+
+    @computed private get numericLegendHeight(): number {
+        return this.numericLegendState ? this.numericLegendState.height : 0
+    }
+
+    @computed private get categoryLegendHeight(): number {
+        return this.categoryLegendState ? this.categoryLegendState.height : 0
+    }
+
+    @computed get legendHeight(): number {
+        return this.categoryLegendHeight + this.numericLegendHeight
+    }
+
+    @computed private get numericLegendY(): number {
+        if (!this.numericLegendState) return 0
         return (
             this.bounds.bottom -
             this.numericLegendHeight -
             PADDING_BELOW_MAP_LEGEND -
             // If present, the category legend is placed below the numeric legend
-            (this.categoryLegend
+            (this.categoryLegendState
                 ? this.categoryLegendHeight + PADDING_BETWEEN_MAP_LEGENDS
                 : 0)
         )
     }
 
-    @computed get categoryLegendY(): number {
-        if (!this.categoryLegend) return 0
+    @computed private get categoryLegendY(): number {
+        if (!this.categoryLegendState) return 0
         return (
             this.bounds.bottom -
-            this.categoryLegend.height -
+            this.categoryLegendState.height -
             PADDING_BELOW_MAP_LEGEND
         )
-    }
-
-    @computed get legendMaxWidth(): number {
-        return this.bounds.width * MAP_LEGEND_MAX_WIDTH_RATIO
-    }
-
-    @computed get legendAlign(): HorizontalAlign {
-        return HorizontalAlign.center
-    }
-
-    @computed get hoverColors(): Color[] | undefined {
-        if (!this.legendHoverBin) return undefined
-        return [this.legendHoverBin.color]
-    }
-
-    @computed get numericLegendData(): ColorScaleBin[] {
-        return this.externalLegend?.numericLegendData ?? []
-    }
-
-    @computed get categoricalLegendData(): CategoricalBin[] {
-        return this.externalLegend?.categoricalLegendData ?? []
-    }
-
-    @computed private get numericLegendHeight(): number {
-        return this.numericLegend ? this.numericLegend.height : 0
-    }
-
-    @computed private get categoryLegendHeight(): number {
-        return this.categoryLegend ? this.categoryLegend.height : 0
-    }
-
-    @computed get legendHeight(): number {
-        return this.categoryLegendHeight + this.numericLegendHeight
     }
 
     @action.bound onLegendMouseOver(bin: ColorScaleBin): void {
@@ -434,22 +469,6 @@ export class FacetMap
 
     @action.bound onLegendMouseLeave(): void {
         this.legendHoverBin = undefined
-    }
-
-    @computed private get categoryLegend():
-        | HorizontalCategoricalColorLegend
-        | undefined {
-        return this.categoricalLegendData.length > 1
-            ? new HorizontalCategoricalColorLegend({ manager: this })
-            : undefined
-    }
-
-    @computed private get numericLegend():
-        | HorizontalNumericColorLegend
-        | undefined {
-        return this.numericLegendData.length > 1
-            ? new HorizontalNumericColorLegend({ manager: this })
-            : undefined
     }
 
     resolveLegendBinEmphasis(bin: ColorScaleBin): Emphasis {
@@ -474,10 +493,6 @@ export class FacetMap
         }
 
         return Emphasis.Muted
-    }
-
-    @computed get legendStyleConfig(): LegendStyleConfig | undefined {
-        return this.externalLegend?.legendStyleConfig
     }
 
     override componentDidMount(): void {
@@ -527,11 +542,24 @@ export class FacetMap
     private renderMapLegend(): React.ReactElement {
         return (
             <>
-                {this.numericLegend && (
-                    <HorizontalNumericColorLegend manager={this} />
+                {this.numericLegendState && (
+                    <HorizontalNumericColorLegend
+                        state={this.numericLegendState}
+                        x={this.legendX}
+                        y={this.numericLegendY}
+                        onMouseOver={this.onLegendMouseOver}
+                        onMouseLeave={this.onLegendMouseLeave}
+                    />
                 )}
-                {this.categoryLegend && (
-                    <HorizontalCategoricalColorLegend manager={this} />
+                {this.categoryLegendState && (
+                    <HorizontalCategoricalColorLegend
+                        state={this.categoryLegendState}
+                        x={this.legendX}
+                        y={this.categoryLegendY}
+                        onMouseOver={this.onLegendMouseOver}
+                        onMouseLeave={this.onLegendMouseLeave}
+                        isStatic={this.isStatic}
+                    />
                 )}
             </>
         )

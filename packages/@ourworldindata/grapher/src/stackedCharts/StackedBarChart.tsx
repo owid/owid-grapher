@@ -13,10 +13,8 @@ import {
 } from "@ourworldindata/utils"
 import { DualAxisComponent } from "../axis/AxisViews"
 import { NoDataModal } from "../noDataModal/NoDataModal"
-import {
-    VerticalColorLegend,
-    VerticalColorLegendManager,
-} from "../legend/VerticalColorLegend"
+import { VerticalColorLegend } from "../legend/VerticalColorLegend"
+import { VerticalColorLegendState } from "../legend/VerticalColorLegendState"
 import { TooltipFooterIcon } from "../tooltip/TooltipProps.js"
 import {
     Tooltip,
@@ -43,10 +41,9 @@ import { Color, HorizontalAlign, SeriesName } from "@ourworldindata/types"
 import { getHoverStateForSeries } from "../chart/ChartUtils"
 import { InteractionState } from "../interaction/InteractionState"
 import { resolveEmphasis, Emphasis } from "../interaction/Emphasis"
-import {
-    HorizontalCategoricalColorLegend,
-    HorizontalColorLegendManager,
-} from "../legend/HorizontalColorLegends"
+import { HorizontalCategoricalColorLegend } from "../legend/HorizontalCategoricalColorLegend"
+import { HorizontalCategoricalColorLegendState } from "../legend/HorizontalCategoricalColorLegendState"
+import { ExternalColorLegendData } from "../legend/HorizontalColorLegendTypes"
 import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig.js"
 
@@ -64,11 +61,7 @@ export type StackedBarChartProps = ChartComponentProps<StackedBarChartState>
 @observer
 export class StackedBarChart
     extends React.Component<StackedBarChartProps>
-    implements
-        ChartInterface,
-        AxisManager,
-        VerticalColorLegendManager,
-        HorizontalColorLegendManager
+    implements ChartInterface, AxisManager
 {
     readonly minBarSpacing = 4
 
@@ -318,16 +311,33 @@ export class StackedBarChart
         )
     }
 
-    @computed private get verticalColorLegend(): VerticalColorLegend {
-        return new VerticalColorLegend({ manager: this })
+    @computed private get verticalColorLegend(): VerticalColorLegendState {
+        return new VerticalColorLegendState(this.categoricalLegendData, {
+            maxLegendWidth: this.maxLegendWidth,
+            fontSize: this.fontSize,
+            resolveLegendBinEmphasis: (bin) =>
+                this.resolveLegendBinEmphasis(bin),
+            legendStyleConfig: this.legendStyleConfig,
+        })
     }
 
     @computed
-    private get horizontalColorLegend(): HorizontalCategoricalColorLegend {
-        return new HorizontalCategoricalColorLegend({ manager: this })
+    private get horizontalColorLegend(): HorizontalCategoricalColorLegendState {
+        return new HorizontalCategoricalColorLegendState(
+            this.categoricalLegendData,
+            {
+                fontSize: this.fontSize,
+                legendWidth: this.legendWidth,
+                legendMaxWidth: this.maxLegendWidth,
+                legendAlign: this.legendAlign,
+                resolveLegendBinEmphasis: (bin) =>
+                    this.resolveLegendBinEmphasis(bin),
+                legendStyleConfig: this.legendStyleConfig,
+            }
+        )
     }
 
-    @computed get externalLegend(): HorizontalColorLegendManager | undefined {
+    @computed get externalLegend(): ExternalColorLegendData | undefined {
         if (!this.showLegend) {
             const categoricalLegendData = this.chartState.unstackedSeries
                 .map(
@@ -479,9 +489,23 @@ export class StackedBarChart
         if (!showLegend) return
 
         return showHorizontalLegend ? (
-            <HorizontalCategoricalColorLegend manager={this} />
+            <HorizontalCategoricalColorLegend
+                state={this.horizontalColorLegend}
+                x={this.legendX}
+                y={this.categoryLegendY}
+                onMouseOver={this.onLegendMouseOver}
+                onMouseLeave={this.onLegendMouseLeave}
+                isStatic={this.isStatic}
+            />
         ) : (
-            <VerticalColorLegend manager={this} />
+            <VerticalColorLegend
+                state={this.verticalColorLegend}
+                x={this.legendX}
+                y={this.legendY}
+                onMouseOver={this.onLegendMouseOver}
+                onMouseLeave={this.onLegendMouseLeave}
+                isStatic={this.isStatic}
+            />
         )
     }
 

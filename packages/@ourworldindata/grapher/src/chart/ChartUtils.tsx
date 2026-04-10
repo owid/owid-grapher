@@ -1,4 +1,5 @@
 import * as _ from "lodash-es"
+import * as R from "remeda"
 import * as React from "react"
 import {
     Box,
@@ -43,8 +44,6 @@ import {
 } from "@ourworldindata/core-table"
 import { GRAPHER_BACKGROUND_DEFAULT } from "../color/ColorConstants"
 import { InteractionState } from "../interaction/InteractionState"
-
-import * as R from "remeda"
 
 export const autoDetectYColumnSlugs = (manager: ChartManager): string[] => {
     if (manager.yColumnSlugs?.length) return manager.yColumnSlugs
