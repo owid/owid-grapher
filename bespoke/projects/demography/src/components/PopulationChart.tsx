@@ -172,8 +172,12 @@ function PopulationChartContent({
         nice: true,
     })
 
-    const handleMouseMove = useCallback(
-        (e: React.MouseEvent<SVGRectElement>) => {
+    const handlePointerMove = useCallback(
+        (
+            e:
+                | React.MouseEvent<SVGRectElement>
+                | React.TouchEvent<SVGRectElement>
+        ) => {
             const point = localPoint(e)
             if (!point) return
 
@@ -194,7 +198,15 @@ function PopulationChartContent({
         [xScale]
     )
 
-    const handleMouseLeave = useCallback(() => {
+    const handleTouchMove = useCallback(
+        (e: React.TouchEvent<SVGRectElement>) => {
+            e.preventDefault()
+            handlePointerMove(e)
+        },
+        [handlePointerMove]
+    )
+
+    const handlePointerLeave = useCallback(() => {
         setTooltipState((prev) => ({ ...prev, target: null }))
     }, [])
 
@@ -397,8 +409,10 @@ function PopulationChartContent({
                         width={innerWidth + 40}
                         height={innerHeight}
                         fill="transparent"
-                        onMouseMove={handleMouseMove}
-                        onMouseLeave={handleMouseLeave}
+                        onMouseMove={handlePointerMove}
+                        onMouseLeave={handlePointerLeave}
+                        onTouchStart={handlePointerMove}
+                        onTouchMove={handleTouchMove}
                     />
                 </Group>
             </svg>

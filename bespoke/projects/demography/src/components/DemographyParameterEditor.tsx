@@ -1,4 +1,4 @@
-import { memo, useState, useMemo, useCallback } from "react"
+import { memo, useState, useMemo, useCallback, useRef } from "react"
 import { useParentSize } from "@visx/responsive"
 import { scaleLinear } from "@visx/scale"
 import { LinePath } from "@visx/shape"
@@ -91,6 +91,7 @@ function DemographyParameterEditorContent({
     const fonts = getParameterChartFonts(toBreakpoint(width))
 
     const [hoveredYear, setHoveredYear] = useState<number | null>(null)
+    const hasTouchMoved = useRef(false)
 
     const { points: historicalDataPoints } = useMemo(
         () => config.computeHistorical(simulation),
@@ -264,8 +265,12 @@ function DemographyParameterEditorContent({
         [simulation, variant]
     )
 
-    const handleMouseMove = useCallback(
-        (e: React.MouseEvent<SVGRectElement>) => {
+    const handlePointerMove = useCallback(
+        (
+            e:
+                | React.MouseEvent<SVGRectElement>
+                | React.TouchEvent<SVGRectElement>
+        ) => {
             const point = localPoint(e)
             if (!point) return
             const clampedX = Math.max(
@@ -286,7 +291,28 @@ function DemographyParameterEditorContent({
         [xScale, innerWidth]
     )
 
-    const handleMouseLeave = useCallback(() => {
+    const handleTouchStart = useCallback(
+        (e: React.TouchEvent<SVGRectElement>) => {
+            hasTouchMoved.current = false
+            handlePointerMove(e)
+        },
+        [handlePointerMove]
+    )
+
+    const handleTouchMove = useCallback(
+        (e: React.TouchEvent<SVGRectElement>) => {
+            hasTouchMoved.current = true
+            e.preventDefault()
+            handlePointerMove(e)
+        },
+        [handlePointerMove]
+    )
+
+    const handleTouchEnd = useCallback(() => {
+        if (hasTouchMoved.current) setHoveredYear(null)
+    }, [])
+
+    const handlePointerLeave = useCallback(() => {
         setHoveredYear(null)
     }, [])
 
@@ -419,8 +445,12 @@ function DemographyParameterEditorContent({
                     width={innerWidth + 40}
                     height={innerHeight}
                     fill="transparent"
-                    onMouseMove={handleMouseMove}
-                    onMouseLeave={handleMouseLeave}
+                    onMouseMove={handlePointerMove}
+                    onMouseLeave={handlePointerLeave}
+                    onTouchStart={handleTouchStart}
+                    onTouchMove={handleTouchMove}
+                    onTouchEnd={handleTouchEnd}
+                    onTouchCancel={handleTouchEnd}
                 />
 
                 {/* Hover elements */}
@@ -503,7 +533,7 @@ function DemographyParameterEditorContent({
                                     })
                                 }
                                 onMouseEnter={() => setHoveredYear(year)}
-                                onMouseLeave={handleMouseLeave}
+                                onMouseLeave={handlePointerLeave}
                             />
                         )
                     })}
