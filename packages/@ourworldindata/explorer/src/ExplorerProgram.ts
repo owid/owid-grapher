@@ -164,10 +164,6 @@ export class ExplorerProgram extends GridProgram {
         return this.getLineValue(ExplorerGrammar.googleSheet.keyword)
     }
 
-    get thumbnail() {
-        return this.getLineValue(ExplorerGrammar.thumbnail.keyword)
-    }
-
     get explorerSubtitle() {
         return this.getLineValue(ExplorerGrammar.explorerSubtitle.keyword)
     }

@@ -108,11 +108,6 @@ export const ExplorerGrammar: Grammar = {
         keyword: "hideControls",
         description: "Whether to hide the controls. Default is false.",
     },
-    thumbnail: {
-        ...UrlCellDef,
-        keyword: "thumbnail",
-        description: "URL to the social sharing thumbnail.",
-    },
     selection: {
         ...StringCellDef,
         keyword: "selection",
