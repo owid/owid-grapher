@@ -8,6 +8,7 @@ import {
     GRAPHER_DARK_TEXT,
     GRAPHER_LIGHT_TEXT,
 } from "../color/ColorConstants.js"
+import { roundPixel } from "../chart/ChartUtils"
 import {
     SeriesLabelState,
     PositionedTextFragment,
@@ -142,8 +143,8 @@ function NativeAlignedLabelText({
     return (
         <text
             id={id}
-            x={x.toFixed(1)}
-            y={y.toFixed(1)}
+            x={roundPixel(x)}
+            y={roundPixel(y)}
             textAnchor={textAnchor}
             fontSize={fontSize}
             opacity={opacity}
@@ -155,10 +156,10 @@ function NativeAlignedLabelText({
                     const isFirstLine = lineIndex === 0
                     const isLineStart = spanIndex === 0
 
-                    const renderX = isLineStart ? x.toFixed(1) : undefined
+                    const renderX = isLineStart ? roundPixel(x) : undefined
                     const renderY =
                         isLineStart && !isFirstLine
-                            ? lineHeight.toFixed(1)
+                            ? roundPixel(lineHeight)
                             : undefined
 
                     return (
@@ -283,8 +284,8 @@ function TextSpanFragment({
 }): React.ReactElement {
     return (
         <tspan
-            x={(x + fragment.x).toFixed(1)}
-            y={(y + fragment.y).toFixed(1)}
+            x={roundPixel(x + fragment.x)}
+            y={roundPixel(y + fragment.y)}
             fontWeight={fragment.fontWeight}
             fill={fill}
         >
@@ -330,7 +331,9 @@ function IconFragment({
     return (
         <g>
             {/* Info icon */}
-            <g transform={`translate(${iconX}, ${iconY})`}>
+            <g
+                transform={`translate(${roundPixel(iconX)}, ${roundPixel(iconY)})`}
+            >
                 <FontAwesomeIcon
                     icon={faCircleInfo}
                     width={fragment.iconSize}

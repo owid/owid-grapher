@@ -5,6 +5,7 @@ import {
     IRDetailOnDemand,
     IRToken,
 } from "./MarkdownTextWrap.js"
+import { roundPixel } from "@ourworldindata/grapher/src/chart/ChartUtils.js"
 
 function MarkdownTextWrapLine({
     line,
@@ -71,16 +72,16 @@ export function MarkdownTextWrapSvg({
     return (
         <g id={id} className="markdown-text-wrap">
             <text
-                x={x.toFixed(1)}
-                y={yOffset.toFixed(1)}
+                x={roundPixel(x)}
+                y={roundPixel(yOffset)}
                 style={textWrap.style}
                 {...svgTextProps}
             >
                 {lines.map((line, lineIndex) => (
                     <tspan
                         key={lineIndex}
-                        x={x}
-                        y={getLineY(lineIndex).toFixed(1)}
+                        x={roundPixel(x)}
+                        y={roundPixel(getLineY(lineIndex))}
                     >
                         {line.map((token, tokenIndex) =>
                             token.toSVG(tokenIndex)
@@ -91,17 +92,17 @@ export function MarkdownTextWrapSvg({
             {/* SVG doesn't support dotted underlines, so we draw them manually */}
             {detailsMarker === "underline" &&
                 lines.map((line, lineIndex) => {
-                    const lineY = (getLineY(lineIndex) + 2).toFixed(1)
+                    const lineY = getLineY(lineIndex) + 2
                     let currWidth = 0
                     return line.map((token) => {
                         const underline =
                             token instanceof IRDetailOnDemand ? (
                                 <line
                                     className="dod-underline"
-                                    x1={x + currWidth}
-                                    y1={lineY}
-                                    x2={x + currWidth + token.width}
-                                    y2={lineY}
+                                    x1={roundPixel(x + currWidth)}
+                                    y1={roundPixel(lineY)}
+                                    x2={roundPixel(x + currWidth + token.width)}
+                                    y2={roundPixel(lineY)}
                                     stroke="currentColor"
                                     strokeWidth={1}
                                     strokeDasharray={1}

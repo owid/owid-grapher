@@ -1,5 +1,6 @@
 import * as React from "react"
 import * as _ from "lodash-es"
+import { roundPixel } from "../chart/ChartUtils"
 
 type TriangleProps = Readonly<{
     cx: number
@@ -22,13 +23,13 @@ export const Triangle = (props: TriangleProps): React.ReactElement => {
         [x + r * 2, y + r * 2],
     ]
     const rotationRounded = rotation
-        ? [rotation, cx, cy].map((v) => _.round(v, 2))
+        ? [rotation, cx, cy].map(roundPixel)
         : undefined
 
     return (
         <polygon
             points={points
-                .map((p) => `${p[0].toFixed(2)},${p[1].toFixed(2)}`)
+                .map((p) => `${roundPixel(p[0])},${roundPixel(p[1])}`)
                 .join(" ")}
             transform={
                 rotationRounded

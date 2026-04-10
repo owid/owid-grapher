@@ -40,6 +40,7 @@ import {
 import {
     isTargetOutsideElement,
     getHoverStateForSeries,
+    roundPixel,
 } from "../chart/ChartUtils"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig.js"
 import { LabelSeries } from "../verticalLabels/VerticalLabelsTypes"
@@ -430,9 +431,9 @@ export class StackedAreaChart
                 })}
                 <line
                     x1={horizontalAxis.place(xPoint.position)}
-                    y1={verticalAxis.range[0]}
+                    y1={roundPixel(verticalAxis.range[0])}
                     x2={horizontalAxis.place(xPoint.position)}
-                    y2={verticalAxis.range[1]}
+                    y2={roundPixel(verticalAxis.range[1])}
                     stroke="rgba(180,180,180,.4)"
                 />
             </g>

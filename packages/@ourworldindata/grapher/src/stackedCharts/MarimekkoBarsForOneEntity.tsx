@@ -9,6 +9,7 @@ import {
 import { InteractionState } from "../interaction/InteractionState.js"
 import { STACKED_BAR_STYLE } from "./StackedConstants.js"
 import { Emphasis } from "../interaction/Emphasis.js"
+import { roundPixel } from "../chart/ChartUtils"
 
 interface MarimekkoBarsProps {
     entityName: string
@@ -90,7 +91,7 @@ export function MarimekkoBarsForOneEntity(
             key={entityName}
             id={makeFigmaId("bar", entityName)}
             className="bar"
-            transform={`translate(${currentX}, ${labelYOffset})`}
+            transform={`translate(${roundPixel(currentX)}, ${roundPixel(labelYOffset)})`}
             onMouseOver={(ev): void => onEntityMouseOver?.(entityName, ev)}
             onMouseLeave={(): void => onEntityMouseLeave?.()}
             onClick={(): void => onEntityClick?.(entityName)}
@@ -153,9 +154,9 @@ function MarimekkoBar({
             <rect
                 x={0}
                 y={0}
-                transform={`translate(${barX}, ${barY - barHeight})`}
-                width={barWidth}
-                height={barHeight}
+                transform={`translate(${roundPixel(barX)}, ${roundPixel(barY - barHeight)})`}
+                width={roundPixel(barWidth)}
+                height={roundPixel(barHeight)}
                 fill={barColor}
                 fillOpacity={fillOpacity}
                 stroke={strokeColor}

@@ -12,6 +12,7 @@ import {
 } from "../core/GrapherConstants"
 import { Halo } from "@ourworldindata/components"
 import { GRAPHER_DARK_TEXT, GRAPHER_LIGHT_TEXT } from "../color/ColorConstants"
+import { roundPixel } from "../chart/ChartUtils"
 
 export interface NoDataModalManager {
     canChangeEntity?: boolean
@@ -83,8 +84,8 @@ export class NoDataModal extends React.Component<NoDataModalProps> {
                     show={!this.props.hideTextOutline}
                 >
                     <text
-                        x={center.x}
-                        y={center.y}
+                        x={roundPixel(center.x)}
+                        y={roundPixel(center.y)}
                         dy={
                             showHelpText
                                 ? -padding / 2
@@ -108,8 +109,8 @@ export class NoDataModal extends React.Component<NoDataModalProps> {
                         show={!this.props.hideTextOutline}
                     >
                         <text
-                            x={center.x}
-                            y={center.y + padding / 2}
+                            x={roundPixel(center.x)}
+                            y={roundPixel(center.y + padding / 2)}
                             textAnchor="middle"
                             dy={dyFromAlign(VerticalAlign.bottom)}
                             fontSize={helpTextFontSize}
