@@ -18,7 +18,7 @@ import {
     RenderLineChartSeries,
 } from "./LineChartConstants"
 import { Emphasis } from "../interaction/Emphasis"
-import { getSeriesKey } from "../chart/ChartUtils"
+import { getSeriesKey, roundPixel } from "../chart/ChartUtils"
 import { GRAPHER_BACKGROUND_DEFAULT } from "../color/ColorConstants"
 import { MultiColorPolyline } from "../scatterCharts/MultiColorPolyline"
 import { DualAxis } from "../axis/Axis.js"
@@ -215,10 +215,10 @@ export class Lines extends React.Component<LinesProps> {
         return (
             <g className="Lines">
                 <rect
-                    x={Math.round(bounds.x)}
-                    y={Math.round(bounds.y)}
-                    width={Math.round(bounds.width)}
-                    height={Math.round(bounds.height)}
+                    x={roundPixel(bounds.x)}
+                    y={roundPixel(bounds.y)}
+                    width={roundPixel(bounds.width)}
+                    height={roundPixel(bounds.height)}
                     fill="rgba(255,255,255,0)"
                     opacity={0}
                 />

@@ -9,6 +9,7 @@ import {
     SCATTER_POINT_STROKE_WIDTH,
 } from "./ScatterPlotChartConstants"
 import { Triangle } from "./Triangle"
+import { roundPixel } from "../chart/ChartUtils"
 
 interface ScatterPointProps {
     series: ScatterRenderSeries
@@ -41,8 +42,8 @@ export class ScatterPoint extends React.Component<ScatterPointProps> {
 
         const isLabelled = series.allLabels.some((label) => !label.isHidden)
         const size = value.size
-        const cx = value.position.x.toFixed(2)
-        const cy = value.position.y.toFixed(2)
+        const cx = roundPixel(value.position.x)
+        const cy = roundPixel(value.position.y)
         const stroke = isLayerMode ? "#bbb" : isLabelled ? "#333" : "#666"
 
         return (
@@ -119,8 +120,8 @@ export class ScatterLine extends React.Component<ScatterLineProps> {
                 className={series.displayKey}
             >
                 <circle
-                    cx={firstValue.position.x.toFixed(2)}
-                    cy={firstValue.position.y.toFixed(2)}
+                    cx={roundPixel(firstValue.position.x)}
+                    cy={roundPixel(firstValue.position.y)}
                     r={(1 + firstValue.size / 2).toFixed(1)}
                     fill={isLayerMode ? "#e2e2e2" : firstValue.color}
                     stroke="none"

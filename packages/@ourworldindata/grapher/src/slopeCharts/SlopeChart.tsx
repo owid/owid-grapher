@@ -42,7 +42,7 @@ import {
     SlopeChartManager,
 } from "./SlopeChartConstants"
 import { CoreColumn } from "@ourworldindata/core-table"
-import { getHoverStateForSeries } from "../chart/ChartUtils"
+import { getHoverStateForSeries, roundPixel } from "../chart/ChartUtils"
 import { VerticalAxis } from "../axis/Axis"
 import { VerticalAxisZeroLine } from "../axis/AxisViews"
 import { NoDataSection } from "../scatterCharts/NoDataSection"
@@ -920,8 +920,8 @@ export class SlopeChart
                     />
                 )}
                 <text
-                    x={this.innerBounds.left}
-                    y={this.yAxis.place(0).toFixed(2)}
+                    x={roundPixel(this.innerBounds.left)}
+                    y={this.yAxis.place(0)}
                     dy={dyFromAlign(VerticalAlign.middle)}
                     fontSize={fontSize}
                     fill={GRAPHER_DARK_TEXT}

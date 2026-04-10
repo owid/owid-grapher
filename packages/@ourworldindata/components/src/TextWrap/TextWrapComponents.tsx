@@ -1,5 +1,6 @@
 import * as React from "react"
 import { TextWrap } from "./TextWrap"
+import { roundPixel } from "@ourworldindata/grapher/src/chart/ChartUtils"
 
 export function TextWrapSvg({
     textWrap,
@@ -24,8 +25,8 @@ export function TextWrapSvg({
             id={id}
             fontSize={fontSize.toFixed(2)}
             fontWeight={fontWeight}
-            x={renderX.toFixed(1)}
-            y={renderY.toFixed(1)}
+            x={roundPixel(renderX)}
+            y={roundPixel(renderY)}
             {...svgTextProps}
         >
             {lines.map((line, i) => {
@@ -36,14 +37,18 @@ export function TextWrapSvg({
                     return (
                         <tspan
                             key={i}
-                            x={lineX}
-                            y={lineY}
+                            x={roundPixel(lineX)}
+                            y={roundPixel(lineY)}
                             dangerouslySetInnerHTML={{ __html: line.text }}
                         />
                     )
                 else
                     return (
-                        <tspan key={i} x={lineX} y={lineY}>
+                        <tspan
+                            key={i}
+                            x={roundPixel(lineX)}
+                            y={roundPixel(lineY)}
+                        >
                             {line.text}
                         </tspan>
                     )

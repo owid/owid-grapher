@@ -43,6 +43,7 @@ import {
     BASE_FONT_SIZE,
     GRAPHER_TEXT_OUTLINE_FACTOR,
 } from "../core/GrapherConstants"
+import { roundPixel } from "../chart/ChartUtils"
 
 // This is the component that actually renders the points. The higher level ScatterPlot class renders points, legends, comparison lines, etc.
 @observer
@@ -472,10 +473,10 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
                             >
                                 <text
                                     id={makeFigmaId("label", label.text)}
-                                    x={label.bounds.x.toFixed(2)}
-                                    y={(
+                                    x={roundPixel(label.bounds.x)}
+                                    y={roundPixel(
                                         label.bounds.y + label.bounds.height
-                                    ).toFixed(2)}
+                                    )}
                                     fontSize={label.fontSize.toFixed(2)}
                                     fontWeight={label.fontWeight}
                                     fill={isLayerMode ? "#aaa" : label.color}
@@ -612,10 +613,10 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
                             >
                                 <text
                                     id={makeFigmaId("label", series.seriesName)}
-                                    x={label.bounds.x.toFixed(2)}
-                                    y={(
+                                    x={roundPixel(label.bounds.x)}
+                                    y={roundPixel(
                                         label.bounds.y + label.bounds.height
-                                    ).toFixed(2)}
+                                    )}
                                     fontSize={label.fontSize}
                                     fontWeight={label.fontWeight}
                                     fill={label.color}

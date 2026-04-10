@@ -7,6 +7,7 @@ import {
 } from "./StackedConstants"
 import { makeFigmaId, makeSafeForCSS } from "@ourworldindata/utils"
 import { Emphasis } from "../interaction/Emphasis"
+import { roundPixel } from "../chart/ChartUtils"
 
 export function StackedBars({
     series,
@@ -41,10 +42,10 @@ export function StackedBars({
                             <rect
                                 key={index}
                                 id={makeFigmaId(bar.formattedTime)}
-                                x={bar.x}
-                                y={bar.y}
-                                width={bar.barWidth}
-                                height={bar.barHeight}
+                                x={roundPixel(bar.x)}
+                                y={roundPixel(bar.y)}
+                                width={roundPixel(bar.barWidth)}
+                                height={roundPixel(bar.barHeight)}
                                 fill={bar.color ?? series.color}
                                 opacity={barOpacity}
                                 onMouseOver={() => onMouseOver?.(bar, series)}

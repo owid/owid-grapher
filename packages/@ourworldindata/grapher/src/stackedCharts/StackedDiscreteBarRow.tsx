@@ -11,6 +11,7 @@ import {
 import { isDarkColor } from "../color/ColorUtils"
 import { HorizontalAxis } from "../axis/Axis"
 import { SeriesLabel } from "../seriesLabel/SeriesLabel.js"
+import { roundPixel } from "../chart/ChartUtils"
 
 const labelToBarPadding = 5
 
@@ -53,7 +54,7 @@ export function StackedDiscreteBarRow({
     return (
         <g
             id={makeFigmaId(entityName)}
-            transform={`translate(0, ${y})`}
+            transform={`translate(0, ${roundPixel(y)})`}
             opacity={1}
         >
             {segments.map((segment) => (
@@ -134,16 +135,16 @@ function StackedDiscreteBar({
                 id={makeFigmaId("bar")}
                 x={0}
                 y={0}
-                transform={`translate(${segment.x}, ${-barHeight / 2})`}
-                width={segment.barWidth}
-                height={barHeight}
+                transform={`translate(${roundPixel(segment.x)}, ${roundPixel(-barHeight / 2)})`}
+                width={roundPixel(segment.barWidth)}
+                height={roundPixel(barHeight)}
                 fill={segment.color}
                 opacity={segmentStyle.opacity}
                 style={{ transition: "height 200ms ease" }}
             />
             {canShowLabel && (
                 <text
-                    x={segment.x + segment.barWidth / 2}
+                    x={roundPixel(segment.x + segment.barWidth / 2)}
                     y={0}
                     width={segment.barWidth}
                     height={barHeight}
