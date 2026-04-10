@@ -20,6 +20,7 @@ export const synonyms = [
     ["pop", "population"],
     ["overpopulation", "population growth"],
     ["kids", "children"],
+    ["infant", "infants", "one year old", "1 year old"],
     ["fertility", "children per woman"],
     ["life expectancy", "longevity"],
     ["dying", "death", "deaths", "mortality"],
