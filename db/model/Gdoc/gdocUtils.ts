@@ -274,7 +274,6 @@ export function extractFilenamesFromBlock(
                     "homepage-search",
                     "horizontal-rule",
                     "html",
-                    "script",
                     "key-indicator-collection",
                     "key-indicator",
                     "latest-data-insights",

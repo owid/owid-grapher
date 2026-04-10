@@ -421,7 +421,6 @@ export function enrichedBlockToIndexableText(
                         "recirc",
                         "research-and-writing",
                         "resource-panel",
-                        "script",
                         "sdg-grid",
                         "sdg-toc",
                         "socials",

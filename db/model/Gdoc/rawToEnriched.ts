@@ -165,8 +165,6 @@ import {
     resourcePanelIcons,
     EnrichedBlockCta,
     RawBlockCta,
-    EnrichedBlockScript,
-    RawBlockScript,
     blockVisibilitys,
     VALID_PEER_COUNTRY_STRATEGY_QUERY_PARAMS,
     RawBlockBespokeComponent,
@@ -245,7 +243,6 @@ export function parseRawBlocksToEnrichedBlocks(
                 parseErrors: [],
             })
         )
-        .with({ type: "script" }, parseScript)
         .with({ type: "heading" }, parseHeading)
         .with({ type: "sdg-grid" }, parseSdgGrid)
         .with({ type: "sticky-left" }, parseStickyLeft)
@@ -3122,41 +3119,6 @@ export const parseSocials = (raw: RawBlockSocials): EnrichedBlockSocials => {
     return {
         type: "socials",
         links: raw.value.map(parseSocialLink),
-        parseErrors: [],
-    }
-}
-
-export const parseScript = (raw: RawBlockScript): EnrichedBlockScript => {
-    const createError = (error: ParseError): EnrichedBlockScript => ({
-        type: "script",
-        lines: [],
-        parseErrors: [error],
-    })
-
-    const rawLines = raw.value
-    if (!R.isArray(rawLines)) {
-        return createError({
-            message: `Script block must be written as an array e.g. [.+script]`,
-        })
-    }
-
-    const enrichedText = rawLines.map(parseText)
-    const [goodText, badText] = _.partition(
-        enrichedText,
-        (enrichedLine) =>
-            enrichedLine.value.length === 1 &&
-            enrichedLine.value[0].spanType === "span-simple-text"
-    )
-
-    if (badText.length) {
-        return createError({
-            message: `Script block contains invalid lines: "${badText.map((text) => spansToSimpleString(text.value)).join(", ")}". Each line must be simple text without formatting.`,
-        })
-    }
-
-    return {
-        type: "script",
-        lines: goodText.map((text) => spansToSimpleString(text.value)),
         parseErrors: [],
     }
 }

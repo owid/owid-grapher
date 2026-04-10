@@ -178,10 +178,6 @@ import type {
     RawBlockResourcePanel,
 } from "./archieMLComponents/ResourcePanel.js"
 import type {
-    EnrichedBlockScript,
-    RawBlockScript,
-} from "./archieMLComponents/Script.js"
-import type {
     EnrichedBlockSDGGrid,
     RawBlockSDGGrid,
 } from "./archieMLComponents/SDGGrid.js"
@@ -266,7 +262,6 @@ export type OwidRawGdocBlock =
     | RawBlockResourcePanel
     | RawBlockHeading
     | RawBlockHtml
-    | RawBlockScript
     | RawBlockHorizontalRule
     | RawBlockSDGGrid
     | RawBlockStickyRightContainer
@@ -329,7 +324,6 @@ export type OwidEnrichedGdocBlock =
     | EnrichedBlockResearchAndWriting
     | EnrichedBlockHeading
     | EnrichedBlockHtml
-    | EnrichedBlockScript
     | EnrichedBlockHorizontalRule
     | EnrichedBlockSDGGrid
     | EnrichedBlockStickyRightContainer
@@ -432,7 +426,6 @@ export type * from "./archieMLComponents/PeopleRows.js"
 export type * from "./archieMLComponents/PillRow.js"
 export type * from "./archieMLComponents/ProminentLink.js"
 export type * from "./archieMLComponents/Recirc.js"
-export type * from "./archieMLComponents/Script.js"
 export type * from "./archieMLComponents/SDGGrid.js"
 export type * from "./archieMLComponents/SDGToc.js"
 export type * from "./archieMLComponents/SideBySide.js"

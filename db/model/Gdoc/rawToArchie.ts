@@ -57,7 +57,6 @@ import {
     RawBlockExpander,
     RawBlockResourcePanel,
     RawBlockCta,
-    RawBlockScript,
     RawBlockStaticViz,
     RawBlockConditionalSection,
     RawBlockDataCallout,
@@ -422,15 +421,6 @@ function* rawBlockHtmlToArchieMLString(
         yield `html: ${escapeRawText(block.value)}`
         yield `:end`
     }
-}
-function* rawBlockScriptToArchieMLString(
-    block: RawBlockScript
-): Generator<string, void, undefined> {
-    yield "[.+script]"
-    for (const text of block.value) {
-        yield* rawBlockTextToArchieMLString(text)
-    }
-    yield "[]"
 }
 
 function* RawBlockHeadingToArchieMLString(
@@ -1090,7 +1080,6 @@ export function* OwidRawGdocBlockToArchieMLStringGenerator(
         .with({ type: "resource-panel" }, rawBlockResourcePanelToArchieMLString)
         .with({ type: "text" }, rawBlockTextToArchieMLString)
         .with({ type: "html" }, rawBlockHtmlToArchieMLString)
-        .with({ type: "script" }, rawBlockScriptToArchieMLString)
         .with({ type: "heading" }, RawBlockHeadingToArchieMLString)
         .with({ type: "sdg-grid" }, rawBlockSDGGridToArchieMLString)
         .with({ type: "static-viz" }, rawBlockStaticVizToArchieMLString)
