@@ -1,0 +1,12 @@
+metadata:
+    description: |
+        Many-to-many table linking slideshows to images used within them. Mirrors the posts_gdocs_x_images
+        pattern. Rebuilt on every save from the slideshow config JSON. Enables tracking image usage across
+        slideshows for media management.
+fields:
+    id:
+        description: Unique identifier for the association
+    slideshowId:
+        description: Foreign key to slideshows table
+    imageId:
+        description: Foreign key to images table

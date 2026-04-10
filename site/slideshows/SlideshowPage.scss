@@ -1,0 +1,129 @@
+#slideshow-page-body {
+    .site-footer,
+    .donate-footer {
+        display: none;
+    }
+}
+
+// --- Presentation layout ---
+
+.slideshow-container {
+    --footer-height: 64px;
+    height: calc(100vh - var(--footer-height));
+}
+
+.slideshow-container--fullscreen {
+    --footer-height: 0px;
+}
+
+.slideshow-container--cover {
+    background-color: $oxford-blue;
+    border-bottom: 4px solid $vermillion;
+    .slides--fullscreen {
+        border-bottom: 6px solid $vermillion;
+        background-color: $oxford-blue;
+    }
+}
+
+.slides {
+    height: 100%;
+    position: relative;
+}
+
+.slides--fullscreen {
+    max-height: unset;
+    height: 100vh;
+    background-color: #fff;
+
+    .slideshow-footer {
+        display: none;
+    }
+}
+
+.slideshow-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    border-top: $gray-30 1px solid;
+    height: var(--footer-height);
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+}
+
+.SlideshowPresentation__branding {
+    font-size: 13px;
+    color: #666;
+}
+
+.SlideshowPresentation__author-link {
+    @include owid-link-90;
+}
+
+.SlideshowPresentation__nav {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.SlideshowPresentation__nav-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: 1px solid #ddd;
+    border-radius: 50%;
+    background: #fff;
+    color: #333;
+    font-size: 14px;
+    cursor: pointer;
+    transition:
+        background-color 0.15s,
+        border-color 0.15s;
+
+    &:hover:not(:disabled) {
+        background: #f5f5f5;
+        border-color: #bbb;
+    }
+
+    &:disabled {
+        color: #ccc;
+        border-color: #eee;
+        cursor: default;
+    }
+}
+
+.slideshow-footer__slide-counter {
+    font-size: 13px;
+    color: #666;
+    min-width: 48px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+
+.SlideshowPresentation__fullscreen-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: 1px solid #ddd;
+    border-radius: 50%;
+    background: #fff;
+    color: #333;
+    font-size: 14px;
+    cursor: pointer;
+    transition:
+        background-color 0.15s,
+        border-color 0.15s;
+
+    &:hover {
+        background: #f5f5f5;
+        border-color: #bbb;
+    }
+}

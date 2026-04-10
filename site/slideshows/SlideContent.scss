@@ -1,0 +1,287 @@
+// --- Responsive slide typography mixin ---
+// Uses --slide-unit (defaults to 1vw, overridden to 1cqw in admin)
+// so font-sizes scale with the viewport on the site and with the
+// canvas container in the admin editor — no duplicate declarations.
+// Sets a responsive font-size using CSS clamp with --slide-unit.
+// Wrapped in `& {}` to safely come after typography mixins that
+// contain @media rules (avoids Sass mixed-decls deprecation).
+// Must be the LAST include in a rule block.
+@mixin slide-font-size($min, $preferred, $max) {
+    & {
+        font-size: clamp(
+            #{$min},
+            calc(#{$preferred} * var(--slide-unit)),
+            #{$max}
+        );
+    }
+}
+
+.slide {
+    --slide-unit: 1vw;
+    width: auto;
+    max-width: calc(100vw - 128px);
+    margin: 64px;
+    position: absolute;
+    top: 0;
+    left: calc(50% - 64px);
+    transform: translateX(-50%);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.slide--hidden {
+    visibility: hidden;
+}
+
+.slide--narrow {
+    aspect-ratio: 4/3;
+    height: min(calc(100% - 128px), 75vw);
+}
+
+.slide--wide {
+    aspect-ratio: 16/9;
+    height: min(calc(100% - 128px), 56.25vw);
+}
+
+.slide--image {
+    .slide-chart-content {
+        margin-top: 40px;
+    }
+}
+
+.slide-chart-content {
+    flex: 1;
+    display: flex;
+    gap: 16px;
+    min-height: 0;
+}
+
+.slide--two-charts {
+    align-items: stretch;
+}
+
+.slide-two-charts__content {
+    flex: 1;
+    display: flex;
+    gap: 16px;
+    min-height: 0;
+}
+
+.slide-two-charts__chart {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.slide__grapher-container {
+    flex: 1;
+    min-width: 0;
+    .GrapherComponent {
+        border: none;
+        height: 100% !important;
+        overflow: hidden;
+    }
+}
+
+.slide-logo {
+    svg {
+        width: 100px;
+    }
+    position: absolute;
+    top: 0;
+    right: 0;
+}
+
+.cover-slide-logo {
+    svg {
+        width: 100px;
+    }
+    position: absolute;
+    top: unset;
+    bottom: 0;
+    right: 16px;
+    border-bottom: unset;
+}
+
+// --- Typography (scales via --slide-unit) ---
+
+.slide--cover {
+    background-color: $oxford-blue;
+    color: white;
+    display: flex;
+    justify-content: center;
+
+    h1 {
+        @include display-1-semibold;
+        margin-top: 0;
+        margin-bottom: 8px;
+        color: white;
+        @include slide-font-size(24px, 4, 48px);
+    }
+
+    h2 {
+        @include body-1-regular;
+        margin-top: 0;
+        font-weight: 400;
+        color: rgba(255, 255, 255, 0.7);
+        @include slide-font-size(14px, 2, 24px);
+    }
+
+    .cover-supertitle {
+        @include body-3-regular;
+        color: $blue-30;
+        margin-bottom: 0;
+        span:nth-child(2) {
+            &:before {
+                content: "|";
+                margin: 0 4px;
+            }
+        }
+    }
+}
+
+.slide--text {
+    padding: 64px;
+    align-items: flex-start;
+    justify-content: flex-start;
+}
+
+.slide-text__body {
+    @include body-1-regular;
+    color: $blue-90;
+    margin-top: 16px;
+    max-width: 60%;
+    @include slide-font-size(14px, 1.6, 22px);
+
+    &--large {
+        @include slide-font-size(18px, 2.2, 30px);
+    }
+}
+
+.slide--statement {
+    padding: 64px;
+    align-items: flex-start;
+    justify-content: flex-start;
+}
+
+.slide-statement__text {
+    @include display-1-semibold;
+    color: $blue-90;
+    margin: 0;
+    @include slide-font-size(24px, 4, 52px);
+}
+
+.slide-statement__attribution {
+    @include body-1-regular;
+    color: $gray-80;
+    margin-top: 16px;
+    @include slide-font-size(13px, 1.6, 22px);
+}
+
+.slide--contents {
+    align-items: flex-start;
+    .slide-title {
+        @include slide-font-size(40px, 3, 66px);
+    }
+    .slide-contents__list {
+        @include display-2-semibold;
+        @include slide-font-size(30px, 2.5, 48px);
+    }
+}
+
+.slide-contents__list {
+    @include body-1-regular;
+    color: $blue-30;
+    margin-top: 16px;
+    @include slide-font-size(16px, 2, 28px);
+
+    ul,
+    ol {
+        padding-left: 1.2em;
+        margin: 0;
+    }
+
+    li {
+        margin-bottom: 0.4em;
+    }
+
+    // Bolded items appear in a darker "active" color
+    strong {
+        color: $blue-90;
+        font-weight: 700;
+    }
+}
+
+.slide-title {
+    @include display-1-semibold;
+    margin: 0;
+    @include slide-font-size(20px, 3, 40px);
+}
+
+.slide-subtitle {
+    @include body-1-regular;
+    color: $gray-80;
+    margin: 0;
+    @include slide-font-size(13px, 1.6, 22px);
+}
+
+.slide-title,
+.slide-subtitle {
+    // ensure the title doesn't overlap the logo
+    max-width: calc(100% - 90px);
+}
+
+.slide__text {
+    @include body-1-regular;
+    width: min(350px, 25%);
+    flex-shrink: 0;
+    color: #333;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    @include slide-font-size(12px, 1.4, 18px);
+
+    &--large {
+        @include slide-font-size(16px, 2, 26px);
+    }
+    > *:first-child {
+        margin-top: 8px;
+    }
+    > *:last-child {
+        margin-bottom: 0;
+    }
+}
+
+.slide__media-placeholder {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f0f0f0;
+    color: #999;
+    @include slide-font-size(11px, 1.2, 16px);
+}
+
+// --- Media ---
+
+.slide__image {
+    flex: 1;
+    min-width: 0;
+    min-height: 0;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    object-position: left top;
+}
+
+.Explorer,
+.ExplorerFigure,
+.GrapherComponent {
+    height: 100%;
+
+    // align y ticks with slide header
+    &:has(.LineChart) {
+        margin-left: -16px;
+    }
+}
