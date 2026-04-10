@@ -8,14 +8,45 @@ import {
     SLIDE_TEMPLATE_LABELS,
 } from "@ourworldindata/types"
 import { match } from "ts-pattern"
+import { parseSlideChartUrl } from "../../site/slideshows/slideshowUtils.js"
+
+/** Truncate a string and strip markdown formatting for display */
+function truncate(text: string, maxLength: number = 50): string {
+    const plain = text.replace(/[*_#[\]()]/g, "").trim()
+    if (plain.length <= maxLength) return plain
+    return plain.slice(0, maxLength).trim() + "…"
+}
 
 function getSlideName(slide: Slide, index: number): string {
+    const fallback = `Slide ${index + 1}`
     return match(slide)
+        .with({ template: SlideTemplate.Cover }, (s) => s.title || fallback)
         .with(
-            { template: SlideTemplate.Cover },
-            (s) => s.title || `Slide ${index + 1}`
+            { template: SlideTemplate.Image },
+            (s) => s.slideTitle || s.filename || fallback
         )
-        .otherwise(() => `Slide ${index + 1}`)
+        .with({ template: SlideTemplate.Chart }, (s) => {
+            if (s.title) return s.title
+            if (s.url) return parseSlideChartUrl(s.url).slug
+            return fallback
+        })
+        .with({ template: SlideTemplate.TwoCharts }, (s) => {
+            if (s.title) return s.title
+            const slugs = [s.url1, s.url2]
+                .filter(Boolean)
+                .map((url) => parseSlideChartUrl(url).slug)
+            return slugs.length > 0 ? slugs.join(" + ") : fallback
+        })
+        .with(
+            { template: SlideTemplate.Statement },
+            (s) => truncate(s.text) || fallback
+        )
+        .with({ template: SlideTemplate.Outline }, (s) => s.title || fallback)
+        .with(
+            { template: SlideTemplate.Text },
+            (s) => s.title || truncate(s.text) || fallback
+        )
+        .exhaustive()
 }
 
 export function SlideshowArrangeTab(props: {
@@ -53,7 +84,6 @@ export function SlideshowArrangeTab(props: {
                         }`}
                         onClick={() => onSelect(i)}
                     >
-                        <div className="SlideshowArrangeTab__item-thumbnail" />
                         <div className="SlideshowArrangeTab__item-info">
                             <span className="SlideshowArrangeTab__item-name">
                                 {getSlideName(slide, i)}
