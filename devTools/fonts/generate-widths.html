@@ -1,0 +1,239 @@
+<!doctype html>
+<!--
+    Generates character width data for stringWidth.ts using @chenglou/pretext.
+
+    Usage:
+      1. Run a local server from the repo root, e.g.:
+           npx serve -l 8001 public
+      2. Open this file via that server:
+           http://localhost:8001/../devTools/fonts/generate-widths.html
+         Or just open it directly (the fonts are loaded from Google Fonts as fallback
+         and from the local /fonts/ path when served).
+
+    The page measures every character used in stringWidth.ts across all Lato &
+    Playfair Display variants and displays the resulting TypeScript code ready
+    to paste into stringWidth.ts.
+-->
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>String Width Generator</title>
+        <link rel="stylesheet" href="https://ourworldindata.org//fonts.css" />
+        <style>
+            body {
+                font-family: monospace;
+                margin: 2em;
+            }
+            #status {
+                font-size: 18px;
+                margin-bottom: 1em;
+            }
+            #output {
+                white-space: pre;
+                background: #f5f5f5;
+                padding: 1em;
+                border: 1px solid #ccc;
+                overflow: auto;
+                font-size: 13px;
+                line-height: 1.4;
+            }
+            button {
+                margin: 1em 0;
+                padding: 0.5em 1em;
+                font-size: 14px;
+                cursor: pointer;
+            }
+            .font-preload {
+                position: absolute;
+                visibility: hidden;
+                font-size: 100px;
+            }
+        </style>
+    </head>
+    <body>
+        <!-- Force the browser to load every font variant we need to measure -->
+        <div class="font-preload" style="font-family: Lato; font-weight: 400">
+            x
+        </div>
+        <div class="font-preload" style="font-family: Lato; font-weight: 700">
+            x
+        </div>
+        <div
+            class="font-preload"
+            style="font-family: Lato; font-weight: 400; font-style: italic"
+        >
+            x
+        </div>
+        <div
+            class="font-preload"
+            style="font-family: Lato; font-weight: 700; font-style: italic"
+        >
+            x
+        </div>
+        <div
+            class="font-preload"
+            style="font-family: &quot;Playfair Display&quot;; font-weight: 400"
+        >
+            x
+        </div>
+        <div
+            class="font-preload"
+            style="font-family: &quot;Playfair Display&quot;; font-weight: 700"
+        >
+            x
+        </div>
+        <div
+            class="font-preload"
+            style="
+                font-family: &quot;Playfair Display&quot;;
+                font-weight: 400;
+                font-style: italic;
+            "
+        >
+            x
+        </div>
+        <div
+            class="font-preload"
+            style="
+                font-family: &quot;Playfair Display&quot;;
+                font-weight: 700;
+                font-style: italic;
+            "
+        >
+            x
+        </div>
+
+        <h1>String Width Generator</h1>
+        <div id="status">Loading fonts…</div>
+        <button id="copy" style="display: none">Copy to clipboard</button>
+        <pre id="output"></pre>
+
+        <script type="module">
+            import {
+                prepareWithSegments,
+                measureNaturalWidth,
+            } from "https://esm.sh/@chenglou/pretext@0.0.5"
+
+            const CHARACTERS = []
+            for (var i = 0; i <= 127; i++) {
+                if (i < 32) continue // non-printable chars
+                if (i === 127) continue // DELETE char
+                var letter = String.fromCharCode(i)
+                CHARACTERS.push(letter)
+            }
+
+            // extra special characters
+            CHARACTERS.push(..."₀₁₂₃₄₅₆₇₈₉⁰¹²³⁴⁵⁶⁷⁸⁹".split(""))
+            CHARACTERS.push(..."‑–—…‘’“”°→≤≥£ºµ‰".split(""))
+
+            CHARACTERS.sort()
+
+            const FONTS = [
+                {
+                    enumKey: "FontFamily.Lato",
+                    variants: [
+                        { comment: "regular", font: "100px Lato" },
+                        { comment: "bold", font: "bold 100px Lato" },
+                        { comment: "italic", font: "italic 100px Lato" },
+                        {
+                            comment: "bold+italic",
+                            font: "italic bold 100px Lato",
+                        },
+                    ],
+                },
+                {
+                    enumKey: "FontFamily.PlayfairDisplay",
+                    variants: [
+                        {
+                            comment: "regular",
+                            font: "100px 'Playfair Display'",
+                        },
+                        {
+                            comment: "bold",
+                            font: "bold 100px 'Playfair Display'",
+                        },
+                        {
+                            comment: "italic",
+                            font: "italic 100px 'Playfair Display'",
+                        },
+                        {
+                            comment: "bold+italic",
+                            font: "italic bold 100px 'Playfair Display'",
+                        },
+                    ],
+                },
+            ]
+
+            function escapeKey(ch) {
+                // Simple identifiers: use bare name
+                if (/^[a-zA-Z_$]$/.test(ch)) return ch
+                // Everything else: JSON-stringify to get proper escaping
+                return JSON.stringify(ch)
+            }
+
+            function measureChar(ch, font) {
+                const prepared = prepareWithSegments(ch, font, {
+                    whiteSpace: "pre-wrap",
+                })
+                return Math.round(measureNaturalWidth(prepared))
+            }
+
+            await document.fonts.ready
+
+            const status = document.getElementById("status")
+            const output = document.getElementById("output")
+            const copyBtn = document.getElementById("copy")
+
+            const latoLoaded = document.fonts.check("100px Lato")
+            const playfairLoaded = document.fonts.check(
+                "100px 'Playfair Display'"
+            )
+            if (!latoLoaded || !playfairLoaded) {
+                status.textContent =
+                    "Warning: some fonts did not load. Lato: " +
+                    latoLoaded +
+                    ", Playfair: " +
+                    playfairLoaded
+                status.style.color = "red"
+            }
+
+            status.textContent = "Measuring…"
+
+            const lines = []
+            lines.push(
+                "const widthsMap: Record<FontFamily, Record<string, number>[]> = {"
+            )
+
+            for (const family of FONTS) {
+                lines.push(`    [${family.enumKey}]: [`)
+                for (const variant of family.variants) {
+                    lines.push(`        // ${variant.comment}`)
+                    lines.push("        {")
+                    for (const ch of CHARACTERS) {
+                        const width = measureChar(ch, variant.font)
+                        lines.push(`            ${escapeKey(ch)}: ${width},`)
+                    }
+                    lines.push("        },")
+                }
+                lines.push("    ],")
+            }
+
+            lines.push("}")
+
+            output.textContent = lines.join("\n")
+
+            const variantCount = FONTS.reduce(
+                (n, f) => n + f.variants.length,
+                0
+            )
+            status.textContent = `Done! Measured ${CHARACTERS.length} characters across ${variantCount} font variants.`
+
+            copyBtn.style.display = "inline-block"
+            copyBtn.addEventListener("click", () => {
+                navigator.clipboard
+                    .writeText(output.textContent)
+                    .then(() => (copyBtn.textContent = "Copied!"))
+            })
+        </script>
+    </body>
+</html>
