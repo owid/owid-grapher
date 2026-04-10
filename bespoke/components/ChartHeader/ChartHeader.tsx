@@ -5,7 +5,7 @@ export function ChartHeader({
     subtitle,
     className,
 }: {
-    title: string
+    title: React.ReactNode
     subtitle?: React.ReactNode
     className?: string
 }) {

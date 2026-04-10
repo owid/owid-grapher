@@ -1,0 +1,18 @@
+@import "normalize.css";
+
+@import "tippy.js/dist/tippy.css";
+@import "tippy.js/themes/light.css";
+
+@import "@fortawesome/fontawesome-svg-core/styles.css";
+
+@import "./grapher.scss";
+@import "./base.scss";
+
+@import "./styles.scss";
+
+// Shared components
+@import "../../../components/ChartHeader/ChartHeader.scss";
+@import "../../../components/ChartFooter/ChartFooter.scss";
+@import "../../../components/TimeSlider/TimeSlider.scss";
+@import "../../../components/Frame/Frame.scss";
+@import "../../../components/BezierArrow/BezierArrow.scss";
