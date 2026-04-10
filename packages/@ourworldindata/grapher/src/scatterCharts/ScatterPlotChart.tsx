@@ -32,10 +32,8 @@ import {
     ConnectedScatterLegend,
     ConnectedScatterLegendManager,
 } from "./ConnectedScatterLegend"
-import {
-    VerticalColorLegend,
-    VerticalColorLegendManager,
-} from "../legend/VerticalColorLegend"
+import { VerticalColorLegend } from "../legend/VerticalColorLegend"
+import { VerticalColorLegendState } from "../legend/VerticalColorLegendState"
 import { DualAxisComponent } from "../axis/AxisViews"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
 
@@ -84,7 +82,6 @@ export class ScatterPlotChart
         ConnectedScatterLegendManager,
         ScatterSizeLegendManager,
         ChartInterface,
-        VerticalColorLegendManager,
         AxisManager
 {
     constructor(props: ScatterPlotChartProps) {
@@ -322,11 +319,18 @@ export class ScatterPlotChart
     }
 
     @computed private get verticalColorLegend():
-        | VerticalColorLegend
+        | VerticalColorLegendState
         | undefined {
         if (this.categoricalLegendData.length === 0 || !this.manager.showLegend)
             return undefined
-        return new VerticalColorLegend({ manager: this })
+        return new VerticalColorLegendState(this.categoricalLegendData, {
+            maxLegendWidth: this.maxLegendWidth,
+            fontSize: this.fontSize,
+            legendTitle: this.legendTitle,
+            resolveLegendBinEmphasis: (bin: ColorScaleBin) =>
+                this.resolveLegendBinEmphasis(bin),
+            legendStyleConfig: this.legendStyleConfig,
+        })
     }
 
     @computed get maxLegendWidth(): number {
@@ -649,7 +653,17 @@ export class ScatterPlotChart
 
         return (
             <>
-                {verticalColorLegend && <VerticalColorLegend manager={this} />}
+                {verticalColorLegend && (
+                    <VerticalColorLegend
+                        state={verticalColorLegend}
+                        x={this.legendX}
+                        y={this.legendY}
+                        onMouseOver={this.onLegendMouseOver}
+                        onMouseLeave={this.onLegendMouseLeave}
+                        onClick={this.onLegendClick}
+                        isStatic={this.isStatic}
+                    />
+                )}
                 {sizeLegend && (
                     <>
                         {verticalColorLegend && separatorLine(ySizeLegend)}
