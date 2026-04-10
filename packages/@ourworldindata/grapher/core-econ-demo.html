@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Grapher Demo</title>
+        <link rel="stylesheet" href="https://ourworldindata.org/fonts.css" />
+        <link rel="stylesheet" href="dist/grapher.css" />
+        <style>
+            body {
+                font-family: system-ui, sans-serif;
+                margin: 0;
+                padding: 24px;
+                background: #f5f5f5;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+                margin: 0 0 4px;
+            }
+
+            h2 {
+                font-size: 1rem;
+                font-weight: 600;
+                margin: 32px 0 4px;
+                color: #444;
+                letter-spacing: 0.05em;
+            }
+
+            p {
+                margin: 0 0 12px;
+                color: #666;
+                font-size: 0.9rem;
+            }
+
+            .chart {
+                box-sizing: border-box;
+                width: 80%;
+                max-width: 1200px;
+                aspect-ratio: 850 / 600;
+                margin: 0 auto;
+                border: 1px solid #ddd;
+                background: #fff;
+            }
+
+            .chart * {
+                box-sizing: border-box;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Grapher Demo</h1>
+
+        <h2>fromCsv — CSV file</h2>
+        <p>
+            Data is fetched from
+            <a href="./core-econ-data.csv"><code>core-econ-data.csv</code></a>
+            at runtime.
+            <a
+                href="https://ourworldindata.org/grapher/policy-choices-during-the-end-of-the-golden-age-the-us"
+                >Live chart</a
+            >
+        </p>
+        <div id="grapher-csv" class="chart"></div>
+
+        <script type="module">
+            import { GrapherLoader, OwidTable } from "./dist/grapher.bundle.js"
+
+            // --- fromCsv -----------------------------------------------------
+            GrapherLoader.fromCsv({
+                config: {
+                    slug: "policy-choices-during-the-end-of-the-golden-age-the-us",
+                    title: "Policy choices during the end of the golden age",
+                    subtitle:
+                        "Unit 17 'The Great Depression, golden age, and global financial crisis’ Section 17.12 'The economy as teacher' in The CORE Team, The Economy. Available at https://tinyco.re/17122899 [Figure 17.28]",
+                    note: "CC-BY-ND-NC",
+                    internalNotes: "core-econ.org",
+                    originUrl: "https://tinyco.re/17122899",
+                    addCountryMode: "disabled",
+                    logo: "core+owid",
+                    yAxis: {
+                        min: 0,
+                        max: 20,
+                        canChangeScaleType: true,
+                    },
+                    dimensions: [
+                        { property: "y", slug: "unemployment" },
+                        { property: "y", slug: "budget" },
+                        { property: "y", slug: "nominal_interest" },
+                        { property: "y", slug: "real_interest" },
+                        { property: "y", slug: "oil_price" },
+                        { property: "y", slug: "cpi" },
+                    ],
+                    selectedEntityNames: ["United States"],
+                    $schema:
+                        "https://files.ourworldindata.org/schemas/grapher-schema.010.json",
+                },
+                csvUrl: "./core-econ-data.csv",
+                columnDefs: [
+                    {
+                        slug: "unemployment",
+                        type: "Numeric",
+                        name: "Unemployment rate (%)",
+                        color: "#11be07",
+                        sourceName: "BLS (2014)",
+                    },
+                    {
+                        slug: "budget",
+                        type: "Numeric",
+                        name: "Cyclically-adjusted budget balance (as a % of potential GDP)",
+                        color: "#000000",
+                        sourceName: "CBO (2014)",
+                    },
+                    {
+                        slug: "nominal_interest",
+                        type: "Numeric",
+                        name: "Short term nominal interest rate (%)",
+                        color: "#da9908",
+                        sourceName: "FRED (2014)",
+                    },
+                    {
+                        slug: "real_interest",
+                        type: "Numeric",
+                        name: "Short term real interest rate (%)",
+                        color: "#366388",
+                        sourceName: "FRED (2014)",
+                    },
+                    {
+                        slug: "oil_price",
+                        type: "Numeric",
+                        name: "Real oil price index (1960=5)",
+                        color: "#08d0d8",
+                        sourceName: "FRED (2014)",
+                    },
+                    {
+                        slug: "cpi",
+                        type: "Numeric",
+                        name: "Consumer price inflation (%)",
+                        color: "#a2559c",
+                        sourceName: "FRED (2014)",
+                    },
+                ],
+            }).mount(document.getElementById("grapher-csv"))
+        </script>
+    </body>
+</html>
