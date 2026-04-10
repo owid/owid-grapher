@@ -23,9 +23,9 @@ Add or update synonym entries in `site/search/synonymUtils.ts` so that our Algol
 
 3. Read `site/search/synonymUtils.ts` to see the current synonym groups and section comments.
 
-4. Determine whether the new terms belong in an existing synonym group or need a new one:
-    - If any of the requested terms already appear in a group, add the new terms to that group.
-    - If creating a new group, place it under the most appropriate section comment (Organizations, Health, Energy, etc.).
+4. Determine which existing synonym group the new terms belong in:
+    - Find the group where the requested terms best fit and add the new terms to it.
+    - Never create a new synonym group — always add to an existing one.
     - Preserve the existing formatting: each group is an array of strings, groups are separated by blank lines between sections.
 
 5. Edit the file. Use double quotes for all strings. Keep entries in the same style as surrounding code.
@@ -42,10 +42,10 @@ Add or update synonym entries in `site/search/synonymUtils.ts` so that our Algol
         - `yarn testLintChanged` and fix any errors.
         - `yarn test run --reporter dot site/search/synonymUtils.test.ts` and fix any errors.
 
-7. Commit to master following the commit message guidelines in `docs/agent-guidelines/commit-messages.md`:
-    - Use ✨🤖 as prefix when adding terms to an existing synonym group.
-    - Use 🎉🤖 as prefix when creating a new synonym group.
-    - Keep the message short and descriptive, e.g. `✨🤖 Add "WHO" synonym for "World Health Organization"`.
+7. Commit to master with a message in this exact format:
+    - Prefix: `✨🤖`
+    - Followed by a short description, e.g. `✨🤖 Add "WHO" synonym for "World Health Organization"`
+    - Add `Co-Authored-By: Claude <noreply@anthropic.com>` as a trailer.
 
 8. Push the commit to the remote.
 
