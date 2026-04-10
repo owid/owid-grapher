@@ -4,7 +4,14 @@ import type {
     Hit,
     HitHighlightResult,
 } from "instantsearch.js"
-import { OwidGdocType } from "../gdocTypes/Gdoc.js"
+import {
+    OwidGdocType,
+    LinkedAuthor,
+    LinkedChart,
+    OwidGdocMinimalPostInterface,
+} from "../gdocTypes/Gdoc.js"
+import { OwidEnrichedGdocBlock } from "../gdocTypes/ArchieMlComponents.js"
+import { DbEnrichedImage } from "../dbTypes/Images.js"
 import { GrapherTabName } from "../grapherTypes/GrapherTypes.js"
 import * as z from "zod/mini"
 
@@ -41,6 +48,26 @@ export type PageChronologicalRecord = {
     authors: string[]
     tags: string[]
     thumbnailUrl: string
+    // Announcement kicker value — top-level for Algolia faceting
+    kicker?: string
+    // Type-specific enrichment fields for card rendering
+    // DataInsight: body blocks for inline rendering
+    body?: OwidEnrichedGdocBlock[]
+    // Article: featured image filename
+    featuredImage?: string
+    // Image metadata keyed by filename (all types that display images)
+    imageMetadata?: Record<string, DbEnrichedImage>
+    // Announcement: content fields for AnnouncementPageContent rendering
+    announcementContent?: {
+        kicker?: string
+        body: OwidEnrichedGdocBlock[]
+        cta?: { text: string; url: string }
+    }
+    // Announcement: linked authors for byline rendering
+    linkedAuthors?: LinkedAuthor[]
+    // Announcement (non-CTA): linked charts and documents
+    linkedCharts?: Record<string, LinkedChart>
+    linkedDocuments?: Record<string, OwidGdocMinimalPostInterface>
 }
 
 export const PagesIndexRecordsResponseSchema = z.object({
