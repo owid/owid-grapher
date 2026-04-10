@@ -406,22 +406,13 @@ async function selectPeerCountriesByDataRange({
 
     // Extract values for candidate entities at the given time
     if (!isDataColumnAvailable(dataColumn)) return []
-    const targetTime = time ?? dataColumn.maxTime
-    let values = extractValuesAtTime({
+
+    const values = extractCandidateValues({
         entities: candidateEntities,
         dataColumn,
-        time: targetTime,
+        targetCountry,
+        time,
     })
-
-    // If no values found at the target time, retry with the column's latest time
-    // This can happen for charts with projected data
-    if (values.size === 0 && targetTime !== dataColumn.maxTime) {
-        values = extractValuesAtTime({
-            entities: candidateEntities,
-            dataColumn,
-            time: dataColumn.maxTime,
-        })
-    }
 
     // Load population data for weighted selection (prefer larger countries)
     if (!isDataLoaderAvailable(additionalDataLoaderFn)) return []
@@ -656,6 +647,73 @@ function weightedRandomPick(
     }
 
     return bucket[bucket.length - 1]?.entityName
+}
+
+function extractCandidateValues({
+    entities,
+    dataColumn,
+    targetCountry,
+    time,
+}: {
+    entities: EntityName[]
+    dataColumn: CoreColumn
+    targetCountry?: EntityName
+    time?: Time
+}): Map<EntityName, number> {
+    // If a target country is given, use the given time value if it has data for it,
+    // otherwise use the country's latest data smaller than the given time
+    if (targetCountry) {
+        const rowsByTime =
+            dataColumn.owidRowByEntityNameAndTime.get(targetCountry)
+
+        if (!rowsByTime)
+            return extractValuesAtTime({
+                entities,
+                dataColumn,
+                time: time ?? dataColumn.maxTime,
+            })
+
+        const times = [...rowsByTime.keys()]
+        if (time !== undefined) {
+            // If a time is given, find the closest time with data for the
+            // target country that is smaller or equal to the given time
+            const closestTime = _.max(times.filter((t) => t <= time))
+
+            return extractValuesAtTime({
+                entities,
+                dataColumn,
+                time: closestTime ?? time ?? dataColumn.maxTime,
+            })
+        } else {
+            // If no time given, use the latest time with data for the target country
+            const maxTime = _.max(times)
+            return extractValuesAtTime({
+                entities,
+                dataColumn,
+                time: maxTime ?? dataColumn.maxTime,
+            })
+        }
+    }
+
+    // If no target country is given, use the given time
+    const targetTime = time ?? dataColumn.maxTime
+    const values = extractValuesAtTime({
+        entities,
+        dataColumn,
+        time: targetTime,
+    })
+
+    // If no values found at the target time, retry with the column's latest time
+    // This can happen for charts with projected data
+    if (values.size === 0 && targetTime !== dataColumn.maxTime) {
+        return extractValuesAtTime({
+            entities,
+            dataColumn,
+            time: dataColumn.maxTime,
+        })
+    }
+
+    return values
 }
 
 /** Extracts numeric values for entities at a specific time point */

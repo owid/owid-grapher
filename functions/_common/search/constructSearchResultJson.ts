@@ -1040,10 +1040,8 @@ export async function selectPeerEntitiesForSearch({
     if (!targetRegion) return []
 
     if (checkIsCountry(targetRegion)) {
-        // For backward compatibility, default to the ParentRegions strategy
         const peerCountryStrategy =
-            grapherState.peerCountryStrategy ??
-            PeerCountryStrategy.ParentRegions
+            grapherState.peerCountryStrategy ?? PeerCountryStrategy.DataRange
 
         // For countries, use Grapher's peer selection logic
         return selectPeerCountriesForGrapher(grapherState, {
