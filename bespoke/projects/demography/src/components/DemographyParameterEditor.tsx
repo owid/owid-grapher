@@ -687,27 +687,13 @@ function DraggableControlPoint({
 
                 {/* Value label — flips below the dot when near the top */}
                 {showBackground ? (
-                    <>
-                        <TextBackground
-                            x={cx}
-                            y={cy < 20 ? cy + 22 : cy - 17}
-                            text={formatValue(value)}
-                            fontSize={controlLabelFontSize}
-                            padX={4}
-                            padY={1.5}
-                            fill={modified ? USER_MODIFIED_COLOR : DENIM_BLUE}
-                        />
-                        <text
-                            x={cx}
-                            y={cy < 20 ? cy + 22 : cy - 17}
-                            textAnchor="middle"
-                            fontSize={controlLabelFontSize}
-                            fontWeight={700}
-                            fill="white"
-                        >
-                            {formatValue(value)}
-                        </text>
-                    </>
+                    <TextWithBackground
+                        x={cx}
+                        y={cy < 20 ? cy + 22 : cy - 17}
+                        text={formatValue(value)}
+                        fontSize={controlLabelFontSize}
+                        color={modified ? USER_MODIFIED_COLOR : DENIM_BLUE}
+                    />
                 ) : (
                     <Halo id="control-value-label" outlineWidth={3}>
                         <text
@@ -1028,66 +1014,66 @@ function HoverPointLabel({
     backgroundFill?: string
 }) {
     const textY = y < 20 ? y + fontSize / 2 + 10 : y - fontSize / 2 - 5
-    const padX = 4
-    const padY = 1.5
 
     return (
         <>
             <circle cx={x} cy={y} r={SMALL_DOT_RADIUS} fill={color} />
             {label && (
                 <>
-                    <TextBackground
+                    <TextWithBackground
                         x={x}
                         y={textY}
                         text={label}
                         fontSize={fontSize}
-                        padX={padX}
-                        padY={padY}
-                        fill={backgroundFill}
+                        color={backgroundFill}
                     />
-                    <text
-                        x={x}
-                        y={textY}
-                        fontSize={fontSize}
-                        fontWeight={700}
-                        fill="white"
-                        textAnchor="middle"
-                    >
-                        {label}
-                    </text>
                 </>
             )}
         </>
     )
 }
 
-function TextBackground({
+function TextWithBackground({
     x,
     y,
     text,
     fontSize,
-    padX,
-    padY,
-    fill,
+    fontWeight = 700,
+    color,
 }: {
     x: number
     y: number
     text: string
     fontSize: number
-    padX: number
-    padY: number
-    fill: string
+    fontWeight?: number
+    color: string
 }) {
-    const tw = new TextWrap({ text, maxWidth: Infinity, fontSize })
+    const bounds = Bounds.forText(text, { fontSize, fontWeight })
+
+    const padX = 3
+    const padY = 1
+
     return (
-        <rect
-            x={x - tw.width / 2 - padX}
-            y={y - tw.height + padY}
-            width={tw.width + padX * 2}
-            height={tw.height + padY}
-            rx={2}
-            fill={fill}
-        />
+        <>
+            <rect
+                x={x - bounds.width / 2 - padX}
+                y={y - bounds.height + 1.5 - padY}
+                width={bounds.width + padX * 2}
+                height={bounds.height + padY * 2}
+                rx={2}
+                fill={color}
+            />
+            <text
+                x={x}
+                y={y}
+                textAnchor="middle"
+                fontSize={fontSize}
+                fontWeight={fontWeight}
+                fill="white"
+            >
+                {text}
+            </text>
+        </>
     )
 }
 
