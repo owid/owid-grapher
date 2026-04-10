@@ -47,7 +47,7 @@ export function SlideRenderer(props: {
             </div>
         ))
         .with({ template: SlideTemplate.Image }, (slide) => (
-            <div className={className}>
+            <div className={`${className} slide--image`}>
                 {!slide.hideLogo && <SlideLogo />}
                 {slide.slideTitle && (
                     <h1 className="slide-title">
@@ -75,7 +75,7 @@ export function SlideRenderer(props: {
             </div>
         ))
         .with({ template: SlideTemplate.Chart }, (slide) => (
-            <div className={className}>
+            <div className={`${className} slide--chart`}>
                 {!slide.hideLogo && <SlideLogo />}
                 {slide.title && (
                     <h1 className="slide-title">

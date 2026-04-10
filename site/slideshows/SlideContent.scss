@@ -2,8 +2,18 @@
 // Uses --slide-unit (defaults to 1vw, overridden to 1cqw in admin)
 // so font-sizes scale with the viewport on the site and with the
 // canvas container in the admin editor — no duplicate declarations.
+// Sets a responsive font-size using CSS clamp with --slide-unit.
+// Wrapped in `& {}` to safely come after typography mixins that
+// contain @media rules (avoids Sass mixed-decls deprecation).
+// Must be the LAST include in a rule block.
 @mixin slide-font-size($min, $preferred, $max) {
-    font-size: clamp(#{$min}, calc(#{$preferred} * var(--slide-unit)), #{$max});
+    & {
+        font-size: clamp(
+            #{$min},
+            calc(#{$preferred} * var(--slide-unit)),
+            #{$max}
+        );
+    }
 }
 
 .slide {
@@ -34,6 +44,12 @@
     height: min(calc(100% - 128px), 56.25vw);
 }
 
+.slide--image {
+    .slide-chart-content {
+        margin-top: 40px;
+    }
+}
+
 .slide-chart-content {
     flex: 1;
     display: flex;
@@ -42,7 +58,6 @@
 }
 
 .slide--two-charts {
-    padding: 32px;
     align-items: stretch;
 }
 
@@ -100,18 +115,18 @@
 
     h1 {
         @include display-1-semibold;
-        @include slide-font-size(24px, 4, 48px);
         margin-top: 0;
         margin-bottom: 8px;
         color: white;
+        @include slide-font-size(24px, 4, 48px);
     }
 
     h2 {
         @include body-1-regular;
         margin-top: 0;
-        @include slide-font-size(14px, 2, 24px);
         font-weight: 400;
         color: rgba(255, 255, 255, 0.7);
+        @include slide-font-size(14px, 2, 24px);
     }
 
     .cover-supertitle {
@@ -127,22 +142,6 @@
     }
 }
 
-.SlideContent--section {
-    text-align: center;
-
-    h1 {
-        @include display-1-semibold;
-        @include slide-font-size(22px, 3.5, 42px);
-    }
-
-    h2 {
-        @include body-1-regular;
-        @include slide-font-size(13px, 1.8, 22px);
-        font-weight: 400;
-        color: #666;
-    }
-}
-
 .slide--text {
     padding: 64px;
     align-items: flex-start;
@@ -151,10 +150,10 @@
 
 .slide-text__body {
     @include body-1-regular;
-    @include slide-font-size(14px, 1.6, 22px);
     color: $blue-90;
     margin-top: 16px;
     max-width: 60%;
+    @include slide-font-size(14px, 1.6, 22px);
 
     &--large {
         @include slide-font-size(18px, 2.2, 30px);
@@ -169,28 +168,34 @@
 
 .slide-statement__text {
     @include display-1-semibold;
-    @include slide-font-size(24px, 4, 52px);
     color: $blue-90;
     margin: 0;
+    @include slide-font-size(24px, 4, 52px);
 }
 
 .slide-statement__attribution {
     @include body-1-regular;
-    @include slide-font-size(13px, 1.6, 22px);
     color: $gray-80;
     margin-top: 16px;
+    @include slide-font-size(13px, 1.6, 22px);
 }
 
 .slide--contents {
-    padding: 64px;
     align-items: flex-start;
+    .slide-title {
+        @include slide-font-size(40px, 3, 66px);
+    }
+    .slide-contents__list {
+        @include display-2-semibold;
+        @include slide-font-size(30px, 2.5, 48px);
+    }
 }
 
 .slide-contents__list {
     @include body-1-regular;
-    @include slide-font-size(16px, 2, 28px);
     color: $blue-30;
     margin-top: 16px;
+    @include slide-font-size(16px, 2, 28px);
 
     ul,
     ol {
@@ -211,16 +216,15 @@
 
 .slide-title {
     @include display-1-semibold;
-    @include slide-font-size(20px, 3, 40px);
-
     margin: 0;
+    @include slide-font-size(20px, 3, 40px);
 }
 
 .slide-subtitle {
     @include body-1-regular;
-    @include slide-font-size(13px, 1.6, 22px);
     color: $gray-80;
     margin: 0;
+    @include slide-font-size(13px, 1.6, 22px);
 }
 
 .slide-title,
@@ -247,12 +251,6 @@
     > *:last-child {
         margin-bottom: 0;
     }
-}
-
-.SlideContent__author,
-.SlideContent__date {
-    color: #999;
-    @include slide-font-size(11px, 1.2, 16px);
 }
 
 .slide__media-placeholder {
