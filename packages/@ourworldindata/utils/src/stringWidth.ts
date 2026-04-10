@@ -148,6 +148,7 @@ const widthsMap: Record<FontFamily, Record<string, number>[]> = {
             "£": 58,
             º: 40,
             µ: 65,
+            "‰": 116,
         },
         // bold
         {
@@ -281,6 +282,7 @@ const widthsMap: Record<FontFamily, Record<string, number>[]> = {
             "£": 58,
             º: 40,
             µ: 66,
+            "‰": 119,
         },
         // italic
         {
@@ -414,6 +416,7 @@ const widthsMap: Record<FontFamily, Record<string, number>[]> = {
             "£": 58,
             º: 38,
             µ: 61,
+            "‰": 108,
         },
         // bold+italic
         {
@@ -547,6 +550,7 @@ const widthsMap: Record<FontFamily, Record<string, number>[]> = {
             "£": 58,
             º: 37,
             µ: 62,
+            "‰": 110,
         },
     ],
     [FontFamily.PlayfairDisplay]: [
@@ -682,6 +686,7 @@ const widthsMap: Record<FontFamily, Record<string, number>[]> = {
             "£": 60,
             º: 45,
             µ: 58,
+            "‰": 109,
         },
         // bold
         {
@@ -815,6 +820,7 @@ const widthsMap: Record<FontFamily, Record<string, number>[]> = {
             "£": 66,
             º: 47,
             µ: 58,
+            "‰": 112,
         },
         // italic
         {
@@ -948,6 +954,7 @@ const widthsMap: Record<FontFamily, Record<string, number>[]> = {
             "£": 62,
             º: 41,
             µ: 58,
+            "‰": 113,
         },
         // bold+italic
         {
@@ -1081,6 +1088,7 @@ const widthsMap: Record<FontFamily, Record<string, number>[]> = {
             "£": 67,
             º: 49,
             µ: 58,
+            "‰": 119,
         },
     ],
 }
