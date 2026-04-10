@@ -79,37 +79,6 @@ export function placeExternalCategoryAnnotations({
         }
     }
 
-    // When very small categories get collapsed to zero-area tiles
-    // by the tiling algorithm, they can't receive a bottom annotation since
-    // they have no visible edge. In that case, find the nearest visible
-    // category in the same treemap column and annotate that one instead.
-    const hasBottomAnnotations = placedCategories.some(
-        (c) => c.placement === "bottom"
-    )
-    if (!hasBottomAnnotations) {
-        const placedCategoryNames = new Set(placedCategories.map((c) => c.name))
-        const availableCategories = sortedCategories.filter(
-            (c) => !placedCategoryNames.has(c.name)
-        )
-        const candidate = findFallbackBottomCategory(availableCategories)
-        if (candidate) {
-            const placedCategory = placeExternalCategoryAnnotation({
-                category: candidate,
-                placement: "bottom",
-                annotationHeight,
-                skipEdgeCheck: true,
-                context: {
-                    placedCategories,
-                    treemapBounds,
-                    treemapNodes,
-                },
-            })
-            if (placedCategory) {
-                placedCategories.push(placedCategory)
-            }
-        }
-    }
-
     return placedCategories
 }
 
@@ -118,7 +87,6 @@ function placeExternalCategoryAnnotation({
     placement,
     annotationHeight,
     context: { placedCategories, treemapBounds, treemapNodes },
-    skipEdgeCheck = false,
 }: {
     category: Category
     placement: "top" | "bottom"
@@ -128,7 +96,6 @@ function placeExternalCategoryAnnotation({
         treemapBounds: Bounds
         treemapNodes: TreeNode[]
     }
-    skipEdgeCheck?: boolean
 }): PlacedCategory | undefined {
     const getY = match(placement)
         .with("top", () => (node: TreeNode) => node.y0)
@@ -143,9 +110,9 @@ function placeExternalCategoryAnnotation({
     // Check if there are any visible nodes that align with the top/bottom
     // of the treemap
     const visibleNodes = category.nodes.filter(isVisible)
-    const relevantNodes = skipEdgeCheck
-        ? visibleNodes
-        : visibleNodes.filter((node) => getY(node) === treemapY)
+    const relevantNodes = visibleNodes.filter(
+        (node) => Math.abs(getY(node) - treemapY) <= 3
+    )
     if (relevantNodes.length === 0) return undefined
 
     const left = minBy(relevantNodes, (node) => node.x0)
@@ -235,42 +202,6 @@ function placeExternalCategoryAnnotation({
     }
 
     return undefined
-}
-
-/**
- * Find a fallback category for a bottom annotation when the bottom-most
- * category was collapsed to zero-area tiles. Looks for the nearest visible
- * category in the same treemap column as the invisible one.
- */
-function findFallbackBottomCategory(
-    categories: Category[]
-): Category | undefined {
-    // Find the category that couldn't be placed because none of its tiles are
-    // visible (there should not be multiple)
-    const skippedCategory = categories.find((category) =>
-        category.nodes.every((node) => !isVisible(node))
-    )
-    if (!skippedCategory) return
-
-    const x0 = skippedCategory.nodes[0]?.x0
-    if (x0 === undefined) return
-
-    const categoriesInSameColumn = categories.filter(
-        (category) =>
-            category.name !== skippedCategory.name &&
-            category.nodes.some((node) => node.x0 === x0)
-    )
-
-    // Find the category closest to the bottom edge of the treemap
-    return R.pipe(
-        categoriesInSameColumn,
-        R.map((category) => ({
-            category,
-            maxY: maxBy(category.nodes, (n) => n.y1),
-        })),
-        R.sortBy([({ maxY }) => maxY, "desc"]),
-        R.first()
-    )?.category
 }
 
 function getNodesForCategory(treeNodes: TreeNode[], categoryName: string) {
