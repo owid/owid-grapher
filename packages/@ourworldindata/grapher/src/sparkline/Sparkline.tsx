@@ -5,6 +5,7 @@ import { Bounds } from "@ourworldindata/utils"
 import { OwidVariableRow } from "@ourworldindata/types"
 import { GRAY_30 } from "../color/ColorConstants"
 import { SparklineHighlight } from "../dataTable/DataTableConstants"
+import { roundPixel } from "../chart/ChartUtils"
 
 export function Sparkline({
     width = 75,
@@ -66,8 +67,8 @@ export function Sparkline({
                 .map((highlight) => (
                     <line
                         key={highlight.time}
-                        x1={xScale(highlight.time)}
-                        x2={xScale(highlight.time)}
+                        x1={roundPixel(xScale(highlight.time))}
+                        x2={roundPixel(xScale(highlight.time))}
                         y1={0}
                         y2={height}
                         stroke={GRAY_30}
@@ -89,8 +90,8 @@ export function Sparkline({
                 .map((highlight) => (
                     <circle
                         key={highlight.time}
-                        cx={xScale(highlight.time)}
-                        cy={yScale(highlight.value!)}
+                        cx={roundPixel(xScale(highlight.time))}
+                        cy={roundPixel(yScale(highlight.value!))}
                         r={dotSize}
                         fill={color}
                         stroke="#fff"

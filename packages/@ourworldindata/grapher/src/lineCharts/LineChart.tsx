@@ -51,6 +51,7 @@ import {
     getHoverStateForSeries,
     getSeriesKey,
     isTargetOutsideElement,
+    roundPixel,
 } from "../chart/ChartUtils"
 import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
 import { ColorScale } from "../color/ColorScale"
@@ -230,9 +231,9 @@ export class LineChart
                     <g className="hoverIndicator" key={time}>
                         <line
                             x1={horizontalAxis.place(time)}
-                            y1={verticalAxis.range[0]}
+                            y1={roundPixel(verticalAxis.range[0])}
                             x2={horizontalAxis.place(time)}
-                            y2={verticalAxis.range[1]}
+                            y2={roundPixel(verticalAxis.range[1])}
                             stroke="rgba(180,180,180,.4)"
                         />
                         {this.renderSeries.map((series, index) => {

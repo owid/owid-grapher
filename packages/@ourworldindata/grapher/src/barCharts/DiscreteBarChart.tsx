@@ -20,6 +20,7 @@ import {
     FontSettings,
 } from "../core/GrapherConstants"
 import { NoDataModal } from "../noDataModal/NoDataModal"
+import { roundPixel } from "../chart/ChartUtils"
 import { HorizontalAxisZeroLine } from "../axis/AxisViews"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import { ChartInterface } from "../chart/ChartInterface"
@@ -355,9 +356,9 @@ export class DiscreteBarChart
                 id={makeFigmaId(series.seriesName)}
                 x={0}
                 y={0}
-                transform={`translate(${series.barX}, ${y - this.barHeight / 2})`}
-                width={series.barWidth}
-                height={this.barHeight}
+                transform={`translate(${roundPixel(series.barX)}, ${roundPixel(y - this.barHeight / 2)})`}
+                width={roundPixel(series.barWidth)}
+                height={roundPixel(this.barHeight)}
                 fill={barColor}
                 opacity={DISCRETE_BAR_STYLE[series.emphasis].barOpacity}
                 style={{ transition: "height 200ms ease" }}
@@ -413,7 +414,7 @@ export class DiscreteBarChart
                 key={`value-label-${series.seriesName}`}
                 x={0}
                 y={0}
-                transform={`translate(${series.valueLabelX}, ${y})`}
+                transform={`translate(${roundPixel(series.valueLabelX)}, ${roundPixel(y)})`}
                 fill={GRAPHER_DARK_TEXT}
                 dy={dyFromAlign(VerticalAlign.middle)}
                 textAnchor={series.value < 0 ? "end" : "start"}

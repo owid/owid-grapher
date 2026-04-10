@@ -22,6 +22,7 @@ import { darkenColorForLine } from "../color/ColorUtils"
 import {
     byHoverThenFocusState,
     getHoverStateForSeries,
+    roundPixel,
 } from "../chart/ChartUtils"
 import { resolveEmphasis } from "../interaction/Emphasis"
 
@@ -141,8 +142,8 @@ export function toPlacedLineChartSeries(
 
             return {
                 time: point.x,
-                x: _.round(horizontalAxis.place(point.x), 1),
-                y: _.round(verticalAxis.place(point.y), 1),
+                x: roundPixel(horizontalAxis.place(point.x)),
+                y: roundPixel(verticalAxis.place(point.y)),
                 color,
             }
         })

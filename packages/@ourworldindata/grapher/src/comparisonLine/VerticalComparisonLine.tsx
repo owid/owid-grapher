@@ -15,6 +15,7 @@ import {
 import { ComparisonLineProps } from "./ComparisonLine"
 import { VerticalComparisonLineConfig } from "@ourworldindata/types"
 import { isValidVerticalComparisonLineConfig } from "./ComparisonLineHelpers"
+import { roundPixel } from "../chart/ChartUtils"
 
 @observer
 export class VerticalComparisonLine extends React.Component<
@@ -171,8 +172,8 @@ export class VerticalComparisonLine extends React.Component<
         return (
             <text
                 {...COMPARISON_LINE_LABEL_STYLE}
-                x={x}
-                y={y}
+                x={roundPixel(x)}
+                y={roundPixel(y)}
                 fontSize={this.fontSize}
                 dy={dyFromAlign(VerticalAlign.bottom)}
                 textAnchor={anchor}
@@ -190,10 +191,10 @@ export class VerticalComparisonLine extends React.Component<
         return (
             <g id={makeFigmaId("comparison-line", this.lineConfig.label)}>
                 <line
-                    x1={x}
-                    y1={y1}
-                    x2={x}
-                    y2={y2}
+                    x1={roundPixel(x)}
+                    y1={roundPixel(y1)}
+                    x2={roundPixel(x)}
+                    y2={roundPixel(y2)}
                     style={COMPARISON_LINE_STYLE}
                 />
                 {this.renderLabel()}

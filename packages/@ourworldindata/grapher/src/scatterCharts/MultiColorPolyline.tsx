@@ -2,6 +2,7 @@ import * as React from "react"
 import * as R from "remeda"
 import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
+import { roundPixel } from "../chart/ChartUtils"
 
 interface MultiColorPolylinePoint {
     x: number
@@ -62,8 +63,7 @@ export function getSegmentsFromPoints(
 }
 
 function toSvgPoints(points: Point[]): string {
-    // TODO round to 1 decimal place to decrease SVG size?
-    return points.map((p) => `${p.x.toFixed(2)},${p.y.toFixed(2)}`).join(" ")
+    return points.map((p) => `${roundPixel(p.x)},${roundPixel(p.y)}`).join(" ")
 }
 
 type MultiColorPolylineProps = Omit<

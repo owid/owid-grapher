@@ -6,6 +6,7 @@ import { SeriesLabel } from "../seriesLabel/SeriesLabel.js"
 import { darkenColorForText } from "../color/ColorUtils.js"
 import { ANNOTATION_PADDING, LABEL_STYLE } from "./VerticalLabelsConstants.js"
 import { getSeriesKey } from "./VerticalLabelsHelpers"
+import { roundPixel } from "../chart/ChartUtils"
 import { PlacedLabelSeries, RenderLabelSeries } from "./VerticalLabelsTypes"
 import { VerticalLabelsState } from "./VerticalLabelsState"
 import { Emphasis } from "../interaction/Emphasis.js"
@@ -30,7 +31,10 @@ export function VerticalLabels({
     const { renderSeries, annotatedSeries, textAnchor } = state
 
     return (
-        <g id={makeFigmaId("vertical-labels")} transform={`translate(${x}, 0)`}>
+        <g
+            id={makeFigmaId("vertical-labels")}
+            transform={`translate(${roundPixel(x)}, 0)`}
+        >
             {interactive && (
                 <InteractionOverlays
                     series={state.placedSeries}
@@ -141,7 +145,7 @@ function ConnectorLines({
 
                 const step = (endX - startX) / (totalLevels + 1)
                 const markerXMid = startX + step + level * step
-                const d = `M${startX},${leftCenterY} H${markerXMid} V${rightCenterY} H${endX}`
+                const d = `M${roundPixel(startX)},${roundPixel(leftCenterY)} H${roundPixel(markerXMid)} V${roundPixel(rightCenterY)} H${roundPixel(endX)}`
 
                 const emphasis = series.emphasis ?? Emphasis.Default
                 const lineColor = LABEL_STYLE[emphasis].connectorLineColor
@@ -186,10 +190,10 @@ function InteractionOverlays({
                         onMouseLeave={() => onMouseLeave?.(series.seriesName)}
                     >
                         <rect
-                            x={x}
-                            y={series.bounds.y}
-                            width={series.bounds.width}
-                            height={series.bounds.height}
+                            x={roundPixel(x)}
+                            y={roundPixel(series.bounds.y)}
+                            width={roundPixel(series.bounds.width)}
+                            height={roundPixel(series.bounds.height)}
                             fill="#fff"
                             opacity={0}
                         />

@@ -356,3 +356,5 @@ export function sortByConfig<T>(
 
     return sortOrder === SortOrder.desc ? sortedRows.toReversed() : sortedRows
 }
+
+export const roundPixel = (value: number): number => _.round(value, 1)

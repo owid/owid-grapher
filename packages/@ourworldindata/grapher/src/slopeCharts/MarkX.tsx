@@ -1,5 +1,6 @@
 import { dyFromAlign, makeFigmaId, VerticalAlign } from "@ourworldindata/utils"
 import { GRAPHER_DARK_TEXT } from "../color/ColorConstants"
+import { roundPixel } from "../chart/ChartUtils"
 
 export function MarkX({
     label,
@@ -20,15 +21,15 @@ export function MarkX({
         <>
             <line
                 id={makeFigmaId(label)}
-                x1={x}
-                y1={top}
-                x2={x}
-                y2={bottom}
+                x1={roundPixel(x)}
+                y1={roundPixel(top)}
+                x2={roundPixel(x)}
+                y2={roundPixel(bottom)}
                 stroke="#999"
             />
             <text
-                x={x}
-                y={bottom + labelPadding}
+                x={roundPixel(x)}
+                y={roundPixel(bottom + labelPadding)}
                 dy={dyFromAlign(VerticalAlign.bottom)}
                 textAnchor="middle"
                 fill={GRAPHER_DARK_TEXT}
