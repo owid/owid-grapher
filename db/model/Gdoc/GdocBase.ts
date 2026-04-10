@@ -855,7 +855,6 @@ export class GdocBase implements OwidGdocBaseInterface {
                         "heading",
                         "horizontal-rule",
                         "html",
-                        "script",
                         "key-indicator-collection",
                         "list",
                         "missing-data",

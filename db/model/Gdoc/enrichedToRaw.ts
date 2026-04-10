@@ -61,7 +61,6 @@ import {
     RawBlockBespokeComponent,
     RawBlockResourcePanel,
     RawBlockCta,
-    RawBlockScript,
     RawBlockStaticViz,
     RawBlockLTPToc,
     RawBlockConditionalSection,
@@ -350,16 +349,6 @@ export function enrichedBlockToRawBlock(
             (b): RawBlockHtml => ({
                 type: b.type,
                 value: b.value,
-            })
-        )
-        .with(
-            { type: "script" },
-            (b): RawBlockScript => ({
-                type: b.type,
-                value: b.lines.map((line) => ({
-                    type: "text",
-                    value: line,
-                })),
             })
         )
         .with(

@@ -1745,7 +1745,6 @@ export function traverseEnrichedBlock(
                     "donors",
                     "horizontal-rule",
                     "html",
-                    "script",
                     "image",
                     "video",
                     "missing-data",
