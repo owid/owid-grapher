@@ -52,12 +52,14 @@ import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
 import { SelectionArray } from "../selection/SelectionArray"
 import { AxisConfig } from "../axis/AxisConfig"
 import { HorizontalAxis, VerticalAxis } from "../axis/Axis"
+import { HorizontalNumericColorLegend } from "../legend/HorizontalNumericColorLegend"
+import { HorizontalCategoricalColorLegend } from "../legend/HorizontalCategoricalColorLegend"
+import { HorizontalNumericColorLegendState } from "../legend/HorizontalNumericColorLegendState"
+import { HorizontalCategoricalColorLegendState } from "../legend/HorizontalCategoricalColorLegendState"
 import {
-    HorizontalCategoricalColorLegend,
+    ExternalColorLegendData,
     HorizontalColorLegend,
-    HorizontalColorLegendManager,
-    HorizontalNumericColorLegend,
-} from "../legend/HorizontalColorLegends"
+} from "../legend/HorizontalColorLegendTypes"
 import {
     CategoricalBin,
     ColorScaleBin,
@@ -123,7 +125,7 @@ interface AxesInfo {
 @observer
 export class FacetChart
     extends React.Component<FacetChartProps>
-    implements ChartState, HorizontalColorLegendManager
+    implements ChartState
 {
     constructor(props: FacetChartProps) {
         super(props)
@@ -179,8 +181,8 @@ export class FacetChart
 
     @computed private get facetsContainerBounds(): Bounds {
         const legendHeightWithPadding =
-            this.showLegend && this.legend.height > 0
-                ? this.legend.height + this.legendPadding
+            this.showLegend && this.legend.state.height > 0
+                ? this.legend.state.height + this.legendPadding
                 : 0
         const labelSpace = this.facetFontSize + this.labelPadding
         return this.bounds.padTop(legendHeightWithPadding + labelSpace)
@@ -617,7 +619,7 @@ export class FacetChart
 
     // legend utils
 
-    @computed private get externalLegends(): HorizontalColorLegendManager[] {
+    @computed private get externalLegends(): ExternalColorLegendData[] {
         return excludeUndefined(
             this.intermediateChartInstances.map(
                 (instance) => instance.externalLegend
@@ -629,14 +631,6 @@ export class FacetChart
         return this.externalLegends.some((legend) =>
             legend.numericLegendData?.some((bin) => bin instanceof NumericBin)
         )
-    }
-
-    @computed private get LegendClass():
-        | typeof HorizontalNumericColorLegend
-        | typeof HorizontalCategoricalColorLegend {
-        return this.isNumericLegend
-            ? HorizontalNumericColorLegend
-            : HorizontalCategoricalColorLegend
     }
 
     @computed private get showLegend(): boolean {
@@ -670,9 +664,9 @@ export class FacetChart
         return false
     }
 
-    private getExternalLegendProp<
-        Prop extends keyof HorizontalColorLegendManager,
-    >(prop: Prop): HorizontalColorLegendManager[Prop] | undefined {
+    private getExternalLegendProp<Prop extends keyof ExternalColorLegendData>(
+        prop: Prop
+    ): ExternalColorLegendData[Prop] | undefined {
         for (const externalLegend of this.externalLegends) {
             if (externalLegend[prop] !== undefined) {
                 return externalLegend[prop]
@@ -696,50 +690,42 @@ export class FacetChart
 
     // legend props
 
-    @computed get legendX(): number {
+    @computed private get legendX(): number {
         return this.bounds.x
     }
 
-    @computed get numericLegendY(): number {
+    @computed private get legendY(): number {
         return this.bounds.top
     }
 
-    @computed get categoryLegendY(): number {
-        return this.bounds.top
-    }
-
-    @computed get legendMaxWidth(): number {
+    @computed private get legendMaxWidth(): number {
         return this.bounds.width
     }
 
-    @computed get legendAlign(): HorizontalAlign {
+    @computed private get legendAlign(): HorizontalAlign {
         return this.isNumericLegend
             ? HorizontalAlign.center
             : HorizontalAlign.left
     }
 
-    @computed get legendTitle(): string | undefined {
+    @computed private get legendTitle(): string | undefined {
         return this.getExternalLegendProp("legendTitle")
     }
 
-    @computed get legendHeight(): number | undefined {
-        return this.getExternalLegendProp("legendHeight")
-    }
-
-    @computed get legendTickSize(): number | undefined {
+    @computed private get legendTickSize(): number | undefined {
         return this.getExternalLegendProp("legendTickSize")
     }
 
-    @computed get numericBinSize(): number | undefined {
+    @computed private get numericBinSize(): number | undefined {
         return this.getExternalLegendProp("numericBinSize")
     }
 
-    @computed get hoverColors(): Color[] | undefined {
+    @computed private get hoverColors(): Color[] | undefined {
         if (!this.legendHoverBin) return undefined
         return [this.legendHoverBin.color]
     }
 
-    @computed get activeColors(): Color[] | undefined {
+    @computed private get activeColors(): Color[] | undefined {
         if (!this.focusArray) return undefined
 
         // find colours of all currently focused series
@@ -754,7 +740,7 @@ export class FacetChart
         return activeColors.length > 0 ? activeColors : undefined
     }
 
-    @computed get numericLegendData(): ColorScaleBin[] {
+    @computed private get numericLegendData(): ColorScaleBin[] {
         if (!this.isNumericLegend || !this.hideFacetLegends) return []
         const allBins: ColorScaleBin[] = this.externalLegends.flatMap(
             (legend) => [
@@ -770,7 +756,7 @@ export class FacetChart
         return sortedBins
     }
 
-    @computed get categoricalLegendData(): CategoricalBin[] {
+    @computed private get categoricalLegendData(): CategoricalBin[] {
         if (this.isNumericLegend || !this.hideFacetLegends) return []
 
         const allBins: CategoricalBin[] = this.externalLegends
@@ -810,7 +796,9 @@ export class FacetChart
         this.legendHoverBin = undefined
     }
 
-    resolveLegendBinEmphasis(bin: ColorScaleBin): Emphasis {
+    private readonly resolveLegendBinEmphasis = (
+        bin: ColorScaleBin
+    ): Emphasis => {
         if (!this.activeColors && !this.hoverColors) return Emphasis.Default
 
         const isHovered = this.hoverColors?.includes(bin.color)
@@ -820,15 +808,17 @@ export class FacetChart
         return isActive ? Emphasis.Highlighted : Emphasis.Muted
     }
 
-    @computed get legendStyleConfig(): LegendStyleConfig | undefined {
+    @computed private get legendStyleConfig(): LegendStyleConfig | undefined {
         return this.externalLegends[0]?.legendStyleConfig
     }
 
-    @computed get numericLegendStyleConfig(): LegendStyleConfig | undefined {
+    @computed private get numericLegendStyleConfig():
+        | LegendStyleConfig
+        | undefined {
         return this.externalLegends[0]?.numericLegendStyleConfig
     }
 
-    @computed get categoricalLegendStyleConfig():
+    @computed private get categoricalLegendStyleConfig():
         | LegendStyleConfig
         | undefined {
         return this.externalLegends[0]?.categoricalLegendStyleConfig
@@ -837,7 +827,41 @@ export class FacetChart
     // end of legend props
 
     @computed private get legend(): HorizontalColorLegend {
-        return new this.LegendClass({ manager: this })
+        if (this.isNumericLegend) {
+            return {
+                kind: "numeric",
+                state: new HorizontalNumericColorLegendState(
+                    this.numericLegendData,
+                    {
+                        fontSize: this.fontSize,
+                        legendMaxWidth: this.legendMaxWidth,
+                        legendTitle: this.legendTitle,
+                        legendAlign: this.legendAlign,
+                        legendTickSize: this.legendTickSize,
+                        numericBinSize: this.numericBinSize,
+                        resolveLegendBinEmphasis: this.resolveLegendBinEmphasis,
+                        legendStyleConfig: this.legendStyleConfig,
+                        numericLegendStyleConfig: this.numericLegendStyleConfig,
+                    }
+                ),
+            }
+        } else {
+            return {
+                kind: "categorical",
+                state: new HorizontalCategoricalColorLegendState(
+                    this.categoricalLegendData,
+                    {
+                        fontSize: this.fontSize,
+                        legendMaxWidth: this.legendMaxWidth,
+                        legendAlign: this.legendAlign,
+                        resolveLegendBinEmphasis: this.resolveLegendBinEmphasis,
+                        legendStyleConfig: this.legendStyleConfig,
+                        categoricalLegendStyleConfig:
+                            this.categoricalLegendStyleConfig,
+                    }
+                ),
+            }
+        }
     }
 
     /**
@@ -890,12 +914,37 @@ export class FacetChart
         exposeInstanceOnWindow(this, "facetChart")
     }
 
+    private renderLegend(legend: HorizontalColorLegend): React.ReactElement {
+        switch (legend.kind) {
+            case "numeric":
+                return (
+                    <HorizontalNumericColorLegend
+                        state={legend.state}
+                        x={this.legendX}
+                        y={this.legendY}
+                        onMouseOver={this.onLegendMouseOver}
+                        onMouseLeave={this.onLegendMouseLeave}
+                    />
+                )
+            case "categorical":
+                return (
+                    <HorizontalCategoricalColorLegend
+                        state={legend.state}
+                        x={this.legendX}
+                        y={this.legendY}
+                        onMouseOver={this.onLegendMouseOver}
+                        onMouseLeave={this.onLegendMouseLeave}
+                        isStatic={this.isStatic}
+                    />
+                )
+        }
+    }
+
     override render(): React.ReactElement {
-        const { labelPadding, facetLabelSettings, LegendClass, showLegend } =
-            this
+        const { labelPadding, facetLabelSettings, showLegend, legend } = this
         return (
             <React.Fragment>
-                {showLegend && <LegendClass manager={this} />}
+                {showLegend && this.renderLegend(legend)}
                 {this.placedSeries.map((facetChart, index: number) => {
                     const { bounds, contentBounds, seriesName } = facetChart
 

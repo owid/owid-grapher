@@ -52,10 +52,9 @@ import {
     RenderDiscreteBarRow,
     SizedDiscreteBarRow,
 } from "./StackedDiscreteBarChartConstants.js"
-import {
-    HorizontalCategoricalColorLegend,
-    HorizontalColorLegendManager,
-} from "../legend/HorizontalColorLegends"
+import { HorizontalCategoricalColorLegend } from "../legend/HorizontalCategoricalColorLegend"
+import { HorizontalCategoricalColorLegendState } from "../legend/HorizontalCategoricalColorLegendState"
+import { ExternalColorLegendData } from "../legend/HorizontalColorLegendTypes"
 import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
 import { Emphasis, resolveEmphasis } from "../interaction/Emphasis"
 import { HorizontalAxis } from "../axis/Axis"
@@ -81,7 +80,7 @@ type StackedDiscreteBarChartProps =
 @observer
 export class StackedDiscreteBarChart
     extends React.Component<StackedDiscreteBarChartProps>
-    implements ChartInterface, HorizontalColorLegendManager
+    implements ChartInterface
 {
     private readonly base = React.createRef<SVGGElement>()
 
@@ -237,7 +236,7 @@ export class StackedDiscreteBarChart
 
     legendStyleConfig = LEGEND_STYLE_FOR_STACKED_CHARTS
 
-    @computed get externalLegend(): HorizontalColorLegendManager | undefined {
+    @computed get externalLegend(): ExternalColorLegendData | undefined {
         if (!this.showLegend) {
             return {
                 categoricalLegendData: this.legendBins,
@@ -260,8 +259,18 @@ export class StackedDiscreteBarChart
         this.legendHoverSeriesName = undefined
     }
 
-    @computed private get legend(): HorizontalCategoricalColorLegend {
-        return new HorizontalCategoricalColorLegend({ manager: this })
+    @computed private get legend(): HorizontalCategoricalColorLegendState {
+        return new HorizontalCategoricalColorLegendState(
+            this.categoricalLegendData,
+            {
+                fontSize: this.fontSize,
+                legendWidth: this.legendWidth,
+                legendAlign: this.legendAlign,
+                resolveLegendBinEmphasis: (bin) =>
+                    this.resolveLegendBinEmphasis(bin),
+                legendStyleConfig: this.legendStyleConfig,
+            }
+        )
     }
 
     @action.bound private onMouseMove(ev: React.MouseEvent): void {
@@ -609,7 +618,16 @@ export class StackedDiscreteBarChart
 
     private renderLegend(): React.ReactElement | undefined {
         if (!this.showLegend) return
-        return <HorizontalCategoricalColorLegend manager={this} />
+        return (
+            <HorizontalCategoricalColorLegend
+                state={this.legend}
+                x={this.legendX}
+                y={this.categoryLegendY}
+                onMouseOver={this.onLegendMouseOver}
+                onMouseLeave={this.onLegendMouseLeave}
+                isStatic={this.isStatic}
+            />
+        )
     }
 
     private renderAxis(): React.ReactElement {

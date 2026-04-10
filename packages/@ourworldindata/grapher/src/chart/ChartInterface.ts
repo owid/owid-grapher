@@ -8,7 +8,7 @@ import {
 } from "@ourworldindata/types"
 import { ColorScale } from "../color/ColorScale"
 import { HorizontalAxis, VerticalAxis } from "../axis/Axis"
-import { HorizontalColorLegendManager } from "../legend/HorizontalColorLegends"
+import { ExternalColorLegendData } from "../legend/HorizontalColorLegendTypes"
 import { SelectionArray } from "../selection/SelectionArray"
 import { FocusArray } from "../focus/FocusArray"
 
@@ -73,7 +73,7 @@ export interface ChartInterface {
      * The legend that has been hidden from the chart plot (using `manager.hideLegend`).
      * Used to create a global legend for faceted charts.
      */
-    externalLegend?: HorizontalColorLegendManager
+    externalLegend?: ExternalColorLegendData
 
     /**
      * Opt-out of assigned colors and use a value-based color scheme instead.
