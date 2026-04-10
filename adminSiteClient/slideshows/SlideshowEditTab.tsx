@@ -211,6 +211,19 @@ function TemplateOptionsEditor(props: {
                         placeholder="Text displayed beside the image"
                     />
                 </label>
+                <label>
+                    <input
+                        type="checkbox"
+                        checked={!!slide.largeText}
+                        onChange={(e) =>
+                            onUpdate({
+                                ...slide,
+                                largeText: e.target.checked || undefined,
+                            })
+                        }
+                    />{" "}
+                    Large text
+                </label>
                 <HideLogoCheckbox slide={slide} onUpdate={onUpdate} />
             </>
         ))
@@ -258,6 +271,19 @@ function TemplateOptionsEditor(props: {
                         }
                         placeholder="Text displayed beside the chart"
                     />
+                </label>
+                <label>
+                    <input
+                        type="checkbox"
+                        checked={!!slide.largeText}
+                        onChange={(e) =>
+                            onUpdate({
+                                ...slide,
+                                largeText: e.target.checked || undefined,
+                            })
+                        }
+                    />{" "}
+                    Large text
                 </label>
                 <HideLogoCheckbox slide={slide} onUpdate={onUpdate} />
             </>
@@ -395,6 +421,19 @@ function TemplateOptionsEditor(props: {
                         onChange={(text) => onUpdate({ ...slide, text })}
                         placeholder="Supports **bold**, *italics*, and lists"
                     />
+                </label>
+                <label>
+                    <input
+                        type="checkbox"
+                        checked={!!slide.largeText}
+                        onChange={(e) =>
+                            onUpdate({
+                                ...slide,
+                                largeText: e.target.checked || undefined,
+                            })
+                        }
+                    />{" "}
+                    Large text
                 </label>
                 <HideLogoCheckbox slide={slide} onUpdate={onUpdate} />
             </>

@@ -30,6 +30,7 @@ export interface SlideImageOnly {
     filename: string | null
     slideTitle?: string
     text?: MarkdownText
+    largeText?: boolean
     hideLogo?: boolean
 }
 
@@ -41,6 +42,7 @@ export interface SlideChartOnly {
     subtitle?: string
     hideLogo?: boolean
     text?: MarkdownText
+    largeText?: boolean
 }
 
 export interface SlideSection {
@@ -78,6 +80,7 @@ export interface SlideText {
     template: SlideTemplate.Text
     title?: string
     text: MarkdownText
+    largeText?: boolean
     hideLogo?: boolean
 }
 
@@ -114,6 +117,7 @@ const SlideImageOnlySchema = z.object({
     filename: z.string().nullable(),
     slideTitle: z.string().optional(),
     text: z.string().optional(),
+    largeText: z.boolean().optional(),
     hideLogo: z.boolean().optional(),
 })
 
@@ -123,6 +127,7 @@ const SlideChartOnlySchema = z.object({
     title: z.string().optional(),
     subtitle: z.string().optional(),
     text: z.string().optional(),
+    largeText: z.boolean().optional(),
     hideLogo: z.boolean().optional(),
 })
 
@@ -153,6 +158,7 @@ const SlideTextSchema = z.object({
     template: z.literal(SlideTemplate.Text),
     title: z.string().optional(),
     text: z.string(),
+    largeText: z.boolean().optional(),
     hideLogo: z.boolean().optional(),
 })
 

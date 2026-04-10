@@ -63,7 +63,11 @@ export function SlideRenderer(props: {
                         imageMetadata={imageMetadata}
                     />
                     {slide.text && (
-                        <div className="slide__text">
+                        <div
+                            className={cx("slide__text", {
+                                "slide__text--large": slide.largeText,
+                            })}
+                        >
                             <SimpleMarkdownText text={slide.text} />
                         </div>
                     )}
@@ -92,7 +96,11 @@ export function SlideRenderer(props: {
                 <div className="slide-chart-content">
                     <ChartRenderer url={slide.url} renderChart={renderChart} />
                     {slide.text && (
-                        <div className="slide__text">
+                        <div
+                            className={cx("slide__text", {
+                                "slide__text--large": slide.largeText,
+                            })}
+                        >
                             <SimpleMarkdownText text={slide.text} />
                         </div>
                     )}
@@ -142,7 +150,11 @@ export function SlideRenderer(props: {
                         />
                     </h1>
                 )}
-                <div className="slide-text__body">
+                <div
+                    className={cx("slide-text__body", {
+                        "slide-text__body--large": slide.largeText,
+                    })}
+                >
                     <SimpleMarkdownText text={slide.text} />
                 </div>
             </div>
