@@ -56,10 +56,9 @@ import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
 import { ColorScale } from "../color/ColorScale"
 import { GRAPHER_BACKGROUND_DEFAULT } from "../color/ColorConstants"
 import { darkenColorForLine } from "../color/ColorUtils"
-import {
-    HorizontalColorLegendManager,
-    HorizontalNumericColorLegend,
-} from "../legend/HorizontalColorLegends"
+import { HorizontalNumericColorLegend } from "../legend/HorizontalNumericColorLegend"
+import { HorizontalNumericColorLegendState } from "../legend/HorizontalNumericColorLegendState"
+import { ExternalColorLegendData } from "../legend/HorizontalColorLegendTypes"
 import {
     getAnnotationsForSeries,
     getYAxisConfigDefaults,
@@ -80,7 +79,7 @@ export type LineChartProps = ChartComponentProps<LineChartState>
 @observer
 export class LineChart
     extends React.Component<LineChartProps>
-    implements ChartInterface, HorizontalColorLegendManager, AxisManager
+    implements ChartInterface, AxisManager
 {
     private readonly base = React.createRef<SVGGElement>()
 
@@ -427,8 +426,14 @@ export class LineChart
     }
 
     private renderColorLegend(): React.ReactElement | null {
-        if (!this.hasColorLegend) return null
-        return <HorizontalNumericColorLegend manager={this} />
+        if (!this.hasColorLegend || !this.numericLegendState) return null
+        return (
+            <HorizontalNumericColorLegend
+                state={this.numericLegendState}
+                x={this.legendX}
+                y={this.numericLegendY}
+            />
+        )
     }
 
     /**
@@ -547,15 +552,15 @@ export class LineChart
         return this.hasColorScale && !!this.manager.showLegend
     }
 
-    @computed get legendX(): number {
+    @computed private get legendX(): number {
         return this.bounds.x
     }
 
-    @computed get legendMaxWidth(): number {
+    @computed private get legendMaxWidth(): number {
         return this.bounds.width
     }
 
-    @computed get legendAlign(): HorizontalAlign {
+    @computed private get legendAlign(): HorizontalAlign {
         return HorizontalAlign.center
     }
 
@@ -564,7 +569,7 @@ export class LineChart
     }
 
     // TODO just pass colorScale to legend and let it figure it out?
-    @computed get numericLegendData(): ColorScaleBin[] {
+    @computed private get numericLegendData(): ColorScaleBin[] {
         // Move CategoricalBins to end
         return _.sortBy(
             this.colorScale.legendBins,
@@ -581,26 +586,33 @@ export class LineChart
     // Used when the lines are colored by a numeric scale
     numericLegendStyleConfig = NUMERIC_LEGEND_STYLE
 
-    @computed private get numericLegend():
-        | HorizontalNumericColorLegend
+    @computed private get numericLegendState():
+        | HorizontalNumericColorLegendState
         | undefined {
-        return this.hasColorScale && this.manager.showLegend
-            ? new HorizontalNumericColorLegend({ manager: this })
-            : undefined
+        if (!this.hasColorScale || !this.manager.showLegend) return undefined
+        return new HorizontalNumericColorLegendState(this.numericLegendData, {
+            fontSize: this.fontSize,
+            legendMaxWidth: this.legendMaxWidth,
+            legendAlign: this.legendAlign,
+            legendTitle: this.legendTitle,
+            legendTickSize: this.legendTickSize,
+            numericBinSize: this.numericBinSize,
+            numericLegendStyleConfig: this.numericLegendStyleConfig,
+        })
     }
 
-    @computed get numericLegendY(): number {
+    @computed private get numericLegendY(): number {
         return this.bounds.top
     }
 
-    @computed get legendTitle(): string | undefined {
+    @computed private get legendTitle(): string | undefined {
         return this.hasColorScale
             ? this.colorScale.legendDescription
             : undefined
     }
 
-    @computed get legendHeight(): number {
-        return this.numericLegend?.height ?? 0
+    @computed private get legendHeight(): number {
+        return this.numericLegendState?.height ?? 0
     }
 
     // End of color legend props
@@ -727,7 +739,7 @@ export class LineChart
         return this.dualAxis.horizontalAxis
     }
 
-    @computed get externalLegend(): HorizontalColorLegendManager | undefined {
+    @computed get externalLegend(): ExternalColorLegendData | undefined {
         if (!this.manager.showSeriesLabels) {
             const numericLegendData = this.hasColorScale
                 ? this.numericLegendData
