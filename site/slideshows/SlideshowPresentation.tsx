@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react"
 import cx from "classnames"
 import { match } from "ts-pattern"
 import {
+    SlideTemplate,
     SlideshowConfig,
     ImageMetadata,
     LinkedAuthor,
@@ -18,6 +19,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons"
 import { SlideRenderer } from "./SlideRenderer.js"
 import { SlideChartEmbed } from "./SlideChartEmbed.js"
+import { SlideLogo } from "./SlideLogo.js"
 
 export const _OWID_SLIDESHOW_PROPS = "_OWID_SLIDESHOW_PROPS"
 
@@ -160,10 +162,16 @@ export function SlideshowPresentation(props: {
 
     const activeRenderChart = renderChart ?? defaultRenderChart
 
+    const currentSlide = slides[currentIndex]
+    const isCoverSlide = currentSlide.template === SlideTemplate.Cover
+    const hideLogo = currentSlide.hideLogo ?? false
+
     return (
         <div
             className={cx("slideshow-container", {
                 "slideshow-container--fullscreen": isFullscreen,
+                "slideshow-container--cover":
+                    currentSlide?.template === SlideTemplate.Cover,
             })}
         >
             <div
@@ -184,8 +192,9 @@ export function SlideshowPresentation(props: {
                         renderChart={activeRenderChart}
                     />
                 ))}
+                {!hideLogo && isCoverSlide && <SlideLogo coverSlideLogo />}
             </div>
-            <div className="slideshow__footer">
+            <div className="slideshow-footer">
                 <span className="SlideshowPresentation__branding">
                     A presentation by{" "}
                     <AuthorByline
@@ -202,7 +211,7 @@ export function SlideshowPresentation(props: {
                     >
                         <FontAwesomeIcon icon={faChevronLeft} />
                     </button>
-                    <span className="SlideshowPresentation__slide-counter">
+                    <span className="slideshow-footer__slide-counter">
                         {currentIndex + 1} / {slides.length}
                     </span>
                     <button

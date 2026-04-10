@@ -43,29 +43,61 @@
 }
 
 .slide-logo {
+    svg {
+        width: 100px;
+    }
     position: absolute;
     top: 0;
     right: 0;
+}
+
+.cover-slide-logo {
+    svg {
+        width: 100px;
+    }
+    position: absolute;
+    top: unset;
+    bottom: 0;
+    right: 16px;
+    border-bottom: unset;
 }
 
 // --- Typography (scales with viewport width via vw) ---
 // In the admin editor, these are overridden to use cqw
 // (see SlideshowAdmin.scss) since the slides aren't viewport-width.
 
-.SlideContent--cover {
-    text-align: center;
+.slide--cover {
+    background-color: $oxford-blue;
+    color: white;
+    display: flex;
+    justify-content: center;
 
     h1 {
         @include display-1-semibold;
         font-size: clamp(24px, 4vw, 48px);
+        margin-top: 0;
         margin-bottom: 8px;
+        color: white;
     }
 
     h2 {
         @include body-1-regular;
+        margin-top: 0;
         font-size: clamp(14px, 2vw, 24px);
         font-weight: 400;
-        color: #666;
+        color: rgba(255, 255, 255, 0.7);
+    }
+
+    .cover-supertitle {
+        @include body-3-regular;
+        color: $blue-30;
+        margin-bottom: 0;
+        span:nth-child(2) {
+            &:before {
+                content: "|";
+                margin: 0 4px;
+            }
+        }
     }
 }
 

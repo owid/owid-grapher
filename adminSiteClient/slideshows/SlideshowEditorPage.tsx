@@ -8,6 +8,7 @@ import {
 } from "react"
 import * as React from "react"
 import { useHistory } from "react-router-dom"
+import cx from "classnames"
 import { Button, Dropdown, Tabs, Tooltip } from "antd"
 import type { MenuProps } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -37,6 +38,7 @@ import { SlideshowArrangeTab } from "./SlideshowArrangeTab.js"
 import { useImages } from "../useImages.js"
 import { SlideRenderer } from "../../site/slideshows/SlideRenderer.js"
 import { SlideChartEmbed } from "../../site/slideshows/SlideChartEmbed.js"
+import { SlideLogo } from "../../site/slideshows/SlideLogo.js"
 
 export function SlideshowEditorPage(props: {
     slideshowId?: number
@@ -337,7 +339,12 @@ export function SlideshowEditorPage(props: {
                     <div className="SlideshowEditorPage__sidebar">
                         <Tabs items={tabItems} />
                     </div>
-                    <div className="slide-editor__canvas">
+                    <div
+                        className={cx("slide-editor__canvas", {
+                            "slide-editor__canvas--cover":
+                                currentSlide?.template === SlideTemplate.Cover,
+                        })}
+                    >
                         {currentSlide && (
                             <SlideRenderer
                                 slide={currentSlide}
@@ -354,6 +361,9 @@ export function SlideshowEditorPage(props: {
                                     />
                                 )}
                             />
+                        )}
+                        {currentSlide.template === SlideTemplate.Cover && (
+                            <SlideLogo coverSlideLogo />
                         )}
                     </div>
                 </div>

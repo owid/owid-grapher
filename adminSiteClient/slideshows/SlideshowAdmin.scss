@@ -54,6 +54,15 @@
     container-type: inline-size;
 }
 
+.slide-editor__canvas--cover {
+    background-color: $oxford-blue;
+    border-bottom: 4px solid $vermillion;
+
+    .cover-slide-logo {
+        margin-bottom: 16px;
+    }
+}
+
 .slide-editor__canvas .slide {
     max-width: calc(100% - 128px);
 }
@@ -69,10 +78,10 @@
 // Override vw-based typography to use cqw in the editor,
 // since slides are inside a canvas panel, not viewport-width.
 .slide-editor__canvas {
-    .SlideContent--cover h1 {
+    .slide--cover h1 {
         font-size: clamp(24px, 4cqw, 48px);
     }
-    .SlideContent--cover h2 {
+    .slide--cover h2 {
         font-size: clamp(14px, 2cqw, 24px);
     }
     .SlideContent--section h1 {

@@ -2,7 +2,6 @@ import React from "react"
 import cx from "classnames"
 import { Slide, SlideTemplate, ImageMetadata } from "@ourworldindata/types"
 import { SimpleMarkdownText } from "@ourworldindata/components"
-import { OWID_LOGO_SVG } from "@ourworldindata/grapher/src/captionedChart/LogosSVG"
 import { CLOUDFLARE_IMAGES_URL } from "../../settings/clientSettings.js"
 import { GrapherFigureView } from "../GrapherFigureView.js"
 import {
@@ -11,6 +10,7 @@ import {
     parseSlideChartUrl,
 } from "./slideshowUtils.js"
 import { match } from "ts-pattern"
+import { SlideLogo } from "./SlideLogo.js"
 
 /**
  * Pure slide rendering component shared between the baked site and the
@@ -35,16 +35,15 @@ export function SlideRenderer(props: {
 
     return match(slide)
         .with({ template: SlideTemplate.Cover }, (slide) => (
-            <div className={`${className} SlideContent--cover`}>
-                {!slide.hideLogo && <SlideLogo />}
-                <h1>{slide.title || "Title"}</h1>
-                {slide.subtitle && <h2>{slide.subtitle}</h2>}
-                {slide.author && (
-                    <p className="SlideContent__author">{slide.author}</p>
+            <div className={`${className} slide--cover`}>
+                {(slide.author || slide.date) && (
+                    <p className="cover-supertitle">
+                        {slide.subtitle && <span>{slide.subtitle}</span>}
+                        {slide.date && <span>{slide.date}</span>}
+                    </p>
                 )}
-                {slide.date && (
-                    <p className="SlideContent__date">{slide.date}</p>
-                )}
+                <h1>{slide.title}</h1>
+                {slide.author && <h2>{slide.author}</h2>}
             </div>
         ))
         .with({ template: SlideTemplate.Image }, (slide) => (
@@ -201,14 +200,5 @@ function ChartRenderer(props: {
                 })}
             />
         </div>
-    )
-}
-
-function SlideLogo(): React.ReactElement {
-    return (
-        <span
-            className="slide-logo"
-            dangerouslySetInnerHTML={{ __html: OWID_LOGO_SVG }}
-        />
     )
 }

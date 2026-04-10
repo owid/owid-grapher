@@ -4,6 +4,7 @@ import {
     CORE_LOGO_SVG,
     GV_LOGO_SVG,
     SMALL_OWID_LOGO_SVG,
+    OWID_WORDMARK_SVG,
 } from "./LogosSVG"
 import { LogoOption } from "@ourworldindata/types"
 import { makeFigmaId } from "@ourworldindata/utils"
@@ -22,6 +23,13 @@ const logos: Record<LogoOption, LogoAttributes> = {
         width: 65,
         height: 36,
         targetHeight: 36,
+        url: "https://ourworldindata.org",
+    },
+    wordmark: {
+        svg: OWID_WORDMARK_SVG,
+        width: 65,
+        height: 24,
+        targetHeight: 24,
         url: "https://ourworldindata.org",
     },
     "core+owid": {
