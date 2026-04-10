@@ -10,6 +10,7 @@ import {
     getCachingInputTableFetcher,
     GrapherManager,
     loadCatalogData,
+    useElementBounds,
 } from "@ourworldindata/grapher"
 import {
     joinTitleFragments,
@@ -36,7 +37,6 @@ import AboutThisData from "../AboutThisData.js"
 import TopicTags from "../TopicTags.js"
 import MetadataSection from "../MetadataSection.js"
 import GrapherImage from "../GrapherImage.js"
-import { useElementBounds } from "@ourworldindata/grapher"
 import { useMobxStateToReactState } from "../hooks.js"
 import { MultiDimSettingsPanel } from "./MultiDimDataPageSettingsPanel.js"
 import { getDatapageDataV2, processRelatedResearch } from "../dataPage.js"

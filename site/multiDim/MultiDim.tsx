@@ -15,6 +15,7 @@ import {
     useMaybeGlobalGrapherStateRef,
     GuidedChartContext,
     loadCatalogData,
+    useElementBounds,
 } from "@ourworldindata/grapher"
 import {
     extractMultiDimChoicesFromSearchParams,
@@ -27,7 +28,6 @@ import {
     AdditionalGrapherDataFetchFn,
     ArchiveContext,
 } from "@ourworldindata/types"
-import { useElementBounds } from "@ourworldindata/grapher"
 import { cachedGetGrapherConfigByUuid } from "./api.js"
 import MultiDimEmbedSettingsPanel from "./MultiDimEmbedSettingsPanel.js"
 import { useBaseGrapherConfig, useMultiDimAnalytics } from "./hooks.js"
