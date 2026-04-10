@@ -35,6 +35,9 @@ const BOX_PADDING_Y = 5
 const BOX_PADDING_LEFT = 5
 const BOX_PADDING_RIGHT = 2
 const LABEL_VALUE_GAP = 2
+const OVERFLOW_ANNOTATION_LINE_LENGTH = 6
+const OVERFLOW_ANNOTATION_BOX_ARROW_GAP = 4
+const OVERFLOW_ANNOTATION_LINE_TEXT_GAP = 2
 
 interface AgeZoneLegendProps {
     simulation: Simulation
@@ -57,8 +60,9 @@ interface PlacedZone extends RawZone {
 }
 
 interface AnnotatedZone extends PlacedZone {
-    labelWrap: TextWrap | undefined
-    valueWrap: TextWrap | undefined
+    labelWrap?: TextWrap
+    valueWrap?: TextWrap
+    overflowAnnotation?: { label: string; value: string }
 }
 
 function AgeZoneLegendContent({
@@ -130,7 +134,20 @@ function AgeZoneLegendContent({
         })
     )
     const boxHeight = maximumLabelHeight + 2 * BOX_PADDING_Y
-    const height = annotationY + boxHeight
+
+    // Overflow annotation (there can only be one)
+    const overflowZone = renderZones.find((zone) => zone.overflowAnnotation)
+    const overflowHeight = overflowZone
+        ? OVERFLOW_ANNOTATION_BOX_ARROW_GAP +
+          OVERFLOW_ANNOTATION_LINE_LENGTH +
+          OVERFLOW_ANNOTATION_LINE_TEXT_GAP +
+          fonts.ageZoneLabel +
+          LABEL_VALUE_GAP +
+          fonts.valueLabel
+        : 0
+    const overflowY = annotationY + boxHeight
+
+    const height = annotationY + boxHeight + overflowHeight
 
     const bounds = new Bounds(0, 0, width, height)
 
@@ -161,6 +178,15 @@ function AgeZoneLegendContent({
                     />
                 ))}
             </Group>
+
+            {overflowZone && (
+                <OverflowAnnotation
+                    zone={overflowZone}
+                    top={overflowY}
+                    labelFontSize={fonts.ageZoneLabel}
+                    valueFontSize={fonts.valueLabel}
+                />
+            )}
         </svg>
     )
 }
@@ -344,6 +370,68 @@ function AgeZoneLegendBox({
     )
 }
 
+function OverflowAnnotation({
+    zone,
+    top,
+    labelFontSize,
+    valueFontSize,
+}: {
+    zone: AnnotatedZone
+    top: number
+    labelFontSize: number
+    valueFontSize: number
+}) {
+    if (!zone.overflowAnnotation) return null
+
+    const x = zone.startX
+    const lineOffsetX = Math.min(5, zone.width / 3)
+    const lineX = x + lineOffsetX
+    const lineY1 = top + OVERFLOW_ANNOTATION_BOX_ARROW_GAP
+    const lineY2 = lineY1 + OVERFLOW_ANNOTATION_LINE_LENGTH
+    const labelY = lineY2 + OVERFLOW_ANNOTATION_LINE_TEXT_GAP
+
+    const labelWrap = new TextWrap({
+        text: zone.overflowAnnotation.label,
+        maxWidth: Infinity, // Don't wrap
+        fontSize: labelFontSize,
+        fontWeight: 700,
+        lineHeight: 1,
+    })
+    const valueWrap = new TextWrap({
+        text: zone.overflowAnnotation.value,
+        maxWidth: Infinity, // Don't wrap
+        fontSize: valueFontSize,
+        lineHeight: 1,
+    })
+
+    return (
+        <>
+            <line
+                x1={lineX}
+                y1={lineY1}
+                x2={lineX}
+                y2={lineY2}
+                stroke={GRAPHER_DARK_TEXT}
+                strokeWidth={1}
+            />
+            <TextWrapSvg
+                textWrap={labelWrap}
+                x={x}
+                y={labelY}
+                fill={GRAPHER_DARK_TEXT}
+            />
+            {valueWrap && (
+                <TextWrapSvg
+                    textWrap={valueWrap}
+                    x={x}
+                    y={labelY + labelWrap.height + LABEL_VALUE_GAP}
+                    fill={GRAPHER_LIGHT_TEXT}
+                />
+            )}
+        </>
+    )
+}
+
 export function AgeZoneLegend(props: AgeZoneLegendProps) {
     const { parentRef, width } = useParentSize({ debounceTime: 0 })
     return (
@@ -411,9 +499,20 @@ function annotateZones(
             labelWrap = makeTextWrap(labelText, labelFontSize, 700)
         }
 
-        // If the label was truncated to just ellipsis, hide both label and value
-        if (labelText === "…") {
-            return { ...zone, labelWrap: undefined, valueWrap: undefined }
+        // Maybe show an overflow annotation for the smallest zone
+        const smallestZone = R.firstBy(zones, (z) => z.width)
+        if (
+            zone === smallestZone &&
+            (!labelText || labelText.endsWith("…")) &&
+            labelText.length <= 5 // Work..., Chil..., Reti...
+        ) {
+            return {
+                ...zone,
+                overflowAnnotation: {
+                    label: zone.labelLong,
+                    value: formatPopulationValueLong(zone.population),
+                },
+            }
         }
 
         // Value: try long → short → hide
