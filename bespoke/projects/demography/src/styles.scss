@@ -279,6 +279,11 @@ $panel-gap: 12px;
         background: $gray-10;
     }
 
+    &[data-focus-visible] {
+        outline: 2px solid $blue-90;
+        outline-offset: -2px;
+    }
+
     &[data-selected] {
         color: $blue-90;
         background: $blue-20;
