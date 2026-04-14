@@ -518,6 +518,32 @@ function getRewrittenDownloadUrl(
     }
 }
 
+/**
+ * Rewrites inline JSON-LD for grapher pages so embedded asset URLs inherit the
+ * current request's query params, then escapes the serialized JSON for safe use
+ * inside an inline `<script>` tag.
+ *
+ * If the parsed JSON-LD contains `image.contentUrl`, each search param from
+ * `url` is copied onto that image URL. If parsing fails, the original text is
+ * returned unchanged after logging the error.
+ *
+ * @param jsonLdText - Raw JSON-LD text.
+ * @param url - The current request URL whose search params should be preserved.
+ * @returns JSON-LD text safe to inline in HTML.
+ *
+ * @example
+ * const rewritten = rewriteJsonLdText(
+ *     JSON.stringify({
+ *         image: {
+ *             contentUrl: "https://ourworldindata.org/grapher/example.png?tab=chart",
+ *         },
+ *     }),
+ *     new URL("https://ourworldindata.org/grapher/example?country=CZE~OWID_EUR")
+ * )
+ *
+ * // `country` is copied onto `image.contentUrl` and the output is escaped so it
+ * // can be safely embedded in an inline script tag.
+ */
 export function rewriteJsonLdText(jsonLdText: string, url: URL): string {
     try {
         const data = JSON.parse(jsonLdText) as {
