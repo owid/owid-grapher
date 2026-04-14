@@ -590,6 +590,7 @@ export {
 export {
     type DbPlainPostGdocXImage,
     type DbInsertPostGdocXImage,
+    type ImageContext,
     PostsGdocsXImagesTableName,
 } from "./dbTypes/PostsGdocsXImages.js"
 export {

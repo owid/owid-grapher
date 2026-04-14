@@ -7,3 +7,5 @@ fields:
         description: Foreign key to posts_gdocs table
     imageId:
         description: Foreign key to images table
+    context:
+        description: How the image is used in the article. 'content' means the image is genuine inline content (image block, video, etc.) or the article's own featured/cover image. 'article-thumbnail' means the image appears only as a thumbnail for a linked article (research-and-writing block, prominent-link), i.e. it represents another article rather than being content in its own right.

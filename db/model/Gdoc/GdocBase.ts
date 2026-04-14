@@ -39,6 +39,7 @@ import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
 import { match, P } from "ts-pattern"
 import {
     extractFilenamesFromBlock,
+    type FilenameWithContext,
     extractUrl,
     getAllLinksFromResearchAndWritingBlock,
     spansToSimpleString,
@@ -347,26 +348,36 @@ export class GdocBase implements OwidGdocBaseInterface {
         }
     }
 
-    get filenames(): string[] {
-        const filenames: Set<string> = new Set()
+    get filenamesWithContext(): FilenameWithContext[] {
+        const results = new Map<string, FilenameWithContext>()
 
         for (const filename of this.typeSpecificFilenames()) {
             if (filename) {
-                filenames.add(filename)
+                results.set(filename, { filename, context: "content" })
             }
         }
 
         for (const enrichedBlockSource of this.enrichedBlockSources) {
             enrichedBlockSource.forEach((block) =>
                 traverseEnrichedBlock(block, (block) => {
-                    for (const filename of extractFilenamesFromBlock(block)) {
-                        filenames.add(filename)
+                    for (const item of extractFilenamesFromBlock(block)) {
+                        // Prefer 'content' if the same filename appears in multiple contexts
+                        if (
+                            !results.has(item.filename) ||
+                            item.context === "content"
+                        ) {
+                            results.set(item.filename, item)
+                        }
                     }
                 })
             )
         }
 
-        return [...filenames]
+        return [...results.values()]
+    }
+
+    get filenames(): string[] {
+        return this.filenamesWithContext.map((item) => item.filename)
     }
 
     get details(): string[] {

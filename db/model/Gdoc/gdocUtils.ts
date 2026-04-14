@@ -13,6 +13,7 @@ import {
     SpanCallout,
     CalloutFunction,
     CALLOUT_FUNCTIONS,
+    type ImageContext,
 } from "@ourworldindata/types"
 import { match, P } from "ts-pattern"
 import * as cheerio from "cheerio"
@@ -199,29 +200,39 @@ export function calculateDataInsightIndexPageCount(
     return Math.ceil(publishedDataInsightCount / DATA_INSIGHTS_INDEX_PAGE_SIZE)
 }
 
+export type FilenameWithContext = { filename: string; context: ImageContext }
+
 export function extractFilenamesFromBlock(
     item: OwidEnrichedGdocBlock
-): string[] {
-    const filenames = new Set<string>()
+): FilenameWithContext[] {
+    const results = new Map<string, FilenameWithContext>()
+
+    function add(filename: string, context: ImageContext): void {
+        // Prefer 'content' if the same filename appears in multiple contexts
+        if (!results.has(filename) || context === "content") {
+            results.set(filename, { filename, context })
+        }
+    }
+
     match(item)
         .with({ type: "image" }, (item) => {
-            if (item.filename) filenames.add(item.filename)
-            if (item.smallFilename) filenames.add(item.smallFilename)
+            if (item.filename) add(item.filename, "content")
+            if (item.smallFilename) add(item.smallFilename, "content")
         })
         .with({ type: "person" }, (item) => {
-            if (item.image) filenames.add(item.image)
+            if (item.image) add(item.image, "content")
         })
         .with({ type: "prominent-link" }, (item) => {
-            if (item.thumbnail) filenames.add(item.thumbnail)
+            if (item.thumbnail) add(item.thumbnail, "article-thumbnail")
         })
         .with({ type: "video" }, (item) => {
-            if (item.filename) filenames.add(item.filename)
+            if (item.filename) add(item.filename, "content")
         })
         .with({ type: "research-and-writing" }, (item) => {
             getAllLinksFromResearchAndWritingBlock(item).forEach(
                 (link: EnrichedBlockResearchAndWritingLink) => {
                     if (link.value.filename) {
-                        filenames.add(link.value.filename)
+                        add(link.value.filename, "article-thumbnail")
                     }
                 }
             )
@@ -229,7 +240,7 @@ export function extractFilenamesFromBlock(
         .with({ type: "key-insights" }, (item) => {
             item.insights.forEach((insight) => {
                 if (insight.filename) {
-                    filenames.add(insight.filename)
+                    add(insight.filename, "content")
                 }
             })
         })
@@ -240,7 +251,7 @@ export function extractFilenamesFromBlock(
             (item) => {
                 item.featuredWork.forEach((featuredWork) => {
                     if (featuredWork.filename) {
-                        filenames.add(featuredWork.filename)
+                        add(featuredWork.filename, "content")
                     }
                 })
             }
@@ -310,14 +321,14 @@ export function extractFilenamesFromBlock(
         )
         .with({ type: "chart-rows" }, (item) => {
             item.rows.forEach((row) => {
-                if (row.image) filenames.add(row.image)
+                if (row.image) add(row.image, "content")
             })
         })
         .with({ type: "pull-chart" }, (item) => {
-            if (item.image) filenames.add(item.image)
+            if (item.image) add(item.image, "content")
         })
         .exhaustive()
-    return [...filenames]
+    return [...results.values()]
 }
 
 /**

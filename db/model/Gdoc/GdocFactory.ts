@@ -575,7 +575,7 @@ export async function getLatestDataInsights(
     for (const dataInsight of dataInsights) {
         for (const block of dataInsight.content.body) {
             traverseEnrichedBlock(block, (block) => {
-                for (const filename of extractFilenamesFromBlock(block)) {
+                for (const { filename } of extractFilenamesFromBlock(block)) {
                     filenames.add(filename)
                 }
             })
@@ -803,16 +803,22 @@ export async function setImagesInContentGraph(
     const id = gdoc.id
     // Deleting and recreating these is simpler than tracking orphans over the next code block
     await trx.table(PostsGdocsXImagesTableName).where({ gdocId: id }).delete()
-    const filenames = gdoc.filenames
+    const filenamesWithContext = gdoc.filenamesWithContext
 
     // Includes fragments so that images in data pages are also tracked
-    if (filenames.length && gdoc.published) {
-        const images = await getImageMetadataByFilenames(trx, filenames)
+    if (filenamesWithContext.length && gdoc.published) {
+        const contextByFilename = new Map(
+            filenamesWithContext.map((item) => [item.filename, item.context])
+        )
+        const images = await getImageMetadataByFilenames(trx, [
+            ...contextByFilename.keys(),
+        ])
         const gdocXImagesToInsert: DbInsertPostGdocXImage[] = []
         for (const image of Object.values(images)) {
             gdocXImagesToInsert.push({
                 gdocId: gdoc.id,
                 imageId: image.id,
+                context: contextByFilename.get(image.filename) ?? "content",
             })
         }
         try {

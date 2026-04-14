@@ -938,19 +938,7 @@ export function getCloudflareImages(
         `-- sql
         SELECT
             i.*,
-            COALESCE(SUM(CASE WHEN
-                -- Only count views from pages where the image is genuinely used as content,
-                -- not just referenced as a thumbnail for another article (e.g. in R&W blocks)
-                i.filename = pg.content->>'$."featured-image"'
-                OR (
-                    JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body') IS NOT NULL
-                    AND JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].primary[*].value.filename') IS NULL
-                    AND JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].secondary[*].value.filename') IS NULL
-                    AND JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].rows[*].articles[*].value.filename') IS NULL
-                    AND JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].more.articles[*].value.filename') IS NULL
-                    AND JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].latest.articles[*].value.filename') IS NULL
-                )
-                THEN pv.views_365d ELSE 0 END), 0) AS views_365d,
+            COALESCE(SUM(CASE WHEN pxi.context = 'content' THEN pv.views_365d ELSE 0 END), 0) AS views_365d,
             MAX(CASE WHEN i.filename = pg.content->>'$."featured-image"' THEN 1 ELSE 0 END) AS isFeaturedImage,
             MAX(CASE WHEN
                 JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body') IS NOT NULL
