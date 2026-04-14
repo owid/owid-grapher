@@ -49,25 +49,36 @@ import { EditableTextarea } from "./EditableTextarea.js"
 
 type ImageMap = Record<string, DbEnrichedImageWithPageviews>
 
-type ImageTypeFilter = "all" | "featured-thumbnail-rw" | "content" | "other"
+type ImageTypeFilter =
+    | "all"
+    | "featured-thumbnail-rw"
+    | "content"
+    | "content-and-thumbnail"
+    | "other"
+
+function isUsedAsThumbnail(image: DbEnrichedImageWithPageviews): boolean {
+    return (
+        image.isFeaturedImage === 1 ||
+        image.filename.toLowerCase().includes("thumbnail") ||
+        image.isInResearchAndWriting === 1
+    )
+}
 
 function getImageType(image: DbEnrichedImageWithPageviews): ImageTypeFilter {
-    const isFeatured = image.isFeaturedImage === 1
-    const isThumbnail = image.filename.toLowerCase().includes("thumbnail")
-    const isInResearchAndWriting = image.isInResearchAndWriting === 1
     const isBodyContent = image.isBodyContent === 1
 
-    // If an image is used in both body content and featured/rw/thumbnail, keep it in content category
+    if (isBodyContent && isUsedAsThumbnail(image)) {
+        return "content-and-thumbnail"
+    }
+
     if (isBodyContent) {
         return "content"
     }
 
-    // Category for featured, thumbnails, and research-and-writing (only if not in body content)
-    if (isFeatured || isThumbnail || isInResearchAndWriting) {
+    if (isUsedAsThumbnail(image)) {
         return "featured-thumbnail-rw"
     }
 
-    // Everything else is other (fallback)
     return "other"
 }
 
@@ -838,9 +849,13 @@ export function ImageIndexPage() {
                 const matchesFilename = image.filename
                     .toLowerCase()
                     .includes(filenameSearchValue.toLowerCase())
+                const imageType = getImageType(image)
                 const matchesType =
                     imageTypeFilter === "all" ||
-                    getImageType(image) === imageTypeFilter
+                    imageType === imageTypeFilter ||
+                    // "content" includes images used only as content AND those used in both
+                    (imageTypeFilter === "content" &&
+                        imageType === "content-and-thumbnail")
                 return matchesFilename && matchesType
             }),
         [images, filenameSearchValue, imageTypeFilter]
@@ -882,6 +897,10 @@ export function ImageIndexPage() {
                                     {
                                         value: "featured-thumbnail-rw",
                                         label: "Thumbnails or featured images",
+                                    },
+                                    {
+                                        value: "content-and-thumbnail",
+                                        label: "Used in both content and thumbnail",
                                     },
                                     { value: "other", label: "Other" },
                                 ]}
