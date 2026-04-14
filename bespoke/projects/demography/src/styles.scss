@@ -717,6 +717,16 @@ $panel-gap: 12px;
         table-layout: auto;
         word-break: break-word;
 
+        .assumptions-table__col-year {
+            width: 56px;
+        }
+
+        th:first-child,
+        td:first-child {
+            padding-left: 0;
+            padding-right: 0;
+        }
+
         .assumptions-table__info-icon {
             margin-left: 0;
         }
