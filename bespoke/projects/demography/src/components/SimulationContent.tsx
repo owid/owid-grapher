@@ -100,7 +100,16 @@ export function SimulationContent({
                                     id={key}
                                     className="input-tabs__tab"
                                 >
-                                    {PARAMETER_TAB_LABELS[key]}
+                                    <span
+                                        className={cx("input-tabs__tab-label", {
+                                            "input-tabs__tab-label--modified":
+                                                simulation.modifiedParameters.has(
+                                                    key
+                                                ),
+                                        })}
+                                    >
+                                        {PARAMETER_TAB_LABELS[key]}
+                                    </span>
                                 </Tab>
                             ))}
                         </TabList>

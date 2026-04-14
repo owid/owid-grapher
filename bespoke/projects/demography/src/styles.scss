@@ -1,4 +1,5 @@
 $denim-blue: #4c6a9c;
+$modified-accent: #8c4569;
 $panel-border: $blue-10;
 
 $panel-gap: 12px;
@@ -178,7 +179,6 @@ $panel-gap: 12px;
 
 .container {
     background: $gray-5;
-    // border-radius: 2px;
     padding: 16px;
     min-height: 0;
     display: flex;
@@ -189,9 +189,7 @@ $panel-gap: 12px;
         font-size: 0.8125rem;
         letter-spacing: 0.01em;
         font-weight: 600;
-        // font-weight: 900;
-        // line-height: 1.3333;
-        // letter-spacing: 0.1em;
+        color: $gray-100;
 
         margin: 0;
         margin-bottom: $panel-gap;
@@ -270,6 +268,7 @@ $panel-gap: 12px;
     color: $dark-text;
     text-align: center;
     outline: none;
+    position: relative;
 
     &:last-child {
         border-right: none;
@@ -287,6 +286,32 @@ $panel-gap: 12px;
     &[data-selected] {
         color: $blue-90;
         background: $blue-20;
+    }
+}
+
+.input-tabs__tab-label {
+    position: relative;
+
+    .breakpoint-narrow & {
+        position: static;
+    }
+}
+
+.input-tabs__tab-label--modified::after {
+    content: "";
+    position: absolute;
+    right: -12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: $modified-accent;
+
+    .breakpoint-narrow & {
+        right: 6px;
+        top: 6px;
+        transform: none;
     }
 }
 
@@ -375,7 +400,7 @@ $panel-gap: 12px;
     }
 
     .assumptions-table__value--modified {
-        color: #8c4569;
+        color: $modified-accent;
         font-weight: 600;
     }
 
@@ -388,10 +413,6 @@ $panel-gap: 12px;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        width: 13px;
-        height: 13px;
-        border-radius: 50%;
-        background: #8c4569;
         margin-left: 5px;
         margin-right: 5px;
         vertical-align: middle;
@@ -400,9 +421,9 @@ $panel-gap: 12px;
     }
 
     .assumptions-table__arrow {
-        width: 7px;
-        height: 7px;
-        fill: white;
+        width: 10px;
+        height: 10px;
+        fill: $modified-accent;
     }
 }
 
@@ -461,14 +482,14 @@ $panel-gap: 12px;
 
     .chart-panel__title {
         font-size: 0.8125rem;
-        margin: 0 0 4px;
+        margin: 0 0 2px;
         color: $dark-text;
     }
 
     .chart-panel__subtitle {
         font-size: 0.8125rem;
         margin: 0;
-        color: $dark-text;
+        color: $light-text;
         line-height: 1.2;
     }
 
@@ -511,7 +532,7 @@ $panel-gap: 12px;
     margin-left: 6px;
     font-size: 0.8em;
     font-weight: 400;
-    color: #8c4569;
+    color: $modified-accent;
 }
 
 .projection-legend {
