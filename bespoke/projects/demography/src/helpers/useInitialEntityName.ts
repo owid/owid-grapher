@@ -15,7 +15,7 @@ const USER_LOCATION = "userLocation"
 export function useInitialEntityName(
     configRegion: string | undefined
 ): [string, (name: string) => void] {
-    const isUserLocation = configRegion === USER_LOCATION
+    const isUserLocation = !configRegion || configRegion === USER_LOCATION
     const initialName =
         configRegion && !isUserLocation ? configRegion : DEFAULT_ENTITY_NAME
 

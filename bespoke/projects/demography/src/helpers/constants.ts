@@ -4,7 +4,7 @@ import {
 } from "@ourworldindata/grapher/src/color/ColorConstants.js"
 import { range } from "lodash-es"
 
-export const DEFAULT_ENTITY_NAME = "South Korea"
+export const DEFAULT_ENTITY_NAME = "United States"
 
 export const START_YEAR = 1950
 export const HISTORICAL_END_YEAR = 2023
