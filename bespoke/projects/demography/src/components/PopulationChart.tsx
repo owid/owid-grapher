@@ -36,7 +36,7 @@ import {
 } from "../helpers/utils.js"
 import { TimeAxisX } from "./TimeAxisX.js"
 import { last } from "lodash-es"
-import { toBreakpoint } from "../helpers/useBreakpoint.js"
+import { toBreakpoint, useBreakpoint } from "../helpers/useBreakpoint.js"
 import { usePinnedTooltip } from "../../../../hooks/usePinnedTooltip.js"
 import {
     getPopulationChartFonts,
@@ -87,8 +87,9 @@ function PopulationChartContent({
     showCustomProjection = true,
     showHistoricalAnnotation = false,
 }: PopulationChartProps & { width: number; height: number }) {
+    const windowBreakpoint = useBreakpoint()
     const breakpoint = toBreakpoint(width)
-    const fonts = getPopulationChartFonts(breakpoint)
+    const fonts = getPopulationChartFonts(breakpoint, windowBreakpoint)
 
     const [tooltipState, setTooltipState] = useState<TooltipState>({
         target: null,

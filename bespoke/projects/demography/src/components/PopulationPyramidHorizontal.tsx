@@ -24,7 +24,7 @@ import {
 } from "../helpers/utils"
 import { Bounds, formatValue } from "@ourworldindata/utils"
 import { Halo, TextWrap, TextWrapSvg } from "@ourworldindata/components"
-import { toBreakpoint } from "../helpers/useBreakpoint.js"
+import { toBreakpoint, useBreakpoint } from "../helpers/useBreakpoint.js"
 import { useDismissOnTouchOutside } from "../../../../hooks/useDismissOnTouchOutside.js"
 import { getHorizontalPyramidFonts } from "../helpers/fonts.js"
 
@@ -53,7 +53,11 @@ function PopulationPyramidHorizontalContent({
             : (barColor ?? FEMALE_COLOR)
     const effectiveMaleColor =
         typeof barColor === "object" ? barColor.male : (barColor ?? MALE_COLOR)
-    const fonts = getHorizontalPyramidFonts(toBreakpoint(width))
+    const windowBreakpoint = useBreakpoint()
+    const fonts = getHorizontalPyramidFonts(
+        toBreakpoint(width),
+        windowBreakpoint
+    )
     const margin = { top: 0, right: 0, bottom: 0, left: 0 }
 
     const innerWidth = width - margin.left - margin.right

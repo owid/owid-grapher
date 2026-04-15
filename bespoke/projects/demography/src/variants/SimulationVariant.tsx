@@ -145,7 +145,11 @@ function CaptionedSimulationVariant({
 
     return (
         <Frame className="demography-captioned-chart">
-            <ChartHeader title={title} subtitle={subtitle} />
+            <ChartHeader
+                className="demography-header"
+                title={title}
+                subtitle={subtitle}
+            />
             <div className="demography-captioned-chart__chart-area">
                 {isLoading && <LoadingSpinner />}
                 <SimulationContent

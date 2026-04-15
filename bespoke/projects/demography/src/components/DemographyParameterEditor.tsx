@@ -26,7 +26,7 @@ import { parameterConfigByKey } from "../helpers/parameterConfigs.js"
 import { TimeAxisX } from "./TimeAxisX.js"
 import { ParameterKey, type YearLabel } from "../helpers/types.js"
 import { getParameterChartFonts } from "../helpers/fonts"
-import { toBreakpoint } from "../helpers/useBreakpoint"
+import { toBreakpoint, useBreakpoint } from "../helpers/useBreakpoint"
 import { getInterpolatedValue } from "../model/projectionRunner"
 
 const SMALL_DOT_RADIUS = 3
@@ -88,7 +88,8 @@ function DemographyParameterEditorContent({
     height,
 }: DemographyParameterEditorProps & { width: number; height: number }) {
     const config = parameterConfigByKey[variant]
-    const fonts = getParameterChartFonts(toBreakpoint(width))
+    const windowBreakpoint = useBreakpoint()
+    const fonts = getParameterChartFonts(toBreakpoint(width), windowBreakpoint)
 
     const [hoveredYear, setHoveredYear] = useState<number | null>(null)
     const hasTouchMoved = useRef(false)

@@ -153,7 +153,11 @@ function CaptionedParametersVariant({
 
     return (
         <Frame className="demography-captioned-chart demography-parameters">
-            <ChartHeader title={title} subtitle={subtitle} />
+            <ChartHeader
+                className="demography-header"
+                title={title}
+                subtitle={subtitle}
+            />
             <div className="demography-parameters__chart-area">
                 {isLoading && <LoadingSpinner />}
                 {simulation && (

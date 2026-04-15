@@ -487,7 +487,7 @@ $panel-gap: 12px;
         padding: 0;
         border: none;
         background: none;
-        font-size: 11px;
+        font-size: 0.75rem;
         color: $light-text;
         text-decoration: underline;
         text-underline-offset: 3px;
@@ -760,5 +760,35 @@ $panel-gap: 12px;
 
     .demography-spinner {
         color: $gray-60;
+    }
+}
+
+.breakpoint-narrow {
+    .demography-header {
+        .chart-header__title {
+            font-size: 1rem;
+        }
+
+        .chart-header__subtitle {
+            font-size: 0.75rem;
+        }
+
+        .chart-header__logo {
+            height: 28px;
+        }
+    }
+
+    .container__title,
+    .input-tabs__tab-label,
+    .chart-panel__title,
+    .chart-panel__subtitle,
+    .assumptions-table,
+    .demography-footer {
+        font-size: 0.75rem;
+    }
+
+    .chart-panel__reset-btn,
+    .projection-legend__item {
+        font-size: 0.6875rem;
     }
 }

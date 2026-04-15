@@ -165,7 +165,11 @@ function CaptionedPopulationVariant({
 
     return (
         <Frame className="demography-captioned-chart demography-population-variant">
-            <ChartHeader title={title} subtitle={subtitle} />
+            <ChartHeader
+                className="demography-header"
+                title={title}
+                subtitle={subtitle}
+            />
 
             <div className="demography-population-variant__chart-area">
                 {isLoading && <LoadingSpinner />}

@@ -181,7 +181,11 @@ function CaptionedPopulationPyramidVariant({
 
     return (
         <Frame className="demography-captioned-chart demography-population-pyramid">
-            <ChartHeader title={title} subtitle={subtitle} />
+            <ChartHeader
+                className="demography-header"
+                title={title}
+                subtitle={subtitle}
+            />
             <div className="demography-population-pyramid__chart-area">
                 {isLoading && <LoadingSpinner />}
                 {simulation && (

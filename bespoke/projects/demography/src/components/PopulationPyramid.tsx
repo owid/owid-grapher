@@ -30,7 +30,7 @@ import {
 } from "../helpers/utils"
 import { Bounds } from "@ourworldindata/utils"
 import type { AgeZone, AgeZoneWithBounds } from "../helpers/types.js"
-import { toBreakpoint } from "../helpers/useBreakpoint.js"
+import { toBreakpoint, useBreakpoint } from "../helpers/useBreakpoint.js"
 import { useDismissOnTouchOutside } from "../../../../hooks/useDismissOnTouchOutside.js"
 import {
     getPopulationPyramidFonts,
@@ -73,7 +73,8 @@ function PopulationPyramidContent({
             ? barColorProp
             : (barColorProp?.male ?? DENIM_BLUE)
     const bp = toBreakpoint(width)
-    const fonts = getPopulationPyramidFonts(bp)
+    const windowBreakpoint = useBreakpoint()
+    const fonts = getPopulationPyramidFonts(bp, windowBreakpoint)
     const margin = { ...PYRAMID_MARGIN }
     const centerGap =
         Bounds.forText("125-129", { fontSize: fonts.ageGroupLabel }).width +

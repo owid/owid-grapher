@@ -26,7 +26,7 @@ import {
     COLOR_WORKING,
 } from "../helpers/constants.js"
 import { Bounds, formatValue } from "@ourworldindata/utils"
-import { toBreakpoint } from "../helpers/useBreakpoint.js"
+import { toBreakpoint, useBreakpoint } from "../helpers/useBreakpoint.js"
 import { getAgeZoneLegendFonts } from "../helpers/fonts.js"
 
 const BAR_PADDING_Y = 4
@@ -76,7 +76,8 @@ function AgeZoneLegendContent({
             ? simulation.getBenchmarkAgeZonePopulation
             : simulation.getAgeZonePopulation
     )(year)
-    const fonts = getAgeZoneLegendFonts(toBreakpoint(width))
+    const windowBreakpoint = useBreakpoint()
+    const fonts = getAgeZoneLegendFonts(toBreakpoint(width), windowBreakpoint)
 
     const total =
         populationByAgeZone.young +

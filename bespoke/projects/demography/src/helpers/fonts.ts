@@ -10,7 +10,10 @@ export interface PopulationChartFonts {
     projectionAnnotation: number // "Projections →" label
 }
 
-const POPULATION_CHART_FONTS: Record<Breakpoint, PopulationChartFonts> = {
+const POPULATION_CHART_FONTS: Record<
+    Breakpoint | "extraNarrow",
+    PopulationChartFonts
+> = {
     large: {
         xTick: 12,
         yTick: 12,
@@ -39,11 +42,21 @@ const POPULATION_CHART_FONTS: Record<Breakpoint, PopulationChartFonts> = {
         changeAnnotation: 10,
         projectionAnnotation: 10,
     },
+    extraNarrow: {
+        xTick: 10,
+        yTick: 10,
+        pointLabel: 10,
+        changeAnnotation: 9,
+        projectionAnnotation: 9,
+    },
 }
 
 export function getPopulationChartFonts(
-    breakpoint: Breakpoint
+    breakpoint: Breakpoint,
+    windowBreakpoint: Breakpoint
 ): PopulationChartFonts {
+    if (breakpoint === "narrow" && windowBreakpoint === "narrow")
+        return POPULATION_CHART_FONTS.extraNarrow
     return POPULATION_CHART_FONTS[breakpoint]
 }
 
@@ -59,7 +72,10 @@ export interface ParameterChartFonts {
     dragArrow: number // ▲/▼ arrows on control points
 }
 
-const PARAMETER_CHART_FONTS: Record<Breakpoint, ParameterChartFonts> = {
+const PARAMETER_CHART_FONTS: Record<
+    Breakpoint | "extraNarrow",
+    ParameterChartFonts
+> = {
     large: {
         xTick: 12,
         yTick: 12,
@@ -96,11 +112,23 @@ const PARAMETER_CHART_FONTS: Record<Breakpoint, ParameterChartFonts> = {
         projectionAnnotation: 10,
         dragArrow: 8,
     },
+    extraNarrow: {
+        xTick: 10,
+        yTick: 10,
+        pointLabel: 10,
+        controlLabel: 10,
+        hoverLabel: 10,
+        projectionAnnotation: 9,
+        dragArrow: 8,
+    },
 }
 
 export function getParameterChartFonts(
-    breakpoint: Breakpoint
+    breakpoint: Breakpoint,
+    windowBreakpoint: Breakpoint
 ): ParameterChartFonts {
+    if (breakpoint === "narrow" && windowBreakpoint === "narrow")
+        return PARAMETER_CHART_FONTS.extraNarrow
     return PARAMETER_CHART_FONTS[breakpoint]
 }
 
@@ -114,7 +142,10 @@ export interface PopulationPyramidFonts {
     hoverLabel: number // hovered bar value label
 }
 
-const POPULATION_PYRAMID_FONTS: Record<Breakpoint, PopulationPyramidFonts> = {
+const POPULATION_PYRAMID_FONTS: Record<
+    Breakpoint | "extraNarrow",
+    PopulationPyramidFonts
+> = {
     large: {
         xTick: 11,
         ageGroupLabel: 11,
@@ -143,11 +174,21 @@ const POPULATION_PYRAMID_FONTS: Record<Breakpoint, PopulationPyramidFonts> = {
         ageZoneLabel: 10,
         hoverLabel: 10,
     },
+    extraNarrow: {
+        xTick: 9,
+        ageGroupLabel: 9,
+        sexLabel: 9,
+        ageZoneLabel: 9,
+        hoverLabel: 9,
+    },
 }
 
 export function getPopulationPyramidFonts(
-    breakpoint: Breakpoint
+    breakpoint: Breakpoint,
+    windowBreakpoint: Breakpoint
 ): PopulationPyramidFonts {
+    if (breakpoint === "narrow" && windowBreakpoint === "narrow")
+        return POPULATION_PYRAMID_FONTS.extraNarrow
     return POPULATION_PYRAMID_FONTS[breakpoint]
 }
 
@@ -160,7 +201,10 @@ export interface HorizontalPyramidFonts {
     hoverLabel: number // hover bar value labels
 }
 
-const HORIZONTAL_PYRAMID_FONTS: Record<Breakpoint, HorizontalPyramidFonts> = {
+const HORIZONTAL_PYRAMID_FONTS: Record<
+    Breakpoint | "extraNarrow",
+    HorizontalPyramidFonts
+> = {
     large: {
         yTick: 12,
         xTick: 12,
@@ -185,11 +229,20 @@ const HORIZONTAL_PYRAMID_FONTS: Record<Breakpoint, HorizontalPyramidFonts> = {
         sexLabel: 8,
         hoverLabel: 9,
     },
+    extraNarrow: {
+        yTick: 9,
+        xTick: 9,
+        sexLabel: 7,
+        hoverLabel: 8,
+    },
 }
 
 export function getHorizontalPyramidFonts(
-    breakpoint: Breakpoint
+    breakpoint: Breakpoint,
+    windowBreakpoint: Breakpoint
 ): HorizontalPyramidFonts {
+    if (breakpoint === "narrow" && windowBreakpoint === "narrow")
+        return HORIZONTAL_PYRAMID_FONTS.extraNarrow
     return HORIZONTAL_PYRAMID_FONTS[breakpoint]
 }
 
@@ -202,7 +255,10 @@ export interface AgeZoneLegendFonts {
     valueLabel: number // zone population values below bar
 }
 
-const AGE_ZONE_LEGEND_FONTS: Record<Breakpoint, AgeZoneLegendFonts> = {
+const AGE_ZONE_LEGEND_FONTS: Record<
+    Breakpoint | "extraNarrow",
+    AgeZoneLegendFonts
+> = {
     large: {
         totalPopulationLabel: 13,
         percentageLabel: 12,
@@ -227,10 +283,19 @@ const AGE_ZONE_LEGEND_FONTS: Record<Breakpoint, AgeZoneLegendFonts> = {
         ageZoneLabel: 11,
         valueLabel: 11,
     },
+    extraNarrow: {
+        totalPopulationLabel: 11,
+        percentageLabel: 10,
+        ageZoneLabel: 10,
+        valueLabel: 10,
+    },
 }
 
 export function getAgeZoneLegendFonts(
-    breakpoint: Breakpoint
+    breakpoint: Breakpoint,
+    windowBreakpoint: Breakpoint
 ): AgeZoneLegendFonts {
+    if (breakpoint === "narrow" && windowBreakpoint === "narrow")
+        return AGE_ZONE_LEGEND_FONTS.extraNarrow
     return AGE_ZONE_LEGEND_FONTS[breakpoint]
 }
