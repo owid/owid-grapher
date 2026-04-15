@@ -35,6 +35,7 @@ export interface PopulationVariantConfig {
     region?: string
     title?: string
     subtitle?: string
+    showAssumptionCharts?: boolean
     stabilizingParameter?: ParameterKey
     fertilityRateAssumptions?: Record<number, number>
     lifeExpectancyAssumptions?: Record<number, number>
@@ -108,6 +109,7 @@ export function parseConfig(
                 region: raw.region,
                 title: raw.title,
                 subtitle: raw.subtitle,
+                showAssumptionCharts: parseBoolean(raw.showAssumptionCharts),
                 stabilizingParameter: parseParameterKey(
                     raw.stabilizingParameter
                 ),

@@ -36,6 +36,7 @@ import {
     LoadingSpinner,
 } from "../components/DemographyLoadAndError.js"
 import { PopulationChart } from "../components/PopulationChart.js"
+import { ParameterChartsDisclosure } from "../components/ParameterChartsDisclosure.js"
 import { EntityNameOrSelector } from "../components/EntityNameOrSelector.js"
 
 export function PopulationVariant({
@@ -83,6 +84,7 @@ function FetchingPopulationVariant({
             subtitle={config.subtitle}
             hideControls={config.hideControls}
             isLoading={isLoadingEntityData}
+            showAssumptionCharts={config.showAssumptionCharts}
             stabilizingParameter={config.stabilizingParameter}
             fertilityRateAssumptions={config.fertilityRateAssumptions}
             lifeExpectancyAssumptions={config.lifeExpectancyAssumptions}
@@ -100,6 +102,7 @@ function CaptionedPopulationVariant({
     title: titleOverride,
     subtitle: subtitleOverride,
     hideControls,
+    showAssumptionCharts = false,
     stabilizingParameter,
     fertilityRateAssumptions,
     lifeExpectancyAssumptions,
@@ -113,6 +116,7 @@ function CaptionedPopulationVariant({
     title?: string
     subtitle?: string
     hideControls?: boolean
+    showAssumptionCharts?: boolean
     stabilizingParameter?: ParameterKey
     fertilityRateAssumptions?: Record<number, number>
     lifeExpectancyAssumptions?: Record<number, number>
@@ -172,6 +176,10 @@ function CaptionedPopulationVariant({
                     />
                 )}
             </div>
+
+            {showAssumptionCharts && simulation && (
+                <ParameterChartsDisclosure simulation={simulation} />
+            )}
 
             <ChartFooter
                 className="demography-footer"

@@ -32,7 +32,8 @@ export const VARIANTS = [
         name: "population",
         component: PopulationVariant,
         demoConfig: {
-            fertilityRateAssumptions: "1.8,2.2,2.9",
+            // fertilityRateAssumptions: "1.8,2.2,2.9",
+            showAssumptionCharts: "true",
         },
         demoSize: "wide",
     },
