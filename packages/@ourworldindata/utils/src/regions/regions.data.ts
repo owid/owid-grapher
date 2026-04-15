@@ -8,6 +8,7 @@ export const regionsData = [
         name: "Aruba",
         slug: "aruba",
         regionType: "country",
+        members: [""],
     },
     {
         code: "AFG",
@@ -16,6 +17,7 @@ export const regionsData = [
         slug: "afghanistan",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "AGO",
@@ -24,6 +26,7 @@ export const regionsData = [
         slug: "angola",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "AIA",
@@ -31,6 +34,7 @@ export const regionsData = [
         name: "Anguilla",
         slug: "anguilla",
         regionType: "country",
+        members: [""],
     },
     {
         code: "ALA",
@@ -39,6 +43,7 @@ export const regionsData = [
         slug: "aland-islands",
         regionType: "country",
         isUnlisted: true,
+        members: [""],
     },
     {
         code: "ALB",
@@ -47,6 +52,7 @@ export const regionsData = [
         slug: "albania",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "AND",
@@ -55,6 +61,7 @@ export const regionsData = [
         slug: "andorra",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "ANT",
@@ -64,6 +71,7 @@ export const regionsData = [
         regionType: "country",
         isHistorical: true,
         isUnlisted: true,
+        members: [""],
     },
     {
         code: "ARE",
@@ -73,6 +81,7 @@ export const regionsData = [
         regionType: "country",
         isMappable: true,
         variantNames: ["UAE"],
+        members: [""],
     },
     {
         code: "ARG",
@@ -81,6 +90,7 @@ export const regionsData = [
         slug: "argentina",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "ARM",
@@ -89,6 +99,7 @@ export const regionsData = [
         slug: "armenia",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "ASM",
@@ -96,6 +107,7 @@ export const regionsData = [
         name: "American Samoa",
         slug: "american-samoa",
         regionType: "country",
+        members: [""],
     },
     {
         code: "ATA",
@@ -105,6 +117,7 @@ export const regionsData = [
         regionType: "other",
         isMappable: true,
         isUnlisted: true,
+        members: [""],
     },
     {
         code: "ATF",
@@ -114,6 +127,7 @@ export const regionsData = [
         regionType: "country",
         isMappable: true,
         isUnlisted: true,
+        members: [""],
     },
     {
         code: "ATG",
@@ -122,6 +136,7 @@ export const regionsData = [
         slug: "antigua-and-barbuda",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "AUS",
@@ -130,6 +145,7 @@ export const regionsData = [
         slug: "australia",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "AUT",
@@ -138,6 +154,7 @@ export const regionsData = [
         slug: "austria",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "AZE",
@@ -146,6 +163,7 @@ export const regionsData = [
         slug: "azerbaijan",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "BDI",
@@ -154,6 +172,7 @@ export const regionsData = [
         slug: "burundi",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "BEL",
@@ -162,6 +181,7 @@ export const regionsData = [
         slug: "belgium",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "BEN",
@@ -170,6 +190,7 @@ export const regionsData = [
         slug: "benin",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "BES",
@@ -178,6 +199,7 @@ export const regionsData = [
         slug: "bonaire-sint-eustatius-and-saba",
         regionType: "country",
         isUnlisted: true,
+        members: [""],
     },
     {
         code: "BFA",
@@ -186,6 +208,7 @@ export const regionsData = [
         slug: "burkina-faso",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "BGD",
@@ -194,6 +217,7 @@ export const regionsData = [
         slug: "bangladesh",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "BGR",
@@ -202,6 +226,7 @@ export const regionsData = [
         slug: "bulgaria",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "BHR",
@@ -210,6 +235,7 @@ export const regionsData = [
         slug: "bahrain",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "BHS",
@@ -218,6 +244,7 @@ export const regionsData = [
         slug: "bahamas",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "BIH",
@@ -227,6 +254,7 @@ export const regionsData = [
         slug: "bosnia-and-herzegovina",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "BLM",
@@ -234,6 +262,7 @@ export const regionsData = [
         name: "Saint Barthelemy",
         slug: "saint-barthelemy",
         regionType: "country",
+        members: [""],
     },
     {
         code: "BLR",
@@ -242,6 +271,7 @@ export const regionsData = [
         slug: "belarus",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "BLZ",
@@ -250,6 +280,7 @@ export const regionsData = [
         slug: "belize",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "BMU",
@@ -257,6 +288,7 @@ export const regionsData = [
         name: "Bermuda",
         slug: "bermuda",
         regionType: "country",
+        members: [""],
     },
     {
         code: "BOL",
@@ -265,6 +297,7 @@ export const regionsData = [
         slug: "bolivia",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "BRA",
@@ -273,6 +306,7 @@ export const regionsData = [
         slug: "brazil",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "BRB",
@@ -281,6 +315,7 @@ export const regionsData = [
         slug: "barbados",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "BRN",
@@ -289,6 +324,7 @@ export const regionsData = [
         slug: "brunei",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "BTN",
@@ -297,6 +333,7 @@ export const regionsData = [
         slug: "bhutan",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "BVT",
@@ -305,6 +342,7 @@ export const regionsData = [
         slug: "bouvet-island",
         regionType: "country",
         isUnlisted: true,
+        members: [""],
     },
     {
         code: "BWA",
@@ -313,6 +351,7 @@ export const regionsData = [
         slug: "botswana",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "CAF",
@@ -321,6 +360,7 @@ export const regionsData = [
         slug: "central-african-republic",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "CAN",
@@ -329,6 +369,7 @@ export const regionsData = [
         slug: "canada",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "CCK",
@@ -337,6 +378,7 @@ export const regionsData = [
         slug: "cocos-islands",
         regionType: "country",
         isUnlisted: true,
+        members: [""],
     },
     {
         code: "CHE",
@@ -345,6 +387,7 @@ export const regionsData = [
         slug: "switzerland",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "CHL",
@@ -353,6 +396,7 @@ export const regionsData = [
         slug: "chile",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "CHN",
@@ -361,6 +405,7 @@ export const regionsData = [
         slug: "china",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "CIV",
@@ -369,6 +414,7 @@ export const regionsData = [
         slug: "cote-divoire",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "CMR",
@@ -377,6 +423,7 @@ export const regionsData = [
         slug: "cameroon",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "COD",
@@ -386,6 +433,7 @@ export const regionsData = [
         slug: "democratic-republic-of-congo",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "COG",
@@ -394,6 +442,7 @@ export const regionsData = [
         slug: "congo",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "COK",
@@ -402,6 +451,7 @@ export const regionsData = [
         slug: "cook-islands",
         regionType: "country",
         isUnlisted: true,
+        members: [""],
     },
     {
         code: "COL",
@@ -410,6 +460,7 @@ export const regionsData = [
         slug: "colombia",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "COM",
@@ -418,6 +469,7 @@ export const regionsData = [
         slug: "comoros",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "CPV",
@@ -426,6 +478,7 @@ export const regionsData = [
         slug: "cape-verde",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "CRI",
@@ -434,6 +487,7 @@ export const regionsData = [
         slug: "costa-rica",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "CUB",
@@ -442,6 +496,7 @@ export const regionsData = [
         slug: "cuba",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "CUW",
@@ -450,6 +505,7 @@ export const regionsData = [
         slug: "curacao",
         regionType: "country",
         isUnlisted: true,
+        members: [""],
     },
     {
         code: "CXR",
@@ -457,6 +513,7 @@ export const regionsData = [
         name: "Christmas Island",
         slug: "christmas-island",
         regionType: "country",
+        members: [""],
     },
     {
         code: "CYM",
@@ -464,6 +521,7 @@ export const regionsData = [
         name: "Cayman Islands",
         slug: "cayman-islands",
         regionType: "country",
+        members: [""],
     },
     {
         code: "CYP",
@@ -472,6 +530,7 @@ export const regionsData = [
         slug: "cyprus",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "CZE",
@@ -481,6 +540,7 @@ export const regionsData = [
         regionType: "country",
         isMappable: true,
         variantNames: ["Czech Republic"],
+        members: [""],
     },
     {
         code: "DEU",
@@ -489,6 +549,7 @@ export const regionsData = [
         slug: "germany",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "DJI",
@@ -497,6 +558,7 @@ export const regionsData = [
         slug: "djibouti",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "DMA",
@@ -505,6 +567,7 @@ export const regionsData = [
         slug: "dominica",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "DNK",
@@ -513,6 +576,7 @@ export const regionsData = [
         slug: "denmark",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "DOM",
@@ -521,6 +585,7 @@ export const regionsData = [
         slug: "dominican-republic",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "DZA",
@@ -529,6 +594,7 @@ export const regionsData = [
         slug: "algeria",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "ECU",
@@ -537,6 +603,7 @@ export const regionsData = [
         slug: "ecuador",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "EGY",
@@ -545,6 +612,7 @@ export const regionsData = [
         slug: "egypt",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "ERI",
@@ -553,6 +621,7 @@ export const regionsData = [
         slug: "eritrea",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "ESH",
@@ -562,6 +631,7 @@ export const regionsData = [
         regionType: "country",
         isMappable: true,
         isUnlisted: true,
+        members: [""],
     },
     {
         code: "ESP",
@@ -570,6 +640,7 @@ export const regionsData = [
         slug: "spain",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "EST",
@@ -578,6 +649,7 @@ export const regionsData = [
         slug: "estonia",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "ETH",
@@ -586,6 +658,7 @@ export const regionsData = [
         slug: "ethiopia",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "FIN",
@@ -594,6 +667,7 @@ export const regionsData = [
         slug: "finland",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "FJI",
@@ -602,6 +676,7 @@ export const regionsData = [
         slug: "fiji",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "FLK",
@@ -609,6 +684,7 @@ export const regionsData = [
         name: "Falkland Islands",
         slug: "falkland-islands",
         regionType: "country",
+        members: [""],
     },
     {
         code: "FRA",
@@ -617,6 +693,7 @@ export const regionsData = [
         slug: "france",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "FRO",
@@ -624,6 +701,7 @@ export const regionsData = [
         name: "Faroe Islands",
         slug: "faroe-islands",
         regionType: "country",
+        members: [""],
     },
     {
         code: "FSM",
@@ -632,6 +710,7 @@ export const regionsData = [
         slug: "micronesia-country",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "GAB",
@@ -640,6 +719,7 @@ export const regionsData = [
         slug: "gabon",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "GBR",
@@ -649,6 +729,7 @@ export const regionsData = [
         regionType: "country",
         isMappable: true,
         variantNames: ["UK"],
+        members: [""],
     },
     {
         code: "GEO",
@@ -657,6 +738,7 @@ export const regionsData = [
         slug: "georgia",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "GGY",
@@ -665,6 +747,7 @@ export const regionsData = [
         slug: "guernsey",
         regionType: "country",
         isUnlisted: true,
+        members: [""],
     },
     {
         code: "GHA",
@@ -673,6 +756,7 @@ export const regionsData = [
         slug: "ghana",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "GIB",
@@ -680,6 +764,7 @@ export const regionsData = [
         name: "Gibraltar",
         slug: "gibraltar",
         regionType: "country",
+        members: [""],
     },
     {
         code: "GIN",
@@ -688,6 +773,7 @@ export const regionsData = [
         slug: "guinea",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "GLP",
@@ -696,6 +782,7 @@ export const regionsData = [
         slug: "guadeloupe",
         regionType: "country",
         isUnlisted: true,
+        members: [""],
     },
     {
         code: "GMB",
@@ -704,6 +791,7 @@ export const regionsData = [
         slug: "gambia",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "GNB",
@@ -712,6 +800,7 @@ export const regionsData = [
         slug: "guinea-bissau",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "GNQ",
@@ -720,6 +809,7 @@ export const regionsData = [
         slug: "equatorial-guinea",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "GRC",
@@ -728,6 +818,7 @@ export const regionsData = [
         slug: "greece",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "GRD",
@@ -736,6 +827,7 @@ export const regionsData = [
         slug: "grenada",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "GRL",
@@ -744,6 +836,7 @@ export const regionsData = [
         slug: "greenland",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "GTM",
@@ -752,6 +845,7 @@ export const regionsData = [
         slug: "guatemala",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "GUF",
@@ -760,6 +854,7 @@ export const regionsData = [
         slug: "french-guiana",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "GUM",
@@ -767,6 +862,7 @@ export const regionsData = [
         name: "Guam",
         slug: "guam",
         regionType: "country",
+        members: [""],
     },
     {
         code: "GUY",
@@ -775,6 +871,7 @@ export const regionsData = [
         slug: "guyana",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "HKG",
@@ -782,6 +879,7 @@ export const regionsData = [
         name: "Hong Kong",
         slug: "hong-kong",
         regionType: "country",
+        members: [""],
     },
     {
         code: "HMD",
@@ -790,6 +888,7 @@ export const regionsData = [
         slug: "heard-island-and-mcdonald-islands",
         regionType: "country",
         isUnlisted: true,
+        members: [""],
     },
     {
         code: "HND",
@@ -798,6 +897,7 @@ export const regionsData = [
         slug: "honduras",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "HRV",
@@ -806,6 +906,7 @@ export const regionsData = [
         slug: "croatia",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "HTI",
@@ -814,6 +915,7 @@ export const regionsData = [
         slug: "haiti",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "HUN",
@@ -822,6 +924,7 @@ export const regionsData = [
         slug: "hungary",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "IDN",
@@ -830,6 +933,7 @@ export const regionsData = [
         slug: "indonesia",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "IMN",
@@ -837,6 +941,7 @@ export const regionsData = [
         name: "Isle of Man",
         slug: "isle-of-man",
         regionType: "country",
+        members: [""],
     },
     {
         code: "IND",
@@ -845,6 +950,7 @@ export const regionsData = [
         slug: "india",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "IOT",
@@ -853,6 +959,7 @@ export const regionsData = [
         slug: "british-indian-ocean-territory",
         regionType: "country",
         isUnlisted: true,
+        members: [""],
     },
     {
         code: "IRL",
@@ -861,6 +968,7 @@ export const regionsData = [
         slug: "ireland",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "IRN",
@@ -869,6 +977,7 @@ export const regionsData = [
         slug: "iran",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "IRQ",
@@ -877,6 +986,7 @@ export const regionsData = [
         slug: "iraq",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "ISL",
@@ -885,6 +995,7 @@ export const regionsData = [
         slug: "iceland",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "ISR",
@@ -893,6 +1004,7 @@ export const regionsData = [
         slug: "israel",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "ITA",
@@ -901,6 +1013,7 @@ export const regionsData = [
         slug: "italy",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "JAM",
@@ -909,6 +1022,7 @@ export const regionsData = [
         slug: "jamaica",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "JEY",
@@ -916,6 +1030,7 @@ export const regionsData = [
         name: "Jersey",
         slug: "jersey",
         regionType: "country",
+        members: [""],
     },
     {
         code: "JOR",
@@ -924,6 +1039,7 @@ export const regionsData = [
         slug: "jordan",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "JPN",
@@ -932,6 +1048,7 @@ export const regionsData = [
         slug: "japan",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "KAZ",
@@ -940,6 +1057,7 @@ export const regionsData = [
         slug: "kazakhstan",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "KEN",
@@ -948,6 +1066,7 @@ export const regionsData = [
         slug: "kenya",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "KGZ",
@@ -956,6 +1075,7 @@ export const regionsData = [
         slug: "kyrgyzstan",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "KHM",
@@ -964,6 +1084,7 @@ export const regionsData = [
         slug: "cambodia",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "KIR",
@@ -972,6 +1093,7 @@ export const regionsData = [
         slug: "kiribati",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "KNA",
@@ -980,6 +1102,7 @@ export const regionsData = [
         slug: "saint-kitts-and-nevis",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "KOR",
@@ -988,6 +1111,7 @@ export const regionsData = [
         slug: "south-korea",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "KWT",
@@ -996,6 +1120,7 @@ export const regionsData = [
         slug: "kuwait",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "LAO",
@@ -1004,6 +1129,7 @@ export const regionsData = [
         slug: "laos",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "LBN",
@@ -1012,6 +1138,7 @@ export const regionsData = [
         slug: "lebanon",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "LBR",
@@ -1020,6 +1147,7 @@ export const regionsData = [
         slug: "liberia",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "LBY",
@@ -1028,6 +1156,7 @@ export const regionsData = [
         slug: "libya",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "LCA",
@@ -1036,6 +1165,7 @@ export const regionsData = [
         slug: "saint-lucia",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "LIE",
@@ -1044,6 +1174,7 @@ export const regionsData = [
         slug: "liechtenstein",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "LKA",
@@ -1052,6 +1183,7 @@ export const regionsData = [
         slug: "sri-lanka",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "LSO",
@@ -1060,6 +1192,7 @@ export const regionsData = [
         slug: "lesotho",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "LTU",
@@ -1068,6 +1201,7 @@ export const regionsData = [
         slug: "lithuania",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "LUX",
@@ -1076,6 +1210,7 @@ export const regionsData = [
         slug: "luxembourg",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "LVA",
@@ -1084,6 +1219,7 @@ export const regionsData = [
         slug: "latvia",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "MAC",
@@ -1091,6 +1227,7 @@ export const regionsData = [
         name: "Macao",
         slug: "macao",
         regionType: "country",
+        members: [""],
     },
     {
         code: "MAF",
@@ -1099,6 +1236,7 @@ export const regionsData = [
         slug: "saint-martin-french-part",
         regionType: "country",
         isUnlisted: true,
+        members: [""],
     },
     {
         code: "MAR",
@@ -1107,6 +1245,7 @@ export const regionsData = [
         slug: "morocco",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "MCO",
@@ -1115,6 +1254,7 @@ export const regionsData = [
         slug: "monaco",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "MDA",
@@ -1123,6 +1263,7 @@ export const regionsData = [
         slug: "moldova",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "MDG",
@@ -1131,6 +1272,7 @@ export const regionsData = [
         slug: "madagascar",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "MDV",
@@ -1139,6 +1281,7 @@ export const regionsData = [
         slug: "maldives",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "MEX",
@@ -1147,6 +1290,7 @@ export const regionsData = [
         slug: "mexico",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "MHL",
@@ -1155,6 +1299,7 @@ export const regionsData = [
         slug: "marshall-islands",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "MKD",
@@ -1164,6 +1309,7 @@ export const regionsData = [
         regionType: "country",
         isMappable: true,
         variantNames: ["Macedonia"],
+        members: [""],
     },
     {
         code: "MLI",
@@ -1172,6 +1318,7 @@ export const regionsData = [
         slug: "mali",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "MLT",
@@ -1180,6 +1327,7 @@ export const regionsData = [
         slug: "malta",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "MMR",
@@ -1188,6 +1336,7 @@ export const regionsData = [
         slug: "myanmar",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "MNE",
@@ -1196,6 +1345,7 @@ export const regionsData = [
         slug: "montenegro",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "MNG",
@@ -1204,6 +1354,7 @@ export const regionsData = [
         slug: "mongolia",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "MNP",
@@ -1211,6 +1362,7 @@ export const regionsData = [
         name: "Northern Mariana Islands",
         slug: "northern-mariana-islands",
         regionType: "country",
+        members: [""],
     },
     {
         code: "MOZ",
@@ -1219,6 +1371,7 @@ export const regionsData = [
         slug: "mozambique",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "MRT",
@@ -1227,6 +1380,7 @@ export const regionsData = [
         slug: "mauritania",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "MSR",
@@ -1235,6 +1389,7 @@ export const regionsData = [
         slug: "montserrat",
         regionType: "country",
         isUnlisted: true,
+        members: [""],
     },
     {
         code: "MTQ",
@@ -1242,6 +1397,7 @@ export const regionsData = [
         name: "Martinique",
         slug: "martinique",
         regionType: "country",
+        members: [""],
     },
     {
         code: "MUS",
@@ -1250,6 +1406,7 @@ export const regionsData = [
         slug: "mauritius",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "MWI",
@@ -1258,6 +1415,7 @@ export const regionsData = [
         slug: "malawi",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "MYS",
@@ -1266,6 +1424,7 @@ export const regionsData = [
         slug: "malaysia",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "MYT",
@@ -1273,6 +1432,7 @@ export const regionsData = [
         name: "Mayotte",
         slug: "mayotte",
         regionType: "country",
+        members: [""],
     },
     {
         code: "NAM",
@@ -1281,6 +1441,7 @@ export const regionsData = [
         slug: "namibia",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "NCL",
@@ -1289,6 +1450,7 @@ export const regionsData = [
         slug: "new-caledonia",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "NER",
@@ -1297,6 +1459,7 @@ export const regionsData = [
         slug: "niger",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "NFK",
@@ -1304,6 +1467,7 @@ export const regionsData = [
         name: "Norfolk Island",
         slug: "norfolk-island",
         regionType: "country",
+        members: [""],
     },
     {
         code: "NGA",
@@ -1312,6 +1476,7 @@ export const regionsData = [
         slug: "nigeria",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "NIC",
@@ -1320,6 +1485,7 @@ export const regionsData = [
         slug: "nicaragua",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "NIU",
@@ -1327,6 +1493,7 @@ export const regionsData = [
         name: "Niue",
         slug: "niue",
         regionType: "country",
+        members: [""],
     },
     {
         code: "NLD",
@@ -1335,6 +1502,7 @@ export const regionsData = [
         slug: "netherlands",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "NOR",
@@ -1343,6 +1511,7 @@ export const regionsData = [
         slug: "norway",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "NPL",
@@ -1351,6 +1520,7 @@ export const regionsData = [
         slug: "nepal",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "NRU",
@@ -1359,6 +1529,7 @@ export const regionsData = [
         slug: "nauru",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "NZL",
@@ -1367,6 +1538,7 @@ export const regionsData = [
         slug: "new-zealand",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "OMN",
@@ -1375,12 +1547,14 @@ export const regionsData = [
         slug: "oman",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "OWID_ABK",
         name: "Abkhazia",
         slug: "abkhazia",
         regionType: "other",
+        members: [""],
     },
     {
         code: "OWID_AFR",
@@ -1459,6 +1633,7 @@ export const regionsData = [
         name: "Akrotiri and Dhekelia",
         slug: "akrotiri-and-dhekelia",
         regionType: "other",
+        members: [""],
     },
     {
         code: "OWID_ASI",
@@ -1538,6 +1713,7 @@ export const regionsData = [
         slug: "austria-hungary",
         regionType: "country",
         isHistorical: true,
+        members: [""],
     },
     {
         code: "OWID_BAD",
@@ -1545,6 +1721,7 @@ export const regionsData = [
         slug: "grand-duchy-of-baden",
         regionType: "country",
         isHistorical: true,
+        members: [""],
     },
     {
         code: "OWID_BAV",
@@ -1552,6 +1729,7 @@ export const regionsData = [
         slug: "kingdom-of-bavaria",
         regionType: "country",
         isHistorical: true,
+        members: [""],
     },
     {
         code: "OWID_CIS",
@@ -1565,6 +1743,7 @@ export const regionsData = [
         name: "Northern Cyprus",
         slug: "northern-cyprus",
         regionType: "other",
+        members: [""],
     },
     {
         code: "OWID_CZS",
@@ -1572,6 +1751,7 @@ export const regionsData = [
         slug: "czechoslovakia",
         regionType: "country",
         isHistorical: true,
+        members: [""],
     },
     {
         code: "OWID_DRV",
@@ -1579,6 +1759,7 @@ export const regionsData = [
         slug: "democratic-republic-of-vietnam",
         regionType: "country",
         isHistorical: true,
+        members: [""],
     },
     {
         code: "OWID_DSI",
@@ -1586,6 +1767,7 @@ export const regionsData = [
         slug: "kingdom-of-the-two-sicilies",
         regionType: "country",
         isHistorical: true,
+        members: [""],
     },
     {
         code: "OWID_ERE",
@@ -1593,6 +1775,7 @@ export const regionsData = [
         slug: "ethiopia-former",
         regionType: "country",
         isHistorical: true,
+        members: [""],
     },
     {
         code: "OWID_EU27",
@@ -1716,6 +1899,7 @@ export const regionsData = [
         slug: "pakistan-former",
         regionType: "country",
         isHistorical: true,
+        members: [""],
     },
     {
         code: "OWID_GCL",
@@ -1723,6 +1907,7 @@ export const regionsData = [
         slug: "great-colombia",
         regionType: "country",
         isHistorical: true,
+        members: [""],
     },
     {
         code: "OWID_GDR",
@@ -1730,6 +1915,7 @@ export const regionsData = [
         slug: "east-germany",
         regionType: "country",
         isHistorical: true,
+        members: [""],
     },
     {
         code: "OWID_GFR",
@@ -1737,6 +1923,7 @@ export const regionsData = [
         slug: "west-germany",
         regionType: "country",
         isHistorical: true,
+        members: [""],
     },
     {
         code: "OWID_HIC",
@@ -1841,6 +2028,7 @@ export const regionsData = [
         slug: "kosovo",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "OWID_KRU",
@@ -1848,6 +2036,7 @@ export const regionsData = [
         slug: "korea-former",
         regionType: "country",
         isHistorical: true,
+        members: [""],
     },
     {
         code: "OWID_LIC",
@@ -1954,12 +2143,14 @@ export const regionsData = [
         slug: "duchy-of-modena-and-reggio",
         regionType: "country",
         isHistorical: true,
+        members: [""],
     },
     {
         code: "OWID_NAG",
         name: "Nagorno-Karabakh",
         slug: "nagorno-karabakh",
         regionType: "other",
+        members: [""],
     },
     {
         code: "OWID_NAM",
@@ -2277,6 +2468,7 @@ export const regionsData = [
         slug: "orange-free-state",
         regionType: "country",
         isHistorical: true,
+        members: [""],
     },
     {
         code: "OWID_PAR",
@@ -2284,6 +2476,7 @@ export const regionsData = [
         slug: "duchy-of-parma-and-piacenza",
         regionType: "country",
         isHistorical: true,
+        members: [""],
     },
     {
         code: "OWID_PYA",
@@ -2312,6 +2505,7 @@ export const regionsData = [
         slug: "federal-republic-of-central-america",
         regionType: "country",
         isHistorical: true,
+        members: [""],
     },
     {
         code: "OWID_RVN",
@@ -2319,6 +2513,7 @@ export const regionsData = [
         slug: "republic-of-vietnam",
         regionType: "country",
         isHistorical: true,
+        members: [""],
     },
     {
         code: "OWID_SAM",
@@ -2351,6 +2546,7 @@ export const regionsData = [
         slug: "kingdom-of-sardinia",
         regionType: "country",
         isHistorical: true,
+        members: [""],
     },
     {
         code: "OWID_SAX",
@@ -2358,6 +2554,7 @@ export const regionsData = [
         slug: "kingdom-of-saxony",
         regionType: "country",
         isHistorical: true,
+        members: [""],
     },
     {
         code: "OWID_SDN",
@@ -2365,12 +2562,14 @@ export const regionsData = [
         slug: "sudan-former",
         regionType: "country",
         isHistorical: true,
+        members: [""],
     },
     {
         code: "OWID_SEK",
         name: "Serbia excluding Kosovo",
         slug: "serbia-excluding-kosovo",
         regionType: "other",
+        members: [""],
     },
     {
         code: "OWID_SH",
@@ -2446,12 +2645,14 @@ export const regionsData = [
         name: "Somaliland",
         slug: "somaliland",
         regionType: "other",
+        members: [""],
     },
     {
         code: "OWID_SOS",
         name: "South Ossetia",
         slug: "south-ossetia",
         regionType: "other",
+        members: [""],
     },
     {
         code: "OWID_SRM",
@@ -2459,12 +2660,14 @@ export const regionsData = [
         slug: "serbia-and-montenegro",
         regionType: "country",
         isHistorical: true,
+        members: [""],
     },
     {
         code: "OWID_TRS",
         name: "Transnistria",
         slug: "transnistria",
         regionType: "other",
+        members: [""],
     },
     {
         code: "OWID_TSC",
@@ -2472,6 +2675,7 @@ export const regionsData = [
         slug: "grand-duchy-of-tuscany",
         regionType: "country",
         isHistorical: true,
+        members: [""],
     },
     {
         code: "OWID_UMC",
@@ -2541,6 +2745,7 @@ export const regionsData = [
         slug: "ussr",
         regionType: "country",
         isHistorical: true,
+        members: [""],
     },
     {
         code: "OWID_WRL",
@@ -2563,6 +2768,7 @@ export const regionsData = [
         slug: "kingdom-of-wurttemberg",
         regionType: "country",
         isHistorical: true,
+        members: [""],
     },
     {
         code: "OWID_YAR",
@@ -2570,6 +2776,7 @@ export const regionsData = [
         slug: "yemen-arab-republic",
         regionType: "country",
         isHistorical: true,
+        members: [""],
     },
     {
         code: "OWID_YGS",
@@ -2577,6 +2784,7 @@ export const regionsData = [
         slug: "yugoslavia",
         regionType: "country",
         isHistorical: true,
+        members: [""],
     },
     {
         code: "OWID_YPR",
@@ -2584,12 +2792,14 @@ export const regionsData = [
         slug: "yemen-peoples-republic",
         regionType: "country",
         isHistorical: true,
+        members: [""],
     },
     {
         code: "OWID_ZAN",
         name: "Zanzibar",
         slug: "zanzibar",
         regionType: "other",
+        members: [""],
     },
     {
         code: "PAK",
@@ -2598,6 +2808,7 @@ export const regionsData = [
         slug: "pakistan",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "PAN",
@@ -2606,6 +2817,7 @@ export const regionsData = [
         slug: "panama",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "PCN",
@@ -2613,6 +2825,7 @@ export const regionsData = [
         name: "Pitcairn",
         slug: "pitcairn",
         regionType: "country",
+        members: [""],
     },
     {
         code: "PER",
@@ -2621,6 +2834,7 @@ export const regionsData = [
         slug: "peru",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "PEW_APA",
@@ -2910,6 +3124,7 @@ export const regionsData = [
         slug: "philippines",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "PLW",
@@ -2918,6 +3133,7 @@ export const regionsData = [
         slug: "palau",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "PNG",
@@ -2926,6 +3142,7 @@ export const regionsData = [
         slug: "papua-new-guinea",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "POL",
@@ -2934,6 +3151,7 @@ export const regionsData = [
         slug: "poland",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "PRI",
@@ -2942,6 +3160,7 @@ export const regionsData = [
         slug: "puerto-rico",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "PRK",
@@ -2950,6 +3169,7 @@ export const regionsData = [
         slug: "north-korea",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "PRT",
@@ -2958,6 +3178,7 @@ export const regionsData = [
         slug: "portugal",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "PRY",
@@ -2966,6 +3187,7 @@ export const regionsData = [
         slug: "paraguay",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "PSE",
@@ -2974,6 +3196,7 @@ export const regionsData = [
         slug: "palestine",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "PS_GZA",
@@ -2982,6 +3205,7 @@ export const regionsData = [
         slug: "gaza-strip",
         regionType: "country",
         isUnlisted: true,
+        members: [""],
     },
     {
         code: "PYF",
@@ -2989,6 +3213,7 @@ export const regionsData = [
         name: "French Polynesia",
         slug: "french-polynesia",
         regionType: "country",
+        members: [""],
     },
     {
         code: "QAT",
@@ -2997,6 +3222,7 @@ export const regionsData = [
         slug: "qatar",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "REU",
@@ -3004,6 +3230,7 @@ export const regionsData = [
         name: "Reunion",
         slug: "reunion",
         regionType: "country",
+        members: [""],
     },
     {
         code: "ROU",
@@ -3012,6 +3239,7 @@ export const regionsData = [
         slug: "romania",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "RUS",
@@ -3020,6 +3248,7 @@ export const regionsData = [
         slug: "russia",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "RWA",
@@ -3028,6 +3257,7 @@ export const regionsData = [
         slug: "rwanda",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "SAU",
@@ -3036,6 +3266,7 @@ export const regionsData = [
         slug: "saudi-arabia",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "SDN",
@@ -3044,6 +3275,7 @@ export const regionsData = [
         slug: "sudan",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "SEN",
@@ -3052,6 +3284,7 @@ export const regionsData = [
         slug: "senegal",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "SGP",
@@ -3060,6 +3293,7 @@ export const regionsData = [
         slug: "singapore",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "SGS",
@@ -3068,6 +3302,7 @@ export const regionsData = [
         slug: "south-georgia-and-the-south-sandwich-islands",
         regionType: "country",
         isUnlisted: true,
+        members: [""],
     },
     {
         code: "SHN",
@@ -3076,6 +3311,7 @@ export const regionsData = [
         slug: "saint-helena",
         regionType: "country",
         isUnlisted: true,
+        members: [""],
     },
     {
         code: "SJM",
@@ -3084,6 +3320,7 @@ export const regionsData = [
         slug: "svalbard-and-jan-mayen",
         regionType: "other",
         isUnlisted: true,
+        members: [""],
     },
     {
         code: "SLB",
@@ -3092,6 +3329,7 @@ export const regionsData = [
         slug: "solomon-islands",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "SLE",
@@ -3100,6 +3338,7 @@ export const regionsData = [
         slug: "sierra-leone",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "SLV",
@@ -3108,6 +3347,7 @@ export const regionsData = [
         slug: "el-salvador",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "SMR",
@@ -3116,6 +3356,7 @@ export const regionsData = [
         slug: "san-marino",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "SOM",
@@ -3124,6 +3365,7 @@ export const regionsData = [
         slug: "somalia",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "SPM",
@@ -3131,6 +3373,7 @@ export const regionsData = [
         name: "Saint Pierre and Miquelon",
         slug: "saint-pierre-and-miquelon",
         regionType: "country",
+        members: [""],
     },
     {
         code: "SRB",
@@ -3139,6 +3382,7 @@ export const regionsData = [
         slug: "serbia",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "SSD",
@@ -3147,6 +3391,7 @@ export const regionsData = [
         slug: "south-sudan",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "STP",
@@ -3155,6 +3400,7 @@ export const regionsData = [
         slug: "sao-tome-and-principe",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "SUR",
@@ -3163,6 +3409,7 @@ export const regionsData = [
         slug: "suriname",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "SVK",
@@ -3171,6 +3418,7 @@ export const regionsData = [
         slug: "slovakia",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "SVN",
@@ -3179,6 +3427,7 @@ export const regionsData = [
         slug: "slovenia",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "SWE",
@@ -3187,6 +3436,7 @@ export const regionsData = [
         slug: "sweden",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "SWZ",
@@ -3196,6 +3446,7 @@ export const regionsData = [
         regionType: "country",
         isMappable: true,
         variantNames: ["Swaziland"],
+        members: [""],
     },
     {
         code: "SXM",
@@ -3204,6 +3455,7 @@ export const regionsData = [
         slug: "sint-maarten-dutch-part",
         regionType: "country",
         isUnlisted: true,
+        members: [""],
     },
     {
         code: "SYC",
@@ -3212,6 +3464,7 @@ export const regionsData = [
         slug: "seychelles",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "SYR",
@@ -3220,6 +3473,7 @@ export const regionsData = [
         slug: "syria",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "TCA",
@@ -3228,6 +3482,7 @@ export const regionsData = [
         shortName: "Turks and Caicos",
         slug: "turks-and-caicos-islands",
         regionType: "country",
+        members: [""],
     },
     {
         code: "TCD",
@@ -3236,6 +3491,7 @@ export const regionsData = [
         slug: "chad",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "TGO",
@@ -3244,6 +3500,7 @@ export const regionsData = [
         slug: "togo",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "THA",
@@ -3252,6 +3509,7 @@ export const regionsData = [
         slug: "thailand",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "TJK",
@@ -3260,6 +3518,7 @@ export const regionsData = [
         slug: "tajikistan",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "TKL",
@@ -3267,6 +3526,7 @@ export const regionsData = [
         name: "Tokelau",
         slug: "tokelau",
         regionType: "country",
+        members: [""],
     },
     {
         code: "TKM",
@@ -3275,6 +3535,7 @@ export const regionsData = [
         slug: "turkmenistan",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "TLS",
@@ -3283,6 +3544,7 @@ export const regionsData = [
         slug: "east-timor",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "TON",
@@ -3291,6 +3553,7 @@ export const regionsData = [
         slug: "tonga",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "TTO",
@@ -3299,6 +3562,7 @@ export const regionsData = [
         slug: "trinidad-and-tobago",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "TUN",
@@ -3307,6 +3571,7 @@ export const regionsData = [
         slug: "tunisia",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "TUR",
@@ -3315,6 +3580,7 @@ export const regionsData = [
         slug: "turkey",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "TUV",
@@ -3323,6 +3589,7 @@ export const regionsData = [
         slug: "tuvalu",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "TWN",
@@ -3331,6 +3598,7 @@ export const regionsData = [
         slug: "taiwan",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "TZA",
@@ -3339,6 +3607,7 @@ export const regionsData = [
         slug: "tanzania",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "UGA",
@@ -3347,6 +3616,7 @@ export const regionsData = [
         slug: "uganda",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "UKR",
@@ -3355,6 +3625,7 @@ export const regionsData = [
         slug: "ukraine",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "UMI",
@@ -3363,6 +3634,7 @@ export const regionsData = [
         slug: "united-states-minor-outlying-islands",
         regionType: "other",
         isUnlisted: true,
+        members: [""],
     },
     {
         code: "UNM49_AFR",
@@ -4805,6 +5077,7 @@ export const regionsData = [
         slug: "uruguay",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "USA",
@@ -4814,6 +5087,7 @@ export const regionsData = [
         regionType: "country",
         isMappable: true,
         variantNames: ["US", "USA"],
+        members: [""],
     },
     {
         code: "UZB",
@@ -4822,6 +5096,7 @@ export const regionsData = [
         slug: "uzbekistan",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "VAT",
@@ -4829,6 +5104,7 @@ export const regionsData = [
         name: "Vatican",
         slug: "vatican",
         regionType: "country",
+        members: [""],
     },
     {
         code: "VCT",
@@ -4837,6 +5113,7 @@ export const regionsData = [
         slug: "saint-vincent-and-the-grenadines",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "VEN",
@@ -4845,6 +5122,7 @@ export const regionsData = [
         slug: "venezuela",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "VGB",
@@ -4852,6 +5130,7 @@ export const regionsData = [
         name: "British Virgin Islands",
         slug: "british-virgin-islands",
         regionType: "country",
+        members: [""],
     },
     {
         code: "VIR",
@@ -4859,6 +5138,7 @@ export const regionsData = [
         name: "United States Virgin Islands",
         slug: "united-states-virgin-islands",
         regionType: "country",
+        members: [""],
     },
     {
         code: "VNM",
@@ -4867,6 +5147,7 @@ export const regionsData = [
         slug: "vietnam",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "VUT",
@@ -4875,6 +5156,7 @@ export const regionsData = [
         slug: "vanuatu",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "WB_EAP",
@@ -5489,6 +5771,7 @@ export const regionsData = [
         slug: "wallis-and-futuna",
         regionType: "country",
         isUnlisted: true,
+        members: [""],
     },
     {
         code: "WSM",
@@ -5497,6 +5780,7 @@ export const regionsData = [
         slug: "samoa",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "YEM",
@@ -5505,6 +5789,7 @@ export const regionsData = [
         slug: "yemen",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "ZAF",
@@ -5513,6 +5798,7 @@ export const regionsData = [
         slug: "south-africa",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "ZMB",
@@ -5521,6 +5807,7 @@ export const regionsData = [
         slug: "zambia",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
     {
         code: "ZWE",
@@ -5529,5 +5816,6 @@ export const regionsData = [
         slug: "zimbabwe",
         regionType: "country",
         isMappable: true,
+        members: [""],
     },
 ] as const
