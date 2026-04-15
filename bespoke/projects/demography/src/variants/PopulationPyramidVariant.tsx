@@ -180,7 +180,7 @@ function CaptionedPopulationPyramidVariant({
         `The population of ${entityNameForSentence(data.country)}, broken down by age and sex based on future projections. These are based on the user's fertility, life expectancy, and migration inputs to a demographic model.`
 
     return (
-        <Frame className="demography-population-pyramid">
+        <Frame className="demography-captioned-chart demography-population-pyramid">
             <ChartHeader title={title} subtitle={subtitle} />
             <div className="demography-population-pyramid__chart-area">
                 {isLoading && <LoadingSpinner />}

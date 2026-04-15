@@ -152,7 +152,7 @@ function CaptionedParametersVariant({
         "Assumptions about fertility, life expectancy, and migration that underlie the UN's population medium projection"
 
     return (
-        <Frame className="demography-parameters">
+        <Frame className="demography-captioned-chart demography-parameters">
             <ChartHeader title={title} subtitle={subtitle} />
             <div className="demography-parameters__chart-area">
                 {isLoading && <LoadingSpinner />}

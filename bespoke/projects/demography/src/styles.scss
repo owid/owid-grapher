@@ -4,6 +4,15 @@ $panel-border: $blue-10;
 
 $panel-gap: 12px;
 
+// Grid gap used on ourworldindata.org
+:root {
+    --grid-gap: 24px;
+
+    @media (max-width: 768px) {
+        --grid-gap: 16px;
+    }
+}
+
 .responsive-container {
     width: 100%;
     height: 100%;
@@ -21,6 +30,11 @@ $panel-gap: 12px;
     .demography-captioned-chart__chart-area {
         position: relative;
     }
+}
+
+.breakpoint-narrow .demography-captioned-chart {
+    margin-left: calc(-1 * var(--grid-gap));
+    margin-right: calc(-1 * var(--grid-gap));
 }
 
 .demography-population-variant {
@@ -258,7 +272,7 @@ $panel-gap: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 8px $panel-gap;
+    padding: 8px 12px;
     background: none;
     border: none;
     border-right: 1px solid $panel-border;
@@ -286,6 +300,11 @@ $panel-gap: 12px;
     &[data-selected] {
         color: $blue-90;
         background: $blue-20;
+    }
+
+    .breakpoint-narrow & {
+        padding: 8px;
+        line-height: 1.2;
     }
 }
 

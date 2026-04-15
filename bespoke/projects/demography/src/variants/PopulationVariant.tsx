@@ -164,7 +164,7 @@ function CaptionedPopulationVariant({
         "Historical estimates and projections of total population"
 
     return (
-        <Frame className="demography-population-variant">
+        <Frame className="demography-captioned-chart demography-population-variant">
             <ChartHeader title={title} subtitle={subtitle} />
 
             <div className="demography-population-variant__chart-area">
