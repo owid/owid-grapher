@@ -5,6 +5,6 @@ export interface DbInsertNamespace {
     id?: number
     isArchived?: number
     name: string
-    updatedAt?: Date | null
+    updatedAt?: Date
 }
 export type DbPlainNamespace = Required<DbInsertNamespace>

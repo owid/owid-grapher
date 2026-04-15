@@ -427,6 +427,8 @@ export async function republishCharts(
     if (!dataset) throw new JsonError(`No dataset by id ${datasetId}`, 404)
 
     if (req.body.republish) {
+        const now = new Date()
+
         await db.knexRaw(
             trx,
             `-- sql
@@ -434,14 +436,16 @@ export async function republishCharts(
                 JOIN charts c ON c.configId = cc.id
                 SET
                     cc.patch = JSON_SET(cc.patch, "$.version", cc.patch->"$.version" + 1),
-                    cc.full = JSON_SET(cc.full, "$.version", cc.full->"$.version" + 1)
+                    cc.full = JSON_SET(cc.full, "$.version", cc.full->"$.version" + 1),
+                    cc.updatedAt = ?,
+                    c.updatedAt = ?
                 WHERE c.id IN (
                     SELECT DISTINCT chart_dimensions.chartId
                     FROM chart_dimensions
                     JOIN variables ON variables.id = chart_dimensions.variableId
                     WHERE variables.datasetId = ?
                 )`,
-            [datasetId]
+            [now, now, datasetId]
         )
     }
 

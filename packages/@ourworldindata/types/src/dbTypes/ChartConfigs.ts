@@ -13,7 +13,7 @@ export interface DbInsertChartConfig {
     slug?: string | null
     chartType?: GrapherChartType | null
     createdAt?: Date
-    updatedAt?: Date | null
+    updatedAt?: Date
 }
 export type DbRawChartConfig = Required<DbInsertChartConfig>
 

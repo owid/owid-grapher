@@ -152,11 +152,13 @@ export async function insertNewGrapherConfigForVariable(
         variableId,
         patchConfig,
         fullConfig,
+        now,
     }: {
         type: "admin" | "etl"
         variableId: number
         patchConfig: GrapherInterface
         fullConfig: GrapherInterface
+        now: Date
     }
 ): Promise<void> {
     // insert chart configs into the database
@@ -164,10 +166,16 @@ export async function insertNewGrapherConfigForVariable(
     await db.knexRaw(
         knex,
         `-- sql
-            INSERT INTO chart_configs (id, patch, full)
-            VALUES (?, ?, ?)
+            INSERT INTO chart_configs (id, patch, full, createdAt, updatedAt)
+            VALUES (?, ?, ?, ?, ?)
         `,
-        [configId, JSON.stringify(patchConfig), JSON.stringify(fullConfig)]
+        [
+            configId,
+            JSON.stringify(patchConfig),
+            JSON.stringify(fullConfig),
+            now,
+            now,
+        ]
     )
 
     // make a reference to the config from the variables table
@@ -418,6 +426,7 @@ export async function updateGrapherConfigETLOfVariable(
             variableId,
             patchConfig: configETL,
             fullConfig: configETL,
+            now,
         })
     }
 
@@ -502,6 +511,7 @@ export async function updateGrapherConfigAdminOfVariable(
             variableId,
             patchConfig: patchConfigAdmin,
             fullConfig: fullConfigAdmin,
+            now,
         })
     }
 

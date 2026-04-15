@@ -263,6 +263,8 @@ const saveNewChart = async (
     const patchConfig = diffGrapherConfigs(config, parent?.config ?? {})
     const fullConfig = mergeGrapherConfigs(parent?.config ?? {}, patchConfig)
 
+    const now = new Date()
+
     // insert patch & full configs into the chart_configs table
     // We can't quite use `saveNewChartConfigInDbAndR2` here, because
     // we need to update the chart id in the config after inserting it.
@@ -270,13 +272,15 @@ const saveNewChart = async (
     await db.knexRaw(
         knex,
         `-- sql
-            INSERT INTO chart_configs (id, patch, full)
-            VALUES (?, ?, ?)
+            INSERT INTO chart_configs (id, patch, full, createdAt, updatedAt)
+            VALUES (?, ?, ?, ?, ?)
         `,
         [
             chartConfigId,
             serializeChartConfig(patchConfig),
             serializeChartConfig(fullConfig),
+            now,
+            now,
         ]
     )
 
@@ -284,10 +288,18 @@ const saveNewChart = async (
     const result = await db.knexRawInsert(
         knex,
         `-- sql
-            INSERT INTO charts (configId, isInheritanceEnabled, forceDatapage, lastEditedAt, lastEditedByUserId)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO charts (
+                configId,
+                isInheritanceEnabled,
+                forceDatapage,
+                createdAt,
+                updatedAt,
+                lastEditedAt,
+                lastEditedByUserId
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?)
         `,
-        [chartConfigId, shouldInherit, forceDatapage, new Date(), user.id]
+        [chartConfigId, shouldInherit, forceDatapage, now, now, now, user.id]
     )
 
     // The chart config itself has an id field that should store the id of the chart - update the chart now so this is true
@@ -358,7 +370,8 @@ const updateExistingChart = async (
         knex,
         chartConfigIdRow.configId as Base64String,
         patchConfig,
-        fullConfig
+        fullConfig,
+        now
     )
 
     const forceDatapage =

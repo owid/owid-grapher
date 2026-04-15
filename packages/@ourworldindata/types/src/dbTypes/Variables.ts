@@ -36,7 +36,7 @@ export interface DbInsertVariable {
     titlePublic?: string | null
     titleVariant?: string | null
     unit: string
-    updatedAt?: Date | null
+    updatedAt?: Date
     type?: OwidVariableType | null
     sort?: JsonString | null
     dataChecksum?: string | null

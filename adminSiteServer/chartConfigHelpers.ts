@@ -70,13 +70,14 @@ export const updateChartConfigInDbAndR2 = async (
     knex: db.KnexReadWriteTransaction,
     chartConfigId: string,
     patchConfig: GrapherInterface,
-    fullConfig: GrapherInterface
+    fullConfig: GrapherInterface,
+    updatedAt: Date = new Date()
 ) => {
     await knex<DbInsertChartConfig>(ChartConfigsTableName)
         .update({
             patch: serializeChartConfig(patchConfig),
             full: serializeChartConfig(fullConfig),
-            updatedAt: new Date(), // It's not updated automatically in the DB.
+            updatedAt, // It's not updated automatically in the DB.
         })
         .where({ id: chartConfigId })
 
@@ -87,7 +88,8 @@ export const saveNewChartConfigInDbAndR2 = async (
     knex: db.KnexReadWriteTransaction,
     chartConfigId: string | undefined,
     patchConfig: GrapherInterface,
-    fullConfig: GrapherInterface
+    fullConfig: GrapherInterface,
+    now: Date = new Date()
 ) => {
     chartConfigId ??= uuidv7()
 
@@ -95,6 +97,8 @@ export const saveNewChartConfigInDbAndR2 = async (
         id: chartConfigId,
         patch: serializeChartConfig(patchConfig),
         full: serializeChartConfig(fullConfig),
+        createdAt: now,
+        updatedAt: now,
     })
 
     return retrieveChartConfigFromDbAndSaveToR2(knex, chartConfigId)

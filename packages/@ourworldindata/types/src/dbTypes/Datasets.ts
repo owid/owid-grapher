@@ -15,7 +15,7 @@ export interface DbInsertDataset {
     nonRedistributable?: number
     shortName?: string | null
     sourceChecksum?: string | null
-    updatedAt?: Date | null
+    updatedAt?: Date
     updatePeriodDays?: number | null
     version?: string | null
 }
