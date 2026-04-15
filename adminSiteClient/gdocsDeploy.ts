@@ -93,6 +93,12 @@ export const checkIsLightningUpdate = (
         "atom-title": false, // requires updating the atom feed / blog roll
         "featured-image": false, // requires updating references to this article
         "deprecation-notice": false, // requires updating references to this article
+        // The "latest-*" fields are only consumed by the pages-chronological
+        // Algolia index (read at runtime by the /latest SPA), and that reindex
+        // runs unconditionally on update. Flip to false if any "latest-*" field
+        // starts affecting a statically baked page.
+        "latest-featured-image": true,
+        "latest-excerpt": true,
         authors: false, // requires updating references to this article
         authorRoles: false, // derived from authors
         excerpt: false, // requires updating references to this article

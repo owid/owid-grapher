@@ -53,6 +53,7 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
         return excludeNullish([
             this.content["cover-image"],
             this.content["featured-image"],
+            this.content["latest-featured-image"],
         ])
     }
 
@@ -81,6 +82,11 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
             enrichedBlocks.push(...deprecationNotice)
         }
 
+        const latestExcerpt = gdoc.content["latest-excerpt"]
+        if (latestExcerpt) {
+            enrichedBlocks.push(...latestExcerpt)
+        }
+
         return enrichedBlocks
     }
 
@@ -95,6 +101,12 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
         if (content.summary) {
             content.summary = content.summary.map((html: RawBlockText) =>
                 htmlToEnrichedTextBlock(html.value)
+            )
+        }
+
+        if (content["latest-excerpt"]) {
+            content["latest-excerpt"] = content["latest-excerpt"].map(
+                (html: RawBlockText) => htmlToEnrichedTextBlock(html.value)
             )
         }
 

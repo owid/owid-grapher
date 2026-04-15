@@ -4,8 +4,16 @@ import type {
     Hit,
     HitHighlightResult,
 } from "instantsearch.js"
-import { OwidGdocType } from "../gdocTypes/Gdoc.js"
+import {
+    OwidGdocType,
+    LinkedAuthor,
+    LinkedChart,
+    OwidGdocMinimalPostInterface,
+} from "../gdocTypes/Gdoc.js"
+import { OwidEnrichedGdocBlock } from "../gdocTypes/ArchieMlComponents.js"
+import { ImageMetadata } from "../gdocTypes/Image.js"
 import { GrapherTabName } from "../grapherTypes/GrapherTypes.js"
+import { LatestType } from "./Latest.js"
 import * as z from "zod/mini"
 
 export const PagesIndexRecordSchema = z.object({
@@ -41,6 +49,31 @@ export type PageChronologicalRecord = {
     authors: string[]
     tags: string[]
     thumbnailUrl: string
+    // Announcement kicker value — top-level for Algolia faceting
+    kicker?: string
+    // Type-specific attachment fields for card rendering
+    // DataInsight: body blocks for inline rendering
+    body?: OwidEnrichedGdocBlock[]
+    // Article: featured image filename (looked up in imageMetadata by <Image>)
+    featuredImage?: string
+    // Article: alternative featured image filename for the /latest feed
+    latestFeaturedImage?: string
+    // Article: alternative rich excerpt for the /latest feed
+    latestExcerpt?: OwidEnrichedGdocBlock[]
+    // Image metadata keyed by filename (all types that display images)
+    imageMetadata?: Record<string, ImageMetadata>
+    // Announcement: content fields for AnnouncementPageContent rendering
+    announcementContent?: {
+        body: OwidEnrichedGdocBlock[]
+        cta?: { text: string; url: string }
+    }
+    // Announcement: linked authors for byline rendering
+    linkedAuthors?: LinkedAuthor[]
+    // Articles (with latestExcerpt) and non-CTA announcements: linked
+    // charts/documents so internal links in the inline body content
+    // resolve via AttachmentsContext.
+    linkedCharts?: Record<string, LinkedChart>
+    linkedDocuments?: Record<string, OwidGdocMinimalPostInterface>
 }
 
 export const PagesIndexRecordsResponseSchema = z.object({
