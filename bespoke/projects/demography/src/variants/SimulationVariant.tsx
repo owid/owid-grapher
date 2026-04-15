@@ -75,7 +75,7 @@ function FetchingSimulationVariant({
             isLoading={isLoadingEntityData}
             title={config.title}
             subtitle={config.subtitle}
-            hideControls={config.hideControls}
+            hideEntitySelector={config.hideEntitySelector}
             focusParameter={config.focusParameter}
             stabilizingParameter={config.stabilizingParameter}
             hidePopulationPyramid={config.hidePopulationPyramid}
@@ -95,7 +95,7 @@ function CaptionedSimulationVariant({
     isLoading = false,
     title: titleOverride,
     subtitle: subtitleOverride,
-    hideControls,
+    hideEntitySelector,
     focusParameter,
     stabilizingParameter,
     hidePopulationPyramid,
@@ -111,7 +111,7 @@ function CaptionedSimulationVariant({
     isLoading?: boolean
     title?: string
     subtitle?: string
-    hideControls?: boolean
+    hideEntitySelector?: boolean
     focusParameter?: ParameterKey
     stabilizingParameter?: ParameterKey
     hidePopulationPyramid?: boolean
@@ -124,13 +124,13 @@ function CaptionedSimulationVariant({
 
     const title: React.ReactNode = titleOverride ? (
         titleOverride
-    ) : hideControls && countryName === "World" ? (
+    ) : hideEntitySelector && countryName === "World" ? (
         <>How many people will there be by 2100?</>
     ) : (
         <>
             How many people will live in{" "}
             <EntityNameOrSelector
-                hideControls={hideControls}
+                hideEntitySelector={hideEntitySelector}
                 entityName={entityName}
                 countryName={countryName}
                 metadata={metadata}

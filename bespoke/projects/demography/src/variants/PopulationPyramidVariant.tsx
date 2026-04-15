@@ -91,7 +91,7 @@ function FetchingPopulationPyramidVariant({
             isLoading={isLoadingEntityData}
             title={config.title}
             subtitle={config.subtitle}
-            hideControls={config.hideControls}
+            hideEntitySelector={config.hideEntitySelector}
             hideTimeline={config.hideTimeline}
             showAssumptionCharts={config.showAssumptionCharts}
             initialTime={config.time}
@@ -112,7 +112,7 @@ function CaptionedPopulationPyramidVariant({
     isLoading = false,
     title: titleOverride,
     subtitle: subtitleOverride,
-    hideControls,
+    hideEntitySelector,
     hideTimeline,
     showAssumptionCharts = false,
     initialTime,
@@ -129,7 +129,7 @@ function CaptionedPopulationPyramidVariant({
     isLoading?: boolean
     title?: string
     subtitle?: string
-    hideControls?: boolean
+    hideEntitySelector?: boolean
     hideTimeline?: boolean
     showAssumptionCharts?: boolean
     initialTime?: number
@@ -166,7 +166,7 @@ function CaptionedPopulationPyramidVariant({
         <>
             Age structure of{" "}
             <EntityNameOrSelector
-                hideControls={hideControls}
+                hideEntitySelector={hideEntitySelector}
                 entityName={entityName}
                 countryName={data.country}
                 metadata={metadata}

@@ -3,19 +3,19 @@ import { entityNameForSentence } from "../helpers/utils.js"
 import type { DemographyMetadata } from "../helpers/types.js"
 
 export function EntityNameOrSelector({
-    hideControls,
+    hideEntitySelector,
     entityName,
     countryName,
     metadata,
     onChange,
 }: {
-    hideControls?: boolean
+    hideEntitySelector?: boolean
     entityName: string
     countryName: string
     metadata: DemographyMetadata
     onChange: (name: string) => void
 }): React.ReactElement {
-    if (hideControls) return <>{entityNameForSentence(countryName)}</>
+    if (hideEntitySelector) return <>{entityNameForSentence(countryName)}</>
 
     return (
         <InlineEntitySelector

@@ -82,7 +82,7 @@ function FetchingPopulationVariant({
             setEntityName={setEntityName}
             title={config.title}
             subtitle={config.subtitle}
-            hideControls={config.hideControls}
+            hideEntitySelector={config.hideEntitySelector}
             isLoading={isLoadingEntityData}
             showAssumptionCharts={config.showAssumptionCharts}
             stabilizingParameter={config.stabilizingParameter}
@@ -101,7 +101,7 @@ function CaptionedPopulationVariant({
     isLoading = false,
     title: titleOverride,
     subtitle: subtitleOverride,
-    hideControls,
+    hideEntitySelector,
     showAssumptionCharts = false,
     stabilizingParameter,
     fertilityRateAssumptions,
@@ -115,7 +115,7 @@ function CaptionedPopulationVariant({
     isLoading?: boolean
     title?: string
     subtitle?: string
-    hideControls?: boolean
+    hideEntitySelector?: boolean
     showAssumptionCharts?: boolean
     stabilizingParameter?: ParameterKey
     fertilityRateAssumptions?: Record<number, number>
@@ -147,7 +147,7 @@ function CaptionedPopulationVariant({
         <>
             Population of{" "}
             <EntityNameOrSelector
-                hideControls={hideControls}
+                hideEntitySelector={hideEntitySelector}
                 entityName={entityName}
                 countryName={countryName}
                 metadata={metadata}

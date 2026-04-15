@@ -76,7 +76,7 @@ function FetchingParametersVariant({
             isLoading={isLoadingEntityData}
             title={config.title}
             subtitle={config.subtitle}
-            hideControls={config.hideControls}
+            hideEntitySelector={config.hideEntitySelector}
             stabilizingParameter={config.stabilizingParameter}
             fertilityRateAssumptions={config.fertilityRateAssumptions}
             lifeExpectancyAssumptions={config.lifeExpectancyAssumptions}
@@ -93,7 +93,7 @@ function CaptionedParametersVariant({
     isLoading = false,
     title: titleOverride,
     subtitle: subtitleOverride,
-    hideControls,
+    hideEntitySelector,
     stabilizingParameter,
     fertilityRateAssumptions,
     lifeExpectancyAssumptions,
@@ -106,7 +106,7 @@ function CaptionedParametersVariant({
     isLoading?: boolean
     title?: string
     subtitle?: string
-    hideControls?: boolean
+    hideEntitySelector?: boolean
     stabilizingParameter?: ParameterKey
     fertilityRateAssumptions?: Record<number, number>
     lifeExpectancyAssumptions?: Record<number, number>
@@ -139,7 +139,7 @@ function CaptionedParametersVariant({
         <>
             Demographic assumptions for{" "}
             <EntityNameOrSelector
-                hideControls={hideControls}
+                hideEntitySelector={hideEntitySelector}
                 entityName={entityName}
                 countryName={countryName}
                 metadata={metadata}

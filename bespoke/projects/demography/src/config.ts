@@ -17,7 +17,7 @@ export interface VariantProps<Config> {
 }
 
 export interface SimulationVariantConfig {
-    hideControls: boolean
+    hideEntitySelector: boolean
     region?: string
     title?: string
     subtitle?: string
@@ -31,7 +31,7 @@ export interface SimulationVariantConfig {
 }
 
 export interface PopulationVariantConfig {
-    hideControls: boolean
+    hideEntitySelector: boolean
     region?: string
     title?: string
     subtitle?: string
@@ -43,7 +43,7 @@ export interface PopulationVariantConfig {
 }
 
 export interface PopulationPyramidVariantConfig {
-    hideControls: boolean
+    hideEntitySelector: boolean
     hideTimeline?: boolean
     showAssumptionCharts?: boolean
     time?: number
@@ -58,7 +58,7 @@ export interface PopulationPyramidVariantConfig {
 }
 
 export interface ParametersVariantConfig {
-    hideControls: boolean
+    hideEntitySelector: boolean
     region?: string
     title?: string
     subtitle?: string
@@ -81,7 +81,7 @@ export function parseConfig(
     switch (variantName) {
         case "simulation":
             return {
-                hideControls: parseBoolean(raw.hideControls),
+                hideEntitySelector: parseBoolean(raw.hideEntitySelector),
                 region: raw.region,
                 title: raw.title,
                 subtitle: raw.subtitle,
@@ -105,7 +105,7 @@ export function parseConfig(
             }
         case "population":
             return {
-                hideControls: parseBoolean(raw.hideControls),
+                hideEntitySelector: parseBoolean(raw.hideEntitySelector),
                 region: raw.region,
                 title: raw.title,
                 subtitle: raw.subtitle,
@@ -125,7 +125,7 @@ export function parseConfig(
             }
         case "populationPyramid":
             return {
-                hideControls: parseBoolean(raw.hideControls),
+                hideEntitySelector: parseBoolean(raw.hideEntitySelector),
                 hideTimeline: parseBoolean(raw.hideTimeline),
                 showAssumptionCharts: parseBoolean(raw.showAssumptionCharts),
                 time: parseInteger(raw.time),
@@ -150,7 +150,7 @@ export function parseConfig(
             }
         case "parameters":
             return {
-                hideControls: parseBoolean(raw.hideControls),
+                hideEntitySelector: parseBoolean(raw.hideEntitySelector),
                 region: raw.region,
                 title: raw.title,
                 subtitle: raw.subtitle,

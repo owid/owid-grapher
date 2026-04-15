@@ -52,7 +52,7 @@ export const VARIANTS = [
 //     component: PopulationVariant,
 //     demoConfig: {
 //         region: "South Korea",
-//         hideControls: "true",
+//         hideEntitySelector: "true",
 //     },
 //     demoSize: "wide",
 // },
@@ -61,7 +61,7 @@ export const VARIANTS = [
 //     component: ParametersVariant,
 //     demoConfig: {
 //         region: "South Korea",
-//         hideControls: "true",
+//         hideEntitySelector: "true",
 //     },
 //     demoSize: "narrow",
 // },
@@ -70,7 +70,7 @@ export const VARIANTS = [
 //     component: SimulationVariant,
 //     demoConfig: {
 //         region: "South Korea",
-//         hideControls: "true",
+//         hideEntitySelector: "true",
 //         hidePopulationPyramid: "true",
 //         focusParameter: "fertilityRate",
 //         stabilizingParameter: "fertilityRate",
@@ -82,7 +82,7 @@ export const VARIANTS = [
 //     component: SimulationVariant,
 //     demoConfig: {
 //         region: "South Korea",
-//         hideControls: "true",
+//         hideEntitySelector: "true",
 //         hidePopulationPyramid: "true",
 //         focusParameter: "lifeExpectancy",
 //         stabilizingParameter: "lifeExpectancy",
@@ -94,7 +94,7 @@ export const VARIANTS = [
 //     component: PopulationPyramidVariant,
 //     demoConfig: {
 //         region: "South Korea",
-//         hideControls: "true",
+//         hideEntitySelector: "true",
 //     },
 //     demoSize: "narrow",
 // },
@@ -103,7 +103,7 @@ export const VARIANTS = [
 //     component: PopulationPyramidVariant,
 //     demoConfig: {
 //         region: "South Korea",
-//         hideControls: "true",
+//         hideEntitySelector: "true",
 //         stabilizingParameter: "lifeExpectancy",
 //         showAssumptionCharts: "true",
 //     },
@@ -114,7 +114,7 @@ export const VARIANTS = [
 //     component: SimulationVariant,
 //     demoConfig: {
 //         region: "South Korea",
-//         hideControls: "true",
+//         hideEntitySelector: "true",
 //         hidePopulationPyramid: "true",
 //         focusParameter: "netMigrationRate",
 //         stabilizingParameter: "netMigrationRate",
