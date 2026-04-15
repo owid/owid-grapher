@@ -308,29 +308,24 @@ $panel-gap: 12px;
     }
 }
 
-.input-tabs__tab-label {
+.input-tabs__tab-label--modified .input-tabs__tab-label__last-word {
     position: relative;
 
-    .breakpoint-narrow & {
-        position: static;
-    }
-}
+    &::after {
+        content: "";
+        position: absolute;
+        right: -12px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: $modified-accent;
 
-.input-tabs__tab-label--modified::after {
-    content: "";
-    position: absolute;
-    right: -12px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: $modified-accent;
-
-    .breakpoint-narrow & {
-        right: 6px;
-        top: 6px;
-        transform: none;
+        .breakpoint-narrow & {
+            right: -10px;
+            top: 4px;
+        }
     }
 }
 

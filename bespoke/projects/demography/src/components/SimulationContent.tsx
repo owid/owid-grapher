@@ -123,7 +123,22 @@ export function SimulationContent({
                                                 ),
                                         })}
                                     >
-                                        {PARAMETER_TAB_LABELS[key]}
+                                        {/* Wrap the last word in a span so the modified dot is
+                                           positioned next to it even when the label line-breaks */}
+                                        {PARAMETER_TAB_LABELS[key]
+                                            .split(/\s(?=\S+$)/)
+                                            .map((part, i, arr) =>
+                                                i === arr.length - 1 ? (
+                                                    <span
+                                                        key={i}
+                                                        className="input-tabs__tab-label__last-word"
+                                                    >
+                                                        {part}
+                                                    </span>
+                                                ) : (
+                                                    part + " "
+                                                )
+                                            )}
                                     </span>
                                 </Tab>
                             ))}
