@@ -35,6 +35,7 @@ export interface PopulationVariantConfig {
     region?: string
     title?: string
     subtitle?: string
+    stabilizingParameter?: ParameterKey
     fertilityRateAssumptions?: Record<number, number>
     lifeExpectancyAssumptions?: Record<number, number>
     netMigrationRateAssumptions?: Record<number, number>
@@ -60,6 +61,10 @@ export interface ParametersVariantConfig {
     region?: string
     title?: string
     subtitle?: string
+    stabilizingParameter?: ParameterKey
+    fertilityRateAssumptions?: Record<number, number>
+    lifeExpectancyAssumptions?: Record<number, number>
+    netMigrationRateAssumptions?: Record<number, number>
 }
 
 export type DemographyVariantConfig =
@@ -103,6 +108,9 @@ export function parseConfig(
                 region: raw.region,
                 title: raw.title,
                 subtitle: raw.subtitle,
+                stabilizingParameter: parseParameterKey(
+                    raw.stabilizingParameter
+                ),
                 fertilityRateAssumptions: parseControlPoints(
                     raw.fertilityRateAssumptions
                 ),
@@ -144,6 +152,18 @@ export function parseConfig(
                 region: raw.region,
                 title: raw.title,
                 subtitle: raw.subtitle,
+                stabilizingParameter: parseParameterKey(
+                    raw.stabilizingParameter
+                ),
+                fertilityRateAssumptions: parseControlPoints(
+                    raw.fertilityRateAssumptions
+                ),
+                lifeExpectancyAssumptions: parseControlPoints(
+                    raw.lifeExpectancyAssumptions
+                ),
+                netMigrationRateAssumptions: parseControlPoints(
+                    raw.netMigrationRateAssumptions
+                ),
             }
 
         default:

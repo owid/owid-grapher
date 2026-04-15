@@ -7,7 +7,11 @@ import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
 import { Frame } from "../../../../components/Frame/Frame.js"
 
 import type { PopulationVariantConfig, VariantProps } from "../config.js"
-import type { CountryData, DemographyMetadata } from "../helpers/types.js"
+import type {
+    CountryData,
+    DemographyMetadata,
+    ParameterKey,
+} from "../helpers/types.js"
 
 import { queryClient, useDemographyData } from "../helpers/fetch.js"
 import {
@@ -79,6 +83,7 @@ function FetchingPopulationVariant({
             subtitle={config.subtitle}
             hideControls={config.hideControls}
             isLoading={isLoadingEntityData}
+            stabilizingParameter={config.stabilizingParameter}
             fertilityRateAssumptions={config.fertilityRateAssumptions}
             lifeExpectancyAssumptions={config.lifeExpectancyAssumptions}
             netMigrationRateAssumptions={config.netMigrationRateAssumptions}
@@ -95,6 +100,7 @@ function CaptionedPopulationVariant({
     title: titleOverride,
     subtitle: subtitleOverride,
     hideControls,
+    stabilizingParameter,
     fertilityRateAssumptions,
     lifeExpectancyAssumptions,
     netMigrationRateAssumptions,
@@ -107,6 +113,7 @@ function CaptionedPopulationVariant({
     title?: string
     subtitle?: string
     hideControls?: boolean
+    stabilizingParameter?: ParameterKey
     fertilityRateAssumptions?: Record<number, number>
     lifeExpectancyAssumptions?: Record<number, number>
     netMigrationRateAssumptions?: Record<number, number>
@@ -114,12 +121,14 @@ function CaptionedPopulationVariant({
     const scenarioOverrides = useMemo(
         () =>
             computeScenarioOverrides(data, {
+                stabilizingParameter,
                 fertilityRateAssumptions,
                 lifeExpectancyAssumptions,
                 netMigrationRateAssumptions,
             }),
         [
             data,
+            stabilizingParameter,
             fertilityRateAssumptions,
             lifeExpectancyAssumptions,
             netMigrationRateAssumptions,

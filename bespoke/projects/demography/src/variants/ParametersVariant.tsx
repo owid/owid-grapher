@@ -1,3 +1,4 @@
+import { useMemo } from "react"
 import cx from "classnames"
 import { QueryClientProvider } from "@tanstack/react-query"
 import {
@@ -8,8 +9,16 @@ import {
 import { queryClient, useDemographyData } from "../helpers/fetch.js"
 import type { ParametersVariantConfig, VariantProps } from "../config.js"
 
-import { CountryData, DemographyMetadata } from "../helpers/types.js"
-import { useSimulation } from "../helpers/useSimulation.js"
+import {
+    CountryData,
+    DemographyMetadata,
+    ParameterKey,
+} from "../helpers/types.js"
+import {
+    useSimulation,
+    computeScenarioOverrides,
+} from "../helpers/useSimulation.js"
+import { CHART_FOOTER_SOURCES } from "../helpers/constants.js"
 import { InputChartPanel } from "../components/SimulationContent.js"
 
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
@@ -68,6 +77,10 @@ function FetchingParametersVariant({
             title={config.title}
             subtitle={config.subtitle}
             hideControls={config.hideControls}
+            stabilizingParameter={config.stabilizingParameter}
+            fertilityRateAssumptions={config.fertilityRateAssumptions}
+            lifeExpectancyAssumptions={config.lifeExpectancyAssumptions}
+            netMigrationRateAssumptions={config.netMigrationRateAssumptions}
         />
     )
 }
@@ -81,6 +94,10 @@ function CaptionedParametersVariant({
     title: titleOverride,
     subtitle: subtitleOverride,
     hideControls,
+    stabilizingParameter,
+    fertilityRateAssumptions,
+    lifeExpectancyAssumptions,
+    netMigrationRateAssumptions,
 }: {
     data: CountryData
     metadata: DemographyMetadata
@@ -90,8 +107,30 @@ function CaptionedParametersVariant({
     title?: string
     subtitle?: string
     hideControls?: boolean
+    stabilizingParameter?: ParameterKey
+    fertilityRateAssumptions?: Record<number, number>
+    lifeExpectancyAssumptions?: Record<number, number>
+    netMigrationRateAssumptions?: Record<number, number>
 }) {
-    const simulation = useSimulation(data)
+    const scenarioOverrides = useMemo(
+        () =>
+            computeScenarioOverrides(data, {
+                stabilizingParameter,
+                fertilityRateAssumptions,
+                lifeExpectancyAssumptions,
+                netMigrationRateAssumptions,
+            }),
+        [
+            data,
+            stabilizingParameter,
+            fertilityRateAssumptions,
+            lifeExpectancyAssumptions,
+            netMigrationRateAssumptions,
+        ]
+    )
+
+    const simulation = useSimulation(data, scenarioOverrides)
+    const hasCustomProjection = scenarioOverrides !== undefined
 
     const countryName = data.country
     const isWorld = countryName === "World"
@@ -150,7 +189,16 @@ function CaptionedParametersVariant({
             </div>
             <ChartFooter
                 className="demography-footer"
-                source="Historical estimates and projections from the UN World Population Prospects"
+                source={
+                    hasCustomProjection
+                        ? CHART_FOOTER_SOURCES
+                        : "Historical estimates and projections from the UN World Population Prospects"
+                }
+                note={
+                    hasCustomProjection
+                        ? "Projections are based on user inputs and do not necessarily reflect plausible scenarios or those assumed by expert demographers."
+                        : undefined
+                }
             />
         </Frame>
     )
