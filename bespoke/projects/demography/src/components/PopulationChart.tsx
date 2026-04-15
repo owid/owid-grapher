@@ -1,4 +1,4 @@
-import { memo, useMemo, useState, useCallback } from "react"
+import { memo, useMemo, useState, useCallback, useRef, useEffect } from "react"
 import { useParentSize } from "@visx/responsive"
 import { scaleLinear } from "@visx/scale"
 import { LinePath } from "@visx/shape"
@@ -209,13 +209,21 @@ function PopulationChartContent({
         [xScale]
     )
 
-    const handleTouchMove = useCallback(
-        (e: React.TouchEvent<SVGRectElement>) => {
+    // Attach touchmove with { passive: false } so preventDefault() works.
+    // React registers touch listeners as passive by default, which makes
+    // preventDefault() a no-op and logs a console warning.
+    const interactionRectRef = useRef<SVGRectElement>(null)
+    useEffect(() => {
+        const el = interactionRectRef.current
+        if (!el) return
+
+        const onTouchMove = (e: TouchEvent) => {
             e.preventDefault()
-            handlePointerMove(e)
-        },
-        [handlePointerMove]
-    )
+            handlePointerMove(e as unknown as React.TouchEvent<SVGRectElement>)
+        }
+        el.addEventListener("touchmove", onTouchMove, { passive: false })
+        return () => el.removeEventListener("touchmove", onTouchMove)
+    }, [handlePointerMove])
 
     const handlePointerLeave = useCallback(() => {
         setTooltipState((prev) => ({ ...prev, target: null }))
@@ -414,6 +422,7 @@ function PopulationChartContent({
                         Extended horizontally by 20px on each side so the hover
                         doesn't disappear immediately at the chart edges. */}
                     <rect
+                        ref={interactionRectRef}
                         x={-20}
                         y={0}
                         width={innerWidth + 40}
@@ -422,7 +431,6 @@ function PopulationChartContent({
                         onMouseMove={handlePointerMove}
                         onMouseLeave={handlePointerLeave}
                         onTouchStart={handlePointerMove}
-                        onTouchMove={handleTouchMove}
                     />
                 </Group>
             </svg>
