@@ -471,11 +471,19 @@ export class SiteBaker {
             }
 
             const multiDims = await getAllLinkedPublishedMultiDimDataPages(knex)
-            for (const { id, slug, config } of multiDims) {
+            for (const {
+                id,
+                slug,
+                config,
+                originalSlug,
+                queryStr,
+            } of multiDims) {
                 publishedCharts.push(
-                    makeMultiDimLinkedChart(config, slug, {
+                    makeMultiDimLinkedChart(config, originalSlug, {
                         archivedPageVersion:
                             archivedVersions.multiDims[id] || undefined,
+                        queryStr,
+                        resolvedSlug: originalSlug !== slug ? slug : undefined,
                     })
                 )
             }
