@@ -23,35 +23,25 @@ export const VARIANTS = [
     {
         name: "simulation",
         component: SimulationVariant,
-        demoConfig: {
-            fertilityRateAssumptions: "1.8,2.2,2.9",
-        },
+        demoConfig: {},
         demoSize: "widest",
     },
     {
         name: "population",
         component: PopulationVariant,
-        demoConfig: {
-            // fertilityRateAssumptions: "1.8,2.2,2.9",
-            showAssumptionCharts: "true",
-        },
+        demoConfig: {},
         demoSize: "wide",
     },
     {
         name: "populationPyramid",
         component: PopulationPyramidVariant,
-        demoConfig: {
-            fertilityRateAssumptions: "1.8,2.2,2.9",
-            showAssumptionCharts: "true",
-        },
+        demoConfig: {},
         demoSize: "narrow",
     },
     {
         name: "parameters",
         component: ParametersVariant,
-        demoConfig: {
-            fertilityRateAssumptions: "1.8,2.2,2.9",
-        },
+        demoConfig: {},
         demoSize: "narrow",
     },
 ] satisfies BespokeComponentVariantsList<VariantName>

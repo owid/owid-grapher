@@ -42,8 +42,18 @@ import {
     getPopulationChartFonts,
     type PopulationChartFonts,
 } from "../helpers/fonts.js"
+import { OwidVariableRoundingMode } from "@ourworldindata/types"
 
 const margin = { top: 0, bottom: 16, left: 0, right: 0 }
+
+function formatPopulationDifference(difference: number): string {
+    return formatValue(difference, {
+        roundingMode: OwidVariableRoundingMode.significantFigures,
+        numSignificantFigures: 2,
+        numberAbbreviation: "short",
+        showPlus: true,
+    })
+}
 
 interface DataPoint {
     year: number
@@ -383,7 +393,6 @@ function PopulationChartContent({
                             innerWidth={innerWidth}
                             projectionDataPoints={projectionDataPoints}
                             benchmarkDataPoints={benchmarkDataPoints}
-                            hideLabel={isHovering}
                             color={projectionColor}
                             fonts={fonts}
                         />
@@ -606,7 +615,6 @@ function ChangeAnnotation({
     innerWidth,
     projectionDataPoints,
     benchmarkDataPoints,
-    hideLabel = false,
     color = DENIM_BLUE,
     fonts,
 }: {
@@ -616,7 +624,6 @@ function ChangeAnnotation({
     innerWidth: number
     projectionDataPoints: { year: number; value: number }[]
     benchmarkDataPoints: { year: number; value: number }[]
-    hideLabel?: boolean
     color?: string
     fonts: PopulationChartFonts
 }) {
@@ -637,17 +644,13 @@ function ChangeAnnotation({
     const benchmarkEnd =
         yForecast < yBenchmark ? yBenchmark - gap : yBenchmark + gap
     const midY = (yForecast + yBenchmark) / 2
-    const pct = ((forecastValue - benchmarkValue) / benchmarkValue) * 100
-    const pctLabel = formatValue(pct, {
-        numDecimalPlaces: 0,
-        unit: "%",
-        showPlus: true,
-    })
+    const difference = forecastValue - benchmarkValue
+    const differenceLabel = formatPopulationDifference(difference)
 
     const labelFontSize = fonts.changeAnnotation
     const labelGap = 6
     const labelWidth = new TextWrap({
-        text: pctLabel,
+        text: differenceLabel,
         fontSize: labelFontSize,
         fontWeight: 500,
         maxWidth: Infinity,
@@ -664,22 +667,20 @@ function ChangeAnnotation({
                 width={1.5}
             />
 
-            {/* Percentage label */}
-            {!hideLabel && (
-                <Halo id="change-label" outlineWidth={2}>
-                    <text
-                        x={placeOnRight ? x + labelGap : x - labelGap}
-                        y={midY}
-                        textAnchor={placeOnRight ? "start" : "end"}
-                        dominantBaseline="middle"
-                        fontSize={labelFontSize}
-                        fontWeight={500}
-                        fill={color}
-                    >
-                        {pctLabel}
-                    </text>
-                </Halo>
-            )}
+            {/* Difference label */}
+            <Halo id="change-label" outlineWidth={2}>
+                <text
+                    x={placeOnRight ? x + labelGap : x - labelGap}
+                    y={midY}
+                    textAnchor={placeOnRight ? "start" : "end"}
+                    dominantBaseline="middle"
+                    fontSize={labelFontSize}
+                    fontWeight={500}
+                    fill={color}
+                >
+                    {differenceLabel}
+                </text>
+            </Halo>
         </>
     )
 }
@@ -734,11 +735,7 @@ function PopulationTooltipContent({
     }
 
     const difference = projectionValue.value - benchmarkValue.value
-    const formattedDifference = formatValue(difference, {
-        numSignificantFigures: 2,
-        numberAbbreviation: "short",
-        showPlus: true,
-    })
+    const formattedDifference = formatPopulationDifference(difference)
 
     return (
         <>
