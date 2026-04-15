@@ -91,7 +91,7 @@ function cloneParams(p: ScenarioParams): ScenarioParams {
     }
 }
 
-function computeTrajectoryError(
+export function computeTrajectoryError(
     trajectory: Record<number, number>,
     targetPop: number,
     controlYear: number

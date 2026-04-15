@@ -25,13 +25,13 @@ import {
 
 // -- Model-only data accessors --
 
-function getAgeGroup(age: number): string {
+export function getAgeGroup(age: number): string {
     if (age >= 100) return "100+"
     const lower = Math.floor(age / 5) * 5
     return `${lower}-${lower + 4}`
 }
 
-function aggregateToAgeGroups(
+export function aggregateToAgeGroups(
     singleYearArray: number[]
 ): Record<string, number> {
     const result: Record<string, number> = {}
@@ -83,17 +83,21 @@ function getFertilityForYear(data: CountryData, year: number): number[] | null {
 
 // -- Mortality helpers --
 
-function clampProbability(value: number, min = 1e-6, max = 0.999): number {
+export function clampProbability(
+    value: number,
+    min = 1e-6,
+    max = 0.999
+): number {
     if (!Number.isFinite(value)) return min
     return Math.min(max, Math.max(min, value))
 }
 
-function logit(p: number): number {
+export function logit(p: number): number {
     const q = clampProbability(p)
     return Math.log(q / (1 - q))
 }
 
-function invLogit(z: number): number {
+export function invLogit(z: number): number {
     return 1 / (1 + Math.exp(-z))
 }
 
@@ -420,7 +424,7 @@ function getExternalSexSharePrior(country: string) {
     return EXTERNAL_MIGRATION_SEX_SHARE_PRIORS[country] || null
 }
 
-function normalizeWeights(weights: number[]): number[] {
+export function normalizeWeights(weights: number[]): number[] {
     const normalized = [...weights]
     const total = normalized.reduce((sum, v) => sum + v, 0)
     if (total <= 0) return normalized
@@ -622,7 +626,7 @@ function buildFlowAgeSexWeights(options: MigrationOptions) {
     }
 }
 
-function splitNetMigrationFlows(
+export function splitNetMigrationFlows(
     totalPopulation: number,
     migrationRate: number,
     flowTurnoverRate: number
@@ -660,7 +664,7 @@ function applyOldAgeNetMigrationGuardrail(
     }
 }
 
-function calculateMigrationDelta(
+export function calculateMigrationDelta(
     populationAfterMortalityAndAging: PopulationBySex,
     totalPopulation: number,
     migrationRate: number,
