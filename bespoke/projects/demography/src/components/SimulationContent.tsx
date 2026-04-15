@@ -9,7 +9,7 @@ import { GrapherTrendArrow } from "@ourworldindata/components"
 import { CountryData, PARAMETER_KEYS, ParameterKey } from "../helpers/types"
 import {
     useSimulation,
-    computeStabilizedOverrides,
+    computeScenarioOverrides,
     type Simulation,
 } from "../helpers/useSimulation"
 import { PopulationChart } from "./PopulationChart.js"
@@ -42,24 +42,39 @@ export function SimulationContent({
     stabilizingParameter,
     hidePopulationPyramid,
     populationPyramidUnit,
+    fertilityRateAssumptions,
+    lifeExpectancyAssumptions,
+    netMigrationRateAssumptions,
 }: {
     data: CountryData
     focusParameter?: ParameterKey
     stabilizingParameter?: ParameterKey
     hidePopulationPyramid?: boolean
     populationPyramidUnit?: "percent" | "absolute"
+    fertilityRateAssumptions?: Record<number, number>
+    lifeExpectancyAssumptions?: Record<number, number>
+    netMigrationRateAssumptions?: Record<number, number>
 }) {
     const [year, setYear] = useState(END_YEAR)
 
-    const stabilizedOverrides = useMemo(
+    const scenarioOverrides = useMemo(
         () =>
-            stabilizingParameter
-                ? computeStabilizedOverrides(data, stabilizingParameter)
-                : undefined,
-        [data, stabilizingParameter]
+            computeScenarioOverrides(data, {
+                stabilizingParameter,
+                fertilityRateAssumptions,
+                lifeExpectancyAssumptions,
+                netMigrationRateAssumptions,
+            }),
+        [
+            data,
+            stabilizingParameter,
+            fertilityRateAssumptions,
+            lifeExpectancyAssumptions,
+            netMigrationRateAssumptions,
+        ]
     )
 
-    const simulation = useSimulation(data, stabilizedOverrides)
+    const simulation = useSimulation(data, scenarioOverrides)
 
     if (!simulation) return null
 
@@ -122,7 +137,7 @@ export function SimulationContent({
                                 <InputChartPanel
                                     simulation={simulation}
                                     variant={key}
-                                    resetTarget={stabilizedOverrides?.[key]}
+                                    resetTarget={scenarioOverrides?.[key]}
                                     showProjectionLabel
                                 />
                             </TabPanel>
@@ -250,9 +265,15 @@ export function InputChartPanel({
 
     const isParameterModified = simulation.modifiedParameters.has(variant)
 
-    // Reset target: explicit override (e.g. stabilized params), or UN WPP defaults
-    const effectiveResetTarget =
-        resetTarget ?? simulation.unwppScenarioParams[variant]
+    // Reset target: UN WPP defaults, with explicit overrides (e.g. config
+    // assumptions or stabilized params) merged on top
+    const effectiveResetTarget = useMemo(
+        () => ({
+            ...simulation.unwppScenarioParams[variant],
+            ...resetTarget,
+        }),
+        [simulation.unwppScenarioParams, variant, resetTarget]
+    )
 
     const isModifiedFromResetTarget = Object.keys(effectiveResetTarget).some(
         (k) =>

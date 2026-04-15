@@ -15,7 +15,10 @@ import {
     END_YEAR,
     CHART_FOOTER_SOURCES,
 } from "../helpers/constants.js"
-import { useSimulation } from "../helpers/useSimulation.js"
+import {
+    useSimulation,
+    computeScenarioOverrides,
+} from "../helpers/useSimulation.js"
 import { useInitialEntityName } from "../helpers/useInitialEntityName.js"
 import {
     BreakpointProvider,
@@ -108,24 +111,20 @@ function CaptionedPopulationVariant({
     lifeExpectancyAssumptions?: Record<number, number>
     netMigrationRateAssumptions?: Record<number, number>
 }) {
-    const scenarioOverrides = useMemo(() => {
-        const hasCustom =
-            fertilityRateAssumptions !== undefined ||
-            lifeExpectancyAssumptions !== undefined ||
-            netMigrationRateAssumptions !== undefined
-        if (hasCustom) {
-            return {
-                fertilityRate: fertilityRateAssumptions,
-                lifeExpectancy: lifeExpectancyAssumptions,
-                netMigrationRate: netMigrationRateAssumptions,
-            }
-        }
-        return undefined
-    }, [
-        fertilityRateAssumptions,
-        lifeExpectancyAssumptions,
-        netMigrationRateAssumptions,
-    ])
+    const scenarioOverrides = useMemo(
+        () =>
+            computeScenarioOverrides(data, {
+                fertilityRateAssumptions,
+                lifeExpectancyAssumptions,
+                netMigrationRateAssumptions,
+            }),
+        [
+            data,
+            fertilityRateAssumptions,
+            lifeExpectancyAssumptions,
+            netMigrationRateAssumptions,
+        ]
+    )
 
     const simulation = useSimulation(data, scenarioOverrides)
     const hasCustomProjection = scenarioOverrides !== undefined

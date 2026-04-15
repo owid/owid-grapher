@@ -25,6 +25,9 @@ export interface SimulationVariantConfig {
     stabilizingParameter?: ParameterKey
     hidePopulationPyramid?: boolean
     populationPyramidUnit?: PopulationPyramidUnit
+    fertilityRateAssumptions?: Record<number, number>
+    lifeExpectancyAssumptions?: Record<number, number>
+    netMigrationRateAssumptions?: Record<number, number>
 }
 
 export interface PopulationVariantConfig {
@@ -83,6 +86,15 @@ export function parseConfig(
                 hidePopulationPyramid: parseBoolean(raw.hidePopulationPyramid),
                 populationPyramidUnit: parsePyramidUnit(
                     raw.populationPyramidUnit
+                ),
+                fertilityRateAssumptions: parseControlPoints(
+                    raw.fertilityRateAssumptions
+                ),
+                lifeExpectancyAssumptions: parseControlPoints(
+                    raw.lifeExpectancyAssumptions
+                ),
+                netMigrationRateAssumptions: parseControlPoints(
+                    raw.netMigrationRateAssumptions
                 ),
             }
         case "population":
@@ -153,17 +165,21 @@ function parseInteger(value: unknown): number | undefined {
     return undefined
 }
 
-/** Parse a comma-separated string of numbers into a Record keyed by CONTROL_YEARS */
+/** Parse a comma-separated string of numbers into a Record keyed by CONTROL_YEARS.
+ *  Empty entries (e.g. ",,1.5") are skipped so they fall back to UN WPP defaults. */
 function parseControlPoints(
     csv: string | undefined
 ): Record<number, number> | undefined {
     if (!csv) return undefined
-    const values = csv.split(",").map(Number)
+    const parts = csv.split(",")
     const result: Record<number, number> = {}
     for (let i = 0; i < CONTROL_YEARS.length; i++) {
-        const v = values[i]
-        if (v !== undefined && !isNaN(v)) {
-            result[CONTROL_YEARS[i]] = v
+        const raw = parts[i]?.trim()
+        if (raw !== undefined && raw !== "") {
+            const v = Number(raw)
+            if (!isNaN(v)) {
+                result[CONTROL_YEARS[i]] = v
+            }
         }
     }
     return Object.keys(result).length > 0 ? result : undefined

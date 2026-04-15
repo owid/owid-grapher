@@ -24,7 +24,7 @@ import {
 } from "../helpers/types.js"
 import {
     useSimulation,
-    computeStabilizedOverrides,
+    computeScenarioOverrides,
 } from "../helpers/useSimulation.js"
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
@@ -141,30 +141,22 @@ function CaptionedPopulationPyramidVariant({
 }) {
     const [year, setYear] = useState(initialTime ?? END_YEAR)
 
-    // Compute scenario overrides: stabilization takes priority over manual assumptions
-    const scenarioOverrides = useMemo(() => {
-        if (stabilizingParameter) {
-            return computeStabilizedOverrides(data, stabilizingParameter)
-        }
-        const hasCustom =
-            fertilityRateAssumptions !== undefined ||
-            lifeExpectancyAssumptions !== undefined ||
-            netMigrationRateAssumptions !== undefined
-        if (hasCustom) {
-            return {
-                fertilityRate: fertilityRateAssumptions,
-                lifeExpectancy: lifeExpectancyAssumptions,
-                netMigrationRate: netMigrationRateAssumptions,
-            }
-        }
-        return undefined
-    }, [
-        data,
-        stabilizingParameter,
-        fertilityRateAssumptions,
-        lifeExpectancyAssumptions,
-        netMigrationRateAssumptions,
-    ])
+    const scenarioOverrides = useMemo(
+        () =>
+            computeScenarioOverrides(data, {
+                stabilizingParameter,
+                fertilityRateAssumptions,
+                lifeExpectancyAssumptions,
+                netMigrationRateAssumptions,
+            }),
+        [
+            data,
+            stabilizingParameter,
+            fertilityRateAssumptions,
+            lifeExpectancyAssumptions,
+            netMigrationRateAssumptions,
+        ]
+    )
 
     const simulation = useSimulation(data, scenarioOverrides)
     const ageZones = useMemo(() => groupAgeGroupsByZone(), [])

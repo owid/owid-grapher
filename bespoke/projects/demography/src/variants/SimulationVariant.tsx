@@ -80,6 +80,9 @@ function FetchingSimulationVariant({
             stabilizingParameter={config.stabilizingParameter}
             hidePopulationPyramid={config.hidePopulationPyramid}
             populationPyramidUnit={config.populationPyramidUnit}
+            fertilityRateAssumptions={config.fertilityRateAssumptions}
+            lifeExpectancyAssumptions={config.lifeExpectancyAssumptions}
+            netMigrationRateAssumptions={config.netMigrationRateAssumptions}
         />
     )
 }
@@ -97,6 +100,9 @@ function CaptionedSimulationVariant({
     stabilizingParameter,
     hidePopulationPyramid,
     populationPyramidUnit,
+    fertilityRateAssumptions,
+    lifeExpectancyAssumptions,
+    netMigrationRateAssumptions,
 }: {
     data: CountryData
     metadata: DemographyMetadata
@@ -110,6 +116,9 @@ function CaptionedSimulationVariant({
     stabilizingParameter?: ParameterKey
     hidePopulationPyramid?: boolean
     populationPyramidUnit?: PopulationPyramidUnit
+    fertilityRateAssumptions?: Record<number, number>
+    lifeExpectancyAssumptions?: Record<number, number>
+    netMigrationRateAssumptions?: Record<number, number>
 }) {
     const countryName = data.country
 
@@ -145,6 +154,9 @@ function CaptionedSimulationVariant({
                     stabilizingParameter={stabilizingParameter}
                     hidePopulationPyramid={hidePopulationPyramid}
                     populationPyramidUnit={populationPyramidUnit}
+                    fertilityRateAssumptions={fertilityRateAssumptions}
+                    lifeExpectancyAssumptions={lifeExpectancyAssumptions}
+                    netMigrationRateAssumptions={netMigrationRateAssumptions}
                 />
             </div>
             <ChartFooter

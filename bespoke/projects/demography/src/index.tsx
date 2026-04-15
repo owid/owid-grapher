@@ -23,7 +23,9 @@ export const VARIANTS = [
     {
         name: "simulation",
         component: SimulationVariant,
-        demoConfig: {},
+        demoConfig: {
+            fertilityRateAssumptions: "1.2,2,5",
+        },
         demoSize: "widest",
     },
     {

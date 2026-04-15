@@ -169,10 +169,41 @@ function calculateDependencyRatio(
 }
 
 /**
- * Compute the scenario overrides that stabilize population for a given parameter.
- * Pure function — no hooks, no side effects. Returns undefined if no stabilization needed.
+ * Compute scenario overrides from config options.
+ * Manual assumptions take priority over stabilization.
+ * Pure function — no hooks, no side effects.
  */
-export function computeStabilizedOverrides(
+export function computeScenarioOverrides(
+    data: CountryData,
+    opts: {
+        stabilizingParameter?: ParameterKey
+        fertilityRateAssumptions?: Record<number, number>
+        lifeExpectancyAssumptions?: Record<number, number>
+        netMigrationRateAssumptions?: Record<number, number>
+    }
+): Partial<ScenarioParams> | undefined {
+    const hasCustom =
+        opts.fertilityRateAssumptions !== undefined ||
+        opts.lifeExpectancyAssumptions !== undefined ||
+        opts.netMigrationRateAssumptions !== undefined
+    if (hasCustom) {
+        return {
+            fertilityRate: opts.fertilityRateAssumptions,
+            lifeExpectancy: opts.lifeExpectancyAssumptions,
+            netMigrationRate: opts.netMigrationRateAssumptions,
+        }
+    }
+    if (opts.stabilizingParameter) {
+        return computeStabilizedOverrides(data, opts.stabilizingParameter)
+    }
+    return undefined
+}
+
+/**
+ * Compute the scenario overrides that stabilize population for a given parameter.
+ * Pure function — no hooks, no side effects.
+ */
+function computeStabilizedOverrides(
     data: CountryData,
     stabilizingParameter: ParameterKey
 ): ScenarioParams {
