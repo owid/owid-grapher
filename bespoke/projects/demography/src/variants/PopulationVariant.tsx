@@ -1,3 +1,4 @@
+import { useMemo } from "react"
 import cx from "classnames"
 import { QueryClientProvider } from "@tanstack/react-query"
 
@@ -9,7 +10,11 @@ import type { PopulationVariantConfig, VariantProps } from "../config.js"
 import type { CountryData, DemographyMetadata } from "../helpers/types.js"
 
 import { queryClient, useDemographyData } from "../helpers/fetch.js"
-import { START_YEAR, END_YEAR } from "../helpers/constants.js"
+import {
+    START_YEAR,
+    END_YEAR,
+    CHART_FOOTER_SOURCES,
+} from "../helpers/constants.js"
 import { useSimulation } from "../helpers/useSimulation.js"
 import { useInitialEntityName } from "../helpers/useInitialEntityName.js"
 import {
@@ -71,6 +76,9 @@ function FetchingPopulationVariant({
             subtitle={config.subtitle}
             hideControls={config.hideControls}
             isLoading={isLoadingEntityData}
+            fertilityRateAssumptions={config.fertilityRateAssumptions}
+            lifeExpectancyAssumptions={config.lifeExpectancyAssumptions}
+            netMigrationRateAssumptions={config.netMigrationRateAssumptions}
         />
     )
 }
@@ -84,6 +92,9 @@ function CaptionedPopulationVariant({
     title: titleOverride,
     subtitle: subtitleOverride,
     hideControls,
+    fertilityRateAssumptions,
+    lifeExpectancyAssumptions,
+    netMigrationRateAssumptions,
 }: {
     data: CountryData
     metadata: DemographyMetadata
@@ -93,8 +104,31 @@ function CaptionedPopulationVariant({
     title?: string
     subtitle?: string
     hideControls?: boolean
+    fertilityRateAssumptions?: Record<number, number>
+    lifeExpectancyAssumptions?: Record<number, number>
+    netMigrationRateAssumptions?: Record<number, number>
 }) {
-    const simulation = useSimulation(data)
+    const scenarioOverrides = useMemo(() => {
+        const hasCustom =
+            fertilityRateAssumptions !== undefined ||
+            lifeExpectancyAssumptions !== undefined ||
+            netMigrationRateAssumptions !== undefined
+        if (hasCustom) {
+            return {
+                fertilityRate: fertilityRateAssumptions,
+                lifeExpectancy: lifeExpectancyAssumptions,
+                netMigrationRate: netMigrationRateAssumptions,
+            }
+        }
+        return undefined
+    }, [
+        fertilityRateAssumptions,
+        lifeExpectancyAssumptions,
+        netMigrationRateAssumptions,
+    ])
+
+    const simulation = useSimulation(data, scenarioOverrides)
+    const hasCustomProjection = scenarioOverrides !== undefined
     const countryName = data.country
 
     const title: React.ReactNode = titleOverride ?? (
@@ -126,14 +160,23 @@ function CaptionedPopulationVariant({
                 {simulation && (
                     <PopulationChart
                         simulation={simulation}
-                        showCustomProjection={false}
+                        showCustomProjection={hasCustomProjection}
                     />
                 )}
             </div>
 
             <ChartFooter
                 className="demography-footer"
-                source="Historical estimates and projections from the UN World Population Prospects"
+                source={
+                    hasCustomProjection
+                        ? CHART_FOOTER_SOURCES
+                        : "Historical estimates and projections from the UN World Population Prospects"
+                }
+                note={
+                    hasCustomProjection
+                        ? "Projections are based on user inputs and do not necessarily reflect plausible scenarios or those assumed by expert demographers."
+                        : undefined
+                }
             />
         </Frame>
     )

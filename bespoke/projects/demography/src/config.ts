@@ -32,6 +32,9 @@ export interface PopulationVariantConfig {
     region?: string
     title?: string
     subtitle?: string
+    fertilityRateAssumptions?: Record<number, number>
+    lifeExpectancyAssumptions?: Record<number, number>
+    netMigrationRateAssumptions?: Record<number, number>
 }
 
 export interface PopulationPyramidVariantConfig {
@@ -88,6 +91,15 @@ export function parseConfig(
                 region: raw.region,
                 title: raw.title,
                 subtitle: raw.subtitle,
+                fertilityRateAssumptions: parseControlPoints(
+                    raw.fertilityRateAssumptions
+                ),
+                lifeExpectancyAssumptions: parseControlPoints(
+                    raw.lifeExpectancyAssumptions
+                ),
+                netMigrationRateAssumptions: parseControlPoints(
+                    raw.netMigrationRateAssumptions
+                ),
             }
         case "populationPyramid":
             return {

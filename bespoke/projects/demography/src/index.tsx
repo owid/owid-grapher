@@ -19,117 +19,119 @@ import "./index.scss"
 // Must be called before any react-aria components render.
 enableShadowDOM()
 
-// export const VARIANTS = [
-//     {
-//         name: "simulation",
-//         component: SimulationVariant,
-//         demoConfig: {},
-//         demoSize: "widest",
-//     },
-//     {
-//         name: "population",
-//         component: PopulationVariant,
-//         demoConfig: {},
-//         demoSize: "wide",
-//     },
-//     {
-//         name: "populationPyramid",
-//         component: PopulationPyramidVariant,
-//         demoConfig: {},
-//         demoSize: "narrow",
-//     },
-//     {
-//         name: "parameters",
-//         component: ParametersVariant,
-//         demoConfig: {},
-//         demoSize: "narrow",
-//     },
-// ] satisfies BespokeComponentVariantsList<VariantName>
-
 export const VARIANTS = [
-    // {
-    //     name: "population",
-    //     component: PopulationVariant,
-    //     demoConfig: {
-    //         region: "South Korea",
-    //         hideControls: "true",
-    //     },
-    //     demoSize: "wide",
-    // },
-    // {
-    //     name: "parameters",
-    //     component: ParametersVariant,
-    //     demoConfig: {
-    //         region: "South Korea",
-    //         hideControls: "true",
-    //     },
-    //     demoSize: "narrow",
-    // },
-    // {
-    //     name: "simulation",
-    //     component: SimulationVariant,
-    //     demoConfig: {
-    //         region: "South Korea",
-    //         hideControls: "true",
-    //         hidePopulationPyramid: "true",
-    //         focusParameter: "fertilityRate",
-    //         stabilizingParameter: "fertilityRate",
-    //     },
-    //     demoSize: "wide",
-    // },
-    // {
-    //     name: "simulation",
-    //     component: SimulationVariant,
-    //     demoConfig: {
-    //         region: "South Korea",
-    //         hideControls: "true",
-    //         hidePopulationPyramid: "true",
-    //         focusParameter: "lifeExpectancy",
-    //         stabilizingParameter: "lifeExpectancy",
-    //     },
-    //     demoSize: "wide",
-    // },
-    // {
-    //     name: "populationPyramid",
-    //     component: PopulationPyramidVariant,
-    //     demoConfig: {
-    //         region: "South Korea",
-    //         hideControls: "true",
-    //     },
-    //     demoSize: "narrow",
-    // },
-    // {
-    //     name: "populationPyramid",
-    //     component: PopulationPyramidVariant,
-    //     demoConfig: {
-    //         region: "South Korea",
-    //         hideControls: "true",
-    //         stabilizingParameter: "lifeExpectancy",
-    //         showAssumptionCharts: "true",
-    //     },
-    //     demoSize: "narrow",
-    // },
-    // {
-    //     name: "simulation",
-    //     component: SimulationVariant,
-    //     demoConfig: {
-    //         region: "South Korea",
-    //         hideControls: "true",
-    //         hidePopulationPyramid: "true",
-    //         focusParameter: "netMigrationRate",
-    //         stabilizingParameter: "netMigrationRate",
-    //     },
-    //     demoSize: "wide",
-    // },
     {
         name: "simulation",
         component: SimulationVariant,
-        demoConfig: {
-            region: "South Korea",
-        },
+        demoConfig: {},
         demoSize: "widest",
     },
+    {
+        name: "population",
+        component: PopulationVariant,
+        demoConfig: {
+            fertilityRateAssumptions: ",,5",
+        },
+        demoSize: "wide",
+    },
+    {
+        name: "populationPyramid",
+        component: PopulationPyramidVariant,
+        demoConfig: {},
+        demoSize: "narrow",
+    },
+    {
+        name: "parameters",
+        component: ParametersVariant,
+        demoConfig: {},
+        demoSize: "narrow",
+    },
 ] satisfies BespokeComponentVariantsList<VariantName>
+
+// export const VARIANTS = [
+// {
+//     name: "population",
+//     component: PopulationVariant,
+//     demoConfig: {
+//         region: "South Korea",
+//         hideControls: "true",
+//     },
+//     demoSize: "wide",
+// },
+// {
+//     name: "parameters",
+//     component: ParametersVariant,
+//     demoConfig: {
+//         region: "South Korea",
+//         hideControls: "true",
+//     },
+//     demoSize: "narrow",
+// },
+// {
+//     name: "simulation",
+//     component: SimulationVariant,
+//     demoConfig: {
+//         region: "South Korea",
+//         hideControls: "true",
+//         hidePopulationPyramid: "true",
+//         focusParameter: "fertilityRate",
+//         stabilizingParameter: "fertilityRate",
+//     },
+//     demoSize: "wide",
+// },
+// {
+//     name: "simulation",
+//     component: SimulationVariant,
+//     demoConfig: {
+//         region: "South Korea",
+//         hideControls: "true",
+//         hidePopulationPyramid: "true",
+//         focusParameter: "lifeExpectancy",
+//         stabilizingParameter: "lifeExpectancy",
+//     },
+//     demoSize: "wide",
+// },
+// {
+//     name: "populationPyramid",
+//     component: PopulationPyramidVariant,
+//     demoConfig: {
+//         region: "South Korea",
+//         hideControls: "true",
+//     },
+//     demoSize: "narrow",
+// },
+// {
+//     name: "populationPyramid",
+//     component: PopulationPyramidVariant,
+//     demoConfig: {
+//         region: "South Korea",
+//         hideControls: "true",
+//         stabilizingParameter: "lifeExpectancy",
+//         showAssumptionCharts: "true",
+//     },
+//     demoSize: "narrow",
+// },
+// {
+//     name: "simulation",
+//     component: SimulationVariant,
+//     demoConfig: {
+//         region: "South Korea",
+//         hideControls: "true",
+//         hidePopulationPyramid: "true",
+//         focusParameter: "netMigrationRate",
+//         stabilizingParameter: "netMigrationRate",
+//     },
+//     demoSize: "wide",
+// },
+//     {
+//         name: "simulation",
+//         component: SimulationVariant,
+//         demoConfig: {
+//             region: "South Korea",
+//         },
+//         demoSize: "widest",
+//     },
+// ] satisfies BespokeComponentVariantsList<VariantName>
 
 export const mount: BespokeComponentMountFn = (
     container: HTMLDivElement,

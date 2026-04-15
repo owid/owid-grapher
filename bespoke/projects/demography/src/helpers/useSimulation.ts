@@ -306,18 +306,24 @@ export function useSimulation(
     const effectiveScenarioParams = useMemo(() => {
         if (!core) return null
         if (scenarioParams) return scenarioParams
-        // Merge initial overrides with defaults
+        // Merge initial overrides with defaults — both at the parameter
+        // level (fertility vs life expectancy vs migration) and at the
+        // control-year level within each parameter, so that partial
+        // overrides like { 2100: 1.5 } fill missing years from the UN WPP.
         if (initialScenarioOverrides) {
             return {
-                fertilityRate:
-                    initialScenarioOverrides.fertilityRate ??
-                    core.defaultScenario.fertilityRate,
-                lifeExpectancy:
-                    initialScenarioOverrides.lifeExpectancy ??
-                    core.defaultScenario.lifeExpectancy,
-                netMigrationRate:
-                    initialScenarioOverrides.netMigrationRate ??
-                    core.defaultScenario.netMigrationRate,
+                fertilityRate: {
+                    ...core.defaultScenario.fertilityRate,
+                    ...initialScenarioOverrides.fertilityRate,
+                },
+                lifeExpectancy: {
+                    ...core.defaultScenario.lifeExpectancy,
+                    ...initialScenarioOverrides.lifeExpectancy,
+                },
+                netMigrationRate: {
+                    ...core.defaultScenario.netMigrationRate,
+                    ...initialScenarioOverrides.netMigrationRate,
+                },
             }
         }
         return core.defaultScenario
