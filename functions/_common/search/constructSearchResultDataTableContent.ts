@@ -468,12 +468,6 @@ function buildDataTableContentForStackedAreaAndBarChart({
         })
         .filter((row) => row !== undefined)
 
-    // Stacked area charts plot series from bottom to top and reverse the
-    // original order, so that the first selected series appears on top.
-    // We reverse the order again here, so that the first selected entity
-    // (which is on top of the chart) is also on top of the table.
-    rows = _.reverse(rows)
-
     // Take the first X rows if maxRows is specified
     if (maxRows && maxRows > 0) rows = _.take(rows, maxRows)
 

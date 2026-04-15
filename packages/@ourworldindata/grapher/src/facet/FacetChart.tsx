@@ -789,13 +789,6 @@ export class FacetChart
         if (this.facetStrategy === FacetStrategy.metric && uniqBins.length <= 1)
             return []
 
-        // Stacked area and bar charts reverse the stacking order
-        if (
-            this.chartTypeName === GRAPHER_CHART_TYPES.StackedArea ||
-            this.chartTypeName === GRAPHER_CHART_TYPES.StackedBar
-        )
-            return _.reverse(uniqBins)
-
         return uniqBins
     }
 

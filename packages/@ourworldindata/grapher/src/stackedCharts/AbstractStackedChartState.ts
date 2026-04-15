@@ -146,16 +146,14 @@ export abstract class AbstractStackedChartState implements ChartState {
 
     @computed
     get columnsAsSeries(): readonly StackedRawSeries<number>[] {
-        return this.yColumns
-            .map((column) => {
-                return {
-                    isProjection: column.isProjection,
-                    seriesName: column.displayName,
-                    rows: column.owidRows,
-                    focus: this.focusArray.state(column.displayName),
-                }
-            })
-            .toReversed() // For stacked charts, we want the first selected series to be on top, so we reverse the order of the stacks.
+        return this.yColumns.map((column) => {
+            return {
+                isProjection: column.isProjection,
+                seriesName: column.displayName,
+                rows: column.owidRows,
+                focus: this.focusArray.state(column.displayName),
+            }
+        })
     }
 
     @computed
@@ -163,17 +161,15 @@ export abstract class AbstractStackedChartState implements ChartState {
         if (!this.yColumns.length) return []
 
         const { isProjection, owidRowsByEntityName } = this.yColumns[0]
-        return this.selectionArray.selectedEntityNames
-            .map((entityName) => {
-                return {
-                    isProjection,
-                    seriesName: entityName,
-                    shortEntityName: getShortNameForEntity(entityName),
-                    rows: owidRowsByEntityName.get(entityName) || [],
-                    focus: this.focusArray.state(entityName),
-                }
-            })
-            .toReversed() // For stacked charts, we want the first selected series to be on top, so we reverse the order of the stacks.
+        return this.selectionArray.selectedEntityNames.map((entityName) => {
+            return {
+                isProjection,
+                seriesName: entityName,
+                shortEntityName: getShortNameForEntity(entityName),
+                rows: owidRowsByEntityName.get(entityName) || [],
+                focus: this.focusArray.state(entityName),
+            }
+        })
     }
 
     @computed

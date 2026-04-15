@@ -59,8 +59,8 @@ describe("column charts", () => {
         }
         const chartState = new StackedAreaChartState({ manager: columnsChart })
         expect(chartState.series.map((series) => series.color)).toEqual([
-            SampleColumnSlugs.Vegetables,
             SampleColumnSlugs.Fruit,
+            SampleColumnSlugs.Vegetables,
         ])
     })
 
@@ -192,9 +192,8 @@ it("should mark interpolated and missing values", () => {
 
     const chartState = new StackedAreaChartState({ manager })
 
-    // indices are reversed because stacked charts reverse the stacking order
-    const pointsFrance = chartState.series[1].points
-    const pointsUK = chartState.series[0].points
+    const pointsFrance = chartState.series[0].points
+    const pointsUK = chartState.series[1].points
 
     // year 2000
     expect(pointsFrance[0].interpolated).toBeFalsy()

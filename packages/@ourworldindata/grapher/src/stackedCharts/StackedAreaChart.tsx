@@ -187,7 +187,6 @@ export class StackedAreaChart
                 }),
             }))
             .filter((series) => !series.isAllZeros)
-            .toReversed()
     }
 
     @computed private get maxVerticalLabelsWidth(): number {
@@ -238,17 +237,15 @@ export class StackedAreaChart
 
     @computed get externalLegend(): HorizontalColorLegendManager | undefined {
         if (!this.showLegend) {
-            const categoricalLegendData = this.chartState.unstackedSeries
-                .map(
-                    (series, index) =>
-                        new CategoricalBin({
-                            index,
-                            value: series.seriesName,
-                            label: series.seriesName,
-                            color: series.color,
-                        })
-                )
-                .toReversed()
+            const categoricalLegendData = this.chartState.unstackedSeries.map(
+                (series, index) =>
+                    new CategoricalBin({
+                        index,
+                        value: series.seriesName,
+                        label: series.seriesName,
+                        color: series.color,
+                    })
+            )
 
             return {
                 categoricalLegendData,
@@ -499,7 +496,7 @@ export class StackedAreaChart
                 <TooltipTable
                     columns={toTooltipTableColumns(formatColumn)}
                     totals={[totalValue]}
-                    rows={series.toReversed().map((series) => {
+                    rows={series.map((series) => {
                         const { seriesName: name, color, points } = series
                         const point = points[hoveredPointIndex]
                         const focused = name === target.series

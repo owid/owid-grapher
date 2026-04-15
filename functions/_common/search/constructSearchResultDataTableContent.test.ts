@@ -84,14 +84,14 @@ function createFruityMultipleIndicatorsGrapherState(
         selectedEntityNames: table.sampleEntityName(1),
         dimensions: [
             {
-                slug: SampleColumnSlugs.Fruit,
-                property: DimensionProperty.y,
-                variableId: SampleColumnSlugs.Fruit as any,
-            },
-            {
                 slug: SampleColumnSlugs.Vegetables,
                 property: DimensionProperty.y,
                 variableId: SampleColumnSlugs.Vegetables as any,
+            },
+            {
+                slug: SampleColumnSlugs.Fruit,
+                property: DimensionProperty.y,
+                variableId: SampleColumnSlugs.Fruit as any,
             },
         ],
         addCountryMode: EntitySelectionMode.SingleEntity,
@@ -399,8 +399,8 @@ describe("constructSearchResultDataTableContent for StackedAreaChart", () => {
 
         expect(dataTable!.title).toBe("Benin")
         expect(dataTable!.rows).toMatchObject([
-            { label: "Fruit", time: "2009", value: "573" },
             { label: "Vegetables", time: "2009", value: "542" },
+            { label: "Fruit", time: "2009", value: "573" },
         ])
 
         // Check that the colors are unique

@@ -40,10 +40,10 @@ describe("stackedbar chart with columns as series", () => {
 
     it("render the legend items in the same stack order as the chart, bottom stack item on bottom of chart", () => {
         expect(chartState.series.length).toEqual(2)
-        // The stacking happens bottom to top, so we need to .reverse()
-        expect(
-            chartState.series.map((series) => series.seriesName).toReversed()
-        ).toEqual([SampleColumnSlugs.GDP, SampleColumnSlugs.Population])
+        expect(chartState.series.map((series) => series.seriesName)).toEqual([
+            SampleColumnSlugs.GDP,
+            SampleColumnSlugs.Population,
+        ])
     })
 })
 
@@ -122,9 +122,8 @@ it("should not mark any values as interpolated by default", () => {
 
     const chartState = new StackedBarChartState({ manager })
 
-    // Indices are reversed because stacked charts reverse the stacking order
-    const pointsFrance = chartState.series[1].points
-    const pointsUK = chartState.series[0].points
+    const pointsFrance = chartState.series[0].points
+    const pointsUK = chartState.series[1].points
 
     expect(pointsFrance[0].interpolated).toBeFalsy() // year = 2000
     expect(pointsFrance[1].interpolated).toBeFalsy() // year = 2001
