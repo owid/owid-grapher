@@ -27,7 +27,6 @@ import {
     DataInsightsIndexPageContent,
 } from "./DataInsightsIndexPageContent.js"
 import { LatestSearchWrapper } from "./latest/LatestSearchWrapper.js"
-import { LatestSearch } from "./latest/LatestSearch.js"
 import { runAllGraphersLoadedListener } from "./runAllGraphersLoadedListener.js"
 import {
     __OWID_EXPLORER_INDEX_PAGE_PROPS,
@@ -145,14 +144,7 @@ function runLatestPage() {
     if (root) {
         createRoot(root).render(
             <BrowserRouter>
-                <LatestSearchWrapper topicTagGraph={topicTagGraph}>
-                    {({ topicTagGraph, liteSearchClient }) => (
-                        <LatestSearch
-                            topicTagGraph={topicTagGraph}
-                            liteSearchClient={liteSearchClient}
-                        />
-                    )}
-                </LatestSearchWrapper>
+                <LatestSearchWrapper topicTagGraph={topicTagGraph} />
             </BrowserRouter>
         )
     }
