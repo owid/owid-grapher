@@ -12,6 +12,8 @@ When you have completed implementing a big set of changes, run `yarn fixFormatCh
 
 When you want to create a git commit, refer to docs/agent-guidelines/commit-messages.md for instructions.
 
+When creating new skills in `.claude/skills/`, always include `metadata: { internal: true }` in the SKILL.md frontmatter unless explicitly asked for the skill to be public. This prevents external skill indexes from crawling and listing our internal skills.
+
 ## Code style
 
 - We use double quotes for string literals instead of single quotes
