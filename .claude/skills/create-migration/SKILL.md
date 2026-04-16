@@ -2,7 +2,7 @@
 name: create-migration
 description: Create a new database migration file for the OWID MySQL database. Use when the user needs to create a database schema change or migration.
 metadata:
-  internal: true
+    internal: true
 ---
 
 # Create Database Migration

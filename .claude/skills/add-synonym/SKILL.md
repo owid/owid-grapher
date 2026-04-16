@@ -2,7 +2,7 @@
 name: add-synonym
 description: Add search synonyms to the Algolia synonym list. Use when someone wants to add, update, or extend synonym groups for site search.
 metadata:
-  internal: true
+    internal: true
 ---
 
 # Add Search Synonyms
