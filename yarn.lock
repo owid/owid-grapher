@@ -11669,7 +11669,6 @@ __metadata:
     react-router-dom-v5-compat: "npm:^6.30.0"
     react-tag-autocomplete: "npm:^7.5.0"
     react-zoom-pan-pinch: "npm:^3.7.0"
-    reflect-metadata: "npm:^0.2.2"
     remeda: "npm:^2.32.0"
     rxjs: "npm:^7.8.2"
     s-expression: "npm:^3.1.1"
