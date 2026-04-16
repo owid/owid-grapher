@@ -167,11 +167,11 @@ const layouts: { [key in Container]: Layouts} = {
         ["prominent-link"]: "grid grid-cols-6 span-cols-6 span-md-cols-12 grid-md-cols-12",
     },
     ["latest-announcement"]: {
-        ["default"]: "span-cols-8",
-        ["expandable-text"]: "grid grid-cols-8",
-        ["image--narrow"]: "span-cols-6",
-        ["image--wide"]: "span-cols-6",
-        ["image--widest"]: "span-cols-6",
+        ["default"]: "span-cols-8 span-sm-cols-6",
+        ["expandable-text"]: "grid grid-cols-8 grid-sm-cols-6",
+        ["image--narrow"]: "span-cols-6 span-sm-cols-5",
+        ["image--wide"]: "span-cols-6 span-sm-cols-5",
+        ["image--widest"]: "span-cols-6 span-sm-cols-5",
     },
 }
 

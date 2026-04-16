@@ -33,6 +33,17 @@ export class GdocAnnouncement
                     type: OwidGdocErrorMessageType.Error,
                 })
             }
+            // Body and a top-level {.cta} are mutually exclusive: the
+            // standalone page renders excerpt + CTA in CTA mode and hides
+            // the body, so any body content would be invisible to readers
+            // on the canonical announcement page.
+            if (this.content.body?.length) {
+                errors.push({
+                    property: "content.cta",
+                    message: `An announcement with a top-level {.cta} block must have an empty body. Either remove the body content (and keep the CTA), or remove the {.cta} block (and keep the body).`,
+                    type: OwidGdocErrorMessageType.Error,
+                })
+            }
         }
 
         return errors
