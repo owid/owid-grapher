@@ -7,7 +7,7 @@
     background-color: #fff;
     padding-top: 48px;
     padding-bottom: 32px;
-    margin-bottom: 32px;
+    margin-bottom: 16px;
     h1 {
         margin: 0;
         margin-bottom: 4px;
@@ -20,205 +20,24 @@
     }
     @include sm-only {
         padding: 24px 0;
-        margin-bottom: 0;
-        background-color: $gray-5;
         h1 {
             font-size: 2rem;
         }
     }
 }
 
-/* Common */
 .latest-page article {
-    margin-bottom: 32px;
+    margin-bottom: 48px;
     @include md-down {
-        margin-bottom: 24px;
+        margin-bottom: 40px;
     }
-}
-
-.latest-page__item-dateline {
-    color: $blue-60;
-    margin-bottom: 16px;
-}
-
-.latest-page__item-type {
-    text-align: right;
-    color: $blue-60;
-    margin: 0;
-    margin-bottom: 16px;
 }
 
 .latest-page__newsletter-signup {
-    grid-row: 2 / span 3;
+    grid-row: 4 / span 5;
 
     @include md-down {
         grid-row: unset;
-    }
-}
-
-/* Data Insight */
-.latest-page__data-insight {
-    h2 {
-        margin: 0;
-        margin-bottom: 8px;
-    }
-    @include sm-only {
-        margin-left: 16px;
-        margin-right: 16px;
-    }
-}
-
-.latest-page__data-insight-link {
-    background-color: $blue-20;
-    color: $blue-90;
-    padding: 16px;
-    display: flex;
-    gap: 16px;
-    &:hover {
-        background-color: $accent-pale-blue;
-        .latest-page__data-insight-content:before {
-            background: linear-gradient(
-                180deg,
-                rgba(231, 242, 255, 0) 50%,
-                $accent-pale-blue 100%
-            );
-        }
-    }
-    @include sm-only {
-        flex-direction: column;
-        gap: 0;
-    }
-}
-
-.latest-page__data-insight-image {
-    height: 214px;
-
-    picture {
-        display: flex;
-        height: 100%;
-    }
-
-    img {
-        height: 100%;
-        width: auto;
-        max-width: initial;
-    }
-
-    @include sm-only {
-        height: auto;
-        margin-bottom: 16px;
-
-        img {
-            height: auto;
-            max-width: 100%;
-        }
-    }
-}
-
-.latest-page__data-insight-content {
-    max-height: 214px;
-    overflow: hidden;
-    position: relative;
-    &:before {
-        content: "";
-        width: 100%;
-        height: 100%;
-        position: absolute;
-        left: 0;
-        top: 0;
-        background: linear-gradient(
-            180deg,
-            rgba(219, 229, 240, 0) 50%,
-            $blue-20 100%
-        );
-    }
-}
-
-.latest-page__data-insight-title {
-    line-height: 1.5rem;
-}
-
-.latest-page__data-insight-blocks {
-    // Don't show these large, bright red buttons when they don't do anything
-    // in this context
-    .article-block__cta {
-        display: none;
-    }
-    @include text-block-override {
-        @include note-12-medium;
-    }
-    @include sm-only {
-        @include text-block-override {
-            @include body-3-medium;
-        }
-    }
-}
-
-/* Article */
-.latest-page__article {
-    @include sm-only {
-        margin-left: 16px;
-        margin-right: 16px;
-    }
-}
-
-.latest-page__article-link {
-    background-color: $blue-10;
-    padding: 16px;
-    color: $blue-90;
-    display: flex;
-    gap: 16px;
-    &:hover {
-        h2 {
-            text-decoration: underline;
-        }
-    }
-}
-
-.latest-page__article-image {
-    flex: 0 0 85px;
-    align-self: start;
-    @include sm-only {
-        flex-basis: 69px;
-    }
-}
-
-.latest-page__article-title {
-    @include h3-bold;
-    margin-top: 0;
-    margin-bottom: 4px;
-    @include sm-only {
-        @include h4-semibold;
-        margin-top: 0;
-        margin-bottom: 4px;
-    }
-}
-.latest-page__article-excerpt {
-    @include body-3-medium;
-    margin-top: 0;
-    margin-bottom: 4px;
-    @include sm-only {
-        @include note-12-medium;
-    }
-}
-
-.latest-page__article-authors {
-    @include body-3-medium-italic;
-    color: $blue-50;
-    margin: 0;
-    @include sm-only {
-        @include note-12-medium;
-        font-style: italic;
-    }
-}
-
-/* Announcement */
-.latest-page__announcement {
-    .announcement-page-content {
-        margin: 0;
-        @include sm-only {
-            padding-left: 16px;
-            padding-right: 16px;
-        }
+        margin-bottom: 40px;
     }
 }
