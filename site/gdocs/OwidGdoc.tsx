@@ -16,6 +16,7 @@ import { AnnouncementPage } from "./pages/Announcement.js"
 import { Profile } from "./pages/Profile.js"
 import { ADMIN_BASE_URL } from "../../settings/clientSettings.js"
 import { CookieKey } from "@ourworldindata/grapher"
+import { SiteQueryClientProvider } from "../SiteQueryClientProvider.js"
 
 type OwidGdocProps = OwidGdocPageProps & {
     isPreviewing?: boolean
@@ -136,8 +137,10 @@ export function OwidGdoc({
             }}
         >
             <DocumentContext.Provider value={{ isPreviewing, archiveContext }}>
-                <AdminLinks id={props.id} />
-                {content}
+                <SiteQueryClientProvider>
+                    <AdminLinks id={props.id} />
+                    {content}
+                </SiteQueryClientProvider>
             </DocumentContext.Provider>
         </AttachmentsContext.Provider>
     )

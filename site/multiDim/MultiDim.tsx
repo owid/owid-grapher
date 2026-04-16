@@ -128,7 +128,7 @@ export default function MultiDim({
         [handleBaseSettingsChange]
     )
 
-    useMultiDimAnalytics(slug, config, settings)
+    useMultiDimAnalytics(slug, config, settings, grapherContainerRef)
 
     // Register with GuidedChartContext for guided chart link support
     const guidedChartContext = useContext(GuidedChartContext)

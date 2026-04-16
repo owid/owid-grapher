@@ -3,10 +3,18 @@ import { getVariableMetadataRoute } from "@ourworldindata/grapher"
 import {
     AssetMap,
     GrapherInterface,
+    MultiDimDataPageConfigEnriched,
     OwidVariableWithSourceAndDimension,
 } from "@ourworldindata/types"
-import { fetchWithRetry, readFromAssetMap } from "@ourworldindata/utils"
-import { DATA_API_URL } from "../../settings/clientSettings.js"
+import {
+    fetchJson,
+    fetchWithRetry,
+    readFromAssetMap,
+} from "@ourworldindata/utils"
+import {
+    DATA_API_URL,
+    MULTI_DIM_DYNAMIC_CONFIG_URL,
+} from "../../settings/clientSettings.js"
 
 export const cachedGetVariableMetadata = _.memoize(
     async (
@@ -40,3 +48,11 @@ export const cachedGetGrapherConfigByUuid = _.memoize(
         return await response.json()
     }
 )
+
+export async function getMultiDimConfigBySlug(
+    slug: string,
+    isPreviewing: boolean
+): Promise<MultiDimDataPageConfigEnriched> {
+    const url = `${MULTI_DIM_DYNAMIC_CONFIG_URL}/${slug}.json${isPreviewing ? "?nocache" : ""}`
+    return fetchJson<MultiDimDataPageConfigEnriched>(url)
+}

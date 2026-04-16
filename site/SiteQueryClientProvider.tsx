@@ -1,9 +1,9 @@
 import { PropsWithChildren } from "react"
 import { QueryClientProvider } from "@tanstack/react-query"
-import { getSearchQueryClient } from "../../search/searchClients.js"
+import { getSiteQueryClient } from "./queryClient.js"
 
-export const BlockQueryClientProvider = ({ children }: PropsWithChildren) => {
-    const queryClient = getSearchQueryClient()
+export const SiteQueryClientProvider = ({ children }: PropsWithChildren) => {
+    const queryClient = getSiteQueryClient()
 
     return (
         <QueryClientProvider client={queryClient}>

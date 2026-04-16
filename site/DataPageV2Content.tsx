@@ -33,7 +33,7 @@ import { processRelatedResearch } from "./dataPage.js"
 import { GrapherWithFallback } from "./GrapherWithFallback.js"
 import { AttachmentsContext } from "./gdocs/AttachmentsContext.js"
 import { DocumentContext } from "./gdocs/DocumentContext.js"
-import { BlockQueryClientProvider } from "./gdocs/components/BlockQueryClientProvider.js"
+import { SiteQueryClientProvider } from "./SiteQueryClientProvider.js"
 import { useWindowQueryParams } from "./hooks.js"
 
 declare global {
@@ -269,14 +269,14 @@ export const DataPageV2Content = ({
                                         : ""
                                 }
                             >
-                                <BlockQueryClientProvider>
+                                <SiteQueryClientProvider>
                                     <FeaturedMetrics
                                         topicName={
                                             datapageData.primaryTopic.topicTag
                                         }
                                         isDataPage={true}
                                     />
-                                </BlockQueryClientProvider>
+                                </SiteQueryClientProvider>
                             </div>
                         )}
                     </div>
