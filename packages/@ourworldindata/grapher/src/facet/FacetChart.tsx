@@ -32,6 +32,7 @@ import {
     SideWidths,
     AxisConfigInterface,
     ChartErrorInfo,
+    GrapherVariant,
 } from "@ourworldindata/types"
 import { ChartComponent, makeChartInstance } from "../chart/ChartTypeMap"
 import { ChartManager } from "../chart/ChartManager"
@@ -73,6 +74,8 @@ import {
 } from "../seriesLabel/SeriesLabelState.js"
 
 const SHARED_X_AXIS_MIN_FACET_COUNT = 12
+const FACET_THUMBNAIL_WIDTH_THRESHOLD = 120
+const FACET_THUMBNAIL_HEIGHT_THRESHOLD = 80
 
 const facetBackgroundColor = "none" // we don't use color yet but may use it for background later
 
@@ -321,11 +324,17 @@ export class FacetChart
         // all possible color values from `inputTable`.
         const colorScaleColumnOverride = this.inputTable.get(colorColumnSlug)
 
+        // Hide the legends in all facets
+        const showLegend = !this.hideFacetLegends
+
+        // Show start and end value labels for line chart thumbnails
+        const useMinimalLabeling = this.variant === GrapherVariant.Thumbnail
+        const showSeriesLabels = useMinimalLabeling
+            ? true
+            : !this.hideFacetLegends
+
         return series.map((series, index) => {
             const { bounds } = gridBoundsArr[index]
-
-            const showLegend = !this.hideFacetLegends
-            const showSeriesLabels = !this.hideFacetLegends
 
             const hidePoints = true
             const hideNoDataSection = true
@@ -359,6 +368,9 @@ export class FacetChart
                 tooltip,
                 shouldPinTooltipToBottom,
                 externalLegendHoverBin: legendHoverBin,
+                useMinimalLabeling,
+                // Allow labels in line chart thumbnails to overflow facet bounds
+                chartAreaPadding: Infinity,
                 ...series.manager,
                 xAxisConfig: {
                     ...globalXAxisConfig,
@@ -387,9 +399,33 @@ export class FacetChart
                 manager,
                 bounds,
                 chartType: this.chartTypeName,
-                variant: this.manager.variant,
+                variant: this.variant,
             })
         })
+    }
+
+    @computed private get canShowThumbnails(): boolean {
+        return this.chartTypeName === GRAPHER_CHART_TYPES.LineChart
+    }
+
+    @computed private get facetBounds(): Bounds | undefined {
+        return this.bounds.grid(this.gridParams, this.facetGridPadding)[0]
+            ?.bounds
+    }
+
+    @computed private get variant(): GrapherVariant {
+        const { facetBounds } = this
+
+        if (!this.canShowThumbnails) return GrapherVariant.Default
+
+        const shouldUseThumbnail =
+            facetBounds !== undefined &&
+            (facetBounds.width < FACET_THUMBNAIL_WIDTH_THRESHOLD ||
+                facetBounds.height < FACET_THUMBNAIL_HEIGHT_THRESHOLD)
+
+        return shouldUseThumbnail
+            ? GrapherVariant.Thumbnail
+            : GrapherVariant.Default
     }
 
     @computed private get isSharedYAxis(): boolean {
@@ -956,7 +992,7 @@ export class FacetChart
                                 <ChartComponent
                                     manager={facetChart.manager}
                                     chartType={this.chartTypeName}
-                                    variant={this.manager.variant}
+                                    variant={this.variant}
                                     bounds={bounds}
                                 />
                             </g>

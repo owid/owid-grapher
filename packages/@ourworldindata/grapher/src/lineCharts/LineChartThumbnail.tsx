@@ -2,15 +2,18 @@ import React from "react"
 import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import * as _ from "lodash-es"
+import { scaleLinear } from "d3-scale"
 import { Bounds, SeriesName } from "@ourworldindata/utils"
 import { ChartInterface } from "../chart/ChartInterface"
 import { LineChartState } from "./LineChartState"
 import { LineChartProps } from "./LineChart.js"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import {
+    CATEGORICAL_LEGEND_STYLE,
     LineChartManager,
     LineChartSeries,
     LinePoint,
+    NUMERIC_LEGEND_STYLE,
     PlacedLineChartSeries,
     PlacedPoint,
     RenderLineChartSeries,
@@ -30,6 +33,7 @@ import {
 } from "./LineChartHelpers"
 import {
     HorizontalAxisComponent,
+    VerticalAxisDomainLine,
     VerticalAxisZeroLine,
 } from "../axis/AxisViews"
 import { InitialAnchoredLabelSeries } from "../anchoredLabels/AnchoredLabelsTypes"
@@ -37,11 +41,10 @@ import { AnchoredLabelsState } from "../anchoredLabels/AnchoredLabelsState"
 import { AnchoredLabels } from "../anchoredLabels/AnchoredLabels"
 import { darkenColorForLine } from "../color/ColorUtils.js"
 import { NoDataModal } from "../noDataModal/NoDataModal"
+import { HorizontalColorLegendManager } from "../legend/HorizontalColorLegends.js"
+import { CategoricalBin } from "../color/ColorScaleBin.js"
 
-const DOT_RADIUS = 4
-const SPACE_BETWEEN_DOT_AND_LABEL = 4
-const LABEL_PADDING = DOT_RADIUS + SPACE_BETWEEN_DOT_AND_LABEL
-const ZERO_LINE_STROKE_WIDTH = 1
+const HORIZONTAL_GRID_LINE_STROKE_WIDTH = 1
 
 @observer
 export class LineChartThumbnail
@@ -84,7 +87,7 @@ export class LineChartThumbnail
 
     @computed private get xAxisConfig(): AxisConfig {
         const { xAxisConfig } = this.manager
-        const custom = { labelPadding: 0 }
+        const custom = { labelPadding: 0, tickPadding: 2 }
         return new AxisConfig({ ...custom, ...xAxisConfig }, this)
     }
 
@@ -126,6 +129,21 @@ export class LineChartThumbnail
         })
     }
 
+    @computed private get dotRadius(): number {
+        // Map font size to dot radius
+        const scale = scaleLinear().domain([11, 16]).range([2.5, 3.5])
+        // Round to nearest .5 number
+        return _.round(scale(this.fontSize) * 2) / 2
+    }
+
+    @computed private get spaceBetweenDotAndLabel(): number {
+        return this.dotRadius
+    }
+
+    @computed private get labelPadding(): number {
+        return this.dotRadius + this.spaceBetweenDotAndLabel
+    }
+
     /** Start points displayed as dots */
     @computed private get visibleStartPoints(): PlacedPoint[] {
         return this.renderSeries
@@ -160,7 +178,7 @@ export class LineChartThumbnail
     @computed private get labelFontSettings(): FontSettings {
         return {
             fontSize: Math.floor(GRAPHER_FONT_SCALE_12 * this.fontSize),
-            fontWeight: 500,
+            fontWeight: 700,
             lineHeight: 1,
         }
     }
@@ -271,8 +289,8 @@ export class LineChartThumbnail
             ...this.labelFontSettings,
             textAnchor: "start",
             yRange: this.labelsRange,
-            labelPadding: LABEL_PADDING,
-            anchorCollisionRadius: DOT_RADIUS,
+            labelPadding: this.labelPadding,
+            anchorCollisionRadius: this.dotRadius,
             resolveCollision: (
                 s1: InitialAnchoredLabelSeries,
                 s2: InitialAnchoredLabelSeries
@@ -380,6 +398,10 @@ export class LineChartThumbnail
     }): AnchoredLabelsState | undefined {
         if (!this.manager.showSeriesLabels) return undefined
 
+        // In relative mode, the start label is trivially 0%,
+        // so we skip showing start labels to reduce clutter
+        if (this.manager.isRelativeMode) return undefined
+
         const series = this.startLabelsSeries.map((series) => {
             const startPoint = this.startPointBySeriesName.get(
                 series.seriesName
@@ -399,8 +421,8 @@ export class LineChartThumbnail
             ...this.labelFontSettings,
             maxWidth: this.startLabelsMaxWidth,
             textAnchor: "end",
-            labelPadding: LABEL_PADDING,
-            anchorCollisionRadius: DOT_RADIUS,
+            labelPadding: this.labelPadding,
+            anchorCollisionRadius: this.dotRadius,
             yRange: this.labelsRange,
             resolveCollision: (
                 s1: InitialAnchoredLabelSeries,
@@ -474,8 +496,8 @@ export class LineChartThumbnail
         const leftWidth = startLabelsState?.width ?? 0
 
         return {
-            right: rightWidth > 0 ? rightWidth + LABEL_PADDING : 0,
-            left: leftWidth > 0 ? leftWidth + LABEL_PADDING : 0,
+            right: rightWidth > 0 ? rightWidth + this.labelPadding : 0,
+            left: leftWidth > 0 ? leftWidth + this.labelPadding : 0,
         }
     }
 
@@ -491,6 +513,39 @@ export class LineChartThumbnail
         )
     }
 
+    @computed get externalLegend(): HorizontalColorLegendManager {
+        const numericLegendData = this.chartState.hasColorScale
+            ? _.sortBy(
+                  this.chartState.colorScale.legendBins,
+                  (bin) => bin instanceof CategoricalBin
+              )
+            : []
+
+        const categoricalLegendData = this.chartState.hasColorScale
+            ? []
+            : this.chartState.series.map(
+                  (series, index) =>
+                      new CategoricalBin({
+                          index,
+                          value: series.seriesName,
+                          label: series.displayName,
+                          color: series.color,
+                      })
+              )
+
+        return {
+            categoricalLegendData,
+            numericLegendData,
+            legendTitle: this.chartState.hasColorScale
+                ? this.chartState.colorScale.legendDescription
+                : undefined,
+            legendTickSize: 1,
+            numericBinSize: 6,
+            categoricalLegendStyleConfig: CATEGORICAL_LEGEND_STYLE,
+            numericLegendStyleConfig: NUMERIC_LEGEND_STYLE,
+        }
+    }
+
     override render(): React.ReactElement {
         if (this.chartState.errorInfo.reason)
             return (
@@ -503,18 +558,25 @@ export class LineChartThumbnail
 
         return (
             <>
+                <VerticalAxisDomainLine
+                    verticalAxis={this.dualAxis.verticalAxis}
+                    bounds={this.dualAxis.innerBounds}
+                    strokeWidth={HORIZONTAL_GRID_LINE_STROKE_WIDTH}
+                />
                 {!this.dualAxis.verticalAxis.isLogScale && (
                     <VerticalAxisZeroLine
                         axis={this.dualAxis.verticalAxis}
                         bounds={this.dualAxis.innerBounds}
-                        strokeWidth={ZERO_LINE_STROKE_WIDTH}
+                        strokeWidth={HORIZONTAL_GRID_LINE_STROKE_WIDTH}
                     />
                 )}
-                <HorizontalAxisComponent
-                    axis={this.dualAxis.horizontalAxis}
-                    bounds={this.dualAxis.bounds}
-                    showEndpointsOnly
-                />
+                {!this.dualAxis.horizontalAxis.hideAxis && (
+                    <HorizontalAxisComponent
+                        axis={this.dualAxis.horizontalAxis}
+                        bounds={this.dualAxis.bounds}
+                        showEndpointsOnly
+                    />
+                )}
                 <Lines
                     series={this.renderSeries}
                     dualAxis={this.dualAxis}
@@ -525,10 +587,10 @@ export class LineChartThumbnail
                     isStatic={this.manager.isStatic}
                 />
                 {this.visibleStartPoints.map((point, index) => (
-                    <Dot key={index} point={point} />
+                    <Dot key={index} point={point} radius={this.dotRadius} />
                 ))}
                 {this.visibleEndPoints.map((point, index) => (
-                    <Dot key={index} point={point} />
+                    <Dot key={index} point={point} radius={this.dotRadius} />
                 ))}
                 {this.startLabelsState && (
                     <AnchoredLabels state={this.startLabelsState} />
@@ -541,8 +603,12 @@ export class LineChartThumbnail
     }
 }
 
-function Dot({ point }: { point: PlacedPoint }): React.ReactElement | null {
-    return (
-        <circle cx={point.x} cy={point.y} r={DOT_RADIUS} fill={point.color} />
-    )
+function Dot({
+    point,
+    radius,
+}: {
+    point: PlacedPoint
+    radius: number
+}): React.ReactElement | null {
+    return <circle cx={point.x} cy={point.y} r={radius} fill={point.color} />
 }
