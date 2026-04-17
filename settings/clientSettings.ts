@@ -14,8 +14,7 @@ const parseIntOrUndefined = (value: string | undefined): number | undefined => {
 }
 
 type Environment = "development" | "staging" | "production"
-export const ENV: Environment =
-    (process.env.ENV as Environment) || "development"
+export const ENV: Environment = (process.env.ENV as Environment) || "production"
 export const IS_ARCHIVE: boolean = process.env.IS_ARCHIVE === "true"
 export const COMMIT_SHA = process.env.COMMIT_SHA
 
