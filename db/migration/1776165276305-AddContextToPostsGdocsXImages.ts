@@ -9,7 +9,7 @@ export class AddContextToPostsGdocsXImages1776165276305 implements MigrationInte
 
         // Backfill: mark existing rows as 'article-thumbnail' where the image
         // appears only in article-reference slots (R&W blocks, prominent-link
-        // thumbnails) and not as genuine content (featured-image or inline body).
+        // thumbnails) and not as genuine inline body content.
         await queryRunner.query(`-- sql
             UPDATE posts_gdocs_x_images pxi
             JOIN posts_gdocs pg ON pxi.gdocId = pg.id
@@ -33,6 +33,32 @@ export class AddContextToPostsGdocsXImages1776165276305 implements MigrationInte
                 AND i.filename != COALESCE(pg.content->>'$."featured-image"', '')
                 AND i.filename != COALESCE(pg.content->>'$."cover-image"', '')
                 -- And does NOT appear as genuine inline body content
+                AND NOT (
+                    JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body') IS NOT NULL
+                    AND JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].primary[*].value.filename') IS NULL
+                    AND JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].secondary[*].value.filename') IS NULL
+                    AND JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].rows[*].articles[*].value.filename') IS NULL
+                    AND JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].more.articles[*].value.filename') IS NULL
+                    AND JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].latest.articles[*].value.filename') IS NULL
+                    AND JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].thumbnail') IS NULL
+                    AND JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].left[*].thumbnail') IS NULL
+                    AND JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].right[*].thumbnail') IS NULL
+                    AND JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].insights[*].content[*].thumbnail') IS NULL
+                )
+        `)
+
+        // Backfill: mark featured-image and cover-image rows as 'article-thumbnail'
+        // unless the same image also appears as genuine inline body content.
+        await queryRunner.query(`-- sql
+            UPDATE posts_gdocs_x_images pxi
+            JOIN posts_gdocs pg ON pxi.gdocId = pg.id
+            JOIN images i ON pxi.imageId = i.id
+            SET pxi.context = 'article-thumbnail'
+            WHERE
+                (
+                    i.filename = pg.content->>'$."featured-image"'
+                    OR i.filename = pg.content->>'$."cover-image"'
+                )
                 AND NOT (
                     JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body') IS NOT NULL
                     AND JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].primary[*].value.filename') IS NULL

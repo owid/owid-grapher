@@ -353,7 +353,10 @@ export class GdocBase implements OwidGdocBaseInterface {
 
         for (const filename of this.typeSpecificFilenames()) {
             if (filename) {
-                results.set(filename, { filename, context: "content" })
+                results.set(filename, {
+                    filename,
+                    context: "article-thumbnail",
+                })
             }
         }
 
