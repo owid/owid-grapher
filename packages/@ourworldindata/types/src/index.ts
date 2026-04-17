@@ -356,6 +356,7 @@ export {
 } from "./dbTypes/AnalyticsPageviews.js"
 export {
     type DbPlainAnalyticsGrapherView,
+    type AnalyticsGrapherViewWithRank,
     AnalyticsGrapherViewsTableName,
 } from "./dbTypes/AnalyticsGrapherViews.js"
 export {
