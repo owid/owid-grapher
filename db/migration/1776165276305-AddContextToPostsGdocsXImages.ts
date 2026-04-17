@@ -1,6 +1,8 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class AddContextToPostsGdocsXImages1776165276305 implements MigrationInterface {
+export class AddContextToPostsGdocsXImages1776165276305
+    implements MigrationInterface
+{
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`-- sql
             ALTER TABLE posts_gdocs_x_images
@@ -17,12 +19,17 @@ export class AddContextToPostsGdocsXImages1776165276305 implements MigrationInte
             SET pxi.context = 'article-thumbnail'
             WHERE
                 -- Appears in at least one article-reference slot
+                -- (R&W links or prominent-link thumbnails)
                 (
                     JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].primary[*].value.filename') IS NOT NULL
                     OR JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].secondary[*].value.filename') IS NOT NULL
                     OR JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].rows[*].articles[*].value.filename') IS NOT NULL
                     OR JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].more.articles[*].value.filename') IS NOT NULL
                     OR JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].latest.articles[*].value.filename') IS NOT NULL
+                    OR JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].thumbnail') IS NOT NULL
+                    OR JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].left[*].thumbnail') IS NOT NULL
+                    OR JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].right[*].thumbnail') IS NOT NULL
+                    OR JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].insights[*].content[*].thumbnail') IS NOT NULL
                 )
                 -- But is NOT the article's own featured image
                 AND i.filename != COALESCE(pg.content->>'$."featured-image"', '')
@@ -35,6 +42,10 @@ export class AddContextToPostsGdocsXImages1776165276305 implements MigrationInte
                     AND JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].rows[*].articles[*].value.filename') IS NULL
                     AND JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].more.articles[*].value.filename') IS NULL
                     AND JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].latest.articles[*].value.filename') IS NULL
+                    AND JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].thumbnail') IS NULL
+                    AND JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].left[*].thumbnail') IS NULL
+                    AND JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].right[*].thumbnail') IS NULL
+                    AND JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].insights[*].content[*].thumbnail') IS NULL
                 )
         `)
     }
