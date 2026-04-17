@@ -12,8 +12,6 @@ import {
     Url,
     fetchWithRetry,
     NarrativeChartInfo,
-    searchParamsToMultiDimView,
-    MultiDimDataPageConfig,
 } from "@ourworldindata/utils"
 import { action, makeObservable } from "mobx"
 import {
@@ -22,24 +20,19 @@ import {
     EXPLORER_EMBEDDED_FIGURE_SELECTOR,
     buildExplorerProps,
 } from "@ourworldindata/explorer"
-import {
-    GRAPHER_PREVIEW_CLASS,
-    MultiDimDataPageConfigEnriched,
-} from "@ourworldindata/types"
+import { GRAPHER_PREVIEW_CLASS } from "@ourworldindata/types"
 import {
     ADMIN_BASE_URL,
     BAKED_GRAPHER_URL,
     CATALOG_URL,
     DATA_API_URL,
     GRAPHER_DYNAMIC_CONFIG_URL,
-    MULTI_DIM_DYNAMIC_CONFIG_URL,
 } from "../../settings/clientSettings.js"
 // import { embedDynamicCollectionGrapher } from "../collections/DynamicCollection.js"
 import { match } from "ts-pattern"
-import MultiDim from "../multiDim/MultiDim.js"
 import { createRoot } from "react-dom/client"
 
-type EmbedType = "grapher" | "explorer" | "multiDim" | "narrativeChart"
+type EmbedType = "grapher" | "explorer" | "narrativeChart"
 
 const figuresFromDOM = (
     container: HTMLElement | Document = document,
@@ -197,57 +190,6 @@ class MultiEmbedder {
         })
     }
 
-    async _renderMultiDimWithControlsIntoFigure(
-        figure: Element,
-        multiDimConfig: MultiDimDataPageConfigEnriched,
-        slug: string,
-        queryStr: string
-    ) {
-        figure.classList.remove(GRAPHER_PREVIEW_CLASS)
-        const root = createRoot(figure)
-        root.render(
-            <MultiDim
-                slug={slug}
-                config={MultiDimDataPageConfig.fromObject(multiDimConfig)}
-                queryStr={queryStr}
-                isPreviewing={this.isPreviewing}
-            />
-        )
-    }
-
-    async renderMultiDimIntoFigure(figure: Element) {
-        const embedUrlRaw = figure.getAttribute(GRAPHER_EMBEDDED_FIGURE_ATTR)
-        if (!embedUrlRaw) return
-        const embedUrl = Url.fromURL(embedUrlRaw)
-
-        const { queryStr, slug } = embedUrl
-        if (!slug) return
-
-        const mdimConfigUrl = `${MULTI_DIM_DYNAMIC_CONFIG_URL}/${slug}.json${this.isPreviewing ? "?nocache" : ""}`
-        const multiDimConfig = await fetchWithRetry(mdimConfigUrl).then((res) =>
-            res.json()
-        )
-
-        if (embedUrl.queryParams.hideControls === "true") {
-            const view = searchParamsToMultiDimView(
-                multiDimConfig,
-                new URLSearchParams(queryStr)
-            )
-            const configUrl = `${GRAPHER_DYNAMIC_CONFIG_URL}/by-uuid/${view.fullConfigId}.config.json${this.isPreviewing ? "?nocache" : ""}`
-            await this._renderGrapherComponentIntoFigure(figure, {
-                configUrl,
-                embedUrl,
-            })
-        } else {
-            await this._renderMultiDimWithControlsIntoFigure(
-                figure,
-                multiDimConfig,
-                slug,
-                queryStr
-            )
-        }
-    }
-
     async renderNarrativeChartIntoFigure(figure: Element) {
         const narrativeChartInfoRaw = figure.getAttribute(
             GRAPHER_NARRATIVE_CHART_CONFIG_FIGURE_ATTR
@@ -276,25 +218,21 @@ class MultiEmbedder {
         const isExplorer = figure.hasAttribute(
             EXPLORER_EMBEDDED_FIGURE_SELECTOR
         )
-        const isMultiDim = figure.hasAttribute("data-is-multi-dim")
         const isNarrativeChart = figure.hasAttribute(
             GRAPHER_NARRATIVE_CHART_CONFIG_FIGURE_ATTR
         )
 
         const embedType: EmbedType = isExplorer
             ? "explorer"
-            : isMultiDim
-              ? "multiDim"
-              : isNarrativeChart
-                ? "narrativeChart"
-                : "grapher"
+            : isNarrativeChart
+              ? "narrativeChart"
+              : "grapher"
 
         // Stop observing visibility as soon as possible
         this.figuresObserver?.unobserve(figure)
 
         await match(embedType)
             .with("explorer", () => this.renderExplorerIntoFigure(figure))
-            .with("multiDim", () => this.renderMultiDimIntoFigure(figure))
             .with("narrativeChart", () =>
                 this.renderNarrativeChartIntoFigure(figure)
             )

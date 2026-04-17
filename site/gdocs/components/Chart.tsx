@@ -161,7 +161,6 @@ export default function Chart({
                         explorer: isExplorerWithControls,
                         "multi-dim": isMultiDimWithControls,
                     })}
-                    data-is-multi-dim={isMultiDim || undefined}
                     data-grapher-src={isExplorer ? undefined : resolvedUrl}
                     data-explorer-src={
                         isExplorer ? resolvedUrlParsed.fullUrl : undefined
