@@ -8,8 +8,8 @@ export interface DbPlainAnalyticsGrapherView {
 }
 
 export interface AnalyticsGrapherViewWithRank extends DbPlainAnalyticsGrapherView {
-    rank_7d: number
-    rank_14d: number
-    rank_365d: number
-    total_charts: number
+    rank_7d?: number
+    rank_14d?: number
+    rank_365d?: number
+    total_charts?: number
 }

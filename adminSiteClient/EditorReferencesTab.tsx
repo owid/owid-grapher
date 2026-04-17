@@ -84,7 +84,7 @@ export class EditorReferencesTabForChart extends Component<{
         this.props.editor.manager.redirects.push(redirect)
     }
 
-    renderViewCount(views: number | undefined, rank?: number, total?: number) {
+    renderViewCount(views?: number, rank?: number, total?: number) {
         if (views === undefined) return "No data"
         const viewsStr = formatValue(views, { unit: "views" })
         if (rank !== undefined && total !== undefined) {

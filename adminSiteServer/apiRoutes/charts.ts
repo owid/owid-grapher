@@ -1,3 +1,4 @@
+import * as R from "remeda"
 import { migrateGrapherConfigToLatestVersionAndFailOnError } from "@ourworldindata/grapher"
 import {
     GrapherInterface,
@@ -13,6 +14,8 @@ import {
     DbChartTagJoin,
     ContentGraphLinkType,
     StaticVizTableName,
+    DbPlainAnalyticsGrapherView,
+    AnalyticsGrapherViewWithRank,
 } from "@ourworldindata/types"
 import {
     diffGrapherConfigs,
@@ -752,31 +755,47 @@ export async function getChartViewsJson(
     const slug = await getChartSlugById(trx, parseInt(req.params.chartId))
     if (!slug) return {}
 
-    const viewsBySlug = await db.knexRawFirst(
+    const viewsBySlug = await db.knexRawFirst<
+        DbPlainAnalyticsGrapherView & {
+            total_charts: number | null
+            rank_7d: number | null
+            rank_14d: number | null
+            rank_365d: number | null
+        }
+    >(
         trx,
         `-- sql
-        SELECT * FROM (
+        SELECT
+            v.*,
+            ranked.total_charts,
+            ranked.rank_7d,
+            ranked.rank_14d,
+            ranked.rank_365d
+        FROM analytics_grapher_views v
+        LEFT JOIN (
             SELECT
-                v.*,
+                v.grapher_slug,
                 COUNT(*) OVER () AS total_charts,
-                RANK() OVER (ORDER BY views_7d DESC) AS rank_7d,
-                RANK() OVER (ORDER BY views_14d DESC) AS rank_14d,
-                RANK() OVER (ORDER BY views_365d DESC) AS rank_365d
-            FROM
-                analytics_grapher_views v
+                RANK() OVER (ORDER BY v.views_7d DESC) AS rank_7d,
+                RANK() OVER (ORDER BY v.views_14d DESC) AS rank_14d,
+                RANK() OVER (ORDER BY v.views_365d DESC) AS rank_365d
+            FROM analytics_grapher_views v
             JOIN chart_configs cc
                 ON cc.slug = v.grapher_slug
                 AND cc.full ->> "$.isPublished" = "true"
             JOIN charts c ON c.configId = cc.id
-        ) ranked
-        WHERE
-            grapher_slug = ?`,
+        ) ranked ON ranked.grapher_slug = v.grapher_slug
+        WHERE v.grapher_slug = ?`,
         [slug]
     )
 
-    return {
-        views: viewsBySlug ?? undefined,
-    }
+    if (!viewsBySlug) return {}
+
+    const views: AnalyticsGrapherViewWithRank = R.omitBy(
+        viewsBySlug,
+        (value): value is null => value === null
+    )
+    return { views }
 }
 
 export async function getChartTagsJson(
