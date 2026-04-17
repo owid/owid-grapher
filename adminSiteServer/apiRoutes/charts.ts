@@ -755,14 +755,16 @@ export async function getChartViewsJson(
     const viewsBySlug = await db.knexRawFirst(
         trx,
         `-- sql
-        SELECT
-            v.*,
-            (SELECT COUNT(*) FROM analytics_grapher_views) AS total_charts,
-            RANK() OVER (ORDER BY views_7d DESC) AS rank_7d,
-            RANK() OVER (ORDER BY views_14d DESC) AS rank_14d,
-            RANK() OVER (ORDER BY views_365d DESC) AS rank_365d
-        FROM
-            analytics_grapher_views v
+        SELECT * FROM (
+            SELECT
+                v.*,
+                COUNT(*) OVER () AS total_charts,
+                RANK() OVER (ORDER BY views_7d DESC) AS rank_7d,
+                RANK() OVER (ORDER BY views_14d DESC) AS rank_14d,
+                RANK() OVER (ORDER BY views_365d DESC) AS rank_365d
+            FROM
+                analytics_grapher_views v
+        ) ranked
         WHERE
             grapher_slug = ?`,
         [slug]
