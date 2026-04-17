@@ -764,6 +764,10 @@ export async function getChartViewsJson(
                 RANK() OVER (ORDER BY views_365d DESC) AS rank_365d
             FROM
                 analytics_grapher_views v
+            JOIN chart_configs cc
+                ON cc.slug = v.grapher_slug
+                AND cc.full ->> "$.isPublished" = "true"
+            JOIN charts c ON c.configId = cc.id
         ) ranked
         WHERE
             grapher_slug = ?`,
