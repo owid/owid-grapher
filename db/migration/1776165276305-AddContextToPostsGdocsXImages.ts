@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class AddContextToPostsGdocsXImages1776165276305
-    implements MigrationInterface
-{
+export class AddContextToPostsGdocsXImages1776165276305 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`-- sql
             ALTER TABLE posts_gdocs_x_images
