@@ -378,7 +378,8 @@ export const DATA_CATALOG_ATTRIBUTES = [
 ]
 
 type SearchFacetAttribute =
-    | "tags"
+    | "tags" // also used on /latest
+    | "latestType" // used on /latest only
     | "availableEntities"
     | "datasetProducts"
     | "datasetNamespaces"

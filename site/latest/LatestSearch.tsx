@@ -1,18 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef } from "react"
 import { useSearchParams } from "react-router-dom-v5-compat"
-import { TagGraphRoot } from "@ourworldindata/types"
+import { LatestType, TagGraphRoot } from "@ourworldindata/types"
 import { LiteClient } from "algoliasearch/lite"
-import * as R from "remeda"
 import { useTagGraphTopics } from "../search/searchHooks.js"
 import { deserializeSet } from "../search/searchUtils.js"
 import { useInfiniteLatestPages } from "./latestHooks.js"
 import { LatestTopicFacets } from "./LatestTopicFacets.js"
-import {
-    ALL_FILTER_OPTIONS,
-    LatestFilter,
-    decodeFilter,
-    encodeFilter,
-} from "./latestFilters.js"
+import { LATEST_TYPE_OPTIONS, decodeLatestType } from "./latestFilters.js"
 import { LatestHit } from "./LatestHit.js"
 import { LatestSearchSkeleton } from "./LatestSearchSkeleton.js"
 import { NewsletterSignupBlock } from "../NewsletterSignupBlock.js"
@@ -41,7 +35,9 @@ export const LatestSearch = ({
         [topicsParam, allAreas]
     )
 
-    const filter: LatestFilter | null = decodeFilter(searchParams.get("type"))
+    const latestType: LatestType | null = decodeLatestType(
+        searchParams.get("type")
+    )
 
     const onTopicsChange = useCallback(
         (newTopics: string[]) => {
@@ -58,12 +54,12 @@ export const LatestSearch = ({
         [setSearchParams]
     )
 
-    const onFilterChange = useCallback(
-        (newFilter: LatestFilter | null) => {
+    const onLatestTypeChange = useCallback(
+        (newType: LatestType | null) => {
             setSearchParams((prev) => {
                 const next = new URLSearchParams(prev)
-                if (newFilter) {
-                    next.set("type", encodeFilter(newFilter))
+                if (newType) {
+                    next.set("type", newType)
                 } else {
                     next.delete("type")
                 }
@@ -82,40 +78,31 @@ export const LatestSearch = ({
         })
     }, [setSearchParams])
 
-    // Derive contentType and kicker from the active filter
-    const contentType = filter?.kind === "type" ? filter.value : null
-    const kicker = filter?.kind === "kicker" ? filter.value : null
-
     const {
         hits,
         tagFacetCounts,
-        typeFacetCounts,
-        kickerFacetCounts,
+        latestTypeFacetCounts,
         fetchNextPage,
         hasNextPage,
         isFetchingNextPage,
         isLoading,
     } = useInfiniteLatestPages({
         topics,
-        contentType,
-        kicker,
+        latestType,
         liteSearchClient,
     })
 
-    // Disable pills that would yield 0 results given the current topic
-    // selection. Never disable the currently active filter.
-    const disabledFilters = useMemo(() => {
-        const disabled = new Set<string>()
-        for (const option of ALL_FILTER_OPTIONS) {
-            if (R.isDeepEqual(filter, option.filter)) continue
-            const count =
-                option.filter.kind === "type"
-                    ? (typeFacetCounts[option.filter.value] ?? 0)
-                    : (kickerFacetCounts[option.filter.value] ?? 0)
-            if (count === 0) disabled.add(encodeFilter(option.filter))
+    // Disable type options that would yield 0 results given the current
+    // topic selection. Never disable the currently active type.
+    const disabledTypes = useMemo(() => {
+        const disabled = new Set<LatestType>()
+        for (const option of LATEST_TYPE_OPTIONS) {
+            if (option.value === latestType) continue
+            if ((latestTypeFacetCounts[option.value] ?? 0) === 0)
+                disabled.add(option.value)
         }
         return disabled
-    }, [filter, typeFacetCounts, kickerFacetCounts])
+    }, [latestType, latestTypeFacetCounts])
 
     // Disable topics that would yield 0 results given the current filters.
     // Never disable a topic that is already selected (so the user can deselect
@@ -165,9 +152,9 @@ export const LatestSearch = ({
                     topics={allAreas}
                     selectedTopics={topics}
                     onTopicsChange={onTopicsChange}
-                    selectedFilter={filter}
-                    onFilterChange={onFilterChange}
-                    disabledFilters={disabledFilters}
+                    selectedType={latestType}
+                    onLatestTypeChange={onLatestTypeChange}
+                    disabledTypes={disabledTypes}
                     disabledTopics={disabledTopics}
                 />
             </div>

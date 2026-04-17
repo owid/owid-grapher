@@ -14,12 +14,8 @@ import {
     faFilter,
 } from "@fortawesome/free-solid-svg-icons"
 import { ScrollMenu, VisibilityContext } from "react-horizontal-scrolling-menu"
-import * as R from "remeda"
-import {
-    ALL_FILTER_OPTIONS,
-    LatestFilter,
-    encodeFilter,
-} from "./latestFilters.js"
+import { LatestType } from "@ourworldindata/types"
+import { LATEST_TYPE_OPTIONS } from "./latestFilters.js"
 
 /**
  * Wrapper component that accepts the `itemId` prop required by
@@ -72,17 +68,17 @@ export const LatestTopicFacets = ({
     topics,
     selectedTopics,
     onTopicsChange,
-    selectedFilter,
-    onFilterChange,
-    disabledFilters,
+    selectedType,
+    onLatestTypeChange,
+    disabledTypes,
     disabledTopics,
 }: {
     topics: string[]
     selectedTopics: string[]
     onTopicsChange: (topics: string[]) => void
-    selectedFilter: LatestFilter | null
-    onFilterChange: (filter: LatestFilter | null) => void
-    disabledFilters: Set<string>
+    selectedType: LatestType | null
+    onLatestTypeChange: (type: LatestType | null) => void
+    disabledTypes: Set<LatestType>
     disabledTopics: Set<string>
 }) => {
     const [isContentTypeDropdownOpen, setIsContentTypeDropdownOpen] =
@@ -91,6 +87,12 @@ export const LatestTopicFacets = ({
     type ScrollApiType = React.ContextType<typeof VisibilityContext>
     const apiRef = useRef({} as ScrollApiType)
 
+    // Topic selection on /latest is single-select in the UI: clicking a
+    // topic replaces the current selection (or clears it when re-clicked).
+    // The underlying state and query layers still model topics as a
+    // multi-value array with disjunctive (OR) semantics — matching /search,
+    // which uses the same `formatTopicFacetFilters` helper. Keeping that
+    // shape preserves parity if multi-select is ever added back.
     const handleTopicToggle = useCallback(
         (topic: string) => {
             const isSelected = selectedTopics.includes(topic)
@@ -122,9 +124,8 @@ export const LatestTopicFacets = ({
     }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
     const contentTypeLabel =
-        ALL_FILTER_OPTIONS.find((opt) =>
-            R.isDeepEqual(opt.filter, selectedFilter)
-        )?.label ?? "Filter by type"
+        LATEST_TYPE_OPTIONS.find((opt) => opt.value === selectedType)?.label ??
+        "Filter by type"
 
     return (
         <div className="latest-topic-facets">
@@ -183,7 +184,7 @@ export const LatestTopicFacets = ({
                             "latest-topic-facets__content-type-trigger",
                             {
                                 "latest-topic-facets__content-type-trigger--active":
-                                    selectedFilter !== null,
+                                    selectedType !== null,
                             }
                         )}
                         onClick={() =>
@@ -229,13 +230,13 @@ export const LatestTopicFacets = ({
                                         "latest-topic-facets__content-type-dropdown-item",
                                         {
                                             "latest-topic-facets__content-type-dropdown-item--active":
-                                                selectedFilter === null,
+                                                selectedType === null,
                                         }
                                     )}
                                     role="option"
-                                    aria-selected={selectedFilter === null}
+                                    aria-selected={selectedType === null}
                                     onClick={() => {
-                                        onFilterChange(null)
+                                        onLatestTypeChange(null)
                                         setIsContentTypeDropdownOpen(false)
                                     }}
                                 >
@@ -244,11 +245,11 @@ export const LatestTopicFacets = ({
                                             "latest-topic-facets__content-type-radio",
                                             {
                                                 "latest-topic-facets__content-type-radio--checked":
-                                                    selectedFilter === null,
+                                                    selectedType === null,
                                             }
                                         )}
                                     >
-                                        {selectedFilter === null && (
+                                        {selectedType === null && (
                                             <span className="latest-topic-facets__content-type-radio-dot" />
                                         )}
                                     </span>
@@ -256,17 +257,15 @@ export const LatestTopicFacets = ({
                                         All
                                     </span>
                                 </li>
-                                {ALL_FILTER_OPTIONS.map((option) => {
-                                    const isActive = R.isDeepEqual(
-                                        selectedFilter,
-                                        option.filter
-                                    )
-                                    const isDisabled = disabledFilters.has(
-                                        encodeFilter(option.filter)
+                                {LATEST_TYPE_OPTIONS.map((option) => {
+                                    const isActive =
+                                        selectedType === option.value
+                                    const isDisabled = disabledTypes.has(
+                                        option.value
                                     )
                                     return (
                                         <li
-                                            key={encodeFilter(option.filter)}
+                                            key={option.value}
                                             className={cx(
                                                 "latest-topic-facets__content-type-dropdown-item",
                                                 {
@@ -283,10 +282,10 @@ export const LatestTopicFacets = ({
                                                 isDisabled
                                                     ? undefined
                                                     : () => {
-                                                          onFilterChange(
+                                                          onLatestTypeChange(
                                                               isActive
                                                                   ? null
-                                                                  : option.filter
+                                                                  : option.value
                                                           )
                                                           setIsContentTypeDropdownOpen(
                                                               false

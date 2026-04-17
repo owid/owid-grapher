@@ -205,6 +205,7 @@ export {
     DATA_INSIGHTS_INDEX_PAGE_SIZE,
     LATEST_INDEX_PAGE_SIZE,
     type OwidGdoc,
+    type ChronologicalGdoc,
     OwidGdocType,
     ALL_GDOC_TYPES,
     type OwidGdocStickyNavItem,

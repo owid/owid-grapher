@@ -6,6 +6,7 @@ import {
     OwidGdocErrorMessage,
     OwidGdocErrorMessageType,
 } from "@ourworldindata/utils"
+import { ANNOUNCEMENT_LATEST_TYPES } from "@ourworldindata/types"
 import { GdocBase } from "./GdocBase.js"
 import { extractUrl } from "./gdocUtils.js"
 
@@ -41,6 +42,23 @@ export class GdocAnnouncement
                 errors.push({
                     property: "content.cta",
                     message: `An announcement with a top-level {.cta} block must have an empty body. Either remove the body content (and keep the CTA), or remove the {.cta} block (and keep the body).`,
+                    type: OwidGdocErrorMessageType.Error,
+                })
+            }
+        }
+
+        // The kicker drives the announcement's category on /latest. Reject
+        // unrecognized values at publish time so the indexer never has to
+        // guess a fallback.
+        if (this.content.kicker) {
+            if (
+                !(ANNOUNCEMENT_LATEST_TYPES as readonly string[]).includes(
+                    this.content.kicker
+                )
+            ) {
+                errors.push({
+                    property: "content.kicker",
+                    message: `Unrecognized announcement kicker "${this.content.kicker}". Allowed values: ${ANNOUNCEMENT_LATEST_TYPES.join(", ")}.`,
                     type: OwidGdocErrorMessageType.Error,
                 })
             }

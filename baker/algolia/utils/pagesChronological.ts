@@ -7,27 +7,132 @@ import {
     slugify,
 } from "@ourworldindata/utils"
 import {
-    OwidGdocAnnouncementInterface,
-    OwidGdocDataInsightInterface,
-    OwidGdocPostInterface,
+    ANNOUNCEMENT_LATEST_TYPES,
+    ChronologicalGdoc,
+    LatestType,
     PageChronologicalRecord,
     SearchIndexName,
     DbEnrichedImage,
 } from "@ourworldindata/types"
 import { gdocFromJSON } from "../../../db/model/Gdoc/GdocFactory.js"
+import { GdocBase } from "../../../db/model/Gdoc/GdocBase.js"
+import { GdocPost } from "../../../db/model/Gdoc/GdocPost.js"
+import { GdocDataInsight } from "../../../db/model/Gdoc/GdocDataInsight.js"
+import { GdocAnnouncement } from "../../../db/model/Gdoc/GdocAnnouncement.js"
 import { getAlgoliaClient } from "../configureAlgolia.js"
 import { getIndexName } from "../../../site/search/searchClient.js"
 import { ALGOLIA_INDEXING } from "../../../settings/serverSettings.js"
 import { getThumbnailUrl, getExcerptFromGdoc } from "./pages.js"
+import { match, P } from "ts-pattern"
 
 /**
- * The subset of OwidGdoc that ends up indexed on /latest — what
- * `checkIsChronologicalFeedPost` narrows to.
+ * Map an OwidGdocType (the gdoc's class discriminator) to the LatestType
+ * used by /latest's facet pills (the user-facing category filter). The
+ * mapping isn't 1:1: Article and DataInsight pass through, but a single
+ * Announcement gdoc fans out across several LatestTypes ("data-update",
+ * "website-upgrade", "announcement", …) — the bucket is picked from the
+ * gdoc's human-authored `kicker`. Returns `undefined` for gdoc types
+ * that aren't surfaced on /latest (topic pages etc.).
  */
-type ChronologicalGdoc =
-    | OwidGdocPostInterface
-    | OwidGdocDataInsightInterface
-    | OwidGdocAnnouncementInterface
+function deriveLatestType(gdoc: {
+    content: { type?: OwidGdocType; kicker?: string }
+}): LatestType | undefined {
+    switch (gdoc.content.type) {
+        case OwidGdocType.Article:
+        case OwidGdocType.DataInsight:
+            return gdoc.content.type
+        case OwidGdocType.Announcement: {
+            // Tolerate kickers that don't match ANNOUNCEMENT_LATEST_TYPES
+            // exactly — slugifying normalizes legacy pretty-form or
+            // case-drifted kickers ("Data update", "Data Update",
+            // "Announcement") so they still surface under the right
+            // LatestType. The save-side validator
+            // (GdocAnnouncement._validateSubclass) is stricter, so any
+            // re-save ratchets the kicker to the canonical slug form.
+            // Unrecognized kickers fall back to "announcement" and stay
+            // visible on /latest until someone re-saves them.
+            const slug = slugify(gdoc.content.kicker ?? "")
+            if (
+                (ANNOUNCEMENT_LATEST_TYPES as readonly string[]).includes(slug)
+            ) {
+                return slug as LatestType
+            }
+            return "announcement"
+        }
+        default:
+            // topic-page, linear-topic-page: indexed for the atom feed but
+            // hidden from /latest (absent latestType excludes them from
+            // /latest's latestType-facet-based pills).
+            return undefined
+    }
+}
+
+/**
+ * Class-aware variant of `checkIsChronologicalFeedPost`: narrows the
+ * broad return of `gdocFromJSON` to the chronological-feed class
+ * instances. Used (instead of the interface-narrowing predicate from
+ * `@ourworldindata/utils`) by the bulk indexing path below, which needs
+ * the `loadLinkedX(knex)` methods that live on `GdocBase` — the bare
+ * interface union doesn't carry them.
+ */
+function isChronologicalGdocInstance(
+    gdoc: ReturnType<typeof gdocFromJSON>
+): gdoc is GdocPost | GdocDataInsight | GdocAnnouncement {
+    return checkIsChronologicalFeedPost(gdoc)
+}
+
+/**
+ * Load the linked-content fields each chronological gdoc type needs
+ * for indexing. Mirrors the per-type contract enforced by `buildAttachment`
+ * — keep these two functions in sync when adding a new type.
+ *
+ * Takes `ChronologicalGdoc & GdocBase` because we need both the discriminated
+ * `content` shape (from the interface union) and the `loadLinkedX(knex)`
+ * methods (declared on the GdocBase class). Class instances from
+ * `gdocFromJSON` satisfy both.
+ */
+async function loadAttachmentsForChronologicalIndexing(
+    gdoc: ChronologicalGdoc & GdocBase,
+    knex: db.KnexReadonlyTransaction
+): Promise<void> {
+    await match(gdoc)
+        .with({ content: { type: OwidGdocType.Announcement } }, async (g) => {
+            await g.loadLinkedAuthors(knex)
+            await g.loadLinkedCharts(knex)
+            await g.loadLinkedDocuments(knex)
+        })
+        .with({ content: { type: OwidGdocType.Article } }, async (g) => {
+            // Articles with a rich latest-excerpt may contain internal
+            // links that LinkedA resolves via AttachmentsContext.
+            if (g.content["latest-excerpt"]?.length) {
+                await g.loadLinkedCharts(knex)
+                await g.loadLinkedDocuments(knex)
+            }
+        })
+        // DataInsight: intentionally no extra loads — see the DataInsight
+        // branch in `buildAttachment` for the rationale (DI bodies are
+        // image + text by convention, matching the homepage's
+        // `getLatestDataInsights`).
+        .with({ content: { type: OwidGdocType.DataInsight } }, _.noop)
+        // Unreachable under ChronologicalGdoc's runtime invariant; listed
+        // only so TS can verify exhaustiveness — `OwidGdocPostContent.type`
+        // also admits these values and is optional.
+        .with(
+            {
+                content: {
+                    type: P.optional(
+                        P.union(
+                            OwidGdocType.TopicPage,
+                            OwidGdocType.LinearTopicPage,
+                            OwidGdocType.Fragment
+                        )
+                    ),
+                },
+            },
+            _.noop
+        )
+        .exhaustive()
+}
 
 /** Copy linkedCharts / linkedDocuments into the attachment if non-empty. */
 function copyLinkedContentIfPresent(
@@ -44,6 +149,8 @@ function copyLinkedContentIfPresent(
 
 /**
  * Build type-specific attachment fields for a PageChronologicalRecord.
+ * Dispatches on `content.type` so it works both for class instances
+ * (bulk path) and plain objects from `toJSON()` (individual path).
  */
 function buildAttachment(
     gdoc: ChronologicalGdoc
@@ -54,59 +161,82 @@ function buildAttachment(
         attachment.imageMetadata = gdoc.imageMetadata
     }
 
-    // Dispatch on `content.type` (discriminated union) rather than
-    // `instanceof`, so this works both for class instances (bulk path) and
-    // plain DTOs from `toJSON()` (individual path from apiRoutes/gdocs.ts).
-    if (gdoc.content.type === OwidGdocType.DataInsight) {
-        // Include the full body for inline rendering of data insights
-        if (gdoc.content.body) {
-            attachment.body = gdoc.content.body
-        }
-    } else if (gdoc.content.type === OwidGdocType.Article) {
-        if (gdoc.content["featured-image"]) {
-            attachment.featuredImage = gdoc.content["featured-image"]
-        }
-        if (gdoc.content["latest-featured-image"]) {
-            attachment.latestFeaturedImage =
-                gdoc.content["latest-featured-image"]
-        }
-        if (gdoc.content["latest-excerpt"]?.length) {
-            attachment.latestExcerpt = gdoc.content["latest-excerpt"]
-            // Carry linked charts/documents so internal links in the
-            // rich excerpt can resolve via AttachmentsContext.
-            copyLinkedContentIfPresent(attachment, gdoc)
-        }
-    } else if (gdoc.content.type === OwidGdocType.Announcement) {
-        if (gdoc.content.kicker) {
-            // Slugify the kicker to normalize casing discrepancies in
-            // gdocs (e.g. "Data Update" vs "Data update") so that the
-            // filter values in latestFilters.ts can match.
-            enrichment.kicker = slugify(gdoc.content.kicker)
-        }
-        attachment.announcementContent = {
-            body: gdoc.content.body,
-            cta: gdoc.content.cta,
-        }
-        if (gdoc.linkedAuthors?.length) {
-            attachment.linkedAuthors = gdoc.linkedAuthors
-        }
-        // For non-CTA announcements, include linked charts and documents
-        if (!gdoc.content.cta) {
-            copyLinkedContentIfPresent(attachment, gdoc)
-        }
-    }
+    match(gdoc)
+        .with({ content: { type: OwidGdocType.DataInsight } }, (g) => {
+            // Ship the full body for inline rendering on /latest cards. We
+            // deliberately don't ship linkedCharts / linkedDocuments here (and
+            // don't load them in `getPagesChronologicalRecords` either),
+            // mirroring the homepage's `getLatestDataInsights` (db/model/Gdoc/
+            // GdocFactory.ts) which only loads imageMetadata. The editorial
+            // convention is that DI bodies are image + text; chart /
+            // prominent-link / cta blocks would degrade on cards on both
+            // surfaces, but in practice DIs don't author them. Revisit if that
+            // convention starts breaking.
+            if (g.content.body) {
+                attachment.body = g.content.body
+            }
+        })
+        .with({ content: { type: OwidGdocType.Article } }, (g) => {
+            if (g.content["featured-image"]) {
+                attachment.featuredImage = g.content["featured-image"]
+            }
+            if (g.content["latest-featured-image"]) {
+                attachment.latestFeaturedImage =
+                    g.content["latest-featured-image"]
+            }
+            if (g.content["latest-excerpt"]?.length) {
+                attachment.latestExcerpt = g.content["latest-excerpt"]
+                // Carry linked charts/documents so internal links in the
+                // rich excerpt can resolve via AttachmentsContext.
+                copyLinkedContentIfPresent(attachment, g)
+            }
+        })
+        .with({ content: { type: OwidGdocType.Announcement } }, (g) => {
+            attachment.body = g.content.body
+            if (g.content.cta) {
+                attachment.cta = g.content.cta
+            }
+            if (g.linkedAuthors?.length) {
+                attachment.linkedAuthors = g.linkedAuthors
+            }
+            // For non-CTA announcements, include linked charts and documents
+            if (!g.content.cta) {
+                copyLinkedContentIfPresent(attachment, g)
+            }
+        })
+        // Unreachable under ChronologicalGdoc's runtime invariant
+        // (`checkIsChronologicalFeedPost` narrows to Article / DataInsight /
+        // Announcement, all with a defined `type`). Listed only so TS can
+        // verify exhaustiveness — `OwidGdocPostContent.type` also admits
+        // these values and is optional.
+        .with(
+            {
+                content: {
+                    type: P.optional(
+                        P.union(
+                            OwidGdocType.TopicPage,
+                            OwidGdocType.LinearTopicPage,
+                            OwidGdocType.Fragment
+                        )
+                    ),
+                },
+            },
+            _.noop
+        )
+        .exhaustive()
 
     return attachment
 }
 
-function buildChronologicalRecord(
+async function buildChronologicalRecord(
     gdoc: ChronologicalGdoc,
     topicTags: string[],
     cloudflareImagesByFilename: Record<string, DbEnrichedImage>
-): PageChronologicalRecord {
+): Promise<PageChronologicalRecord> {
     const base: PageChronologicalRecord = {
         objectID: gdoc.id,
         type: gdoc.content.type!,
+        latestType: deriveLatestType(gdoc),
         slug: gdoc.slug,
         title: gdoc.content.title || "",
         excerpt: getExcerptFromGdoc(gdoc),
@@ -146,7 +276,7 @@ export async function indexIndividualGdocInChronological(
     )
 
     const indexName = getIndexName(SearchIndexName.PagesChronological)
-    const record = buildChronologicalRecord(
+    const record = await buildChronologicalRecord(
         gdoc,
         topicTags,
         cloudflareImagesByFilename
@@ -218,29 +348,16 @@ export async function getPagesChronologicalRecords(
     // thumbnails.
     const records: PageChronologicalRecord[] = []
     for (const gdoc of gdocs) {
-        if (gdoc.content.type === OwidGdocType.Announcement) {
-            await gdoc.loadLinkedAuthors(knex)
-            await gdoc.loadLinkedCharts(knex)
-            await gdoc.loadLinkedDocuments(knex)
-        }
-        // Articles with a rich latest-excerpt may contain internal links that
-        // LinkedA resolves via AttachmentsContext.
-        if (
-            gdoc.content.type === OwidGdocType.Article &&
-            gdoc.content["latest-excerpt"]?.length
-        ) {
-            await gdoc.loadLinkedCharts(knex)
-            await gdoc.loadLinkedDocuments(knex)
-        }
+        // Narrow to a chronological class instance (carries the
+        // `loadLinkedX` methods); other types from the DB query
+        // (LinearTopicPage, TopicPage) are skipped.
+        if (!isChronologicalGdocInstance(gdoc)) continue
+
+        await loadAttachmentsForChronologicalIndexing(gdoc, knex)
         gdoc.imageMetadata = _.pick(
             cloudflareImagesByFilename,
             gdoc.linkedImageFilenames
         )
-
-        // The DB query already filtered to chronological-eligible types, so
-        // this guard is effectively a TypeScript narrowing hatch to convert
-        // `gdocFromJSON`'s broad union into `ChronologicalGdoc`.
-        if (!checkIsChronologicalFeedPost(gdoc)) continue
 
         const originalTagNames = gdoc.tags?.map((t) => t.name) ?? []
         const topicTags = getUniqueNamesFromTagHierarchies(
@@ -249,7 +366,7 @@ export async function getPagesChronologicalRecords(
         )
 
         records.push(
-            buildChronologicalRecord(
+            await buildChronologicalRecord(
                 gdoc,
                 topicTags,
                 cloudflareImagesByFilename

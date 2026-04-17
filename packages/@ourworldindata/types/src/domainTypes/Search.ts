@@ -37,6 +37,30 @@ export const PagesIndexRecordSchema = z.object({
 
 export type PageRecord = z.infer<typeof PagesIndexRecordSchema>
 
+/**
+ * The flat content-category dimension used by /latest. For articles and
+ * data insights this mirrors the gdoc type; for announcements it reflects
+ * the (slugified) kicker. Absent for gdoc types that are indexed but not
+ * shown on /latest (topic pages, linear topic pages).
+ */
+export const LATEST_TYPE_VALUES = [
+    "article",
+    "data-insight",
+    "data-update",
+    "website-upgrade",
+    "announcement",
+] as const
+export type LatestType = (typeof LATEST_TYPE_VALUES)[number]
+
+// Subset of LATEST_TYPE_VALUES that announcement gdocs can map to via their
+// (slugified) kicker. Validated upstream in GdocAnnouncement._validateSubclass
+// so unrecognized kickers can't reach a published announcement.
+export const ANNOUNCEMENT_LATEST_TYPES = [
+    "data-update",
+    "website-upgrade",
+    "announcement",
+] as const satisfies readonly LatestType[]
+
 // Lightweight record for the chronological pages index (one per page, no chunked content)
 export type PageChronologicalRecord = {
     objectID: string
@@ -49,10 +73,13 @@ export type PageChronologicalRecord = {
     authors: string[]
     tags: string[]
     thumbnailUrl: string
-    // Announcement kicker value — top-level for Algolia faceting
-    kicker?: string
+    // Drives /latest's type filter pill (data-insight / article /
+    // data-update / website-upgrade / announcement) and the per-card
+    // kicker. Undefined for topic / linear-topic pages, which are
+    // indexed only for the atom feed and never shown on /latest.
+    latestType?: LatestType
     // Type-specific attachment fields for card rendering
-    // DataInsight: body blocks for inline rendering
+    // DataInsight + Announcement: body blocks for inline card rendering
     body?: OwidEnrichedGdocBlock[]
     // Article: featured image filename (looked up in imageMetadata by <Image>)
     featuredImage?: string
@@ -62,11 +89,8 @@ export type PageChronologicalRecord = {
     latestExcerpt?: OwidEnrichedGdocBlock[]
     // Image metadata keyed by filename (all types that display images)
     imageMetadata?: Record<string, ImageMetadata>
-    // Announcement: content fields for AnnouncementPageContent rendering
-    announcementContent?: {
-        body: OwidEnrichedGdocBlock[]
-        cta?: { text: string; url: string }
-    }
+    // Announcement: optional call-to-action button shown alongside the body
+    cta?: { text: string; url: string }
     // Announcement: linked authors for byline rendering
     linkedAuthors?: LinkedAuthor[]
     // Articles (with latestExcerpt) and non-CTA announcements: linked

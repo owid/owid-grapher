@@ -1,66 +1,18 @@
-import { OwidGdocType } from "@ourworldindata/types"
+import { LATEST_TYPE_VALUES, LatestType } from "@ourworldindata/types"
 
-/**
- * A filter on the Latest page can be either a gdoc type (e.g. "article",
- * "data-insight") or an announcement kicker value (e.g. "Data updates",
- * "Website update"). Type-based filters go to Algolia's `type` facet;
- * kicker-based filters use `type:announcement AND kicker:"…"`.
- */
-export type LatestFilter =
-    | { kind: "type"; value: OwidGdocType }
-    | { kind: "kicker"; value: string }
-
-const TYPE_FILTER_OPTIONS: { filter: LatestFilter; label: string }[] = [
-    {
-        filter: { kind: "type", value: OwidGdocType.DataInsight },
-        label: "Data Insights",
-    },
-    {
-        filter: { kind: "type", value: OwidGdocType.Article },
-        label: "Articles",
-    },
+/** Options shown in the "Filter by type" dropdown on /latest, in display order. */
+export const LATEST_TYPE_OPTIONS: { value: LatestType; label: string }[] = [
+    { value: "data-insight", label: "Data Insights" },
+    { value: "article", label: "Articles" },
+    { value: "data-update", label: "Data updates" },
+    { value: "website-upgrade", label: "Website upgrades" },
+    { value: "announcement", label: "Announcements" },
 ]
 
-const KICKER_FILTER_OPTIONS: { filter: LatestFilter; label: string }[] = [
-    {
-        filter: { kind: "kicker", value: "data-update" },
-        label: "Data updates",
-    },
-    {
-        filter: { kind: "kicker", value: "website-upgrade" },
-        label: "Website upgrades",
-    },
-    {
-        filter: { kind: "kicker", value: "announcement" },
-        label: "Announcements",
-    },
-]
-
-export const ALL_FILTER_OPTIONS = [
-    ...TYPE_FILTER_OPTIONS,
-    ...KICKER_FILTER_OPTIONS,
-]
-
-/** Encode a LatestFilter for the URL query string `type` param. */
-export function encodeFilter(filter: LatestFilter): string {
-    if (filter.kind === "type") return filter.value
-    return `kicker:${filter.value}`
-}
-
-/** Decode a URL query string `type` param back to a LatestFilter or null. */
-export function decodeFilter(param: string | null): LatestFilter | null {
+/** Decode the URL query `?type=` param back to a LatestType or null. */
+export function decodeLatestType(param: string | null): LatestType | null {
     if (!param) return null
-    if (param.startsWith("kicker:")) {
-        const value = param.slice("kicker:".length)
-        return value ? { kind: "kicker", value } : null
-    }
-    // Check if it's a valid gdoc type for the latest page
-    const validTypes: string[] = [
-        OwidGdocType.Article,
-        OwidGdocType.DataInsight,
-    ]
-    if (validTypes.includes(param)) {
-        return { kind: "type", value: param as OwidGdocType }
-    }
-    return null
+    return (LATEST_TYPE_VALUES as readonly string[]).includes(param)
+        ? (param as LatestType)
+        : null
 }

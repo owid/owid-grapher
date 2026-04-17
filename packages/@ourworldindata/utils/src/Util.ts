@@ -21,6 +21,7 @@ import {
     type EnrichedHybridLink,
     type OwidGdocPostInterface,
     type OwidGdocDataInsightInterface,
+    type ChronologicalGdoc,
     type OwidGdocAuthorInterface,
     type OwidGdoc,
     OwidGdocType,
@@ -46,7 +47,6 @@ import {
     FEATURED_DATA_INSIGHTS_ID,
     EXPLORE_DATA_SECTION_DEFAULT_TITLE,
     EXPLORE_DATA_SECTION_ID,
-    OwidGdocAnnouncementInterface,
     CHRONOLOGICAL_INDEX_TYPES,
 } from "@ourworldindata/types"
 import { Point, PointVector } from "./PointVector.js"
@@ -2028,10 +2028,7 @@ export function checkIsHomepage(
  */
 export function checkIsChronologicalFeedPost(gdoc: {
     content: { type?: OwidGdocType }
-}): gdoc is
-    | OwidGdocPostInterface
-    | OwidGdocDataInsightInterface
-    | OwidGdocAnnouncementInterface {
+}): gdoc is ChronologicalGdoc {
     return CHRONOLOGICAL_INDEX_TYPES.has(gdoc.content.type as string)
 }
 

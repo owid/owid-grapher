@@ -379,6 +379,21 @@ export type OwidGdoc =
     | OwidGdocAnnouncementInterface
     | OwidGdocProfileInterface
 
+/**
+ * The subset of OwidGdoc that is indexed in the `pages-chronological` Algolia
+ * index, and so is eligible to appear on:
+ *   - the `/latest` SPA feed (filterable by topic and type), and
+ *   - the dynamic `/atom.xml` feed served by a Cloudflare Function when called
+ *     with `?topics=` or `?type=` query params (the bare `/atom.xml` URL is
+ *     served from the static bake instead).
+ *
+ * Matches the narrowing performed by `checkIsChronologicalFeedPost`.
+ */
+export type ChronologicalGdoc =
+    | OwidGdocPostInterface
+    | OwidGdocDataInsightInterface
+    | OwidGdocAnnouncementInterface
+
 export enum OwidGdocErrorMessageType {
     Error = "error",
     Warning = "warning",

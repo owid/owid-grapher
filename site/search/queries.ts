@@ -14,6 +14,7 @@ import {
     StackedArticleHit,
     TopicPageHit,
     FilterType,
+    LatestType,
     SearchFlatArticleResponse,
     SearchProfileResponse,
     ProfileHit,
@@ -62,17 +63,12 @@ export const searchQueryKeys = {
 } as const
 
 export const latestPagesQueryKey = {
-    latestPages: (
-        topics: string[],
-        contentType: string | null,
-        kicker: string | null
-    ) =>
+    latestPages: (topics: string[], latestType: LatestType | null) =>
         [
             PAGES_CHRONOLOGICAL_INDEX,
             "latest",
             topics.length > 0 ? topics.sort().join("~") : "all",
-            contentType ?? "all",
-            kicker ?? "all",
+            latestType ?? "all",
         ] as const,
 } as const
 
@@ -384,16 +380,18 @@ export async function queryProfiles(
 
 export interface LatestPagesResult {
     response: SearchResponse<PageChronologicalRecord>
-    /** Tag facet counts filtered by the active type/kicker, disjunctive on topics.
-     *  Used to determine which topics to show/disable in the dropdown. */
+    /** Tag facet counts filtered by the active type, disjunctive on topics.
+     *  Used to determine which topic pills to disable. */
     tagFacetCounts: Record<string, number>
-    /** Type facet counts filtered by topics only (no type/kicker filter).
-     *  Used to determine which type pills to disable. */
-    typeFacetCounts: Record<string, number>
-    /** Kicker facet counts filtered by topics only (no type/kicker filter).
-     *  Used to determine which kicker pills to disable. */
-    kickerFacetCounts: Record<string, number>
+    /** latestType facet counts filtered by topics only (no type filter).
+     *  Used to determine which type options in the "Filter by type"
+     *  dropdown to disable. */
+    latestTypeFacetCounts: Record<string, number>
 }
+
+// The gdoc-type guard that excludes topic pages and linear topic pages
+// (indexed for the atom feed but hidden from /latest).
+const LATEST_BASE_FILTER = `type:${OwidGdocType.Article} OR type:${OwidGdocType.DataInsight} OR type:${OwidGdocType.Announcement}`
 
 // Issues three searches in a single batched `liteSearchClient.search([...])`
 // call (one network round-trip): the paginated card list plus per-axis facet
@@ -409,56 +407,45 @@ export async function queryLatestPages(
     topics: string[],
     offset: number,
     length: number,
-    contentType: string | null = null,
-    kicker: string | null = null
+    latestType: LatestType | null = null
 ): Promise<LatestPagesResult> {
     // Each axis lives in its own `facetFilters` group so queries can include
     // or omit it independently. Multiple topics are OR'd within their group.
     const topicFacetFilters: string[][] =
         topics.length > 0 ? [topics.map((t) => "tags:" + t)] : []
-
-    let filters: string
-    if (kicker) {
-        filters = `type:${OwidGdocType.Announcement} AND kicker:"${kicker}"`
-    } else if (contentType) {
-        filters = `type:${contentType}`
-    } else {
-        filters = `type:${OwidGdocType.Article} OR type:${OwidGdocType.DataInsight} OR type:${OwidGdocType.Announcement}`
-    }
-
-    const baseFilter = `type:${OwidGdocType.Article} OR type:${OwidGdocType.DataInsight} OR type:${OwidGdocType.Announcement}`
+    const typeFacetFilter: string[][] = latestType
+        ? [[`latestType:${latestType}`]]
+        : []
 
     const searchParams = [
-        // Query 1: paginated results (filtered by the active pill and
-        // selected topics)
+        // Query 1: paginated cards (apply both user filters)
         {
             indexName: PAGES_CHRONOLOGICAL_INDEX,
             query: "",
-            filters,
-            facetFilters: topicFacetFilters,
+            filters: LATEST_BASE_FILTER,
+            facetFilters: [...topicFacetFilters, ...typeFacetFilter],
             offset,
             length,
-            facets: ["tags"],
         },
-        // Query 2: type/kicker facet counts filtered by topics only (no
-        // type/kicker filter) for pill disabling. Pills are mutually exclusive,
-        // so the active pill should not affect which other pills are enabled.
+        // Query 2: latestType counts under topic selection (drop type
+        // filter) — drives disabling of type options in the "Filter by
+        // type" dropdown.
         {
             indexName: PAGES_CHRONOLOGICAL_INDEX,
             query: "",
-            filters: baseFilter,
+            filters: LATEST_BASE_FILTER,
             facetFilters: topicFacetFilters,
             offset: 0,
             length: 0,
-            facets: ["type", "kicker"],
+            facets: ["latestType"],
         },
-        // Query 3: tag facet counts filtered by the active pill only (no
-        // topic filter) for topic disabling. Topics are disjunctive (OR),
-        // so selected topics should not affect which other topics are enabled.
+        // Query 3: tag counts under type selection (drop topic filter) —
+        // drives disabling of topic pills.
         {
             indexName: PAGES_CHRONOLOGICAL_INDEX,
             query: "",
-            filters,
+            filters: LATEST_BASE_FILTER,
+            facetFilters: typeFacetFilter,
             offset: 0,
             length: 0,
             facets: ["tags"],
@@ -470,15 +457,14 @@ export async function queryLatestPages(
         .then((response) => {
             const mainResult = response
                 .results[0] as SearchResponse<PageChronologicalRecord>
-            const pillResult = response
+            const typeResult = response
                 .results[1] as SearchResponse<PageChronologicalRecord>
             const topicResult = response
                 .results[2] as SearchResponse<PageChronologicalRecord>
             return {
                 response: mainResult,
                 tagFacetCounts: topicResult.facets?.tags ?? {},
-                typeFacetCounts: pillResult.facets?.type ?? {},
-                kickerFacetCounts: pillResult.facets?.kicker ?? {},
+                latestTypeFacetCounts: typeResult.facets?.latestType ?? {},
             }
         })
 }

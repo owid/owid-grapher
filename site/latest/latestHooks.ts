@@ -5,25 +5,23 @@ import {
     queryLatestPages,
     LatestPagesResult,
 } from "../search/queries.js"
-import type { PageChronologicalRecord } from "@ourworldindata/types"
+import type { LatestType, PageChronologicalRecord } from "@ourworldindata/types"
 
 const DEFAULT_PAGE_SIZE = 20
 
 export function useInfiniteLatestPages({
     topics,
-    contentType = null,
-    kicker = null,
+    latestType = null,
     liteSearchClient,
     pageSize = DEFAULT_PAGE_SIZE,
 }: {
     topics: string[]
-    contentType?: string | null
-    kicker?: string | null
+    latestType?: LatestType | null
     liteSearchClient: LiteClient
     pageSize?: number
 }) {
     const query = useInfiniteQuery<LatestPagesResult, Error>({
-        queryKey: latestPagesQueryKey.latestPages(topics, contentType, kicker),
+        queryKey: latestPagesQueryKey.latestPages(topics, latestType),
         queryFn: ({ pageParam }) => {
             if (typeof pageParam !== "number")
                 throw new Error("Invalid pageParam")
@@ -34,8 +32,7 @@ export function useInfiniteLatestPages({
                 topics,
                 offset,
                 pageSize,
-                contentType,
-                kicker
+                latestType
             )
         },
         getNextPageParam: (lastPage, allPages) => {
@@ -56,17 +53,14 @@ export function useInfiniteLatestPages({
     const totalResults = query.data?.pages[0]?.response.nbHits || 0
     const tagFacetCounts: Record<string, number> =
         query.data?.pages[0]?.tagFacetCounts || {}
-    const typeFacetCounts: Record<string, number> =
-        query.data?.pages[0]?.typeFacetCounts || {}
-    const kickerFacetCounts: Record<string, number> =
-        query.data?.pages[0]?.kickerFacetCounts || {}
+    const latestTypeFacetCounts: Record<string, number> =
+        query.data?.pages[0]?.latestTypeFacetCounts || {}
 
     return {
         ...query,
         hits,
         totalResults,
         tagFacetCounts,
-        typeFacetCounts,
-        kickerFacetCounts,
+        latestTypeFacetCounts,
     }
 }
