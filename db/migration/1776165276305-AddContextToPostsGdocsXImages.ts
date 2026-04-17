@@ -33,17 +33,15 @@ export class AddContextToPostsGdocsXImages1776165276305 implements MigrationInte
                 AND i.filename != COALESCE(pg.content->>'$."featured-image"', '')
                 AND i.filename != COALESCE(pg.content->>'$."cover-image"', '')
                 -- And does NOT appear as genuine inline body content
+                -- (image/video block, key-insights insight image, chart-rows image,
+                --  pull-chart image, person image, homepage-intro featured work)
                 AND NOT (
-                    JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body') IS NOT NULL
-                    AND JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].primary[*].value.filename') IS NULL
-                    AND JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].secondary[*].value.filename') IS NULL
-                    AND JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].rows[*].articles[*].value.filename') IS NULL
-                    AND JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].more.articles[*].value.filename') IS NULL
-                    AND JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].latest.articles[*].value.filename') IS NULL
-                    AND JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].thumbnail') IS NULL
-                    AND JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].left[*].thumbnail') IS NULL
-                    AND JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].right[*].thumbnail') IS NULL
-                    AND JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].insights[*].content[*].thumbnail') IS NULL
+                    JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].filename') IS NOT NULL
+                    OR JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].smallFilename') IS NOT NULL
+                    OR JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].insights[*].filename') IS NOT NULL
+                    OR JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].featuredWork[*].filename') IS NOT NULL
+                    OR JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].rows[*].image') IS NOT NULL
+                    OR JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].image') IS NOT NULL
                 )
         `)
 
@@ -60,16 +58,12 @@ export class AddContextToPostsGdocsXImages1776165276305 implements MigrationInte
                     OR i.filename = pg.content->>'$."cover-image"'
                 )
                 AND NOT (
-                    JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body') IS NOT NULL
-                    AND JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].primary[*].value.filename') IS NULL
-                    AND JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].secondary[*].value.filename') IS NULL
-                    AND JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].rows[*].articles[*].value.filename') IS NULL
-                    AND JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].more.articles[*].value.filename') IS NULL
-                    AND JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].latest.articles[*].value.filename') IS NULL
-                    AND JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].thumbnail') IS NULL
-                    AND JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].left[*].thumbnail') IS NULL
-                    AND JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].right[*].thumbnail') IS NULL
-                    AND JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].insights[*].content[*].thumbnail') IS NULL
+                    JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].filename') IS NOT NULL
+                    OR JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].smallFilename') IS NOT NULL
+                    OR JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].insights[*].filename') IS NOT NULL
+                    OR JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].featuredWork[*].filename') IS NOT NULL
+                    OR JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].rows[*].image') IS NOT NULL
+                    OR JSON_SEARCH(pg.content, 'one', i.filename, NULL, '$.body[*].image') IS NOT NULL
                 )
         `)
     }
