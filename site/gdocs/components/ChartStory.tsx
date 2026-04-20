@@ -53,7 +53,10 @@ export default function ChartStory({
             </button>
 
             <div className="chart-story__chart span-cols-8">
-                <Chart d={currentSlide.chart} />
+                {/* We use the key to reset the state of multi-dims when they
+                only differ by query params. Consider lifting the state up to
+                avoid re-rendering the whole component. */}
+                <Chart key={currentSlide.chart.url} d={currentSlide.chart} />
             </div>
             {showDetails ? (
                 <>
