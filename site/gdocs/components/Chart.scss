@@ -2,6 +2,10 @@ figure.chart:not(.grapherPreview) {
     height: $grapher-height;
 }
 
+html.js-disabled figure.chart.GrapherWithFallback__fallback {
+    height: auto;
+}
+
 figure.explorer {
     height: 700px;
 }

@@ -1,4 +1,4 @@
-import { GRAPHER_PREVIEW_CLASS } from "@ourworldindata/types"
+import { HIDE_IF_JS_ENABLED_CLASSNAME } from "@ourworldindata/types"
 import { GrapherFigureView } from "./GrapherFigureView.js"
 import cx from "classnames"
 import GrapherImage from "./GrapherImage.js"
@@ -19,9 +19,7 @@ export interface GrapherWithFallbackProps {
     isPreviewing?: boolean
 }
 
-export function GrapherWithFallback(
-    props: GrapherWithFallbackProps
-): React.ReactElement {
+export function GrapherWithFallback(props: GrapherWithFallbackProps) {
     const { slug, className, id, config, queryStr, isPreviewing } = props
 
     if (!slug && !props.configUrl) {
@@ -31,35 +29,10 @@ export function GrapherWithFallback(
     }
 
     const isClient = useIsClient()
-    const { ref, isIntersecting: hasBeenVisible } = useIntersectionObserver({
+    const { ref, isIntersecting: shouldLoadGrapher } = useIntersectionObserver({
         rootMargin: "400px",
-        // Only trigger once
         freezeOnceVisible: true,
     })
-
-    // Render fallback png when javascript disabled or while
-    // grapher is loading
-    const imageFallback = (
-        <figure
-            className={cx(
-                GRAPHER_PREVIEW_CLASS,
-                "GrapherWithFallback__fallback"
-            )}
-        >
-            {props.configUrl ? (
-                <GrapherImage
-                    url={props.configUrl}
-                    enablePopulatingUrlParams={props.enablePopulatingUrlParams}
-                />
-            ) : (
-                <GrapherImage
-                    slug={slug!}
-                    queryString={queryStr}
-                    enablePopulatingUrlParams={props.enablePopulatingUrlParams}
-                />
-            )}
-        </figure>
-    )
 
     return (
         <div
@@ -71,9 +44,7 @@ export function GrapherWithFallback(
             id={id}
             ref={ref}
         >
-            {!isClient ? (
-                imageFallback
-            ) : hasBeenVisible ? (
+            {isClient && shouldLoadGrapher ? (
                 <GrapherFigureView
                     slug={slug}
                     configUrl={props.configUrl}
@@ -85,8 +56,34 @@ export function GrapherWithFallback(
                     isPreviewing={isPreviewing}
                 />
             ) : (
-                // Optional loading placeholder while waiting to come into view
-                imageFallback
+                <figure
+                    className={cx(
+                        "chart",
+                        "GrapherWithFallback__fallback",
+                        className
+                    )}
+                    aria-hidden={isClient}
+                >
+                    {!isClient &&
+                        (props.configUrl ? (
+                            <GrapherImage
+                                className={HIDE_IF_JS_ENABLED_CLASSNAME}
+                                url={props.configUrl}
+                                enablePopulatingUrlParams={
+                                    props.enablePopulatingUrlParams
+                                }
+                            />
+                        ) : (
+                            <GrapherImage
+                                className={HIDE_IF_JS_ENABLED_CLASSNAME}
+                                slug={slug!}
+                                queryString={queryStr}
+                                enablePopulatingUrlParams={
+                                    props.enablePopulatingUrlParams
+                                }
+                            />
+                        ))}
+                </figure>
             )}
         </div>
     )

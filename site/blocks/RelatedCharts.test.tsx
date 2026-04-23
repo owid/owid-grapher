@@ -3,7 +3,7 @@
  */
 
 import { expect, it } from "vitest"
-import { render, screen, fireEvent, getByRole } from "@testing-library/react"
+import { render, screen, fireEvent } from "@testing-library/react"
 import { GRAPHER_DYNAMIC_THUMBNAIL_URL } from "../../settings/clientSettings.js"
 import { KeyChartLevel } from "@ourworldindata/utils"
 import { RelatedCharts } from "./RelatedCharts.js"
@@ -42,23 +42,10 @@ it("renders active chart links and loads respective chart on click", () => {
     expect(links).toHaveLength(2)
 
     links.forEach((link, i) => {
-        // Chart 2 has a higher priority, so the charts should be in reverse order: `Chart 2, Chart 1`
-        const expectedChartIdx = 1 - i
         fireEvent.click(link)
-
         expect(screen.getByText(`Chart ${i + 1} of 2`)).toBeTruthy()
-
-        // The GrapherWithFallback component might not be rendered immediately
-        // or might be rendered with a different class name
-        const grapher = screen.getByRole("figure")
-        const img = getByRole(grapher, "img")
-        expect(img).toBeTruthy()
-
-        // Check if the slug is in the src attribute or data attributes
-        const src =
-            img.getAttribute("data-grapher-src") || img.getAttribute("src")
-
-        expect(src).toContain(charts[expectedChartIdx].slug)
+        expect(listItems[i].classList.contains("active")).toBe(true)
+        expect(document.getElementById(`related-chart-${i}`)).toBeTruthy()
     })
 
     expect(

@@ -57,6 +57,10 @@
     height: $grapher-height;
 }
 
+html.js-disabled .article-content figure.GrapherWithFallback__fallback {
+    height: auto;
+}
+
 figure[data-explorer-src] {
     position: relative;
 }

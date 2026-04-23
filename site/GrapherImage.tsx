@@ -27,12 +27,14 @@ function GrapherImageSource({
 }
 
 export default function GrapherImage(props: {
+    className?: string
     url: string
     alt?: string
     noFormatting?: boolean
     enablePopulatingUrlParams?: boolean
 }): React.ReactElement
 export default function GrapherImage(props: {
+    className?: string
     slug: string
     queryString?: string
     alt?: string
@@ -40,6 +42,7 @@ export default function GrapherImage(props: {
     enablePopulatingUrlParams?: boolean
 }): React.ReactElement
 export default function GrapherImage(props: {
+    className?: string
     url?: string
     slug?: string
     queryString?: string
@@ -63,6 +66,7 @@ export default function GrapherImage(props: {
     const defaultSrc = `${GRAPHER_DYNAMIC_THUMBNAIL_URL}/${slug}.png${queryString}`
     return (
         <picture
+            className={props.className}
             // This tells our Cloudflare functions to replace the src with the dynamic thumbnail URL, including URL params like `?time=2020`.
             // Enabling this option only makes sense if this is the _main_ chart on a _standalone_ grapher/data page - it will pass on the URL params from the page to the thumbnail.
             data-owid-populate-url-params={props.enablePopulatingUrlParams}
