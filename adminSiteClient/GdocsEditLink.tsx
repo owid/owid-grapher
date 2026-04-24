@@ -75,16 +75,33 @@ export const GdocsEditLink = ({
                 </Tooltip>
             )
         }
+        const vscodeUrl = `vscode://file/${absPath}`
         return (
-            <Tooltip title={`Opens ${relPath} in Claude Code`}>
-                <a href={claudeUrl} style={style} className="gdoc-edit-link">
-                    Edit in Claude
-                    <FontAwesomeIcon
-                        style={{ marginLeft: "0.4em" }}
-                        icon={faEdit}
-                    />
-                </a>
-            </Tooltip>
+            <>
+                <Tooltip title={`Opens ${relPath} in Claude Code`}>
+                    <a
+                        href={claudeUrl}
+                        style={style}
+                        className="gdoc-edit-link"
+                    >
+                        Edit in Claude
+                        <FontAwesomeIcon
+                            style={{ marginLeft: "0.4em" }}
+                            icon={faEdit}
+                        />
+                    </a>
+                </Tooltip>
+                <span style={{ color: "#aaa", margin: "0 0.4em" }}>|</span>
+                <Tooltip title={`Opens ${relPath} in VS Code`}>
+                    <a
+                        href={vscodeUrl}
+                        style={style}
+                        className="gdoc-edit-link"
+                    >
+                        VS Code
+                    </a>
+                </Tooltip>
+            </>
         )
     }
     return (
