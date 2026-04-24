@@ -33,51 +33,33 @@ export const GdocsEditLink = ({
             relPath && CONTENT_REPO_PATH
                 ? `${CONTENT_REPO_PATH.replace(/\/$/, "")}/${relPath}`
                 : null
-        // Opens a Claude Code session in the content repo. `code/new` doesn't
-        // accept a `file` param (unlike cowork/new), so we hand the file to the
-        // agent via the prompt — Claude Code has the preview panel we want
-        // authors to get, which the cowork surface doesn't. See
+        // Opens a Claude Code session scoped to the content repo. `code/new`
+        // doesn't accept a `file` parameter, so the file path is threaded into
+        // the prompt. Claude Code is chosen over cowork because it has the
+        // preview panel authors use for the edit-refresh loop. See
         // https://support.claude.com/en/articles/14729294-open-claude-desktop-with-a-link
-        const claudeUrl = absPath
-            ? `claude://code/new?folder=${encodeURIComponent(CONTENT_REPO_PATH!)}&q=${encodeURIComponent(
-                  `Open ${relPath} and help me edit it. Use the owid-content skill; consult the component registry before suggesting ArchieML.`
-              )}`
-            : null
-        const copyPath = async () => {
-            const toCopy = absPath ?? relPath
-            if (!toCopy) return
-            try {
-                await navigator.clipboard.writeText(toCopy)
-                void message.success(`Copied: ${toCopy}`)
-            } catch {
-                void message.error("Copy failed")
+        const claudeUrl =
+            absPath && relPath
+                ? `claude://code/new?folder=${encodeURIComponent(CONTENT_REPO_PATH!)}&q=${encodeURIComponent(
+                      `Open ${relPath} and help me edit it. Use the owid-content skill; consult the component registry before suggesting ArchieML.`
+                  )}`
+                : null
+        // Fallback if CONTENT_REPO_PATH isn't configured on the client: show
+        // the relative path with a copy-to-clipboard action so the author can
+        // paste it into their editor of choice.
+        if (!claudeUrl) {
+            const copyPath = async () => {
+                if (!relPath) return
+                try {
+                    await navigator.clipboard.writeText(relPath)
+                    void message.success(`Copied: ${relPath}`)
+                } catch {
+                    void message.error("Copy failed")
+                }
             }
-        }
-        return (
-            <>
-                {claudeUrl && (
-                    <Tooltip title="Open this file in Claude Desktop">
-                        <a
-                            href={claudeUrl}
-                            style={style}
-                            className="gdoc-edit-link"
-                        >
-                            <FontAwesomeIcon
-                                style={{ marginRight: "0.4em" }}
-                                icon={faEdit}
-                            />
-                            Edit in Claude
-                        </a>
-                    </Tooltip>
-                )}
+            return (
                 <Tooltip
-                    title={
-                        absPath
-                            ? `Click to copy ${absPath}`
-                            : relPath
-                              ? `Click to copy ${relPath}`
-                              : "File-backed"
-                    }
+                    title={relPath ? `Click to copy ${relPath}` : "File-backed"}
                 >
                     <a
                         onClick={copyPath}
@@ -88,10 +70,21 @@ export const GdocsEditLink = ({
                             style={{ marginRight: "0.4em" }}
                             icon={faFileCode}
                         />
-                        {relPath ?? "File"}
+                        File
                     </a>
                 </Tooltip>
-            </>
+            )
+        }
+        return (
+            <Tooltip title={`Opens ${relPath} in Claude Code`}>
+                <a href={claudeUrl} style={style} className="gdoc-edit-link">
+                    Edit in Claude
+                    <FontAwesomeIcon
+                        style={{ marginLeft: "0.4em" }}
+                        icon={faEdit}
+                    />
+                </a>
+            </Tooltip>
         )
     }
     return (
