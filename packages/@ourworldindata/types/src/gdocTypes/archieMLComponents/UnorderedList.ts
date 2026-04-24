@@ -12,6 +12,14 @@ export type RawBlockList = {
     value: string[] | ArchieMLUnexpectedNonObjectValue
 }
 
+/**
+ * An unordered (bulleted) list. Produced automatically from Google Docs
+ * bullet formatting — authors don't usually write this block explicitly
+ * in ArchieML. Nested lists are not supported.
+ *
+ * @owid-component list
+ * @owid-title Unordered List
+ */
 export type EnrichedBlockList = {
     type: "list"
     items: EnrichedBlockText[]
