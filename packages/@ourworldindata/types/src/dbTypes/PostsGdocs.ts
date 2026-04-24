@@ -1,6 +1,7 @@
 import { BreadcrumbItem } from "../domainTypes/Site.js"
 import { JsonString } from "../domainTypes/Various.js"
 import {
+    GdocStorageSource,
     OwidGdocContent,
     OwidGdocPublicationContext,
     OwidGdocType,
@@ -18,6 +19,7 @@ export interface DbInsertPostGdoc {
     publishedAt?: Date | null
     revisionId?: string | null
     slug: string
+    source?: GdocStorageSource
 }
 export type DbRawPostGdoc = Required<DbInsertPostGdoc> & {
     type?: OwidGdocType

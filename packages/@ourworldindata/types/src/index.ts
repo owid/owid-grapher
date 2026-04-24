@@ -219,6 +219,7 @@ export {
     type EnrichedFaq,
     type DetailDictionary,
     GdocsContentSource,
+    type GdocStorageSource,
     type LatestDataInsight,
     type LinkedAuthor,
     type LinkedChart,

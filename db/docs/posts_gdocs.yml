@@ -52,3 +52,11 @@ fields:
     description: Custom breadcrumb navigation overrides
   markdown:
     description: Post content converted to Markdown format
+  source:
+      description: |
+          Where this gdoc's authoritative content lives. One of:
+          - 'gdocs' (default): Google Docs. Fetched via the Google API.
+          - 'file': local content repo. Fetched by reading a file named
+            "*--<first-12-chars-of-id>*.md" under CONTENT_REPO_PATH.
+          Controls which branch loadGdocFromGdocBase takes when
+          contentSource=Gdocs is passed.

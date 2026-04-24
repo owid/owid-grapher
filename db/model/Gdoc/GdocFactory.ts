@@ -454,9 +454,30 @@ export async function loadGdocFromGdocBase(
         .with(OwidGdocType.Profile, () => GdocProfile.create(base))
         .exhaustive()
 
-    if (contentSource === GdocsContentSource.Gdocs) {
+    // Resolve which source to fetch from:
+    // - Gdocs: existing behavior; fetch from Google
+    // - File:  read from the local content-repo file
+    // - Internal / undefined: skip source fetch and use the DB row's content
+    // When the caller passes Gdocs but the gdoc's stored source is "file", we
+    // route to the file path so callers (e.g. the admin client) don't need to
+    // discover the source ahead of time.
+    const resolvedSource = match(contentSource)
+        .with(GdocsContentSource.File, () => GdocsContentSource.File)
+        .with(GdocsContentSource.Gdocs, () =>
+            base.source === GdocsContentSource.File
+                ? GdocsContentSource.File
+                : GdocsContentSource.Gdocs
+        )
+        .otherwise(() => undefined)
+
+    if (resolvedSource === GdocsContentSource.Gdocs) {
         // TODO: if we get here via fromJSON then we have already done this - optimize that?
         await gdoc.fetchAndEnrichGdoc(acceptSuggestions)
+    } else if (resolvedSource === GdocsContentSource.File) {
+        await gdoc.fetchFromFile()
+    }
+
+    if (resolvedSource !== undefined) {
         const updatedType = _.get(gdoc, "content.type") as unknown
         if (!checkIsOwidGdocType(updatedType)) {
             throw new Error(
@@ -705,6 +726,7 @@ export function getDbEnrichedGdocFromOwidGdoc(
         publishedAt: gdoc.publishedAt,
         revisionId: gdoc.revisionId,
         slug: gdoc.slug,
+        source: gdoc.source,
         updatedAt: gdoc.updatedAt,
     } satisfies DbEnrichedPostGdoc
     return enrichedGdoc

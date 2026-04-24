@@ -97,6 +97,13 @@ export const GDOCS_CLIENT_ID: string = serverSettings.GDOCS_CLIENT_ID ?? ""
 export const GDOCS_BACKPORTING_TARGET_FOLDER: string =
     serverSettings.GDOCS_BACKPORTING_TARGET_FOLDER ?? ""
 
+// When set, GdocBase.fetchAndEnrichGdoc reads ArchieML from a matching file
+// in this directory instead of hitting the Google Docs API. Files are matched
+// by filename pattern "*--<first-12-chars-of-gdocId>*.md". If no matching file
+// is found, we fall back to the Google Docs fetch.
+export const CONTENT_REPO_PATH: string | undefined =
+    serverSettings.CONTENT_REPO_PATH || undefined
+
 export const GDOCS_DONATE_FAQS_DOCUMENT_ID: string =
     serverSettings.GDOCS_DONATE_FAQS_DOCUMENT_ID ?? ""
 

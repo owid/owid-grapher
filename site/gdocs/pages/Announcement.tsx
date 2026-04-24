@@ -7,7 +7,7 @@ type AnnouncementProps = {
     className?: string
 } & Omit<
     OwidGdocAnnouncementInterface,
-    "contentMd5" | "markdown" | "publicationContext" | "revisionId"
+    "contentMd5" | "markdown" | "publicationContext" | "revisionId" | "source"
 >
 
 export const AnnouncementPage = ({

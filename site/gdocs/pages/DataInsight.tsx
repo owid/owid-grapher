@@ -247,7 +247,7 @@ type DataInsightProps = {
     className?: string
 } & Omit<
     OwidGdocDataInsightInterface,
-    "contentMd5" | "markdown" | "publicationContext" | "revisionId"
+    "contentMd5" | "markdown" | "publicationContext" | "revisionId" | "source"
 >
 
 export const DataInsightPage = (

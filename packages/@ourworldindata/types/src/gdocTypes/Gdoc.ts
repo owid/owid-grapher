@@ -138,6 +138,11 @@ export interface OwidGdocBaseInterface {
     updatedAt: Date
     revisionId: string | null
     publicationContext: OwidGdocPublicationContext
+    // Where this gdoc's content lives: a Google Doc ("gdocs") or a file in the
+    // local content repo ("file"). Controls which fetch path
+    // loadGdocFromGdocBase takes. The DB column is NOT NULL with a default of
+    // "gdocs", so every persisted gdoc has a value.
+    source: GdocStorageSource
     manualBreadcrumbs: BreadcrumbItem[] | null
     linkedAuthors?: LinkedAuthor[]
     linkedDocuments?: Record<string, OwidGdocMinimalPostInterface>
@@ -543,7 +548,15 @@ export type GdocsPatch = Partial<OwidGdocPostInterface>
 export enum GdocsContentSource {
     Internal = "internal",
     Gdocs = "gdocs",
+    File = "file",
 }
+
+// Subset of GdocsContentSource values that can be persisted in
+// posts_gdocs.source — i.e. where a gdoc actually lives. "internal" is a
+// fetch intent, not a storage location, so it's excluded.
+export type GdocStorageSource =
+    | GdocsContentSource.Gdocs
+    | GdocsContentSource.File
 
 export const DYNAMIC_COLLECTION_PAGE_CONTAINER_ID = "dynamic-collection-page"
 

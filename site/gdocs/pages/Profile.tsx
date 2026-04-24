@@ -19,7 +19,7 @@ import { TableOfContents } from "../../TableOfContents.js"
 
 type ProfileProps = Omit<
     OwidGdocProfileInterface,
-    "markdown" | "publicationContext" | "revisionId"
+    "markdown" | "publicationContext" | "revisionId" | "source"
 > & {
     isPreviewing?: boolean
 }

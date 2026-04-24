@@ -12,6 +12,8 @@ import {
     OwidEnrichedGdocBlock,
     Span,
     traverseEnrichedSpan,
+    GdocsContentSource,
+    GdocStorageSource,
     OwidGdocBaseInterface,
     OwidGdocPublicationContext,
     BreadcrumbItem,
@@ -35,6 +37,9 @@ import {
     GRAPHER_DYNAMIC_THUMBNAIL_URL,
     IS_ARCHIVE,
 } from "../../../settings/clientSettings.js"
+import { CONTENT_REPO_PATH } from "../../../settings/serverSettings.js"
+import fs from "node:fs/promises"
+import nodePath from "node:path"
 import { PROD_URL } from "../../../site/SiteConstants.js"
 import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
 import { match, P } from "ts-pattern"
@@ -255,6 +260,26 @@ export async function loadLinkedChartsForSlugs(
     return [...linkedGrapherCharts, ...linkedExplorerCharts]
 }
 
+// Finds a content-repo file matching this gdoc's id (first 12 chars).
+// Returns null if CONTENT_REPO_PATH is unset, the directory is missing, or
+// there's no unambiguous match.
+async function findContentFileForGdoc(gdocId: string): Promise<string | null> {
+    if (!CONTENT_REPO_PATH) return null
+    const shortId = gdocId.slice(0, 12)
+    let entries: string[]
+    try {
+        entries = await fs.readdir(CONTENT_REPO_PATH, { recursive: true })
+    } catch {
+        return null
+    }
+    const needle = `--${shortId}`
+    const matches = entries.filter(
+        (e) => e.endsWith(".md") && e.includes(needle)
+    )
+    if (matches.length !== 1) return null
+    return nodePath.join(CONTENT_REPO_PATH, matches[0])
+}
+
 export class GdocBase implements OwidGdocBaseInterface {
     id!: string
     slug: string = ""
@@ -265,6 +290,7 @@ export class GdocBase implements OwidGdocBaseInterface {
     publishedAt: Date | null = null
     updatedAt: Date = this.createdAt
     revisionId: string | null = null
+    source: GdocStorageSource = GdocsContentSource.Gdocs
     markdown: string | null = null
     publicationContext: OwidGdocPublicationContext =
         OwidGdocPublicationContext.listed
@@ -1064,6 +1090,21 @@ export class GdocBase implements OwidGdocBaseInterface {
         const { text } = await gdocToArchie(normalizedDocument)
 
         // Convert the ArchieML to our enriched JSON structure
+        this.content = archieToEnriched(text, this._enrichSubclassContent)
+    }
+
+    // Counterpart to fetchAndEnrichGdoc for file-backed gdocs: read ArchieML
+    // from the content repo and parse it into this.content. Called when
+    // GdocsContentSource.File is routed through loadGdocFromGdocBase.
+    async fetchFromFile(): Promise<void> {
+        const contentFile = await findContentFileForGdoc(this.id)
+        if (!contentFile) {
+            throw new Error(
+                `No matching content-repo file found for gdoc id "${this.id}". ` +
+                    `Expected a file like "*--${this.id.slice(0, 12)}*.md" under CONTENT_REPO_PATH.`
+            )
+        }
+        const text = await fs.readFile(contentFile, "utf-8")
         this.content = archieToEnriched(text, this._enrichSubclassContent)
     }
 

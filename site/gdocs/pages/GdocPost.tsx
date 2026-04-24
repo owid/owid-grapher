@@ -49,7 +49,7 @@ const citationDescriptionsByArticleType: Record<
 
 type GdocPostProps = Omit<
     OwidGdocPostInterface,
-    "contentMd5" | "markdown" | "publicationContext" | "revisionId"
+    "contentMd5" | "markdown" | "publicationContext" | "revisionId" | "source"
 > & {
     isPreviewing?: boolean
 }

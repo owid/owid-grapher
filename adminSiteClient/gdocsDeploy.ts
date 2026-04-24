@@ -68,6 +68,7 @@ export const checkIsLightningUpdate = (
         published: false, // requires an update of the blog roll
         publishedAt: false, // could require an update of the blog roll
         slug: false, // requires updating any articles that link to it
+        source: true, // storage location; doesn't affect rendered output
     }
 
     const postlightningPropContentConfigMap: Record<
