@@ -13,7 +13,7 @@ import parseArgs from "minimist"
 import fs from "fs-extra"
 import path from "path"
 import pMap from "p-map"
-import { docs as googleDocs, type docs_v1 } from "@googleapis/docs"
+import { docs as googleDocs } from "@googleapis/docs"
 import { GdocsContentSource, PostsGdocsTableName } from "@ourworldindata/types"
 
 import * as db from "../../db/db.js"
@@ -28,6 +28,7 @@ type GdocMeta = {
     id: string
     slug: string | null
     type: string | null
+    source: string | null
 }
 
 function printHelp(): void {
@@ -39,6 +40,7 @@ Usage:
 Options:
     --output <dir>      Output dir (default: ${DEFAULT_OUTPUT}).
     --dry-run           Don't write files.
+    --force             Re-export rows already marked source='file' and overwrite existing files.
     --type <type>       Only gdocs of this type (article, data-insight, ...).
     --id <gdocId>       Only this gdoc.
     --concurrency <n>   Parallel API requests (default: ${DEFAULT_CONCURRENCY}).
@@ -59,7 +61,7 @@ function getFilePath(outputDir: string, meta: GdocMeta): string {
 
 async function main(): Promise<void> {
     const parsed = parseArgs(process.argv.slice(2), {
-        boolean: ["dry-run", "help", "h"],
+        boolean: ["dry-run", "force", "help", "h"],
         string: ["output", "type", "id"],
     })
     if (parsed.h || parsed.help) {
@@ -68,6 +70,7 @@ async function main(): Promise<void> {
     }
     const output = path.resolve(parsed.output ?? DEFAULT_OUTPUT)
     const dryRun = !!parsed["dry-run"]
+    const force = !!parsed.force
     const concurrency = Number(parsed.concurrency ?? DEFAULT_CONCURRENCY)
     if (!Number.isFinite(concurrency) || concurrency <= 0)
         throw new Error("--concurrency must be a positive number")
@@ -79,10 +82,12 @@ async function main(): Promise<void> {
     try {
         let metas: GdocMeta[] = await knex
             .table<GdocMeta>("posts_gdocs")
-            .select("id", "slug", "type")
+            .select("id", "slug", "type", "source")
 
         if (parsed.type) metas = metas.filter((m) => m.type === parsed.type)
         if (parsed.id) metas = metas.filter((m) => m.id === parsed.id)
+        if (!force)
+            metas = metas.filter((m) => m.source !== GdocsContentSource.File)
 
         console.log(
             `${metas.length} gdocs -> ${output}${dryRun ? " (dry-run)" : ""}`
@@ -96,14 +101,19 @@ async function main(): Promise<void> {
             async (meta, idx) => {
                 const label = `${meta.type ?? "?"}/${meta.slug ?? "(no-slug)"}`
                 try {
+                    const filePath = getFilePath(output, meta)
+                    if (!force && !dryRun && (await fs.pathExists(filePath))) {
+                        failed++
+                        console.error(
+                            `[${idx + 1}/${metas.length}] ${label} FAILED: output file already exists at ${filePath}. Re-run with --force to overwrite.`
+                        )
+                        return
+                    }
                     const response = await docs.documents.get({
                         documentId: meta.id,
                         suggestionsViewMode: "PREVIEW_WITHOUT_SUGGESTIONS",
                     })
-                    const { text } = await gdocToArchie(
-                        response.data as docs_v1.Schema$Document
-                    )
-                    const filePath = getFilePath(output, meta)
+                    const { text } = await gdocToArchie(response.data)
                     if (!dryRun) {
                         await fs.ensureDir(path.dirname(filePath))
                         await fs.writeFile(filePath, text)
