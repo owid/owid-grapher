@@ -661,6 +661,7 @@ export class SiteBaker {
     async bakeGDocPosts(knex: db.KnexReadonlyTransaction, slugs?: string[]) {
         if (!this.bakeSteps.has("gdocPosts")) return
         this.progressBar.tick({ name: "Baking Google doc posts" })
+        const slugsToBake = slugs === undefined ? undefined : _.uniq(slugs)
         // We don't need to call `load` on these, because we prefetch all attachments
         const publishedGdocs = await db
             .getPublishedGdocsWithTags(knex)
@@ -670,8 +671,10 @@ export class SiteBaker {
             await db.getTagHierarchiesByChildName(knex)
 
         const gdocsToBake =
-            slugs !== undefined
-                ? publishedGdocs.filter((gdoc) => slugs.includes(gdoc.slug))
+            slugsToBake !== undefined
+                ? publishedGdocs.filter((gdoc) =>
+                      slugsToBake.includes(gdoc.slug)
+                  )
                 : publishedGdocs
 
         const gdocIds = gdocsToBake.map((gdoc) => gdoc.id)
@@ -685,12 +688,12 @@ export class SiteBaker {
                 : {}
 
         // Ensure we have a published gdoc for each slug given
-        if (slugs !== undefined && slugs.length !== gdocsToBake.length) {
-            const slugsNotFound = slugs.filter(
+        if (slugsToBake && slugsToBake.length !== gdocsToBake.length) {
+            const slugsNotFound = slugsToBake.filter(
                 (slug) => !gdocsToBake.some((gdoc) => gdoc.slug === slug)
             )
             throw new Error(
-                `Some of the gdoc slugs were not found or are not published: ${slugsNotFound}`
+                `Some of the gdoc slugs were not found or are not published: ${slugsNotFound.join(", ")}`
             )
         }
 
