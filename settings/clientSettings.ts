@@ -20,6 +20,12 @@ export const COMMIT_SHA = process.env.COMMIT_SHA
 
 export const SENTRY_DSN: string | undefined = process.env.SENTRY_DSN
 export const SENTRY_ADMIN_DSN: string | undefined = process.env.SENTRY_ADMIN_DSN
+
+// Absolute path of the content repo where file-backed gdocs live.
+// Exposed to the admin client so it can build editor deep-links
+// (claude://cowork/new?folder=…&file=…) for file-backed gdocs.
+export const CONTENT_REPO_PATH: string | undefined =
+    process.env.CONTENT_REPO_PATH
 export const ADMIN_SERVER_PORT: number =
     parseIntOrUndefined(process.env.ADMIN_SERVER_PORT) ?? 3030
 export const ADMIN_SERVER_HOST: string =

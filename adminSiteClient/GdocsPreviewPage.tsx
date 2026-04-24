@@ -45,7 +45,7 @@ import { GdocsSaveButtons } from "./GdocsSaveButtons.js"
 import { useGdocsStore } from "./GdocsStoreContext.js"
 import { IconBadge } from "./IconBadge.js"
 import { GdocsMoreMenu } from "./GdocsMoreMenu.js"
-import { GdocsEditLink } from "./GdocsEditLink.js"
+import { GdocsEditLink, GdocsSourceBadge } from "./GdocsEditLink.js"
 import { openSuccessNotification } from "./gdocsNotifications.js"
 import { GdocsDiffButton } from "./GdocsDiffButton.js"
 import { GdocsDiff } from "./GdocsDiff.js"
@@ -330,7 +330,15 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                             <Typography.Title className="mb-0" level={4}>
                                 {currentGdoc.content.title}
                             </Typography.Title>
-                            [ <GdocsEditLink gdocId={currentGdoc.id} /> ]
+                            <GdocsSourceBadge source={currentGdoc.source} />
+                            [
+                            <GdocsEditLink
+                                gdocId={currentGdoc.id}
+                                source={currentGdoc.source}
+                                slug={currentGdoc.slug}
+                                type={currentGdoc.content.type}
+                            />
+                            ]
                             {currentGdoc.published &&
                                 currentGdoc.publishedAt && (
                                     <>
