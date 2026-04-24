@@ -5,7 +5,7 @@ import { AxisConfig } from "../axis/AxisConfig"
 import { VerticalLabelsState } from "./VerticalLabelsState"
 import { LEGEND_ITEM_MIN_SPACING } from "./VerticalLabelsConstants"
 import { LabelSeries } from "./VerticalLabelsTypes"
-import { InteractionState } from "../interaction/InteractionState"
+import { Emphasis } from "../interaction/Emphasis"
 
 const makeAxis = ({
     min = 0,
@@ -91,10 +91,13 @@ describe("dropping labels", () => {
         expect(state.visibleSeriesNames).toEqual(["Canada", "Mexico", "Spain"])
     })
 
-    it("prioritises to label focused series", () => {
+    it("prioritises to label highlighted series", () => {
         const seriesWithFocus = series.map((s) => ({
             ...s,
-            focus: new InteractionState(s.seriesName === "Mexico", true),
+            emphasis:
+                s.seriesName === "Mexico"
+                    ? Emphasis.Highlighted
+                    : Emphasis.Muted,
         }))
 
         const stateWithFocus = new VerticalLabelsState(seriesWithFocus, {

@@ -45,7 +45,7 @@ it("getRegionByNameOrVariantName", () => {
     })
 })
 
-describe("articulateEntity", () => {
+describe(articulateEntity, () => {
     it("adds an article when one is defined", () => {
         expect(articulateEntity("United States")).toEqual("the United States")
         expect(articulateEntity("Democratic Republic of Congo")).toEqual(
@@ -64,7 +64,7 @@ describe("articulateEntity", () => {
     })
 })
 
-describe("getCountryNamesForRegion", () => {
+describe(getCountryNamesForRegion, () => {
     it("handles owid continents", () => {
         const region = getRegionByName("Africa") as Continent
         const countryNames = getCountryNamesForRegion(region)

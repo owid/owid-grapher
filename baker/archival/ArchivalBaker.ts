@@ -124,6 +124,7 @@ const IGNORED_FILES_PATTERNS = [
     /\.DS_Store$/,
     /^images(\/.*)?$/,
     /^identifyadmin.html$/,
+    /^robots.txt$/,
 ]
 export const copyPublicDir = async (archiveDir: string) => {
     const publicDir = path.join(projBaseDir, "public")
@@ -260,7 +261,7 @@ export const bakeAssets = async (archiveDir: string) => {
 
     const filesInDir = await fs.readdir(srcDir, { withFileTypes: true })
 
-    for await (const filename of ASSET_FILES) {
+    for (const filename of ASSET_FILES) {
         if (!filesInDir.some((dirent) => dirent.name === filename)) {
             throw new Error(`Could not find ${filename} in ${srcDir}`)
         }

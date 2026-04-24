@@ -18,7 +18,7 @@ export const chunkSentences = (
 
         .map((s) => s.trim())
         .filter((s) => s)
-        .reverse() as string[]
+        .reverse()
 
     const chunks = []
     let chunk = sentences.pop()
@@ -54,7 +54,7 @@ export const chunkParagraphs = (
         )
         .map((p) => p.trim())
         .filter((p) => p)
-        .reverse() as string[]
+        .reverse()
 
     const chunks = []
     let chunk = paragraphs.pop()

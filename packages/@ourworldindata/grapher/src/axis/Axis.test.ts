@@ -123,6 +123,22 @@ it("creates compact labels", () => {
     ).toBeTruthy()
 })
 
+it("shows labelled ticks even when the domain doesn't span nice log values", () => {
+    const config: AxisConfigInterface = {
+        min: 11000,
+        max: 16000,
+        scaleType: ScaleType.log,
+    }
+    const axis = new AxisConfig(config).toVerticalAxis()
+    axis.range = [0, 200]
+
+    const ticks = axis.getTickValues()
+    const labelledTicks = ticks.filter((t) => !t.gridLineOnly)
+
+    // We should have at least 2 labelled ticks
+    expect(labelledTicks.length).toBeGreaterThanOrEqual(2)
+})
+
 describe("singleValueAxisPointAlign", () => {
     const testAlign = (
         align: AxisAlign | undefined,

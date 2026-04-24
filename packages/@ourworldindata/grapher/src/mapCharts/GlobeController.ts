@@ -53,7 +53,7 @@ interface GlobeControllerManager {
 }
 
 export class GlobeController {
-    private manager: GlobeControllerManager
+    private readonly manager: GlobeControllerManager
 
     constructor(manager: GlobeControllerManager) {
         this.manager = manager

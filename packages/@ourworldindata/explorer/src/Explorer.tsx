@@ -55,7 +55,10 @@ import {
     Tippy,
     Url,
 } from "@ourworldindata/utils"
-import { MarkdownTextWrap } from "@ourworldindata/components"
+import {
+    MarkdownTextWrap,
+    MarkdownTextWrapHtml,
+} from "@ourworldindata/components"
 import classNames from "classnames"
 import { action, computed, makeObservable, observable, reaction } from "mobx"
 import { observer } from "mobx-react"
@@ -314,8 +317,9 @@ export class Explorer
         root.render(<Explorer {...props} queryStr={url.queryStr} />)
     }
 
-    private initialQueryParams = Url.fromQueryStr(this.props.queryStr ?? "")
-        .queryParams as ExplorerFullQueryParams
+    private readonly initialQueryParams = Url.fromQueryStr(
+        this.props.queryStr ?? ""
+    ).queryParams as ExplorerFullQueryParams
 
     explorerProgram = ExplorerProgram.fromJson(this.props).initDecisionMatrix(
         this.initialQueryParams
@@ -398,7 +402,7 @@ export class Explorer
 
     disposers: (() => void)[] = []
     override async componentDidMount() {
-        this.setGrapher(this.grapherRef!.current!)
+        this.setGrapher(this.grapherRef.current!)
 
         let url = Url.fromQueryParams({
             ...this.initialQueryParams,
@@ -484,7 +488,7 @@ export class Explorer
         )
     }
 
-    private persistedGrapherQueryParamsBySelectedRow: Map<
+    private readonly persistedGrapherQueryParamsBySelectedRow: Map<
         number,
         Partial<GrapherQueryParams>
     > = new Map()
@@ -528,13 +532,13 @@ export class Explorer
         // When switching between explorer views, we usually preserve the tab.
         // However, if the new chart doesn't support the previously selected tab,
         // Grapher automatically switches to a supported one. In such cases,
-        // we call onChartSwitching to make adjustments that ensure the new view
+        // we call adjustStateForTab to make adjustments that ensure the new view
         // is sensible (e.g. updating the time selection when switching from a
         // single-time chart like a discrete bar chart to a multi-time chart like
         // a line chart).
         const currentTab = this.grapherState.activeTab
         if (previousTab !== currentTab)
-            this.grapherState.onChartSwitching(previousTab, currentTab)
+            this.grapherState.adjustStateForTab(currentTab)
 
         this.analytics.logExplorerView(
             this.explorerProgram.slug,
@@ -569,7 +573,7 @@ export class Explorer
         return !this.isNarrow
     }
 
-    private futureGrapherTable = new PromiseSwitcher<OwidTable>({
+    private readonly futureGrapherTable = new PromiseSwitcher<OwidTable>({
         onResolve: (table) => this.setGrapherTable(table),
         onReject: (error) => this.grapher?.setError(error),
     })
@@ -780,7 +784,7 @@ export class Explorer
             if (slugs.length > 0) {
                 const baseSlugs = slugs.flatMap((slug) => {
                     const def = getColumnDef(slug)
-                    if (!def || !def.transform) return []
+                    if (!def?.transform) return []
                     const { params: transformParams = [] } =
                         parseTransformString(def.transform ?? "") ?? {}
                     const dataSlugsForTransform = transformParams
@@ -970,9 +974,14 @@ export class Explorer
                     {this.explorerProgram.explorerTitle} Data Explorer
                 </div>
                 <div className="ExplorerSubtitle">
-                    <MarkdownTextWrap
-                        fontSize={12}
-                        text={this.explorerProgram.explorerSubtitle || ""}
+                    <MarkdownTextWrapHtml
+                        textWrap={
+                            new MarkdownTextWrap({
+                                fontSize: 12,
+                                text:
+                                    this.explorerProgram.explorerSubtitle || "",
+                            })
+                        }
                     />
                 </div>
                 {this.explorerProgram.downloadDataLink && (
@@ -1002,9 +1011,9 @@ export class Explorer
         )
     }
 
-    private grapherContainerRef = React.createRef<HTMLDivElement>()
+    private readonly grapherContainerRef = React.createRef<HTMLDivElement>()
 
-    private grapherRef = React.createRef<Grapher>()
+    private readonly grapherRef = React.createRef<Grapher>()
 
     private renderControlBar() {
         return (
@@ -1148,7 +1157,7 @@ export class Explorer
     entityPickerTable: OwidTable | undefined = undefined
     entityPickerTableIsLoading: boolean = false
 
-    private futureEntityPickerTable = new PromiseSwitcher<OwidTable>({
+    private readonly futureEntityPickerTable = new PromiseSwitcher<OwidTable>({
         onResolve: (table) => {
             this.entityPickerTable = table
             this.entityPickerTableIsLoading = false

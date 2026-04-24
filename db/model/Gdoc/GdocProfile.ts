@@ -178,5 +178,5 @@ export function getSlugForProfileEntity(
 ): string {
     const region = getRegionByNameOrVariantName(entity.name)
     const entitySlug = region ? region.slug : slugify(entity.name)
-    return `profile/${profileTemplate.slug}/${entitySlug}`
+    return `${profileTemplate.slug}/${entitySlug}`
 }

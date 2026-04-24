@@ -186,11 +186,10 @@ describe("Indicator-level chart configs", { timeout: 15000 }, () => {
     }
 
     beforeEach(async () => {
-        await env.testKnex!(DatasetsTableName).insert([dummyDataset])
-        await env.testKnex!(VariablesTableName).insert([
-            dummyVariable,
-            otherDummyVariable,
-        ])
+        await env.testKnex(DatasetsTableName).insert([dummyDataset])
+        await env
+            .testKnex(VariablesTableName)
+            .insert([dummyVariable, otherDummyVariable])
     })
 
     it("should be able to edit ETL grapher configs via the api", async () => {
@@ -206,7 +205,7 @@ describe("Indicator-level chart configs", { timeout: 15000 }, () => {
         })
 
         // get inserted configs from the database
-        const row = await env.testKnex!(ChartConfigsTableName).first()
+        const row = await env.testKnex(ChartConfigsTableName).first()
         const patchConfigETL = JSON.parse(row.patch)
         const fullConfigETL = JSON.parse(row.full)
 
@@ -259,14 +258,14 @@ describe("Indicator-level chart configs", { timeout: 15000 }, () => {
             path: "/multi-dims/test%2Fcatalog%23path",
             body: JSON.stringify({ config: testMultiDimConfig }),
         })
-        const mdim = await env.testKnex!(MultiDimDataPagesTableName).first()
+        const mdim = await env.testKnex(MultiDimDataPagesTableName).first()
         expect(mdim.catalogPath).toBe("test/catalog#path")
         expect(mdim.slug).toBe(null)
         const savedMdimConfig = JSON.parse(mdim.config)
         // variableId should be normalized to an array
         expect(savedMdimConfig.views[0].indicators.y).toBeInstanceOf(Array)
 
-        const [mdxcc1, mdxcc2] = await env.testKnex!(
+        const [mdxcc1, mdxcc2] = await env.testKnex(
             MultiDimXChartConfigsTableName
         )
         expect(mdxcc1.multiDimId).toBe(mdim.id)
@@ -282,7 +281,8 @@ describe("Indicator-level chart configs", { timeout: 15000 }, () => {
             title: "Total energy use",
             selectedEntityNames: [], // mdims define their own default entities
         }
-        const fullViewConfig1 = await env.testKnex!(ChartConfigsTableName)
+        const fullViewConfig1 = await env
+            .testKnex(ChartConfigsTableName)
             .where("id", mdxcc1.chartConfigId)
             .first()
         expect(JSON.parse(fullViewConfig1.full)).toEqual(
@@ -302,9 +302,8 @@ describe("Indicator-level chart configs", { timeout: 15000 }, () => {
             ...expectedMergedViewConfig,
             subtitle: "Newly updated subtitle",
         }
-        const fullViewConfig1Updated = await env.testKnex!(
-            ChartConfigsTableName
-        )
+        const fullViewConfig1Updated = await env
+            .testKnex(ChartConfigsTableName)
             .where("id", mdxcc1.chartConfigId)
             .first()
         expect(JSON.parse(fullViewConfig1Updated.full)).toEqual(
@@ -312,9 +311,10 @@ describe("Indicator-level chart configs", { timeout: 15000 }, () => {
         )
 
         // clean-up the mdim tables
-        await env.testKnex!(MultiDimXChartConfigsTableName).delete()
-        await env.testKnex!(MultiDimDataPagesTableName).delete()
-        await env.testKnex!(ChartConfigsTableName)
+        await env.testKnex(MultiDimXChartConfigsTableName).delete()
+        await env.testKnex(MultiDimDataPagesTableName).delete()
+        await env
+            .testKnex(ChartConfigsTableName)
             .whereIn("id", [mdxcc1.chartConfigId, mdxcc2.chartConfigId])
             .delete()
 
@@ -479,7 +479,8 @@ describe("Indicator-level chart configs", { timeout: 15000 }, () => {
         }: {
             shouldBeEnabled?: boolean
         }): Promise<void> => {
-            const chartRow = await env.testKnex!(ChartsTableName)
+            const chartRow = await env
+                .testKnex(ChartsTableName)
                 .where({ id: chartId })
                 .first()
 
@@ -518,7 +519,7 @@ describe("Indicator-level chart configs", { timeout: 15000 }, () => {
         const chartId = response.chartId
 
         // get the ETL config from the database
-        const row = await env.testKnex!(ChartConfigsTableName).first()
+        const row = await env.testKnex(ChartConfigsTableName).first()
         const fullConfigETL = JSON.parse(row.full)
 
         // check the parent of the chart
@@ -632,9 +633,9 @@ describe("Indicator-level chart configs", { timeout: 15000 }, () => {
 
         // helper functions to get the updatedAt timestamp of the chart and its config
         const chartUpdatedAt = async (): Promise<Date> =>
-            (await env.testKnex!(ChartsTableName).first()).updatedAt
+            (await env.testKnex(ChartsTableName).first()).updatedAt
         const configUpdatedAt = async (): Promise<Date> =>
-            (await env.testKnex!(ChartConfigsTableName).first()).updatedAt
+            (await env.testKnex(ChartConfigsTableName).first()).updatedAt
 
         // verify that both updatedAt timestamps are null initially
         expect(await chartUpdatedAt()).toBeNull()
@@ -929,7 +930,7 @@ describe("Chart slug validation", { timeout: 15000 }, () => {
         })
 
         // Verify redirect was created
-        const redirects = await env.testKnex!("chart_slug_redirects").where({
+        const redirects = await env.testKnex("chart_slug_redirects").where({
             chart_id: chartId1,
             slug: "redirect-bug-original",
         })

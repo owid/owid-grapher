@@ -343,7 +343,7 @@ class HotEditor extends Component<{
     program: ExplorerProgram
     programOnDisk: ExplorerProgram
 }> {
-    private hotTableComponent = createRef<HotTableClass>()
+    private readonly hotTableComponent = createRef<HotTableClass>()
 
     constructor(props: {
         onChange: (code: string) => void
@@ -419,7 +419,7 @@ class HotEditor extends Component<{
             cellProperties.comment = comment ? { value: comment } : undefined
             cellProperties.placeholder = placeholder
 
-            if (optionKeywords && optionKeywords.length) {
+            if (optionKeywords?.length) {
                 cellProperties.type = "autocomplete"
                 cellProperties.source = optionKeywords
             }

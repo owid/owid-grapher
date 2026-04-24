@@ -14,9 +14,15 @@ import {
 import { Bounds, excludeUndefined } from "@ourworldindata/utils"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
+import { Time } from "@ourworldindata/types"
+import {
+    PlacedStackedBarSeries,
+    RenderStackedBarSeries,
+} from "./StackedConstants"
 import {
     getXAxisConfigDefaultsForStackedBar,
     resolveCollision,
+    toPlacedStackedBarSeries,
 } from "./StackedUtils"
 import {
     HorizontalAxisComponent,
@@ -27,6 +33,7 @@ import { InitialSimpleLabelSeries } from "../verticalLabels/SimpleVerticalLabels
 import { SimpleVerticalLabelsState } from "../verticalLabels/SimpleVerticalLabelsState"
 import { SimpleVerticalLabels } from "../verticalLabels/SimpleVerticalLabels"
 import { NoDataModal } from "../noDataModal/NoDataModal"
+import { resolveEmphasis } from "../interaction/Emphasis.js"
 
 const LEGEND_PADDING = 4
 
@@ -126,11 +133,7 @@ export class StackedBarChartThumbnail
     @computed private get verticalLabelsState():
         | SimpleVerticalLabelsState
         | undefined {
-        if (
-            !this.manager.showLegend ||
-            this.manager.isDisplayedAlongsideComplementaryTable
-        )
-            return undefined
+        if (!this.manager.showLegend) return undefined
 
         const series = excludeUndefined(
             this.chartState.series.map((series, seriesIndex) => {
@@ -179,6 +182,18 @@ export class StackedBarChartThumbnail
         return this.labelsWidth ? this.labelsWidth + LEGEND_PADDING : 0
     }
 
+    @computed
+    private get placedSeries(): readonly PlacedStackedBarSeries<Time>[] {
+        return toPlacedStackedBarSeries(this.chartState.series, this.dualAxis)
+    }
+
+    @computed private get renderSeries(): RenderStackedBarSeries<Time>[] {
+        return this.placedSeries.map((series) => ({
+            ...series,
+            emphasis: resolveEmphasis({ focus: series.focus }),
+        }))
+    }
+
     override render(): React.ReactElement {
         if (this.chartState.errorInfo.reason)
             return (
@@ -200,11 +215,7 @@ export class StackedBarChartThumbnail
                     bounds={this.dualAxis.bounds}
                     showEndpointsOnly
                 />
-                <StackedBars
-                    dualAxis={this.dualAxis}
-                    series={this.chartState.series}
-                    formatColumn={this.chartState.formatColumn}
-                />
+                <StackedBars series={this.renderSeries} />
                 {this.verticalLabelsState && (
                     <SimpleVerticalLabels
                         state={this.verticalLabelsState}

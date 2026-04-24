@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest"
 import { urlRegex } from "./remarkPlainLinks.js"
 
+// oxlint-disable-next-line vitest/prefer-describe-function-title
 describe("urlRegex", () => {
     const urls = [
         "https://example.com",

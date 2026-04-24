@@ -6,6 +6,7 @@ import {
     FacetStrategy,
     DimensionProperty,
     GRAPHER_CHART_TYPES,
+    PeerCountryStrategy,
 } from "@ourworldindata/types"
 import {
     GrapherState,
@@ -29,6 +30,8 @@ describe(getSortedGrapherTabsForChartHit, () => {
         WorldMap,
         SlopeChart,
         StackedArea,
+        StackedBar,
+        StackedDiscreteBar,
         DiscreteBar,
         Marimekko,
     } = GRAPHER_TAB_NAMES
@@ -90,6 +93,19 @@ describe(getSortedGrapherTabsForChartHit, () => {
         const result = getSortedGrapherTabsForChartHit(grapherState)
         expect(result).toEqual([StackedArea, Table, WorldMap])
     })
+
+    it("should work for stacked chart combinations", () => {
+        const grapherState = new GrapherState({
+            chartTypes: [StackedArea, StackedBar, StackedDiscreteBar],
+        })
+        const result = getSortedGrapherTabsForChartHit(grapherState)
+        expect(result).toEqual([
+            StackedArea,
+            Table,
+            StackedBar,
+            StackedDiscreteBar,
+        ])
+    })
 })
 
 describe(pickDisplayEntities, () => {
@@ -99,6 +115,7 @@ describe(pickDisplayEntities, () => {
         "Mexico",
         "Brazil",
         "Argentina",
+        "World",
     ]
 
     function createSingleIndicatorGrapherState(
@@ -276,27 +293,11 @@ describe(pickDisplayEntities, () => {
             expect(displayEntities).toEqual(pickedEntities)
         })
 
-        it("should combine picked and default entities", async () => {
-            const grapherState = createSingleIndicatorGrapherState({
-                selectedEntityNames: defaultEntities,
-                addCountryMode: EntitySelectionMode.MultipleEntities,
-            })
-
-            const displayEntities = await pickDisplayEntities(grapherState, {
-                pickedEntities,
-                catalogUrl: "",
-            })
-
-            expect(displayEntities).toEqual([
-                ...pickedEntities,
-                ...defaultEntities,
-            ])
-        })
-
         it("should return a unique list of entities, with picked entities first", async () => {
             const grapherState = createSingleIndicatorGrapherState({
                 selectedEntityNames: [...defaultEntities, ...pickedEntities],
                 addCountryMode: EntitySelectionMode.MultipleEntities,
+                peerCountryStrategy: PeerCountryStrategy.ParentRegions,
             })
 
             const displayEntities = await pickDisplayEntities(grapherState, {
@@ -304,10 +305,7 @@ describe(pickDisplayEntities, () => {
                 catalogUrl: "",
             })
 
-            expect(displayEntities).toEqual([
-                ...pickedEntities,
-                ...defaultEntities,
-            ])
+            expect(displayEntities).toEqual([...pickedEntities, "World"])
         })
     })
 })

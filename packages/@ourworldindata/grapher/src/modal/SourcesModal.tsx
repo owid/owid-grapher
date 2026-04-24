@@ -53,7 +53,7 @@ const TAB_TITLE_SPACING = 6
 export interface SourcesModalManager {
     isReady?: boolean
     adminBaseUrl?: string
-    columnsWithSourcesExtensive: CoreColumn[]
+    inputColumnsWithSources: CoreColumn[]
     showAdminControls?: boolean
     activeModal?: GrapherModal
     frameBounds?: Bounds
@@ -68,7 +68,7 @@ interface SourcesModalProps {
 
 @observer
 export class SourcesModal extends React.Component<SourcesModalProps> {
-    private container = React.createRef<HTMLDivElement>()
+    private readonly container = React.createRef<HTMLDivElement>()
 
     private activeTabKey = ""
 
@@ -117,7 +117,7 @@ export class SourcesModal extends React.Component<SourcesModalProps> {
     }
 
     @computed private get columns(): CoreColumn[] {
-        return this.manager.columnsWithSourcesExtensive
+        return this.manager.inputColumnsWithSources
     }
 
     private makeTabLabelString(title: string, attribution?: string): string {
@@ -140,16 +140,31 @@ export class SourcesModal extends React.Component<SourcesModalProps> {
 
     @computed private get tabs(): {
         column: CoreColumn
+        title: string
         label: TabItem
     }[] {
         return _.uniqBy(
             this.columns.map((column) => {
-                const title = column.titlePublicOrDisplayName.title
+                let title = column.titlePublicOrDisplayName.title
+
+                // Historical and projected columns may have the same name,
+                // so we add "(projection)" to the title of projected columns
+                // to distinguish them
+                if (
+                    column.isProjection &&
+                    this.columns.some(
+                        (c) => title === c.titlePublicOrDisplayName.title
+                    )
+                )
+                    title += " (projection)"
+
                 const attribution = joinTitleFragments(
                     column.titlePublicOrDisplayName.attributionShort,
                     column.titlePublicOrDisplayName.titleVariant
                 )
+
                 return {
+                    title,
                     column,
                     label: {
                         key: this.makeTabLabelString(title, attribution),
@@ -177,12 +192,16 @@ export class SourcesModal extends React.Component<SourcesModalProps> {
         })
     }
 
-    private renderSource(
-        column: CoreColumn | undefined
-    ): React.ReactElement | null {
-        if (!column) return null
+    private renderSource({
+        column,
+        title,
+    }: {
+        column: CoreColumn
+        title?: string
+    }): React.ReactElement {
         return (
             <Source
+                title={title}
                 column={column}
                 editBaseUrl={this.editBaseUrl}
                 isEmbeddedInADataPage={
@@ -275,9 +294,9 @@ export class SourcesModal extends React.Component<SourcesModalProps> {
     }
 
     private renderMultipleSources(): React.ReactElement {
-        const activeColumn = this.tabs.find(
+        const activeTab = this.tabs.find(
             (tab) => tab.label.key === this.activeTabKey
-        )?.column
+        )
 
         return (
             <>
@@ -286,14 +305,14 @@ export class SourcesModal extends React.Component<SourcesModalProps> {
                     indicator for more information.
                 </p>
                 {this.renderTabs()}
-                {this.renderSource(activeColumn)}
+                {activeTab && this.renderSource(activeTab)}
             </>
         )
     }
 
     private renderModalContent(): React.ReactElement | null {
         return this.tabs.length === 1
-            ? this.renderSource(this.tabs[0].column)
+            ? this.renderSource({ column: this.tabs[0].column })
             : this.renderMultipleSources()
     }
 
@@ -338,6 +357,7 @@ export class SourcesModal extends React.Component<SourcesModalProps> {
 
 interface SourceProps {
     column: CoreColumn
+    title?: string
     editBaseUrl?: string
     isEmbeddedInADataPage?: boolean
 }
@@ -367,7 +387,7 @@ export class Source extends React.Component<SourceProps> {
 
     @computed get citationLong(): string {
         return getCitationLong(
-            this.title,
+            this.titleWithFragments,
             this.def.origins ?? [],
             this.source,
             getAttributionFragmentsFromVariable(this.def),
@@ -383,8 +403,12 @@ export class Source extends React.Component<SourceProps> {
         return this.def.source ?? {}
     }
 
-    @computed private get title(): IndicatorTitleWithFragments {
+    @computed private get titleWithFragments(): IndicatorTitleWithFragments {
         return this.column.titlePublicOrDisplayName
+    }
+
+    @computed private get title(): string {
+        return this.props.title ?? this.titleWithFragments.title
     }
 
     @computed private get editUrl(): string | undefined {
@@ -465,13 +489,14 @@ export class Source extends React.Component<SourceProps> {
     protected renderTitle(): React.ReactElement {
         return (
             <h2>
-                <span className="title">{this.title.title}</span>{" "}
-                {(this.title.attributionShort || this.title.titleVariant) && (
+                <span className="title">{this.title}</span>{" "}
+                {(this.titleWithFragments.attributionShort ||
+                    this.titleWithFragments.titleVariant) && (
                     <>
                         <span className="title-fragments">
                             {joinTitleFragments(
-                                this.title.attributionShort,
-                                this.title.titleVariant
+                                this.titleWithFragments.attributionShort,
+                                this.titleWithFragments.titleVariant
                             )}
                         </span>{" "}
                     </>

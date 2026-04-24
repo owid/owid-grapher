@@ -294,12 +294,12 @@ export class SettingsMenu extends React.Component<SettingsMenuProps> {
                 >
                     {showYScaleToggle && (
                         <AxisScaleToggle
-                            axis={yAxis!}
+                            axis={yAxis}
                             subtitle={omitLoneAxisLabel ? "" : yLabel}
                         />
                     )}
                     {showXScaleToggle && (
-                        <AxisScaleToggle axis={xAxis!} subtitle={xLabel} />
+                        <AxisScaleToggle axis={xAxis} subtitle={xLabel} />
                     )}
                     <div className="config-subtitle">
                         A linear scale evenly spaces values, where each

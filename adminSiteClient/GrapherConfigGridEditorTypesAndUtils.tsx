@@ -12,7 +12,7 @@ import {
     BooleanAtom,
     BooleanOperation,
     ComparisonOperator,
-    EqualityComparision,
+    EqualityComparison,
     EqualityOperator,
     JsonPointerSymbol,
     JSONPreciselyTyped,
@@ -331,9 +331,9 @@ export function SExpressionToJsonLogic(
 ): JSONPreciselyTyped {
     return sExpression.toJsonLogic({
         processSqlColumnName: (columnName) => {
-            const item = [...readOnlyEntries.entries()].find(
-                (item) => item[1].sExpressionColumnTarget === columnName
-            )
+            const item = readOnlyEntries
+                .entries()
+                .find(([_, col]) => col.sExpressionColumnTarget === columnName)
             const mappedColumnName = item![0]
             return mappedColumnName
         },
@@ -440,7 +440,7 @@ export function filterTreeToSExpression(
                         const operator = getEqualityOperator(op as string)
                         const val = getValueAtom(filterTree.properties.value[0])
                         if (val === undefined) return undefined
-                        return new EqualityComparision(operator!, [field, val])
+                        return new EqualityComparison(operator!, [field, val])
                     }
                 )
                 .when(
@@ -458,10 +458,10 @@ export function filterTreeToSExpression(
                     }
                 )
                 .when(
-                    (op) => op && getNullCheckOperator(op as string),
+                    (op) => op && getNullCheckOperator(op),
                     (op) => {
                         const operator = getNullCheckOperator(op as string)!
-                        return new NullCheckOperation(operator!, field)
+                        return new NullCheckOperation(operator, field)
                     }
                 )
                 .with("is_empty", "is_not_empty", (operator) => {
@@ -469,19 +469,19 @@ export function filterTreeToSExpression(
                         .with("is_empty", () => EqualityOperator.equal)
                         .with("is_not_empty", () => EqualityOperator.unequal)
                         .exhaustive()
-                    return new EqualityComparision(op, [
+                    return new EqualityComparison(op, [
                         field,
                         new StringAtom(""),
                     ])
                 })
                 .with("is_latest", (_) => {
-                    return new EqualityComparision(EqualityOperator.equal, [
+                    return new EqualityComparison(EqualityOperator.equal, [
                         field,
                         new StringAtom("latest"),
                     ])
                 })
                 .with("is_earliest", (_) => {
-                    return new EqualityComparision(EqualityOperator.equal, [
+                    return new EqualityComparison(EqualityOperator.equal, [
                         field,
                         new StringAtom("earliest"),
                     ])

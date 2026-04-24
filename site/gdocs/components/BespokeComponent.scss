@@ -1,0 +1,10 @@
+@use "sass:color";
+
+.bespoke-component__error {
+    padding: 16px;
+    background-color: color.scale($vermillion, $lightness: +90%);
+    border: 1px solid $vermillion;
+    border-radius: 4px;
+    color: $vermillion;
+    font-size: 14px;
+}

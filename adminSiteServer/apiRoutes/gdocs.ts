@@ -17,6 +17,7 @@ import {
     OwidGdocType,
 } from "@ourworldindata/types"
 import {
+    checkIsChronologicalFeedPost,
     checkIsDataInsight,
     checkIsGdocPostExcludingFragments,
     checkShouldDataCalloutRender,
@@ -41,6 +42,10 @@ import {
     indexIndividualProfile,
     removeIndividualProfileFromIndex,
 } from "../../baker/algolia/utils/pages.js"
+import {
+    indexIndividualGdocInChronological,
+    removeIndividualGdocFromChronological,
+} from "../../baker/algolia/utils/pagesChronological.js"
 import { GdocAbout } from "../../db/model/Gdoc/GdocAbout.js"
 import { GdocAuthor } from "../../db/model/Gdoc/GdocAuthor.js"
 import { getMinimalGdocPostsByIds } from "../../db/model/Gdoc/GdocBase.js"
@@ -149,7 +154,7 @@ export async function getGdocCalloutCoverage(
     for (const node of gdoc.content.body ?? []) {
         traverseEnrichedBlock(node, (b) => {
             if (b.type === "data-callout") {
-                dataCalloutBlocks.push(b as EnrichedBlockDataCallout)
+                dataCalloutBlocks.push(b)
             }
         })
     }
@@ -337,6 +342,7 @@ async function indexAndBakeGdocIfNeccesary(
     const action = getPublishingAction(prevJson, nextJson)
     const isGdocPost = checkIsGdocPostExcludingFragments(nextJson)
     const isProfile = checkIsProfile(nextJson)
+    const isChronologicalPost = checkIsChronologicalFeedPost(nextJson)
 
     await match(action)
         .with(GdocPublishingAction.SavingDraft, _.noop)
@@ -353,6 +359,9 @@ async function indexAndBakeGdocIfNeccesary(
             if (isProfile) {
                 await indexIndividualProfile(nextGdoc as GdocProfile, trx)
             }
+            if (isChronologicalPost) {
+                await indexIndividualGdocInChronological(nextJson, trx)
+            }
             await triggerStaticBuild(user, `${action} ${nextJson.slug}`)
         })
         .with(GdocPublishingAction.Updating, async () => {
@@ -361,6 +370,9 @@ async function indexAndBakeGdocIfNeccesary(
             }
             if (isProfile) {
                 await indexIndividualProfile(nextGdoc as GdocProfile, trx)
+            }
+            if (isChronologicalPost) {
+                await indexIndividualGdocInChronological(nextJson, trx)
             }
             if (checkIsLightningUpdate(prevJson, nextJson, hasChanges)) {
                 await enqueueLightningChange(
@@ -378,6 +390,9 @@ async function indexAndBakeGdocIfNeccesary(
             }
             if (isProfile) {
                 await removeIndividualProfileFromIndex(nextGdoc as GdocProfile)
+            }
+            if (isChronologicalPost) {
+                await removeIndividualGdocFromChronological(nextJson.id)
             }
             await triggerStaticBuild(user, `${action} ${nextJson.slug}`)
         })
@@ -432,27 +447,39 @@ async function createRedirectForSlugChangeIfNeeded(
 
     if (oldPath === newPath) return
 
+    // For profiles, create a splat redirect so all entity pages are covered
+    // e.g. /profile/old-slug/* -> /profile/new-slug/:splat
+    const isProfile = prevGdoc.content.type === OwidGdocType.Profile
+    const oldSource = isProfile ? `${oldPath}/*` : oldPath
+    const newTarget = isProfile ? `${newPath}/:splat` : newPath
+    // For chain-collapsing: the target stored in the DB uses :splat, not *
+    const oldTarget = isProfile ? `${oldPath}/:splat` : oldPath
+
     // Update any existing redirects that point to the old path to point to the new path instead
     // This prevents redirect chains (A -> B -> C becomes A -> C)
     await trx(RedirectsTableName)
-        .where("target", oldPath)
-        .update({ target: newPath })
+        .where("target", oldTarget)
+        .update({ target: newTarget })
 
     // Delete any self-referential redirects that may have been created by the above update
     // (e.g., when reverting a slug change: a→b updated to a→a)
-    await trx(RedirectsTableName).whereRaw("source = target").delete()
+    // For splat redirects, source uses /* and target uses /:splat (Cloudflare
+    // convention), so we normalise before comparing.
+    await trx(RedirectsTableName)
+        .whereRaw("REPLACE(source, '/*', '') = REPLACE(target, '/:splat', '')")
+        .delete()
 
     // Delete any existing redirect from the old path (in case we're reverting a previous change)
-    await trx(RedirectsTableName).where("source", oldPath).delete()
+    await trx(RedirectsTableName).where("source", oldSource).delete()
 
     // Create the new redirect from old path to new path
     await trx(RedirectsTableName).insert({
-        source: oldPath,
-        target: newPath,
+        source: oldSource,
+        target: newTarget,
         code: 301, // Permanent redirect
     })
 
-    console.log(`Created redirect: ${oldPath} -> ${newPath}`)
+    console.log(`Created redirect: ${oldSource} -> ${newTarget}`)
 }
 
 /**
@@ -560,23 +587,29 @@ export async function deleteGdoc(
         .table(PostsGdocsComponentsTableName)
         .where({ gdocId: id })
         .delete()
-    if (gdoc.published && checkIsGdocPostExcludingFragments(gdoc)) {
-        await removeIndividualGdocPostFromIndex(gdoc)
-    }
-    if (gdoc.published && checkIsProfile(gdoc)) {
-        await removeIndividualProfileFromIndex(gdoc as unknown as GdocProfile)
-    }
     if (gdoc.published) {
+        if (checkIsGdocPostExcludingFragments(gdoc)) {
+            await removeIndividualGdocPostFromIndex(gdoc)
+        }
+        if (checkIsProfile(gdoc)) {
+            await removeIndividualProfileFromIndex(
+                gdoc as unknown as GdocProfile
+            )
+        }
+        if (checkIsChronologicalFeedPost(gdoc)) {
+            await removeIndividualGdocFromChronological(gdoc.id)
+        }
         if (!tombstone && gdocSlug && gdocSlug !== "/") {
             // Assets have TTL of one week in Cloudflare. Add a redirect to make sure
             // the page is no longer accessible.
             // https://developers.cloudflare.com/pages/configuration/serving-pages/#asset-retention
-            console.log(`Creating redirect for "${gdocSlug}" to "/"`)
+            const source = checkIsProfile(gdoc) ? `${gdocSlug}/*` : gdocSlug
+            console.log(`Creating redirect for "${source}" to "/"`)
             await db.knexRawInsert(
                 trx,
                 `INSERT INTO redirects (source, target, ttl)
                 VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 8 DAY))`,
-                [gdocSlug, "/"]
+                [source, "/"]
             )
         }
         await triggerStaticBuild(res.locals.user, `Deleting ${gdocSlug}`)

@@ -64,10 +64,8 @@ import {
     NumericBin,
 } from "../color/ColorScaleBin"
 import { FocusArray } from "../focus/FocusArray"
-import {
-    LegendInteractionState,
-    LegendStyleConfig,
-} from "../legend/LegendInteractionState"
+import { LegendStyleConfig } from "../legend/LegendStyleConfig"
+import { Emphasis } from "../interaction/Emphasis"
 import { SeriesLabel } from "../seriesLabel/SeriesLabel.js"
 import {
     SeriesLabelState,
@@ -275,10 +273,8 @@ export class FacetChart
             yColumnSlug,
             xColumnSlug,
             yColumnSlugs,
-            colorColumnSlug,
-            numericColorColumnSlug,
-            categoricalColorColumnSlug,
             sizeColumnSlug,
+            colorColumnSlug,
             isRelativeMode,
             colorScale,
             sortConfig,
@@ -338,10 +334,8 @@ export class FacetChart
                 yColumnSlug,
                 xColumnSlug,
                 yColumnSlugs,
-                colorColumnSlug,
-                categoricalColorColumnSlug,
-                numericColorColumnSlug,
                 sizeColumnSlug,
+                colorColumnSlug,
                 isRelativeMode,
                 seriesColorMap,
                 colorScale,
@@ -648,7 +642,7 @@ export class FacetChart
     @computed private get showLegend(): boolean {
         const { isNumericLegend, categoricalLegendData, numericLegendData } =
             this
-        if (this.manager.isDisplayedAlongsideComplementaryTable) return false
+        if (this.manager.useMinimalLabeling) return false
         const hasBins =
             categoricalLegendData.length > 0 || numericLegendData.length > 0
         if (!hasBins) return false
@@ -784,7 +778,7 @@ export class FacetChart
                 ...(legend.numericLegendData ?? []),
                 ...(legend.categoricalLegendData ?? []),
             ])
-            .filter((bin) => bin instanceof CategoricalBin) as CategoricalBin[]
+            .filter((bin) => bin instanceof CategoricalBin)
 
         const uniqBins = this.getUniqBins(allBins).map(
             // Remap index to ensure it's unique (the above procedure can lead to duplicates)
@@ -808,6 +802,7 @@ export class FacetChart
     private legendHoverBin: ColorScaleBin | undefined = undefined
 
     @action.bound onLegendMouseOver(bin: ColorScaleBin): void {
+        this.focusArray.clear()
         this.legendHoverBin = bin
     }
 
@@ -815,17 +810,14 @@ export class FacetChart
         this.legendHoverBin = undefined
     }
 
-    getLegendBinState(bin: ColorScaleBin): LegendInteractionState {
-        if (!this.activeColors && !this.hoverColors)
-            return LegendInteractionState.Default
+    resolveLegendBinEmphasis(bin: ColorScaleBin): Emphasis {
+        if (!this.activeColors && !this.hoverColors) return Emphasis.Default
 
         const isHovered = this.hoverColors?.includes(bin.color)
-        if (isHovered) return LegendInteractionState.Focused
+        if (isHovered) return Emphasis.Highlighted
 
         const isActive = this.activeColors?.includes(bin.color)
-        return isActive
-            ? LegendInteractionState.Focused
-            : LegendInteractionState.Muted
+        return isActive ? Emphasis.Highlighted : Emphasis.Muted
     }
 
     @computed get legendStyleConfig(): LegendStyleConfig | undefined {

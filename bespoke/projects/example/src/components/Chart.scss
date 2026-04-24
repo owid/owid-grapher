@@ -1,0 +1,16 @@
+.example-chart {
+    max-width: 800px;
+
+    .example-chart__area {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 2 / 1;
+        overflow: hidden;
+
+        svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+    }
+}

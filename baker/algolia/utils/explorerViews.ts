@@ -482,7 +482,7 @@ const enrichWithGrapherData = async (
     explorerInfo: MinimalExplorerInfo
 ): Promise<GrapherEnrichedExplorerViewRecord[]> => {
     if (!records.length) return []
-    const grapherIds = records.map((record) => record.viewGrapherId as number)
+    const grapherIds = records.map((record) => record.viewGrapherId)
 
     console.log(
         `Fetching grapher configs from ${grapherIds.length} graphers for explorer ${explorerInfo.slug}`

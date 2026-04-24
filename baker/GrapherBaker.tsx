@@ -5,7 +5,6 @@ import { renderToHtmlPage } from "../baker/siteRenderers.js"
 import {
     excludeUndefined,
     mergeGrapherConfigs,
-    experiments,
     Url,
 } from "@ourworldindata/utils"
 import fs from "fs-extra"
@@ -36,6 +35,7 @@ import {
 } from "@ourworldindata/types"
 import ProgressBar from "progress"
 import {
+    getVariableDistribution,
     getMergedGrapherConfigForVariable,
     getVariableOfDatapageIfApplicable,
 } from "../db/model/Variable.js"
@@ -48,22 +48,14 @@ import { getDatapageDataV2 } from "../site/dataPage.js"
 import { getAllImages } from "../db/model/Image.js"
 import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
 
-import {
-    deleteOldGraphers,
-    getTagsWithDataInsights,
-    getTagToSlugMap,
-} from "./GrapherBakingUtils.js"
+import { deleteOldGraphers, getTagToSlugMap } from "./GrapherBakingUtils.js"
 import { knexRaw } from "../db/db.js"
-import {
-    getForceDatapageByChartId,
-    getRelatedChartsForVariable,
-} from "../db/model/Chart.js"
+import { getRelatedChartsForVariable } from "../db/model/Chart.js"
 import { getAllMultiDimDataPageSlugs } from "../db/model/MultiDimDataPage.js"
 import pMap from "p-map"
 import { stringify } from "safe-stable-stringify"
 import { GrapherArchivalManifest } from "../serverUtils/archivalUtils.js"
 import { getLatestArchivedChartPageVersionsIfEnabled } from "../db/model/ArchivedChartVersion.js"
-import { GdocDataInsight } from "../db/model/Gdoc/GdocDataInsight.js"
 
 const renderDatapageIfApplicable = async (
     grapher: GrapherInterface,
@@ -79,14 +71,8 @@ const renderDatapageIfApplicable = async (
         forceDatapage?: boolean
     } = {}
 ) => {
-    const shouldForceDatapage =
-        forceDatapage !== undefined
-            ? forceDatapage
-            : grapher.id !== undefined
-              ? await getForceDatapageByChartId(knex, grapher.id)
-              : false
     const variable = await getVariableOfDatapageIfApplicable(knex, grapher, {
-        forceDatapage: shouldForceDatapage,
+        forceDatapage,
     })
 
     if (!variable) return undefined
@@ -115,27 +101,22 @@ const renderDatapageIfApplicable = async (
 }
 
 /**
- *
  * Render a datapage if available, otherwise render a grapher page.
  */
-
 export const renderDataPageOrGrapherPage = async (
     grapher: GrapherInterface,
     knex: db.KnexReadonlyTransaction,
     {
         imageMetadataDictionary,
         archiveContextDictionary,
-        forceDatapage,
     }: {
         imageMetadataDictionary?: Record<string, DbEnrichedImage>
         archiveContextDictionary?: Record<number, ArchiveContext | undefined>
-        forceDatapage?: boolean
     } = {}
 ): Promise<string> => {
     const datapage = await renderDatapageIfApplicable(grapher, false, knex, {
         imageMetadataDictionary,
         archiveContextDictionary,
-        forceDatapage,
     })
     if (datapage) return datapage
     return renderGrapherPage(grapher, knex, {
@@ -206,10 +187,7 @@ export async function renderDataPageV2(
     // If we are rendering this in the context of an indicator page preview or similar,
     // then the chart config might be entirely empty. Make sure that dimensions is
     // set to the variableId as a Y variable in theses cases.
-    if (
-        !grapher.dimensions ||
-        (grapher.dimensions as OwidChartDimensionInterface[]).length === 0
-    ) {
+    if (!grapher.dimensions || grapher.dimensions.length === 0) {
         const dimensions: OwidChartDimensionInterface[] = [
             {
                 variableId: variableId,
@@ -219,7 +197,11 @@ export async function renderDataPageV2(
         ]
         grapher.dimensions = dimensions
     }
-    const datapageData = getDatapageDataV2(variableMetadata, grapher ?? {})
+    const variableIds = _.uniq(
+        _.compact(grapher.dimensions.map(({ variableId }) => variableId))
+    )
+    const distribution = await getVariableDistribution(knex, variableIds)
+    const datapageData = getDatapageDataV2(variableMetadata, grapher)
 
     datapageData.primaryTopic = await getPrimaryTopic(
         knex,
@@ -263,41 +245,6 @@ export async function renderDataPageV2(
         )
 
         tagToSlugMap = await getTagToSlugMap(knex)
-        const tagsWithDataInsights = await getTagsWithDataInsights(knex)
-
-        datapageData.hasDataInsights = datapageData.primaryTopic?.topicTag
-            ? tagsWithDataInsights.has(datapageData.primaryTopic.topicTag)
-            : false
-
-        const isInInsightsExperiment =
-            grapher.slug !== undefined
-                ? experiments.some(
-                      (exp) =>
-                          exp.id === "exp-data-page-insight-btns-2" &&
-                          !exp.isExpired() &&
-                          exp.isUrlInPaths(`/grapher/${grapher.slug}`)
-                  )
-                : false
-
-        // only retrieve data insights and add to datapageData if topic has data
-        // insights and grapher is in path of the exp-data-page-insight-btns-2 experiment
-        if (
-            datapageData.hasDataInsights &&
-            isInInsightsExperiment &&
-            datapageData.primaryTopic?.topicTag
-        ) {
-            const dataInsights = await GdocDataInsight.getPublishedDataInsights(
-                knex,
-                0,
-                tagToSlugMap[datapageData.primaryTopic.topicTag]
-            )
-            datapageData.dataInsights = dataInsights.slice(0, 3).map((row) => {
-                return {
-                    title: row.content.title,
-                    slug: row.slug,
-                }
-            })
-        }
     }
 
     let canonicalUrl: string
@@ -320,6 +267,7 @@ export async function renderDataPageV2(
             faqEntries={faqEntries}
             tagToSlugMap={tagToSlugMap}
             archiveContext={archiveContext}
+            distribution={distribution}
         />
     )
 }
@@ -331,14 +279,14 @@ export async function renderDataPageV2(
 export const renderPreviewDataPageOrGrapherPage = async (
     grapher: GrapherInterface,
     chartId: number,
-    forceDatapage: boolean,
-    knex: db.KnexReadonlyTransaction
+    knex: db.KnexReadonlyTransaction,
+    options?: { forceDatapage?: boolean }
 ) => {
     const archiveContextDictionary =
         await getLatestArchivedChartPageVersionsIfEnabled(knex)
     const datapage = await renderDatapageIfApplicable(grapher, true, knex, {
         archiveContextDictionary,
-        forceDatapage,
+        forceDatapage: options?.forceDatapage,
     })
     if (datapage) return datapage
 
@@ -434,7 +382,6 @@ const bakeGrapherPage = async (
     await fs.writeFile(
         outPath,
         await renderDataPageOrGrapherPage(grapher, knex, {
-            forceDatapage: args.forceDatapage,
             imageMetadataDictionary: args.imageMetadataDictionary,
             archiveContextDictionary: args.archiveContextDictionary,
         })
@@ -446,7 +393,6 @@ export interface BakeSingleGrapherChartArguments {
     config: string
     bakedSiteDir: string
     slug: string
-    forceDatapage: boolean
     imageMetadataDictionary: Record<string, DbEnrichedImage>
     archiveContextDictionary: Record<number, ArchiveContext | undefined>
 }
@@ -477,7 +423,6 @@ export const bakeAllChangedGrapherPagesAndDeleteRemovedGraphers = async (
         Pick<DbPlainChart, "id"> & {
             config: DbRawChartConfig["full"]
             slug: string
-            forceDatapage: boolean
         }
     >(
         knex,
@@ -485,8 +430,7 @@ export const bakeAllChangedGrapherPagesAndDeleteRemovedGraphers = async (
         SELECT
             c.id,
             cc.full as config,
-            cc.slug,
-            c.forceDatapage
+            cc.slug
         FROM charts c
         JOIN chart_configs cc ON c.configId = cc.id
         WHERE JSON_EXTRACT(cc.full, "$.isPublished")=true
@@ -509,7 +453,6 @@ export const bakeAllChangedGrapherPagesAndDeleteRemovedGraphers = async (
         config: row.config,
         bakedSiteDir: bakedSiteDir,
         slug: row.slug,
-        forceDatapage: Boolean(row.forceDatapage),
         imageMetadataDictionary,
         archiveContextDictionary,
     }))

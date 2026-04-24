@@ -11,6 +11,12 @@ import { TextWrap } from "@ourworldindata/components"
 import { InteractionState } from "../interaction/InteractionState.js"
 import { ColumnSlug } from "@ourworldindata/utils"
 import { SeriesLabelState } from "../seriesLabel/SeriesLabelState.js"
+import { Emphasis } from "../interaction/Emphasis.js"
+import {
+    GRAPHER_AREA_OPACITY_DEFAULT,
+    GRAPHER_AREA_OPACITY_HIGHLIGHTED,
+    GRAPHER_AREA_OPACITY_MUTED,
+} from "../core/GrapherConstants"
 
 export interface DiscreteBarSeries extends ChartSeries {
     entityName: string
@@ -40,6 +46,30 @@ export interface PlacedDiscreteBarSeries extends SizedDiscreteBarSeries {
     entityLabelY: number
     annotationY?: number
     valueLabelX: number
+}
+
+export interface RenderDiscreteBarSeries extends PlacedDiscreteBarSeries {
+    emphasis: Emphasis
+}
+
+interface DiscreteBarStyle {
+    barOpacity: number
+    labelOpacity: number
+}
+
+export const DISCRETE_BAR_STYLE: Record<Emphasis, DiscreteBarStyle> = {
+    [Emphasis.Default]: {
+        barOpacity: GRAPHER_AREA_OPACITY_DEFAULT,
+        labelOpacity: 1,
+    },
+    [Emphasis.Highlighted]: {
+        barOpacity: GRAPHER_AREA_OPACITY_HIGHLIGHTED,
+        labelOpacity: 1,
+    },
+    [Emphasis.Muted]: {
+        barOpacity: GRAPHER_AREA_OPACITY_MUTED,
+        labelOpacity: 0.3,
+    },
 }
 
 export interface DiscreteBarChartManager extends ChartManager {

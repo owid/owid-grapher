@@ -18,9 +18,9 @@ import {
 } from "./GridLangConstants.js"
 
 export class GridCell implements ParsedCell {
-    private position: CellPosition
-    private matrix: MatrixProgram
-    private rootDefinition: CellDef
+    private readonly position: CellPosition
+    private readonly matrix: MatrixProgram
+    private readonly rootDefinition: CellDef
     constructor(
         matrix: MatrixProgram,
         position: CellPosition,
@@ -62,9 +62,8 @@ export class GridCell implements ParsedCell {
         if (!isFirstWordAKeyword) return undefined
 
         // It has a keyword but it is column >1
-        const def = grammar[firstWordOnLine!]
-        const positionalCellTypeDef =
-            def.positionalCellDefs && def.positionalCellDefs[this.column - 2]
+        const def = grammar[firstWordOnLine]
+        const positionalCellTypeDef = def.positionalCellDefs?.[this.column - 2]
         if (positionalCellTypeDef) return positionalCellTypeDef
         if (def.isHorizontalList && this.contents) return def // For now only return a def for lists if it is non-empty
         return NothingGoesThereCellDef
@@ -113,7 +112,7 @@ export class GridCell implements ParsedCell {
 
         const subTableDef = this.rootDefinition.grammar![parentKeyword]
 
-        const headerCellDef = subTableDef && subTableDef.headerCellDef
+        const headerCellDef = subTableDef?.headerCellDef
 
         if (!headerCellDef) return undefined
 
@@ -207,7 +206,7 @@ export class GridCell implements ParsedCell {
             ? validate(
                   contents,
                   catchAllKeywordRegex,
-                  catchAllCellDef!.requirementsDescription
+                  catchAllCellDef.requirementsDescription
               )
             : undefined
 
@@ -264,8 +263,8 @@ export class GridCell implements ParsedCell {
     get placeholder() {
         const { contents, cellDef } = this
         const { terminalOptions } = cellDef
-        const firstOption = terminalOptions && terminalOptions[0]
-        const firstOptionName = firstOption && firstOption.keyword
+        const firstOption = terminalOptions?.[0]
+        const firstOptionName = firstOption?.keyword
         const placeholder = cellDef.valuePlaceholder ?? firstOptionName
         return isEmpty(contents) && placeholder
             ? `eg "${placeholder}"`

@@ -1,4 +1,5 @@
 import { DeployMetadata } from "@ourworldindata/utils"
+import * as _ from "lodash-es"
 import {
     BUILDKITE_API_ACCESS_TOKEN,
     BUILDKITE_DEPLOY_CONTENT_PIPELINE_SLUG,
@@ -21,9 +22,9 @@ type BuildState =
     | "finished"
 
 export class BuildkiteTrigger {
-    private organizationSlug = "our-world-in-data"
-    private pipelineSlug = BUILDKITE_DEPLOY_CONTENT_PIPELINE_SLUG
-    private branch = BUILDKITE_BRANCH
+    private readonly organizationSlug = "our-world-in-data"
+    private readonly pipelineSlug = BUILDKITE_DEPLOY_CONTENT_PIPELINE_SLUG
+    private readonly branch = BUILDKITE_BRANCH
 
     async triggerBuild(
         message: string,
@@ -108,13 +109,14 @@ export class BuildkiteTrigger {
         gdocSlugs: string[],
         { title, changesSlackMentions }: DeployMetadata
     ): Promise<void> {
+        const uniqueGdocSlugs = _.uniq(gdocSlugs)
         const message = `⚡️ ${title}${
-            gdocSlugs.length > 1
-                ? ` and ${gdocSlugs.length - 1} more updates`
+            uniqueGdocSlugs.length > 1
+                ? ` and ${uniqueGdocSlugs.length - 1} more updates`
                 : ""
         }`
         const buildNumber = await this.triggerBuild(message, {
-            LIGHTNING_GDOC_SLUGS: gdocSlugs.join(" "),
+            LIGHTNING_GDOC_SLUGS: uniqueGdocSlugs.join(" "),
             CHANGES_SLACK_MENTIONS: changesSlackMentions.join("\n"),
         })
         await this.waitForBuildToFinish(buildNumber)

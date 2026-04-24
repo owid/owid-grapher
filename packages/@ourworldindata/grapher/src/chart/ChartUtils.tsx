@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import * as React from "react"
 import {
     Box,
@@ -17,6 +18,9 @@ import {
     PrimitiveType,
     ColumnTypeNames,
     Time,
+    SortBy,
+    SortConfig,
+    SortOrder,
 } from "@ourworldindata/types"
 import { LineChartSeries } from "../lineCharts/LineChartConstants"
 import { SelectionArray } from "../selection/SelectionArray"
@@ -40,9 +44,10 @@ import {
 import { GRAPHER_BACKGROUND_DEFAULT } from "../color/ColorConstants"
 import { InteractionState } from "../interaction/InteractionState"
 
+import * as R from "remeda"
+
 export const autoDetectYColumnSlugs = (manager: ChartManager): string[] => {
-    if (manager.yColumnSlugs && manager.yColumnSlugs.length)
-        return manager.yColumnSlugs
+    if (manager.yColumnSlugs?.length) return manager.yColumnSlugs
     if (manager.yColumnSlug) return [manager.yColumnSlug]
     return manager.table.numericColumnSlugs
 }
@@ -165,7 +170,7 @@ export function getHoverStateForSeries(
     series: ChartSeries,
     props: {
         hoveredSeriesNames: SeriesName[]
-        // usually the hover mode is active when there is
+        // Usually the hover mode is active when there is
         // at least one hovered element. But sometimes the hover
         // mode might be active although there are no hovered elements.
         // For example, when the facet legend is hovered but a particular
@@ -196,35 +201,6 @@ export function byHoverThenFocusState(series: {
 
     // background series rank lowest
     return 1
-}
-
-export function makeAxisLabel({
-    label,
-    displayUnit,
-}: {
-    label: string
-    displayUnit?: string
-}): {
-    mainLabel: string // shown in bold
-    unit?: string // shown in normal weight, usually in parens
-} {
-    // No unit to display
-    if (!displayUnit) return { mainLabel: label }
-
-    // Extract text in parens at the end of the label,
-    // e.g. "Population (millions)" is split into "Population " and "(millions)"
-    const [
-        _fullMatch,
-        untrimmedMainLabelText = undefined,
-        labelTextInParens = undefined,
-    ] = label.trim().match(/^(.*?)(\([^()]*\))?$/s) ?? []
-    const mainLabelText = untrimmedMainLabelText?.trim() ?? ""
-
-    // Don't show unit twice if it's contained in the label
-    const displayLabel =
-        labelTextInParens === `(${displayUnit})` ? mainLabelText : label
-
-    return { mainLabel: displayLabel, unit: displayUnit }
 }
 
 /**
@@ -327,9 +303,10 @@ export function NoDataPattern({
     patternId?: string
     scale?: number
 }): React.ReactElement {
+    const roundedScale = R.round(scale, 3)
     const patternTransforms = excludeUndefined([
         `rotate(-45 2 2)`,
-        scale !== 1 ? `scale(${scale})` : undefined,
+        roundedScale !== 1 ? `scale(${roundedScale})` : undefined,
     ])
     return (
         <pattern
@@ -361,4 +338,22 @@ export function getChartSvgProps({
             backgroundColor: backgroundColor ?? GRAPHER_BACKGROUND_DEFAULT,
         },
     }
+}
+
+type SortKeyFn<T> = (item: T) => number | string | undefined
+
+export type SortKeyFunctions<T> = Record<SortBy, SortKeyFn<T>>
+
+export function sortByConfig<T>(
+    items: readonly T[],
+    sortConfig: SortConfig,
+    keyFns: SortKeyFunctions<T>
+): T[] {
+    const sortByKey = sortConfig.sortBy ?? SortBy.total
+    const sortByFunc = keyFns[sortByKey]
+    const sortOrder = sortConfig.sortOrder ?? SortOrder.desc
+
+    const sortedRows = _.sortBy(items, sortByFunc)
+
+    return sortOrder === SortOrder.desc ? sortedRows.toReversed() : sortedRows
 }

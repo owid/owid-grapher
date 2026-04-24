@@ -9,18 +9,18 @@ import {
     EntityName,
     FacetStrategy,
     MissingDataStrategy,
-    SortBy,
     SortConfig,
-    SortOrder,
 } from "@ourworldindata/types"
 import {
+    sortByConfig,
     autoDetectYColumnSlugs,
     getDefaultFailMessage,
     getShortNameForEntity,
     makeSelectionArray,
 } from "../chart/ChartUtils"
 import { SelectionArray } from "../selection/SelectionArray"
-import { Item, StackedSeries } from "./StackedConstants"
+import { StackedSeries } from "./StackedConstants"
+import { DiscreteBarRow } from "./StackedDiscreteBarChartConstants.js"
 import {
     stackSeriesInBothDirections,
     withMissingValuesAsZeroes,
@@ -149,9 +149,10 @@ export class StackedDiscreteBarChartState implements ChartState {
     }
 
     @computed get sortColumn(): CoreColumn | undefined {
-        return this.sortColumnSlug
-            ? this.transformedTable.getColumns([this.sortColumnSlug])[0]
-            : undefined
+        if (!this.sortColumnSlug) return undefined
+        const sortColumn = this.transformedTable.get(this.sortColumnSlug)
+        if (sortColumn && !sortColumn.isMissing) return sortColumn
+        return undefined
     }
 
     @computed get sortConfig(): SortConfig {
@@ -206,9 +207,9 @@ export class StackedDiscreteBarChartState implements ChartState {
         )
     }
 
-    @computed get items(): readonly Item[] {
+    @computed get rows(): readonly DiscreteBarRow[] {
         const entityNames = this.selectionArray.selectedEntityNames
-        const items = entityNames
+        const rows = entityNames
             .map((entityName) => {
                 let totalValue = 0
                 const bars = excludeUndefined(
@@ -235,37 +236,20 @@ export class StackedDiscreteBarChartState implements ChartState {
                     focus: this.focusArray.state(entityName),
                 }
             })
-            .filter((item) => item.bars.length)
+            .filter((row) => row.bars.length)
 
-        return items
+        return rows
     }
 
-    @computed get sortedItems(): readonly Item[] {
-        let sortByFunc: (item: Item) => number | string | undefined
-        switch (this.sortConfig.sortBy) {
-            case SortBy.custom:
-                sortByFunc = (): undefined => undefined
-                break
-            case SortBy.entityName:
-                sortByFunc = (item: Item): string => item.entityName
-                break
-            case SortBy.column: {
-                const owidRowsByEntityName =
-                    this.sortColumn?.owidRowsByEntityName
-                sortByFunc = (item: Item): number => {
-                    const rows = owidRowsByEntityName?.get(item.entityName)
-                    return rows?.[0]?.value ?? 0
-                }
-                break
-            }
-            default:
-            case SortBy.total:
-                sortByFunc = (item: Item): number => item.totalValue
-        }
-        const sortedItems = _.sortBy(this.items, sortByFunc)
-        const sortOrder = this.sortConfig.sortOrder ?? SortOrder.desc
-        if (sortOrder === SortOrder.desc) return sortedItems.toReversed()
-        else return sortedItems
+    @computed get sortedRows(): readonly DiscreteBarRow[] {
+        return sortByConfig(this.rows, this.sortConfig, {
+            custom: () => undefined,
+            entityName: (row): string => row.entityName,
+            column: (row): number =>
+                this.sortColumn?.owidRowsByEntityName?.get(row.entityName)?.[0]
+                    ?.value ?? 0,
+            total: (row): number => row.totalValue,
+        })
     }
 
     @computed get availableFacetStrategies(): FacetStrategy[] {

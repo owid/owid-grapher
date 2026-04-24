@@ -334,7 +334,7 @@ export async function checkIfSlugCollides(
     knex: KnexReadonlyTransaction,
     gdoc: OwidGdocBaseInterface
 ): Promise<boolean> {
-    const existingGdoc = await knex(PostsGdocsTableName)
+    const existingGdocs = await knex(PostsGdocsTableName)
         .where({
             slug: gdoc.slug,
             published: true,
@@ -342,15 +342,15 @@ export async function checkIfSlugCollides(
         .whereNot({
             id: gdoc.id,
         })
-        .first()
-        .then((row) => (row ? parsePostsGdocsRow(row) : undefined))
+        .then((rows) => rows.map(parsePostsGdocsRow))
 
-    if (!existingGdoc) return false
+    if (existingGdocs.length === 0) return false
 
-    const existingCanonicalUrl = getCanonicalUrl("", existingGdoc)
     const incomingCanonicalUrl = getCanonicalUrl("", gdoc)
 
-    return existingCanonicalUrl === incomingCanonicalUrl
+    return existingGdocs.some(
+        (existing) => getCanonicalUrl("", existing) === incomingCanonicalUrl
+    )
 }
 
 export const getPublishedDataInsightCount = (
@@ -700,7 +700,7 @@ export function getBestBreadcrumbs(
     }
 
     // Only keep the topics in the paths, because only topics are clickable as breadcrumbs
-    const topicsOnly = Array.from(result.values()).reduce(
+    const topicsOnly = result.values().reduce(
         (acc, path) => {
             return [...acc, path.filter((tag) => tag.slug)]
         },

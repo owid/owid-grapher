@@ -8,6 +8,19 @@ import {
 import { getIndexName, AlgoliaConfig } from "./algoliaClient.js"
 
 /**
+ * Error thrown when the client provides invalid search parameters (e.g. a
+ * non-existent topic name).  The API handler uses this to distinguish
+ * user-facing validation errors (→ 400, no Sentry) from unexpected failures
+ * (→ 500, report to Sentry).
+ */
+export class SearchValidationError extends Error {
+    constructor(message: string) {
+        super(message)
+        this.name = "SearchValidationError"
+    }
+}
+
+/**
  * Enriched search result with URL added
  * This is what we return from the API after processing Algolia results
  */
@@ -177,9 +190,9 @@ async function getAvailableTopics(config: AlgoliaConfig): Promise<string[]> {
         throw new Error(`Algolia search failed: ${response.statusText}`)
     }
 
-    const data = (await response.json()) as {
+    const data: {
         results: [{ facets?: { tags?: Record<string, number> } }]
-    }
+    } = await response.json()
 
     return Object.keys(data.results[0].facets?.tags || {}).sort()
 }
@@ -248,9 +261,9 @@ export async function searchCharts(
         throw new Error(`Algolia search failed: ${response.statusText}`)
     }
 
-    const data = (await response.json()) as {
+    const data: {
         results: AlgoliaSearchResponse[]
-    }
+    } = await response.json()
     const result = data.results[0]
 
     // If we got zero results and user is filtering by topic, check if the topic exists
@@ -264,7 +277,7 @@ export async function searchCharts(
             (topic) => !availableTopics.includes(topic)
         )
         if (invalidTopics.length > 0) {
-            throw new Error(
+            throw new SearchValidationError(
                 `No results found. The topic "${invalidTopics.join('", "')}" does not exist. Available topics: ${availableTopics.join(", ")}`
             )
         }
@@ -482,9 +495,9 @@ export async function searchPages(
         throw new Error(`Algolia search failed: ${response.statusText}`)
     }
 
-    const data = (await response.json()) as {
+    const data: {
         results: [{ hits: SearchPageHit[]; nbHits: number }]
-    }
+    } = await response.json()
     const result = data.results[0]
 
     // Clean up the hits and add URL

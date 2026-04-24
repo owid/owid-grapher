@@ -11,7 +11,6 @@ import {
     ColumnSlug,
     imemo,
     ToleranceStrategy,
-    differenceOfSets,
     sortedFindClosestIndex,
     csvEscape,
 } from "@ourworldindata/utils"
@@ -210,7 +209,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
 
         // We may want to do this time adjustment in Grapher instead of here.
         const adjustedStart = start === Infinity ? this.maxTime! : start
-        const adjustedEnd = end === -Infinity ? this.minTime! : end
+        const adjustedEnd = end === -Infinity ? this.minTime : end
         // todo: we should set a time column onload so we don't have to worry about it again.
         const timeColumnSlug = this.timeColumn?.slug || OwidTableSlugs.time
 
@@ -233,7 +232,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     }
 
     filterByTargetTimes(targetTimes: Time[], tolerance = 0): this {
-        const timeColumn = this.timeColumn!
+        const timeColumn = this.timeColumn
         const timeValues = timeColumn.valuesIncludingErrorValues
 
         // The common case here is that the tolerance is set to 0, in which case we can simply filter
@@ -327,10 +326,8 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
             }
         }
 
-        const entityNamesToDrop = differenceOfSets([
-            this.availableEntityNameSet,
-            entityNamesToKeep,
-        ])
+        const entityNamesToDrop =
+            this.availableEntityNameSet.difference(entityNamesToKeep)
         const droppedEntitiesStr =
             entityNamesToDrop.size > 0
                 ? [...entityNamesToDrop].join(", ")
@@ -367,10 +364,8 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
 
         // helper function to generate operation name
         const makeOpName = (entityNamesToKeep: Set<EntityName>): string => {
-            const entityNamesToDrop = differenceOfSets([
-                this.availableEntityNameSet,
-                entityNamesToKeep,
-            ])
+            const entityNamesToDrop =
+                this.availableEntityNameSet.difference(entityNamesToKeep)
             const droppedEntitiesStr =
                 entityNamesToDrop.size > 0
                     ? [...entityNamesToDrop].join(", ")
@@ -457,7 +452,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     // Shows how much each entity contributed to the given column for each time period
     toPercentageFromEachEntityForEachTime(columnSlug: ColumnSlug): this {
         if (!this.has(columnSlug)) return this
-        const timeColumn = this.timeColumn!
+        const timeColumn = this.timeColumn
         const col = this.get(columnSlug)
         const timeTotals = this.sumsByTime(columnSlug)
         const timeValues = timeColumn.values
@@ -1160,9 +1155,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
                 maxDiff
             )
             const timeAtoTimeB = new Map(timePairs)
-            const pairedTimesInA = sortNumeric(
-                Array.from(timeAtoTimeB.keys())
-            ) as Time[]
+            const pairedTimesInA = sortNumeric(Array.from(timeAtoTimeB.keys()))
 
             for (let index = startIndex; index < endIndex; index++) {
                 const currentTime = times[index]

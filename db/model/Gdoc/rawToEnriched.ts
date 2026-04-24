@@ -152,6 +152,13 @@ import {
     RawBlockCookieNotice,
     PullQuoteAlignment,
     pullquoteAlignments,
+    EnrichedBlockChartRows,
+    EnrichedChartRowItem,
+    RawBlockChartRows,
+    EnrichedBlockPullChart,
+    RawBlockPullChart,
+    PullChartAlignment,
+    pullChartAlignments,
     RawBlockCountryProfileSelector,
     EnrichedBlockCountryProfileSelector,
     RawBlockExpander,
@@ -165,10 +172,10 @@ import {
     resourcePanelIcons,
     EnrichedBlockCta,
     RawBlockCta,
-    EnrichedBlockScript,
-    RawBlockScript,
     blockVisibilitys,
     VALID_PEER_COUNTRY_STRATEGY_QUERY_PARAMS,
+    RawBlockBespokeComponent,
+    EnrichedBlockBespokeComponent,
 } from "@ourworldindata/types"
 import {
     traverseEnrichedSpan,
@@ -203,6 +210,7 @@ export function parseRawBlocksToEnrichedBlocks(
         .with({ type: "all-charts" }, parseAllCharts)
         .with({ type: "additional-charts" }, parseAdditionalCharts)
         .with({ type: "aside" }, parseAside)
+        .with({ type: "bespoke-component" }, parseBespokeComponent)
         .with({ type: "blockquote" }, parseBlockquote)
         .with({ type: "callout" }, parseCallout)
         .with({ type: "data-callout" }, parseDataCallout)
@@ -221,6 +229,8 @@ export function parseRawBlocksToEnrichedBlocks(
         .with({ type: "people-rows" }, parsePeopleRows)
         .with({ type: "person" }, parsePerson)
         .with({ type: "pull-quote" }, parsePullQuote)
+        .with({ type: "chart-rows" }, parseChartRows)
+        .with({ type: "pull-chart" }, parsePullChart)
         .with({ type: "resource-panel" }, parseResourcePanel)
         .with({ type: "guided-chart" }, parseGuidedChart)
         .with(
@@ -242,7 +252,6 @@ export function parseRawBlocksToEnrichedBlocks(
                 parseErrors: [],
             })
         )
-        .with({ type: "script" }, parseScript)
         .with({ type: "heading" }, parseHeading)
         .with({ type: "sdg-grid" }, parseSdgGrid)
         .with({ type: "sticky-left" }, parseStickyLeft)
@@ -469,6 +478,58 @@ const parseBlockquote = (raw: RawBlockBlockquote): EnrichedBlockBlockquote => {
         text: parsedText,
         citation,
         parseErrors: parsedTextErrors,
+    }
+}
+
+const parseBespokeComponent = (
+    raw: RawBlockBespokeComponent
+): EnrichedBlockBespokeComponent => {
+    const createError = (
+        error: ParseError,
+        bundle: string = "",
+        size: BlockSize = BlockSize.Wide,
+        config: Record<string, string> = {}
+    ): EnrichedBlockBespokeComponent => ({
+        type: "bespoke-component",
+        bundle,
+        size,
+        config,
+        parseErrors: [error],
+    })
+
+    if (!raw.value.bundle) {
+        return createError({
+            message: "Bundle property is required for bespoke-component",
+        })
+    }
+
+    const size = raw.value.size ?? BlockSize.Wide
+    if (!checkIsBlockSize(size)) {
+        return createError({
+            message: `Invalid size property: ${size}`,
+        })
+    }
+
+    const rawConfig = raw.value.config ?? {}
+    const config: Record<string, string> = {}
+    const parseErrors: ParseError[] = []
+    for (const [key, value] of Object.entries(rawConfig)) {
+        if (typeof value !== "string") {
+            parseErrors.push({
+                message: `Config value for "${key}" must be a string, got ${typeof value}. Nested config values are not supported.`,
+            })
+        } else {
+            config[key] = value
+        }
+    }
+
+    return {
+        type: "bespoke-component",
+        bundle: raw.value.bundle,
+        variant: raw.value.variant,
+        size,
+        config,
+        parseErrors,
     }
 }
 
@@ -1132,6 +1193,149 @@ const parsePullQuote = (raw: RawBlockPullQuote): EnrichedBlockPullQuote => {
     }
 }
 
+function parseChartRows(raw: RawBlockChartRows): EnrichedBlockChartRows {
+    const createError = (
+        error: ParseError,
+        rows: EnrichedChartRowItem[] = []
+    ): EnrichedBlockChartRows => ({
+        type: "chart-rows",
+        kicker: "",
+        title: "",
+        source: "",
+        rows,
+        parseErrors: [error],
+    })
+
+    if (typeof raw.value === "string") {
+        return createError({
+            message: "Value is a string, not an object with properties",
+        })
+    }
+
+    const { kicker, title, source, rows } = raw.value
+    const parseErrors: ParseError[] = []
+
+    if (!rows || rows.length === 0) {
+        return createError({
+            message: "chart-rows must have at least one row item",
+        })
+    }
+
+    const enrichedRows: EnrichedChartRowItem[] = []
+    for (const row of rows) {
+        if (!row.image) {
+            parseErrors.push({
+                message: "chart-rows row item missing image property",
+            })
+            continue
+        }
+        if (!row.url) {
+            parseErrors.push({
+                message: "chart-rows row item missing url property",
+            })
+            continue
+        }
+
+        const enrichedContent = row.content?.map(parseText) ?? []
+        for (const block of enrichedContent) {
+            for (const error of block.parseErrors) {
+                parseErrors.push({
+                    ...error,
+                    message: `chart-rows row content: ${error.message}`,
+                })
+            }
+        }
+
+        if (enrichedContent.length === 0) {
+            parseErrors.push({
+                message:
+                    "chart-rows row item has no content. Consider adding text to accompany the chart thumbnail.",
+                isWarning: true,
+            })
+        }
+
+        enrichedRows.push({
+            image: row.image,
+            url: row.url,
+            content: enrichedContent,
+        })
+    }
+
+    return {
+        type: "chart-rows",
+        kicker: kicker ?? "",
+        title: title ?? "",
+        source: source ?? "",
+        rows: enrichedRows,
+        parseErrors,
+    }
+}
+
+function parsePullChart(raw: RawBlockPullChart): EnrichedBlockPullChart {
+    const createError = (error: ParseError): EnrichedBlockPullChart => ({
+        type: "pull-chart",
+        image: "",
+        url: "",
+        content: [],
+        parseErrors: [error],
+    })
+
+    if (typeof raw.value === "string") {
+        return createError({
+            message: "Value is a string, not an object with properties",
+        })
+    }
+
+    const { align, image, url, content } = raw.value
+    const parseErrors: ParseError[] = []
+
+    let validAlign: PullChartAlignment | undefined
+    if (align) {
+        if (validateRawEnum(pullChartAlignments, align)) {
+            validAlign = align
+        } else {
+            parseErrors.push({
+                message: `Invalid pull-chart alignment "${align}". Must be one of ${pullChartAlignments.join(", ")}.`,
+                isWarning: true,
+            })
+        }
+    }
+
+    if (!image) {
+        return createError({ message: "pull-chart missing image property" })
+    }
+    if (!url) {
+        return createError({ message: "pull-chart missing url property" })
+    }
+
+    const enrichedContent = content?.map(parseText) ?? []
+    for (const block of enrichedContent) {
+        for (const error of block.parseErrors) {
+            parseErrors.push({
+                ...error,
+                message: `pull-chart content: ${error.message}`,
+            })
+        }
+    }
+
+    if (enrichedContent.length === 0) {
+        parseErrors.push({
+            message:
+                "pull-chart has no content. Consider adding text to accompany the chart thumbnail.",
+            isWarning: true,
+        })
+    }
+
+    return {
+        type: "pull-chart",
+        align: validAlign,
+        image,
+        url,
+        content: enrichedContent,
+        parseErrors,
+    }
+}
+
 function parseHybridLinks(rawLinks: RawHybridLink[]): {
     parsedLinks: EnrichedHybridLink[]
     parseErrors: ParseError[]
@@ -1212,6 +1416,13 @@ const parseGuidedChart = (
         traverseEnrichedBlock(block, (node) => {
             if (node.type === "chart") {
                 chartCount++
+            }
+            if (node.type === "chart-rows" && (node.title || node.source)) {
+                contentErrors.push({
+                    message:
+                        "chart-rows inside a guided-chart should not have title or source — these are hidden in guided chart mode",
+                    isWarning: true,
+                })
             }
             if (node.parseErrors.length) {
                 contentErrors.push(
@@ -1305,7 +1516,7 @@ const parseSubscribeBanner = (
     const rawAlign = raw.value?.align
     if (rawAlign) {
         if (validateRawEnum(blockAlignments, rawAlign)) {
-            align = rawAlign as BlockAlignment
+            align = rawAlign
         } else {
             parseErrors.push({
                 message: `If specified, subscribe-banner align must be one of ${blockAlignments.join(", ")}`,
@@ -1387,7 +1598,7 @@ export const parseTable = (raw: RawBlockTable): EnrichedBlockTable => {
             for (const [cellIndex, cell] of cells.entries()) {
                 const enrichedCellContent: OwidEnrichedGdocBlock[] = []
                 const content = cell.value
-                if (!content || !content.length) {
+                if (!content?.length) {
                     enrichedCells.push({
                         type: "table-cell",
                         content: [],
@@ -1601,8 +1812,8 @@ const parseSdgGrid = (raw: RawBlockSDGGrid): EnrichedBlockSDGGrid => {
                     },
                 ]
             // TODO: make the type not just a string and then parse spans here
-            const goal = item.goal!
-            const link = item.link!
+            const goal = item.goal
+            const link = item.link
 
             //const errors = goal.parseErrors.concat(link.parseErrors)
 
@@ -2272,14 +2483,14 @@ export function parseFaqs(
         return {
             id: faq.id,
             content: enrichedText,
-            parseErrors: _.compact([
-                ...enrichedText.flatMap((block) =>
+            parseErrors: _.compact(
+                enrichedText.flatMap((block) =>
                     block?.parseErrors.map((parseError) => ({
                         ...parseError,
                         message: `Block parse error in faq with id "${faq.id}": ${parseError.message}`,
                     }))
-                ),
-            ]),
+                )
+            ),
         }
     }
 
@@ -2363,7 +2574,7 @@ function parseResearchAndWritingBlock(
             const enriched: EnrichedBlockResearchAndWritingLink = {
                 value: { url: enrichedUrl },
             }
-            if (authors) enriched.value.authors = parseAuthors(authors)
+            if (authors) enriched.value.authors = parseAuthors(authors).authors
             if (title) enriched.value.title = title
             if (filename) enriched.value.filename = filename
             if (subtitle) enriched.value.subtitle = subtitle
@@ -2937,7 +3148,9 @@ function parseHomepageIntro(
         const url = extractUrl(post.url)
         const linkType = getLinkType(url)
         // If authors aren't specified, assume it's a linked gdoc
-        const authors = post.authors ? parseAuthors(post.authors) : undefined
+        const authors = post.authors
+            ? parseAuthors(post.authors).authors
+            : undefined
 
         const enrichedPost: EnrichedBlockHomepageIntroPost = {
             url,
@@ -3025,7 +3238,7 @@ export const parseSocialLink = (raw: RawSocialLink): EnrichedSocialLink => {
             message: "Link is missing text",
         })
     }
-    if (raw.type && Object.values(SocialLinkType).indexOf(raw.type) === -1) {
+    if (raw.type && !Object.values(SocialLinkType).includes(raw.type)) {
         return createError({
             message: `Link type must be one of ${Object.values(
                 SocialLinkType
@@ -3065,41 +3278,6 @@ export const parseSocials = (raw: RawBlockSocials): EnrichedBlockSocials => {
     return {
         type: "socials",
         links: raw.value.map(parseSocialLink),
-        parseErrors: [],
-    }
-}
-
-export const parseScript = (raw: RawBlockScript): EnrichedBlockScript => {
-    const createError = (error: ParseError): EnrichedBlockScript => ({
-        type: "script",
-        lines: [],
-        parseErrors: [error],
-    })
-
-    const rawLines = raw.value
-    if (!R.isArray(rawLines)) {
-        return createError({
-            message: `Script block must be written as an array e.g. [.+script]`,
-        })
-    }
-
-    const enrichedText = rawLines.map(parseText)
-    const [goodText, badText] = _.partition(
-        enrichedText,
-        (enrichedLine) =>
-            enrichedLine.value.length === 1 &&
-            enrichedLine.value[0].spanType === "span-simple-text"
-    )
-
-    if (badText.length) {
-        return createError({
-            message: `Script block contains invalid lines: "${badText.map((text) => spansToSimpleString(text.value)).join(", ")}". Each line must be simple text without formatting.`,
-        })
-    }
-
-    return {
-        type: "script",
-        lines: goodText.map((text) => spansToSimpleString(text.value)),
         parseErrors: [],
     }
 }

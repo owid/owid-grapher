@@ -221,9 +221,9 @@ export class UsersIndexPage extends React.Component {
     async getData() {
         const { admin } = this.context
 
-        const json = (await admin.getJSON("/api/users.json")) as {
+        const json = await admin.getJSON<{
             users: UserIndexMetaWithLastSeen[]
-        }
+        }>("/api/users.json")
 
         runInAction(() => {
             this.users = json.users

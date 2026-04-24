@@ -32,16 +32,19 @@ export interface Box {
     height: number
 }
 
-// TODO: remove duplicate definition, also available in CoreTable
 export enum SortOrder {
     asc = "asc",
     desc = "desc",
 }
 
 export enum SortBy {
+    /** Preserve the specified entity order */
     custom = "custom",
+    /** Sort alphabetically by entity name */
     entityName = "entityName",
+    /** Sort by the value of a specific column, identified by sortColumnSlug */
     column = "column",
+    /** Sort by the total across all columns */
     total = "total",
 }
 
@@ -237,9 +240,9 @@ export const VALID_PEER_COUNTRY_STRATEGY_QUERY_PARAMS: PeerCountryStrategyQueryP
 
 export enum GrapherTooltipAnchor {
     /** The tooltip is positioned relative to the mouse cursor */
-    mouse = "mouse",
+    Mouse = "mouse",
     /** The tooltip is pinned to the bottom of the screen */
-    bottom = "bottom",
+    Bottom = "bottom",
 }
 
 export interface AnnotationFieldsInTitle {
@@ -360,6 +363,11 @@ export interface CustomComparisonLineConfig {
 export type ComparisonLineConfig =
     | VerticalComparisonLineConfig
     | CustomComparisonLineConfig
+
+export interface VerticalComparisonLineLabelPlacement {
+    x: number
+    anchor: "start" | "end"
+}
 
 export enum LogoOption {
     owid = "owid",
@@ -629,6 +637,16 @@ export type GrapherQueryParams = {
 export type LegacyGrapherQueryParams = GrapherQueryParams & {
     year?: string
 }
+
+export type DownloadRewriteTarget =
+    | "download-full-data"
+    | "download-filtered-data"
+    | "api-csv"
+    | "api-metadata"
+    | "api-example-excel"
+    | "api-example-python"
+    | "api-example-r"
+    | "api-example-stata"
 
 // We don't use this anywhere, but this is a way to ensure that we have an object with all keys present
 // ... so GRAPHER_QUERY_PARAM_KEYS below is guaranteed to have all keys of LegacyGrapherQueryParams

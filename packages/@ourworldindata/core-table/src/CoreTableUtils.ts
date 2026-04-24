@@ -519,7 +519,7 @@ export const autodetectColumnDefs = (
     definedSlugs: Map<ColumnSlug, any>
 ): CoreColumnDef[] => {
     if (!Array.isArray(rowsOrColumnStore)) {
-        const columnStore = rowsOrColumnStore as CoreColumnStore
+        const columnStore = rowsOrColumnStore
         return Object.keys(columnStore)
             .filter((slug) => !definedSlugs.has(slug))
             .map((slug) => {
@@ -590,7 +590,7 @@ export class Timer {
     }
 
     private _tickTime: number
-    private _firstTickTime: number
+    private readonly _firstTickTime: number
 
     tick(msg?: string): number {
         const elapsed = Date.now() - this._tickTime

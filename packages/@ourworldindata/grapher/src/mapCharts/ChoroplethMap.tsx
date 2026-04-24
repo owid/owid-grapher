@@ -154,7 +154,7 @@ export class ChoroplethMap extends React.Component<{
             newOffsetY,
         ]
         const matrixComponentsRounded = matrixComponents.map((c) =>
-            _.round(c, 4)
+            _.round(c, 3)
         )
 
         const matrixStr = `matrix(${matrixComponentsRounded.join(",")})`

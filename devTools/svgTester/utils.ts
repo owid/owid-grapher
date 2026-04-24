@@ -766,11 +766,11 @@ export function displayVerifyResultsAndGetExitCode(
 
     const errorResults = validationResults.filter(
         (result) => result.kind === "error"
-    ) as VerifyResultError[]
+    )
 
     const differenceResults = validationResults.filter(
         (result) => result.kind === "difference"
-    ) as VerifyResultDifference[]
+    )
 
     if (errorResults.length === 0 && differenceResults.length === 0) {
         logIfVerbose(
@@ -957,8 +957,11 @@ export async function loadManifestViewIds(
     options: {
         targetViewIds?: string[]
         manifestName?: string
+        verbose?: boolean
     }
 ): Promise<{ viewIds: string[] | null; dataDir: string }> {
+    const { verbose = false } = options
+
     const testSuiteDir = path.join(SVG_REPO_PATH, testSuite)
     const defaultDataDir = path.join(testSuiteDir, "data")
 
@@ -975,14 +978,18 @@ export async function loadManifestViewIds(
 
             // viewIds are explicitly provided
             if (options.targetViewIds) {
-                console.log(`Using data directory: ${manifest.dataDir}`)
+                logIfVerbose(
+                    verbose,
+                    `Using data directory: ${manifest.dataDir}`
+                )
                 return { viewIds: null, dataDir }
             }
 
-            console.log(
+            logIfVerbose(
+                verbose,
                 `Read ${manifest.slugs.length} chart slugs from manifest: ${manifestName}`
             )
-            console.log(`Using data directory: ${manifest.dataDir}`)
+            logIfVerbose(verbose, `Using data directory: ${manifest.dataDir}`)
 
             return { viewIds: manifest.slugs, dataDir }
         } else {
@@ -1006,10 +1013,11 @@ export async function loadManifestViewIds(
 
         if (manifest) {
             const dataDir = path.join(testSuiteDir, manifest.dataDir)
-            console.log(
+            logIfVerbose(
+                verbose,
                 `Read ${manifest.slugs.length} chart slugs from manifest: ${options.manifestName}`
             )
-            console.log(`Using data directory: ${manifest.dataDir}`)
+            logIfVerbose(verbose, `Using data directory: ${manifest.dataDir}`)
             return { viewIds: manifest.slugs, dataDir }
         } else {
             console.warn(`Warning: Manifest not found at ${manifestPath}`)

@@ -57,11 +57,13 @@ import {
     RawBlockExpander,
     RawBlockResourcePanel,
     RawBlockCta,
-    RawBlockScript,
     RawBlockStaticViz,
     RawBlockConditionalSection,
     RawBlockDataCallout,
     RawBlockCountryProfileSelector,
+    RawBlockBespokeComponent,
+    RawBlockChartRows,
+    RawBlockPullChart,
 } from "@ourworldindata/types"
 import { match } from "ts-pattern"
 
@@ -69,7 +71,7 @@ export function appendDotEndIfMultiline(
     line: string | boolean | null | undefined
 ): string {
     if (typeof line === "boolean") return line ? "true" : "false"
-    if (line && line.includes("\n")) return line + "\n:end"
+    if (line?.includes("\n")) return line + "\n:end"
     return line ?? ""
 }
 
@@ -364,6 +366,54 @@ function* rawBlockRecircToArchieMLString(
     yield "{}"
 }
 
+function* rawBlockChartRowsToArchieMLString(
+    block: RawBlockChartRows
+): Generator<string, void, undefined> {
+    yield "{.chart-rows}"
+    if (block.value) {
+        yield* propertyToArchieMLString("kicker", block.value)
+        yield* propertyToArchieMLString("title", block.value)
+        yield* propertyToArchieMLString("source", block.value)
+        if (block.value.rows) {
+            yield "[.rows]"
+            for (const row of block.value.rows) {
+                yield* propertyToArchieMLString("image", row)
+                yield* propertyToArchieMLString("url", row)
+                if (row.content) {
+                    yield "[.+content]"
+                    for (const content of row.content) {
+                        yield* OwidRawGdocBlockToArchieMLStringGenerator(
+                            content
+                        )
+                    }
+                    yield "[]"
+                }
+            }
+            yield "[]"
+        }
+    }
+    yield "{}"
+}
+
+function* rawBlockPullChartToArchieMLString(
+    block: RawBlockPullChart
+): Generator<string, void, undefined> {
+    yield "{.pull-chart}"
+    if (block.value) {
+        yield* propertyToArchieMLString("align", block.value)
+        yield* propertyToArchieMLString("image", block.value)
+        yield* propertyToArchieMLString("url", block.value)
+        if (block.value.content) {
+            yield "[.+content]"
+            for (const content of block.value.content) {
+                yield* OwidRawGdocBlockToArchieMLStringGenerator(content)
+            }
+            yield "[]"
+        }
+    }
+    yield "{}"
+}
+
 function* rawBlockSubscribeBannerToArchieMLString(
     block: RawBlockSubscribeBanner
 ): Generator<string, void, undefined> {
@@ -421,15 +471,6 @@ function* rawBlockHtmlToArchieMLString(
         yield `html: ${escapeRawText(block.value)}`
         yield `:end`
     }
-}
-function* rawBlockScriptToArchieMLString(
-    block: RawBlockScript
-): Generator<string, void, undefined> {
-    yield "[.+script]"
-    for (const text of block.value) {
-        yield* rawBlockTextToArchieMLString(text)
-    }
-    yield "[]"
 }
 
 function* RawBlockHeadingToArchieMLString(
@@ -664,7 +705,7 @@ function* rawBlockTopicPageIntroToArchieMLString(
         yield "{}"
     }
     const relatedTopics = block.value["related-topics"]
-    if (relatedTopics && relatedTopics.length) {
+    if (relatedTopics?.length) {
         yield "[.related-topics]"
         for (const relatedTopic of relatedTopics) {
             yield* propertyToArchieMLString("text", relatedTopic)
@@ -1031,6 +1072,23 @@ function* rawBlockCountryProfileSelectorToArchieMLString(
     yield "{}"
 }
 
+function* rawBlockBespokeComponentToArchieMLString(
+    block: RawBlockBespokeComponent
+): Generator<string, void, undefined> {
+    yield "{.bespoke-component}"
+    yield* propertyToArchieMLString("bundle", block.value)
+    yield* propertyToArchieMLString("variant", block.value)
+    yield* propertyToArchieMLString("size", block.value)
+    if (block.value.config) {
+        yield `{.config}`
+        for (const [key, value] of Object.entries(block.value.config)) {
+            yield* propertyToArchieMLString(key, { [key]: value })
+        }
+        yield "{}"
+    }
+    yield "{}"
+}
+
 export function* OwidRawGdocBlockToArchieMLStringGenerator(
     block: OwidRawGdocBlock | RawBlockTableRow
 ): Generator<string, void, undefined> {
@@ -1059,6 +1117,8 @@ export function* OwidRawGdocBlockToArchieMLStringGenerator(
         .with({ type: "people-rows" }, rawBlockPeopleRowsToArchieMLString)
         .with({ type: "person" }, rawBlockPersonToArchieMLString)
         .with({ type: "pull-quote" }, rawBlockPullQuoteToArchieMLString)
+        .with({ type: "chart-rows" }, rawBlockChartRowsToArchieMLString)
+        .with({ type: "pull-chart" }, rawBlockPullChartToArchieMLString)
         .with({ type: "guided-chart" }, rawBlockGuidedChartToArchieMLString)
         .with(
             { type: "horizontal-rule" },
@@ -1072,7 +1132,6 @@ export function* OwidRawGdocBlockToArchieMLStringGenerator(
         .with({ type: "resource-panel" }, rawBlockResourcePanelToArchieMLString)
         .with({ type: "text" }, rawBlockTextToArchieMLString)
         .with({ type: "html" }, rawBlockHtmlToArchieMLString)
-        .with({ type: "script" }, rawBlockScriptToArchieMLString)
         .with({ type: "heading" }, RawBlockHeadingToArchieMLString)
         .with({ type: "sdg-grid" }, rawBlockSDGGridToArchieMLString)
         .with({ type: "static-viz" }, rawBlockStaticVizToArchieMLString)
@@ -1151,6 +1210,10 @@ export function* OwidRawGdocBlockToArchieMLStringGenerator(
         .with(
             { type: "country-profile-selector" },
             rawBlockCountryProfileSelectorToArchieMLString
+        )
+        .with(
+            { type: "bespoke-component" },
+            rawBlockBespokeComponentToArchieMLString
         )
         .exhaustive()
     yield* content

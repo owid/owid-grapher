@@ -1,6 +1,7 @@
 # env vars for local development of /functions/donation/donate.ts Cloudflare pages function
 # rename to .dev.vars and fill in the values from the homonymous "(dev)" keys in 1Password
 
+# Should be set to "production" in prod deployment. Defaults to "production" if unset.
 ENV=development
 
 # https://dashboard.stripe.com/test/apikeys

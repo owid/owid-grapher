@@ -18,8 +18,8 @@ import { ComparisonLineProps } from "./ComparisonLine"
 export class CustomComparisonLine extends React.Component<
     ComparisonLineProps<CustomComparisonLineConfig>
 > {
-    private renderUid = guid()
-    private pathId = `path-${this.renderUid}`
+    private readonly renderUid = guid()
+    private readonly pathId = `path-${this.renderUid}`
 
     constructor(props: ComparisonLineProps<CustomComparisonLineConfig>) {
         super(props)
@@ -27,7 +27,7 @@ export class CustomComparisonLine extends React.Component<
     }
 
     @computed private get fontSize(): number {
-        return this.props.dualAxis.comparisonLineLabelFontSize
+        return this.props.dualAxis.comparisonLines.fontSize
     }
 
     @computed private get haloOutlineWidth(): number {

@@ -142,7 +142,7 @@ export const NewsletterSubscriptionForm = ({
                 <label htmlFor={idBiweekly}>
                     <span className="newsletter-subscription-form__label-title">
                         The OWID Brief
-                    </span>
+                    </span>{" "}
                     <span className="newsletter-subscription-form__label-frequency note-12-medium">
                         Twice a month
                     </span>
@@ -177,7 +177,7 @@ export const NewsletterSubscriptionForm = ({
                 <label htmlFor={idDataInsights}>
                     <span className="newsletter-subscription-form__label-title">
                         Data Insights
-                    </span>
+                    </span>{" "}
                     <span className="newsletter-subscription-form__label-frequency note-12-medium">
                         Every few days
                     </span>

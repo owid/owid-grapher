@@ -17,7 +17,7 @@ ifneq (,$(wildcard ./.env))
 	include .env
 endif
 
-.PHONY: help up up.full down refresh refresh.wp refresh.full migrate svgtest svgtest.reset bdd bdd.ui check-not-prod
+.PHONY: help up up.full down refresh refresh.wp refresh.full migrate svgtest svgtest.reset svgtest.graphers svgtest.grapher-views svgtest.mdims svgtest.explorers svgtest.thumbnails bdd bdd.ui check-not-prod
 
 help:
 	@echo 'Available commands:'
@@ -35,11 +35,11 @@ help:
 	@echo '  make bdd                    (while up) start BDD test environment'
 	@echo '  make bdd.ui                 (while up) start BDD test environment with UI'
 	@echo '  make svgtest                generate an SVG test report for graphers'
-	@echo '  make svgtest.reset          reset the owid-grapher-svgs repo to a clean state'
 	@echo '  make svgtest.full           generate a full SVG test report'
 	@echo '  make svgtest.explorers      generate an SVG test report for explorers only'
 	@echo '  make local-bake             do a full local site bake'
 	@echo '  make archive                create an archived version of our charts'
+	@echo '  make wikipedia-archive      create a Wikipedia archive (strips GTM, rewrites archive URLs)'
 	@echo
 	@echo '  GRAPHER + CLOUDFLARE (staff-only)'
 	@echo '  make up.full                start dev environment via docker-compose and tmux'
@@ -70,9 +70,9 @@ up: require create-if-missing.env tmp-downloads/owid_metadata.sql.gz node_module
 			set remain-on-exit on \; \
 		set-option -g default-shell $(SCRIPT_SHELL) \; \
 		new-window -n admin \
-			'devTools/docker/wait-for-mysql.sh && yarn startAdminDevServer' \; \
+			'ADMIN_SERVER_PORT=$(ADMIN_SERVER_PORT) devTools/docker/wait-for-mysql.sh && ADMIN_SERVER_PORT=$(ADMIN_SERVER_PORT) yarn startAdminDevServer' \; \
 			set remain-on-exit on \; \
-		new-window -n vite 'yarn run startSiteFront' \; \
+		new-window -n vite 'VITE_PORT=$(VITE_PORT) yarn run startSiteFront' \; \
 			set remain-on-exit on \; \
 		new-window -n welcome 'ADMIN_SERVER_PORT=$(ADMIN_SERVER_PORT) VITE_PORT=$(VITE_PORT) devTools/docker/banner.sh; exec $(LOGIN_SHELL)' \; \
 		bind R respawn-pane -k \; \
@@ -81,17 +81,21 @@ up: require create-if-missing.env tmp-downloads/owid_metadata.sql.gz node_module
 		set -g mouse on \
 		|| make down
 
+up.devcontainer: export TMUX_SESSION_NAME ?= grapher
+up.devcontainer: export ADMIN_SERVER_PORT ?= 3030
+up.devcontainer: export VITE_PORT ?= 8090
+
 up.devcontainer: create-if-missing.env.devcontainer tmp-downloads/owid_metadata.sql.gz node_modules
 	@make validate.env
 	@make check-port-3306
 
 	@echo '==> Starting dev environment'
 	@mkdir -p logs
-	tmux new-session -s grapher \
+	tmux new-session -s $(TMUX_SESSION_NAME) \
 		-n admin \
-			'devTools/docker/wait-for-mysql.sh && yarn startAdminDevServer' \; \
+			'ADMIN_SERVER_PORT=$(ADMIN_SERVER_PORT) devTools/docker/wait-for-mysql.sh && ADMIN_SERVER_PORT=$(ADMIN_SERVER_PORT) yarn startAdminDevServer' \; \
 			set remain-on-exit on \; \
-		new-window -n vite 'yarn run startSiteFront' \; \
+		new-window -n vite 'VITE_PORT=$(VITE_PORT) yarn run startSiteFront' \; \
 			set remain-on-exit on \; \
 		new-window -n welcome 'ADMIN_SERVER_PORT=$(ADMIN_SERVER_PORT) VITE_PORT=$(VITE_PORT) devTools/docker/banner.sh; exec $(LOGIN_SHELL)' \; \
 		bind R respawn-pane -k \; \
@@ -120,13 +124,15 @@ up.full: require create-if-missing.env.full tmp-downloads/owid_metadata.sql.gz n
 			set remain-on-exit on \; \
 		set-option -g default-shell $(SCRIPT_SHELL) \; \
 		new-window -n admin \
-			'devTools/docker/wait-for-mysql.sh && yarn startAdminDevServer' \; \
+			'ADMIN_SERVER_PORT=$(ADMIN_SERVER_PORT) devTools/docker/wait-for-mysql.sh && ADMIN_SERVER_PORT=$(ADMIN_SERVER_PORT) yarn startAdminDevServer' \; \
 			set remain-on-exit on \; \
-		new-window -n vite 'yarn run startSiteFront' \; \
+		new-window -n vite 'VITE_PORT=$(VITE_PORT) yarn run startSiteFront' \; \
 			set remain-on-exit on \; \
-		new-window -n functions 'yarn startLocalCloudflareFunctions' \; \
+		new-window -n functions 'WRANGLER_PORT=$(WRANGLER_PORT) yarn startLocalCloudflareFunctions' \; \
 			set remain-on-exit on \; \
-		new-window -n welcome 'ADMIN_SERVER_PORT=$(ADMIN_SERVER_PORT) VITE_PORT=$(VITE_PORT) WRANGLER_PORT=$(WRANGLER_PORT) devTools/docker/banner.sh; exec $(LOGIN_SHELL)' \; \
+		new-window -n bespoke 'yarn startBespokeDevServer' \; \
+			set remain-on-exit on \; \
+		new-window -n welcome 'ADMIN_SERVER_PORT=$(ADMIN_SERVER_PORT) VITE_PORT=$(VITE_PORT) WRANGLER_PORT=$(WRANGLER_PORT) devTools/docker/banner.sh --full; exec $(LOGIN_SHELL)' \; \
 		bind R respawn-pane -k \; \
 		bind X kill-pane \; \
 		bind Q kill-server \; \
@@ -183,7 +189,7 @@ down: export COMPOSE_PROJECT_NAME ?= owid-grapher
 
 down:
 	@echo '==> Stopping services'
-	docker compose -f docker-compose.grapher.yml down
+	COMPOSE_PROJECT_NAME=$(COMPOSE_PROJECT_NAME) docker compose -f docker-compose.grapher.yml down
 
 require:
 	@echo '==> Checking your local environment has the necessary commands...'
@@ -251,7 +257,7 @@ tmp-downloads/owid_metadata.sql.gz:
 
 test: node_modules
 	@echo '==> Linting'
-	yarn run eslint
+	yarn testLint
 
 	@echo '==> Checking formatting'
 	yarn testFormatAll
@@ -316,7 +322,7 @@ bdd.ui: node_modules playwright-browsers
 
 lint: node_modules
 	@echo '==> Linting'
-	yarn run eslint
+	yarn testLint
 
 check-formatting: node_modules
 	@echo '==> Checking formatting'
@@ -367,12 +373,33 @@ svgtest.full: svgtest.reset node_modules
 	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts thumbnails \
 		|| yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/create-compare-view.ts thumbnails
 
+svgtest.grapher-views: svgtest.reset node_modules
+	@echo '==> Generating SVG test report for grapher-views'
+
+	@# run test suite for grapher-views and create an HTML report if there are differences
+	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts grapher-views \
+		|| (yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/create-compare-view.ts grapher-views && open ../owid-grapher-svgs/grapher-views/differences.html)
+
+svgtest.mdims: svgtest.reset node_modules
+	@echo '==> Generating SVG test report for mdims'
+
+	@# run test suite for mdims and create an HTML report if there are differences
+	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts mdims \
+		|| (yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/create-compare-view.ts mdims && open ../owid-grapher-svgs/mdims/differences.html)
+
 svgtest.explorers: svgtest.reset node_modules
 	@echo '==> Generating SVG test report for explorers'
 
 	@# run test suite for explorers and create an HTML report if there are differences
 	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts explorers \
 		|| (yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/create-compare-view.ts explorers && open ../owid-grapher-svgs/explorers/differences.html)
+
+svgtest.thumbnails: svgtest.reset node_modules
+	@echo '==> Generating SVG test report for thumbnails'
+
+	@# run test suite for thumbnails and create an HTML report if there are differences
+	yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/verify-graphs.ts thumbnails \
+		|| (yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/create-compare-view.ts thumbnails && open ../owid-grapher-svgs/thumbnails/differences.html)
 
 node_modules: package.json yarn.lock yarn.config.cjs
 	@echo '==> Installing packages'
@@ -389,6 +416,8 @@ reindex: node_modules
 	yarn tsx --tsconfig tsconfig.tsx.json baker/algolia/configureAlgolia.js
 	@echo '--- Running indexPagesToAlgolia...'
 	yarn tsx --tsconfig tsconfig.tsx.json baker/algolia/indexPagesToAlgolia.js
+	@echo '--- Running indexPagesChronologicalToAlgolia...'
+	yarn tsx --tsconfig tsconfig.tsx.json baker/algolia/indexPagesChronologicalToAlgolia.js
 	@echo '--- Running indexExplorerViewsMdimViewsAndChartsToAlgolia...'
 	yarn tsx --tsconfig tsconfig.tsx.json baker/algolia/indexExplorerViewsMdimViewsAndChartsToAlgolia.js
 
@@ -417,6 +446,10 @@ archive: node_modules
 	@echo '==> Creating archived page versions'
 	PRIMARY_ENV_FILE=.env.archive yarn buildViteArchive
 	PRIMARY_ENV_FILE=.env.archive yarn tsx --tsconfig tsconfig.tsx.json ./baker/archival/archiveChangedPages.ts --latestDir
+
+wikipedia-archive: archive
+	@echo '==> Creating Wikipedia archive (stripping analytics, rewriting archive URLs)'
+	PRIMARY_ENV_FILE=.env.archive yarn tsx --tsconfig tsconfig.tsx.json ./baker/archival/createWikipediaArchive.ts
 
 clean:
 	rm -rf node_modules

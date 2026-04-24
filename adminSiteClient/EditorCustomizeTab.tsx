@@ -575,13 +575,17 @@ class ComparisonLineSection<
     @action.bound onAddComparisonLine() {
         const { grapherState } = this.props.editor
         if (!grapherState.comparisonLines) grapherState.comparisonLines = []
-        grapherState.comparisonLines.push({})
+
+        // Default to adding a custom comparison line
+        grapherState.comparisonLines.push({ yEquals: "x" })
     }
 
     @action.bound onRemoveComparisonLine(index: number) {
         const { grapherState } = this.props.editor
-        if (!grapherState.comparisonLines) grapherState.comparisonLines = []
+        if (!grapherState.comparisonLines) return
         grapherState.comparisonLines.splice(index, 1)
+        if (grapherState.comparisonLines.length === 0)
+            grapherState.comparisonLines = undefined
     }
 
     @action.bound onComparisonLineTypeChange(

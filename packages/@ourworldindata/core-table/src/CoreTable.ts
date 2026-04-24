@@ -5,6 +5,7 @@ import {
     ColumnSlug,
     PrimitiveType,
     imemo,
+    merge,
 } from "@ourworldindata/utils"
 import {
     CoreColumn,
@@ -68,17 +69,17 @@ export class CoreTable<
     ROW_TYPE extends CoreRow = CoreRow,
     COL_DEF_TYPE extends CoreColumnDef = CoreColumnDef,
 > {
-    private _columns: Map<ColumnSlug, CoreColumn<this, COL_DEF_TYPE>> =
+    private readonly _columns: Map<ColumnSlug, CoreColumn<this, COL_DEF_TYPE>> =
         new Map()
-    protected parent?: this
-    tableDescription: string
-    private timeToLoad = 0
-    private initTime = Date.now()
+    protected readonly parent?: this
+    readonly tableDescription: string
+    private readonly timeToLoad: number = 0
+    private readonly initTime = Date.now()
 
-    private originalInput: CoreTableInputOption
-    private advancedOptions: AdvancedOptions
+    private readonly originalInput: CoreTableInputOption
+    private readonly advancedOptions: AdvancedOptions
 
-    private inputColumnDefs: COL_DEF_TYPE[]
+    private readonly inputColumnDefs: COL_DEF_TYPE[]
     constructor(
         input: CoreTableInputOption = [],
         inputColumnDefs: COL_DEF_TYPE[] | string = [],
@@ -105,7 +106,7 @@ export class CoreTable<
             const sourceDef = this.inputColumnDefs.find(
                 (def) => def.slug === sourceSlug
             )
-            return { ...sourceDef, ...def }
+            return merge(sourceDef, def)
         })
 
         // If any values were passed in, copy those to column store now and then remove them from column definitions.
@@ -414,7 +415,7 @@ export class CoreTable<
 
     getTimesAtIndices(indices: number[]): number[] {
         if (!indices.length) return []
-        return this.getValuesAtIndices(this.timeColumn!.slug, indices) as Time[]
+        return this.getValuesAtIndices(this.timeColumn.slug, indices) as Time[]
     }
 
     getValuesAtIndices(
@@ -643,14 +644,14 @@ export class CoreTable<
             }
         }
         // Include the end of the last group, which doesn't result in a change in value above.
-        if (values && values.length) {
+        if (values?.length) {
             arr.push(values.length)
         }
         return arr
     }
 
     @imemo get defs(): COL_DEF_TYPE[] {
-        return this.columnsAsArray.map((col) => col.def) as COL_DEF_TYPE[]
+        return this.columnsAsArray.map((col) => col.def)
     }
 
     @imemo get columnNames(): string[] {
@@ -797,15 +798,11 @@ export class CoreTable<
         return this.colsToParse.length
     }
 
-    private static guids = 0
-    private guid = ++CoreTable.guids
-
     private get explanation(): Record<string, unknown> {
         // todo: is there a better way to do this in JS?
         const {
             tableDescription,
             transformCategory,
-            guid,
             numColumns,
             numRows,
             betweenTime,
@@ -819,7 +816,6 @@ export class CoreTable<
         return {
             tableDescription: truncate(tableDescription, 40),
             transformCategory,
-            guid,
             numColumns,
             numRows,
             betweenTime,
@@ -896,7 +892,7 @@ export class CoreTable<
         // Build defs in the order specified by slugs
         const defs = slugs
             .filter((slug) => this.has(slug))
-            .map((slug) => this.get(slug).def) as COL_DEF_TYPE[]
+            .map((slug) => this.get(slug).def)
 
         // Build column store with the same columns
         slugs.forEach((slug) => {
@@ -920,7 +916,7 @@ export class CoreTable<
         }
         const defs = this.columnsAsArray
             .filter((col) => !columnsToDrop.has(col.slug))
-            .map((col) => col.def) as COL_DEF_TYPE[]
+            .map((col) => col.def)
         slugs.forEach((slug) => {
             delete newStore[slug]
         })
@@ -986,7 +982,7 @@ export class CoreTable<
         return this.transform(
             renameColumnStore(this.columnStore, columnRenameMap),
             this.defs.map((def) =>
-                oldSlugs.indexOf(def.slug) > -1
+                oldSlugs.includes(def.slug)
                     ? {
                           ...def,
                           slug: newSlugs[oldSlugs.indexOf(def.slug)],
@@ -1274,8 +1270,8 @@ export class CoreTable<
 }
 
 class FilterMask {
-    private mask: boolean[]
-    private numRows: number
+    private readonly mask: boolean[]
+    private readonly numRows: number
     constructor(
         numRows: number,
         input: boolean[] | number[],

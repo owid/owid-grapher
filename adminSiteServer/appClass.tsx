@@ -44,7 +44,7 @@ export class OwidAdminApp {
     }
 
     app = express()
-    private options: OwidAdminAppOptions
+    private readonly options: OwidAdminAppOptions
 
     server?: http.Server
     async stopListening() {

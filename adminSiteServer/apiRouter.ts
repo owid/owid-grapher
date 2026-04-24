@@ -151,6 +151,7 @@ import { getChartConfig } from "./apiRoutes/chartConfigs.js"
 import {
     createDataInsightGDoc,
     getAllDataInsightIndexItems,
+    refreshDataInsights,
 } from "./apiRoutes/dataInsights.js"
 import { getFigmaImageUrl } from "./apiRoutes/figma.js"
 import { sendMessageToSlack } from "./apiRoutes/slack.js"
@@ -388,6 +389,11 @@ postRouteWithRWTransaction(
     apiRouter,
     "/dataInsights/create",
     createDataInsightGDoc
+)
+postRouteWithRWTransaction(
+    apiRouter,
+    "/dataInsights/refresh",
+    refreshDataInsights
 )
 
 // Images routes

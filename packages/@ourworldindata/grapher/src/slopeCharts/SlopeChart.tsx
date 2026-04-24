@@ -33,7 +33,7 @@ import {
 } from "@ourworldindata/types"
 import { ChartInterface } from "../chart/ChartInterface"
 import { scaleLinear, ScaleLinear } from "d3-scale"
-import { select, type BaseType, type Selection } from "d3-selection"
+
 import {
     PlacedSlopeChartSeries,
     RawSlopeChartSeries,
@@ -69,8 +69,8 @@ import {
     GRAPHER_BACKGROUND_DEFAULT,
     GRAPHER_DARK_TEXT,
 } from "../color/ColorConstants"
-import { FocusArray } from "../focus/FocusArray"
 import { LabelSeries } from "../verticalLabels/VerticalLabelsTypes"
+import { resolveEmphasis } from "../interaction/Emphasis"
 import { SlopeChartState } from "./SlopeChartState"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import { ChartComponentProps } from "../chart/ChartTypeMap.js"
@@ -98,9 +98,9 @@ export class SlopeChart
     extends React.Component<SlopeChartProps>
     implements ChartInterface, AxisManager
 {
-    private slopeAreaRef = React.createRef<SVGGElement>()
+    private readonly slopeAreaRef = React.createRef<SVGGElement>()
 
-    private tooltipState = new TooltipState<{
+    private readonly tooltipState = new TooltipState<{
         series: SlopeChartSeries
     }>({ fade: "immediate" })
 
@@ -140,10 +140,6 @@ export class SlopeChart
 
     @computed private get missingDataStrategy(): MissingDataStrategy {
         return this.chartState.missingDataStrategy
-    }
-
-    @computed private get focusArray(): FocusArray {
-        return this.chartState.focusArray
     }
 
     @computed private get formatColumn(): CoreColumn {
@@ -572,8 +568,10 @@ export class SlopeChart
             formattedValue: showSeriesName ? formattedValue : undefined,
             placeFormattedValueInNewLine: this.useCompactLayout,
             yValue: value,
-            focus: series.focus,
-            hover: this.hoverStateForSeries(series),
+            emphasis: resolveEmphasis({
+                focus: series.focus,
+                hover: this.hoverStateForSeries(series),
+            }),
         }
     }
 
@@ -601,35 +599,8 @@ export class SlopeChart
         )
     }
 
-    private animSelection?: Selection<
-        BaseType,
-        unknown,
-        SVGGElement | null,
-        unknown
-    >
-    private playIntroAnimation() {
-        // Nice little intro animation
-        this.animSelection = select(this.slopeAreaRef.current)
-            .selectAll(".slope")
-            .attr("stroke-dasharray", "100%")
-            .attr("stroke-dashoffset", "100%")
-
-        this.animSelection
-            .transition()
-            .duration(600)
-            .attr("stroke-dashoffset", "0%")
-    }
-
     override componentDidMount() {
         exposeInstanceOnWindow(this)
-
-        if (!this.manager.disableIntroAnimation) {
-            this.playIntroAnimation()
-        }
-    }
-
-    override componentWillUnmount(): void {
-        if (this.animSelection) this.animSelection.interrupt()
     }
 
     @computed private get shouldShowSeriesNamesInLeftLabels(): boolean {
@@ -678,6 +649,7 @@ export class SlopeChart
 
     private hoverTimer?: number
     @action.bound onVerticalLabelMouseEnter(seriesName: SeriesName): void {
+        this.chartState.focusArray.clear()
         clearTimeout(this.hoverTimer)
         this.hoveredSeriesName = seriesName
     }
@@ -701,6 +673,7 @@ export class SlopeChart
     }
 
     @action.bound onSlopeMouseOver(series: SlopeChartSeries): void {
+        this.chartState.focusArray.clear()
         this.hoveredSeriesName = series.seriesName
         this.tooltipState.target = { series }
     }

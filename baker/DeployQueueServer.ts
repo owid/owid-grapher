@@ -14,8 +14,8 @@ export class DeployQueueServer {
         this.pendingFilePath = pendingFilePath
     }
 
-    private queueFilePath: string
-    private pendingFilePath: string
+    private readonly queueFilePath: string
+    private readonly pendingFilePath: string
 
     // File manipulation
 

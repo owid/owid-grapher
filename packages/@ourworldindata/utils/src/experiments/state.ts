@@ -1,17 +1,13 @@
 import Cookies from "js-cookie"
 import { EXPERIMENT_PREFIX } from "./constants.js"
-import { Experiment } from "./Experiment.js"
 import { experiments } from "./config.js"
 
-export type ExperimentState = {
-    assignedExperiments: Record<string, string>
-    isPageInExperiment: boolean
-}
+export type ExperimentState = Record<
+    string,
+    { arm: string; isPageInExperiment: boolean }
+>
 
-export const defaultExperimentState: ExperimentState = {
-    assignedExperiments: {},
-    isPageInExperiment: false,
-}
+export const defaultExperimentState: ExperimentState = {}
 
 /**
  * Gets the experiment state for the current page.
@@ -27,23 +23,23 @@ export function getExperimentState(): ExperimentState {
 
     const activeExperiments = experiments.filter((exp) => !exp.isExpired())
     const activeExperimentMap = new Map(
-        activeExperiments.map((exp) => [exp.id, exp])
+        activeExperiments.map((exp) => [exp.id as string, exp])
     )
 
     const assignedExperiments = getAssignedExperiments() ?? {}
     const currentPath =
         typeof window !== "undefined" ? window.location.pathname : ""
 
-    return {
-        assignedExperiments,
-        isPageInExperiment: currentPath
-            ? isPageInExperiment(
-                  currentPath,
-                  assignedExperiments,
-                  activeExperimentMap
-              )
-            : false,
+    const state = {} as ExperimentState
+    for (const [expId, armId] of Object.entries(assignedExperiments)) {
+        const experiment = activeExperimentMap.get(expId)
+        state[expId] = {
+            arm: armId,
+            isPageInExperiment: experiment?.isUrlInPaths(currentPath) ?? false,
+        }
     }
+
+    return state
 }
 
 /**
@@ -65,29 +61,5 @@ function getAssignedExperiments(): Record<string, string> | undefined {
         )
     )
 
-    return filteredCookies
-}
-
-/**
- * Checks if the current page is in any assigned experiments.
- *
- * @param pathname - The page pathname
- * @param assignedExperiments - The assigned experiments mapping
- * @param experimentMap - Map of experiment ID to experiment instance
- * @returns true if the page is in an assigned experiment, false otherwise
- */
-function isPageInExperiment(
-    pathname: string,
-    assignedExperiments: Record<string, string>,
-    experimentMap: Map<string, Experiment>
-): boolean {
-    const experimentIds = Object.keys(assignedExperiments)
-    if (experimentIds.length === 0) {
-        return false
-    }
-
-    return experimentIds.some((expId: string) => {
-        const experiment = experimentMap.get(expId)
-        return experiment?.isUrlInPaths(pathname) ?? false
-    })
+    return filteredCookies as Record<string, string>
 }

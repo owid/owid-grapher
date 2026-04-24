@@ -136,8 +136,7 @@ const SHORT_LIST_OPTIONS: RoleOption[] = _.shuffle<RoleOption>([
 ]).concat([{ id: "other", label: "Other", hasInlineInput: true }])
 
 function getAssignedExperimentArm() {
-    const assignedArm =
-        getExperimentState().assignedExperiments[USER_SURVEY_EXPERIMENT_ID]
+    const assignedArm = getExperimentState()[USER_SURVEY_EXPERIMENT_ID]?.arm
     if (
         assignedArm === "long-list" ||
         assignedArm === "short-list" ||

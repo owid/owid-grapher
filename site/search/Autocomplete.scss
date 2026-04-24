@@ -1,13 +1,13 @@
 // Base theme to override
 // Without this CSS, the Autocomplete component doesn't initialise correctly
-@import "@algolia/autocomplete-theme-classic";
+@import "@algolia/autocomplete-theme-classic/dist/theme.css";
 
 :root {
-    // Also referenced in Autocomplete.tsx - grep "detachedMediaQuery"
-    --aa-detached-media-query: (max-width: $lg);
-    --aa-detached-modal-media-query: (min-width: $md);
-    --aa-detached-modal-max-width: $md;
-    --aa-muted-color-rgb: $blue-20;
+    // Autocomplete JS reads this from CSS and passes it to matchMedia().
+    // Keep detached mode, but disable the modal detached variant.
+    // See this issue for why we ended up doing this:
+    // https://github.com/owid/owid-grapher/issues/6229
+    --aa-detached-modal-media-query: not all;
 }
 
 // base styles

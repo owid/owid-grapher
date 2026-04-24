@@ -237,7 +237,7 @@ function tableToString(
             if (context.isInList) {
                 rawCell.value!.push({ type: "text", value: "[]" })
             }
-            rawRow.value!.cells!.push(rawCell)
+            rawRow.value.cells!.push(rawCell)
         }
         rows.push(rawRow)
     }
@@ -298,7 +298,7 @@ function parseParagraph(
         if (textRun.textStyle.link?.url)
             span = {
                 spanType: "span-link",
-                url: textRun.textStyle.link!.url!,
+                url: textRun.textStyle.link.url,
                 children: [span],
             }
 
@@ -318,7 +318,7 @@ function parseParagraph(
         return span
     } else if (element.horizontalRule) {
         return { type: "horizontal-rule" }
-    } else if (element.richLink && element.richLink.richLinkProperties) {
+    } else if (element.richLink?.richLinkProperties) {
         // Rich links are special "pills" that Google Docs creates for links to other Google Docs or Google Drive files
         const richLinkProperties = element.richLink.richLinkProperties
         if (!richLinkProperties.uri) return null

@@ -365,11 +365,6 @@ ${items}
         .with({ type: "html" }, (b): string | undefined =>
             exportComponents ? b.value : undefined
         )
-        .with({ type: "script" }, (b): string | undefined =>
-            exportComponents
-                ? `<script type="module">${b.lines.join("\n")}</script>`
-                : undefined
-        )
         .with({ type: "heading" }, (b): string | undefined => {
             const prefix = "#".repeat(b.level)
             const text = b.supertitle
@@ -609,5 +604,41 @@ ${links}`
             )
         })
         .with({ type: "country-profile-selector" }, () => undefined)
+        .with(
+            { type: "bespoke-component" },
+            (_): string | undefined => undefined
+        )
+        .with({ type: "chart-rows" }, (b): string | undefined => {
+            const header = _.compact([
+                b.kicker,
+                b.title ? `### ${b.title}` : undefined,
+            ]).join("\n")
+            const rowTexts = b.rows.map((row) => {
+                const content = enrichedBlocksToMarkdown(
+                    row.content,
+                    exportComponents,
+                    options
+                )
+                return _.compact([
+                    `[![](${row.image})](${row.url})`,
+                    content,
+                ]).join("\n")
+            })
+            const rows = rowTexts.join("\n\n") || undefined
+            const source = b.source ? `Data source: ${b.source}` : undefined
+            return _.compact([header, rows, source]).join("\n\n") || undefined
+        })
+        .with({ type: "pull-chart" }, (b): string | undefined => {
+            const content = enrichedBlocksToMarkdown(
+                b.content,
+                exportComponents,
+                options
+            )
+            return (
+                _.compact([`[![](${b.image})](${b.url})`, content]).join(
+                    "\n"
+                ) || undefined
+            )
+        })
         .exhaustive()
 }

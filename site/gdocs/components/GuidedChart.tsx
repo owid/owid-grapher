@@ -109,17 +109,28 @@ export default function GuidedChart({
             analytics.logGuidedChartLinkClick(url.fullUrl)
             announce("Chart updated to reflect the selected view.")
 
-            // Scroll to chart on small screens
-            if (window.innerWidth <= 768) {
-                const target =
-                    multiDimData?.grapherContainerRef.current ||
-                    chartRef.current
-                // Small delay to allow chart updates to complete
-                setTimeout(() => {
-                    target?.scrollIntoView({
-                        behavior: "smooth",
-                    })
-                }, 100)
+            // Scroll to chart if it's not already visible.
+            // Skip if the chart is sticky-positioned (it's already
+            // pinned in view by CSS).
+            // For multi-dim, scroll to the full container (including
+            // dropdowns), not just the grapher area inside it.
+            const chartElement =
+                multiDimData?.grapherContainerRef.current || chartRef.current
+            const target =
+                chartElement?.closest(".multi-dim-container") ?? chartElement
+            if (target) {
+                const isSticky = getComputedStyle(target).position === "sticky"
+                const rect = target.getBoundingClientRect()
+                const isFullyVisible =
+                    rect.top >= 0 && rect.bottom <= window.innerHeight
+                if (!isSticky && !isFullyVisible) {
+                    setTimeout(() => {
+                        target.scrollIntoView({
+                            behavior: "smooth",
+                            block: "nearest",
+                        })
+                    }, 100)
+                }
             }
         },
         [announce, applyGuidedChartLinkToArchive, multiDimData]

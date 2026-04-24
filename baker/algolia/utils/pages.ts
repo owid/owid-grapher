@@ -19,7 +19,11 @@ import {
     articulateEntity,
 } from "@ourworldindata/utils"
 import { getAlgoliaClient } from "../configureAlgolia.js"
-import { PageRecord, OwidGdocProfileInterface } from "@ourworldindata/types"
+import {
+    PageRecord,
+    OwidGdocProfileInterface,
+    OwidGdoc,
+} from "@ourworldindata/types"
 import { getAnalyticsPageviewsByUrlObj } from "../../../db/model/Pageview.js"
 import { PAGES_INDEX } from "../../../site/search/searchUtils.js"
 import type { Hit, SearchClient } from "@algolia/client-search"
@@ -52,11 +56,8 @@ const computePageScore = (record: Omit<PageRecord, "score">): number => {
     return importance * 1000 + views_7d
 }
 
-const getThumbnailUrl = (
-    gdoc:
-        | OwidGdocPostInterface
-        | OwidGdocDataInsightInterface
-        | OwidGdocProfileInterface,
+export const getThumbnailUrl = (
+    gdoc: OwidGdoc,
     cloudflareImages: Record<string, DbEnrichedImage>
 ): string => {
     if (gdoc.content.type === OwidGdocType.DataInsight) {
@@ -100,10 +101,11 @@ const getThumbnailUrl = (
     return `${CLOUDFLARE_IMAGES_URL}/${cloudflareId}/w=512`
 }
 
-function getExcerptFromGdoc(
-    gdoc: OwidGdocPostInterface | OwidGdocDataInsightInterface
-): string {
-    if (gdoc.content.type === OwidGdocType.DataInsight) {
+export function getExcerptFromGdoc(gdoc: OwidGdoc): string {
+    if (
+        gdoc.content.type === OwidGdocType.DataInsight ||
+        !("excerpt" in gdoc.content)
+    ) {
         return ""
     } else {
         return gdoc.content.excerpt ?? ""
@@ -386,7 +388,13 @@ async function generateProfileRecords(
                     ? `${instantiatedProfile.content.title} in ${articulateEntity(entity.name)}`
                     : "",
                 content: chunks[i],
-                views_7d: pageviews[`/${slug}`]?.views_7d ?? 0,
+                views_7d:
+                    pageviews[
+                        getPrefixedGdocPath("", {
+                            slug,
+                            content: { type: OwidGdocType.Profile },
+                        })
+                    ]?.views_7d ?? 0,
                 views_14d: pageviews[`/${slug}`]?.views_14d ?? 0,
                 views_365d: pageviews[`/${slug}`]?.views_365d ?? 0,
                 excerpt: instantiatedProfile.content.excerpt ?? "",

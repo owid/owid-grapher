@@ -1,0 +1,101 @@
+.chart-rows {
+    margin-bottom: 32px;
+}
+
+.chart-rows__kicker {
+    @include h5-black-caps;
+    display: block;
+    color: $blue-50;
+}
+
+.chart-rows__title {
+    @include h2-bold;
+    & {
+        color: $blue-90;
+        margin: 2px 0 0;
+    }
+}
+
+.chart-rows__source {
+    @include note-12-medium;
+    & {
+        color: $blue-50;
+        margin: 0;
+    }
+}
+
+.chart-rows__source-label {
+    font-weight: bold;
+}
+
+.chart-rows__rows-container {
+    display: flex;
+    flex-direction: column;
+    margin-top: 16px;
+    margin-bottom: 16px;
+}
+
+.chart-rows__row {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    padding: 24px 0;
+    border-bottom: 1px solid $blue-10;
+
+    &:first-child {
+        padding-top: 0;
+    }
+
+    &:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+
+    @include sm-only {
+        flex-direction: column;
+    }
+}
+
+.chart-rows .chart-thumbnail {
+    flex-shrink: 0;
+    width: 300px;
+
+    @include sm-only {
+        width: calc(10 / 12 * 100%); // emulating 10 columns without grid
+    }
+}
+
+.chart-rows__row-content {
+    flex: 1;
+    min-width: 0;
+
+    > *:last-child {
+        margin-bottom: 0;
+    }
+}
+
+.chart-rows__row-content .article-block__text {
+    @include body-3-regular;
+}
+
+.chart-rows--standalone {
+    margin-top: 16px;
+    border-top: 1px solid $blue-10;
+    border-bottom: 1px solid $blue-10;
+    padding-top: 24px;
+    padding-bottom: 24px;
+}
+
+// Inside a guided chart: no source, no title, kicker only
+.chart-rows--guided {
+    .chart-rows__rows-container {
+        margin-top: 24px;
+        margin-bottom: 0;
+    }
+
+    // Keep the bottom divider on the last row
+    .chart-rows__row:last-child {
+        border-bottom: 1px solid $blue-10;
+        padding-bottom: 24px;
+    }
+}

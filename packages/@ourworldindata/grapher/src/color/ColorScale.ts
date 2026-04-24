@@ -31,7 +31,7 @@ export interface ColorScaleManager {
 }
 
 export class ColorScale {
-    private manager: Readonly<ColorScaleManager>
+    private readonly manager: Readonly<ColorScaleManager>
     constructor(manager: ColorScaleManager = {}) {
         makeObservable(this)
         this.manager = manager

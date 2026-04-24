@@ -7,6 +7,7 @@ import {
     SearchState,
     SearchApiResponse,
     EnrichedSearchChartHit,
+    SearchValidationError,
 } from "./searchApi.js"
 import { FilterType, Filter, SearchUrlParam } from "@ourworldindata/types"
 
@@ -339,6 +340,23 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
             },
         })
     } catch (error) {
+        // Client validation errors (e.g. invalid topic name) are returned
+        // as 400 without being reported to Sentry.
+        if (error instanceof SearchValidationError) {
+            return new Response(
+                JSON.stringify({
+                    error: error.message,
+                }),
+                {
+                    status: 400,
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Access-Control-Allow-Origin": "*",
+                    },
+                }
+            )
+        }
+
         console.error("Search API error:", error)
         Sentry.captureException(error)
 

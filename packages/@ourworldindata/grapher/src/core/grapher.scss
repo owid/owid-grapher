@@ -2,11 +2,14 @@
 
 @import "../../../components/src/styles/colors.scss";
 @import "../../../components/src/styles/variables.scss";
+@import "../../../components/src/styles/typography-constants.scss";
 @import "../../../components/src/styles/typography.scss";
 @import "../../../components/src/styles/util.scss";
 @import "../../../components/src/styles/mixins.scss";
 
 @import "../../../components/src/CodeSnippet/code-snippet.scss";
+@import "../../../components/src/DownloadButton/DownloadButton.scss";
+@import "../../../components/src/DownloadApiOptions/DownloadApiOptions.scss";
 @import "../../../components/src/ExpandableToggle/ExpandableToggle.scss";
 
 @import "../../../components/src/LabeledSwitch/LabeledSwitch.scss";
@@ -14,27 +17,7 @@
 @import "../../../components/src/IndicatorProcessing/IndicatorProcessing.scss";
 
 @import "./typography.scss";
-
-// grapher frame
-$frame-color: $gray-10;
-
-// text
-$dark-text: $gray-80;
-$light-text: $gray-70;
-$active-text: $blue-90;
-
-// These should be between 0–100 in order to avoid conflicting with
-// site dropdowns, search overlays, etc.
-$zindex-chart: 1;
-$zindex-table: 1;
-$zindex-global-entity-select: 11;
-$zindex-Tooltip: 20;
-$zindex-modal: 30;
-
-$zindex-full-screen: 120;
-$zindex-controls-backdrop: 130;
-$zindex-controls-popup: 140;
-$zindex-controls-drawer: 150;
+@import "./variables.scss";
 
 // needed for .global-entity-control-container
 @mixin xxlg-down {
@@ -188,7 +171,7 @@ $zindex-controls-drawer: 150;
 }
 
 .Tooltip {
-    z-index: $zindex-Tooltip;
+    z-index: $zindex-tooltip;
 }
 
 // white background tooltip for longer explanations

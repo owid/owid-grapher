@@ -1,5 +1,4 @@
-#gdoc-admin-bar {
-    display: none;
+.gdoc-admin-bar {
     position: absolute;
     right: 8px;
     margin-top: 8px;
@@ -887,6 +886,12 @@ div.raw-html-table__container {
     }
 }
 
+[class*="article-block__bespoke-component"] {
+    position: relative;
+    min-height: 300px;
+    margin: 32px 0 48px 0;
+}
+
 .article-block__chart-story {
     .chart-story__nav-arrow {
         cursor: pointer;
@@ -1280,6 +1285,14 @@ div.raw-html-table__container {
         display: flex;
         justify-content: center;
         gap: 16px;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+
+        > li {
+            display: flex;
+        }
+
         @include sm-only {
             display: none;
         }

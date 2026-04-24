@@ -274,16 +274,10 @@ export async function pickDisplayEntities(
     const enrichPickedEntities = async () => {
         if (pickedEntities.length === 0) return defaultEntities
 
-        const pickedComparisonEntities = await selectPeerEntitiesForSearch({
+        const comparisonEntities = await selectPeerEntitiesForSearch({
             grapherState,
             targetEntity: pickedEntities[0],
         })
-
-        // Default to the default entities if no comparison entities could be found
-        const comparisonEntities =
-            pickedComparisonEntities.length > 0
-                ? pickedComparisonEntities
-                : defaultEntities
 
         // It's important to prepend the picked entities because we later
         // take the first N entities to render if there are space constraints
@@ -1018,7 +1012,7 @@ function findTableSlotKey(
 /**
  * Selects peer entities for search, handling both countries and aggregate regions.
  *
- * For countries: delegates to selectPeerCountries with the ParentRegions strategy.
+ * For countries: delegates to selectPeerCountries.
  * For aggregate regions: returns sibling regions at the same hierarchical level.
  * For the World entity: returns continents or income groups if available.
  */
@@ -1040,10 +1034,8 @@ export async function selectPeerEntitiesForSearch({
     if (!targetRegion) return []
 
     if (checkIsCountry(targetRegion)) {
-        // For backward compatibility, default to the ParentRegions strategy
         const peerCountryStrategy =
-            grapherState.peerCountryStrategy ??
-            PeerCountryStrategy.ParentRegions
+            grapherState.peerCountryStrategy ?? PeerCountryStrategy.DataRange
 
         // For countries, use Grapher's peer selection logic
         return selectPeerCountriesForGrapher(grapherState, {

@@ -1,5 +1,5 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faRss } from "@fortawesome/free-solid-svg-icons"
+import { faInbox, faRss } from "@fortawesome/free-solid-svg-icons"
 import { ArchiveContext, SiteFooterContext } from "@ourworldindata/types"
 import { viteAssetsForSite } from "./viteUtils.js"
 import { ScriptLoadErrorDetector } from "./NoJSDetector.js"
@@ -43,6 +43,7 @@ const LEGAL_LINKS: LinkData[] = [
         title: "Grapher license",
         url: "https://github.com/owid/owid-grapher/blob/master/LICENSE.md",
     },
+    { title: "Send feedback", url: "/feedback" },
 ]
 
 const FooterLink = (props: LinkData) => {
@@ -206,6 +207,12 @@ export const SiteFooter = (props: SiteFooterProps) => {
                                 <FontAwesomeIcon icon={social.icon} />
                             </a>
                         ))}
+                        <a
+                            href="/subscribe"
+                            data-track-note="footer_social_email"
+                        >
+                            <FontAwesomeIcon icon={faInbox} />
+                        </a>
                     </div>
                     <div className="footer-base__legal">
                         <FooterLinkList links={LEGAL_LINKS} />

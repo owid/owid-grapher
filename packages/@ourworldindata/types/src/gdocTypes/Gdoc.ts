@@ -41,6 +41,7 @@ export interface LinkedAuthor {
     slug: string
     featuredImage: string | null
     updatedAt: Date
+    role?: string
 }
 
 export enum ChartConfigType {
@@ -198,6 +199,7 @@ export function extractGdocIndexItem(
 export interface OwidGdocDataInsightContent {
     title: string
     authors: string[]
+    authorRoles?: Record<string, string>
     ["narrative-chart"]?: string
     ["grapher-url"]?: string
     ["figma-url"]?: string
@@ -254,6 +256,7 @@ export interface OwidGdocAnnouncementContent {
     title: string
     excerpt: string
     authors: string[]
+    authorRoles?: Record<string, string>
     "featured-image"?: string
     kicker?: string
     body: OwidEnrichedGdocBlock[]
@@ -274,6 +277,7 @@ export interface OwidGdocProfileContent {
     type: OwidGdocType.Profile
     title: string
     authors: string[]
+    authorRoles?: Record<string, string>
     scope: OwidGdocProfileScope
     exclude?: string
     subtitle?: string
@@ -302,6 +306,7 @@ export interface OwidGdocHomepageContent {
     type: OwidGdocType.Homepage
     title?: string
     authors: string[]
+    authorRoles?: Record<string, string>
     body: OwidEnrichedGdocBlock[]
 }
 
@@ -328,6 +333,7 @@ export interface OwidGdocAuthorContent {
     socials?: EnrichedBlockSocials
     "featured-image"?: string
     authors: string[]
+    authorRoles?: Record<string, string>
     body: OwidEnrichedGdocBlock[]
 }
 
@@ -342,6 +348,7 @@ export interface OwidGdocAboutContent {
     excerpt?: string
     "featured-image"?: string
     authors: string[]
+    authorRoles?: Record<string, string>
     "hide-nav"?: boolean
     // By default, all about pages render with the title "About" even if they have a title set
     // (which we use in the gdocs index page in the admin)
@@ -428,6 +435,7 @@ export interface OwidGdocPostContent {
     supertitle?: string
     subtitle?: string
     authors: string[]
+    authorRoles?: Record<string, string>
     dateline?: string
     excerpt?: string
     refs?: { definitions: RefDictionary; errors: OwidGdocErrorMessage[] }

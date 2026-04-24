@@ -6,7 +6,14 @@ import {
     Bounds,
     FontFamily,
 } from "@ourworldindata/utils"
-import { MarkdownTextWrap, TextWrap } from "@ourworldindata/components"
+import {
+    MarkdownTextWrap,
+    MarkdownTextWrapHtml,
+    MarkdownTextWrapSvg,
+    TextWrap,
+    TextWrapSvg,
+    TextWrapHtml,
+} from "@ourworldindata/components"
 import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { Logo } from "../captionedChart/Logos"
@@ -225,7 +232,9 @@ abstract class AbstractHeader<
         // avoid linking to a grapher/data page when we're already on it
         if (manager.isOnCanonicalUrl && !this.manager.isInIFrame) {
             return (
-                <h1 style={this.title.htmlStyle}>{this.title.renderHTML()}</h1>
+                <h1 style={this.title.htmlStyle}>
+                    <TextWrapHtml textWrap={this.title} />
+                </h1>
             )
         }
 
@@ -241,7 +250,7 @@ abstract class AbstractHeader<
                     })}
                 >
                     <h1 style={this.title.htmlStyle}>
-                        {this.title.renderHTML()}
+                        <TextWrapHtml textWrap={this.title} />
                     </h1>
                 </a>
             )
@@ -258,7 +267,7 @@ abstract class AbstractHeader<
                         rel: "noopener",
                     })}
                 >
-                    {this.title.renderHTML()}
+                    <TextWrapHtml textWrap={this.title} />
                 </a>
             </h1>
         )
@@ -272,10 +281,16 @@ abstract class AbstractHeader<
             // make sure there are no scrollbars on subtitle
             overflowY: "hidden",
         }
-        return <p style={style}>{this.subtitle.renderHTML()}</p>
+        return (
+            <p style={style}>
+                <MarkdownTextWrapHtml textWrap={this.subtitle} />
+            </p>
+        )
     }
 
-    override render(): React.ReactElement {
+    override render(): React.ReactElement | null {
+        const hasContent = !!this.logo || this.showTitle || this.showSubtitle
+        if (!hasContent) return null
         return (
             <div
                 className="HeaderHTML"
@@ -322,9 +337,19 @@ export class StaticHeader extends AbstractHeader<StaticHeaderProps> {
         return 1.2
     }
 
-    override render(): React.ReactElement {
+    override render(): React.ReactElement | null {
         const { targetX: x, targetY: y } = this.props
-        const { title, logo, subtitle, manager, maxWidth } = this
+        const {
+            title,
+            logo,
+            subtitle,
+            manager,
+            maxWidth,
+            showTitle,
+            showSubtitle,
+        } = this
+        const hasContent = !!logo || showTitle || showSubtitle
+        if (!hasContent) return null
         return (
             <g id={makeFigmaId(GRAPHER_HEADER_CLASS)} className="HeaderView">
                 {logo &&
@@ -343,24 +368,29 @@ export class StaticHeader extends AbstractHeader<StaticHeaderProps> {
                             rel: "noopener",
                         })}
                     >
-                        {title.renderSVG(x, y, {
-                            textProps: { fill: GRAY_100 },
-                        })}
+                        <TextWrapSvg
+                            textWrap={title}
+                            x={x}
+                            y={y}
+                            fill={GRAY_100}
+                        />
                     </a>
                 )}
-                {this.showSubtitle &&
-                    subtitle.renderSVG(
-                        x,
-                        y +
+                {this.showSubtitle && (
+                    <MarkdownTextWrapSvg
+                        textWrap={subtitle}
+                        x={x}
+                        y={
+                            y +
                             (this.showTitle
                                 ? title.height + this.subtitleMarginTop
-                                : 0),
-                        {
-                            id: makeFigmaId("subtitle"),
-                            textProps: { fill: GRAPHER_DARK_TEXT },
-                            detailsMarker: this.manager.detailsMarkerInSvg,
+                                : 0)
                         }
-                    )}
+                        id={makeFigmaId("subtitle")}
+                        fill={GRAPHER_DARK_TEXT}
+                        detailsMarker={this.manager.detailsMarkerInSvg}
+                    />
+                )}
             </g>
         )
     }

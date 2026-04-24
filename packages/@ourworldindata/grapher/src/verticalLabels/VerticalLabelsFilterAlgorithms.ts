@@ -8,6 +8,7 @@ import {
     pickCandidateWithRetry,
 } from "./VerticalLabelsHelpers"
 import { PlacedLabelSeries } from "./VerticalLabelsTypes"
+import { Emphasis } from "../interaction/Emphasis.js"
 
 /**
  * Keep a subset of series that fit within the available height, prioritizing by
@@ -26,31 +27,31 @@ export function findImportantSeriesThatFitIntoTheAvailableSpace(
         keepSeriesHeight: 0,
     }
 
-    const [focusedCandidates, nonFocusedCandidates] = _.partition(
+    const [highlightedCandidates, nonHighlightedCandidates] = _.partition(
         seriesSortedByImportance,
-        (series) => series.focus?.active
+        (series) => series.emphasis === Emphasis.Highlighted
     )
 
     const importanceScore = new Map(
         seriesSortedByImportance.map((series, index) => [
             series.seriesName,
-            -index, // higher index means lower importance
+            -index, // Higher index means lower importance
         ])
     )
 
     const getMostImportantCandidate = (candidates: PlacedLabelSeries[]) =>
         _.maxBy(candidates, (c) => importanceScore.get(c.seriesName))
 
-    // focused series have priority
+    // Highlighted series have priority
     context = pickAsManyAsPossibleWithRetry({
         context,
-        candidateSubset: focusedCandidates,
+        candidateSubset: highlightedCandidates,
         getCandidateFromSubset: getMostImportantCandidate,
     })
 
     context = pickAsManyAsPossibleWithRetry({
         context,
-        candidateSubset: nonFocusedCandidates,
+        candidateSubset: nonHighlightedCandidates,
         getCandidateFromSubset: getMostImportantCandidate,
     })
 
@@ -81,43 +82,43 @@ export function findSeriesThatFitIntoTheAvailableSpace(
         keepSeriesHeight: 0,
     }
 
-    const [focusedCandidates, nonFocusedCandidates] = _.partition(
+    const [highlightedCandidates, nonHighlightedCandidates] = _.partition(
         series,
-        (series) => series.focus?.active
+        (series) => series.emphasis === Emphasis.Highlighted
     )
 
-    // focused series have priority
+    // highlighted series have priority
     context = pickAsManyAsPossibleWithRetry({
         context,
-        candidateSubset: focusedCandidates,
+        candidateSubset: highlightedCandidates,
     })
 
-    // we initially need to pick at least two candidates
+    // We initially need to pick at least two candidates
     const numPickedCandidates = context.sortedKeepSeries.length
     if (numPickedCandidates === 0) {
-        // pick two candidates with maximal distance to each other.
+        // Pick two candidates with maximal distance to each other.
         // by convention we pick the max candidate first, but we could also
-        // start by picking the min cadidate
-        const maxCandidate = _.maxBy(nonFocusedCandidates, (c) => c.midY)
+        // start by picking the min candidate
+        const maxCandidate = _.maxBy(nonHighlightedCandidates, (c) => c.midY)
         if (maxCandidate) {
             context = pickCandidate(context, maxCandidate)
 
             context = pickCandidateWithMaxDistanceToReferenceCandidate({
                 context,
-                candidateSubset: nonFocusedCandidates,
+                candidateSubset: nonHighlightedCandidates,
                 referenceCandidate: context.sortedKeepSeries[0],
             })
         }
     } else if (numPickedCandidates === 1) {
-        // pick the candidate that is furthest away from the focused label
+        // Pick the candidate that is furthest away from the focused label
         context = pickCandidateWithMaxDistanceToReferenceCandidate({
             context,
-            candidateSubset: nonFocusedCandidates,
+            candidateSubset: nonHighlightedCandidates,
             referenceCandidate: context.sortedKeepSeries[0],
         })
     }
 
-    // pick candidates based on a scoring system
+    // Pick candidates based on a scoring system
     while (
         context.candidates.size > 0 &&
         context.keepSeriesHeight <= availableHeight
@@ -128,7 +129,7 @@ export function findSeriesThatFitIntoTheAvailableSpace(
             context.sortedKeepSeries
         )
 
-        // pick the candidate with the highest score
+        // Pick the candidate with the highest score
         const getBestCandidate = (candidates: PlacedLabelSeries[]) =>
             _.maxBy(candidates, (c) => scoreMap.get(c.seriesName))
 

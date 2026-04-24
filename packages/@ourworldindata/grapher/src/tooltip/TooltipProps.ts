@@ -52,7 +52,7 @@ export interface TooltipProps {
 export interface TooltipValueProps {
     label?: string
     unit?: string
-    value?: string
+    value?: React.ReactNode
     color?: string
     isProjection?: boolean
     originalTime?: string // actual year data was drawn from (when ≠ target year)

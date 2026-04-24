@@ -2,7 +2,6 @@ import { expect, it, describe } from "vitest"
 
 import {
     GRAPHER_CHART_TYPES,
-    OwidColumnDef,
     OwidTableSlugs,
     StandardOwidColumnDefs,
     LegacyGrapherInterface,
@@ -817,7 +816,7 @@ describe("creating a table from legacy", () => {
                 varSet,
                 getLegacyGrapherConfig().dimensions ?? [],
                 config.selectedEntityColors
-            ).get("3512")!.values
+            ).get("3512").values
         ).toEqual([550, 420, 1260])
     })
 
@@ -841,7 +840,7 @@ Papua New Guinea,PNG,1983,5.5,1983,`
             varSet,
             getLegacyGrapherConfig().dimensions ?? [],
             config.selectedEntityColors
-        ).get("3512").def as OwidColumnDef
+        ).get("3512").def
         expect(columnDef.nonRedistributable).toEqual(true)
     })
 })

@@ -8,6 +8,7 @@ import {
     GrapherTabName,
     GrapherTabConfigOption,
     GrapherTabQueryParam,
+    DimensionProperty,
 } from "@ourworldindata/types"
 import * as R from "remeda"
 import { match } from "ts-pattern"
@@ -20,13 +21,18 @@ import { match } from "ts-pattern"
  *
  * This also determines the order of chart types in the UI.
  */
-export const VALID_CHART_TYPE_COMBINATIONS = [
+export const VALID_CHART_TYPE_COMBINATIONS: GrapherChartType[][] = [
     [
         GRAPHER_CHART_TYPES.LineChart,
         GRAPHER_CHART_TYPES.SlopeChart,
         GRAPHER_CHART_TYPES.DiscreteBar,
         GRAPHER_CHART_TYPES.Marimekko,
         GRAPHER_CHART_TYPES.ScatterPlot,
+    ],
+    [
+        GRAPHER_CHART_TYPES.StackedArea,
+        GRAPHER_CHART_TYPES.StackedBar,
+        GRAPHER_CHART_TYPES.StackedDiscreteBar,
     ],
 ]
 
@@ -38,23 +44,23 @@ type ChartTabConfigOption = Exclude<
 export const CHART_TYPE_LABEL: Record<GrapherChartType, string> = {
     [GRAPHER_CHART_TYPES.LineChart]: "Line",
     [GRAPHER_CHART_TYPES.SlopeChart]: "Slope",
-    [GRAPHER_CHART_TYPES.ScatterPlot]: "Scatter",
-    [GRAPHER_CHART_TYPES.StackedArea]: "Stacked area",
-    [GRAPHER_CHART_TYPES.StackedBar]: "Stacked bar",
     [GRAPHER_CHART_TYPES.DiscreteBar]: "Bar",
-    [GRAPHER_CHART_TYPES.StackedDiscreteBar]: "Stacked bar",
+    [GRAPHER_CHART_TYPES.ScatterPlot]: "Scatter",
     [GRAPHER_CHART_TYPES.Marimekko]: "Marimekko",
+    [GRAPHER_CHART_TYPES.StackedArea]: "Area",
+    [GRAPHER_CHART_TYPES.StackedBar]: "Column",
+    [GRAPHER_CHART_TYPES.StackedDiscreteBar]: "Bar",
 }
 
 export const LONG_CHART_TYPE_LABEL: Record<GrapherChartType, string> = {
     [GRAPHER_CHART_TYPES.LineChart]: "Line chart",
     [GRAPHER_CHART_TYPES.SlopeChart]: "Slope chart",
-    [GRAPHER_CHART_TYPES.ScatterPlot]: "Scatter plot",
-    [GRAPHER_CHART_TYPES.StackedArea]: "Stacked area chart",
-    [GRAPHER_CHART_TYPES.StackedBar]: "Bar chart",
     [GRAPHER_CHART_TYPES.DiscreteBar]: "Bar chart",
-    [GRAPHER_CHART_TYPES.StackedDiscreteBar]: "Bar chart",
+    [GRAPHER_CHART_TYPES.ScatterPlot]: "Scatter plot",
     [GRAPHER_CHART_TYPES.Marimekko]: "Marimekko chart",
+    [GRAPHER_CHART_TYPES.StackedArea]: "Area chart",
+    [GRAPHER_CHART_TYPES.StackedBar]: "Column chart",
+    [GRAPHER_CHART_TYPES.StackedDiscreteBar]: "Bar chart",
 }
 
 const MAP_CHART_TAB_CONFIG_OPTION_TO_CHART_TYPE_NAME: Record<
@@ -177,3 +183,25 @@ export const isMapTab = (
     tab: GrapherTabName
 ): tab is typeof GRAPHER_TAB_NAMES.WorldMap =>
     tab === GRAPHER_TAB_NAMES.WorldMap
+
+/**
+ * Returns which dimension properties are supported for the given chart types.
+ * Returns the union of all dimensions needed across all chart types.
+ */
+export const getSupportedDimensionsForChartTypes = (
+    chartTypes: GrapherChartType[]
+): DimensionProperty[] => {
+    const chartTypeSet = new Set(chartTypes)
+
+    const { y, x, color, size } = DimensionProperty
+
+    const hasScatter = chartTypeSet.has(GRAPHER_CHART_TYPES.ScatterPlot)
+    const hasMarimekko = chartTypeSet.has(GRAPHER_CHART_TYPES.Marimekko)
+    const hasLineChart = chartTypeSet.has(GRAPHER_CHART_TYPES.LineChart)
+    const hasDiscreteBar = chartTypeSet.has(GRAPHER_CHART_TYPES.DiscreteBar)
+
+    if (hasScatter) return [y, x, size, color]
+    if (hasMarimekko) return [y, x, color]
+    if (hasLineChart || hasDiscreteBar) return [y, color]
+    return [y]
+}

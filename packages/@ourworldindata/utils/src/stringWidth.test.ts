@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest"
 
 import { getPixelWidth, FontFamily } from "./stringWidth.js"
 
-describe("getPixelWidth", () => {
+describe(getPixelWidth, () => {
     it("calculates width for basic ASCII text", () => {
         const width = getPixelWidth("Hello", {
             font: FontFamily.Lato,

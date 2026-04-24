@@ -141,7 +141,7 @@ export function extractUrl(html: string = ""): string {
     const $ = cheerio.load(html)
     const target = $("a").attr("href")
     // "google.com" (without http://) won't get extracted here, so fallback to the html
-    return target || html
+    return target?.trim() || html.trim()
 }
 
 export const getTitleSupertitleFromHeadingText = (
@@ -169,10 +169,24 @@ export const getAllLinksFromResearchAndWritingBlock = (
     return allLinks
 }
 
-export function parseAuthors(authors?: string): string[] {
-    return (authors || "Our World in Data team")
+export function parseAuthors(authors?: string): {
+    authors: string[]
+    authorRoles: Record<string, string>
+} {
+    const authorRoles: Record<string, string> = {}
+    const parsed = (authors || "Our World in Data team")
         .split(",")
-        .map((author: string) => author.trim())
+        .map((author: string) => {
+            const trimmed = author.trim()
+            const match = trimmed.match(/^(.+?)\s*\(([^)]+)\)\s*$/)
+            if (match) {
+                const name = match[1].trim()
+                authorRoles[name] = match[2].trim()
+                return name
+            }
+            return trimmed
+        })
+    return { authors: parsed, authorRoles }
 }
 
 /**
@@ -260,7 +274,6 @@ export function extractFilenamesFromBlock(
                     "homepage-search",
                     "horizontal-rule",
                     "html",
-                    "script",
                     "key-indicator-collection",
                     "key-indicator",
                     "latest-data-insights",
@@ -289,11 +302,20 @@ export function extractFilenamesFromBlock(
                     "text",
                     "topic-page-intro",
                     "data-callout",
-                    "country-profile-selector"
+                    "country-profile-selector",
+                    "bespoke-component"
                 ),
             },
             _.noop
         )
+        .with({ type: "chart-rows" }, (item) => {
+            item.rows.forEach((row) => {
+                if (row.image) filenames.add(row.image)
+            })
+        })
+        .with({ type: "pull-chart" }, (item) => {
+            if (item.image) filenames.add(item.image)
+        })
         .exhaustive()
     return [...filenames]
 }
@@ -324,7 +346,7 @@ function transformCalloutTokensInSpan(span: Span): Span[] {
     plaintextCalloutRegex.lastIndex = 0
 
     for (const match of text.matchAll(plaintextCalloutRegex)) {
-        const matchIndex = match.index!
+        const matchIndex = match.index
         // Add text before match
         if (matchIndex > lastIndex) {
             result.push({

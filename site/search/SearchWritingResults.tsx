@@ -1,3 +1,4 @@
+import cx from "classnames"
 import { useMediaQuery } from "usehooks-ts"
 import * as _ from "lodash-es"
 
@@ -137,21 +138,13 @@ function MultiColumnResults({
 }) {
     const { analytics } = useSearchContext()
 
-    // Profiles appear before topic pages in the tiles
+    // Profiles appear before topic pages in the tiles.
     const allTopicOrProfileHits: TopicOrProfileHit[] = [...profiles, ...topics]
+    const hasArticles = articles.length > 0
 
-    // Calculate interleaved layout: 4 topics for every 5 articles (ratio
-    // maintained proportionally).
-    const interleavedCount = Math.round((articles.length * 4) / 5)
-    const interleavedTopicOrProfileHits = allTopicOrProfileHits.slice(
-        0,
-        interleavedCount
-    )
-    const remainingTopicOrProfileHits =
-        allTopicOrProfileHits.slice(interleavedCount)
     return (
         <div className="search-writing-results__grid">
-            {articles.length > 0 && (
+            {hasArticles && (
                 <div className="search-writing-results__articles">
                     {articles.map((hit, index) => (
                         <SearchFlatArticleHit
@@ -167,24 +160,17 @@ function MultiColumnResults({
                     ))}
                 </div>
             )}
-            {interleavedTopicOrProfileHits.length > 0 && (
-                <div className="search-writing-results__topics">
-                    {interleavedTopicOrProfileHits.map((hit, index) =>
+            {allTopicOrProfileHits.length > 0 && (
+                <div
+                    className={cx("search-writing-results__topics", {
+                        "search-writing-results__topics--full-width":
+                            !hasArticles,
+                    })}
+                >
+                    {allTopicOrProfileHits.map((hit, index) =>
                         renderTopicOrProfileHit(
                             hit,
                             index,
-                            hasLargeTopic,
-                            analytics
-                        )
-                    )}
-                </div>
-            )}
-            {remainingTopicOrProfileHits.length > 0 && (
-                <div className="search-writing-results__overflow">
-                    {remainingTopicOrProfileHits.map((hit, index) =>
-                        renderTopicOrProfileHit(
-                            hit,
-                            interleavedTopicOrProfileHits.length + index,
                             hasLargeTopic,
                             analytics
                         )

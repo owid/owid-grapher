@@ -41,7 +41,10 @@ const _fetchVariablesCounters = { cached: 0, fetched: 0 }
 const preFetchCommonVariables = async (
     trx: db.KnexReadonlyTransaction
 ): Promise<void> => {
-    const commonVariables = (await db.knexRaw(
+    const commonVariables = await db.knexRaw<{
+        variableId: number
+        useCount: number
+    }>(
         trx,
         `-- sql
             SELECT variableId, COUNT(variableId) AS useCount
@@ -54,7 +57,7 @@ const preFetchCommonVariables = async (
             LIMIT ??
         `,
         [VARIABLES_TO_PREFETCH]
-    )) as { variableId: number; useCount: number }[]
+    )
 
     _commonVariablesMap = new Map(
         await pMap(
@@ -146,7 +149,7 @@ export const obtainAvailableEntitiesForGraphers = async (
             FROM charts c
             JOIN chart_configs cc ON c.configId = cc.id
             WHERE cc.full ->> "$.isPublished" = 'true'
-            ${chartIds && chartIds.length ? `AND c.id IN (${chartIds.join(",")})` : ""}
+            ${chartIds?.length ? `AND c.id IN (${chartIds.join(",")})` : ""}
         `
     )
 

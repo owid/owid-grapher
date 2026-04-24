@@ -93,6 +93,58 @@ The analytics system requires these environment variables:
 
 # Our dynamic routes
 
+## `/api/detect-country`
+
+This route detects the visitor's country using Cloudflare's `cf.country` property (derived from the request's IP address) and returns structured country information.
+
+This was previously handled by a separate service at `detect-country.owid.io` and has been moved in-house to reduce external dependencies.
+
+### Response
+
+The response is a JSON object with a single `country` key, which is either `null` (if the country could not be detected or is not in our regions dataset) or an object with the following fields:
+
+| Field        | Type             | Description                            |
+| ------------ | ---------------- | -------------------------------------- |
+| `code`       | string           | OWID region code (e.g. `"DEU"`)        |
+| `name`       | string           | Country name (e.g. `"Germany"`)        |
+| `short_code` | string           | ISO 3166-1 alpha-2 code (e.g. `"DE"`)  |
+| `slug`       | string           | URL slug (e.g. `"germany"`)            |
+| `regions`    | string[] \| null | Parent region codes, or `null` if none |
+
+### Headers
+
+- `Access-Control-Allow-Origin: *` — accessible from any origin
+- `Cache-Control: public, s-maxage=0, max-age=7200` — cached in the browser for 2 hours, not cached on the CDN edge
+
+### Example
+
+```
+GET /api/detect-country
+
+200 OK
+{
+  "country": {
+    "code": "DEU",
+    "name": "Germany",
+    "short_code": "DE",
+    "slug": "germany",
+    "regions": [
+      "OWID_EU27",
+      "OWID_EUR",
+      "OWID_HIC",
+      "OWID_NH",
+      "PEW_EUR",
+      "UNM49_EUR",
+      "UNM49_WEU",
+      "UNSDG_ENA",
+      "UN_EUR",
+      "WB_ECA",
+      "WHO_EUR"
+    ]
+  }
+}
+```
+
 ## `/api/search`
 
 This route provides a search API for both charts and pages (articles, about pages).

@@ -237,9 +237,9 @@ class DimensionSlotView<
             selection.clearSelection()
         } else if (
             nonProjectedYColumns.length > 1 &&
-            !grapherState.isStackedArea &&
-            !grapherState.isStackedBar &&
-            !grapherState.isStackedDiscreteBar
+            !grapherState.hasStackedArea &&
+            !grapherState.hasStackedBar &&
+            !grapherState.hasStackedDiscreteBar
         ) {
             // Non-stacked charts with multiple y-dimensions should select
             // a single entity by default
@@ -602,9 +602,15 @@ export class EditorBasicTab<
             const isSingleYIndicatorGroup = chartTypes.includes(
                 GRAPHER_CHART_TYPES.LineChart
             )
+            const isStackedGroup = chartTypes.includes(
+                GRAPHER_CHART_TYPES.StackedArea
+            )
 
             if (isSingleYIndicatorGroup) {
                 const label = "Single y-indicator charts"
+                groups.push({ label, chartTypes })
+            } else if (isStackedGroup) {
+                const label = "Stacked charts"
                 groups.push({ label, chartTypes })
             } else {
                 const label = chartTypes.join(", ")

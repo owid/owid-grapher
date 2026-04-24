@@ -1,20 +1,17 @@
 import * as React from "react"
 import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
-import * as _ from "lodash-es"
-import {
-    Bounds,
-    dyFromAlign,
-    makeFigmaId,
-    VerticalAlign,
-} from "@ourworldindata/utils"
+import { dyFromAlign, makeFigmaId, VerticalAlign } from "@ourworldindata/utils"
 import {
     COMPARISON_LINE_STYLE,
     COMPARISON_LINE_LABEL_STYLE,
 } from "./ComparisonLineConstants"
 import { ComparisonLineProps } from "./ComparisonLine"
-import { VerticalComparisonLineConfig } from "@ourworldindata/types"
-import { isValidVerticalComparisonLineConfig } from "./ComparisonLineHelpers"
+import {
+    VerticalComparisonLineConfig,
+    VerticalComparisonLineLabelPlacement,
+} from "@ourworldindata/types"
+import { ComparisonLines } from "./ComparisonLines"
 
 @observer
 export class VerticalComparisonLine extends React.Component<
@@ -25,8 +22,20 @@ export class VerticalComparisonLine extends React.Component<
         makeObservable(this)
     }
 
+    @computed private get comparisonLines(): ComparisonLines {
+        return this.props.dualAxis.comparisonLines
+    }
+
     @computed private get fontSize(): number {
-        return this.props.dualAxis.comparisonLineLabelFontSize
+        return this.comparisonLines.fontSize
+    }
+
+    @computed private get placement():
+        | VerticalComparisonLineLabelPlacement
+        | undefined {
+        return this.comparisonLines.verticalLineLabelPlacements.get(
+            this.lineConfig.xEquals
+        )
     }
 
     @computed private get labelHeight(): number {
@@ -36,71 +45,6 @@ export class VerticalComparisonLine extends React.Component<
 
     @computed private get lineConfig(): VerticalComparisonLineConfig {
         return this.props.comparisonLine
-    }
-
-    @computed
-    private get otherVerticalComparisonLines(): VerticalComparisonLineConfig[] {
-        return this.props.dualAxis.comparisonLines.filter(
-            (lineConfig): lineConfig is VerticalComparisonLineConfig =>
-                isValidVerticalComparisonLineConfig(lineConfig) &&
-                lineConfig.xEquals !== this.props.comparisonLine.xEquals
-        )
-    }
-
-    /** Nearest comparison line to the left of this line */
-    @computed private get closestLeftLine():
-        | VerticalComparisonLineConfig
-        | undefined {
-        const linesOnTheLeft = this.otherVerticalComparisonLines.filter(
-            (otherLine) => otherLine.xEquals < this.lineConfig.xEquals
-        )
-        return _.maxBy(linesOnTheLeft, (line) => line.xEquals)
-    }
-
-    /** Nearest comparison line to the right of this line */
-    @computed private get closestRightLine():
-        | VerticalComparisonLineConfig
-        | undefined {
-        const linesOnTheRight = this.otherVerticalComparisonLines.filter(
-            (otherLine) => otherLine.xEquals > this.lineConfig.xEquals
-        )
-        return _.minBy(linesOnTheRight, (line) => line.xEquals)
-    }
-
-    /**
-     * X-coordinate of the leftmost boundary for label placement.
-     *
-     * Either the position of the nearest comparison line on the left
-     * or the chart's bound.
-     */
-    @computed private get leftBoundX(): number {
-        const { closestLeftLine } = this
-        const { innerBounds, horizontalAxis } = this.props.dualAxis
-
-        if (!closestLeftLine) return innerBounds.left
-
-        return Math.max(
-            horizontalAxis.place(closestLeftLine.xEquals),
-            innerBounds.left
-        )
-    }
-
-    /**
-     * X-coordinate of the rightmost boundary for label placement.
-     *
-     * Either the position of the nearest comparison line on the right
-     * or the chart's bound.
-     */
-    @computed private get rightBoundX(): number {
-        const { closestRightLine } = this
-        const { innerBounds, horizontalAxis } = this.props.dualAxis
-
-        if (!closestRightLine) return innerBounds.right
-
-        return Math.min(
-            horizontalAxis.place(closestRightLine.xEquals),
-            innerBounds.right
-        )
     }
 
     /** Screen coordinates for rendering the vertical line */
@@ -129,38 +73,15 @@ export class VerticalComparisonLine extends React.Component<
     @computed private get labelPosition():
         | { x: number; y: number; anchor: "start" | "end" }
         | undefined {
-        const { fontSize, lineCoordinates, rightBoundX, leftBoundX } = this
-        const { label } = this.lineConfig
+        const { lineCoordinates, placement } = this
 
-        if (!label || !lineCoordinates) return undefined
+        if (!lineCoordinates || !placement) return undefined
 
-        const { x, y1: y } = lineCoordinates
-
-        // Calculate available space on both sides
-        const padding = 4 // padding between label and line
-        const availableSpaceRight = rightBoundX - x - 2 * padding
-        const availableSpaceLeft = x - leftBoundX - 2 * padding
-
-        // Determine label placement:
-        // - Prefer the right side if there's enough space
-        // - Otherwise, try placing the label on the left side
-        // - If neither side has enough space, hide the label
-        const labelWidth = Bounds.forText(label, { fontSize }).width
-        const side =
-            labelWidth <= availableSpaceRight
-                ? "right"
-                : labelWidth <= availableSpaceLeft
-                  ? "left"
-                  : null
-
-        // Can't fit the label
-        if (side === null) return undefined
-
-        // Add a bit of padding between label and line and determine text anchor
-        const labelX = side === "right" ? x + padding : x - padding
-        const anchor = side === "right" ? "start" : "end"
-
-        return { x: labelX, y, anchor }
+        return {
+            x: placement.x,
+            y: lineCoordinates.y1,
+            anchor: placement.anchor,
+        }
     }
 
     private renderLabel(): React.ReactElement | null {
@@ -183,7 +104,7 @@ export class VerticalComparisonLine extends React.Component<
     }
 
     override render(): React.ReactElement | null {
-        if (!this.lineCoordinates || !this.labelPosition) return null
+        if (!this.lineCoordinates) return null
 
         const { x, y1, y2 } = this.lineCoordinates
 

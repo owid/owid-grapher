@@ -148,9 +148,9 @@ export async function processExplorerViewsJob(
         }
 
         // Delete removed configs from R2 in parallel
-        if (refreshResult!.removedChartConfigIds.length > 0) {
+        if (refreshResult.removedChartConfigIds.length > 0) {
             await pMap(
-                refreshResult!.removedChartConfigIds,
+                refreshResult.removedChartConfigIds,
                 async (configId) => {
                     await deleteGrapherConfigFromR2ByUUID(configId)
                 },
@@ -159,12 +159,12 @@ export async function processExplorerViewsJob(
         }
 
         // Upsert updated configs to R2 in parallel
-        if (refreshResult!.updatedChartConfigIds.length > 0) {
+        if (refreshResult.updatedChartConfigIds.length > 0) {
             // Fetch chart configs (simple read, no transaction needed)
             const chartConfigs = await knexReadonlyTransaction(async (knex) => {
                 return await knex("chart_configs")
                     .select("id", "full", "fullMd5")
-                    .whereIn("id", refreshResult!.updatedChartConfigIds)
+                    .whereIn("id", refreshResult.updatedChartConfigIds)
             })
 
             await pMap(

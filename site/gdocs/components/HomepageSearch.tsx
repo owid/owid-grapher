@@ -20,32 +20,38 @@ export function HomepageSearch(props: { className?: string }) {
     const message =
         chartCount && topicCount && explorerCount ? (
             <div>
-                <div className="homepage-search__links">
-                    <a
-                        className="homepage-search__link body-3-medium"
-                        href={SEARCH_BASE_PATH}
-                    >
-                        <FontAwesomeIcon icon={faChartLine} />
-                        {commafyNumber(chartCount)} Charts
-                    </a>
-                    <a
-                        className="homepage-search__link body-3-medium"
-                        href="#all-topics"
-                    >
-                        <FontAwesomeIcon icon={faBookmark} />
-                        {commafyNumber(topicCount)} Topic Pages
-                    </a>
-                    <a
-                        className="homepage-search__link body-3-medium"
-                        href="/explorers"
-                    >
-                        <FontAwesomeIcon icon={faMagnifyingGlassChart} />
-                        {commafyNumber(explorerCount)} Data Explorers
-                    </a>
-                </div>
+                <ul className="homepage-search__links">
+                    <li>
+                        <a
+                            className="homepage-search__link body-3-medium"
+                            href={SEARCH_BASE_PATH}
+                        >
+                            <FontAwesomeIcon icon={faChartLine} />
+                            {commafyNumber(chartCount)} charts
+                        </a>
+                    </li>
+                    <li>
+                        <a
+                            className="homepage-search__link body-3-medium"
+                            href="#all-topics"
+                        >
+                            <FontAwesomeIcon icon={faBookmark} />
+                            {commafyNumber(topicCount)} topic pages
+                        </a>
+                    </li>
+                    <li>
+                        <a
+                            className="homepage-search__link body-3-medium"
+                            href="/explorers"
+                        >
+                            <FontAwesomeIcon icon={faMagnifyingGlassChart} />
+                            {commafyNumber(explorerCount)} data explorers
+                        </a>
+                    </li>
+                </ul>
                 <div className="homepage-search__links--mobile">
                     <a href="/data" className="body-3-medium">
-                        {commafyNumber(chartCount)} Charts
+                        {commafyNumber(chartCount)} charts
                     </a>{" "}
                     across {commafyNumber(topicCount)} topics
                 </div>

@@ -1,4 +1,5 @@
 import React from "react"
+import { TextWrapSvg } from "@ourworldindata/components"
 import { VerticalAxis } from "../axis/Axis"
 import { SimpleVerticalLabelsState } from "./SimpleVerticalLabelsState"
 import { darkenColorForText } from "../color/ColorUtils.js"
@@ -18,12 +19,13 @@ export function SimpleVerticalLabels({
         <g>
             {state.series.map((series) => (
                 <React.Fragment key={series.yPosition}>
-                    {series.textWrap.renderSVG(x, yAxis.place(series.value), {
-                        textProps: {
-                            textAnchor: xAnchor,
-                            fill: darkenColorForText(series.color),
-                        },
-                    })}
+                    <TextWrapSvg
+                        textWrap={series.textWrap}
+                        x={x}
+                        y={yAxis.place(series.value)}
+                        textAnchor={xAnchor}
+                        fill={darkenColorForText(series.color)}
+                    />
                 </React.Fragment>
             ))}
         </g>

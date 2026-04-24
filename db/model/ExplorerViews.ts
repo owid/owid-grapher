@@ -123,13 +123,13 @@ async function fetchExplorerDataForViews(
             const adminConfig = row.grapherConfigAdmin
                 ? parseGrapherConfigFromRow({
                       id: row.id,
-                      config: row.grapherConfigAdmin as string,
+                      config: row.grapherConfigAdmin,
                   })
                 : {}
             const etlConfig = row.grapherConfigETL
                 ? parseGrapherConfigFromRow({
                       id: row.id,
-                      config: row.grapherConfigETL as string,
+                      config: row.grapherConfigETL,
                   })
                 : {}
             const mergedConfig = mergeGrapherConfigs(etlConfig, adminConfig)

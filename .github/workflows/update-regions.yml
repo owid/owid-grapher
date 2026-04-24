@@ -40,7 +40,6 @@ jobs:
                       Automated update of regions data
 
                       TODOs:
-                      - [ ] Update the [owid-detect-country worker](https://github.com/owid/cloudflare-workers/tree/main/workers/owid-detect-country) using its update script
                       - [ ] Check if there were any country renames, and if so:
                           - [ ] Create redirects from old to new slugs
                           - [ ] Take extra care :)

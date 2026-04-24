@@ -18,6 +18,8 @@ fields:
         description: Image filename as stored in the system
     defaultAlt:
         description: Default alt text for accessibility
+    extractedText:
+        description: Text extracted from the image via OCR, used for Algolia search indexing
     originalWidth:
         description: Original width of the image in pixels
     updatedAt:

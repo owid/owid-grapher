@@ -18,12 +18,18 @@ import {
     HorizontalAxisComponent,
     VerticalAxisZeroLine,
 } from "../axis/AxisViews"
+import { Time } from "@ourworldindata/types"
+import {
+    PlacedStackedAreaSeries,
+    RenderStackedAreaSeries,
+} from "./StackedConstants"
 import { StackedAreas } from "./StackedAreas"
 import { InitialSimpleLabelSeries } from "../verticalLabels/SimpleVerticalLabelsTypes.js"
 import { SimpleVerticalLabelsState } from "../verticalLabels/SimpleVerticalLabelsState"
 import { SimpleVerticalLabels } from "../verticalLabels/SimpleVerticalLabels"
-import { resolveCollision } from "./StackedUtils"
+import { resolveCollision, toPlacedStackedAreaSeries } from "./StackedUtils"
 import { NoDataModal } from "../noDataModal/NoDataModal"
+import { resolveEmphasis } from "../interaction/Emphasis.js"
 
 const LEGEND_PADDING = 4
 
@@ -122,10 +128,7 @@ export class StackedAreaChartThumbnail
     @computed private get verticalLabelsState():
         | SimpleVerticalLabelsState
         | undefined {
-        if (
-            !this.manager.showSeriesLabels ||
-            this.manager.isDisplayedAlongsideComplementaryTable
-        )
+        if (!this.manager.showSeriesLabels || this.manager.useMinimalLabeling)
             return undefined
 
         const series = excludeUndefined(
@@ -175,6 +178,17 @@ export class StackedAreaChartThumbnail
         return this.labelsWidth ? this.labelsWidth + LEGEND_PADDING : 0
     }
 
+    @computed private get placedSeries(): PlacedStackedAreaSeries<Time>[] {
+        return toPlacedStackedAreaSeries(this.chartState.series, this.dualAxis)
+    }
+
+    @computed private get renderSeries(): RenderStackedAreaSeries<Time>[] {
+        return this.placedSeries.map((series) => ({
+            ...series,
+            emphasis: resolveEmphasis({ focus: series.focus }),
+        }))
+    }
+
     override render(): React.ReactElement {
         if (this.chartState.errorInfo.reason)
             return (
@@ -196,10 +210,7 @@ export class StackedAreaChartThumbnail
                     bounds={this.dualAxis.bounds}
                     showEndpointsOnly
                 />
-                <StackedAreas
-                    dualAxis={this.dualAxis}
-                    seriesArr={this.chartState.series}
-                />
+                <StackedAreas series={this.renderSeries} />
                 {this.verticalLabelsState && (
                     <SimpleVerticalLabels
                         state={this.verticalLabelsState}

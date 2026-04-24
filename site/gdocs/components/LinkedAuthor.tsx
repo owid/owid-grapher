@@ -11,12 +11,15 @@ export default function LinkedAuthor({
     className,
     name,
     includeImage,
+    role,
 }: {
     className?: string
     name: string
     includeImage?: boolean
+    role?: string
 }) {
     const author = useLinkedAuthor(name)
+    const displayRole = role ?? author.role
     const image =
         includeImage && author.featuredImage ? (
             <Image
@@ -34,9 +37,12 @@ export default function LinkedAuthor({
         content: { type: OwidGdocType.Author },
     })
     return (
-        <a className={className} href={path}>
-            {image}
-            {author.name}
-        </a>
+        <span>
+            <a className={className} href={path}>
+                {image}
+                {author.name}
+            </a>
+            {displayRole && ` (${displayRole})`}
+        </span>
     )
 }

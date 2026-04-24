@@ -5,9 +5,9 @@ logs/
 db.sqlite3
 .sublime*
 .nova/
-.yarn/*
-!.yarn/patches
-!.yarn/releases
+**/.yarn/*
+!**/.yarn/patches
+!**/.yarn/releases
 yarn-error.log
 .vscode/tags
 .awcache
@@ -42,10 +42,12 @@ dist/
 .wrangler/
 .nx/cache
 .nx/workspace-data
+.turbo/
 .dev.vars
 cfstorage/
 vite.*.mjs
 archive/*
+wikipedia-archive/*
 
 # Playwright
 test-results/
@@ -57,3 +59,14 @@ playwright-report/
 
 # Claude
 .claude/settings.local.json
+
+# Auto Claude
+.auto-claude/
+.auto-claude-security.json
+.auto-claude-status
+.claude_settings.json
+
+# Typesense
+typesense-data/
+
+.toolbox/

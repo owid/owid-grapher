@@ -58,10 +58,13 @@ export function extractDataCalloutUrls(
             }
         })
     }
-    return [...callouts].map((urlStr) => {
-        const url = Url.fromURL(urlStr)
-        return url.pathname + url.queryStr
-    })
+    return callouts
+        .keys()
+        .map((urlStr) => {
+            const url = Url.fromURL(urlStr)
+            return url.pathname + url.queryStr
+        })
+        .toArray()
 }
 
 /**
@@ -260,7 +263,7 @@ export async function loadLinkedCalloutsForBlocks(
     if (calloutUrls.length === 0) return {}
 
     const linkedCallouts: LinkedCallouts = {}
-    const uniqueCalloutUrls = Array.from(new Set(calloutUrls))
+    const uniqueCalloutUrls = new Set(calloutUrls)
 
     // Group URLs by chart key to prepare each chart's table once
     const urlsByChartKey = new Map<string, string[]>()
@@ -440,7 +443,7 @@ export function checkShouldProfileRender(content: {
     content.body.forEach((node) => {
         traverseEnrichedBlock(node, (block) => {
             if (block.type === "data-callout") {
-                dataCallouts.push(block as EnrichedBlockDataCallout)
+                dataCallouts.push(block)
             }
         })
     })
@@ -463,7 +466,7 @@ export function clearIncompleteDataCallouts(
     content.body?.forEach((node) => {
         traverseEnrichedBlock(node, (block) => {
             if (block.type === "data-callout") {
-                const dataCalloutBlock = block as EnrichedBlockDataCallout
+                const dataCalloutBlock = block
                 const shouldRender = checkShouldDataCalloutRender(
                     dataCalloutBlock,
                     linkedCallouts

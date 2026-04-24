@@ -221,4 +221,47 @@ describe(findDataRangePeers, () => {
         expect(result).toContain("B")
         expect(result).toContain("C")
     })
+
+    it("doesn't include target country or another country in the same bucket", () => {
+        // 10 countries split into 5 buckets of 2:
+        // Bucket 1: [A=10, B=20], Bucket 2: [C=30, Target=40],
+        // Bucket 3: [E=50, F=60], Bucket 4: [G=70, H=80], Bucket 5: [I=90, J=100]
+        const values = new Map([
+            ["A", 10],
+            ["B", 20],
+            ["C", 30],
+            ["Target", 40],
+            ["E", 50],
+            ["F", 60],
+            ["G", 70],
+            ["H", 80],
+            ["I", 90],
+            ["J", 100],
+        ])
+        const population = new Map([
+            ["A", 1_000_000],
+            ["B", 2_000_000],
+            ["C", 50_000_000],
+            ["Target", 10_000_000],
+            ["E", 3_000_000],
+            ["F", 4_000_000],
+            ["G", 5_000_000],
+            ["H", 6_000_000],
+            ["I", 7_000_000],
+            ["J", 8_000_000],
+        ])
+
+        // Without targetCountry: picks most populous from all 5 buckets,
+        // including C (most populous in bucket 2)
+        const peers = findDataRangePeers({ values, population })
+        expect(peers).toEqual(["B", "C", "F", "H", "J"])
+
+        // With targetCountry: skips the bucket containing Target (C)
+        const peersForTarget = findDataRangePeers({
+            values,
+            population,
+            targetCountry: "Target",
+        })
+        expect(peersForTarget).toEqual(["B", "F", "H", "J"])
+    })
 })

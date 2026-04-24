@@ -283,9 +283,11 @@ export abstract class AbstractStackedChartState implements ChartState {
                 const points = rows.map((row) => {
                     const pointColor =
                         row.value > 0 ? POSITIVE_COLOR : NEGATIVE_COLOR
+                    const time = row.originalTime
                     return {
-                        position: row.originalTime,
-                        time: row.originalTime,
+                        position: time,
+                        time: time,
+                        formattedTime: this.formatColumn.formatTime(time),
                         value: row.value,
                         valueOffset: 0,
                         interpolated:

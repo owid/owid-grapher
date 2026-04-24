@@ -23,7 +23,7 @@ const defaultColors: Record<TextRole, string> = {
     name: GRAPHER_DARK_TEXT,
     value: GRAPHER_DARK_TEXT,
     regionProviderSuffix: GRAPHER_LIGHT_TEXT,
-    incomeGroupIcon: GRAPHER_LIGHT_TEXT,
+    regionIcon: GRAPHER_LIGHT_TEXT,
 }
 
 export interface SeriesLabelProps {

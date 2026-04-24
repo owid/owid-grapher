@@ -5,6 +5,10 @@ inputs:
         description: "Whether to run postinstall scripts during dependency installation. Usually only needed for native packages, like esbuild, sharp or wranglerd."
         required: false
         default: "true"
+    cacheDependencyPath:
+        description: "Path to the yarn.lock file used for cache key generation."
+        required: false
+        default: "yarn.lock"
 runs:
     using: composite
     steps:
@@ -18,6 +22,7 @@ runs:
           with:
               node-version-file: ".nvmrc"
               cache: "yarn"
+              cache-dependency-path: ${{ inputs.cacheDependencyPath }}
 
         - name: List versions
           run: |

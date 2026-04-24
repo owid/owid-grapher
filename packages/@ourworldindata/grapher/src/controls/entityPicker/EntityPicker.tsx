@@ -71,17 +71,17 @@ interface EntityPickerProps {
 @observer
 export class EntityPicker extends React.Component<EntityPickerProps> {
     private searchInput: string | undefined = undefined
-    private searchInputRef = React.createRef<HTMLInputElement>()
+    private readonly searchInputRef = React.createRef<HTMLInputElement>()
 
     private focusIndex: number | undefined = undefined
-    private focusRef = React.createRef<HTMLLabelElement>()
+    private readonly focusRef = React.createRef<HTMLLabelElement>()
     private scrollFocusedIntoViewOnUpdate = false
 
     private blockOptionHover = false
 
     private mostRecentlySelectedEntityName: string | null = null
 
-    private scrollContainerRef = React.createRef<HTMLDivElement>()
+    private readonly scrollContainerRef = React.createRef<HTMLDivElement>()
 
     private isOpen = false
 
@@ -165,7 +165,7 @@ export class EntityPicker extends React.Component<EntityPickerProps> {
         value: string | undefined
     }[] {
         const entityNameColumn = this.grapherTable?.entityNameColumn
-        const entityNameColumnInPickerColumnDefs = !!this.pickerColumnDefs.find(
+        const entityNameColumnInPickerColumnDefs = this.pickerColumnDefs.some(
             (col) => col.slug === entityNameColumn?.slug
         )
         return _.compact([
@@ -415,10 +415,7 @@ export class EntityPicker extends React.Component<EntityPickerProps> {
 
     @action.bound private onSearchBlur(): void {
         // Do not allow focus on elements inside menu; shift focus back to search input.
-        if (
-            this.scrollContainerRef.current &&
-            this.scrollContainerRef.current.contains(document.activeElement)
-        ) {
+        if (this.scrollContainerRef.current?.contains(document.activeElement)) {
             this.focusSearch()
             return
         }

@@ -2,12 +2,12 @@ export class InteractionState {
     /**
      * Whether the series is currently interacted with
      */
-    private _isInteractedWith = false
+    private readonly _isInteractedWith: boolean = false
 
     /**
      * Whether _any_ series in a chart is currently interacted with
      */
-    private _isInteractionModeActive = false
+    private readonly _isInteractionModeActive: boolean = false
 
     /**
      * If `isInteractedWith` is true, then the given series is currently active,

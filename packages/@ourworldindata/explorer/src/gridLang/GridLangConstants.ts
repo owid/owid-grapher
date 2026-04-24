@@ -12,7 +12,6 @@ export enum GridBoolean {
 
 export const GRID_NODE_DELIMITER = "\n"
 export const GRID_CELL_DELIMITER = "\t"
-export const GRID_EDGE_DELIMITER = "\t"
 
 export type CellCoordinate = number // An integer >= 0
 
@@ -135,6 +134,16 @@ export const IntegerCellDef: CellDef = {
     regex: /^-?[0-9]+$/,
     requirementsDescription: `Must be an integer`,
     valuePlaceholder: "12345",
+    parse: (value: any) => parseInt(value),
+}
+
+export const PositiveIntegerCellDef: CellDef = {
+    keyword: "",
+    cssClass: "IntegerCellDef",
+    description: "",
+    regex: /^[0-9]+$/,
+    requirementsDescription: `Must be a positive integer`,
+    valuePlaceholder: "1",
     parse: (value: any) => parseInt(value),
 }
 

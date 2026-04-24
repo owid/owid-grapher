@@ -3,7 +3,7 @@ import { SeriesName } from "@ourworldindata/types"
 import { InteractionState } from "../interaction/InteractionState.js"
 
 export class FocusArray {
-    private store: Set<SeriesName> = new Set()
+    private readonly store: Set<SeriesName> = new Set()
 
     constructor() {
         makeObservable<FocusArray, "store">(this, { store: observable })
@@ -23,6 +23,10 @@ export class FocusArray {
 
     @computed get hasFocusedSeries(): boolean {
         return !this.isEmpty
+    }
+
+    @computed get length(): number {
+        return this.store.size
     }
 
     /**

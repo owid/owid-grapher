@@ -1,21 +1,29 @@
 import * as _ from "lodash-es"
 import {
+    CsvDownloadType,
+    type DataDownloadContextBase,
     generateGrapherImageSrcSet,
+    getDownloadUrl,
     Grapher,
     GrapherState,
     loadCatalogData,
 } from "@ourworldindata/grapher"
 import {
+    type DownloadRewriteTarget,
     GrapherInterface,
     MultiDimDataPageConfigEnriched,
     R2GrapherConfigDirectory,
     AdditionalGrapherDataFetchFn,
+    GRAPHER_QUERY_PARAM_KEYS,
 } from "@ourworldindata/types"
 import {
     excludeUndefined,
     Bounds,
+    makeDownloadCodeExamples,
     searchParamsToMultiDimView,
+    escapeJSONStringForInlineScript,
 } from "@ourworldindata/utils"
+import * as Sentry from "@sentry/cloudflare"
 import { StatusError } from "itty-router"
 import { Env } from "./env.js"
 import { ImageOptions } from "./imageOptions.js"
@@ -69,37 +77,47 @@ export function getDataApiUrl(env: Env) {
     )
 }
 
-export async function fetchFromR2(
-    url: URL,
-    etag: string | undefined,
-    fallbackUrl?: URL,
-    _shouldCache: boolean = true
-) {
+function buildResponseFromR2Object(
+    r2Object: R2ObjectBody | R2Object
+): Response {
     const headers = new Headers()
-    if (etag) headers.set("If-None-Match", etag)
-    const init = {
-        // HOTFIX 2026-02-20 - disabling caching always because we had fetch errors with R2 and internal caching. Revisit this soon to see if we can re-enable caching.
-        // cf: shouldCache
-        //     ? { cacheEverything: true, cacheTtl: WORKER_CACHE_TIME_IN_SECONDS }
-        //     : { cacheEverything: false },
-        cf: { cacheEverything: false },
-        headers,
+    r2Object.writeHttpMetadata(headers)
+    headers.set("ETag", r2Object.httpEtag)
+
+    if ("body" in r2Object) {
+        return new Response(r2Object.body, { status: 200, headers })
     }
-    const primaryResponse = await fetch(url.toString(), init)
-    // The fallback URL here is used so that on staging or dev we can fallback
-    // to the production bucket if the file is not found in the branch bucket
-    if (primaryResponse.status === 404 && fallbackUrl) {
-        return fetch(fallbackUrl.toString(), init)
+
+    return new Response(null, { status: 304, headers })
+}
+
+export async function fetchFromR2(
+    bucket: R2Bucket,
+    key: string,
+    etag: string | undefined
+) {
+    const object = etag
+        ? await bucket.get(key, {
+              onlyIf: new Headers({ "If-None-Match": etag }),
+          })
+        : await bucket.get(key)
+
+    if (!object) {
+        return new Response(null, { status: 404 })
     }
-    return primaryResponse
+
+    return buildResponseFromR2Object(object)
 }
 
 export async function fetchUnparsedGrapherConfig(
     identifier: GrapherIdentifier,
     env: Env,
-    etag?: string,
-    shouldCache: boolean = true
+    etag?: string
 ) {
+    if (!env.GRAPHER_CONFIG_R2_BUCKET) {
+        throw new Error("Missing GRAPHER_CONFIG_R2_BUCKET binding")
+    }
+
     // The top level directory is either the bucket path (should be set in dev environments and production)
     // or the branch name on preview staging environments
     console.log("branch", env.CF_PAGES_BRANCH)
@@ -116,28 +134,34 @@ export async function fetchUnparsedGrapherConfig(
 
     console.log("fetching grapher config from this key", key)
 
-    const requestUrl = new URL(key, env.GRAPHER_CONFIG_R2_BUCKET_URL)
+    const primaryResponse = await fetchFromR2(
+        env.GRAPHER_CONFIG_R2_BUCKET,
+        key,
+        etag
+    )
+    if (primaryResponse.status !== 404) {
+        return primaryResponse
+    }
 
-    let fallbackUrl
-
-    if (
-        env.GRAPHER_CONFIG_R2_BUCKET_FALLBACK_URL &&
-        env.GRAPHER_CONFIG_R2_BUCKET_FALLBACK_PATH
-    ) {
-        const topLevelDirectory = env.GRAPHER_CONFIG_R2_BUCKET_FALLBACK_PATH
-        const fallbackKey = excludeUndefined([
-            topLevelDirectory,
-            directory,
-            `${identifier.id}.json`,
-        ]).join("/")
-        fallbackUrl = new URL(
-            fallbackKey,
-            env.GRAPHER_CONFIG_R2_BUCKET_FALLBACK_URL
+    // On staging and local development we can optionally fallback to the production bucket
+    // if the config was not found in the branch bucket.
+    if (!env.GRAPHER_CONFIG_R2_BUCKET_FALLBACK_PATH) {
+        return primaryResponse
+    }
+    if (!env.GRAPHER_CONFIG_R2_BUCKET_FALLBACK) {
+        throw new Error(
+            "GRAPHER_CONFIG_R2_BUCKET_FALLBACK_PATH is set but GRAPHER_CONFIG_R2_BUCKET_FALLBACK binding is missing"
         )
     }
 
-    // Fetch grapher config
-    return fetchFromR2(requestUrl, etag, fallbackUrl, shouldCache)
+    const fallbackKey = excludeUndefined([
+        env.GRAPHER_CONFIG_R2_BUCKET_FALLBACK_PATH,
+        directory,
+        `${identifier.id}.json`,
+    ]).join("/")
+    console.log("fetching grapher config from fallback key", fallbackKey)
+
+    return fetchFromR2(env.GRAPHER_CONFIG_R2_BUCKET_FALLBACK, fallbackKey, etag)
 }
 
 async function fetchMultiDimGrapherConfig(
@@ -146,12 +170,10 @@ async function fetchMultiDimGrapherConfig(
     env: Env
 ): Promise<FetchMultiDimGrapherConfigResult> {
     const view = searchParamsToMultiDimView(multiDimConfig, searchParams)
-    const shouldCache = !searchParams.has("nocache")
     const response = await fetchUnparsedGrapherConfig(
         { type: "uuid", id: view.fullConfigId },
         env,
-        undefined,
-        shouldCache
+        undefined
     )
     if (response.status !== 200) {
         return {
@@ -161,7 +183,7 @@ async function fetchMultiDimGrapherConfig(
         }
     }
     return {
-        grapherConfig: (await response.json()) as GrapherInterface,
+        grapherConfig: await response.json(),
         status: response.status,
         etag: response.headers.get("etag") ?? undefined,
     }
@@ -178,12 +200,10 @@ export async function fetchGrapherConfig({
     etag?: string
     searchParams?: URLSearchParams
 }): Promise<FetchGrapherConfigResult> {
-    const shouldCache = !searchParams?.has("nocache")
     const fetchResponse = await fetchUnparsedGrapherConfig(
         identifier,
         env,
-        etag,
-        shouldCache
+        etag
     )
 
     if (fetchResponse.status === 404) {
@@ -334,7 +354,8 @@ export async function initGrapher(
 }
 
 /**
- * Update og:url, og:image, and twitter:image meta tags to include the search parameters.
+ * Update og:url, og:image, twitter:image meta tags, and JSON-LD image URL
+ * to include the search parameters.
  */
 export function rewriteMetaTags(
     url: URL,
@@ -347,6 +368,10 @@ export function rewriteMetaTags(
     let origin = ""
 
     const thumbnailUrl = `${url.pathname}.png${url.search}`
+    const downloadCtxBase = getDownloadContextBase(url)
+
+    // Buffer for collecting JSON-LD script text across chunks
+    let jsonLdText = ""
 
     const rewriter = new HTMLRewriter()
         .on("picture[data-owid-populate-url-params] source", {
@@ -388,8 +413,157 @@ export function rewriteMetaTags(
                 element.setAttribute("content", origin + twitterThumbnailUrl)
             },
         })
+        .on("[data-owid-download-url-target]", {
+            element: (element) => {
+                const target = element.getAttribute(
+                    "data-owid-download-url-target"
+                )
+                if (!target) return
+
+                const rewrittenUrl = getRewrittenDownloadUrl(
+                    target as DownloadRewriteTarget,
+                    downloadCtxBase
+                )
+                if (!rewrittenUrl) return
+
+                const tagName = element.tagName.toLowerCase()
+                if (tagName === "a") {
+                    element.setAttribute("href", rewrittenUrl)
+                } else if (tagName === "code") {
+                    element.setInnerContent(rewrittenUrl)
+                }
+            },
+        })
+        .on('script[type="application/ld+json"]', {
+            element: (element) => {
+                jsonLdText = ""
+                element.onEndTag((endTag) => {
+                    if (!jsonLdText) return
+                    endTag.before(rewriteJsonLdText(jsonLdText, url), {
+                        html: true,
+                    })
+                })
+            },
+            text: (text) => {
+                jsonLdText += text.text
+                text.remove()
+            },
+        })
 
     return rewriter.transform(page)
+}
+
+export function getDownloadContextBase(url: URL): DataDownloadContextBase {
+    const searchParams = new URLSearchParams(url.searchParams)
+    const externalSearchParams = new URLSearchParams()
+    const grapherQueryParamKeys = new Set<string>(GRAPHER_QUERY_PARAM_KEYS)
+
+    for (const [key, value] of url.searchParams.entries()) {
+        if (!grapherQueryParamKeys.has(key)) {
+            externalSearchParams.set(key, value)
+        }
+    }
+
+    return {
+        slug: url.pathname.split("/").at(-1) ?? "",
+        searchParams,
+        externalSearchParams,
+        baseUrl: `${url.origin}${url.pathname}`,
+    }
+}
+
+function getRewrittenDownloadUrl(
+    target: DownloadRewriteTarget,
+    downloadCtxBase: DataDownloadContextBase
+): string | undefined {
+    const csvUrl = getDownloadUrl("csv", {
+        ...downloadCtxBase,
+        csvDownloadType: CsvDownloadType.Full,
+        shortColNames: false,
+    })
+    const metadataUrl = getDownloadUrl("metadata.json", {
+        ...downloadCtxBase,
+        csvDownloadType: CsvDownloadType.Full,
+        shortColNames: false,
+    })
+    const codeExamples = makeDownloadCodeExamples(csvUrl, metadataUrl)
+
+    switch (target) {
+        case "download-full-data":
+            return getDownloadUrl("zip", {
+                ...downloadCtxBase,
+                csvDownloadType: CsvDownloadType.Full,
+                shortColNames: false,
+            })
+        case "download-filtered-data":
+            return getDownloadUrl("zip", {
+                ...downloadCtxBase,
+                csvDownloadType: CsvDownloadType.CurrentSelection,
+                shortColNames: false,
+            })
+        case "api-csv":
+            return csvUrl
+        case "api-metadata":
+            return metadataUrl
+        case "api-example-excel":
+            return codeExamples["Excel / Google Sheets"]
+        case "api-example-python":
+            return codeExamples["Python with Pandas"]
+        case "api-example-r":
+            return codeExamples["R"]
+        case "api-example-stata":
+            return codeExamples["Stata"]
+        default:
+            return undefined
+    }
+}
+
+/**
+ * Rewrites inline JSON-LD for grapher pages so embedded asset URLs inherit the
+ * current request's query params, then escapes the serialized JSON for safe use
+ * inside an inline `<script>` tag.
+ *
+ * If the parsed JSON-LD contains `image.contentUrl`, each search param from
+ * `url` is copied onto that image URL. If parsing fails, the original text is
+ * returned unchanged after logging the error.
+ *
+ * @param jsonLdText - Raw JSON-LD text.
+ * @param url - The current request URL whose search params should be preserved.
+ * @returns JSON-LD text safe to inline in HTML.
+ *
+ * @example
+ * const rewritten = rewriteJsonLdText(
+ *     JSON.stringify({
+ *         image: {
+ *             contentUrl: "https://ourworldindata.org/grapher/example.png?tab=chart",
+ *         },
+ *     }),
+ *     new URL("https://ourworldindata.org/grapher/example?country=CZE~OWID_EUR")
+ * )
+ *
+ * // `country` is copied onto `image.contentUrl` and the output is escaped so it
+ * // can be safely embedded in an inline script tag.
+ */
+export function rewriteJsonLdText(jsonLdText: string, url: URL): string {
+    try {
+        const data = JSON.parse(jsonLdText) as {
+            image?: { contentUrl?: string }
+        }
+
+        if (data.image?.contentUrl) {
+            const imageUrl = new URL(data.image.contentUrl)
+            url.searchParams.forEach((value, key) => {
+                imageUrl.searchParams.set(key, value)
+            })
+            data.image.contentUrl = imageUrl.toString()
+        }
+
+        return escapeJSONStringForInlineScript(JSON.stringify(data))
+    } catch (e) {
+        console.error("Error rewriting JSON-LD", e)
+        Sentry.captureException(e)
+        return jsonLdText
+    }
 }
 
 /**

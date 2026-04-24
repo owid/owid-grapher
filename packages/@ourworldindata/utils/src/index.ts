@@ -59,9 +59,7 @@ export {
     rollingMap,
     keyMap,
     intersectionOfSets,
-    differenceOfSets,
     areSetsEqual,
-    isSubsetOf,
     intersection,
     sortByUndefinedLast,
     mapNullToUndefined,
@@ -79,8 +77,6 @@ export {
     toRectangularMatrix,
     checkIsStringIndexable,
     checkIsTouchEvent,
-    triggerDownloadFromBlob,
-    triggerDownloadFromUrl,
     removeAllWhitespace,
     moveArrayItemToIndex,
     getIndexableKeys,
@@ -112,6 +108,7 @@ export {
     checkIsGdocPostExcludingFragments,
     checkIsDataInsight,
     checkIsAuthor,
+    checkIsChronologicalFeedPost,
     cartesian,
     removeTrailingParenthetical,
     commafyNumber,
@@ -124,7 +121,6 @@ export {
     getParentVariableIdFromChartConfig,
     isArrayDifferentFromReference,
     readFromAssetMap,
-    downloadImage,
     getUniqueNamesFromTagHierarchies,
     getUserNavigatorLanguages,
     getUserNavigatorLanguagesNonEnglish,
@@ -166,6 +162,17 @@ export {
 export { getAllVariableIds } from "./multiDim.js"
 
 export { isPresent } from "./isPresent.js"
+
+export {
+    downloadImage,
+    makeDownloadCodeExamples,
+    makeFilteredDownloadDescription,
+    makeFullDownloadDescription,
+    makeNumberOfRowsSnippet,
+    SERVER_SIDE_DOWNLOAD_HELP_TEXT,
+    triggerDownloadFromBlob,
+    triggerDownloadFromUrl,
+} from "./download.js"
 
 import dayjs from "./dayjs.js"
 export { dayjs }
@@ -256,7 +263,7 @@ export {
     deleteRuntimeAndUnchangedProps,
 } from "./persistable/Persistable.js"
 
-export { PointVector } from "./PointVector.js"
+export { PointVector, type Point } from "./PointVector.js"
 
 export { OwidVariableDisplayConfig } from "./OwidVariable.js"
 
@@ -278,7 +285,11 @@ export {
     removeDiacritics,
 } from "./string.js"
 
-export { serializeJSONForHTML, deserializeJSONFromHTML } from "./serializers.js"
+export {
+    serializeJSONForHTML,
+    deserializeJSONFromHTML,
+    escapeJSONStringForInlineScript,
+} from "./serializers.js"
 
 export { PromiseCache } from "./PromiseCache.js"
 

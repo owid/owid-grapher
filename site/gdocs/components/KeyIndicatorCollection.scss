@@ -141,7 +141,7 @@
     .key-indicator-header__title {
         @include body-2-semibold;
         color: $blue-90;
-        margin-right: 8px;
+        margin-right: 4px;
 
         @include sm-only-or-no-js {
             line-height: 1.2;

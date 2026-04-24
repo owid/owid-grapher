@@ -15,7 +15,7 @@ async function seedApiKeyForUser(userId: number) {
     const [id] = await env
         .testKnex(AdminApiKeysTableName)
         .insert({ userId, keyHash })
-    return { apiKey, id: id as number }
+    return { apiKey, id: id }
 }
 
 describe("Admin API key auth", { timeout: 10000 }, () => {
@@ -23,7 +23,7 @@ describe("Admin API key auth", { timeout: 10000 }, () => {
         const user = await env.testKnex(UsersTableName).first<DbPlainUser>()
         expect(user).toBeTruthy()
 
-        const { apiKey, id } = await seedApiKeyForUser(user!.id)
+        const { apiKey, id } = await seedApiKeyForUser(user.id)
 
         const response = await fetch(`${env.baseUrl}/users.json`, {
             headers: {
@@ -45,7 +45,7 @@ describe("Admin API key auth", { timeout: 10000 }, () => {
         const user = await env.testKnex(UsersTableName).first<DbPlainUser>()
         expect(user).toBeTruthy()
 
-        const { id } = await seedApiKeyForUser(user!.id)
+        const { id } = await seedApiKeyForUser(user.id)
 
         const response = await fetch(`${env.baseUrl}/users.json`)
         expect(response.status).toBe(401)
@@ -77,10 +77,10 @@ describe("Admin API key auth", { timeout: 10000 }, () => {
 
         await env
             .testKnex(UsersTableName)
-            .where({ id: superuser!.id })
+            .where({ id: superuser.id })
             .update({ lastSeen: null })
 
-        const { apiKey } = await seedApiKeyForUser(superuser!.id)
+        const { apiKey } = await seedApiKeyForUser(superuser.id)
 
         const response = await fetch(`${env.baseUrl}/users.json`, {
             headers: {
@@ -93,12 +93,12 @@ describe("Admin API key auth", { timeout: 10000 }, () => {
 
         const updatedActAsUser = await env
             .testKnex(UsersTableName)
-            .where({ id: actAsUserId as number })
+            .where({ id: actAsUserId })
             .first<DbPlainUser>()
 
         const updatedSuperuser = await env
             .testKnex(UsersTableName)
-            .where({ id: superuser!.id })
+            .where({ id: superuser.id })
             .first<DbPlainUser>()
 
         expect(updatedActAsUser?.lastSeen).toBeTruthy()
@@ -126,7 +126,7 @@ describe("Admin API key auth", { timeout: 10000 }, () => {
             lastSeen: null,
         })
 
-        const { apiKey, id } = await seedApiKeyForUser(primaryUserId as number)
+        const { apiKey, id } = await seedApiKeyForUser(primaryUserId)
 
         const response = await fetch(`${env.baseUrl}/users.json`, {
             headers: {
@@ -144,16 +144,70 @@ describe("Admin API key auth", { timeout: 10000 }, () => {
 
         const updatedPrimaryUser = await env
             .testKnex(UsersTableName)
-            .where({ id: primaryUserId as number })
+            .where({ id: primaryUserId })
             .first<DbPlainUser>()
 
         const updatedActAsUser = await env
             .testKnex(UsersTableName)
-            .where({ id: actAsUserId as number })
+            .where({ id: actAsUserId })
             .first<DbPlainUser>()
 
         expect(apiKeyRow?.lastUsedAt).toBeNull()
         expect(updatedPrimaryUser?.lastSeen).toBeNull()
+        expect(updatedActAsUser?.lastSeen).toBeNull()
+    })
+
+    it("rejects x-act-as-user for inactive superusers", async () => {
+        const [inactiveSuperuserId] = await env
+            .testKnex(UsersTableName)
+            .insert({
+                email: "inactive-superuser@example.com",
+                fullName: "Inactive Superuser",
+                isActive: 0,
+                isSuperuser: 1,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+                lastSeen: null,
+            })
+
+        const [actAsUserId] = await env.testKnex(UsersTableName).insert({
+            email: "active-target@example.com",
+            fullName: "Active Target",
+            isActive: 1,
+            isSuperuser: 0,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            lastSeen: null,
+        })
+
+        const { apiKey, id } = await seedApiKeyForUser(inactiveSuperuserId)
+
+        const response = await fetch(`${env.baseUrl}/users.json`, {
+            headers: {
+                Authorization: `Bearer ${apiKey}`,
+                "x-act-as-user": String(actAsUserId),
+            },
+        })
+
+        expect(response.status).toBe(401)
+
+        const apiKeyRow = await env
+            .testKnex(AdminApiKeysTableName)
+            .where({ id })
+            .first()
+
+        const updatedInactiveSuperuser = await env
+            .testKnex(UsersTableName)
+            .where({ id: inactiveSuperuserId })
+            .first<DbPlainUser>()
+
+        const updatedActAsUser = await env
+            .testKnex(UsersTableName)
+            .where({ id: actAsUserId })
+            .first<DbPlainUser>()
+
+        expect(apiKeyRow?.lastUsedAt).toBeNull()
+        expect(updatedInactiveSuperuser?.lastSeen).toBeNull()
         expect(updatedActAsUser?.lastSeen).toBeNull()
     })
 })

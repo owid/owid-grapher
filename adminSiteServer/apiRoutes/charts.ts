@@ -1,3 +1,4 @@
+import * as R from "remeda"
 import { migrateGrapherConfigToLatestVersionAndFailOnError } from "@ourworldindata/grapher"
 import {
     GrapherInterface,
@@ -13,6 +14,8 @@ import {
     DbChartTagJoin,
     ContentGraphLinkType,
     StaticVizTableName,
+    DbPlainAnalyticsGrapherView,
+    AnalyticsGrapherViewWithRank,
 } from "@ourworldindata/types"
 import {
     diffGrapherConfigs,
@@ -27,7 +30,6 @@ import {
     StaticVizReference,
 } from "../../adminSiteClient/AbstractChartEditor.js"
 import { NarrativeChartMinimalInformation } from "../../adminSiteClient/ChartEditor.js"
-import { denormalizeLatestCountryData } from "../../baker/countryIndexes.js"
 import {
     getChartConfigById,
     getForceDatapageByChartId,
@@ -387,7 +389,6 @@ export const saveGrapher = async (
         existingConfig,
         forceDatapage,
         shouldInherit,
-        referencedVariablesMightChange = true,
     }: {
         user: DbPlainUser
         newConfig: GrapherInterface
@@ -396,9 +397,6 @@ export const saveGrapher = async (
         // if undefined, keep inheritance as is.
         // if true or false, enable or disable inheritance
         shouldInherit?: boolean
-        // if the variables a chart uses can change then we need
-        // to update the latest country data which takes quite a long time (hundreds of ms)
-        referencedVariablesMightChange?: boolean
     }
 ) => {
     // Try to migrate the new config to the latest version
@@ -483,7 +481,7 @@ export const saveGrapher = async (
 
     // Record this change in version history
     const chartRevisionLog = {
-        chartId: chartId as number,
+        chartId: chartId,
         userId: user.id,
         config: serializeChartConfig(patchConfig),
         createdAt: new Date(),
@@ -515,14 +513,6 @@ export const saveGrapher = async (
             [chartId, dim.variableId, dim.property, i]
         )
     }
-
-    // So we can generate country profiles including this chart data
-    if (fullConfig.isPublished && referencedVariablesMightChange)
-        // TODO: remove this ad hoc knex transaction context when we switch the function to knex
-        await denormalizeLatestCountryData(
-            knex,
-            newDimensions.map((d) => d.variableId)
-        )
 
     if (fullConfig.isPublished) {
         await retrieveChartConfigFromDbAndSaveToR2(knex, chartConfigId, {
@@ -726,10 +716,7 @@ export async function getChartLogsJson(
     trx: db.KnexReadonlyTransaction
 ) {
     return {
-        logs: await getLogsByChartId(
-            trx,
-            parseInt(req.params.chartId as string)
-        ),
+        logs: await getLogsByChartId(trx, parseInt(req.params.chartId)),
     }
 }
 
@@ -740,7 +727,7 @@ export async function getChartReferencesJson(
 ) {
     const references = {
         references: await getReferencesByChartId(
-            parseInt(req.params.chartId as string),
+            parseInt(req.params.chartId),
             trx
         ),
     }
@@ -755,7 +742,7 @@ export async function getChartRedirectsJson(
     return {
         redirects: await getRedirectsByChartId(
             trx,
-            parseInt(req.params.chartId as string)
+            parseInt(req.params.chartId)
         ),
     }
 }
@@ -765,26 +752,50 @@ export async function getChartViewsJson(
     res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
-    const slug = await getChartSlugById(
-        trx,
-        parseInt(req.params.chartId as string)
-    )
+    const slug = await getChartSlugById(trx, parseInt(req.params.chartId))
     if (!slug) return {}
 
-    const viewsBySlug = await db.knexRawFirst(
+    const viewsBySlug = await db.knexRawFirst<
+        DbPlainAnalyticsGrapherView & {
+            total_charts: number | null
+            rank_7d: number | null
+            rank_14d: number | null
+            rank_365d: number | null
+        }
+    >(
         trx,
         `-- sql
-        SELECT *
-        FROM
-            analytics_grapher_views
-        WHERE
-            grapher_slug = ?`,
+        SELECT
+            v.*,
+            ranked.total_charts,
+            ranked.rank_7d,
+            ranked.rank_14d,
+            ranked.rank_365d
+        FROM analytics_grapher_views v
+        LEFT JOIN (
+            SELECT
+                v.grapher_slug,
+                COUNT(*) OVER () AS total_charts,
+                RANK() OVER (ORDER BY v.views_7d DESC) AS rank_7d,
+                RANK() OVER (ORDER BY v.views_14d DESC) AS rank_14d,
+                RANK() OVER (ORDER BY v.views_365d DESC) AS rank_365d
+            FROM analytics_grapher_views v
+            JOIN chart_configs cc
+                ON cc.slug = v.grapher_slug
+                AND cc.full ->> "$.isPublished" = "true"
+            JOIN charts c ON c.configId = cc.id
+        ) ranked ON ranked.grapher_slug = v.grapher_slug
+        WHERE v.grapher_slug = ?`,
         [slug]
     )
 
-    return {
-        views: viewsBySlug ?? undefined,
-    }
+    if (!viewsBySlug) return {}
+
+    const views: AnalyticsGrapherViewWithRank = R.omitBy(
+        viewsBySlug,
+        (value): value is null => value === null
+    )
+    return { views }
 }
 
 export async function getChartTagsJson(

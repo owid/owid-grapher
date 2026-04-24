@@ -1,21 +1,17 @@
 {
-  "name": "@ourworldindata/types",
-  "version": "0.0.0",
-  "description": "",
-  "type": "module",
-  "main": "src/index.ts",
-  "types": "src/index.ts",
-  "directories": {
-    "lib": "src"
-  },
-  "keywords": [],
-  "author": "",
-  "devDependencies": {
-    "eslint": "^10.0.1",
-    "eslint-plugin-react-hooks": "^5.2.0"
-  },
-  "license": "MIT",
-  "dependencies": {
-    "zod": "^4.1.11"
-  }
+    "name": "@ourworldindata/types",
+    "version": "0.0.0",
+    "description": "",
+    "type": "module",
+    "main": "src/index.ts",
+    "types": "src/index.ts",
+    "directories": {
+        "lib": "src"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "MIT",
+    "dependencies": {
+        "zod": "^4.1.11"
+    }
 }

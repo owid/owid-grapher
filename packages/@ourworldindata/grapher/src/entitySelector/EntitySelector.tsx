@@ -4,6 +4,7 @@ import { observer } from "mobx-react"
 import {
     computed,
     action,
+    comparer,
     reaction,
     when,
     IReactionDisposer,
@@ -113,7 +114,8 @@ export interface EntitySelectorManager {
     selection: SelectionArray
     entityType?: string
     entityTypePlural?: string
-    activeColumnSlugs?: string[]
+    // TODO: Use the column slugs currently in use, if possible
+    inputColumnSlugs?: ColumnSlug[]
     isEntitySelectorModalOrDrawerOpen?: boolean
     canChangeEntity?: boolean
     canHighlightEntities?: boolean
@@ -204,12 +206,12 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
     searchFieldRef = React.createRef<HTMLInputElement>()
     contentRef = React.createRef<HTMLDivElement>()
 
-    private sortConfigByName: SortConfig = {
+    private readonly sortConfigByName: SortConfig = {
         slug: this.table.entityNameSlug,
         order: SortOrder.asc,
     }
 
-    private disposers: IReactionDisposer[] = []
+    private readonly disposers: IReactionDisposer[] = []
 
     constructor(props: EntitySelectorProps) {
         super(props)
@@ -246,8 +248,12 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
         // we need to change the sort config accordingly
         this.disposers.push(
             reaction(
-                () => this.sortOptions,
-                () => this.updateSortConfigIfOptionHasBecomeUnavailable()
+                () => ({
+                    slugs: this.sortOptions.map((option) => option.slug),
+                    isReady: this.manager.isReady,
+                }),
+                () => this.updateSortConfigIfOptionHasBecomeUnavailable(),
+                { equals: comparer.structural }
             )
         )
     }
@@ -304,12 +310,12 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
         // We don't want to update the sort config when `sortOptions` are not ready,
         // because the new chart dimensions are currently loading
         if (!this.manager.isReady) return
-        if (!this.manager.activeColumnSlugs?.length) return
+        if (!this.manager.inputColumnSlugs?.length) return
 
         // Check whether the current sort option is still available in the newly-updated
         // sortOptions
         if (
-            !this.sortOptions.find(
+            !this.sortOptions.some(
                 (option) => option.slug === this.sortConfig.slug
             )
         ) {
@@ -687,12 +693,12 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
 
     @computed private get numericalChartColumns(): CoreColumn[] {
         const {
-            activeColumnSlugs = [],
+            inputColumnSlugs = [],
             mapColumnSlug,
             isOnMapTab,
         } = this.manager
 
-        const activeSlugs = isOnMapTab ? [mapColumnSlug] : activeColumnSlugs
+        const activeSlugs = isOnMapTab ? [mapColumnSlug] : inputColumnSlugs
 
         return activeSlugs
             .map((slug) => this.table.get(slug))
@@ -761,7 +767,7 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
         if (!isProjectionByTimeAndEntityName) return null
 
         const values = isProjectionByTimeAndEntityName.get(time)?.values() ?? []
-        return Array.from(values)?.some((isProjection) => !isProjection)
+        return values.some((isProjection) => !isProjection)
     }
 
     private makeSortColumnLabelForCombinedColumn(

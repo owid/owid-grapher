@@ -24,16 +24,11 @@ import {
     renderGdoc,
 } from "../baker/siteRenderers.js"
 import {
-    BAKED_BASE_URL,
     BASE_DIR,
     LEGACY_WORDPRESS_IMAGE_URL,
 } from "../settings/serverSettings.js"
 
 import { expectInt, renderToHtmlPage } from "../serverUtils/serverUtil.js"
-import {
-    countriesIndexPage,
-    countryIndexPage,
-} from "../baker/countryIndexes.js"
 import { makeSitemap } from "../baker/sitemap.js"
 import { getChartConfigBySlug } from "../db/model/Chart.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
@@ -229,7 +224,7 @@ getPlainRouteWithROTransaction(
 )
 
 mockSiteRouter.get("/collection/custom", async (_, res) => {
-    return res.send(await renderDynamicCollectionPage())
+    return res.send(renderDynamicCollectionPage())
 })
 
 getPlainRouteWithROTransaction(
@@ -283,7 +278,6 @@ getPlainRouteWithROTransaction(
                 await renderPreviewDataPageOrGrapherPage(
                     chartRow.config,
                     chartRow.id,
-                    chartRow.forceDatapage,
                     trx
                 )
             res.send(previewDataPageOrGrapherPage)
@@ -340,7 +334,7 @@ getPlainRouteWithROTransaction(
             await db.getPublishedDataInsightCount(trx, topicTag?.slug)
         )
 
-        if (topicTag && topicTag.slug !== undefined) {
+        if (topicTag?.slug !== undefined) {
             // if topic slug is not a valid topic, render all data insights
             const validTopicSlugs = await db
                 .getAllTopicTags(trx)
@@ -523,22 +517,7 @@ mockSiteRouter.use(
 
 mockSiteRouter.use("/", express.static(path.join(BASE_DIR, "public")))
 
-mockSiteRouter.get("/countries", async (req, res) =>
-    res.send(await countriesIndexPage(BAKED_BASE_URL))
-)
-
-getPlainRouteWithROTransaction(
-    mockSiteRouter,
-    "/country/:countrySlug",
-    async (req, res, trx) =>
-        res.send(
-            await countryIndexPage(trx, req.params.countrySlug, BAKED_BASE_URL)
-        )
-)
-
-mockSiteRouter.get("/feedback", async (req, res) =>
-    res.send(await feedbackPage())
-)
+mockSiteRouter.get("/feedback", async (req, res) => res.send(feedbackPage()))
 
 mockSiteRouter.get("/multiEmbedderTest", async (req, res) =>
     res.send(renderToHtmlPage(MultiEmbedderTestPage()))

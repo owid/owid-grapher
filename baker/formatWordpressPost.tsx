@@ -221,7 +221,7 @@ export const formatWordpressPost = async (
 
         let slug = $heading.attr("id") ?? urlSlug(headingText)
 
-        if (existingSlugs.indexOf(slug) !== -1 && parentSlug) {
+        if (existingSlugs.includes(slug) && parentSlug) {
             slug = `${parentSlug}-${slug}`
         }
 

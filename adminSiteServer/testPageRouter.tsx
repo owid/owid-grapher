@@ -47,16 +47,35 @@ interface ChartItem {
     slug: string
 }
 
+type QueryStringParam = string | string[] | undefined
+
 function checkHasComparisonView(comparisonUrl: string): boolean {
     if (!comparisonUrl) return false
     if (IS_LIVE && comparisonUrl === DEFAULT_COMPARISON_URL) return false
     return true
 }
 
+function getSafeComparisonUrl(comparisonUrl: QueryStringParam): string {
+    if (comparisonUrl === undefined) return DEFAULT_COMPARISON_URL
+    if (typeof comparisonUrl !== "string") return ""
+    if (!comparisonUrl.trim()) return ""
+
+    try {
+        const url = new URL(comparisonUrl)
+        if (url.protocol === "http:" || url.protocol === "https:") {
+            return Url.fromURL(comparisonUrl).originAndPath ?? ""
+        }
+    } catch {
+        return ""
+    }
+
+    return ""
+}
+
 function getViewPropsFromQueryParams(
     params: Omit<EmbedTestPageQueryParams, "originalUrl">
 ): Pick<EmbedTestPageProps, "comparisonUrl" | "hasComparisonView"> {
-    const comparisonUrl = params.comparisonUrl ?? DEFAULT_COMPARISON_URL
+    const comparisonUrl = getSafeComparisonUrl(params.comparisonUrl)
     const hasComparisonView = checkHasComparisonView(comparisonUrl)
 
     return { comparisonUrl, hasComparisonView }
@@ -90,7 +109,7 @@ function parseIntArrayOrUndefined(param: string | undefined): number[] {
 
 interface EmbedTestPageQueryParams {
     readonly originalUrl: string
-    readonly comparisonUrl?: string
+    readonly comparisonUrl?: QueryStringParam
     readonly perPage?: string
     readonly page?: string
     readonly random?: string
@@ -113,7 +132,7 @@ interface EmbedTestPageQueryParams {
 
 interface ExplorerTestPageQueryParams {
     readonly originalUrl?: string
-    readonly comparisonUrl?: string
+    readonly comparisonUrl?: QueryStringParam
     readonly type?: "grapher-ids" | "csv-files" | "indicators"
 }
 
@@ -292,7 +311,7 @@ async function propsFromQueryParams(
     }
 
     const countRes = (await countQuery) as { count: number }[]
-    const count = countRes[0]?.count as number
+    const count = countRes[0]?.count
     const numPages = Math.ceil(count / perPage)
 
     const originalUrl = Url.fromURL(params.originalUrl)
@@ -483,7 +502,7 @@ getPlainRouteWithROTransaction(
                 ...chartRaw,
                 config: parseChartConfig(chartRaw.config),
             }
-            const viewProps = await getViewPropsFromQueryParams(req.query)
+            const viewProps = getViewPropsFromQueryParams(req.query)
             const charts = [
                 {
                     id: chartEnriched.id,
@@ -822,4 +841,4 @@ function ExplorerTestPage(props: ExplorerTestPageProps) {
     )
 }
 
-export { testPageRouter }
+export { getSafeComparisonUrl, testPageRouter }

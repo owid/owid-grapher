@@ -1,7 +1,7 @@
 import * as _ from "lodash-es"
 import { GrapherAnalytics, splitPathForGA4 } from "@ourworldindata/grapher"
-import { EventCategory } from "@ourworldindata/types"
 import {
+    EventCategory,
     type SearchChartHit,
     type SearchState,
     type FlatArticleHit,
@@ -22,14 +22,6 @@ export class SiteAnalytics extends GrapherAnalytics {
             event: EventCategory.SiteError,
             eventAction: "not_found",
             eventContext: url,
-        })
-    }
-
-    logCountryPageSearchQuery(query: string) {
-        this.logToGA({
-            event: EventCategory.Filter,
-            eventAction: "country_page_search",
-            eventContext: query,
         })
     }
 

@@ -1,4 +1,4 @@
-import * as _ from "lodash-es"
+import * as R from "remeda"
 import cx from "classnames"
 
 export type Container =
@@ -14,6 +14,7 @@ export type Container =
     | "key-insight"
     | "about-page"
     | "author-header"
+    | "data-insight"
 
 // Each container must have a default layout, usually just full-width
 type Layouts = { default: string; [key: string]: string }
@@ -26,6 +27,9 @@ const layouts: { [key in Container]: Layouts} = {
         ["all-charts"]: "col-start-2 span-cols-12",
         ["aside--left"]: "col-start-2 span-cols-3 span-md-cols-10 col-md-start-3 span-sm-cols-12 col-sm-start-2",
         ["aside--right"]: "col-start-11 span-cols-3 span-md-cols-10 col-md-start-3 span-sm-cols-12 col-sm-start-2",
+        ["bespoke-component--narrow"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
+        ["bespoke-component--wide"]: "col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
+        ["bespoke-component--widest"]: "span-cols-12 col-start-2",
         ["chart-story"]: "col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["chart"]: "col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["chart--narrow"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
@@ -70,6 +74,8 @@ const layouts: { [key in Container]: Layouts} = {
         ["pull-quote--left-center"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["pull-quote--right-center"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["pull-quote--right"]: "span-cols-14 grid grid-cols-12-full-width",
+        ["chart-rows"]: "col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
+        ["pull-chart"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["resource-panel"]: "col-start-11 span-cols-3 span-rows-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["recirc--left"]: "col-start-2 span-cols-3 span-rows-3 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["recirc--center"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
@@ -150,6 +156,10 @@ const layouts: { [key in Container]: Layouts} = {
     ["summary"]: {
         ["default"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
     },
+    ["data-insight"]: {
+        // no grid containers or grid sizing for data insights - they're always just a single column
+        ["default"]: "",
+    },
     ["key-insight"]: {
         ["default"]: "col-start-1 span-cols-5 col-md-start-1 span-md-cols-12",
         ["prominent-link"]: "grid grid-cols-6 span-cols-6 span-md-cols-12 grid-md-cols-12",
@@ -160,11 +170,9 @@ export function getLayout(
     blockType: string = "default",
     containerType: Container = "default"
 ): string {
-    const layout = _.get(
-        layouts,
-        [containerType, blockType],
+    const layout =
+        R.prop(layouts, containerType, blockType) ??
         // fallback to the default for the container
-        _.get(layouts, [containerType, "default"])
-    )
+        R.prop(layouts, containerType, "default")
     return cx(`article-block__${blockType}`, layout)
 }

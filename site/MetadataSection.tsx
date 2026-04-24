@@ -25,6 +25,9 @@ import {
     getPhraseForArchivalDate,
 } from "@ourworldindata/utils"
 import { ArticleBlocks } from "./gdocs/components/ArticleBlocks.js"
+import DownloadSection, {
+    type DownloadSectionProps,
+} from "./DownloadSection.js"
 
 export default function MetadataSection({
     attributionShort,
@@ -39,6 +42,7 @@ export default function MetadataSection({
     title,
     titleVariant,
     archiveContext,
+    downloadProps,
 }: {
     attributionShort?: string
     attributions: string[]
@@ -52,6 +56,7 @@ export default function MetadataSection({
     title: IndicatorTitleWithFragments
     titleVariant?: string
     archiveContext?: ArchiveContext
+    downloadProps?: DownloadSectionProps
 }) {
     const sourcesForDisplay = prepareSourcesForDisplay({ origins, source })
     const citationUrl = archiveContext?.archiveUrl ?? canonicalUrl
@@ -99,7 +104,7 @@ export default function MetadataSection({
                 {!!faqEntries?.faqs.length && (
                     <div className="section-wrapper section-wrapper__faqs grid">
                         <h2
-                            className="faqs__title span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12"
+                            className="metadata-section__title span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12"
                             id="faqs"
                         >
                             Frequently Asked Questions
@@ -120,7 +125,7 @@ export default function MetadataSection({
                         Sources and processing
                     </h2>
                     <div className="data-sources grid span-cols-12">
-                        <h3 className="data-sources__heading span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
+                        <h3 className="metadata-section__heading span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
                             This data is based on the following sources
                         </h3>
                         <div className="col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
@@ -128,7 +133,7 @@ export default function MetadataSection({
                         </div>
                     </div>
                     <div className="data-processing grid span-cols-12">
-                        <h3 className="data-processing__heading span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
+                        <h3 className="metadata-section__heading span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
                             How we process data at Our World in Data
                         </h3>
                         <div className="col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
@@ -140,14 +145,14 @@ export default function MetadataSection({
                 </div>
                 <div className="section-wrapper grid">
                     <h2
-                        className="reuse__title span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12"
+                        className="metadata-section__title span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12"
                         id="reuse-this-work"
                     >
                         Reuse this work
                     </h2>
                     <div className="col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
-                        <ul className="reuse__content">
-                            <li className="reuse__list-item">
+                        <ul className="metadata-list">
+                            <li>
                                 All data produced by third-party providers and
                                 made available by Our World in Data are subject
                                 to the license terms from the original
@@ -158,14 +163,11 @@ export default function MetadataSection({
                                 to continue doing their work, enhancing,
                                 maintaining and updating valuable data.
                             </li>
-                            <li className="reuse__list-item">
+                            <li>
                                 All data, visualizations, and code produced by
                                 Our World in Data are completely open access
                                 under the{" "}
-                                <a
-                                    href="https://creativecommons.org/licenses/by/4.0/"
-                                    className="reuse__link"
-                                >
+                                <a href="https://creativecommons.org/licenses/by/4.0/">
                                     Creative Commons BY license
                                 </a>
                                 . You have the permission to use, distribute,
@@ -177,7 +179,7 @@ export default function MetadataSection({
 
                     {(citationShort || citationLong || citationDatapage) && (
                         <div className="citations grid span-cols-12">
-                            <h3 className="citations__heading span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
+                            <h3 className="metadata-section__heading span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
                                 Citations
                             </h3>
                             <div className="col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
@@ -201,7 +203,7 @@ export default function MetadataSection({
                                     </div>
                                 )}
                                 <div className="citations-section">
-                                    <h4 className="citation__how-to-header citation__how-to-header--data">
+                                    <h4 className="citation__how-to-header">
                                         How to cite this data
                                     </h4>
                                     {(citationShort || citationLong) && (
@@ -213,6 +215,12 @@ export default function MetadataSection({
                                 </div>
                             </div>
                         </div>
+                    )}
+                    {downloadProps && (
+                        <DownloadSection
+                            {...downloadProps}
+                            archivedChartInfo={archiveContext}
+                        />
                     )}
                 </div>
             </div>

@@ -1,4 +1,10 @@
 #!/bin/bash
+
+FULL=false
+if [[ "$1" == "--full" ]]; then
+    FULL=true
+fi
+
 cat << EOF
                         _
                        | |
@@ -24,11 +30,20 @@ Try these URLs to see if your environment is working:
 
     http://localhost:${ADMIN_SERVER_PORT:-3030}/  <-- a basic version of Our World in Data
     http://localhost:${ADMIN_SERVER_PORT:-3030}/grapher/life-expectancy  <-- an example chart
-    http://localhost:${ADMIN_SERVER_PORT:-3030}/admin/  <-- an admin interface, login with
-                                      "admin@example.com" / "admin"
+    http://localhost:${ADMIN_SERVER_PORT:-3030}/admin/  <-- an admin interface
     http://localhost:${ADMIN_SERVER_PORT:-3030}/admin/test  <-- a list of all charts in the db
     http://localhost:${VITE_PORT:-8090}/  <-- the vite dev server
+EOF
+
+if [[ "$FULL" == true ]]; then
+    cat << EOF
+
     http://localhost:${WRANGLER_PORT:-8788}/  <-- the cloudflare functions dev server
+    http://localhost:${BESPOKE_PORT:-8089}/  <-- the bespoke component dev server
+EOF
+fi
+
+cat << EOF
 
 Happy hacking!
 EOF

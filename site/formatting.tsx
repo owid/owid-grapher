@@ -221,6 +221,7 @@ export const splitContentIntoSectionsAndColumns = (
                 el.name === "h6" ||
                 ($el.find("img").length !== 0 &&
                     !$el.hasClass(PROMINENT_LINK_CLASSNAME) &&
+                    // oxlint-disable-next-line unicorn/prefer-array-some
                     !$el.find(
                         ".wp-block-owid-additional-information[data-variation='merge-left']"
                     ))

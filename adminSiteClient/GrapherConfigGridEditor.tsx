@@ -9,6 +9,7 @@ import {
     setWindowUrl,
     excludeNull,
     mergeGrapherConfigs,
+    es6mapValues,
 } from "@ourworldindata/utils"
 import { GrapherConfigPatch } from "../adminShared/AdminSessionTypes.js"
 import {
@@ -687,13 +688,12 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                 )
                 .filter(([, val]) => !_.isNil(val))
             const fields = Object.fromEntries(fieldsArray)
-            const readOnlyColumnValues = [...readOnlyColumns.values()].map(
-                (field) => [field.key, (row as any)[field.key]]
+            const readOnlyColumnValues = es6mapValues(
+                readOnlyColumns,
+                (field) => row[field.key as keyof VariableAnnotationsRow]
             )
-            const readOnlyValuesObject =
-                Object.fromEntries(readOnlyColumnValues)
             return {
-                ...readOnlyValuesObject,
+                ...Object.fromEntries(readOnlyColumnValues),
                 ...defaultValues,
                 ...fields,
             }

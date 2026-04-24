@@ -23,6 +23,7 @@ import {
     byHoverThenFocusState,
     getHoverStateForSeries,
 } from "../chart/ChartUtils"
+import { resolveEmphasis } from "../interaction/Emphasis"
 
 export type AnnotationsMap = Map<PrimitiveType, Set<PrimitiveType>>
 
@@ -162,13 +163,13 @@ export function toRenderLineChartSeries(
     }
 ): RenderLineChartSeries[] {
     let series: RenderLineChartSeries[] = placedSeries.map((series) => {
-        return {
-            ...series,
-            hover: getHoverStateForSeries(series, {
-                isHoverModeActive,
-                hoveredSeriesNames,
-            }),
-        }
+        const hover = getHoverStateForSeries(series, {
+            isHoverModeActive,
+            hoveredSeriesNames,
+        })
+        const emphasis = resolveEmphasis({ hover, focus: series.focus })
+
+        return { ...series, hover, emphasis }
     })
 
     // draw lines on top of markers-only series

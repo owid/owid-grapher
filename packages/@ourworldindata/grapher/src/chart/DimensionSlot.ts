@@ -1,12 +1,10 @@
-// todo: remove
-
 import { GrapherState } from "../core/GrapherState"
 import { computed, makeObservable } from "mobx"
 import { ChartDimension } from "./ChartDimension"
 import { DimensionProperty } from "@ourworldindata/utils"
 
 export class DimensionSlot {
-    private grapherState: GrapherState
+    private readonly grapherState: GrapherState
     property: DimensionProperty
     constructor(grapher: GrapherState, property: DimensionProperty) {
         makeObservable(this)

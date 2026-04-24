@@ -8,7 +8,7 @@ import {
 } from "@ourworldindata/explorer"
 import { renderSvgToPng } from "./grapherRenderer.js"
 import { error, png } from "itty-router"
-import { createZip, File } from "littlezipper"
+import { createZip, UncompressedFile } from "littlezipper"
 import { Bounds, slugify, Url } from "@ourworldindata/utils"
 import {
     getEntityNamesParam,
@@ -66,9 +66,9 @@ async function initGrapherForExplorerView(
 
     if (options.grapherProps?.variant)
         explorer.grapherState.variant = options.grapherProps.variant
-    if (options.grapherProps?.isDisplayedAlongsideComplementaryTable)
-        explorer.grapherState.isDisplayedAlongsideComplementaryTable =
-            options.grapherProps.isDisplayedAlongsideComplementaryTable
+    if (options.grapherProps?.useMinimalLabeling)
+        explorer.grapherState.useMinimalLabeling =
+            options.grapherProps.useMinimalLabeling
     explorer.grapherState.initialOptions = { baseFontSize: options.fontSize }
 
     return {
@@ -226,7 +226,7 @@ export async function fetchZipForExplorerView(
 
         const filename = slugify(grapherState.displayTitle)
 
-        const zipContent: File[] = [
+        const zipContent: UncompressedFile[] = [
             {
                 path: `${filename}.metadata.json`,
                 data: JSON.stringify(metadata, undefined, 2),

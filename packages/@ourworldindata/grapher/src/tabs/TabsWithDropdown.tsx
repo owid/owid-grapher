@@ -31,7 +31,7 @@ export const TabsWithDropdown = <TabKey extends string = string>({
 
     let visibleItems = R.take(items, numVisibleTabs)
     let hiddenItems = items.filter(
-        (item) => !visibleItems.find((v) => v.key === item.key)
+        (item) => !visibleItems.some((v) => v.key === item.key)
     )
 
     // If a hidden item is selected, swap it with the last visible item

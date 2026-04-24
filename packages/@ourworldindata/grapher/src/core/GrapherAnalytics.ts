@@ -36,8 +36,8 @@ export class GrapherAnalytics {
         this.version = version
     }
 
-    private version: string // Ideally the Git hash commit
-    private isDev: boolean
+    private readonly version: string // Ideally the Git hash commit
+    private readonly isDev: boolean
 
     logGrapherView(
         slug: string,

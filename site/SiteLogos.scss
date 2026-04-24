@@ -19,10 +19,10 @@
         align-items: flex-start;
         margin-top: 5px;
         margin-left: 24px;
+        column-gap: 6px;
         @include xlg-up {
             display: flex;
         }
-        @include column-gap(6px);
 
         a {
             color: white;

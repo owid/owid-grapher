@@ -3,7 +3,7 @@ import { observer } from "mobx-react"
 import { observable, computed, runInAction, action, makeObservable } from "mobx"
 import { getParentVariableIdFromChartConfig } from "@ourworldindata/utils"
 import {
-    type DbPlainAnalyticsGrapherView,
+    type AnalyticsGrapherViewWithRank,
     GrapherInterface,
     ChartRedirect,
     MinimalTagWithIsTopic,
@@ -50,7 +50,7 @@ export class ChartEditorPage
     logs: Log[] = []
     references: References | undefined = undefined
     redirects: ChartRedirect[] = []
-    views: DbPlainAnalyticsGrapherView | undefined = undefined
+    views: AnalyticsGrapherViewWithRank | undefined = undefined
     tags: DbChartTagJoin[] | undefined = undefined
     availableTags: MinimalTagWithIsTopic[] | undefined = undefined
     forceDatapage: boolean | undefined = undefined

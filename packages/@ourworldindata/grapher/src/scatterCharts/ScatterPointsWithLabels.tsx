@@ -1,6 +1,6 @@
 import * as _ from "lodash-es"
 import * as R from "remeda"
-import { type BaseType, type Selection, select } from "d3-selection"
+
 import { ScaleLinear } from "d3-scale"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import { SortOrder } from "@ourworldindata/types"
@@ -127,6 +127,10 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
 
     @computed private get hideScatterLabels(): boolean {
         return !!this.props.hideScatterLabels
+    }
+
+    @computed private get hideEntityLabels(): boolean {
+        return !!this.props.hideEntityLabels
     }
 
     private getPointRadius(value: number | undefined): number {
@@ -257,10 +261,14 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
             (l) => labelPriority(l),
             SortOrder.desc
         )
-        if (this.focusedSeriesNames.length > 0)
+        if (this.focusedSeriesNames.length > 0) {
             this.hideUnselectedLabels(labelsByPriority)
+        }
         if (this.hideScatterLabels) {
             this.hideLabels(labelsByPriority, this.hoveredSeriesNames.length)
+        }
+        if (this.hideEntityLabels) {
+            this.hideEndLabels(labelsByPriority)
         }
 
         this.hideCollidingLabelsByPriority(labelsByPriority)
@@ -274,6 +282,12 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
     ): void {
         labelsByPriority
             .filter((label) => !(label.series.isHover && nHoveredLabels === 1))
+            .forEach((label) => (label.isHidden = true))
+    }
+
+    private hideEndLabels(labelsByPriority: ScatterLabel[]): void {
+        labelsByPriority
+            .filter((label) => label.isEnd)
             .forEach((label) => (label.isHidden = true))
     }
 
@@ -613,34 +627,6 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
                 })}
             </g>
         )
-    }
-
-    animSelection?: Selection<BaseType, unknown, SVGGElement | null, unknown>
-
-    private runAnimation(): void {
-        const radiuses: string[] = []
-        this.animSelection = select(this.base.current).selectAll("circle")
-
-        this.animSelection
-            .each(function () {
-                const circle = this as SVGCircleElement
-                radiuses.push(circle.getAttribute("r") as string)
-                circle.setAttribute("r", "0")
-            })
-            .transition()
-            .duration(500)
-            .attr("r", (_, i) => radiuses[i])
-            .on("end", () => this.forceUpdate())
-    }
-
-    override componentDidMount(): void {
-        if (!this.props.disableIntroAnimation) {
-            this.runAnimation()
-        }
-    }
-
-    override componentWillUnmount(): void {
-        if (this.animSelection) this.animSelection.interrupt()
     }
 
     override render(): React.ReactElement {

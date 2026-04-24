@@ -1,11 +1,13 @@
 import cx from "classnames"
-import { useContext } from "react"
+import { useContext, useState, useEffect } from "react"
 
 import Callout from "./Callout.js"
 import ChartStory from "./ChartStory.js"
 import Chart from "./Chart.js"
 import Donors from "./Donors.js"
 import PullQuote from "./PullQuote.js"
+import ChartRows from "./ChartRows.js"
+import PullChart from "./PullChart.js"
 import GuidedChart from "./GuidedChart.js"
 import Recirc from "./Recirc.js"
 import SubscribeBanner from "./SubscribeBanner.js"
@@ -13,10 +15,15 @@ import List from "./List.js"
 import NumberedList from "./NumberedList.js"
 import Image, { ImageParentContainer } from "./Image.js"
 import {
+    EXPERIMENT_ARM_SEPARATOR,
+    EXPERIMENT_PREFIX,
     OwidEnrichedGdocBlock,
     spansToUnformattedPlainText,
     TocHeadingWithTitleSupertitle,
     Url,
+    defaultExperimentState,
+    getExperimentState,
+    ExperimentState,
 } from "@ourworldindata/utils"
 import { CodeSnippet, convertHeadingTextToId } from "@ourworldindata/components"
 import SDGGrid from "./SDGGrid.js"
@@ -48,6 +55,7 @@ import LatestDataInsightsBlock from "./LatestDataInsightsBlock.js"
 import { Socials } from "./Socials.js"
 import Person from "./Person.js"
 import NarrativeChart from "./NarrativeChart.js"
+import { BespokeComponent } from "./BespokeComponent.js"
 import { Container, getLayout } from "./layout.js"
 import { Expander } from "./Expander.js"
 import { BlockSize, ChartConfigType } from "@ourworldindata/types"
@@ -98,7 +106,19 @@ function ArticleBlockInternal({
         rightIsChart ? rightBlock.url : ""
     )
 
-    if (block.parseErrors.filter(({ isWarning }) => !isWarning).length > 0) {
+    // note: experimentState should NOT be used to conditionally render content b/c
+    // it will cause a flash of content before js loads.
+    const [experimentState, setExperimentState] = useState<ExperimentState>(
+        defaultExperimentState
+    )
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            const s = getExperimentState()
+            setExperimentState(s)
+        }
+    }, [])
+
+    if (block.parseErrors.some(({ isWarning }) => !isWarning)) {
         return (
             <BlockErrorFallback
                 className={getLayout("default", containerType)}
@@ -126,12 +146,75 @@ function ArticleBlockInternal({
                 ) : null}
             </aside>
         ))
-        .with({ type: "all-charts" }, (block) => (
-            <AllCharts
-                {...block}
-                className={getLayout("all-charts", containerType)}
-            />
-        ))
+        .with({ type: "all-charts" }, (block) => {
+            const layoutClassName = getLayout("featured-metrics", containerType)
+            const topicName = tags[0]?.name
+
+            if (!topicName) {
+                return (
+                    <BlockErrorFallback
+                        className={layoutClassName}
+                        error={{
+                            name: `Error in ${block.type}`,
+                            message:
+                                "Featured metrics requires at least one tag on the document.",
+                        }}
+                    />
+                )
+            }
+
+            return (
+                <>
+                    {/*
+                     * The id is swapped between AllCharts and FeaturedMetrics based
+                     * on experiment arm so that the #all-charts sticky nav link always
+                     * scrolls to the visible element. Browsers won't scroll to a
+                     * display:none element, so a static id on AllCharts would break
+                     * navigation in the featured-metrics arm.
+                     */}
+                    <AllCharts
+                        {...block}
+                        id={
+                            experimentState &&
+                            experimentState[
+                                `${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1`
+                            ]?.isPageInExperiment &&
+                            experimentState[
+                                `${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1`
+                            ]?.arm !== "all-charts"
+                                ? ""
+                                : "all-charts"
+                        }
+                        className={cx(
+                            getLayout("all-charts", containerType),
+                            `${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1${EXPERIMENT_ARM_SEPARATOR}featured-metrics--hide`
+                        )}
+                    />
+                    <>
+                        <BlockQueryClientProvider>
+                            <FeaturedMetrics
+                                id={
+                                    experimentState &&
+                                    experimentState[
+                                        `${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1`
+                                    ]?.isPageInExperiment &&
+                                    experimentState[
+                                        `${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1`
+                                    ]?.arm === "featured-metrics"
+                                        ? "all-charts"
+                                        : ""
+                                }
+                                topicName={topicName}
+                                className={cx(
+                                    layoutClassName,
+                                    `${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1${EXPERIMENT_ARM_SEPARATOR}featured-metrics--show`
+                                )}
+                            />
+                        </BlockQueryClientProvider>
+                    </>
+                </>
+            )
+        })
         .with({ type: "chart" }, (block) => {
             const resolvedUrl = linkedChart?.resolvedUrl ?? block.url
             const { isExplorer, queryParams } = Url.fromURL(resolvedUrl)
@@ -463,16 +546,6 @@ function ArticleBlockInternal({
             <div
                 className={getLayout("html", containerType)}
                 dangerouslySetInnerHTML={{ __html: block.value }}
-            />
-        ))
-        .with({ type: "script" }, (block) => (
-            <div
-                className={getLayout("script", containerType)}
-                dangerouslySetInnerHTML={{
-                    __html: `<script type="module">
-                    ${block.lines.join("\n")}
-                    </script>`,
-                }}
             />
         ))
         .with({ type: "horizontal-rule" }, () => (
@@ -807,9 +880,7 @@ function ArticleBlockInternal({
             // If the citation exists and is a URL, it uses the cite attribute
             // If the citation exists and is not a URL, it uses the footer
             // Otherwise, we show nothing for cases where the citation is written in the surrounding text
-            const isCitationAUrl = Boolean(
-                block.citation && block.citation.startsWith("http")
-            )
+            const isCitationAUrl = Boolean(block.citation?.startsWith("http"))
             const shouldShowCitationInFooter = block.citation && !isCitationAUrl
             const blockquoteProps = isCitationAUrl
                 ? { cite: block.citation }
@@ -948,6 +1019,27 @@ function ArticleBlockInternal({
             <CountryProfileSelector
                 block={block}
                 className={getLayout("country-profile-selector", containerType)}
+            />
+        ))
+        .with({ type: "bespoke-component" }, (block) => (
+            <BespokeComponent
+                className={getLayout(
+                    `bespoke-component--${block.size}`,
+                    containerType
+                )}
+                block={block}
+            />
+        ))
+        .with({ type: "chart-rows" }, (block) => (
+            <ChartRows
+                className={getLayout("chart-rows", containerType)}
+                d={block}
+            />
+        ))
+        .with({ type: "pull-chart" }, (block) => (
+            <PullChart
+                className={getLayout("pull-chart", containerType)}
+                d={block}
             />
         ))
         .exhaustive()

@@ -1,6 +1,3 @@
-// Todo: remove this.
-// Any display changes really can be computed columns. And then charts just need xColumnSlug, sizeColumnSlug, yColumnSlug (or yColumnSlugs) et cetera
-
 import { observable, computed, makeObservable } from "mobx"
 import {
     trimObject,
@@ -58,7 +55,7 @@ export class ChartDimension
     extends ChartDimensionDefaults
     implements Persistable, OwidChartDimensionInterfaceWithMandatorySlug
 {
-    private manager: LegacyDimensionsManager
+    private readonly manager: LegacyDimensionsManager
 
     constructor(
         obj: OwidChartDimensionInterface,

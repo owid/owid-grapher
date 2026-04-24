@@ -120,15 +120,16 @@ export async function fetchGptGeneratedAltText(url: string) {
         messages: [
             {
                 role: "user",
-                content: `Generate alt text for this image, describing it for a vision impaired person using a screen reader.
-Do not say "alt text:".
-Do not say "The image...".
-Do not mention colors unless they are important.
-Do not use markdown in the text.
-If the image has a title, mention it first.
-When describing a number range, write "X to Y" not "X-Y".
-If the image is a data visualization, be brief in your description. Communicate the type of chart, but focus on delivering the key insight (which is often in the title or annotations)
-If the image is a data visualization and there are data sources in the footer, describe them exhaustively.`,
+                content: `Generate alt text for this image, describing it for a vision-impaired person using a screen reader.
+- If it's a chart, use the Amy Cesal formula: "[Chart type] of [type of data] where [reason for including chart]"
+- Keep it brief. Three sentences maximum.
+- If there is too much data to describe, just give an overview of what the chart is showing, not specific data points.
+- DO NOT mention colors unless the data doesn't make sense without them
+- When describing a number range, write "X to Y" not "X-Y".
+- If the image is a generic thumbnail or decorative, describe it in one short sentence.
+- Describe data sources and licenses (if specified)
+Example 1: "Line chart of cumulative burnt area in Europe where the 2022 area is more than double the 2006 to 2021 average, and well above the range for the same period. Source: Global Wildfire Information System (2025). License: CC BY to Our World in Data."
+Example 2: "Changes in forest area by world region since 1990 is a set of bar charts overlaid on a world map to compare forest cover between 1990 and 2025 across different continents. The visualization highlights that while forest area has expanded in regions like Europe and North and Central America, it has significantly declined in South America and parts of Asia. Oceania is shown to have had no change in its total forest area over this period. Data source: Food and Agriculture Organization of the United Nations, Global Forest Resources Assessment (2025). License: CC BY to Our World in Data."`,
             },
             {
                 role: "user",
@@ -153,11 +154,18 @@ If the image is a data visualization and there are data sources in the footer, d
     return null
 }
 
-/**
- * Currently unused, but will be useful for extracting text from images when we want to index more of
- * them in the future.
- */
-export async function fetchGptGeneratedTextFromImage(url: string) {
+export interface TextExtractionResult {
+    text: string | null
+    usage: {
+        promptTokens: number
+        completionTokens: number
+        totalTokens: number
+    } | null
+}
+
+export async function fetchGptGeneratedTextFromImage(
+    url: string
+): Promise<TextExtractionResult> {
     const openai = new OpenAI({
         apiKey: OPENAI_API_KEY,
     })
@@ -168,7 +176,7 @@ export async function fetchGptGeneratedTextFromImage(url: string) {
                 role: "user",
                 content: `Extract all text from this image, including any text in the footer.
 Do not use markdown in the text.
-If the image is a data visualization, do not include numbers or data points, just the text labels, footer text, titles, etc.
+If the image is a data visualization, do not include numbers or data points or axis ticks, just the text annotations, footer text, titles, etc.
 If there is no text in the image, return an empty string.`,
             },
             {
@@ -183,16 +191,24 @@ If there is no text in the image, return an empty string.`,
                 ],
             },
         ],
-        model: "gpt-4o-mini",
+        model: "gpt-5-mini",
     })
 
     const content = completion.choices[0].message.content
+    const usage = completion.usage
+        ? {
+              promptTokens: completion.usage.prompt_tokens,
+              completionTokens: completion.usage.completion_tokens,
+              totalTokens: completion.usage.total_tokens,
+          }
+        : null
 
-    if (content) {
-        return content
-            .replaceAll(/\s+/g, " ") // Normalize whitespace to a single space
-            .replaceAll(/(www\.)?ourworldindata(\.org)?\/?/gi, "") // Remove OWID domain references
+    if (content !== null) {
+        return {
+            text: content.replaceAll(/\s+/g, " "),
+            usage,
+        }
     }
 
-    return null
+    return { text: null, usage }
 }

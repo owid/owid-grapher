@@ -246,8 +246,7 @@ export class ScatterPlotChartState implements ChartState, ColorScaleManager {
     }
 
     @computed get colorColumnSlug(): string | undefined {
-        // Scatter plots only support categorical variables as color dimension
-        return this.manager.categoricalColorColumnSlug
+        return this.manager.colorColumnSlug
     }
 
     @computed get colorColumn(): CoreColumn {

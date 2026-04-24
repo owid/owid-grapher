@@ -84,10 +84,13 @@ export class EditorReferencesTabForChart extends Component<{
         this.props.editor.manager.redirects.push(redirect)
     }
 
-    renderViewCount(views: number | undefined) {
-        return views !== undefined
-            ? formatValue(views, { unit: "views" })
-            : "No data"
+    renderViewCount(views?: number, rank?: number, total?: number) {
+        if (views === undefined) return "No data"
+        const viewsStr = formatValue(views, { unit: "views" })
+        if (rank !== undefined && total !== undefined) {
+            return `${viewsStr} (#${formatValue(rank, {})} of ${formatValue(total, {})})`
+        }
+        return viewsStr
     }
 
     override render() {
@@ -98,15 +101,27 @@ export class EditorReferencesTabForChart extends Component<{
                     <div>
                         <div>
                             <strong>Last 7 days:</strong>{" "}
-                            {this.renderViewCount(this.views?.views_7d)}
+                            {this.renderViewCount(
+                                this.views?.views_7d,
+                                this.views?.rank_7d,
+                                this.views?.total_charts
+                            )}
                         </div>
                         <div>
                             <strong>Last 14 days:</strong>{" "}
-                            {this.renderViewCount(this.views?.views_14d)}
+                            {this.renderViewCount(
+                                this.views?.views_14d,
+                                this.views?.rank_14d,
+                                this.views?.total_charts
+                            )}
                         </div>
                         <div>
                             <strong>Last 365 days:</strong>{" "}
-                            {this.renderViewCount(this.views?.views_365d)}
+                            {this.renderViewCount(
+                                this.views?.views_365d,
+                                this.views?.rank_365d,
+                                this.views?.total_charts
+                            )}
                         </div>
                         <div>
                             <strong>

@@ -58,13 +58,15 @@ import {
     RawBlockSubscribeBanner,
     RawBlockExpander,
     EnrichedHybridLink,
+    RawBlockBespokeComponent,
     RawBlockResourcePanel,
     RawBlockCta,
-    RawBlockScript,
     RawBlockStaticViz,
     RawBlockLTPToc,
     RawBlockConditionalSection,
     RawBlockCountryProfileSelector,
+    RawBlockChartRows,
+    RawBlockPullChart,
 } from "@ourworldindata/types"
 import { spanToHtmlString } from "./gdocUtils.js"
 import { match, P } from "ts-pattern"
@@ -322,6 +324,46 @@ export function enrichedBlockToRawBlock(
                 },
             })
         )
+        .with({ type: "chart-rows" }, (b): RawBlockChartRows => {
+            const rawRows = b.rows.map((row) => ({
+                image: row.image,
+                url: row.url,
+                content: row.content.length
+                    ? row.content.map(
+                          (enriched) =>
+                              enrichedBlockToRawBlock(enriched) as RawBlockText
+                      )
+                    : undefined,
+            }))
+            return {
+                type: b.type,
+                value: {
+                    kicker: b.kicker,
+                    title: b.title,
+                    source: b.source,
+                    rows: rawRows,
+                },
+            }
+        })
+        .with(
+            { type: "pull-chart" },
+            (b): RawBlockPullChart => ({
+                type: b.type,
+                value: {
+                    align: b.align,
+                    image: b.image,
+                    url: b.url,
+                    content: b.content.length
+                        ? b.content.map(
+                              (enriched) =>
+                                  enrichedBlockToRawBlock(
+                                      enriched
+                                  ) as RawBlockText
+                          )
+                        : undefined,
+                },
+            })
+        )
         .with(
             { type: "subscribe-banner" },
             (b): RawBlockSubscribeBanner => ({
@@ -349,16 +391,6 @@ export function enrichedBlockToRawBlock(
             (b): RawBlockHtml => ({
                 type: b.type,
                 value: b.value,
-            })
-        )
-        .with(
-            { type: "script" },
-            (b): RawBlockScript => ({
-                type: b.type,
-                value: b.lines.map((line) => ({
-                    type: "text",
-                    value: line,
-                })),
             })
         )
         .with(
@@ -772,6 +804,17 @@ export function enrichedBlockToRawBlock(
                 },
             })
         )
+        .with({ type: "bespoke-component" }, (b): RawBlockBespokeComponent => {
+            return {
+                type: "bespoke-component",
+                value: {
+                    bundle: b.bundle,
+                    variant: b.variant,
+                    size: b.size,
+                    config: b.config,
+                },
+            }
+        })
         .exhaustive()
 }
 

@@ -9,16 +9,6 @@ import {
     faFacebook,
 } from "@fortawesome/free-brands-svg-icons"
 
-// See https://cdnjs.cloudflare.com/polyfill/ for a list of all supported features
-const polyfillFeatures = [
-    "es2022", // Array.at, String.at, ...
-    "es2023", // Array.findLast, Array.toReversed, Array.toSorted, Array.with, ...
-]
-const POLYFILL_VERSION = "4.8.0"
-export const POLYFILL_URL: string = `https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?version=${POLYFILL_VERSION}&features=${polyfillFeatures.join(
-    ","
-)}`
-
 export const PROD_URL = "https://ourworldindata.org"
 
 export const DEFAULT_LOCAL_BAKE_DIR = "localBake"
@@ -30,6 +20,11 @@ export const TOUCH_DEVICE_MEDIA_QUERY =
     "(hover: none), (pointer: coarse), (pointer: none)"
 
 export const DATA_INSIGHTS_ATOM_FEED_NAME = "atom-data-insights.xml"
+
+export const DEFAULT_ATOM_FEED_PROPS = {
+    title: "Atom feed for Our World in Data",
+    href: "/atom.xml",
+}
 
 export const DATA_INSIGHT_ATOM_FEED_PROPS = {
     title: "Atom feed for Data Insights",
@@ -102,7 +97,7 @@ export enum Menu {
 }
 
 export const ABOUT_LINKS = [
-    { title: "About Us", url: "/about" },
+    { title: "About us", url: "/about" },
     { title: "Organization", url: "/organization" },
     { title: "Funding", url: "/funding" },
     { title: "Team", url: "/team" },

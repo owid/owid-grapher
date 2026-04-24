@@ -84,7 +84,11 @@ function FeaturedWorkTile({
             {kicker && (
                 <span className="h6-black-caps homepage-intro__featured-work-kicker">
                     {isNew && (
-                        <span className="homepage-intro__new-tag">New</span>
+                        <>
+                            <span className="homepage-intro__new-tag">
+                                New
+                            </span>{" "}
+                        </>
                     )}
                     {kicker}
                 </span>
@@ -156,7 +160,7 @@ function HomepageAnnouncement(props: {
           announcement.cta?.url ||
           latestPageLink
 
-    const publishedAtDayJs = dayjs(announcement.publishedAt!)
+    const publishedAtDayJs = dayjs(announcement.publishedAt)
     const publishedAtFormatted = publishedAtDayJs.isToday()
         ? "Today"
         : publishedAtDayJs.isYesterday()
@@ -207,7 +211,7 @@ function HomepageAnnouncements() {
         <div className="homepage-intro__announcements span-cols-1 span-md-cols-2">
             <div className="homepage-intro__announcements-header">
                 <AnnouncementsIcon />
-                <h4 className="h3-bold">Updates and Announcements</h4>
+                <h4 className="h3-bold">Updates and announcements</h4>
             </div>
             <ul className="homepage-intro__announcements-list">
                 {announcements.map((announcement, i) => (

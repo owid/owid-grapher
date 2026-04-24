@@ -1,0 +1,61 @@
+{
+    "id": 64,
+    "map": {
+        "colorScale": {
+            "baseColorScheme": "YlGnBu",
+            "binningStrategy": "manual",
+            "legendDescription": "Life expectancy (at birth)",
+            "customNumericColors": [
+                "#fee08b",
+                null,
+                "#ffffbf",
+                "#e6f598",
+                "#abdda4",
+                "#66c2a5",
+                "#3288bd"
+            ],
+            "customNumericValues": [
+                50, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, -1
+            ],
+            "customCategoryColors": { "No data": "#8b8b8b" }
+        },
+        "timeTolerance": 10
+    },
+    "slug": "life-expectancy",
+    "title": "Life expectancy",
+    "yAxis": { "min": 0 },
+    "$schema": "https://files.ourworldindata.org/schemas/grapher-schema.010.json",
+    "version": 62,
+    "hasMapTab": true,
+    "originUrl": "/life-expectancy",
+    "dimensions": [
+        {
+            "display": {
+                "unit": "years",
+                "shortUnit": "years",
+                "numDecimalPlaces": 1
+            },
+            "property": "y",
+            "variableId": 1118466
+        }
+    ],
+    "isPublished": true,
+    "variantName": "over the long-run",
+    "selectedEntityNames": [
+        "World",
+        "Americas",
+        "Europe",
+        "Africa",
+        "Asia",
+        "Oceania"
+    ],
+    "selectedEntityColors": {
+        "Asia": "#00847e",
+        "World": "#18470f",
+        "Africa": "#a2559c",
+        "Europe": "#4c6a9c",
+        "Oceania": "#9a5129",
+        "Americas": "#c4523e"
+    },
+    "hideAnnotationFieldsInTitle": { "time": true }
+}

@@ -33,7 +33,7 @@ export interface ChartManager {
     transformedTable?: OwidTable
 
     variant?: GrapherVariant
-    isDisplayedAlongsideComplementaryTable?: boolean
+    useMinimalLabeling?: boolean
     chartAreaPadding?: number
 
     isExportingToSvgOrPng?: boolean
@@ -70,10 +70,6 @@ export interface ChartManager {
     sizeColumnSlug?: ColumnSlug
     colorColumnSlug?: ColumnSlug
 
-    // if colorColumnSlug is given, either one of these is set
-    categoricalColorColumnSlug?: ColumnSlug
-    numericColorColumnSlug?: ColumnSlug
-
     selection?: SelectionArray | EntityName[]
     entityType?: string
     entityTypePlural?: string
@@ -96,7 +92,6 @@ export interface ChartManager {
     showNoDataArea?: boolean // No data area in Marimekko charts
 
     externalLegendHoverBin?: ColorScaleBin | undefined
-    disableIntroAnimation?: boolean
 
     missingDataStrategy?: MissingDataStrategy
 

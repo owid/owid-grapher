@@ -121,11 +121,13 @@ export {
     type ComparisonLineConfig,
     type VerticalComparisonLineConfig,
     type CustomComparisonLineConfig,
+    type VerticalComparisonLineLabelPlacement,
     type AxisConfigInterface,
     type ColorSchemeInterface,
     type Tickmark,
     type SeriesName,
     type LegacyGrapherQueryParams,
+    type DownloadRewriteTarget,
     GRAPHER_QUERY_PARAM_KEYS,
     type ChartRedirect,
     type DetailsMarker,
@@ -229,11 +231,11 @@ export {
 } from "./gdocTypes/Gdoc.js"
 
 export {
+    type Distribution,
     type DataPageV2ContentFields,
     type DataPageDataV2,
     type DataPageRelatedResearch,
     type PrimaryTopic,
-    type DataInsightLink,
     type FaqLink,
     type FaqEntryData,
     type DisplaySource,
@@ -354,6 +356,7 @@ export {
 } from "./dbTypes/AnalyticsPageviews.js"
 export {
     type DbPlainAnalyticsGrapherView,
+    type AnalyticsGrapherViewWithRank,
     AnalyticsGrapherViewsTableName,
 } from "./dbTypes/AnalyticsGrapherViews.js"
 export {
@@ -436,10 +439,9 @@ export {
     type DbPlainChartXEntity,
 } from "./dbTypes/ChartsXEntities.js"
 export {
-    type DbPlainCountryLatestData,
-    type DbInsertCountryLatestData,
-    CountryLatestDataTableName,
-} from "./dbTypes/CountryLatestData.js"
+    type DbPlainDatapage,
+    DatapagesTableName,
+} from "./dbTypes/Datapages.js"
 export {
     type DbPlainDataset,
     type DbInsertDataset,
@@ -716,6 +718,7 @@ export type {
     MultiDimDataPageConfigEnriched,
     MultiDimDataPageConfigPreProcessed,
     MultiDimDataPageConfigRaw,
+    MultiDimDataPageInitialViewData,
     MultiDimDataPageProps,
     FaqEntryKeyedByGdocIdAndFragmentId,
     Choice,

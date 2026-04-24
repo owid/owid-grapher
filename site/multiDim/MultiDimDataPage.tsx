@@ -24,6 +24,8 @@ export function MultiDimDataPage({
     baseUrl,
     slug,
     configObj,
+    initialViewData,
+    initialViewDimensions,
     tagToSlugMap,
     faqEntries,
     primaryTopic,
@@ -45,6 +47,8 @@ export function MultiDimDataPage({
         canonicalUrl,
         slug,
         configObj,
+        initialViewData,
+        initialViewDimensions,
         faqEntries,
         primaryTopic,
         relatedResearchCandidates,
@@ -116,6 +120,10 @@ export function MultiDimDataPage({
                                     config={MultiDimDataPageConfig.fromObject(
                                         configObj
                                     )}
+                                    initialViewData={initialViewData}
+                                    initialViewDimensions={
+                                        initialViewDimensions
+                                    }
                                     isPreviewing={isPreviewing}
                                     faqEntries={faqEntries}
                                     primaryTopic={primaryTopic}

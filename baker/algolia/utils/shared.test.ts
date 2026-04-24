@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest"
 import { parseJsonStringArray, uniqNonEmptyStrings } from "./shared.js"
 
-describe("parseJsonStringArray", () => {
+describe(parseJsonStringArray, () => {
     it("returns empty array for null or undefined", () => {
         expect(parseJsonStringArray(null)).toEqual([])
         expect(parseJsonStringArray(undefined)).toEqual([])
@@ -23,7 +23,7 @@ describe("parseJsonStringArray", () => {
     })
 })
 
-describe("uniqNonEmptyStrings", () => {
+describe(uniqNonEmptyStrings, () => {
     it("deduplicates and filters empty values from strings", () => {
         const result = uniqNonEmptyStrings(["who", "", "faostat", "who", null])
         expect(result).toEqual(["who", "faostat"])

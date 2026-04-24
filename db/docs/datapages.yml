@@ -1,0 +1,15 @@
+metadata:
+    description: |
+        View that identifies which charts render as data pages and which indicator they use for metadata.
+        A chart appearing in this view is a data page; charts not in this view are not.
+
+        A chart qualifies as a data page when:
+        1. Dimension eligibility: the chart has exactly one Y indicator and is not a scatter plot with a mapped X variable.
+        2. Metadata check: the selected Y indicator has schemaVersion >= 2 and at least one of descriptionShort, descriptionProcessing, descriptionKey, descriptionFromProducer, or titlePublic populated.
+
+        If charts.forceDatapage is true, then the chart is a data page regardless of the above criteria.
+fields:
+    chartId:
+        description: Foreign key to charts table. Identifies the chart.
+    variableId:
+        description: Foreign key to variables table. The indicator whose metadata is used for the data page.

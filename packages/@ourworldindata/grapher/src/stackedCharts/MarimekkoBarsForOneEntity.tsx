@@ -7,7 +7,8 @@ import {
     MarimekkoBarProps,
 } from "./MarimekkoChartConstants"
 import { InteractionState } from "../interaction/InteractionState.js"
-import { BAR_OPACITY } from "./StackedConstants"
+import { STACKED_BAR_STYLE } from "./StackedConstants.js"
+import { Emphasis } from "../interaction/Emphasis.js"
 
 interface MarimekkoBarsProps {
     entityName: string
@@ -124,14 +125,14 @@ function MarimekkoBar({
     const strokeWidth = isHovered || isSelected ? 1 : 0.5
     const strokeOpacity = isPlaceholder ? 0.8 : isFaint ? 0.2 : 1.0
     const fillOpacity = isHovered
-        ? BAR_OPACITY.FOCUS
+        ? STACKED_BAR_STYLE[Emphasis.Highlighted].opacity
         : isFaint
-          ? BAR_OPACITY.MUTE
+          ? STACKED_BAR_STYLE[Emphasis.Muted].opacity
           : isSelected
             ? isPlaceholder
                 ? 0.3
-                : BAR_OPACITY.DEFAULT
-            : BAR_OPACITY.DEFAULT
+                : STACKED_BAR_STYLE[Emphasis.Default].opacity
+            : STACKED_BAR_STYLE[Emphasis.Default].opacity
     const overalOpacity = isPlaceholder ? 0.2 : 1.0
 
     let barY: number

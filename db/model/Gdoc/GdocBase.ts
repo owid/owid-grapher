@@ -192,7 +192,6 @@ export async function loadLinkedChartsForSlugs(
                     chart.config,
                     originalSlug,
                     {
-                        forceDatapage: chart.forceDatapage,
                         archivedPageVersion:
                             archivedChartVersions[chartId] || undefined,
                     }
@@ -390,10 +389,18 @@ export class GdocBase implements OwidGdocBaseInterface {
     }
 
     async loadLinkedAuthors(knex: db.KnexReadonlyTransaction): Promise<void> {
-        this.linkedAuthors = await getMinimalAuthorsByNames(
+        const authors = await getMinimalAuthorsByNames(
             knex,
             this.content.authors
         )
+        const authorRoles = this.content.authorRoles
+        if (authorRoles) {
+            for (const author of authors) {
+                const role = authorRoles[author.name]
+                if (role) author.role = role
+            }
+        }
+        this.linkedAuthors = authors
     }
 
     get links(): DbInsertPostGdocLink[] {
@@ -825,6 +832,24 @@ export class GdocBase implements OwidGdocBaseInterface {
                     text: block.title ?? "Country profile selector",
                 }),
             ])
+            .with({ type: "chart-rows" }, (block) =>
+                block.rows.map((row) =>
+                    createLinkFromUrl({
+                        url: row.url,
+                        sourceId: this.id,
+                        componentType: block.type,
+                        text: "",
+                    })
+                )
+            )
+            .with({ type: "pull-chart" }, (block) => [
+                createLinkFromUrl({
+                    url: block.url,
+                    sourceId: this.id,
+                    componentType: block.type,
+                    text: "",
+                }),
+            ])
             .with(
                 {
                     // no urls directly on any of these blocks
@@ -847,7 +872,6 @@ export class GdocBase implements OwidGdocBaseInterface {
                         "heading",
                         "horizontal-rule",
                         "html",
-                        "script",
                         "key-indicator-collection",
                         "list",
                         "missing-data",
@@ -869,7 +893,8 @@ export class GdocBase implements OwidGdocBaseInterface {
                         "featured-data-insights",
                         "latest-data-insights",
                         "socials", // only external links
-                        "subscribe-banner"
+                        "subscribe-banner",
+                        "bespoke-component"
                     ),
                 },
                 () => []
@@ -1059,7 +1084,7 @@ export class GdocBase implements OwidGdocBaseInterface {
 
         const authorErrors = this.content.authors.reduce(
             (errors: OwidGdocErrorMessage[], name): OwidGdocErrorMessage[] => {
-                if (!this.linkedAuthors.find((a) => a.name === name)) {
+                if (!this.linkedAuthors.some((a) => a.name === name)) {
                     errors.push({
                         property: "linkedAuthors",
                         message: `Author "${name}" does not exist or is not published`,
@@ -1201,7 +1226,7 @@ export class GdocBase implements OwidGdocBaseInterface {
                     ) {
                         linkErrors.push({
                             property: "content",
-                            message: `Grapher chart with slug ${link.target} does not exist or is not published`,
+                            message: `Grapher chart with slug "${link.target}" does not exist or is not published`,
                             type: OwidGdocErrorMessageType.Error,
                         })
                     }
@@ -1225,7 +1250,7 @@ export class GdocBase implements OwidGdocBaseInterface {
                     ) {
                         linkErrors.push({
                             property: "content",
-                            message: `Explorer chart with slug ${link.target} does not exist or is not published`,
+                            message: `Explorer chart with slug "${link.target}" does not exist or is not published`,
                             type: OwidGdocErrorMessageType.Error,
                         })
                     }
@@ -1256,7 +1281,7 @@ export class GdocBase implements OwidGdocBaseInterface {
                     },
                     () => {
                         if (
-                            !staticViz.find((viz) => viz.name === link.target)
+                            !staticViz.some((viz) => viz.name === link.target)
                         ) {
                             linkErrors.push({
                                 property: "content",
@@ -1471,22 +1496,14 @@ export async function makeGrapherLinkedChart(
     knex: db.KnexReadonlyTransaction,
     config: GrapherInterface,
     originalSlug: string,
-    {
-        forceDatapage,
-        archivedPageVersion,
-    }: {
-        forceDatapage?: boolean
-        archivedPageVersion?: ArchivedPageVersion
-    } = {}
+    { archivedPageVersion }: { archivedPageVersion?: ArchivedPageVersion } = {}
 ): Promise<LinkedChart> {
     const resolvedSlug = config.slug ?? ""
     const resolvedTitle = config.title ?? ""
     const subtitle = toPlaintext(config.subtitle ?? "")
     const resolvedUrl = `${BASE_URL}/grapher/${resolvedSlug}`
     const tab = config.tab ?? GRAPHER_TAB_CONFIG_OPTIONS.chart
-    const indicatorId = await getDatapageIndicatorId(knex, config, {
-        forceDatapage,
-    })
+    const indicatorId = await getDatapageIndicatorId(knex, config)
 
     return {
         configType: ChartConfigType.Grapher,

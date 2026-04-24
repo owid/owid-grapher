@@ -779,6 +779,9 @@ class DatasetEditor extends Component<DatasetEditorProps> {
         }
 
         tabs.push({ key: "settings", label: "Settings" })
+        const searchUrl = `${BAKED_BASE_URL}/search?${new URLSearchParams({
+            datasetProducts: dataset.name,
+        })}`
 
         return (
             <main className="DatasetEditPage">
@@ -830,7 +833,7 @@ class DatasetEditor extends Component<DatasetEditorProps> {
                                     <Button
                                         type="text"
                                         size="middle"
-                                        href={`${BAKED_BASE_URL}/search?datasetProducts=${encodeURIComponent(dataset.name)}`}
+                                        href={searchUrl}
                                         target="_blank"
                                         rel="noopener"
                                         icon={

@@ -19,11 +19,6 @@ export interface PrimaryTopic {
     citation: string
 }
 
-export interface DataInsightLink {
-    title: string
-    slug: string
-}
-
 export interface DataPageDataV2 {
     status: "published" | "draft"
     title: IndicatorTitleWithFragments
@@ -48,8 +43,6 @@ export interface DataPageDataV2 {
     chartConfig: Record<string, unknown>
     unit?: string
     unitConversionFactor?: number
-    hasDataInsights?: boolean
-    dataInsights?: DataInsightLink[]
 }
 
 export interface DataPageRelatedResearch {
@@ -65,6 +58,10 @@ export type FaqEntryData = {
     faqs: OwidEnrichedGdocBlock[]
 }
 
+export type Distribution =
+    | { allowed: true }
+    | { allowed: false; sourceLinks: string[] }
+
 export interface DataPageV2ContentFields {
     datapageData: DataPageDataV2
     faqEntries: FaqEntryData | undefined
@@ -74,6 +71,7 @@ export interface DataPageV2ContentFields {
     tagToSlugMap: Record<string, string>
     imageMetadata: Record<string, ImageMetadata>
     archiveContext?: ArchiveContext
+    distribution: Distribution
 }
 
 export interface DisplaySource {

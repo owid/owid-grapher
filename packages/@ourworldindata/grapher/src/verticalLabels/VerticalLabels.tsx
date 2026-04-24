@@ -1,12 +1,14 @@
 import * as React from "react"
+import { TextWrapSvg } from "@ourworldindata/components"
 import { makeFigmaId } from "@ourworldindata/utils"
 import { SeriesName } from "@ourworldindata/types"
 import { SeriesLabel } from "../seriesLabel/SeriesLabel.js"
 import { darkenColorForText } from "../color/ColorUtils.js"
-import { ANNOTATION_PADDING } from "./VerticalLabelsConstants.js"
+import { ANNOTATION_PADDING, LABEL_STYLE } from "./VerticalLabelsConstants.js"
 import { getSeriesKey } from "./VerticalLabelsHelpers"
 import { PlacedLabelSeries, RenderLabelSeries } from "./VerticalLabelsTypes"
 import { VerticalLabelsState } from "./VerticalLabelsState"
+import { Emphasis } from "../interaction/Emphasis.js"
 
 /**
  * Series labels stacked vertically, with connector lines,
@@ -65,6 +67,7 @@ function Labels({
         <g id={makeFigmaId("text-labels")} style={{ pointerEvents: "none" }}>
             {series.map((series, index) => {
                 const color = darkenColorForText(series.color)
+                const emphasis = series.emphasis ?? Emphasis.Default
                 return (
                     <SeriesLabel
                         key={getSeriesKey(series, index)}
@@ -73,7 +76,7 @@ function Labels({
                         x={series.labelCoords.x}
                         y={series.labelCoords.y}
                         color={{ name: color, value: color }}
-                        opacity={series.opacity}
+                        opacity={LABEL_STYLE[emphasis].opacity}
                         onMouseEnter={() => onMouseEnter?.(series.seriesName)}
                         onMouseLeave={() => onMouseLeave?.(series.seriesName)}
                     />
@@ -97,22 +100,22 @@ function Annotations({
         >
             {series.map((series, index) => {
                 if (!series.annotationTextWrap) return null
+                const emphasis = series.emphasis ?? Emphasis.Default
                 return (
                     <React.Fragment key={getSeriesKey(series, index)}>
-                        {series.annotationTextWrap.renderSVG(
-                            series.labelCoords.x,
-                            series.labelCoords.y +
+                        <TextWrapSvg
+                            textWrap={series.annotationTextWrap}
+                            x={series.labelCoords.x}
+                            y={
+                                series.labelCoords.y +
                                 series.seriesLabel.height +
-                                ANNOTATION_PADDING,
-                            {
-                                textProps: {
-                                    fill: "#333",
-                                    opacity: series.opacity,
-                                    textAnchor: anchor,
-                                    style: { fontWeight: 300 },
-                                },
+                                ANNOTATION_PADDING
                             }
-                        )}
+                            fill="#333"
+                            opacity={LABEL_STYLE[emphasis].opacity}
+                            textAnchor={anchor}
+                            style={{ fontWeight: 300 }}
+                        />
                     </React.Fragment>
                 )
             })}
@@ -139,10 +142,9 @@ function ConnectorLines({
                 const step = (endX - startX) / (totalLevels + 1)
                 const markerXMid = startX + step + level * step
                 const d = `M${startX},${leftCenterY} H${markerXMid} V${rightCenterY} H${endX}`
-                const lineColor =
-                    series.hover?.background || series.focus?.background
-                        ? "#eee"
-                        : "#999"
+
+                const emphasis = series.emphasis ?? Emphasis.Default
+                const lineColor = LABEL_STYLE[emphasis].connectorLineColor
 
                 return (
                     <path

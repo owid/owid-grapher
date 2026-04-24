@@ -6,6 +6,7 @@ import {
 } from "@ourworldindata/core-table"
 import { GrapherState } from "@ourworldindata/grapher"
 import { OwidTableSlugs } from "@ourworldindata/types"
+import { rewriteJsonLdText } from "./grapherTools.js"
 
 describe("download", () => {
     const originalTable = SynthesizeGDPTable()
@@ -49,6 +50,42 @@ describe("download", () => {
             ].filter((slug) => slug !== OwidTableSlugs.entityId)
             expectUnorderedEqual(slugs, expectedSlugs)
         }
+    })
+})
+
+describe(rewriteJsonLdText, () => {
+    it("preserves literal ampersands in rewritten contentUrl query params", () => {
+        const jsonLdText = JSON.stringify({
+            image: {
+                contentUrl:
+                    "https://ourworldindata.org/grapher/example.png?tab=chart",
+            },
+        })
+
+        const rewritten = rewriteJsonLdText(
+            jsonLdText,
+            new URL(
+                "https://ourworldindata.org/grapher/example?country=CZE~OWID_EUR&time=latest"
+            )
+        )
+
+        expect(rewritten).toContain(
+            '"contentUrl":"https://ourworldindata.org/grapher/example.png?tab=chart&country=CZE%7EOWID_EUR&time=latest"'
+        )
+        expect(rewritten).not.toContain("&amp;")
+    })
+
+    it("escapes inline-script breaking content in rewritten JSON-LD", () => {
+        const rewritten = rewriteJsonLdText(
+            JSON.stringify({
+                description: "</script><script>alert(1)</script>",
+            }),
+            new URL("https://ourworldindata.org/grapher/example")
+        )
+
+        expect(rewritten).toBe(
+            '{"description":"\\u003c/script>\\u003cscript>alert(1)\\u003c/script>"}'
+        )
     })
 })
 

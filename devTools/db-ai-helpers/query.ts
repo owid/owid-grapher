@@ -75,7 +75,7 @@ async function main() {
         .parseSync()
 
     const sql = argv.sql as string
-    const useStaging = argv.staging as boolean | undefined
+    const useStaging = argv.staging
     const stagingHost = useStaging
         ? getContainerName(getCurrentBranch())
         : undefined
@@ -88,7 +88,6 @@ async function main() {
     const db = stagingHost ? createStagingDataSource(stagingHost) : dataSource
 
     try {
-        // Initialize the database connection
         await db.initialize()
 
         if (stagingHost) {
@@ -97,20 +96,25 @@ async function main() {
         console.log(`Executing query: ${sql}`)
         console.log("---")
 
-        // Execute the raw SQL query
-        const result = await db.query(sql)
+        const queryRunner = db.createQueryRunner()
+        await queryRunner.connect()
+        try {
+            await queryRunner.query("START TRANSACTION READ ONLY")
+            const result = await queryRunner.query(sql)
+            await queryRunner.query("COMMIT")
 
-        if (Array.isArray(result) && result.length > 0) {
-            // If we have results, display them in a table format
-            console.table(result)
-        } else {
-            console.log("Query executed successfully. No results returned.")
+            if (Array.isArray(result) && result.length > 0) {
+                console.table(result)
+            } else {
+                console.log("Query executed successfully. No results returned.")
+            }
+        } finally {
+            await queryRunner.release()
         }
     } catch (error) {
         console.error("Error executing query:", error)
         process.exit(1)
     } finally {
-        // Close the database connection
         if (db.isInitialized) {
             await db.destroy()
         }

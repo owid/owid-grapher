@@ -66,7 +66,8 @@ export class EditorFeatures {
         return (
             this.grapherState.hasLineChart ||
             this.grapherState.hasSlopeChart ||
-            this.grapherState.hasStackedArea
+            this.grapherState.hasStackedArea ||
+            this.grapherState.hasScatter
         )
     }
 
@@ -183,8 +184,8 @@ export class EditorFeatures {
 
     @computed get canHighlightSeries() {
         return (
-            (this.grapherState.hasLineChart ||
-                this.grapherState.hasSlopeChart) &&
+            !this.grapherState.isScatter &&
+            !this.grapherState.isMarimekko &&
             this.grapherState.isOnChartTab
         )
     }

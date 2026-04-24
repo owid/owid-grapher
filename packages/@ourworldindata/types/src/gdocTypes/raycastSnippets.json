@@ -160,11 +160,6 @@
         "keyword": "+resource-panel"
     },
     {
-        "name": "script",
-        "text": "[.+script]\n\n\n[]",
-        "keyword": "+script"
-    },
-    {
         "name": "sdg-toc",
         "text": "{.sdg-toc}\n{}",
         "keyword": "+sdg-toc"

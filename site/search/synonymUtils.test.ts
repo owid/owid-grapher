@@ -2,7 +2,7 @@ import { expect, it, describe, beforeEach } from "vitest"
 import { buildSynonymMap } from "./synonymUtils.js"
 import { SynonymMap } from "@ourworldindata/types"
 
-describe("buildSynonymMap", () => {
+describe(buildSynonymMap, () => {
     let synonymMap: SynonymMap
 
     beforeEach(() => {

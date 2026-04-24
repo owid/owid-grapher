@@ -18,11 +18,10 @@
     gap: var(--grid-gap);
 }
 
-.search-writing-results__overflow {
+.search-writing-results__topics--full-width {
     grid-column: 1 / -1;
     display: grid;
-    grid-template-columns: subgrid;
-    gap: var(--grid-gap);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .search-writing-results__single-column {

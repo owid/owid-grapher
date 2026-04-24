@@ -25,8 +25,6 @@ export interface GridBounds {
 export { FontFamily }
 
 export class Bounds {
-    static ctx: CanvasRenderingContext2D
-
     static fromProps(props: Box): Bounds {
         const { x, y, width, height } = props
         return new Bounds(x, y, width, height)

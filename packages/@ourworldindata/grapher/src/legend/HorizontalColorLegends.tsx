@@ -11,7 +11,7 @@ import {
     VerticalAlign,
     makeFigmaId,
 } from "@ourworldindata/utils"
-import { TextWrap } from "@ourworldindata/components"
+import { TextWrap, TextWrapSvg } from "@ourworldindata/components"
 import {
     ColorScaleBin,
     NumericBin,
@@ -25,11 +25,11 @@ import {
 } from "../core/GrapherConstants"
 import { darkenColorForLine } from "../color/ColorUtils"
 import {
-    LegendInteractionState,
     LegendStyleConfig,
     LegendTextStyle,
     LegendMarkerStyle,
-} from "../legend/LegendInteractionState"
+} from "./LegendStyleConfig"
+import { Emphasis } from "../interaction/Emphasis"
 import { GRAPHER_DARK_TEXT } from "../color/ColorConstants"
 
 export interface PositionedBin {
@@ -89,7 +89,7 @@ export interface HorizontalColorLegendManager {
     onLegendMouseOver?: (d: ColorScaleBin) => void
     onLegendClick?: (d: ColorScaleBin) => void
     isStatic?: boolean
-    getLegendBinState?: (bin: ColorScaleBin) => LegendInteractionState
+    resolveLegendBinEmphasis?: (bin: ColorScaleBin) => Emphasis
     legendStyleConfig?: LegendStyleConfig
     categoricalLegendStyleConfig?: LegendStyleConfig
     numericLegendStyleConfig?: LegendStyleConfig
@@ -150,11 +150,8 @@ export abstract class HorizontalColorLegend extends React.Component<{
         return this.manager.legendTickSize ?? DEFAULT_TICK_SIZE
     }
 
-    protected getBinState(bin: ColorScaleBin): LegendInteractionState {
-        return (
-            this.manager.getLegendBinState?.(bin) ??
-            LegendInteractionState.Default
-        )
+    protected getBinState(bin: ColorScaleBin): Emphasis {
+        return this.manager.resolveLegendBinEmphasis?.(bin) ?? Emphasis.Default
     }
 
     abstract get height(): number
@@ -597,14 +594,19 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
                         )
                     })}
                 </g>
-                {this.legendTitle?.renderSVG(
-                    this.x,
-                    // Align legend title baseline with bottom of color bins
-                    this.numericLegendY +
-                        height -
-                        this.legendTitle.height +
-                        this.legendTitleFontSize * 0.2,
-                    { textProps: { fill: textColor } }
+                {this.legendTitle && (
+                    <TextWrapSvg
+                        textWrap={this.legendTitle}
+                        x={this.x}
+                        y={
+                            // Align legend title baseline with bottom of color bins
+                            this.numericLegendY +
+                            height -
+                            this.legendTitle.height +
+                            this.legendTitleFontSize * 0.2
+                        }
+                        fill={textColor}
+                    />
                 )}
             </g>
         )
@@ -656,8 +658,8 @@ const NumericBinRect = (props: NumericBinRectProps) => {
 
 @observer
 export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
-    private rectPadding = 5
-    private markPadding = 5
+    private readonly rectPadding = 5
+    private readonly markPadding = 5
 
     constructor(props: { manager: HorizontalColorLegendManager }) {
         super(props)

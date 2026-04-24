@@ -7,7 +7,11 @@ import {
     exposeInstanceOnWindow,
     makeFigmaId,
 } from "@ourworldindata/utils"
-import { MarkdownTextWrap, LoadingIndicator } from "@ourworldindata/components"
+import {
+    MarkdownTextWrap,
+    MarkdownTextWrapSvg,
+    LoadingIndicator,
+} from "@ourworldindata/components"
 import { Header, StaticHeader } from "../header/Header"
 import { Footer, StaticFooter } from "../footer/Footer"
 import {
@@ -76,6 +80,9 @@ export interface CaptionedChartManager
     activeChartType?: GrapherChartType
     isFaceted?: boolean
     isExportingForWikimedia?: boolean
+
+    // controls
+    hideControlsRow?: boolean
 
     // timeline
     hasTimeline?: boolean
@@ -174,6 +181,7 @@ abstract class AbstractCaptionedChart extends React.Component<CaptionedChartProp
     }
 
     @computed private get showControlsRow(): boolean {
+        if (this.manager.hideControlsRow) return false
         return ControlsRow.shouldShow(this.manager)
     }
 
@@ -249,7 +257,12 @@ abstract class AbstractCaptionedChart extends React.Component<CaptionedChartProp
         )
     }
 
+    @computed private get showHeader(): boolean {
+        return this.header.height > 0
+    }
+
     @computed private get headerHeightWithPadding(): number {
+        if (!this.showHeader) return 0
         return this.header.height + this.verticalPadding
     }
 
@@ -315,8 +328,15 @@ abstract class AbstractCaptionedChart extends React.Component<CaptionedChartProp
                 }}
             >
                 {/* #1 Header */}
-                <Header manager={this.manager} maxWidth={this.maxWidth} />
-                <VerticalSpace height={this.verticalPadding} />
+                {this.showHeader && (
+                    <>
+                        <Header
+                            manager={this.manager}
+                            maxWidth={this.maxWidth}
+                        />
+                        <VerticalSpace height={this.verticalPadding} />
+                    </>
+                )}
 
                 {this.manager.isReady ? (
                     <>
@@ -441,7 +461,7 @@ export class StaticCaptionedChart extends AbstractCaptionedChart {
 
     renderSVGDetails(): React.ReactElement {
         let yOffset = 0
-        let previousOffset = 0
+        let previousOffset: number
         return (
             <>
                 <line
@@ -467,7 +487,11 @@ export class StaticCaptionedChart extends AbstractCaptionedChart {
                         yOffset += detail.height + STATIC_EXPORT_DETAIL_SPACING
                         return (
                             <React.Fragment key={i}>
-                                {detail.renderSVG(0, previousOffset)}
+                                <MarkdownTextWrapSvg
+                                    textWrap={detail}
+                                    x={0}
+                                    y={previousOffset}
+                                />
                             </React.Fragment>
                         )
                     })}

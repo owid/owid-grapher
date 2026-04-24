@@ -3,7 +3,7 @@ import { SeriesLabelState } from "./SeriesLabelState"
 
 const FONT_SIZE = 14
 
-describe("SeriesLabelState", () => {
+describe(SeriesLabelState, () => {
     it("handles plain labels correctly", () => {
         const label = new SeriesLabelState({
             text: "United States",
@@ -200,6 +200,20 @@ describe("SeriesLabelState", () => {
         expect(label.positionedFragments).toMatchObject([
             { type: "text", role: "name", text: "High-income countries" },
             { type: "icon", tooltipKey: "incomeGroups" },
+        ])
+    })
+
+    it("shows an icon for continent labels when enabled", () => {
+        const label = new SeriesLabelState({
+            text: "Africa",
+            maxWidth: Infinity,
+            fontSize: FONT_SIZE,
+            showRegionTooltip: true,
+        })
+
+        expect(label.positionedFragments).toMatchObject([
+            { type: "text", role: "name", text: "Africa" },
+            { type: "icon", tooltipKey: "continents" },
         ])
     })
 

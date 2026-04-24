@@ -1,3 +1,6 @@
+// Polyfills must be loaded before all other code.
+import "./polyfills.js"
+
 // This should be imported as early as possible so the global error handler is
 // set up before any errors are thrown.
 import "./instrument.js"
@@ -14,13 +17,11 @@ import { createRoot } from "react-dom/client"
 import { runNotFoundPage } from "./NotFoundPageMain.js"
 import { runFeedbackPage } from "./Feedback.js"
 import { runDonateForm } from "./runDonateForm.js"
-import { runCountryIndexPage } from "./runCountryIndexPage.js"
 import { runTableOfContents } from "./runTableOfContents.js"
 import { Explorer } from "@ourworldindata/explorer"
-import { ENV, ADMIN_BASE_URL } from "../settings/clientSettings.js"
+import { ENV } from "../settings/clientSettings.js"
 import {
     Grapher,
-    CookieKey,
     renderSingleGrapherOnGrapherPage,
     GrapherState,
 } from "@ourworldindata/grapher"
@@ -41,7 +42,6 @@ window.createRoot = createRoot
 window.runNotFoundPage = runNotFoundPage
 window.runFeedbackPage = runFeedbackPage
 window.runDonateForm = runDonateForm
-window.runCountryIndexPage = runCountryIndexPage
 window.runTableOfContents = runTableOfContents
 window.renderSingleGrapherOnGrapherPage = renderSingleGrapherOnGrapherPage
 window.MultiEmbedderSingleton = MultiEmbedderSingleton
@@ -54,33 +54,6 @@ runMonkeyPatchForGoogleTranslate()
 const analytics = new SiteAnalytics(ENV)
 
 document.documentElement?.classList.add("js-loaded")
-
-try {
-    // Cookie access can be restricted by iframe sandboxing, in which case the below code will throw an error
-    // see https://github.com/owid/owid-grapher/pull/2452
-
-    if (document.cookie.includes(CookieKey.isAdmin)) {
-        const gdocAdminBar = document.getElementById("gdoc-admin-bar")
-        if (gdocAdminBar) {
-            gdocAdminBar.style.display = "initial"
-            const id = window._OWID_GDOC_PROPS?.id
-            if (id) {
-                const gdocLink = `https://docs.google.com/document/d/${id}/edit`
-                const adminLink = `${ADMIN_BASE_URL}/admin/gdocs/${id}/preview`
-                const admin = gdocAdminBar.querySelector("#admin-link")
-                const gdoc = gdocAdminBar.querySelector("#gdoc-link")
-                if (admin && gdoc) {
-                    admin.setAttribute("href", adminLink)
-                    admin.setAttribute("target", "_blank")
-                    gdoc.setAttribute("href", gdocLink)
-                    gdoc.setAttribute("target", "_blank")
-                }
-            }
-        }
-    }
-} catch {
-    // ignore
-}
 
 analytics.startClickTracking()
 analytics.startDetectingBrowserTranslation()

@@ -21,6 +21,7 @@
 
 @import "../packages/@ourworldindata/components/src/styles/variables.scss";
 @import "../packages/@ourworldindata/components/src/styles/colors.scss";
+@import "../packages/@ourworldindata/components/src/styles/typography-constants.scss";
 @import "../packages/@ourworldindata/components/src/styles/typography.scss";
 @import "../packages/@ourworldindata/components/src/styles/util.scss";
 @import "../packages/@ourworldindata/components/src/styles/mixins.scss";
@@ -31,6 +32,8 @@
 @import "../packages/@ourworldindata/components/src/IndicatorSources/IndicatorSources.scss";
 @import "../packages/@ourworldindata/components/src/IndicatorProcessing/IndicatorProcessing.scss";
 @import "../packages/@ourworldindata/components/src/Button/Button.scss";
+@import "../packages/@ourworldindata/components/src/DownloadButton/DownloadButton.scss";
+@import "../packages/@ourworldindata/components/src/DownloadApiOptions/DownloadApiOptions.scss";
 @import "../packages/@ourworldindata/components/src/TextInput.scss";
 @import "../packages/@ourworldindata/components/src/GrapherTrendArrow.scss";
 
@@ -124,6 +127,7 @@
 @import "./Breadcrumb/Breadcrumb.scss";
 @import "./gdocs/components/centered-article.scss";
 @import "./gdocs/components/topic-page.scss";
+@import "./gdocs/components/BespokeComponent.scss";
 @import "./gdocs/components/Callout.scss";
 @import "./gdocs/components/CountryProfileSelector.scss";
 @import "./gdocs/components/ChartPreview.scss";
@@ -158,6 +162,9 @@
 @import "./gdocs/components/KeyIndicator.scss";
 @import "./gdocs/components/KeyIndicatorCollection.scss";
 @import "./gdocs/components/PullQuote.scss";
+@import "./gdocs/components/ChartThumbnail.scss";
+@import "./gdocs/components/ChartRows.scss";
+@import "./gdocs/components/PullChart.scss";
 @import "./gdocs/components/PillRow.scss";
 @import "./gdocs/components/People.scss";
 @import "./gdocs/components/Person.scss";
@@ -174,6 +181,7 @@
 @import "./multiDim/MultiDimEmbedSettingsPanel.scss";
 @import "./GrapherImage.scss";
 @import "./KeyDataTable.scss";
+@import "./DownloadSection.scss";
 @import "./MetadataSection.scss";
 @import "./TopicTags.scss";
 @import "./detailsOnDemand.scss";
@@ -184,6 +192,7 @@
 @import "./gdocs/pages/AboutPage.scss";
 @import "./gdocs/pages/Announcement.scss";
 @import "./gdocs/pages/Profile.scss";
+@import "./experiments.scss";
 
 @import "css/donate.scss";
 @import "./ThankYouPage.scss";
@@ -1055,77 +1064,6 @@ a.ref sup {
     }
 }
 
-.CountryIndexPage {
-    main {
-        margin: auto;
-        max-width: 900px;
-
-        header {
-            display: flex;
-            margin-top: 20px;
-            margin-bottom: 20px;
-
-            img.flag {
-                max-height: 100px;
-                margin-right: 20px;
-                outline: 1px solid $gray-10;
-            }
-        }
-
-        input[type="search"] {
-            width: 100%;
-            padding: 10px;
-        }
-
-        ul {
-            li {
-                display: flex;
-                list-style-type: none;
-                border-bottom: 1px solid #c5c9d3;
-                font-size: 14px;
-            }
-
-            .indicatorName {
-                line-height: 32px;
-                flex-grow: 1;
-            }
-
-            .indicatorValue {
-                line-height: 32px;
-                text-align: right;
-            }
-        }
-    }
-}
-
-.CountriesIndexPage > main {
-    ul {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
-        grid-column-gap: 1rem;
-        grid-row-gap: 0.25rem;
-    }
-
-    li {
-        width: 100%;
-        list-style-type: none;
-        padding-right: 1em;
-        font-size: 0.8em;
-        max-width: 90vw;
-    }
-
-    a {
-        display: inline-flex; // Align flag and country name
-        align-items: center;
-    }
-
-    .flag {
-        outline: 1px solid $gray-10;
-        width: 16px;
-        margin-right: 4px;
-    }
-}
-
 .FeedbackPage {
     main {
         height: calc(100vh - 100px);
@@ -1138,5 +1076,12 @@ a.ref sup {
         margin: $vertical-spacing 0;
 
         @include popover-box-styles;
+        box-shadow: none;
+        outline: 1px solid $gray-10;
+    }
+
+    .FeedbackForm > .footer {
+        box-shadow: none;
+        outline: 1px solid $gray-10;
     }
 }

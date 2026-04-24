@@ -199,13 +199,13 @@ export function CreateDataInsightModal(props: {
             }
 
         const grapherUrl = formData.grapherUrl?.trim()
-        if (grapherUrl && grapherUrl.includes("/grapher/")) {
+        if (grapherUrl?.includes("/grapher/")) {
             return {
                 source: "grapher",
                 url: makePngUrlForGrapherOrExplorer(grapherUrl, options),
             }
         }
-        if (grapherUrl && grapherUrl.includes("/explorers/")) {
+        if (grapherUrl?.includes("/explorers/")) {
             return {
                 source: "explorer",
                 url: makePngUrlForGrapherOrExplorer(grapherUrl, options),
