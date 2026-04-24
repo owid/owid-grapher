@@ -21,6 +21,15 @@ export type EnrichedBlockEntrySummaryItem = {
     slug: string
 }
 
+/**
+ * A table-of-contents-style summary with explicit text/slug pairs. Because
+ * the summary headings can differ from the actual headings in the document,
+ * the text and slug are serialized explicitly rather than derived. Internal
+ * block — not documented for authors.
+ *
+ * @owid-component entry-summary
+ * @owid-title Entry Summary
+ */
 export type EnrichedBlockEntrySummary = {
     type: "entry-summary"
     items: EnrichedBlockEntrySummaryItem[]
