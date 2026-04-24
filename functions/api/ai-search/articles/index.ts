@@ -318,7 +318,7 @@ function transformToArticlesApiFormat(
             thumbnailUrl: pageData.thumbnailUrl || "",
             date: pageData.date || "",
             slug,
-            type: type as OwidGdocType.Article | OwidGdocType.AboutPage,
+            type,
             content,
             authors: pageData.authors || [],
             objectID: slug,
@@ -398,7 +398,7 @@ function transformToTopicPagesApiFormat(
 
         return {
             title: pageData.title || slug,
-            type: type as OwidGdocType.TopicPage | OwidGdocType.LinearTopicPage,
+            type,
             slug,
             excerpt,
             excerptLong: undefined, // Not available from AI Search currently

@@ -5,26 +5,45 @@ import { generateText } from "ai"
 import { searchChartsMulti } from "../../search/searchApi.js"
 
 // Mock AI SDK modules
-vi.mock("@ai-sdk/google", () => ({
-    createGoogleGenerativeAI: vi.fn(() => vi.fn(() => "mock-gemini-model")),
-}))
+vi.mock(import("@ai-sdk/google"), async (importOriginal) => {
+    const actual = await importOriginal()
+    return {
+        ...actual,
+        createGoogleGenerativeAI: vi.fn(() =>
+            vi.fn(() => "mock-gemini-model")
+        ) as any,
+    }
+})
 
-vi.mock("ai", () => ({
-    generateText: vi.fn(),
-    tool: vi.fn((config) => config),
-    stepCountIs: vi.fn((n) => n),
-}))
+vi.mock(import("ai"), async (importOriginal) => {
+    const actual = await importOriginal()
+    return {
+        ...actual,
+        generateText: vi.fn() as any,
+        tool: vi.fn((config) => config) as any,
+        stepCountIs: vi.fn((n) => n) as any,
+    }
+})
 
-vi.mock("../../search/algoliaClient.js", () => ({
-    getAlgoliaConfig: vi.fn(() => ({
-        appId: "test-app-id",
-        searchKey: "test-search-key",
-    })),
-}))
+vi.mock(import("../../search/algoliaClient.js"), async (importOriginal) => {
+    const actual = await importOriginal()
+    return {
+        ...actual,
+        getAlgoliaConfig: vi.fn(() => ({
+            appId: "test-app-id",
+            searchKey: "test-search-key",
+            apiKey: "test-api-key",
+        })),
+    }
+})
 
-vi.mock("../../search/searchApi.js", () => ({
-    searchChartsMulti: vi.fn(),
-}))
+vi.mock(import("../../search/searchApi.js"), async (importOriginal) => {
+    const actual = await importOriginal()
+    return {
+        ...actual,
+        searchChartsMulti: vi.fn(),
+    }
+})
 
 describe("AI Search Agent API endpoint", () => {
     const mockEnv: Env = {
@@ -120,6 +139,11 @@ describe("AI Search Agent API endpoint", () => {
             vi.mocked(generateText).mockResolvedValue({
                 text: '["test-slug"]',
                 steps: [],
+                totalUsage: {
+                    inputTokens: 0,
+                    outputTokens: 0,
+                    totalTokens: 0,
+                },
             } as any)
             vi.mocked(searchChartsMulti).mockResolvedValue([
                 {
@@ -179,7 +203,7 @@ describe("AI Search Agent API endpoint", () => {
                         await searchTool.execute({ searches: ["population"] })
                     }
                     return {
-                        text: '["population-growth", "world-population"]',
+                        text: "[0, 1]",
                         steps: [
                             {
                                 text: "",
@@ -191,6 +215,11 @@ describe("AI Search Agent API endpoint", () => {
                                 ],
                             },
                         ],
+                        totalUsage: {
+                            inputTokens: 0,
+                            outputTokens: 0,
+                            totalTokens: 0,
+                        },
                     }
                 }
             )

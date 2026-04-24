@@ -431,7 +431,16 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         }
 
         // Resolve model alias
-        const resolvedModel = GEMINI_MODEL_ALIASES[modelParam] || modelParam
+        const resolvedModel = GEMINI_MODEL_ALIASES[modelParam]
+        if (!resolvedModel) {
+            return new Response(
+                JSON.stringify({
+                    error: "Invalid model",
+                    details: `Unknown model: ${modelParam}. Valid models: ${Object.keys(GEMINI_MODEL_ALIASES).join(", ")}`,
+                }),
+                { status: 400, headers }
+            )
+        }
 
         // Validate API key
         if (!env.GOOGLE_API_KEY) {

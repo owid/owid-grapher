@@ -257,7 +257,7 @@ function parseChartData(result: AISearchResult): Partial<ChartData> {
 
     return {
         type: (fileAttr?.type as string) ?? "chart",
-        slug: fileAttr?.slug as string | undefined,
+        slug: fileAttr?.slug,
     }
 }
 

@@ -148,7 +148,7 @@ function parseChartData(result: AISearchResult): Partial<ChartData> {
     // Legacy fallback
     return {
         type: (fileAttr?.type as string) ?? "chart",
-        slug: fileAttr?.slug as string | undefined,
+        slug: fileAttr?.slug,
     }
 }
 
