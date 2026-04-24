@@ -26,6 +26,28 @@ The two most common ingestion entry points are:
 
 Both pathways call `GdocBase.fetchAndEnrichGdoc`, so the pipeline described below runs every time we ingest or refresh a document.
 
+## Content Sources: Google Docs vs File-backed Content
+
+The system supports two authoring sources:
+
+- **Google Docs-backed rows** — the traditional path. The row points at a live Google Doc and ingestion fetches the latest Google document JSON through the Docs API.
+- **File-backed rows** — the row is marked `source='file'`, and ingestion reads an ArchieML file from disk in the content repo instead of calling the Google Docs API.
+
+The important architectural point is that these are two entry paths into the same downstream pipeline. Once the content has been fetched, both sources converge into the same enrichment, validation, attachment-loading, and persistence flow.
+
+That means:
+
+- component parsing rules should generally not care whether the content came from Google Docs or a file
+- server-side validation should behave consistently across both sources
+- front-end rendering and attachments should consume the same enriched block shapes regardless of source
+
+The main practical difference is at fetch time:
+
+- Google Docs-backed content starts as a Google Docs AST and needs conversion through `gdocToArchie.ts`
+- file-backed content starts as ArchieML on disk and can be parsed directly into the enriched block model
+
+When working on the pipeline, keep that split in mind: source-specific logic belongs near fetch/ingest, while block parsing and rendering should usually stay source-agnostic.
+
 ## Pipeline Overview
 
 ### 1. Fetch the Google Doc (`GdocBase.fetchAndEnrichGdoc`)
@@ -115,13 +137,98 @@ After enrichment and validation, `upsertGdoc` serialises the enriched content to
 - For ad-hoc experiments, `devTools/markdownTest/markdown.ts` can parse a database row into enriched blocks.
 - The database schema docs in `db/docs/posts_gdocs.yml` summarise the stored format and companion tables (`posts_gdocs_components`, `posts_gdocs_links`, etc.).
 
-## Extending the Pipeline
+## Adding or Extending Components
 
-1. Add or update type definitions in `packages/@ourworldindata/types/src/gdocTypes/ArchieMlComponents.ts` and `types/src/gdocTypes/Gdoc.ts`.
-2. Teach `gdocToArchie` how to serialise any new Google Docs constructs (if required) by producing appropriate `OwidRawGdocBlock` objects.
-3. Implement a parser in `rawToEnriched.ts` with strict validation and targeted `parseErrors`.
-4. Update `htmlToEnriched.ts` if the block carries inline HTML that needs bespoke handling.
-5. Cover the new behaviour with unit tests in `db/gdocTests.test.ts`.
-6. Consider whether subclasses need additional enrichment, validation, or derived metadata.
+This section covers the usual workflow for introducing or extending an ArchieML/Gdoc component.
+
+Start by classifying the request:
+
+1. **Docs-only** — the component already exists and only its JSDoc or examples need updating.
+2. **Existing component extension** — add props or variants to a block that already exists.
+3. **New component** — add a new block that needs parser and render support.
+4. **Attachment-backed component** — the component also needs server-loaded data such as charts, linked docs, images, tags, or other metadata.
+5. **Actually a new gdoc type** — the work belongs in the subclass/factory/type system rather than a generic block component.
+
+Before editing, inspect one or two structurally similar components in:
+
+- `packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/`
+- `db/model/Gdoc/rawToEnriched.ts`
+- `site/gdocs/components/`
+
+Treat nearby components as the best template for naming, typing, validation style, and rendering patterns.
+
+### Typical integration path
+
+1. **Define or extend the component type**
+
+    Add or update the type under `packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/`.
+
+    That file should usually contain:
+    - the raw block shape
+    - the enriched block shape
+    - concise JSDoc describing when to use the component
+    - realistic `@example` blocks with valid ArchieML
+
+    The generated component registry is derived from these JSDoc comments, so examples should parse cleanly and reflect real usage.
+
+    If the component is new, make sure it is exported through the shared gdoc type surface, including `packages/@ourworldindata/types/src/gdocTypes/ArchieMlComponents.ts` and any relevant barrel exports.
+
+2. **Parse raw Archie into enriched blocks**
+
+    Update `db/model/Gdoc/rawToEnriched.ts` so the raw block is converted into the enriched block and emits targeted parse errors for malformed input.
+
+    Prefer:
+    - strict validation
+    - actionable parse errors
+    - reuse of existing helpers for spans, URLs, links, captions, tables, and nested blocks
+
+    Avoid silently accepting malformed author input when a clear parse error would make the problem easier to fix.
+
+3. **Update HTML/span parsing only if needed**
+
+    Most component changes do not require edits in `db/model/Gdoc/htmlToEnriched.ts`, but some do.
+
+    Touch it when the component relies on special inline HTML handling, block HTML conversion, figure parsing, or other Google Docs constructs that are not already understood by the pipeline.
+
+4. **Render the component on the site**
+
+    Add or update the front-end rendering in `site/gdocs/components/` and any page-level wiring that consumes the enriched block.
+
+    Match existing surrounding patterns:
+    - keep rendering logic in the gdocs component layer
+    - preserve established visual and layout conventions unless the task explicitly changes them
+    - inspect adjacent components before introducing new abstractions
+
+5. **Load attachments if the component needs extra data**
+
+    If the component needs charts, linked documents, image metadata, authors, tags, or other server-provided context:
+    - extend the relevant gdoc types in `packages/@ourworldindata/types`
+    - load the data in `GdocBase` or a subclass attachment hook
+    - ensure the data reaches the page payload
+    - consume it through the existing attachments context on the front end
+
+    Prefer batched lookups over per-item queries when introducing new attachment loaders.
+
+6. **Document the component through JSDoc and generated artifacts**
+
+    After updating JSDoc, regenerate the component reference:
+
+    ```bash
+    yarn tsx --tsconfig tsconfig.tsx.json devTools/gdocs/generate-components-reference.ts
+    ```
+
+    Do not hand-edit:
+    - `docs/components-reference.generated.md`
+    - `docs/components.registry.generated.json`
+
+7. **Test the changed area**
+
+    Add or update tests close to the behavior you changed. In most cases this means gdoc ingestion tests, parser tests, or focused front-end tests for the rendered block.
+
+    Useful checks include:
+    - Archie examples parse cleanly
+    - malformed inputs produce the intended parse errors
+    - attachments are loaded when required
+    - the component renders with the enriched shape you expect
 
 By following these steps we keep the ingestion pipeline deterministic while preserving the rich authoring experience our authors expect inside Google Docs.
