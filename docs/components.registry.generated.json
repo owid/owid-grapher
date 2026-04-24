@@ -1,0 +1,747 @@
+[
+  {
+    "id": "additional-charts",
+    "title": "Additional Charts",
+    "typeName": "EnrichedBlockAdditionalCharts",
+    "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/AdditionalCharts.ts",
+    "body": "A subtle way of linking to multiple charts — each line of body becomes a\nseparate item, typically a link to a chart.\n\n## When to use\n- Offering readers a small set of related charts without giving them\n  visual prominence.\n\n## When NOT to use\n- You want thumbnails or descriptions per item — use `{.chart-rows}`.\n- You need a full-page listing of all charts on a topic — use\n  `{.all-charts}` on a topic page.\n\nThe content between the opening `{.additional-charts}` and closing `{}` must\nbe a bulleted list inside the Google Doc — the gdoc pipeline converts that\ninto the `list` items this block expects. Plain text lines aren't enough;\nthe archie parser needs a true list structure. Because that structure comes\nfrom Google Docs layout, not pure ArchieML text, this component has no\nstandalone `@example`.",
+    "examples": []
+  },
+  {
+    "id": "align",
+    "title": "Align",
+    "typeName": "EnrichedBlockAlign",
+    "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/Align.ts",
+    "body": "Aligns a block of text horizontally. Affects text only — images, charts,\nand other visual blocks are not re-aligned by this wrapper.\n\n## When to use\n- To center or right-align a heading or short paragraph inline with prose.\n\n## When NOT to use\n- To align images, charts, or other visual blocks — those blocks have their\n  own size/visibility controls.\n- For full-width styled sections; prefer `{.gray-section}`.\n\n## Variations\n- `alignment`: `left` | `center` | `right`",
+    "examples": [
+      {
+        "name": "Centered text",
+        "archie": "{.align}\nalignment: center\n[.+content]\nCentered text\n\nA centered heading\n[]\n{}"
+      }
+    ]
+  },
+  {
+    "id": "all-charts",
+    "title": "All Charts",
+    "typeName": "EnrichedBlockAllCharts",
+    "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/AllCharts.ts",
+    "body": "Shows all Grapher charts that share a tag with the current article. \"Key\ncharts\" (those pinned via the admin) appear at the top; the `[.top]`\nsection lets you override or extend that ordering for this article.\n\n## When to use\n- Topic pages that should surface every chart associated with the topic.\n\n## When NOT to use\n- You want to hand-pick a small number of related charts — use\n  `{.chart-rows}` or `{.additional-charts}`.",
+    "examples": [
+      {
+        "name": "All charts on a topic with pinned top charts",
+        "archie": "{.all-charts}\nheading: Interactive Charts on Poverty\n[.top]\nurl: https://ourworldindata.org/grapher/size-poverty-gap-countries\n\nurl: https://ourworldindata.org/grapher/gdp-per-capita-maddison-2020\n[]\n{}"
+      }
+    ]
+  },
+  {
+    "id": "aside",
+    "title": "Aside",
+    "typeName": "EnrichedBlockAside",
+    "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/Aside.ts",
+    "body": "A plaintext caption placed to the right or left of a body paragraph. Useful\nfor short side notes that shouldn't interrupt the main reading flow.\n\n## When to use\n- A short aside or annotation next to a paragraph.\n\n## When NOT to use\n- Prefer `{.callout}` when the note needs a title, icon, or rich text.\n- Prefer `{.recirc}` when linking to related content.\n\n## Variations\n- `position`: `right` (default) | `left`\n- Placement in the document matters: put the aside before a paragraph for\n  `left`, after the paragraph for `right`.\n- `caption` is plaintext only.",
+    "examples": [
+      {
+        "name": "Left-positioned aside",
+        "archie": "{.aside}\ncaption: I will be to the left of the following paragraph.\nposition: left\n{}"
+      }
+    ]
+  },
+  {
+    "id": "bespoke-component",
+    "title": "Bespoke Component",
+    "typeName": "EnrichedBlockBespokeComponent",
+    "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/BespokeComponent.ts",
+    "body": "A self-contained custom data viz component bundled under\n`bespoke/projects/` and embedded via Shadow DOM. Each bundle can\nexpose multiple variants and accepts a free-form `config` map.\nUndocumented in the author reference (developer-facing).",
+    "examples": []
+  },
+  {
+    "id": "blockquote",
+    "title": "Blockquote",
+    "typeName": "EnrichedBlockBlockquote",
+    "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/Blockquote.ts",
+    "body": "A way to cite an excerpt from another source. Renders as an indented,\nquoted passage with an optional attribution line.\n\n## When to use\n- Quoting a longer passage from a person, paper, or publication.\n\n## When NOT to use\n- Prefer `{.pull-quote}` when you want to re-emphasize a phrase from the\n  article itself (styled as a centered, italicized h1).\n\n## Variations\n- `citation` can be plain text (e.g. a person's name) or a URL starting\n  with `http`, in which case it renders as a link.",
+    "examples": [
+      {
+        "name": "Plain-text citation",
+        "archie": "{.blockquote}\ncitation: Bastian Herre\n[.+text]\nMeasuring the state of democracy across the world helps us understand the extent to which people have political rights and freedoms.\n[]\n{}"
+      }
+    ]
+  },
+  {
+    "id": "callout",
+    "title": "Callout",
+    "typeName": "EnrichedBlockCallout",
+    "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/Callout.ts",
+    "body": "A small gray-background block used to draw attention to meta-textual\ninformation — e.g. \"data was last updated\", caveats about methodology,\nor short editorial notes.\n\n## When to use\n- Flagging data freshness, caveats, or other meta-textual notes.\n- Short side notes that should stand out from the main body.\n\n## When NOT to use\n- Prefer `{.aside}` for a plaintext caption placed to the side of a\n  paragraph.\n- Prefer `{.data-callout}` when interpolating live chart data.\n\n## Variations\n- `title` is optional.\n- `icon` is optional; only the `info` icon is supported.\n- The text block can contain paragraphs, headings, and lists.\n\nIf placed inside a key insight, make the first line (e.g. \"What you should\nknow about this data\") an h5 so the correct CSS applies.",
+    "examples": [
+      {
+        "name": "With title and info icon",
+        "archie": "{.callout}\ntitle: Update\nicon: info\n[.+text]\nThis article uses data from 2020\n\nBut the conclusions are solid.\n\n[]\n{}"
+      }
+    ]
+  },
+  {
+    "id": "chart",
+    "title": "Chart",
+    "typeName": "EnrichedBlockChart",
+    "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/Chart.ts",
+    "body": "A Grapher chart, explorer, or MDIM embed. The default component for showing\nan interactive Our World in Data chart inline.\n\n## When to use\n- A standalone chart readers should be able to interact with.\n- An explorer (same block, different URL under `/explorers/`).\n- An MDIM, with or without controls (set `hideControls=true` in the URL).\n\n## When NOT to use\n- Prefer `{.narrative-chart}` when the chart is making a specific argument\n  in the article — narrative charts lock selection/title so future data\n  updates don't change the point being made.\n- Prefer `{.pull-chart}` to reference a chart without giving it full width.\n\n## Variations\n- `size`: `narrow` | `wide` (default) | `widest`\n- `visibility`: `mobile` | `desktop` — pair two chart blocks to swap\n  aspect ratio between layouts. Omit to show in both.\n- `peerCountries`: `parentRegions` | `gdpPerCapita` | `population` |\n  `dataRange` | `defaultSelection` | `neighbors` — controls which peer\n  countries are offered in the country selector.",
+    "examples": [
+      {
+        "name": "Basic",
+        "archie": "{.chart}\nurl: https://ourworldindata.org/grapher/military-expenditure-share-gdp\n{}"
+      },
+      {
+        "name": "Narrow, desktop only",
+        "archie": "{.chart}\nurl: https://ourworldindata.org/grapher/military-expenditure-share-gdp\nsize: narrow\nvisibility: desktop\npeerCountries: parentRegions\n{}"
+      },
+      {
+        "name": "Explorer with controls hidden",
+        "archie": "{.chart}\nurl: https://ourworldindata.org/explorers/food-footprints?hideControls=true\n{}"
+      }
+    ]
+  },
+  {
+    "id": "chart-rows",
+    "title": "Chart Rows",
+    "typeName": "EnrichedBlockChartRows",
+    "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/ChartRows.ts",
+    "body": "A vertical list of small chart thumbnails with descriptive text, each row\nlinking to a chart. Used standalone, or inside a `{.guided-chart}` where\nclicking a row updates the guided-chart's main chart rather than\nnavigating away.\n\n## When to use\n- Presenting multiple related chart views compactly.\n- Offering alternative cuts of the same data inside a guided chart.\n\n## When NOT to use\n- You only have one chart to reference — use `{.pull-chart}`.\n- The charts are the main subject — use full-width `{.chart}` blocks.\n\n## Variations\n- `kicker`: short label above the rows (defaults to \"More views of this\n  data\" at render time).\n- `title` and `source`: only shown in standalone mode; hidden when nested\n  inside a `{.guided-chart}`.",
+    "examples": [
+      {
+        "name": "Standalone chart rows",
+        "archie": "{.chart-rows}\nkicker: More views of this data\ntitle: Daily incomes by decile\nsource: Global Carbon Budget (2025)\n\n[.rows]\nimage: chart-1-thumbnail.png\nurl: https://ourworldindata.org/grapher/daily-income-decile-1\n[.+content]\nThe poorest decile has seen modest gains since 1980.\n[]\n\nimage: chart-2-thumbnail.png\nurl: https://ourworldindata.org/grapher/daily-income-decile-10\n[.+content]\nThe richest decile has seen the largest absolute gains.\n[]\n[]\n{}"
+      }
+    ]
+  },
+  {
+    "id": "chart-story",
+    "title": "Chart Story",
+    "typeName": "EnrichedBlockChartStory",
+    "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/ChartStory.ts",
+    "body": "A carousel of charts, each paired with a narrative caption and a block\nof technical text shown below the chart.\n\n## When to use\n- Telling a step-by-step story across several views of the same (or\n  related) charts, where each step needs its own prose and technical notes.\n\n## When NOT to use\n- A simple list of alternative chart views — use `{.chart-rows}`.\n- A single chart with inline narration — use `{.guided-chart}`.",
+    "examples": [
+      {
+        "name": "Two-slide chart story",
+        "archie": "[.chart-story]\nnarrative: Text for slide 1, an overview of the world\nchart: https://ourworldindata.org/grapher/military-expenditure-share-gdp\n{.technical}\nThe poverty gap index is a measure that reflects both the depth and prevalence of poverty.\nExtreme poverty is defined as living below the international poverty line of $1.90 per day\n{}\n\nnarrative: Slide two looks at Africa\nchart: https://ourworldindata.org/grapher/military-expenditure-share-gdp?region=Africa\n{.technical}\nData is measured in international-$.\n{}\n[]"
+      }
+    ]
+  },
+  {
+    "id": "code",
+    "title": "Code",
+    "typeName": "EnrichedBlockCode",
+    "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/Code.ts",
+    "body": "A block of text rendered verbatim in a monospace font. Use to include\ncode samples or markup that should not be interpreted.\n\n## When to use\n- To display snippets of code, config, or markup in the article body.\n\n## When NOT to use\n- To embed executable HTML — use `{.html}` instead.",
+    "examples": [
+      {
+        "name": "Verbatim iframe markup",
+        "archie": "[.+code]\n<iframe src=\"https://ourworldindata.org/grapher/children-per-woman-un\" loading=\"lazy\"></iframe>\n[]"
+      }
+    ]
+  },
+  {
+    "id": "conditional-section",
+    "title": "Conditional Section",
+    "typeName": "EnrichedBlockConditionalSection",
+    "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/ConditionalSection.ts",
+    "body": "A wrapper that includes or excludes its inner content based on the\ncurrent rendering context (for example the current entity on a\ncountry profile page). Undocumented in the author reference.",
+    "examples": []
+  },
+  {
+    "id": "cookie-notice",
+    "title": "Cookie Notice",
+    "typeName": "EnrichedBlockCookieNotice",
+    "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/CookieNotice.ts",
+    "body": "Renders the site's cookie-consent notice. Internal block — not documented\nfor authors.",
+    "examples": []
+  },
+  {
+    "id": "country-profile-selector",
+    "title": "Country Profile Selector",
+    "typeName": "EnrichedBlockCountryProfileSelector",
+    "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/CountryProfileSelector.ts",
+    "body": "A country selector UI used on country-profile pages to let readers\njump to a specific country's profile. Undocumented in the author\nreference.",
+    "examples": []
+  },
+  {
+    "id": "cta",
+    "title": "Cta",
+    "typeName": "EnrichedBlockCta",
+    "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/Cta.ts",
+    "body": "A simple link rendered with an arrow. Colored blue in data insights, red\nin other contexts.\n\n## When to use\n- A single, visually prominent call-to-action link.\n\n## When NOT to use\n- Prefer `{.prominent-link}` for a richer link tile with title, description,\n  and thumbnail.\n- Prefer `{.recirc}` for a list of related links.",
+    "examples": [
+      {
+        "name": "Basic",
+        "archie": "{.cta}\nurl: https://ourworldindata.org/grapher/life-expectancy\ntext: Check this out!\n{}"
+      }
+    ]
+  },
+  {
+    "id": "data-callout",
+    "title": "Data Callout",
+    "typeName": "EnrichedBlockDataCallout",
+    "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/DataCallout.ts",
+    "body": "A callout whose text interpolates live values from a Grapher chart at the\n`url`. Use `$latestTime()` and `$latestValue()` to pull the most recent\ndata point. For multi-y charts, pass a column name, e.g.\n`$latestTime(emissions_total)`.\n\n## When to use\n- Surfacing a \"latest value\" summary for a specific entity.\n- Country profiles where copy should adapt to per-country data.\n\n## When NOT to use\n- Prefer `{.callout}` for static meta-textual notes not driven by chart\n  data.\n\n## Variations\n- Include `time` in the grapher URL to pin to a specific year instead of\n  the latest point.\n- If the referenced chart has no data for the current entity, the entire\n  section won't render — useful for country profiles.",
+    "examples": [
+      {
+        "name": "Country life expectancy",
+        "archie": "{.data-callout}\nurl: https://ourworldindata.org/grapher/life-expectancy?country=CAN\n[.+content]\nIn $latestTime(), Canada's life expectancy was $latestValue()\n[]\n{}"
+      }
+    ]
+  },
+  {
+    "id": "donors",
+    "title": "Donor List",
+    "typeName": "EnrichedBlockDonorList",
+    "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/DonorList.ts",
+    "body": "A rendered list of OWID's donors, pulled from a curated source. No\nprops.\n\n## When to use\n- On the donate / about page where the donor list should appear.\n\n## When NOT to use\n- Anywhere else.",
+    "examples": [
+      {
+        "name": "Basic",
+        "archie": "{.donors}\n{}"
+      }
+    ]
+  },
+  {
+    "id": "entry-summary",
+    "title": "Entry Summary",
+    "typeName": "EnrichedBlockEntrySummary",
+    "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/EntrySummary.ts",
+    "body": "A table-of-contents-style summary with explicit text/slug pairs. Because\nthe summary headings can differ from the actual headings in the document,\nthe text and slug are serialized explicitly rather than derived. Internal\nblock — not documented for authors.",
+    "examples": []
+  },
+  {
+    "id": "expandable-paragraph",
+    "title": "Expandable Paragraph",
+    "typeName": "EnrichedBlockExpandableParagraph",
+    "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/ExpandableParagraph.ts",
+    "body": "Displays a short preview of content on page load with a \"Show more\" button\nthat reveals the rest inline. Any Archie block is supported inside.\n\n## When to use\n- Keeping a long passage compact while still offering the full text inline.\n\n## When NOT to use\n- Prefer `{.expander}` when you want a distinct boxed affordance for\n  large tables or technical sections.",
+    "examples": [
+      {
+        "name": "Basic",
+        "archie": "[.+expandable-paragraph]\nAny Archie block is supported here\n[]"
+      }
+    ]
+  },
+  {
+    "id": "expander",
+    "title": "Expander",
+    "typeName": "EnrichedBlockExpander",
+    "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/Expander.ts",
+    "body": "A rectangular box that conceals content until the reader clicks to reveal\nit. Useful for large tables, technical detail, or optional methodology\nthat would otherwise interrupt the main narrative.\n\n## When to use\n- Hiding long technical descriptions behind a click.\n- Wrapping a large table or dense methodology section.\n\n## When NOT to use\n- Prefer `{.expandable-paragraph}` for a short preview of inline text with\n  a \"Show more\" link.\n\n## Variations\n- `heading` is optional context above the box.\n- `title` is the clickable headline.\n- `subtitle` is optional secondary text.",
+    "examples": [
+      {
+        "name": "Technical detail expander",
+        "archie": "{.expander}\nheading: Additional information\ntitle: Which data sources and definitions do we rely on?\nsubtitle: Nunc tincidunt pharetra diam ut accumsan.\n[.+content]\nLorem ipsum dolor sit amet, consectetur adipiscing elit.\n[]\n{}"
+      }
+    ]
+  },
+  {
+    "id": "explore-data-section",
+    "title": "Explore Data Section",
+    "typeName": "EnrichedBlockExploreDataSection",
+    "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/ExploreDataSection.ts",
+    "body": "A blue-background section with a chart icon and title, wrapping any\nGdoc content. Used on linear topic pages to group the\n\"explore the data\" charts/explorers.\n\n## When to use\n- On linear topic pages to introduce the charts-and-data portion of\n  the page.\n\n## When NOT to use\n- On regular topic pages or articles.\n\n## Variations\n- `title` defaults to \"Explore the data\" if omitted.",
+    "examples": [
+      {
+        "name": "Basic",
+        "archie": "{.explore-data-section}\ntitle: Will default to \"Explore the data\"\n[.+content]\nContent here.\n[]\n{}"
+      }
+    ]
+  },
+  {
+    "id": "explorer-tiles",
+    "title": "Explorer Tiles",
+    "typeName": "EnrichedBlockExplorerTiles",
+    "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/ExplorerTiles.ts",
+    "body": "A grid of tiles linking to data explorers. Typically shown on the\nhomepage. Each tile pulls its icon from the explorer's tag in admin.\n\n## When to use\n- On the homepage to feature OWID data explorers.\n\n## When NOT to use\n- For a single explorer embed — use `{.chart}` with the explorer URL.\n\n## Variations\n- Supply exactly 4 explorer URLs. Each explorer must be tagged in\n  admin and the tag must have an icon in the tag-icons folder.",
+    "examples": [
+      {
+        "name": "Four explorers",
+        "archie": "{.explorer-tiles}\ntitle: Data explorers\nsubtitle: Interactive visualization tools.\n[.explorers]\nurl: https://ourworldindata.org/explorers/poverty-explorer\nurl: https://ourworldindata.org/explorers/energy\nurl: https://ourworldindata.org/explorers/co2\nurl: https://ourworldindata.org/explorers/global-health\n[]\n{}"
+      }
+    ]
+  },
+  {
+    "id": "featured-data-insights",
+    "title": "Featured Data Insights",
+    "typeName": "EnrichedBlockFeaturedDataInsights",
+    "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/FeaturedDataInsights.ts",
+    "body": "Displays data insights related to the current topic. The document\nmust have a topic tag so the block knows what to filter by. No props.\n\n## When to use\n- On linear topic pages (and similar topic-scoped pages) to surface\n  related data insights.\n\n## When NOT to use\n- On documents without a topic tag — the block has nothing to query.",
+    "examples": [
+      {
+        "name": "Basic",
+        "archie": "{.featured-data-insights}\n{}"
+      }
+    ]
+  },
+  {
+    "id": "featured-metrics",
+    "title": "Featured Metrics",
+    "typeName": "EnrichedBlockFeaturedMetrics",
+    "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/FeaturedMetrics.ts",
+    "body": "Displays featured metrics related to the current topic. The document\nmust have a topic tag. No props.\n\n## When to use\n- On linear topic pages to surface the headline metrics for the\n  topic.\n\n## When NOT to use\n- On documents without a topic tag.",
+    "examples": [
+      {
+        "name": "Basic",
+        "archie": "{.featured-metrics}\n{}"
+      }
+    ]
+  },
+  {
+    "id": "gray-section",
+    "title": "Gray Section",
+    "typeName": "EnrichedBlockGraySection",
+    "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/GraySection.ts",
+    "body": "A full-width section with a light-gray background. Wraps any other\nArchieML content to visually set it apart from the surrounding prose.\n\n## When to use\n- To group a small set of related blocks into a visually distinct section\n  (e.g. a methods callout that includes a heading and a few paragraphs).\n\n## When NOT to use\n- For single-block callouts — use `{.callout}` instead (smaller, inline).\n- For recirculation modules — use `{.recirc}`.",
+    "examples": [
+      {
+        "name": "A heading and some content on a gray background",
+        "archie": "[.+gray-section]\nA heading within a gray section\n\nSome content\n[]"
+      }
+    ]
+  },
+  {
+    "id": "guided-chart",
+    "title": "Guided Chart",
+    "typeName": "EnrichedBlockGuidedChart",
+    "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/GuidedChart.ts",
+    "body": "A scroll-driven chart where links in the body text drive updates to a\nsingle chart (Grapher or MDIM; explorers are not supported). Link syntax\nis a grapher URL prefixed with `#guide:` — e.g.\n`#guide:https://ourworldindata.org/grapher/life-expectancy?country=~NZL`.\nAll `#guide:` links in the section must share the same slug; only query\nparams (selection, time, tab, etc.) can change.\n\n## When to use\n- Walking readers through different views of the same chart inline.\n- Pairing a chart with prose where clicking phrases updates the chart.\n\n## When NOT to use\n- The chart and text are independent — use `{.chart}` in a `{.sticky-left}`\n  / `{.sticky-right}` layout.\n- You need more than one chart slug — guided-chart sections must have\n  exactly one chart.\n\n## Variations\n- Can contain a `{.chart-rows}` block — clicking a row updates the main\n  chart rather than navigating away. In guided-chart mode, `title` and\n  `source` on the chart-rows are hidden.",
+    "examples": [
+      {
+        "name": "Sticky-left layout with a chart and guided links",
+        "archie": "[.+guided-chart]\n{.sticky-left}\n[.+left]\n{.chart}\nurl: https://ourworldindata.org/grapher/life-expectancy\n{}\n[]\n[.+right]\nI am a link that will update the chart to show New Zealand when clicked\n[]\n{}\n[]"
+      }
+    ]
+  },
+  {
+    "id": "heading",
+    "title": "Heading",
+    "typeName": "EnrichedBlockHeading",
+    "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/Heading.ts",
+    "body": "A section heading. Authored via Google Docs text styles (Heading 1,\nHeading 2, Heading 3) — the level is derived from the docs style. Start\nsections with h1; nest with h2, then h3.",
+    "examples": []
+  },
+  {
+    "id": "homepage-intro",
+    "title": "Homepage Intro",
+    "typeName": "EnrichedBlockHomepageIntro",
+    "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/HomepageIntro.ts",
+    "body": "The large introduction block on the homepage: OWID mission copy\npaired with a grid of four featured tiles.\n\n## When to use\n- Only on the homepage (`type: homepage`).\n\n## When NOT to use\n- Anywhere else. The mission text is hard-coded for the homepage\n  layout.\n\n## Variations\n- Exactly four entries must be supplied under `[.featured-work]`.\n- `kicker` is free text (e.g. \"Article - 10 Min Read\",\n  \"Announcement\").\n- `isNew: true` shows a red \"NEW\" pill on that tile.\n- gdoc URLs auto-resolve title/description; external URLs require\n  those fields explicitly.",
+    "examples": [
+      {
+        "name": "Four featured tiles",
+        "archie": "{.homepage-intro}\n\n[.featured-work]\nurl: https://docs.google.com/document/d/1iH_m2GlsBuif80sDwfg0fNGZmpf9X0-TFM5oHQr9fPA/edit\nkicker: Article - 10 Min Read\nisNew: true\n\nurl: https://docs.google.com/document/d/1KCSkpWvSml9KZaqTO7TGWsUDpACZIxBoqs9Yw62Klx8/edit\nkicker: Article - 10 Min Read\n\nurl: https://docs.google.com/document/d/1PvKMIDp0Npp-t_5F-tNp-w9Y2Lq4ifjWDJHEVQQ6bNw/edit\nkicker: Article - 10 Min Read\n\nurl: https://docs.google.com/document/d/11t6XP9vKLDHeiDOcfaPOoc4TeQxHRixSjEikAlbGe0A/edit\ntitle: We updated our topic page on Artificial Intelligence\nkicker: Announcement\n[]\n\n{}"
+      }
+    ]
+  },
+  {
+    "id": "homepage-search",
+    "title": "Homepage Search",
+    "typeName": "EnrichedBlockHomepageSearch",
+    "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/HomepageSearch.ts",
+    "body": "A wide section with a site-wide search bar. No props.\n\n## When to use\n- Only on the homepage (`type: homepage`), near the top.\n\n## When NOT to use\n- Elsewhere. The site header already exposes search.",
+    "examples": [
+      {
+        "name": "Basic",
+        "archie": "{.homepage-search}\n{}"
+      }
+    ]
+  },
+  {
+    "id": "horizontal-rule",
+    "title": "Horizontal Rule",
+    "typeName": "EnrichedBlockHorizontalRule",
+    "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/HorizontalRule.ts",
+    "body": "A thin, light-gray line that divides two large sections of an article.\nTypically precedes an h1 heading.\n\n## When to use\n- To separate major sections of an article, especially before a new h1.\n\n## When NOT to use\n- Between paragraphs within the same section — use whitespace / headings.\n\nNote: Google Docs' built-in \"Horizontal line\" (Insert menu) also renders\nas this block.",
+    "examples": [
+      {
+        "name": "Basic",
+        "archie": "{.horizontal-rule}\n{}"
+      }
+    ]
+  },
+  {
+    "id": "html",
+    "title": "Html",
+    "typeName": "EnrichedBlockHtml",
+    "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/Html.ts",
+    "body": "Raw HTML escape hatch. The inner value is rendered as HTML, so this block\nsupports things that inline Google Docs formatting doesn't — such as\niframes or inline styling.\n\n## When to use\n- To embed external iframes (YouTube, third-party tools).\n- For the very rare case where inline styling is needed and nothing else\n  will do.\n\n## When NOT to use\n- Regular text styling — use Google Docs formatting (bold, italic, links,\n  superscript / subscript) instead.\n- Code samples to display verbatim — use `{.code}`.\n- OWID charts — use `{.chart}` or `{.narrative-chart}`.",
+    "examples": [
+      {
+        "name": "Inline styled span",
+        "archie": "html: This is text that can use features like <span style=\"color:red\">this will be red</span>."
+      },
+      {
+        "name": "Iframe embed",
+        "archie": "html: <iframe src=\"https://www.youtube.com/watch?v=dQw4w9WgXcQ\" />"
+      }
+    ]
+  },
+  {
+    "id": "image",
+    "title": "Image",
+    "typeName": "EnrichedBlockImage",
+    "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/Image.ts",
+    "body": "A static image uploaded to the OWID admin. The `filename` must match an\nimage registered in the admin (where default alt text is also set).\n\n## When to use\n- Photographs, illustrations, diagrams, and static (non-interactive)\n  visuals.\n- Static grapher exports where the reader doesn't need to interact with\n  the chart — consider `hasOutline: true` for clean white-background\n  screenshots so they read as visuals rather than floating artwork.\n\n## When NOT to use\n- Interactive charts — use `{.chart}` or `{.narrative-chart}`.\n- Flagship data visualizations with metadata — use `{.static-viz}`.\n- Videos — use `{.video}`.\n\n## Variations\n- `size`: `narrow` | `wide` (default) | `widest`\n- `visibility`: `mobile` | `desktop` — pair two image blocks to swap\n  aspect ratio between layouts.\n- `smallFilename`: dedicated mobile image (should be ≥1600px wide).\n- `hasOutline`: `true` | `false` — adds a 1px light-gray outline, useful\n  for images with white backgrounds.",
+    "examples": [
+      {
+        "name": "Full featured",
+        "archie": "{.image}\nfilename: default-featured-image.png\nsmallFilename: default-featured-image.png\nalt: my alt text that is optional\nsize: narrow\ncaption: I am a caption that would appear below the image\nhasOutline: true\nvisibility: desktop\n{}"
+      },
+      {
+        "name": "Minimal",
+        "archie": "{.image}\nfilename: default-featured-image.png\n{}"
+      }
+    ]
+  },
+  {
+    "id": "key-indicator-collection",
+    "title": "Key Indicator Collection",
+    "typeName": "EnrichedBlockKeyIndicatorCollection",
+    "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/KeyIndicators.ts",
+    "body": "An accordion collection of \"key indicators\" — datapage-linked charts\nwith a title, text summary, and source. Shown on the homepage.\n\n## When to use\n- On the homepage to surface key indicator datapages (child\n  mortality, extreme poverty, etc.).\n\n## When NOT to use\n- Elsewhere — use `{.chart}` or `{.pull-chart}` to highlight a single\n  chart in an article.\n\n## Variations\n- Each `{.key-indicator}` inside `[.+indicators]` needs a\n  `datapageUrl` that links to a grapher backed by a datapage.",
+    "examples": [
+      {
+        "name": "Two indicators",
+        "archie": "{.key-indicator-collection}\n\n[.+indicators]\n\n{.key-indicator}\ndatapageUrl: https://ourworldindata.org/grapher/child-mortality?time=earliest..latest\ntitle: What share of children died before their fifth birthday?\nsource: Long-run estimates combining data from UN & Gapminder\n[.+text]\nWhat could be more tragic than the death of a young child?\n[]\n{}\n\n{.key-indicator}\ndatapageUrl: https://ourworldindata.org/grapher/share-of-population-in-extreme-poverty\ntitle: What share of the population is living in extreme poverty?\n[.+text]\nThe UN sets the 'International Poverty Line' as a worldwide comparable definition.\n[]\n{}\n\n[]\n\n{}"
+      }
+    ]
+  },
+  {
+    "id": "key-insights",
+    "title": "Key Insights",
+    "typeName": "EnrichedBlockKeyInsights",
+    "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/KeyInsights.ts",
+    "body": "A slide carousel of \"key insights\" — the core takeaways of a topic\npage. Each slide has a title, optional visual (chart, narrative chart,\nor image), and a body of rich content.\n\n## When to use\n- Near the top of a topic page, summarising the most important\n  findings on the topic.\n\n## When NOT to use\n- On articles or data insights.\n\n## Variations\n- Each slide's visual is either a `url` (grapher/explorer), a\n  `narrativeChartName`, or a `filename` (image). Use at most one.",
+    "examples": [
+      {
+        "name": "With mixed visuals",
+        "archie": "{.key-insights}\nheading: Key Insights on Poverty\n[.insights]\n\ntitle: The age dependency ratio changes by country\nurl: https://ourworldindata.org/grapher/age-dependency-breakdown\n[.+content]\nAll sorts of content can go in here.\n[]\n\ntitle: This slide uses an image\nfilename: default-featured-image.png\n[.+content]\nBlah blah.\n[]\n\ntitle: This slide uses a narrative chart\nnarrativeChartName: global-life-expectancy-has-doubled\n[.+content]\nBlah blah blah.\n[]\n\n[]\n{}"
+      }
+    ]
+  },
+  {
+    "id": "latest-data-insights",
+    "title": "Latest Data Insights",
+    "typeName": "EnrichedBlockLatestDataInsights",
+    "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/LatestDataInsights.ts",
+    "body": "A grey section on the homepage listing the most recent published data\ninsights. Automatically hidden if fewer than 4 published data\ninsights exist. No props.\n\n## When to use\n- On the homepage (`type: homepage`).\n\n## When NOT to use\n- Elsewhere — data insights are surfaced via their own page and the\n  homepage carousel.",
+    "examples": [
+      {
+        "name": "Basic",
+        "archie": "{.latest-data-insights}\n{}"
+      }
+    ]
+  },
+  {
+    "id": "ltp-toc",
+    "title": "Linear Topic Page Table of Contents",
+    "typeName": "EnrichedBlockLTPToc",
+    "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/LTPToc.ts",
+    "body": "Specialised table of contents for linear topic pages. Primary section\nlists page sections; secondary shows cards to all data and writing on\nthe topic.\n\n## When to use\n- On linear topic pages, near the top, to let readers jump between\n  sections and to related data/writing.\n\n## When NOT to use\n- On regular topic pages (use the auto-generated sticky nav).\n- On articles (use Google Docs headings; TOC is auto-derived).\n\n## Variations\n- `title` defaults to \"Sections\" if omitted.",
+    "examples": [
+      {
+        "name": "Default title",
+        "archie": "{.ltp-toc}\n{}"
+      },
+      {
+        "name": "Custom title",
+        "archie": "{.ltp-toc}\ntitle: On this page\n{}"
+      }
+    ]
+  },
+  {
+    "id": "missing-data",
+    "title": "Missing Data",
+    "typeName": "EnrichedBlockMissingData",
+    "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/MissingData.ts",
+    "body": "Placeholder block indicating that data is missing for the current entity.\nInternal block — not documented for authors.",
+    "examples": []
+  },
+  {
+    "id": "narrative-chart",
+    "title": "Narrative Chart",
+    "typeName": "EnrichedBlockNarrativeChart",
+    "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/NarrativeChart.ts",
+    "body": "A chart derivative that can only be viewed inside an article. Narrative\ncharts are the preferred way of embedding charts in articles — they let\nyou pin the title, country selection, time range, and chart type so that\nfuture data updates don't change the point being made.\n\n## When to use\n- The chart is making a specific argument and the selection/title matters.\n- You want editorial control independent of the underlying Grapher config.\n\n## When NOT to use\n- The reader is meant to freely explore — use `{.chart}` instead.\n- For explorers or MDIMs — narrative charts don't wrap those; use `{.chart}`.\n\n## Variations\n- `size`: `narrow` | `wide` (default) | `widest`.",
+    "examples": [
+      {
+        "name": "Basic",
+        "archie": "{.narrative-chart}\nname: global-life-expectancy-has-doubled\n{}"
+      }
+    ]
+  },
+  {
+    "id": "numbered-list",
+    "title": "Numbered List",
+    "typeName": "EnrichedBlockNumberedList",
+    "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/NumberedList.ts",
+    "body": "An ordered (numbered) list. Unlike unordered lists — which are derived\nfrom Google Docs bullet formatting — numbered lists must be declared\nexplicitly in ArchieML. Nested lists are not supported.",
+    "examples": [
+      {
+        "name": "Basic",
+        "archie": "[.numbered-list]\n* Numbered\n* List\n[]"
+      }
+    ]
+  },
+  {
+    "id": "people-rows",
+    "title": "People Rows",
+    "typeName": "EnrichedBlockPeopleRows",
+    "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/PeopleRows.ts",
+    "body": "A grid of `{.person}` cards, used on about pages to present team\nmembers. Wraps an inner `[.+people]` list of people blocks.\n\n## When to use\n- On about pages (`type: about-page`) to list team, board, or\n  advisors.\n\n## When NOT to use\n- Elsewhere.\n\n## Variations\n- `columns`: `2` or `4` — 4 suits compact cards, 2 suits cards with\n  longer bios.",
+    "examples": []
+  },
+  {
+    "id": "pill-row",
+    "title": "Pill Row",
+    "typeName": "EnrichedBlockPillRow",
+    "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/PillRow.ts",
+    "body": "A small grey bar of pill-shaped links, usually with a heading to the\nleft. Used on the homepage below the nav and on author pages to list\ntopic chips.\n\n## When to use\n- On the homepage, below the nav, to feature a short list of\n  articles.\n- On author pages, to list the topics the author writes about.\n\n## When NOT to use\n- As a general-purpose inline list — use `{.cta}`, `{.recirc}`, or\n  normal links instead.\n\n## Variations\n- Pill `text` is optional when the URL is a gdoc link — the gdoc\n  title is used.",
+    "examples": [
+      {
+        "name": "Basic",
+        "archie": "{.pill-row}\ntitle: Popular Articles\n[.pills]\ntext: Optimism & Pessimism\nurl: https://docs.google.com/document/d/1Lo3CtGGESA3iQVrlhlQZbtG15ecUNt1Qfk2X3iBlwIk/edit\n\ntext: Life Expectancy\nurl: https://ourworldindata.org/grapher/life-expectancy\n[]\n{}"
+      }
+    ]
+  },
+  {
+    "id": "prominent-link",
+    "title": "Prominent Link",
+    "typeName": "EnrichedBlockProminentLink",
+    "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/ProminentLink.ts",
+    "body": "A visually prominent link tile. When pointing at another Google Doc\nregistered in the admin, all fields (title, description, thumbnail) are\nauto-fetched; you can override any of them, and for non-gdoc URLs you\nmust supply them.\n\n## When to use\n- Driving readers to a single, key related article or chart.\n\n## When NOT to use\n- Prefer `{.recirc}` for a small gray list of multiple related links.\n- Prefer `{.cta}` for a simple arrow link.\n\n## Variations\n- Gdoc URL: all fields auto-fetched; pass just `url`.\n- External URL or overrides: supply `title`, `description`, `thumbnail`.",
+    "examples": [
+      {
+        "name": "Gdoc URL (auto-fetched)",
+        "archie": "{.prominent-link}\nurl: https://docs.google.com/document/d/1Lo3CtGGESA3iQVrlhlQZbtG15ecUNt1Qfk2X3iBlwIk\n{}"
+      },
+      {
+        "name": "External URL with explicit fields",
+        "archie": "{.prominent-link}\nurl: https://ourworldindata.org\ntitle: About Our World In Data\ndescription: A simple description\nthumbnail: default-featured-image.png\n{}"
+      }
+    ]
+  },
+  {
+    "id": "pull-chart",
+    "title": "Pull Chart",
+    "typeName": "EnrichedBlockPullChart",
+    "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/PullChart.ts",
+    "body": "A chart pull — the chart equivalent of a pull quote. Shows a small chart\nthumbnail alongside descriptive text, letting you reference a chart inline\nwithout giving it full width.\n\n## When to use\n- Referencing a chart to support a point without interrupting the reading\n  flow with a full-width interactive chart.\n- The chart is ancillary and readers can click through for the full view.\n\n## When NOT to use\n- The chart is the main subject of the paragraph — use `{.chart}` or\n  `{.narrative-chart}` for a full-width interactive.\n- You want a list of several charts — use `{.chart-rows}`.\n\n## Variations\n- `align`: `left-center` (default) | `right-center` — which side the\n  thumbnail sits on.",
+    "examples": [
+      {
+        "name": "Left-aligned pull chart",
+        "archie": "{.pull-chart}\nalign: left-center\nimage: hpv-vaccines-thumbnail.png\nurl: https://ourworldindata.org/grapher/population\n[.+content]\nGlobal population has grown rapidly over the past two centuries. Click through to explore the data by country.\n[]\n{}"
+      }
+    ]
+  },
+  {
+    "id": "pull-quote",
+    "title": "Pull Quote",
+    "typeName": "EnrichedBlockPullQuote",
+    "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/PullQuote.ts",
+    "body": "A centered, italicized h1 used to re-emphasize a phrase from the surrounding\nbody text. The quote is visually set alongside a paragraph of `content`.\n\n## When to use\n- Highlight a key phrase within an article to draw the reader's eye.\n\n## When NOT to use\n- Prefer `{.blockquote}` when citing an external source — pull quotes are\n  meant to re-emphasize something from the article itself.\n\n## Variations\n- `align`: `left` | `left-center` | `right-center` | `right`",
+    "examples": [
+      {
+        "name": "Left-center aligned",
+        "archie": "{.pull-quote}\nquote: I am a left-center aligned quote that should span multiple lines.\nalign: left-center\n[.+content]\nSuspendisse commodo turpis nunc, sit amet cursus odio porttitor scelerisque.\n[]\n{}"
+      }
+    ]
+  },
+  {
+    "id": "recirc",
+    "title": "Recirc",
+    "typeName": "EnrichedBlockRecirc",
+    "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/Recirc.ts",
+    "body": "A small gray block, usually placed to the side of body text, that links\nreaders to related content (articles, graphers, explorers, MDIMs, or\nexternal URLs).\n\n## When to use\n- Surfacing related reading alongside an article.\n- Linking to charts, explorers, MDIMs, or external sources without\n  interrupting the main flow.\n\n## When NOT to use\n- Prefer `{.prominent-link}` for a single, more visually prominent link\n  tile.\n- Prefer `{.resource-panel}` on linear topic pages when you want a sticky\n  sidebar CTA.\n\n## Variations\n- `align`: `left` | `center` | `right`\n- Each link can use the linked document's own title/subtitle, or override\n  them via `title` and `subtitle`.",
+    "examples": [
+      {
+        "name": "Centered recirc with mixed links",
+        "archie": "{.recirc}\ntitle: More Articles on Mammals\nalign: center\n\n[.links]\nurl: https://docs.google.com/document/d/1Lo3CtGGESA3iQVrlhlQZbtG15ecUNt1Qfk2X3iBlwIk\n\nurl: https://docs.google.com/document/d/1Lo3CtGGESA3iQVrlhlQZbtG15ecUNt1Qfk2X3iBlwIk\ntitle: Example of a custom title\nsubtitle: Suscipit provident ratione omnis earum.\n[]\n{}"
+      }
+    ]
+  },
+  {
+    "id": "research-and-writing",
+    "title": "Research and Writing",
+    "typeName": "EnrichedBlockResearchAndWriting",
+    "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/ResearchAndWriting.ts",
+    "body": "A mosaic of article tiles linking to related work. Used to showcase\nfurther reading at the bottom of topic and linear topic pages, and on\nauthor pages as the \"All work\" section.\n\n## When to use\n- At the bottom of a topic page to link to the main articles and\n  secondary reads on that topic.\n- On linear topic pages (use `variant: featured` for a compact look).\n- On author pages to surface the author's work.\n\n## When NOT to use\n- Inside regular articles — use `{.recirc}` or `{.prominent-link}`\n  for inline recommendations.\n\n## Variations\n- `primary` is required (one or more tiles); `secondary`, `more`, and\n  `rows` sections are optional.\n- `hide-date: true` hides article dates across the block.\n- `hide-authors: true` hides authors (common on author pages where\n  the author is already implicit).\n- `variant: featured` — compact rendering used on linear topic pages.\n- Links can be gdoc URLs (metadata auto-resolved) or external links\n  (supply `title`, `authors`, `filename`).\n- A `{.latest}` block inside auto-pulls latest articles not already\n  featured (used on author pages).",
+    "examples": [
+      {
+        "name": "Full mosaic",
+        "archie": "{.research-and-writing}\n\n[.primary]\nurl: https://wikipedia.org\nauthors: Author 1, Author 2\ntitle: What are Bananas?\nsubtitle: There is no single definition of bananas.\nfilename: bananas.jpg\n[]\n\n[.secondary]\nurl: https://ourworldindata.org/optimism-and-pessimism\ntitle: Optimism and Pessimism\nauthors: Max Roser\nfilename: default-featured-image.png\n[]\n\n{.more}\nheading: More Key Articles on Poverty\n[.articles]\nurl: https://ourworldindata.org/poverty\ntitle: The history of the end of poverty has just begun\nauthors: Max Roser\n\nurl: https://ourworldindata.org/poverty-growth-needed\ntitle: The economies that are home to the poorest billions of people need to grow\nauthors: Max Roser\n[]\n{}\n\n[.rows]\nheading: A row of articles\n[.articles]\nurl: https://ourworldindata.org/optimism-and-pessimism\ntitle: Optimism and Pessimism\nauthors: Max Roser\nfilename: default-featured-image.png\n\nurl: https://ourworldindata.org/wrong-about-the-world\ntitle: Most of us are wrong about how the world has changed\nauthors: Max Roser\nfilename: default-featured-image.png\n[]\n[]\n{}"
+      },
+      {
+        "name": "Featured variant (linear topic pages)",
+        "archie": "{.research-and-writing}\nvariant: featured\n{}"
+      }
+    ]
+  },
+  {
+    "id": "resource-panel",
+    "title": "Resource Panel",
+    "typeName": "EnrichedBlockResourcePanel",
+    "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/ResourcePanel.ts",
+    "body": "A sidebar CTA used on linear topic pages that links to a small set of\ncharts and, if tagged, the data catalog. On desktop it sticks to the\ntop-right of the intro section; on mobile it appears inline where placed\nin the gdoc.\n\n## When to use\n- The intro of a linear topic page, to surface the topic's key charts.\n\n## When NOT to use\n- Prefer `{.recirc}` for a simple list of related links outside LTPs.\n\n## Variations\n- `icon`: currently only `chart` is supported.\n- `kicker` is a short label rendered above the title.\n- `buttonText` is the label of the bottom call-to-action button.",
+    "examples": [
+      {
+        "name": "LTP intro resource panel",
+        "archie": "{.resource-panel}\nkicker: Resources\nicon: chart\ntitle: Data on this topic\nbuttonText: See all data on this topic\n[.links]\nurl: https://ourworldindata.org/grapher/access-to-clean-fuels-and-technologies-for-cooking\nsubtitle: World Health Organization - Global Health Observatory (2025)\n\nurl: https://ourworldindata.org/grapher/annual-co2-emissions-per-country\nsubtitle: Global Carbon Budget (2024)\n[]\n\n{}"
+      }
+    ]
+  },
+  {
+    "id": "sdg-grid",
+    "title": "SDG Grid",
+    "typeName": "EnrichedBlockSDGGrid",
+    "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/SDGGrid.ts",
+    "body": "A grid of tiles for the UN Sustainable Development Goals. Legacy\nblock used on the SDG tracker. Undocumented in the author reference.",
+    "examples": []
+  },
+  {
+    "id": "sdg-toc",
+    "title": "SDG Table of Contents",
+    "typeName": "EnrichedBlockSDGToc",
+    "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/SDGToc.ts",
+    "body": "Table of contents for the SDG tracker. Legacy block. Undocumented in\nthe author reference.",
+    "examples": []
+  },
+  {
+    "id": "side-by-side",
+    "title": "Side by Side",
+    "typeName": "EnrichedBlockSideBySideContainer",
+    "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/SideBySide.ts",
+    "body": "A two-column layout with left and right columns of roughly equal weight.\nCollapses to a single column at the smartphone breakpoint (stays\nside-by-side on tablets, unlike `{.sticky-right}` / `{.sticky-left}`).\n\n## When to use\n- Two visuals or short blocks of text to compare side-by-side.\n- Layouts that should remain two-column even on tablets.\n\n## When NOT to use\n- When one column is long-form text and the other a visual that should\n  stay visible — use `{.sticky-right}` or `{.sticky-left}`.",
+    "examples": [
+      {
+        "name": "Two text blocks side-by-side",
+        "archie": "{.side-by-side}\n[.+left]\nI am content on the left.\n[]\n[.+right]\nI am content on the right.\n[]\n{}"
+      }
+    ]
+  },
+  {
+    "id": "simple-text",
+    "title": "Simple Text",
+    "typeName": "EnrichedBlockSimpleText",
+    "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/SimpleText.ts",
+    "body": "A plain-text fragment without any inline formatting (no bold, italics,\nor links). Used as an internal primitive for blocks whose text must be\nflat — for example, inside `{.code}` — and is not authored directly in\nArchieML.",
+    "examples": []
+  },
+  {
+    "id": "socials",
+    "title": "Socials",
+    "typeName": "EnrichedBlockSocials",
+    "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/Socials.ts",
+    "body": "A list of social / contact links. Used on author pages (as the\n`[socials]` section) and inside `{.person}` blocks on about pages.\n\n## When to use\n- On an author page to link to the author's social profiles and\n  email.\n- Inside a `{.person}` block on an about page.\n\n## When NOT to use\n- Inline in article body — use normal links.\n\n## Variations\n- `type` values: `link`, `email`, `x`, `facebook`, `instagram`,\n  `youtube`, `linkedin`, `threads`, `mastodon`, `bluesky`.",
+    "examples": []
+  },
+  {
+    "id": "static-viz",
+    "title": "Static Viz",
+    "typeName": "EnrichedBlockStaticViz",
+    "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/StaticViz.ts",
+    "body": "An \"enhanced image\" block for flagship data visualizations. Registered\nin the admin with a description and a source-data link; renders as a\nregular image but a \"Download\" action opens a modal exposing the\nadditional metadata.\n\n## When to use\n- Flagship / bespoke data visualizations where readers should be able\n  to inspect or download the underlying data.\n\n## When NOT to use\n- Regular photos, screenshots, or illustrations — use `{.image}`.\n- Interactive charts — use `{.chart}` or `{.narrative-chart}`.\n\n## Variations\n- `size`: `narrow` | `wide` (default) | `widest`\n- `hasOutline`: `true` | `false`",
+    "examples": [
+      {
+        "name": "Basic",
+        "archie": "{.static-viz}\nname: grapher-static-viz-demo\n{}"
+      }
+    ]
+  },
+  {
+    "id": "sticky-left",
+    "title": "Sticky Left",
+    "typeName": "EnrichedBlockStickyLeftContainer",
+    "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/StickyLeft.ts",
+    "body": "A two-column layout where the left column sticks to the viewport as the\nreader scrolls through the (typically longer) right column. Mirror of\n`{.sticky-right}`. Collapses to a single column at the tablet breakpoint.\n\n## When to use\n- Long-form text on the right discussing a chart or visual on the left —\n  so the visual stays visible as the reader scrolls.\n\n## When NOT to use\n- When the sticky side should be the right column — use `{.sticky-right}`\n  (more common).\n- For roughly equal-weight columns — use `{.side-by-side}`.",
+    "examples": [
+      {
+        "name": "Chart on the left sticks, text on the right",
+        "archie": "{.sticky-left}\n[.+left]\n{.chart}\nurl: https://ourworldindata.org/grapher/military-expenditure-share-gdp\n{}\nSticky left content.\n[]\n[.+right]\nRight content.\n[]\n{}"
+      }
+    ]
+  },
+  {
+    "id": "sticky-right",
+    "title": "Sticky Right",
+    "typeName": "EnrichedBlockStickyRightContainer",
+    "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/StickyRight.ts",
+    "body": "A two-column layout where the right column sticks to the viewport as the\nreader scrolls through the (typically longer) left column. Collapses to a\nsingle column at the tablet breakpoint.\n\n## When to use\n- Long-form text on the left that discusses a chart, image, or visual on\n  the right — so the visual stays visible as the reader scrolls.\n- Guided-chart sections where the chart is in the right column.\n\n## When NOT to use\n- Two roughly equal-weight blocks that should collapse at a narrower\n  breakpoint — use `{.side-by-side}` instead.\n- When the sticky side should be the left column — use `{.sticky-left}`.",
+    "examples": [
+      {
+        "name": "Text on the left, chart sticks on the right",
+        "archie": "{.sticky-right}\n[.+left]\nContent on the left. Lorem ipsum dolor sit amet.\n[]\n[.+right]\n{.chart}\nurl: https://ourworldindata.org/grapher/military-expenditure-share-gdp\n{}\nContent on the right that sticks as the user scrolls.\n[]\n{}"
+      }
+    ]
+  },
+  {
+    "id": "subscribe-banner",
+    "title": "Subscribe Banner",
+    "typeName": "EnrichedBlockSubscribeBanner",
+    "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/SubscribeBanner.ts",
+    "body": "A small gray block inviting readers to subscribe. Added automatically to\nevery article and linear topic page; only include this block manually if\nyou want an additional copy inline.\n\n## When to use\n- Embedding a subscribe CTA inline within an article.\n\n## When NOT to use\n- The default subscribe banner is inserted automatically. To disable it\n  on a specific article, set `hide-subscribe-banner: true` in the\n  front-matter instead of using this block.\n\n## Variations\n- `align`: `left` | `center` | `right`",
+    "examples": [
+      {
+        "name": "Centered",
+        "archie": "{.subscribe-banner}\nalign: center\n{}"
+      }
+    ]
+  },
+  {
+    "id": "table",
+    "title": "Table",
+    "typeName": "EnrichedBlockTable",
+    "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/Table.ts",
+    "body": "A simple table, built from a native Google Docs table wrapped in an\narchie block. Three header templates are supported.\n\n## When to use\n- Small-to-medium tables that are best authored directly in Google Docs.\n\n## When NOT to use\n- For very large or complex tables, wrap a Google Docs table inside an\n  `{.expander}` so it can be hidden by default.\n\n## Variations\n- `template`: `header-column` | `header-row` | `header-column-row`\n- `size`: `narrow` | `wide` — defaults to spanning 6 columns; use `wide`\n  for full width.\n- `caption` is optional and supports rich text (including links).\n\nNote: the actual `<table>` markup is authored directly in Google Docs; the\nblock wrapper only configures the template, size, and caption.\n\nA `{.table}` block in archie only configures the wrapper (template, size,\ncaption); the actual rows come from a native Google Docs table placed\nbetween the opening `{.table}` and closing `{}` inside the Gdoc. Because the\nrows can't be expressed in pure ArchieML text, this component has no\nstandalone `@example`.",
+    "examples": []
+  },
+  {
+    "id": "text",
+    "title": "Text",
+    "typeName": "EnrichedBlockText",
+    "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/Text.ts",
+    "body": "A paragraph of prose. This is the default block generated from plain\ntext in a Google Doc — authors don't usually write it explicitly.\nText spans support Google Docs formatting (bold, italic, links,\nsuperscript, subscript), refs, and details-on-demand links.",
+    "examples": []
+  },
+  {
+    "id": "topic-page-intro",
+    "title": "Topic Page Intro",
+    "typeName": "EnrichedBlockTopicPageIntro",
+    "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/TopicPageIntro.ts",
+    "body": "The introduction section of a topic page. Renders the topic title,\noptional download button, optional related-topics chips, and an intro\nbody of rich text.\n\n## When to use\n- Included on every topic page (`type: topic-page`) as the first block\n  of the body.\n\n## When NOT to use\n- On non-topic-page documents (articles, data insights, linear topic\n  pages, homepage, etc.).\n\n## Variations\n- `download-button` is optional — omit if there is no canonical\n  dataset to offer for download.\n- `related-topics` entries can be gdoc links (metadata resolves\n  automatically) or external URLs (must supply `text`).",
+    "examples": [
+      {
+        "name": "Basic",
+        "archie": "{.topic-page-intro}\n{.download-button}\ntext: Download all data on this topic\nurl: https://github.com/owid\n{}\n\n[.related-topics]\nurl: https://docs.google.com/document/d/1g_38g_DYBW8yhTJ2-heHJ4UFwBju41xlZGfirV7VZak/edit\n\nurl: https://ourworldindata.org/co2-and-other-greenhouse-gas-emissions\ntext: CO₂ and Greenhouse Gas Emissions\n[]\n\n[+.content]\nIntro text for this topic page.\n[]\n{}"
+      },
+      {
+        "name": "Minimal (content only)",
+        "archie": "{.topic-page-intro}\n[+.content]\nA short introduction to the topic.\n[]\n{}"
+      }
+    ]
+  },
+  {
+    "id": "list",
+    "title": "Unordered List",
+    "typeName": "EnrichedBlockList",
+    "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/UnorderedList.ts",
+    "body": "An unordered (bulleted) list. Produced automatically from Google Docs\nbullet formatting — authors don't usually write this block explicitly\nin ArchieML. Nested lists are not supported.",
+    "examples": []
+  },
+  {
+    "id": "video",
+    "title": "Video",
+    "typeName": "EnrichedBlockVideo",
+    "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/Video.ts",
+    "body": "An embedded video hosted on OWID's CloudFlare. Videos are not hosted in\nGoogle Drive — a developer must upload the compressed video first\n(compress via Handbrake before uploading).\n\n## When to use\n- Short screencasts, animations, or motion visuals that need autoplay /\n  loop behavior.\n\n## When NOT to use\n- External videos (YouTube, Vimeo) — use an iframe inside an `{.html}`\n  block.\n- Static imagery — use `{.image}`.\n\n## Variations\n- `shouldLoop`: `true` | `false`\n- `shouldAutoplay`: `true` | `false`\n- `visibility`: `mobile` | `desktop`\n- `filename` is the poster / preview image (same aspect ratio as the\n  video, usually the first frame) and must be registered in the admin.",
+    "examples": [
+      {
+        "name": "Looping autoplay with a poster image",
+        "archie": "{.video}\nurl: https://assets.ourworldindata.org/videos/bunny.mp4\nfilename: bunny-poster.jpg\nshouldLoop: true\nshouldAutoplay: true\nvisibility: desktop\ncaption: I am a caption for this video. I can have links.\n{}"
+      }
+    ]
+  }
+]
