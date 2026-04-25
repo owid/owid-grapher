@@ -34,14 +34,12 @@ export const GdocsEditLink = ({
                 ? `${CONTENT_REPO_PATH.replace(/\/$/, "")}/${relPath}`
                 : null
         // Opens a Claude Code session scoped to the content repo. `code/new`
-        // doesn't accept a `file` parameter, so the file path is threaded into
-        // the prompt. Claude Code is chosen over cowork because it has the
-        // preview panel authors use for the edit-refresh loop. See
-        // https://support.claude.com/en/articles/14729294-open-claude-desktop-with-a-link
+        // doesn't accept a `file` parameter, so the prompt is kept minimal:
+        // just enough to open the file and launch the preview flow quickly.
         const claudeUrl =
             absPath && relPath
                 ? `claude://code/new?folder=${encodeURIComponent(CONTENT_REPO_PATH!)}&q=${encodeURIComponent(
-                      `Open ${relPath} and help me edit it. Use the owid-content skill; consult the component registry before suggesting ArchieML.`
+                      `Open ${relPath} and preview it.`
                   )}`
                 : null
         // Fallback if CONTENT_REPO_PATH isn't configured on the client: show
