@@ -70,6 +70,10 @@ export function GrapherFigureView(
         <figure className="chart grapher-component" ref={base}>
             {bounds && (
                 <FetchingGrapher
+                    // Remount when switching between chart configs (e.g. related charts)
+                    // so we don't briefly render the previous GrapherState while
+                    // fetching the new config/data.
+                    key={configUrl ?? slug}
                     config={config}
                     configUrl={configUrl}
                     dataApiUrl={DATA_API_URL}
