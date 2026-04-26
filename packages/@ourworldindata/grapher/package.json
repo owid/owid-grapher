@@ -46,6 +46,7 @@
         "topojson-client": "^3.1.0",
         "ts-pattern": "^5.8.0",
         "url-join": "^5.0.0",
+        "usehooks-ts": "^3.1.1",
         "versor": "^0.2.0"
     },
     "devDependencies": {

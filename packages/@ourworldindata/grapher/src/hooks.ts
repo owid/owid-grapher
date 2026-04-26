@@ -10,6 +10,7 @@ import {
     type DataDownloadContextBase,
     type DataDownloadContextServerSide,
 } from "./download.js"
+import { useIsomorphicLayoutEffect } from "usehooks-ts"
 
 /**
  * Like useState, but clearing (setting to undefined) is debounced.
@@ -91,19 +92,52 @@ export function useDataApiDownloadConfig({
 
 // Auto-updating Bounds object based on ResizeObserver
 // Optionally throttles the bounds updates
-export const useElementBounds = (
+export function useElementBounds(ref: RefObject<HTMLElement | null>): Bounds
+export function useElementBounds(
     ref: RefObject<HTMLElement | null>,
-    initialValue: Bounds = DEFAULT_GRAPHER_BOUNDS,
-    throttleTime: number | undefined = 100
-) => {
-    const [bounds, setBounds] = useState<Bounds>(initialValue)
+    initialValue: Bounds,
+    throttleTime?: number
+): Bounds
+export function useElementBounds(
+    ref: RefObject<HTMLElement | null>,
+    initialValue: undefined,
+    throttleTime?: number
+): Bounds | undefined
+export function useElementBounds(
+    ref: RefObject<HTMLElement | null>,
+    ...options:
+        | []
+        | [initialValue: Bounds, throttleTime?: number]
+        | [initialValue: undefined, throttleTime?: number]
+): Bounds | undefined {
+    const initialValue =
+        options.length === 0 ? DEFAULT_GRAPHER_BOUNDS : options[0]
+    const throttleTime = options[1] ?? 100
+    const [bounds, setBounds] = useState<Bounds | undefined>(initialValue)
 
     const updateBoundsImmediately = useCallback(
         (width: number, height: number) => {
-            setBounds(new Bounds(0, 0, width, height))
+            setBounds((currentBounds) => {
+                if (
+                    currentBounds?.width === width &&
+                    currentBounds.height === height
+                ) {
+                    return currentBounds
+                }
+
+                return new Bounds(0, 0, width, height)
+            })
         },
         []
     )
+
+    useIsomorphicLayoutEffect(() => {
+        const element = ref.current
+        if (!element) return
+
+        const { width, height } = element.getBoundingClientRect()
+        updateBoundsImmediately(width, height)
+    }, [ref, updateBoundsImmediately])
 
     const updateBoundsThrottled = useMemo(
         () =>
