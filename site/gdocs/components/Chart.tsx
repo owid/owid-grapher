@@ -15,10 +15,12 @@ export default function Chart({
     d,
     className,
     fullWidthOnMobile = false,
+    hideControls = false,
 }: {
     d: EnrichedBlockChart
     className?: string
     fullWidthOnMobile?: boolean
+    hideControls?: boolean
 }) {
     const { isPreviewing, archiveContext } = useDocumentContext()
     const refChartContainer = useRef<HTMLDivElement>(null)
@@ -39,6 +41,10 @@ export default function Chart({
     // This means we can link to the same chart multiple times with different querystrings
     // and it should all resolve correctly via the same linkedChart
     const { linkedChart } = useLinkedChart(d.url)
+    const configType = linkedChart?.configType
+    const isExplorer = configType === ChartConfigType.Explorer
+    const isMultiDim = configType === ChartConfigType.MultiDim
+    const shouldApplyHideControls = hideControls && (isExplorer || isMultiDim)
     const resolvedUrl = linkedChart?.resolvedUrl ?? ""
     const resolvedUrlParsed = useMemo(() => {
         let baseUrl = Url.fromURL(resolvedUrl)
@@ -50,8 +56,12 @@ export default function Chart({
             })
         }
 
+        if (shouldApplyHideControls) {
+            baseUrl = baseUrl.updateQueryParams({ hideControls: "true" })
+        }
+
         return baseUrl
-    }, [resolvedUrl, d.peerCountries])
+    }, [resolvedUrl, d.peerCountries, shouldApplyHideControls])
     const resolvedQueryParams = useMemo(() => {
         return { ...resolvedUrlParsed.queryParams }
     }, [resolvedUrlParsed])
@@ -61,12 +71,10 @@ export default function Chart({
         }),
         [linkedChart?.archivedPageVersion]
     )
-    const configType = linkedChart?.configType
-    const isExplorer = configType === ChartConfigType.Explorer
-    const isMultiDim = configType === ChartConfigType.MultiDim
-    const hasControls = resolvedUrlParsed.queryParams.hideControls !== "true"
-    const isExplorerWithControls = isExplorer && hasControls
-    const isMultiDimWithControls = isMultiDim && hasControls
+    const controlsAreVisible =
+        resolvedUrlParsed.queryParams.hideControls !== "true"
+    const isExplorerWithControls = isExplorer && controlsAreVisible
+    const isMultiDimWithControls = isMultiDim && controlsAreVisible
 
     const archivedChartVersion = linkedChart?.archivedPageVersion
     const shouldRenderArchiveEmbed =
@@ -175,7 +183,7 @@ export default function Chart({
                 </figure>
             ) : isMultiDim ? (
                 <MultiDimEmbed
-                    url={resolvedUrl}
+                    url={resolvedUrlParsed.fullUrl}
                     chartConfig={chartConfig}
                     isPreviewing={isPreviewing}
                 />
