@@ -139,10 +139,20 @@ $slide-content-height: $grapher-height;
     }
 
     .slide {
-        display: none;
-        &[data-active="true"] {
-            display: block;
-        }
+        // Keep inactive slides in the layout tree, rather than using
+        // `display: none`. Interactive charts can render while their slide is
+        // inactive (especially once chart data is cached); if their container
+        // has no measurable width, Grapher briefly lays out its title in a
+        // one-letter-per-line column when the slide is shown.
+        height: 0;
+        overflow: hidden;
+        visibility: hidden;
+    }
+
+    .slide[data-active="true"] {
+        height: auto;
+        overflow: visible;
+        visibility: visible;
     }
 }
 
