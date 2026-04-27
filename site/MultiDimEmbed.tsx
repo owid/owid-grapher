@@ -43,7 +43,7 @@ export function MultiDimEmbed({
     const shouldRenderMultiDim = isClient && hasBeenVisible && config
 
     return (
-        <div ref={ref}>
+        <div className="multi-dim-embed" ref={ref}>
             {shouldRenderMultiDim ? (
                 <MultiDim
                     slug={slug}

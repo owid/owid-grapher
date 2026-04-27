@@ -583,6 +583,7 @@ export class GrapherState
     hideControlsRow = false
     hideRelatedQuestion = false
     canHideExternalControlsInEmbed: boolean = false
+    recommendedIframeEmbedHeight?: number
     hideExternalControlsInEmbedUrl: boolean =
         this.canHideExternalControlsInEmbed
     forceHideAnnotationFieldsInTitle: AnnotationFieldsInTitle = {
@@ -712,6 +713,7 @@ export class GrapherState
             isConfigReady: observable,
             isDataReady: observable,
             canHideExternalControlsInEmbed: observable.ref,
+            recommendedIframeEmbedHeight: observable.ref,
             hideExternalControlsInEmbedUrl: observable.ref,
             isExportingToSvgOrPng: observable.ref,
             isWikimediaExport: observable.ref,
@@ -762,6 +764,7 @@ export class GrapherState
         this.setAuthoredVersion(options)
         this.canHideExternalControlsInEmbed =
             options.canHideExternalControlsInEmbed ?? false
+        this.recommendedIframeEmbedHeight = options.recommendedIframeEmbedHeight
         this.staticBounds = options.staticBounds ?? DEFAULT_GRAPHER_BOUNDS
 
         this.narrativeChartInfo = options.narrativeChartInfo

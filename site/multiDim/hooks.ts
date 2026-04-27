@@ -30,6 +30,10 @@ export const useBaseGrapherConfig = (
             adminBaseUrl: ADMIN_BASE_URL,
             dataApiUrl: DATA_API_URL,
             canHideExternalControlsInEmbed: true,
+            // Iframe embeds are 600px tall when external controls are hidden.
+            // Multi-dim controls need another 74px, so the embed code we
+            // recommend for multi-dims with controls is 674px tall.
+            recommendedIframeEmbedHeight: 674,
             ...additionalConfig,
         }
     }, [additionalConfig])

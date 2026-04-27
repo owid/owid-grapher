@@ -6,8 +6,58 @@ html.js-disabled figure.chart.GrapherWithFallback__fallback {
     height: auto;
 }
 
-figure.explorer {
+.owid-chart-frame {
+    width: 100%;
+    height: $grapher-height;
+
+    figure,
+    .GrapherWithFallback,
+    .GrapherWithFallback > figure,
+    .multi-dim-embed,
+    .multi-dim-container,
+    .multi-dim-grapher-container,
+    .Explorer,
+    .ExplorerFigure {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+    }
+
+    .GrapherComponent {
+        display: block;
+        margin: 0 auto;
+    }
+
+    .Explorer {
+        max-width: none;
+        min-height: 0;
+        max-height: none;
+    }
+
+    .ExplorerFigure {
+        min-height: 0;
+        max-height: none;
+    }
+}
+
+.owid-chart-frame--explorer-with-controls {
     height: 700px;
+}
+
+.owid-chart-frame--multi-dim-with-controls {
+    // Let the settings panel take as much space as it needs, while keeping the
+    // Grapher itself at the expected article embed height.
+    height: auto;
+
+    .multi-dim-embed,
+    .multi-dim-container {
+        height: auto;
+    }
+
+    .multi-dim-grapher-container {
+        flex: 0 0 auto;
+        height: $grapher-height;
+    }
 }
 
 div.margin-0 figure {

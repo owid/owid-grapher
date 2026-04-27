@@ -109,6 +109,7 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     isConfigReady?: boolean
     isDataReady?: boolean
     canHideExternalControlsInEmbed?: boolean
+    recommendedIframeEmbedHeight?: number
 
     narrativeChartInfo?: MinimalNarrativeChartInfo
     archiveContext?: ArchiveContext
