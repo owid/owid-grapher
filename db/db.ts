@@ -904,29 +904,16 @@ export async function selectReplacementChainForImage(
 export function getCloudflareImages(
     trx: KnexReadonlyTransaction,
     options?: {
-        excludeFeaturedImages?: boolean
-        excludeThumbnails?: boolean
-        excludeResearchAndWriting?: boolean
+        excludeArticleThumbnails?: boolean
     }
 ): Promise<DbEnrichedImageWithPageviews[]> {
-    const {
-        excludeFeaturedImages = false,
-        excludeThumbnails = false,
-        excludeResearchAndWriting = false,
-    } = options || {}
+    const { excludeArticleThumbnails = false } = options || {}
 
     let havingClause = ""
     const conditions: string[] = []
 
-    if (excludeFeaturedImages) {
-        conditions.push("isFeaturedImage = 0")
-        conditions.push("isBodyContent = 1")
-    }
-    if (excludeThumbnails) {
-        conditions.push("i.filename NOT LIKE '%thumbnail%'")
-    }
-    if (excludeResearchAndWriting) {
-        conditions.push("isInResearchAndWriting = 0")
+    if (excludeArticleThumbnails) {
+        conditions.push("isArticleThumbnail = 0")
     }
 
     if (conditions.length > 0) {
@@ -939,9 +926,8 @@ export function getCloudflareImages(
         SELECT
             i.*,
             COALESCE(SUM(CASE WHEN pxi.context = 'content' THEN pv.views_365d ELSE 0 END), 0) AS views_365d,
-            MAX(CASE WHEN i.filename = pg.content->>'$."featured-image"' THEN 1 ELSE 0 END) AS isFeaturedImage,
             MAX(CASE WHEN pxi.context = 'content' THEN 1 ELSE 0 END) AS isBodyContent,
-            MAX(CASE WHEN pxi.context = 'article-thumbnail' THEN 1 ELSE 0 END) AS isInResearchAndWriting
+            MAX(CASE WHEN pxi.context = 'article-thumbnail' THEN 1 ELSE 0 END) AS isArticleThumbnail
         FROM images i
         LEFT JOIN posts_gdocs_x_images pxi ON i.id = pxi.imageId
         LEFT JOIN posts_gdocs pg ON pxi.gdocId = pg.id AND pg.published = 1

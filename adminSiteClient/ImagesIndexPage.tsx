@@ -51,17 +51,13 @@ type ImageMap = Record<string, DbEnrichedImageWithPageviews>
 
 type ImageTypeFilter =
     | "all"
-    | "featured-thumbnail-rw"
+    | "article-thumbnail"
     | "content"
     | "content-and-thumbnail"
     | "other"
 
 function isUsedAsThumbnail(image: DbEnrichedImageWithPageviews): boolean {
-    return (
-        image.isFeaturedImage === 1 ||
-        image.filename.toLowerCase().includes("thumbnail") ||
-        image.isInResearchAndWriting === 1
-    )
+    return image.isArticleThumbnail === 1
 }
 
 function getImageType(image: DbEnrichedImageWithPageviews): ImageTypeFilter {
@@ -76,7 +72,7 @@ function getImageType(image: DbEnrichedImageWithPageviews): ImageTypeFilter {
     }
 
     if (isUsedAsThumbnail(image)) {
-        return "featured-thumbnail-rw"
+        return "article-thumbnail"
     }
 
     return "other"
@@ -895,12 +891,12 @@ export function ImageIndexPage() {
                                     { value: "all", label: "All images" },
                                     { value: "content", label: "Content" },
                                     {
-                                        value: "featured-thumbnail-rw",
-                                        label: "Thumbnails or featured images",
+                                        value: "article-thumbnail",
+                                        label: "Article thumbnails",
                                     },
                                     {
                                         value: "content-and-thumbnail",
-                                        label: "Used in both content and thumbnail",
+                                        label: "Content and article thumbnails",
                                     },
                                     { value: "other", label: "Other" },
                                 ]}
