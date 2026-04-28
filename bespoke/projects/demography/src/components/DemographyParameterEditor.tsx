@@ -106,9 +106,13 @@ function DemographyParameterEditorContent({
 
     const controlPoints = simulation.scenarioParams[variant]
     const referencePoints = simulation.unwppScenarioParams[variant]
+    const initialControlPoints = simulation.initialScenarioParams[variant]
 
     const unwppValues = unwppProjectionPoints.map((d) => d.value)
     const historicalValues = historicalDataPoints.map((d) => d.value)
+    const initialControlValues = CONTROL_YEARS.map(
+        (y) => initialControlPoints[y]
+    )
 
     const minValue =
         yMinOverride ??
@@ -116,12 +120,17 @@ function DemographyParameterEditorContent({
             config.yFloor ?? -Infinity,
             Math.min(
                 Math.min(...unwppValues) - config.yPadding,
-                Math.min(...historicalValues)
+                Math.min(...historicalValues),
+                Math.min(...initialControlValues) - config.yPadding
             )
         )
-    const maxValue = Math.max(
-        Math.max(...unwppValues) + config.yPadding,
-        Math.max(...historicalValues)
+    const maxValue = Math.min(
+        config.yCeiling ?? Infinity,
+        Math.max(
+            Math.max(...unwppValues) + config.yPadding,
+            Math.max(...historicalValues),
+            Math.max(...initialControlValues) + config.yPadding
+        )
     )
 
     const innerWidth = width - margin.left - margin.right

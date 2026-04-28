@@ -24,6 +24,7 @@ interface ParameterConfig {
     axisUnit: string
     yPadding: number
     yFloor?: number
+    yCeiling?: number
     subtitle: (entityName: string) => string
     tooltipContent: string
     formatValue: (value: number) => string
@@ -99,6 +100,7 @@ export const parameterConfigByKey: Record<ParameterKey, ParameterConfig> = {
         axisUnit: "years",
         yPadding: 10,
         yFloor: 0,
+        yCeiling: 130,
         subtitle: () =>
             "Years a newborn is expected to live, given current mortality rates",
         tooltipContent:

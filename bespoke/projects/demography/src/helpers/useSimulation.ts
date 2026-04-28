@@ -66,6 +66,7 @@ export interface Simulation {
     unwppBenchmarkResults: Record<number, YearResult>
     unwppScenarioParams: ScenarioParams
     baselineParams: BaselineParams
+    initialScenarioParams: ScenarioParams
     scenarioParams: ScenarioParams
     isModified: boolean
     modifiedParameters: Set<ParameterKey>
@@ -333,14 +334,12 @@ export function useSimulation(
         }
     }, [data, country])
 
-    // Set default scenario when core changes
-    const effectiveScenarioParams = useMemo(() => {
+    // Snapshot of scenario params before any user modification. Merges initial
+    // overrides with defaults at both the parameter level (fertility vs life
+    // expectancy vs migration) and the control-year level, so that partial
+    // overrides like { 2100: 1.5 } fill missing years from the UN WPP.
+    const initialScenarioParams = useMemo(() => {
         if (!core) return null
-        if (scenarioParams) return scenarioParams
-        // Merge initial overrides with defaults — both at the parameter
-        // level (fertility vs life expectancy vs migration) and at the
-        // control-year level within each parameter, so that partial
-        // overrides like { 2100: 1.5 } fill missing years from the UN WPP.
         if (initialScenarioOverrides) {
             return {
                 fertilityRate: {
@@ -358,7 +357,12 @@ export function useSimulation(
             }
         }
         return core.defaultScenario
-    }, [core, scenarioParams, initialScenarioOverrides])
+    }, [core, initialScenarioOverrides])
+
+    const effectiveScenarioParams = useMemo(
+        () => scenarioParams ?? initialScenarioParams,
+        [scenarioParams, initialScenarioParams]
+    )
 
     // Forecast results (recomputed when scenario changes)
     const forecastResults = useMemo(() => {
@@ -482,7 +486,13 @@ export function useSimulation(
 
     const isModified = modifiedParameters.size > 0
 
-    if (!data || !core || !effectiveScenarioParams || !forecastResults)
+    if (
+        !data ||
+        !core ||
+        !initialScenarioParams ||
+        !effectiveScenarioParams ||
+        !forecastResults
+    )
         return null
 
     return {
@@ -492,6 +502,7 @@ export function useSimulation(
         unwppBenchmarkResults: core.unwppBenchmarkResults,
         unwppScenarioParams: core.defaultScenario,
         baselineParams: core.baselineParams,
+        initialScenarioParams,
         scenarioParams: effectiveScenarioParams,
         isModified,
         modifiedParameters,
