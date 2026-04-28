@@ -6,8 +6,12 @@ import * as db from "../db/db.js"
 import { DbPlainTag, DbPlainUser } from "@ourworldindata/utils"
 import { isPathRedirectedToExplorer } from "../explorerAdminServer/ExplorerRedirects.js"
 import { hashMd5 } from "../serverUtils/hash.js"
-import { BAKE_ON_CHANGE } from "../settings/serverSettings.js"
+import {
+    BAKE_ON_CHANGE,
+    BUILDKITE_API_ACCESS_TOKEN,
+} from "../settings/serverSettings.js"
 import { DeployQueueServer } from "./DeployQueueServer.js"
+import { triggerBuildkiteDeploy } from "./BuildkiteDeployUtils.js"
 
 // Combines a grapher slug, and potentially its query string, to _part_ of an export file
 // name. It's called fileKey and not fileName because the actual export filename also includes
@@ -97,10 +101,14 @@ export const triggerStaticBuild = async (
         return
     }
 
-    return new DeployQueueServer().enqueueChange({
+    const change = {
         timeISOString: new Date().toISOString(),
         authorName: user.fullName,
         authorEmail: user.email,
         message: commitMessage,
-    })
+    }
+
+    if (BUILDKITE_API_ACCESS_TOKEN) return triggerBuildkiteDeploy([change])
+
+    return new DeployQueueServer().enqueueChange(change)
 }

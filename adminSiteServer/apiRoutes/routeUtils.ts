@@ -1,7 +1,11 @@
 import * as _ from "lodash-es"
 import { DbPlainUser } from "@ourworldindata/types"
 import { DeployQueueServer } from "../../baker/DeployQueueServer.js"
-import { BAKE_ON_CHANGE } from "../../settings/serverSettings.js"
+import { triggerBuildkiteDeploy } from "../../baker/BuildkiteDeployUtils.js"
+import {
+    BAKE_ON_CHANGE,
+    BUILDKITE_API_ACCESS_TOKEN,
+} from "../../settings/serverSettings.js"
 
 export const enqueueLightningChange = async (
     user: DbPlainUser,
@@ -15,13 +19,17 @@ export const enqueueLightningChange = async (
         return
     }
 
-    return new DeployQueueServer().enqueueChange({
+    const change = {
         timeISOString: new Date().toISOString(),
         authorName: user.fullName,
         authorEmail: user.email,
         message: commitMessage,
         slug,
-    })
+    }
+
+    if (BUILDKITE_API_ACCESS_TOKEN) return triggerBuildkiteDeploy([change])
+
+    return new DeployQueueServer().enqueueChange(change)
 }
 
 /**

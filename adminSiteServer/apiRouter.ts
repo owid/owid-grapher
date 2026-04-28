@@ -2,6 +2,7 @@
 
 import { TaggableType } from "@ourworldindata/types"
 import { DeployQueueServer } from "../baker/DeployQueueServer.js"
+import { BuildkiteTrigger } from "../baker/BuildkiteTrigger.js"
 import {
     updateVariableAnnotations,
     getChartBulkUpdate,
@@ -77,6 +78,7 @@ import {
     handleDeleteChartRedirect,
 } from "./apiRoutes/redirects.js"
 import { triggerStaticBuild } from "../baker/GrapherBakingUtils.js"
+import { BUILDKITE_API_ACCESS_TOKEN } from "../settings/serverSettings.js"
 import {
     suggestGptTopics,
     suggestGptAltTextForCloudflareImage,
@@ -644,7 +646,9 @@ postRouteWithRWTransaction(apiRouter, "/slack/sendMessage", sendMessageToSlack)
 
 // Deploy helpers
 apiRouter.get("/deploys.json", async () => ({
-    deploys: await new DeployQueueServer().getDeploys(),
+    deploys: BUILDKITE_API_ACCESS_TOKEN
+        ? await new BuildkiteTrigger().getUnfinishedDeploys()
+        : await new DeployQueueServer().getDeploys(),
 }))
 
 apiRouter.put("/deploy", async (req, res) => {

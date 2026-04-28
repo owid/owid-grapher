@@ -1,35 +1,19 @@
-import * as _ from "lodash-es"
-import fs from "fs-extra"
-import { BuildkiteTrigger } from "../baker/BuildkiteTrigger.js"
 import { DeployQueueServer } from "./DeployQueueServer.js"
 import {
     BAKED_SITE_DIR,
     BAKED_BASE_URL,
     BUILDKITE_API_ACCESS_TOKEN,
-    SLACK_BOT_OAUTH_TOKEN,
-    ENV,
 } from "../settings/serverSettings.js"
 import { SiteBaker } from "../baker/SiteBaker.js"
-import { WebClient } from "@slack/web-api"
 import { DeployChange, DeployMetadata } from "@ourworldindata/utils"
 import { KnexReadonlyTransaction } from "../db/db.js"
+import {
+    getChangesAuthorNames,
+    getDeployMetadata,
+    triggerBuildkiteDeploy,
+} from "./BuildkiteDeployUtils.js"
 
 const deployQueueServer = new DeployQueueServer()
-
-export const defaultCommitMessage = async (): Promise<string> => {
-    let message = "Automated update"
-
-    // In the deploy.sh script, we write the current git rev to 'public/head.txt'
-    // and want to include it in the deploy commit message
-    try {
-        const sha = await fs.readFile("public/head.txt", "utf8")
-        message += `\nowid/owid-grapher@${sha}`
-    } catch (err) {
-        console.warn(err)
-    }
-
-    return message
-}
 
 /**
  * Initiate a deploy, without any checks. Throws error on failure.
@@ -42,15 +26,8 @@ const triggerBakeAndDeploy = async (
 ) => {
     // deploy to Buildkite if we're on master and BUILDKITE_API_ACCESS_TOKEN is set
     if (BUILDKITE_API_ACCESS_TOKEN) {
-        const buildkite = new BuildkiteTrigger()
-        if (lightningQueue?.length) {
-            await buildkite.runLightningBuild(
-                lightningQueue.map((change) => change.slug!),
-                deployMetadata
-            )
-        } else {
-            await buildkite.runFullBuild(deployMetadata)
-        }
+        const queueItems = lightningQueue ?? [{ message: deployMetadata.title }]
+        await triggerBuildkiteDeploy(queueItems)
     } else {
         // otherwise, bake locally. This is used for local development or staging servers
         const baker = new SiteBaker(BAKED_SITE_DIR, BAKED_BASE_URL)
@@ -68,98 +45,6 @@ const triggerBakeAndDeploy = async (
     }
 }
 
-const getChangesAuthorNames = (queueItems: DeployChange[]): string[] => {
-    // Do not remove duplicates here, because we want to show the history of changes within a deploy
-    return queueItems
-        .map((item) => `${item.message} (by ${item.authorName})`)
-        .filter(Boolean)
-}
-
-const getChangesSlackMentions = async (
-    queueItems: DeployChange[]
-): Promise<string[]> => {
-    const emailSlackMentionMap = await getEmailSlackMentionsMap(queueItems)
-
-    // Do not remove duplicates here, because we want to show the history of changes within a deploy
-    return queueItems.map(
-        (item) =>
-            `${item.message} (by ${
-                !item.authorEmail
-                    ? item.authorName
-                    : (emailSlackMentionMap.get(item.authorEmail) ??
-                      item.authorName)
-            })`
-    )
-}
-
-const getEmailSlackMentionsMap = async (
-    queueItems: DeployChange[]
-): Promise<Map<string, string>> => {
-    if (ENV === "staging" || !SLACK_BOT_OAUTH_TOKEN) return new Map()
-
-    const slackClient = new WebClient(SLACK_BOT_OAUTH_TOKEN)
-
-    // Get unique author emails
-    const uniqueAuthorEmails = [
-        ...new Set(queueItems.map((item) => item.authorEmail)),
-    ]
-
-    // Get a Map of email -> Slack mention (e.g. "<@U123456>")
-    const emailSlackMentionMap = new Map()
-    await Promise.all(
-        uniqueAuthorEmails.map(async (authorEmail) => {
-            if (authorEmail) {
-                const slackId = await getSlackMentionByEmail(
-                    authorEmail,
-                    slackClient
-                )
-                if (slackId) {
-                    emailSlackMentionMap.set(authorEmail, slackId)
-                }
-            }
-        })
-    )
-
-    return emailSlackMentionMap
-}
-
-/**
- *
- * Get a Slack mention for a given email address. Format it according to the
- * Slack API requirements to mention a user in a message
- * (https://api.slack.com/reference/surfaces/formatting#mentioning-users).
- * Slack has a tight limit of 20 requests per minute for email lookups, so we
- * memoize this.
- */
-const getSlackMentionByEmail = _.memoize(
-    async (
-        email: string | undefined,
-        slackClient: WebClient
-    ): Promise<string | undefined> => {
-        if (!email || email === "etl@ourworldindata.org") return
-
-        try {
-            const response = await slackClient.users.lookupByEmail({ email })
-            return response.user?.id ? `<@${response.user.id}>` : undefined
-        } catch (error) {
-            // Handle users_not_found gracefully - user might not be in Slack workspace
-            if (error && typeof error === "object" && "data" in error) {
-                const slackError = error as { data?: { error?: string } }
-                if (slackError.data?.error === "users_not_found") {
-                    console.warn(`User not found in Slack workspace: ${email}`)
-                    return undefined
-                }
-            }
-            // For other Slack API errors, log but don't fail the deploy
-            console.error(
-                `Warning: Could not look up email "${email}" in Slack:`,
-                error
-            )
-            return undefined
-        }
-    }
-)
-
 /**
  * Initiate deploy if no other deploy is currently pending, and there are changes
  * in the queue.
@@ -170,6 +55,8 @@ const getSlackMentionByEmail = _.memoize(
 export const deployIfQueueIsNotEmpty = async (
     knex: KnexReadonlyTransaction
 ) => {
+    if (BUILDKITE_API_ACCESS_TOKEN) return
+
     if (!(await deployQueueServer.queueIsEmpty())) {
         const deployContent =
             await deployQueueServer.readQueuedAndPendingFiles()
@@ -191,9 +78,8 @@ export const deployIfQueueIsNotEmpty = async (
             )}\n---`
         )
 
-        const changesSlackMentions = await getChangesSlackMentions(parsedQueue)
         await triggerBakeAndDeploy(
-            { title: changesAuthorNames[0], changesSlackMentions },
+            await getDeployMetadata(parsedQueue),
             knex,
             // If every DeployChange is a lightning change, then we can do a
             // lightning deploy. In the future, we might want to separate
