@@ -1,6 +1,6 @@
 import * as _ from "lodash-es"
 import { computed } from "mobx"
-import { Bounds, HorizontalAlign } from "@ourworldindata/utils"
+import { Bounds, HorizontalAlign, RequiredBy } from "@ourworldindata/utils"
 import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
 import {
     BASE_FONT_SIZE,
@@ -25,26 +25,31 @@ const MARK_PADDING = 5
 
 export class HorizontalCategoricalColorLegendState {
     private readonly bins: CategoricalBin[]
-    private readonly options: HorizontalCategoricalColorLegendOptions
+    private readonly initialOptions: HorizontalCategoricalColorLegendOptions
+
+    private readonly defaultOptions = {
+        fontSize: BASE_FONT_SIZE,
+        legendAlign: HorizontalAlign.center,
+        legendMaxWidth: 200,
+    } as const satisfies Partial<HorizontalCategoricalColorLegendOptions>
 
     constructor(
         bins: CategoricalBin[],
         options: HorizontalCategoricalColorLegendOptions
     ) {
         this.bins = bins
-        this.options = options
+        this.initialOptions = options
     }
 
-    @computed private get fontSize(): number {
-        return this.options.fontSize ?? BASE_FONT_SIZE
-    }
-
-    @computed private get legendAlign(): HorizontalAlign {
-        return this.options.legendAlign ?? HorizontalAlign.center
+    @computed private get options(): RequiredBy<
+        HorizontalCategoricalColorLegendOptions,
+        keyof typeof this.defaultOptions
+    > {
+        return { ...this.defaultOptions, ...this.initialOptions }
     }
 
     @computed get containerWidth(): number {
-        return this.options.legendWidth ?? this.options.legendMaxWidth ?? 200
+        return this.options.legendWidth ?? this.options.legendMaxWidth
     }
 
     @computed private get visibleBins(): CategoricalBin[] {
@@ -52,8 +57,8 @@ export class HorizontalCategoricalColorLegendState {
     }
 
     @computed private get markLines(): MarkLine[] {
-        const fontSize = this.fontSize * GRAPHER_FONT_SCALE_12_8
-        const rectSize = this.fontSize * 0.75
+        const fontSize = this.options.fontSize * GRAPHER_FONT_SCALE_12_8
+        const rectSize = this.options.fontSize * 0.75
 
         const lines: MarkLine[] = []
         let marks: CategoricalMark[] = []
@@ -114,7 +119,7 @@ export class HorizontalCategoricalColorLegendState {
 
     @computed get marks(): CategoricalMark[] {
         const lines = this.markLines
-        const align = this.legendAlign
+        const align = this.options.legendAlign
         const width = this.containerWidth
 
         // Center each line

@@ -558,7 +558,7 @@ export class FacetMap
                         y={this.categoryLegendY}
                         onMouseOver={this.onLegendMouseOver}
                         onMouseLeave={this.onLegendMouseLeave}
-                        isStatic={this.isStatic}
+                        interactive={!this.isStatic}
                     />
                 )}
             </>

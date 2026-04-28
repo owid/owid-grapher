@@ -495,7 +495,7 @@ export class StackedBarChart
                 y={this.categoryLegendY}
                 onMouseOver={this.onLegendMouseOver}
                 onMouseLeave={this.onLegendMouseLeave}
-                isStatic={this.isStatic}
+                interactive={!this.isStatic}
             />
         ) : (
             <VerticalColorLegend
@@ -504,7 +504,7 @@ export class StackedBarChart
                 y={this.legendY}
                 onMouseOver={this.onLegendMouseOver}
                 onMouseLeave={this.onLegendMouseLeave}
-                isStatic={this.isStatic}
+                interactive={!this.isStatic}
             />
         )
     }

@@ -202,8 +202,6 @@ export class ScatterPlotChart
         this.hoveredLegendColor = undefined
     }
 
-    legendCursor = "pointer"
-
     // When the color legend is clicked, toggle selection fo all associated keys
     @action.bound onLegendClick(bin: ColorScaleBin): void {
         const { selectionArray } = this.chartState
@@ -663,7 +661,7 @@ export class ScatterPlotChart
                         onMouseOver={this.onLegendMouseOver}
                         onMouseLeave={this.onLegendMouseLeave}
                         onClick={this.onLegendClick}
-                        isStatic={this.isStatic}
+                        interactive={!this.isStatic}
                     />
                 )}
                 {sizeLegend && (

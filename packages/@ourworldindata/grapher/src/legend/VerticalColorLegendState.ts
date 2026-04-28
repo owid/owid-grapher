@@ -17,27 +17,31 @@ import {
     SizedLegendSeries,
     VerticalColorLegendOptions,
 } from "./VerticalColorLegendTypes"
-
-const RECT_PADDING = 5
-const LINE_HEIGHT = 5
+import { RequiredBy } from "@ourworldindata/utils"
 
 export class VerticalColorLegendState {
     private readonly bins: ColorScaleBin[]
-    private readonly options: VerticalColorLegendOptions
+    private readonly initialOptions: VerticalColorLegendOptions
+
+    private readonly defaultOptions = {
+        maxLegendWidth: 100,
+        fontSize: BASE_FONT_SIZE,
+    } as const satisfies Partial<VerticalColorLegendOptions>
 
     constructor(bins: ColorScaleBin[], options: VerticalColorLegendOptions) {
         this.bins = bins
-        this.options = options
+        this.initialOptions = options
     }
 
-    @computed private get maxLegendWidth(): number {
-        return this.options.maxLegendWidth ?? 100
+    @computed private get options(): RequiredBy<
+        VerticalColorLegendOptions,
+        keyof typeof this.defaultOptions
+    > {
+        return { ...this.defaultOptions, ...this.initialOptions }
     }
 
     @computed private get fontSize(): number {
-        return (
-            GRAPHER_FONT_SCALE_11_2 * (this.options.fontSize ?? BASE_FONT_SIZE)
-        )
+        return GRAPHER_FONT_SCALE_11_2 * this.options.fontSize
     }
 
     @computed get rectSize(): number {
@@ -45,17 +49,17 @@ export class VerticalColorLegendState {
     }
 
     @computed get rectPadding(): number {
-        return RECT_PADDING
+        return 5
     }
 
     @computed get lineHeight(): number {
-        return LINE_HEIGHT
+        return 5
     }
 
     @computed get title(): TextWrap | undefined {
         if (!this.options.legendTitle) return undefined
         return new TextWrap({
-            maxWidth: this.maxLegendWidth,
+            maxWidth: this.options.maxLegendWidth,
             fontSize: this.fontSize,
             fontWeight: 700,
             lineHeight: 1,
@@ -86,7 +90,7 @@ export class VerticalColorLegendState {
             }
 
             const textWrap = new TextWrap({
-                maxWidth: this.maxLegendWidth,
+                maxWidth: this.options.maxLegendWidth,
                 fontSize,
                 lineHeight: 1,
                 text: label,

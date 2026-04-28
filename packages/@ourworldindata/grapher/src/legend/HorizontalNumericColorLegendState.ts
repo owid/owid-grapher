@@ -1,7 +1,7 @@
 import * as _ from "lodash-es"
 import * as R from "remeda"
 import { computed } from "mobx"
-import { Bounds, HorizontalAlign } from "@ourworldindata/utils"
+import { Bounds, HorizontalAlign, RequiredBy } from "@ourworldindata/utils"
 import { TextWrap } from "@ourworldindata/components"
 import {
     ColorScaleBin,
@@ -37,26 +37,28 @@ import {
 
 export class HorizontalNumericColorLegendState {
     private readonly bins: ColorScaleBin[]
-    private readonly options: HorizontalNumericColorLegendOptions
+    private readonly initialOptions: HorizontalNumericColorLegendOptions
+
+    private readonly defaultOptions = {
+        fontSize: BASE_FONT_SIZE,
+        legendAlign: HorizontalAlign.center,
+        legendTickSize: DEFAULT_TICK_SIZE,
+        numericBinSize: DEFAULT_NUMERIC_BIN_SIZE,
+    } as const satisfies Partial<HorizontalNumericColorLegendOptions>
 
     constructor(
         bins: ColorScaleBin[],
         options: HorizontalNumericColorLegendOptions
     ) {
         this.bins = bins
-        this.options = options
+        this.initialOptions = options
     }
 
-    @computed private get fontSize(): number {
-        return this.options.fontSize ?? BASE_FONT_SIZE
-    }
-
-    @computed private get legendAlign(): HorizontalAlign {
-        return this.options.legendAlign ?? HorizontalAlign.center
-    }
-
-    @computed private get legendTickSize(): number {
-        return this.options.legendTickSize ?? DEFAULT_TICK_SIZE
+    @computed private get options(): RequiredBy<
+        HorizontalNumericColorLegendOptions,
+        keyof typeof this.defaultOptions
+    > {
+        return { ...this.defaultOptions, ...this.initialOptions }
     }
 
     @computed private get visibleBins(): ColorScaleBin[] {
@@ -70,15 +72,15 @@ export class HorizontalNumericColorLegendState {
     }
 
     @computed get numericBinSize(): number {
-        return this.options.numericBinSize ?? DEFAULT_NUMERIC_BIN_SIZE
+        return this.options.numericBinSize
     }
 
     @computed private get tickFontSize(): number {
-        return GRAPHER_FONT_SCALE_12 * this.fontSize
+        return GRAPHER_FONT_SCALE_12 * this.options.fontSize
     }
 
     @computed private get itemMargin(): number {
-        return Math.round(this.fontSize * 1.125)
+        return Math.round(this.options.fontSize * 1.125)
     }
 
     @computed private get maxWidth(): number {
@@ -135,7 +137,7 @@ export class HorizontalNumericColorLegendState {
             labelSpace: this.getNumericLabelMinWidth(bin),
         }))
 
-        const minBinWidth = this.fontSize * 3.25
+        const minBinWidth = this.options.fontSize * 3.25
         const maxBinWidth =
             _.max(
                 spaceRequirements.map(({ labelSpace }) =>
@@ -165,7 +167,11 @@ export class HorizontalNumericColorLegendState {
     // Since we calculate the width automatically in some cases (when `isAutoWidth` is true),
     // we need to shift X to align the legend horizontally (`legendAlign`).
     @computed private get xOffset(): number {
-        const { width, maxWidth, legendAlign } = this
+        const {
+            width,
+            maxWidth,
+            options: { legendAlign },
+        } = this
         const widthDiff = maxWidth - width
         if (legendAlign === HorizontalAlign.center) {
             return widthDiff / 2
@@ -214,7 +220,7 @@ export class HorizontalNumericColorLegendState {
     }
 
     @computed private get legendTitleFontSize(): number {
-        return this.fontSize * GRAPHER_FONT_SCALE_14
+        return this.options.fontSize * GRAPHER_FONT_SCALE_14
     }
 
     @computed get legendTitle(): TextWrap | undefined {
@@ -247,7 +253,10 @@ export class HorizontalNumericColorLegendState {
                 bin.x +
                 (minOrMax === "min" ? 0 : bin.width) -
                 labelBounds.width / 2
-            const y = -numericBinSize - labelBounds.height - this.legendTickSize
+            const y =
+                -numericBinSize -
+                labelBounds.height -
+                this.options.legendTickSize
 
             return {
                 text: text,
@@ -264,7 +273,10 @@ export class HorizontalNumericColorLegendState {
                 fontSize: tickFontSize,
             })
             const x = bin.x + bin.width / 2 - labelBounds.width / 2
-            const y = -numericBinSize - labelBounds.height - this.legendTickSize
+            const y =
+                -numericBinSize -
+                labelBounds.height -
+                this.options.legendTickSize
 
             return {
                 text: bin.bin.text,

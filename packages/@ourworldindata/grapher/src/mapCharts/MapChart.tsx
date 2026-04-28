@@ -600,7 +600,7 @@ export class MapChart
                         onMouseEnter={this.onLegendMouseEnter}
                         onMouseLeave={this.onLegendMouseLeave}
                         onMouseOver={this.onLegendMouseOver}
-                        isStatic={this.isStatic}
+                        interactive={!this.isStatic}
                     />
                 )}
             </>

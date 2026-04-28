@@ -1,5 +1,4 @@
 import * as React from "react"
-import { observer } from "mobx-react"
 import { makeFigmaId } from "@ourworldindata/utils"
 import { TextWrapSvg } from "@ourworldindata/components"
 import { ColorScaleBin } from "../color/ColorScaleBin"
@@ -13,17 +12,17 @@ interface VerticalColorLegendProps {
     onMouseOver?: (bin: ColorScaleBin) => void
     onMouseLeave?: () => void
     onClick?: (bin: ColorScaleBin) => void
-    isStatic?: boolean
+    interactive?: boolean
 }
 
-export const VerticalColorLegend = observer(function VerticalColorLegend({
+export function VerticalColorLegend({
     state,
     x,
     y,
     onMouseOver,
     onMouseLeave,
     onClick,
-    isStatic,
+    interactive,
 }: VerticalColorLegendProps): React.ReactElement {
     const { series, rectSize, rectPadding, lineHeight, title } = state
 
@@ -75,7 +74,7 @@ export const VerticalColorLegend = observer(function VerticalColorLegend({
                     )
                 })}
             </g>
-            {!isStatic && (
+            {interactive && (
                 <g>
                     {series.map((s) => {
                         const label = s.textWrap.text
@@ -114,4 +113,4 @@ export const VerticalColorLegend = observer(function VerticalColorLegend({
             )}
         </g>
     )
-})
+}
