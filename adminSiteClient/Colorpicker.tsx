@@ -2,6 +2,8 @@ import { Component, Fragment } from "react"
 import { action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { SketchPicker } from "react-color"
+import Tippy from "@tippyjs/react"
+import cx from "classnames"
 
 import { ColorSchemeName, lastOfNonEmptyArray } from "@ourworldindata/utils"
 import {
@@ -10,11 +12,17 @@ import {
     getColorNameOwidDistinctLinesAndSemanticPalettes,
     OwidMapColors,
 } from "@ourworldindata/grapher"
+
 interface ColorpickerProps {
     color?: string
     showLineChartColors: boolean
     baseColorScheme?: ColorSchemeName
     onColor: (color: string | undefined) => void
+}
+
+interface PresetColor {
+    color: string
+    lines: string[]
 }
 
 @observer
@@ -32,7 +40,7 @@ export class Colorpicker extends Component<ColorpickerProps> {
         }
     }
 
-    private get presetColors(): { color: string; title: string }[] {
+    private get presetColors(): PresetColor[] {
         const isOwidCategoricalMap =
             this.props.baseColorScheme === ColorSchemeName.OwidCategoricalMap
 
@@ -42,24 +50,65 @@ export class Colorpicker extends Component<ColorpickerProps> {
             // to be used sparingly when needed (Taupe, Mustard, Tomato)
             return Object.entries(OwidMapColors).map(([name, color]) => ({
                 color,
-                title: name,
-            }))
-        } else {
-            const scheme = this.props.showLineChartColors
-                ? ColorSchemes.get(ColorSchemeName.OwidDistinctLines)
-                : ColorSchemes.get(ColorSchemeName["owid-distinct"])
-
-            const colorNameLookupFn = (color: string) => {
-                const nameLines = this.props.showLineChartColors
-                    ? getColorNameOwidDistinctLinesAndSemanticPalettes(color)
-                    : getColorNameOwidDistinctAndSemanticPalettes(color)
-                return nameLines.join(" ")
-            }
-            return lastOfNonEmptyArray(scheme.colorSets).map((color) => ({
-                color,
-                title: colorNameLookupFn(color),
+                lines: [name],
             }))
         }
+
+        const scheme = this.props.showLineChartColors
+            ? ColorSchemes.get(ColorSchemeName.OwidDistinctLines)
+            : ColorSchemes.get(ColorSchemeName["owid-distinct"])
+
+        const colorNameLookupFn = this.props.showLineChartColors
+            ? getColorNameOwidDistinctLinesAndSemanticPalettes
+            : getColorNameOwidDistinctAndSemanticPalettes
+
+        return lastOfNonEmptyArray(scheme.colorSets).map((color) => ({
+            color,
+            lines: colorNameLookupFn(color),
+        }))
+    }
+
+    private renderPresetSwatch(preset: PresetColor) {
+        const { color, lines } = preset
+        const isSelected =
+            this.props.color !== undefined &&
+            this.props.color.toLowerCase() === color.toLowerCase()
+
+        const tooltipContent =
+            lines.length > 0 ? (
+                <>
+                    {lines.map((line) => (
+                        <span
+                            key={line}
+                            className="colorpicker-presets__tooltip-line"
+                        >
+                            {line}
+                        </span>
+                    ))}
+                </>
+            ) : (
+                color
+            )
+
+        return (
+            <Tippy
+                key={color + lines.join("|")}
+                content={tooltipContent}
+                delay={[100, 0]}
+                placement="top"
+                appendTo={() => document.body}
+            >
+                <button
+                    type="button"
+                    className={cx("colorpicker-presets__swatch", {
+                        "colorpicker-presets__swatch--selected": isSelected,
+                    })}
+                    style={{ backgroundColor: color }}
+                    onClick={() => this.onColor(color)}
+                    aria-label={lines.join(", ") || color}
+                />
+            </Tippy>
+        )
     }
 
     override render() {
@@ -67,10 +116,15 @@ export class Colorpicker extends Component<ColorpickerProps> {
             <Fragment>
                 <SketchPicker
                     disableAlpha
-                    presetColors={this.presetColors}
+                    presetColors={[]}
                     color={this.props.color}
                     onChange={(color) => this.onColor(color.hex)}
                 />
+                <div className="colorpicker-presets">
+                    {this.presetColors.map((preset) =>
+                        this.renderPresetSwatch(preset)
+                    )}
+                </div>
             </Fragment>
         )
     }

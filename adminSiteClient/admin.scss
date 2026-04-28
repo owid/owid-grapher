@@ -872,6 +872,65 @@ $nav-height: 45px;
     }
 }
 
+.colorpicker-presets {
+    display: grid;
+    grid-template-columns: repeat(4, 22px);
+    justify-content: center;
+    gap: 6px;
+    padding: 10px;
+    background: #fff;
+    border-top: 1px solid #eee;
+    border-bottom-left-radius: 4px;
+    border-bottom-right-radius: 4px;
+}
+
+.colorpicker-presets__swatch {
+    width: 22px;
+    height: 22px;
+    border: none;
+    padding: 0;
+    border-radius: 3px;
+    cursor: pointer;
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.15);
+    transition:
+        transform 80ms ease-out,
+        box-shadow 80ms ease-out;
+}
+
+.colorpicker-presets__swatch:hover {
+    transform: scale(1.15);
+    box-shadow:
+        inset 0 0 0 1px rgba(0, 0, 0, 0.25),
+        0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+.colorpicker-presets__swatch:focus-visible {
+    outline: none;
+    box-shadow:
+        inset 0 0 0 1px rgba(0, 0, 0, 0.25),
+        0 0 0 2px #1865f2;
+}
+
+.colorpicker-presets__swatch--selected {
+    box-shadow:
+        inset 0 0 0 2px #fff,
+        0 0 0 2px #1865f2;
+}
+
+.colorpicker-presets__swatch--selected:hover {
+    transform: scale(1.15);
+    box-shadow:
+        inset 0 0 0 2px #fff,
+        0 0 0 2px #1865f2,
+        0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+.colorpicker-presets__tooltip-line {
+    display: block;
+    line-height: 1.35;
+    white-space: nowrap;
+}
+
 .LoadingBlocker {
     position: fixed;
     top: 0;
