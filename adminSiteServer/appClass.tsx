@@ -158,6 +158,7 @@ export class OwidAdminApp {
                                     gdoc={instantiatedProfile}
                                     debug
                                     isPreviewing
+                                    previewErrors={gdoc.errors}
                                 />
                             )
                         )
@@ -172,6 +173,7 @@ export class OwidAdminApp {
                                 gdoc={gdoc}
                                 debug
                                 isPreviewing
+                                previewErrors={gdoc.errors}
                             />
                         )
                     )

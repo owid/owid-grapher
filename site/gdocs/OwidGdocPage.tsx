@@ -23,9 +23,11 @@ import {
     ARCHIVED_THUMBNAIL_FILENAME,
     ArchiveContext,
     OwidGdocDataInsightInterface,
+    OwidGdocErrorMessage,
     OwidGdocPostInterface,
     OwidGdocProfileInterface,
 } from "@ourworldindata/types"
+import { PreviewErrorBanner } from "./PreviewErrorBanner.js"
 import {
     DATA_INSIGHT_ATOM_FEED_PROPS,
     DEFAULT_ATOM_FEED_PROPS,
@@ -152,12 +154,14 @@ export default function OwidGdocPage({
     debug,
     isPreviewing = false,
     archiveContext,
+    previewErrors,
 }: {
     baseUrl: string
     gdoc: OwidGdocUnionType
     debug?: boolean
     isPreviewing?: boolean
     archiveContext?: ArchiveContext
+    previewErrors?: OwidGdocErrorMessage[]
 }) {
     const { content, createdAt, publishedAt } = gdoc
 
@@ -240,6 +244,9 @@ export default function OwidGdocPage({
                 ></script>
             </Head>
             <body>
+                {previewErrors && previewErrors.length > 0 && (
+                    <PreviewErrorBanner errors={previewErrors} />
+                )}
                 <SiteHeader
                     isOnHomepage={gdoc.content.type === OwidGdocType.Homepage}
                     archiveInfo={isOnArchivalPage ? archiveContext : undefined}
