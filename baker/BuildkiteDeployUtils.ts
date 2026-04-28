@@ -1,10 +1,7 @@
 import * as _ from "lodash-es"
 import { WebClient } from "@slack/web-api"
 import { DeployChange, DeployMetadata } from "@ourworldindata/utils"
-import {
-    ENV,
-    SLACK_BOT_OAUTH_TOKEN,
-} from "../settings/serverSettings.js"
+import { ENV, SLACK_BOT_OAUTH_TOKEN } from "../settings/serverSettings.js"
 import { BuildkiteTrigger } from "./BuildkiteTrigger.js"
 
 export const getChangesAuthorNames = (queueItems: DeployChange[]): string[] => {
