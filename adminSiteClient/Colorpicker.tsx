@@ -71,7 +71,7 @@ function rgbToHex(r: number, g: number, b: number): string {
 @observer
 export class Colorpicker extends Component<ColorpickerProps> {
     regionsFilter: boolean = false
-    othersFilter: boolean = false
+    energyFilter: boolean = false
     inputMode: InputMode = "hex"
     hexInputDraft: string | undefined = undefined
 
@@ -79,7 +79,7 @@ export class Colorpicker extends Component<ColorpickerProps> {
         super(props)
         makeObservable(this, {
             regionsFilter: observable,
-            othersFilter: observable,
+            energyFilter: observable,
             inputMode: observable,
             hexInputDraft: observable,
         })
@@ -89,8 +89,8 @@ export class Colorpicker extends Component<ColorpickerProps> {
         this.regionsFilter = !this.regionsFilter
     }
 
-    @action.bound private toggleOthersFilter() {
-        this.othersFilter = !this.othersFilter
+    @action.bound private toggleEnergyFilter() {
+        this.energyFilter = !this.energyFilter
     }
 
     @action.bound private toggleInputMode() {
@@ -184,13 +184,14 @@ export class Colorpicker extends Component<ColorpickerProps> {
     }
 
     private isPresetDimmed(preset: PresetColor): boolean {
-        const { regionsFilter, othersFilter } = this
-        if (!regionsFilter && !othersFilter) return false
+        const { regionsFilter, energyFilter } = this
+        if (!regionsFilter && !energyFilter) return false
         // AND filter: a swatch is shown only if it matches every active filter
         if (regionsFilter && !preset.info.region) return true
-        if (othersFilter && !preset.info.energy) return true
+        if (energyFilter && !preset.info.energy) return true
         return false
     }
+
 
     private renderPresetSwatch(preset: PresetColor) {
         const { color, info } = preset
@@ -203,7 +204,7 @@ export class Colorpicker extends Component<ColorpickerProps> {
         const ariaLabelParts = [
             colorName,
             region ? `Regions: ${region}` : undefined,
-            energy ? `Others: ${energy}` : undefined,
+            energy ? `Energy: ${energy}` : undefined,
         ].filter((x): x is string => !!x)
 
         const tooltipContent = (
@@ -222,7 +223,7 @@ export class Colorpicker extends Component<ColorpickerProps> {
                 {energy && (
                     <div className="colorpicker-presets__tooltip-row">
                         <span className="colorpicker-presets__tooltip-label">
-                            Others:
+                            Energy:
                         </span>{" "}
                         {energy}
                     </div>
@@ -283,12 +284,12 @@ export class Colorpicker extends Component<ColorpickerProps> {
                             type="button"
                             className={cx("colorpicker-filter__pill", {
                                 "colorpicker-filter__pill--active":
-                                    this.othersFilter,
+                                    this.energyFilter,
                             })}
-                            aria-pressed={this.othersFilter}
-                            onClick={this.toggleOthersFilter}
+                            aria-pressed={this.energyFilter}
+                            onClick={this.toggleEnergyFilter}
                         >
-                            Others
+                            Energy
                         </button>
                     </div>
                 )}
