@@ -860,6 +860,61 @@ export interface ColorSemanticInfo {
     energy?: string
 }
 
+// Identifier-style names from the source dicts get presented to users via
+// tooltips, so we need readable display strings. Anything not in the map
+// passes through unchanged (already display-ready strings like "Africa",
+// "Europe (WHO)" or "Middle East, North Africa, Afghanistan and Pakistan (WB)").
+const COLOR_DISPLAY_NAMES: Record<string, string> = {
+    // OWID distinct palette
+    DarkOrange: "Dark Orange",
+    LightTeal: "Light Teal",
+    MidnightBlue: "Midnight Blue",
+    DustyCoral: "Dusty Coral",
+    DarkOliveGreen: "Dark Olive Green",
+    DarkCopper: "Dark Copper",
+    OliveGreen: "Olive Green",
+    TealishGreen: "Tealish Green",
+    RustyOrange: "Rusty Orange",
+    DarkMauve: "Dark Mauve",
+
+    // Continent / sub-region identifiers
+    NorthAmerica: "North America",
+    SouthAmerica: "South America",
+    SubSaharanAfrica: "Sub-Saharan Africa",
+    MiddleEastNorthAfrica: "Middle East and North Africa",
+    CentralAsia: "Central Asia",
+    EastAsia: "East Asia",
+    SoutheastAsia: "Southeast Asia",
+    SouthAsia: "South Asia",
+    // Note: source key has a typo ("Carribean"); display name has the correct spelling.
+    CentralAmericaAndCarribean: "Central America and Caribbean",
+    EasternEurope: "Eastern Europe",
+    WesternEurope: "Western Europe",
+    AustralasiaAndOceania: "Australasia and Oceania",
+
+    // Energy types
+    OtherRenewables: "Other renewables",
+
+    // OwidMap categorical palette
+    MutedDenim: "Muted Denim",
+    SoftOrange: "Soft Orange",
+    MutedTeal: "Muted Teal",
+    SoftPurple: "Soft Purple",
+    MutedCherry: "Muted Cherry",
+    LeafGreen: "Leaf Green",
+    SkyTurquoise: "Sky Turquoise",
+    LightDenim: "Light Denim",
+    LightOrange: "Light Orange",
+    LightPurple: "Light Purple",
+    LightSand: "Light Sand",
+    LightCherry: "Light Cherry",
+    LightGreen: "Light Green",
+}
+
+export function toColorDisplayName(name: string): string {
+    return COLOR_DISPLAY_NAMES[name] ?? name
+}
+
 export function getColorNameAndSemanticPalettes(
     color: string,
     baseColorSchemeNames: Record<string, string>,
@@ -872,10 +927,13 @@ export function getColorNameAndSemanticPalettes(
     const lookup = (dict: Record<string, string>): string | undefined =>
         dict[color] ?? dict[color.toLowerCase()] ?? dict[color.toUpperCase()]
 
+    const colorName = lookup(baseColorSchemeNames)
+    const region = lookup(continentsColorSchemeNames)
+    const energy = lookup(energyColorSchemeNames)
     return {
-        colorName: lookup(baseColorSchemeNames),
-        region: lookup(continentsColorSchemeNames),
-        energy: lookup(energyColorSchemeNames),
+        colorName: colorName ? toColorDisplayName(colorName) : undefined,
+        region: region ? toColorDisplayName(region) : undefined,
+        energy: energy ? toColorDisplayName(energy) : undefined,
     }
 }
 

@@ -12,6 +12,7 @@ import {
     getColorNameOwidDistinctAndSemanticPalettes,
     getColorNameOwidDistinctLinesAndSemanticPalettes,
     OwidMapColors,
+    toColorDisplayName,
 } from "@ourworldindata/grapher"
 
 interface ColorpickerProps {
@@ -51,7 +52,7 @@ export class Colorpicker extends Component<ColorpickerProps> {
             // to be used sparingly when needed (Taupe, Mustard, Tomato)
             return Object.entries(OwidMapColors).map(([name, color]) => ({
                 color,
-                info: { colorName: name },
+                info: { colorName: toColorDisplayName(name) },
             }))
         }
 

@@ -50,6 +50,7 @@ export { ColorScheme } from "./color/ColorScheme"
 export {
     getColorNameOwidDistinctAndSemanticPalettes,
     getColorNameOwidDistinctLinesAndSemanticPalettes,
+    toColorDisplayName,
 } from "./color/CustomSchemes"
 export type { ColorSemanticInfo } from "./color/CustomSchemes"
 export { ColorSchemes } from "./color/ColorSchemes"
