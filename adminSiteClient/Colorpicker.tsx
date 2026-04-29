@@ -23,6 +23,7 @@ interface ColorpickerProps {
 interface PresetColor {
     color: string
     lines: string[]
+    hasSemanticMapping: boolean
 }
 
 @observer
@@ -51,6 +52,7 @@ export class Colorpicker extends Component<ColorpickerProps> {
             return Object.entries(OwidMapColors).map(([name, color]) => ({
                 color,
                 lines: [name],
+                hasSemanticMapping: false,
             }))
         }
 
@@ -62,14 +64,20 @@ export class Colorpicker extends Component<ColorpickerProps> {
             ? getColorNameOwidDistinctLinesAndSemanticPalettes
             : getColorNameOwidDistinctAndSemanticPalettes
 
-        return lastOfNonEmptyArray(scheme.colorSets).map((color) => ({
-            color,
-            lines: colorNameLookupFn(color),
-        }))
+        return lastOfNonEmptyArray(scheme.colorSets).map((color) => {
+            const lines = colorNameLookupFn(color)
+            // The first line is the colour name (🎨); any additional lines mean
+            // the colour is also used in a semantic palette (🌍 region, ⚡ energy)
+            return {
+                color,
+                lines,
+                hasSemanticMapping: lines.length > 1,
+            }
+        })
     }
 
     private renderPresetSwatch(preset: PresetColor) {
-        const { color, lines } = preset
+        const { color, lines, hasSemanticMapping } = preset
         const isSelected =
             this.props.color !== undefined &&
             this.props.color.toLowerCase() === color.toLowerCase()
@@ -102,6 +110,8 @@ export class Colorpicker extends Component<ColorpickerProps> {
                     type="button"
                     className={cx("colorpicker-presets__swatch", {
                         "colorpicker-presets__swatch--selected": isSelected,
+                        "colorpicker-presets__swatch--has-mapping":
+                            hasSemanticMapping,
                     })}
                     style={{ backgroundColor: color }}
                     onClick={() => this.onColor(color)}
