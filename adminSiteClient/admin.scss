@@ -865,13 +865,45 @@ $nav-height: 45px;
 .colorpicker-tooltip {
     .tippy-content {
         padding: 0;
+        display: flex;
+        flex-direction: column;
 
         .sketch-picker {
             box-shadow: none !important;
-            padding: 12px 12px 8px !important;
+            padding: 10px 10px 6px !important;
             width: 220px !important;
+            border-top: 1px solid #eee !important;
         }
     }
+}
+
+/* Visual order: header → grid → toggle filter pills → color map
+   (sketch-picker) → custom hex/rgb input → reset row */
+.colorpicker-tooltip .tippy-content > .colorpicker-header {
+    order: 1;
+}
+.colorpicker-tooltip .tippy-content > .colorpicker-presets {
+    order: 2;
+}
+.colorpicker-tooltip .tippy-content > .colorpicker-filter {
+    order: 3;
+}
+.colorpicker-tooltip .tippy-content > .sketch-picker {
+    order: 4;
+}
+.colorpicker-tooltip .tippy-content > .colorpicker-input {
+    order: 5;
+}
+.colorpicker-tooltip .tippy-content > .colorpicker-reset {
+    order: 6;
+}
+
+.colorpicker-header {
+    padding: 9px 10px 6px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #1d1d1f;
+    letter-spacing: 0.01em;
 }
 
 /* Bigger saturation pointer (the dot you drag in the colour panel) */
@@ -914,54 +946,98 @@ $nav-height: 45px;
     display: none !important;
 }
 
-/* Hex / R / G / B input row — labels inline-left INSIDE the input, grey,
-   values left-aligned. The sketch-picker's third child is the SketchFields
-   .flexbox-fix row. */
+/* react-color's hex/R/G/B row is hidden — we render our own single-mode
+   input below, with a clickable HEX/RGB toggle. */
 .colorpicker-tooltip .sketch-picker > div:nth-child(3) {
-    padding-top: 8px !important;
-    gap: 6px;
+    display: none !important;
 }
 
-.colorpicker-tooltip .sketch-picker > div:nth-child(3) > div {
-    padding-left: 0 !important;
+.colorpicker-input {
+    display: flex;
+    align-items: stretch;
+    margin: 0 10px 10px;
+    border-radius: 4px;
+    box-shadow: inset 0 0 0 1px #d6d8da;
+    overflow: hidden;
+    background: #fff;
 }
 
-.colorpicker-tooltip .sketch-picker > div:nth-child(3) input {
-    width: 100% !important;
-    box-sizing: border-box !important;
-    padding: 6px 5px 6px 18px !important;
-    border-radius: 4px !important;
-    border: none !important;
-    box-shadow: inset 0 0 0 1px #d6d8da !important;
-    font-size: 11px !important;
+.colorpicker-input__mode {
+    flex-shrink: 0;
+    padding: 6px 9px;
+    border: none;
+    border-right: 1px solid #d6d8da;
+    background: transparent;
+    color: #6e6e73;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    transition:
+        background 80ms ease-out,
+        color 80ms ease-out;
+}
+
+.colorpicker-input__mode:hover {
+    background: #f5f5f7;
     color: #1d1d1f;
-    text-align: left !important;
 }
 
-/* HEX cell (first cell) needs more left padding to fit the 3-char label. */
-.colorpicker-tooltip .sketch-picker > div:nth-child(3) > div:first-child input {
-    padding-left: 32px !important;
+.colorpicker-input__hex {
+    flex: 1;
+    min-width: 0;
+    padding: 6px 8px;
+    border: none;
+    background: transparent;
+    font-size: 11px;
+    color: #1d1d1f;
+    outline: none;
+    text-align: left;
 }
 
-.colorpicker-tooltip .sketch-picker > div:nth-child(3) input:focus {
-    outline: none !important;
-    box-shadow: inset 0 0 0 1.5px #1865f2 !important;
+.colorpicker-input__hex::placeholder,
+.colorpicker-input__rgb-cell::placeholder {
+    color: #9a9a9e;
+    font-style: italic;
 }
 
-.colorpicker-tooltip .sketch-picker > div:nth-child(3) span {
-    position: absolute !important;
-    left: 8px !important;
-    top: 50% !important;
-    transform: translateY(-50%) !important;
-    font-size: 10px !important;
-    font-weight: 600 !important;
-    color: #9a9a9e !important;
-    text-transform: uppercase !important;
-    letter-spacing: 0.04em !important;
-    line-height: 1 !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    pointer-events: none !important;
+.colorpicker-input__hex:focus {
+    background: rgba(24, 101, 242, 0.05);
+}
+
+.colorpicker-input__rgb {
+    flex: 1;
+    display: flex;
+    align-items: stretch;
+}
+
+.colorpicker-input__rgb-cell {
+    flex: 1;
+    width: 0;
+    padding: 6px 4px;
+    border: none;
+    border-left: 1px solid #d6d8da;
+    background: transparent;
+    font-size: 11px;
+    color: #1d1d1f;
+    outline: none;
+    text-align: center;
+    -moz-appearance: textfield;
+}
+
+.colorpicker-input__rgb-cell:first-child {
+    border-left: none;
+}
+
+.colorpicker-input__rgb-cell:focus {
+    background: rgba(24, 101, 242, 0.05);
+}
+
+.colorpicker-input__rgb-cell::-webkit-outer-spin-button,
+.colorpicker-input__rgb-cell::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
 }
 
 /* Reset color row at the bottom of the popover */
@@ -971,14 +1047,14 @@ $nav-height: 45px;
     justify-content: center;
     gap: 6px;
     width: 100%;
-    padding: 10px 12px;
+    padding: 8px 10px;
     border: none;
     border-top: 1px solid #eee;
     border-bottom-left-radius: 4px;
     border-bottom-right-radius: 4px;
     background: #fff;
     color: #6e6e73;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 500;
     cursor: pointer;
     transition:
@@ -995,51 +1071,51 @@ $nav-height: 45px;
     font-size: 11px;
 }
 
+/* Toggle pills below the grid — discrete, click to highlight matching swatches. */
 .colorpicker-filter {
     display: flex;
-    margin: 6px 12px 0;
-    padding: 2px;
-    background: #f0f0f2;
-    border-radius: 6px;
+    gap: 6px;
+    padding: 0 10px 10px;
 }
 
-.colorpicker-filter__tab {
-    flex: 1;
-    padding: 4px 8px;
-    border: none;
+.colorpicker-filter__pill {
+    padding: 3px 9px;
+    border: 1px solid #d6d8da;
+    border-radius: 12px;
     background: transparent;
-    border-radius: 4px;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 500;
     color: #6e6e73;
     cursor: pointer;
     transition:
         background 80ms ease-out,
         color 80ms ease-out,
-        box-shadow 80ms ease-out;
+        border-color 80ms ease-out;
 }
 
-.colorpicker-filter__tab:hover {
+.colorpicker-filter__pill:hover {
+    border-color: #6e6e73;
     color: #1d1d1f;
 }
 
-.colorpicker-filter__tab--active {
-    background: #fff;
-    color: #1d1d1f;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+.colorpicker-filter__pill--active {
+    background: #1865f2;
+    border-color: #1865f2;
+    color: #fff;
 }
 
-.colorpicker-filter__tab--active:hover {
-    color: #1d1d1f;
+.colorpicker-filter__pill--active:hover {
+    background: #1865f2;
+    border-color: #1865f2;
+    color: #fff;
 }
 
 .colorpicker-presets {
     display: grid;
     grid-template-columns: repeat(8, 1fr);
-    gap: 6px;
-    padding: 10px 12px;
+    gap: 4px;
+    padding: 0 10px 8px;
     background: #fff;
-    border-top: 1px solid #eee;
 }
 
 .colorpicker-presets__swatch {

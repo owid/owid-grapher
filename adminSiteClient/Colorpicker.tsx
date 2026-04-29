@@ -27,27 +27,68 @@ interface PresetColor {
     info: ColorSemanticInfo
 }
 
-type PresetFilter = "all" | "regions" | "others"
+type InputMode = "hex" | "rgb"
 
-const FILTER_OPTIONS: { value: PresetFilter; label: string }[] = [
-    { value: "all", label: "All" },
-    { value: "regions", label: "Regions" },
-    { value: "others", label: "Others" },
-]
+function expandHex(input: string): string | undefined {
+    const cleaned = input.trim().replace(/^#/, "")
+    const expanded =
+        cleaned.length === 3
+            ? cleaned
+                  .split("")
+                  .map((c) => c + c)
+                  .join("")
+            : cleaned
+    return /^[0-9a-fA-F]{6}$/.test(expanded)
+        ? expanded.toLowerCase()
+        : undefined
+}
+
+function hexToRgb(hex: string): { r: number; g: number; b: number } {
+    const expanded = expandHex(hex)
+    if (!expanded) return { r: 0, g: 0, b: 0 }
+    return {
+        r: parseInt(expanded.slice(0, 2), 16),
+        g: parseInt(expanded.slice(2, 4), 16),
+        b: parseInt(expanded.slice(4, 6), 16),
+    }
+}
+
+function rgbToHex(r: number, g: number, b: number): string {
+    const channel = (n: number) =>
+        Math.max(0, Math.min(255, Math.round(n)))
+            .toString(16)
+            .padStart(2, "0")
+    return "#" + channel(r) + channel(g) + channel(b)
+}
 
 @observer
 export class Colorpicker extends Component<ColorpickerProps> {
-    filter: PresetFilter = "all"
+    regionsFilter: boolean = false
+    othersFilter: boolean = false
+    inputMode: InputMode = "hex"
+    hexInputDraft: string | undefined = undefined
 
     constructor(props: ColorpickerProps) {
         super(props)
         makeObservable(this, {
-            filter: observable,
+            regionsFilter: observable,
+            othersFilter: observable,
+            inputMode: observable,
+            hexInputDraft: observable,
         })
     }
 
-    @action.bound private setFilter(filter: PresetFilter) {
-        this.filter = filter
+    @action.bound private toggleRegionsFilter() {
+        this.regionsFilter = !this.regionsFilter
+    }
+
+    @action.bound private toggleOthersFilter() {
+        this.othersFilter = !this.othersFilter
+    }
+
+    @action.bound private toggleInputMode() {
+        this.inputMode = this.inputMode === "hex" ? "rgb" : "hex"
+        this.hexInputDraft = undefined
     }
 
     @action.bound onColor(color: string) {
@@ -58,8 +99,41 @@ export class Colorpicker extends Component<ColorpickerProps> {
         }
     }
 
+    @action.bound private onHexInputChange(value: string) {
+        this.hexInputDraft = value
+        const expanded = expandHex(value)
+        if (expanded) this.props.onColor("#" + expanded)
+    }
+
+    @action.bound private onHexInputBlur() {
+        this.hexInputDraft = undefined
+    }
+
+    @action.bound private onRgbChannelChange(
+        channel: "r" | "g" | "b",
+        value: string
+    ) {
+        const num = Math.max(0, Math.min(255, parseInt(value, 10) || 0))
+        const current = this.displayedRgb ?? { r: 0, g: 0, b: 0 }
+        const next = { ...current, [channel]: num }
+        this.props.onColor(rgbToHex(next.r, next.g, next.b))
+    }
+
     @computed private get isCategoricalMap(): boolean {
         return this.props.baseColorScheme === ColorSchemeName.OwidCategoricalMap
+    }
+
+    @computed private get displayedHex(): string {
+        if (this.hexInputDraft !== undefined) return this.hexInputDraft
+        if (this.props.color === undefined) return ""
+        return this.props.color.replace(/^#/, "").toUpperCase()
+    }
+
+    @computed private get displayedRgb():
+        | { r: number; g: number; b: number }
+        | undefined {
+        if (this.props.color === undefined) return undefined
+        return hexToRgb(this.props.color)
     }
 
     @computed private get presetColors(): PresetColor[] {
@@ -88,14 +162,12 @@ export class Colorpicker extends Component<ColorpickerProps> {
     }
 
     private isPresetDimmed(preset: PresetColor): boolean {
-        switch (this.filter) {
-            case "regions":
-                return !preset.info.region
-            case "others":
-                return !preset.info.energy
-            default:
-                return false
-        }
+        const { regionsFilter, othersFilter } = this
+        if (!regionsFilter && !othersFilter) return false
+        // Show a swatch (don't dim) if it matches AT LEAST one active filter
+        const matchesRegions = regionsFilter && !!preset.info.region
+        const matchesOthers = othersFilter && !!preset.info.energy
+        return !(matchesRegions || matchesOthers)
     }
 
     private renderPresetSwatch(preset: PresetColor) {
@@ -161,31 +233,94 @@ export class Colorpicker extends Component<ColorpickerProps> {
                 placement="top"
                 appendTo={() => document.body}
                 maxWidth={220}
+                theme="light"
             >
                 {swatch}
             </Tippy>
         )
     }
 
-    private renderFilterTabs() {
+    private renderFilterPills() {
         if (this.isCategoricalMap) return null
         return (
-            <div className="colorpicker-filter" role="tablist">
-                {FILTER_OPTIONS.map(({ value, label }) => (
+            <div className="colorpicker-filter">
+                <button
+                    type="button"
+                    className={cx("colorpicker-filter__pill", {
+                        "colorpicker-filter__pill--active": this.regionsFilter,
+                    })}
+                    aria-pressed={this.regionsFilter}
+                    onClick={this.toggleRegionsFilter}
+                >
+                    Regions
+                </button>
+                <button
+                    type="button"
+                    className={cx("colorpicker-filter__pill", {
+                        "colorpicker-filter__pill--active": this.othersFilter,
+                    })}
+                    aria-pressed={this.othersFilter}
+                    onClick={this.toggleOthersFilter}
+                >
+                    Others
+                </button>
+            </div>
+        )
+    }
+
+    private renderColorInput() {
+        const otherMode = this.inputMode === "hex" ? "RGB" : "HEX"
+        return (
+            <div className="colorpicker-input">
+                <Tippy
+                    content={`Switch to ${otherMode}`}
+                    placement="top"
+                    appendTo={() => document.body}
+                    theme="light"
+                >
                     <button
-                        key={value}
                         type="button"
-                        role="tab"
-                        aria-selected={this.filter === value}
-                        className={cx("colorpicker-filter__tab", {
-                            "colorpicker-filter__tab--active":
-                                this.filter === value,
-                        })}
-                        onClick={() => this.setFilter(value)}
+                        className="colorpicker-input__mode"
+                        onClick={this.toggleInputMode}
+                        aria-label={`Switch to ${otherMode} input`}
                     >
-                        {label}
+                        {this.inputMode === "hex" ? "HEX" : "RGB"}
                     </button>
-                ))}
+                </Tippy>
+                {this.inputMode === "hex" ? (
+                    <input
+                        type="text"
+                        className="colorpicker-input__hex"
+                        value={this.displayedHex}
+                        placeholder="Default"
+                        onChange={(e) => this.onHexInputChange(e.target.value)}
+                        onBlur={this.onHexInputBlur}
+                        spellCheck={false}
+                        maxLength={7}
+                        aria-label="Hex value"
+                    />
+                ) : (
+                    <div className="colorpicker-input__rgb">
+                        {(["r", "g", "b"] as const).map((channel) => (
+                            <input
+                                key={channel}
+                                type="number"
+                                min={0}
+                                max={255}
+                                className="colorpicker-input__rgb-cell"
+                                value={this.displayedRgb?.[channel] ?? ""}
+                                placeholder="—"
+                                onChange={(e) =>
+                                    this.onRgbChannelChange(
+                                        channel,
+                                        e.target.value
+                                    )
+                                }
+                                aria-label={channel.toUpperCase()}
+                            />
+                        ))}
+                    </div>
+                )}
             </div>
         )
     }
@@ -193,18 +328,20 @@ export class Colorpicker extends Component<ColorpickerProps> {
     override render() {
         return (
             <Fragment>
+                <div className="colorpicker-header">Choose color</div>
+                <div className="colorpicker-presets">
+                    {this.presetColors.map((preset) =>
+                        this.renderPresetSwatch(preset)
+                    )}
+                </div>
+                {this.renderFilterPills()}
                 <SketchPicker
                     disableAlpha
                     presetColors={[]}
                     color={this.props.color}
                     onChange={(color) => this.onColor(color.hex)}
                 />
-                {this.renderFilterTabs()}
-                <div className="colorpicker-presets">
-                    {this.presetColors.map((preset) =>
-                        this.renderPresetSwatch(preset)
-                    )}
-                </div>
+                {this.renderColorInput()}
             </Fragment>
         )
     }
