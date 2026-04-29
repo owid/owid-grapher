@@ -125,17 +125,20 @@ export class Colorpicker extends Component<ColorpickerProps> {
         this.hexInputDraft = undefined
     }
 
-    @computed private get isCategoricalMap(): boolean {
+    // NOTE: not @computed — these read this.props which is NOT observable,
+    // so MobX would cache stale results when props change without an
+    // observable changing alongside them.
+    private get isCategoricalMap(): boolean {
         return this.props.baseColorScheme === ColorSchemeName.OwidCategoricalMap
     }
 
-    @computed private get displayedHex(): string {
+    private get displayedHex(): string {
         if (this.hexInputDraft !== undefined) return this.hexInputDraft
         // Mirror SketchPicker's internal default (tinycolor maps undefined → "#000000")
         return (this.props.color ?? "#000000").replace(/^#/, "").toUpperCase()
     }
 
-    @computed private get displayedRgb(): { r: number; g: number; b: number } {
+    private get displayedRgb(): { r: number; g: number; b: number } {
         return hexToRgb(this.props.color ?? "#000000")
     }
 
