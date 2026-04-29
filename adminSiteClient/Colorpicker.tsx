@@ -4,6 +4,8 @@ import { observer } from "mobx-react"
 import { SketchPicker } from "react-color"
 import Tippy from "@tippyjs/react"
 import cx from "classnames"
+import { faRotateLeft } from "@fortawesome/free-solid-svg-icons"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 
 import { ColorSchemeName, lastOfNonEmptyArray } from "@ourworldindata/utils"
 import {
@@ -114,9 +116,13 @@ export class Colorpicker extends Component<ColorpickerProps> {
         value: string
     ) {
         const num = Math.max(0, Math.min(255, parseInt(value, 10) || 0))
-        const current = this.displayedRgb ?? { r: 0, g: 0, b: 0 }
-        const next = { ...current, [channel]: num }
+        const next = { ...this.displayedRgb, [channel]: num }
         this.props.onColor(rgbToHex(next.r, next.g, next.b))
+    }
+
+    @action.bound private resetColor() {
+        this.props.onColor(undefined)
+        this.hexInputDraft = undefined
     }
 
     @computed private get isCategoricalMap(): boolean {
@@ -125,15 +131,12 @@ export class Colorpicker extends Component<ColorpickerProps> {
 
     @computed private get displayedHex(): string {
         if (this.hexInputDraft !== undefined) return this.hexInputDraft
-        if (this.props.color === undefined) return ""
-        return this.props.color.replace(/^#/, "").toUpperCase()
+        // Mirror SketchPicker's internal default (tinycolor maps undefined → "#000000")
+        return (this.props.color ?? "#000000").replace(/^#/, "").toUpperCase()
     }
 
-    @computed private get displayedRgb():
-        | { r: number; g: number; b: number }
-        | undefined {
-        if (this.props.color === undefined) return undefined
-        return hexToRgb(this.props.color)
+    @computed private get displayedRgb(): { r: number; g: number; b: number } {
+        return hexToRgb(this.props.color ?? "#000000")
     }
 
     @computed private get presetColors(): PresetColor[] {
@@ -164,10 +167,10 @@ export class Colorpicker extends Component<ColorpickerProps> {
     private isPresetDimmed(preset: PresetColor): boolean {
         const { regionsFilter, othersFilter } = this
         if (!regionsFilter && !othersFilter) return false
-        // Show a swatch (don't dim) if it matches AT LEAST one active filter
-        const matchesRegions = regionsFilter && !!preset.info.region
-        const matchesOthers = othersFilter && !!preset.info.energy
-        return !(matchesRegions || matchesOthers)
+        // AND filter: a swatch is shown only if it matches every active filter
+        if (regionsFilter && !preset.info.region) return true
+        if (othersFilter && !preset.info.energy) return true
+        return false
     }
 
     private renderPresetSwatch(preset: PresetColor) {
@@ -240,30 +243,36 @@ export class Colorpicker extends Component<ColorpickerProps> {
         )
     }
 
-    private renderFilterPills() {
-        if (this.isCategoricalMap) return null
+    private renderHeader() {
         return (
-            <div className="colorpicker-filter">
-                <button
-                    type="button"
-                    className={cx("colorpicker-filter__pill", {
-                        "colorpicker-filter__pill--active": this.regionsFilter,
-                    })}
-                    aria-pressed={this.regionsFilter}
-                    onClick={this.toggleRegionsFilter}
-                >
-                    Regions
-                </button>
-                <button
-                    type="button"
-                    className={cx("colorpicker-filter__pill", {
-                        "colorpicker-filter__pill--active": this.othersFilter,
-                    })}
-                    aria-pressed={this.othersFilter}
-                    onClick={this.toggleOthersFilter}
-                >
-                    Others
-                </button>
+            <div className="colorpicker-header">
+                <span className="colorpicker-header__title">Choose color</span>
+                {!this.isCategoricalMap && (
+                    <div className="colorpicker-header__filters">
+                        <button
+                            type="button"
+                            className={cx("colorpicker-filter__pill", {
+                                "colorpicker-filter__pill--active":
+                                    this.regionsFilter,
+                            })}
+                            aria-pressed={this.regionsFilter}
+                            onClick={this.toggleRegionsFilter}
+                        >
+                            Regions
+                        </button>
+                        <button
+                            type="button"
+                            className={cx("colorpicker-filter__pill", {
+                                "colorpicker-filter__pill--active":
+                                    this.othersFilter,
+                            })}
+                            aria-pressed={this.othersFilter}
+                            onClick={this.toggleOthersFilter}
+                        >
+                            Others
+                        </button>
+                    </div>
+                )}
             </div>
         )
     }
@@ -292,7 +301,6 @@ export class Colorpicker extends Component<ColorpickerProps> {
                         type="text"
                         className="colorpicker-input__hex"
                         value={this.displayedHex}
-                        placeholder="Default"
                         onChange={(e) => this.onHexInputChange(e.target.value)}
                         onBlur={this.onHexInputBlur}
                         spellCheck={false}
@@ -302,25 +310,46 @@ export class Colorpicker extends Component<ColorpickerProps> {
                 ) : (
                     <div className="colorpicker-input__rgb">
                         {(["r", "g", "b"] as const).map((channel) => (
-                            <input
+                            <div
                                 key={channel}
-                                type="number"
-                                min={0}
-                                max={255}
                                 className="colorpicker-input__rgb-cell"
-                                value={this.displayedRgb?.[channel] ?? ""}
-                                placeholder="—"
-                                onChange={(e) =>
-                                    this.onRgbChannelChange(
-                                        channel,
-                                        e.target.value
-                                    )
-                                }
-                                aria-label={channel.toUpperCase()}
-                            />
+                            >
+                                <span className="colorpicker-input__rgb-label">
+                                    {channel.toUpperCase()}
+                                </span>
+                                <input
+                                    type="number"
+                                    min={0}
+                                    max={255}
+                                    className="colorpicker-input__rgb-input"
+                                    value={this.displayedRgb[channel]}
+                                    onChange={(e) =>
+                                        this.onRgbChannelChange(
+                                            channel,
+                                            e.target.value
+                                        )
+                                    }
+                                    aria-label={channel.toUpperCase()}
+                                />
+                            </div>
                         ))}
                     </div>
                 )}
+                <Tippy
+                    content="Reset color"
+                    placement="top"
+                    appendTo={() => document.body}
+                    theme="light"
+                >
+                    <button
+                        type="button"
+                        className="colorpicker-input__reset"
+                        onClick={this.resetColor}
+                        aria-label="Reset color"
+                    >
+                        <FontAwesomeIcon icon={faRotateLeft} />
+                    </button>
+                </Tippy>
             </div>
         )
     }
@@ -328,13 +357,12 @@ export class Colorpicker extends Component<ColorpickerProps> {
     override render() {
         return (
             <Fragment>
-                <div className="colorpicker-header">Choose color</div>
+                {this.renderHeader()}
                 <div className="colorpicker-presets">
                     {this.presetColors.map((preset) =>
                         this.renderPresetSwatch(preset)
                     )}
                 </div>
-                {this.renderFilterPills()}
                 <SketchPicker
                     disableAlpha
                     presetColors={[]}

@@ -29,7 +29,6 @@ import {
     faExclamationTriangle,
     faCircleInfo,
     faCopy,
-    faRotateLeft,
 } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 
@@ -692,22 +691,12 @@ export class ColorBox extends React.Component<ColorBoxProps> {
         return (
             <Tippy
                 content={
-                    <>
-                        <Colorpicker
-                            color={color}
-                            onColor={this.props.onColor}
-                            showLineChartColors={this.props.showLineChartColors}
-                            baseColorScheme={this.props.baseColorScheme}
-                        />
-                        <button
-                            type="button"
-                            className="colorpicker-reset"
-                            onClick={() => this.props.onColor(undefined)}
-                        >
-                            <FontAwesomeIcon icon={faRotateLeft} />
-                            <span>Reset color</span>
-                        </button>
-                    </>
+                    <Colorpicker
+                        color={color}
+                        onColor={this.props.onColor}
+                        showLineChartColors={this.props.showLineChartColors}
+                        baseColorScheme={this.props.baseColorScheme}
+                    />
                 }
                 placement="right"
                 interactive={true}
