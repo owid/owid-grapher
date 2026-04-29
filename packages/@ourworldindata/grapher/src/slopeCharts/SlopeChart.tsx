@@ -452,7 +452,7 @@ export class SlopeChart
             : this.rightLabelsState.stableWidth
     }
 
-    // Consumed by FacetChart to align gridlines across facets
+    // Consumed by FacetChart to align chart content across facets
     @computed get verticalLabelWidths(): SideWidths {
         return { left: this.leftLabelsWidth, right: this.rightLabelsWidth }
     }

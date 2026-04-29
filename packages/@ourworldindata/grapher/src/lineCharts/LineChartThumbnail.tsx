@@ -4,6 +4,7 @@ import { observer } from "mobx-react"
 import * as _ from "lodash-es"
 import { scaleLinear } from "d3-scale"
 import { Bounds, SeriesName } from "@ourworldindata/utils"
+import { SideWidths } from "@ourworldindata/types"
 import { ChartInterface } from "../chart/ChartInterface"
 import { LineChartState } from "./LineChartState"
 import { LineChartProps } from "./LineChart.js"
@@ -69,9 +70,10 @@ export class LineChartThumbnail
     }
 
     @computed private get innerBounds(): Bounds {
+        const { left, right } = this.effectiveLabelWidths
         return this.bounds
-            .padRight(this.estimatedLabelWidth.right)
-            .padLeft(this.estimatedLabelWidth.left)
+            .padRight(right > 0 ? right + this.labelPadding : 0)
+            .padLeft(left > 0 ? left + this.labelPadding : 0)
     }
 
     @computed get fontSize(): number {
@@ -469,10 +471,7 @@ export class LineChartThumbnail
      * these widths. To break the cycle, we run a preliminary layout pass
      * using the full bounds (without label padding).
      */
-    @computed private get estimatedLabelWidth(): {
-        right: number
-        left: number
-    } {
+    @computed private get estimatedLabelWidths(): SideWidths {
         const approximateDualAxis = new DualAxis({
             bounds: this.bounds,
             verticalAxis: this.verticalAxisPart,
@@ -492,12 +491,22 @@ export class LineChartThumbnail
             visibleEndLabels,
         })
 
-        const rightWidth = endLabelsState?.width ?? 0
-        const leftWidth = startLabelsState?.width ?? 0
-
         return {
-            right: rightWidth > 0 ? rightWidth + this.labelPadding : 0,
-            left: leftWidth > 0 ? leftWidth + this.labelPadding : 0,
+            left: startLabelsState?.width ?? 0,
+            right: endLabelsState?.width ?? 0,
+        }
+    }
+
+    // Consumed by FacetChart to align chart content across facets
+    @computed get verticalLabelWidths(): SideWidths {
+        return this.estimatedLabelWidths
+    }
+
+    @computed private get effectiveLabelWidths(): SideWidths {
+        const shared = this.manager.sharedVerticalLabelWidths
+        return {
+            left: Math.max(shared?.left ?? 0, this.verticalLabelWidths.left),
+            right: Math.max(shared?.right ?? 0, this.verticalLabelWidths.right),
         }
     }
 

@@ -530,17 +530,22 @@ export class FacetChart
             }
         })
 
-        // Make sure that all slope facets use the same start and end point
-        let sharedVerticalLabelWidths: SideWidths | undefined
-        if (this.chartTypeName === GRAPHER_CHART_TYPES.SlopeChart) {
-            const widths = excludeUndefined(
-                intermediateChartInstances.map((c) => c.verticalLabelWidths)
-            )
-            sharedVerticalLabelWidths = {
-                left: _.max(widths.map((w) => w.left)) ?? 0,
-                right: _.max(widths.map((w) => w.right)) ?? 0,
-            }
-        }
+        // Some chart types render vertical series labels to the left and/or
+        // right of the plot area (e.g. slope charts show start/end labels).
+        // When each facet independently sizes these labels, the plot areas
+        // end up with different widths, making it hard to compare across facets.
+        // To fix this, we find the maximum label width on each side across
+        // all facets and pass it down so every facet reserves the same space.
+        const labelWidths = excludeUndefined(
+            intermediateChartInstances.map((c) => c.verticalLabelWidths)
+        )
+        const sharedVerticalLabelWidths: SideWidths | undefined =
+            labelWidths.length > 0
+                ? {
+                      left: _.max(labelWidths.map((w) => w.left)) ?? 0,
+                      right: _.max(labelWidths.map((w) => w.right)) ?? 0,
+                  }
+                : undefined
 
         // Allocate space for shared axes, so that the content areas of charts are all equal.
         // If the axes are "shared", then an axis will only plotted on the facets that are on the

@@ -13,6 +13,7 @@ import {
     EntityName,
     DetailsMarker,
     GrapherVariant,
+    SideWidths,
 } from "@ourworldindata/types"
 import { TooltipManager } from "../tooltip/TooltipProps"
 import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
@@ -94,6 +95,9 @@ export interface ChartManager {
     showNoDataArea?: boolean // No data area in Marimekko charts
 
     externalLegendHoverBin?: ColorScaleBin | undefined
+
+    /** Used by FacetChart to align chart content across facets */
+    sharedVerticalLabelWidths?: SideWidths
 
     missingDataStrategy?: MissingDataStrategy
 
