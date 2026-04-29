@@ -74,8 +74,8 @@ import {
 } from "../seriesLabel/SeriesLabelState.js"
 
 const SHARED_X_AXIS_MIN_FACET_COUNT = 12
-const FACET_THUMBNAIL_WIDTH_THRESHOLD = 120
-const FACET_THUMBNAIL_HEIGHT_THRESHOLD = 80
+const THUMBNAIL_MIN_FACET_COUNT = 12
+const THUMBNAIL_AREA_THRESHOLD = 18000
 
 const facetBackgroundColor = "none" // we don't use color yet but may use it for background later
 
@@ -416,12 +416,18 @@ export class FacetChart
     @computed private get variant(): GrapherVariant {
         const { facetBounds } = this
 
-        if (!this.canShowThumbnails) return GrapherVariant.Default
+        if (!this.canShowThumbnails || !facetBounds)
+            return GrapherVariant.Default
 
-        const shouldUseThumbnail =
-            facetBounds !== undefined &&
-            (facetBounds.width < FACET_THUMBNAIL_WIDTH_THRESHOLD ||
-                facetBounds.height < FACET_THUMBNAIL_HEIGHT_THRESHOLD)
+        // When the whole chart is exported as a thumbnail,
+        // always render the facets as thumbnails
+        if (this.manager.variant === GrapherVariant.Thumbnail)
+            return GrapherVariant.Thumbnail
+
+        const isSmallArea =
+            facetBounds.width * facetBounds.height < THUMBNAIL_AREA_THRESHOLD
+        const hasManyFacets = this.facetCount >= THUMBNAIL_MIN_FACET_COUNT
+        const shouldUseThumbnail = isSmallArea || hasManyFacets
 
         return shouldUseThumbnail
             ? GrapherVariant.Thumbnail
@@ -530,17 +536,22 @@ export class FacetChart
             }
         })
 
-        // Make sure that all slope facets use the same start and end point
-        let sharedVerticalLabelWidths: SideWidths | undefined
-        if (this.chartTypeName === GRAPHER_CHART_TYPES.SlopeChart) {
-            const widths = excludeUndefined(
-                intermediateChartInstances.map((c) => c.verticalLabelWidths)
-            )
-            sharedVerticalLabelWidths = {
-                left: _.max(widths.map((w) => w.left)) ?? 0,
-                right: _.max(widths.map((w) => w.right)) ?? 0,
-            }
-        }
+        // Some chart types render vertical series labels to the left and/or
+        // right of the plot area (e.g. slope charts show start/end labels).
+        // When each facet independently sizes these labels, the plot areas
+        // end up with different widths, making it hard to compare across facets.
+        // To fix this, we find the maximum label width on each side across
+        // all facets and pass it down so every facet reserves the same space.
+        const labelWidths = excludeUndefined(
+            intermediateChartInstances.map((c) => c.verticalLabelWidths)
+        )
+        const sharedVerticalLabelWidths: SideWidths | undefined =
+            labelWidths.length > 0
+                ? {
+                      left: _.max(labelWidths.map((w) => w.left)) ?? 0,
+                      right: _.max(labelWidths.map((w) => w.right)) ?? 0,
+                  }
+                : undefined
 
         // Allocate space for shared axes, so that the content areas of charts are all equal.
         // If the axes are "shared", then an axis will only plotted on the facets that are on the
