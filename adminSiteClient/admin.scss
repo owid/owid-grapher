@@ -1053,10 +1053,25 @@ $nav-height: 45px;
         0 1px 4px rgba(0, 0, 0, 0.2);
 }
 
-.colorpicker-presets__tooltip-line {
-    display: block;
+.colorpicker-presets__tooltip {
     line-height: 1.35;
-    white-space: nowrap;
+    text-align: left;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+.colorpicker-presets__tooltip-title {
+    font-weight: 600;
+    margin-bottom: 2px;
+}
+
+.colorpicker-presets__tooltip-row {
+    font-size: 12px;
+    opacity: 0.9;
+}
+
+.colorpicker-presets__tooltip-label {
+    opacity: 0.7;
 }
 
 .LoadingBlocker {

@@ -8,6 +8,7 @@ import cx from "classnames"
 import { ColorSchemeName, lastOfNonEmptyArray } from "@ourworldindata/utils"
 import {
     ColorSchemes,
+    ColorSemanticInfo,
     getColorNameOwidDistinctAndSemanticPalettes,
     getColorNameOwidDistinctLinesAndSemanticPalettes,
     OwidMapColors,
@@ -22,8 +23,7 @@ interface ColorpickerProps {
 
 interface PresetColor {
     color: string
-    lines: string[]
-    hasSemanticMapping: boolean
+    info: ColorSemanticInfo
 }
 
 @observer
@@ -51,8 +51,7 @@ export class Colorpicker extends Component<ColorpickerProps> {
             // to be used sparingly when needed (Taupe, Mustard, Tomato)
             return Object.entries(OwidMapColors).map(([name, color]) => ({
                 color,
-                lines: [name],
-                hasSemanticMapping: false,
+                info: { colorName: name },
             }))
         }
 
@@ -64,47 +63,58 @@ export class Colorpicker extends Component<ColorpickerProps> {
             ? getColorNameOwidDistinctLinesAndSemanticPalettes
             : getColorNameOwidDistinctAndSemanticPalettes
 
-        return lastOfNonEmptyArray(scheme.colorSets).map((color) => {
-            const lines = colorNameLookupFn(color)
-            // The first line is the colour name (🎨); any additional lines mean
-            // the colour is also used in a semantic palette (🌍 region, ⚡ energy)
-            return {
-                color,
-                lines,
-                hasSemanticMapping: lines.length > 1,
-            }
-        })
+        return lastOfNonEmptyArray(scheme.colorSets).map((color) => ({
+            color,
+            info: colorNameLookupFn(color),
+        }))
     }
 
     private renderPresetSwatch(preset: PresetColor) {
-        const { color, lines, hasSemanticMapping } = preset
+        const { color, info } = preset
+        const { colorName, region, energy } = info
+        const hasSemanticMapping = !!(region || energy)
         const isSelected =
             this.props.color !== undefined &&
             this.props.color.toLowerCase() === color.toLowerCase()
 
-        const tooltipContent =
-            lines.length > 0 ? (
-                <>
-                    {lines.map((line) => (
-                        <span
-                            key={line}
-                            className="colorpicker-presets__tooltip-line"
-                        >
-                            {line}
-                        </span>
-                    ))}
-                </>
-            ) : (
-                color
-            )
+        const ariaLabelParts = [
+            colorName,
+            region ? `Regions: ${region}` : undefined,
+            energy ? `Others: ${energy}` : undefined,
+        ].filter((x): x is string => !!x)
+
+        const tooltipContent = (
+            <div className="colorpicker-presets__tooltip">
+                <div className="colorpicker-presets__tooltip-title">
+                    {colorName ?? color}
+                </div>
+                {region && (
+                    <div className="colorpicker-presets__tooltip-row">
+                        <span className="colorpicker-presets__tooltip-label">
+                            Regions:
+                        </span>{" "}
+                        {region}
+                    </div>
+                )}
+                {energy && (
+                    <div className="colorpicker-presets__tooltip-row">
+                        <span className="colorpicker-presets__tooltip-label">
+                            Others:
+                        </span>{" "}
+                        {energy}
+                    </div>
+                )}
+            </div>
+        )
 
         return (
             <Tippy
-                key={color + lines.join("|")}
+                key={color}
                 content={tooltipContent}
                 delay={[100, 0]}
                 placement="top"
                 appendTo={() => document.body}
+                maxWidth={220}
             >
                 <button
                     type="button"
@@ -115,7 +125,7 @@ export class Colorpicker extends Component<ColorpickerProps> {
                     })}
                     style={{ backgroundColor: color }}
                     onClick={() => this.onColor(color)}
-                    aria-label={lines.join(", ") || color}
+                    aria-label={ariaLabelParts.join(", ") || color}
                 />
             </Tippy>
         )

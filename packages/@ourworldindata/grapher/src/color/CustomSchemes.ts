@@ -423,8 +423,18 @@ export const ContinentColors = {
     "Low-income countries": IncomeGroupColors.LowIncome,
 } as const
 
-// Used for looking up color names from hex values
-const ContinentColorsNames = lazy(() => R.invert(ContinentColors))
+// Used for looking up color names from hex values.
+// Many regions share the same colour (e.g. all "Europe" variants use Denim);
+// we want the canonical short name first (`"Europe"`) rather than the last
+// declared variant (`"Europe and Central Asia (ILO)"`), which is what R.invert
+// would return.
+const ContinentColorsNames = lazy(() => {
+    const result: Record<string, string> = {}
+    for (const [key, value] of Object.entries(ContinentColors)) {
+        if (!(value in result)) result[value] = key
+    }
+    return result
+})
 
 const ContinentColorPalette = [
     ContinentColors.Africa,
@@ -844,33 +854,34 @@ export const MapContinentColors = {
 
 export const DefaultColorScheme = OwidDistinctColorScheme
 
+export interface ColorSemanticInfo {
+    colorName?: string
+    region?: string
+    energy?: string
+}
+
 export function getColorNameAndSemanticPalettes(
     color: string,
     baseColorSchemeNames: Record<string, string>,
     continentsColorSchemeNames: Record<string, string>,
     energyColorSchemeNames: Record<string, string>
-): string[] {
-    const colorNameStandardized = color.toUpperCase()
-    const owidDistinct =
-        colorNameStandardized in baseColorSchemeNames
-            ? `🎨 ${baseColorSchemeNames[colorNameStandardized]}`
-            : ""
-    const continents =
-        colorNameStandardized in continentsColorSchemeNames
-            ? `🌍 ${continentsColorSchemeNames[colorNameStandardized]}`
-            : ""
-    const energy =
-        colorNameStandardized in energyColorSchemeNames
-            ? `⚡ ${energyColorSchemeNames[colorNameStandardized]}`
-            : ""
-    const lines = [owidDistinct, continents, energy].filter((x) => x !== "")
+): ColorSemanticInfo {
+    // Lookup must be case-insensitive: hex codes can be stored in either case
+    // (e.g. OwidDistinctColors uses lowercase, OwidMapColors uses uppercase)
+    // and the user-supplied `color` may not match the dict's casing.
+    const lookup = (dict: Record<string, string>): string | undefined =>
+        dict[color] ?? dict[color.toLowerCase()] ?? dict[color.toUpperCase()]
 
-    return lines
+    return {
+        colorName: lookup(baseColorSchemeNames),
+        region: lookup(continentsColorSchemeNames),
+        energy: lookup(energyColorSchemeNames),
+    }
 }
 
 export function getColorNameOwidDistinctAndSemanticPalettes(
     color: string
-): string[] {
+): ColorSemanticInfo {
     return getColorNameAndSemanticPalettes(
         color,
         OwidDistinctColorsNames(),
@@ -881,7 +892,7 @@ export function getColorNameOwidDistinctAndSemanticPalettes(
 
 export function getColorNameOwidDistinctLinesAndSemanticPalettes(
     color: string
-): string[] {
+): ColorSemanticInfo {
     return getColorNameAndSemanticPalettes(
         color,
         OwidDistinctLinesColorNames(),
