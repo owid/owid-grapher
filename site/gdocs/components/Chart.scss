@@ -46,8 +46,12 @@ html.js-disabled figure.chart.GrapherWithFallback__fallback {
 
 .owid-chart-frame--multi-dim-with-controls {
     // Let the settings panel take as much space as it needs, while keeping the
-    // Grapher itself at the expected article embed height.
+    // Grapher itself at the expected article embed height. The min-height
+    // reserves space before the lazy-loaded multi-dim renders, avoiding layout
+    // shifts. The 74px matches the extra controls height used for
+    // recommendedIframeEmbedHeight in site/multiDim/hooks.ts.
     height: auto;
+    min-height: calc($grapher-height + 74px);
 
     .multi-dim-embed,
     .multi-dim-container {
