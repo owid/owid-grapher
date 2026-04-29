@@ -1,5 +1,5 @@
 import { Component, Fragment } from "react"
-import { action, makeObservable } from "mobx"
+import { action, computed, makeObservable, observable } from "mobx"
 import { observer } from "mobx-react"
 import { SketchPicker } from "react-color"
 import Tippy from "@tippyjs/react"
@@ -27,11 +27,27 @@ interface PresetColor {
     info: ColorSemanticInfo
 }
 
+type PresetFilter = "all" | "regions" | "others"
+
+const FILTER_OPTIONS: { value: PresetFilter; label: string }[] = [
+    { value: "all", label: "All" },
+    { value: "regions", label: "Regions" },
+    { value: "others", label: "Others" },
+]
+
 @observer
 export class Colorpicker extends Component<ColorpickerProps> {
+    filter: PresetFilter = "all"
+
     constructor(props: ColorpickerProps) {
         super(props)
-        makeObservable(this)
+        makeObservable(this, {
+            filter: observable,
+        })
+    }
+
+    @action.bound private setFilter(filter: PresetFilter) {
+        this.filter = filter
     }
 
     @action.bound onColor(color: string) {
@@ -42,11 +58,12 @@ export class Colorpicker extends Component<ColorpickerProps> {
         }
     }
 
-    private get presetColors(): PresetColor[] {
-        const isOwidCategoricalMap =
-            this.props.baseColorScheme === ColorSchemeName.OwidCategoricalMap
+    @computed private get isCategoricalMap(): boolean {
+        return this.props.baseColorScheme === ColorSchemeName.OwidCategoricalMap
+    }
 
-        if (isOwidCategoricalMap) {
+    @computed private get presetColors(): PresetColor[] {
+        if (this.isCategoricalMap) {
             // We use OwidMapColors instead of the scheme's palette
             // because it includes three additional 'special' colors
             // to be used sparingly when needed (Taupe, Mustard, Tomato)
@@ -70,13 +87,24 @@ export class Colorpicker extends Component<ColorpickerProps> {
         }))
     }
 
+    private isPresetDimmed(preset: PresetColor): boolean {
+        switch (this.filter) {
+            case "regions":
+                return !preset.info.region
+            case "others":
+                return !preset.info.energy
+            default:
+                return false
+        }
+    }
+
     private renderPresetSwatch(preset: PresetColor) {
         const { color, info } = preset
         const { colorName, region, energy } = info
-        const hasSemanticMapping = !!(region || energy)
         const isSelected =
             this.props.color !== undefined &&
             this.props.color.toLowerCase() === color.toLowerCase()
+        const isDimmed = this.isPresetDimmed(preset)
 
         const ariaLabelParts = [
             colorName,
@@ -108,6 +136,23 @@ export class Colorpicker extends Component<ColorpickerProps> {
             </div>
         )
 
+        const swatch = (
+            <button
+                type="button"
+                className={cx("colorpicker-presets__swatch", {
+                    "colorpicker-presets__swatch--selected": isSelected,
+                    "colorpicker-presets__swatch--dimmed": isDimmed,
+                })}
+                style={{ backgroundColor: color }}
+                onClick={isDimmed ? undefined : () => this.onColor(color)}
+                disabled={isDimmed}
+                aria-label={ariaLabelParts.join(", ") || color}
+            />
+        )
+
+        // No tooltip for dimmed swatches — they're inactive in the current filter view
+        if (isDimmed) return <Fragment key={color}>{swatch}</Fragment>
+
         return (
             <Tippy
                 key={color}
@@ -117,18 +162,31 @@ export class Colorpicker extends Component<ColorpickerProps> {
                 appendTo={() => document.body}
                 maxWidth={220}
             >
-                <button
-                    type="button"
-                    className={cx("colorpicker-presets__swatch", {
-                        "colorpicker-presets__swatch--selected": isSelected,
-                        "colorpicker-presets__swatch--has-mapping":
-                            hasSemanticMapping,
-                    })}
-                    style={{ backgroundColor: color }}
-                    onClick={() => this.onColor(color)}
-                    aria-label={ariaLabelParts.join(", ") || color}
-                />
+                {swatch}
             </Tippy>
+        )
+    }
+
+    private renderFilterTabs() {
+        if (this.isCategoricalMap) return null
+        return (
+            <div className="colorpicker-filter" role="tablist">
+                {FILTER_OPTIONS.map(({ value, label }) => (
+                    <button
+                        key={value}
+                        type="button"
+                        role="tab"
+                        aria-selected={this.filter === value}
+                        className={cx("colorpicker-filter__tab", {
+                            "colorpicker-filter__tab--active":
+                                this.filter === value,
+                        })}
+                        onClick={() => this.setFilter(value)}
+                    >
+                        {label}
+                    </button>
+                ))}
+            </div>
         )
     }
 
@@ -141,6 +199,7 @@ export class Colorpicker extends Component<ColorpickerProps> {
                     color={this.props.color}
                     onChange={(color) => this.onColor(color.hex)}
                 />
+                {this.renderFilterTabs()}
                 <div className="colorpicker-presets">
                     {this.presetColors.map((preset) =>
                         this.renderPresetSwatch(preset)
