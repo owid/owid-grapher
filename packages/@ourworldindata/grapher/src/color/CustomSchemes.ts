@@ -861,58 +861,26 @@ export interface ColorSemanticInfo {
 }
 
 // Identifier-style names from the source dicts get presented to users via
-// tooltips, so we need readable display strings. Anything not in the map
-// passes through unchanged (already display-ready strings like "Africa",
-// "Europe (WHO)" or "Middle East, North Africa, Afghanistan and Pakistan (WB)").
-const COLOR_DISPLAY_NAMES: Record<string, string> = {
-    // OWID distinct palette
-    DarkOrange: "Dark Orange",
-    LightTeal: "Light Teal",
-    MidnightBlue: "Midnight Blue",
-    DustyCoral: "Dusty Coral",
-    DarkOliveGreen: "Dark Olive Green",
-    DarkCopper: "Dark Copper",
-    OliveGreen: "Olive Green",
-    TealishGreen: "Tealish Green",
-    RustyOrange: "Rusty Orange",
-    DarkMauve: "Dark Mauve",
-
-    // Continent / sub-region identifiers
-    NorthAmerica: "North America",
-    SouthAmerica: "South America",
+// tooltips, so we need readable display strings. The default transform is
+// CamelCase → "Camel Case"; the overrides below cover the few cases that
+// don't follow that rule (typo fix, inserted "and", lowercase "renewables").
+// Strings without a CamelCase boundary pass through unchanged — that's what
+// keeps already-display-ready inputs like "Africa", "Europe (WHO)" or
+// "Middle East, North Africa, Afghanistan and Pakistan (WB)" intact.
+const COLOR_DISPLAY_OVERRIDES: Record<string, string> = {
     SubSaharanAfrica: "Sub-Saharan Africa",
     MiddleEastNorthAfrica: "Middle East and North Africa",
-    CentralAsia: "Central Asia",
-    EastAsia: "East Asia",
-    SoutheastAsia: "Southeast Asia",
-    SouthAsia: "South Asia",
-    // Note: source key has a typo ("Carribean"); display name has the correct spelling.
+    // Source key has a typo ("Carribean"); display name uses the correct spelling.
     CentralAmericaAndCarribean: "Central America and Caribbean",
-    EasternEurope: "Eastern Europe",
-    WesternEurope: "Western Europe",
     AustralasiaAndOceania: "Australasia and Oceania",
-
-    // Energy types
     OtherRenewables: "Other renewables",
-
-    // OwidMap categorical palette
-    MutedDenim: "Muted Denim",
-    SoftOrange: "Soft Orange",
-    MutedTeal: "Muted Teal",
-    SoftPurple: "Soft Purple",
-    MutedCherry: "Muted Cherry",
-    LeafGreen: "Leaf Green",
-    SkyTurquoise: "Sky Turquoise",
-    LightDenim: "Light Denim",
-    LightOrange: "Light Orange",
-    LightPurple: "Light Purple",
-    LightSand: "Light Sand",
-    LightCherry: "Light Cherry",
-    LightGreen: "Light Green",
 }
 
 export function toColorDisplayName(name: string): string {
-    return COLOR_DISPLAY_NAMES[name] ?? name
+    return (
+        COLOR_DISPLAY_OVERRIDES[name] ??
+        name.replace(/([a-z])([A-Z])/g, "$1 $2")
+    )
 }
 
 export function getColorNameAndSemanticPalettes(
