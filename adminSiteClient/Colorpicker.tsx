@@ -19,6 +19,10 @@ import {
 
 interface ColorpickerProps {
     color?: string
+    // When `color` is unset, this is shown as the displayed value. The
+    // parent should pass the chart's resolved scheme color so the popover
+    // matches what the chart is actually rendering.
+    defaultColor?: string
     showLineChartColors: boolean
     baseColorScheme?: ColorSchemeName
     onColor: (color: string | undefined) => void
@@ -132,14 +136,21 @@ export class Colorpicker extends Component<ColorpickerProps> {
         return this.props.baseColorScheme === ColorSchemeName.OwidCategoricalMap
     }
 
+    private get effectiveColor(): string {
+        return (
+            this.props.color ??
+            this.props.defaultColor ??
+            "#000000"
+        ).toLowerCase()
+    }
+
     private get displayedHex(): string {
         if (this.hexInputDraft !== undefined) return this.hexInputDraft
-        // Mirror SketchPicker's internal default (tinycolor maps undefined → "#000000")
-        return (this.props.color ?? "#000000").replace(/^#/, "").toUpperCase()
+        return this.effectiveColor.replace(/^#/, "").toUpperCase()
     }
 
     private get displayedRgb(): { r: number; g: number; b: number } {
-        return hexToRgb(this.props.color ?? "#000000")
+        return hexToRgb(this.effectiveColor)
     }
 
     @computed private get presetColors(): PresetColor[] {
@@ -369,7 +380,7 @@ export class Colorpicker extends Component<ColorpickerProps> {
                 <SketchPicker
                     disableAlpha
                     presetColors={[]}
-                    color={this.props.color}
+                    color={this.effectiveColor}
                     onChange={(color) => this.onColor(color.hex)}
                 />
                 {this.renderColorInput()}

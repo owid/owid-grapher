@@ -5,6 +5,7 @@ import { computed, action, observable, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import cx from "classnames"
 import {
+    ColorSchemeName,
     EntitySelectionMode,
     MissingDataStrategy,
     PeerCountryStrategy,
@@ -12,6 +13,7 @@ import {
     SeriesName,
 } from "@ourworldindata/types"
 import {
+    ColorSchemes,
     GrapherState,
     selectPeerCountries,
     prepareEntitiesForPeerSelection,
@@ -72,6 +74,25 @@ class EntityListItem extends React.Component<EntityListItemProps> {
         return this.table.getColorForEntityName(this.props.entityName)
     }
 
+    // Approximate the chart's resolved scheme color for this entity. Used
+    // as a fallback in the color popover when no explicit override is set,
+    // so the user sees the actual chart colour instead of black.
+    @computed get defaultColor(): string | undefined {
+        const { grapherState } = this.props.editor
+        const schemeName =
+            grapherState.baseColorScheme ??
+            (grapherState.isLineChart
+                ? ColorSchemeName.OwidDistinctLines
+                : ColorSchemeName["owid-distinct"])
+        const scheme = ColorSchemes.get(schemeName)
+        if (!scheme) return undefined
+        const entities = grapherState.selection.selectedEntityNames
+        const idx = entities.indexOf(this.props.entityName)
+        if (idx < 0) return undefined
+        const colors = scheme.getDistinctColors(Math.max(entities.length, 1))
+        return colors[idx]
+    }
+
     @action.bound onColor(color: string | undefined) {
         const { grapherState } = this.props.editor
         grapherState.selectedEntityColors[this.props.entityName] = color
@@ -103,6 +124,7 @@ class EntityListItem extends React.Component<EntityListItemProps> {
                     {props.isDndEnabled && <SortableList.DragHandle />}
                     <ColorBox
                         color={color}
+                        defaultColor={this.defaultColor}
                         onColor={this.onColor}
                         showLineChartColors={editor.grapherState.isLineChart}
                     />

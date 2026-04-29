@@ -2,8 +2,12 @@ import * as _ from "lodash-es"
 import { Component, Fragment } from "react"
 import { observable, computed, action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
-import { ChartDimension } from "@ourworldindata/grapher"
-import { OwidColumnDef, OwidVariableRoundingMode } from "@ourworldindata/types"
+import { ChartDimension, ColorSchemes } from "@ourworldindata/grapher"
+import {
+    ColorSchemeName,
+    OwidColumnDef,
+    OwidVariableRoundingMode,
+} from "@ourworldindata/types"
 import {
     Toggle,
     BindAutoString,
@@ -75,6 +79,27 @@ export class DimensionCard<
         return this.props.dimension.column.def.color
     }
 
+    // Approximate the chart's resolved scheme color for this dimension. Used
+    // as a fallback in the color popover when no explicit override is set,
+    // so the user sees the actual chart colour instead of black.
+    @computed get defaultColor(): string | undefined {
+        const { grapherState } = this.props.editor
+        const schemeName =
+            grapherState.baseColorScheme ??
+            (grapherState.isLineChart
+                ? ColorSchemeName.OwidDistinctLines
+                : ColorSchemeName["owid-distinct"])
+        const scheme = ColorSchemes.get(schemeName)
+        if (!scheme) return undefined
+        const dims = grapherState.filledDimensions
+        const dimIndex = dims.findIndex(
+            (d) => d.variableId === this.props.dimension.variableId
+        )
+        if (dimIndex < 0) return undefined
+        const colors = scheme.getDistinctColors(Math.max(dims.length, 1))
+        return colors[dimIndex]
+    }
+
     @computed get roundingMode(): OwidVariableRoundingMode {
         return (
             this.props.dimension.display.roundingMode ??
@@ -144,6 +169,7 @@ export class DimensionCard<
                         {isDndEnabled && <SortableList.DragHandle />}
                         <ColorBox
                             color={this.color}
+                            defaultColor={this.defaultColor}
                             onColor={this.onColor}
                             showLineChartColors={grapherState.isLineChart}
                         />

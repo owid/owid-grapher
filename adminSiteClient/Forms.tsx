@@ -675,6 +675,10 @@ export class EditableListItem extends React.Component<EditableListItemProps> {
 
 interface ColorBoxProps {
     color: string | undefined
+    // Color the chart actually uses when `color` is unset (the resolved
+    // scheme default). When provided, it is shown in the popover and
+    // ColorBox preview instead of falling back to black.
+    defaultColor?: string
     onColor: (color: string | undefined) => void
     showLineChartColors: boolean
     baseColorScheme?: ColorSchemeName
@@ -683,8 +687,12 @@ interface ColorBoxProps {
 @observer
 export class ColorBox extends React.Component<ColorBoxProps> {
     override render() {
-        const { color } = this.props
-
+        const { color, defaultColor } = this.props
+        // The preview only reflects the explicit override: paintbrush when
+        // no override is set, coloured square when there is one. The
+        // chart's resolved scheme colour (`defaultColor`) is only used
+        // inside the popover so the inputs/saturation match what the
+        // chart is actually rendering.
         const style =
             color !== undefined ? { backgroundColor: color } : undefined
 
@@ -693,6 +701,7 @@ export class ColorBox extends React.Component<ColorBoxProps> {
                 content={
                     <Colorpicker
                         color={color}
+                        defaultColor={defaultColor}
                         onColor={this.props.onColor}
                         showLineChartColors={this.props.showLineChartColors}
                         baseColorScheme={this.props.baseColorScheme}
