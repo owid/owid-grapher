@@ -919,16 +919,34 @@ main:not(.ChartEditorPage):not(.GdocsEditPage):not(.MultiDimDetailPage) {
     .topRow {
         display: flex;
         align-items: center;
-        justify-content: space-between;
-        margin-bottom: 1em;
+        gap: 1em;
+        margin-bottom: 0.5em;
 
         .form-group {
             margin: 0;
+            flex: 1;
         }
 
         input {
-            width: 500px;
+            width: 100%;
         }
+
+        .filters {
+            display: flex;
+            align-items: center;
+            gap: 0.5em;
+            color: #666;
+        }
+
+        .filters select {
+            width: auto;
+        }
+    }
+
+    .resultsCount {
+        margin-bottom: 1em;
+        color: #666;
+        font-size: 0.9em;
     }
 }
 

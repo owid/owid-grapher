@@ -144,7 +144,7 @@ export class ChartRow extends React.Component<ChartRowProps> {
                 <td>{chart.grapherViewsPerDay?.toLocaleString() ?? "0"}</td>
                 <td>{chart.narrativeChartsCount?.toLocaleString() ?? "0"}</td>
                 <td>{chart.referencesCount?.toLocaleString() ?? "0"}</td>
-                <td>
+                <td style={{ minWidth: "120px" }}>
                     <Link
                         to={`/charts/${chart.id}/edit`}
                         className="btn btn-primary"
@@ -168,10 +168,8 @@ export class ChartRow extends React.Component<ChartRowProps> {
                     >
                         Copy
                     </Dropdown.Button>
-                </td>
-                <td>
                     <button
-                        className="btn btn-danger"
+                        className="btn btn-danger mt-1"
                         onClick={() => this.props.onDelete(chart)}
                     >
                         Delete
