@@ -192,7 +192,6 @@ export class Colorpicker extends Component<ColorpickerProps> {
         return false
     }
 
-
     private renderPresetSwatch(preset: PresetColor) {
         const { color, info } = preset
         const { colorName, region, energy } = info
