@@ -106,8 +106,11 @@ export class Colorpicker extends Component<ColorpickerProps> {
     }
 
     @action.bound private onHexInputChange(value: string) {
-        this.hexInputDraft = value
-        const expanded = expandHex(value)
+        // The visible "#" prefix is rendered as a separate label, so strip
+        // any "#" the user might have typed/pasted, and cap at 6 chars.
+        const cleaned = value.replace(/#/g, "").slice(0, 6)
+        this.hexInputDraft = cleaned
+        const expanded = expandHex(cleaned)
         if (expanded) this.props.onColor("#" + expanded)
     }
 
@@ -311,16 +314,26 @@ export class Colorpicker extends Component<ColorpickerProps> {
                     </button>
                 </Tippy>
                 {this.inputMode === "hex" ? (
-                    <input
-                        type="text"
-                        className="colorpicker-input__hex"
-                        value={this.displayedHex}
-                        onChange={(e) => this.onHexInputChange(e.target.value)}
-                        onBlur={this.onHexInputBlur}
-                        spellCheck={false}
-                        maxLength={7}
-                        aria-label="Hex value"
-                    />
+                    <div className="colorpicker-input__hex-wrap">
+                        <span
+                            className="colorpicker-input__hex-prefix"
+                            aria-hidden="true"
+                        >
+                            #
+                        </span>
+                        <input
+                            type="text"
+                            className="colorpicker-input__hex"
+                            value={this.displayedHex}
+                            onChange={(e) =>
+                                this.onHexInputChange(e.target.value)
+                            }
+                            onBlur={this.onHexInputBlur}
+                            spellCheck={false}
+                            maxLength={6}
+                            aria-label="Hex value"
+                        />
+                    </div>
                 ) : (
                     <div className="colorpicker-input__rgb">
                         {(["r", "g", "b"] as const).map((channel) => (

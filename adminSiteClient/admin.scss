@@ -990,10 +990,25 @@ $nav-height: 45px;
     color: #1d1d1f;
 }
 
+.colorpicker-input__hex-wrap {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+}
+
+.colorpicker-input__hex-prefix {
+    padding-left: 8px;
+    font-size: 11px;
+    color: #9a9a9e;
+    pointer-events: none;
+    user-select: none;
+}
+
 .colorpicker-input__hex {
     flex: 1;
     min-width: 0;
-    padding: 6px 8px;
+    padding: 6px 8px 6px 2px;
     border: none;
     background: transparent;
     font-size: 11px;
@@ -1003,6 +1018,10 @@ $nav-height: 45px;
 }
 
 .colorpicker-input__hex:focus {
+    background: rgba(24, 101, 242, 0.05);
+}
+
+.colorpicker-input__hex-wrap:focus-within {
     background: rgba(24, 101, 242, 0.05);
 }
 
