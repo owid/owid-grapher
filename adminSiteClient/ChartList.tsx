@@ -26,10 +26,23 @@ import {
     highlightFunctionForSearchWords,
 } from "../adminShared/search.js"
 import { TextField } from "./Forms.js"
-import { Tooltip } from "antd"
+import {
+    Badge,
+    Button,
+    DatePicker,
+    InputNumber,
+    Popover,
+    Select,
+    Tooltip,
+} from "antd"
+import dayjs, { Dayjs } from "dayjs"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faFilter, faInfoCircle } from "@fortawesome/free-solid-svg-icons"
 import { deleteChart } from "./ChartEditor.js"
+
+const MAP_FILTER_VALUE = "__map__"
+type ChartTypeFilterValue = GrapherChartType | typeof MAP_FILTER_VALUE
+type DateRange = [Dayjs | null, Dayjs | null] | null
 
 // These properties are coming from OldChart.ts
 export interface ChartListItem {
@@ -93,6 +106,13 @@ export class ChartList extends React.Component<ChartListProps> {
     sortConfig: SortConfig | undefined = undefined
     availableTags: DbChartTagJoin[] = []
     publishedFilter: PublishedFilter = "all"
+    chartTypes: ChartTypeFilterValue[] = []
+    publishedDateRange: DateRange = null
+    lastEditedDateRange: DateRange = null
+    referencesMin: number | null = null
+    referencesMax: number | null = null
+    narrativeChartsMin: number | null = null
+    narrativeChartsMax: number | null = null
 
     constructor(props: ChartListProps) {
         super(props)
@@ -103,6 +123,13 @@ export class ChartList extends React.Component<ChartListProps> {
             sortConfig: observable,
             availableTags: observable,
             publishedFilter: observable,
+            chartTypes: observable,
+            publishedDateRange: observable,
+            lastEditedDateRange: observable,
+            referencesMin: observable,
+            referencesMax: observable,
+            narrativeChartsMin: observable,
+            narrativeChartsMax: observable,
         })
     }
 
@@ -176,7 +203,17 @@ export class ChartList extends React.Component<ChartListProps> {
     }
 
     @computed get chartsFiltered(): ChartListItem[] {
-        const { searchWords, publishedFilter } = this
+        const {
+            searchWords,
+            publishedFilter,
+            chartTypes,
+            publishedDateRange,
+            lastEditedDateRange,
+            referencesMin,
+            referencesMax,
+            narrativeChartsMin,
+            narrativeChartsMax,
+        } = this
         let result = this.props.charts
 
         if (publishedFilter === "published") {
@@ -184,6 +221,46 @@ export class ChartList extends React.Component<ChartListProps> {
         } else if (publishedFilter === "drafts") {
             result = result.filter((chart) => !chart.isPublished)
         }
+
+        if (chartTypes.length > 0) {
+            result = result.filter((chart) =>
+                chartTypes.some((selected) => {
+                    if (selected === MAP_FILTER_VALUE)
+                        return !!chart.hasMapTab || !chart.type
+                    return chart.type === selected
+                })
+            )
+        }
+
+        result = filterByDateRange(
+            result,
+            (chart) => chart.publishedAt,
+            publishedDateRange
+        )
+        result = filterByDateRange(
+            result,
+            (chart) => chart.lastEditedAt,
+            lastEditedDateRange
+        )
+
+        if (referencesMin !== null)
+            result = result.filter(
+                (chart) => (chart.referencesCount ?? 0) >= referencesMin
+            )
+        if (referencesMax !== null)
+            result = result.filter(
+                (chart) => (chart.referencesCount ?? 0) <= referencesMax
+            )
+        if (narrativeChartsMin !== null)
+            result = result.filter(
+                (chart) =>
+                    (chart.narrativeChartsCount ?? 0) >= narrativeChartsMin
+            )
+        if (narrativeChartsMax !== null)
+            result = result.filter(
+                (chart) =>
+                    (chart.narrativeChartsCount ?? 0) <= narrativeChartsMax
+            )
 
         if (searchWords.length > 0) {
             const filterFn = filterFunctionForSearchWords(
@@ -205,6 +282,27 @@ export class ChartList extends React.Component<ChartListProps> {
         }
 
         return result
+    }
+
+    @computed get advancedFilterCount(): number {
+        let count = 0
+        if (
+            this.publishedDateRange &&
+            (this.publishedDateRange[0] || this.publishedDateRange[1])
+        )
+            count++
+        if (
+            this.lastEditedDateRange &&
+            (this.lastEditedDateRange[0] || this.lastEditedDateRange[1])
+        )
+            count++
+        if (this.referencesMin !== null || this.referencesMax !== null) count++
+        if (
+            this.narrativeChartsMin !== null ||
+            this.narrativeChartsMax !== null
+        )
+            count++
+        return count
     }
 
     @computed get chartsSorted(): ChartListItem[] {
@@ -266,6 +364,43 @@ export class ChartList extends React.Component<ChartListProps> {
         this.publishedFilter = filter
     }
 
+    @action.bound onChartTypesChange(types: ChartTypeFilterValue[]) {
+        this.chartTypes = types
+    }
+
+    @action.bound onPublishedDateRangeChange(range: DateRange) {
+        this.publishedDateRange = range
+    }
+
+    @action.bound onLastEditedDateRangeChange(range: DateRange) {
+        this.lastEditedDateRange = range
+    }
+
+    @action.bound onReferencesMinChange(value: number | null) {
+        this.referencesMin = value
+    }
+
+    @action.bound onReferencesMaxChange(value: number | null) {
+        this.referencesMax = value
+    }
+
+    @action.bound onNarrativeChartsMinChange(value: number | null) {
+        this.narrativeChartsMin = value
+    }
+
+    @action.bound onNarrativeChartsMaxChange(value: number | null) {
+        this.narrativeChartsMax = value
+    }
+
+    @action.bound onClearAdvancedFilters() {
+        this.publishedDateRange = null
+        this.lastEditedDateRange = null
+        this.referencesMin = null
+        this.referencesMax = null
+        this.narrativeChartsMin = null
+        this.narrativeChartsMax = null
+    }
+
     @action.bound onShowMore() {
         this.maxVisibleCharts += 100
     }
@@ -278,8 +413,91 @@ export class ChartList extends React.Component<ChartListProps> {
             numTotalCharts,
             searchInput,
             publishedFilter,
+            chartTypes,
+            publishedDateRange,
+            lastEditedDateRange,
+            referencesMin,
+            referencesMax,
+            narrativeChartsMin,
+            narrativeChartsMax,
+            advancedFilterCount,
         } = this
         const { availableTags } = this
+
+        const chartTypeOptions: {
+            label: string
+            value: ChartTypeFilterValue
+        }[] = [
+            ...Object.values(GRAPHER_CHART_TYPES).map((value) => ({
+                label: _.startCase(value),
+                value,
+            })),
+            { label: "Map", value: MAP_FILTER_VALUE },
+        ]
+
+        const advancedFiltersContent = (
+            <div className="ChartList__advancedFilters">
+                <label>
+                    <span>Published</span>
+                    <DatePicker.RangePicker
+                        value={publishedDateRange ?? undefined}
+                        onChange={this.onPublishedDateRangeChange}
+                        allowEmpty={[true, true]}
+                    />
+                </label>
+                <label>
+                    <span>Last edited</span>
+                    <DatePicker.RangePicker
+                        value={lastEditedDateRange ?? undefined}
+                        onChange={this.onLastEditedDateRangeChange}
+                        allowEmpty={[true, true]}
+                    />
+                </label>
+                <label>
+                    <span>References</span>
+                    <span className="ChartList__rangeInputs">
+                        <InputNumber
+                            placeholder="Min"
+                            min={0}
+                            value={referencesMin}
+                            onChange={this.onReferencesMinChange}
+                        />
+                        <InputNumber
+                            placeholder="Max"
+                            min={0}
+                            value={referencesMax}
+                            onChange={this.onReferencesMaxChange}
+                        />
+                    </span>
+                </label>
+                <label>
+                    <span>Narrative charts</span>
+                    <span className="ChartList__rangeInputs">
+                        <InputNumber
+                            placeholder="Min"
+                            min={0}
+                            value={narrativeChartsMin}
+                            onChange={this.onNarrativeChartsMinChange}
+                        />
+                        <InputNumber
+                            placeholder="Max"
+                            min={0}
+                            value={narrativeChartsMax}
+                            onChange={this.onNarrativeChartsMaxChange}
+                        />
+                    </span>
+                </label>
+                <div className="ChartList__advancedFiltersFooter">
+                    <Button
+                        size="small"
+                        onClick={this.onClearAdvancedFilters}
+                        disabled={advancedFilterCount === 0}
+                    >
+                        Clear
+                    </Button>
+                </div>
+            </div>
+        )
 
         const highlight = highlightFunctionForSearchWords(this.searchWords)
         const hasMoreCharts = this.chartsFiltered.length > this.maxVisibleCharts
@@ -338,6 +556,31 @@ export class ChartList extends React.Component<ChartListProps> {
                             <option value="published">Public only</option>
                             <option value="drafts">Drafts only</option>
                         </select>
+                        <Select
+                            className="ChartList__chartTypeSelect"
+                            mode="multiple"
+                            allowClear
+                            placeholder="Chart type"
+                            value={chartTypes}
+                            onChange={this.onChartTypesChange}
+                            options={chartTypeOptions}
+                            maxTagCount="responsive"
+                            aria-label="Filter by chart type"
+                        />
+                        <Popover
+                            trigger="click"
+                            placement="bottomRight"
+                            content={advancedFiltersContent}
+                            title="More filters"
+                        >
+                            <Badge
+                                count={advancedFilterCount}
+                                size="small"
+                                offset={[-4, 4]}
+                            >
+                                <Button>More filters</Button>
+                            </Badge>
+                        </Popover>
                     </div>
                 </div>
                 <div className="resultsCount">
@@ -407,6 +650,23 @@ export class ChartList extends React.Component<ChartListProps> {
             </div>
         )
     }
+}
+
+function filterByDateRange(
+    charts: ChartListItem[],
+    getDate: (chart: ChartListItem) => string | null | undefined,
+    range: DateRange
+): ChartListItem[] {
+    if (!range || (!range[0] && !range[1])) return charts
+    const [start, end] = range
+    return charts.filter((chart) => {
+        const raw = getDate(chart)
+        if (!raw) return false
+        const date = dayjs(raw)
+        if (start && date.isBefore(start, "day")) return false
+        if (end && date.isAfter(end, "day")) return false
+        return true
+    })
 }
 
 export function showChartType(chart: ChartListItem): string {

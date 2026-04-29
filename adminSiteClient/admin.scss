@@ -941,6 +941,10 @@ main:not(.ChartEditorPage):not(.GdocsEditPage):not(.MultiDimDetailPage) {
         .filters select {
             width: auto;
         }
+
+        .ChartList__chartTypeSelect {
+            min-width: 180px;
+        }
     }
 
     .resultsCount {
@@ -948,6 +952,41 @@ main:not(.ChartEditorPage):not(.GdocsEditPage):not(.MultiDimDetailPage) {
         color: #666;
         font-size: 0.9em;
     }
+}
+
+.ChartList__advancedFilters {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75em;
+    min-width: 320px;
+
+    label {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25em;
+        margin: 0;
+        font-weight: 500;
+    }
+
+    label > span:first-child {
+        font-size: 0.85em;
+        color: #666;
+    }
+}
+
+.ChartList__rangeInputs {
+    display: flex;
+    gap: 0.5em;
+}
+
+.ChartList__rangeInputs .ant-input-number {
+    flex: 1;
+}
+
+.ChartList__advancedFiltersFooter {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 0.5em;
 }
 
 .ImportPage {
