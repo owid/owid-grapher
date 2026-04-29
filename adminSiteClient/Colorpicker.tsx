@@ -1,5 +1,5 @@
 import { Component, Fragment } from "react"
-import { action, computed, makeObservable, observable } from "mobx"
+import { action, makeObservable, observable } from "mobx"
 import { observer } from "mobx-react"
 import { SketchPicker } from "react-color"
 import Tippy from "@tippyjs/react"
@@ -50,8 +50,9 @@ function expandHex(input: string): string | undefined {
 }
 
 function hexToRgb(hex: string): { r: number; g: number; b: number } {
-    const expanded = expandHex(hex)
-    if (!expanded) return { r: 0, g: 0, b: 0 }
+    // Callers always pass effectiveColor, which is a valid 6-char hex
+    // (defaults to "#000000"), so expandHex never returns undefined.
+    const expanded = expandHex(hex)!
     return {
         r: parseInt(expanded.slice(0, 2), 16),
         g: parseInt(expanded.slice(2, 4), 16),
@@ -132,9 +133,10 @@ export class Colorpicker extends Component<ColorpickerProps> {
         this.hexInputDraft = undefined
     }
 
-    // NOTE: not @computed — these read this.props which is NOT observable,
-    // so MobX would cache stale results when props change without an
-    // observable changing alongside them.
+    // NOTE: none of the getters below are @computed. They read this.props,
+    // which is NOT observable, so MobX would cache the first result and
+    // never invalidate when props change. The @observer wrapper re-runs
+    // render() on prop changes, which is enough to keep the UI in sync.
     private get isCategoricalMap(): boolean {
         return this.props.baseColorScheme === ColorSchemeName.OwidCategoricalMap
     }
@@ -156,7 +158,7 @@ export class Colorpicker extends Component<ColorpickerProps> {
         return hexToRgb(this.effectiveColor)
     }
 
-    @computed private get presetColors(): PresetColor[] {
+    private get presetColors(): PresetColor[] {
         if (this.isCategoricalMap) {
             // We use OwidMapColors instead of the scheme's palette
             // because it includes three additional 'special' colors
@@ -236,7 +238,7 @@ export class Colorpicker extends Component<ColorpickerProps> {
                     "colorpicker-presets__swatch--dimmed": isDimmed,
                 })}
                 style={{ backgroundColor: color }}
-                onClick={isDimmed ? undefined : () => this.onColor(color)}
+                onClick={() => this.onColor(color)}
                 disabled={isDimmed}
                 aria-label={ariaLabelParts.join(", ") || color}
             />
