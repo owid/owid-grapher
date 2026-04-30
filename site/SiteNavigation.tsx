@@ -41,7 +41,7 @@ export const SiteNavigation = ({
 }) => {
     const [menu, setActiveMenu] = useState<Menu | null>(null)
     const [query, setQuery] = useState<string>("")
-    const tagGraph = useTopicTagGraph()
+    const { data: tagGraph } = useTopicTagGraph()
 
     const isActiveMobileMenu =
         menu !== null &&

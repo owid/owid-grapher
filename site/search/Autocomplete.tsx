@@ -446,7 +446,8 @@ export function Autocomplete({
     const containerRef = useRef<HTMLDivElement>(null)
     const panelRootRef = useRef<Root | null>(null)
     const rootRef = useRef<HTMLElement | null>(null)
-    const { allTopics } = useTagGraphTopics(useTopicTagGraph())
+    const { data: topicTagGraph } = useTopicTagGraph()
+    const { allTopics } = useTagGraphTopics(topicTagGraph)
 
     const synonymMap = useMemo(() => buildSynonymMap(), [])
 

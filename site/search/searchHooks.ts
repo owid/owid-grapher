@@ -7,11 +7,11 @@ import {
 } from "./searchUtils.js"
 import { DEFAULT_SEARCH_STATE } from "./searchState.js"
 import { useSearchContext } from "./SearchContext.js"
-import { flattenNonTopicNodes } from "@ourworldindata/utils"
-import { useInfiniteQuery } from "@tanstack/react-query"
+import { fetchJson, flattenNonTopicNodes } from "@ourworldindata/utils"
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query"
 import { LiteClient } from "algoliasearch/lite"
 import type { SearchResponse } from "instantsearch.js"
-import { useState, useEffect, useMemo, useRef } from "react"
+import { useEffect, useMemo, useRef } from "react"
 import type { TagGraphNode, TagGraphRoot } from "@ourworldindata/types"
 import { SiteAnalytics } from "../SiteAnalytics.js"
 import * as R from "remeda"
@@ -30,7 +30,7 @@ export const useSelectedRegionNames = (): string[] => {
  * Extracts and memoizes area names and all searchable tags from the topic tag graph.
  * Searchable tags include both topics (tags with a topic page) and tags with searchableInAlgolia set.
  */
-export function useTagGraphTopics(topicTagGraph: TagGraphRoot | null): {
+export function useTagGraphTopics(topicTagGraph?: TagGraphRoot): {
     allAreas: string[]
     allTopics: string[]
 } {
@@ -207,21 +207,15 @@ export function useInfiniteSearch<T extends SearchResponse<U>, U>({
     }
 }
 
-export const useTopicTagGraph = () => {
-    const [tagGraph, setTagGraph] = useState<TagGraphRoot | null>(null)
-
-    useEffect(() => {
-        const fetchTagGraph = async () => {
-            const response = await fetch("/topicTagGraph.json")
-            const tagGraph = await response.json()
-            setTagGraph(flattenNonTopicNodes(tagGraph))
-        }
-        if (!tagGraph) {
-            fetchTagGraph().catch((err) => {
-                throw new Error(`Failed to fetch tag graph: ${err}`)
-            })
-        }
-    }, [tagGraph, setTagGraph])
-
-    return tagGraph
+export function useTopicTagGraph() {
+    return useQuery({
+        queryKey: ["topic-tag-graph"],
+        queryFn: async () => {
+            const tagGraph = await fetchJson<TagGraphRoot>(
+                "/topicTagGraph.json"
+            )
+            return flattenNonTopicNodes(tagGraph)
+        },
+        staleTime: Infinity,
+    })
 }

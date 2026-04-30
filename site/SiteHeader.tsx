@@ -4,6 +4,7 @@ import {
     ArchiveDataNavigation,
 } from "./archive/ArchiveNavigation.js"
 import { SiteNavigation } from "./SiteNavigation.js"
+import { SiteQueryClientProvider } from "./SiteQueryClientProvider.js"
 
 interface SiteHeaderProps {
     hideDonationFlag?: boolean
@@ -36,10 +37,12 @@ export const SiteHeaderNavigation = (props: SiteHeaderProps) => {
     }
 
     return (
-        <SiteNavigation
-            hideDonationFlag={props.hideDonationFlag}
-            isOnHomepage={props.isOnHomepage}
-        />
+        <SiteQueryClientProvider>
+            <SiteNavigation
+                hideDonationFlag={props.hideDonationFlag}
+                isOnHomepage={props.isOnHomepage}
+            />
+        </SiteQueryClientProvider>
     )
 }
 

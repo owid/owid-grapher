@@ -19,7 +19,7 @@ export const SiteMobileMenu = ({
     toggleMenu,
     className,
 }: {
-    tagGraph: TagGraphRoot | null
+    tagGraph?: TagGraphRoot
     menu: Menu | null
     toggleMenu: (menu: Menu) => void
     className?: string
