@@ -25,6 +25,8 @@ interface ParameterConfig {
     yPadding: number
     yFloor?: number
     yCeiling?: number
+    step: number
+    decimals: number
     subtitle: (entityName: string) => string
     tooltipContent: string
     formatValue: (value: number) => string
@@ -47,6 +49,8 @@ export const parameterConfigByKey: Record<ParameterKey, ParameterConfig> = {
         axisUnit: "births per woman",
         yPadding: 2,
         yFloor: 0,
+        step: 0.1,
+        decimals: 1,
         subtitle: () => "Average number of births per woman",
         tooltipContent:
             "Total fertility rate is the number of births a woman would have, if she experienced the birth rates of women of each age group in one particular year across her childbearing years.",
@@ -101,6 +105,8 @@ export const parameterConfigByKey: Record<ParameterKey, ParameterConfig> = {
         yPadding: 10,
         yFloor: 0,
         yCeiling: 130,
+        step: 1,
+        decimals: 0,
         subtitle: () =>
             "Years a newborn is expected to live, given current mortality rates",
         tooltipContent:
@@ -170,6 +176,8 @@ export const parameterConfigByKey: Record<ParameterKey, ParameterConfig> = {
         unit: "per 1,000 population",
         axisUnit: "‰",
         yPadding: 5,
+        step: 0.1,
+        decimals: 1,
         subtitle: (entityName: string) => {
             if (entityName === "World") return "Not applicable"
             const region = getRegionByName(entityName)

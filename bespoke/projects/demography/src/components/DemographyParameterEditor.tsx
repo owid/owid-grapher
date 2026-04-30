@@ -1,4 +1,12 @@
 import { memo, useState, useMemo, useCallback, useRef } from "react"
+import {
+    NumberField,
+    Group as AriaGroup,
+    Button as AriaButton,
+    Input as AriaInput,
+    Popover as AriaPopover,
+} from "react-aria-components"
+import { UNSAFE_PortalProvider, useInteractOutside } from "react-aria"
 import { useParentSize } from "@visx/responsive"
 import { scaleLinear } from "@visx/scale"
 import { LinePath } from "@visx/shape"
@@ -92,6 +100,14 @@ function DemographyParameterEditorContent({
     const fonts = getParameterChartFonts(toBreakpoint(width), windowBreakpoint)
 
     const [hoveredYear, setHoveredYear] = useState<number | null>(null)
+    // Anchor position is snapshotted when the editor opens, so the popover
+    // doesn't follow the dot as the value changes.
+    const [editing, setEditing] = useState<{
+        year: number
+        x: number
+        y: number
+    } | null>(null)
+    const anchorRef = useRef<HTMLDivElement>(null)
     const hasTouchMoved = useRef(false)
 
     const { points: historicalDataPoints } = useMemo(
@@ -327,278 +343,362 @@ function DemographyParameterEditorContent({
     }, [])
 
     return (
-        <svg
-            width={width + CONTROL_POINT_HIT_RADIUS}
-            height={height}
-            overflow="visible"
-            style={{ display: "block", touchAction: "none" }}
-        >
-            <Group left={margin.left} top={margin.top}>
-                {/* Projection area background */}
-                <rect
-                    x={historicalEndX}
-                    y={0}
-                    width={innerWidth - historicalEndX}
-                    height={innerHeight}
-                    fill={PROJECTION_BACKGROUND}
-                />
-
-                {/* Projection label */}
-                {showProjectionLabel && (
-                    <text
-                        x={historicalEndX + 6}
-                        y={fonts.projectionAnnotation + 2}
-                        fontSize={fonts.projectionAnnotation}
-                        fill={GRAPHER_LIGHT_TEXT}
-                    >
-                        Projections →
-                    </text>
-                )}
-
-                {/* Y-axis grid lines and labels */}
-                <YAxisGridLines
-                    maxGridLines={maxGridLines}
-                    innerHeight={innerHeight}
-                    innerWidth={innerWidth}
-                    minValue={minValue}
-                    yScale={yScale}
-                    axisUnit={config.axisUnit}
-                    fontSize={fonts.yTick}
-                />
-
-                {/* X-axis */}
-                <TimeAxisX
-                    xScale={xScale}
-                    innerWidth={innerWidth}
-                    innerHeight={innerHeight}
-                    strokeColor={axisColor}
-                    fontSize={fonts.xTick}
-                    labelOffset={YEAR_LABEL_OFFSET}
-                    hiddenYears={hiddenXTickYears}
-                    xTickLabels={xTickLabels}
-                />
-
-                {/* Zero line */}
-                {minValue <= 0 && maxValue >= 0 && (
-                    <line
-                        x1={0}
-                        y1={yScale(0)}
-                        x2={innerWidth}
-                        y2={yScale(0)}
-                        stroke={ZERO_LINE_COLOR}
-                        strokeWidth={1}
+        <>
+            <svg
+                width={width + CONTROL_POINT_HIT_RADIUS}
+                height={height}
+                overflow="visible"
+                style={{ display: "block", touchAction: "none" }}
+            >
+                <Group left={margin.left} top={margin.top}>
+                    {/* Projection area background */}
+                    <rect
+                        x={historicalEndX}
+                        y={0}
+                        width={innerWidth - historicalEndX}
+                        height={innerHeight}
+                        fill={PROJECTION_BACKGROUND}
                     />
-                )}
 
-                {/* Historical line */}
-                <LinePath
-                    data={historicalDataPoints}
-                    x={(d) => xScale(d.year)}
-                    y={(d) => yScale(d.value)}
-                    stroke={LINE_COLOR}
-                    strokeWidth={2}
-                />
+                    {/* Projection label */}
+                    {showProjectionLabel && (
+                        <text
+                            x={historicalEndX + 6}
+                            y={fonts.projectionAnnotation + 2}
+                            fontSize={fonts.projectionAnnotation}
+                            fill={GRAPHER_LIGHT_TEXT}
+                        >
+                            Projections →
+                        </text>
+                    )}
 
-                {/* UN WPP reference line — hidden when modified */}
-                {(interactive || !isModified) && (
-                    <LinePath
-                        data={[
-                            lastHistoricalDataPoint,
-                            ...unwppProjectionPoints,
-                        ]}
-                        x={(d) => xScale(d.year)}
-                        y={(d) => yScale(d.value)}
-                        stroke={isModified ? BENCHMARK_LINE_COLOR : LINE_COLOR}
-                        strokeWidth={2}
-                        strokeDasharray="1,2"
-                        strokeLinecap="butt"
-                    />
-                )}
-
-                {/* Projection line — only shown when modified */}
-                {isModified && (
-                    <LinePath
-                        data={[lastHistoricalDataPoint, ...controlDataPoints]}
-                        x={(d) => xScale(d.year)}
-                        y={(d) => yScale(d.value)}
-                        stroke={interactive ? USER_MODIFIED_COLOR : LINE_COLOR}
-                        strokeWidth={2}
-                        strokeDasharray="1,2"
-                        strokeLinecap="butt"
-                    />
-                )}
-
-                {/* Endpoint labels (1950, 2023, 2100) */}
-                {visiblePointLabels.map((pl) => (
-                    <PointLabelWithYear
-                        key={pl.key}
-                        x={pl.x}
-                        y={pl.y}
-                        label={pl.label}
-                        year={pl.year}
-                        yearAnchor={pl.yearAnchor}
-                        valueLabelAnchor={pl.valueLabelAnchor}
-                        tickColor={pl.tickColor}
-                        hidden={pl.hidden}
+                    {/* Y-axis grid lines and labels */}
+                    <YAxisGridLines
+                        maxGridLines={maxGridLines}
                         innerHeight={innerHeight}
-                        color={LINE_COLOR}
-                        labelColor={LABEL_COLOR}
-                        fontSize={fonts.pointLabel}
-                        yearFontSize={fonts.xTick}
-                        hideTickMark
+                        innerWidth={innerWidth}
+                        minValue={minValue}
+                        yScale={yScale}
+                        axisUnit={config.axisUnit}
+                        fontSize={fonts.yTick}
                     />
-                ))}
 
-                {/* Invisible interaction rect for hover */}
-                <rect
-                    x={-20}
-                    y={0}
-                    width={innerWidth + 40}
-                    height={innerHeight}
-                    fill="transparent"
-                    onMouseMove={handlePointerMove}
-                    onMouseLeave={handlePointerLeave}
-                    onTouchStart={handleTouchStart}
-                    onTouchMove={handleTouchMove}
-                    onTouchEnd={handleTouchEnd}
-                    onTouchCancel={handleTouchEnd}
-                />
+                    {/* X-axis */}
+                    <TimeAxisX
+                        xScale={xScale}
+                        innerWidth={innerWidth}
+                        innerHeight={innerHeight}
+                        strokeColor={axisColor}
+                        fontSize={fonts.xTick}
+                        labelOffset={YEAR_LABEL_OFFSET}
+                        hiddenYears={hiddenXTickYears}
+                        xTickLabels={xTickLabels}
+                    />
 
-                {/* Hover elements */}
-                {hoveredYear !== null && (
-                    <g style={{ pointerEvents: "none" }}>
-                        {/* Vertical line */}
+                    {/* Zero line */}
+                    {minValue <= 0 && maxValue >= 0 && (
                         <line
-                            x1={xScale(hoveredYear)}
-                            y1={0}
-                            x2={xScale(hoveredYear)}
-                            y2={innerHeight}
-                            stroke={HOVER_LINE_COLOR}
+                            x1={0}
+                            y1={yScale(0)}
+                            x2={innerWidth}
+                            y2={yScale(0)}
+                            stroke={ZERO_LINE_COLOR}
                             strokeWidth={1}
                         />
+                    )}
 
-                        {/* Year tick + label below x-axis */}
-                        <line
-                            x1={xScale(hoveredYear)}
-                            y1={innerHeight}
-                            x2={xScale(hoveredYear)}
-                            y2={innerHeight + 5}
-                            stroke={GRAPHER_LIGHT_TEXT}
+                    {/* Historical line */}
+                    <LinePath
+                        data={historicalDataPoints}
+                        x={(d) => xScale(d.year)}
+                        y={(d) => yScale(d.value)}
+                        stroke={LINE_COLOR}
+                        strokeWidth={2}
+                    />
+
+                    {/* UN WPP reference line — hidden when modified */}
+                    {(interactive || !isModified) && (
+                        <LinePath
+                            data={[
+                                lastHistoricalDataPoint,
+                                ...unwppProjectionPoints,
+                            ]}
+                            x={(d) => xScale(d.year)}
+                            y={(d) => yScale(d.value)}
+                            stroke={
+                                isModified ? BENCHMARK_LINE_COLOR : LINE_COLOR
+                            }
+                            strokeWidth={2}
+                            strokeDasharray="1,2"
+                            strokeLinecap="butt"
                         />
-                        <Halo id="hover-year-label" outlineWidth={3}>
-                            <text
-                                x={xScale(hoveredYear)}
-                                y={innerHeight + 14}
-                                textAnchor={
-                                    hoveredYear === START_YEAR
-                                        ? "start"
-                                        : hoveredYear === END_YEAR
-                                          ? "end"
-                                          : "middle"
-                                }
-                                fontSize={fonts.xTick}
-                                fill={GRAPHER_LIGHT_TEXT}
-                            >
-                                {hoveredYear}
-                            </text>
-                        </Halo>
-                    </g>
-                )}
+                    )}
 
-                {/* UN WPP reference dots */}
-                {interactive &&
-                    CONTROL_YEARS.map((year) => (
-                        <circle
-                            key={`ref-${year}`}
-                            cx={xScale(year)}
-                            cy={yScale(referencePoints[year])}
-                            r={SMALL_DOT_RADIUS}
-                            fill={BENCHMARK_LINE_COLOR}
+                    {/* Projection line — only shown when modified */}
+                    {isModified && (
+                        <LinePath
+                            data={[
+                                lastHistoricalDataPoint,
+                                ...controlDataPoints,
+                            ]}
+                            x={(d) => xScale(d.year)}
+                            y={(d) => yScale(d.value)}
+                            stroke={
+                                interactive ? USER_MODIFIED_COLOR : LINE_COLOR
+                            }
+                            strokeWidth={2}
+                            strokeDasharray="1,2"
+                            strokeLinecap="butt"
+                        />
+                    )}
+
+                    {/* Endpoint labels (1950, 2023, 2100) */}
+                    {visiblePointLabels.map((pl) => (
+                        <PointLabelWithYear
+                            key={pl.key}
+                            x={pl.x}
+                            y={pl.y}
+                            label={pl.label}
+                            year={pl.year}
+                            yearAnchor={pl.yearAnchor}
+                            valueLabelAnchor={pl.valueLabelAnchor}
+                            tickColor={pl.tickColor}
+                            hidden={pl.hidden}
+                            innerHeight={innerHeight}
+                            color={LINE_COLOR}
+                            labelColor={LABEL_COLOR}
+                            fontSize={fonts.pointLabel}
+                            yearFontSize={fonts.xTick}
+                            hideTickMark
                         />
                     ))}
 
-                {/* Draggable control points */}
-                {interactive &&
-                    CONTROL_YEARS.map((year) => {
-                        const pointColor = isModified
-                            ? USER_MODIFIED_COLOR
-                            : DENIM_BLUE
-                        return (
-                            <DraggableControlPoint
-                                key={year}
-                                cx={xScale(year)}
-                                cy={yScale(controlPoints[year])}
-                                value={controlPoints[year]}
-                                color={pointColor}
-                                modified={isModified}
-                                highlighted={hoveredYear === year}
-                                formatValue={config.formatValue}
-                                dragArrowFontSize={fonts.dragArrow}
-                                controlLabelFontSize={fonts.controlLabel}
-                                yScale={yScale}
-                                marginTop={margin.top}
-                                onValueChange={(value) =>
-                                    handleChange({
-                                        ...controlPoints,
-                                        [year]: value,
-                                    })
-                                }
-                                onMouseEnter={() => setHoveredYear(year)}
-                                onMouseLeave={handlePointerLeave}
-                            />
-                        )
-                    })}
+                    {/* Invisible interaction rect for hover */}
+                    <rect
+                        x={-20}
+                        y={0}
+                        width={innerWidth + 40}
+                        height={innerHeight}
+                        fill="transparent"
+                        onMouseMove={handlePointerMove}
+                        onMouseLeave={handlePointerLeave}
+                        onTouchStart={handleTouchStart}
+                        onTouchMove={handleTouchMove}
+                        onTouchEnd={handleTouchEnd}
+                        onTouchCancel={handleTouchEnd}
+                    />
 
-                {/* Hover dot + value label — rendered above control points */}
-                {hoveredYear !== null && hoveredValue !== undefined && (
-                    <g style={{ pointerEvents: "none" }}>
-                        <HoverPointLabel
-                            x={xScale(hoveredYear)}
-                            y={yScale(hoveredValue)}
-                            label={
-                                isHoveringControlPoint
-                                    ? undefined
-                                    : config.formatValue(hoveredValue)
+                    {/* Hover elements */}
+                    {hoveredYear !== null && (
+                        <g style={{ pointerEvents: "none" }}>
+                            {/* Vertical line */}
+                            <line
+                                x1={xScale(hoveredYear)}
+                                y1={0}
+                                x2={xScale(hoveredYear)}
+                                y2={innerHeight}
+                                stroke={HOVER_LINE_COLOR}
+                                strokeWidth={1}
+                            />
+
+                            {/* Year tick + label below x-axis */}
+                            <line
+                                x1={xScale(hoveredYear)}
+                                y1={innerHeight}
+                                x2={xScale(hoveredYear)}
+                                y2={innerHeight + 5}
+                                stroke={GRAPHER_LIGHT_TEXT}
+                            />
+                            <Halo id="hover-year-label" outlineWidth={3}>
+                                <text
+                                    x={xScale(hoveredYear)}
+                                    y={innerHeight + 14}
+                                    textAnchor={
+                                        hoveredYear === START_YEAR
+                                            ? "start"
+                                            : hoveredYear === END_YEAR
+                                              ? "end"
+                                              : "middle"
+                                    }
+                                    fontSize={fonts.xTick}
+                                    fill={GRAPHER_LIGHT_TEXT}
+                                >
+                                    {hoveredYear}
+                                </text>
+                            </Halo>
+                        </g>
+                    )}
+
+                    {/* UN WPP reference dots */}
+                    {interactive &&
+                        CONTROL_YEARS.map((year) => (
+                            <circle
+                                key={`ref-${year}`}
+                                cx={xScale(year)}
+                                cy={yScale(referencePoints[year])}
+                                r={SMALL_DOT_RADIUS}
+                                fill={BENCHMARK_LINE_COLOR}
+                            />
+                        ))}
+
+                    {/* Draggable control points */}
+                    {interactive &&
+                        CONTROL_YEARS.map((year) => {
+                            const pointColor = isModified
+                                ? USER_MODIFIED_COLOR
+                                : DENIM_BLUE
+                            return (
+                                <DraggableControlPoint
+                                    key={year}
+                                    cx={xScale(year)}
+                                    cy={yScale(controlPoints[year])}
+                                    value={controlPoints[year]}
+                                    color={pointColor}
+                                    modified={isModified}
+                                    highlighted={hoveredYear === year}
+                                    editing={editing?.year === year}
+                                    formatValue={config.formatValue}
+                                    dragArrowFontSize={fonts.dragArrow}
+                                    controlLabelFontSize={fonts.controlLabel}
+                                    yScale={yScale}
+                                    marginTop={margin.top}
+                                    onValueChange={(value) =>
+                                        handleChange({
+                                            ...controlPoints,
+                                            [year]: value,
+                                        })
+                                    }
+                                    onClick={() => {
+                                        setEditing({
+                                            year,
+                                            x: xScale(year),
+                                            y: yScale(controlPoints[year]),
+                                        })
+                                    }}
+                                    onMouseEnter={() => setHoveredYear(year)}
+                                    onMouseLeave={handlePointerLeave}
+                                />
+                            )
+                        })}
+
+                    {/* Hover dot + value label — rendered above control points */}
+                    {hoveredYear !== null && hoveredValue !== undefined && (
+                        <g style={{ pointerEvents: "none" }}>
+                            <HoverPointLabel
+                                x={xScale(hoveredYear)}
+                                y={yScale(hoveredValue)}
+                                label={
+                                    isHoveringControlPoint
+                                        ? undefined
+                                        : config.formatValue(hoveredValue)
+                                }
+                                color={
+                                    interactive &&
+                                    isModified &&
+                                    hoveredYear > HISTORICAL_END_YEAR
+                                        ? USER_MODIFIED_COLOR
+                                        : LINE_COLOR
+                                }
+                                fontSize={fonts.hoverLabel}
+                                backgroundFill={
+                                    interactive &&
+                                    isModified &&
+                                    hoveredYear > HISTORICAL_END_YEAR
+                                        ? USER_MODIFIED_COLOR
+                                        : DENIM_BLUE
+                                }
+                            />
+                        </g>
+                    )}
+                </Group>
+            </svg>
+            {interactive && editing && (
+                <>
+                    {/* Invisible anchor for AriaPopover — SVG elements can't be
+                        used as triggerRef, so we position a 1px HTML element at
+                        the snapshotted control-point location instead. */}
+                    <div
+                        ref={anchorRef}
+                        aria-hidden
+                        style={{
+                            position: "absolute",
+                            left: margin.left + editing.x,
+                            top: margin.top + editing.y,
+                            width: 1,
+                            height: 1,
+                            pointerEvents: "none",
+                        }}
+                    />
+                    <AriaPopover
+                        key={editing.year}
+                        triggerRef={anchorRef}
+                        isOpen
+                        onOpenChange={(open) => {
+                            if (!open) setEditing(null)
+                        }}
+                        placement={
+                            editing.y < innerHeight / 2 ? "bottom" : "top"
+                        }
+                        isNonModal
+                        className="control-point-editor-popover"
+                    >
+                        <ControlPointEditor
+                            value={controlPoints[editing.year]}
+                            step={config.step}
+                            decimals={config.decimals}
+                            min={yScale.domain()[0]}
+                            max={yScale.domain()[1]}
+                            modified={isModified}
+                            onCommit={(value) =>
+                                handleChange({
+                                    ...controlPoints,
+                                    [editing.year]: value,
+                                })
                             }
-                            color={
-                                interactive &&
-                                isModified &&
-                                hoveredYear > HISTORICAL_END_YEAR
-                                    ? USER_MODIFIED_COLOR
-                                    : LINE_COLOR
-                            }
-                            fontSize={fonts.hoverLabel}
-                            backgroundFill={
-                                interactive &&
-                                isModified &&
-                                hoveredYear > HISTORICAL_END_YEAR
-                                    ? USER_MODIFIED_COLOR
-                                    : DENIM_BLUE
-                            }
+                            onClose={() => setEditing(null)}
                         />
-                    </g>
-                )}
-            </Group>
-        </svg>
+                    </AriaPopover>
+                </>
+            )}
+        </>
     )
 }
 
 export const DemographyParameterEditor = memo(
     function DemographyParameterEditor(props: DemographyParameterEditorProps) {
         const { parentRef, width, height } = useParentSize()
+
+        // Inside a Shadow DOM, portal overlays back into the shadow root so
+        // the chart's styles apply.
+        const getPortalContainer = useCallback(() => {
+            const root = parentRef.current?.getRootNode()
+            if (root instanceof ShadowRoot)
+                return root as unknown as HTMLElement
+            return document.body
+        }, [parentRef])
+
         return (
-            <div ref={parentRef} className="responsive-container">
+            <div
+                ref={parentRef}
+                className="responsive-container"
+                style={{ position: "relative" }}
+            >
                 {width > 0 && height > 0 && (
-                    <DemographyParameterEditorContent
-                        {...props}
-                        width={width}
-                        height={height}
-                    />
+                    <UNSAFE_PortalProvider getContainer={getPortalContainer}>
+                        <DemographyParameterEditorContent
+                            {...props}
+                            width={width}
+                            height={height}
+                        />
+                    </UNSAFE_PortalProvider>
                 )}
             </div>
         )
     }
 )
+
+const DRAG_THRESHOLD_PX = 4
+const CLICK_MAX_DURATION_MS = 500
 
 function DraggableControlPoint({
     cx,
@@ -607,12 +707,14 @@ function DraggableControlPoint({
     color,
     modified = false,
     highlighted = false,
+    editing = false,
     formatValue,
     yScale,
     marginTop,
     dragArrowFontSize,
     controlLabelFontSize,
     onValueChange,
+    onClick,
     onMouseEnter,
     onMouseLeave,
 }: {
@@ -622,17 +724,25 @@ function DraggableControlPoint({
     color: string
     modified?: boolean
     highlighted?: boolean
+    editing?: boolean
     formatValue: (v: number) => string
     yScale: { invert: (y: number) => number }
     marginTop: number
     dragArrowFontSize: number
     controlLabelFontSize: number
     onValueChange: (value: number) => void
+    onClick?: () => void
     onMouseEnter?: () => void
     onMouseLeave?: () => void
 }) {
     const [isDragging, setIsDragging] = useState(false)
-    const showBackground = highlighted || isDragging
+    const pressInfoRef = useRef<{
+        startX: number
+        startY: number
+        startTime: number
+        didMove: boolean
+    } | null>(null)
+    const showBackground = highlighted || isDragging || editing
 
     return (
         <g>
@@ -642,21 +752,49 @@ function DraggableControlPoint({
                 cy={cy}
                 r={CONTROL_POINT_HIT_RADIUS}
                 fill="transparent"
-                cursor="ns-resize"
+                cursor={editing ? "default" : "ns-resize"}
                 style={{ touchAction: "none" }}
                 onMouseEnter={onMouseEnter}
                 onMouseLeave={onMouseLeave}
                 onPointerDown={(e) => {
-                    e.currentTarget.setPointerCapture(e.pointerId)
-                    setIsDragging(true)
-                }}
-                onPointerMove={(e) => {
-                    if (!isDragging) return
                     const point = localPoint(e)
                     if (!point) return
+                    e.currentTarget.setPointerCapture(e.pointerId)
+                    pressInfoRef.current = {
+                        startX: point.x,
+                        startY: point.y,
+                        startTime: Date.now(),
+                        didMove: false,
+                    }
+                }}
+                onPointerMove={(e) => {
+                    const info = pressInfoRef.current
+                    if (!info) return
+                    const point = localPoint(e)
+                    if (!point) return
+                    if (!info.didMove) {
+                        const dx = point.x - info.startX
+                        const dy = point.y - info.startY
+                        if (Math.hypot(dx, dy) <= DRAG_THRESHOLD_PX) return
+                        info.didMove = true
+                        setIsDragging(true)
+                    }
                     onValueChange(yScale.invert(point.y - marginTop))
                 }}
                 onPointerUp={() => {
+                    const info = pressInfoRef.current
+                    pressInfoRef.current = null
+                    setIsDragging(false)
+                    if (
+                        info &&
+                        !info.didMove &&
+                        Date.now() - info.startTime < CLICK_MAX_DURATION_MS
+                    ) {
+                        onClick?.()
+                    }
+                }}
+                onPointerCancel={() => {
+                    pressInfoRef.current = null
                     setIsDragging(false)
                 }}
             />
@@ -720,6 +858,83 @@ function DraggableControlPoint({
                 )}
             </g>
         </g>
+    )
+}
+
+function ControlPointEditor({
+    value,
+    step,
+    decimals,
+    min,
+    max,
+    modified,
+    onCommit,
+    onClose,
+}: {
+    value: number
+    step: number
+    decimals: number
+    min: number
+    max: number
+    modified: boolean
+    onCommit: (value: number) => void
+    onClose: () => void
+}) {
+    const containerRef = useRef<HTMLDivElement>(null)
+
+    // Close on click outside the popover. react-aria's Popover only handles
+    // outside-click for modal popovers; ours is non-modal so the chart stays
+    // interactive. useInteractOutside uses composedPath, so it works in Shadow DOM.
+    useInteractOutside({
+        ref: containerRef,
+        onInteractOutside: onClose,
+    })
+
+    return (
+        <div
+            ref={containerRef}
+            className={
+                "control-point-editor" +
+                (modified ? " control-point-editor--modified" : "")
+            }
+        >
+            <NumberField
+                value={value}
+                onChange={onCommit}
+                minValue={min}
+                maxValue={max}
+                step={step}
+                formatOptions={{
+                    minimumFractionDigits: decimals,
+                    maximumFractionDigits: decimals,
+                    useGrouping: false,
+                }}
+                autoFocus
+                aria-label="Value"
+                onKeyDown={(e) => {
+                    // Escape is handled by the Popover; we only need Enter here
+                    if (e.key === "Enter") onClose()
+                }}
+            >
+                <AriaGroup className="control-point-editor__group">
+                    <AriaButton
+                        slot="decrement"
+                        className="control-point-editor__step"
+                        excludeFromTabOrder
+                    >
+                        −
+                    </AriaButton>
+                    <AriaInput className="control-point-editor__input" />
+                    <AriaButton
+                        slot="increment"
+                        className="control-point-editor__step"
+                        excludeFromTabOrder
+                    >
+                        +
+                    </AriaButton>
+                </AriaGroup>
+            </NumberField>
+        </div>
     )
 }
 

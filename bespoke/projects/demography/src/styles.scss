@@ -130,6 +130,72 @@ $panel-gap: 12px;
     margin-bottom: 16px;
 }
 
+.control-point-editor-popover {
+    z-index: 5;
+}
+
+.control-point-editor {
+    display: inline-flex;
+    align-items: stretch;
+    background: white;
+    border: 1px solid $denim-blue;
+    border-radius: 3px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    font-size: 0.8125rem;
+    line-height: 1;
+    padding: 0;
+    overflow: hidden;
+    color: $dark-text;
+}
+
+.control-point-editor--modified {
+    border-color: $modified-accent;
+}
+
+.control-point-editor__group {
+    display: inline-flex;
+    align-items: stretch;
+}
+
+.control-point-editor__step {
+    border: none;
+    background: none;
+    padding: 0 10px;
+    font-size: 1rem;
+    color: $light-text;
+    cursor: pointer;
+    line-height: 1;
+
+    &[data-hovered] {
+        background: $gray-10;
+        color: $dark-text;
+    }
+
+    &[data-disabled] {
+        opacity: 0.4;
+        cursor: not-allowed;
+    }
+}
+
+.control-point-editor__input {
+    border: none;
+    border-left: 1px solid $gray-10;
+    border-right: 1px solid $gray-10;
+    width: 64px;
+    padding: 6px 6px;
+    font: inherit;
+    text-align: center;
+    color: $dark-text;
+    outline: none;
+    -moz-appearance: textfield;
+
+    &::-webkit-outer-spin-button,
+    &::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+}
+
 .demography-parameters {
     .demography-parameters__chart-area {
         position: relative;
