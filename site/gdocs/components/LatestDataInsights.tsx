@@ -17,10 +17,8 @@ import {
     OwidEnrichedGdocBlock,
     LatestDataInsight,
 } from "@ourworldindata/utils"
-import {
-    dataInsightIndexToIdMap,
-    SMALL_BREAKPOINT_MEDIA_QUERY,
-} from "../../SiteConstants.js"
+import { SMALL_BREAKPOINT_MEDIA_QUERY } from "../../SiteConstants.js"
+import { latestUrl } from "../../latest/latestUtils.js"
 import Image from "./Image.js"
 import { ArticleBlocks } from "./ArticleBlocks.js"
 import DataInsightDateline from "./DataInsightDateline.js"
@@ -85,10 +83,7 @@ export default function LatestDataInsights({
                             title={dataInsight.content.title}
                             body={dataInsight.content.body}
                             publishedAt={dataInsight.publishedAt}
-                            // We need to supply a custom index to correctly map
-                            // the URL when we are excluding the current data
-                            // insight from the list, i.e. on the detail page.
-                            href={`/data-insights#${dataInsightIndexToIdMap[dataInsight.index ?? index]}`}
+                            href={`/data-insights/${dataInsight.slug}`}
                         />
                     ))}
                     {isSmallScreen && (
@@ -97,7 +92,7 @@ export default function LatestDataInsights({
                         <li className="latest-data-insights__card">
                             <Button
                                 className="latest-data-insights__card__see-all body-3-medium"
-                                href="/data-insights"
+                                href={latestUrl("data-insight")}
                                 text="See all our Data Insights"
                                 theme="outline-vermillion"
                             />
@@ -173,7 +168,7 @@ const DataInsightCard = memo(function DataInsightCard({
                             firstImageBlock.smallFilename ||
                             firstImageBlock.filename
                         }
-                        containerType="span-5"
+                        containerType="latest-data-insight"
                         shouldLightbox={false}
                     />
                 )}

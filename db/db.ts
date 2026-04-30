@@ -1251,3 +1251,25 @@ export const getUniqueTopicCount = async (
     if (!count) throw new Error("Failed to get unique topic count")
     return count
 }
+
+export const getPublishedArticleCount = async (
+    trx: KnexReadonlyTransaction
+): Promise<number> => {
+    const count = await knexRawFirst<{ count: number }>(
+        trx,
+        `-- sql
+        SELECT COUNT(*) AS count
+        FROM posts_gdocs
+        WHERE type = :type
+          AND published IS TRUE
+          AND publishedAt <= NOW()`,
+        { type: OwidGdocType.Article }
+    )
+        .then((res) => (res ? res.count : 0))
+        .catch((e) => {
+            console.error("Failed to get published article count", e)
+            throw e
+        })
+    if (!count) throw new Error("Failed to get published article count")
+    return count
+}

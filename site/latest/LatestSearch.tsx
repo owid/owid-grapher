@@ -1,12 +1,20 @@
 import { useCallback, useEffect, useMemo, useRef } from "react"
 import { useSearchParams } from "react-router-dom-v5-compat"
-import { LatestType, TagGraphRoot } from "@ourworldindata/types"
+import {
+    LATEST_TYPE_VALUES,
+    LatestType,
+    TagGraphRoot,
+} from "@ourworldindata/types"
 import { LiteClient } from "algoliasearch/lite"
 import { useTagGraphTopics } from "../search/searchHooks.js"
-import { deserializeSet } from "../search/searchUtils.js"
+import { deserializeSet, serializeSet } from "../search/searchUtils.js"
 import { useInfiniteLatestPages } from "./latestHooks.js"
 import { LatestTopicFacets } from "./LatestTopicFacets.js"
-import { LATEST_TYPE_OPTIONS, decodeLatestType } from "./latestFilters.js"
+import {
+    LATEST_TYPE_OPTIONS,
+    LatestUrlParam,
+    decodeLatestType,
+} from "./latestUrl.js"
 import { LatestHit } from "./LatestHit.js"
 import { LatestSearchSkeleton } from "./LatestSearchSkeleton.js"
 import { NewsletterSignupBlock } from "../NewsletterSignupBlock.js"
@@ -26,7 +34,7 @@ export const LatestSearch = ({
 
     const { allAreas } = useTagGraphTopics(topicTagGraph)
 
-    const topicsParam = searchParams.get("topics")
+    const topicsParam = searchParams.get(LatestUrlParam.TOPICS)
     const topics = useMemo(
         () =>
             [...deserializeSet(topicsParam)].filter((t) =>
@@ -36,18 +44,16 @@ export const LatestSearch = ({
     )
 
     const latestType: LatestType | null = decodeLatestType(
-        searchParams.get("type")
+        searchParams.get(LatestUrlParam.TYPE)
     )
 
     const onTopicsChange = useCallback(
         (newTopics: string[]) => {
             setSearchParams((prev) => {
                 const next = new URLSearchParams(prev)
-                if (newTopics.length > 0) {
-                    next.set("topics", newTopics.join("~"))
-                } else {
-                    next.delete("topics")
-                }
+                const serialized = serializeSet(new Set(newTopics))
+                if (serialized) next.set(LatestUrlParam.TOPICS, serialized)
+                else next.delete(LatestUrlParam.TOPICS)
                 return next
             })
         },
@@ -59,9 +65,9 @@ export const LatestSearch = ({
             setSearchParams((prev) => {
                 const next = new URLSearchParams(prev)
                 if (newType) {
-                    next.set("type", newType)
+                    next.set(LatestUrlParam.TYPE, newType)
                 } else {
-                    next.delete("type")
+                    next.delete(LatestUrlParam.TYPE)
                 }
                 return next
             })
@@ -72,8 +78,8 @@ export const LatestSearch = ({
     const clearAllFilters = useCallback(() => {
         setSearchParams((prev) => {
             const next = new URLSearchParams(prev)
-            next.delete("topics")
-            next.delete("type")
+            next.delete(LatestUrlParam.TOPICS)
+            next.delete(LatestUrlParam.TYPE)
             return next
         })
     }, [setSearchParams])
@@ -96,10 +102,9 @@ export const LatestSearch = ({
     // topic selection. Never disable the currently active type.
     const disabledTypes = useMemo(() => {
         const disabled = new Set<LatestType>()
-        for (const option of LATEST_TYPE_OPTIONS) {
-            if (option.value === latestType) continue
-            if ((latestTypeFacetCounts[option.value] ?? 0) === 0)
-                disabled.add(option.value)
+        for (const value of LATEST_TYPE_VALUES) {
+            if (value === latestType) continue
+            if ((latestTypeFacetCounts[value] ?? 0) === 0) disabled.add(value)
         }
         return disabled
     }, [latestType, latestTypeFacetCounts])

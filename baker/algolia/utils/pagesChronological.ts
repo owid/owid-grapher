@@ -4,12 +4,9 @@ import {
     OwidGdocType,
     checkIsChronologicalFeedPost,
     getUniqueNamesFromTagHierarchies,
-    slugify,
 } from "@ourworldindata/utils"
 import {
-    ANNOUNCEMENT_LATEST_TYPES,
     ChronologicalGdoc,
-    LatestType,
     PageChronologicalRecord,
     SearchIndexName,
     DbEnrichedImage,
@@ -21,51 +18,10 @@ import { GdocDataInsight } from "../../../db/model/Gdoc/GdocDataInsight.js"
 import { GdocAnnouncement } from "../../../db/model/Gdoc/GdocAnnouncement.js"
 import { getAlgoliaClient } from "../configureAlgolia.js"
 import { getIndexName } from "../../../site/search/searchClient.js"
+import { deriveLatestType } from "../../../site/latest/latestUtils.js"
 import { ALGOLIA_INDEXING } from "../../../settings/serverSettings.js"
 import { getThumbnailUrl, getExcerptFromGdoc } from "./pages.js"
 import { match, P } from "ts-pattern"
-
-/**
- * Map an OwidGdocType (the gdoc's class discriminator) to the LatestType
- * used by /latest's facet pills (the user-facing category filter). The
- * mapping isn't 1:1: Article and DataInsight pass through, but a single
- * Announcement gdoc fans out across several LatestTypes ("data-update",
- * "website-upgrade", "announcement", …) — the bucket is picked from the
- * gdoc's human-authored `kicker`. Returns `undefined` for gdoc types
- * that aren't surfaced on /latest (topic pages etc.).
- */
-function deriveLatestType(gdoc: {
-    content: { type?: OwidGdocType; kicker?: string }
-}): LatestType | undefined {
-    switch (gdoc.content.type) {
-        case OwidGdocType.Article:
-        case OwidGdocType.DataInsight:
-            return gdoc.content.type
-        case OwidGdocType.Announcement: {
-            // Tolerate kickers that don't match ANNOUNCEMENT_LATEST_TYPES
-            // exactly — slugifying normalizes legacy pretty-form or
-            // case-drifted kickers ("Data update", "Data Update",
-            // "Announcement") so they still surface under the right
-            // LatestType. The save-side validator
-            // (GdocAnnouncement._validateSubclass) is stricter, so any
-            // re-save ratchets the kicker to the canonical slug form.
-            // Unrecognized kickers fall back to "announcement" and stay
-            // visible on /latest until someone re-saves them.
-            const slug = slugify(gdoc.content.kicker ?? "")
-            if (
-                (ANNOUNCEMENT_LATEST_TYPES as readonly string[]).includes(slug)
-            ) {
-                return slug as LatestType
-            }
-            return "announcement"
-        }
-        default:
-            // topic-page, linear-topic-page: indexed for the atom feed but
-            // hidden from /latest (absent latestType excludes them from
-            // /latest's latestType-facet-based pills).
-            return undefined
-    }
-}
 
 /**
  * Class-aware variant of `checkIsChronologicalFeedPost`: narrows the

@@ -14,8 +14,8 @@ import {
     faFilter,
 } from "@fortawesome/free-solid-svg-icons"
 import { ScrollMenu, VisibilityContext } from "react-horizontal-scrolling-menu"
-import { LatestType } from "@ourworldindata/types"
-import { LATEST_TYPE_OPTIONS } from "./latestFilters.js"
+import { LATEST_TYPE_VALUES, LatestType } from "@ourworldindata/types"
+import { latestTypeLabelPlural } from "./latestUtils.js"
 
 /**
  * Wrapper component that accepts the `itemId` prop required by
@@ -123,10 +123,6 @@ export const LatestTopicFacets = ({
         return () => cancelAnimationFrame(timer)
     }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-    const contentTypeLabel =
-        LATEST_TYPE_OPTIONS.find((opt) => opt.value === selectedType)?.label ??
-        "Filter by type"
-
     return (
         <div className="latest-topic-facets">
             <div className="latest-topic-facets__filters">
@@ -200,7 +196,9 @@ export const LatestTopicFacets = ({
                             className="latest-topic-facets__content-type-trigger-icon"
                         />
                         <span className="latest-topic-facets__content-type-trigger-label">
-                            {contentTypeLabel}
+                            {selectedType
+                                ? latestTypeLabelPlural(selectedType)
+                                : "Filter by type"}
                         </span>
                         <FontAwesomeIcon
                             icon={faCaretDown}
@@ -257,15 +255,12 @@ export const LatestTopicFacets = ({
                                         All
                                     </span>
                                 </li>
-                                {LATEST_TYPE_OPTIONS.map((option) => {
-                                    const isActive =
-                                        selectedType === option.value
-                                    const isDisabled = disabledTypes.has(
-                                        option.value
-                                    )
+                                {LATEST_TYPE_VALUES.map((value) => {
+                                    const isActive = selectedType === value
+                                    const isDisabled = disabledTypes.has(value)
                                     return (
                                         <li
-                                            key={option.value}
+                                            key={value}
                                             className={cx(
                                                 "latest-topic-facets__content-type-dropdown-item",
                                                 {
@@ -285,7 +280,7 @@ export const LatestTopicFacets = ({
                                                           onLatestTypeChange(
                                                               isActive
                                                                   ? null
-                                                                  : option.value
+                                                                  : value
                                                           )
                                                           setIsContentTypeDropdownOpen(
                                                               false
@@ -307,7 +302,7 @@ export const LatestTopicFacets = ({
                                                 )}
                                             </span>
                                             <span className="latest-topic-facets__content-type-dropdown-label">
-                                                {option.label}
+                                                {latestTypeLabelPlural(value)}
                                             </span>
                                         </li>
                                     )
