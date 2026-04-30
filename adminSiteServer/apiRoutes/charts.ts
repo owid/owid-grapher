@@ -23,7 +23,6 @@ import {
     parseIntOrUndefined,
     omitUndefinedValues,
 } from "@ourworldindata/utils"
-import Papa from "papaparse"
 import { uuidv7 } from "uuidv7"
 import {
     References,
@@ -51,10 +50,6 @@ import {
 import { UpdatedChartInheritanceRecord } from "../../db/model/Variable.js"
 import { enqueueExplorerRefreshJobsForDependencies } from "../../db/model/Explorer.js"
 import { expectInt } from "../../serverUtils/serverUtil.js"
-import {
-    BAKED_BASE_URL,
-    ADMIN_BASE_URL,
-} from "../../settings/clientSettings.js"
 import {
     retrieveChartConfigFromDbAndSaveToR2,
     updateChartConfigInDbAndR2,
@@ -602,66 +597,6 @@ export async function getChartsJson(
     await assignTagsForCharts(trx, charts)
 
     return { charts }
-}
-
-export async function getChartsCsv(
-    req: Request,
-    res: HandlerResponse,
-    trx: db.KnexReadonlyTransaction
-) {
-    const limit = parseIntOrUndefined(req.query.limit as string) ?? 10000
-
-    // note: this query is extended from OldChart.listFields.
-    const charts = await db.knexRaw(
-        trx,
-        `-- sql
-            SELECT
-                charts.id,
-                chart_configs.full->>"$.version" AS version,
-                CONCAT("${BAKED_BASE_URL}/grapher/", chart_configs.full->>"$.slug") AS url,
-                CONCAT("${ADMIN_BASE_URL}", "/admin/charts/", charts.id, "/edit") AS editUrl,
-                chart_configs.full->>"$.slug" AS slug,
-                chart_configs.full->>"$.title" AS title,
-                chart_configs.full->>"$.subtitle" AS subtitle,
-                chart_configs.full->>"$.sourceDesc" AS sourceDesc,
-                chart_configs.full->>"$.note" AS note,
-                chart_configs.chartType AS type,
-                chart_configs.full->>"$.internalNotes" AS internalNotes,
-                chart_configs.full->>"$.variantName" AS variantName,
-                chart_configs.full->>"$.isPublished" AS isPublished,
-                chart_configs.full->>"$.tab" AS tab,
-                chart_configs.chartType IS NOT NULL AS hasChartTab,
-                JSON_EXTRACT(chart_configs.full, "$.hasMapTab") = true AS hasMapTab,
-                chart_configs.full->>"$.originUrl" AS originUrl,
-                charts.lastEditedAt,
-                charts.lastEditedByUserId,
-                lastEditedByUser.fullName AS lastEditedBy,
-                charts.publishedAt,
-                charts.publishedByUserId,
-                publishedByUser.fullName AS publishedBy
-            FROM charts
-            JOIN chart_configs ON chart_configs.id = charts.configId
-            JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
-            LEFT JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
-            ORDER BY charts.lastEditedAt DESC
-            LIMIT ?
-        `,
-        [limit]
-    )
-    // note: retrieving references is VERY slow.
-    // await Promise.all(
-    //     charts.map(async (chart: any) => {
-    //         const references = await getReferencesByChartId(chart.id)
-    //         chart.references = references.length
-    //             ? references.map((ref) => ref.url)
-    //             : ""
-    //     })
-    // )
-    // await Chart.assignTagsForCharts(charts)
-    res.setHeader("Content-disposition", "attachment; filename=charts.csv")
-    res.setHeader("content-type", "text/csv")
-    const csv = Papa.unparse(charts)
-    return csv
 }
 
 export async function getChartConfigJson(

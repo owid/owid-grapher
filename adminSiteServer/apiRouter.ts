@@ -131,7 +131,6 @@ import {
 } from "./functionalRouterHelpers.js"
 import {
     getChartsJson,
-    getChartsCsv,
     getChartConfigJson,
     getChartParentJson,
     getChartSettingsJson,
@@ -199,7 +198,6 @@ getRouteWithROTransaction(
 
 // Chart routes
 getRouteWithROTransaction(apiRouter, "/charts.json", getChartsJson)
-getRouteWithROTransaction(apiRouter, "/charts.csv", getChartsCsv)
 getRouteWithROTransaction(
     apiRouter,
     "/charts/:chartId.config.json",

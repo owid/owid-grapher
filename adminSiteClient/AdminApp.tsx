@@ -22,7 +22,6 @@ import { TestIndexPage } from "./TestIndexPage.js"
 import { NotFoundPage } from "./NotFoundPage.js"
 import { DeployStatusPage } from "./DeployStatusPage.js"
 import { ExplorerTagsPage } from "./ExplorerTagsPage.js"
-import { BulkDownloadPage } from "./BulkDownloadPage.js"
 import {
     BrowserRouter as Router,
     Route,
@@ -424,11 +423,6 @@ export class AdminApp extends React.Component<{
                                     exact
                                     path="/explorer-tags"
                                     component={ExplorerTagsPage}
-                                />
-                                <Route
-                                    exact
-                                    path="/bulk-downloads"
-                                    component={BulkDownloadPage}
                                 />
                                 <Route
                                     exact

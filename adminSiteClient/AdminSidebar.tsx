@@ -15,7 +15,6 @@ import {
     faEye,
     faCoffee,
     faSatelliteDish,
-    faDownload,
     faHatWizard,
     faSitemap,
     faPanorama,
@@ -140,12 +139,6 @@ export const AdminSidebar = (): React.ReactElement => (
             <li>
                 <Link to="/tag-graph">
                     <FontAwesomeIcon icon={faSitemap} fixedWidth /> Tag Graph
-                </Link>
-            </li>
-            <li>
-                <Link to="/bulk-downloads">
-                    <FontAwesomeIcon icon={faDownload} fixedWidth /> Bulk
-                    downloads
                 </Link>
             </li>
             <li className="header">SETTINGS</li>
