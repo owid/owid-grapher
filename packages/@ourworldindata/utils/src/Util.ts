@@ -1196,11 +1196,12 @@ export const formatDate = (date: Date): string => {
  * stage, the manual approach is probably simpler.
  */
 export const getOwidGdocFromJSON = (json: OwidGdocJSON): OwidGdoc => {
+    const createdAt = new Date(json.createdAt)
     return {
         ...json,
-        createdAt: new Date(json.createdAt),
+        createdAt,
         publishedAt: json.publishedAt ? new Date(json.publishedAt) : null,
-        updatedAt: json.updatedAt ? new Date(json.updatedAt) : null,
+        updatedAt: json.updatedAt ? new Date(json.updatedAt) : createdAt,
     }
 }
 

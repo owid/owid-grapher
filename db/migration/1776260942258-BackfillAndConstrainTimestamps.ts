@@ -10,6 +10,7 @@ const nullableAutoUpdatedUpdatedAtTables = [
     "entities",
     "namespaces",
     "post_tags",
+    "posts_gdocs",
     "sources",
     "tags",
     "users",
@@ -17,6 +18,16 @@ const nullableAutoUpdatedUpdatedAtTables = [
 ]
 
 const manuallyManagedUpdatedAtTables = ["chart_configs", "charts"]
+
+const nullableTimestampUpdatedAtTables = [
+    "donors",
+    "multi_dim_redirects",
+    "multi_dim_x_chart_configs",
+    "narrative_charts",
+    "posts_gdocs_tombstones",
+    "redirects",
+    "static_viz",
+]
 
 const nullableTimestampCreatedAtTables = [
     "donors",
@@ -31,15 +42,32 @@ const nullableTimestampCreatedAtTables = [
 
 export class BackfillAndConstrainTimestamps1776260942258 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
+        for (const table of nullableTimestampCreatedAtTables) {
+            await queryRunner.query(
+                `-- sql
+                UPDATE ${table}
+                SET createdAt = CURRENT_TIMESTAMP
+                WHERE createdAt IS NULL`
+            )
+        }
+
+        await queryRunner.query(
+            `-- sql
+            UPDATE explorers
+            SET createdAt = CURRENT_TIMESTAMP
+            WHERE createdAt IS NULL`
+        )
+
         // active_datasets is a view over datasets, so datasets covers it.
         for (const table of [
             ...nullableAutoUpdatedUpdatedAtTables,
             ...manuallyManagedUpdatedAtTables,
+            ...nullableTimestampUpdatedAtTables,
         ]) {
             await queryRunner.query(
                 `-- sql
                 UPDATE ${table}
-                SET updatedAt = createdAt
+                SET updatedAt = COALESCE(createdAt, CURRENT_TIMESTAMP)
                 WHERE updatedAt IS NULL`
             )
         }
@@ -73,6 +101,14 @@ export class BackfillAndConstrainTimestamps1776260942258 implements MigrationInt
                 MODIFY COLUMN updatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP`
             )
         }
+
+        for (const table of nullableTimestampUpdatedAtTables) {
+            await queryRunner.query(
+                `-- sql
+                ALTER TABLE ${table}
+                MODIFY COLUMN updatedAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP`
+            )
+        }
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
@@ -103,6 +139,14 @@ export class BackfillAndConstrainTimestamps1776260942258 implements MigrationInt
                 `-- sql
                 ALTER TABLE ${table}
                 MODIFY COLUMN updatedAt DATETIME NULL DEFAULT NULL`
+            )
+        }
+
+        for (const table of nullableTimestampUpdatedAtTables) {
+            await queryRunner.query(
+                `-- sql
+                ALTER TABLE ${table}
+                MODIFY COLUMN updatedAt TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP`
             )
         }
     }

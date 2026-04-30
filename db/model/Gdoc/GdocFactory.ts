@@ -75,9 +75,9 @@ export function gdocFromJSON(
         )
     }
 
-    json.createdAt = json.createdAt ? new Date(json.createdAt) : null
+    json.createdAt = json.createdAt ? new Date(json.createdAt) : new Date()
     json.publishedAt = json.publishedAt ? new Date(json.publishedAt) : null
-    json.updatedAt = json.updatedAt ? new Date(json.updatedAt) : null
+    json.updatedAt = json.updatedAt ? new Date(json.updatedAt) : json.createdAt
 
     return match(type)
         .with(

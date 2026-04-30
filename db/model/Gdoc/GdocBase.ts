@@ -263,7 +263,7 @@ export class GdocBase implements OwidGdocBaseInterface {
     published: boolean = false
     createdAt: Date = new Date()
     publishedAt: Date | null = null
-    updatedAt: Date | null = null
+    updatedAt: Date = this.createdAt
     revisionId: string | null = null
     markdown: string | null = null
     publicationContext: OwidGdocPublicationContext =

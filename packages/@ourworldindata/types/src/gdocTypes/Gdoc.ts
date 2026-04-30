@@ -135,7 +135,7 @@ export interface OwidGdocBaseInterface {
     published: boolean
     createdAt: Date
     publishedAt: Date | null
-    updatedAt: Date | null
+    updatedAt: Date
     revisionId: string | null
     publicationContext: OwidGdocPublicationContext
     manualBreadcrumbs: BreadcrumbItem[] | null
