@@ -353,39 +353,6 @@ export async function checkIfSlugCollides(
     )
 }
 
-export const getPublishedDataInsightCount = (
-    knex: KnexReadonlyTransaction,
-    topicSlug?: string
-): Promise<number> => {
-    let query
-    if (topicSlug) {
-        query = knexRawFirst<{ count: number }>(
-            knex,
-            `
-            SELECT COUNT(DISTINCT(posts_gdocs.id)) AS count
-            FROM posts_gdocs
-            JOIN posts_gdocs_x_tags as pgt ON posts_gdocs.id = pgt.gdocId
-            JOIN tags ON pgt.tagId = tags.id
-            WHERE type = '${OwidGdocType.DataInsight}'
-                AND published = TRUE
-                AND publishedAt <= NOW()
-                AND tags.slug = ?`,
-            [topicSlug]
-        )
-    } else {
-        query = knexRawFirst<{ count: number }>(
-            knex,
-            `
-            SELECT COUNT(*) AS count
-            FROM posts_gdocs
-            WHERE type = '${OwidGdocType.DataInsight}'
-                AND published = TRUE
-                AND publishedAt <= NOW()`
-        )
-    }
-    return query.then((res) => res?.count ?? 0)
-}
-
 export const getTotalNumberOfCharts = (
     knex: KnexReadonlyTransaction
 ): Promise<number> => {

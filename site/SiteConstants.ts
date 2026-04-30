@@ -109,21 +109,3 @@ export enum GalleryArrowDirection {
     prev = "prev",
     next = "next",
 }
-
-export const MOST_RECENT_DATA_INSIGHT = "most-recent-data-insight"
-export const SECOND_MOST_RECENT_INSIGHT = "second-most-recent-data-insight"
-export const THIRD_MOST_RECENT_INSIGHT = "third-most-recent-data-insight"
-export const FOURTH_MOST_RECENT_INSIGHT = "fourth-most-recent-data-insight"
-export const FIFTH_MOST_RECENT_INSIGHT = "fifth-most-recent-data-insight"
-export const SIXTH_MOST_RECENT_INSIGHT = "sixth-most-recent-data-insight"
-export const SEVENTH_MOST_RECENT_INSIGHT = "seventh-most-recent-data-insight"
-
-export const dataInsightIndexToIdMap: Record<number, string> = {
-    0: MOST_RECENT_DATA_INSIGHT,
-    1: SECOND_MOST_RECENT_INSIGHT,
-    2: THIRD_MOST_RECENT_INSIGHT,
-    3: FOURTH_MOST_RECENT_INSIGHT,
-    4: FIFTH_MOST_RECENT_INSIGHT,
-    5: SIXTH_MOST_RECENT_INSIGHT,
-    6: SEVENTH_MOST_RECENT_INSIGHT,
-}

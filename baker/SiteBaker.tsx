@@ -22,7 +22,6 @@ import {
     makeAtomFeedNoTopicPages,
     renderDynamicCollectionPage,
     renderTopChartsCollectionPage,
-    renderDataInsightsIndexPage,
     renderThankYouPage,
     makeDataInsightsAtomFeed,
     renderGdocTombstone,
@@ -39,7 +38,6 @@ import {
     OwidGdocErrorMessageType,
     ImageMetadata,
     OwidGdoc,
-    DATA_INSIGHTS_INDEX_PAGE_SIZE,
     OwidGdocMinimalPostInterface,
     excludeUndefined,
     TombstonePageData,
@@ -75,7 +73,6 @@ import {
     prepareCalloutTablesForProfile,
     checkShouldProfileRender,
 } from "../db/model/Gdoc/dataCallouts.js"
-import { calculateDataInsightIndexPageCount } from "../db/model/Gdoc/gdocUtils.js"
 import {
     gdocFromJSON,
     getMinimalGdocBaseObjects,
@@ -983,52 +980,7 @@ export class SiteBaker {
                     )
                 )
             }
-            // We don't need the latest data insights nor their images in the
-            // feed later, when we render the list of all data insights.
-            dataInsight.latestDataInsights = []
-            dataInsight.imageMetadata = attachments.imageMetadata
         }
-
-        const totalPageCount = calculateDataInsightIndexPageCount(
-            publishedDataInsights.length
-        )
-
-        for (let pageNumber = 1; pageNumber <= totalPageCount; pageNumber++) {
-            const html = renderDataInsightsIndexPage(
-                publishedDataInsights.slice(
-                    (pageNumber - 1) * DATA_INSIGHTS_INDEX_PAGE_SIZE,
-                    pageNumber * DATA_INSIGHTS_INDEX_PAGE_SIZE
-                ),
-                pageNumber,
-                totalPageCount
-            )
-            // Page 1 is data-insights.html, page 2 is data-insights/2.html, etc.
-            const filename = pageNumber === 1 ? "" : `/${pageNumber}`
-            const outPath = path.join(
-                this.bakedSiteDir,
-                `data-insights${filename}.html`
-            )
-            await fs.mkdirp(path.dirname(outPath))
-            await this.stageWrite(outPath, html)
-        }
-
-        // bake all data insights to dataInsights.json to allow for a topic-filtered
-        // view of the feed (temporary, for the purposes of a data pages experiment).
-        const publishedDataInsightsForJson = publishedDataInsights.map((di) => {
-            // removes fields that are omitted from <DataInsightBody /> props
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const { markdown, publicationContext, revisionId, ...rest } = di
-
-            // removes data that isn't need for rendering the feed page (based on comments in DataInsightsIndexPageContent.tsx)
-            // (but we kep tags b/c we need it to filter dataInsights.json)
-            rest.linkedIndicators = {}
-            rest.latestDataInsights = []
-            return rest
-        })
-        await this.stageWrite(
-            `${this.bakedSiteDir}/dataInsights.json`,
-            JSON.stringify(publishedDataInsightsForJson)
-        )
     }
 
     private async bakeAuthors(knex: db.KnexReadonlyTransaction) {

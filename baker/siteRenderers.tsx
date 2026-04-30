@@ -1,6 +1,7 @@
 import * as _ from "lodash-es"
 import { LongFormPage } from "../site/LongFormPage.js"
 import { LatestPage } from "../site/LatestPage.js"
+import { latestUrl } from "../site/latest/latestUrl.js"
 import { SearchPage } from "../site/search/SearchPage.js"
 import { DynamicCollectionPage } from "../site/collections/DynamicCollectionPage.js"
 import { StaticCollectionPage } from "../site/collections/StaticCollectionPage.js"
@@ -31,7 +32,6 @@ import {
     Url,
     OwidGdocType,
     OwidGdoc,
-    OwidGdocDataInsightInterface,
     TombstonePageData,
     mergeGrapherConfigs,
     flattenNonTopicNodes,
@@ -68,10 +68,6 @@ import {
     ExplorerFullQueryParams,
 } from "@ourworldindata/explorer"
 import { ExplorerPage } from "../site/ExplorerPage.js"
-import {
-    DataInsightsIndexPage,
-    TopicTag,
-} from "../site/DataInsightsIndexPage.js"
 import {
     getChartConfigBySlug,
     getEnrichedChartById,
@@ -261,25 +257,6 @@ export const renderThankYouPage = async () => {
     return renderToHtmlPage(<ThankYouPage baseUrl={BAKED_BASE_URL} />)
 }
 
-export const renderDataInsightsIndexPage = (
-    dataInsights: OwidGdocDataInsightInterface[],
-    page: number = 1,
-    totalPageCount: number,
-    isPreviewing: boolean = false,
-    topicTag?: TopicTag
-) => {
-    return renderToHtmlPage(
-        <DataInsightsIndexPage
-            dataInsights={dataInsights}
-            baseUrl={BAKED_BASE_URL}
-            pageNumber={page}
-            totalPageCount={totalPageCount}
-            isPreviewing={isPreviewing}
-            topicTag={topicTag}
-        />
-    )
-}
-
 export const renderLatestPage = async (knex: KnexReadonlyTransaction) => {
     const topicTagGraph = await generateTopicTagGraph(knex)
     const flattenedTopicTagGraph = flattenNonTopicNodes(topicTagGraph)
@@ -316,7 +293,7 @@ export async function makeDataInsightsAtomFeed(knex: KnexReadonlyTransaction) {
     const dataInsights = await getAndLoadPublishedDataInsightsPage(knex, 1)
     return makeAtomFeedFromDataInsights({
         dataInsights,
-        htmlUrl: `${BAKED_BASE_URL}/data-insights`,
+        htmlUrl: `${BAKED_BASE_URL}${latestUrl("data-insight")}`,
         feedUrl: `${BAKED_BASE_URL}/atom-data-insights.xml`,
     })
 }

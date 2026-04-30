@@ -228,7 +228,6 @@ export type OwidGdocDataInsightIndexItem = Pick<
         }
     }
 
-export const DATA_INSIGHTS_INDEX_PAGE_SIZE = 20
 export const LATEST_INDEX_PAGE_SIZE = 20
 
 export interface OwidGdocDataInsightInterface extends OwidGdocBaseInterface {
@@ -522,8 +521,3 @@ export type EnrichedFaq = {
 } & EnrichedBlockWithParseErrors
 
 export type FaqDictionary = Record<string, EnrichedFaq>
-
-export type LatestPageItem =
-    | { type: OwidGdocType.Article; data: OwidGdocMinimalPostInterface }
-    | { type: OwidGdocType.DataInsight; data: LatestDataInsight }
-    | { type: OwidGdocType.Announcement; data: OwidGdocAnnouncementInterface }
