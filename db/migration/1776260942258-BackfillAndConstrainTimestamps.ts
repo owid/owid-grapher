@@ -1,6 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-const nullableAutoUpdatedUpdatedAtTables = [
+const nullableAutoUpdatedUpdatedAtTablesWithNullDefault = [
     "chart_dimensions",
     "chart_revisions",
     "chart_slug_redirects",
@@ -10,11 +10,15 @@ const nullableAutoUpdatedUpdatedAtTables = [
     "entities",
     "namespaces",
     "post_tags",
-    "posts_gdocs",
     "sources",
     "tags",
     "users",
     "variables",
+]
+
+const nullableAutoUpdatedUpdatedAtTables = [
+    ...nullableAutoUpdatedUpdatedAtTablesWithNullDefault,
+    "posts_gdocs",
 ]
 
 const manuallyManagedUpdatedAtTables = ["chart_configs", "charts"]
@@ -126,13 +130,19 @@ export class BackfillAndConstrainTimestamps1776260942258 implements MigrationInt
             MODIFY COLUMN createdAt DATETIME NULL DEFAULT CURRENT_TIMESTAMP`
         )
 
-        for (const table of nullableAutoUpdatedUpdatedAtTables) {
+        for (const table of nullableAutoUpdatedUpdatedAtTablesWithNullDefault) {
             await queryRunner.query(
                 `-- sql
                 ALTER TABLE ${table}
                 MODIFY COLUMN updatedAt DATETIME NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP`
             )
         }
+
+        await queryRunner.query(
+            `-- sql
+            ALTER TABLE posts_gdocs
+            MODIFY COLUMN updatedAt DATETIME NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP`
+        )
 
         for (const table of manuallyManagedUpdatedAtTables) {
             await queryRunner.query(
