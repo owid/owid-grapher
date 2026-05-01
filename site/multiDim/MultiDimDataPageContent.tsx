@@ -190,17 +190,11 @@ export function DataPageContent({
             grapherState.isDataReady = false
             setIsLoadingView(true)
 
-            const datapageDataPromise = cachedGetVariableMetadata(
+            const variableMetadataPromise = cachedGetVariableMetadata(
                 variableId,
                 Boolean(isPreviewing),
                 assetMap
-            ).then((json) => {
-                const mergedMetadata = config.mergeViewMetadata(settings, json)
-                return {
-                    ...getDatapageDataV2(mergedMetadata, newView.config ?? {}),
-                    faqs: mergedMetadata.presentation?.faqs ?? [],
-                }
-            })
+            )
             const grapherConfigUuid = newView.fullConfigId
 
             const grapherConfigPromise = cachedGetGrapherConfigByUuid(
@@ -221,65 +215,64 @@ export function DataPageContent({
             managerRef.current.analyticsContext = analyticsContext
             managerRef.current.adminCreateNarrativeChartPath = `narrative-charts/create?type=multiDim&chartConfigId=${grapherConfigUuid}`
 
-            void Promise.allSettled([datapageDataPromise, grapherConfigPromise])
-                .then(async ([datapageData, grapherConfig]) => {
-                    if (datapageData.status === "rejected")
-                        throw new Error(
-                            `Fetching variable by uuid failed: ${grapherConfigUuid}`,
-                            { cause: datapageData.reason }
-                        )
-                    setVarDatapageData(datapageData.value)
-                    if (grapherConfig.status === "fulfilled") {
-                        const config = {
-                            ...grapherConfig.value,
-                            ...baseGrapherConfig,
-                        }
-                        const loadDataPromise = inputTableFetcher(
-                            grapherConfig.value.dimensions!,
-                            grapherConfig.value.selectedEntityColors
-                        ).then((inputTable) => {
-                            if (inputTable) grapherState.inputTable = inputTable
-                        })
+            void Promise.all([variableMetadataPromise, grapherConfigPromise])
+                .then(async ([variableMetadata, grapherConfig]) => {
+                    const mergedMetadata = config.mergeViewMetadata(
+                        settings,
+                        variableMetadata
+                    )
+                    setVarDatapageData({
+                        ...getDatapageDataV2(mergedMetadata, grapherConfig),
+                        faqs: mergedMetadata.presentation?.faqs ?? [],
+                    })
 
-                        if (slug) {
-                            config.slug = slug // Needed for the URL used for sharing.
-                        }
-                        // Batch the grapher updates to avoid getting intermediate
-                        // grapherChangedParams values, which make the URL update
-                        // multiple times while flashing.
-                        // https://stackoverflow.com/a/48610973/9846837
-
-                        const previousTab = grapherState.activeTab
-
-                        // TODO we may not need to this anymore in React 18.
-                        unstable_batchedUpdates(() => {
-                            grapherState.setAuthoredVersion(config)
-                            grapherState.reset()
-                            grapherState.updateFromObject(config)
-                            grapherState.isConfigReady = true
-
-                            grapherState.populateFromQueryParams(
-                                grapherQueryParams
-                            )
-                        })
-
-                        // The below code needs to run after the data has been loaded, so that it has access
-                        // to the table and its time range
-                        await loadDataPromise
-
-                        grapherState.isDataReady = true
-
-                        // When switching between mdim views, we usually preserve the tab.
-                        // However, if the new chart doesn't support the previously selected tab,
-                        // Grapher automatically switches to a supported one. In such cases,
-                        // we call adjustStateForTab to make adjustments that ensure the new view
-                        // is sensible (e.g. updating the time selection when switching from a
-                        // single-time chart like a discrete bar chart to a multi-time chart like
-                        // a line chart).
-                        const currentTab = grapherState.activeTab
-                        if (previousTab !== currentTab)
-                            grapherState.adjustStateForTab(currentTab)
+                    const grapherConfigWithBase = {
+                        ...grapherConfig,
+                        ...baseGrapherConfig,
                     }
+                    const loadDataPromise = inputTableFetcher(
+                        grapherConfig.dimensions!,
+                        grapherConfig.selectedEntityColors
+                    ).then((inputTable) => {
+                        if (inputTable) grapherState.inputTable = inputTable
+                    })
+
+                    if (slug) {
+                        grapherConfigWithBase.slug = slug // Needed for the URL used for sharing.
+                    }
+                    // Batch the grapher updates to avoid getting intermediate
+                    // grapherChangedParams values, which make the URL update
+                    // multiple times while flashing.
+                    // https://stackoverflow.com/a/48610973/9846837
+
+                    const previousTab = grapherState.activeTab
+
+                    // TODO we may not need to this anymore in React 18.
+                    unstable_batchedUpdates(() => {
+                        grapherState.setAuthoredVersion(grapherConfigWithBase)
+                        grapherState.reset()
+                        grapherState.updateFromObject(grapherConfigWithBase)
+                        grapherState.isConfigReady = true
+
+                        grapherState.populateFromQueryParams(grapherQueryParams)
+                    })
+
+                    // The below code needs to run after the data has been loaded, so that it has access
+                    // to the table and its time range
+                    await loadDataPromise
+
+                    grapherState.isDataReady = true
+
+                    // When switching between mdim views, we usually preserve the tab.
+                    // However, if the new chart doesn't support the previously selected tab,
+                    // Grapher automatically switches to a supported one. In such cases,
+                    // we call adjustStateForTab to make adjustments that ensure the new view
+                    // is sensible (e.g. updating the time selection when switching from a
+                    // single-time chart like a discrete bar chart to a multi-time chart like
+                    // a line chart).
+                    const currentTab = grapherState.activeTab
+                    if (previousTab !== currentTab)
+                        grapherState.adjustStateForTab(currentTab)
                 })
                 .catch(Sentry.captureException)
                 .finally(() => setIsLoadingView(false))

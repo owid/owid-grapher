@@ -43,6 +43,7 @@ import {
 import { MultiDimArchivalManifest } from "../serverUtils/archivalUtils.js"
 import { getLatestArchivedMultiDimPageVersions } from "../db/model/ArchivedMultiDimVersion.js"
 import { getDatapageDataV2 } from "../site/dataPage.js"
+import { getChartConfigByUuid } from "../db/model/ChartConfigs.js"
 
 const getLatestMultiDimArchivedVersionsIfEnabled = async (
     knex: db.KnexReadonlyTransaction,
@@ -140,16 +141,23 @@ export async function renderMultiDimDataPageFromConfig({
     let initialViewData: MultiDimDataPageInitialViewData | undefined
     const initialViewVariableId = initialView?.indicators?.y?.[0]?.id
     if (initialView && initialViewVariableId) {
-        const variableMetadata = await getVariableMetadata(
-            initialViewVariableId,
-            { noCache: isPreviewing }
-        )
+        const [variableMetadata, fullGrapherConfig] = await Promise.all([
+            getVariableMetadata(initialViewVariableId, {
+                noCache: isPreviewing,
+            }),
+            getChartConfigByUuid(knex, initialView.fullConfigId),
+        ])
+        if (!fullGrapherConfig) {
+            throw new Error(
+                `Missing full grapher config for multi-dim view ${initialView.fullConfigId}`
+            )
+        }
         const mergedMetadata = pageConfig.mergeViewMetadata(
             initialViewDimensions,
             variableMetadata
         )
         initialViewData = {
-            ...getDatapageDataV2(mergedMetadata, initialView.config ?? {}),
+            ...getDatapageDataV2(mergedMetadata, fullGrapherConfig),
             faqs: mergedMetadata.presentation?.faqs ?? [],
         }
     }
