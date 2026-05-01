@@ -14,6 +14,7 @@ import {
     encodeFilter,
 } from "./latestFilters.js"
 import { LatestHit } from "./LatestHit.js"
+import { LatestSearchSkeleton } from "./LatestSearchSkeleton.js"
 import { NewsletterSignupBlock } from "../NewsletterSignupBlock.js"
 import { SearchHorizontalDivider } from "../search/SearchHorizontalDivider.js"
 import { SearchNoResults } from "../search/SearchNoResults.js"
@@ -172,9 +173,7 @@ export const LatestSearch = ({
             </div>
             <hr className="latest-search__filters-divider span-cols-12 col-start-2 span-md-cols-12 col-md-start-2 span-sm-cols-14 col-sm-start-1" />
             {isLoading ? (
-                <p className="latest-search__loading span-cols-8 col-start-2 span-md-cols-12 col-md-start-2 span-sm-cols-14 col-sm-start-1">
-                    Loading…
-                </p>
+                <LatestSearchSkeleton />
             ) : hits.length === 0 ? (
                 <SearchNoResults
                     subtitle={

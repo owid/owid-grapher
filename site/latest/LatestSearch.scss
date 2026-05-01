@@ -16,13 +16,6 @@
     }
 }
 
-.latest-search__loading {
-    @include body-1-regular;
-    color: $blue-60;
-    text-align: center;
-    padding: 48px 0;
-}
-
 .latest-search__reset-button {
     @include body-3-medium;
     background: none;
