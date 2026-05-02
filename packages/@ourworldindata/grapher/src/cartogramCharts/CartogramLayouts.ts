@@ -5,6 +5,8 @@ export interface CartogramLayoutDefinition {
     url: string
 }
 
+export const CARTOGRAM_LAYOUT_INDEX_URL = "/cartograms/population/index.json"
+
 export const CARTOGRAM_LAYOUTS = [
     { year: 2023, url: "/cartograms/population/2023.csv" },
 ] as const satisfies readonly CartogramLayoutDefinition[]

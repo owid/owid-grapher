@@ -4,13 +4,50 @@ import {
     parseCartogramCsv,
 } from "./CartogramFeatures"
 import {
+    CARTOGRAM_LAYOUT_INDEX_URL,
     CARTOGRAM_LAYOUTS,
     CartogramLayoutDefinition,
     findClosestCartogramLayout,
 } from "./CartogramLayouts"
 import { Time } from "@ourworldindata/types"
 
+interface CartogramLayoutIndex {
+    layouts?: CartogramLayoutDefinition[]
+}
+
 const layoutCache = new Map<string, Promise<CartogramLayout>>()
+let layoutIndexCache: Promise<readonly CartogramLayoutDefinition[]> | undefined
+
+function isValidLayoutDefinition(
+    layout: CartogramLayoutDefinition
+): layout is CartogramLayoutDefinition {
+    return (
+        typeof layout?.year === "number" &&
+        Number.isFinite(layout.year) &&
+        typeof layout.url === "string" &&
+        layout.url.length > 0
+    )
+}
+
+export function loadCartogramLayoutIndex(): Promise<
+    readonly CartogramLayoutDefinition[]
+> {
+    if (layoutIndexCache) return layoutIndexCache
+
+    layoutIndexCache = fetch(CARTOGRAM_LAYOUT_INDEX_URL)
+        .then(async (response): Promise<readonly CartogramLayoutDefinition[]> => {
+            if (!response.ok) return CARTOGRAM_LAYOUTS
+            const index = (await response.json()) as CartogramLayoutIndex
+            const layouts = Array.isArray(index) ? index : index.layouts
+            const validLayouts = Array.isArray(layouts)
+                ? layouts.filter(isValidLayoutDefinition)
+                : []
+            return validLayouts.length > 0 ? validLayouts : CARTOGRAM_LAYOUTS
+        })
+        .catch(() => CARTOGRAM_LAYOUTS)
+
+    return layoutIndexCache
+}
 
 export function loadCartogramLayout(
     layout: CartogramLayoutDefinition
@@ -40,11 +77,15 @@ export function loadCartogramLayout(
 
 export function loadCartogramLayoutForTargetTime(
     targetYear: Time | undefined,
-    layouts: readonly CartogramLayoutDefinition[] = CARTOGRAM_LAYOUTS
+    layouts?: readonly CartogramLayoutDefinition[]
 ): Promise<CartogramLayout> {
-    return loadCartogramLayout(findClosestCartogramLayout(targetYear, layouts))
+    const layoutsPromise = layouts ? Promise.resolve(layouts) : loadCartogramLayoutIndex()
+    return layoutsPromise.then((availableLayouts) =>
+        loadCartogramLayout(findClosestCartogramLayout(targetYear, availableLayouts))
+    )
 }
 
 export function clearCartogramLayoutCache(): void {
     layoutCache.clear()
+    layoutIndexCache = undefined
 }
