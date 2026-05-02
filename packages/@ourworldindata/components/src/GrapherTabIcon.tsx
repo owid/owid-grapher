@@ -6,6 +6,7 @@ import {
     faChartLine,
     faEarthAmericas,
     faTable,
+    faTh,
 } from "@fortawesome/free-solid-svg-icons"
 import {
     GRAPHER_CHART_TYPES,
@@ -46,6 +47,10 @@ const chartIcons: Record<GrapherChartType, React.ReactElement> = {
     // line chart
     [GRAPHER_CHART_TYPES.LineChart]: (
         <FontAwesomeIcon className="GrapherTabIcon" icon={faChartLine} />
+    ),
+
+    [GRAPHER_CHART_TYPES.Cartogram]: (
+        <FontAwesomeIcon className="GrapherTabIcon" icon={faTh} />
     ),
 
     // bar charts

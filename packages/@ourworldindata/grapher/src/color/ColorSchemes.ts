@@ -88,7 +88,7 @@ function getPreferredSchemesByType(
             ColorSchemeName.SingleColorGradientDustyCoral,
             ColorSchemeName.SingleColorGradientDarkCopper,
         ])
-        .with(GRAPHER_MAP_TYPE, () => [
+        .with(GRAPHER_CHART_TYPES.Cartogram, GRAPHER_MAP_TYPE, () => [
             ColorSchemeName.BinaryMapPaletteA,
             ColorSchemeName.BinaryMapPaletteB,
             ColorSchemeName.BinaryMapPaletteC,

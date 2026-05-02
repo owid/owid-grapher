@@ -173,6 +173,7 @@ export enum GrapherModal {
 export const CHART_TYPES_THAT_SHOW_ALL_ENTITIES: GrapherChartType[] = [
     GRAPHER_CHART_TYPES.ScatterPlot,
     GRAPHER_CHART_TYPES.Marimekko,
+    GRAPHER_CHART_TYPES.Cartogram,
 ]
 
 export interface FontSettings {

@@ -264,6 +264,7 @@ properties:
                 - SlopeChart
                 - StackedBar
                 - Marimekko
+                - Cartogram
     hasMapTab:
         type: boolean
         default: false
@@ -284,6 +285,7 @@ properties:
             - stacked-area
             - stacked-bar
             - stacked-discrete-bar
+            - cartogram
     xAxis:
         $ref: "#/$defs/axis"
     yAxis:

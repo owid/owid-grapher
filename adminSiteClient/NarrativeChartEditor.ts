@@ -42,7 +42,8 @@ export class NarrativeChartEditor extends AbstractChartEditor<NarrativeChartEdit
     @computed
     get availableTabs(): EditorTab[] {
         const tabs: EditorTab[] = ["basic", "data", "text", "customize"]
-        if (this.grapherState.hasMapTab) tabs.push("map")
+        if (this.grapherState.hasMapTab || this.grapherState.hasCartogram)
+            tabs.push("map")
         if (this.grapherState.isScatter) tabs.push("scatter")
         if (this.grapherState.isMarimekko) tabs.push("marimekko")
         tabs.push("refs")

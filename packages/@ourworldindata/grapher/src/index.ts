@@ -78,6 +78,7 @@ export {
 } from "./core/LegacyToOwidTable"
 export { getErrorMessageRelatedQuestionUrl } from "./core/relatedQuestion"
 export { MapChartState } from "./mapCharts/MapChartState"
+export { CartogramChartState } from "./cartogramCharts/CartogramChartState"
 export { MapConfig } from "./mapCharts/MapConfig"
 export {
     MAP_REGION_LABELS,

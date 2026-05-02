@@ -51,6 +51,8 @@ interface MapTooltipProps {
     fading?: TooltipFadeMode
     dismissTooltip?: () => void
     formatValueForTooltip: MapFormatValueForTooltip
+    titleEntityName?: EntityName
+    valueSourceEntityName?: EntityName
 }
 
 @observer
@@ -285,6 +287,12 @@ export class MapTooltip
         const footer = excludeUndefined([
             this.toleranceNotice,
             this.roundingNotice,
+            this.props.valueSourceEntityName
+                ? {
+                      icon: TooltipFooterIcon.Notice,
+                      text: `Using data for ${this.props.valueSourceEntityName}`,
+                  }
+                : undefined,
         ])
 
         return (
@@ -298,7 +306,7 @@ export class MapTooltip
                 offsetX={20}
                 offsetY={-16}
                 offsetYDirection={"downward"}
-                title={entityName}
+                title={this.props.titleEntityName ?? entityName}
                 subtitle={this.tooltipSubtitle}
                 subtitleFormat={this.toleranceNotice ? "notice" : undefined}
                 footer={footer}

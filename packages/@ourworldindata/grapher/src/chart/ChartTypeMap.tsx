@@ -19,6 +19,7 @@ import { StackedDiscreteBarChartState } from "../stackedCharts/StackedDiscreteBa
 import { ScatterPlotChartState } from "../scatterCharts/ScatterPlotChartState"
 import { MarimekkoChartState } from "../stackedCharts/MarimekkoChartState"
 import { MapChartState } from "../mapCharts/MapChartState"
+import { CartogramChartState } from "../cartogramCharts/CartogramChartState"
 
 import { LineChart } from "../lineCharts/LineChart"
 import { SlopeChart } from "../slopeCharts/SlopeChart.js"
@@ -29,6 +30,7 @@ import { StackedDiscreteBarChart } from "../stackedCharts/StackedDiscreteBarChar
 import { ScatterPlotChart } from "../scatterCharts/ScatterPlotChart"
 import { MarimekkoChart } from "../stackedCharts/MarimekkoChart"
 import { MapChart } from "../mapCharts/MapChart"
+import { CartogramChart } from "../cartogramCharts/CartogramChart"
 
 import { LineChartThumbnail } from "../lineCharts/LineChartThumbnail"
 import { SlopeChartThumbnail } from "../slopeCharts/SlopeChartThumbnail"
@@ -70,6 +72,7 @@ const ChartComponentClassMap = new Map<
     [GRAPHER_CHART_TYPES.StackedDiscreteBar, StackedDiscreteBarChart],
     [GRAPHER_CHART_TYPES.ScatterPlot, ScatterPlotChart],
     [GRAPHER_CHART_TYPES.Marimekko, MarimekkoChart],
+    [GRAPHER_CHART_TYPES.Cartogram, CartogramChart],
     [GRAPHER_MAP_TYPE, MapChart],
 ])
 
@@ -85,6 +88,7 @@ const ChartThumbnailClassMap = new Map<
     [GRAPHER_CHART_TYPES.StackedDiscreteBar, StackedDiscreteBarChartThumbnail],
     [GRAPHER_CHART_TYPES.ScatterPlot, ScatterPlotChartThumbnail],
     [GRAPHER_CHART_TYPES.Marimekko, MarimekkoChartThumbnail],
+    [GRAPHER_CHART_TYPES.Cartogram, CartogramChart],
     [GRAPHER_MAP_TYPE, MapChartThumbnail],
 ])
 
@@ -100,6 +104,7 @@ const ChartStateMap = new Map<
     [GRAPHER_CHART_TYPES.StackedDiscreteBar, StackedDiscreteBarChartState],
     [GRAPHER_CHART_TYPES.ScatterPlot, ScatterPlotChartState],
     [GRAPHER_CHART_TYPES.Marimekko, MarimekkoChartState],
+    [GRAPHER_CHART_TYPES.Cartogram, CartogramChartState],
     [GRAPHER_MAP_TYPE, MapChartState],
 ])
 

@@ -849,7 +849,11 @@ export class GrapherState
         }
 
         // Similarly, color properties from the map column are stored as obj.map.colorScale
-        if (this.hasMapTab && this.mapColumnSlug && !obj.map?.colorScale) {
+        if (
+            (this.hasMapTab || this.hasCartogram) &&
+            this.mapColumnSlug &&
+            !obj.map?.colorScale
+        ) {
             const mapColumn = this.inputTable.get(this.mapColumnSlug)
             const colorScaleConfig = ColorScaleConfig.fromDSL(mapColumn.def)
             if (colorScaleConfig) {
@@ -1011,7 +1015,7 @@ export class GrapherState
 
         if (startTime === undefined || endTime === undefined) return table
 
-        if (this.isOnMapTab) {
+        if (this.isOnMapOrCartogramTab) {
             const targetTimes = this.isFaceted
                 ? [startTime, endTime]
                 : [endTime]
@@ -1436,6 +1440,14 @@ export class GrapherState
         return this.activeTab === GRAPHER_TAB_NAMES.WorldMap
     }
 
+    @computed get isOnCartogramTab(): boolean {
+        return this.activeTab === GRAPHER_TAB_NAMES.Cartogram
+    }
+
+    @computed get isOnMapOrCartogramTab(): boolean {
+        return this.isOnMapTab || this.isOnCartogramTab
+    }
+
     @computed get isOnTableTab(): boolean {
         return this.activeTab === GRAPHER_TAB_NAMES.Table
     }
@@ -1744,7 +1756,9 @@ export class GrapherState
             ? [mapColumnInfo.projectedSlug, mapColumnInfo.historicalSlug]
             : [mapColumnSlug]
 
-        const columnSlugs = this.isOnMapTab ? mapColumnSlugs : yColumnSlugs
+        const columnSlugs = this.isOnMapOrCartogramTab
+            ? mapColumnSlugs
+            : yColumnSlugs
 
         // Generate the times only after the chart transform has been applied, so that we don't show
         // times on the timeline for which data may not exist, e.g. when the selected entity
@@ -1821,7 +1835,7 @@ export class GrapherState
     @computed private get isSingleTimeMapAnimationActive(): boolean {
         return (
             this.isTimelineAnimationActive &&
-            this.isOnMapTab &&
+            this.isOnMapOrCartogramTab &&
             !!this.areHandlesOnSameTimeBeforeAnimation
         )
     }
@@ -1891,7 +1905,7 @@ export class GrapherState
     }
 
     @computed get entitySelector(): EntitySelector {
-        const entitySelectorArray = this.isOnMapTab
+        const entitySelectorArray = this.isOnMapOrCartogramTab
             ? this.mapConfig.selection
             : this.selection
         return new EntitySelector({
@@ -1909,6 +1923,7 @@ export class GrapherState
             GRAPHER_TAB_NAMES.DiscreteBar,
             GRAPHER_TAB_NAMES.StackedDiscreteBar,
             GRAPHER_TAB_NAMES.Marimekko,
+            GRAPHER_TAB_NAMES.Cartogram,
         ].includes(tabName as any)
     }
 
@@ -2422,7 +2437,7 @@ export class GrapherState
                     (this.isOnDiscreteBarTab ||
                         this.isOnStackedDiscreteBarTab ||
                         this.isOnMarimekkoTab ||
-                        this.isOnMapTab ||
+                        this.isOnMapOrCartogramTab ||
                         (this.isOnScatterTab &&
                             !this.isTimeScatter &&
                             !this.isConnectedScatter))))
@@ -2500,8 +2515,9 @@ export class GrapherState
         if (this.times.length <= 1) return false
 
         switch (this.activeTab) {
-            // The map tab has its own `hideTimeline` option
+            // The map and cartogram tabs have their own `hideTimeline` option
             case GRAPHER_TAB_NAMES.WorldMap:
+            case GRAPHER_TAB_NAMES.Cartogram:
                 return !this.map.hideTimeline
 
             // Use the chart-level `hideTimeline` option for the table, with some exceptions
@@ -2802,6 +2818,10 @@ export class GrapherState
         return this.chartType === GRAPHER_CHART_TYPES.Marimekko
     }
 
+    @computed get isCartogram(): boolean {
+        return this.chartType === GRAPHER_CHART_TYPES.Cartogram
+    }
+
     @computed get isStackedDiscreteBar(): boolean {
         return this.chartType === GRAPHER_CHART_TYPES.StackedDiscreteBar
     }
@@ -2836,6 +2856,10 @@ export class GrapherState
 
     @computed get isOnStackedDiscreteBarTab(): boolean {
         return this.activeChartType === GRAPHER_CHART_TYPES.StackedDiscreteBar
+    }
+
+    @computed get hasCartogram(): boolean {
+        return this.validChartTypeSet.has(GRAPHER_CHART_TYPES.Cartogram)
     }
 
     @computed get hasLineChart(): boolean {

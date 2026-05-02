@@ -12,6 +12,7 @@ import {
     StackedBarChartState,
     MarimekkoChartState,
     MapChartState,
+    CartogramChartState,
     ChartState,
     makeChartState,
     isNumericBin,
@@ -105,9 +106,15 @@ export function constructSearchResultDataTableContent(
             })
         )
         .with(GRAPHER_TAB_NAMES.WorldMap, () =>
-            buildDataTableContentForWorldMap({
+            buildDataTableContentForMapLikeChart({
                 ...props,
                 chartState: chartState as MapChartState,
+            })
+        )
+        .with(GRAPHER_TAB_NAMES.Cartogram, () =>
+            buildDataTableContentForMapLikeChart({
+                ...props,
+                chartState: chartState as CartogramChartState,
             })
         )
         .with(GRAPHER_TAB_NAMES.Table, () =>
@@ -592,11 +599,11 @@ function buildDataTableContentForScatterPlot({
     }
 }
 
-function buildDataTableContentForWorldMap({
+function buildDataTableContentForMapLikeChart({
     grapherState,
     chartState,
     maxRows,
-}: Args<MapChartState>): SearchChartHitDataTableProps {
+}: Args<MapChartState | CartogramChartState>): SearchChartHitDataTableProps {
     const formatColumn = chartState.mapColumn
     const bins = chartState.colorScale.legendBins
 

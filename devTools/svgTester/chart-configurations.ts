@@ -74,6 +74,10 @@ const VIEW_MATRIX_BY_CHART_TYPE: Record<GrapherChartType, ViewMatrix> = {
         stackMode: stackModeOptions,
         showNoDataArea: booleanOptions,
     },
+    [GRAPHER_CHART_TYPES.Cartogram]: {
+        tab: ["chart"],
+        time: timePoints,
+    },
     [GRAPHER_CHART_TYPES.SlopeChart]: {
         tab: ["chart"],
         time: timeSpan,
@@ -168,6 +172,7 @@ const EXCLUDE_VIEWS_BY_CHART_TYPE: Record<
         { focus: "<firstSeries>", facet: FacetStrategy.metric },
     ],
     [GRAPHER_CHART_TYPES.Marimekko]: [],
+    [GRAPHER_CHART_TYPES.Cartogram]: [],
     [GRAPHER_CHART_TYPES.SlopeChart]: [
         // Test focus mode only in the default view
         { focus: "<firstSeries>", yScale: ScaleType.log },
