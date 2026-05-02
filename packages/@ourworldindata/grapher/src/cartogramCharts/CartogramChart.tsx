@@ -549,6 +549,12 @@ export class CartogramChart
             this.selectionArray.toggleSelection(feature.id)
     }
 
+    @computed private get featuresById(): Map<string, CartogramRenderFeature> {
+        return new Map(
+            this.layout?.features.map((feature) => [feature.id, feature]) ?? []
+        )
+    }
+
     @computed private get featuresWithSeries(): {
         feature: CartogramRenderFeature
         series?: CartogramSeries
@@ -668,6 +674,9 @@ export class CartogramChart
             : undefined
         const tooltipDataEntityName =
             tooltipSeries?.dataEntityName ?? tooltipFeatureId
+        const tooltipFeature = tooltipFeatureId
+            ? this.featuresById.get(tooltipFeatureId)
+            : undefined
 
         return (
             <g
@@ -696,6 +705,7 @@ export class CartogramChart
                                 ? tooltipDataEntityName
                                 : undefined
                         }
+                        population={tooltipFeature?.population}
                         position={tooltipState.position}
                         fading={tooltipState.fading}
                         timeSeriesTable={this.chartState.inputTable}

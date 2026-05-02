@@ -41,6 +41,7 @@ describe("cartogram layout parsing", () => {
         expect(featuresByName.get("India")?.cells).toHaveLength(2876)
         expect(featuresByName.get("China")?.cells).toHaveLength(2845)
         expect(featuresByName.get("United States")?.cells).toHaveLength(687)
+        expect(featuresByName.get("India")?.population).toBe(1_438_000_000)
         expect(featuresByName.get("India")?.fillPath.length).toBeGreaterThan(0)
         expect(featuresByName.get("India")?.outlinePath.length).toBeGreaterThan(
             0

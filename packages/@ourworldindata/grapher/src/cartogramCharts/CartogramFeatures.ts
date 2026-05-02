@@ -2,6 +2,8 @@ import { Bounds, PointVector } from "@ourworldindata/utils"
 import { EntityName } from "@ourworldindata/types"
 import { CARTOGRAM_COUNTRY_CODE_TO_ENTITY_NAME } from "./CartogramCountryCodes"
 
+export const CARTOGRAM_POPULATION_PER_CELL = 500_000
+
 export interface CartogramCell {
     x: number
     y: number
@@ -14,6 +16,7 @@ export interface CartogramRenderFeature {
     cells: { x: number; y: number }[]
     fillPath: string
     outlinePath: string
+    population: number
     bounds: Bounds
     center: PointVector
 }
@@ -129,6 +132,7 @@ export function buildCartogramLayout({
                 cells: featureCells,
                 fillPath,
                 outlinePath,
+                population: featureCells.length * CARTOGRAM_POPULATION_PER_CELL,
                 bounds,
                 center: bounds.centerPos,
             }

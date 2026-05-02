@@ -29,6 +29,7 @@ import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
 import {
     calculateTrendDirection,
     excludeUndefined,
+    formatValue,
     PointVector,
 } from "@ourworldindata/utils"
 import { darkenColorForHighContrastText } from "../color/ColorUtils"
@@ -53,6 +54,7 @@ interface MapTooltipProps {
     formatValueForTooltip: MapFormatValueForTooltip
     titleEntityName?: EntityName
     valueSourceEntityName?: EntityName
+    population?: number
 }
 
 @observer
@@ -329,6 +331,15 @@ export class MapTooltip
                         formattedValue={this.formattedEndValue?.label}
                         colorScale={colorScale}
                         isProjection={isProjection}
+                    />
+                )}
+                {this.props.population !== undefined && (
+                    <TooltipValue
+                        label="Population"
+                        value={formatValue(this.props.population, {
+                            numDecimalPlaces: 0,
+                            numSignificantFigures: 3,
+                        })}
                     />
                 )}
                 <MapSparkline
