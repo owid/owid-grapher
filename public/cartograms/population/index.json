@@ -1,16 +1,16 @@
 {
-  "layouts": [
-    {
-      "year": 1950,
-      "url": "/cartograms/population/1950.csv"
-    },
-    {
-      "year": 2018,
-      "url": "/cartograms/population/2018.csv"
-    },
-    {
-      "year": 2023,
-      "url": "/cartograms/population/2023.csv"
-    }
-  ]
+    "layouts": [
+        {
+            "year": 1950,
+            "url": "/cartograms/population/1950.csv"
+        },
+        {
+            "year": 2018,
+            "url": "/cartograms/population/2018.csv"
+        },
+        {
+            "year": 2023,
+            "url": "/cartograms/population/2023.csv"
+        }
+    ]
 }
