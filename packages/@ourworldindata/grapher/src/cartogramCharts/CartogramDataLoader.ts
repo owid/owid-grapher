@@ -35,15 +35,19 @@ export function loadCartogramLayoutIndex(): Promise<
     if (layoutIndexCache) return layoutIndexCache
 
     layoutIndexCache = fetch(CARTOGRAM_LAYOUT_INDEX_URL)
-        .then(async (response): Promise<readonly CartogramLayoutDefinition[]> => {
-            if (!response.ok) return CARTOGRAM_LAYOUTS
-            const index = (await response.json()) as CartogramLayoutIndex
-            const layouts = Array.isArray(index) ? index : index.layouts
-            const validLayouts = Array.isArray(layouts)
-                ? layouts.filter(isValidLayoutDefinition)
-                : []
-            return validLayouts.length > 0 ? validLayouts : CARTOGRAM_LAYOUTS
-        })
+        .then(
+            async (response): Promise<readonly CartogramLayoutDefinition[]> => {
+                if (!response.ok) return CARTOGRAM_LAYOUTS
+                const index = (await response.json()) as CartogramLayoutIndex
+                const layouts = Array.isArray(index) ? index : index.layouts
+                const validLayouts = Array.isArray(layouts)
+                    ? layouts.filter(isValidLayoutDefinition)
+                    : []
+                return validLayouts.length > 0
+                    ? validLayouts
+                    : CARTOGRAM_LAYOUTS
+            }
+        )
         .catch(() => CARTOGRAM_LAYOUTS)
 
     return layoutIndexCache
@@ -79,9 +83,13 @@ export function loadCartogramLayoutForTargetTime(
     targetYear: Time | undefined,
     layouts?: readonly CartogramLayoutDefinition[]
 ): Promise<CartogramLayout> {
-    const layoutsPromise = layouts ? Promise.resolve(layouts) : loadCartogramLayoutIndex()
+    const layoutsPromise = layouts
+        ? Promise.resolve(layouts)
+        : loadCartogramLayoutIndex()
     return layoutsPromise.then((availableLayouts) =>
-        loadCartogramLayout(findClosestCartogramLayout(targetYear, availableLayouts))
+        loadCartogramLayout(
+            findClosestCartogramLayout(targetYear, availableLayouts)
+        )
     )
 }
 

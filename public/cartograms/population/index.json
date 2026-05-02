@@ -1,8 +1,8 @@
 {
-  "layouts": [
-    {
-      "year": 2023,
-      "url": "/cartograms/population/2023.csv"
-    }
-  ]
+    "layouts": [
+        {
+            "year": 2023,
+            "url": "/cartograms/population/2023.csv"
+        }
+    ]
 }
