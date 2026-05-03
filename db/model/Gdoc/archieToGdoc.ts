@@ -11,7 +11,7 @@ import { OwidGoogleAuth } from "../../OwidGoogleAuth.js"
 import * as cheerio from "cheerio"
 import type { AnyNode } from "domhandler"
 
-function* owidArticleToArchieMLStringGenerator(
+export function* owidArticleToArchieMLStringGenerator(
     article: OwidGdocPostContent
 ): Generator<string, void, undefined> {
     yield* propertyToArchieMLString("title", article)
@@ -152,7 +152,7 @@ function* lineToBatchUpdates(line: Line): Generator<docs_v1.Schema$Request> {
     }
 }
 
-function articleToBatchUpdates(
+export function articleToBatchUpdates(
     content: OwidGdocPostContent
 ): docs_v1.Schema$Request[] {
     const archieMlLines = [...owidArticleToArchieMLStringGenerator(content)]
@@ -192,7 +192,7 @@ function articleToBatchUpdates(
     return batchUpdates.toReversed()
 }
 
-async function deleteGdocContent(
+export async function deleteGdocContent(
     client: docs_v1.Docs,
     existingGdocId: string
 ): Promise<void> {
