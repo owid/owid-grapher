@@ -7,7 +7,9 @@ export const CARTOGRAM_COUNTRY_CODE_TO_ENTITY_NAME: Record<string, EntityName> =
         "004": "Afghanistan", // AFG
         "008": "Albania", // ALB
         "012": "Algeria", // DZA
+        "020": "Andorra", // AND
         "024": "Angola", // AGO
+        "028": "Antigua and Barbuda", // ATG
         "031": "Azerbaijan", // AZE
         "032": "Argentina", // ARG
         "036": "Australia", // AUS
@@ -45,6 +47,7 @@ export const CARTOGRAM_COUNTRY_CODE_TO_ENTITY_NAME: Record<string, EntityName> =
         "175": "Mayotte", // MYT
         "178": "Congo", // COG
         "180": "Democratic Republic of Congo", // COD
+        "184": "Cook Islands", // COK
         "188": "Costa Rica", // CRI
         "191": "Croatia", // HRV
         "192": "Cuba", // CUB
@@ -52,6 +55,7 @@ export const CARTOGRAM_COUNTRY_CODE_TO_ENTITY_NAME: Record<string, EntityName> =
         "203": "Czechia", // CZE
         "204": "Benin", // BEN
         "208": "Denmark", // DNK
+        "212": "Dominica", // DMA
         "214": "Dominican Republic", // DOM
         "218": "Ecuador", // ECU
         "222": "El Salvador", // SLV
@@ -59,6 +63,7 @@ export const CARTOGRAM_COUNTRY_CODE_TO_ENTITY_NAME: Record<string, EntityName> =
         "231": "Ethiopia", // ETH
         "232": "Eritrea", // ERI
         "233": "Estonia", // EST
+        "234": "Faroe Islands", // FRO
         "242": "Fiji", // FJI
         "246": "Finland", // FIN
         "250": "France", // FRA
@@ -71,12 +76,17 @@ export const CARTOGRAM_COUNTRY_CODE_TO_ENTITY_NAME: Record<string, EntityName> =
         "275": "Palestine", // PSE
         "276": "Germany", // DEU
         "288": "Ghana", // GHA
+        "296": "Kiribati", // KIR
         "300": "Greece", // GRC
+        "304": "Greenland", // GRL
+        "308": "Grenada", // GRD
         "312": "Guadeloupe", // GLP
+        "316": "Guam", // GUM
         "320": "Guatemala", // GTM
         "324": "Guinea", // GIN
         "328": "Guyana", // GUY
         "332": "Haiti", // HTI
+        "336": "Vatican", // VAT
         "340": "Honduras", // HND
         "344": "Hong Kong", // HKG
         "348": "Hungary", // HUN
@@ -104,6 +114,7 @@ export const CARTOGRAM_COUNTRY_CODE_TO_ENTITY_NAME: Record<string, EntityName> =
         "428": "Latvia", // LVA
         "430": "Liberia", // LBR
         "434": "Libya", // LBY
+        "438": "Liechtenstein", // LIE
         "440": "Lithuania", // LTU
         "442": "Luxembourg", // LUX
         "446": "Macao", // MAC
@@ -117,6 +128,7 @@ export const CARTOGRAM_COUNTRY_CODE_TO_ENTITY_NAME: Record<string, EntityName> =
         "478": "Mauritania", // MRT
         "480": "Mauritius", // MUS
         "484": "Mexico", // MEX
+        "492": "Monaco", // MCO
         "496": "Mongolia", // MNG
         "498": "Moldova", // MDA
         "499": "Montenegro", // MNE
@@ -126,13 +138,19 @@ export const CARTOGRAM_COUNTRY_CODE_TO_ENTITY_NAME: Record<string, EntityName> =
         "516": "Namibia", // NAM
         "524": "Nepal", // NPL
         "528": "Netherlands", // NLD
+        "531": "Curacao", // CUW
+        "533": "Aruba", // ABW
         "540": "New Caledonia", // NCL
         "548": "Vanuatu", // VUT
         "554": "New Zealand", // NZL
         "558": "Nicaragua", // NIC
         "562": "Niger", // NER
         "566": "Nigeria", // NGA
+        "570": "Niue", // NIU
         "578": "Norway", // NOR
+        "583": "Micronesia (country)", // FSM
+        "584": "Marshall Islands", // MHL
+        "585": "Palau", // PLW
         "586": "Pakistan", // PAK
         "591": "Panama", // PAN
         "598": "Papua New Guinea", // PNG
@@ -149,9 +167,15 @@ export const CARTOGRAM_COUNTRY_CODE_TO_ENTITY_NAME: Record<string, EntityName> =
         "642": "Romania", // ROU
         "643": "Russia", // RUS
         "646": "Rwanda", // RWA
+        "659": "Saint Kitts and Nevis", // KNA
+        "662": "Saint Lucia", // LCA
+        "670": "Saint Vincent and the Grenadines", // VCT
+        "674": "San Marino", // SMR
+        "678": "Sao Tome and Principe", // STP
         "682": "Saudi Arabia", // SAU
         "686": "Senegal", // SEN
         "688": "Serbia", // SRB
+        "690": "Seychelles", // SYC
         "694": "Sierra Leone", // SLE
         "702": "Singapore", // SGP
         "703": "Slovakia", // SVK
@@ -172,11 +196,13 @@ export const CARTOGRAM_COUNTRY_CODE_TO_ENTITY_NAME: Record<string, EntityName> =
         "762": "Tajikistan", // TJK
         "764": "Thailand", // THA
         "768": "Togo", // TGO
+        "776": "Tonga", // TON
         "780": "Trinidad and Tobago", // TTO
         "784": "United Arab Emirates", // ARE
         "788": "Tunisia", // TUN
         "792": "Turkey", // TUR
         "795": "Turkmenistan", // TKM
+        "798": "Tuvalu", // TUV
         "800": "Uganda", // UGA
         "804": "Ukraine", // UKR
         "807": "North Macedonia", // MKD
@@ -188,6 +214,7 @@ export const CARTOGRAM_COUNTRY_CODE_TO_ENTITY_NAME: Record<string, EntityName> =
         "858": "Uruguay", // URY
         "860": "Uzbekistan", // UZB
         "862": "Venezuela", // VEN
+        "882": "Samoa", // WSM
         "887": "Yemen", // YEM
         "894": "Zambia", // ZMB
     }

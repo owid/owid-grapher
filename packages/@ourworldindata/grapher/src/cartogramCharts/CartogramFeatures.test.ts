@@ -3,15 +3,25 @@
 import { readFileSync } from "fs"
 import { join } from "path"
 import { describe, expect, it } from "vitest"
-import { buildCartogramLayout, parseCartogramCsv } from "./CartogramFeatures"
+import {
+    buildCartogramLayout,
+    parseCartogramCsv,
+    type CartogramLayout,
+} from "./CartogramFeatures"
 import { findClosestCartogramLayout } from "./CartogramLayouts"
 import { CARTOGRAM_DATA_ENTITY_OVERRIDES } from "./CartogramCountryCodes"
 
+const cartogramDir = join(process.cwd(), "public/cartograms/population")
+
 const readFixture = (): string =>
-    readFileSync(
-        join(process.cwd(), "public/cartograms/population/2023.csv"),
-        "utf8"
-    )
+    readFileSync(join(cartogramDir, "2023.csv"), "utf8")
+
+const readPublishedLayoutIndex = (): {
+    layouts: { year: number; url: string }[]
+} => JSON.parse(readFileSync(join(cartogramDir, "index.json"), "utf8"))
+
+const readPublishedLayout = (url: string): string =>
+    readFileSync(join(process.cwd(), "public", url), "utf8")
 
 describe("cartogram layout parsing", () => {
     it("parses the 2023 population cartogram CSV", () => {
@@ -28,7 +38,7 @@ describe("cartogram layout parsing", () => {
 
     it("builds entity features with paths and flipped y coordinates", () => {
         const cells = parseCartogramCsv(readFixture())
-        const layout = buildCartogramLayout({
+        const layout: CartogramLayout = buildCartogramLayout({
             year: 2023,
             url: "/cartograms/population/2023.csv",
             cells,
@@ -50,6 +60,21 @@ describe("cartogram layout parsing", () => {
         expect(layout.bounds.y).toBe(0)
         expect(layout.bounds.width).toBe(350)
         expect(layout.bounds.height).toBe(134)
+    })
+
+    it("builds every published cartogram layout", () => {
+        for (const layoutDefinition of readPublishedLayoutIndex().layouts) {
+            const cells = parseCartogramCsv(
+                readPublishedLayout(layoutDefinition.url)
+            )
+            const layout = buildCartogramLayout({
+                ...layoutDefinition,
+                cells,
+            })
+            expect(layout.features.length).toBeGreaterThan(0)
+            expect(layout.bounds.width).toBeGreaterThan(0)
+            expect(layout.bounds.height).toBeGreaterThan(0)
+        }
     })
 
     it("defines intended parent-data fallbacks", () => {
