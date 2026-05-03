@@ -333,6 +333,11 @@ export class MapTooltip
                         isProjection={isProjection}
                     />
                 )}
+                <MapSparkline
+                    manager={this}
+                    sparklineWidth={this.props.sparklineWidth}
+                    sparklineHeight={this.props.sparklineHeight}
+                />
                 {this.props.population !== undefined && (
                     <TooltipValue
                         label="Population"
@@ -342,11 +347,6 @@ export class MapTooltip
                         })}
                     />
                 )}
-                <MapSparkline
-                    manager={this}
-                    sparklineWidth={this.props.sparklineWidth}
-                    sparklineHeight={this.props.sparklineHeight}
-                />
             </Tooltip>
         )
     }
