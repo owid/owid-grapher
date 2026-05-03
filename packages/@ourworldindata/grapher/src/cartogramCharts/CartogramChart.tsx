@@ -58,7 +58,10 @@ import { NoDataModal } from "../noDataModal/NoDataModal"
 import { CartogramChartState, CartogramSeries } from "./CartogramChartState"
 import { CartogramLayout, CartogramRenderFeature } from "./CartogramFeatures"
 import { findClosestCartogramLayout } from "./CartogramLayouts"
-import { loadCartogramLayout } from "./CartogramDataLoader"
+import {
+    loadCartogramLayout,
+    loadCartogramLayoutIndex,
+} from "./CartogramDataLoader"
 
 export type CartogramChartProps = ChartComponentProps<CartogramChartState>
 
@@ -139,12 +142,12 @@ export class CartogramChart
         this.onLegendMouseLeave()
     }
 
-    @computed private get targetLayoutDefinition() {
-        return findClosestCartogramLayout(this.chartState.targetTime)
-    }
-
     @action.bound private async loadLayoutIfNeeded(): Promise<void> {
-        const layoutDefinition = this.targetLayoutDefinition
+        const layouts = await loadCartogramLayoutIndex()
+        const layoutDefinition = findClosestCartogramLayout(
+            this.chartState.targetTime,
+            layouts
+        )
         if (this.layout?.url === layoutDefinition.url) return
         if (this.requestedLayoutUrl === layoutDefinition.url) return
 
