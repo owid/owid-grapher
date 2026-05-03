@@ -1,0 +1,23 @@
+{
+    "version": "0.0.1",
+    "configurations": [
+        {
+            "name": "Docker (MySQL)",
+            "runtimeExecutable": "docker",
+            "runtimeArgs": ["compose", "-f", "docker-compose.grapher.yml", "up"],
+            "port": 3306
+        },
+        {
+            "name": "Admin dev server",
+            "runtimeExecutable": "yarn",
+            "runtimeArgs": ["startAdminDevServer"],
+            "port": 3030
+        },
+        {
+            "name": "Vite site server",
+            "runtimeExecutable": "yarn",
+            "runtimeArgs": ["startSiteFront"],
+            "port": 8090
+        }
+    ]
+}
