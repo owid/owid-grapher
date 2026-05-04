@@ -76,7 +76,7 @@
         "@googleapis/docs": "^9.2.1",
         "@googleapis/drive": "^20.1.0",
         "@handsontable/react": "^15.1.0",
-        "@internationalized/date": "^3.10.1",
+        "@internationalized/date": "^3.12.1",
         "@ourworldindata/components": "workspace:^",
         "@ourworldindata/core-table": "workspace:^",
         "@ourworldindata/explorer": "workspace:^",
@@ -148,7 +148,7 @@
         "polylabel": "^2.0.1",
         "progress": "^2.0.3",
         "react": "^19.2.4",
-        "react-aria-components": "^1.14.0",
+        "react-aria-components": "^1.17.0",
         "react-color": "^2.18.1",
         "react-diff-viewer-continued": "^4.2.0",
         "react-dom": "^19.2.4",
@@ -188,7 +188,7 @@
         "zod": "^4.1.11"
     },
     "devDependencies": {
-        "@react-aria/optimize-locales-plugin": "^1.1.5",
+        "@react-aria/optimize-locales-plugin": "^1.2.0",
         "@rmp135/sql-ts": "^2.1.0",
         "@rollup/plugin-swc": "^0.4.0",
         "@swc/core": "^1.15.21",
