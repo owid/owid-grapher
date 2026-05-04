@@ -1,7 +1,7 @@
 import * as _ from "lodash-es"
 import { LongFormPage } from "../site/LongFormPage.js"
 import { LatestPage } from "../site/LatestPage.js"
-import { latestUrl } from "../site/latest/latestUrl.js"
+import { latestUrl } from "../site/latest/latestUtils.js"
 import { SearchPage } from "../site/search/SearchPage.js"
 import { DynamicCollectionPage } from "../site/collections/DynamicCollectionPage.js"
 import { StaticCollectionPage } from "../site/collections/StaticCollectionPage.js"
@@ -390,7 +390,7 @@ export async function makeAtomFeedFromDataInsights({
 <feed xmlns="http://www.w3.org/2005/Atom">
 <title>Our World in Data - Data Insights</title>
 <subtitle>Bite-sized insights on how the world is changing, written by our team</subtitle>
-<id>${htmlUrl}/</id>
+<id>${feedUrl}</id>
 <link type="text/html" rel="alternate" href="${htmlUrl}"/>
 <link type="application/atom+xml" rel="self" href="${feedUrl}"/>
 <updated>${dataInsights[0].publishedAt?.toISOString()}</updated>

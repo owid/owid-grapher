@@ -37,30 +37,6 @@ export const PagesIndexRecordSchema = z.object({
 
 export type PageRecord = z.infer<typeof PagesIndexRecordSchema>
 
-/**
- * The flat content-category dimension used by /latest. For articles and
- * data insights this mirrors the gdoc type; for announcements it reflects
- * the (slugified) kicker. Absent for gdoc types that are indexed but not
- * shown on /latest (topic pages, linear topic pages).
- */
-export const LATEST_TYPE_VALUES = [
-    "article",
-    "data-insight",
-    "data-update",
-    "website-upgrade",
-    "announcement",
-] as const
-export type LatestType = (typeof LATEST_TYPE_VALUES)[number]
-
-// Subset of LATEST_TYPE_VALUES that announcement gdocs can map to via their
-// (slugified) kicker. Validated upstream in GdocAnnouncement._validateSubclass
-// so unrecognized kickers can't reach a published announcement.
-export const ANNOUNCEMENT_LATEST_TYPES = [
-    "data-update",
-    "website-upgrade",
-    "announcement",
-] as const satisfies readonly LatestType[]
-
 // Lightweight record for the chronological pages index (one per page, no chunked content)
 export type PageChronologicalRecord = {
     objectID: string

@@ -9,7 +9,6 @@ import { LiteClient } from "algoliasearch/lite"
 import { useTagGraphTopics } from "../search/searchHooks.js"
 import { useInfiniteLatestPages } from "./latestHooks.js"
 import { LatestTopicFacets } from "./LatestTopicFacets.js"
-import { LATEST_TYPE_OPTIONS } from "./latestUrl.js"
 import {
     LatestState,
     searchParamsToState,

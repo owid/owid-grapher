@@ -9,7 +9,7 @@ import {
     getRecentChartSlugRedirects,
 } from "./redirectsFromDb.js"
 import { getRecentMultiDimRedirects } from "../db/model/MultiDimRedirects.js"
-import { latestUrl } from "../site/latest/latestUrl.js"
+import { latestUrl } from "../site/latest/latestUtils.js"
 
 export const getCloudflarePagesRedirects = async (
     knex: db.KnexReadonlyTransaction

@@ -159,7 +159,7 @@ function generateAtomFeed(
 <feed xmlns="http://www.w3.org/2005/Atom">
 <title>${title}</title>
 <subtitle>Research and data to make progress against the world’s largest problems</subtitle>
-<id>${escapeXml(baseUrl)}/</id>
+<id>${escapeXml(feedUrl)}</id>
 <link type="text/html" rel="alternate" href="${escapeXml(baseUrl)}"/>
 <link type="application/atom+xml" rel="self" href="${escapeXml(feedUrl)}"/>
 <updated>${updated}</updated>

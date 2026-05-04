@@ -1,6 +1,6 @@
-import { LatestType } from "@ourworldindata/types"
+import { LatestType, LatestUrlParam } from "@ourworldindata/types"
 import { deserializeSet, serializeSet } from "../search/searchUtils.js"
-import { LatestUrlParam, decodeLatestType } from "./latestUrl.js"
+import { decodeLatestType } from "./latestUtils.js"
 
 export interface LatestState {
     topics: string[]
