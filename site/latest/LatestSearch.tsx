@@ -7,14 +7,15 @@ import {
 } from "@ourworldindata/types"
 import { LiteClient } from "algoliasearch/lite"
 import { useTagGraphTopics } from "../search/searchHooks.js"
-import { deserializeSet, serializeSet } from "../search/searchUtils.js"
 import { useInfiniteLatestPages } from "./latestHooks.js"
 import { LatestTopicFacets } from "./LatestTopicFacets.js"
+import { LATEST_TYPE_OPTIONS } from "./latestUrl.js"
 import {
-    LATEST_TYPE_OPTIONS,
-    LatestUrlParam,
-    decodeLatestType,
-} from "./latestUrl.js"
+    LatestState,
+    searchParamsToState,
+    stateToSearchParams,
+    urlNeedsSanitization,
+} from "./latestState.js"
 import { LatestHit } from "./LatestHit.js"
 import { LatestSearchSkeleton } from "./LatestSearchSkeleton.js"
 import { NewsletterSignupBlock } from "../NewsletterSignupBlock.js"
@@ -34,55 +35,45 @@ export const LatestSearch = ({
 
     const { allAreas } = useTagGraphTopics(topicTagGraph)
 
-    const topicsParam = searchParams.get(LatestUrlParam.TOPICS)
-    const topics = useMemo(
-        () =>
-            [...deserializeSet(topicsParam)].filter((t) =>
-                allAreas.includes(t)
-            ),
-        [topicsParam, allAreas]
+    const state = useMemo(
+        () => searchParamsToState(searchParams, allAreas),
+        [searchParams, allAreas]
     )
+    const { topics, latestType } = state
 
-    const latestType: LatestType | null = decodeLatestType(
-        searchParams.get(LatestUrlParam.TYPE)
+    // Sanitize URL: drop unknown params (e.g. legacy `?topic=Health` from old
+    // /data-insights links), invalid topic names, and invalid `type` values.
+    // Mirrors /search behavior in site/search/searchState.ts.
+    useEffect(() => {
+        if (urlNeedsSanitization(searchParams, state)) {
+            setSearchParams(stateToSearchParams(state), { replace: true })
+        }
+    }, [searchParams, state, setSearchParams])
+
+    const updateParams = useCallback(
+        (updater: (current: LatestState) => LatestState) => {
+            setSearchParams(stateToSearchParams(updater(state)))
+        },
+        [setSearchParams, state]
     )
 
     const onTopicsChange = useCallback(
         (newTopics: string[]) => {
-            setSearchParams((prev) => {
-                const next = new URLSearchParams(prev)
-                const serialized = serializeSet(new Set(newTopics))
-                if (serialized) next.set(LatestUrlParam.TOPICS, serialized)
-                else next.delete(LatestUrlParam.TOPICS)
-                return next
-            })
+            updateParams((s) => ({ ...s, topics: newTopics }))
         },
-        [setSearchParams]
+        [updateParams]
     )
 
     const onLatestTypeChange = useCallback(
         (newType: LatestType | null) => {
-            setSearchParams((prev) => {
-                const next = new URLSearchParams(prev)
-                if (newType) {
-                    next.set(LatestUrlParam.TYPE, newType)
-                } else {
-                    next.delete(LatestUrlParam.TYPE)
-                }
-                return next
-            })
+            updateParams((s) => ({ ...s, latestType: newType }))
         },
-        [setSearchParams]
+        [updateParams]
     )
 
     const clearAllFilters = useCallback(() => {
-        setSearchParams((prev) => {
-            const next = new URLSearchParams(prev)
-            next.delete(LatestUrlParam.TOPICS)
-            next.delete(LatestUrlParam.TYPE)
-            return next
-        })
-    }, [setSearchParams])
+        updateParams(() => ({ topics: [], latestType: null }))
+    }, [updateParams])
 
     const {
         hits,
