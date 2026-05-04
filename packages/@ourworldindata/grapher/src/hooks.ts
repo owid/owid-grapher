@@ -92,28 +92,16 @@ export function useDataApiDownloadConfig({
 
 // Auto-updating Bounds object based on ResizeObserver
 // Optionally throttles the bounds updates
-export function useElementBounds(ref: RefObject<HTMLElement | null>): Bounds
-export function useElementBounds(
+//
+// The `T` type parameter narrows the return type based on `initialValue`:
+// passing `null` widens the return to `Bounds | null` (so callers can detect
+// the pre-measurement state); omitting it keeps the return as `Bounds`.
+export function useElementBounds<T extends Bounds | null = Bounds>(
     ref: RefObject<HTMLElement | null>,
-    initialValue: Bounds,
-    throttleTime?: number
-): Bounds
-export function useElementBounds(
-    ref: RefObject<HTMLElement | null>,
-    initialValue: undefined,
-    throttleTime?: number
-): Bounds | undefined
-export function useElementBounds(
-    ref: RefObject<HTMLElement | null>,
-    ...options:
-        | []
-        | [initialValue: Bounds, throttleTime?: number]
-        | [initialValue: undefined, throttleTime?: number]
-): Bounds | undefined {
-    const initialValue =
-        options.length === 0 ? DEFAULT_GRAPHER_BOUNDS : options[0]
-    const throttleTime = options[1] ?? 100
-    const [bounds, setBounds] = useState<Bounds | undefined>(initialValue)
+    initialValue: T = DEFAULT_GRAPHER_BOUNDS as T,
+    throttleTime: number = 100
+): Bounds | T {
+    const [bounds, setBounds] = useState<Bounds | T>(initialValue)
 
     const updateBoundsImmediately = useCallback(
         (width: number, height: number) => {

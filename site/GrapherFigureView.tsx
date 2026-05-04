@@ -38,7 +38,7 @@ export function GrapherFigureView(
     // Wait for the figure to be measured before mounting Grapher. Otherwise,
     // embedded charts briefly render at DEFAULT_GRAPHER_BOUNDS (850px wide)
     // before ResizeObserver reports the actual container size.
-    const bounds = useElementBounds(base, undefined)
+    const bounds = useElementBounds(base, null)
 
     const config: GrapherProgrammaticInterface = useMemo(() => {
         return {
