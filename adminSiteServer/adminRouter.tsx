@@ -7,7 +7,9 @@ import { logOut } from "./authentication.js"
 import * as db from "../db/db.js"
 import { writeDatasetCSV } from "../db/model/Dataset.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
-import { renderExplorerPage } from "../baker/siteRenderers.js"
+import {
+    renderExplorerPage,
+} from "../baker/siteRenderers.js"
 import { JsonError, parseIntOrUndefined, slugify } from "@ourworldindata/utils"
 import {
     DefaultNewExplorerSlug,
@@ -22,7 +24,9 @@ import {
 } from "../baker/GrapherBaker.js"
 import { getChartConfigById, getChartConfigBySlug } from "../db/model/Chart.js"
 import { getVariableMetadata } from "../db/model/Variable.js"
-import { DbPlainDataset } from "@ourworldindata/types"
+import {
+    DbPlainDataset,
+} from "@ourworldindata/types"
 import { getPlainRouteWithROTransaction } from "./plainRouterHelpers.js"
 import {
     getMultiDimDataPageByCatalogPath,

@@ -24,6 +24,7 @@ import {
     faCircleInfo,
     faFolder,
     faMonument,
+    faDisplay,
 } from "@fortawesome/free-solid-svg-icons"
 
 import { ETL_WIZARD_URL } from "../settings/clientSettings.js"
@@ -78,6 +79,11 @@ export const AdminSidebar = (): React.ReactElement => (
             <li>
                 <Link to="/static-viz">
                     <FontAwesomeIcon icon={faMonument} fixedWidth /> Static Viz
+                </Link>
+            </li>
+            <li>
+                <Link to="/slideshows">
+                    <FontAwesomeIcon icon={faDisplay} fixedWidth /> Slideshows
                 </Link>
             </li>
             <li>
