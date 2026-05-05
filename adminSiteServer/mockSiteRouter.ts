@@ -22,6 +22,7 @@ import {
     renderExplorerIndexPage,
     renderSubscribePage,
     renderGdoc,
+    renderSlideshowPage,
 } from "../baker/siteRenderers.js"
 import {
     BASE_DIR,
@@ -48,6 +49,8 @@ import {
     getRegionBySlug,
     getEntitiesForProfile,
     ALL_GDOC_TYPES,
+    searchParamsToMultiDimView,
+    SlideTemplate,
 } from "@ourworldindata/utils"
 import { checkShouldProfileRender } from "../db/model/Gdoc/dataCallouts.js"
 import {
@@ -74,7 +77,10 @@ import {
     KnexReadonlyTransaction,
     getImageMetadataByFilenames,
 } from "../db/db.js"
-import { getMinimalGdocPostsByIds } from "../db/model/Gdoc/GdocBase.js"
+import {
+    getMinimalAuthorsByNames,
+    getMinimalGdocPostsByIds,
+} from "../db/model/Gdoc/GdocBase.js"
 import { getMultiDimDataPageBySlug } from "../db/model/MultiDimDataPage.js"
 import { getParsedDodsDictionary } from "../db/model/Dod.js"
 import { getLatestArchivedPostPageVersionsIfEnabled } from "../db/model/ArchivedPostVersion.js"
@@ -246,8 +252,39 @@ getPlainRouteWithROTransaction(
     mockSiteRouter,
     "/grapher/:slug.config.json",
     async (req, res, trx) => {
-        const chartRow = await getChartConfigBySlug(trx, req.params.slug)
-        res.json(chartRow.config)
+        // Try regular grapher first
+        const chartRow = await getChartConfigBySlug(trx, req.params.slug).catch(
+            () => undefined
+        )
+        if (chartRow) {
+            res.json(chartRow.config)
+            return
+        }
+
+        // Fall back to multi-dim: resolve the matching view's config
+        const multiDim = await getMultiDimDataPageBySlug(trx, req.params.slug, {
+            onlyPublished: false,
+        })
+        if (multiDim) {
+            const searchParams = new URLSearchParams(
+                req.query as Record<string, string>
+            )
+            const view = searchParamsToMultiDimView(
+                multiDim.config,
+                searchParams
+            )
+            const configRow = await db.knexRawFirst<
+                Pick<DbRawChartConfig, "full">
+            >(trx, "SELECT full FROM chart_configs WHERE id = ?", [
+                view.fullConfigId,
+            ])
+            if (configRow) {
+                res.json(parseChartConfig(configRow.full))
+                return
+            }
+        }
+
+        throw new JsonError(`No chart found for slug ${req.params.slug}`, 404)
     }
 )
 
@@ -710,6 +747,66 @@ getPlainRouteWithROTransaction(
             console.error("Error loading profile:", error)
             return res.status(404).send(renderNotFoundPage())
         }
+    }
+)
+
+getPlainRouteWithROTransaction(
+    mockSiteRouter,
+    "/slideshows/:slug",
+    async (req, res, trx) => {
+        const slideshow = await trx("slideshows")
+            .where("slug", req.params.slug)
+            .first()
+
+        if (!slideshow) {
+            return res.status(404).send(renderNotFoundPage())
+        }
+
+        const config =
+            typeof slideshow.config === "string"
+                ? JSON.parse(slideshow.config)
+                : slideshow.config
+
+        // Collect image filenames from slides
+        const imageFilenames: string[] = []
+        for (const slide of config.slides) {
+            if (slide.template === SlideTemplate.Image && slide.filename) {
+                imageFilenames.push(slide.filename)
+            }
+        }
+
+        const imageMetadata =
+            imageFilenames.length > 0
+                ? await getImageMetadataByFilenames(trx, imageFilenames)
+                : {}
+
+        // Resolve author names to linked author pages
+        const authorNames = config.authors
+            ? config.authors
+                  .split(",")
+                  .map((n: string) => n.trim())
+                  .filter(Boolean)
+            : []
+        const linkedAuthors =
+            authorNames.length > 0
+                ? await getMinimalAuthorsByNames(trx, authorNames)
+                : []
+
+        // Resolve chart types
+        const { resolveSlideChartTypes } =
+            await import("../baker/SlideshowBaker.js")
+        const chartResolutions = await resolveSlideChartTypes(
+            trx,
+            config.slides
+        )
+
+        const html = await renderSlideshowPage(
+            { title: slideshow.title, slug: slideshow.slug, config },
+            imageMetadata,
+            linkedAuthors,
+            chartResolutions
+        )
+        return res.send(html)
     }
 )
 

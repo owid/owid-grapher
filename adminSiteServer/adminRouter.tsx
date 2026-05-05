@@ -9,6 +9,7 @@ import { writeDatasetCSV } from "../db/model/Dataset.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 import {
     renderExplorerPage,
+    renderSlideshowPage,
 } from "../baker/siteRenderers.js"
 import { JsonError, parseIntOrUndefined, slugify } from "@ourworldindata/utils"
 import {
@@ -26,6 +27,9 @@ import { getChartConfigById, getChartConfigBySlug } from "../db/model/Chart.js"
 import { getVariableMetadata } from "../db/model/Variable.js"
 import {
     DbPlainDataset,
+    DbPlainSlideshow,
+    SlideshowsTableName,
+    SlideTemplate,
 } from "@ourworldindata/types"
 import { getPlainRouteWithROTransaction } from "./plainRouterHelpers.js"
 import {
@@ -33,6 +37,9 @@ import {
     getMultiDimDataPageBySlug,
 } from "../db/model/MultiDimDataPage.js"
 import { renderMultiDimDataPageFromConfig } from "../baker/MultiDimBaker.js"
+import { resolveSlideChartTypes } from "../baker/SlideshowBaker.js"
+import { getImageMetadataByFilenames } from "../db/db.js"
+import { getMinimalAuthorsByNames } from "../db/model/Gdoc/GdocBase.js"
 
 const adminRouter = Router()
 
@@ -219,6 +226,66 @@ getPlainRouteWithROTransaction(
         }
 
         throw new JsonError("No such chart", 404)
+    }
+)
+
+getPlainRouteWithROTransaction(
+    adminRouter,
+    "/slideshows/:id/preview",
+    async (req, res, trx) => {
+        const id = expectInt(req.params.id)
+
+        const slideshow = await trx<DbPlainSlideshow>(SlideshowsTableName)
+            .where({ id })
+            .first()
+
+        if (!slideshow) {
+            throw new JsonError(`No slideshow found for id ${id}`, 404)
+        }
+
+        const config =
+            typeof slideshow.config === "string"
+                ? JSON.parse(slideshow.config)
+                : slideshow.config
+
+        // Collect image filenames from slides
+        const imageFilenames: string[] = []
+        for (const slide of config.slides) {
+            if (slide.template === SlideTemplate.Image && slide.filename) {
+                imageFilenames.push(slide.filename)
+            }
+        }
+
+        const imageMetadata =
+            imageFilenames.length > 0
+                ? await getImageMetadataByFilenames(trx, imageFilenames)
+                : {}
+
+        // Resolve author names to linked author pages
+        const authorNames = config.authors
+            ? config.authors
+                  .split(",")
+                  .map((n: string) => n.trim())
+                  .filter(Boolean)
+            : []
+        const linkedAuthors =
+            authorNames.length > 0
+                ? await getMinimalAuthorsByNames(trx, authorNames)
+                : []
+
+        // Resolve chart types for slides
+        const chartResolutions = await resolveSlideChartTypes(
+            trx,
+            config.slides
+        )
+
+        const html = await renderSlideshowPage(
+            { title: slideshow.title, slug: slideshow.slug, config },
+            imageMetadata,
+            linkedAuthors,
+            chartResolutions
+        )
+        res.send(html)
     }
 )
 
