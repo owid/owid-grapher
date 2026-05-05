@@ -40,6 +40,7 @@ export {
     ADDITIONAL_REGION_DATA_PROVIDERS,
     type AdditionalRegionDataProvider,
 } from "./core/GrapherConstants"
+export { OWID_LOGO_SVG, OWID_WORDMARK_SVG } from "./captionedChart/LogosSVG.js"
 export {
     getVariableDataRoute,
     getVariableMetadataRoute,
