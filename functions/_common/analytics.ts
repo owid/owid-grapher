@@ -5,7 +5,6 @@
 
 import * as Sentry from "@sentry/cloudflare"
 import { parseCookie } from "cookie"
-import { extractClientIdFromGACookie } from "./cookieTools.js"
 import { Env } from "./env.js"
 import { uuidv7 } from "uuidv7"
 
@@ -129,4 +128,12 @@ function getSamplingRate(
     env: Pick<Env, "CLOUDFLARE_GOOGLE_ANALYTICS_SAMPLING_RATE">
 ): number {
     return parseFloat(env.CLOUDFLARE_GOOGLE_ANALYTICS_SAMPLING_RATE)
+}
+
+// e.g. GA1.1.156980023.1749503476 -> 156980023.1749503476
+function extractClientIdFromGACookie(cookieValue?: string): string | null {
+    if (!cookieValue) return null
+    const parts = cookieValue.split(".")
+    if (parts.length >= 4) return `${parts[2]}.${parts[3]}`
+    return cookieValue
 }
