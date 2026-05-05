@@ -66,6 +66,11 @@
         "@algolia/autocomplete-theme-classic": "^1.19.6",
         "@ant-design/v5-patch-for-react-19": "^1.0.3",
         "@aws-sdk/client-s3": "^3.1041.0",
+        "@codemirror/commands": "^6.10.3",
+        "@codemirror/lang-markdown": "^6.5.0",
+        "@codemirror/language": "^6.12.3",
+        "@codemirror/state": "^6.6.0",
+        "@codemirror/view": "^6.40.0",
         "@dnd-kit/core": "^6.3.1",
         "@dnd-kit/sortable": "^10.0.0",
         "@dnd-kit/utilities": "^3.2.2",
@@ -254,7 +259,10 @@
     "resolutions": {
         "whatwg-url": "15.0.0",
         "preact@npm:^10.13.2": "patch:preact@npm%3A10.17.0#~/.yarn/patches/preact-npm-10.17.0-e831e619a5.patch",
-        "preact@npm:^10.10.0": "patch:preact@npm%3A10.17.0#~/.yarn/patches/preact-npm-10.17.0-e831e619a5.patch"
+        "preact@npm:^10.10.0": "patch:preact@npm%3A10.17.0#~/.yarn/patches/preact-npm-10.17.0-e831e619a5.patch",
+        "@codemirror/view": "6.40.0",
+        "@codemirror/state": "6.6.0",
+        "@codemirror/language": "6.12.3"
     },
     "lint-staged": {
         "*": "yarn oxfmt --no-error-on-unmatched-pattern"
