@@ -157,9 +157,7 @@ export async function getVariablesJson(
 ) {
     const limit = parseIntOrUndefined(req.query.limit as string) ?? 50
     const query = req.query.search as string
-    const usedOnly = req.query.usedOnly === "1" || req.query.usedOnly === "true"
-    const sortByUsage = req.query.sortBy === "usage"
-    return await searchVariables(query, limit, trx, { usedOnly, sortByUsage })
+    return await searchVariables(query, limit, trx)
 }
 
 export async function getVariablesUsagesJson(

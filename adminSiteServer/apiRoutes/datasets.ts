@@ -120,11 +120,22 @@ export async function getDataset(
 
     if (!dataset) throw new JsonError(`No dataset by id '${datasetId}'`, 404)
 
+    // Per-source aggregate subqueries that compute distinct usage counts and
+    // summed views_365d. Each subquery dedups (variableId, slug) pairs before
+    // summing views so a chart with multiple dimensions referencing the same
+    // variable doesn't inflate the view total. Same approach as the explorer
+    // and multi-dim queries below.
     const variables = await db.knexRaw<
         Pick<
             DbRawVariable,
             "id" | "name" | "description" | "display" | "catalogPath"
-        >
+        > & {
+            chartsCount: number
+            multiDimCount: number
+            explorersCount: number
+            usageCount: number
+            viewsPerDay: number
+        }
     >(
         trx,
         `-- sql
@@ -133,11 +144,47 @@ export async function getDataset(
             v.name,
             v.description,
             v.display,
-            v.catalogPath
-        FROM
-            variables AS v
-        WHERE
-            v.datasetId = ?
+            v.catalogPath,
+            COALESCE(cu.n, 0) AS chartsCount,
+            COALESCE(mu.n, 0) AS multiDimCount,
+            COALESCE(eu.n, 0) AS explorersCount,
+            (COALESCE(cu.n, 0) + COALESCE(mu.n, 0) + COALESCE(eu.n, 0)) AS usageCount,
+            ROUND(
+                (COALESCE(cu.views, 0) + COALESCE(mu.views, 0) + COALESCE(eu.views, 0)) / 365,
+                1
+            ) AS viewsPerDay
+        FROM variables AS v
+        LEFT JOIN (
+            SELECT variableId, COUNT(*) AS n, SUM(views_365d) AS views FROM (
+                SELECT DISTINCT cd.variableId, cc.slug, agv.views_365d
+                FROM chart_dimensions cd
+                JOIN charts c ON c.id = cd.chartId
+                JOIN chart_configs cc ON cc.id = c.configId
+                LEFT JOIN analytics_grapher_views agv
+                    ON agv.grapher_slug = cc.slug
+                    AND cc.full ->> '$.isPublished' = "true"
+            ) t
+            GROUP BY variableId
+        ) cu ON cu.variableId = v.id
+        LEFT JOIN (
+            SELECT variableId, COUNT(*) AS n, SUM(views_365d) AS views FROM (
+                SELECT DISTINCT mdxcc.variableId, mdp.slug, agv.views_365d
+                FROM multi_dim_x_chart_configs mdxcc
+                JOIN multi_dim_data_pages mdp ON mdp.id = mdxcc.multiDimId
+                LEFT JOIN analytics_grapher_views agv ON agv.grapher_slug = mdp.slug
+            ) t
+            GROUP BY variableId
+        ) mu ON mu.variableId = v.id
+        LEFT JOIN (
+            SELECT variableId, COUNT(*) AS n, SUM(views_365d) AS views FROM (
+                SELECT DISTINCT ev.variableId, ev.explorerSlug, ap.views_365d
+                FROM explorer_variables ev
+                LEFT JOIN analytics_pageviews ap
+                    ON ap.url = CONCAT('https://ourworldindata.org/explorers/', ev.explorerSlug)
+            ) t
+            GROUP BY variableId
+        ) eu ON eu.variableId = v.id
+        WHERE v.datasetId = ?
     `,
         [datasetId]
     )

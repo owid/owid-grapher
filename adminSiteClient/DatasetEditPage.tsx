@@ -408,6 +408,7 @@ class DatasetEditor extends Component<DatasetEditorProps> {
     // Tab management
     activeTab: string = "metadata"
     searchInput: string = ""
+    usedOnly: boolean = false
 
     constructor(props: DatasetEditorProps) {
         super(props)
@@ -417,6 +418,7 @@ class DatasetEditor extends Component<DatasetEditorProps> {
             timesUpdated: observable,
             activeTab: observable,
             searchInput: observable,
+            usedOnly: observable,
         })
     }
 
@@ -441,8 +443,9 @@ class DatasetEditor extends Component<DatasetEditorProps> {
 
     @computed get filteredVariables(): VariableListItem[] {
         const { dataset } = this.props
-        const { searchWords } = this
+        const { searchWords, usedOnly } = this
 
+        let variables = dataset.variables
         if (searchWords.length > 0) {
             const filterFn = filterFunctionForSearchWords(
                 searchWords,
@@ -455,9 +458,19 @@ class DatasetEditor extends Component<DatasetEditorProps> {
                     `${variable.id}`,
                 ]
             )
-            return dataset.variables.filter(filterFn)
+            variables = variables.filter(filterFn)
         }
-        return dataset.variables
+        if (usedOnly) {
+            variables = variables
+                .filter((v) => (v.usageCount ?? 0) > 0)
+                .slice()
+                .sort(
+                    (a, b) =>
+                        (b.usageCount ?? 0) - (a.usageCount ?? 0) ||
+                        (b.viewsPerDay ?? 0) - (a.viewsPerDay ?? 0)
+                )
+        }
+        return variables
     }
 
     @computed get collectionUrl(): string | null {
@@ -648,11 +661,20 @@ class DatasetEditor extends Component<DatasetEditorProps> {
                     <section>
                         <div className="d-flex justify-content-between align-items-center mb-3">
                             <h3>Indicators</h3>
-                            <TextField
-                                placeholder="Search indicators..."
-                                value={searchInput}
-                                onValue={this.onSearchInput}
-                            />
+                            <div className="d-flex align-items-center gap-3">
+                                <Toggle
+                                    label="Used in chart, MDim or path-based explorer"
+                                    value={this.usedOnly}
+                                    onValue={action(
+                                        (v: boolean) => (this.usedOnly = v)
+                                    )}
+                                />
+                                <TextField
+                                    placeholder="Search indicators..."
+                                    value={searchInput}
+                                    onValue={this.onSearchInput}
+                                />
+                            </div>
                         </div>
                         <p>
                             Showing {filteredVariables.length} of{" "}
@@ -661,7 +683,7 @@ class DatasetEditor extends Component<DatasetEditorProps> {
                         </p>
                         <VariableList
                             variables={filteredVariables}
-                            fields={[]}
+                            fields={["usage", "viewsPerDay"]}
                             searchHighlight={highlight}
                         />
                     </section>

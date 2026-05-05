@@ -12,7 +12,7 @@ import {
 import * as lodash from "lodash-es"
 
 import { AdminLayout } from "./AdminLayout.js"
-import { SearchField, FieldsRow, Toggle } from "./Forms.js"
+import { SearchField, FieldsRow } from "./Forms.js"
 import { VariableList, VariableListItem } from "./VariableList.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { ETL_WIZARD_URL } from "../settings/clientSettings.js"
@@ -28,7 +28,6 @@ export class VariablesIndexPage extends Component {
     numTotalRows: number | undefined = undefined
     searchInput: string | undefined = undefined
     highlightSearch: string | undefined = undefined
-    usedOnly = false
 
     constructor(props: Record<string, never>) {
         super(props)
@@ -39,7 +38,6 @@ export class VariablesIndexPage extends Component {
             numTotalRows: observable,
             searchInput: observable,
             highlightSearch: observable,
-            usedOnly: observable,
         })
     }
 
@@ -86,13 +84,6 @@ export class VariablesIndexPage extends Component {
                             )}
                             autofocus
                         />
-                        <Toggle
-                            label="Used in chart, MDim or path-based explorer"
-                            value={this.usedOnly}
-                            onValue={action(
-                                (v: boolean) => (this.usedOnly = v)
-                            )}
-                        />
                     </FieldsRow>
                     <p>
                         <em>
@@ -121,8 +112,6 @@ export class VariablesIndexPage extends Component {
                             "table",
                             "shortName",
                             "uploadedAt",
-                            "usage",
-                            "viewsPerDay",
                         ]}
                         searchHighlight={highlight}
                     />
@@ -140,12 +129,10 @@ export class VariablesIndexPage extends Component {
     }
 
     async getData() {
-        const { searchInput, maxVisibleRows, usedOnly } = this
+        const { searchInput, maxVisibleRows } = this
         const json = await this.context.admin.getJSON("/api/variables.json", {
             search: searchInput,
             limit: maxVisibleRows,
-            usedOnly: usedOnly ? 1 : 0,
-            sortBy: usedOnly ? "usage" : undefined,
         })
         runInAction(() => {
             if (searchInput === this.searchInput) {
@@ -161,8 +148,7 @@ export class VariablesIndexPage extends Component {
     dispose!: IReactionDisposer
     override componentDidMount() {
         this.dispose = reaction(
-            () =>
-                `${this.searchInput ?? ""}|${this.maxVisibleRows}|${this.usedOnly}`,
+            () => this.searchInput || this.maxVisibleRows,
             lodash.debounce(() => this.getData(), 200)
         )
         void this.getData()
