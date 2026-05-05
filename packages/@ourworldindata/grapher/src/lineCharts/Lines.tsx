@@ -13,6 +13,7 @@ import {
     DEFAULT_LINE_OUTLINE_WIDTH,
     DEFAULT_MARKER_RADIUS,
     DEFAULT_STROKE_WIDTH,
+    DISCONNECTED_DOTS_MARKER_RADIUS,
     LINE_STYLE,
     PlacedLineChartSeries,
     RenderLineChartSeries,
@@ -124,19 +125,33 @@ export class Lines extends React.Component<LinesProps> {
             />
         )
 
+        const lineId = makeFigmaId("line", series.seriesName)
+        const pointGroups = getAdjacentPointGroups(series.placedPoints)
         const line = this.props.multiColor ? (
-            <MultiColorPolyline
-                id={makeFigmaId("line", series.seriesName)}
-                points={series.placedPoints}
-                strokeLinejoin="round"
-                strokeWidth={strokeWidth.toFixed(1)}
-                strokeDasharray={strokeDasharray}
-                strokeOpacity={strokeOpacity}
-            />
+            <g id={lineId}>
+                <GapLines
+                    pointGroups={pointGroups}
+                    strokeWidth={strokeWidth.toFixed(1)}
+                    strokeOpacity={strokeOpacity}
+                    strokeDasharray={strokeDasharray}
+                />
+                {pointGroups.map((pointGroup, index) => (
+                    <MultiColorPolyline
+                        key={index}
+                        points={pointGroup}
+                        strokeLinejoin="round"
+                        strokeWidth={strokeWidth.toFixed(1)}
+                        strokeDasharray={strokeDasharray}
+                        strokeOpacity={strokeOpacity}
+                    />
+                ))}
+            </g>
         ) : (
             <LinePath
-                id={makeFigmaId("line", series.seriesName)}
+                id={lineId}
                 placedPoints={series.placedPoints}
+                pointGroups={pointGroups}
+                showGapLines
                 stroke={color}
                 strokeWidth={strokeWidth.toFixed(1)}
                 strokeOpacity={strokeOpacity}
@@ -177,6 +192,9 @@ export class Lines extends React.Component<LinesProps> {
         const outlineWidth = series.plotMarkersOnly
             ? this.outlineWidth
             : undefined
+        const singletonPoints = new Set(
+            getSingletonPoints(getAdjacentPointGroups(series.placedPoints))
+        )
 
         return (
             <g id={makeFigmaId("datapoints", series.displayName)}>
@@ -186,7 +204,14 @@ export class Lines extends React.Component<LinesProps> {
                         key={index}
                         cx={value.x}
                         cy={value.y}
-                        r={this.markerRadius}
+                        r={
+                            singletonPoints.has(value)
+                                ? Math.max(
+                                      this.markerRadius,
+                                      DISCONNECTED_DOTS_MARKER_RADIUS
+                                  )
+                                : this.markerRadius
+                        }
                         fill={value.color}
                         stroke={outlineColor}
                         strokeWidth={outlineWidth}
@@ -240,18 +265,132 @@ export class Lines extends React.Component<LinesProps> {
 
 interface LinePathProps extends React.SVGProps<SVGPathElement> {
     placedPoints: PlacedLineChartSeries["placedPoints"]
+    pointGroups?: PlacedLineChartSeries["placedPoints"][]
+    showGapLines?: boolean
+}
+
+export function getAdjacentPointGroups(
+    placedPoints: PlacedLineChartSeries["placedPoints"]
+): PlacedLineChartSeries["placedPoints"][] {
+    const groups: PlacedLineChartSeries["placedPoints"][] = []
+
+    for (const point of placedPoints) {
+        const currentGroup = _.last(groups)
+        const previousPoint = currentGroup && _.last(currentGroup)
+
+        if (
+            currentGroup === undefined ||
+            previousPoint === undefined ||
+            point.time !== previousPoint.time + 1
+        ) {
+            groups.push([point])
+        } else {
+            currentGroup.push(point)
+        }
+    }
+
+    return groups
+}
+
+export function getGapLineSegments(
+    pointGroups: PlacedLineChartSeries["placedPoints"][]
+): PlacedLineChartSeries["placedPoints"][] {
+    const gapLineSegments: PlacedLineChartSeries["placedPoints"][] = []
+
+    for (let index = 0; index < pointGroups.length - 1; index++) {
+        const pointGroup = pointGroups[index]
+        const nextPointGroup = pointGroups[index + 1]
+        const lastPoint = _.last(pointGroup)
+        const firstPoint = nextPointGroup[0]
+
+        const color = lastPoint?.color ?? firstPoint?.color
+        const adaptedColor = `oklch(from ${color} calc(l * 1.5) calc(c * 0.4) h)`
+
+        if (lastPoint && firstPoint) {
+            gapLineSegments.push([
+                { ...lastPoint, color: adaptedColor },
+                { ...firstPoint, color: adaptedColor },
+            ])
+        }
+    }
+
+    return gapLineSegments
+}
+
+export function getSingletonPoints(
+    pointGroups: PlacedLineChartSeries["placedPoints"][]
+): PlacedLineChartSeries["placedPoints"] {
+    const singletonPoints: PlacedLineChartSeries["placedPoints"] = []
+
+    for (const pointGroup of pointGroups) {
+        if (pointGroup.length === 1) singletonPoints.push(pointGroup[0])
+    }
+
+    return singletonPoints
+}
+
+function GapLines(
+    props: Omit<
+        React.ComponentProps<typeof MultiColorPolyline>,
+        "points" | "ref"
+    > & {
+        pointGroups: PlacedLineChartSeries["placedPoints"][]
+    }
+): React.ReactElement | null {
+    const { pointGroups, ...polylineProps } = props
+    const gapLineSegments = getGapLineSegments(pointGroups)
+
+    if (gapLineSegments.length === 0) return null
+
+    return (
+        <>
+            {gapLineSegments.map((segment, index) => (
+                <MultiColorPolyline
+                    key={index}
+                    points={segment}
+                    strokeLinejoin="round"
+                    {...polylineProps}
+                />
+            ))}
+        </>
+    )
 }
 
 function LinePath(props: LinePathProps): React.ReactElement {
-    const { placedPoints, ...pathProps } = props
+    const { placedPoints, pointGroups, showGapLines, id, ...pathProps } = props
+    const adjacentPointGroups =
+        pointGroups ?? getAdjacentPointGroups(placedPoints)
+    const commonPathProps = {
+        fill: "none",
+        strokeLinecap: "butt",
+        strokeLinejoin: "round",
+        stroke: DEFAULT_LINE_COLOR,
+        ...pathProps,
+    } satisfies React.SVGProps<SVGPathElement>
+
+    if (adjacentPointGroups.length <= 1) {
+        return (
+            <path id={id} {...commonPathProps} d={pointsToPath(placedPoints)} />
+        )
+    }
+
     return (
-        <path
-            fill="none"
-            strokeLinecap="butt"
-            strokeLinejoin="round"
-            stroke={DEFAULT_LINE_COLOR}
-            {...pathProps}
-            d={pointsToPath(placedPoints)}
-        />
+        <g id={id}>
+            {showGapLines && (
+                <GapLines
+                    pointGroups={adjacentPointGroups}
+                    strokeWidth={(pathProps.strokeWidth as number) / 2.5}
+                    // strokeOpacity={0.7}
+                    strokeDasharray={pathProps.strokeDasharray}
+                />
+            )}
+            {adjacentPointGroups.map((group, index) => (
+                <path
+                    key={index}
+                    {...commonPathProps}
+                    d={pointsToPath(group)}
+                />
+            ))}
+        </g>
     )
 }
