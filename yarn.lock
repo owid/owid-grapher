@@ -3766,24 +3766,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@react-aria/optimize-locales-plugin@npm:1.2.0":
-  version: 1.2.0
-  resolution: "@react-aria/optimize-locales-plugin@npm:1.2.0"
-  dependencies:
-    unplugin: "npm:^1.4.0"
-  checksum: 10/4a27420d46d4d1dc2c84b121a36bea6c8f052c613b3f1e020e640a88346edd46f2f7b0af3996dbe8e3666791be6ccfbe72d51d1c13ea03b57e3f9c58b2a20706
-  languageName: node
-  linkType: hard
-
-"@react-aria/optimize-locales-plugin@patch:@react-aria/optimize-locales-plugin@npm%3A1.2.0#~/.yarn/patches/@react-aria-optimize-locales-plugin-npm-1.2.0-13a86cfc41.patch":
-  version: 1.2.0
-  resolution: "@react-aria/optimize-locales-plugin@patch:@react-aria/optimize-locales-plugin@npm%3A1.2.0#~/.yarn/patches/@react-aria-optimize-locales-plugin-npm-1.2.0-13a86cfc41.patch::version=1.2.0&hash=44f3b5"
-  dependencies:
-    unplugin: "npm:^1.4.0"
-  checksum: 10/8715d336ce4fb97fa65224278b3fdfd65395c2d87e37ee73edcf0902c8cdc6fae6fd3181eb64c66fb38e9c4b195b5de98c128430eeb8265d3546bc99bd8c16e8
-  languageName: node
-  linkType: hard
-
 "@react-awesome-query-builder/antd@npm:^6.6.15":
   version: 6.6.15
   resolution: "@react-awesome-query-builder/antd@npm:6.6.15"
@@ -6820,7 +6802,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"acorn@npm:^8.14.0, acorn@npm:^8.15.0, acorn@npm:^8.16.0":
+"acorn@npm:^8.15.0, acorn@npm:^8.16.0":
   version: 8.16.0
   resolution: "acorn@npm:8.16.0"
   bin:
@@ -9772,7 +9754,6 @@ __metadata:
     "@ourworldindata/types": "workspace:^"
     "@ourworldindata/utils": "workspace:^"
     "@playwright/test": "npm:^1.57.0"
-    "@react-aria/optimize-locales-plugin": "patch:@react-aria/optimize-locales-plugin@npm%3A1.2.0#~/.yarn/patches/@react-aria-optimize-locales-plugin-npm-1.2.0-13a86cfc41.patch"
     "@react-awesome-query-builder/antd": "npm:^6.6.15"
     "@react-spring/web": "npm:^10.0.3"
     "@rmp135/sql-ts": "npm:^2.1.0"
@@ -15627,16 +15608,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"unplugin@npm:^1.4.0":
-  version: 1.16.1
-  resolution: "unplugin@npm:1.16.1"
-  dependencies:
-    acorn: "npm:^8.14.0"
-    webpack-virtual-modules: "npm:^0.6.2"
-  checksum: 10/4b46d7d2a63d334a45111ba57a266b3f8993ef12a72b77d7b31ffc455e8a9bef9c0e37ea463eb409dbf7ccec0b9868aeb845dd42c690d9288e4b8ac2d90fbefd
-  languageName: node
-  linkType: hard
-
 "unrs-resolver@npm:^1.9.2":
   version: 1.11.1
   resolution: "unrs-resolver@npm:1.11.1"
@@ -16012,13 +15983,6 @@ __metadata:
   version: 8.0.0
   resolution: "webidl-conversions@npm:8.0.0"
   checksum: 10/8138d1b291c8f311d93de680653b13b04560aa35d83f9606642e746fca39d7dab9cddd9282ade21774115ea332b8b11f008106b82d4a0125e98a49479381aeee
-  languageName: node
-  linkType: hard
-
-"webpack-virtual-modules@npm:^0.6.2":
-  version: 0.6.2
-  resolution: "webpack-virtual-modules@npm:0.6.2"
-  checksum: 10/d9a0d035f7ec0c7f1055aaf88bfe48b7f96458043916a1b2926d9012fd61de3810a6b768e31a8cd4b3c84a9b6d55824361a9dd20aaf9f5ccfb6f017af216a178
   languageName: node
   linkType: hard
 
