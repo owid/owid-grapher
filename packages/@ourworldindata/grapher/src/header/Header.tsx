@@ -218,12 +218,18 @@ abstract class AbstractHeader<
             showSubtitle,
             subtitleMarginTop,
             logoHeight,
+            hasContent,
         } = this
+        if (!hasContent) return 0
         return Math.max(
             (showTitle ? title.height : 0) +
                 (showSubtitle ? subtitle.height + subtitleMarginTop : 0),
             logoHeight
         )
+    }
+
+    @computed get hasContent(): boolean {
+        return !!this.logo || this.showTitle || this.showSubtitle
     }
 
     private renderTitle(): React.ReactElement {
@@ -289,8 +295,7 @@ abstract class AbstractHeader<
     }
 
     override render(): React.ReactElement | null {
-        const hasContent = !!this.logo || this.showTitle || this.showSubtitle
-        if (!hasContent) return null
+        if (!this.hasContent) return null
         return (
             <div
                 className="HeaderHTML"
