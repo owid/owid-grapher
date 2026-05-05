@@ -1015,10 +1015,7 @@ export const searchVariables = async (
 
     const usedFilter =
         "(COALESCE(cu.n, 0) + COALESCE(mu.n, 0) + COALESCE(eu.n, 0)) > 0"
-    const allWhereClauses = [
-        ...whereClauses,
-        ...(usedOnly ? [usedFilter] : []),
-    ]
+    const allWhereClauses = [...whereClauses, ...(usedOnly ? [usedFilter] : [])]
 
     const fromWhere = `
         FROM variables AS v
