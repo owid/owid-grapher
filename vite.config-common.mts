@@ -100,18 +100,9 @@ export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
                 { transform: { code: /[^"]@/, id: /.*\.(ts|tsx)$/ } }
             ),
             pluginReact(),
-            withFilter(
-                optimizeReactAriaLocales.vite({
-                    locales: ["en-US"],
-                }),
-                {
-                    transform: {
-                        // This filter is taken directly from the plugin itself: https://github.com/adobe/react-spectrum/blob/b5cbf5bcf32edc6350b8051e390c003013223d93/packages/dev/optimize-locales-plugin/LocalesPlugin.js#L20
-                        // But adding this filter on the rolldown level is way more efficient, which is why we duplicate it here.
-                        id: /[/\\](@react-stately|@react-aria|@react-spectrum|react-aria-components)[/\\]/,
-                    },
-                }
-            ),
+            optimizeReactAriaLocales.vite({
+                locales: ["en-US"],
+            }),
             // Put the Sentry vite plugin after all other plugins.
             clientSettings.LOAD_SENTRY &&
                 sentryVitePlugin({

@@ -3766,12 +3766,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@react-aria/optimize-locales-plugin@npm:^1.2.0":
+"@react-aria/optimize-locales-plugin@npm:1.2.0":
   version: 1.2.0
   resolution: "@react-aria/optimize-locales-plugin@npm:1.2.0"
   dependencies:
     unplugin: "npm:^1.4.0"
   checksum: 10/4a27420d46d4d1dc2c84b121a36bea6c8f052c613b3f1e020e640a88346edd46f2f7b0af3996dbe8e3666791be6ccfbe72d51d1c13ea03b57e3f9c58b2a20706
+  languageName: node
+  linkType: hard
+
+"@react-aria/optimize-locales-plugin@patch:@react-aria/optimize-locales-plugin@npm%3A1.2.0#~/.yarn/patches/@react-aria-optimize-locales-plugin-npm-1.2.0-13a86cfc41.patch":
+  version: 1.2.0
+  resolution: "@react-aria/optimize-locales-plugin@patch:@react-aria/optimize-locales-plugin@npm%3A1.2.0#~/.yarn/patches/@react-aria-optimize-locales-plugin-npm-1.2.0-13a86cfc41.patch::version=1.2.0&hash=44f3b5"
+  dependencies:
+    unplugin: "npm:^1.4.0"
+  checksum: 10/8715d336ce4fb97fa65224278b3fdfd65395c2d87e37ee73edcf0902c8cdc6fae6fd3181eb64c66fb38e9c4b195b5de98c128430eeb8265d3546bc99bd8c16e8
   languageName: node
   linkType: hard
 
@@ -9763,7 +9772,7 @@ __metadata:
     "@ourworldindata/types": "workspace:^"
     "@ourworldindata/utils": "workspace:^"
     "@playwright/test": "npm:^1.57.0"
-    "@react-aria/optimize-locales-plugin": "npm:^1.2.0"
+    "@react-aria/optimize-locales-plugin": "patch:@react-aria/optimize-locales-plugin@npm%3A1.2.0#~/.yarn/patches/@react-aria-optimize-locales-plugin-npm-1.2.0-13a86cfc41.patch"
     "@react-awesome-query-builder/antd": "npm:^6.6.15"
     "@react-spring/web": "npm:^10.0.3"
     "@rmp135/sql-ts": "npm:^2.1.0"

@@ -188,7 +188,7 @@
         "zod": "^4.1.11"
     },
     "devDependencies": {
-        "@react-aria/optimize-locales-plugin": "^1.2.0",
+        "@react-aria/optimize-locales-plugin": "patch:@react-aria/optimize-locales-plugin@npm%3A1.2.0#~/.yarn/patches/@react-aria-optimize-locales-plugin-npm-1.2.0-13a86cfc41.patch",
         "@rmp135/sql-ts": "^2.1.0",
         "@rollup/plugin-swc": "^0.4.0",
         "@swc/core": "^1.15.21",

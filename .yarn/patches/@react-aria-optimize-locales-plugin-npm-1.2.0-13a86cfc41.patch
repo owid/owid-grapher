@@ -1,0 +1,15 @@
+diff --git a/LocalesPlugin.js b/LocalesPlugin.js
+index ae38f372826def3601a37ed813daec704c38adaa..1c8b7a97c32ab9f88784416540d44c6f4f1c4b7f 100644
+--- a/LocalesPlugin.js
++++ b/LocalesPlugin.js
+@@ -16,8 +16,9 @@ module.exports = createUnplugin(({locales}) => {
+   locales = locales.map(l => new Intl.Locale(l));
+   return {
+     name: 'locales-plugin',
++    enforce: 'pre', // needed for Vite to run this resolver before the default one
+     resolveId(specifier, sourcePath, options) {
+-      if (!/[/\\](@react-stately|@react-aria|@react-spectrum|react-aria-components)[/\\]/.test(sourcePath) || options?.ssr) {
++      if (!/[/\\](@react-stately|@react-aria|@react-spectrum|react-aria-components|react-aria)[/\\]/.test(sourcePath) || options?.ssr) {
+         return;
+       }
+ 
