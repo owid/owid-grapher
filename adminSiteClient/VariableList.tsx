@@ -17,6 +17,11 @@ export interface VariableListItem {
     uploadedBy?: string
     isPrivate?: boolean
     nonRedistributable?: boolean
+    chartsCount?: number
+    multiDimCount?: number
+    explorersCount?: number
+    usageCount?: number
+    viewsPerDay?: number
 }
 
 interface VariableRowProps {
@@ -82,6 +87,28 @@ class VariableRow extends React.Component<VariableRowProps> {
                         />
                     </td>
                 )}
+                {fields.includes("usage") && (
+                    <td>
+                        {(variable.usageCount ?? 0) > 0 ? (
+                            <span title="Charts / MDims / Explorers">
+                                {variable.usageCount} (C:{variable.chartsCount}{" "}
+                                M:{variable.multiDimCount} E:
+                                {variable.explorersCount})
+                            </span>
+                        ) : (
+                            <span className="text-muted">—</span>
+                        )}
+                    </td>
+                )}
+                {fields.includes("viewsPerDay") && (
+                    <td>
+                        {(variable.viewsPerDay ?? 0) > 0 ? (
+                            (variable.viewsPerDay as number).toFixed(1)
+                        ) : (
+                            <span className="text-muted">—</span>
+                        )}
+                    </td>
+                )}
             </tr>
         )
     }
@@ -116,6 +143,10 @@ export class VariableList extends React.Component<VariableListProps> {
                         )}
                         {props.fields.includes("uploadedAt") && (
                             <th>Uploaded</th>
+                        )}
+                        {props.fields.includes("usage") && <th>Usage</th>}
+                        {props.fields.includes("viewsPerDay") && (
+                            <th>Views/day</th>
                         )}
                     </tr>
                 </thead>

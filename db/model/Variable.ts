@@ -964,24 +964,77 @@ export async function getVariableDistribution(
 
 /**
  * Perform regex search over the variables table.
+ *
+ * `usedOnly` filters to indicators with at least one usage in a chart, MDim, or
+ * path-based explorer. `sortByUsage` orders by total usage count (then views) desc.
  */
 export const searchVariables = async (
     query: string,
     limit: number,
-    knex: db.KnexReadonlyTransaction
+    knex: db.KnexReadonlyTransaction,
+    options: { usedOnly?: boolean; sortByUsage?: boolean } = {}
 ): Promise<VariablesSearchResult> => {
+    const { usedOnly = false, sortByUsage = false } = options
     const whereClauses = buildWhereClauses(query)
+
+    // Per-source aggregate subqueries. Each dedups (variableId, slug) pairs
+    // before summing views_365d so a chart with multiple dimensions referencing
+    // the same variable doesn't inflate the view total.
+    const usageJoins = `
+        LEFT JOIN (
+            SELECT variableId, COUNT(*) AS n, SUM(views_365d) AS views FROM (
+                SELECT DISTINCT cd.variableId, cc.slug, agv.views_365d
+                FROM chart_dimensions cd
+                JOIN charts c ON c.id = cd.chartId
+                JOIN chart_configs cc ON cc.id = c.configId
+                LEFT JOIN analytics_grapher_views agv
+                    ON agv.grapher_slug = cc.slug
+                    AND cc.full ->> '$.isPublished' = "true"
+            ) t
+            GROUP BY variableId
+        ) cu ON cu.variableId = v.id
+        LEFT JOIN (
+            SELECT variableId, COUNT(*) AS n, SUM(views_365d) AS views FROM (
+                SELECT DISTINCT mdxcc.variableId, mdp.slug, agv.views_365d
+                FROM multi_dim_x_chart_configs mdxcc
+                JOIN multi_dim_data_pages mdp ON mdp.id = mdxcc.multiDimId
+                LEFT JOIN analytics_grapher_views agv ON agv.grapher_slug = mdp.slug
+            ) t
+            GROUP BY variableId
+        ) mu ON mu.variableId = v.id
+        LEFT JOIN (
+            SELECT variableId, COUNT(*) AS n, SUM(views_365d) AS views FROM (
+                SELECT DISTINCT ev.variableId, ev.explorerSlug, ap.views_365d
+                FROM explorer_variables ev
+                LEFT JOIN analytics_pageviews ap
+                    ON ap.url = CONCAT('https://ourworldindata.org/explorers/', ev.explorerSlug)
+            ) t
+            GROUP BY variableId
+        ) eu ON eu.variableId = v.id
+    `
+
+    const usedFilter =
+        "(COALESCE(cu.n, 0) + COALESCE(mu.n, 0) + COALESCE(eu.n, 0)) > 0"
+    const allWhereClauses = [
+        ...whereClauses,
+        ...(usedOnly ? [usedFilter] : []),
+    ]
 
     const fromWhere = `
         FROM variables AS v
         LEFT JOIN active_datasets d ON d.id=v.datasetId
         LEFT JOIN users u ON u.id=d.dataEditedByUserId
-        ${whereClauses.length ? "WHERE " + whereClauses.join(" AND ") : ""}
+        ${usageJoins}
+        ${allWhereClauses.length ? "WHERE " + allWhereClauses.join(" AND ") : ""}
     `
     const sqlCount = `
         SELECT COUNT(*) count
         ${fromWhere}
     `
+
+    const orderBy = sortByUsage
+        ? "ORDER BY usageCount DESC, viewsPerDay DESC, d.dataEditedAt DESC"
+        : "ORDER BY d.dataEditedAt DESC"
 
     const sqlResults = `
         SELECT
@@ -993,9 +1046,17 @@ export const searchVariables = async (
             d.isPrivate AS isPrivate,
             d.nonRedistributable AS nonRedistributable,
             d.dataEditedAt AS uploadedAt,
-            u.fullName AS uploadedBy
+            u.fullName AS uploadedBy,
+            COALESCE(cu.n, 0) AS chartsCount,
+            COALESCE(mu.n, 0) AS multiDimCount,
+            COALESCE(eu.n, 0) AS explorersCount,
+            (COALESCE(cu.n, 0) + COALESCE(mu.n, 0) + COALESCE(eu.n, 0)) AS usageCount,
+            ROUND(
+                (COALESCE(cu.views, 0) + COALESCE(mu.views, 0) + COALESCE(eu.views, 0)) / 365,
+                1
+            ) AS viewsPerDay
         ${fromWhere}
-        ORDER BY d.dataEditedAt DESC
+        ${orderBy}
         LIMIT ${escape(limit)}
     `
     const rows = await queryRegexSafe(sqlResults, knex)
