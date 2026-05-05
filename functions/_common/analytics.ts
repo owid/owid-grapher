@@ -5,7 +5,6 @@
 
 import * as Sentry from "@sentry/cloudflare"
 import { parseCookie } from "cookie"
-import { GRAPHER_QUERY_PARAM_KEYS } from "@ourworldindata/types"
 import { extractClientIdFromGACookie } from "./cookieTools.js"
 import { Env } from "./env.js"
 import { uuidv7 } from "uuidv7"
@@ -50,7 +49,10 @@ export async function sendEventToGA4(
     }
 }
 
-export function getCommonEventParams(request: Request) {
+export function getCommonEventParams(
+    request: Request,
+    env: Pick<Env, "CLOUDFLARE_GOOGLE_ANALYTICS_SAMPLING_RATE">
+) {
     const url = new URL(request.url)
 
     // null values aren't allowed & param values must be 100 characters or less
@@ -65,6 +67,10 @@ export function getCommonEventParams(request: Request) {
         user_agent,
         method: request.method,
         country: request.headers.get("cf-ipcountry") || "",
+        // Stamp the sampling rate that was active when this event fired, so periods
+        // with different rates can be combined correctly downstream
+        // (events / sampling ≈ unbiased request count).
+        sampling: getSamplingRate(env),
     }
 
     // If user-agent is longer than 100 chars, capture the next 100 chars
@@ -72,19 +78,10 @@ export function getCommonEventParams(request: Request) {
         params.user_agent_next = fullUserAgent.slice(100, 200)
     }
 
-    // Grapher params get namespaced under q_* so a request like `?country=DE`
-    // doesn't clobber the structured `country` (sourced from cf-ipcountry).
-    // Other query params pass through bare, except for collisions with
-    // structured names (host/pathname/etc.) and `status_code` (added by the
-    // caller in analyticsMiddleware below).
-    const grapherKeys = new Set<string>(GRAPHER_QUERY_PARAM_KEYS)
-    const reserved = new Set([...Object.keys(params), "status_code"])
+    // Prefix every URL query parameter so user-supplied params can't clobber
+    // structured event params such as `host`, `country`, or `status_code`.
     for (const [key, value] of url.searchParams) {
-        if (grapherKeys.has(key)) {
-            params[`q_${key}`] = value.slice(0, 100)
-        } else if (!reserved.has(key)) {
-            params[key] = value.slice(0, 100)
-        }
+        params[`q_${key}`] = value.slice(0, 100)
     }
 
     return params
@@ -110,7 +107,7 @@ export const analyticsMiddleware: PagesFunction<Env> = async (context) => {
         const event = {
             name: "cf_function_invocation",
             params: {
-                ...getCommonEventParams(request),
+                ...getCommonEventParams(request, env),
                 status_code: response.status,
             },
         }
@@ -125,8 +122,11 @@ export const analyticsMiddleware: PagesFunction<Env> = async (context) => {
 }
 
 function shouldSample(env: Env): boolean {
-    return (
-        Math.random() <
-        parseFloat(env.CLOUDFLARE_GOOGLE_ANALYTICS_SAMPLING_RATE)
-    )
+    return Math.random() < getSamplingRate(env)
+}
+
+function getSamplingRate(
+    env: Pick<Env, "CLOUDFLARE_GOOGLE_ANALYTICS_SAMPLING_RATE">
+): number {
+    return parseFloat(env.CLOUDFLARE_GOOGLE_ANALYTICS_SAMPLING_RATE)
 }
