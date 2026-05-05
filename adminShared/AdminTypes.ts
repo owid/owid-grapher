@@ -14,6 +14,15 @@ export interface ApiNarrativeChartOverview {
     title: string
 }
 
+export interface ApiSlideshowOverview {
+    id: number
+    slug: string
+    title: string
+    isPublished: number
+    updatedAt: string | null
+    authorName: string
+}
+
 export interface DataInsightMinimalInformation {
     gdocId: string
     title: string
