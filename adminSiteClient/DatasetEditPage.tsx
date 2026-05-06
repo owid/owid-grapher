@@ -467,9 +467,7 @@ class DatasetEditor extends Component<DatasetEditorProps> {
             variables = variables.filter(filterFn)
         }
         if (usedOnly) {
-            variables = variables.filter(
-                (v) => Number(v.usageCount ?? 0) > 0
-            )
+            variables = variables.filter((v) => Number(v.usageCount ?? 0) > 0)
         }
 
         // Explicit user sort takes priority. Otherwise, when filtering to used
