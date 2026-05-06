@@ -77,7 +77,6 @@ function pixelDistance(
 interface PopulationChartProps {
     simulation: Simulation
     showCustomProjection?: boolean
-    showHistoricalAnnotation?: boolean
 }
 
 function PopulationChartContent({
@@ -85,7 +84,6 @@ function PopulationChartContent({
     width,
     height,
     showCustomProjection = true,
-    showHistoricalAnnotation = false,
 }: PopulationChartProps & { width: number; height: number }) {
     const windowBreakpoint = useBreakpoint()
     const breakpoint = toBreakpoint(width)
@@ -381,17 +379,6 @@ function PopulationChartContent({
                         forecastColor={projectionColor}
                         fonts={fonts}
                     />
-
-                    {/* Historical endpoint annotation */}
-                    {showHistoricalAnnotation &&
-                        historicalDataPoints.length > 0 && (
-                            <HistoricalAnnotation
-                                xScale={xScale}
-                                yScale={yScale}
-                                dataPoint={last(historicalDataPoints)!}
-                                fonts={fonts}
-                            />
-                        )}
 
                     {/* Change annotation between endpoints with arrow */}
                     {shouldShowChangeAnnotation && (
@@ -823,39 +810,3 @@ function AxisY({
     )
 }
 
-function HistoricalAnnotation({
-    xScale,
-    yScale,
-    dataPoint,
-    fonts,
-}: {
-    xScale: (v: number) => number
-    yScale: (v: number) => number
-    dataPoint: DataPoint
-    fonts: PopulationChartFonts
-}) {
-    const x = xScale(dataPoint.year)
-    const y = yScale(dataPoint.value)
-
-    return (
-        <>
-            <circle cx={x} cy={y} r={4} fill={DENIM_BLUE} />
-            <Halo
-                id="historical-annotation"
-                outlineWidth={3}
-                outlineColor="white"
-            >
-                <text
-                    x={x}
-                    y={y - 10}
-                    textAnchor="middle"
-                    fontSize={fonts.pointLabel}
-                    fill={DENIM_BLUE}
-                    fontWeight={700}
-                >
-                    {formatPopulationValueLong(dataPoint.value)}
-                </text>
-            </Halo>
-        </>
-    )
-}

@@ -48,7 +48,6 @@ import {
     type ScenarioConstants,
 } from "../model/scenarios"
 import { runProjectionResults } from "../model/projectionRunner"
-import { stabilizeParameter } from "../model/stabilize.js"
 
 const SCENARIO_CONSTANTS: ScenarioConstants = {
     HISTORICAL_END_YEAR,
@@ -171,18 +170,13 @@ function calculateDependencyRatio(
 
 /**
  * Compute scenario overrides from config options.
- * Manual assumptions take priority over stabilization.
  * Pure function — no hooks, no side effects.
  */
-export function computeScenarioOverrides(
-    data: CountryData,
-    opts: {
-        stabilizingParameter?: ParameterKey
-        fertilityRateAssumptions?: Record<number, number>
-        lifeExpectancyAssumptions?: Record<number, number>
-        netMigrationRateAssumptions?: Record<number, number>
-    }
-): Partial<ScenarioParams> | undefined {
+export function computeScenarioOverrides(opts: {
+    fertilityRateAssumptions?: Record<number, number>
+    lifeExpectancyAssumptions?: Record<number, number>
+    netMigrationRateAssumptions?: Record<number, number>
+}): Partial<ScenarioParams> | undefined {
     const hasCustom =
         opts.fertilityRateAssumptions !== undefined ||
         opts.lifeExpectancyAssumptions !== undefined ||
@@ -194,60 +188,7 @@ export function computeScenarioOverrides(
             netMigrationRate: opts.netMigrationRateAssumptions,
         }
     }
-    if (opts.stabilizingParameter) {
-        return computeStabilizedOverrides(data, opts.stabilizingParameter)
-    }
     return undefined
-}
-
-/**
- * Compute the scenario overrides that stabilize population for a given parameter.
- * Pure function — no hooks, no side effects.
- */
-function computeStabilizedOverrides(
-    data: CountryData,
-    stabilizingParameter: ParameterKey
-): ScenarioParams {
-    // Calibrate migration
-    const optimized = optimizeMigrationOptions(
-        data,
-        data.country,
-        HISTORICAL_END_YEAR - 14,
-        HISTORICAL_END_YEAR
-    )
-
-    // Historical benchmark
-    const benchmarkResults = runHistoricalProjection(
-        data,
-        START_YEAR,
-        HISTORICAL_END_YEAR,
-        { migrationOptions: { ...DEFAULT_MIGRATION_OPTIONS } }
-    )
-
-    // Baseline rates
-    const baselineParams = calculateBaselineRates(
-        data,
-        BASELINE_START_YEAR,
-        HISTORICAL_END_YEAR,
-        benchmarkResults
-    )
-
-    // UN WPP scenario
-    const unwppScenarioParams = calculateUNWPPScenario(
-        data,
-        benchmarkResults,
-        SCENARIO_CONSTANTS
-    )
-
-    const startPopulation = getPopulationForYear(data, HISTORICAL_END_YEAR)!
-
-    return stabilizeParameter(
-        stabilizingParameter,
-        unwppScenarioParams,
-        baselineParams,
-        startPopulation,
-        optimized.options
-    ).params
 }
 
 export function useSimulation(

@@ -7,11 +7,7 @@ import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
 import { Frame } from "../../../../components/Frame/Frame.js"
 
 import type { PopulationVariantConfig, VariantProps } from "../config.js"
-import type {
-    CountryData,
-    DemographyMetadata,
-    ParameterKey,
-} from "../helpers/types.js"
+import type { CountryData, DemographyMetadata } from "../helpers/types.js"
 
 import { queryClient, useDemographyData } from "../helpers/fetch.js"
 import {
@@ -85,7 +81,6 @@ function FetchingPopulationVariant({
             hideEntitySelector={config.hideEntitySelector}
             isLoading={isLoadingEntityData}
             showAssumptionCharts={config.showAssumptionCharts}
-            stabilizingParameter={config.stabilizingParameter}
             fertilityRateAssumptions={config.fertilityRateAssumptions}
             lifeExpectancyAssumptions={config.lifeExpectancyAssumptions}
             netMigrationRateAssumptions={config.netMigrationRateAssumptions}
@@ -103,7 +98,6 @@ function CaptionedPopulationVariant({
     subtitle: subtitleOverride,
     hideEntitySelector,
     showAssumptionCharts = false,
-    stabilizingParameter,
     fertilityRateAssumptions,
     lifeExpectancyAssumptions,
     netMigrationRateAssumptions,
@@ -117,22 +111,18 @@ function CaptionedPopulationVariant({
     subtitle?: string
     hideEntitySelector?: boolean
     showAssumptionCharts?: boolean
-    stabilizingParameter?: ParameterKey
     fertilityRateAssumptions?: Record<number, number>
     lifeExpectancyAssumptions?: Record<number, number>
     netMigrationRateAssumptions?: Record<number, number>
 }) {
     const scenarioOverrides = useMemo(
         () =>
-            computeScenarioOverrides(data, {
-                stabilizingParameter,
+            computeScenarioOverrides({
                 fertilityRateAssumptions,
                 lifeExpectancyAssumptions,
                 netMigrationRateAssumptions,
             }),
         [
-            data,
-            stabilizingParameter,
             fertilityRateAssumptions,
             lifeExpectancyAssumptions,
             netMigrationRateAssumptions,

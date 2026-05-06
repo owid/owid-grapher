@@ -9,11 +9,7 @@ import {
 import { queryClient, useDemographyData } from "../helpers/fetch.js"
 import type { ParametersVariantConfig, VariantProps } from "../config.js"
 
-import {
-    CountryData,
-    DemographyMetadata,
-    ParameterKey,
-} from "../helpers/types.js"
+import { CountryData, DemographyMetadata } from "../helpers/types.js"
 import {
     useSimulation,
     computeScenarioOverrides,
@@ -77,7 +73,6 @@ function FetchingParametersVariant({
             title={config.title}
             subtitle={config.subtitle}
             hideEntitySelector={config.hideEntitySelector}
-            stabilizingParameter={config.stabilizingParameter}
             fertilityRateAssumptions={config.fertilityRateAssumptions}
             lifeExpectancyAssumptions={config.lifeExpectancyAssumptions}
             netMigrationRateAssumptions={config.netMigrationRateAssumptions}
@@ -94,7 +89,6 @@ function CaptionedParametersVariant({
     title: titleOverride,
     subtitle: subtitleOverride,
     hideEntitySelector,
-    stabilizingParameter,
     fertilityRateAssumptions,
     lifeExpectancyAssumptions,
     netMigrationRateAssumptions,
@@ -107,22 +101,18 @@ function CaptionedParametersVariant({
     title?: string
     subtitle?: string
     hideEntitySelector?: boolean
-    stabilizingParameter?: ParameterKey
     fertilityRateAssumptions?: Record<number, number>
     lifeExpectancyAssumptions?: Record<number, number>
     netMigrationRateAssumptions?: Record<number, number>
 }) {
     const scenarioOverrides = useMemo(
         () =>
-            computeScenarioOverrides(data, {
-                stabilizingParameter,
+            computeScenarioOverrides({
                 fertilityRateAssumptions,
                 lifeExpectancyAssumptions,
                 netMigrationRateAssumptions,
             }),
         [
-            data,
-            stabilizingParameter,
             fertilityRateAssumptions,
             lifeExpectancyAssumptions,
             netMigrationRateAssumptions,

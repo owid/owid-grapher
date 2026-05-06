@@ -39,7 +39,6 @@ const PARAMETER_TAB_LABELS: Record<ParameterKey, string> = {
 export function SimulationContent({
     data,
     focusParameter,
-    stabilizingParameter,
     hidePopulationPyramid,
     populationPyramidUnit,
     fertilityRateAssumptions,
@@ -48,7 +47,6 @@ export function SimulationContent({
 }: {
     data: CountryData
     focusParameter?: ParameterKey
-    stabilizingParameter?: ParameterKey
     hidePopulationPyramid?: boolean
     populationPyramidUnit?: "percent" | "absolute"
     fertilityRateAssumptions?: Record<number, number>
@@ -59,15 +57,12 @@ export function SimulationContent({
 
     const scenarioOverrides = useMemo(
         () =>
-            computeScenarioOverrides(data, {
-                stabilizingParameter,
+            computeScenarioOverrides({
                 fertilityRateAssumptions,
                 lifeExpectancyAssumptions,
                 netMigrationRateAssumptions,
             }),
         [
-            data,
-            stabilizingParameter,
             fertilityRateAssumptions,
             lifeExpectancyAssumptions,
             netMigrationRateAssumptions,
@@ -178,10 +173,7 @@ export function SimulationContent({
                             />
                         }
                     >
-                        <PopulationChart
-                            simulation={simulation}
-                            showHistoricalAnnotation={!!stabilizingParameter}
-                        />
+                        <PopulationChart simulation={simulation} />
                     </ChartPanel>
                     {!hidePopulationPyramid && (
                         <AgeStructurePanel
@@ -281,7 +273,7 @@ export function InputChartPanel({
     const isParameterModified = simulation.modifiedParameters.has(variant)
 
     // Reset target: UN WPP defaults, with explicit overrides (e.g. config
-    // assumptions or stabilized params) merged on top
+    // assumptions) merged on top
     const effectiveResetTarget = useMemo(
         () => ({
             ...simulation.unwppScenarioParams[variant],

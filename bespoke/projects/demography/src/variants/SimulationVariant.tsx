@@ -77,7 +77,6 @@ function FetchingSimulationVariant({
             subtitle={config.subtitle}
             hideEntitySelector={config.hideEntitySelector}
             focusParameter={config.focusParameter}
-            stabilizingParameter={config.stabilizingParameter}
             hidePopulationPyramid={config.hidePopulationPyramid}
             populationPyramidUnit={config.populationPyramidUnit}
             fertilityRateAssumptions={config.fertilityRateAssumptions}
@@ -97,7 +96,6 @@ function CaptionedSimulationVariant({
     subtitle: subtitleOverride,
     hideEntitySelector,
     focusParameter,
-    stabilizingParameter,
     hidePopulationPyramid,
     populationPyramidUnit,
     fertilityRateAssumptions,
@@ -113,7 +111,6 @@ function CaptionedSimulationVariant({
     subtitle?: string
     hideEntitySelector?: boolean
     focusParameter?: ParameterKey
-    stabilizingParameter?: ParameterKey
     hidePopulationPyramid?: boolean
     populationPyramidUnit?: PopulationPyramidUnit
     fertilityRateAssumptions?: Record<number, number>
@@ -155,7 +152,6 @@ function CaptionedSimulationVariant({
                 <SimulationContent
                     data={data}
                     focusParameter={focusParameter}
-                    stabilizingParameter={stabilizingParameter}
                     hidePopulationPyramid={hidePopulationPyramid}
                     populationPyramidUnit={populationPyramidUnit}
                     fertilityRateAssumptions={fertilityRateAssumptions}

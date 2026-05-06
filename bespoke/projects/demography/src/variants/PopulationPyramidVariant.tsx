@@ -17,11 +17,7 @@ import {
     entityNameForSentence,
     groupAgeGroupsByZone,
 } from "../helpers/utils.js"
-import {
-    CountryData,
-    DemographyMetadata,
-    type ParameterKey,
-} from "../helpers/types.js"
+import { CountryData, DemographyMetadata } from "../helpers/types.js"
 import {
     useSimulation,
     computeScenarioOverrides,
@@ -95,7 +91,6 @@ function FetchingPopulationPyramidVariant({
             hideTimeline={config.hideTimeline}
             showAssumptionCharts={config.showAssumptionCharts}
             initialTime={config.time}
-            stabilizingParameter={config.stabilizingParameter}
             fertilityRateAssumptions={config.fertilityRateAssumptions}
             lifeExpectancyAssumptions={config.lifeExpectancyAssumptions}
             netMigrationRateAssumptions={config.netMigrationRateAssumptions}
@@ -116,7 +111,6 @@ function CaptionedPopulationPyramidVariant({
     hideTimeline,
     showAssumptionCharts = false,
     initialTime,
-    stabilizingParameter,
     fertilityRateAssumptions,
     lifeExpectancyAssumptions,
     netMigrationRateAssumptions,
@@ -133,7 +127,6 @@ function CaptionedPopulationPyramidVariant({
     hideTimeline?: boolean
     showAssumptionCharts?: boolean
     initialTime?: number
-    stabilizingParameter?: ParameterKey
     fertilityRateAssumptions?: Record<number, number>
     lifeExpectancyAssumptions?: Record<number, number>
     netMigrationRateAssumptions?: Record<number, number>
@@ -143,15 +136,12 @@ function CaptionedPopulationPyramidVariant({
 
     const scenarioOverrides = useMemo(
         () =>
-            computeScenarioOverrides(data, {
-                stabilizingParameter,
+            computeScenarioOverrides({
                 fertilityRateAssumptions,
                 lifeExpectancyAssumptions,
                 netMigrationRateAssumptions,
             }),
         [
-            data,
-            stabilizingParameter,
             fertilityRateAssumptions,
             lifeExpectancyAssumptions,
             netMigrationRateAssumptions,

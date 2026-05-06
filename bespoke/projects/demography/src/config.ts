@@ -22,7 +22,6 @@ export interface SimulationVariantConfig {
     title?: string
     subtitle?: string
     focusParameter?: ParameterKey
-    stabilizingParameter?: ParameterKey
     hidePopulationPyramid?: boolean
     populationPyramidUnit?: PopulationPyramidUnit
     fertilityRateAssumptions?: Record<number, number>
@@ -36,7 +35,6 @@ export interface PopulationVariantConfig {
     title?: string
     subtitle?: string
     showAssumptionCharts?: boolean
-    stabilizingParameter?: ParameterKey
     fertilityRateAssumptions?: Record<number, number>
     lifeExpectancyAssumptions?: Record<number, number>
     netMigrationRateAssumptions?: Record<number, number>
@@ -50,7 +48,6 @@ export interface PopulationPyramidVariantConfig {
     region?: string
     title?: string
     subtitle?: string
-    stabilizingParameter?: ParameterKey
     fertilityRateAssumptions?: Record<number, number>
     lifeExpectancyAssumptions?: Record<number, number>
     netMigrationRateAssumptions?: Record<number, number>
@@ -62,7 +59,6 @@ export interface ParametersVariantConfig {
     region?: string
     title?: string
     subtitle?: string
-    stabilizingParameter?: ParameterKey
     fertilityRateAssumptions?: Record<number, number>
     lifeExpectancyAssumptions?: Record<number, number>
     netMigrationRateAssumptions?: Record<number, number>
@@ -86,9 +82,6 @@ export function parseConfig(
                 title: raw.title,
                 subtitle: raw.subtitle,
                 focusParameter: parseParameterKey(raw.focusParameter),
-                stabilizingParameter: parseParameterKey(
-                    raw.stabilizingParameter
-                ),
                 hidePopulationPyramid: parseBoolean(raw.hidePopulationPyramid),
                 populationPyramidUnit: parsePyramidUnit(
                     raw.populationPyramidUnit
@@ -110,9 +103,6 @@ export function parseConfig(
                 title: raw.title,
                 subtitle: raw.subtitle,
                 showAssumptionCharts: parseBoolean(raw.showAssumptionCharts),
-                stabilizingParameter: parseParameterKey(
-                    raw.stabilizingParameter
-                ),
                 fertilityRateAssumptions: parseControlPoints(
                     raw.fertilityRateAssumptions
                 ),
@@ -132,9 +122,6 @@ export function parseConfig(
                 region: raw.region,
                 title: raw.title,
                 subtitle: raw.subtitle,
-                stabilizingParameter: parseParameterKey(
-                    raw.stabilizingParameter
-                ),
                 fertilityRateAssumptions: parseControlPoints(
                     raw.fertilityRateAssumptions
                 ),
@@ -154,9 +141,6 @@ export function parseConfig(
                 region: raw.region,
                 title: raw.title,
                 subtitle: raw.subtitle,
-                stabilizingParameter: parseParameterKey(
-                    raw.stabilizingParameter
-                ),
                 fertilityRateAssumptions: parseControlPoints(
                     raw.fertilityRateAssumptions
                 ),
