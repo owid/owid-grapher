@@ -13,7 +13,11 @@ import { EditableTags } from "./EditableTags.js"
 import { ChartList, ChartListItem } from "./ChartList.js"
 import { OriginList } from "./OriginList.js"
 import { SourceList } from "./SourceList.js"
-import { VariableList, VariableListItem } from "./VariableList.js"
+import {
+    VariableList,
+    VariableListItem,
+    VariableListSortConfig,
+} from "./VariableList.js"
 import {
     BAKED_BASE_URL,
     GRAPHER_DYNAMIC_THUMBNAIL_URL,
@@ -409,6 +413,7 @@ class DatasetEditor extends Component<DatasetEditorProps> {
     activeTab: string = "metadata"
     searchInput: string = ""
     usedOnly: boolean = false
+    sortConfig: VariableListSortConfig | null = null
 
     constructor(props: DatasetEditorProps) {
         super(props)
@@ -419,6 +424,7 @@ class DatasetEditor extends Component<DatasetEditorProps> {
             activeTab: observable,
             searchInput: observable,
             usedOnly: observable,
+            sortConfig: observable.ref,
         })
     }
 
@@ -443,7 +449,7 @@ class DatasetEditor extends Component<DatasetEditorProps> {
 
     @computed get filteredVariables(): VariableListItem[] {
         const { dataset } = this.props
-        const { searchWords, usedOnly } = this
+        const { searchWords, usedOnly, sortConfig } = this
 
         let variables = dataset.variables
         if (searchWords.length > 0) {
@@ -461,8 +467,25 @@ class DatasetEditor extends Component<DatasetEditorProps> {
             variables = variables.filter(filterFn)
         }
         if (usedOnly) {
+            variables = variables.filter(
+                (v) => Number(v.usageCount ?? 0) > 0
+            )
+        }
+
+        // Explicit user sort takes priority. Otherwise, when filtering to used
+        // indicators, default to highest-usage first so the most relevant rows
+        // surface at the top.
+        if (sortConfig) {
+            const { field, direction } = sortConfig
+            const sign = direction === "desc" ? -1 : 1
             variables = variables
-                .filter((v) => Number(v.usageCount ?? 0) > 0)
+                .slice()
+                .sort(
+                    (a, b) =>
+                        sign * (Number(a[field] ?? 0) - Number(b[field] ?? 0))
+                )
+        } else if (usedOnly) {
+            variables = variables
                 .slice()
                 .sort(
                     (a, b) =>
@@ -659,22 +682,22 @@ class DatasetEditor extends Component<DatasetEditorProps> {
             case "indicators":
                 return (
                     <section>
-                        <div className="d-flex justify-content-between align-items-center mb-3">
-                            <h3>Indicators</h3>
-                            <div className="d-flex align-items-center gap-3">
-                                <Toggle
-                                    label="Used in chart, MDim or path-based explorer"
-                                    value={this.usedOnly}
-                                    onValue={action(
-                                        (v: boolean) => (this.usedOnly = v)
-                                    )}
-                                />
-                                <TextField
-                                    placeholder="Search indicators..."
-                                    value={searchInput}
-                                    onValue={this.onSearchInput}
-                                />
-                            </div>
+                        <div className="d-flex justify-content-between align-items-center mb-2">
+                            <h3 className="m-0">Indicators</h3>
+                            <TextField
+                                placeholder="Search indicators..."
+                                value={searchInput}
+                                onValue={this.onSearchInput}
+                            />
+                        </div>
+                        <div className="mb-3">
+                            <Toggle
+                                label="Used in chart, MDim or path-based explorer"
+                                value={this.usedOnly}
+                                onValue={action(
+                                    (v: boolean) => (this.usedOnly = v)
+                                )}
+                            />
                         </div>
                         <p>
                             Showing {filteredVariables.length} of{" "}
@@ -685,6 +708,11 @@ class DatasetEditor extends Component<DatasetEditorProps> {
                             variables={filteredVariables}
                             fields={["usage", "viewsPerDay"]}
                             searchHighlight={highlight}
+                            sortConfig={this.sortConfig}
+                            onSort={action(
+                                (config: VariableListSortConfig | null) =>
+                                    (this.sortConfig = config)
+                            )}
                         />
                     </section>
                 )

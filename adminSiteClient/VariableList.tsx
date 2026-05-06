@@ -114,16 +114,50 @@ class VariableRow extends React.Component<VariableRowProps> {
     }
 }
 
+export type VariableListSortField = "usageCount" | "viewsPerDay"
+export interface VariableListSortConfig {
+    field: VariableListSortField
+    direction: "asc" | "desc"
+}
+
 interface VariableListProps {
     variables: VariableListItem[]
     fields: string[]
     searchHighlight?: (text: string) => string | React.ReactElement
+    sortConfig?: VariableListSortConfig | null
+    onSort?: (config: VariableListSortConfig | null) => void
 }
 
 @observer
 export class VariableList extends React.Component<VariableListProps> {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
+
+    renderSortableHeader(field: VariableListSortField, label: string) {
+        const { sortConfig, onSort } = this.props
+        if (!onSort) return <th>{label}</th>
+        const indicator =
+            sortConfig?.field === field
+                ? sortConfig.direction === "desc"
+                    ? " ↓"
+                    : " ↑"
+                : ""
+        const handleClick = () => {
+            if (!sortConfig || sortConfig.field !== field) {
+                onSort({ field, direction: "desc" })
+            } else if (sortConfig.direction === "desc") {
+                onSort({ field, direction: "asc" })
+            } else {
+                onSort(null)
+            }
+        }
+        return (
+            <th style={{ cursor: "pointer" }} onClick={handleClick}>
+                {label}
+                {indicator}
+            </th>
+        )
+    }
 
     override render() {
         const { props } = this
@@ -144,10 +178,13 @@ export class VariableList extends React.Component<VariableListProps> {
                         {props.fields.includes("uploadedAt") && (
                             <th>Uploaded</th>
                         )}
-                        {props.fields.includes("usage") && <th>Usage</th>}
-                        {props.fields.includes("viewsPerDay") && (
-                            <th>Views/day</th>
-                        )}
+                        {props.fields.includes("usage") &&
+                            this.renderSortableHeader("usageCount", "Usage")}
+                        {props.fields.includes("viewsPerDay") &&
+                            this.renderSortableHeader(
+                                "viewsPerDay",
+                                "Views/day"
+                            )}
                     </tr>
                 </thead>
                 <tbody>
