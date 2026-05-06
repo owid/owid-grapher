@@ -690,7 +690,7 @@ class DatasetEditor extends Component<DatasetEditorProps> {
                         </div>
                         <div className="d-flex justify-content-end mb-3">
                             <Toggle
-                                label="Used in chart, MDim or path-based explorer"
+                                label="Used in chart, multi-dim or path-based explorer"
                                 value={this.usedOnly}
                                 onValue={action(
                                     (v: boolean) => (this.usedOnly = v)
