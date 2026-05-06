@@ -462,12 +462,14 @@ class DatasetEditor extends Component<DatasetEditorProps> {
         }
         if (usedOnly) {
             variables = variables
-                .filter((v) => (v.usageCount ?? 0) > 0)
+                .filter((v) => Number(v.usageCount ?? 0) > 0)
                 .slice()
                 .sort(
                     (a, b) =>
-                        (b.usageCount ?? 0) - (a.usageCount ?? 0) ||
-                        (b.viewsPerDay ?? 0) - (a.viewsPerDay ?? 0)
+                        Number(b.usageCount ?? 0) -
+                            Number(a.usageCount ?? 0) ||
+                        Number(b.viewsPerDay ?? 0) -
+                            Number(a.viewsPerDay ?? 0)
                 )
         }
         return variables

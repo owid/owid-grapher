@@ -102,8 +102,8 @@ class VariableRow extends React.Component<VariableRowProps> {
                 )}
                 {fields.includes("viewsPerDay") && (
                     <td>
-                        {(variable.viewsPerDay ?? 0) > 0 ? (
-                            (variable.viewsPerDay as number).toFixed(1)
+                        {Number(variable.viewsPerDay ?? 0) > 0 ? (
+                            Number(variable.viewsPerDay).toFixed(1)
                         ) : (
                             <span className="text-muted">—</span>
                         )}
