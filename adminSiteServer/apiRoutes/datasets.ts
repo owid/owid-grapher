@@ -121,10 +121,11 @@ export async function getDataset(
     if (!dataset) throw new JsonError(`No dataset by id '${datasetId}'`, 404)
 
     // Per-source aggregate subqueries that compute distinct usage counts and
-    // summed views_365d. Each subquery dedups (variableId, slug) pairs before
-    // summing views so a chart with multiple dimensions referencing the same
-    // variable doesn't inflate the view total. Same approach as the explorer
-    // and multi-dim queries below.
+    // summed views_365d. The inner GROUP BY collapses each chart / MDim down
+    // to a single row per (variable, consumer) pair, so a chart with multiple
+    // dimensions referencing the same variable doesn't inflate the count or
+    // views. Dedup uses entity ids (charts.id, multi_dim_data_pages.id), not
+    // slugs, since drafts can have NULL slugs.
     const variables = await db.knexRaw<
         Pick<
             DbRawVariable,
@@ -156,22 +157,28 @@ export async function getDataset(
         FROM variables AS v
         LEFT JOIN (
             SELECT variableId, COUNT(*) AS n, SUM(views_365d) AS views FROM (
-                SELECT DISTINCT cd.variableId, cc.slug, agv.views_365d
+                SELECT cd.variableId,
+                       c.id AS chartId,
+                       MAX(agv.views_365d) AS views_365d
                 FROM chart_dimensions cd
                 JOIN charts c ON c.id = cd.chartId
                 JOIN chart_configs cc ON cc.id = c.configId
                 LEFT JOIN analytics_grapher_views agv
                     ON agv.grapher_slug = cc.slug
                     AND cc.full ->> '$.isPublished' = "true"
+                GROUP BY cd.variableId, c.id
             ) t
             GROUP BY variableId
         ) cu ON cu.variableId = v.id
         LEFT JOIN (
             SELECT variableId, COUNT(*) AS n, SUM(views_365d) AS views FROM (
-                SELECT DISTINCT mdxcc.variableId, mdp.slug, agv.views_365d
+                SELECT mdxcc.variableId,
+                       mdp.id AS multiDimId,
+                       MAX(agv.views_365d) AS views_365d
                 FROM multi_dim_x_chart_configs mdxcc
                 JOIN multi_dim_data_pages mdp ON mdp.id = mdxcc.multiDimId
                 LEFT JOIN analytics_grapher_views agv ON agv.grapher_slug = mdp.slug
+                GROUP BY mdxcc.variableId, mdp.id
             ) t
             GROUP BY variableId
         ) mu ON mu.variableId = v.id
