@@ -79,31 +79,31 @@ export default function NarrativeChart({
             })}
             ref={refChartContainer}
         >
-            <figure
-                key={metadataStringified}
-                className={cx(GRAPHER_PREVIEW_CLASS, "chart")}
-                style={{
-                    width: "100%",
-                    border: "0px none",
-                    height: d.height,
-                }}
-                // MultiEmbedder should not kick in on archival pages.
-                {...(!isOnArchivalPage && {
-                    [GRAPHER_NARRATIVE_CHART_CONFIG_FIGURE_ATTR]:
-                        metadataStringified,
-                })}
+            <div
+                className="owid-chart-frame"
+                style={d.height ? { height: d.height } : undefined}
             >
-                <a href={linkTarget}>
-                    <img
-                        className="GrapherImage"
-                        src={imageSrc}
-                        alt={viewMetadata.title}
-                        width={DEFAULT_GRAPHER_WIDTH}
-                        height={DEFAULT_GRAPHER_HEIGHT}
-                        loading="lazy"
-                    />
-                </a>
-            </figure>
+                <figure
+                    key={metadataStringified}
+                    className={cx(GRAPHER_PREVIEW_CLASS, "chart")}
+                    // MultiEmbedder should not kick in on archival pages.
+                    {...(!isOnArchivalPage && {
+                        [GRAPHER_NARRATIVE_CHART_CONFIG_FIGURE_ATTR]:
+                            metadataStringified,
+                    })}
+                >
+                    <a href={linkTarget}>
+                        <img
+                            className="GrapherImage"
+                            src={imageSrc}
+                            alt={viewMetadata.title}
+                            width={DEFAULT_GRAPHER_WIDTH}
+                            height={DEFAULT_GRAPHER_HEIGHT}
+                            loading="lazy"
+                        />
+                    </a>
+                </figure>
+            </div>
             {d.caption ? (
                 <figcaption>
                     <SpanElements spans={d.caption} />
