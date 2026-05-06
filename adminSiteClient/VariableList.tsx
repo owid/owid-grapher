@@ -91,9 +91,9 @@ class VariableRow extends React.Component<VariableRowProps> {
                     <td>
                         {(variable.usageCount ?? 0) > 0 ? (
                             <span title="Charts / MDims / Explorers">
-                                {variable.usageCount} (C:{variable.chartsCount}{" "}
-                                M:{variable.multiDimCount} E:
-                                {variable.explorersCount})
+                                {variable.usageCount} ({variable.chartsCount}C{" "}
+                                {variable.multiDimCount}M{" "}
+                                {variable.explorersCount}E)
                             </span>
                         ) : (
                             <span className="text-muted">—</span>
