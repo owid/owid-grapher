@@ -688,7 +688,7 @@ class DatasetEditor extends Component<DatasetEditorProps> {
                                 onValue={this.onSearchInput}
                             />
                         </div>
-                        <div className="mb-3">
+                        <div className="d-flex justify-content-end mb-3">
                             <Toggle
                                 label="Used in chart, MDim or path-based explorer"
                                 value={this.usedOnly}
