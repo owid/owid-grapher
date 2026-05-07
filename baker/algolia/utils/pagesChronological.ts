@@ -2,7 +2,8 @@ import * as _ from "lodash-es"
 import * as db from "../../../db/db.js"
 import {
     OwidGdocType,
-    checkIsChronologicalFeedPost,
+    checkIsChronologicalGdoc,
+    checkIsLatestFeedGdoc,
     getUniqueNamesFromTagHierarchies,
 } from "@ourworldindata/utils"
 import {
@@ -24,17 +25,17 @@ import { getThumbnailUrl, getExcerptFromGdoc } from "./pages.js"
 import { match, P } from "ts-pattern"
 
 /**
- * Class-aware variant of `checkIsChronologicalFeedPost`: narrows the
- * broad return of `gdocFromJSON` to the chronological-feed class
- * instances. Used (instead of the interface-narrowing predicate from
+ * Class-aware variant of `checkIsChronologicalGdoc`: narrows the
+ * broad return of `gdocFromJSON` to a chronological-feed class instance.
+ * Used (instead of the interface-narrowing predicate from
  * `@ourworldindata/utils`) by the bulk indexing path below, which needs
  * the `loadLinkedX(knex)` methods that live on `GdocBase` — the bare
  * interface union doesn't carry them.
  */
 function isChronologicalGdocInstance(
     gdoc: ReturnType<typeof gdocFromJSON>
-): gdoc is GdocPost | GdocDataInsight | GdocAnnouncement {
-    return checkIsChronologicalFeedPost(gdoc)
+): gdoc is (GdocPost | GdocDataInsight | GdocAnnouncement) & ChronologicalGdoc {
+    return checkIsChronologicalGdoc(gdoc)
 }
 
 /**
@@ -70,18 +71,16 @@ async function loadAttachmentsForChronologicalIndexing(
         // image + text by convention, matching the homepage's
         // `getLatestDataInsights`).
         .with({ content: { type: OwidGdocType.DataInsight } }, _.noop)
-        // Unreachable under ChronologicalGdoc's runtime invariant; listed
-        // only so TS can verify exhaustiveness — `OwidGdocPostContent.type`
-        // also admits these values and is optional.
+        // Topic pages are indexed for the atom feed but don't need linked
+        // content loaded — they only carry their title/excerpt/date in the
+        // record. (They're filtered out of /latest entirely by
+        // LATEST_BASE_FILTER, so their /latest-card body is never rendered.)
         .with(
             {
                 content: {
-                    type: P.optional(
-                        P.union(
-                            OwidGdocType.TopicPage,
-                            OwidGdocType.LinearTopicPage,
-                            OwidGdocType.Fragment
-                        )
+                    type: P.union(
+                        OwidGdocType.TopicPage,
+                        OwidGdocType.LinearTopicPage
                     ),
                 },
             },
@@ -160,20 +159,16 @@ function buildAttachment(
                 copyLinkedContentIfPresent(attachment, g)
             }
         })
-        // Unreachable under ChronologicalGdoc's runtime invariant
-        // (`checkIsChronologicalFeedPost` narrows to Article / DataInsight /
-        // Announcement, all with a defined `type`). Listed only so TS can
-        // verify exhaustiveness — `OwidGdocPostContent.type` also admits
-        // these values and is optional.
+        // Topic pages are indexed for the atom feed but don't need any
+        // type-specific attachment fields — only the base record's
+        // title/excerpt/date matters. (They're filtered out of /latest
+        // entirely by LATEST_BASE_FILTER, so no card body ever renders.)
         .with(
             {
                 content: {
-                    type: P.optional(
-                        P.union(
-                            OwidGdocType.TopicPage,
-                            OwidGdocType.LinearTopicPage,
-                            OwidGdocType.Fragment
-                        )
+                    type: P.union(
+                        OwidGdocType.TopicPage,
+                        OwidGdocType.LinearTopicPage
                     ),
                 },
             },
@@ -191,8 +186,10 @@ async function buildChronologicalRecord(
 ): Promise<PageChronologicalRecord> {
     const base: PageChronologicalRecord = {
         objectID: gdoc.id,
-        type: gdoc.content.type!,
-        latestType: deriveLatestType(gdoc),
+        type: gdoc.content.type,
+        latestType: checkIsLatestFeedGdoc(gdoc)
+            ? deriveLatestType(gdoc)
+            : undefined,
         slug: gdoc.slug,
         title: gdoc.content.title || "",
         excerpt: getExcerptFromGdoc(gdoc),
@@ -304,9 +301,11 @@ export async function getPagesChronologicalRecords(
     // thumbnails.
     const records: PageChronologicalRecord[] = []
     for (const gdoc of gdocs) {
-        // Narrow to a chronological class instance (carries the
-        // `loadLinkedX` methods); other types from the DB query
-        // (LinearTopicPage, TopicPage) are skipped.
+        // Narrow gdocFromJSON's broad return to a chronological class
+        // instance with a content.type literal-narrowed to ChronologicalGdoc's
+        // 5-type set. The DB query above already constrains rows to those
+        // types, so this is primarily a static-typing hatch — and a
+        // defensive guard against future additions to the query.
         if (!isChronologicalGdocInstance(gdoc)) continue
 
         await loadAttachmentsForChronologicalIndexing(gdoc, knex)

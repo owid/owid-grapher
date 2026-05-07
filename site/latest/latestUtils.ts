@@ -3,11 +3,13 @@ import {
     LATEST_PATH,
     LATEST_TYPE_LABELS,
     LATEST_TYPE_VALUES,
+    LatestFeedGdoc,
     LatestType,
     LatestUrlParam,
     PageChronologicalRecord,
 } from "@ourworldindata/types"
 import { OwidGdocType, slugify } from "@ourworldindata/utils"
+import { match } from "ts-pattern"
 
 /** Build a URL to the /latest page, optionally pre-filtered by type. */
 export function latestUrl(type?: LatestType): string {
@@ -23,49 +25,37 @@ export function decodeLatestType(param: string | null): LatestType | null {
 }
 
 /**
- * Map an OwidGdocType (the gdoc's class discriminator) to the LatestType
- * used by /latest's facet pills (the user-facing category filter). The
- * mapping isn't 1:1: Article and DataInsight pass through, but a single
- * Announcement gdoc fans out across several LatestTypes ("data-update",
- * "website-upgrade", "announcement", …) — the bucket is picked from the
- * gdoc's human-authored `kicker`. Returns `undefined` for gdoc types
- * that aren't surfaced on /latest (topic pages etc.).
- *
- * Shared between the indexer (which writes latestType into the Algolia
- * record) and the standalone announcement preview (which derives the same
- * pill on render) so the two stay in sync.
+ * Resolve an Announcement's LatestType from its kicker. Slugifies so
+ * case/spacing variants ("Data Update", "Data update") still map to the
+ * canonical slug. Anything else — missing, blank, or unrecognized — falls
+ * back to "announcement". The save-side validator
+ * (GdocAnnouncement._validateSubclass) only accepts the canonical slugs,
+ * so any edit forces legacy values into shape.
  */
-export function deriveLatestType(gdoc: {
-    content: { type?: OwidGdocType; kicker?: string }
-}): LatestType | undefined {
-    switch (gdoc.content.type) {
-        case OwidGdocType.Article:
-        case OwidGdocType.DataInsight:
-            return gdoc.content.type
-        case OwidGdocType.Announcement: {
-            // Tolerate kickers that don't match ANNOUNCEMENT_LATEST_TYPES
-            // exactly — slugifying normalizes legacy pretty-form or
-            // case-drifted kickers ("Data update", "Data Update",
-            // "Announcement") so they still surface under the right
-            // LatestType. The save-side validator
-            // (GdocAnnouncement._validateSubclass) is stricter, so any
-            // re-save ratchets the kicker to the canonical slug form.
-            // Unrecognized kickers fall back to "announcement" and stay
-            // visible on /latest until someone re-saves them.
-            const slug = slugify(gdoc.content.kicker ?? "")
-            if (
-                (ANNOUNCEMENT_LATEST_TYPES as readonly string[]).includes(slug)
-            ) {
-                return slug as LatestType
-            }
-            return "announcement"
-        }
-        default:
-            // topic-page, linear-topic-page: indexed for the atom feed but
-            // hidden from /latest (absent latestType excludes them from
-            // /latest's latestType-facet-based pills).
-            return undefined
-    }
+export function deriveAnnouncementLatestType(kicker?: string): LatestType {
+    const slug = slugify(kicker ?? "")
+    return (ANNOUNCEMENT_LATEST_TYPES as readonly string[]).includes(slug)
+        ? (slug as LatestType)
+        : "announcement"
+}
+
+/**
+ * Map a /latest-eligible gdoc to its LatestType. Articles and Data Insights
+ * pass through from `content.type`; Announcements bucket via kicker. Used by
+ * the indexer; render-site call sites that already know they have an
+ * announcement should call `deriveAnnouncementLatestType` directly.
+ */
+export function deriveLatestType(gdoc: LatestFeedGdoc): LatestType {
+    return match<LatestFeedGdoc, LatestType>(gdoc)
+        .with({ content: { type: OwidGdocType.Article } }, () => "article")
+        .with(
+            { content: { type: OwidGdocType.DataInsight } },
+            () => "data-insight"
+        )
+        .with({ content: { type: OwidGdocType.Announcement } }, (g) =>
+            deriveAnnouncementLatestType(g.content.kicker)
+        )
+        .exhaustive()
 }
 
 /** Plural display label for a LatestType — used as the dropdown label on

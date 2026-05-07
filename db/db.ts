@@ -45,7 +45,7 @@ import {
     TagGraphTableName,
     ExplorersTableName,
     MultiDimDataPagesTableName,
-    OwidGdocMinimalPostInterface,
+    OwidGdocMinimalAnnouncementInterface,
     DbRawPostGdoc,
 } from "@ourworldindata/types"
 import { gdocFromJSON } from "./model/Gdoc/GdocFactory.js"
@@ -403,7 +403,7 @@ export const getHomepageId = (
 
 export const getHomepageAnnouncements = (
     knex: KnexReadonlyTransaction
-): Promise<OwidGdocMinimalPostInterface[]> => {
+): Promise<OwidGdocMinimalAnnouncementInterface[]> => {
     return knexRaw<DbRawPostGdoc>(
         knex,
         `-- sql
@@ -417,7 +417,14 @@ export const getHomepageAnnouncements = (
         ORDER BY pg.publishedAt DESC
         LIMIT 3
         `
-    ).then((rows) => rows.map(rawGdocToMinimalPost))
+    ).then(
+        // SQL filters `type = 'announcement'`, so every row is an
+        // announcement at runtime. Promote to the static type.
+        (rows) =>
+            rows.map(
+                rawGdocToMinimalPost
+            ) as OwidGdocMinimalAnnouncementInterface[]
+    )
 }
 
 export async function checkIsImageInDB(

@@ -1,7 +1,7 @@
 import { OwidGdocAnnouncementInterface } from "@ourworldindata/types"
 import * as React from "react"
 import { AnnouncementContent } from "../../latest/AnnouncementContent.js"
-import { deriveLatestType } from "../../latest/latestUtils.js"
+import { deriveAnnouncementLatestType } from "../../latest/latestUtils.js"
 
 type AnnouncementProps = {
     className?: string
@@ -16,7 +16,7 @@ export const AnnouncementPage = ({
     slug,
     tags,
 }: AnnouncementProps): React.ReactElement => {
-    const latestType = deriveLatestType({ content })
+    const latestType = deriveAnnouncementLatestType(content.kicker)
     return (
         <div className="announcement-page grid grid-cols-12-full-width">
             <div className="announcement-page-content span-cols-6 col-start-5 span-md-cols-8 col-md-start-4 span-sm-cols-14 col-sm-start-1">

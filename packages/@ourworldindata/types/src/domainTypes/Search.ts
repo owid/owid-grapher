@@ -5,10 +5,10 @@ import type {
     HitHighlightResult,
 } from "instantsearch.js"
 import {
-    OwidGdocType,
     LinkedAuthor,
     LinkedChart,
     OwidGdocMinimalPostInterface,
+    OwidGdocType,
 } from "../gdocTypes/Gdoc.js"
 import { OwidEnrichedGdocBlock } from "../gdocTypes/ArchieMlComponents.js"
 import { ImageMetadata } from "../gdocTypes/Image.js"
@@ -391,11 +391,3 @@ export interface IndexingContext {
 export type ChartsIndexingContext = IndexingContext & {
     redirectsByChartId: Map<number, string[]>
 }
-
-export const CHRONOLOGICAL_INDEX_TYPES = new Set<string>([
-    OwidGdocType.Article,
-    OwidGdocType.LinearTopicPage,
-    OwidGdocType.TopicPage,
-    OwidGdocType.DataInsight,
-    OwidGdocType.Announcement,
-])

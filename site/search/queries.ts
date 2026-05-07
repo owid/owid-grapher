@@ -1,6 +1,7 @@
 import * as R from "remeda"
 import {
     EntityName,
+    LATEST_FEED_TYPE_VALUES,
     OwidGdocType,
     TagGraphRoot,
     SearchState,
@@ -391,7 +392,9 @@ export interface LatestPagesResult {
 
 // The gdoc-type guard that excludes topic pages and linear topic pages
 // (indexed for the atom feed but hidden from /latest).
-const LATEST_BASE_FILTER = `type:${OwidGdocType.Article} OR type:${OwidGdocType.DataInsight} OR type:${OwidGdocType.Announcement}`
+const LATEST_BASE_FILTER = LATEST_FEED_TYPE_VALUES.map((t) => `type:${t}`).join(
+    " OR "
+)
 
 // Issues three searches in a single batched `liteSearchClient.search([...])`
 // call (one network round-trip): the paginated card list plus per-axis facet
@@ -411,10 +414,12 @@ export async function queryLatestPages(
 ): Promise<LatestPagesResult> {
     // Each axis lives in its own `facetFilters` group so queries can include
     // or omit it independently. Multiple topics are OR'd within their group.
-    const topicFacetFilters: string[][] =
-        topics.length > 0 ? [topics.map((t) => "tags:" + t)] : []
-    const typeFacetFilter: string[][] = latestType
-        ? [[`latestType:${latestType}`]]
+    const topicFacetFilters =
+        topics.length > 0
+            ? formatDisjunctiveFacetFilters(new Set(topics), "tags")
+            : []
+    const latestTypeFacetFilter = latestType
+        ? formatDisjunctiveFacetFilters(new Set([latestType]), "latestType")
         : []
 
     const searchParams = [
@@ -423,7 +428,7 @@ export async function queryLatestPages(
             indexName: PAGES_CHRONOLOGICAL_INDEX,
             query: "",
             filters: LATEST_BASE_FILTER,
-            facetFilters: [...topicFacetFilters, ...typeFacetFilter],
+            facetFilters: [...topicFacetFilters, ...latestTypeFacetFilter],
             offset,
             length,
         },
@@ -445,7 +450,7 @@ export async function queryLatestPages(
             indexName: PAGES_CHRONOLOGICAL_INDEX,
             query: "",
             filters: LATEST_BASE_FILTER,
-            facetFilters: typeFacetFilter,
+            facetFilters: latestTypeFacetFilter,
             offset: 0,
             length: 0,
             facets: ["tags"],

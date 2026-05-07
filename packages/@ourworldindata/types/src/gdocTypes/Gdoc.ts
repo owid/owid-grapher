@@ -175,6 +175,14 @@ export interface OwidGdocMinimalPostInterface {
     availableEntityCodes?: string[] // used for profile-type docs to resolve ?country=X links
 }
 
+/** Minimal-shape announcement: the SQL in `getHomepageAnnouncements`
+ *  guarantees `type === Announcement` for every row, so we promote that to
+ *  the static type for the homepage announcement carousel. */
+export type OwidGdocMinimalAnnouncementInterface =
+    OwidGdocMinimalPostInterface & {
+        type: OwidGdocType.Announcement
+    }
+
 export type OwidGdocIndexItem = Pick<
     OwidGdocBaseInterface,
     "id" | "slug" | "tags" | "published" | "publishedAt"
@@ -313,7 +321,7 @@ export interface OwidGdocHomepageMetadata {
     explorerCount?: number
     articleCount?: number
     tagGraph?: TagGraphRoot
-    announcements?: OwidGdocMinimalPostInterface[]
+    announcements?: OwidGdocMinimalAnnouncementInterface[]
 }
 
 export interface OwidGdocHomepageInterface extends OwidGdocBaseInterface {
@@ -379,6 +387,25 @@ export type OwidGdoc =
     | OwidGdocAnnouncementInterface
     | OwidGdocProfileInterface
 
+export const CHRONOLOGICAL_INDEX_TYPE_VALUES = [
+    OwidGdocType.Article,
+    OwidGdocType.LinearTopicPage,
+    OwidGdocType.TopicPage,
+    OwidGdocType.DataInsight,
+    OwidGdocType.Announcement,
+] as const
+
+export const LATEST_FEED_TYPE_VALUES = [
+    OwidGdocType.Article,
+    OwidGdocType.DataInsight,
+    OwidGdocType.Announcement,
+] as const satisfies readonly (typeof CHRONOLOGICAL_INDEX_TYPE_VALUES)[number][]
+
+export const CHRONOLOGICAL_INDEX_TYPES = new Set<string>(
+    CHRONOLOGICAL_INDEX_TYPE_VALUES
+)
+export const LATEST_FEED_TYPES = new Set<string>(LATEST_FEED_TYPE_VALUES)
+
 /**
  * The subset of OwidGdoc that is indexed in the `pages-chronological` Algolia
  * index, and so is eligible to appear on:
@@ -387,12 +414,30 @@ export type OwidGdoc =
  *     with `?topics=` or `?type=` query params (the bare `/atom.xml` URL is
  *     served from the static bake instead).
  *
- * Matches the narrowing performed by `checkIsChronologicalFeedPost`.
+ * Matches the narrowing performed by `checkIsChronologicalGdoc`.
  */
 export type ChronologicalGdoc =
-    | OwidGdocPostInterface
     | OwidGdocDataInsightInterface
     | OwidGdocAnnouncementInterface
+    | (OwidGdocPostInterface & {
+          content: {
+              type:
+                  | OwidGdocType.Article
+                  | OwidGdocType.TopicPage
+                  | OwidGdocType.LinearTopicPage
+          }
+      })
+
+/**
+ * The subset of `ChronologicalGdoc` shown on /latest. Excludes
+ * `TopicPage` / `LinearTopicPage` (indexed in `pages-chronological` for the
+ * atom feed but filtered out of /latest by `LATEST_BASE_FILTER`).
+ *
+ * Matches the narrowing performed by `checkIsLatestFeedGdoc`.
+ */
+export type LatestFeedGdoc = ChronologicalGdoc & {
+    content: { type: (typeof LATEST_FEED_TYPE_VALUES)[number] }
+}
 
 export enum OwidGdocErrorMessageType {
     Error = "error",
