@@ -192,7 +192,7 @@ export async function getDataset(
         [datasetId]
     )
 
-    const parseJsonArray = <T,>(raw: unknown): T[] => {
+    const parseJsonArray = <T>(raw: unknown): T[] => {
         if (!raw) return []
         if (Array.isArray(raw)) return raw as T[]
         try {
