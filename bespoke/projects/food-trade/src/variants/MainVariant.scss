@@ -9,7 +9,19 @@
 }
 
 .food-trade-controls__content {
-    min-height: 40px;
+    display: flex;
+    flex-direction: column;
+    row-gap: 16px;
+}
+
+.food-trade-controls__row {
+    display: flex;
+    column-gap: 16px;
+    row-gap: 16px;
+
+    > * {
+        flex: 1 1 0;
+    }
 }
 
 .food-trade-captioned-chart__chart-area {
