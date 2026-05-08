@@ -31,7 +31,14 @@ export const useTradeData = () =>
                 item: d.Item,
                 unit: d.Unit,
                 value: +d.Value,
-            }))
+            })).map(normalizeRow)
         },
         staleTime: Infinity,
     })
+
+// Collapse "1000 X" units into "X" by scaling values by 1000, so all rows for a
+// given item share a common unit and can be summed / aggregated meaningfully.
+function normalizeRow(row: TradeRow): TradeRow {
+    const m = row.unit.match(/^1000 (.+)$/)
+    return m ? { ...row, unit: m[1], value: row.value * 1000 } : row
+}

@@ -1,3 +1,15 @@
+.food-trade-captioned-chart__chart-area {
+    position: relative;
+    height: 480px;
+}
+
+.food-trade-captioned-chart__empty {
+    margin: 0;
+    padding: 24px;
+    color: $light-text;
+    text-align: center;
+}
+
 .food-trade-controls__title {
     font-size: 10px;
     font-weight: 900;

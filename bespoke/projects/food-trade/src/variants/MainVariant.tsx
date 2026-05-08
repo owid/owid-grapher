@@ -11,6 +11,15 @@ import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
 
 import { TradeRow, useTradeData } from "../data.js"
+import { FoodTradeSankey, formatTrade } from "../components/FoodTradeSankey.js"
+import { useContainerWidth } from "../../../../hooks/useContainerWidth.js"
+import {
+    isUserLocationCountry,
+    useResolveUserLocation,
+} from "../../../../hooks/useResolveUserLocation.js"
+import { MOBILE_BREAKPOINT } from "../../../../components/Sankey/SplitFlowSankey.js"
+
+const DATA_YEAR = 2024
 
 const DEFAULT_PRODUCT = "Maize (corn)"
 const DEFAULT_EXPORTER = "United States of America"
@@ -65,7 +74,7 @@ function FetchingMainVariant() {
 }
 
 function CaptionedMainVariant({
-    data: _data,
+    data,
     products,
     exporters,
     product,
@@ -81,6 +90,13 @@ function CaptionedMainVariant({
     setProduct: (value: string) => void
     setExporter: (value: string) => void
 }) {
+    const totalValue = useMemo(
+        () => data.reduce((sum, d) => sum + d.value, 0),
+        [data]
+    )
+    const importerCount = data.length
+    const unit = data[0]?.unit ?? ""
+
     return (
         <>
             <Frame className="food-trade-controls">
@@ -106,10 +122,38 @@ function CaptionedMainVariant({
             </Frame>
             <Frame className="food-trade-captioned-chart">
                 <ChartHeader
-                    title="Global food trade"
-                    subtitle="Bilateral imports and exports of food items between countries."
+                    title={`${product} exports from ${exporter} in ${DATA_YEAR}`}
+                    subtitle={
+                        importerCount === 0 ? (
+                            <>
+                                {exporter} did not export {product} in{" "}
+                                {DATA_YEAR}.
+                            </>
+                        ) : (
+                            <>
+                                {exporter} exported{" "}
+                                <strong>
+                                    {formatTrade(totalValue, unit)} of {product}
+                                </strong>{" "}
+                                in {DATA_YEAR}.
+                            </>
+                        )
+                    }
                 />
-                <div className="food-trade-captioned-chart__chart-area" />
+                <div className="food-trade-captioned-chart__chart-area">
+                    {data.length === 0 ? (
+                        <p className="food-trade-captioned-chart__empty">
+                            No {DATA_YEAR} exports of {product} from {exporter}{" "}
+                            recorded.
+                        </p>
+                    ) : (
+                        <FoodTradeSankey
+                            data={data}
+                            exporter={exporter}
+                            unit={unit}
+                        />
+                    )}
+                </div>
                 <ChartFooter source="UN Food and Agriculture Organization (FAO)" />
             </Frame>
         </>

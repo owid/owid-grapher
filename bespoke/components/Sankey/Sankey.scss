@@ -1,0 +1,19 @@
+.sankey {
+    display: block;
+}
+
+.sankey__link {
+    fill: none;
+    stroke-opacity: 0.4;
+    cursor: default;
+}
+
+.sankey__node {
+    stroke: none;
+}
+
+.sankey__label {
+    font-size: 12px;
+    fill: $dark-text;
+    pointer-events: none;
+}

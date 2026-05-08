@@ -11,6 +11,10 @@
 @import "../../../components/ChartHeader/ChartHeader.scss";
 @import "../../../components/ChartFooter/ChartFooter.scss";
 @import "../../../components/BezierArrow/BezierArrow.scss";
+@import "../../../components/Sankey/Sankey.scss";
 
 // Variants
 @import "./variants/MainVariant.scss";
+
+// Project components
+@import "./components/FoodTradeSankey.scss";

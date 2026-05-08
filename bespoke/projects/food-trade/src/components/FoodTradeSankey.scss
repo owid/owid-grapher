@@ -1,0 +1,12 @@
+.food-trade-sankey {
+    width: 100%;
+    height: 100%;
+}
+
+.food-trade-sankey .sankey__label tspan:first-child {
+    font-weight: 600;
+}
+
+.food-trade-sankey .sankey__label tspan:not(:first-child) {
+    fill: $light-text;
+}
