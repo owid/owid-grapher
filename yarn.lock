@@ -9232,11 +9232,11 @@ __metadata:
   linkType: hard
 
 "fast-xml-builder@npm:^1.1.5":
-  version: 1.1.5
-  resolution: "fast-xml-builder@npm:1.1.5"
+  version: 1.1.8
+  resolution: "fast-xml-builder@npm:1.1.8"
   dependencies:
     path-expression-matcher: "npm:^1.1.3"
-  checksum: 10/377c4ef816972e67192fd32757c50d2a9d4cccf352ceac48bda6681a0ee24fb0b1f1c892810f77886db760681f23fe0b8f62c7c0cc9469c0d2863c5c529ac1d2
+  checksum: 10/9ed7f690d0718392aececad0344cb43f59ca99b25fbeee25ea365a3a564629e444bb685677c6b5222bfdb61f514d0ee4d6fd03d6872b79000f4b7354f9c35084
   languageName: node
   linkType: hard
 
