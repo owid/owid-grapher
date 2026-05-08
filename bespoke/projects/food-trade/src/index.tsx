@@ -1,5 +1,6 @@
 import { createRoot } from "react-dom/client"
 import { enableShadowDOM } from "@react-stately/flags"
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 
 import { VariantName } from "./constants.js"
 import { Placeholder } from "./components/Placeholder"
@@ -16,8 +17,18 @@ import "./index.scss"
 // Must be called before any react-aria components render.
 enableShadowDOM()
 
+const queryClient = new QueryClient()
+
+function PlaceholderWithProviders() {
+    return (
+        <QueryClientProvider client={queryClient}>
+            <Placeholder />
+        </QueryClientProvider>
+    )
+}
+
 export const VARIANTS = [
-    { name: "main", component: Placeholder, demoConfig: {} },
+    { name: "main", component: PlaceholderWithProviders, demoConfig: {} },
 ] satisfies BespokeComponentVariantsList<VariantName>
 
 export const mount: BespokeComponentMountFn = (
