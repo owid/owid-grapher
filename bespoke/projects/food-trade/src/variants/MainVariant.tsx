@@ -22,7 +22,7 @@ import { MOBILE_BREAKPOINT } from "../../../../components/Sankey/SplitFlowSankey
 const DATA_YEAR = 2024
 
 const DEFAULT_PRODUCT = "Maize (corn)"
-const DEFAULT_EXPORTER = "United States of America"
+const DEFAULT_COUNTRY = "United Kingdom"
 
 const queryClient = new QueryClient()
 
@@ -43,18 +43,31 @@ function FetchingMainVariant() {
         () => Array.from(new Set(data?.map((d) => d.item) ?? [])).sort(),
         [data]
     )
-    const exporters = useMemo(
-        () => Array.from(new Set(data?.map((d) => d.exporter) ?? [])).sort(),
+    // Union of every country that ever appears on either side of a trade row,
+    // so importer-only and exporter-only countries both show up in the picker.
+    const countries = useMemo(
+        () =>
+            Array.from(
+                new Set([
+                    ...(data?.map((d) => d.exporter) ?? []),
+                    ...(data?.map((d) => d.importer) ?? []),
+                ])
+            ).sort(),
         [data]
     )
 
     const [product, setProduct] = useState<string>(DEFAULT_PRODUCT)
-    const [exporter, setExporter] = useState<string>(DEFAULT_EXPORTER)
+    const [country, setCountry] = useState<string>(DEFAULT_COUNTRY)
 
-    const chartData = useMemo(() => {
+    const incoming = useMemo(() => {
         if (!data) return []
-        return data.filter((d) => d.item === product && d.exporter === exporter)
-    }, [data, product, exporter])
+        return data.filter((d) => d.item === product && d.importer === country)
+    }, [data, product, country])
+
+    const outgoing = useMemo(() => {
+        if (!data) return []
+        return data.filter((d) => d.item === product && d.exporter === country)
+    }, [data, product, country])
 
     if (status === "pending") return <FoodTradeSkeleton />
     if (status === "error" || !data)
@@ -62,40 +75,47 @@ function FetchingMainVariant() {
 
     return (
         <CaptionedMainVariant
-            data={chartData}
+            incoming={incoming}
+            outgoing={outgoing}
             products={products}
-            exporters={exporters}
+            countries={countries}
             product={product}
-            exporter={exporter}
+            country={country}
             setProduct={setProduct}
-            setExporter={setExporter}
+            setCountry={setCountry}
         />
     )
 }
 
 function CaptionedMainVariant({
-    data,
+    incoming,
+    outgoing,
     products,
-    exporters,
+    countries,
     product,
-    exporter,
+    country,
     setProduct,
-    setExporter,
+    setCountry,
 }: {
-    data: TradeRow[]
+    incoming: TradeRow[]
+    outgoing: TradeRow[]
     products: string[]
-    exporters: string[]
+    countries: string[]
     product: string
-    exporter: string
+    country: string
     setProduct: (value: string) => void
-    setExporter: (value: string) => void
+    setCountry: (value: string) => void
 }) {
-    const totalValue = useMemo(
-        () => data.reduce((sum, d) => sum + d.value, 0),
-        [data]
+    const incomingTotal = useMemo(
+        () => incoming.reduce((sum, d) => sum + d.value, 0),
+        [incoming]
     )
-    const importerCount = data.length
-    const unit = data[0]?.unit ?? ""
+    const outgoingTotal = useMemo(
+        () => outgoing.reduce((sum, d) => sum + d.value, 0),
+        [outgoing]
+    )
+    const hasAnyData = incoming.length > 0 || outgoing.length > 0
+    const unit = incoming[0]?.unit ?? outgoing[0]?.unit ?? ""
 
     return (
         <>
@@ -112,50 +132,98 @@ function CaptionedMainVariant({
                             onChange={setProduct}
                         />
                         <LabeledDropdown
-                            label="Exporter"
-                            values={exporters}
-                            selected={exporter}
-                            onChange={setExporter}
+                            label="Country"
+                            values={countries}
+                            selected={country}
+                            onChange={setCountry}
                         />
                     </div>
                 </div>
             </Frame>
             <Frame className="food-trade-captioned-chart">
                 <ChartHeader
-                    title={`${product} exports from ${exporter} in ${DATA_YEAR}`}
+                    title={`${product} trade through ${country} in ${DATA_YEAR}`}
                     subtitle={
-                        importerCount === 0 ? (
-                            <>
-                                {exporter} did not export {product} in{" "}
-                                {DATA_YEAR}.
-                            </>
-                        ) : (
-                            <>
-                                {exporter} exported{" "}
-                                <strong>
-                                    {formatTrade(totalValue, unit)} of {product}
-                                </strong>{" "}
-                                in {DATA_YEAR}.
-                            </>
-                        )
+                        <Subtitle
+                            country={country}
+                            product={product}
+                            unit={unit}
+                            incomingTotal={incomingTotal}
+                            outgoingTotal={outgoingTotal}
+                        />
                     }
                 />
                 <div className="food-trade-captioned-chart__chart-area">
-                    {data.length === 0 ? (
+                    {!hasAnyData ? (
                         <p className="food-trade-captioned-chart__empty">
-                            No {DATA_YEAR} exports of {product} from {exporter}{" "}
+                            No {DATA_YEAR} trade of {product} for {country}{" "}
                             recorded.
                         </p>
                     ) : (
                         <FoodTradeSankey
-                            data={data}
-                            exporter={exporter}
+                            incoming={incoming}
+                            outgoing={outgoing}
+                            country={country}
                             unit={unit}
                         />
                     )}
                 </div>
                 <ChartFooter source="UN Food and Agriculture Organization (FAO)" />
             </Frame>
+        </>
+    )
+}
+
+function Subtitle({
+    country,
+    product,
+    unit,
+    incomingTotal,
+    outgoingTotal,
+}: {
+    country: string
+    product: string
+    unit: string
+    incomingTotal: number
+    outgoingTotal: number
+}) {
+    if (incomingTotal === 0 && outgoingTotal === 0) {
+        return (
+            <>
+                {country} did not trade {product} in {DATA_YEAR}.
+            </>
+        )
+    }
+    if (incomingTotal > 0 && outgoingTotal > 0) {
+        return (
+            <>
+                {country} imported{" "}
+                <strong>{formatTrade(incomingTotal, unit)}</strong> and exported{" "}
+                <strong>
+                    {formatTrade(outgoingTotal, unit)} of {product}
+                </strong>{" "}
+                in {DATA_YEAR}.
+            </>
+        )
+    }
+    if (incomingTotal > 0) {
+        return (
+            <>
+                {country} imported{" "}
+                <strong>
+                    {formatTrade(incomingTotal, unit)} of {product}
+                </strong>{" "}
+                in {DATA_YEAR}.
+            </>
+        )
+    }
+    return (
+        <>
+            {country} exported{" "}
+            <strong>
+                {formatTrade(outgoingTotal, unit)} of {product}
+            </strong>{" "}
+            in {DATA_YEAR}.
         </>
     )
 }

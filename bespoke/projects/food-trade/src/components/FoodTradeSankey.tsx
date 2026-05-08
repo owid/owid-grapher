@@ -17,7 +17,6 @@ const TOP_N = 10
 // Importers below this share of the total are bucketed into "Other" instead of
 // being shown individually, even if they fall within the top N.
 const SHARE_FLOOR = 0.01
-const OTHER_NODE_ID = "__other__"
 const SOURCE_COLOR = OwidDistinctColors.Denim
 
 // Maps the data's raw unit codes to a human-readable label used as the suffix
@@ -48,19 +47,21 @@ const formatPct = (v: number) =>
     })
 
 export function FoodTradeSankey({
-    data,
-    exporter,
+    incoming,
+    outgoing,
+    country,
     unit,
 }: {
-    data: TradeRow[]
-    exporter: string
+    incoming: TradeRow[]
+    outgoing: TradeRow[]
+    country: string
     unit: string
 }) {
     const { parentRef, width, height } = useParentSize()
 
-    const { nodes, links } = useMemo(
-        () => buildTopNWithOther(data, exporter, unit, TOP_N),
-        [data, exporter, unit]
+    const { nodes, links, columnLabels } = useMemo(
+        () => buildBidirectional(incoming, outgoing, country, unit, TOP_N),
+        [incoming, outgoing, country, unit]
     )
 
     return (
@@ -71,69 +72,109 @@ export function FoodTradeSankey({
                     links={links}
                     width={width}
                     height={height}
-                    margin={{ top: 0, right: 0, bottom: 0, left: 0 }}
+                    margin={{ top: 8, right: 0, bottom: 8, left: 0 }}
+                    nodePadding={12}
                     nodeColor={() => SOURCE_COLOR}
                     linkColor={() => SOURCE_COLOR}
                     formatValue={(v) => formatTrade(v, unit)}
+                    columnLabels={columnLabels}
                 />
             )}
         </div>
     )
 }
 
-function buildTopNWithOther(
-    data: TradeRow[],
-    exporter: string,
-    unit: string,
+// Pick the importers/exporters to show individually for one direction:
+// top N, then drop those below SHARE_FLOOR. Always keep at least the top 1
+// for pathologically flat distributions so we never show nothing.
+function selectTopWithFloor(
+    rows: TradeRow[],
     n: number
-): { nodes: SankeyNode[]; links: SankeyLink[] } {
-    const sorted = [...data]
+): { top: TradeRow[]; otherTotal: number; total: number } {
+    const sorted = [...rows]
         .filter((d) => Number.isFinite(d.value) && d.value > 0)
         .sort((a, b) => b.value - a.value)
     const total = sorted.reduce((sum, d) => sum + d.value, 0)
 
-    // Cap at top N, then drop entries below the share floor. Always keep at
-    // least the top 1 so a pathologically flat distribution still shows
-    // something individually.
     const topCandidates = sorted.slice(0, n)
     const aboveFloor = topCandidates.filter(
         (d) => total > 0 && d.value / total >= SHARE_FLOOR
     )
     const top = aboveFloor.length > 0 ? aboveFloor : topCandidates.slice(0, 1)
-
     const rest = sorted.slice(top.length)
     const otherTotal = rest.reduce((sum, d) => sum + d.value, 0)
 
-    const valueLabel = (value: number) =>
-        total > 0
-            ? `${formatTrade(value, unit)} (${formatPct((value / total) * 100)})`
+    return { top, otherTotal, total }
+}
+
+function buildBidirectional(
+    incoming: TradeRow[],
+    outgoing: TradeRow[],
+    country: string,
+    unit: string,
+    n: number
+): {
+    nodes: SankeyNode[]
+    links: SankeyLink[]
+    columnLabels: (string | undefined)[]
+} {
+    const inSel = selectTopWithFloor(incoming, n)
+    const outSel = selectTopWithFloor(outgoing, n)
+    const hasIncoming = inSel.top.length > 0
+    const hasOutgoing = outSel.top.length > 0
+
+    const valueLabel = (value: number, sideTotal: number) =>
+        sideTotal > 0
+            ? `${formatTrade(value, unit)} (${formatPct((value / sideTotal) * 100)})`
             : formatTrade(value, unit)
 
-    const nodes: SankeyNode[] = [
-        // Source label is suppressed — the chart title already names the exporter.
-        { id: exporter, label: "" },
-        ...top.map((d) => ({
-            id: d.importer,
-            label: [d.importer, valueLabel(d.value)],
-        })),
-    ]
-    const links: SankeyLink[] = top.map((d) => ({
-        source: exporter,
-        target: d.importer,
-        value: d.value,
-    }))
+    const nodes: SankeyNode[] = []
+    const links: SankeyLink[] = []
 
-    if (rest.length > 0) {
+    // Center node — its label is suppressed (the chart title names it).
+    nodes.push({ id: country, label: "" })
+
+    // Incoming side: senders → country
+    // IDs are prefixed so a country that appears on both sides becomes two
+    // distinct nodes (e.g. Mexico-as-sender vs Mexico-as-receiver).
+    for (const d of inSel.top) {
+        const id = `incoming:${d.exporter}`
         nodes.push({
-            id: OTHER_NODE_ID,
-            label: "Other",
+            id,
+            label: [d.exporter, valueLabel(d.value, inSel.total)],
         })
-        links.push({
-            source: exporter,
-            target: OTHER_NODE_ID,
-            value: otherTotal,
-        })
+        links.push({ source: id, target: country, value: d.value })
+    }
+    if (inSel.otherTotal > 0) {
+        const id = "__incoming-other__"
+        nodes.push({ id, label: "Other" })
+        links.push({ source: id, target: country, value: inSel.otherTotal })
     }
 
-    return { nodes, links }
+    // Outgoing side: country → receivers
+    for (const d of outSel.top) {
+        const id = `outgoing:${d.importer}`
+        nodes.push({
+            id,
+            label: [d.importer, valueLabel(d.value, outSel.total)],
+        })
+        links.push({ source: country, target: id, value: d.value })
+    }
+    if (outSel.otherTotal > 0) {
+        const id = "__outgoing-other__"
+        nodes.push({ id, label: "Other" })
+        links.push({ source: country, target: id, value: outSel.otherTotal })
+    }
+
+    // Column headers, indexed by depth. Order mirrors the topology built
+    // above: leftmost is "Imports" if any senders exist, the center column
+    // is unlabeled (chart title names the country), rightmost is "Exports"
+    // if any receivers exist. When a side is empty its column simply
+    // doesn't exist, so depth indexing collapses correctly.
+    const columnLabels: (string | undefined)[] = []
+    if (hasIncoming) columnLabels.push("Imports from →")
+    columnLabels.push(undefined) // center column (the country)
+    if (hasOutgoing) columnLabels.push("Exports to →")
+
+    return { nodes, links, columnLabels }
 }

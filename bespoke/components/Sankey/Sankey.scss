@@ -17,3 +17,11 @@
     fill: $dark-text;
     pointer-events: none;
 }
+
+.sankey__column-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    fill: $light-text;
+}

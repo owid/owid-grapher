@@ -27,8 +27,16 @@ const DEFAULT_MARGIN: Margin = { top: 8, right: 8, bottom: 8, left: 8 }
 // Approx height of one line at the default font-size of 12px with 1.2em line-height.
 const LABEL_LINE_HEIGHT_PX = 14
 const LABEL_FONT_SIZE_PX = 12
+// Tolerance subtracted from the strict line-height threshold when deciding
+// whether a node is tall enough for multi-line labels. Larger values lower
+// the bar — more nodes show their secondary lines, at the cost of slightly
+// cramped labels on borderline nodes.
+const LABEL_STACK_TOLERANCE_PX = 4
 // Horizontal gap between a node's edge and its label.
 const LABEL_OFFSET = 6
+// Vertical strip reserved above the chart for column header labels, when any
+// are provided.
+const COLUMN_LABEL_HEIGHT_PX = 20
 
 function measureMaxLabelWidth(label: SankeyNode["label"]): number {
     const lines = (Array.isArray(label) ? label : label ? [label] : []).filter(
@@ -59,6 +67,12 @@ export type SankeyProps = {
     nodeWidth?: number
     nodePadding?: number
     margin?: Margin
+    /**
+     * Optional header per column, indexed by node depth. `undefined` entries
+     * skip rendering. When any entry is set, vertical space is reserved at
+     * the top of the chart for the labels.
+     */
+    columnLabels?: (string | undefined)[]
 }
 
 type LaidOutGraph = SankeyGraph<SankeyNode, SankeyLink>
@@ -76,7 +90,11 @@ export function Sankey({
     nodeWidth = 15,
     nodePadding = 8,
     margin = DEFAULT_MARGIN,
+    columnLabels,
 }: SankeyProps): React.ReactElement | null {
+    const hasColumnLabels = columnLabels?.some(Boolean) ?? false
+    const columnLabelReservation = hasColumnLabels ? COLUMN_LABEL_HEIGHT_PX : 0
+
     const layout = useMemo<LaidOutGraph | null>(() => {
         if (width <= 0 || height <= 0) return null
 
@@ -106,7 +124,7 @@ export function Sankey({
         )
 
         const finalMargin = {
-            top: margin.top,
+            top: margin.top + columnLabelReservation,
             bottom: margin.bottom,
             left:
                 margin.left +
@@ -129,12 +147,22 @@ export function Sankey({
             nodes: nodes.map((d) => ({ ...d })),
             links: links.map((d) => ({ ...d })),
         })
-    }, [nodes, links, width, height, nodeWidth, nodePadding, margin])
+    }, [
+        nodes,
+        links,
+        width,
+        height,
+        nodeWidth,
+        nodePadding,
+        margin,
+        columnLabelReservation,
+    ])
 
     if (!layout) return null
 
     const linkPath = sankeyLinkHorizontal<SankeyNode, SankeyLink>()
     const midX = width / 2
+    const columnLabelY = margin.top + COLUMN_LABEL_HEIGHT_PX / 2
 
     return (
         <svg
@@ -143,6 +171,48 @@ export function Sankey({
             height={height}
             viewBox={`0 0 ${width} ${height}`}
         >
+            {hasColumnLabels && (
+                <g className="sankey__column-labels">
+                    {columnLabels?.map((label, depth) => {
+                        if (!label) return null
+                        const nodeAtDepth = layout.nodes.find(
+                            (n) => n.depth === depth
+                        )
+                        if (!nodeAtDepth) return null
+                        // Position the label at the horizontal midpoint of
+                        // the flow connecting this column to its neighbour:
+                        // prefer the outgoing flow (to depth+1); fall back
+                        // to the incoming flow (from depth-1) for the
+                        // rightmost column. As a last resort (isolated
+                        // column), center on the node itself.
+                        const nextNode = layout.nodes.find(
+                            (n) => n.depth === depth + 1
+                        )
+                        const prevNode = layout.nodes.find(
+                            (n) => n.depth === depth - 1
+                        )
+                        const cx = nextNode
+                            ? ((nodeAtDepth.x1 ?? 0) + (nextNode.x0 ?? 0)) / 2
+                            : prevNode
+                              ? ((prevNode.x1 ?? 0) + (nodeAtDepth.x0 ?? 0)) / 2
+                              : ((nodeAtDepth.x0 ?? 0) +
+                                    (nodeAtDepth.x1 ?? 0)) /
+                                2
+                        return (
+                            <text
+                                key={depth}
+                                className="sankey__column-label"
+                                x={cx}
+                                y={columnLabelY}
+                                textAnchor="middle"
+                                dominantBaseline="central"
+                            >
+                                {label}
+                            </text>
+                        )
+                    })}
+                </g>
+            )}
             <g className="sankey__links">
                 {layout.links.map((link, i) => {
                     const path = linkPath(link)
@@ -189,7 +259,8 @@ export function Sankey({
             </g>
             <g className="sankey__labels">
                 {layout.nodes.map((node) => {
-                    const raw = node.label ?? node.id
+                    const n = node as SankeyNode & LaidOutNode
+                    const raw = n.label ?? n.id
                     const lines = (Array.isArray(raw) ? raw : [raw]).filter(
                         Boolean
                     )
@@ -208,7 +279,9 @@ export function Sankey({
                     // Otherwise drop the secondary lines and keep just the
                     // primary one — clearer than crowding lines into a node.
                     const fitsStacked =
-                        nodeHeight >= lines.length * LABEL_LINE_HEIGHT_PX
+                        nodeHeight >=
+                        lines.length * LABEL_LINE_HEIGHT_PX -
+                            LABEL_STACK_TOLERANCE_PX
                     const visibleLines = fitsStacked ? lines : [lines[0]]
                     return (
                         <text
@@ -244,17 +317,19 @@ function nodeId(
 ): string {
     if (typeof endpoint === "string" || typeof endpoint === "number")
         return String(endpoint)
-    return endpoint.id
+    return (endpoint as SankeyNode).id
 }
 
 function nodeOriginal(node: LaidOutNode): SankeyNode {
-    return { id: node.id, label: node.label }
+    const n = node as SankeyNode & LaidOutNode
+    return { id: n.id, label: n.label }
 }
 
 function linkOriginal(link: LaidOutLink): SankeyLink {
+    const l = link as SankeyLink & LaidOutLink
     return {
         source: nodeId(link.source),
         target: nodeId(link.target),
-        value: link.value,
+        value: l.value,
     }
 }
