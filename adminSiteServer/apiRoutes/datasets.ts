@@ -152,8 +152,18 @@ export async function getDataset(
             GROUP BY variableId
         ) cu ON cu.variableId = v.id
         LEFT JOIN (
-            SELECT variableId, COUNT(DISTINCT multiDimId) AS n
-            FROM multi_dim_x_chart_configs
+            -- multi_dim_x_chart_configs.variableId only stores each view's first
+            -- y indicator. Scan the view's chart_config dimensions to catch
+            -- every variable used as y / x / size / color in any view.
+            SELECT variableId, COUNT(DISTINCT multiDimId) AS n FROM (
+                SELECT mdxcc.multiDimId, jt.variableId
+                FROM multi_dim_x_chart_configs mdxcc
+                JOIN chart_configs cc ON cc.id = mdxcc.chartConfigId
+                JOIN JSON_TABLE(
+                    cc.full,
+                    '$.dimensions[*]' COLUMNS (variableId INT PATH '$.variableId')
+                ) jt ON jt.variableId IS NOT NULL
+            ) t
             GROUP BY variableId
         ) mu ON mu.variableId = v.id
         LEFT JOIN (
