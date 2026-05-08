@@ -103,7 +103,7 @@ export class SiteAnalytics extends GrapherAnalytics {
         })
     }
 
-    logSiteSearchResultClick(
+    logSearchResultClick(
         hit:
             | SearchChartHit
             | FlatArticleHit
