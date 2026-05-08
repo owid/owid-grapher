@@ -120,8 +120,10 @@ export async function getDataset(
 
     if (!dataset) throw new JsonError(`No dataset by id '${datasetId}'`, 404)
 
-    // Per-source distinct usage counts. Dedup uses entity ids (charts.id,
-    // multi_dim_data_pages.id), not slugs, since drafts can have NULL slugs.
+    // Per-source distinct usage counts plus the MDim and explorer slug lists
+    // so the admin UI can show them in a tooltip on the usage cell. Dedup uses
+    // entity ids (charts.id, multi_dim_data_pages.id) where available, since
+    // drafts can have NULL slugs.
     const variables = await db.knexRaw<
         Pick<
             DbRawVariable,
@@ -131,6 +133,8 @@ export async function getDataset(
             multiDimCount: number
             explorersCount: number
             usageCount: number
+            multiDimSlugs: string | null
+            explorerSlugs: string | null
         }
     >(
         trx,
@@ -144,7 +148,9 @@ export async function getDataset(
             COALESCE(cu.n, 0) AS chartsCount,
             COALESCE(mu.n, 0) AS multiDimCount,
             COALESCE(eu.n, 0) AS explorersCount,
-            (COALESCE(cu.n, 0) + COALESCE(mu.n, 0) + COALESCE(eu.n, 0)) AS usageCount
+            (COALESCE(cu.n, 0) + COALESCE(mu.n, 0) + COALESCE(eu.n, 0)) AS usageCount,
+            mu.slugs AS multiDimSlugs,
+            eu.slugs AS explorerSlugs
         FROM variables AS v
         LEFT JOIN (
             SELECT variableId, COUNT(DISTINCT chartId) AS n
@@ -155,10 +161,14 @@ export async function getDataset(
             -- multi_dim_x_chart_configs.variableId only stores each view's first
             -- y indicator. Scan the view's chart_config dimensions to catch
             -- every variable used as y / x / size / color in any view.
-            SELECT variableId, COUNT(DISTINCT multiDimId) AS n FROM (
-                SELECT mdxcc.multiDimId, jt.variableId
+            SELECT variableId,
+                   COUNT(*) AS n,
+                   JSON_ARRAYAGG(slug) AS slugs
+            FROM (
+                SELECT DISTINCT mdxcc.multiDimId, mdp.slug, jt.variableId
                 FROM multi_dim_x_chart_configs mdxcc
                 JOIN chart_configs cc ON cc.id = mdxcc.chartConfigId
+                JOIN multi_dim_data_pages mdp ON mdp.id = mdxcc.multiDimId
                 JOIN JSON_TABLE(
                     cc.full,
                     '$.dimensions[*]' COLUMNS (variableId INT PATH '$.variableId')
@@ -167,8 +177,13 @@ export async function getDataset(
             GROUP BY variableId
         ) mu ON mu.variableId = v.id
         LEFT JOIN (
-            SELECT variableId, COUNT(DISTINCT explorerSlug) AS n
-            FROM explorer_variables
+            SELECT variableId,
+                   COUNT(*) AS n,
+                   JSON_ARRAYAGG(explorerSlug) AS slugs
+            FROM (
+                SELECT DISTINCT variableId, explorerSlug
+                FROM explorer_variables
+            ) t
             GROUP BY variableId
         ) eu ON eu.variableId = v.id
         WHERE v.datasetId = ?
@@ -176,8 +191,21 @@ export async function getDataset(
         [datasetId]
     )
 
+    const parseJsonArray = (raw: unknown): string[] => {
+        if (!raw) return []
+        if (Array.isArray(raw)) return raw as string[]
+        try {
+            const parsed = JSON.parse(raw as string)
+            return Array.isArray(parsed) ? parsed : []
+        } catch {
+            return []
+        }
+    }
+
     for (const v of variables) {
         v.display = JSON.parse(v.display)
+        ;(v as any).multiDimSlugs = parseJsonArray(v.multiDimSlugs)
+        ;(v as any).explorerSlugs = parseJsonArray(v.explorerSlugs)
     }
 
     dataset.variables = variables

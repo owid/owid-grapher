@@ -21,6 +21,8 @@ export interface VariableListItem {
     multiDimCount?: number
     explorersCount?: number
     usageCount?: number
+    multiDimSlugs?: string[]
+    explorerSlugs?: string[]
 }
 
 interface VariableRowProps {
@@ -89,11 +91,33 @@ class VariableRow extends React.Component<VariableRowProps> {
                 {fields.includes("usage") && (
                     <td>
                         {(variable.usageCount ?? 0) > 0 ? (
-                            <span title="Charts / MDims / Explorers">
-                                {variable.usageCount} ({variable.chartsCount}C{" "}
-                                {variable.multiDimCount}M{" "}
-                                {variable.explorersCount}E)
-                            </span>
+                            <>
+                                {variable.usageCount} (
+                                <span title="Used in N charts">
+                                    {variable.chartsCount}C
+                                </span>{" "}
+                                <span
+                                    title={
+                                        (variable.multiDimSlugs?.length ?? 0) >
+                                        0
+                                            ? `Multi-dim pages:\n${variable.multiDimSlugs!.join("\n")}`
+                                            : "Used in N multi-dim pages"
+                                    }
+                                >
+                                    {variable.multiDimCount}M
+                                </span>{" "}
+                                <span
+                                    title={
+                                        (variable.explorerSlugs?.length ?? 0) >
+                                        0
+                                            ? `Explorers:\n${variable.explorerSlugs!.join("\n")}`
+                                            : "Used in N path-based explorers"
+                                    }
+                                >
+                                    {variable.explorersCount}E
+                                </span>
+                                )
+                            </>
                         ) : (
                             <span className="text-muted">—</span>
                         )}
