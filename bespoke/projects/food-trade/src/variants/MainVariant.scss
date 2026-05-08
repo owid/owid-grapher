@@ -1,0 +1,27 @@
+.food-trade-controls__title {
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 0.15em;
+    color: $light-text;
+    text-transform: uppercase;
+    margin: 0;
+    margin-bottom: 12px;
+}
+
+.food-trade-controls__content {
+    min-height: 40px;
+}
+
+.food-trade-captioned-chart__chart-area {
+    min-height: 360px;
+}
+
+.food-trade-chart__error {
+    padding: 24px;
+    color: #b00020;
+}
+
+// Trim the chart a little on narrow screens, where vertical space is tighter
+.food-trade-chart--narrow .food-trade-captioned-chart__chart-area {
+    height: 380px;
+}

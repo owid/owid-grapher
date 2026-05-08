@@ -384,6 +384,8 @@ __metadata:
     "@react-stately/flags": "npm:^3.1.2"
     "@rollup/plugin-swc": "npm:^0.4.0"
     "@swc/core": "npm:^1.15.21"
+    "@tanstack/react-query": "npm:^5.100.9"
+    "@types/d3-dsv": "npm:^3.0.7"
     "@types/react": "npm:^19.2.14"
     "@types/react-dom": "npm:^19.2.3"
     "@typescript/native-preview": "npm:^7.0.0-dev.20260313.1"
@@ -392,6 +394,7 @@ __metadata:
     "@visx/responsive": "npm:^3.12.0"
     "@vitejs/plugin-react": "npm:^6.0.0"
     classnames: "npm:^2.5.1"
+    d3-dsv: "npm:^3.0.1"
     jotai: "npm:^2.18.1"
     normalize.css: "npm:^8.0.1"
     react: "npm:^19.2.4"
@@ -1040,7 +1043,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/d3-dsv@npm:*":
+"@types/d3-dsv@npm:*, @types/d3-dsv@npm:^3.0.7":
   version: 3.0.7
   resolution: "@types/d3-dsv@npm:3.0.7"
   checksum: 10/8507f542135cae472781dff1c3b391eceedad0f2032d24ac4a0814e72e2f6877e4ddcb66f44627069977ee61029dc0a729edf659ed73cbf1040f55a7451f05ef
@@ -1891,7 +1894,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"d3-dsv@npm:1 - 3, d3-dsv@npm:3":
+"d3-dsv@npm:1 - 3, d3-dsv@npm:3, d3-dsv@npm:^3.0.1":
   version: 3.0.1
   resolution: "d3-dsv@npm:3.0.1"
   dependencies:
