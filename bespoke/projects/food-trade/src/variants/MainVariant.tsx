@@ -39,10 +39,10 @@ export function MainVariant() {
 function FetchingMainVariant() {
     const { data, status, error } = useTradeData()
 
-    const products = useMemo(
-        () => Array.from(new Set(data?.map((d) => d.item) ?? [])).sort(),
-        [data]
-    )
+    const products = useMemo(() => {
+        const items = Array.from(new Set(data?.map((d) => d.item) ?? [])).sort()
+        return ["All", ...items]
+    }, [data])
     // Union of every country that ever appears on either side of a trade row,
     // so importer-only and exporter-only countries both show up in the picker.
     const countries = useMemo(
@@ -61,12 +61,20 @@ function FetchingMainVariant() {
 
     const incoming = useMemo(() => {
         if (!data) return []
-        return data.filter((d) => d.item === product && d.importer === country)
+        return data.filter(
+            (d) =>
+                (product === "All" || d.item === product) &&
+                d.importer === country
+        )
     }, [data, product, country])
 
     const outgoing = useMemo(() => {
         if (!data) return []
-        return data.filter((d) => d.item === product && d.exporter === country)
+        return data.filter(
+            (d) =>
+                (product === "All" || d.item === product) &&
+                d.exporter === country
+        )
     }, [data, product, country])
 
     if (status === "pending") return <FoodTradeSkeleton />
@@ -116,6 +124,11 @@ function CaptionedMainVariant({
     )
     const hasAnyData = incoming.length > 0 || outgoing.length > 0
 
+    // When "All" is selected we describe the data as "food" in prose, so the
+    // sentences read naturally (e.g. "Germany imported X of food in 2024").
+    const productNoun = product === "All" ? "food" : product
+    const titleSubject = product === "All" ? "Food" : product
+
     return (
         <>
             <Frame className="food-trade-controls">
@@ -141,11 +154,11 @@ function CaptionedMainVariant({
             </Frame>
             <Frame className="food-trade-captioned-chart">
                 <ChartHeader
-                    title={`${product} trade through ${country} in ${DATA_YEAR}`}
+                    title={`${titleSubject} trade through ${country} in ${DATA_YEAR}`}
                     subtitle={
                         <Subtitle
                             country={country}
-                            product={product}
+                            productNoun={productNoun}
                             incomingTotal={incomingTotal}
                             outgoingTotal={outgoingTotal}
                         />
@@ -154,7 +167,7 @@ function CaptionedMainVariant({
                 <div className="food-trade-captioned-chart__chart-area">
                     {!hasAnyData ? (
                         <p className="food-trade-captioned-chart__empty">
-                            No {DATA_YEAR} trade of {product} for {country}{" "}
+                            No {DATA_YEAR} trade of {productNoun} for {country}{" "}
                             recorded.
                         </p>
                     ) : (
@@ -173,19 +186,19 @@ function CaptionedMainVariant({
 
 function Subtitle({
     country,
-    product,
+    productNoun,
     incomingTotal,
     outgoingTotal,
 }: {
     country: string
-    product: string
+    productNoun: string
     incomingTotal: number
     outgoingTotal: number
 }) {
     if (incomingTotal === 0 && outgoingTotal === 0) {
         return (
             <>
-                {country} did not trade {product} in {DATA_YEAR}.
+                {country} did not trade {productNoun} in {DATA_YEAR}.
             </>
         )
     }
@@ -193,22 +206,22 @@ function Subtitle({
         return (
             <>
                 {country} imported {formatTrade(incomingTotal)} and exported{" "}
-                {formatTrade(outgoingTotal)} of {product} in {DATA_YEAR}.
+                {formatTrade(outgoingTotal)} of {productNoun} in {DATA_YEAR}.
             </>
         )
     }
     if (incomingTotal > 0) {
         return (
             <>
-                {country} imported {formatTrade(incomingTotal)} of {product} in{" "}
-                {DATA_YEAR}.
+                {country} imported {formatTrade(incomingTotal)} of{" "}
+                {productNoun} in {DATA_YEAR}.
             </>
         )
     }
     return (
         <>
-            {country} exported {formatTrade(outgoingTotal)} of {product} in{" "}
-            {DATA_YEAR}.
+            {country} exported {formatTrade(outgoingTotal)} of {productNoun}{" "}
+            in {DATA_YEAR}.
         </>
     )
 }

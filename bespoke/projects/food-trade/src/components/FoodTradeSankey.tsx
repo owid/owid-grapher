@@ -86,16 +86,26 @@ export function FoodTradeSankey({
     )
 }
 
-// Pick the importers/exporters to show individually for one direction:
-// top N, then drop those below SHARE_FLOOR. Always keep at least the top 1
-// for pathologically flat distributions so we never show nothing.
+type PartnerRow = { partner: string; value: number }
+
+// Aggregate trade rows by partner (collapsing multiple items into one
+// per-partner total), then pick the top N partners. Drop those below
+// SHARE_FLOOR. Always keep at least the top 1 for pathologically flat
+// distributions so we never show nothing.
 function selectTopWithFloor(
     rows: TradeRow[],
+    partnerKey: "exporter" | "importer",
     n: number
-): { top: TradeRow[]; otherTotal: number; total: number } {
-    const sorted = [...rows]
-        .filter((d) => Number.isFinite(d.value) && d.value > 0)
-        .sort((a, b) => b.value - a.value)
+): { top: PartnerRow[]; otherTotal: number; total: number } {
+    const totals = new Map<string, number>()
+    for (const r of rows) {
+        if (!Number.isFinite(r.value) || r.value <= 0) continue
+        totals.set(r[partnerKey], (totals.get(r[partnerKey]) ?? 0) + r.value)
+    }
+    const sorted = Array.from(totals, ([partner, value]) => ({
+        partner,
+        value,
+    })).sort((a, b) => b.value - a.value)
     const total = sorted.reduce((sum, d) => sum + d.value, 0)
 
     const topCandidates = sorted.slice(0, n)
@@ -119,8 +129,8 @@ function buildBidirectional(
     links: SankeyLink[]
     columnLabels: (string | undefined)[]
 } {
-    const inSel = selectTopWithFloor(incoming, n)
-    const outSel = selectTopWithFloor(outgoing, n)
+    const inSel = selectTopWithFloor(incoming, "exporter", n)
+    const outSel = selectTopWithFloor(outgoing, "importer", n)
     const hasIncoming = inSel.top.length > 0
     const hasOutgoing = outSel.top.length > 0
 
@@ -139,10 +149,10 @@ function buildBidirectional(
     // IDs are prefixed so a country that appears on both sides becomes two
     // distinct nodes (e.g. Mexico-as-sender vs Mexico-as-receiver).
     for (const d of inSel.top) {
-        const id = `incoming:${d.exporter}`
+        const id = `incoming:${d.partner}`
         nodes.push({
             id,
-            label: [d.exporter, valueLabel(d.value, inSel.total)],
+            label: [d.partner, valueLabel(d.value, inSel.total)],
         })
         links.push({ source: id, target: country, value: d.value })
     }
@@ -154,10 +164,10 @@ function buildBidirectional(
 
     // Outgoing side: country → receivers
     for (const d of outSel.top) {
-        const id = `outgoing:${d.importer}`
+        const id = `outgoing:${d.partner}`
         nodes.push({
             id,
-            label: [d.importer, valueLabel(d.value, outSel.total)],
+            label: [d.partner, valueLabel(d.value, outSel.total)],
         })
         links.push({ source: country, target: id, value: d.value })
     }
