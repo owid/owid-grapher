@@ -1,0 +1,150 @@
+.split-flow-sankey {
+    width: 100%;
+    height: 100%;
+}
+
+.split-flow-sankey__grid {
+    display: grid;
+    grid-template-rows: auto 1fr;
+    column-gap: 16px;
+    row-gap: 4px;
+    width: 100%;
+    height: 100%;
+}
+
+.split-flow-sankey__grid--split {
+    grid-template-columns: 1fr 1fr;
+}
+
+.split-flow-sankey__grid--single {
+    grid-template-columns: 1fr;
+}
+
+.split-flow-sankey__heading {
+    font-size: 14px;
+    line-height: 1.3;
+    color: $dark-text;
+    font-weight: 400;
+    min-width: 0;
+}
+
+.split-flow-sankey__heading-emphasis {
+    font-weight: 700;
+}
+
+.split-flow-sankey__heading-annotation {
+    display: block;
+    font-weight: 400;
+    color: $light-text;
+}
+
+.split-flow-sankey__heading--right {
+    grid-row: 1;
+    grid-column: 1;
+    text-align: right;
+}
+
+.split-flow-sankey__heading--left {
+    grid-row: 1;
+    grid-column: 2;
+    text-align: left;
+}
+
+.split-flow-sankey__chart-area {
+    min-width: 0;
+    min-height: 0;
+    position: relative;
+}
+
+.split-flow-sankey__chart-area--incoming {
+    grid-row: 2;
+    grid-column: 1;
+}
+
+.split-flow-sankey__chart-area--outgoing {
+    grid-row: 2;
+    grid-column: 2;
+}
+
+.split-flow-sankey__grid--single {
+    .split-flow-sankey__heading--right,
+    .split-flow-sankey__heading--left,
+    .split-flow-sankey__chart-area--incoming,
+    .split-flow-sankey__chart-area--outgoing {
+        grid-column: 1;
+    }
+}
+
+.split-flow-sankey__chart {
+    width: 100%;
+    height: 100%;
+}
+
+// Narrow containers: stack the two halves vertically
+.split-flow-sankey--stacked .split-flow-sankey__grid--split {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr auto 1fr;
+    row-gap: 0;
+    align-content: start;
+}
+
+.split-flow-sankey--stacked .split-flow-sankey__heading {
+    font-size: 13px;
+    line-height: 1.1;
+}
+
+.split-flow-sankey--stacked .split-flow-sankey__heading-annotation {
+    display: inline;
+}
+
+.split-flow-sankey--stacked .split-flow-sankey__heading-annotation::before {
+    content: " — ";
+}
+
+.split-flow-sankey--stacked .split-flow-sankey__heading-arrow {
+    display: none;
+}
+
+.split-flow-sankey--stacked .split-flow-sankey__grid--split {
+    .split-flow-sankey__heading--right {
+        grid-row: 1;
+        grid-column: 1;
+        text-align: left;
+    }
+
+    .split-flow-sankey__heading--left {
+        grid-row: 3;
+        grid-column: 1;
+        text-align: left;
+        margin-top: 16px;
+    }
+
+    .split-flow-sankey__chart-area--incoming {
+        grid-row: 2;
+        grid-column: 1;
+    }
+
+    .split-flow-sankey__chart-area--outgoing {
+        grid-row: 4;
+        grid-column: 1;
+    }
+}
+
+.split-flow-sankey:has(.sankey__link--hovered, .sankey__node--hovered)
+    .sankey__link:not(.sankey__link--hovered):not(.sankey__link--active) {
+    stroke-opacity: 0.3;
+}
+
+.split-flow-sankey:has(.sankey__link--hovered, .sankey__node--hovered)
+    .sankey__node:not(.sankey__node--hovered):not(.sankey__node--active),
+.split-flow-sankey:has(.sankey__link--hovered, .sankey__node--hovered)
+    .sankey__label:not(.sankey__label--hovered):not(.sankey__label--active) {
+    opacity: 0.3;
+}
+
+.split-flow-sankey:has(.sankey__link--hovered, .sankey__node--hovered)
+    .sankey__node--anchored,
+.split-flow-sankey:has(.sankey__link--hovered, .sankey__node--hovered)
+    .sankey__label--anchored {
+    opacity: 1;
+}

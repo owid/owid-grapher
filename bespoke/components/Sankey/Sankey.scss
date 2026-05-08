@@ -1,0 +1,44 @@
+.sankey-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.sankey {
+    display: block;
+}
+
+.sankey__link {
+    fill: none;
+    stroke-opacity: 0.6;
+    cursor: default;
+    pointer-events: none;
+
+    &.sankey__link--hovered,
+    &.sankey__link--active {
+        stroke-opacity: 1;
+    }
+}
+
+.sankey__node {
+    stroke: none;
+}
+
+.sankey__label {
+    font-size: 12px;
+    fill: $dark-text;
+    pointer-events: none;
+}
+
+// Dim everything not part of the active focus when either a link or a node is hovered
+.sankey__links:has(.sankey__link--hovered)
+    .sankey__link:not(.sankey__link--hovered):not(.sankey__link--active),
+.sankey:has(.sankey__node--hovered) .sankey__link:not(.sankey__link--active) {
+    stroke-opacity: 0.3;
+}
+.sankey:has(.sankey__link--hovered, .sankey__node--hovered)
+    .sankey__node:not(.sankey__node--hovered):not(.sankey__node--active),
+.sankey:has(.sankey__link--hovered, .sankey__node--hovered)
+    .sankey__label:not(.sankey__label--hovered):not(.sankey__label--active) {
+    opacity: 0.3;
+}

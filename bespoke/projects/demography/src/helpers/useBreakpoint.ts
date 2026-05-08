@@ -1,10 +1,6 @@
-import {
-    createContext,
-    useCallback,
-    useContext,
-    useEffect,
-    useState,
-} from "react"
+import { createContext, useContext } from "react"
+
+import { useContainerWidth } from "../../../../hooks/useContainerWidth.js"
 
 export type Breakpoint = "large" | "medium" | "small" | "narrow"
 
@@ -34,26 +30,12 @@ export function useContainerBreakpoint(): {
     breakpoint: Breakpoint
     ref: (node: HTMLElement | null) => void
 } {
-    const [node, setNode] = useState<HTMLElement | null>(null)
-    const [breakpoint, setBreakpoint] = useState<Breakpoint>("large")
+    // Observe the parent element's width to avoid circular dependencies
+    // when this element has a max-width that depends on the breakpoint.
+    const { width, ref } = useContainerWidth({ target: "parent" })
 
-    const ref = useCallback((el: HTMLElement | null) => {
-        setNode(el)
-    }, [])
-
-    useEffect(() => {
-        // Observe the parent element's width to avoid circular dependencies
-        // when this element has a max-width that depends on the breakpoint.
-        const target = node?.parentElement
-        if (!target) return
-
-        const update = () => setBreakpoint(toBreakpoint(target.clientWidth))
-
-        const observer = new ResizeObserver(update)
-        observer.observe(target)
-        update()
-        return () => observer.disconnect()
-    }, [node])
+    // Default to "large" until the first measurement lands (width 0)
+    const breakpoint = width > 0 ? toBreakpoint(width) : "large"
 
     return { breakpoint, ref }
 }

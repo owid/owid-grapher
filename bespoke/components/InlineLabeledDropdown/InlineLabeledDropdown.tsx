@@ -69,4 +69,4 @@ function findOptionByValue(
     return null
 }
 
-export type { BasicDropdownOption }
+export type { BasicDropdownOption, DropdownCollection }
