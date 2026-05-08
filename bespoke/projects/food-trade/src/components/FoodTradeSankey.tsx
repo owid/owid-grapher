@@ -19,6 +19,16 @@ const TOP_N = 10
 const SHARE_FLOOR = 0.01
 const SOURCE_COLOR = OwidDistinctColors.Denim
 
+// When trade only flows in one direction, a phantom node + link is added on
+// the empty side so d3-sankey lays out a 3-column structure. This keeps the
+// country at the visual midpoint and lets both column headers render. The
+// phantom is rendered transparent and sized as a tiny fraction of the real
+// flow so it never dominates the layout — even when actual values are small.
+const PHANTOM_INCOMING_ID = "__phantom-incoming__"
+const PHANTOM_OUTGOING_ID = "__phantom-outgoing__"
+const PHANTOM_VALUE_RATIO = 1e-6
+const isPhantomId = (id: string) => id.startsWith("__phantom-")
+
 // Maps the data's raw unit codes to a human-readable label used as the suffix
 // in formatted output (e.g. "5 million tonnes"). An empty string means no
 // suffix — relying on the chart title for context (e.g. for "No"-unit items
@@ -74,8 +84,14 @@ export function FoodTradeSankey({
                     height={height}
                     margin={{ top: 8, right: 0, bottom: 8, left: 0 }}
                     nodePadding={12}
-                    nodeColor={() => SOURCE_COLOR}
-                    linkColor={() => SOURCE_COLOR}
+                    nodeColor={(n) =>
+                        isPhantomId(n.id) ? "transparent" : SOURCE_COLOR
+                    }
+                    linkColor={(l) =>
+                        isPhantomId(l.source) || isPhantomId(l.target)
+                            ? "transparent"
+                            : SOURCE_COLOR
+                    }
                     formatValue={(v) => formatTrade(v, unit)}
                     columnLabels={columnLabels}
                 />
@@ -166,15 +182,41 @@ function buildBidirectional(
         links.push({ source: country, target: id, value: outSel.otherTotal })
     }
 
-    // Column headers, indexed by depth. Order mirrors the topology built
-    // above: leftmost is "Imports" if any senders exist, the center column
-    // is unlabeled (chart title names the country), rightmost is "Exports"
-    // if any receivers exist. When a side is empty its column simply
-    // doesn't exist, so depth indexing collapses correctly.
-    const columnLabels: (string | undefined)[] = []
-    if (hasIncoming) columnLabels.push("Imports from →")
-    columnLabels.push(undefined) // center column (the country)
-    if (hasOutgoing) columnLabels.push("Exports to →")
+    // Pad with a phantom column on whichever side has no real data, so the
+    // country stays at the visual midpoint and both column headers render.
+    // Sized as a tiny fraction of the active side's real total so it stays
+    // smaller than the real data even when totals are very small.
+    const hasAnyData = hasIncoming || hasOutgoing
+    const phantomValue =
+        Math.max(inSel.total, outSel.total) * PHANTOM_VALUE_RATIO
+    if (hasAnyData && !hasIncoming) {
+        nodes.unshift({ id: PHANTOM_INCOMING_ID, label: "" })
+        links.unshift({
+            source: PHANTOM_INCOMING_ID,
+            target: country,
+            value: phantomValue,
+        })
+    }
+    if (hasAnyData && !hasOutgoing) {
+        nodes.push({ id: PHANTOM_OUTGOING_ID, label: "" })
+        links.push({
+            source: country,
+            target: PHANTOM_OUTGOING_ID,
+            value: phantomValue,
+        })
+    }
+
+    // Column headers — when there's any data, always show both so the chart
+    // structure stays consistent across products. The empty side gets a
+    // "No imports" / "No exports" label that visually distinguishes it from
+    // the arrow-bearing labels of the active side.
+    const columnLabels: (string | undefined)[] = hasAnyData
+        ? [
+              hasIncoming ? "Imports from →" : "No imports",
+              undefined,
+              hasOutgoing ? "Exports to →" : "No exports",
+          ]
+        : []
 
     return { nodes, links, columnLabels }
 }

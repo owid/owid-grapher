@@ -197,32 +197,23 @@ function Subtitle({
     if (incomingTotal > 0 && outgoingTotal > 0) {
         return (
             <>
-                {country} imported{" "}
-                <strong>{formatTrade(incomingTotal, unit)}</strong> and exported{" "}
-                <strong>
-                    {formatTrade(outgoingTotal, unit)} of {product}
-                </strong>{" "}
-                in {DATA_YEAR}.
+                {country} imported {formatTrade(incomingTotal, unit)} and
+                exported {formatTrade(outgoingTotal, unit)} of {product} in{" "}
+                {DATA_YEAR}.
             </>
         )
     }
     if (incomingTotal > 0) {
         return (
             <>
-                {country} imported{" "}
-                <strong>
-                    {formatTrade(incomingTotal, unit)} of {product}
-                </strong>{" "}
-                in {DATA_YEAR}.
+                {country} imported {formatTrade(incomingTotal, unit)} of{" "}
+                {product} in {DATA_YEAR}.
             </>
         )
     }
     return (
         <>
-            {country} exported{" "}
-            <strong>
-                {formatTrade(outgoingTotal, unit)} of {product}
-            </strong>{" "}
+            {country} exported {formatTrade(outgoingTotal, unit)} of {product}{" "}
             in {DATA_YEAR}.
         </>
     )
