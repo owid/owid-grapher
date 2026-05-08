@@ -97,6 +97,9 @@ export function Sankey({
 
     const layout = useMemo<LaidOutGraph | null>(() => {
         if (width <= 0 || height <= 0) return null
+        // d3-sankey crashes on an empty graph (it calls `new Array(NaN)`
+        // when computing layer count from nodes with no depth). Bail out.
+        if (nodes.length === 0) return null
 
         // Determine which nodes' labels render outside the chart area, by
         // graph topology: nodes with no incoming links sit in the leftmost
@@ -168,6 +171,12 @@ export function Sankey({
     const linkPath = sankeyLinkHorizontal<SankeyNode, SankeyLink>()
     const midX = width / 2
     const columnLabelY = margin.top + COLUMN_LABEL_HEIGHT_PX / 2
+    // For 2-column Sankeys, the only flow midpoint sits between both
+    // columns, so flow-midpoint placement would put both column labels at
+    // the same x and overlap. In that case fall back to placing each label
+    // over its own column.
+    const distinctDepths = new Set(layout.nodes.map((n) => n.depth ?? 0))
+    const useColumnCenter = distinctDepths.size <= 2
 
     return (
         <svg
@@ -196,13 +205,21 @@ export function Sankey({
                         const prevNode = layout.nodes.find(
                             (n) => n.depth === depth - 1
                         )
-                        const cx = nextNode
-                            ? ((nodeAtDepth.x1 ?? 0) + (nextNode.x0 ?? 0)) / 2
-                            : prevNode
-                              ? ((prevNode.x1 ?? 0) + (nodeAtDepth.x0 ?? 0)) / 2
-                              : ((nodeAtDepth.x0 ?? 0) +
-                                    (nodeAtDepth.x1 ?? 0)) /
+                        const cx = useColumnCenter
+                            ? ((nodeAtDepth.x0 ?? 0) +
+                                  (nodeAtDepth.x1 ?? 0)) /
+                              2
+                            : nextNode
+                              ? ((nodeAtDepth.x1 ?? 0) +
+                                    (nextNode.x0 ?? 0)) /
                                 2
+                              : prevNode
+                                ? ((prevNode.x1 ?? 0) +
+                                      (nodeAtDepth.x0 ?? 0)) /
+                                  2
+                                : ((nodeAtDepth.x0 ?? 0) +
+                                      (nodeAtDepth.x1 ?? 0)) /
+                                  2
                         return (
                             <text
                                 key={depth}

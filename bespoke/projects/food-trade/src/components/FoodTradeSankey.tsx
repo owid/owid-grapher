@@ -237,3 +237,147 @@ function buildBidirectional(
 
     return { nodes, links, columnLabels }
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Bilateral Sankey: shown when Country = "All countries" + a specific product.
+// Top exporters on the left, top importers on the right, with bilateral
+// pair-flow links between them. No central country.
+// ─────────────────────────────────────────────────────────────────────────────
+
+const OTHER_EXPORTERS_ID = "exporter:__other__"
+const OTHER_IMPORTERS_ID = "importer:__other__"
+
+export function FoodTradeBilateralSankey({ rows }: { rows: TradeRow[] }) {
+    const { parentRef, width, height } = useParentSize()
+
+    const { nodes, links, columnLabels } = useMemo(
+        () => buildBilateral(rows, TOP_N),
+        [rows]
+    )
+
+    return (
+        <div ref={parentRef} className="food-trade-sankey">
+            {width > 0 && height > 0 && (
+                <Sankey
+                    nodes={nodes}
+                    links={links}
+                    width={width}
+                    height={height}
+                    margin={{ top: 8, right: 0, bottom: 8, left: 0 }}
+                    nodePadding={12}
+                    nodeColor={() => SOURCE_COLOR}
+                    linkColor={() => SOURCE_COLOR}
+                    formatValue={formatTrade}
+                    columnLabels={columnLabels}
+                />
+            )}
+        </div>
+    )
+}
+
+function buildBilateral(
+    rows: TradeRow[],
+    n: number
+): {
+    nodes: SankeyNode[]
+    links: SankeyLink[]
+    columnLabels: (string | undefined)[]
+} {
+    const exporterSel = selectTopWithFloor(rows, "exporter", n)
+    const importerSel = selectTopWithFloor(rows, "importer", n)
+    // Exporter and importer totals are equal in theory (same trade flow seen
+    // from both sides). In practice tiny floating-point diffs are possible.
+    const total = Math.max(exporterSel.total, importerSel.total)
+
+    if (total === 0) {
+        return { nodes: [], links: [], columnLabels: [] }
+    }
+
+    const topExporters = new Set(exporterSel.top.map((d) => d.partner))
+    const topImporters = new Set(importerSel.top.map((d) => d.partner))
+
+    // Aggregate row values into (categorized exporter, categorized importer)
+    // pairs. Non-top countries collapse into the Other buckets per side.
+    type Pair = { exp: string; imp: string; value: number }
+    const pairs = new Map<string, Pair>()
+    for (const r of rows) {
+        if (!Number.isFinite(r.value) || r.value <= 0) continue
+        const exp = topExporters.has(r.exporter) ? r.exporter : "__other__"
+        const imp = topImporters.has(r.importer) ? r.importer : "__other__"
+        const key = `${exp}\x00${imp}`
+        const existing = pairs.get(key)
+        if (existing) existing.value += r.value
+        else pairs.set(key, { exp, imp, value: r.value })
+    }
+
+    // Apply 1% floor on top-to-top links only. Other-bucket links always
+    // render when non-zero so the aggregate isn't lost. If the floor filters
+    // out every pair (pathological case: all top countries trade with each
+    // other in tiny amounts and no Other buckets exist), fall back to
+    // showing all positive pairs — better than rendering nothing.
+    const allPositive = Array.from(pairs.values()).filter((p) => p.value > 0)
+    const filtered = allPositive.filter((p) => {
+        const involvesOther = p.exp === "__other__" || p.imp === "__other__"
+        if (involvesOther) return true
+        return p.value / total >= SHARE_FLOOR
+    })
+    const visiblePairs = filtered.length > 0 ? filtered : allPositive
+
+    // Determine which side nodes are actually used (referenced by visible
+    // links) so we don't render a top-N node that has no flow above the floor.
+    const usedExporters = new Set(visiblePairs.map((p) => p.exp))
+    const usedImporters = new Set(visiblePairs.map((p) => p.imp))
+
+    const nodes: SankeyNode[] = []
+    const links: SankeyLink[] = []
+
+    const valueLabel = (value: number, sideTotal: number) =>
+        sideTotal > 0
+            ? `${formatTrade(value)} (${formatPct((value / sideTotal) * 100)})`
+            : formatTrade(value)
+
+    // Left column: top exporters in order of total (largest first), then Other.
+    for (const d of exporterSel.top) {
+        if (!usedExporters.has(d.partner)) continue
+        nodes.push({
+            id: `exporter:${d.partner}`,
+            label: [
+                truncateLabel(d.partner),
+                valueLabel(d.value, exporterSel.total),
+            ],
+        })
+    }
+    if (usedExporters.has("__other__")) {
+        nodes.push({ id: OTHER_EXPORTERS_ID, label: "Other" })
+    }
+
+    // Right column: top importers, then Other.
+    for (const d of importerSel.top) {
+        if (!usedImporters.has(d.partner)) continue
+        nodes.push({
+            id: `importer:${d.partner}`,
+            label: [
+                truncateLabel(d.partner),
+                valueLabel(d.value, importerSel.total),
+            ],
+        })
+    }
+    if (usedImporters.has("__other__")) {
+        nodes.push({ id: OTHER_IMPORTERS_ID, label: "Other" })
+    }
+
+    // Build links from visible pairs.
+    for (const p of visiblePairs) {
+        const sourceId =
+            p.exp === "__other__" ? OTHER_EXPORTERS_ID : `exporter:${p.exp}`
+        const targetId =
+            p.imp === "__other__" ? OTHER_IMPORTERS_ID : `importer:${p.imp}`
+        links.push({ source: sourceId, target: targetId, value: p.value })
+    }
+
+    return {
+        nodes,
+        links,
+        columnLabels: ["Exporters →", "Importers"],
+    }
+}
