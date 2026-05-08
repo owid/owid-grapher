@@ -40,6 +40,7 @@ export const ExpandableText = ({
     children,
     containerType,
     alwaysExpanded,
+    onReadMore,
 }: {
     blocks: OwidEnrichedGdocBlock[]
     children?: React.ReactNode
@@ -49,6 +50,7 @@ export const ExpandableText = ({
      * the standalone announcement preview, which mirrors the feed card so
      * grid layout and margin collapsing match. */
     alwaysExpanded?: boolean
+    onReadMore?: () => void
 }) => {
     const [expanded, setExpanded] = useState(false)
     const isExpanded = alwaysExpanded || expanded
@@ -76,7 +78,10 @@ export const ExpandableText = ({
                         {" "}
                         <button
                             className="expandable-text__toggle"
-                            onClick={() => setExpanded(true)}
+                            onClick={() => {
+                                setExpanded(true)
+                                onReadMore?.()
+                            }}
                         >
                             Read more
                         </button>

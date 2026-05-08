@@ -10,6 +10,8 @@ import {
     type DataInsightHit,
     type StackedArticleHit,
     FilterType,
+    type LatestState,
+    type PageChronologicalRecord,
     type UserSurveyExperimentArm,
     type UserSurveyRoleAnswer,
 } from "@ourworldindata/types"
@@ -47,6 +49,38 @@ export class SiteAnalytics extends GrapherAnalytics {
             event: EventCategory.DetailOnDemand,
             eventAction: "show",
             eventTarget: id,
+        })
+    }
+
+    logLatest(state: LatestState) {
+        this.logToGA({
+            event: EventCategory.SiteLatest,
+            eventAction: "filter",
+            latestTopics: state.topics.join("~"),
+            latestType: state.latestType ?? undefined,
+        })
+    }
+
+    logLatestResultClick(hit: PageChronologicalRecord, position: number) {
+        this.logToGA({
+            event: EventCategory.SiteLatestResultClick,
+            eventAction: "click",
+            eventTarget: hit.slug,
+            latestPosition: position,
+            latestType: hit.latestType,
+        })
+    }
+
+    logLatestAnnouncementExpand(
+        hit: PageChronologicalRecord,
+        position: number
+    ) {
+        this.logToGA({
+            event: EventCategory.SiteLatestAnnouncementExpand,
+            eventAction: "expand",
+            eventTarget: hit.slug,
+            latestPosition: position,
+            latestType: hit.latestType,
         })
     }
 

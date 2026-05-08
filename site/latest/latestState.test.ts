@@ -1,9 +1,6 @@
 import { describe, expect, it } from "vitest"
-import {
-    LatestState,
-    searchParamsToState,
-    stateToSearchParams,
-} from "./latestState.js"
+import { LatestState } from "@ourworldindata/types"
+import { searchParamsToState, stateToSearchParams } from "./latestState.js"
 
 const ALL_AREAS = ["Health", "Energy", "Nutrition"]
 

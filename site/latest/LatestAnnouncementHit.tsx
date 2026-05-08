@@ -7,14 +7,18 @@ import {
     announcementContentTitleId,
     makeAttachments,
 } from "./latestUtils.js"
+import { useLatestContext } from "./LatestContext.js"
 
 export const LatestAnnouncementHit = ({
     hit,
     selectedTopic,
+    position,
 }: {
     hit: PageChronologicalRecord
     selectedTopic?: string
+    position: number
 }) => {
+    const { analytics } = useLatestContext()
     return (
         <AttachmentsContext.Provider value={makeAttachments(hit)}>
             <article
@@ -36,6 +40,9 @@ export const LatestAnnouncementHit = ({
                     body={hit.body ?? []}
                     cta={hit.cta}
                     selectedTopic={selectedTopic}
+                    onReadMore={() =>
+                        analytics.logLatestAnnouncementExpand(hit, position)
+                    }
                 />
             </article>
         </AttachmentsContext.Provider>

@@ -43,3 +43,13 @@ export enum LatestUrlParam {
     TOPICS = "topics",
     TYPE = "type",
 }
+
+export interface LatestState {
+    topics: string[]
+    latestType: LatestType | null
+}
+
+export const DEFAULT_LATEST_STATE: LatestState = {
+    topics: [],
+    latestType: null,
+}

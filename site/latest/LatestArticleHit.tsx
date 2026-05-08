@@ -9,6 +9,7 @@ import { faArrowRight } from "@fortawesome/free-solid-svg-icons"
 import cx from "classnames"
 import { LatestHitMetadata } from "./LatestHitMetadata.js"
 import { LATEST_HIT_GRID_CLASSES, makeAttachments } from "./latestUtils.js"
+import { useLatestContext } from "./LatestContext.js"
 
 /**
  * Article card for the /latest feed.
@@ -23,16 +24,21 @@ import { LATEST_HIT_GRID_CLASSES, makeAttachments } from "./latestUtils.js"
 export const LatestArticleHit = ({
     hit,
     selectedTopic,
+    position,
 }: {
     hit: PageChronologicalRecord
     selectedTopic?: string
+    position: number
 }) => {
+    const { analytics } = useLatestContext()
     const hasRichExcerpt = !!hit.latestExcerpt?.length
     const href = getPrefixedGdocPath("", {
         slug: hit.slug,
         content: { type: OwidGdocType.Article },
     })
     const titleId = `latest-hit-${hit.slug}-title`
+    const handleResultClick = () =>
+        analytics.logLatestResultClick(hit, position)
     return (
         <AttachmentsContext.Provider value={makeAttachments(hit)}>
             <article
@@ -62,6 +68,7 @@ export const LatestArticleHit = ({
                             <a
                                 href={href}
                                 className="latest-article-hit__title-link"
+                                onClick={handleResultClick}
                             >
                                 {hit.title}
                             </a>
@@ -80,6 +87,7 @@ export const LatestArticleHit = ({
                                 <a
                                     href={href}
                                     className="latest-article-hit__read-more"
+                                    onClick={handleResultClick}
                                 >
                                     Read the article
                                     <FontAwesomeIcon icon={faArrowRight} />

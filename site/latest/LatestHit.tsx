@@ -7,6 +7,7 @@ import { LatestAnnouncementHit } from "./LatestAnnouncementHit.js"
 type LatestHitProps = {
     hit: PageChronologicalRecord
     selectedTopic?: string
+    position: number
 }
 
 const HIT_COMPONENTS: Partial<Record<OwidGdocType, React.FC<LatestHitProps>>> =
@@ -17,9 +18,13 @@ const HIT_COMPONENTS: Partial<Record<OwidGdocType, React.FC<LatestHitProps>>> =
     }
 
 /** Dispatches to the appropriate per-type hit card. */
-export const LatestHit = ({ hit, selectedTopic }: LatestHitProps) => {
+export const LatestHit = ({ hit, selectedTopic, position }: LatestHitProps) => {
     const Component = HIT_COMPONENTS[hit.type as OwidGdocType]
     return Component ? (
-        <Component hit={hit} selectedTopic={selectedTopic} />
+        <Component
+            hit={hit}
+            selectedTopic={selectedTopic}
+            position={position}
+        />
     ) : null
 }

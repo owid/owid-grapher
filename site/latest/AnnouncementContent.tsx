@@ -27,6 +27,7 @@ export const AnnouncementContent = ({
     cta,
     isStandalone,
     selectedTopic,
+    onReadMore,
 }: {
     title: string
     latestType?: LatestType
@@ -41,6 +42,7 @@ export const AnnouncementContent = ({
      * (no Read more truncation). */
     isStandalone?: boolean
     selectedTopic?: string
+    onReadMore?: () => void
 }) => {
     const titleId = announcementContentTitleId(slug)
 
@@ -90,6 +92,7 @@ export const AnnouncementContent = ({
                     blocks={body}
                     containerType="latest-announcement"
                     alwaysExpanded={isStandalone}
+                    onReadMore={onReadMore}
                 >
                     {authorByline}
                 </ExpandableText>

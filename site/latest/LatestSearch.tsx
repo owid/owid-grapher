@@ -2,21 +2,23 @@ import { useCallback, useEffect, useMemo, useRef } from "react"
 import { useSearchParams } from "react-router-dom-v5-compat"
 import {
     LATEST_TYPE_VALUES,
+    LatestState,
     LatestType,
     TagGraphRoot,
 } from "@ourworldindata/types"
 import { LiteClient } from "algoliasearch/lite"
 import { useTagGraphTopics } from "../search/searchHooks.js"
-import { useInfiniteLatestPages } from "./latestHooks.js"
+import { useInfiniteLatestPages, useLatestAnalytics } from "./latestHooks.js"
 import { LatestTopicFacets } from "./LatestTopicFacets.js"
 import {
-    LatestState,
     searchParamsToState,
     stateToSearchParams,
     urlNeedsSanitization,
 } from "./latestState.js"
 import { LatestHit } from "./LatestHit.js"
 import { LatestSearchSkeleton } from "./LatestSearchSkeleton.js"
+import { LatestContext } from "./LatestContext.js"
+import { SiteAnalytics } from "../SiteAnalytics.js"
 import { NewsletterSignupBlock } from "../NewsletterSignupBlock.js"
 import { SearchHorizontalDivider } from "../search/SearchHorizontalDivider.js"
 import { SearchNoResults } from "../search/SearchNoResults.js"
@@ -39,6 +41,9 @@ export const LatestSearch = ({
         [searchParams, allAreas]
     )
     const { topics, latestType } = state
+
+    const analytics = useMemo(() => new SiteAnalytics(), [])
+    useLatestAnalytics(state, analytics)
 
     // Sanitize URL: drop unknown params (e.g. legacy `?topic=Health` from old
     // /data-insights links), invalid topic names, and invalid `type` values.
@@ -133,7 +138,7 @@ export const LatestSearch = ({
     }, [isLoading, hits.length])
 
     return (
-        <>
+        <LatestContext.Provider value={{ analytics }}>
             <header className="latest-page-header span-cols-14 grid grid-cols-12-full-width">
                 <h1 className="display-2-semibold span-cols-8 col-start-2 col-md-start-2 span-md-cols-10 col-sm-start-2 span-sm-cols-12">
                     Latest
@@ -173,11 +178,12 @@ export const LatestSearch = ({
                 />
             ) : (
                 <>
-                    {hits.slice(0, 2).map((hit) => (
+                    {hits.slice(0, 2).map((hit, i) => (
                         <LatestHit
                             key={hit.objectID}
                             hit={hit}
                             selectedTopic={topics[0]}
+                            position={i + 1}
                         />
                     ))}
                     {/* Always render the signup block — with 0 or 1 hits it
@@ -187,11 +193,12 @@ export const LatestSearch = ({
                         className="latest-page__newsletter-signup col-start-11 span-cols-3 col-lg-start-10 span-lg-cols-4 span-md-cols-14 col-md-start-1"
                         context={NewsletterSubscriptionContext.Latest}
                     />
-                    {hits.slice(2).map((hit) => (
+                    {hits.slice(2).map((hit, i) => (
                         <LatestHit
                             key={hit.objectID}
                             hit={hit}
                             selectedTopic={topics[0]}
+                            position={i + 3}
                         />
                     ))}
                     {hasNextPage && (
@@ -208,6 +215,6 @@ export const LatestSearch = ({
                 className="col-start-2 span-cols-12"
                 style={{ width: "200px", marginTop: "32px" }}
             />
-        </>
+        </LatestContext.Provider>
     )
 }

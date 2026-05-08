@@ -7,14 +7,18 @@ import { ArticleBlocks } from "../gdocs/components/ArticleBlocks.js"
 import cx from "classnames"
 import { LatestHitMetadata } from "./LatestHitMetadata.js"
 import { LATEST_HIT_GRID_CLASSES, makeAttachments } from "./latestUtils.js"
+import { useLatestContext } from "./LatestContext.js"
 
 export const LatestDataInsightHit = ({
     hit,
     selectedTopic,
+    position,
 }: {
     hit: PageChronologicalRecord
     selectedTopic?: string
+    position: number
 }) => {
+    const { analytics } = useLatestContext()
     const href = getPrefixedGdocPath("", {
         slug: hit.slug,
         content: { type: OwidGdocType.DataInsight },
@@ -43,6 +47,9 @@ export const LatestDataInsightHit = ({
                     href={href}
                     aria-labelledby={titleId}
                     className="latest-data-insight-hit__card grid grid-cols-8"
+                    onClick={() =>
+                        analytics.logLatestResultClick(hit, position)
+                    }
                 >
                     {firstImage && (
                         <Image

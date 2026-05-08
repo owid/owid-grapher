@@ -1,11 +1,6 @@
-import { LatestType, LatestUrlParam } from "@ourworldindata/types"
+import { LatestState, LatestUrlParam } from "@ourworldindata/types"
 import { deserializeSet, serializeSet } from "../search/searchUtils.js"
 import { decodeLatestType } from "./latestUtils.js"
-
-export interface LatestState {
-    topics: string[]
-    latestType: LatestType | null
-}
 
 // Whitelist + validate /latest URL params. Topics not present in `allAreas`
 // are dropped; an unrecognized `type` becomes null. The pair with

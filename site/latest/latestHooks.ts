@@ -1,13 +1,42 @@
 import { keepPreviousData, useInfiniteQuery } from "@tanstack/react-query"
 import { LiteClient } from "algoliasearch/lite"
+import { useEffect, useRef } from "react"
+import * as R from "remeda"
 import {
     latestPagesQueryKey,
     queryLatestPages,
     LatestPagesResult,
 } from "../search/queries.js"
-import type { LatestType, PageChronologicalRecord } from "@ourworldindata/types"
+import {
+    DEFAULT_LATEST_STATE,
+    type LatestState,
+    type LatestType,
+    type PageChronologicalRecord,
+} from "@ourworldindata/types"
+import { SiteAnalytics } from "../SiteAnalytics.js"
 
 const DEFAULT_PAGE_SIZE = 20
+
+/**
+ * Handles analytics tracking for /latest filter state changes.
+ * Mirrors useSearchAnalytics in site/search/searchHooks.ts.
+ */
+export function useLatestAnalytics(
+    state: LatestState,
+    analytics: SiteAnalytics
+): void {
+    const lastLoggedStateRef = useRef<LatestState | null>(null)
+
+    useEffect(() => {
+        // Skip analytics for default/empty state (initial page load).
+        if (R.isDeepEqual(state, DEFAULT_LATEST_STATE)) return
+        // Skip if we already logged this state.
+        if (R.isDeepEqual(state, lastLoggedStateRef.current)) return
+
+        lastLoggedStateRef.current = state
+        analytics.logLatest(state)
+    }, [state, analytics])
+}
 
 export function useInfiniteLatestPages({
     topics,
