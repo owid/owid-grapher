@@ -1,5 +1,6 @@
 import * as React from "react"
 import { observer } from "mobx-react"
+import { Popover } from "antd"
 
 import { Link } from "./Link.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
@@ -21,7 +22,7 @@ export interface VariableListItem {
     multiDimCount?: number
     explorersCount?: number
     usageCount?: number
-    multiDimSlugs?: string[]
+    multiDims?: { id: number; slug: string }[]
     explorerSlugs?: string[]
 }
 
@@ -96,26 +97,68 @@ class VariableRow extends React.Component<VariableRowProps> {
                                 <span title="Used in N charts">
                                     {variable.chartsCount}C
                                 </span>{" "}
-                                <span
-                                    title={
-                                        (variable.multiDimSlugs?.length ?? 0) >
-                                        0
-                                            ? `Multi-dim pages:\n${variable.multiDimSlugs!.join("\n")}`
-                                            : "Used in N multi-dim pages"
-                                    }
-                                >
-                                    {variable.multiDimCount}M
-                                </span>{" "}
-                                <span
-                                    title={
-                                        (variable.explorerSlugs?.length ?? 0) >
-                                        0
-                                            ? `Explorers:\n${variable.explorerSlugs!.join("\n")}`
-                                            : "Used in N path-based explorers"
-                                    }
-                                >
-                                    {variable.explorersCount}E
-                                </span>
+                                {(variable.multiDims?.length ?? 0) > 0 ? (
+                                    <Popover
+                                        title="Multi-dim pages"
+                                        content={
+                                            <ul className="list-unstyled mb-0">
+                                                {variable.multiDims!.map(
+                                                    (md) => (
+                                                        <li key={md.id}>
+                                                            <a
+                                                                href={`/admin/multi-dims/${md.id}`}
+                                                            >
+                                                                {md.slug}
+                                                            </a>
+                                                        </li>
+                                                    )
+                                                )}
+                                            </ul>
+                                        }
+                                    >
+                                        <span
+                                            style={{ cursor: "help" }}
+                                            className="text-decoration-underline"
+                                        >
+                                            {variable.multiDimCount}M
+                                        </span>
+                                    </Popover>
+                                ) : (
+                                    <span title="Used in N multi-dim pages">
+                                        {variable.multiDimCount}M
+                                    </span>
+                                )}{" "}
+                                {(variable.explorerSlugs?.length ?? 0) > 0 ? (
+                                    <Popover
+                                        title="Path-based explorers"
+                                        content={
+                                            <ul className="list-unstyled mb-0">
+                                                {variable.explorerSlugs!.map(
+                                                    (slug) => (
+                                                        <li key={slug}>
+                                                            <a
+                                                                href={`/admin/explorers/${slug}`}
+                                                            >
+                                                                {slug}
+                                                            </a>
+                                                        </li>
+                                                    )
+                                                )}
+                                            </ul>
+                                        }
+                                    >
+                                        <span
+                                            style={{ cursor: "help" }}
+                                            className="text-decoration-underline"
+                                        >
+                                            {variable.explorersCount}E
+                                        </span>
+                                    </Popover>
+                                ) : (
+                                    <span title="Used in N path-based explorers">
+                                        {variable.explorersCount}E
+                                    </span>
+                                )}
                                 )
                             </>
                         ) : (

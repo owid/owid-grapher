@@ -133,7 +133,7 @@ export async function getDataset(
             multiDimCount: number
             explorersCount: number
             usageCount: number
-            multiDimSlugs: string | null
+            multiDims: string | null
             explorerSlugs: string | null
         }
     >(
@@ -149,7 +149,7 @@ export async function getDataset(
             COALESCE(mu.n, 0) AS multiDimCount,
             COALESCE(eu.n, 0) AS explorersCount,
             (COALESCE(cu.n, 0) + COALESCE(mu.n, 0) + COALESCE(eu.n, 0)) AS usageCount,
-            mu.slugs AS multiDimSlugs,
+            mu.items AS multiDims,
             eu.slugs AS explorerSlugs
         FROM variables AS v
         LEFT JOIN (
@@ -160,10 +160,11 @@ export async function getDataset(
         LEFT JOIN (
             -- multi_dim_x_chart_configs.variableId only stores each view's first
             -- y indicator. Scan the view's chart_config dimensions to catch
-            -- every variable used as y / x / size / color in any view.
+            -- every variable used as y / x / size / color in any view. Roll up
+            -- (id, slug) pairs so the admin UI can link to each MDim page.
             SELECT variableId,
                    COUNT(*) AS n,
-                   JSON_ARRAYAGG(slug) AS slugs
+                   JSON_ARRAYAGG(JSON_OBJECT('id', multiDimId, 'slug', slug)) AS items
             FROM (
                 SELECT DISTINCT mdxcc.multiDimId, mdp.slug, jt.variableId
                 FROM multi_dim_x_chart_configs mdxcc
@@ -191,9 +192,9 @@ export async function getDataset(
         [datasetId]
     )
 
-    const parseJsonArray = (raw: unknown): string[] => {
+    const parseJsonArray = <T,>(raw: unknown): T[] => {
         if (!raw) return []
-        if (Array.isArray(raw)) return raw as string[]
+        if (Array.isArray(raw)) return raw as T[]
         try {
             const parsed = JSON.parse(raw as string)
             return Array.isArray(parsed) ? parsed : []
@@ -204,8 +205,10 @@ export async function getDataset(
 
     for (const v of variables) {
         v.display = JSON.parse(v.display)
-        ;(v as any).multiDimSlugs = parseJsonArray(v.multiDimSlugs)
-        ;(v as any).explorerSlugs = parseJsonArray(v.explorerSlugs)
+        ;(v as any).multiDims = parseJsonArray<{ id: number; slug: string }>(
+            v.multiDims
+        )
+        ;(v as any).explorerSlugs = parseJsonArray<string>(v.explorerSlugs)
     }
 
     dataset.variables = variables
