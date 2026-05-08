@@ -120,12 +120,8 @@ export async function getDataset(
 
     if (!dataset) throw new JsonError(`No dataset by id '${datasetId}'`, 404)
 
-    // Per-source aggregate subqueries that compute distinct usage counts and
-    // summed views_365d. The inner GROUP BY collapses each chart / MDim down
-    // to a single row per (variable, consumer) pair, so a chart with multiple
-    // dimensions referencing the same variable doesn't inflate the count or
-    // views. Dedup uses entity ids (charts.id, multi_dim_data_pages.id), not
-    // slugs, since drafts can have NULL slugs.
+    // Per-source distinct usage counts. Dedup uses entity ids (charts.id,
+    // multi_dim_data_pages.id), not slugs, since drafts can have NULL slugs.
     const variables = await db.knexRaw<
         Pick<
             DbRawVariable,
@@ -135,7 +131,6 @@ export async function getDataset(
             multiDimCount: number
             explorersCount: number
             usageCount: number
-            viewsPerDay: number
         }
     >(
         trx,
@@ -149,46 +144,21 @@ export async function getDataset(
             COALESCE(cu.n, 0) AS chartsCount,
             COALESCE(mu.n, 0) AS multiDimCount,
             COALESCE(eu.n, 0) AS explorersCount,
-            (COALESCE(cu.n, 0) + COALESCE(mu.n, 0) + COALESCE(eu.n, 0)) AS usageCount,
-            ROUND(
-                (COALESCE(cu.views, 0) + COALESCE(mu.views, 0) + COALESCE(eu.views, 0)) / 365,
-                1
-            ) AS viewsPerDay
+            (COALESCE(cu.n, 0) + COALESCE(mu.n, 0) + COALESCE(eu.n, 0)) AS usageCount
         FROM variables AS v
         LEFT JOIN (
-            SELECT variableId, COUNT(*) AS n, SUM(views_365d) AS views FROM (
-                SELECT cd.variableId,
-                       c.id AS chartId,
-                       MAX(agv.views_365d) AS views_365d
-                FROM chart_dimensions cd
-                JOIN charts c ON c.id = cd.chartId
-                JOIN chart_configs cc ON cc.id = c.configId
-                LEFT JOIN analytics_grapher_views agv
-                    ON agv.grapher_slug = cc.slug
-                    AND cc.full ->> '$.isPublished' = "true"
-                GROUP BY cd.variableId, c.id
-            ) t
+            SELECT variableId, COUNT(DISTINCT chartId) AS n
+            FROM chart_dimensions
             GROUP BY variableId
         ) cu ON cu.variableId = v.id
         LEFT JOIN (
-            SELECT variableId, COUNT(*) AS n, SUM(views_365d) AS views FROM (
-                SELECT mdxcc.variableId,
-                       mdp.id AS multiDimId,
-                       MAX(agv.views_365d) AS views_365d
-                FROM multi_dim_x_chart_configs mdxcc
-                JOIN multi_dim_data_pages mdp ON mdp.id = mdxcc.multiDimId
-                LEFT JOIN analytics_grapher_views agv ON agv.grapher_slug = mdp.slug
-                GROUP BY mdxcc.variableId, mdp.id
-            ) t
+            SELECT variableId, COUNT(DISTINCT multiDimId) AS n
+            FROM multi_dim_x_chart_configs
             GROUP BY variableId
         ) mu ON mu.variableId = v.id
         LEFT JOIN (
-            SELECT variableId, COUNT(*) AS n, SUM(views_365d) AS views FROM (
-                SELECT DISTINCT ev.variableId, ev.explorerSlug, ap.views_365d
-                FROM explorer_variables ev
-                LEFT JOIN analytics_pageviews ap
-                    ON ap.url = CONCAT('https://ourworldindata.org/explorers/', ev.explorerSlug)
-            ) t
+            SELECT variableId, COUNT(DISTINCT explorerSlug) AS n
+            FROM explorer_variables
             GROUP BY variableId
         ) eu ON eu.variableId = v.id
         WHERE v.datasetId = ?

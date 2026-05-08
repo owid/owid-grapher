@@ -21,7 +21,6 @@ export interface VariableListItem {
     multiDimCount?: number
     explorersCount?: number
     usageCount?: number
-    viewsPerDay?: number
 }
 
 interface VariableRowProps {
@@ -100,21 +99,12 @@ class VariableRow extends React.Component<VariableRowProps> {
                         )}
                     </td>
                 )}
-                {fields.includes("viewsPerDay") && (
-                    <td>
-                        {Number(variable.viewsPerDay ?? 0) > 0 ? (
-                            Number(variable.viewsPerDay).toFixed(1)
-                        ) : (
-                            <span className="text-muted">—</span>
-                        )}
-                    </td>
-                )}
             </tr>
         )
     }
 }
 
-export type VariableListSortField = "usageCount" | "viewsPerDay"
+export type VariableListSortField = "usageCount"
 export interface VariableListSortConfig {
     field: VariableListSortField
     direction: "asc" | "desc"
@@ -180,11 +170,6 @@ export class VariableList extends React.Component<VariableListProps> {
                         )}
                         {props.fields.includes("usage") &&
                             this.renderSortableHeader("usageCount", "Usage")}
-                        {props.fields.includes("viewsPerDay") &&
-                            this.renderSortableHeader(
-                                "viewsPerDay",
-                                "Views/day"
-                            )}
                     </tr>
                 </thead>
                 <tbody>

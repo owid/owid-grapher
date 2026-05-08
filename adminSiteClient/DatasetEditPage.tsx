@@ -487,8 +487,7 @@ class DatasetEditor extends Component<DatasetEditorProps> {
                 .slice()
                 .sort(
                     (a, b) =>
-                        Number(b.usageCount ?? 0) - Number(a.usageCount ?? 0) ||
-                        Number(b.viewsPerDay ?? 0) - Number(a.viewsPerDay ?? 0)
+                        Number(b.usageCount ?? 0) - Number(a.usageCount ?? 0)
                 )
         }
         return variables
@@ -704,7 +703,7 @@ class DatasetEditor extends Component<DatasetEditorProps> {
                         </p>
                         <VariableList
                             variables={filteredVariables}
-                            fields={["usage", "viewsPerDay"]}
+                            fields={["usage"]}
                             searchHighlight={highlight}
                             sortConfig={this.sortConfig}
                             onSort={action(
