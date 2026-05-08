@@ -29,21 +29,9 @@ const PHANTOM_OUTGOING_ID = "__phantom-outgoing__"
 const PHANTOM_VALUE_RATIO = 1e-6
 const isPhantomId = (id: string) => id.startsWith("__phantom-")
 
-// Maps the data's raw unit codes to a human-readable label used as the suffix
-// in formatted output (e.g. "5 million tonnes"). An empty string means no
-// suffix — relying on the chart title for context (e.g. for "No"-unit items
-// like cigarettes).
-const UNIT_LABEL: Record<string, string> = {
-    t: "tonnes",
-    An: "",
-    No: "",
-}
-
-export const getUnitLabel = (unit: string): string => UNIT_LABEL[unit] ?? unit
-
-export const formatTrade = (v: number, unit: string) =>
+export const formatTrade = (v: number) =>
     formatValue(v, {
-        unit: getUnitLabel(unit),
+        unit: "tonnes",
         numberAbbreviation: "long",
         roundingMode: OwidVariableRoundingMode.significantFigures,
         numSignificantFigures: 2,
@@ -60,18 +48,16 @@ export function FoodTradeSankey({
     incoming,
     outgoing,
     country,
-    unit,
 }: {
     incoming: TradeRow[]
     outgoing: TradeRow[]
     country: string
-    unit: string
 }) {
     const { parentRef, width, height } = useParentSize()
 
     const { nodes, links, columnLabels } = useMemo(
-        () => buildBidirectional(incoming, outgoing, country, unit, TOP_N),
-        [incoming, outgoing, country, unit]
+        () => buildBidirectional(incoming, outgoing, country, TOP_N),
+        [incoming, outgoing, country]
     )
 
     return (
@@ -92,7 +78,7 @@ export function FoodTradeSankey({
                             ? "transparent"
                             : SOURCE_COLOR
                     }
-                    formatValue={(v) => formatTrade(v, unit)}
+                    formatValue={formatTrade}
                     columnLabels={columnLabels}
                 />
             )}
@@ -127,7 +113,6 @@ function buildBidirectional(
     incoming: TradeRow[],
     outgoing: TradeRow[],
     country: string,
-    unit: string,
     n: number
 ): {
     nodes: SankeyNode[]
@@ -141,8 +126,8 @@ function buildBidirectional(
 
     const valueLabel = (value: number, sideTotal: number) =>
         sideTotal > 0
-            ? `${formatTrade(value, unit)} (${formatPct((value / sideTotal) * 100)})`
-            : formatTrade(value, unit)
+            ? `${formatTrade(value)} (${formatPct((value / sideTotal) * 100)})`
+            : formatTrade(value)
 
     const nodes: SankeyNode[] = []
     const links: SankeyLink[] = []

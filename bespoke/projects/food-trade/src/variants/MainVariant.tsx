@@ -115,7 +115,6 @@ function CaptionedMainVariant({
         [outgoing]
     )
     const hasAnyData = incoming.length > 0 || outgoing.length > 0
-    const unit = incoming[0]?.unit ?? outgoing[0]?.unit ?? ""
 
     return (
         <>
@@ -147,7 +146,6 @@ function CaptionedMainVariant({
                         <Subtitle
                             country={country}
                             product={product}
-                            unit={unit}
                             incomingTotal={incomingTotal}
                             outgoingTotal={outgoingTotal}
                         />
@@ -164,7 +162,6 @@ function CaptionedMainVariant({
                             incoming={incoming}
                             outgoing={outgoing}
                             country={country}
-                            unit={unit}
                         />
                     )}
                 </div>
@@ -177,13 +174,11 @@ function CaptionedMainVariant({
 function Subtitle({
     country,
     product,
-    unit,
     incomingTotal,
     outgoingTotal,
 }: {
     country: string
     product: string
-    unit: string
     incomingTotal: number
     outgoingTotal: number
 }) {
@@ -197,24 +192,23 @@ function Subtitle({
     if (incomingTotal > 0 && outgoingTotal > 0) {
         return (
             <>
-                {country} imported {formatTrade(incomingTotal, unit)} and
-                exported {formatTrade(outgoingTotal, unit)} of {product} in{" "}
-                {DATA_YEAR}.
+                {country} imported {formatTrade(incomingTotal)} and exported{" "}
+                {formatTrade(outgoingTotal)} of {product} in {DATA_YEAR}.
             </>
         )
     }
     if (incomingTotal > 0) {
         return (
             <>
-                {country} imported {formatTrade(incomingTotal, unit)} of{" "}
-                {product} in {DATA_YEAR}.
+                {country} imported {formatTrade(incomingTotal)} of {product} in{" "}
+                {DATA_YEAR}.
             </>
         )
     }
     return (
         <>
-            {country} exported {formatTrade(outgoingTotal, unit)} of {product}{" "}
-            in {DATA_YEAR}.
+            {country} exported {formatTrade(outgoingTotal)} of {product} in{" "}
+            {DATA_YEAR}.
         </>
     )
 }
