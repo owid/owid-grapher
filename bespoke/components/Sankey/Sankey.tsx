@@ -138,6 +138,11 @@ export function Sankey({
             .nodeId((d) => d.id)
             .nodeWidth(nodeWidth)
             .nodePadding(nodePadding)
+            // Sort within each column by input order so the caller controls
+            // vertical placement (e.g. by inserting "Other" buckets last).
+            // Default behaviour minimizes link crossings, which is unhelpful
+            // for one-to-many fan-out shapes.
+            .nodeSort(null)
             .extent([
                 [finalMargin.left, finalMargin.top],
                 [width - finalMargin.right, height - finalMargin.bottom],

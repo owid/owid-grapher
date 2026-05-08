@@ -24,6 +24,14 @@ const DATA_YEAR = 2024
 const DEFAULT_PRODUCT = "Maize (corn)"
 const DEFAULT_COUNTRY = "United Kingdom"
 
+// Sentinel options for the product dropdown.
+// "All, by country" — aggregate every product, show country-to-country flows.
+// "All, by product" — aggregate every product, show product flows for the
+//   selected country (countries are aggregated away).
+const ALL_BY_COUNTRY = "All, by country"
+const ALL_BY_PRODUCT = "All, by product"
+const isAllProduct = (p: string) => p === ALL_BY_COUNTRY || p === ALL_BY_PRODUCT
+
 const queryClient = new QueryClient()
 
 export function MainVariant() {
@@ -41,7 +49,7 @@ function FetchingMainVariant() {
 
     const products = useMemo(() => {
         const items = Array.from(new Set(data?.map((d) => d.item) ?? [])).sort()
-        return ["All", ...items]
+        return [ALL_BY_COUNTRY, ALL_BY_PRODUCT, ...items]
     }, [data])
     // Union of every country that ever appears on either side of a trade row,
     // so importer-only and exporter-only countries both show up in the picker.
@@ -63,7 +71,7 @@ function FetchingMainVariant() {
         if (!data) return []
         return data.filter(
             (d) =>
-                (product === "All" || d.item === product) &&
+                (isAllProduct(product) || d.item === product) &&
                 d.importer === country
         )
     }, [data, product, country])
@@ -72,7 +80,7 @@ function FetchingMainVariant() {
         if (!data) return []
         return data.filter(
             (d) =>
-                (product === "All" || d.item === product) &&
+                (isAllProduct(product) || d.item === product) &&
                 d.exporter === country
         )
     }, [data, product, country])
@@ -124,10 +132,15 @@ function CaptionedMainVariant({
     )
     const hasAnyData = incoming.length > 0 || outgoing.length > 0
 
-    // When "All" is selected we describe the data as "food" in prose, so the
-    // sentences read naturally (e.g. "Germany imported X of food in 2024").
-    const productNoun = product === "All" ? "food" : product
-    const titleSubject = product === "All" ? "Food" : product
+    // When either "All" mode is selected we describe the data as "food" in
+    // prose, so the sentences read naturally (e.g. "Germany imported X of
+    // food in 2024").
+    const productNoun = isAllProduct(product) ? "food" : product
+    const titleSubject = isAllProduct(product) ? "Food" : product
+
+    // "By product" mode shows products as flow nodes instead of countries.
+    const groupBy: "country" | "product" =
+        product === ALL_BY_PRODUCT ? "product" : "country"
 
     return (
         <>
@@ -175,6 +188,7 @@ function CaptionedMainVariant({
                             incoming={incoming}
                             outgoing={outgoing}
                             country={country}
+                            groupBy={groupBy}
                         />
                     )}
                 </div>

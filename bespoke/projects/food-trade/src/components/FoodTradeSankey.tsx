@@ -18,6 +18,12 @@ const TOP_N = 10
 // being shown individually, even if they fall within the top N.
 const SHARE_FLOOR = 0.01
 const SOURCE_COLOR = OwidDistinctColors.Denim
+// Long product or country names are truncated in node labels so they don't
+// blow up the auto-computed left/right margins. The full name is still
+// available via the link's hover tooltip.
+const MAX_LABEL_LENGTH = 30
+const truncateLabel = (s: string): string =>
+    s.length > MAX_LABEL_LENGTH ? s.slice(0, MAX_LABEL_LENGTH - 1) + "…" : s
 
 // When trade only flows in one direction, a phantom node + link is added on
 // the empty side so d3-sankey lays out a 3-column structure. This keeps the
@@ -48,16 +54,20 @@ export function FoodTradeSankey({
     incoming,
     outgoing,
     country,
+    groupBy = "country",
 }: {
     incoming: TradeRow[]
     outgoing: TradeRow[]
     country: string
+    /** Whether the side flows are aggregated by trading partner (country) or
+     * by item (product). */
+    groupBy?: "country" | "product"
 }) {
     const { parentRef, width, height } = useParentSize()
 
     const { nodes, links, columnLabels } = useMemo(
-        () => buildBidirectional(incoming, outgoing, country, TOP_N),
-        [incoming, outgoing, country]
+        () => buildBidirectional(incoming, outgoing, country, groupBy, TOP_N),
+        [incoming, outgoing, country, groupBy]
     )
 
     return (
@@ -94,7 +104,7 @@ type PartnerRow = { partner: string; value: number }
 // distributions so we never show nothing.
 function selectTopWithFloor(
     rows: TradeRow[],
-    partnerKey: "exporter" | "importer",
+    partnerKey: "exporter" | "importer" | "item",
     n: number
 ): { top: PartnerRow[]; otherTotal: number; total: number } {
     const totals = new Map<string, number>()
@@ -123,14 +133,17 @@ function buildBidirectional(
     incoming: TradeRow[],
     outgoing: TradeRow[],
     country: string,
+    groupBy: "country" | "product",
     n: number
 ): {
     nodes: SankeyNode[]
     links: SankeyLink[]
     columnLabels: (string | undefined)[]
 } {
-    const inSel = selectTopWithFloor(incoming, "exporter", n)
-    const outSel = selectTopWithFloor(outgoing, "importer", n)
+    const incomingKey = groupBy === "product" ? "item" : "exporter"
+    const outgoingKey = groupBy === "product" ? "item" : "importer"
+    const inSel = selectTopWithFloor(incoming, incomingKey, n)
+    const outSel = selectTopWithFloor(outgoing, outgoingKey, n)
     const hasIncoming = inSel.top.length > 0
     const hasOutgoing = outSel.top.length > 0
 
@@ -152,7 +165,10 @@ function buildBidirectional(
         const id = `incoming:${d.partner}`
         nodes.push({
             id,
-            label: [d.partner, valueLabel(d.value, inSel.total)],
+            label: [
+                truncateLabel(d.partner),
+                valueLabel(d.value, inSel.total),
+            ],
         })
         links.push({ source: id, target: country, value: d.value })
     }
@@ -167,7 +183,10 @@ function buildBidirectional(
         const id = `outgoing:${d.partner}`
         nodes.push({
             id,
-            label: [d.partner, valueLabel(d.value, outSel.total)],
+            label: [
+                truncateLabel(d.partner),
+                valueLabel(d.value, outSel.total),
+            ],
         })
         links.push({ source: country, target: id, value: d.value })
     }
@@ -204,12 +223,15 @@ function buildBidirectional(
     // Column headers — when there's any data, always show both so the chart
     // structure stays consistent across products. The empty side gets a
     // "No imports" / "No exports" label that visually distinguishes it from
-    // the arrow-bearing labels of the active side.
+    // the arrow-bearing labels of the active side. By-product mode drops the
+    // "from"/"to" qualifiers since you don't import "from" a product.
+    const importsHeader = groupBy === "product" ? "Imports →" : "Imports from →"
+    const exportsHeader = groupBy === "product" ? "Exports →" : "Exports to →"
     const columnLabels: (string | undefined)[] = hasAnyData
         ? [
-              hasIncoming ? "Imports from →" : "No imports",
+              hasIncoming ? importsHeader : "No imports",
               undefined,
-              hasOutgoing ? "Exports to →" : "No exports",
+              hasOutgoing ? exportsHeader : "No exports",
           ]
         : []
 
