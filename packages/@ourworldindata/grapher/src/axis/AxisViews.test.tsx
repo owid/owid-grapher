@@ -8,6 +8,7 @@ import { AxisConfig } from "./AxisConfig"
 import { DualAxisComponent, HorizontalAxisGridLines } from "./AxisViews"
 import { ScaleType } from "@ourworldindata/types"
 import { DualAxis } from "./Axis"
+import { DEFAULT_GRAPHER_BOUNDS } from "../core/GrapherConstants.js"
 
 it("can create horizontal axis", () => {
     const axisConfig = new AxisConfig({
@@ -18,7 +19,8 @@ it("can create horizontal axis", () => {
 
     const { container } = render(
         <HorizontalAxisGridLines
-            horizontalAxis={axisConfig.toHorizontalAxis()}
+            axis={axisConfig.toHorizontalAxis()}
+            bounds={DEFAULT_GRAPHER_BOUNDS}
         />
     )
     expect(container.firstChild).toBeTruthy()

@@ -202,7 +202,7 @@ export class StackedAreaChartThumbnail
         return (
             <>
                 <VerticalAxisZeroLine
-                    verticalAxis={this.dualAxis.verticalAxis}
+                    axis={this.dualAxis.verticalAxis}
                     bounds={this.dualAxis.innerBounds}
                 />
                 <HorizontalAxisComponent

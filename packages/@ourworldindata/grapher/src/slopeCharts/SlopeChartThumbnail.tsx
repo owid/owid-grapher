@@ -2,7 +2,6 @@ import React from "react"
 import * as _ from "remeda"
 import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
-import { scaleLinear, ScaleLinear } from "d3-scale"
 import { ChartInterface } from "../chart/ChartInterface"
 import { SlopeChartState } from "./SlopeChartState.js"
 import { type SlopeChartProps } from "./SlopeChart.js"
@@ -13,6 +12,7 @@ import {
     SlopeChartSeries,
 } from "./SlopeChartConstants"
 import {
+    getXAxisConfigSettings,
     getYAxisConfigDefaults,
     toPlacedSlopeChartSeries,
     toRenderSlopeChartSeries,
@@ -24,12 +24,12 @@ import {
     GRAPHER_FONT_SCALE_12,
 } from "../core/GrapherConstants"
 import { Bounds, SeriesName } from "@ourworldindata/utils"
-import { VerticalAxis } from "../axis/Axis"
+import { HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import { Slope } from "./Slope"
+import { SlopeChartXAxis } from "./SlopeChartXAxis"
 import { InitialSimpleLabelSeries } from "../verticalLabels/SimpleVerticalLabelsTypes.js"
 import { SimpleVerticalLabelsState } from "../verticalLabels/SimpleVerticalLabelsState"
 import { SimpleVerticalLabels } from "../verticalLabels/SimpleVerticalLabels"
-import { MarkX } from "./MarkX"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 
 const DOT_RADIUS = 3.5
@@ -88,6 +88,7 @@ export class SlopeChartThumbnail
     }
 
     @computed private get xMarksHeight(): number {
+        if (this.xAxisConfig.hideTickLabels) return 0
         return this.xMarkFontSize
     }
 
@@ -107,6 +108,19 @@ export class SlopeChartThumbnail
             .padLeft(leftPadding)
     }
 
+    /**
+     * Bounds whose horizontal extent is exactly [startX, endX],
+     * the start and end of the slope lines
+     */
+    @computed private get slopeAreaBounds(): Bounds {
+        return new Bounds(
+            this.startX,
+            this.innerBounds.top,
+            this.endX - this.startX,
+            this.innerBounds.height
+        )
+    }
+
     @computed get fontSize(): number {
         return this.manager.fontSize ?? BASE_FONT_SIZE
     }
@@ -116,6 +130,15 @@ export class SlopeChartThumbnail
         const defaults = getYAxisConfigDefaults(yAxisConfig)
         const custom = { hideAxis: true }
         return new AxisConfig({ ...defaults, ...custom, ...yAxisConfig }, this)
+    }
+
+    @computed private get xAxisConfig(): AxisConfig {
+        const { xAxisConfig } = this.manager
+        const overrides = getXAxisConfigSettings(xAxisConfig, {
+            startTime: this.chartState.startTime,
+            endTime: this.chartState.endTime,
+        })
+        return new AxisConfig({ ...xAxisConfig, ...overrides }, this)
     }
 
     @computed get yDomain(): [number, number] {
@@ -133,21 +156,22 @@ export class SlopeChartThumbnail
         return this.innerBounds.padHeight(6).yRange()
     }
 
+    @computed get xAxis(): HorizontalAxis {
+        return this.chartState.toHorizontalAxis(this.xAxisConfig, {
+            xRange: this.xRange,
+        })
+    }
+
     @computed private get xRange(): [number, number] {
         return this.innerBounds.xRange()
     }
 
-    @computed private get xScale(): ScaleLinear<number, number> {
-        const { xRange } = this
-        return scaleLinear().domain(this.chartState.xDomain).range(xRange)
-    }
-
     @computed private get startX(): number {
-        return this.xScale(this.chartState.startTime)
+        return this.xAxis.place(this.chartState.startTime)
     }
 
     @computed private get endX(): number {
-        return this.xScale(this.chartState.endTime)
+        return this.xAxis.place(this.chartState.endTime)
     }
 
     @computed get yAxis(): VerticalAxis {
@@ -323,21 +347,10 @@ export class SlopeChartThumbnail
 
         return (
             <>
-                <MarkX
-                    label={this.formattedStartTime}
-                    x={this.startX}
-                    top={this.innerBounds.top}
-                    bottom={this.innerBounds.bottom}
-                    labelPadding={4}
-                    fontSize={this.yAxis.tickFontSize}
-                />
-                <MarkX
-                    label={this.formattedEndTime}
-                    x={this.endX}
-                    top={this.innerBounds.top}
-                    bottom={this.innerBounds.bottom}
-                    labelPadding={4}
-                    fontSize={this.yAxis.tickFontSize}
+                <SlopeChartXAxis
+                    axis={this.xAxis}
+                    bounds={this.slopeAreaBounds}
+                    padding={2}
                 />
                 <g>
                     {this.renderSeries.map((series) => (

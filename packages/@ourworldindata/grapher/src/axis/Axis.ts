@@ -621,16 +621,20 @@ export class HorizontalAxis extends AbstractAxis {
         return this.rangeSize
     }
 
-    // note that we intentionally don't take `hideAxisLabels` into account here.
-    // tick labels might be hidden in faceted charts. when faceted, it's important
-    // the axis size doesn't change as a result of hiding the axis labels, or else
-    // we might end up with misaligned axes.
     @computed get height(): number {
-        if (this.hideAxis) return 0
-        const { labelOffset, tickPadding } = this
+        const {
+            hideAxis,
+            labelOffset,
+            tickPadding,
+            config: { minSize = 0 },
+        } = this
+
+        if (hideAxis) return 0
+
         const maxTickHeight = _.max(this.tickLabels.map((tick) => tick.height))
-        const tickHeight = maxTickHeight ? maxTickHeight + tickPadding : 0
-        return Math.max(tickHeight + labelOffset, this.config.minSize ?? 0)
+        const paddedTickHeight = maxTickHeight ? maxTickHeight + tickPadding : 0
+
+        return Math.max(paddedTickHeight + labelOffset, minSize)
     }
 
     @computed get size(): number {
@@ -743,17 +747,19 @@ export class VerticalAxis extends AbstractAxis {
         return this.labelHeight
     }
 
-    // note that we intentionally don't take `hideAxisLabels` into account here.
-    // tick labels might be hidden in faceted charts. when faceted, it's important
-    // the axis size doesn't change as a result of hiding the axis labels, or else
-    // we might end up with misaligned axes.
     @computed get width(): number {
-        if (this.hideAxis) return 0
-        const { tickPadding } = this
+        const {
+            hideAxis,
+            tickPadding,
+            config: { minSize = 0 },
+        } = this
+
+        if (hideAxis) return 0
+
         const maxTickWidth = _.max(this.tickLabels.map((tick) => tick.width))
-        const tickWidth =
-            maxTickWidth !== undefined ? maxTickWidth + tickPadding : 0
-        return Math.max(tickWidth, this.config.minSize ?? 0)
+        const paddedTickWidth = maxTickWidth ? maxTickWidth + tickPadding : 0
+
+        return Math.max(paddedTickWidth, minSize)
     }
 
     @computed get height(): number {

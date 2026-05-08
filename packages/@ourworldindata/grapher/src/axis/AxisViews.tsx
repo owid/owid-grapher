@@ -18,14 +18,13 @@ import { GRAPHER_DARK_TEXT } from "../color/ColorConstants"
 import { ScaleType, DetailsMarker } from "@ourworldindata/types"
 import { MarkdownTextWrapSvg } from "@ourworldindata/components"
 import { ComparisonLine } from "../comparisonLine/ComparisonLine"
-import { DEFAULT_GRAPHER_BOUNDS } from "../core/GrapherConstants"
 
 const TICK_COLOR = "#ddd"
 const FAINT_TICK_COLOR = "#eee"
 const SOLID_TICK_COLOR = "#999"
 
 interface VerticalAxisGridLinesProps {
-    verticalAxis: VerticalAxis
+    axis: VerticalAxis
     bounds: Bounds
     strokeWidth?: number
     dashPattern?: string
@@ -34,8 +33,9 @@ interface VerticalAxisGridLinesProps {
 @observer
 export class VerticalAxisGridLines extends React.Component<VerticalAxisGridLinesProps> {
     override render(): React.ReactElement {
-        const { bounds, verticalAxis, strokeWidth } = this.props
-        const axis = verticalAxis.clone()
+        const { bounds, strokeWidth } = this.props
+
+        const axis = this.props.axis.clone()
         axis.range = bounds.yRange()
 
         return (
@@ -55,7 +55,7 @@ export class VerticalAxisGridLines extends React.Component<VerticalAxisGridLines
 
                     return (
                         <line
-                            id={makeFigmaId(verticalAxis.formatTick(t.value))}
+                            id={makeFigmaId(axis.formatTick(t.value))}
                             className={className}
                             key={t.value}
                             x1={bounds.left.toFixed(2)}
@@ -74,27 +74,18 @@ export class VerticalAxisGridLines extends React.Component<VerticalAxisGridLines
 }
 
 interface HorizontalAxisGridLinesProps {
-    horizontalAxis: HorizontalAxis
-    bounds?: Bounds
+    axis: HorizontalAxis
+    bounds: Bounds
     strokeWidth?: number
     dashPattern?: string
 }
 
 @observer
 export class HorizontalAxisGridLines extends React.Component<HorizontalAxisGridLinesProps> {
-    constructor(props: HorizontalAxisGridLinesProps) {
-        super(props)
-        makeObservable(this)
-    }
-
-    @computed get bounds(): Bounds {
-        return this.props.bounds ?? DEFAULT_GRAPHER_BOUNDS
-    }
-
     override render(): React.ReactElement {
-        const { horizontalAxis, strokeWidth } = this.props
-        const { bounds } = this
-        const axis = horizontalAxis.clone()
+        const { strokeWidth, bounds } = this.props
+
+        const axis = this.props.axis.clone()
         axis.range = bounds.xRange()
 
         return (
@@ -112,7 +103,7 @@ export class HorizontalAxisGridLines extends React.Component<HorizontalAxisGridL
 
                     return (
                         <line
-                            id={makeFigmaId(horizontalAxis.formatTick(t.value))}
+                            id={makeFigmaId(axis.formatTick(t.value))}
                             key={t.value}
                             x1={axis.place(t.value)}
                             y1={bounds.bottom.toFixed(2)}
@@ -130,7 +121,7 @@ export class HorizontalAxisGridLines extends React.Component<HorizontalAxisGridL
 }
 
 interface HorizontalAxisZeroLineProps {
-    horizontalAxis: HorizontalAxis
+    axis: HorizontalAxis
     bounds: Bounds
     strokeWidth?: number
     align?: HorizontalAlign
@@ -141,11 +132,11 @@ export class HorizontalAxisZeroLine extends React.Component<HorizontalAxisZeroLi
     override render(): React.ReactElement {
         const {
             bounds,
-            horizontalAxis,
             align = HorizontalAlign.center,
             strokeWidth = 1,
         } = this.props
-        const axis = horizontalAxis.clone()
+
+        const axis = this.props.axis.clone()
         axis.range = bounds.xRange()
 
         // the zero line is either drawn at the center of the zero tick
@@ -173,7 +164,7 @@ export class HorizontalAxisZeroLine extends React.Component<HorizontalAxisZeroLi
 }
 
 interface VerticalAxisZeroLineProps {
-    verticalAxis: VerticalAxis
+    axis: VerticalAxis
     bounds: Bounds
     stroke?: string
     strokeWidth?: number
@@ -185,13 +176,12 @@ export class VerticalAxisZeroLine extends React.Component<VerticalAxisZeroLinePr
     override render(): React.ReactElement {
         const {
             bounds,
-            verticalAxis,
             stroke = SOLID_TICK_COLOR,
             strokeWidth = 1,
             strokeDasharray,
         } = this.props
 
-        const axis = verticalAxis.clone()
+        const axis = this.props.axis.clone()
         axis.range = bounds.yRange()
 
         const y = axis.place(0)
@@ -242,7 +232,7 @@ export class DualAxisComponent extends React.Component<DualAxisViewProps> {
 
         const verticalGridlines = verticalAxis.hideGridlines ? null : (
             <VerticalAxisGridLines
-                verticalAxis={verticalAxis}
+                axis={verticalAxis}
                 bounds={innerBounds}
                 strokeWidth={lineWidth}
                 dashPattern={gridDashPattern}
@@ -251,7 +241,7 @@ export class DualAxisComponent extends React.Component<DualAxisViewProps> {
 
         const horizontalGridlines = horizontalAxis.hideGridlines ? null : (
             <HorizontalAxisGridLines
-                horizontalAxis={horizontalAxis}
+                axis={horizontalAxis}
                 bounds={innerBounds}
                 strokeWidth={lineWidth}
                 dashPattern={gridDashPattern}
@@ -261,7 +251,7 @@ export class DualAxisComponent extends React.Component<DualAxisViewProps> {
         const verticalAxisComponent = verticalAxis.hideAxis ? null : (
             <VerticalAxisComponent
                 bounds={bounds}
-                verticalAxis={verticalAxis}
+                axis={verticalAxis}
                 labelColor={labelColor}
                 tickColor={tickColor}
                 detailsMarker={detailsMarker}
@@ -308,7 +298,7 @@ export class DualAxisComponent extends React.Component<DualAxisViewProps> {
 
 interface VerticalAxisComponentProps {
     bounds: Bounds
-    verticalAxis: VerticalAxis
+    axis: VerticalAxis
     showTickMarks?: boolean
     labelColor?: string
     tickColor?: string
@@ -321,15 +311,14 @@ export class VerticalAxisComponent extends React.Component<VerticalAxisComponent
     override render(): React.ReactElement {
         const {
             bounds,
-            verticalAxis,
+            axis,
             labelColor,
             tickColor,
             detailsMarker,
             showTickMarks,
             showEndpointsOnly,
         } = this.props
-        const { tickLabels, labelTextWrap, logNoticeTextWrap, config } =
-            verticalAxis
+        const { tickLabels, labelTextWrap, logNoticeTextWrap, config } = axis
 
         let visibleTickLabels = tickLabels
         if (showEndpointsOnly) {
@@ -339,12 +328,11 @@ export class VerticalAxisComponent extends React.Component<VerticalAxisComponent
         }
 
         const shouldShowLogNotice =
-            verticalAxis.shouldShowLogNotice &&
+            axis.shouldShowLogNotice &&
             // Only show the notice if it fits in the margin
-            verticalAxis.logNoticeWidth <= verticalAxis.width
+            axis.logNoticeWidth <= axis.width
 
-        const tickX =
-            bounds.left + verticalAxis.width - verticalAxis.tickPadding
+        const tickX = bounds.left + axis.width - axis.tickPadding
 
         return (
             <g id={makeFigmaId("vertical-axis")} className="VerticalAxis">
@@ -382,12 +370,8 @@ export class VerticalAxisComponent extends React.Component<VerticalAxisComponent
                             <VerticalAxisTickMark
                                 id={makeFigmaId(label.formattedValue)}
                                 key={label.value}
-                                tickMarkYPosition={verticalAxis.place(
-                                    label.value
-                                )}
-                                tickMarkLeftPosition={
-                                    bounds.left + verticalAxis.width
-                                }
+                                tickMarkYPosition={axis.place(label.value)}
+                                tickMarkLeftPosition={bounds.left + axis.width}
                                 color={SOLID_TICK_COLOR}
                             />
                         ))}
@@ -410,7 +394,7 @@ export class VerticalAxisComponent extends React.Component<VerticalAxisComponent
                                         xAlign ?? HorizontalAlign.right
                                     )}
                                     fill={tickColor || GRAPHER_DARK_TEXT}
-                                    fontSize={verticalAxis.tickFontSize}
+                                    fontSize={axis.tickFontSize}
                                 >
                                     {formattedValue}
                                 </text>

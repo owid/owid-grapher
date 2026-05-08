@@ -22,6 +22,7 @@ import {
     FontSettings,
     GRAPHER_FONT_SCALE_12,
 } from "../core/GrapherConstants"
+import { enrichSeriesWithLabels } from "../rowSeriesLabels/RowSeriesLabelHelpers.js"
 import {
     HorizontalAxisComponent,
     HorizontalAxisGridLines,
@@ -62,7 +63,6 @@ import { HorizontalAxis } from "../axis/Axis"
 import { StackedDiscreteBarChartState } from "./StackedDiscreteBarChartState"
 import { ChartComponentProps } from "../chart/ChartTypeMap.js"
 import { StackedDiscreteBarRow } from "./StackedDiscreteBarRow"
-import { enrichSeriesWithLabels } from "../barCharts/DiscreteBarChartHelpers.js"
 import { AnimatedRows } from "../animation/AnimatedRows.js"
 import { InteractionState } from "../interaction/InteractionState.js"
 
@@ -283,11 +283,14 @@ export class StackedDiscreteBarChart
         return this.chartState.rows.length
     }
 
+    @computed private get availableHeightPerSeries(): number {
+        return this.boundsWithoutLegend.height / this.barCount
+    }
+
     @computed private get labelFontSize(): number {
-        const availableHeight = this.boundsWithoutLegend.height / this.barCount
         return Math.min(
             GRAPHER_FONT_SCALE_12 * this.fontSize,
-            1.1 * availableHeight
+            1.1 * this.availableHeightPerSeries
         )
     }
 
@@ -302,8 +305,7 @@ export class StackedDiscreteBarChart
     @computed private get sizedRows(): readonly SizedDiscreteBarRow[] {
         return enrichSeriesWithLabels({
             series: this.chartState.sortedRows,
-            availableHeightPerSeries:
-                this.boundsWithoutLegend.height / this.barCount,
+            availableHeightPerSeries: this.availableHeightPerSeries,
             minLabelWidth: 0.3 * this.boundsWithoutLegend.width,
             maxLabelWidth: 0.66 * this.boundsWithoutLegend.width,
             fontSettings: this.labelStyle,
@@ -629,13 +631,13 @@ export class StackedDiscreteBarChart
                             preferredAxisPosition={innerBounds.bottom}
                         />
                         <HorizontalAxisGridLines
-                            horizontalAxis={yAxis}
+                            axis={yAxis}
                             bounds={innerBounds}
                         />
                     </>
                 )}
                 <HorizontalAxisZeroLine
-                    horizontalAxis={yAxis}
+                    axis={yAxis}
                     bounds={innerBounds}
                     strokeWidth={0.5}
                     // Moves the zero line a little to the left

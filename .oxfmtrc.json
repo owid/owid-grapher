@@ -10,6 +10,12 @@
             "options": {
                 "trailingComma": "none"
             }
+        },
+        {
+            "files": ["*.yml", "*.yaml"],
+            "options": {
+                "tabWidth": 2
+            }
         }
     ],
     "ignorePatterns": [

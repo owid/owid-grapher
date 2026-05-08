@@ -4,7 +4,7 @@
     "engines": {
         "node": ">=22.0"
     },
-    "packageManager": "yarn@4.10.3",
+    "packageManager": "yarn@4.14.1",
     "scripts": {
         "batchTagWithGpt": "tsx --tsconfig tsconfig.tsx.json baker/batchTagWithGpt.ts",
         "buildArchive": "tsx --tsconfig tsconfig.tsx.json baker/archival/archiveChangedPages.ts",
@@ -167,7 +167,7 @@
         "s-expression": "^3.1.1",
         "safe-stable-stringify": "^2.4.1",
         "sharp": "^0.34.5",
-        "simple-git": "^3.32.3",
+        "simple-git": "^3.36.0",
         "simple-statistics": "^7.8.8",
         "striptags": "^3.2.0",
         "timezone-mock": "^1.0.18",

@@ -16,64 +16,64 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/compose-spec/compose-spec/refs/heads/main/schema/compose-spec.json
 
 services:
-    app:
-        build:
-            context: ./.devcontainer
-            dockerfile: Dockerfile
-            args:
-                # [Choice] Node.js version: 16, 14, 12
-                VARIANT: 22
-                # On Linux, you may need to update USER_UID and USER_GID below if not your local UID is not 1000.
-                #USER_UID: 1000
-                #USER_GID: 1000
-        volumes:
-            - .:/workspace:cached
-            # - :/workspace/node_modules
+  app:
+    build:
+      context: ./.devcontainer
+      dockerfile: Dockerfile
+      args:
+        # [Choice] Node.js version: 16, 14, 12
+        VARIANT: 22
+        # On Linux, you may need to update USER_UID and USER_GID below if not your local UID is not 1000.
+        #USER_UID: 1000
+        #USER_GID: 1000
+    volumes:
+      - .:/workspace:cached
+      # - :/workspace/node_modules
 
-        # Overrides default command so things don't shut down after the process ends.
-        command: sleep infinity
+    # Overrides default command so things don't shut down after the process ends.
+    command: sleep infinity
 
-        # Runs app on the same network as the database container, allows "forwardPorts" in devcontainer.json function.
-        network_mode: service:db
+    # Runs app on the same network as the database container, allows "forwardPorts" in devcontainer.json function.
+    network_mode: service:db
 
-        depends_on:
-            - db
+    depends_on:
+      - db
 
-        env_file:
-            - .env.devcontainer
+    env_file:
+      - .env.devcontainer
 
-    # Stock mysql database. Used for grapher database. Root password is hardcoded for now
-    db:
-        image: mysql:8
-        restart: always
-        volumes:
-            - mysql_data:/var/lib/mysql
-        ports:
-            - "3307:3306" # Hardcoded here to 3307 because docker-compose in the VS Code Devcontainer setup is run
-            # from the users shell on the host OS where the env vars are not yet set
-        environment:
-            MYSQL_ROOT_PASSWORD: weeniest-stretch-contaminate-gnarl
-            MYSQL_ROOT_HOST: "%"
+  # Stock mysql database. Used for grapher database. Root password is hardcoded for now
+  db:
+    image: mysql:8
+    restart: always
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "3307:3306" # Hardcoded here to 3307 because docker-compose in the VS Code Devcontainer setup is run
+      # from the users shell on the host OS where the env vars are not yet set
+    environment:
+      MYSQL_ROOT_PASSWORD: weeniest-stretch-contaminate-gnarl
+      MYSQL_ROOT_HOST: "%"
 
-    # mysql 8 container for running the DB init scripts
-    # These init scripts check if the grapher database and users are missing, if so they create them
-    # and pull the data to have a working dev environment.
-    db-load-data:
-        image: mysql:8
-        command: "/app/grapher-only-mysql-init.sh"
-        volumes:
-            - ./devTools/docker:/app
-            - mysql_load_data:/var/lib/mysql
-            - ./tmp-downloads:/tmp-downloads
-        environment:
-            DB_ROOT_PASS: weeniest-stretch-contaminate-gnarl
-            DB_ROOT_HOST: db
-            DATA_FOLDER: "/tmp-downloads"
-        env_file:
-            - .env.devcontainer
-        depends_on:
-            - db
+  # mysql 8 container for running the DB init scripts
+  # These init scripts check if the grapher database and users are missing, if so they create them
+  # and pull the data to have a working dev environment.
+  db-load-data:
+    image: mysql:8
+    command: "/app/grapher-only-mysql-init.sh"
+    volumes:
+      - ./devTools/docker:/app
+      - mysql_load_data:/var/lib/mysql
+      - ./tmp-downloads:/tmp-downloads
+    environment:
+      DB_ROOT_PASS: weeniest-stretch-contaminate-gnarl
+      DB_ROOT_HOST: db
+      DATA_FOLDER: "/tmp-downloads"
+    env_file:
+      - .env.devcontainer
+    depends_on:
+      - db
 
 volumes:
-    mysql_data:
-    mysql_load_data:
+  mysql_data:
+  mysql_load_data:

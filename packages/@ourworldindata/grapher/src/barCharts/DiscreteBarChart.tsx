@@ -16,8 +16,8 @@ import { ScaleType, VerticalAlign } from "@ourworldindata/types"
 import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
-    GRAPHER_FONT_SCALE_12,
     FontSettings,
+    GRAPHER_FONT_SCALE_12,
 } from "../core/GrapherConstants"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import { HorizontalAxisZeroLine } from "../axis/AxisViews"
@@ -39,10 +39,11 @@ import {
 } from "../legend/HorizontalColorLegends"
 import { DiscreteBarChartState } from "./DiscreteBarChartState"
 import { ChartComponentProps } from "../chart/ChartTypeMap.js"
+import { makeProjectedDataPatternId } from "./DiscreteBarChartHelpers"
 import {
-    makeProjectedDataPatternId,
     enrichSeriesWithLabels,
-} from "./DiscreteBarChartHelpers"
+    computeCenteredLabelYPositions,
+} from "../rowSeriesLabels/RowSeriesLabelHelpers.js"
 import { SeriesLabel } from "../seriesLabel/SeriesLabel.js"
 import { OwidTable } from "@ourworldindata/core-table"
 import { HorizontalAxis } from "../axis/Axis"
@@ -58,9 +59,6 @@ const GAP__ENTITY_LABEL__BAR = 5
 
 /** The gap between the the entity label and negative value label */
 const GAP__ENTITY_LABEL__VALUE_LABEL = 10
-
-/** The vertical padding between the entity label and the annotation */
-const ANNOTATION_PADDING = 2
 
 export interface Label {
     valueString: string
@@ -110,38 +108,28 @@ export class DiscreteBarChart
         return this.series.length
     }
 
+    @computed private get availableHeightPerSeries(): number {
+        return this.bounds.height / this.barCount
+    }
+
     @computed private get labelFontSize(): number {
-        const availableHeight = this.bounds.height / this.barCount
         return Math.min(
             GRAPHER_FONT_SCALE_12 * this.fontSize,
-            1.1 * availableHeight
+            1.1 * this.availableHeightPerSeries
         )
     }
 
     @computed private get entityLabelStyle(): FontSettings {
-        return {
-            fontSize: this.labelFontSize,
-            fontWeight: 700,
-            lineHeight: 1,
-        }
-    }
-
-    @computed private get entityAnnotationStyle(): FontSettings {
-        return {
-            fontSize: this.labelFontSize * 0.9,
-            fontWeight: 300,
-            lineHeight: 1,
-        }
+        return { fontSize: this.labelFontSize, fontWeight: 700, lineHeight: 1 }
     }
 
     @computed get sizedSeries(): SizedDiscreteBarSeries[] {
         return enrichSeriesWithLabels({
             series: this.series,
-            availableHeightPerSeries: this.bounds.height / this.barCount,
+            availableHeightPerSeries: this.availableHeightPerSeries,
             minLabelWidth: 0.3 * this.bounds.width,
             maxLabelWidth: 0.66 * this.bounds.width,
             fontSettings: this.entityLabelStyle,
-            annotationFontSettings: this.entityAnnotationStyle,
             showRegionTooltip: !this.manager.isStatic,
         })
     }
@@ -220,20 +208,16 @@ export class DiscreteBarChart
      */
     @computed private get leftLabelsWidth(): number {
         const labelWidths = this.sizedSeries.map((series) => {
-            const labelWidth = series.label?.width ?? 0
-            const annotationWidth = series.annotationTextWrap?.width ?? 0
-
-            // Use the maximum width between label and annotation
-            const textWidth = Math.max(labelWidth, annotationWidth)
-
+            const textWidth = Math.max(
+                series.label?.width ?? 0,
+                series.annotationTextWrap?.width ?? 0
+            )
             if (series.value < 0) {
                 const valueWidth = this.formatValue(series).width
                 return textWidth + valueWidth + GAP__ENTITY_LABEL__VALUE_LABEL
-            } else {
-                return textWidth
             }
+            return textWidth
         })
-
         return _.max(labelWidths) ?? 0
     }
 
@@ -283,15 +267,12 @@ export class DiscreteBarChart
                 this.yAxis.place(series.value) +
                 (isNegative ? -GAP__ENTITY_LABEL__BAR : GAP__ENTITY_LABEL__BAR)
 
-            const annotationHeight = series.annotationTextWrap
-                ? ANNOTATION_PADDING + series.annotationTextWrap.height
-                : 0
-            const totalLabelHeight = series.label.height + annotationHeight
-
-            const entityLabelY = barY - totalLabelHeight / 2
-            const annotationY = series.annotationTextWrap
-                ? entityLabelY + series.label.height + ANNOTATION_PADDING
-                : undefined
+            const { labelY: entityLabelY, annotationY } =
+                computeCenteredLabelYPositions({
+                    y: barY,
+                    label: series.label,
+                    annotation: series.annotationTextWrap,
+                })
 
             return {
                 ...series,
@@ -534,7 +515,7 @@ export class DiscreteBarChart
     private renderAxis(): React.ReactElement {
         return (
             <HorizontalAxisZeroLine
-                horizontalAxis={this.yAxis}
+                axis={this.yAxis}
                 bounds={this.innerBounds}
                 strokeWidth={0.5}
                 // If the chart doesn't have negative values, then we

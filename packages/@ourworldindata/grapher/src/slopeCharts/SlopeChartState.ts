@@ -39,7 +39,7 @@ import {
 } from "../lineCharts/LineChartHelpers"
 import { domainExtent } from "@ourworldindata/utils"
 import { AxisConfig } from "../axis/AxisConfig"
-import { VerticalAxis } from "../axis/Axis"
+import { HorizontalAxis, VerticalAxis } from "../axis/Axis"
 
 export class SlopeChartState implements ChartState {
     manager: SlopeChartManager
@@ -369,6 +369,17 @@ export class SlopeChartState implements ChartState {
         axis.range = yRange
         axis.formatColumn = this.yColumns[0]
         axis.label = ""
+        return axis
+    }
+
+    toHorizontalAxis(
+        config: AxisConfig,
+        { xRange }: { xRange: [number, number] }
+    ): HorizontalAxis {
+        const axis = config.toHorizontalAxis()
+        axis.domain = this.xDomain
+        axis.range = xRange
+        axis.formatColumn = this.inputTable.timeColumn
         return axis
     }
 

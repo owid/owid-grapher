@@ -135,16 +135,40 @@ describe("uniform axes", () => {
     it("x axis is shown on all facets", () => {
         expect(xAxisConfigs.every((config) => !config?.hideAxis)).toBeTruthy()
     })
+})
 
-    // it("shared bottom axis is shown in first row of facets", () => {
-    //     const first = chart.placedSeries[0]
-    //     const last = chart.placedSeries[xAxisConfigs.length - 1]
-    //     expect(first.bounds.height).toBeGreaterThan(last.bounds.height)
-    //     expect(first.bounds.height).toBeCloseTo(
-    //         last.bounds.height + (xAxisConfigs[0]?.minSize ?? 0),
-    //         0
-    //     )
-    // })
+describe("shared x axis", () => {
+    const table = SynthesizeGDPTable({
+        timeRange: [2000, 2010],
+        entityCount: 12,
+    })
+    const manager: ChartManager = {
+        table,
+        selection: table.availableEntityNames,
+        facetStrategy: FacetStrategy.entity,
+        yAxisConfig: {
+            facetDomain: FacetAxisDomain.shared,
+        },
+    }
+    const chart = new FacetChart({
+        manager,
+        chartTypeName: GRAPHER_CHART_TYPES.StackedBar,
+    })
+    const xAxisConfigs = chart.placedSeries.map(
+        (series) => series.manager.xAxisConfig
+    )
+
+    it("some x axes are hidden", () => {
+        expect(
+            xAxisConfigs.some((config) => config?.hideAxis === true)
+        ).toBeTruthy()
+    })
+
+    it("bottom-row facets have taller bounds than inner facets", () => {
+        const first = chart.placedSeries[0]
+        const last = chart.placedSeries[chart.placedSeries.length - 1]
+        expect(last.bounds.height).toBeGreaterThan(first.bounds.height)
+    })
 })
 
 describe("config overrides", () => {

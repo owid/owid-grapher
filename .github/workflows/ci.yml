@@ -1,97 +1,97 @@
 name: CI
 on:
-    pull_request:
-    push:
-        branches:
-            - master
+  pull_request:
+  push:
+    branches:
+      - master
 
 jobs:
-    # Checks for prettify errors, TypeScript errors and runs vitest tests.
-    "test-db":
-        runs-on: ubuntu-latest
+  # Checks for prettify errors, TypeScript errors and runs vitest tests.
+  "test-db":
+    runs-on: ubuntu-latest
 
-        steps:
-            - name: Clone repository
-              uses: actions/checkout@v5
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v5
 
-            - uses: ./.github/actions/setup-node-yarn-deps
+      - uses: ./.github/actions/setup-node-yarn-deps
 
-            - name: Install dependencies
-              run: cp .env.example-grapher .env
-              shell: bash
+      - name: Install dependencies
+        run: cp .env.example-grapher .env
+        shell: bash
 
-            - name: Build and run db tests
-              run: make dbtest
-              timeout-minutes: 6
+      - name: Build and run db tests
+        run: make dbtest
+        timeout-minutes: 6
 
-    test:
-        runs-on: ubuntu-latest
+  test:
+    runs-on: ubuntu-latest
 
-        steps:
-            - name: Clone repository
-              uses: actions/checkout@v5
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v5
 
-            - uses: ./.github/actions/setup-node-yarn-deps
+      - uses: ./.github/actions/setup-node-yarn-deps
 
-            - name: Run vitest
-              run: yarn test --pool=forks
+      - name: Run vitest
+        run: yarn test --pool=forks
 
-    typecheck:
-        runs-on: ubuntu-latest
+  typecheck:
+    runs-on: ubuntu-latest
 
-        steps:
-            - name: Clone repository
-              uses: actions/checkout@v5
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v5
 
-            - uses: ./.github/actions/setup-node-yarn-deps
-              with:
-                  runPostinstallScripts: false
+      - uses: ./.github/actions/setup-node-yarn-deps
+        with:
+          runPostinstallScripts: false
 
-            - name: Run typecheck
-              run: yarn typecheck
+      - name: Run typecheck
+        run: yarn typecheck
 
-    format:
-        runs-on: ubuntu-latest
+  format:
+    runs-on: ubuntu-latest
 
-        steps:
-            - name: Clone repository
-              uses: actions/checkout@v5
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v5
 
-            - uses: ./.github/actions/setup-node-yarn-deps
-              with:
-                  runPostinstallScripts: false
+      - uses: ./.github/actions/setup-node-yarn-deps
+        with:
+          runPostinstallScripts: false
 
-            - name: Check formatting
-              run: yarn testFormatAll
+      - name: Check formatting
+        run: yarn testFormatAll
 
-    oxlint:
-        runs-on: ubuntu-latest
+  oxlint:
+    runs-on: ubuntu-latest
 
-        steps:
-            - name: Clone repository
-              uses: actions/checkout@v5
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v5
 
-            - uses: ./.github/actions/setup-node-yarn-deps
-              with:
-                  runPostinstallScripts: false
+      - uses: ./.github/actions/setup-node-yarn-deps
+        with:
+          runPostinstallScripts: false
 
-            - name: Run oxlint
-              run: yarn testLint
+      - name: Run oxlint
+        run: yarn testLint
 
-    # Runs `bundlemon` on the code to see if our Vite build assets exceed a given file size.
-    bundlemon:
-        runs-on: ubuntu-latest
+  # Runs `bundlemon` on the code to see if our Vite build assets exceed a given file size.
+  bundlemon:
+    runs-on: ubuntu-latest
 
-        steps:
-            - name: Clone repository
-              uses: actions/checkout@v5
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v5
 
-            - uses: ./.github/actions/setup-node-yarn-deps
+      - uses: ./.github/actions/setup-node-yarn-deps
 
-            - name: Build
-              run: yarn buildViteSite
-              env:
-                  BUNDLEMON: true
+      - name: Build
+        run: yarn buildViteSite
+        env:
+          BUNDLEMON: true
 
-            - name: BundleMon
-              uses: lironer/bundlemon-action@v1
+      - name: BundleMon
+        uses: lironer/bundlemon-action@v1

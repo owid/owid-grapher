@@ -1,46 +1,46 @@
 name: Bespoke
 
 on:
-    pull_request:
-    push:
-        branches:
-            - master
+  pull_request:
+  push:
+    branches:
+      - master
 
 defaults:
-    run:
-        working-directory: bespoke
+  run:
+    working-directory: bespoke
 
 jobs:
-    bespoke-typecheck:
-        runs-on: ubuntu-latest
-        steps:
-            - name: Clone repository
-              uses: actions/checkout@v5
+  bespoke-typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v5
 
-            - uses: ./.github/actions/setup-node-yarn-deps
-              with:
-                  runPostinstallScripts: false
-                  cacheDependencyPath: bespoke/yarn.lock
+      - uses: ./.github/actions/setup-node-yarn-deps
+        with:
+          runPostinstallScripts: false
+          cacheDependencyPath: bespoke/yarn.lock
 
-            - name: Install bespoke dependencies
-              run: yarn --immutable
+      - name: Install bespoke dependencies
+        run: yarn --immutable
 
-            - name: Typecheck
-              run: yarn typecheck
+      - name: Typecheck
+        run: yarn typecheck
 
-    bespoke-build:
-        runs-on: ubuntu-latest
-        steps:
-            - name: Clone repository
-              uses: actions/checkout@v5
+  bespoke-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v5
 
-            - uses: ./.github/actions/setup-node-yarn-deps
-              with:
-                  runPostinstallScripts: false
-                  cacheDependencyPath: bespoke/yarn.lock
+      - uses: ./.github/actions/setup-node-yarn-deps
+        with:
+          runPostinstallScripts: false
+          cacheDependencyPath: bespoke/yarn.lock
 
-            - name: Install bespoke dependencies
-              run: yarn --immutable
+      - name: Install bespoke dependencies
+        run: yarn --immutable
 
-            - name: Build
-              run: yarn build
+      - name: Build
+        run: yarn build
