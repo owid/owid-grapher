@@ -1,8 +1,8 @@
-import { dyFromAlign, VerticalAlign } from "@ourworldindata/utils"
+import { dyFromAlign, Point, VerticalAlign } from "@ourworldindata/utils"
 
 import { PlacedCategory } from "../helpers/CausesOfDeathCategoryAnnotationsHelpers.js"
 
-import { BezierArrow } from "../../../../components/BezierArrow/BezierArrow.js"
+import { BezierArrow } from "@ourworldindata/grapher"
 
 export function CausesOfDeathCategoryAnnotations({
     placedAnnotations,
@@ -57,25 +57,25 @@ function CausesOfDeathCategoryAnnotation({
     const dy =
         position === "bottom" ? dyFromAlign(VerticalAlign.bottom) : undefined
 
-    const arrowStart: [number, number] = [
-        x + (isEndAnchored ? 3 : -3),
-        y - direction * (fontSize / 2),
-    ]
-    const arrowEnd: [number, number] = [
-        isEndAnchored ? bounds.right - 11 : bounds.left + 11,
-        position === "top" ? bounds.bottom - 3 : bounds.top + 3,
-    ]
+    const arrowStart: Point = {
+        x: x + (isEndAnchored ? 3 : -3),
+        y: y - direction * (fontSize / 2),
+    }
+    const arrowEnd: Point = {
+        x: isEndAnchored ? bounds.right - 11 : bounds.left + 11,
+        y: position === "top" ? bounds.bottom - 3 : bounds.top + 3,
+    }
 
     const horizontalSign = isEndAnchored ? 1 : -1
     const verticalSign = -direction
-    const arrowStartHandleOffset: [number, number] = [
-        horizontalSign * 20,
-        verticalSign * 5,
-    ]
-    const arrowEndHandleOffset: [number, number] = [
-        horizontalSign * -5,
-        verticalSign * 20,
-    ]
+    const arrowStartHandleOffset: Point = {
+        x: horizontalSign * 20,
+        y: verticalSign * 5,
+    }
+    const arrowEndHandleOffset: Point = {
+        x: horizontalSign * -5,
+        y: verticalSign * 20,
+    }
 
     return (
         <g>
