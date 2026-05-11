@@ -46,6 +46,9 @@ function explorerTypeBadge(mode: ExplorerChartCreationMode): {
     }
 }
 
+type SortColumn = "type" | "lastUpdated"
+type SortDirection = "asc" | "desc"
+
 @observer
 class ExplorerRow extends Component<ExplorerRowProps> {
     override render() {
@@ -158,16 +161,37 @@ interface ExplorerListProps {
 
 @observer
 class ExplorerList extends Component<ExplorerListProps> {
+    sortIndicator(column: SortColumn) {
+        const { indexPage } = this.props
+        if (indexPage.sortBy !== column) return null
+        return indexPage.sortDirection === "asc" ? " ↑" : " ↓"
+    }
+
     override render() {
         const { props } = this
+        const { indexPage } = props
+        const sortableHeaderStyle = {
+            cursor: "pointer",
+            userSelect: "none" as const,
+        }
         return (
             <table className="table table-bordered">
                 <thead>
                     <tr>
                         <th>Slug</th>
                         <th>Title</th>
-                        <th>Type</th>
-                        <th>Last Updated</th>
+                        <th
+                            style={sortableHeaderStyle}
+                            onClick={() => indexPage.onSort("type")}
+                        >
+                            Type{this.sortIndicator("type")}
+                        </th>
+                        <th
+                            style={sortableHeaderStyle}
+                            onClick={() => indexPage.onSort("lastUpdated")}
+                        >
+                            Last Updated{this.sortIndicator("lastUpdated")}
+                        </th>
                         <th></th>
                         <th></th>
                         <th></th>
@@ -200,6 +224,9 @@ export class ExplorersIndexPage extends Component<{
     numTotalRows: number | undefined = undefined
     searchInput: string | undefined = undefined
     highlightSearch: string | undefined = undefined
+    sortBy: SortColumn = "lastUpdated"
+    sortDirection: SortDirection = "desc"
+    showOnlyPublished = false
 
     constructor(props: { manager?: AdminManager }) {
         super(props)
@@ -211,19 +238,40 @@ export class ExplorersIndexPage extends Component<{
             searchInput: observable,
             highlightSearch: observable,
             isReady: observable,
+            sortBy: observable,
+            sortDirection: observable,
+            showOnlyPublished: observable,
         })
     }
 
     @computed get explorersToShow(): ExplorerProgram[] {
-        return _.orderBy(
-            this.explorers,
-            (program) => dayjs(program.lastCommit?.date).unix(),
-            ["desc"]
-        )
+        const filtered = this.showOnlyPublished
+            ? this.explorers.filter((exp) => exp.isPublished)
+            : this.explorers
+        const sortValue =
+            this.sortBy === "type"
+                ? (program: ExplorerProgram) =>
+                      explorerTypeBadge(program.chartCreationMode).label
+                : (program: ExplorerProgram) =>
+                      dayjs(program.lastCommit?.date).unix()
+        return _.orderBy(filtered, sortValue, [this.sortDirection])
     }
 
     @action.bound onShowMore() {
         this.maxVisibleRows += 100
+    }
+
+    @action.bound onSort(column: SortColumn) {
+        if (this.sortBy === column) {
+            this.sortDirection = this.sortDirection === "asc" ? "desc" : "asc"
+        } else {
+            this.sortBy = column
+            this.sortDirection = column === "lastUpdated" ? "desc" : "asc"
+        }
+    }
+
+    @action.bound onToggleShowOnlyPublished() {
+        this.showOnlyPublished = !this.showOnlyPublished
     }
 
     override render() {
@@ -254,6 +302,23 @@ export class ExplorersIndexPage extends Component<{
                     <div>
                         Showing {explorersToShow.length} of {numTotalRows}{" "}
                         explorers
+                    </div>
+                    <div>
+                        <label
+                            style={{
+                                marginBottom: 0,
+                                cursor: "pointer",
+                                userSelect: "none",
+                            }}
+                        >
+                            <input
+                                type="checkbox"
+                                checked={this.showOnlyPublished}
+                                onChange={this.onToggleShowOnlyPublished}
+                                style={{ marginRight: 6 }}
+                            />
+                            Show only published
+                        </label>
                     </div>
                     <div style={{ textAlign: "right" }}>
                         <a
