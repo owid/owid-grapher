@@ -1,4 +1,5 @@
 import * as React from "react"
+import * as R from "remeda"
 import { makeFigmaId } from "@ourworldindata/utils"
 import {
     RenderDumbbellSeries,
@@ -38,21 +39,50 @@ export function TwoColumnDumbbell({
     const style = DUMBBELL_STYLE[series.emphasis]
     const { start, end } = series
 
+    const distance = Math.abs(end.x - start.x)
+    const gap = Math.max(0, distance - (start.radius + end.radius))
+
+    const minArrowPadding = 1
+    const arrowPadding = R.clamp(gap / 8, { min: 1, max: start.radius / 2 })
+
     const sign = end.x >= start.x ? 1 : -1
-    const arrowPadding = start.radius
     const arrowStartX = start.x + sign * (start.radius + arrowPadding)
     const arrowEndX = end.x - sign * (end.radius + arrowPadding)
 
+    // Don't show the arrow if the heads are too close together
+    const minArrowLength = 3
+    const shouldShowArrow = gap > minArrowLength + 2 * minArrowPadding
+
+    // If the heads overlap by more than 50%, add a small vertical offset
+    // to prevent the circles from completely obscuring each other
+    const overlap = start.radius + end.radius - distance
+    const overlapRatio = overlap / (start.radius + end.radius)
+    const yOffset = overlapRatio > 0.6 ? 2 : 0
+
     return (
         <g id={makeFigmaId("dumbbell")} opacity={style.opacity}>
-            <DumbbellArrow
-                startX={arrowStartX}
-                endX={arrowEndX}
-                color={GRAY_90}
-                headLength={Math.min(4.5, 0.6 * start.radius)}
+            {shouldShowArrow ? (
+                <DumbbellArrow
+                    startX={arrowStartX}
+                    endX={arrowEndX}
+                    color={GRAY_90}
+                    headLength={Math.min(4.5, 0.6 * start.radius)}
+                />
+            ) : (
+                <line x1={arrowStartX} x2={arrowEndX} stroke={GRAY_90} />
+            )}
+            <DumbbellHead
+                id={makeFigmaId("start")}
+                head={start}
+                y={-yOffset}
+                outline
             />
-            <DumbbellHead id={makeFigmaId("start")} head={start} />
-            <DumbbellHead id={makeFigmaId("end")} head={end} />
+            <DumbbellHead
+                id={makeFigmaId("end")}
+                head={end}
+                y={yOffset}
+                outline
+            />
         </g>
     )
 }
@@ -88,9 +118,22 @@ function DumbbellArrow({
 function DumbbellHead({
     id,
     head,
+    outline = false,
+    y = 0,
 }: {
     id: string
     head: PlacedDumbbellHead
+    outline?: boolean
+    y?: number
 }): React.ReactElement {
-    return <circle id={id} cx={head.x} r={head.radius} fill={head.color} />
+    return (
+        <circle
+            id={id}
+            cx={head.x}
+            cy={y}
+            r={head.radius}
+            fill={head.color}
+            stroke={outline ? "white" : undefined}
+        />
+    )
 }

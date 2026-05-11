@@ -219,7 +219,7 @@ export class DumbbellChart
     @computed private get dumbbellHeadRadius(): number {
         return this.chartState.seriesStrategy === SeriesStrategy.entity
             ? _.clamp(Math.floor(this.availableHeightPerSeries / 2), 2, 4)
-            : _.clamp(Math.floor(this.availableHeightPerSeries / 2), 2, 6)
+            : _.clamp(Math.floor(this.availableHeightPerSeries / 2), 2, 6.5)
     }
 
     @computed private get placedSeries(): PlacedDumbbellSeries[] {
