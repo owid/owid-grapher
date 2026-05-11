@@ -4,7 +4,6 @@ import { Halo, TextWrapSvg } from "@ourworldindata/components"
 import { SeriesStrategy, VerticalAlign } from "@ourworldindata/types"
 import { FontSettings } from "../core/GrapherConstants"
 import { SeriesLabel } from "../seriesLabel/SeriesLabel"
-import { GRAPHER_DARK_TEXT } from "../color/ColorConstants"
 import { TimeRangeDumbbell, TwoColumnDumbbell } from "./Dumbbell"
 import {
     PlacedDumbbellHead,
@@ -13,6 +12,7 @@ import {
 } from "./DumbbellChartConstants"
 import { toLeftRight } from "./DumbbellChartHelpers"
 import { GRID_LINE_DASH_PATTERN, TICK_COLOR } from "../axis/AxisViews.js"
+import { darkenColorForText } from "../color/ColorUtils.js"
 
 export function DumbbellChartRow({
     series,
@@ -114,7 +114,7 @@ function DumbbellValueLabel({
         >
             <text
                 x={x}
-                fill={GRAPHER_DARK_TEXT}
+                fill={darkenColorForText(head.color)}
                 dy={dyFromAlign(VerticalAlign.middle)}
                 textAnchor={side === "left" ? "end" : "start"}
                 fontSize={style.fontSize}

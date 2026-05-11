@@ -44,7 +44,7 @@ import { resolveEmphasis } from "../interaction/Emphasis"
 import { DumbbellChartRow } from "./DumbbellChartRow"
 import { AxisLayout, calculateAxisLayout } from "./DumbbellChartHelpers"
 import { AnimatedRows } from "../animation/AnimatedRows"
-import { textWidth } from "../chart/ChartUtils.js"
+import { roundFontSize, textWidth } from "../chart/ChartUtils.js"
 
 export type DumbbellChartProps = ChartComponentProps<DumbbellChartState>
 
@@ -83,15 +83,21 @@ export class DumbbellChart
         return this.bounds.height / this.series.length
     }
 
-    @computed private get labelFontSize(): number {
-        return Math.min(
-            GRAPHER_FONT_SCALE_12 * this.fontSize,
-            1.1 * this.availableHeightPerSeries
+    @computed private get entityLabelStyle(): FontSettings {
+        const fontSize = roundFontSize(
+            Math.min(
+                GRAPHER_FONT_SCALE_12 * this.fontSize,
+                1.1 * this.availableHeightPerSeries
+            )
         )
+
+        return { fontSize, fontWeight: 400, lineHeight: 1 }
     }
 
-    @computed private get labelStyle(): FontSettings {
-        return { fontSize: this.labelFontSize, fontWeight: 400, lineHeight: 1 }
+    @computed private get valueLabelStyle(): FontSettings {
+        const fontSize = this.entityLabelStyle.fontSize - 0.5
+
+        return { fontSize, fontWeight: 400, lineHeight: 1 }
     }
 
     @computed get sizedSeries(): SizedDumbbellSeries[] {
@@ -100,14 +106,14 @@ export class DumbbellChart
             availableHeightPerSeries: this.availableHeightPerSeries,
             minLabelWidth: 0.3 * this.bounds.width,
             maxLabelWidth: 0.66 * this.bounds.width,
-            fontSettings: this.labelStyle,
+            fontSettings: this.entityLabelStyle,
             showRegionTooltip: !this.manager.isStatic,
         }).map((series) => {
             const startLabel = this.formatValue(series.start.value)
             const endLabel = this.formatValue(series.end.value)
 
-            const startLabelWidth = textWidth(startLabel, this.labelStyle)
-            const endLabelWidth = textWidth(endLabel, this.labelStyle)
+            const startLabelWidth = textWidth(startLabel, this.valueLabelStyle)
+            const endLabelWidth = textWidth(endLabel, this.valueLabelStyle)
 
             const padding = this.dumbbellHeadRadius + VALUE_LABEL_DOT_GAP
 
@@ -290,7 +296,7 @@ export class DumbbellChart
                             series={series}
                             seriesStrategy={this.chartState.seriesStrategy}
                             range={this.xRange}
-                            valueLabelStyle={this.labelStyle}
+                            valueLabelStyle={this.valueLabelStyle}
                             y={series.y}
                         />
                     ))}
@@ -319,7 +325,7 @@ export class DumbbellChart
                             series={series}
                             seriesStrategy={this.chartState.seriesStrategy}
                             range={this.xRange}
-                            valueLabelStyle={this.labelStyle}
+                            valueLabelStyle={this.valueLabelStyle}
                             y={0}
                         />
                     )}
