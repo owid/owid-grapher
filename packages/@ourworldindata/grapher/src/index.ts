@@ -1,4 +1,9 @@
 export {
+    BezierArrow,
+    type BezierArrowProps,
+    type HeadAnchor,
+} from "./bezierArrow/BezierArrow"
+export {
     NumericBin,
     CategoricalBin,
     type ColorScaleBin,
