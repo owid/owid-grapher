@@ -1,5 +1,4 @@
 import * as React from "react"
-import { useMemo } from "react"
 import * as _ from "lodash-es"
 import cx from "classnames"
 import { Point } from "@ourworldindata/utils"
@@ -26,11 +25,13 @@ export interface BezierArrowProps {
     headAnchor?: HeadAnchor
     headLength?: number
     headAngle?: number
+    headStyle?: "solid" | "line"
 
     className?: string
     width?: number
     color?: string
     opacity?: number
+    lineCaps?: "round" | "sharp"
 }
 
 export function BezierArrow({
@@ -43,6 +44,8 @@ export function BezierArrow({
     headAnchor = "end",
     headLength,
     headAngle = 45,
+    headStyle = "line",
+    lineCaps = "round",
     className,
     width = 1,
     color = GRAY_100,
@@ -51,74 +54,71 @@ export function BezierArrow({
     const startControlPoint = startHandle ?? addOffset(start, startHandleOffset)
     const endControlPoint = endHandle ?? addOffset(end, endHandleOffset)
 
-    const path = useMemo(() => {
-        const headOptions = {
-            length: headLength ?? _.clamp(0.08 * dist(start, end), 4, 6),
-            theta: headAngle,
-        }
+    const headOptions = {
+        length: headLength ?? _.clamp(0.08 * dist(start, end), 4, 6),
+        theta: headAngle,
+        closed: headStyle === "solid",
+    }
 
-        return buildArrow(
-            start,
-            end,
-            startControlPoint,
-            endControlPoint,
-            headAnchor,
-            headOptions
-        )
-    }, [
+    const curvePath = bezierCurve(
         start,
         end,
         startControlPoint,
-        endControlPoint,
-        headAnchor,
-        headLength,
-        headAngle,
-    ])
+        endControlPoint
+    )
+
+    const startHeadPath =
+        headAnchor === "start" || headAnchor === "both"
+            ? arrowHead(
+                  start,
+                  resolveHandle(start, startControlPoint, end),
+                  headOptions
+              )
+            : undefined
+
+    const endHeadPath =
+        headAnchor === "end" || headAnchor === "both"
+            ? arrowHead(
+                  end,
+                  resolveHandle(end, endControlPoint, start),
+                  headOptions
+              )
+            : undefined
+
+    const style = {
+        stroke: color,
+        strokeWidth: width,
+        strokeLinecap: lineCaps === "round" ? "round" : "butt",
+        strokeLinejoin: lineCaps === "round" ? "round" : "miter",
+        opacity,
+        fill: "none",
+    } as const
+    const arrowHeadStyle = {
+        ...style,
+        fill: headOptions.closed ? color : "none",
+    }
 
     return (
         <g className={cx("arrow", className)}>
-            <path
-                d={path}
-                style={{
-                    stroke: color,
-                    strokeWidth: width,
-                    strokeLinecap: "round",
-                    strokeLinejoin: "round",
-                    fill: "none",
-                    opacity,
-                }}
-            />
+            <path d={curvePath} style={style} />
+            {startHeadPath && <path d={startHeadPath} style={arrowHeadStyle} />}
+            {endHeadPath && <path d={endHeadPath} style={arrowHeadStyle} />}
         </g>
     )
 }
 
-function buildArrow(
-    start: Point,
-    end: Point,
-    startHandle: Point,
-    endHandle: Point,
-    headAnchor: HeadAnchor,
-    headOptions: { length?: number; theta?: number }
-): string {
-    let d = bezierCurve(start, end, startHandle, endHandle)
-
-    if (headAnchor === "start" || headAnchor === "both") {
-        const handle = equals(start, startHandle) ? end : startHandle
-        d += arrowHead(start, handle, headOptions)
-    }
-
-    if (headAnchor === "end" || headAnchor === "both") {
-        const handle = equals(end, endHandle) ? start : endHandle
-        d += arrowHead(end, handle, headOptions)
-    }
-
-    return d
+function resolveHandle(
+    point: Point,
+    controlPoint: Point,
+    fallback: Point
+): Point {
+    return equals(point, controlPoint) ? fallback : controlPoint
 }
 
 function arrowHead(
     point: Point,
     handle: Point,
-    { length = 4, theta = 45 } = {}
+    { length = 4, theta = 45, closed = false } = {}
 ): string {
     const xLen = handle.x - point.x
     const yLen = handle.y - point.y
@@ -154,6 +154,7 @@ function arrowHead(
         format(point),
         "L",
         format(rotate(mid, point, -theta)),
+        closed ? "Z" : "",
     ].join(" ")
 }
 

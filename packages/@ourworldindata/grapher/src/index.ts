@@ -2,7 +2,7 @@ export {
     BezierArrow,
     type BezierArrowProps,
     type HeadAnchor,
-} from "./bezierArrow/BezierArrow"
+} from "./arrows/BezierArrow"
 export {
     NumericBin,
     CategoricalBin,
