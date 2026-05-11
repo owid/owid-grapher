@@ -14,6 +14,7 @@ import { observer } from "mobx-react"
 import { Component } from "react"
 import {
     DefaultNewExplorerSlug,
+    ExplorerChartCreationMode,
     ExplorersRouteResponse,
     EXPLORERS_PREVIEW_ROUTE,
     EXPLORERS_ROUTE_FOLDER,
@@ -29,6 +30,20 @@ interface ExplorerRowProps {
     explorer: ExplorerProgram
     indexPage: ExplorersIndexPage
     searchHighlight?: (text: string) => any
+}
+
+function explorerTypeBadge(mode: ExplorerChartCreationMode): {
+    label: string
+    className: string
+} {
+    switch (mode) {
+        case ExplorerChartCreationMode.FromVariableIds:
+            return { label: "Indicator", className: "badge badge-success" }
+        case ExplorerChartCreationMode.FromGrapherId:
+            return { label: "Grapher", className: "badge badge-secondary" }
+        case ExplorerChartCreationMode.FromExplorerTableColumnSlugs:
+            return { label: "CSV", className: "badge badge-secondary" }
+    }
 }
 
 @observer
@@ -87,6 +102,14 @@ class ExplorerRow extends Component<ExplorerRowProps> {
                     </div>
                 </td>
                 <td>
+                    {(() => {
+                        const { label, className } = explorerTypeBadge(
+                            explorer.chartCreationMode
+                        )
+                        return <span className={className}>{label}</span>
+                    })()}
+                </td>
+                <td>
                     <div>{lastCommit?.message}</div>
                     <div style={{ fontSize: "80%", opacity: 0.8 }}>
                         <a>
@@ -143,6 +166,7 @@ class ExplorerList extends Component<ExplorerListProps> {
                     <tr>
                         <th>Slug</th>
                         <th>Title</th>
+                        <th>Type</th>
                         <th>Last Updated</th>
                         <th></th>
                         <th></th>
