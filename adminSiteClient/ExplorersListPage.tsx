@@ -13,7 +13,7 @@ import {
 import { observer } from "mobx-react"
 import { Component } from "react"
 import {
-    DefaultNewExplorerSlug,
+    // DefaultNewExplorerSlug, // re-enable when restoring the Create button
     ExplorerChartCreationMode,
     ExplorersRouteResponse,
     EXPLORERS_PREVIEW_ROUTE,
@@ -320,14 +320,14 @@ export class ExplorersIndexPage extends Component<{
                             Show only published
                         </label>
                     </div>
-                    <div style={{ textAlign: "right" }}>
+                    {/* <div style={{ textAlign: "right" }}>
                         <a
                             className="btn btn-primary"
                             href={`/admin/${EXPLORERS_ROUTE_FOLDER}/${DefaultNewExplorerSlug}`}
                         >
                             Create
                         </a>
-                    </div>
+                    </div> */}
                 </div>
                 <ExplorerList
                     explorers={explorersToShow}
