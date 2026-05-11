@@ -5,6 +5,8 @@ import { observer } from "mobx-react"
 import {
     ComparisonLineConfig,
     ColorSchemeName,
+    DumbbellConnectorStyle,
+    DumbbellValueLabelMode,
     FacetAxisDomain,
     FacetStrategy,
     GRAPHER_CHART_TYPES,
@@ -984,7 +986,49 @@ export class EditorCustomizeTab<
                 {features.canSpecifyComparisonLines && (
                     <ComparisonLineSection editor={this.props.editor} />
                 )}
+                {features.canConfigureDumbbell && (
+                    <Section name="Dumbbell">
+                        {features.canConfigureDumbbellConnectorStyle && (
+                            <SelectField
+                                label="Connector style"
+                                value={grapherState.dumbbell.connectorStyle}
+                                onValue={action((value: string) => {
+                                    grapherState.dumbbell.connectorStyle =
+                                        value as DumbbellConnectorStyle
+                                })}
+                                options={Object.entries(
+                                    DUMBBELL_CONNECTOR_STYLE_LABELS
+                                ).map(([value, label]) => ({ value, label }))}
+                            />
+                        )}
+                        <SelectField
+                            label="Value labels"
+                            value={grapherState.dumbbell.valueLabelMode}
+                            onValue={action((value: string) => {
+                                grapherState.dumbbell.valueLabelMode =
+                                    value as DumbbellValueLabelMode
+                            })}
+                            options={Object.entries(
+                                DUMBBELL_VALUE_LABEL_MODE_LABELS
+                            ).map(([value, label]) => ({ value, label }))}
+                        />
+                    </Section>
+                )}
             </div>
         )
     }
 }
+
+const DUMBBELL_CONNECTOR_STYLE_LABELS: Record<DumbbellConnectorStyle, string> =
+    {
+        [DumbbellConnectorStyle.Arrow]: "Arrow",
+        [DumbbellConnectorStyle.Line]: "Line",
+    }
+
+const DUMBBELL_VALUE_LABEL_MODE_LABELS: Record<DumbbellValueLabelMode, string> =
+    {
+        [DumbbellValueLabelMode.Absolute]: "Absolute values",
+        [DumbbellValueLabelMode.Change]: "Absolute change",
+        [DumbbellValueLabelMode.PercentChange]: "Percent change",
+        [DumbbellValueLabelMode.None]: "No labels",
+    }
