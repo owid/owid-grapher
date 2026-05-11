@@ -1,30 +1,37 @@
 import React from "react"
 import { makeFigmaId, dyFromAlign } from "@ourworldindata/utils"
 import { Halo, TextWrapSvg } from "@ourworldindata/components"
-import { VerticalAlign } from "@ourworldindata/types"
+import { SeriesStrategy, VerticalAlign } from "@ourworldindata/types"
 import { FontSettings } from "../core/GrapherConstants"
 import { SeriesLabel } from "../seriesLabel/SeriesLabel"
 import { GRAPHER_DARK_TEXT } from "../color/ColorConstants"
-import { Dumbbell } from "./Dumbbell"
+import { TimeRangeDumbbell, TwoColumnDumbbell } from "./Dumbbell"
 import {
     PlacedDumbbellHead,
     RenderDumbbellSeries,
     DUMBBELL_STYLE,
 } from "./DumbbellChartConstants"
+import { toLeftRight } from "./DumbbellChartHelpers"
 import { GRID_LINE_DASH_PATTERN, TICK_COLOR } from "../axis/AxisViews.js"
 
 export function DumbbellChartRow({
     series,
+    seriesStrategy,
     y,
     range,
     valueLabelStyle,
 }: {
     series: RenderDumbbellSeries
+    seriesStrategy: SeriesStrategy
     y: number
     range: [number, number]
     valueLabelStyle: FontSettings
 }): React.ReactElement {
     const style = DUMBBELL_STYLE[series.emphasis]
+    const { left: leftHead, right: rightHead } = toLeftRight(
+        series.start,
+        series.end
+    )
 
     return (
         <g
@@ -63,19 +70,23 @@ export function DumbbellChartRow({
                 )}
 
             {/* Dumbbell */}
-            <Dumbbell series={series} />
+            {seriesStrategy === SeriesStrategy.entity ? (
+                <TimeRangeDumbbell series={series} />
+            ) : (
+                <TwoColumnDumbbell series={series} />
+            )}
 
             {/* Left value label */}
             <DumbbellValueLabel
                 side="left"
-                head={series.left}
+                head={leftHead}
                 style={valueLabelStyle}
             />
 
             {/* Right value label */}
             <DumbbellValueLabel
                 side="right"
-                head={series.right}
+                head={rightHead}
                 style={valueLabelStyle}
             />
         </g>

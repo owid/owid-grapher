@@ -29,17 +29,18 @@ describe("entity strategy", () => {
         expect(chartState.series.length).toEqual(2)
 
         const usa = chartState.series.find((s) => s.entityName === "USA")!
-        expect(usa.left.value).toBeLessThanOrEqual(usa.right.value)
-        expect(usa.left.time).toEqual(2000)
-        expect(usa.right.time).toEqual(2010)
+        expect(usa.start.value).toEqual(100)
+        expect(usa.end.value).toEqual(150)
+        expect(usa.start.time).toEqual(2000)
+        expect(usa.end.time).toEqual(2010)
     })
 
     it("colors series by direction of change", () => {
         const csv = `gdp,year,entityName
-100,2000,Riser
-150,2010,Riser
-100,2000,Faller
-50,2010,Faller`
+    100,2000,Riser
+    150,2010,Riser
+    100,2000,Faller
+    50,2010,Faller`
 
         const table = new OwidTable(csv)
         const manager: DumbbellChartManager = {
@@ -52,12 +53,8 @@ describe("entity strategy", () => {
         const riser = chartState.series.find((s) => s.entityName === "Riser")!
         const faller = chartState.series.find((s) => s.entityName === "Faller")!
 
-        expect(riser.connector.direction).toEqual("right")
         expect(riser.color).toEqual(INCREASE_COLOR)
-        expect(riser.left.value).toBeLessThanOrEqual(riser.right.value)
-        expect(faller.connector.direction).toEqual("left")
         expect(faller.color).toEqual(DECREASE_COLOR)
-        expect(faller.left.value).toBeLessThanOrEqual(faller.right.value)
     })
 
     it("filters out series with missing start or end value", () => {
@@ -97,7 +94,7 @@ describe("column strategy", () => {
         expect(chartState.series.length).toEqual(1)
 
         const series = chartState.series[0]
-        expect(series.left.value).toEqual(100)
-        expect(series.right.value).toEqual(500)
+        expect(series.start.value).toEqual(100)
+        expect(series.end.value).toEqual(500)
     })
 })
