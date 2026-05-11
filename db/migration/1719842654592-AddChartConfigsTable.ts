@@ -1,5 +1,5 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
-import { uuidv7 } from "uuidv7"
+import { v7 as uuidv7 } from "uuid"
 export class AddChartConfigsTable1719842654592 implements MigrationInterface {
     private async createChartConfigsTable(
         queryRunner: QueryRunner

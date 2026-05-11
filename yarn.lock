@@ -3080,7 +3080,7 @@ __metadata:
     ts-pattern: "npm:^5.8.0"
     url-parse: "npm:^1.5.10"
     url-slug: "npm:^4.0.1"
-    uuidv7: "npm:^1.0.1"
+    uuid: "npm:^14.0.0"
     vitest: "npm:^4.1.5"
   languageName: unknown
   linkType: soft
@@ -9865,7 +9865,7 @@ __metadata:
     url-parse: "npm:^1.5.10"
     url-slug: "npm:^4.0.1"
     usehooks-ts: "npm:^3.1.1"
-    uuidv7: "npm:^1.0.1"
+    uuid: "npm:^14.0.0"
     versor: "npm:^0.2.0"
     vite: "npm:^8.0.10"
     vitest: "npm:^4.1.5"
@@ -12193,7 +12193,7 @@ __metadata:
     remeda: "npm:^2.32.0"
     stripe: "npm:^14.20.0"
     ts-pattern: "npm:^5.8.0"
-    uuidv7: "npm:^1.0.1"
+    uuid: "npm:^14.0.0"
     vitest: "npm:^4.1.5"
     wrangler: "npm:^4.75.0"
     zod: "npm:^4.1.11"
@@ -15586,12 +15586,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"uuidv7@npm:^1.0.1":
-  version: 1.0.1
-  resolution: "uuidv7@npm:1.0.1"
+"uuid@npm:^14.0.0":
+  version: 14.0.0
+  resolution: "uuid@npm:14.0.0"
   bin:
-    uuidv7: cli.js
-  checksum: 10/24f835d067ee69ee46b1734b1da33e6f751f04ccfa5aa83703fc84693b8628d0ae0b4cd7f31c940ec933268971c338931bf5b57b09e882e14df47dfebba2b760
+    uuid: dist-node/bin/uuid
+  checksum: 10/8ee9b98f9650e25555515f7a28d3c3ae9364e72f7bb19b9e08b681bc135338beba5509b2830f6ae1cfaba4d45401da0d16d4d109b977097bc3d6ba0c5583341b
   languageName: node
   linkType: hard
 

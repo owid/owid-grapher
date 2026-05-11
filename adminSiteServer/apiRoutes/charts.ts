@@ -23,7 +23,7 @@ import {
     parseIntOrUndefined,
     omitUndefinedValues,
 } from "@ourworldindata/utils"
-import { uuidv7 } from "uuidv7"
+import { v7 as uuidv7 } from "uuid"
 import {
     References,
     StaticVizReference,

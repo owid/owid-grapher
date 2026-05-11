@@ -180,7 +180,7 @@
         "url-parse": "^1.5.10",
         "url-slug": "^4.0.1",
         "usehooks-ts": "^3.1.1",
-        "uuidv7": "^1.0.1",
+        "uuid": "^14.0.0",
         "versor": "^0.2.0",
         "workerpool": "^10.0.1",
         "yaml": "^2.8.3",

@@ -1,5 +1,5 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
-import { uuidv7 } from "uuidv7"
+import { v7 as uuidv7 } from "uuid"
 
 export class MoveIndicatorChartsToTheChartConfigsTable1721296631522 implements MigrationInterface {
     private async validateGrapherConfigETLs(

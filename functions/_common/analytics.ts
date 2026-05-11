@@ -6,7 +6,7 @@
 import * as Sentry from "@sentry/cloudflare"
 import { parseCookie } from "cookie"
 import { Env } from "./env.js"
-import { uuidv7 } from "uuidv7"
+import { v7 as uuidv7 } from "uuid"
 
 export async function sendEventToGA4(
     event: { name: string; params: Record<string, string | number> },

@@ -17,7 +17,7 @@ import {
 } from "@ourworldindata/explorer"
 import { transformExplorerProgramToResolveCatalogPaths } from "./ExplorerCatalogResolver.js"
 import { insertChartConfig, updateExistingConfigPair } from "./ChartConfigs.js"
-import { uuidv7 } from "uuidv7"
+import { v7 as uuidv7 } from "uuid"
 import * as _ from "lodash-es"
 import { mergeGrapherConfigs, dimensionsToViewId } from "@ourworldindata/utils"
 import { logErrorAndMaybeCaptureInSentry } from "../../serverUtils/errorLog.js"

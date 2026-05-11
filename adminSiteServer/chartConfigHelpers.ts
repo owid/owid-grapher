@@ -6,7 +6,7 @@ import {
     R2GrapherConfigDirectory,
     serializeChartConfig,
 } from "@ourworldindata/types"
-import { uuidv7 } from "uuidv7"
+import { v7 as uuidv7 } from "uuid"
 import * as db from "../db/db.js"
 import {
     saveGrapherConfigToR2,

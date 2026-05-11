@@ -15,7 +15,7 @@ import {
 } from "react"
 import { Form } from "react-aria-components"
 import { match } from "ts-pattern"
-import { uuidv7 } from "uuidv7"
+import { v7 as uuidv7 } from "uuid"
 import { Button, RadioButton } from "@ourworldindata/components"
 import {
     type UserSurveyExperimentArm,

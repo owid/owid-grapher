@@ -12,7 +12,7 @@ import {
     TransactionCloseMode,
 } from "../db.js"
 import { deleteUser, insertUser, updateUser } from "../model/User.js"
-import { uuidv7 } from "uuidv7"
+import { v7 as uuidv7 } from "uuid"
 import {
     ChartsTableName,
     ChartConfigsTableName,

@@ -12,7 +12,7 @@ import {
     getVariableMetadataRoute,
 } from "@ourworldindata/grapher"
 import pl from "nodejs-polars"
-import { uuidv7 } from "uuidv7"
+import { v7 as uuidv7 } from "uuid"
 import { DATA_API_URL } from "../../settings/serverSettings.js"
 import { escape } from "mysql2"
 import {
