@@ -133,6 +133,17 @@ export class EditorFeatures {
         return this.grapherState.hasStackedDiscreteBar
     }
 
+    @computed get canConfigureDumbbell() {
+        return this.grapherState.hasDumbbellChart
+    }
+
+    @computed get canConfigureDumbbellConnectorStyle() {
+        return (
+            this.grapherState.hasDumbbellChart &&
+            this.grapherState.yColumnSlugs.length > 1
+        )
+    }
+
     @computed get canCustomizeVariableType() {
         return this.grapherState.hasMultipleYColumns
     }
