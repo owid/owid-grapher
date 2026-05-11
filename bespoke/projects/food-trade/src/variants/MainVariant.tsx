@@ -15,6 +15,8 @@ import {
     FoodTradeBilateralSankey,
     FoodTradeSankey,
     formatTrade,
+    TOP_N,
+    TOP_N_FOR_ALL,
 } from "../components/FoodTradeSankey.js"
 import { useContainerWidth } from "../../../../hooks/useContainerWidth.js"
 import {
@@ -240,6 +242,7 @@ function CaptionedMainVariant({
                             outgoing={outgoing}
                             country={country}
                             groupBy={groupBy}
+                            topN={isAllProduct(product) ? TOP_N_FOR_ALL : TOP_N}
                         />
                     ) : (
                         <p className="food-trade-captioned-chart__empty">
@@ -283,15 +286,15 @@ function Subtitle({
     if (incomingTotal > 0) {
         return (
             <>
-                {country} imported {formatTrade(incomingTotal)} of{" "}
-                {productNoun} in {DATA_YEAR}.
+                {country} imported {formatTrade(incomingTotal)} of {productNoun}{" "}
+                in {DATA_YEAR}.
             </>
         )
     }
     return (
         <>
-            {country} exported {formatTrade(outgoingTotal)} of {productNoun}{" "}
-            in {DATA_YEAR}.
+            {country} exported {formatTrade(outgoingTotal)} of {productNoun} in{" "}
+            {DATA_YEAR}.
         </>
     )
 }

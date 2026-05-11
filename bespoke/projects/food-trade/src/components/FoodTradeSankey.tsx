@@ -13,7 +13,10 @@ import {
 
 import { TradeRow } from "../data.js"
 
-const TOP_N = 10
+export const TOP_N = 10
+// "All" modes (aggregated across products) yield flatter distributions where
+// the long tail is more informative, so we allow a few more flows.
+export const TOP_N_FOR_ALL = 15
 // Importers below this share of the total are bucketed into "Other" instead of
 // being shown individually, even if they fall within the top N.
 const SHARE_FLOOR = 0.01
@@ -55,6 +58,7 @@ export function FoodTradeSankey({
     outgoing,
     country,
     groupBy = "country",
+    topN = TOP_N,
 }: {
     incoming: TradeRow[]
     outgoing: TradeRow[]
@@ -62,12 +66,14 @@ export function FoodTradeSankey({
     /** Whether the side flows are aggregated by trading partner (country) or
      * by item (product). */
     groupBy?: "country" | "product"
+    /** Max nodes per side before bucketing into "Other". */
+    topN?: number
 }) {
     const { parentRef, width, height } = useParentSize()
 
     const { nodes, links, columnLabels } = useMemo(
-        () => buildBidirectional(incoming, outgoing, country, groupBy, TOP_N),
-        [incoming, outgoing, country, groupBy]
+        () => buildBidirectional(incoming, outgoing, country, groupBy, topN),
+        [incoming, outgoing, country, groupBy, topN]
     )
 
     return (
@@ -165,10 +171,7 @@ function buildBidirectional(
         const id = `incoming:${d.partner}`
         nodes.push({
             id,
-            label: [
-                truncateLabel(d.partner),
-                valueLabel(d.value, inSel.total),
-            ],
+            label: [truncateLabel(d.partner), valueLabel(d.value, inSel.total)],
         })
         links.push({ source: id, target: country, value: d.value })
     }

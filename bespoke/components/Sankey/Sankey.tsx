@@ -206,16 +206,12 @@ export function Sankey({
                             (n) => n.depth === depth - 1
                         )
                         const cx = useColumnCenter
-                            ? ((nodeAtDepth.x0 ?? 0) +
-                                  (nodeAtDepth.x1 ?? 0)) /
+                            ? ((nodeAtDepth.x0 ?? 0) + (nodeAtDepth.x1 ?? 0)) /
                               2
                             : nextNode
-                              ? ((nodeAtDepth.x1 ?? 0) +
-                                    (nextNode.x0 ?? 0)) /
-                                2
+                              ? ((nodeAtDepth.x1 ?? 0) + (nextNode.x0 ?? 0)) / 2
                               : prevNode
-                                ? ((prevNode.x1 ?? 0) +
-                                      (nodeAtDepth.x0 ?? 0)) /
+                                ? ((prevNode.x1 ?? 0) + (nodeAtDepth.x0 ?? 0)) /
                                   2
                                 : ((nodeAtDepth.x0 ?? 0) +
                                       (nodeAtDepth.x1 ?? 0)) /
