@@ -12,7 +12,7 @@ import {
     TextWrapSvg,
     shortenWithEllipsis,
 } from "@ourworldindata/components"
-import { BezierArrow } from "../../../../components/BezierArrow/BezierArrow.js"
+import { BezierArrow } from "@ourworldindata/grapher"
 import {
     formatPopulationValueLong,
     formatPopulationValueShort,
@@ -273,8 +273,8 @@ function TotalPopulationLabel({
     return (
         <>
             <BezierArrow
-                start={[0, baseY]}
-                end={[width, baseY]}
+                start={{ x: 0, y: baseY }}
+                end={{ x: width, y: baseY }}
                 color={GRAPHER_LIGHT_TEXT}
                 headAnchor="both"
                 headLength={5}
