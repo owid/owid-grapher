@@ -361,3 +361,7 @@ export function sortByConfig<T>(
 export function textWidth(text: string, fontSettings: FontSettings): number {
     return Bounds.forText(text, fontSettings).width
 }
+
+export function roundFontSize(fontSize: number): number {
+    return Math.round(fontSize * 2) / 2
+}
