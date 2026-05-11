@@ -5,43 +5,83 @@ import {
     DUMBBELL_STYLE,
     PlacedDumbbellHead,
 } from "./DumbbellChartConstants"
+import { GRAY_90 } from "../color/ColorConstants.js"
+import { HorizontalArrow } from "../arrows/Arrows.js"
 
-interface DumbbellProps {
+export function TimeRangeDumbbell({
+    series,
+}: {
     series: RenderDumbbellSeries
-}
-
-export function Dumbbell({ series }: DumbbellProps): React.ReactElement {
-    const { left, right } = series
-
+}): React.ReactElement {
     const style = DUMBBELL_STYLE[series.emphasis]
+    const { start, end } = series
 
     return (
         <g id={makeFigmaId("dumbbell")} opacity={style.opacity}>
-            <DumbbellConnectorLine
-                id={makeFigmaId("connector")}
-                left={left}
-                right={right}
-                color={series.connector.color}
+            <DumbbellArrow
+                startX={start.x}
+                endX={end.x}
+                color={series.color}
+                width={2}
+                headLength={start.radius}
             />
-            <DumbbellHead id={makeFigmaId("left")} head={left} />
-            <DumbbellHead id={makeFigmaId("right")} head={right} />
+            <DumbbellHead id={makeFigmaId("start")} head={start} />
         </g>
     )
 }
 
-function DumbbellConnectorLine({
-    id,
-    left,
-    right,
-    color,
+export function TwoColumnDumbbell({
+    series,
 }: {
-    id: string
-    left: PlacedDumbbellHead
-    right: PlacedDumbbellHead
-    color: string
+    series: RenderDumbbellSeries
+}): React.ReactElement {
+    const style = DUMBBELL_STYLE[series.emphasis]
+    const { start, end } = series
+
+    const sign = end.x >= start.x ? 1 : -1
+    const arrowPadding = start.radius
+    const arrowStartX = start.x + sign * (start.radius + arrowPadding)
+    const arrowEndX = end.x - sign * (end.radius + arrowPadding)
+
+    return (
+        <g id={makeFigmaId("dumbbell")} opacity={style.opacity}>
+            <DumbbellArrow
+                startX={arrowStartX}
+                endX={arrowEndX}
+                color={GRAY_90}
+                headLength={Math.min(4.5, 0.6 * start.radius)}
+            />
+            <DumbbellHead id={makeFigmaId("start")} head={start} />
+            <DumbbellHead id={makeFigmaId("end")} head={end} />
+        </g>
+    )
+}
+
+function DumbbellArrow({
+    startX,
+    endX,
+    width,
+    color,
+    headLength,
+}: {
+    startX: number
+    endX: number
+    width?: number
+    color?: string
+    headLength?: number
 }): React.ReactElement {
     return (
-        <line id={id} x1={left.x} x2={right.x} stroke={color} strokeWidth={2} />
+        <HorizontalArrow
+            y={0}
+            startX={startX}
+            endX={endX}
+            width={width}
+            color={color}
+            headStyle="solid"
+            headLength={headLength}
+            headAngle={35}
+            lineCaps="sharp"
+        />
     )
 }
 
