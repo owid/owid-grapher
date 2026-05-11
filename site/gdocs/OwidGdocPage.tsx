@@ -243,6 +243,7 @@ export default function OwidGdocPage({
                 <SiteHeader
                     isOnHomepage={gdoc.content.type === OwidGdocType.Homepage}
                     archiveInfo={isOnArchivalPage ? archiveContext : undefined}
+                    isPreviewing={isPreviewing}
                 />
                 <div id="owid-document-root">
                     <AriaAnnouncerProvider>

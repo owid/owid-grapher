@@ -1,6 +1,7 @@
 import { useContext } from "react"
 import { Autocomplete } from "../../search/Autocomplete.js"
 import { AttachmentsContext } from "../AttachmentsContext.js"
+import { useDocumentContext } from "../DocumentContext.js"
 import { commafyNumber } from "@ourworldindata/utils"
 import { SEARCH_BASE_PATH } from "../../search/searchUtils.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -14,6 +15,7 @@ import { BAKED_BASE_URL } from "../../../settings/clientSettings.js"
 
 export function HomepageSearch(props: { className?: string }) {
     const { homepageMetadata } = useContext(AttachmentsContext)
+    const { isPreviewing } = useDocumentContext()
     const chartCount = homepageMetadata?.chartCount
     const topicCount = homepageMetadata?.topicCount
     const explorerCount = homepageMetadata?.explorerCount
@@ -80,6 +82,7 @@ export function HomepageSearch(props: { className?: string }) {
             <Autocomplete
                 className="span-cols-6 col-start-5 span-md-cols-10 col-md-start-3 span-sm-cols-12 col-sm-start-2"
                 panelClassName="homepage-search__panel"
+                isPreviewing={isPreviewing}
             />
             <div className="span-cols-14 homepage-search__links-and-tagline">
                 {message}

@@ -35,13 +35,17 @@ const HAS_DONATION_FLAG = false
 export const SiteNavigation = ({
     hideDonationFlag,
     isOnHomepage,
+    isPreviewing,
 }: {
     hideDonationFlag?: boolean
     isOnHomepage?: boolean
+    isPreviewing?: boolean
 }) => {
     const [menu, setActiveMenu] = useState<Menu | null>(null)
     const [query, setQuery] = useState<string>("")
-    const { data: tagGraph } = useTopicTagGraph()
+    const { data: tagGraph } = useTopicTagGraph({
+        isPreviewing: Boolean(isPreviewing),
+    })
 
     const isActiveMobileMenu =
         menu !== null &&
@@ -189,6 +193,7 @@ export const SiteNavigation = ({
                                     isActive={menu === Menu.Search}
                                     onClose={closeOverlay}
                                     onActivate={setSearchAsActiveMenu}
+                                    isPreviewing={isPreviewing}
                                 />
                             )}
                             <SiteNavigationToggle

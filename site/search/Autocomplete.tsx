@@ -436,17 +436,21 @@ export function Autocomplete({
     className,
     placeholder = DEFAULT_SEARCH_PLACEHOLDER,
     panelClassName,
+    isPreviewing,
 }: {
     onActivate?: () => void
     onClose?: () => void
     className?: string
     placeholder?: string
     panelClassName?: string
+    isPreviewing?: boolean
 }) {
     const containerRef = useRef<HTMLDivElement>(null)
     const panelRootRef = useRef<Root | null>(null)
     const rootRef = useRef<HTMLElement | null>(null)
-    const { data: topicTagGraph } = useTopicTagGraph()
+    const { data: topicTagGraph } = useTopicTagGraph({
+        isPreviewing: Boolean(isPreviewing),
+    })
     const { allTopics } = useTagGraphTopics(topicTagGraph)
 
     const synonymMap = useMemo(() => buildSynonymMap(), [])

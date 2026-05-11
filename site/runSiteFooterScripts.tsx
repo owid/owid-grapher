@@ -233,7 +233,13 @@ function runFootnotes() {
     })
 }
 
-function runSiteNavigation(hideDonationFlag?: boolean) {
+function runSiteNavigation({
+    hideDonationFlag,
+    isPreviewing,
+}: {
+    hideDonationFlag?: boolean
+    isPreviewing?: boolean
+} = {}) {
     const siteNavigationElem = document.querySelector(".site-navigation-root")
     if (siteNavigationElem) {
         let isOnHomepage = false
@@ -257,6 +263,7 @@ function runSiteNavigation(hideDonationFlag?: boolean) {
                         ? archiveInfo
                         : undefined
                 }
+                isPreviewing={isPreviewing}
             />
         )
     }
@@ -325,7 +332,7 @@ export const runSiteFooterScriptsForArchive = (args: SiteFooterScriptsArgs) => {
         case SiteFooterContext.dataPageV2:
             hydrateDataPageV2Content({ isPreviewing })
             // runAllGraphersLoadedListener()
-            runSiteNavigation()
+            runSiteNavigation({ isPreviewing })
             // runSiteTools()
             // runCookiePreferencesManager()
             void runDetailsOnDemand()
@@ -333,14 +340,14 @@ export const runSiteFooterScriptsForArchive = (args: SiteFooterScriptsArgs) => {
         case SiteFooterContext.multiDimDataPage:
             hydrateMultiDimDataPageContent(isPreviewing)
             // runAllGraphersLoadedListener()
-            runSiteNavigation()
+            runSiteNavigation({ isPreviewing })
             // runSiteTools()
             // runCookiePreferencesManager()
             void runDetailsOnDemand()
             break
         case SiteFooterContext.grapherPage:
         case SiteFooterContext.explorerPage:
-            runSiteNavigation()
+            runSiteNavigation({ isPreviewing })
             // runAllGraphersLoadedListener()
             // runSiteTools()
             // runCookiePreferencesManager()
@@ -349,7 +356,7 @@ export const runSiteFooterScriptsForArchive = (args: SiteFooterScriptsArgs) => {
         case SiteFooterContext.gdocsDocument:
             hydrateOwidGdoc(debug, isPreviewing)
             // runAllGraphersLoadedListener()
-            runSiteNavigation()
+            runSiteNavigation({ isPreviewing })
             runFootnotes()
             void runDetailsOnDemand()
             // runSiteTools()
@@ -375,7 +382,7 @@ export const runSiteFooterScripts = async (
         case SiteFooterContext.dataPageV2:
             hydrateDataPageV2Content({ isPreviewing })
             runAllGraphersLoadedListener()
-            runSiteNavigation(hideDonationFlag)
+            runSiteNavigation({ hideDonationFlag, isPreviewing })
             runSiteTools()
             runCookiePreferencesManager()
             runUserSurveyWidget()
@@ -384,7 +391,7 @@ export const runSiteFooterScripts = async (
         case SiteFooterContext.multiDimDataPage:
             hydrateMultiDimDataPageContent(isPreviewing)
             runAllGraphersLoadedListener()
-            runSiteNavigation(hideDonationFlag)
+            runSiteNavigation({ hideDonationFlag, isPreviewing })
             runSiteTools()
             runCookiePreferencesManager()
             runUserSurveyWidget()
@@ -392,7 +399,7 @@ export const runSiteFooterScripts = async (
             break
         case SiteFooterContext.grapherPage:
         case SiteFooterContext.explorerPage:
-            runSiteNavigation(hideDonationFlag)
+            runSiteNavigation({ hideDonationFlag, isPreviewing })
             runAllGraphersLoadedListener()
             runSiteTools()
             runCookiePreferencesManager()
@@ -401,14 +408,14 @@ export const runSiteFooterScripts = async (
             break
         case SiteFooterContext.explorerIndexPage:
             hydrateExplorerIndex()
-            runSiteNavigation()
+            runSiteNavigation({ isPreviewing })
             runCookiePreferencesManager()
             runSiteTools()
             break
         case SiteFooterContext.gdocsDocument:
             hydrateOwidGdoc(debug, isPreviewing)
             runAllGraphersLoadedListener()
-            runSiteNavigation(hideDonationFlag)
+            runSiteNavigation({ hideDonationFlag, isPreviewing })
             runFootnotes()
             void runDetailsOnDemand()
             runSiteTools()
@@ -417,7 +424,7 @@ export const runSiteFooterScripts = async (
             break
         case SiteFooterContext.latestPage:
             hydrateLatestPage()
-            runSiteNavigation(hideDonationFlag)
+            runSiteNavigation({ hideDonationFlag, isPreviewing })
             runSiteTools()
             runCookiePreferencesManager()
             void runDetailsOnDemand()
@@ -439,7 +446,7 @@ export const runSiteFooterScripts = async (
         default:
             // Features that were not ported over to gdocs, are only being run on WP pages:
             // - embedding charts through MultiEmbedderSingleton.embedAll()
-            runSiteNavigation(hideDonationFlag)
+            runSiteNavigation({ hideDonationFlag, isPreviewing })
             hydrateCodeSnippets()
             MultiEmbedderSingleton.embedAll(isPreviewing)
             runAllGraphersLoadedListener()

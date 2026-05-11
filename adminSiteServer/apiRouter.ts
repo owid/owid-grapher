@@ -85,6 +85,7 @@ import {
 } from "./apiRoutes/suggest.js"
 import {
     handleGetFlatTagGraph,
+    handleGetTopicTagGraph,
     handlePostTagGraph,
 } from "./apiRoutes/tagGraph.js"
 import {
@@ -538,6 +539,11 @@ getRouteWithROTransaction(
     apiRouter,
     "/flatTagGraph.json",
     handleGetFlatTagGraph
+)
+getRouteWithROTransaction(
+    apiRouter,
+    "/topicTagGraph.json",
+    handleGetTopicTagGraph
 )
 postRouteWithRWTransaction(apiRouter, "/tagGraph", handlePostTagGraph)
 getRouteWithROTransaction(apiRouter, "/tags/:tagId.json", getTagById)

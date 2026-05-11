@@ -14,7 +14,6 @@ import type { SearchResponse } from "instantsearch.js"
 import { useEffect, useMemo, useRef } from "react"
 import type { TagGraphNode, TagGraphRoot } from "@ourworldindata/types"
 import { SiteAnalytics } from "../SiteAnalytics.js"
-import { BAKED_BASE_URL } from "../../settings/clientSettings.js"
 import * as R from "remeda"
 
 export const useSelectedTopic = (): string | undefined => {
@@ -208,14 +207,14 @@ export function useInfiniteSearch<T extends SearchResponse<U>, U>({
     }
 }
 
-export function useTopicTagGraph() {
+export function useTopicTagGraph({ isPreviewing }: { isPreviewing: boolean }) {
     return useQuery({
-        queryKey: ["topic-tag-graph"],
+        queryKey: ["topic-tag-graph", isPreviewing],
         queryFn: async () => {
-            const tagGraph = await fetchJson<TagGraphRoot>(
-                // We have to use an absolute URL for the admin preview.
-                `${BAKED_BASE_URL}/topicTagGraph.json`
-            )
+            const url = isPreviewing
+                ? "/admin/api/topicTagGraph.json"
+                : "/topicTagGraph.json"
+            const tagGraph = await fetchJson<TagGraphRoot>(url)
             return flattenNonTopicNodes(tagGraph)
         },
         staleTime: Infinity,
