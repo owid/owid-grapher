@@ -18,6 +18,7 @@ const nullableAutoUpdatedUpdatedAtTablesWithNullDefault = [
 
 const nullableAutoUpdatedUpdatedAtTables = [
     ...nullableAutoUpdatedUpdatedAtTablesWithNullDefault,
+    "explorers",
     "posts_gdocs",
 ]
 
@@ -141,6 +142,12 @@ export class BackfillAndConstrainTimestamps1776260942258 implements MigrationInt
         await queryRunner.query(
             `-- sql
             ALTER TABLE posts_gdocs
+            MODIFY COLUMN updatedAt DATETIME NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP`
+        )
+
+        await queryRunner.query(
+            `-- sql
+            ALTER TABLE explorers
             MODIFY COLUMN updatedAt DATETIME NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP`
         )
 
