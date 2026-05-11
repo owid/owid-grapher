@@ -60,12 +60,7 @@ function TwoColumnLineDumbbell({
 
     return (
         <g id={makeFigmaId("dumbbell")} opacity={style.opacity}>
-            <line
-                x1={start.x}
-                x2={end.x}
-                stroke={GRAY_50}
-                strokeWidth={2}
-            />
+            <line x1={start.x} x2={end.x} stroke={GRAY_50} strokeWidth={2} />
             <DumbbellHead id={makeFigmaId("start")} head={start} outline />
             <DumbbellHead id={makeFigmaId("end")} head={end} outline />
         </g>

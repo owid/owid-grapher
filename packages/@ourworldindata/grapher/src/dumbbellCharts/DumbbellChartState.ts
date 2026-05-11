@@ -2,6 +2,7 @@ import { computed, makeObservable } from "mobx"
 import {
     ColumnSlug,
     DumbbellConnectorStyle,
+    DumbbellValueLabelMode,
     ScaleType,
     SeriesStrategy,
     FacetStrategy,
@@ -115,6 +116,13 @@ export class DumbbellChartState implements ChartState {
         return (
             this.manager.dumbbell?.connectorStyle ??
             DumbbellConnectorStyle.Arrow
+        )
+    }
+
+    @computed get valueLabelMode(): DumbbellValueLabelMode {
+        return (
+            this.manager.dumbbell?.valueLabelMode ??
+            DumbbellValueLabelMode.Absolute
         )
     }
 

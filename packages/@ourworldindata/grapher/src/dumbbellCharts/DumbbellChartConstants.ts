@@ -57,13 +57,23 @@ export interface DumbbellHead {
     color: string
 }
 
+export interface DumbbellValueLabel {
+    text: string
+    width: number
+    padding: number
+}
+
 interface SizedDumbbellHead extends DumbbellHead {
-    label: { text: string; width: number; padding: number }
+    label?: DumbbellValueLabel
     radius: number
 }
 
 export interface PlacedDumbbellHead extends SizedDumbbellHead {
     x: number
+}
+
+export type LabelledDumbbellHead = PlacedDumbbellHead & {
+    label: DumbbellValueLabel
 }
 
 interface DumbbellStyle {

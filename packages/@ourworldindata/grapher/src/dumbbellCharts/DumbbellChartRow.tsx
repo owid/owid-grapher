@@ -10,9 +10,10 @@ import { FontSettings } from "../core/GrapherConstants"
 import { SeriesLabel } from "../seriesLabel/SeriesLabel"
 import { TimeRangeDumbbell, TwoColumnDumbbell } from "./Dumbbell"
 import {
-    PlacedDumbbellHead,
+    LabelledDumbbellHead,
     RenderDumbbellSeries,
     DUMBBELL_STYLE,
+    PlacedDumbbellHead,
 } from "./DumbbellChartConstants"
 import { toLeftRight } from "./DumbbellChartHelpers"
 import { GRID_LINE_DASH_PATTERN, TICK_COLOR } from "../axis/AxisViews.js"
@@ -86,18 +87,22 @@ export function DumbbellChartRow({
             )}
 
             {/* Left value label */}
-            <DumbbellValueLabel
-                side="left"
-                head={leftHead}
-                style={valueLabelStyle}
-            />
+            {hasLabel(leftHead) && (
+                <DumbbellValueLabel
+                    side="left"
+                    head={leftHead}
+                    style={valueLabelStyle}
+                />
+            )}
 
             {/* Right value label */}
-            <DumbbellValueLabel
-                side="right"
-                head={rightHead}
-                style={valueLabelStyle}
-            />
+            {hasLabel(rightHead) && (
+                <DumbbellValueLabel
+                    side="right"
+                    head={rightHead}
+                    style={valueLabelStyle}
+                />
+            )}
         </g>
     )
 }
@@ -108,7 +113,7 @@ function DumbbellValueLabel({
     style,
 }: {
     side: "left" | "right"
-    head: PlacedDumbbellHead
+    head: LabelledDumbbellHead
     style: FontSettings
 }): React.ReactElement {
     const x =
@@ -133,4 +138,10 @@ function DumbbellValueLabel({
             </text>
         </Halo>
     )
+}
+
+export function hasLabel(
+    head: PlacedDumbbellHead
+): head is LabelledDumbbellHead {
+    return head.label !== undefined
 }
