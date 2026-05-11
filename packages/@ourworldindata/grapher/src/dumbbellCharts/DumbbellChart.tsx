@@ -295,6 +295,7 @@ export class DumbbellChart
                             key={series.seriesName}
                             series={series}
                             seriesStrategy={this.chartState.seriesStrategy}
+                            connectorStyle={this.chartState.connectorStyle}
                             range={this.xRange}
                             valueLabelStyle={this.valueLabelStyle}
                             y={series.y}
@@ -306,6 +307,9 @@ export class DumbbellChart
     }
 
     private renderInteractive(): React.ReactElement {
+        const { xRange, valueLabelStyle } = this
+        const { seriesStrategy, connectorStyle } = this.chartState
+
         return (
             <g>
                 <DumbbellChartAxis
@@ -323,9 +327,10 @@ export class DumbbellChart
                         <DumbbellChartRow
                             key={series.seriesName}
                             series={series}
-                            seriesStrategy={this.chartState.seriesStrategy}
-                            range={this.xRange}
-                            valueLabelStyle={this.valueLabelStyle}
+                            seriesStrategy={seriesStrategy}
+                            connectorStyle={connectorStyle}
+                            range={xRange}
+                            valueLabelStyle={valueLabelStyle}
                             y={0}
                         />
                     )}
