@@ -6,6 +6,7 @@ import {
     makeFigmaId,
     exposeInstanceOnWindow,
     ScaleType,
+    SeriesStrategy,
 } from "@ourworldindata/utils"
 import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
@@ -36,8 +37,6 @@ import {
     RenderDumbbellSeries,
     VALUE_LABEL_DOT_GAP,
     ENTITY_LABEL_CHART_GAP,
-    MAX_DUMBBELL_HEAD_RADIUS,
-    MIN_DUMBBELL_HEAD_RADIUS,
 } from "./DumbbellChartConstants"
 import { DumbbellChartState } from "./DumbbellChartState"
 import { ChartComponentProps } from "../chart/ChartTypeMap"
@@ -104,28 +103,28 @@ export class DumbbellChart
             fontSettings: this.labelStyle,
             showRegionTooltip: !this.manager.isStatic,
         }).map((series) => {
-            const leftLabel = this.formatValue(series.left.value)
-            const rightLabel = this.formatValue(series.right.value)
+            const startLabel = this.formatValue(series.start.value)
+            const endLabel = this.formatValue(series.end.value)
 
-            const leftLabelWidth = textWidth(leftLabel, this.labelStyle)
-            const rightLabelWidth = textWidth(rightLabel, this.labelStyle)
+            const startLabelWidth = textWidth(startLabel, this.labelStyle)
+            const endLabelWidth = textWidth(endLabel, this.labelStyle)
 
             const padding = this.dumbbellHeadRadius + VALUE_LABEL_DOT_GAP
 
             return {
                 ...series,
-                left: {
-                    ...series.left,
-                    label: { text: leftLabel, width: leftLabelWidth, padding },
-                    radius: this.dumbbellHeadRadius,
-                },
-                right: {
-                    ...series.right,
+                start: {
+                    ...series.start,
                     label: {
-                        text: rightLabel,
-                        width: rightLabelWidth,
+                        text: startLabel,
+                        width: startLabelWidth,
                         padding,
                     },
+                    radius: this.dumbbellHeadRadius,
+                },
+                end: {
+                    ...series.end,
+                    label: { text: endLabel, width: endLabelWidth, padding },
                     radius: this.dumbbellHeadRadius,
                 },
             }
@@ -218,11 +217,9 @@ export class DumbbellChart
     }
 
     @computed private get dumbbellHeadRadius(): number {
-        return _.clamp(
-            Math.floor(this.availableHeightPerSeries / 2),
-            MIN_DUMBBELL_HEAD_RADIUS,
-            MAX_DUMBBELL_HEAD_RADIUS
-        )
+        return this.chartState.seriesStrategy === SeriesStrategy.entity
+            ? _.clamp(Math.floor(this.availableHeightPerSeries / 2), 2, 4)
+            : _.clamp(Math.floor(this.availableHeightPerSeries / 2), 2, 6)
     }
 
     @computed private get placedSeries(): PlacedDumbbellSeries[] {
@@ -250,13 +247,13 @@ export class DumbbellChart
                     y: centerY,
                     labelPosition,
                     annotationPosition,
-                    left: {
-                        ...series.left,
-                        x: this.axis.place(series.left.value),
+                    start: {
+                        ...series.start,
+                        x: this.axis.place(series.start.value),
                     },
-                    right: {
-                        ...series.right,
-                        x: this.axis.place(series.right.value),
+                    end: {
+                        ...series.end,
+                        x: this.axis.place(series.end.value),
                     },
                 }
             })
@@ -291,6 +288,7 @@ export class DumbbellChart
                         <DumbbellChartRow
                             key={series.seriesName}
                             series={series}
+                            seriesStrategy={this.chartState.seriesStrategy}
                             range={this.xRange}
                             valueLabelStyle={this.labelStyle}
                             y={series.y}
@@ -319,6 +317,7 @@ export class DumbbellChart
                         <DumbbellChartRow
                             key={series.seriesName}
                             series={series}
+                            seriesStrategy={this.chartState.seriesStrategy}
                             range={this.xRange}
                             valueLabelStyle={this.labelStyle}
                             y={0}

@@ -1,9 +1,19 @@
 import { PadObject, Position, RequiredBy } from "@ourworldindata/utils"
-import { SizedDumbbellSeries } from "./DumbbellChartConstants.js"
+import { DumbbellHead, SizedDumbbellSeries } from "./DumbbellChartConstants.js"
 
 export interface AxisLayout {
     domain: [number, number]
     pad: RequiredBy<PadObject, Position.left | Position.right>
+}
+
+/** Returns the start/end heads ordered by their spatial position on the axis */
+export function toLeftRight<H extends DumbbellHead>(
+    start: H,
+    end: H
+): { left: H; right: H } {
+    return start.value <= end.value
+        ? { left: start, right: end }
+        : { left: end, right: start }
 }
 
 /**
@@ -34,16 +44,19 @@ export function calculateAxisLayout({
     if (series.length === 0 || width <= 0)
         return { domain, pad: { left: 0, right: 0 } }
 
-    const rows = series.map((series) => ({
-        left: {
-            value: series.left.value,
-            labelWidth: series.left.label.width + series.left.label.padding,
-        },
-        right: {
-            value: series.right.value,
-            labelWidth: series.right.label.width + series.right.label.padding,
-        },
-    }))
+    const rows = series.map((series) => {
+        const { left, right } = toLeftRight(series.start, series.end)
+        return {
+            left: {
+                value: left.value,
+                labelWidth: left.label.width + left.label.padding,
+            },
+            right: {
+                value: right.value,
+                labelWidth: right.label.width + right.label.padding,
+            },
+        }
+    })
 
     let domainStart = domain[0]
     let domainEnd = domain[1]
