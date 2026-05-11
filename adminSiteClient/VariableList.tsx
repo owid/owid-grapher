@@ -94,12 +94,22 @@ class VariableRow extends React.Component<VariableRowProps> {
                         {(variable.usageCount ?? 0) > 0 ? (
                             <>
                                 {variable.usageCount} (
-                                <span title="Used in N charts">
+                                <span
+                                    title={`Used in ${variable.chartsCount ?? 0} ${
+                                        variable.chartsCount === 1
+                                            ? "chart"
+                                            : "charts"
+                                    }`}
+                                >
                                     {variable.chartsCount}C
                                 </span>{" "}
                                 {(variable.multiDims?.length ?? 0) > 0 ? (
                                     <Popover
-                                        title="Multi-dim pages"
+                                        title={`Used in ${variable.multiDimCount ?? 0} ${
+                                            variable.multiDimCount === 1
+                                                ? "multi-dim"
+                                                : "multi-dims"
+                                        }`}
                                         content={
                                             <ul className="list-unstyled mb-0">
                                                 {variable.multiDims!.map(
@@ -124,13 +134,23 @@ class VariableRow extends React.Component<VariableRowProps> {
                                         </span>
                                     </Popover>
                                 ) : (
-                                    <span title="Used in N multi-dim pages">
+                                    <span
+                                        title={`Used in ${variable.multiDimCount ?? 0} ${
+                                            variable.multiDimCount === 1
+                                                ? "multi-dim"
+                                                : "multi-dims"
+                                        }`}
+                                    >
                                         {variable.multiDimCount}M
                                     </span>
                                 )}{" "}
                                 {(variable.explorerSlugs?.length ?? 0) > 0 ? (
                                     <Popover
-                                        title="Path-based explorers"
+                                        title={`Used in ${variable.explorersCount ?? 0} path-based ${
+                                            variable.explorersCount === 1
+                                                ? "explorer"
+                                                : "explorers"
+                                        }`}
                                         content={
                                             <ul className="list-unstyled mb-0">
                                                 {variable.explorerSlugs!.map(
@@ -155,7 +175,13 @@ class VariableRow extends React.Component<VariableRowProps> {
                                         </span>
                                     </Popover>
                                 ) : (
-                                    <span title="Used in N path-based explorers">
+                                    <span
+                                        title={`Used in ${variable.explorersCount ?? 0} path-based ${
+                                            variable.explorersCount === 1
+                                                ? "explorer"
+                                                : "explorers"
+                                        }`}
+                                    >
                                         {variable.explorersCount}E
                                     </span>
                                 )}
