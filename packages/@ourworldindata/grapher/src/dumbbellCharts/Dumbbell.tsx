@@ -1,12 +1,14 @@
 import * as React from "react"
 import * as R from "remeda"
+import { match } from "ts-pattern"
 import { makeFigmaId } from "@ourworldindata/utils"
+import { DumbbellConnectorStyle } from "@ourworldindata/types"
 import {
     RenderDumbbellSeries,
     DUMBBELL_STYLE,
     PlacedDumbbellHead,
 } from "./DumbbellChartConstants"
-import { GRAY_90 } from "../color/ColorConstants.js"
+import { GRAY_50, GRAY_90 } from "../color/ColorConstants.js"
 import { HorizontalArrow } from "../arrows/Arrows.js"
 
 export function TimeRangeDumbbell({
@@ -32,6 +34,45 @@ export function TimeRangeDumbbell({
 }
 
 export function TwoColumnDumbbell({
+    series,
+    connectorStyle,
+}: {
+    series: RenderDumbbellSeries
+    connectorStyle: DumbbellConnectorStyle
+}): React.ReactElement {
+    return match(connectorStyle)
+        .with(DumbbellConnectorStyle.Arrow, () => (
+            <TwoColumnArrowDumbbell series={series} />
+        ))
+        .with(DumbbellConnectorStyle.Line, () => (
+            <TwoColumnLineDumbbell series={series} />
+        ))
+        .exhaustive()
+}
+
+function TwoColumnLineDumbbell({
+    series,
+}: {
+    series: RenderDumbbellSeries
+}): React.ReactElement {
+    const style = DUMBBELL_STYLE[series.emphasis]
+    const { start, end } = series
+
+    return (
+        <g id={makeFigmaId("dumbbell")} opacity={style.opacity}>
+            <line
+                x1={start.x}
+                x2={end.x}
+                stroke={GRAY_50}
+                strokeWidth={2}
+            />
+            <DumbbellHead id={makeFigmaId("start")} head={start} outline />
+            <DumbbellHead id={makeFigmaId("end")} head={end} outline />
+        </g>
+    )
+}
+
+function TwoColumnArrowDumbbell({
     series,
 }: {
     series: RenderDumbbellSeries

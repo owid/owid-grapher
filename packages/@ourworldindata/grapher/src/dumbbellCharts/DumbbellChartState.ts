@@ -1,6 +1,7 @@
 import { computed, makeObservable } from "mobx"
 import {
     ColumnSlug,
+    DumbbellConnectorStyle,
     ScaleType,
     SeriesStrategy,
     FacetStrategy,
@@ -108,6 +109,13 @@ export class DumbbellChartState implements ChartState {
      * */
     @computed get seriesStrategy(): SeriesStrategy {
         return autoDetectSeriesStrategy(this.manager)
+    }
+
+    @computed get connectorStyle(): DumbbellConnectorStyle {
+        return (
+            this.manager.dumbbell?.connectorStyle ??
+            DumbbellConnectorStyle.Arrow
+        )
     }
 
     @computed get availableFacetStrategies(): FacetStrategy[] {

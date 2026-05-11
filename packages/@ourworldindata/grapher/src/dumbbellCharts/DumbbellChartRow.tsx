@@ -1,7 +1,11 @@
 import React from "react"
 import { makeFigmaId, dyFromAlign } from "@ourworldindata/utils"
 import { Halo, TextWrapSvg } from "@ourworldindata/components"
-import { SeriesStrategy, VerticalAlign } from "@ourworldindata/types"
+import {
+    DumbbellConnectorStyle,
+    SeriesStrategy,
+    VerticalAlign,
+} from "@ourworldindata/types"
 import { FontSettings } from "../core/GrapherConstants"
 import { SeriesLabel } from "../seriesLabel/SeriesLabel"
 import { TimeRangeDumbbell, TwoColumnDumbbell } from "./Dumbbell"
@@ -17,12 +21,14 @@ import { darkenColorForText } from "../color/ColorUtils.js"
 export function DumbbellChartRow({
     series,
     seriesStrategy,
+    connectorStyle,
     y,
     range,
     valueLabelStyle,
 }: {
     series: RenderDumbbellSeries
     seriesStrategy: SeriesStrategy
+    connectorStyle: DumbbellConnectorStyle
     y: number
     range: [number, number]
     valueLabelStyle: FontSettings
@@ -73,7 +79,10 @@ export function DumbbellChartRow({
             {seriesStrategy === SeriesStrategy.entity ? (
                 <TimeRangeDumbbell series={series} />
             ) : (
-                <TwoColumnDumbbell series={series} />
+                <TwoColumnDumbbell
+                    series={series}
+                    connectorStyle={connectorStyle}
+                />
             )}
 
             {/* Left value label */}
