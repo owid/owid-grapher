@@ -1,13 +1,19 @@
 import * as _ from "lodash-es"
 import { scalePoint } from "d3-scale"
 import React from "react"
+import { match } from "ts-pattern"
 import {
     Bounds,
     makeFigmaId,
     exposeInstanceOnWindow,
     ScaleType,
     SeriesStrategy,
+    formatValue,
 } from "@ourworldindata/utils"
+import {
+    DumbbellValueLabelMode,
+    TickFormattingOptions,
+} from "@ourworldindata/types"
 import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import {
@@ -37,6 +43,7 @@ import {
     RenderDumbbellSeries,
     VALUE_LABEL_DOT_GAP,
     ENTITY_LABEL_CHART_GAP,
+    DumbbellValueLabel,
 } from "./DumbbellChartConstants"
 import { DumbbellChartState } from "./DumbbellChartState"
 import { ChartComponentProps } from "../chart/ChartTypeMap"
@@ -100,6 +107,42 @@ export class DumbbellChart
         return { fontSize, fontWeight: 400, lineHeight: 1 }
     }
 
+    private buildValueLabel(text: string): DumbbellValueLabel {
+        return {
+            text,
+            width: textWidth(text, this.valueLabelStyle),
+            padding: this.dumbbellHeadRadius + VALUE_LABEL_DOT_GAP,
+        }
+    }
+
+    private getValueLabels(
+        startValue: number,
+        endValue: number
+    ): { start?: string; end?: string } {
+        return match(this.chartState.valueLabelMode)
+            .with(DumbbellValueLabelMode.Absolute, () => ({
+                start: this.formatValue(startValue),
+                end: this.formatValue(endValue),
+            }))
+            .with(DumbbellValueLabelMode.Change, () => {
+                const diff = endValue - startValue
+                return { end: this.formatValue(diff, { showPlus: true }) }
+            })
+            .with(DumbbellValueLabelMode.PercentChange, () => {
+                if (startValue === 0) return {}
+                const change = ((endValue - startValue) / startValue) * 100
+                return {
+                    end: formatValue(change, {
+                        showPlus: true,
+                        unit: "%",
+                        numDecimalPlaces: 1,
+                    }),
+                }
+            })
+            .with(DumbbellValueLabelMode.None, () => ({}))
+            .exhaustive()
+    }
+
     @computed get sizedSeries(): SizedDumbbellSeries[] {
         return enrichSeriesWithLabels({
             series: this.series,
@@ -109,28 +152,21 @@ export class DumbbellChart
             fontSettings: this.entityLabelStyle,
             showRegionTooltip: !this.manager.isStatic,
         }).map((series) => {
-            const startLabel = this.formatValue(series.start.value)
-            const endLabel = this.formatValue(series.end.value)
-
-            const startLabelWidth = textWidth(startLabel, this.valueLabelStyle)
-            const endLabelWidth = textWidth(endLabel, this.valueLabelStyle)
-
-            const padding = this.dumbbellHeadRadius + VALUE_LABEL_DOT_GAP
+            const { start, end } = this.getValueLabels(
+                series.start.value,
+                series.end.value
+            )
 
             return {
                 ...series,
                 start: {
                     ...series.start,
-                    label: {
-                        text: startLabel,
-                        width: startLabelWidth,
-                        padding,
-                    },
+                    label: start ? this.buildValueLabel(start) : undefined,
                     radius: this.dumbbellHeadRadius,
                 },
                 end: {
                     ...series.end,
-                    label: { text: endLabel, width: endLabelWidth, padding },
+                    label: end ? this.buildValueLabel(end) : undefined,
                     radius: this.dumbbellHeadRadius,
                 },
             }
@@ -273,8 +309,11 @@ export class DumbbellChart
         })
     }
 
-    private formatValue(value: number): string {
-        return this.chartState.formatColumn.formatValueShort(value)
+    private formatValue(
+        value: number,
+        options?: TickFormattingOptions
+    ): string {
+        return this.chartState.formatColumn.formatValueShort(value, options)
     }
 
     override componentDidMount(): void {

@@ -49,11 +49,15 @@ export function calculateAxisLayout({
         return {
             left: {
                 value: left.value,
-                labelWidth: left.label.width + left.label.padding,
+                labelWidth: left.label
+                    ? left.label.width + left.label.padding
+                    : 0,
             },
             right: {
                 value: right.value,
-                labelWidth: right.label.width + right.label.padding,
+                labelWidth: right.label
+                    ? right.label.width + right.label.padding
+                    : 0,
             },
         }
     })
