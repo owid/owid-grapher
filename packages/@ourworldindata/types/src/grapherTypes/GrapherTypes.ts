@@ -528,6 +528,23 @@ export interface GlobeConfig {
     focusCountry?: EntityName
 }
 
+export enum DumbbellConnectorStyle {
+    Arrow = "arrow",
+    Line = "line",
+}
+
+export enum DumbbellValueLabelMode {
+    Absolute = "absolute",
+    Change = "change",
+    PercentChange = "percentChange",
+    None = "none",
+}
+
+export interface DumbbellChartConfigInterface {
+    connectorStyle?: DumbbellConnectorStyle
+    valueLabelMode?: DumbbellValueLabelMode
+}
+
 export interface MapConfigInterface {
     columnSlug?: ColumnSlug
     time?: TimeBound | TimeBoundValueStr
@@ -606,6 +623,7 @@ export interface GrapherInterface extends SortConfig {
     yAxis?: Partial<AxisConfigInterface>
     colorScale?: Partial<ColorScaleConfigInterface>
     map?: Partial<MapConfigInterface>
+    dumbbell?: Partial<DumbbellChartConfigInterface>
 
     // When we move graphers to Git, and remove dimensions, we can clean this up.
     ySlugs?: ColumnSlugs
@@ -754,6 +772,7 @@ export const grapherKeysToSerialize = [
     "relatedQuestions",
     "missingDataStrategy",
     "peerCountryStrategy",
+    "dumbbell",
 
     // internals
     "adminBaseUrl",

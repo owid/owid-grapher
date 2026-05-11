@@ -9,6 +9,7 @@ import {
     ComparisonLineConfig,
     AxisConfigInterface,
     ColorSchemeName,
+    DumbbellChartConfigInterface,
     EntityName,
     DetailsMarker,
     GrapherVariant,
@@ -60,6 +61,8 @@ export interface ChartManager {
 
     yAxisConfig?: Readonly<AxisConfigInterface>
     xAxisConfig?: Readonly<AxisConfigInterface>
+
+    dumbbell?: Readonly<DumbbellChartConfigInterface>
 
     addCountryMode?: EntitySelectionMode
 
