@@ -44,8 +44,7 @@ export class EditorFeatures {
         return (
             this.grapherState.hasLineChart ||
             this.grapherState.hasSlopeChart ||
-            this.grapherState.hasScatter ||
-            this.grapherState.hasDumbbellChart
+            this.grapherState.hasScatter
         )
     }
 

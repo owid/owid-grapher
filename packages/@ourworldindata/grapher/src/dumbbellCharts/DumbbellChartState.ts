@@ -63,9 +63,6 @@ export class DumbbellChartState implements ChartState {
 
         table = table.replaceNonNumericCellsWithErrorValues(this.yColumnSlugs)
 
-        if (this.isLogScale)
-            table = table.replaceNonPositiveCellsForLogScale(this.yColumnSlugs)
-
         this.yColumnSlugs.forEach((slug) => {
             table = table.interpolateColumnWithTolerance(slug)
         })
@@ -95,14 +92,6 @@ export class DumbbellChartState implements ChartState {
 
     @computed get formatColumn(): CoreColumn {
         return this.yColumns[0]
-    }
-
-    @computed get isLogScale(): boolean {
-        return this.manager.yAxisConfig?.scaleType === ScaleType.log
-    }
-
-    @computed get yScaleType(): ScaleType {
-        return this.manager.yAxisConfig?.scaleType ?? ScaleType.linear
     }
 
     @computed get startTime(): number {
@@ -307,7 +296,7 @@ export class DumbbellChartState implements ChartState {
 
     @computed get yDomainDefault(): [number, number] {
         const defaultDomain: [number, number] = [Infinity, -Infinity]
-        return domainExtent(this.allValues, this.yScaleType) ?? defaultDomain
+        return domainExtent(this.allValues, ScaleType.linear) ?? defaultDomain
     }
 
     @computed get errorInfo(): ChartErrorInfo {
