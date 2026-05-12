@@ -120,10 +120,17 @@ export class DumbbellChart
         endValue: number
     ): { start?: string; end?: string } {
         return match(this.chartState.valueLabelMode)
-            .with(DumbbellValueLabelMode.Absolute, () => ({
-                start: this.formatValue(startValue),
-                end: this.formatValue(endValue),
-            }))
+            .with(DumbbellValueLabelMode.Absolute, () => {
+                // Only show one label if the values are the same
+                if (startValue === endValue) {
+                    return { start: this.formatValue(startValue) }
+                }
+
+                return {
+                    start: this.formatValue(startValue),
+                    end: this.formatValue(endValue),
+                }
+            })
             .with(DumbbellValueLabelMode.Change, () => {
                 const diff = endValue - startValue
                 return { end: this.formatValue(diff, { showPlus: true }) }
