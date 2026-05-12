@@ -241,6 +241,8 @@ function CaptionedMainVariant({
                             incoming={incoming}
                             outgoing={outgoing}
                             country={country}
+                            incomingTotal={incomingTotal}
+                            outgoingTotal={outgoingTotal}
                             groupBy={groupBy}
                             topN={isAllProduct(product) ? TOP_N_FOR_ALL : TOP_N}
                         />

@@ -53,12 +53,17 @@ export function FoodTradeSankey({
     incoming,
     outgoing,
     country,
+    incomingTotal,
+    outgoingTotal,
     groupBy = "country",
     topN = TOP_N,
 }: {
     incoming: TradeRow[]
     outgoing: TradeRow[]
     country: string
+    /** Pre-computed totals used in the column headers. */
+    incomingTotal: number
+    outgoingTotal: number
     /** Whether the side flows are aggregated by trading partner (country) or
      * by item (product). */
     groupBy?: "country" | "product"
@@ -67,9 +72,10 @@ export function FoodTradeSankey({
 }) {
     const incomingKey = groupBy === "product" ? "item" : "exporter"
     const outgoingKey = groupBy === "product" ? "item" : "importer"
-    const importsHeader =
-        groupBy === "product" ? "Imports →" : "Imports from →"
-    const exportsHeader = groupBy === "product" ? "Exports →" : "Exports to →"
+    // Prose column headers that together read as one sentence:
+    // "{country} imports X tonnes" + "and exports Y tonnes".
+    const importsHeader = `${country} imports ${formatTrade(incomingTotal)}`
+    const exportsHeader = `and exports ${formatTrade(outgoingTotal)}`
 
     const incomingBuild = useMemo(
         () =>
@@ -86,14 +92,18 @@ export function FoodTradeSankey({
         <div className="food-trade-sankey food-trade-sankey--split">
             <HalfSankey
                 build={incomingBuild}
-                emptyHeader="No imports"
+                heading={importsHeader}
+                emptyHeading="No imports"
                 emptySubtext="No imports recorded."
+                align="right"
                 pinNodeIdToTop={country}
             />
             <HalfSankey
                 build={outgoingBuild}
-                emptyHeader="No exports"
+                heading={exportsHeader}
+                emptyHeading="No exports"
                 emptySubtext="No exports recorded."
+                align="left"
                 pinNodeIdToTop={country}
             />
         </div>
@@ -102,50 +112,71 @@ export function FoodTradeSankey({
 
 function HalfSankey({
     build,
-    emptyHeader,
+    heading,
+    emptyHeading,
     emptySubtext,
+    align,
     pinNodeIdToTop,
 }: {
     build: SankeyBuild | null
-    emptyHeader: string
+    heading: string
+    emptyHeading: string
     emptySubtext: string
+    align: "left" | "right"
+    pinNodeIdToTop?: string
+}) {
+    return (
+        <div
+            className={`food-trade-sankey__half food-trade-sankey__half--${align}`}
+        >
+            <div className="food-trade-sankey__heading">
+                {build ? heading : emptyHeading}
+            </div>
+            <div className="food-trade-sankey__chart-area">
+                {build ? (
+                    <HalfSankeyChart
+                        build={build}
+                        pinNodeIdToTop={pinNodeIdToTop}
+                    />
+                ) : (
+                    <div className="food-trade-sankey__empty-subtext">
+                        {emptySubtext}
+                    </div>
+                )}
+            </div>
+        </div>
+    )
+}
+
+function HalfSankeyChart({
+    build,
+    pinNodeIdToTop,
+}: {
+    build: SankeyBuild
     pinNodeIdToTop?: string
 }) {
     const { parentRef, width, height } = useParentSize()
     return (
-        <div ref={parentRef} className="food-trade-sankey__half">
-            {build ? (
-                width > 0 &&
-                height > 0 && (
-                    <Sankey
-                        nodes={build.nodes}
-                        links={build.links}
-                        width={width}
-                        height={height}
-                        margin={{ top: 8, right: 0, bottom: 8, left: 0 }}
-                        nodePadding={12}
-                        nodeColor={() => SOURCE_COLOR}
-                        linkColor={() => SOURCE_COLOR}
-                        formatValue={formatTrade}
-                        columnLabels={build.columnLabels}
-                        // Skip d3-sankey relaxation so positions stay
-                        // predictable (input order with proportional heights).
-                        iterations={0}
-                        // Force the country column's single rect to the top
-                        // so it aligns across the two halves regardless of
-                        // import / export volume.
-                        pinNodeIdToTop={pinNodeIdToTop}
-                    />
-                )
-            ) : (
-                <div className="food-trade-sankey__empty">
-                    <div className="food-trade-sankey__empty-header">
-                        {emptyHeader}
-                    </div>
-                    <div className="food-trade-sankey__empty-subtext">
-                        {emptySubtext}
-                    </div>
-                </div>
+        <div ref={parentRef} className="food-trade-sankey__chart">
+            {width > 0 && height > 0 && (
+                <Sankey
+                    nodes={build.nodes}
+                    links={build.links}
+                    width={width}
+                    height={height}
+                    margin={{ top: 0, right: 0, bottom: 8, left: 0 }}
+                    nodePadding={12}
+                    nodeColor={() => SOURCE_COLOR}
+                    linkColor={() => SOURCE_COLOR}
+                    formatValue={formatTrade}
+                    // Skip d3-sankey relaxation so positions stay
+                    // predictable (input order with proportional heights).
+                    iterations={0}
+                    // Force the country column's single rect to the top
+                    // so it aligns across the two halves regardless of
+                    // import / export volume.
+                    pinNodeIdToTop={pinNodeIdToTop}
+                />
             )}
         </div>
     )
