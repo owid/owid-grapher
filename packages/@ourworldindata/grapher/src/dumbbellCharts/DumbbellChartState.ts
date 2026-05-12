@@ -115,6 +115,10 @@ export class DumbbellChartState implements ChartState {
         return autoDetectSeriesStrategy(this.manager)
     }
 
+    @computed get isEntityStrategy(): boolean {
+        return this.seriesStrategy === SeriesStrategy.entity
+    }
+
     @computed get connectorStyle(): DumbbellConnectorStyle {
         return (
             this.manager.dumbbell?.connectorStyle ??
@@ -272,7 +276,7 @@ export class DumbbellChartState implements ChartState {
     }
 
     @computed private get unsortedSeries(): DumbbellSeries[] {
-        return this.seriesStrategy === SeriesStrategy.entity
+        return this.isEntityStrategy
             ? this.constructSeriesForTimeRange()
             : this.constructSeriesForTwoColumns()
     }
