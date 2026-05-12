@@ -18,6 +18,7 @@ import {
     DumbbellSeries,
     END_COLUMN_COLOR,
     INCREASE_COLOR,
+    NO_CHANGE_COLOR,
     START_COLUMN_COLOR,
 } from "./DumbbellChartConstants"
 import { SelectionArray } from "../selection/SelectionArray"
@@ -154,9 +155,11 @@ export class DumbbellChartState implements ChartState {
                 // The color of the dumbbell is determined by whether
                 // the value has increased or decreased over time
                 const color =
-                    startRow.value <= endRow.value
-                        ? INCREASE_COLOR
-                        : DECREASE_COLOR
+                    startRow.value === endRow.value
+                        ? NO_CHANGE_COLOR
+                        : startRow.value < endRow.value
+                          ? INCREASE_COLOR
+                          : DECREASE_COLOR
 
                 const start = {
                     value: startRow.value,
