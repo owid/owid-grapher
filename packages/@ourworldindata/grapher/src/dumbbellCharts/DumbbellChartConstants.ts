@@ -9,7 +9,7 @@ import { GRAPHER_OPACITY_MUTED } from "../core/GrapherConstants.js"
 import { GRAPHER_DENIM, OWID_NO_DATA_GRAY } from "../color/ColorConstants.js"
 
 /** Horizontal gap between the value label and the dumbbell */
-export const VALUE_LABEL_DOT_GAP = 4
+export const VALUE_LABEL_DOT_GAP = 6
 
 /** Horizontal gap between entity labels and the chart area */
 export const ENTITY_LABEL_CHART_GAP = 8
