@@ -6,10 +6,7 @@ import { EntityName } from "@ourworldindata/types"
 import { TextWrap } from "@ourworldindata/components"
 import { SeriesLabelState } from "../seriesLabel/SeriesLabelState"
 import { GRAPHER_OPACITY_MUTED } from "../core/GrapherConstants.js"
-import {
-    GRAPHER_DENIM,
-    OWID_NO_DATA_GRAY,
-} from "../color/ColorConstants.js"
+import { GRAPHER_DENIM, OWID_NO_DATA_GRAY } from "../color/ColorConstants.js"
 
 /** Horizontal gap between the value label and the dumbbell */
 export const VALUE_LABEL_DOT_GAP = 4
@@ -17,9 +14,13 @@ export const VALUE_LABEL_DOT_GAP = 4
 /** Horizontal gap between entity labels and the chart area */
 export const ENTITY_LABEL_CHART_GAP = 8
 
+export const NO_CHANGE_COLOR = OWID_NO_DATA_GRAY
+
 export const INCREASE_COLOR = "#00875E"
 export const DECREASE_COLOR = "#D73C50"
-export const NO_CHANGE_COLOR = OWID_NO_DATA_GRAY
+
+export const LIGHT_INCREASE_COLOR = "#47A98B"
+export const LIGHT_DECREASE_COLOR = "#E78A96"
 
 export const START_COLUMN_COLOR = GRAPHER_DENIM
 export const END_COLUMN_COLOR = "#B13507"
@@ -31,6 +32,7 @@ export interface DumbbellSeries extends ChartSeries {
     displayName: string
     shortEntityName?: string
     annotation?: string
+    lightColor?: string
     start: DumbbellHead
     end: DumbbellHead
     focus: InteractionState

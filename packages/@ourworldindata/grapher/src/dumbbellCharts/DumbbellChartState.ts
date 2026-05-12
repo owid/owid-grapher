@@ -20,6 +20,8 @@ import {
     DumbbellSeries,
     END_COLUMN_COLOR,
     INCREASE_COLOR,
+    LIGHT_DECREASE_COLOR,
+    LIGHT_INCREASE_COLOR,
     NO_CHANGE_COLOR,
     START_COLUMN_COLOR,
 } from "./DumbbellChartConstants"
@@ -170,12 +172,12 @@ export class DumbbellChartState implements ChartState {
 
                 // The color of the dumbbell is determined by whether
                 // the value has increased or decreased over time
-                const color =
+                const [color, lightColor] =
                     startRow.value === endRow.value
-                        ? NO_CHANGE_COLOR
+                        ? [NO_CHANGE_COLOR, NO_CHANGE_COLOR]
                         : startRow.value < endRow.value
-                          ? INCREASE_COLOR
-                          : DECREASE_COLOR
+                          ? [INCREASE_COLOR, LIGHT_INCREASE_COLOR]
+                          : [DECREASE_COLOR, LIGHT_DECREASE_COLOR]
 
                 const start = {
                     value: startRow.value,
@@ -203,6 +205,7 @@ export class DumbbellChartState implements ChartState {
                     shortEntityName,
                     annotation,
                     color,
+                    lightColor,
                     start,
                     end,
                     focus: focusArray.state(entityName),
