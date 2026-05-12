@@ -14,6 +14,7 @@ import {
     createFeaturedMetricRecords,
     MAX_NON_FM_RECORD_SCORE,
     scaleRecordScores,
+    shrinkRecordsToFitAlgoliaLimit,
 } from "./utils/shared.js"
 import { getChartsRecords } from "./utils/charts.js"
 import { createBaseIndexingContext } from "./utils/context.js"
@@ -22,7 +23,10 @@ import { getMdimViewRecords } from "./utils/mdimViews.js"
 import { reportFeaturedMetricFailuresToSlack } from "./utils/slackReport.js"
 
 const indexExplorerViewsMdimViewsAndChartsToAlgolia = async () => {
-    if (!ALGOLIA_INDEXING) return
+    if (!ALGOLIA_INDEXING) {
+        console.log("ALGOLIA_INDEXING is not enabled. Skipping indexing.")
+        return
+    }
     const indexName = CHARTS_INDEX
     console.log(
         `Indexing explorer views and charts to the "${indexName}" index on Algolia`
@@ -63,11 +67,12 @@ const indexExplorerViewsMdimViewsAndChartsToAlgolia = async () => {
                 ...scaledExplorerViews,
                 ...scaledMdimViews,
             ]
+            const shrunkRecords = shrinkRecordsToFitAlgoliaLimit(records)
             const { records: featuredMetricRecords, failures } =
-                await createFeaturedMetricRecords(trx, records)
+                await createFeaturedMetricRecords(trx, shrunkRecords)
 
             return {
-                records: [...records, ...featuredMetricRecords],
+                records: [...shrunkRecords, ...featuredMetricRecords],
                 failures,
             }
         },

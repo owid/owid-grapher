@@ -64,6 +64,56 @@ export const processAvailableEntities = (
     )
 }
 
+// Algolia rejects records larger than 20,000 bytes. We aim for a slightly lower
+// target to leave headroom for any size differences between our serialization
+// and Algolia's. Records exceeding this are almost always blown up by a very
+// long `availableEntities` array (e.g. the "fish-stocks" explorer), so we shrink that
+// field — which is pre-sorted by priority in `processAvailableEntities` — until
+// the record fits.
+const ALGOLIA_TARGET_RECORD_BYTES = 19500
+
+const byteLength = (value: unknown): number =>
+    Buffer.byteLength(JSON.stringify(value), "utf8")
+
+export function shrinkRecordsToFitAlgoliaLimit<
+    T extends { availableEntities: string[]; objectID: string },
+>(records: T[]): T[] {
+    return records.map(shrinkRecordToFitAlgoliaLimit)
+}
+
+function shrinkRecordToFitAlgoliaLimit<
+    T extends { availableEntities: string[]; objectID: string },
+>(record: T): T {
+    const size = byteLength(record)
+    if (size <= ALGOLIA_TARGET_RECORD_BYTES) return record
+
+    const baseSize = byteLength({ ...record, availableEntities: [] })
+    const entitiesBudget = ALGOLIA_TARGET_RECORD_BYTES - baseSize
+
+    if (entitiesBudget <= 0) {
+        console.warn(
+            `Record ${record.objectID} exceeds Algolia size limit (${size} bytes) even with availableEntities removed (${baseSize} bytes). Algolia may reject it.`
+        )
+        return { ...record, availableEntities: [] }
+    }
+
+    const truncated: string[] = []
+    // Account for surrounding `[]`
+    let runningSize = 2
+    for (const entity of record.availableEntities) {
+        const entrySize = byteLength(entity) + (truncated.length > 0 ? 1 : 0) // comma
+        if (runningSize + entrySize > entitiesBudget) break
+        truncated.push(entity)
+        runningSize += entrySize
+    }
+
+    console.warn(
+        `Record ${record.objectID} exceeded Algolia size limit (${size} bytes); kept ${truncated.length}/${record.availableEntities.length} availableEntities to fit.`
+    )
+
+    return { ...record, availableEntities: truncated }
+}
+
 export const parseJsonStringArray = (
     raw: string | null | undefined
 ): string[] => {
