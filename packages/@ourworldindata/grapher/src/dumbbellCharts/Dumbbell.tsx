@@ -85,11 +85,23 @@ function TwoColumnLineDumbbell({
     const style = DUMBBELL_STYLE[series.emphasis]
     const { start, end } = series
 
+    const yOffset = getOverlappingHeadsYOffset(start, end)
+
     return (
         <g id={makeFigmaId("dumbbell")} opacity={style.opacity}>
             <line x1={start.x} x2={end.x} stroke={GRAY_50} strokeWidth={2} />
-            <DumbbellHead id={makeFigmaId("start")} head={start} outline />
-            <DumbbellHead id={makeFigmaId("end")} head={end} outline />
+            <DumbbellHead
+                id={makeFigmaId("start")}
+                head={start}
+                y={-yOffset}
+                outline
+            />
+            <DumbbellHead
+                id={makeFigmaId("end")}
+                head={end}
+                y={yOffset}
+                outline
+            />
         </g>
     )
 }
@@ -116,11 +128,7 @@ function TwoColumnArrowDumbbell({
     const minArrowLength = 3
     const shouldShowArrow = gap > minArrowLength + 2 * minArrowPadding
 
-    // If the heads overlap by more than 50%, add a small vertical offset
-    // to prevent the circles from completely obscuring each other
-    const overlap = start.radius + end.radius - distance
-    const overlapRatio = overlap / (start.radius + end.radius)
-    const yOffset = overlapRatio > 0.6 ? 2 : 0
+    const yOffset = getOverlappingHeadsYOffset(start, end)
 
     return (
         <g id={makeFigmaId("dumbbell")} opacity={style.opacity}>
@@ -176,6 +184,19 @@ function DumbbellArrow({
             lineCaps="sharp"
         />
     )
+}
+
+function getOverlappingHeadsYOffset(
+    start: PlacedDumbbellHead,
+    end: PlacedDumbbellHead
+): number {
+    // If the heads overlap by more than 50%, add a small vertical offset
+    // to prevent the circles from completely obscuring each other
+    const distance = Math.abs(end.x - start.x)
+    const overlap = start.radius + end.radius - distance
+    const overlapRatio = overlap / (start.radius + end.radius)
+
+    return overlapRatio > 0.6 ? 2 : 0
 }
 
 function DumbbellHead({
