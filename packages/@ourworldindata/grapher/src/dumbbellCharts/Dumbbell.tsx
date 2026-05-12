@@ -19,6 +19,33 @@ export function TimeRangeDumbbell({
     const style = DUMBBELL_STYLE[series.emphasis]
     const { start, end } = series
 
+    const headLength = start.radius
+    const sign = end.x >= start.x ? 1 : -1
+
+    // `arrowHeadOverlapsDot` is true when more than `minOverlapRatio`
+    // of the arrow head's length lies inside the dot
+    const minOverlapRatio = 0.5
+    const headThresholdX = end.x - sign * headLength * (1 - minOverlapRatio)
+    const arrowHeadOverlapsDot =
+        Math.abs(headThresholdX - start.x) < start.radius
+
+    // If the arrow head overlaps the dot, then draw it on top of the dot
+    // with a bit of a different color to make it visible
+    if (arrowHeadOverlapsDot) {
+        return (
+            <g id={makeFigmaId("dumbbell")} opacity={style.opacity}>
+                <DumbbellHead id={makeFigmaId("start")} head={start} />
+                <DumbbellArrow
+                    startX={start.x}
+                    endX={end.x}
+                    color={series.lightColor}
+                    width={2}
+                    headLength={headLength}
+                />
+            </g>
+        )
+    }
+
     return (
         <g id={makeFigmaId("dumbbell")} opacity={style.opacity}>
             <DumbbellArrow
@@ -26,7 +53,7 @@ export function TimeRangeDumbbell({
                 endX={end.x}
                 color={series.color}
                 width={2}
-                headLength={start.radius}
+                headLength={headLength}
             />
             <DumbbellHead id={makeFigmaId("start")} head={start} />
         </g>
