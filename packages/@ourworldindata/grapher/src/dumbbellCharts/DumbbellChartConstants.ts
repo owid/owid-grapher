@@ -6,7 +6,10 @@ import { EntityName } from "@ourworldindata/types"
 import { TextWrap } from "@ourworldindata/components"
 import { SeriesLabelState } from "../seriesLabel/SeriesLabelState"
 import { GRAPHER_OPACITY_MUTED } from "../core/GrapherConstants.js"
-import { GRAPHER_DENIM } from "../color/ColorConstants.js"
+import {
+    GRAPHER_DENIM,
+    OWID_NO_DATA_GRAY,
+} from "../color/ColorConstants.js"
 
 /** Horizontal gap between the value label and the dumbbell */
 export const VALUE_LABEL_DOT_GAP = 4
@@ -16,6 +19,7 @@ export const ENTITY_LABEL_CHART_GAP = 8
 
 export const INCREASE_COLOR = "#00875E"
 export const DECREASE_COLOR = "#D73C50"
+export const NO_CHANGE_COLOR = OWID_NO_DATA_GRAY
 
 export const START_COLUMN_COLOR = GRAPHER_DENIM
 export const END_COLUMN_COLOR = "#B13507"
