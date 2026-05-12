@@ -5,6 +5,7 @@ import {
     Bounds,
     makeFigmaId,
     exposeInstanceOnWindow,
+    ScaleType,
 } from "@ourworldindata/utils"
 import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
@@ -149,7 +150,7 @@ export class DumbbellChart
     private toHorizontalAxis(args?: { skipRange: boolean }): HorizontalAxis {
         const axis = this.yAxisConfig.toHorizontalAxis()
         axis.updateDomainPreservingUserSettings(this.axisLayout.domain)
-        axis.scaleType = this.chartState.yScaleType
+        axis.scaleType = ScaleType.linear
         axis.formatColumn = this.chartState.formatColumn
         if (!args?.skipRange) axis.range = this.xRange
         axis.label = ""
@@ -186,7 +187,6 @@ export class DumbbellChart
             series: this.sizedSeries,
             domain: axis.domain,
             width: this.axisBounds.width,
-            isLog: this.chartState.isLogScale,
             minFixed: Number.isFinite(configMin),
             maxFixed: Number.isFinite(configMax),
         })
