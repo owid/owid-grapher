@@ -22,14 +22,12 @@ export function calculateAxisLayout({
     series,
     domain,
     width,
-    isLog,
     minFixed,
     maxFixed,
 }: {
     series: SizedDumbbellSeries[]
     domain: [number, number]
     width: number
-    isLog: boolean
     minFixed: boolean
     maxFixed: boolean
 }): AxisLayout {
@@ -47,11 +45,8 @@ export function calculateAxisLayout({
         },
     }))
 
-    const toScale = (v: number): number => (isLog ? Math.log(v) : v)
-    const fromScale = (v: number): number => (isLog ? Math.exp(v) : v)
-
-    let domainStart = toScale(domain[0])
-    let domainEnd = toScale(domain[1])
+    let domainStart = domain[0]
+    let domainEnd = domain[1]
     let padLeft = 0
     let padRight = 0
 
@@ -67,7 +62,7 @@ export function calculateAxisLayout({
         const pixelsPerUnit = effectiveWidth / domainSpan
         const domainStartPixel = padLeft - domainStart * pixelsPerUnit
         const toPixel = (value: number): number =>
-            domainStartPixel + toScale(value) * pixelsPerUnit
+            domainStartPixel + value * pixelsPerUnit
 
         // Find the worst-case label overflow on each side
         let leftOverflow = 0
@@ -101,7 +96,7 @@ export function calculateAxisLayout({
     }
 
     return {
-        domain: [fromScale(domainStart), fromScale(domainEnd)],
+        domain: [domainStart, domainEnd],
         pad: { left: padLeft, right: padRight },
     }
 }
