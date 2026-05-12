@@ -73,6 +73,21 @@ export type SankeyProps = {
      * the top of the chart for the labels.
      */
     columnLabels?: (string | undefined)[]
+    /**
+     * Number of relaxation iterations d3-sankey performs to minimize link
+     * crossings. Defaults to d3-sankey's default (6). Pass 0 to skip
+     * relaxation and use the initial top-down stacking — useful when you
+     * want single-node columns pinned to the top of their column.
+     */
+    iterations?: number
+    /**
+     * Node ID to pin to the top of its column. d3-sankey otherwise
+     * redistributes leftover vertical space evenly around nodes within a
+     * column, which visually centers single-node columns. Pinning shifts
+     * the node (and its connected link endpoints) so that its `y0` sits at
+     * the top of the layout extent.
+     */
+    pinNodeIdToTop?: string
 }
 
 type LaidOutGraph = SankeyGraph<SankeyNode, SankeyLink>
@@ -91,6 +106,8 @@ export function Sankey({
     nodePadding = 8,
     margin = DEFAULT_MARGIN,
     columnLabels,
+    iterations,
+    pinNodeIdToTop,
 }: SankeyProps): React.ReactElement | null {
     const hasColumnLabels = columnLabels?.some(Boolean) ?? false
     const columnLabelReservation = hasColumnLabels ? COLUMN_LABEL_HEIGHT_PX : 0
@@ -150,11 +167,39 @@ export function Sankey({
                 [finalMargin.left, finalMargin.top],
                 [width - finalMargin.right, height - finalMargin.bottom],
             ])
+        if (iterations !== undefined) generator.iterations(iterations)
 
-        return generator({
+        const result = generator({
             nodes: nodes.map((d) => ({ ...d })),
             links: links.map((d) => ({ ...d })),
         })
+
+        // Pin a node to the top of its column by shifting it (and the link
+        // endpoints that touch it) up by however much d3-sankey's initial
+        // "redistribute leftover space" pass pushed it down. Without this,
+        // single-node columns always render visually centered.
+        if (pinNodeIdToTop) {
+            const node = result.nodes.find((n) => n.id === pinNodeIdToTop)
+            if (
+                node &&
+                node.y0 !== undefined &&
+                node.y1 !== undefined &&
+                node.y0 > finalMargin.top
+            ) {
+                const delta = node.y0 - finalMargin.top
+                node.y0 -= delta
+                node.y1 -= delta
+                for (const link of node.targetLinks ?? []) {
+                    if (link.y1 !== undefined) link.y1 -= delta
+                }
+                for (const link of node.sourceLinks ?? []) {
+                    if (link.y0 !== undefined) link.y0 -= delta
+                }
+            }
+        }
+
+        return result
+
     }, [
         nodes,
         links,
@@ -164,6 +209,8 @@ export function Sankey({
         nodePadding,
         margin,
         columnLabelReservation,
+        iterations,
+        pinNodeIdToTop,
     ])
 
     if (!layout) return null
@@ -171,12 +218,13 @@ export function Sankey({
     const linkPath = sankeyLinkHorizontal<SankeyNode, SankeyLink>()
     const midX = width / 2
     const columnLabelY = margin.top + COLUMN_LABEL_HEIGHT_PX / 2
-    // For 2-column Sankeys, the only flow midpoint sits between both
-    // columns, so flow-midpoint placement would put both column labels at
-    // the same x and overlap. In that case fall back to placing each label
-    // over its own column.
+    // For 2-column Sankeys with BOTH columns labelled, flow-midpoint
+    // placement puts the labels at the same x — they'd overlap. In that
+    // case fall back to placing each label over its own column. When only
+    // one column is labelled, flow-midpoint works fine.
     const distinctDepths = new Set(layout.nodes.map((n) => n.depth ?? 0))
-    const useColumnCenter = distinctDepths.size <= 2
+    const nonEmptyLabelCount = columnLabels?.filter(Boolean).length ?? 0
+    const useColumnCenter = distinctDepths.size <= 2 && nonEmptyLabelCount >= 2
 
     return (
         <svg

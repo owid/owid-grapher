@@ -3,6 +3,55 @@
     height: 100%;
 }
 
+// Split layout: two side-by-side half-Sankeys (imports / exports) with a
+// small gap between them.
+.food-trade-sankey--split {
+    display: flex;
+    gap: 16px;
+}
+
+.food-trade-sankey__half {
+    flex: 1 1 0;
+    min-width: 0;
+    position: relative;
+}
+
+// Placeholder used when one side has no trade. The header sits at the same
+// vertical position as the Sankey's column-label band (margin.top = 8px +
+// column-label-height-strip), so it visually aligns with the populated side.
+.food-trade-sankey__empty {
+    height: 100%;
+    position: relative;
+    color: $light-text;
+}
+
+.food-trade-sankey__empty-header {
+    position: absolute;
+    top: 8px;
+    left: 0;
+    right: 0;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.food-trade-sankey__empty-subtext {
+    position: absolute;
+    top: 28px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+}
+
 .food-trade-sankey .sankey__label tspan:first-child {
     font-weight: 600;
 }

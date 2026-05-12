@@ -28,16 +28,6 @@ const MAX_LABEL_LENGTH = 30
 const truncateLabel = (s: string): string =>
     s.length > MAX_LABEL_LENGTH ? s.slice(0, MAX_LABEL_LENGTH - 1) + "…" : s
 
-// When trade only flows in one direction, a phantom node + link is added on
-// the empty side so d3-sankey lays out a 3-column structure. This keeps the
-// country at the visual midpoint and lets both column headers render. The
-// phantom is rendered transparent and sized as a tiny fraction of the real
-// flow so it never dominates the layout — even when actual values are small.
-const PHANTOM_INCOMING_ID = "__phantom-incoming__"
-const PHANTOM_OUTGOING_ID = "__phantom-outgoing__"
-const PHANTOM_VALUE_RATIO = 1e-6
-const isPhantomId = (id: string) => id.startsWith("__phantom-")
-
 export const formatTrade = (v: number) =>
     formatValue(v, {
         unit: "tonnes",
@@ -52,6 +42,12 @@ const formatPct = (v: number) =>
         numDecimalPlaces: 0,
         numberAbbreviation: false,
     })
+
+type SankeyBuild = {
+    nodes: SankeyNode[]
+    links: SankeyLink[]
+    columnLabels: (string | undefined)[]
+}
 
 export function FoodTradeSankey({
     incoming,
@@ -69,34 +65,87 @@ export function FoodTradeSankey({
     /** Max nodes per side before bucketing into "Other". */
     topN?: number
 }) {
-    const { parentRef, width, height } = useParentSize()
+    const incomingKey = groupBy === "product" ? "item" : "exporter"
+    const outgoingKey = groupBy === "product" ? "item" : "importer"
+    const importsHeader =
+        groupBy === "product" ? "Imports →" : "Imports from →"
+    const exportsHeader = groupBy === "product" ? "Exports →" : "Exports to →"
 
-    const { nodes, links, columnLabels } = useMemo(
-        () => buildBidirectional(incoming, outgoing, country, groupBy, topN),
-        [incoming, outgoing, country, groupBy, topN]
+    const incomingBuild = useMemo(
+        () =>
+            buildIncoming(incoming, country, incomingKey, topN, importsHeader),
+        [incoming, country, incomingKey, topN, importsHeader]
+    )
+    const outgoingBuild = useMemo(
+        () =>
+            buildOutgoing(outgoing, country, outgoingKey, topN, exportsHeader),
+        [outgoing, country, outgoingKey, topN, exportsHeader]
     )
 
     return (
-        <div ref={parentRef} className="food-trade-sankey">
-            {width > 0 && height > 0 && (
-                <Sankey
-                    nodes={nodes}
-                    links={links}
-                    width={width}
-                    height={height}
-                    margin={{ top: 8, right: 0, bottom: 8, left: 0 }}
-                    nodePadding={12}
-                    nodeColor={(n) =>
-                        isPhantomId(n.id) ? "transparent" : SOURCE_COLOR
-                    }
-                    linkColor={(l) =>
-                        isPhantomId(l.source) || isPhantomId(l.target)
-                            ? "transparent"
-                            : SOURCE_COLOR
-                    }
-                    formatValue={formatTrade}
-                    columnLabels={columnLabels}
-                />
+        <div className="food-trade-sankey food-trade-sankey--split">
+            <HalfSankey
+                build={incomingBuild}
+                emptyHeader="No imports"
+                emptySubtext="No imports recorded."
+                pinNodeIdToTop={country}
+            />
+            <HalfSankey
+                build={outgoingBuild}
+                emptyHeader="No exports"
+                emptySubtext="No exports recorded."
+                pinNodeIdToTop={country}
+            />
+        </div>
+    )
+}
+
+function HalfSankey({
+    build,
+    emptyHeader,
+    emptySubtext,
+    pinNodeIdToTop,
+}: {
+    build: SankeyBuild | null
+    emptyHeader: string
+    emptySubtext: string
+    pinNodeIdToTop?: string
+}) {
+    const { parentRef, width, height } = useParentSize()
+    return (
+        <div ref={parentRef} className="food-trade-sankey__half">
+            {build ? (
+                width > 0 &&
+                height > 0 && (
+                    <Sankey
+                        nodes={build.nodes}
+                        links={build.links}
+                        width={width}
+                        height={height}
+                        margin={{ top: 8, right: 0, bottom: 8, left: 0 }}
+                        nodePadding={12}
+                        nodeColor={() => SOURCE_COLOR}
+                        linkColor={() => SOURCE_COLOR}
+                        formatValue={formatTrade}
+                        columnLabels={build.columnLabels}
+                        // Skip d3-sankey relaxation so positions stay
+                        // predictable (input order with proportional heights).
+                        iterations={0}
+                        // Force the country column's single rect to the top
+                        // so it aligns across the two halves regardless of
+                        // import / export volume.
+                        pinNodeIdToTop={pinNodeIdToTop}
+                    />
+                )
+            ) : (
+                <div className="food-trade-sankey__empty">
+                    <div className="food-trade-sankey__empty-header">
+                        {emptyHeader}
+                    </div>
+                    <div className="food-trade-sankey__empty-subtext">
+                        {emptySubtext}
+                    </div>
+                </div>
             )}
         </div>
     )
@@ -135,110 +184,94 @@ function selectTopWithFloor(
     return { top, otherTotal, total }
 }
 
-function buildBidirectional(
-    incoming: TradeRow[],
-    outgoing: TradeRow[],
-    country: string,
-    groupBy: "country" | "product",
-    n: number
-): {
-    nodes: SankeyNode[]
-    links: SankeyLink[]
-    columnLabels: (string | undefined)[]
-} {
-    const incomingKey = groupBy === "product" ? "item" : "exporter"
-    const outgoingKey = groupBy === "product" ? "item" : "importer"
-    const inSel = selectTopWithFloor(incoming, incomingKey, n)
-    const outSel = selectTopWithFloor(outgoing, outgoingKey, n)
-    const hasIncoming = inSel.top.length > 0
-    const hasOutgoing = outSel.top.length > 0
+function makeValueLabel(value: number, sideTotal: number): string {
+    return sideTotal > 0
+        ? `${formatTrade(value)} (${formatPct((value / sideTotal) * 100)})`
+        : formatTrade(value)
+}
 
-    const valueLabel = (value: number, sideTotal: number) =>
-        sideTotal > 0
-            ? `${formatTrade(value)} (${formatPct((value / sideTotal) * 100)})`
-            : formatTrade(value)
+// Build a 2-column Sankey for the imports side: senders → country. Returns
+// null when there's no incoming flow (caller renders an empty placeholder).
+function buildIncoming(
+    rows: TradeRow[],
+    country: string,
+    key: "exporter" | "item",
+    n: number,
+    header: string
+): SankeyBuild | null {
+    const sel = selectTopWithFloor(rows, key, n)
+    if (sel.top.length === 0) return null
 
     const nodes: SankeyNode[] = []
     const links: SankeyLink[] = []
 
-    // Center node — its label is suppressed (the chart title names it).
-    nodes.push({ id: country, label: "" })
-
-    // Incoming side: senders → country
-    // IDs are prefixed so a country that appears on both sides becomes two
-    // distinct nodes (e.g. Mexico-as-sender vs Mexico-as-receiver).
-    for (const d of inSel.top) {
+    // IDs prefixed so a partner appearing on both sides ends up as two
+    // distinct nodes (across the two Sankeys).
+    for (const d of sel.top) {
         const id = `incoming:${d.partner}`
         nodes.push({
             id,
-            label: [truncateLabel(d.partner), valueLabel(d.value, inSel.total)],
+            label: [
+                truncateLabel(d.partner),
+                makeValueLabel(d.value, sel.total),
+            ],
         })
         links.push({ source: id, target: country, value: d.value })
     }
-    if (inSel.otherTotal > 0) {
+    if (sel.otherTotal > 0) {
         const id = "__incoming-other__"
         nodes.push({ id, label: "Other" })
-        links.push({ source: id, target: country, value: inSel.otherTotal })
+        links.push({ source: id, target: country, value: sel.otherTotal })
     }
+    // Country sits on the right as the sink. Empty label — the chart title
+    // names it, and the right edge meets the export half's country rect.
+    nodes.push({ id: country, label: "" })
 
-    // Outgoing side: country → receivers
-    for (const d of outSel.top) {
+    return {
+        nodes,
+        links,
+        columnLabels: [header, undefined],
+    }
+}
+
+// Build a 2-column Sankey for the exports side: country → receivers.
+function buildOutgoing(
+    rows: TradeRow[],
+    country: string,
+    key: "importer" | "item",
+    n: number,
+    header: string
+): SankeyBuild | null {
+    const sel = selectTopWithFloor(rows, key, n)
+    if (sel.top.length === 0) return null
+
+    const nodes: SankeyNode[] = []
+    const links: SankeyLink[] = []
+
+    // Country sits on the left as the source.
+    nodes.push({ id: country, label: "" })
+    for (const d of sel.top) {
         const id = `outgoing:${d.partner}`
         nodes.push({
             id,
             label: [
                 truncateLabel(d.partner),
-                valueLabel(d.value, outSel.total),
+                makeValueLabel(d.value, sel.total),
             ],
         })
         links.push({ source: country, target: id, value: d.value })
     }
-    if (outSel.otherTotal > 0) {
+    if (sel.otherTotal > 0) {
         const id = "__outgoing-other__"
         nodes.push({ id, label: "Other" })
-        links.push({ source: country, target: id, value: outSel.otherTotal })
+        links.push({ source: country, target: id, value: sel.otherTotal })
     }
 
-    // Pad with a phantom column on whichever side has no real data, so the
-    // country stays at the visual midpoint and both column headers render.
-    // Sized as a tiny fraction of the active side's real total so it stays
-    // smaller than the real data even when totals are very small.
-    const hasAnyData = hasIncoming || hasOutgoing
-    const phantomValue =
-        Math.max(inSel.total, outSel.total) * PHANTOM_VALUE_RATIO
-    if (hasAnyData && !hasIncoming) {
-        nodes.unshift({ id: PHANTOM_INCOMING_ID, label: "" })
-        links.unshift({
-            source: PHANTOM_INCOMING_ID,
-            target: country,
-            value: phantomValue,
-        })
+    return {
+        nodes,
+        links,
+        columnLabels: [undefined, header],
     }
-    if (hasAnyData && !hasOutgoing) {
-        nodes.push({ id: PHANTOM_OUTGOING_ID, label: "" })
-        links.push({
-            source: country,
-            target: PHANTOM_OUTGOING_ID,
-            value: phantomValue,
-        })
-    }
-
-    // Column headers — when there's any data, always show both so the chart
-    // structure stays consistent across products. The empty side gets a
-    // "No imports" / "No exports" label that visually distinguishes it from
-    // the arrow-bearing labels of the active side. By-product mode drops the
-    // "from"/"to" qualifiers since you don't import "from" a product.
-    const importsHeader = groupBy === "product" ? "Imports →" : "Imports from →"
-    const exportsHeader = groupBy === "product" ? "Exports →" : "Exports to →"
-    const columnLabels: (string | undefined)[] = hasAnyData
-        ? [
-              hasIncoming ? importsHeader : "No imports",
-              undefined,
-              hasOutgoing ? exportsHeader : "No exports",
-          ]
-        : []
-
-    return { nodes, links, columnLabels }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
