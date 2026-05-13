@@ -141,6 +141,7 @@ export {
     getDisplayUnit,
     stripOuterParentheses,
     dimensionsToViewId,
+    type Pair,
 } from "./Util.js"
 
 export {
