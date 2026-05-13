@@ -286,7 +286,7 @@ export class DonateForm extends React.Component<{ countryCode?: string }> {
             this.captchaPromiseHandlers.resolve(token)
     }
 
-    @bind async onSubmit(event: React.FormEvent) {
+    @bind async onSubmit(event: React.SubmitEvent<HTMLFormElement>) {
         event.preventDefault()
         this.setIsSubmitting(true)
         this.setErrorMessage(undefined)

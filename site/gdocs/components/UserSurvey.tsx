@@ -6,13 +6,8 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import cx from "classnames"
 import * as _ from "lodash-es"
-import {
-    type FormEvent,
-    type ReactNode,
-    useEffect,
-    useRef,
-    useState,
-} from "react"
+import * as React from "react"
+import { useEffect, useRef, useState } from "react"
 import { Form } from "react-aria-components"
 import { match } from "ts-pattern"
 import { v7 as uuidv7 } from "uuid"
@@ -370,7 +365,7 @@ function UserSurveyDialog({
     className: string
     title: string
     onDismiss: () => void
-    children: ReactNode
+    children: React.ReactNode
 }) {
     return (
         <aside
@@ -555,7 +550,7 @@ function ListRoleStep({
     const [otherInput, setOtherInput] = useState<string>("")
     const otherInputRef = useRef<HTMLInputElement>(null)
 
-    function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    function handleSubmit(event: React.SyntheticEvent<HTMLFormElement>) {
         event.preventDefault()
         if (!isSubmitEnabled) return
         const roleAnswer = buildListRoleAnswer({
@@ -687,7 +682,7 @@ function ListRoleStep({
 function FreeFormRoleStep({ onDismiss, onAnswered }: UserSurveyRoleStepProps) {
     const [value, setValue] = useState<string>("")
 
-    function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    function handleSubmit(event: React.SyntheticEvent<HTMLFormElement>) {
         event.preventDefault()
         if (!isSubmitEnabled) return
         const freeFormInput = value.trim()

@@ -13,12 +13,9 @@ type VerticalScrollContainerProps = React.DetailedHTMLProps<
     contentsId?: string
 }
 
-type ReactRef<T> =
-    | ((instance: T | null) => void)
-    | React.MutableRefObject<T | null>
-    | null
-
-function useCombinedRefs<T>(...refs: ReactRef<T>[]): React.RefObject<T | null> {
+function useCombinedRefs<T>(
+    ...refs: React.Ref<T>[]
+): React.RefObject<T | null> {
     const targetRef = React.useRef<T>(null)
 
     React.useEffect(() => {
@@ -38,7 +35,7 @@ function useCombinedRefs<T>(...refs: ReactRef<T>[]): React.RefObject<T | null> {
 export const VerticalScrollContainer = React.forwardRef(
     function VerticalScrollContainer(
         props: VerticalScrollContainerProps,
-        ref: ReactRef<HTMLDivElement>
+        ref: React.Ref<HTMLDivElement>
     ) {
         let {
             scrollingShadows,
@@ -201,7 +198,7 @@ interface ScrollLockOptions {
 
 /**
  * React hook to prevent scroll events propagating to parent element.
- * @param ref the ReactRef of the scrolling container
+ * @param ref the React ref of the scrolling container
  */
 function useScrollLock<ElementType extends HTMLElement>(
     ref: React.RefObject<ElementType | null>,
