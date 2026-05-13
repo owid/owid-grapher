@@ -128,16 +128,18 @@ export class DumbbellChart
     ): { start?: string; end?: string } {
         return match(this.chartState.valueLabelMode)
             .with(DumbbellValueLabelMode.Absolute, () => {
-                const formattedStartValue = this.formatValue(startValue)
-                const formattedEndValue = this.formatValue(endValue)
-
-                // Only show one label if the labels are the same
-                // (i.e. the values are the same after rounding)
-                if (formattedStartValue === formattedEndValue) {
-                    return { start: formattedStartValue }
+                // Only show one label if the values are the same
+                if (
+                    this.chartState.isEntityStrategy &&
+                    startValue === endValue
+                ) {
+                    return { start: this.formatValue(startValue) }
                 }
 
-                return { start: formattedStartValue, end: formattedEndValue }
+                return {
+                    start: this.formatValue(startValue),
+                    end: this.formatValue(endValue),
+                }
             })
             .with(DumbbellValueLabelMode.Change, () => {
                 const diff = endValue - startValue
