@@ -27,7 +27,7 @@ type LinkData = { title: string; url: string }
 const EXPLORE_LINKS: LinkData[] = [
     { title: "Topics", url: "/#all-topics" },
     { title: "Data", url: SEARCH_BASE_PATH },
-    { title: "Insights", url: latestUrl("data-insight") },
+    { title: "Data Insights", url: latestUrl("data-insight") },
 ]
 
 const RESOURCE_LINKS: LinkData[] = [

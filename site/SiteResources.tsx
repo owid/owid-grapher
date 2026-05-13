@@ -4,7 +4,7 @@ export const SiteResources = () => {
     return (
         <ul>
             <li>
-                <a href={latestUrl()}>Latest</a>
+                <a href={latestUrl("data-insight")}>Data Insights</a>
             </li>
             <li>
                 <a href="/explorers">Data Explorers</a>
