@@ -6,6 +6,15 @@ export interface AxisLayout {
     pad: RequiredBy<PadObject, Position.left | Position.right>
 }
 
+/** Computes the percent change from `startValue` to `endValue` */
+export function computePercentChange(
+    startValue: number,
+    endValue: number
+): number | undefined {
+    if (startValue === 0) return undefined
+    return ((endValue - startValue) / Math.abs(startValue)) * 100
+}
+
 /** Returns the start/end heads ordered by their spatial position on the axis */
 export function toLeftRight<H extends DumbbellHead>(
     start: H,

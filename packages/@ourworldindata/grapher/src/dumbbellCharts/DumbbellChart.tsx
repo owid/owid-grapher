@@ -49,7 +49,11 @@ import { DumbbellChartState } from "./DumbbellChartState"
 import { ChartComponentProps } from "../chart/ChartTypeMap"
 import { resolveEmphasis } from "../interaction/Emphasis"
 import { DumbbellChartRow } from "./DumbbellChartRow"
-import { AxisLayout, calculateAxisLayout } from "./DumbbellChartHelpers"
+import {
+    AxisLayout,
+    calculateAxisLayout,
+    computePercentChange,
+} from "./DumbbellChartHelpers"
 import { AnimatedRows } from "../animation/AnimatedRows"
 import { roundFontSize, textWidth } from "../chart/ChartUtils.js"
 import { GRAPHER_LIGHT_TEXT } from "../color/ColorConstants.js"
@@ -140,8 +144,8 @@ export class DumbbellChart
                 return { end: this.formatValue(diff, { showPlus: true }) }
             })
             .with(DumbbellValueLabelMode.PercentChange, () => {
-                if (startValue === 0) return {}
-                const change = ((endValue - startValue) / startValue) * 100
+                const change = computePercentChange(startValue, endValue)
+                if (change === undefined) return {}
                 return {
                     end: formatValue(change, {
                         showPlus: true,
