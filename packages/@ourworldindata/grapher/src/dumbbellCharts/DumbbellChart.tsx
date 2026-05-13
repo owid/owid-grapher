@@ -108,17 +108,13 @@ export class DumbbellChart
         return { fontSize, fontWeight: 400, lineHeight: 1 }
     }
 
-    private buildValueLabel(
-        text: string,
-        type: "start" | "end"
-    ): DumbbellValueLabel {
+    private buildValueLabel(text: string): DumbbellValueLabel {
         return {
             text,
             width: textWidth(text, this.valueLabelStyle),
-            padding:
-                this.chartState.isEntityStrategy && type === "end"
-                    ? VALUE_LABEL_DOT_GAP
-                    : VALUE_LABEL_DOT_GAP + this.dumbbellHeadRadius,
+            padding: this.chartState.isEntityStrategy
+                ? VALUE_LABEL_DOT_GAP
+                : VALUE_LABEL_DOT_GAP + this.dumbbellHeadRadius,
         }
     }
 
@@ -172,22 +168,20 @@ export class DumbbellChart
                 series.end.value
             )
 
+            const startLabel = start ? this.buildValueLabel(start) : undefined
+            const endLabel = end ? this.buildValueLabel(end) : undefined
+
             return {
                 ...series,
                 start: {
                     ...series.start,
-                    label: start
-                        ? this.buildValueLabel(start, "start")
-                        : undefined,
+                    label: startLabel,
                     radius: this.dumbbellHeadRadius,
                 },
                 end: {
                     ...series.end,
-                    label: end ? this.buildValueLabel(end, "end") : undefined,
-                    // Time-range dumbbells simply point to the end value with an arrow
-                    radius: this.chartState.isEntityStrategy
-                        ? 0
-                        : this.dumbbellHeadRadius,
+                    label: endLabel,
+                    radius: this.dumbbellHeadRadius,
                 },
             }
         })
