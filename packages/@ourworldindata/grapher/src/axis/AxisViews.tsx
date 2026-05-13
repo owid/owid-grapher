@@ -129,6 +129,7 @@ interface HorizontalAxisZeroLineProps {
     bounds: Bounds
     strokeWidth?: number
     align?: HorizontalAlign
+    color?: string
 }
 
 @observer
@@ -138,6 +139,7 @@ export class HorizontalAxisZeroLine extends React.Component<HorizontalAxisZeroLi
             bounds,
             align = HorizontalAlign.center,
             strokeWidth = 1,
+            color = SOLID_TICK_COLOR,
         } = this.props
 
         const axis = this.props.axis.clone()
@@ -160,7 +162,7 @@ export class HorizontalAxisZeroLine extends React.Component<HorizontalAxisZeroLi
                 y1={bounds.bottom.toFixed(2)}
                 x2={x.toFixed(2)}
                 y2={bounds.top.toFixed(2)}
-                stroke={SOLID_TICK_COLOR}
+                stroke={color}
                 strokeWidth={strokeWidth}
             />
         )
