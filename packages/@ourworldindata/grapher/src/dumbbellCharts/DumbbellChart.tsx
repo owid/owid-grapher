@@ -52,6 +52,7 @@ import { DumbbellChartRow } from "./DumbbellChartRow"
 import { AxisLayout, calculateAxisLayout } from "./DumbbellChartHelpers"
 import { AnimatedRows } from "../animation/AnimatedRows"
 import { roundFontSize, textWidth } from "../chart/ChartUtils.js"
+import { GRAPHER_LIGHT_TEXT } from "../color/ColorConstants.js"
 
 export type DumbbellChartProps = ChartComponentProps<DumbbellChartState>
 
@@ -424,10 +425,18 @@ function DumbbellChartAxis({
 }): React.ReactElement {
     return (
         <>
-            <HorizontalAxisComponent bounds={bounds} axis={axis} />
+            <HorizontalAxisComponent
+                bounds={bounds}
+                axis={axis}
+                tickColor={GRAPHER_LIGHT_TEXT}
+            />
             <HorizontalAxisGridLines bounds={dataBounds} axis={axis} />
             {axis.contains(0) && (
-                <HorizontalAxisZeroLine bounds={dataBounds} axis={axis} />
+                <HorizontalAxisZeroLine
+                    bounds={dataBounds}
+                    axis={axis}
+                    color="#999"
+                />
             )}
         </>
     )
