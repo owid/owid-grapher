@@ -809,4 +809,3 @@ function AxisY({
         </>
     )
 }
-
