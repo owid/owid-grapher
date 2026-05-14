@@ -20,4 +20,7 @@ export const BESPOKE_COMPONENT_REGISTRY: Record<
     "causes-of-death": {
         scriptUrl: "/causes-of-death/index.js",
     },
+    "income-plots": {
+        scriptUrl: "/income-plots/index.js",
+    },
 }

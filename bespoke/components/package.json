@@ -11,7 +11,7 @@
         "react-aria-components": "^1.8.0"
     },
     "devDependencies": {
-        "@typescript/native-preview": "^7.0.0-dev.20260401.1"
+        "@typescript/native-preview": "^7.0.0-dev.20260408.1"
     },
     "scripts": {
         "build": "",
