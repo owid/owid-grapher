@@ -44,14 +44,14 @@ export const parameterConfigByKey: Record<ParameterKey, ParameterConfig> = {
     fertilityRate: {
         shortTitle: "Fertility",
         extraShortTitle: "Fertility",
-        title: "Fertility Rate",
+        title: "Fertility rate",
         unit: "births per woman",
         axisUnit: "births per woman",
         yPadding: 2,
         yFloor: 0,
         step: 0.1,
         decimals: 1,
-        subtitle: () => "Average number of births per woman",
+        subtitle: () => "Average number of births per woman.",
         tooltipContent:
             "Total fertility rate is the number of births a woman would have, if she experienced the birth rates of women of each age group in one particular year across her childbearing years.",
         formatValue: (v) =>
@@ -97,9 +97,9 @@ export const parameterConfigByKey: Record<ParameterKey, ParameterConfig> = {
         },
     },
     lifeExpectancy: {
-        shortTitle: "Life Expectancy",
-        extraShortTitle: "Life Exp.",
-        title: "Life Expectancy at Birth",
+        shortTitle: "Life expectancy",
+        extraShortTitle: "Life exp.",
+        title: "Life expectancy at birth",
         unit: "years",
         axisUnit: "years",
         yPadding: 10,
@@ -108,7 +108,7 @@ export const parameterConfigByKey: Record<ParameterKey, ParameterConfig> = {
         step: 1,
         decimals: 0,
         subtitle: () =>
-            "Years a newborn is expected to live, given current mortality rates",
+            "Years a newborn is expected to live, given current mortality rates.",
         tooltipContent:
             "Period life expectancy is the number of years the average person born in a certain year would live if they experienced the same chances of dying at each age as people did that year.",
         formatValue: (v) =>
@@ -172,18 +172,18 @@ export const parameterConfigByKey: Record<ParameterKey, ParameterConfig> = {
     netMigrationRate: {
         shortTitle: "Migration",
         extraShortTitle: "Migration",
-        title: "Net Migration Rate",
+        title: "Net migration rate",
         unit: "per 1,000 population",
         axisUnit: "‰",
         yPadding: 5,
         step: 0.1,
         decimals: 1,
         subtitle: (entityName: string) => {
-            if (entityName === "World") return "Not applicable"
+            if (entityName === "World") return "Not applicable."
             const region = getRegionByName(entityName)
             if (region?.regionType === "aggregate")
-                return "Difference between people entering and leaving the continent, per 1,000 population"
-            return "Difference between people entering and leaving the country, per 1,000 population"
+                return "Difference between people entering and leaving the continent, per 1,000 population."
+            return "Difference between people entering and leaving the country, per 1,000 population."
         },
         tooltipContent:
             "Net migration is the difference in immigration (people entering the country) and emigration (people leaving). This number is positive if more people are entering than leaving. This difference is given per 1,000 population.",

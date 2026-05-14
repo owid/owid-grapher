@@ -139,7 +139,7 @@ function CaptionedParametersVariant({
     )
     const subtitle =
         subtitleOverride ??
-        "Assumptions about fertility, life expectancy, and migration that underlie the UN's population medium projection"
+        "Assumptions about fertility, life expectancy, and migration that underlie the UN's population medium projection."
 
     return (
         <Frame className="demography-captioned-chart demography-parameters">

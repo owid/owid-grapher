@@ -31,9 +31,9 @@ import { parameterConfigByKey } from "../helpers/parameterConfigs.js"
 import { useTippyContainer } from "../../../../hooks/useTippyContainer.js"
 
 const PARAMETER_TAB_LABELS: Record<ParameterKey, string> = {
-    fertilityRate: "Fertility Rate",
-    lifeExpectancy: "Life Expectancy",
-    netMigrationRate: "Net Migration",
+    fertilityRate: "Fertility rate",
+    lifeExpectancy: "Life expectancy",
+    netMigrationRate: "Net migration",
 }
 
 export function SimulationContent({
@@ -165,11 +165,11 @@ export function SimulationContent({
                     <ChartPanel
                         className="population-panel"
                         title="Population"
-                        subtitle="Historical estimates and projections of total population"
+                        subtitle="Historical estimates and projections of total population."
                         header={
                             <ProjectionLegend
                                 modified={hasUserChanges}
-                                userTooltip="This projection is based on the fertility, life expectancy, and migration assumptions you set. Change them in the panel on the left to see how they affect population projections."
+                                userTooltip="This projection is based on the fertility, life expectancy, and migration assumptions you set. Change them in the assumptions panel to see how they affect population projections."
                             />
                         }
                     >
@@ -203,8 +203,8 @@ function AgeStructurePanel({
     barColor?: { female: string; male: string } | string
     populationPyramidUnit?: "percent" | "absolute"
 }) {
-    const title = `Age Structure in ${year}`
-    const subtitle = "Population by age and sex"
+    const title = `Age structure in ${year}`
+    const subtitle = "Population by age and sex."
     const slider = (
         <SimpleYearSlider selectedYear={year} onChange={onYearChange} />
     )
@@ -307,7 +307,7 @@ export function InputChartPanel({
                 showLegend ? (
                     <ProjectionLegend
                         userLabel="Your assumptions"
-                        benchmarkLabel="UN WPP assumptions"
+                        benchmarkLabel="UN assumptions"
                         modified={isParameterModified}
                     />
                 ) : undefined

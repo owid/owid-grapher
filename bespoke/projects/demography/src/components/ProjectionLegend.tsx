@@ -10,7 +10,7 @@ import { useTippyContainer } from "../../../../hooks/useTippyContainer.js"
 
 export function ProjectionLegend({
     userLabel = "Your projection",
-    benchmarkLabel = "UN WPP Medium projection",
+    benchmarkLabel = "UN medium projection",
     userTooltip,
     benchmarkTooltip,
     modified = false,

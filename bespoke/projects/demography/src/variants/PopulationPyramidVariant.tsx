@@ -167,7 +167,7 @@ function CaptionedPopulationPyramidVariant({
     )
     const subtitle =
         subtitleOverride ??
-        `The population of ${entityNameForSentence(data.country)}, broken down by age and sex based on future projections. These are based on the user's fertility, life expectancy, and migration inputs to a demographic model.`
+        `Population of ${entityNameForSentence(data.country)}, broken down by age and sex based on future projections. These are based on the user's fertility, life expectancy, and migration inputs to a demographic model.`
 
     return (
         <Frame className="demography-captioned-chart demography-population-pyramid">

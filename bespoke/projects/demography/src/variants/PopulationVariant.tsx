@@ -151,7 +151,7 @@ function CaptionedPopulationVariant({
     )
     const subtitle =
         subtitleOverride ??
-        "Historical estimates and projections of total population"
+        "Historical estimates and projections of total population."
 
     return (
         <Frame className="demography-captioned-chart demography-population-variant">
