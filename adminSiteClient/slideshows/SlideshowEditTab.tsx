@@ -327,24 +327,22 @@ function TemplateOptionsEditor(props: {
             <>
                 <label>
                     Title
-                    <input
-                        type="text"
+                    <InlineMarkdownEditor
                         value={slide.title}
-                        onChange={(e) =>
-                            onUpdate({ ...slide, title: e.target.value })
+                        onChange={(text) =>
+                            onUpdate({ ...slide, title: text })
                         }
                         placeholder={TEXTAREA_PLACEHOLDERS.title}
                     />
                 </label>
                 <label>
                     Subtitle
-                    <input
-                        type="text"
+                    <InlineMarkdownEditor
                         value={slide.subtitle ?? ""}
-                        onChange={(e) =>
+                        onChange={(text) =>
                             onUpdate({
                                 ...slide,
-                                subtitle: e.target.value || undefined,
+                                subtitle: text || undefined,
                             })
                         }
                         placeholder={TEXTAREA_PLACEHOLDERS.subtitle}

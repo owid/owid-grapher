@@ -40,11 +40,23 @@ export function SlideRenderer(props: {
             <div className={`${className} slideshow-slide--cover`}>
                 {(slide.subtitle || slide.date) && (
                     <p className="cover-supertitle">
-                        {slide.subtitle && <span>{slide.subtitle}</span>}
+                        {slide.subtitle && (
+                            <span>
+                                <SimpleMarkdownText
+                                    text={slide.subtitle}
+                                    useParagraphs={false}
+                                />
+                            </span>
+                        )}
                         {slide.date && <span>{slide.date}</span>}
                     </p>
                 )}
-                <h1 className="cover-title">{slide.title}</h1>
+                <h1 className="cover-title">
+                    <SimpleMarkdownText
+                        text={slide.title}
+                        useParagraphs={false}
+                    />
+                </h1>
                 {slide.author && (
                     <h2 className="cover-author">{slide.author}</h2>
                 )}
