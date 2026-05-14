@@ -76,6 +76,7 @@ type UserMap = Record<string, DbPlainUser>
 type UsageInfo = {
     title: string
     id: string
+    url: string
 }
 
 type ImageEditorApi = {
@@ -248,9 +249,13 @@ function UsageViewer({ usage }: { usage: UsageInfo[] | undefined }) {
                 <ul className="ImageIndexPage__usage-list">
                     {usage.map((use) => (
                         <li key={use.id}>
-                            <a href={`/admin/gdocs/${use.id}/preview`}>
-                                {use.title}
-                            </a>
+                            <a href={use.url}>{use.title}</a>
+                            {use.url.includes("/slideshows/") && (
+                                <span className="ImageIndexPage__usage-type">
+                                    {" "}
+                                    (slideshow)
+                                </span>
+                            )}
                         </li>
                     ))}
                 </ul>
@@ -261,7 +266,7 @@ function UsageViewer({ usage }: { usage: UsageInfo[] | undefined }) {
     return (
         <Popover
             content={content}
-            title="Published posts that reference this image"
+            title="Content that references this image"
             trigger="click"
         >
             <Button type="text" disabled={!usage || !usage.length}>

@@ -110,10 +110,14 @@ export function SlideGrapher(props: SlideGrapherProps): React.ReactElement {
                         // ?metric=unvaccinated&antigen=mcv1) that must be
                         // preserved in the reported query string.
                         const merged = new URLSearchParams([
-                            ...Object.entries(
-                                state.externalQueryParams
+                            ...Object.entries(state.externalQueryParams).filter(
+                                (entry): entry is [string, string] =>
+                                    entry[1] !== undefined
                             ),
-                            ...Object.entries(changedParams),
+                            ...Object.entries(changedParams).filter(
+                                (entry): entry is [string, string] =>
+                                    entry[1] !== undefined
+                            ),
                         ])
                         const qs = merged.toString()
                         onChangeRef.current?.(qs ? `?${qs}` : "")

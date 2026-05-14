@@ -173,9 +173,8 @@ export async function createSlideshow(
         insert.publishedAt = new Date()
     }
 
-    const [id] = await trx<DbInsertSlideshow>(SlideshowsTableName).insert(
-        insert
-    )
+    const [id] =
+        await trx<DbInsertSlideshow>(SlideshowsTableName).insert(insert)
 
     if (isPublished) {
         await rebuildSlideshowLinksAndImages(trx, id, config)
