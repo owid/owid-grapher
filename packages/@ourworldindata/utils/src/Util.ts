@@ -1354,6 +1354,7 @@ export async function copyToClipboard(text: string): Promise<boolean> {
         textarea.select()
 
         try {
+            // oxlint-disable-next-line typescript/no-deprecated we're using a deprecated API only as a fallback here
             return document.execCommand("copy")
         } catch (err) {
             console.error("Failed to copy text to clipboard", err)
