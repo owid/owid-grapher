@@ -20,100 +20,6 @@ export const SLIDE_TEMPLATE_LABELS: Record<SlideTemplate, string> = {
     [SlideTemplate.Text]: "Text",
 }
 
-export interface SlideImageOnly {
-    template: SlideTemplate.Image
-    filename: string | null
-    slideTitle?: string
-    text?: string
-    largeText?: boolean
-    hideLogo?: boolean
-    blueBackground?: boolean
-}
-
-export interface SlideChartOnly {
-    template: SlideTemplate.Chart
-    /** Relative URL path, e.g. "/grapher/life-expectancy?tab=table" or "/explorers/population" */
-    url: string
-    title?: string
-    subtitle?: string
-    hideLogo?: boolean
-    text?: string
-    largeText?: boolean
-    blueBackground?: boolean
-}
-
-export interface SlideCoverSlide {
-    template: SlideTemplate.Cover
-    title: string
-    subtitle?: string
-    author?: string
-    date?: string
-    hideLogo?: boolean
-}
-
-export interface SlideStatement {
-    template: SlideTemplate.Statement
-    text: string
-    attribution?: string
-    hideLogo?: boolean
-    blueBackground?: boolean
-}
-
-export interface SlideContents {
-    template: SlideTemplate.Outline
-    title?: string
-    text: string
-    hideLogo?: boolean
-    blueBackground?: boolean
-}
-
-export interface SlideText {
-    template: SlideTemplate.Text
-    title?: string
-    text: string
-    largeText?: boolean
-    hideLogo?: boolean
-    blueBackground?: boolean
-}
-
-export interface SlideTwoCharts {
-    template: SlideTemplate.TwoCharts
-    url1: string
-    url2: string
-    title?: string
-    subtitle?: string
-    hideLogo?: boolean
-    blueBackground?: boolean
-}
-
-export type Slide =
-    | SlideImageOnly
-    | SlideChartOnly
-    | SlideTwoCharts
-    | SlideCoverSlide
-    | SlideStatement
-    | SlideContents
-    | SlideText
-
-/**
- * Pre-resolved chart info computed at bake time so the client
- * doesn't need to probe multiple endpoints to determine the chart type.
- * Keyed by the slide URL (e.g. "/grapher/life-expectancy?tab=table").
- */
-export type ResolvedSlideChartInfo =
-    | { type: "grapher" }
-    | { type: "multi-dim"; configId: string }
-    | { type: "explorer" }
-
-export interface SlideshowConfig {
-    slides: Slide[]
-    authors?: string
-    /** If true, charts show timeline/controls in presentation mode. If false (default), charts are minimal. */
-    interactiveCharts?: boolean
-}
-
-// --- Zod schemas ---
-
 const SlideImageOnlySchema = z.object({
     template: z.literal(SlideTemplate.Image),
     filename: z.string().nullable(),
@@ -126,6 +32,7 @@ const SlideImageOnlySchema = z.object({
 
 const SlideChartOnlySchema = z.object({
     template: z.literal(SlideTemplate.Chart),
+    /** Relative URL path, e.g. "/grapher/life-expectancy?tab=table" or "/explorers/population" */
     url: z.string().min(1),
     title: z.string().optional(),
     subtitle: z.string().optional(),
@@ -135,7 +42,7 @@ const SlideChartOnlySchema = z.object({
     blueBackground: z.boolean().optional(),
 })
 
-const SlideCoverSlideSchema = z.object({
+const SlideCoverSchema = z.object({
     template: z.literal(SlideTemplate.Cover),
     title: z.string(),
     subtitle: z.string().optional(),
@@ -183,7 +90,7 @@ export const SlideSchema = z.discriminatedUnion("template", [
     SlideImageOnlySchema,
     SlideChartOnlySchema,
     SlideTwoChartsSchema,
-    SlideCoverSlideSchema,
+    SlideCoverSchema,
     SlideStatementSchema,
     SlideContentsSchema,
     SlideTextSchema,
@@ -192,6 +99,7 @@ export const SlideSchema = z.discriminatedUnion("template", [
 export const SlideshowConfigSchema = z.object({
     slides: z.array(SlideSchema),
     authors: z.string().optional(),
+    /** If true, charts show timeline/controls in presentation mode. If false (default), charts are minimal. */
     interactiveCharts: z.boolean().optional(),
 })
 
@@ -199,6 +107,7 @@ export const SlideshowCreateSchema = z.object({
     slug: z.string().min(1),
     title: z.string().min(1),
     config: SlideshowConfigSchema.optional(),
+    isPublished: z.boolean().optional(),
 })
 
 export const SlideshowUpdateSchema = z.object({
@@ -207,3 +116,23 @@ export const SlideshowUpdateSchema = z.object({
     config: SlideshowConfigSchema.optional(),
     isPublished: z.boolean().optional(),
 })
+
+export type SlideImageOnly = z.infer<typeof SlideImageOnlySchema>
+export type SlideChartOnly = z.infer<typeof SlideChartOnlySchema>
+export type SlideCover = z.infer<typeof SlideCoverSchema>
+export type SlideStatement = z.infer<typeof SlideStatementSchema>
+export type SlideContents = z.infer<typeof SlideContentsSchema>
+export type SlideText = z.infer<typeof SlideTextSchema>
+export type SlideTwoCharts = z.infer<typeof SlideTwoChartsSchema>
+export type Slide = z.infer<typeof SlideSchema>
+export type SlideshowConfig = z.infer<typeof SlideshowConfigSchema>
+
+/**
+ * Pre-resolved chart info computed at bake time so the client
+ * doesn't need to probe multiple endpoints to determine the chart type.
+ * Keyed by the slide URL (e.g. "/grapher/life-expectancy?tab=table").
+ */
+export type ResolvedSlideChartInfo =
+    | { type: "grapher" }
+    | { type: "multi-dim"; configId: string }
+    | { type: "explorer" }

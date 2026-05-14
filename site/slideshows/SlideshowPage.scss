@@ -1,3 +1,10 @@
+// The container is rendered with inline visibility:hidden to prevent FOUC.
+// Once this stylesheet loads (in <head>), this rule overrides the inline
+// style and reveals the content — no JS needed.
+#slideshow-page-container {
+    visibility: visible !important;
+}
+
 #slideshow-page-body {
     .site-footer,
     .donate-footer {

@@ -61,7 +61,7 @@ function extractLinksFromSlides(slides: Slide[]): {
     return { links, imageFilenames }
 }
 
-async function rebuildSlideshowLinks(
+async function rebuildSlideshowLinksAndImages(
     trx: db.KnexReadWriteTransaction,
     slideshowId: number,
     config: SlideshowConfig
@@ -153,7 +153,7 @@ export async function createSlideshow(
     if (!parseResult.success) {
         throw new JsonError(JSON.stringify(parseResult.error), 400)
     }
-    const { slug, title, config: rawConfig } = parseResult.data
+    const { slug, title, config: rawConfig, isPublished } = parseResult.data
 
     const existing = await trx(SlideshowsTableName).where({ slug }).first()
     if (existing) {
@@ -162,14 +162,24 @@ export async function createSlideshow(
 
     const config: SlideshowConfig = rawConfig ?? { slides: [] }
 
-    const [id] = await trx<DbInsertSlideshow>(SlideshowsTableName).insert({
+    const insert: DbInsertSlideshow = {
         slug,
         title,
         config: JSON.stringify(config) as any,
         userId: res.locals.user.id,
-    })
+    }
+    if (isPublished) {
+        insert.isPublished = true
+        insert.publishedAt = new Date()
+    }
 
-    await rebuildSlideshowLinks(trx, id, config)
+    const [id] = await trx<DbInsertSlideshow>(SlideshowsTableName).insert(
+        insert
+    )
+
+    if (isPublished) {
+        await rebuildSlideshowLinksAndImages(trx, id, config)
+    }
 
     await triggerStaticBuild(res.locals.user, `Creating slideshow ${slug}`)
 
@@ -213,7 +223,7 @@ export async function updateSlideshow(
         await trx(SlideshowLinksTableName).where({ slideshowId: id }).delete()
         await trx(SlideshowXImagesTableName).where({ slideshowId: id }).delete()
     } else if (config !== undefined) {
-        await rebuildSlideshowLinks(trx, id, config)
+        await rebuildSlideshowLinksAndImages(trx, id, config)
     }
 
     await triggerStaticBuild(

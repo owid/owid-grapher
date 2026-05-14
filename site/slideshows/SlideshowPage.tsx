@@ -62,7 +62,10 @@ export function SlideshowPage(props: SlideshowPageProps): React.ReactElement {
                 baseUrl={baseUrl}
             />
             <body id="slideshow-page-body">
-                <main id="slideshow-page-container">
+                <main
+                    id="slideshow-page-container"
+                    style={{ visibility: "hidden" }}
+                >
                     <SlideshowPresentation {...presentationProps} />
                 </main>
                 <SiteFooter context={SiteFooterContext.slideshowPage} />

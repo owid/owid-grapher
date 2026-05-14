@@ -454,9 +454,6 @@ export const runSiteFooterScripts = async (
         // falls through
         case SiteFooterContext.slideshowPage:
             hydrateSlideshowPage()
-            runSiteNavigation(hideDonationFlag)
-            runSiteTools()
-            runCookiePreferencesManager()
         // falls through
         case SiteFooterContext.subscribePage:
             hydrateSubscribePage()

@@ -94,24 +94,9 @@ export function SlideGrapher(props: SlideGrapherProps): React.ReactElement {
 
         let innerDispose: (() => void) | null = null
 
-        // Identify "base" params from the initial query string that grapher
-        // doesn't understand (e.g. multi-dim dimension selectors like
-        // ?metric=unvaccinated&antigen=mcv1). These must be preserved in the
-        // reported query string since they define which view to load.
-        const baseParams = new URLSearchParams(
-            initialQueryStringRef.current?.replace(/^\?/, "") ?? ""
-        )
-
         const outerDispose = when(
             () => state.isReady,
             () => {
-                // Once the grapher is ready, drop params it understood from
-                // baseParams so we only keep non-grapher ones.
-                const grapherParams = state.changedParams
-                for (const key of Object.keys(grapherParams)) {
-                    baseParams.delete(key)
-                }
-
                 onChartReadyRef.current?.({
                     title: state.currentTitle,
                     subtitle: state.currentSubtitle,
@@ -120,8 +105,14 @@ export function SlideGrapher(props: SlideGrapherProps): React.ReactElement {
                 innerDispose = reaction(
                     () => state.changedParams,
                     (changedParams) => {
+                        // externalQueryParams contains non-Grapher params
+                        // (e.g. multi-dim dimension selectors like
+                        // ?metric=unvaccinated&antigen=mcv1) that must be
+                        // preserved in the reported query string.
                         const merged = new URLSearchParams([
-                            ...baseParams.entries(),
+                            ...Object.entries(
+                                state.externalQueryParams
+                            ),
                             ...Object.entries(changedParams),
                         ])
                         const qs = merged.toString()

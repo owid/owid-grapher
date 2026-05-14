@@ -9,11 +9,7 @@ import {
     SlideTemplate,
     ResolvedSlideChartInfo,
 } from "@ourworldindata/types"
-import {
-    searchParamsToMultiDimView,
-    MultiDimDataPageConfig,
-    Url,
-} from "@ourworldindata/utils"
+import { searchParamsToMultiDimView, Url } from "@ourworldindata/utils"
 import { renderSlideshowPage } from "./siteRenderers.js"
 import { getImagesByFilenames } from "../db/model/Image.js"
 import { getMinimalAuthorsByNames } from "../db/model/Gdoc/GdocBase.js"
@@ -55,10 +51,11 @@ async function resolveChartInfo(
     // Try as a multi-dim
     const multiDim = await getMultiDimDataPageBySlug(knex, slug)
     if (multiDim) {
-        const mdimConfig = MultiDimDataPageConfig.fromObject(multiDim.config)
         const searchParams = new URLSearchParams(
             parsed.queryStr?.replace(/^\?/, "") ?? ""
         )
+        // searchParamsToMultiDimView falls back to the default view
+        // when no dimension-related search params are present
         try {
             const view = searchParamsToMultiDimView(
                 multiDim.config,
@@ -66,17 +63,7 @@ async function resolveChartInfo(
             )
             return { type: "multi-dim", configId: view.fullConfigId }
         } catch {
-            // Fall back to default view
-            const defaultDims = mdimConfig.filterToAvailableChoices(
-                {}
-            ).selectedChoices
-            const defaultView = mdimConfig.findViewByDimensions(defaultDims)
-            if (defaultView) {
-                return {
-                    type: "multi-dim",
-                    configId: defaultView.fullConfigId,
-                }
-            }
+            // No view found even for default dimensions — fall through
         }
     }
 

@@ -609,7 +609,7 @@ export {
     type SlideImageOnly,
     type SlideChartOnly,
     type SlideTwoCharts,
-    type SlideCoverSlide,
+    type SlideCover,
     type SlideStatement,
     type SlideContents,
     type SlideText,

@@ -51,16 +51,13 @@ const transformColorSyntax: Plugin<[], Root> = () => {
         visit(tree, "text", function (node, index, parent) {
             if (!parent || index === undefined) return
             const text = node.value
-            if (!COLOR_SYNTAX_REGEX.test(text)) return
-
-            // Reset regex state (it's global)
-            COLOR_SYNTAX_REGEX.lastIndex = 0
+            const matches = [...text.matchAll(COLOR_SYNTAX_REGEX)]
+            if (matches.length === 0) return
 
             const children: ElementContent[] = []
             let lastIndex = 0
-            let match: RegExpExecArray | null
 
-            while ((match = COLOR_SYNTAX_REGEX.exec(text)) !== null) {
+            for (const match of matches) {
                 // Text before the match
                 if (match.index > lastIndex) {
                     children.push({

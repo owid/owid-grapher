@@ -338,6 +338,7 @@ export class SiteBaker {
                     !path.startsWith("countries") &&
                     !path.startsWith("latest") &&
                     !path.startsWith("explore") &&
+                    !path.startsWith("slideshows") &&
                     path !== "donate" &&
                     path !== "feedback" &&
                     path !== "charts" &&
