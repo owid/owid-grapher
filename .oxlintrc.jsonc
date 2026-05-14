@@ -164,6 +164,7 @@
                 "fixMixedExportsWithInlineTypeSpecifier": true
             }
         ],
+        "typescript/no-deprecated": "warn",
         "typescript/no-duplicate-enum-values": "error",
         "typescript/no-empty-interface": "warn",
         "typescript/no-empty-object-type": "error",
