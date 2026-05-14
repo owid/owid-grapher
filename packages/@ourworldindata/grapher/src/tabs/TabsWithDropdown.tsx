@@ -1,16 +1,11 @@
 import * as R from "remeda"
 import cx from "classnames"
-import { useState } from "react"
-import {
-    Button,
-    MenuTrigger,
-    Popover,
-    Menu,
-    MenuItem,
-} from "react-aria-components"
+import { useState, type Key } from "react"
+import { Button, MenuTrigger, Menu, MenuItem } from "react-aria-components"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faEllipsisVertical } from "@fortawesome/free-solid-svg-icons"
 import { TabItem, Tabs } from "./Tabs"
+import { PortaledPopover } from "../controls/PortaledPopover"
 
 export const TabsWithDropdown = <TabKey extends string = string>({
     items,
@@ -50,10 +45,37 @@ export const TabsWithDropdown = <TabKey extends string = string>({
             .concat(lastVisibleItem)
     }
 
-    const handleSelect = (key: React.Key) => {
+    const handleSelect = (key: Key) => {
         if (typeof key === "string") onChange(key as TabKey)
         setIsOpen(false)
     }
+
+    // We need to portal this popover to the containing modal so that the modal-closing logic can detect clicks outside of it. Otherwise, clicking on the popover would close the modal immediately.
+    const popover = (
+        <PortaledPopover
+            className="TabsWithDropdown__Popover"
+            placement="bottom end"
+            portalContainer={portalContainer}
+        >
+            <Menu className="TabsWithDropdown__Menu" onAction={handleSelect}>
+                {hiddenItems.map((item) => (
+                    <MenuItem
+                        key={item.key}
+                        id={item.key}
+                        className={cx(
+                            "TabsWithDropdown__MenuItem",
+                            item.buttonProps?.className
+                        )}
+                        data-track-note={item.buttonProps?.dataTrackNote}
+                        aria-label={item.buttonProps?.ariaLabel}
+                        ref={item.buttonProps?.ref}
+                    >
+                        {item.element}
+                    </MenuItem>
+                ))}
+            </Menu>
+        </PortaledPopover>
+    )
 
     return (
         <div className={cx("TabsWithDropdown", className)}>
@@ -78,34 +100,7 @@ export const TabsWithDropdown = <TabKey extends string = string>({
                             />
                             <span>More</span>
                         </Button>
-                        <Popover
-                            className="TabsWithDropdown__Popover"
-                            placement="bottom end"
-                            UNSTABLE_portalContainer={portalContainer}
-                        >
-                            <Menu
-                                className="TabsWithDropdown__Menu"
-                                onAction={handleSelect}
-                            >
-                                {hiddenItems.map((item) => (
-                                    <MenuItem
-                                        key={item.key}
-                                        id={item.key}
-                                        className={cx(
-                                            "TabsWithDropdown__MenuItem",
-                                            item.buttonProps?.className
-                                        )}
-                                        data-track-note={
-                                            item.buttonProps?.dataTrackNote
-                                        }
-                                        aria-label={item.buttonProps?.ariaLabel}
-                                        ref={item.buttonProps?.ref}
-                                    >
-                                        {item.element}
-                                    </MenuItem>
-                                ))}
-                            </Menu>
-                        </Popover>
+                        {popover}
                     </MenuTrigger>
                 )}
             </div>

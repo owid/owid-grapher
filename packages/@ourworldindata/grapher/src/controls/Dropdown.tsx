@@ -10,7 +10,6 @@ import {
     ListBox,
     ListBoxItem,
     ListBoxSection,
-    Popover,
     SearchField,
     Select,
     SelectValue,
@@ -19,6 +18,7 @@ import {
 import { faTimesCircle } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { isTouchDevice } from "@ourworldindata/utils"
+import { PortaledPopover } from "./PortaledPopover"
 
 export interface BasicDropdownOption {
     trackNote?: string
@@ -160,13 +160,53 @@ export function Dropdown<DropdownOption extends BasicDropdownOption>({
         </ListBox>
     )
 
+    const popover = (
+        <PortaledPopover
+            className={cx(
+                "grapher-dropdown-menu",
+                "portaled-popover",
+                menuClassName
+            )}
+            offset={4}
+            portalContainer={portalContainer}
+        >
+            {isSearchable ? (
+                // If inputValue is provided, the component is controlled
+                // and we expect the filtering to happen outside of it.
+                <Autocomplete filter={inputValue ? undefined : contains}>
+                    <SearchField
+                        className="grapher-dropdown-search"
+                        aria-label="Search"
+                        autoFocus
+                        value={inputValue}
+                        onChange={onInputChange}
+                    >
+                        <span className="grapher-dropdown-search-icon" />
+                        <Input
+                            className="grapher-dropdown-search-input"
+                            style={{
+                                fontSize: isTouchDevice() ? 16 : undefined,
+                            }}
+                        />
+                        <Button className="grapher-dropdown-search-reset">
+                            <FontAwesomeIcon icon={faTimesCircle} aria-hidden />
+                        </Button>
+                    </SearchField>
+                    {listBox}
+                </Autocomplete>
+            ) : (
+                listBox
+            )}
+        </PortaledPopover>
+    )
+
     return (
         <Select
             className={cx("grapher-dropdown", className)}
             // null means no selection, undefined means the component is
             // uncontrolled, so we need to set it explicitly.
-            selectedKey={value?.value ?? null}
-            onSelectionChange={handleSelectionChange}
+            value={value?.value ?? null}
+            onChange={handleSelectionChange}
             placeholder={placeholder}
             isDisabled={isDisabled}
             {...otherProps}
@@ -196,46 +236,7 @@ export function Dropdown<DropdownOption extends BasicDropdownOption>({
             )}
             {/* Note: "portaled-popover" class is used by SlideInDrawer to detect
                 clicks inside portaled popovers. Update both if renaming. */}
-            <Popover
-                className={cx(
-                    "grapher-dropdown-menu",
-                    "portaled-popover",
-                    menuClassName
-                )}
-                offset={4}
-                UNSTABLE_portalContainer={portalContainer}
-            >
-                {isSearchable ? (
-                    // If inputValue is provided, the component is controlled
-                    // and we expect the filtering to happen outside of it.
-                    <Autocomplete filter={inputValue ? undefined : contains}>
-                        <SearchField
-                            className="grapher-dropdown-search"
-                            aria-label="Search"
-                            autoFocus
-                            value={inputValue}
-                            onChange={onInputChange}
-                        >
-                            <span className="grapher-dropdown-search-icon" />
-                            <Input
-                                className="grapher-dropdown-search-input"
-                                style={{
-                                    fontSize: isTouchDevice() ? 16 : undefined,
-                                }}
-                            />
-                            <Button className="grapher-dropdown-search-reset">
-                                <FontAwesomeIcon
-                                    icon={faTimesCircle}
-                                    aria-hidden
-                                />
-                            </Button>
-                        </SearchField>
-                        {listBox}
-                    </Autocomplete>
-                ) : (
-                    listBox
-                )}
-            </Popover>
+            {popover}
         </Select>
     )
 }
