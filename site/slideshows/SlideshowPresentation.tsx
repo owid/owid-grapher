@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useRef, useState } from "react"
+import React, {
+    useCallback,
+    useEffect,
+    useLayoutEffect,
+    useRef,
+    useState,
+} from "react"
 import cx from "classnames"
 import { match } from "ts-pattern"
 import {
@@ -69,10 +75,41 @@ export function SlideshowPresentation(props: {
         renderChart,
     } = props
 
-    // Support both controlled and uncontrolled modes
-    const [internalIndex, setInternalIndex] = useState(0)
+    // Support both controlled (admin editor) and uncontrolled (baked site) modes.
+    // In uncontrolled mode, read the initial slide from the ?slide= query param
+    // (1-based) and keep the URL in sync as the user navigates.
+    const isControlled = props.currentSlideIndex !== undefined
+    const [internalIndex, setInternalIndex] = useState(() => {
+        if (isControlled || typeof window === "undefined") return 0
+        const param = new URLSearchParams(window.location.search).get("slide")
+        if (!param) return 0
+        const parsed = parseInt(param, 10)
+        if (Number.isNaN(parsed) || parsed < 1) return 0
+        return Math.min(parsed - 1, slides.length - 1)
+    })
     const currentIndex = props.currentSlideIndex ?? internalIndex
     const setCurrentIndex = props.onSlideChange ?? setInternalIndex
+
+    // When hydrating with a ?slide= param, the server-rendered HTML shows
+    // slide 0 but the client initializes to a different slide. Suppress
+    // painting until the first client render to avoid a flash of the wrong
+    // slide's background.
+    const [isHydrated, setIsHydrated] = useState(isControlled)
+    useLayoutEffect(() => {
+        setIsHydrated(true)
+    }, [])
+
+    // Keep the URL ?slide= param in sync (uncontrolled mode only)
+    useEffect(() => {
+        if (isControlled || typeof window === "undefined") return
+        const url = new URL(window.location.href)
+        if (currentIndex === 0) {
+            url.searchParams.delete("slide")
+        } else {
+            url.searchParams.set("slide", String(currentIndex + 1))
+        }
+        window.history.replaceState(null, "", url.toString())
+    }, [currentIndex, isControlled])
 
     const goToPrev = useCallback(() => {
         setCurrentIndex(Math.max(0, currentIndex - 1))
@@ -178,6 +215,7 @@ export function SlideshowPresentation(props: {
                     "blueBackground" in currentSlide &&
                     currentSlide.blueBackground,
             })}
+            style={isHydrated ? undefined : { visibility: "hidden" }}
         >
             <div
                 ref={containerRef}
