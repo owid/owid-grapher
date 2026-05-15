@@ -677,46 +677,49 @@ async function finalizeRecords(
         const views_7d = configId ? (views.get(configId) ?? 0) : 0
         return { ...record, views_7d }
     })
-
-    const unsortedFinalRecords = withPageviews.map(
-        (record, i) =>
-            ({
-                type: ChartRecordType.ExplorerView,
-                explorerType: record.explorerType,
-                chartId: record.viewGrapherId,
-                variantName: record.viewTitle,
-                // remap createdAt -> publishedAt
-                publishedAt: explorerInfo.createdAt.toISOString(),
-                updatedAt: explorerInfo.updatedAt.toISOString(),
-                keyChartForTags: [],
-                numDimensions: record.yVariableIds.length,
-                numRelatedArticles,
-                title: record.viewTitle as string,
-                containerTitle: explorerInfo.title,
-                subtitle: record.viewSubtitle!,
-                slug: explorerInfo.slug,
-                queryParams: record.viewQueryParams,
-                availableTabs: record.viewAvailableTabs,
-                tags: explorerInfo.tags,
-                objectID: `${explorerInfo.slug}-${i}`,
-                id: `explorer/${explorerInfo.slug}${record.viewQueryParams}`,
-                score: computeRecordScore(
-                    numRelatedArticles,
-                    record.views_7d,
-                    record.titleLength
-                ),
-                views_7d: record.views_7d,
-                availableEntities: record.availableEntities,
-                titleLength: record.titleLength,
-                isFirstExplorerView: record.isFirstExplorerView,
-                isIncomeGroupSpecificFM: false,
-                isFM: false,
-                datasetNamespaces: record.datasetNamespaces,
-                datasetVersions: record.datasetVersions,
-                datasetProducts: record.datasetProducts,
-                datasetProducers: record.datasetProducers,
-            }) as Omit<FinalizedExplorerRecord, "viewTitleIndexWithinExplorer">
-    )
+    const unsortedFinalRecords = withPageviews.map((record, i) => {
+        // Related-article links point at the bare explorer slug, which resolves
+        // to the default view. Attribute the count to that view only, so a
+        // popular explorer doesn't boost every one of its views equally.
+        const viewNumRelatedArticles =
+            record.numNonDefaultSettings === 0 ? numRelatedArticles : 0
+        return {
+            type: ChartRecordType.ExplorerView,
+            explorerType: record.explorerType,
+            chartId: record.viewGrapherId,
+            variantName: record.viewTitle,
+            // remap createdAt -> publishedAt
+            publishedAt: explorerInfo.createdAt.toISOString(),
+            updatedAt: explorerInfo.updatedAt.toISOString(),
+            keyChartForTags: [],
+            numDimensions: record.yVariableIds.length,
+            numRelatedArticles: viewNumRelatedArticles,
+            title: record.viewTitle as string,
+            containerTitle: explorerInfo.title,
+            subtitle: record.viewSubtitle!,
+            slug: explorerInfo.slug,
+            queryParams: record.viewQueryParams,
+            availableTabs: record.viewAvailableTabs,
+            tags: explorerInfo.tags,
+            objectID: `${explorerInfo.slug}-${i}`,
+            id: `explorer/${explorerInfo.slug}${record.viewQueryParams}`,
+            score: computeRecordScore(
+                viewNumRelatedArticles,
+                record.views_7d,
+                record.titleLength
+            ),
+            views_7d: record.views_7d,
+            availableEntities: record.availableEntities,
+            titleLength: record.titleLength,
+            isFirstExplorerView: record.isFirstExplorerView,
+            isIncomeGroupSpecificFM: false,
+            isFM: false,
+            datasetNamespaces: record.datasetNamespaces,
+            datasetVersions: record.datasetVersions,
+            datasetProducts: record.datasetProducts,
+            datasetProducers: record.datasetProducers,
+        } as Omit<FinalizedExplorerRecord, "viewTitleIndexWithinExplorer">
+    })
 
     const sortedByScore = _.orderBy(unsortedFinalRecords, "score", "desc")
 

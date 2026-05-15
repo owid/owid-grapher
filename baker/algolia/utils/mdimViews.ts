@@ -7,6 +7,7 @@ import {
     getUniqueNamesFromTagHierarchies,
     merge,
     dimensionsToViewId,
+    MultiDimDataPageConfig,
     MultiDimXChartConfigsTableName,
     parseChartConfig,
 } from "@ourworldindata/utils"
@@ -125,8 +126,18 @@ async function getRecords(
         ContentGraphLinkType.Grapher
     )
     const numRelatedArticles = linksFromGdocs.length
+    // Related-article links point at the bare mdim slug, which resolves to the
+    // default view. Attribute the count to that view only, so a popular mdim
+    // doesn't boost every one of its views equally.
+    const defaultViewId = dimensionsToViewId(
+        MultiDimDataPageConfig.fromObject(
+            multiDim.config
+        ).filterToAvailableChoices({}).selectedChoices
+    )
     return multiDim.config.views.map((view) => {
         const viewId = dimensionsToViewId(view.dimensions)
+        const viewNumRelatedArticles =
+            viewId === defaultViewId ? numRelatedArticles : 0
         const id = multiDimXChartConfigIdMap.get(`${multiDim.id}-${viewId}`)
         if (!id) {
             throw new Error(
@@ -166,7 +177,7 @@ async function getRecords(
         // Keyed by config ID so we don't have to worry about slug renames/redirects
         const views_7d = views.get(view.fullConfigId) ?? 0
         const score = computeRecordScore(
-            numRelatedArticles,
+            viewNumRelatedArticles,
             views_7d,
             title.length
         )
@@ -207,7 +218,7 @@ async function getRecords(
             updatedAt: new Date().toISOString(),
             numDimensions: chartConfig.dimensions?.length ?? 0,
             titleLength: title.length,
-            numRelatedArticles,
+            numRelatedArticles: viewNumRelatedArticles,
             views_7d,
             score,
             isIncomeGroupSpecificFM: false,
