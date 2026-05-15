@@ -10,10 +10,11 @@ export function searchParamsToState(
     searchParams: URLSearchParams,
     allAreas: string[]
 ): LatestState {
-    const allAreasSet = new Set(allAreas)
     const topics = [
-        ...deserializeSet(searchParams.get(LatestUrlParam.TOPICS)),
-    ].filter((t) => allAreasSet.has(t))
+        ...deserializeSet(searchParams.get(LatestUrlParam.TOPICS)).intersection(
+            new Set(allAreas)
+        ),
+    ]
     return {
         topics,
         latestType: decodeLatestType(searchParams.get(LatestUrlParam.TYPE)),
