@@ -2026,7 +2026,10 @@ export function checkIsHomepage(
 
 /**
  * Posts that should show up in the chronological algolia index
- * for dynamic RSS feeds & /latest page
+ * for dynamic RSS feeds & /latest page.
+ *
+ * See `isChronologicalGdocInstance` for a class-narrowing variant used by
+ * the bulk indexer.
  */
 export function checkIsChronologicalGdoc(gdoc: {
     content: { type?: OwidGdocType }

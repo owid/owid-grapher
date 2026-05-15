@@ -418,8 +418,6 @@ export const getHomepageAnnouncements = (
         LIMIT 3
         `
     ).then(
-        // SQL filters `type = 'announcement'`, so every row is an
-        // announcement at runtime. Promote to the static type.
         (rows) =>
             rows.map(
                 rawGdocToMinimalPost

@@ -12,9 +12,10 @@ import { announcementContentTitleId } from "./latestUtils.js"
  * chrome — it is not a standalone component on its own. The two call sites
  * differ only in heading level (h1 vs h2) and whether <ExpandableText>
  * truncates with a Read more toggle (feed) or renders fully (standalone via
- * alwaysExpanded). The shared <ExpandableText> wrapper keeps the DOM and
- * grid layout identical between the two so editors previewing an
- * announcement see what readers will see in the feed. */
+ * alwaysExpanded). The standalone version passes alwaysExpanded rather than
+ * bypassing <ExpandableText>, so the DOM and grid layout stay identical to
+ * the feed and editors previewing an announcement see what readers will see
+ * in the feed. */
 export const AnnouncementContent = ({
     title,
     latestType,

@@ -25,12 +25,8 @@ import { getThumbnailUrl, getExcerptFromGdoc } from "./pages.js"
 import { match, P } from "ts-pattern"
 
 /**
- * Class-aware variant of `checkIsChronologicalGdoc`: narrows the
- * broad return of `gdocFromJSON` to a chronological-feed class instance.
- * Used (instead of the interface-narrowing predicate from
- * `@ourworldindata/utils`) by the bulk indexing path below, which needs
- * the `loadLinkedX(knex)` methods that live on `GdocBase` — the bare
- * interface union doesn't carry them.
+ * Like `checkIsChronologicalGdoc`, but narrows to the Gdoc *class* so
+ * callers can use `loadLinkedX(knex)` (defined on `GdocBase`).
  */
 function isChronologicalGdocInstance(
     gdoc: ReturnType<typeof gdocFromJSON>
