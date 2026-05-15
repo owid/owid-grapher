@@ -118,6 +118,35 @@ export async function deleteFeaturedMetric(
     return { success: true }
 }
 
+export async function updateFeaturedMetricBoost(
+    req: Request,
+    _res: HandlerResponse,
+    trx: db.KnexReadonlyTransaction
+) {
+    const { id } = req.params
+    const { boostInSearch } = req.body
+
+    if (boostInSearch === undefined) {
+        throw new JsonError("Missing required field: boostInSearch", 400)
+    }
+
+    const featuredMetric = await trx(FeaturedMetricsTableName)
+        .where({ id })
+        .first()
+
+    if (!featuredMetric) {
+        throw new JsonError(`No Featured Metric found with id '${id}'`, 404)
+    }
+
+    // Update all FM rows with the same URL so the boost is consistent
+    // across income groups and topics that share this view.
+    await trx(FeaturedMetricsTableName)
+        .where({ url: featuredMetric.url })
+        .update({ boostInSearch: boostInSearch ? 1 : 0 })
+
+    return { success: true }
+}
+
 export async function fetchFeaturedMetrics(
     _req: Request,
     _res: HandlerResponse,

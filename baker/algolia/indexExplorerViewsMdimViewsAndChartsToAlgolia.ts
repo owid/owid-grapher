@@ -11,7 +11,9 @@ import { getAlgoliaClient } from "./configureAlgolia.js"
 import { getExplorerViewRecords } from "./utils/explorerViews.js"
 import {
     applyFMSourceBonus,
+    applyFeaturedMetricBoosts,
     createFeaturedMetricRecords,
+    getBoostedFeaturedMetricUrls,
     getFeaturedMetricSlugs,
     MAX_NON_FM_RECORD_SCORE,
     scaleRecordScores,
@@ -92,7 +94,15 @@ const indexExplorerViewsMdimViewsAndChartsToAlgolia = async () => {
             const fmSlugs = await getFeaturedMetricSlugs(trx)
             const bonusedRecords = applyFMSourceBonus(scaledRecords, fmSlugs)
 
-            const shrunkRecords = shrinkRecordsToFitAlgoliaLimit(bonusedRecords)
+            // Apply editorial boosts after scaling so they don't
+            // distort the score distribution for other records.
+            const boostedUrls = await getBoostedFeaturedMetricUrls(trx)
+            const records = applyFeaturedMetricBoosts(
+                bonusedRecords,
+                boostedUrls
+            )
+
+            const shrunkRecords = shrinkRecordsToFitAlgoliaLimit(records)
             const { records: featuredMetricRecords, failures } =
                 await createFeaturedMetricRecords(trx, shrunkRecords)
 

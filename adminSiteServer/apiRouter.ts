@@ -167,6 +167,7 @@ import {
     deleteFeaturedMetric,
     fetchFeaturedMetrics,
     rerankFeaturedMetrics,
+    updateFeaturedMetricBoost,
 } from "./apiRoutes/featuredMetrics.js"
 import {
     getDods,
@@ -486,6 +487,11 @@ postRouteWithRWTransaction(
     apiRouter,
     "/featured-metrics/rerank",
     rerankFeaturedMetrics
+)
+putRouteWithRWTransaction(
+    apiRouter,
+    "/featured-metrics/:id/boost",
+    updateFeaturedMetricBoost
 )
 deleteRouteWithRWTransaction(
     apiRouter,

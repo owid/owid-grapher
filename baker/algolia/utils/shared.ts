@@ -30,6 +30,7 @@ import {
 } from "./types.js"
 import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
 import { GRAPHER_ROUTE_FOLDER } from "@ourworldindata/grapher"
+import * as db from "../../../db/db.js"
 
 const countriesWithVariantNames = new Set(
     countries
@@ -457,6 +458,55 @@ export function applyFMSourceBonus(
                     record.score + FM_SOURCE_BONUS,
                     MAX_NON_FM_RECORD_SCORE
                 ),
+            }
+        }
+        return record
+    })
+}
+
+const BOOSTED_FM_SCORE = MAX_NON_FM_RECORD_SCORE - 500
+
+/**
+ * Returns the set of featured metric URLs that have boostInSearch enabled.
+ */
+export async function getBoostedFeaturedMetricUrls(
+    trx: db.KnexReadonlyTransaction
+): Promise<Set<string>> {
+    const rows = await db.knexRaw<{ url: string }>(
+        trx,
+        `SELECT DISTINCT url FROM featured_metrics WHERE boostInSearch = 1`
+    )
+    return new Set(rows.map((r) => r.url))
+}
+
+/**
+ * For each non-FM record whose URL matches a boosted featured metric,
+ * boost its score if necessary. This should be called after scaling so
+ * that it doesn't distort the score distribution for other records.
+ */
+export function applyFeaturedMetricBoosts(
+    records: ChartRecord[],
+    boostedUrls: Set<string>
+): ChartRecord[] {
+    if (boostedUrls.size === 0) return records
+
+    // Pre-parse the boosted URLs for efficient matching
+    const parsedBoostedUrls = [...boostedUrls].map((u) => Url.fromURL(u))
+
+    return records.map((record) => {
+        if (record.isFM) return record
+
+        const recordUrl = createRecordUrl(record)
+        const isBoosted = parsedBoostedUrls.some(
+            (fmUrl) =>
+                fmUrl.pathname === recordUrl.pathname &&
+                fmUrl.areQueryParamsEqual(recordUrl)
+        )
+
+        if (isBoosted) {
+            return {
+                ...record,
+                score: Math.max(record.score, BOOSTED_FM_SCORE),
             }
         }
         return record
