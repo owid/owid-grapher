@@ -2,15 +2,12 @@
 // set up before any errors are thrown.
 import "../../serverUtils/instrument.js"
 
+import * as _ from "lodash-es"
 import * as Sentry from "@sentry/node"
 import * as db from "../../db/db.js"
 import { ALGOLIA_INDEXING } from "../../settings/serverSettings.js"
 import { getAlgoliaClient } from "./configureAlgolia.js"
-
-import {
-    getExplorerViewRecords,
-    scaleExplorerRecordScores,
-} from "./utils/explorerViews.js"
+import { getExplorerViewRecords } from "./utils/explorerViews.js"
 import {
     applyFMSourceBonus,
     createFeaturedMetricRecords,
@@ -55,24 +52,28 @@ const indexExplorerViewsMdimViewsAndChartsToAlgolia = async () => {
             const grapherViews = await getChartsRecords(trx, {
                 baseContext,
             })
-            // Scale grapher records and the default explorer views between 1000 and 10000,
-            // Scale the remaining explorer views between 0 and 1000.
-            // This is because Graphers are generally higher quality than Explorers and we don't want
-            // the data catalog to smother Grapher results with hundreds of low-quality Explorer results.
-            const scaledGrapherViews = scaleRecordScores(grapherViews, [
-                1000,
-                MAX_NON_FM_RECORD_SCORE,
-            ])
-            const scaledExplorerViews = scaleExplorerRecordScores(explorerViews)
-            const scaledMdimViews = scaleRecordScores(mdimViews, [
-                1000,
-                MAX_NON_FM_RECORD_SCORE,
-            ])
+            // Split explorer views into default (first) views and the rest.
+            // Non-default explorer views are scaled to [0, 1000] to bury
+            // duplicative explorer variants under higher-quality results.
+            const [explorerFirstViews, explorerOtherViews] = _.partition(
+                explorerViews,
+                (view) => view.isFirstExplorerView
+            )
+            const scaledExplorerOtherViews = scaleRecordScores(
+                explorerOtherViews,
+                [0, 1000]
+            )
+
+            // Scale charts, mdim views, and default explorer views together
+            // in a single pool so scores are directly comparable.
+            const scaledPrimaryRecords = scaleRecordScores(
+                [...grapherViews, ...mdimViews, ...explorerFirstViews],
+                [1000, MAX_NON_FM_RECORD_SCORE]
+            )
 
             const scaledRecords = [
-                ...scaledGrapherViews,
-                ...scaledExplorerViews,
-                ...scaledMdimViews,
+                ...scaledPrimaryRecords,
+                ...scaledExplorerOtherViews,
             ]
 
             // Apply post-scaling adjustments. FM source bonus is a fixed
@@ -81,9 +82,9 @@ const indexExplorerViewsMdimViewsAndChartsToAlgolia = async () => {
             // pinned records. Order matters: boostInSearch should override
             // the FM source bonus.
             const fmSlugs = await getFeaturedMetricSlugs(trx)
-            const records = applyFMSourceBonus(scaledRecords, fmSlugs)
+            const bonusedRecords = applyFMSourceBonus(scaledRecords, fmSlugs)
 
-            const shrunkRecords = shrinkRecordsToFitAlgoliaLimit(records)
+            const shrunkRecords = shrinkRecordsToFitAlgoliaLimit(bonusedRecords)
             const { records: featuredMetricRecords, failures } =
                 await createFeaturedMetricRecords(trx, shrunkRecords)
 
