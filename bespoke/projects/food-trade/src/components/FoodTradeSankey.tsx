@@ -81,6 +81,7 @@ export function FoodTradeSankey({
     country,
     incomingTotal,
     outgoingTotal,
+    view = "both",
 }: {
     incoming: TradeRow[]
     outgoing: TradeRow[]
@@ -88,23 +89,40 @@ export function FoodTradeSankey({
     /** Pre-computed totals used in the column headers. */
     incomingTotal: number
     outgoingTotal: number
+    /** Which halves to show. Single-half views drop their heading and take
+     * the full width. */
+    view?: "both" | "imports" | "exports"
 }) {
-    // Prose column headers that together read as one sentence:
-    // "{country} imports X tonnes" + "and exports Y tonnes".
+    const showImports = view === "both" || view === "imports"
+    const showExports = view === "both" || view === "exports"
+
+    // When both halves are visible the two headings read as one sentence:
+    // "{country} imports X" + "and exports Y". In single-half views the
+    // exports heading is rephrased to stand alone.
     const importsHeader = `${country} imports ${formatTrade(incomingTotal)}`
-    const exportsHeader = `and exports ${formatTrade(outgoingTotal)}`
+    const exportsHeader =
+        view === "both"
+            ? `and exports ${formatTrade(outgoingTotal)}`
+            : `${country} exports ${formatTrade(outgoingTotal)}`
 
     const incomingBuild = useMemo(
-        () => buildIncoming(incoming, country, TOP_N, importsHeader),
-        [incoming, country, importsHeader]
+        () =>
+            showImports
+                ? buildIncoming(incoming, country, TOP_N, importsHeader)
+                : null,
+        [showImports, incoming, country, importsHeader]
     )
     const outgoingBuild = useMemo(
-        () => buildOutgoing(outgoing, country, TOP_N, exportsHeader),
-        [outgoing, country, exportsHeader]
+        () =>
+            showExports
+                ? buildOutgoing(outgoing, country, TOP_N, exportsHeader)
+                : null,
+        [showExports, outgoing, country, exportsHeader]
     )
 
-    // Color partner countries by their combined visible value across both
-    // halves, so a country trading on both sides gets the same color in each.
+    // Color partner countries by their combined visible value across the
+    // visible halves, so a country trading on both sides gets the same color
+    // in each.
     const colorMap = useMemo(() => {
         const valueByPartner = new Map<string, number>()
         for (const link of incomingBuild?.links ?? []) {
@@ -146,26 +164,30 @@ export function FoodTradeSankey({
 
     return (
         <div className="food-trade-sankey food-trade-sankey--split">
-            <HalfSankey
-                build={incomingBuild}
-                heading={importsHeader}
-                emptyHeading="No imports"
-                emptySubtext="No imports recorded."
-                align="right"
-                pinNodeIdToTop={country}
-                nodeColor={nodeColor}
-                linkColor={linkColor}
-            />
-            <HalfSankey
-                build={outgoingBuild}
-                heading={exportsHeader}
-                emptyHeading="No exports"
-                emptySubtext="No exports recorded."
-                align="left"
-                pinNodeIdToTop={country}
-                nodeColor={nodeColor}
-                linkColor={linkColor}
-            />
+            {showImports && (
+                <HalfSankey
+                    build={incomingBuild}
+                    heading={importsHeader}
+                    emptyHeading="No imports"
+                    emptySubtext="No imports recorded."
+                    align="right"
+                    pinNodeIdToTop={country}
+                    nodeColor={nodeColor}
+                    linkColor={linkColor}
+                />
+            )}
+            {showExports && (
+                <HalfSankey
+                    build={outgoingBuild}
+                    heading={exportsHeader}
+                    emptyHeading="No exports"
+                    emptySubtext="No exports recorded."
+                    align="left"
+                    pinNodeIdToTop={country}
+                    nodeColor={nodeColor}
+                    linkColor={linkColor}
+                />
+            )}
         </div>
     )
 }

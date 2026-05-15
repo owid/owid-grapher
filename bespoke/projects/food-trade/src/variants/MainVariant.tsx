@@ -33,6 +33,15 @@ const DEFAULT_COUNTRY = "United Kingdom"
 const ALL_COUNTRIES = "All countries"
 const isAllCountry = (c: string) => c === ALL_COUNTRIES
 
+// View dropdown options (filters the centered Sankey to one half or both).
+type View = "both" | "imports" | "exports"
+const VIEW_LABELS: Record<View, string> = {
+    both: "Imports and exports",
+    imports: "Imports only",
+    exports: "Exports only",
+}
+const VIEW_VALUES: View[] = ["both", "imports", "exports"]
+
 const queryClient = new QueryClient()
 
 export function MainVariant() {
@@ -66,6 +75,20 @@ function FetchingMainVariant() {
 
     const [product, setProduct] = useState<string>(DEFAULT_PRODUCT)
     const [country, setCountry] = useState<string>(DEFAULT_COUNTRY)
+    const [view, setView] = useState<View>("both")
+
+    // Changing the view away from "both" while on "All countries" would
+    // leave us in an invalid combination (bilateral has no imports/exports
+    // halves), so auto-revert the country selection.
+    const handleSetView = useCallback(
+        (newView: View) => {
+            setView(newView)
+            if (newView !== "both" && isAllCountry(country)) {
+                setCountry(DEFAULT_COUNTRY)
+            }
+        },
+        [country]
+    )
 
     const incoming = useMemo(() => {
         if (!data || isAllCountry(country)) return []
@@ -97,8 +120,10 @@ function FetchingMainVariant() {
             countries={countries}
             product={product}
             country={country}
+            view={view}
             setProduct={setProduct}
             setCountry={setCountry}
+            setView={handleSetView}
         />
     )
 }
@@ -111,8 +136,10 @@ function CaptionedMainVariant({
     countries,
     product,
     country,
+    view,
     setProduct,
     setCountry,
+    setView,
 }: {
     incoming: TradeRow[]
     outgoing: TradeRow[]
@@ -121,8 +148,10 @@ function CaptionedMainVariant({
     countries: string[]
     product: string
     country: string
+    view: View
     setProduct: (value: string) => void
     setCountry: (value: string) => void
+    setView: (value: View) => void
 }) {
     const incomingTotal = useMemo(
         () => incoming.reduce((sum, d) => sum + d.value, 0),
@@ -171,6 +200,16 @@ function CaptionedMainVariant({
                             values={countries}
                             selected={country}
                             onChange={setCountry}
+                            disabledValues={
+                                view !== "both" ? [ALL_COUNTRIES] : undefined
+                            }
+                        />
+                        <LabeledDropdown
+                            label="View"
+                            values={VIEW_VALUES}
+                            valueLabels={VIEW_LABELS}
+                            selected={view}
+                            onChange={(v) => setView(v as View)}
                         />
                     </div>
                 </div>
@@ -183,6 +222,7 @@ function CaptionedMainVariant({
                             <Subtitle
                                 country={country}
                                 product={product}
+                                view={view}
                                 incomingTotal={incomingTotal}
                                 outgoingTotal={outgoingTotal}
                             />
@@ -210,6 +250,7 @@ function CaptionedMainVariant({
                             country={country}
                             incomingTotal={incomingTotal}
                             outgoingTotal={outgoingTotal}
+                            view={view}
                         />
                     ) : (
                         <p className="food-trade-captioned-chart__empty">
@@ -227,14 +268,46 @@ function CaptionedMainVariant({
 function Subtitle({
     country,
     product,
+    view,
     incomingTotal,
     outgoingTotal,
 }: {
     country: string
     product: string
+    view: View
     incomingTotal: number
     outgoingTotal: number
 }) {
+    if (view === "imports") {
+        if (incomingTotal === 0) {
+            return (
+                <>
+                    {country} did not import {product} in {DATA_YEAR}.
+                </>
+            )
+        }
+        return (
+            <>
+                {country} imported {formatTrade(incomingTotal)} of {product} in{" "}
+                {DATA_YEAR}.
+            </>
+        )
+    }
+    if (view === "exports") {
+        if (outgoingTotal === 0) {
+            return (
+                <>
+                    {country} did not export {product} in {DATA_YEAR}.
+                </>
+            )
+        }
+        return (
+            <>
+                {country} exported {formatTrade(outgoingTotal)} of {product} in{" "}
+                {DATA_YEAR}.
+            </>
+        )
+    }
     if (incomingTotal === 0 && outgoingTotal === 0) {
         return (
             <>
@@ -303,17 +376,30 @@ function Dropdown({
 function LabeledDropdown({
     label,
     values,
+    valueLabels,
     selected,
     onChange,
+    disabledValues,
 }: {
     label: string
     values: string[]
+    /** Optional display labels keyed by value, when the value itself isn't
+     * the human-readable string. */
+    valueLabels?: Record<string, string>
     selected: string
     onChange: (value: string) => void
+    /** Values whose options should be greyed out and non-selectable. */
+    disabledValues?: string[]
 }) {
     const options = useMemo(
-        () => values.map((v) => ({ value: v, label: v, id: v })),
-        [values]
+        () =>
+            values.map((v) => ({
+                value: v,
+                label: valueLabels?.[v] ?? v,
+                id: v,
+                isDisabled: disabledValues?.includes(v) ?? false,
+            })),
+        [values, valueLabels, disabledValues]
     )
     return (
         <Dropdown

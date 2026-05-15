@@ -24,6 +24,7 @@ export interface BasicDropdownOption {
     value: string
     label: React.ReactNode
     trackNote?: string
+    isDisabled?: boolean
 }
 
 export interface DropdownOptionGroup<
@@ -134,6 +135,7 @@ export function Dropdown<DropdownOption extends BasicDropdownOption>({
                                 className="option"
                                 key={option.value}
                                 id={option.value}
+                                isDisabled={option.isDisabled}
                                 textValue={
                                     typeof option.label === "string"
                                         ? option.label
@@ -152,6 +154,7 @@ export function Dropdown<DropdownOption extends BasicDropdownOption>({
                         className="option"
                         key={item.value}
                         id={item.value}
+                        isDisabled={item.isDisabled}
                         textValue={
                             typeof item.label === "string"
                                 ? item.label
