@@ -2695,10 +2695,7 @@ export class GrapherState
     @computed get inputColumnsWithSources(): CoreColumn[] {
         return this.inputTable
             .getColumns(_.uniq(this.inputColumnSlugs))
-            .filter(
-                (column) =>
-                    !!column.source.name || !_.isEmpty(column.def.origins)
-            )
+            .filter((column) => !_.isEmpty(column.def.origins))
     }
 
     private set facetStrategy(facet: FacetStrategy) {

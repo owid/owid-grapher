@@ -1,5 +1,4 @@
 import { OwidOrigin } from "./OwidOrigin.js"
-import { OwidSource } from "./OwidSource.js"
 import { OwidVariableDisplayConfigInterface } from "./OwidVariableDisplayConfigInterface.js"
 
 export interface OwidVariableWithSource {
@@ -17,7 +16,6 @@ export interface OwidVariableWithSource {
     datasetId?: number
     coverage?: string
     nonRedistributable?: boolean
-    source?: OwidSource
     origins?: OwidOrigin[]
     schemaVersion?: number
     processingLevel?: OwidProcessingLevel

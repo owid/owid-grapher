@@ -27,9 +27,7 @@ export function makeJsonLdGrapherCreditText(
             datapageData.origins.map((origin) => origin.producer)
         )
         const adaptedFrom =
-            producers.length > 0
-                ? producers.join(", ")
-                : datapageData.source?.name
+            producers.length > 0 ? producers.join(", ") : undefined
         fallbackDataSource = datapageData.attributionShort ?? adaptedFrom
     }
 

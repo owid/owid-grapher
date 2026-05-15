@@ -530,7 +530,6 @@ export function DataPageContent({
                             varDatapageData.owidProcessingLevel
                         }
                         primaryTopic={primaryTopic}
-                        source={varDatapageData.source}
                         title={varDatapageData.title}
                         titleVariant={varDatapageData.titleVariant}
                         archiveContext={archiveContext}

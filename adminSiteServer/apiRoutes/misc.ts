@@ -1,12 +1,7 @@
-import {
-    DbRawPostGdoc,
-    JsonError,
-    OwidGdocPostContent,
-} from "@ourworldindata/types"
+import { DbRawPostGdoc, OwidGdocPostContent } from "@ourworldindata/types"
 
 import * as db from "../../db/db.js"
 import * as lodash from "lodash-es"
-import { expectInt } from "../../serverUtils/serverUtil.js"
 import { Request } from "../authentication.js"
 import { HandlerResponse } from "../FunctionalRouter.js"
 
@@ -75,30 +70,4 @@ export async function fetchNamespaces(
                 isArchived: !!namespace.isArchived,
             })),
     }
-}
-
-export async function fetchSourceById(
-    req: Request,
-    res: HandlerResponse,
-    trx: db.KnexReadonlyTransaction
-) {
-    const sourceId = expectInt(req.params.sourceId)
-
-    const source = await db.knexRawFirst<Record<string, any>>(
-        trx,
-        `
-        SELECT s.id, s.name, s.description, s.createdAt, s.updatedAt, d.namespace
-        FROM sources AS s
-        JOIN active_datasets AS d ON d.id=s.datasetId
-        WHERE s.id=?`,
-        [sourceId]
-    )
-    if (!source) throw new JsonError(`No source by id '${sourceId}'`, 404)
-    source.variables = await db.knexRaw(
-        trx,
-        `SELECT id, name, updatedAt FROM variables WHERE variables.sourceId=?`,
-        [sourceId]
-    )
-
-    return { source: source }
 }

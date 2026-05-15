@@ -291,7 +291,6 @@ export const DataPageV2Content = ({
                         origins={datapageData.origins}
                         owidProcessingLevel={datapageData.owidProcessingLevel}
                         primaryTopic={datapageData.primaryTopic}
-                        source={datapageData.source}
                         title={datapageData.title}
                         titleVariant={datapageData.titleVariant}
                         archiveContext={archiveContext}

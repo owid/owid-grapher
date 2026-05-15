@@ -951,15 +951,14 @@ export async function getVariableDistribution(
     const sourceLinksRows = await knexRaw<{ sourceLink: string | null }>(
         knex,
         `-- sql
-            SELECT DISTINCT COALESCE(o.urlMain, s.description->>'$.link') AS sourceLink
+            SELECT DISTINCT o.urlMain AS sourceLink
             FROM variables v
             LEFT JOIN active_datasets d ON d.id = v.datasetId
             LEFT JOIN origins_variables ov ON ov.variableId = v.id
             LEFT JOIN origins o ON o.id = ov.originId
-            LEFT JOIN sources s ON s.id = v.sourceId
             WHERE v.id IN (?)
               AND COALESCE(d.nonRedistributable, 0) = 1
-              AND COALESCE(o.urlMain, s.description->>'$.link') IS NOT NULL
+              AND o.urlMain IS NOT NULL
         `,
         [variableIds]
     )

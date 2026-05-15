@@ -114,10 +114,7 @@ export const getNonRedistributableInfo = (
         return { cols: undefined, sourceLinks: undefined }
 
     const sourceLinks = nonRedistributableCols
-        .map((col) => {
-            const def = col.def
-            return def.sourceLink ?? def.origins?.[0]?.urlMain
-        })
+        .map((col) => col.def.origins?.[0]?.urlMain)
         .filter((link): link is string => !!link)
 
     return { cols: nonRedistributableCols, sourceLinks: _.uniq(sourceLinks) }

@@ -304,7 +304,6 @@ export {
     type OwidVariableType,
 } from "./OwidVariable.js"
 
-export type { OwidSource } from "./OwidSource.js"
 export type { OwidOrigin } from "./OwidOrigin.js"
 
 export {
@@ -618,16 +617,6 @@ export {
     type DbAdminApiKey,
 } from "./dbTypes/AdminApiKeys.js"
 
-export {
-    type DbInsertSource,
-    type DbRawSource,
-    type DbEnrichedSource,
-    SourcesTableName,
-    parseSourceDescription,
-    serializeSourceDescription,
-    parseSourcesRow,
-    serializeSourcesRow,
-} from "./dbTypes/Sources.js"
 export {
     type DbInsertTag,
     type DbPlainTag,

@@ -31,7 +31,6 @@ export interface DbInsertVariable {
     schemaVersion?: number
     shortName?: string | null
     shortUnit?: string | null
-    sourceId?: number | null
     timespan: string
     titlePublic?: string | null
     titleVariant?: string | null

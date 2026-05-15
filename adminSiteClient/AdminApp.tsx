@@ -12,7 +12,6 @@ import { VariableEditPage } from "./VariableEditPage.js"
 import { VariablesIndexPage } from "./VariablesIndexPage.js"
 import { DatasetEditPage } from "./DatasetEditPage.js"
 import { VariablesAnnotationPage } from "./VariablesAnnotationPage.js"
-import { SourceEditPage } from "./SourceEditPage.js"
 import { RedirectsIndexPage } from "./RedirectsIndexPage.js"
 import SiteRedirectsIndexPage from "./SiteRedirectsIndexPage"
 import { TagEditPage } from "./TagEditPage.js"
@@ -331,17 +330,6 @@ export class AdminApp extends React.Component<{
                                     exact
                                     path="/datasets"
                                     component={DatasetsIndexPage}
-                                />
-                                <Route
-                                    exact
-                                    path="/sources/:sourceId"
-                                    render={({ match }) => (
-                                        <SourceEditPage
-                                            sourceId={parseInt(
-                                                match.params.sourceId
-                                            )}
-                                        />
-                                    )}
                                 />
                                 <Route
                                     exact

@@ -74,54 +74,42 @@ export function assembleMetadata(
             tolerance,
             type,
             origins,
-            sourceLink,
-            sourceName,
             owidVariableId,
             shortName,
         } = col.def
         const lastUpdated = getLastUpdatedFromVariable(col.def)
         const nextUpdate = getNextUpdateFromVariable(col.def)
 
-        let condensedOrigins:
-            | Partial<
-                  Pick<
-                      OwidOrigin,
-                      | "attribution"
-                      | "attributionShort"
-                      | "description"
-                      | "urlDownload"
-                      | "urlMain"
-                  >
-              >[]
-            | undefined = origins?.map((origin) => {
-            const {
-                attribution,
-                attributionShort,
-                description,
-                citationFull,
-                urlDownload,
-                urlMain,
-                dateAccessed,
-            } = origin
-            return {
-                attribution,
-                attributionShort,
-                description,
-                urlDownload,
-                urlMain,
-                dateAccessed,
-                citationFull,
-            }
-        })
-
-        if (!condensedOrigins || condensedOrigins.length === 0) {
-            condensedOrigins = [
-                {
-                    attribution: sourceName,
-                    urlMain: sourceLink,
-                },
-            ]
-        }
+        const condensedOrigins: Partial<
+            Pick<
+                OwidOrigin,
+                | "attribution"
+                | "attributionShort"
+                | "description"
+                | "urlDownload"
+                | "urlMain"
+            >
+        >[] =
+            origins?.map((origin) => {
+                const {
+                    attribution,
+                    attributionShort,
+                    description,
+                    citationFull,
+                    urlDownload,
+                    urlMain,
+                    dateAccessed,
+                } = origin
+                return {
+                    attribution,
+                    attributionShort,
+                    description,
+                    urlDownload,
+                    urlMain,
+                    dateAccessed,
+                    citationFull,
+                }
+            }) ?? []
 
         const def = col.def
 
@@ -134,7 +122,6 @@ export function assembleMetadata(
         const citationLong = getCitationLong(
             col.titlePublicOrDisplayName,
             def.origins ?? [],
-            col.source ?? {},
             getAttributionFragmentsFromVariable(def),
             def.presentation?.attributionShort,
             def.presentation?.titleVariant,

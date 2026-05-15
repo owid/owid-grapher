@@ -64,7 +64,6 @@ export function getDatapageDataV2(
         nextUpdate: nextUpdate,
         allCharts: [],
         relatedResearch: [],
-        source: variableMetadata.source,
         origins: variableMetadata.origins ?? [],
         chartConfig: partialGrapherConfig as Record<string, unknown>,
         unit: variableMetadata.display?.unit ?? variableMetadata.unit,

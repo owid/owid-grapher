@@ -63,11 +63,7 @@ import {
     handleGetAllMultiDimRedirects,
     getMdimRecordsJson,
 } from "./apiRoutes/mdims.js"
-import {
-    fetchAllWork,
-    fetchNamespaces,
-    fetchSourceById,
-} from "./apiRoutes/misc.js"
+import { fetchAllWork, fetchNamespaces } from "./apiRoutes/misc.js"
 import {
     handleGetSiteRedirects,
     handlePostNewSiteRedirect,
@@ -485,7 +481,6 @@ getRouteWithROTransaction(
     "/editorData/namespaces.json",
     fetchNamespaces
 )
-getRouteWithROTransaction(apiRouter, "/sources/:sourceId.json", fetchSourceById)
 
 // Redirects routes
 getRouteWithROTransaction(

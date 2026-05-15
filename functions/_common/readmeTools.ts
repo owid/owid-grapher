@@ -31,10 +31,7 @@ export function* getCitationLines(
         `If you have limited space (e.g. in data visualizations), you can use this abbreviated in-line citation:` +
             markdownNewlineEnding
     )
-    const attributionFragments = getAttributionFragmentsFromVariable({
-        ...def,
-        source: { name: def.sourceName },
-    })
+    const attributionFragments = getAttributionFragmentsFromVariable(def)
     const citationShort = getCitationShort(
         def.origins ?? [],
         attributionFragments,
@@ -49,7 +46,6 @@ export function* getCitationLines(
     const citationLong = getCitationLong(
         col.titlePublicOrDisplayName,
         def.origins ?? [],
-        col.source ?? {},
         attributionFragments,
         def.presentation?.attributionShort,
         def.presentation?.titleVariant,
@@ -85,12 +81,6 @@ export function* getDescriptionLines(
         yield ""
         yield `### How is this data described by its producer - ${attribution}?`
         yield def.descriptionFromProducer.trim()
-    }
-
-    if (def.additionalInfo) {
-        yield ""
-        yield `### Additional information about this data`
-        yield def.additionalInfo.trim()
     }
 }
 
@@ -150,11 +140,6 @@ export function* getSources(
     for (const source of sourcesForDisplay) {
         yield ""
         yield `#### ${source.label}`
-        if (source.dataPublishedBy)
-            yield (
-                `Data published by: ${source.dataPublishedBy.trim()}` +
-                    markdownNewlineEnding
-            )
         if (source.retrievedOn)
             yield (
                 `Retrieved on: ${source.retrievedOn.trim()}` +
@@ -187,10 +172,7 @@ export function getAttribution(def: OwidColumnDef): string {
 
     const attributionFragments =
         getAttributionFragmentsFromVariable(def) ?? producers
-    const attribution = attributionFragments.join(", ")
-    if (attribution === "") {
-        return def.sourceName ?? ""
-    } else return attribution
+    return attributionFragments.join(", ")
 }
 
 export function* getDescription(
@@ -274,11 +256,9 @@ export function constructReadme(
     multiDimAvailableDimensions?: string[]
 ): string {
     const isSingleColumn = columns.length === 1
-    // Some computed columns have neither a source nor origins - filter these away
+    // Some computed columns have no origins - filter these away
     const sources = columns
-        .filter(
-            (column) => !!column.source.name || !_.isEmpty(column.def.origins)
-        )
+        .filter((column) => !_.isEmpty(column.def.origins))
         .flatMap((col) => [...columnReadmeText(col)])
     let readme: string
     const urlWithFilters = `${grapherState.canonicalUrl}`

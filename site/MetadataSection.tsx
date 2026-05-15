@@ -12,7 +12,6 @@ import {
     FaqEntryData,
     OwidOrigin,
     PrimaryTopic,
-    OwidSource,
     IndicatorTitleWithFragments,
     OwidProcessingLevel,
     ArchiveContext,
@@ -38,7 +37,6 @@ export default function MetadataSection({
     origins,
     owidProcessingLevel,
     primaryTopic,
-    source,
     title,
     titleVariant,
     archiveContext,
@@ -52,13 +50,12 @@ export default function MetadataSection({
     origins: OwidOrigin[]
     owidProcessingLevel?: OwidProcessingLevel
     primaryTopic?: PrimaryTopic
-    source?: OwidSource
     title: IndicatorTitleWithFragments
     titleVariant?: string
     archiveContext?: ArchiveContext
     downloadProps?: DownloadSectionProps
 }) {
-    const sourcesForDisplay = prepareSourcesForDisplay({ origins, source })
+    const sourcesForDisplay = prepareSourcesForDisplay({ origins })
     const citationUrl = archiveContext?.archiveUrl ?? canonicalUrl
     const citationShort = getCitationShort(
         origins,
@@ -68,7 +65,6 @@ export default function MetadataSection({
     const citationLong = getCitationLong(
         title,
         origins,
-        source,
         attributions,
         attributionShort,
         titleVariant,
@@ -78,8 +74,7 @@ export default function MetadataSection({
     )
     const currentYear = dayjs().year()
     const producers = _.uniq(origins.map((o) => `${o.producer}`))
-    const adaptedFrom =
-        producers.length > 0 ? producers.join(", ") : source?.name
+    const adaptedFrom = producers.length > 0 ? producers.join(", ") : undefined
 
     const maybeAddPeriod = (s: string) =>
         s.endsWith("?") || s.endsWith(".") ? s : `${s}.`

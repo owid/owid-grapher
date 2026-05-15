@@ -9,7 +9,6 @@ import {
     omitUndefinedValues,
     isPresent,
     dayjs,
-    OwidSource,
     formatValue,
     checkIsVeryShortUnit,
     TickFormattingOptions,
@@ -431,18 +430,6 @@ export abstract class AbstractCoreColumn<
     @imemo get valuesAscending(): JS_TYPE[] {
         const values = this.values.slice()
         return this.jsType === "string" ? values.sort() : sortNumeric(values)
-    }
-
-    get source(): OwidSource {
-        const { def } = this
-        return {
-            name: def.sourceName,
-            link: def.sourceLink,
-            dataPublishedBy: def.dataPublishedBy,
-            dataPublisherSource: def.dataPublisherSource,
-            retrievedDate: def.retrievedDate,
-            additionalInfo: def.additionalInfo,
-        }
     }
 
     @imemo private get allTimes(): Time[] {

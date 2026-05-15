@@ -5,7 +5,6 @@ import {
     OwidProcessingLevel,
     DisplaySource,
     IndicatorTitleWithFragments,
-    OwidSource,
 } from "@ourworldindata/types"
 import * as _ from "lodash-es"
 import { excludeUndefined } from "./Util"
@@ -38,10 +37,7 @@ export const splitSourceTextIntoFragments = (
 }
 
 export function getAttributionFragmentsFromVariable(
-    variable: Pick<
-        OwidVariableWithSource,
-        "presentation" | "origins" | "source"
-    >
+    variable: Pick<OwidVariableWithSource, "presentation" | "origins">
 ): string[] {
     if (
         variable.presentation?.attribution &&
@@ -49,11 +45,7 @@ export function getAttributionFragmentsFromVariable(
     )
         return [variable.presentation?.attribution]
 
-    const originAttributionFragments = getOriginAttributionFragments(
-        variable.origins
-    )
-    const name = variable.source?.name
-    return _.uniq(_.compact([name, ...originAttributionFragments]))
+    return _.uniq(getOriginAttributionFragments(variable.origins))
 }
 
 interface ETLPathComponents {
@@ -153,31 +145,11 @@ const prepareOriginForDisplay = (origin: OwidOrigin): DisplaySource => {
 }
 
 export const prepareSourcesForDisplay = (
-    variable: Pick<OwidVariableWithSource, "origins" | "source">
+    variable: Pick<OwidVariableWithSource, "origins">
 ): DisplaySource[] => {
-    const { origins, source } = variable
-
-    const sourcesForDisplay: DisplaySource[] = []
-
-    if (
-        source?.name &&
-        (source?.dataPublishedBy || source?.retrievedDate || source?.link)
-    ) {
-        sourcesForDisplay.push({
-            label: source?.name,
-            dataPublishedBy: source?.dataPublishedBy,
-            retrievedOn: source?.retrievedDate,
-            retrievedFrom: source?.link,
-        })
-    }
-
-    if (origins && origins.length > 0) {
-        sourcesForDisplay.push(
-            ...origins.map((origin) => prepareOriginForDisplay(origin))
-        )
-    }
-
-    return sourcesForDisplay
+    const { origins } = variable
+    if (!origins) return []
+    return origins.map((origin) => prepareOriginForDisplay(origin))
 }
 
 const getYearSuffixFromOrigin = (o: OwidOrigin): string => {
@@ -226,7 +198,6 @@ export const getPhraseForArchivalDate = (
 export const getCitationLong = (
     indicatorTitle: IndicatorTitleWithFragments,
     origins: OwidOrigin[],
-    source: OwidSource | undefined,
     attributions: string[],
     attributionShort: string | undefined,
     titleVariant: string | undefined,
@@ -264,11 +235,7 @@ export const getCitationLong = (
     return excludeUndefined([
         `${citationLonger}.`,
         `“${titleWithOptionalFragments}” [dataset].`,
-        originsLong
-            ? `${originsLong} [original data].`
-            : source?.name
-              ? `${source?.name} [original data].`
-              : undefined,
+        originsLong ? `${originsLong} [original data].` : undefined,
         citationUrl
             ? `Retrieved ${today} from ${citationUrl}${archivalString ? ` ${archivalString}` : ""}`
             : undefined,

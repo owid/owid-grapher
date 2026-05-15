@@ -8,7 +8,6 @@ import {
     excludeUndefined,
     DisplaySource,
     prepareSourcesForDisplay,
-    OwidSource,
     IndicatorTitleWithFragments,
     joinTitleFragments,
     getCitationShort,
@@ -373,8 +372,8 @@ export class Source extends React.Component<SourceProps> {
         return this.props.column
     }
 
-    @computed get def(): OwidColumnDef & { source?: OwidSource } {
-        return { ...this.column.def, source: this.column.source }
+    @computed get def(): OwidColumnDef {
+        return this.column.def
     }
 
     @computed get citationShort(): string {
@@ -389,7 +388,6 @@ export class Source extends React.Component<SourceProps> {
         return getCitationLong(
             this.titleWithFragments,
             this.def.origins ?? [],
-            this.source,
             getAttributionFragmentsFromVariable(this.def),
             this.def.presentation?.attributionShort,
             this.def.presentation?.titleVariant,
@@ -397,10 +395,6 @@ export class Source extends React.Component<SourceProps> {
             undefined,
             undefined
         )
-    }
-
-    @computed private get source(): OwidSource {
-        return this.def.source ?? {}
     }
 
     @computed private get titleWithFragments(): IndicatorTitleWithFragments {
@@ -460,8 +454,7 @@ export class Source extends React.Component<SourceProps> {
     @computed private get showDescriptions(): boolean {
         return (
             (this.def.descriptionKey && this.def.descriptionKey.length > 0) ||
-            !!this.def.descriptionFromProducer ||
-            !!this.source.additionalInfo
+            !!this.def.descriptionFromProducer
         )
     }
 
@@ -526,7 +519,6 @@ export class Source extends React.Component<SourceProps> {
                     lastUpdated={this.lastUpdated}
                     nextUpdate={this.nextUpdate}
                     unit={this.unit}
-                    link={this.source.link}
                     unitConversionFactor={this.column.unitConversionFactor}
                     isEmbeddedInADataPage={this.props.isEmbeddedInADataPage}
                 />
@@ -541,7 +533,6 @@ export class Source extends React.Component<SourceProps> {
                         attributionShort={
                             this.def.presentation?.attributionShort
                         }
-                        additionalInfo={this.source.additionalInfo}
                         isEmbeddedInADataPage={this.props.isEmbeddedInADataPage}
                     />
                 )}

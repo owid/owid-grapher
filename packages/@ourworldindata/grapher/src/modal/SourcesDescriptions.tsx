@@ -2,7 +2,6 @@ import { faArrowDown } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     ExpandableToggle,
-    HtmlOrSimpleMarkdownText,
     SimpleMarkdownText,
 } from "@ourworldindata/components"
 
@@ -11,7 +10,6 @@ interface SourcesDescriptionsProps {
     descriptionKey?: string[]
     descriptionFromProducer?: string
     attributionShort?: string
-    additionalInfo?: string
     hasFaqEntries: boolean
     isEmbeddedInADataPage?: boolean // true by default
 }
@@ -69,17 +67,6 @@ export const SourcesDescriptions = (props: SourcesDescriptionsProps) => {
                         }
                         isExpandedDefault={
                             !(props.descriptionShort || props.descriptionKey)
-                        }
-                        isStacked={!!props.additionalInfo}
-                    />
-                )}
-                {props.additionalInfo && (
-                    <ExpandableToggle
-                        label="Additional information about this data"
-                        content={
-                            <HtmlOrSimpleMarkdownText
-                                text={props.additionalInfo.trim()}
-                            />
                         }
                     />
                 )}

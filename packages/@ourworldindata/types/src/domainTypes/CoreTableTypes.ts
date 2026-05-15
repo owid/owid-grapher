@@ -218,13 +218,6 @@ export interface CoreColumnDef extends ColumnColorScale {
     // Color
     color?: Color // A column can have a fixed color for use in charts where the columns are series
 
-    // Source information used for display only
-    sourceName?: string
-    sourceLink?: string
-    dataPublishedBy?: string
-    dataPublisherSource?: string
-    retrievedDate?: string
-    additionalInfo?: string
     timespan?: string
 
     // Metadata v2

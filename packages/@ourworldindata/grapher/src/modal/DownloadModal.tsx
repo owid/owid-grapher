@@ -42,7 +42,6 @@ import {
 } from "@fortawesome/free-solid-svg-icons"
 import {
     OwidColumnDef,
-    OwidOrigin,
     QueryParams,
     type GrapherImageDownloadEvent,
 } from "@ourworldindata/types"
@@ -556,27 +555,12 @@ export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
 }
 
 const SourceAndCitationSection = ({ table }: { table?: OwidTable }) => {
-    // Sources can come either from origins (new format) or from the source field of the column (old format)
     const origins =
         table?.defs
             .flatMap((def) => def.origins ?? [])
             ?.filter((o) => o !== undefined) ?? []
 
-    const otherSources =
-        table?.columnsAsArray
-            .map((col) => col.source)
-            .filter((s) => s?.dataPublishedBy !== undefined)
-            .map(
-                (s): OwidOrigin => ({
-                    producer: s.dataPublishedBy,
-                    urlMain: s.link,
-                })
-            ) ?? []
-
-    const originsUniq = _.uniqBy(
-        [...origins, ...otherSources],
-        (o) => o.urlMain ?? o.datePublished
-    )
+    const originsUniq = _.uniqBy(origins, (o) => o.urlMain ?? o.datePublished)
 
     const attributions = getOriginAttributionFragments(originsUniq)
 

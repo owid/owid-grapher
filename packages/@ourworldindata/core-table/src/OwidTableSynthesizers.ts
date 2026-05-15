@@ -116,7 +116,6 @@ export const SynthesizeGDPTable = (
         {
             columnDefs: [
                 {
-                    ...SynthSource(SampleColumnSlugs.Population),
                     slug: SampleColumnSlugs.Population,
                     type: ColumnTypeNames.Population,
                     generator: getRandomNumberGenerator(1e7, 1e9, seed),
@@ -124,7 +123,6 @@ export const SynthesizeGDPTable = (
                     display,
                 },
                 {
-                    ...SynthSource(SampleColumnSlugs.GDP),
                     slug: SampleColumnSlugs.GDP,
                     type: ColumnTypeNames.Currency,
                     generator: getRandomNumberGenerator(1e9, 1e12, seed),
@@ -136,7 +134,6 @@ export const SynthesizeGDPTable = (
                     display,
                 },
                 {
-                    ...SynthSource(SampleColumnSlugs.LifeExpectancy),
                     slug: SampleColumnSlugs.LifeExpectancy,
                     type: ColumnTypeNames.Age,
                     generator: getRandomNumberGenerator(60, 90, seed),
@@ -149,27 +146,6 @@ export const SynthesizeGDPTable = (
         seed
     )
 
-const SynthSource = (
-    name: string
-): {
-    sourceName: string
-    sourceLink: string
-    dataPublishedBy: string
-    dataPublisherSource: string
-    retrievedDate: string
-    additionalInfo: string
-} => {
-    return {
-        // id: name.charCodeAt(0) + name.charCodeAt(1) + name.charCodeAt(2),
-        sourceName: `${name} Almanac`,
-        sourceLink: "http://foo.example",
-        dataPublishedBy: `${name} Synthetic Data Team`,
-        dataPublisherSource: `${name} Institute`,
-        retrievedDate: "1/1/2000",
-        additionalInfo: `Downloaded via FTP`,
-    }
-}
-
 export const SynthesizeFruitTable = (
     options?: Partial<SynthOptions>,
     seed = Date.now()
@@ -178,7 +154,6 @@ export const SynthesizeFruitTable = (
         {
             columnDefs: [
                 {
-                    ...SynthSource(SampleColumnSlugs.Fruit),
                     slug: SampleColumnSlugs.Fruit,
                     type: ColumnTypeNames.Numeric,
                     generator: getRandomNumberGenerator(500, 1000, seed),
@@ -189,7 +164,6 @@ export const SynthesizeFruitTable = (
                     ),
                 },
                 {
-                    ...SynthSource(SampleColumnSlugs.Vegetables),
                     slug: SampleColumnSlugs.Vegetables,
                     type: ColumnTypeNames.Numeric,
                     generator: getRandomNumberGenerator(400, 1000, seed),
@@ -243,7 +217,6 @@ export const SynthesizeProjectedPopulationTable = (
         {
             columnDefs: [
                 {
-                    ...SynthSource(SampleColumnSlugs.Population),
                     slug: SampleColumnSlugs.Population,
                     type: ColumnTypeNames.Population,
                     generator: getRandomNumberGenerator(1e7, 1e9, seed),
@@ -251,7 +224,6 @@ export const SynthesizeProjectedPopulationTable = (
                     display,
                 },
                 {
-                    ...SynthSource(SampleColumnSlugs.ProjectedPopulation),
                     slug: SampleColumnSlugs.ProjectedPopulation,
                     type: ColumnTypeNames.Population,
                     generator: getRandomNumberGenerator(1e9, 1e12, seed),

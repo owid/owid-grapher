@@ -21,7 +21,6 @@ import {
 } from "@ourworldindata/utils"
 import { ChartList, ChartListItem } from "./ChartList.js"
 import { OriginList } from "./OriginList.js"
-import { SourceList } from "./SourceList.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import {
     GRAPHER_TAB_CONFIG_OPTIONS,
@@ -37,16 +36,12 @@ import { faCircleInfo } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { CATALOG_URL, DATA_API_URL } from "../settings/clientSettings.js"
 
-interface VariablePageData extends Omit<
-    OwidVariableWithDataAndSource,
-    "source"
-> {
+interface VariablePageData extends OwidVariableWithDataAndSource {
     datasetNamespace: string
     charts: ChartListItem[]
     grapherConfig: GrapherInterface | undefined
     grapherConfigETL: GrapherInterface | undefined
     grapherConfigAdmin: GrapherInterface | undefined
-    source: { id: number; name: string }
     origins: OwidOrigin[]
 }
 
@@ -390,12 +385,6 @@ class VariableEditor extends Component<{
                         </section>
                     </div>
                 </div>
-                {variable.source && (
-                    <section>
-                        <h3>Source</h3>
-                        <SourceList sources={[variable.source]} />
-                    </section>
-                )}
                 <section className="partial-grapher-configs">
                     <h3>Partial Grapher Config</h3>
                     <FieldsRow>

@@ -6,7 +6,6 @@ import {
     makeDateRange,
     makeUnit,
     makeUnitConversionFactor,
-    makeLinks,
     SimpleMarkdownText,
 } from "@ourworldindata/components"
 
@@ -26,7 +25,6 @@ export default function KeyDataTable({
     const dateRange = makeDateRange(datapageData)
     const unit = makeUnit(datapageData)
     const unitConversionFactor = makeUnitConversionFactor(datapageData)
-    const links = makeLinks({ link: datapageData.source?.link })
 
     return (
         <div className="key-data-block grid grid-cols-4 grid-sm-cols-12">
@@ -88,14 +86,6 @@ export default function KeyDataTable({
                         Unit conversion factor
                     </div>
                     <div>{unitConversionFactor}</div>
-                </div>
-            )}
-            {links && (
-                <div className="key-data span-cols-2 span-sm-cols-6">
-                    <div className="key-data__title">Links</div>
-                    <div className="key-data__content--hide-overflow">
-                        {links}
-                    </div>
                 </div>
             )}
         </div>

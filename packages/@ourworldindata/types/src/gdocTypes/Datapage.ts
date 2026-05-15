@@ -1,5 +1,4 @@
 import { OwidOrigin } from "../OwidOrigin.js"
-import { OwidSource } from "../OwidSource.js"
 import {
     IndicatorTitleWithFragments,
     OwidProcessingLevel,
@@ -38,7 +37,6 @@ export interface DataPageDataV2 {
     nextUpdate?: string
     relatedResearch: DataPageRelatedResearch[]
     allCharts: RelatedChart[] // Chart slugs
-    source: OwidSource | undefined
     origins: OwidOrigin[]
     chartConfig: Record<string, unknown>
     unit?: string
@@ -77,7 +75,6 @@ export interface DataPageV2ContentFields {
 export interface DisplaySource {
     label: string
     description?: string
-    dataPublishedBy?: string
     retrievedOn?: string
     retrievedFrom?: string
     citation?: string

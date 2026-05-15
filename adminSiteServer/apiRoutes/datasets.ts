@@ -168,30 +168,6 @@ export async function getDataset(
 
     dataset.origins = parsedOrigins
 
-    const sources = await db.knexRaw<{
-        id: number
-        name: string
-        description: string
-    }>(
-        trx,
-        `
-    SELECT s.id, s.name, s.description
-    FROM sources AS s
-    WHERE s.datasetId = ?
-    ORDER BY s.id ASC
-    `,
-        [datasetId]
-    )
-
-    // expand description of sources and add to dataset as variableSources
-    dataset.variableSources = sources.map((s: any) => {
-        return {
-            id: s.id,
-            name: s.name,
-            ...JSON.parse(s.description),
-        }
-    })
-
     const charts = await db.knexRaw<OldChartFieldList>(
         trx,
         `-- sql

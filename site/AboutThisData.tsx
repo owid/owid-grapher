@@ -8,7 +8,6 @@ import {
     DATAPAGE_ABOUT_THIS_DATA_SECTION_ID,
     SimpleMarkdownText,
     ExpandableToggle,
-    HtmlOrSimpleMarkdownText,
 } from "@ourworldindata/components"
 import { DataPageDataV2, OwidOrigin } from "@ourworldindata/types"
 import KeyDataTable from "./KeyDataTable.js"
@@ -52,9 +51,7 @@ export default function AboutThisData({
                 className
             )}
         >
-            {hasDescriptionKey ||
-            datapageData.descriptionFromProducer ||
-            datapageData.source?.additionalInfo ? (
+            {hasDescriptionKey || datapageData.descriptionFromProducer ? (
                 <>
                     <h2 id={id_} className="key-info__title span-cols-12">
                         What you should know about this indicator
@@ -112,22 +109,6 @@ export default function AboutThisData({
                                                     text={
                                                         datapageData.descriptionFromProducer
                                                     }
-                                                />
-                                            </div>
-                                        }
-                                        isStacked={
-                                            !!datapageData.source
-                                                ?.additionalInfo
-                                        }
-                                    />
-                                )}
-                                {datapageData.source?.additionalInfo && (
-                                    <ExpandableToggle
-                                        label="Additional information about this data"
-                                        content={
-                                            <div className="expandable-info-blocks__content">
-                                                <HtmlOrSimpleMarkdownText
-                                                    text={datapageData.source?.additionalInfo.trim()}
                                                 />
                                             </div>
                                         }

@@ -78,7 +78,6 @@ const SourceContent = (props: {
     const { source } = props
     const retrievedOn = formatSourceDate(source.retrievedOn, "MMMM D, YYYY")
     const showKeyInfo =
-        source.dataPublishedBy ||
         retrievedOn ||
         (source.retrievedFrom && source.retrievedFrom.length > 0) ||
         source.citation
@@ -91,18 +90,6 @@ const SourceContent = (props: {
             )}
             {showKeyInfo && (
                 <div className="source-key-data-blocks">
-                    {source.dataPublishedBy && (
-                        <div className="source-key-data source-key-data--span-2">
-                            <div className="source-key-data__title">
-                                Data published by
-                            </div>
-                            <div className="source-key-data__content">
-                                <SimpleMarkdownText
-                                    text={source.dataPublishedBy.trim()}
-                                />
-                            </div>
-                        </div>
-                    )}
                     {retrievedOn && (
                         <div
                             className={cx("source-key-data", {

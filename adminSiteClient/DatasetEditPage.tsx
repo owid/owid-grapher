@@ -4,7 +4,7 @@ import { observable, computed, runInAction, action, makeObservable } from "mobx"
 import * as lodash from "lodash-es"
 import { Prompt } from "react-router-dom"
 
-import { OwidSource, DbChartTagJoin, OwidOrigin } from "@ourworldindata/utils"
+import { DbChartTagJoin, OwidOrigin } from "@ourworldindata/utils"
 
 import { AdminLayout } from "./AdminLayout.js"
 import { Link } from "./Link.js"
@@ -12,7 +12,6 @@ import { BindString, Toggle, FieldsRow, Timeago, TextField } from "./Forms.js"
 import { EditableTags } from "./EditableTags.js"
 import { ChartList, ChartListItem } from "./ChartList.js"
 import { OriginList } from "./OriginList.js"
-import { SourceList } from "./SourceList.js"
 import { VariableList, VariableListItem } from "./VariableList.js"
 import {
     BAKED_BASE_URL,
@@ -82,7 +81,6 @@ interface DatasetPageData {
     tags: { id: number; name: string }[]
     variables: VariableListItem[]
     charts: ChartListItem[]
-    variableSources: OwidSource[]
 
     origins: OwidOrigin[]
     explorers: ExplorerListItem[]
@@ -96,16 +94,6 @@ class DatasetEditable {
     nonRedistributable: boolean = false
     updatePeriodDays: number | undefined = undefined
 
-    source: OwidSource = {
-        id: -1,
-        name: "",
-        dataPublishedBy: "",
-        dataPublisherSource: "",
-        link: "",
-        retrievedDate: "",
-        additionalInfo: "",
-    }
-
     tags: DbChartTagJoin[] = []
 
     constructor(json: DatasetPageData) {
@@ -115,7 +103,6 @@ class DatasetEditable {
             isPrivate: observable,
             nonRedistributable: observable,
             updatePeriodDays: observable,
-            source: observable,
             tags: observable,
         })
         for (const key in this) {
@@ -629,17 +616,6 @@ class DatasetEditor extends Component<DatasetEditorProps> {
                         {/* ORIGINS */}
                         <h3 className="mt-4">Origins</h3>
                         <OriginList origins={dataset.origins || []} />
-
-                        {/* SOURCES */}
-                        {dataset.variableSources &&
-                            dataset.variableSources.length > 0 && (
-                                <>
-                                    <h3 className="mt-4">Sources</h3>
-                                    <SourceList
-                                        sources={dataset.variableSources}
-                                    />
-                                </>
-                            )}
                     </section>
                 )
 
