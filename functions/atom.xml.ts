@@ -168,10 +168,12 @@ ${entries}
 </feed>`
 }
 
+// "~" separator matches /search and /latest URL conventions
+// (see serializeSet/deserializeSet in site/search/searchUtils.tsx).
 function parseTopics(param: string | null): string[] {
     if (!param) return []
     return param
-        .split(",")
+        .split("~")
         .map((t) => t.trim())
         .filter(Boolean)
 }
@@ -179,7 +181,7 @@ function parseTopics(param: string | null): string[] {
 function parseLatestTypes(param: string | null): LatestType[] | undefined {
     if (!param) return undefined
     return param
-        .split(",")
+        .split("~")
         .map((t) => t.trim())
         .filter((t): t is LatestType =>
             (LATEST_TYPE_VALUES as readonly string[]).includes(t)
