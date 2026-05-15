@@ -15,10 +15,10 @@ import { useLatestContext } from "./LatestContext.js"
  * Article card for the /latest feed.
  *
  * The excerpt has two modes: plain text by default, or full ArticleBlocks
- * (internal links, formatting, …) when `latest-excerpt` is set on the
+ * (internal links, formatting, …) when `latest-feed-excerpt` is set on the
  * gdoc. The rich mode also renders a "Read the article" affordance.
  *
- * `latest-featured-image` separately swaps the card thumbnail without
+ * `latest-feed-featured-image` separately swaps the card thumbnail without
  * affecting the article page's `featured-image`.
  */
 export const LatestArticleHit = ({
@@ -31,7 +31,7 @@ export const LatestArticleHit = ({
     position: number
 }) => {
     const { analytics } = useLatestContext()
-    const hasRichExcerpt = !!hit.latestExcerpt?.length
+    const hasLatestFeedExcerpt = !!hit.latestFeedExcerpt?.length
     const href = getPrefixedGdocPath("", {
         slug: hit.slug,
         content: { type: OwidGdocType.Article },
@@ -53,10 +53,10 @@ export const LatestArticleHit = ({
                     selectedTopic={selectedTopic}
                 />
                 <div className="latest-article-hit__card grid grid-cols-8">
-                    {(hit.latestFeaturedImage || hit.featuredImage) && (
+                    {(hit.latestFeedFeaturedImage || hit.featuredImage) && (
                         <Image
                             filename={
-                                hit.latestFeaturedImage ?? hit.featuredImage
+                                hit.latestFeedFeaturedImage ?? hit.featuredImage
                             }
                             className="latest-article-hit__image span-cols-3"
                             containerType="latest-article"
@@ -76,11 +76,11 @@ export const LatestArticleHit = ({
                         <p className="latest-article-hit__authors">
                             {formatAuthors(hit.authors)}
                         </p>
-                        {hasRichExcerpt ? (
+                        {hasLatestFeedExcerpt ? (
                             <>
                                 <div className="latest-article-hit__excerpt latest-article-hit__excerpt--rich">
                                     <ArticleBlocks
-                                        blocks={hit.latestExcerpt!}
+                                        blocks={hit.latestFeedExcerpt!}
                                         shouldRenderLinks={true}
                                     />
                                 </div>

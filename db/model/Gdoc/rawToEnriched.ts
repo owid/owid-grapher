@@ -1720,11 +1720,11 @@ export const parseSimpleText = (raw: RawBlockText): EnrichedBlockSimpleText => {
 }
 
 /** Not called by parseRawBlocksToEnrichedBlocks. Field-specific parser for the
-    `latest-excerpt` post field, which only supports text blocks. Non-text raw
+    `latest-feed-excerpt` post field, which only supports text blocks. Non-text raw
     blocks are converted to a synthetic EnrichedBlockText carrying a parseError
     so validation can surface them.
 */
-export const parseLatestExcerpt = (
+export const parseLatestFeedExcerpt = (
     raw: OwidRawGdocBlock[]
 ): EnrichedBlockText[] =>
     raw.map((block): EnrichedBlockText => {
@@ -1734,7 +1734,7 @@ export const parseLatestExcerpt = (
                 value: [],
                 parseErrors: [
                     {
-                        message: `latest-excerpt only supports text blocks, found "${block.type}"`,
+                        message: `latest-feed-excerpt only supports text blocks, found "${block.type}"`,
                     },
                 ],
             }

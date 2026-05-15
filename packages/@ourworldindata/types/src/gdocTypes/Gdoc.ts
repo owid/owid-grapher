@@ -497,8 +497,8 @@ export interface OwidGdocPostContent {
     refs?: { definitions: RefDictionary; errors: OwidGdocErrorMessage[] }
     summary?: EnrichedBlockText[]
     "deprecation-notice"?: EnrichedBlockText[]
-    "latest-featured-image"?: string
-    "latest-excerpt"?: EnrichedBlockText[]
+    "latest-feed-featured-image"?: string
+    "latest-feed-excerpt"?: EnrichedBlockText[]
     "hide-citation"?: boolean
     toc?: TocHeadingWithTitleSupertitle[]
     "cover-image"?: string

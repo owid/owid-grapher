@@ -97,8 +97,8 @@ export const checkIsLightningUpdate = (
         // Algolia index (read at runtime by the /latest SPA), and that reindex
         // runs unconditionally on update. Flip to false if any "latest-*" field
         // starts affecting a statically baked page.
-        "latest-featured-image": true,
-        "latest-excerpt": true,
+        "latest-feed-featured-image": true,
+        "latest-feed-excerpt": true,
         authors: false, // requires updating references to this article
         authorRoles: false, // derived from authors
         excerpt: false, // requires updating references to this article

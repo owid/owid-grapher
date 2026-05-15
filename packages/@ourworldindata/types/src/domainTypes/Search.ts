@@ -60,16 +60,16 @@ export type PageChronologicalRecord = {
     // Article: featured image filename (looked up in imageMetadata by <Image>)
     featuredImage?: string
     // Article: alternative featured image filename for the /latest feed
-    latestFeaturedImage?: string
+    latestFeedFeaturedImage?: string
     // Article: alternative rich excerpt for the /latest feed
-    latestExcerpt?: OwidEnrichedGdocBlock[]
+    latestFeedExcerpt?: OwidEnrichedGdocBlock[]
     // Image metadata keyed by filename (all types that display images)
     imageMetadata?: Record<string, ImageMetadata>
     // Announcement: optional call-to-action button shown alongside the body
     cta?: { text: string; url: string }
     // Announcement: linked authors for byline rendering
     linkedAuthors?: LinkedAuthor[]
-    // Articles (with latestExcerpt) and non-CTA announcements: linked
+    // Articles (with latestFeedExcerpt) and non-CTA announcements: linked
     // charts/documents so internal links in the inline body content
     // resolve via AttachmentsContext.
     linkedCharts?: Record<string, LinkedChart>

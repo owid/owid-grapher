@@ -13,7 +13,7 @@ import {
 } from "@ourworldindata/types"
 import { excludeNullish, generateToc } from "@ourworldindata/utils"
 import { formatCitation, generateStickyNav } from "./archieToEnriched.js"
-import { parseFaqs, parseLatestExcerpt } from "./rawToEnriched.js"
+import { parseFaqs, parseLatestFeedExcerpt } from "./rawToEnriched.js"
 import { htmlToEnrichedTextBlock } from "./htmlToEnriched.js"
 import { GdocBase } from "./GdocBase.js"
 import { KnexReadonlyTransaction, knexRaw } from "../../db.js"
@@ -40,7 +40,7 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
         return excludeNullish([
             this.content["cover-image"],
             this.content["featured-image"],
-            this.content["latest-featured-image"],
+            this.content["latest-feed-featured-image"],
         ])
     }
 
@@ -69,9 +69,9 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
             enrichedBlocks.push(...deprecationNotice)
         }
 
-        const latestExcerpt = gdoc.content["latest-excerpt"]
-        if (latestExcerpt) {
-            enrichedBlocks.push(...latestExcerpt)
+        const latestFeedExcerpt = gdoc.content["latest-feed-excerpt"]
+        if (latestFeedExcerpt) {
+            enrichedBlocks.push(...latestFeedExcerpt)
         }
 
         return enrichedBlocks
@@ -91,9 +91,9 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
             )
         }
 
-        if (content["latest-excerpt"]) {
-            content["latest-excerpt"] = parseLatestExcerpt(
-                content["latest-excerpt"]
+        if (content["latest-feed-excerpt"]) {
+            content["latest-feed-excerpt"] = parseLatestFeedExcerpt(
+                content["latest-feed-excerpt"]
             )
         }
 
@@ -148,13 +148,13 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
             }
         }
 
-        const latestExcerpt = this.content["latest-excerpt"]
-        if (latestExcerpt) {
-            for (const block of latestExcerpt) {
+        const latestFeedExcerpt = this.content["latest-feed-excerpt"]
+        if (latestFeedExcerpt) {
+            for (const block of latestFeedExcerpt) {
                 for (const parseError of block.parseErrors) {
                     errors.push({
-                        message: `Parse error in latest-excerpt: ${parseError.message}`,
-                        property: "latest-excerpt",
+                        message: `Parse error in latest-feed-excerpt: ${parseError.message}`,
+                        property: "latest-feed-excerpt",
                         type: parseError.isWarning
                             ? OwidGdocErrorMessageType.Warning
                             : OwidGdocErrorMessageType.Error,

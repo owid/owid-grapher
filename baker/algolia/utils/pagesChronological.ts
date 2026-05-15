@@ -55,9 +55,9 @@ async function loadAttachmentsForChronologicalIndexing(
             await g.loadLinkedDocuments(knex)
         })
         .with({ content: { type: OwidGdocType.Article } }, async (g) => {
-            // Articles with a rich latest-excerpt may contain internal
+            // Articles with a rich latest-feed-excerpt may contain internal
             // links that LinkedA resolves via AttachmentsContext.
-            if (g.content["latest-excerpt"]?.length) {
+            if (g.content["latest-feed-excerpt"]?.length) {
                 await g.loadLinkedCharts(knex)
                 await g.loadLinkedDocuments(knex)
             }
@@ -131,12 +131,12 @@ function buildAttachment(
             if (g.content["featured-image"]) {
                 attachment.featuredImage = g.content["featured-image"]
             }
-            if (g.content["latest-featured-image"]) {
-                attachment.latestFeaturedImage =
-                    g.content["latest-featured-image"]
+            if (g.content["latest-feed-featured-image"]) {
+                attachment.latestFeedFeaturedImage =
+                    g.content["latest-feed-featured-image"]
             }
-            if (g.content["latest-excerpt"]?.length) {
-                attachment.latestExcerpt = g.content["latest-excerpt"]
+            if (g.content["latest-feed-excerpt"]?.length) {
+                attachment.latestFeedExcerpt = g.content["latest-feed-excerpt"]
                 // Carry linked charts/documents so internal links in the
                 // rich excerpt can resolve via AttachmentsContext.
                 copyLinkedContentIfPresent(attachment, g)
