@@ -9,7 +9,6 @@ import {
     DbRawPostGdoc,
     GdocsContentSource,
     ImageMetadata,
-    LATEST_INDEX_PAGE_SIZE,
     LatestDataInsight,
     OwidEnrichedGdocBlock,
     OwidGdoc,
@@ -518,21 +517,13 @@ async function getAndLoadPublishedGdocs<T extends GdocBase>(
     return gdocs
 }
 
-export async function getAndLoadPublishedDataInsightsPage(
-    knex: KnexReadonlyTransaction,
-    page?: number // 1-indexed
+export async function getAndLoadLastPublishedDataInsights(
+    knex: KnexReadonlyTransaction
 ): Promise<GdocDataInsight[]> {
-    const options =
-        page !== undefined
-            ? {
-                  limit: LATEST_INDEX_PAGE_SIZE,
-                  offset: (page - 1) * LATEST_INDEX_PAGE_SIZE,
-              }
-            : undefined
     return await getAndLoadPublishedGdocs<GdocDataInsight>(
         knex,
         OwidGdocType.DataInsight,
-        options
+        { limit: 20 }
     )
 }
 

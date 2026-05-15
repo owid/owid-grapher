@@ -236,8 +236,6 @@ export type OwidGdocDataInsightIndexItem = Pick<
         }
     }
 
-export const LATEST_INDEX_PAGE_SIZE = 20
-
 export interface OwidGdocDataInsightInterface extends OwidGdocBaseInterface {
     content: OwidGdocDataInsightContent
     latestDataInsights?: LatestDataInsight[]

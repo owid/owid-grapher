@@ -84,7 +84,7 @@ import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
 import {
     getAndLoadGdocBySlug,
     getAndLoadGdocById,
-    getAndLoadPublishedDataInsightsPage,
+    getAndLoadLastPublishedDataInsights,
     getMinimalGdocBaseObjects,
 } from "../db/model/Gdoc/GdocFactory.js"
 import { transformExplorerProgramToResolveCatalogPaths } from "../db/model/ExplorerCatalogResolver.js"
@@ -290,7 +290,7 @@ export async function makeAtomFeed(knex: KnexReadonlyTransaction) {
 }
 
 export async function makeDataInsightsAtomFeed(knex: KnexReadonlyTransaction) {
-    const dataInsights = await getAndLoadPublishedDataInsightsPage(knex, 1)
+    const dataInsights = await getAndLoadLastPublishedDataInsights(knex)
     return makeAtomFeedFromDataInsights({
         dataInsights,
         htmlUrl: `${BAKED_BASE_URL}${latestUrl("data-insight")}`,

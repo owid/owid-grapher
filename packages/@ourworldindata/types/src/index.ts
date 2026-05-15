@@ -203,7 +203,6 @@ export {
     type OwidGdocProfileContent,
     type OwidGdocProfileInterface,
     type OwidGdocProfileEntitySummary,
-    LATEST_INDEX_PAGE_SIZE,
     type OwidGdoc,
     type ChronologicalGdoc,
     type LatestFeedGdoc,
