@@ -14,6 +14,8 @@ import {
     Button,
     Flex,
     Collapse,
+    Checkbox,
+    Tooltip,
 } from "antd"
 import { Admin } from "./Admin.js"
 import { AdminLayout } from "./AdminLayout.js"
@@ -38,6 +40,7 @@ function FeaturedMetricList({
     featuredMetrics,
     deleteFeaturedMetric,
     rerankFeaturedMetrics,
+    updateBoost,
 }: {
     parentTagName: string
     incomeGroup: FeaturedMetricIncomeGroup
@@ -45,6 +48,7 @@ function FeaturedMetricList({
     addFeaturedMetric: AddFeaturedMetricMutation
     deleteFeaturedMetric: DeleteFeaturedMetricMutation
     rerankFeaturedMetrics: RerankFeaturedMetricsMutation
+    updateBoost: UpdateBoostMutation
 }) {
     const handleRerank = (
         featuredMetric: DbPlainFeaturedMetric,
@@ -106,6 +110,22 @@ function FeaturedMetricList({
                             >
                                 {featuredMetric.url}
                             </a>
+                            <Tooltip
+                                title="Boost this chart's score in general search results (not just FM-filtered views)"
+                                className="featured-metrics-page__checkbox-tooltip"
+                            >
+                                <Checkbox
+                                    checked={!!featuredMetric.boostInSearch}
+                                    onChange={(e) =>
+                                        updateBoost.mutate({
+                                            id: featuredMetric.id,
+                                            boostInSearch: e.target.checked,
+                                        })
+                                    }
+                                >
+                                    Boost in search
+                                </Checkbox>
+                            </Tooltip>
                             <Popconfirm
                                 title="Are you sure to delete this Featured Metric?"
                                 onConfirm={() => {
@@ -168,12 +188,14 @@ function FeaturedMetricSection({
     addFeaturedMetric,
     deleteFeaturedMetric,
     rerankFeaturedMetrics,
+    updateBoost,
 }: {
     parentTagName: string
     featuredMetrics: DbPlainFeaturedMetric[]
     addFeaturedMetric: AddFeaturedMetricMutation
     deleteFeaturedMetric: DeleteFeaturedMetricMutation
     rerankFeaturedMetrics: RerankFeaturedMetricsMutation
+    updateBoost: UpdateBoostMutation
 }) {
     const byIncomeGroup = useMemo(() => {
         return _.groupBy(
@@ -249,6 +271,7 @@ function FeaturedMetricSection({
                         addFeaturedMetric={addFeaturedMetric}
                         deleteFeaturedMetric={deleteFeaturedMetric}
                         rerankFeaturedMetrics={rerankFeaturedMetrics}
+                        updateBoost={updateBoost}
                     />
                 )
             })}
@@ -337,8 +360,7 @@ function FeaturedMetricsExplainer() {
                             <p>
                                 Currently, the only impact of designating an FM
                                 is that it will show up in the first results of
-                                the data catalog and search (in the order that
-                                they are ranked here.)
+                                search (in the order that they are ranked here.)
                             </p>
                         </>
                     ),
@@ -359,19 +381,18 @@ function FeaturedMetricsExplainer() {
                                     World Bank
                                 </a>
                                 ) which means that it will only show up at the
-                                top of the data catalog if a country belonging
-                                to that income group has been selected as a
-                                filter. A useful example of this is showing
-                                "Share living above the poverty line" charts
-                                when a low-income country is selected, but not
-                                when a high-income country is selected.
+                                top of search if a country belonging to that
+                                income group has been selected as a filter. A
+                                useful example of this is showing "Share living
+                                above the poverty line" charts when a low-income
+                                country is selected, but not when a high-income
+                                country is selected.
                             </p>
                             <p>
                                 You can also set "default" FMs. If an income
                                 group has no FMs set, it will use the defaults.
-                                Default FMs will also appear at the top of the
-                                data catalog when <em>no</em> countries are
-                                selected.
+                                Default FMs will also appear at the top of
+                                search when <em>no</em> countries are selected.
                             </p>
                             <p>
                                 So, for example, you might have Chart A for
@@ -418,6 +439,43 @@ function FeaturedMetricsExplainer() {
                                 you want, you can get its full query string
                                 representation by clicking another view, and
                                 then navigating back to the default.
+                            </p>
+                        </>
+                    ),
+                },
+                {
+                    key: "boost",
+                    label: 'What does "Boost in search" do?',
+                    children: (
+                        <>
+                            <p>
+                                Normally, Featured Metrics only appear in search
+                                results when a user is browsing a specific topic
+                                in search. They are filtered out of general
+                                search results (e.g. when someone types "GDP" in
+                                the search bar).
+                            </p>
+                            <p>
+                                Checking "Boost in search" on a Featured Metric
+                                makes its underlying chart rank highly in{" "}
+                                <em>general</em> search results too, not just in
+                                topic-filtered views.
+                            </p>
+                            <p>
+                                This is useful for charts that are editorially
+                                important but have low organic scores. For
+                                example, our plain "GDP" chart has far fewer
+                                pageviews and related articles than "GDP per
+                                capita", so it would normally appear much lower
+                                in results for the query "GDP". Boosting it
+                                ensures users can find it.
+                            </p>
+                            <p>
+                                The boost is tied to the specific chart/view
+                                (matched by URL), and is automatically synced
+                                across all income groups that share the same
+                                URL. Checking the box on any one of them checks
+                                it for all of them.
                             </p>
                         </>
                     ),
@@ -476,6 +534,13 @@ type RerankFeaturedMetricsMutation = UseMutationResult<
     unknown
 >
 
+type UpdateBoostMutation = UseMutationResult<
+    Json,
+    unknown,
+    { id: number; boostInSearch: boolean },
+    unknown
+>
+
 export function FeaturedMetricsPage() {
     const { admin } = useContext(AdminAppContext)
     const [search, setSearch] = useState("")
@@ -521,6 +586,17 @@ export function FeaturedMetricsPage() {
             queryClient.invalidateQueries({ queryKey: ["featuredMetrics"] }),
     }) as RerankFeaturedMetricsMutation
 
+    const updateBoost = useMutation({
+        mutationFn: ({ id, boostInSearch }) =>
+            admin.requestJSON(
+                `/api/featured-metrics/${id}/boost`,
+                { boostInSearch },
+                "PUT"
+            ),
+        onSuccess: () =>
+            queryClient.invalidateQueries({ queryKey: ["featuredMetrics"] }),
+    }) as UpdateBoostMutation
+
     const filteredFeaturedMetrics = useMemo(() => {
         const query = search.trim().toLowerCase()
         const entries = Object.entries(featuredMetrics.data ?? {})
@@ -555,6 +631,7 @@ export function FeaturedMetricsPage() {
                                     rerankFeaturedMetrics={
                                         rerankFeaturedMetrics
                                     }
+                                    updateBoost={updateBoost}
                                     key={parentTagName}
                                     parentTagName={parentTagName}
                                     featuredMetrics={
