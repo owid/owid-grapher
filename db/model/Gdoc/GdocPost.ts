@@ -13,7 +13,7 @@ import {
 } from "@ourworldindata/types"
 import { excludeNullish, generateToc } from "@ourworldindata/utils"
 import { formatCitation, generateStickyNav } from "./archieToEnriched.js"
-import { parseFaqs } from "./rawToEnriched.js"
+import { parseFaqs, parseLatestExcerpt } from "./rawToEnriched.js"
 import { htmlToEnrichedTextBlock } from "./htmlToEnriched.js"
 import { GdocBase } from "./GdocBase.js"
 import { KnexReadonlyTransaction, knexRaw } from "../../db.js"
@@ -92,8 +92,8 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
         }
 
         if (content["latest-excerpt"]) {
-            content["latest-excerpt"] = content["latest-excerpt"].map(
-                (html: RawBlockText) => htmlToEnrichedTextBlock(html.value)
+            content["latest-excerpt"] = parseLatestExcerpt(
+                content["latest-excerpt"]
             )
         }
 
@@ -145,6 +145,21 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
                     property: "faqs",
                     type: OwidGdocErrorMessageType.Error,
                 })
+            }
+        }
+
+        const latestExcerpt = this.content["latest-excerpt"]
+        if (latestExcerpt) {
+            for (const block of latestExcerpt) {
+                for (const parseError of block.parseErrors) {
+                    errors.push({
+                        message: `Parse error in latest-excerpt: ${parseError.message}`,
+                        property: "latest-excerpt",
+                        type: parseError.isWarning
+                            ? OwidGdocErrorMessageType.Warning
+                            : OwidGdocErrorMessageType.Error,
+                    })
+                }
             }
         }
 
