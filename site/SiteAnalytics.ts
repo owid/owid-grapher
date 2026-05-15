@@ -56,7 +56,7 @@ export class SiteAnalytics extends GrapherAnalytics {
         this.logToGA({
             event: EventCategory.SiteLatest,
             eventAction: "filter",
-            latestTopics: state.topics.join("~"),
+            latestTopics: state.topics.join("~") || undefined,
             latestType: state.latestType ?? undefined,
         })
     }

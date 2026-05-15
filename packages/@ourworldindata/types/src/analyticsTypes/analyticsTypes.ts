@@ -115,8 +115,9 @@ export interface SiteSearchParams {
 export interface SiteLatestParams {
     /** Always 'filter' for this event */
     eventAction: "filter"
-    /** Tilde-separated list of selected topic names */
-    latestTopics: string
+    /** Tilde-separated list of selected topic names. Omitted when no topics
+     * are selected. */
+    latestTopics?: string
     /** Selected content type. Omitted when the user hasn't picked a type
      * (the "all" filter). */
     latestType?: string

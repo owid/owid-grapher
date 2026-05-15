@@ -25,6 +25,8 @@ import { SearchNoResults } from "../search/SearchNoResults.js"
 import { NewsletterSubscriptionContext } from "../newsletter.js"
 import { PoweredBy } from "react-instantsearch"
 
+const analytics = new SiteAnalytics()
+
 export const LatestSearch = ({
     topicTagGraph,
     liteSearchClient,
@@ -42,7 +44,6 @@ export const LatestSearch = ({
     )
     const { topics, latestType } = state
 
-    const analytics = useMemo(() => new SiteAnalytics(), [])
     useLatestAnalytics(state, analytics)
 
     // Sanitize URL: drop unknown params (e.g. legacy `?topic=Health` from old

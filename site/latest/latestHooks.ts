@@ -28,8 +28,18 @@ export function useLatestAnalytics(
     const lastLoggedStateRef = useRef<LatestState | null>(null)
 
     useEffect(() => {
-        // Skip analytics for default/empty state (initial page load).
-        if (R.isDeepEqual(state, DEFAULT_LATEST_STATE)) return
+        // Skip analytics for the initial default/empty page load, but keep
+        // tracking later transitions back to the default state. Updating the
+        // ref here lets us track repeated filter states separated by a reset,
+        // e.g. A -> default -> A. This can help inform the need for a visible
+        // reset button.
+        if (
+            lastLoggedStateRef.current === null &&
+            R.isDeepEqual(state, DEFAULT_LATEST_STATE)
+        ) {
+            lastLoggedStateRef.current = state
+            return
+        }
         // Skip if we already logged this state.
         if (R.isDeepEqual(state, lastLoggedStateRef.current)) return
 
