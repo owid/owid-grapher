@@ -74,7 +74,8 @@ const formatPct = (v: number) =>
 type SankeyBuild = {
     nodes: SankeyNode[]
     links: SankeyLink[]
-    columnLabels: (string | undefined)[]
+    sourceLabel?: string
+    targetLabel?: string
 }
 
 export function FoodTradeSankey({
@@ -192,10 +193,10 @@ export function FoodTradeSankey({
                     emptyHeading="No imports"
                     emptySubtext="No imports recorded."
                     align="right"
-                    pinNodeIdToTop={country}
+                    topAnchored
                     nodeColor={nodeColor}
                     linkColor={linkColor}
-                    minLeftMargin={sharedOuterMargin}
+                    innerMargin={{ left: sharedOuterMargin }}
                 />
             )}
             {showExports && (
@@ -205,10 +206,10 @@ export function FoodTradeSankey({
                     emptyHeading="No exports"
                     emptySubtext="No exports recorded."
                     align="left"
-                    pinNodeIdToTop={country}
+                    topAnchored
                     nodeColor={nodeColor}
                     linkColor={linkColor}
-                    minRightMargin={sharedOuterMargin}
+                    innerMargin={{ right: sharedOuterMargin }}
                 />
             )}
         </div>
@@ -239,22 +240,25 @@ function HalfSankey({
     emptyHeading,
     emptySubtext,
     align,
-    pinNodeIdToTop,
+    topAnchored = false,
     nodeColor,
     linkColor,
-    minLeftMargin,
-    minRightMargin,
+    innerMargin,
 }: {
     build: SankeyBuild | null
     heading: string
     emptyHeading: string
     emptySubtext: string
     align: "left" | "right"
-    pinNodeIdToTop?: string
+    topAnchored?: boolean
     nodeColor: (node: SankeyNode) => string
     linkColor: (link: SankeyLink) => string
-    minLeftMargin?: number
-    minRightMargin?: number
+    innerMargin?: {
+        top?: number
+        right?: number
+        bottom?: number
+        left?: number
+    }
 }) {
     return (
         <div
@@ -267,11 +271,10 @@ function HalfSankey({
                 {build ? (
                     <HalfSankeyChart
                         build={build}
-                        pinNodeIdToTop={pinNodeIdToTop}
+                        topAnchored={topAnchored}
                         nodeColor={nodeColor}
                         linkColor={linkColor}
-                        minLeftMargin={minLeftMargin}
-                        minRightMargin={minRightMargin}
+                        innerMargin={innerMargin}
                     />
                 ) : (
                     <div className="food-trade-sankey__empty-subtext">
@@ -285,18 +288,21 @@ function HalfSankey({
 
 function HalfSankeyChart({
     build,
-    pinNodeIdToTop,
+    topAnchored = false,
     nodeColor,
     linkColor,
-    minLeftMargin,
-    minRightMargin,
+    innerMargin,
 }: {
     build: SankeyBuild
-    pinNodeIdToTop?: string
+    topAnchored?: boolean
     nodeColor: (node: SankeyNode) => string
     linkColor: (link: SankeyLink) => string
-    minLeftMargin?: number
-    minRightMargin?: number
+    innerMargin?: {
+        top?: number
+        right?: number
+        bottom?: number
+        left?: number
+    }
 }) {
     const { parentRef, width, height } = useParentSize()
     return (
@@ -307,21 +313,12 @@ function HalfSankeyChart({
                     links={build.links}
                     width={width}
                     height={height}
-                    margin={{ top: 0, right: 0, bottom: 8, left: 0 }}
-                    nodePadding={12}
-                    nodeOuterBand={{ bandWidth: 5, gapWidth: 5 }}
                     nodeColor={nodeColor}
                     linkColor={linkColor}
-                    minLeftMargin={minLeftMargin}
-                    minRightMargin={minRightMargin}
-                    formatValue={formatTrade}
-                    // Skip d3-sankey relaxation so positions stay
-                    // predictable (input order with proportional heights).
-                    iterations={0}
-                    // Force the country column's single rect to the top
-                    // so it aligns across the two halves regardless of
-                    // import / export volume.
-                    pinNodeIdToTop={pinNodeIdToTop}
+                    innerMargin={innerMargin}
+                    // Match the previous iterations={0} + pin-to-top behavior
+                    // used for split-half charts.
+                    topAnchored={topAnchored}
                 />
             )}
         </div>
@@ -387,10 +384,8 @@ function buildIncoming(
         const id = `incoming:${d.partner}`
         nodes.push({
             id,
-            label: [
-                truncateLabel(d.partner),
-                makeValueLabel(d.value, sel.total),
-            ],
+            label: truncateLabel(d.partner),
+            value: makeValueLabel(d.value, sel.total),
         })
         links.push({ source: id, target: country, value: d.value })
     }
@@ -406,7 +401,7 @@ function buildIncoming(
     return {
         nodes,
         links,
-        columnLabels: [header, undefined],
+        sourceLabel: header,
     }
 }
 
@@ -429,10 +424,8 @@ function buildOutgoing(
         const id = `outgoing:${d.partner}`
         nodes.push({
             id,
-            label: [
-                truncateLabel(d.partner),
-                makeValueLabel(d.value, sel.total),
-            ],
+            label: truncateLabel(d.partner),
+            value: makeValueLabel(d.value, sel.total),
         })
         links.push({ source: country, target: id, value: d.value })
     }
@@ -445,7 +438,7 @@ function buildOutgoing(
     return {
         nodes,
         links,
-        columnLabels: [undefined, header],
+        targetLabel: header,
     }
 }
 
@@ -461,7 +454,7 @@ const OTHER_IMPORTERS_ID = "importer:__other__"
 export function FoodTradeBilateralSankey({ rows }: { rows: TradeRow[] }) {
     const { parentRef, width, height } = useParentSize()
 
-    const { nodes, links, columnLabels } = useMemo(
+    const { nodes, links, sourceLabel, targetLabel } = useMemo(
         () => buildBilateral(rows, TOP_N),
         [rows]
     )
@@ -505,13 +498,10 @@ export function FoodTradeBilateralSankey({ rows }: { rows: TradeRow[] }) {
                     links={links}
                     width={width}
                     height={height}
-                    margin={{ top: 8, right: 0, bottom: 8, left: 0 }}
-                    nodePadding={12}
-                    nodeOuterBand={{ bandWidth: 5, gapWidth: 5 }}
                     nodeColor={nodeColor}
                     linkColor={linkColor}
-                    formatValue={formatTrade}
-                    columnLabels={columnLabels}
+                    sourceLabel={sourceLabel}
+                    targetLabel={targetLabel}
                 />
             )}
         </div>
@@ -527,14 +517,7 @@ function countryFromBilateralId(id: string): string | null {
     return null
 }
 
-function buildBilateral(
-    rows: TradeRow[],
-    n: number
-): {
-    nodes: SankeyNode[]
-    links: SankeyLink[]
-    columnLabels: (string | undefined)[]
-} {
+function buildBilateral(rows: TradeRow[], n: number): SankeyBuild {
     const exporterSel = selectTopWithFloor(rows, "exporter", n)
     const importerSel = selectTopWithFloor(rows, "importer", n)
     // Exporter and importer totals are equal in theory (same trade flow seen
@@ -542,7 +525,7 @@ function buildBilateral(
     const total = Math.max(exporterSel.total, importerSel.total)
 
     if (total === 0) {
-        return { nodes: [], links: [], columnLabels: [] }
+        return { nodes: [], links: [] }
     }
 
     const topExporters = new Set(exporterSel.top.map((d) => d.partner))
@@ -593,10 +576,8 @@ function buildBilateral(
         if (!usedExporters.has(d.partner)) continue
         nodes.push({
             id: `exporter:${d.partner}`,
-            label: [
-                truncateLabel(d.partner),
-                valueLabel(d.value, exporterSel.total),
-            ],
+            label: truncateLabel(d.partner),
+            value: valueLabel(d.value, exporterSel.total),
         })
     }
     if (usedExporters.has("__other__")) {
@@ -608,10 +589,8 @@ function buildBilateral(
         if (!usedImporters.has(d.partner)) continue
         nodes.push({
             id: `importer:${d.partner}`,
-            label: [
-                truncateLabel(d.partner),
-                valueLabel(d.value, importerSel.total),
-            ],
+            label: truncateLabel(d.partner),
+            value: valueLabel(d.value, importerSel.total),
         })
     }
     if (usedImporters.has("__other__")) {
@@ -627,9 +606,5 @@ function buildBilateral(
         links.push({ source: sourceId, target: targetId, value: p.value })
     }
 
-    return {
-        nodes,
-        links,
-        columnLabels: ["Exporters →", "Importers"],
-    }
+    return { nodes, links }
 }

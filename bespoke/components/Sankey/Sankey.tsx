@@ -8,22 +8,6 @@ import {
 } from "d3-sankey"
 import { TextWrap } from "@ourworldindata/components"
 
-export type SankeyNode = {
-    id: string
-    /** A single string renders as one line; an array renders as multiple lines centered around the node midpoint. */
-    label?: string | string[]
-}
-
-export type SankeyLink = {
-    source: string
-    target: string
-    value: number
-}
-
-type Margin = { top: number; right: number; bottom: number; left: number }
-
-const DEFAULT_MARGIN: Margin = { top: 8, right: 8, bottom: 8, left: 8 }
-
 // Approx height of one line at the default font-size of 12px with 1.2em line-height.
 const LABEL_LINE_HEIGHT_PX = 14
 const LABEL_FONT_SIZE_PX = 12
@@ -38,77 +22,52 @@ export const LABEL_OFFSET = 6
 // are provided.
 const COLUMN_LABEL_HEIGHT_PX = 20
 
-export function measureMaxLabelWidth(label: SankeyNode["label"]): number {
-    const lines = (Array.isArray(label) ? label : label ? [label] : []).filter(
-        Boolean
-    )
-    if (lines.length === 0) return 0
-    return Math.max(
-        ...lines.map(
-            (text) =>
-                new TextWrap({
-                    text,
-                    fontSize: LABEL_FONT_SIZE_PX,
-                    maxWidth: Infinity,
-                }).width
-        )
-    )
-}
-
-export type SankeyProps = {
+interface SankeyProps {
     nodes: SankeyNode[]
     links: SankeyLink[]
     width: number
     height: number
     nodeColor?: (node: SankeyNode) => string
     linkColor?: (link: SankeyLink) => string
-    /** Used in `<title>` (native browser tooltip) attached to each link. */
-    formatValue?: (value: number) => string
-    nodeWidth?: number
-    nodePadding?: number
+    /** Outer padding around the whole visualization */
     margin?: Margin
+    /** Floor for the inner padding that reserves space for labels */
+    innerMargin?: Partial<Margin>
+    /** Label displayed above the source (leftmost) column */
+    sourceLabel?: string
+    /** Label displayed above the target (rightmost) column */
+    targetLabel?: string
     /**
-     * Optional header per column, indexed by node depth. `undefined` entries
-     * skip rendering. When any entry is set, vertical space is reserved at
-     * the top of the chart for the labels.
+     * Skip d3-sankey's vertical relaxation and pin the single source or
+     * sink node (when there is exactly one) to the top of its column
      */
-    columnLabels?: (string | undefined)[]
-    /**
-     * Number of relaxation iterations d3-sankey performs to minimize link
-     * crossings. Defaults to d3-sankey's default (6). Pass 0 to skip
-     * relaxation and use the initial top-down stacking — useful when you
-     * want single-node columns pinned to the top of their column.
-     */
-    iterations?: number
-    /**
-     * Node ID to pin to the top of its column. d3-sankey otherwise
-     * redistributes leftover vertical space evenly around nodes within a
-     * column, which visually centers single-node columns. Pinning shifts
-     * the node (and its connected link endpoints) so that its `y0` sits at
-     * the top of the layout extent.
-     */
-    pinNodeIdToTop?: string
-    /**
-     * Render each node as a narrow band anchored to its outer edge (the
-     * one away from the chart's center), with `gapWidth` of whitespace
-     * between the band and the flow path. The effective node width
-     * becomes `bandWidth + gapWidth`, overriding `nodeWidth`.
-     * Designed for 2-column Sankeys — for middle-column nodes the band
-     * picks a side from the node's midpoint, which may not be intended.
-     */
-    nodeOuterBand?: { bandWidth: number; gapWidth: number }
-    /**
-     * Floor for the auto-computed left/right label margin. Use this to
-     * coordinate label-area widths across multiple Sankeys rendered side
-     * by side, so their inner flow regions end up the same width.
-     */
-    minLeftMargin?: number
-    minRightMargin?: number
+    topAnchored?: boolean
+    /** Vertical padding between nodes within a column */
+    nodePadding?: number
+    /** Width of each node's visible band on its outer edge */
+    bandWidth?: number
+    /** Whitespace between a node's band and the flow path */
+    bandFlowGap?: number
 }
 
-type LaidOutGraph = SankeyGraph<SankeyNode, SankeyLink>
-type LaidOutNode = D3SankeyNode<SankeyNode, SankeyLink>
-type LaidOutLink = D3SankeyLink<SankeyNode, SankeyLink>
+export type SankeyNode = {
+    id: string
+    label: string
+    value?: string
+}
+
+export type SankeyLink = {
+    source: string
+    target: string
+    value: number
+}
+
+type Margin = { top: number; right: number; bottom: number; left: number }
+
+type SankeyLayoutNode = Pick<SankeyNode, "id" | "label">
+type LaidOutGraph = SankeyGraph<SankeyLayoutNode, SankeyLink>
+type LaidOutNode = D3SankeyNode<SankeyLayoutNode, SankeyLink>
+type LaidOutLink = D3SankeyLink<SankeyLayoutNode, SankeyLink>
 
 export function Sankey({
     nodes,
@@ -117,24 +76,26 @@ export function Sankey({
     height,
     nodeColor,
     linkColor,
-    formatValue,
-    nodeWidth = 15,
-    nodePadding = 8,
-    margin = DEFAULT_MARGIN,
-    columnLabels,
-    iterations,
-    pinNodeIdToTop,
-    nodeOuterBand,
-    minLeftMargin,
-    minRightMargin,
+    margin = { top: 0, right: 0, bottom: 0, left: 0 },
+    innerMargin,
+    sourceLabel,
+    targetLabel,
+    topAnchored = false,
+    nodePadding = 12,
+    bandWidth = 4,
+    bandFlowGap = 3,
 }: SankeyProps): React.ReactElement | null {
-    const hasColumnLabels = columnLabels?.some(Boolean) ?? false
+    const nodeById = useMemo(
+        () => new Map(nodes.map((node) => [node.id, node] as const)),
+        [nodes]
+    )
+
+    const hasColumnLabels = Boolean(sourceLabel || targetLabel)
     const columnLabelReservation = hasColumnLabels ? COLUMN_LABEL_HEIGHT_PX : 0
-    // When rendering nodes as outer bands, the effective node width is
-    // band + gap — overrides any passed `nodeWidth`.
-    const effectiveNodeWidth = nodeOuterBand
-        ? nodeOuterBand.bandWidth + nodeOuterBand.gapWidth
-        : nodeWidth
+    // d3-sankey treats the whole `bandWidth + bandFlowGap` strip as the
+    // node width; we then render the visible band inside that strip and
+    // leave `bandFlowGap` of whitespace between it and the flow path.
+    const effectiveNodeWidth = bandWidth + bandFlowGap
 
     const layout = useMemo<LaidOutGraph | null>(() => {
         if (width <= 0 || height <= 0) return null
@@ -158,31 +119,44 @@ export function Sankey({
             0,
             ...nodes
                 .filter((n) => !hasIncoming.has(n.id))
-                .map((n) => measureMaxLabelWidth(n.label))
+                .map((n) => measureNodeMaxTextWidth(n))
         )
         const rightLabelWidth = Math.max(
             0,
             ...nodes
                 .filter((n) => !hasOutgoing.has(n.id))
-                .map((n) => measureMaxLabelWidth(n.label))
+                .map((n) => measureNodeMaxTextWidth(n))
         )
 
         const finalMargin = {
-            top: margin.top + columnLabelReservation,
-            bottom: margin.bottom,
-            left: Math.max(
+            top:
+                margin.top +
+                Math.max(columnLabelReservation, innerMargin?.top ?? 0),
+            bottom: margin.bottom + (innerMargin?.bottom ?? 0),
+            left:
                 margin.left +
-                    (leftLabelWidth > 0 ? leftLabelWidth + LABEL_OFFSET : 0),
-                minLeftMargin ?? 0
-            ),
-            right: Math.max(
+                Math.max(
+                    leftLabelWidth > 0 ? leftLabelWidth + LABEL_OFFSET : 0,
+                    innerMargin?.left ?? 0
+                ),
+            right:
                 margin.right +
-                    (rightLabelWidth > 0 ? rightLabelWidth + LABEL_OFFSET : 0),
-                minRightMargin ?? 0
-            ),
+                Math.max(
+                    rightLabelWidth > 0 ? rightLabelWidth + LABEL_OFFSET : 0,
+                    innerMargin?.right ?? 0
+                ),
         }
 
-        const generator = d3Sankey<SankeyNode, SankeyLink>()
+        const sourceNodes = nodes.filter((n) => !hasIncoming.has(n.id))
+        const sinkNodes = nodes.filter((n) => !hasOutgoing.has(n.id))
+        const inferredPinNodeId =
+            sourceNodes.length === 1
+                ? sourceNodes[0].id
+                : sinkNodes.length === 1
+                  ? sinkNodes[0].id
+                  : undefined
+
+        const generator = d3Sankey<SankeyLayoutNode, SankeyLink>()
             .nodeId((d) => d.id)
             .nodeWidth(effectiveNodeWidth)
             .nodePadding(nodePadding)
@@ -195,19 +169,18 @@ export function Sankey({
                 [finalMargin.left, finalMargin.top],
                 [width - finalMargin.right, height - finalMargin.bottom],
             ])
-        if (iterations !== undefined) generator.iterations(iterations)
+        if (topAnchored) generator.iterations(0)
 
         const result = generator({
-            nodes: nodes.map((d) => ({ ...d })),
+            nodes: nodes.map(({ id, label }) => ({ id, label })),
             links: links.map((d) => ({ ...d })),
         })
 
-        // Pin a node to the top of its column by shifting it (and the link
-        // endpoints that touch it) up by however much d3-sankey's initial
-        // "redistribute leftover space" pass pushed it down. Without this,
-        // single-node columns always render visually centered.
-        if (pinNodeIdToTop) {
-            const node = result.nodes.find((n) => n.id === pinNodeIdToTop)
+        // In topAnchored mode, pin a uniquely identifiable edge-column node
+        // to the top of its column by shifting it (and touching link
+        // endpoints) up by however much d3-sankey pushed it down.
+        if (topAnchored && inferredPinNodeId) {
+            const node = result.nodes.find((n) => n.id === inferredPinNodeId)
             if (
                 node &&
                 node.y0 !== undefined &&
@@ -236,10 +209,8 @@ export function Sankey({
         nodePadding,
         margin,
         columnLabelReservation,
-        iterations,
-        pinNodeIdToTop,
-        minLeftMargin,
-        minRightMargin,
+        topAnchored,
+        innerMargin,
     ])
 
     if (!layout) return null
@@ -247,13 +218,30 @@ export function Sankey({
     const linkPath = sankeyLinkHorizontal<SankeyNode, SankeyLink>()
     const midX = width / 2
     const columnLabelY = margin.top + COLUMN_LABEL_HEIGHT_PX / 2
-    // For 2-column Sankeys with BOTH columns labelled, flow-midpoint
-    // placement puts the labels at the same x — they'd overlap. In that
-    // case fall back to placing each label over its own column. When only
-    // one column is labelled, flow-midpoint works fine.
-    const distinctDepths = new Set(layout.nodes.map((n) => n.depth ?? 0))
-    const nonEmptyLabelCount = columnLabels?.filter(Boolean).length ?? 0
-    const useColumnCenter = distinctDepths.size <= 2 && nonEmptyLabelCount >= 2
+    // Identify the source (leftmost) and target (rightmost) columns from
+    // the laid-out depths.
+    const depths = layout.nodes.map((n) => n.depth ?? 0)
+    const sourceDepth = Math.min(...depths)
+    const targetDepth = Math.max(...depths)
+    const sourceNode = layout.nodes.find((n) => n.depth === sourceDepth)
+    const targetNode = layout.nodes.find((n) => n.depth === targetDepth)
+    // With BOTH labels set on a 2-column Sankey, flow-midpoint placement
+    // puts them at the same x and they overlap. Fall back to column-center
+    // placement in that case; with a single label, flow-midpoint reads
+    // better.
+    const useColumnCenter =
+        sourceDepth === targetDepth ||
+        (Boolean(sourceLabel) && Boolean(targetLabel))
+
+    // In flow-midpoint mode the two labels would coincide (same x), so
+    // we only get there when at most one label is set. Otherwise each
+    // label sits at the center of its own column.
+    const labelXFor = (node: LaidOutNode | undefined): number | undefined => {
+        if (!node) return undefined
+        if (useColumnCenter) return ((node.x0 ?? 0) + (node.x1 ?? 0)) / 2
+        if (!sourceNode || !targetNode) return undefined
+        return ((sourceNode.x1 ?? 0) + (targetNode.x0 ?? 0)) / 2
+    }
 
     return (
         <svg
@@ -264,48 +252,16 @@ export function Sankey({
         >
             {hasColumnLabels && (
                 <g className="sankey__column-labels">
-                    {columnLabels?.map((label, depth) => {
-                        if (!label) return null
-                        const nodeAtDepth = layout.nodes.find(
-                            (n) => n.depth === depth
-                        )
-                        if (!nodeAtDepth) return null
-                        // Position the label at the horizontal midpoint of
-                        // the flow connecting this column to its neighbour:
-                        // prefer the outgoing flow (to depth+1); fall back
-                        // to the incoming flow (from depth-1) for the
-                        // rightmost column. As a last resort (isolated
-                        // column), center on the node itself.
-                        const nextNode = layout.nodes.find(
-                            (n) => n.depth === depth + 1
-                        )
-                        const prevNode = layout.nodes.find(
-                            (n) => n.depth === depth - 1
-                        )
-                        const cx = useColumnCenter
-                            ? ((nodeAtDepth.x0 ?? 0) + (nodeAtDepth.x1 ?? 0)) /
-                              2
-                            : nextNode
-                              ? ((nodeAtDepth.x1 ?? 0) + (nextNode.x0 ?? 0)) / 2
-                              : prevNode
-                                ? ((prevNode.x1 ?? 0) + (nodeAtDepth.x0 ?? 0)) /
-                                  2
-                                : ((nodeAtDepth.x0 ?? 0) +
-                                      (nodeAtDepth.x1 ?? 0)) /
-                                  2
-                        return (
-                            <text
-                                key={depth}
-                                className="sankey__column-label"
-                                x={cx}
-                                y={columnLabelY}
-                                textAnchor="middle"
-                                dominantBaseline="central"
-                            >
-                                {label}
-                            </text>
-                        )
-                    })}
+                    <ColumnLabel
+                        text={sourceLabel}
+                        x={labelXFor(sourceNode)}
+                        y={columnLabelY}
+                    />
+                    <ColumnLabel
+                        text={targetLabel}
+                        x={labelXFor(targetNode)}
+                        y={columnLabelY}
+                    />
                 </g>
             )}
             <g className="sankey__links">
@@ -320,42 +276,33 @@ export function Sankey({
                             d={path}
                             stroke={color}
                             strokeWidth={Math.max(1, link.width ?? 0)}
-                        >
-                            {formatValue && (
-                                <title>
-                                    {nodeId(link.source)} →{" "}
-                                    {nodeId(link.target)}:{" "}
-                                    {formatValue(link.value ?? 0)}
-                                </title>
-                            )}
-                        </path>
+                        />
                     )
                 })}
             </g>
             <g className="sankey__nodes">
                 {layout.nodes.map((node) => {
-                    const fill = nodeColor?.(nodeOriginal(node)) ?? "#444"
+                    const fill =
+                        nodeColor?.(nodeOriginal(node, nodeById)) ?? "#444"
                     const x0 = node.x0 ?? 0
                     const x1 = node.x1 ?? 0
                     const y0 = node.y0 ?? 0
                     const y1 = node.y1 ?? 0
                     const h = Math.max(0, y1 - y0)
-                    if (nodeOuterBand) {
+                    if (bandWidth > 0) {
                         // Render a single band anchored to the node's outer
                         // edge (away from the chart's center); the rest of
                         // [x0, x1] is whitespace separating the band from
                         // the flow path that emerges at x1 / x0.
                         const isLeftSide = (x0 + x1) / 2 < midX
-                        const bandX = isLeftSide
-                            ? x0
-                            : x1 - nodeOuterBand.bandWidth
+                        const bandX = isLeftSide ? x0 : x1 - bandWidth
                         return (
                             <rect
                                 key={node.id}
                                 className="sankey__node"
                                 x={bandX}
                                 y={y0}
-                                width={nodeOuterBand.bandWidth}
+                                width={bandWidth}
                                 height={h}
                                 fill={fill}
                             />
@@ -376,11 +323,12 @@ export function Sankey({
             </g>
             <g className="sankey__labels">
                 {layout.nodes.map((node) => {
-                    const n = node as SankeyNode & LaidOutNode
-                    const raw = n.label ?? n.id
-                    const lines = (Array.isArray(raw) ? raw : [raw]).filter(
-                        Boolean
-                    )
+                    const n = node as SankeyLayoutNode & LaidOutNode
+                    const original = nodeById.get(n.id)
+                    const lines = [
+                        original?.label ?? n.label,
+                        original?.value,
+                    ].filter(Boolean)
                     if (lines.length === 0) return null
                     const x0 = node.x0 ?? 0
                     const x1 = node.x1 ?? 0
@@ -429,17 +377,43 @@ export function Sankey({
     )
 }
 
+function ColumnLabel({
+    text,
+    x,
+    y,
+}: {
+    text: string | undefined
+    x: number | undefined
+    y: number
+}): React.ReactElement | null {
+    if (!text || x === undefined) return null
+    return (
+        <text
+            className="sankey__column-label"
+            x={x}
+            y={y}
+            textAnchor="middle"
+            dominantBaseline="central"
+        >
+            {text}
+        </text>
+    )
+}
+
 function nodeId(
     endpoint: LaidOutLink["source"] | LaidOutLink["target"]
 ): string {
     if (typeof endpoint === "string" || typeof endpoint === "number")
         return String(endpoint)
-    return (endpoint as SankeyNode).id
+    return (endpoint as SankeyLayoutNode).id
 }
 
-function nodeOriginal(node: LaidOutNode): SankeyNode {
-    const n = node as SankeyNode & LaidOutNode
-    return { id: n.id, label: n.label }
+function nodeOriginal(
+    node: LaidOutNode,
+    nodeById: Map<string, SankeyNode>
+): SankeyNode {
+    const n = node as SankeyLayoutNode & LaidOutNode
+    return nodeById.get(n.id) ?? { id: n.id, label: n.label }
 }
 
 function linkOriginal(link: LaidOutLink): SankeyLink {
@@ -449,4 +423,22 @@ function linkOriginal(link: LaidOutLink): SankeyLink {
         target: nodeId(link.target),
         value: l.value,
     }
+}
+
+export function measureMaxLabelWidth(label: SankeyNode["label"]): number {
+    return new TextWrap({
+        text: label,
+        fontSize: LABEL_FONT_SIZE_PX,
+        maxWidth: Infinity,
+    }).width
+}
+
+export function measureNodeMaxTextWidth({
+    label,
+    value,
+}: Pick<SankeyNode, "label" | "value">): number {
+    return Math.max(
+        measureMaxLabelWidth(label),
+        value ? measureMaxLabelWidth(value) : 0
+    )
 }
