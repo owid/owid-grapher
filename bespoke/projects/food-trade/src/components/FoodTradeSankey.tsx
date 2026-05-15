@@ -9,8 +9,8 @@ import {
 import { ColorSchemes } from "@ourworldindata/grapher/src/color/ColorSchemes.js"
 
 import {
-    LABEL_OFFSET,
-    measureMaxLabelWidth,
+    BAND_LABEL_GAP,
+    measureMaxLabelWidthForNode,
     Sankey,
     SankeyLink,
     SankeyNode,
@@ -169,7 +169,7 @@ export function FoodTradeSankey({
             maxLabelWidthForBuild(incomingBuild),
             maxLabelWidthForBuild(outgoingBuild)
         )
-        return max > 0 ? max + LABEL_OFFSET : undefined
+        return max > 0 ? max + BAND_LABEL_GAP : undefined
     }, [isSingleHalf, incomingBuild, outgoingBuild])
 
     return (
@@ -212,7 +212,10 @@ export function FoodTradeSankey({
 // inner-column country node carries an empty label and contributes 0, so it
 // doesn't pollute the max.
 function maxLabelWidthForBuild(build: SankeyBuild): number {
-    return Math.max(0, ...build.nodes.map((n) => measureMaxLabelWidth(n.label)))
+    return Math.max(
+        0,
+        ...build.nodes.map((n) => measureMaxLabelWidthForNode(n))
+    )
 }
 
 // Extract the partner key from a centered-Sankey node ID. Returns OTHER_KEY
@@ -376,7 +379,7 @@ function buildIncoming(
         nodes.push({
             id,
             label: truncateLabel(d.partner),
-            value: makeValueLabel(d.value, sel.total),
+            valueLabel: makeValueLabel(d.value, sel.total),
         })
         links.push({ source: id, target: country, value: d.value })
     }
@@ -411,7 +414,7 @@ function buildOutgoing(
         nodes.push({
             id,
             label: truncateLabel(d.partner),
-            value: makeValueLabel(d.value, sel.total),
+            valueLabel: makeValueLabel(d.value, sel.total),
         })
         links.push({ source: country, target: id, value: d.value })
     }
@@ -543,7 +546,7 @@ function buildBilateral(rows: TradeRow[], n: number): SankeyBuild {
     const nodes: SankeyNode[] = []
     const links: SankeyLink[] = []
 
-    const valueLabel = (value: number, sideTotal: number) =>
+    const formatValueLabel = (value: number, sideTotal: number) =>
         sideTotal > 0
             ? `${formatTrade(value)} (${formatPct((value / sideTotal) * 100)})`
             : formatTrade(value)
@@ -554,7 +557,7 @@ function buildBilateral(rows: TradeRow[], n: number): SankeyBuild {
         nodes.push({
             id: `exporter:${d.partner}`,
             label: truncateLabel(d.partner),
-            value: valueLabel(d.value, exporterSel.total),
+            valueLabel: formatValueLabel(d.value, exporterSel.total),
         })
     }
     if (usedExporters.has("__other__")) {
@@ -567,7 +570,7 @@ function buildBilateral(rows: TradeRow[], n: number): SankeyBuild {
         nodes.push({
             id: `importer:${d.partner}`,
             label: truncateLabel(d.partner),
-            value: valueLabel(d.value, importerSel.total),
+            valueLabel: formatValueLabel(d.value, importerSel.total),
         })
     }
     if (usedImporters.has("__other__")) {

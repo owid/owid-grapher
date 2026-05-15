@@ -1,4 +1,5 @@
 import {
+    GRAPHER_DENIM,
     GRAY_50,
     GRAY_60,
 } from "@ourworldindata/grapher/src/color/ColorConstants.js"
@@ -46,7 +47,7 @@ export const PYRAMID_AGE_GROUPS: string[] = (() => {
     return groups
 })()
 
-export const DENIM_BLUE = "#4c6a9c"
+export const DENIM_BLUE = GRAPHER_DENIM
 export const GRID_LINE_COLOR = "#ddd"
 export const ZERO_LINE_COLOR = GRAY_50
 export const GRID_LABEL_COLOR = "#a1a1a1"

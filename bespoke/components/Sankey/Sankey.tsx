@@ -1,4 +1,4 @@
-import { useMemo } from "react"
+import React, { useMemo } from "react"
 import {
     sankey as d3Sankey,
     sankeyLinkHorizontal,
@@ -6,18 +6,28 @@ import {
     SankeyNode as D3SankeyNode,
     SankeyLink as D3SankeyLink,
 } from "d3-sankey"
-import { TextWrap } from "@ourworldindata/components"
+import { Bounds, VerticalAlign } from "@ourworldindata/utils"
+import {
+    GRAPHER_DARK_TEXT,
+    GRAPHER_DENIM,
+    GRAPHER_LIGHT_TEXT,
+    type FontSettings,
+} from "@ourworldindata/grapher"
+import { TextWrap, TextWrapSvg } from "@ourworldindata/components"
 
-// Approx height of one line at the default font-size of 12px with 1.2em line-height.
-const LABEL_LINE_HEIGHT_PX = 14
-const LABEL_FONT_SIZE_PX = 12
-// Tolerance subtracted from the strict line-height threshold when deciding
-// whether a node is tall enough for multi-line labels. Larger values lower
-// the bar — more nodes show their secondary lines, at the cost of slightly
-// cramped labels on borderline nodes.
-const LABEL_STACK_TOLERANCE_PX = 4
-// Horizontal gap between a node's edge and its label.
-export const LABEL_OFFSET = 6
+/* Horizontal gap between a node's edge and its label */
+export const BAND_LABEL_GAP = 6
+
+/** Vertical gap between a node's value label and its label */
+const VALUE_LABEL_GAP = 2
+
+export const DEFAULT_SANKEY_FONT_SETTINGS: FontSettings = {
+    fontSize: 12,
+    fontWeight: 400,
+    lineHeight: 1,
+}
+
+const DEFAULT_MARGIN: Margin = { top: 0, right: 0, bottom: 0, left: 0 }
 
 interface SankeyProps {
     nodes: SankeyNode[]
@@ -41,12 +51,13 @@ interface SankeyProps {
     bandWidth?: number
     /** Whitespace between a node's band and the flow path */
     bandFlowGap?: number
+    fontSettings?: FontSettings
 }
 
 export type SankeyNode = {
     id: string
     label: string
-    value?: string
+    valueLabel?: string
 }
 
 export type SankeyLink = {
@@ -55,9 +66,17 @@ export type SankeyLink = {
     value: number
 }
 
+type PreparedSankeyLabel = {
+    x: number
+    y: number
+    textAnchor: "start" | "end"
+    label: TextWrap
+    valueLabel?: TextWrap
+}
+
 type Margin = { top: number; right: number; bottom: number; left: number }
 
-type SankeyLayoutNode = Pick<SankeyNode, "id" | "label">
+type SankeyLayoutNode = SankeyNode
 type LaidOutGraph = SankeyGraph<SankeyLayoutNode, SankeyLink>
 type LaidOutNode = D3SankeyNode<SankeyLayoutNode, SankeyLink>
 type LaidOutLink = D3SankeyLink<SankeyLayoutNode, SankeyLink>
@@ -69,120 +88,95 @@ export function Sankey({
     height,
     nodeColor,
     linkColor,
-    margin = { top: 0, right: 0, bottom: 0, left: 0 },
+    margin = DEFAULT_MARGIN,
     innerMargin,
-    topAnchored = false,
+    topAnchored,
     nodePadding = 12,
     bandWidth = 4,
     bandFlowGap = 3,
+    fontSettings = DEFAULT_SANKEY_FONT_SETTINGS,
 }: SankeyProps): React.ReactElement | null {
-    const nodeById = useMemo(
-        () => new Map(nodes.map((node) => [node.id, node] as const)),
-        [nodes]
-    )
-
-    // d3-sankey treats the whole `bandWidth + bandFlowGap` strip as the
-    // node width; we then render the visible band inside that strip and
-    // leave `bandFlowGap` of whitespace between it and the flow path.
-    const effectiveNodeWidth = bandWidth + bandFlowGap
+    const nodeWidth = bandWidth + bandFlowGap
 
     const layout = useMemo<LaidOutGraph | null>(() => {
-        if (width <= 0 || height <= 0) return null
-        // d3-sankey crashes on an empty graph (it calls `new Array(NaN)`
-        // when computing layer count from nodes with no depth). Bail out.
-        if (nodes.length === 0) return null
+        if (nodes.length === 0 || width <= 0 || height <= 0) return null
 
-        // Determine which nodes' labels render outside the chart area, by
-        // graph topology: nodes with no incoming links sit in the leftmost
-        // column (labels go to the left), nodes with no outgoing links sit
-        // in the rightmost column (labels go to the right). Middle-column
-        // nodes' labels render inside the chart and don't affect margins.
-        const hasIncoming = new Set<string>()
-        const hasOutgoing = new Set<string>()
-        for (const link of links) {
-            hasOutgoing.add(link.source)
-            hasIncoming.add(link.target)
+        const sourceNodeSet = new Set(links.map((l) => l.source))
+        const targetNodeSet = new Set(links.map((l) => l.target))
+
+        const sourceNodes = nodes.filter((n) => sourceNodeSet.has(n.id))
+        const targetNodes = nodes.filter((n) => targetNodeSet.has(n.id))
+
+        const leftLabelWidth = measureMaxLabelWidth(sourceNodes, fontSettings)
+        const rightLabelWidth = measureMaxLabelWidth(targetNodes, fontSettings)
+
+        // To prevent the first and last label to overflow
+        const verticalLabelPadding =
+            0.5 * fontSettings.fontSize * fontSettings.lineHeight
+
+        const resolvedInnerMargin: Margin = {
+            top: Math.max(
+                verticalLabelPadding,
+                innerMargin?.top ?? DEFAULT_MARGIN.top
+            ),
+            bottom: Math.max(
+                verticalLabelPadding,
+                innerMargin?.bottom ?? DEFAULT_MARGIN.bottom
+            ),
+            left: Math.max(
+                leftLabelWidth > 0 ? leftLabelWidth + BAND_LABEL_GAP : 0,
+                innerMargin?.left ?? DEFAULT_MARGIN.left
+            ),
+            right: Math.max(
+                rightLabelWidth > 0 ? rightLabelWidth + BAND_LABEL_GAP : 0,
+                innerMargin?.right ?? DEFAULT_MARGIN.right
+            ),
         }
-
-        const leftLabelWidth = Math.max(
-            0,
-            ...nodes
-                .filter((n) => !hasIncoming.has(n.id))
-                .map((n) => measureNodeMaxTextWidth(n))
-        )
-        const rightLabelWidth = Math.max(
-            0,
-            ...nodes
-                .filter((n) => !hasOutgoing.has(n.id))
-                .map((n) => measureNodeMaxTextWidth(n))
-        )
-
-        const finalMargin = {
-            top: margin.top + (innerMargin?.top ?? 0),
-            bottom: margin.bottom + (innerMargin?.bottom ?? 0),
-            left:
-                margin.left +
-                Math.max(
-                    leftLabelWidth > 0 ? leftLabelWidth + LABEL_OFFSET : 0,
-                    innerMargin?.left ?? 0
-                ),
-            right:
-                margin.right +
-                Math.max(
-                    rightLabelWidth > 0 ? rightLabelWidth + LABEL_OFFSET : 0,
-                    innerMargin?.right ?? 0
-                ),
+        const resolvedMargin = {
+            top: margin.top + resolvedInnerMargin.top,
+            bottom: margin.bottom + resolvedInnerMargin.bottom,
+            left: margin.left + resolvedInnerMargin.left,
+            right: margin.right + resolvedInnerMargin.right,
         }
-
-        const sourceNodes = nodes.filter((n) => !hasIncoming.has(n.id))
-        const sinkNodes = nodes.filter((n) => !hasOutgoing.has(n.id))
-        const inferredPinNodeId =
-            sourceNodes.length === 1
-                ? sourceNodes[0].id
-                : sinkNodes.length === 1
-                  ? sinkNodes[0].id
-                  : undefined
 
         const generator = d3Sankey<SankeyLayoutNode, SankeyLink>()
             .nodeId((d) => d.id)
-            .nodeWidth(effectiveNodeWidth)
+            .nodeWidth(nodeWidth)
             .nodePadding(nodePadding)
-            // Sort within each column by input order so the caller controls
-            // vertical placement (e.g. by inserting "Other" buckets last).
-            // Default behaviour minimizes link crossings, which is unhelpful
-            // for one-to-many fan-out shapes.
-            .nodeSort(null)
+            .nodeSort(null) // Sort by input order
             .extent([
-                [finalMargin.left, finalMargin.top],
-                [width - finalMargin.right, height - finalMargin.bottom],
+                [resolvedMargin.left, resolvedMargin.top],
+                [width - resolvedMargin.right, height - resolvedMargin.bottom],
             ])
-        if (topAnchored) generator.iterations(0)
+            .iterations(topAnchored ? 0 : 32) // Skip relaxation if top-anchored
 
+        // Shallow-clone nodes and links because d3 mutates its input
         const result = generator({
-            nodes: nodes.map(({ id, label }) => ({ id, label })),
-            links: links.map((d) => ({ ...d })),
+            nodes: nodes.map((n) => ({ ...n })),
+            links: links.map((l) => ({ ...l })),
         })
 
-        // In topAnchored mode, pin a uniquely identifiable edge-column node
-        // to the top of its column by shifting it (and touching link
-        // endpoints) up by however much d3-sankey pushed it down.
-        if (topAnchored && inferredPinNodeId) {
-            const node = result.nodes.find((n) => n.id === inferredPinNodeId)
+        // Pin the named node to the top of its column by shifting it
+        // (and its connected link endpoints) up by however much
+        // d3-sankey pushed it down.
+        if (topAnchored) {
+            // Pinning only makes sense when there's a single source or target node
+            const pinnedNodeId =
+                sourceNodes.length === 1
+                    ? sourceNodes[0].id
+                    : targetNodes.length === 1
+                      ? targetNodes[0].id
+                      : undefined
+
+            const node = result.nodes.find((n) => n.id === pinnedNodeId)
             if (
                 node &&
                 node.y0 !== undefined &&
                 node.y1 !== undefined &&
-                node.y0 > finalMargin.top
+                node.y0 > resolvedMargin.top
             ) {
-                const delta = node.y0 - finalMargin.top
-                node.y0 -= delta
-                node.y1 -= delta
-                for (const link of node.targetLinks ?? []) {
-                    if (link.y1 !== undefined) link.y1 -= delta
-                }
-                for (const link of node.sourceLinks ?? []) {
-                    if (link.y0 !== undefined) link.y0 -= delta
-                }
+                const dy = resolvedMargin.top - node.y0
+                shiftNodeVertically(node, dy)
             }
         }
 
@@ -192,17 +186,27 @@ export function Sankey({
         links,
         width,
         height,
-        effectiveNodeWidth,
+        nodeWidth,
         nodePadding,
         margin,
         topAnchored,
         innerMargin,
+        fontSettings,
     ])
 
-    if (!layout) return null
-
     const linkPath = sankeyLinkHorizontal<SankeyNode, SankeyLink>()
-    const midX = width / 2
+
+    const labels = useMemo<PreparedSankeyLabel[]>(
+        () =>
+            prepareSankeyLabels({
+                layout,
+                nodePadding,
+                fontSettings,
+            }),
+        [layout, nodePadding, fontSettings]
+    )
+
+    if (!layout) return null
 
     return (
         <svg
@@ -212,116 +216,222 @@ export function Sankey({
             viewBox={`0 0 ${width} ${height}`}
         >
             <g className="sankey__links">
-                {layout.links.map((link, i) => {
-                    const path = linkPath(link)
-                    if (!path) return null
-                    const color = linkColor?.(linkOriginal(link)) ?? "#888"
-                    return (
-                        <path
-                            key={i}
-                            className="sankey__link"
-                            d={path}
-                            stroke={color}
-                            strokeWidth={Math.max(1, link.width ?? 0)}
-                        />
-                    )
-                })}
+                {layout.links.map((link, i) => (
+                    <SankeyLink
+                        key={i}
+                        link={link}
+                        linkPath={linkPath}
+                        linkColor={linkColor}
+                    />
+                ))}
             </g>
             <g className="sankey__nodes">
-                {layout.nodes.map((node) => {
-                    const fill =
-                        nodeColor?.(nodeOriginal(node, nodeById)) ?? "#444"
-                    const x0 = node.x0 ?? 0
-                    const x1 = node.x1 ?? 0
-                    const y0 = node.y0 ?? 0
-                    const y1 = node.y1 ?? 0
-                    const h = Math.max(0, y1 - y0)
-                    if (bandWidth > 0) {
-                        // Render a single band anchored to the node's outer
-                        // edge (away from the chart's center); the rest of
-                        // [x0, x1] is whitespace separating the band from
-                        // the flow path that emerges at x1 / x0.
-                        const isLeftSide = (x0 + x1) / 2 < midX
-                        const bandX = isLeftSide ? x0 : x1 - bandWidth
-                        return (
-                            <rect
-                                key={node.id}
-                                className="sankey__node"
-                                x={bandX}
-                                y={y0}
-                                width={bandWidth}
-                                height={h}
-                                fill={fill}
-                            />
-                        )
-                    }
-                    return (
-                        <rect
-                            key={node.id}
-                            className="sankey__node"
-                            x={x0}
-                            y={y0}
-                            width={x1 - x0}
-                            height={h}
-                            fill={fill}
-                        />
-                    )
-                })}
+                {layout.nodes.map((node) => (
+                    <SankeyNode
+                        key={node.id}
+                        node={node}
+                        bandWidth={bandWidth}
+                        nodeColor={nodeColor}
+                    />
+                ))}
             </g>
             <g className="sankey__labels">
-                {layout.nodes.map((node) => {
-                    const n = node as SankeyLayoutNode & LaidOutNode
-                    const original = nodeById.get(n.id)
-                    const lines = [
-                        original?.label ?? n.label,
-                        original?.value,
-                    ].filter(Boolean)
-                    if (lines.length === 0) return null
-                    const x0 = node.x0 ?? 0
-                    const x1 = node.x1 ?? 0
-                    const y0 = node.y0 ?? 0
-                    const y1 = node.y1 ?? 0
-                    const nodeHeight = y1 - y0
-                    const isLeftSide = (x0 + x1) / 2 < midX
-                    const labelX = isLeftSide
-                        ? x0 - LABEL_OFFSET
-                        : x1 + LABEL_OFFSET
-                    const labelY = (y0 + y1) / 2
-                    // Stack multi-line labels only when the node is tall enough.
-                    // Otherwise drop the secondary lines and keep just the
-                    // primary one — clearer than crowding lines into a node.
-                    const fitsStacked =
-                        nodeHeight >=
-                        lines.length * LABEL_LINE_HEIGHT_PX -
-                            LABEL_STACK_TOLERANCE_PX
-                    const visibleLines = fitsStacked ? lines : [lines[0]]
-                    return (
-                        <text
-                            key={node.id}
-                            className="sankey__label"
-                            y={labelY}
-                            textAnchor={isLeftSide ? "end" : "start"}
-                            dominantBaseline="central"
-                        >
-                            {visibleLines.map((line, i) => (
-                                <tspan
-                                    key={i}
-                                    x={labelX}
-                                    dy={
-                                        i === 0
-                                            ? `${-(visibleLines.length - 1) * 0.6}em`
-                                            : "1.2em"
-                                    }
-                                >
-                                    {line}
-                                </tspan>
-                            ))}
-                        </text>
-                    )
-                })}
+                {labels.map((label, i) => (
+                    <SankeyLabel key={i} label={label} />
+                ))}
             </g>
         </svg>
     )
+}
+
+function SankeyLink({
+    link,
+    linkPath,
+    linkColor,
+}: {
+    link: LaidOutLink
+    linkPath: (link: LaidOutLink) => string | null
+    linkColor?: (link: SankeyLink) => string
+}): React.ReactElement | null {
+    const path = linkPath(link)
+    if (!path) return null
+
+    const color = linkColor?.(toLinkData(link)) ?? GRAPHER_DENIM
+    const width = Math.max(0.5, link.width ?? 0)
+
+    return (
+        <path
+            className="sankey__link"
+            d={path}
+            stroke={color}
+            strokeWidth={width}
+        />
+    )
+}
+
+function SankeyNode({
+    node,
+    bandWidth,
+    nodeColor,
+}: {
+    node: LaidOutNode
+    bandWidth: number
+    nodeColor?: (node: SankeyNode) => string
+}): React.ReactElement {
+    const x0 = node.x0 ?? 0
+    const x1 = node.x1 ?? 0
+    const y0 = node.y0 ?? 0
+    const y1 = node.y1 ?? 0
+    const h = Math.max(0, y1 - y0)
+
+    const isLeftSide = isNodeOnLeftSide(node)
+    const x = isLeftSide ? x0 : x1 - bandWidth
+
+    const fill = nodeColor?.(node) ?? GRAPHER_DENIM
+
+    return (
+        <rect
+            className="sankey__node"
+            x={x}
+            y={y0}
+            width={bandWidth}
+            height={h}
+            fill={fill}
+        />
+    )
+}
+
+function SankeyLabel({
+    label,
+}: {
+    label: PreparedSankeyLabel
+}): React.ReactElement {
+    if (label.valueLabel) {
+        const labelY =
+            label.y - 0.5 * label.label.height - 0.5 * VALUE_LABEL_GAP
+        const valueLabelY = labelY + label.label.height + VALUE_LABEL_GAP
+
+        return (
+            <>
+                <TextWrapSvg
+                    textWrap={label.label}
+                    x={label.x}
+                    y={labelY}
+                    textAnchor={label.textAnchor}
+                    fill={GRAPHER_DARK_TEXT}
+                />
+                <TextWrapSvg
+                    textWrap={label.valueLabel}
+                    x={label.x}
+                    y={valueLabelY}
+                    textAnchor={label.textAnchor}
+                    fill={GRAPHER_LIGHT_TEXT}
+                />
+            </>
+        )
+    }
+
+    return (
+        <TextWrapSvg
+            textWrap={label.label}
+            x={label.x}
+            y={label.y}
+            textAnchor={label.textAnchor}
+            fill={GRAPHER_DARK_TEXT}
+        />
+    )
+}
+
+function prepareSankeyLabels({
+    layout,
+    nodePadding,
+    fontSettings,
+}: {
+    layout: LaidOutGraph | null
+    nodePadding: number
+    fontSettings: FontSettings
+}): PreparedSankeyLabel[] {
+    if (!layout) return []
+
+    return layout.nodes.flatMap((node) => {
+        const { label, valueLabel } = node
+
+        const x0 = node.x0 ?? 0
+        const x1 = node.x1 ?? 0
+        const y0 = node.y0 ?? 0
+        const y1 = node.y1 ?? 0
+        const nodeHeight = y1 - y0
+
+        const isLeftSide = isNodeOnLeftSide(node)
+        const x = isLeftSide ? x0 - BAND_LABEL_GAP : x1 + BAND_LABEL_GAP
+        const y = (y0 + y1) / 2
+        const textAnchor = isLeftSide ? "end" : "start"
+
+        const labelTextWrap = new TextWrap({
+            ...fontSettings,
+            text: label,
+            maxWidth: Infinity,
+            verticalAlign: VerticalAlign.middle,
+            fontWeight: 700,
+        })
+
+        if (valueLabel) {
+            const valueLabelTextWrap = new TextWrap({
+                ...fontSettings,
+                text: valueLabel,
+                maxWidth: Infinity,
+                verticalAlign: VerticalAlign.middle,
+            })
+
+            const totalLabelHeight =
+                labelTextWrap.height +
+                valueLabelTextWrap.height +
+                VALUE_LABEL_GAP
+
+            const nodeHeightWithPadding = nodeHeight + nodePadding
+            const shouldShowValueLabel =
+                nodeHeightWithPadding >= totalLabelHeight
+
+            return [
+                {
+                    x,
+                    y,
+                    textAnchor,
+                    label: labelTextWrap,
+                    valueLabel: shouldShowValueLabel
+                        ? valueLabelTextWrap
+                        : undefined,
+                },
+            ]
+        } else {
+            return [
+                {
+                    x,
+                    y,
+                    textAnchor,
+                    label: labelTextWrap,
+                },
+            ]
+        }
+    })
+}
+
+function shiftNodeVertically(node: LaidOutNode, dy: number): void {
+    // Update node position
+    node.y0 = (node.y0 ?? 0) + dy
+    node.y1 = (node.y1 ?? 0) + dy
+
+    // Update connected link endpoints
+    for (const link of node.targetLinks ?? []) {
+        if (link.y1 !== undefined) link.y1 += dy
+    }
+    for (const link of node.sourceLinks ?? []) {
+        if (link.y0 !== undefined) link.y0 += dy
+    }
+}
+
+function isNodeOnLeftSide(node: LaidOutNode): boolean {
+    return (node.depth ?? 0) <= (node.height ?? 0)
 }
 
 function nodeId(
@@ -332,15 +442,7 @@ function nodeId(
     return (endpoint as SankeyLayoutNode).id
 }
 
-function nodeOriginal(
-    node: LaidOutNode,
-    nodeById: Map<string, SankeyNode>
-): SankeyNode {
-    const n = node as SankeyLayoutNode & LaidOutNode
-    return nodeById.get(n.id) ?? { id: n.id, label: n.label }
-}
-
-function linkOriginal(link: LaidOutLink): SankeyLink {
+function toLinkData(link: LaidOutLink): SankeyLink {
     const l = link as SankeyLink & LaidOutLink
     return {
         source: nodeId(link.source),
@@ -349,20 +451,25 @@ function linkOriginal(link: LaidOutLink): SankeyLink {
     }
 }
 
-export function measureMaxLabelWidth(label: SankeyNode["label"]): number {
-    return new TextWrap({
-        text: label,
-        fontSize: LABEL_FONT_SIZE_PX,
-        maxWidth: Infinity,
-    }).width
+const measureMaxLabelWidth = (
+    nodes: SankeyNode[],
+    fontSettings: FontSettings
+): number =>
+    Math.max(
+        0,
+        ...nodes.map((n) => measureMaxLabelWidthForNode(n, fontSettings))
+    )
+
+export function measureMaxLabelWidthForNode(
+    node: SankeyNode,
+    fontSettings: FontSettings = DEFAULT_SANKEY_FONT_SETTINGS
+): number {
+    return Math.max(
+        textWidth(node.label, fontSettings),
+        node.valueLabel ? textWidth(node.valueLabel, fontSettings) : 0
+    )
 }
 
-export function measureNodeMaxTextWidth({
-    label,
-    value,
-}: Pick<SankeyNode, "label" | "value">): number {
-    return Math.max(
-        measureMaxLabelWidth(label),
-        value ? measureMaxLabelWidth(value) : 0
-    )
+function textWidth(text: string, fontSettings: FontSettings): number {
+    return Bounds.forText(text, fontSettings).width
 }

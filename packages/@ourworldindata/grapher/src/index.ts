@@ -42,6 +42,7 @@ export {
     DEFAULT_GRAPHER_BOUNDS_SQUARE,
     ADDITIONAL_REGION_DATA_PROVIDERS,
     type AdditionalRegionDataProvider,
+    type FontSettings,
 } from "./core/GrapherConstants"
 export { OWID_LOGO_SVG, OWID_WORDMARK_SVG } from "./captionedChart/LogosSVG.js"
 export {
@@ -51,7 +52,12 @@ export {
 export { ColorScale } from "./color/ColorScale"
 export { ColorScaleConfig } from "./color/ColorScaleConfig"
 export { ColorScheme } from "./color/ColorScheme"
-export { GRAPHER_BACKGROUND } from "./color/ColorConstants"
+export {
+    GRAPHER_BACKGROUND,
+    GRAPHER_DENIM,
+    GRAPHER_DARK_TEXT,
+    GRAPHER_LIGHT_TEXT,
+} from "./color/ColorConstants"
 export { darkenColorForText } from "./color/ColorUtils"
 export {
     getColorNameOwidDistinctAndSemanticPalettes,
