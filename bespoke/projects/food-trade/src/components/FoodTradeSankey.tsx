@@ -14,9 +14,6 @@ import {
 import { TradeRow } from "../data.js"
 
 export const TOP_N = 10
-// "All" modes (aggregated across products) yield flatter distributions where
-// the long tail is more informative, so we allow a few more flows.
-export const TOP_N_FOR_ALL = 15
 // Importers below this share of the total are bucketed into "Other" instead of
 // being shown individually, even if they fall within the top N.
 const SHARE_FLOOR = 0.01
@@ -55,8 +52,6 @@ export function FoodTradeSankey({
     country,
     incomingTotal,
     outgoingTotal,
-    groupBy = "country",
-    topN = TOP_N,
 }: {
     incoming: TradeRow[]
     outgoing: TradeRow[]
@@ -64,28 +59,19 @@ export function FoodTradeSankey({
     /** Pre-computed totals used in the column headers. */
     incomingTotal: number
     outgoingTotal: number
-    /** Whether the side flows are aggregated by trading partner (country) or
-     * by item (product). */
-    groupBy?: "country" | "product"
-    /** Max nodes per side before bucketing into "Other". */
-    topN?: number
 }) {
-    const incomingKey = groupBy === "product" ? "item" : "exporter"
-    const outgoingKey = groupBy === "product" ? "item" : "importer"
     // Prose column headers that together read as one sentence:
     // "{country} imports X tonnes" + "and exports Y tonnes".
     const importsHeader = `${country} imports ${formatTrade(incomingTotal)}`
     const exportsHeader = `and exports ${formatTrade(outgoingTotal)}`
 
     const incomingBuild = useMemo(
-        () =>
-            buildIncoming(incoming, country, incomingKey, topN, importsHeader),
-        [incoming, country, incomingKey, topN, importsHeader]
+        () => buildIncoming(incoming, country, TOP_N, importsHeader),
+        [incoming, country, importsHeader]
     )
     const outgoingBuild = useMemo(
-        () =>
-            buildOutgoing(outgoing, country, outgoingKey, topN, exportsHeader),
-        [outgoing, country, outgoingKey, topN, exportsHeader]
+        () => buildOutgoing(outgoing, country, TOP_N, exportsHeader),
+        [outgoing, country, exportsHeader]
     )
 
     return (
@@ -191,7 +177,7 @@ type PartnerRow = { partner: string; value: number }
 // distributions so we never show nothing.
 function selectTopWithFloor(
     rows: TradeRow[],
-    partnerKey: "exporter" | "importer" | "item",
+    partnerKey: "exporter" | "importer",
     n: number
 ): { top: PartnerRow[]; otherTotal: number; total: number } {
     const totals = new Map<string, number>()
@@ -227,11 +213,10 @@ function makeValueLabel(value: number, sideTotal: number): string {
 function buildIncoming(
     rows: TradeRow[],
     country: string,
-    key: "exporter" | "item",
     n: number,
     header: string
 ): SankeyBuild | null {
-    const sel = selectTopWithFloor(rows, key, n)
+    const sel = selectTopWithFloor(rows, "exporter", n)
     if (sel.top.length === 0) return null
 
     const nodes: SankeyNode[] = []
@@ -270,11 +255,10 @@ function buildIncoming(
 function buildOutgoing(
     rows: TradeRow[],
     country: string,
-    key: "importer" | "item",
     n: number,
     header: string
 ): SankeyBuild | null {
-    const sel = selectTopWithFloor(rows, key, n)
+    const sel = selectTopWithFloor(rows, "importer", n)
     if (sel.top.length === 0) return null
 
     const nodes: SankeyNode[] = []

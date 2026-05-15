@@ -15,8 +15,6 @@ import {
     FoodTradeBilateralSankey,
     FoodTradeSankey,
     formatTrade,
-    TOP_N,
-    TOP_N_FOR_ALL,
 } from "../components/FoodTradeSankey.js"
 import { useContainerWidth } from "../../../../hooks/useContainerWidth.js"
 import {
@@ -29,14 +27,6 @@ const DATA_YEAR = 2024
 
 const DEFAULT_PRODUCT = "Maize (corn)"
 const DEFAULT_COUNTRY = "United Kingdom"
-
-// Sentinel options for the product dropdown.
-// "All, by country" — aggregate every product, show country-to-country flows.
-// "All, by product" — aggregate every product, show product flows for the
-//   selected country (countries are aggregated away).
-const ALL_BY_COUNTRY = "All, by country"
-const ALL_BY_PRODUCT = "All, by product"
-const isAllProduct = (p: string) => p === ALL_BY_COUNTRY || p === ALL_BY_PRODUCT
 
 // Sentinel for the country dropdown: shows global bilateral trade for the
 // selected product (no central country anchor).
@@ -58,10 +48,10 @@ export function MainVariant() {
 function FetchingMainVariant() {
     const { data, status, error } = useTradeData()
 
-    const products = useMemo(() => {
-        const items = Array.from(new Set(data?.map((d) => d.item) ?? [])).sort()
-        return [ALL_BY_COUNTRY, ALL_BY_PRODUCT, ...items]
-    }, [data])
+    const products = useMemo(
+        () => Array.from(new Set(data?.map((d) => d.item) ?? [])).sort(),
+        [data]
+    )
     // Union of every country that ever appears on either side of a trade row,
     // so importer-only and exporter-only countries both show up in the picker.
     const countries = useMemo(() => {
@@ -79,27 +69,18 @@ function FetchingMainVariant() {
 
     const incoming = useMemo(() => {
         if (!data || isAllCountry(country)) return []
-        return data.filter(
-            (d) =>
-                (isAllProduct(product) || d.item === product) &&
-                d.importer === country
-        )
+        return data.filter((d) => d.item === product && d.importer === country)
     }, [data, product, country])
 
     const outgoing = useMemo(() => {
         if (!data || isAllCountry(country)) return []
-        return data.filter(
-            (d) =>
-                (isAllProduct(product) || d.item === product) &&
-                d.exporter === country
-        )
+        return data.filter((d) => d.item === product && d.exporter === country)
     }, [data, product, country])
 
     // Bilateral mode: every row for the selected product, no country filter.
-    // Only computed when the user has picked "All countries" + a specific
-    // product (the All-country + All-product combination has no chart).
+    // Only computed when the user has picked "All countries".
     const bilateral = useMemo(() => {
-        if (!data || !isAllCountry(country) || isAllProduct(product)) return []
+        if (!data || !isAllCountry(country)) return []
         return data.filter((d) => d.item === product)
     }, [data, product, country])
 
@@ -156,27 +137,17 @@ function CaptionedMainVariant({
         [bilateral]
     )
 
-    const productNoun = isAllProduct(product) ? "food" : product
-    const titleSubject = isAllProduct(product) ? "Food" : product
-
-    // Three modes:
-    //   blocked   — All countries + an All-product mode; no useful Sankey
+    // Two modes:
     //   bilateral — All countries + a specific product; 2-column trade flow
     //   centered  — a specific country (existing 3-column behaviour)
-    const mode: "blocked" | "bilateral" | "centered" =
-        isAllCountry(country) && isAllProduct(product)
-            ? "blocked"
-            : isAllCountry(country)
-              ? "bilateral"
-              : "centered"
-
-    const groupBy: "country" | "product" =
-        product === ALL_BY_PRODUCT ? "product" : "country"
+    const mode: "bilateral" | "centered" = isAllCountry(country)
+        ? "bilateral"
+        : "centered"
 
     const title =
         mode === "centered"
-            ? `${titleSubject} trade through ${country} in ${DATA_YEAR}`
-            : `Global ${productNoun} trade in ${DATA_YEAR}`
+            ? `${product} trade through ${country} in ${DATA_YEAR}`
+            : `Global ${product} trade in ${DATA_YEAR}`
 
     const hasCenteredData = incoming.length > 0 || outgoing.length > 0
     const hasBilateralData = bilateral.length > 0
@@ -211,29 +182,25 @@ function CaptionedMainVariant({
                         mode === "centered" ? (
                             <Subtitle
                                 country={country}
-                                productNoun={productNoun}
+                                product={product}
                                 incomingTotal={incomingTotal}
                                 outgoingTotal={outgoingTotal}
                             />
-                        ) : mode === "bilateral" && hasBilateralData ? (
+                        ) : hasBilateralData ? (
                             <>
-                                {formatTrade(bilateralTotal)} of {productNoun}{" "}
-                                was traded globally in {DATA_YEAR}.
+                                {formatTrade(bilateralTotal)} of {product} was
+                                traded globally in {DATA_YEAR}.
                             </>
                         ) : null
                     }
                 />
                 <div className="food-trade-captioned-chart__chart-area">
-                    {mode === "blocked" ? (
-                        <p className="food-trade-captioned-chart__empty">
-                            Pick a specific product to see global trade flows.
-                        </p>
-                    ) : mode === "bilateral" ? (
+                    {mode === "bilateral" ? (
                         hasBilateralData ? (
                             <FoodTradeBilateralSankey rows={bilateral} />
                         ) : (
                             <p className="food-trade-captioned-chart__empty">
-                                No {DATA_YEAR} trade of {productNoun} recorded.
+                                No {DATA_YEAR} trade of {product} recorded.
                             </p>
                         )
                     ) : hasCenteredData ? (
@@ -243,12 +210,10 @@ function CaptionedMainVariant({
                             country={country}
                             incomingTotal={incomingTotal}
                             outgoingTotal={outgoingTotal}
-                            groupBy={groupBy}
-                            topN={isAllProduct(product) ? TOP_N_FOR_ALL : TOP_N}
                         />
                     ) : (
                         <p className="food-trade-captioned-chart__empty">
-                            No {DATA_YEAR} trade of {productNoun} for {country}{" "}
+                            No {DATA_YEAR} trade of {product} for {country}{" "}
                             recorded.
                         </p>
                     )}
@@ -261,19 +226,19 @@ function CaptionedMainVariant({
 
 function Subtitle({
     country,
-    productNoun,
+    product,
     incomingTotal,
     outgoingTotal,
 }: {
     country: string
-    productNoun: string
+    product: string
     incomingTotal: number
     outgoingTotal: number
 }) {
     if (incomingTotal === 0 && outgoingTotal === 0) {
         return (
             <>
-                {country} did not trade {productNoun} in {DATA_YEAR}.
+                {country} did not trade {product} in {DATA_YEAR}.
             </>
         )
     }
@@ -281,21 +246,21 @@ function Subtitle({
         return (
             <>
                 {country} imported {formatTrade(incomingTotal)} and exported{" "}
-                {formatTrade(outgoingTotal)} of {productNoun} in {DATA_YEAR}.
+                {formatTrade(outgoingTotal)} of {product} in {DATA_YEAR}.
             </>
         )
     }
     if (incomingTotal > 0) {
         return (
             <>
-                {country} imported {formatTrade(incomingTotal)} of {productNoun}{" "}
-                in {DATA_YEAR}.
+                {country} imported {formatTrade(incomingTotal)} of {product} in{" "}
+                {DATA_YEAR}.
             </>
         )
     }
     return (
         <>
-            {country} exported {formatTrade(outgoingTotal)} of {productNoun} in{" "}
+            {country} exported {formatTrade(outgoingTotal)} of {product} in{" "}
             {DATA_YEAR}.
         </>
     )
