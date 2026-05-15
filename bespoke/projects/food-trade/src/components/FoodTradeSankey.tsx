@@ -2,8 +2,11 @@ import { useMemo } from "react"
 import { useParentSize } from "@visx/responsive"
 
 import { formatValue } from "@ourworldindata/utils"
-import { OwidVariableRoundingMode } from "@ourworldindata/types"
-import { OwidDistinctColors } from "@ourworldindata/grapher/src/color/CustomSchemes.js"
+import {
+    ColorSchemeName,
+    OwidVariableRoundingMode,
+} from "@ourworldindata/types"
+import { ColorSchemes } from "@ourworldindata/grapher/src/color/ColorSchemes.js"
 
 import {
     Sankey,
@@ -17,7 +20,33 @@ export const TOP_N = 10
 // Importers below this share of the total are bucketed into "Other" instead of
 // being shown individually, even if they fall within the top N.
 const SHARE_FLOOR = 0.01
-const SOURCE_COLOR = OwidDistinctColors.Denim
+// Used for the central country only; the "Other" bucket gets a regular
+// palette slot like any other partner.
+const NEUTRAL_COLOR = "#767676"
+// Sentinel key in the color map so the "Other" bucket gets a stable palette
+// color, shared across the imports / exports halves and the bilateral view.
+const OTHER_KEY = "__other__"
+
+// Owid-distinct uses a 12-color permutation for ≤12 entities and a 24-color
+// one for >12, so picking the scheme's colors via getColors() gives us
+// whichever set fits our partner count without manual switching.
+const OWID_DISTINCT = ColorSchemes.get(ColorSchemeName["owid-distinct"])
+
+// Build a country → color map from the owid-distinct palette, assigned in
+// descending order of value (top-1 partner gets the first color, etc.).
+function buildCountryColorMap(
+    valueByCountry: Map<string, number>
+): Map<string, string> {
+    const sorted = Array.from(valueByCountry.entries()).sort(
+        (a, b) => b[1] - a[1]
+    )
+    const colors = OWID_DISTINCT.getColors(sorted.length)
+    const map = new Map<string, string>()
+    sorted.forEach(([countryName], i) => {
+        map.set(countryName, colors[i] ?? NEUTRAL_COLOR)
+    })
+    return map
+}
 // Long product or country names are truncated in node labels so they don't
 // blow up the auto-computed left/right margins. The full name is still
 // available via the link's hover tooltip.
@@ -74,6 +103,47 @@ export function FoodTradeSankey({
         [outgoing, country, exportsHeader]
     )
 
+    // Color partner countries by their combined visible value across both
+    // halves, so a country trading on both sides gets the same color in each.
+    const colorMap = useMemo(() => {
+        const valueByPartner = new Map<string, number>()
+        for (const link of incomingBuild?.links ?? []) {
+            const partner = partnerFromCenteredId(link.source)
+            if (partner !== null) {
+                valueByPartner.set(
+                    partner,
+                    (valueByPartner.get(partner) ?? 0) + link.value
+                )
+            }
+        }
+        for (const link of outgoingBuild?.links ?? []) {
+            const partner = partnerFromCenteredId(link.target)
+            if (partner !== null) {
+                valueByPartner.set(
+                    partner,
+                    (valueByPartner.get(partner) ?? 0) + link.value
+                )
+            }
+        }
+        return buildCountryColorMap(valueByPartner)
+    }, [incomingBuild, outgoingBuild])
+
+    const nodeColor = (node: SankeyNode): string => {
+        if (node.id === country) return NEUTRAL_COLOR
+        const partner = partnerFromCenteredId(node.id)
+        if (partner === null) return NEUTRAL_COLOR
+        return colorMap.get(partner) ?? NEUTRAL_COLOR
+    }
+
+    const linkColor = (link: SankeyLink): string => {
+        // Imports: partner is the source; exports: partner is the target.
+        const partner =
+            partnerFromCenteredId(link.source) ??
+            partnerFromCenteredId(link.target)
+        if (partner === null) return NEUTRAL_COLOR
+        return colorMap.get(partner) ?? NEUTRAL_COLOR
+    }
+
     return (
         <div className="food-trade-sankey food-trade-sankey--split">
             <HalfSankey
@@ -83,6 +153,8 @@ export function FoodTradeSankey({
                 emptySubtext="No imports recorded."
                 align="right"
                 pinNodeIdToTop={country}
+                nodeColor={nodeColor}
+                linkColor={linkColor}
             />
             <HalfSankey
                 build={outgoingBuild}
@@ -91,9 +163,22 @@ export function FoodTradeSankey({
                 emptySubtext="No exports recorded."
                 align="left"
                 pinNodeIdToTop={country}
+                nodeColor={nodeColor}
+                linkColor={linkColor}
             />
         </div>
     )
+}
+
+// Extract the partner key from a centered-Sankey node ID. Returns OTHER_KEY
+// for the two Other buckets so they're ranked alongside real partners.
+// Returns null for the central country (handled separately).
+function partnerFromCenteredId(id: string): string | null {
+    if (id === "__incoming-other__" || id === "__outgoing-other__")
+        return OTHER_KEY
+    if (id.startsWith("incoming:")) return id.slice("incoming:".length)
+    if (id.startsWith("outgoing:")) return id.slice("outgoing:".length)
+    return null
 }
 
 function HalfSankey({
@@ -103,6 +188,8 @@ function HalfSankey({
     emptySubtext,
     align,
     pinNodeIdToTop,
+    nodeColor,
+    linkColor,
 }: {
     build: SankeyBuild | null
     heading: string
@@ -110,6 +197,8 @@ function HalfSankey({
     emptySubtext: string
     align: "left" | "right"
     pinNodeIdToTop?: string
+    nodeColor: (node: SankeyNode) => string
+    linkColor: (link: SankeyLink) => string
 }) {
     return (
         <div
@@ -123,6 +212,8 @@ function HalfSankey({
                     <HalfSankeyChart
                         build={build}
                         pinNodeIdToTop={pinNodeIdToTop}
+                        nodeColor={nodeColor}
+                        linkColor={linkColor}
                     />
                 ) : (
                     <div className="food-trade-sankey__empty-subtext">
@@ -137,9 +228,13 @@ function HalfSankey({
 function HalfSankeyChart({
     build,
     pinNodeIdToTop,
+    nodeColor,
+    linkColor,
 }: {
     build: SankeyBuild
     pinNodeIdToTop?: string
+    nodeColor: (node: SankeyNode) => string
+    linkColor: (link: SankeyLink) => string
 }) {
     const { parentRef, width, height } = useParentSize()
     return (
@@ -153,8 +248,8 @@ function HalfSankeyChart({
                     margin={{ top: 0, right: 0, bottom: 8, left: 0 }}
                     nodePadding={12}
                     nodeOuterBand={{ bandWidth: 5, gapWidth: 5 }}
-                    nodeColor={() => SOURCE_COLOR}
-                    linkColor={() => SOURCE_COLOR}
+                    nodeColor={nodeColor}
+                    linkColor={linkColor}
                     formatValue={formatTrade}
                     // Skip d3-sankey relaxation so positions stay
                     // predictable (input order with proportional heights).
@@ -307,6 +402,37 @@ export function FoodTradeBilateralSankey({ rows }: { rows: TradeRow[] }) {
         [rows]
     )
 
+    // Only exporters carry color in this view; rank them by total flow out.
+    // Link source is always an exporter in the bilateral build.
+    const colorMap = useMemo(() => {
+        const valueByExporter = new Map<string, number>()
+        for (const link of links) {
+            const exporter = countryFromBilateralId(link.source)
+            if (exporter !== null) {
+                valueByExporter.set(
+                    exporter,
+                    (valueByExporter.get(exporter) ?? 0) + link.value
+                )
+            }
+        }
+        return buildCountryColorMap(valueByExporter)
+    }, [links])
+
+    const nodeColor = (node: SankeyNode): string => {
+        // Importer column (including its Other bucket) is uniformly gray.
+        if (node.id.startsWith("importer:")) return NEUTRAL_COLOR
+        const c = countryFromBilateralId(node.id)
+        return c === null ? NEUTRAL_COLOR : (colorMap.get(c) ?? NEUTRAL_COLOR)
+    }
+
+    const linkColor = (link: SankeyLink): string => {
+        // Color by source (exporter) — flows inherit the exporter's color.
+        const src = countryFromBilateralId(link.source)
+        return src === null
+            ? NEUTRAL_COLOR
+            : (colorMap.get(src) ?? NEUTRAL_COLOR)
+    }
+
     return (
         <div ref={parentRef} className="food-trade-sankey">
             {width > 0 && height > 0 && (
@@ -318,14 +444,23 @@ export function FoodTradeBilateralSankey({ rows }: { rows: TradeRow[] }) {
                     margin={{ top: 8, right: 0, bottom: 8, left: 0 }}
                     nodePadding={12}
                     nodeOuterBand={{ bandWidth: 5, gapWidth: 5 }}
-                    nodeColor={() => SOURCE_COLOR}
-                    linkColor={() => SOURCE_COLOR}
+                    nodeColor={nodeColor}
+                    linkColor={linkColor}
                     formatValue={formatTrade}
                     columnLabels={columnLabels}
                 />
             )}
         </div>
     )
+}
+
+// Extract the country key from a bilateral-Sankey node ID. Returns OTHER_KEY
+// for either Other bucket so they share one color across both sides.
+function countryFromBilateralId(id: string): string | null {
+    if (id === OTHER_EXPORTERS_ID || id === OTHER_IMPORTERS_ID) return OTHER_KEY
+    if (id.startsWith("exporter:")) return id.slice("exporter:".length)
+    if (id.startsWith("importer:")) return id.slice("importer:".length)
+    return null
 }
 
 function buildBilateral(
