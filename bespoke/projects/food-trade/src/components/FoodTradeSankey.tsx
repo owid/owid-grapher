@@ -9,6 +9,8 @@ import {
 import { ColorSchemes } from "@ourworldindata/grapher/src/color/ColorSchemes.js"
 
 import {
+    LABEL_OFFSET,
+    measureMaxLabelWidth,
     Sankey,
     SankeyLink,
     SankeyNode,
@@ -164,6 +166,19 @@ export function FoodTradeSankey({
 
     const isSingleHalf = view !== "both"
 
+    // Equalize outer label margins across the two halves so the inner flow
+    // regions end up the same width even if importer/receiver label widths
+    // differ. Only applies in the both-halves view; single-half views use
+    // each Sankey's natural auto-computed margin.
+    const sharedOuterMargin = useMemo(() => {
+        if (isSingleHalf || !incomingBuild || !outgoingBuild) return undefined
+        const max = Math.max(
+            maxLabelWidthForBuild(incomingBuild),
+            maxLabelWidthForBuild(outgoingBuild)
+        )
+        return max > 0 ? max + LABEL_OFFSET : undefined
+    }, [isSingleHalf, incomingBuild, outgoingBuild])
+
     return (
         <div
             className={`food-trade-sankey food-trade-sankey--split${
@@ -180,6 +195,7 @@ export function FoodTradeSankey({
                     pinNodeIdToTop={country}
                     nodeColor={nodeColor}
                     linkColor={linkColor}
+                    minLeftMargin={sharedOuterMargin}
                 />
             )}
             {showExports && (
@@ -192,10 +208,18 @@ export function FoodTradeSankey({
                     pinNodeIdToTop={country}
                     nodeColor={nodeColor}
                     linkColor={linkColor}
+                    minRightMargin={sharedOuterMargin}
                 />
             )}
         </div>
     )
+}
+
+// Largest label-pixel-width across all nodes in a half-Sankey build. The
+// inner-column country node carries an empty label and contributes 0, so it
+// doesn't pollute the max.
+function maxLabelWidthForBuild(build: SankeyBuild): number {
+    return Math.max(0, ...build.nodes.map((n) => measureMaxLabelWidth(n.label)))
 }
 
 // Extract the partner key from a centered-Sankey node ID. Returns OTHER_KEY
@@ -218,6 +242,8 @@ function HalfSankey({
     pinNodeIdToTop,
     nodeColor,
     linkColor,
+    minLeftMargin,
+    minRightMargin,
 }: {
     build: SankeyBuild | null
     heading: string
@@ -227,6 +253,8 @@ function HalfSankey({
     pinNodeIdToTop?: string
     nodeColor: (node: SankeyNode) => string
     linkColor: (link: SankeyLink) => string
+    minLeftMargin?: number
+    minRightMargin?: number
 }) {
     return (
         <div
@@ -242,6 +270,8 @@ function HalfSankey({
                         pinNodeIdToTop={pinNodeIdToTop}
                         nodeColor={nodeColor}
                         linkColor={linkColor}
+                        minLeftMargin={minLeftMargin}
+                        minRightMargin={minRightMargin}
                     />
                 ) : (
                     <div className="food-trade-sankey__empty-subtext">
@@ -258,11 +288,15 @@ function HalfSankeyChart({
     pinNodeIdToTop,
     nodeColor,
     linkColor,
+    minLeftMargin,
+    minRightMargin,
 }: {
     build: SankeyBuild
     pinNodeIdToTop?: string
     nodeColor: (node: SankeyNode) => string
     linkColor: (link: SankeyLink) => string
+    minLeftMargin?: number
+    minRightMargin?: number
 }) {
     const { parentRef, width, height } = useParentSize()
     return (
@@ -278,6 +312,8 @@ function HalfSankeyChart({
                     nodeOuterBand={{ bandWidth: 5, gapWidth: 5 }}
                     nodeColor={nodeColor}
                     linkColor={linkColor}
+                    minLeftMargin={minLeftMargin}
+                    minRightMargin={minRightMargin}
                     formatValue={formatTrade}
                     // Skip d3-sankey relaxation so positions stay
                     // predictable (input order with proportional heights).

@@ -33,12 +33,12 @@ const LABEL_FONT_SIZE_PX = 12
 // cramped labels on borderline nodes.
 const LABEL_STACK_TOLERANCE_PX = 4
 // Horizontal gap between a node's edge and its label.
-const LABEL_OFFSET = 6
+export const LABEL_OFFSET = 6
 // Vertical strip reserved above the chart for column header labels, when any
 // are provided.
 const COLUMN_LABEL_HEIGHT_PX = 20
 
-function measureMaxLabelWidth(label: SankeyNode["label"]): number {
+export function measureMaxLabelWidth(label: SankeyNode["label"]): number {
     const lines = (Array.isArray(label) ? label : label ? [label] : []).filter(
         Boolean
     )
@@ -97,6 +97,13 @@ export type SankeyProps = {
      * picks a side from the node's midpoint, which may not be intended.
      */
     nodeOuterBand?: { bandWidth: number; gapWidth: number }
+    /**
+     * Floor for the auto-computed left/right label margin. Use this to
+     * coordinate label-area widths across multiple Sankeys rendered side
+     * by side, so their inner flow regions end up the same width.
+     */
+    minLeftMargin?: number
+    minRightMargin?: number
 }
 
 type LaidOutGraph = SankeyGraph<SankeyNode, SankeyLink>
@@ -118,6 +125,8 @@ export function Sankey({
     iterations,
     pinNodeIdToTop,
     nodeOuterBand,
+    minLeftMargin,
+    minRightMargin,
 }: SankeyProps): React.ReactElement | null {
     const hasColumnLabels = columnLabels?.some(Boolean) ?? false
     const columnLabelReservation = hasColumnLabels ? COLUMN_LABEL_HEIGHT_PX : 0
@@ -161,12 +170,16 @@ export function Sankey({
         const finalMargin = {
             top: margin.top + columnLabelReservation,
             bottom: margin.bottom,
-            left:
+            left: Math.max(
                 margin.left +
-                (leftLabelWidth > 0 ? leftLabelWidth + LABEL_OFFSET : 0),
-            right:
+                    (leftLabelWidth > 0 ? leftLabelWidth + LABEL_OFFSET : 0),
+                minLeftMargin ?? 0
+            ),
+            right: Math.max(
                 margin.right +
-                (rightLabelWidth > 0 ? rightLabelWidth + LABEL_OFFSET : 0),
+                    (rightLabelWidth > 0 ? rightLabelWidth + LABEL_OFFSET : 0),
+                minRightMargin ?? 0
+            ),
         }
 
         const generator = d3Sankey<SankeyNode, SankeyLink>()
@@ -225,6 +238,8 @@ export function Sankey({
         columnLabelReservation,
         iterations,
         pinNodeIdToTop,
+        minLeftMargin,
+        minRightMargin,
     ])
 
     if (!layout) return null
