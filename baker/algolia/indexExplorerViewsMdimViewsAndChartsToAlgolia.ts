@@ -6,12 +6,15 @@ import * as Sentry from "@sentry/node"
 import * as db from "../../db/db.js"
 import { ALGOLIA_INDEXING } from "../../settings/serverSettings.js"
 import { getAlgoliaClient } from "./configureAlgolia.js"
+
 import {
     getExplorerViewRecords,
     scaleExplorerRecordScores,
 } from "./utils/explorerViews.js"
 import {
+    applyFMSourceBonus,
     createFeaturedMetricRecords,
+    getFeaturedMetricSlugs,
     MAX_NON_FM_RECORD_SCORE,
     scaleRecordScores,
     shrinkRecordsToFitAlgoliaLimit,
@@ -46,8 +49,12 @@ const indexExplorerViewsMdimViewsAndChartsToAlgolia = async () => {
                 skipGrapherViews: true,
                 baseContext,
             })
-            const mdimViews = await getMdimViewRecords(trx, { baseContext })
-            const grapherViews = await getChartsRecords(trx, { baseContext })
+            const mdimViews = await getMdimViewRecords(trx, {
+                baseContext,
+            })
+            const grapherViews = await getChartsRecords(trx, {
+                baseContext,
+            })
             // Scale grapher records and the default explorer views between 1000 and 10000,
             // Scale the remaining explorer views between 0 and 1000.
             // This is because Graphers are generally higher quality than Explorers and we don't want
@@ -62,11 +69,20 @@ const indexExplorerViewsMdimViewsAndChartsToAlgolia = async () => {
                 MAX_NON_FM_RECORD_SCORE,
             ])
 
-            const records = [
+            const scaledRecords = [
                 ...scaledGrapherViews,
                 ...scaledExplorerViews,
                 ...scaledMdimViews,
             ]
+
+            // Apply post-scaling adjustments. FM source bonus is a fixed
+            // +500 to any record whose specific view is a featured metric.
+            // boostInSearch overrides the score to 9500 for editorially
+            // pinned records. Order matters: boostInSearch should override
+            // the FM source bonus.
+            const fmSlugs = await getFeaturedMetricSlugs(trx)
+            const records = applyFMSourceBonus(scaledRecords, fmSlugs)
+
             const shrunkRecords = shrinkRecordsToFitAlgoliaLimit(records)
             const { records: featuredMetricRecords, failures } =
                 await createFeaturedMetricRecords(trx, shrunkRecords)

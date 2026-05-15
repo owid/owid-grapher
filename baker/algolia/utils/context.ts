@@ -1,7 +1,7 @@
 import * as db from "../../../db/db.js"
 import { ChartsIndexingContext, IndexingContext } from "@ourworldindata/types"
-import { getAnalyticsPageviewsByUrlObj } from "../../../db/model/Pageview.js"
 import { getChartRedirectSlugsByChartId } from "./charts.js"
+import { getAnalyticsChartViews } from "./pageviews.js"
 
 /**
  * Creates a base IndexingContext containing the shared enrichment data.
@@ -9,12 +9,12 @@ import { getChartRedirectSlugsByChartId } from "./charts.js"
 export async function createBaseIndexingContext(
     knex: db.KnexReadonlyTransaction
 ): Promise<IndexingContext> {
-    const [pageviews, topicHierarchies] = await Promise.all([
-        getAnalyticsPageviewsByUrlObj(knex),
+    const [views, topicHierarchies] = await Promise.all([
+        getAnalyticsChartViews(knex),
         db.getTopicHierarchiesByChildName(knex),
     ])
 
-    return { pageviews, topicHierarchies }
+    return { views, topicHierarchies }
 }
 
 /**

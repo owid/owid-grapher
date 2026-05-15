@@ -17,6 +17,7 @@ import { parseDelimited } from "@ourworldindata/core-table"
 import { toPlaintext } from "@ourworldindata/components"
 import {
     ColumnTypeNames,
+    ContentGraphLinkType,
     CoreRow,
     MinimalExplorerInfo,
     OwidColumnDef,
@@ -28,8 +29,12 @@ import {
 
 import * as db from "../../../db/db.js"
 import { DATA_API_URL } from "../../../settings/serverSettings.js"
-import { getUniqueNamesFromTagHierarchies } from "@ourworldindata/utils"
+import {
+    dimensionsToViewId,
+    getUniqueNamesFromTagHierarchies,
+} from "@ourworldindata/utils"
 import { createExplorersIndexingContext } from "./context.js"
+import { getExplorerViewConfigIds } from "./pageviews.js"
 import {
     CsvUnenrichedExplorerViewRecord,
     EnrichedExplorerRecord,
@@ -46,6 +51,7 @@ import {
     FinalizedExplorerRecord,
 } from "./types.js"
 import {
+    computeRecordScore,
     EMPTY_DATASET_CHART_RECORD_DIMENSIONS,
     MAX_NON_FM_RECORD_SCORE,
     maybeAddChangeInPrefix,
@@ -54,6 +60,7 @@ import {
     scaleRecordScores,
     uniqNonEmptyStrings,
 } from "./shared.js"
+import { getPublishedLinksTo } from "../../../db/model/Link.js"
 
 /**
  * Matches "duplicate 1234", to catch the (hacky) rows that are using the `duplicate` transformation to create
@@ -320,15 +327,6 @@ async function getEntitiesPerColumnPerTable(
     ).then((results) => Object.assign({}, ...results))
 }
 
-const computeExplorerViewScore = (record: {
-    views_7d: number
-    numNonDefaultSettings: number
-    titleLength: number
-}) =>
-    (record.views_7d || 0) * 10 -
-    record.numNonDefaultSettings * 50 -
-    record.titleLength
-
 const parseYVariableIds = (matrixRow: CoreRow): (string | number)[] => {
     return (
         matrixRow.yVariableIds
@@ -395,6 +393,7 @@ const createBaseRecord = (
         viewGrapherId,
         yVariableIds,
         viewQueryParams: matrix.toString(),
+        viewId: dimensionsToViewId(choice),
         viewIndexWithinExplorer: index,
         numNonDefaultSettings: nonDefaultSettings.length,
         tableSlug: matrix.selectedRow.tableSlug,
@@ -664,17 +663,20 @@ async function processAvailableEntities(
 async function finalizeRecords(
     records: EnrichedExplorerRecord[],
     slug: string,
-    pageviews: Record<string, { views_7d: number }>,
-    explorerInfo: MinimalExplorerInfo
+    views: Map<string, number>,
+    explorerViewConfigIds: Map<string, string>,
+    explorerInfo: MinimalExplorerInfo,
+    numRelatedArticles: number
 ): Promise<FinalizedExplorerRecord[]> {
     const withCleanSubtitles = processSubtitles(records)
 
     const withCleanEntities = await processAvailableEntities(withCleanSubtitles)
 
-    const withPageviews = withCleanEntities.map((record) => ({
-        ...record,
-        views_7d: _.get(pageviews, [`/explorers/${slug}`, "views_7d"], 0),
-    }))
+    const withPageviews = withCleanEntities.map((record) => {
+        const configId = explorerViewConfigIds.get(`${slug}:${record.viewId}`)
+        const views_7d = configId ? (views.get(configId) ?? 0) : 0
+        return { ...record, views_7d }
+    })
 
     const unsortedFinalRecords = withPageviews.map(
         (record, i) =>
@@ -688,7 +690,7 @@ async function finalizeRecords(
                 updatedAt: explorerInfo.updatedAt.toISOString(),
                 keyChartForTags: [],
                 numDimensions: record.yVariableIds.length,
-                numRelatedArticles: 0,
+                numRelatedArticles,
                 title: record.viewTitle as string,
                 containerTitle: explorerInfo.title,
                 subtitle: record.viewSubtitle!,
@@ -698,7 +700,11 @@ async function finalizeRecords(
                 tags: explorerInfo.tags,
                 objectID: `${explorerInfo.slug}-${i}`,
                 id: `explorer/${explorerInfo.slug}${record.viewQueryParams}`,
-                score: computeExplorerViewScore(record),
+                score: computeRecordScore(
+                    numRelatedArticles,
+                    record.views_7d,
+                    record.titleLength
+                ),
                 views_7d: record.views_7d,
                 availableEntities: record.availableEntities,
                 titleLength: record.titleLength,
@@ -712,11 +718,7 @@ async function finalizeRecords(
             }) as Omit<FinalizedExplorerRecord, "viewTitleIndexWithinExplorer">
     )
 
-    const sortedByScore = _.orderBy(
-        unsortedFinalRecords,
-        computeExplorerViewScore,
-        "desc"
-    ) as Omit<FinalizedExplorerRecord, "viewTitleIndexWithinExplorer">[]
+    const sortedByScore = _.orderBy(unsortedFinalRecords, "score", "desc")
 
     const groupedByTitle = _.groupBy(sortedByScore, "title")
 
@@ -734,7 +736,8 @@ async function finalizeRecords(
 export const getExplorerViewRecordsForExplorer = async (
     trx: db.KnexReadonlyTransaction,
     explorerInfo: MinimalExplorerInfo,
-    pageviews: Record<string, { views_7d: number }>,
+    views: Map<string, number>,
+    explorerViewConfigIds: Map<string, string>,
     explorerAdminServer: ExplorerAdminServer,
     skipGrapherViews: boolean
 ): Promise<FinalizedExplorerRecord[]> => {
@@ -819,8 +822,22 @@ export const getExplorerViewRecordsForExplorer = async (
         ...enrichedCsvRecords,
     ]
 
+    const linksFromGdocs = await getPublishedLinksTo(
+        trx,
+        [slug],
+        ContentGraphLinkType.Explorer
+    )
+    const numRelatedArticles = linksFromGdocs.length
+
     // Finalize records with titles, sorting, and grouping
-    return finalizeRecords(enrichedRecords, slug, pageviews, explorerInfo)
+    return finalizeRecords(
+        enrichedRecords,
+        slug,
+        views,
+        explorerViewConfigIds,
+        explorerInfo,
+        numRelatedArticles
+    )
 }
 
 async function getExplorersWithInheritedTags(
@@ -872,6 +889,8 @@ export const getExplorerViewRecords = async (
 
     const context = await createExplorersIndexingContext(trx, baseContext)
 
+    const explorerViewConfigIds = await getExplorerViewConfigIds(trx)
+
     const publishedExplorersWithTags = (
         await getExplorersWithInheritedTags(trx, context.topicHierarchies)
     ).filter((e) => slug === undefined || e.slug === slug)
@@ -884,7 +903,8 @@ export const getExplorerViewRecords = async (
             getExplorerViewRecordsForExplorer(
                 trx,
                 explorerInfo,
-                context.pageviews,
+                context.views,
+                explorerViewConfigIds,
                 explorerAdminServer,
                 skipGrapherViews
             ),
