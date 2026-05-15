@@ -18,9 +18,6 @@ const LABEL_FONT_SIZE_PX = 12
 const LABEL_STACK_TOLERANCE_PX = 4
 // Horizontal gap between a node's edge and its label.
 export const LABEL_OFFSET = 6
-// Vertical strip reserved above the chart for column header labels, when any
-// are provided.
-const COLUMN_LABEL_HEIGHT_PX = 20
 
 interface SankeyProps {
     nodes: SankeyNode[]
@@ -33,10 +30,6 @@ interface SankeyProps {
     margin?: Margin
     /** Floor for the inner padding that reserves space for labels */
     innerMargin?: Partial<Margin>
-    /** Label displayed above the source (leftmost) column */
-    sourceLabel?: string
-    /** Label displayed above the target (rightmost) column */
-    targetLabel?: string
     /**
      * Skip d3-sankey's vertical relaxation and pin the single source or
      * sink node (when there is exactly one) to the top of its column
@@ -78,8 +71,6 @@ export function Sankey({
     linkColor,
     margin = { top: 0, right: 0, bottom: 0, left: 0 },
     innerMargin,
-    sourceLabel,
-    targetLabel,
     topAnchored = false,
     nodePadding = 12,
     bandWidth = 4,
@@ -90,8 +81,6 @@ export function Sankey({
         [nodes]
     )
 
-    const hasColumnLabels = Boolean(sourceLabel || targetLabel)
-    const columnLabelReservation = hasColumnLabels ? COLUMN_LABEL_HEIGHT_PX : 0
     // d3-sankey treats the whole `bandWidth + bandFlowGap` strip as the
     // node width; we then render the visible band inside that strip and
     // leave `bandFlowGap` of whitespace between it and the flow path.
@@ -129,9 +118,7 @@ export function Sankey({
         )
 
         const finalMargin = {
-            top:
-                margin.top +
-                Math.max(columnLabelReservation, innerMargin?.top ?? 0),
+            top: margin.top + (innerMargin?.top ?? 0),
             bottom: margin.bottom + (innerMargin?.bottom ?? 0),
             left:
                 margin.left +
@@ -208,7 +195,6 @@ export function Sankey({
         effectiveNodeWidth,
         nodePadding,
         margin,
-        columnLabelReservation,
         topAnchored,
         innerMargin,
     ])
@@ -217,31 +203,6 @@ export function Sankey({
 
     const linkPath = sankeyLinkHorizontal<SankeyNode, SankeyLink>()
     const midX = width / 2
-    const columnLabelY = margin.top + COLUMN_LABEL_HEIGHT_PX / 2
-    // Identify the source (leftmost) and target (rightmost) columns from
-    // the laid-out depths.
-    const depths = layout.nodes.map((n) => n.depth ?? 0)
-    const sourceDepth = Math.min(...depths)
-    const targetDepth = Math.max(...depths)
-    const sourceNode = layout.nodes.find((n) => n.depth === sourceDepth)
-    const targetNode = layout.nodes.find((n) => n.depth === targetDepth)
-    // With BOTH labels set on a 2-column Sankey, flow-midpoint placement
-    // puts them at the same x and they overlap. Fall back to column-center
-    // placement in that case; with a single label, flow-midpoint reads
-    // better.
-    const useColumnCenter =
-        sourceDepth === targetDepth ||
-        (Boolean(sourceLabel) && Boolean(targetLabel))
-
-    // In flow-midpoint mode the two labels would coincide (same x), so
-    // we only get there when at most one label is set. Otherwise each
-    // label sits at the center of its own column.
-    const labelXFor = (node: LaidOutNode | undefined): number | undefined => {
-        if (!node) return undefined
-        if (useColumnCenter) return ((node.x0 ?? 0) + (node.x1 ?? 0)) / 2
-        if (!sourceNode || !targetNode) return undefined
-        return ((sourceNode.x1 ?? 0) + (targetNode.x0 ?? 0)) / 2
-    }
 
     return (
         <svg
@@ -250,20 +211,6 @@ export function Sankey({
             height={height}
             viewBox={`0 0 ${width} ${height}`}
         >
-            {hasColumnLabels && (
-                <g className="sankey__column-labels">
-                    <ColumnLabel
-                        text={sourceLabel}
-                        x={labelXFor(sourceNode)}
-                        y={columnLabelY}
-                    />
-                    <ColumnLabel
-                        text={targetLabel}
-                        x={labelXFor(targetNode)}
-                        y={columnLabelY}
-                    />
-                </g>
-            )}
             <g className="sankey__links">
                 {layout.links.map((link, i) => {
                     const path = linkPath(link)
@@ -374,29 +321,6 @@ export function Sankey({
                 })}
             </g>
         </svg>
-    )
-}
-
-function ColumnLabel({
-    text,
-    x,
-    y,
-}: {
-    text: string | undefined
-    x: number | undefined
-    y: number
-}): React.ReactElement | null {
-    if (!text || x === undefined) return null
-    return (
-        <text
-            className="sankey__column-label"
-            x={x}
-            y={y}
-            textAnchor="middle"
-            dominantBaseline="central"
-        >
-            {text}
-        </text>
     )
 }
 

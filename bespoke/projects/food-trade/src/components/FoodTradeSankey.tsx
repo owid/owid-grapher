@@ -74,8 +74,6 @@ const formatPct = (v: number) =>
 type SankeyBuild = {
     nodes: SankeyNode[]
     links: SankeyLink[]
-    sourceLabel?: string
-    targetLabel?: string
 }
 
 export function FoodTradeSankey({
@@ -109,18 +107,12 @@ export function FoodTradeSankey({
             : `${country} exports ${formatTrade(outgoingTotal)}`
 
     const incomingBuild = useMemo(
-        () =>
-            showImports
-                ? buildIncoming(incoming, country, TOP_N, importsHeader)
-                : null,
-        [showImports, incoming, country, importsHeader]
+        () => (showImports ? buildIncoming(incoming, country, TOP_N) : null),
+        [showImports, incoming, country]
     )
     const outgoingBuild = useMemo(
-        () =>
-            showExports
-                ? buildOutgoing(outgoing, country, TOP_N, exportsHeader)
-                : null,
-        [showExports, outgoing, country, exportsHeader]
+        () => (showExports ? buildOutgoing(outgoing, country, TOP_N) : null),
+        [showExports, outgoing, country]
     )
 
     // Color partner countries by their combined visible value across the
@@ -369,8 +361,7 @@ function makeValueLabel(value: number, sideTotal: number): string {
 function buildIncoming(
     rows: TradeRow[],
     country: string,
-    n: number,
-    header: string
+    n: number
 ): SankeyBuild | null {
     const sel = selectTopWithFloor(rows, "exporter", n)
     if (sel.top.length === 0) return null
@@ -398,19 +389,14 @@ function buildIncoming(
     // names it, and the right edge meets the export half's country rect.
     nodes.push({ id: country, label: "" })
 
-    return {
-        nodes,
-        links,
-        sourceLabel: header,
-    }
+    return { nodes, links }
 }
 
 // Build a 2-column Sankey for the exports side: country → receivers.
 function buildOutgoing(
     rows: TradeRow[],
     country: string,
-    n: number,
-    header: string
+    n: number
 ): SankeyBuild | null {
     const sel = selectTopWithFloor(rows, "importer", n)
     if (sel.top.length === 0) return null
@@ -435,11 +421,7 @@ function buildOutgoing(
         links.push({ source: country, target: id, value: sel.otherTotal })
     }
 
-    return {
-        nodes,
-        links,
-        targetLabel: header,
-    }
+    return { nodes, links }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -454,10 +436,7 @@ const OTHER_IMPORTERS_ID = "importer:__other__"
 export function FoodTradeBilateralSankey({ rows }: { rows: TradeRow[] }) {
     const { parentRef, width, height } = useParentSize()
 
-    const { nodes, links, sourceLabel, targetLabel } = useMemo(
-        () => buildBilateral(rows, TOP_N),
-        [rows]
-    )
+    const { nodes, links } = useMemo(() => buildBilateral(rows, TOP_N), [rows])
 
     // Only exporters carry color in this view; rank them by total flow out.
     // Link source is always an exporter in the bilateral build.
@@ -500,8 +479,6 @@ export function FoodTradeBilateralSankey({ rows }: { rows: TradeRow[] }) {
                     height={height}
                     nodeColor={nodeColor}
                     linkColor={linkColor}
-                    sourceLabel={sourceLabel}
-                    targetLabel={targetLabel}
                 />
             )}
         </div>
