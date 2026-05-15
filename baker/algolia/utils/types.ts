@@ -95,6 +95,7 @@ export interface ExplorerViewBaseRecord {
     viewGrapherId?: number
     viewIndexWithinExplorer: number
     viewQueryParams: string
+    viewId: string
     // TODO: are nulls necessary here?
     viewSettings: Array<string | null>
     viewSubtitle?: string

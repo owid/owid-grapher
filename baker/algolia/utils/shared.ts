@@ -12,6 +12,7 @@ import {
 } from "@ourworldindata/utils"
 import {
     getFeaturedMetricsByParentTagName,
+    knexRaw,
     KnexReadonlyTransaction,
 } from "../../../db/db.js"
 import {
@@ -187,6 +188,19 @@ function findMatchingRecordByPathnameAndQueryParams(
 }
 
 export const MAX_NON_FM_RECORD_SCORE = 10000
+
+/**
+ * Unified score formula for all record types (charts, multi-dim views, explorer views).
+ * Uses the number of related articles as the primary editorial signal,
+ * pageviews as a secondary signal, and a small penalty for longer titles
+ * to downrank more specific variants (e.g. "Male life expectancy, 16-24"
+ * ranks below "Life expectancy").
+ */
+export const computeRecordScore = (
+    numRelatedArticles: number,
+    views_7d: number,
+    titleLength: number = 0
+): number => numRelatedArticles * 500 + views_7d - titleLength
 
 /**
  * All featured metrics start at a score of 11000, which places them above all
@@ -383,3 +397,68 @@ export const EMPTY_DATASET_CHART_RECORD_DIMENSIONS: DatasetChartRecordDimensions
         datasetProducts: [],
         datasetProducers: [],
     }
+
+/**
+ * Builds a canonical key for FM lookup from a slug and optional query params.
+ * Params are sorted alphabetically so that order differences don't matter.
+ * For charts (no query params), the key is just the slug.
+ */
+export function makeFeaturedMetricKey(
+    slug: string,
+    queryParams?: string | null
+): string {
+    if (!queryParams) return slug
+    const params = new URLSearchParams(queryParams.replace(/^\?/, ""))
+    params.sort()
+    return `${slug}?${params.toString()}`
+}
+
+/**
+ * Returns a set of FM keys (slug + sorted query params) for all featured metrics.
+ * This is used to give a scoring bonus to records whose specific
+ * chart/explorer/multi-dim view is editorially featured.
+ */
+export async function getFeaturedMetricSlugs(
+    trx: KnexReadonlyTransaction
+): Promise<Set<string>> {
+    const rows = await knexRaw<{ url: string }>(
+        trx,
+        `SELECT DISTINCT url FROM featured_metrics`
+    )
+    const keys = new Set<string>()
+    for (const row of rows) {
+        const url = Url.fromURL(row.url)
+        if (url.slug) keys.add(makeFeaturedMetricKey(url.slug, url.queryStr))
+    }
+    return keys
+}
+
+const FM_SOURCE_BONUS = 500
+
+/**
+ * Adds a fixed post-scaling bonus to non-FM records whose specific view
+ * is a featured metric. Applied after normalization so the bonus has a
+ * consistent, predictable effect regardless of the raw score distribution.
+ * Capped at MAX_NON_FM_RECORD_SCORE to stay within the normal range.
+ */
+export function applyFMSourceBonus(
+    records: ChartRecord[],
+    fmSlugs: Set<string>
+): ChartRecord[] {
+    if (fmSlugs.size === 0) return records
+
+    return records.map((record) => {
+        if (record.isFM) return record
+        const key = makeFeaturedMetricKey(record.slug, record.queryParams)
+        if (fmSlugs.has(key)) {
+            return {
+                ...record,
+                score: Math.min(
+                    record.score + FM_SOURCE_BONUS,
+                    MAX_NON_FM_RECORD_SCORE
+                ),
+            }
+        }
+        return record
+    })
+}

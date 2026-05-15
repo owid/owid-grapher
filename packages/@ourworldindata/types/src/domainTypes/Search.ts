@@ -328,8 +328,8 @@ export type Ngram = WordPositioned[]
  * Context object containing shared enrichment data needed for Algolia indexing of chart, explorer and multi-dim views.
  */
 export interface IndexingContext {
-    /** Pageview data by URL (e.g., "/grapher/life-expectancy" -> { views_7d: 1234 }) */
-    pageviews: Record<string, { views_7d: number }>
+    /** Chart view counts keyed by chart_slug (for grapher charts) or chartConfigId UUID (for explorer/multidim views) */
+    views: Map<string, number>
 
     /**
      * Topic tag hierarchies for computing parent topic tags.
