@@ -162,8 +162,14 @@ export function FoodTradeSankey({
         return colorMap.get(partner) ?? NEUTRAL_COLOR
     }
 
+    const isSingleHalf = view !== "both"
+
     return (
-        <div className="food-trade-sankey food-trade-sankey--split">
+        <div
+            className={`food-trade-sankey food-trade-sankey--split${
+                isSingleHalf ? " food-trade-sankey--single" : ""
+            }`}
+        >
             {showImports && (
                 <HalfSankey
                     build={incomingBuild}
