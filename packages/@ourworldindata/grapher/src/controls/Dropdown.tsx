@@ -10,6 +10,7 @@ import {
     ListBox,
     ListBoxItem,
     ListBoxSection,
+    Popover,
     SearchField,
     Select,
     SelectValue,
@@ -18,7 +19,6 @@ import {
 import { faTimesCircle } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { isTouchDevice } from "@ourworldindata/utils"
-import { PortaledPopover } from "./PortaledPopover"
 
 export interface BasicDropdownOption {
     trackNote?: string
@@ -56,7 +56,6 @@ export interface DropdownProps<DropdownOption extends BasicDropdownOption> {
         option: DropdownOption | null
     ) => React.ReactNode | undefined
     renderMenuOption?: (option: DropdownOption) => React.ReactNode
-    portalContainer?: HTMLElement
     "data-track-note"?: string
     "aria-label"?: string
 }
@@ -93,7 +92,6 @@ export function Dropdown<DropdownOption extends BasicDropdownOption>({
     isSearchable,
     renderTriggerValue,
     renderMenuOption,
-    portalContainer,
     ...otherProps
 }: DropdownProps<DropdownOption>): React.ReactElement {
     const { contains } = useFilter({ sensitivity: "base" })
@@ -161,14 +159,13 @@ export function Dropdown<DropdownOption extends BasicDropdownOption>({
     )
 
     const popover = (
-        <PortaledPopover
+        <Popover
             className={cx(
                 "grapher-dropdown-menu",
                 "portaled-popover",
                 menuClassName
             )}
             offset={4}
-            portalContainer={portalContainer}
         >
             {isSearchable ? (
                 // If inputValue is provided, the component is controlled
@@ -197,7 +194,7 @@ export function Dropdown<DropdownOption extends BasicDropdownOption>({
             ) : (
                 listBox
             )}
-        </PortaledPopover>
+        </Popover>
     )
 
     return (

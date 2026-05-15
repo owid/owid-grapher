@@ -1,7 +1,13 @@
 import * as R from "remeda"
 import cx from "classnames"
-import { useState, type Key } from "react"
-import { Button, MenuTrigger, Menu, MenuItem } from "react-aria-components"
+import { useState } from "react"
+import {
+    Button,
+    MenuTrigger,
+    Menu,
+    MenuItem,
+    type Key,
+} from "react-aria-components"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faEllipsisVertical } from "@fortawesome/free-solid-svg-icons"
 import { TabItem, Tabs } from "./Tabs"
