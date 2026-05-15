@@ -88,6 +88,15 @@ export type SankeyProps = {
      * the top of the layout extent.
      */
     pinNodeIdToTop?: string
+    /**
+     * Render each node as a narrow band anchored to its outer edge (the
+     * one away from the chart's center), with `gapWidth` of whitespace
+     * between the band and the flow path. The effective node width
+     * becomes `bandWidth + gapWidth`, overriding `nodeWidth`.
+     * Designed for 2-column Sankeys — for middle-column nodes the band
+     * picks a side from the node's midpoint, which may not be intended.
+     */
+    nodeOuterBand?: { bandWidth: number; gapWidth: number }
 }
 
 type LaidOutGraph = SankeyGraph<SankeyNode, SankeyLink>
@@ -108,9 +117,15 @@ export function Sankey({
     columnLabels,
     iterations,
     pinNodeIdToTop,
+    nodeOuterBand,
 }: SankeyProps): React.ReactElement | null {
     const hasColumnLabels = columnLabels?.some(Boolean) ?? false
     const columnLabelReservation = hasColumnLabels ? COLUMN_LABEL_HEIGHT_PX : 0
+    // When rendering nodes as outer bands, the effective node width is
+    // band + gap — overrides any passed `nodeWidth`.
+    const effectiveNodeWidth = nodeOuterBand
+        ? nodeOuterBand.bandWidth + nodeOuterBand.gapWidth
+        : nodeWidth
 
     const layout = useMemo<LaidOutGraph | null>(() => {
         if (width <= 0 || height <= 0) return null
@@ -156,7 +171,7 @@ export function Sankey({
 
         const generator = d3Sankey<SankeyNode, SankeyLink>()
             .nodeId((d) => d.id)
-            .nodeWidth(nodeWidth)
+            .nodeWidth(effectiveNodeWidth)
             .nodePadding(nodePadding)
             // Sort within each column by input order so the caller controls
             // vertical placement (e.g. by inserting "Other" buckets last).
@@ -199,13 +214,12 @@ export function Sankey({
         }
 
         return result
-
     }, [
         nodes,
         links,
         width,
         height,
-        nodeWidth,
+        effectiveNodeWidth,
         nodePadding,
         margin,
         columnLabelReservation,
@@ -310,6 +324,28 @@ export function Sankey({
                     const x1 = node.x1 ?? 0
                     const y0 = node.y0 ?? 0
                     const y1 = node.y1 ?? 0
+                    const h = Math.max(0, y1 - y0)
+                    if (nodeOuterBand) {
+                        // Render a single band anchored to the node's outer
+                        // edge (away from the chart's center); the rest of
+                        // [x0, x1] is whitespace separating the band from
+                        // the flow path that emerges at x1 / x0.
+                        const isLeftSide = (x0 + x1) / 2 < midX
+                        const bandX = isLeftSide
+                            ? x0
+                            : x1 - nodeOuterBand.bandWidth
+                        return (
+                            <rect
+                                key={node.id}
+                                className="sankey__node"
+                                x={bandX}
+                                y={y0}
+                                width={nodeOuterBand.bandWidth}
+                                height={h}
+                                fill={fill}
+                            />
+                        )
+                    }
                     return (
                         <rect
                             key={node.id}
@@ -317,7 +353,7 @@ export function Sankey({
                             x={x0}
                             y={y0}
                             width={x1 - x0}
-                            height={Math.max(0, y1 - y0)}
+                            height={h}
                             fill={fill}
                         />
                     )

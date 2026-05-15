@@ -166,6 +166,7 @@ function HalfSankeyChart({
                     height={height}
                     margin={{ top: 0, right: 0, bottom: 8, left: 0 }}
                     nodePadding={12}
+                    nodeOuterBand={{ bandWidth: 5, gapWidth: 5 }}
                     nodeColor={() => SOURCE_COLOR}
                     linkColor={() => SOURCE_COLOR}
                     formatValue={formatTrade}
@@ -332,6 +333,7 @@ export function FoodTradeBilateralSankey({ rows }: { rows: TradeRow[] }) {
                     height={height}
                     margin={{ top: 8, right: 0, bottom: 8, left: 0 }}
                     nodePadding={12}
+                    nodeOuterBand={{ bandWidth: 5, gapWidth: 5 }}
                     nodeColor={() => SOURCE_COLOR}
                     linkColor={() => SOURCE_COLOR}
                     formatValue={formatTrade}
