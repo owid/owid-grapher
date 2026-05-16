@@ -130,22 +130,26 @@ function DemographyParameterEditorContent({
         (y) => initialControlPoints[y]
     )
 
+    const controlValues = CONTROL_YEARS.map((y) => controlPoints[y])
+
     const minValue =
         yMinOverride ??
         Math.max(
-            config.yFloor ?? -Infinity,
+            config.inputMin ?? config.yFloor ?? -Infinity,
             Math.min(
                 Math.min(...unwppValues) - config.yPadding,
                 Math.min(...historicalValues),
-                Math.min(...initialControlValues) - config.yPadding
+                Math.min(...initialControlValues) - config.yPadding,
+                Math.min(...controlValues)
             )
         )
     const maxValue = Math.min(
-        config.yCeiling ?? Infinity,
+        config.inputMax ?? config.yCeiling ?? Infinity,
         Math.max(
             Math.max(...unwppValues) + config.yPadding,
             Math.max(...historicalValues),
-            Math.max(...initialControlValues) + config.yPadding
+            Math.max(...initialControlValues) + config.yPadding,
+            Math.max(...controlValues)
         )
     )
 
@@ -646,8 +650,8 @@ function DemographyParameterEditorContent({
                             value={controlPoints[editing.year]}
                             step={config.step}
                             decimals={config.decimals}
-                            min={yScale.domain()[0]}
-                            max={yScale.domain()[1]}
+                            min={config.inputMin ?? yScale.domain()[0]}
+                            max={config.inputMax ?? yScale.domain()[1]}
                             modified={isModified}
                             onCommit={(value) =>
                                 handleChange({
