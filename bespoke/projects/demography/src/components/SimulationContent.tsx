@@ -1,5 +1,5 @@
 import cx from "classnames"
-import { useCallback, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { useBreakpoint } from "../helpers/useBreakpoint.js"
 import { Tippy } from "@ourworldindata/utils"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -12,6 +12,7 @@ import {
     computeScenarioOverrides,
     type Simulation,
 } from "../helpers/useSimulation"
+import { updateWindowUrlForSimulationState } from "../helpers/urlState.js"
 import { PopulationChart } from "./PopulationChart.js"
 import { DemographyParameterEditor } from "./DemographyParameterEditor.js"
 import { PopulationPyramid } from "./PopulationPyramid.js"
@@ -44,6 +45,12 @@ export function SimulationContent({
     fertilityRateAssumptions,
     lifeExpectancyAssumptions,
     netMigrationRateAssumptions,
+    urlSync,
+    urlFertilityRateAssumptions,
+    urlLifeExpectancyAssumptions,
+    urlNetMigrationRateAssumptions,
+    baselineEntityName,
+    shouldSyncEntityName = false,
 }: {
     data: CountryData
     focusParameter?: ParameterKey
@@ -52,6 +59,12 @@ export function SimulationContent({
     fertilityRateAssumptions?: Record<number, number>
     lifeExpectancyAssumptions?: Record<number, number>
     netMigrationRateAssumptions?: Record<number, number>
+    urlSync?: boolean
+    urlFertilityRateAssumptions?: Record<number, number>
+    urlLifeExpectancyAssumptions?: Record<number, number>
+    urlNetMigrationRateAssumptions?: Record<number, number>
+    baselineEntityName?: string
+    shouldSyncEntityName?: boolean
 }) {
     const [year, setYear] = useState(END_YEAR)
 
@@ -69,7 +82,55 @@ export function SimulationContent({
         ]
     )
 
-    const simulation = useSimulation(data, scenarioOverrides)
+    const urlScenarioOverrides = useMemo(
+        () =>
+            urlSync
+                ? computeScenarioOverrides({
+                      fertilityRateAssumptions: urlFertilityRateAssumptions,
+                      lifeExpectancyAssumptions: urlLifeExpectancyAssumptions,
+                      netMigrationRateAssumptions:
+                          urlNetMigrationRateAssumptions,
+                  })
+                : undefined,
+        [
+            urlSync,
+            urlFertilityRateAssumptions,
+            urlLifeExpectancyAssumptions,
+            urlNetMigrationRateAssumptions,
+        ]
+    )
+
+    const simulation = useSimulation(
+        data,
+        scenarioOverrides,
+        urlScenarioOverrides
+    )
+    const scenarioParamsForUrl = simulation?.scenarioParams
+    const baselineScenarioParamsForUrl = simulation?.initialScenarioParams
+
+    useEffect(() => {
+        if (!urlSync || !scenarioParamsForUrl || !baselineScenarioParamsForUrl)
+            return
+
+        const timeout = window.setTimeout(() => {
+            updateWindowUrlForSimulationState({
+                entityName: data.country,
+                baselineEntityName,
+                includeEntityName: shouldSyncEntityName,
+                scenarioParams: scenarioParamsForUrl,
+                baselineScenarioParams: baselineScenarioParamsForUrl,
+            })
+        }, 150)
+
+        return () => window.clearTimeout(timeout)
+    }, [
+        urlSync,
+        scenarioParamsForUrl,
+        baselineScenarioParamsForUrl,
+        data.country,
+        baselineEntityName,
+        shouldSyncEntityName,
+    ])
 
     if (!simulation) return null
 
