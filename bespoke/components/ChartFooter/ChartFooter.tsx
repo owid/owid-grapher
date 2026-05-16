@@ -9,10 +9,12 @@ export function ChartFooter({
     source,
     note,
     className,
+    rightSlot,
 }: {
     source: React.ReactNode
     note?: React.ReactNode
     className?: string
+    rightSlot?: React.ReactNode
 }) {
     const { ref: footerRef, getTippyContainer } =
         useTippyContainer<HTMLElement>()
@@ -34,6 +36,13 @@ export function ChartFooter({
         </Tippy>
     )
 
+    const right = (
+        <div className="chart-footer__right">
+            {ccBy}
+            {rightSlot}
+        </div>
+    )
+
     return (
         <footer ref={footerRef} className={cx("chart-footer", className)}>
             {note ? (
@@ -45,7 +54,7 @@ export function ChartFooter({
                         <div className="chart-footer__note">
                             <strong>Note:</strong> {note}
                         </div>
-                        {ccBy}
+                        {right}
                     </div>
                 </>
             ) : (
@@ -53,7 +62,7 @@ export function ChartFooter({
                     <div className="chart-footer__source">
                         <strong>Data source:</strong> {source}
                     </div>
-                    {ccBy}
+                    {right}
                 </div>
             )}
         </footer>

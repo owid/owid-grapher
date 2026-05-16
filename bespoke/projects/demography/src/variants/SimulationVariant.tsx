@@ -291,8 +291,8 @@ function CaptionedSimulationVariant({
                         </a>
                     </>
                 }
+                rightSlot={showEmbedButton && <SimulationEmbedButton />}
             />
-            {showEmbedButton && <SimulationEmbedButton />}
         </Frame>
     )
 }

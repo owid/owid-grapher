@@ -21,6 +21,14 @@
         margin-top: 4px;
     }
 
+    .chart-footer__right {
+        display: flex;
+        align-items: center;
+        flex-shrink: 0;
+        gap: 12px;
+        margin-left: auto;
+    }
+
     .chart-footer__cc {
         flex-shrink: 0;
         background: none;
