@@ -70,9 +70,8 @@ function FetchingSimulationVariant({
     const [shouldSyncEntityName, setShouldSyncEntityName] = useState(
         Boolean(urlState.entityName)
     )
-    const [entityName, setEntityNameRaw] = useInitialEntityName(
-        urlState.entityName ?? config.region
-    )
+    const [entityName, setEntityNameRaw, isInitialEntityNameResolved] =
+        useInitialEntityName(urlState.entityName ?? config.region)
     const setEntityName = useCallback(
         (name: string) => {
             if (config.urlSync) setShouldSyncEntityName(true)
@@ -95,6 +94,21 @@ function FetchingSimulationVariant({
         setEntityNameRaw(fallbackEntityName)
         setShouldSyncEntityName(false)
     }, [config.region, entityName, metadata, setEntityNameRaw])
+
+    useEffect(() => {
+        const shouldSyncAutoDetectedEntityName =
+            config.urlSync &&
+            !urlState.entityName &&
+            (!config.region || config.region === "userLocation") &&
+            isInitialEntityNameResolved
+
+        if (shouldSyncAutoDetectedEntityName) setShouldSyncEntityName(true)
+    }, [
+        config.region,
+        config.urlSync,
+        isInitialEntityNameResolved,
+        urlState.entityName,
+    ])
 
     if (status === "pending") return <DemographySkeleton />
     if (metadata && !metadata.slugs[entityName]) return <DemographySkeleton />
