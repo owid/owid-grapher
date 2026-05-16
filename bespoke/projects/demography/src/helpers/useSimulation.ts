@@ -3,7 +3,7 @@
  * Returns all derived state needed by the UI.
  */
 
-import { useMemo, useState, useCallback } from "react"
+import { useEffect, useMemo, useState, useCallback } from "react"
 import type {
     CountryData,
     ParameterKey,
@@ -192,7 +192,8 @@ export function computeScenarioOverrides(opts: {
 
 export function useSimulation(
     data: CountryData,
-    initialScenarioOverrides?: Partial<ScenarioParams>
+    initialScenarioOverrides?: Partial<ScenarioParams>,
+    initialCurrentScenarioOverrides?: Partial<ScenarioParams>
 ): Simulation | null {
     const [scenarioParams, setScenarioParamsRaw] =
         useState<ScenarioParams | null>(null)
@@ -301,9 +302,30 @@ export function useSimulation(
         return core.defaultScenario
     }, [core, initialScenarioOverrides])
 
+    const initialCurrentScenarioParams = useMemo(() => {
+        if (!initialScenarioParams) return null
+        if (initialCurrentScenarioOverrides) {
+            return {
+                fertilityRate: {
+                    ...initialScenarioParams.fertilityRate,
+                    ...initialCurrentScenarioOverrides.fertilityRate,
+                },
+                lifeExpectancy: {
+                    ...initialScenarioParams.lifeExpectancy,
+                    ...initialCurrentScenarioOverrides.lifeExpectancy,
+                },
+                netMigrationRate: {
+                    ...initialScenarioParams.netMigrationRate,
+                    ...initialCurrentScenarioOverrides.netMigrationRate,
+                },
+            }
+        }
+        return initialScenarioParams
+    }, [initialScenarioParams, initialCurrentScenarioOverrides])
+
     const effectiveScenarioParams = useMemo(
-        () => scenarioParams ?? initialScenarioParams,
-        [scenarioParams, initialScenarioParams]
+        () => scenarioParams ?? initialCurrentScenarioParams,
+        [scenarioParams, initialCurrentScenarioParams]
     )
 
     // Forecast results (recomputed when scenario changes)
@@ -350,12 +372,12 @@ export function useSimulation(
         setScenarioParamsRaw(params)
     }, [])
 
-    // Reset scenario when country/overrides change
-    useMemo(() => {
-        if (core) {
+    // Reset scenario when the country or authored assumptions change.
+    useEffect(() => {
+        if (initialScenarioParams) {
             setScenarioParamsRaw(null)
         }
-    }, [core])
+    }, [initialScenarioParams])
 
     const getPopForYear = useCallback(
         (year: number): PopulationBySex | null => {

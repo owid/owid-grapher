@@ -1,3 +1,4 @@
+import { useCallback, useEffect, useMemo, useState } from "react"
 import cx from "classnames"
 import { QueryClientProvider } from "@tanstack/react-query"
 
@@ -7,8 +8,12 @@ import type {
     SimulationVariantConfig,
     VariantProps,
 } from "../config.js"
-import { CHART_FOOTER_SOURCES } from "../helpers/constants.js"
+import {
+    CHART_FOOTER_SOURCES,
+    DEFAULT_ENTITY_NAME,
+} from "../helpers/constants.js"
 import { useInitialEntityName } from "../helpers/useInitialEntityName.js"
+import { parseSimulationUrlState } from "../helpers/urlState.js"
 import {
     DemographyChartError,
     DemographySkeleton,
@@ -58,12 +63,41 @@ function FetchingSimulationVariant({
 }: {
     config: SimulationVariantConfig
 }): React.ReactElement {
-    const [entityName, setEntityName] = useInitialEntityName(config.region)
+    const urlState = useMemo(
+        () => (config.urlSync ? parseSimulationUrlState() : {}),
+        [config.urlSync]
+    )
+    const [shouldSyncEntityName, setShouldSyncEntityName] = useState(
+        Boolean(urlState.entityName)
+    )
+    const [entityName, setEntityNameRaw] = useInitialEntityName(
+        urlState.entityName ?? config.region
+    )
+    const setEntityName = useCallback(
+        (name: string) => {
+            if (config.urlSync) setShouldSyncEntityName(true)
+            setEntityNameRaw(name)
+        },
+        [config.urlSync, setEntityNameRaw]
+    )
 
     const { metadata, entityData, isLoadingEntityData, status } =
         useDemographyData(entityName)
 
+    useEffect(() => {
+        if (!metadata) return
+        if (metadata.slugs[entityName]) return
+
+        const fallbackEntityName =
+            config.region && metadata.slugs[config.region]
+                ? config.region
+                : DEFAULT_ENTITY_NAME
+        setEntityNameRaw(fallbackEntityName)
+        setShouldSyncEntityName(false)
+    }, [config.region, entityName, metadata, setEntityNameRaw])
+
     if (status === "pending") return <DemographySkeleton />
+    if (metadata && !metadata.slugs[entityName]) return <DemographySkeleton />
     if (!metadata || !entityData) return <DemographyChartError />
 
     return (
@@ -82,8 +116,21 @@ function FetchingSimulationVariant({
             fertilityRateAssumptions={config.fertilityRateAssumptions}
             lifeExpectancyAssumptions={config.lifeExpectancyAssumptions}
             netMigrationRateAssumptions={config.netMigrationRateAssumptions}
+            urlSync={config.urlSync}
+            urlFertilityRateAssumptions={urlState.fertilityRateAssumptions}
+            urlLifeExpectancyAssumptions={urlState.lifeExpectancyAssumptions}
+            urlNetMigrationRateAssumptions={
+                urlState.netMigrationRateAssumptions
+            }
+            baselineEntityName={getBaselineEntityName(config.region)}
+            shouldSyncEntityName={shouldSyncEntityName}
         />
     )
+}
+
+function getBaselineEntityName(region: string | undefined): string | undefined {
+    if (!region || region === "userLocation") return undefined
+    return region
 }
 
 function CaptionedSimulationVariant({
@@ -101,6 +148,12 @@ function CaptionedSimulationVariant({
     fertilityRateAssumptions,
     lifeExpectancyAssumptions,
     netMigrationRateAssumptions,
+    urlSync,
+    urlFertilityRateAssumptions,
+    urlLifeExpectancyAssumptions,
+    urlNetMigrationRateAssumptions,
+    baselineEntityName,
+    shouldSyncEntityName,
 }: {
     data: CountryData
     metadata: DemographyMetadata
@@ -116,6 +169,12 @@ function CaptionedSimulationVariant({
     fertilityRateAssumptions?: Record<number, number>
     lifeExpectancyAssumptions?: Record<number, number>
     netMigrationRateAssumptions?: Record<number, number>
+    urlSync?: boolean
+    urlFertilityRateAssumptions?: Record<number, number>
+    urlLifeExpectancyAssumptions?: Record<number, number>
+    urlNetMigrationRateAssumptions?: Record<number, number>
+    baselineEntityName?: string
+    shouldSyncEntityName?: boolean
 }) {
     const countryName = data.country
 
@@ -157,6 +216,14 @@ function CaptionedSimulationVariant({
                     fertilityRateAssumptions={fertilityRateAssumptions}
                     lifeExpectancyAssumptions={lifeExpectancyAssumptions}
                     netMigrationRateAssumptions={netMigrationRateAssumptions}
+                    urlSync={urlSync}
+                    urlFertilityRateAssumptions={urlFertilityRateAssumptions}
+                    urlLifeExpectancyAssumptions={urlLifeExpectancyAssumptions}
+                    urlNetMigrationRateAssumptions={
+                        urlNetMigrationRateAssumptions
+                    }
+                    baselineEntityName={baselineEntityName}
+                    shouldSyncEntityName={shouldSyncEntityName}
                 />
             </div>
             <ChartFooter
