@@ -51,7 +51,7 @@ export const parameterConfigByKey: Record<ParameterKey, ParameterConfig> = {
         axisUnit: "births per woman",
         yPadding: 2,
         yFloor: 0,
-        inputMin: 0.1,
+        inputMin: 0,
         inputMax: 10,
         step: 0.1,
         decimals: 1,
