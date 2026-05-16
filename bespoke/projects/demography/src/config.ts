@@ -25,6 +25,7 @@ export interface SimulationVariantConfig {
     hidePopulationPyramid?: boolean
     populationPyramidUnit?: PopulationPyramidUnit
     urlSync?: boolean
+    iframeEmbed?: boolean
     fertilityRateAssumptions?: Record<number, number>
     lifeExpectancyAssumptions?: Record<number, number>
     netMigrationRateAssumptions?: Record<number, number>
@@ -88,6 +89,7 @@ export function parseConfig(
                     raw.populationPyramidUnit
                 ),
                 urlSync: parseBoolean(raw.urlSync),
+                iframeEmbed: parseBoolean(raw.iframeEmbed),
                 fertilityRateAssumptions: parseControlPoints(
                     raw.fertilityRateAssumptions
                 ),

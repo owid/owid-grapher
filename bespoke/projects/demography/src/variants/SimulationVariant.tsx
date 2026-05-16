@@ -32,6 +32,7 @@ import { Frame } from "../../../../components/Frame/Frame.js"
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { SimulationContent } from "../components/SimulationContent.js"
 import { EntityNameOrSelector } from "../components/EntityNameOrSelector.js"
+import { SimulationEmbedButton } from "../components/SimulationEmbedButton.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
 import {
     BreakpointProvider,
@@ -140,6 +141,7 @@ function FetchingSimulationVariant({
             fertilityRateAssumptions={config.fertilityRateAssumptions}
             lifeExpectancyAssumptions={config.lifeExpectancyAssumptions}
             netMigrationRateAssumptions={config.netMigrationRateAssumptions}
+            showEmbedButton={config.iframeEmbed}
             urlSync={config.urlSync}
             urlFertilityRateAssumptions={
                 urlAssumptionState.fertilityRateAssumptions
@@ -193,6 +195,7 @@ function CaptionedSimulationVariant({
     fertilityRateAssumptions,
     lifeExpectancyAssumptions,
     netMigrationRateAssumptions,
+    showEmbedButton,
     urlSync,
     urlFertilityRateAssumptions,
     urlLifeExpectancyAssumptions,
@@ -214,6 +217,7 @@ function CaptionedSimulationVariant({
     fertilityRateAssumptions?: Record<number, number>
     lifeExpectancyAssumptions?: Record<number, number>
     netMigrationRateAssumptions?: Record<number, number>
+    showEmbedButton?: boolean
     urlSync?: boolean
     urlFertilityRateAssumptions?: Record<number, number>
     urlLifeExpectancyAssumptions?: Record<number, number>
@@ -288,6 +292,7 @@ function CaptionedSimulationVariant({
                     </>
                 }
             />
+            {showEmbedButton && <SimulationEmbedButton />}
         </Frame>
     )
 }

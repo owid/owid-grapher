@@ -27,9 +27,111 @@ $panel-gap: 12px;
 }
 
 .demography-captioned-chart {
+    position: relative;
+
     .demography-captioned-chart__chart-area {
         position: relative;
     }
+}
+
+.demography-embed-button {
+    position: absolute;
+    right: 16px;
+    bottom: 16px;
+    border: 1px solid $blue-20;
+    border-radius: 3px;
+    background: $white;
+    color: $blue-60;
+    cursor: pointer;
+    font-family: $sans-serif-font-stack;
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1;
+    padding: 8px 10px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.demography-embed-button:hover {
+    color: $blue-90;
+    border-color: $blue-30;
+    background: $blue-10;
+}
+
+.demography-embed-modal-overlay {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 10000;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(0, 0, 0, 0.4);
+}
+
+.demography-embed-modal {
+    display: flex;
+    flex-direction: column;
+    width: min(940px, 100%);
+    max-height: calc(100vh - 48px);
+    background: $white;
+    border-radius: 4px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.15);
+    color: $dark-text;
+}
+
+.demography-embed-modal__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 24px 24px 16px;
+}
+
+.demography-embed-modal__header h2 {
+    @include grapher_h5-black-caps;
+    color: $light-text;
+    margin: 0;
+}
+
+.demography-embed-modal__close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 1px solid $gray-20;
+    border-radius: 50%;
+    background: $white;
+    color: $light-text;
+    cursor: pointer;
+    font-size: 1.5rem;
+    line-height: 1;
+}
+
+.demography-embed-modal__close:hover {
+    background: $gray-10;
+    border-color: $gray-10;
+    color: $dark-text;
+}
+
+.demography-embed-modal__body {
+    overflow-y: auto;
+    padding: 0 24px 24px;
+}
+
+.demography-embed-modal__body p {
+    margin: 0 0 16px;
+    color: $gray-70;
+    font-size: 0.875rem;
+}
+
+.demography-embed-modal__body .wp-code-snippet {
+    margin-bottom: 0;
 }
 
 .breakpoint-narrow .demography-captioned-chart {

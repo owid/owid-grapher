@@ -1,5 +1,46 @@
 @use "sass:color";
 
+html.IsInIframe body.GdocBespokeIframeEmbedPage {
+    margin: 0;
+    background: $white;
+}
+
+html.IsInIframe body.GdocBespokeIframeEmbedPage .site-header,
+html.IsInIframe body.GdocBespokeIframeEmbedPage .donate-footer,
+html.IsInIframe body.GdocBespokeIframeEmbedPage .cookie-notice,
+html.IsInIframe body.GdocBespokeIframeEmbedPage .site-footer {
+    display: none;
+}
+
+html.IsInIframe body.GdocBespokeIframeEmbedPage #owid-document-root {
+    width: 100%;
+}
+
+html.IsInIframe body.GdocBespokeIframeEmbedPage .centered-article-container {
+    display: block;
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+}
+
+html.IsInIframe
+    body.GdocBespokeIframeEmbedPage
+    .centered-article-container
+    > * {
+    display: none;
+}
+
+html.IsInIframe
+    body.GdocBespokeIframeEmbedPage
+    .centered-article-container
+    > [data-bespoke-iframe-embed="true"] {
+    display: block;
+    width: 100%;
+    max-width: none;
+    margin: 0;
+}
+
 .bespoke-component__error {
     padding: 16px;
     background-color: color.scale($vermillion, $lightness: +90%);

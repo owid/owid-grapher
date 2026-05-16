@@ -1,5 +1,6 @@
 import * as _ from "lodash-es"
 import { Head } from "../Head.js"
+import { IFrameDetector } from "../IframeDetector.js"
 import { SiteHeader } from "../SiteHeader.js"
 import { SiteFooter } from "../SiteFooter.js"
 import { CitationMeta } from "../CitationMeta.js"
@@ -15,6 +16,7 @@ import {
     extractGdocPageData,
     OwidGdocPageData,
     readFromAssetMap,
+    type OwidEnrichedGdocBlock,
 } from "@ourworldindata/utils"
 import { getCanonicalUrl, getPageTitle } from "@ourworldindata/components"
 import { DebugProvider } from "./DebugProvider.js"
@@ -123,6 +125,23 @@ function isJsonLdArticlePredicate(
     )
 }
 
+function isIframeEmbeddableBespokeBlock(block: OwidEnrichedGdocBlock): boolean {
+    return (
+        block.type === "bespoke-component" &&
+        block.bundle === "demography" &&
+        block.variant === "simulation" &&
+        block.config.iframeEmbed === "true"
+    )
+}
+
+function countTopLevelIframeEmbeddableBespokeBlocks(
+    gdoc: OwidGdocUnionType
+): number {
+    const body = "body" in gdoc.content ? gdoc.content.body : undefined
+    if (!body) return 0
+    return body.filter(isIframeEmbeddableBespokeBlock).length
+}
+
 function getAtomFeedProps(gdoc: OwidGdocUnionType): {
     title: string
     href: string
@@ -170,6 +189,8 @@ export default function OwidGdocPage({
     const isDataInsight = checkIsDataInsight(gdoc)
     const isAuthor = checkIsAuthor(gdoc)
     const isJsonLdArticle = isJsonLdArticlePredicate(gdoc)
+    const isBespokeIframeEmbedPage =
+        countTopLevelIframeEmbeddableBespokeBlocks(gdoc) === 1
 
     let imageUrl
     if (
@@ -231,6 +252,7 @@ export default function OwidGdocPage({
                         imageUrl={imageUrl}
                     />
                 )}
+                {isBespokeIframeEmbedPage && <IFrameDetector />}
                 <script
                     dangerouslySetInnerHTML={{
                         __html: `window._OWID_GDOC_PROPS = ${JSON.stringify(
@@ -239,7 +261,13 @@ export default function OwidGdocPage({
                     }}
                 ></script>
             </Head>
-            <body>
+            <body
+                className={
+                    isBespokeIframeEmbedPage
+                        ? "GdocBespokeIframeEmbedPage"
+                        : undefined
+                }
+            >
                 <SiteHeader
                     isOnHomepage={gdoc.content.type === OwidGdocType.Homepage}
                     archiveInfo={isOnArchivalPage ? archiveContext : undefined}

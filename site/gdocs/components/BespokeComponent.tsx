@@ -138,7 +138,14 @@ export function BespokeComponent({
     }
 
     return (
-        <div className={className}>
+        <div
+            className={className}
+            data-bespoke-bundle={block.bundle}
+            data-bespoke-variant={block.variant}
+            data-bespoke-iframe-embed={
+                block.config.iframeEmbed === "true" ? "true" : undefined
+            }
+        >
             {isLoading && <LoadingIndicator />}
             <div ref={containerRef}></div>
         </div>
