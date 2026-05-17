@@ -9,13 +9,17 @@ import {
     type PopulationPyramidAgeBucketsBySex,
 } from "../helpers/utils.js"
 
-// Match the offset used by the main population curve tooltip.
 const TOOLTIP_OFFSET_X = 15
-const TOOLTIP_OFFSET_Y = -10
+const TOOLTIP_OFFSET_Y = 10
 
 export interface PopulationPyramidTooltipState {
     ageGroup: string
+    // Anchor point for the tooltip, in SVG-relative coordinates.
+    // Anchored to the hovered bar's outer edge so the tooltip doesn't follow
+    // the cursor within a single row/column.
     position: { x: number; y: number }
+    offsetXDirection?: "left" | "right"
+    offsetYDirection?: "upward" | "downward"
 }
 
 interface PopulationPyramidTooltipProps {
@@ -41,7 +45,12 @@ export function PopulationPyramidTooltip({
 }: PopulationPyramidTooltipProps): ReactElement | null {
     if (!tooltipState) return null
 
-    const { ageGroup, position } = tooltipState
+    const { ageGroup, position, offsetXDirection, offsetYDirection } =
+        tooltipState
+    // With no offsetYDirection, the tooltip's top is placed at `position.y + offsetY`,
+    // so a negative offsetY gives the population-curve-style gap. With an explicit
+    // direction, the offsetY magnitude is the gap from the anchor edge.
+    const offsetY = offsetYDirection ? TOOLTIP_OFFSET_Y : -TOOLTIP_OFFSET_Y
     const malePopulation = ageBucketsBySex.male[ageGroup] ?? 0
     const femalePopulation = ageBucketsBySex.female[ageGroup] ?? 0
     const malePopulationShare = getShareOfTotalPopulation(
@@ -60,7 +69,9 @@ export function PopulationPyramidTooltip({
             x={position.x}
             y={position.y}
             offsetX={TOOLTIP_OFFSET_X}
-            offsetY={TOOLTIP_OFFSET_Y}
+            offsetY={offsetY}
+            offsetXDirection={offsetXDirection}
+            offsetYDirection={offsetYDirection}
             title={`Ages ${formatAgeGroup(ageGroup)}`}
             anchor={pinToBottom ? GrapherTooltipAnchor.Bottom : undefined}
             containerBounds={pinToBottom ? undefined : { width, height }}

@@ -145,14 +145,51 @@ function PopulationPyramidHorizontalContent({
     const { ref: chartRef, isPinned: pinTooltipToBottom } =
         usePinnedTooltip<HTMLDivElement>(tooltipState !== null, dismissHover)
 
-    const showTooltip = useCallback((e: React.PointerEvent, group: string) => {
-        const point = localPoint(e)
-        if (!point) return
-        setTooltipState({
-            ageGroup: group,
-            position: { x: point.x, y: point.y },
-        })
-    }, [])
+    // Anchor the tooltip to the hovered bar's outer end so it doesn't follow
+    // the cursor along a tall hit column. The cursor's vertical position picks
+    // which side (female/male) to anchor to.
+    const computeTooltipState = useCallback(
+        (
+            point: { x: number; y: number },
+            group: string
+        ): PopulationPyramidTooltipState => {
+            const horizontalCenterY = margin.top + centerY
+            const isFemaleSide = point.y < horizontalCenterY
+            const buckets = isFemaleSide
+                ? ageBucketsBySex.female
+                : ageBucketsBySex.male
+            const barValue = buckets[group] ?? 0
+            const { startAge } = parseAgeGroup(group)
+            const anchorX =
+                margin.left + xScale(startAge + PYRAMID_AGE_GROUP_SIZE / 2)
+            const anchorY =
+                margin.top +
+                (isFemaleSide ? yScaleFemale(barValue) : yScaleMale(barValue))
+            return {
+                ageGroup: group,
+                position: { x: anchorX, y: anchorY },
+                offsetYDirection: isFemaleSide ? "upward" : "downward",
+            }
+        },
+        [
+            ageBucketsBySex,
+            centerY,
+            margin.left,
+            margin.top,
+            xScale,
+            yScaleFemale,
+            yScaleMale,
+        ]
+    )
+
+    const showTooltip = useCallback(
+        (e: React.PointerEvent, group: string) => {
+            const point = localPoint(e)
+            if (!point) return
+            setTooltipState(computeTooltipState(point, group))
+        },
+        [computeTooltipState]
+    )
 
     const handlePointerEnter = useCallback(
         (e: React.PointerEvent, group: string) => {
@@ -173,18 +210,15 @@ function PopulationPyramidHorizontalContent({
         (e: React.PointerEvent, group: string) => {
             if (e.pointerType === "touch") {
                 e.stopPropagation()
+                const point = localPoint(e)
                 setTooltipState((prev) => {
                     if (prev?.ageGroup === group) return null
-                    const point = localPoint(e)
                     if (!point) return prev
-                    return {
-                        ageGroup: group,
-                        position: { x: point.x, y: point.y },
-                    }
+                    return computeTooltipState(point, group)
                 })
             }
         },
-        []
+        [computeTooltipState]
     )
 
     return (
