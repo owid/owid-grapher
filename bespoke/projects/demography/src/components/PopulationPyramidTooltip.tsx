@@ -1,5 +1,4 @@
 import type { ReactElement } from "react"
-import { GRAPHER_LIGHT_TEXT } from "@ourworldindata/grapher/src/color/ColorConstants.js"
 import { TooltipCard } from "@ourworldindata/grapher/src/tooltip/TooltipCard.js"
 import { TooltipValue } from "@ourworldindata/grapher/src/tooltip/TooltipContents.js"
 import { GrapherTooltipAnchor } from "@ourworldindata/utils"
@@ -9,6 +8,10 @@ import {
     parseAgeGroup,
     type PopulationPyramidAgeBucketsBySex,
 } from "../helpers/utils.js"
+
+// Match the offset used by the main population curve tooltip.
+const TOOLTIP_OFFSET_X = 15
+const TOOLTIP_OFFSET_Y = -10
 
 export interface PopulationPyramidTooltipState {
     ageGroup: string
@@ -41,9 +44,14 @@ export function PopulationPyramidTooltip({
     const { ageGroup, position } = tooltipState
     const malePopulation = ageBucketsBySex.male[ageGroup] ?? 0
     const femalePopulation = ageBucketsBySex.female[ageGroup] ?? 0
-    const ageGroupPopulation = malePopulation + femalePopulation
-    const populationShare =
-        totalPopulation > 0 ? (ageGroupPopulation / totalPopulation) * 100 : 0
+    const malePopulationShare = getShareOfTotalPopulation(
+        malePopulation,
+        totalPopulation
+    )
+    const femalePopulationShare = getShareOfTotalPopulation(
+        femalePopulation,
+        totalPopulation
+    )
     const labels = getSexLabels(ageGroup)
 
     return (
@@ -51,29 +59,44 @@ export function PopulationPyramidTooltip({
             id="population-pyramid-tooltip"
             x={position.x}
             y={position.y}
-            offsetX={15}
-            offsetY={-10}
+            offsetX={TOOLTIP_OFFSET_X}
+            offsetY={TOOLTIP_OFFSET_Y}
             title={`Ages ${formatAgeGroup(ageGroup)}`}
             anchor={pinToBottom ? GrapherTooltipAnchor.Bottom : undefined}
             containerBounds={pinToBottom ? undefined : { width, height }}
         >
             <TooltipValue
-                label="Share of population"
-                value={formatPopulationShare(populationShare, 3)}
-                color={GRAPHER_LIGHT_TEXT}
-            />
-            <TooltipValue
                 label={labels.male}
-                value={formatPopulationValueLong(malePopulation, 3)}
+                value={formatSexPopulationValue(
+                    malePopulationShare,
+                    malePopulation
+                )}
                 color={maleColor}
             />
             <TooltipValue
                 label={labels.female}
-                value={formatPopulationValueLong(femalePopulation, 3)}
+                value={formatSexPopulationValue(
+                    femalePopulationShare,
+                    femalePopulation
+                )}
                 color={femaleColor}
             />
         </TooltipCard>
     )
+}
+
+function getShareOfTotalPopulation(
+    population: number,
+    totalPopulation: number
+): number {
+    return totalPopulation > 0 ? (population / totalPopulation) * 100 : 0
+}
+
+function formatSexPopulationValue(
+    populationShare: number,
+    population: number
+): string {
+    return `${formatPopulationShare(populationShare, 3)} · ${formatPopulationValueLong(population, 3)}`
 }
 
 function getSexLabels(ageGroup: string): { male: string; female: string } {
