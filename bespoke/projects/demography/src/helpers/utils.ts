@@ -56,11 +56,26 @@ export function formatPopulationValueShort(value: number): string {
     })
 }
 
-export function formatPopulationValueLong(value: number): string {
+export function formatPopulationValueLong(
+    value: number,
+    numSignificantFigures = 2
+): string {
     return formatValue(value, {
         roundingMode: OwidVariableRoundingMode.significantFigures,
-        numSignificantFigures: 2,
+        numSignificantFigures,
         numberAbbreviation: "long",
+    })
+}
+
+export function formatPopulationShare(
+    value: number,
+    numSignificantFigures = 3
+): string {
+    return formatValue(value, {
+        roundingMode: OwidVariableRoundingMode.significantFigures,
+        numSignificantFigures,
+        numberAbbreviation: false,
+        unit: "%",
     })
 }
 
@@ -136,6 +151,50 @@ export function groupByAgeRange(
         grouped[ageGroup] = sum
     }
     return grouped
+}
+
+export interface PopulationPyramidAgeBucketsBySex {
+    female: Record<string, number>
+    male: Record<string, number>
+}
+
+export function getPopulationPyramidAgeBucketsBySex(
+    populationBySex: PopulationBySex | null | undefined
+): PopulationPyramidAgeBucketsBySex {
+    return {
+        male: groupByAgeRange(populationBySex?.male ?? []),
+        female: groupByAgeRange(populationBySex?.female ?? []),
+    }
+}
+
+export function getTotalPopulationFromPyramidAgeBuckets(
+    ageBucketsBySex: PopulationPyramidAgeBucketsBySex
+): number {
+    return (
+        Object.values(ageBucketsBySex.male).reduce((a, b) => a + b, 0) +
+        Object.values(ageBucketsBySex.female).reduce((a, b) => a + b, 0)
+    )
+}
+
+export function convertPopulationPyramidAgeBucketsToUnit(
+    ageBucketsBySex: PopulationPyramidAgeBucketsBySex,
+    totalPopulation: number,
+    unit: "percent" | "absolute"
+): PopulationPyramidAgeBucketsBySex {
+    const toBuckets = (buckets: Record<string, number>) => {
+        if (unit === "absolute") return { ...buckets }
+
+        const result: Record<string, number> = {}
+        for (const [k, v] of Object.entries(buckets)) {
+            result[k] = totalPopulation > 0 ? (v / totalPopulation) * 100 : 0
+        }
+        return result
+    }
+
+    return {
+        male: toBuckets(ageBucketsBySex.male),
+        female: toBuckets(ageBucketsBySex.female),
+    }
 }
 
 export function combineStatuses(...statuses: QueryStatus[]): QueryStatus {

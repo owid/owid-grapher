@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useRef } from "react"
+import { useState, useCallback, useMemo } from "react"
 import { useParentSize } from "@visx/responsive"
 import { scaleLinear, scaleBand } from "@visx/scale"
 import { Bar } from "@visx/shape"
@@ -22,20 +22,25 @@ import { TextWrap } from "@ourworldindata/components"
 import { BezierArrow } from "../../../../components/BezierArrow/BezierArrow.js"
 import { computeMaxAgeGroupPopulation } from "../model/projectionRunner"
 import {
-    groupByAgeRange,
-    calculateMedianAge,
-    findAgeGroup,
     formatPopulationValueShort,
     formatPopulationAxisLabelShort,
+    getPopulationPyramidAgeBucketsBySex,
+    getTotalPopulationFromPyramidAgeBuckets,
+    convertPopulationPyramidAgeBucketsToUnit,
 } from "../helpers/utils"
 import { Bounds } from "@ourworldindata/utils"
 import type { AgeZone, AgeZoneWithBounds } from "../helpers/types.js"
 import { toBreakpoint, useBreakpoint } from "../helpers/useBreakpoint.js"
-import { useDismissOnTouchOutside } from "../../../../hooks/useDismissOnTouchOutside.js"
+import { usePinnedTooltip } from "../../../../hooks/usePinnedTooltip.js"
 import {
     getPopulationPyramidFonts,
     type PopulationPyramidFonts,
 } from "../helpers/fonts.js"
+import { localPoint } from "@visx/event"
+import {
+    PopulationPyramidTooltip,
+    type PopulationPyramidTooltipState,
+} from "./PopulationPyramidTooltip.js"
 
 // Labels reversed so 0-4 at bottom, oldest at top
 const AGE_GROUP_LABELS = [...PYRAMID_AGE_GROUPS].reverse()
@@ -114,30 +119,24 @@ function PopulationPyramidContent({
             : simulation.getPopulationForYear
     )(year)
 
-    const { ageBucketsBySex } = useMemo(() => {
-        const male = populationBySex?.male ?? []
-        const female = populationBySex?.female ?? []
-        const totalPop =
-            male.reduce((a, b) => a + b, 0) + female.reduce((a, b) => a + b, 0)
-        const toBuckets = (buckets: Record<string, number>) => {
-            if (unit === "absolute") return buckets
-            const result: Record<string, number> = {}
-            for (const [k, v] of Object.entries(buckets)) {
-                result[k] = totalPop > 0 ? (v / totalPop) * 100 : 0
+    const { ageBucketsBySex, absoluteAgeBucketsBySex, totalPopulation } =
+        useMemo(() => {
+            const absoluteAgeBucketsBySex =
+                getPopulationPyramidAgeBucketsBySex(populationBySex)
+            const totalPopulation = getTotalPopulationFromPyramidAgeBuckets(
+                absoluteAgeBucketsBySex
+            )
+
+            return {
+                ageBucketsBySex: convertPopulationPyramidAgeBucketsToUnit(
+                    absoluteAgeBucketsBySex,
+                    totalPopulation,
+                    unit
+                ),
+                absoluteAgeBucketsBySex,
+                totalPopulation,
             }
-            return result
-        }
-        return {
-            ageBucketsBySex: {
-                male: toBuckets(groupByAgeRange(male)),
-                female: toBuckets(groupByAgeRange(female)),
-            },
-            medianAgeBucketBySex: {
-                male: findAgeGroup(calculateMedianAge(male)),
-                female: findAgeGroup(calculateMedianAge(female)),
-            },
-        }
-    }, [populationBySex, unit])
+        }, [populationBySex, unit])
 
     const xAxisMax = useMemo(() => {
         if (xAxisScaleMode === "adaptive") {
@@ -183,32 +182,57 @@ function PopulationPyramidContent({
         [ageZones, yScale, innerHeight, margin.left, width]
     )
 
-    const [hoveredAgeGroup, setHoveredAgeGroup] = useState<string | null>(null)
-    const svgRef = useRef<SVGSVGElement>(null)
-    const dismissHover = useCallback(() => setHoveredAgeGroup(null), [])
-    useDismissOnTouchOutside(svgRef, hoveredAgeGroup !== null, dismissHover)
+    const [tooltipState, setTooltipState] =
+        useState<PopulationPyramidTooltipState | null>(null)
+    const hoveredAgeGroup = tooltipState?.ageGroup ?? null
+    const dismissHover = useCallback(() => setTooltipState(null), [])
+    const { ref: chartRef, isPinned: pinTooltipToBottom } =
+        usePinnedTooltip<HTMLDivElement>(tooltipState !== null, dismissHover)
+
+    const showTooltip = useCallback((e: React.PointerEvent, group: string) => {
+        const point = localPoint(e)
+        if (!point) return
+        setTooltipState({
+            ageGroup: group,
+            position: { x: point.x, y: point.y },
+        })
+    }, [])
 
     const handlePointerEnter = useCallback(
         (e: React.PointerEvent, group: string) => {
-            if (e.pointerType === "mouse") setHoveredAgeGroup(group)
+            if (e.pointerType === "mouse") showTooltip(e, group)
         },
-        []
+        [showTooltip]
+    )
+    const handlePointerMove = useCallback(
+        (e: React.PointerEvent, group: string) => {
+            if (e.pointerType === "mouse") showTooltip(e, group)
+        },
+        [showTooltip]
     )
     const handlePointerLeave = useCallback((e: React.PointerEvent) => {
-        if (e.pointerType === "mouse") setHoveredAgeGroup(null)
+        if (e.pointerType === "mouse") setTooltipState(null)
     }, [])
     const handlePointerDown = useCallback(
         (e: React.PointerEvent, group: string) => {
             if (e.pointerType === "touch") {
                 e.stopPropagation()
-                setHoveredAgeGroup((prev) => (prev === group ? null : group))
+                setTooltipState((prev) => {
+                    if (prev?.ageGroup === group) return null
+                    const point = localPoint(e)
+                    if (!point) return prev
+                    return {
+                        ageGroup: group,
+                        position: { x: point.x, y: point.y },
+                    }
+                })
             }
         },
         []
     )
     return (
-        <div style={{ position: "relative" }}>
-            <svg ref={svgRef} width={width} height={height} overflow="visible">
+        <div ref={chartRef} style={{ position: "relative" }}>
+            <svg width={width} height={height} overflow="visible">
                 <Group top={margin.top}>
                     {ageZonesWithBounds && (
                         <AgeZoneBackgroundBands ageZones={ageZonesWithBounds} />
@@ -280,6 +304,7 @@ function PopulationPyramidContent({
                                 height={bottom - y}
                                 fill="transparent"
                                 onPointerEnter={(e) => handlePointerEnter(e, g)}
+                                onPointerMove={(e) => handlePointerMove(e, g)}
                                 onPointerLeave={handlePointerLeave}
                                 onPointerDown={(e) => handlePointerDown(e, g)}
                             />
@@ -287,6 +312,16 @@ function PopulationPyramidContent({
                     })}
                 </Group>
             </svg>
+            <PopulationPyramidTooltip
+                tooltipState={tooltipState}
+                ageBucketsBySex={absoluteAgeBucketsBySex}
+                totalPopulation={totalPopulation}
+                width={width}
+                height={height}
+                maleColor={defaultBarColor}
+                femaleColor={defaultBarColor}
+                pinToBottom={pinTooltipToBottom}
+            />
         </div>
     )
 }

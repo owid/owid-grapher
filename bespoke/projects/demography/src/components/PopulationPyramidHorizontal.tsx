@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useRef } from "react"
+import { useState, useCallback, useMemo } from "react"
 import { useParentSize } from "@visx/responsive"
 import { scaleLinear } from "@visx/scale"
 import { Group } from "@visx/group"
@@ -17,16 +17,23 @@ import {
 import { GRAPHER_LIGHT_TEXT } from "@ourworldindata/grapher/src/color/ColorConstants.js"
 import { computeMaxAgeGroupPopulation } from "../model/projectionRunner"
 import {
-    groupByAgeRange,
     parseAgeGroup,
     formatPopulationValueShort,
     formatPopulationAxisLabelShort,
+    getPopulationPyramidAgeBucketsBySex,
+    getTotalPopulationFromPyramidAgeBuckets,
+    convertPopulationPyramidAgeBucketsToUnit,
 } from "../helpers/utils"
 import { Bounds, formatValue } from "@ourworldindata/utils"
 import { Halo, TextWrap, TextWrapSvg } from "@ourworldindata/components"
 import { toBreakpoint, useBreakpoint } from "../helpers/useBreakpoint.js"
-import { useDismissOnTouchOutside } from "../../../../hooks/useDismissOnTouchOutside.js"
+import { usePinnedTooltip } from "../../../../hooks/usePinnedTooltip.js"
 import { getHorizontalPyramidFonts } from "../helpers/fonts.js"
+import { localPoint } from "@visx/event"
+import {
+    PopulationPyramidTooltip,
+    type PopulationPyramidTooltipState,
+} from "./PopulationPyramidTooltip.js"
 
 export interface PopulationPyramidHorizontalProps {
     simulation: Simulation
@@ -69,24 +76,24 @@ function PopulationPyramidHorizontalContent({
             : simulation.getPopulationForYear
     )(year)
 
-    const ageBucketsBySex = useMemo(() => {
-        const male = populationBySex?.male ?? []
-        const female = populationBySex?.female ?? []
-        const totalPop =
-            male.reduce((a, b) => a + b, 0) + female.reduce((a, b) => a + b, 0)
-        const toBuckets = (buckets: Record<string, number>) => {
-            if (unit === "absolute") return buckets
-            const result: Record<string, number> = {}
-            for (const [k, v] of Object.entries(buckets)) {
-                result[k] = totalPop > 0 ? (v / totalPop) * 100 : 0
+    const { ageBucketsBySex, absoluteAgeBucketsBySex, totalPopulation } =
+        useMemo(() => {
+            const absoluteAgeBucketsBySex =
+                getPopulationPyramidAgeBucketsBySex(populationBySex)
+            const totalPopulation = getTotalPopulationFromPyramidAgeBuckets(
+                absoluteAgeBucketsBySex
+            )
+
+            return {
+                ageBucketsBySex: convertPopulationPyramidAgeBucketsToUnit(
+                    absoluteAgeBucketsBySex,
+                    totalPopulation,
+                    unit
+                ),
+                absoluteAgeBucketsBySex,
+                totalPopulation,
             }
-            return result
-        }
-        return {
-            male: toBuckets(groupByAgeRange(male)),
-            female: toBuckets(groupByAgeRange(female)),
-        }
-    }, [populationBySex, unit])
+        }, [populationBySex, unit])
 
     const xScale = useMemo(
         () =>
@@ -131,144 +138,182 @@ function PopulationPyramidHorizontalContent({
         [centerY, centerGap, innerHeight, yMax]
     )
 
-    const [hoveredAgeGroup, setHoveredAgeGroup] = useState<string | null>(null)
-    const svgRef = useRef<SVGSVGElement>(null)
-    const dismissHover = useCallback(() => setHoveredAgeGroup(null), [])
-    useDismissOnTouchOutside(svgRef, hoveredAgeGroup !== null, dismissHover)
+    const [tooltipState, setTooltipState] =
+        useState<PopulationPyramidTooltipState | null>(null)
+    const hoveredAgeGroup = tooltipState?.ageGroup ?? null
+    const dismissHover = useCallback(() => setTooltipState(null), [])
+    const { ref: chartRef, isPinned: pinTooltipToBottom } =
+        usePinnedTooltip<HTMLDivElement>(tooltipState !== null, dismissHover)
+
+    const showTooltip = useCallback((e: React.PointerEvent, group: string) => {
+        const point = localPoint(e)
+        if (!point) return
+        setTooltipState({
+            ageGroup: group,
+            position: { x: point.x, y: point.y },
+        })
+    }, [])
 
     const handlePointerEnter = useCallback(
         (e: React.PointerEvent, group: string) => {
-            if (e.pointerType === "mouse") setHoveredAgeGroup(group)
+            if (e.pointerType === "mouse") showTooltip(e, group)
         },
-        []
+        [showTooltip]
+    )
+    const handlePointerMove = useCallback(
+        (e: React.PointerEvent, group: string) => {
+            if (e.pointerType === "mouse") showTooltip(e, group)
+        },
+        [showTooltip]
     )
     const handlePointerLeave = useCallback((e: React.PointerEvent) => {
-        if (e.pointerType === "mouse") setHoveredAgeGroup(null)
+        if (e.pointerType === "mouse") setTooltipState(null)
     }, [])
     const handlePointerDown = useCallback(
         (e: React.PointerEvent, group: string) => {
             if (e.pointerType === "touch") {
                 e.stopPropagation()
-                setHoveredAgeGroup((prev) => (prev === group ? null : group))
+                setTooltipState((prev) => {
+                    if (prev?.ageGroup === group) return null
+                    const point = localPoint(e)
+                    if (!point) return prev
+                    return {
+                        ageGroup: group,
+                        position: { x: point.x, y: point.y },
+                    }
+                })
             }
         },
         []
     )
 
     return (
-        <svg ref={svgRef} width={width} height={height} overflow="visible">
-            <Group top={margin.top} left={margin.left}>
-                <HorizontalGridLines
-                    yScale={yScaleFemale}
-                    innerWidth={innerWidth}
-                />
-                <HorizontalGridLines
-                    yScale={yScaleMale}
-                    innerWidth={innerWidth}
-                />
-                <GridLabels
-                    yScale={yScaleFemale}
-                    innerWidth={innerWidth}
-                    innerHeight={innerHeight}
-                    fontSize={fonts.yTick}
-                    labelColor={GRID_LABEL_COLOR}
-                    position="above"
-                    unit={unit}
-                />
-                <GridLabels
-                    yScale={yScaleMale}
-                    innerWidth={innerWidth}
-                    innerHeight={innerHeight}
-                    fontSize={fonts.yTick}
-                    labelColor={GRID_LABEL_COLOR}
-                    position="below"
-                    unit={unit}
-                />
+        <div ref={chartRef} style={{ position: "relative" }}>
+            <svg width={width} height={height} overflow="visible">
+                <Group top={margin.top} left={margin.left}>
+                    <HorizontalGridLines
+                        yScale={yScaleFemale}
+                        innerWidth={innerWidth}
+                    />
+                    <HorizontalGridLines
+                        yScale={yScaleMale}
+                        innerWidth={innerWidth}
+                    />
+                    <GridLabels
+                        yScale={yScaleFemale}
+                        innerWidth={innerWidth}
+                        innerHeight={innerHeight}
+                        fontSize={fonts.yTick}
+                        labelColor={GRID_LABEL_COLOR}
+                        position="above"
+                        unit={unit}
+                    />
+                    <GridLabels
+                        yScale={yScaleMale}
+                        innerWidth={innerWidth}
+                        innerHeight={innerHeight}
+                        fontSize={fonts.yTick}
+                        labelColor={GRID_LABEL_COLOR}
+                        position="below"
+                        unit={unit}
+                    />
 
-                <AgeGroupBars
-                    xScale={xScale}
-                    yScale={yScaleFemale}
-                    ageBuckets={ageBucketsBySex.female}
-                    color={effectiveFemaleColor}
-                    hoveredAgeGroup={hoveredAgeGroup}
-                />
-                <AgeGroupBars
-                    xScale={xScale}
-                    yScale={yScaleMale}
-                    ageBuckets={ageBucketsBySex.male}
-                    color={effectiveMaleColor}
-                    hoveredAgeGroup={hoveredAgeGroup}
-                />
-                <VerticalDividers
-                    xScale={xScale}
-                    tickValues={[25, 50, 75, 100, 125]}
-                    femaleBaseline={centerY - centerGap / 2}
-                    maleBaseline={centerY + centerGap / 2}
-                    innerHeight={innerHeight}
-                />
+                    <AgeGroupBars
+                        xScale={xScale}
+                        yScale={yScaleFemale}
+                        ageBuckets={ageBucketsBySex.female}
+                        color={effectiveFemaleColor}
+                        hoveredAgeGroup={hoveredAgeGroup}
+                    />
+                    <AgeGroupBars
+                        xScale={xScale}
+                        yScale={yScaleMale}
+                        ageBuckets={ageBucketsBySex.male}
+                        color={effectiveMaleColor}
+                        hoveredAgeGroup={hoveredAgeGroup}
+                    />
+                    <VerticalDividers
+                        xScale={xScale}
+                        tickValues={[25, 50, 75, 100, 125]}
+                        femaleBaseline={centerY - centerGap / 2}
+                        maleBaseline={centerY + centerGap / 2}
+                        innerHeight={innerHeight}
+                    />
 
-                <BarValueLabel
-                    xScale={xScale}
-                    yScale={yScaleFemale}
-                    ageBuckets={ageBucketsBySex.female}
-                    color={effectiveFemaleColor}
-                    hoveredAgeGroup={hoveredAgeGroup}
-                    fontSize={fonts.hoverLabel}
-                    unit={unit}
-                />
-                <BarValueLabel
-                    xScale={xScale}
-                    yScale={yScaleMale}
-                    ageBuckets={ageBucketsBySex.male}
-                    color={effectiveMaleColor}
-                    hoveredAgeGroup={hoveredAgeGroup}
-                    fontSize={fonts.hoverLabel}
-                    unit={unit}
-                />
-                <HoverHitRects
-                    xScale={xScale}
-                    innerHeight={innerHeight}
-                    onPointerEnter={handlePointerEnter}
-                    onPointerLeave={handlePointerLeave}
-                    onPointerDown={handlePointerDown}
-                />
+                    <BarValueLabel
+                        xScale={xScale}
+                        yScale={yScaleFemale}
+                        ageBuckets={ageBucketsBySex.female}
+                        color={effectiveFemaleColor}
+                        hoveredAgeGroup={hoveredAgeGroup}
+                        fontSize={fonts.hoverLabel}
+                        unit={unit}
+                    />
+                    <BarValueLabel
+                        xScale={xScale}
+                        yScale={yScaleMale}
+                        ageBuckets={ageBucketsBySex.male}
+                        color={effectiveMaleColor}
+                        hoveredAgeGroup={hoveredAgeGroup}
+                        fontSize={fonts.hoverLabel}
+                        unit={unit}
+                    />
+                    <HoverHitRects
+                        xScale={xScale}
+                        innerHeight={innerHeight}
+                        onPointerEnter={handlePointerEnter}
+                        onPointerMove={handlePointerMove}
+                        onPointerLeave={handlePointerLeave}
+                        onPointerDown={handlePointerDown}
+                    />
 
-                <AgeAxisCenter
-                    xScale={xScale}
-                    centerY={centerY}
-                    centerGap={centerGap}
-                    innerWidth={innerWidth}
-                    tickValues={[25, 50, 75, 100, 125]}
-                    fontSize={fonts.xTick}
-                />
+                    <AgeAxisCenter
+                        xScale={xScale}
+                        centerY={centerY}
+                        centerGap={centerGap}
+                        innerWidth={innerWidth}
+                        tickValues={[25, 50, 75, 100, 125]}
+                        fontSize={fonts.xTick}
+                    />
 
-                {/* Sex labels in the center gap */}
-                <text
-                    x={0}
-                    y={centerY}
-                    dy={-1}
-                    dominantBaseline="auto"
-                    fontSize={fonts.sexLabel}
-                    fill={effectiveFemaleColor}
-                    fontWeight={700}
-                    style={{ pointerEvents: "none" }}
-                >
-                    WOMEN
-                </text>
-                <text
-                    x={0}
-                    y={centerY}
-                    dy={1}
-                    dominantBaseline="hanging"
-                    fontSize={fonts.sexLabel}
-                    fill={effectiveMaleColor}
-                    fontWeight={700}
-                    style={{ pointerEvents: "none" }}
-                >
-                    MEN
-                </text>
-            </Group>
-        </svg>
+                    {/* Sex labels in the center gap */}
+                    <text
+                        x={0}
+                        y={centerY}
+                        dy={-1}
+                        dominantBaseline="auto"
+                        fontSize={fonts.sexLabel}
+                        fill={effectiveFemaleColor}
+                        fontWeight={700}
+                        style={{ pointerEvents: "none" }}
+                    >
+                        WOMEN
+                    </text>
+                    <text
+                        x={0}
+                        y={centerY}
+                        dy={1}
+                        dominantBaseline="hanging"
+                        fontSize={fonts.sexLabel}
+                        fill={effectiveMaleColor}
+                        fontWeight={700}
+                        style={{ pointerEvents: "none" }}
+                    >
+                        MEN
+                    </text>
+                </Group>
+            </svg>
+            <PopulationPyramidTooltip
+                tooltipState={tooltipState}
+                ageBucketsBySex={absoluteAgeBucketsBySex}
+                totalPopulation={totalPopulation}
+                width={width}
+                height={height}
+                maleColor={effectiveMaleColor}
+                femaleColor={effectiveFemaleColor}
+                pinToBottom={pinTooltipToBottom}
+            />
+        </div>
     )
 }
 
@@ -394,12 +439,14 @@ function HoverHitRects({
     xScale,
     innerHeight,
     onPointerEnter,
+    onPointerMove,
     onPointerLeave,
     onPointerDown,
 }: {
     xScale: ReturnType<typeof scaleLinear<number>>
     innerHeight: number
     onPointerEnter: (e: React.PointerEvent, g: string) => void
+    onPointerMove: (e: React.PointerEvent, g: string) => void
     onPointerLeave: (e: React.PointerEvent) => void
     onPointerDown: (e: React.PointerEvent, g: string) => void
 }) {
@@ -420,6 +467,7 @@ function HoverHitRects({
                         height={innerHeight}
                         fill="transparent"
                         onPointerEnter={(e) => onPointerEnter(e, g)}
+                        onPointerMove={(e) => onPointerMove(e, g)}
                         onPointerLeave={onPointerLeave}
                         onPointerDown={(e) => onPointerDown(e, g)}
                     />
