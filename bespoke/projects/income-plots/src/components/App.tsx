@@ -21,6 +21,9 @@ import {
 import { useResizeObserver, useWindowSize } from "usehooks-ts"
 import { UNSAFE_PortalProvider } from "react-aria"
 import { useShadowRoot } from "../ShadowRootContext.tsx"
+import { Frame } from "../../../../components/Frame/Frame.js"
+import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
+import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
 
 export const App = () => {
     const shadowRoot = useShadowRoot()
@@ -51,35 +54,47 @@ export const App = () => {
         <UNSAFE_PortalProvider
             getContainer={shadowRoot ? () => shadowRoot : undefined}
         >
-            <div ref={containerRef}>
-                <IncomePlotControlsRowTop
-                    isNarrow={isNarrow}
-                    onOpenSettings={() => setDrawerOpen(true)}
+            <Frame className="income-plot-captioned-chart">
+                <ChartHeader
+                    className="income-plot-header"
+                    title={`Global income distribution in ${currentYear}`}
+                    subtitle="Income or consumption per person, adjusted for price differences between countries and inflation."
                 />
-                <div
-                    style={{
-                        width: "max-content",
-                        maxWidth: width,
-                        aspectRatio: aspectRatio,
-                    }}
-                >
-                    <Suspense fallback={<>Loading...</>}>
-                        <IncomePlot
-                            key={currentYear}
-                            width={width}
-                            aspectRatio={aspectRatio}
-                            isNarrow={isNarrow}
-                        />
-                    </Suspense>
-                    {!isNarrow && <IncomePlotControlsRowBottom />}
-                </div>
-                {isNarrow && (
-                    <IncomePlotDrawer
-                        isOpen={drawerOpen}
-                        onClose={closeDrawer}
+                <div ref={containerRef}>
+                    <IncomePlotControlsRowTop
+                        isNarrow={isNarrow}
+                        onOpenSettings={() => setDrawerOpen(true)}
                     />
-                )}
-            </div>
+                    <div
+                        className="income-plot-captioned-chart__chart-area"
+                        style={{
+                            width: "max-content",
+                            maxWidth: width,
+                            aspectRatio: aspectRatio,
+                        }}
+                    >
+                        <Suspense fallback={<>Loading...</>}>
+                            <IncomePlot
+                                key={currentYear}
+                                width={width}
+                                aspectRatio={aspectRatio}
+                                isNarrow={isNarrow}
+                            />
+                        </Suspense>
+                        {!isNarrow && <IncomePlotControlsRowBottom />}
+                    </div>
+                    {isNarrow && (
+                        <IncomePlotDrawer
+                            isOpen={drawerOpen}
+                            onClose={closeDrawer}
+                        />
+                    )}
+                </div>
+                <ChartFooter
+                    className="income-plot-footer"
+                    source="World Bank Poverty and Inequality Platform (PIP), via Our World in Data"
+                />
+            </Frame>
         </UNSAFE_PortalProvider>
     )
 }

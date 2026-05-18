@@ -1,2 +1,10 @@
+@import "tippy.js/dist/tippy.css";
+@import "tippy.js/themes/light.css";
+
+@import "./grapher.scss";
+
 @import "./controls";
+@import "../../../components/Frame/Frame.scss";
+@import "../../../components/ChartHeader/ChartHeader.scss";
+@import "../../../components/ChartFooter/ChartFooter.scss";
 @import "./styles.css";

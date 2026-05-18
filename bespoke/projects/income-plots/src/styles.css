@@ -22,6 +22,12 @@
     width: var(--fa-width, 1.25em);
 }
 
+.income-plot-captioned-chart {
+    .income-plot-captioned-chart__chart-area {
+        position: relative;
+    }
+}
+
 /**
  * This here is super annoying. We need `shape-rendering: crispEdges` to be set in Chrome in order
  * to avoid pixelated edges, but in Firefox it _causes_ pixelated edges and we don't want to set it.
