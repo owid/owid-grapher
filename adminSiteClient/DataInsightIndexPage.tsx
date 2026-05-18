@@ -158,7 +158,7 @@ function createColumns(ctx: {
             dataIndex: "authors",
             key: "authors",
             width: 150,
-            render: (authors: string[], dataInsight) => (
+            render: (authors: string[]) => (
                 <>
                     {authors.map((author, index) => (
                         <Fragment key={author}>
@@ -166,8 +166,6 @@ function createColumns(ctx: {
                             {index < authors.length - 1 ? ", " : ""}
                         </Fragment>
                     ))}
-                    {dataInsight.approvedBy &&
-                        ` (approved by ${dataInsight.approvedBy})`}
                 </>
             ),
         },

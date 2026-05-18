@@ -32,7 +32,7 @@ This note complements the Google Docs CMS pipeline overview by mapping the serve
 ### `GdocDataInsight` (`db/model/Gdoc/GdocDataInsight.ts`)
 
 - Focused on short-form insights highlighting a single chart or dataset.
-- Enforces presence of `approved-by` metadata and tracks optional URLs (`grapher-url`, `narrative-chart`, `figma-url`).
+- Tracks optional URLs (`grapher-url`, `narrative-chart`, `figma-url`).
 - Loads latest data insight metadata and companion image information for preview panels.
 
 ### `GdocHomepage` (`db/model/Gdoc/GdocHomepage.ts`)

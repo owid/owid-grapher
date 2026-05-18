@@ -187,12 +187,7 @@ export const GdocInsightSettings = ({
         <form className="GdocsSettingsForm">
             <GdocCommonErrors
                 errors={errors}
-                errorsToFilter={[
-                    "approved-by",
-                    "grapher-url",
-                    "narrative-chart",
-                    "figma-url",
-                ]}
+                errorsToFilter={["grapher-url", "narrative-chart", "figma-url"]}
             />
             <GdocCommonSettings
                 gdoc={gdoc}
@@ -202,11 +197,6 @@ export const GdocInsightSettings = ({
             />
             <div className="form-group">
                 <h3 className="form-section-heading">Data insight settings</h3>
-                <GdocsSettingsContentField
-                    property="approved-by"
-                    gdoc={gdoc}
-                    errors={errors}
-                />
                 <GdocsPublicationContext
                     gdoc={gdoc}
                     setCurrentGdoc={setCurrentGdoc}
@@ -246,12 +236,7 @@ export const GdocAnnouncementSettings = ({
         <form className="GdocsSettingsForm">
             <GdocCommonErrors
                 errors={errors}
-                errorsToFilter={[
-                    "approved-by",
-                    "grapher-url",
-                    "narrative-chart",
-                    "figma-url",
-                ]}
+                errorsToFilter={["grapher-url", "narrative-chart", "figma-url"]}
             />
             <GdocCommonSettings
                 gdoc={gdoc}

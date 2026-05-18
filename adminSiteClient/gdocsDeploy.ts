@@ -107,7 +107,6 @@ export const checkIsLightningUpdate = (
         boolean
     > = {
         ["grapher-url"]: true,
-        ["approved-by"]: true,
         ["narrative-chart"]: true,
         ["figma-url"]: true,
         title: false, // requires rebaking the feed
