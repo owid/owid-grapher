@@ -1,0 +1,68 @@
+.migration-sankey {
+    width: 100%;
+    height: 100%;
+    // Cap on wide screens so labels don't drift too far from the flows.
+    // Centered within the column when the cap kicks in.
+    max-width: 1000px;
+    margin-inline: auto;
+}
+
+// Single-half views (immigrants-only / emigrants-only) carry just one chart,
+// so the same wide cap leaves too much empty space — tighten it.
+.migration-sankey--single {
+    max-width: 600px;
+}
+
+.migration-sankey .sankey__label tspan:first-child {
+    font-weight: 600;
+}
+
+.migration-sankey .sankey__label tspan:not(:first-child) {
+    fill: $light-text;
+}
+
+// Centered "no immigrants/emigrants" placeholder that fills an empty half.
+// Used in both single-half views (with a CTA, once wired up) and both-view
+// when one half is empty (text only).
+.migration-sankey__empty-half {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 16px;
+    text-align: center;
+    color: $light-text;
+}
+
+.migration-sankey__empty-half-message {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.3;
+    max-width: 360px;
+}
+
+.migration-sankey__empty-half-cta {
+    appearance: none;
+    background: transparent;
+    color: $blue-50;
+    border: 0;
+    padding: 0;
+    font: 500 14px/1.3 $sans-serif-font-stack;
+    letter-spacing: 0.01em;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+
+    &:hover {
+        color: $blue-90;
+    }
+
+    &:focus-visible {
+        outline: 1px solid $blue-50;
+        outline-offset: 2px;
+        border-radius: 2px;
+    }
+}
