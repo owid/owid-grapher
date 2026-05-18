@@ -9,7 +9,7 @@ import {
     getRecentChartSlugRedirects,
 } from "./redirectsFromDb.js"
 import { getRecentMultiDimRedirects } from "../db/model/MultiDimRedirects.js"
-import { latestUrl } from "../site/latest/latestUtils.js"
+import { buildLatestPagePath } from "../site/latest/latestUtils.js"
 
 export const getCloudflarePagesRedirects = async (
     knex: db.KnexReadonlyTransaction
@@ -38,11 +38,11 @@ export const getCloudflarePagesRedirects = async (
         // Per Metabase as of 2026-05-01, paginated URLs (/data-insights/2,
         // /3, …) still get ~7.5k pageviews / 90 days combined. Re-check
         // after 2026-08-01: if traffic has decayed to noise, drop these.
-        `/data-insights ${latestUrl("data-insight")} 301`,
+        `/data-insights ${buildLatestPagePath("data-insight")} 301`,
         ...Array.from(
             { length: 25 },
             (_unused, i) =>
-                `/data-insights/${i + 1} ${latestUrl("data-insight")} 301`
+                `/data-insights/${i + 1} ${buildLatestPagePath("data-insight")} 301`
         ),
     ]
 

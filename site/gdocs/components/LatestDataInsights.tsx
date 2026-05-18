@@ -18,7 +18,7 @@ import {
     LatestDataInsight,
 } from "@ourworldindata/utils"
 import { SMALL_BREAKPOINT_MEDIA_QUERY } from "../../SiteConstants.js"
-import { latestUrl } from "../../latest/latestUtils.js"
+import { buildLatestPagePath } from "../../latest/latestUtils.js"
 import Image from "./Image.js"
 import { ArticleBlocks } from "./ArticleBlocks.js"
 import DataInsightDateline from "./DataInsightDateline.js"
@@ -92,7 +92,7 @@ export default function LatestDataInsights({
                         <li className="latest-data-insights__card">
                             <Button
                                 className="latest-data-insights__card__see-all body-3-medium"
-                                href={latestUrl("data-insight")}
+                                href={buildLatestPagePath("data-insight")}
                                 text="See all our Data Insights"
                                 theme="outline-vermillion"
                             />

@@ -9,7 +9,7 @@ import { SITE_TOOLS_CLASS } from "./SiteTools.js"
 import { OxfordAndGcdlLogos } from "./SiteLogos.js"
 import { IS_ARCHIVE } from "../settings/clientSettings.js"
 import { SEARCH_BASE_PATH } from "./search/searchUtils.js"
-import { latestUrl } from "./latest/latestUtils.js"
+import { buildLatestPagePath } from "./latest/latestUtils.js"
 
 interface SiteFooterProps {
     hideDonate?: boolean
@@ -27,11 +27,11 @@ type LinkData = { title: string; url: string }
 const EXPLORE_LINKS: LinkData[] = [
     { title: "Topics", url: "/#all-topics" },
     { title: "Data", url: SEARCH_BASE_PATH },
-    { title: "Data Insights", url: latestUrl("data-insight") },
+    { title: "Data Insights", url: buildLatestPagePath("data-insight") },
 ]
 
 const RESOURCE_LINKS: LinkData[] = [
-    { title: "Latest", url: latestUrl() },
+    { title: "Latest", url: buildLatestPagePath() },
     { title: "SDG Tracker", url: "/sdgs" },
     { title: "Teaching with OWID", url: "/teaching" },
 ]

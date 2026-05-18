@@ -12,8 +12,8 @@ import {
 import { OwidGdocType, slugify } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
 
-/** Build a URL to the /latest page, optionally pre-filtered by type. */
-export function latestUrl(type?: LatestType): string {
+/** Build the /latest page path, optionally pre-filtered by type. */
+export function buildLatestPagePath(type?: LatestType): string {
     return type ? `${LATEST_PATH}?${LatestUrlParam.TYPE}=${type}` : LATEST_PATH
 }
 

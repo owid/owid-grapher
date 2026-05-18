@@ -13,7 +13,7 @@ import {
     faNewspaper,
 } from "@fortawesome/free-solid-svg-icons"
 import { BAKED_BASE_URL } from "../../../settings/clientSettings.js"
-import { latestUrl } from "../../latest/latestUtils.js"
+import { buildLatestPagePath } from "../../latest/latestUtils.js"
 
 export function HomepageSearch(props: { className?: string }) {
     const { homepageMetadata } = useContext(AttachmentsContext)
@@ -56,7 +56,7 @@ export function HomepageSearch(props: { className?: string }) {
                     <li>
                         <a
                             className="homepage-search__link body-3-medium"
-                            href={latestUrl("article")}
+                            href={buildLatestPagePath("article")}
                         >
                             <FontAwesomeIcon icon={faNewspaper} />
                             {commafyNumber(articleCount)} articles

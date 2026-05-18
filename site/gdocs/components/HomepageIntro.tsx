@@ -26,7 +26,7 @@ import { OwidSocials } from "../../OwidSocials.js"
 import { NewsletterSubscriptionContext } from "../../newsletter.js"
 import {
     deriveAnnouncementLatestType,
-    latestUrl,
+    buildLatestPagePath,
 } from "../../latest/latestUtils.js"
 
 type FeaturedWorkTileProps = EnrichedBlockHomepageIntroPost & {
@@ -233,7 +233,7 @@ function HomepageAnnouncements() {
             </ul>
             <Button
                 className="homepage-intro__latest-button"
-                href={latestUrl()}
+                href={buildLatestPagePath()}
                 text="See all updates"
                 theme="outline-vermillion"
             />

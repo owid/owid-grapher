@@ -12,7 +12,7 @@ import { SiteMobileArea } from "./SiteMobileArea.js"
 import { SEARCH_BASE_PATH } from "./search/searchUtils.js"
 import { FeedbackForm } from "./Feedback.js"
 import { Button } from "@ourworldindata/components"
-import { latestUrl } from "./latest/latestUtils.js"
+import { buildLatestPagePath } from "./latest/latestUtils.js"
 
 export const SiteMobileMenu = ({
     tagGraph,
@@ -66,7 +66,7 @@ export const SiteMobileMenu = ({
                     </a>
                 </li>
                 <li>
-                    <a href={latestUrl()} className="section__header">
+                    <a href={buildLatestPagePath()} className="section__header">
                         Latest
                     </a>
                 </li>

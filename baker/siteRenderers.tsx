@@ -1,7 +1,7 @@
 import * as _ from "lodash-es"
 import { LongFormPage } from "../site/LongFormPage.js"
 import { LatestPage } from "../site/LatestPage.js"
-import { latestUrl } from "../site/latest/latestUtils.js"
+import { buildLatestPagePath } from "../site/latest/latestUtils.js"
 import { SearchPage } from "../site/search/SearchPage.js"
 import { DynamicCollectionPage } from "../site/collections/DynamicCollectionPage.js"
 import { StaticCollectionPage } from "../site/collections/StaticCollectionPage.js"
@@ -295,7 +295,7 @@ export async function makeDataInsightsAtomFeed(knex: KnexReadonlyTransaction) {
     const dataInsights = await getAndLoadLastPublishedDataInsights(knex)
     return makeAtomFeedFromDataInsights({
         dataInsights,
-        htmlUrl: `${BAKED_BASE_URL}${latestUrl("data-insight")}`,
+        htmlUrl: `${BAKED_BASE_URL}${buildLatestPagePath("data-insight")}`,
         feedUrl: `${BAKED_BASE_URL}/atom-data-insights.xml`,
     })
 }
