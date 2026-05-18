@@ -203,7 +203,6 @@ export interface OwidGdocDataInsightContent {
     ["narrative-chart"]?: string
     ["grapher-url"]?: string
     ["figma-url"]?: string
-    ["approved-by"]: string // can't publish an insight unless this is set
     body: OwidEnrichedGdocBlock[]
     type: OwidGdocType.DataInsight
 }
@@ -213,7 +212,6 @@ export type OwidGdocDataInsightIndexItem = Pick<
     "id" | "slug" | "tags" | "published" | "publishedAt" | "markdown"
 > &
     Pick<OwidGdocDataInsightContent, "title" | "authors"> & {
-        approvedBy?: OwidGdocDataInsightContent["approved-by"]
         grapherUrl?: OwidGdocDataInsightContent["grapher-url"]
         explorerUrl?: OwidGdocDataInsightContent["grapher-url"]
         narrativeChart?: Pick<

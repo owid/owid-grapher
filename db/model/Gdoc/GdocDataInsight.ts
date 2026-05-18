@@ -1,6 +1,4 @@
 import {
-    OwidGdocErrorMessage,
-    OwidGdocErrorMessageType,
     OwidGdocDataInsightContent,
     OwidGdocDataInsightInterface,
     OwidGdocMinimalPostInterface,
@@ -38,18 +36,6 @@ export class GdocDataInsight
 
     protected override typeSpecificUrls(): string[] {
         return excludeNullish([this.content["grapher-url"]])
-    }
-
-    override _validateSubclass = async (): Promise<OwidGdocErrorMessage[]> => {
-        const errors: OwidGdocErrorMessage[] = []
-        if (!this.content["approved-by"]) {
-            errors.push({
-                type: OwidGdocErrorMessageType.Error,
-                property: "approved-by",
-                message: "Missing an approved-by field in the front-matter",
-            })
-        }
-        return errors
     }
 
     override _loadSubclassAttachments = async (

@@ -225,7 +225,6 @@ function extractDataInsightIndexItem(
         markdown: dataInsight.markdown,
         title: content.title ?? "",
         authors: content.authors,
-        approvedBy: content["approved-by"],
         narrativeChart,
         grapherUrl,
         explorerUrl,
