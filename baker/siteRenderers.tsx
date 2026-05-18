@@ -45,6 +45,8 @@ import {
     DbRawChartConfig,
     ExplorerViewsTableName,
     GrapherInterface,
+    ImageMetadata,
+    LinkedAuthor,
     OwidGdocMinimalPostInterface,
     OwidGdocPublicationContext,
     ResolvedSlideChartInfo,

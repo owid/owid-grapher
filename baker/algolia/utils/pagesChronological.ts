@@ -3,12 +3,17 @@ import * as db from "../../../db/db.js"
 import {
     OwidGdocType,
     checkIsChronologicalGdoc,
-    checkIsLatestFeedGdoc,
     getUniqueNamesFromTagHierarchies,
 } from "@ourworldindata/utils"
 import {
     ChronologicalGdoc,
     PageChronologicalRecord,
+    PageChronologicalRecordBase,
+    PageChronologicalRecordVariantPayload,
+    PageChronologicalRecordSchema,
+    PageChronologicalArticleRecordPayload,
+    PageChronologicalAnnouncementRecordPayload,
+    PageChronologicalLinkedAttachments,
     SearchIndexName,
     DbEnrichedImage,
 } from "@ourworldindata/types"
@@ -19,10 +24,11 @@ import { GdocDataInsight } from "../../../db/model/Gdoc/GdocDataInsight.js"
 import { GdocAnnouncement } from "../../../db/model/Gdoc/GdocAnnouncement.js"
 import { getAlgoliaClient } from "../configureAlgolia.js"
 import { getIndexName } from "../../../site/search/searchClient.js"
-import { deriveLatestType } from "../../../site/latest/latestUtils.js"
+import { deriveAnnouncementLatestType } from "../../../site/latest/latestUtils.js"
 import { ALGOLIA_INDEXING } from "../../../settings/serverSettings.js"
 import { getThumbnailUrl, getExcerptFromGdoc } from "./pages.js"
 import { match, P } from "ts-pattern"
+import { logErrorAndMaybeCaptureInSentry } from "../../../serverUtils/errorLog.js"
 
 /**
  * Like `checkIsChronologicalGdoc`, but narrows to the Gdoc *class* so
@@ -35,18 +41,24 @@ function isChronologicalGdocInstance(
 }
 
 /**
- * Load the linked-content fields each chronological gdoc type needs
- * for indexing. Mirrors the per-type contract enforced by `buildAttachment`
- * — keep these two functions in sync when adding a new type.
+ * Load the attachments each chronological gdoc type needs for indexing. Mirrors
+ * the per-type contract enforced by `buildVariantPayload` — keep these two
+ * functions in sync when adding a new type.
  *
  * Takes `ChronologicalGdoc & GdocBase` because we need both the discriminated
  * `content` shape (from the interface union) and the `loadLinkedX(knex)`
- * methods (declared on the GdocBase class). Class instances from
- * `gdocFromJSON` satisfy both.
+ * methods (declared on the GdocBase class). Class instances from `gdocFromJSON`
+ * satisfy both.
+ *
+ * Ordering matters: linked{Authors,Documents} must be loaded before
+ * imageMetadata, because `linkedImageFilenames` derives filenames from each
+ * linkedAuthors's `featuredImage` (author avatars) and each linkedDocument's
+ * `featured-image` (prominent-link thumbnails)
  */
 async function loadAttachmentsForChronologicalIndexing(
     gdoc: ChronologicalGdoc & GdocBase,
-    knex: db.KnexReadonlyTransaction
+    knex: db.KnexReadonlyTransaction,
+    cloudflareImagesByFilename: Record<string, DbEnrichedImage>
 ): Promise<void> {
     await match(gdoc)
         .with({ content: { type: OwidGdocType.Announcement } }, async (g) => {
@@ -63,7 +75,7 @@ async function loadAttachmentsForChronologicalIndexing(
             }
         })
         // DataInsight: intentionally no extra loads — see the DataInsight
-        // branch in `buildAttachment` for the rationale (DI bodies are
+        // branch in `buildVariantPayload` for the rationale (DI bodies are
         // image + text by convention, matching the homepage's
         // `getLatestDataInsights`).
         .with({ content: { type: OwidGdocType.DataInsight } }, _.noop)
@@ -83,109 +95,140 @@ async function loadAttachmentsForChronologicalIndexing(
             _.noop
         )
         .exhaustive()
+
+    gdoc.imageMetadata = _.pick(
+        cloudflareImagesByFilename,
+        gdoc.linkedImageFilenames
+    )
 }
 
-/** Copy linkedCharts / linkedDocuments into the attachment if non-empty. */
-function copyLinkedContentIfPresent(
-    attachment: Partial<PageChronologicalRecord>,
+/** Copy linkedCharts / linkedDocuments into the attachments if non-empty. */
+function copyAttachmentsIfPresent(
+    attachments: PageChronologicalLinkedAttachments,
     gdoc: ChronologicalGdoc
 ): void {
     if (gdoc.linkedCharts && Object.keys(gdoc.linkedCharts).length > 0) {
-        attachment.linkedCharts = gdoc.linkedCharts
+        attachments.linkedCharts = gdoc.linkedCharts
     }
     if (gdoc.linkedDocuments && Object.keys(gdoc.linkedDocuments).length > 0) {
-        attachment.linkedDocuments = gdoc.linkedDocuments
+        attachments.linkedDocuments = gdoc.linkedDocuments
     }
 }
 
 /**
- * Build type-specific attachment fields for a PageChronologicalRecord.
+ * Build type-specific fields for a PageChronologicalRecord.
  * Dispatches on `content.type` so it works both for class instances
  * (bulk path) and plain objects from `toJSON()` (individual path).
  */
-function buildAttachment(
+function buildVariantPayload(
     gdoc: ChronologicalGdoc
-): Partial<PageChronologicalRecord> {
-    const attachment: Partial<PageChronologicalRecord> = {}
+): PageChronologicalRecordVariantPayload {
+    return (
+        match<ChronologicalGdoc, PageChronologicalRecordVariantPayload>(gdoc)
+            .with({ content: { type: OwidGdocType.DataInsight } }, (g) => {
+                // Ship the full body for inline rendering on /latest cards. We
+                // deliberately don't ship linkedCharts / linkedDocuments here (and
+                // don't load them in `getPagesChronologicalRecords` either),
+                // mirroring the homepage's `getLatestDataInsights` (db/model/Gdoc/
+                // GdocFactory.ts) which only loads imageMetadata. The editorial
+                // convention is that DI bodies are image + text; chart /
+                // prominent-link / cta blocks would degrade on cards on both
+                // surfaces, but in practice DIs don't author them. Revisit if that
+                // convention starts breaking.
+                return {
+                    type: OwidGdocType.DataInsight,
+                    latestType: "data-insight",
+                    body: g.content.body,
+                }
+            })
+            .with({ content: { type: OwidGdocType.Article } }, (g) => {
+                const payload: PageChronologicalArticleRecordPayload = {
+                    type: OwidGdocType.Article,
+                    latestType: "article",
+                }
 
-    if (!_.isEmpty(gdoc.imageMetadata)) {
-        attachment.imageMetadata = gdoc.imageMetadata
-    }
+                if (g.content["featured-image"]) {
+                    payload.featuredImage = g.content["featured-image"]
+                }
+                if (g.content["latest-feed-featured-image"]) {
+                    payload.latestFeedFeaturedImage =
+                        g.content["latest-feed-featured-image"]
+                }
+                if (g.content["latest-feed-excerpt"]?.length) {
+                    payload.latestFeedExcerpt = g.content["latest-feed-excerpt"]
+                    // Carry linked charts/documents so internal links in the
+                    // rich excerpt can resolve via AttachmentsContext.
+                    copyAttachmentsIfPresent(payload, g)
+                }
 
-    match(gdoc)
-        .with({ content: { type: OwidGdocType.DataInsight } }, (g) => {
-            // Ship the full body for inline rendering on /latest cards. We
-            // deliberately don't ship linkedCharts / linkedDocuments here (and
-            // don't load them in `getPagesChronologicalRecords` either),
-            // mirroring the homepage's `getLatestDataInsights` (db/model/Gdoc/
-            // GdocFactory.ts) which only loads imageMetadata. The editorial
-            // convention is that DI bodies are image + text; chart /
-            // prominent-link / cta blocks would degrade on cards on both
-            // surfaces, but in practice DIs don't author them. Revisit if that
-            // convention starts breaking.
-            if (g.content.body) {
-                attachment.body = g.content.body
-            }
+                return payload
+            })
+            .with({ content: { type: OwidGdocType.Announcement } }, (g) => {
+                const payload: PageChronologicalAnnouncementRecordPayload = {
+                    type: OwidGdocType.Announcement,
+                    latestType: deriveAnnouncementLatestType(g.content.kicker),
+                    body: g.content.body,
+                }
+                if (g.content.cta) {
+                    payload.cta = g.content.cta
+                } else {
+                    // For non-CTA announcements, include linked charts and documents.
+                    copyAttachmentsIfPresent(payload, g)
+                }
+                if (g.linkedAuthors?.length) {
+                    payload.linkedAuthors = g.linkedAuthors
+                }
+
+                return payload
+            })
+            // Topic pages are indexed for the atom feed but don't need any
+            // type-specific attachment fields — only the base record's
+            // title/excerpt/date matters. (They're filtered out of /latest
+            // entirely by LATEST_BASE_FILTER, so no card body ever renders.)
+            .with({ content: { type: OwidGdocType.TopicPage } }, () => ({
+                type: OwidGdocType.TopicPage,
+            }))
+            .with({ content: { type: OwidGdocType.LinearTopicPage } }, () => ({
+                type: OwidGdocType.LinearTopicPage,
+            }))
+            .exhaustive()
+    )
+}
+
+function formatZodIssues(
+    issues: ReadonlyArray<{ path: ReadonlyArray<PropertyKey>; message: string }>
+): string {
+    return issues
+        .map((issue) => {
+            const path = issue.path.length ? issue.path.join(".") : "<root>"
+            return `${path}: ${issue.message}`
         })
-        .with({ content: { type: OwidGdocType.Article } }, (g) => {
-            if (g.content["featured-image"]) {
-                attachment.featuredImage = g.content["featured-image"]
-            }
-            if (g.content["latest-feed-featured-image"]) {
-                attachment.latestFeedFeaturedImage =
-                    g.content["latest-feed-featured-image"]
-            }
-            if (g.content["latest-feed-excerpt"]?.length) {
-                attachment.latestFeedExcerpt = g.content["latest-feed-excerpt"]
-                // Carry linked charts/documents so internal links in the
-                // rich excerpt can resolve via AttachmentsContext.
-                copyLinkedContentIfPresent(attachment, g)
-            }
-        })
-        .with({ content: { type: OwidGdocType.Announcement } }, (g) => {
-            attachment.body = g.content.body
-            if (g.content.cta) {
-                attachment.cta = g.content.cta
-            }
-            if (g.linkedAuthors?.length) {
-                attachment.linkedAuthors = g.linkedAuthors
-            }
-            // For non-CTA announcements, include linked charts and documents
-            if (!g.content.cta) {
-                copyLinkedContentIfPresent(attachment, g)
-            }
-        })
-        // Topic pages are indexed for the atom feed but don't need any
-        // type-specific attachment fields — only the base record's
-        // title/excerpt/date matters. (They're filtered out of /latest
-        // entirely by LATEST_BASE_FILTER, so no card body ever renders.)
-        .with(
-            {
-                content: {
-                    type: P.union(
-                        OwidGdocType.TopicPage,
-                        OwidGdocType.LinearTopicPage
-                    ),
-                },
-            },
-            _.noop
+        .join("; ")
+}
+
+async function validateChronologicalRecord(
+    record: unknown,
+    gdoc: ChronologicalGdoc
+): Promise<PageChronologicalRecord | null> {
+    const parsed = PageChronologicalRecordSchema.safeParse(record)
+
+    if (parsed.success) return parsed.data
+
+    void logErrorAndMaybeCaptureInSentry(
+        new Error(
+            `Invalid pages-chronological record for gdoc ${gdoc.id} (${gdoc.slug}): ${formatZodIssues(parsed.error.issues)}`
         )
-        .exhaustive()
-
-    return attachment
+    )
+    return null
 }
 
 async function buildChronologicalRecord(
     gdoc: ChronologicalGdoc,
     topicTags: string[],
     cloudflareImagesByFilename: Record<string, DbEnrichedImage>
-): Promise<PageChronologicalRecord> {
-    const base: PageChronologicalRecord = {
+): Promise<PageChronologicalRecord | null> {
+    const base: PageChronologicalRecordBase = {
         objectID: gdoc.id,
-        type: gdoc.content.type,
-        latestType: checkIsLatestFeedGdoc(gdoc)
-            ? deriveLatestType(gdoc)
-            : undefined,
         slug: gdoc.slug,
         title: gdoc.content.title || "",
         excerpt: getExcerptFromGdoc(gdoc),
@@ -195,7 +238,14 @@ async function buildChronologicalRecord(
         tags: [...topicTags],
         thumbnailUrl: getThumbnailUrl(gdoc, cloudflareImagesByFilename),
     }
-    return { ...base, ...buildAttachment(gdoc) }
+    if (!_.isEmpty(gdoc.imageMetadata)) {
+        base.imageMetadata = gdoc.imageMetadata
+    }
+
+    return validateChronologicalRecord(
+        { ...base, ...buildVariantPayload(gdoc) },
+        gdoc
+    )
 }
 
 export async function indexIndividualGdocInChronological(
@@ -230,6 +280,7 @@ export async function indexIndividualGdocInChronological(
         topicTags,
         cloudflareImagesByFilename
     )
+    if (!record) return
 
     try {
         await client.saveObjects({
@@ -269,6 +320,9 @@ export async function removeIndividualGdocFromChronological(
 export async function getPagesChronologicalRecords(
     knex: db.KnexReadonlyTransaction
 ): Promise<PageChronologicalRecord[]> {
+    // Must stay in sync with `isChronologicalGdocInstance`: any type fetched
+    // here that isn't chronological gets dropped by the predicate below, and
+    // any chronological type missing here is silently skipped.
     const gdocs = await db
         .getPublishedGdocsWithTags(
             knex,
@@ -291,23 +345,15 @@ export async function getPagesChronologicalRecords(
         await db.getTopicHierarchiesByChildName(knex)
 
     // Populate state on each cold gdoc (from gdocFromJSON) to match what
-    // loadState() would have done, then build its record. Ordering matters:
-    // linked{Authors,Documents} must be loaded before imageMetadata so
-    // linkedImageFilenames can pull in author avatars and prominent-link
-    // thumbnails.
+    // loadState() would have done, then build its record.
     const records: PageChronologicalRecord[] = []
     for (const gdoc of gdocs) {
-        // Narrow gdocFromJSON's broad return to a chronological class
-        // instance with a content.type literal-narrowed to ChronologicalGdoc's
-        // 5-type set. The DB query above already constrains rows to those
-        // types, so this is primarily a static-typing hatch — and a
-        // defensive guard against future additions to the query.
         if (!isChronologicalGdocInstance(gdoc)) continue
 
-        await loadAttachmentsForChronologicalIndexing(gdoc, knex)
-        gdoc.imageMetadata = _.pick(
-            cloudflareImagesByFilename,
-            gdoc.linkedImageFilenames
+        await loadAttachmentsForChronologicalIndexing(
+            gdoc,
+            knex,
+            cloudflareImagesByFilename
         )
 
         const originalTagNames = gdoc.tags?.map((t) => t.name) ?? []
@@ -316,13 +362,12 @@ export async function getPagesChronologicalRecords(
             topicHierarchiesByChildName
         )
 
-        records.push(
-            await buildChronologicalRecord(
-                gdoc,
-                topicTags,
-                cloudflareImagesByFilename
-            )
+        const record = await buildChronologicalRecord(
+            gdoc,
+            topicTags,
+            cloudflareImagesByFilename
         )
+        if (record) records.push(record)
     }
 
     return records

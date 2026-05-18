@@ -1,4 +1,4 @@
-import { PageChronologicalRecord } from "@ourworldindata/types"
+import { PageChronologicalAnnouncementRecord } from "@ourworldindata/types"
 import cx from "classnames"
 import { AttachmentsContext } from "../gdocs/AttachmentsContext.js"
 import { AnnouncementContent } from "./AnnouncementContent.js"
@@ -14,7 +14,7 @@ export const LatestAnnouncementHit = ({
     selectedTopic,
     position,
 }: {
-    hit: PageChronologicalRecord
+    hit: PageChronologicalAnnouncementRecord
     selectedTopic?: string
     position: number
 }) => {
@@ -37,7 +37,7 @@ export const LatestAnnouncementHit = ({
                     publishedAt={hit.date}
                     authors={hit.authors}
                     excerpt={hit.excerpt}
-                    body={hit.body ?? []}
+                    body={hit.body}
                     cta={hit.cta}
                     selectedTopic={selectedTopic}
                     onReadMore={() =>

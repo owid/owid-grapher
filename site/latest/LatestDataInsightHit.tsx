@@ -1,5 +1,5 @@
 import { OwidGdocType } from "@ourworldindata/utils"
-import { PageChronologicalRecord } from "@ourworldindata/types"
+import { PageChronologicalDataInsightRecord } from "@ourworldindata/types"
 import { getPrefixedGdocPath } from "@ourworldindata/components"
 import { AttachmentsContext } from "../gdocs/AttachmentsContext.js"
 import Image from "../gdocs/components/Image.js"
@@ -14,7 +14,7 @@ export const LatestDataInsightHit = ({
     selectedTopic,
     position,
 }: {
-    hit: PageChronologicalRecord
+    hit: PageChronologicalDataInsightRecord
     selectedTopic?: string
     position: number
 }) => {
@@ -23,9 +23,8 @@ export const LatestDataInsightHit = ({
         slug: hit.slug,
         content: { type: OwidGdocType.DataInsight },
     })
-    const body = hit.body ?? []
-    const firstImage = body.find((block) => block.type === "image")
-    const otherBlocks = body.filter((block) => block !== firstImage)
+    const firstImage = hit.body.find((block) => block.type === "image")
+    const otherBlocks = hit.body.filter((block) => block !== firstImage)
     const titleId = `latest-hit-${hit.slug}-title`
 
     return (

@@ -1,5 +1,5 @@
 import { formatAuthors, OwidGdocType } from "@ourworldindata/utils"
-import { PageChronologicalRecord } from "@ourworldindata/types"
+import { PageChronologicalArticleRecord } from "@ourworldindata/types"
 import { getPrefixedGdocPath } from "@ourworldindata/components"
 import { AttachmentsContext } from "../gdocs/AttachmentsContext.js"
 import Image from "../gdocs/components/Image.js"
@@ -26,12 +26,14 @@ export const LatestArticleHit = ({
     selectedTopic,
     position,
 }: {
-    hit: PageChronologicalRecord
+    hit: PageChronologicalArticleRecord
     selectedTopic?: string
     position: number
 }) => {
     const { analytics } = useLatestContext()
-    const hasLatestFeedExcerpt = !!hit.latestFeedExcerpt?.length
+    const latestFeedExcerpt = hit.latestFeedExcerpt?.length
+        ? hit.latestFeedExcerpt
+        : undefined
     const href = getPrefixedGdocPath("", {
         slug: hit.slug,
         content: { type: OwidGdocType.Article },
@@ -76,11 +78,11 @@ export const LatestArticleHit = ({
                         <p className="latest-article-hit__authors">
                             {formatAuthors(hit.authors)}
                         </p>
-                        {hasLatestFeedExcerpt ? (
+                        {latestFeedExcerpt ? (
                             <>
                                 <div className="latest-article-hit__excerpt latest-article-hit__excerpt--rich">
                                     <ArticleBlocks
-                                        blocks={hit.latestFeedExcerpt!}
+                                        blocks={latestFeedExcerpt}
                                         shouldRenderLinks={true}
                                     />
                                 </div>

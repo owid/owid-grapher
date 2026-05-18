@@ -3,6 +3,7 @@ import { PageChronologicalRecord } from "@ourworldindata/types"
 import { LatestArticleHit } from "./LatestArticleHit.js"
 import { LatestDataInsightHit } from "./LatestDataInsightHit.js"
 import { LatestAnnouncementHit } from "./LatestAnnouncementHit.js"
+import { match } from "ts-pattern"
 
 type LatestHitProps = {
     hit: PageChronologicalRecord
@@ -10,21 +11,34 @@ type LatestHitProps = {
     position: number
 }
 
-const HIT_COMPONENTS: Partial<Record<OwidGdocType, React.FC<LatestHitProps>>> =
-    {
-        [OwidGdocType.Article]: LatestArticleHit,
-        [OwidGdocType.DataInsight]: LatestDataInsightHit,
-        [OwidGdocType.Announcement]: LatestAnnouncementHit,
-    }
-
 /** Dispatches to the appropriate per-type hit card. */
 export const LatestHit = ({ hit, selectedTopic, position }: LatestHitProps) => {
-    const Component = HIT_COMPONENTS[hit.type as OwidGdocType]
-    return Component ? (
-        <Component
-            hit={hit}
-            selectedTopic={selectedTopic}
-            position={position}
-        />
-    ) : null
+    return match(hit)
+        .with({ type: OwidGdocType.Article }, (hit) => (
+            <LatestArticleHit
+                hit={hit}
+                selectedTopic={selectedTopic}
+                position={position}
+            />
+        ))
+        .with({ type: OwidGdocType.DataInsight }, (hit) => (
+            <LatestDataInsightHit
+                hit={hit}
+                selectedTopic={selectedTopic}
+                position={position}
+            />
+        ))
+        .with({ type: OwidGdocType.Announcement }, (hit) => (
+            <LatestAnnouncementHit
+                hit={hit}
+                selectedTopic={selectedTopic}
+                position={position}
+            />
+        ))
+        .with(
+            { type: OwidGdocType.TopicPage },
+            { type: OwidGdocType.LinearTopicPage },
+            () => null
+        )
+        .exhaustive()
 }

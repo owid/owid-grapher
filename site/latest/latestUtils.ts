@@ -1,5 +1,6 @@
 import {
     ANNOUNCEMENT_LATEST_TYPES,
+    AnnouncementLatestType,
     LATEST_PATH,
     LATEST_TYPE_LABELS,
     LATEST_TYPE_VALUES,
@@ -32,10 +33,12 @@ export function decodeLatestType(param: string | null): LatestType | null {
  * (GdocAnnouncement._validateSubclass) only accepts the canonical slugs,
  * so any edit forces legacy values into shape.
  */
-export function deriveAnnouncementLatestType(kicker?: string): LatestType {
+export function deriveAnnouncementLatestType(
+    kicker?: string
+): AnnouncementLatestType {
     const slug = slugify(kicker ?? "")
     return (ANNOUNCEMENT_LATEST_TYPES as readonly string[]).includes(slug)
-        ? (slug as LatestType)
+        ? (slug as AnnouncementLatestType)
         : "announcement"
 }
 
@@ -79,9 +82,10 @@ export const announcementContentTitleId = (slug: string) =>
 export function makeAttachments(hit: PageChronologicalRecord) {
     return {
         imageMetadata: hit.imageMetadata ?? {},
-        linkedAuthors: hit.linkedAuthors ?? [],
-        linkedCharts: hit.linkedCharts ?? {},
-        linkedDocuments: hit.linkedDocuments ?? {},
+        linkedAuthors: "linkedAuthors" in hit ? (hit.linkedAuthors ?? []) : [],
+        linkedCharts: "linkedCharts" in hit ? (hit.linkedCharts ?? {}) : {},
+        linkedDocuments:
+            "linkedDocuments" in hit ? (hit.linkedDocuments ?? {}) : {},
         // Intentionally empty: card-level rendering doesn't reach into these,
         // and indexing them per record would inflate the Algolia payload
         // unnecessarily. If a future card type needs them, add them to

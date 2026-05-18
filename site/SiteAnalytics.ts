@@ -11,7 +11,7 @@ import {
     type StackedArticleHit,
     FilterType,
     type LatestState,
-    type PageChronologicalRecord,
+    type LatestPageChronologicalRecord,
     type UserSurveyExperimentArm,
     type UserSurveyRoleAnswer,
 } from "@ourworldindata/types"
@@ -61,7 +61,7 @@ export class SiteAnalytics extends GrapherAnalytics {
         })
     }
 
-    logLatestResultClick(hit: PageChronologicalRecord, position: number) {
+    logLatestResultClick(hit: LatestPageChronologicalRecord, position: number) {
         this.logToGA({
             event: EventCategory.SiteLatestResultClick,
             eventAction: "click",
@@ -72,7 +72,7 @@ export class SiteAnalytics extends GrapherAnalytics {
     }
 
     logLatestAnnouncementExpand(
-        hit: PageChronologicalRecord,
+        hit: LatestPageChronologicalRecord,
         position: number
     ) {
         this.logToGA({

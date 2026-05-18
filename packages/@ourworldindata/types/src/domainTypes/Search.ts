@@ -4,16 +4,8 @@ import type {
     Hit,
     HitHighlightResult,
 } from "instantsearch.js"
-import {
-    LinkedAuthor,
-    LinkedChart,
-    OwidGdocMinimalPostInterface,
-    OwidGdocType,
-} from "../gdocTypes/Gdoc.js"
-import { OwidEnrichedGdocBlock } from "../gdocTypes/ArchieMlComponents.js"
-import { ImageMetadata } from "../gdocTypes/Image.js"
+import { OwidGdocType } from "../gdocTypes/Gdoc.js"
 import { GrapherTabName } from "../grapherTypes/GrapherTypes.js"
-import { LatestType } from "./Latest.js"
 import * as z from "zod/mini"
 
 export const PagesIndexRecordSchema = z.object({
@@ -36,45 +28,6 @@ export const PagesIndexRecordSchema = z.object({
 })
 
 export type PageRecord = z.infer<typeof PagesIndexRecordSchema>
-
-// Lightweight record for the chronological pages index (one per page, no chunked content)
-export type PageChronologicalRecord = {
-    objectID: string
-    type: string
-    slug: string
-    title: string
-    excerpt: string
-    date: string
-    modifiedDate: string
-    authors: string[]
-    tags: string[]
-    thumbnailUrl: string
-    // Drives /latest's type filter pill (data-insight / article /
-    // data-update / website-upgrade / announcement) and the per-card
-    // kicker. Undefined for topic / linear-topic pages, which are
-    // indexed only for the atom feed and never shown on /latest.
-    latestType?: LatestType
-    // Type-specific attachment fields for card rendering
-    // DataInsight + Announcement: body blocks for inline card rendering
-    body?: OwidEnrichedGdocBlock[]
-    // Article: featured image filename (looked up in imageMetadata by <Image>)
-    featuredImage?: string
-    // Article: alternative featured image filename for the /latest feed
-    latestFeedFeaturedImage?: string
-    // Article: alternative rich excerpt for the /latest feed
-    latestFeedExcerpt?: OwidEnrichedGdocBlock[]
-    // Image metadata keyed by filename (all types that display images)
-    imageMetadata?: Record<string, ImageMetadata>
-    // Announcement: optional call-to-action button shown alongside the body
-    cta?: { text: string; url: string }
-    // Announcement: linked authors for byline rendering
-    linkedAuthors?: LinkedAuthor[]
-    // Articles (with latestFeedExcerpt) and non-CTA announcements: linked
-    // charts/documents so internal links in the inline body content
-    // resolve via AttachmentsContext.
-    linkedCharts?: Record<string, LinkedChart>
-    linkedDocuments?: Record<string, OwidGdocMinimalPostInterface>
-}
 
 export const PagesIndexRecordsResponseSchema = z.object({
     records: z.array(PagesIndexRecordSchema),
