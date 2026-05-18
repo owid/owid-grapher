@@ -5,8 +5,7 @@ export const INT_POVERTY_LINE = 3.0
 
 export const WORLD_ENTITY_NAME = "World"
 
-export const AVAILABLE_YEARS_RANGE = [1990, 2025] as const
-export const DEFAULT_YEAR = AVAILABLE_YEARS_RANGE[1]
+export const POVERTY_DATA_YEAR = 2026 as const
 
 export const TIME_INTERVALS = ["daily", "monthly", "yearly"] as const
 export type TimeInterval = (typeof TIME_INTERVALS)[number]
@@ -14,7 +13,7 @@ export type TimeInterval = (typeof TIME_INTERVALS)[number]
 export const TIME_INTERVAL_FACTORS = [1, 365 / 12, 365] as const
 
 export const INT_DOLLAR_CONVERSIONS_URL =
-    "https://owid-public.owid.io/marcel-bespoke-data-viz-02-2026/poverty-plots/int_dollar_conversions.json"
+    "https://catalog.ourworldindata.org/external/owid_grapher/latest/int_dollar_conversions/int_dollar_conversions.json"
 
 export const INCOME_DISTRIBUTION_URL =
     "https://owid-public.owid.io/data/poverty-inequality/income-distribution.<YEAR>.json"

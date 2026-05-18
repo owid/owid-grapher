@@ -155,7 +155,7 @@ export const IncomePlotControlsRowTop = ({
 
 export const IncomePlotControlsRowBottom = () => {
     const [timeInterval, nextTimeInterval] = useAtom(atomTimeInterval)
-    const [currentYear] = useAtom(atomCurrentYear)
+    const currentYear = useAtomValue(atomCurrentYear)
     const [currentCurrency, setCurrency] = useAtom(atomCurrentCurrency)
     const conversionsLoadable = useAtomValue(loadableIntDollarConversions)
     const localConversionLoadable = useAtomValue(
@@ -217,9 +217,9 @@ export const IncomePlotControlsRowBottom = () => {
             <button onClick={() => nextTimeInterval()} className="control-pill">
                 {R.toTitleCase(timeInterval)}
             </button>
-            <span className="control-text">income or consumption in</span>
-            <button className="control-pill">{currentYear}</button>
-            <span className="control-text">in</span>
+            <span className="control-text">
+                income or consumption in {currentYear} in
+            </span>
             <Select
                 className="currency-select"
                 value={selectedKey}
