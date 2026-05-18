@@ -2,11 +2,11 @@ import { atom, type Atom } from "jotai"
 import { unwrap } from "jotai/utils"
 import { atomEffect } from "jotai-effect"
 import {
-    DEFAULT_YEAR,
     DETECT_COUNTRY_URL,
     INCOME_DISTRIBUTION_URL,
     INT_DOLLAR_CONVERSIONS_URL,
     INT_DOLLAR_CONVERSION_KEY_INFO,
+    POVERTY_DATA_YEAR,
     TIME_INTERVAL_FACTORS,
     TIME_INTERVALS,
     WORLD_ENTITY_NAME,
@@ -75,7 +75,7 @@ export const atomCustomPovertyLineFormatted = atom((get) => {
 })
 
 // Basic atoms related to data-display controls
-export const atomCurrentYear = atom<number>(DEFAULT_YEAR)
+export const atomCurrentYear = atom<number>(POVERTY_DATA_YEAR)
 
 const atomTimeIntervalIdx = atom(0)
 export const atomTimeInterval = atom(
