@@ -262,9 +262,8 @@ export async function indexIndividualGdocInChronological(
         return
     }
 
-    const cloudflareImagesByFilename = await db
-        .getCloudflareImages(knex)
-        .then((images) => _.keyBy(images, "filename"))
+    const cloudflareImagesByFilename =
+        await db.getCloudflareImagesByFilename(knex)
 
     const topicHierarchiesByChildName =
         await db.getTopicHierarchiesByChildName(knex)
@@ -337,9 +336,8 @@ export async function getPagesChronologicalRecords(
         )
         .then((gdocs) => gdocs.map(gdocFromJSON))
 
-    const cloudflareImagesByFilename = await db
-        .getCloudflareImages(knex)
-        .then((images) => _.keyBy(images, "filename"))
+    const cloudflareImagesByFilename =
+        await db.getCloudflareImagesByFilename(knex)
 
     const topicHierarchiesByChildName =
         await db.getTopicHierarchiesByChildName(knex)

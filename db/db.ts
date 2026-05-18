@@ -941,6 +941,13 @@ export function getCloudflareImages(
     )
 }
 
+export async function getCloudflareImagesByFilename(
+    trx: KnexReadonlyTransaction
+): Promise<Record<string, DbEnrichedImageWithPageviews>> {
+    const images = await getCloudflareImages(trx)
+    return _.keyBy(images, "filename")
+}
+
 export function getCloudflareImage(
     trx: KnexReadonlyTransaction,
     filename: string
