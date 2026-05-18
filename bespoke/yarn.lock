@@ -428,7 +428,7 @@ __metadata:
     "@visx/responsive": "npm:^3.12.0"
     "@vitejs/plugin-react": "npm:^6.0.0"
     classnames: "npm:^2.5.1"
-    jotai: "npm:^2.18.1"
+    jotai: "npm:^2.20.0"
     normalize.css: "npm:^8.0.1"
     react: "npm:^19.2.4"
     react-aria-components: "npm:^1.17.0"
@@ -470,8 +470,8 @@ __metadata:
     classnames: "npm:^2.5.1"
     d3: "npm:^7.9.0"
     fast-kde: "npm:^0.2.2"
-    jotai: "npm:^2.15.1"
-    jotai-effect: "npm:^2.2.3"
+    jotai: "npm:^2.20.0"
+    jotai-effect: "npm:^2.3.1"
     react: "npm:^19.2.4"
     react-aria: "npm:^3.48.0"
     react-aria-components: "npm:^1.17.0"
@@ -2433,16 +2433,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jotai-effect@npm:^2.2.3":
-  version: 2.2.3
-  resolution: "jotai-effect@npm:2.2.3"
+"jotai-effect@npm:^2.3.1":
+  version: 2.3.1
+  resolution: "jotai-effect@npm:2.3.1"
   peerDependencies:
-    jotai: ">=2.16.0"
-  checksum: 10/4be1474bd168ce023967aef0688babf0d1b600f922f55feaa000f51c6f7c91233101832cff0c24f2da90a90d34e0673aa005d2cd6f2a275fe84a906c69b6ab43
+    jotai: ">=2.20.0"
+  checksum: 10/6ca403c0a879a5a6a861469e1e3cb9f809ece5ad04cc50fabbbf7dafa0db12a2754b8cc036d5631d535621d4a5132ccfc8f9e27c7574a97894b8ca2b2101a61b
   languageName: node
   linkType: hard
 
-"jotai@npm:^2.15.1, jotai@npm:^2.18.1":
+"jotai@npm:^2.20.0":
   version: 2.20.0
   resolution: "jotai@npm:2.20.0"
   peerDependencies:

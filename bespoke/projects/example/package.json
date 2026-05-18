@@ -25,7 +25,7 @@
         "@visx/group": "^3.12.0",
         "@visx/responsive": "^3.12.0",
         "classnames": "^2.5.1",
-        "jotai": "^2.18.1",
+        "jotai": "^2.20.0",
         "normalize.css": "^8.0.1",
         "react": "^19.2.4",
         "react-aria-components": "^1.17.0",
