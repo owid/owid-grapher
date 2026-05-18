@@ -1,7 +1,7 @@
 import { memo, useMemo, useState, useCallback, useRef, useEffect } from "react"
 import { useParentSize } from "@visx/responsive"
 import { scaleLinear } from "@visx/scale"
-import { LinePath } from "@visx/shape"
+import { Area, LinePath } from "@visx/shape"
 import { Group } from "@visx/group"
 import type { Simulation } from "../helpers/useSimulation.js"
 import { getPopulationForYear, getTotalPopulation } from "../helpers/utils"
@@ -20,9 +20,14 @@ import {
     HOVER_LINE_COLOR,
     ZERO_LINE_COLOR,
     USER_MODIFIED_COLOR,
+    FULL_TIME_RANGE,
+    COLOR_CHILDREN,
+    COLOR_WORKING,
+    COLOR_RETIRED,
 } from "../helpers/constants"
 
 import { GRAPHER_LIGHT_TEXT } from "@ourworldindata/grapher/src/color/ColorConstants.js"
+import { darkenColorForText } from "@ourworldindata/grapher/src/color/ColorUtils.js"
 import { TooltipCard } from "@ourworldindata/grapher/src/tooltip/TooltipCard.js"
 import { TooltipValue } from "@ourworldindata/grapher/src/tooltip/TooltipContents.js"
 import { formatValue, GrapherTooltipAnchor } from "@ourworldindata/utils"
@@ -60,6 +65,47 @@ interface DataPoint {
     value: number
 }
 
+type AgeAreaKey = "young" | "working" | "old"
+
+interface AgeAreaDataPoint {
+    year: number
+    young: number
+    working: number
+    old: number
+}
+
+interface AgeAreaStackPoint extends AgeAreaDataPoint {
+    stack: Record<AgeAreaKey, { y0: number; y1: number }>
+}
+
+const AGE_AREA_OPACITY = 0.35
+
+const AGE_AREA_LAYERS: {
+    key: AgeAreaKey
+    label: string
+    shortLabel: string
+    color: string
+}[] = [
+    {
+        key: "young",
+        label: "Children (<15)",
+        shortLabel: "Children",
+        color: COLOR_CHILDREN,
+    },
+    {
+        key: "working",
+        label: "Working age (15–64)",
+        shortLabel: "Working age",
+        color: COLOR_WORKING,
+    },
+    {
+        key: "old",
+        label: "Retired (65+)",
+        shortLabel: "Retired",
+        color: COLOR_RETIRED,
+    },
+]
+
 interface TooltipState {
     target: { year: number } | null
     position: { x: number; y: number }
@@ -77,6 +123,7 @@ function pixelDistance(
 interface PopulationChartProps {
     simulation: Simulation
     showCustomProjection?: boolean
+    showAgeGroupAreas?: boolean
 }
 
 function PopulationChartContent({
@@ -84,6 +131,7 @@ function PopulationChartContent({
     width,
     height,
     showCustomProjection = true,
+    showAgeGroupAreas = false,
 }: PopulationChartProps & { width: number; height: number }) {
     const windowBreakpoint = useBreakpoint()
     const breakpoint = toBreakpoint(width)
@@ -149,6 +197,28 @@ function PopulationChartContent({
         [simulation]
     )
 
+    const ageAreaDataPoints = useMemo(
+        () =>
+            R.pipe(
+                FULL_TIME_RANGE,
+                R.map((year) => {
+                    const zones = showCustomProjection
+                        ? simulation.getAgeZonePopulation(year)
+                        : simulation.getBenchmarkAgeZonePopulation(year)
+                    const total = zones.young + zones.working + zones.old
+                    if (total <= 0) return undefined
+                    return {
+                        year,
+                        young: zones.young,
+                        working: zones.working,
+                        old: zones.old,
+                    }
+                }),
+                R.filter(R.isDefined)
+            ),
+        [simulation, showCustomProjection]
+    )
+
     const allDataPoints = useMemo(
         () => [
             ...historicalDataPoints,
@@ -180,6 +250,11 @@ function PopulationChartContent({
         range: [innerHeight, 0],
         nice: true,
     })
+
+    const ageAreaStackPoints = useMemo(
+        () => ageAreaDataPoints.map(toAgeAreaStackPoint),
+        [ageAreaDataPoints]
+    )
 
     const handlePointerMove = useCallback(
         (
@@ -285,6 +360,14 @@ function PopulationChartContent({
                         fill={PROJECTION_BACKGROUND}
                     />
 
+                    {showAgeGroupAreas && (
+                        <PopulationAgeAreaPaths
+                            data={ageAreaStackPoints}
+                            xScale={xScale}
+                            yScale={yScale}
+                        />
+                    )}
+
                     {/* Hover vertical line */}
                     {hoveredYear !== null && (
                         <line
@@ -327,6 +410,16 @@ function PopulationChartContent({
                     >
                         Projections →
                     </text>
+
+                    {showAgeGroupAreas && (
+                        <PopulationAgeAreaLabels
+                            data={ageAreaStackPoints}
+                            xScale={xScale}
+                            yScale={yScale}
+                            innerWidth={innerWidth}
+                            fontSize={fonts.pointLabel}
+                        />
+                    )}
 
                     {/* Historical line */}
                     <LinePath
@@ -469,6 +562,175 @@ export const PopulationChart = memo(function PopulationChart(
         </div>
     )
 })
+
+function toAgeAreaStackPoint(point: AgeAreaDataPoint): AgeAreaStackPoint {
+    const youngTop = point.young
+    const workingTop = youngTop + point.working
+    const oldTop = workingTop + point.old
+
+    return {
+        ...point,
+        stack: {
+            young: { y0: 0, y1: youngTop },
+            working: { y0: youngTop, y1: workingTop },
+            old: { y0: workingTop, y1: oldTop },
+        },
+    }
+}
+
+function PopulationAgeAreaPaths({
+    data,
+    xScale,
+    yScale,
+}: {
+    data: AgeAreaStackPoint[]
+    xScale: (v: number) => number
+    yScale: (v: number) => number
+}) {
+    return (
+        <g pointerEvents="none">
+            {AGE_AREA_LAYERS.map((layer) => (
+                <Area<AgeAreaStackPoint>
+                    key={layer.key}
+                    data={data}
+                    x={(d) => xScale(d.year)}
+                    y0={(d) => yScale(d.stack[layer.key].y0)}
+                    y1={(d) => yScale(d.stack[layer.key].y1)}
+                    fill={layer.color}
+                    opacity={AGE_AREA_OPACITY}
+                />
+            ))}
+        </g>
+    )
+}
+
+function PopulationAgeAreaLabels({
+    data,
+    xScale,
+    yScale,
+    innerWidth,
+    fontSize,
+}: {
+    data: AgeAreaStackPoint[]
+    xScale: (v: number) => number
+    yScale: (v: number) => number
+    innerWidth: number
+    fontSize: number
+}) {
+    const labelPadding = 8
+    const minimumLayerHeight = fontSize * 0.75
+
+    return (
+        <g pointerEvents="none">
+            {AGE_AREA_LAYERS.map((layer) => {
+                const label = getAgeAreaLabel({
+                    data,
+                    layerKey: layer.key,
+                    label: layer.label,
+                    shortLabel: layer.shortLabel,
+                    xScale,
+                    yScale,
+                    innerWidth,
+                    fontSize,
+                    minimumLayerHeight,
+                    labelPadding,
+                })
+
+                if (!label) return null
+
+                return (
+                    <Halo
+                        key={layer.key}
+                        id={`age-area-label-${layer.key}`}
+                        outlineWidth={2}
+                        outlineColor="white"
+                    >
+                        <text
+                            x={label.x}
+                            y={label.y}
+                            textAnchor="start"
+                            dominantBaseline="central"
+                            fontSize={fontSize}
+                            fontWeight={700}
+                            fill={darkenColorForText(layer.color)}
+                        >
+                            {label.text}
+                        </text>
+                    </Halo>
+                )
+            })}
+        </g>
+    )
+}
+
+function getAgeAreaLabel({
+    data,
+    layerKey,
+    label,
+    shortLabel,
+    xScale,
+    yScale,
+    innerWidth,
+    fontSize,
+    minimumLayerHeight,
+    labelPadding,
+}: {
+    data: AgeAreaStackPoint[]
+    layerKey: AgeAreaKey
+    label: string
+    shortLabel: string
+    xScale: (v: number) => number
+    yScale: (v: number) => number
+    innerWidth: number
+    fontSize: number
+    minimumLayerHeight: number
+    labelPadding: number
+}): { x: number; y: number; text: string } | null {
+    const labelWidth = new TextWrap({
+        text: label,
+        fontSize,
+        fontWeight: 700,
+        maxWidth: Infinity,
+    }).width
+    const shortLabelWidth = new TextWrap({
+        text: shortLabel,
+        fontSize,
+        fontWeight: 700,
+        maxWidth: Infinity,
+    }).width
+
+    const makeCandidate = (point: AgeAreaStackPoint, text: string) => {
+        const stack = point.stack[layerKey]
+        const yTop = yScale(stack.y1)
+        const yBottom = yScale(stack.y0)
+        return {
+            x: xScale(point.year) + labelPadding,
+            y: (yTop + yBottom) / 2,
+            height: Math.abs(yBottom - yTop),
+            text,
+        }
+    }
+
+    const fits = (point: AgeAreaStackPoint, textWidth: number) => {
+        const candidate = makeCandidate(point, label)
+        return (
+            candidate.height >= minimumLayerHeight &&
+            candidate.x + textWidth <= innerWidth - labelPadding
+        )
+    }
+
+    const pointWithLongLabel = data.find((point) => fits(point, labelWidth))
+    if (pointWithLongLabel) return makeCandidate(pointWithLongLabel, label)
+
+    const pointWithShortLabel = data.find((point) =>
+        fits(point, shortLabelWidth)
+    )
+    if (pointWithShortLabel) {
+        return makeCandidate(pointWithShortLabel, shortLabel)
+    }
+
+    return null
+}
 
 function HoverDots({
     x,

@@ -41,6 +41,7 @@ export function SimulationContent({
     focusParameter,
     hidePopulationPyramid,
     populationPyramidUnit,
+    showAgeGroupAreas = false,
     fertilityRateAssumptions,
     lifeExpectancyAssumptions,
     netMigrationRateAssumptions,
@@ -49,6 +50,7 @@ export function SimulationContent({
     focusParameter?: ParameterKey
     hidePopulationPyramid?: boolean
     populationPyramidUnit?: "percent" | "absolute"
+    showAgeGroupAreas?: boolean
     fertilityRateAssumptions?: Record<number, number>
     lifeExpectancyAssumptions?: Record<number, number>
     netMigrationRateAssumptions?: Record<number, number>
@@ -173,7 +175,10 @@ export function SimulationContent({
                             />
                         }
                     >
-                        <PopulationChart simulation={simulation} />
+                        <PopulationChart
+                            simulation={simulation}
+                            showAgeGroupAreas={showAgeGroupAreas}
+                        />
                     </ChartPanel>
                     {!hidePopulationPyramid && (
                         <AgeStructurePanel

@@ -81,6 +81,7 @@ function FetchingPopulationVariant({
             hideEntitySelector={config.hideEntitySelector}
             isLoading={isLoadingEntityData}
             showAssumptionCharts={config.showAssumptionCharts}
+            showAgeGroupAreas={config.showAgeGroupAreas}
             fertilityRateAssumptions={config.fertilityRateAssumptions}
             lifeExpectancyAssumptions={config.lifeExpectancyAssumptions}
             netMigrationRateAssumptions={config.netMigrationRateAssumptions}
@@ -98,6 +99,7 @@ function CaptionedPopulationVariant({
     subtitle: subtitleOverride,
     hideEntitySelector,
     showAssumptionCharts = false,
+    showAgeGroupAreas = false,
     fertilityRateAssumptions,
     lifeExpectancyAssumptions,
     netMigrationRateAssumptions,
@@ -111,6 +113,7 @@ function CaptionedPopulationVariant({
     subtitle?: string
     hideEntitySelector?: boolean
     showAssumptionCharts?: boolean
+    showAgeGroupAreas?: boolean
     fertilityRateAssumptions?: Record<number, number>
     lifeExpectancyAssumptions?: Record<number, number>
     netMigrationRateAssumptions?: Record<number, number>
@@ -167,6 +170,7 @@ function CaptionedPopulationVariant({
                     <PopulationChart
                         simulation={simulation}
                         showCustomProjection={hasCustomProjection}
+                        showAgeGroupAreas={showAgeGroupAreas}
                     />
                 )}
             </div>

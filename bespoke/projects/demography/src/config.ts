@@ -24,6 +24,7 @@ export interface SimulationVariantConfig {
     focusParameter?: ParameterKey
     hidePopulationPyramid?: boolean
     populationPyramidUnit?: PopulationPyramidUnit
+    showAgeGroupAreas?: boolean
     fertilityRateAssumptions?: Record<number, number>
     lifeExpectancyAssumptions?: Record<number, number>
     netMigrationRateAssumptions?: Record<number, number>
@@ -35,6 +36,7 @@ export interface PopulationVariantConfig {
     title?: string
     subtitle?: string
     showAssumptionCharts?: boolean
+    showAgeGroupAreas?: boolean
     fertilityRateAssumptions?: Record<number, number>
     lifeExpectancyAssumptions?: Record<number, number>
     netMigrationRateAssumptions?: Record<number, number>
@@ -86,6 +88,7 @@ export function parseConfig(
                 populationPyramidUnit: parsePyramidUnit(
                     raw.populationPyramidUnit
                 ),
+                showAgeGroupAreas: parseBoolean(raw.showAgeGroupAreas),
                 fertilityRateAssumptions: parseControlPoints(
                     raw.fertilityRateAssumptions
                 ),
@@ -103,6 +106,7 @@ export function parseConfig(
                 title: raw.title,
                 subtitle: raw.subtitle,
                 showAssumptionCharts: parseBoolean(raw.showAssumptionCharts),
+                showAgeGroupAreas: parseBoolean(raw.showAgeGroupAreas),
                 fertilityRateAssumptions: parseControlPoints(
                     raw.fertilityRateAssumptions
                 ),

@@ -79,6 +79,7 @@ function FetchingSimulationVariant({
             focusParameter={config.focusParameter}
             hidePopulationPyramid={config.hidePopulationPyramid}
             populationPyramidUnit={config.populationPyramidUnit}
+            showAgeGroupAreas={config.showAgeGroupAreas}
             fertilityRateAssumptions={config.fertilityRateAssumptions}
             lifeExpectancyAssumptions={config.lifeExpectancyAssumptions}
             netMigrationRateAssumptions={config.netMigrationRateAssumptions}
@@ -98,6 +99,7 @@ function CaptionedSimulationVariant({
     focusParameter,
     hidePopulationPyramid,
     populationPyramidUnit,
+    showAgeGroupAreas,
     fertilityRateAssumptions,
     lifeExpectancyAssumptions,
     netMigrationRateAssumptions,
@@ -113,6 +115,7 @@ function CaptionedSimulationVariant({
     focusParameter?: ParameterKey
     hidePopulationPyramid?: boolean
     populationPyramidUnit?: PopulationPyramidUnit
+    showAgeGroupAreas?: boolean
     fertilityRateAssumptions?: Record<number, number>
     lifeExpectancyAssumptions?: Record<number, number>
     netMigrationRateAssumptions?: Record<number, number>
@@ -154,6 +157,7 @@ function CaptionedSimulationVariant({
                     focusParameter={focusParameter}
                     hidePopulationPyramid={hidePopulationPyramid}
                     populationPyramidUnit={populationPyramidUnit}
+                    showAgeGroupAreas={showAgeGroupAreas}
                     fertilityRateAssumptions={fertilityRateAssumptions}
                     lifeExpectancyAssumptions={lifeExpectancyAssumptions}
                     netMigrationRateAssumptions={netMigrationRateAssumptions}
