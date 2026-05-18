@@ -139,6 +139,10 @@ export function Sankey({
             right: margin.right + resolvedInnerMargin.right,
         }
 
+        if (resolvedMargin.top + resolvedMargin.bottom >= height) {
+            height += resolvedMargin.top + resolvedMargin.bottom
+        }
+
         const generator = d3Sankey<SankeyLayoutNode, SankeyLink>()
             .nodeId((d) => d.id)
             .nodeWidth(nodeWidth)

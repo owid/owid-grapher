@@ -302,6 +302,7 @@ __metadata:
     d3-sankey: "npm:^0.12.3"
     react: "npm:^19.2.4"
     react-aria-components: "npm:^1.8.0"
+    remeda: "npm:^2.21.0"
   languageName: unknown
   linkType: soft
 
