@@ -19,7 +19,7 @@ import {
     atomisNarrow,
 } from "../store.ts"
 import { useResizeObserver, useWindowSize } from "usehooks-ts"
-import { UNSAFE_PortalProvider } from "@react-aria/overlays"
+import { UNSAFE_PortalProvider } from "react-aria"
 import { useShadowRoot } from "../ShadowRootContext.tsx"
 
 export const App = () => {
