@@ -1,9 +1,10 @@
-import { atom } from "jotai"
-import { loadable } from "jotai/utils"
+import { atom, type Atom } from "jotai"
+import { unwrap } from "jotai/utils"
 import { atomEffect } from "jotai-effect"
 import {
     DEFAULT_YEAR,
     DETECT_COUNTRY_URL,
+    INCOME_DISTRIBUTION_URL,
     INT_DOLLAR_CONVERSIONS_URL,
     INT_DOLLAR_CONVERSION_KEY_INFO,
     TIME_INTERVAL_FACTORS,
@@ -15,9 +16,9 @@ import type {
     IntDollarConversions,
     DetectCountryResponse,
     IntDollarConversionKeyInfo,
+    IncomeDistributionDataFile,
+    IncomeDistributionCountryData,
 } from "./types.ts"
-import data from "./data/incomeBins.json"
-import { sleep } from "@ourworldindata/utils"
 import {
     assignColors,
     formatCurrency,
@@ -26,16 +27,23 @@ import {
 } from "./utils/incomePlotUtils.ts"
 import * as R from "remeda"
 
-export interface RawDataRecord {
-    avgsLog2Times100: number[]
-    country: string
-    region: string
-    year: number
-    pop: number
-}
+type LoadableState<Value> =
+    | { state: "loading" }
+    | { state: "hasData"; data: Value }
+    | { state: "hasError"; error: unknown }
 
-export interface RawDataForYearRecord extends RawDataRecord {
-    avgsLog2: number[]
+const loadableAtom = <Value>(anAtom: Atom<Value>) => {
+    const loading = Symbol("loading")
+    const unwrappedAtom = unwrap(anAtom, () => loading)
+    return atom((get): LoadableState<Awaited<Value>> => {
+        try {
+            const data = get(unwrappedAtom)
+            if (data === loading) return { state: "loading" }
+            return { state: "hasData", data: data as Awaited<Value> }
+        } catch (error) {
+            return { state: "hasError", error }
+        }
+    })
 }
 
 export const atomisNarrow = atom(false)
@@ -114,25 +122,19 @@ export const atomCountriesOrRegionsMode = atom(
 
 // Data
 
-export const atomRawDataForYear = atom(async (get, { signal }) => {
+export const atomRawDataForYear = atom<
+    Promise<IncomeDistributionCountryData[]>
+>(async (get, { signal }) => {
     const year = get(atomCurrentYear)
-
-    const rawData = data as RawDataRecord[]
-
-    await sleep(500)
-    if (signal.aborted) return []
-
-    const dataForYear = rawData
-        .filter((d) => d.year === year)
-        .map((d) => ({
-            ...d,
-            avgsLog2: d.avgsLog2Times100.map((v) => v / 100),
-            pop: d.pop * 1000,
-        })) as RawDataForYearRecord[]
+    const url = INCOME_DISTRIBUTION_URL.replace("<YEAR>", year.toString())
+    const res = await fetch(url, { signal })
+    if (!res.ok) throw new Error(`Failed to fetch income data: ${res.status}`)
+    const rawData = (await res.json()) as IncomeDistributionDataFile
+    const rawDataForYear = Object.values(rawData.data)
     const sortedDataForYear = R.sortBy(
-        dataForYear,
+        rawDataForYear,
         [R.prop("region"), "desc"],
-        [R.prop("pop"), "desc"]
+        [R.prop("totalPopulation"), "desc"]
     )
     return sortedDataForYear
 })
@@ -149,10 +151,9 @@ export const atomKdeDataForYear = atom(async (get) => {
         const common = {
             country: record.country,
             region: record.region,
-            year: record.year,
-            pop: record.pop,
+            pop: record.totalPopulation,
         }
-        const kdeRes = kdeLog(record.avgsLog2)
+        const kdeRes = kdeLog(record.avgs.map(Math.log2))
         return kdeRes.map((kde) => ({
             ...common,
             ...kde,
@@ -319,12 +320,16 @@ export const atomEntityColorMap = atom((get) => {
     return assignColors(currentEntities)
 })
 
-export const loadableIntDollarConversions = loadable(atomIntDollarConversions)
-export const loadableLocalCurrencyConversion = loadable(
+export const loadableIntDollarConversions = loadableAtom(
+    atomIntDollarConversions
+)
+export const loadableLocalCurrencyConversion = loadableAtom(
     atomLocalCurrencyConversion
 )
-export const loadableDetectedCountry = loadable(atomDetectedCountry)
-export const loadableAvailableCountries = loadable(atomAvailableCountryNames)
+export const loadableDetectedCountry = loadableAtom(atomDetectedCountry)
+export const loadableAvailableCountries = loadableAtom(
+    atomAvailableCountryNames
+)
 
 const atomHasLocalCountryBeenIncludedInSelection = atom(false)
 export const atomEffectIncludeLocalCountryInSelection = atomEffect(

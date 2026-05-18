@@ -1,3 +1,15 @@
+export interface IncomeDistributionCountryData {
+    avgs: number[]
+    country: string
+    region: string
+    totalPopulation: number
+}
+
+export interface IncomeDistributionDataFile {
+    year: number
+    data: Record<string, IncomeDistributionCountryData>
+}
+
 export interface IntDollarConversionEntry {
     country: string
     country_code: string

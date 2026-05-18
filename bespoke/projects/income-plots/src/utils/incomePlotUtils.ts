@@ -7,9 +7,11 @@ import {
     TimeInterval,
     WORLD_ENTITY_NAME,
 } from "./incomePlotConstants.ts"
-import { type RawDataForYearRecord } from "../store.ts"
 import * as R from "remeda"
-import { IntDollarConversionKeyInfo } from "../types.ts"
+import {
+    IntDollarConversionKeyInfo,
+    type IncomeDistributionCountryData,
+} from "../types.ts"
 
 const currencyFormatterCache = new Map<string, Intl.NumberFormat>()
 
@@ -128,11 +130,10 @@ export const assignColors = (arr: string[]) => {
 }
 
 export const computePercentageBelowLine = (
-    rawData: RawDataForYearRecord[],
+    rawData: IncomeDistributionCountryData[],
     line: number,
     countriesOrRegions: Set<string>
 ) => {
-    const lineInLog2 = Math.log2(line)
     const requestedCountries = new Set<string>()
     const requestedRegions = new Set<string>()
     const requestedWorld = countriesOrRegions.has(WORLD_ENTITY_NAME)
@@ -162,7 +163,7 @@ export const computePercentageBelowLine = (
     }
 
     for (const record of rawData) {
-        const pop = record.pop
+        const pop = record.totalPopulation
         const matchesWorld = requestedWorld
         const matchesRegion = requestedRegions.has(record.region)
         const matchesCountry = requestedCountries.has(record.country)
@@ -170,7 +171,7 @@ export const computePercentageBelowLine = (
         if (!matchesWorld && !matchesRegion && !matchesCountry) continue
 
         // SortedIndex finds the highest point that is lower than the set line, and so we can compute the number of people living below the line, in order to then compute the percentage of people living below the line for each entity and region (totalPopulationBelowLine / totalPopulation).
-        const index = R.sortedIndex(record.avgsLog2, lineInLog2)
+        const index = R.sortedIndex(record.avgs, line)
         const populationBelowLine = (index / 10) * pop
 
         if (matchesWorld) {
