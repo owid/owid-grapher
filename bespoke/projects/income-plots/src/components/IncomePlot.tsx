@@ -8,7 +8,7 @@ import {
 } from "react"
 import { useAtom, useAtomValue, useSetAtom } from "jotai"
 import * as d3 from "d3"
-import { formatCurrency } from "../utils/incomePlotUtils.ts"
+import { formatCurrency, getLabelDirection } from "../utils/incomePlotUtils.ts"
 import {
     atomCombinedFactor,
     atomCountriesOrRegionsMode,
@@ -654,15 +654,18 @@ const IncomePlotIntPovertyLine = ({
 }: IncomePlotIntPovertyLineProps) => {
     const combinedFactor = useAtomValue(atomCombinedFactor)
     const currentCurrency = useAtomValue(atomCurrentCurrency)
+    const legendPlacement = useAtomValue(atomLegendPlacement)
 
     if (!xScale) return null
 
     const povertyLine = INT_POVERTY_LINE
     const x = xScale(povertyLine)
+    const labelDirection = getLabelDirection(povertyLine, legendPlacement)
+    const labelX = labelDirection === "right" ? x + 5 : x - 9
 
     const povertyLineText = `International poverty line: ${formatCurrency(
         povertyLine * combinedFactor,
-        currentCurrency as any
+        currentCurrency
     )}`
 
     return (
@@ -679,7 +682,7 @@ const IncomePlotIntPovertyLine = ({
             />
             <text
                 fill="#a9a9a9"
-                transform={`translate(${x + 5}, ${marginTop + 2}) rotate(90)`}
+                transform={`translate(${labelX}, ${marginTop + 2}) rotate(90)`}
                 textAnchor="start"
                 fontSize={10}
             >
@@ -704,15 +707,21 @@ const IncomePlotCustomPovertyLine = ({
 }: IncomePlotCustomPovertyLineProps) => {
     const povertyLine = useAtomValue(atomCustomPovertyLine)
     const povertyLineFormatted = useAtomValue(atomCustomPovertyLineFormatted)
+    const legendPlacement = useAtomValue(atomLegendPlacement)
 
     if (!xScale || povertyLine === null || povertyLineFormatted === null)
         return null
 
+    const x = xScale(povertyLine)
+    const labelDirection = getLabelDirection(povertyLine, legendPlacement)
+    const labelX = labelDirection === "right" ? x + 5 : x - 5
+    const textAnchor = labelDirection === "right" ? "start" : "end"
+
     return (
         <g className="poverty-line" style={{ pointerEvents: "none" }}>
             <line
-                x1={xScale(povertyLine)}
-                x2={xScale(povertyLine)}
+                x1={x}
+                x2={x}
                 y1={marginTop}
                 y2={height - marginBottom}
                 stroke="#d73027"
@@ -720,10 +729,11 @@ const IncomePlotCustomPovertyLine = ({
                 strokeDasharray="5,5"
             />
             <text
-                x={xScale(povertyLine) + 5}
+                x={labelX}
                 y={marginTop + 10}
                 fill="#d73027"
                 fontWeight="bold"
+                textAnchor={textAnchor}
             >
                 {`Poverty line: ${povertyLineFormatted}`}
             </text>

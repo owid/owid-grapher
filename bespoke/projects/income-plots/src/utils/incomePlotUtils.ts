@@ -13,6 +13,18 @@ import {
     type IncomeDistributionCountryData,
 } from "../types.ts"
 
+export type HorizontalDirection = "left" | "right"
+
+export function getLabelDirection(
+    x: number,
+    legendPlacement: HorizontalDirection
+): HorizontalDirection {
+    if (x < 3) return "right"
+    if (x > 50) return "left"
+
+    return legendPlacement === "left" ? "right" : "left"
+}
+
 const currencyFormatterCache = new Map<string, Intl.NumberFormat>()
 
 export function formatCurrency(

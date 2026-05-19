@@ -19,6 +19,7 @@ import {
     atomCustomPovertyLine,
     atomHoveredEntity,
     atomHoveredX,
+    atomLegendPlacement,
     atomRawDataForYear,
     atomTimeInterval,
     atomTooltipIsOpen,
@@ -26,6 +27,7 @@ import {
 import {
     computePercentageBelowLine,
     formatCurrency,
+    getLabelDirection,
     getTimeIntervalStr,
 } from "../utils/incomePlotUtils.ts"
 
@@ -44,10 +46,14 @@ export const IncomePlotTooltip = () => {
 
     const lineForDisplay = povertyLine ?? hoveredX
 
+    const legendPlacement = useAtomValue(atomLegendPlacement)
+
+    const tooltipPlacement = getLabelDirection(hoveredX ?? 0, legendPlacement)
+
     const { refs, floatingStyles, context } = useFloating({
         open: isOpen,
         middleware: [offset(10), flip(), shift(), arrow({ element: arrowRef })],
-        placement: "right",
+        placement: tooltipPlacement,
         whileElementsMounted: autoUpdate,
     })
 

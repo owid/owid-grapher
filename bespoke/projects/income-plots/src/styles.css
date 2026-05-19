@@ -232,6 +232,7 @@
 }
 
 .income-plot-tooltip {
+    z-index: 101;
     border: 1px solid var(--gray-20);
     border-radius: 4px;
     background: white;
