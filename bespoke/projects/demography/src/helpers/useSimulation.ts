@@ -197,6 +197,8 @@ export function useSimulation(
 ): Simulation | null {
     const [scenarioParams, setScenarioParamsRaw] =
         useState<ScenarioParams | null>(null)
+    const [hasExplicitScenarioParams, setHasExplicitScenarioParams] =
+        useState(false)
 
     const country = data.country
 
@@ -304,24 +306,28 @@ export function useSimulation(
 
     const initialCurrentScenarioParams = useMemo(() => {
         if (!initialScenarioParams) return null
-        if (initialCurrentScenarioOverrides) {
-            return {
-                fertilityRate: {
-                    ...initialScenarioParams.fertilityRate,
-                    ...initialCurrentScenarioOverrides.fertilityRate,
-                },
-                lifeExpectancy: {
-                    ...initialScenarioParams.lifeExpectancy,
-                    ...initialCurrentScenarioOverrides.lifeExpectancy,
-                },
-                netMigrationRate: {
-                    ...initialScenarioParams.netMigrationRate,
-                    ...initialCurrentScenarioOverrides.netMigrationRate,
-                },
-            }
+        if (hasExplicitScenarioParams || !initialCurrentScenarioOverrides)
+            return initialScenarioParams
+
+        return {
+            fertilityRate: {
+                ...initialScenarioParams.fertilityRate,
+                ...initialCurrentScenarioOverrides.fertilityRate,
+            },
+            lifeExpectancy: {
+                ...initialScenarioParams.lifeExpectancy,
+                ...initialCurrentScenarioOverrides.lifeExpectancy,
+            },
+            netMigrationRate: {
+                ...initialScenarioParams.netMigrationRate,
+                ...initialCurrentScenarioOverrides.netMigrationRate,
+            },
         }
-        return initialScenarioParams
-    }, [initialScenarioParams, initialCurrentScenarioOverrides])
+    }, [
+        hasExplicitScenarioParams,
+        initialScenarioParams,
+        initialCurrentScenarioOverrides,
+    ])
 
     const effectiveScenarioParams = useMemo(
         () => scenarioParams ?? initialCurrentScenarioParams,
@@ -369,6 +375,7 @@ export function useSimulation(
     }, [data, core, effectiveScenarioParams])
 
     const setScenarioParams = useCallback((params: ScenarioParams) => {
+        setHasExplicitScenarioParams(true)
         setScenarioParamsRaw(params)
     }, [])
 
