@@ -245,7 +245,7 @@ export const atomLegendEntries = atom((get) => {
 })
 
 export const atomLegendPlacement = atom((get) => {
-    const povertyLine = get(atomPovertyLineForLegend)
+    const povertyLine = get(atomCustomPovertyLine)
     if (povertyLine !== null && povertyLine > 20) return "left"
     return "right"
 })
