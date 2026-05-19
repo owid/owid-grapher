@@ -1,7 +1,8 @@
 import { useMemo } from "react"
 import { useParentSize } from "@visx/responsive"
+import * as R from "remeda"
 
-import { formatValue } from "@ourworldindata/utils"
+import { articulateEntity, formatValue } from "@ourworldindata/utils"
 import { OwidVariableRoundingMode } from "@ourworldindata/types"
 
 import { BilateralFlowSankey } from "../../../../components/Sankey/BilateralFlowSankey.js"
@@ -55,17 +56,18 @@ export function FoodTradeSankey({
     // exports heading is rephrased to stand alone. Empty halves get a short
     // placeholder heading — sentence-fragment style in the both-view so the
     // halves still read together, standalone in single-half views.
+    const countryArticulated = articulateEntity(country)
     const incomingHeading =
         incomingFlows.length > 0
-            ? `→ ${country} imported ${formatTrade(incomingTotal)}`
+            ? `→ ${R.capitalize(countryArticulated)} imported ${formatTrade(incomingTotal)}`
             : view === "both"
-              ? `${country} imported none`
+              ? `${R.capitalize(countryArticulated)} imported none`
               : "No imports"
     const outgoingHeading =
         outgoingFlows.length > 0
             ? view === "both"
                 ? `and exported ${formatTrade(outgoingTotal)} →`
-                : `${country} exported ${formatTrade(outgoingTotal)} →`
+                : `${R.capitalize(countryArticulated)} exported ${formatTrade(outgoingTotal)} →`
             : view === "both"
               ? "and exported none"
               : "No exports"

@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client"
 import "./reactAriaShadowDomSetup"
 
 import { VariantName } from "./constants.js"
+import { parseConfig } from "./config.js"
 import { MainVariant } from "./variants/MainVariant"
 
 import type {
@@ -27,12 +28,14 @@ export const mount: BespokeComponentMountFn = (
         return
     }
 
+    const config = parseConfig(opts.config ?? {})
+
     const root = createRoot(container)
     root.render(
         <>
             {/* This is where Vite-injected styles will be placed - make sure to add this to your code so that the styles are correctly injected into the Shadow DOM. */}
             <StylesTarget />
-            <variant.component />
+            <variant.component config={config} />
         </>
     )
     return () => root.unmount()

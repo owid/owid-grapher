@@ -6,6 +6,7 @@ import {
     faArrowRightArrowLeft,
 } from "@fortawesome/free-solid-svg-icons"
 
+import { articulateEntity } from "@ourworldindata/utils"
 import {
     BasicDropdownOption,
     Dropdown as GrapherDropdown,
@@ -19,6 +20,7 @@ import {
     SwitcherItem,
 } from "../../../../components/Switcher/Switcher.js"
 
+import { MainVariantConfig, VariantProps } from "../config.js"
 import { TradeRow, useTradeData } from "../data.js"
 import {
     FoodTradeBilateralSankey,
@@ -80,17 +82,19 @@ const TRADE_FLOW_ITEMS: SwitcherItem<View>[] = [
 
 const queryClient = new QueryClient()
 
-export function MainVariant() {
+export function MainVariant({
+    config,
+}: VariantProps<MainVariantConfig>): React.ReactElement {
     return (
         <QueryClientProvider client={queryClient}>
             <div className="food-trade-chart">
-                <FetchingMainVariant />
+                <FetchingMainVariant config={config} />
             </div>
         </QueryClientProvider>
     )
 }
 
-function FetchingMainVariant() {
+function FetchingMainVariant({ config }: { config: MainVariantConfig }) {
     const { data, status, error } = useTradeData()
 
     const products = useMemo(
@@ -160,6 +164,7 @@ function FetchingMainVariant() {
             setProduct={setProduct}
             setCountry={setCountry}
             setView={handleSetView}
+            config={config}
         />
     )
 }
@@ -176,6 +181,7 @@ function CaptionedMainVariant({
     setProduct,
     setCountry,
     setView,
+    config,
 }: {
     incoming: TradeRow[]
     outgoing: TradeRow[]
@@ -188,6 +194,7 @@ function CaptionedMainVariant({
     setProduct: (value: string) => void
     setCountry: (value: string) => void
     setView: (value: View) => void
+    config: MainVariantConfig
 }) {
     const incomingTotal = useMemo(
         () => incoming.reduce((sum, d) => sum + d.value, 0),
@@ -209,73 +216,85 @@ function CaptionedMainVariant({
         ? "bilateral"
         : "centered"
 
-    const title =
-        mode === "centered"
-            ? `${product} trade through ${country} in ${DATA_YEAR}`
-            : `Global ${product} trade in ${DATA_YEAR}`
-
     const hasCenteredData = incoming.length > 0 || outgoing.length > 0
     const hasBilateralData = bilateral.length > 0
 
+    const defaultTitle =
+        mode === "bilateral"
+            ? `Global ${product} trade in ${DATA_YEAR}`
+            : view === "imports"
+              ? `${product} imports to ${articulateEntity(country)} in ${DATA_YEAR}`
+              : view === "exports"
+                ? `${product} exports from ${articulateEntity(country)} in ${DATA_YEAR}`
+                : `${product} trade through ${articulateEntity(country)} in ${DATA_YEAR}`
+
+    const defaultSubtitle: React.ReactNode =
+        mode === "centered" && view === "both" ? (
+            <>
+                Imports to and exports from {articulateEntity(country)} of{" "}
+                {product}
+            </>
+        ) : mode === "bilateral" && hasBilateralData ? (
+            <>
+                {formatTrade(bilateralTotal)} of {product} was traded globally
+                in {DATA_YEAR}.
+            </>
+        ) : null
+
+    const title = config.title ?? defaultTitle
+    const subtitle = config.subtitle ?? defaultSubtitle
+
+    // Hide the big page heading and the controls when the embedder is
+    // providing its own framing (custom title/subtitle) or explicitly opts
+    // out of the controls.
+    const hideOutsideFrame =
+        config.hideControls || !!config.title || !!config.subtitle
+
     return (
         <>
-            <header className="food-trade-heading">
-                <h1 className="food-trade-heading__title">
-                    How does food move around the world?
-                </h1>
-                <p className="food-trade-heading__description">
-                    Where particular food products are exported to, and imported
-                    from
-                </p>
-            </header>
-            <div className="food-trade-controls">
-                <LabeledDropdown
-                    label="Select a product"
-                    values={products}
-                    selected={product}
-                    onChange={setProduct}
-                />
-                <LabeledDropdown
-                    label="Select a country"
-                    values={countries}
-                    selected={country}
-                    onChange={setCountry}
-                    disabledValues={
-                        view !== "both" ? [ALL_COUNTRIES] : undefined
-                    }
-                />
-                <div className="food-trade-controls__field">
-                    <span className="food-trade-controls__label">
-                        Trade flow
-                    </span>
-                    <Switcher
-                        items={TRADE_FLOW_ITEMS}
-                        selectedKey={view}
-                        onChange={setView}
-                        aria-label="Trade flow"
-                    />
-                </div>
-            </div>
-            <Frame className="food-trade-captioned-chart">
-                <ChartHeader
-                    title={title}
-                    subtitle={
-                        mode === "centered" ? (
-                            <Subtitle
-                                country={country}
-                                product={product}
-                                view={view}
-                                incomingTotal={incomingTotal}
-                                outgoingTotal={outgoingTotal}
+            {!hideOutsideFrame && (
+                <>
+                    <header className="food-trade-heading">
+                        <h1 className="food-trade-heading__title">
+                            How does food move around the world?
+                        </h1>
+                        <p className="food-trade-heading__description">
+                            Where particular food products are exported to, and
+                            imported from
+                        </p>
+                    </header>
+                    <div className="food-trade-controls">
+                        <LabeledDropdown
+                            label="Select a product"
+                            values={products}
+                            selected={product}
+                            onChange={setProduct}
+                        />
+                        <LabeledDropdown
+                            label="Select a country"
+                            values={countries}
+                            selected={country}
+                            onChange={setCountry}
+                            disabledValues={
+                                view !== "both" ? [ALL_COUNTRIES] : undefined
+                            }
+                        />
+                        <div className="food-trade-controls__field">
+                            <span className="food-trade-controls__label">
+                                Trade flow
+                            </span>
+                            <Switcher
+                                items={TRADE_FLOW_ITEMS}
+                                selectedKey={view}
+                                onChange={setView}
+                                aria-label="Trade flow"
                             />
-                        ) : hasBilateralData ? (
-                            <>
-                                {formatTrade(bilateralTotal)} of {product} was
-                                traded globally in {DATA_YEAR}.
-                            </>
-                        ) : null
-                    }
-                />
+                        </div>
+                    </div>
+                </>
+            )}
+            <Frame className="food-trade-captioned-chart">
+                <ChartHeader title={title} subtitle={subtitle} />
                 <div className="food-trade-captioned-chart__chart-area">
                     {mode === "bilateral" ? (
                         hasBilateralData ? (
@@ -296,87 +315,13 @@ function CaptionedMainVariant({
                         />
                     ) : (
                         <p className="food-trade-captioned-chart__empty">
-                            No {DATA_YEAR} trade of {product} for {country}{" "}
-                            recorded.
+                            No {DATA_YEAR} trade of {product} for{" "}
+                            {articulateEntity(country)} recorded.
                         </p>
                     )}
                 </div>
                 <ChartFooter source="UN Food and Agriculture Organization (FAO)" />
             </Frame>
-        </>
-    )
-}
-
-function Subtitle({
-    country,
-    product,
-    view,
-    incomingTotal,
-    outgoingTotal,
-}: {
-    country: string
-    product: string
-    view: View
-    incomingTotal: number
-    outgoingTotal: number
-}) {
-    if (view === "imports") {
-        if (incomingTotal === 0) {
-            return (
-                <>
-                    {country} did not import {product} in {DATA_YEAR}.
-                </>
-            )
-        }
-        return (
-            <>
-                {country} imported {formatTrade(incomingTotal)} of {product} in{" "}
-                {DATA_YEAR}.
-            </>
-        )
-    }
-    if (view === "exports") {
-        if (outgoingTotal === 0) {
-            return (
-                <>
-                    {country} did not export {product} in {DATA_YEAR}.
-                </>
-            )
-        }
-        return (
-            <>
-                {country} exported {formatTrade(outgoingTotal)} of {product} in{" "}
-                {DATA_YEAR}.
-            </>
-        )
-    }
-    if (incomingTotal === 0 && outgoingTotal === 0) {
-        return (
-            <>
-                {country} did not trade {product} in {DATA_YEAR}.
-            </>
-        )
-    }
-    if (incomingTotal > 0 && outgoingTotal > 0) {
-        return (
-            <>
-                {country} imported {formatTrade(incomingTotal)} and exported{" "}
-                {formatTrade(outgoingTotal)} of {product} in {DATA_YEAR}.
-            </>
-        )
-    }
-    if (incomingTotal > 0) {
-        return (
-            <>
-                {country} imported {formatTrade(incomingTotal)} of {product} in{" "}
-                {DATA_YEAR}.
-            </>
-        )
-    }
-    return (
-        <>
-            {country} exported {formatTrade(outgoingTotal)} of {product} in{" "}
-            {DATA_YEAR}.
         </>
     )
 }
