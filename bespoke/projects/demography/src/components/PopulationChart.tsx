@@ -648,7 +648,7 @@ function PopulationAgeAreaLabels({
                         <text
                             x={label.x}
                             y={label.y}
-                            textAnchor="start"
+                            textAnchor="end"
                             dominantBaseline="central"
                             fontSize={fontSize}
                             fontWeight={700}
@@ -704,7 +704,7 @@ function getAgeAreaLabel({
         const yTop = yScale(stack.y1)
         const yBottom = yScale(stack.y0)
         return {
-            x: xScale(point.year) + labelPadding,
+            x: xScale(point.year),
             y: (yTop + yBottom) / 2,
             height: Math.abs(yBottom - yTop),
             text,
@@ -715,7 +715,8 @@ function getAgeAreaLabel({
         const candidate = makeCandidate(point, label)
         return (
             candidate.height >= minimumLayerHeight &&
-            candidate.x + textWidth <= innerWidth - labelPadding
+            candidate.x - textWidth >= labelPadding &&
+            candidate.x <= innerWidth - labelPadding
         )
     }
 
