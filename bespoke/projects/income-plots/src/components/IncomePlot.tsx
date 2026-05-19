@@ -736,7 +736,7 @@ const IncomePlotCustomPovertyLine = ({
                 fontWeight="bold"
                 textAnchor={textAnchor}
             >
-                {`Poverty line: ${povertyLineFormatted}`}
+                Poverty line: {povertyLineFormatted}
             </text>
         </g>
     )
