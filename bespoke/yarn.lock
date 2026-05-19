@@ -462,6 +462,8 @@ __metadata:
     "@ourworldindata/types": "link:../../../packages/@ourworldindata/types"
     "@ourworldindata/utils": "link:../../../packages/@ourworldindata/utils"
     "@react-stately/flags": "npm:^3.2.0"
+    "@rollup/plugin-swc": "npm:^0.4.0"
+    "@swc/core": "npm:^1.15.33"
     "@types/d3": "npm:^7.4.3"
     "@types/react": "npm:^19.2.14"
     "@types/react-dom": "npm:^19.2.3"
@@ -910,7 +912,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@swc/core@npm:^1.15.21":
+"@swc/core@npm:^1.15.21, @swc/core@npm:^1.15.33":
   version: 1.15.33
   resolution: "@swc/core@npm:1.15.33"
   dependencies:
