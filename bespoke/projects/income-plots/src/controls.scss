@@ -391,6 +391,12 @@ $active-text: $blue-90;
     font-style: italic;
 }
 
+.currency-select__item--hint {
+    padding: 8px 12px 10px;
+    color: #777;
+    font-style: italic;
+}
+
 .currency-select__empty {
     padding: 14px 12px;
     color: #777;

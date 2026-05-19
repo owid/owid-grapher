@@ -19,7 +19,7 @@ import { LabeledSwitch } from "./LabeledSwitch.tsx"
 import cx from "classnames"
 
 import * as React from "react"
-import { useMemo } from "react"
+import { useMemo, useState } from "react"
 import {
     Tabs as AriaTabs,
     TabList,
@@ -171,6 +171,7 @@ export const IncomePlotControlsRowBottom = () => {
     )
 
     const { contains } = useFilter({ sensitivity: "base" })
+    const [currencySearchValue, setCurrencySearchValue] = useState("")
 
     const conversions =
         conversionsLoadable.state === "hasData"
@@ -228,6 +229,7 @@ export const IncomePlotControlsRowBottom = () => {
         currentCurrency.currency_code === "INTD"
             ? "INTD"
             : (currentCurrency.country_code ?? "INTD")
+    const isSearchingCurrencies = currencySearchValue.trim().length > 0
 
     const handleSelectionChange = (key: React.Key | null) => {
         if (key === null) return
@@ -235,6 +237,7 @@ export const IncomePlotControlsRowBottom = () => {
         const keyStr = String(key)
         if (keyStr === "INTD") {
             setCurrency(INT_DOLLAR_CONVERSION_KEY_INFO)
+            setCurrencySearchValue("")
             return
         }
         const entry = conversions?.find((c) => c.country_code === keyStr)
@@ -247,6 +250,7 @@ export const IncomePlotControlsRowBottom = () => {
                 country_code: entry.country_code,
             }
             setCurrency(info)
+            setCurrencySearchValue("")
         }
     }
 
@@ -276,6 +280,9 @@ export const IncomePlotControlsRowBottom = () => {
                 className="currency-select"
                 value={selectedKey}
                 onChange={handleSelectionChange}
+                onOpenChange={(isOpen) => {
+                    if (!isOpen) setCurrencySearchValue("")
+                }}
                 aria-label="Currency"
             >
                 <Button className="control-pill currency-select__trigger">
@@ -288,6 +295,8 @@ export const IncomePlotControlsRowBottom = () => {
                 <Popover className="currency-select__popover">
                     <Autocomplete
                         filter={contains}
+                        inputValue={currencySearchValue}
+                        onInputChange={setCurrencySearchValue}
                         disableAutoFocusFirst={false}
                     >
                         <CurrencySearchField
@@ -349,27 +358,51 @@ export const IncomePlotControlsRowBottom = () => {
                                     Could not load local currencies.
                                 </ListBoxItem>
                             )}
-                            {conversionOptions.length > 0 && (
-                                <ListBoxSection>
-                                    <Header className="currency-select__section-header">
-                                        All countries
-                                    </Header>
-                                    {conversionOptions.map((c) => (
+                            {!isSearchingCurrencies &&
+                                conversionOptions.length > 0 && (
+                                    <ListBoxSection>
+                                        <Header className="currency-select__section-header">
+                                            All countries
+                                        </Header>
                                         <ListBoxItem
-                                            key={c.country_code}
-                                            id={c.country_code}
-                                            textValue={getCurrencySearchText(c)}
-                                            className="currency-select__item"
+                                            id="all-countries-search-hint"
+                                            isDisabled
+                                            textValue="Type in the search box to search all countries"
+                                            className="currency-select__item currency-select__item--hint"
                                         >
-                                            <CurrencyOption
-                                                country={c.country}
-                                                currencyName={c.currency_name}
-                                                currencyCode={c.currency_code}
-                                            />
+                                            Type in the search box above to
+                                            search all countries
                                         </ListBoxItem>
-                                    ))}
-                                </ListBoxSection>
-                            )}
+                                    </ListBoxSection>
+                                )}
+                            {isSearchingCurrencies &&
+                                conversionOptions.length > 0 && (
+                                    <ListBoxSection>
+                                        <Header className="currency-select__section-header">
+                                            All countries
+                                        </Header>
+                                        {conversionOptions.map((c) => (
+                                            <ListBoxItem
+                                                key={c.country_code}
+                                                id={c.country_code}
+                                                textValue={getCurrencySearchText(
+                                                    c
+                                                )}
+                                                className="currency-select__item"
+                                            >
+                                                <CurrencyOption
+                                                    country={c.country}
+                                                    currencyName={
+                                                        c.currency_name
+                                                    }
+                                                    currencyCode={
+                                                        c.currency_code
+                                                    }
+                                                />
+                                            </ListBoxItem>
+                                        ))}
+                                    </ListBoxSection>
+                                )}
                         </ListBox>
                     </Autocomplete>
                 </Popover>
