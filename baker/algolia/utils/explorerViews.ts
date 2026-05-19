@@ -21,7 +21,6 @@ import {
     CoreRow,
     MinimalExplorerInfo,
     OwidColumnDef,
-    ChartRecord,
     ChartRecordType,
     ExplorerType,
     IndexingContext,
@@ -53,11 +52,9 @@ import {
 import {
     computeRecordScore,
     EMPTY_DATASET_CHART_RECORD_DIMENSIONS,
-    MAX_NON_FM_RECORD_SCORE,
     maybeAddChangeInPrefix,
     parseJsonStringArray,
     processAvailableEntities as processRecordAvailableEntities,
-    scaleRecordScores,
     uniqNonEmptyStrings,
 } from "./shared.js"
 import { getPublishedLinksTo } from "../../../db/model/Link.js"
@@ -113,24 +110,6 @@ function addDuplicateYVariableIds(
             yVariableIds: [...record.yVariableIds, ...yVariableIds],
         }
     })
-}
-
-/**
- * Each explorer has a default view (whichever is defined first in the decision matrix)
- * We scale these default view scores between 0 and 10000, but the rest we scale between 0 and 1000
- * to bury them under the (higher quality) grapher views in the data catalog.
- */
-export function scaleExplorerRecordScores(
-    explorerViews: FinalizedExplorerRecord[]
-): ChartRecord[] {
-    const [firstViews, rest] = _.partition(
-        explorerViews,
-        (view) => view.isFirstExplorerView
-    )
-    return [
-        ...scaleRecordScores(firstViews, [1000, MAX_NON_FM_RECORD_SCORE]),
-        ...scaleRecordScores(rest, [0, 1000]),
-    ]
 }
 
 // Creates a search-ready string from a choice.
@@ -399,7 +378,6 @@ const createBaseRecord = (
         tableSlug: matrix.selectedRow.tableSlug,
         ySlugs: matrix.selectedRow.ySlugs?.split(" ") || [],
         explorerSlug: explorerInfo.slug,
-        isFirstExplorerView: index === 0,
     }
 }
 
@@ -711,7 +689,6 @@ async function finalizeRecords(
             views_7d: record.views_7d,
             availableEntities: record.availableEntities,
             titleLength: record.titleLength,
-            isFirstExplorerView: record.isFirstExplorerView,
             isIncomeGroupSpecificFM: false,
             isFM: false,
             datasetNamespaces: record.datasetNamespaces,

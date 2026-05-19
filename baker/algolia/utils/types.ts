@@ -104,9 +104,6 @@ export interface ExplorerViewBaseRecord {
     ySlugs: Array<string>
     yVariableIds: Array<number | string>
     explorerSlug: string
-    // True when the record is the first view specified in the explorer's config
-    // Used in order to downrank all other views for the same explorer in the data catalog
-    isFirstExplorerView: boolean
 }
 
 export type GrapherUnenrichedExplorerViewRecord = ExplorerViewBaseRecord & {
@@ -166,7 +163,6 @@ export type EnrichedExplorerRecord =
 export type FinalizedExplorerRecord = ChartRecord & {
     explorerType: ExplorerType
     viewTitleIndexWithinExplorer: number
-    isFirstExplorerView: boolean
 }
 
 export const REAL_FM_INCOME_GROUPS: Exclude<

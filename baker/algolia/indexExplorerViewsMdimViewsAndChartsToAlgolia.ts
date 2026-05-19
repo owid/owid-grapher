@@ -62,35 +62,18 @@ const indexExplorerViewsMdimViewsAndChartsToAlgolia = async () => {
             const grapherViews = await getChartsRecords(trx, {
                 baseContext,
             })
-            // Split explorer views into default (first) views and the rest.
-            // Non-default explorer views are scaled to [0, 1000] to bury
-            // duplicative explorer variants under higher-quality results.
-            const [explorerFirstViews, explorerOtherViews] = _.partition(
-                explorerViews,
-                (view) => view.isFirstExplorerView
-            )
-            const scaledExplorerOtherViews = scaleRecordScores(
-                explorerOtherViews,
-                [0, 1000]
-            )
 
-            // Scale charts, mdim views, and default explorer views together
-            // in a single pool so scores are directly comparable.
-            const scaledPrimaryRecords = scaleRecordScores(
-                [...grapherViews, ...mdimViews, ...explorerFirstViews],
+            // Scale charts, mdim views, and explorer views together so scores are directly comparable.
+            // Makes it easier to intuit what bonuses and boosts will do
+            const scaledRecords = scaleRecordScores(
+                [...explorerViews, ...mdimViews, ...grapherViews],
                 [1000, MAX_NON_FM_RECORD_SCORE]
             )
-
-            const scaledRecords = [
-                ...scaledPrimaryRecords,
-                ...scaledExplorerOtherViews,
-            ]
 
             // Apply post-scaling adjustments. FM source bonus is a fixed
             // +500 to any record whose specific view is a featured metric.
             // boostInSearch overrides the score to 9500 for editorially
-            // pinned records. Order matters: boostInSearch should override
-            // the FM source bonus.
+            // pinned records.
             const fmSlugs = await getFeaturedMetricSlugs(trx)
             const bonusedRecords = applyFMSourceBonus(scaledRecords, fmSlugs)
 
