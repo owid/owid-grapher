@@ -9,7 +9,10 @@ import {
     loadableIntDollarConversions,
     loadableLocalCurrencyConversion,
 } from "../store.ts"
-import { INT_DOLLAR_CONVERSION_KEY_INFO } from "../utils/incomePlotConstants.ts"
+import {
+    INT_DOLLAR_CONVERSION_KEY_INFO,
+    SUGGESTED_CURRENCY_COUNTRY_CODES,
+} from "../utils/incomePlotConstants.ts"
 import * as R from "remeda"
 import { IncomePlotCountrySelector } from "./IncomePlotCountrySelector.tsx"
 import { LabeledSwitch } from "./LabeledSwitch.tsx"
@@ -183,15 +186,43 @@ export const IncomePlotControlsRowBottom = () => {
             ? localConversionLoadable.data
             : null
 
-    // Build sorted options list, excluding the suggested local currency
+    const suggestedConversionOptions = useMemo(() => {
+        if (!conversions) return []
+
+        const conversionsByCountryCode = new Map(
+            conversions.map((conversion) => [
+                conversion.country_code,
+                conversion,
+            ])
+        )
+        const localConversionCountryCode = localConversion?.country_code
+        const suggestedOptions = SUGGESTED_CURRENCY_COUNTRY_CODES.flatMap(
+            (countryCode) => {
+                if (countryCode === localConversionCountryCode) return []
+
+                const conversion = conversionsByCountryCode.get(countryCode)
+                return conversion ? [conversion] : []
+            }
+        )
+        const sortedSuggestedOptions = R.sortBy(
+            suggestedOptions,
+            R.prop("country")
+        )
+
+        return localConversion
+            ? [localConversion, ...sortedSuggestedOptions]
+            : sortedSuggestedOptions
+    }, [conversions, localConversion])
+
+    // Build sorted options list, excluding options already shown as suggested
     const conversionOptions = useMemo(() => {
         if (!conversions) return []
-        const sorted = R.sortBy(conversions, R.prop("country"))
-        if (!localConversion) return sorted
-        return sorted.filter(
-            (c) => c.country_code !== localConversion.country_code
+        const suggestedCountryCodes = new Set(
+            suggestedConversionOptions.map((c) => c.country_code)
         )
-    }, [conversions, localConversion])
+        const sorted = R.sortBy(conversions, R.prop("country"))
+        return sorted.filter((c) => !suggestedCountryCodes.has(c.country_code))
+    }, [conversions, suggestedConversionOptions])
 
     const selectedKey =
         currentCurrency.currency_code === "INTD"
@@ -231,7 +262,7 @@ export const IncomePlotControlsRowBottom = () => {
     const selectedLabel =
         currentCurrency.currency_code === "INTD"
             ? "International-$"
-            : `${currentCurrency.country} (${currentCurrency.currency_code})`
+            : `${currentCurrency.currency_name} (${currentCurrency.country})`
 
     return (
         <div className="income-plot-controls-bottom">
@@ -279,28 +310,25 @@ export const IncomePlotControlsRowBottom = () => {
                             >
                                 <b>International dollar</b>
                             </ListBoxItem>
-                            {localConversion && (
+                            {suggestedConversionOptions.length > 0 && (
                                 <ListBoxSection>
                                     <Header className="currency-select__section-header">
                                         Suggested
                                     </Header>
-                                    <ListBoxItem
-                                        id={localConversion.country_code}
-                                        textValue={getCurrencySearchText(
-                                            localConversion
-                                        )}
-                                        className="currency-select__item"
-                                    >
-                                        <CurrencyOption
-                                            country={localConversion.country}
-                                            currencyName={
-                                                localConversion.currency_name
-                                            }
-                                            currencyCode={
-                                                localConversion.currency_code
-                                            }
-                                        />
-                                    </ListBoxItem>
+                                    {suggestedConversionOptions.map((c) => (
+                                        <ListBoxItem
+                                            key={c.country_code}
+                                            id={c.country_code}
+                                            textValue={getCurrencySearchText(c)}
+                                            className="currency-select__item"
+                                        >
+                                            <CurrencyOption
+                                                country={c.country}
+                                                currencyName={c.currency_name}
+                                                currencyCode={c.currency_code}
+                                            />
+                                        </ListBoxItem>
+                                    ))}
                                 </ListBoxSection>
                             )}
                             {isLoadingConversions && (
