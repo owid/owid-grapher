@@ -755,10 +755,11 @@ const IncomePlotPointer = ({
     marginBottom,
 }: IncomePlotPointerProps) => {
     const hoveredX = useAtomValue(atomHoveredX)
+    const povertyLine = useAtomValue(atomCustomPovertyLine)
     const combinedFactor = useAtomValue(atomCombinedFactor)
     const currentCurrency = useAtomValue(atomCurrentCurrency)
 
-    if (!xScale || hoveredX === null) return null
+    if (!xScale || hoveredX === null || povertyLine !== null) return null
     return (
         <g className="pointer" style={{ pointerEvents: "none" }}>
             <line

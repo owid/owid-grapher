@@ -104,7 +104,9 @@ export const IncomePlotTooltip = () => {
                             </>
                         )}
                         <div className="tooltip--set-pov-line">
-                            Click to set poverty line
+                            {povertyLine !== null
+                                ? "Click to unset custom poverty line"
+                                : "Click to set a custom poverty line"}
                         </div>
                     </div>
                 </FloatingPortal>
