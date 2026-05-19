@@ -385,7 +385,7 @@ $controlRowHeight: 28px;
 
 // Mixins for slim tab styling, shared with ContentSwitchers.scss
 @mixin slim-tab-item {
-    $visual-gap: 2px;
+    $visual-gap: 1px;
 
     position: relative;
     display: block;
@@ -486,7 +486,7 @@ $controlRowHeight: 28px;
         $active-fill: $blue-20;
 
         $border-radius: 4px;
-        $visual-gap: 2px;
+        $visual-gap: 1px;
 
         display: flex;
         height: $controlRowHeight;
@@ -498,8 +498,8 @@ $controlRowHeight: 28px;
         border-radius: $border-radius;
 
         gap: 1px;
-        padding-left: 4px;
-        padding-right: 4px;
+        padding-left: $visual-gap * 2;
+        padding-right: $visual-gap * 2;
 
         .Tabs__Tab {
             @include slim-tab-item;
