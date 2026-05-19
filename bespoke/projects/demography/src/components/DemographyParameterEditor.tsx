@@ -135,7 +135,7 @@ function DemographyParameterEditorContent({
     const minValue =
         yMinOverride ??
         Math.max(
-            config.inputMin ?? config.yFloor ?? -Infinity,
+            config.yFloor ?? -Infinity,
             Math.min(
                 Math.min(...unwppValues) - config.yPadding,
                 Math.min(...historicalValues),
@@ -144,7 +144,7 @@ function DemographyParameterEditorContent({
             )
         )
     const maxValue = Math.min(
-        config.inputMax ?? config.yCeiling ?? Infinity,
+        config.yCeiling ?? Infinity,
         Math.max(
             Math.max(...unwppValues) + config.yPadding,
             Math.max(...historicalValues),
@@ -566,6 +566,8 @@ function DemographyParameterEditorContent({
                                     controlLabelFontSize={fonts.controlLabel}
                                     yScale={yScale}
                                     marginTop={margin.top}
+                                    min={config.inputMin}
+                                    max={config.inputMax}
                                     onValueChange={(value) =>
                                         handleChange({
                                             ...controlPoints,
@@ -715,6 +717,8 @@ function DraggableControlPoint({
     formatValue,
     yScale,
     marginTop,
+    min = -Infinity,
+    max = Infinity,
     dragArrowFontSize,
     controlLabelFontSize,
     onValueChange,
@@ -732,6 +736,8 @@ function DraggableControlPoint({
     formatValue: (v: number) => string
     yScale: { invert: (y: number) => number }
     marginTop: number
+    min?: number
+    max?: number
     dragArrowFontSize: number
     controlLabelFontSize: number
     onValueChange: (value: number) => void
@@ -783,7 +789,8 @@ function DraggableControlPoint({
                         info.didMove = true
                         setIsDragging(true)
                     }
-                    onValueChange(yScale.invert(point.y - marginTop))
+                    const value = yScale.invert(point.y - marginTop)
+                    onValueChange(Math.min(max, Math.max(min, value)))
                 }}
                 onPointerUp={() => {
                     const info = pressInfoRef.current
