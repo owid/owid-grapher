@@ -24,6 +24,11 @@ import { useShadowRoot } from "../ShadowRootContext.tsx"
 import { Frame } from "../../../../components/Frame/Frame.js"
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
+import {
+    getIncomePlotTitle,
+    INCOME_PLOT_SOURCE,
+    INCOME_PLOT_SUBTITLE,
+} from "../utils/incomePlotMetadata.ts"
 
 export const App = () => {
     const shadowRoot = useShadowRoot()
@@ -57,8 +62,8 @@ export const App = () => {
             <Frame className="income-plot-captioned-chart">
                 <ChartHeader
                     className="income-plot-header"
-                    title={`Global income distribution in ${currentYear}`}
-                    subtitle="Income or consumption per person, adjusted for price differences between countries and inflation."
+                    title={getIncomePlotTitle(currentYear)}
+                    subtitle={INCOME_PLOT_SUBTITLE}
                 />
                 <div ref={containerRef}>
                     <IncomePlotControlsRowTop
@@ -92,7 +97,7 @@ export const App = () => {
                 </div>
                 <ChartFooter
                     className="income-plot-footer"
-                    source="World Bank Poverty and Inequality Platform (PIP), via Our World in Data"
+                    source={INCOME_PLOT_SOURCE}
                 />
             </Frame>
         </UNSAFE_PortalProvider>
