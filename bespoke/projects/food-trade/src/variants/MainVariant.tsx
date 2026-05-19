@@ -183,37 +183,39 @@ function CaptionedMainVariant({
 
     return (
         <>
-            <Frame className="food-trade-controls">
-                <h3 className="food-trade-controls__title">
-                    Configure the data
-                </h3>
-                <div className="food-trade-controls__content">
-                    <div className="food-trade-controls__row">
-                        <LabeledDropdown
-                            label="Product"
-                            values={products}
-                            selected={product}
-                            onChange={setProduct}
-                        />
-                        <LabeledDropdown
-                            label="Country"
-                            values={countries}
-                            selected={country}
-                            onChange={setCountry}
-                            disabledValues={
-                                view !== "both" ? [ALL_COUNTRIES] : undefined
-                            }
-                        />
-                        <LabeledDropdown
-                            label="View"
-                            values={VIEW_VALUES}
-                            valueLabels={VIEW_LABELS}
-                            selected={view}
-                            onChange={(v) => setView(v as View)}
-                        />
-                    </div>
-                </div>
-            </Frame>
+            <header className="food-trade-heading">
+                <h1 className="food-trade-heading__title">
+                    How does food move around the world?
+                </h1>
+                <p className="food-trade-heading__description">
+                    Where particular food products are exported to, and imported
+                    from
+                </p>
+            </header>
+            <div className="food-trade-controls">
+                <LabeledDropdown
+                    label="Select a product"
+                    values={products}
+                    selected={product}
+                    onChange={setProduct}
+                />
+                <LabeledDropdown
+                    label="Select a country"
+                    values={countries}
+                    selected={country}
+                    onChange={setCountry}
+                    disabledValues={
+                        view !== "both" ? [ALL_COUNTRIES] : undefined
+                    }
+                />
+                <LabeledDropdown
+                    label="Trade flow"
+                    values={VIEW_VALUES}
+                    valueLabels={VIEW_LABELS}
+                    selected={view}
+                    onChange={(v) => setView(v as View)}
+                />
+            </div>
             <Frame className="food-trade-captioned-chart">
                 <ChartHeader
                     title={title}
@@ -402,22 +404,17 @@ function LabeledDropdown({
         [values, valueLabels, disabledValues]
     )
     return (
-        <Dropdown
-            options={options}
-            selectedValue={selected}
-            onChange={onChange}
-            placeholder={`Select ${label.toLowerCase()}…`}
-            aria-label={`Select ${label.toLowerCase()}`}
-            isSearchable={true}
-            renderTriggerValue={(option) =>
-                option ? (
-                    <>
-                        <span className="label">{label}: </span>
-                        {option.label}
-                    </>
-                ) : null
-            }
-        />
+        <div className="food-trade-controls__field">
+            <span className="food-trade-controls__label">{label}</span>
+            <Dropdown
+                options={options}
+                selectedValue={selected}
+                onChange={onChange}
+                placeholder={`${label}…`}
+                aria-label={label}
+                isSearchable={true}
+            />
+        </div>
     )
 }
 

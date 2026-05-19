@@ -1,6 +1,53 @@
+.food-trade-heading {
+    margin-bottom: 24px;
+}
+
+.food-trade-heading__title {
+    font-family: $serif-font-stack;
+    font-size: 2rem;
+    font-weight: 600;
+    line-height: 1.25;
+    color: #1d3d63;
+    margin: 0;
+    margin-bottom: 2px;
+}
+
+.food-trade-heading__description {
+    font-size: 1rem;
+    line-height: 1.5;
+    color: #1d3d63;
+    margin: 0;
+}
+
+.food-trade-controls {
+    display: flex;
+    column-gap: 16px;
+    row-gap: 16px;
+    margin-bottom: 16px;
+
+    > * {
+        flex: 1 1 0;
+    }
+}
+
+.food-trade-controls__field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.food-trade-controls__label {
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+    color: $light-text;
+    text-transform: uppercase;
+}
+
 .food-trade-captioned-chart__chart-area {
     position: relative;
     height: 480px;
+    min-height: 360px;
 }
 
 .food-trade-captioned-chart__empty {
@@ -8,36 +55,6 @@
     padding: 24px;
     color: $light-text;
     text-align: center;
-}
-
-.food-trade-controls__title {
-    font-size: 10px;
-    font-weight: 900;
-    letter-spacing: 0.15em;
-    color: $light-text;
-    text-transform: uppercase;
-    margin: 0;
-    margin-bottom: 12px;
-}
-
-.food-trade-controls__content {
-    display: flex;
-    flex-direction: column;
-    row-gap: 16px;
-}
-
-.food-trade-controls__row {
-    display: flex;
-    column-gap: 16px;
-    row-gap: 16px;
-
-    > * {
-        flex: 1 1 0;
-    }
-}
-
-.food-trade-captioned-chart__chart-area {
-    min-height: 360px;
 }
 
 .food-trade-chart__error {
