@@ -1680,13 +1680,21 @@ export class GrapherState
     }
 
     @action.bound private applyOriginalFocusAsAuthored(): void {
-        if (this.focusedSeriesNames?.length)
-            this.focusArray.clearAllAndAdd(...this.focusedSeriesNames)
+        const authoredSeriesNames =
+            this.legacyConfigAsAuthored.focusedSeriesNames ??
+            this.focusedSeriesNames
+
+        if (authoredSeriesNames?.length)
+            this.focusArray.clearAllAndAdd(...authoredSeriesNames)
     }
 
     @action.bound private applyOriginalSelectionAsAuthored(): void {
-        if (this.selectedEntityNames?.length)
-            this.selection.setSelectedEntities(this.selectedEntityNames)
+        const authoredEntityNames =
+            this.legacyConfigAsAuthored.selectedEntityNames ??
+            this.selectedEntityNames
+
+        if (authoredEntityNames?.length)
+            this.selection.setSelectedEntities(authoredEntityNames)
     }
 
     @computed get hasData(): boolean {
