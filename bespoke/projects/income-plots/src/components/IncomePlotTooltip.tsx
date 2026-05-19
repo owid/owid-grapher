@@ -30,6 +30,7 @@ import {
     getLabelDirection,
     getTimeIntervalStr,
 } from "../utils/incomePlotUtils.ts"
+import { WORLD_ENTITY_NAME } from "../utils/incomePlotConstants.ts"
 
 export const IncomePlotTooltip = () => {
     const arrowRef = useRef(null)
@@ -63,14 +64,15 @@ export const IncomePlotTooltip = () => {
 
     if (!lineForDisplay) return null
 
+    const entityForPercentage = hoveredEntity ?? WORLD_ENTITY_NAME
     let percentageForEntity: number | undefined = undefined
-    if (hoveredEntity) {
+    if (entityForPercentage) {
         const percentageMap = computePercentageBelowLine(
             rawDataForYear,
             lineForDisplay,
-            new Set([hoveredEntity])
+            new Set([entityForPercentage])
         )
-        percentageForEntity = percentageMap.get(hoveredEntity)
+        percentageForEntity = percentageMap.get(entityForPercentage)
     }
 
     return (
@@ -83,16 +85,23 @@ export const IncomePlotTooltip = () => {
                         style={floatingStyles}
                         {...getFloatingProps()}
                     >
-                        {hoveredEntity && (
+                        {entityForPercentage && (
                             <>
-                                <div className="tooltip--entityName">
-                                    {hoveredEntity}
-                                </div>
+                                {entityForPercentage !== WORLD_ENTITY_NAME && (
+                                    <div className="tooltip--entityName">
+                                        {entityForPercentage}
+                                    </div>
+                                )}
                                 <div className="tooltip--percentage">
                                     {percentageForEntity !== undefined && (
                                         <>
                                             {Math.round(percentageForEntity)}%
-                                            of the population earns less than{" "}
+                                            of the{" "}
+                                            {entityForPercentage ===
+                                            WORLD_ENTITY_NAME
+                                                ? "world"
+                                                : ""}{" "}
+                                            population earns less than{" "}
                                             {formatCurrency(
                                                 lineForDisplay * combinedFactor,
                                                 currency
