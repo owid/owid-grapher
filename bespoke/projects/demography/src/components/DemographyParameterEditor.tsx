@@ -566,8 +566,8 @@ function DemographyParameterEditorContent({
                                     controlLabelFontSize={fonts.controlLabel}
                                     yScale={yScale}
                                     marginTop={margin.top}
-                                    min={config.inputMin}
-                                    max={config.inputMax}
+                                    min={config.dragMin ?? config.inputMin}
+                                    max={config.dragMax ?? config.inputMax}
                                     onValueChange={(value) =>
                                         handleChange({
                                             ...controlPoints,
