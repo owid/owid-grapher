@@ -28,6 +28,11 @@
     }
 }
 
+.income-plot-loading {
+    position: relative;
+    min-height: 180px;
+}
+
 /**
  * This here is super annoying. We need `shape-rendering: crispEdges` to be set in Chrome in order
  * to avoid pixelated edges, but in Firefox it _causes_ pixelated edges and we don't want to set it.
