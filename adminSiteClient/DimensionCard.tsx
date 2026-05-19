@@ -201,16 +201,10 @@ export class DimensionCard<
                         />
                         <SelectField
                             label="Rounding mode"
-                            value={dimension.display.roundingMode}
+                            value={this.roundingMode}
                             onValue={(value) => {
-                                const roundingMode =
-                                    value as OwidVariableRoundingMode
                                 this.props.dimension.display.roundingMode =
-                                    roundingMode !==
-                                    OwidVariableRoundingMode.decimalPlaces
-                                        ? roundingMode
-                                        : undefined
-
+                                    value as OwidVariableRoundingMode
                                 this.onChange()
                             }}
                             options={Object.keys(OwidVariableRoundingMode).map(
