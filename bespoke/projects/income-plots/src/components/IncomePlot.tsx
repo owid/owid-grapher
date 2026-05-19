@@ -25,6 +25,7 @@ import {
     atomSelectedCountryNames,
     atomShowCustomPovertyLine,
     atomEntityColorMap,
+    atomLegendPlacement,
 } from "../store.ts"
 import {
     INT_POVERTY_LINE,
@@ -790,6 +791,7 @@ export function IncomePlot({
     const setHoveredEntity = useSetAtom(atomHoveredEntity)
     const setHoveredX = useSetAtom(atomHoveredX)
     const isSingleCountryMode = useAtomValue(atomIsInSingleCountryMode)
+    const legendPlacement = useAtomValue(atomLegendPlacement)
 
     // Margins
     const marginTop = 10
@@ -852,7 +854,12 @@ export function IncomePlot({
                     maxWidth: "100%",
                 }}
             >
-                {!isNarrow && <IncomePlotLegend isNarrow={false} />}
+                {!isNarrow && (
+                    <IncomePlotLegend
+                        isNarrow={false}
+                        position={legendPlacement}
+                    />
+                )}
                 <svg
                     ref={svgRef}
                     className="income-plot-chart-svg"

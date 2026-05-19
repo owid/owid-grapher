@@ -244,6 +244,12 @@ export const atomLegendEntries = atom((get) => {
     return map
 })
 
+export const atomLegendPlacement = atom((get) => {
+    const povertyLine = get(atomPovertyLineForLegend)
+    if (povertyLine !== null && povertyLine > 20) return "left"
+    return "right"
+})
+
 // Hover state of the chart
 export const atomHoveredEntity = atom<string | null>(null)
 export const atomHoveredEntityType = atom((get) => {

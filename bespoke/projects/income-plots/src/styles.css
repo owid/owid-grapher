@@ -50,7 +50,6 @@
 
 .income-plot-legend {
     position: absolute;
-    right: 12px;
     top: 12px;
     width: max-content;
     z-index: 100;
@@ -58,6 +57,14 @@
 
     padding: 16px;
     border: 1px solid var(--blue-20);
+
+    &.income-plot-legend--left {
+        left: 12px;
+    }
+
+    &.income-plot-legend--right {
+        right: 12px;
+    }
 
     .legend-poverty-line-header {
         font-size: 13px;
