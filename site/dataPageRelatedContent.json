@@ -1,0 +1,730 @@
+{
+    "gdp-per-capita-maddison-project-database": [
+        {
+            "url": "https://ourworldindata.org/economic-growth",
+            "title": "Economic Growth",
+            "type": "topic-page"
+        },
+        {
+            "url": "https://ourworldindata.org/poverty",
+            "title": "Poverty",
+            "type": "topic-page"
+        },
+        {
+            "url": "https://ourworldindata.org/what-is-economic-growth",
+            "title": "What is economic growth? And why is it so important?",
+            "type": "article"
+        },
+        {
+            "url": "https://ourworldindata.org/how-are-incomes-adjusted-for-inflation",
+            "title": "How are incomes adjusted for inflation?",
+            "type": "article"
+        },
+        {
+            "url": "https://ourworldindata.org/international-dollars",
+            "title": "What are international dollars?",
+            "type": "article"
+        },
+        {
+            "url": "https://ourworldindata.org/economic-growth-since-1950",
+            "title": "Which countries achieved economic growth? And why does it matter?",
+            "type": "article"
+        },
+        {
+            "url": "https://ourworldindata.org/data-insights/growth-of-global-gdp-per-capita-has-been-remarkably-steady-over-the-past-three-decades",
+            "title": "Growth of global GDP per capita has been remarkably steady over the past three decades",
+            "type": "data-insight"
+        },
+        {
+            "url": "https://ourworldindata.org/data-insights/until-fifty-years-ago-argentina-was-richer-than-spain",
+            "title": "Until fifty years ago, Argentina was richer than Spain",
+            "type": "data-insight"
+        },
+        {
+            "url": "https://ourworldindata.org/grapher/gdp-per-capita-worldbank",
+            "title": "GDP per capita (World Bank)",
+            "type": "grapher"
+        },
+        {
+            "url": "https://ourworldindata.org/grapher/global-average-gdp-per-capita-over-the-long-run",
+            "title": "Global average GDP per capita over the long run",
+            "type": "grapher"
+        }
+    ],
+    "democracy-index-eiu": [
+        {
+            "url": "https://ourworldindata.org/democracy",
+            "title": "Democracy",
+            "type": "topic-page"
+        },
+        {
+            "url": "https://ourworldindata.org/democracies-measurement",
+            "title": "Democracy data: how sources differ and when to use which one",
+            "type": "article"
+        },
+        {
+            "url": "https://ourworldindata.org/vdem-electoral-democracy-data",
+            "title": "The 'Varieties of Democracy' data: how do researchers measure democracy?",
+            "type": "article"
+        },
+        {
+            "url": "https://ourworldindata.org/regimes-of-the-world-data",
+            "title": "The 'Regimes of the World' data: how do researchers measure democracy?",
+            "type": "article"
+        },
+        {
+            "url": "https://ourworldindata.org/democratic-rights",
+            "title": "200 years ago, everyone lacked democratic rights. Now, billions of people have them",
+            "type": "article"
+        },
+        {
+            "url": "https://ourworldindata.org/less-democratic",
+            "title": "The world has recently become less democratic",
+            "type": "article"
+        },
+        {
+            "url": "https://ourworldindata.org/data-insights/four-countries-that-have-successfully-reversed-democratic-decline-in-recent-years",
+            "title": "Four countries that have successfully reversed democratic decline in recent years",
+            "type": "data-insight"
+        },
+        {
+            "url": "https://ourworldindata.org/grapher/electoral-democracy-index",
+            "title": "Electoral Democracy Index",
+            "type": "grapher"
+        },
+        {
+            "url": "https://ourworldindata.org/grapher/liberal-democracy-index",
+            "title": "Liberal Democracy Index",
+            "type": "grapher"
+        },
+        {
+            "url": "https://ourworldindata.org/grapher/political-regime",
+            "title": "Political regime (V-Dem)",
+            "type": "grapher"
+        }
+    ],
+    "gdp-per-capita-worldbank": [
+        {
+            "url": "https://ourworldindata.org/economic-growth",
+            "title": "Economic Growth",
+            "type": "topic-page"
+        },
+        {
+            "url": "https://ourworldindata.org/poverty",
+            "title": "Poverty",
+            "type": "topic-page"
+        },
+        {
+            "url": "https://ourworldindata.org/what-is-economic-growth",
+            "title": "What is economic growth? And why is it so important?",
+            "type": "article"
+        },
+        {
+            "url": "https://ourworldindata.org/how-are-incomes-adjusted-for-inflation",
+            "title": "How are incomes adjusted for inflation?",
+            "type": "article"
+        },
+        {
+            "url": "https://ourworldindata.org/international-dollars",
+            "title": "What are international dollars?",
+            "type": "article"
+        },
+        {
+            "url": "https://ourworldindata.org/world-bank-income-groups-explained",
+            "title": "How does the World Bank classify countries by income?",
+            "type": "article"
+        },
+        {
+            "url": "https://ourworldindata.org/data-insights/growth-of-global-gdp-per-capita-has-been-remarkably-steady-over-the-past-three-decades",
+            "title": "Growth of global GDP per capita has been remarkably steady over the past three decades",
+            "type": "data-insight"
+        },
+        {
+            "url": "https://ourworldindata.org/grapher/gdp-per-capita-maddison-project-database",
+            "title": "GDP per capita (Maddison Project Database)",
+            "type": "grapher"
+        },
+        {
+            "url": "https://ourworldindata.org/grapher/gdp-worldbank",
+            "title": "Gross domestic product (GDP)",
+            "type": "grapher"
+        },
+        {
+            "url": "https://ourworldindata.org/grapher/global-average-gdp-per-capita-over-the-long-run",
+            "title": "Global average GDP per capita over the long run",
+            "type": "grapher"
+        }
+    ],
+    "life-expectancy": [
+        {
+            "url": "https://ourworldindata.org/life-expectancy",
+            "title": "Life Expectancy",
+            "type": "topic-page"
+        },
+        {
+            "url": "https://ourworldindata.org/health-meta",
+            "title": "Global Health",
+            "type": "topic-page"
+        },
+        {
+            "url": "https://ourworldindata.org/life-expectancy-how-is-it-calculated-and-how-should-it-be-interpreted",
+            "title": "Life expectancy: what does this actually mean?",
+            "type": "article"
+        },
+        {
+            "url": "https://ourworldindata.org/period-versus-cohort-measures-whats-the-difference",
+            "title": "Period versus cohort measures: what's the difference?",
+            "type": "article"
+        },
+        {
+            "url": "https://ourworldindata.org/its-not-just-about-child-mortality-life-expectancy-improved-at-all-ages",
+            "title": "It's not just about child mortality, life expectancy increased at all ages",
+            "type": "article"
+        },
+        {
+            "url": "https://ourworldindata.org/why-do-women-live-longer-than-men",
+            "title": "Why do women live longer than men?",
+            "type": "article"
+        },
+        {
+            "url": "https://ourworldindata.org/data-insights/global-average-life-expectancy-has-more-than-doubled-since-1900",
+            "title": "Global average life expectancy has more than doubled since 1900",
+            "type": "data-insight"
+        },
+        {
+            "url": "https://ourworldindata.org/data-insights/life-expectancy-has-increased-at-all-ages",
+            "title": "Life expectancy has increased at all ages",
+            "type": "data-insight"
+        },
+        {
+            "url": "https://ourworldindata.org/grapher/life-expectancy-hmd-unwpp",
+            "title": "Life expectancy (long-run, HMD + UN WPP)",
+            "type": "grapher"
+        },
+        {
+            "url": "https://ourworldindata.org/grapher/life-expectation-at-birth-by-sex",
+            "title": "Life expectancy by sex",
+            "type": "grapher"
+        }
+    ],
+    "co-emissions-per-capita": [
+        {
+            "url": "https://ourworldindata.org/co2-and-greenhouse-gas-emissions",
+            "title": "CO₂ and Greenhouse Gas Emissions",
+            "type": "topic-page"
+        },
+        {
+            "url": "https://ourworldindata.org/per-capita-co2",
+            "title": "Where in the world do people emit the most CO2?",
+            "type": "article"
+        },
+        {
+            "url": "https://ourworldindata.org/co2-emissions-metrics",
+            "title": "Per capita, national, historical: how do countries compare on CO2 metrics?",
+            "type": "article"
+        },
+        {
+            "url": "https://ourworldindata.org/consumption-based-co2",
+            "title": "How do CO2 emissions compare when we adjust for trade?",
+            "type": "article"
+        },
+        {
+            "url": "https://ourworldindata.org/inequality-co2",
+            "title": "Global inequalities in CO2 emissions",
+            "type": "article"
+        },
+        {
+            "url": "https://ourworldindata.org/data-insights/per-capita-co-emissions-in-china-now-match-those-in-the-united-kingdom",
+            "title": "Per capita CO₂ emissions in China now match those in the United Kingdom",
+            "type": "data-insight"
+        },
+        {
+            "url": "https://ourworldindata.org/data-insights/per-capita-co2-emissions-have-peaked-globally-but-total-emissions-are-still-increasing",
+            "title": "Per capita CO2 emissions have peaked globally, but total emissions are still increasing",
+            "type": "data-insight"
+        },
+        {
+            "url": "https://ourworldindata.org/grapher/annual-co2-emissions-per-country",
+            "title": "Annual CO₂ emissions",
+            "type": "grapher"
+        },
+        {
+            "url": "https://ourworldindata.org/grapher/per-capita-ghg-emissions",
+            "title": "Per capita greenhouse gas emissions",
+            "type": "grapher"
+        },
+        {
+            "url": "https://ourworldindata.org/grapher/annual-co-emissions-by-region",
+            "title": "Annual CO₂ emissions by world region",
+            "type": "grapher"
+        }
+    ],
+    "children-per-woman-un": [
+        {
+            "url": "https://ourworldindata.org/fertility-rate",
+            "title": "Fertility Rate",
+            "type": "topic-page"
+        },
+        {
+            "url": "https://ourworldindata.org/total-fertility-rate-births-per-woman",
+            "title": "Why the total fertility rate doesn't necessarily tell us the number of births women eventually have",
+            "type": "article"
+        },
+        {
+            "url": "https://ourworldindata.org/global-fertility-has-halved",
+            "title": "Until the late 1960s, the total fertility rate was five — since then, it has halved",
+            "type": "article"
+        },
+        {
+            "url": "https://ourworldindata.org/global-decline-fertility-rate",
+            "title": "The global decline of the fertility rate",
+            "type": "article"
+        },
+        {
+            "url": "https://ourworldindata.org/baby-boom-seven-charts",
+            "title": "The baby boom in seven charts",
+            "type": "article"
+        },
+        {
+            "url": "https://ourworldindata.org/data-insights/which-countries-have-fertility-rates-above-or-below-the-replacement-level",
+            "title": "Which countries have fertility rates above or below the 'replacement level'?",
+            "type": "data-insight"
+        },
+        {
+            "url": "https://ourworldindata.org/data-insights/chinas-fertility-rate-has-fallen-to-one-continuing-a-long-decline-that-began-before-and-continued-after-the-one-child-policy",
+            "title": "China's fertility rate has fallen to one, continuing a long decline that began before and continued after the one-child policy",
+            "type": "data-insight"
+        },
+        {
+            "url": "https://ourworldindata.org/grapher/children-born-per-woman",
+            "title": "Total fertility rate: births per woman",
+            "type": "grapher"
+        },
+        {
+            "url": "https://ourworldindata.org/grapher/cohort-fertility-rate",
+            "title": "Completed cohort fertility rate: births per woman",
+            "type": "grapher"
+        },
+        {
+            "url": "https://ourworldindata.org/grapher/long-run-birth-rate",
+            "title": "Birth rate",
+            "type": "grapher"
+        }
+    ],
+    "human-development-index": [
+        {
+            "url": "https://ourworldindata.org/life-expectancy",
+            "title": "Life Expectancy",
+            "type": "topic-page"
+        },
+        {
+            "url": "https://ourworldindata.org/economic-growth",
+            "title": "Economic Growth",
+            "type": "topic-page"
+        },
+        {
+            "url": "https://ourworldindata.org/global-education",
+            "title": "Global Education",
+            "type": "topic-page"
+        },
+        {
+            "url": "https://ourworldindata.org/human-development-index",
+            "title": "The Human Development Index and related indices: what they are and what we can learn from them",
+            "type": "article"
+        },
+        {
+            "url": "https://ourworldindata.org/what-is-economic-growth",
+            "title": "What is economic growth? And why is it so important?",
+            "type": "article"
+        },
+        {
+            "url": "https://ourworldindata.org/life-expectancy-how-is-it-calculated-and-how-should-it-be-interpreted",
+            "title": "Life expectancy: what does this actually mean?",
+            "type": "article"
+        },
+        {
+            "url": "https://ourworldindata.org/better-learning",
+            "title": "Millions of children learn only very little. How can the world provide a better education to the next generation?",
+            "type": "article"
+        },
+        {
+            "url": "https://ourworldindata.org/grapher/inequality-adjusted-human-development-index",
+            "title": "Inequality-adjusted Human Development Index",
+            "type": "grapher"
+        },
+        {
+            "url": "https://ourworldindata.org/grapher/gender-development-index",
+            "title": "Gender Development Index",
+            "type": "grapher"
+        },
+        {
+            "url": "https://ourworldindata.org/grapher/gdp-per-capita-worldbank",
+            "title": "GDP per capita (World Bank)",
+            "type": "grapher"
+        }
+    ],
+    "economic-inequality-gini-index": [
+        {
+            "url": "https://ourworldindata.org/economic-inequality",
+            "title": "Economic Inequality",
+            "type": "topic-page"
+        },
+        {
+            "url": "https://ourworldindata.org/what-is-the-gini-coefficient",
+            "title": "Measuring inequality: what is the Gini coefficient?",
+            "type": "article"
+        },
+        {
+            "url": "https://ourworldindata.org/global-economic-inequality-introduction",
+            "title": "Global economic inequality: what matters most for your living conditions is not who you are, but where you are",
+            "type": "article"
+        },
+        {
+            "url": "https://ourworldindata.org/the-history-of-global-economic-inequality",
+            "title": "The history of global economic inequality",
+            "type": "article"
+        },
+        {
+            "url": "https://ourworldindata.org/income-inequality-since-1990",
+            "title": "Is income inequality rising around the world?",
+            "type": "article"
+        },
+        {
+            "url": "https://ourworldindata.org/income-inequality-before-and-after-taxes",
+            "title": "Income inequality before and after taxes: how much do countries redistribute income?",
+            "type": "article"
+        },
+        {
+            "url": "https://ourworldindata.org/data-insights/how-far-apart-are-the-incomes-of-the-rich-and-poor-in-different-countries",
+            "title": "How far apart are the incomes of the rich and poor in different countries?",
+            "type": "data-insight"
+        },
+        {
+            "url": "https://ourworldindata.org/data-insights/how-much-of-national-income-goes-to-the-richest1",
+            "title": "How much of national income goes to the richest 1%?",
+            "type": "data-insight"
+        },
+        {
+            "url": "https://ourworldindata.org/grapher/income-share-top-10-before-tax-wid",
+            "title": "Income share of the richest 10% (before tax)",
+            "type": "grapher"
+        },
+        {
+            "url": "https://ourworldindata.org/grapher/gini-coefficient-after-vs-before-tax-wb-scatter",
+            "title": "Income inequality: Gini coefficient before and after tax",
+            "type": "grapher"
+        }
+    ],
+    "population": [
+        {
+            "url": "https://ourworldindata.org/population-growth",
+            "title": "Population Growth",
+            "type": "topic-page"
+        },
+        {
+            "url": "https://ourworldindata.org/world-population-growth-past-future",
+            "title": "Two centuries of rapid global population growth will come to an end",
+            "type": "article"
+        },
+        {
+            "url": "https://ourworldindata.org/demographic-transition",
+            "title": "Demographic transition: Why is rapid population growth a temporary phenomenon?",
+            "type": "article"
+        },
+        {
+            "url": "https://ourworldindata.org/un-population-2024-revision",
+            "title": "Peak global population and other key findings from the 2024 UN World Population Prospects",
+            "type": "article"
+        },
+        {
+            "url": "https://ourworldindata.org/population-sources",
+            "title": "What are the sources for Our World in Data's population estimates?",
+            "type": "article"
+        },
+        {
+            "url": "https://ourworldindata.org/data-insights/the-world-has-passed-peak-child",
+            "title": "The world has passed 'peak child'",
+            "type": "data-insight"
+        },
+        {
+            "url": "https://ourworldindata.org/data-insights/the-un-projects-that-africas-population-will-double-by-2070",
+            "title": "The UN projects that Africa's population will double by 2070",
+            "type": "data-insight"
+        },
+        {
+            "url": "https://ourworldindata.org/grapher/population-with-un-projections",
+            "title": "Population, with UN projections",
+            "type": "grapher"
+        },
+        {
+            "url": "https://ourworldindata.org/grapher/population-regions-with-projections",
+            "title": "Population by world region",
+            "type": "grapher"
+        },
+        {
+            "url": "https://ourworldindata.org/grapher/births-and-deaths-projected-to-2100",
+            "title": "Births and deaths per year",
+            "type": "grapher"
+        }
+    ],
+    "population-with-un-projections": [
+        {
+            "url": "https://ourworldindata.org/population-growth",
+            "title": "Population Growth",
+            "type": "topic-page"
+        },
+        {
+            "url": "https://ourworldindata.org/world-population-growth-past-future",
+            "title": "Two centuries of rapid global population growth will come to an end",
+            "type": "article"
+        },
+        {
+            "url": "https://ourworldindata.org/population-projections",
+            "title": "The UN has made population projections for more than 50 years – how accurate have they been?",
+            "type": "article"
+        },
+        {
+            "url": "https://ourworldindata.org/un-population-2024-revision",
+            "title": "Peak global population and other key findings from the 2024 UN World Population Prospects",
+            "type": "article"
+        },
+        {
+            "url": "https://ourworldindata.org/region-population-2100",
+            "title": "More than 8 out of 10 people in the world will live in Asia or Africa by 2100",
+            "type": "article"
+        },
+        {
+            "url": "https://ourworldindata.org/data-insights/the-un-projects-that-africas-population-will-double-by-2070",
+            "title": "The UN projects that Africa's population will double by 2070",
+            "type": "data-insight"
+        },
+        {
+            "url": "https://ourworldindata.org/data-insights/by-2060-the-number-of-people-aged-65-and-older-will-be-more-than-four-times-what-it-was-in-2000",
+            "title": "The global number of people aged 65 years and older is set to double within the next thirty years",
+            "type": "data-insight"
+        },
+        {
+            "url": "https://ourworldindata.org/grapher/population",
+            "title": "Population",
+            "type": "grapher"
+        },
+        {
+            "url": "https://ourworldindata.org/grapher/population-regions-with-projections",
+            "title": "Population by world region",
+            "type": "grapher"
+        },
+        {
+            "url": "https://ourworldindata.org/grapher/population-by-age-group",
+            "title": "Population by age group",
+            "type": "grapher"
+        }
+    ],
+    "years-of-schooling": [
+        {
+            "url": "https://ourworldindata.org/global-education",
+            "title": "Global Education",
+            "type": "topic-page"
+        },
+        {
+            "url": "https://ourworldindata.org/better-learning",
+            "title": "Millions of children learn only very little. How can the world provide a better education to the next generation?",
+            "type": "article"
+        },
+        {
+            "url": "https://ourworldindata.org/children-not-in-school",
+            "title": "Access to basic education: almost 60 million children of primary school age are not in school",
+            "type": "article"
+        },
+        {
+            "url": "https://ourworldindata.org/talent-is-everywhere-opportunity-is-not",
+            "title": "Talent is everywhere, opportunity is not. We are all losing out because of this",
+            "type": "article"
+        },
+        {
+            "url": "https://ourworldindata.org/data-insights/a-century-of-progress-in-access-to-primary-education",
+            "title": "A century of progress in access to primary education",
+            "type": "data-insight"
+        },
+        {
+            "url": "https://ourworldindata.org/data-insights/people-across-developing-regions-are-spending-far-more-time-in-school-than-20-years-ago",
+            "title": "People across developing regions are spending far more time in school than 20 years ago",
+            "type": "data-insight"
+        },
+        {
+            "url": "https://ourworldindata.org/data-insights/two-centuries-ago-only-1-in-10-adults-could-read-today-its-almost-9-in-10",
+            "title": "Two centuries ago, only 1 in 10 adults could read. Today, it's almost 9 in 10",
+            "type": "data-insight"
+        },
+        {
+            "url": "https://ourworldindata.org/grapher/learning-adjusted-years-of-school-lays",
+            "title": "Average learning-adjusted years of schooling",
+            "type": "grapher"
+        },
+        {
+            "url": "https://ourworldindata.org/grapher/share-of-the-world-population-with-at-least-basic-education",
+            "title": "Share of the world's population with formal basic education",
+            "type": "grapher"
+        },
+        {
+            "url": "https://ourworldindata.org/grapher/primary-secondary-enrollment-completion-rates",
+            "title": "Primary, secondary and tertiary education enrollment and completion rates",
+            "type": "grapher"
+        }
+    ],
+    "annual-co2-emissions-per-country": [
+        {
+            "url": "https://ourworldindata.org/co2-and-greenhouse-gas-emissions",
+            "title": "CO₂ and Greenhouse Gas Emissions",
+            "type": "topic-page"
+        },
+        {
+            "url": "https://ourworldindata.org/fossil-fuels",
+            "title": "Fossil fuels",
+            "type": "topic-page"
+        },
+        {
+            "url": "https://ourworldindata.org/annual-co2-emissions",
+            "title": "Who emits the most CO2 today?",
+            "type": "article"
+        },
+        {
+            "url": "https://ourworldindata.org/contributed-most-global-co2",
+            "title": "Who has contributed most to global CO2 emissions?",
+            "type": "article"
+        },
+        {
+            "url": "https://ourworldindata.org/co2-emissions-metrics",
+            "title": "Per capita, national, historical: how do countries compare on CO2 metrics?",
+            "type": "article"
+        },
+        {
+            "url": "https://ourworldindata.org/consumption-based-co2",
+            "title": "How do CO2 emissions compare when we adjust for trade?",
+            "type": "article"
+        },
+        {
+            "url": "https://ourworldindata.org/data-insights/which-countries-have-contributed-the-most-to-historical-co-emissions",
+            "title": "Which countries have contributed the most to historical CO₂ emissions?",
+            "type": "data-insight"
+        },
+        {
+            "url": "https://ourworldindata.org/grapher/co-emissions-per-capita",
+            "title": "CO₂ emissions per capita",
+            "type": "grapher"
+        },
+        {
+            "url": "https://ourworldindata.org/grapher/annual-co-emissions-by-region",
+            "title": "Annual CO₂ emissions by world region",
+            "type": "grapher"
+        },
+        {
+            "url": "https://ourworldindata.org/grapher/annual-co2-including-land-use",
+            "title": "Annual CO₂ emissions including land-use change",
+            "type": "grapher"
+        }
+    ],
+    "population-density": [
+        {
+            "url": "https://ourworldindata.org/urbanization",
+            "title": "Urbanization",
+            "type": "topic-page"
+        },
+        {
+            "url": "https://ourworldindata.org/population-growth",
+            "title": "Population Growth",
+            "type": "topic-page"
+        },
+        {
+            "url": "https://ourworldindata.org/how-urban-is-the-world",
+            "title": "How urban is the world?",
+            "type": "article"
+        },
+        {
+            "url": "https://ourworldindata.org/most-densely-populated-countries",
+            "title": "Which countries are most densely populated?",
+            "type": "article"
+        },
+        {
+            "url": "https://ourworldindata.org/data-insights/the-majority-of-people-in-the-world-now-live-in-cities",
+            "title": "The plurality of people in the world now live in cities",
+            "type": "data-insight"
+        },
+        {
+            "url": "https://ourworldindata.org/data-insights/bangladesh-has-been-urbanizing-much-faster-than-its-neighbors",
+            "title": "Bangladesh has been urbanizing much faster than its neighbors",
+            "type": "data-insight"
+        },
+        {
+            "url": "https://ourworldindata.org/grapher/share-of-population-urban",
+            "title": "Share of the population living in urban areas",
+            "type": "grapher"
+        },
+        {
+            "url": "https://ourworldindata.org/grapher/urban-and-rural-population",
+            "title": "Number of people living in urban and rural areas",
+            "type": "grapher"
+        },
+        {
+            "url": "https://ourworldindata.org/grapher/population-of-cities-towns-and-villages",
+            "title": "Population of cities, towns and rural areas",
+            "type": "grapher"
+        },
+        {
+            "url": "https://ourworldindata.org/grapher/population",
+            "title": "Population",
+            "type": "grapher"
+        }
+    ],
+    "per-capita-energy-use": [
+        {
+            "url": "https://ourworldindata.org/energy",
+            "title": "Energy",
+            "type": "topic-page"
+        },
+        {
+            "url": "https://ourworldindata.org/per-capita-energy",
+            "title": "Global comparison: how much energy do people consume?",
+            "type": "article"
+        },
+        {
+            "url": "https://ourworldindata.org/energy-definitions",
+            "title": "Primary, secondary, final, and useful energy: Why are there different ways of measuring energy?",
+            "type": "article"
+        },
+        {
+            "url": "https://ourworldindata.org/global-energy-200-years",
+            "title": "How have the world's energy sources changed over the last two centuries?",
+            "type": "article"
+        },
+        {
+            "url": "https://ourworldindata.org/energy-production-consumption",
+            "title": "Energy Production and Consumption",
+            "type": "article"
+        },
+        {
+            "url": "https://ourworldindata.org/worlds-energy-problem",
+            "title": "The world's energy problem",
+            "type": "article"
+        },
+        {
+            "url": "https://ourworldindata.org/data-insights/china-now-uses-about-the-same-amount-of-energy-per-person-as-the-european-union",
+            "title": "China now uses about the same amount of energy per person as the European Union",
+            "type": "data-insight"
+        },
+        {
+            "url": "https://ourworldindata.org/grapher/global-energy-substitution",
+            "title": "Global primary energy consumption by source",
+            "type": "grapher"
+        },
+        {
+            "url": "https://ourworldindata.org/grapher/per-capita-electricity-generation",
+            "title": "Per capita electricity generation",
+            "type": "grapher"
+        },
+        {
+            "url": "https://ourworldindata.org/grapher/share-elec-by-source",
+            "title": "Share of electricity production by source",
+            "type": "grapher"
+        }
+    ]
+}

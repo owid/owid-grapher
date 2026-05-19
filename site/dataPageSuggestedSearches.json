@@ -1,0 +1,137 @@
+{
+    "gdp-per-capita-worldbank": [
+        "GDP per capita",
+        "Economic growth",
+        "Poverty",
+        "Inequality",
+        "Income groups",
+        "PPP vs nominal GDP",
+        "Inflation adjustment"
+    ],
+    "gdp-per-capita-maddison-project-database": [
+        "Economic growth",
+        "GDP",
+        "Living standards",
+        "Industrial revolution",
+        "Income inequality",
+        "Poverty",
+        "Long-run history"
+    ],
+    "democracy-index-eiu": [
+        "Democracy",
+        "Authoritarianism",
+        "Political regime",
+        "Human rights",
+        "Elections",
+        "Freedom of expression",
+        "Press freedom"
+    ],
+    "life-expectancy": [
+        "Life expectancy",
+        "Child mortality",
+        "Causes of death",
+        "Healthy life expectancy",
+        "Aging population",
+        "Healthcare",
+        "Maternal mortality"
+    ],
+    "co-emissions-per-capita": [
+        "CO2 emissions",
+        "Climate change",
+        "Greenhouse gases",
+        "Energy use",
+        "Fossil fuels",
+        "Renewable energy",
+        "Carbon footprint"
+    ],
+    "children-per-woman-un": [
+        "Fertility rate",
+        "Population growth",
+        "Demographic transition",
+        "Family size",
+        "Maternal health",
+        "Contraception",
+        "Marriage age"
+    ],
+    "human-development-index": [
+        "Human development",
+        "Education",
+        "Life expectancy",
+        "Income",
+        "Inequality",
+        "Poverty",
+        "Quality of life"
+    ],
+    "economic-inequality-gini-index": [
+        "Inequality",
+        "Income distribution",
+        "Wealth inequality",
+        "Poverty",
+        "Wages",
+        "Top 1%",
+        "Social mobility"
+    ],
+    "population": [
+        "Population growth",
+        "World population",
+        "Demographics",
+        "Urbanization",
+        "Fertility rate",
+        "Migration",
+        "Aging"
+    ],
+    "population-with-un-projections": [
+        "Population projections",
+        "Demographic transition",
+        "Population growth",
+        "Aging",
+        "Fertility decline",
+        "Urbanization",
+        "Migration"
+    ],
+    "mean-years-of-schooling-long-run": [
+        "Education",
+        "Literacy",
+        "School enrollment",
+        "Educational attainment",
+        "Higher education",
+        "Gender gap in education",
+        "Human capital"
+    ],
+    "annual-co2-emissions-per-country": [
+        "CO2 emissions",
+        "Climate change",
+        "Greenhouse gases",
+        "Per capita emissions",
+        "Cumulative emissions",
+        "China emissions",
+        "US emissions"
+    ],
+    "population-density": [
+        "Population density",
+        "Urbanization",
+        "Cities",
+        "Land use",
+        "Urban population",
+        "Megacities",
+        "Rural population"
+    ],
+    "per-capita-energy-use": [
+        "Energy consumption",
+        "Renewable energy",
+        "Fossil fuels",
+        "Electricity access",
+        "Energy poverty",
+        "Solar energy",
+        "Nuclear energy"
+    ],
+    "deaths-in-armed-conflicts-by-type": [
+        "War and peace",
+        "Armed conflicts",
+        "Battle-related deaths",
+        "Terrorism",
+        "Civil war",
+        "Conflict trends",
+        "State-based violence"
+    ]
+}

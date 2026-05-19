@@ -10,6 +10,7 @@ import {
     faArrowRight,
     IconDefinition,
     faHeart,
+    faQuoteRight,
 } from "@fortawesome/free-solid-svg-icons"
 import {
     ShareMenu,
@@ -37,6 +38,7 @@ export interface ActionButtonsManager extends ShareMenuManager {
     activeDownloadModalTab?: DownloadModalTabName
     isOnTableTab?: boolean
     hideFullScreenButton?: boolean
+    citeButtonHref?: string
 }
 
 // keep in sync with sass variables in ActionButtons.scss
@@ -75,11 +77,13 @@ export class ActionButtons extends React.Component<ActionButtonsProps> {
         const {
             buttonCount,
             hasDownloadButton,
+            hasCiteButton,
             hasDonateButton,
             hasShareButton,
             hasFullScreenButton,
             hasExploreTheDataButton,
             downloadButtonWithLabelWidth,
+            citeButtonWithLabelWidth,
             donateButtonWithLabelWidth,
             shareButtonWithLabelWidth,
             fullScreenButtonWithLabelWidth,
@@ -89,6 +93,9 @@ export class ActionButtons extends React.Component<ActionButtonsProps> {
         let width = 0
         if (hasDownloadButton) {
             width += downloadButtonWithLabelWidth
+        }
+        if (hasCiteButton) {
+            width += citeButtonWithLabelWidth
         }
         if (hasShareButton) {
             width += shareButtonWithLabelWidth
@@ -152,6 +159,10 @@ export class ActionButtons extends React.Component<ActionButtonsProps> {
         return ActionButtons.computeButtonWidth("Download")
     }
 
+    @computed private get citeButtonWithLabelWidth(): number {
+        return ActionButtons.computeButtonWidth("Cite")
+    }
+
     @computed private get shareButtonWithLabelWidth(): number {
         return ActionButtons.computeButtonWidth("Share")
     }
@@ -182,6 +193,14 @@ export class ActionButtons extends React.Component<ActionButtonsProps> {
         if (!hasDownloadButton) return 0
         if (!showButtonLabels) return BUTTON_WIDTH_ICON_ONLY
         return downloadButtonWithLabelWidth
+    }
+
+    @computed private get citeButtonWidth(): number {
+        const { hasCiteButton, showButtonLabels, citeButtonWithLabelWidth } =
+            this
+        if (!hasCiteButton) return 0
+        if (!showButtonLabels) return BUTTON_WIDTH_ICON_ONLY
+        return citeButtonWithLabelWidth
     }
 
     @computed private get shareButtonWidth(): number {
@@ -245,8 +264,29 @@ export class ActionButtons extends React.Component<ActionButtonsProps> {
         }
     }
 
+    @action.bound scrollToCiteSection(): void {
+        const href = this.manager.citeButtonHref
+        if (!href || typeof document === "undefined") return
+        const id = href.startsWith("#") ? href.slice(1) : href
+        const target = document.getElementById(id)
+        if (!target) return
+        // The citation section may live inside a collapsed <details> (the
+        // metadata onion). Open every <details> ancestor so the target is
+        // visible before we scroll to it.
+        let el: HTMLElement | null = target
+        while (el) {
+            if (el instanceof HTMLDetailsElement) el.open = true
+            el = el.parentElement
+        }
+        target.scrollIntoView({ behavior: "smooth", block: "start" })
+    }
+
     @computed private get hasDownloadButton(): boolean {
         return true
+    }
+
+    @computed private get hasCiteButton(): boolean {
+        return !!this.manager.citeButtonHref
     }
 
     @computed private get hasDonateButton(): boolean {
@@ -271,6 +311,7 @@ export class ActionButtons extends React.Component<ActionButtonsProps> {
     @computed private get buttonCount(): number {
         let count = 0
         if (this.hasDownloadButton) count += 1
+        if (this.hasCiteButton) count += 1
         if (this.hasShareButton) count += 1
         if (this.hasFullScreenButton) count += 1
         if (this.hasDonateButton) count += 1
@@ -315,6 +356,21 @@ export class ActionButtons extends React.Component<ActionButtonsProps> {
                                 onClick={action((e): void => {
                                     this.openDownloadModal()
                                     e.stopPropagation()
+                                })}
+                            />
+                        </li>
+                    )}
+                    {this.hasCiteButton && (
+                        <li style={{ width: this.citeButtonWidth }}>
+                            <ActionButton
+                                label="Cite"
+                                dataTrackNote="chart_click_cite"
+                                showLabel={this.showButtonLabels}
+                                icon={faQuoteRight}
+                                onClick={action((e): void => {
+                                    e.preventDefault()
+                                    e.stopPropagation()
+                                    this.scrollToCiteSection()
                                 })}
                             />
                         </li>

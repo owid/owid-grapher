@@ -14,6 +14,7 @@ import {
     ImageMetadata,
     Url,
 } from "@ourworldindata/utils"
+import { AdditionalIndicator, ArchiveContext } from "@ourworldindata/types"
 import { MarkdownTextWrap } from "@ourworldindata/components"
 import urljoin from "url-join"
 import {
@@ -31,12 +32,12 @@ import { SiteHeader } from "./SiteHeader.js"
 import { IFrameDetector } from "./IframeDetector.js"
 import { DebugProvider } from "./gdocs/DebugProvider.js"
 import { Html } from "./Html.js"
-import { ArchiveContext } from "@ourworldindata/types"
 import { DEFAULT_PAGE_DESCRIPTION } from "./dataPage.js"
 
 export const DataPageV2 = (props: {
     grapher: GrapherInterface | undefined
     datapageData: DataPageDataV2
+    additionalIndicators?: AdditionalIndicator[]
     baseUrl: string
     canonicalUrl: string
     isPreviewing: boolean
@@ -49,6 +50,7 @@ export const DataPageV2 = (props: {
     const {
         grapher,
         datapageData,
+        additionalIndicators,
         baseUrl,
         canonicalUrl,
         isPreviewing,
@@ -160,6 +162,7 @@ export const DataPageV2 = (props: {
                             __html: `window._OWID_DATAPAGEV2_PROPS = ${JSON.stringify(
                                 {
                                     datapageData,
+                                    additionalIndicators,
                                     faqEntries,
                                     canonicalUrl,
                                     tagToSlugMap: minimalTagToSlugMap,
@@ -172,6 +175,7 @@ export const DataPageV2 = (props: {
                         <DebugProvider debug={isPreviewing}>
                             <DataPageV2Content
                                 datapageData={datapageData}
+                                additionalIndicators={additionalIndicators}
                                 grapherConfig={grapherConfig}
                                 imageMetadata={imageMetadata}
                                 isPreviewing={isPreviewing}

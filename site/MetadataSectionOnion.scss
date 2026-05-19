@@ -1,0 +1,1177 @@
+// Styles for MetadataSectionOnion. Targets only .MetadataSectionOnion__*
+// classes (or descendants of .MetadataSectionOnion), so the rules apply
+// only inside the rendered onion component.
+
+.MetadataSectionOnion-wrap {
+    position: relative;
+    margin-bottom: 32px;
+
+    @include sm-up {
+        margin-bottom: 48px;
+    }
+
+    // Narrower than the full chart width on desktop — the metadata reads as
+    // a focused sidebar rather than competing with the chart's visual width.
+    @include lg-up {
+        max-width: 83.333%; // approx 10 of 12 grid cols
+        margin-left: auto;
+        margin-right: auto;
+    }
+}
+
+// Small "Show less ▲" affordance in the top-right corner of the panel.
+// Visible only when the box is open (CSS-toggled below); clicking it
+// collapses. Absolutely positioned so it doesn't push content around.
+.MetadataSectionOnion__top-collapse {
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    z-index: 1;
+    appearance: none;
+    background: transparent;
+    border: 0;
+    padding: 6px;
+    cursor: pointer;
+    color: $blue-50;
+    font-size: 0.75rem;
+    line-height: 1;
+    display: none;
+    align-items: center;
+    gap: 6px;
+
+    &:hover,
+    &:focus-visible {
+        color: $blue-90;
+        outline: none;
+    }
+}
+
+.MetadataSectionOnion__top-collapse-label {
+    @include body-3-medium;
+    font-size: 0.75rem;
+    color: inherit;
+}
+
+.MetadataSectionOnion-wrap:has(.MetadataSectionOnion[open])
+    .MetadataSectionOnion__top-collapse {
+    display: inline-flex;
+}
+
+// Header strip sitting above the box. Now a flex column containing:
+//   1) `__above-switcher`: the title / dropdown / h-tabs row
+//   2) the short description ("TLDR")
+//   3) the stat factoids row
+// Styled to read as a header subsection of the metadata block — same
+// surface as the box below, attached with shared borders.
+.MetadataSectionOnion__above {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    // Same surface as the collapsible box below — the header strip reads as
+    // one block with the rest of the metadata section, not as a separate
+    // panel hovering on top.
+    background-color: $blue-5;
+    border: 1px solid $blue-20;
+    border-bottom: 0;
+    border-radius: 8px 8px 0 0;
+    padding: 12px 16px;
+
+    @include sm-up {
+        padding: 14px 24px;
+    }
+}
+
+// Inner row of the header: prefix + switcher (+ variant) on one
+// baseline-aligned line that wraps on narrow viewports.
+.MetadataSectionOnion__above-switcher {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+}
+
+// `__main` is the row that holds the (optional) vertical-tab aside and the
+// collapsible box. Single column by default; flex row for the v-tabs variant.
+.MetadataSectionOnion__main {
+    display: block;
+}
+
+.MetadataSectionOnion-wrap--v-tabs .MetadataSectionOnion__main {
+    display: flex;
+    align-items: stretch;
+}
+
+.MetadataSectionOnion {
+    background-color: $blue-5;
+    border: 1px solid $blue-20;
+    border-top: 0;
+    border-radius: 0 0 8px 8px;
+    overflow: hidden;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+// In v-tabs the aside fuses with the left side of the box: drop the box's
+// left border + bottom-left radius so the seam disappears.
+.MetadataSectionOnion-wrap--v-tabs .MetadataSectionOnion {
+    border-left: 0;
+    border-radius: 0 0 8px 0;
+}
+
+// `--no-above` (currently only v-tabs in multi mode): no header strip
+// renders above the row, so the box + aside need their own top border
+// and top corner radii.
+.MetadataSectionOnion-wrap--no-above .MetadataSectionOnion {
+    border-top: 1px solid $blue-20;
+}
+
+.MetadataSectionOnion-wrap--no-above.MetadataSectionOnion-wrap--v-tabs
+    .MetadataSectionOnion {
+    border-radius: 0 8px 8px 0;
+}
+
+.MetadataSectionOnion-wrap--no-above .MetadataSectionOnion__v-tabs {
+    border-top: 1px solid $blue-20;
+    border-radius: 8px 0 0 8px;
+}
+
+// The wrapping `.chart-key-info` defines its own 24/80px padding (used on
+// legacy data pages without an onion). On the onion experiment we let the
+// onion's own margin-bottom be the source of truth for the spacing between
+// the metadata block and what follows below — avoids doubled-up spacing.
+.DataPageContent .chart-key-info:has(.MetadataSectionOnion-wrap) {
+    padding-bottom: 0;
+}
+
+.MetadataSectionOnion__summary {
+    cursor: pointer;
+    display: block;
+    padding: 6px 16px 4px;
+    list-style: none;
+    transition: background-color 120ms ease;
+
+    &::marker,
+    &::-webkit-details-marker {
+        display: none;
+    }
+
+    @include sm-up {
+        padding: 10px 24px 6px;
+    }
+}
+
+// Subtle hover hint that the (collapsed) block is clickable. The hex
+// sits ~3% darker than $blue-5 (#f0f4fa) while preserving blue
+// saturation, mirroring the idiom used by .data-page-related-content
+// (which hovers $blue-20 → #cfdaeb). Apply across the whole wrap (the
+// header strip, the v-tabs aside, and the box) so the entire component
+// reads as one hoverable unit. `:has()` keeps the effect off when the
+// box is already open.
+.MetadataSectionOnion-wrap:not(:has(.MetadataSectionOnion[open])):hover {
+    cursor: pointer;
+
+    .MetadataSectionOnion__above,
+    .MetadataSectionOnion__v-tabs,
+    .MetadataSectionOnion {
+        background-color: #e3ebf5;
+    }
+}
+
+// When expanded, only the "Show less" toggle collapses on click (the
+// click handler on <summary> preventDefaults clicks elsewhere). Shift
+// the cursor cue accordingly.
+.MetadataSectionOnion[open] .MetadataSectionOnion__summary {
+    cursor: default;
+}
+
+.MetadataSectionOnion[open] .MetadataSectionOnion__toggle--show-less {
+    cursor: pointer;
+}
+
+.MetadataSectionOnion__summary-key-data {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+// --- Stat factoids (Unit, Last updated, Managed by) ---
+// Rendered inside the metadata box (since the stats describe the indicator,
+// they belong with the rest of its metadata). Plain inline label-value pairs,
+// separated by middots — no pill chrome, since these aren't clickable.
+
+.MetadataSectionOnion__factoids {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    column-gap: 12px;
+    row-gap: 4px;
+}
+
+.MetadataSectionOnion__summary-stat {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 6px;
+    min-width: 0;
+    font-size: 0.75rem;
+    line-height: 1.4;
+}
+
+// Middot separator between consecutive factoids.
+.MetadataSectionOnion__summary-stat + .MetadataSectionOnion__summary-stat {
+    &::before {
+        content: "·";
+        color: $blue-30;
+        font-weight: 700;
+    }
+}
+
+.MetadataSectionOnion__summary-stat--expanded-only {
+    display: none;
+}
+
+.MetadataSectionOnion__summary-stat-title {
+    color: $blue-50;
+    white-space: nowrap;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-size: 0.625rem;
+    font-weight: 700;
+}
+
+.MetadataSectionOnion__summary-stat-value {
+    color: $blue-90;
+    min-width: 0;
+    font-weight: 500;
+}
+
+// --- Managed-by authors (inline) ---
+
+.MetadataSectionOnion__managed-by-authors {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.MetadataSectionOnion__author-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: $blue-90;
+    text-decoration: none;
+
+    &:hover,
+    &:focus-visible {
+        color: $blue-90;
+
+        .MetadataSectionOnion__author-name {
+            text-decoration: underline;
+            text-underline-offset: 3px;
+        }
+    }
+}
+
+.MetadataSectionOnion__author-thumbnail {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: $blue-20;
+    color: $blue-90;
+    font-size: 0.625rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    flex-shrink: 0;
+}
+
+.MetadataSectionOnion__author-name {
+    @include body-3-medium;
+    color: $blue-90;
+}
+
+// Tighten the author chip when it sits inside a stat pill so the
+// thumbnail + name match the smaller pill scale.
+.MetadataSectionOnion__summary-stat .MetadataSectionOnion__author-thumbnail {
+    width: 18px;
+    height: 18px;
+    font-size: 0.5625rem;
+}
+
+.MetadataSectionOnion__summary-stat .MetadataSectionOnion__author-name {
+    font-size: inherit;
+    font-weight: 500;
+    line-height: 1.4;
+}
+
+// --- Toggle (Show more / Show less) ---
+// - Show more: centered chip at the bottom of the summary, only when collapsed.
+// - Show less: same slot at the bottom, only when expanded.
+// No background or hover styling on the chip itself; the whole summary
+// changes color on hover (collapsed only) to hint at clickability.
+
+.MetadataSectionOnion__toggle {
+    @include body-3-medium;
+    color: $blue-60;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.MetadataSectionOnion__toggle--show-more {
+    align-self: center;
+    // Small breathing room above so the chip doesn't crowd content above,
+    // but tighter than the parent's 12px flex gap.
+    margin-top: -2px;
+    padding-bottom: 4px;
+}
+
+// Full-width clickable bottom bar — direct child of <details>, sitting
+// below `__content` so it spans the box's full inner width (the box has
+// no padding of its own). The whole strip collapses the box; hover hint
+// mirrors the overall hover color so the bar reads as part of the same
+// action and runs flush to all four panel borders.
+.MetadataSectionOnion__toggle--show-less {
+    appearance: none;
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    width: 100%;
+    padding: 10px 16px;
+    color: $blue-60;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background-color 120ms ease;
+
+    @include sm-up {
+        padding: 12px 24px;
+    }
+
+    &:hover,
+    &:focus-visible {
+        background-color: #e3ebf5;
+        color: $blue-90;
+        outline: none;
+    }
+}
+
+.MetadataSectionOnion__toggle-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.MetadataSectionOnion__icon {
+    font-size: 0.75rem;
+    transition: transform 160ms ease;
+}
+
+.MetadataSectionOnion__icon--up {
+    transform: rotate(180deg);
+}
+
+.MetadataSectionOnion[open] {
+    .MetadataSectionOnion__toggle--show-more {
+        display: none;
+    }
+
+    .MetadataSectionOnion__summary-stat--expanded-only {
+        display: inline-flex;
+    }
+}
+
+// --- Body content ---
+
+.MetadataSectionOnion__content {
+    padding: 4px 16px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+
+    @include sm-up {
+        padding: 4px 24px 16px;
+    }
+
+    > * {
+        margin: 0;
+    }
+}
+
+// --- Indicator title + variant + (multi) pill, rendered above the box ---
+// Title, variant, and optional "Indicator:" pill are direct children of
+// `.MetadataSectionOnion__above`, so their layout comes from that row.
+
+.MetadataSectionOnion__indicator-title {
+    @include h5-black-caps;
+    color: $blue-70;
+    font-size: 0.9375rem;
+    letter-spacing: 0.08em;
+}
+
+.MetadataSectionOnion__indicator-title-variant {
+    @include h6-black-caps;
+    color: $blue-50;
+    font-weight: 600;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+}
+
+// --- Multi-indicator: indicator title is a dropdown trigger ---
+// On multi-indicator data pages, the indicator title is rendered as a
+// MDIM-style pill button (mirrors .md-settings__dropdown-toggle in
+// site/multiDim/DimensionDropdown.scss).
+
+.MetadataSectionOnion__indicator-title-trigger {
+    @include body-3-medium;
+    appearance: none;
+    background: $white;
+    border: 1px solid $gray-20;
+    color: $blue-90;
+    cursor: pointer;
+    padding: 4px 10px 4px 12px;
+    height: 32px;
+    border-radius: 4px;
+    text-align: left;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    max-width: 100%;
+    min-width: 0;
+    line-height: 1;
+    letter-spacing: 0.01em;
+    transition:
+        background-color 120ms ease,
+        border-color 120ms ease;
+
+    &:hover {
+        background: $gray-5;
+        border-color: $blue-30;
+    }
+
+    &:focus-visible {
+        outline: none;
+        border-color: $blue-50;
+    }
+
+    // Open state — matches MDIM's pressed/[data-pressed] look so the
+    // pill reads as "active control" while the popover is showing.
+    &[aria-expanded="true"] {
+        background: #dbe5f0;
+        border-color: #dbe5f0;
+        color: $blue-90;
+        cursor: default;
+    }
+}
+
+// "About this data (N indicators)" inline pair in the switcher row.
+// The v-tabs aside overrides this to stack vertically (label on top,
+// count below) via the `__v-tabs-label` modifier.
+.MetadataSectionOnion__indicator-header-group {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 4px;
+}
+
+.MetadataSectionOnion__indicator-header-group.MetadataSectionOnion__v-tabs-label {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+}
+
+.MetadataSectionOnion__indicator-count {
+    color: $blue-50;
+    font-size: 0.75rem;
+    font-style: italic;
+    white-space: nowrap;
+}
+
+// In the v-tabs aside the count sits underneath the label, not as an
+// inline caption — drop the italic and add bottom spacing before the
+// tabs themselves.
+.MetadataSectionOnion__v-tabs-label .MetadataSectionOnion__indicator-count {
+    font-style: normal;
+    margin-bottom: 8px;
+}
+
+// "About this data" label sits outside the switcher control. Typography
+// mirrors `__short-description-label` (small caps, $blue-50, weight 700),
+// but a step bigger so it reads as a section heading rather than a tag.
+.MetadataSectionOnion__indicator-title-prefix {
+    color: $blue-50;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-size: 0.75rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+// Override the existing block-level title styling when it's rendered
+// inside the pill — we want sentence-case, body-3-medium scale so the
+// pill reads as a control rather than a page heading.
+.MetadataSectionOnion__indicator-title-trigger
+    .MetadataSectionOnion__indicator-title {
+    color: $blue-90;
+    font-weight: 500;
+    font-size: inherit;
+    letter-spacing: inherit;
+    text-transform: none;
+    display: inline;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+    line-height: 1;
+}
+
+.MetadataSectionOnion__indicator-title-caret {
+    color: $blue-50;
+    font-size: 0.75rem;
+    margin-left: auto;
+    transition: transform 160ms ease;
+}
+
+.MetadataSectionOnion__indicator-title-trigger[aria-expanded="true"]
+    .MetadataSectionOnion__indicator-title-caret {
+    transform: rotate(180deg);
+    color: $blue-70;
+}
+
+// Rendered via React Portal to document.body so it can extend past the
+// rounded onion box (which has overflow: hidden) without being clipped.
+// Styling mirrors .md-menu for visual consistency with the multi-dim
+// dimension dropdown.
+.MetadataSectionOnion__indicator-title-popover {
+    background: $white;
+    border-radius: 4px;
+    box-shadow: 0 4px 23px 4px rgba($oxford-blue, 0.06);
+    padding: 8px 16px;
+    max-width: min(480px, calc(100vw - 24px));
+    max-height: 360px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    z-index: $zindex-popover;
+    display: flex;
+    flex-direction: column;
+}
+
+.MetadataSectionOnion__indicator-title-option {
+    @include body-3-medium;
+    appearance: none;
+    background: transparent;
+    border: 0;
+    color: $blue-90;
+    cursor: pointer;
+    text-align: left;
+    padding: 12px 0;
+    line-height: 1.4;
+    border-radius: 0;
+    transition: color 120ms ease;
+
+    & + & {
+        border-top: 1px solid $gray-20;
+    }
+
+    &:hover {
+        color: $blue-50;
+    }
+
+    &:focus-visible {
+        outline: none;
+        color: $blue-50;
+    }
+}
+
+.MetadataSectionOnion__indicator-title-option--active {
+    color: $blue-90;
+    font-weight: 700;
+    cursor: default;
+}
+
+// --- Short description (label + text matches stat row treatment) ---
+
+.MetadataSectionOnion__short-description {
+    @include body-3-medium;
+    color: $blue-90;
+}
+
+.MetadataSectionOnion__short-description-label {
+    color: $blue-50;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-size: 0.625rem;
+    font-weight: 700;
+    white-space: nowrap;
+    margin-right: 8px;
+}
+
+.MetadataSectionOnion__short-description-text {
+    color: $blue-90;
+}
+
+// --- Section headings ---
+// Default = serif ~20px bold. Used for major subsections (Data source(s),
+// How to cite). Made deliberately prominent so the user can scan the
+// section structure.
+// `--minor` modifier = sans-serif ~15px, for sub-subsections like FAQ
+// and "How we processed this indicator" that sit lower in the hierarchy.
+
+.MetadataSectionOnion__section-heading {
+    @include h3-bold;
+    margin: 0 0 12px;
+    color: $blue-90;
+    font-size: 1.25rem;
+}
+
+.MetadataSectionOnion__section-heading--minor {
+    font-family: $sans-serif-font-stack;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    line-height: 1.4;
+    letter-spacing: 0;
+    text-transform: none;
+}
+
+// Extra breathing room above sub-subsection headings — they sit after a
+// heavier major section, so the visual hierarchy benefits from a slightly
+// larger gap than the default `__content` flex gap.
+.MetadataSectionOnion__faqs > .MetadataSectionOnion__section-heading,
+.MetadataSectionOnion__processing-notes
+    > .MetadataSectionOnion__section-heading {
+    margin-top: 16px;
+}
+
+// --- Markdown link styling (raw <a> elements only) ---
+// Apply OWID link styling to plain anchors inside the onion. Skip
+// purpose-styled buttons that carry their own class names.
+
+.MetadataSectionOnion__short-description a:not([class]),
+.MetadataSectionOnion__description-key a:not([class]),
+.MetadataSectionOnion__processing-notes-body a:not([class]),
+.MetadataSectionOnion__faqs-preamble a:not([class]),
+.MetadataSectionOnion .ExpandableToggle__content a:not([class]) {
+    @include owid-link-90;
+}
+
+// --- Description key (markdown bullets / paragraphs) ---
+// Lives inside <summary> so it's visible in both states. When collapsed,
+// we clip + fade the bottom to invite the user to expand for the rest.
+
+.MetadataSectionOnion__description-key {
+    position: relative;
+    max-height: 9em;
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(180deg, #000 50%, transparent 100%);
+    mask-image: linear-gradient(180deg, #000 50%, transparent 100%);
+
+    .key-info__key-description {
+        margin: 0;
+
+        ul,
+        ol {
+            padding-left: 1em;
+            margin: 1em 0;
+
+            li {
+                margin-bottom: 1em;
+
+                &:last-child {
+                    margin-bottom: 0;
+                }
+            }
+        }
+
+        > *:first-child {
+            margin-top: 0;
+        }
+
+        > *:last-child {
+            margin-bottom: 0;
+        }
+
+        p + p {
+            margin-top: 12px;
+        }
+    }
+}
+
+.MetadataSectionOnion[open] .MetadataSectionOnion__description-key {
+    max-height: none;
+    overflow: visible;
+    -webkit-mask-image: none;
+    mask-image: none;
+}
+
+// --- Expandable items (sources, citations, FAQs):
+//     stacked, single column, smaller heading ---
+
+.MetadataSectionOnion__sources-list,
+.MetadataSectionOnion__citation-toggles,
+.MetadataSectionOnion__faqs-items {
+    display: flex;
+    flex-direction: column;
+
+    // Override the CSS variable that ExpandableToggle reads from
+    // (overriding font-size directly loses to its own deeper rule).
+    --expandable-toggle-title-size: 0.875rem;
+
+    // The component's own rule reaches `details.ExpandableToggle
+    // .ExpandableToggle__button .ExpandableToggle__title` (3 classes), so
+    // match that specificity to actually override the h4-semibold weight.
+    details.ExpandableToggle .ExpandableToggle__title {
+        font-weight: 400;
+        line-height: 1.4;
+    }
+
+    .ExpandableToggle__button {
+        padding: 12px 0;
+    }
+}
+
+// All multi-item collapsible lists in the metadata section: drop the
+// horizontal dividers (each item's top/bottom border), align the "+" icon
+// next to the title (flex-start), and add a little breathing room below
+// the title when the row is open so the content doesn't crash into it.
+.MetadataSectionOnion__sources-list,
+.MetadataSectionOnion__faqs-items,
+.MetadataSectionOnion__citation-toggles {
+    details.ExpandableToggle {
+        border-top: 0;
+        border-bottom: 0;
+
+        .ExpandableToggle__button {
+            justify-content: flex-start;
+            gap: 8px;
+            padding: 6px 0;
+        }
+
+        .ExpandableToggle__icon {
+            margin: 0;
+        }
+
+        &[open] .ExpandableToggle__button {
+            padding-bottom: 12px;
+        }
+    }
+}
+
+// --- Processing notes (matches descriptionKey styling) ---
+
+.MetadataSectionOnion__processing-notes-body {
+    color: $blue-70;
+
+    p {
+        margin: 0 0 12px;
+    }
+
+    p:last-child {
+        margin-bottom: 0;
+    }
+
+    ul,
+    ol {
+        padding-left: 1em;
+        margin: 1em 0;
+
+        li {
+            margin-bottom: 1em;
+
+            &:last-child {
+                margin-bottom: 0;
+            }
+        }
+    }
+}
+
+// --- Citation guidance ---
+
+.MetadataSectionOnion__citation-guidance {
+    scroll-margin-top: 24px;
+}
+
+.MetadataSectionOnion__citation-lead {
+    @include body-3-regular;
+    color: $blue-70;
+    margin: 0 0 12px;
+}
+
+// "License blurb" — fine-print legal boilerplate that sits beneath the
+// citation toggles. No bullets, muted text, slightly smaller, generous
+// gap from the toggles above so it reads as a footnote.
+.MetadataSectionOnion__license-blurb {
+    color: $blue-60;
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    list-style: none;
+    margin: 16px 0 0;
+    padding: 0;
+
+    li + li {
+        margin-top: 6px;
+    }
+
+    a {
+        @include owid-link-60;
+        color: inherit;
+    }
+}
+
+// Inside a citation toggle, the "In-line citation" / "Full citation"
+// labels render as inline <span>s by default — force a line break so
+// they don't run into the following description text.
+.MetadataSectionOnion .citation__type {
+    display: block;
+    color: $blue-90;
+    margin-bottom: 4px;
+}
+
+// Citation collapsibles' first paragraph (`.citation__paragraph`) gets
+// stacked right under the button title. The component's own padding
+// already leaves room, so drop the paragraph's own top margin to avoid
+// the doubled gap the user flagged.
+.MetadataSectionOnion__citation-toggles .ExpandableToggle__content {
+    .citation__paragraph:first-child,
+    > p:first-child {
+        margin-top: 0;
+    }
+}
+
+// --- Per-source detail panel (rendered by MetadataSingleSource inside
+//     each data source's ExpandableToggle) ---
+// The shared `.indicator-sources` styling gives the description a 16px
+// bottom margin that reads as too much white space before the inline
+// "Retrieved on …" line — tighten it. Add a margin between successive
+// .source-key-data-blocks rows so "Source attribution" doesn't crash into
+// the row above. Render the attribution text as a smaller, muted block
+// because it's fine-print attribution, not main content.
+
+.MetadataSectionOnion .indicator-sources .description {
+    margin-bottom: 6px;
+}
+
+.MetadataSectionOnion
+    .indicator-sources
+    .source-key-data-blocks
+    + .source-key-data-blocks {
+    margin-top: 12px;
+}
+
+.MetadataSectionOnion .indicator-sources .source-key-data-citation {
+    .source-key-data__title {
+        @include h5-black-caps;
+        color: $blue-50;
+        margin-bottom: 4px;
+    }
+
+    .source-key-data__content {
+        font-size: 0.8125rem;
+        color: $blue-50;
+    }
+}
+
+// --- Compact bullets inside any expandable content ---
+
+.MetadataSectionOnion .ExpandableToggle__content {
+    ul,
+    ol {
+        padding-left: 1.5em;
+        margin: 8px 0;
+
+        li + li {
+            margin-top: 4px;
+        }
+    }
+}
+
+// --- Blockquotes inside descriptionKey + DDoD content ---
+
+.MetadataSectionOnion .key-info__key-description blockquote,
+.DetailedDetailsOnDemand__content blockquote {
+    margin: 12px 0;
+    padding: 12px 14px;
+    border: 1px solid $blue-20;
+    border-radius: 6px;
+
+    p {
+        margin: 0;
+    }
+
+    p + p {
+        margin-top: 8px;
+    }
+}
+
+// --- Inline DDoD trigger styles (used by source links + (how?) trigger) ---
+
+.DetailedDetailsOnDemand__trigger,
+.MetadataMarkdownText__source-trigger,
+.MetadataSectionOnion__citation-how-trigger {
+    @include body-3-medium;
+    color: $blue-60;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+
+    &:hover,
+    &:focus-visible {
+        color: $blue-70;
+    }
+}
+
+.DetailedDetailsOnDemand__trigger-icon {
+    font-size: 0.75em;
+    opacity: 0.9;
+}
+
+// --- DDoD modal (rendered via portal) ---
+
+.DetailedDetailsOnDemand__overlay {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 16px;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: $zindex-lightbox;
+}
+
+.DetailedDetailsOnDemand__modal {
+    width: min(760px, 100%);
+    max-height: 100%;
+}
+
+.DetailedDetailsOnDemand {
+    display: flex;
+    flex-direction: column;
+    background: $white;
+    border-radius: 8px;
+    box-shadow: 0 12px 30px rgba($oxford-blue, 0.2);
+    max-height: calc(100vh - 32px);
+    overflow: hidden;
+    color: $blue-90;
+}
+
+.DetailedDetailsOnDemand__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 16px 20px;
+    border-bottom: 1px solid $blue-20;
+    background: $blue-5;
+}
+
+.DetailedDetailsOnDemand__title {
+    @include h5-black-caps;
+    margin: 0;
+}
+
+.DetailedDetailsOnDemand__close-button {
+    color: $blue-50;
+    border: 1px solid $blue-50;
+    background-color: transparent;
+
+    &:hover,
+    &:focus-visible {
+        color: $blue-70;
+        border-color: $blue-70;
+        background-color: transparent;
+    }
+}
+
+.DetailedDetailsOnDemand__content {
+    @include body-3-regular;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.MetadataMarkdownText__source-content {
+    .sources-list {
+        margin-bottom: 0;
+    }
+}
+
+// Trim the trailing margin off the OwidProcessingBlurb / per-source content
+// when they're rendered inside a DetailedDetailsOnDemand modal.
+.DetailedDetailsOnDemand__content {
+    .indicator-processing {
+        margin-bottom: 0;
+    }
+}
+
+@include sm-up {
+    .DetailedDetailsOnDemand__overlay {
+        align-items: center;
+        padding: 24px;
+    }
+
+    .DetailedDetailsOnDemand {
+        max-height: calc(100vh - 48px);
+    }
+
+    .DetailedDetailsOnDemand__header {
+        padding: 20px 24px;
+    }
+
+    .DetailedDetailsOnDemand__content {
+        padding: 24px;
+    }
+}
+
+// --- Horizontal-tabs switcher variant ---
+// A row of pill-style tab buttons in place of the dropdown. The active tab
+// reads as the current indicator; the row wraps on narrow screens.
+
+.MetadataSectionOnion__h-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.MetadataSectionOnion__h-tab {
+    @include body-3-medium;
+    appearance: none;
+    background: $white;
+    border: 1px solid $gray-20;
+    color: $blue-90;
+    cursor: pointer;
+    padding: 4px 12px;
+    height: 32px;
+    border-radius: 999px;
+    line-height: 1;
+    transition:
+        background-color 120ms ease,
+        border-color 120ms ease,
+        color 120ms ease;
+
+    &:hover {
+        background: $gray-5;
+        border-color: $blue-30;
+    }
+
+    &:focus-visible {
+        outline: none;
+        border-color: $blue-50;
+    }
+}
+
+.MetadataSectionOnion__h-tab--active {
+    background: $blue-90;
+    border-color: $blue-90;
+    color: $white;
+    cursor: default;
+
+    &:hover {
+        background: $blue-90;
+        border-color: $blue-90;
+    }
+}
+
+// "More ▾" overflow trigger inside the h-tabs row — same pill chrome as
+// other tabs, plus a small gap between the label and the caret icon.
+.MetadataSectionOnion__h-tab--more {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+}
+
+// --- Vertical-tabs switcher variant ---
+// An aside sitting to the left of the collapsible box. Tabs read as a list
+// of indicators; the active one is highlighted with a left rule + bold text.
+
+.MetadataSectionOnion__v-tabs {
+    flex: 0 0 200px;
+    display: flex;
+    flex-direction: column;
+    align-self: stretch;
+    // Same surface as the header + box.
+    background-color: $blue-5;
+    border: 1px solid $blue-20;
+    border-top: 0;
+    border-radius: 0 0 0 8px;
+    padding: 12px;
+
+    @include sm-up {
+        flex-basis: 220px;
+        padding: 12px 16px;
+    }
+}
+
+// "Indicator:" label inside the v-tabs aside — reuse the dropdown prefix
+// styling so the label reads consistently across variants.
+.MetadataSectionOnion__v-tabs-label {
+    margin-bottom: 8px;
+}
+
+.MetadataSectionOnion__v-tab {
+    @include body-3-medium;
+    appearance: none;
+    background: transparent;
+    border: 0;
+    color: $blue-70;
+    cursor: pointer;
+    text-align: left;
+    padding: 8px 10px;
+    border-radius: 4px;
+    line-height: 1.3;
+    transition:
+        background-color 120ms ease,
+        color 120ms ease;
+
+    &:hover {
+        background: $blue-5;
+        color: $blue-90;
+    }
+
+    &:focus-visible {
+        outline: none;
+        background: $blue-5;
+        color: $blue-90;
+    }
+}
+
+.MetadataSectionOnion__v-tab--active {
+    background: $blue-10;
+    color: $blue-90;
+    font-weight: 700;
+    cursor: default;
+
+    &:hover {
+        background: $blue-10;
+    }
+}
+
+// "More ▾" overflow trigger inside the v-tabs aside — same row chrome as
+// other v-tabs, plus the caret aligned to the right.
+.MetadataSectionOnion__v-tab--more {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    cursor: pointer;
+}
+
+// On narrow viewports collapse the v-tabs aside above the box instead of
+// next to it, so it doesn't squeeze the content. Still attached to header
+// above + box below — keep the seamless surface treatment.
+@media (max-width: 767px) {
+    .MetadataSectionOnion-wrap--v-tabs .MetadataSectionOnion__main {
+        flex-direction: column;
+    }
+
+    .MetadataSectionOnion__v-tabs {
+        flex: 1 1 auto;
+        border-radius: 0;
+    }
+
+    .MetadataSectionOnion-wrap--v-tabs .MetadataSectionOnion {
+        border-left: 1px solid $blue-20;
+        border-radius: 0 0 8px 8px;
+    }
+}

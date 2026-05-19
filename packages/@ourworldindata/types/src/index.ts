@@ -404,8 +404,12 @@ export {
 
 export {
     type DataPageV2ContentFields,
+    type AdditionalIndicator,
     type DataPageDataV2,
     type DataPageRelatedResearch,
+    type RelatedItem,
+    type EnrichedRelatedItem,
+    type RelatedContentType,
     type PrimaryTopic,
     type FaqLink,
     type FaqEntryData,

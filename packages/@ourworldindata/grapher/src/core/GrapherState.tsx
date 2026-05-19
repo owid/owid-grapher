@@ -570,6 +570,7 @@ export class GrapherState
     hideShareButton = false
     hideExploreTheDataButton = true
     hideRelatedQuestion = false
+    citeButtonHref?: string = undefined
     canHideExternalControlsInEmbed: boolean = false
     hideExternalControlsInEmbedUrl: boolean =
         this.canHideExternalControlsInEmbed
@@ -727,6 +728,7 @@ export class GrapherState
             hasTableTab: observable,
             hideShareButton: observable,
             hideExploreTheDataButton: observable,
+            citeButtonHref: observable,
             isDisplayedAlongsideComplementaryTable: observable,
         })
 

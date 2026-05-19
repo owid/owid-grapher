@@ -9,9 +9,13 @@ import {
     SimpleMarkdownText,
     ExpandableToggle,
     HtmlOrSimpleMarkdownText,
+    IndicatorSources,
+    IndicatorProcessing,
 } from "@ourworldindata/components"
 import { DataPageDataV2, OwidOrigin } from "@ourworldindata/types"
+import { prepareSourcesForDisplay } from "@ourworldindata/utils"
 import KeyDataTable from "./KeyDataTable.js"
+import DetailedDetailsOnDemand from "./DetailedDetailsOnDemand.js"
 
 function getYearSuffixFromOrigin(origin: OwidOrigin) {
     const year = origin.dateAccessed
@@ -28,11 +32,15 @@ export default function AboutThisData({
     hasFaq,
     className,
     id,
+    faqSectionId = "faqs",
+    showDetailedDetailsOnDemand = false,
 }: {
     datapageData: DataPageDataV2
     hasFaq: boolean
     className?: string
     id?: string
+    faqSectionId?: string
+    showDetailedDetailsOnDemand?: boolean
 }) {
     const hasDescriptionKey =
         datapageData.descriptionKey && datapageData.descriptionKey.length > 0
@@ -44,6 +52,35 @@ export default function AboutThisData({
     const attributionFragments = datapageData.attributions ?? producersWithYear
     const attributionUnshortened = attributionFragments.join("; ")
     const id_ = id ?? DATAPAGE_ABOUT_THIS_DATA_SECTION_ID
+    const sourcesForDisplay = prepareSourcesForDisplay({
+        origins: datapageData.origins,
+        source: datapageData.source,
+    })
+    const sourcesOnDemand =
+        showDetailedDetailsOnDemand && sourcesForDisplay.length > 0 ? (
+            <DetailedDetailsOnDemand
+                title="This data is based on the following sources"
+                triggerText="View all sources"
+                triggerClassName="AboutThisData__sources-trigger"
+            >
+                <div className="MetadataModal__sources-content">
+                    <IndicatorSources sources={sourcesForDisplay} />
+                </div>
+            </DetailedDetailsOnDemand>
+        ) : null
+    const processingOnDemand = showDetailedDetailsOnDemand ? (
+        <DetailedDetailsOnDemand
+            title="How we process data at Our World in Data"
+            triggerText="View processing details"
+            triggerClassName="AboutThisData__processing-trigger"
+        >
+            <div className="MetadataModal__processing-content">
+                <IndicatorProcessing
+                    descriptionProcessing={datapageData.descriptionProcessing}
+                />
+            </div>
+        </DetailedDetailsOnDemand>
+    ) : null
 
     return (
         <div
@@ -87,7 +124,7 @@ export default function AboutThisData({
                                     {hasFaq && (
                                         <a
                                             className="key-info__learn-more"
-                                            href="#faqs"
+                                            href={`#${faqSectionId}`}
                                         >
                                             Learn more in the FAQs
                                             <FontAwesomeIcon
@@ -134,6 +171,16 @@ export default function AboutThisData({
                                     />
                                 )}
                             </div>
+                            {sourcesOnDemand && (
+                                <div className="AboutThisData__sources-on-demand">
+                                    {sourcesOnDemand}
+                                </div>
+                            )}
+                            {processingOnDemand && (
+                                <div className="AboutThisData__sources-on-demand">
+                                    {processingOnDemand}
+                                </div>
+                            )}
                         </div>
                     </div>
                     <div className="key-info__right span-cols-4 span-lg-cols-5 span-sm-cols-12">
@@ -151,6 +198,16 @@ export default function AboutThisData({
                     >
                         About this data
                     </h2>
+                    {sourcesOnDemand && (
+                        <div className="AboutThisData__sources-on-demand span-cols-3 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
+                            {sourcesOnDemand}
+                        </div>
+                    )}
+                    {processingOnDemand && (
+                        <div className="AboutThisData__sources-on-demand span-cols-3 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
+                            {processingOnDemand}
+                        </div>
+                    )}
                     <div className="col-start-4 span-cols-10 col-lg-start-5 span-lg-cols-8 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
                         <KeyDataTable
                             datapageData={datapageData}

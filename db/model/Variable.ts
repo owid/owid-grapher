@@ -936,6 +936,48 @@ export async function getVariableOfDatapageIfApplicable(
 }
 
 /**
+ * Fetch the variable(s) to render a data page for.
+ *
+ * - `allowMulti: false` (default) is the legacy behaviour — returns the single
+ *   Y-indicator if it qualifies under `getDatapageIndicatorId`, else undefined.
+ * - `allowMulti: true` is the multi-indicator path used by FORCE_DATAPAGE_SLUGS.
+ *   Returns metadata for *every* Y-indicator in `dimensions`, in order, with no
+ *   schema-version gate. Sparse metadata is acceptable — the caller decides how
+ *   to render indicators that lack rich metadata.
+ */
+export async function getVariablesOfDatapageIfApplicable(
+    knex: db.KnexReadonlyTransaction,
+    grapher: GrapherInterface,
+    { allowMulti = false }: { allowMulti?: boolean } = {}
+): Promise<
+    | {
+          id: number
+          metadata: OwidVariableWithSourceAndDimension
+      }[]
+    | undefined
+> {
+    if (!allowMulti) {
+        const single = await getVariableOfDatapageIfApplicable(knex, grapher)
+        return single ? [single] : undefined
+    }
+
+    const yVariableIds = _.uniq(
+        (grapher.dimensions ?? [])
+            .filter((d) => d.property === DimensionProperty.y)
+            .map((d) => d.variableId)
+    )
+    if (yVariableIds.length === 0) return undefined
+
+    const variables = await Promise.all(
+        yVariableIds.map(async (id) => ({
+            id,
+            metadata: await getVariableMetadata(id, { noCache: true }),
+        }))
+    )
+    return variables
+}
+
+/**
  * Perform regex search over the variables table.
  */
 export const searchVariables = async (

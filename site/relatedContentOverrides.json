@@ -1,0 +1,108 @@
+{
+    "gdp-per-capita-maddison-project-database": {
+        "pins": [
+            "https://ourworldindata.org/economic-growth",
+            "https://ourworldindata.org/what-is-economic-growth",
+            "https://ourworldindata.org/international-dollars"
+        ],
+        "excludes": []
+    },
+    "democracy-index-eiu": {
+        "pins": [
+            "https://ourworldindata.org/democracy",
+            "https://ourworldindata.org/democracies-measurement"
+        ],
+        "excludes": []
+    },
+    "gdp-per-capita-worldbank": {
+        "pins": [
+            "https://ourworldindata.org/economic-growth",
+            "https://ourworldindata.org/what-is-economic-growth",
+            "https://ourworldindata.org/how-are-incomes-adjusted-for-inflation"
+        ],
+        "excludes": []
+    },
+    "life-expectancy": {
+        "pins": [
+            "https://ourworldindata.org/life-expectancy",
+            "https://ourworldindata.org/life-expectancy-how-is-it-calculated-and-how-should-it-be-interpreted"
+        ],
+        "excludes": []
+    },
+    "co-emissions-per-capita": {
+        "pins": [
+            "https://ourworldindata.org/co2-and-greenhouse-gas-emissions",
+            "https://ourworldindata.org/co2-emissions-metrics"
+        ],
+        "excludes": []
+    },
+    "children-per-woman-un": {
+        "pins": [
+            "https://ourworldindata.org/fertility-rate",
+            "https://ourworldindata.org/total-fertility-rate-births-per-woman"
+        ],
+        "excludes": []
+    },
+    "human-development-index": {
+        "pins": ["https://ourworldindata.org/human-development-index"],
+        "excludes": []
+    },
+    "economic-inequality-gini-index": {
+        "pins": [
+            "https://ourworldindata.org/economic-inequality",
+            "https://ourworldindata.org/what-is-the-gini-coefficient"
+        ],
+        "excludes": []
+    },
+    "population": {
+        "pins": [
+            "https://ourworldindata.org/population-growth",
+            "https://ourworldindata.org/un-population-2024-revision"
+        ],
+        "excludes": []
+    },
+    "population-with-un-projections": {
+        "pins": [
+            "https://ourworldindata.org/population-growth",
+            "https://ourworldindata.org/population-projections"
+        ],
+        "excludes": []
+    },
+    "mean-years-of-schooling-long-run": {
+        "pins": [
+            "https://ourworldindata.org/global-education",
+            "https://ourworldindata.org/better-learning"
+        ],
+        "excludes": []
+    },
+    "annual-co2-emissions-per-country": {
+        "pins": [
+            "https://ourworldindata.org/co2-and-greenhouse-gas-emissions",
+            "https://ourworldindata.org/annual-co2-emissions",
+            "https://ourworldindata.org/contributed-most-global-co2"
+        ],
+        "excludes": []
+    },
+    "population-density": {
+        "pins": [
+            "https://ourworldindata.org/urbanization",
+            "https://ourworldindata.org/how-urban-is-the-world"
+        ],
+        "excludes": []
+    },
+    "per-capita-energy-use": {
+        "pins": [
+            "https://ourworldindata.org/energy",
+            "https://ourworldindata.org/energy-definitions"
+        ],
+        "excludes": []
+    },
+    "deaths-in-armed-conflicts-by-type": {
+        "pins": [
+            "https://ourworldindata.org/war-and-peace",
+            "https://ourworldindata.org/grapher/deaths-in-state-based-conflicts-by-type",
+            "https://ourworldindata.org/conflict-data-how-do-researchers-measure-armed-conflicts-and-their-deaths"
+        ],
+        "excludes": []
+    }
+}

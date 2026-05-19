@@ -141,8 +141,7 @@ getPlainRouteWithROTransaction(
         res.send(
             await renderDataPageV2(
                 {
-                    variableId,
-                    variableMetadata,
+                    variables: [{ id: variableId, metadata: variableMetadata }],
                     isPreviewing: true,
                     useIndicatorGrapherConfigs: true,
                 },

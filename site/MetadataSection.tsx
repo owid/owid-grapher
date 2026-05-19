@@ -1,5 +1,6 @@
 import * as _ from "lodash-es"
 import dayjs from "dayjs"
+import cx from "classnames"
 
 import {
     DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID,
@@ -27,6 +28,7 @@ import {
 import { ArticleBlocks } from "./gdocs/components/ArticleBlocks.js"
 
 export default function MetadataSection({
+    className,
     attributionShort,
     attributions,
     canonicalUrl,
@@ -39,7 +41,9 @@ export default function MetadataSection({
     title,
     titleVariant,
     archiveContext,
+    idSuffix = "",
 }: {
+    className?: string
     attributionShort?: string
     attributions: string[]
     canonicalUrl: string
@@ -52,6 +56,7 @@ export default function MetadataSection({
     title: IndicatorTitleWithFragments
     titleVariant?: string
     archiveContext?: ArchiveContext
+    idSuffix?: string
 }) {
     const sourcesForDisplay = prepareSourcesForDisplay({ origins, source })
     const citationUrl = archiveContext?.archiveUrl ?? canonicalUrl
@@ -84,6 +89,7 @@ export default function MetadataSection({
     const archivalString = getPhraseForArchivalDate(
         archiveContext?.archivalDate
     )
+    const withIdSuffix = (id: string): string => `${id}${idSuffix}`
     const citationDatapage = excludeUndefined([
         primaryTopic
             ? `“Data Page: ${title.title}”, part of the following publication: ${primaryTopicCitation}`
@@ -94,13 +100,18 @@ export default function MetadataSection({
         }`,
     ]).join(" ")
     return (
-        <div className="MetadataSection span-cols-14 grid grid-cols-12-full-width">
+        <div
+            className={cx(
+                "MetadataSection span-cols-14 grid grid-cols-12-full-width",
+                className
+            )}
+        >
             <div className="col-start-2 span-cols-12">
                 {!!faqEntries?.faqs.length && (
                     <div className="section-wrapper section-wrapper__faqs grid">
                         <h2
                             className="faqs__title span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12"
-                            id="faqs"
+                            id={withIdSuffix("faqs")}
                         >
                             Frequently Asked Questions
                         </h2>
@@ -115,7 +126,9 @@ export default function MetadataSection({
                 <div className="section-wrapper grid">
                     <h2
                         className="data-sources-processing__title span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12"
-                        id={DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID}
+                        id={withIdSuffix(
+                            DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID
+                        )}
                     >
                         Sources and processing
                     </h2>
@@ -141,7 +154,7 @@ export default function MetadataSection({
                 <div className="section-wrapper grid">
                     <h2
                         className="reuse__title span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12"
-                        id="reuse-this-work"
+                        id={withIdSuffix("reuse-this-work")}
                     >
                         Reuse this work
                     </h2>

@@ -20,6 +20,9 @@ import {
     getRelatedArticles,
     getRelatedResearchAndWritingForVariables,
 } from "../db/model/Post.js"
+import { getRelatedContent } from "../db/model/RelatedContent/pipeline.js"
+import { ENABLED_SLUGS } from "../db/model/RelatedContent/config.js"
+import { enrichRelatedItems } from "./dataPageRelatedContent.js"
 import {
     GrapherInterface,
     DimensionProperty,
@@ -32,11 +35,12 @@ import {
     DbEnrichedImage,
     ArchiveMetaInformation,
     ArchiveContext,
+    AdditionalIndicator,
 } from "@ourworldindata/types"
 import ProgressBar from "progress"
 import {
     getMergedGrapherConfigForVariable,
-    getVariableOfDatapageIfApplicable,
+    getVariablesOfDatapageIfApplicable,
 } from "../db/model/Variable.js"
 import {
     fetchAndParseFaqs,
@@ -68,9 +72,13 @@ const renderDatapageIfApplicable = async (
         archiveContextDictionary?: Record<number, ArchiveContext | undefined>
     } = {}
 ) => {
-    const variable = await getVariableOfDatapageIfApplicable(knex, grapher)
+    // Force all grapher pages to render as data pages: take every Y-variable
+    // with no schema-version gate, so single-Y graphers also get the onion.
+    const variables = await getVariablesOfDatapageIfApplicable(knex, grapher, {
+        allowMulti: true,
+    })
 
-    if (!variable) return undefined
+    if (!variables || variables.length === 0) return undefined
 
     // When baking from `bakeSingleGrapherChart`, we cache imageMetadata to avoid fetching every image for every chart
     // But when rendering a datapage from the mockSiteRouter we want to be able to fetch imageMetadata on the fly
@@ -83,8 +91,7 @@ const renderDatapageIfApplicable = async (
 
     return await renderDataPageV2(
         {
-            variableId: variable.id,
-            variableMetadata: variable.metadata,
+            variables,
             isPreviewing: isPreviewing,
             useIndicatorGrapherConfigs: false,
             pageGrapher: grapher,
@@ -126,16 +133,17 @@ export const renderDataPageOrGrapherPage = async (
 
 export async function renderDataPageV2(
     {
-        variableId,
-        variableMetadata,
+        variables,
         isPreviewing,
         useIndicatorGrapherConfigs,
         pageGrapher,
         imageMetadataDictionary = {},
         archiveContextDictionary,
     }: {
-        variableId: number
-        variableMetadata: OwidVariableWithSource
+        variables: {
+            id: number
+            metadata: OwidVariableWithSource
+        }[]
         isPreviewing: boolean
         useIndicatorGrapherConfigs: boolean
         pageGrapher?: GrapherInterface
@@ -144,6 +152,15 @@ export async function renderDataPageV2(
     },
     knex: db.KnexReadonlyTransaction
 ) {
+    // The first variable is the "primary" indicator: it drives the merged
+    // grapher config, page-level relatedContent / allCharts / primaryTopic,
+    // and the canonical title/description shown when the metadata onion is
+    // collapsed. Any extra variables flow into `additionalIndicators` for the
+    // onion's per-indicator switcher.
+    const primary = variables[0]
+    const variableId = primary.id
+    const variableMetadata = primary.metadata
+
     const grapherConfigForVariable = await getMergedGrapherConfigForVariable(
         knex,
         variableId
@@ -156,30 +173,36 @@ export async function renderDataPageV2(
         ? mergeGrapherConfigs(grapherConfigForVariable ?? {}, pageGrapher ?? {})
         : (pageGrapher ?? {})
 
-    const faqDocIds = _.compact(
-        _.uniq(variableMetadata.presentation?.faqs?.map((faq) => faq.gdocId))
-    )
-
-    const faqGdocs = await fetchAndParseFaqs(knex, faqDocIds, { isPreviewing })
-
-    const { resolvedFaqs, errors: faqResolveErrors } = resolveFaqsForVariable(
-        faqGdocs,
-        variableMetadata
-    )
-
-    if (faqResolveErrors.length > 0) {
-        for (const error of faqResolveErrors) {
-            await logErrorAndMaybeCaptureInSentry(
-                new Error(
-                    `Data page error in finding FAQs for variable ${variableId}: ${error.error}`
+    const resolveFaqsForOneVariable = async (
+        metadata: OwidVariableWithSource,
+        idForLog: number
+    ): Promise<FaqEntryData> => {
+        const faqDocIds = _.compact(
+            _.uniq(metadata.presentation?.faqs?.map((faq) => faq.gdocId))
+        )
+        const faqGdocs = await fetchAndParseFaqs(knex, faqDocIds, {
+            isPreviewing,
+        })
+        const { resolvedFaqs, errors: faqResolveErrors } =
+            resolveFaqsForVariable(faqGdocs, metadata)
+        if (faqResolveErrors.length > 0) {
+            for (const error of faqResolveErrors) {
+                await logErrorAndMaybeCaptureInSentry(
+                    new Error(
+                        `Data page error in finding FAQs for variable ${idForLog}: ${error.error}`
+                    )
                 )
-            )
+            }
+        }
+        return {
+            faqs: resolvedFaqs?.flatMap((faq) => faq.enrichedFaq.content) ?? [],
         }
     }
 
-    const faqEntries: FaqEntryData = {
-        faqs: resolvedFaqs?.flatMap((faq) => faq.enrichedFaq.content) ?? [],
-    }
+    const faqEntries = await resolveFaqsForOneVariable(
+        variableMetadata,
+        variableId
+    )
 
     // If we are rendering this in the context of an indicator page preview or similar,
     // then the chart config might be entirely empty. Make sure that dimensions is
@@ -197,7 +220,34 @@ export async function renderDataPageV2(
         ]
         grapher.dimensions = dimensions
     }
-    const datapageData = getDatapageDataV2(variableMetadata, grapher ?? {})
+    // For multi-indicator charts the per-dimension `display.name` (set by
+    // the chart author) is the right per-indicator label — the chart-level
+    // `title` describes the whole chart, not any one indicator. Look it up
+    // by variableId so each indicator's metadata block gets a sensible
+    // title even when `presentation.titlePublic` isn't set.
+    const indicatorTitleOverrideFor = (varId: number): string | undefined => {
+        const dim = (
+            grapher.dimensions as OwidChartDimensionInterface[] | undefined
+        )?.find(
+            (d) => d.property === DimensionProperty.y && d.variableId === varId
+        )
+        return dim?.display?.name
+    }
+    const datapageData = getDatapageDataV2(variableMetadata, grapher ?? {}, {
+        indicatorTitleOverride: indicatorTitleOverrideFor(variableId),
+    })
+
+    // Build the per-indicator metadata for the rest of the Y-variables. These
+    // get rendered inside the onion's switcher; page-level extras (related
+    // content, allCharts, primaryTopic) stay tied to the primary variable only.
+    const additionalIndicators: AdditionalIndicator[] = await Promise.all(
+        variables.slice(1).map(async (v) => ({
+            datapageData: getDatapageDataV2(v.metadata, grapher ?? {}, {
+                indicatorTitleOverride: indicatorTitleOverrideFor(v.id),
+            }),
+            faqEntries: await resolveFaqsForOneVariable(v.metadata, v.id),
+        }))
+    )
 
     datapageData.primaryTopic = await getPrimaryTopic(
         knex,
@@ -231,6 +281,23 @@ export async function renderDataPageV2(
         datapageData.relatedResearch =
             await getRelatedResearchAndWritingForVariables(knex, [variableId])
 
+        if (
+            grapher?.slug &&
+            grapher.id !== undefined &&
+            ENABLED_SLUGS.has(grapher.slug)
+        ) {
+            datapageData.relatedContent = await getRelatedContent(
+                knex,
+                grapher.id as number
+            )
+        }
+
+        datapageData.enrichedRelatedContent = await enrichRelatedItems(
+            knex,
+            datapageData.relatedContent,
+            imageMetadataDictionary
+        )
+
         const relatedResearchFilenames = datapageData.relatedResearch
             .map((r) => r.imageUrl)
             .filter((f): f is string => !!f)
@@ -256,6 +323,11 @@ export async function renderDataPageV2(
         <DataPageV2
             grapher={grapher}
             datapageData={datapageData}
+            additionalIndicators={
+                additionalIndicators.length > 0
+                    ? additionalIndicators
+                    : undefined
+            }
             canonicalUrl={canonicalUrl}
             baseUrl={BAKED_BASE_URL}
             isPreviewing={isPreviewing}

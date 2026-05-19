@@ -99,6 +99,7 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     hideExploreTheDataButton?: boolean
     hideRelatedQuestion?: boolean
     enableMapSelection?: boolean
+    citeButtonHref?: string
 
     enableKeyboardShortcuts?: boolean
     bindUrlToWindow?: boolean

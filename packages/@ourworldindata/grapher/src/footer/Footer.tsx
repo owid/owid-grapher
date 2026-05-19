@@ -108,7 +108,12 @@ abstract class AbstractFooter<
     }
 
     @computed protected get sourcesText(): string {
-        return `Data source: ${this.sourcesLine} - Learn more about this data`
+        // The "Learn more about this data" link is hidden on data pages
+        // (the data page itself already exposes the metadata onion + sources
+        // section), so don't include it in the text-width measurement either.
+        const base = `Data source: ${this.sourcesLine}`
+        if (this.manager.isEmbeddedInADataPage) return base
+        return `${base} - Learn more about this data`
     }
 
     @computed protected get noteText(): string {
@@ -441,6 +446,17 @@ abstract class AbstractFooter<
             fontSize: this.sourcesFontSize,
             lineHeight: this.lineHeight,
         })
+
+        // On data pages the metadata onion already surfaces sources and
+        // citations directly, so the inline "Learn more about this data" link
+        // would be redundant — render only the "Data source: …" line.
+        if (this.manager.isEmbeddedInADataPage) {
+            return (
+                <p className="sources" style={sources.style}>
+                    {sources.renderHTML()}
+                </p>
+            )
+        }
 
         return (
             <p className="sources" style={sources.style}>

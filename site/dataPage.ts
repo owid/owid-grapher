@@ -29,7 +29,16 @@ export function processRelatedResearch(
 }
 export function getDatapageDataV2(
     variableMetadata: OwidVariableWithSource,
-    partialGrapherConfig: GrapherInterface
+    partialGrapherConfig: GrapherInterface,
+    options?: {
+        // Per-chart override for this indicator's title (typically the
+        // dimension's `display.name` set by the chart author). Used in
+        // multi-indicator charts where the chart-level `title` describes
+        // the whole chart, not any one indicator. When provided, this
+        // takes priority over `partialGrapherConfig.title` in the title
+        // fallback chain.
+        indicatorTitleOverride?: string
+    }
 ): DataPageDataV2 {
     const lastUpdated = getLastUpdatedFromVariable(variableMetadata) ?? ""
     const nextUpdate = getNextUpdateFromVariable(variableMetadata)
@@ -44,6 +53,7 @@ export function getDatapageDataV2(
               })
             : {
                   title:
+                      options?.indicatorTitleOverride ??
                       partialGrapherConfig.title ??
                       variableMetadata.display?.name ??
                       variableMetadata.name ??
@@ -64,6 +74,7 @@ export function getDatapageDataV2(
         nextUpdate: nextUpdate,
         allCharts: [],
         relatedResearch: [],
+        relatedContent: [],
         source: variableMetadata.source,
         origins: variableMetadata.origins ?? [],
         chartConfig: partialGrapherConfig as Record<string, unknown>,

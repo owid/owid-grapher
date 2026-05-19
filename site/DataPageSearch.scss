@@ -1,0 +1,104 @@
+// Standalone "Search all our content" block on the data page. Visually
+// separated from the related-content feed below: narrower, centered, with
+// its own breathing room.
+
+// Sits in `col-start-2 span-cols-12` like MetadataSectionOnion above. We
+// constrain to 83.333% of that span (≈ 10 of 12 grid cols) and centre
+// the whole block, matching metadata's width. Only the heading is text-
+// centred; the input bar and pill row stay left-aligned within the
+// constrained-width block so the bar's placeholder reads naturally.
+.data-page-search {
+    // Match MetadataSectionOnion's bottom-margin (32/48px) on both sides
+    // so the metadata → search → related stack has even gaps.
+    margin: 32px auto;
+    max-width: 83.333%;
+
+    @include sm-up {
+        margin: 48px auto;
+    }
+}
+
+// Smaller, less prominent than the "Up next" h2 — this is just a label
+// for the bar, not a major page section.
+.data-page-search__title {
+    font-family: $sans-serif-font-stack;
+    font-size: 14px;
+    font-weight: 500;
+    color: $blue-60;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    text-align: center;
+    margin: 0 0 12px;
+}
+
+.data-page-search__bar {
+    // Pushes the suggested-search pills away from the bar so the two
+    // read as related-but-distinct controls.
+    margin-bottom: 16px;
+
+    .aa-Form {
+        background-color: $white;
+        border-color: $gray-20;
+        border-radius: 2px;
+        height: 52px;
+
+        &:focus-within {
+            border-color: $oxford-blue;
+            box-shadow: none;
+        }
+    }
+
+    .aa-Input {
+        margin-left: 8px;
+        color: $blue-90;
+        font-size: 15px;
+        // Anchor the input text and placeholder to the left — without
+        // this, narrow viewports inherit `text-align` from elsewhere in
+        // the cascade and the placeholder reads right-aligned.
+        text-align: left;
+
+        &::placeholder {
+            color: $gray-60;
+            text-align: left;
+        }
+    }
+
+    .aa-InputWrapperPrefix {
+        display: initial;
+        margin-right: 8px;
+    }
+
+    .aa-SubmitIcon {
+        fill: $gray-70;
+    }
+
+    .aa-DetachedSearchButton {
+        background-color: $white;
+        border: 1px solid $gray-20;
+        border-radius: 2px;
+        justify-content: flex-start;
+        cursor: text;
+        height: 52px;
+        text-align: left;
+    }
+
+    .aa-DetachedSearchButtonPlaceholder {
+        display: block;
+        margin-left: 16px;
+        color: $gray-60;
+        line-height: 1.4;
+        text-align: left;
+    }
+
+    .aa-DetachedSearchButtonIcon svg {
+        fill: $gray-70;
+    }
+}
+
+// Suggested-search pills sit below the search bar; reset the outer
+// margin so we control spacing from the bar above. Left-aligned per
+// editorial preference.
+.data-page-search .data-page-related-content__suggested-searches {
+    margin: 0;
+    justify-content: flex-start;
+}

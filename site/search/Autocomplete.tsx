@@ -55,20 +55,25 @@ import { faLineChart, faSearch } from "@fortawesome/free-solid-svg-icons"
 const siteAnalytics = new SiteAnalytics()
 type BaseItem = Record<string, unknown>
 
-const recentSearchesPlugin = createLocalStorageRecentSearchesPlugin({
-    key: "RECENT_SEARCH",
-    limit: 3,
-    transformSource({ source }) {
-        return {
-            ...source,
-            onSelect({ item, navigator }) {
-                navigator.navigate({
-                    itemUrl: `${SEARCH_BASE_PATH}${queryParamsToStr({ q: item.id, resultType: SearchResultType.ALL })}`,
-                } as any)
-            },
-        }
-    },
-})
+// Per-instance factory: the plugin holds internal subscription state, so
+// sharing one plugin object across multiple Autocomplete instances causes
+// state from one instance (e.g. open panel) to leak into another. We build
+// a fresh plugin per mount.
+const buildRecentSearchesPlugin = () =>
+    createLocalStorageRecentSearchesPlugin({
+        key: "RECENT_SEARCH",
+        limit: 3,
+        transformSource({ source }) {
+            return {
+                ...source,
+                onSelect({ item, navigator }) {
+                    navigator.navigate({
+                        itemUrl: `${SEARCH_BASE_PATH}${queryParamsToStr({ q: item.id, resultType: SearchResultType.ALL })}`,
+                    } as any)
+                },
+            }
+        },
+    })
 
 let liteSearchClient: LiteClient | null
 if (ALGOLIA_ID && ALGOLIA_SEARCH_KEY) {
@@ -357,6 +362,12 @@ export function Autocomplete({
     // for everything in the site nav between 960-1045px. Mirrored in Autocomplete.scss
     detachedMediaQuery = "(max-width: 1045px)",
     panelClassName,
+    // Optional id override. Defaults to "autocomplete" so existing call sites
+    // (topnav, homepage) keep working. Pass a unique id when more than one
+    // Autocomplete renders on the same page — the underlying library uses the
+    // container element to scope click-outside / blur detection, and duplicate
+    // ids prevent the panel from closing on outside clicks.
+    id = "autocomplete",
 }: {
     onActivate?: () => void
     onClose?: () => void
@@ -364,6 +375,7 @@ export function Autocomplete({
     placeholder?: string
     detachedMediaQuery?: string
     panelClassName?: string
+    id?: string
 }) {
     const containerRef = useRef<HTMLDivElement>(null)
     const panelRootRef = useRef<Root | null>(null)
@@ -371,6 +383,7 @@ export function Autocomplete({
     const { allTopics } = useTagGraphTopics(useTopicTagGraph())
 
     const synonymMap = useMemo(() => buildSynonymMap(), [])
+    const recentSearchesPlugin = useMemo(() => buildRecentSearchesPlugin(), [])
 
     const [search, setSearch] = useState<AutocompleteApi<BaseItem> | null>(null)
 
@@ -475,6 +488,7 @@ export function Autocomplete({
         containerRef,
         allTopics,
         synonymMap,
+        recentSearchesPlugin,
     ])
 
     // Register a global shortcut to open the search box on typing "/"
@@ -495,5 +509,32 @@ export function Autocomplete({
         }
     }, [search, containerRef])
 
-    return <div className={className} ref={containerRef} id="autocomplete" />
+    // Belt-and-braces outside-click closer. The autocomplete-js library has
+    // its own outside-click detection, but with multiple Autocomplete
+    // instances on the page (e.g. topnav + a search bar in the page body)
+    // the per-instance handler can fail to fire reliably. This manually
+    // closes the panel on any mousedown that's outside our container *and*
+    // outside the detached panel that the library renders into the body.
+    useEffect(() => {
+        if (!search) return
+        const onMouseDown = (event: MouseEvent) => {
+            const target = event.target as Node | null
+            if (!target) return
+            if (containerRef.current?.contains(target)) return
+            // The library can render its panel into a sibling container
+            // outside our root (especially in detached/modal mode). Don't
+            // close on clicks inside any open Algolia panel.
+            const inAnyPanel = (target as Element).closest?.(
+                ".aa-Panel, .aa-DetachedContainer, .aa-DetachedOverlay"
+            )
+            if (inAnyPanel) return
+            search.setIsOpen(false)
+        }
+        document.addEventListener("mousedown", onMouseDown)
+        return () => {
+            document.removeEventListener("mousedown", onMouseDown)
+        }
+    }, [search])
+
+    return <div className={className} ref={containerRef} id={id} />
 }

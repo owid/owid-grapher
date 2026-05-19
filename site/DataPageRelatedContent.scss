@@ -1,0 +1,561 @@
+// HF1b first crack: a unified "Keep exploring" feed below the grapher.
+// Replaces the legacy "Research & writing" + "All charts using this data"
+// blocks. Visual style mirrors /search: blue panels, sharp corners,
+// no shadows.
+
+.data-page-related-content {
+    padding-top: 0;
+    padding-bottom: 32px;
+
+    @include sm-up {
+        padding-bottom: 48px;
+    }
+}
+
+// Centre wrappers so the Show-more button and the view-all CTA sit
+// horizontally centred under the items list.
+.data-page-related-content__expand-wrapper,
+.data-page-related-content__view-all-wrapper {
+    display: flex;
+    justify-content: center;
+    margin-top: 16px;
+}
+
+// "Show more related content" button that reveals the items beyond the
+// collapsed top-5 slice.
+.data-page-related-content__expand {
+    appearance: none;
+    background: $white;
+    border: 1px solid $blue-20;
+    border-radius: 2px;
+    color: $blue-90;
+    font-family: $sans-serif-font-stack;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 10px 16px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition:
+        background-color 0.12s ease-in-out,
+        border-color 0.12s ease-in-out;
+
+    &:hover {
+        background-color: $blue-10;
+        border-color: $blue-40;
+    }
+
+    &:focus-visible {
+        outline: 2px solid $oxford-blue;
+        outline-offset: 1px;
+    }
+}
+
+// ── Sidebar prototype (?related=sidebar) ────────────────────────────────
+//
+// Below `md-down` (mobile/tablet) the sidebar variant degrades to the
+// regular bottom-of-page placement — only the *vertical card* layout
+// carries over (via the `--compact` class on each panel). At `md-up`
+// the section becomes a fixed right-edge column; the global <body> gets
+// `padding-right` so the rest of the page shifts left instead of being
+// overlaid.
+
+$sidebar-width: 320px;
+$sidebar-collapsed-handle-width: 36px;
+
+// Closed-state trigger — narrow tab on the right edge with just an
+// arrow icon, shown only when the sidebar is collapsed. Mobile hides it
+// (mobile falls back to bottom layout, no toggle needed).
+.data-page-related-sidebar__open-tab {
+    display: none;
+
+    @include md-up {
+        position: fixed;
+        top: 50%;
+        right: 0;
+        transform: translateY(-50%);
+        width: $sidebar-collapsed-handle-width;
+        height: 96px;
+        appearance: none;
+        background: $blue-20;
+        border: 1px solid $blue-30;
+        border-right: 0;
+        color: $blue-90;
+        cursor: pointer;
+        font-size: 18px;
+        z-index: 50;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 4px 0 0 4px;
+
+        &:hover {
+            background: #cfdaeb;
+        }
+    }
+}
+
+// On mobile the "sidebar" prototype just renders inline (same slot as the
+// default layout) but keeps the compact vertical cards.
+.data-page-related-content--sidebar {
+    @include md-up {
+        position: fixed;
+        top: 60px;
+        right: 0;
+        width: $sidebar-width;
+        height: calc(100vh - 60px);
+        overflow-y: auto;
+        background: $white;
+        border-left: 1px solid $blue-20;
+        z-index: 50;
+        padding: 0;
+    }
+}
+
+// On desktop, the closed sidebar is hidden entirely — only the open-tab
+// trigger is visible. On mobile, ignore the closed state and always
+// render the content inline (no toggle on mobile).
+.data-page-related-content--sidebar-closed {
+    @include md-up {
+        display: none;
+    }
+}
+
+// "Hide" affordance at the top of the open sidebar. Sticky so it stays
+// reachable as the user scrolls through items. Hidden on mobile because
+// the sidebar inlines there — no need to "hide" a section that's just a
+// normal bottom-of-page block.
+.data-page-related-content__sidebar-hide {
+    display: none;
+
+    @include md-up {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        appearance: none;
+        background: $white;
+        border: 0;
+        border-bottom: 1px solid $blue-20;
+        color: $blue-70;
+        font-family: $sans-serif-font-stack;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        padding: 10px 16px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+
+        &:hover {
+            color: $blue-90;
+        }
+    }
+}
+
+.data-page-related-content__sidebar-body {
+    @include md-up {
+        padding: 16px;
+    }
+}
+
+// Shift the page left when the sidebar is open on desktop. Mobile is
+// untouched because the sidebar inlines there.
+body.has-related-sidebar-open {
+    @include md-up {
+        padding-right: $sidebar-width;
+    }
+}
+
+// ── Compact (vertical card) layout ──────────────────────────────────────
+// Used by every panel inside the sidebar (and could be reused for a
+// future mobile-vertical mode). Thumbnail on top, body underneath, no
+// trailing arrow CTA. The `!important` keeps the column direction at the
+// `sm-up` breakpoint where the base panel switches to row.
+.data-page-related-content__panel--compact {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px;
+
+    .data-page-related-content__panel-thumbnail,
+    .data-page-related-content__indicator-thumbnail,
+    .data-page-related-content__indicator-thumbnail-wrapper {
+        width: 100%;
+        max-width: none;
+        aspect-ratio: 16 / 9;
+    }
+
+    .data-page-related-content__panel-body {
+        gap: 4px;
+    }
+
+    .data-page-related-content__panel-title {
+        font-size: 15px;
+    }
+
+    .data-page-related-content__panel-excerpt {
+        font-size: 13px;
+    }
+
+    // Hide trailing CTA arrows in compact cards — the whole card is the
+    // click target and the arrow reads as visual noise at this density.
+    .data-page-related-content__cta {
+        display: none;
+    }
+}
+
+.data-page-related-content__heading {
+    margin-bottom: 24px;
+}
+
+.data-page-related-content__title {
+    @include datapage-section-title;
+
+    & {
+        margin-bottom: 8px;
+    }
+}
+
+// "Our picks" subsection — editorial overrides surfaced above the
+// algorithmically-ranked list. Visually marked off with a left rule and a
+// small label so users see it as "we chose these" rather than as the top
+// of the algorithmic feed.
+.data-page-related-content__our-picks {
+    margin-bottom: 32px;
+    padding-left: 12px;
+    border-left: 3px solid $vermillion;
+}
+
+.data-page-related-content__our-picks-title {
+    @include note-1-medium;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: $vermillion;
+    margin: 0 0 12px;
+    font-size: 12px;
+}
+
+.data-page-related-content__suggested-searches {
+    margin: 0 0 24px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.data-page-related-content__suggested-searches-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: contents;
+}
+
+.data-page-related-content__suggested-search {
+    margin: 0;
+}
+
+.data-page-related-content__suggested-search-pill {
+    display: inline-block;
+    padding: 6px 12px;
+    background-color: $white;
+    border: 1px solid $blue-20;
+    border-radius: 999px;
+    color: $blue-90;
+    font-family: $sans-serif-font-stack;
+    font-size: 14px;
+    line-height: 1.2;
+    text-decoration: none;
+    transition:
+        background-color 0.12s ease-in-out,
+        border-color 0.12s ease-in-out;
+
+    &:hover {
+        background-color: $blue-10;
+        border-color: $blue-40;
+        text-decoration: none;
+        color: $blue-90;
+    }
+
+    &:focus-visible {
+        outline: 2px solid $oxford-blue;
+        outline-offset: 1px;
+    }
+}
+
+.data-page-related-content__items {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.data-page-related-content__panel {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background-color: $blue-20;
+    padding: 12px 16px;
+    text-decoration: none;
+    color: $blue-90;
+    transition: background-color 0.12s ease-in-out;
+
+    &:hover {
+        background-color: #cfdaeb;
+        text-decoration: none;
+    }
+
+    @include sm-up {
+        flex-direction: row;
+        // Top-align the thumbnail, body, and CTA so shorter cards don't
+        // float their text content to the middle of the row.
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+    }
+}
+
+.data-page-related-content__panel-thumbnail {
+    flex-shrink: 0;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    background-color: $white;
+
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+    @include sm-up {
+        width: 200px;
+        aspect-ratio: 16 / 9;
+    }
+}
+
+.data-page-related-content__panel-body {
+    flex: 1;
+    min-width: 0;
+}
+
+// Multi-line preview: show ~5 lines, then fade the last line+ into the
+// panel background so the user reads it as "there's more — click to see".
+// `mask-image` lays the fade over the actual text (clean across themes);
+// the JS-side truncate caps DOM size at ~500 chars.
+.data-page-related-content__panel-excerpt {
+    font-family: $sans-serif-font-stack;
+    font-size: 13px;
+    line-height: 1.4;
+    color: $blue-90;
+    margin: 2px 0 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 5;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    max-height: #{5 * 1.4}em;
+    // Fade the bottom ~1.5 lines to invite a click. Mask-image clips
+    // opacity rather than blending colours, so it works regardless of
+    // the panel background (vermillion "Our picks" frame, sidebar
+    // white, default $blue-20).
+    mask-image: linear-gradient(to bottom, black 65%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to bottom, black 65%, transparent 100%);
+}
+
+// Indicator excerpts (chart subtitles) are usually short, so don't fade
+// at all — the fade was producing a grey-blur on short content where
+// there was nothing to invite further reading. Let the line-clamp +
+// ellipsis handle truncation if the subtitle ever runs long.
+.data-page-related-content__panel--grapher
+    .data-page-related-content__panel-excerpt {
+    -webkit-line-clamp: 6;
+    max-height: #{6 * 1.4}em;
+    mask-image: none;
+    -webkit-mask-image: none;
+}
+
+.data-page-related-content__panel-meta {
+    font-family: $sans-serif-font-stack;
+    font-size: 12px;
+    color: $blue-60;
+    margin: 4px 0 0;
+}
+
+.data-page-related-content__kind-label {
+    display: block;
+    font-family: $sans-serif-font-stack;
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 2px;
+    color: $blue-50;
+
+    &--article {
+        color: $vermillion;
+    }
+
+    &--topic-page {
+        color: $accent-electric-blue;
+    }
+
+    &--data-insight {
+        // amber-brown for legibility on the panel — see design handoff
+        color: #a07700;
+    }
+
+    &--grapher {
+        color: $blue-90;
+    }
+}
+
+.data-page-related-content__panel-title {
+    font-family: $serif-font-stack;
+    font-size: 16px;
+    font-weight: 700;
+    color: $oxford-blue;
+    line-height: 1.2;
+    letter-spacing: -0.005em;
+    margin: 0;
+
+    @include sm-up {
+        font-size: 17px;
+    }
+}
+
+.data-page-related-content__cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: $oxford-blue;
+    font-size: 18px;
+    flex-shrink: 0;
+    transition: transform 0.12s ease-in-out;
+    align-self: flex-end;
+
+    @include sm-up {
+        align-self: center;
+    }
+}
+
+.data-page-related-content__panel:hover .data-page-related-content__cta {
+    transform: translateX(2px);
+}
+
+// Grapher rows share the default `__panel` layout (column on mobile, row
+// at sm-up) with article/insight rows so titles and thumbnails align for
+// easy skimming. The root element is a <div> (not <a>) because HTML
+// disallows interactive descendants — buttons — inside <a>. A stretched-
+// link overlay makes the whole panel clickable while letting the carousel
+// buttons stay independently interactive on top.
+.data-page-related-content__panel--grapher {
+    position: relative;
+
+    &:hover .data-page-related-content__cta {
+        transform: translateX(2px);
+    }
+}
+
+// Stretched link covering the whole grapher panel. Anchored below the
+// carousel buttons (z-index 0) so per-button clicks aren't swallowed.
+.data-page-related-content__panel-stretched-link {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+
+    span {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+    }
+}
+
+// Wrapper around the thumbnail so the carousel buttons can be absolutely
+// positioned over its edges without escaping the panel's flex layout.
+.data-page-related-content__indicator-thumbnail-wrapper {
+    position: relative;
+    flex-shrink: 0;
+    width: 100%;
+
+    @include sm-up {
+        width: 200px;
+    }
+}
+
+// Carousel arrow buttons on the thumbnail's left and right edges.
+// Subtle by default, more visible on panel hover.
+.data-page-related-content__indicator-carousel-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 2;
+    appearance: none;
+    border: 0;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.85);
+    color: $blue-90;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    opacity: 0;
+    transition: opacity 0.12s ease-in-out;
+
+    &--prev {
+        left: 4px;
+    }
+
+    &--next {
+        right: 4px;
+    }
+
+    &:hover {
+        background: $white;
+        color: $oxford-blue;
+    }
+
+    &:focus-visible {
+        opacity: 1;
+        outline: 2px solid $oxford-blue;
+        outline-offset: 1px;
+    }
+}
+
+.data-page-related-content__panel--grapher:hover
+    .data-page-related-content__indicator-carousel-btn {
+    opacity: 1;
+}
+
+.data-page-related-content__indicator-thumbnail {
+    flex-shrink: 0;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background-color: $white;
+    overflow: hidden;
+    border: 1px solid $blue-10;
+
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        display: block;
+    }
+
+    @include sm-up {
+        width: 200px;
+        aspect-ratio: 16 / 9;
+    }
+}
