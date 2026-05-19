@@ -20,7 +20,7 @@ import {
     SwitcherItem,
 } from "../../../../components/Switcher/Switcher.js"
 
-import { MainVariantConfig, VariantProps } from "../config.js"
+import { MainVariantConfig, TradeFlow, VariantProps } from "../config.js"
 import { TradeRow, useTradeData } from "../data.js"
 import {
     FoodTradeBilateralSankey,
@@ -44,9 +44,7 @@ const DEFAULT_COUNTRY = "United Kingdom"
 const ALL_COUNTRIES = "All countries"
 const isAllCountry = (c: string) => c === ALL_COUNTRIES
 
-// Filters the centered Sankey to one half or both.
-type View = "both" | "imports" | "exports"
-const TRADE_FLOW_ITEMS: SwitcherItem<View>[] = [
+const TRADE_FLOW_ITEMS: SwitcherItem<TradeFlow>[] = [
     {
         key: "imports",
         element: (
@@ -113,15 +111,19 @@ function FetchingMainVariant({ config }: { config: MainVariantConfig }) {
         return [ALL_COUNTRIES, ...items]
     }, [data])
 
-    const [product, setProduct] = useState<string>(DEFAULT_PRODUCT)
-    const [country, setCountry] = useState<string>(DEFAULT_COUNTRY)
-    const [view, setView] = useState<View>("both")
+    const [product, setProduct] = useState<string>(
+        config.product ?? DEFAULT_PRODUCT
+    )
+    const [country, setCountry] = useState<string>(
+        config.country ?? DEFAULT_COUNTRY
+    )
+    const [view, setView] = useState<TradeFlow>(config.tradeFlow ?? "both")
 
     // Changing the view away from "both" while on "All countries" would
     // leave us in an invalid combination (bilateral has no imports/exports
     // halves), so auto-revert the country selection.
     const handleSetView = useCallback(
-        (newView: View) => {
+        (newView: TradeFlow) => {
             setView(newView)
             if (newView !== "both" && isAllCountry(country)) {
                 setCountry(DEFAULT_COUNTRY)
@@ -190,10 +192,10 @@ function CaptionedMainVariant({
     countries: string[]
     product: string
     country: string
-    view: View
+    view: TradeFlow
     setProduct: (value: string) => void
     setCountry: (value: string) => void
-    setView: (value: View) => void
+    setView: (value: TradeFlow) => void
     config: MainVariantConfig
 }) {
     const incomingTotal = useMemo(
