@@ -13,7 +13,10 @@ import {
     DEFAULT_ENTITY_NAME,
 } from "../helpers/constants.js"
 import { useInitialEntityName } from "../helpers/useInitialEntityName.js"
-import { parseSimulationUrlState } from "../helpers/urlState.js"
+import {
+    parseSimulationUrlState,
+    type SimulationUrlState,
+} from "../helpers/urlState.js"
 import {
     DemographyChartError,
     DemographySkeleton,
@@ -67,6 +70,10 @@ function FetchingSimulationVariant({
         () => (config.urlSync ? parseSimulationUrlState() : {}),
         [config.urlSync]
     )
+    const [urlAssumptionState, setUrlAssumptionState] =
+        useState<SimulationUrlAssumptionState>(() =>
+            getUrlAssumptionState(urlState)
+        )
     const [shouldSyncEntityName, setShouldSyncEntityName] = useState(
         Boolean(urlState.entityName)
     )
@@ -74,7 +81,10 @@ function FetchingSimulationVariant({
         useInitialEntityName(urlState.entityName ?? config.region)
     const setEntityName = useCallback(
         (name: string) => {
-            if (config.urlSync) setShouldSyncEntityName(true)
+            if (config.urlSync) {
+                setShouldSyncEntityName(true)
+                setUrlAssumptionState({})
+            }
             setEntityNameRaw(name)
         },
         [config.urlSync, setEntityNameRaw]
@@ -131,15 +141,36 @@ function FetchingSimulationVariant({
             lifeExpectancyAssumptions={config.lifeExpectancyAssumptions}
             netMigrationRateAssumptions={config.netMigrationRateAssumptions}
             urlSync={config.urlSync}
-            urlFertilityRateAssumptions={urlState.fertilityRateAssumptions}
-            urlLifeExpectancyAssumptions={urlState.lifeExpectancyAssumptions}
+            urlFertilityRateAssumptions={
+                urlAssumptionState.fertilityRateAssumptions
+            }
+            urlLifeExpectancyAssumptions={
+                urlAssumptionState.lifeExpectancyAssumptions
+            }
             urlNetMigrationRateAssumptions={
-                urlState.netMigrationRateAssumptions
+                urlAssumptionState.netMigrationRateAssumptions
             }
             baselineEntityName={getBaselineEntityName(config.region)}
             shouldSyncEntityName={shouldSyncEntityName}
         />
     )
+}
+
+type SimulationUrlAssumptionState = Pick<
+    SimulationUrlState,
+    | "fertilityRateAssumptions"
+    | "lifeExpectancyAssumptions"
+    | "netMigrationRateAssumptions"
+>
+
+function getUrlAssumptionState(
+    urlState: SimulationUrlState
+): SimulationUrlAssumptionState {
+    return {
+        fertilityRateAssumptions: urlState.fertilityRateAssumptions,
+        lifeExpectancyAssumptions: urlState.lifeExpectancyAssumptions,
+        netMigrationRateAssumptions: urlState.netMigrationRateAssumptions,
+    }
 }
 
 function getBaselineEntityName(region: string | undefined): string | undefined {
