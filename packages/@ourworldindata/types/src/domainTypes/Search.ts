@@ -344,3 +344,23 @@ export interface IndexingContext {
 export type ChartsIndexingContext = IndexingContext & {
     redirectsByChartId: Map<number, string[]>
 }
+
+/**
+ * A grapher slug that previously served traffic now redirected to a mdim view.
+ * `queryStr` identifies the specific mdim view; when undefined, the redirect
+ * points at the mdim's default view.
+ */
+export interface MdimRedirectSource {
+    sourceSlug: string
+    queryStr?: string
+}
+
+export type MdimIndexingContext = IndexingContext & {
+    /**
+     * Grapher-slug redirect sources grouped by the target mdim's slug.
+     * Used to attribute a pre-redirect grapher chart's views_7d to the mdim view
+     * it now redirects to, so the search score doesn't lose that signal during
+     * the redirect's first week.
+     */
+    redirectsByMdimSlug: Map<string, MdimRedirectSource[]>
+}

@@ -20,6 +20,7 @@ import {
     ChartRecordType,
     ContentGraphLinkType,
     IndexingContext,
+    MdimRedirectSource,
 } from "@ourworldindata/types"
 import { createMdimIndexingContext } from "./context.js"
 import {
@@ -35,6 +36,7 @@ import {
 } from "./shared.js"
 import { getPublishedLinksTo } from "../../../db/model/Link.js"
 import { DatasetDimensionsForVariable } from "./types.js"
+import pMap from "p-map"
 
 // Published multi-dim must have a slug.
 type PublishedMultiDimWithSlug = DbEnrichedMultiDimDataPage & { slug: string }
@@ -104,7 +106,8 @@ async function getRecords(
     trx: db.KnexReadonlyTransaction,
     multiDim: PublishedMultiDimWithSlug,
     tags: string[],
-    views: Map<string, number>
+    views: Map<string, number>,
+    redirectSources: MdimRedirectSource[]
 ) {
     const { slug } = multiDim
     console.log(
@@ -129,11 +132,23 @@ async function getRecords(
     // Related-article links point at the bare mdim slug, which resolves to the
     // default view. Attribute the count to that view only, so a popular mdim
     // doesn't boost every one of its views equally.
-    const defaultViewId = dimensionsToViewId(
-        MultiDimDataPageConfig.fromObject(
-            multiDim.config
-        ).filterToAvailableChoices({}).selectedChoices
+    const defaultViewDimensions = MultiDimDataPageConfig.fromObject(
+        multiDim.config
+    ).filterToAvailableChoices({}).selectedChoices
+    const defaultViewId = dimensionsToViewId(defaultViewDimensions)
+    const defaultViewQueryStr = dimensionsToSortedQueryStr(
+        defaultViewDimensions
     )
+    // Bucket grapher slugs that now redirect into this mdim by the target
+    // view's queryStr, so each view can pick up its own predecessors. A
+    // redirect without a queryStr targets the mdim's default view.
+    const predecessorsByQueryStr = new Map<string, string[]>()
+    for (const source of redirectSources) {
+        const key = source.queryStr ?? defaultViewQueryStr
+        const list = predecessorsByQueryStr.get(key)
+        if (list) list.push(source.sourceSlug)
+        else predecessorsByQueryStr.set(key, [source.sourceSlug])
+    }
     return multiDim.config.views.map((view) => {
         const viewId = dimensionsToViewId(view.dimensions)
         const viewNumRelatedArticles =
@@ -175,7 +190,16 @@ async function getRecords(
             .map((entity) => entity.name)
             .filter(Boolean)
         // Keyed by config ID so we don't have to worry about slug renames/redirects
-        const views_7d = views.get(view.fullConfigId) ?? 0
+        const ownViews_7d = views.get(view.fullConfigId) ?? 0
+        // Inherit views_7d from grapher charts that now redirect to this view.
+        // Math.max (not sum) avoids double-counting traffic during the redirect's
+        // first week; after ~7 days the predecessor's count decays and the
+        // view's own count takes over.
+        const predecessorSlugs = predecessorsByQueryStr.get(queryStr) ?? []
+        const views_7d = predecessorSlugs.reduce(
+            (max, predSlug) => Math.max(max, views.get(predSlug) ?? 0),
+            ownViews_7d
+        )
         const score = computeRecordScore(
             viewNumRelatedArticles,
             views_7d,
@@ -284,10 +308,17 @@ export async function getMdimViewRecords(
         )
     ).filter((m) => id === undefined || m.multiDim.id === id)
 
-    const records = await Promise.all(
-        multiDimsWithTags.map(({ multiDim, tags }) =>
-            getRecords(trx, multiDim, tags, context.views)
-        )
+    const records = await pMap(
+        multiDimsWithTags,
+        ({ multiDim, tags }) =>
+            getRecords(
+                trx,
+                multiDim,
+                tags,
+                context.views,
+                context.redirectsByMdimSlug.get(multiDim.slug) ?? []
+            ),
+        { concurrency: 10 }
     )
     return records.flat()
 }
