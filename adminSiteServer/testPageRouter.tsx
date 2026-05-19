@@ -119,6 +119,7 @@ interface EmbedTestPageQueryParams {
     readonly comparisonLines?: string
     readonly stackMode?: StackMode
     readonly relativeToggle?: string
+    readonly chartTypeSwitcher?: string
     readonly categoricalLegend?: string
     readonly mixedTimeTypes?: string
     readonly faceted?: string
@@ -197,6 +198,12 @@ async function propsFromQueryParams(
     if (params.relativeToggle) {
         query = query.andWhereRaw(`cc.full->>'$.hideRelativeToggle' = "false"`)
         tab = GRAPHER_TAB_CONFIG_OPTIONS.chart
+    }
+
+    if (params.chartTypeSwitcher) {
+        query = query.andWhereRaw(
+            `COALESCE(json_length(cc.full->'$.chartTypes'), 2) > 1`
+        )
     }
 
     if (params.categoricalLegend) {
