@@ -19,10 +19,14 @@ import {
 } from "../utils/incomePlotUtils.ts"
 import { WORLD_ENTITY_NAME } from "../utils/incomePlotConstants.ts"
 
+export type IncomePlotLegendPosition = "left" | "right"
+
 export const IncomePlotLegend = ({
     isNarrow = false,
+    position = "right",
 }: {
     isNarrow?: boolean
+    position?: IncomePlotLegendPosition
 }) => {
     const entries = useAtomValue(atomLegendEntries)
     const [hoveredEntity, setHoveredEntity] = useAtom(atomHoveredEntity)
@@ -64,6 +68,7 @@ export const IncomePlotLegend = ({
         <div
             className={cx("income-plot-legend", {
                 "income-plot-legend--mobile": isNarrow,
+                [`income-plot-legend--${position}`]: !isNarrow,
             })}
         >
             {percentageBelowLineMap && povertyLineFormatted && (
