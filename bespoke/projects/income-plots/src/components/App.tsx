@@ -24,6 +24,7 @@ import { useShadowRoot } from "../ShadowRootContext.tsx"
 import { Frame } from "../../../../components/Frame/Frame.js"
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
+import { LoadingIndicator } from "@ourworldindata/components"
 import {
     getIncomePlotTitle,
     INCOME_PLOT_SOURCE,
@@ -85,7 +86,19 @@ export const App = () => {
                             aspectRatio: aspectRatio,
                         }}
                     >
-                        <Suspense fallback={<>Loading...</>}>
+                        <Suspense
+                            fallback={
+                                <div
+                                    className="income-plot-loading"
+                                    style={{ height: plotHeight }}
+                                >
+                                    <LoadingIndicator
+                                        title="Loading income distributions"
+                                        color="#5b5b5b"
+                                    />
+                                </div>
+                            }
+                        >
                             <IncomePlot
                                 key={currentYear}
                                 height={plotHeight}
