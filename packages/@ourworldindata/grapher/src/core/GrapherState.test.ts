@@ -2387,6 +2387,24 @@ describe("adjustStateForTab", () => {
             )
         })
 
+        it("preserves selected time when expanding to a range with empty selection", () => {
+            const grapher = createGrapher({
+                chartTypes: [
+                    GRAPHER_CHART_TYPES.LineChart,
+                    GRAPHER_CHART_TYPES.Marimekko,
+                ],
+            })
+
+            // Mimic Marimekko-style state with no explicit selection.
+            grapher.selection.clearSelection()
+            grapher.timelineHandleTimeBounds = [2005, 2005]
+
+            grapher.adjustStateForTab(GRAPHER_TAB_NAMES.LineChart)
+
+            expect(grapher.endHandleTimeBound).toBe(2005)
+            expect(grapher.startHandleTimeBound).toBe(-Infinity)
+        })
+
         it("does not modify handles if they already match the target tab's mode", () => {
             const grapher = createGrapher()
 
