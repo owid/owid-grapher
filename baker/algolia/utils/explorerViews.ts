@@ -153,49 +153,62 @@ const explorerChoiceToViewSettings = (
  * }
  * ```
  */
+// Bypasses the `dataset_dimensions_by_variable` view, which forces MySQL to materialize
+// a 675k-row derived table on every query (~6s) before applying the outer WHERE.
+const SELECT_VARIABLE_METADATA_BY_IDS_OR_PATHS_SQL = `-- sql
+    SELECT
+        v.id,
+        v.catalogPath,
+        v.name,
+        v.titlePublic,
+        v.display,
+        v.descriptionShort,
+        d.namespace AS datasetNamespace,
+        d.version AS datasetVersion,
+        d.name AS datasetProduct,
+        COALESCE(
+            (SELECT JSON_ARRAYAGG(p.producer)
+             FROM (SELECT DISTINCT TRIM(o.producer) AS producer
+                   FROM origins_variables ov
+                   JOIN origins o ON ov.originId = o.id
+                   WHERE ov.variableId = v.id
+                     AND o.producer IS NOT NULL
+                     AND TRIM(o.producer) <> '') p),
+            JSON_ARRAY()
+        ) AS datasetProducers
+    FROM variables v
+    LEFT JOIN datasets d ON v.datasetId = d.id
+    WHERE v.id IN (?) OR v.catalogPath IN (?)
+`
+
 async function fetchIndicatorMetadata(
-    records: IndicatorUnenrichedExplorerViewRecord[],
+    ids: Set<number>,
+    etlPaths: Set<string>,
     trx: db.KnexReadonlyTransaction
 ): Promise<ExplorerIndicatorMetadataDictionary> {
-    function checkIsETLPath(idOrPath: string | number): idOrPath is string {
-        return typeof idOrPath === "string"
-    }
+    if (ids.size === 0 && etlPaths.size === 0) return {}
 
-    const { etlPaths, ids } = records.reduce(
-        ({ etlPaths, ids }, record) => {
-            for (const yVariableId of record.yVariableIds) {
-                if (checkIsETLPath(yVariableId)) {
-                    etlPaths.add(yVariableId)
-                } else {
-                    ids.add(yVariableId)
-                }
-            }
-            return { etlPaths, ids }
-        },
-        { etlPaths: new Set<string>(), ids: new Set<number>() }
-    )
+    // `WHERE x IN (?)` with an empty list is invalid SQL, so feed it a sentinel.
+    const idsParam = ids.size ? [...ids] : [-1]
+    const pathsParam = etlPaths.size ? [...etlPaths] : [""]
 
-    const rawMetadataFromDb = await trx
-        .table("variables as v")
-        .select(
-            "v.id",
-            "v.catalogPath",
-            "v.name",
-            "v.titlePublic",
-            "v.display",
-            "v.descriptionShort",
-            "ddv.datasetNamespace",
-            "ddv.datasetVersion",
-            "ddv.datasetProduct",
-            "ddv.datasetProducers"
-        )
-        .leftJoin(
-            "dataset_dimensions_by_variable as ddv",
-            "v.id",
-            "ddv.variableId"
-        )
-        .whereIn("v.id", [...ids])
-        .orWhereIn("v.catalogPath", [...etlPaths])
+    const rawMetadataFromDb = (
+        await trx.raw(SELECT_VARIABLE_METADATA_BY_IDS_OR_PATHS_SQL, [
+            idsParam,
+            pathsParam,
+        ])
+    )[0] as Array<{
+        id: number
+        catalogPath: string | null
+        name: string
+        titlePublic: string | null
+        display: string | null
+        descriptionShort: string | null
+        datasetNamespace: string | null
+        datasetVersion: string | null
+        datasetProduct: string | null
+        datasetProducers: string | null
+    }>
 
     const metadataFromDB = rawMetadataFromDb.map((row) => ({
         ...row,
@@ -209,9 +222,7 @@ async function fetchIndicatorMetadata(
     } as ExplorerIndicatorMetadataDictionary
 
     async function fetchEntitiesForId(id: number) {
-        const metadata = await fetchS3MetadataByPath(
-            getVariableMetadataRoute(DATA_API_URL, id)
-        )
+        const metadata = await fetchVariableMetadataMemo(id)
         const entityNames = _.get(metadata, "dimensions.entities.values", [])
             .map((value) => value.name)
             .filter((name): name is string => !!name)
@@ -236,6 +247,34 @@ async function fetchIndicatorMetadata(
     )
 
     return indicatorMetadataByIdAndPath
+}
+
+// Process-lifetime memo so the same variable's S3 metadata is fetched at most once
+// across all explorers that reference it.
+type VariableMetadata = Awaited<ReturnType<typeof fetchS3MetadataByPath>>
+const variableMetadataMemo = new Map<number, Promise<VariableMetadata>>()
+function fetchVariableMetadataMemo(id: number): Promise<VariableMetadata> {
+    const cached = variableMetadataMemo.get(id)
+    if (cached) return cached
+    const promise = fetchS3MetadataByPath(
+        getVariableMetadataRoute(DATA_API_URL, id)
+    )
+    variableMetadataMemo.set(id, promise)
+    return promise
+}
+
+function collectIndicatorIdsAndPaths(
+    records: IndicatorUnenrichedExplorerViewRecord[]
+): { ids: Set<number>; etlPaths: Set<string> } {
+    const ids = new Set<number>()
+    const etlPaths = new Set<string>()
+    for (const record of records) {
+        for (const yVariableId of record.yVariableIds) {
+            if (typeof yVariableId === "string") etlPaths.add(yVariableId)
+            else ids.add(yVariableId)
+        }
+    }
+    return { ids, etlPaths }
 }
 
 /** Almost always `"country"`, but sometimes things like `"location"` */
@@ -736,7 +775,8 @@ export const getExplorerViewRecordsForExplorer = async (
     explorerInfo: MinimalExplorerInfo,
     pageviews: Record<string, { views_7d: number }>,
     explorerAdminServer: ExplorerAdminServer,
-    skipGrapherViews: boolean
+    skipGrapherViews: boolean,
+    sharedIndicatorMetadata?: ExplorerIndicatorMetadataDictionary
 ): Promise<FinalizedExplorerRecord[]> => {
     const { slug } = explorerInfo
     const explorerProgram = await explorerAdminServer.getExplorerFromSlug(
@@ -780,14 +820,20 @@ export const getExplorerViewRecordsForExplorer = async (
         CsvUnenrichedExplorerViewRecord[],
     ]
 
-    // Fetch and apply indicator metadata
-    console.log("Fetching indicator metadata for explorer", slug)
-    const indicatorMetadataDictionary = await fetchIndicatorMetadata(
-        indicatorBaseRecords,
-        trx
-    )
-
-    console.log("Fetched indicator metadata for explorer", slug)
+    let indicatorMetadataDictionary: ExplorerIndicatorMetadataDictionary
+    if (sharedIndicatorMetadata) {
+        indicatorMetadataDictionary = sharedIndicatorMetadata
+    } else {
+        console.log("Fetching indicator metadata for explorer", slug)
+        const { ids, etlPaths } =
+            collectIndicatorIdsAndPaths(indicatorBaseRecords)
+        indicatorMetadataDictionary = await fetchIndicatorMetadata(
+            ids,
+            etlPaths,
+            trx
+        )
+        console.log("Fetched indicator metadata for explorer", slug)
+    }
 
     const enrichedIndicatorRecords = await enrichWithIndicatorMetadata(
         indicatorBaseRecords,
