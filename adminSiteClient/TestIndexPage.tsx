@@ -157,6 +157,16 @@ export function TestIndexPage() {
                         <Link
                             native
                             target="_blank"
+                            to="/test/embeds?chartTypeSwitcher=true"
+                        >
+                            All charts with chart type switching
+                        </Link>
+                    </li>
+
+                    <li>
+                        <Link
+                            native
+                            target="_blank"
                             to="/test/embeds?faceted=true"
                         >
                             Faceted charts
