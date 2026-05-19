@@ -36,8 +36,12 @@ export const App = () => {
 
     const currentYear = useAtomValue(atomCurrentYear)
     const containerRef = useRef<HTMLDivElement>(null)
+    const bottomControlsRef = useRef<HTMLDivElement>(null)
     const { width = 0 } = useResizeObserver({
         ref: containerRef as React.RefObject<HTMLDivElement>,
+    })
+    const { height: bottomControlsHeight = 0 } = useResizeObserver({
+        ref: bottomControlsRef as React.RefObject<HTMLDivElement>,
     })
 
     const setisNarrow = useSetAtom(atomisNarrow)
@@ -51,6 +55,11 @@ export const App = () => {
     const isPortrait = windowHeight >= windowWidth
 
     const aspectRatio = isNarrow && isPortrait ? 1.1 : 5 / 3
+    const plotHeight = useMemo(() => {
+        const targetChartAreaHeight = width / aspectRatio
+        const controlsHeight = isNarrow ? 0 : bottomControlsHeight
+        return Math.max(targetChartAreaHeight - controlsHeight, 1)
+    }, [aspectRatio, bottomControlsHeight, isNarrow, width])
 
     const [drawerOpen, setDrawerOpen] = useState(false)
     const closeDrawer = useCallback(() => setDrawerOpen(false), [])
@@ -73,20 +82,25 @@ export const App = () => {
                     <div
                         className="income-plot-captioned-chart__chart-area"
                         style={{
-                            width: "max-content",
-                            maxWidth: width,
                             aspectRatio: aspectRatio,
                         }}
                     >
                         <Suspense fallback={<>Loading...</>}>
                             <IncomePlot
                                 key={currentYear}
+                                height={plotHeight}
                                 width={width}
-                                aspectRatio={aspectRatio}
                                 isNarrow={isNarrow}
                             />
                         </Suspense>
-                        {!isNarrow && <IncomePlotControlsRowBottom />}
+                        {!isNarrow && (
+                            <div
+                                ref={bottomControlsRef}
+                                className="income-plot-captioned-chart__bottom-controls"
+                            >
+                                <IncomePlotControlsRowBottom />
+                            </div>
+                        )}
                     </div>
                     {isNarrow && (
                         <IncomePlotDrawer
