@@ -1,5 +1,6 @@
 import { createRoot } from "react-dom/client"
-import { enableShadowDOM } from "@react-stately/flags"
+
+import "./reactAriaShadowDomSetup"
 
 import { VariantName } from "./constants.js"
 import { MainVariant } from "./variants/MainVariant"
@@ -11,10 +12,6 @@ import type {
 import StylesTarget from "vite-plugin-css-position/react"
 
 import "./index.scss"
-
-// Enable react-aria's internal Shadow DOM handling paths.
-// Must be called before any react-aria components render.
-enableShadowDOM()
 
 export const VARIANTS = [
     { name: "main", component: MainVariant, demoConfig: {} },

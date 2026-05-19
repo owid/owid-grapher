@@ -1,5 +1,7 @@
 @import "normalize.css";
 
+@import "@fortawesome/fontawesome-svg-core/styles.css";
+
 @import "tippy.js/dist/tippy.css";
 @import "tippy.js/themes/light.css";
 
@@ -13,6 +15,7 @@
 @import "../../../components/BezierArrow/BezierArrow.scss";
 @import "../../../components/Sankey/Sankey.scss";
 @import "../../../components/Sankey/SplitFlowSankey.scss";
+@import "../../../components/Switcher/Switcher.scss";
 
 // Variants
 @import "./variants/MainVariant.scss";

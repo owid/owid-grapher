@@ -1,5 +1,10 @@
 import { ComponentProps, useCallback, useMemo, useState } from "react"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import {
+    faArrowRight,
+    faArrowRightArrowLeft,
+} from "@fortawesome/free-solid-svg-icons"
 
 import {
     BasicDropdownOption,
@@ -9,6 +14,10 @@ import {
 import { Frame } from "../../../../components/Frame/Frame.js"
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
+import {
+    Switcher,
+    SwitcherItem,
+} from "../../../../components/Switcher/Switcher.js"
 
 import { TradeRow, useTradeData } from "../data.js"
 import {
@@ -33,14 +42,41 @@ const DEFAULT_COUNTRY = "United Kingdom"
 const ALL_COUNTRIES = "All countries"
 const isAllCountry = (c: string) => c === ALL_COUNTRIES
 
-// View dropdown options (filters the centered Sankey to one half or both).
+// Filters the centered Sankey to one half or both.
 type View = "both" | "imports" | "exports"
-const VIEW_LABELS: Record<View, string> = {
-    both: "Imports and exports",
-    imports: "Imports only",
-    exports: "Exports only",
-}
-const VIEW_VALUES: View[] = ["both", "imports", "exports"]
+const TRADE_FLOW_ITEMS: SwitcherItem<View>[] = [
+    {
+        key: "imports",
+        element: (
+            <>
+                <FontAwesomeIcon icon={faArrowRight} size="sm" aria-hidden />
+                Imports
+            </>
+        ),
+    },
+    {
+        key: "exports",
+        element: (
+            <>
+                Exports
+                <FontAwesomeIcon icon={faArrowRight} size="sm" aria-hidden />
+            </>
+        ),
+    },
+    {
+        key: "both",
+        element: (
+            <>
+                <FontAwesomeIcon
+                    icon={faArrowRightArrowLeft}
+                    size="sm"
+                    aria-hidden
+                />
+                Both
+            </>
+        ),
+    },
+]
 
 const queryClient = new QueryClient()
 
@@ -208,13 +244,17 @@ function CaptionedMainVariant({
                         view !== "both" ? [ALL_COUNTRIES] : undefined
                     }
                 />
-                <LabeledDropdown
-                    label="Trade flow"
-                    values={VIEW_VALUES}
-                    valueLabels={VIEW_LABELS}
-                    selected={view}
-                    onChange={(v) => setView(v as View)}
-                />
+                <div className="food-trade-controls__field">
+                    <span className="food-trade-controls__label">
+                        Trade flow
+                    </span>
+                    <Switcher
+                        items={TRADE_FLOW_ITEMS}
+                        selectedKey={view}
+                        onChange={setView}
+                        aria-label="Trade flow"
+                    />
+                </div>
             </div>
             <Frame className="food-trade-captioned-chart">
                 <ChartHeader
@@ -378,16 +418,12 @@ function Dropdown({
 function LabeledDropdown({
     label,
     values,
-    valueLabels,
     selected,
     onChange,
     disabledValues,
 }: {
     label: string
     values: string[]
-    /** Optional display labels keyed by value, when the value itself isn't
-     * the human-readable string. */
-    valueLabels?: Record<string, string>
     selected: string
     onChange: (value: string) => void
     /** Values whose options should be greyed out and non-selectable. */
@@ -397,11 +433,11 @@ function LabeledDropdown({
         () =>
             values.map((v) => ({
                 value: v,
-                label: valueLabels?.[v] ?? v,
+                label: v,
                 id: v,
                 isDisabled: disabledValues?.includes(v) ?? false,
             })),
-        [values, valueLabels, disabledValues]
+        [values, disabledValues]
     )
     return (
         <div className="food-trade-controls__field">
