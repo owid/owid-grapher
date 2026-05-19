@@ -6,7 +6,10 @@ import { articulateEntity, formatValue } from "@ourworldindata/utils"
 import { OwidVariableRoundingMode } from "@ourworldindata/types"
 
 import { BilateralFlowSankey } from "../../../../components/Sankey/BilateralFlowSankey.js"
-import { SplitFlowSankey } from "../../../../components/Sankey/SplitFlowSankey.js"
+import {
+    SplitFlowSankey,
+    STACKED_BREAKPOINT_PX,
+} from "../../../../components/Sankey/SplitFlowSankey.js"
 
 import { TradeRow } from "../data.js"
 
@@ -51,26 +54,32 @@ export function FoodTradeSankey({
     const incomingFlows = useMemo(() => tradeToFlow(incoming), [incoming])
     const outgoingFlows = useMemo(() => tradeToFlow(outgoing), [outgoing])
 
-    // When both halves are visible the two headings read as one sentence:
-    // "{country} imports X" + "and exports Y". In single-half views the
-    // exports heading is rephrased to stand alone. Empty halves get a short
-    // placeholder heading — sentence-fragment style in the both-view so the
-    // halves still read together, standalone in single-half views.
+    // When both halves are visible side-by-side the two headings read as one
+    // sentence: "{country} imports X" + "and exports Y". In single-half
+    // views — and when the halves stack vertically on narrow containers,
+    // since the "and …" half then floats below its leading clause — the
+    // exports heading switches to a standalone phrasing.
     const countryArticulated = articulateEntity(country)
+    const isStacked = width > 0 && width < STACKED_BREAKPOINT_PX
+    const isPairedSentence = view === "both" && !isStacked
     const incomingHeading =
         incomingFlows.length > 0
             ? `→ ${R.capitalize(countryArticulated)} imported ${formatTrade(incomingTotal)}`
-            : view === "both"
+            : isPairedSentence
               ? `${R.capitalize(countryArticulated)} imported none`
-              : "No imports"
+              : view === "both"
+                ? `${R.capitalize(countryArticulated)} imported none`
+                : "No imports"
     const outgoingHeading =
         outgoingFlows.length > 0
-            ? view === "both"
+            ? isPairedSentence
                 ? `and exported ${formatTrade(outgoingTotal)} →`
                 : `${R.capitalize(countryArticulated)} exported ${formatTrade(outgoingTotal)} →`
-            : view === "both"
+            : isPairedSentence
               ? "and exported none"
-              : "No exports"
+              : view === "both"
+                ? `${R.capitalize(countryArticulated)} exported none`
+                : "No exports"
 
     const splitView =
         view === "imports"

@@ -1,3 +1,7 @@
+// Establish a container so the @container query below can stack the
+// controls vertically at narrow widths. Matches the SplitFlowSankey
+// stacking threshold (STACKED_BREAKPOINT_PX = 500) so the whole layout
+// collapses to single-column consistently below 500px.
 .food-trade-heading {
     margin-bottom: 24px;
 }
@@ -27,6 +31,19 @@
 
     > * {
         flex: 1 1 0;
+    }
+}
+
+// Stack the three controls vertically at the same container-width
+// threshold the Sankey uses, so the whole UI collapses to one column
+// at narrow widths.
+@container food-trade-chart (max-width: 499.99px) {
+    .food-trade-controls {
+        flex-direction: column;
+    }
+    .food-trade-controls > * {
+        flex: 0 0 auto;
+        width: 100%;
     }
 }
 

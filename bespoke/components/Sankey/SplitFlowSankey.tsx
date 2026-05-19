@@ -204,10 +204,15 @@ export function SplitFlowSankey({
     // Strategy: let the more constrained half fill `chartHeight`; shrink the
     // other half's SVG so d3-sankey computes the same `ky` there too. Both
     // halves are top-anchored, so the shorter SVG just leaves empty space
-    // beneath, which is what we want visually.
+    // beneath, which is what we want visually — when the halves sit side-by-
+    // side. In stacked mode the two halves are in separate grid rows and
+    // their central nodes aren't visually adjacent, so equalizing ky has no
+    // benefit and the shrunken half just creates a big empty gap below
+    // itself; skip equalization and let each half fill its own cell.
     const halfHeights = useMemo(() => {
         if (
             isSingleHalf ||
+            isStacked ||
             !incomingBuild ||
             !outgoingBuild ||
             chartHeight <= 0
@@ -241,7 +246,14 @@ export function SplitFlowSankey({
             incoming: Math.min(chartHeight, heightForKy(ky, tIn, nIn)),
             outgoing: Math.min(chartHeight, heightForKy(ky, tOut, nOut)),
         }
-    }, [isSingleHalf, incomingBuild, outgoingBuild, chartHeight, central])
+    }, [
+        isSingleHalf,
+        isStacked,
+        incomingBuild,
+        outgoingBuild,
+        chartHeight,
+        central,
+    ])
 
     // Layout: an outer wrapper carries the container declaration so the
     // `@container` query in the SCSS can target the inner grid (CSS
