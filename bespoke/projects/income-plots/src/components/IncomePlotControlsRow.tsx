@@ -30,6 +30,8 @@ import {
     ListBoxSection,
     Header,
     Autocomplete,
+    SelectStateContext,
+    ListStateContext,
     useFilter,
     SearchField,
     Input,
@@ -217,6 +219,15 @@ export const IncomePlotControlsRowBottom = () => {
         }
     }
 
+    const handleCurrencySearchSubmit = (
+        focusedKey: React.Key | null
+    ): boolean => {
+        if (focusedKey === null) return false
+
+        handleSelectionChange(focusedKey)
+        return true
+    }
+
     const selectedLabel =
         currentCurrency.currency_code === "INTD"
             ? "International-$"
@@ -244,29 +255,16 @@ export const IncomePlotControlsRowBottom = () => {
                     />
                 </Button>
                 <Popover className="currency-select__popover">
-                    <Autocomplete filter={contains}>
-                        <SearchField
-                            aria-label="Search countries and currencies"
-                            autoFocus
-                            className="currency-select__search"
-                        >
-                            <FontAwesomeIcon
-                                icon={faSearch}
-                                className="currency-select__search-icon"
-                            />
-                            <Input
-                                placeholder="Search country or currency"
-                                className="react-aria-Input inset"
-                            />
-                            <Button className="clear-button">
-                                <FontAwesomeIcon
-                                    icon={faX}
-                                    className="currency-select__clear-icon"
-                                />
-                            </Button>
-                        </SearchField>
+                    <Autocomplete
+                        filter={contains}
+                        disableAutoFocusFirst={false}
+                    >
+                        <CurrencySearchField
+                            onSubmit={handleCurrencySearchSubmit}
+                        />
                         <ListBox
                             className="currency-select__listbox"
+                            onAction={handleSelectionChange}
                             renderEmptyState={() => (
                                 <div className="currency-select__empty">
                                     No countries or currencies match your
@@ -359,6 +357,44 @@ const getCurrencySearchText = (entry: IntDollarConversionEntry): string => {
         entry.currency_name,
         entry.currency_code,
     ].join(" ")
+}
+
+const CurrencySearchField = ({
+    onSubmit,
+}: {
+    onSubmit: (focusedKey: React.Key | null) => boolean
+}): React.ReactElement => {
+    const selectState = React.useContext(SelectStateContext)
+    const listState = React.useContext(ListStateContext)
+
+    return (
+        <SearchField
+            aria-label="Search countries and currencies"
+            autoFocus
+            className="currency-select__search"
+            onSubmit={() => {
+                const didSelect = onSubmit(
+                    listState?.selectionManager.focusedKey ?? null
+                )
+                if (didSelect) selectState?.close()
+            }}
+        >
+            <FontAwesomeIcon
+                icon={faSearch}
+                className="currency-select__search-icon"
+            />
+            <Input
+                placeholder="Search country or currency"
+                className="react-aria-Input inset"
+            />
+            <Button className="clear-button">
+                <FontAwesomeIcon
+                    icon={faX}
+                    className="currency-select__clear-icon"
+                />
+            </Button>
+        </SearchField>
+    )
 }
 
 const CurrencyOption = ({
