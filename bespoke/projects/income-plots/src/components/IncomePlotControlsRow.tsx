@@ -43,7 +43,10 @@ import {
     faSearch,
     faX,
 } from "@fortawesome/free-solid-svg-icons"
-import type { IntDollarConversionKeyInfo } from "../types.ts"
+import type {
+    IntDollarConversionEntry,
+    IntDollarConversionKeyInfo,
+} from "../types.ts"
 
 export interface TabItem<TabKey extends string = string> {
     key: TabKey
@@ -168,6 +171,11 @@ export const IncomePlotControlsRowBottom = () => {
         conversionsLoadable.state === "hasData"
             ? conversionsLoadable.data
             : undefined
+    const isLoadingConversions = conversionsLoadable.state === "loading"
+    const hasConversionError =
+        conversionsLoadable.state === "hasError" ||
+        (conversionsLoadable.state === "hasData" &&
+            conversionsLoadable.data === undefined)
     const localConversion =
         localConversionLoadable.state === "hasData"
             ? localConversionLoadable.data
@@ -189,6 +197,8 @@ export const IncomePlotControlsRowBottom = () => {
             : (currentCurrency.country_code ?? "INTD")
 
     const handleSelectionChange = (key: React.Key | null) => {
+        if (key === null) return
+
         const keyStr = String(key)
         if (keyStr === "INTD") {
             setCurrency(INT_DOLLAR_CONVERSION_KEY_INFO)
@@ -210,7 +220,7 @@ export const IncomePlotControlsRowBottom = () => {
     const selectedLabel =
         currentCurrency.currency_code === "INTD"
             ? "International-$"
-            : `${currentCurrency.country} (${currentCurrency.currency_name})`
+            : `${currentCurrency.country} (${currentCurrency.currency_code})`
 
     return (
         <div className="income-plot-controls-bottom">
@@ -245,7 +255,7 @@ export const IncomePlotControlsRowBottom = () => {
                                 className="currency-select__search-icon"
                             />
                             <Input
-                                placeholder={"Search countries and currencies"}
+                                placeholder="Search country or currency"
                                 className="react-aria-Input inset"
                             />
                             <Button className="clear-button">
@@ -255,13 +265,21 @@ export const IncomePlotControlsRowBottom = () => {
                                 />
                             </Button>
                         </SearchField>
-                        <ListBox className="currency-select__listbox">
+                        <ListBox
+                            className="currency-select__listbox"
+                            renderEmptyState={() => (
+                                <div className="currency-select__empty">
+                                    No countries or currencies match your
+                                    search.
+                                </div>
+                            )}
+                        >
                             <ListBoxItem
                                 id="INTD"
-                                textValue="International Dollar"
+                                textValue="International Dollar INTD International-$"
                                 className="currency-select__item"
                             >
-                                International-$
+                                <b>International dollar</b>
                             </ListBoxItem>
                             {localConversion && (
                                 <ListBoxSection>
@@ -270,33 +288,97 @@ export const IncomePlotControlsRowBottom = () => {
                                     </Header>
                                     <ListBoxItem
                                         id={localConversion.country_code}
-                                        textValue={`${localConversion.country} ${localConversion.currency_name}`}
+                                        textValue={getCurrencySearchText(
+                                            localConversion
+                                        )}
                                         className="currency-select__item"
                                     >
-                                        {localConversion.country} (
-                                        {localConversion.currency_name})
+                                        <CurrencyOption
+                                            country={localConversion.country}
+                                            currencyName={
+                                                localConversion.currency_name
+                                            }
+                                            currencyCode={
+                                                localConversion.currency_code
+                                            }
+                                        />
                                     </ListBoxItem>
                                 </ListBoxSection>
                             )}
-                            <ListBoxSection>
-                                <Header className="currency-select__section-header">
-                                    All countries
-                                </Header>
-                                {conversionOptions.map((c) => (
-                                    <ListBoxItem
-                                        key={c.country_code}
-                                        id={c.country_code}
-                                        textValue={`${c.country} ${c.currency_name}`}
-                                        className="currency-select__item"
-                                    >
-                                        {c.country} ({c.currency_name})
-                                    </ListBoxItem>
-                                ))}
-                            </ListBoxSection>
+                            {isLoadingConversions && (
+                                <ListBoxItem
+                                    id="loading-currencies"
+                                    isDisabled
+                                    className="currency-select__item currency-select__item--status"
+                                >
+                                    Loading local currencies...
+                                </ListBoxItem>
+                            )}
+                            {hasConversionError && (
+                                <ListBoxItem
+                                    id="currency-error"
+                                    isDisabled
+                                    className="currency-select__item currency-select__item--status"
+                                >
+                                    Could not load local currencies.
+                                </ListBoxItem>
+                            )}
+                            {conversionOptions.length > 0 && (
+                                <ListBoxSection>
+                                    <Header className="currency-select__section-header">
+                                        All countries
+                                    </Header>
+                                    {conversionOptions.map((c) => (
+                                        <ListBoxItem
+                                            key={c.country_code}
+                                            id={c.country_code}
+                                            textValue={getCurrencySearchText(c)}
+                                            className="currency-select__item"
+                                        >
+                                            <CurrencyOption
+                                                country={c.country}
+                                                currencyName={c.currency_name}
+                                                currencyCode={c.currency_code}
+                                            />
+                                        </ListBoxItem>
+                                    ))}
+                                </ListBoxSection>
+                            )}
                         </ListBox>
                     </Autocomplete>
                 </Popover>
             </Select>
         </div>
+    )
+}
+
+const getCurrencySearchText = (entry: IntDollarConversionEntry): string => {
+    return [
+        entry.country,
+        entry.country_code,
+        entry.currency_name,
+        entry.currency_code,
+    ].join(" ")
+}
+
+const CurrencyOption = ({
+    country,
+    currencyName,
+    currencyCode,
+}: {
+    country: string
+    currencyName: string
+    currencyCode: string
+}): React.ReactElement => {
+    return (
+        <span className="currency-select__option">
+            <span className="currency-select__option-country">{country}</span>
+            <span className="currency-select__option-currency">
+                {currencyName}
+                <span className="currency-select__option-code">
+                    {currencyCode}
+                </span>
+            </span>
+        </span>
     )
 }
