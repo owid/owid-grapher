@@ -536,6 +536,67 @@ $panel-gap: 12px;
     }
 }
 
+.output-panels--dependency-ratio .dependency-panel-column {
+    flex: 2;
+    display: flex;
+    flex-direction: column;
+    gap: $panel-gap;
+    min-width: 0;
+}
+
+.output-panels--dependency-ratio .retirement-age-panel,
+.output-panels--dependency-ratio .dependency-ratio-panel {
+    flex: 0 0 116px;
+    min-height: 0;
+    border: 1px solid $panel-border;
+}
+
+.output-panels--dependency-ratio .age-share-panel {
+    flex: 1 1 auto;
+    min-height: 0;
+    border: 1px solid $panel-border;
+}
+
+.output-panels--dependency-ratio .pyramid-panel--dependency-ratio {
+    flex: 1;
+    min-height: 0;
+}
+
+.output-panels--dependency-ratio .chart-panel__content {
+    overflow: hidden;
+}
+
+.retirement-age-editor {
+    touch-action: none;
+}
+
+.pyramid-panel--with-top-bar .chart-panel__content {
+    display: flex;
+    flex-direction: column;
+}
+
+.pyramid-panel__content-with-top-bar {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+}
+
+.pyramid-panel__top-bar {
+    flex: 0 0 34px;
+    margin-bottom: 6px;
+}
+
+.pyramid-panel__pyramid {
+    flex: 1;
+    min-height: 0;
+}
+
+.dependency-ratio-pyramid-bar {
+    width: 100%;
+    height: 34px;
+}
+
 .chart-panel {
     position: relative;
     background: white;
@@ -721,6 +782,16 @@ $panel-gap: 12px;
             flex: 3;
             min-height: 0;
         }
+
+        .dependency-panel-column {
+            flex: 3;
+            min-height: 0;
+        }
+
+        .retirement-age-panel,
+        .dependency-ratio-panel {
+            flex-basis: 104px;
+        }
     }
 
     .chart-content {
@@ -731,7 +802,8 @@ $panel-gap: 12px;
 
 .breakpoint-small,
 .breakpoint-narrow {
-    &.demography-chart__simulation-variant {
+    &.demography-chart__simulation-variant,
+    &.demography-chart__dependency-ratio-variant {
         max-width: 400px;
         margin: 0 auto;
     }
@@ -788,6 +860,15 @@ $panel-gap: 12px;
     }
 
     .population-panel .chart-panel__content {
+        height: 220px;
+    }
+
+    .retirement-age-panel .chart-panel__content,
+    .dependency-ratio-panel .chart-panel__content {
+        height: 96px;
+    }
+
+    .age-share-panel .chart-panel__content {
         height: 220px;
     }
 

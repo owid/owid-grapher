@@ -4,7 +4,9 @@ import { scaleLinear } from "@visx/scale"
 import { Group } from "@visx/group"
 import type { Simulation } from "../helpers/useSimulation"
 import type { ProjectionType } from "./PopulationPyramid.js"
+import type { AgeZone } from "../helpers/types.js"
 import {
+    AGE_ZONE_BACKGROUND_OPACITY,
     FEMALE_COLOR,
     GRID_LINE_COLOR,
     GRID_LABEL_COLOR,
@@ -35,6 +37,7 @@ export interface PopulationPyramidHorizontalProps {
     projection?: ProjectionType
     barColor?: { female: string; male: string } | string
     unit?: "percent" | "absolute"
+    ageZones?: AgeZone[]
 }
 
 function PopulationPyramidHorizontalContent({
@@ -44,6 +47,7 @@ function PopulationPyramidHorizontalContent({
     projection = "custom",
     barColor,
     unit = "percent",
+    ageZones,
     width,
     height,
 }: PopulationPyramidHorizontalProps & { width: number; height: number }) {
@@ -185,6 +189,14 @@ function PopulationPyramidHorizontalContent({
                     unit={unit}
                 />
 
+                {ageZones && (
+                    <AgeZoneBackgroundBands
+                        xScale={xScale}
+                        innerHeight={innerHeight}
+                        ageZones={ageZones}
+                    />
+                )}
+
                 <AgeGroupBars
                     xScale={xScale}
                     yScale={yScaleFemale}
@@ -286,6 +298,47 @@ export function PopulationPyramidHorizontal(
                 />
             )}
         </div>
+    )
+}
+
+function AgeZoneBackgroundBands({
+    xScale,
+    innerHeight,
+    ageZones,
+}: {
+    xScale: ReturnType<typeof scaleLinear<number>>
+    innerHeight: number
+    ageZones: AgeZone[]
+}) {
+    return (
+        <g style={{ pointerEvents: "none" }}>
+            {ageZones.map((zone) => {
+                const firstAgeGroup = zone.ageGroups.at(-1)
+                const lastAgeGroup = zone.ageGroups[0]
+                if (!firstAgeGroup || !lastAgeGroup) return null
+
+                const { startAge } = parseAgeGroup(firstAgeGroup)
+                const { endAge } = parseAgeGroup(lastAgeGroup)
+                const cappedEndAge = Math.min(
+                    endAge + 1,
+                    PYRAMID_MAX_AGE + PYRAMID_AGE_GROUP_SIZE
+                )
+                const x = xScale(startAge)
+                const width = xScale(cappedEndAge) - x
+
+                return (
+                    <rect
+                        key={zone.zone}
+                        x={x}
+                        y={0}
+                        width={width}
+                        height={innerHeight}
+                        fill={zone.color}
+                        opacity={AGE_ZONE_BACKGROUND_OPACITY}
+                    />
+                )
+            })}
+        </g>
     )
 }
 

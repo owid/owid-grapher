@@ -3,6 +3,7 @@ import { CONTROL_YEARS } from "./helpers/constants.js"
 
 const VARIANT_NAMES = [
     "simulation",
+    "dependencyRatio",
     "population",
     "populationPyramid",
     "parameters",
@@ -28,6 +29,10 @@ export interface SimulationVariantConfig {
     fertilityRateAssumptions?: Record<number, number>
     lifeExpectancyAssumptions?: Record<number, number>
     netMigrationRateAssumptions?: Record<number, number>
+}
+
+export interface DependencyRatioVariantConfig extends SimulationVariantConfig {
+    retirementAgeAssumptions?: Record<number, number>
 }
 
 export interface PopulationVariantConfig {
@@ -67,6 +72,7 @@ export interface ParametersVariantConfig {
 
 export type DemographyVariantConfig =
     | SimulationVariantConfig
+    | DependencyRatioVariantConfig
     | PopulationVariantConfig
     | PopulationPyramidVariantConfig
     | ParametersVariantConfig
@@ -77,25 +83,12 @@ export function parseConfig(
 ): DemographyVariantConfig {
     switch (variantName) {
         case "simulation":
+            return parseSimulationConfig(raw)
+        case "dependencyRatio":
             return {
-                hideEntitySelector: parseBoolean(raw.hideEntitySelector),
-                region: raw.region,
-                title: raw.title,
-                subtitle: raw.subtitle,
-                focusParameter: parseParameterKey(raw.focusParameter),
-                hidePopulationPyramid: parseBoolean(raw.hidePopulationPyramid),
-                populationPyramidUnit: parsePyramidUnit(
-                    raw.populationPyramidUnit
-                ),
-                urlSync: parseBoolean(raw.urlSync),
-                fertilityRateAssumptions: parseControlPoints(
-                    raw.fertilityRateAssumptions
-                ),
-                lifeExpectancyAssumptions: parseControlPoints(
-                    raw.lifeExpectancyAssumptions
-                ),
-                netMigrationRateAssumptions: parseControlPoints(
-                    raw.netMigrationRateAssumptions
+                ...parseSimulationConfig(raw),
+                retirementAgeAssumptions: parseControlPoints(
+                    raw.retirementAgeAssumptions
                 ),
             }
         case "population":
@@ -156,6 +149,30 @@ export function parseConfig(
 
         default:
             throw new Error(`Unknown variant: ${variantName}`)
+    }
+}
+
+function parseSimulationConfig(
+    raw: Record<string, string>
+): SimulationVariantConfig {
+    return {
+        hideEntitySelector: parseBoolean(raw.hideEntitySelector),
+        region: raw.region,
+        title: raw.title,
+        subtitle: raw.subtitle,
+        focusParameter: parseParameterKey(raw.focusParameter),
+        hidePopulationPyramid: parseBoolean(raw.hidePopulationPyramid),
+        populationPyramidUnit: parsePyramidUnit(raw.populationPyramidUnit),
+        urlSync: parseBoolean(raw.urlSync),
+        fertilityRateAssumptions: parseControlPoints(
+            raw.fertilityRateAssumptions
+        ),
+        lifeExpectancyAssumptions: parseControlPoints(
+            raw.lifeExpectancyAssumptions
+        ),
+        netMigrationRateAssumptions: parseControlPoints(
+            raw.netMigrationRateAssumptions
+        ),
     }
 }
 

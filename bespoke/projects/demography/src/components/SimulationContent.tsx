@@ -6,7 +6,12 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCircleInfo } from "@fortawesome/free-solid-svg-icons"
 import { Tabs, TabList, Tab, TabPanel } from "react-aria-components"
 import { GrapherTrendArrow } from "@ourworldindata/components"
-import { CountryData, PARAMETER_KEYS, ParameterKey } from "../helpers/types"
+import {
+    AgeZone,
+    CountryData,
+    PARAMETER_KEYS,
+    ParameterKey,
+} from "../helpers/types"
 import {
     useSimulation,
     computeScenarioOverrides,
@@ -30,6 +35,19 @@ import {
 import { ProjectionLegend } from "./ProjectionLegend.js"
 import { parameterConfigByKey } from "../helpers/parameterConfigs.js"
 import { useTippyContainer } from "../../../../hooks/useTippyContainer.js"
+import {
+    DependencyRatioLineChart,
+    DependencyRatioPyramidBar,
+    RelativeAgeStackedAreaChart,
+    RetirementAgeEditor,
+} from "./DependencyRatioCharts.js"
+import {
+    defaultRetirementAgePoints,
+    getAgeZonesForRetirementAge,
+    getRetirementAgeForYear,
+    normalizeRetirementAgePoints,
+    type RetirementAgePoints,
+} from "../helpers/dependencyRatio.js"
 
 const PARAMETER_TAB_LABELS: Record<ParameterKey, string> = {
     fertilityRate: "Fertility rate",
@@ -51,6 +69,8 @@ export function SimulationContent({
     urlNetMigrationRateAssumptions,
     baselineEntityName,
     shouldSyncEntityName = false,
+    retirementAgeAssumptions,
+    mode = "population",
 }: {
     data: CountryData
     focusParameter?: ParameterKey
@@ -65,6 +85,8 @@ export function SimulationContent({
     urlNetMigrationRateAssumptions?: Record<number, number>
     baselineEntityName?: string
     shouldSyncEntityName?: boolean
+    retirementAgeAssumptions?: Record<number, number>
+    mode?: "population" | "dependencyRatio"
 }) {
     const [year, setYear] = useState(END_YEAR)
 
@@ -107,6 +129,23 @@ export function SimulationContent({
     )
     const scenarioParamsForUrl = simulation?.scenarioParams
     const baselineScenarioParamsForUrl = simulation?.initialScenarioParams
+
+    const [retirementAgePoints, setRetirementAgePoints] =
+        useState<RetirementAgePoints>(() =>
+            normalizeRetirementAgePoints(retirementAgeAssumptions)
+        )
+    const defaultRetirementAgePointValues = useMemo(
+        () => defaultRetirementAgePoints(),
+        []
+    )
+    const hasRetirementAgeChanges = CONTROL_YEARS.some(
+        (controlYear) =>
+            retirementAgePoints[controlYear] !==
+            defaultRetirementAgePointValues[controlYear]
+    )
+    const resetRetirementAge = useCallback(() => {
+        setRetirementAgePoints(defaultRetirementAgePointValues)
+    }, [defaultRetirementAgePointValues])
 
     useEffect(() => {
         if (!urlSync || !scenarioParamsForUrl || !baselineScenarioParamsForUrl)
@@ -152,6 +191,7 @@ export function SimulationContent({
         <div
             className={cx("chart-content", {
                 "chart-content--no-pyramid": hidePopulationPyramid,
+                "chart-content--dependency-ratio": mode === "dependencyRatio",
             })}
         >
             <div className="container container-left">
@@ -166,38 +206,22 @@ export function SimulationContent({
                     >
                         <TabList className="input-tabs__list">
                             {visibleParameterKeys.map((key) => (
-                                <Tab
+                                <InputTab
                                     key={key}
                                     id={key}
-                                    className="input-tabs__tab"
-                                >
-                                    <span
-                                        className={cx("input-tabs__tab-label", {
-                                            "input-tabs__tab-label--modified":
-                                                simulation.modifiedParameters.has(
-                                                    key
-                                                ),
-                                        })}
-                                    >
-                                        {/* Wrap the last word in a span so the modified dot is
-                                           positioned next to it even when the label line-breaks */}
-                                        {PARAMETER_TAB_LABELS[key]
-                                            .split(/\s(?=\S+$)/)
-                                            .map((part, i, arr) =>
-                                                i === arr.length - 1 ? (
-                                                    <span
-                                                        key={i}
-                                                        className="input-tabs__tab-label__last-word"
-                                                    >
-                                                        {part}
-                                                    </span>
-                                                ) : (
-                                                    part + " "
-                                                )
-                                            )}
-                                    </span>
-                                </Tab>
+                                    label={PARAMETER_TAB_LABELS[key]}
+                                    modified={simulation.modifiedParameters.has(
+                                        key
+                                    )}
+                                />
                             ))}
+                            {mode === "dependencyRatio" && (
+                                <InputTab
+                                    id="retirementAge"
+                                    label="Retirement age"
+                                    modified={hasRetirementAgeChanges}
+                                />
+                            )}
                         </TabList>
                         {visibleParameterKeys.map((key) => (
                             <TabPanel
@@ -213,40 +237,199 @@ export function SimulationContent({
                                 />
                             </TabPanel>
                         ))}
+                        {mode === "dependencyRatio" && (
+                            <TabPanel
+                                id="retirementAge"
+                                className="input-tabs__panel"
+                            >
+                                <RetirementAgeInputPanel
+                                    simulation={simulation}
+                                    retirementAgePoints={retirementAgePoints}
+                                    onChange={setRetirementAgePoints}
+                                    onReset={
+                                        hasRetirementAgeChanges
+                                            ? resetRetirementAge
+                                            : undefined
+                                    }
+                                />
+                            </TabPanel>
+                        )}
                     </Tabs>
                 </div>
                 <AssumptionsTable simulation={simulation} />
             </div>
             <div className="container container-right">
                 <h3 className="container__title">
-                    <span className="container__step">②</span> See how they
-                    affect population projections
+                    <span className="container__step">②</span>{" "}
+                    {mode === "dependencyRatio"
+                        ? "See how they affect the dependency ratio"
+                        : "See how they affect population projections"}
                 </h3>
-                <div className="output-panels">
-                    <ChartPanel
-                        className="population-panel"
-                        title="Population"
-                        subtitle="Historical estimates and projections of total population."
-                        header={
-                            <ProjectionLegend
-                                modified={hasUserChanges}
-                                userTooltip="This projection is based on the fertility, life expectancy, and migration assumptions you set. Change them in the assumptions panel to see how they affect population projections."
+                {mode === "dependencyRatio" ? (
+                    <DependencyRatioOutputPanels
+                        simulation={simulation}
+                        year={year}
+                        onYearChange={setYear}
+                        hidePopulationPyramid={hidePopulationPyramid}
+                        barColor={pyramidBarColor}
+                        populationPyramidUnit={populationPyramidUnit}
+                        retirementAgePoints={retirementAgePoints}
+                    />
+                ) : (
+                    <div className="output-panels">
+                        <ChartPanel
+                            className="population-panel"
+                            title="Population"
+                            subtitle="Historical estimates and projections of total population."
+                            header={
+                                <ProjectionLegend
+                                    modified={hasUserChanges}
+                                    userTooltip="This projection is based on the fertility, life expectancy, and migration assumptions you set. Change them in the assumptions panel to see how they affect population projections."
+                                />
+                            }
+                        >
+                            <PopulationChart simulation={simulation} />
+                        </ChartPanel>
+                        {!hidePopulationPyramid && (
+                            <AgeStructurePanel
+                                simulation={simulation}
+                                year={year}
+                                onYearChange={setYear}
+                                barColor={pyramidBarColor}
+                                populationPyramidUnit={populationPyramidUnit}
                             />
-                        }
-                    >
-                        <PopulationChart simulation={simulation} />
-                    </ChartPanel>
-                    {!hidePopulationPyramid && (
-                        <AgeStructurePanel
-                            simulation={simulation}
-                            year={year}
-                            onYearChange={setYear}
-                            barColor={pyramidBarColor}
-                            populationPyramidUnit={populationPyramidUnit}
-                        />
-                    )}
-                </div>
+                        )}
+                    </div>
+                )}
             </div>
+        </div>
+    )
+}
+
+function InputTab({
+    id,
+    label,
+    modified,
+}: {
+    id: string
+    label: string
+    modified: boolean
+}) {
+    return (
+        <Tab id={id} className="input-tabs__tab">
+            <span
+                className={cx("input-tabs__tab-label", {
+                    "input-tabs__tab-label--modified": modified,
+                })}
+            >
+                {/* Wrap the last word in a span so the modified dot is positioned
+                   next to it even when the label line-breaks. */}
+                {label.split(/\s(?=\S+$)/).map((part, i, arr) =>
+                    i === arr.length - 1 ? (
+                        <span
+                            key={i}
+                            className="input-tabs__tab-label__last-word"
+                        >
+                            {part}
+                        </span>
+                    ) : (
+                        part + " "
+                    )
+                )}
+            </span>
+        </Tab>
+    )
+}
+
+function RetirementAgeInputPanel({
+    simulation,
+    retirementAgePoints,
+    onChange,
+    onReset,
+}: {
+    simulation: Simulation
+    retirementAgePoints: RetirementAgePoints
+    onChange: (points: RetirementAgePoints) => void
+    onReset?: () => void
+}) {
+    return (
+        <ChartPanel
+            className="retirement-age-panel"
+            title="Retirement age"
+            subtitle="Set the age from which people are counted as retired. Life expectancy is shown for reference."
+            onReset={onReset}
+        >
+            <RetirementAgeEditor
+                simulation={simulation}
+                retirementAgePoints={retirementAgePoints}
+                onChange={onChange}
+            />
+        </ChartPanel>
+    )
+}
+
+function DependencyRatioOutputPanels({
+    simulation,
+    year,
+    onYearChange,
+    hidePopulationPyramid,
+    barColor,
+    populationPyramidUnit,
+    retirementAgePoints,
+}: {
+    simulation: Simulation
+    year: number
+    onYearChange: (year: number) => void
+    hidePopulationPyramid?: boolean
+    barColor?: { female: string; male: string } | string
+    populationPyramidUnit?: "percent" | "absolute"
+    retirementAgePoints: RetirementAgePoints
+}) {
+    const retirementAge = getRetirementAgeForYear(retirementAgePoints, year)
+    const ageZones = getAgeZonesForRetirementAge(retirementAge)
+    const pyramidTopBar = (
+        <DependencyRatioPyramidBar
+            simulation={simulation}
+            retirementAgePoints={retirementAgePoints}
+            year={year}
+        />
+    )
+
+    return (
+        <div className="output-panels output-panels--dependency-ratio">
+            <div className="dependency-panel-column">
+                <ChartPanel
+                    className="age-share-panel"
+                    title="Population by broad age group"
+                    subtitle="Share of the population who are young, working age, and retired."
+                >
+                    <RelativeAgeStackedAreaChart
+                        simulation={simulation}
+                        retirementAgePoints={retirementAgePoints}
+                    />
+                </ChartPanel>
+                <ChartPanel
+                    className="dependency-ratio-panel"
+                    title="Dependency ratio"
+                >
+                    <DependencyRatioLineChart
+                        simulation={simulation}
+                        retirementAgePoints={retirementAgePoints}
+                    />
+                </ChartPanel>
+            </div>
+            {!hidePopulationPyramid && (
+                <AgeStructurePanel
+                    simulation={simulation}
+                    year={year}
+                    onYearChange={onYearChange}
+                    barColor={barColor}
+                    populationPyramidUnit={populationPyramidUnit}
+                    ageZones={ageZones}
+                    topContent={pyramidTopBar}
+                    className="pyramid-panel--dependency-ratio"
+                />
+            )}
         </div>
     )
 }
@@ -257,47 +440,88 @@ function AgeStructurePanel({
     onYearChange,
     barColor,
     populationPyramidUnit,
+    ageZones,
+    topContent,
+    className,
 }: {
     simulation: Simulation
     year: number
     onYearChange: (year: number) => void
     barColor?: { female: string; male: string } | string
     populationPyramidUnit?: "percent" | "absolute"
+    ageZones?: AgeZone[]
+    topContent?: React.ReactNode
+    className?: string
 }) {
     const title = `Age structure in ${year}`
     const subtitle = "Population by age and sex."
     const slider = (
         <SimpleYearSlider selectedYear={year} onChange={onYearChange} />
     )
+    const pyramid = (
+        <PyramidWithOptionalTopBar topContent={topContent}>
+            <PopulationPyramid
+                simulation={simulation}
+                year={year}
+                barColor={barColor}
+                unit={populationPyramidUnit}
+                ageZones={ageZones}
+                colorBarsByAgeZone={!topContent}
+            />
+        </PyramidWithOptionalTopBar>
+    )
+    const horizontalPyramid = (
+        <PyramidWithOptionalTopBar topContent={topContent}>
+            <PopulationPyramidHorizontal
+                simulation={simulation}
+                year={year}
+                barColor={barColor}
+                unit={populationPyramidUnit}
+                ageZones={ageZones}
+            />
+        </PyramidWithOptionalTopBar>
+    )
+
     return (
         <>
             <ChartPanel
-                className="pyramid-panel"
+                className={cx("pyramid-panel", className, {
+                    "pyramid-panel--with-top-bar": topContent,
+                })}
                 title={title}
                 subtitle={subtitle}
                 footer={slider}
             >
-                <PopulationPyramid
-                    simulation={simulation}
-                    year={year}
-                    barColor={barColor}
-                    unit={populationPyramidUnit}
-                />
+                {pyramid}
             </ChartPanel>
             <ChartPanel
-                className="age-distribution-panel"
+                className={cx("age-distribution-panel", className, {
+                    "pyramid-panel--with-top-bar": topContent,
+                })}
                 title={title}
                 subtitle={subtitle}
                 header={slider}
             >
-                <PopulationPyramidHorizontal
-                    simulation={simulation}
-                    year={year}
-                    barColor={barColor}
-                    unit={populationPyramidUnit}
-                />
+                {horizontalPyramid}
             </ChartPanel>
         </>
+    )
+}
+
+function PyramidWithOptionalTopBar({
+    topContent,
+    children,
+}: {
+    topContent?: React.ReactNode
+    children: React.ReactNode
+}) {
+    if (!topContent) return <>{children}</>
+
+    return (
+        <div className="pyramid-panel__content-with-top-bar">
+            <div className="pyramid-panel__top-bar">{topContent}</div>
+            <div className="pyramid-panel__pyramid">{children}</div>
+        </div>
     )
 }
 
@@ -397,7 +621,7 @@ export function ChartPanel({
     onReset,
 }: {
     title: string
-    subtitle: string
+    subtitle?: string
     tooltipContent?: string
     children?: React.ReactNode
     header?: React.ReactNode
@@ -416,26 +640,28 @@ export function ChartPanel({
                 </button>
             )}
             <h3 className="chart-panel__title">{title}</h3>
-            <p className="chart-panel__subtitle">
-                {subtitle}
-                {tooltipContent && (
-                    <span className="nowrap">
-                        {"\u00a0"}
-                        <Tippy
-                            content={tooltipContent}
-                            placement="top"
-                            appendTo={getTippyContainer}
-                        >
-                            <span className="chart-panel__info-icon">
-                                <FontAwesomeIcon
-                                    icon={faCircleInfo}
-                                    size="sm"
-                                />
-                            </span>
-                        </Tippy>
-                    </span>
-                )}
-            </p>
+            {(subtitle || tooltipContent) && (
+                <p className="chart-panel__subtitle">
+                    {subtitle}
+                    {tooltipContent && (
+                        <span className="nowrap">
+                            {"\u00a0"}
+                            <Tippy
+                                content={tooltipContent}
+                                placement="top"
+                                appendTo={getTippyContainer}
+                            >
+                                <span className="chart-panel__info-icon">
+                                    <FontAwesomeIcon
+                                        icon={faCircleInfo}
+                                        size="sm"
+                                    />
+                                </span>
+                            </Tippy>
+                        </span>
+                    )}
+                </p>
+            )}
             {header && <div className="chart-panel__header">{header}</div>}
             {children && <div className="chart-panel__content">{children}</div>}
             {footer && <div className="chart-panel__footer">{footer}</div>}

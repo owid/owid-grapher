@@ -55,6 +55,7 @@ export interface PopulationPyramidProps {
     projection?: ProjectionType
     barColor?: { female: string; male: string } | string
     unit?: "percent" | "absolute"
+    colorBarsByAgeZone?: boolean
 }
 
 function PopulationPyramidContent({
@@ -65,6 +66,7 @@ function PopulationPyramidContent({
     projection = "custom",
     barColor: barColorProp,
     unit = "percent",
+    colorBarsByAgeZone = true,
     width,
     height,
 }: PopulationPyramidProps & { width: number; height: number }) {
@@ -224,6 +226,7 @@ function PopulationPyramidContent({
                         hoverFontSize={fonts.hoverLabel}
                         ageZones={ageZones}
                         defaultBarColor={defaultBarColor}
+                        colorBarsByAgeZone={colorBarsByAgeZone}
                         side="male"
                         hoveredAgeGroup={hoveredAgeGroup}
                         unit={unit}
@@ -239,6 +242,7 @@ function PopulationPyramidContent({
                         hoverFontSize={fonts.hoverLabel}
                         ageZones={ageZones}
                         defaultBarColor={defaultBarColor}
+                        colorBarsByAgeZone={colorBarsByAgeZone}
                         side="female"
                         hoveredAgeGroup={hoveredAgeGroup}
                         unit={unit}
@@ -318,6 +322,7 @@ function PopulationPyramidHalf({
     hoverFontSize,
     ageZones,
     defaultBarColor = DENIM_BLUE,
+    colorBarsByAgeZone,
     side,
     hoveredAgeGroup,
     unit = "percent",
@@ -331,6 +336,7 @@ function PopulationPyramidHalf({
     hoverFontSize: number
     ageZones?: AgeZone[]
     defaultBarColor?: string
+    colorBarsByAgeZone: boolean
     side: "male" | "female"
     hoveredAgeGroup: string | null
     unit?: "percent" | "absolute"
@@ -384,9 +390,10 @@ function PopulationPyramidHalf({
                 const barWidth = Math.abs(scaledVal - zeroX)
                 const barX = Math.min(scaledVal, zeroX)
                 const barY = yScale(g) ?? 0
-                const barColor =
-                    ageZones?.find((z) => z.ageGroups.includes(g))?.color ??
-                    defaultBarColor
+                const barColor = colorBarsByAgeZone
+                    ? (ageZones?.find((z) => z.ageGroups.includes(g))?.color ??
+                      defaultBarColor)
+                    : defaultBarColor
                 const dimmed = hoveredAgeGroup !== null && hoveredAgeGroup !== g
 
                 return (
@@ -419,9 +426,11 @@ function PopulationPyramidHalf({
                     direction={side === "male" ? "left" : "right"}
                     fontSize={hoverFontSize}
                     barColor={
-                        ageZones?.find((z) =>
-                            z.ageGroups.includes(hoveredAgeGroup)
-                        )?.color ?? defaultBarColor
+                        colorBarsByAgeZone
+                            ? (ageZones?.find((z) =>
+                                  z.ageGroups.includes(hoveredAgeGroup)
+                              )?.color ?? defaultBarColor)
+                            : defaultBarColor
                     }
                     unit={unit}
                 />

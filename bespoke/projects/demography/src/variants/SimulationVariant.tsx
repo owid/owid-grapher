@@ -4,6 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query"
 
 import { queryClient, useDemographyData } from "../helpers/fetch.js"
 import type {
+    DependencyRatioVariantConfig,
     PopulationPyramidUnit,
     SimulationVariantConfig,
     VariantProps,
@@ -39,9 +40,41 @@ import {
     breakpointClass,
 } from "../helpers/useBreakpoint.js"
 
+type SimulationContentMode = "population" | "dependencyRatio"
+
 export function SimulationVariant({
     config,
 }: VariantProps<SimulationVariantConfig>): React.ReactElement {
+    return (
+        <SimulationVariantShell
+            config={config}
+            mode="population"
+            className="demography-chart__simulation-variant"
+        />
+    )
+}
+
+export function DependencyRatioVariant({
+    config,
+}: VariantProps<DependencyRatioVariantConfig>): React.ReactElement {
+    return (
+        <SimulationVariantShell
+            config={config}
+            mode="dependencyRatio"
+            className="demography-chart__dependency-ratio-variant"
+        />
+    )
+}
+
+function SimulationVariantShell({
+    config,
+    mode,
+    className,
+}: {
+    config: SimulationVariantConfig | DependencyRatioVariantConfig
+    mode: SimulationContentMode
+    className: string
+}): React.ReactElement {
     const { breakpoint, ref: rootRef } = useContainerBreakpoint()
 
     return (
@@ -50,11 +83,12 @@ export function SimulationVariant({
                 <div
                     ref={rootRef}
                     className={cx(
-                        "demography-chart demography-chart__simulation-variant",
+                        "demography-chart",
+                        className,
                         breakpointClass(breakpoint)
                     )}
                 >
-                    <FetchingSimulationVariant config={config} />
+                    <FetchingSimulationVariant config={config} mode={mode} />
                 </div>
             </BreakpointProvider>
         </QueryClientProvider>
@@ -63,8 +97,10 @@ export function SimulationVariant({
 
 function FetchingSimulationVariant({
     config,
+    mode,
 }: {
-    config: SimulationVariantConfig
+    config: SimulationVariantConfig | DependencyRatioVariantConfig
+    mode: SimulationContentMode
 }): React.ReactElement {
     const urlState = useMemo(
         () => (config.urlSync ? parseSimulationUrlState() : {}),
@@ -152,6 +188,12 @@ function FetchingSimulationVariant({
             }
             baselineEntityName={getBaselineEntityName(config.region)}
             shouldSyncEntityName={shouldSyncEntityName}
+            retirementAgeAssumptions={
+                "retirementAgeAssumptions" in config
+                    ? config.retirementAgeAssumptions
+                    : undefined
+            }
+            mode={mode}
         />
     )
 }
@@ -199,6 +241,8 @@ function CaptionedSimulationVariant({
     urlNetMigrationRateAssumptions,
     baselineEntityName,
     shouldSyncEntityName,
+    retirementAgeAssumptions,
+    mode,
 }: {
     data: CountryData
     metadata: DemographyMetadata
@@ -220,29 +264,38 @@ function CaptionedSimulationVariant({
     urlNetMigrationRateAssumptions?: Record<number, number>
     baselineEntityName?: string
     shouldSyncEntityName?: boolean
+    retirementAgeAssumptions?: Record<number, number>
+    mode: SimulationContentMode
 }) {
     const countryName = data.country
 
+    const entitySelector = (
+        <EntityNameOrSelector
+            hideEntitySelector={hideEntitySelector}
+            entityName={entityName}
+            countryName={countryName}
+            metadata={metadata}
+            onChange={setEntityName}
+        />
+    )
     const title: React.ReactNode = titleOverride ? (
         titleOverride
+    ) : mode === "dependencyRatio" ? (
+        hideEntitySelector && countryName === "World" ? (
+            <>How will the dependency ratio evolve?</>
+        ) : (
+            <>How will the dependency ratio evolve in {entitySelector}?</>
+        )
     ) : hideEntitySelector && countryName === "World" ? (
         <>How many people will there be by 2100?</>
     ) : (
-        <>
-            How many people will live in{" "}
-            <EntityNameOrSelector
-                hideEntitySelector={hideEntitySelector}
-                entityName={entityName}
-                countryName={countryName}
-                metadata={metadata}
-                onChange={setEntityName}
-            />{" "}
-            by 2100?
-        </>
+        <>How many people will live in {entitySelector} by 2100?</>
     )
     const subtitle =
         subtitleOverride ??
-        "Demographers publish projections of how populations will change in the future. But what if fertility rates fall faster, or rebound? Or migration rates change? Adjust these assumptions and compare."
+        (mode === "dependencyRatio"
+            ? "Adjust demographic assumptions and the retirement age to see how the balance between young, working-age, and retired populations changes over time."
+            : "Demographers publish projections of how populations will change in the future. But what if fertility rates fall faster, or rebound? Or migration rates change? Adjust these assumptions and compare.")
 
     return (
         <Frame className="demography-captioned-chart">
@@ -269,6 +322,8 @@ function CaptionedSimulationVariant({
                     }
                     baselineEntityName={baselineEntityName}
                     shouldSyncEntityName={shouldSyncEntityName}
+                    retirementAgeAssumptions={retirementAgeAssumptions}
+                    mode={mode}
                 />
             </div>
             <ChartFooter

@@ -7,7 +7,10 @@ import type {
 } from "owid-bespoke-types"
 import StylesTarget from "vite-plugin-css-position/react"
 
-import { SimulationVariant } from "./variants/SimulationVariant.js"
+import {
+    DependencyRatioVariant,
+    SimulationVariant,
+} from "./variants/SimulationVariant.js"
 import { PopulationVariant } from "./variants/PopulationVariant.js"
 import { PopulationPyramidVariant } from "./variants/PopulationPyramidVariant.js"
 import { ParametersVariant } from "./variants/ParametersVariant.js"
@@ -23,6 +26,12 @@ export const VARIANTS = [
     {
         name: "simulation",
         component: SimulationVariant,
+        demoConfig: {},
+        demoSize: "widest",
+    },
+    {
+        name: "dependencyRatio",
+        component: DependencyRatioVariant,
         demoConfig: {},
         demoSize: "widest",
     },
