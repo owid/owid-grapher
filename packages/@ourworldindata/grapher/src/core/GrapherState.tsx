@@ -1990,8 +1990,8 @@ export class GrapherState
                 "adjustStateForTab has been called before grapher has loaded its data, this is probably a mistake"
             )
 
-        this.ensureTimeHandlesAreSensibleForTab(tab)
         this.ensureEntitySelectionIsSensibleForTab(tab)
+        this.ensureTimeHandlesAreSensibleForTab(tab)
 
         // Stop animation when switching to a tab where playback is disabled
         if (this.disablePlay && this.isTimelineAnimationActive) {
