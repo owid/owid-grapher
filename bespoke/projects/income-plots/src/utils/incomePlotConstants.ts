@@ -26,6 +26,20 @@ export const INT_DOLLAR_CONVERSION_KEY_INFO: IntDollarConversionKeyInfo = {
     conversion_factor: 1,
 }
 
+export const SUGGESTED_CURRENCY_COUNTRY_CODES = [
+    "BRA",
+    "CHN",
+    "DEU",
+    "ESP",
+    "FRA",
+    "GBR",
+    "IDN",
+    "IND",
+    "JPN",
+    "RUS",
+    "USA",
+] as const
+
 export interface LegendEntry {
     name: string
     color: string
