@@ -46,7 +46,7 @@ const LABEL_FONT_SIZES = [13, 12, 11, 10, 9] as const
 const CHAR_WIDTH_RATIO = 0.4 // approximate char width as fraction of font size
 
 interface IncomePlotProps {
-    aspectRatio?: number
+    height: number
     width: number
     isNarrow?: boolean
 }
@@ -778,7 +778,7 @@ const IncomePlotPointer = ({
 }
 
 export function IncomePlot({
-    aspectRatio = 1,
+    height,
     isNarrow = false,
     width,
 }: IncomePlotProps) {
@@ -798,7 +798,7 @@ export function IncomePlot({
     const marginLeft = 20
 
     const plotWidth = Math.min(width, 1000)
-    const plotHeight = plotWidth / aspectRatio
+    const plotHeight = height
 
     const xScale = useMemo(() => {
         const xMin = R.first(xValues)

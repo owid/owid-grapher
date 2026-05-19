@@ -159,6 +159,10 @@
     }
 }
 
+.income-plot-captioned-chart {
+    color: var(--gray-80);
+}
+
 .income-plot-chart {
     .plot-series-stacked {
         .income-plot-series .area-bg {
