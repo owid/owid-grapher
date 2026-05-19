@@ -406,7 +406,8 @@ const IncomePlotAreasStacked = ({ xScale, height }: IncomePlotAreasProps) => {
                             d={series.area}
                             clipPath="url(#highlight-clip)"
                             style={{ pointerEvents: "none" }}
-                            strokeWidth={0.1}
+                            strokeWidth={0.15}
+                            strokeOpacity={0.5}
                             stroke="white"
                         />
                     </g>
