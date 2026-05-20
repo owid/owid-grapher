@@ -179,7 +179,7 @@
         "tinyexec": "^1.1.1",
         "topojson-client": "^3.1.0",
         "ts-pattern": "^5.8.0",
-        "typeorm": "^0.3.28",
+        "typeorm": "^1.0.0",
         "unist-util-visit": "^5.0.0",
         "url-join": "^5.0.0",
         "url-parse": "^1.5.10",
