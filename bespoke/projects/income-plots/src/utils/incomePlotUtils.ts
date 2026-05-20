@@ -220,6 +220,7 @@ export const getTimeIntervalStr = (interval: TimeInterval) => {
 }
 
 export const roundPercentage = (num: number) => {
-    if (num <= 1) return R.round(num, 1)
+    if (num <= 1) return "<1"
+    if (num >= 99) return ">99"
     else return Math.round(num)
 }
