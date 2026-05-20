@@ -69,8 +69,7 @@
     }
 }
 
-.latest-topic-facets__topic-pill--all-active,
-.latest-topic-facets__topic-pill--active {
+.latest-topic-facets__topic-pill[data-selected] {
     background-color: $blue-20;
     border-color: $blue-20;
 
@@ -79,10 +78,15 @@
     }
 }
 
-.latest-topic-facets__topic-pill--disabled {
+.latest-topic-facets__topic-pill[data-disabled] {
     opacity: 0.4;
     cursor: not-allowed;
     pointer-events: none;
+}
+
+.latest-topic-facets__topic-pill[data-focus-visible] {
+    outline: 2px solid $blue-60;
+    outline-offset: 2px;
 }
 
 .latest-topic-facets__scroll-arrow {
@@ -112,11 +116,17 @@
 }
 
 .latest-topic-facets__scroll-arrow--right {
-    right: -44px;
-    width: #{64px + 44px};
+    right: -36px; // do not extend to the edge of the dropdown to preserve the outline on focus
+    width: #{64px + 36px};
     background: linear-gradient(to left, $gray-5 60%, transparent);
     justify-content: flex-end;
-    padding-right: 48px;
+    padding-right: 44px;
+
+    @include sm-only {
+        right: 0;
+        width: 64px;
+        padding-right: 4px;
+    }
 }
 
 // ---------- Content type dropdown ----------

@@ -14,21 +14,23 @@ import {
     ListBoxItem,
     Popover,
     Select,
+    ToggleButton,
+    ToggleButtonGroup,
+    type Key,
+    type ToggleButtonProps,
 } from "react-aria-components"
 import { LATEST_TYPE_VALUES, LatestType } from "@ourworldindata/types"
 import { latestTypeLabelPlural } from "./latestUtils.js"
 
 /**
- * Wrapper component that accepts the `itemId` prop required by
- * react-horizontal-scrolling-menu while rendering a native button.
+ * Wrapper that accepts the `itemId` prop required by
+ * react-horizontal-scrolling-menu while rendering a react-aria ToggleButton.
  */
 const TopicPill = ({
     itemId: _itemId,
     ...props
-}: {
-    itemId: string
-} & React.ButtonHTMLAttributes<HTMLButtonElement>) => {
-    return <button {...props} />
+}: { itemId: string } & ToggleButtonProps) => {
+    return <ToggleButton {...props} />
 }
 
 const LeftArrow = () => {
@@ -51,14 +53,17 @@ const LeftArrow = () => {
 const ContentTypeListBoxItem = ({
     id,
     label,
+    ariaLabel,
 }: {
     id: string
     label: string
+    ariaLabel?: string
 }) => {
     return (
         <ListBoxItem
             id={id}
             textValue={label}
+            aria-label={ariaLabel}
             className="latest-topic-facets__content-type-dropdown-item"
         >
             {({ isSelected }) => (
@@ -128,21 +133,36 @@ export const LatestTopicFacets = ({
     // multi-value array with disjunctive (OR) semantics — matching /search,
     // which uses the same `formatTopicFacetFilters` helper. Keeping that
     // shape preserves parity if multi-select is ever added back.
-    const handleTopicToggle = useCallback(
-        (topic: string) => {
-            const isSelected = selectedTopics.includes(topic)
-            if (isSelected) {
-                onTopicsChange([])
-            } else {
-                onTopicsChange([topic])
-            }
-            const item = apiRef.current.getItemById?.(topic)
-            if (item) {
-                apiRef.current.scrollToItem(item, "smooth", "center")
+    const selectedKeys =
+        selectedTopics.length === 0
+            ? new Set<Key>(["all"])
+            : new Set<Key>(selectedTopics)
+
+    const handleSelectionChange = useCallback(
+        (keys: Set<Key>) => {
+            // "all" is a synthetic key for the All pill — strip it before
+            // propagating, since `selectedTopics` represents that state as [].
+            const next = [...keys]
+                .filter((k) => k !== "all")
+                .map((k) => String(k))
+            onTopicsChange(next)
+            const focusKey = next[0]
+            if (focusKey) {
+                const item = apiRef.current.getItemById?.(focusKey)
+                if (item) {
+                    apiRef.current.scrollToItem(item, "smooth", "center")
+                }
             }
         },
-        [selectedTopics, onTopicsChange]
+        [onTopicsChange]
     )
+
+    const handlePillFocus = useCallback((id: string) => {
+        const item = apiRef.current.getItemById?.(id)
+        if (item) {
+            apiRef.current.scrollToItem(item, "smooth", "nearest")
+        }
+    }, [])
 
     // Scroll the selected topic into view on initial load
     useEffect(() => {
@@ -161,7 +181,12 @@ export const LatestTopicFacets = ({
     return (
         <div className="latest-topic-facets">
             <div className="latest-topic-facets__filters">
-                <div className="latest-topic-facets__topic-pills">
+                <ToggleButtonGroup
+                    className="latest-topic-facets__topic-pills"
+                    selectionMode="single"
+                    selectedKeys={selectedKeys}
+                    onSelectionChange={handleSelectionChange}
+                >
                     <ScrollMenu
                         LeftArrow={LeftArrow}
                         RightArrow={RightArrow}
@@ -171,44 +196,28 @@ export const LatestTopicFacets = ({
                             <TopicPill
                                 key="all"
                                 itemId="all"
-                                className={cx(
-                                    "latest-topic-facets__topic-pill",
-                                    {
-                                        "latest-topic-facets__topic-pill--all-active":
-                                            selectedTopics.length === 0,
-                                    }
-                                )}
-                                onClick={() => onTopicsChange([])}
+                                id="all"
+                                className="latest-topic-facets__topic-pill"
+                                onFocus={() => handlePillFocus("all")}
+                                aria-label="All topics"
                             >
                                 All
                             </TopicPill>,
-                            ...topics.map((topic) => {
-                                const isSelected =
-                                    selectedTopics.includes(topic)
-                                const isDisabled = disabledTopics.has(topic)
-                                return (
-                                    <TopicPill
-                                        key={topic}
-                                        itemId={topic}
-                                        className={cx(
-                                            "latest-topic-facets__topic-pill",
-                                            {
-                                                "latest-topic-facets__topic-pill--active":
-                                                    isSelected,
-                                                "latest-topic-facets__topic-pill--disabled":
-                                                    isDisabled,
-                                            }
-                                        )}
-                                        onClick={() => handleTopicToggle(topic)}
-                                        disabled={isDisabled}
-                                    >
-                                        {topic}
-                                    </TopicPill>
-                                )
-                            }),
+                            ...topics.map((topic) => (
+                                <TopicPill
+                                    key={topic}
+                                    itemId={topic}
+                                    id={topic}
+                                    className="latest-topic-facets__topic-pill"
+                                    isDisabled={disabledTopics.has(topic)}
+                                    onFocus={() => handlePillFocus(topic)}
+                                >
+                                    {topic}
+                                </TopicPill>
+                            )),
                         ]}
                     </ScrollMenu>
-                </div>
+                </ToggleButtonGroup>
                 <Select
                     className="latest-topic-facets__content-type-dropdown"
                     value={selectedType ?? "all"}
@@ -220,7 +229,6 @@ export const LatestTopicFacets = ({
                         )
                     }
                     disabledKeys={disabledTypes}
-                    aria-label="Filter by content type"
                 >
                     <Button className="latest-topic-facets__content-type-trigger">
                         <FontAwesomeIcon
@@ -243,7 +251,11 @@ export const LatestTopicFacets = ({
                         offset={4}
                     >
                         <ListBox>
-                            <ContentTypeListBoxItem id="all" label="All" />
+                            <ContentTypeListBoxItem
+                                id="all"
+                                label="All"
+                                ariaLabel="All types"
+                            />
                             {LATEST_TYPE_VALUES.map((value) => (
                                 <ContentTypeListBoxItem
                                     key={value}
