@@ -8,6 +8,7 @@ import {
     merge,
     dimensionsToViewId,
     MultiDimDataPageConfig,
+    extractMultiDimChoicesFromSearchParams,
     MultiDimXChartConfigsTableName,
     parseChartConfig,
 } from "@ourworldindata/utils"
@@ -128,17 +129,31 @@ async function getRecords(
         [slug],
         ContentGraphLinkType.Grapher
     )
-    const numRelatedArticles = linksFromGdocs.length
-    // Related-article links point at the bare mdim slug, which resolves to the
-    // default view. Attribute the count to that view only, so a popular mdim
-    // doesn't boost every one of its views equally.
-    const defaultViewDimensions = MultiDimDataPageConfig.fromObject(
-        multiDim.config
-    ).filterToAvailableChoices({}).selectedChoices
-    const defaultViewId = dimensionsToViewId(defaultViewDimensions)
+    // Attribute each link to the specific multi-dim view it points to based
+    // on the dimension params in its queryString. Links without dimension
+    // params (or with params that don't match any dimension) resolve to the
+    // default view.
+    const mdimConfig = MultiDimDataPageConfig.fromObject(multiDim.config)
+    const defaultViewDimensions =
+        mdimConfig.filterToAvailableChoices({}).selectedChoices
     const defaultViewQueryStr = dimensionsToSortedQueryStr(
         defaultViewDimensions
     )
+    const numRelatedArticlesByViewId = new Map<string, number>()
+    for (const link of linksFromGdocs) {
+        const searchParams = new URLSearchParams(link.queryString ?? "")
+        const dimensionChoices = extractMultiDimChoicesFromSearchParams(
+            searchParams,
+            mdimConfig
+        )
+        const resolvedChoices =
+            mdimConfig.filterToAvailableChoices(dimensionChoices).selectedChoices
+        const viewId = dimensionsToViewId(resolvedChoices)
+        numRelatedArticlesByViewId.set(
+            viewId,
+            (numRelatedArticlesByViewId.get(viewId) ?? 0) + 1
+        )
+    }
     // Bucket grapher slugs that now redirect into this mdim by the target
     // view's queryStr, so each view can pick up its own predecessors. A
     // redirect without a queryStr targets the mdim's default view.
@@ -152,7 +167,7 @@ async function getRecords(
     return multiDim.config.views.map((view) => {
         const viewId = dimensionsToViewId(view.dimensions)
         const viewNumRelatedArticles =
-            viewId === defaultViewId ? numRelatedArticles : 0
+            numRelatedArticlesByViewId.get(viewId) ?? 0
         const id = multiDimXChartConfigIdMap.get(`${multiDim.id}-${viewId}`)
         if (!id) {
             throw new Error(
