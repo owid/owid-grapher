@@ -24,41 +24,48 @@
 }
 
 .food-trade-controls {
+    margin-bottom: 16px;
+}
+
+.food-trade-controls__title {
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 0.15em;
+    color: $light-text;
+    text-transform: uppercase;
+    margin: 0;
+    margin-bottom: 12px;
+}
+
+.food-trade-controls__content {
+    display: flex;
+    flex-direction: column;
+    row-gap: 16px;
+}
+
+.food-trade-controls__row {
     display: flex;
     column-gap: 16px;
     row-gap: 16px;
-    margin-bottom: 16px;
 
     > * {
         flex: 1 1 0;
     }
 }
 
-// Stack the three controls vertically at the same container-width
-// threshold the Sankey uses, so the whole UI collapses to one column
-// at narrow widths.
+// Stack the controls vertically at the same container-width threshold
+// the Sankey uses, so the whole UI collapses to one column at narrow
+// widths. Tighter row-gap stacked since vertical spacing reads heavier
+// than horizontal.
 @container food-trade-chart (max-width: 499.99px) {
-    .food-trade-controls {
+    .food-trade-controls__row {
         flex-direction: column;
+        row-gap: 8px;
     }
-    .food-trade-controls > * {
+    .food-trade-controls__row > * {
         flex: 0 0 auto;
         width: 100%;
     }
-}
-
-.food-trade-controls__field {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.food-trade-controls__label {
-    font-size: 10px;
-    font-weight: 900;
-    letter-spacing: 0.1em;
-    color: $light-text;
-    text-transform: uppercase;
 }
 
 .food-trade-captioned-chart__chart-area {

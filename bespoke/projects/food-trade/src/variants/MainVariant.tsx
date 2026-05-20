@@ -266,31 +266,35 @@ function CaptionedMainVariant({
                         </p>
                     </header>
                     <div className="food-trade-controls">
-                        <LabeledDropdown
-                            label="Select a product"
-                            values={products}
-                            selected={product}
-                            onChange={setProduct}
-                        />
-                        <LabeledDropdown
-                            label="Select a country"
-                            values={countries}
-                            selected={country}
-                            onChange={setCountry}
-                            disabledValues={
-                                view !== "both" ? [ALL_COUNTRIES] : undefined
-                            }
-                        />
-                        <div className="food-trade-controls__field">
-                            <span className="food-trade-controls__label">
-                                Trade flow
-                            </span>
-                            <Switcher
-                                items={TRADE_FLOW_ITEMS}
-                                selectedKey={view}
-                                onChange={setView}
-                                aria-label="Trade flow"
-                            />
+                        <h3 className="food-trade-controls__title">
+                            Configure the data
+                        </h3>
+                        <div className="food-trade-controls__content">
+                            <div className="food-trade-controls__row">
+                                <LabeledDropdown
+                                    label="Product"
+                                    values={products}
+                                    selected={product}
+                                    onChange={setProduct}
+                                />
+                                <LabeledDropdown
+                                    label="Country"
+                                    values={countries}
+                                    selected={country}
+                                    onChange={setCountry}
+                                    disabledValues={
+                                        view !== "both"
+                                            ? [ALL_COUNTRIES]
+                                            : undefined
+                                    }
+                                />
+                                <Switcher
+                                    items={TRADE_FLOW_ITEMS}
+                                    selectedKey={view}
+                                    onChange={setView}
+                                    aria-label="Trade flow"
+                                />
+                            </div>
                         </div>
                     </div>
                 </>
@@ -387,17 +391,22 @@ function LabeledDropdown({
         [values, disabledValues]
     )
     return (
-        <div className="food-trade-controls__field">
-            <span className="food-trade-controls__label">{label}</span>
-            <Dropdown
-                options={options}
-                selectedValue={selected}
-                onChange={onChange}
-                placeholder={`${label}…`}
-                aria-label={label}
-                isSearchable={true}
-            />
-        </div>
+        <Dropdown
+            options={options}
+            selectedValue={selected}
+            onChange={onChange}
+            placeholder={`Select ${label.toLowerCase()}…`}
+            aria-label={`Select ${label.toLowerCase()}`}
+            isSearchable={true}
+            renderTriggerValue={(option) =>
+                option ? (
+                    <>
+                        <span className="label">{label}: </span>
+                        {option.label}
+                    </>
+                ) : null
+            }
+        />
     )
 }
 
