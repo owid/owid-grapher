@@ -202,6 +202,68 @@ $active-text: $blue-90;
     color: #333;
 }
 
+.search-country-selector-header-row {
+    display: flex;
+    align-items: center;
+    padding: 6px 16px;
+    background-color: $gray-5;
+    border-bottom: 1px solid $gray-20;
+    font-size: 11px;
+    font-weight: 700;
+    color: $gray-60;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.search-country-selector-header-col--left {
+    flex: 1;
+    padding-left: 30px;
+    cursor: pointer;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    outline: none;
+}
+
+.search-country-selector-header-col--left:hover,
+.search-country-selector-header-col--left:focus-visible {
+    color: $gray-90;
+}
+
+.search-country-selector-header-col--right {
+    flex-shrink: 0;
+    cursor: pointer;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    outline: none;
+}
+
+.search-country-selector-header-col--right:hover,
+.search-country-selector-header-col--right:focus-visible {
+    color: $gray-90;
+}
+
+.search-country-selector-header__icon {
+    font-size: 10px;
+    color: $gray-50;
+    margin-left: 4px;
+}
+
+.search-country-selector-header__icon--inactive {
+    color: $gray-30;
+    transition: color 0.15s ease;
+}
+
+.search-country-selector-header-col--left:hover
+    .search-country-selector-header__icon--inactive,
+.search-country-selector-header-col--right:hover
+    .search-country-selector-header__icon--inactive {
+    color: $gray-50;
+}
+
 .search-country-selector-list {
     outline: none;
     padding: 0;
@@ -291,6 +353,15 @@ $active-text: $blue-90;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+.country-median {
+    color: $gray-60;
+    font-size: 12px;
+    margin-left: 12px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    font-variant-numeric: tabular-nums;
 }
 
 .income-plot-controls-bottom {
