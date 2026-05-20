@@ -26,6 +26,7 @@ import {
     atomShowCustomPovertyLine,
     atomEntityColorMap,
     atomLegendPlacement,
+    atomRawDataForYear,
 } from "../store.ts"
 import {
     INT_POVERTY_LINE,
@@ -431,10 +432,13 @@ const IncomePlotAreasStacked = ({ xScale, height }: IncomePlotAreasProps) => {
     )
 }
 
+const sanitizeId = (name: string) => name.replace(/[^a-zA-Z0-9-_]/g, "")
+
 const IncomePlotAreasUnstacked = ({ xScale, height }: IncomePlotAreasProps) => {
     const ref = useRef<SVGGElement>(null)
 
     const points = useAtomValue(atomKdeDataForYear)
+    const rawData = useAtomValue(atomRawDataForYear)
     const countryRegionMap = useAtomValue(atomCountryRegionMap)
     const countriesOrRegionsMode = useAtomValue(atomCountriesOrRegionsMode)
     const selectedCountryNames = useAtomValue(atomSelectedCountryNames)
@@ -442,10 +446,33 @@ const IncomePlotAreasUnstacked = ({ xScale, height }: IncomePlotAreasProps) => {
     const hoveredEntityType = useAtomValue(atomHoveredEntityType)
     const entityColors = useAtomValue(atomEntityColorMap)
 
+    const countryLimits = useMemo(() => {
+        const limits = new Map<
+            string,
+            { lowerCutoff: number; upperCutoff: number }
+        >()
+        rawData.forEach((record) => {
+            const avgs = record.avgs
+            const len = avgs.length
+            const percentileIndex = 10 // 1 percentile
+            if (len > 0) {
+                const lowerCutoff = avgs[percentileIndex - 1]
+                const upperCutoff = avgs[1000 - percentileIndex - 1]
+                limits.set(record.country, { lowerCutoff, upperCutoff })
+            }
+        })
+        return limits
+    }, [rawData])
+
     // Prepare Data for Stack
-    const filteredData = points.filter((d) =>
-        selectedCountryNames.includes(d.country)
-    )
+    const filteredData = useMemo(() => {
+        return points.filter((d) => {
+            if (!selectedCountryNames.includes(d.country)) return false
+            const limits = countryLimits.get(d.country)
+            if (!limits) return true
+            return d.x >= limits.lowerCutoff && d.x <= limits.upperCutoff
+        })
+    }, [points, selectedCountryNames, countryLimits])
 
     const yMax = useMemo(
         () => d3.max(filteredData, (d) => d.y) || 0,
@@ -478,14 +505,17 @@ const IncomePlotAreasUnstacked = ({ xScale, height }: IncomePlotAreasProps) => {
         if (!area) return []
         return Array.from(groupedData).map(([country, points]) => {
             const region = countryRegionMap.get(country) ?? ""
+            const limits = countryLimits.get(country)
             return {
                 country,
                 region,
                 color: entityColors.get(country),
                 area: area(points),
+                lowerCutoff: limits?.lowerCutoff,
+                upperCutoff: limits?.upperCutoff,
             }
         })
-    }, [area, groupedData, countryRegionMap, entityColors])
+    }, [area, groupedData, countryRegionMap, entityColors, countryLimits])
 
     const onMouseLeave = useCallback(
         (entity: string) => {
@@ -497,6 +527,67 @@ const IncomePlotAreasUnstacked = ({ xScale, height }: IncomePlotAreasProps) => {
 
     return (
         <g className="plot-series-unstacked" ref={ref}>
+            <defs>
+                {seriesWithAreas.map((series) => {
+                    if (
+                        !xScale ||
+                        series.lowerCutoff === undefined ||
+                        series.upperCutoff === undefined
+                    )
+                        return null
+                    const x1 = xScale(series.lowerCutoff)
+                    const x2 = xScale(series.upperCutoff)
+                    const totalWidth = x2 - x1
+                    if (totalWidth <= 0) return null
+
+                    const cleanCountry = sanitizeId(series.country)
+                    const maskId = `fade-mask-${cleanCountry}`
+                    const gradId = `fade-grad-${cleanCountry}`
+
+                    return (
+                        <g key={series.country}>
+                            <linearGradient
+                                id={gradId}
+                                gradientUnits="userSpaceOnUse"
+                                x1={x1}
+                                x2={x2}
+                                y1={0}
+                                y2={0}
+                            >
+                                <stop
+                                    offset="0%"
+                                    stopColor="white"
+                                    stopOpacity={0}
+                                />
+                                <stop
+                                    offset="4%"
+                                    stopColor="white"
+                                    stopOpacity={1}
+                                />
+                                <stop
+                                    offset="96%"
+                                    stopColor="white"
+                                    stopOpacity={1}
+                                />
+                                <stop
+                                    offset="100%"
+                                    stopColor="white"
+                                    stopOpacity={0}
+                                />
+                            </linearGradient>
+                            <mask id={maskId}>
+                                <rect
+                                    x="0"
+                                    y="0"
+                                    width="100%"
+                                    height="100%"
+                                    fill={`url(#${gradId})`}
+                                />
+                            </mask>
+                        </g>
+                    )
+                })}
+            </defs>
             {seriesWithAreas.map((series) => {
                 if (!series.area) return null
                 const isHighlighted =
@@ -508,6 +599,9 @@ const IncomePlotAreasUnstacked = ({ xScale, height }: IncomePlotAreasProps) => {
                     countriesOrRegionsMode === "countries"
                         ? series.country
                         : series.region
+
+                const cleanCountry = sanitizeId(series.country)
+                const maskId = `fade-mask-${cleanCountry}`
 
                 return (
                     <g
@@ -522,6 +616,7 @@ const IncomePlotAreasUnstacked = ({ xScale, height }: IncomePlotAreasProps) => {
                         onMouseLeave={() =>
                             entityName && onMouseLeave(entityName)
                         }
+                        mask={`url(#${maskId})`}
                     >
                         <path
                             className="area-bg"
