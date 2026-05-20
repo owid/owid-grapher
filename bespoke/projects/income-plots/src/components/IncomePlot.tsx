@@ -501,8 +501,17 @@ const IncomePlotAreasUnstacked = ({ xScale, height }: IncomePlotAreasProps) => {
             .y1((d) => yScale(d.y))
     }, [xScale, yScale])
 
+    // Line Generator
+    const line = useMemo(() => {
+        if (!xScale || !yScale) return null
+        return d3
+            .line<any>()
+            .x((d) => xScale(d.x))
+            .y((d) => yScale(d.y))
+    }, [xScale, yScale])
+
     const seriesWithAreas = useMemo(() => {
-        if (!area) return []
+        if (!area || !line) return []
         return Array.from(groupedData).map(([country, points]) => {
             const region = countryRegionMap.get(country) ?? ""
             const limits = countryLimits.get(country)
@@ -511,11 +520,12 @@ const IncomePlotAreasUnstacked = ({ xScale, height }: IncomePlotAreasProps) => {
                 region,
                 color: entityColors.get(country),
                 area: area(points),
+                line: line(points),
                 lowerCutoff: limits?.lowerCutoff,
                 upperCutoff: limits?.upperCutoff,
             }
         })
-    }, [area, groupedData, countryRegionMap, entityColors, countryLimits])
+    }, [area, line, groupedData, countryRegionMap, entityColors, countryLimits])
 
     const onMouseLeave = useCallback(
         (entity: string) => {
@@ -589,7 +599,7 @@ const IncomePlotAreasUnstacked = ({ xScale, height }: IncomePlotAreasProps) => {
                 })}
             </defs>
             {seriesWithAreas.map((series) => {
-                if (!series.area) return null
+                if (!series.area || !series.line) return null
                 const isHighlighted =
                     hoveredEntityType === null
                         ? undefined
@@ -622,6 +632,11 @@ const IncomePlotAreasUnstacked = ({ xScale, height }: IncomePlotAreasProps) => {
                             className="area-bg"
                             fill={series.color}
                             d={series.area}
+                        />
+                        <path
+                            className="line-bg"
+                            fill="none"
+                            d={series.line}
                             strokeWidth={1}
                             strokeOpacity={0.6}
                             stroke={series.color}
@@ -630,6 +645,13 @@ const IncomePlotAreasUnstacked = ({ xScale, height }: IncomePlotAreasProps) => {
                             className="area-fg"
                             fill={series.color}
                             d={series.area}
+                            clipPath="url(#highlight-clip)"
+                            style={{ pointerEvents: "none" }}
+                        />
+                        <path
+                            className="line-fg"
+                            fill="none"
+                            d={series.line}
                             clipPath="url(#highlight-clip)"
                             style={{ pointerEvents: "none" }}
                             strokeWidth={1}

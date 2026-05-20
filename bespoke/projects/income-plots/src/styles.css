@@ -230,6 +230,8 @@
             }
             .income-plot-series[data-highlighted="true"] .area-fg {
                 fill-opacity: 0.5;
+            }
+            .income-plot-series[data-highlighted="true"] .line-fg {
                 stroke-opacity: 1;
             }
         }
