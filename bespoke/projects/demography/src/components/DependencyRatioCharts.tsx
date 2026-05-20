@@ -213,7 +213,7 @@ function RetirementAgeEditorContent({
     })
 
     const updatePointFromPointer = useCallback(
-        (e: React.PointerEvent<SVGSVGElement>, year: number) => {
+        (e: React.PointerEvent<SVGElement>, year: number) => {
             const point = localPoint(e)
             if (!point) return
             const y = point.y - retirementChartMargin.top
