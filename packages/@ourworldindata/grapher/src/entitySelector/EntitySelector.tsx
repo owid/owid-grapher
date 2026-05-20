@@ -24,7 +24,6 @@ import {
     FuzzySearch,
     getUserNavigatorLanguagesNonEnglish,
     getRegionAlternativeNames,
-    convertDaysSinceEpochToDate,
     checkIsOwidIncomeGroupCode,
     checkHasMembers,
     Region,
@@ -54,16 +53,23 @@ import {
     isPopulationVariableETLPath,
     isWorldEntityName,
 } from "../core/GrapherConstants"
-import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
+import {
+    CoreColumn,
+    makeOriginalTimeSlugFromColumnSlug,
+    OwidTable,
+} from "@ourworldindata/core-table"
 import { SortIcon } from "../controls/SortIcon"
 import { Dropdown } from "../controls/Dropdown"
 import { scaleLinear, type ScaleLinear } from "d3-scale"
 import {
     AdditionalGrapherDataFetchFn,
+    CatalogNumericDataPoint,
     ColumnSlug,
+    ColumnTypeNames,
     EntityName,
     NumericCatalogKey,
     OwidColumnDef,
+    OwidTableSlugs,
     ProjectionColumnInfo,
     Time,
     ToleranceStrategy,
@@ -83,10 +89,7 @@ import {
 } from "../core/RegionGroups"
 import { SearchField } from "../controls/SearchField"
 import { MAP_REGION_LABELS } from "../mapCharts/MapChartConstants.js"
-import {
-    columnDefsByCatalogKey,
-    loadCatalogDataAsOwidTable,
-} from "../core/loadCatalogData.js"
+import { columnDefsByCatalogKey } from "../core/loadCatalogData.js"
 
 export type CoreColumnBySlug = Record<ColumnSlug, CoreColumn>
 
@@ -522,43 +525,30 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
         })
     }
 
-    @computed private get chartHasDailyData(): boolean {
-        return this.numericalChartColumns.some(
-            (column) => column.display?.yearIsDay
-        )
-    }
-
     /**
-     * Converts the given time to be compatible with the time format
-     * of the given column.
-     *
-     * This is necessary for external sort indicators when they're loaded
-     * for charts with daily data.
+     * Returns the time at which to look up sort values in the given column.
+     * For external catalog indicators, this is the column's max year, since
+     * those columns are collapsed to a single year on load.
      */
-    private toColumnCompatibleTime(time: Time, column: CoreColumn): Time {
+    private resolveLookupTimeForColumn(time: Time, column: CoreColumn): Time {
         const isExternal = this.externalSortIndicatorDefinitions.some(
             (external) => column.slug === external.slug
         )
 
-        // if the column comes from the chart, no conversion is needed
-        if (!isExternal) return time
+        // External catalog columns are collapsed to a single year (the
+        // catalog's max year) by loadAndSetExternalSortColumn, so the lookup
+        // time is fixed regardless of the chart's endTime
+        if (isExternal) return column.maxTime ?? time
 
-        // assumes that external indicators have yearly data
-        const year = this.chartHasDailyData
-            ? convertDaysSinceEpochToDate(time).year()
-            : time
-
-        // clamping is necessary since external indicators might not cover
-        // the entire time range of the chart
-        return R.clamp(year, { min: column.minTime, max: column.maxTime })
+        return time
     }
 
     private formatTimeForSortColumnLabel(
         time: Time,
         column: CoreColumn
     ): string {
-        const compatibleTime = this.toColumnCompatibleTime(time, column)
-        return column.formatTime(compatibleTime)
+        const lookupTime = this.resolveLookupTimeForColumn(time, column)
+        return column.formatTime(lookupTime)
     }
 
     @computed private get manager(): EntitySelectorManager {
@@ -889,7 +879,10 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
 
             // Combine projected and historical data
             if (projectionInfo) {
-                const time = this.toColumnCompatibleTime(this.endTime, column)
+                const time = this.resolveLookupTimeForColumn(
+                    this.endTime,
+                    column
+                )
                 const label = this.makeSortColumnLabelForCombinedColumn(
                     projectionInfo,
                     time
@@ -997,7 +990,10 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
             }
 
             for (const column of this.interpolatedSortColumns) {
-                const time = this.toColumnCompatibleTime(this.endTime, column)
+                const time = this.resolveLookupTimeForColumn(
+                    this.endTime,
+                    column
+                )
 
                 // If we're dealing with a mixed column that has historical and
                 // projected data for the given time, then we choose not to
@@ -1241,16 +1237,12 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
                 throw new Error(
                     "additionalDataLoaderFn is not set, can't load sort variables on demand"
                 )
-            const { table } = await loadCatalogDataAsOwidTable(
-                catalogKey,
-                additionalDataLoaderFn
+            const data = await additionalDataLoaderFn(catalogKey)
+            const filteredData = data.filter((row) =>
+                this.inputTable.availableEntityNameSet.has(row.entity)
             )
-            const column = table
-                .filterByEntityNames(this.inputTable.availableEntityNames)
-                .interpolateColumnWithTolerance(slug, {
-                    toleranceOverride: Infinity,
-                })
-                .get(slug)
+            const table = buildOwidTableForCatalogData(filteredData, catalogKey)
+            const column = table?.get(slug)
             if (column) this.setInterpolatedSortColumn(column)
         } catch {
             console.error(`Failed to load data from catalog: ${catalogKey}`)
@@ -1478,7 +1470,10 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
     @computed private get selectedSortColumnMaxValue(): number | undefined {
         const { selectedSortColumn, endTime } = this
         if (!selectedSortColumn) return undefined
-        const time = this.toColumnCompatibleTime(endTime, selectedSortColumn)
+        const time = this.resolveLookupTimeForColumn(
+            endTime,
+            selectedSortColumn
+        )
         const values = selectedSortColumn.valuesByTime.get(time)
         return _.max(values)
     }
@@ -1843,4 +1838,42 @@ function isExternalSortIndicatorMatch(
             return matches.length > 0
         })
         .exhaustive()
+}
+
+function buildOwidTableForCatalogData(
+    data: CatalogNumericDataPoint[],
+    catalogKey: NumericCatalogKey
+): OwidTable | undefined {
+    if (data.length === 0) return undefined
+
+    const maxYear = _.max(data.map((point) => point.year))
+    if (maxYear === undefined) return undefined
+
+    const columnDef = columnDefsByCatalogKey[catalogKey]
+    const slug = columnDef.slug
+    const originalTimeSlug = makeOriginalTimeSlugFromColumnSlug(slug)
+
+    const rows = data.map((row) => ({
+        [OwidTableSlugs.entityName]: row.entity,
+        // The catalog data's max year is used as the time for all rows
+        [OwidTableSlugs.year]: maxYear,
+        [columnDef.slug]: row.value,
+        [originalTimeSlug]: row.year,
+    }))
+
+    // Necessary to ensure correct formatting of the year values
+    const yearColumnDef: OwidColumnDef = {
+        slug: OwidTableSlugs.year,
+        type: ColumnTypeNames.Year,
+    }
+    const originalTimeColumnDef: OwidColumnDef = {
+        slug: originalTimeSlug,
+        type: ColumnTypeNames.Year,
+    }
+
+    return new OwidTable(rows, [
+        columnDef,
+        yearColumnDef,
+        originalTimeColumnDef,
+    ])
 }
