@@ -47,6 +47,7 @@ const DEPENDENT_YOUNG_COLOR = COLOR_CHILDREN
 const WORKING_COLOR = COLOR_WORKING
 const retirementChartMargin = { top: 6, right: 2, bottom: 16, left: 28 }
 const compactChartMargin = { top: 8, right: 2, bottom: 16, left: 36 }
+const ageShareChartMargin = { top: 22, right: 2, bottom: 16, left: 36 }
 
 interface DataPoint {
     year: number
@@ -493,9 +494,9 @@ function RelativeAgeStackedAreaChartContent({
     )
 
     const innerWidth =
-        width - compactChartMargin.left - compactChartMargin.right
+        width - ageShareChartMargin.left - ageShareChartMargin.right
     const innerHeight =
-        height - compactChartMargin.top - compactChartMargin.bottom
+        height - ageShareChartMargin.top - ageShareChartMargin.bottom
     const xScale = scaleLinear({
         domain: [START_YEAR, END_YEAR],
         range: [0, innerWidth],
@@ -529,7 +530,7 @@ function RelativeAgeStackedAreaChartContent({
     const handleHover = useCallback(
         (e: React.PointerEvent<SVGRectElement>) => {
             setHoverState(
-                getHoverState(e, xScale, compactChartMargin.left, innerWidth)
+                getHoverState(e, xScale, ageShareChartMargin.left, innerWidth)
             )
         },
         [xScale, innerWidth]
@@ -551,8 +552,8 @@ function RelativeAgeStackedAreaChartContent({
         >
             <svg width={width} height={height} overflow="visible">
                 <Group
-                    top={compactChartMargin.top}
-                    left={compactChartMargin.left}
+                    top={ageShareChartMargin.top}
+                    left={ageShareChartMargin.left}
                 >
                     <rect
                         x={xScale(HISTORICAL_END_YEAR)}
@@ -603,7 +604,7 @@ function RelativeAgeStackedAreaChartContent({
                             { label: "Retired", color: DEPENDENT_OLD_COLOR },
                         ]}
                         x={0}
-                        y={-2}
+                        y={-12}
                     />
                     <rect
                         x={0}
