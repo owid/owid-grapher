@@ -27,8 +27,6 @@ interface ParameterConfig {
     yCeiling?: number
     inputMin?: number
     inputMax?: number
-    dragMin?: number
-    dragMax?: number
     step: number
     decimals: number
     subtitle: (entityName: string) => string
@@ -184,10 +182,8 @@ export const parameterConfigByKey: Record<ParameterKey, ParameterConfig> = {
         unit: "per 1,000 population",
         axisUnit: "‰",
         yPadding: 5,
-        inputMin: -100,
-        inputMax: 100,
-        dragMin: -20,
-        dragMax: 20,
+        inputMin: -20,
+        inputMax: 20,
         step: 0.1,
         decimals: 1,
         subtitle: (entityName: string) => {
