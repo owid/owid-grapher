@@ -75,10 +75,47 @@
 }
 
 .food-trade-captioned-chart__empty {
-    margin: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
     padding: 24px;
-    color: $light-text;
     text-align: center;
+}
+
+.food-trade-captioned-chart__empty-message {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.4;
+    max-width: 420px;
+    color: $light-text;
+}
+
+.food-trade-captioned-chart__empty-cta {
+    margin-top: 4px;
+    appearance: none;
+    background: transparent;
+    color: $blue-50;
+    border: 0;
+    padding: 0;
+    font: 500 14px/1.3 $sans-serif-font-stack;
+    letter-spacing: 0.01em;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+
+    &:hover {
+        color: $blue-90;
+    }
+
+    &:focus-visible {
+        outline: 1px solid $blue-50;
+        outline-offset: 2px;
+        border-radius: 2px;
+    }
 }
 
 .food-trade-chart__error {

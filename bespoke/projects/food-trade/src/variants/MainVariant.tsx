@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from "react"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
+import * as R from "remeda"
 
 import { articulateEntity } from "@ourworldindata/utils"
 
@@ -176,7 +177,7 @@ function CaptionedMainVariant({
 
     const defaultTitle =
         mode === "bilateral"
-            ? `Global ${product} trade in ${DATA_YEAR}`
+            ? `Global ${R.uncapitalize(product)} trade in ${DATA_YEAR}`
             : view === "imports"
               ? `${product} imports to ${articulateEntity(country)} in ${DATA_YEAR}`
               : view === "exports"
@@ -187,12 +188,12 @@ function CaptionedMainVariant({
         mode === "centered" && view === "both" ? (
             <>
                 Imports to and exports from {articulateEntity(country)} of{" "}
-                {product}
+                {R.uncapitalize(product)}
             </>
         ) : mode === "bilateral" && hasBilateralData ? (
             <>
-                {formatTrade(bilateralTotal)} of {product} was traded globally
-                in {DATA_YEAR}.
+                {formatTrade(bilateralTotal)} of {R.uncapitalize(product)} was
+                traded globally in {DATA_YEAR}.
             </>
         ) : null
 
@@ -238,29 +239,65 @@ function CaptionedMainVariant({
                         hasBilateralData ? (
                             <FoodTradeBilateralSankey rows={bilateral} />
                         ) : (
-                            <p className="food-trade-captioned-chart__empty">
-                                No {DATA_YEAR} trade of {product} recorded.
-                            </p>
+                            <EmptyState
+                                message={`No global trade of ${R.uncapitalize(product)} in ${DATA_YEAR}.`}
+                            />
                         )
                     ) : hasCenteredData ? (
                         <FoodTradeSankey
                             incoming={incoming}
                             outgoing={outgoing}
                             country={country}
+                            product={product}
+                            year={DATA_YEAR}
                             incomingTotal={incomingTotal}
                             outgoingTotal={outgoingTotal}
                             view={view}
+                            setView={setView}
                         />
                     ) : (
-                        <p className="food-trade-captioned-chart__empty">
-                            No {DATA_YEAR} trade of {product} for{" "}
-                            {articulateEntity(country)} recorded.
-                        </p>
+                        <EmptyState
+                            message={`${R.capitalize(articulateEntity(country))} didn't import or export ${R.uncapitalize(product)} in ${DATA_YEAR}.`}
+                            cta={
+                                data.some((d) => d.item === product)
+                                    ? {
+                                          label: `See global trade of ${R.uncapitalize(product)}`,
+                                          onClick: () =>
+                                              setCountry(ALL_COUNTRIES),
+                                      }
+                                    : undefined
+                            }
+                        />
                     )}
                 </div>
                 <ChartFooter source="UN Food and Agriculture Organization (FAO)" />
             </Frame>
         </>
+    )
+}
+
+function EmptyState({
+    message,
+    cta,
+}: {
+    message: React.ReactNode
+    cta?: { label: string; onClick: () => void }
+}) {
+    return (
+        <div className="food-trade-captioned-chart__empty">
+            <p className="food-trade-captioned-chart__empty-message">
+                {message}
+            </p>
+            {cta && (
+                <button
+                    type="button"
+                    className="food-trade-captioned-chart__empty-cta"
+                    onClick={cta.onClick}
+                >
+                    {cta.label} →
+                </button>
+            )}
+        </div>
     )
 }
 
