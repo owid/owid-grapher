@@ -16,19 +16,26 @@ export interface EntityDropdownProps extends Omit<
     label: string
     availableEntities: BasicDropdownOption[]
     selectedEntityName: string
+    suggested?: string[]
 }
 
 export function EntityDropdown({
     label,
     availableEntities,
     selectedEntityName,
+    suggested,
     ...dropdownProps
 }: EntityDropdownProps): React.ReactElement {
     const { data: userCountryInfo } = useUserCountryInformation()
 
     const options = useMemo(
-        () => groupByUserLocation([...availableEntities], userCountryInfo),
-        [availableEntities, userCountryInfo]
+        () =>
+            groupByUserLocation(
+                [...availableEntities],
+                userCountryInfo,
+                suggested
+            ),
+        [availableEntities, userCountryInfo, suggested]
     )
 
     return (
@@ -49,27 +56,31 @@ export function EntityDropdown({
  */
 export function groupByUserLocation(
     options: BasicDropdownOption[],
-    userCountryInfo: UserCountryInformation | undefined
+    userCountryInfo: UserCountryInformation | undefined,
+    alwaysSuggested: string[] = []
 ): DropdownCollection {
-    if (!userCountryInfo) return options
-
     const optionsByValue = new Map(
         options.map((option) => [option.value, option])
     )
 
     const suggested: BasicDropdownOption[] = []
-    const userOption = optionsByValue.get(userCountryInfo.name)
-    if (userOption) suggested.push(userOption)
-    if (userCountryInfo.regions) {
-        for (const code of userCountryInfo.regions) {
-            const region = getRegionByCode(code)
+    const addToSuggestions = (option: BasicDropdownOption | undefined) => {
+        if (option && !suggested.includes(option)) suggested.push(option)
+    }
 
-            // Ignore income groups
-            if (!region || region.regionType === "income_group") continue
+    for (const value of alwaysSuggested) {
+        addToSuggestions(optionsByValue.get(value))
+    }
+    if (userCountryInfo) {
+        addToSuggestions(optionsByValue.get(userCountryInfo.name))
+        if (userCountryInfo.regions) {
+            for (const code of userCountryInfo.regions) {
+                const region = getRegionByCode(code)
 
-            const regionOption = optionsByValue.get(region.name)
-            if (regionOption && !suggested.includes(regionOption)) {
-                suggested.push(regionOption)
+                // Ignore income groups
+                if (!region || region.regionType === "income_group") continue
+
+                addToSuggestions(optionsByValue.get(region.name))
             }
         }
     }

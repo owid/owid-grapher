@@ -298,6 +298,7 @@ function CaptionedMainVariant({
                                 <EntityDropdown
                                     label="Country"
                                     availableEntities={countryOptions}
+                                    suggested={[ALL_COUNTRIES]}
                                     selectedEntityName={country}
                                     onChange={setCountry}
                                     placeholder="Select a country…"
