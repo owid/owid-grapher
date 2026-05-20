@@ -2,7 +2,7 @@
     "private": true,
     "version": "3.0.0",
     "engines": {
-        "node": ">=22.0"
+        "node": ">=24.0"
     },
     "packageManager": "yarn@4.14.1",
     "scripts": {
@@ -199,7 +199,7 @@
         "@testing-library/dom": "^10.4.1",
         "@testing-library/jest-dom": "^6.9.1",
         "@testing-library/react": "^16.3.2",
-        "@tsconfig/node22": "^22.0.0",
+        "@tsconfig/node24": "^24.0.0",
         "@types/chunk-text": "^1.0.2",
         "@types/colorbrewer": "^1.0.32",
         "@types/cookie-parser": "^1.4.10",
