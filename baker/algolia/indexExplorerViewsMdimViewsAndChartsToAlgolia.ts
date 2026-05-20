@@ -70,15 +70,11 @@ const indexExplorerViewsMdimViewsAndChartsToAlgolia = async () => {
                 [1000, MAX_NON_FM_RECORD_SCORE]
             )
 
-            // Apply post-scaling adjustments. FM source bonus is a fixed
-            // +500 to any record whose specific view is a featured metric.
-            // boostInSearch overrides the score to 9500 for editorially
-            // pinned records.
+            // Increase scores slightly for the non-FM version of the records
             const fmSlugs = await getFeaturedMetricSlugs(trx)
             const bonusedRecords = applyFMSourceBonus(scaledRecords, fmSlugs)
 
-            // Apply editorial boosts after scaling so they don't
-            // distort the score distribution for other records.
+            // Override the scores of any records that have been boosted
             const boostedUrls = await getBoostedFeaturedMetricUrls(trx)
             const records = applyFeaturedMetricBoosts(
                 bonusedRecords,
