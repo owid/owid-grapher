@@ -4,11 +4,14 @@ import { scaleLinear } from "@visx/scale"
 import { LinePath } from "@visx/shape"
 import { Group } from "@visx/group"
 import { localPoint } from "@visx/event"
-import { Bounds, formatValue } from "@ourworldindata/utils"
+import { formatValue, GrapherTooltipAnchor } from "@ourworldindata/utils"
 import {
     GRAPHER_DARK_TEXT,
     GRAPHER_LIGHT_TEXT,
 } from "@ourworldindata/grapher/src/color/ColorConstants.js"
+import { TooltipCard } from "@ourworldindata/grapher/src/tooltip/TooltipCard.js"
+import { TooltipValue } from "@ourworldindata/grapher/src/tooltip/TooltipContents.js"
+import { usePinnedTooltip } from "../../../../hooks/usePinnedTooltip.js"
 import type { Simulation } from "../helpers/useSimulation.js"
 import {
     BENCHMARK_LINE_COLOR,
@@ -59,13 +62,9 @@ interface AgeShareDataPoint {
 
 interface HoverState {
     year: number
-    x: number
-}
-
-interface TooltipRow {
-    label: string
-    value: string
-    color?: string
+    lineX: number
+    cursorX: number
+    cursorY: number
 }
 
 interface RetirementAgeEditorProps {
@@ -103,74 +102,12 @@ function getHoverState(
         START_YEAR,
         Math.min(END_YEAR, Math.round(xScale.invert(clampedX)))
     )
-    return { year, x: xScale(year) }
-}
-
-function TooltipBox({
-    x,
-    y,
-    innerWidth,
-    title,
-    rows,
-}: {
-    x: number
-    y: number
-    innerWidth: number
-    title: string
-    rows: TooltipRow[]
-}): React.ReactElement {
-    const fontSize = 11
-    const rowHeight = 15
-    const padding = 7
-    const titleWidth = Bounds.forText(title, {
-        fontSize,
-        fontWeight: 700,
-    }).width
-    const rowWidths = rows.map(
-        (row) =>
-            Bounds.forText(`${row.label}: ${row.value}`, { fontSize }).width
-    )
-    const width = Math.max(titleWidth, ...rowWidths) + padding * 2 + 8
-    const height = padding * 2 + fontSize + rows.length * rowHeight
-    const boxX = Math.max(
-        0,
-        Math.min(x + 8, innerWidth - width) === x + 8 ? x + 8 : x - width - 8
-    )
-
-    return (
-        <g
-            transform={`translate(${boxX},${y})`}
-            style={{ pointerEvents: "none" }}
-        >
-            <rect
-                width={width}
-                height={height}
-                fill="white"
-                stroke={GRID_LINE_COLOR}
-                rx={2}
-            />
-            <text
-                x={padding}
-                y={padding + fontSize}
-                fontSize={fontSize}
-                fontWeight={700}
-                fill={GRAPHER_DARK_TEXT}
-            >
-                {title}
-            </text>
-            {rows.map((row, i) => (
-                <text
-                    key={row.label}
-                    x={padding}
-                    y={padding + fontSize + (i + 1) * rowHeight}
-                    fontSize={fontSize}
-                    fill={row.color ?? GRAPHER_LIGHT_TEXT}
-                >
-                    {row.label}: {row.value}
-                </text>
-            ))}
-        </g>
-    )
+    return {
+        year,
+        lineX: xScale(year),
+        cursorX: point.x,
+        cursorY: point.y,
+    }
 }
 
 function buildLifeExpectancyPoints(simulation: Simulation): DataPoint[] {
@@ -312,80 +249,90 @@ function RetirementAgeEditorContent({
               ?.value ?? 0)
         : 0
 
+    const dismissTooltip = useCallback(() => setHoverState(null), [])
+    const { ref: chartRef, isPinned: pinTooltipToBottom } =
+        usePinnedTooltip<HTMLDivElement>(hoverState !== null, dismissTooltip)
+
     return (
-        <svg
-            width={width}
-            height={height}
-            onPointerMove={handlePointerMove}
-            onPointerUp={() => setDraggedYear(null)}
-            onPointerCancel={() => setDraggedYear(null)}
-            onPointerLeave={() => setHoverState(null)}
-            overflow="visible"
+        <div
+            ref={chartRef}
+            style={{
+                position: "relative",
+                zIndex: hoverState ? 1 : undefined,
+            }}
         >
-            <Group
-                top={retirementChartMargin.top}
-                left={retirementChartMargin.left}
+            <svg
+                width={width}
+                height={height}
+                onPointerMove={handlePointerMove}
+                onPointerUp={() => setDraggedYear(null)}
+                onPointerCancel={() => setDraggedYear(null)}
+                onPointerLeave={() => setHoverState(null)}
+                overflow="visible"
             >
-                <rect
-                    x={xScale(HISTORICAL_END_YEAR)}
-                    y={0}
-                    width={innerWidth - xScale(HISTORICAL_END_YEAR)}
-                    height={innerHeight}
-                    fill={PROJECTION_BACKGROUND}
-                />
-                {yTicks.map((tick) => (
-                    <g key={tick}>
+                <Group
+                    top={retirementChartMargin.top}
+                    left={retirementChartMargin.left}
+                >
+                    <rect
+                        x={xScale(HISTORICAL_END_YEAR)}
+                        y={0}
+                        width={innerWidth - xScale(HISTORICAL_END_YEAR)}
+                        height={innerHeight}
+                        fill={PROJECTION_BACKGROUND}
+                    />
+                    {yTicks.map((tick) => (
+                        <g key={tick}>
+                            <line
+                                x1={0}
+                                x2={innerWidth}
+                                y1={yScale(tick)}
+                                y2={yScale(tick)}
+                                stroke={GRID_LINE_COLOR}
+                                strokeDasharray="3,3"
+                            />
+                            <text
+                                x={-6}
+                                y={yScale(tick)}
+                                textAnchor="end"
+                                dominantBaseline="central"
+                                fontSize={10}
+                                fill={GRID_LABEL_COLOR}
+                            >
+                                {tick}
+                            </text>
+                        </g>
+                    ))}
+                    <LinePath<DataPoint>
+                        data={lifeExpectancyPoints}
+                        x={(d) => xScale(d.year)}
+                        y={(d) => yScale(d.value)}
+                        stroke={BENCHMARK_LINE_COLOR}
+                        strokeWidth={1.5}
+                        strokeDasharray={PROJECTION_DASHARRAY}
+                        fill="none"
+                    />
+                    <LinePath<DataPoint>
+                        data={retirementAgeLine}
+                        x={(d) => xScale(d.year)}
+                        y={(d) => yScale(d.value)}
+                        stroke={WORKING_COLOR}
+                        strokeWidth={2}
+                        fill="none"
+                    />
+                    <rect
+                        x={0}
+                        y={0}
+                        width={innerWidth}
+                        height={innerHeight}
+                        fill="transparent"
+                        onPointerMove={handleHover}
+                        onPointerLeave={() => setHoverState(null)}
+                    />
+                    {hoverState && (
                         <line
-                            x1={0}
-                            x2={innerWidth}
-                            y1={yScale(tick)}
-                            y2={yScale(tick)}
-                            stroke={GRID_LINE_COLOR}
-                            strokeDasharray="3,3"
-                        />
-                        <text
-                            x={-6}
-                            y={yScale(tick)}
-                            textAnchor="end"
-                            dominantBaseline="central"
-                            fontSize={10}
-                            fill={GRID_LABEL_COLOR}
-                        >
-                            {tick}
-                        </text>
-                    </g>
-                ))}
-                <LinePath<DataPoint>
-                    data={lifeExpectancyPoints}
-                    x={(d) => xScale(d.year)}
-                    y={(d) => yScale(d.value)}
-                    stroke={BENCHMARK_LINE_COLOR}
-                    strokeWidth={1.5}
-                    strokeDasharray={PROJECTION_DASHARRAY}
-                    fill="none"
-                />
-                <LinePath<DataPoint>
-                    data={retirementAgeLine}
-                    x={(d) => xScale(d.year)}
-                    y={(d) => yScale(d.value)}
-                    stroke={WORKING_COLOR}
-                    strokeWidth={2}
-                    fill="none"
-                />
-                <rect
-                    x={0}
-                    y={0}
-                    width={innerWidth}
-                    height={innerHeight}
-                    fill="transparent"
-                    onPointerMove={handleHover}
-                    onPointerLeave={() => setHoverState(null)}
-                />
-                {hoverState && (
-                    <>
-                        <line
-                            x1={hoverState.x}
-                            x2={hoverState.x}
+                            x1={hoverState.lineX}
+                            x2={hoverState.lineX}
                             y1={0}
                             y2={innerHeight}
                             stroke={GRAPHER_LIGHT_TEXT}
@@ -393,90 +340,103 @@ function RetirementAgeEditorContent({
                             strokeDasharray="3,3"
                             opacity={0.6}
                         />
-                        <TooltipBox
-                            x={hoverState.x}
-                            y={8}
-                            innerWidth={innerWidth}
-                            title={`${hoverState.year}`}
-                            rows={[
-                                {
-                                    label: "Retirement age",
-                                    value: `${Math.round(hoveredRetirementAge)}`,
-                                    color: WORKING_COLOR,
-                                },
-                                {
-                                    label: "Life expectancy",
-                                    value: `${Math.round(hoveredLifeExpectancy)}`,
-                                    color: BENCHMARK_LINE_COLOR,
-                                },
-                            ]}
-                        />
-                    </>
-                )}
-                {CONTROL_YEARS.map((year) => {
-                    const value = retirementAgePoints[year]
-                    return (
-                        <g key={year}>
-                            <circle
-                                cx={xScale(year)}
-                                cy={yScale(value)}
-                                r={6}
-                                fill="white"
-                                stroke={WORKING_COLOR}
-                                strokeWidth={2}
-                                style={{ cursor: "ns-resize" }}
-                                onPointerDown={(e) => {
-                                    e.currentTarget.setPointerCapture(
-                                        e.pointerId
-                                    )
-                                    setDraggedYear(year)
-                                    updatePointFromPointer(e, year)
-                                }}
-                            />
-                            <text
-                                x={xScale(year)}
-                                y={yScale(value) - 10}
-                                textAnchor="middle"
-                                fontSize={10}
-                                fontWeight={700}
-                                fill={WORKING_COLOR}
-                                style={{ pointerEvents: "none" }}
-                            >
-                                {value}
-                            </text>
-                        </g>
-                    )
-                })}
-                <TimeAxisX
-                    xScale={xScale}
-                    innerWidth={innerWidth}
-                    innerHeight={innerHeight}
-                    fontSize={10}
-                    labelOffset={14}
-                    xTickLabels={CONTROL_YEARS.map((year, index) => ({
-                        year,
-                        position:
-                            index === 0
-                                ? "start"
-                                : index === CONTROL_YEARS.length - 1
-                                  ? "end"
-                                  : "middle",
-                    }))}
-                />
-                <ChartLegend
-                    items={[
-                        { label: "Retirement age", color: WORKING_COLOR },
-                        {
-                            label: "Life expectancy",
-                            color: BENCHMARK_LINE_COLOR,
-                            dashArray: PROJECTION_DASHARRAY,
-                        },
-                    ]}
-                    x={0}
-                    y={-2}
-                />
-            </Group>
-        </svg>
+                    )}
+                    {CONTROL_YEARS.map((year) => {
+                        const value = retirementAgePoints[year]
+                        return (
+                            <g key={year}>
+                                <circle
+                                    cx={xScale(year)}
+                                    cy={yScale(value)}
+                                    r={6}
+                                    fill="white"
+                                    stroke={WORKING_COLOR}
+                                    strokeWidth={2}
+                                    style={{ cursor: "ns-resize" }}
+                                    onPointerDown={(e) => {
+                                        e.currentTarget.setPointerCapture(
+                                            e.pointerId
+                                        )
+                                        setDraggedYear(year)
+                                        updatePointFromPointer(e, year)
+                                    }}
+                                />
+                                <text
+                                    x={xScale(year)}
+                                    y={yScale(value) - 10}
+                                    textAnchor="middle"
+                                    fontSize={10}
+                                    fontWeight={700}
+                                    fill={WORKING_COLOR}
+                                    style={{ pointerEvents: "none" }}
+                                >
+                                    {value}
+                                </text>
+                            </g>
+                        )
+                    })}
+                    <TimeAxisX
+                        xScale={xScale}
+                        innerWidth={innerWidth}
+                        innerHeight={innerHeight}
+                        fontSize={10}
+                        labelOffset={14}
+                        xTickLabels={CONTROL_YEARS.map((year, index) => ({
+                            year,
+                            position:
+                                index === 0
+                                    ? "start"
+                                    : index === CONTROL_YEARS.length - 1
+                                      ? "end"
+                                      : "middle",
+                        }))}
+                    />
+                    <ChartLegend
+                        items={[
+                            { label: "Retirement age", color: WORKING_COLOR },
+                            {
+                                label: "Life expectancy",
+                                color: BENCHMARK_LINE_COLOR,
+                                dashArray: PROJECTION_DASHARRAY,
+                            },
+                        ]}
+                        x={0}
+                        y={-2}
+                    />
+                </Group>
+            </svg>
+            {hoverState && (
+                <TooltipCard
+                    id="retirement-age-tooltip"
+                    x={hoverState.cursorX}
+                    y={hoverState.cursorY}
+                    offsetX={15}
+                    offsetY={-10}
+                    title={String(hoverState.year)}
+                    anchor={
+                        pinTooltipToBottom
+                            ? GrapherTooltipAnchor.Bottom
+                            : undefined
+                    }
+                    containerBounds={
+                        pinTooltipToBottom
+                            ? undefined
+                            : { width, height: Math.max(height, 1000) }
+                    }
+                >
+                    <TooltipValue
+                        label="Retirement age"
+                        value={String(Math.round(hoveredRetirementAge))}
+                        color={WORKING_COLOR}
+                    />
+                    <TooltipValue
+                        label="Life expectancy"
+                        value={String(Math.round(hoveredLifeExpectancy))}
+                        color={BENCHMARK_LINE_COLOR}
+                    />
+                </TooltipCard>
+            )}
+        </div>
     )
 }
 
@@ -577,75 +537,87 @@ function RelativeAgeStackedAreaChartContent({
     const hoveredPoint = hoverState
         ? data.find((d) => d.year === hoverState.year)
         : undefined
+    const dismissTooltip = useCallback(() => setHoverState(null), [])
+    const { ref: chartRef, isPinned: pinTooltipToBottom } =
+        usePinnedTooltip<HTMLDivElement>(hoverState !== null, dismissTooltip)
 
     return (
-        <svg width={width} height={height} overflow="visible">
-            <Group top={compactChartMargin.top} left={compactChartMargin.left}>
-                <rect
-                    x={xScale(HISTORICAL_END_YEAR)}
-                    y={0}
-                    width={innerWidth - xScale(HISTORICAL_END_YEAR)}
-                    height={innerHeight}
-                    fill={PROJECTION_BACKGROUND}
-                />
-                {[0, 50, 100].map((tick) => (
-                    <g key={tick}>
+        <div
+            ref={chartRef}
+            style={{
+                position: "relative",
+                zIndex: hoverState ? 1 : undefined,
+            }}
+        >
+            <svg width={width} height={height} overflow="visible">
+                <Group
+                    top={compactChartMargin.top}
+                    left={compactChartMargin.left}
+                >
+                    <rect
+                        x={xScale(HISTORICAL_END_YEAR)}
+                        y={0}
+                        width={innerWidth - xScale(HISTORICAL_END_YEAR)}
+                        height={innerHeight}
+                        fill={PROJECTION_BACKGROUND}
+                    />
+                    {[0, 50, 100].map((tick) => (
+                        <g key={tick}>
+                            <line
+                                x1={0}
+                                x2={innerWidth}
+                                y1={yScale(tick)}
+                                y2={yScale(tick)}
+                                stroke={GRID_LINE_COLOR}
+                                strokeDasharray="3,3"
+                            />
+                            <text
+                                x={-6}
+                                y={yScale(tick)}
+                                textAnchor="end"
+                                dominantBaseline="central"
+                                fontSize={10}
+                                fill={GRID_LABEL_COLOR}
+                            >
+                                {formatPercent(tick)}
+                            </text>
+                        </g>
+                    ))}
+                    <path d={oldPath} fill={DEPENDENT_OLD_COLOR} />
+                    <path d={workingPath} fill={WORKING_COLOR} />
+                    <path d={youngPath} fill={DEPENDENT_YOUNG_COLOR} />
+                    <TimeAxisX
+                        xScale={xScale}
+                        innerWidth={innerWidth}
+                        innerHeight={innerHeight}
+                        fontSize={10}
+                        labelOffset={14}
+                    />
+                    <ChartLegend
+                        items={[
+                            {
+                                label: `Young (<${WORKING_AGE})`,
+                                color: DEPENDENT_YOUNG_COLOR,
+                            },
+                            { label: "Working age", color: WORKING_COLOR },
+                            { label: "Retired", color: DEPENDENT_OLD_COLOR },
+                        ]}
+                        x={0}
+                        y={-2}
+                    />
+                    <rect
+                        x={0}
+                        y={0}
+                        width={innerWidth}
+                        height={innerHeight}
+                        fill="transparent"
+                        onPointerMove={handleHover}
+                        onPointerLeave={() => setHoverState(null)}
+                    />
+                    {hoverState && (
                         <line
-                            x1={0}
-                            x2={innerWidth}
-                            y1={yScale(tick)}
-                            y2={yScale(tick)}
-                            stroke={GRID_LINE_COLOR}
-                            strokeDasharray="3,3"
-                        />
-                        <text
-                            x={-6}
-                            y={yScale(tick)}
-                            textAnchor="end"
-                            dominantBaseline="central"
-                            fontSize={10}
-                            fill={GRID_LABEL_COLOR}
-                        >
-                            {formatPercent(tick)}
-                        </text>
-                    </g>
-                ))}
-                <path d={oldPath} fill={DEPENDENT_OLD_COLOR} />
-                <path d={workingPath} fill={WORKING_COLOR} />
-                <path d={youngPath} fill={DEPENDENT_YOUNG_COLOR} />
-                <TimeAxisX
-                    xScale={xScale}
-                    innerWidth={innerWidth}
-                    innerHeight={innerHeight}
-                    fontSize={10}
-                    labelOffset={14}
-                />
-                <ChartLegend
-                    items={[
-                        {
-                            label: `Young (<${WORKING_AGE})`,
-                            color: DEPENDENT_YOUNG_COLOR,
-                        },
-                        { label: "Working age", color: WORKING_COLOR },
-                        { label: "Retired", color: DEPENDENT_OLD_COLOR },
-                    ]}
-                    x={0}
-                    y={-2}
-                />
-                <rect
-                    x={0}
-                    y={0}
-                    width={innerWidth}
-                    height={innerHeight}
-                    fill="transparent"
-                    onPointerMove={handleHover}
-                    onPointerLeave={() => setHoverState(null)}
-                />
-                {hoverState && hoveredPoint && (
-                    <>
-                        <line
-                            x1={hoverState.x}
-                            x2={hoverState.x}
+                            x1={hoverState.lineX}
+                            x2={hoverState.lineX}
                             y1={0}
                             y2={innerHeight}
                             stroke={GRAPHER_LIGHT_TEXT}
@@ -653,35 +625,46 @@ function RelativeAgeStackedAreaChartContent({
                             strokeDasharray="3,3"
                             opacity={0.6}
                         />
-                        <TooltipBox
-                            x={hoverState.x}
-                            y={8}
-                            innerWidth={innerWidth}
-                            title={`${hoverState.year}`}
-                            rows={[
-                                {
-                                    label: `Young (<${WORKING_AGE})`,
-                                    value: formatPercent(hoveredPoint.youngPct),
-                                    color: DEPENDENT_YOUNG_COLOR,
-                                },
-                                {
-                                    label: "Working age",
-                                    value: formatPercent(
-                                        hoveredPoint.workingPct
-                                    ),
-                                    color: WORKING_COLOR,
-                                },
-                                {
-                                    label: "Retired",
-                                    value: formatPercent(hoveredPoint.oldPct),
-                                    color: DEPENDENT_OLD_COLOR,
-                                },
-                            ]}
-                        />
-                    </>
-                )}
-            </Group>
-        </svg>
+                    )}
+                </Group>
+            </svg>
+            {hoverState && hoveredPoint && (
+                <TooltipCard
+                    id="age-share-tooltip"
+                    x={hoverState.cursorX}
+                    y={hoverState.cursorY}
+                    offsetX={15}
+                    offsetY={-10}
+                    title={String(hoverState.year)}
+                    anchor={
+                        pinTooltipToBottom
+                            ? GrapherTooltipAnchor.Bottom
+                            : undefined
+                    }
+                    containerBounds={
+                        pinTooltipToBottom
+                            ? undefined
+                            : { width, height: Math.max(height, 1000) }
+                    }
+                >
+                    <TooltipValue
+                        label={`Young (<${WORKING_AGE})`}
+                        value={formatPercent(hoveredPoint.youngPct)}
+                        color={DEPENDENT_YOUNG_COLOR}
+                    />
+                    <TooltipValue
+                        label="Working age"
+                        value={formatPercent(hoveredPoint.workingPct)}
+                        color={WORKING_COLOR}
+                    />
+                    <TooltipValue
+                        label="Retired"
+                        value={formatPercent(hoveredPoint.oldPct)}
+                        color={DEPENDENT_OLD_COLOR}
+                    />
+                </TooltipCard>
+            )}
+        </div>
     )
 }
 
@@ -757,100 +740,127 @@ function DependencyRatioLineChartContent({
     const hoveredPoint = hoverState
         ? data.find((d) => d.year === hoverState.year)
         : undefined
+    const dismissTooltip = useCallback(() => setHoverState(null), [])
+    const { ref: chartRef, isPinned: pinTooltipToBottom } =
+        usePinnedTooltip<HTMLDivElement>(hoverState !== null, dismissTooltip)
 
     return (
-        <svg width={width} height={height} overflow="visible">
-            <Group top={compactChartMargin.top} left={compactChartMargin.left}>
-                <rect
-                    x={xScale(HISTORICAL_END_YEAR)}
-                    y={0}
-                    width={innerWidth - xScale(HISTORICAL_END_YEAR)}
-                    height={innerHeight}
-                    fill={PROJECTION_BACKGROUND}
-                />
-                {yScale.ticks(3).map((tick) => (
-                    <g key={tick}>
-                        <line
-                            x1={0}
-                            x2={innerWidth}
-                            y1={yScale(tick)}
-                            y2={yScale(tick)}
-                            stroke={GRID_LINE_COLOR}
-                            strokeDasharray="3,3"
-                        />
-                        <text
-                            x={-6}
-                            y={yScale(tick)}
-                            textAnchor="end"
-                            dominantBaseline="central"
-                            fontSize={10}
-                            fill={GRID_LABEL_COLOR}
-                        >
-                            {formatRatio(tick)}
-                        </text>
-                    </g>
-                ))}
-                <LinePath<DataPoint>
-                    data={data}
-                    x={(d) => xScale(d.year)}
-                    y={(d) => yScale(d.value)}
-                    stroke={DEPENDENT_OLD_COLOR}
-                    strokeWidth={2}
-                    fill="none"
-                />
-                <TimeAxisX
-                    xScale={xScale}
-                    innerWidth={innerWidth}
-                    innerHeight={innerHeight}
-                    fontSize={10}
-                    labelOffset={14}
-                />
-                <rect
-                    x={0}
-                    y={0}
-                    width={innerWidth}
-                    height={innerHeight}
-                    fill="transparent"
-                    onPointerMove={handleHover}
-                    onPointerLeave={() => setHoverState(null)}
-                />
-                {hoverState && hoveredPoint && (
-                    <>
-                        <line
-                            x1={hoverState.x}
-                            x2={hoverState.x}
-                            y1={0}
-                            y2={innerHeight}
-                            stroke={GRAPHER_LIGHT_TEXT}
-                            strokeWidth={1}
-                            strokeDasharray="3,3"
-                            opacity={0.6}
-                        />
-                        <circle
-                            cx={hoverState.x}
-                            cy={yScale(hoveredPoint.value)}
-                            r={3}
-                            fill="white"
-                            stroke={DEPENDENT_OLD_COLOR}
-                            strokeWidth={2}
-                        />
-                        <TooltipBox
-                            x={hoverState.x}
-                            y={8}
-                            innerWidth={innerWidth}
-                            title={`${hoverState.year}`}
-                            rows={[
-                                {
-                                    label: "Dependency ratio",
-                                    value: `${formatRatio(hoveredPoint.value)} per 100`,
-                                    color: DEPENDENT_OLD_COLOR,
-                                },
-                            ]}
-                        />
-                    </>
-                )}
-            </Group>
-        </svg>
+        <div
+            ref={chartRef}
+            style={{
+                position: "relative",
+                zIndex: hoverState ? 1 : undefined,
+            }}
+        >
+            <svg width={width} height={height} overflow="visible">
+                <Group
+                    top={compactChartMargin.top}
+                    left={compactChartMargin.left}
+                >
+                    <rect
+                        x={xScale(HISTORICAL_END_YEAR)}
+                        y={0}
+                        width={innerWidth - xScale(HISTORICAL_END_YEAR)}
+                        height={innerHeight}
+                        fill={PROJECTION_BACKGROUND}
+                    />
+                    {yScale.ticks(3).map((tick) => (
+                        <g key={tick}>
+                            <line
+                                x1={0}
+                                x2={innerWidth}
+                                y1={yScale(tick)}
+                                y2={yScale(tick)}
+                                stroke={GRID_LINE_COLOR}
+                                strokeDasharray="3,3"
+                            />
+                            <text
+                                x={-6}
+                                y={yScale(tick)}
+                                textAnchor="end"
+                                dominantBaseline="central"
+                                fontSize={10}
+                                fill={GRID_LABEL_COLOR}
+                            >
+                                {formatRatio(tick)}
+                            </text>
+                        </g>
+                    ))}
+                    <LinePath<DataPoint>
+                        data={data}
+                        x={(d) => xScale(d.year)}
+                        y={(d) => yScale(d.value)}
+                        stroke={DEPENDENT_OLD_COLOR}
+                        strokeWidth={2}
+                        fill="none"
+                    />
+                    <TimeAxisX
+                        xScale={xScale}
+                        innerWidth={innerWidth}
+                        innerHeight={innerHeight}
+                        fontSize={10}
+                        labelOffset={14}
+                    />
+                    <rect
+                        x={0}
+                        y={0}
+                        width={innerWidth}
+                        height={innerHeight}
+                        fill="transparent"
+                        onPointerMove={handleHover}
+                        onPointerLeave={() => setHoverState(null)}
+                    />
+                    {hoverState && hoveredPoint && (
+                        <>
+                            <line
+                                x1={hoverState.lineX}
+                                x2={hoverState.lineX}
+                                y1={0}
+                                y2={innerHeight}
+                                stroke={GRAPHER_LIGHT_TEXT}
+                                strokeWidth={1}
+                                strokeDasharray="3,3"
+                                opacity={0.6}
+                            />
+                            <circle
+                                cx={hoverState.lineX}
+                                cy={yScale(hoveredPoint.value)}
+                                r={3}
+                                fill="white"
+                                stroke={DEPENDENT_OLD_COLOR}
+                                strokeWidth={2}
+                            />
+                        </>
+                    )}
+                </Group>
+            </svg>
+            {hoverState && hoveredPoint && (
+                <TooltipCard
+                    id="dependency-ratio-tooltip"
+                    x={hoverState.cursorX}
+                    y={hoverState.cursorY}
+                    offsetX={15}
+                    offsetY={-10}
+                    title={String(hoverState.year)}
+                    anchor={
+                        pinTooltipToBottom
+                            ? GrapherTooltipAnchor.Bottom
+                            : undefined
+                    }
+                    containerBounds={
+                        pinTooltipToBottom
+                            ? undefined
+                            : { width, height: Math.max(height, 1000) }
+                    }
+                >
+                    <TooltipValue
+                        label="Dependency ratio"
+                        value={`${formatRatio(hoveredPoint.value)} per 100`}
+                        color={DEPENDENT_OLD_COLOR}
+                    />
+                </TooltipCard>
+            )}
+        </div>
     )
 }
 
