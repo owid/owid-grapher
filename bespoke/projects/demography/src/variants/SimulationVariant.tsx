@@ -193,6 +193,11 @@ function FetchingSimulationVariant({
                     ? config.retirementAgeAssumptions
                     : undefined
             }
+            urlRetirementAgeAssumptions={
+                mode === "dependencyRatio"
+                    ? urlAssumptionState.retirementAgeAssumptions
+                    : undefined
+            }
             mode={mode}
         />
     )
@@ -203,6 +208,7 @@ type SimulationUrlAssumptionState = Pick<
     | "fertilityRateAssumptions"
     | "lifeExpectancyAssumptions"
     | "netMigrationRateAssumptions"
+    | "retirementAgeAssumptions"
 >
 
 function getUrlAssumptionState(
@@ -212,6 +218,7 @@ function getUrlAssumptionState(
         fertilityRateAssumptions: urlState.fertilityRateAssumptions,
         lifeExpectancyAssumptions: urlState.lifeExpectancyAssumptions,
         netMigrationRateAssumptions: urlState.netMigrationRateAssumptions,
+        retirementAgeAssumptions: urlState.retirementAgeAssumptions,
     }
 }
 
@@ -242,6 +249,7 @@ function CaptionedSimulationVariant({
     baselineEntityName,
     shouldSyncEntityName,
     retirementAgeAssumptions,
+    urlRetirementAgeAssumptions,
     mode,
 }: {
     data: CountryData
@@ -265,6 +273,7 @@ function CaptionedSimulationVariant({
     baselineEntityName?: string
     shouldSyncEntityName?: boolean
     retirementAgeAssumptions?: Record<number, number>
+    urlRetirementAgeAssumptions?: Record<number, number>
     mode: SimulationContentMode
 }) {
     const countryName = data.country
@@ -323,6 +332,7 @@ function CaptionedSimulationVariant({
                     baselineEntityName={baselineEntityName}
                     shouldSyncEntityName={shouldSyncEntityName}
                     retirementAgeAssumptions={retirementAgeAssumptions}
+                    urlRetirementAgeAssumptions={urlRetirementAgeAssumptions}
                     mode={mode}
                 />
             </div>

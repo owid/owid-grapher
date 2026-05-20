@@ -7,12 +7,14 @@ export const DEMOGRAPHY_COUNTRY_PARAM = "demographyCountry"
 export const DEMOGRAPHY_FERTILITY_PARAM = "demographyFertility"
 export const DEMOGRAPHY_LIFE_EXPECTANCY_PARAM = "demographyLifeExpectancy"
 export const DEMOGRAPHY_NET_MIGRATION_PARAM = "demographyNetMigration"
+export const DEMOGRAPHY_RETIREMENT_AGE_PARAM = "demographyRetirementAge"
 
 const DEMOGRAPHY_URL_PARAM_KEYS = [
     DEMOGRAPHY_COUNTRY_PARAM,
     DEMOGRAPHY_FERTILITY_PARAM,
     DEMOGRAPHY_LIFE_EXPECTANCY_PARAM,
     DEMOGRAPHY_NET_MIGRATION_PARAM,
+    DEMOGRAPHY_RETIREMENT_AGE_PARAM,
 ] as const
 
 const ASSUMPTION_PARAM_CONFIG = {
@@ -35,6 +37,7 @@ export interface SimulationUrlState {
     fertilityRateAssumptions?: Record<number, number>
     lifeExpectancyAssumptions?: Record<number, number>
     netMigrationRateAssumptions?: Record<number, number>
+    retirementAgeAssumptions?: Record<number, number>
 }
 
 export interface SimulationUrlWriteState {
@@ -43,6 +46,8 @@ export interface SimulationUrlWriteState {
     includeEntityName: boolean
     scenarioParams: ScenarioParams
     baselineScenarioParams: ScenarioParams
+    retirementAgePoints?: Record<number, number>
+    baselineRetirementAgePoints?: Record<number, number>
 }
 
 export function parseSimulationUrlState(
@@ -61,6 +66,9 @@ export function parseSimulationUrlState(
         ),
         netMigrationRateAssumptions: parseAssumptionParam(
             params[DEMOGRAPHY_NET_MIGRATION_PARAM]
+        ),
+        retirementAgeAssumptions: parseAssumptionParam(
+            params[DEMOGRAPHY_RETIREMENT_AGE_PARAM]
         ),
     }
 }
@@ -118,6 +126,21 @@ export function simulationStateToQueryParams(
                 config.decimals
             )
         }
+    }
+
+    if (
+        state.retirementAgePoints &&
+        state.baselineRetirementAgePoints &&
+        !areControlPointsEqual(
+            state.retirementAgePoints,
+            state.baselineRetirementAgePoints,
+            0
+        )
+    ) {
+        params[DEMOGRAPHY_RETIREMENT_AGE_PARAM] = serializeAssumptionParam(
+            state.retirementAgePoints,
+            0
+        )
     }
 
     return params

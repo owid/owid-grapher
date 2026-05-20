@@ -42,7 +42,6 @@ import {
     RetirementAgeEditor,
 } from "./DependencyRatioCharts.js"
 import {
-    defaultRetirementAgePoints,
     getAgeZonesForRetirementAge,
     getRetirementAgeForYear,
     normalizeRetirementAgePoints,
@@ -70,6 +69,7 @@ export function SimulationContent({
     baselineEntityName,
     shouldSyncEntityName = false,
     retirementAgeAssumptions,
+    urlRetirementAgeAssumptions,
     mode = "population",
 }: {
     data: CountryData
@@ -86,6 +86,7 @@ export function SimulationContent({
     baselineEntityName?: string
     shouldSyncEntityName?: boolean
     retirementAgeAssumptions?: Record<number, number>
+    urlRetirementAgeAssumptions?: Record<number, number>
     mode?: "population" | "dependencyRatio"
 }) {
     const [year, setYear] = useState(END_YEAR)
@@ -130,22 +131,37 @@ export function SimulationContent({
     const scenarioParamsForUrl = simulation?.scenarioParams
     const baselineScenarioParamsForUrl = simulation?.initialScenarioParams
 
-    const [retirementAgePoints, setRetirementAgePoints] =
-        useState<RetirementAgePoints>(() =>
-            normalizeRetirementAgePoints(retirementAgeAssumptions)
-        )
-    const defaultRetirementAgePointValues = useMemo(
-        () => defaultRetirementAgePoints(),
+    const baselineRetirementAgePoints = useMemo(
+        () => normalizeRetirementAgePoints(retirementAgeAssumptions),
+        [retirementAgeAssumptions]
+    )
+    const initialRetirementAgePoints = useMemo(() => {
+        if (!urlSync || !urlRetirementAgeAssumptions) {
+            return baselineRetirementAgePoints
+        }
+        return normalizeRetirementAgePoints({
+            ...baselineRetirementAgePoints,
+            ...urlRetirementAgeAssumptions,
+        })
+    }, [urlSync, urlRetirementAgeAssumptions, baselineRetirementAgePoints])
+    const [retirementAgePoints, setRetirementAgePointsRaw] =
+        useState<RetirementAgePoints>(() => initialRetirementAgePoints)
+    const setRetirementAgePoints = useCallback(
+        (points: RetirementAgePoints) => setRetirementAgePointsRaw(points),
         []
     )
+    useEffect(() => {
+        setRetirementAgePointsRaw(initialRetirementAgePoints)
+    }, [initialRetirementAgePoints])
+
     const hasRetirementAgeChanges = CONTROL_YEARS.some(
         (controlYear) =>
             retirementAgePoints[controlYear] !==
-            defaultRetirementAgePointValues[controlYear]
+            baselineRetirementAgePoints[controlYear]
     )
     const resetRetirementAge = useCallback(() => {
-        setRetirementAgePoints(defaultRetirementAgePointValues)
-    }, [defaultRetirementAgePointValues])
+        setRetirementAgePointsRaw(baselineRetirementAgePoints)
+    }, [baselineRetirementAgePoints])
 
     useEffect(() => {
         if (!urlSync || !scenarioParamsForUrl || !baselineScenarioParamsForUrl)
@@ -158,6 +174,14 @@ export function SimulationContent({
                 includeEntityName: shouldSyncEntityName,
                 scenarioParams: scenarioParamsForUrl,
                 baselineScenarioParams: baselineScenarioParamsForUrl,
+                retirementAgePoints:
+                    mode === "dependencyRatio"
+                        ? retirementAgePoints
+                        : undefined,
+                baselineRetirementAgePoints:
+                    mode === "dependencyRatio"
+                        ? baselineRetirementAgePoints
+                        : undefined,
             })
         }, 150)
 
@@ -169,6 +193,9 @@ export function SimulationContent({
         data.country,
         baselineEntityName,
         shouldSyncEntityName,
+        mode,
+        retirementAgePoints,
+        baselineRetirementAgePoints,
     ])
 
     if (!simulation) return null
