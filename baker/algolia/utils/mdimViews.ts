@@ -20,9 +20,8 @@ import {
     ChartRecordType,
     ContentGraphLinkType,
     IndexingContext,
-    MdimRedirectSource,
 } from "@ourworldindata/types"
-import { createMdimIndexingContext } from "./context.js"
+import { createMultiDimIndexingContext } from "./context.js"
 import {
     getRelevantVariableIds,
     getRelevantVariableMetadata,
@@ -37,6 +36,7 @@ import {
 import { getPublishedLinksTo } from "../../../db/model/Link.js"
 import { DatasetDimensionsForVariable } from "./types.js"
 import pMap from "p-map"
+import { MultiDimRedirectSource } from "../../../db/model/MultiDimRedirects.js"
 
 // Published multi-dim must have a slug.
 type PublishedMultiDimWithSlug = DbEnrichedMultiDimDataPage & { slug: string }
@@ -107,7 +107,7 @@ async function getRecords(
     multiDim: PublishedMultiDimWithSlug,
     tags: string[],
     views: Map<string, number>,
-    redirectSources: MdimRedirectSource[]
+    redirects: MultiDimRedirectSource[]
 ) {
     const { slug } = multiDim
     console.log(
@@ -143,11 +143,11 @@ async function getRecords(
     // view's queryStr, so each view can pick up its own predecessors. A
     // redirect without a queryStr targets the mdim's default view.
     const predecessorsByQueryStr = new Map<string, string[]>()
-    for (const source of redirectSources) {
-        const key = source.queryStr ?? defaultViewQueryStr
+    for (const redirect of redirects) {
+        const key = redirect.queryStr ?? defaultViewQueryStr
         const list = predecessorsByQueryStr.get(key)
-        if (list) list.push(source.sourceSlug)
-        else predecessorsByQueryStr.set(key, [source.sourceSlug])
+        if (list) list.push(redirect.sourceSlug)
+        else predecessorsByQueryStr.set(key, [redirect.sourceSlug])
     }
     return multiDim.config.views.map((view) => {
         const viewId = dimensionsToViewId(view.dimensions)
@@ -299,7 +299,7 @@ export async function getMdimViewRecords(
 
     console.log("Getting mdim view records")
 
-    const context = await createMdimIndexingContext(trx, baseContext)
+    const context = await createMultiDimIndexingContext(trx, baseContext)
 
     const multiDimsWithTags = (
         await getMultiDimDataPagesWithInheritedTags(
@@ -315,7 +315,7 @@ export async function getMdimViewRecords(
                 trx,
                 multiDim,
                 tags,
-                context.views,
+                context.chartViews,
                 context.redirectsByMdimSlug.get(multiDim.slug) ?? []
             ),
         { concurrency: 10 }

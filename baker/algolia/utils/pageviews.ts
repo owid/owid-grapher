@@ -1,3 +1,9 @@
+import {
+    AnalyticsChartViewsTableName,
+    DbPlainAnalyticsChartViewsRow,
+    DbRawExplorerView,
+    ExplorerViewsTableName,
+} from "@ourworldindata/types"
 import * as db from "../../../db/db.js"
 
 /** Map from lookup key to views_7d count */
@@ -12,14 +18,15 @@ export type ChartViewsMap = Map<string, number>
 export async function getAnalyticsChartViews(
     trx: db.KnexReadonlyTransaction
 ): Promise<ChartViewsMap> {
-    const rows = await db.knexRaw<{
-        chart_slug: string
-        view_config_id: string
-        views_7d: number
-    }>(
-        trx,
-        `SELECT chart_slug, view_config_id, views_7d
-         FROM analytics_chart_views`
+    const rows = await trx<
+        Pick<
+            DbPlainAnalyticsChartViewsRow,
+            "chart_slug" | "view_config_id" | "views_7d"
+        >
+    >(AnalyticsChartViewsTableName).select(
+        "chart_slug",
+        "view_config_id",
+        "views_7d"
     )
     const map = new Map<string, number>()
     for (const row of rows) {
@@ -38,18 +45,13 @@ export async function getAnalyticsChartViews(
 export async function getExplorerViewConfigIds(
     trx: db.KnexReadonlyTransaction
 ): Promise<Map<string, string>> {
-    const rows = await db.knexRaw<{
-        explorerSlug: string
-        viewId: string
-        chartConfigId: string
-    }>(
-        trx,
-        `SELECT explorerSlug, viewId, chartConfigId
-         FROM explorer_views
-         WHERE chartConfigId IS NOT NULL`
-    )
+    const rows = await trx<
+        Pick<DbRawExplorerView, "explorerSlug" | "viewId" | "chartConfigId">
+    >(ExplorerViewsTableName)
+        .select("explorerSlug", "viewId", "chartConfigId")
+        .whereNotNull("chartConfigId")
     return new Map(
-        rows.map((r) => [`${r.explorerSlug}:${r.viewId}`, r.chartConfigId])
+        rows.map((r) => [`${r.explorerSlug}:${r.viewId}`, r.chartConfigId!])
     )
 }
 

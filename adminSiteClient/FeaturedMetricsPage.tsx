@@ -1,10 +1,5 @@
 import * as _ from "lodash-es"
-import {
-    useMutation,
-    UseMutationResult,
-    useQuery,
-    useQueryClient,
-} from "@tanstack/react-query"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useContext, useEffect, useMemo, useState } from "react"
 import {
     Input,
@@ -17,7 +12,6 @@ import {
     Checkbox,
     Tooltip,
 } from "antd"
-import { Admin } from "./Admin.js"
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext } from "./AdminAppContext.js"
 import {
@@ -498,53 +492,101 @@ function FeaturedMetricsExplainer() {
     )
 }
 
-async function fetchFeaturedMetrics(admin: Admin) {
-    const { featuredMetrics } = await admin.getJSON<{
-        featuredMetrics: FeaturedMetricByParentTagNameDictionary
-    }>("/api/featured-metrics.json")
-    return featuredMetrics
+function useFeaturedMetrics() {
+    const { admin } = useContext(AdminAppContext)
+    return useQuery({
+        queryKey: ["featuredMetrics"],
+        queryFn: async () => {
+            const { featuredMetrics } = await admin.getJSON<{
+                featuredMetrics: FeaturedMetricByParentTagNameDictionary
+            }>("/api/featured-metrics.json")
+            return featuredMetrics
+        },
+    })
 }
 
-type AddFeaturedMetricMutation = UseMutationResult<
-    Json,
-    unknown,
-    {
-        url: string
-        incomeGroup: FeaturedMetricIncomeGroup
-        ranking: number
-        parentTagName: string
-    },
-    unknown
->
+function useAddFeaturedMetric() {
+    const { admin } = useContext(AdminAppContext)
+    const queryClient = useQueryClient()
+    return useMutation({
+        mutationFn: (featuredMetric: {
+            url: string
+            incomeGroup: FeaturedMetricIncomeGroup
+            ranking: number
+            parentTagName: string
+        }) =>
+            admin.requestJSON<Json>(
+                "/api/featured-metrics/new",
+                featuredMetric,
+                "POST"
+            ),
+        onSuccess: () =>
+            queryClient.invalidateQueries({ queryKey: ["featuredMetrics"] }),
+    })
+}
 
-type DeleteFeaturedMetricMutation = UseMutationResult<
-    Json,
-    unknown,
-    { id: number },
-    unknown
->
+type AddFeaturedMetricMutation = ReturnType<typeof useAddFeaturedMetric>
 
-type RerankFeaturedMetricsMutation = UseMutationResult<
-    Json,
-    unknown,
-    {
-        id: number
-        ranking: number
-    }[],
-    unknown
->
+function useDeleteFeaturedMetric() {
+    const { admin } = useContext(AdminAppContext)
+    const queryClient = useQueryClient()
+    return useMutation({
+        mutationFn: ({ id }: { id: number }) =>
+            admin.requestJSON<Json>(
+                `/api/featured-metrics/${id}`,
+                {},
+                "DELETE"
+            ),
+        onSuccess: () =>
+            queryClient.invalidateQueries({ queryKey: ["featuredMetrics"] }),
+    })
+}
 
-type UpdateBoostMutation = UseMutationResult<
-    Json,
-    unknown,
-    { id: number; boostInSearch: boolean },
-    unknown
->
+type DeleteFeaturedMetricMutation = ReturnType<typeof useDeleteFeaturedMetric>
+
+function useRerankFeaturedMetrics() {
+    const { admin } = useContext(AdminAppContext)
+    const queryClient = useQueryClient()
+    return useMutation({
+        mutationFn: (featuredMetrics: { id: number; ranking: number }[]) =>
+            admin.requestJSON<Json>(
+                `/api/featured-metrics/rerank`,
+                featuredMetrics,
+                "POST"
+            ),
+        onSuccess: () =>
+            queryClient.invalidateQueries({ queryKey: ["featuredMetrics"] }),
+    })
+}
+
+type RerankFeaturedMetricsMutation = ReturnType<typeof useRerankFeaturedMetrics>
+
+function useUpdateBoost() {
+    const { admin } = useContext(AdminAppContext)
+    const queryClient = useQueryClient()
+    return useMutation({
+        mutationFn: ({
+            id,
+            boostInSearch,
+        }: {
+            id: number
+            boostInSearch: boolean
+        }) =>
+            admin.requestJSON<Json>(
+                `/api/featured-metrics/${id}/boost`,
+                { boostInSearch },
+                "PUT"
+            ),
+        onSuccess: () =>
+            queryClient.invalidateQueries({ queryKey: ["featuredMetrics"] }),
+    })
+}
+
+type UpdateBoostMutation = ReturnType<typeof useUpdateBoost>
 
 export function FeaturedMetricsPage() {
     const { admin } = useContext(AdminAppContext)
     const [search, setSearch] = useState("")
-    const queryClient = useQueryClient()
 
     useEffect(() => {
         admin.loadingIndicatorSetting = "off"
@@ -553,49 +595,11 @@ export function FeaturedMetricsPage() {
         }
     }, [admin])
 
-    const featuredMetrics = useQuery({
-        queryKey: ["featuredMetrics"],
-        queryFn: () => fetchFeaturedMetrics(admin),
-    })
-    const addFeaturedMetric = useMutation({
-        mutationFn: (featuredMetric) =>
-            admin.requestJSON(
-                "/api/featured-metrics/new",
-                featuredMetric,
-                "POST"
-            ),
-        onSuccess: () =>
-            queryClient.invalidateQueries({ queryKey: ["featuredMetrics"] }),
-    }) as AddFeaturedMetricMutation
-
-    const deleteFeaturedMetric = useMutation({
-        mutationFn: ({ id }) =>
-            admin.requestJSON(`/api/featured-metrics/${id}`, {}, "DELETE"),
-        onSuccess: () =>
-            queryClient.invalidateQueries({ queryKey: ["featuredMetrics"] }),
-    }) as DeleteFeaturedMetricMutation
-
-    const rerankFeaturedMetrics = useMutation({
-        mutationFn: (featuredMetrics) =>
-            admin.requestJSON(
-                `/api/featured-metrics/rerank`,
-                featuredMetrics,
-                "POST"
-            ),
-        onSuccess: () =>
-            queryClient.invalidateQueries({ queryKey: ["featuredMetrics"] }),
-    }) as RerankFeaturedMetricsMutation
-
-    const updateBoost = useMutation({
-        mutationFn: ({ id, boostInSearch }) =>
-            admin.requestJSON(
-                `/api/featured-metrics/${id}/boost`,
-                { boostInSearch },
-                "PUT"
-            ),
-        onSuccess: () =>
-            queryClient.invalidateQueries({ queryKey: ["featuredMetrics"] }),
-    }) as UpdateBoostMutation
+    const featuredMetrics = useFeaturedMetrics()
+    const addFeaturedMetric = useAddFeaturedMetric()
+    const deleteFeaturedMetric = useDeleteFeaturedMetric()
+    const rerankFeaturedMetrics = useRerankFeaturedMetrics()
+    const updateBoost = useUpdateBoost()
 
     const filteredFeaturedMetrics = useMemo(() => {
         const query = search.trim().toLowerCase()

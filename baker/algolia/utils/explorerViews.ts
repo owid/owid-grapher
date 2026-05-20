@@ -883,7 +883,7 @@ export const getExplorerViewRecords = async (
             getExplorerViewRecordsForExplorer(
                 trx,
                 explorerInfo,
-                context.views,
+                context.chartViews,
                 explorerViewConfigIds,
                 explorerAdminServer,
                 skipGrapherViews

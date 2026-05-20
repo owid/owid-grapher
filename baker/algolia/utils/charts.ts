@@ -91,7 +91,7 @@ function getChartViews7d(
     chartId: number
 ): number {
     const redirectSlugs = context.redirectsByChartId.get(chartId) ?? []
-    return getMaxViews(context.views, [slug, ...redirectSlugs])
+    return getMaxViews(context.chartViews, [slug, ...redirectSlugs])
 }
 
 /**
