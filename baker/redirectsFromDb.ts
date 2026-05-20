@@ -84,9 +84,9 @@ export const getGrapherToMultiDimRedirects = async (
         "/grapher/"
     )
 
-    for (const [sourceSlug, target] of targets.entries()) {
-        const targetPath = `${urlPrefix}${target.targetSlug}${
-            target.queryStr ? `?${target.queryStr}` : ""
+    for (const [sourceSlug, redirect] of targets.entries()) {
+        const targetPath = `${urlPrefix}${redirect.targetSlug}${
+            redirect.queryStr ? `?${redirect.queryStr}` : ""
         }`
         redirects.set(`${urlPrefix}${sourceSlug}`, targetPath)
     }
@@ -104,9 +104,9 @@ export async function getExplorerToMultiDimRedirects(
         "/explorers/"
     )
 
-    for (const [sourceSlug, target] of targets.entries()) {
-        const targetPath = `/grapher/${target.targetSlug}${
-            target.queryStr ? `?${target.queryStr}` : ""
+    for (const [sourceSlug, redirect] of targets.entries()) {
+        const targetPath = `/grapher/${redirect.targetSlug}${
+            redirect.queryStr ? `?${redirect.queryStr}` : ""
         }`
         redirects.set(`${urlPrefix}${sourceSlug}`, targetPath)
     }

@@ -22,7 +22,10 @@ import {
     ContentGraphLinkType,
     IndexingContext,
 } from "@ourworldindata/types"
-import { createMultiDimIndexingContext } from "./context.js"
+import {
+    createMultiDimIndexingContext,
+    MultiDimRedirectWithLookupKey,
+} from "./context.js"
 import {
     getRelevantVariableIds,
     getRelevantVariableMetadata,
@@ -37,7 +40,6 @@ import {
 import { getPublishedLinksTo } from "../../../db/model/Link.js"
 import { DatasetDimensionsForVariable } from "./types.js"
 import pMap from "p-map"
-import { MultiDimRedirectSource } from "../../../db/model/MultiDimRedirects.js"
 
 // Published multi-dim must have a slug.
 type PublishedMultiDimWithSlug = DbEnrichedMultiDimDataPage & { slug: string }
@@ -108,7 +110,7 @@ async function getRecords(
     multiDim: PublishedMultiDimWithSlug,
     tags: string[],
     views: Map<string, number>,
-    redirects: MultiDimRedirectSource[]
+    redirects: MultiDimRedirectWithLookupKey[]
 ) {
     const { slug } = multiDim
     console.log(
@@ -134,8 +136,9 @@ async function getRecords(
     // params (or with params that don't match any dimension) resolve to the
     // default view.
     const mdimConfig = MultiDimDataPageConfig.fromObject(multiDim.config)
-    const defaultViewDimensions =
-        mdimConfig.filterToAvailableChoices({}).selectedChoices
+    const defaultViewDimensions = mdimConfig.filterToAvailableChoices(
+        {}
+    ).selectedChoices
     const defaultViewQueryStr = dimensionsToSortedQueryStr(
         defaultViewDimensions
     )
@@ -147,22 +150,27 @@ async function getRecords(
             mdimConfig
         )
         const resolvedChoices =
-            mdimConfig.filterToAvailableChoices(dimensionChoices).selectedChoices
+            mdimConfig.filterToAvailableChoices(
+                dimensionChoices
+            ).selectedChoices
         const viewId = dimensionsToViewId(resolvedChoices)
         numRelatedArticlesByViewId.set(
             viewId,
             (numRelatedArticlesByViewId.get(viewId) ?? 0) + 1
         )
     }
-    // Bucket grapher slugs that now redirect into this mdim by the target
-    // view's queryStr, so each view can pick up its own predecessors. A
+    // Bucket grapher/explorer sources that now redirect into this mdim by the
+    // target view's queryStr, so each view can pick up its own predecessors. A
     // redirect without a queryStr targets the mdim's default view.
-    const predecessorsByQueryStr = new Map<string, string[]>()
+    const predecessorsByQueryStr = new Map<
+        string,
+        MultiDimRedirectWithLookupKey[]
+    >()
     for (const redirect of redirects) {
-        const key = redirect.queryStr ?? defaultViewQueryStr
+        const key = redirect.targetQueryStr ?? defaultViewQueryStr
         const list = predecessorsByQueryStr.get(key)
-        if (list) list.push(redirect.sourceSlug)
-        else predecessorsByQueryStr.set(key, [redirect.sourceSlug])
+        if (list) list.push(redirect)
+        else predecessorsByQueryStr.set(key, [redirect])
     }
     return multiDim.config.views.map((view) => {
         const viewId = dimensionsToViewId(view.dimensions)
@@ -206,13 +214,18 @@ async function getRecords(
             .filter(Boolean)
         // Keyed by config ID so we don't have to worry about slug renames/redirects
         const ownViews_7d = views.get(view.fullConfigId) ?? 0
-        // Inherit views_7d from grapher charts that now redirect to this view.
-        // Math.max (not sum) avoids double-counting traffic during the redirect's
-        // first week; after ~7 days the predecessor's count decays and the
-        // view's own count takes over.
-        const predecessorSlugs = predecessorsByQueryStr.get(queryStr) ?? []
-        const views_7d = predecessorSlugs.reduce(
-            (max, predSlug) => Math.max(max, views.get(predSlug) ?? 0),
+        // Inherit views_7d from grapher charts or explorers that now redirect
+        // to this view. Math.max (not sum) avoids double-counting traffic
+        // during the redirect's first week; after ~7 days the predecessor's
+        // count decays and the view's own count takes over. Explorer
+        // predecessors contribute their default-view's views_7d (the closest
+        // pre-redirect signal we can attribute to this mdim view).
+        const predecessors = predecessorsByQueryStr.get(queryStr) ?? []
+        const views_7d = predecessors.reduce(
+            (max, pred) =>
+                pred.lookupKey
+                    ? Math.max(max, views.get(pred.lookupKey) ?? 0)
+                    : max,
             ownViews_7d
         )
         const score = computeRecordScore(
@@ -321,7 +334,12 @@ export async function getMdimViewRecords(
             trx,
             context.topicHierarchies
         )
-    ).filter((m) => id === undefined || m.multiDim.id === id)
+    ).filter(
+        (m) =>
+            // temp test
+            m.multiDim.slug === "academic-performance"
+        // id === undefined || m.multiDim.id === id
+    )
 
     const records = await pMap(
         multiDimsWithTags,
