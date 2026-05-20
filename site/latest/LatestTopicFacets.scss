@@ -122,7 +122,6 @@
 // ---------- Content type dropdown ----------
 
 .latest-topic-facets__content-type-dropdown {
-    position: relative;
     flex-shrink: 0;
 }
 
@@ -153,12 +152,10 @@
     }
 }
 
-.latest-topic-facets__content-type-trigger--active {
-    color: $blue-90;
-
-    &:hover {
-        border-color: $blue-30;
-    }
+// React Aria sets `data-pressed` on the trigger Button while the popover
+// is open — use that as the active state.
+.latest-topic-facets__content-type-trigger[data-pressed] {
+    border-color: $blue-30;
 }
 
 .latest-topic-facets__content-type-trigger-icon {
@@ -179,35 +176,21 @@
     transition: transform 0.15s ease;
 }
 
-.latest-topic-facets__content-type-trigger-chevron--open {
+.latest-topic-facets__content-type-trigger[data-pressed]
+    .latest-topic-facets__content-type-trigger-chevron {
     transform: rotate(180deg);
 }
 
-.latest-topic-facets__content-type-dropdown-backdrop {
-    position: fixed;
-    inset: 0;
-    z-index: 99;
-}
-
 .latest-topic-facets__content-type-dropdown-menu {
-    position: absolute;
-    top: calc(100% + 4px);
-    left: 0;
-    z-index: 100;
     background-color: #fff;
     border: 1px solid $blue-20;
     border-radius: 0;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
     max-height: 320px;
     overflow-y: auto;
-    width: 200px;
+    width: var(--trigger-width);
     padding: 0;
     margin: 0;
-    list-style: none;
-
-    @include sm-only {
-        width: 100%;
-    }
 }
 
 .latest-topic-facets__content-type-dropdown-item {
@@ -222,18 +205,22 @@
     background-color: #fff;
     transition: background-color 0.1s ease;
 
-    &:hover {
+    &:focus-visible {
+        outline: none;
+    }
+
+    &[data-focused] {
         background-color: $blue-5;
     }
-}
 
-.latest-topic-facets__content-type-dropdown-item--active {
-    background-color: $blue-5;
-}
+    &[data-selected] {
+        background-color: $blue-5;
+    }
 
-.latest-topic-facets__content-type-dropdown-item--disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
+    &[data-disabled] {
+        opacity: 0.4;
+        cursor: not-allowed;
+    }
 }
 
 .latest-topic-facets__content-type-radio {

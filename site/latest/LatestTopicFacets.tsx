@@ -1,10 +1,4 @@
-import React, {
-    useCallback,
-    useContext,
-    useEffect,
-    useRef,
-    useState,
-} from "react"
+import React, { useCallback, useContext, useEffect, useRef } from "react"
 import cx from "classnames"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
@@ -14,6 +8,13 @@ import {
     faFilter,
 } from "@fortawesome/free-solid-svg-icons"
 import { ScrollMenu, VisibilityContext } from "react-horizontal-scrolling-menu"
+import {
+    Button,
+    ListBox,
+    ListBoxItem,
+    Popover,
+    Select,
+} from "react-aria-components"
 import { LATEST_TYPE_VALUES, LatestType } from "@ourworldindata/types"
 import { latestTypeLabelPlural } from "./latestUtils.js"
 
@@ -44,6 +45,43 @@ const LeftArrow = () => {
         >
             <FontAwesomeIcon icon={faCaretLeft} />
         </button>
+    )
+}
+
+const ContentTypeListBoxItem = ({
+    id,
+    label,
+}: {
+    id: string
+    label: string
+}) => {
+    return (
+        <ListBoxItem
+            id={id}
+            textValue={label}
+            className="latest-topic-facets__content-type-dropdown-item"
+        >
+            {({ isSelected }) => (
+                <>
+                    <span
+                        className={cx(
+                            "latest-topic-facets__content-type-radio",
+                            {
+                                "latest-topic-facets__content-type-radio--checked":
+                                    isSelected,
+                            }
+                        )}
+                    >
+                        {isSelected && (
+                            <span className="latest-topic-facets__content-type-radio-dot" />
+                        )}
+                    </span>
+                    <span className="latest-topic-facets__content-type-dropdown-label">
+                        {label}
+                    </span>
+                </>
+            )}
+        </ListBoxItem>
     )
 }
 
@@ -81,9 +119,6 @@ export const LatestTopicFacets = ({
     disabledTypes: Set<LatestType>
     disabledTopics: Set<string>
 }) => {
-    const [isContentTypeDropdownOpen, setIsContentTypeDropdownOpen] =
-        useState(false)
-
     type ScrollApiType = React.ContextType<typeof VisibilityContext>
     const apiRef = useRef({} as ScrollApiType)
 
@@ -174,23 +209,20 @@ export const LatestTopicFacets = ({
                         ]}
                     </ScrollMenu>
                 </div>
-                <div className="latest-topic-facets__content-type-dropdown">
-                    <button
-                        className={cx(
-                            "latest-topic-facets__content-type-trigger",
-                            {
-                                "latest-topic-facets__content-type-trigger--active":
-                                    selectedType !== null,
-                            }
-                        )}
-                        onClick={() =>
-                            setIsContentTypeDropdownOpen(
-                                !isContentTypeDropdownOpen
-                            )
-                        }
-                        aria-expanded={isContentTypeDropdownOpen}
-                        aria-haspopup="listbox"
-                    >
+                <Select
+                    className="latest-topic-facets__content-type-dropdown"
+                    value={selectedType ?? "all"}
+                    onChange={(key) =>
+                        onLatestTypeChange(
+                            key === "all" || key === null
+                                ? null
+                                : (key as LatestType)
+                        )
+                    }
+                    disabledKeys={disabledTypes}
+                    aria-label="Filter by content type"
+                >
+                    <Button className="latest-topic-facets__content-type-trigger">
                         <FontAwesomeIcon
                             icon={faFilter}
                             className="latest-topic-facets__content-type-trigger-icon"
@@ -202,115 +234,26 @@ export const LatestTopicFacets = ({
                         </span>
                         <FontAwesomeIcon
                             icon={faCaretDown}
-                            className={cx(
-                                "latest-topic-facets__content-type-trigger-chevron",
-                                {
-                                    "latest-topic-facets__content-type-trigger-chevron--open":
-                                        isContentTypeDropdownOpen,
-                                }
-                            )}
+                            className="latest-topic-facets__content-type-trigger-chevron"
                         />
-                    </button>
-                    {isContentTypeDropdownOpen && (
-                        <>
-                            <div
-                                className="latest-topic-facets__content-type-dropdown-backdrop"
-                                onClick={() =>
-                                    setIsContentTypeDropdownOpen(false)
-                                }
-                            />
-                            <ul
-                                className="latest-topic-facets__content-type-dropdown-menu"
-                                role="listbox"
-                            >
-                                <li
-                                    className={cx(
-                                        "latest-topic-facets__content-type-dropdown-item",
-                                        {
-                                            "latest-topic-facets__content-type-dropdown-item--active":
-                                                selectedType === null,
-                                        }
-                                    )}
-                                    role="option"
-                                    aria-selected={selectedType === null}
-                                    onClick={() => {
-                                        onLatestTypeChange(null)
-                                        setIsContentTypeDropdownOpen(false)
-                                    }}
-                                >
-                                    <span
-                                        className={cx(
-                                            "latest-topic-facets__content-type-radio",
-                                            {
-                                                "latest-topic-facets__content-type-radio--checked":
-                                                    selectedType === null,
-                                            }
-                                        )}
-                                    >
-                                        {selectedType === null && (
-                                            <span className="latest-topic-facets__content-type-radio-dot" />
-                                        )}
-                                    </span>
-                                    <span className="latest-topic-facets__content-type-dropdown-label">
-                                        All
-                                    </span>
-                                </li>
-                                {LATEST_TYPE_VALUES.map((value) => {
-                                    const isActive = selectedType === value
-                                    const isDisabled = disabledTypes.has(value)
-                                    return (
-                                        <li
-                                            key={value}
-                                            className={cx(
-                                                "latest-topic-facets__content-type-dropdown-item",
-                                                {
-                                                    "latest-topic-facets__content-type-dropdown-item--active":
-                                                        isActive,
-                                                    "latest-topic-facets__content-type-dropdown-item--disabled":
-                                                        isDisabled,
-                                                }
-                                            )}
-                                            role="option"
-                                            aria-selected={isActive}
-                                            aria-disabled={isDisabled}
-                                            onClick={
-                                                isDisabled
-                                                    ? undefined
-                                                    : () => {
-                                                          onLatestTypeChange(
-                                                              isActive
-                                                                  ? null
-                                                                  : value
-                                                          )
-                                                          setIsContentTypeDropdownOpen(
-                                                              false
-                                                          )
-                                                      }
-                                            }
-                                        >
-                                            <span
-                                                className={cx(
-                                                    "latest-topic-facets__content-type-radio",
-                                                    {
-                                                        "latest-topic-facets__content-type-radio--checked":
-                                                            isActive,
-                                                    }
-                                                )}
-                                            >
-                                                {isActive && (
-                                                    <span className="latest-topic-facets__content-type-radio-dot" />
-                                                )}
-                                            </span>
-                                            <span className="latest-topic-facets__content-type-dropdown-label">
-                                                {latestTypeLabelPlural(value)}
-                                            </span>
-                                        </li>
-                                    )
-                                })}
-                            </ul>
-                        </>
-                    )}
-                </div>
+                    </Button>
+                    <Popover
+                        className="latest-topic-facets__content-type-dropdown-menu"
+                        placement="bottom start"
+                        offset={4}
+                    >
+                        <ListBox>
+                            <ContentTypeListBoxItem id="all" label="All" />
+                            {LATEST_TYPE_VALUES.map((value) => (
+                                <ContentTypeListBoxItem
+                                    key={value}
+                                    id={value}
+                                    label={latestTypeLabelPlural(value)}
+                                />
+                            ))}
+                        </ListBox>
+                    </Popover>
+                </Select>
             </div>
         </div>
     )
