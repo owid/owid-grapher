@@ -100,8 +100,8 @@ export const IncomePlotTooltip = () => {
                                             {entityForPercentage ===
                                             WORLD_ENTITY_NAME
                                                 ? "world"
-                                                : ""}{" "}
-                                            population earns less than{" "}
+                                                : "country's"}{" "}
+                                            population lives on less than{" "}
                                             {formatCurrency(
                                                 lineForDisplay * combinedFactor,
                                                 currency
