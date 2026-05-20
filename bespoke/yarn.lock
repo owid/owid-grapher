@@ -850,10 +850,28 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@tanstack/query-core@npm:5.100.10":
+  version: 5.100.10
+  resolution: "@tanstack/query-core@npm:5.100.10"
+  checksum: 10/99aedb513bcc5b81b341bd6e6493803ce305861fdb0e99acc3ae19e36fdd680185572faa3bd84c4af4cdb1b1bc4aa4a5980151032d7b79105759236f3c1c7e48
+  languageName: node
+  linkType: hard
+
 "@tanstack/query-core@npm:5.100.9":
   version: 5.100.9
   resolution: "@tanstack/query-core@npm:5.100.9"
   checksum: 10/159c2a7e0e5d7f6b301da8f565a1e5341005f581f2ff39be23483eb88352f4f5ed96b430b0d59eec6a9691129743d1a1133a4c626149afc22df5015602ac02eb
+  languageName: node
+  linkType: hard
+
+"@tanstack/react-query@npm:^5.100.9":
+  version: 5.100.10
+  resolution: "@tanstack/react-query@npm:5.100.10"
+  dependencies:
+    "@tanstack/query-core": "npm:5.100.10"
+  peerDependencies:
+    react: ^18 || ^19
+  checksum: 10/7f056447f0aeb6eceb6672bf745c742a4894ed7229ef945c5c81a73c725afd9a84bdb0fd5b304619332aaf1c26b3b73cb0c18233245bde140f3161f07c5dea6b
   languageName: node
   linkType: hard
 
