@@ -229,7 +229,6 @@ export const IncomePlotControlsRowBottom = () => {
         currentCurrency.currency_code === "INTD"
             ? "INTD"
             : (currentCurrency.country_code ?? "INTD")
-    const isSearchingCurrencies = currencySearchValue.trim().length > 0
 
     const handleSelectionChange = (key: React.Key | null) => {
         if (key === null) return
@@ -358,51 +357,27 @@ export const IncomePlotControlsRowBottom = () => {
                                     Could not load local currencies.
                                 </ListBoxItem>
                             )}
-                            {!isSearchingCurrencies &&
-                                conversionOptions.length > 0 && (
-                                    <ListBoxSection>
-                                        <Header className="currency-select__section-header">
-                                            All countries
-                                        </Header>
+                            {conversionOptions.length > 0 && (
+                                <ListBoxSection>
+                                    <Header className="currency-select__section-header">
+                                        All countries
+                                    </Header>
+                                    {conversionOptions.map((c) => (
                                         <ListBoxItem
-                                            id="all-countries-search-hint"
-                                            isDisabled
-                                            textValue="Type in the search box to search all countries"
-                                            className="currency-select__item currency-select__item--hint"
+                                            key={c.country_code}
+                                            id={c.country_code}
+                                            textValue={getCurrencySearchText(c)}
+                                            className="currency-select__item"
                                         >
-                                            Type in the search box above to
-                                            search all countries
+                                            <CurrencyOption
+                                                country={c.country}
+                                                currencyName={c.currency_name}
+                                                currencyCode={c.currency_code}
+                                            />
                                         </ListBoxItem>
-                                    </ListBoxSection>
-                                )}
-                            {isSearchingCurrencies &&
-                                conversionOptions.length > 0 && (
-                                    <ListBoxSection>
-                                        <Header className="currency-select__section-header">
-                                            All countries
-                                        </Header>
-                                        {conversionOptions.map((c) => (
-                                            <ListBoxItem
-                                                key={c.country_code}
-                                                id={c.country_code}
-                                                textValue={getCurrencySearchText(
-                                                    c
-                                                )}
-                                                className="currency-select__item"
-                                            >
-                                                <CurrencyOption
-                                                    country={c.country}
-                                                    currencyName={
-                                                        c.currency_name
-                                                    }
-                                                    currencyCode={
-                                                        c.currency_code
-                                                    }
-                                                />
-                                            </ListBoxItem>
-                                        ))}
-                                    </ListBoxSection>
-                                )}
+                                    ))}
+                                </ListBoxSection>
+                            )}
                         </ListBox>
                     </Autocomplete>
                 </Popover>
