@@ -39,7 +39,12 @@ import {
     type RetirementAgePoints,
 } from "../helpers/dependencyRatio.js"
 import { parameterConfigByKey } from "../helpers/parameterConfigs.js"
+import { scaleMortalityToLE } from "../model/model.js"
 import { getInterpolatedValue } from "../model/projectionRunner.js"
+import {
+    useLifeExpectancyAtDifferentAges,
+    type LifeExpectancyAtDifferentAgesPoint,
+} from "../helpers/fetch.js"
 import { TimeAxisX } from "./TimeAxisX.js"
 
 const DEPENDENT_OLD_COLOR = USER_MODIFIED_COLOR_LIGHT
@@ -48,6 +53,7 @@ const WORKING_COLOR = COLOR_WORKING
 const retirementChartMargin = { top: 6, right: 2, bottom: 16, left: 28 }
 const compactChartMargin = { top: 8, right: 2, bottom: 16, left: 36 }
 const ageShareChartMargin = { top: 22, right: 2, bottom: 16, left: 36 }
+const LIFE_EXPECTANCY_OLDER_AGE = 65
 
 interface DataPoint {
     year: number
@@ -67,6 +73,8 @@ interface HoverState {
     cursorX: number
     cursorY: number
 }
+
+type LifeExpectancyAge = "age0" | "age65"
 
 interface RetirementAgeEditorProps {
     simulation: Simulation
@@ -111,9 +119,20 @@ function getHoverState(
     }
 }
 
-function buildLifeExpectancyPoints(simulation: Simulation): DataPoint[] {
+function buildLifeExpectancyAtAge0Points(
+    simulation: Simulation,
+    lifeExpectancyAtDifferentAges?: LifeExpectancyAtDifferentAgesPoint[]
+): DataPoint[] {
     const config = parameterConfigByKey.lifeExpectancy
-    const historical = config.computeHistorical(simulation).points
+    const historical = lifeExpectancyAtDifferentAges
+        ? lifeExpectancyAtDifferentAges
+              .filter(
+                  (point) =>
+                      point.year >= START_YEAR &&
+                      point.year <= HISTORICAL_END_YEAR
+              )
+              .map((point) => ({ year: point.year, value: point.atAge0 }))
+        : config.computeHistorical(simulation).points
     const lastHistorical = historical.at(-1)
     if (!lastHistorical) return historical
 
@@ -135,6 +154,116 @@ function buildLifeExpectancyPoints(simulation: Simulation): DataPoint[] {
         })
     }
     return [...historical, ...projection]
+}
+
+function calculateExpectedAgeAtDeath(
+    mortalityRates: number[],
+    startingAge: number
+): number {
+    let survivors = 100000
+    let totalYearsLived = 0
+
+    for (let age = startingAge; age < mortalityRates.length; age++) {
+        const rate = Math.min(mortalityRates[age] || 0, 1)
+        const deaths = survivors * rate
+        const avgSurvivors = survivors - deaths / 2
+        totalYearsLived += avgSurvivors
+        survivors -= deaths
+        if (survivors <= 0) break
+    }
+
+    return startingAge + totalYearsLived / 100000
+}
+
+function calculateSexTotalExpectedAgeAtDeath(
+    mortalityRates: { female: number[]; male: number[] },
+    startingAge: number
+): number {
+    return (
+        (calculateExpectedAgeAtDeath(mortalityRates.female, startingAge) +
+            calculateExpectedAgeAtDeath(mortalityRates.male, startingAge)) /
+        2
+    )
+}
+
+function calculateScenarioExpectedAgeAtDeath(
+    simulation: Simulation,
+    targetLifeExpectancyAtBirth: number,
+    startingAge: number
+): number {
+    const mortalityRates = scaleMortalityToLE(
+        simulation.baselineParams.mortality,
+        simulation.baselineParams.lifeExpectancy,
+        targetLifeExpectancyAtBirth
+    )
+    return calculateSexTotalExpectedAgeAtDeath(mortalityRates, startingAge)
+}
+
+function buildLifeExpectancyAtOlderAgePoints(
+    simulation: Simulation,
+    lifeExpectancyAtDifferentAges?: LifeExpectancyAtDifferentAgesPoint[]
+): DataPoint[] {
+    const historical =
+        lifeExpectancyAtDifferentAges
+            ?.filter(
+                (point) =>
+                    point.year >= START_YEAR &&
+                    point.year <= HISTORICAL_END_YEAR
+            )
+            .map((point) => ({
+                year: point.year,
+                value: point.atAge65,
+            })) ?? []
+    const historicalAge0Points = buildLifeExpectancyAtAge0Points(
+        simulation,
+        lifeExpectancyAtDifferentAges
+    )
+    const lastHistoricalAge0Point = historicalAge0Points.at(-1)
+    if (!lastHistoricalAge0Point) return historical
+
+    const targetLifeExpectancyAtBirthByYear = {
+        [HISTORICAL_END_YEAR]: lastHistoricalAge0Point.value,
+        ...simulation.scenarioParams.lifeExpectancy,
+    }
+    const controlYears = [HISTORICAL_END_YEAR, ...CONTROL_YEARS]
+    const projection = []
+
+    for (let year = HISTORICAL_END_YEAR + 1; year <= END_YEAR; year++) {
+        const targetLifeExpectancyAtBirth = getInterpolatedValue(
+            targetLifeExpectancyAtBirthByYear,
+            year,
+            HISTORICAL_END_YEAR,
+            controlYears
+        )
+        projection.push({
+            year,
+            value: calculateScenarioExpectedAgeAtDeath(
+                simulation,
+                targetLifeExpectancyAtBirth,
+                LIFE_EXPECTANCY_OLDER_AGE
+            ),
+        })
+    }
+
+    return [...historical, ...projection]
+}
+
+function buildLifeExpectancyPoints(
+    simulation: Simulation,
+    lifeExpectancyAge: LifeExpectancyAge,
+    lifeExpectancyAtDifferentAges?: LifeExpectancyAtDifferentAgesPoint[]
+): DataPoint[] {
+    if (lifeExpectancyAge === "age65") {
+        return buildLifeExpectancyAtOlderAgePoints(
+            simulation,
+            lifeExpectancyAtDifferentAges
+        )
+    }
+
+    return buildLifeExpectancyAtAge0Points(
+        simulation,
+        lifeExpectancyAtDifferentAges
+    )
 }
 
 export function RetirementAgeEditor({
@@ -173,9 +302,18 @@ function RetirementAgeEditorContent({
 }): React.ReactElement {
     const [draggedYear, setDraggedYear] = useState<number | null>(null)
     const [hoverState, setHoverState] = useState<HoverState | null>(null)
+    const [lifeExpectancyAge, setLifeExpectancyAge] =
+        useState<LifeExpectancyAge>("age0")
+    const { data: lifeExpectancyAtDifferentAges } =
+        useLifeExpectancyAtDifferentAges(simulation.data.country)
     const lifeExpectancyPoints = useMemo(
-        () => buildLifeExpectancyPoints(simulation),
-        [simulation]
+        () =>
+            buildLifeExpectancyPoints(
+                simulation,
+                lifeExpectancyAge,
+                lifeExpectancyAtDifferentAges
+            ),
+        [simulation, lifeExpectancyAge, lifeExpectancyAtDifferentAges]
     )
     const retirementAgeLine = useMemo(
         () =>
@@ -246,9 +384,14 @@ function RetirementAgeEditorContent({
           0)
         : 0
     const hoveredLifeExpectancy = hoverState
-        ? (lifeExpectancyPoints.find((d) => d.year === hoverState.year)
-              ?.value ?? 0)
-        : 0
+        ? lifeExpectancyPoints.find((d) => d.year === hoverState.year)?.value
+        : undefined
+    const lifeExpectancyLabel = `Life expectancy at age ${
+        lifeExpectancyAge === "age0" ? "0" : LIFE_EXPECTANCY_OLDER_AGE
+    }`
+    const toggleLifeExpectancyAge = useCallback(() => {
+        setLifeExpectancyAge((age) => (age === "age0" ? "age65" : "age0"))
+    }, [])
 
     const dismissTooltip = useCallback(() => setHoverState(null), [])
     const { ref: chartRef, isPinned: pinTooltipToBottom } =
@@ -396,9 +539,15 @@ function RetirementAgeEditorContent({
                         items={[
                             { label: "Retirement age", color: WORKING_COLOR },
                             {
-                                label: "Life expectancy",
+                                label: lifeExpectancyLabel,
                                 color: BENCHMARK_LINE_COLOR,
                                 dashArray: PROJECTION_DASHARRAY,
+                                onClick: toggleLifeExpectancyAge,
+                                ariaLabel: `Show life expectancy ${
+                                    lifeExpectancyAge === "age0"
+                                        ? `at age ${LIFE_EXPECTANCY_OLDER_AGE}`
+                                        : "at age 0"
+                                }`,
                             },
                         ]}
                         x={0}
@@ -431,8 +580,12 @@ function RetirementAgeEditorContent({
                         color={WORKING_COLOR}
                     />
                     <TooltipValue
-                        label="Life expectancy"
-                        value={String(Math.round(hoveredLifeExpectancy))}
+                        label={lifeExpectancyLabel}
+                        value={
+                            hoveredLifeExpectancy === undefined
+                                ? "No data"
+                                : String(Math.round(hoveredLifeExpectancy))
+                        }
                         color={BENCHMARK_LINE_COLOR}
                     />
                 </TooltipCard>
@@ -965,12 +1118,20 @@ function DependencyRatioPyramidBarContent({
     )
 }
 
+interface ChartLegendItem {
+    label: string
+    color: string
+    dashArray?: string
+    onClick?: () => void
+    ariaLabel?: string
+}
+
 function ChartLegend({
     items,
     x,
     y,
 }: {
-    items: { label: string; color: string; dashArray?: string }[]
+    items: ChartLegendItem[]
     x: number
     y: number
 }): React.ReactElement {
@@ -980,8 +1141,26 @@ function ChartLegend({
             {items.map((item) => {
                 const itemX = offsetX - x
                 offsetX += item.label.length * 6 + 28
+                const isClickable = item.onClick !== undefined
                 return (
-                    <g key={item.label} transform={`translate(${itemX},0)`}>
+                    <g
+                        key={item.label}
+                        transform={`translate(${itemX},0)`}
+                        onClick={item.onClick}
+                        onKeyDown={(e) => {
+                            if (
+                                !item.onClick ||
+                                (e.key !== "Enter" && e.key !== " ")
+                            )
+                                return
+                            e.preventDefault()
+                            item.onClick()
+                        }}
+                        role={isClickable ? "button" : undefined}
+                        tabIndex={isClickable ? 0 : undefined}
+                        aria-label={item.ariaLabel}
+                        style={isClickable ? { cursor: "pointer" } : undefined}
+                    >
                         <line
                             x1={0}
                             x2={14}
@@ -997,6 +1176,11 @@ function ChartLegend({
                             dominantBaseline="central"
                             fontSize={10}
                             fill={GRAPHER_LIGHT_TEXT}
+                            style={
+                                isClickable
+                                    ? { textDecoration: "underline" }
+                                    : undefined
+                            }
                         >
                             {item.label}
                         </text>
