@@ -50,20 +50,35 @@ export function normalizeRetirementAgePoints(
     )
 }
 
-export function clampRetirementAge(age: number): number {
+function clampRetirementAgeValue(age: number): number {
     if (!Number.isFinite(age)) return RETIREMENT_AGE
-    return Math.max(
-        MIN_RETIREMENT_AGE,
-        Math.min(MAX_RETIREMENT_AGE, Math.round(age))
-    )
+    return Math.max(MIN_RETIREMENT_AGE, Math.min(MAX_RETIREMENT_AGE, age))
+}
+
+export function clampRetirementAge(age: number): number {
+    return Math.round(clampRetirementAgeValue(age))
 }
 
 export function getRetirementAgeForYear(
     points: RetirementAgePoints,
     year: number
 ): number {
-    return clampRetirementAge(
-        getInterpolatedValue(points, year, HISTORICAL_END_YEAR, CONTROL_YEARS)
+    if (year <= HISTORICAL_END_YEAR) return RETIREMENT_AGE
+
+    const firstProjectedYear = HISTORICAL_END_YEAR + 1
+    const firstControlYear = CONTROL_YEARS[0]
+    if (year <= firstControlYear) {
+        const firstControlValue = points[firstControlYear]
+        const t =
+            (year - firstProjectedYear) /
+            (firstControlYear - firstProjectedYear)
+        return clampRetirementAgeValue(
+            RETIREMENT_AGE + t * (firstControlValue - RETIREMENT_AGE)
+        )
+    }
+
+    return clampRetirementAgeValue(
+        getInterpolatedValue(points, year, firstControlYear, CONTROL_YEARS)
     )
 }
 
