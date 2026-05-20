@@ -29,6 +29,7 @@ import {
     formatCurrency,
     getLabelDirection,
     getTimeIntervalStr,
+    roundPercentage,
 } from "../utils/incomePlotUtils.ts"
 import { WORLD_ENTITY_NAME } from "../utils/incomePlotConstants.ts"
 
@@ -95,8 +96,10 @@ export const IncomePlotTooltip = () => {
                                 <div className="tooltip--percentage">
                                     {percentageForEntity !== undefined && (
                                         <>
-                                            {Math.round(percentageForEntity)}%
-                                            of the{" "}
+                                            {roundPercentage(
+                                                percentageForEntity
+                                            )}
+                                            % of the{" "}
                                             {entityForPercentage ===
                                             WORLD_ENTITY_NAME
                                                 ? "world"
