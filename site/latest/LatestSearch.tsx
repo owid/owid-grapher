@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef } from "react"
+import { useEffect, useMemo, useRef } from "react"
 import { useSearchParams } from "react-router-dom-v5-compat"
 import {
     LATEST_TYPE_VALUES,
@@ -55,30 +55,21 @@ export const LatestSearch = ({
         }
     }, [searchParams, state, setSearchParams])
 
-    const updateParams = useCallback(
-        (updater: (current: LatestState) => LatestState) => {
-            setSearchParams(stateToSearchParams(updater(state)))
-        },
-        [setSearchParams, state]
-    )
+    const updateParams = (updater: (current: LatestState) => LatestState) => {
+        setSearchParams(stateToSearchParams(updater(state)))
+    }
 
-    const onTopicsChange = useCallback(
-        (newTopics: string[]) => {
-            updateParams((s) => ({ ...s, topics: newTopics }))
-        },
-        [updateParams]
-    )
+    const onTopicsChange = (newTopics: string[]) => {
+        updateParams((s) => ({ ...s, topics: newTopics }))
+    }
 
-    const onLatestTypeChange = useCallback(
-        (newType: LatestType | null) => {
-            updateParams((s) => ({ ...s, latestType: newType }))
-        },
-        [updateParams]
-    )
+    const onLatestTypeChange = (newType: LatestType | null) => {
+        updateParams((s) => ({ ...s, latestType: newType }))
+    }
 
-    const clearAllFilters = useCallback(() => {
+    const clearAllFilters = () => {
         updateParams(() => ({ topics: [], latestType: null }))
-    }, [updateParams])
+    }
 
     const {
         hits,
