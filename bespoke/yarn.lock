@@ -341,6 +341,7 @@ __metadata:
   resolution: "@owid/bespoke-hooks@workspace:hooks"
   dependencies:
     "@ourworldindata/utils": "link:../../packages/@ourworldindata/utils"
+    "@tanstack/react-query": "npm:^5.100.9"
     "@typescript/native-preview": "npm:^7.0.0-dev.20260401.1"
     react: "npm:^19.2.4"
   languageName: unknown

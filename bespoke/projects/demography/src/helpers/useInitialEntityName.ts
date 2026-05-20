@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react"
+import { useUserCountryInformation } from "../../../../hooks/useUserCountryInformation.js"
 import { DEFAULT_ENTITY_NAME } from "./constants.js"
-import { useDemographyMetadata, useUserCountryInformation } from "./fetch.js"
+import { useDemographyMetadata } from "./fetch.js"
 
 const USER_LOCATION = "userLocation"
 

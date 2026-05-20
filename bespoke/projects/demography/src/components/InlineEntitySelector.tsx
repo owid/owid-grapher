@@ -16,10 +16,11 @@ import {
 import { faTimesCircle } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { EntityName } from "@ourworldindata/types"
-import { getRegionByCode } from "@ourworldindata/utils"
+
+import { useUserCountryInformation } from "../../../../hooks/useUserCountryInformation.js"
+import { groupByUserLocation } from "../../../../components/EntityDropdown/EntityDropdown.js"
 
 import { DemographyMetadata } from "../helpers/types.js"
-import { useUserCountryInformation } from "../helpers/fetch.js"
 import { displayEntityName, entityNameForSentence } from "../helpers/utils.js"
 
 interface Option {
@@ -95,51 +96,11 @@ function EntityListBox({
     const { contains } = useFilter({ sensitivity: "base" })
 
     const options: OptionCollection = useMemo(() => {
-        const makeOption = (name: string): Option => ({
+        const flat = availableCountries.map((name) => ({
             value: name,
             label: displayEntityName(name),
-        })
-
-        if (!userCountryInfo) return availableCountries.map(makeOption)
-
-        const availableSet = new Set(availableCountries)
-
-        const suggestedNames: string[] = []
-        if (availableSet.has(userCountryInfo.name)) {
-            suggestedNames.push(userCountryInfo.name)
-        }
-        if (userCountryInfo.regions) {
-            for (const code of userCountryInfo.regions) {
-                const region = getRegionByCode(code)
-                if (
-                    region &&
-                    region.regionType !== "income_group" &&
-                    availableSet.has(region.name)
-                ) {
-                    suggestedNames.push(region.name)
-                }
-            }
-        }
-
-        if (suggestedNames.length === 0) {
-            return availableCountries.map(makeOption)
-        }
-
-        const suggestedSet = new Set(suggestedNames)
-        const remaining = availableCountries.filter(
-            (name) => !suggestedSet.has(name)
-        )
-
-        return [
-            {
-                label: "Suggested",
-                options: suggestedNames.map(makeOption),
-            },
-            {
-                label: "All countries and regions",
-                options: remaining.map(makeOption),
-            },
-        ]
+        }))
+        return groupByUserLocation(flat, userCountryInfo) as OptionCollection
     }, [availableCountries, userCountryInfo])
 
     return (
