@@ -1,11 +1,18 @@
 import * as db from "../../../db/db.js"
-import { ChartsIndexingContext, IndexingContext } from "@ourworldindata/types"
+import {
+    ChartsIndexingContext,
+    DbRawExplorerView,
+    ExplorerViewsTableName,
+    IndexingContext,
+} from "@ourworldindata/types"
+import { dimensionsToViewId } from "@ourworldindata/utils"
 import { getChartRedirectSlugsByChartId } from "./charts.js"
 import { getAnalyticsChartViews } from "./pageviews.js"
 import {
-    getMultiDimRedirectTargets,
-    MultiDimRedirectSource,
+    getMultiDimRedirects,
+    MultiDimRedirect,
 } from "../../../db/model/MultiDimRedirects.js"
+import { ExplorerAdminServer } from "../../../explorerAdminServer/ExplorerAdminServer.js"
 
 /**
  * Creates a base IndexingContext containing the shared enrichment data.
@@ -50,40 +57,115 @@ export async function createExplorersIndexingContext(
 }
 
 /**
- * Inverts the grapher→mdim redirect map into a lookup keyed by the mdim target
- * slug, so each mdim can find the grapher slugs that now redirect into it.
- * Skipping explorers, because multi_dims_redirects doesn't have query params:
- * We'd only be able to redirect /explorers/base to /graphers/base
+ * A redirect with a resolved key for looking up its source's views_7d in the
+ * analytics_chart_views map. For grapher sources the key is just the slug;
+ * for explorer sources it's the explorer's default view's chartConfigId.
+ * Undefined means the source can't be resolved (e.g. explorer was deleted or
+ * its default view failed to extract) — treated as "no signal", not an error.
+ */
+export type MultiDimRedirectWithLookupKey = MultiDimRedirect & {
+    lookupKey: string | undefined
+}
+
+/**
+ * For each explorer slug, resolves the chartConfigId of its default view
+ * (the first row of the decision matrix). Used to look up the explorer's
+ * default-view pageviews in analytics_chart_views, which is keyed by
+ * chartConfigId rather than explorer slug.
+ */
+async function getExplorerDefaultViewConfigIds(
+    knex: db.KnexReadonlyTransaction,
+    explorerSlugs: string[]
+): Promise<Map<string, string>> {
+    const result = new Map<string, string>()
+    if (explorerSlugs.length === 0) return result
+
+    const explorerAdminServer = new ExplorerAdminServer()
+    const explorerSlugByViewKey = new Map<string, string>()
+    for (const slug of explorerSlugs) {
+        try {
+            const program = await explorerAdminServer.getExplorerFromSlug(
+                knex,
+                slug
+            )
+            const firstChoice =
+                program.decisionMatrix.allDecisionsAsQueryParams()[0]
+            if (!firstChoice) continue
+            const viewId = dimensionsToViewId(firstChoice)
+            explorerSlugByViewKey.set(`${slug}:${viewId}`, slug)
+        } catch {
+            // Explorer may have been deleted; skip silently — caller treats
+            // missing entries as "no signal".
+        }
+    }
+    if (explorerSlugByViewKey.size === 0) return result
+
+    const rows = await knex<
+        Pick<DbRawExplorerView, "explorerSlug" | "viewId" | "chartConfigId">
+    >(ExplorerViewsTableName)
+        .select("explorerSlug", "viewId", "chartConfigId")
+        .whereIn("explorerSlug", [...new Set(explorerSlugs)])
+        .whereNotNull("chartConfigId")
+
+    for (const row of rows) {
+        const slug = explorerSlugByViewKey.get(
+            `${row.explorerSlug}:${row.viewId}`
+        )
+        if (slug && row.chartConfigId) result.set(slug, row.chartConfigId)
+    }
+    return result
+}
+
+/**
+ * Inverts the grapher/explorer→mdim redirect map into a lookup keyed by the
+ * mdim target slug, so each mdim can find the sources that now redirect into
+ * it. Each redirect is enriched with a resolved analytics_chart_views lookup
+ * key (see MultiDimRedirectWithLookupKey).
  */
 async function getMdimRedirectsByMdimSlug(
     knex: db.KnexReadonlyTransaction
-): Promise<Map<string, MultiDimRedirectSource[]>> {
-    const targets = await getMultiDimRedirectTargets(
+): Promise<Map<string, MultiDimRedirectWithLookupKey[]>> {
+    const [grapherTargets, explorerTargets] = await Promise.all([
+        getMultiDimRedirects(knex, undefined, "/grapher/"),
+        getMultiDimRedirects(knex, undefined, "/explorers/"),
+    ])
+
+    const explorerSourceSlugs = [...explorerTargets.keys()]
+    const explorerDefaultViewConfigIds = await getExplorerDefaultViewConfigIds(
         knex,
-        undefined,
-        "/grapher/"
+        explorerSourceSlugs
     )
-    const result = new Map<string, MultiDimRedirectSource[]>()
-    for (const [sourceSlug, target] of targets) {
-        const sources = result.get(target.targetSlug)
-        const entry: MultiDimRedirectSource = {
-            sourceSlug,
-            queryStr: target.queryStr,
+
+    const result = new Map<string, MultiDimRedirectWithLookupKey[]>()
+    for (const [, redirect] of grapherTargets) {
+        const enriched: MultiDimRedirectWithLookupKey = {
+            ...redirect,
+            lookupKey: redirect.sourceSlug,
         }
-        if (sources) sources.push(entry)
-        else result.set(target.targetSlug, [entry])
+        const existing = result.get(redirect.targetSlug)
+        if (existing) existing.push(enriched)
+        else result.set(redirect.targetSlug, [enriched])
+    }
+    for (const [, redirect] of explorerTargets) {
+        const enriched: MultiDimRedirectWithLookupKey = {
+            ...redirect,
+            lookupKey: explorerDefaultViewConfigIds.get(redirect.sourceSlug),
+        }
+        const existing = result.get(redirect.targetSlug)
+        if (existing) existing.push(enriched)
+        else result.set(redirect.targetSlug, [enriched])
     }
     return result
 }
 
 export type MultiDimIndexingContext = IndexingContext & {
     /**
-     * Grapher-slug redirect sources grouped by the target mdim's slug.
-     * Used to attribute a pre-redirect grapher chart's views_7d to the mdim view
+     * Redirect sources (grapher or explorer slugs) grouped by the target mdim's
+     * slug. Used to attribute a pre-redirect chart's views_7d to the mdim view
      * it now redirects to, so the search score doesn't lose that signal during
      * the redirect's first week.
      */
-    redirectsByMdimSlug: Map<string, MultiDimRedirectSource[]>
+    redirectsByMdimSlug: Map<string, MultiDimRedirectWithLookupKey[]>
 }
 
 /**

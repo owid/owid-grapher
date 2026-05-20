@@ -7,11 +7,6 @@ import { MultiDimDataPageConfig } from "@ourworldindata/utils"
 
 export type MultiDimRedirectSourcePrefix = "/grapher/" | "/explorers/"
 
-export interface MultiDimRedirectSource {
-    sourceSlug: string
-    queryStr?: string
-}
-
 export interface MultiDimRedirectTarget {
     targetSlug: string
     queryStr?: string
