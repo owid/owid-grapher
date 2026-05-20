@@ -11,6 +11,7 @@ import { articulateEntity } from "@ourworldindata/utils"
 import { Frame } from "../../../../components/Frame/Frame.js"
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
+import { EntityDropdown } from "../../../../components/EntityDropdown/EntityDropdown.js"
 import { InlineLabeledDropdown } from "../../../../components/InlineLabeledDropdown/InlineLabeledDropdown.js"
 import {
     Switcher,
@@ -294,14 +295,13 @@ function CaptionedMainVariant({
                                     aria-label="Select a product"
                                     isSearchable
                                 />
-                                <InlineLabeledDropdown
+                                <EntityDropdown
                                     label="Country"
-                                    options={countryOptions}
-                                    selectedValue={country}
+                                    availableEntities={countryOptions}
+                                    selectedEntityName={country}
                                     onChange={setCountry}
                                     placeholder="Select a country…"
                                     aria-label="Select a country"
-                                    isSearchable
                                 />
                                 <Switcher
                                     items={TRADE_FLOW_ITEMS}
