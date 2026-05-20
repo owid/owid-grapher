@@ -130,19 +130,16 @@ export function FoodTradeControls({
 
     const { data: userCountryInfo } = useUserCountryInformation()
 
-    // Build the country options. Drop the "All countries" sentinel
-    // entirely when the trade-flow view restricts to one half (it has no
-    // meaning there). The Suggested group at the top surfaces "All
-    // countries" plus the user's home country and continental regions;
-    // countries that don't trade the selected product fall into an extra
-    // "not traded by" group at the bottom — still selectable, just
-    // de-emphasized.
+    // Build the country options. The Suggested group at the top surfaces
+    // "All countries" plus the user's home country and continental
+    // regions; countries that don't trade the selected product fall into
+    // an extra "not traded by" group at the bottom — still selectable,
+    // just de-emphasized.
     const countryOptions = useMemo<DropdownCollection>(() => {
         const tradingThisProduct = tradeIndex.countriesByProduct.get(product)
         const trading: BasicDropdownOption[] = []
         const untraded: BasicDropdownOption[] = []
         for (const c of countries) {
-            if (view !== "both" && c === ALL_COUNTRIES) continue
             const option = { value: c, label: c }
             if (
                 c === ALL_COUNTRIES ||
@@ -162,7 +159,7 @@ export function FoodTradeControls({
             ...grouped,
             { label: `${product} not traded by`, options: untraded },
         ]
-    }, [countries, product, view, tradeIndex, userCountryInfo])
+    }, [countries, product, tradeIndex, userCountryInfo])
 
     return (
         <div className="food-trade-controls">
@@ -191,6 +188,7 @@ export function FoodTradeControls({
                         items={TRADE_FLOW_ITEMS}
                         selectedKey={view}
                         onChange={setView}
+                        isDisabled={isAllCountry(country)}
                         aria-label="Trade flow"
                     />
                 </div>

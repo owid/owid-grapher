@@ -62,26 +62,26 @@ function FetchingMainVariant({ config }: { config: MainVariantConfig }) {
         return [ALL_COUNTRIES, ...items]
     }, [data])
 
+    const initialCountry = config.country ?? DEFAULT_COUNTRY
     const [product, setProduct] = useState<string>(
         config.product ?? DEFAULT_PRODUCT
     )
-    const [country, setCountry] = useState<string>(
-        config.country ?? DEFAULT_COUNTRY
+    const [country, setCountry] = useState<string>(initialCountry)
+    // All countries forces bilateral mode where imports/exports don't
+    // apply — coerce the initial view to "both" so a configured
+    // tradeFlow doesn't leave the disabled radios highlighting a
+    // half-view that isn't shown.
+    const [view, setView] = useState<TradeFlow>(
+        isAllCountry(initialCountry) ? "both" : (config.tradeFlow ?? "both")
     )
-    const [view, setView] = useState<TradeFlow>(config.tradeFlow ?? "both")
 
-    // Changing the view away from "both" while on "All countries" would
-    // leave us in an invalid combination (bilateral has no imports/exports
-    // halves), so auto-revert the country selection.
-    const handleSetView = useCallback(
-        (newView: TradeFlow) => {
-            setView(newView)
-            if (newView !== "both" && isAllCountry(country)) {
-                setCountry(DEFAULT_COUNTRY)
-            }
-        },
-        [country]
-    )
+    // Same reason at runtime: when the user picks All countries, snap
+    // the stored view to "both" so the (now-disabled) radio group
+    // reflects what's actually on screen.
+    const handleSetCountry = useCallback((newCountry: string) => {
+        setCountry(newCountry)
+        if (isAllCountry(newCountry)) setView("both")
+    }, [])
 
     const incoming = useMemo(() => {
         if (!data || isAllCountry(country)) return []
@@ -116,8 +116,8 @@ function FetchingMainVariant({ config }: { config: MainVariantConfig }) {
             country={country}
             view={view}
             setProduct={setProduct}
-            setCountry={setCountry}
-            setView={handleSetView}
+            setCountry={handleSetCountry}
+            setView={setView}
             config={config}
         />
     )
