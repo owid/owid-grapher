@@ -98,28 +98,43 @@ $active-text: $blue-90;
     border: 1px solid #ccc;
     border-radius: 3px;
     padding: 6px 10px;
-    cursor: text;
+    cursor: pointer;
     width: 260px;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    outline: none;
+    text-align: left;
+    font-family: inherit;
+    font-size: 14px;
+}
+
+.search-country-selector-button[data-hovered] {
+    border-color: #aaa;
+    background: #fafafa;
+}
+
+.search-country-selector-button[data-focused] {
+    border-color: $blue-50;
+    box-shadow: 0 0 0 1px $blue-50;
+}
+
+.search-country-selector-label {
+    flex: 1;
+    color: #333;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.search-country-selector__chevron {
+    font-size: 10px;
+    opacity: 0.6;
+    margin-left: 8px;
 }
 
 .search-country-selector__search-icon {
     color: #666;
     margin-right: 8px;
     font-size: 14px;
-}
-
-.search-country-selector-search-input {
-    border: none;
-    outline: none;
-    width: 100%;
-    font-size: 14px;
-    background: transparent;
-    color: #333;
-}
-
-.search-country-selector-search-input::placeholder {
-    color: #888;
 }
 
 .search-country-selector-list-container {
@@ -129,9 +144,62 @@ $active-text: $blue-90;
     border-radius: 4px;
     width: 260px;
     max-height: 400px;
-    overflow-y: auto;
-    padding: 4px 0;
-    margin-top: 4px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    outline: none;
+    z-index: 1000;
+}
+
+.search-country-selector-dialog {
+    outline: none;
+    display: flex;
+    flex-direction: column;
+    max-height: 100%;
+}
+
+.search-country-selector-search {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.search-country-selector-search__icon {
+    color: #999;
+    font-size: 12px;
+    flex-shrink: 0;
+}
+
+.search-country-selector-search__input {
+    border: none;
+    background: transparent;
+    font-size: 14px;
+    font-family: inherit;
+    color: #333;
+    outline: none;
+    padding: 0;
+    flex: 1;
+    min-width: 0;
+}
+
+.search-country-selector-search__input::placeholder {
+    color: #888;
+}
+
+.search-country-selector-search__clear {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    color: #999;
+    display: flex;
+    align-items: center;
+}
+
+.search-country-selector-search__clear:hover {
+    color: #333;
 }
 
 .search-country-selector-list {
@@ -140,6 +208,7 @@ $active-text: $blue-90;
     margin: 0;
     list-style: none;
     max-height: 400px;
+    overflow-y: auto;
 }
 
 .search-country-selector-list__item {
@@ -151,7 +220,6 @@ $active-text: $blue-90;
     color: #333;
     border-bottom: 1px solid #f0f0f0;
     outline: none;
-    transition: background-color 0.1s ease;
 }
 
 .search-country-selector-list__item:last-child {
@@ -175,8 +243,14 @@ $active-text: $blue-90;
     text-decoration: underline;
 }
 
-.search-country-selector-clear-all:hover {
+.search-country-selector-clear-all:hover:not(:disabled) {
     color: #333;
+}
+
+.search-country-selector-clear-all:disabled {
+    color: $gray-30;
+    cursor: default;
+    text-decoration: none;
 }
 
 .search-country-selector-list__item:hover,
@@ -190,34 +264,26 @@ $active-text: $blue-90;
     margin-right: 12px;
 }
 
-.search-country-selector-list__item input[type="checkbox"] {
-    appearance: none;
-    -webkit-appearance: none;
+.search-country-selector-checkbox {
     width: 18px;
     height: 18px;
     border: 1px solid #ccc;
     border-radius: 3px;
-    cursor: pointer;
-    position: relative;
     background-color: white;
-    margin: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.search-country-selector-list__item input[type="checkbox"]:checked {
-    background-color: #607d8b; /* Slate blueish color from image */
+.search-country-selector-checkbox.checked {
+    background-color: #607d8b; /* Sleek slate blue color */
     border-color: #607d8b;
 }
 
-.search-country-selector-list__item input[type="checkbox"]:checked::after {
-    content: "";
-    position: absolute;
-    left: 5px;
-    top: 2px;
-    width: 6px;
-    height: 10px;
-    border: solid white;
-    border-width: 0 2px 2px 0;
-    transform: rotate(45deg);
+.search-country-selector-list__item[data-focused]
+    .search-country-selector-checkbox,
+.search-country-selector-list__item:hover .search-country-selector-checkbox {
+    border-color: #607d8b;
 }
 
 .country-name {
@@ -620,4 +686,34 @@ $controlRowHeight: 28px;
     svg {
         margin-right: 4px;
     }
+}
+
+.income-plot-empty-state {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    border: 1px solid $gray-20;
+    border-radius: 2px;
+    background-color: $gray-5;
+    padding: 24px;
+    box-sizing: border-box;
+    margin-bottom: 12px;
+}
+
+.income-plot-empty-state__content {
+    max-width: 320px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 12px;
+}
+
+.income-plot-empty-state__message {
+    font-size: 14px;
+    color: $gray-70;
+    line-height: 1.5;
+    margin: 0;
+    font-family: inherit;
 }
