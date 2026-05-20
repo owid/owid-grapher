@@ -32,7 +32,7 @@ import {
 } from "../../../../hooks/useResolveUserLocation.js"
 import { MOBILE_BREAKPOINT } from "../../../../components/Sankey/SplitFlowSankey.js"
 
-const DATA_YEAR = 2024
+const DATA_YEAR = 2023
 
 const DEFAULT_PRODUCT = "Maize (corn)"
 const DEFAULT_COUNTRY = "United Kingdom"
