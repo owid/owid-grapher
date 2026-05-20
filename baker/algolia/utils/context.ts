@@ -1,13 +1,11 @@
 import * as db from "../../../db/db.js"
-import {
-    ChartsIndexingContext,
-    IndexingContext,
-    MdimIndexingContext,
-    MdimRedirectSource,
-} from "@ourworldindata/types"
+import { ChartsIndexingContext, IndexingContext } from "@ourworldindata/types"
 import { getChartRedirectSlugsByChartId } from "./charts.js"
 import { getAnalyticsChartViews } from "./pageviews.js"
-import { getMultiDimRedirectTargets } from "../../../db/model/MultiDimRedirects.js"
+import {
+    getMultiDimRedirectTargets,
+    MultiDimRedirectSource,
+} from "../../../db/model/MultiDimRedirects.js"
 
 /**
  * Creates a base IndexingContext containing the shared enrichment data.
@@ -15,12 +13,12 @@ import { getMultiDimRedirectTargets } from "../../../db/model/MultiDimRedirects.
 export async function createBaseIndexingContext(
     knex: db.KnexReadonlyTransaction
 ): Promise<IndexingContext> {
-    const [views, topicHierarchies] = await Promise.all([
+    const [chartViews, topicHierarchies] = await Promise.all([
         getAnalyticsChartViews(knex),
         db.getTopicHierarchiesByChildName(knex),
     ])
 
-    return { views, topicHierarchies }
+    return { chartViews, topicHierarchies }
 }
 
 /**
@@ -59,16 +57,16 @@ export async function createExplorersIndexingContext(
  */
 async function getMdimRedirectsByMdimSlug(
     knex: db.KnexReadonlyTransaction
-): Promise<Map<string, MdimRedirectSource[]>> {
+): Promise<Map<string, MultiDimRedirectSource[]>> {
     const targets = await getMultiDimRedirectTargets(
         knex,
         undefined,
         "/grapher/"
     )
-    const result = new Map<string, MdimRedirectSource[]>()
+    const result = new Map<string, MultiDimRedirectSource[]>()
     for (const [sourceSlug, target] of targets) {
         const sources = result.get(target.targetSlug)
-        const entry: MdimRedirectSource = {
+        const entry: MultiDimRedirectSource = {
             sourceSlug,
             queryStr: target.queryStr,
         }
@@ -78,14 +76,24 @@ async function getMdimRedirectsByMdimSlug(
     return result
 }
 
+export type MultiDimIndexingContext = IndexingContext & {
+    /**
+     * Grapher-slug redirect sources grouped by the target mdim's slug.
+     * Used to attribute a pre-redirect grapher chart's views_7d to the mdim view
+     * it now redirects to, so the search score doesn't lose that signal during
+     * the redirect's first week.
+     */
+    redirectsByMdimSlug: Map<string, MultiDimRedirectSource[]>
+}
+
 /**
  * Creates an IndexingContext for multi-dim views.
  * If a base context is provided, uses it; otherwise fetches everything.
  */
-export async function createMdimIndexingContext(
+export async function createMultiDimIndexingContext(
     knex: db.KnexReadonlyTransaction,
     baseContext?: IndexingContext
-): Promise<MdimIndexingContext> {
+): Promise<MultiDimIndexingContext> {
     const [base, redirectsByMdimSlug] = await Promise.all([
         baseContext ?? createBaseIndexingContext(knex),
         getMdimRedirectsByMdimSlug(knex),

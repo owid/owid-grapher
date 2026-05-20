@@ -329,7 +329,7 @@ export type Ngram = WordPositioned[]
  */
 export interface IndexingContext {
     /** Chart view counts keyed by chart_slug (for grapher charts) or chartConfigId UUID (for explorer/multidim views) */
-    views: Map<string, number>
+    chartViews: Map<string, number>
 
     /**
      * Topic tag hierarchies for computing parent topic tags.
