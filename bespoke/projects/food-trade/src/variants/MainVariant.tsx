@@ -1,4 +1,4 @@
-import { ComponentProps, useCallback, useMemo, useState } from "react"
+import { useCallback, useMemo, useState } from "react"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
@@ -7,14 +7,11 @@ import {
 } from "@fortawesome/free-solid-svg-icons"
 
 import { articulateEntity } from "@ourworldindata/utils"
-import {
-    BasicDropdownOption,
-    Dropdown as GrapherDropdown,
-} from "@ourworldindata/grapher/src/controls/Dropdown.js"
 
 import { Frame } from "../../../../components/Frame/Frame.js"
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
+import { InlineLabeledDropdown } from "../../../../components/InlineLabeledDropdown/InlineLabeledDropdown.js"
 import {
     Switcher,
     SwitcherItem,
@@ -246,6 +243,23 @@ function CaptionedMainVariant({
     const title = config.title ?? defaultTitle
     const subtitle = config.subtitle ?? defaultSubtitle
 
+    const productOptions = useMemo(
+        () => products.map((p) => ({ value: p, label: p, id: p })),
+        [products]
+    )
+    // "All countries" is only valid in the both-halves view (bilateral
+    // mode); grey it out when the user has picked imports- or exports-only.
+    const countryOptions = useMemo(
+        () =>
+            countries.map((c) => ({
+                value: c,
+                label: c,
+                id: c,
+                isDisabled: view !== "both" && c === ALL_COUNTRIES,
+            })),
+        [countries, view]
+    )
+
     // Hide the big page heading and the controls when the embedder is
     // providing its own framing (custom title/subtitle) or explicitly opts
     // out of the controls.
@@ -271,22 +285,23 @@ function CaptionedMainVariant({
                         </h3>
                         <div className="food-trade-controls__content">
                             <div className="food-trade-controls__row">
-                                <LabeledDropdown
+                                <InlineLabeledDropdown
                                     label="Product"
-                                    values={products}
-                                    selected={product}
+                                    options={productOptions}
+                                    selectedValue={product}
                                     onChange={setProduct}
+                                    placeholder="Select a product…"
+                                    aria-label="Select a product"
+                                    isSearchable
                                 />
-                                <LabeledDropdown
+                                <InlineLabeledDropdown
                                     label="Country"
-                                    values={countries}
-                                    selected={country}
+                                    options={countryOptions}
+                                    selectedValue={country}
                                     onChange={setCountry}
-                                    disabledValues={
-                                        view !== "both"
-                                            ? [ALL_COUNTRIES]
-                                            : undefined
-                                    }
+                                    placeholder="Select a country…"
+                                    aria-label="Select a country"
+                                    isSearchable
                                 />
                                 <Switcher
                                     items={TRADE_FLOW_ITEMS}
@@ -329,84 +344,6 @@ function CaptionedMainVariant({
                 <ChartFooter source="UN Food and Agriculture Organization (FAO)" />
             </Frame>
         </>
-    )
-}
-
-function Dropdown({
-    options,
-    selectedValue,
-    onChange,
-    ...dropdownProps
-}: {
-    options: BasicDropdownOption[]
-    selectedValue: string
-    onChange: (value: string) => void
-} & Omit<
-    ComponentProps<typeof GrapherDropdown>,
-    "options" | "value" | "onChange"
->) {
-    const selectedOption =
-        options.find((option) => option.value === selectedValue) ?? null
-
-    const handleChange = useCallback(
-        (option: BasicDropdownOption | null) => {
-            if (option) onChange(option.value)
-        },
-        [onChange]
-    )
-
-    return (
-        <GrapherDropdown
-            {...dropdownProps}
-            options={options}
-            value={selectedOption}
-            onChange={handleChange}
-            isClearable={false}
-        />
-    )
-}
-
-function LabeledDropdown({
-    label,
-    values,
-    selected,
-    onChange,
-    disabledValues,
-}: {
-    label: string
-    values: string[]
-    selected: string
-    onChange: (value: string) => void
-    /** Values whose options should be greyed out and non-selectable. */
-    disabledValues?: string[]
-}) {
-    const options = useMemo(
-        () =>
-            values.map((v) => ({
-                value: v,
-                label: v,
-                id: v,
-                isDisabled: disabledValues?.includes(v) ?? false,
-            })),
-        [values, disabledValues]
-    )
-    return (
-        <Dropdown
-            options={options}
-            selectedValue={selected}
-            onChange={onChange}
-            placeholder={`Select ${label.toLowerCase()}…`}
-            aria-label={`Select ${label.toLowerCase()}`}
-            isSearchable={true}
-            renderTriggerValue={(option) =>
-                option ? (
-                    <>
-                        <span className="label">{label}: </span>
-                        {option.label}
-                    </>
-                ) : null
-            }
-        />
     )
 }
 
