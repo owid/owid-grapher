@@ -1,25 +1,16 @@
 import { useCallback, useMemo, useState } from "react"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import {
-    faArrowRight,
-    faArrowRightArrowLeft,
-} from "@fortawesome/free-solid-svg-icons"
 
 import { articulateEntity } from "@ourworldindata/utils"
 
 import { Frame } from "../../../../components/Frame/Frame.js"
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
-import { EntityDropdown } from "../../../../components/EntityDropdown/EntityDropdown.js"
-import { InlineLabeledDropdown } from "../../../../components/InlineLabeledDropdown/InlineLabeledDropdown.js"
-import {
-    Switcher,
-    SwitcherItem,
-} from "../../../../components/Switcher/Switcher.js"
 
+import { ALL_COUNTRIES, isAllCountry } from "../constants.js"
 import { MainVariantConfig, TradeFlow, VariantProps } from "../config.js"
 import { TradeRow, useTradeData } from "../data.js"
+import { FoodTradeControls } from "../components/FoodTradeControls.js"
 import {
     FoodTradeBilateralSankey,
     FoodTradeSankey,
@@ -36,45 +27,6 @@ const DATA_YEAR = 2023
 
 const DEFAULT_PRODUCT = "Maize (corn)"
 const DEFAULT_COUNTRY = "United Kingdom"
-
-// Sentinel for the country dropdown: shows global bilateral trade for the
-// selected product (no central country anchor).
-const ALL_COUNTRIES = "All countries"
-const isAllCountry = (c: string) => c === ALL_COUNTRIES
-
-const TRADE_FLOW_ITEMS: SwitcherItem<TradeFlow>[] = [
-    {
-        key: "imports",
-        element: (
-            <>
-                <FontAwesomeIcon icon={faArrowRight} size="sm" aria-hidden />
-                Imports
-            </>
-        ),
-    },
-    {
-        key: "exports",
-        element: (
-            <>
-                Exports
-                <FontAwesomeIcon icon={faArrowRight} size="sm" aria-hidden />
-            </>
-        ),
-    },
-    {
-        key: "both",
-        element: (
-            <>
-                <FontAwesomeIcon
-                    icon={faArrowRightArrowLeft}
-                    size="sm"
-                    aria-hidden
-                />
-                Both
-            </>
-        ),
-    },
-]
 
 const queryClient = new QueryClient()
 
@@ -153,6 +105,7 @@ function FetchingMainVariant({ config }: { config: MainVariantConfig }) {
 
     return (
         <CaptionedMainVariant
+            data={data}
             incoming={incoming}
             outgoing={outgoing}
             bilateral={bilateral}
@@ -170,6 +123,7 @@ function FetchingMainVariant({ config }: { config: MainVariantConfig }) {
 }
 
 function CaptionedMainVariant({
+    data,
     incoming,
     outgoing,
     bilateral,
@@ -183,6 +137,7 @@ function CaptionedMainVariant({
     setView,
     config,
 }: {
+    data: TradeRow[]
     incoming: TradeRow[]
     outgoing: TradeRow[]
     bilateral: TradeRow[]
@@ -244,23 +199,6 @@ function CaptionedMainVariant({
     const title = config.title ?? defaultTitle
     const subtitle = config.subtitle ?? defaultSubtitle
 
-    const productOptions = useMemo(
-        () => products.map((p) => ({ value: p, label: p, id: p })),
-        [products]
-    )
-    // "All countries" is only valid in the both-halves view (bilateral
-    // mode); grey it out when the user has picked imports- or exports-only.
-    const countryOptions = useMemo(
-        () =>
-            countries.map((c) => ({
-                value: c,
-                label: c,
-                id: c,
-                isDisabled: view !== "both" && c === ALL_COUNTRIES,
-            })),
-        [countries, view]
-    )
-
     // Hide the big page heading and the controls when the embedder is
     // providing its own framing (custom title/subtitle) or explicitly opts
     // out of the controls.
@@ -280,39 +218,17 @@ function CaptionedMainVariant({
                             imported from
                         </p>
                     </header>
-                    <div className="food-trade-controls">
-                        <h3 className="food-trade-controls__title">
-                            Configure the data
-                        </h3>
-                        <div className="food-trade-controls__content">
-                            <div className="food-trade-controls__row">
-                                <InlineLabeledDropdown
-                                    label="Product"
-                                    options={productOptions}
-                                    selectedValue={product}
-                                    onChange={setProduct}
-                                    placeholder="Select a product…"
-                                    aria-label="Select a product"
-                                    isSearchable
-                                />
-                                <EntityDropdown
-                                    label="Country"
-                                    availableEntities={countryOptions}
-                                    suggested={[ALL_COUNTRIES]}
-                                    selectedEntityName={country}
-                                    onChange={setCountry}
-                                    placeholder="Select a country…"
-                                    aria-label="Select a country"
-                                />
-                                <Switcher
-                                    items={TRADE_FLOW_ITEMS}
-                                    selectedKey={view}
-                                    onChange={setView}
-                                    aria-label="Trade flow"
-                                />
-                            </div>
-                        </div>
-                    </div>
+                    <FoodTradeControls
+                        data={data}
+                        products={products}
+                        countries={countries}
+                        product={product}
+                        country={country}
+                        view={view}
+                        setProduct={setProduct}
+                        setCountry={setCountry}
+                        setView={setView}
+                    />
                 </>
             )}
             <Frame className="food-trade-captioned-chart">

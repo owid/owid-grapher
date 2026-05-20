@@ -16,26 +16,19 @@ export interface EntityDropdownProps extends Omit<
     label: string
     availableEntities: BasicDropdownOption[]
     selectedEntityName: string
-    suggested?: string[]
 }
 
 export function EntityDropdown({
     label,
     availableEntities,
     selectedEntityName,
-    suggested,
     ...dropdownProps
 }: EntityDropdownProps): React.ReactElement {
     const { data: userCountryInfo } = useUserCountryInformation()
 
     const options = useMemo(
-        () =>
-            groupByUserLocation(
-                [...availableEntities],
-                userCountryInfo,
-                suggested
-            ),
-        [availableEntities, userCountryInfo, suggested]
+        () => groupByUserLocation([...availableEntities], userCountryInfo),
+        [availableEntities, userCountryInfo]
     )
 
     return (
