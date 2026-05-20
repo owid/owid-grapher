@@ -43,7 +43,7 @@ const DEPENDENT_OLD_COLOR = USER_MODIFIED_COLOR_LIGHT
 const DEPENDENT_YOUNG_COLOR = COLOR_CHILDREN
 const WORKING_COLOR = COLOR_WORKING
 const retirementChartMargin = { top: 6, right: 2, bottom: 16, left: 28 }
-const compactChartMargin = { top: 8, right: 2, bottom: 16, left: 30 }
+const compactChartMargin = { top: 8, right: 2, bottom: 16, left: 36 }
 
 interface DataPoint {
     year: number
