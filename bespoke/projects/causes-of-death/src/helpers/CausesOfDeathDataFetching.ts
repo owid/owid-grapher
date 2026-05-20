@@ -1,6 +1,6 @@
 import { QueryStatus, useQuery } from "@tanstack/react-query"
 import { DataJson, MetadataJson, DataRow } from "./CausesOfDeathConstants"
-import { fetchJson, UserCountryInformation } from "@ourworldindata/utils"
+import { fetchJson } from "@ourworldindata/utils"
 import { CausesOfDeathMetadata } from "./CausesOfDeathMetadata.js"
 
 const BASE_URL = "https://owid-public.owid.io/data/gbd"
@@ -10,7 +10,6 @@ const DATA_PATH = BASE_URL + "/causes-of-death.{entityId}.json"
 const queryKeys = {
     metadata: () => ["causes-of-death", "metadata"],
     data: (entityId: number) => ["causes-of-death", "data", entityId],
-    location: () => ["location"],
 }
 
 /** Fetch causes of death metadata */
@@ -75,19 +74,6 @@ export const useCausesOfDeathEntityData = (
         isPlaceholderData: result.isPlaceholderData,
         isFetching: result.isFetching,
     }
-}
-
-export function useUserCountryInformation(): { data?: UserCountryInformation } {
-    const result = useQuery({
-        queryKey: queryKeys.location(),
-        queryFn: async () => {
-            return fetchJson<UserCountryInformation>(
-                "https://detect-country.owid.io"
-            )
-        },
-    })
-
-    return result
 }
 
 // Descriptions for "Children under 5" that override the metadata.

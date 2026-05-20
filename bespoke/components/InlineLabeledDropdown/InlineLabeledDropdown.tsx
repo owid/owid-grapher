@@ -1,13 +1,14 @@
-import { ComponentProps, useCallback } from "react"
+import { ComponentProps, useCallback, useMemo } from "react"
 import { BasicDropdownOption, Dropdown } from "@ourworldindata/grapher"
 
 type GrapherDropdownProps = ComponentProps<typeof Dropdown<BasicDropdownOption>>
+type DropdownCollection = GrapherDropdownProps["options"]
 
 export interface InlineLabeledDropdownProps extends Omit<
     GrapherDropdownProps,
     "value" | "onChange" | "isClearable" | "renderTriggerValue"
 > {
-    options: BasicDropdownOption[]
+    options: DropdownCollection
     label: string
     selectedValue: string
     onChange: (value: string) => void
@@ -20,8 +21,10 @@ export function InlineLabeledDropdown({
     onChange,
     ...dropdownProps
 }: InlineLabeledDropdownProps): React.ReactElement {
-    const selectedOption =
-        options.find((option) => option.value === selectedValue) ?? null
+    const selectedOption = useMemo(
+        () => findOptionByValue(options, selectedValue),
+        [options, selectedValue]
+    )
 
     const handleChange = useCallback(
         (option: BasicDropdownOption | null) => {
@@ -48,6 +51,22 @@ export function InlineLabeledDropdown({
             }
         />
     )
+}
+
+/** Find an option by value across both flat and grouped collections */
+function findOptionByValue(
+    collection: DropdownCollection,
+    value: string
+): BasicDropdownOption | null {
+    for (const item of collection) {
+        if ("options" in item) {
+            const found = item.options.find((o) => o.value === value)
+            if (found) return found
+        } else if (item.value === value) {
+            return item
+        }
+    }
+    return null
 }
 
 export type { BasicDropdownOption }
