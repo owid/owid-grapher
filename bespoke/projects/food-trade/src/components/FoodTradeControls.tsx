@@ -64,6 +64,7 @@ export function FoodTradeControls({
     product,
     country,
     view,
+    viewDisabled,
     setProduct,
     setCountry,
     setView,
@@ -74,6 +75,11 @@ export function FoodTradeControls({
     product: string
     country: string
     view: TradeFlow
+    /** Visually disables the trade-flow radios. Set when the current
+     * country-product combination only has data in one direction (or
+     * when on All countries), so the radios reflect "doesn't apply
+     * here" rather than letting the user pick a half with no data. */
+    viewDisabled?: boolean
     setProduct: (value: string) => void
     setCountry: (value: string) => void
     setView: (value: TradeFlow) => void
@@ -188,7 +194,7 @@ export function FoodTradeControls({
                         items={TRADE_FLOW_ITEMS}
                         selectedKey={view}
                         onChange={setView}
-                        isDisabled={isAllCountry(country)}
+                        isDisabled={viewDisabled}
                         aria-label="Trade flow"
                     />
                 </div>

@@ -160,6 +160,21 @@ function CaptionedMainVariant({
         () => outgoing.reduce((sum, d) => sum + d.value, 0),
         [outgoing]
     )
+
+    // When the selected country only trades this product in one
+    // direction, the other view has nothing to show — coerce the
+    // displayed view to the half that has data and disable the radios.
+    // The user's stored view preference is left untouched so it comes
+    // back when they navigate to a country-product combo with both
+    // sides.
+    const onlyImports = incoming.length > 0 && outgoing.length === 0
+    const onlyExports = outgoing.length > 0 && incoming.length === 0
+    const effectiveView: TradeFlow = onlyImports
+        ? "imports"
+        : onlyExports
+          ? "exports"
+          : view
+    const isViewDisabled = isAllCountry(country) || onlyImports || onlyExports
     const bilateralTotal = useMemo(
         () => bilateral.reduce((sum, d) => sum + d.value, 0),
         [bilateral]
@@ -225,7 +240,8 @@ function CaptionedMainVariant({
                         countries={countries}
                         product={product}
                         country={country}
-                        view={view}
+                        view={effectiveView}
+                        viewDisabled={isViewDisabled}
                         setProduct={setProduct}
                         setCountry={setCountry}
                         setView={setView}
@@ -252,7 +268,7 @@ function CaptionedMainVariant({
                             year={DATA_YEAR}
                             incomingTotal={incomingTotal}
                             outgoingTotal={outgoingTotal}
-                            view={view}
+                            view={effectiveView}
                             setView={setView}
                         />
                     ) : (
