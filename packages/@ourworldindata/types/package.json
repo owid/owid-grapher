@@ -12,6 +12,6 @@
     "author": "",
     "license": "SEE LICENSE IN LICENSE.md",
     "dependencies": {
-        "zod": "^4.1.11"
+        "zod": "^4.4.3"
     }
 }
