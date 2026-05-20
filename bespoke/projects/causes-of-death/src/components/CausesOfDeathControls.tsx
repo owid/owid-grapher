@@ -1,15 +1,14 @@
-import { useCallback, useMemo } from "react"
+import { useMemo } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faLocationArrow } from "@fortawesome/free-solid-svg-icons"
 
 import { EntityName } from "@ourworldindata/types"
-import { WORLD_ENTITY_NAME } from "@ourworldindata/grapher/src/core/GrapherConstants.js"
-import {
-    BasicDropdownOption,
-    Dropdown as GrapherDropdown,
-} from "@ourworldindata/grapher/src/controls/Dropdown.js"
 
 import { Frame } from "../../../../components/Frame/Frame.js"
+import {
+    type BasicDropdownOption,
+    InlineLabeledDropdown,
+} from "../../../../components/InlineLabeledDropdown/InlineLabeledDropdown.js"
 
 import { EntityMetadata } from "../helpers/CausesOfDeathConstants.js"
 import { CausesOfDeathMetadata } from "../helpers/CausesOfDeathMetadata.js"
@@ -73,45 +72,6 @@ export function CausesOfDeathControls({
     )
 }
 
-function Dropdown({
-    options,
-    selectedValue,
-    onChange,
-    fallbackValue,
-    ...dropdownProps
-}: {
-    options: BasicDropdownOption[]
-    selectedValue: string
-    onChange: (value: string) => void
-    fallbackValue?: string
-} & Omit<
-    React.ComponentProps<typeof GrapherDropdown>,
-    "options" | "value" | "onChange"
->) {
-    const selectedOption =
-        options.find((option) => option.value === selectedValue) || null
-
-    const handleChange = useCallback(
-        (option: BasicDropdownOption | null) => {
-            const newValue = option?.value ?? fallbackValue
-            if (newValue) {
-                onChange(newValue)
-            }
-        },
-        [onChange, fallbackValue]
-    )
-
-    return (
-        <GrapherDropdown
-            {...dropdownProps}
-            options={options}
-            value={selectedOption}
-            onChange={handleChange}
-            isClearable={false}
-        />
-    )
-}
-
 function EntityDropdown({
     availableEntities,
     selectedEntityName,
@@ -153,7 +113,8 @@ function EntityDropdown({
     }, [availableEntities, userCountryInfo])
 
     return (
-        <Dropdown
+        <InlineLabeledDropdown
+            label="Country/region"
             options={options}
             selectedValue={selectedEntityName}
             onChange={onChange}
@@ -162,16 +123,12 @@ function EntityDropdown({
             placeholder="Select a country or region..."
             isSearchable={true}
             aria-label="Select a country or region"
-            renderTriggerValue={(option) => (
-                <EntityDropdownLabel option={option} />
-            )}
             renderMenuOption={(option) => (
                 <EntityDropdownOption
                     option={option}
                     isUserCountry={option?.label === userCountryInfo?.name}
                 />
             )}
-            fallbackValue={WORLD_ENTITY_NAME}
         />
     )
 }
@@ -200,7 +157,8 @@ function AgeGroupDropdown({
     )
 
     return (
-        <Dropdown
+        <InlineLabeledDropdown
+            label="Age"
             options={options}
             selectedValue={selectedAgeGroup}
             onChange={onChange}
@@ -209,24 +167,7 @@ function AgeGroupDropdown({
             placeholder="Select an age group..."
             aria-label="Select an age group"
             isSearchable={false}
-            renderTriggerValue={(option) => (
-                <AgeGroupDropdownLabel option={option} />
-            )}
         />
-    )
-}
-
-function EntityDropdownLabel({
-    option,
-}: {
-    option: BasicDropdownOption | null
-}): React.ReactElement | null {
-    if (!option) return null
-    return (
-        <>
-            <span className="label">Country/region: </span>
-            {option.label}
-        </>
     )
 }
 
@@ -245,20 +186,6 @@ function EntityDropdownOption({
                 <FontAwesomeIcon icon={faLocationArrow} size="sm" />
             )}
         </div>
-    )
-}
-
-function AgeGroupDropdownLabel({
-    option,
-}: {
-    option: BasicDropdownOption | null
-}): React.ReactElement | null {
-    if (!option) return null
-    return (
-        <>
-            <span className="label">Age: </span>
-            {option.label}
-        </>
     )
 }
 
@@ -286,7 +213,8 @@ function SexDropdown({
     )
 
     return (
-        <Dropdown
+        <InlineLabeledDropdown
+            label="Sex"
             options={options}
             selectedValue={selectedSex}
             onChange={onChange}
@@ -295,23 +223,6 @@ function SexDropdown({
             placeholder="Select a sex..."
             aria-label="Select a sex"
             isSearchable={false}
-            renderTriggerValue={(option) => (
-                <SexDropdownLabel option={option} />
-            )}
         />
-    )
-}
-
-function SexDropdownLabel({
-    option,
-}: {
-    option: BasicDropdownOption | null
-}): React.ReactElement | null {
-    if (!option) return null
-    return (
-        <>
-            <span className="label">Sex: </span>
-            {option.label}
-        </>
     )
 }

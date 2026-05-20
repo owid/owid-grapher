@@ -142,7 +142,7 @@ export {
 export { GeoFeatures } from "./mapCharts/GeoFeatures"
 export { isValidVerticalComparisonLineConfig } from "./comparisonLine/ComparisonLineHelpers"
 export { hasValidConfigForBinningStrategy } from "./color/BinningStrategies"
-export { Dropdown } from "./controls/Dropdown"
+export { type BasicDropdownOption, Dropdown } from "./controls/Dropdown"
 export { EXTERNAL_SORT_INDICATOR_DEFINITIONS } from "./entitySelector/EntitySelectorConstants.js"
 
 export { makeChartState } from "./chart/ChartTypeMap"
