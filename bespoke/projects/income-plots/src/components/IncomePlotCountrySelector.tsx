@@ -3,123 +3,126 @@ import {
     atomAvailableCountryNames,
     atomSelectedCountryNames,
 } from "../store.ts"
-import { Suspense, useEffect, useRef, useState } from "react"
-import { ListBox, ListBoxItem } from "react-aria-components"
+import { Suspense, useMemo, useState } from "react"
+import {
+    Button,
+    Dialog,
+    DialogTrigger,
+    Input,
+    ListBox,
+    ListBoxItem,
+    Popover,
+    SearchField,
+} from "react-aria-components"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons"
-import { useFloating, offset, flip, shift } from "@floating-ui/react"
+import {
+    faMagnifyingGlass,
+    faChevronDown,
+    faXmark,
+    faCheck,
+} from "@fortawesome/free-solid-svg-icons"
+import * as React from "react"
 
-const IncomePlotCountrySelectorInner = () => {
+const IncomePlotCountrySelectorInner = (): React.ReactElement => {
     const availableCountryNames = useAtomValue(atomAvailableCountryNames)
     const [selectedCountryNames, setSelectedCountryNames] = useAtom(
         atomSelectedCountryNames
     )
     const [searchQuery, setSearchQuery] = useState("")
-    const [isOpen, setIsOpen] = useState(false)
-    const buttonRef = useRef<HTMLDivElement>(null)
-    const inputRef = useRef<HTMLInputElement>(null)
-    const popoverRef = useRef<HTMLDivElement>(null)
 
-    const { refs, floatingStyles } = useFloating({
-        open: isOpen,
-        onOpenChange: setIsOpen,
-        placement: "bottom-start",
-        middleware: [offset(4), flip(), shift()],
-    })
+    const filteredCountries = useMemo((): string[] => {
+        return availableCountryNames.filter((country) =>
+            country.toLowerCase().includes(searchQuery.toLowerCase())
+        )
+    }, [availableCountryNames, searchQuery])
 
-    const filteredCountries = availableCountryNames.filter((country) =>
-        country.toLowerCase().includes(searchQuery.toLowerCase())
+    const selectedKeys = useMemo(
+        (): Set<React.Key> => new Set(selectedCountryNames),
+        [selectedCountryNames]
     )
 
-    const selectedSet = new Set(selectedCountryNames)
-
-    const handleToggleCountry = (countryName: string) => {
-        if (selectedSet.has(countryName)) {
-            setSelectedCountryNames(
-                selectedCountryNames.filter((c) => c !== countryName)
-            )
-        } else {
-            setSelectedCountryNames([...selectedCountryNames, countryName])
+    const handleSelectionChange = (keys: "all" | Set<React.Key>): void => {
+        if (keys !== "all") {
+            const newSelected = Array.from(keys) as string[]
+            setSelectedCountryNames(newSelected)
         }
     }
 
-    const handleClearAll = () => {
+    const handleClearAll = (): void => {
         setSelectedCountryNames([])
     }
 
-    // Handle click outside to close popover
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (
-                isOpen &&
-                buttonRef.current &&
-                popoverRef.current &&
-                !buttonRef.current.contains(event.target as Node) &&
-                !popoverRef.current.contains(event.target as Node)
-            ) {
-                setIsOpen(false)
-            }
-        }
-
-        document.addEventListener("mousedown", handleClickOutside)
-        return () => {
-            document.removeEventListener("mousedown", handleClickOutside)
-        }
-    }, [isOpen])
-
-    useEffect(() => {
-        if (buttonRef.current) {
-            refs.setReference(buttonRef.current)
-        }
-    }, [refs])
+    const triggerLabel =
+        selectedCountryNames.length > 0
+            ? selectedCountryNames.length === 1
+                ? "1 country selected"
+                : `${selectedCountryNames.length} countries selected`
+            : "Search and select countries"
 
     return (
-        <>
-            <div
-                ref={buttonRef}
-                className="search-country-selector-button"
-                onClick={() => {
-                    setIsOpen(true)
-                    setTimeout(() => inputRef.current?.focus(), 0)
-                }}
-            >
+        <DialogTrigger>
+            <Button className="search-country-selector-button">
                 <FontAwesomeIcon
                     icon={faMagnifyingGlass}
                     className="search-country-selector__search-icon"
                 />
-                <input
-                    ref={inputRef}
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    onFocus={() => setIsOpen(true)}
-                    onClick={(e) => e.stopPropagation()}
-                    placeholder="Search and select countries"
-                    className="search-country-selector-search-input"
+                <span className="search-country-selector-label">
+                    {triggerLabel}
+                </span>
+                <FontAwesomeIcon
+                    icon={faChevronDown}
+                    className="search-country-selector__chevron"
                 />
-            </div>
-            {isOpen && (
-                <div
-                    ref={(node) => {
-                        popoverRef.current = node
-                        refs.setFloating(node)
-                    }}
-                    style={{ ...floatingStyles, zIndex: 1000 }}
-                    className="search-country-selector-list-container"
-                >
-                    {selectedCountryNames.length > 0 && (
-                        <div className="search-country-selector-clear-container">
-                            <button
-                                onClick={handleClearAll}
-                                className="search-country-selector-clear-all"
+            </Button>
+            <Popover
+                className="search-country-selector-list-container"
+                placement="bottom start"
+                onOpenChange={(isOpen: boolean): void => {
+                    if (!isOpen) setSearchQuery("")
+                }}
+            >
+                <Dialog className="search-country-selector-dialog">
+                    <SearchField
+                        aria-label="Search countries"
+                        className="search-country-selector-search"
+                        value={searchQuery}
+                        onChange={setSearchQuery}
+                        autoFocus
+                    >
+                        <FontAwesomeIcon
+                            icon={faMagnifyingGlass}
+                            className="search-country-selector-search__icon"
+                        />
+                        <Input
+                            placeholder="Search..."
+                            className="react-aria-Input search-country-selector-search__input"
+                        />
+                        {searchQuery && (
+                            <Button
+                                className="clear-button search-country-selector-search__clear"
+                                onClick={(): void => setSearchQuery("")}
                             >
-                                Clear all
-                            </button>
-                        </div>
-                    )}
+                                <FontAwesomeIcon icon={faXmark} />
+                            </Button>
+                        )}
+                    </SearchField>
+
+                    <div className="search-country-selector-clear-container">
+                        <button
+                            onClick={handleClearAll}
+                            className="search-country-selector-clear-all"
+                            disabled={selectedCountryNames.length === 0}
+                        >
+                            Clear all
+                        </button>
+                    </div>
+
                     <ListBox
                         aria-label="Countries"
                         selectionMode="multiple"
                         className="search-country-selector-list"
+                        selectedKeys={selectedKeys}
+                        onSelectionChange={handleSelectionChange}
                     >
                         {filteredCountries.map((country) => (
                             <ListBoxItem
@@ -127,29 +130,41 @@ const IncomePlotCountrySelectorInner = () => {
                                 id={country}
                                 textValue={country}
                                 className="search-country-selector-list__item"
-                                onAction={() => handleToggleCountry(country)}
                             >
-                                <div className="checkbox-container">
-                                    <input
-                                        type="checkbox"
-                                        checked={selectedSet.has(country)}
-                                        onChange={() =>
-                                            handleToggleCountry(country)
-                                        }
-                                        onClick={(e) => e.stopPropagation()}
-                                    />
-                                </div>
-                                <span className="country-name">{country}</span>
+                                {({ isSelected }): React.ReactElement => (
+                                    <>
+                                        <div className="checkbox-container">
+                                            <div
+                                                className={`search-country-selector-checkbox ${
+                                                    isSelected ? "checked" : ""
+                                                }`}
+                                            >
+                                                {isSelected && (
+                                                    <FontAwesomeIcon
+                                                        icon={faCheck}
+                                                        style={{
+                                                            fontSize: "10px",
+                                                            color: "white",
+                                                        }}
+                                                    />
+                                                )}
+                                            </div>
+                                        </div>
+                                        <span className="country-name">
+                                            {country}
+                                        </span>
+                                    </>
+                                )}
                             </ListBoxItem>
                         ))}
                     </ListBox>
-                </div>
-            )}
-        </>
+                </Dialog>
+            </Popover>
+        </DialogTrigger>
     )
 }
 
-export const IncomePlotCountrySelector = () => {
+export const IncomePlotCountrySelector = (): React.ReactElement => {
     return (
         <Suspense fallback={<div>Loading countries...</div>}>
             <IncomePlotCountrySelectorInner />

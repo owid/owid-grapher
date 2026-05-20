@@ -804,6 +804,7 @@ export function IncomePlot({
     const setHoveredX = useSetAtom(atomHoveredX)
     const isSingleCountryMode = useAtomValue(atomIsInSingleCountryMode)
     const legendPlacement = useAtomValue(atomLegendPlacement)
+    const selectedCountryNames = useAtomValue(atomSelectedCountryNames)
 
     // Margins
     const marginTop = 10
@@ -864,63 +865,84 @@ export function IncomePlot({
                 style={{
                     position: "relative",
                     maxWidth: "100%",
+                    display: "flow-root",
                 }}
             >
-                {!isNarrow && (
-                    <IncomePlotLegend
-                        isNarrow={false}
-                        position={legendPlacement}
-                    />
-                )}
-                <svg
-                    ref={svgRef}
-                    className="income-plot-chart-svg"
-                    width={plotWidth}
-                    viewBox={`0 0 ${plotWidth} ${plotHeight}`}
-                    style={style}
-                    onPointerMove={onPointerMove}
-                    onPointerLeave={onPointerLeave}
-                    onClick={onClick}
-                >
-                    <IncomePlotClipPath xScale={xScale} />
-                    <IncomePlotXAxis
-                        xScale={xScale}
-                        height={plotHeight}
-                        marginBottom={marginBottom}
-                        marginTop={marginTop}
-                        isNarrow={isNarrow}
-                    />
-                    {isSingleCountryMode ? (
-                        <IncomePlotAreasUnstacked
-                            xScale={xScale}
-                            height={plotHeight}
-                        />
-                    ) : (
-                        <IncomePlotAreasStacked
-                            xScale={xScale}
-                            height={plotHeight}
+                {!isNarrow &&
+                    !(
+                        isSingleCountryMode && selectedCountryNames.length === 0
+                    ) && (
+                        <IncomePlotLegend
+                            isNarrow={false}
+                            position={legendPlacement}
                         />
                     )}
-                    <IncomePlotIntPovertyLine
-                        xScale={xScale}
-                        marginTop={marginTop}
-                        height={plotHeight}
-                        marginBottom={marginBottom}
-                    />
-                    <IncomePlotCustomPovertyLine
-                        xScale={xScale}
-                        marginTop={marginTop}
-                        height={plotHeight}
-                        marginBottom={marginBottom}
-                    />
-                    <IncomePlotPointer
-                        xScale={xScale}
-                        marginTop={marginTop}
-                        height={plotHeight}
-                        marginBottom={marginBottom}
-                    />
-                </svg>
-                <IncomePlotTooltip />
+                {isSingleCountryMode && selectedCountryNames.length === 0 ? (
+                    <div
+                        className="income-plot-empty-state"
+                        style={{ height: plotHeight - 12 }}
+                    >
+                        <div className="income-plot-empty-state__content">
+                            <p className="income-plot-empty-state__message">
+                                Please select one or more countries using the
+                                dropdown above to display their income
+                                distributions.
+                            </p>
+                        </div>
+                    </div>
+                ) : (
+                    <>
+                        <svg
+                            ref={svgRef}
+                            className="income-plot-chart-svg"
+                            width={plotWidth}
+                            viewBox={`0 0 ${plotWidth} ${plotHeight}`}
+                            style={style}
+                            onPointerMove={onPointerMove}
+                            onPointerLeave={onPointerLeave}
+                            onClick={onClick}
+                        >
+                            <IncomePlotClipPath xScale={xScale} />
+                            <IncomePlotXAxis
+                                xScale={xScale}
+                                height={plotHeight}
+                                marginBottom={marginBottom}
+                                marginTop={marginTop}
+                                isNarrow={isNarrow}
+                            />
+                            {isSingleCountryMode ? (
+                                <IncomePlotAreasUnstacked
+                                    xScale={xScale}
+                                    height={plotHeight}
+                                />
+                            ) : (
+                                <IncomePlotAreasStacked
+                                    xScale={xScale}
+                                    height={plotHeight}
+                                />
+                            )}
+                            <IncomePlotIntPovertyLine
+                                xScale={xScale}
+                                marginTop={marginTop}
+                                height={plotHeight}
+                                marginBottom={marginBottom}
+                            />
+                            <IncomePlotCustomPovertyLine
+                                xScale={xScale}
+                                marginTop={marginTop}
+                                height={plotHeight}
+                                marginBottom={marginBottom}
+                            />
+                            <IncomePlotPointer
+                                xScale={xScale}
+                                marginTop={marginTop}
+                                height={plotHeight}
+                                marginBottom={marginBottom}
+                            />
+                        </svg>
+                        <IncomePlotTooltip />
+                    </>
+                )}
             </div>
             {isNarrow && <IncomePlotLegend isNarrow={true} />}
         </>
