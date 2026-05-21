@@ -291,7 +291,7 @@ export const IncomePlotControlsRowBottom = () => {
                         className="currency-select__chevron"
                     />
                 </Button>
-                <Popover className="currency-select__popover">
+                <Popover className="currency-select__popover" placement="top start" offset={4}>
                     <Autocomplete
                         filter={contains}
                         inputValue={currencySearchValue}
