@@ -77,6 +77,12 @@
         flex: 0 0 auto;
         width: 100%;
     }
+    .food-trade-heading__title {
+        font-size: 1.5rem;
+    }
+    .food-trade-heading__description {
+        font-size: 0.875rem;
+    }
 }
 
 // The dropdown popover is portaled out of .food-trade-controls, so we
