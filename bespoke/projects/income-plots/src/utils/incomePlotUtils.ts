@@ -34,8 +34,10 @@ export function formatCurrency(
 ) {
     const currencyCode = currency.currency_code
     if (currencyCode === "INTD") {
-        if (num >= 1_000_000) return "$" + Math.round(num / 1_000_000) + "M"
-        if (num >= 1_000) return "$" + Math.round(num / 1_000) + "k"
+        if (num >= 10_000_000) return "$" + Math.round(num / 1_000_000) + "M"
+        if (num >= 1_000_000) return "$" + roundSigFig(num / 1_000_000, 2) + "M"
+        if (num >= 10_000) return "$" + Math.round(num / 1_000) + "k"
+        if (num >= 1_000) return "$" + roundSigFig(num / 1_000, 2) + "k"
         if (num >= 10) return "$" + roundSigFig(num, 2)
         if (num >= 1) {
             if (formatShort && Math.round(num) === num)
