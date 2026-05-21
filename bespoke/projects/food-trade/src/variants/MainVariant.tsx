@@ -321,7 +321,7 @@ function CaptionedMainVariant({
                         />
                     ) : (
                         <EmptyState
-                            message={`${R.capitalize(articulateEntity(country))} didn't import or export ${R.uncapitalize(product)} in ${year}.`}
+                            message={`${R.capitalize(articulateEntity(country))} did not import or export ${R.uncapitalize(product)} in ${year}.`}
                             cta={
                                 hasAnyTrade
                                     ? {
@@ -358,7 +358,7 @@ function EmptyState({
                     className="food-trade-captioned-chart__empty-cta"
                     onClick={cta.onClick}
                 >
-                    {cta.label} →
+                    {cta.label}
                 </button>
             )}
         </div>
