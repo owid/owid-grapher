@@ -408,6 +408,7 @@ __metadata:
     jotai: "npm:^2.18.1"
     normalize.css: "npm:^8.0.1"
     react: "npm:^19.2.4"
+    react-aria: "npm:^3.41.1"
     react-aria-components: "npm:^1.8.0"
     react-dom: "npm:^19.2.4"
     remeda: "npm:^2.21.0"

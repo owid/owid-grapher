@@ -1,11 +1,10 @@
-import { useMemo } from "react"
+import { useCallback, useMemo } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     faArrowRight,
     faArrowRightArrowLeft,
 } from "@fortawesome/free-solid-svg-icons"
 
-import { articulateEntity } from "@ourworldindata/utils"
 import { BasicDropdownOption } from "@ourworldindata/grapher"
 
 import { useUserCountryInformation } from "../../../../hooks/useUserCountryInformation.js"
@@ -84,11 +83,11 @@ export function FoodTradeControls({
     setCountry: (value: string) => void
     setView: (value: TradeFlow) => void
 }): React.ReactElement {
-    // Move products the selected country doesn't trade into a group at
-    // the bottom of the menu — still selectable, just de-emphasized.
-    // Bilateral mode (country === ALL_COUNTRIES) imposes no country
-    // filter, so every product stays in the main list.
-    const productOptions = useMemo<DropdownCollection>(() => {
+    // Sort products the selected country doesn't trade to the bottom of
+    // the menu, annotated with "No data" — still selectable, just
+    // de-emphasized. Bilateral mode (country === ALL_COUNTRIES) imposes
+    // no country filter, so every product is treated as traded.
+    const { productOptions, productNoDataSet } = useMemo(() => {
         const traded: BasicDropdownOption[] = []
         const untraded: BasicDropdownOption[] = []
         for (const p of products) {
@@ -99,24 +98,20 @@ export function FoodTradeControls({
                 untraded.push(option)
             }
         }
-        if (untraded.length === 0) return traded
-        return [
-            ...traded,
-            {
-                label: `Not traded by ${articulateEntity(country)}`,
-                options: untraded,
-            },
-        ]
+        const options: DropdownCollection = [...traded, ...untraded]
+        return {
+            productOptions: options,
+            productNoDataSet: new Set(untraded.map((o) => o.value)),
+        }
     }, [products, country, metadata])
 
     const { data: userCountryInfo } = useUserCountryInformation()
 
     // Build the country options. The Suggested group at the top surfaces
     // "All countries" plus the user's home country and continental
-    // regions; countries that don't trade the selected product fall into
-    // an extra "not traded by" group at the bottom — still selectable,
-    // just de-emphasized.
-    const countryOptions = useMemo<DropdownCollection>(() => {
+    // regions. Countries that don't trade the selected product are
+    // sorted to the bottom of the main list and annotated with "No data".
+    const { countryOptions, countryNoDataSet } = useMemo(() => {
         const trading: BasicDropdownOption[] = []
         const untraded: BasicDropdownOption[] = []
         for (const c of countries) {
@@ -130,12 +125,37 @@ export function FoodTradeControls({
         const grouped = groupByUserLocation(trading, userCountryInfo, [
             ALL_COUNTRIES,
         ])
-        if (untraded.length === 0) return grouped
-        return [
-            ...grouped,
-            { label: `${product} not traded by`, options: untraded },
-        ]
+        const noDataSet = new Set(untraded.map((o) => o.value))
+        if (untraded.length === 0) {
+            return { countryOptions: grouped, countryNoDataSet: noDataSet }
+        }
+        // groupByUserLocation returns either a flat array of options or
+        // [Suggested, All countries and regions]. Append untraded to the
+        // tail of the rest-of-the-world group, or to the flat list.
+        const last = grouped[grouped.length - 1]
+        if (last && "options" in last) {
+            const merged = [
+                ...grouped.slice(0, -1),
+                { ...last, options: [...last.options, ...untraded] },
+            ]
+            return { countryOptions: merged, countryNoDataSet: noDataSet }
+        }
+        return {
+            countryOptions: [...grouped, ...untraded],
+            countryNoDataSet: noDataSet,
+        }
     }, [countries, product, metadata, userCountryInfo])
+
+    const renderProductOption = useCallback(
+        (option: BasicDropdownOption) =>
+            renderOptionWithNoData(option, productNoDataSet),
+        [productNoDataSet]
+    )
+    const renderCountryOption = useCallback(
+        (option: BasicDropdownOption) =>
+            renderOptionWithNoData(option, countryNoDataSet),
+        [countryNoDataSet]
+    )
 
     return (
         <div className="food-trade-controls">
@@ -150,6 +170,8 @@ export function FoodTradeControls({
                         placeholder="Select a product…"
                         aria-label="Select a product"
                         isSearchable
+                        menuClassName="food-trade-controls__menu"
+                        renderMenuOption={renderProductOption}
                     />
                     <InlineLabeledDropdown
                         label="Country"
@@ -159,6 +181,8 @@ export function FoodTradeControls({
                         placeholder="Select a country…"
                         aria-label="Select a country"
                         isSearchable
+                        menuClassName="food-trade-controls__menu"
+                        renderMenuOption={renderCountryOption}
                     />
                     <Switcher
                         items={TRADE_FLOW_ITEMS}
@@ -170,5 +194,20 @@ export function FoodTradeControls({
                 </div>
             </div>
         </div>
+    )
+}
+
+function renderOptionWithNoData(
+    option: BasicDropdownOption,
+    noDataSet: Set<string>
+): React.ReactNode {
+    if (!noDataSet.has(option.value)) return option.label
+    return (
+        <>
+            <span className="food-trade-controls__option-label">
+                {option.label}
+            </span>
+            <span className="food-trade-controls__option-no-data">No data</span>
+        </>
     )
 }
