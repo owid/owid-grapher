@@ -137,7 +137,7 @@ export class DumbbellChart
         return { fontSize, fontWeight: 400, lineHeight: 1 }
     }
 
-    @computed private get pairLegendLabelStyle(): FontSettings {
+    @computed private get inlineLegendLabelStyle(): FontSettings {
         return {
             fontSize: this.valueLabelStyle.fontSize,
             fontWeight: 700,
@@ -408,11 +408,11 @@ export class DumbbellChart
         if (this.shouldShowCategoricalLegend)
             return this.categoricalLegend.height
 
-        if (this.shouldShowPairLegend)
-            // The pair legend doesn't linebreak
+        if (this.shouldShowInlineLegend)
+            // The inline legend doesn't linebreak
             return (
-                this.pairLegendLabelStyle.fontSize *
-                this.pairLegendLabelStyle.lineHeight
+                this.inlineLegendLabelStyle.fontSize *
+                this.inlineLegendLabelStyle.lineHeight
             )
 
         return 0
@@ -424,7 +424,7 @@ export class DumbbellChart
             : 0
     }
 
-    @computed private get pairLegendSeries():
+    @computed private get inlineLegendSeries():
         | Pair<InitialHorizontalLabel>
         | undefined {
         if (!this.legendLabels) return undefined
@@ -472,14 +472,14 @@ export class DumbbellChart
         ]
     }
 
-    @computed private get pairLegendState():
+    @computed private get inlineLegendState():
         | HorizontalLabelPairState
         | undefined {
-        if (!this.pairLegendSeries) return undefined
+        if (!this.inlineLegendSeries) return undefined
 
-        return new HorizontalLabelPairState(this.pairLegendSeries, {
+        return new HorizontalLabelPairState(this.inlineLegendSeries, {
             xRange: [this.bounds.left, this.bounds.right],
-            fontSettings: this.pairLegendLabelStyle,
+            fontSettings: this.inlineLegendLabelStyle,
             minGap: MIN_LEGEND_LABEL_GAP,
         })
     }
@@ -522,28 +522,28 @@ export class DumbbellChart
     }
 
     /**
-     * Whether the pair legend labels can fit side by side. Note that we
-     * can't use `pairLegendState.hasOverlap` here due to a circular dependency.
+     * Whether the inline legend labels can fit side by side. Note that we
+     * can't use `inlineLegendState.hasOverlap` here due to a circular dependency.
      */
-    @computed private get pairLegendFits(): boolean {
+    @computed private get inlineLegendFits(): boolean {
         if (!this.legendLabels) return false
         const { start, end } = this.legendLabels
         const labelWidths =
-            textWidth(start.text, this.pairLegendLabelStyle) +
-            textWidth(end.text, this.pairLegendLabelStyle)
+            textWidth(start.text, this.inlineLegendLabelStyle) +
+            textWidth(end.text, this.inlineLegendLabelStyle)
         return labelWidths + MIN_LEGEND_LABEL_GAP <= this.bounds.width
     }
 
-    @computed private get shouldShowPairLegend(): boolean {
-        return this.pairLegendFits && !!this.pairLegendState
+    @computed private get shouldShowInlineLegend(): boolean {
+        return !!this.legendLabels && this.inlineLegendFits
     }
 
     @computed private get shouldShowCategoricalLegend(): boolean {
-        // In column mode, fall back to a categorical legend when the pair
+        // In column mode, fall back to a categorical legend when the inline
         // labels don't fit. In entity mode, no legend is shown in that case.
         return (
             !!this.legendLabels &&
-            !this.pairLegendFits &&
+            !this.inlineLegendFits &&
             this.chartState.seriesStrategy === SeriesStrategy.column
         )
     }
@@ -567,10 +567,10 @@ export class DumbbellChart
     private renderLegend(): React.ReactElement | null {
         if (this.shouldShowCategoricalLegend)
             return <HorizontalCategoricalColorLegend manager={this} />
-        if (this.shouldShowPairLegend && this.pairLegendState)
+        if (this.shouldShowInlineLegend && this.inlineLegendState)
             return (
                 <HorizontalLabelPair
-                    state={this.pairLegendState}
+                    state={this.inlineLegendState}
                     y={this.bounds.top}
                 />
             )
