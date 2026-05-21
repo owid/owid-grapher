@@ -10,7 +10,12 @@ import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
 
 import { ALL_COUNTRIES, isAllCountry } from "../constants.js"
 import { MainVariantConfig, TradeFlow, VariantProps } from "../config.js"
-import { TradeRow, useTradeData } from "../data.js"
+import {
+    FoodTradeMetadata,
+    TradeRow,
+    useFoodTradeMetadata,
+    useProductTradeData,
+} from "../data.js"
 import { FoodTradeControls } from "../components/FoodTradeControls.js"
 import {
     FoodTradeBilateralSankey,
@@ -23,8 +28,6 @@ import {
     useResolveUserLocation,
 } from "../../../../hooks/useResolveUserLocation.js"
 import { MOBILE_BREAKPOINT } from "../../../../components/Sankey/SplitFlowSankey.js"
-
-const DATA_YEAR = 2023
 
 const DEFAULT_PRODUCT = "Maize (corn)"
 const DEFAULT_COUNTRY = "United Kingdom"
@@ -44,23 +47,7 @@ export function MainVariant({
 }
 
 function FetchingMainVariant({ config }: { config: MainVariantConfig }) {
-    const { data, status, error } = useTradeData()
-
-    const products = useMemo(
-        () => Array.from(new Set(data?.map((d) => d.item) ?? [])).sort(),
-        [data]
-    )
-    // Union of every country that ever appears on either side of a trade row,
-    // so importer-only and exporter-only countries both show up in the picker.
-    const countries = useMemo(() => {
-        const items = Array.from(
-            new Set([
-                ...(data?.map((d) => d.exporter) ?? []),
-                ...(data?.map((d) => d.importer) ?? []),
-            ])
-        ).sort()
-        return [ALL_COUNTRIES, ...items]
-    }, [data])
+    const { data: metadata, status: metadataStatus } = useFoodTradeMetadata()
 
     const initialCountry = config.country ?? DEFAULT_COUNTRY
     const [product, setProduct] = useState<string>(
@@ -75,6 +62,12 @@ function FetchingMainVariant({ config }: { config: MainVariantConfig }) {
         isAllCountry(initialCountry) ? "both" : (config.tradeFlow ?? "both")
     )
 
+    const productId = metadata?.productByName.get(product)?.id
+    const { data: productData, status: productStatus } = useProductTradeData(
+        productId,
+        metadata
+    )
+
     // Same reason at runtime: when the user picks All countries, snap
     // the stored view to "both" so the (now-disabled) radio group
     // reflects what's actually on screen.
@@ -83,33 +76,69 @@ function FetchingMainVariant({ config }: { config: MainVariantConfig }) {
         if (isAllCountry(newCountry)) setView("both")
     }, [])
 
+    const products = useMemo(
+        () =>
+            metadata ? [...metadata.products].map((p) => p.name).sort() : [],
+        [metadata]
+    )
+    const countries = useMemo(() => {
+        if (!metadata) return [ALL_COUNTRIES]
+        const names = [...metadata.entities].map((e) => e.name).sort()
+        return [ALL_COUNTRIES, ...names]
+    }, [metadata])
+
+    const flows = productData?.flows
+
     const incoming = useMemo(() => {
-        if (!data || isAllCountry(country)) return []
-        return data.filter((d) => d.item === product && d.importer === country)
-    }, [data, product, country])
+        if (!flows || isAllCountry(country)) return []
+        return flows.filter((d) => d.importer === country)
+    }, [flows, country])
 
     const outgoing = useMemo(() => {
-        if (!data || isAllCountry(country)) return []
-        return data.filter((d) => d.item === product && d.exporter === country)
-    }, [data, product, country])
+        if (!flows || isAllCountry(country)) return []
+        return flows.filter((d) => d.exporter === country)
+    }, [flows, country])
 
-    // Bilateral mode: every row for the selected product, no country filter.
-    // Only computed when the user has picked "All countries".
+    // Bilateral mode: the entire product file when "All countries" is
+    // selected, since each file is already scoped to one product.
     const bilateral = useMemo(() => {
-        if (!data || !isAllCountry(country)) return []
-        return data.filter((d) => d.item === product)
-    }, [data, product, country])
+        if (!flows || !isAllCountry(country)) return []
+        return flows
+    }, [flows, country])
 
-    if (status === "pending") return <FoodTradeSkeleton />
-    if (status === "error" || !data)
-        return <FoodTradeChartError error={error} />
+    const availableCountryNames = useMemo(
+        () =>
+            metadata
+                ? new Set(metadata.entities.map((e) => e.name))
+                : undefined,
+        [metadata]
+    )
+    const { isResolved: isCountryResolved } = useResolveUserLocation({
+        configCountry: config.country,
+        availableCountryNames,
+        urlSync,
+        urlStateKey: "foodTradeCountry",
+        setCountry,
+    })
+
+    if (
+        metadataStatus === "pending" ||
+        productStatus === "pending" ||
+        !isCountryResolved
+    )
+        return <FoodTradeSkeleton />
+    if (metadataStatus === "error" || !metadata)
+        return <FoodTradeChartError message="Failed to load trade metadata" />
+    if (productStatus === "error" || !flows)
+        return <FoodTradeChartError message="Failed to load trade data" />
 
     return (
         <CaptionedMainVariant
-            data={data}
+            metadata={metadata}
             incoming={incoming}
             outgoing={outgoing}
             bilateral={bilateral}
+            hasAnyTrade={flows.length > 0}
             products={products}
             countries={countries}
             product={product}
@@ -124,10 +153,11 @@ function FetchingMainVariant({ config }: { config: MainVariantConfig }) {
 }
 
 function CaptionedMainVariant({
-    data,
+    metadata,
     incoming,
     outgoing,
     bilateral,
+    hasAnyTrade,
     products,
     countries,
     product,
@@ -138,10 +168,11 @@ function CaptionedMainVariant({
     setView,
     config,
 }: {
-    data: TradeRow[]
+    metadata: FoodTradeMetadata
     incoming: TradeRow[]
     outgoing: TradeRow[]
     bilateral: TradeRow[]
+    hasAnyTrade: boolean
     products: string[]
     countries: string[]
     product: string
@@ -152,6 +183,8 @@ function CaptionedMainVariant({
     setView: (value: TradeFlow) => void
     config: MainVariantConfig
 }) {
+    const year = metadata.year
+
     const incomingTotal = useMemo(
         () => incoming.reduce((sum, d) => sum + d.value, 0),
         [incoming]
@@ -192,12 +225,12 @@ function CaptionedMainVariant({
 
     const defaultTitle =
         mode === "bilateral"
-            ? `Global ${R.uncapitalize(product)} trade in ${DATA_YEAR}`
+            ? `Global ${R.uncapitalize(product)} trade in ${year}`
             : view === "imports"
-              ? `${product} imports to ${articulateEntity(country)} in ${DATA_YEAR}`
+              ? `${product} imports to ${articulateEntity(country)} in ${year}`
               : view === "exports"
-                ? `${product} exports from ${articulateEntity(country)} in ${DATA_YEAR}`
-                : `${product} trade through ${articulateEntity(country)} in ${DATA_YEAR}`
+                ? `${product} exports from ${articulateEntity(country)} in ${year}`
+                : `${product} trade through ${articulateEntity(country)} in ${year}`
 
     const defaultSubtitle: React.ReactNode =
         mode === "centered" && view === "both" ? (
@@ -208,7 +241,7 @@ function CaptionedMainVariant({
         ) : mode === "bilateral" && hasBilateralData ? (
             <>
                 {formatTrade(bilateralTotal)} of {R.uncapitalize(product)} was
-                traded globally in {DATA_YEAR}.
+                traded globally in {year}.
             </>
         ) : null
 
@@ -235,7 +268,7 @@ function CaptionedMainVariant({
                         </p>
                     </header>
                     <FoodTradeControls
-                        data={data}
+                        metadata={metadata}
                         products={products}
                         countries={countries}
                         product={product}
@@ -256,7 +289,7 @@ function CaptionedMainVariant({
                             <FoodTradeBilateralSankey rows={bilateral} />
                         ) : (
                             <EmptyState
-                                message={`No global trade of ${R.uncapitalize(product)} in ${DATA_YEAR}.`}
+                                message={`No global trade of ${R.uncapitalize(product)} in ${year}.`}
                             />
                         )
                     ) : hasCenteredData ? (
@@ -265,7 +298,7 @@ function CaptionedMainVariant({
                             outgoing={outgoing}
                             country={country}
                             product={product}
-                            year={DATA_YEAR}
+                            year={year}
                             incomingTotal={incomingTotal}
                             outgoingTotal={outgoingTotal}
                             view={effectiveView}
@@ -273,9 +306,9 @@ function CaptionedMainVariant({
                         />
                     ) : (
                         <EmptyState
-                            message={`${R.capitalize(articulateEntity(country))} didn't import or export ${R.uncapitalize(product)} in ${DATA_YEAR}.`}
+                            message={`${R.capitalize(articulateEntity(country))} didn't import or export ${R.uncapitalize(product)} in ${year}.`}
                             cta={
-                                data.some((d) => d.item === product)
+                                hasAnyTrade
                                     ? {
                                           label: `See global trade of ${R.uncapitalize(product)}`,
                                           onClick: () =>
@@ -286,7 +319,7 @@ function CaptionedMainVariant({
                         />
                     )}
                 </div>
-                <ChartFooter source="UN Food and Agriculture Organization (FAO)" />
+                <ChartFooter source={metadata.source} />
             </Frame>
         </>
     )
@@ -321,10 +354,6 @@ function FoodTradeSkeleton() {
     return <div className="food-trade-skeleton" />
 }
 
-function FoodTradeChartError({ error }: { error: Error | null }) {
-    return (
-        <div className="food-trade-chart__error">
-            Failed to load trade data{error ? `: ${error.message}` : ""}
-        </div>
-    )
+function FoodTradeChartError({ message }: { message: string }) {
+    return <div className="food-trade-chart__error">{message}</div>
 }

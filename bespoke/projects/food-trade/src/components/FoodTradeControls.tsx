@@ -21,7 +21,7 @@ import {
 
 import { ALL_COUNTRIES, isAllCountry } from "../constants.js"
 import { TradeFlow } from "../config.js"
-import { TradeRow } from "../data.js"
+import { FoodTradeMetadata } from "../data.js"
 
 const TRADE_FLOW_ITEMS: SwitcherItem<TradeFlow>[] = [
     {
@@ -58,7 +58,7 @@ const TRADE_FLOW_ITEMS: SwitcherItem<TradeFlow>[] = [
 ]
 
 export function FoodTradeControls({
-    data,
+    metadata,
     products,
     countries,
     product,
@@ -69,7 +69,7 @@ export function FoodTradeControls({
     setCountry,
     setView,
 }: {
-    data: TradeRow[]
+    metadata: FoodTradeMetadata
     products: string[]
     countries: string[]
     product: string
@@ -84,45 +84,20 @@ export function FoodTradeControls({
     setCountry: (value: string) => void
     setView: (value: TradeFlow) => void
 }): React.ReactElement {
-    // Build two indexes used to surface dropdown options that can't yield
-    // any trade flow given the other dropdown's current selection.
-    const tradeIndex = useMemo(() => {
-        const productsByCountry = new Map<string, Set<string>>()
-        const countriesByProduct = new Map<string, Set<string>>()
-        for (const row of data) {
-            for (const c of [row.exporter, row.importer]) {
-                let ps = productsByCountry.get(c)
-                if (!ps) {
-                    ps = new Set()
-                    productsByCountry.set(c, ps)
-                }
-                ps.add(row.item)
-            }
-            let cs = countriesByProduct.get(row.item)
-            if (!cs) {
-                cs = new Set()
-                countriesByProduct.set(row.item, cs)
-            }
-            cs.add(row.exporter)
-            cs.add(row.importer)
-        }
-        return { productsByCountry, countriesByProduct }
-    }, [data])
-
     // Move products the selected country doesn't trade into a group at
     // the bottom of the menu — still selectable, just de-emphasized.
     // Bilateral mode (country === ALL_COUNTRIES) imposes no country
     // filter, so every product stays in the main list.
     const productOptions = useMemo<DropdownCollection>(() => {
-        const tradedByCountry = isAllCountry(country)
-            ? undefined
-            : tradeIndex.productsByCountry.get(country)
         const traded: BasicDropdownOption[] = []
         const untraded: BasicDropdownOption[] = []
         for (const p of products) {
             const option = { value: p, label: p }
-            if (!tradedByCountry || tradedByCountry.has(p)) traded.push(option)
-            else untraded.push(option)
+            if (isAllCountry(country) || metadata.tradesProduct(country, p)) {
+                traded.push(option)
+            } else {
+                untraded.push(option)
+            }
         }
         if (untraded.length === 0) return traded
         return [
@@ -132,7 +107,7 @@ export function FoodTradeControls({
                 options: untraded,
             },
         ]
-    }, [products, country, tradeIndex])
+    }, [products, country, metadata])
 
     const { data: userCountryInfo } = useUserCountryInformation()
 
@@ -142,16 +117,11 @@ export function FoodTradeControls({
     // an extra "not traded by" group at the bottom — still selectable,
     // just de-emphasized.
     const countryOptions = useMemo<DropdownCollection>(() => {
-        const tradingThisProduct = tradeIndex.countriesByProduct.get(product)
         const trading: BasicDropdownOption[] = []
         const untraded: BasicDropdownOption[] = []
         for (const c of countries) {
             const option = { value: c, label: c }
-            if (
-                c === ALL_COUNTRIES ||
-                !tradingThisProduct ||
-                tradingThisProduct.has(c)
-            ) {
+            if (c === ALL_COUNTRIES || metadata.tradesProduct(c, product)) {
                 trading.push(option)
             } else {
                 untraded.push(option)
@@ -165,7 +135,7 @@ export function FoodTradeControls({
             ...grouped,
             { label: `${product} not traded by`, options: untraded },
         ]
-    }, [countries, product, tradeIndex, userCountryInfo])
+    }, [countries, product, metadata, userCountryInfo])
 
     return (
         <div className="food-trade-controls">

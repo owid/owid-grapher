@@ -26,7 +26,6 @@
         "@visx/group": "^3.12.0",
         "@visx/responsive": "^3.12.0",
         "classnames": "^2.5.1",
-        "d3-dsv": "^3.0.1",
         "d3-sankey": "^0.12.3",
         "jotai": "^2.18.1",
         "normalize.css": "^8.0.1",
@@ -39,7 +38,6 @@
     "devDependencies": {
         "@rollup/plugin-swc": "^0.4.0",
         "@swc/core": "^1.15.21",
-        "@types/d3-dsv": "^3.0.7",
         "@types/d3-sankey": "^0.12.5",
         "@types/react": "^19.2.14",
         "@types/react-dom": "^19.2.3",
