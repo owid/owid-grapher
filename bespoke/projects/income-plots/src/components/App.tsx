@@ -14,6 +14,7 @@ import {
 import { IncomePlotDrawer } from "./IncomePlotDrawer.tsx"
 import { useAtom, useAtomValue, useSetAtom } from "jotai"
 import {
+    atomCurrentTab,
     atomCurrentYear,
     atomEffectIncludeLocalCountryInSelection,
     atomisNarrow,
@@ -31,9 +32,16 @@ import {
     INCOME_PLOT_SUBTITLE,
 } from "../utils/incomePlotMetadata.ts"
 
-export const App = () => {
+export const App = ({ tab }: { tab?: "global" | "countries" }) => {
     const shadowRoot = useShadowRoot()
     useAtom(atomEffectIncludeLocalCountryInSelection) // include local country in selection once the local country is detected
+
+    const setCurrentTab = useSetAtom(atomCurrentTab)
+    useEffect(() => {
+        if (tab === "global" || tab === "countries") {
+            setCurrentTab(tab)
+        }
+    }, [tab, setCurrentTab])
 
     const currentYear = useAtomValue(atomCurrentYear)
     const containerRef = useRef<HTMLDivElement>(null)
@@ -104,6 +112,7 @@ export const App = () => {
                                 height={plotHeight}
                                 width={width}
                                 isNarrow={isNarrow}
+                                tab={tab}
                             />
                         </Suspense>
                         {!isNarrow && (

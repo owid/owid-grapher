@@ -14,6 +14,7 @@ import {
     atomCountriesOrRegionsMode,
     atomCountryRegionMap,
     atomCurrentCurrency,
+    atomCurrentTab,
     atomCustomPovertyLine,
     atomCustomPovertyLineFormatted,
     atomHoveredEntity,
@@ -51,6 +52,7 @@ interface IncomePlotProps {
     height: number
     width: number
     isNarrow?: boolean
+    tab?: "global" | "countries"
 }
 
 interface IncomePlotClipPathProps {
@@ -911,8 +913,16 @@ export function IncomePlot({
     height,
     isNarrow = false,
     width,
+    tab,
 }: IncomePlotProps) {
     const svgRef = useRef<SVGSVGElement>(null)
+
+    const setCurrentTab = useSetAtom(atomCurrentTab)
+    useEffect(() => {
+        if (tab === "global" || tab === "countries") {
+            setCurrentTab(tab)
+        }
+    }, [tab, setCurrentTab])
 
     const setPovertyLine = useSetAtom(atomCustomPovertyLine)
     const setShowPovertyLine = useSetAtom(atomShowCustomPovertyLine)
