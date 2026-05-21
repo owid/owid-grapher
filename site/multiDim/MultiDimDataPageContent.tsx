@@ -208,8 +208,8 @@ export function DataPageContent({
                     ? `variables/${variables[0].id}/config`
                     : undefined
             const analyticsContext = {
-                mdimSlug: slug!,
-                mdimViewConfigId: grapherConfigUuid,
+                slug: slug!,
+                viewConfigId: grapherConfigUuid,
             }
             managerRef.current.adminEditPath = adminEditPath
             managerRef.current.analyticsContext = analyticsContext

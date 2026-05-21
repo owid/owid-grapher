@@ -81,11 +81,16 @@ export class GrapherAnalytics {
     }
 
     /** Logs events for the explorer's entity selector */
-    logEntityPickerEvent(action: EntitySelectorEvent, note?: string): void {
+    logEntityPickerEvent(
+        action: EntitySelectorEvent,
+        note?: string,
+        viewConfigId?: string
+    ): void {
         this.logToGA({
             event: EventCategory.ExplorerCountrySelector,
             eventAction: action,
             eventContext: note,
+            viewConfigId,
         })
     }
 
@@ -132,6 +137,7 @@ export class GrapherAnalytics {
             label?: string
             grapherUrl?: string
             narrativeChartName?: string
+            viewConfigId?: string
         }
     ): void {
         const { path, pathNext } = splitPathForGA4(
@@ -144,6 +150,7 @@ export class GrapherAnalytics {
             grapherPath: path,
             grapherPathNext: pathNext,
             narrativeChartName: ctx.narrativeChartName,
+            viewConfigId: ctx.viewConfigId,
         })
     }
 
