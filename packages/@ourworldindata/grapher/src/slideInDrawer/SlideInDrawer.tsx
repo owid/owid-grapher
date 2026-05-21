@@ -3,6 +3,7 @@ import cx from "classnames"
 import { computed, action, observable, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { isTargetOutsideElement } from "../chart/ChartUtils"
+import { isOwidDropdownOpen } from "../controls/Dropdown"
 
 export const DrawerContext = React.createContext<{
     toggleDrawerVisibility?: () => void
@@ -83,18 +84,9 @@ export class SlideInDrawer extends React.Component<SlideInDrawerProps> {
             this.active &&
             this.drawerRef?.current &&
             isTargetOutsideElement(e.target!, this.drawerRef.current) &&
-            !this.isPortaledPopoverOpen()
+            !isOwidDropdownOpen()
         )
             this.toggleVisibility()
-    }
-
-    private isPortaledPopoverOpen(): boolean {
-        // React-aria popovers (e.g. dropdown menus) are portaled to document.body
-        // with a full-viewport underlay. While one is open, suppress drawer dismissal
-        // so that the first click closes the popover (handled by react-aria) and a
-        // subsequent click closes the drawer.
-        // Note: "portaled-popover" class is defined in Dropdown.tsx. Update both if renaming.
-        return document.querySelector(".portaled-popover") !== null
     }
 
     @action.bound toggleVisibility(e?: React.MouseEvent): void {

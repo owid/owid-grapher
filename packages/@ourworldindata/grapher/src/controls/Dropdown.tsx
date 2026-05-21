@@ -60,6 +60,14 @@ export interface DropdownProps<DropdownOption extends BasicDropdownOption> {
     "aria-label"?: string
 }
 
+// This attribute and function are being used to detect whether a dropdown is currently open in order to prevent modals or drawers from being dismissed by their click-outside handler.
+// React-Aria portals popovers (used for the dropdown menu) to the end of the document body, so we can't rely on simple DOM containment checks to determine if a click is happening inside the dropdown or not.
+const owidDropdownDataAttribute = "data-owid-dropdown"
+
+export function isOwidDropdownOpen(): boolean {
+    return document.querySelector(`[${owidDropdownDataAttribute}]`) !== null
+}
+
 function isOptionGroup<DropdownOption extends BasicDropdownOption>(
     item: DropdownCollectionItem<DropdownOption>
 ): item is DropdownOptionGroup<DropdownOption> {
@@ -160,11 +168,8 @@ export function Dropdown<DropdownOption extends BasicDropdownOption>({
 
     const popover = (
         <Popover
-            className={cx(
-                "grapher-dropdown-menu",
-                "portaled-popover",
-                menuClassName
-            )}
+            className={cx("grapher-dropdown-menu", menuClassName)}
+            data-owid-dropdown=""
             offset={4}
         >
             {isSearchable ? (
@@ -231,8 +236,6 @@ export function Dropdown<DropdownOption extends BasicDropdownOption>({
                     aria-label="Clear selection"
                 />
             )}
-            {/* Note: "portaled-popover" class is used by SlideInDrawer to detect
-                clicks inside portaled popovers. Update both if renaming. */}
             {popover}
         </Select>
     )
