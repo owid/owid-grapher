@@ -25,6 +25,8 @@ interface ParameterConfig {
     yPadding: number
     yFloor?: number
     yCeiling?: number
+    inputMin?: number
+    inputMax?: number
     step: number
     decimals: number
     subtitle: (entityName: string) => string
@@ -49,6 +51,8 @@ export const parameterConfigByKey: Record<ParameterKey, ParameterConfig> = {
         axisUnit: "births per woman",
         yPadding: 2,
         yFloor: 0,
+        inputMin: 0,
+        inputMax: 10,
         step: 0.1,
         decimals: 1,
         subtitle: () => "Average number of births per woman.",
@@ -105,6 +109,8 @@ export const parameterConfigByKey: Record<ParameterKey, ParameterConfig> = {
         yPadding: 10,
         yFloor: 0,
         yCeiling: 130,
+        inputMin: 10,
+        inputMax: 150,
         step: 1,
         decimals: 0,
         subtitle: () =>
@@ -176,6 +182,8 @@ export const parameterConfigByKey: Record<ParameterKey, ParameterConfig> = {
         unit: "per 1,000 population",
         axisUnit: "‰",
         yPadding: 5,
+        inputMin: -20,
+        inputMax: 20,
         step: 0.1,
         decimals: 1,
         subtitle: (entityName: string) => {

@@ -130,6 +130,8 @@ function DemographyParameterEditorContent({
         (y) => initialControlPoints[y]
     )
 
+    const controlValues = CONTROL_YEARS.map((y) => controlPoints[y])
+
     const minValue =
         yMinOverride ??
         Math.max(
@@ -137,7 +139,8 @@ function DemographyParameterEditorContent({
             Math.min(
                 Math.min(...unwppValues) - config.yPadding,
                 Math.min(...historicalValues),
-                Math.min(...initialControlValues) - config.yPadding
+                Math.min(...initialControlValues) - config.yPadding,
+                Math.min(...controlValues)
             )
         )
     const maxValue = Math.min(
@@ -145,7 +148,8 @@ function DemographyParameterEditorContent({
         Math.max(
             Math.max(...unwppValues) + config.yPadding,
             Math.max(...historicalValues),
-            Math.max(...initialControlValues) + config.yPadding
+            Math.max(...initialControlValues) + config.yPadding,
+            Math.max(...controlValues)
         )
     )
 
@@ -562,6 +566,8 @@ function DemographyParameterEditorContent({
                                     controlLabelFontSize={fonts.controlLabel}
                                     yScale={yScale}
                                     marginTop={margin.top}
+                                    min={config.inputMin}
+                                    max={config.inputMax}
                                     onValueChange={(value) =>
                                         handleChange({
                                             ...controlPoints,
@@ -646,8 +652,8 @@ function DemographyParameterEditorContent({
                             value={controlPoints[editing.year]}
                             step={config.step}
                             decimals={config.decimals}
-                            min={yScale.domain()[0]}
-                            max={yScale.domain()[1]}
+                            min={config.inputMin ?? yScale.domain()[0]}
+                            max={config.inputMax ?? yScale.domain()[1]}
                             modified={isModified}
                             onCommit={(value) =>
                                 handleChange({
@@ -711,6 +717,8 @@ function DraggableControlPoint({
     formatValue,
     yScale,
     marginTop,
+    min = -Infinity,
+    max = Infinity,
     dragArrowFontSize,
     controlLabelFontSize,
     onValueChange,
@@ -728,6 +736,8 @@ function DraggableControlPoint({
     formatValue: (v: number) => string
     yScale: { invert: (y: number) => number }
     marginTop: number
+    min?: number
+    max?: number
     dragArrowFontSize: number
     controlLabelFontSize: number
     onValueChange: (value: number) => void
@@ -779,7 +789,8 @@ function DraggableControlPoint({
                         info.didMove = true
                         setIsDragging(true)
                     }
-                    onValueChange(yScale.invert(point.y - marginTop))
+                    const value = yScale.invert(point.y - marginTop)
+                    onValueChange(Math.min(max, Math.max(min, value)))
                 }}
                 onPointerUp={() => {
                     const info = pressInfoRef.current
