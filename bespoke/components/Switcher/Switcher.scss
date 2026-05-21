@@ -63,7 +63,7 @@ $switcher-visual-gap: 1px;
     }
 
     &[data-disabled] {
-        cursor: not-allowed;
+        cursor: default;
         opacity: 0.5;
     }
 }

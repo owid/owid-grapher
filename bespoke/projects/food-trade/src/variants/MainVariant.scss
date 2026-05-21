@@ -53,6 +53,17 @@
     }
 }
 
+// The switcher is wrapped in a div so a Tippy tooltip can attach when
+// the radios are disabled. Make the wrapper a flex container so the
+// Switcher stretches to the column's full width like its unwrapped
+// siblings.
+.food-trade-controls__switcher-wrapper {
+    display: flex;
+}
+.food-trade-controls__switcher-wrapper .switcher {
+    flex: 1 1 0;
+}
+
 // Stack the controls vertically at the same container-width threshold
 // the Sankey uses, so the whole UI collapses to one column at narrow
 // widths. Tighter row-gap stacked since vertical spacing reads heavier

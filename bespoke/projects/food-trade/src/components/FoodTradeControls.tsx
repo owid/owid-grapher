@@ -6,7 +6,9 @@ import {
 } from "@fortawesome/free-solid-svg-icons"
 
 import { BasicDropdownOption } from "@ourworldindata/grapher"
+import { Tippy } from "@ourworldindata/utils"
 
+import { useTippyContainer } from "../../../../hooks/useTippyContainer.js"
 import { useUserCountryInformation } from "../../../../hooks/useUserCountryInformation.js"
 import { groupByUserLocation } from "../../../../components/EntityDropdown/EntityDropdown.js"
 import {
@@ -63,7 +65,7 @@ export function FoodTradeControls({
     product,
     country,
     view,
-    viewDisabled,
+    viewDisabledReason,
     setProduct,
     setCountry,
     setView,
@@ -74,15 +76,18 @@ export function FoodTradeControls({
     product: string
     country: string
     view: TradeFlow
-    /** Visually disables the trade-flow radios. Set when the current
-     * country-product combination only has data in one direction (or
-     * when on All countries), so the radios reflect "doesn't apply
-     * here" rather than letting the user pick a half with no data. */
-    viewDisabled?: boolean
+    /** Set when the trade-flow radios shouldn't apply to the current
+     * country-product combination (no data in one direction, or All
+     * countries selected). When defined, the radios are visually
+     * disabled and a tooltip shows this string on hover. */
+    viewDisabledReason?: string
     setProduct: (value: string) => void
     setCountry: (value: string) => void
     setView: (value: TradeFlow) => void
 }): React.ReactElement {
+    const { ref: switcherWrapperRef, getTippyContainer } =
+        useTippyContainer<HTMLDivElement>()
+    const isViewDisabled = !!viewDisabledReason
     // Sort products the selected country doesn't trade to the bottom of
     // the menu, annotated with "No data" — still selectable, just
     // de-emphasized. Bilateral mode (country === ALL_COUNTRIES) imposes
@@ -184,13 +189,25 @@ export function FoodTradeControls({
                         menuClassName="food-trade-controls__menu"
                         renderMenuOption={renderCountryOption}
                     />
-                    <Switcher
-                        items={TRADE_FLOW_ITEMS}
-                        selectedKey={view}
-                        onChange={setView}
-                        isDisabled={viewDisabled}
-                        aria-label="Trade flow"
-                    />
+                    <Tippy
+                        content={viewDisabledReason ?? ""}
+                        disabled={!isViewDisabled}
+                        appendTo={getTippyContainer}
+                        maxWidth={270}
+                    >
+                        <div
+                            ref={switcherWrapperRef}
+                            className="food-trade-controls__switcher-wrapper"
+                        >
+                            <Switcher
+                                items={TRADE_FLOW_ITEMS}
+                                selectedKey={view}
+                                onChange={setView}
+                                isDisabled={isViewDisabled}
+                                aria-label="Trade flow"
+                            />
+                        </div>
+                    </Tippy>
                 </div>
             </div>
         </div>

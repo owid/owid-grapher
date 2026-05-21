@@ -222,7 +222,13 @@ function CaptionedMainVariant({
         : onlyExports
           ? "exports"
           : view
-    const isViewDisabled = isAllCountry(country) || onlyImports || onlyExports
+    const viewDisabledReason: string | undefined = isAllCountry(country)
+        ? "Select a country to view imports and exports separately."
+        : onlyImports
+          ? `${R.capitalize(articulateEntity(country))} did not export ${R.uncapitalize(product)} in ${year}.`
+          : onlyExports
+            ? `${R.capitalize(articulateEntity(country))} did not import ${R.uncapitalize(product)} in ${year}.`
+            : undefined
     const bilateralTotal = useMemo(
         () => bilateral.reduce((sum, d) => sum + d.value, 0),
         [bilateral]
@@ -289,7 +295,7 @@ function CaptionedMainVariant({
                         product={product}
                         country={country}
                         view={effectiveView}
-                        viewDisabled={isViewDisabled}
+                        viewDisabledReason={viewDisabledReason}
                         setProduct={setProduct}
                         setCountry={setCountry}
                         setView={setView}
