@@ -81,7 +81,17 @@ export default function NarrativeChart({
         >
             <div
                 className="owid-chart-frame"
-                style={d.height ? { height: d.height } : undefined}
+                // On archival pages the static image is the permanent rendering,
+                // so let it dictate the height instead of forcing the live-Grapher
+                // default (which leaves blank space when the image's aspect ratio
+                // doesn't match the frame's, e.g. in column layouts).
+                style={
+                    isOnArchivalPage
+                        ? { height: "auto" }
+                        : d.height
+                          ? { height: d.height }
+                          : undefined
+                }
             >
                 <figure
                     key={metadataStringified}
