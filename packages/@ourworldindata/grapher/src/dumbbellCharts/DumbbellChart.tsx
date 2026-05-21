@@ -7,16 +7,19 @@ import {
     HorizontalAlign,
     makeFigmaId,
     exposeInstanceOnWindow,
+    PointVector,
     ScaleType,
     SeriesStrategy,
     formatValue,
+    getRelativeMouse,
+    guid,
     Pair,
 } from "@ourworldindata/utils"
 import {
     DumbbellValueLabelMode,
     TickFormattingOptions,
 } from "@ourworldindata/types"
-import { computed, makeObservable } from "mobx"
+import { action, computed, observable, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import {
     BASE_FONT_SIZE,
@@ -56,11 +59,13 @@ import {
 import { DumbbellChartState } from "./DumbbellChartState"
 import { ChartComponentProps } from "../chart/ChartTypeMap"
 import { resolveEmphasis } from "../interaction/Emphasis"
+import { InteractionState } from "../interaction/InteractionState"
 import { DumbbellChartRow } from "./DumbbellChartRow"
 import {
     AxisLayout,
     calculateAxisLayout,
     computePercentChange,
+    toLeftRight,
 } from "./DumbbellChartHelpers"
 import { AnimatedRows } from "../animation/AnimatedRows"
 import { roundFontSize, textWidth } from "../chart/ChartUtils.js"
@@ -73,6 +78,15 @@ import {
     HorizontalColorLegendManager,
 } from "../legend/HorizontalColorLegends.js"
 import { CategoricalBin } from "../color/ColorScaleBin.js"
+import { TooltipState } from "../tooltip/Tooltip"
+import {
+    DumbbellTimeRangeTooltip,
+    DumbbellTwoColumnTooltip,
+} from "./DumbbellTooltips.js"
+
+type SVGMouseOrTouchEvent =
+    | React.MouseEvent<SVGElement>
+    | React.TouchEvent<SVGElement>
 
 export type DumbbellChartProps = ChartComponentProps<DumbbellChartState>
 
@@ -83,9 +97,16 @@ export class DumbbellChart
     extends React.Component<DumbbellChartProps>
     implements ChartInterface, AxisManager, HorizontalColorLegendManager
 {
+    private readonly tooltipId = guid()
+    private readonly tooltipState = new TooltipState<{ seriesName: string }>({
+        fade: "immediate",
+    })
+
     constructor(props: DumbbellChartProps) {
         super(props)
-        makeObservable(this)
+        makeObservable<DumbbellChart, "tooltipState">(this, {
+            tooltipState: observable,
+        })
     }
 
     @computed get chartState(): DumbbellChartState {
@@ -357,9 +378,17 @@ export class DumbbellChart
             .filter((series) => series !== undefined)
     }
 
+    @computed private get hoveredSeriesName(): string | undefined {
+        return this.tooltipState.target?.seriesName
+    }
+
     @computed private get renderSeries(): RenderDumbbellSeries[] {
         return this.placedSeries.map((series) => {
-            const emphasis = resolveEmphasis({ focus: series.focus })
+            const hover = InteractionState.for(
+                series.seriesName,
+                this.hoveredSeriesName
+            )
+            const emphasis = resolveEmphasis({ hover, focus: series.focus })
             return { ...series, emphasis }
         })
     }
@@ -578,6 +607,31 @@ export class DumbbellChart
         return this.chartState.formatColumn.formatValueShort(value, options)
     }
 
+    @action.bound private dismissTooltip(): void {
+        this.tooltipState.target = null
+    }
+
+    @action.bound private onSeriesMouseEnter(
+        seriesName: string,
+        event: SVGMouseOrTouchEvent
+    ): void {
+        this.updateTooltipPosition(event)
+        this.tooltipState.target = { seriesName }
+    }
+
+    @action.bound private onSeriesMouseMove(event: SVGMouseOrTouchEvent): void {
+        this.updateTooltipPosition(event)
+    }
+
+    @action.bound private onSeriesMouseLeave(): void {
+        this.tooltipState.target = null
+    }
+
+    private updateTooltipPosition(event: SVGMouseOrTouchEvent): void {
+        const ref = this.manager.base?.current
+        if (ref) this.tooltipState.position = getRelativeMouse(ref, event)
+    }
+
     override componentDidMount(): void {
         exposeInstanceOnWindow(this)
     }
@@ -655,6 +709,35 @@ export class DumbbellChart
                     )}
                 />
                 {this.renderLegend()}
+                <g className="hit-areas">
+                    {this.placedSeries.map((series) => (
+                        <DumbbellHitArea
+                            key={series.seriesName}
+                            series={series}
+                            height={this.availableHeightPerSeries}
+                            onMouseEnter={this.onSeriesMouseEnter}
+                            onMouseMove={this.onSeriesMouseMove}
+                            onMouseLeave={this.onSeriesMouseLeave}
+                        />
+                    ))}
+                </g>
+                {this.chartState.seriesStrategy === SeriesStrategy.entity ? (
+                    <DumbbellTimeRangeTooltip
+                        id={this.tooltipId}
+                        chartState={this.chartState}
+                        tooltipState={this.tooltipState}
+                        series={this.sizedSeries}
+                        dismissTooltip={this.dismissTooltip}
+                    />
+                ) : (
+                    <DumbbellTwoColumnTooltip
+                        id={this.tooltipId}
+                        chartState={this.chartState}
+                        tooltipState={this.tooltipState}
+                        series={this.sizedSeries}
+                        dismissTooltip={this.dismissTooltip}
+                    />
+                )}
             </g>
         )
     }
@@ -700,5 +783,45 @@ function DumbbellChartAxis({
                 />
             )}
         </>
+    )
+}
+
+function DumbbellHitArea({
+    series,
+    height,
+    verticalPadding = 12,
+    onMouseEnter,
+    onMouseMove,
+    onMouseLeave,
+}: {
+    series: PlacedDumbbellSeries
+    height: number
+    verticalPadding?: number
+    onMouseEnter: (seriesName: string, ev: SVGMouseOrTouchEvent) => void
+    onMouseMove: (ev: SVGMouseOrTouchEvent) => void
+    onMouseLeave: () => void
+}): React.ReactElement {
+    const { left, right } = toLeftRight(series.start, series.end)
+
+    const leftEdge = left.label
+        ? left.x - left.label.padding - left.label.width
+        : left.x - left.radius
+    const rightEdge = right.label
+        ? right.x + right.label.padding + right.label.width
+        : right.x + right.radius
+
+    const bounds = Bounds.fromCorners(
+        new PointVector(leftEdge, series.y - height / 2),
+        new PointVector(rightEdge, series.y + height / 2)
+    ).expand({ left: verticalPadding, right: verticalPadding })
+
+    return (
+        <rect
+            {...bounds.toProps()}
+            fill="transparent"
+            onMouseEnter={(ev) => onMouseEnter(series.seriesName, ev)}
+            onMouseMove={onMouseMove}
+            onMouseLeave={onMouseLeave}
+        />
     )
 }
