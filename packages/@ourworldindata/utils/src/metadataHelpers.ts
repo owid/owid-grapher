@@ -145,7 +145,7 @@ const prepareOriginForDisplay = (origin: OwidOrigin): DisplaySource => {
 
     return {
         label,
-        description: origin.description,
+        description: origin.description || origin.descriptionSnapshot,
         retrievedOn: origin.dateAccessed,
         retrievedFrom: origin.urlMain,
         citation: origin.citationFull,
