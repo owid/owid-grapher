@@ -121,11 +121,16 @@ function arrowHead(
     handle: Point,
     { length = 4, theta = 45, closed = false } = {}
 ): string {
-    const xLen = handle.x - point.x
-    const yLen = handle.y - point.y
+    let xLen = handle.x - point.x
+    let yLen = handle.y - point.y
 
-    const distance = Math.sqrt(Math.pow(xLen, 2) + Math.pow(yLen, 2))
-    if (distance === 0) return ""
+    let distance = Math.sqrt(Math.pow(xLen, 2) + Math.pow(yLen, 2))
+    if (distance === 0) {
+        // No direction information — default to a horizontal head pointing right
+        xLen = -1
+        yLen = 0
+        distance = 1
+    }
 
     const ratio = length / distance
 
