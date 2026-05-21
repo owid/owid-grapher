@@ -73,7 +73,7 @@ export const IncomePlotLegend = ({
         >
             {percentageBelowLineMap && povertyLineFormatted && (
                 <div className="legend-poverty-line-header">
-                    Share of population that earns less than{" "}
+                    Share of population that lives on less than{" "}
                     {povertyLineFormatted} a {getTimeIntervalStr(timeInterval)}
                 </div>
             )}
