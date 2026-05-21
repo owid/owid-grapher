@@ -51,6 +51,7 @@ import {
     END_COLUMN_COLOR,
     LegendLabel,
     PlacedDumbbellHead,
+    MIN_LEGEND_LABEL_GAP,
 } from "./DumbbellChartConstants"
 import { DumbbellChartState } from "./DumbbellChartState"
 import { ChartComponentProps } from "../chart/ChartTypeMap"
@@ -67,13 +68,18 @@ import { GRAPHER_LIGHT_TEXT } from "../color/ColorConstants.js"
 import { HorizontalLabelPair } from "../horizontalLabelPair/HorizontalLabelPair.js"
 import { HorizontalLabelPairState } from "../horizontalLabelPair/HorizontalLabelPairState.js"
 import { InitialHorizontalLabel } from "../horizontalLabelPair/HorizontalLabelPairTypes.js"
+import {
+    HorizontalCategoricalColorLegend,
+    HorizontalColorLegendManager,
+} from "../legend/HorizontalColorLegends.js"
+import { CategoricalBin } from "../color/ColorScaleBin.js"
 
 export type DumbbellChartProps = ChartComponentProps<DumbbellChartState>
 
 @observer
 export class DumbbellChart
     extends React.Component<DumbbellChartProps>
-    implements ChartInterface, AxisManager
+    implements ChartInterface, AxisManager, HorizontalColorLegendManager
 {
     constructor(props: DumbbellChartProps) {
         super(props)
@@ -94,7 +100,7 @@ export class DumbbellChart
     }
 
     @computed private get boundsWithoutLegend(): Bounds {
-        return this.bounds.padTop(this.legendHeightWithPadding)
+        return this.bounds.padTop(this.topLegendHeightWithPadding)
     }
 
     @computed get fontSize(): number {
@@ -131,7 +137,7 @@ export class DumbbellChart
         return { fontSize, fontWeight: 400, lineHeight: 1 }
     }
 
-    @computed private get legendLabelStyle(): FontSettings {
+    @computed private get pairLegendLabelStyle(): FontSettings {
         return {
             fontSize: this.valueLabelStyle.fontSize,
             fontWeight: 700,
@@ -398,20 +404,27 @@ export class DumbbellChart
             .exhaustive()
     }
 
-    @computed private get legendHeight(): number {
-        // We can't use `legendState` here due to a circular dependency
+    @computed private get topLegendHeight(): number {
+        // We can't use `pairLegendState` here due to a circular dependency
         if (!this.legendLabels) return 0
-        // Since the legend doesn't linebreak
-        return this.legendLabelStyle.fontSize * this.legendLabelStyle.lineHeight
+
+        if (this.shouldShowCategoricalLegend)
+            return this.categoricalLegend.height
+
+        // The pair legend doesn't linebreak
+        return (
+            this.pairLegendLabelStyle.fontSize *
+            this.pairLegendLabelStyle.lineHeight
+        )
     }
 
-    @computed private get legendHeightWithPadding(): number {
-        return this.legendHeight
-            ? this.legendHeight + TOP_LEGEND_BOTTOM_PADDING
+    @computed private get topLegendHeightWithPadding(): number {
+        return this.topLegendHeight
+            ? this.topLegendHeight + TOP_LEGEND_BOTTOM_PADDING
             : 0
     }
 
-    @computed private get legendSeries():
+    @computed private get pairLegendSeries():
         | Pair<InitialHorizontalLabel>
         | undefined {
         if (!this.legendLabels) return undefined
@@ -459,13 +472,74 @@ export class DumbbellChart
         ]
     }
 
-    @computed private get legendState(): HorizontalLabelPairState | undefined {
-        if (!this.legendSeries) return undefined
+    @computed private get pairLegendState():
+        | HorizontalLabelPairState
+        | undefined {
+        if (!this.pairLegendSeries) return undefined
 
-        return new HorizontalLabelPairState(this.legendSeries, {
+        return new HorizontalLabelPairState(this.pairLegendSeries, {
             xRange: [this.bounds.left, this.bounds.right],
-            fontSettings: this.legendLabelStyle,
+            fontSettings: this.pairLegendLabelStyle,
+            minGap: MIN_LEGEND_LABEL_GAP,
         })
+    }
+
+    // HorizontalColorLegendManager
+
+    @computed get legendX(): number {
+        return this.bounds.left
+    }
+
+    @computed get categoryLegendY(): number {
+        return this.bounds.top
+    }
+
+    @computed get legendWidth(): number {
+        return this.bounds.width
+    }
+
+    @computed get legendAlign(): HorizontalAlign {
+        return HorizontalAlign.left
+    }
+
+    @computed get categoricalLegendData(): CategoricalBin[] {
+        if (!this.legendLabels) return []
+        const { start, end } = this.legendLabels
+        return [
+            new CategoricalBin({
+                index: 0,
+                value: start.text,
+                label: start.text,
+                color: start.color,
+            }),
+            new CategoricalBin({
+                index: 1,
+                value: end.text,
+                label: end.text,
+                color: end.color,
+            }),
+        ]
+    }
+
+    @computed private get shouldShowCategoricalLegend(): boolean {
+        if (!this.legendLabels) return false
+        if (this.chartState.seriesStrategy === SeriesStrategy.entity)
+            return false
+
+        // Check if the two labels fit next to each other. If not, show the
+        // categorical legend instead of the in-chart pair legend. Note that
+        // we can't use `pairLegendState.hasOverlap` here due to a circular
+        // dependency
+        const { start, end } = this.legendLabels
+        const labelWidths =
+            textWidth(start.text, this.pairLegendLabelStyle) +
+            textWidth(end.text, this.pairLegendLabelStyle)
+        return labelWidths + MIN_LEGEND_LABEL_GAP > this.bounds.width
+    }
+
+    @computed
+    private get categoricalLegend(): HorizontalCategoricalColorLegend {
+        return new HorizontalCategoricalColorLegend({ manager: this })
     }
 
     private formatValue(
@@ -477,6 +551,19 @@ export class DumbbellChart
 
     override componentDidMount(): void {
         exposeInstanceOnWindow(this)
+    }
+
+    private renderLegend(): React.ReactElement | null {
+        if (this.shouldShowCategoricalLegend)
+            return <HorizontalCategoricalColorLegend manager={this} />
+        if (this.pairLegendState)
+            return (
+                <HorizontalLabelPair
+                    state={this.pairLegendState}
+                    y={this.bounds.top}
+                />
+            )
+        return null
     }
 
     private renderStatic(): React.ReactElement {
@@ -500,12 +587,7 @@ export class DumbbellChart
                         />
                     ))}
                 </g>
-                {this.legendState && (
-                    <HorizontalLabelPair
-                        state={this.legendState}
-                        y={this.bounds.top}
-                    />
-                )}
+                {this.renderLegend()}
             </>
         )
     }
@@ -539,12 +621,7 @@ export class DumbbellChart
                         />
                     )}
                 />
-                {this.legendState && (
-                    <HorizontalLabelPair
-                        state={this.legendState}
-                        y={this.bounds.top}
-                    />
-                )}
+                {this.renderLegend()}
             </g>
         )
     }
