@@ -12,7 +12,7 @@ import {
     IncomePlotControlsRowTop,
 } from "./IncomePlotControlsRow.tsx"
 import { IncomePlotDrawer } from "./IncomePlotDrawer.tsx"
-import { useAtom, useAtomValue, useSetAtom } from "jotai"
+import { Provider, useAtom, useAtomValue, useSetAtom } from "jotai"
 import {
     atomCurrentTab,
     atomCurrentYear,
@@ -32,7 +32,24 @@ import {
     INCOME_PLOT_SUBTITLE,
 } from "../utils/incomePlotMetadata.ts"
 
-export const App = ({ tab }: { tab?: "global" | "countries" }) => {
+export const App = ({
+    tab,
+    isolateState = false,
+}: {
+    tab?: "global" | "countries"
+    isolateState?: boolean
+}) => {
+    if (isolateState) {
+        return (
+            <Provider>
+                <AppInner tab={tab} />
+            </Provider>
+        )
+    }
+    return <AppInner tab={tab} />
+}
+
+const AppInner = ({ tab }: { tab?: "global" | "countries" }) => {
     const shadowRoot = useShadowRoot()
     useAtom(atomEffectIncludeLocalCountryInSelection) // include local country in selection once the local country is detected
 
