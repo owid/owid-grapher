@@ -29,6 +29,7 @@ import {
     Region,
     getRegionByName,
     makeSafeForCSS,
+    convertDaysSinceEpochToDate,
 } from "@ourworldindata/utils"
 import {
     Checkbox,
@@ -525,30 +526,55 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
         })
     }
 
+    @computed private get chartHasDailyData(): boolean {
+        return this.numericalChartColumns.some(
+            (column) => column.display?.yearIsDay
+        )
+    }
+
+    private isExternalIndicator(slug: ColumnSlug): boolean {
+        return this.externalSortIndicatorDefinitions.some(
+            (external) => slug === external.slug
+        )
+    }
+
     /**
      * Returns the time at which to look up sort values in the given column.
      * For external catalog indicators, this is the column's max year, since
      * those columns are collapsed to a single year on load.
      */
     private resolveLookupTimeForColumn(time: Time, column: CoreColumn): Time {
-        const isExternal = this.externalSortIndicatorDefinitions.some(
-            (external) => column.slug === external.slug
-        )
-
         // External catalog columns are collapsed to a single year (the
         // catalog's max year) by loadAndSetExternalSortColumn, so the lookup
         // time is fixed regardless of the chart's endTime
+        const isExternal = this.isExternalIndicator(column.slug)
         if (isExternal) return column.maxTime ?? time
 
         return time
+    }
+
+    private getSortColumnLabelTime(time: Time, column: CoreColumn): Time {
+        const lookupTime = this.resolveLookupTimeForColumn(time, column)
+
+        // External catalog columns use their own max year as the lookup time
+        const isExternal = this.isExternalIndicator(column.slug)
+        if (isExternal) return lookupTime
+
+        // When the chart uses daily dates but this column is yearly, convert
+        // the lookup time back to a year before formatting the label
+        if (this.chartHasDailyData && !column.display?.yearIsDay) {
+            return convertDaysSinceEpochToDate(lookupTime).year()
+        }
+
+        return lookupTime
     }
 
     private formatTimeForSortColumnLabel(
         time: Time,
         column: CoreColumn
     ): string {
-        const lookupTime = this.resolveLookupTimeForColumn(time, column)
-        return column.formatTime(lookupTime)
+        const labelTime = this.getSortColumnLabelTime(time, column)
+        return column.formatTime(labelTime)
     }
 
     @computed private get manager(): EntitySelectorManager {
