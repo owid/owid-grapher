@@ -52,22 +52,21 @@ const indexExplorerViewsMdimViewsAndChartsToAlgolia = async () => {
         async (trx) => {
             // Create shared base context once for all record getters
             const baseContext = await createBaseIndexingContext(trx)
-            // const explorerViews = await getExplorerViewRecords(trx, {
-            //     skipGrapherViews: true,
-            //     baseContext,
-            // })
+            const explorerViews = await getExplorerViewRecords(trx, {
+                skipGrapherViews: true,
+                baseContext,
+            })
             const mdimViews = await getMdimViewRecords(trx, {
                 baseContext,
             })
-            // const grapherViews = await getChartsRecords(trx, {
-            //     baseContext,
-            // })
+            const grapherViews = await getChartsRecords(trx, {
+                baseContext,
+            })
 
             // Scale charts, mdim views, and explorer views together so scores are directly comparable.
             // Makes it easier to intuit what bonuses and boosts will do
             const scaledRecords = scaleRecordScores(
-                mdimViews,
-                // [...explorerViews, ...mdimViews, ...grapherViews],
+                [...explorerViews, ...mdimViews, ...grapherViews],
                 [1000, MAX_NON_FM_RECORD_SCORE]
             )
 
@@ -83,14 +82,12 @@ const indexExplorerViewsMdimViewsAndChartsToAlgolia = async () => {
             )
 
             const shrunkRecords = shrinkRecordsToFitAlgoliaLimit(records)
-            // const { records: featuredMetricRecords, failures } =
-            //     await createFeaturedMetricRecords(trx, shrunkRecords)
+            const { records: featuredMetricRecords, failures } =
+                await createFeaturedMetricRecords(trx, shrunkRecords)
 
             return {
-                records: shrunkRecords,
-                // records: [...shrunkRecords, ...featuredMetricRecords],
-                failures: [],
-                // failures,
+                records: [...shrunkRecords, ...featuredMetricRecords],
+                failures,
             }
         },
         db.TransactionCloseMode.Close
