@@ -405,17 +405,17 @@ export class DumbbellChart
     }
 
     @computed private get topLegendHeight(): number {
-        // We can't use `pairLegendState` here due to a circular dependency
-        if (!this.legendLabels) return 0
-
         if (this.shouldShowCategoricalLegend)
             return this.categoricalLegend.height
 
-        // The pair legend doesn't linebreak
-        return (
-            this.pairLegendLabelStyle.fontSize *
-            this.pairLegendLabelStyle.lineHeight
-        )
+        if (this.shouldShowPairLegend)
+            // The pair legend doesn't linebreak
+            return (
+                this.pairLegendLabelStyle.fontSize *
+                this.pairLegendLabelStyle.lineHeight
+            )
+
+        return 0
     }
 
     @computed private get topLegendHeightWithPadding(): number {
@@ -521,20 +521,31 @@ export class DumbbellChart
         ]
     }
 
-    @computed private get shouldShowCategoricalLegend(): boolean {
+    /**
+     * Whether the pair legend labels can fit side by side. Note that we
+     * can't use `pairLegendState.hasOverlap` here due to a circular dependency.
+     */
+    @computed private get pairLegendFits(): boolean {
         if (!this.legendLabels) return false
-        if (this.chartState.seriesStrategy === SeriesStrategy.entity)
-            return false
-
-        // Check if the two labels fit next to each other. If not, show the
-        // categorical legend instead of the in-chart pair legend. Note that
-        // we can't use `pairLegendState.hasOverlap` here due to a circular
-        // dependency
         const { start, end } = this.legendLabels
         const labelWidths =
             textWidth(start.text, this.pairLegendLabelStyle) +
             textWidth(end.text, this.pairLegendLabelStyle)
-        return labelWidths + MIN_LEGEND_LABEL_GAP > this.bounds.width
+        return labelWidths + MIN_LEGEND_LABEL_GAP <= this.bounds.width
+    }
+
+    @computed private get shouldShowPairLegend(): boolean {
+        return this.pairLegendFits && !!this.pairLegendState
+    }
+
+    @computed private get shouldShowCategoricalLegend(): boolean {
+        // In column mode, fall back to a categorical legend when the pair
+        // labels don't fit. In entity mode, no legend is shown in that case.
+        return (
+            !!this.legendLabels &&
+            !this.pairLegendFits &&
+            this.chartState.seriesStrategy === SeriesStrategy.column
+        )
     }
 
     @computed
@@ -556,7 +567,7 @@ export class DumbbellChart
     private renderLegend(): React.ReactElement | null {
         if (this.shouldShowCategoricalLegend)
             return <HorizontalCategoricalColorLegend manager={this} />
-        if (this.pairLegendState)
+        if (this.shouldShowPairLegend && this.pairLegendState)
             return (
                 <HorizontalLabelPair
                     state={this.pairLegendState}
