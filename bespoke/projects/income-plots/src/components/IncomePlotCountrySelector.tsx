@@ -17,6 +17,7 @@ import {
     ListBoxItem,
     Popover,
     SearchField,
+    type Selection,
 } from "react-aria-components"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
@@ -107,7 +108,7 @@ const IncomePlotCountrySelectorInner = (): React.ReactElement => {
     }, [filteredCountries, sortBy, sortDirection, countryNumericMedianMap])
 
     const selectedKeys = useMemo(
-        (): Set<React.Key> => new Set(selectedCountryNames),
+        (): Selection => new Set(selectedCountryNames),
         [selectedCountryNames]
     )
 
@@ -130,7 +131,7 @@ const IncomePlotCountrySelectorInner = (): React.ReactElement => {
         }
     }
 
-    const handleSelectionChange = (keys: "all" | Set<React.Key>): void => {
+    const handleSelectionChange = (keys: Selection): void => {
         if (keys !== "all") {
             const newSelected = Array.from(keys) as string[]
             setSelectedCountryNames(newSelected)

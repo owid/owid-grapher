@@ -15,7 +15,10 @@ type IncomePlotVariantName = "distribution" | "upside-down"
 
 export const VARIANTS = [
     { name: "distribution", demoConfig: {} },
-    { name: "distribution", demoConfig: { tab: "countries" } },
+    {
+        name: "distribution",
+        demoConfig: { tab: "countries", isolateState: "true" },
+    },
 ] satisfies BespokeComponentVariantsList<IncomePlotVariantName>
 
 enableShadowDOM()
@@ -33,12 +36,13 @@ export const mount: BespokeComponentMountFn = (
     }
 
     const initialTab = opts.config?.tab as "global" | "countries" | undefined
+    const isolateState = opts.config?.isolateState === "true"
 
     const root = createRoot(container)
     root.render(
         <ShadowRootContext.Provider value={container}>
             <StylesTarget />
-            <App tab={initialTab} />
+            <App tab={initialTab} isolateState={isolateState} />
         </ShadowRootContext.Provider>
     )
 

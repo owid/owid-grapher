@@ -48,7 +48,7 @@ const style = {
 const LABEL_FONT_SIZES = [13, 12, 11, 10, 9] as const
 const CHAR_WIDTH_RATIO = 0.4 // approximate char width as fraction of font size
 
-interface IncomePlotProps {
+export interface IncomePlotProps {
     height: number
     width: number
     isNarrow?: boolean
