@@ -3241,11 +3241,11 @@ export class GrapherState
         return this.base.current || undefined
     }
 
-    @computed private get analyticsContext(): GrapherAnalyticsContext {
+    @computed get analyticsContext(): GrapherAnalyticsContext {
         const ctx = this.manager?.analyticsContext
         return {
-            slug: ctx?.mdimSlug ?? this.slug,
-            viewConfigId: ctx?.mdimViewConfigId,
+            slug: ctx?.slug ?? this.slug,
+            viewConfigId: ctx?.viewConfigId,
             narrativeChartName: this.narrativeChartInfo?.name,
         }
     }

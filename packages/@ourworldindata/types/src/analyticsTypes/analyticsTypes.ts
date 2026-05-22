@@ -387,6 +387,8 @@ export interface ExplorerCountrySelectorParams {
     eventContext?: string
     /** Explorer path */
     explorerPath?: string
+    /** Chart config ID of the explorer view */
+    viewConfigId?: string
 }
 
 // Shared Events

@@ -170,8 +170,8 @@ export default function MultiDim({
                 ? `variables/${variables[0].id}/config`
                 : undefined
         const analyticsContext = {
-            mdimSlug: slug ?? undefined,
-            mdimViewConfigId: newView.fullConfigId,
+            slug: slug ?? undefined,
+            viewConfigId: newView.fullConfigId,
         }
         manager.current.adminEditPath = adminEditPath
         manager.current.analyticsContext = analyticsContext

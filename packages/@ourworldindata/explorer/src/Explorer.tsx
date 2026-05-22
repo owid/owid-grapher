@@ -564,6 +564,10 @@ export class Explorer
         return this.props.chartConfigIdByViewId?.[viewId]
     }
 
+    @computed get analyticsContext() {
+        return { viewConfigId: this.getChartConfigIdForCurrentParams() }
+    }
+
     @action.bound private setGrapherTable(table: OwidTable) {
         this.grapherState.inputTable = this.inputTableTransformer(table)
     }

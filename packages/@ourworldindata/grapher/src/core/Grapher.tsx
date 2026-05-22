@@ -124,8 +124,8 @@ export type MinimalNarrativeChartInfo = Pick<
 >
 
 interface AnalyticsContext {
-    mdimSlug?: string
-    mdimViewConfigId?: string
+    slug?: string
+    viewConfigId?: string
 }
 
 export interface GrapherManager {
@@ -483,6 +483,8 @@ export class Grapher extends React.Component<GrapherProps> {
                     grapherUrl: this.grapherState.canonicalUrl,
                     narrativeChartName:
                         this.grapherState.narrativeChartInfo?.name,
+                    viewConfigId:
+                        this.grapherState.analyticsContext.viewConfigId,
                 })}
             >
                 {this.commandPalette}

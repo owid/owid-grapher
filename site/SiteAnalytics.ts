@@ -322,6 +322,7 @@ export class SiteAnalytics extends GrapherAnalytics {
                         | {
                               grapherUrl: string
                               narrativeChartName: string
+                              viewConfigId?: string
                           }
                         | undefined
                     try {
@@ -336,6 +337,7 @@ export class SiteAnalytics extends GrapherAnalytics {
                             grapherUrl: grapherUrlObj?.grapherUrl,
                             narrativeChartName:
                                 grapherUrlObj?.narrativeChartName,
+                            viewConfigId: grapherUrlObj?.viewConfigId,
                         }
                     )
                 } else
