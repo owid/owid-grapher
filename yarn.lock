@@ -9927,7 +9927,6 @@ __metadata:
     url-parse: "npm:^1.5.10"
     url-slug: "npm:^4.0.1"
     usehooks-ts: "npm:^3.1.1"
-    uuid: "npm:^14.0.0"
     versor: "npm:^0.2.0"
     vite: "npm:^8.0.13"
     vitest: "npm:^4.1.7"
