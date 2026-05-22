@@ -431,9 +431,8 @@ export const getPagesRecords = async (knex: db.KnexReadonlyTransaction) => {
         await (gdoc as GdocBase).loadAndClearLinkedCallouts(knex)
     }
 
-    const cloudflareImagesByFilename = await db
-        .getCloudflareImages(knex)
-        .then((images) => _.keyBy(images, "filename"))
+    const cloudflareImagesByFilename =
+        await db.getCloudflareImagesByFilename(knex)
 
     const gdocsRecords = await generateGdocRecords(
         gdocs,
@@ -592,9 +591,8 @@ export async function getIndividualGdocRecords(
     indexedSlug?: string
 ) {
     const pageviews = await getAnalyticsPageviewsByUrlObj(knex)
-    const cloudflareImagesByFilename = await db
-        .getCloudflareImages(knex)
-        .then((images) => _.keyBy(images, "filename"))
+    const cloudflareImagesByFilename =
+        await db.getCloudflareImagesByFilename(knex)
 
     // Use indexedSlug if provided (for slug changes), otherwise use gdoc.slug
     const existingPageviews = pageviews[`/${indexedSlug ?? gdoc.slug}`]
@@ -727,9 +725,8 @@ export async function indexIndividualProfile(
 
     // Generate new records for all entities in scope
     const pageviews = await getAnalyticsPageviewsByUrlObj(knex)
-    const cloudflareImagesByFilename = await db
-        .getCloudflareImages(knex)
-        .then((images) => _.keyBy(images, "filename"))
+    const cloudflareImagesByFilename =
+        await db.getCloudflareImagesByFilename(knex)
 
     const records = await generateProfileRecords(
         profileTemplate,

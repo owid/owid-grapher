@@ -190,6 +190,7 @@ export {
     type OwidGdocPostContent,
     type OwidGdocPostInterface,
     type OwidGdocMinimalPostInterface,
+    type OwidGdocMinimalAnnouncementInterface,
     type OwidGdocDataInsightContent,
     type OwidGdocDataInsightInterface,
     type MinimalDataInsightInterface,
@@ -202,9 +203,13 @@ export {
     type OwidGdocProfileContent,
     type OwidGdocProfileInterface,
     type OwidGdocProfileEntitySummary,
-    DATA_INSIGHTS_INDEX_PAGE_SIZE,
-    LATEST_INDEX_PAGE_SIZE,
     type OwidGdoc,
+    type ChronologicalGdoc,
+    type LatestFeedGdoc,
+    CHRONOLOGICAL_INDEX_TYPE_VALUES,
+    LATEST_FEED_TYPE_VALUES,
+    CHRONOLOGICAL_INDEX_TYPES,
+    LATEST_FEED_TYPES,
     OwidGdocType,
     ALL_GDOC_TYPES,
     type OwidGdocStickyNavItem,
@@ -214,7 +219,6 @@ export {
     type EnrichedFaq,
     type DetailDictionary,
     GdocsContentSource,
-    type LatestPageItem,
     type LatestDataInsight,
     type LinkedAuthor,
     type LinkedChart,
@@ -837,4 +841,5 @@ export {
 } from "./endpointTypes/GrapherSearchResultJson.js"
 
 export * from "./analyticsTypes/analyticsTypes.js"
+export * from "./domainTypes/Latest.js"
 export * from "./domainTypes/Search.js"

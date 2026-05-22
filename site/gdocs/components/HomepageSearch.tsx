@@ -10,8 +10,10 @@ import {
     faBookmark,
     faChartLine,
     faMagnifyingGlassChart,
+    faNewspaper,
 } from "@fortawesome/free-solid-svg-icons"
 import { BAKED_BASE_URL } from "../../../settings/clientSettings.js"
+import { buildLatestPagePath } from "../../latest/latestUtils.js"
 
 export function HomepageSearch(props: { className?: string }) {
     const { homepageMetadata } = useContext(AttachmentsContext)
@@ -19,8 +21,9 @@ export function HomepageSearch(props: { className?: string }) {
     const chartCount = homepageMetadata?.chartCount
     const topicCount = homepageMetadata?.topicCount
     const explorerCount = homepageMetadata?.explorerCount
+    const articleCount = homepageMetadata?.articleCount
     const message =
-        chartCount && topicCount && explorerCount ? (
+        chartCount && topicCount && explorerCount && articleCount ? (
             <div>
                 <ul className="homepage-search__links">
                     <li>
@@ -48,6 +51,15 @@ export function HomepageSearch(props: { className?: string }) {
                         >
                             <FontAwesomeIcon icon={faMagnifyingGlassChart} />
                             {commafyNumber(explorerCount)} data explorers
+                        </a>
+                    </li>
+                    <li>
+                        <a
+                            className="homepage-search__link body-3-medium"
+                            href={buildLatestPagePath("article")}
+                        >
+                            <FontAwesomeIcon icon={faNewspaper} />
+                            {commafyNumber(articleCount)} articles
                         </a>
                     </li>
                 </ul>

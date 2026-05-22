@@ -4,7 +4,6 @@ import {
     Span,
     excludeNullish,
     EnrichedBlockResearchAndWritingLink,
-    DATA_INSIGHTS_INDEX_PAGE_SIZE,
     OwidEnrichedGdocBlock,
     traverseEnrichedBlock,
     plaintextCalloutRegex,
@@ -187,16 +186,6 @@ export function parseAuthors(authors?: string): {
             return trimmed
         })
     return { authors: parsed, authorRoles }
-}
-
-/**
- * Calculate the number of pages needed to display all data insights
- * e.g. if there are 61 data insights and we want to display 20 per page, we need 4 pages
- */
-export function calculateDataInsightIndexPageCount(
-    publishedDataInsightCount: number
-): number {
-    return Math.ceil(publishedDataInsightCount / DATA_INSIGHTS_INDEX_PAGE_SIZE)
 }
 
 export function extractFilenamesFromBlock(

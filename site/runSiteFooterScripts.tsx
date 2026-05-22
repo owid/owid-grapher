@@ -2,7 +2,6 @@ import * as _ from "lodash-es"
 import { createRoot, hydrateRoot } from "react-dom/client"
 import {
     ArchiveMetaInformation,
-    DATA_INSIGHTS_INDEX_PAGE_SIZE,
     DataPageV2ContentFields,
     deserializeOwidGdocPageData,
     isInIFrame,
@@ -22,16 +21,7 @@ import SiteTools, { SITE_TOOLS_CLASS } from "./SiteTools.js"
 import { runDetailsOnDemand } from "./detailsOnDemand.js"
 import { hydrateCodeSnippets } from "@ourworldindata/components"
 import { hydrateDynamicCollectionPage } from "./collections/DynamicCollection.js"
-import {
-    _OWID_DATA_INSIGHTS_INDEX_PAGE_DATA,
-    DataInsightsIndexPageContent,
-} from "./DataInsightsIndexPageContent.js"
-import {
-    _OWID_LATEST_PAGE_DATA,
-    LatestPageContent,
-    LatestPageContentProps,
-    LATEST_PAGE_CONTAINER_ID,
-} from "./LatestPageContent.js"
+import { LatestSearchWrapper } from "./latest/LatestSearchWrapper.js"
 import { runAllGraphersLoadedListener } from "./runAllGraphersLoadedListener.js"
 import {
     __OWID_EXPLORER_INDEX_PAGE_PROPS,
@@ -50,7 +40,6 @@ import {
 import { BrowserRouter } from "react-router-dom-v5-compat"
 import { REDUCED_TRACKING } from "../settings/clientSettings.js"
 import { SiteHeaderNavigation } from "./SiteHeader.js"
-import { DataInsightsIndexPageProps } from "./DataInsightsIndexPage.js"
 import { NewsletterSubscriptionForm } from "./NewsletterSubscription.js"
 import { NewsletterSubscriptionContext } from "./newsletter.js"
 import { SUBSCRIBE_PAGE_FORM_CONTAINER_ID } from "@ourworldindata/types"
@@ -87,54 +76,6 @@ function hydrateSubscribePage() {
     }
 }
 
-async function hydrateDataInsightsIndexPage() {
-    const props: DataInsightsIndexPageProps = (window as any)[
-        _OWID_DATA_INSIGHTS_INDEX_PAGE_DATA
-    ]
-    const container = document.querySelector(
-        `#data-insights-index-page-container`
-    )
-
-    if (container && props) {
-        const urlParams = new URLSearchParams(window.location.search)
-        const topicName = urlParams.get("topic")
-        if (topicName) {
-            // filter data insights to {topic}
-            const response = await fetch(`/dataInsights.json`)
-            if (!response.ok) {
-                throw new Error("Failed to fetch data insights for topic")
-            }
-            let dataInsights = await response.json()
-            dataInsights = dataInsights.filter(
-                (di: { tags: { name: string }[] }) =>
-                    di.tags?.some(
-                        (tag: { name: string }) => tag.name === topicName
-                    )
-            )
-
-            if (dataInsights.length) {
-                const tag = dataInsights[0].tags.find(
-                    (tag: { name: string }) => tag.name === topicName
-                )
-                props.totalPageCount = Math.ceil(
-                    dataInsights.length / DATA_INSIGHTS_INDEX_PAGE_SIZE
-                )
-                props.topicTag = { name: tag.name, slug: tag.slug }
-                props.dataInsights = dataInsights.slice(
-                    props.pageNumber * DATA_INSIGHTS_INDEX_PAGE_SIZE,
-                    (props.pageNumber + 1) * DATA_INSIGHTS_INDEX_PAGE_SIZE
-                )
-            }
-        }
-        hydrateRoot(
-            container,
-            <DebugProvider>
-                <DataInsightsIndexPageContent {...props} />
-            </DebugProvider>
-        )
-    }
-}
-
 function hydrateSlideshowPage() {
     const props = (window as any)[_OWID_SLIDESHOW_PROPS]
     const container = document.querySelector("#slideshow-page-container")
@@ -143,14 +84,15 @@ function hydrateSlideshowPage() {
     }
 }
 
-function hydrateLatestPage() {
-    const props: LatestPageContentProps = (window as any)[
-        _OWID_LATEST_PAGE_DATA
-    ]
-    const container = document.querySelector(`#${LATEST_PAGE_CONTAINER_ID}`)
-
-    if (container && props) {
-        hydrateRoot(container, <LatestPageContent {...props} />)
+function runLatestPage() {
+    const root = document.getElementById("latest-page-root")
+    const topicTagGraph = window._OWID_TOPIC_TAG_GRAPH
+    if (root) {
+        createRoot(root).render(
+            <BrowserRouter>
+                <LatestSearchWrapper topicTagGraph={topicTagGraph} />
+            </BrowserRouter>
+        )
     }
 }
 
@@ -435,7 +377,7 @@ export const runSiteFooterScripts = async (
             runUserSurveyWidget()
             break
         case SiteFooterContext.latestPage:
-            hydrateLatestPage()
+            runLatestPage()
             runSiteNavigation({ hideDonationFlag, isPreviewing })
             runSiteTools()
             runCookiePreferencesManager()
@@ -444,10 +386,6 @@ export const runSiteFooterScripts = async (
         case SiteFooterContext.dynamicCollectionPage:
             // Don't break, run default case too
             hydrateDynamicCollectionPage()
-        // falls through
-        case SiteFooterContext.dataInsightsIndexPage:
-            // Don't break, run default case too
-            await hydrateDataInsightsIndexPage()
         // falls through
         case SiteFooterContext.searchPage:
             runSearchPage()
