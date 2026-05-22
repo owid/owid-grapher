@@ -25,7 +25,7 @@ import {
 } from "./shared.js"
 import { GrapherState } from "@ourworldindata/grapher"
 import { toPlaintext } from "@ourworldindata/components"
-import { getMaxViews } from "./pageviews.js"
+import { getMaxChartViews } from "./pageviews.js"
 import { createChartsIndexingContext } from "./context.js"
 import pMap from "p-map"
 
@@ -91,7 +91,7 @@ function getChartViews7d(
     chartId: number
 ): number {
     const redirectSlugs = context.redirectsByChartId.get(chartId) ?? []
-    return getMaxViews(context.chartViews, [slug, ...redirectSlugs])
+    return getMaxChartViews(context.chartViews, [slug, ...redirectSlugs])
 }
 
 /**

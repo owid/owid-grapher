@@ -69,22 +69,3 @@ export function bucketPredecessorsByQueryStr(
     }
     return result
 }
-
-/**
- * Returns the views_7d an mdim view should report, inheriting from its
- * predecessors. Takes the max of the view's own count and each resolvable
- * predecessor's count.
- */
-export function inheritMaxViewsFromPredecessors(
-    ownViews_7d: number,
-    predecessors: MultiDimRedirectWithLookupKey[],
-    viewsLookup: Map<string, number>
-): number {
-    return predecessors.reduce(
-        (max, pred) =>
-            pred.lookupKey
-                ? Math.max(max, viewsLookup.get(pred.lookupKey) ?? 0)
-                : max,
-        ownViews_7d
-    )
-}

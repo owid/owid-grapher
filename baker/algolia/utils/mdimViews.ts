@@ -29,8 +29,8 @@ import {
     attributeLinksToViewIds,
     bucketPredecessorsByQueryStr,
     dimensionsToSortedQueryStr,
-    inheritMaxViewsFromPredecessors,
 } from "./mdimViewsLogic.js"
+import { getMaxChartViews } from "./pageviews.js"
 import {
     getRelevantVariableIds,
     getRelevantVariableMetadata,
@@ -175,14 +175,17 @@ async function getRecords(
         const availableEntities = metadata.dimensions.entities.values
             .map((entity) => entity.name)
             .filter(Boolean)
-        // Keyed by config ID so we don't have to worry about slug renames/redirects
-        const ownViews_7d = views.get(view.fullConfigId) ?? 0
+        // Keyed by config ID so we don't have to worry about slug renames/redirects.
+        // Max across own views and any predecessors that redirect into this view,
+        // so the search score doesn't lose pre-redirect signal during the first week.
         const predecessors = predecessorsByQueryStr.get(queryStr) ?? []
-        const views_7d = inheritMaxViewsFromPredecessors(
-            ownViews_7d,
-            predecessors,
-            views
-        )
+        const predecessorKeys = predecessors
+            .map((p) => p.lookupKey)
+            .filter((k): k is string => k !== undefined)
+        const views_7d = getMaxChartViews(views, [
+            view.fullConfigId,
+            ...predecessorKeys,
+        ])
         const score = computeRecordScore(
             viewNumRelatedArticles,
             views_7d,

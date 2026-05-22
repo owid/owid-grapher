@@ -9,7 +9,6 @@ import { MultiDimRedirectWithLookupKey } from "./context.js"
 import {
     attributeLinksToViewIds,
     bucketPredecessorsByQueryStr,
-    inheritMaxViewsFromPredecessors,
 } from "./mdimViewsLogic.js"
 
 // Two dimensions, two choices each. Default view (first choice in each
@@ -181,35 +180,5 @@ describe(bucketPredecessorsByQueryStr, () => {
         const result = bucketPredecessorsByQueryStr([a, b], "view=stunting")
         expect(result.get("view=stunting")).toEqual([a])
         expect(result.get("view=poverty")).toEqual([b])
-    })
-})
-
-describe(inheritMaxViewsFromPredecessors, () => {
-    it("returns own views when there are no predecessors", () => {
-        expect(inheritMaxViewsFromPredecessors(100, [], new Map())).toBe(100)
-    })
-
-    it("keeps own count when it's higher than the predecessor's", () => {
-        const predecessors = [makeRedirect({ lookupKey: "old-chart" })]
-        const views = new Map([["old-chart", 50]])
-        expect(inheritMaxViewsFromPredecessors(100, predecessors, views)).toBe(
-            100
-        )
-    })
-
-    it("takes the max across multiple predecessors", () => {
-        const predecessors = [
-            makeRedirect({ sourceSlug: "a", lookupKey: "a" }),
-            makeRedirect({ sourceSlug: "b", lookupKey: "b" }),
-            makeRedirect({ sourceSlug: "c", lookupKey: "c" }),
-        ]
-        const views = new Map([
-            ["a", 200],
-            ["b", 800],
-            ["c", 50],
-        ])
-        expect(inheritMaxViewsFromPredecessors(100, predecessors, views)).toBe(
-            800
-        )
     })
 })
