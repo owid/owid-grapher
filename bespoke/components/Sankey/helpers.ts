@@ -1,7 +1,10 @@
 import * as R from "remeda"
 
 import { formatValue as formatNumericValue } from "@ourworldindata/utils"
-import { ColorSchemeName } from "@ourworldindata/types"
+import {
+    ColorSchemeName,
+    OwidVariableRoundingMode,
+} from "@ourworldindata/types"
 import { ColorSchemes } from "@ourworldindata/grapher/src/color/ColorSchemes.js"
 
 export const DEFAULT_TOP_N = 10
@@ -36,12 +39,18 @@ export function entityFromId(id: string): string {
     throw new Error(`Unexpected node ID format: ${id}`)
 }
 
-export const formatPct = (v: number) =>
-    formatNumericValue(v, {
+// 2 significant figures via the shared OWID formatter. Input is a
+// percentage (e.g. 12.3 → "12%"). Sub-10% values keep their precision
+// (e.g. 0.34 → "0.34%") instead of collapsing to "0%".
+export function formatPct(v: number): string {
+    if (!isFinite(v) || v <= 0) return "0%"
+    return formatNumericValue(v, {
         unit: "%",
-        numDecimalPlaces: 0,
         numberAbbreviation: false,
+        roundingMode: OwidVariableRoundingMode.significantFigures,
+        numSignificantFigures: 2,
     })
+}
 
 export function makeValueLabel({
     value,
@@ -77,11 +86,18 @@ export function selectTopEntities({
     side,
     topN,
     minNodeShare,
+    showAllOtherBelow = 0,
 }: {
     rows: FlowRow[]
     side: "source" | "target"
     topN: number
     minNodeShare: number
+    /** When the Other bucket would contain this many entries or fewer,
+     *  fold them back into `top` instead so the chart shows each
+     *  individually. The Other bucket exists for visual compression, so
+     *  it isn't useful for just one or two tiny entities — they fit fine.
+     *  Defaults to 0 (never fold). */
+    showAllOtherBelow?: number
 }): {
     top: EntityTotal[]
     /** Entities folded into the "Other" bucket, sorted descending by total.
@@ -107,11 +123,21 @@ export function selectTopEntities({
     const topCandidatesAboveFloor = topCandidates.filter(
         (d) => grandTotal > 0 && d.total / grandTotal >= minNodeShare
     )
-    const top =
+    let top =
         topCandidatesAboveFloor.length > 0
             ? topCandidatesAboveFloor
             : R.take(topCandidates, 1)
-    const other = R.drop(sortedEntities, top.length)
+    let other = R.drop(sortedEntities, top.length)
+
+    // Inline a small Other tail: a single-entity "Other" reads as an
+    // unnecessary bucket; two entities still don't earn the visual
+    // compression that bucketing provides. Above the threshold, keep
+    // the bucket so the chart stays legible.
+    if (other.length > 0 && other.length <= showAllOtherBelow) {
+        top = [...top, ...other]
+        other = []
+    }
+
     const otherTotal = R.sumBy(other, (d) => d.total)
 
     return { top, other, otherTotal, grandTotal }

@@ -609,7 +609,16 @@ function buildHalf({
     const side = isIncoming ? "source" : "target"
     const idPrefix = isIncoming ? "in:" : "out:"
 
-    const selection = selectTopEntities({ rows, side, topN, minNodeShare })
+    const selection = selectTopEntities({
+        rows,
+        side,
+        topN,
+        minNodeShare,
+        // A 1- or 2-country "Other" bucket doesn't visually compress
+        // anything — show them as their own ribbons instead so the
+        // central country's flows read more directly.
+        showAllOtherBelow: 1,
+    })
     if (selection.top.length === 0) return null
 
     // Partner nodes carry a `value` field alongside the SankeyNode fields —

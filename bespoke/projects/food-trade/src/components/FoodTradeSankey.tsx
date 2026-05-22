@@ -36,14 +36,17 @@ export const formatTrade = (v: number) =>
         numSignificantFigures: 2,
     })
 
-// 2 significant figures, no trailing zeros. >=10% rounds to whole percent so
-// numbers near 100% don't read as "1.0e+2%". toPrecision(2) handles the rest
-// (17 → "17", 0.2 → "0.20" → parseFloat → "0.2").
+// 2 significant figures via the shared OWID formatter. Returns "" for
+// non-positive values so callers can drop the parenthetical entirely.
 function formatShare(share: number): string {
     const pct = share * 100
     if (!isFinite(pct) || pct <= 0) return ""
-    if (pct >= 10) return `${Math.round(pct)}%`
-    return `${parseFloat(pct.toPrecision(2))}%`
+    return formatValue(pct, {
+        unit: "%",
+        numberAbbreviation: false,
+        roundingMode: OwidVariableRoundingMode.significantFigures,
+        numSignificantFigures: 2,
+    })
 }
 
 function shareAnnotation(
