@@ -1,6 +1,12 @@
 import { useMemo } from "react"
 
-import { Sankey, SankeyLink, SankeyNode } from "./Sankey.js"
+import {
+    LinkTooltipArgs,
+    NodeTooltipArgs,
+    Sankey,
+    SankeyLink,
+    SankeyNode,
+} from "./Sankey.js"
 import {
     assignColors,
     DEFAULT_MIN_LINK_SHARE,
@@ -17,6 +23,28 @@ import {
     selectTopEntities,
 } from "./helpers.js"
 
+export type BilateralTooltipArgs = {
+    /** Which side of the chart the user is hovering over. Determines what
+     *  `partners` and `tradeRows` represent. */
+    side: "exporter" | "importer"
+    /** Display name of the hovered country. "Other" for the bucket. */
+    country: string
+    /** Per-partner aggregate, sorted desc by value. For `side="exporter"`
+     *  the partners are importers receiving from this country; for
+     *  `side="importer"` they're exporters sending to this country.
+     *  When `country === "Other"` the aggregate pools heterogeneous flows
+     *  and `tradeRows` is usually the more informative view. */
+    partners: { entity: string; value: number }[]
+    /** Underlying raw flow rows belonging to this ribbon/node, sorted desc
+     *  by value. For a named country one of source/target is constant
+     *  across rows; for the Other bucket each row is a distinct trade
+     *  pair, which is typically what the consumer wants to render. */
+    tradeRows: FlowRow[]
+    position: { x: number; y: number }
+    containerBounds: { width: number; height: number }
+    isPinned: boolean
+}
+
 export function BilateralFlowSankey({
     rows,
     width,
@@ -25,6 +53,7 @@ export function BilateralFlowSankey({
     topN = DEFAULT_TOP_N,
     minNodeShare = DEFAULT_MIN_NODE_SHARE,
     minLinkShare = DEFAULT_MIN_LINK_SHARE,
+    renderTooltip,
 }: {
     rows: FlowRow[]
     width: number
@@ -39,8 +68,13 @@ export function BilateralFlowSankey({
     /** Minimum share of total visible flow a top-to-top link must reach to be
      * drawn. Other-bucket links are exempt and always render when non-zero. */
     minLinkShare?: number
+    /** Per-exporter tooltip renderer. Hovering any link promotes to its
+     *  exporter (source) group: all of that exporter's links highlight as
+     *  one unit, and the consumer is handed the source name + the list of
+     *  importers it sent to. */
+    renderTooltip?: (args: BilateralTooltipArgs) => React.ReactNode
 }) {
-    const { nodes, links } = useMemo(
+    const { nodes, links, topSources, topTargets } = useMemo(
         () =>
             buildBilateral({
                 rows,
@@ -74,6 +108,62 @@ export function BilateralFlowSankey({
         return colorMap.get(source) ?? NEUTRAL_COLOR
     }
 
+    // All links sharing the hovered link's source — used both for the
+    // group-highlight and to build the table of importers in the tooltip.
+    // The hovered link itself is excluded so the wrapper below can do
+    // `[link, ...relatedLinks]` without duplicating it. Identity comparison
+    // (`l !== link`) doesn't work because `link` is reconstructed as a
+    // plain object by Sankey's `toLinkData`, so we match by target.
+    const relatedLinksByLink = (link: SankeyLink): SankeyLink[] =>
+        links.filter(
+            (l) => l.source === link.source && l.target !== link.target
+        )
+
+    // Look up the chart-aggregated set of small entities on the side
+    // opposite to `side`. Used to recognize the "Other" ribbon/node when
+    // the consumer hovers the right column. Computed once from the
+    // memoized build above (`topSources`); a target-side equivalent is
+    // captured below.
+    const renderLinkTooltip = renderTooltip
+        ? ({ link, position, containerBounds, isPinned }: LinkTooltipArgs) => {
+              // Link hover resolves to the exporter side: the source-side
+              // ribbon shares the hovered link's source entity (see
+              // `relatedLinksByLink` above). Node hover handles the
+              // importer-side view separately.
+              const sourceKey = entityFromId(link.source)
+              const args = buildTooltipArgs({
+                  side: "exporter",
+                  entityKey: sourceKey,
+                  rows,
+                  topSources,
+                  topTargets,
+                  position,
+                  containerBounds,
+                  isPinned,
+              })
+              return renderTooltip(args)
+          }
+        : undefined
+
+    const renderNodeTooltip = renderTooltip
+        ? ({ node, position, containerBounds, isPinned }: NodeTooltipArgs) => {
+              const isTarget = node.id.startsWith("target:")
+              const side = isTarget ? "importer" : "exporter"
+              const entityKey = entityFromId(node.id)
+              const args = buildTooltipArgs({
+                  side,
+                  entityKey,
+                  rows,
+                  topSources,
+                  topTargets,
+                  position,
+                  containerBounds,
+                  isPinned,
+              })
+              return renderTooltip(args)
+          }
+        : undefined
+
     return (
         <Sankey
             nodes={nodes}
@@ -82,8 +172,73 @@ export function BilateralFlowSankey({
             height={height}
             nodeColor={nodeColor}
             linkColor={linkColor}
+            renderLinkTooltip={renderLinkTooltip}
+            relatedLinks={renderTooltip ? relatedLinksByLink : undefined}
+            renderNodeTooltip={renderNodeTooltip}
         />
     )
+}
+
+// Shared between the link-hover and node-hover wrappers. Filters the raw
+// rows to those belonging to the hovered ribbon/node, aggregates by the
+// opposite endpoint to produce `partners`, and packages everything in the
+// shape the consumer's renderTooltip expects.
+function buildTooltipArgs({
+    side,
+    entityKey,
+    rows,
+    topSources,
+    topTargets,
+    position,
+    containerBounds,
+    isPinned,
+}: {
+    side: "exporter" | "importer"
+    entityKey: string
+    rows: FlowRow[]
+    topSources: Set<string>
+    topTargets: Set<string>
+    position: { x: number; y: number }
+    containerBounds: { width: number; height: number }
+    isPinned: boolean
+}): BilateralTooltipArgs {
+    const isOther = entityKey === OTHER_KEY
+    const country = isOther ? "Other" : entityKey
+
+    // For an exporter hover the matching rows are those whose source is
+    // this country (or, for Other, any source outside the visible top-N).
+    // Importer hover is the mirror image on the target side.
+    const matchingRows =
+        side === "exporter"
+            ? rows.filter((r) =>
+                  isOther ? !topSources.has(r.source) : r.source === entityKey
+              )
+            : rows.filter((r) =>
+                  isOther ? !topTargets.has(r.target) : r.target === entityKey
+              )
+
+    const partnerKey: "source" | "target" =
+        side === "exporter" ? "target" : "source"
+    const totalByPartner = new Map<string, number>()
+    for (const r of matchingRows) {
+        const key = r[partnerKey]
+        totalByPartner.set(key, (totalByPartner.get(key) ?? 0) + r.value)
+    }
+    const partners = Array.from(totalByPartner.entries())
+        .map(([entity, value]) => ({ entity, value }))
+        .sort((a, b) => b.value - a.value)
+
+    const tradeRows = [...matchingRows].sort((a, b) => b.value - a.value)
+
+    return {
+        side,
+        country,
+        partners,
+        tradeRows,
+        position,
+        containerBounds,
+        isPinned,
+    }
 }
 
 function buildBilateral({
@@ -101,6 +256,13 @@ function buildBilateral({
 }): {
     nodes: SankeyNode[]
     links: SankeyLink[]
+    /** Entity keys NOT folded into the source-side Other bucket. Surfaced
+     *  so the tooltip can resolve which raw rows belong to the Other-source
+     *  ribbon (everything outside this set). */
+    topSources: Set<string>
+    /** Entity keys NOT folded into the target-side Other bucket. Same role
+     *  as `topSources`, for the importer (right) column. */
+    topTargets: Set<string>
 } {
     const sourceSelection = selectTopEntities({
         rows,
@@ -119,10 +281,9 @@ function buildBilateral({
         sourceSelection.grandTotal,
         targetSelection.grandTotal
     )
-    if (total === 0) return { nodes: [], links: [] }
-
     const topSources = new Set(sourceSelection.top.map((d) => d.entity))
     const topTargets = new Set(targetSelection.top.map((d) => d.entity))
+    if (total === 0) return { nodes: [], links: [], topSources, topTargets }
 
     // Aggregate row values into (source, target) pairs.
     // Non-top entities collapse into the Other buckets per side.
@@ -176,7 +337,7 @@ function buildBilateral({
         value: p.value,
     }))
 
-    return { nodes, links }
+    return { nodes, links, topSources, topTargets }
 }
 
 function buildColumnNodes({

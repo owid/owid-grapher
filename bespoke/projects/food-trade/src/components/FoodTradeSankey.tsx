@@ -13,9 +13,12 @@ import {
     TooltipValue,
 } from "@ourworldindata/grapher/src/tooltip/TooltipContents.js"
 
-import { EntityTotal } from "../../../../components/Sankey/helpers.js"
+import { EntityTotal, FlowRow } from "../../../../components/Sankey/helpers.js"
 
-import { BilateralFlowSankey } from "../../../../components/Sankey/BilateralFlowSankey.js"
+import {
+    BilateralFlowSankey,
+    BilateralTooltipArgs,
+} from "../../../../components/Sankey/BilateralFlowSankey.js"
 import {
     HalfTooltipArgs,
     HeadingContent,
@@ -251,8 +254,14 @@ export function FoodTradeSankey({
 // Show all rows up to this count instead of capping at TOP_N — avoids
 // "+1 more country" type lines that read noisier than just listing the
 // extra one or two countries.
-const OTHER_BREAKDOWN_TOP_N = 10
-const OTHER_BREAKDOWN_SHOW_ALL_BELOW = 12
+const OTHER_BREAKDOWN_TOP_N = 8
+const OTHER_BREAKDOWN_SHOW_ALL_BELOW = 10
+
+// Bilateral importer table uses a tighter cap — the table is per exporter,
+// and the chart already names the most-significant ones. show-all is set to
+// top_n + 2 so we never end up with a "+1 / +2 more" line (just show all).
+const BILATERAL_TOP_N = 8
+const BILATERAL_SHOW_ALL_BELOW = 10
 
 function TradeLinkTooltip({
     exporter,
@@ -372,10 +381,23 @@ function EmptyHalf({
     )
 }
 
-export function FoodTradeBilateralSankey({ rows }: { rows: TradeRow[] }) {
+export function FoodTradeBilateralSankey({
+    rows,
+    year,
+}: {
+    rows: TradeRow[]
+    year: number
+}) {
     const { parentRef, width, height } = useParentSize()
 
     const flowRows = useMemo(() => tradeToFlow(rows), [rows])
+
+    const renderTooltip = useCallback(
+        (args: BilateralTooltipArgs) => (
+            <BilateralTooltip {...args} year={year} />
+        ),
+        [year]
+    )
 
     return (
         <div ref={parentRef} className="food-trade-sankey">
@@ -384,7 +406,105 @@ export function FoodTradeBilateralSankey({ rows }: { rows: TradeRow[] }) {
                 width={width}
                 height={height}
                 formatValue={formatTrade}
+                renderTooltip={renderTooltip}
             />
         </div>
     )
+}
+
+function BilateralTooltip({
+    side,
+    country,
+    partners,
+    tradeRows,
+    year,
+    position,
+    containerBounds,
+    isPinned,
+}: BilateralTooltipArgs & { year: number }) {
+    const isOther = country === "Other"
+    // Named country: title is its name, subtitle scopes it
+    // ("Exports in 2024" or "Imports in 2024"). Other bucket: title
+    // names *which side* of the chart is the small one — the left and
+    // right Other ribbons aren't symmetric (they reflect the source and
+    // target Other buckets independently), so making the role explicit
+    // disambiguates what each tooltip is listing.
+    const otherTitle =
+        side === "exporter" ? "Other exporters" : "Other importers"
+    const title = isOther ? otherTitle : country
+    const subtitle = isOther
+        ? String(year)
+        : side === "exporter"
+          ? `Exports in ${year}`
+          : `Imports in ${year}`
+
+    // Other bucket: one row per small country in the bucket, value = the
+    // country's total trade in that role (exports for the left Other,
+    // imports for the right). Reads as "here are the countries grouped
+    // into Other and how much each one trades" — clearer than listing
+    // raw trade pairs, and parallel in shape to the named-country body.
+    // Named country: one row per partner — the redundant side is implicit
+    // from the title.
+    const visibleItems = isOther
+        ? capItems(bucketTotalsBySmallSide(tradeRows, side))
+        : capItems(partners.map((p) => ({ name: p.entity, value: p.value })))
+    const overflowNoun = "countries"
+
+    const columns = [
+        {
+            label: "tonnes",
+            formatValue: (v: unknown) =>
+                typeof v === "number" ? formatTrade(v) : "",
+        },
+    ]
+    const tableRows = visibleItems.visible.map((d) => ({
+        name: d.name,
+        values: [d.value],
+    }))
+
+    return (
+        <TooltipCard
+            id="food-trade-bilateral-tooltip"
+            x={position.x}
+            y={position.y}
+            offsetX={8}
+            offsetY={8}
+            title={title}
+            subtitle={subtitle}
+            style={{ maxWidth: 340 }}
+            anchor={isPinned ? GrapherTooltipAnchor.Bottom : undefined}
+            containerBounds={isPinned ? undefined : containerBounds}
+        >
+            <TooltipTable columns={columns} rows={tableRows} />
+            {visibleItems.hiddenCount > 0 && (
+                <div className="food-trade-sankey__tooltip-more">
+                    + {visibleItems.hiddenCount} more {overflowNoun}
+                </div>
+            )}
+        </TooltipCard>
+    )
+}
+
+function capItems<T>(items: T[]): { visible: T[]; hiddenCount: number } {
+    const showAll = items.length <= BILATERAL_SHOW_ALL_BELOW
+    const visible = showAll ? items : items.slice(0, BILATERAL_TOP_N)
+    return { visible, hiddenCount: items.length - visible.length }
+}
+
+// Aggregate raw trade rows by the small side of the hovered Other bucket
+// (source for left Other, target for right Other), so each table row is
+// one country in the bucket with its total trade in that role. Sorted
+// desc by value.
+function bucketTotalsBySmallSide(
+    tradeRows: FlowRow[],
+    side: "exporter" | "importer"
+): { name: string; value: number }[] {
+    const totals = new Map<string, number>()
+    for (const r of tradeRows) {
+        const key = side === "exporter" ? r.source : r.target
+        totals.set(key, (totals.get(key) ?? 0) + r.value)
+    }
+    return Array.from(totals.entries())
+        .map(([name, value]) => ({ name, value }))
+        .sort((a, b) => b.value - a.value)
 }

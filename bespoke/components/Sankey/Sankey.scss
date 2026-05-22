@@ -24,23 +24,34 @@
     pointer-events: none;
 }
 
-.sankey__link--hovered {
+.sankey__link--hovered,
+.sankey__link--active {
     stroke-opacity: 1;
 }
 
-// While one link is hovered, dim the others so the focused one stands out.
+// Dim everything not part of the active focus when either a link or a
+// node is hovered. Active set:
+//  - link hover  → the hovered link + any `relatedLinks` siblings + their
+//                  endpoint nodes/labels
+//  - node hover  → the hovered node + every link touching it + the
+//                  partner nodes/labels at the other end
+// Both `--hovered` and `--active` classes are exempt from the dim.
 .sankey__links:has(.sankey__link--hovered)
-    .sankey__link:not(.sankey__link--hovered) {
+    .sankey__link:not(.sankey__link--hovered):not(.sankey__link--active) {
     stroke-opacity: 0.3;
 }
 
-// Also fade nodes and labels that aren't the hovered link's endpoints, so
-// the focused link's two ends stay readable while everything else recedes.
-// "Active" means the node's id matched one of the hovered link's endpoints
-// (set in Sankey.tsx).
-.sankey:has(.sankey__link--hovered) .sankey__node:not(.sankey__node--active),
-.sankey:has(.sankey__link--hovered) .sankey__label:not(.sankey__label--active) {
+.sankey:has(.sankey__link--hovered, .sankey__node--hovered)
+    .sankey__node:not(.sankey__node--hovered):not(.sankey__node--active),
+.sankey:has(.sankey__link--hovered, .sankey__node--hovered)
+    .sankey__label:not(.sankey__label--hovered):not(.sankey__label--active) {
     opacity: 0.3;
+}
+
+// Node-hover variant of the link dim: when a node is hovered (no link
+// is `--hovered` but `--active` links exist), apply the same rule.
+.sankey:has(.sankey__node--hovered) .sankey__link:not(.sankey__link--active) {
+    stroke-opacity: 0.3;
 }
 
 .sankey__node {

@@ -330,7 +330,10 @@ function CaptionedMainVariant({
                 <div className="food-trade-captioned-chart__chart-area">
                     {mode === "bilateral" ? (
                         hasBilateralData ? (
-                            <FoodTradeBilateralSankey rows={bilateral} />
+                            <FoodTradeBilateralSankey
+                                rows={bilateral}
+                                year={year}
+                            />
                         ) : (
                             <EmptyState
                                 message={`No global trade of ${R.uncapitalize(product)} in ${year}.`}

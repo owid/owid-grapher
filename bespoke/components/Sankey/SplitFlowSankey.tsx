@@ -9,6 +9,7 @@ import {
     DEFAULT_SANKEY_FONT_SETTINGS,
     LinkTooltipArgs,
     measureMaxLabelWidthForNode,
+    NodeTooltipArgs,
     Sankey,
     SankeyLink,
     SankeyNode,
@@ -333,6 +334,16 @@ export function SplitFlowSankey({
                                   })
                                 : undefined
                         }
+                        renderNodeTooltip={
+                            incoming.renderTooltip && incomingBuild
+                                ? wrapHalfNodeTooltipRenderer({
+                                      otherBreakdown:
+                                          incomingBuild.otherBreakdown,
+                                      render: incoming.renderTooltip,
+                                  })
+                                : undefined
+                        }
+                        isNodeHoverable={(node) => node.id !== central}
                     />
                 )}
                 {showOutgoing && (
@@ -357,6 +368,16 @@ export function SplitFlowSankey({
                                   })
                                 : undefined
                         }
+                        renderNodeTooltip={
+                            outgoing.renderTooltip && outgoingBuild
+                                ? wrapHalfNodeTooltipRenderer({
+                                      otherBreakdown:
+                                          outgoingBuild.otherBreakdown,
+                                      render: outgoing.renderTooltip,
+                                  })
+                                : undefined
+                        }
+                        isNodeHoverable={(node) => node.id !== central}
                     />
                 )}
             </div>
@@ -439,6 +460,44 @@ function wrapHalfTooltipRenderer({
     }
 }
 
+// Node-hover sibling of `wrapHalfTooltipRenderer`. Each half is a 2-column
+// Sankey, so a hovered partner node has exactly one connected link: that
+// link's value is the partner's total. The shape of HalfTooltipArgs is
+// identical to the link-hover path, so the consumer's render callback
+// doesn't need to distinguish where the hover came from.
+function wrapHalfNodeTooltipRenderer({
+    otherBreakdown,
+    render,
+}: {
+    otherBreakdown?: EntityTotal[]
+    render: (args: HalfTooltipArgs) => React.ReactNode
+}): (args: NodeTooltipArgs) => React.ReactNode {
+    return ({
+        node,
+        incomingLinks,
+        outgoingLinks,
+        position,
+        containerBounds,
+        isPinned,
+    }) => {
+        // Central is excluded by `isNodeHoverable`, so any node reaching
+        // here is a partner with exactly one connecting link.
+        const link = incomingLinks[0] ?? outgoingLinks[0]
+        if (!link) return null
+        const partnerKey = partnerFromId(node.id) ?? node.id
+        const isOther = partnerKey === OTHER_KEY
+        const partner = isOther ? "Other" : partnerKey
+        return render({
+            partner,
+            value: link.value,
+            otherBreakdown: isOther ? otherBreakdown : undefined,
+            position,
+            containerBounds,
+            isPinned,
+        })
+    }
+}
+
 function HalfHeading({
     heading,
     align,
@@ -473,6 +532,8 @@ function HalfChart({
     innerMargin,
     fontSettings,
     renderLinkTooltip,
+    renderNodeTooltip,
+    isNodeHoverable,
 }: {
     which: "incoming" | "outgoing"
     build: SankeyBuild | null
@@ -490,6 +551,8 @@ function HalfChart({
     }
     fontSettings: FontSettings
     renderLinkTooltip?: (args: LinkTooltipArgs) => React.ReactNode
+    renderNodeTooltip?: (args: NodeTooltipArgs) => React.ReactNode
+    isNodeHoverable?: (node: SankeyNode) => boolean
 }) {
     return (
         <div
@@ -509,6 +572,8 @@ function HalfChart({
                             fontSettings={fontSettings}
                             topAnchored
                             renderLinkTooltip={renderLinkTooltip}
+                            renderNodeTooltip={renderNodeTooltip}
+                            isNodeHoverable={isNodeHoverable}
                         />
                     )}
                 </div>

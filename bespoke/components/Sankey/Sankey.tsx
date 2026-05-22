@@ -61,10 +61,32 @@ interface SankeyProps {
      * tap-outside (via usePinnedTooltip).
      */
     renderLinkTooltip?: (args: LinkTooltipArgs) => React.ReactNode
+    /**
+     * Optional callback that returns other links to be highlighted as a
+     * group with the hovered one. Used by consumers like BilateralFlowSankey
+     * to promote a link hover to "all of the exporter's links" — the whole
+     * group shows as active (full opacity), their shared endpoints stay
+     * bright, everything else dims. The hovered link itself does not need
+     * to be included in the returned array.
+     */
+    relatedLinks?: (link: SankeyLink) => SankeyLink[]
+    /**
+     * When provided, hovering a node band shows this tooltip. The hovered
+     * node + all its connected links + its partner nodes/labels stay
+     * bright; everything else dims. Use `isNodeHoverable` to restrict which
+     * nodes accept hover (e.g. opt out the central node in SplitFlow).
+     */
+    renderNodeTooltip?: (args: NodeTooltipArgs) => React.ReactNode
+    /** Returning false marks a node non-hoverable (no tooltip, no
+     *  highlight). Defaults to all-hoverable. */
+    isNodeHoverable?: (node: SankeyNode) => boolean
 }
 
 export type LinkTooltipArgs = {
     link: SankeyLink
+    /** Other links in the same group as the hovered one (per `relatedLinks`).
+     *  Empty when no `relatedLinks` callback is supplied. */
+    relatedLinks: SankeyLink[]
     /** Mouse position in container coordinates (same as the inner SVG's
      *  coordinate space — the wrapper has no offset). */
     position: { x: number; y: number }
@@ -73,6 +95,18 @@ export type LinkTooltipArgs = {
     containerBounds: { width: number; height: number }
     /** True on touch devices once a tooltip is open — callers typically
      *  switch to a bottom-anchored TooltipCard variant. */
+    isPinned: boolean
+}
+
+export type NodeTooltipArgs = {
+    node: SankeyNode
+    /** Links arriving at this node (this node is the target). Plain shape:
+     *  source/target are entity IDs. */
+    incomingLinks: SankeyLink[]
+    /** Links leaving this node (this node is the source). */
+    outgoingLinks: SankeyLink[]
+    position: { x: number; y: number }
+    containerBounds: { width: number; height: number }
     isPinned: boolean
 }
 
@@ -110,6 +144,10 @@ type LaidOutGraph = SankeyGraph<SankeyLayoutNode, SankeyLink>
 type LaidOutNode = D3SankeyNode<SankeyLayoutNode, SankeyLink>
 type LaidOutLink = D3SankeyLink<SankeyLayoutNode, SankeyLink>
 
+type HoverState =
+    | { kind: "link"; link: LaidOutLink; position: { x: number; y: number } }
+    | { kind: "node"; node: LaidOutNode; position: { x: number; y: number } }
+
 export function Sankey({
     nodes,
     links,
@@ -125,6 +163,9 @@ export function Sankey({
     bandFlowGap = 3,
     fontSettings = DEFAULT_SANKEY_FONT_SETTINGS,
     renderLinkTooltip,
+    relatedLinks,
+    renderNodeTooltip,
+    isNodeHoverable,
 }: SankeyProps): React.ReactElement | null {
     const nodeWidth = bandWidth + bandFlowGap
 
@@ -241,10 +282,7 @@ export function Sankey({
     )
 
     const svgRef = useRef<SVGSVGElement>(null)
-    const [hover, setHover] = useState<{
-        link: LaidOutLink
-        position: { x: number; y: number }
-    } | null>(null)
+    const [hover, setHover] = useState<HoverState | null>(null)
 
     const dismissTooltip = useCallback(() => setHover(null), [])
     // Owns touch-device behavior for the tooltip: pins to the bottom of the
@@ -258,39 +296,98 @@ export function Sankey({
     // slope within a pixel tolerance (SlopeChart.tsx:659). The Sankey
     // equivalent has a stronger membership test: each link occupies a
     // vertical band of `link.width` around a smoothstep-interpolated
-    // centerline, so we just check the mouse is inside the band.
+    // centerline, so we just check the mouse is inside the band. Nodes
+    // get a separate rect-membership test that wins over link hits
+    // (their bounding boxes don't overlap with the link extent anyway).
     const onSvgMouseMove = useCallback(
         (event: React.MouseEvent<SVGSVGElement>) => {
-            if (!renderLinkTooltip || !svgRef.current || !layout) return
+            if (!svgRef.current || !layout) return
             const mouse = getRelativeMouse(svgRef.current, event.nativeEvent)
-            const target = findLinkAtPoint(layout.links, mouse.x, mouse.y)
-            if (target) {
-                setHover({
-                    link: target,
-                    position: { x: mouse.x, y: mouse.y },
-                })
-            } else {
-                setHover(null)
+            if (renderNodeTooltip) {
+                const node = findNodeAtPoint(
+                    layout.nodes,
+                    labels,
+                    mouse.x,
+                    mouse.y,
+                    isNodeHoverable
+                )
+                if (node) {
+                    setHover({
+                        kind: "node",
+                        node,
+                        position: { x: mouse.x, y: mouse.y },
+                    })
+                    return
+                }
             }
+            if (renderLinkTooltip) {
+                const link = findLinkAtPoint(layout.links, mouse.x, mouse.y)
+                if (link) {
+                    setHover({
+                        kind: "link",
+                        link,
+                        position: { x: mouse.x, y: mouse.y },
+                    })
+                    return
+                }
+            }
+            setHover(null)
         },
-        [renderLinkTooltip, layout]
+        [renderLinkTooltip, renderNodeTooltip, isNodeHoverable, labels, layout]
     )
 
     const onSvgMouseLeave = useCallback(() => setHover(null), [])
 
-    // Endpoints of the hovered link. The two endpoints stay at full opacity
-    // while everything else dims via CSS — see `sankey__node--active` /
-    // `sankey__label--active`.
+    // Optional grouping (e.g. BilateralFlowSankey promotes a link hover to
+    // "all links of this exporter"). The hovered link + its related siblings
+    // form one active set; their union of endpoints stays bright while
+    // everything else dims via CSS — see `--active` modifiers.
+    const relatedLaidOutLinks = useMemo<LaidOutLink[]>(() => {
+        if (!hover || hover.kind !== "link" || !relatedLinks || !layout)
+            return []
+        const relatedData = relatedLinks(toLinkData(hover.link))
+        if (relatedData.length === 0) return []
+        // Match returned plain-link descriptors back to the laid-out link
+        // refs so the per-path component receives an identity-equal lookup.
+        const relatedKeys = new Set(
+            relatedData.map((l) => makeLinkKey(l.source, l.target))
+        )
+        return layout.links.filter((l) =>
+            relatedKeys.has(makeLinkKey(nodeId(l.source), nodeId(l.target)))
+        )
+    }, [hover, relatedLinks, layout])
+
+    const activeLinkSet = useMemo(() => {
+        const set = new Set<LaidOutLink>()
+        if (hover?.kind === "link") {
+            set.add(hover.link)
+            for (const l of relatedLaidOutLinks) set.add(l)
+        } else if (hover?.kind === "node") {
+            // Node hover lights up every link touching this node — d3-sankey
+            // populates `sourceLinks` / `targetLinks` on the laid-out node.
+            for (const l of hover.node.sourceLinks ?? []) set.add(l)
+            for (const l of hover.node.targetLinks ?? []) set.add(l)
+        }
+        return set
+    }, [hover, relatedLaidOutLinks])
+
     const activeNodeIds = useMemo(() => {
         if (!hover) return new Set<string>()
-        return new Set<string>([
-            nodeId(hover.link.source),
-            nodeId(hover.link.target),
-        ])
-    }, [hover])
+        const ids = new Set<string>()
+        for (const link of activeLinkSet) {
+            ids.add(nodeId(link.source))
+            ids.add(nodeId(link.target))
+        }
+        if (hover.kind === "node") ids.add(hover.node.id)
+        return ids
+    }, [hover, activeLinkSet])
+
+    const hoveredNodeId = hover?.kind === "node" ? hover.node.id : undefined
+    const hoveredLink = hover?.kind === "link" ? hover.link : undefined
 
     if (!layout) return null
 
+    const interactive = !!(renderLinkTooltip || renderNodeTooltip)
     const svg = (
         <svg
             ref={svgRef}
@@ -298,8 +395,8 @@ export function Sankey({
             width={width}
             height={height}
             viewBox={`0 0 ${width} ${height}`}
-            onMouseMove={renderLinkTooltip ? onSvgMouseMove : undefined}
-            onMouseLeave={renderLinkTooltip ? onSvgMouseLeave : undefined}
+            onMouseMove={interactive ? onSvgMouseMove : undefined}
+            onMouseLeave={interactive ? onSvgMouseLeave : undefined}
         >
             <g className="sankey__links">
                 {layout.links.map((link, i) => (
@@ -308,7 +405,8 @@ export function Sankey({
                         link={link}
                         linkPath={linkPath}
                         linkColor={linkColor}
-                        isHovered={hover?.link === link}
+                        isHovered={hoveredLink === link}
+                        isActive={activeLinkSet.has(link)}
                     />
                 ))}
             </g>
@@ -319,6 +417,7 @@ export function Sankey({
                         node={node}
                         bandWidth={bandWidth}
                         nodeColor={nodeColor}
+                        isHovered={hoveredNodeId === node.id}
                         isActive={activeNodeIds.has(node.id)}
                     />
                 ))}
@@ -328,6 +427,7 @@ export function Sankey({
                     <SankeyLabel
                         key={i}
                         label={label}
+                        isHovered={hoveredNodeId === label.nodeId}
                         isActive={activeNodeIds.has(label.nodeId)}
                     />
                 ))}
@@ -335,7 +435,7 @@ export function Sankey({
         </svg>
     )
 
-    if (!renderLinkTooltip) return svg
+    if (!interactive) return svg
 
     // Bounds reported to the tooltip are the wrapper div's measured
     // dimensions, not the SVG's own width/height. The wrapper stretches to
@@ -359,9 +459,23 @@ export function Sankey({
     return (
         <div ref={containerRef} className="sankey-container">
             {svg}
-            {hover &&
-                renderLinkTooltip({
+            {hover?.kind === "link" &&
+                renderLinkTooltip?.({
                     link: toLinkData(hover.link),
+                    relatedLinks: relatedLaidOutLinks.map(toLinkData),
+                    position: hover.position,
+                    containerBounds: tooltipBounds,
+                    isPinned,
+                })}
+            {hover?.kind === "node" &&
+                renderNodeTooltip?.({
+                    node: toNodeData(hover.node),
+                    incomingLinks: (hover.node.targetLinks ?? []).map(
+                        toLinkData
+                    ),
+                    outgoingLinks: (hover.node.sourceLinks ?? []).map(
+                        toLinkData
+                    ),
                     position: hover.position,
                     containerBounds: tooltipBounds,
                     isPinned,
@@ -375,11 +489,13 @@ function SankeyLink({
     linkPath,
     linkColor,
     isHovered,
+    isActive,
 }: {
     link: LaidOutLink
     linkPath: (link: LaidOutLink) => string | null
     linkColor?: (link: SankeyLink) => string
     isHovered?: boolean
+    isActive?: boolean
 }): React.ReactElement | null {
     const path = linkPath(link)
     if (!path) return null
@@ -387,13 +503,17 @@ function SankeyLink({
     const color = linkColor?.(toLinkData(link)) ?? GRAPHER_DENIM
     const width = Math.max(0.5, link.width ?? 0)
 
+    const className = [
+        "sankey__link",
+        isHovered ? "sankey__link--hovered" : "",
+        isActive ? "sankey__link--active" : "",
+    ]
+        .filter(Boolean)
+        .join(" ")
+
     return (
         <path
-            className={
-                isHovered
-                    ? "sankey__link sankey__link--hovered"
-                    : "sankey__link"
-            }
+            className={className}
             d={path}
             stroke={color}
             strokeWidth={width}
@@ -405,11 +525,13 @@ function SankeyNode({
     node,
     bandWidth,
     nodeColor,
+    isHovered,
     isActive,
 }: {
     node: LaidOutNode
     bandWidth: number
     nodeColor?: (node: SankeyNode) => string
+    isHovered?: boolean
     isActive?: boolean
 }): React.ReactElement {
     const x0 = node.x0 ?? 0
@@ -425,6 +547,7 @@ function SankeyNode({
 
     const className = [
         "sankey__node",
+        isHovered ? "sankey__node--hovered" : "",
         isActive ? "sankey__node--active" : "",
         node.className ?? "",
     ]
@@ -445,13 +568,16 @@ function SankeyNode({
 
 function SankeyLabel({
     label,
+    isHovered,
     isActive,
 }: {
     label: PreparedSankeyLabel
+    isHovered?: boolean
     isActive?: boolean
 }): React.ReactElement {
     const className = [
         "sankey__label",
+        isHovered ? "sankey__label--hovered" : "",
         isActive ? "sankey__label--active" : "",
         label.nodeClassName ?? "",
     ]
@@ -609,6 +735,25 @@ function toLinkData(link: LaidOutLink): SankeyLink {
     }
 }
 
+// Strip d3-sankey's layout-augmented fields back to the plain SankeyNode
+// shape the consumer originally passed in (id, label, optional valueLabel
+// and className). Used when exposing a hovered node to renderNodeTooltip.
+function toNodeData(node: LaidOutNode): SankeyNode {
+    return {
+        id: node.id,
+        label: node.label,
+        valueLabel: node.valueLabel,
+        className: node.className,
+    }
+}
+
+// Stable string key for (source, target) link identity. Used to match
+// caller-returned SankeyLink descriptors back to the laid-out link refs
+// in `activeLinkSet`. `→` is a separator that won't appear in entity IDs.
+function makeLinkKey(source: string, target: string): string {
+    return `${source}→${target}`
+}
+
 const measureMaxLabelWidth = (
     nodes: SankeyNode[],
     fontSettings: FontSettings
@@ -639,6 +784,80 @@ function textWidth(text: string, fontSettings: FontSettings): number {
 // solves the same continuity problem on zero-width lines via a 10px
 // distance-to-segment tolerance (SlopeChart.tsx:683).
 const LINK_BAND_GAP_TOLERANCE = 6
+
+// Extra pixels past a node's hit shape (band box ∪ label box) that still
+// count as a hit. Keeps the hover continuous across the small vertical
+// gaps between stacked labels in a column — strict membership leaves
+// null-hover slivers there, which makes the tooltip flicker off/on as the
+// cursor crosses from one label to the next. Same idea as the link band's
+// `LINK_BAND_GAP_TOLERANCE`.
+const NODE_HIT_TOLERANCE = 8
+
+/**
+ * Find the hoverable node whose hit shape (band rect ∪ label rect) the
+ * cursor is over, or the nearest such shape within tolerance. Returns
+ * null when no node is within range. We measure to the *union* of the
+ * band and label rects per node, then pick the smallest distance — so
+ * the cursor doesn't have to leave the band's column to land on a label,
+ * and a small gap between two stacked labels still resolves to the
+ * nearer one.
+ */
+function findNodeAtPoint(
+    nodes: LaidOutNode[],
+    labels: PreparedSankeyLabel[],
+    mouseX: number,
+    mouseY: number,
+    isHoverable?: (node: SankeyNode) => boolean
+): LaidOutNode | null {
+    // Index labels so we can look up label bounds per node id.
+    const labelByNodeId = new Map<string, PreparedSankeyLabel>()
+    for (const l of labels) labelByNodeId.set(l.nodeId, l)
+
+    let best: { node: LaidOutNode; dist: number } | null = null
+    for (const node of nodes) {
+        if (isHoverable && !isHoverable(node)) continue
+        const x0 = node.x0 ?? 0
+        const x1 = node.x1 ?? 0
+        const y0 = node.y0 ?? 0
+        const y1 = node.y1 ?? 0
+        let dist = rectDistance(mouseX, mouseY, x0, x1, y0, y1)
+
+        const lbl = labelByNodeId.get(node.id)
+        if (lbl) {
+            const w = Math.max(lbl.label.width, lbl.valueLabel?.width ?? 0)
+            const h =
+                lbl.label.height +
+                (lbl.valueLabel ? VALUE_LABEL_GAP + lbl.valueLabel.height : 0)
+            const lx0 = lbl.textAnchor === "end" ? lbl.x - w : lbl.x
+            const lx1 = lbl.textAnchor === "end" ? lbl.x : lbl.x + w
+            const ly0 = lbl.y - h / 2
+            const ly1 = lbl.y + h / 2
+            dist = Math.min(
+                dist,
+                rectDistance(mouseX, mouseY, lx0, lx1, ly0, ly1)
+            )
+        }
+
+        if (dist > NODE_HIT_TOLERANCE) continue
+        if (!best || dist < best.dist) best = { node, dist }
+    }
+    return best?.node ?? null
+}
+
+// Euclidean distance from a point to the nearest edge of an axis-aligned
+// rect. Returns 0 when the point is inside.
+function rectDistance(
+    px: number,
+    py: number,
+    x0: number,
+    x1: number,
+    y0: number,
+    y1: number
+): number {
+    const dx = Math.max(0, x0 - px, px - x1)
+    const dy = Math.max(0, y0 - py, py - y1)
+    return Math.sqrt(dx * dx + dy * dy)
+}
 
 /**
  * Find the laid-out link the mouse is over (or nearest to), or null if no
