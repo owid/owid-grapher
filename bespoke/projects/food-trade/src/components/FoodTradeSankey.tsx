@@ -133,10 +133,7 @@ export function FoodTradeSankey({
     // Paired sentence omits the product on the incoming clause — it shows
     // up once at the tail of the outgoing clause. Standalone clauses
     // (single-half view, stacked, or one half empty) carry the product
-    // each. The year goes at the very end of whatever reads as the last
-    // clause: outgoing in the paired case, each standalone heading on its
-    // own otherwise.
-    const yearSuffix = ` in ${year}`
+    // each.
     const incomingAnnotation = shareAnnotation(incomingShare, "supply")
     const outgoingAnnotation = shareAnnotation(outgoingShare, "production")
     const incomingHeading: HeadingContent =
@@ -144,7 +141,7 @@ export function FoodTradeSankey({
             ? {
                   label: isPairedSentence
                       ? `${R.capitalize(countryArticulated)} imported ${formatTrade(incomingTotal)}`
-                      : `${R.capitalize(countryArticulated)} imported ${formatTrade(incomingTotal)} of ${productLc}${yearSuffix}`,
+                      : `${R.capitalize(countryArticulated)} imported ${formatTrade(incomingTotal)} of ${productLc}`,
                   annotation: incomingAnnotation,
                   arrowSide: "start",
               }
@@ -152,24 +149,24 @@ export function FoodTradeSankey({
                   label: isPairedSentence
                       ? `${R.capitalize(countryArticulated)} imported none`
                       : view === "both"
-                        ? `${R.capitalize(countryArticulated)} imported none${yearSuffix}`
-                        : `No imports${yearSuffix}`,
+                        ? `${R.capitalize(countryArticulated)} imported none`
+                        : "No imports",
               }
     const outgoingHeading: HeadingContent =
         outgoingFlows.length > 0
             ? {
                   label: isPairedSentence
-                      ? `and exported ${formatTrade(outgoingTotal)} of ${productLc}${yearSuffix}`
-                      : `${R.capitalize(countryArticulated)} exported ${formatTrade(outgoingTotal)} of ${productLc}${yearSuffix}`,
+                      ? `and exported ${formatTrade(outgoingTotal)} of ${productLc}`
+                      : `${R.capitalize(countryArticulated)} exported ${formatTrade(outgoingTotal)} of ${productLc}`,
                   annotation: outgoingAnnotation,
                   arrowSide: "end",
               }
             : {
                   label: isPairedSentence
-                      ? `and exported none${yearSuffix}`
+                      ? "and exported none"
                       : view === "both"
-                        ? `${R.capitalize(countryArticulated)} exported none${yearSuffix}`
-                        : `No exports${yearSuffix}`,
+                        ? `${R.capitalize(countryArticulated)} exported none`
+                        : "No exports",
               }
 
     const splitView =
