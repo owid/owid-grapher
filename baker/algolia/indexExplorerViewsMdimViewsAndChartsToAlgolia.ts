@@ -22,7 +22,7 @@ import {
 import { getChartsRecords } from "./utils/charts.js"
 import { createBaseIndexingContext } from "./utils/context.js"
 import { CHARTS_INDEX } from "../../site/search/searchUtils.js"
-import { getMdimViewRecords } from "./utils/mdimViews.js"
+import { getMultiDimViewRecords } from "./utils/mdimViews.js"
 import { reportFeaturedMetricFailuresToSlack } from "./utils/slackReport.js"
 
 const indexExplorerViewsMdimViewsAndChartsToAlgolia = async () => {
@@ -56,7 +56,7 @@ const indexExplorerViewsMdimViewsAndChartsToAlgolia = async () => {
                 skipGrapherViews: true,
                 baseContext,
             })
-            const mdimViews = await getMdimViewRecords(trx, {
+            const multiDimViews = await getMultiDimViewRecords(trx, {
                 baseContext,
             })
             const grapherViews = await getChartsRecords(trx, {
@@ -66,7 +66,7 @@ const indexExplorerViewsMdimViewsAndChartsToAlgolia = async () => {
             // Scale charts, mdim views, and explorer views together so scores are directly comparable.
             // Makes it easier to intuit what bonuses and boosts will do
             const scaledRecords = scaleRecordScores(
-                [...explorerViews, ...mdimViews, ...grapherViews],
+                [...explorerViews, ...multiDimViews, ...grapherViews],
                 [1000, MAX_NON_FM_RECORD_SCORE]
             )
 

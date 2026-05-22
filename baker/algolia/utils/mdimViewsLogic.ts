@@ -51,9 +51,9 @@ export function attributeLinksToViewIds(
 }
 
 /**
- * Groups redirects by the queryStr of the view they target, so each mdim view
+ * Groups redirects by the queryStr of the view they target, so each multi-dim view
  * can find the predecessors that should contribute their pageviews to it. A
- * redirect with no targetQueryStr is treated as targeting the mdim's default
+ * redirect with no targetQueryStr is treated as targeting the multi-dim's default
  * view, identified by the supplied defaultViewQueryStr.
  */
 export function bucketPredecessorsByQueryStr(
