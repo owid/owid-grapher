@@ -411,6 +411,7 @@ __metadata:
     react-aria: "npm:^3.41.1"
     react-aria-components: "npm:^1.8.0"
     react-dom: "npm:^19.2.4"
+    react-stately: "npm:^3.46.0"
     remeda: "npm:^2.21.0"
     sass: "npm:^1.87.0"
     vite: "npm:^8.0.5"
