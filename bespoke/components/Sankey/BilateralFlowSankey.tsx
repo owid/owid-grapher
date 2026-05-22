@@ -13,6 +13,7 @@ import {
     DEFAULT_MIN_NODE_SHARE,
     DEFAULT_TOP_N,
     entityFromId,
+    entityShortLabel,
     EntityTotal,
     FlowRow,
     makeSourceId,
@@ -357,8 +358,10 @@ function buildColumnNodes({
     const topNodes = selection.top
         .filter((d) => activeEntities.has(d.entity))
         .map((d) => ({
+            // ID keeps the full entity name (used for color/tooltip lookups);
+            // the on-chart label uses the shorter form for readability.
             id: makeNodeId(d.entity),
-            label: d.entity,
+            label: entityShortLabel(d.entity),
             valueLabel: makeValueLabel({
                 value: d.total,
                 total: selection.grandTotal,

@@ -13,7 +13,11 @@ import {
     TooltipValue,
 } from "@ourworldindata/grapher/src/tooltip/TooltipContents.js"
 
-import { EntityTotal, FlowRow } from "../../../../components/Sankey/helpers.js"
+import {
+    entityShortLabel,
+    EntityTotal,
+    FlowRow,
+} from "../../../../components/Sankey/helpers.js"
 
 import {
     BilateralFlowSankey,
@@ -112,7 +116,14 @@ export function FoodTradeSankey({
     // on narrow containers, or when one half is empty (its heading is
     // suppressed in favour of a centered "didn't import/export" message),
     // the surviving heading switches to a standalone phrasing.
-    const countryArticulated = articulateEntity(country)
+    // Heading uses the short name (e.g. "USA" instead of "United States")
+    // but keeps the "the" article when the full name calls for one — so
+    // "the United States" becomes "the USA" rather than dropping the article.
+    const countryShort = entityShortLabel(country)
+    const countryArticulated =
+        articulateEntity(country) === country
+            ? countryShort
+            : `the ${countryShort}`
     const productLc = R.uncapitalize(product)
     const isStacked = width > 0 && width < STACKED_BREAKPOINT_PX
     const noImports = incomingFlows.length === 0
@@ -122,7 +133,10 @@ export function FoodTradeSankey({
     // Paired sentence omits the product on the incoming clause — it shows
     // up once at the tail of the outgoing clause. Standalone clauses
     // (single-half view, stacked, or one half empty) carry the product
-    // each.
+    // each. The year goes at the very end of whatever reads as the last
+    // clause: outgoing in the paired case, each standalone heading on its
+    // own otherwise.
+    const yearSuffix = ` in ${year}`
     const incomingAnnotation = shareAnnotation(incomingShare, "supply")
     const outgoingAnnotation = shareAnnotation(outgoingShare, "production")
     const incomingHeading: HeadingContent =
@@ -130,7 +144,7 @@ export function FoodTradeSankey({
             ? {
                   label: isPairedSentence
                       ? `${R.capitalize(countryArticulated)} imported ${formatTrade(incomingTotal)}`
-                      : `${R.capitalize(countryArticulated)} imported ${formatTrade(incomingTotal)} of ${productLc}`,
+                      : `${R.capitalize(countryArticulated)} imported ${formatTrade(incomingTotal)} of ${productLc}${yearSuffix}`,
                   annotation: incomingAnnotation,
                   arrowSide: "start",
               }
@@ -138,24 +152,24 @@ export function FoodTradeSankey({
                   label: isPairedSentence
                       ? `${R.capitalize(countryArticulated)} imported none`
                       : view === "both"
-                        ? `${R.capitalize(countryArticulated)} imported none`
-                        : "No imports",
+                        ? `${R.capitalize(countryArticulated)} imported none${yearSuffix}`
+                        : `No imports${yearSuffix}`,
               }
     const outgoingHeading: HeadingContent =
         outgoingFlows.length > 0
             ? {
                   label: isPairedSentence
-                      ? `and exported ${formatTrade(outgoingTotal)} of ${productLc}`
-                      : `${R.capitalize(countryArticulated)} exported ${formatTrade(outgoingTotal)} of ${productLc}`,
+                      ? `and exported ${formatTrade(outgoingTotal)} of ${productLc}${yearSuffix}`
+                      : `${R.capitalize(countryArticulated)} exported ${formatTrade(outgoingTotal)} of ${productLc}${yearSuffix}`,
                   annotation: outgoingAnnotation,
                   arrowSide: "end",
               }
             : {
                   label: isPairedSentence
-                      ? "and exported none"
+                      ? `and exported none${yearSuffix}`
                       : view === "both"
-                        ? `${R.capitalize(countryArticulated)} exported none`
-                        : "No exports",
+                        ? `${R.capitalize(countryArticulated)} exported none${yearSuffix}`
+                        : `No exports${yearSuffix}`,
               }
 
     const splitView =
@@ -296,7 +310,7 @@ function TradeLinkTooltip({
         ? exporter === "Other"
             ? "Other exporters"
             : "Other importers"
-        : `${exporter} → ${importer}`
+        : `${entityShortLabel(exporter)} → ${entityShortLabel(importer)}`
 
     const share = halfTotal > 0 ? value / halfTotal : 0
     const formattedShare = formatShare(share)
@@ -344,7 +358,7 @@ function OtherBreakdownContent({ breakdown }: { breakdown: EntityTotal[] }) {
         },
     ]
     const rows = visible.map((d) => ({
-        name: d.entity,
+        name: entityShortLabel(d.entity),
         values: [d.total],
     }))
 
@@ -434,7 +448,7 @@ function BilateralTooltip({
     // disambiguates what each tooltip is listing.
     const otherTitle =
         side === "exporter" ? "Other exporters" : "Other importers"
-    const title = isOther ? otherTitle : country
+    const title = isOther ? otherTitle : entityShortLabel(country)
     const subtitle = isOther
         ? String(year)
         : side === "exporter"
@@ -450,7 +464,12 @@ function BilateralTooltip({
     // from the title.
     const visibleItems = isOther
         ? capItems(bucketTotalsBySmallSide(tradeRows, side))
-        : capItems(partners.map((p) => ({ name: p.entity, value: p.value })))
+        : capItems(
+              partners.map((p) => ({
+                  name: entityShortLabel(p.entity),
+                  value: p.value,
+              }))
+          )
     const overflowNoun = "countries"
 
     const columns = [
@@ -508,6 +527,6 @@ function bucketTotalsBySmallSide(
         totals.set(key, (totals.get(key) ?? 0) + r.value)
     }
     return Array.from(totals.entries())
-        .map(([name, value]) => ({ name, value }))
+        .map(([name, value]) => ({ name: entityShortLabel(name), value }))
         .sort((a, b) => b.value - a.value)
 }

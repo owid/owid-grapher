@@ -18,6 +18,7 @@ import {
     assignColors,
     DEFAULT_MIN_NODE_SHARE,
     DEFAULT_TOP_N,
+    entityShortLabel,
     EntityTotal,
     FlowRow,
     makeValueLabel,
@@ -626,8 +627,12 @@ function buildHalf({
     type Partner = SankeyNode & { value: number }
 
     const topPartners: Partner[] = selection.top.map((d) => ({
+        // ID stays as the full entity name — used for color matching and
+        // tooltip lookups, where consistency across both halves and the
+        // chart's full-name surface matters. The on-chart label uses the
+        // shorter form for readability.
         id: idPrefix + d.entity,
-        label: d.entity,
+        label: entityShortLabel(d.entity),
         valueLabel: makeValueLabel({
             value: d.total,
             total: selection.grandTotal,

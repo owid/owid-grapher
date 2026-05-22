@@ -1,6 +1,9 @@
 import * as R from "remeda"
 
-import { formatValue as formatNumericValue } from "@ourworldindata/utils"
+import {
+    formatValue as formatNumericValue,
+    getRegionByName,
+} from "@ourworldindata/utils"
 import {
     ColorSchemeName,
     OwidVariableRoundingMode,
@@ -37,6 +40,15 @@ export function entityFromId(id: string): string {
     if (id.startsWith("source:")) return id.slice("source:".length)
     if (id.startsWith("target:")) return id.slice("target:".length)
     throw new Error(`Unexpected node ID format: ${id}`)
+}
+
+// In-chart label for an entity. Uses the OWID short name when available
+// (e.g. "United States" → "USA", "Russian Federation" → "Russia") so the
+// label column doesn't crowd the chart. Falls back to the full name for
+// entities that aren't in the regions table (e.g. the "Other" bucket
+// sentinel, or non-region names like product groupings).
+export function entityShortLabel(entity: string): string {
+    return getRegionByName(entity)?.shortName ?? entity
 }
 
 // 2 significant figures via the shared OWID formatter. Input is a
