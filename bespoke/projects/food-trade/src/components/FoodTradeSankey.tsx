@@ -14,8 +14,6 @@ import {
 
 import { TradeRow } from "../data.js"
 
-export const TOP_N = 10
-
 export const formatTrade = (v: number) =>
     formatValue(v, {
         unit: "tonnes",
@@ -205,7 +203,6 @@ export function FoodTradeSankey({
                 height={height}
                 formatValue={formatTrade}
                 view={splitView}
-                topN={TOP_N}
             />
         </div>
     )
@@ -246,7 +243,6 @@ export function FoodTradeBilateralSankey({ rows }: { rows: TradeRow[] }) {
                 width={width}
                 height={height}
                 formatValue={formatTrade}
-                topN={TOP_N}
             />
         </div>
     )

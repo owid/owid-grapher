@@ -365,7 +365,10 @@ function CaptionedMainVariant({
                         />
                     )}
                 </div>
-                <ChartFooter source={metadata.source} />
+                <ChartFooter
+                    source={metadata.source}
+                    note='Only the ten largest trading partners are shown individually. Flows that account for less than 1% of trade are grouped as "Other".'
+                />
             </Frame>
         </>
     )
