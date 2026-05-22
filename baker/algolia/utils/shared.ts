@@ -400,24 +400,35 @@ export const EMPTY_DATASET_CHART_RECORD_DIMENSIONS: DatasetChartRecordDimensions
     }
 
 /**
- * Builds a canonical key for FM lookup from a slug and optional query params.
- * Params are sorted alphabetically so that order differences don't matter.
- * For charts (no query params), the key is just the slug.
+ * The route-folder a featured metric lives under, used to disambiguate keys
+ * since graphers/multi-dims and explorers can share the same slug.
+ * Charts and multi-dim views both live under /grapher/ and share a slug
+ * namespace, so a single "grapher" source covers both.
+ */
+export type FeaturedMetricSource = "grapher" | "explorer"
+
+/**
+ * Builds a canonical key for FM lookup from a source, slug and optional query
+ * params. Params are sorted alphabetically so that order differences don't
+ * matter. The source disambiguates records that share a slug across
+ * /grapher/ and /explorers/.
  */
 export function makeFeaturedMetricKey(
+    source: FeaturedMetricSource,
     slug: string,
     queryParams?: string | null
 ): string {
-    if (!queryParams) return slug
+    const base = `${source}:${slug}`
+    if (!queryParams) return base
     const params = new URLSearchParams(queryParams.replace(/^\?/, ""))
     params.sort()
-    return `${slug}?${params.toString()}`
+    return `${base}?${params.toString()}`
 }
 
 /**
- * Returns a set of FM keys (slug + sorted query params) for all featured metrics.
- * This is used to give a scoring bonus to records whose specific
- * chart/explorer/multi-dim view is editorially featured.
+ * Returns a set of FM keys (source + slug + sorted query params) for all
+ * featured metrics. This is used to give a scoring bonus to records whose
+ * specific chart/explorer/multi-dim view is editorially featured.
  */
 export async function getFeaturedMetricSlugs(
     trx: KnexReadonlyTransaction
@@ -429,7 +440,9 @@ export async function getFeaturedMetricSlugs(
     const keys = new Set<string>()
     for (const row of rows) {
         const url = Url.fromURL(row.url)
-        if (url.slug) keys.add(makeFeaturedMetricKey(url.slug, url.queryStr))
+        if (!url.slug || (!url.isExplorer && !url.isGrapher)) continue
+        const source = url.isExplorer ? "explorer" : "grapher"
+        keys.add(makeFeaturedMetricKey(source, url.slug, url.queryStr))
     }
     return keys
 }
@@ -450,7 +463,15 @@ export function applyFMSourceBonus(
 
     return records.map((record) => {
         if (record.isFM) return record
-        const key = makeFeaturedMetricKey(record.slug, record.queryParams)
+        const source: FeaturedMetricSource =
+            record.type === ChartRecordType.ExplorerView
+                ? "explorer"
+                : "grapher"
+        const key = makeFeaturedMetricKey(
+            source,
+            record.slug,
+            record.queryParams
+        )
         if (fmSlugs.has(key)) {
             return {
                 ...record,
