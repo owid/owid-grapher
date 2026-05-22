@@ -15,7 +15,6 @@ import {
     makeAtomFeedNoTopicPages,
     renderDynamicCollectionPage,
     renderTopChartsCollectionPage,
-    renderDataInsightsIndexPage,
     renderThankYouPage,
     makeDataInsightsAtomFeed,
     renderGdocTombstone,
@@ -43,8 +42,6 @@ import {
     gdocUrlRegex,
     OwidGdocMinimalPostInterface,
     ImageMetadata,
-    queryParamsToStr,
-    EnrichedBlockImage,
     OwidGdocType,
     getRegionBySlug,
     getEntitiesForProfile,
@@ -63,10 +60,8 @@ import {
     renderPreviewDataPageOrGrapherPage,
     renderDataPageV2,
 } from "../baker/GrapherBaker.js"
-import { GdocDataInsight } from "../db/model/Gdoc/GdocDataInsight.js"
 import { getTombstoneBySlug } from "../db/model/GdocTombstone.js"
 import * as db from "../db/db.js"
-import { calculateDataInsightIndexPageCount } from "../db/model/Gdoc/gdocUtils.js"
 import {
     getPlainRouteNonIdempotentWithRWTransaction,
     getPlainRouteWithROTransaction,
@@ -84,13 +79,7 @@ import {
 import { getMultiDimDataPageBySlug } from "../db/model/MultiDimDataPage.js"
 import { getParsedDodsDictionary } from "../db/model/Dod.js"
 import { getLatestArchivedPostPageVersionsIfEnabled } from "../db/model/ArchivedPostVersion.js"
-import { TopicTag } from "../site/DataInsightsIndexPage.js"
-import { getSlugForTopicTag } from "../baker/GrapherBakingUtils.js"
 import { SEARCH_BASE_PATH } from "../site/search/searchUtils.js"
-import {
-    enrichLatestPageItems,
-    getLatestPageItems,
-} from "../db/model/Gdoc/GdocPost.js"
 import { getAndLoadGdocBySlug } from "../db/model/Gdoc/GdocFactory.js"
 import {
     instantiateProfileForEntity,
@@ -353,86 +342,13 @@ mockSiteRouter.get("/subscribe", async (req, res) =>
 
 getPlainRouteWithROTransaction(
     mockSiteRouter,
-    "/data-insights{/:pageNumberOrSlug}",
+    "/data-insights/:slug",
     async (req, res, trx) => {
-        const topicName = req.query.topic as string | undefined
-        const topicSlug = topicName
-            ? await getSlugForTopicTag(trx, topicName)
-            : undefined
-        let topicTag: TopicTag | undefined =
-            topicName && topicSlug
-                ? {
-                      name: topicName,
-                      slug: topicSlug,
-                  }
-                : undefined
-
-        const totalPageCount = calculateDataInsightIndexPageCount(
-            await db.getPublishedDataInsightCount(trx, topicTag?.slug)
-        )
-
-        if (topicTag?.slug !== undefined) {
-            // if topic slug is not a valid topic, render all data insights
-            const validTopicSlugs = await db
-                .getAllTopicTags(trx)
-                .then((tags) => tags.map((tag) => tag.slug))
-            if (!validTopicSlugs.includes(topicTag.slug)) {
-                topicTag = undefined
-            }
-        }
-        async function renderIndexPage(
-            pageNumber: number,
-            dataInsights: GdocDataInsight[],
-            topicTag?: TopicTag
-        ) {
-            // calling fetchImageMetadata 20 times makes me sad, would be nice if we could cache this
-            await Promise.all(
-                dataInsights.map((insight) => insight.loadState(trx))
-            )
-            return renderDataInsightsIndexPage(
-                dataInsights,
-                pageNumber,
-                totalPageCount,
-                true,
-                topicTag
-            )
-        }
-        const pageNumberOrSlug = req.params.pageNumberOrSlug
-        if (!pageNumberOrSlug) {
-            const dataInsights = await GdocDataInsight.getPublishedDataInsights(
-                trx,
-                1,
-                topicTag?.slug
-            )
-            return res.send(await renderIndexPage(1, dataInsights, topicTag))
-        }
-
-        const pageNumber = parseInt(pageNumberOrSlug)
-        if (!isNaN(pageNumber)) {
-            if (pageNumber < 1 || pageNumber > totalPageCount) {
-                return res.redirect(
-                    `/data-insights${topicName ? queryParamsToStr({ topic: topicName }) : ""}`
-                )
-            }
-            const dataInsights = await GdocDataInsight.getPublishedDataInsights(
-                trx,
-                pageNumber,
-                topicTag?.slug
-            )
-            // if no data insights are found, return NotFound page
-            if (dataInsights.length === 0) {
-                return res.status(404).send(renderNotFoundPage())
-            }
-            return res.send(
-                await renderIndexPage(pageNumber, dataInsights, topicTag)
-            )
-        }
-
         try {
             return res.send(
                 await renderGdocsPageBySlug(
                     trx,
-                    pageNumberOrSlug,
+                    req.params.slug,
                     [OwidGdocType.DataInsight],
                     true
                 )
@@ -479,49 +395,11 @@ getPlainRouteWithROTransaction(
     async (_, res, trx) => res.send(await renderSearchPage(trx))
 )
 
-const handleLatestPageRequest = async (
-    trx: KnexReadonlyTransaction,
-    pageNum: number
-) => {
-    const pageData = await getLatestPageItems(trx, pageNum, [
-        OwidGdocType.Article,
-        OwidGdocType.DataInsight,
-        OwidGdocType.Announcement,
-    ])
-
-    const { linkedAuthors, imageMetadata, linkedDocuments, linkedCharts } =
-        await enrichLatestPageItems(trx, pageData.items)
-
-    return renderLatestPage(
-        pageData.items,
-        imageMetadata,
-        linkedAuthors,
-        linkedCharts,
-        linkedDocuments,
-        pageData.pagination.pageNum,
-        pageData.pagination.totalPages
-    )
-}
-
 getPlainRouteWithROTransaction(
     mockSiteRouter,
     "/latest",
     async (_, res, trx) => {
-        const latest = await handleLatestPageRequest(trx, 1)
-        res.send(latest)
-    }
-)
-
-getPlainRouteWithROTransaction(
-    mockSiteRouter,
-    "/latest/page/:pageno",
-    async (req, res, trx) => {
-        const pagenum = parseInt(req.params.pageno, 10)
-        if (isNaN(pagenum) || pagenum < 1) {
-            throw new Error("invalid page number")
-        }
-
-        const html = await handleLatestPageRequest(trx, pagenum)
+        const html = await renderLatestPage(trx)
         res.send(html)
     }
 )
@@ -659,41 +537,6 @@ getPlainRouteWithROTransaction(
     async (req, res, trx) => {
         const headerMenu = await db.generateTopicTagGraph(trx)
         res.send(headerMenu)
-    }
-)
-
-getPlainRouteWithROTransaction(
-    mockSiteRouter,
-    "/dataInsights.json",
-    async (req, res, trx) => {
-        const publishedDataInsights =
-            await GdocDataInsight.getPublishedDataInsights(trx)
-        const publishedDataInsightsForJson = publishedDataInsights.map((di) => {
-            const firstImageIndex = di.content.body.findIndex(
-                (block) => block.type === "image"
-            )
-            const firstImageBlock = di.content.body[firstImageIndex] as
-                | EnrichedBlockImage
-                | undefined
-            const imgFilename =
-                firstImageBlock?.smallFilename || firstImageBlock?.filename
-            if (imgFilename) {
-                di.imageMetadata = {
-                    [imgFilename]: di.imageMetadata[imgFilename],
-                }
-            }
-
-            // removes fields that are omitted from <DataInsightBody /> props
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const { markdown, publicationContext, revisionId, ...rest } = di
-            // removes data that isn't need for rendering the feed page (based on comments in DataInsightsIndexPageContent.tsx)
-            // (but we kep tags b/c we need it to filter dataInsights.json)
-            rest.linkedIndicators = {}
-            rest.latestDataInsights = []
-
-            return rest
-        })
-        res.send(publishedDataInsightsForJson)
     }
 )
 

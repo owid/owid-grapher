@@ -21,6 +21,8 @@ import {
     type EnrichedHybridLink,
     type OwidGdocPostInterface,
     type OwidGdocDataInsightInterface,
+    type ChronologicalGdoc,
+    type LatestFeedGdoc,
     type OwidGdocAuthorInterface,
     type OwidGdoc,
     OwidGdocType,
@@ -46,8 +48,8 @@ import {
     FEATURED_DATA_INSIGHTS_ID,
     EXPLORE_DATA_SECTION_DEFAULT_TITLE,
     EXPLORE_DATA_SECTION_ID,
-    OwidGdocAnnouncementInterface,
     CHRONOLOGICAL_INDEX_TYPES,
+    LATEST_FEED_TYPES,
 } from "@ourworldindata/types"
 import { Point, PointVector } from "./PointVector.js"
 import * as React from "react"
@@ -2024,15 +2026,26 @@ export function checkIsHomepage(
 
 /**
  * Posts that should show up in the chronological algolia index
- * for dynamic RSS feeds & /latest page
+ * for dynamic RSS feeds & /latest page.
+ *
+ * See `isChronologicalGdocInstance` for a class-narrowing variant used by
+ * the bulk indexer.
  */
-export function checkIsChronologicalFeedPost(gdoc: {
+export function checkIsChronologicalGdoc(gdoc: {
     content: { type?: OwidGdocType }
-}): gdoc is
-    | OwidGdocPostInterface
-    | OwidGdocDataInsightInterface
-    | OwidGdocAnnouncementInterface {
+}): gdoc is ChronologicalGdoc {
     return CHRONOLOGICAL_INDEX_TYPES.has(gdoc.content.type as string)
+}
+
+/**
+ * Posts that should show up on /latest. Subset of `checkIsChronologicalGdoc`
+ * that excludes topic pages (which are indexed for the atom feed but
+ * filtered out of /latest by `LATEST_BASE_FILTER`).
+ */
+export function checkIsLatestFeedGdoc(gdoc: {
+    content: { type?: OwidGdocType }
+}): gdoc is LatestFeedGdoc {
+    return LATEST_FEED_TYPES.has(gdoc.content.type as string)
 }
 
 /**

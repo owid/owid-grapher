@@ -51,7 +51,7 @@ function renderTopicOrProfileHit(
                 key={hit.objectID}
                 hit={hit}
                 onClick={() => {
-                    analytics.logSiteSearchResultClick(hit, {
+                    analytics.logSearchResultClick(hit, {
                         position: index + 1,
                         source: "search",
                     })
@@ -65,7 +65,7 @@ function renderTopicOrProfileHit(
             hit={hit}
             variant={hasLargeTopic ? "large" : undefined}
             onClick={() => {
-                analytics.logSiteSearchResultClick(hit, {
+                analytics.logSearchResultClick(hit, {
                     position: index + 1,
                     source: "search",
                 })
@@ -112,7 +112,7 @@ function SingleColumnResults({
                             key={hit.objectID}
                             hit={hit}
                             onClick={() => {
-                                analytics.logSiteSearchResultClick(hit, {
+                                analytics.logSearchResultClick(hit, {
                                     position: index + 1,
                                     source: "search",
                                 })
@@ -151,7 +151,7 @@ function MultiColumnResults({
                             key={hit.objectID}
                             hit={hit}
                             onClick={() => {
-                                analytics.logSiteSearchResultClick(hit, {
+                                analytics.logSearchResultClick(hit, {
                                     position: index + 1,
                                     source: "search",
                                 })

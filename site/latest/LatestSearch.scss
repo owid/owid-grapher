@@ -1,0 +1,51 @@
+.latest-search__facets-container {
+    margin-bottom: 0;
+    @include sm-only {
+        padding: 0 16px;
+        margin-bottom: 24px;
+    }
+}
+
+.latest-search__filters-divider {
+    border: none;
+    border-top: 1px solid $blue-20;
+    margin: 16px 0 24px;
+
+    @include sm-only {
+        display: none;
+    }
+}
+
+.latest-search__reset-button {
+    @include body-3-medium;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    color: $blue-60;
+    text-decoration: underline;
+
+    &:hover {
+        color: $blue-90;
+    }
+}
+
+// Override SearchNoResults — it's display:none by default for multi-query search
+.latest-page .search-no-results {
+    display: block;
+}
+
+// Override SearchHorizontalDivider for the gray-5 page background
+.latest-page .search-horizontal-divider {
+    &::before {
+        z-index: 0;
+    }
+
+    .search-horizontal-divider__button {
+        position: relative;
+        z-index: 1;
+        border: none;
+        border-left: 4px solid $gray-5;
+        border-right: 4px solid $gray-5;
+    }
+}

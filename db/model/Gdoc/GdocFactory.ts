@@ -2,7 +2,6 @@ import * as _ from "lodash-es"
 import { match, P } from "ts-pattern"
 import {
     ARCHIVED_THUMBNAIL_FILENAME,
-    DATA_INSIGHTS_INDEX_PAGE_SIZE,
     DbEnrichedPostGdoc,
     DbInsertPostGdocLink,
     DbInsertPostGdocXImage,
@@ -518,31 +517,13 @@ async function getAndLoadPublishedGdocs<T extends GdocBase>(
     return gdocs
 }
 
-export async function getAndLoadPublishedDataInsightsPage(
-    knex: KnexReadonlyTransaction,
-    page?: number, // 1-indexed
-    topicSlug?: string
+export async function getAndLoadLastPublishedDataInsights(
+    knex: KnexReadonlyTransaction
 ): Promise<GdocDataInsight[]> {
-    let options:
-        | { limit: number; offset?: number; topicSlug?: string }
-        | undefined
-    if (page !== undefined) {
-        options = {
-            limit: DATA_INSIGHTS_INDEX_PAGE_SIZE,
-            offset: (page - 1) * DATA_INSIGHTS_INDEX_PAGE_SIZE,
-        }
-    }
-    if (topicSlug !== undefined) {
-        options = {
-            limit: options?.limit ?? DATA_INSIGHTS_INDEX_PAGE_SIZE,
-            offset: options?.offset,
-            topicSlug,
-        }
-    }
     return await getAndLoadPublishedGdocs<GdocDataInsight>(
         knex,
         OwidGdocType.DataInsight,
-        options
+        { limit: 20 }
     )
 }
 

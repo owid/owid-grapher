@@ -175,6 +175,14 @@ export interface OwidGdocMinimalPostInterface {
     availableEntityCodes?: string[] // used for profile-type docs to resolve ?country=X links
 }
 
+/** Minimal-shape announcement: the SQL in `getHomepageAnnouncements`
+ *  guarantees `type === Announcement` for every row, so we promote that to
+ *  the static type for the homepage announcement carousel. */
+export type OwidGdocMinimalAnnouncementInterface =
+    OwidGdocMinimalPostInterface & {
+        type: OwidGdocType.Announcement
+    }
+
 export type OwidGdocIndexItem = Pick<
     OwidGdocBaseInterface,
     "id" | "slug" | "tags" | "published" | "publishedAt"
@@ -227,9 +235,6 @@ export type OwidGdocDataInsightIndexItem = Pick<
             originalWidth: NonNullable<DbRawImage["originalWidth"]>
         }
     }
-
-export const DATA_INSIGHTS_INDEX_PAGE_SIZE = 20
-export const LATEST_INDEX_PAGE_SIZE = 20
 
 export interface OwidGdocDataInsightInterface extends OwidGdocBaseInterface {
     content: OwidGdocDataInsightContent
@@ -312,8 +317,9 @@ export interface OwidGdocHomepageMetadata {
     chartCount?: number
     topicCount?: number
     explorerCount?: number
+    articleCount?: number
     tagGraph?: TagGraphRoot
-    announcements?: OwidGdocMinimalPostInterface[]
+    announcements?: OwidGdocMinimalAnnouncementInterface[]
 }
 
 export interface OwidGdocHomepageInterface extends OwidGdocBaseInterface {
@@ -379,6 +385,58 @@ export type OwidGdoc =
     | OwidGdocAnnouncementInterface
     | OwidGdocProfileInterface
 
+export const CHRONOLOGICAL_INDEX_TYPE_VALUES = [
+    OwidGdocType.Article,
+    OwidGdocType.LinearTopicPage,
+    OwidGdocType.TopicPage,
+    OwidGdocType.DataInsight,
+    OwidGdocType.Announcement,
+] as const
+
+export const LATEST_FEED_TYPE_VALUES = [
+    OwidGdocType.Article,
+    OwidGdocType.DataInsight,
+    OwidGdocType.Announcement,
+] as const satisfies readonly (typeof CHRONOLOGICAL_INDEX_TYPE_VALUES)[number][]
+
+export const CHRONOLOGICAL_INDEX_TYPES = new Set<string>(
+    CHRONOLOGICAL_INDEX_TYPE_VALUES
+)
+export const LATEST_FEED_TYPES = new Set<string>(LATEST_FEED_TYPE_VALUES)
+
+/**
+ * The subset of OwidGdoc that is indexed in the `pages-chronological` Algolia
+ * index, and so is eligible to appear on:
+ *   - the `/latest` SPA feed (filterable by topic and type), and
+ *   - the dynamic `/atom.xml` feed served by a Cloudflare Function when called
+ *     with `?topics=` or `?type=` query params (the bare `/atom.xml` URL is
+ *     served from the static bake instead).
+ *
+ * Matches the narrowing performed by `checkIsChronologicalGdoc`.
+ */
+export type ChronologicalGdoc =
+    | OwidGdocDataInsightInterface
+    | OwidGdocAnnouncementInterface
+    | (OwidGdocPostInterface & {
+          content: {
+              type:
+                  | OwidGdocType.Article
+                  | OwidGdocType.TopicPage
+                  | OwidGdocType.LinearTopicPage
+          }
+      })
+
+/**
+ * The subset of `ChronologicalGdoc` shown on /latest. Excludes
+ * `TopicPage` / `LinearTopicPage` (indexed in `pages-chronological` for the
+ * atom feed but filtered out of /latest by `LATEST_BASE_FILTER`).
+ *
+ * Matches the narrowing performed by `checkIsLatestFeedGdoc`.
+ */
+export type LatestFeedGdoc = ChronologicalGdoc & {
+    content: { type: (typeof LATEST_FEED_TYPE_VALUES)[number] }
+}
+
 export enum OwidGdocErrorMessageType {
     Error = "error",
     Warning = "warning",
@@ -439,6 +497,8 @@ export interface OwidGdocPostContent {
     refs?: { definitions: RefDictionary; errors: OwidGdocErrorMessage[] }
     summary?: EnrichedBlockText[]
     "deprecation-notice"?: EnrichedBlockText[]
+    "latest-feed-featured-image"?: string
+    "latest-feed-excerpt"?: EnrichedBlockText[]
     "hide-citation"?: boolean
     toc?: TocHeadingWithTitleSupertitle[]
     "cover-image"?: string
@@ -504,8 +564,3 @@ export type EnrichedFaq = {
 } & EnrichedBlockWithParseErrors
 
 export type FaqDictionary = Record<string, EnrichedFaq>
-
-export type LatestPageItem =
-    | { type: OwidGdocType.Article; data: OwidGdocMinimalPostInterface }
-    | { type: OwidGdocType.DataInsight; data: LatestDataInsight }
-    | { type: OwidGdocType.Announcement; data: OwidGdocAnnouncementInterface }

@@ -70,8 +70,17 @@ export function useSearchAnalytics(
     const lastLoggedStateRef = useRef<SearchState | null>(null)
 
     useEffect(() => {
-        // Skip analytics for default/empty search state
-        if (R.isDeepEqual(state, DEFAULT_SEARCH_STATE)) return
+        // Skip analytics for the initial default/empty page load, but keep
+        // tracking later transitions back to the default state. Updating the
+        // ref here lets us track repeated filter states separated by a reset,
+        // e.g. A -> default -> A.
+        if (
+            lastLoggedStateRef.current === null &&
+            R.isDeepEqual(state, DEFAULT_SEARCH_STATE)
+        ) {
+            lastLoggedStateRef.current = state
+            return
+        }
         // Skip if we already logged this state
         if (R.isDeepEqual(state, lastLoggedStateRef.current)) return
 

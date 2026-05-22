@@ -18,6 +18,7 @@ import { SiteResources } from "./SiteResources.js"
 import { SiteSearchNavigation } from "./SiteSearchNavigation.js"
 import { SiteMobileMenu } from "./SiteMobileMenu.js"
 import { SiteNavigationToggle } from "./SiteNavigationToggle.js"
+import { buildLatestPagePath } from "./latest/latestUtils.js"
 import classnames from "classnames"
 import { useTriggerOnEscape } from "./hooks.js"
 import { useTopicTagGraph } from "./search/searchHooks.js"
@@ -159,7 +160,7 @@ export const SiteNavigation = ({
                                     <a href={SEARCH_BASE_PATH}>Data</a>
                                 </li>
                                 <li>
-                                    <a href="/data-insights">Insights</a>
+                                    <a href={buildLatestPagePath()}>Latest</a>
                                 </li>
                                 <li className="with-relative-dropdown">
                                     <SiteNavigationToggle
