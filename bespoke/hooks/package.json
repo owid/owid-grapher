@@ -3,7 +3,6 @@
     "private": true,
     "type": "module",
     "dependencies": {
-        "@ourworldindata/types": "link:../../packages/@ourworldindata/types",
         "@ourworldindata/utils": "link:../../packages/@ourworldindata/utils",
         "react": "^19.2.4"
     },

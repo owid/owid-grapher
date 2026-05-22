@@ -143,24 +143,6 @@ __metadata:
   languageName: node
   linkType: soft
 
-"@ourworldindata/core-table@link:../../../packages/@ourworldindata/core-table::locator=%40owid%2Fbespoke-causes-of-death%40workspace%3Aprojects%2Fcauses-of-death":
-  version: 0.0.0-use.local
-  resolution: "@ourworldindata/core-table@link:../../../packages/@ourworldindata/core-table::locator=%40owid%2Fbespoke-causes-of-death%40workspace%3Aprojects%2Fcauses-of-death"
-  languageName: node
-  linkType: soft
-
-"@ourworldindata/core-table@link:../../../packages/@ourworldindata/core-table::locator=%40owid%2Fbespoke-demography%40workspace%3Aprojects%2Fdemography":
-  version: 0.0.0-use.local
-  resolution: "@ourworldindata/core-table@link:../../../packages/@ourworldindata/core-table::locator=%40owid%2Fbespoke-demography%40workspace%3Aprojects%2Fdemography"
-  languageName: node
-  linkType: soft
-
-"@ourworldindata/core-table@link:../../../packages/@ourworldindata/core-table::locator=%40owid%2Fbespoke-example%40workspace%3Aprojects%2Fexample":
-  version: 0.0.0-use.local
-  resolution: "@ourworldindata/core-table@link:../../../packages/@ourworldindata/core-table::locator=%40owid%2Fbespoke-example%40workspace%3Aprojects%2Fexample"
-  languageName: node
-  linkType: soft
-
 "@ourworldindata/grapher@link:../../../packages/@ourworldindata/grapher::locator=%40owid%2Fbespoke-causes-of-death%40workspace%3Aprojects%2Fcauses-of-death":
   version: 0.0.0-use.local
   resolution: "@ourworldindata/grapher@link:../../../packages/@ourworldindata/grapher::locator=%40owid%2Fbespoke-causes-of-death%40workspace%3Aprojects%2Fcauses-of-death"
@@ -191,21 +173,9 @@ __metadata:
   languageName: node
   linkType: soft
 
-"@ourworldindata/types@link:../../../packages/@ourworldindata/types::locator=%40owid%2Fbespoke-example%40workspace%3Aprojects%2Fexample":
-  version: 0.0.0-use.local
-  resolution: "@ourworldindata/types@link:../../../packages/@ourworldindata/types::locator=%40owid%2Fbespoke-example%40workspace%3Aprojects%2Fexample"
-  languageName: node
-  linkType: soft
-
 "@ourworldindata/types@link:../../packages/@ourworldindata/types::locator=%40owid%2Fbespoke-components%40workspace%3Acomponents":
   version: 0.0.0-use.local
   resolution: "@ourworldindata/types@link:../../packages/@ourworldindata/types::locator=%40owid%2Fbespoke-components%40workspace%3Acomponents"
-  languageName: node
-  linkType: soft
-
-"@ourworldindata/types@link:../../packages/@ourworldindata/types::locator=%40owid%2Fbespoke-hooks%40workspace%3Ahooks":
-  version: 0.0.0-use.local
-  resolution: "@ourworldindata/types@link:../../packages/@ourworldindata/types::locator=%40owid%2Fbespoke-hooks%40workspace%3Ahooks"
   languageName: node
   linkType: soft
 
@@ -247,7 +217,6 @@ __metadata:
     "@fortawesome/free-solid-svg-icons": "npm:^6.7.2"
     "@fortawesome/react-fontawesome": "npm:^0.2.2"
     "@ourworldindata/components": "link:../../../packages/@ourworldindata/components"
-    "@ourworldindata/core-table": "link:../../../packages/@ourworldindata/core-table"
     "@ourworldindata/grapher": "link:../../../packages/@ourworldindata/grapher"
     "@ourworldindata/types": "link:../../../packages/@ourworldindata/types"
     "@ourworldindata/utils": "link:../../../packages/@ourworldindata/utils"
@@ -258,14 +227,11 @@ __metadata:
     "@types/react": "npm:^19.2.14"
     "@types/react-dom": "npm:^19.2.3"
     "@typescript/native-preview": "npm:^7.0.0-dev.20260313.1"
-    "@visx/drag": "npm:^3.12.0"
     "@vitejs/plugin-react": "npm:^6.0.0"
     classnames: "npm:^2.5.1"
     d3: "npm:^7.9.0"
     normalize.css: "npm:^8.0.1"
     react: "npm:^19.2.4"
-    react-aria: "npm:^3.41.1"
-    react-aria-components: "npm:^1.8.0"
     react-dom: "npm:^19.2.4"
     remeda: "npm:^2.21.0"
     sass: "npm:^1.87.0"
@@ -298,28 +264,26 @@ __metadata:
     "@fortawesome/free-solid-svg-icons": "npm:^6.7.2"
     "@fortawesome/react-fontawesome": "npm:^0.2.2"
     "@ourworldindata/components": "link:../../../packages/@ourworldindata/components"
-    "@ourworldindata/core-table": "link:../../../packages/@ourworldindata/core-table"
     "@ourworldindata/grapher": "link:../../../packages/@ourworldindata/grapher"
     "@ourworldindata/types": "link:../../../packages/@ourworldindata/types"
     "@ourworldindata/utils": "link:../../../packages/@ourworldindata/utils"
     "@react-stately/flags": "npm:^3.1.2"
     "@rollup/plugin-swc": "npm:^0.4.0"
     "@tanstack/react-query": "npm:^5.90.6"
-    "@tippyjs/react": "npm:^4.2.6"
+    "@types/d3-scale": "npm:^4.0.9"
     "@types/lodash-es": "npm:^4.17.12"
     "@types/react": "npm:^19.2.14"
     "@types/react-dom": "npm:^19.2.3"
     "@typescript/native-preview": "npm:^7.0.0-dev.20260313.1"
     "@visx/axis": "npm:^3.12.0"
-    "@visx/drag": "npm:^3.12.0"
     "@visx/event": "npm:^3.3.0"
     "@visx/group": "npm:^3.12.0"
     "@visx/responsive": "npm:^3.12.0"
     "@visx/scale": "npm:^3.12.0"
     "@visx/shape": "npm:^3.12.0"
-    "@visx/tooltip": "npm:^3.3.0"
     "@vitejs/plugin-react": "npm:^6.0.0"
     classnames: "npm:^2.5.1"
+    d3-scale: "npm:^4.0.2"
     lodash-es: "npm:^4.17.21"
     normalize.css: "npm:^8.0.1"
     react: "npm:^19.2.4"
@@ -343,9 +307,7 @@ __metadata:
     "@fortawesome/free-solid-svg-icons": "npm:^6.7.2"
     "@fortawesome/react-fontawesome": "npm:^0.2.2"
     "@ourworldindata/components": "link:../../../packages/@ourworldindata/components"
-    "@ourworldindata/core-table": "link:../../../packages/@ourworldindata/core-table"
     "@ourworldindata/grapher": "link:../../../packages/@ourworldindata/grapher"
-    "@ourworldindata/types": "link:../../../packages/@ourworldindata/types"
     "@ourworldindata/utils": "link:../../../packages/@ourworldindata/utils"
     "@react-stately/flags": "npm:^3.1.2"
     "@rollup/plugin-swc": "npm:^0.4.0"
@@ -353,7 +315,6 @@ __metadata:
     "@types/react": "npm:^19.2.14"
     "@types/react-dom": "npm:^19.2.3"
     "@typescript/native-preview": "npm:^7.0.0-dev.20260313.1"
-    "@visx/drag": "npm:^3.12.0"
     "@visx/group": "npm:^3.12.0"
     "@visx/responsive": "npm:^3.12.0"
     "@vitejs/plugin-react": "npm:^6.0.0"
@@ -361,7 +322,6 @@ __metadata:
     jotai: "npm:^2.18.1"
     normalize.css: "npm:^8.0.1"
     react: "npm:^19.2.4"
-    react-aria-components: "npm:^1.8.0"
     react-dom: "npm:^19.2.4"
     sass: "npm:^1.87.0"
     vite: "npm:^8.0.5"
@@ -373,7 +333,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@owid/bespoke-hooks@workspace:hooks"
   dependencies:
-    "@ourworldindata/types": "link:../../packages/@ourworldindata/types"
     "@ourworldindata/utils": "link:../../packages/@ourworldindata/utils"
     "@typescript/native-preview": "npm:^7.0.0-dev.20260401.1"
     react: "npm:^19.2.4"
@@ -901,18 +860,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tippyjs/react@npm:^4.2.6":
-  version: 4.2.6
-  resolution: "@tippyjs/react@npm:4.2.6"
-  dependencies:
-    tippy.js: "npm:^6.3.1"
-  peerDependencies:
-    react: ">=16.8"
-    react-dom: ">=16.8"
-  checksum: 10/7bb842e9598a842329d21e31d0dc30b61f703b86f5c3832846a778000883838f98b8609881fec34d5e44ae7d6738cb594403a7df47280b54b900d5af5e256dd3
-  languageName: node
-  linkType: hard
-
 "@tybys/wasm-util@npm:^0.10.1":
   version: 0.10.2
   resolution: "@tybys/wasm-util@npm:0.10.2"
@@ -1145,7 +1092,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/d3-scale@npm:*":
+"@types/d3-scale@npm:*, @types/d3-scale@npm:^4.0.9":
   version: 4.0.9
   resolution: "@types/d3-scale@npm:4.0.9"
   dependencies:
@@ -1317,7 +1264,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react-dom@npm:*, @types/react-dom@npm:^19.2.3":
+"@types/react-dom@npm:^19.2.3":
   version: 19.2.3
   resolution: "@types/react-dom@npm:19.2.3"
   peerDependencies:
@@ -1434,20 +1381,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@visx/bounds@npm:3.12.0":
-  version: 3.12.0
-  resolution: "@visx/bounds@npm:3.12.0"
-  dependencies:
-    "@types/react": "npm:*"
-    "@types/react-dom": "npm:*"
-    prop-types: "npm:^15.5.10"
-  peerDependencies:
-    react: ^16.0.0-0 || ^17.0.0-0 || ^18.0.0-0
-    react-dom: ^16.0.0-0 || ^17.0.0-0 || ^18.0.0-0
-  checksum: 10/ec820971659c6f15afd0e2b08bbe1596cc49711063c568cda14c96ba832f52906d9303b9d860098eb8657cef979fa3e03a1665510cca5ef051ff8f04ae2e315a
-  languageName: node
-  linkType: hard
-
 "@visx/curve@npm:3.12.0":
   version: 3.12.0
   resolution: "@visx/curve@npm:3.12.0"
@@ -1560,22 +1493,6 @@ __metadata:
   peerDependencies:
     react: ^16.3.0-0 || ^17.0.0-0 || ^18.0.0-0
   checksum: 10/701982afd0ded57cd2e89afe896ea2758f52ef709e4c320fe8f024d7f504627d7941a62c6ccb991c2b49c410631fa08381d8ede72172ed37ce0b2668f8b3932a
-  languageName: node
-  linkType: hard
-
-"@visx/tooltip@npm:^3.3.0":
-  version: 3.12.0
-  resolution: "@visx/tooltip@npm:3.12.0"
-  dependencies:
-    "@types/react": "npm:*"
-    "@visx/bounds": "npm:3.12.0"
-    classnames: "npm:^2.3.1"
-    prop-types: "npm:^15.5.10"
-    react-use-measure: "npm:^2.0.4"
-  peerDependencies:
-    react: ^16.8.0-0 || ^17.0.0-0 || ^18.0.0-0
-    react-dom: ^16.8.0-0 || ^17.0.0-0 || ^18.0.0-0
-  checksum: 10/f260cc14ac3de42748005370c712117b331e1be5bec0fb61306e757fedcd9af81df7314a7f7fc949f0e4db93c08a73318753782b7b64c6f0894fa389b324dbb3
   languageName: node
   linkType: hard
 
@@ -2047,7 +1964,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"d3-scale@npm:4, d3-scale@npm:4.0.2":
+"d3-scale@npm:4, d3-scale@npm:4.0.2, d3-scale@npm:^4.0.2":
   version: 4.0.2
   resolution: "d3-scale@npm:4.0.2"
   dependencies:
@@ -2716,19 +2633,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-use-measure@npm:^2.0.4":
-  version: 2.1.7
-  resolution: "react-use-measure@npm:2.1.7"
-  peerDependencies:
-    react: ">=16.13"
-    react-dom: ">=16.13"
-  peerDependenciesMeta:
-    react-dom:
-      optional: true
-  checksum: 10/d3cbd359b97728654904a7b3b42c2bcac95596702d482bd497362869eeb040f0e585eb7073cfe76a6055783215581f5db5d2be3ba5b78668f0dd0be5b3330e67
-  languageName: node
-  linkType: hard
-
 "react@npm:^19.2.4":
   version: 19.2.6
   resolution: "react@npm:19.2.6"
@@ -2967,7 +2871,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tippy.js@npm:^6.3.1, tippy.js@npm:^6.3.7":
+"tippy.js@npm:^6.3.7":
   version: 6.3.7
   resolution: "tippy.js@npm:6.3.7"
   dependencies:

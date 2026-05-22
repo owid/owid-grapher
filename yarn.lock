@@ -2992,7 +2992,6 @@ __metadata:
   resolution: "@ourworldindata/components@workspace:packages/@ourworldindata/components"
   dependencies:
     "@fortawesome/fontawesome-svg-core": "npm:^6.7.2"
-    "@fortawesome/free-brands-svg-icons": "npm:^6.7.2"
     "@fortawesome/free-solid-svg-icons": "npm:^6.7.2"
     "@fortawesome/react-fontawesome": "npm:^0.2.2"
     "@ourworldindata/types": "workspace:^"
@@ -3005,8 +3004,6 @@ __metadata:
     lodash-es: "npm:^4.18.1"
     mdast-util-find-and-replace: "npm:^3.0.2"
     mdast-util-from-markdown: "npm:^2.0.2"
-    mobx: "npm:^6.13.7"
-    mobx-react: "npm:^7.6.0"
     react: "npm:^19.2.4"
     react-aria-components: "npm:^1.17.0"
     react-dom: "npm:^19.2.4"
@@ -3025,11 +3022,8 @@ __metadata:
   dependencies:
     "@ourworldindata/types": "workspace:^"
     "@ourworldindata/utils": "workspace:^"
-    "@types/d3": "npm:^7.4.3"
     "@types/lodash-es": "npm:^4.17.12"
     "@types/papaparse": "npm:^5.5.2"
-    d3: "npm:^7.9.0"
-    dayjs: "npm:^1.11.19"
     lodash-es: "npm:^4.18.1"
     papaparse: "npm:^5.5.3"
     remeda: "npm:^2.32.0"
@@ -3042,7 +3036,6 @@ __metadata:
   resolution: "@ourworldindata/explorer@workspace:packages/@ourworldindata/explorer"
   dependencies:
     "@fortawesome/fontawesome-svg-core": "npm:^6.7.2"
-    "@fortawesome/free-brands-svg-icons": "npm:^6.7.2"
     "@fortawesome/free-solid-svg-icons": "npm:^6.7.2"
     "@fortawesome/react-fontawesome": "npm:^0.2.2"
     "@ourworldindata/components": "workspace:^"
@@ -3050,31 +3043,17 @@ __metadata:
     "@ourworldindata/grapher": "workspace:^"
     "@ourworldindata/types": "workspace:^"
     "@ourworldindata/utils": "workspace:^"
-    "@react-spring/web": "npm:^10.0.3"
     "@testing-library/react": "npm:^16.3.2"
-    "@tippyjs/react": "npm:^4.2.6"
-    "@types/colorbrewer": "npm:^1.0.32"
-    "@types/d3": "npm:^7.4.3"
-    "@types/js-cookie": "npm:^3.0.6"
     "@types/lodash-es": "npm:^4.17.12"
-    "@types/mousetrap": "npm:^1.6.15"
     "@types/react": "npm:^19.2.14"
     "@types/react-dom": "npm:^19.2.3"
-    "@types/topojson-client": "npm:^3.1.5"
     classnames: "npm:^2.5.1"
-    colorbrewer: "npm:^1.3.0"
-    d3: "npm:^7.9.0"
-    js-cookie: "npm:^3.0.7"
     lodash-es: "npm:^4.18.1"
     mobx: "npm:^6.13.7"
     mobx-react: "npm:^7.6.0"
-    mousetrap: "npm:^1.6.5"
     react: "npm:^19.2.4"
     react-dom: "npm:^19.2.4"
-    react-flip-toolkit: "npm:^7.2.4"
     remeda: "npm:^2.32.0"
-    simple-statistics: "npm:^7.8.8"
-    topojson-client: "npm:^3.1.0"
     ts-pattern: "npm:^5.8.0"
     vitest: "npm:^4.1.7"
   languageName: unknown
@@ -3085,7 +3064,6 @@ __metadata:
   resolution: "@ourworldindata/grapher@workspace:packages/@ourworldindata/grapher"
   dependencies:
     "@fortawesome/fontawesome-svg-core": "npm:^6.7.2"
-    "@fortawesome/free-brands-svg-icons": "npm:^6.7.2"
     "@fortawesome/free-solid-svg-icons": "npm:^6.7.2"
     "@fortawesome/react-fontawesome": "npm:^0.2.2"
     "@internationalized/date": "npm:^3.12.1"
@@ -3153,18 +3131,19 @@ __metadata:
     "@ourworldindata/types": "workspace:^"
     "@sentry/browser": "npm:^10.51.0"
     "@tippyjs/react": "npm:^4.2.6"
-    "@types/d3": "npm:^7.4.3"
+    "@types/d3-array": "npm:^3.2.1"
+    "@types/d3-format": "npm:^3.0.4"
     "@types/js-cookie": "npm:^3.0.6"
     "@types/lodash-es": "npm:^4.17.12"
     "@types/react": "npm:^19.2.14"
     "@types/url-parse": "npm:^1.4.11"
-    d3: "npm:^7.9.0"
+    d3-array: "npm:^3.2.4"
+    d3-format: "npm:^3.1.0"
     dayjs: "npm:^1.11.19"
     fuzzysort: "npm:^3.1.0"
     js-cookie: "npm:^3.0.7"
     lodash-es: "npm:^4.18.1"
     mobx: "npm:^6.13.7"
-    mobx-react: "npm:^7.6.0"
     react: "npm:^19.2.4"
     remeda: "npm:^2.32.0"
     striptags: "npm:^3.2.0"
@@ -5609,6 +5588,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/d3-array@npm:^3.2.1":
+  version: 3.2.2
+  resolution: "@types/d3-array@npm:3.2.2"
+  checksum: 10/1afebd05b688cafaaea295f765b409789f088b274b8a7ca40a4bc2b79760044a898e06a915f40bbc59cf39eabdd2b5d32e960b136fc025fd05c9a9d4435614c6
+  languageName: node
+  linkType: hard
+
 "@types/d3-axis@npm:*":
   version: 3.0.6
   resolution: "@types/d3-axis@npm:3.0.6"
@@ -5704,7 +5690,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/d3-format@npm:*":
+"@types/d3-format@npm:*, @types/d3-format@npm:^3.0.4":
   version: 3.0.4
   resolution: "@types/d3-format@npm:3.0.4"
   checksum: 10/b937ecd2712d4aa38d5b4f5daab9cc8a576383868be1809e046aec99eeb1f1798c139f2e862dc400a82494c763be46087d154891773417f8eb53c73762ba3eb8
@@ -7990,7 +7976,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"d3-array@npm:2 - 3, d3-array@npm:2.10.0 - 3, d3-array@npm:2.5.0 - 3, d3-array@npm:3, d3-array@npm:^3.2.0":
+"d3-array@npm:2 - 3, d3-array@npm:2.10.0 - 3, d3-array@npm:2.5.0 - 3, d3-array@npm:3, d3-array@npm:^3.2.0, d3-array@npm:^3.2.4":
   version: 3.2.4
   resolution: "d3-array@npm:3.2.4"
   dependencies:
@@ -8122,6 +8108,13 @@ __metadata:
   version: 3.1.0
   resolution: "d3-format@npm:3.1.0"
   checksum: 10/a0fe23d2575f738027a3db0ce57160e5a473ccf24808c1ed46d45ef4f3211076b34a18b585547d34e365e78dcc26dd4ab15c069731fc4b1c07a26bfced09ea31
+  languageName: node
+  linkType: hard
+
+"d3-format@npm:^3.1.0":
+  version: 3.1.2
+  resolution: "d3-format@npm:3.1.2"
+  checksum: 10/811d913c2c7624cb0d2a8f0ccd7964c50945b3de3c7f7aa14c309fba7266a3ec53cbee8c05f6ad61b2b65b93e157c55a0e07db59bc3180c39dac52be8e841ab1
   languageName: node
   linkType: hard
 
@@ -9668,7 +9661,6 @@ __metadata:
     "@googleapis/docs": "npm:^9.2.1"
     "@googleapis/drive": "npm:^20.1.0"
     "@handsontable/react": "npm:^15.1.0"
-    "@internationalized/date": "npm:^3.12.1"
     "@ourworldindata/components": "workspace:^"
     "@ourworldindata/core-table": "workspace:^"
     "@ourworldindata/explorer": "workspace:^"
@@ -9677,7 +9669,6 @@ __metadata:
     "@ourworldindata/utils": "workspace:^"
     "@playwright/test": "npm:^1.57.0"
     "@react-awesome-query-builder/antd": "npm:^6.6.15"
-    "@react-spring/web": "npm:^10.0.3"
     "@rmp135/sql-ts": "npm:^2.1.0"
     "@rollup/plugin-swc": "npm:^0.4.0"
     "@sentry/node": "npm:^10.51.0"
@@ -9692,17 +9683,13 @@ __metadata:
     "@testing-library/react": "npm:^16.3.2"
     "@tippyjs/react": "npm:^4.2.6"
     "@tsconfig/node24": "npm:^24.0.0"
-    "@turf/boolean-intersects": "npm:^7.2.0"
-    "@turf/center": "npm:^7.2.0"
     "@types/chunk-text": "npm:^1.0.2"
-    "@types/colorbrewer": "npm:^1.0.32"
     "@types/cookie-parser": "npm:^1.4.10"
     "@types/d3": "npm:^7.4.3"
     "@types/express": "npm:^5.0.6"
     "@types/fs-extra": "npm:^11.0.4"
     "@types/geojson": "npm:^7946.0.16"
     "@types/history": "npm:^4.7.11"
-    "@types/indefinite": "npm:^2.3.4"
     "@types/ini": "npm:^4.1.1"
     "@types/js-cookie": "npm:^3.0.6"
     "@types/lodash-es": "npm:^4.17.12"
@@ -9720,9 +9707,7 @@ __metadata:
     "@types/react-recaptcha": "npm:^2.3.7"
     "@types/react-router": "npm:^5.1.20"
     "@types/react-router-dom": "npm:^5.3.3"
-    "@types/topojson-client": "npm:^3.1.5"
     "@types/topojson-server": "npm:^3.0.4"
-    "@types/url-parse": "npm:^1.4.11"
     "@types/yargs": "npm:^17.0.35"
     "@typescript/native-preview": "npm:^7.0.0-dev.20260504.1"
     "@uiw/react-codemirror": "npm:^4.24.1"
@@ -9739,7 +9724,6 @@ __metadata:
     chokidar-cli: "npm:^3.0.0"
     chunk-text: "npm:^2.0.1"
     classnames: "npm:^2.5.1"
-    colorbrewer: "npm:^1.3.0"
     cookie-parser: "npm:^1.4.7"
     core-js: "npm:^3.49.0"
     d3: "npm:^7.9.0"
@@ -9757,7 +9741,6 @@ __metadata:
     figma-api: "npm:^2.2.0-beta"
     filenamify: "npm:^7.0.1"
     flag-icons: "npm:^7.5.0"
-    fparser: "npm:^3.1.0"
     fs-extra: "npm:^11.3.4"
     google-auth-library: "npm:^10.6.2"
     handsontable: "npm:^15.1.0"
@@ -9765,7 +9748,6 @@ __metadata:
     history: "npm:4"
     http-server: "npm:^14.1.1"
     husky: "npm:^9.0.11"
-    indefinite: "npm:^2.5.2"
     ini: "npm:^7.0.0"
     instantsearch.js: "npm:^4.90.0"
     jose: "npm:^6.2.1"
@@ -9774,7 +9756,6 @@ __metadata:
     knex: "npm:^3.1.0"
     lint-staged: "npm:^17.0.5"
     lodash-es: "npm:^4.18.1"
-    mdast-util-find-and-replace: "npm:^3.0.2"
     mdast-util-from-markdown: "npm:^2.0.2"
     minimist: "npm:^1.2.6"
     mobx: "npm:^6.13.7"
@@ -9798,10 +9779,8 @@ __metadata:
     react-color: "npm:^2.18.1"
     react-diff-viewer-continued: "npm:^4.2.0"
     react-dom: "npm:^19.2.4"
-    react-flip-toolkit: "npm:^7.2.4"
     react-horizontal-scrolling-menu: "npm:^8.2.0"
     react-instantsearch: "npm:^7.26.0"
-    react-markdown: "npm:^10.1.0"
     react-recaptcha: "npm:^2.3.10"
     react-router: "npm:^5.3.4"
     react-router-dom: "npm:^5.3.4"
@@ -9816,22 +9795,15 @@ __metadata:
     schema-dts: "npm:^2.0.0"
     sharp: "npm:^0.34.5"
     simple-git: "npm:^3.36.0"
-    simple-statistics: "npm:^7.8.8"
-    striptags: "npm:^3.2.0"
-    timezone-mock: "npm:^1.0.18"
     tinyexec: "npm:^1.1.1"
-    topojson-client: "npm:^3.1.0"
     topojson-server: "npm:^3.0.1"
     ts-pattern: "npm:^5.8.0"
     tsx: "npm:^4.21.0"
     typeorm: "npm:^1.0.0"
-    unist-util-visit: "npm:^5.0.0"
     url-join: "npm:^5.0.0"
-    url-parse: "npm:^1.5.10"
     url-slug: "npm:^4.0.1"
     usehooks-ts: "npm:^3.1.1"
     uuid: "npm:^14.0.0"
-    versor: "npm:^0.2.0"
     vite: "npm:^8.0.14"
     vitest: "npm:^4.1.7"
     workerpool: "npm:^10.0.1"
