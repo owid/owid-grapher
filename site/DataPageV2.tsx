@@ -44,7 +44,6 @@ export const DataPageV2 = (props: {
     isPreviewing: boolean
     faqEntries?: FaqEntryData
     imageMetadata: Record<string, ImageMetadata>
-    tagToSlugMap: Record<string | number, string>
     archiveContext?: ArchiveContext
     dataApiUrl?: string
     distribution: Distribution
@@ -56,7 +55,6 @@ export const DataPageV2 = (props: {
         canonicalUrl,
         isPreviewing,
         faqEntries,
-        tagToSlugMap,
         imageMetadata,
         archiveContext,
         distribution,
@@ -99,12 +97,6 @@ export const DataPageV2 = (props: {
         bakedGrapherURL: BAKED_GRAPHER_URL,
         adminBaseUrl: ADMIN_BASE_URL,
     }
-
-    // Only embed the tags that are actually used by the datapage, instead of the complete JSON object with ~240 properties
-    const minimalTagToSlugMap = _.pick(
-        tagToSlugMap,
-        datapageData.topicTagsLinks || []
-    )
 
     const isOnArchivalPage = archiveContext?.type === "archive-page"
     const assetMaps = isOnArchivalPage ? archiveContext.assets : undefined
@@ -176,7 +168,6 @@ export const DataPageV2 = (props: {
                                     datapageData,
                                     faqEntries,
                                     canonicalUrl,
-                                    tagToSlugMap: minimalTagToSlugMap,
                                     imageMetadata,
                                     distribution,
                                 }
@@ -192,7 +183,6 @@ export const DataPageV2 = (props: {
                                 isPreviewing={isPreviewing}
                                 faqEntries={faqEntries}
                                 canonicalUrl={canonicalUrl}
-                                tagToSlugMap={tagToSlugMap}
                                 archiveContext={archiveContext}
                                 distribution={distribution}
                             />
