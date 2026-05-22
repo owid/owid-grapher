@@ -61,8 +61,8 @@ function shareAnnotation(
     const formatted = formatShare(share)
     if (!formatted) return undefined
     return kind === "production"
-        ? `(${formatted} of its production)`
-        : `(${formatted} of its domestic supply)`
+        ? `${formatted} of its production`
+        : `${formatted} of its domestic supply`
 }
 
 function tradeToFlow(rows: TradeRow[]) {
