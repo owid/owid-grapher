@@ -1,8 +1,10 @@
 import { useRef } from "react"
+import { useIsClient } from "usehooks-ts"
 import { useEmbedChart } from "../../hooks.js"
 import {
     EnrichedBlockNarrativeChart,
     GRAPHER_PREVIEW_CLASS,
+    HIDE_IF_JS_ENABLED_CLASSNAME,
 } from "@ourworldindata/types"
 import { useLinkedNarrativeChart } from "../utils.js"
 import cx from "classnames"
@@ -31,6 +33,7 @@ export default function NarrativeChart({
 }) {
     const refChartContainer = useRef<HTMLDivElement>(null)
     const { isPreviewing, archiveContext } = useDocumentContext()
+    const isClient = useIsClient()
     useEmbedChart(0, refChartContainer, isPreviewing)
 
     const viewMetadata = useLinkedNarrativeChart(d.name)
@@ -71,6 +74,7 @@ export default function NarrativeChart({
         path: d.name,
         fallback: `${GRAPHER_DYNAMIC_THUMBNAIL_URL}/by-uuid/${viewMetadata.chartConfigId}.png`,
     })
+    const shouldRenderImage = isOnArchivalPage || !isClient
 
     return (
         <div
@@ -102,16 +106,24 @@ export default function NarrativeChart({
                             metadataStringified,
                     })}
                 >
-                    <a href={linkTarget}>
-                        <img
-                            className="GrapherImage"
-                            src={imageSrc}
-                            alt={viewMetadata.title}
-                            width={DEFAULT_GRAPHER_WIDTH}
-                            height={DEFAULT_GRAPHER_HEIGHT}
-                            loading="lazy"
-                        />
-                    </a>
+                    {shouldRenderImage && (
+                        <a
+                            className={cx({
+                                [HIDE_IF_JS_ENABLED_CLASSNAME]:
+                                    !isOnArchivalPage,
+                            })}
+                            href={linkTarget}
+                        >
+                            <img
+                                className="GrapherImage"
+                                src={imageSrc}
+                                alt={viewMetadata.title}
+                                width={DEFAULT_GRAPHER_WIDTH}
+                                height={DEFAULT_GRAPHER_HEIGHT}
+                                loading="lazy"
+                            />
+                        </a>
+                    )}
                 </figure>
             </div>
             {d.caption ? (
