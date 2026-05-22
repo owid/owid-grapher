@@ -53,6 +53,12 @@ const STACKED_FONT_SETTINGS: FontSettings = {
 const SANKEY_NODE_PADDING = 12
 const SANKEY_VERTICAL_MARGIN = 6
 
+// Vertical space the stacked layout consumes outside the two chart cells,
+// beyond the two heading rows we already reserve via HEADING_HEIGHT. Just
+// the second heading's margin-top in stacked mode (row-gap is overridden
+// to 0 in the @container query — keep both in sync).
+const STACKED_VERTICAL_OVERHEAD = 16
+
 type View = "both" | "incoming" | "outgoing"
 
 export type HeadingContent = {
@@ -218,27 +224,33 @@ export function SplitFlowSankey({
             ? width
             : Math.max(0, (width - SANKEY_HALVES_GAP) / 2)
     const chartHeight = isStacked
-        ? Math.max(0, (height - 2 * HEADING_HEIGHT) / 2)
+        ? Math.max(
+              0,
+              (height - 2 * HEADING_HEIGHT - STACKED_VERTICAL_OVERHEAD) / 2
+          )
         : Math.max(0, height - HEADING_HEIGHT)
 
     // Give both halves the same value-to-pixel scale (`ky`), so a node of
-    // value X on one side renders the same height as a node of value X on the
-    // other side. d3-sankey otherwise sizes each half independently to fill
-    // its vertical extent, which makes the central node look the same height
-    // in both halves regardless of how the totals compare.
+    // value X on one side renders the same height as a node of value X on
+    // the other side. d3-sankey otherwise sizes each half independently to
+    // fill its vertical extent, which makes the central node look the same
+    // height in both halves regardless of how the totals compare.
     //
-    // Strategy: let the more constrained half fill `chartHeight`; shrink the
-    // other half's SVG so d3-sankey computes the same `ky` there too. Both
-    // halves are top-anchored, so the shorter SVG just leaves empty space
-    // beneath, which is what we want visually — when the halves sit side-by-
-    // side. In stacked mode the two halves are in separate grid rows and
-    // their central nodes aren't visually adjacent, so equalizing ky has no
-    // benefit and the shrunken half just creates a big empty gap below
-    // itself; skip equalization and let each half fill its own cell.
+    // Two strategies depending on layout:
+    //  - Side-by-side: each half has its own grid cell taking equal vertical
+    //    space (1fr 1fr). Let the more constrained half fill `chartHeight`
+    //    and shrink the other's SVG to match the same `ky` — the shorter
+    //    SVG sits at the top of its cell with empty space beneath, which is
+    //    invisible since the other half is right next to it.
+    //  - Stacked (mobile): cells stack vertically, so empty space beneath
+    //    a shrunken half is a real gap. Instead, compute a single `ky` that
+    //    fills the *combined* chart space exactly, and size each half's
+    //    cell to its natural height at that `ky` (via inline
+    //    grid-template-rows below). Both SVGs fill their cells with no
+    //    wasted space, and the value-to-pixel scale stays consistent.
     const halfHeights = useMemo(() => {
         if (
             isSingleHalf ||
-            isStacked ||
             !incomingBuild ||
             !outgoingBuild ||
             chartHeight <= 0
@@ -262,6 +274,26 @@ export function SplitFlowSankey({
                 SANKEY_VERTICAL_MARGIN -
                 Math.max(0, n - 1) * SANKEY_NODE_PADDING) /
             t
+
+        if (isStacked) {
+            // Stacked: solve for the `ky` that exactly fills both cells
+            // combined. `chartHeight` in stacked mode is per-cell, so the
+            // combined chart space is `2 * chartHeight`.
+            //   heightForKy(ky, tIn, nIn) + heightForKy(ky, tOut, nOut)
+            //     = 2 * chartHeight
+            //   ky * (tIn + tOut) + (nIn + nOut - 2) * PAD + 2 * MARGIN
+            //     = 2 * chartHeight
+            const totalChartSpace = 2 * chartHeight
+            const overhead =
+                2 * SANKEY_VERTICAL_MARGIN +
+                Math.max(0, nIn + nOut - 2) * SANKEY_NODE_PADDING
+            const ky = (totalChartSpace - overhead) / (tIn + tOut)
+            if (ky <= 0) return { incoming: chartHeight, outgoing: chartHeight }
+            return {
+                incoming: heightForKy(ky, tIn, nIn),
+                outgoing: heightForKy(ky, tOut, nOut),
+            }
+        }
 
         const kyInFull = kyForHeight(chartHeight, tIn, nIn)
         const kyOutFull = kyForHeight(chartHeight, tOut, nOut)
@@ -298,6 +330,17 @@ export function SplitFlowSankey({
         showOutgoing && !(outgoingBuild === null && outgoing.empty)
 
     const layoutVariant = isSingleHalf ? "single" : "split"
+    // Stacked layout: size the two chart rows to the proportional half
+    // heights computed above so each cell fits its SVG exactly — no
+    // whitespace below the shrunken half. The headings stay `auto`.
+    // The default CSS (auto 1fr auto 1fr from the @container query) is
+    // overridden when this inline style is set.
+    const gridStyle: React.CSSProperties | undefined =
+        isStacked && !isSingleHalf
+            ? {
+                  gridTemplateRows: `auto ${halfHeights.incoming}px auto ${halfHeights.outgoing}px`,
+              }
+            : undefined
     return (
         <div
             className={cx("split-flow-sankey", {
@@ -306,6 +349,7 @@ export function SplitFlowSankey({
         >
             <div
                 className={`split-flow-sankey__grid split-flow-sankey__grid--${layoutVariant}`}
+                style={gridStyle}
             >
                 {showIncomingHeading && (
                     <HalfHeading heading={incoming.heading} align="right" />
@@ -510,9 +554,13 @@ function HalfHeading({
         <div
             className={`split-flow-sankey__heading split-flow-sankey__heading--${align}`}
         >
-            {heading.arrowSide === "start" && "→ "}
+            {heading.arrowSide === "start" && (
+                <span className="split-flow-sankey__heading-arrow">→ </span>
+            )}
             {heading.label}
-            {heading.arrowSide === "end" && " →"}
+            {heading.arrowSide === "end" && (
+                <span className="split-flow-sankey__heading-arrow"> →</span>
+            )}
             {heading.annotation && (
                 <span className="split-flow-sankey__heading-annotation">
                     {heading.annotation}
