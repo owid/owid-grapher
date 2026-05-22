@@ -57,14 +57,10 @@ export async function getExplorerViewConfigIds(
 
 /**
  * Given a ChartViewsMap and a list of keys, returns the max views_7d.
- *
- * This is used for grapher charts which can be accessed via multiple slugs
- * (the canonical slug plus redirect slugs). When a chart is renamed, the
- * new canonical slug may have few or zero views while the old slug (now a
- * redirect) retains the historical view count. Taking the max ensures we
- * don't lose the view signal just because a chart was recently renamed.
+ * e.g. { "chart-slug-1": 100, "chart-slug-2": 200 }, ["chart-slug-1", "chart-slug-2"] => 200
+ * or for multi-dims: { "chart-config-uuid-1": 100, "chart-config-uuid-2": 200 }, ["chart-config-uuid-1", "chart-config-uuid-2"] => 200
  */
-export function getMaxViews(views: ChartViewsMap, keys: string[]): number {
+export function getMaxChartViews(views: ChartViewsMap, keys: string[]): number {
     let max = 0
     for (const key of keys) {
         const v = views.get(key) ?? 0
