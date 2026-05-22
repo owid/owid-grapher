@@ -1,24 +1,18 @@
 import { useMemo, useEffect, useState } from "react"
 import { GrapherProgrammaticInterface } from "@ourworldindata/grapher"
-import {
-    REUSE_THIS_WORK_SECTION_ID,
-    DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID,
-    DATAPAGE_ABOUT_THIS_DATA_SECTION_ID,
-} from "@ourworldindata/components"
+import { DATAPAGE_ABOUT_THIS_DATA_SECTION_ID } from "@ourworldindata/components"
 import {
     EXPERIMENT_ARM_SEPARATOR,
     EXPERIMENT_PREFIX,
     DataPageV2ContentFields,
     GrapherInterface,
     ImageMetadata,
-    excludeNull,
     defaultExperimentState,
     getExperimentState,
     ExperimentState,
 } from "@ourworldindata/utils"
 import { RelatedCharts } from "./blocks/RelatedCharts.js"
 import { FeaturedMetrics } from "./FeaturedMetrics.js"
-import StickyNav from "./blocks/StickyNav.js"
 import {
     ADMIN_BASE_URL,
     BAKED_GRAPHER_URL,
@@ -72,27 +66,6 @@ export const DataPageV2Content = ({
         }),
         [grapherConfig, archiveContext]
     )
-    const stickyNavLinks = excludeNull([
-        {
-            text: "Explore the Data",
-            target: "#explore-the-data",
-        },
-        datapageData.relatedResearch?.length
-            ? {
-                  text: "Research & Writing",
-                  target: "#research-and-writing",
-              }
-            : null,
-        datapageData.allCharts?.length
-            ? { text: "All Charts", target: "#all-charts" }
-            : null,
-        faqEntries?.faqs?.length ? { text: "FAQs", target: "#faqs" } : null,
-        {
-            text: "Sources & Processing",
-            target: "#" + DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID,
-        },
-        { text: "Reuse This Work", target: "#" + REUSE_THIS_WORK_SECTION_ID },
-    ])
 
     const relatedResearch = processRelatedResearch(
         datapageData.relatedResearch,
@@ -158,13 +131,6 @@ export const DataPageV2Content = ({
                     />
                 </div>
                 <div className="DataPageContent grid grid-cols-12-full-width">
-                    <div className="bg-blue-10 span-cols-14"></div>
-                    <nav className="sticky-nav sticky-nav--dark span-cols-14 grid grid-cols-12-full-width">
-                        <StickyNav
-                            className="span-cols-12 col-start-2"
-                            links={stickyNavLinks}
-                        />
-                    </nav>
                     <div className="span-cols-14 grid grid-cols-12-full-width full-width--border">
                         <div className="chart-key-info col-start-2 span-cols-12">
                             {grapherConfig.slug && (
