@@ -117,12 +117,12 @@ async function getExplorerDefaultViewConfigIds(
 }
 
 /**
- * Inverts the grapher/explorer→mdim redirect map into a lookup keyed by the
- * mdim target slug, so each mdim can find the sources that now redirect into
+ * Inverts the grapher/explorer→multi-dim redirect map into a lookup keyed by the
+ * multi-dim target slug, so each mdim can find the sources that now redirect into
  * it. Each redirect is enriched with a resolved analytics_chart_views lookup
  * key (see MultiDimRedirectWithLookupKey).
  */
-async function getMdimRedirectsByMdimSlug(
+async function getMultiDimRedirectsByMultiDimSlug(
     knex: db.KnexReadonlyTransaction
 ): Promise<Map<string, MultiDimRedirectWithLookupKey[]>> {
     const [grapherTargets, explorerTargets] = await Promise.all([
@@ -165,7 +165,7 @@ export type MultiDimIndexingContext = IndexingContext & {
      * it now redirects to, so the search score doesn't lose that signal during
      * the redirect's first week.
      */
-    redirectsByMdimSlug: Map<string, MultiDimRedirectWithLookupKey[]>
+    redirectsByMultiDimSlug: Map<string, MultiDimRedirectWithLookupKey[]>
 }
 
 /**
@@ -176,10 +176,10 @@ export async function createMultiDimIndexingContext(
     knex: db.KnexReadonlyTransaction,
     baseContext?: IndexingContext
 ): Promise<MultiDimIndexingContext> {
-    const [base, redirectsByMdimSlug] = await Promise.all([
+    const [base, redirectsByMultiDimSlug] = await Promise.all([
         baseContext ?? createBaseIndexingContext(knex),
-        getMdimRedirectsByMdimSlug(knex),
+        getMultiDimRedirectsByMultiDimSlug(knex),
     ])
 
-    return { ...base, redirectsByMdimSlug }
+    return { ...base, redirectsByMultiDimSlug }
 }

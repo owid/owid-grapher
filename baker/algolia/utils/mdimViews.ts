@@ -123,13 +123,13 @@ async function getRecords(
         [slug],
         ContentGraphLinkType.Grapher
     )
-    const mdimConfig = MultiDimDataPageConfig.fromObject(multiDim.config)
+    const multiDimConfig = MultiDimDataPageConfig.fromObject(multiDim.config)
     const defaultViewQueryStr = dimensionsToSortedQueryStr(
-        mdimConfig.filterToAvailableChoices({}).selectedChoices
+        multiDimConfig.filterToAvailableChoices({}).selectedChoices
     )
     const numRelatedArticlesByViewId = attributeLinksToViewIds(
         linksFromGdocs,
-        mdimConfig
+        multiDimConfig
     )
     const predecessorsByQueryStr = bucketPredecessorsByQueryStr(
         redirects,
@@ -271,7 +271,7 @@ async function getMultiDimDataPagesWithInheritedTags(
     return result
 }
 
-export async function getMdimViewRecords(
+export async function getMultiDimViewRecords(
     trx: db.KnexReadonlyTransaction,
     options?: {
         id?: number
@@ -299,7 +299,7 @@ export async function getMdimViewRecords(
                 multiDim,
                 tags,
                 context.chartViews,
-                context.redirectsByMdimSlug.get(multiDim.slug) ?? []
+                context.redirectsByMultiDimSlug.get(multiDim.slug) ?? []
             ),
         { concurrency: 10 }
     )
