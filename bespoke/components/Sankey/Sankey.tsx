@@ -1,4 +1,4 @@
-import React, { useMemo } from "react"
+import React, { useCallback, useMemo, useRef, useState } from "react"
 import {
     sankey as d3Sankey,
     sankeyLinkHorizontal,
@@ -6,7 +6,7 @@ import {
     SankeyNode as D3SankeyNode,
     SankeyLink as D3SankeyLink,
 } from "d3-sankey"
-import { Bounds, VerticalAlign } from "@ourworldindata/utils"
+import { Bounds, getRelativeMouse, VerticalAlign } from "@ourworldindata/utils"
 import {
     GRAPHER_DARK_TEXT,
     GRAPHER_DENIM,
@@ -14,6 +14,7 @@ import {
     type FontSettings,
 } from "@ourworldindata/grapher"
 import { TextWrap, TextWrapSvg } from "@ourworldindata/components"
+import { usePinnedTooltip } from "../../hooks/usePinnedTooltip.js"
 
 /* Horizontal gap between a node's edge and its label */
 export const BAND_LABEL_GAP = 6
@@ -52,12 +53,38 @@ interface SankeyProps {
     /** Whitespace between a node's band and the flow path */
     bandFlowGap?: number
     fontSettings?: FontSettings
+    /**
+     * When provided, hovering a link shows the rendered tooltip inside the
+     * Sankey's wrapper. The component uses an SVG-wide mousemove handler
+     * (rather than per-path events) to make thin and overlapping ribbons
+     * easy to hit; on touch devices it pins to the bottom and dismisses on
+     * tap-outside (via usePinnedTooltip).
+     */
+    renderLinkTooltip?: (args: LinkTooltipArgs) => React.ReactNode
+}
+
+export type LinkTooltipArgs = {
+    link: SankeyLink
+    /** Mouse position in container coordinates (same as the inner SVG's
+     *  coordinate space — the wrapper has no offset). */
+    position: { x: number; y: number }
+    /** Inner SVG bounds, useful for clamping the TooltipCard inside the
+     *  visible chart. */
+    containerBounds: { width: number; height: number }
+    /** True on touch devices once a tooltip is open — callers typically
+     *  switch to a bottom-anchored TooltipCard variant. */
+    isPinned: boolean
 }
 
 export type SankeyNode = {
     id: string
     label: string
     valueLabel?: string
+    /** Extra class names applied to both the band <rect> and the label <g>.
+     *  Lets a consumer mark special nodes (e.g. the central node in a
+     *  SplitFlowSankey) so its stylesheet can keep them at full opacity
+     *  while everything else dims on hover. */
+    className?: string
 }
 
 export type SankeyLink = {
@@ -67,6 +94,8 @@ export type SankeyLink = {
 }
 
 type PreparedSankeyLabel = {
+    nodeId: string
+    nodeClassName?: string
     x: number
     y: number
     textAnchor: "start" | "end"
@@ -95,6 +124,7 @@ export function Sankey({
     bandWidth = 4,
     bandFlowGap = 3,
     fontSettings = DEFAULT_SANKEY_FONT_SETTINGS,
+    renderLinkTooltip,
 }: SankeyProps): React.ReactElement | null {
     const nodeWidth = bandWidth + bandFlowGap
 
@@ -210,14 +240,66 @@ export function Sankey({
         [layout, nodePadding, fontSettings]
     )
 
+    const svgRef = useRef<SVGSVGElement>(null)
+    const [hover, setHover] = useState<{
+        link: LaidOutLink
+        position: { x: number; y: number }
+    } | null>(null)
+
+    const dismissTooltip = useCallback(() => setHover(null), [])
+    // Owns touch-device behavior for the tooltip: pins to the bottom of the
+    // chart and dismisses on tap-outside or scroll-out-of-view.
+    const { ref: containerRef, isPinned } = usePinnedTooltip<HTMLDivElement>(
+        hover !== null,
+        dismissTooltip
+    )
+
+    // SlopeChart uses a single SVG-wide mousemove and finds the nearest
+    // slope within a pixel tolerance (SlopeChart.tsx:659). The Sankey
+    // equivalent has a stronger membership test: each link occupies a
+    // vertical band of `link.width` around a smoothstep-interpolated
+    // centerline, so we just check the mouse is inside the band.
+    const onSvgMouseMove = useCallback(
+        (event: React.MouseEvent<SVGSVGElement>) => {
+            if (!renderLinkTooltip || !svgRef.current || !layout) return
+            const mouse = getRelativeMouse(svgRef.current, event.nativeEvent)
+            const target = findLinkAtPoint(layout.links, mouse.x, mouse.y)
+            if (target) {
+                setHover({
+                    link: target,
+                    position: { x: mouse.x, y: mouse.y },
+                })
+            } else {
+                setHover(null)
+            }
+        },
+        [renderLinkTooltip, layout]
+    )
+
+    const onSvgMouseLeave = useCallback(() => setHover(null), [])
+
+    // Endpoints of the hovered link. The two endpoints stay at full opacity
+    // while everything else dims via CSS — see `sankey__node--active` /
+    // `sankey__label--active`.
+    const activeNodeIds = useMemo(() => {
+        if (!hover) return new Set<string>()
+        return new Set<string>([
+            nodeId(hover.link.source),
+            nodeId(hover.link.target),
+        ])
+    }, [hover])
+
     if (!layout) return null
 
-    return (
+    const svg = (
         <svg
+            ref={svgRef}
             className="sankey"
             width={width}
             height={height}
             viewBox={`0 0 ${width} ${height}`}
+            onMouseMove={renderLinkTooltip ? onSvgMouseMove : undefined}
+            onMouseLeave={renderLinkTooltip ? onSvgMouseLeave : undefined}
         >
             <g className="sankey__links">
                 {layout.links.map((link, i) => (
@@ -226,6 +308,7 @@ export function Sankey({
                         link={link}
                         linkPath={linkPath}
                         linkColor={linkColor}
+                        isHovered={hover?.link === link}
                     />
                 ))}
             </g>
@@ -236,15 +319,54 @@ export function Sankey({
                         node={node}
                         bandWidth={bandWidth}
                         nodeColor={nodeColor}
+                        isActive={activeNodeIds.has(node.id)}
                     />
                 ))}
             </g>
             <g className="sankey__labels">
                 {labels.map((label, i) => (
-                    <SankeyLabel key={i} label={label} />
+                    <SankeyLabel
+                        key={i}
+                        label={label}
+                        isActive={activeNodeIds.has(label.nodeId)}
+                    />
                 ))}
             </g>
         </svg>
+    )
+
+    if (!renderLinkTooltip) return svg
+
+    // Bounds reported to the tooltip are the wrapper div's measured
+    // dimensions, not the SVG's own width/height. The wrapper stretches to
+    // fill its grid cell (see .sankey-container in Sankey.scss), so it
+    // mirrors the cell. The inner SVG can be shorter than the cell —
+    // SplitFlowSankey shrinks one half's SVG to equalize ky across halves —
+    // and using its dimensions would let the TooltipCard's `maxHeight =
+    // containerHeight - top` collapse near the bottom edge and clip
+    // subtitle/body content. Falling back to the SVG props is just a
+    // first-frame placeholder before clientWidth/Height are available.
+    const containerEl = containerRef.current
+    const tooltipBounds = containerEl
+        ? {
+              width: containerEl.clientWidth,
+              height: containerEl.clientHeight,
+          }
+        : { width, height }
+
+    // position: relative on the wrapper so the tooltip's absolute positioning
+    // resolves against the chart, not some distant ancestor.
+    return (
+        <div ref={containerRef} className="sankey-container">
+            {svg}
+            {hover &&
+                renderLinkTooltip({
+                    link: toLinkData(hover.link),
+                    position: hover.position,
+                    containerBounds: tooltipBounds,
+                    isPinned,
+                })}
+        </div>
     )
 }
 
@@ -252,10 +374,12 @@ function SankeyLink({
     link,
     linkPath,
     linkColor,
+    isHovered,
 }: {
     link: LaidOutLink
     linkPath: (link: LaidOutLink) => string | null
     linkColor?: (link: SankeyLink) => string
+    isHovered?: boolean
 }): React.ReactElement | null {
     const path = linkPath(link)
     if (!path) return null
@@ -265,7 +389,11 @@ function SankeyLink({
 
     return (
         <path
-            className="sankey__link"
+            className={
+                isHovered
+                    ? "sankey__link sankey__link--hovered"
+                    : "sankey__link"
+            }
             d={path}
             stroke={color}
             strokeWidth={width}
@@ -277,10 +405,12 @@ function SankeyNode({
     node,
     bandWidth,
     nodeColor,
+    isActive,
 }: {
     node: LaidOutNode
     bandWidth: number
     nodeColor?: (node: SankeyNode) => string
+    isActive?: boolean
 }): React.ReactElement {
     const x0 = node.x0 ?? 0
     const x1 = node.x1 ?? 0
@@ -293,9 +423,17 @@ function SankeyNode({
 
     const fill = nodeColor?.(node) ?? GRAPHER_DENIM
 
+    const className = [
+        "sankey__node",
+        isActive ? "sankey__node--active" : "",
+        node.className ?? "",
+    ]
+        .filter(Boolean)
+        .join(" ")
+
     return (
         <rect
-            className="sankey__node"
+            className={className}
             x={x}
             y={y0}
             width={bandWidth}
@@ -307,16 +445,26 @@ function SankeyNode({
 
 function SankeyLabel({
     label,
+    isActive,
 }: {
     label: PreparedSankeyLabel
+    isActive?: boolean
 }): React.ReactElement {
+    const className = [
+        "sankey__label",
+        isActive ? "sankey__label--active" : "",
+        label.nodeClassName ?? "",
+    ]
+        .filter(Boolean)
+        .join(" ")
+
     if (label.valueLabel) {
         const labelY =
             label.y - 0.5 * label.label.height - 0.5 * VALUE_LABEL_GAP
         const valueLabelY = labelY + label.label.height + VALUE_LABEL_GAP
 
         return (
-            <>
+            <g className={className}>
                 <TextWrapSvg
                     textWrap={label.label}
                     x={label.x}
@@ -331,18 +479,20 @@ function SankeyLabel({
                     textAnchor={label.textAnchor}
                     fill={GRAPHER_LIGHT_TEXT}
                 />
-            </>
+            </g>
         )
     }
 
     return (
-        <TextWrapSvg
-            textWrap={label.label}
-            x={label.x}
-            y={label.y}
-            textAnchor={label.textAnchor}
-            fill={GRAPHER_DARK_TEXT}
-        />
+        <g className={className}>
+            <TextWrapSvg
+                textWrap={label.label}
+                x={label.x}
+                y={label.y}
+                textAnchor={label.textAnchor}
+                fill={GRAPHER_DARK_TEXT}
+            />
+        </g>
     )
 }
 
@@ -398,6 +548,8 @@ function prepareSankeyLabels({
 
             return [
                 {
+                    nodeId: node.id,
+                    nodeClassName: node.className,
                     x,
                     y,
                     textAnchor,
@@ -410,6 +562,8 @@ function prepareSankeyLabels({
         } else {
             return [
                 {
+                    nodeId: node.id,
+                    nodeClassName: node.className,
                     x,
                     y,
                     textAnchor,
@@ -476,4 +630,82 @@ export function measureMaxLabelWidthForNode(
 
 function textWidth(text: string, fontSettings: FontSettings): number {
     return Bounds.forText(text, fontSettings).width
+}
+
+// Extra vertical pixels past a link's band edge that still count as a hit.
+// Keeps the hover continuous across the slivers of empty pixels between
+// adjacent ribbons — without this, the cursor briefly lands in *no* band,
+// the tooltip flickers off, then re-attaches to the neighbour. SlopeChart
+// solves the same continuity problem on zero-width lines via a 10px
+// distance-to-segment tolerance (SlopeChart.tsx:683).
+const LINK_BAND_GAP_TOLERANCE = 6
+
+/**
+ * Find the laid-out link the mouse is over (or nearest to), or null if no
+ * link is within tolerance. Combines two signals so hover stays continuous
+ * across both wide and thin ribbons:
+ *  - Inside a band: distance-from-band-edge collapses to 0 → that link wins.
+ *  - In the slim gap between ribbons: distance-from-edge grows from 0, but
+ *    stays under the tolerance so the nearer ribbon stays hovered. Without
+ *    this, strict band-membership would briefly hover nothing as the
+ *    cursor traverses the gap, flickering the tooltip.
+ *  - Overlapping bands or ties: break by closer centerline.
+ *
+ * Cheap per-mousemove: O(links), and `linkCenterY` is a 12-iteration
+ * bisection on a cubic Bezier.
+ */
+function findLinkAtPoint(
+    links: LaidOutLink[],
+    mouseX: number,
+    mouseY: number
+): LaidOutLink | null {
+    let best: { link: LaidOutLink; gap: number; dy: number } | null = null
+    for (const link of links) {
+        const centerY = linkCenterY(link, mouseX)
+        if (centerY === null) continue
+        const dy = Math.abs(mouseY - centerY)
+        const halfBand = (link.width ?? 0) / 2
+        const gap = Math.max(0, dy - halfBand)
+        if (gap > LINK_BAND_GAP_TOLERANCE) continue
+        if (!best || gap < best.gap || (gap === best.gap && dy < best.dy)) {
+            best = { link, gap, dy }
+        }
+    }
+    return best?.link ?? null
+}
+
+/**
+ * Centerline y at a given x along a d3-sankey horizontal link, or null when
+ * x is outside the link's horizontal extent.
+ *
+ * `sankeyLinkHorizontal` draws a cubic Bezier
+ *   M x0,y0 C xi,y0  xi,y1  x1,y1     (xi = (x0+x1)/2)
+ * so x(t) is cubic in t and we bisect for the t matching `mouseX`. The
+ * y curve simplifies to a smoothstep blend between y0 and y1.
+ */
+function linkCenterY(link: LaidOutLink, mouseX: number): number | null {
+    const sourceNode = link.source as LaidOutNode
+    const targetNode = link.target as LaidOutNode
+    const x0 = sourceNode.x1 ?? 0 // right edge of source node = link start
+    const x1 = targetNode.x0 ?? 0 // left edge of target node  = link end
+    if (mouseX < x0 || mouseX > x1) return null
+
+    const y0 = link.y0 ?? 0
+    const y1 = link.y1 ?? 0
+    if (x1 === x0) return (y0 + y1) / 2
+
+    const xi = (x0 + x1) / 2
+    const xAt = (t: number): number =>
+        (1 - t) ** 3 * x0 + 3 * t * (1 - t) * xi + t ** 3 * x1
+
+    let lo = 0
+    let hi = 1
+    for (let i = 0; i < 12; i++) {
+        const mid = (lo + hi) / 2
+        if (xAt(mid) < mouseX) lo = mid
+        else hi = mid
+    }
+    const t = (lo + hi) / 2
+    const s = t * t * (3 - 2 * t) // smoothstep
+    return y0 + (y1 - y0) * s
 }

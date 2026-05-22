@@ -7,6 +7,7 @@ import { type FontSettings } from "@ourworldindata/grapher"
 import {
     BAND_LABEL_GAP,
     DEFAULT_SANKEY_FONT_SETTINGS,
+    LinkTooltipArgs,
     measureMaxLabelWidthForNode,
     Sankey,
     SankeyLink,
@@ -16,6 +17,7 @@ import {
     assignColors,
     DEFAULT_MIN_NODE_SHARE,
     DEFAULT_TOP_N,
+    EntityTotal,
     FlowRow,
     makeValueLabel,
     NEUTRAL_COLOR,
@@ -71,11 +73,33 @@ type Half = {
      *  `rows` produces no Sankey build. When provided, the half's heading
      *  is also suppressed so the placeholder occupies the full half. */
     empty?: React.ReactNode
+    /** Per-half tooltip renderer. The hovered link's `partner` is the
+     *  non-central endpoint (already de-prefixed); link.value is the raw
+     *  flow value. SplitFlowSankey hides the `in:`/`out:` ID scheme from
+     *  this callback. */
+    renderTooltip?: (args: HalfTooltipArgs) => React.ReactNode
+}
+
+export type HalfTooltipArgs = {
+    /** Display name of the non-central endpoint (e.g. "China" or "Other"). */
+    partner: string
+    value: number
+    /** Per-entity breakdown of the "Other" bucket, sorted desc by value.
+     *  Set only when the hovered link points at the Other bucket; otherwise
+     *  undefined. Lets callers render a richer tooltip for Other (e.g. a
+     *  table of the bundled countries) without re-deriving the grouping. */
+    otherBreakdown?: EntityTotal[]
+    position: { x: number; y: number }
+    containerBounds: { width: number; height: number }
+    isPinned: boolean
 }
 
 type SankeyBuild = {
     nodes: SankeyNode[]
     links: SankeyLink[]
+    /** Entities folded into this half's Other bucket. Empty / undefined when
+     *  no Other bucket was produced. Sorted desc by value. */
+    otherBreakdown?: EntityTotal[]
 }
 
 export function SplitFlowSankey({
@@ -298,6 +322,17 @@ export function SplitFlowSankey({
                         linkColor={linkColor}
                         innerMargin={{ left: sharedOuterMargin }}
                         fontSettings={fontSettings}
+                        renderLinkTooltip={
+                            incoming.renderTooltip && incomingBuild
+                                ? wrapHalfTooltipRenderer({
+                                      direction: "incoming",
+                                      central,
+                                      otherBreakdown:
+                                          incomingBuild.otherBreakdown,
+                                      render: incoming.renderTooltip,
+                                  })
+                                : undefined
+                        }
                     />
                 )}
                 {showOutgoing && (
@@ -311,6 +346,17 @@ export function SplitFlowSankey({
                         linkColor={linkColor}
                         innerMargin={{ right: sharedOuterMargin }}
                         fontSettings={fontSettings}
+                        renderLinkTooltip={
+                            outgoing.renderTooltip && outgoingBuild
+                                ? wrapHalfTooltipRenderer({
+                                      direction: "outgoing",
+                                      central,
+                                      otherBreakdown:
+                                          outgoingBuild.otherBreakdown,
+                                      render: outgoing.renderTooltip,
+                                  })
+                                : undefined
+                        }
                     />
                 )}
             </div>
@@ -352,6 +398,47 @@ function partnerFromId(id: string): string | null {
     return null
 }
 
+// Adapt a half-level tooltip renderer (which thinks in {partner, value}) to
+// the Sankey-level renderLinkTooltip signature. For the incoming half the
+// partner is the link source; for the outgoing half it's the target. The
+// Other bucket's raw key (OTHER_KEY) is mapped back to its display label
+// "Other" so callers don't have to know about the internal sentinel; when
+// the link points at Other we also forward the half's bundled-entity
+// breakdown so the caller can render a richer tooltip for it.
+function wrapHalfTooltipRenderer({
+    direction,
+    central,
+    otherBreakdown,
+    render,
+}: {
+    direction: "incoming" | "outgoing"
+    central: string
+    otherBreakdown?: EntityTotal[]
+    render: (args: HalfTooltipArgs) => React.ReactNode
+}): (args: LinkTooltipArgs) => React.ReactNode {
+    return ({ link, position, containerBounds, isPinned }) => {
+        const partnerId =
+            direction === "incoming"
+                ? link.source !== central
+                    ? link.source
+                    : link.target
+                : link.target !== central
+                  ? link.target
+                  : link.source
+        const partnerKey = partnerFromId(partnerId) ?? partnerId
+        const isOther = partnerKey === OTHER_KEY
+        const partner = isOther ? "Other" : partnerKey
+        return render({
+            partner,
+            value: link.value,
+            otherBreakdown: isOther ? otherBreakdown : undefined,
+            position,
+            containerBounds,
+            isPinned,
+        })
+    }
+}
+
 function HalfHeading({
     heading,
     align,
@@ -385,6 +472,7 @@ function HalfChart({
     linkColor,
     innerMargin,
     fontSettings,
+    renderLinkTooltip,
 }: {
     which: "incoming" | "outgoing"
     build: SankeyBuild | null
@@ -401,6 +489,7 @@ function HalfChart({
         left?: number
     }
     fontSettings: FontSettings
+    renderLinkTooltip?: (args: LinkTooltipArgs) => React.ReactNode
 }) {
     return (
         <div
@@ -419,6 +508,7 @@ function HalfChart({
                             innerMargin={innerMargin}
                             fontSettings={fontSettings}
                             topAnchored
+                            renderLinkTooltip={renderLinkTooltip}
                         />
                     )}
                 </div>
@@ -492,11 +582,22 @@ function buildHalf({
     // Central node sits at the open end of the half: as a sink at the end of
     // the incoming half, as a source at the start of the outgoing half. Empty
     // label — the chart title names it, and the inner edge meets the other
-    // half's central rect.
-    const centralNode: SankeyNode = { id: central, label: "" }
+    // half's central rect. Mark it with a class so the SplitFlow stylesheet
+    // can keep both halves' central rects at full opacity during any hover
+    // (without the class, the un-hovered half's central would dim and split
+    // the visually-continuous central column).
+    const centralNode: SankeyNode = {
+        id: central,
+        label: "",
+        className: "is-central",
+    }
     const nodes: SankeyNode[] = isIncoming
         ? [...partners, centralNode]
         : [centralNode, ...partners]
 
-    return { nodes, links }
+    return {
+        nodes,
+        links,
+        otherBreakdown: otherPartner ? selection.other : undefined,
+    }
 }

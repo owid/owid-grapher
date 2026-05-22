@@ -82,7 +82,15 @@ export function selectTopEntities({
     side: "source" | "target"
     topN: number
     minNodeShare: number
-}): { top: EntityTotal[]; otherTotal: number; grandTotal: number } {
+}): {
+    top: EntityTotal[]
+    /** Entities folded into the "Other" bucket, sorted descending by total.
+     *  Consumers (e.g. an Other tooltip) can break this back out to show
+     *  what's hidden inside the bucket. Empty when no entities were demoted. */
+    other: EntityTotal[]
+    otherTotal: number
+    grandTotal: number
+} {
     // Aggregate flow values by entity on the specified side, sorted descending
     const sortedEntities: EntityTotal[] = R.pipe(
         rows,
@@ -103,10 +111,8 @@ export function selectTopEntities({
         topCandidatesAboveFloor.length > 0
             ? topCandidatesAboveFloor
             : R.take(topCandidates, 1)
-    const otherTotal = R.sumBy(
-        R.drop(sortedEntities, top.length),
-        (d) => d.total
-    )
+    const other = R.drop(sortedEntities, top.length)
+    const otherTotal = R.sumBy(other, (d) => d.total)
 
-    return { top, otherTotal, grandTotal }
+    return { top, other, otherTotal, grandTotal }
 }

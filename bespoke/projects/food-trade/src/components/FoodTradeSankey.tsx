@@ -1,12 +1,23 @@
-import { useMemo } from "react"
+import { useCallback, useMemo } from "react"
 import { useParentSize } from "@visx/responsive"
 import * as R from "remeda"
 
 import { articulateEntity, formatValue } from "@ourworldindata/utils"
-import { OwidVariableRoundingMode } from "@ourworldindata/types"
+import {
+    GrapherTooltipAnchor,
+    OwidVariableRoundingMode,
+} from "@ourworldindata/types"
+import { TooltipCard } from "@ourworldindata/grapher/src/tooltip/TooltipCard.js"
+import {
+    TooltipTable,
+    TooltipValue,
+} from "@ourworldindata/grapher/src/tooltip/TooltipContents.js"
+
+import { EntityTotal } from "../../../../components/Sankey/helpers.js"
 
 import { BilateralFlowSankey } from "../../../../components/Sankey/BilateralFlowSankey.js"
 import {
+    HalfTooltipArgs,
     HeadingContent,
     SplitFlowSankey,
     STACKED_BREAKPOINT_PX,
@@ -180,6 +191,33 @@ export function FoodTradeSankey({
         />
     ) : undefined
 
+    // Same percent denominator as the partner node labels (half total), so
+    // the tooltip number matches what's already visible on the chart.
+    const renderIncomingTooltip = useCallback(
+        (args: HalfTooltipArgs) => (
+            <TradeLinkTooltip
+                {...args}
+                exporter={args.partner}
+                importer={country}
+                halfTotal={incomingTotal}
+                year={year}
+            />
+        ),
+        [country, incomingTotal, year]
+    )
+    const renderOutgoingTooltip = useCallback(
+        (args: HalfTooltipArgs) => (
+            <TradeLinkTooltip
+                {...args}
+                exporter={country}
+                importer={args.partner}
+                halfTotal={outgoingTotal}
+                year={year}
+            />
+        ),
+        [country, outgoingTotal, year]
+    )
+
     return (
         <div
             ref={parentRef}
@@ -193,11 +231,13 @@ export function FoodTradeSankey({
                     rows: incomingFlows,
                     heading: incomingHeading,
                     empty: incomingEmpty,
+                    renderTooltip: renderIncomingTooltip,
                 }}
                 outgoing={{
                     rows: outgoingFlows,
                     heading: outgoingHeading,
                     empty: outgoingEmpty,
+                    renderTooltip: renderOutgoingTooltip,
                 }}
                 width={width}
                 height={height}
@@ -205,6 +245,107 @@ export function FoodTradeSankey({
                 view={splitView}
             />
         </div>
+    )
+}
+
+// Show all rows up to this count instead of capping at TOP_N — avoids
+// "+1 more country" type lines that read noisier than just listing the
+// extra one or two countries.
+const OTHER_BREAKDOWN_TOP_N = 10
+const OTHER_BREAKDOWN_SHOW_ALL_BELOW = 12
+
+function TradeLinkTooltip({
+    exporter,
+    importer,
+    value,
+    halfTotal,
+    year,
+    otherBreakdown,
+    position,
+    containerBounds,
+    isPinned,
+}: {
+    exporter: string
+    importer: string
+    value: number
+    halfTotal: number
+    year: number
+    otherBreakdown?: EntityTotal[]
+    position: { x: number; y: number }
+    containerBounds: { width: number; height: number }
+    isPinned: boolean
+}) {
+    const isOther = !!otherBreakdown
+    // For Other links, replace the "Country → Country" arrow with a short
+    // noun phrase naming the long-tail bucket. Which role (exporters /
+    // importers) is determined by which side of the link carries the bare
+    // "Other" partner key.
+    const title = isOther
+        ? exporter === "Other"
+            ? "Other exporters"
+            : "Other importers"
+        : `${exporter} → ${importer}`
+
+    const share = halfTotal > 0 ? value / halfTotal : 0
+    const formattedShare = formatShare(share)
+    return (
+        <TooltipCard
+            id="food-trade-link-tooltip"
+            x={position.x}
+            y={position.y}
+            offsetX={8}
+            offsetY={8}
+            title={title}
+            subtitle={String(year)}
+            style={{ maxWidth: isOther ? 340 : 280 }}
+            anchor={isPinned ? GrapherTooltipAnchor.Bottom : undefined}
+            containerBounds={isPinned ? undefined : containerBounds}
+        >
+            {isOther ? (
+                <OtherBreakdownContent breakdown={otherBreakdown} />
+            ) : (
+                <TooltipValue
+                    value={
+                        <span>
+                            {formatTrade(value)}
+                            {formattedShare && ` (${formattedShare})`}
+                        </span>
+                    }
+                />
+            )}
+        </TooltipCard>
+    )
+}
+
+function OtherBreakdownContent({ breakdown }: { breakdown: EntityTotal[] }) {
+    const showAll = breakdown.length <= OTHER_BREAKDOWN_SHOW_ALL_BELOW
+    const visible = showAll
+        ? breakdown
+        : breakdown.slice(0, OTHER_BREAKDOWN_TOP_N)
+    const hiddenCount = breakdown.length - visible.length
+
+    const columns = [
+        {
+            label: "tonnes",
+            formatValue: (v: unknown) =>
+                typeof v === "number" ? formatTrade(v) : "",
+        },
+    ]
+    const rows = visible.map((d) => ({
+        name: d.entity,
+        values: [d.total],
+    }))
+
+    return (
+        <>
+            <TooltipTable columns={columns} rows={rows} />
+            {hiddenCount > 0 && (
+                <div className="food-trade-sankey__tooltip-more">
+                    + {hiddenCount} more{" "}
+                    {hiddenCount === 1 ? "country" : "countries"}
+                </div>
+            )}
+        </>
     )
 }
 
