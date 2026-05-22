@@ -80,7 +80,6 @@ export class GdocHomepage
             chartCount: grapherCount + nonGrapherExplorerViewCount,
             topicCount: await db.getUniqueTopicCount(knex),
             explorerCount,
-            articleCount: await db.getPublishedArticleCount(knex),
             tagGraph: await db.generateTopicTagGraph(knex),
             announcements: await db.getHomepageAnnouncements(knex),
         }

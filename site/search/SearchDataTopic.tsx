@@ -57,7 +57,7 @@ export const SearchDataTopic = ({
                                 hit={hit}
                                 variant={hitIndex === 0 ? "medium" : "small"}
                                 onClick={(vizType?: string | null) => {
-                                    analytics.logSearchResultClick(hit, {
+                                    analytics.logSiteSearchResultClick(hit, {
                                         position: hitIndex + 1,
                                         source: "ribbon",
                                         ribbonTag: title,

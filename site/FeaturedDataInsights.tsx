@@ -14,7 +14,6 @@ import { SearchDataInsightsResultsSkeleton } from "./search/SearchDataInsightsRe
 import { SearchDataInsightHit } from "./search/SearchDataInsightHit.js"
 import { Button } from "@ourworldindata/components"
 import cx from "classnames"
-import { buildLatestPagePath } from "./latest/latestUtils.js"
 
 const MAX_DATA_INSIGHTS_RESULTS = 1000 // setting to maximum allowed to get all results
 
@@ -93,7 +92,7 @@ export const FeaturedDataInsights = ({
                         <Button
                             theme="solid-vermillion"
                             text="See all data insights"
-                            href={buildLatestPagePath("data-insight")}
+                            href="/data-insights"
                             dataTrackNote="featured-data-insights-see-all"
                         />
                     </div>

@@ -2,9 +2,29 @@
     background-color: $gray-10;
     min-height: calc(100vh - $header-height-md - 500px);
 }
-
 .announcement-page-content {
     background-color: #fff;
     padding: 24px;
     margin: 48px 0;
+
+    .data-insight-dateline {
+        @include h6-black-caps;
+    }
+
+    > [class*="article-block__"]:last-child {
+        margin-bottom: 0;
+    }
+}
+
+.announcement-page-header-meta {
+    display: flex;
+    justify-content: space-between;
+}
+
+.announcement-page-kicker {
+    color: $blue-60;
+}
+
+.announcement-page-heading {
+    margin: 8px 0;
 }

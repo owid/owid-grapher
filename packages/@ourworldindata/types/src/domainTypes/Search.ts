@@ -29,6 +29,20 @@ export const PagesIndexRecordSchema = z.object({
 
 export type PageRecord = z.infer<typeof PagesIndexRecordSchema>
 
+// Lightweight record for the chronological pages index (one per page, no chunked content)
+export type PageChronologicalRecord = {
+    objectID: string
+    type: string
+    slug: string
+    title: string
+    excerpt: string
+    date: string
+    modifiedDate: string
+    authors: string[]
+    tags: string[]
+    thumbnailUrl: string
+}
+
 export const PagesIndexRecordsResponseSchema = z.object({
     records: z.array(PagesIndexRecordSchema),
     count: z.number(),
@@ -344,3 +358,11 @@ export interface IndexingContext {
 export type ChartsIndexingContext = IndexingContext & {
     redirectsByChartId: Map<number, string[]>
 }
+
+export const CHRONOLOGICAL_INDEX_TYPES = new Set<string>([
+    OwidGdocType.Article,
+    OwidGdocType.LinearTopicPage,
+    OwidGdocType.TopicPage,
+    OwidGdocType.DataInsight,
+    OwidGdocType.Announcement,
+])

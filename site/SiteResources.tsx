@@ -1,10 +1,8 @@
-import { buildLatestPagePath } from "./latest/latestUtils.js"
-
 export const SiteResources = () => {
     return (
         <ul>
             <li>
-                <a href={buildLatestPagePath("data-insight")}>Data Insights</a>
+                <a href="/latest">Latest</a>
             </li>
             <li>
                 <a href="/explorers">Data Explorers</a>

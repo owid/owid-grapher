@@ -52,7 +52,7 @@ export const SearchDataResults = ({
                                           : "small"
 
                                 const onClick = (vizType: string | null) => {
-                                    analytics.logSearchResultClick(hit, {
+                                    analytics.logSiteSearchResultClick(hit, {
                                         position: hitIndex + 1,
                                         source: "search",
                                         vizType,

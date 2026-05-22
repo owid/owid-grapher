@@ -4,7 +4,6 @@ import cx from "classnames"
 import { AttachmentsContext } from "../AttachmentsContext.js"
 import { Button } from "@ourworldindata/components"
 import LatestDataInsights from "./LatestDataInsights.js"
-import { buildLatestPagePath } from "../../latest/latestUtils.js"
 
 export default function LatestDataInsightsBlock({
     className,
@@ -24,7 +23,7 @@ export default function LatestDataInsightsBlock({
                 </p>
             </header>
             <Button
-                href={buildLatestPagePath("data-insight")}
+                href="/data-insights"
                 className="latest-data-insights-block__see-all-data-insights-button body-3-medium span-cols-4 col-start-10 span-sm-cols-12 col-sm-start-2"
                 text="See all Data Insights"
                 theme="outline-vermillion"

@@ -10,8 +10,6 @@ import {
     type DataInsightHit,
     type StackedArticleHit,
     FilterType,
-    type LatestState,
-    type LatestPageChronologicalRecord,
     type UserSurveyExperimentArm,
     type UserSurveyRoleAnswer,
 } from "@ourworldindata/types"
@@ -52,38 +50,6 @@ export class SiteAnalytics extends GrapherAnalytics {
         })
     }
 
-    logLatest(state: LatestState) {
-        this.logToGA({
-            event: EventCategory.SiteLatest,
-            eventAction: "filter",
-            latestTopics: state.topics.join("~") || undefined,
-            latestType: state.latestType ?? undefined,
-        })
-    }
-
-    logLatestResultClick(hit: LatestPageChronologicalRecord, position: number) {
-        this.logToGA({
-            event: EventCategory.SiteLatestResultClick,
-            eventAction: "click",
-            eventTarget: hit.slug,
-            latestPosition: position,
-            latestType: hit.latestType,
-        })
-    }
-
-    logLatestAnnouncementExpand(
-        hit: LatestPageChronologicalRecord,
-        position: number
-    ) {
-        this.logToGA({
-            event: EventCategory.SiteLatestAnnouncementExpand,
-            eventAction: "expand",
-            eventTarget: hit.slug,
-            latestPosition: position,
-            latestType: hit.latestType,
-        })
-    }
-
     logSearch(state: SearchState) {
         const topics = Array.from(
             getFilterNamesOfType(state.filters, FilterType.TOPIC)
@@ -103,7 +69,7 @@ export class SiteAnalytics extends GrapherAnalytics {
         })
     }
 
-    logSearchResultClick(
+    logSiteSearchResultClick(
         hit:
             | SearchChartHit
             | FlatArticleHit

@@ -1,43 +1,72 @@
 import { Head } from "./Head.js"
 import { SiteHeader } from "./SiteHeader.js"
 import { SiteFooter } from "./SiteFooter.js"
-import { SiteFooterContext, TagGraphRoot } from "@ourworldindata/utils"
+import {
+    ImageMetadata,
+    LatestPageItem,
+    LinkedAuthor,
+    LinkedChart,
+    OwidGdocMinimalPostInterface,
+    serializeJSONForHTML,
+    SiteFooterContext,
+} from "@ourworldindata/utils"
 import { Html } from "./Html.js"
+import {
+    LatestPageContent,
+    LatestPageContentProps,
+    LATEST_PAGE_CONTAINER_ID,
+    _OWID_LATEST_PAGE_DATA,
+} from "./LatestPageContent.js"
 
-declare global {
-    interface Window {
-        _OWID_TOPIC_TAG_GRAPH: TagGraphRoot
-    }
-}
+export { LatestPageItemComponent } from "./LatestPageContent.js"
 
 export const LatestPage = (props: {
+    posts: LatestPageItem[]
+    imageMetadata: Record<string, ImageMetadata>
+    linkedAuthors: LinkedAuthor[]
+    linkedCharts: Record<string, LinkedChart>
+    linkedDocuments: Record<string, OwidGdocMinimalPostInterface>
+    pageNum: number
+    numPages: number
     baseUrl: string
-    topicTagGraph: TagGraphRoot
 }) => {
-    const { baseUrl, topicTagGraph } = props
+    const { pageNum, baseUrl } = props
+    const pageTitle = "Latest"
+
+    const contentProps: LatestPageContentProps = {
+        posts: props.posts,
+        imageMetadata: props.imageMetadata,
+        linkedAuthors: props.linkedAuthors,
+        linkedCharts: props.linkedCharts,
+        linkedDocuments: props.linkedDocuments,
+        pageNum: props.pageNum,
+        numPages: props.numPages,
+    }
 
     return (
         <Html>
             <Head
-                canonicalUrl={`${baseUrl}/latest`}
-                pageTitle="Latest"
+                canonicalUrl={
+                    `${baseUrl}/latest` +
+                    (pageNum > 1 ? `/page/${pageNum}` : "")
+                }
+                pageTitle={pageTitle}
                 baseUrl={baseUrl}
-            >
-                <script
-                    dangerouslySetInnerHTML={{
-                        __html: `window._OWID_TOPIC_TAG_GRAPH = ${JSON.stringify(topicTagGraph)}`,
-                    }}
-                ></script>
-            </Head>
+            />
             <body>
                 <SiteHeader />
                 <main
-                    id="latest-page-root"
-                    className="latest-page grid grid-cols-12-full-width"
+                    id={LATEST_PAGE_CONTAINER_ID}
+                    className="latest-page grid grid-cols-12-full-width grid-md-cols-12"
                 >
-                    {/* Latest UI is rendered client-side only */}
+                    <LatestPageContent {...contentProps} />
                 </main>
                 <SiteFooter context={SiteFooterContext.latestPage} />
+                <script
+                    dangerouslySetInnerHTML={{
+                        __html: `window.${_OWID_LATEST_PAGE_DATA} = ${serializeJSONForHTML(contentProps)}`,
+                    }}
+                />
             </body>
         </Html>
     )

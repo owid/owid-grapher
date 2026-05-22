@@ -28,7 +28,6 @@ import { AttachmentsContext } from "../AttachmentsContext.js"
 import { BAKED_BASE_URL } from "../../../settings/clientSettings.js"
 import { getLinkedDocumentUrl } from "../utils.js"
 import { CopySocialButton } from "../components/CopySocialButton.js"
-import { buildLatestPagePath } from "../../latest/latestUtils.js"
 
 export const LatestDataInsightCards = (props: {
     latestDataInsights?: LatestDataInsight[]
@@ -40,10 +39,7 @@ export const LatestDataInsightCards = (props: {
     return (
         <div className={cx(className, "data-insight-cards-container")}>
             <h2 className="h2-bold ">Our latest Data Insights</h2>
-            <a
-                href={buildLatestPagePath("data-insight")}
-                className="see-all-button"
-            >
+            <a href="/data-insights" className="see-all-button">
                 See all Data Insights <FontAwesomeIcon icon={faArrowRight} />
             </a>
             <LatestDataInsights
@@ -263,7 +259,7 @@ export const DataInsightPage = (
     return (
         <div className="grid grid-cols-12-full-width data-insight-page">
             <div className="span-cols-6 col-start-5 span-md-cols-8 col-md-start-4 col-sm-start-2 span-sm-cols-12 data-insight-breadcrumbs">
-                <a href={buildLatestPagePath("data-insight")}>Data Insights</a>
+                <a href="/data-insights">Data Insights</a>
                 <FontAwesomeIcon icon={faChevronRight} />
                 <span>{props.content.title}</span>
             </div>

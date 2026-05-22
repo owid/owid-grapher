@@ -45,7 +45,7 @@ import {
     TagGraphTableName,
     ExplorersTableName,
     MultiDimDataPagesTableName,
-    OwidGdocMinimalAnnouncementInterface,
+    OwidGdocMinimalPostInterface,
     DbRawPostGdoc,
 } from "@ourworldindata/types"
 import { gdocFromJSON } from "./model/Gdoc/GdocFactory.js"
@@ -353,6 +353,39 @@ export async function checkIfSlugCollides(
     )
 }
 
+export const getPublishedDataInsightCount = (
+    knex: KnexReadonlyTransaction,
+    topicSlug?: string
+): Promise<number> => {
+    let query
+    if (topicSlug) {
+        query = knexRawFirst<{ count: number }>(
+            knex,
+            `
+            SELECT COUNT(DISTINCT(posts_gdocs.id)) AS count
+            FROM posts_gdocs
+            JOIN posts_gdocs_x_tags as pgt ON posts_gdocs.id = pgt.gdocId
+            JOIN tags ON pgt.tagId = tags.id
+            WHERE type = '${OwidGdocType.DataInsight}'
+                AND published = TRUE
+                AND publishedAt <= NOW()
+                AND tags.slug = ?`,
+            [topicSlug]
+        )
+    } else {
+        query = knexRawFirst<{ count: number }>(
+            knex,
+            `
+            SELECT COUNT(*) AS count
+            FROM posts_gdocs
+            WHERE type = '${OwidGdocType.DataInsight}'
+                AND published = TRUE
+                AND publishedAt <= NOW()`
+        )
+    }
+    return query.then((res) => res?.count ?? 0)
+}
+
 export const getTotalNumberOfCharts = (
     knex: KnexReadonlyTransaction
 ): Promise<number> => {
@@ -403,7 +436,7 @@ export const getHomepageId = (
 
 export const getHomepageAnnouncements = (
     knex: KnexReadonlyTransaction
-): Promise<OwidGdocMinimalAnnouncementInterface[]> => {
+): Promise<OwidGdocMinimalPostInterface[]> => {
     return knexRaw<DbRawPostGdoc>(
         knex,
         `-- sql
@@ -417,12 +450,7 @@ export const getHomepageAnnouncements = (
         ORDER BY pg.publishedAt DESC
         LIMIT 3
         `
-    ).then(
-        (rows) =>
-            rows.map(
-                rawGdocToMinimalPost
-            ) as OwidGdocMinimalAnnouncementInterface[]
-    )
+    ).then((rows) => rows.map(rawGdocToMinimalPost))
 }
 
 export async function checkIsImageInDB(
@@ -941,13 +969,6 @@ export function getCloudflareImages(
     )
 }
 
-export async function getCloudflareImagesByFilename(
-    trx: KnexReadonlyTransaction
-): Promise<Record<string, DbEnrichedImageWithPageviews>> {
-    const images = await getCloudflareImages(trx)
-    return _.keyBy(images, "filename")
-}
-
 export function getCloudflareImage(
     trx: KnexReadonlyTransaction,
     filename: string
@@ -1228,27 +1249,5 @@ export const getUniqueTopicCount = async (
         })
     // throw on count == 0 also
     if (!count) throw new Error("Failed to get unique topic count")
-    return count
-}
-
-export const getPublishedArticleCount = async (
-    trx: KnexReadonlyTransaction
-): Promise<number> => {
-    const count = await knexRawFirst<{ count: number }>(
-        trx,
-        `-- sql
-        SELECT COUNT(*) AS count
-        FROM posts_gdocs
-        WHERE type = :type
-          AND published IS TRUE
-          AND publishedAt <= NOW()`,
-        { type: OwidGdocType.Article }
-    )
-        .then((res) => (res ? res.count : 0))
-        .catch((e) => {
-            console.error("Failed to get published article count", e)
-            throw e
-        })
-    if (!count) throw new Error("Failed to get published article count")
     return count
 }

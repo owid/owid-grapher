@@ -15,7 +15,6 @@ export type Container =
     | "about-page"
     | "author-header"
     | "data-insight"
-    | "latest-announcement"
 
 // Each container must have a default layout, usually just full-width
 type Layouts = { default: string; [key: string]: string }
@@ -165,13 +164,6 @@ const layouts: { [key in Container]: Layouts} = {
     ["key-insight"]: {
         ["default"]: "col-start-1 span-cols-5 col-md-start-1 span-md-cols-12",
         ["prominent-link"]: "grid grid-cols-6 span-cols-6 span-md-cols-12 grid-md-cols-12",
-    },
-    ["latest-announcement"]: {
-        ["default"]: "span-cols-8 span-sm-cols-6",
-        ["expandable-text"]: "grid grid-cols-8 grid-sm-cols-6",
-        ["image--narrow"]: "span-cols-6 span-sm-cols-5",
-        ["image--wide"]: "span-cols-6 span-sm-cols-5",
-        ["image--widest"]: "span-cols-6 span-sm-cols-5",
     },
 }
 

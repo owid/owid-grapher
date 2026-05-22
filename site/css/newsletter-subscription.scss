@@ -51,10 +51,6 @@
 .newsletter-subscription-form__email {
     flex: 1;
     width: 100%;
-
-    @include sm-only {
-        font-size: 16px; // Prevents auto-zoom in iOS Safari.
-    }
 }
 
 .newsletter-subscription-form__submit {

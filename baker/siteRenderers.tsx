@@ -1,7 +1,6 @@
 import * as _ from "lodash-es"
 import { LongFormPage } from "../site/LongFormPage.js"
 import { LatestPage } from "../site/LatestPage.js"
-import { buildLatestPagePath } from "../site/latest/latestUtils.js"
 import { SearchPage } from "../site/search/SearchPage.js"
 import { DynamicCollectionPage } from "../site/collections/DynamicCollectionPage.js"
 import { StaticCollectionPage } from "../site/collections/StaticCollectionPage.js"
@@ -32,6 +31,7 @@ import {
     Url,
     OwidGdocType,
     OwidGdoc,
+    OwidGdocDataInsightInterface,
     TombstonePageData,
     mergeGrapherConfigs,
     flattenNonTopicNodes,
@@ -46,7 +46,9 @@ import {
     ExplorerViewsTableName,
     GrapherInterface,
     ImageMetadata,
+    LatestPageItem,
     LinkedAuthor,
+    LinkedChart,
     OwidGdocMinimalPostInterface,
     OwidGdocPublicationContext,
     ResolvedSlideChartInfo,
@@ -71,6 +73,10 @@ import {
 } from "@ourworldindata/explorer"
 import { ExplorerPage } from "../site/ExplorerPage.js"
 import {
+    DataInsightsIndexPage,
+    TopicTag,
+} from "../site/DataInsightsIndexPage.js"
+import {
     getChartConfigBySlug,
     getEnrichedChartById,
 } from "../db/model/Chart.js"
@@ -86,7 +92,7 @@ import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
 import {
     getAndLoadGdocBySlug,
     getAndLoadGdocById,
-    getAndLoadLastPublishedDataInsights,
+    getAndLoadPublishedDataInsightsPage,
     getMinimalGdocBaseObjects,
 } from "../db/model/Gdoc/GdocFactory.js"
 import { transformExplorerProgramToResolveCatalogPaths } from "../db/model/ExplorerCatalogResolver.js"
@@ -259,13 +265,44 @@ export const renderThankYouPage = async () => {
     return renderToHtmlPage(<ThankYouPage baseUrl={BAKED_BASE_URL} />)
 }
 
-export const renderLatestPage = async (knex: KnexReadonlyTransaction) => {
-    const topicTagGraph = await generateTopicTagGraph(knex)
-    const flattenedTopicTagGraph = flattenNonTopicNodes(topicTagGraph)
+export const renderDataInsightsIndexPage = (
+    dataInsights: OwidGdocDataInsightInterface[],
+    page: number = 1,
+    totalPageCount: number,
+    isPreviewing: boolean = false,
+    topicTag?: TopicTag
+) => {
+    return renderToHtmlPage(
+        <DataInsightsIndexPage
+            dataInsights={dataInsights}
+            baseUrl={BAKED_BASE_URL}
+            pageNumber={page}
+            totalPageCount={totalPageCount}
+            isPreviewing={isPreviewing}
+            topicTag={topicTag}
+        />
+    )
+}
+
+export const renderLatestPage = (
+    posts: LatestPageItem[],
+    imageMetadata: Record<string, ImageMetadata>,
+    linkedAuthors: LinkedAuthor[],
+    linkedCharts: Record<string, LinkedChart>,
+    linkedDocuments: Record<string, OwidGdocMinimalPostInterface>,
+    pageNum: number,
+    totalPages: number
+) => {
     return renderToHtmlPage(
         <LatestPage
+            posts={posts}
+            imageMetadata={imageMetadata}
+            linkedAuthors={linkedAuthors}
+            linkedCharts={linkedCharts}
+            linkedDocuments={linkedDocuments}
+            pageNum={pageNum}
+            numPages={totalPages}
             baseUrl={BAKED_BASE_URL}
-            topicTagGraph={flattenedTopicTagGraph}
         />
     )
 }
@@ -292,10 +329,10 @@ export async function makeAtomFeed(knex: KnexReadonlyTransaction) {
 }
 
 export async function makeDataInsightsAtomFeed(knex: KnexReadonlyTransaction) {
-    const dataInsights = await getAndLoadLastPublishedDataInsights(knex)
+    const dataInsights = await getAndLoadPublishedDataInsightsPage(knex, 1)
     return makeAtomFeedFromDataInsights({
         dataInsights,
-        htmlUrl: `${BAKED_BASE_URL}${buildLatestPagePath("data-insight")}`,
+        htmlUrl: `${BAKED_BASE_URL}/data-insights`,
         feedUrl: `${BAKED_BASE_URL}/atom-data-insights.xml`,
     })
 }
@@ -392,7 +429,7 @@ export async function makeAtomFeedFromDataInsights({
 <feed xmlns="http://www.w3.org/2005/Atom">
 <title>Our World in Data - Data Insights</title>
 <subtitle>Bite-sized insights on how the world is changing, written by our team</subtitle>
-<id>${feedUrl}</id>
+<id>${htmlUrl}/</id>
 <link type="text/html" rel="alternate" href="${htmlUrl}"/>
 <link type="application/atom+xml" rel="self" href="${feedUrl}"/>
 <updated>${dataInsights[0].publishedAt?.toISOString()}</updated>

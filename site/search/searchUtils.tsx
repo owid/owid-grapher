@@ -359,9 +359,6 @@ export const CHARTS_INDEX = getIndexName(
     SearchIndexName.ExplorerViewsMdimViewsAndCharts
 )
 export const PAGES_INDEX = getIndexName(SearchIndexName.Pages)
-export const PAGES_CHRONOLOGICAL_INDEX = getIndexName(
-    SearchIndexName.PagesChronological
-)
 export const DATA_CATALOG_ATTRIBUTES = [
     "title",
     "containerTitle",
@@ -378,8 +375,7 @@ export const DATA_CATALOG_ATTRIBUTES = [
 ]
 
 type SearchFacetAttribute =
-    | "tags" // also used on /latest
-    | "latestType" // used on /latest only
+    | "tags"
     | "availableEntities"
     | "datasetProducts"
     | "datasetNamespaces"

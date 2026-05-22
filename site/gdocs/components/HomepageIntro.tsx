@@ -3,8 +3,7 @@ import cx from "classnames"
 import {
     EnrichedBlockHomepageIntro,
     EnrichedBlockHomepageIntroPost,
-    LATEST_TYPE_LABELS,
-    OwidGdocMinimalAnnouncementInterface,
+    OwidGdocMinimalPostInterface,
 } from "@ourworldindata/types"
 import { dayjs, formatAuthors } from "@ourworldindata/utils"
 import { useLinkedChart, useLinkedDocument } from "../utils.js"
@@ -24,10 +23,6 @@ import { faArrowRight, faHeart } from "@fortawesome/free-solid-svg-icons"
 import { useResizeObserver } from "usehooks-ts"
 import { OwidSocials } from "../../OwidSocials.js"
 import { NewsletterSubscriptionContext } from "../../newsletter.js"
-import {
-    deriveAnnouncementLatestType,
-    buildLatestPagePath,
-} from "../../latest/latestUtils.js"
 
 type FeaturedWorkTileProps = EnrichedBlockHomepageIntroPost & {
     className?: string
@@ -143,7 +138,7 @@ function useIsOverflowing<T extends HTMLElement = HTMLElement>(
 }
 
 function HomepageAnnouncement(props: {
-    announcement: OwidGdocMinimalAnnouncementInterface
+    announcement: OwidGdocMinimalPostInterface
     index: number
 }) {
     const { announcement, index } = props
@@ -174,9 +169,6 @@ function HomepageAnnouncement(props: {
             ? "This Week"
             : publishedAtDayJs.fromNow()
 
-    const latestType = deriveAnnouncementLatestType(announcement.kicker)
-    const kickerLabel = `${LATEST_TYPE_LABELS[latestType]} - `
-
     return (
         <li
             className={cx("homepage-intro__announcement", {
@@ -191,8 +183,7 @@ function HomepageAnnouncement(props: {
                 href={href}
             >
                 <span className="homepage-intro__announcement-meta h6-black-caps">
-                    {kickerLabel}
-                    {publishedAtFormatted}
+                    {announcement.kicker} - {publishedAtFormatted}
                 </span>
                 <h3
                     id={`announcement-${announcement.id}`}
@@ -233,7 +224,7 @@ function HomepageAnnouncements() {
             </ul>
             <Button
                 className="homepage-intro__latest-button"
-                href={buildLatestPagePath()}
+                href="/latest"
                 text="See all updates"
                 theme="outline-vermillion"
             />
