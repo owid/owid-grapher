@@ -4,11 +4,8 @@ import {
     formatValue as formatNumericValue,
     getRegionByName,
 } from "@ourworldindata/utils"
-import {
-    ColorSchemeName,
-    OwidVariableRoundingMode,
-} from "@ourworldindata/types"
-import { ColorSchemes } from "@ourworldindata/grapher/src/color/ColorSchemes.js"
+import { OwidVariableRoundingMode } from "@ourworldindata/types"
+import { OwidDistinctColors } from "@ourworldindata/grapher/src/color/CustomSchemes.js"
 
 export const DEFAULT_TOP_N = 10
 export const DEFAULT_MIN_NODE_SHARE = 0.01
@@ -19,13 +16,36 @@ export const NEUTRAL_COLOR = "#767676"
 // color, shared across the two halves of a flow visualization.
 export const OTHER_KEY = "__other__"
 
-// Owid-distinct swaps its underlying palette depending on how many colors are
-// requested: the 12-color palette (Denim first) is used for N ≤ 12 and the
-// 24-color palette (Purple first) for N > 12. We always pull from the
-// 24-color palette so that color[0] (the rank-1 entity) stays the same as
-// the entity count changes between countries / filters.
-const OWID_DISTINCT = ColorSchemes.get(ColorSchemeName["owid-distinct"])
-const PALETTE = OWID_DISTINCT.getColors(12)
+// 24-color palette used for partner entities in flow Sankeys. The first 12
+// match OWID's standard "Palette A" ordering, then extend with the rest of
+// "Palette C" so a 13th–24th entity each still get a distinct hue. Past 24
+// `assignColors` wraps back to the start (see below).
+const PALETTE = [
+    OwidDistinctColors.Denim,
+    OwidDistinctColors.Maroon,
+    OwidDistinctColors.OliveGreen,
+    OwidDistinctColors.RustyOrange,
+    OwidDistinctColors.Copper,
+    OwidDistinctColors.Cherry,
+    OwidDistinctColors.Coral,
+    OwidDistinctColors.MidnightBlue,
+    OwidDistinctColors.Teal,
+    OwidDistinctColors.Camel,
+    OwidDistinctColors.Mauve,
+    OwidDistinctColors.DarkOliveGreen,
+    OwidDistinctColors.Purple,
+    OwidDistinctColors.DarkOrange,
+    OwidDistinctColors.LightTeal,
+    OwidDistinctColors.Blue,
+    OwidDistinctColors.DustyCoral,
+    OwidDistinctColors.DarkCopper,
+    OwidDistinctColors.Peach,
+    OwidDistinctColors.Turquoise,
+    OwidDistinctColors.Fuchsia,
+    OwidDistinctColors.TealishGreen,
+    OwidDistinctColors.DarkMauve,
+    OwidDistinctColors.Lime,
+]
 
 export type FlowRow = {
     source: string
@@ -78,10 +98,12 @@ export function makeValueLabel({
         : formatValue(value)
 }
 
-/** Map each entity to a palette color in the given order. */
+/** Map each entity to a palette color in the given order. When the number
+ *  of entities exceeds the palette size, wrap around to the start — colors
+ *  repeat, but every entity still gets a hue. */
 export function assignColors(entities: string[]): Map<string, string> {
     return new Map(
-        entities.map((entity, i) => [entity, PALETTE[i] ?? NEUTRAL_COLOR])
+        entities.map((entity, i) => [entity, PALETTE[i % PALETTE.length]])
     )
 }
 
