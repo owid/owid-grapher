@@ -7,6 +7,7 @@ import { OwidVariableRoundingMode } from "@ourworldindata/types"
 
 import { BilateralFlowSankey } from "../../../../components/Sankey/BilateralFlowSankey.js"
 import {
+    HeadingContent,
     SplitFlowSankey,
     STACKED_BREAKPOINT_PX,
 } from "../../../../components/Sankey/SplitFlowSankey.js"
@@ -22,6 +23,28 @@ export const formatTrade = (v: number) =>
         roundingMode: OwidVariableRoundingMode.significantFigures,
         numSignificantFigures: 2,
     })
+
+// 2 significant figures, no trailing zeros. >=10% rounds to whole percent so
+// numbers near 100% don't read as "1.0e+2%". toPrecision(2) handles the rest
+// (17 → "17", 0.2 → "0.20" → parseFloat → "0.2").
+function formatShare(share: number): string {
+    const pct = share * 100
+    if (!isFinite(pct) || pct <= 0) return ""
+    if (pct >= 10) return `${Math.round(pct)}%`
+    return `${parseFloat(pct.toPrecision(2))}%`
+}
+
+function shareAnnotation(
+    share: number | undefined,
+    kind: "production" | "supply"
+): string | undefined {
+    if (share === undefined) return undefined
+    const formatted = formatShare(share)
+    if (!formatted) return undefined
+    return kind === "production"
+        ? `(${formatted} of its production)`
+        : `(${formatted} of its domestic supply)`
+}
 
 function tradeToFlow(rows: TradeRow[]) {
     return rows.map((r) => ({
@@ -39,6 +62,8 @@ export function FoodTradeSankey({
     year,
     incomingTotal,
     outgoingTotal,
+    incomingShare,
+    outgoingShare,
     view = "both",
     setView,
 }: {
@@ -50,6 +75,11 @@ export function FoodTradeSankey({
     /** Pre-computed totals used in the column headers. */
     incomingTotal: number
     outgoingTotal: number
+    /** Pre-computed shares (0–1). Imports as a share of domestic supply,
+     * exports as a share of production. Undefined when production/supply
+     * data is missing — the heading drops the parenthetical in that case. */
+    incomingShare?: number
+    outgoingShare?: number
     /** Which halves to show. Single-half views drop their heading and take
      * the full width. */
     view?: "both" | "imports" | "exports"
@@ -78,26 +108,40 @@ export function FoodTradeSankey({
     // up once at the tail of the outgoing clause. Standalone clauses
     // (single-half view, stacked, or one half empty) carry the product
     // each.
-    const incomingHeading =
+    const incomingAnnotation = shareAnnotation(incomingShare, "supply")
+    const outgoingAnnotation = shareAnnotation(outgoingShare, "production")
+    const incomingHeading: HeadingContent =
         incomingFlows.length > 0
-            ? isPairedSentence
-                ? `→ ${R.capitalize(countryArticulated)} imported ${formatTrade(incomingTotal)}`
-                : `→ ${R.capitalize(countryArticulated)} imported ${formatTrade(incomingTotal)} of ${productLc}`
-            : isPairedSentence
-              ? `${R.capitalize(countryArticulated)} imported none`
-              : view === "both"
-                ? `${R.capitalize(countryArticulated)} imported none`
-                : "No imports"
-    const outgoingHeading =
+            ? {
+                  label: isPairedSentence
+                      ? `${R.capitalize(countryArticulated)} imported ${formatTrade(incomingTotal)}`
+                      : `${R.capitalize(countryArticulated)} imported ${formatTrade(incomingTotal)} of ${productLc}`,
+                  annotation: incomingAnnotation,
+                  arrowSide: "start",
+              }
+            : {
+                  label: isPairedSentence
+                      ? `${R.capitalize(countryArticulated)} imported none`
+                      : view === "both"
+                        ? `${R.capitalize(countryArticulated)} imported none`
+                        : "No imports",
+              }
+    const outgoingHeading: HeadingContent =
         outgoingFlows.length > 0
-            ? isPairedSentence
-                ? `and exported ${formatTrade(outgoingTotal)} of ${productLc} →`
-                : `${R.capitalize(countryArticulated)} exported ${formatTrade(outgoingTotal)} of ${productLc} →`
-            : isPairedSentence
-              ? "and exported none"
-              : view === "both"
-                ? `${R.capitalize(countryArticulated)} exported none`
-                : "No exports"
+            ? {
+                  label: isPairedSentence
+                      ? `and exported ${formatTrade(outgoingTotal)} of ${productLc}`
+                      : `${R.capitalize(countryArticulated)} exported ${formatTrade(outgoingTotal)} of ${productLc}`,
+                  annotation: outgoingAnnotation,
+                  arrowSide: "end",
+              }
+            : {
+                  label: isPairedSentence
+                      ? "and exported none"
+                      : view === "both"
+                        ? `${R.capitalize(countryArticulated)} exported none`
+                        : "No exports",
+              }
 
     const splitView =
         view === "imports"

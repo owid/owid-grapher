@@ -103,6 +103,8 @@ function FetchingMainVariant({ config }: { config: MainVariantConfig }) {
     }, [metadata])
 
     const flows = productData?.flows
+    const production = productData?.production
+    const supply = productData?.supply
 
     const incoming = useMemo(() => {
         if (!flows || isAllCountry(country)) return []
@@ -113,6 +115,13 @@ function FetchingMainVariant({ config }: { config: MainVariantConfig }) {
         if (!flows || isAllCountry(country)) return []
         return flows.filter((d) => d.exporter === country)
     }, [flows, country])
+
+    const countryProduction = isAllCountry(country)
+        ? undefined
+        : production?.get(country)
+    const countrySupply = isAllCountry(country)
+        ? undefined
+        : supply?.get(country)
 
     // Bilateral mode: the entire product file when "All countries" is
     // selected, since each file is already scoped to one product.
@@ -154,6 +163,8 @@ function FetchingMainVariant({ config }: { config: MainVariantConfig }) {
             outgoing={outgoing}
             bilateral={bilateral}
             hasAnyTrade={flows.length > 0}
+            countryProduction={countryProduction}
+            countrySupply={countrySupply}
             products={products}
             countries={countries}
             product={product}
@@ -173,6 +184,8 @@ function CaptionedMainVariant({
     outgoing,
     bilateral,
     hasAnyTrade,
+    countryProduction,
+    countrySupply,
     products,
     countries,
     product,
@@ -188,6 +201,8 @@ function CaptionedMainVariant({
     outgoing: TradeRow[]
     bilateral: TradeRow[]
     hasAnyTrade: boolean
+    countryProduction: number | undefined
+    countrySupply: number | undefined
     products: string[]
     countries: string[]
     product: string
@@ -208,6 +223,14 @@ function CaptionedMainVariant({
         () => outgoing.reduce((sum, d) => sum + d.value, 0),
         [outgoing]
     )
+    const incomingShare =
+        countrySupply && countrySupply > 0
+            ? incomingTotal / countrySupply
+            : undefined
+    const outgoingShare =
+        countryProduction && countryProduction > 0
+            ? outgoingTotal / countryProduction
+            : undefined
 
     // When the selected country only trades this product in one
     // direction, the other view has nothing to show — coerce the
@@ -322,6 +345,8 @@ function CaptionedMainVariant({
                             year={year}
                             incomingTotal={incomingTotal}
                             outgoingTotal={outgoingTotal}
+                            incomingShare={incomingShare}
+                            outgoingShare={outgoingShare}
                             view={effectiveView}
                             setView={setView}
                         />
