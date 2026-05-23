@@ -311,6 +311,24 @@ export function extractFilenamesFromBlock(
 }
 
 /**
+ * Recursively collect every image filename referenced by a list of enriched
+ * blocks (deduped).
+ */
+export function extractFilenamesFromBlocks(
+    blocks: OwidEnrichedGdocBlock[]
+): string[] {
+    const filenames = new Set<string>()
+    for (const block of blocks) {
+        traverseEnrichedBlock(block, (node) => {
+            for (const filename of extractFilenamesFromBlock(node)) {
+                filenames.add(filename)
+            }
+        })
+    }
+    return [...filenames]
+}
+
+/**
  * Transforms plaintext callout tokens (e.g. $latestValue(shortName), $latestTime(shortName))
  * into SpanCallout spans within a span tree.
  */

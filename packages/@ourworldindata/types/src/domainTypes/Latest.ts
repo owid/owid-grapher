@@ -95,6 +95,17 @@ const LinkedAttachmentsShape = {
     ),
 }
 
+// Only the renderable variants (DataInsight, Article, Announcement) carry
+// imageMetadata — topic pages can't, by type-level construction. Mirrors how
+// LinkedAttachmentsShape is spread only into the variants that need it.
+const ImageAttachmentShape = {
+    imageMetadata: z.optional(
+        castSchemaOutput<Record<string, ImageMetadata>>(
+            z.record(z.string(), z.any())
+        )
+    ),
+}
+
 /* Chronological record base */
 
 const ChronologicalRecordBaseShape = {
@@ -107,11 +118,6 @@ const ChronologicalRecordBaseShape = {
     authors: z.array(z.string()),
     tags: z.array(z.string()),
     thumbnailUrl: z.string(),
-    imageMetadata: z.optional(
-        castSchemaOutput<Record<string, ImageMetadata>>(
-            z.record(z.string(), z.any())
-        )
-    ),
 }
 
 const PageChronologicalRecordBaseSchema = z.strictObject(
@@ -126,6 +132,7 @@ export type PageChronologicalRecordBase = z.infer<
 // Data insight
 
 const PageChronologicalDataInsightRecordPayloadSchema = z.strictObject({
+    ...ImageAttachmentShape,
     type: z.literal(OwidGdocType.DataInsight),
     latestType: z.literal("data-insight"),
     body: OwidEnrichedGdocBlocksSchema,
@@ -145,6 +152,7 @@ export type PageChronologicalDataInsightRecord = z.infer<
 
 const PageChronologicalArticleRecordPayloadSchema = z.strictObject({
     ...LinkedAttachmentsShape,
+    ...ImageAttachmentShape,
     type: z.literal(OwidGdocType.Article),
     latestType: z.literal("article"),
     featuredImage: z.optional(z.string()),
@@ -166,6 +174,7 @@ export type PageChronologicalArticleRecord = z.infer<
 
 const PageChronologicalAnnouncementRecordPayloadSchema = z.strictObject({
     ...LinkedAttachmentsShape,
+    ...ImageAttachmentShape,
     type: z.literal(OwidGdocType.Announcement),
     latestType: z.enum(ANNOUNCEMENT_LATEST_TYPES),
     body: OwidEnrichedGdocBlocksSchema,

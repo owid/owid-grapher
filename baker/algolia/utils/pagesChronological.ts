@@ -1,4 +1,5 @@
 import * as _ from "lodash-es"
+import * as R from "remeda"
 import * as db from "../../../db/db.js"
 import {
     OwidGdocType,
@@ -7,16 +8,19 @@ import {
 } from "@ourworldindata/utils"
 import {
     ChronologicalGdoc,
+    ImageMetadata,
     PageChronologicalRecord,
     PageChronologicalRecordBase,
     PageChronologicalRecordVariantPayload,
     PageChronologicalRecordSchema,
     PageChronologicalArticleRecordPayload,
     PageChronologicalAnnouncementRecordPayload,
+    PageChronologicalDataInsightRecordPayload,
     PageChronologicalLinkedAttachments,
     SearchIndexName,
     DbEnrichedImage,
 } from "@ourworldindata/types"
+import { extractFilenamesFromBlocks } from "../../../db/model/Gdoc/gdocUtils.js"
 import { gdocFromJSON } from "../../../db/model/Gdoc/GdocFactory.js"
 import { GdocBase } from "../../../db/model/Gdoc/GdocBase.js"
 import { GdocPost } from "../../../db/model/Gdoc/GdocPost.js"
@@ -50,15 +54,14 @@ function isChronologicalGdocInstance(
  * methods (declared on the GdocBase class). Class instances from `gdocFromJSON`
  * satisfy both.
  *
- * Ordering matters: linked{Authors,Documents} must be loaded before
- * imageMetadata, because `linkedImageFilenames` derives filenames from each
- * linkedAuthors's `featuredImage` (author avatars) and each linkedDocument's
- * `featured-image` (prominent-link thumbnails)
+ * Used only by the bulk indexing path (`getPagesChronologicalRecords`). The
+ * individual indexing path is fed a `nextJson` that already went through
+ * `loadState()` in the admin save flow, so its linkedAuthors / linkedDocuments
+ * are already populated.
  */
 async function loadAttachmentsForChronologicalIndexing(
     gdoc: ChronologicalGdoc & GdocBase,
-    knex: db.KnexReadonlyTransaction,
-    cloudflareImagesByFilename: Record<string, DbEnrichedImage>
+    knex: db.KnexReadonlyTransaction
 ): Promise<void> {
     await match(gdoc)
         .with({ content: { type: OwidGdocType.Announcement } }, async (g) => {
@@ -95,11 +98,6 @@ async function loadAttachmentsForChronologicalIndexing(
             _.noop
         )
         .exhaustive()
-
-    gdoc.imageMetadata = _.pick(
-        cloudflareImagesByFilename,
-        gdoc.linkedImageFilenames
-    )
 }
 
 /** Copy linkedCharts / linkedDocuments into the attachments if non-empty. */
@@ -115,13 +113,29 @@ function copyAttachmentsIfPresent(
     }
 }
 
+/** Resolve `filenames` against the cloudflare lookup and set
+ * `payload.imageMetadata` if any matched. */
+function copyImageMetadataIfPresent(
+    payload: { imageMetadata?: Record<string, ImageMetadata> },
+    cloudflareImagesByFilename: Record<string, DbEnrichedImage>,
+    filenames: Iterable<string>
+): void {
+    const imageMetadata = R.pick(cloudflareImagesByFilename, [...filenames])
+    if (!R.isEmpty(imageMetadata)) payload.imageMetadata = imageMetadata
+}
+
 /**
- * Build type-specific fields for a PageChronologicalRecord.
- * Dispatches on `content.type` so it works both for class instances
- * (bulk path) and plain objects from `toJSON()` (individual path).
+ * Build the per-type variant payload for a PageChronologicalRecord, including
+ * a slimmed-down `imageMetadata` lookup table holding only the images the card
+ * actually renders. The broader `gdoc.linkedImageFilenames` set would push
+ * long Article records past Algolia's 20KB record limit.
+ *
+ * Dispatches on `content.type` so it works both for class instances (bulk
+ * path) and plain objects from `toJSON()` (individual path).
  */
 function buildVariantPayload(
-    gdoc: ChronologicalGdoc
+    gdoc: ChronologicalGdoc,
+    cloudflareImagesByFilename: Record<string, DbEnrichedImage>
 ): PageChronologicalRecordVariantPayload {
     return (
         match<ChronologicalGdoc, PageChronologicalRecordVariantPayload>(gdoc)
@@ -135,11 +149,17 @@ function buildVariantPayload(
                 // prominent-link / cta blocks would degrade on cards on both
                 // surfaces, but in practice DIs don't author them. Revisit if that
                 // convention starts breaking.
-                return {
+                const payload: PageChronologicalDataInsightRecordPayload = {
                     type: OwidGdocType.DataInsight,
                     latestType: "data-insight",
                     body: g.content.body,
                 }
+                copyImageMetadataIfPresent(
+                    payload,
+                    cloudflareImagesByFilename,
+                    extractFilenamesFromBlocks(g.content.body)
+                )
+                return payload
             })
             .with({ content: { type: OwidGdocType.Article } }, (g) => {
                 const payload: PageChronologicalArticleRecordPayload = {
@@ -161,6 +181,19 @@ function buildVariantPayload(
                     copyAttachmentsIfPresent(payload, g)
                 }
 
+                // The excerpt is text-only (parseLatestFeedExcerpt rejects
+                // non-text blocks), so we don't run extractFilenamesFromBlocks
+                // on it — only the card thumbnail contributes a filename.
+                const thumbnail =
+                    payload.latestFeedFeaturedImage ?? payload.featuredImage
+                if (thumbnail) {
+                    copyImageMetadataIfPresent(
+                        payload,
+                        cloudflareImagesByFilename,
+                        [thumbnail]
+                    )
+                }
+
                 return payload
             })
             .with({ content: { type: OwidGdocType.Announcement } }, (g) => {
@@ -169,16 +202,37 @@ function buildVariantPayload(
                     latestType: deriveAnnouncementLatestType(g.content.kicker),
                     body: g.content.body,
                 }
-                if (g.content.cta) {
-                    payload.cta = g.content.cta
-                } else {
-                    // For non-CTA announcements, include linked charts and documents.
-                    copyAttachmentsIfPresent(payload, g)
-                }
                 if (g.linkedAuthors?.length) {
                     payload.linkedAuthors = g.linkedAuthors
                 }
 
+                const filenames = new Set<string>()
+                for (const author of g.linkedAuthors ?? []) {
+                    if (author.featuredImage)
+                        filenames.add(author.featuredImage)
+                }
+
+                if (g.content.cta) {
+                    payload.cta = g.content.cta
+                } else {
+                    copyAttachmentsIfPresent(payload, g)
+                    for (const f of extractFilenamesFromBlocks(
+                        g.content.body
+                    )) {
+                        filenames.add(f)
+                    }
+                    for (const doc of Object.values(g.linkedDocuments ?? {})) {
+                        if (doc["featured-image"]) {
+                            filenames.add(doc["featured-image"])
+                        }
+                    }
+                }
+
+                copyImageMetadataIfPresent(
+                    payload,
+                    cloudflareImagesByFilename,
+                    filenames
+                )
                 return payload
             })
             // Topic pages are indexed for the atom feed but don't need any
@@ -238,14 +292,8 @@ async function buildChronologicalRecord(
         tags: [...topicTags],
         thumbnailUrl: getThumbnailUrl(gdoc, cloudflareImagesByFilename),
     }
-    if (!_.isEmpty(gdoc.imageMetadata)) {
-        base.imageMetadata = gdoc.imageMetadata
-    }
-
-    return validateChronologicalRecord(
-        { ...base, ...buildVariantPayload(gdoc) },
-        gdoc
-    )
+    const payload = buildVariantPayload(gdoc, cloudflareImagesByFilename)
+    return validateChronologicalRecord({ ...base, ...payload }, gdoc)
 }
 
 export async function indexIndividualGdocInChronological(
@@ -348,11 +396,7 @@ export async function getPagesChronologicalRecords(
     for (const gdoc of gdocs) {
         if (!isChronologicalGdocInstance(gdoc)) continue
 
-        await loadAttachmentsForChronologicalIndexing(
-            gdoc,
-            knex,
-            cloudflareImagesByFilename
-        )
+        await loadAttachmentsForChronologicalIndexing(gdoc, knex)
 
         const originalTagNames = gdoc.tags?.map((t) => t.name) ?? []
         const topicTags = getUniqueNamesFromTagHierarchies(

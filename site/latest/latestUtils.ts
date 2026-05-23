@@ -81,7 +81,7 @@ export const announcementContentTitleId = (slug: string) =>
  */
 export function makeAttachments(hit: PageChronologicalRecord) {
     return {
-        imageMetadata: hit.imageMetadata ?? {},
+        imageMetadata: "imageMetadata" in hit ? (hit.imageMetadata ?? {}) : {},
         linkedAuthors: "linkedAuthors" in hit ? (hit.linkedAuthors ?? []) : [],
         linkedCharts: "linkedCharts" in hit ? (hit.linkedCharts ?? {}) : {},
         linkedDocuments:
