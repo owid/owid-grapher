@@ -133,7 +133,7 @@ export { GeoFeatures } from "./mapCharts/GeoFeatures"
 export { isValidVerticalComparisonLineConfig } from "./comparisonLine/ComparisonLineHelpers"
 export { hasValidConfigForBinningStrategy } from "./color/BinningStrategies"
 export { Dropdown } from "./controls/Dropdown"
-export { EXTERNAL_SORT_INDICATOR_DEFINITIONS } from "./entitySelector/EntitySelector.js"
+export { EXTERNAL_SORT_INDICATOR_DEFINITIONS } from "./entitySelector/EntitySelectorConstants.js"
 
 export { makeChartState } from "./chart/ChartTypeMap"
 export type { ChartState } from "./chart/ChartInterface"

@@ -91,6 +91,10 @@ import {
 import { SearchField } from "../controls/SearchField"
 import { MAP_REGION_LABELS } from "../mapCharts/MapChartConstants.js"
 import { columnDefsByCatalogKey } from "../core/loadCatalogData.js"
+import {
+    EXTERNAL_SORT_INDICATOR_DEFINITIONS,
+    type ExternalSortIndicatorDefinition,
+} from "./EntitySelectorConstants.js"
 
 export type CoreColumnBySlug = Record<ColumnSlug, CoreColumn>
 
@@ -175,22 +179,6 @@ interface FilterDropdownOption {
     count: number
     trackNote?: string // unused
 }
-
-export const EXTERNAL_SORT_INDICATOR_DEFINITIONS = [
-    {
-        catalogKey: "population" satisfies NumericCatalogKey,
-        slug: columnDefsByCatalogKey["population"].slug,
-        label: "Population",
-    },
-    {
-        catalogKey: "gdp" satisfies NumericCatalogKey,
-        slug: columnDefsByCatalogKey["gdp"].slug,
-        label: "GDP per capita (int. $)",
-    },
-] as const
-
-type ExternalSortIndicatorDefinition =
-    (typeof EXTERNAL_SORT_INDICATOR_DEFINITIONS)[number]
 
 const regionNamesSet = new Set(regions.map((region) => region.name))
 
