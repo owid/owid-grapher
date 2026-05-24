@@ -69,20 +69,32 @@ const formattedLine: Span[] = [
     span("."),
 ]
 
-// Probe-only: not asserted, just logged. Drives the future refs-handling
-// commit by measuring whether `href="#note-N"` fragment URLs survive gdoc
-// storage and how the round-trip degrades the ref structure today.
-const refsProbeLine: Span[] = [
-    span("Probe: a sentence with a footnote"),
-    wrap("span-ref", [wrap("span-superscript", [span("1")])], {
-        url: "#note-1",
-    }),
-    span(" referenced inline."),
-]
-
-const refsProbeBlock: EnrichedBlockText = {
+// Enriched-form refs: exercises the new SpanRef.sourceForm serializer.
+// Each SpanRef should emit `{ref}id_or_content{/ref}` on the body side,
+// and the ID-based one should also produce a `[.refs]` entry in the
+// frontmatter (looked up via content.refs.definitions).
+const enrichedRefsBlock: EnrichedBlockText = {
     type: "text",
-    value: refsProbeLine,
+    value: [
+        span("Enriched: an ID-based ref "),
+        {
+            spanType: "span-ref",
+            url: "#note-1",
+            sourceForm: { kind: "id", id: "example_ref_id" },
+            children: [wrap("span-superscript", [span("1")])],
+        },
+        span(" and an inline ref "),
+        {
+            spanType: "span-ref",
+            url: "#note-2",
+            sourceForm: {
+                kind: "inline",
+                content: [span("The inline footnote text.")],
+            },
+            children: [wrap("span-superscript", [span("2")])],
+        },
+        span(" should both round-trip."),
+    ],
     parseErrors: [],
 }
 
@@ -110,7 +122,26 @@ const content: OwidGdocPostContent = {
     type: OwidGdocType.Article,
     authors: ["OWID Test Bot"],
     excerpt: "Exercising the archieToGdoc → gdocToArchie loop.",
-    body: [textBlock, headingBlock, trailingBlock, refsProbeBlock],
+    body: [textBlock, headingBlock, trailingBlock, enrichedRefsBlock],
+    refs: {
+        definitions: {
+            example_ref_id: {
+                id: "example_ref_id",
+                index: 0,
+                content: [
+                    {
+                        type: "text",
+                        value: [
+                            span("The ID-based footnote's stored content."),
+                        ],
+                        parseErrors: [],
+                    },
+                ],
+                parseErrors: [],
+            },
+        },
+        errors: [],
+    },
 } as OwidGdocPostContent
 
 // --- Driver ---
@@ -160,26 +191,15 @@ async function main(): Promise<void> {
     console.log("done.")
 
     // --- Compare ---
-    // Refs-probe lines aren't expected to round-trip cleanly yet (refs are a
-    // future commit). Detect them on the input side via `class="ref"` and
-    // report them separately so the assertion only reflects the formatting
-    // fixes we're shipping in this commit.
     const inputLines = archieMlInput.split("\n")
     const outputLines = archieMlOutput.split("\n")
     const max = Math.max(inputLines.length, outputLines.length)
-    const isProbeLine = (line: string) => line.includes(`class="ref"`)
 
     let mismatches = 0
     const diffRows: string[] = []
-    const probeRows: string[] = []
     for (let i = 0; i < max; i++) {
         const a = inputLines[i] ?? ""
         const b = outputLines[i] ?? ""
-        if (isProbeLine(a)) {
-            probeRows.push(`-IN  ${i + 1}: ${a}`)
-            probeRows.push(`+OUT ${i + 1}: ${b}`)
-            continue
-        }
         if (a === b) {
             diffRows.push(`     ${i + 1}: ${a}`)
         } else {
@@ -193,14 +213,8 @@ async function main(): Promise<void> {
     console.log(archieMlInput)
     console.log("\n--- archieMlOutput ---")
     console.log(archieMlOutput)
-    console.log("\n--- line-by-line diff (excludes refs probe) ---")
+    console.log("\n--- line-by-line diff ---")
     console.log(diffRows.join("\n"))
-    if (probeRows.length > 0) {
-        console.log(
-            "\n--- refs probe (informational; refs handling is a future commit) ---"
-        )
-        console.log(probeRows.join("\n"))
-    }
     console.log(
         `\n${mismatches === 0 ? "✓ identical" : `✗ ${mismatches} differing line(s)`}`
     )
