@@ -10,14 +10,7 @@ export type RawBlockCountryProfileSelector = {
     }
 }
 
-/**
- * A country selector UI used on country-profile pages to let readers
- * jump to a specific country's profile. Undocumented in the author
- * reference.
- *
- * @owid-component country-profile-selector
- * @owid-title Country Profile Selector
- */
+/** @see ./CountryProfileSelector.md */
 export type EnrichedBlockCountryProfileSelector = {
     type: "country-profile-selector"
     url: string
