@@ -1,4 +1,8 @@
-import { keepPreviousData, useInfiniteQuery } from "@tanstack/react-query"
+import {
+    keepPreviousData,
+    useInfiniteQuery,
+    useQuery,
+} from "@tanstack/react-query"
 import { LiteClient } from "algoliasearch/lite"
 import { useEffect, useRef } from "react"
 import * as R from "remeda"
@@ -16,6 +20,46 @@ import {
 import { SiteAnalytics } from "../SiteAnalytics.js"
 
 const DEFAULT_PAGE_SIZE = 20
+
+// Grace period after a publish during which we don't trust that the article's
+// static page exists yet, and HEAD-probe before showing its card on /latest.
+// Past this window we assume the bake has caught up.
+export const FRESH_WINDOW_MS = 60 * 60 * 1000
+
+/**
+ * For freshly-published cards, probe whether the card URL is reachable before
+ * showing it — the Algolia index is updated synchronously on publish but the
+ * static page is only available once the next bake completes, so a card can
+ * otherwise link to a 404.
+ *
+ * Returns `true` once we're confident the link is safe (either the publish is
+ * older than `FRESH_WINDOW_MS` or a HEAD probe came back 200). Returns `false`
+ * while we're still uncertain. Heuristic by design — past the grace period the
+ * hook returns `true` without verifying anything.
+ */
+export function useIsLikelyBaked(
+    href: string,
+    publishedAt: string | Date
+): boolean {
+    const isFresh =
+        Date.now() - new Date(publishedAt).getTime() < FRESH_WINDOW_MS
+
+    const { data } = useQuery({
+        queryKey: ["isLikelyBaked", href],
+        queryFn: async () => {
+            // Resolve 404s as a final `false` rather than throwing — React
+            // Query only retries on rejected promises, so this caches the 404
+            // for the session. Network errors still throw and get the default
+            // retry/backoff treatment.
+            const res = await fetch(href, { method: "HEAD" })
+            return res.ok
+        },
+        enabled: isFresh,
+        staleTime: Infinity,
+    })
+
+    return !isFresh || data === true
+}
 
 /**
  * Handles analytics tracking for /latest filter state changes.

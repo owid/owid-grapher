@@ -10,6 +10,7 @@ import cx from "classnames"
 import { LatestHitMetadata } from "./LatestHitMetadata.js"
 import { LATEST_HIT_GRID_CLASSES, makeAttachments } from "./latestUtils.js"
 import { useLatestContext } from "./LatestContext.js"
+import { useIsLikelyBaked } from "./latestHooks.js"
 
 /**
  * Article card for the /latest feed.
@@ -38,9 +39,13 @@ export const LatestArticleHit = ({
         slug: hit.slug,
         content: { type: OwidGdocType.Article },
     })
+    const isLikelyBaked = useIsLikelyBaked(href, hit.date)
     const titleId = `latest-hit-${hit.slug}-title`
     const handleResultClick = () =>
         analytics.logLatestResultClick(hit, position)
+
+    if (!isLikelyBaked) return null
+
     return (
         <AttachmentsContext.Provider value={makeAttachments(hit)}>
             <article

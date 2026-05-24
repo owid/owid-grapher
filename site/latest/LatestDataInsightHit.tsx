@@ -8,6 +8,7 @@ import cx from "classnames"
 import { LatestHitMetadata } from "./LatestHitMetadata.js"
 import { LATEST_HIT_GRID_CLASSES, makeAttachments } from "./latestUtils.js"
 import { useLatestContext } from "./LatestContext.js"
+import { useIsLikelyBaked } from "./latestHooks.js"
 
 export const LatestDataInsightHit = ({
     hit,
@@ -23,9 +24,12 @@ export const LatestDataInsightHit = ({
         slug: hit.slug,
         content: { type: OwidGdocType.DataInsight },
     })
+    const isLikelyBaked = useIsLikelyBaked(href, hit.date)
     const firstImage = hit.body.find((block) => block.type === "image")
     const otherBlocks = hit.body.filter((block) => block !== firstImage)
     const titleId = `latest-hit-${hit.slug}-title`
+
+    if (!isLikelyBaked) return null
 
     return (
         <AttachmentsContext.Provider value={makeAttachments(hit)}>
