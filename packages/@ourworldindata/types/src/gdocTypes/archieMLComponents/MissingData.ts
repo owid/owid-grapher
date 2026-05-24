@@ -5,13 +5,7 @@ export type RawBlockMissingData = {
     value?: Record<string, never>
 }
 
-/**
- * Placeholder block indicating that data is missing for the current entity.
- * Internal block — not documented for authors.
- *
- * @owid-component missing-data
- * @owid-title Missing Data
- */
+/** @see ./MissingData.md */
 export type EnrichedBlockMissingData = {
     type: "missing-data"
     value?: Record<string, never>
