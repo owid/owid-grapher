@@ -14,6 +14,7 @@ import type { EmblaCarouselType } from "embla-carousel"
 import { Button } from "@ourworldindata/components"
 import {
     EnrichedBlockImage,
+    formatAuthors,
     OwidEnrichedGdocBlock,
     LatestDataInsight,
 } from "@ourworldindata/utils"
@@ -81,6 +82,7 @@ export default function LatestDataInsights({
                             key={dataInsight.id}
                             index={index}
                             title={dataInsight.content.title}
+                            authors={dataInsight.content.authors}
                             body={dataInsight.content.body}
                             publishedAt={dataInsight.publishedAt}
                             href={`/data-insights/${dataInsight.slug}`}
@@ -138,12 +140,14 @@ export default function LatestDataInsights({
 const DataInsightCard = memo(function DataInsightCard({
     index,
     title,
+    authors,
     body,
     publishedAt,
     href,
 }: {
     index: number
     title: string
+    authors: string[]
     body: OwidEnrichedGdocBlock[]
     publishedAt?: Date
     href: string
@@ -186,6 +190,9 @@ const DataInsightCard = memo(function DataInsightCard({
                     >
                         {title}
                     </h3>
+                    <p className="latest-data-insights__card-authors">
+                        {formatAuthors(authors)}
+                    </p>
                     <div className="latest-data-insights__card-body">
                         <ArticleBlocks
                             blocks={otherBlocks}

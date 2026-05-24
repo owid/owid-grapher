@@ -61,6 +61,12 @@
     line-height: 1.5rem;
 }
 
+.latest-data-insight-hit__authors {
+    @include body-3-medium-italic;
+    color: $blue-50;
+    margin: 0 0 8px 0;
+}
+
 .latest-data-insight-hit__blocks {
     @include text-block-override {
         @include body-3-medium;

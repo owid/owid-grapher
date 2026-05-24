@@ -1,4 +1,4 @@
-import { OwidGdocType } from "@ourworldindata/utils"
+import { formatAuthors, OwidGdocType } from "@ourworldindata/utils"
 import { PageChronologicalDataInsightRecord } from "@ourworldindata/types"
 import { getPrefixedGdocPath } from "@ourworldindata/components"
 import { AttachmentsContext } from "../gdocs/AttachmentsContext.js"
@@ -65,6 +65,9 @@ export const LatestDataInsightHit = ({
                         >
                             {hit.title}
                         </h2>
+                        <p className="latest-data-insight-hit__authors">
+                            {formatAuthors(hit.authors)}
+                        </p>
                         <div className="latest-data-insight-hit__blocks">
                             <ArticleBlocks
                                 blocks={otherBlocks}
