@@ -1,4 +1,8 @@
-import { OwidGdocPostContent } from "@ourworldindata/utils"
+import {
+    OwidGdocPostContent,
+    traverseEnrichedBlock,
+} from "@ourworldindata/utils"
+import type { OwidEnrichedGdocBlock, Span } from "@ourworldindata/types"
 import {
     propertyToArchieMLString,
     OwidRawGdocBlockToArchieMLStringGenerator,
@@ -10,6 +14,54 @@ import { type drive_v3, drive as googleDrive } from "@googleapis/drive"
 import { OwidGoogleAuth } from "../../OwidGoogleAuth.js"
 import * as cheerio from "cheerio"
 import type { AnyNode } from "domhandler"
+
+// Collect the set of ref IDs that appear as ID-based refs in the body.
+// These are the entries that need to live in the [.refs] frontmatter
+// block. Inline refs are NOT collected — their content is emitted inline
+// as `{ref}content{/ref}` by spanToArchieMLSourceString, with no
+// frontmatter definition required.
+function collectIdBasedRefIds(
+    body: OwidEnrichedGdocBlock[] | undefined
+): Set<string> {
+    const ids = new Set<string>()
+    if (!body) return ids
+    const visitSpan = (span: Span): void => {
+        if (span.spanType === "span-ref" && span.sourceForm.kind === "id") {
+            ids.add(span.sourceForm.id)
+        }
+    }
+    const noop = (_b: OwidEnrichedGdocBlock): void => undefined
+    for (const block of body) {
+        traverseEnrichedBlock(block, noop, visitSpan)
+    }
+    return ids
+}
+
+// Emit a [.refs] frontmatter block listing each ID-based ref's id +
+// content. Order follows the order in which ID-based refs first appear
+// in the body, which is deterministic and matches what extractRefs sees
+// on the way back in. Skipped entirely when there are no ID-based refs.
+function* yieldRefsBlockIfDefined(
+    article: OwidGdocPostContent
+): Generator<string, void, undefined> {
+    const definitions = article.refs?.definitions
+    if (!definitions) return
+    const idBased = collectIdBasedRefIds(article.body)
+    if (idBased.size === 0) return
+    yield "[.refs]"
+    for (const id of idBased) {
+        const ref = definitions[id]
+        if (!ref) continue
+        yield `id: ${id}`
+        yield "[.+content]"
+        for (const block of ref.content) {
+            const rawBlock = enrichedBlockToRawBlock(block)
+            yield* OwidRawGdocBlockToArchieMLStringGenerator(rawBlock)
+        }
+        yield "[]"
+    }
+    yield "[]"
+}
 
 export function* owidArticleToArchieMLStringGenerator(
     article: OwidGdocPostContent
@@ -32,11 +84,11 @@ export function* owidArticleToArchieMLStringGenerator(
     yield* propertyToArchieMLString("sidebar-toc", article)
     yield* propertyToArchieMLString("heading-variant", article)
     yield* propertyToArchieMLString("hide-subscribe-banner", article)
-    // TODO: inline refs
     yield* propertyToArchieMLString("hide-citation", article)
     yield* propertyToArchieMLString("cover-image", article)
     yield* propertyToArchieMLString("cover-color", article)
     yield* propertyToArchieMLString("featured-image", article)
+    yield* yieldRefsBlockIfDefined(article)
     yield ""
     if (article.body) {
         yield "[+body]"

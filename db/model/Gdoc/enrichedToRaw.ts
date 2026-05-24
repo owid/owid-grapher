@@ -68,12 +68,17 @@ import {
     RawBlockChartRows,
     RawBlockPullChart,
 } from "@ourworldindata/types"
-import { spanToHtmlString } from "./gdocUtils.js"
+import { spanToArchieMLSourceString } from "./gdocUtils.js"
 import { match, P } from "ts-pattern"
 import * as R from "remeda"
 
+// enrichedBlockToRawBlock is part of the write-back path (enriched →
+// ArchieML text), so spans must be serialized in their *source* form —
+// notably emitting `{ref}id_or_content{/ref}` for span-ref rather than
+// the post-extractRefs HTML form. See spanToArchieMLSourceString for the
+// only point where this and the HTML serializer diverge.
 function spansToHtmlText(spans: Span[]): string {
-    return spans.map(spanToHtmlString).join("")
+    return spans.map(spanToArchieMLSourceString).join("")
 }
 export function enrichedBlockToRawBlock(
     block: OwidEnrichedGdocBlock
