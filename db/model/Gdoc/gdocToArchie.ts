@@ -38,6 +38,15 @@ function applyTextStyles(
     if (textStyle.bold) {
         styledSpan = { spanType: "span-bold", children: [styledSpan] }
     }
+    if (textStyle.underline) {
+        styledSpan = { spanType: "span-underline", children: [styledSpan] }
+    }
+    if (textStyle.strikethrough) {
+        styledSpan = {
+            spanType: "span-strikethrough",
+            children: [styledSpan],
+        }
+    }
     if (textStyle.baselineOffset === "SUPERSCRIPT") {
         styledSpan = { spanType: "span-superscript", children: [styledSpan] }
     }
@@ -307,6 +316,12 @@ function parseParagraph(
         }
         if (textRun.textStyle.bold) {
             span = { spanType: "span-bold", children: [span] }
+        }
+        if (textRun.textStyle.underline) {
+            span = { spanType: "span-underline", children: [span] }
+        }
+        if (textRun.textStyle.strikethrough) {
+            span = { spanType: "span-strikethrough", children: [span] }
         }
         if (textRun.textStyle.baselineOffset === "SUPERSCRIPT") {
             span = { spanType: "span-superscript", children: [span] }
