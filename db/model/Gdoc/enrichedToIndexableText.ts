@@ -102,6 +102,7 @@ function spanToIndexableText(
                     "span-italic",
                     "span-bold",
                     "span-underline",
+                    "span-strikethrough",
                     "span-subscript",
                     "span-superscript",
                     "span-quote",

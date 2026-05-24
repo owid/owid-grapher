@@ -30,6 +30,7 @@ export function spanToSimpleString(s: Span): string {
                     "span-italic",
                     "span-bold",
                     "span-underline",
+                    "span-strikethrough",
                     "span-subscript",
                     "span-superscript",
                     "span-quote",
@@ -85,6 +86,10 @@ export function spanToHtmlString(s: Span): string {
         .with(
             { spanType: "span-underline" },
             (span) => `<u>${spansToHtmlString(span.children)}</u>`
+        )
+        .with(
+            { spanType: "span-strikethrough" },
+            (span) => `<s>${spansToHtmlString(span.children)}</s>`
         )
         .with(
             { spanType: "span-subscript" },

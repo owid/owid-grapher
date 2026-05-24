@@ -1926,6 +1926,7 @@ export function spansToUnformattedPlainText(spans: Span[]): string {
                             "span-superscript",
                             "span-subscript",
                             "span-underline",
+                            "span-strikethrough",
                             "span-ref",
                             "span-dod",
                             "span-guided-chart-link"

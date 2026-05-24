@@ -65,6 +65,11 @@ export type SpanUnderline = {
     children: Span[]
 }
 
+export type SpanStrikethrough = {
+    spanType: "span-strikethrough"
+    children: Span[]
+}
+
 export type SpanSubscript = {
     spanType: "span-subscript"
     children: Span[]
@@ -92,6 +97,7 @@ export type Span =
     | SpanItalic
     | SpanBold
     | SpanUnderline
+    | SpanStrikethrough
     | SpanSubscript
     | SpanSuperscript
     | SpanQuote
