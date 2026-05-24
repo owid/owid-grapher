@@ -10,6 +10,7 @@ import {
 } from "@ourworldindata/utils"
 import {
     SpanCallout,
+    SpanRef,
     CalloutFunction,
     CALLOUT_FUNCTIONS,
 } from "@ourworldindata/types"
@@ -43,69 +44,66 @@ export function spanToSimpleString(s: Span): string {
         .exhaustive()
 }
 
-export function spanToHtmlString(s: Span): string {
+// Every span case except span-ref is identical between the HTML serializer
+// (for site rendering, Algolia indexing, etc.) and the ArchieML-source
+// serializer (for write-back into a gdoc). The only divergence is how
+// span-ref renders: HTML form (<a class="ref">...</a>) vs source form
+// ({ref}id_or_content{/ref}). Each wrapper passes its own children
+// recursion so the two trees never mix modes mid-traversal.
+function nonRefSpanToString(
+    s: Exclude<Span, SpanRef>,
+    recurse: (children: Span[]) => string
+): string {
     return match(s)
         .with({ spanType: "span-simple-text" }, (span) => span.text)
         .with(
             { spanType: "span-link" },
-            (span) =>
-                `<a href="${span.url}">${spansToHtmlString(span.children)}</a>`
-        )
-        .with(
-            { spanType: "span-ref" },
-            (span) =>
-                `<a href="${span.url}" class="ref">${spansToHtmlString(
-                    span.children
-                )}</a>`
+            (span) => `<a href="${span.url}">${recurse(span.children)}</a>`
         )
         .with(
             { spanType: "span-dod" },
             (span) =>
                 `<span><a href="#dod-${span.id}" data-dod-id="${
                     span.id
-                }"  class="dod-span">${spansToHtmlString(
-                    span.children
-                )}</a></span>`
+                }"  class="dod-span">${recurse(span.children)}</a></span>`
         )
         .with(
             { spanType: "span-guided-chart-link" },
             (span) =>
-                `<a href="#guide:${span.url}" class="guided-chart-link">${spansToHtmlString(
-                    span.children
-                )}</a>`
+                `<a href="#guide:${span.url}" class="guided-chart-link">${recurse(span.children)}</a>`
         )
         .with({ spanType: "span-newline" }, () => "<br/>")
         .with(
             { spanType: "span-italic" },
-            (span) => `<i>${spansToHtmlString(span.children)}</i>`
+            (span) => `<i>${recurse(span.children)}</i>`
         )
         .with(
             { spanType: "span-bold" },
-            (span) => `<b>${spansToHtmlString(span.children)}</b>`
+            (span) => `<b>${recurse(span.children)}</b>`
         )
         .with(
             { spanType: "span-underline" },
-            (span) => `<u>${spansToHtmlString(span.children)}</u>`
+            (span) => `<u>${recurse(span.children)}</u>`
         )
         .with(
             { spanType: "span-strikethrough" },
-            (span) => `<s>${spansToHtmlString(span.children)}</s>`
+            (span) => `<s>${recurse(span.children)}</s>`
         )
         .with(
             { spanType: "span-subscript" },
-            (span) => `<sub>${spansToHtmlString(span.children)}</sub>`
+            (span) => `<sub>${recurse(span.children)}</sub>`
         )
         .with(
             { spanType: "span-superscript" },
-            (span) => `<sup>${spansToHtmlString(span.children)}</sup>`
+            (span) => `<sup>${recurse(span.children)}</sup>`
         )
         .with(
             { spanType: "span-quote" },
-            (span) => `<q>${spansToHtmlString(span.children)}</q>`
+            (span) => `<q>${recurse(span.children)}</q>`
         )
         .with(
             { spanType: "span-fallback" },
-            (span) => `<span>${spansToHtmlString(span.children)}</span>`
+            (span) => `<span>${recurse(span.children)}</span>`
         )
         .with(
             { spanType: "span-callout" },
@@ -114,12 +112,35 @@ export function spanToHtmlString(s: Span): string {
         .exhaustive()
 }
 
+// HTML serializer: emits post-extractRefs HTML for span-ref, suitable for
+// site rendering and any other consumer that wants the rendered form.
+export function spanToHtmlString(s: Span): string {
+    if (s.spanType === "span-ref")
+        return `<a href="${s.url}" class="ref">${spansToHtmlString(s.children)}</a>`
+    return nonRefSpanToString(s, spansToHtmlString)
+}
+
 export function spansToHtmlString(spans: Span[]): string {
     if (spans.length === 0) return ""
-    else {
-        const result = spans.map(spanToHtmlString).join("")
-        return result
+    return spans.map(spanToHtmlString).join("")
+}
+
+// ArchieML-source serializer: emits the source `{ref}id_or_content{/ref}`
+// for span-ref. Used by the write-back path so a Claude-mediated edit
+// produces gdoc text that an author would recognise — and that the next
+// parse round-trips back to the same SpanRef structure.
+export function spanToArchieMLSourceString(s: Span): string {
+    if (s.spanType === "span-ref") {
+        return s.sourceForm.kind === "id"
+            ? `{ref}${s.sourceForm.id}{/ref}`
+            : `{ref}${spansToArchieMLSourceString(s.sourceForm.content)}{/ref}`
     }
+    return nonRefSpanToString(s, spansToArchieMLSourceString)
+}
+
+export function spansToArchieMLSourceString(spans: Span[]): string {
+    if (spans.length === 0) return ""
+    return spans.map(spanToArchieMLSourceString).join("")
 }
 
 export function spansToSimpleString(spans: Span[]): string {

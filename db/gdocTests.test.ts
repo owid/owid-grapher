@@ -12,9 +12,18 @@ import {
     EnrichedBlockSocials,
     SocialLinkType,
 } from "@ourworldindata/utils"
-import { spansToHtmlString } from "./model/Gdoc/gdocUtils.js"
+import {
+    spansToHtmlString,
+    spanToArchieMLSourceString,
+} from "./model/Gdoc/gdocUtils.js"
 import { archieToEnriched } from "./model/Gdoc/archieToEnriched.js"
 import { OwidRawGdocBlockToArchieMLString } from "./model/Gdoc/rawToArchie.js"
+import { owidArticleToArchieMLStringGenerator } from "./model/Gdoc/archieToGdoc.js"
+import {
+    OwidGdocPostContent,
+    OwidGdocType,
+    SpanRef,
+} from "@ourworldindata/types"
 import { enrichedBlockExamples } from "./model/Gdoc/exampleEnrichedBlocks.js"
 import { enrichedBlockToRawBlock } from "./model/Gdoc/enrichedToRaw.js"
 import { load } from "archieml"
@@ -620,4 +629,153 @@ level: 2
             )
         }
     )
+})
+
+describe("refs source-form serializer", () => {
+    it("emits {ref}id{/ref} for an ID-based SpanRef", () => {
+        const span: SpanRef = {
+            spanType: "span-ref",
+            url: "#note-1",
+            sourceForm: { kind: "id", id: "example_id" },
+            children: [
+                {
+                    spanType: "span-superscript",
+                    children: [{ spanType: "span-simple-text", text: "1" }],
+                },
+            ],
+        }
+        expect(spanToArchieMLSourceString(span)).toBe("{ref}example_id{/ref}")
+    })
+
+    it("emits {ref}content{/ref} for an inline SpanRef", () => {
+        const span: SpanRef = {
+            spanType: "span-ref",
+            url: "#note-2",
+            sourceForm: {
+                kind: "inline",
+                content: [{ spanType: "span-simple-text", text: "the body" }],
+            },
+            children: [
+                {
+                    spanType: "span-superscript",
+                    children: [{ spanType: "span-simple-text", text: "2" }],
+                },
+            ],
+        }
+        expect(spanToArchieMLSourceString(span)).toBe("{ref}the body{/ref}")
+    })
+
+    it("recurses through formatting in inline ref content", () => {
+        const span: SpanRef = {
+            spanType: "span-ref",
+            url: "#note-3",
+            sourceForm: {
+                kind: "inline",
+                content: [
+                    { spanType: "span-simple-text", text: "see " },
+                    {
+                        spanType: "span-bold",
+                        children: [
+                            {
+                                spanType: "span-simple-text",
+                                text: "this paper",
+                            },
+                        ],
+                    },
+                ],
+            },
+            children: [],
+        }
+        expect(spanToArchieMLSourceString(span)).toBe(
+            "{ref}see <b>this paper</b>{/ref}"
+        )
+    })
+
+    it("emits a [.refs] frontmatter block listing only ID-based refs used in the body", () => {
+        const content: OwidGdocPostContent = {
+            title: "T",
+            type: OwidGdocType.Article,
+            authors: ["A"],
+            excerpt: "E",
+            body: [
+                {
+                    type: "text",
+                    value: [
+                        {
+                            spanType: "span-ref",
+                            url: "#note-1",
+                            sourceForm: { kind: "id", id: "used_id" },
+                            children: [],
+                        },
+                        {
+                            spanType: "span-ref",
+                            url: "#note-2",
+                            sourceForm: {
+                                kind: "inline",
+                                content: [
+                                    {
+                                        spanType: "span-simple-text",
+                                        text: "inline body",
+                                    },
+                                ],
+                            },
+                            children: [],
+                        },
+                    ],
+                    parseErrors: [],
+                },
+            ],
+            refs: {
+                definitions: {
+                    used_id: {
+                        id: "used_id",
+                        index: 0,
+                        content: [
+                            {
+                                type: "text",
+                                value: [
+                                    {
+                                        spanType: "span-simple-text",
+                                        text: "Citation.",
+                                    },
+                                ],
+                                parseErrors: [],
+                            },
+                        ],
+                        parseErrors: [],
+                    },
+                    // An inline-ref dictionary entry (keyed by content hash);
+                    // must NOT appear in the emitted [.refs] block.
+                    abc123hash: {
+                        id: "abc123hash",
+                        index: 1,
+                        content: [
+                            {
+                                type: "text",
+                                value: [
+                                    {
+                                        spanType: "span-simple-text",
+                                        text: "inline body",
+                                    },
+                                ],
+                                parseErrors: [],
+                            },
+                        ],
+                        parseErrors: [],
+                    },
+                },
+                errors: [],
+            },
+        } as OwidGdocPostContent
+
+        const text = [...owidArticleToArchieMLStringGenerator(content)].join(
+            "\n"
+        )
+
+        expect(text).toContain("[.refs]")
+        expect(text).toContain("id: used_id")
+        expect(text).toContain("Citation.")
+        expect(text).not.toContain("id: abc123hash")
+        expect(text).not.toContain("inline body\n[]")
+    })
 })
