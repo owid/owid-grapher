@@ -94,6 +94,7 @@ export function spanToMarkdown(
                 spanType: P.union(
                     "span-ref",
                     "span-underline",
+                    "span-strikethrough",
                     "span-subscript",
                     "span-superscript",
                     "span-quote",

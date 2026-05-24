@@ -312,6 +312,54 @@ level: 2
         expect(matches.length).toBe(1)
     })
 
+    it("reads underline text style into <u> tags", async () => {
+        const doc: docs_v1.Schema$Document = {
+            body: {
+                content: [
+                    {
+                        paragraph: {
+                            elements: [
+                                {
+                                    textRun: {
+                                        content: "Underlined",
+                                        textStyle: { underline: true },
+                                    },
+                                },
+                            ],
+                        },
+                    },
+                ],
+            },
+        }
+
+        const { text } = await gdocToArchie(doc)
+        expect(text).toContain(`<u>Underlined</u>`)
+    })
+
+    it("reads strikethrough text style into <s> tags", async () => {
+        const doc: docs_v1.Schema$Document = {
+            body: {
+                content: [
+                    {
+                        paragraph: {
+                            elements: [
+                                {
+                                    textRun: {
+                                        content: "Strikethrough",
+                                        textStyle: { strikethrough: true },
+                                    },
+                                },
+                            ],
+                        },
+                    },
+                ],
+            },
+        }
+
+        const { text } = await gdocToArchie(doc)
+        expect(text).toContain(`<s>Strikethrough</s>`)
+    })
+
     it("keeps consecutive links to different targets separate", async () => {
         const url1 = "http://ourworldindata.org/grapher/life-expectancy"
         const url2 = "http://ourworldindata.org/grapher/co2-emissions"

@@ -143,6 +143,14 @@ export default function SpanElement({
                 />
             </u>
         ))
+        .with({ spanType: "span-strikethrough" }, (span) => (
+            <s>
+                <SpanElements
+                    spans={span.children}
+                    shouldRenderLinks={shouldRenderLinks}
+                />
+            </s>
+        ))
         .with({ spanType: "span-subscript" }, (span) => (
             <sub>
                 <SpanElements

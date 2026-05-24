@@ -55,6 +55,8 @@ const formattedLine: Span[] = [
     span(" "),
     wrap("span-underline", [span("Underline.")]),
     span(" "),
+    wrap("span-strikethrough", [span("Strikethrough.")]),
+    span(" "),
     wrap("span-superscript", [span("sup")]),
     span("/"),
     wrap("span-subscript", [span("sub")]),
@@ -66,6 +68,23 @@ const formattedLine: Span[] = [
     ]),
     span("."),
 ]
+
+// Probe-only: not asserted, just logged. Drives the future refs-handling
+// commit by measuring whether `href="#note-N"` fragment URLs survive gdoc
+// storage and how the round-trip degrades the ref structure today.
+const refsProbeLine: Span[] = [
+    span("Probe: a sentence with a footnote"),
+    wrap("span-ref", [wrap("span-superscript", [span("1")])], {
+        url: "#note-1",
+    }),
+    span(" referenced inline."),
+]
+
+const refsProbeBlock: EnrichedBlockText = {
+    type: "text",
+    value: refsProbeLine,
+    parseErrors: [],
+}
 
 const textBlock: EnrichedBlockText = {
     type: "text",
@@ -91,7 +110,7 @@ const content: OwidGdocPostContent = {
     type: OwidGdocType.Article,
     authors: ["OWID Test Bot"],
     excerpt: "Exercising the archieToGdoc → gdocToArchie loop.",
-    body: [textBlock, headingBlock, trailingBlock],
+    body: [textBlock, headingBlock, trailingBlock, refsProbeBlock],
 } as OwidGdocPostContent
 
 // --- Driver ---
@@ -120,9 +139,7 @@ async function main(): Promise<void> {
 
     // --- Insert fresh content ---
     const requests = articleToBatchUpdates(content)
-    process.stdout.write(
-        `Submitting ${requests.length} batchUpdate requests… `
-    )
+    process.stdout.write(`Submitting ${requests.length} batchUpdate requests… `)
     await client.documents.batchUpdate({
         documentId: TARGET_DOC_ID,
         requestBody: { requests },
@@ -135,19 +152,34 @@ async function main(): Promise<void> {
         documentId: TARGET_DOC_ID,
         suggestionsViewMode: "PREVIEW_WITHOUT_SUGGESTIONS",
     })
-    const { text: archieMlOutput } = await gdocToArchie(after.data)
+    const { text: rawArchieMlOutput } = await gdocToArchie(after.data)
+    // archieToGdoc's insert pattern produces one leading blank line in the
+    // gdoc; strip it so the line-by-line comparison reflects content-level
+    // equality, not the off-by-one. Cosmetic issue separate from formatting.
+    const archieMlOutput = rawArchieMlOutput.replace(/^\n/, "")
     console.log("done.")
 
     // --- Compare ---
+    // Refs-probe lines aren't expected to round-trip cleanly yet (refs are a
+    // future commit). Detect them on the input side via `class="ref"` and
+    // report them separately so the assertion only reflects the formatting
+    // fixes we're shipping in this commit.
     const inputLines = archieMlInput.split("\n")
     const outputLines = archieMlOutput.split("\n")
     const max = Math.max(inputLines.length, outputLines.length)
+    const isProbeLine = (line: string) => line.includes(`class="ref"`)
 
     let mismatches = 0
     const diffRows: string[] = []
+    const probeRows: string[] = []
     for (let i = 0; i < max; i++) {
         const a = inputLines[i] ?? ""
         const b = outputLines[i] ?? ""
+        if (isProbeLine(a)) {
+            probeRows.push(`-IN  ${i + 1}: ${a}`)
+            probeRows.push(`+OUT ${i + 1}: ${b}`)
+            continue
+        }
         if (a === b) {
             diffRows.push(`     ${i + 1}: ${a}`)
         } else {
@@ -161,8 +193,14 @@ async function main(): Promise<void> {
     console.log(archieMlInput)
     console.log("\n--- archieMlOutput ---")
     console.log(archieMlOutput)
-    console.log("\n--- line-by-line diff ---")
+    console.log("\n--- line-by-line diff (excludes refs probe) ---")
     console.log(diffRows.join("\n"))
+    if (probeRows.length > 0) {
+        console.log(
+            "\n--- refs probe (informational; refs handling is a future commit) ---"
+        )
+        console.log(probeRows.join("\n"))
+    }
     console.log(
         `\n${mismatches === 0 ? "✓ identical" : `✗ ${mismatches} differing line(s)`}`
     )

@@ -170,6 +170,7 @@ function getExcerptLongFromGdoc(
                     "span-bold",
                     "span-italic",
                     "span-underline",
+                    "span-strikethrough",
                     "span-subscript",
                     "span-superscript",
                 ].includes(block.value[0].spanType)

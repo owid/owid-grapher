@@ -258,6 +258,7 @@ export {
     type SpanQuote,
     type SpanRef,
     type SpanSimpleText,
+    type SpanStrikethrough,
     type SpanSubscript,
     type SpanSuperscript,
     type SpanUnderline,

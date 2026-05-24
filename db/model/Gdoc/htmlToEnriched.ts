@@ -11,6 +11,7 @@ import {
     SpanSuperscript,
     SpanSubscript,
     SpanUnderline,
+    SpanStrikethrough,
     SpanRef,
     SpanDod,
     EnrichedBlockSimpleText,
@@ -220,6 +221,11 @@ function cheerioToSpan(element: AnyNode): Span | undefined {
                 const children =
                     _.compact(element.children?.map(cheerioToSpan)) ?? []
                 return { spanType: "span-underline", children }
+            })
+            .with("s", (): SpanStrikethrough => {
+                const children =
+                    _.compact(element.children?.map(cheerioToSpan)) ?? []
+                return { spanType: "span-strikethrough", children }
             })
             .with("wbr", () => spanFallback(element))
             .otherwise(() => {
