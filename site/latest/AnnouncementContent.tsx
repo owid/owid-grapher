@@ -27,6 +27,7 @@ export const AnnouncementContent = ({
     body,
     cta,
     isStandalone,
+    shouldAutoExpand,
     selectedTopic,
     onReadMore,
 }: {
@@ -42,6 +43,7 @@ export const AnnouncementContent = ({
     /** When rendered as the standalone preview page: use h1, show full body
      * (no Read more truncation). */
     isStandalone?: boolean
+    shouldAutoExpand?: boolean
     selectedTopic?: string
     onReadMore?: () => void
 }) => {
@@ -92,7 +94,7 @@ export const AnnouncementContent = ({
                 <ExpandableText
                     blocks={body}
                     containerType="latest-announcement"
-                    alwaysExpanded={isStandalone}
+                    alwaysExpanded={shouldAutoExpand || isStandalone}
                     onReadMore={onReadMore}
                 >
                     {authorByline}

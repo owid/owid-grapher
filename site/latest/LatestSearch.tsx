@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { useSearchParams } from "react-router-dom-v5-compat"
 import {
     LATEST_TYPE_VALUES,
@@ -37,6 +37,10 @@ export const LatestSearch = ({
     const [searchParams, setSearchParams] = useSearchParams()
 
     const { allAreas } = useTagGraphTopics(topicTagGraph)
+
+    const [autoExpandedSlug, setAutoExpandedSlug] = useState<null | string>(
+        null
+    )
 
     const state = useMemo(
         () => searchParamsToState(searchParams, allAreas),
@@ -122,6 +126,7 @@ export const LatestSearch = ({
         const el = document.getElementById(hash)
         if (el) {
             el.scrollIntoView()
+            setAutoExpandedSlug(hash)
             didScrollToHash.current = true
         }
         // Depend on `hits.length` rather than `hits` — `hits` is a fresh
@@ -176,6 +181,7 @@ export const LatestSearch = ({
                             hit={hit}
                             selectedTopic={topics[0]}
                             position={i + 1}
+                            shouldAutoExpand={hit.slug === autoExpandedSlug}
                         />
                     ))}
                     {/* Always render the signup block — with 0 or 1 hits it
@@ -191,6 +197,7 @@ export const LatestSearch = ({
                             hit={hit}
                             selectedTopic={topics[0]}
                             position={i + 3}
+                            shouldAutoExpand={hit.slug === autoExpandedSlug}
                         />
                     ))}
                     {hasNextPage && (
