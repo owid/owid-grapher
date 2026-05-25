@@ -9,10 +9,16 @@ type LatestHitProps = {
     hit: PageChronologicalRecord
     selectedTopic?: string
     position: number
+    shouldAutoExpand: boolean
 }
 
 /** Dispatches to the appropriate per-type hit card. */
-export const LatestHit = ({ hit, selectedTopic, position }: LatestHitProps) => {
+export const LatestHit = ({
+    hit,
+    selectedTopic,
+    position,
+    shouldAutoExpand,
+}: LatestHitProps) => {
     return match(hit)
         .with({ type: OwidGdocType.Article }, (hit) => (
             <LatestArticleHit
@@ -33,6 +39,7 @@ export const LatestHit = ({ hit, selectedTopic, position }: LatestHitProps) => {
                 hit={hit}
                 selectedTopic={selectedTopic}
                 position={position}
+                shouldAutoExpand={shouldAutoExpand}
             />
         ))
         .with(
