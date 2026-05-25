@@ -12,7 +12,6 @@
     align-items: center;
     gap: 4px 16px;
     color: $blue-60;
-    margin-top: 16px;
 }
 
 .announcement-content__author {
@@ -55,6 +54,21 @@
 
         .article-block__image {
             margin: 16px 0 16px;
+        }
+
+        // Move the author byline to sit just before the last image in the
+        // trailing area of an expanded announcement. The outer
+        // `:has(.article-block__image)` guard ensures the rule only fires when
+        // there is at least one image; otherwise every child would match the
+        // inner selector and the byline would float to the top
+        > .article-block__expandable-text:has(.article-block__image) {
+            // selects the last image and everything after it
+            > *:not(:has(~ .article-block__image)) {
+                order: 2;
+            }
+            > *:has(.announcement-content__authors) {
+                order: 1;
+            }
         }
     }
 }
