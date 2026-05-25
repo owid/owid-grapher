@@ -21,7 +21,6 @@ import * as db from "../db/db.js"
 import urljoin from "url-join"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 
-import { calculateDataInsightIndexPageCount } from "../db/model/Gdoc/gdocUtils.js"
 import { getMinimalAuthors } from "../db/model/Gdoc/GdocAuthor.js"
 import {
     GdocProfile,
@@ -108,9 +107,6 @@ export const makeSitemap = async (
         .then((gdocs) => gdocs.map(gdocFromJSON))) as GdocProfile[]
 
     const publishedDataInsights = await db.getPublishedDataInsights(knex)
-    const dataInsightFeedPageCount = calculateDataInsightIndexPageCount(
-        publishedDataInsights.length
-    )
 
     const charts = await db.knexRaw<
         Pick<DbPlainChart, "updatedAt"> & { slug: string }
@@ -175,19 +171,6 @@ export const makeSitemap = async (
             publishedDataInsights.map((d) => ({
                 loc: urljoin(BAKED_BASE_URL, "data-insights", d.slug),
                 lastmod: dayjs(d.updatedAt).format("YYYY-MM-DD"),
-            }))
-        )
-        .concat(
-            // Data insight index pages: /data-insights, /data-insights/2, /data-insights/3, etc.
-            Array.from({ length: dataInsightFeedPageCount }, (_, i) => ({
-                loc: urljoin(
-                    BAKED_BASE_URL,
-                    "data-insights",
-                    i === 0 ? "" : `/${i + 1}`
-                ),
-                lastmod: dayjs(publishedDataInsights[0].updatedAt).format(
-                    "YYYY-MM-DD"
-                ),
             }))
         )
         .concat(

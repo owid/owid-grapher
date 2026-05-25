@@ -17,7 +17,7 @@ import {
     OwidGdocType,
 } from "@ourworldindata/types"
 import {
-    checkIsChronologicalFeedPost,
+    checkIsChronologicalGdoc,
     checkIsDataInsight,
     checkIsGdocPostExcludingFragments,
     checkShouldDataCalloutRender,
@@ -342,7 +342,7 @@ async function indexAndBakeGdocIfNeccesary(
     const action = getPublishingAction(prevJson, nextJson)
     const isGdocPost = checkIsGdocPostExcludingFragments(nextJson)
     const isProfile = checkIsProfile(nextJson)
-    const isChronologicalPost = checkIsChronologicalFeedPost(nextJson)
+    const isChronologicalPost = checkIsChronologicalGdoc(nextJson)
 
     await match(action)
         .with(GdocPublishingAction.SavingDraft, _.noop)
@@ -596,7 +596,7 @@ export async function deleteGdoc(
                 gdoc as unknown as GdocProfile
             )
         }
-        if (checkIsChronologicalFeedPost(gdoc)) {
+        if (checkIsChronologicalGdoc(gdoc)) {
             await removeIndividualGdocFromChronological(gdoc.id)
         }
         if (!tombstone && gdocSlug && gdocSlug !== "/") {
