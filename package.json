@@ -122,7 +122,7 @@
         "entities": "^7.0.1",
         "express": "^5.2.1",
         "figma-api": "^2.2.0-beta",
-        "filenamify": "^6.0.0",
+        "filenamify": "^7.0.1",
         "fparser": "^3.1.0",
         "fs-extra": "^11.3.4",
         "google-auth-library": "^10.6.2",

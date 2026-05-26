@@ -9243,19 +9243,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"filename-reserved-regex@npm:^3.0.0":
-  version: 3.0.0
-  resolution: "filename-reserved-regex@npm:3.0.0"
-  checksum: 10/1803e19ce64d7cb88ee5a1bd3ce282470a5c263987269222426d889049fc857e302284fa71937de9582eba7a9f39539557d45e0562f2fa51cade8efc68c65dd9
+"filename-reserved-regex@npm:^4.0.0":
+  version: 4.0.0
+  resolution: "filename-reserved-regex@npm:4.0.0"
+  checksum: 10/451b01f5ee857ac30d62918d0395be18060b51f1945b5285f258f9332e32d88a8dec6a994639748cb5a1390f4b21a75fc5331c68e2387a00dc6d27893fb985f2
   languageName: node
   linkType: hard
 
-"filenamify@npm:^6.0.0":
-  version: 6.0.0
-  resolution: "filenamify@npm:6.0.0"
+"filenamify@npm:^7.0.1":
+  version: 7.0.1
+  resolution: "filenamify@npm:7.0.1"
   dependencies:
-    filename-reserved-regex: "npm:^3.0.0"
-  checksum: 10/5914b64a760d49323d0454efb1f5e33338d3840df447f40556fc68730c4649797451931d60035c66068dacf326f045a912287ce8b63e15a5fba311a961f8f4b1
+    filename-reserved-regex: "npm:^4.0.0"
+  checksum: 10/c8a5aaa5f1ee4eeb84d0058a979522defde92e82522ece780269b5b7d2659c1f35d7020feeb117f7e469a01ee00b2d67753fdcd8faa58c5c3ae5ebcff354f604
   languageName: node
   linkType: hard
 
@@ -9755,7 +9755,7 @@ __metadata:
     eslint-plugin-react-refresh: "npm:^0.5.2"
     express: "npm:^5.2.1"
     figma-api: "npm:^2.2.0-beta"
-    filenamify: "npm:^6.0.0"
+    filenamify: "npm:^7.0.1"
     flag-icons: "npm:^7.5.0"
     fparser: "npm:^3.1.0"
     fs-extra: "npm:^11.3.4"
