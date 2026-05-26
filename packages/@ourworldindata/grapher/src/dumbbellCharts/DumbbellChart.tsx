@@ -76,7 +76,7 @@ import { CategoricalBin } from "../color/ColorScaleBin.js"
 
 export type DumbbellChartProps = ChartComponentProps<DumbbellChartState>
 
-type TopLegendType = "inline" | "categorical" | "none"
+type TopLegendType = "inline" | "swatches" | "none"
 
 @observer
 export class DumbbellChart
@@ -426,7 +426,7 @@ export class DumbbellChart
         if (this.inlineLegendFits) return "inline"
         // In column mode, fall back to a categorical legend when the inline
         // labels don't fit. In entity mode, no legend is shown in that case.
-        return this.chartState.isEntityStrategy ? "none" : "categorical"
+        return this.chartState.isEntityStrategy ? "none" : "swatches"
     }
 
     @computed private get topLegendHeight(): number {
@@ -437,7 +437,7 @@ export class DumbbellChart
                     this.inlineLegendLabelStyle.fontSize *
                     this.inlineLegendLabelStyle.lineHeight
             )
-            .with("categorical", () => this.categoricalLegend.height)
+            .with("swatches", () => this.categoricalLegend.height)
             .with("none", () => 0)
             .exhaustive()
     }
@@ -548,8 +548,7 @@ export class DumbbellChart
     }
 
     @computed get categoricalLegendData(): CategoricalBin[] {
-        if (!this.legendLabels || this.topLegendType !== "categorical")
-            return []
+        if (!this.legendLabels || this.topLegendType !== "swatches") return []
         const { start, end } = this.legendLabels
         return [
             new CategoricalBin({
@@ -585,7 +584,7 @@ export class DumbbellChart
 
     private renderLegend(): React.ReactElement | null {
         return match(this.topLegendType)
-            .with("categorical", () => (
+            .with("swatches", () => (
                 <HorizontalCategoricalColorLegend manager={this} />
             ))
             .with("inline", () =>
