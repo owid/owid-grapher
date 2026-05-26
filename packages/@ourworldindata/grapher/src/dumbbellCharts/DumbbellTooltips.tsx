@@ -228,6 +228,7 @@ export class DumbbellTwoColumnTooltip extends React.Component<DumbbellTooltipPro
         if (!target) return null
 
         const [startColumn, endColumn] = this.columns
+        const { endTime } = this.chartState
         const footer = excludeUndefined([
             this.toleranceNotice,
             this.roundingNotice,
@@ -244,7 +245,6 @@ export class DumbbellTwoColumnTooltip extends React.Component<DumbbellTooltipPro
                 style={{ maxWidth: "300px" }}
                 title={target.displayName}
                 subtitle={this.subtitle}
-                subtitleFormat={this.toleranceNotice ? "notice" : undefined}
                 footer={footer}
                 dissolve={fading}
                 dismiss={this.props.dismissTooltip}
@@ -254,6 +254,11 @@ export class DumbbellTwoColumnTooltip extends React.Component<DumbbellTooltipPro
                     unit={startColumn.displayUnit}
                     value={startColumn.formatValueShort(target.start.value)}
                     color={target.start.color}
+                    originalTime={
+                        target.start.time !== endTime
+                            ? startColumn.formatTime(target.start.time)
+                            : undefined
+                    }
                     isRoundedToSignificantFigures={
                         startColumn.roundsToSignificantFigures
                     }
@@ -264,6 +269,11 @@ export class DumbbellTwoColumnTooltip extends React.Component<DumbbellTooltipPro
                     unit={endColumn.displayUnit}
                     value={endColumn.formatValueShort(target.end.value)}
                     color={target.end.color}
+                    originalTime={
+                        target.end.time !== endTime
+                            ? endColumn.formatTime(target.end.time)
+                            : undefined
+                    }
                     isRoundedToSignificantFigures={
                         endColumn.roundsToSignificantFigures
                     }
