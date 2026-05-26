@@ -6,14 +6,31 @@ import {
     DEMOGRAPHY_FERTILITY_PARAM,
     DEMOGRAPHY_LIFE_EXPECTANCY_PARAM,
     DEMOGRAPHY_NET_MIGRATION_PARAM,
+    DEMOGRAPHY_TAB_PARAM,
+    DEMOGRAPHY_YEAR_PARAM,
     parseSimulationUrlState,
     simulationStateToQueryParams,
+    type SimulationUrlWriteState,
 } from "./urlState"
+import { END_YEAR } from "./constants"
 
 const baselineScenarioParams: ScenarioParams = {
     fertilityRate: { 2030: 1.4, 2050: 1.5, 2100: 1.6 },
     lifeExpectancy: { 2030: 80, 2050: 85, 2100: 90 },
     netMigrationRate: { 2030: 0, 2050: 0.5, 2100: 1 },
+}
+
+// Defaults that match the relevant baseline so the test inputs only need to
+// override what they want to assert on.
+const baseWriteState: SimulationUrlWriteState = {
+    entityName: "Japan",
+    includeEntityName: true,
+    scenarioParams: baselineScenarioParams,
+    baselineScenarioParams,
+    tab: "fertilityRate",
+    baselineTab: "fertilityRate",
+    year: END_YEAR,
+    baselineYear: END_YEAR,
 }
 
 describe(parseSimulationUrlState, () => {
@@ -27,6 +44,8 @@ describe(parseSimulationUrlState, () => {
             fertilityRateAssumptions: { 2030: 1.2, 2050: 1.4, 2100: 1.7 },
             lifeExpectancyAssumptions: { 2030: 84, 2050: 88, 2100: 92 },
             netMigrationRateAssumptions: { 2030: -1, 2050: 0, 2100: 1 },
+            tab: undefined,
+            year: undefined,
         })
     })
 
@@ -42,17 +61,43 @@ describe(parseSimulationUrlState, () => {
             undefined
         )
     })
+
+    it("parses tab and year", () => {
+        const parsed = parseSimulationUrlState(
+            "?demographyTab=lifeExpectancy&demographyYear=2050"
+        )
+        expect(parsed.tab).toBe("lifeExpectancy")
+        expect(parsed.year).toBe(2050)
+    })
+
+    it("rejects invalid tab values", () => {
+        expect(
+            parseSimulationUrlState("?demographyTab=garbage").tab
+        ).toBeUndefined()
+    })
+
+    it("rejects non-integer and out-of-range years", () => {
+        expect(
+            parseSimulationUrlState("?demographyYear=abc").year
+        ).toBeUndefined()
+        expect(
+            parseSimulationUrlState("?demographyYear=2050.5").year
+        ).toBeUndefined()
+        expect(
+            parseSimulationUrlState("?demographyYear=1800").year
+        ).toBeUndefined()
+        expect(
+            parseSimulationUrlState("?demographyYear=2200").year
+        ).toBeUndefined()
+    })
 })
 
 describe(simulationStateToQueryParams, () => {
     it("omits params that match the baseline", () => {
         expect(
             simulationStateToQueryParams({
-                entityName: "Japan",
+                ...baseWriteState,
                 baselineEntityName: "Japan",
-                includeEntityName: true,
-                scenarioParams: baselineScenarioParams,
-                baselineScenarioParams,
             })
         ).toEqual({})
     })
@@ -60,15 +105,13 @@ describe(simulationStateToQueryParams, () => {
     it("serializes country and changed assumptions", () => {
         expect(
             simulationStateToQueryParams({
-                entityName: "Japan",
+                ...baseWriteState,
                 baselineEntityName: "United States",
-                includeEntityName: true,
                 scenarioParams: {
                     fertilityRate: { 2030: 1.2, 2050: 1.4, 2100: 1.7 },
                     lifeExpectancy: { 2030: 84, 2050: 88, 2100: 92 },
                     netMigrationRate: { 2030: -1, 2050: 0, 2100: 1 },
                 },
-                baselineScenarioParams,
             })
         ).toEqual({
             [DEMOGRAPHY_COUNTRY_PARAM]: "Japan",
@@ -81,11 +124,40 @@ describe(simulationStateToQueryParams, () => {
     it("does not serialize auto-detected countries before user selection", () => {
         expect(
             simulationStateToQueryParams({
+                ...baseWriteState,
                 entityName: "France",
                 includeEntityName: false,
-                scenarioParams: baselineScenarioParams,
-                baselineScenarioParams,
             })
         ).toEqual({})
+    })
+
+    it("omits tab and year when they match the baseline", () => {
+        const result = simulationStateToQueryParams({
+            ...baseWriteState,
+            baselineEntityName: "Japan",
+        })
+        expect(result).not.toHaveProperty(DEMOGRAPHY_TAB_PARAM)
+        expect(result).not.toHaveProperty(DEMOGRAPHY_YEAR_PARAM)
+    })
+
+    it("serializes tab when it differs from the baseline", () => {
+        expect(
+            simulationStateToQueryParams({
+                ...baseWriteState,
+                baselineEntityName: "Japan",
+                tab: "lifeExpectancy",
+                baselineTab: "fertilityRate",
+            })
+        ).toEqual({ [DEMOGRAPHY_TAB_PARAM]: "lifeExpectancy" })
+    })
+
+    it("serializes year when it differs from the baseline", () => {
+        expect(
+            simulationStateToQueryParams({
+                ...baseWriteState,
+                baselineEntityName: "Japan",
+                year: 2050,
+            })
+        ).toEqual({ [DEMOGRAPHY_YEAR_PARAM]: "2050" })
     })
 })

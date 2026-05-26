@@ -49,6 +49,8 @@ export function SimulationContent({
     urlFertilityRateAssumptions,
     urlLifeExpectancyAssumptions,
     urlNetMigrationRateAssumptions,
+    urlTab,
+    urlYear,
     baselineEntityName,
     shouldSyncEntityName = false,
 }: {
@@ -65,8 +67,21 @@ export function SimulationContent({
     urlNetMigrationRateAssumptions?: Record<number, number>
     baselineEntityName?: string
     shouldSyncEntityName?: boolean
+    urlTab?: ParameterKey
+    urlYear?: number
 }) {
-    const [year, setYear] = useState(END_YEAR)
+    const baselineTab: ParameterKey = focusParameter ?? "fertilityRate"
+    const baselineYear = END_YEAR
+
+    const [year, setYear] = useState(urlYear ?? baselineYear)
+    const [tab, setTab] = useState<ParameterKey>(() => {
+        const seed = urlTab ?? baselineTab
+        // netMigrationRate is hidden for World; fall back to fertilityRate
+        // if the seed isn't selectable in this country's context.
+        if (data.country === "World" && seed === "netMigrationRate")
+            return "fertilityRate"
+        return seed
+    })
 
     const scenarioOverrides = useMemo(
         () =>
@@ -108,6 +123,13 @@ export function SimulationContent({
     const scenarioParamsForUrl = simulation?.scenarioParams
     const baselineScenarioParamsForUrl = simulation?.initialScenarioParams
 
+    // Snap tab to a visible key when the country change hides the current one
+    // (only netMigrationRate is conditionally hidden — for World).
+    useEffect(() => {
+        if (data.country === "World" && tab === "netMigrationRate")
+            setTab("fertilityRate")
+    }, [data.country, tab])
+
     useEffect(() => {
         if (!urlSync || !scenarioParamsForUrl || !baselineScenarioParamsForUrl)
             return
@@ -119,6 +141,10 @@ export function SimulationContent({
                 includeEntityName: shouldSyncEntityName,
                 scenarioParams: scenarioParamsForUrl,
                 baselineScenarioParams: baselineScenarioParamsForUrl,
+                tab,
+                baselineTab,
+                year,
+                baselineYear,
             })
         }, 150)
 
@@ -130,6 +156,10 @@ export function SimulationContent({
         data.country,
         baselineEntityName,
         shouldSyncEntityName,
+        tab,
+        baselineTab,
+        year,
+        baselineYear,
     ])
 
     if (!simulation) return null
@@ -162,7 +192,8 @@ export function SimulationContent({
                 <div className="input-panels">
                     <Tabs
                         className="input-tabs"
-                        defaultSelectedKey={focusParameter ?? "fertilityRate"}
+                        selectedKey={tab}
+                        onSelectionChange={(key) => setTab(key as ParameterKey)}
                     >
                         <TabList className="input-tabs__list">
                             {visibleParameterKeys.map((key) => (

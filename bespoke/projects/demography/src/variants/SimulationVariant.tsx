@@ -152,6 +152,8 @@ function FetchingSimulationVariant({
             }
             baselineEntityName={getBaselineEntityName(config.region)}
             shouldSyncEntityName={shouldSyncEntityName}
+            urlTab={urlState.tab}
+            urlYear={urlState.year}
         />
     )
 }
@@ -199,6 +201,8 @@ function CaptionedSimulationVariant({
     urlNetMigrationRateAssumptions,
     baselineEntityName,
     shouldSyncEntityName,
+    urlTab,
+    urlYear,
 }: {
     data: CountryData
     metadata: DemographyMetadata
@@ -220,6 +224,8 @@ function CaptionedSimulationVariant({
     urlNetMigrationRateAssumptions?: Record<number, number>
     baselineEntityName?: string
     shouldSyncEntityName?: boolean
+    urlTab?: ParameterKey
+    urlYear?: number
 }) {
     const countryName = data.country
 
@@ -269,6 +275,8 @@ function CaptionedSimulationVariant({
                     }
                     baselineEntityName={baselineEntityName}
                     shouldSyncEntityName={shouldSyncEntityName}
+                    urlTab={urlTab}
+                    urlYear={urlYear}
                 />
             </div>
             <ChartFooter

@@ -1,18 +1,23 @@
 import { queryParamsToStr, strToQueryParams } from "@ourworldindata/utils"
 
-import { CONTROL_YEARS } from "./constants.js"
+import { CONTROL_YEARS, START_YEAR, END_YEAR } from "./constants.js"
+import { isValidParameterKey, type ParameterKey } from "./types.js"
 import type { ScenarioParams } from "../model/scenarios.js"
 
 export const DEMOGRAPHY_COUNTRY_PARAM = "demographyCountry"
 export const DEMOGRAPHY_FERTILITY_PARAM = "demographyFertility"
 export const DEMOGRAPHY_LIFE_EXPECTANCY_PARAM = "demographyLifeExpectancy"
 export const DEMOGRAPHY_NET_MIGRATION_PARAM = "demographyNetMigration"
+export const DEMOGRAPHY_TAB_PARAM = "demographyTab"
+export const DEMOGRAPHY_YEAR_PARAM = "demographyYear"
 
 const DEMOGRAPHY_URL_PARAM_KEYS = [
     DEMOGRAPHY_COUNTRY_PARAM,
     DEMOGRAPHY_FERTILITY_PARAM,
     DEMOGRAPHY_LIFE_EXPECTANCY_PARAM,
     DEMOGRAPHY_NET_MIGRATION_PARAM,
+    DEMOGRAPHY_TAB_PARAM,
+    DEMOGRAPHY_YEAR_PARAM,
 ] as const
 
 const ASSUMPTION_PARAM_CONFIG = {
@@ -35,6 +40,8 @@ export interface SimulationUrlState {
     fertilityRateAssumptions?: Record<number, number>
     lifeExpectancyAssumptions?: Record<number, number>
     netMigrationRateAssumptions?: Record<number, number>
+    tab?: ParameterKey
+    year?: number
 }
 
 export interface SimulationUrlWriteState {
@@ -43,6 +50,10 @@ export interface SimulationUrlWriteState {
     includeEntityName: boolean
     scenarioParams: ScenarioParams
     baselineScenarioParams: ScenarioParams
+    tab: ParameterKey
+    baselineTab: ParameterKey
+    year: number
+    baselineYear: number
 }
 
 export function parseSimulationUrlState(
@@ -62,6 +73,8 @@ export function parseSimulationUrlState(
         netMigrationRateAssumptions: parseAssumptionParam(
             params[DEMOGRAPHY_NET_MIGRATION_PARAM]
         ),
+        tab: parseTabParam(params[DEMOGRAPHY_TAB_PARAM]),
+        year: parseYearParam(params[DEMOGRAPHY_YEAR_PARAM]),
     }
 }
 
@@ -120,6 +133,14 @@ export function simulationStateToQueryParams(
         }
     }
 
+    if (state.tab !== state.baselineTab) {
+        params[DEMOGRAPHY_TAB_PARAM] = state.tab
+    }
+
+    if (state.year !== state.baselineYear) {
+        params[DEMOGRAPHY_YEAR_PARAM] = String(state.year)
+    }
+
     return params
 }
 
@@ -172,4 +193,17 @@ function areControlPointsEqual(
 
 function formatNumber(value: number, decimals: number): string {
     return value.toFixed(decimals)
+}
+
+function parseTabParam(value: string | undefined): ParameterKey | undefined {
+    const trimmed = value?.trim()
+    return isValidParameterKey(trimmed) ? trimmed : undefined
+}
+
+function parseYearParam(value: string | undefined): number | undefined {
+    if (!value) return undefined
+    const n = Number(value)
+    if (!Number.isInteger(n)) return undefined
+    if (n < START_YEAR || n > END_YEAR) return undefined
+    return n
 }
