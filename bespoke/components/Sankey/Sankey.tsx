@@ -28,6 +28,20 @@ export const DEFAULT_SANKEY_FONT_SETTINGS: FontSettings = {
     lineHeight: 1,
 }
 
+/** Default vertical gap Sankey leaves between adjacent nodes in a column.
+ *  Exported so co-resident components (e.g. SplitFlowSankey) can compute a
+ *  matching ky for their layout math without copy-pasting the value. */
+export const DEFAULT_SANKEY_NODE_PADDING = 12
+
+/** Per-side label margin Sankey reserves at the top and bottom of the inner
+ *  SVG to prevent the first/last labels from overflowing the chart bounds.
+ *  Single source of truth for both the in-component layout below and any
+ *  caller that needs to reason about the same overhead (e.g. SplitFlowSankey
+ *  matching ky across halves). */
+export function getSankeyVerticalLabelPadding(fs: FontSettings): number {
+    return 0.5 * fs.fontSize * fs.lineHeight
+}
+
 const DEFAULT_MARGIN: Margin = { top: 0, right: 0, bottom: 0, left: 0 }
 
 interface SankeyProps {
@@ -158,7 +172,7 @@ export function Sankey({
     margin = DEFAULT_MARGIN,
     innerMargin,
     topAnchored,
-    nodePadding = 12,
+    nodePadding = DEFAULT_SANKEY_NODE_PADDING,
     bandWidth = 4,
     bandFlowGap = 3,
     fontSettings = DEFAULT_SANKEY_FONT_SETTINGS,
@@ -182,8 +196,7 @@ export function Sankey({
         const rightLabelWidth = measureMaxLabelWidth(targetNodes, fontSettings)
 
         // To prevent the first and last label to overflow
-        const verticalLabelPadding =
-            0.5 * fontSettings.fontSize * fontSettings.lineHeight
+        const verticalLabelPadding = getSankeyVerticalLabelPadding(fontSettings)
 
         const resolvedInnerMargin: Margin = {
             top: Math.max(

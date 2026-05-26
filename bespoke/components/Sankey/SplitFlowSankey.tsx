@@ -7,6 +7,8 @@ import { type FontSettings } from "@ourworldindata/grapher"
 import {
     BAND_LABEL_GAP,
     DEFAULT_SANKEY_FONT_SETTINGS,
+    DEFAULT_SANKEY_NODE_PADDING,
+    getSankeyVerticalLabelPadding,
     LinkTooltipArgs,
     measureMaxLabelWidthForNode,
     NodeTooltipArgs,
@@ -46,12 +48,6 @@ const STACKED_FONT_SETTINGS: FontSettings = {
     fontWeight: 400,
     lineHeight: 1,
 }
-
-// Must match Sankey's default `nodePadding` and the bottom-label padding
-// (`0.5 * fontSize * lineHeight` with the default font settings). Used below
-// to keep the two halves on a shared value-to-pixel scale.
-const SANKEY_NODE_PADDING = 12
-const SANKEY_VERTICAL_MARGIN = 6
 
 // Vertical space the stacked layout consumes outside the two chart cells,
 // beyond the two heading rows we already reserve via HEADING_HEIGHT. Just
@@ -265,28 +261,37 @@ export function SplitFlowSankey({
             return { incoming: chartHeight, outgoing: chartHeight }
         }
 
+        // Sankey reserves the per-side padding on BOTH top and bottom, so
+        // the per-cell overhead is 2× that. Counting both sides is what
+        // keeps the two halves' actual `ky` matching after d3-sankey lays
+        // out — counting one side makes the shorter half come out squished
+        // by `(verticalLabelPadding / t)`.
+        const verticalLabelMargin =
+            2 * getSankeyVerticalLabelPadding(fontSettings)
+
         const heightForKy = (ky: number, t: number, n: number) =>
             ky * t +
-            Math.max(0, n - 1) * SANKEY_NODE_PADDING +
-            SANKEY_VERTICAL_MARGIN
+            Math.max(0, n - 1) * DEFAULT_SANKEY_NODE_PADDING +
+            verticalLabelMargin
         const kyForHeight = (h: number, t: number, n: number) =>
             (h -
-                SANKEY_VERTICAL_MARGIN -
-                Math.max(0, n - 1) * SANKEY_NODE_PADDING) /
+                verticalLabelMargin -
+                Math.max(0, n - 1) * DEFAULT_SANKEY_NODE_PADDING) /
             t
 
         if (isStacked) {
             // Stacked: solve for the `ky` that exactly fills both cells
             // combined. `chartHeight` in stacked mode is per-cell, so the
-            // combined chart space is `2 * chartHeight`.
+            // combined chart space is `2 * chartHeight`. Each cell carries
+            // its own verticalLabelMargin (top+bottom), hence the `2 *`.
             //   heightForKy(ky, tIn, nIn) + heightForKy(ky, tOut, nOut)
             //     = 2 * chartHeight
             //   ky * (tIn + tOut) + (nIn + nOut - 2) * PAD + 2 * MARGIN
             //     = 2 * chartHeight
             const totalChartSpace = 2 * chartHeight
             const overhead =
-                2 * SANKEY_VERTICAL_MARGIN +
-                Math.max(0, nIn + nOut - 2) * SANKEY_NODE_PADDING
+                2 * verticalLabelMargin +
+                Math.max(0, nIn + nOut - 2) * DEFAULT_SANKEY_NODE_PADDING
             const ky = (totalChartSpace - overhead) / (tIn + tOut)
             if (ky <= 0) return { incoming: chartHeight, outgoing: chartHeight }
             return {
@@ -311,6 +316,7 @@ export function SplitFlowSankey({
         outgoingBuild,
         chartHeight,
         central,
+        fontSettings,
     ])
 
     // Layout: an outer wrapper carries the container declaration so the
