@@ -251,7 +251,7 @@
         "schema-dts": "^2.0.0",
         "topojson-server": "^3.0.1",
         "tsx": "^4.21.0",
-        "vite": "^8.0.13",
+        "vite": "^8.0.14",
         "vitest": "^4.1.7",
         "wrangler": "^4.75.0"
     },
