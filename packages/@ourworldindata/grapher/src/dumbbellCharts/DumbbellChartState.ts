@@ -174,6 +174,22 @@ export class DumbbellChartState implements ChartState {
                 )
                     return undefined
 
+                // Sanity check (possible if tolerance is enabled)
+                if (startRow.originalTime >= endRow.originalTime)
+                    return undefined
+
+                // If tolerance was applied to either endpoint, require the
+                // original observation times to be at least `tolerance` apart
+                const isToleranceAppliedToStart =
+                    startRow.originalTime !== startTime
+                const isToleranceAppliedToEnd = endRow.originalTime !== endTime
+                if (
+                    (isToleranceAppliedToStart || isToleranceAppliedToEnd) &&
+                    endRow.originalTime - startRow.originalTime <
+                        yColumn.tolerance
+                )
+                    return undefined
+
                 // The color of the dumbbell is determined by whether
                 // the value has increased or decreased over time
                 const [color, lightColor] =
