@@ -12,6 +12,7 @@ export interface MainVariantConfig {
     product?: string
     country?: string
     tradeFlow?: TradeFlow
+    urlSync?: boolean
 }
 
 export function parseConfig(raw: Record<string, string>): MainVariantConfig {
@@ -23,6 +24,7 @@ export function parseConfig(raw: Record<string, string>): MainVariantConfig {
         product: raw.product,
         country: raw.country,
         tradeFlow: parseTradeFlow(raw.tradeFlow),
+        urlSync: parseBoolean(raw.urlSync),
     }
 }
 

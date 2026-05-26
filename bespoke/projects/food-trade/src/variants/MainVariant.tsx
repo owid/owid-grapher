@@ -1,6 +1,13 @@
 import { useCallback, useMemo, useRef, useState } from "react"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { UNSAFE_PortalProvider } from "react-aria"
+import { NuqsAdapter } from "nuqs/adapters/react"
+import {
+    parseAsString,
+    parseAsStringEnum,
+    useQueryState,
+    type SingleParserBuilder,
+} from "nuqs"
 import * as R from "remeda"
 
 import { articulateEntity } from "@ourworldindata/utils"
@@ -51,30 +58,72 @@ export function MainVariant({
         return document.body
     }, [node])
     return (
-        <QueryClientProvider client={queryClient}>
-            <div ref={rootRef} className="food-trade-chart">
-                <UNSAFE_PortalProvider getContainer={getPortalContainer}>
-                    <FetchingMainVariant config={config} />
-                </UNSAFE_PortalProvider>
-            </div>
-        </QueryClientProvider>
+        <NuqsAdapter>
+            <QueryClientProvider client={queryClient}>
+                <div
+                    ref={ref}
+                    className={cx("food-trade-chart", {
+                        "food-trade-chart--narrow": isNarrow,
+                    })}
+                >
+                    <UNSAFE_PortalProvider getContainer={getPortalContainer}>
+                        <FetchingMainVariant config={config} />
+                    </UNSAFE_PortalProvider>
+                </div>
+            </QueryClientProvider>
+        </NuqsAdapter>
     )
+}
+
+// nuqs can't be turned off per-call — calling useQueryState always reads from
+// and writes to the URL. To honor `config.urlSync`, we call both useState and
+// useQueryState and pick which one to expose. The unused setter is never
+// called, so it doesn't touch the URL.
+function useOptionalUrlState<T extends string>(
+    key: string,
+    parser: SingleParserBuilder<T>,
+    defaultValue: T,
+    enabled: boolean
+): [T, (next: T) => void] {
+    const local = useState<T>(defaultValue)
+    const [urlValue, setUrl] = useQueryState(
+        key,
+        parser.withDefault(defaultValue)
+    )
+    if (enabled) return [urlValue, setUrl]
+    return local
 }
 
 function FetchingMainVariant({ config }: { config: MainVariantConfig }) {
     const { data: metadata, status: metadataStatus } = useFoodTradeMetadata()
 
     const initialCountry = config.country ?? DEFAULT_COUNTRY
-    const [product, setProduct] = useState<string>(
-        config.product ?? DEFAULT_PRODUCT
+    const initialView: TradeFlow = isAllCountry(initialCountry)
+        ? "both"
+        : (config.tradeFlow ?? "both")
+    const urlSync = config.urlSync ?? false
+
+    const [product, setProduct] = useOptionalUrlState(
+        "foodTradeProduct",
+        parseAsString,
+        config.product ?? DEFAULT_PRODUCT,
+        urlSync
     )
-    const [country, setCountry] = useState<string>(initialCountry)
+    const [country, setCountry] = useOptionalUrlState(
+        "foodTradeCountry",
+        parseAsString,
+        initialCountry,
+        urlSync
+    )
     // All countries forces bilateral mode where imports/exports don't
     // apply — coerce the initial view to "both" so a configured
     // tradeFlow doesn't leave the disabled radios highlighting a
     // half-view that isn't shown.
-    const [view, setView] = useState<TradeFlow>(
-        isAllCountry(initialCountry) ? "both" : (config.tradeFlow ?? "both")
+    const [view, setView] = useOptionalUrlState(
+        "foodTradeView",
+        parseAsStringEnum<TradeFlow>(["both", "imports", "exports"]),
+        initialView,
+        urlSync
     )
 
     const productId = metadata?.productByName.get(product)?.id
