@@ -129,7 +129,7 @@
         "handsontable": "^15.1.0",
         "history": "4",
         "indefinite": "^2.5.2",
-        "ini": "^5.0.0",
+        "ini": "^7.0.0",
         "instantsearch.js": "^4.90.0",
         "jose": "^6.2.1",
         "js-cookie": "^3.0.7",
