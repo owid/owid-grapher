@@ -19,7 +19,8 @@
     },
     "devDependencies": {
         "@types/d3-sankey": "^0.12.5",
-        "@typescript/native-preview": "^7.0.0-dev.20260401.1"
+        "@typescript/native-preview": "^7.0.0-dev.20260401.1",
+        "vitest": "^4.1.2"
     },
     "scripts": {
         "build": "",

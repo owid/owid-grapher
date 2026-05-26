@@ -98,12 +98,98 @@ export type HalfTooltipArgs = {
     isPinned: boolean
 }
 
-type SankeyBuild = {
+export type SankeyBuild = {
     nodes: SankeyNode[]
     links: SankeyLink[]
     /** Entities folded into this half's Other bucket. Empty / undefined when
      *  no Other bucket was produced. Sorted desc by value. */
     otherBreakdown?: EntityTotal[]
+}
+
+/**
+ * Compute the per-half SVG heights so both halves end up with the same
+ * value-to-pixel scale (`ky`) once d3-sankey lays them out. Pure, exported
+ * for testing: feeding each returned height back into d3-sankey (with the
+ * same options Sankey.tsx uses) should yield matching `ky` on both halves.
+ *
+ * See the comment block in `SplitFlowSankey` that explains the side-by-side
+ * vs stacked strategies — this function mirrors that logic.
+ */
+export function computeHalfHeights({
+    chartHeight,
+    isStacked,
+    isSingleHalf,
+    incomingBuild,
+    outgoingBuild,
+    central,
+    fontSettings,
+}: {
+    chartHeight: number
+    isStacked: boolean
+    isSingleHalf: boolean
+    incomingBuild: SankeyBuild | null
+    outgoingBuild: SankeyBuild | null
+    central: string
+    fontSettings: FontSettings
+}): { incoming: number; outgoing: number } {
+    if (isSingleHalf || !incomingBuild || !outgoingBuild || chartHeight <= 0) {
+        return { incoming: chartHeight, outgoing: chartHeight }
+    }
+    const tIn = halfTotal(incomingBuild)
+    const tOut = halfTotal(outgoingBuild)
+    const nIn = partnerNodeCount(incomingBuild, central)
+    const nOut = partnerNodeCount(outgoingBuild, central)
+    if (tIn <= 0 || tOut <= 0) {
+        return { incoming: chartHeight, outgoing: chartHeight }
+    }
+
+    // Sankey reserves the per-side padding on BOTH top and bottom, so
+    // the per-cell overhead is 2× that. Counting both sides is what
+    // keeps the two halves' actual `ky` matching after d3-sankey lays
+    // out — counting one side makes the shorter half come out squished
+    // by `(verticalLabelPadding / t)`.
+    const verticalLabelMargin = 2 * getSankeyVerticalLabelPadding(fontSettings)
+
+    const heightForKy = (ky: number, t: number, n: number) =>
+        ky * t +
+        Math.max(0, n - 1) * DEFAULT_SANKEY_NODE_PADDING +
+        verticalLabelMargin
+    const kyForHeight = (h: number, t: number, n: number) =>
+        (h -
+            verticalLabelMargin -
+            Math.max(0, n - 1) * DEFAULT_SANKEY_NODE_PADDING) /
+        t
+
+    if (isStacked) {
+        // Stacked: solve for the `ky` that exactly fills both cells
+        // combined. `chartHeight` in stacked mode is per-cell, so the
+        // combined chart space is `2 * chartHeight`. Each cell carries
+        // its own verticalLabelMargin (top+bottom), hence the `2 *`.
+        //   heightForKy(ky, tIn, nIn) + heightForKy(ky, tOut, nOut)
+        //     = 2 * chartHeight
+        //   ky * (tIn + tOut) + (nIn + nOut - 2) * PAD + 2 * MARGIN
+        //     = 2 * chartHeight
+        const totalChartSpace = 2 * chartHeight
+        const overhead =
+            2 * verticalLabelMargin +
+            Math.max(0, nIn + nOut - 2) * DEFAULT_SANKEY_NODE_PADDING
+        const ky = (totalChartSpace - overhead) / (tIn + tOut)
+        if (ky <= 0) return { incoming: chartHeight, outgoing: chartHeight }
+        return {
+            incoming: heightForKy(ky, tIn, nIn),
+            outgoing: heightForKy(ky, tOut, nOut),
+        }
+    }
+
+    const kyInFull = kyForHeight(chartHeight, tIn, nIn)
+    const kyOutFull = kyForHeight(chartHeight, tOut, nOut)
+    const ky = Math.min(kyInFull, kyOutFull)
+    if (ky <= 0) return { incoming: chartHeight, outgoing: chartHeight }
+
+    return {
+        incoming: Math.min(chartHeight, heightForKy(ky, tIn, nIn)),
+        outgoing: Math.min(chartHeight, heightForKy(ky, tOut, nOut)),
+    }
 }
 
 export function SplitFlowSankey({
@@ -244,80 +330,27 @@ export function SplitFlowSankey({
     //    cell to its natural height at that `ky` (via inline
     //    grid-template-rows below). Both SVGs fill their cells with no
     //    wasted space, and the value-to-pixel scale stays consistent.
-    const halfHeights = useMemo(() => {
-        if (
-            isSingleHalf ||
-            !incomingBuild ||
-            !outgoingBuild ||
-            chartHeight <= 0
-        ) {
-            return { incoming: chartHeight, outgoing: chartHeight }
-        }
-        const tIn = halfTotal(incomingBuild)
-        const tOut = halfTotal(outgoingBuild)
-        const nIn = partnerNodeCount(incomingBuild, central)
-        const nOut = partnerNodeCount(outgoingBuild, central)
-        if (tIn <= 0 || tOut <= 0) {
-            return { incoming: chartHeight, outgoing: chartHeight }
-        }
-
-        // Sankey reserves the per-side padding on BOTH top and bottom, so
-        // the per-cell overhead is 2× that. Counting both sides is what
-        // keeps the two halves' actual `ky` matching after d3-sankey lays
-        // out — counting one side makes the shorter half come out squished
-        // by `(verticalLabelPadding / t)`.
-        const verticalLabelMargin =
-            2 * getSankeyVerticalLabelPadding(fontSettings)
-
-        const heightForKy = (ky: number, t: number, n: number) =>
-            ky * t +
-            Math.max(0, n - 1) * DEFAULT_SANKEY_NODE_PADDING +
-            verticalLabelMargin
-        const kyForHeight = (h: number, t: number, n: number) =>
-            (h -
-                verticalLabelMargin -
-                Math.max(0, n - 1) * DEFAULT_SANKEY_NODE_PADDING) /
-            t
-
-        if (isStacked) {
-            // Stacked: solve for the `ky` that exactly fills both cells
-            // combined. `chartHeight` in stacked mode is per-cell, so the
-            // combined chart space is `2 * chartHeight`. Each cell carries
-            // its own verticalLabelMargin (top+bottom), hence the `2 *`.
-            //   heightForKy(ky, tIn, nIn) + heightForKy(ky, tOut, nOut)
-            //     = 2 * chartHeight
-            //   ky * (tIn + tOut) + (nIn + nOut - 2) * PAD + 2 * MARGIN
-            //     = 2 * chartHeight
-            const totalChartSpace = 2 * chartHeight
-            const overhead =
-                2 * verticalLabelMargin +
-                Math.max(0, nIn + nOut - 2) * DEFAULT_SANKEY_NODE_PADDING
-            const ky = (totalChartSpace - overhead) / (tIn + tOut)
-            if (ky <= 0) return { incoming: chartHeight, outgoing: chartHeight }
-            return {
-                incoming: heightForKy(ky, tIn, nIn),
-                outgoing: heightForKy(ky, tOut, nOut),
-            }
-        }
-
-        const kyInFull = kyForHeight(chartHeight, tIn, nIn)
-        const kyOutFull = kyForHeight(chartHeight, tOut, nOut)
-        const ky = Math.min(kyInFull, kyOutFull)
-        if (ky <= 0) return { incoming: chartHeight, outgoing: chartHeight }
-
-        return {
-            incoming: Math.min(chartHeight, heightForKy(ky, tIn, nIn)),
-            outgoing: Math.min(chartHeight, heightForKy(ky, tOut, nOut)),
-        }
-    }, [
-        isSingleHalf,
-        isStacked,
-        incomingBuild,
-        outgoingBuild,
-        chartHeight,
-        central,
-        fontSettings,
-    ])
+    const halfHeights = useMemo(
+        () =>
+            computeHalfHeights({
+                chartHeight,
+                isStacked,
+                isSingleHalf,
+                incomingBuild,
+                outgoingBuild,
+                central,
+                fontSettings,
+            }),
+        [
+            isSingleHalf,
+            isStacked,
+            incomingBuild,
+            outgoingBuild,
+            chartHeight,
+            central,
+            fontSettings,
+        ]
+    )
 
     // Layout: an outer wrapper carries the container declaration so the
     // `@container` query in the SCSS can target the inner grid (CSS
