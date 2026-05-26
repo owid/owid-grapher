@@ -382,6 +382,21 @@ export function Sankey({
         return ids
     }, [hover, activeLinkSet])
 
+    // Active links render last so they paint on top of unfocused ribbons
+    // — without this, when a node fans out to many partners, some dimmed
+    // ribbons sit visually above the focused ones and read as clutter.
+    const orderedLinks = useMemo<LaidOutLink[]>(() => {
+        if (!layout) return []
+        if (activeLinkSet.size === 0) return layout.links
+        const inactive: LaidOutLink[] = []
+        const active: LaidOutLink[] = []
+        for (const l of layout.links) {
+            if (activeLinkSet.has(l)) active.push(l)
+            else inactive.push(l)
+        }
+        return [...inactive, ...active]
+    }, [layout, activeLinkSet])
+
     const hoveredNodeId = hover?.kind === "node" ? hover.node.id : undefined
     const hoveredLink = hover?.kind === "link" ? hover.link : undefined
 
@@ -399,9 +414,12 @@ export function Sankey({
             onMouseLeave={interactive ? onSvgMouseLeave : undefined}
         >
             <g className="sankey__links">
-                {layout.links.map((link, i) => (
+                {orderedLinks.map((link) => (
                     <SankeyLink
-                        key={i}
+                        key={makeLinkKey(
+                            nodeId(link.source),
+                            nodeId(link.target)
+                        )}
                         link={link}
                         linkPath={linkPath}
                         linkColor={linkColor}

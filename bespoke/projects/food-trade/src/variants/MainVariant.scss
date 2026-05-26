@@ -83,6 +83,13 @@
     .food-trade-heading__description {
         font-size: 0.875rem;
     }
+    // Drop the Frame's border and side/bottom padding so the viz can use
+    // the full container width — every pixel matters once the halves
+    // stack. Keep a bit of top padding to separate from the controls.
+    .food-trade-captioned-chart {
+        border: none;
+        padding: 8px 0 0;
+    }
 }
 
 // The dropdown popover is portaled out of .food-trade-controls, so we

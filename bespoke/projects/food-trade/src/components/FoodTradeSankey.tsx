@@ -32,10 +32,10 @@ import {
 
 import { TradeRow } from "../data.js"
 
-export const formatTrade = (v: number) =>
+export const formatTrade = (v: number, opts?: { short?: boolean }) =>
     formatValue(v, {
-        unit: "tonnes",
-        numberAbbreviation: "long",
+        unit: opts?.short ? "t" : "tonnes",
+        numberAbbreviation: opts?.short ? "short" : "long",
         roundingMode: OwidVariableRoundingMode.significantFigures,
         numSignificantFigures: 2,
     })
@@ -126,6 +126,10 @@ export function FoodTradeSankey({
             : `the ${countryShort}`
     const productLc = R.uncapitalize(product)
     const isStacked = width > 0 && width < STACKED_BREAKPOINT_PX
+    const format = useCallback(
+        (v: number) => formatTrade(v, { short: isStacked }),
+        [isStacked]
+    )
     const noImports = incomingFlows.length === 0
     const noExports = outgoingFlows.length === 0
     const isPairedSentence =
@@ -258,7 +262,7 @@ export function FoodTradeSankey({
                 }}
                 width={width}
                 height={height}
-                formatValue={formatTrade}
+                formatValue={format}
                 view={splitView}
             />
         </div>
