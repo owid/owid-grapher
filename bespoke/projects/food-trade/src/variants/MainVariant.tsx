@@ -31,7 +31,7 @@ import {
 import { MOBILE_BREAKPOINT } from "../../../../components/Sankey/SplitFlowSankey.js"
 
 const DEFAULT_PRODUCT = "Maize (corn)"
-const DEFAULT_COUNTRY = "United Kingdom"
+const DEFAULT_COUNTRY = ALL_COUNTRIES
 
 const queryClient = new QueryClient()
 
