@@ -10,7 +10,7 @@ import {
 import { TextWrap } from "@ourworldindata/components"
 import { BASE_FONT_SIZE, FontSettings } from "../core/GrapherConstants.js"
 import {
-    InitialHorizontalLabel,
+    HorizontalLabel,
     PlacedHorizontalLabel,
     SizedHorizontalLabel,
 } from "./HorizontalLabelPairTypes.js"
@@ -18,8 +18,8 @@ import {
 export interface HorizontalLabelPairOptions {
     fontSettings?: FontSettings
     /** Horizontal range for label placement */
-    xRange: [number, number]
-    /** Minimum horizontal gap between adjacent labels */
+    xRange?: [number, number]
+    /** Minimum horizontal gap between the two labels */
     minGap?: number
 }
 
@@ -28,7 +28,7 @@ export interface HorizontalLabelPairOptions {
  * ensuring they do not overlap and stay within a specified horizontal range.
  */
 export class HorizontalLabelPairState {
-    private readonly initialSeries: Pair<InitialHorizontalLabel>
+    private readonly initialSeries: Pair<HorizontalLabel>
     private readonly initialOptions: HorizontalLabelPairOptions
 
     private readonly defaultOptions = {
@@ -37,11 +37,12 @@ export class HorizontalLabelPairState {
             fontWeight: 400,
             lineHeight: 1,
         },
+        xRange: [-Infinity, Infinity],
         minGap: 8,
     } as const satisfies Partial<HorizontalLabelPairOptions>
 
     constructor(
-        series: Pair<InitialHorizontalLabel>,
+        series: Pair<HorizontalLabel>,
         options: HorizontalLabelPairOptions
     ) {
         this.initialSeries = series
@@ -65,7 +66,7 @@ export class HorizontalLabelPairState {
                 maxWidth: Infinity, // No line breaks
             })
             return { ...series, textWrap } satisfies SizedHorizontalLabel
-        }) as unknown as Pair<SizedHorizontalLabel>
+        }) as Pair<SizedHorizontalLabel>
     }
 
     @computed get placedSeries(): Pair<PlacedHorizontalLabel> {
@@ -153,7 +154,6 @@ export class HorizontalLabelPairState {
         const [leftLabel, rightLabel] = this.placedSeries
         const gap = rightLabel.bounds.left - leftLabel.bounds.right
         // Small tolerance to avoid false positives from floating-point noise
-        // when the placement logic resolves an overlap to exactly minGap
         return gap < minGap - 1e-6
     }
 }

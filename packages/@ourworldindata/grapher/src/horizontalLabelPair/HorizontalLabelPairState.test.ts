@@ -4,13 +4,13 @@ import {
     HorizontalLabelPairOptions,
     HorizontalLabelPairState,
 } from "./HorizontalLabelPairState"
-import { InitialHorizontalLabel } from "./HorizontalLabelPairTypes"
+import { HorizontalLabel } from "./HorizontalLabelPairTypes"
 import { textWidth } from "../chart/ChartUtils.js"
 
 const defaultFontSettings = { fontSize: 12, fontWeight: 400, lineHeight: 1 }
 
 const makeHorizontalLabelPairState = (
-    series: Pair<InitialHorizontalLabel>,
+    series: Pair<HorizontalLabel>,
     options: Partial<HorizontalLabelPairOptions> = {}
 ): HorizontalLabelPairState => {
     return new HorizontalLabelPairState(series, {

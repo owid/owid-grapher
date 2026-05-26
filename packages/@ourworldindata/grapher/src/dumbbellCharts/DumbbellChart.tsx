@@ -67,7 +67,7 @@ import { roundFontSize, textWidth } from "../chart/ChartUtils.js"
 import { GRAPHER_LIGHT_TEXT } from "../color/ColorConstants.js"
 import { HorizontalLabelPair } from "../horizontalLabelPair/HorizontalLabelPair.js"
 import { HorizontalLabelPairState } from "../horizontalLabelPair/HorizontalLabelPairState.js"
-import { InitialHorizontalLabel } from "../horizontalLabelPair/HorizontalLabelPairTypes.js"
+import { HorizontalLabel } from "../horizontalLabelPair/HorizontalLabelPairTypes.js"
 import {
     HorizontalCategoricalColorLegend,
     HorizontalColorLegendManager,
@@ -75,6 +75,8 @@ import {
 import { CategoricalBin } from "../color/ColorScaleBin.js"
 
 export type DumbbellChartProps = ChartComponentProps<DumbbellChartState>
+
+type TopLegendType = "inline" | "categorical" | "none"
 
 @observer
 export class DumbbellChart
@@ -369,53 +371,75 @@ export class DumbbellChart
 
         if (!showLegend || this.series.length === 0) return undefined
 
-        return match(this.chartState.seriesStrategy)
-            .with(SeriesStrategy.entity, () => {
-                const { formatColumn, startTime, endTime } = this.chartState
-                return {
-                    start: {
-                        text: formatColumn.formatTime(startTime),
-                        color: GRAPHER_LIGHT_TEXT,
-                        textAnchor: "center",
-                    } satisfies LegendLabel,
-                    end: {
-                        text: formatColumn.formatTime(endTime),
-                        color: GRAPHER_LIGHT_TEXT,
-                        textAnchor: "center",
-                    } satisfies LegendLabel,
-                }
-            })
-            .with(SeriesStrategy.column, () => {
-                const [startColumn, endColumn] = this.chartState.yColumns
-                if (!startColumn || !endColumn) return undefined
-                return {
-                    start: {
-                        text: startColumn.nonEmptyDisplayName,
-                        color: START_COLUMN_COLOR,
-                        textAnchor: "outward",
-                    } satisfies LegendLabel,
-                    end: {
-                        text: endColumn.nonEmptyDisplayName,
-                        color: END_COLUMN_COLOR,
-                        textAnchor: "outward",
-                    } satisfies LegendLabel,
-                }
-            })
-            .exhaustive()
+        return (
+            match(this.chartState.seriesStrategy)
+                // In entity mode, the legend labels are the start and end times
+                .with(SeriesStrategy.entity, () => {
+                    const { formatColumn, startTime, endTime } = this.chartState
+                    return {
+                        start: {
+                            text: formatColumn.formatTime(startTime),
+                            color: GRAPHER_LIGHT_TEXT,
+                            textAnchor: "center",
+                        } satisfies LegendLabel,
+                        end: {
+                            text: formatColumn.formatTime(endTime),
+                            color: GRAPHER_LIGHT_TEXT,
+                            textAnchor: "center",
+                        } satisfies LegendLabel,
+                    }
+                })
+                // In column mode, the legend labels are the two columns
+                .with(SeriesStrategy.column, () => {
+                    const [startColumn, endColumn] = this.chartState.yColumns
+                    if (!startColumn || !endColumn) return undefined
+                    return {
+                        start: {
+                            text: startColumn.nonEmptyDisplayName,
+                            color: START_COLUMN_COLOR,
+                            textAnchor: "outward",
+                        } satisfies LegendLabel,
+                        end: {
+                            text: endColumn.nonEmptyDisplayName,
+                            color: END_COLUMN_COLOR,
+                            textAnchor: "outward",
+                        } satisfies LegendLabel,
+                    }
+                })
+                .exhaustive()
+        )
+    }
+
+    /** Whether the inline legend labels can fit side by side */
+    @computed private get inlineLegendFits(): boolean {
+        if (!this.legendLabels) return false
+        const { start, end } = this.legendLabels
+        // We can't use `inlineLegendState.hasOverlap` here due to a circular dependency
+        const labelWidths =
+            textWidth(start.text, this.inlineLegendLabelStyle) +
+            textWidth(end.text, this.inlineLegendLabelStyle)
+        return labelWidths + MIN_LEGEND_LABEL_GAP <= this.bounds.width
+    }
+
+    @computed private get topLegendType(): TopLegendType {
+        if (!this.legendLabels) return "none"
+        if (this.inlineLegendFits) return "inline"
+        // In column mode, fall back to a categorical legend when the inline
+        // labels don't fit. In entity mode, no legend is shown in that case.
+        return this.chartState.isEntityStrategy ? "none" : "categorical"
     }
 
     @computed private get topLegendHeight(): number {
-        if (this.shouldShowCategoricalLegend)
-            return this.categoricalLegend.height
-
-        if (this.shouldShowInlineLegend)
-            // The inline legend doesn't linebreak
-            return (
-                this.inlineLegendLabelStyle.fontSize *
-                this.inlineLegendLabelStyle.lineHeight
+        return match(this.topLegendType)
+            .with(
+                "inline",
+                () =>
+                    this.inlineLegendLabelStyle.fontSize *
+                    this.inlineLegendLabelStyle.lineHeight
             )
-
-        return 0
+            .with("categorical", () => this.categoricalLegend.height)
+            .with("none", () => 0)
+            .exhaustive()
     }
 
     @computed private get topLegendHeightWithPadding(): number {
@@ -425,49 +449,58 @@ export class DumbbellChart
     }
 
     @computed private get inlineLegendSeries():
-        | Pair<InitialHorizontalLabel>
+        | Pair<HorizontalLabel>
         | undefined {
-        if (!this.legendLabels) return undefined
+        const { legendLabels, topLegendType } = this
 
-        const labels = this.legendLabels
+        if (!legendLabels || topLegendType !== "inline") return undefined
+
         const sortedSeries = _.sortBy(this.placedSeries, (series) => series.y)
 
         // Find the top-most series that has a visible change
         const topSeries =
             sortedSeries.find((s) => s.start.x !== s.end.x) ?? sortedSeries[0]
 
-        if (!labels || !topSeries) return undefined
+        if (!topSeries) return undefined
 
-        const resolveTextAnchor = (
-            label: LegendLabel,
-            head: PlacedDumbbellHead,
+        const resolveTextAnchor = ({
+            label,
+            head,
+            otherHead,
+        }: {
+            label: LegendLabel
+            head: PlacedDumbbellHead
             otherHead: PlacedDumbbellHead
-        ): HorizontalAlign => {
-            if (label.textAnchor === "center") return HorizontalAlign.center
-            const startIsLeft = head.x <= otherHead.x
-            return startIsLeft ? HorizontalAlign.right : HorizontalAlign.left
-        }
+        }): HorizontalAlign =>
+            match(label.textAnchor)
+                .with("center", () => HorizontalAlign.center)
+                .with("outward", () =>
+                    head.x <= otherHead.x
+                        ? HorizontalAlign.right
+                        : HorizontalAlign.left
+                )
+                .exhaustive()
 
         return [
             {
-                text: labels.start.text,
+                text: legendLabels.start.text,
                 x: topSeries.start.x,
-                color: labels.start.color,
-                textAnchor: resolveTextAnchor(
-                    labels.start,
-                    topSeries.start,
-                    topSeries.end
-                ),
+                color: legendLabels.start.color,
+                textAnchor: resolveTextAnchor({
+                    label: legendLabels.start,
+                    head: topSeries.start,
+                    otherHead: topSeries.end,
+                }),
             },
             {
-                text: labels.end.text,
+                text: legendLabels.end.text,
                 x: topSeries.end.x,
-                color: labels.end.color,
-                textAnchor: resolveTextAnchor(
-                    labels.end,
-                    topSeries.end,
-                    topSeries.start
-                ),
+                color: legendLabels.end.color,
+                textAnchor: resolveTextAnchor({
+                    label: legendLabels.end,
+                    head: topSeries.end,
+                    otherHead: topSeries.start,
+                }),
             },
         ]
     }
@@ -483,8 +516,6 @@ export class DumbbellChart
             minGap: MIN_LEGEND_LABEL_GAP,
         })
     }
-
-    // HorizontalColorLegendManager
 
     @computed get legendX(): number {
         return this.bounds.left
@@ -503,7 +534,8 @@ export class DumbbellChart
     }
 
     @computed get categoricalLegendData(): CategoricalBin[] {
-        if (!this.legendLabels) return []
+        if (!this.legendLabels || this.topLegendType !== "categorical")
+            return []
         const { start, end } = this.legendLabels
         return [
             new CategoricalBin({
@@ -519,33 +551,6 @@ export class DumbbellChart
                 color: end.color,
             }),
         ]
-    }
-
-    /**
-     * Whether the inline legend labels can fit side by side. Note that we
-     * can't use `inlineLegendState.hasOverlap` here due to a circular dependency.
-     */
-    @computed private get inlineLegendFits(): boolean {
-        if (!this.legendLabels) return false
-        const { start, end } = this.legendLabels
-        const labelWidths =
-            textWidth(start.text, this.inlineLegendLabelStyle) +
-            textWidth(end.text, this.inlineLegendLabelStyle)
-        return labelWidths + MIN_LEGEND_LABEL_GAP <= this.bounds.width
-    }
-
-    @computed private get shouldShowInlineLegend(): boolean {
-        return !!this.legendLabels && this.inlineLegendFits
-    }
-
-    @computed private get shouldShowCategoricalLegend(): boolean {
-        // In column mode, fall back to a categorical legend when the inline
-        // labels don't fit. In entity mode, no legend is shown in that case.
-        return (
-            !!this.legendLabels &&
-            !this.inlineLegendFits &&
-            this.chartState.seriesStrategy === SeriesStrategy.column
-        )
     }
 
     @computed
@@ -565,16 +570,20 @@ export class DumbbellChart
     }
 
     private renderLegend(): React.ReactElement | null {
-        if (this.shouldShowCategoricalLegend)
-            return <HorizontalCategoricalColorLegend manager={this} />
-        if (this.shouldShowInlineLegend && this.inlineLegendState)
-            return (
-                <HorizontalLabelPair
-                    state={this.inlineLegendState}
-                    y={this.bounds.top}
-                />
+        return match(this.topLegendType)
+            .with("categorical", () => (
+                <HorizontalCategoricalColorLegend manager={this} />
+            ))
+            .with("inline", () =>
+                this.inlineLegendState ? (
+                    <HorizontalLabelPair
+                        state={this.inlineLegendState}
+                        y={this.bounds.top}
+                    />
+                ) : null
             )
-        return null
+            .with("none", () => null)
+            .exhaustive()
     }
 
     private renderStatic(): React.ReactElement {
