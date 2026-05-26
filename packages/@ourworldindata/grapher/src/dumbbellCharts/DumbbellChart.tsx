@@ -82,10 +82,6 @@ import {
     DumbbellTwoColumnTooltip,
 } from "./DumbbellTooltips.js"
 
-type SVGMouseOrTouchEvent =
-    | React.MouseEvent<SVGElement>
-    | React.TouchEvent<SVGElement>
-
 export type DumbbellChartProps = ChartComponentProps<DumbbellChartState>
 
 type TopLegendType = "inline" | "swatches" | "none"
@@ -611,13 +607,15 @@ export class DumbbellChart
 
     @action.bound private onSeriesMouseEnter(
         seriesName: string,
-        event: SVGMouseOrTouchEvent
+        event: React.MouseEvent<SVGElement>
     ): void {
         this.updateTooltipPosition(event)
         this.tooltipState.target = { seriesName }
     }
 
-    @action.bound private onSeriesMouseMove(event: SVGMouseOrTouchEvent): void {
+    @action.bound private onSeriesMouseMove(
+        event: React.MouseEvent<SVGElement>
+    ): void {
         this.updateTooltipPosition(event)
     }
 
@@ -625,7 +623,7 @@ export class DumbbellChart
         this.tooltipState.target = null
     }
 
-    private updateTooltipPosition(event: SVGMouseOrTouchEvent): void {
+    private updateTooltipPosition(event: React.MouseEvent<SVGElement>): void {
         const ref = this.manager.base?.current
         if (ref) this.tooltipState.position = getRelativeMouse(ref, event)
     }
@@ -799,8 +797,8 @@ function DumbbellHoverArea({
     height: number
     maxHeight?: number
     containerBounds: Bounds
-    onMouseEnter: (seriesName: string, ev: SVGMouseOrTouchEvent) => void
-    onMouseMove: (ev: SVGMouseOrTouchEvent) => void
+    onMouseEnter: (seriesName: string, ev: React.MouseEvent<SVGElement>) => void
+    onMouseMove: (ev: React.MouseEvent<SVGElement>) => void
     onMouseLeave: () => void
 }): React.ReactElement {
     const cappedHeight = Math.min(height, maxHeight)
