@@ -16,6 +16,25 @@ import "./index.scss"
 
 export const VARIANTS = [
     { name: "main", component: MainVariant, demoConfig: {} },
+    {
+        name: "main",
+        component: MainVariant,
+        demoConfig: { country: "United Kingdom" },
+    },
+    {
+        name: "main",
+        component: MainVariant,
+        demoConfig: { country: "United Kingdom", tradeFlow: "imports" },
+    },
+    {
+        name: "main",
+        component: MainVariant,
+        demoConfig: {
+            country: "United Kingdom",
+            tradeFlow: "imports",
+            product: "Barley",
+        },
+    },
 ] satisfies BespokeComponentVariantsList<VariantName>
 
 export const mount: BespokeComponentMountFn = (
