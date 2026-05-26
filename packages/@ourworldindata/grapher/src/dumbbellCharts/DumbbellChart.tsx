@@ -481,26 +481,40 @@ export class DumbbellChart
                 )
                 .exhaustive()
 
+        // Shift outward-anchored labels inward by a bit
+        const offsetMagnitude = Math.floor(
+            Math.abs(topSeries.end.x - topSeries.start.x) / 4
+        )
+        const inwardOffset = (textAnchor: HorizontalAlign): number =>
+            match(textAnchor)
+                .with(HorizontalAlign.right, () => offsetMagnitude)
+                .with(HorizontalAlign.left, () => -offsetMagnitude)
+                .with(HorizontalAlign.center, () => 0)
+                .exhaustive()
+
+        const startAnchor = resolveTextAnchor({
+            label: legendLabels.start,
+            head: topSeries.start,
+            otherHead: topSeries.end,
+        })
+        const endAnchor = resolveTextAnchor({
+            label: legendLabels.end,
+            head: topSeries.end,
+            otherHead: topSeries.start,
+        })
+
         return [
             {
                 text: legendLabels.start.text,
-                x: topSeries.start.x,
+                x: topSeries.start.x + inwardOffset(startAnchor),
                 color: legendLabels.start.color,
-                textAnchor: resolveTextAnchor({
-                    label: legendLabels.start,
-                    head: topSeries.start,
-                    otherHead: topSeries.end,
-                }),
+                textAnchor: startAnchor,
             },
             {
                 text: legendLabels.end.text,
-                x: topSeries.end.x,
+                x: topSeries.end.x + inwardOffset(endAnchor),
                 color: legendLabels.end.color,
-                textAnchor: resolveTextAnchor({
-                    label: legendLabels.end,
-                    head: topSeries.end,
-                    otherHead: topSeries.start,
-                }),
+                textAnchor: endAnchor,
             },
         ]
     }
