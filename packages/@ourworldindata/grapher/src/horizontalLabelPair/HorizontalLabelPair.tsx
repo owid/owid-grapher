@@ -7,9 +7,11 @@ import { GRAPHER_DARK_TEXT } from "../color/ColorConstants.js"
 export function HorizontalLabelPair({
     state,
     y,
+    color = GRAPHER_DARK_TEXT,
 }: {
     state: HorizontalLabelPairState
     y: number
+    color?: string
 }): React.ReactElement {
     return (
         <g id={makeFigmaId("horizontal-label-pair")}>
@@ -19,7 +21,7 @@ export function HorizontalLabelPair({
                     textWrap={series.textWrap}
                     x={series.bounds.left}
                     y={y}
-                    fill={series.color ?? GRAPHER_DARK_TEXT}
+                    fill={series.color ?? color}
                 />
             ))}
         </g>

@@ -1,14 +1,14 @@
 import { Bounds, HorizontalAlign } from "@ourworldindata/utils"
 import { TextWrap } from "@ourworldindata/components"
 
-export interface InitialHorizontalLabel {
+export interface HorizontalLabel {
     text: string
     x: number
     color?: string
     textAnchor?: HorizontalAlign
 }
 
-export interface SizedHorizontalLabel extends InitialHorizontalLabel {
+export interface SizedHorizontalLabel extends HorizontalLabel {
     textWrap: TextWrap
 }
 
