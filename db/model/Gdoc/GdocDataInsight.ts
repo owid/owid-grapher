@@ -9,7 +9,7 @@ import {
 import { GdocBase } from "./GdocBase.js"
 import * as db from "../../../db/db.js"
 import {
-    getAndLoadLastPublishedDataInsights,
+    getAndLoadPublishedDataInsights,
     getLatestDataInsights,
 } from "./GdocFactory.js"
 
@@ -51,6 +51,6 @@ export class GdocDataInsight
     static async getPublishedDataInsights(
         knex: db.KnexReadonlyTransaction
     ): Promise<GdocDataInsight[]> {
-        return getAndLoadLastPublishedDataInsights(knex)
+        return getAndLoadPublishedDataInsights(knex)
     }
 }

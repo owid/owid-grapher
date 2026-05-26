@@ -517,6 +517,15 @@ async function getAndLoadPublishedGdocs<T extends GdocBase>(
     return gdocs
 }
 
+export async function getAndLoadPublishedDataInsights(
+    knex: KnexReadonlyTransaction
+): Promise<GdocDataInsight[]> {
+    return await getAndLoadPublishedGdocs<GdocDataInsight>(
+        knex,
+        OwidGdocType.DataInsight
+    )
+}
+
 export async function getAndLoadLastPublishedDataInsights(
     knex: KnexReadonlyTransaction
 ): Promise<GdocDataInsight[]> {
