@@ -125,7 +125,6 @@
         "filenamify": "^6.0.0",
         "fparser": "^3.1.0",
         "fs-extra": "^11.3.4",
-        "glob": "^13.0.6",
         "google-auth-library": "^10.6.2",
         "handsontable": "^15.1.0",
         "history": "4",
