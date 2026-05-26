@@ -7,7 +7,6 @@ import {
     HorizontalAlign,
     makeFigmaId,
     exposeInstanceOnWindow,
-    PointVector,
     ScaleType,
     SeriesStrategy,
     formatValue,
@@ -65,7 +64,6 @@ import {
     AxisLayout,
     calculateAxisLayout,
     computePercentChange,
-    toLeftRight,
 } from "./DumbbellChartHelpers"
 import { AnimatedRows } from "../animation/AnimatedRows"
 import { roundFontSize, textWidth } from "../chart/ChartUtils.js"
@@ -690,6 +688,19 @@ export class DumbbellChart
                     dataBounds={this.dataBounds}
                     axis={this.axis}
                 />
+                <g className="hover-areas">
+                    {this.placedSeries.map((series) => (
+                        <DumbbellHoverArea
+                            key={series.seriesName}
+                            series={series}
+                            height={this.availableHeightPerSeries}
+                            containerBounds={this.boundsWithoutLegend}
+                            onMouseEnter={this.onSeriesMouseEnter}
+                            onMouseMove={this.onSeriesMouseMove}
+                            onMouseLeave={this.onSeriesMouseLeave}
+                        />
+                    ))}
+                </g>
                 <AnimatedRows
                     items={this.renderSeries}
                     keyAccessor={(d: RenderDumbbellSeries): string =>
@@ -705,22 +716,11 @@ export class DumbbellChart
                             range={xRange}
                             valueLabelStyle={valueLabelStyle}
                             y={0}
+                            onInfoTooltipShow={this.dismissTooltip}
                         />
                     )}
                 />
                 {this.renderLegend()}
-                <g className="hit-areas">
-                    {this.placedSeries.map((series) => (
-                        <DumbbellHitArea
-                            key={series.seriesName}
-                            series={series}
-                            height={this.availableHeightPerSeries}
-                            onMouseEnter={this.onSeriesMouseEnter}
-                            onMouseMove={this.onSeriesMouseMove}
-                            onMouseLeave={this.onSeriesMouseLeave}
-                        />
-                    ))}
-                </g>
                 {this.chartState.seriesStrategy === SeriesStrategy.entity ? (
                     <DumbbellTimeRangeTooltip
                         id={this.tooltipId}
@@ -786,38 +786,30 @@ function DumbbellChartAxis({
     )
 }
 
-function DumbbellHitArea({
+function DumbbellHoverArea({
     series,
     height,
-    verticalPadding = 12,
+    maxHeight = 60,
+    containerBounds,
     onMouseEnter,
     onMouseMove,
     onMouseLeave,
 }: {
     series: PlacedDumbbellSeries
     height: number
-    verticalPadding?: number
+    maxHeight?: number
+    containerBounds: Bounds
     onMouseEnter: (seriesName: string, ev: SVGMouseOrTouchEvent) => void
     onMouseMove: (ev: SVGMouseOrTouchEvent) => void
     onMouseLeave: () => void
 }): React.ReactElement {
-    const { left, right } = toLeftRight(series.start, series.end)
-
-    const leftEdge = left.label
-        ? left.x - left.label.padding - left.label.width
-        : left.x - left.radius
-    const rightEdge = right.label
-        ? right.x + right.label.padding + right.label.width
-        : right.x + right.radius
-
-    const bounds = Bounds.fromCorners(
-        new PointVector(leftEdge, series.y - height / 2),
-        new PointVector(rightEdge, series.y + height / 2)
-    ).expand({ left: verticalPadding, right: verticalPadding })
-
+    const cappedHeight = Math.min(height, maxHeight)
     return (
         <rect
-            {...bounds.toProps()}
+            x={containerBounds.left}
+            y={series.y - cappedHeight / 2}
+            width={containerBounds.width}
+            height={cappedHeight}
             fill="transparent"
             onMouseEnter={(ev) => onMouseEnter(series.seriesName, ev)}
             onMouseMove={onMouseMove}
