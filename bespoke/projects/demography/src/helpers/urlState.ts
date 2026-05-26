@@ -1,4 +1,5 @@
 import { queryParamsToStr, strToQueryParams } from "@ourworldindata/utils"
+import { codeToEntityName, entityNameToCode } from "@ourworldindata/grapher"
 
 import { CONTROL_YEARS, START_YEAR, END_YEAR } from "./constants.js"
 import { isValidParameterKey, type ParameterKey } from "./types.js"
@@ -60,7 +61,8 @@ export function parseSimulationUrlState(
     queryStr = typeof window !== "undefined" ? window.location.search : ""
 ): SimulationUrlState {
     const params = strToQueryParams(queryStr)
-    const entityName = getStringParam(params[DEMOGRAPHY_COUNTRY_PARAM])
+    const entityCode = getStringParam(params[DEMOGRAPHY_COUNTRY_PARAM])
+    const entityName = entityCode ? codeToEntityName(entityCode) : undefined
 
     return {
         entityName,
@@ -114,7 +116,7 @@ export function simulationStateToQueryParams(
         state.entityName &&
         state.entityName !== state.baselineEntityName
     ) {
-        params[DEMOGRAPHY_COUNTRY_PARAM] = state.entityName
+        params[DEMOGRAPHY_COUNTRY_PARAM] = entityNameToCode(state.entityName)
     }
 
     for (const [key, config] of Object.entries(ASSUMPTION_PARAM_CONFIG)) {

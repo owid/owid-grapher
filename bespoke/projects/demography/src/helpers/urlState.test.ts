@@ -37,7 +37,7 @@ describe(parseSimulationUrlState, () => {
     it("parses country and assumption params", () => {
         expect(
             parseSimulationUrlState(
-                "?demographyCountry=Japan&demographyFertility=1.2,1.4,1.7&demographyLifeExpectancy=84,88,92&demographyNetMigration=-1,0,1"
+                "?demographyCountry=JPN&demographyFertility=1.2,1.4,1.7&demographyLifeExpectancy=84,88,92&demographyNetMigration=-1,0,1"
             )
         ).toEqual({
             entityName: "Japan",
@@ -47,6 +47,18 @@ describe(parseSimulationUrlState, () => {
             tab: undefined,
             year: undefined,
         })
+    })
+
+    it("accepts legacy URLs that use the country name", () => {
+        expect(
+            parseSimulationUrlState("?demographyCountry=Japan").entityName
+        ).toBe("Japan")
+    })
+
+    it("passes through entities not in Grapher's code lookup", () => {
+        expect(
+            parseSimulationUrlState("?demographyCountry=Atlantis").entityName
+        ).toBe("Atlantis")
     })
 
     it("skips empty and invalid assumption entries", () => {
@@ -114,11 +126,21 @@ describe(simulationStateToQueryParams, () => {
                 },
             })
         ).toEqual({
-            [DEMOGRAPHY_COUNTRY_PARAM]: "Japan",
+            [DEMOGRAPHY_COUNTRY_PARAM]: "JPN",
             [DEMOGRAPHY_FERTILITY_PARAM]: "1.2,1.4,1.7",
             [DEMOGRAPHY_LIFE_EXPECTANCY_PARAM]: "84,88,92",
             [DEMOGRAPHY_NET_MIGRATION_PARAM]: "-1.0,0.0,1.0",
         })
+    })
+
+    it("uses the entity name when no code is known", () => {
+        expect(
+            simulationStateToQueryParams({
+                ...baseWriteState,
+                entityName: "Atlantis",
+                baselineEntityName: "Japan",
+            })
+        ).toMatchObject({ [DEMOGRAPHY_COUNTRY_PARAM]: "Atlantis" })
     })
 
     it("does not serialize auto-detected countries before user selection", () => {
