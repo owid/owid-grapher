@@ -264,6 +264,17 @@ function CaptionedMainVariant({
         ? "bilateral"
         : "centered"
 
+    // Drill into a country from a bilateral-mode label click. The clicked
+    // side determines which half to land on: clicking an exporter shows
+    // that country's exports, clicking an importer shows its imports.
+    const handleSelectFromBilateral = useCallback(
+        (entity: string, side: "exporter" | "importer") => {
+            setCountry(entity)
+            setView(side === "exporter" ? "exports" : "imports")
+        },
+        [setCountry, setView]
+    )
+
     const hasCenteredData = incoming.length > 0 || outgoing.length > 0
     const hasBilateralData = bilateral.length > 0
 
@@ -333,6 +344,7 @@ function CaptionedMainVariant({
                             <FoodTradeBilateralSankey
                                 rows={bilateral}
                                 year={year}
+                                onSelectEntity={handleSelectFromBilateral}
                             />
                         ) : (
                             <EmptyState

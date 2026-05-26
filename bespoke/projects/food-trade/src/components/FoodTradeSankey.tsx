@@ -402,9 +402,13 @@ function EmptyHalf({
 export function FoodTradeBilateralSankey({
     rows,
     year,
+    onSelectEntity,
 }: {
     rows: TradeRow[]
     year: number
+    /** Click on a column label/band selects that entity. Side determines
+     *  whether the centered view opens on imports or exports. */
+    onSelectEntity?: (entity: string, side: "exporter" | "importer") => void
 }) {
     const { parentRef, width, height } = useParentSize()
 
@@ -425,6 +429,7 @@ export function FoodTradeBilateralSankey({
                 height={height}
                 formatValue={formatTrade}
                 renderTooltip={renderTooltip}
+                onSelectEntity={onSelectEntity}
             />
         </div>
     )

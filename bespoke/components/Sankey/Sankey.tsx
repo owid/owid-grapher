@@ -94,6 +94,15 @@ interface SankeyProps {
     /** Returning false marks a node non-hoverable (no tooltip, no
      *  highlight). Defaults to all-hoverable. */
     isNodeHoverable?: (node: SankeyNode) => boolean
+    /** When provided, clicking a node's band or label fires this callback.
+     *  Hit-testing reuses the same band ∪ label shape as hover (see
+     *  `findNodeAtPoint`), so the larger label hit area is clickable too.
+     *  Gate with `isNodeClickable` to opt nodes out (e.g. the "Other"
+     *  bucket, which isn't a single entity). */
+    onNodeClick?: (node: SankeyNode) => void
+    /** Returning false marks a node non-clickable. Defaults to
+     *  all-clickable when `onNodeClick` is set. */
+    isNodeClickable?: (node: SankeyNode) => boolean
 }
 
 export type LinkTooltipArgs = {
@@ -180,6 +189,8 @@ export function Sankey({
     relatedLinks,
     renderNodeTooltip,
     isNodeHoverable,
+    onNodeClick,
+    isNodeClickable,
 }: SankeyProps): React.ReactElement | null {
     const nodeWidth = bandWidth + bandFlowGap
 
@@ -351,6 +362,26 @@ export function Sankey({
 
     const onSvgMouseLeave = useCallback(() => setHover(null), [])
 
+    // Click hits use the same band ∪ label hit-test as hover (findNodeAtPoint),
+    // so the larger label area is clickable too — labels themselves keep
+    // pointer-events: none and rely on the SVG-wide handler. Filtering by
+    // isNodeClickable lets consumers opt nodes out (e.g. the Other bucket).
+    const onSvgClick = useCallback(
+        (event: React.MouseEvent<SVGSVGElement>) => {
+            if (!svgRef.current || !layout || !onNodeClick) return
+            const mouse = getRelativeMouse(svgRef.current, event.nativeEvent)
+            const node = findNodeAtPoint(
+                layout.nodes,
+                labels,
+                mouse.x,
+                mouse.y,
+                isNodeClickable
+            )
+            if (node) onNodeClick(toNodeData(node))
+        },
+        [layout, labels, onNodeClick, isNodeClickable]
+    )
+
     // Optional grouping (e.g. BilateralFlowSankey promotes a link hover to
     // "all links of this exporter"). The hovered link + its related siblings
     // form one active set; their union of endpoints stays bright while
@@ -415,7 +446,18 @@ export function Sankey({
 
     if (!layout) return null
 
-    const interactive = !!(renderLinkTooltip || renderNodeTooltip)
+    const interactive = !!(
+        renderLinkTooltip ||
+        renderNodeTooltip ||
+        onNodeClick
+    )
+    // Show pointer cursor only when the cursor is over a clickable node.
+    // Relies on the hover state already tracking node-under-cursor (which
+    // assumes clickable nodes are also hoverable — true for our consumers).
+    const isOverClickableNode =
+        !!onNodeClick &&
+        hover?.kind === "node" &&
+        (!isNodeClickable || isNodeClickable(toNodeData(hover.node)))
     const svg = (
         <svg
             ref={svgRef}
@@ -425,6 +467,8 @@ export function Sankey({
             viewBox={`0 0 ${width} ${height}`}
             onMouseMove={interactive ? onSvgMouseMove : undefined}
             onMouseLeave={interactive ? onSvgMouseLeave : undefined}
+            onClick={onNodeClick ? onSvgClick : undefined}
+            style={isOverClickableNode ? { cursor: "pointer" } : undefined}
         >
             <g className="sankey__links">
                 {orderedLinks.map((link) => (

@@ -55,6 +55,7 @@ export function BilateralFlowSankey({
     minNodeShare = DEFAULT_MIN_NODE_SHARE,
     minLinkShare = DEFAULT_MIN_LINK_SHARE,
     renderTooltip,
+    onSelectEntity,
 }: {
     rows: FlowRow[]
     width: number
@@ -74,6 +75,10 @@ export function BilateralFlowSankey({
      *  one unit, and the consumer is handed the source name + the list of
      *  importers it sent to. */
     renderTooltip?: (args: BilateralTooltipArgs) => React.ReactNode
+    /** When set, clicking a column label (or its band) fires this with the
+     *  entity name and the side it's on. The Other bucket is non-clickable
+     *  because it isn't a single entity. */
+    onSelectEntity?: (entity: string, side: "exporter" | "importer") => void
 }) {
     const { nodes, links, topSources, topTargets } = useMemo(
         () =>
@@ -165,6 +170,21 @@ export function BilateralFlowSankey({
           }
         : undefined
 
+    const handleNodeClick = onSelectEntity
+        ? (node: SankeyNode) => {
+              const side: "exporter" | "importer" = node.id.startsWith(
+                  "target:"
+              )
+                  ? "importer"
+                  : "exporter"
+              onSelectEntity(entityFromId(node.id), side)
+          }
+        : undefined
+
+    // Other isn't a single entity, so it can't be drilled into.
+    const isNodeClickable = (node: SankeyNode): boolean =>
+        entityFromId(node.id) !== OTHER_KEY
+
     return (
         <Sankey
             nodes={nodes}
@@ -176,6 +196,8 @@ export function BilateralFlowSankey({
             renderLinkTooltip={renderLinkTooltip}
             relatedLinks={renderTooltip ? relatedLinksByLink : undefined}
             renderNodeTooltip={renderNodeTooltip}
+            onNodeClick={handleNodeClick}
+            isNodeClickable={onSelectEntity ? isNodeClickable : undefined}
         />
     )
 }
