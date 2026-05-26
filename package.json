@@ -253,7 +253,7 @@
         "tsx": "^4.21.0",
         "vite": "^8.0.14",
         "vitest": "^4.1.7",
-        "wrangler": "^4.75.0"
+        "wrangler": "^4.94.0"
     },
     "resolutions": {
         "whatwg-url": "15.0.0",

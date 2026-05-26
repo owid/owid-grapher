@@ -23,11 +23,11 @@
         "zod": "^4.4.3"
     },
     "devDependencies": {
-        "@cloudflare/workers-types": "^4.20250510.0",
+        "@cloudflare/workers-types": "^4.20260523.1",
         "@types/lodash-es": "^4.17.12",
         "@types/react": "^19.2.14",
         "@types/react-dom": "^19.2.3",
         "vitest": "^4.1.7",
-        "wrangler": "^4.75.0"
+        "wrangler": "^4.94.0"
     }
 }
