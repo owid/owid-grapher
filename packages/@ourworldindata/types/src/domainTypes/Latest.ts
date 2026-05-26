@@ -45,8 +45,8 @@ export type AnnouncementLatestType = (typeof ANNOUNCEMENT_LATEST_TYPES)[number]
 export const LATEST_TYPE_LABELS: Record<LatestType, string> = {
     "data-insight": "Data Insight",
     article: "Article",
-    "data-update": "Data Update",
-    "website-upgrade": "Website Upgrade",
+    "data-update": "Data update",
+    "website-upgrade": "Website upgrade",
     announcement: "Announcement",
 }
 
