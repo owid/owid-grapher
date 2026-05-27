@@ -7,12 +7,14 @@ import {
     SankeyLink as D3SankeyLink,
 } from "d3-sankey"
 import { Bounds, getRelativeMouse, VerticalAlign } from "@ourworldindata/utils"
+import { GrapherTooltipAnchor } from "@ourworldindata/types"
 import {
     GRAPHER_DARK_TEXT,
     GRAPHER_DENIM,
     GRAPHER_LIGHT_TEXT,
     type FontSettings,
 } from "@ourworldindata/grapher"
+import { TooltipCard } from "@ourworldindata/grapher/src/tooltip/TooltipCard.js"
 import { TextWrap, TextWrapSvg } from "@ourworldindata/components"
 import { usePinnedTooltip } from "../../hooks/usePinnedTooltip.js"
 
@@ -22,27 +24,29 @@ export const BAND_LABEL_GAP = 6
 /** Vertical gap between a node's value label and its label */
 const VALUE_LABEL_GAP = 2
 
-export const DEFAULT_SANKEY_FONT_SETTINGS: FontSettings = {
+/**
+ * Per-side label margin Sankey reserves at the top and bottom of the inner
+ * SVG to prevent the first/last labels from overflowing the chart bounds
+ */
+export function getSankeyVerticalLabelPadding(
+    fontSettings: FontSettings
+): number {
+    return 0.5 * fontSettings.fontSize * fontSettings.lineHeight
+}
+
+const DEFAULT_MARGIN: Margin = { top: 0, right: 0, bottom: 0, left: 0 }
+
+// Module-level so the prop default keeps a stable reference across renders.
+// Inlining `{ fontSize: 12, ... }` in the destructure default creates a new
+// object every render, which invalidates the `layout` useMemo (which depends
+// on `fontSettings`), regenerates all laid-out link refs, and orphans
+// `hover.link` — breaking the hovered-link highlight in any consumer that
+// doesn't pass `fontSettings` explicitly (e.g. BilateralFlowSankey).
+const DEFAULT_FONT_SETTINGS: FontSettings = {
     fontSize: 12,
     fontWeight: 400,
     lineHeight: 1,
 }
-
-/** Default vertical gap Sankey leaves between adjacent nodes in a column.
- *  Exported so co-resident components (e.g. SplitFlowSankey) can compute a
- *  matching ky for their layout math without copy-pasting the value. */
-export const DEFAULT_SANKEY_NODE_PADDING = 12
-
-/** Per-side label margin Sankey reserves at the top and bottom of the inner
- *  SVG to prevent the first/last labels from overflowing the chart bounds.
- *  Single source of truth for both the in-component layout below and any
- *  caller that needs to reason about the same overhead (e.g. SplitFlowSankey
- *  matching ky across halves). */
-export function getSankeyVerticalLabelPadding(fs: FontSettings): number {
-    return 0.5 * fs.fontSize * fs.lineHeight
-}
-
-const DEFAULT_MARGIN: Margin = { top: 0, right: 0, bottom: 0, left: 0 }
 
 interface SankeyProps {
     nodes: SankeyNode[]
@@ -67,58 +71,17 @@ interface SankeyProps {
     /** Whitespace between a node's band and the flow path */
     bandFlowGap?: number
     fontSettings?: FontSettings
-    /**
-     * When provided, hovering a link shows the rendered tooltip inside the
-     * Sankey's wrapper. The component uses an SVG-wide mousemove handler
-     * (rather than per-path events) to make thin and overlapping ribbons
-     * easy to hit; on touch devices it pins to the bottom and dismisses on
-     * tap-outside (via usePinnedTooltip).
-     */
-    renderLinkTooltip?: (args: LinkTooltipArgs) => React.ReactNode
-    /**
-     * Optional callback that returns other links to be highlighted as a
-     * group with the hovered one. Used by consumers like BilateralFlowSankey
-     * to promote a link hover to "all of the exporter's links" — the whole
-     * group shows as active (full opacity), their shared endpoints stay
-     * bright, everything else dims. The hovered link itself does not need
-     * to be included in the returned array.
-     */
-    relatedLinks?: (link: SankeyLink) => SankeyLink[]
-    /**
-     * When provided, hovering a node band shows this tooltip. The hovered
-     * node + all its connected links + its partner nodes/labels stay
-     * bright; everything else dims. Use `isNodeHoverable` to restrict which
-     * nodes accept hover (e.g. opt out the central node in SplitFlow).
-     */
-    renderNodeTooltip?: (args: NodeTooltipArgs) => React.ReactNode
-    /** Returning false marks a node non-hoverable (no tooltip, no
-     *  highlight). Defaults to all-hoverable. */
-    isNodeHoverable?: (node: SankeyNode) => boolean
-    /** When provided, clicking a node's band or label fires this callback.
-     *  Hit-testing reuses the same band ∪ label shape as hover (see
-     *  `findNodeAtPoint`), so the larger label hit area is clickable too.
-     *  Gate with `isNodeClickable` to opt nodes out (e.g. the "Other"
-     *  bucket, which isn't a single entity). */
+    renderNodeTooltip?: (
+        args: NodeTooltipArgs
+    ) => SankeyTooltipDescriptor | null
+    renderLinkTooltip?: (
+        args: LinkTooltipArgs
+    ) => SankeyTooltipDescriptor | null
     onNodeClick?: (node: SankeyNode) => void
-    /** Returning false marks a node non-clickable. Defaults to
-     *  all-clickable when `onNodeClick` is set. */
     isNodeClickable?: (node: SankeyNode) => boolean
-}
-
-export type LinkTooltipArgs = {
-    link: SankeyLink
-    /** Other links in the same group as the hovered one (per `relatedLinks`).
-     *  Empty when no `relatedLinks` callback is supplied. */
-    relatedLinks: SankeyLink[]
-    /** Mouse position in container coordinates (same as the inner SVG's
-     *  coordinate space — the wrapper has no offset). */
-    position: { x: number; y: number }
-    /** Inner SVG bounds, useful for clamping the TooltipCard inside the
-     *  visible chart. */
-    containerBounds: { width: number; height: number }
-    /** True on touch devices once a tooltip is open — callers typically
-     *  switch to a bottom-anchored TooltipCard variant. */
-    isPinned: boolean
+    isNodeHoverable?: (node: SankeyNode) => boolean
+    /** Other links to be highlighted as a group with the hovered one */
+    relatedLinks?: (link: SankeyLink) => SankeyLink[]
 }
 
 export type NodeTooltipArgs = {
@@ -128,9 +91,19 @@ export type NodeTooltipArgs = {
     incomingLinks: SankeyLink[]
     /** Links leaving this node (this node is the source). */
     outgoingLinks: SankeyLink[]
-    position: { x: number; y: number }
-    containerBounds: { width: number; height: number }
-    isPinned: boolean
+}
+
+export type LinkTooltipArgs = {
+    link: SankeyLink
+}
+
+/** Content returned by a Sankey tooltip renderer. Sankey wraps this in a
+ *  `<TooltipCard>` and supplies positioning, anchor, clamping, and sizing
+ *  itself, so callers only think in terms of what's inside the card. */
+export type SankeyTooltipDescriptor = {
+    title: string
+    subtitle?: string
+    content: React.ReactNode
 }
 
 export type SankeyNode = {
@@ -181,10 +154,10 @@ export function Sankey({
     margin = DEFAULT_MARGIN,
     innerMargin,
     topAnchored,
-    nodePadding = DEFAULT_SANKEY_NODE_PADDING,
+    nodePadding = 12,
     bandWidth = 4,
     bandFlowGap = 3,
-    fontSettings = DEFAULT_SANKEY_FONT_SETTINGS,
+    fontSettings = DEFAULT_FONT_SETTINGS,
     renderLinkTooltip,
     relatedLinks,
     renderNodeTooltip,
@@ -529,20 +502,12 @@ export function Sankey({
           }
         : { width, height }
 
-    // position: relative on the wrapper so the tooltip's absolute positioning
-    // resolves against the chart, not some distant ancestor.
-    return (
-        <div ref={containerRef} className="sankey-container">
-            {svg}
-            {hover?.kind === "link" &&
-                renderLinkTooltip?.({
-                    link: toLinkData(hover.link),
-                    relatedLinks: relatedLaidOutLinks.map(toLinkData),
-                    position: hover.position,
-                    containerBounds: tooltipBounds,
-                    isPinned,
-                })}
-            {hover?.kind === "node" &&
+    const descriptor: SankeyTooltipDescriptor | null = (() => {
+        if (hover?.kind === "link") {
+            return renderLinkTooltip?.({ link: toLinkData(hover.link) }) ?? null
+        }
+        if (hover?.kind === "node") {
+            return (
                 renderNodeTooltip?.({
                     node: toNodeData(hover.node),
                     incomingLinks: (hover.node.targetLinks ?? []).map(
@@ -551,10 +516,33 @@ export function Sankey({
                     outgoingLinks: (hover.node.sourceLinks ?? []).map(
                         toLinkData
                     ),
-                    position: hover.position,
-                    containerBounds: tooltipBounds,
-                    isPinned,
-                })}
+                }) ?? null
+            )
+        }
+        return null
+    })()
+
+    // position: relative on the wrapper so the tooltip's absolute positioning
+    // resolves against the chart, not some distant ancestor.
+    return (
+        <div ref={containerRef} className="sankey-container">
+            {svg}
+            {hover && descriptor && (
+                <TooltipCard
+                    id="sankey-tooltip"
+                    x={hover.position.x}
+                    y={hover.position.y}
+                    offsetX={8}
+                    offsetY={8}
+                    style={{ maxWidth: "340px" }}
+                    title={descriptor.title}
+                    subtitle={descriptor.subtitle}
+                    anchor={isPinned ? GrapherTooltipAnchor.Bottom : undefined}
+                    containerBounds={isPinned ? undefined : tooltipBounds}
+                >
+                    {descriptor.content}
+                </TooltipCard>
+            )}
         </div>
     )
 }
@@ -840,7 +828,7 @@ const measureMaxLabelWidth = (
 
 export function measureMaxLabelWidthForNode(
     node: SankeyNode,
-    fontSettings: FontSettings = DEFAULT_SANKEY_FONT_SETTINGS
+    fontSettings: FontSettings
 ): number {
     return Math.max(
         textWidth(node.label, fontSettings),

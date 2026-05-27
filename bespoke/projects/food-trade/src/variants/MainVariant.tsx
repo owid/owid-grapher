@@ -135,10 +135,13 @@ function FetchingMainVariant({ config }: { config: MainVariantConfig }) {
     // Same reason at runtime: when the user picks All countries, snap
     // the stored view to "both" so the (now-disabled) radio group
     // reflects what's actually on screen.
-    const handleSetCountry = useCallback((newCountry: string) => {
-        setCountry(newCountry)
-        if (isAllCountry(newCountry)) setView("both")
-    }, [])
+    const handleSetCountry = useCallback(
+        (newCountry: string) => {
+            setCountry(newCountry)
+            if (isAllCountry(newCountry)) setView("both")
+        },
+        [setCountry, setView]
+    )
 
     const products = useMemo(
         () =>

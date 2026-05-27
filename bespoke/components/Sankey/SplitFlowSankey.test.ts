@@ -4,13 +4,16 @@ import { sankey as d3Sankey } from "d3-sankey"
 import { type FontSettings } from "@ourworldindata/grapher"
 
 import {
-    DEFAULT_SANKEY_FONT_SETTINGS,
-    DEFAULT_SANKEY_NODE_PADDING,
     getSankeyVerticalLabelPadding,
     SankeyLink,
     SankeyNode,
 } from "./Sankey.js"
-import { computeHalfHeights, SankeyBuild } from "./SplitFlowSankey.js"
+import {
+    computeHalfHeights,
+    NON_STACKED_FONT_SETTINGS,
+    SANKEY_NODE_PADDING,
+    SankeyBuild,
+} from "./SplitFlowSankey.js"
 
 // All tests use this as the central entity. Mirrors `buildHalf`'s structure:
 // partner nodes carry an "in:"/"out:" prefix to disambiguate same-name partners
@@ -63,7 +66,7 @@ function realizedKy({
     const generator = d3Sankey<SankeyNode, SankeyLink>()
         .nodeId((d) => d.id)
         .nodeWidth(7) // bandWidth (4) + bandFlowGap (3)
-        .nodePadding(DEFAULT_SANKEY_NODE_PADDING)
+        .nodePadding(SANKEY_NODE_PADDING)
         .nodeSort(null)
         .extent([
             [0, vlp],
@@ -89,7 +92,7 @@ const defaultOpts = {
     chartHeight: DEFAULT_CHART_HEIGHT,
     isSingleHalf: false,
     central: CENTRAL,
-    fontSettings: DEFAULT_SANKEY_FONT_SETTINGS,
+    fontSettings: NON_STACKED_FONT_SETTINGS,
 }
 
 // Equal partner values summing to `total`.
@@ -327,7 +330,7 @@ describe("computeHalfHeights (font sensitivity)", () => {
             fontWeight: 400,
             lineHeight: 1.2,
         }
-        for (const fontSettings of [DEFAULT_SANKEY_FONT_SETTINGS, smaller]) {
+        for (const fontSettings of [NON_STACKED_FONT_SETTINGS, smaller]) {
             const h = computeHalfHeights({
                 ...defaultOpts,
                 fontSettings,

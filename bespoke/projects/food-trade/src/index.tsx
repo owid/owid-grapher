@@ -15,17 +15,21 @@ import StylesTarget from "vite-plugin-css-position/react"
 import "./index.scss"
 
 export const VARIANTS = [
-    { name: "main", component: MainVariant, demoConfig: { urlSync: "true" } },
-    {
-        name: "main",
-        component: MainVariant,
-        demoConfig: { country: "United Kingdom" },
-    },
-    {
-        name: "main",
-        component: MainVariant,
-        demoConfig: { country: "United Kingdom", tradeFlow: "imports" },
-    },
+    // {
+    //     name: "main",
+    //     component: MainVariant,
+    //     demoConfig: { country: "Germany" },
+    // },
+    // {
+    //     name: "main",
+    //     component: MainVariant,
+    //     demoConfig: { country: "United Kingdom" },
+    // },
+    // {
+    //     name: "main",
+    //     component: MainVariant,
+    //     demoConfig: { country: "United Kingdom", tradeFlow: "imports" },
+    // },
     {
         name: "main",
         component: MainVariant,

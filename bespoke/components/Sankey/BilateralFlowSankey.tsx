@@ -6,6 +6,7 @@ import {
     Sankey,
     SankeyLink,
     SankeyNode,
+    SankeyTooltipDescriptor,
 } from "./Sankey.js"
 import {
     assignColors,
@@ -41,9 +42,6 @@ export type BilateralTooltipArgs = {
      *  across rows; for the Other bucket each row is a distinct trade
      *  pair, which is typically what the consumer wants to render. */
     tradeRows: FlowRow[]
-    position: { x: number; y: number }
-    containerBounds: { width: number; height: number }
-    isPinned: boolean
 }
 
 export function BilateralFlowSankey({
@@ -74,7 +72,9 @@ export function BilateralFlowSankey({
      *  exporter (source) group: all of that exporter's links highlight as
      *  one unit, and the consumer is handed the source name + the list of
      *  importers it sent to. */
-    renderTooltip?: (args: BilateralTooltipArgs) => React.ReactNode
+    renderTooltip?: (
+        args: BilateralTooltipArgs
+    ) => SankeyTooltipDescriptor | null
     /** When set, clicking a column label (or its band) fires this with the
      *  entity name and the side it's on. The Other bucket is non-clickable
      *  because it isn't a single entity. */
@@ -114,12 +114,11 @@ export function BilateralFlowSankey({
         return colorMap.get(source) ?? NEUTRAL_COLOR
     }
 
-    // All links sharing the hovered link's source — used both for the
-    // group-highlight and to build the table of importers in the tooltip.
-    // The hovered link itself is excluded so the wrapper below can do
-    // `[link, ...relatedLinks]` without duplicating it. Identity comparison
-    // (`l !== link`) doesn't work because `link` is reconstructed as a
-    // plain object by Sankey's `toLinkData`, so we match by target.
+    // All other links sharing the hovered link's source — Sankey adds the
+    // hovered link itself to the highlight set separately, so this returns
+    // only its siblings. Match by target rather than identity because
+    // Sankey reconstructs the hovered link as a plain object via
+    // `toLinkData` before passing it back here.
     const relatedLinksByLink = (link: SankeyLink): SankeyLink[] =>
         links.filter(
             (l) => l.source === link.source && l.target !== link.target
@@ -131,7 +130,7 @@ export function BilateralFlowSankey({
     // memoized build above (`topSources`); a target-side equivalent is
     // captured below.
     const renderLinkTooltip = renderTooltip
-        ? ({ link, position, containerBounds, isPinned }: LinkTooltipArgs) => {
+        ? ({ link }: LinkTooltipArgs): SankeyTooltipDescriptor | null => {
               // Link hover resolves to the exporter side: the source-side
               // ribbon shares the hovered link's source entity (see
               // `relatedLinksByLink` above). Node hover handles the
@@ -143,16 +142,13 @@ export function BilateralFlowSankey({
                   rows,
                   topSources,
                   topTargets,
-                  position,
-                  containerBounds,
-                  isPinned,
               })
               return renderTooltip(args)
           }
         : undefined
 
     const renderNodeTooltip = renderTooltip
-        ? ({ node, position, containerBounds, isPinned }: NodeTooltipArgs) => {
+        ? ({ node }: NodeTooltipArgs): SankeyTooltipDescriptor | null => {
               const isTarget = node.id.startsWith("target:")
               const side = isTarget ? "importer" : "exporter"
               const entityKey = entityFromId(node.id)
@@ -162,9 +158,6 @@ export function BilateralFlowSankey({
                   rows,
                   topSources,
                   topTargets,
-                  position,
-                  containerBounds,
-                  isPinned,
               })
               return renderTooltip(args)
           }
@@ -212,18 +205,12 @@ function buildTooltipArgs({
     rows,
     topSources,
     topTargets,
-    position,
-    containerBounds,
-    isPinned,
 }: {
     side: "exporter" | "importer"
     entityKey: string
     rows: FlowRow[]
     topSources: Set<string>
     topTargets: Set<string>
-    position: { x: number; y: number }
-    containerBounds: { width: number; height: number }
-    isPinned: boolean
 }): BilateralTooltipArgs {
     const isOther = entityKey === OTHER_KEY
     const country = isOther ? "Other" : entityKey
@@ -258,9 +245,6 @@ function buildTooltipArgs({
         country,
         partners,
         tradeRows,
-        position,
-        containerBounds,
-        isPinned,
     }
 }
 

@@ -6,8 +6,6 @@ import { type FontSettings } from "@ourworldindata/grapher"
 
 import {
     BAND_LABEL_GAP,
-    DEFAULT_SANKEY_FONT_SETTINGS,
-    DEFAULT_SANKEY_NODE_PADDING,
     getSankeyVerticalLabelPadding,
     LinkTooltipArgs,
     measureMaxLabelWidthForNode,
@@ -15,6 +13,7 @@ import {
     Sankey,
     SankeyLink,
     SankeyNode,
+    SankeyTooltipDescriptor,
 } from "./Sankey.js"
 import {
     assignColors,
@@ -41,6 +40,16 @@ const SANKEY_HALVES_GAP = 16
 // in sync with the `@container` query in SplitFlowSankey.scss.
 export const STACKED_BREAKPOINT_PX = 500
 
+// Font for node labels at normal (side-by-side) layout. Passed explicitly
+// to `<Sankey>` so the same value drives both the chart's text rendering
+// and the layout math in `computeHalfHeights` below — the two must agree
+// for the ky-matching invariant to hold.
+export const NON_STACKED_FONT_SETTINGS: FontSettings = {
+    fontSize: 12,
+    fontWeight: 400,
+    lineHeight: 1,
+}
+
 // Shrunk font for node labels when the two halves are stacked on narrow
 // containers. Keep the SCSS heading font-size override in sync.
 const STACKED_FONT_SETTINGS: FontSettings = {
@@ -48,6 +57,12 @@ const STACKED_FONT_SETTINGS: FontSettings = {
     fontWeight: 400,
     lineHeight: 1,
 }
+
+// Vertical gap between nodes within a Sankey column. Owned here (rather
+// than relying on Sankey's internal default) so the same value drives
+// both the explicit `nodePadding` prop passed to `<Sankey>` and the
+// `computeHalfHeights` math that has to mirror d3-sankey's layout.
+export const SANKEY_NODE_PADDING = 12
 
 // Vertical space the stacked layout consumes outside the two chart cells,
 // beyond the two heading rows we already reserve via HEADING_HEIGHT. Just
@@ -81,7 +96,7 @@ type Half = {
      *  non-central endpoint (already de-prefixed); link.value is the raw
      *  flow value. SplitFlowSankey hides the `in:`/`out:` ID scheme from
      *  this callback. */
-    renderTooltip?: (args: HalfTooltipArgs) => React.ReactNode
+    renderTooltip?: (args: HalfTooltipArgs) => SankeyTooltipDescriptor | null
 }
 
 export type HalfTooltipArgs = {
@@ -93,9 +108,6 @@ export type HalfTooltipArgs = {
      *  undefined. Lets callers render a richer tooltip for Other (e.g. a
      *  table of the bundled countries) without re-deriving the grouping. */
     otherBreakdown?: EntityTotal[]
-    position: { x: number; y: number }
-    containerBounds: { width: number; height: number }
-    isPinned: boolean
 }
 
 export type SankeyBuild = {
@@ -151,14 +163,9 @@ export function computeHalfHeights({
     const verticalLabelMargin = 2 * getSankeyVerticalLabelPadding(fontSettings)
 
     const heightForKy = (ky: number, t: number, n: number) =>
-        ky * t +
-        Math.max(0, n - 1) * DEFAULT_SANKEY_NODE_PADDING +
-        verticalLabelMargin
+        ky * t + Math.max(0, n - 1) * SANKEY_NODE_PADDING + verticalLabelMargin
     const kyForHeight = (h: number, t: number, n: number) =>
-        (h -
-            verticalLabelMargin -
-            Math.max(0, n - 1) * DEFAULT_SANKEY_NODE_PADDING) /
-        t
+        (h - verticalLabelMargin - Math.max(0, n - 1) * SANKEY_NODE_PADDING) / t
 
     if (isStacked) {
         // Stacked: solve for the `ky` that exactly fills both cells
@@ -172,7 +179,7 @@ export function computeHalfHeights({
         const totalChartSpace = 2 * chartHeight
         const overhead =
             2 * verticalLabelMargin +
-            Math.max(0, nIn + nOut - 2) * DEFAULT_SANKEY_NODE_PADDING
+            Math.max(0, nIn + nOut - 2) * SANKEY_NODE_PADDING
         const ky = (totalChartSpace - overhead) / (tIn + tOut)
         if (ky <= 0) return { incoming: chartHeight, outgoing: chartHeight }
         return {
@@ -287,7 +294,7 @@ export function SplitFlowSankey({
         !isSingleHalf && width > 0 && width < STACKED_BREAKPOINT_PX
     const fontSettings: FontSettings = isStacked
         ? STACKED_FONT_SETTINGS
-        : DEFAULT_SANKEY_FONT_SETTINGS
+        : NON_STACKED_FONT_SETTINGS
 
     // Equalize outer label margins across the two halves so the inner flow
     // regions end up the same width even if outer-column label widths differ.
@@ -519,9 +526,9 @@ function wrapHalfTooltipRenderer({
     direction: "incoming" | "outgoing"
     central: string
     otherBreakdown?: EntityTotal[]
-    render: (args: HalfTooltipArgs) => React.ReactNode
-}): (args: LinkTooltipArgs) => React.ReactNode {
-    return ({ link, position, containerBounds, isPinned }) => {
+    render: (args: HalfTooltipArgs) => SankeyTooltipDescriptor | null
+}): (args: LinkTooltipArgs) => SankeyTooltipDescriptor | null {
+    return ({ link }) => {
         const partnerId =
             direction === "incoming"
                 ? link.source !== central
@@ -537,9 +544,6 @@ function wrapHalfTooltipRenderer({
             partner,
             value: link.value,
             otherBreakdown: isOther ? otherBreakdown : undefined,
-            position,
-            containerBounds,
-            isPinned,
         })
     }
 }
@@ -554,16 +558,9 @@ function wrapHalfNodeTooltipRenderer({
     render,
 }: {
     otherBreakdown?: EntityTotal[]
-    render: (args: HalfTooltipArgs) => React.ReactNode
-}): (args: NodeTooltipArgs) => React.ReactNode {
-    return ({
-        node,
-        incomingLinks,
-        outgoingLinks,
-        position,
-        containerBounds,
-        isPinned,
-    }) => {
+    render: (args: HalfTooltipArgs) => SankeyTooltipDescriptor | null
+}): (args: NodeTooltipArgs) => SankeyTooltipDescriptor | null {
+    return ({ node, incomingLinks, outgoingLinks }) => {
         // Central is excluded by `isNodeHoverable`, so any node reaching
         // here is a partner with exactly one connecting link.
         const link = incomingLinks[0] ?? outgoingLinks[0]
@@ -575,9 +572,6 @@ function wrapHalfNodeTooltipRenderer({
             partner,
             value: link.value,
             otherBreakdown: isOther ? otherBreakdown : undefined,
-            position,
-            containerBounds,
-            isPinned,
         })
     }
 }
@@ -638,8 +632,12 @@ function HalfChart({
         left?: number
     }
     fontSettings: FontSettings
-    renderLinkTooltip?: (args: LinkTooltipArgs) => React.ReactNode
-    renderNodeTooltip?: (args: NodeTooltipArgs) => React.ReactNode
+    renderLinkTooltip?: (
+        args: LinkTooltipArgs
+    ) => SankeyTooltipDescriptor | null
+    renderNodeTooltip?: (
+        args: NodeTooltipArgs
+    ) => SankeyTooltipDescriptor | null
     isNodeHoverable?: (node: SankeyNode) => boolean
 }) {
     return (
@@ -658,6 +656,7 @@ function HalfChart({
                             linkColor={linkColor}
                             innerMargin={innerMargin}
                             fontSettings={fontSettings}
+                            nodePadding={SANKEY_NODE_PADDING}
                             topAnchored
                             renderLinkTooltip={renderLinkTooltip}
                             renderNodeTooltip={renderNodeTooltip}

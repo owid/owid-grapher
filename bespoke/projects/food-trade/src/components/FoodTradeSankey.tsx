@@ -3,11 +3,7 @@ import { useParentSize } from "@visx/responsive"
 import * as R from "remeda"
 
 import { articulateEntity, formatValue } from "@ourworldindata/utils"
-import {
-    GrapherTooltipAnchor,
-    OwidVariableRoundingMode,
-} from "@ourworldindata/types"
-import { TooltipCard } from "@ourworldindata/grapher/src/tooltip/TooltipCard.js"
+import { OwidVariableRoundingMode } from "@ourworldindata/types"
 import {
     TooltipTable,
     TooltipValue,
@@ -19,6 +15,7 @@ import {
     FlowRow,
 } from "../../../../components/Sankey/helpers.js"
 
+import { SankeyTooltipDescriptor } from "../../../../components/Sankey/Sankey.js"
 import {
     BilateralFlowSankey,
     BilateralTooltipArgs,
@@ -215,27 +212,27 @@ export function FoodTradeSankey({
     // Same percent denominator as the partner node labels (half total), so
     // the tooltip number matches what's already visible on the chart.
     const renderIncomingTooltip = useCallback(
-        (args: HalfTooltipArgs) => (
-            <TradeLinkTooltip
-                {...args}
-                exporter={args.partner}
-                importer={country}
-                halfTotal={incomingTotal}
-                year={year}
-            />
-        ),
+        (args: HalfTooltipArgs) =>
+            tradeLinkTooltip({
+                exporter: args.partner,
+                importer: country,
+                value: args.value,
+                halfTotal: incomingTotal,
+                year,
+                otherBreakdown: args.otherBreakdown,
+            }),
         [country, incomingTotal, year]
     )
     const renderOutgoingTooltip = useCallback(
-        (args: HalfTooltipArgs) => (
-            <TradeLinkTooltip
-                {...args}
-                exporter={country}
-                importer={args.partner}
-                halfTotal={outgoingTotal}
-                year={year}
-            />
-        ),
+        (args: HalfTooltipArgs) =>
+            tradeLinkTooltip({
+                exporter: country,
+                importer: args.partner,
+                value: args.value,
+                halfTotal: outgoingTotal,
+                year,
+                otherBreakdown: args.otherBreakdown,
+            }),
         [country, outgoingTotal, year]
     )
 
@@ -281,16 +278,13 @@ const OTHER_BREAKDOWN_SHOW_ALL_BELOW = 10
 const BILATERAL_TOP_N = 8
 const BILATERAL_SHOW_ALL_BELOW = 10
 
-function TradeLinkTooltip({
+function tradeLinkTooltip({
     exporter,
     importer,
     value,
     halfTotal,
     year,
     otherBreakdown,
-    position,
-    containerBounds,
-    isPinned,
 }: {
     exporter: string
     importer: string
@@ -298,10 +292,7 @@ function TradeLinkTooltip({
     halfTotal: number
     year: number
     otherBreakdown?: EntityTotal[]
-    position: { x: number; y: number }
-    containerBounds: { width: number; height: number }
-    isPinned: boolean
-}) {
+}): SankeyTooltipDescriptor {
     const isOther = !!otherBreakdown
     // For Other links, replace the "Country → Country" arrow with a short
     // noun phrase naming the long-tail bucket. Which role (exporters /
@@ -315,33 +306,22 @@ function TradeLinkTooltip({
 
     const share = halfTotal > 0 ? value / halfTotal : 0
     const formattedShare = formatShare(share)
-    return (
-        <TooltipCard
-            id="food-trade-link-tooltip"
-            x={position.x}
-            y={position.y}
-            offsetX={8}
-            offsetY={8}
-            title={title}
-            subtitle={String(year)}
-            style={{ maxWidth: isOther ? 340 : 280 }}
-            anchor={isPinned ? GrapherTooltipAnchor.Bottom : undefined}
-            containerBounds={isPinned ? undefined : containerBounds}
-        >
-            {isOther ? (
-                <OtherBreakdownContent breakdown={otherBreakdown} />
-            ) : (
-                <TooltipValue
-                    value={
-                        <span>
-                            {formatTrade(value)}
-                            {formattedShare && ` (${formattedShare})`}
-                        </span>
-                    }
-                />
-            )}
-        </TooltipCard>
-    )
+    return {
+        title,
+        subtitle: String(year),
+        content: isOther ? (
+            <OtherBreakdownContent breakdown={otherBreakdown} />
+        ) : (
+            <TooltipValue
+                value={
+                    <span>
+                        {formatTrade(value)}
+                        {formattedShare && ` (${formattedShare})`}
+                    </span>
+                }
+            />
+        ),
+    }
 }
 
 function OtherBreakdownContent({ breakdown }: { breakdown: EntityTotal[] }) {
@@ -415,9 +395,7 @@ export function FoodTradeBilateralSankey({
     const flowRows = useMemo(() => tradeToFlow(rows), [rows])
 
     const renderTooltip = useCallback(
-        (args: BilateralTooltipArgs) => (
-            <BilateralTooltip {...args} year={year} />
-        ),
+        (args: BilateralTooltipArgs) => bilateralTooltip({ ...args, year }),
         [year]
     )
 
@@ -435,16 +413,13 @@ export function FoodTradeBilateralSankey({
     )
 }
 
-function BilateralTooltip({
+function bilateralTooltip({
     side,
     country,
     partners,
     tradeRows,
     year,
-    position,
-    containerBounds,
-    isPinned,
-}: BilateralTooltipArgs & { year: number }) {
+}: BilateralTooltipArgs & { year: number }): SankeyTooltipDescriptor {
     const isOther = country === "Other"
     // Named country: title is its name, subtitle scopes it
     // ("Exports in 2024" or "Imports in 2024"). Other bucket: title
@@ -490,27 +465,20 @@ function BilateralTooltip({
         values: [d.value],
     }))
 
-    return (
-        <TooltipCard
-            id="food-trade-bilateral-tooltip"
-            x={position.x}
-            y={position.y}
-            offsetX={8}
-            offsetY={8}
-            title={title}
-            subtitle={subtitle}
-            style={{ maxWidth: 340 }}
-            anchor={isPinned ? GrapherTooltipAnchor.Bottom : undefined}
-            containerBounds={isPinned ? undefined : containerBounds}
-        >
-            <TooltipTable columns={columns} rows={tableRows} />
-            {visibleItems.hiddenCount > 0 && (
-                <div className="food-trade-sankey__tooltip-more">
-                    + {visibleItems.hiddenCount} more {overflowNoun}
-                </div>
-            )}
-        </TooltipCard>
-    )
+    return {
+        title,
+        subtitle,
+        content: (
+            <>
+                <TooltipTable columns={columns} rows={tableRows} />
+                {visibleItems.hiddenCount > 0 && (
+                    <div className="food-trade-sankey__tooltip-more">
+                        + {visibleItems.hiddenCount} more {overflowNoun}
+                    </div>
+                )}
+            </>
+        ),
+    }
 }
 
 function capItems<T>(items: T[]): { visible: T[]; hiddenCount: number } {
