@@ -4,16 +4,19 @@ datapage's indicator. Almost always used as a member of a
 `{.key-indicator-collection}` (the homepage accordion of indicators).
 
 ## When to use
+
 - As one entry inside `{.key-indicator-collection}`.
 - Stand-alone in the rare case you want a single highlighted indicator
   with custom narrative text and source attribution.
 
 ## When NOT to use
+
 - For a generic chart embed without datapage context — use `{.chart}`.
 - For a non-data card with static text — use `{.callout}` or
   `{.data-callout}`.
 
 ## Variations
+
 - `datapageUrl` (required): URL of the Grapher datapage; can include
   query parameters like `?time=earliest..latest` to control the default
   view.

@@ -4,12 +4,15 @@ top-right of the intro section; on mobile it appears inline where placed
 in the gdoc.
 
 ## When to use
+
 - The intro of a linear topic page, to surface the topic's key charts.
 
 ## When NOT to use
+
 - Prefer `{.recirc}` for a simple list of related links outside LTPs.
 
 ## Variations
+
 - `icon`: currently only `chart` is supported.
 - `kicker` is a short label rendered above the title.
 - `buttonText` is the label of the bottom call-to-action button.

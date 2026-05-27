@@ -2,13 +2,16 @@ The large introduction block on the homepage: OWID mission copy
 paired with a grid of four featured tiles.
 
 ## When to use
+
 - Only on the homepage (`type: homepage`).
 
 ## When NOT to use
+
 - Anywhere else. The mission text is hard-coded for the homepage
   layout.
 
 ## Variations
+
 - Exactly four entries must be supplied under `[.featured-work]`.
 - `kicker` is free text (e.g. "Article - 10 Min Read",
   "Announcement").

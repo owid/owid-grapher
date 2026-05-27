@@ -6,16 +6,19 @@ All `#guide:` links in the section must share the same slug; only query
 params (selection, time, tab, etc.) can change.
 
 ## When to use
+
 - Walking readers through different views of the same chart inline.
 - Pairing a chart with prose where clicking phrases updates the chart.
 
 ## When NOT to use
+
 - The chart and text are independent — use `{.chart}` in a `{.sticky-left}`
   / `{.sticky-right}` layout.
 - You need more than one chart slug — guided-chart sections must have
   exactly one chart.
 
 ## Variations
+
 - Can contain a `{.chart-rows}` block — clicking a row updates the main
   chart rather than navigating away. In guided-chart mode, `title` and
   `source` on the chart-rows are hidden.

@@ -4,14 +4,17 @@ clicking a row updates the guided-chart's main chart rather than
 navigating away.
 
 ## When to use
+
 - Presenting multiple related chart views compactly.
 - Offering alternative cuts of the same data inside a guided chart.
 
 ## When NOT to use
+
 - You only have one chart to reference — use `{.pull-chart}`.
 - The charts are the main subject — use full-width `{.chart}` blocks.
 
 ## Variations
+
 - `kicker`: short label above the rows (defaults to "More views of this
   data" at render time).
 - `title` and `source`: only shown in standalone mode; hidden when nested

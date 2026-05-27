@@ -3,14 +3,17 @@ optional download button, optional related-topics chips, and an intro
 body of rich text.
 
 ## When to use
+
 - Included on every topic page (`type: topic-page`) as the first block
   of the body.
 
 ## When NOT to use
+
 - On non-topic-page documents (articles, data insights, linear topic
   pages, homepage, etc.).
 
 ## Variations
+
 - `download-button` is optional — omit if there is no canonical
   dataset to offer for download.
 - `related-topics` entries can be gdoc links (metadata resolves

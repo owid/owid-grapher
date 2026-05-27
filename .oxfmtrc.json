@@ -31,6 +31,7 @@
         "grapherData/",
         ".vscode/",
         ".claude/settings.local.json",
-        "*.handlebars"
+        "*.handlebars",
+        "docs/*.generated.*"
     ]
 }

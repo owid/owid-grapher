@@ -4,13 +4,16 @@ auto-fetched; you can override any of them, and for non-gdoc URLs you
 must supply them.
 
 ## When to use
+
 - Driving readers to a single, key related article or chart.
 
 ## When NOT to use
+
 - Prefer `{.recirc}` for a small gray list of multiple related links.
 - Prefer `{.cta}` for a simple arrow link.
 
 ## Variations
+
 - Gdoc URL: all fields auto-fetched; pass just `url`.
 - External URL or overrides: supply `title`, `description`, `thumbnail`.
 

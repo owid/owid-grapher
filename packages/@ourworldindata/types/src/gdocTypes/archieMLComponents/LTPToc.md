@@ -7,14 +7,17 @@ lists page sections; secondary shows cards to all data and writing on
 the topic.
 
 ## When to use
+
 - On linear topic pages, near the top, to let readers jump between
   sections and to related data/writing.
 
 ## When NOT to use
+
 - On regular topic pages (use the auto-generated sticky nav).
 - On articles (use Google Docs headings; TOC is auto-derived).
 
 ## Variations
+
 - `title` defaults to "Sections" if omitted.
 
 ### Default title

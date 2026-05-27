@@ -7,16 +7,19 @@ further reading at the bottom of topic and linear topic pages, and on
 author pages as the "All work" section.
 
 ## When to use
+
 - At the bottom of a topic page to link to the main articles and
   secondary reads on that topic.
 - On linear topic pages (use `variant: featured` for a compact look).
 - On author pages to surface the author's work.
 
 ## When NOT to use
+
 - Inside regular articles — use `{.recirc}` or `{.prominent-link}`
   for inline recommendations.
 
 ## Variations
+
 - `primary` is required (one or more tiles); `secondary`, `more`, and
   `rows` sections are optional.
 - `hide-date: true` hides article dates across the block.

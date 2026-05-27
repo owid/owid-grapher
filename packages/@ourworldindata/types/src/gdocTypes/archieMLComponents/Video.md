@@ -3,15 +3,18 @@ Google Drive — a developer must upload the compressed video first
 (compress via Handbrake before uploading).
 
 ## When to use
+
 - Short screencasts, animations, or motion visuals that need autoplay /
   loop behavior.
 
 ## When NOT to use
+
 - External videos (YouTube, Vimeo) — use an iframe inside an `{.html}`
   block.
 - Static imagery — use `{.image}`.
 
 ## Variations
+
 - `shouldLoop`: `true` | `false`
 - `shouldAutoplay`: `true` | `false`
 - `visibility`: `mobile` | `desktop`
