@@ -29,15 +29,12 @@ export function TooltipValue({
     originalTime,
     isProjection,
     labelVariant = "label+unit",
-    isRoundedToSignificantFigures,
     showSignificanceSuperscript,
 }: TooltipValueProps): React.ReactElement {
     const displayValue = value || NO_DATA_LABEL
     const displayColor = displayValue === NO_DATA_LABEL ? NO_DATA_COLOR : color
 
-    const showSuperscript =
-        showSignificanceSuperscript && isRoundedToSignificantFigures
-    const superscript = showSuperscript ? (
+    const superscript = showSignificanceSuperscript ? (
         <SignificanceIcon asSuperscript={true} />
     ) : null
 
@@ -66,16 +63,13 @@ export function TooltipValueRange({
     originalTimes,
     trend,
     labelVariant = "label+unit",
-    isRoundedToSignificantFigures,
     showSignificanceSuperscript,
 }: TooltipValueRangeProps): React.ReactElement | null {
     const [firstTerm, lastTerm] = values
 
     if (firstTerm === undefined && lastTerm === undefined) return null
 
-    const showSuperscript =
-        showSignificanceSuperscript && isRoundedToSignificantFigures
-    const superscript = showSuperscript ? (
+    const superscript = showSignificanceSuperscript ? (
         <SignificanceIcon asSuperscript={true} />
     ) : null
 
