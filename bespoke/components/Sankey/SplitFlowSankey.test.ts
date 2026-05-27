@@ -10,9 +10,9 @@ import {
 } from "./Sankey.js"
 import {
     computeHalfHeights,
-    NON_STACKED_FONT_SETTINGS,
+    DEFAULT_FONT_SETTINGS,
     SANKEY_NODE_PADDING,
-    SankeyBuild,
+    SankeyHalfBuild,
 } from "./SplitFlowSankey.js"
 
 // All tests use this as the central entity. Mirrors `buildHalf`'s structure:
@@ -28,7 +28,7 @@ function makeBuild({
 }: {
     side: "incoming" | "outgoing"
     partnerValues: number[]
-}): SankeyBuild {
+}): SankeyHalfBuild {
     const isIncoming = side === "incoming"
     const prefix = isIncoming ? "in:" : "out:"
     const partners: SankeyNode[] = partnerValues.map((_, i) => ({
@@ -57,7 +57,7 @@ function realizedKy({
     height,
     fontSettings,
 }: {
-    build: SankeyBuild
+    build: SankeyHalfBuild
     width: number
     height: number
     fontSettings: FontSettings
@@ -91,8 +91,8 @@ const DEFAULT_CHART_HEIGHT = 480
 const defaultOpts = {
     chartHeight: DEFAULT_CHART_HEIGHT,
     isSingleHalf: false,
-    central: CENTRAL,
-    fontSettings: NON_STACKED_FONT_SETTINGS,
+    centralEntity: CENTRAL,
+    fontSettings: DEFAULT_FONT_SETTINGS,
 }
 
 // Equal partner values summing to `total`.
@@ -330,7 +330,7 @@ describe("computeHalfHeights (font sensitivity)", () => {
             fontWeight: 400,
             lineHeight: 1.2,
         }
-        for (const fontSettings of [NON_STACKED_FONT_SETTINGS, smaller]) {
+        for (const fontSettings of [DEFAULT_FONT_SETTINGS, smaller]) {
             const h = computeHalfHeights({
                 ...defaultOpts,
                 fontSettings,
@@ -366,7 +366,7 @@ describe("computeHalfHeights (degenerate cases)", () => {
             computeHalfHeights({
                 ...defaultOpts,
                 isStacked: false,
-                incomingBuild: null,
+                incomingBuild: undefined,
                 outgoingBuild: someBuild,
             })
         ).toEqual({

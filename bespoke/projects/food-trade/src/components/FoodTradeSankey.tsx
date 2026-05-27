@@ -24,10 +24,10 @@ import {
     BilateralTooltipArgs,
 } from "../../../../components/Sankey/BilateralFlowSankey.js"
 import {
-    HalfTooltipArgs,
-    HeadingContent,
+    SankeyHalfTooltipArgs,
+    SankeyHalfHeading,
     SplitFlowSankey,
-    STACKED_BREAKPOINT_PX,
+    MOBILE_BREAKPOINT,
 } from "../../../../components/Sankey/SplitFlowSankey.js"
 
 import { TradeRow } from "../data.js"
@@ -125,7 +125,7 @@ export function FoodTradeSankey({
             ? countryShort
             : `the ${countryShort}`
     const productLc = R.uncapitalize(product)
-    const isStacked = width > 0 && width < STACKED_BREAKPOINT_PX
+    const isStacked = width > 0 && width < MOBILE_BREAKPOINT
     const format = useCallback(
         (v: number) => formatTrade(v, { short: isStacked }),
         [isStacked]
@@ -140,7 +140,7 @@ export function FoodTradeSankey({
     // each.
     const incomingAnnotation = shareAnnotation(incomingShare, "supply")
     const outgoingAnnotation = shareAnnotation(outgoingShare, "production")
-    const incomingHeading: HeadingContent =
+    const incomingHeading: SankeyHalfHeading =
         incomingFlows.length > 0
             ? {
                   label: isPairedSentence
@@ -156,7 +156,7 @@ export function FoodTradeSankey({
                         ? `${R.capitalize(countryArticulated)} imported none`
                         : "No imports",
               }
-    const outgoingHeading: HeadingContent =
+    const outgoingHeading: SankeyHalfHeading =
         outgoingFlows.length > 0
             ? {
                   label: isPairedSentence
@@ -215,7 +215,7 @@ export function FoodTradeSankey({
     // Same percent denominator as the partner node labels (half total), so
     // the tooltip number matches what's already visible on the chart.
     const renderIncomingTooltip = useCallback(
-        (args: HalfTooltipArgs) =>
+        (args: SankeyHalfTooltipArgs) =>
             tradeLinkTooltip({
                 exporter: args.partner,
                 importer: country,
@@ -227,7 +227,7 @@ export function FoodTradeSankey({
         [country, incomingTotal, year]
     )
     const renderOutgoingTooltip = useCallback(
-        (args: HalfTooltipArgs) =>
+        (args: SankeyHalfTooltipArgs) =>
             tradeLinkTooltip({
                 exporter: country,
                 importer: args.partner,
@@ -247,18 +247,18 @@ export function FoodTradeSankey({
             }`}
         >
             <SplitFlowSankey
-                central={country}
+                centralEntity={country}
                 incoming={{
                     rows: incomingFlows,
                     heading: incomingHeading,
                     empty: incomingEmpty,
-                    renderTooltip: renderIncomingTooltip,
+                    getTooltip: renderIncomingTooltip,
                 }}
                 outgoing={{
                     rows: outgoingFlows,
                     heading: outgoingHeading,
                     empty: outgoingEmpty,
-                    renderTooltip: renderOutgoingTooltip,
+                    getTooltip: renderOutgoingTooltip,
                 }}
                 width={width}
                 height={height}
