@@ -6,7 +6,12 @@ import {
     SankeyNode as D3SankeyNode,
     SankeyLink as D3SankeyLink,
 } from "d3-sankey"
-import { Bounds, getRelativeMouse, VerticalAlign } from "@ourworldindata/utils"
+import {
+    Bounds,
+    getRelativeMouse,
+    PointVector,
+    VerticalAlign,
+} from "@ourworldindata/utils"
 import { GrapherTooltipAnchor } from "@ourworldindata/types"
 import {
     GRAPHER_DARK_TEXT,
@@ -25,6 +30,12 @@ export const BAND_LABEL_GAP = 6
 
 /** Vertical gap between a node's value label and its label */
 const VALUE_LABEL_GAP = 2
+
+/** Extra vertical pixels past a link's band edge that still count as a hit */
+const LINK_BAND_GAP_TOLERANCE = 6
+
+/** Extra pixels past a node's hit shape that still count as a hit */
+const NODE_HIT_TOLERANCE = 8
 
 const DEFAULT_MARGIN: Margin = { top: 0, right: 0, bottom: 0, left: 0 }
 
@@ -250,13 +261,13 @@ export function Sankey({
             if (!svgRef.current || !layout) return
             const mouse = getRelativeMouse(svgRef.current, event.nativeEvent)
             if (getNodeTooltip) {
-                const node = findNodeAtPoint(
-                    layout.nodes,
+                const node = findNodeAtPoint({
+                    nodes: layout.nodes,
                     labels,
-                    mouse.x,
-                    mouse.y,
-                    isNodeHoverable
-                )
+                    mouseX: mouse.x,
+                    mouseY: mouse.y,
+                    isHoverable: isNodeHoverable,
+                })
                 if (node) {
                     setHover({
                         kind: "node",
@@ -267,7 +278,11 @@ export function Sankey({
                 }
             }
             if (getLinkTooltip) {
-                const link = findLinkAtPoint(layout.links, mouse.x, mouse.y)
+                const link = findLinkAtPoint({
+                    links: layout.links,
+                    mouseX: mouse.x,
+                    mouseY: mouse.y,
+                })
                 if (link) {
                     setHover({
                         kind: "link",
@@ -288,13 +303,13 @@ export function Sankey({
         (event: React.MouseEvent<SVGSVGElement>) => {
             if (!svgRef.current || !layout || !onNodeClick) return
             const mouse = getRelativeMouse(svgRef.current, event.nativeEvent)
-            const node = findNodeAtPoint(
-                layout.nodes,
+            const node = findNodeAtPoint({
+                nodes: layout.nodes,
                 labels,
-                mouse.x,
-                mouse.y,
-                isNodeClickable
-            )
+                mouseX: mouse.x,
+                mouseY: mouse.y,
+                isHoverable: isNodeClickable,
+            })
             if (node) onNodeClick(toNodeData(node))
         },
         [layout, labels, onNodeClick, isNodeClickable]
@@ -761,86 +776,68 @@ function textWidth(text: string, fontSettings: FontSettings): number {
     return Bounds.forText(text, fontSettings).width
 }
 
-// Extra vertical pixels past a link's band edge that still count as a hit.
-// Keeps the hover continuous across the slivers of empty pixels between
-// adjacent ribbons — without this, the cursor briefly lands in *no* band,
-// the tooltip flickers off, then re-attaches to the neighbour. SlopeChart
-// solves the same continuity problem on zero-width lines via a 10px
-// distance-to-segment tolerance (SlopeChart.tsx:683).
-const LINK_BAND_GAP_TOLERANCE = 6
-
-// Extra pixels past a node's hit shape (band box ∪ label box) that still
-// count as a hit. Keeps the hover continuous across the small vertical
-// gaps between stacked labels in a column — strict membership leaves
-// null-hover slivers there, which makes the tooltip flicker off/on as the
-// cursor crosses from one label to the next. Same idea as the link band's
-// `LINK_BAND_GAP_TOLERANCE`.
-const NODE_HIT_TOLERANCE = 8
-
 /**
- * Find the hoverable node whose hit shape (band rect ∪ label rect) the
- * cursor is over, or the nearest such shape within tolerance. Returns
- * null when no node is within range. We measure to the *union* of the
- * band and label rects per node, then pick the smallest distance — so
- * the cursor doesn't have to leave the band's column to land on a label,
- * and a small gap between two stacked labels still resolves to the
- * nearer one.
+ * Per-side label margin Sankey reserves at the top and bottom of the inner
+ * SVG to prevent the first/last labels from overflowing the chart bounds
  */
-function findNodeAtPoint(
-    nodes: LaidOutNode[],
-    labels: PlacedSankeyLabel[],
-    mouseX: number,
-    mouseY: number,
-    isHoverable?: (node: SankeyNode) => boolean
-): LaidOutNode | null {
-    // Index labels so we can look up label bounds per node id.
-    const labelByNodeId = new Map<string, PlacedSankeyLabel>()
-    for (const l of labels) labelByNodeId.set(l.nodeId, l)
-
-    let best: { node: LaidOutNode; dist: number } | null = null
-    for (const node of nodes) {
-        if (isHoverable && !isHoverable(node)) continue
-        const x0 = node.x0 ?? 0
-        const x1 = node.x1 ?? 0
-        const y0 = node.y0 ?? 0
-        const y1 = node.y1 ?? 0
-        let dist = rectDistance(mouseX, mouseY, x0, x1, y0, y1)
-
-        const lbl = labelByNodeId.get(node.id)
-        if (lbl) {
-            const w = Math.max(lbl.label.width, lbl.valueLabel?.width ?? 0)
-            const h =
-                lbl.label.height +
-                (lbl.valueLabel ? VALUE_LABEL_GAP + lbl.valueLabel.height : 0)
-            const lx0 = lbl.textAnchor === "end" ? lbl.x - w : lbl.x
-            const lx1 = lbl.textAnchor === "end" ? lbl.x : lbl.x + w
-            const ly0 = lbl.y - h / 2
-            const ly1 = lbl.y + h / 2
-            dist = Math.min(
-                dist,
-                rectDistance(mouseX, mouseY, lx0, lx1, ly0, ly1)
-            )
-        }
-
-        if (dist > NODE_HIT_TOLERANCE) continue
-        if (!best || dist < best.dist) best = { node, dist }
-    }
-    return best?.node ?? null
+export function getSankeyVerticalLabelPadding(
+    fontSettings: FontSettings
+): number {
+    return 0.5 * fontSettings.fontSize * fontSettings.lineHeight
 }
 
-// Euclidean distance from a point to the nearest edge of an axis-aligned
-// rect. Returns 0 when the point is inside.
-function rectDistance(
-    px: number,
-    py: number,
-    x0: number,
-    x1: number,
-    y0: number,
-    y1: number
-): number {
-    const dx = Math.max(0, x0 - px, px - x1)
-    const dy = Math.max(0, y0 - py, py - y1)
-    return Math.sqrt(dx * dx + dy * dy)
+/**
+ * Find the hoverable node whose hit shape (band ∪ label, merged into the
+ * enclosing rect) the cursor is over, or the nearest such shape within
+ * tolerance. Returns null when no node is within range.
+ */
+function findNodeAtPoint({
+    nodes,
+    labels,
+    mouseX,
+    mouseY,
+    isHoverable,
+}: {
+    nodes: LaidOutNode[]
+    labels: PlacedSankeyLabel[]
+    mouseX: number
+    mouseY: number
+    isHoverable?: (node: SankeyNode) => boolean
+}): LaidOutNode | null {
+    const labelByNodeId = new Map(labels.map((l) => [l.nodeId, l]))
+    const mouse = new PointVector(mouseX, mouseY)
+
+    let closest: { node: LaidOutNode; dist: number } | null = null
+    for (const node of nodes) {
+        if (isHoverable && !isHoverable(node)) continue
+        const bounds = calculateNodeHitBounds(node, labelByNodeId.get(node.id))
+        const dist = bounds.distanceToPoint(mouse)
+        if (dist > NODE_HIT_TOLERANCE) continue
+        if (!closest || dist < closest.dist) closest = { node, dist }
+    }
+
+    return closest?.node ?? null
+}
+
+function calculateNodeHitBounds(
+    node: LaidOutNode,
+    label?: PlacedSankeyLabel
+): Bounds {
+    const bandBounds = Bounds.fromCorners(
+        new PointVector(node.x0 ?? 0, node.y0 ?? 0),
+        new PointVector(node.x1 ?? 0, node.y1 ?? 0)
+    )
+    if (!label) return bandBounds
+
+    const width = Math.max(label.label.width, label.valueLabel?.width ?? 0)
+    const height =
+        label.label.height +
+        (label.valueLabel ? VALUE_LABEL_GAP + label.valueLabel.height : 0)
+
+    const labelX = label.textAnchor === "end" ? label.x - width : label.x
+    const labelBounds = new Bounds(labelX, label.y - height / 2, width, height)
+
+    return Bounds.merge([bandBounds, labelBounds])
 }
 
 /**
@@ -853,28 +850,33 @@ function rectDistance(
  *    this, strict band-membership would briefly hover nothing as the
  *    cursor traverses the gap, flickering the tooltip.
  *  - Overlapping bands or ties: break by closer centerline.
- *
- * Cheap per-mousemove: O(links), and `linkCenterY` is a 12-iteration
- * bisection on a cubic Bezier.
  */
-function findLinkAtPoint(
-    links: LaidOutLink[],
-    mouseX: number,
+function findLinkAtPoint({
+    links,
+    mouseX,
+    mouseY,
+}: {
+    links: LaidOutLink[]
+    mouseX: number
     mouseY: number
-): LaidOutLink | null {
-    let best: { link: LaidOutLink; gap: number; dy: number } | null = null
+}): LaidOutLink | null {
+    let closest: { link: LaidOutLink; gap: number; dy: number } | null = null
     for (const link of links) {
-        const centerY = linkCenterY(link, mouseX)
+        const centerY = calculateLinkCenterY(link, mouseX)
         if (centerY === null) continue
         const dy = Math.abs(mouseY - centerY)
         const halfBand = (link.width ?? 0) / 2
         const gap = Math.max(0, dy - halfBand)
         if (gap > LINK_BAND_GAP_TOLERANCE) continue
-        if (!best || gap < best.gap || (gap === best.gap && dy < best.dy)) {
-            best = { link, gap, dy }
+        if (
+            !closest ||
+            gap < closest.gap ||
+            (gap === closest.gap && dy < closest.dy)
+        ) {
+            closest = { link, gap, dy }
         }
     }
-    return best?.link ?? null
+    return closest?.link ?? null
 }
 
 /**
@@ -886,7 +888,10 @@ function findLinkAtPoint(
  * so x(t) is cubic in t and we bisect for the t matching `mouseX`. The
  * y curve simplifies to a smoothstep blend between y0 and y1.
  */
-function linkCenterY(link: LaidOutLink, mouseX: number): number | null {
+function calculateLinkCenterY(
+    link: LaidOutLink,
+    mouseX: number
+): number | null {
     const sourceNode = link.source as LaidOutNode
     const targetNode = link.target as LaidOutNode
     const x0 = sourceNode.x1 ?? 0 // right edge of source node = link start
@@ -911,14 +916,4 @@ function linkCenterY(link: LaidOutLink, mouseX: number): number | null {
     const t = (lo + hi) / 2
     const s = t * t * (3 - 2 * t) // smoothstep
     return y0 + (y1 - y0) * s
-}
-
-/**
- * Per-side label margin Sankey reserves at the top and bottom of the inner
- * SVG to prevent the first/last labels from overflowing the chart bounds
- */
-export function getSankeyVerticalLabelPadding(
-    fontSettings: FontSettings
-): number {
-    return 0.5 * fontSettings.fontSize * fontSettings.lineHeight
 }

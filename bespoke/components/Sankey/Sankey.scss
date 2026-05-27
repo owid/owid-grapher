@@ -1,10 +1,5 @@
 .sankey-container {
     position: relative;
-    // Fill the parent grid cell so the tooltip's clamp bounds reflect the
-    // visible chart area, not the (possibly shrunk) inner SVG. SplitFlowSankey
-    // top-anchors the SVG and may reduce its height to equalize ky across
-    // halves; without the stretch, tooltip top + maxHeight collapses near
-    // the SVG's bottom edge and the body gets clipped.
     width: 100%;
     height: 100%;
 }
@@ -17,41 +12,12 @@
     fill: none;
     stroke-opacity: 0.6;
     cursor: default;
-    // Hit-testing is done by the mousemove handler on the wrapping <svg>, so
-    // the link paths themselves don't need to receive events. Letting them
-    // pass through avoids edge cases where the visible (thin) stroke would
-    // otherwise capture the cursor in a different place than the band test.
     pointer-events: none;
-}
 
-.sankey__link--hovered,
-.sankey__link--active {
-    stroke-opacity: 1;
-}
-
-// Dim everything not part of the active focus when either a link or a
-// node is hovered. Active set:
-//  - link hover  → the hovered link + any `relatedLinks` siblings + their
-//                  endpoint nodes/labels
-//  - node hover  → the hovered node + every link touching it + the
-//                  partner nodes/labels at the other end
-// Both `--hovered` and `--active` classes are exempt from the dim.
-.sankey__links:has(.sankey__link--hovered)
-    .sankey__link:not(.sankey__link--hovered):not(.sankey__link--active) {
-    stroke-opacity: 0.3;
-}
-
-.sankey:has(.sankey__link--hovered, .sankey__node--hovered)
-    .sankey__node:not(.sankey__node--hovered):not(.sankey__node--active),
-.sankey:has(.sankey__link--hovered, .sankey__node--hovered)
-    .sankey__label:not(.sankey__label--hovered):not(.sankey__label--active) {
-    opacity: 0.3;
-}
-
-// Node-hover variant of the link dim: when a node is hovered (no link
-// is `--hovered` but `--active` links exist), apply the same rule.
-.sankey:has(.sankey__node--hovered) .sankey__link:not(.sankey__link--active) {
-    stroke-opacity: 0.3;
+    &.sankey__link--hovered,
+    &.sankey__link--active {
+        stroke-opacity: 1;
+    }
 }
 
 .sankey__node {
@@ -62,4 +28,17 @@
     font-size: 12px;
     fill: $dark-text;
     pointer-events: none;
+}
+
+// Dim everything not part of the active focus when either a link or a node is hovered
+.sankey__links:has(.sankey__link--hovered)
+    .sankey__link:not(.sankey__link--hovered):not(.sankey__link--active),
+.sankey:has(.sankey__node--hovered) .sankey__link:not(.sankey__link--active) {
+    stroke-opacity: 0.3;
+}
+.sankey:has(.sankey__link--hovered, .sankey__node--hovered)
+    .sankey__node:not(.sankey__node--hovered):not(.sankey__node--active),
+.sankey:has(.sankey__link--hovered, .sankey__node--hovered)
+    .sankey__label:not(.sankey__label--hovered):not(.sankey__label--active) {
+    opacity: 0.3;
 }
