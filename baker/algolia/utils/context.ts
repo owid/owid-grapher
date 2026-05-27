@@ -13,7 +13,6 @@ import {
     MultiDimRedirect,
 } from "../../../db/model/MultiDimRedirects.js"
 import { ExplorerAdminServer } from "../../../explorerAdminServer/ExplorerAdminServer.js"
-import { toJS } from "mobx"
 import { isDefined, pickBy } from "remeda"
 import { ExplorerChoiceParams } from "@ourworldindata/explorer"
 
@@ -23,12 +22,12 @@ import { ExplorerChoiceParams } from "@ourworldindata/explorer"
 export async function createBaseIndexingContext(
     knex: db.KnexReadonlyTransaction
 ): Promise<IndexingContext> {
-    const [chartViews, topicHierarchies] = await Promise.all([
+    const [chartViewsMap, topicHierarchies] = await Promise.all([
         getAnalyticsChartViews(knex),
         db.getTopicHierarchiesByChildName(knex),
     ])
 
-    return { chartViews, topicHierarchies }
+    return { chartViewsMap, topicHierarchies }
 }
 
 /**

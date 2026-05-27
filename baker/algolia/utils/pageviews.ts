@@ -1,37 +1,34 @@
 import {
     AnalyticsChartViewsTableName,
+    AnalyticsChartViewsType,
+    ChartViewsMap,
     DbPlainAnalyticsChartViewsRow,
     DbRawExplorerView,
     ExplorerViewsTableName,
 } from "@ourworldindata/types"
 import * as db from "../../../db/db.js"
 
-/** Map from lookup key to views_7d count */
-export type ChartViewsMap = Map<string, number>
-
 /**
  * Fetches all rows from analytics_chart_views and builds a single lookup map.
- *
- * - For `grapher_chart` rows (where view_config_id is empty), keyed by chart_slug.
- * - For `explorer` and `multidim` rows, keyed by view_config_id (a chart config UUID).
+ * First level is by type (grapher_chart, explorer, multidim), second level is by chart_slug or view_config_id depending on type.
  */
 export async function getAnalyticsChartViews(
     trx: db.KnexReadonlyTransaction
 ): Promise<ChartViewsMap> {
-    const rows = await trx<
-        Pick<
-            DbPlainAnalyticsChartViewsRow,
-            "chart_slug" | "view_config_id" | "views_7d"
-        >
-    >(AnalyticsChartViewsTableName).select(
-        "chart_slug",
-        "view_config_id",
-        "views_7d"
-    )
-    const map = new Map<string, number>()
+    const rows = await trx<DbPlainAnalyticsChartViewsRow>(
+        AnalyticsChartViewsTableName
+    ).select("chart_slug", "view_config_id", "views_7d", "type")
+    const map: ChartViewsMap = {
+        grapher_chart: new Map<string, number>(),
+        explorer: new Map<string, number>(),
+        multidim: new Map<string, number>(),
+    }
     for (const row of rows) {
-        const key = row.view_config_id || row.chart_slug
-        map.set(key, row.views_7d)
+        const key =
+            row.type === "grapher_chart"
+                ? row.chart_slug
+                : row.view_config_id || row.chart_slug
+        map[row.type].set(key, row.views_7d)
     }
     return map
 }
@@ -55,13 +52,14 @@ export async function getExplorerViewConfigIds(
 
 /**
  * Given a ChartViewsMap and a list of keys, returns the max views_7d.
- * e.g. { "chart-slug-1": 100, "chart-slug-2": 200 }, ["chart-slug-1", "chart-slug-2"] => 200
- * or for multi-dims: { "chart-config-uuid-1": 100, "chart-config-uuid-2": 200 }, ["chart-config-uuid-1", "chart-config-uuid-2"] => 200
  */
-export function getMaxChartViews(views: ChartViewsMap, keys: string[]): number {
+export function getMaxChartViews(
+    chartViewsMap: ChartViewsMap,
+    keys: { id: string; type: AnalyticsChartViewsType }[]
+): number {
     let max = 0
     for (const key of keys) {
-        const v = views.get(key) ?? 0
+        const v = chartViewsMap[key.type].get(key.id) ?? 0
         if (v > max) max = v
     }
     return max
