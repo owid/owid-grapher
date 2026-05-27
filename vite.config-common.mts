@@ -37,18 +37,9 @@ export const commonPlugins = (): PluginOption[] => [
         { transform: { code: /[^"]@/, id: /.*\.(ts|tsx)$/ } }
     ),
     pluginReact(),
-    withFilter(
-        optimizeReactAriaLocales.vite({
-            locales: ["en-US"],
-        }),
-        {
-            transform: {
-                // This filter is taken directly from the plugin itself: https://github.com/adobe/react-spectrum/blob/b5cbf5bcf32edc6350b8051e390c003013223d93/packages/dev/optimize-locales-plugin/LocalesPlugin.js#L20
-                // But adding this filter on the rolldown level is way more efficient, which is why we duplicate it here.
-                id: /[/\\](@react-stately|@react-aria|@react-spectrum|react-aria-components)[/\\]/,
-            },
-        }
-    ),
+    pluginOptimizeReactAriaLocales({
+        locales: ["en-US"],
+    }),
 ]
 
 // https://vitejs.dev/config/
@@ -102,7 +93,7 @@ export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
             emptyOutDir: true,
             outDir: `dist/${entrypointInfo.outDir}`,
             sourcemap: true,
-            target: BUILD_TARGET,
+            target: BUILD_TARGET, // see docs/browser-support.md
             commonjsOptions: {
                 strictRequires: "auto",
             },
