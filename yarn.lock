@@ -2115,15 +2115,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@icons/material@npm:^0.2.4":
-  version: 0.2.4
-  resolution: "@icons/material@npm:0.2.4"
-  peerDependencies:
-    react: "*"
-  checksum: 10/6c248fdb2d226e5af76bb0203d05fd7b9c77003f0197a5ae4baead3d014a27cfb539921fceed89a72e02fa0b583debe3b26b76d84d6f7cb354d3cb2ac00e9353
-  languageName: node
-  linkType: hard
-
 "@img/colour@npm:^1.0.0":
   version: 1.0.0
   resolution: "@img/colour@npm:1.0.0"
@@ -6183,17 +6174,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react-color@npm:^3.0.13":
-  version: 3.0.13
-  resolution: "@types/react-color@npm:3.0.13"
-  dependencies:
-    "@types/reactcss": "npm:*"
-  peerDependencies:
-    "@types/react": "*"
-  checksum: 10/2e1500c915d4ae3916935993320e77c13d687bca8833525d011024e355c1ccfc6c4091fb4563ae1f92c591494c3a9fa3acb1e58a60a5d967ded87600f94e5d8b
-  languageName: node
-  linkType: hard
-
 "@types/react-dom@npm:^19.2.3":
   version: 19.2.3
   resolution: "@types/react-dom@npm:19.2.3"
@@ -6239,15 +6219,6 @@ __metadata:
   dependencies:
     csstype: "npm:^3.2.2"
   checksum: 10/fbff239089ee64b6bd9b00543594db498278b06de527ef1b0f71bb0eb09cc4445a71b5dd3c0d3d0257255c4eed94406be40a74ad4a987ade8a8d5dd65c82bc5f
-  languageName: node
-  linkType: hard
-
-"@types/reactcss@npm:*":
-  version: 1.2.3
-  resolution: "@types/reactcss@npm:1.2.3"
-  dependencies:
-    "@types/react": "npm:*"
-  checksum: 10/5d99190cf9f05d8e9ffbf59e7bee6b8df5cb2f4a4f5a1606c358e0fa660b26e4e24868a0b8ce04ed7ff2b3863622fa6fd027065822d3df5a5c8d0881bf0731be
   languageName: node
   linkType: hard
 
@@ -9702,7 +9673,6 @@ __metadata:
     "@types/polylabel": "npm:^1.1.3"
     "@types/progress": "npm:^2.0.7"
     "@types/react": "npm:^19.2.14"
-    "@types/react-color": "npm:^3.0.13"
     "@types/react-dom": "npm:^19.2.3"
     "@types/react-recaptcha": "npm:^2.3.7"
     "@types/react-router": "npm:^5.1.20"
@@ -9776,7 +9746,6 @@ __metadata:
     progress: "npm:^2.0.3"
     react: "npm:^19.2.4"
     react-aria-components: "npm:^1.17.0"
-    react-color: "npm:^2.18.1"
     react-diff-viewer-continued: "npm:^4.2.0"
     react-dom: "npm:^19.2.4"
     react-horizontal-scrolling-menu: "npm:^8.2.0"
@@ -10928,7 +10897,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lodash@npm:^4.0.1, lodash@npm:^4.17.11, lodash@npm:^4.17.21":
+"lodash@npm:^4.17.21":
   version: 4.18.1
   resolution: "lodash@npm:4.18.1"
   checksum: 10/306fea53dfd39dad1f03d45ba654a2405aebd35797b673077f401edb7df2543623dc44b9effbb98f69b32152295fff725a4cec99c684098947430600c6af0c3f
@@ -11050,13 +11019,6 @@ __metadata:
     react:
       optional: true
   checksum: 10/690a37a343d8b5a1b0fd4d4fa017b71f6df39aea782643541197a8d9ee6c1b2470fdfd2db2ba6c5adebbc890226e64000922ae826c9d3ba840bd24456eca6f69
-  languageName: node
-  linkType: hard
-
-"material-colors@npm:^1.2.1":
-  version: 1.2.6
-  resolution: "material-colors@npm:1.2.6"
-  checksum: 10/7ad6df7ee7de15d8b8f95191c2310db6b99934ce01b592b38d7c6e2ce119fc6d37699356fb148dd3e6ba63a5ec68cc16d466b972d96fc5364ab85238a3fe2429
   languageName: node
   linkType: hard
 
@@ -12717,7 +12679,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prop-types@npm:^15.5.10, prop-types@npm:^15.6.2, prop-types@npm:^15.8.1":
+"prop-types@npm:^15.6.2, prop-types@npm:^15.8.1":
   version: 15.8.1
   resolution: "prop-types@npm:15.8.1"
   dependencies:
@@ -13379,20 +13341,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-color@npm:^2.18.1":
-  version: 2.18.1
-  resolution: "react-color@npm:2.18.1"
-  dependencies:
-    "@icons/material": "npm:^0.2.4"
-    lodash: "npm:^4.17.11"
-    material-colors: "npm:^1.2.1"
-    prop-types: "npm:^15.5.10"
-    reactcss: "npm:^1.2.0"
-    tinycolor2: "npm:^1.4.1"
-  checksum: 10/d0cbe869e66e06e0dcd67d692401e3ba060c8c30093ae4332650200f3d5f04519eb82207b5b126dc5699285411793ddafbae35baf90e2c6e1d63c547c6b6eabe
-  languageName: node
-  linkType: hard
-
 "react-diff-viewer-continued@npm:^4.2.0":
   version: 4.2.0
   resolution: "react-diff-viewer-continued@npm:4.2.0"
@@ -13662,15 +13610,6 @@ __metadata:
   version: 19.2.4
   resolution: "react@npm:19.2.4"
   checksum: 10/18179fe217f67eb2d0bc61cd04e7ad3c282ea09a1dface7eacd71816f62609f4bbf566c447c704335284deb8397b00bca084e0cd60e6f437279a7498e2d0bfe0
-  languageName: node
-  linkType: hard
-
-"reactcss@npm:^1.2.0":
-  version: 1.2.3
-  resolution: "reactcss@npm:1.2.3"
-  dependencies:
-    lodash: "npm:^4.0.1"
-  checksum: 10/af811015b102b5551c9e22d61203d08b9e026ad1e40f810afb2d03d13abe6610a2e2a52e3511837a385b79633d67591c8e0c32fb58e3fd7bb42ddc6a618bb065
   languageName: node
   linkType: hard
 
@@ -14829,13 +14768,6 @@ __metadata:
   version: 2.9.0
   resolution: "tinybench@npm:2.9.0"
   checksum: 10/cfa1e1418e91289219501703c4693c70708c91ffb7f040fd318d24aef419fb5a43e0c0160df9471499191968b2451d8da7f8087b08c3133c251c40d24aced06c
-  languageName: node
-  linkType: hard
-
-"tinycolor2@npm:^1.4.1":
-  version: 1.4.1
-  resolution: "tinycolor2@npm:1.4.1"
-  checksum: 10/4cdac5cc2b20dec495ba3e8ed013cdb366c9ae934b3e9d47ee0c148e147bc4b48207013b179fdcaba9b9f8a7e3832971693bae29f7c3fc3766f9b404bb9abeb3
   languageName: node
   linkType: hard
 

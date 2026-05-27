@@ -20,7 +20,7 @@ import { observer } from "mobx-react"
 import cx from "classnames"
 import { useTimeout } from "usehooks-ts"
 
-import { Colorpicker } from "./Colorpicker.js"
+import { AdminColorPicker } from "./AdminColorPicker.js"
 import {
     faCog,
     faLink,
@@ -692,7 +692,7 @@ export class ColorBox extends React.Component<ColorBoxProps> {
             <Tippy
                 content={
                     <>
-                        <Colorpicker
+                        <AdminColorPicker
                             color={color}
                             onColor={this.props.onColor}
                             showLineChartColors={this.props.showLineChartColors}
@@ -716,8 +716,23 @@ export class ColorBox extends React.Component<ColorBoxProps> {
                 placement="right"
                 interactive={true}
                 trigger="click"
+                maxWidth="none"
                 appendTo={() => document.body}
                 className="colorpicker-tooltip"
+                popperOptions={{
+                    modifiers: [
+                        {
+                            name: "flip",
+                            options: {
+                                fallbackPlacements: ["left", "bottom", "top"],
+                            },
+                        },
+                        {
+                            name: "preventOverflow",
+                            options: { padding: 8, altAxis: true },
+                        },
+                    ],
+                }}
             >
                 <div className="ColorBox" style={style}>
                     {color === undefined && (
