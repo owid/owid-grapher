@@ -3,14 +3,17 @@ narrative bio text, and optional social links. Nested inside `{.people}`
 (flat list) or `{.people-rows}` (column grid).
 
 ## When to use
+
 - Inside `{.people-rows}` to populate a team / advisor / board grid.
 - Inside `{.people}` for a flat list of cards.
 
 ## When NOT to use
+
 - As a top-level block — `{.person}` is meant to be nested inside a
   collection.
 
 ## Variations
+
 - `image` (optional): asset filename to display.
 - `name` (required): the person's name.
 - `title` (optional): role / job title shown under the name.

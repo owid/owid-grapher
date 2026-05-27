@@ -2,10 +2,12 @@ A subtle way of linking to multiple charts — each line of body becomes a
 separate item, typically a link to a chart.
 
 ## When to use
+
 - Offering readers a small set of related charts without giving them
   visual prominence.
 
 ## When NOT to use
+
 - You want thumbnails or descriptions per item — use `{.chart-rows}`.
 - You need a full-page listing of all charts on a topic — use
   `{.all-charts}` on a topic page.

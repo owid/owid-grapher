@@ -4,7 +4,7 @@
 
 # OWID Archie Components Reference
 
-Generated reference for every component authors can use in Gdocs / content-repo files.
+Generated reference for every component authors can use in Gdocs / content-repo files. 
 Every example in this doc is parsed through archieToEnriched at generation time; CI fails on drift.
 
 ## Components
@@ -75,6 +75,7 @@ Every example in this doc is parsed through archieToEnriched at generation time;
 - [Unordered List](#list) — `{.list}`
 - [Video](#video) — `{.video}`
 
+
 ## Additional Charts
 
 `{.additional-charts}` — defined in `packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/AdditionalCharts.ts`, documented in `packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/AdditionalCharts.md`
@@ -99,6 +100,7 @@ into the `list` items this block expects. Plain text lines aren't enough;
 the archie parser needs a true list structure. Because that structure comes
 from Google Docs layout, not pure ArchieML text, this component has no
 standalone `@example`.
+
 
 ## Align
 
@@ -134,6 +136,7 @@ A centered heading
 {}
 ```
 
+
 ## All Charts
 
 `{.all-charts}` — defined in `packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/AllCharts.ts`, documented in `packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/AllCharts.md`
@@ -163,6 +166,7 @@ url: https://ourworldindata.org/grapher/gdp-per-capita-maddison-2020
 []
 {}
 ```
+
 
 ## Aside
 
@@ -196,6 +200,7 @@ position: left
 {}
 ```
 
+
 ## Bespoke Component
 
 `{.bespoke-component}` — defined in `packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/BespokeComponent.ts`, documented in `packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/BespokeComponent.md`
@@ -204,6 +209,7 @@ A self-contained custom data viz component bundled under
 `bespoke/projects/` and embedded via Shadow DOM. Each bundle can
 expose multiple variants and accepts a free-form `config` map.
 Undocumented in the author reference (developer-facing).
+
 
 ## Blockquote
 
@@ -236,6 +242,7 @@ Measuring the state of democracy across the world helps us understand the extent
 []
 {}
 ```
+
 
 ## Callout
 
@@ -279,6 +286,7 @@ But the conclusions are solid.
 []
 {}
 ```
+
 
 ## Chart
 
@@ -336,6 +344,7 @@ url: https://ourworldindata.org/explorers/food-footprints?hideControls=true
 {}
 ```
 
+
 ## Chart Rows
 
 `{.chart-rows}` — defined in `packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/ChartRows.ts`, documented in `packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/ChartRows.md`
@@ -386,6 +395,7 @@ The richest decile has seen the largest absolute gains.
 {}
 ```
 
+
 ## Chart Story
 
 `{.chart-story}` — defined in `packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/ChartStory.ts`, documented in `packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/ChartStory.md`
@@ -422,6 +432,7 @@ Data is measured in international-$.
 []
 ```
 
+
 ## Code
 
 `{.code}` — defined in `packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/Code.ts`, documented in `packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/Code.md`
@@ -445,6 +456,7 @@ code samples or markup that should not be interpreted.
 []
 ```
 
+
 ## Conditional Section
 
 `{.conditional-section}` — defined in `packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/ConditionalSection.ts`, documented in `packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/ConditionalSection.md`
@@ -453,12 +465,14 @@ A wrapper that includes or excludes its inner content based on the
 current rendering context (for example the current entity on a
 country profile page). Undocumented in the author reference.
 
+
 ## Cookie Notice
 
 `{.cookie-notice}` — defined in `packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/CookieNotice.ts`, documented in `packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/CookieNotice.md`
 
 Renders the site's cookie-consent notice. Internal block — not documented
 for authors.
+
 
 ## Country Profile Selector
 
@@ -467,6 +481,7 @@ for authors.
 A country selector UI used on country-profile pages to let readers
 jump to a specific country's profile. Undocumented in the author
 reference.
+
 
 ## Cta
 
@@ -493,6 +508,7 @@ url: https://ourworldindata.org/grapher/life-expectancy
 text: Check this out!
 {}
 ```
+
 
 ## Data Callout
 
@@ -530,6 +546,7 @@ In $latestTime(), Canada's life expectancy was $latestValue()
 []
 {}
 ```
+
 
 ## Data Callout Group
 
@@ -580,6 +597,7 @@ value: {{population_density}}
 {}
 ```
 
+
 ## Donor List
 
 `{.donors}` — defined in `packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/DonorList.ts`, documented in `packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/DonorList.md`
@@ -602,6 +620,7 @@ props.
 {}
 ```
 
+
 ## Entry Summary
 
 `{.entry-summary}` — defined in `packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/EntrySummary.ts`, documented in `packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/EntrySummary.md`
@@ -610,6 +629,7 @@ A table-of-contents-style summary with explicit text/slug pairs. Because
 the summary headings can differ from the actual headings in the document,
 the text and slug are serialized explicitly rather than derived. Internal
 block — not documented for authors.
+
 
 ## Expandable Paragraph
 
@@ -634,6 +654,7 @@ that reveals the rest inline. Any Archie block is supported inside.
 Any Archie block is supported here
 []
 ```
+
 
 ## Expander
 
@@ -672,6 +693,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit.
 {}
 ```
 
+
 ## Explore Data Section
 
 `{.explore-data-section}` — defined in `packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/ExploreDataSection.ts`, documented in `packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/ExploreDataSection.md`
@@ -703,6 +725,7 @@ Content here.
 []
 {}
 ```
+
 
 ## Explorer Tiles
 
@@ -739,6 +762,7 @@ url: https://ourworldindata.org/explorers/global-health
 {}
 ```
 
+
 ## Featured Data Insights
 
 `{.featured-data-insights}` — defined in `packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/FeaturedDataInsights.ts`, documented in `packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/FeaturedDataInsights.md`
@@ -762,6 +786,7 @@ must have a topic tag so the block knows what to filter by. No props.
 {}
 ```
 
+
 ## Featured Metrics
 
 `{.featured-metrics}` — defined in `packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/FeaturedMetrics.ts`, documented in `packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/FeaturedMetrics.md`
@@ -784,6 +809,7 @@ must have a topic tag. No props.
 {.featured-metrics}
 {}
 ```
+
 
 ## Gray Section
 
@@ -811,6 +837,7 @@ A heading within a gray section
 Some content
 []
 ```
+
 
 ## Guided Chart
 
@@ -858,6 +885,7 @@ I am a link that will update the chart to show New Zealand when clicked
 []
 ```
 
+
 ## Heading
 
 `{.heading}` — defined in `packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/Heading.ts`, documented in `packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/Heading.md`
@@ -865,6 +893,7 @@ I am a link that will update the chart to show New Zealand when clicked
 A section heading. Authored via Google Docs text styles (Heading 1,
 Heading 2, Heading 3) — the level is derived from the docs style. Start
 sections with h1; nest with h2, then h3.
+
 
 ## Homepage Intro
 
@@ -915,6 +944,7 @@ kicker: Announcement
 {}
 ```
 
+
 ## Homepage Search
 
 `{.homepage-search}` — defined in `packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/HomepageSearch.ts`, documented in `packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/HomepageSearch.md`
@@ -935,6 +965,7 @@ A wide section with a site-wide search bar. No props.
 {.homepage-search}
 {}
 ```
+
 
 ## Horizontal Rule
 
@@ -960,6 +991,7 @@ as this block.
 {.horizontal-rule}
 {}
 ```
+
 
 ## Html
 
@@ -993,6 +1025,7 @@ html: This is text that can use features like <span style="color:red">this will 
 ```archie
 html: <iframe src="https://www.youtube.com/watch?v=dQw4w9WgXcQ" />
 ```
+
 
 ## Image
 
@@ -1046,6 +1079,7 @@ filename: default-featured-image.png
 {}
 ```
 
+
 ## Key Indicator
 
 `{.key-indicator}` — defined in `packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/KeyIndicators.ts`, documented in `packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/KeyIndicator.md`
@@ -1089,6 +1123,7 @@ Life expectancy has more than doubled in the last two centuries.
 source: Long-run data from UN World Population Prospects
 {}
 ```
+
 
 ## Key Indicator Collection
 
@@ -1141,6 +1176,7 @@ The UN sets the 'International Poverty Line' as a worldwide comparable definitio
 {}
 ```
 
+
 ## Key Insights
 
 `{.key-insights}` — defined in `packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/KeyInsights.ts`, documented in `packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/KeyInsights.md`
@@ -1192,6 +1228,7 @@ Blah blah blah.
 {}
 ```
 
+
 ## Latest Data Insights
 
 `{.latest-data-insights}` — defined in `packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/LatestDataInsights.ts`, documented in `packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/LatestDataInsights.md`
@@ -1215,6 +1252,7 @@ insights exist. No props.
 {.latest-data-insights}
 {}
 ```
+
 
 ## Linear Topic Page Table of Contents
 
@@ -1253,12 +1291,14 @@ title: On this page
 {}
 ```
 
+
 ## Missing Data
 
 `{.missing-data}` — defined in `packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/MissingData.ts`, documented in `packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/MissingData.md`
 
 Placeholder block indicating that data is missing for the current entity.
 Internal block — not documented for authors.
+
 
 ## Narrative Chart
 
@@ -1291,6 +1331,7 @@ name: global-life-expectancy-has-doubled
 {}
 ```
 
+
 ## Numbered List
 
 `{.numbered-list}` — defined in `packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/NumberedList.ts`, documented in `packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/NumberedList.md`
@@ -1307,6 +1348,7 @@ explicitly in ArchieML. Nested lists are not supported.
 * List
 []
 ```
+
 
 ## People
 
@@ -1335,6 +1377,7 @@ container, leaving layout to the parent context.
 
 Note: this block has no current usage in the content repo and no canonical
 archie example. Reach for `{.people-rows}` instead for new content.
+
 
 ## People Rows
 
@@ -1382,6 +1425,7 @@ text: @MaxCRoser
 {}
 ```
 
+
 ## Person
 
 `{.person}` — defined in `packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/PeopleRows.ts`, documented in `packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/Person.md`
@@ -1428,6 +1472,7 @@ text: @MaxCRoser
 {}
 ```
 
+
 ## Pill Row
 
 `{.pill-row}` — defined in `packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/PillRow.ts`, documented in `packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/PillRow.md`
@@ -1466,6 +1511,7 @@ url: https://ourworldindata.org/grapher/life-expectancy
 []
 {}
 ```
+
 
 ## Prominent Link
 
@@ -1509,6 +1555,7 @@ thumbnail: default-featured-image.png
 {}
 ```
 
+
 ## Pull Chart
 
 `{.pull-chart}` — defined in `packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/PullChart.ts`, documented in `packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/PullChart.md`
@@ -1547,6 +1594,7 @@ Global population has grown rapidly over the past two centuries. Click through t
 {}
 ```
 
+
 ## Pull Quote
 
 `{.pull-quote}` — defined in `packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/PullQuote.ts`, documented in `packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/PullQuote.md`
@@ -1578,6 +1626,7 @@ Suspendisse commodo turpis nunc, sit amet cursus odio porttitor scelerisque.
 []
 {}
 ```
+
 
 ## Recirc
 
@@ -1622,6 +1671,7 @@ subtitle: Suscipit provident ratione omnis earum.
 []
 {}
 ```
+
 
 ## Research and Writing
 
@@ -1714,6 +1764,7 @@ variant: featured
 {}
 ```
 
+
 ## Resource Panel
 
 `{.resource-panel}` — defined in `packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/ResourcePanel.ts`, documented in `packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/ResourcePanel.md`
@@ -1756,6 +1807,7 @@ subtitle: Global Carbon Budget (2024)
 {}
 ```
 
+
 ## SDG Grid
 
 `{.sdg-grid}` — defined in `packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/SDGGrid.ts`, documented in `packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/SDGGrid.md`
@@ -1763,12 +1815,14 @@ subtitle: Global Carbon Budget (2024)
 A grid of tiles for the UN Sustainable Development Goals. Legacy
 block used on the SDG tracker. Undocumented in the author reference.
 
+
 ## SDG Table of Contents
 
 `{.sdg-toc}` — defined in `packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/SDGToc.ts`, documented in `packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/SDGToc.md`
 
 Table of contents for the SDG tracker. Legacy block. Undocumented in
 the author reference.
+
 
 ## Side by Side
 
@@ -1801,6 +1855,7 @@ I am content on the right.
 {}
 ```
 
+
 ## Simple Text
 
 `{.simple-text}` — defined in `packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/SimpleText.ts`, documented in `packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/SimpleText.md`
@@ -1809,6 +1864,7 @@ A plain-text fragment without any inline formatting (no bold, italics,
 or links). Used as an internal primitive for blocks whose text must be
 flat — for example, inside `{.code}` — and is not authored directly in
 ArchieML.
+
 
 ## Socials
 
@@ -1846,6 +1902,7 @@ type: x
 []
 ```
 
+
 ## Static Viz
 
 `{.static-viz}` — defined in `packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/StaticViz.ts`, documented in `packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/StaticViz.md`
@@ -1877,6 +1934,7 @@ additional metadata.
 name: grapher-static-viz-demo
 {}
 ```
+
 
 ## Sticky Left
 
@@ -1912,6 +1970,7 @@ Right content.
 []
 {}
 ```
+
 
 ## Sticky Right
 
@@ -1949,6 +2008,7 @@ Content on the right that sticks as the user scrolls.
 {}
 ```
 
+
 ## Subscribe Banner
 
 `{.subscribe-banner}` — defined in `packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/SubscribeBanner.ts`, documented in `packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/SubscribeBanner.md`
@@ -1978,6 +2038,7 @@ you want an additional copy inline.
 align: center
 {}
 ```
+
 
 ## Table
 
@@ -2011,6 +2072,7 @@ between the opening `{.table}` and closing `{}` inside the Gdoc. Because the
 rows can't be expressed in pure ArchieML text, this component has no
 standalone `@example`.
 
+
 ## Text
 
 `{.text}` — defined in `packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/Text.ts`, documented in `packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/Text.md`
@@ -2019,6 +2081,7 @@ A paragraph of prose. This is the default block generated from plain
 text in a Google Doc — authors don't usually write it explicitly.
 Text spans support Google Docs formatting (bold, italic, links,
 superscript, subscript), refs, and details-on-demand links.
+
 
 ## Topic Page Intro
 
@@ -2077,6 +2140,7 @@ A short introduction to the topic.
 {}
 ```
 
+
 ## Unordered List
 
 `{.list}` — defined in `packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/UnorderedList.ts`, documented in `packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/List.md`
@@ -2084,6 +2148,7 @@ A short introduction to the topic.
 An unordered (bulleted) list. Produced automatically from Google Docs
 bullet formatting — authors don't usually write this block explicitly
 in ArchieML. Nested lists are not supported.
+
 
 ## Video
 

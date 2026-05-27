@@ -2,6 +2,7 @@ A static image uploaded to the OWID admin. The `filename` must match an
 image registered in the admin (where default alt text is also set).
 
 ## When to use
+
 - Photographs, illustrations, diagrams, and static (non-interactive)
   visuals.
 - Static grapher exports where the reader doesn't need to interact with
@@ -9,11 +10,13 @@ image registered in the admin (where default alt text is also set).
   screenshots so they read as visuals rather than floating artwork.
 
 ## When NOT to use
+
 - Interactive charts — use `{.chart}` or `{.narrative-chart}`.
 - Flagship data visualizations with metadata — use `{.static-viz}`.
 - Videos — use `{.video}`.
 
 ## Variations
+
 - `size`: `narrow` | `wide` (default) | `widest`
 - `visibility`: `mobile` | `desktop` — pair two image blocks to swap
   aspect ratio between layouts.

@@ -5,17 +5,20 @@ ends up empty for a given country/audience, the whole group — heading
 included — disappears.
 
 ## When to use
+
 - On country profiles where a section heading should only appear if at
   least one of its `{.data-callout}` children actually has data.
 - To keep a heading and a set of related data callouts visually and
   logically grouped.
 
 ## When NOT to use
+
 - For a single callout — use a bare `{.data-callout}` instead.
 - When each callout should hide independently — the whole group hides or
   shows as a unit.
 
 ## Variations
+
 - `content` is an array of any enriched blocks, but it's only useful when
   it contains at least one `{.data-callout}` (otherwise the visibility
   filtering has nothing to act on).

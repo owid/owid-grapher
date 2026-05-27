@@ -2,14 +2,17 @@ An accordion collection of "key indicators" — datapage-linked charts
 with a title, text summary, and source. Shown on the homepage.
 
 ## When to use
+
 - On the homepage to surface key indicator datapages (child
   mortality, extreme poverty, etc.).
 
 ## When NOT to use
+
 - Elsewhere — use `{.chart}` or `{.pull-chart}` to highlight a single
   chart in an article.
 
 ## Variations
+
 - Each `{.key-indicator}` inside `[.+indicators]` needs a
   `datapageUrl` that links to a grapher backed by a datapage.
 
