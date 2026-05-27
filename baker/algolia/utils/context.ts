@@ -13,6 +13,9 @@ import {
     MultiDimRedirect,
 } from "../../../db/model/MultiDimRedirects.js"
 import { ExplorerAdminServer } from "../../../explorerAdminServer/ExplorerAdminServer.js"
+import { toJS } from "mobx"
+import { isDefined, pickBy } from "remeda"
+import { ExplorerChoiceParams } from "@ourworldindata/explorer"
 
 /**
  * Creates a base IndexingContext containing the shared enrichment data.
@@ -69,9 +72,8 @@ export type MultiDimRedirectWithLookupKey = MultiDimRedirect & {
 
 /**
  * For each explorer slug, resolves the chartConfigId of its default view
- * (the first row of the decision matrix). Used to look up the explorer's
- * default-view pageviews in analytics_chart_views, which is keyed by
- * chartConfigId rather than explorer slug.
+ * Used to look up the explorer's default-view pageviews in analytics_chart_views,
+ * which is keyed by chartConfigId rather than explorer slug.
  */
 async function getExplorerDefaultViewConfigIds(
     knex: db.KnexReadonlyTransaction,
@@ -88,21 +90,24 @@ async function getExplorerDefaultViewConfigIds(
                 knex,
                 slug
             )
-            const firstChoice =
-                program.decisionMatrix.allDecisionsAsQueryParams()[0]
-            if (!firstChoice) continue
-            const viewId = dimensionsToViewId(firstChoice)
+            const defaultView = pickBy(isDefined)(
+                program.decisionMatrix.currentParams
+            ) as ExplorerChoiceParams
+            const viewId = dimensionsToViewId(defaultView)
             explorerSlugByViewKey.set(`${slug}:${viewId}`, slug)
-        } catch {
+        } catch (e) {
             // Explorer may have been deleted; skip silently — caller treats
             // missing entries as "no signal".
+            console.error(
+                `Failed to resolve default view for explorer ${slug}:`,
+                e
+            )
         }
     }
     if (explorerSlugByViewKey.size === 0) return result
 
     const rows = await knex<DbRawExplorerView>(ExplorerViewsTableName)
         .select("explorerSlug", "viewId", "chartConfigId")
-        .whereIn("explorerSlug", [...new Set(explorerSlugs)])
         .whereNotNull("chartConfigId")
 
     for (const row of rows) {
@@ -128,7 +133,7 @@ async function getMultiDimRedirectsByMultiDimSlug(
         getMultiDimRedirects(knex, undefined, "/explorers/"),
     ])
 
-    const explorerSourceSlugs = [...explorerTargets.keys()]
+    const explorerSourceSlugs = [...new Set(explorerTargets.keys())]
     const explorerDefaultViewConfigIds = await getExplorerDefaultViewConfigIds(
         knex,
         explorerSourceSlugs
