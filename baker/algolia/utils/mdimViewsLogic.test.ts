@@ -53,15 +53,16 @@ const TEST_CONFIG: MultiDimDataPageConfigEnriched = {
 }
 
 const mdimConfig = MultiDimDataPageConfig.fromObject(TEST_CONFIG)
-const DEFAULT_VIEW_ID = dimensionsToViewId({
+
+const defaultViewId = dimensionsToViewId({
     view: "stunting",
     interval: "yearly",
 })
-const POVERTY_VIEW_ID = dimensionsToViewId({
+const povertyViewId = dimensionsToViewId({
     view: "poverty",
     interval: "yearly",
 })
-const STUNTING_WEEKLY_VIEW_ID = dimensionsToViewId({
+const stuntingWeeklyViewId = dimensionsToViewId({
     view: "stunting",
     interval: "weekly",
 })
@@ -77,7 +78,7 @@ describe(attributeLinksToViewIds, () => {
             [{ queryString: null }, { queryString: "" }],
             mdimConfig
         )
-        expect(result.get(DEFAULT_VIEW_ID)).toBe(2)
+        expect(result.get(defaultViewId)).toBe(2)
         expect(result.size).toBe(1)
     })
 
@@ -86,7 +87,7 @@ describe(attributeLinksToViewIds, () => {
             [{ queryString: "view=poverty&interval=yearly" }],
             mdimConfig
         )
-        expect(result.get(POVERTY_VIEW_ID)).toBe(1)
+        expect(result.get(povertyViewId)).toBe(1)
     })
 
     it("fills in missing dimensions from the default view", () => {
@@ -96,7 +97,7 @@ describe(attributeLinksToViewIds, () => {
             [{ queryString: "interval=weekly" }],
             mdimConfig
         )
-        expect(result.get(STUNTING_WEEKLY_VIEW_ID)).toBe(1)
+        expect(result.get(stuntingWeeklyViewId)).toBe(1)
     })
 
     it("ignores unrecognized query params and resolves to default view", () => {
@@ -104,7 +105,7 @@ describe(attributeLinksToViewIds, () => {
             [{ queryString: "country=USA&tab=chart" }],
             mdimConfig
         )
-        expect(result.get(DEFAULT_VIEW_ID)).toBe(1)
+        expect(result.get(defaultViewId)).toBe(1)
     })
 
     it("accumulates counts across multiple links to the same view", () => {
@@ -116,8 +117,8 @@ describe(attributeLinksToViewIds, () => {
             ],
             mdimConfig
         )
-        expect(result.get(POVERTY_VIEW_ID)).toBe(2)
-        expect(result.get(DEFAULT_VIEW_ID)).toBe(1)
+        expect(result.get(povertyViewId)).toBe(2)
+        expect(result.get(defaultViewId)).toBe(1)
     })
 })
 
