@@ -303,6 +303,7 @@ __metadata:
     react: "npm:^19.2.4"
     react-aria-components: "npm:^1.8.0"
     remeda: "npm:^2.21.0"
+    ts-pattern: "npm:^5.8.0"
     vitest: "npm:^4.1.2"
   languageName: unknown
   linkType: soft
@@ -3040,7 +3041,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ts-pattern@npm:^5.7.1":
+"ts-pattern@npm:^5.7.1, ts-pattern@npm:^5.8.0":
   version: 5.9.0
   resolution: "ts-pattern@npm:5.9.0"
   checksum: 10/0df8cc63d731a596f3541a305eff10f055c9a761d1a8b3776781dc6d6430c6bd8be8cd333fac62138c5d88e1209b4d8dccf1f40041091b634e5018908281417b

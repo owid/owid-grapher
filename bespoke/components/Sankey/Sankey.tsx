@@ -16,7 +16,9 @@ import {
 } from "@ourworldindata/grapher"
 import { TooltipCard } from "@ourworldindata/grapher/src/tooltip/TooltipCard.js"
 import { TextWrap, TextWrapSvg } from "@ourworldindata/components"
+import cx from "classnames"
 import { usePinnedTooltip } from "../../hooks/usePinnedTooltip.js"
+import { match } from "ts-pattern"
 
 /* Horizontal gap between a node's edge and its label */
 export const BAND_LABEL_GAP = 6
@@ -24,24 +26,9 @@ export const BAND_LABEL_GAP = 6
 /** Vertical gap between a node's value label and its label */
 const VALUE_LABEL_GAP = 2
 
-/**
- * Per-side label margin Sankey reserves at the top and bottom of the inner
- * SVG to prevent the first/last labels from overflowing the chart bounds
- */
-export function getSankeyVerticalLabelPadding(
-    fontSettings: FontSettings
-): number {
-    return 0.5 * fontSettings.fontSize * fontSettings.lineHeight
-}
-
 const DEFAULT_MARGIN: Margin = { top: 0, right: 0, bottom: 0, left: 0 }
 
-// Module-level so the prop default keeps a stable reference across renders.
-// Inlining `{ fontSize: 12, ... }` in the destructure default creates a new
-// object every render, which invalidates the `layout` useMemo (which depends
-// on `fontSettings`), regenerates all laid-out link refs, and orphans
-// `hover.link` — breaking the hovered-link highlight in any consumer that
-// doesn't pass `fontSettings` explicitly (e.g. BilateralFlowSankey).
+// Must be defined here to keep a stable reference across renders
 const DEFAULT_FONT_SETTINGS: FontSettings = {
     fontSize: 12,
     fontWeight: 400,
@@ -60,10 +47,10 @@ interface SankeyProps {
     /** Floor for the inner padding that reserves space for labels */
     innerMargin?: Partial<Margin>
     /**
-     * Skip d3-sankey's vertical relaxation and pin the single source or
-     * sink node (when there is exactly one) to the top of its column
+     * When set, skip d3-sankey's vertical relaxation and pin the named
+     * node to the top of its column
      */
-    topAnchored?: boolean
+    anchorNodeId?: string
     /** Vertical padding between nodes within a column */
     nodePadding?: number
     /** Width of each node's visible band on its outer edge */
@@ -71,25 +58,18 @@ interface SankeyProps {
     /** Whitespace between a node's band and the flow path */
     bandFlowGap?: number
     fontSettings?: FontSettings
-    renderNodeTooltip?: (
-        args: NodeTooltipArgs
-    ) => SankeyTooltipDescriptor | null
-    renderLinkTooltip?: (
-        args: LinkTooltipArgs
-    ) => SankeyTooltipDescriptor | null
+    getNodeTooltip?: (args: NodeTooltipArgs) => SankeyTooltip | undefined
+    getLinkTooltip?: (args: LinkTooltipArgs) => SankeyTooltip | undefined
     onNodeClick?: (node: SankeyNode) => void
     isNodeClickable?: (node: SankeyNode) => boolean
     isNodeHoverable?: (node: SankeyNode) => boolean
     /** Other links to be highlighted as a group with the hovered one */
-    relatedLinks?: (link: SankeyLink) => SankeyLink[]
+    getRelatedLinks?: (link: SankeyLink) => SankeyLink[]
 }
 
 export type NodeTooltipArgs = {
     node: SankeyNode
-    /** Links arriving at this node (this node is the target). Plain shape:
-     *  source/target are entity IDs. */
     incomingLinks: SankeyLink[]
-    /** Links leaving this node (this node is the source). */
     outgoingLinks: SankeyLink[]
 }
 
@@ -97,10 +77,7 @@ export type LinkTooltipArgs = {
     link: SankeyLink
 }
 
-/** Content returned by a Sankey tooltip renderer. Sankey wraps this in a
- *  `<TooltipCard>` and supplies positioning, anchor, clamping, and sizing
- *  itself, so callers only think in terms of what's inside the card. */
-export type SankeyTooltipDescriptor = {
+export type SankeyTooltip = {
     title: string
     subtitle?: string
     content: React.ReactNode
@@ -110,11 +87,6 @@ export type SankeyNode = {
     id: string
     label: string
     valueLabel?: string
-    /** Extra class names applied to both the band <rect> and the label <g>.
-     *  Lets a consumer mark special nodes (e.g. the central node in a
-     *  SplitFlowSankey) so its stylesheet can keep them at full opacity
-     *  while everything else dims on hover. */
-    className?: string
 }
 
 export type SankeyLink = {
@@ -123,9 +95,8 @@ export type SankeyLink = {
     value: number
 }
 
-type PreparedSankeyLabel = {
+type PlacedSankeyLabel = {
     nodeId: string
-    nodeClassName?: string
     x: number
     y: number
     textAnchor: "start" | "end"
@@ -153,14 +124,14 @@ export function Sankey({
     linkColor,
     margin = DEFAULT_MARGIN,
     innerMargin,
-    topAnchored,
+    anchorNodeId,
     nodePadding = 12,
     bandWidth = 4,
     bandFlowGap = 3,
     fontSettings = DEFAULT_FONT_SETTINGS,
-    renderLinkTooltip,
-    relatedLinks,
-    renderNodeTooltip,
+    getLinkTooltip,
+    getRelatedLinks,
+    getNodeTooltip,
     isNodeHoverable,
     onNodeClick,
     isNodeClickable,
@@ -220,7 +191,7 @@ export function Sankey({
                 [resolvedMargin.left, resolvedMargin.top],
                 [width - resolvedMargin.right, height - resolvedMargin.bottom],
             ])
-            .iterations(topAnchored ? 0 : 32) // Skip relaxation if top-anchored
+            .iterations(anchorNodeId ? 0 : 32) // Skip relaxation if anchored
 
         // Shallow-clone nodes and links because d3 mutates its input
         const result = generator({
@@ -231,16 +202,8 @@ export function Sankey({
         // Pin the named node to the top of its column by shifting it
         // (and its connected link endpoints) up by however much
         // d3-sankey pushed it down.
-        if (topAnchored) {
-            // Pinning only makes sense when there's a single source or target node
-            const pinnedNodeId =
-                sourceNodes.length === 1
-                    ? sourceNodes[0].id
-                    : targetNodes.length === 1
-                      ? targetNodes[0].id
-                      : undefined
-
-            const node = result.nodes.find((n) => n.id === pinnedNodeId)
+        if (anchorNodeId) {
+            const node = result.nodes.find((n) => n.id === anchorNodeId)
             if (
                 node &&
                 node.y0 !== undefined &&
@@ -261,46 +224,32 @@ export function Sankey({
         nodeWidth,
         nodePadding,
         margin,
-        topAnchored,
+        anchorNodeId,
         innerMargin,
         fontSettings,
     ])
 
     const linkPath = sankeyLinkHorizontal<SankeyNode, SankeyLink>()
 
-    const labels = useMemo<PreparedSankeyLabel[]>(
-        () =>
-            prepareSankeyLabels({
-                layout,
-                nodePadding,
-                fontSettings,
-            }),
+    const labels = useMemo<PlacedSankeyLabel[]>(
+        () => placeSankeyLabels({ layout, nodePadding, fontSettings }),
         [layout, nodePadding, fontSettings]
     )
 
     const svgRef = useRef<SVGSVGElement>(null)
-    const [hover, setHover] = useState<HoverState | null>(null)
 
+    const [hover, setHover] = useState<HoverState | null>(null)
     const dismissTooltip = useCallback(() => setHover(null), [])
-    // Owns touch-device behavior for the tooltip: pins to the bottom of the
-    // chart and dismisses on tap-outside or scroll-out-of-view.
     const { ref: containerRef, isPinned } = usePinnedTooltip<HTMLDivElement>(
         hover !== null,
         dismissTooltip
     )
 
-    // SlopeChart uses a single SVG-wide mousemove and finds the nearest
-    // slope within a pixel tolerance (SlopeChart.tsx:659). The Sankey
-    // equivalent has a stronger membership test: each link occupies a
-    // vertical band of `link.width` around a smoothstep-interpolated
-    // centerline, so we just check the mouse is inside the band. Nodes
-    // get a separate rect-membership test that wins over link hits
-    // (their bounding boxes don't overlap with the link extent anyway).
     const onSvgMouseMove = useCallback(
         (event: React.MouseEvent<SVGSVGElement>) => {
             if (!svgRef.current || !layout) return
             const mouse = getRelativeMouse(svgRef.current, event.nativeEvent)
-            if (renderNodeTooltip) {
+            if (getNodeTooltip) {
                 const node = findNodeAtPoint(
                     layout.nodes,
                     labels,
@@ -317,7 +266,7 @@ export function Sankey({
                     return
                 }
             }
-            if (renderLinkTooltip) {
+            if (getLinkTooltip) {
                 const link = findLinkAtPoint(layout.links, mouse.x, mouse.y)
                 if (link) {
                     setHover({
@@ -330,15 +279,11 @@ export function Sankey({
             }
             setHover(null)
         },
-        [renderLinkTooltip, renderNodeTooltip, isNodeHoverable, labels, layout]
+        [getLinkTooltip, getNodeTooltip, isNodeHoverable, labels, layout]
     )
 
     const onSvgMouseLeave = useCallback(() => setHover(null), [])
 
-    // Click hits use the same band ∪ label hit-test as hover (findNodeAtPoint),
-    // so the larger label area is clickable too — labels themselves keep
-    // pointer-events: none and rely on the SVG-wide handler. Filtering by
-    // isNodeClickable lets consumers opt nodes out (e.g. the Other bucket).
     const onSvgClick = useCallback(
         (event: React.MouseEvent<SVGSVGElement>) => {
             if (!svgRef.current || !layout || !onNodeClick) return
@@ -355,75 +300,107 @@ export function Sankey({
         [layout, labels, onNodeClick, isNodeClickable]
     )
 
-    // Optional grouping (e.g. BilateralFlowSankey promotes a link hover to
-    // "all links of this exporter"). The hovered link + its related siblings
-    // form one active set; their union of endpoints stays bright while
-    // everything else dims via CSS — see `--active` modifiers.
-    const relatedLaidOutLinks = useMemo<LaidOutLink[]>(() => {
-        if (!hover || hover.kind !== "link" || !relatedLinks || !layout)
+    /** Links related to the hovered link that should also be highlighted */
+    const hoverRelatedLinks = useMemo<LaidOutLink[]>(() => {
+        if (!hover || hover.kind !== "link" || !getRelatedLinks || !layout)
             return []
-        const relatedData = relatedLinks(toLinkData(hover.link))
+
+        const relatedData = getRelatedLinks(toLinkData(hover.link))
+
         if (relatedData.length === 0) return []
-        // Match returned plain-link descriptors back to the laid-out link
-        // refs so the per-path component receives an identity-equal lookup.
+
         const relatedKeys = new Set(
             relatedData.map((l) => makeLinkKey(l.source, l.target))
         )
-        return layout.links.filter((l) =>
-            relatedKeys.has(makeLinkKey(nodeId(l.source), nodeId(l.target)))
-        )
-    }, [hover, relatedLinks, layout])
 
-    const activeLinkSet = useMemo(() => {
+        return layout.links.filter((l) =>
+            relatedKeys.has(
+                makeLinkKey(makeNodeId(l.source), makeNodeId(l.target))
+            )
+        )
+    }, [hover, getRelatedLinks, layout])
+
+    const activeLinks = useMemo(() => {
+        if (!hover) return new Set<LaidOutLink>()
+
         const set = new Set<LaidOutLink>()
-        if (hover?.kind === "link") {
-            set.add(hover.link)
-            for (const l of relatedLaidOutLinks) set.add(l)
-        } else if (hover?.kind === "node") {
-            // Node hover lights up every link touching this node — d3-sankey
-            // populates `sourceLinks` / `targetLinks` on the laid-out node.
-            for (const l of hover.node.sourceLinks ?? []) set.add(l)
-            for (const l of hover.node.targetLinks ?? []) set.add(l)
-        }
+        match(hover)
+            .with({ kind: "link" }, (hover) => {
+                // Highlight the hovered link and any related links
+                set.add(hover.link)
+                for (const l of hoverRelatedLinks) set.add(l)
+            })
+            .with({ kind: "node" }, (hover) => {
+                // Node hover lights up every link touching this node
+                for (const l of hover.node.sourceLinks ?? []) set.add(l)
+                for (const l of hover.node.targetLinks ?? []) set.add(l)
+            })
+            .exhaustive()
+
         return set
-    }, [hover, relatedLaidOutLinks])
+    }, [hover, hoverRelatedLinks])
 
     const activeNodeIds = useMemo(() => {
         if (!hover) return new Set<string>()
-        const ids = new Set<string>()
-        for (const link of activeLinkSet) {
-            ids.add(nodeId(link.source))
-            ids.add(nodeId(link.target))
-        }
-        if (hover.kind === "node") ids.add(hover.node.id)
-        return ids
-    }, [hover, activeLinkSet])
 
-    // Active links render last so they paint on top of unfocused ribbons
-    // — without this, when a node fans out to many partners, some dimmed
-    // ribbons sit visually above the focused ones and read as clutter.
-    const orderedLinks = useMemo<LaidOutLink[]>(() => {
+        const ids = new Set<string>()
+
+        // Highlight nodes connected to the hovered link
+        for (const link of activeLinks) {
+            ids.add(makeNodeId(link.source))
+            ids.add(makeNodeId(link.target))
+        }
+
+        // Highlight the hovered node itself
+        if (hover.kind === "node") ids.add(hover.node.id)
+
+        return ids
+    }, [hover, activeLinks])
+
+    // Re-order links so that active links render last so they paint on top
+    // of unfocused ribbons
+    const linksInRenderOrder = useMemo<LaidOutLink[]>(() => {
         if (!layout) return []
-        if (activeLinkSet.size === 0) return layout.links
+
+        // No need to reorder
+        if (activeLinks.size === 0) return layout.links
+
         const inactive: LaidOutLink[] = []
         const active: LaidOutLink[] = []
         for (const l of layout.links) {
-            if (activeLinkSet.has(l)) active.push(l)
+            if (activeLinks.has(l)) active.push(l)
             else inactive.push(l)
         }
         return [...inactive, ...active]
-    }, [layout, activeLinkSet])
+    }, [layout, activeLinks])
+
+    if (!layout) return null
 
     const hoveredNodeId = hover?.kind === "node" ? hover.node.id : undefined
     const hoveredLink = hover?.kind === "link" ? hover.link : undefined
 
-    if (!layout) return null
+    // Use the wrapper div's dimensions, not the SVG's: the SVG can be
+    // shorter than its grid cell (SplitFlowSankey shrinks one half to
+    // equalize scale), which would clip the tooltip near the bottom edge
+    const containerEl = containerRef.current
+    const tooltipBounds = containerEl
+        ? { width: containerEl.clientWidth, height: containerEl.clientHeight }
+        : { width, height }
 
-    const interactive = !!(
-        renderLinkTooltip ||
-        renderNodeTooltip ||
-        onNodeClick
-    )
+    const tooltip: SankeyTooltip | undefined = match(hover)
+        .with({ kind: "link" }, ({ link }) =>
+            getLinkTooltip?.({ link: toLinkData(link) })
+        )
+        .with({ kind: "node" }, ({ node }) =>
+            getNodeTooltip?.({
+                node: toNodeData(node),
+                incomingLinks: (node.targetLinks ?? []).map(toLinkData),
+                outgoingLinks: (node.sourceLinks ?? []).map(toLinkData),
+            })
+        )
+        .with(null, () => undefined)
+        .exhaustive()
+
     // Show pointer cursor only when the cursor is over a clickable node.
     // Relies on the hover state already tracking node-under-cursor (which
     // assumes clickable nodes are also hoverable — true for our consumers).
@@ -431,103 +408,61 @@ export function Sankey({
         !!onNodeClick &&
         hover?.kind === "node" &&
         (!isNodeClickable || isNodeClickable(toNodeData(hover.node)))
-    const svg = (
-        <svg
-            ref={svgRef}
-            className="sankey"
-            width={width}
-            height={height}
-            viewBox={`0 0 ${width} ${height}`}
-            onMouseMove={interactive ? onSvgMouseMove : undefined}
-            onMouseLeave={interactive ? onSvgMouseLeave : undefined}
-            onClick={onNodeClick ? onSvgClick : undefined}
-            style={isOverClickableNode ? { cursor: "pointer" } : undefined}
-        >
-            <g className="sankey__links">
-                {orderedLinks.map((link) => (
-                    <SankeyLink
-                        key={makeLinkKey(
-                            nodeId(link.source),
-                            nodeId(link.target)
-                        )}
-                        link={link}
-                        linkPath={linkPath}
-                        linkColor={linkColor}
-                        isHovered={hoveredLink === link}
-                        isActive={activeLinkSet.has(link)}
-                    />
-                ))}
-            </g>
-            <g className="sankey__nodes">
-                {layout.nodes.map((node) => (
-                    <SankeyNode
-                        key={node.id}
-                        node={node}
-                        bandWidth={bandWidth}
-                        nodeColor={nodeColor}
-                        isHovered={hoveredNodeId === node.id}
-                        isActive={activeNodeIds.has(node.id)}
-                    />
-                ))}
-            </g>
-            <g className="sankey__labels">
-                {labels.map((label, i) => (
-                    <SankeyLabel
-                        key={i}
-                        label={label}
-                        isHovered={hoveredNodeId === label.nodeId}
-                        isActive={activeNodeIds.has(label.nodeId)}
-                    />
-                ))}
-            </g>
-        </svg>
-    )
 
-    if (!interactive) return svg
-
-    // Bounds reported to the tooltip are the wrapper div's measured
-    // dimensions, not the SVG's own width/height. The wrapper stretches to
-    // fill its grid cell (see .sankey-container in Sankey.scss), so it
-    // mirrors the cell. The inner SVG can be shorter than the cell —
-    // SplitFlowSankey shrinks one half's SVG to equalize ky across halves —
-    // and using its dimensions would let the TooltipCard's `maxHeight =
-    // containerHeight - top` collapse near the bottom edge and clip
-    // subtitle/body content. Falling back to the SVG props is just a
-    // first-frame placeholder before clientWidth/Height are available.
-    const containerEl = containerRef.current
-    const tooltipBounds = containerEl
-        ? {
-              width: containerEl.clientWidth,
-              height: containerEl.clientHeight,
-          }
-        : { width, height }
-
-    const descriptor: SankeyTooltipDescriptor | null = (() => {
-        if (hover?.kind === "link") {
-            return renderLinkTooltip?.({ link: toLinkData(hover.link) }) ?? null
-        }
-        if (hover?.kind === "node") {
-            return (
-                renderNodeTooltip?.({
-                    node: toNodeData(hover.node),
-                    incomingLinks: (hover.node.targetLinks ?? []).map(
-                        toLinkData
-                    ),
-                    outgoingLinks: (hover.node.sourceLinks ?? []).map(
-                        toLinkData
-                    ),
-                }) ?? null
-            )
-        }
-        return null
-    })()
-
-    // position: relative on the wrapper so the tooltip's absolute positioning
-    // resolves against the chart, not some distant ancestor.
     return (
         <div ref={containerRef} className="sankey-container">
-            {svg}
-            {hover && descriptor && (
+            <svg
+                ref={svgRef}
+                className="sankey"
+                width={width}
+                height={height}
+                viewBox={`0 0 ${width} ${height}`}
+                onMouseMove={onSvgMouseMove}
+                onMouseLeave={onSvgMouseLeave}
+                onClick={onNodeClick ? onSvgClick : undefined}
+                style={isOverClickableNode ? { cursor: "pointer" } : undefined}
+            >
+                <g className="sankey__links">
+                    {linksInRenderOrder.map((link) => (
+                        <SankeyLink
+                            key={makeLinkKey(
+                                makeNodeId(link.source),
+                                makeNodeId(link.target)
+                            )}
+                            link={link}
+                            linkPath={linkPath}
+                            linkColor={linkColor}
+                            isHovered={hoveredLink === link}
+                            isActive={activeLinks.has(link)}
+                        />
+                    ))}
+                </g>
+                <g className="sankey__nodes">
+                    {layout.nodes.map((node) => (
+                        <SankeyNode
+                            key={node.id}
+                            node={node}
+                            bandWidth={bandWidth}
+                            nodeColor={nodeColor}
+                            isHovered={hoveredNodeId === node.id}
+                            isActive={activeNodeIds.has(node.id)}
+                            isAnchored={node.id === anchorNodeId}
+                        />
+                    ))}
+                </g>
+                <g className="sankey__labels">
+                    {labels.map((label, i) => (
+                        <SankeyLabel
+                            key={i}
+                            label={label}
+                            isHovered={hoveredNodeId === label.nodeId}
+                            isActive={activeNodeIds.has(label.nodeId)}
+                            isAnchored={label.nodeId === anchorNodeId}
+                        />
+                    ))}
+                </g>
+            </svg>
+            {hover && tooltip && (
                 <TooltipCard
                     id="sankey-tooltip"
                     x={hover.position.x}
@@ -535,12 +470,12 @@ export function Sankey({
                     offsetX={8}
                     offsetY={8}
                     style={{ maxWidth: "340px" }}
-                    title={descriptor.title}
-                    subtitle={descriptor.subtitle}
+                    title={tooltip.title}
+                    subtitle={tooltip.subtitle}
                     anchor={isPinned ? GrapherTooltipAnchor.Bottom : undefined}
                     containerBounds={isPinned ? undefined : tooltipBounds}
                 >
-                    {descriptor.content}
+                    {tooltip.content}
                 </TooltipCard>
             )}
         </div>
@@ -566,13 +501,10 @@ function SankeyLink({
     const color = linkColor?.(toLinkData(link)) ?? GRAPHER_DENIM
     const width = Math.max(0.5, link.width ?? 0)
 
-    const className = [
-        "sankey__link",
-        isHovered ? "sankey__link--hovered" : "",
-        isActive ? "sankey__link--active" : "",
-    ]
-        .filter(Boolean)
-        .join(" ")
+    const className = cx("sankey__link", {
+        "sankey__link--hovered": isHovered,
+        "sankey__link--active": isActive,
+    })
 
     return (
         <path
@@ -590,12 +522,14 @@ function SankeyNode({
     nodeColor,
     isHovered,
     isActive,
+    isAnchored,
 }: {
     node: LaidOutNode
     bandWidth: number
     nodeColor?: (node: SankeyNode) => string
     isHovered?: boolean
     isActive?: boolean
+    isAnchored?: boolean
 }): React.ReactElement {
     const x0 = node.x0 ?? 0
     const x1 = node.x1 ?? 0
@@ -608,14 +542,11 @@ function SankeyNode({
 
     const fill = nodeColor?.(node) ?? GRAPHER_DENIM
 
-    const className = [
-        "sankey__node",
-        isHovered ? "sankey__node--hovered" : "",
-        isActive ? "sankey__node--active" : "",
-        node.className ?? "",
-    ]
-        .filter(Boolean)
-        .join(" ")
+    const className = cx("sankey__node", {
+        "sankey__node--hovered": isHovered,
+        "sankey__node--active": isActive,
+        "sankey__node--anchored": isAnchored,
+    })
 
     return (
         <rect
@@ -633,19 +564,18 @@ function SankeyLabel({
     label,
     isHovered,
     isActive,
+    isAnchored,
 }: {
-    label: PreparedSankeyLabel
+    label: PlacedSankeyLabel
     isHovered?: boolean
     isActive?: boolean
+    isAnchored?: boolean
 }): React.ReactElement {
-    const className = [
-        "sankey__label",
-        isHovered ? "sankey__label--hovered" : "",
-        isActive ? "sankey__label--active" : "",
-        label.nodeClassName ?? "",
-    ]
-        .filter(Boolean)
-        .join(" ")
+    const className = cx("sankey__label", {
+        "sankey__label--hovered": isHovered,
+        "sankey__label--active": isActive,
+        "sankey__label--anchored": isAnchored,
+    })
 
     if (label.valueLabel) {
         const labelY =
@@ -685,7 +615,7 @@ function SankeyLabel({
     )
 }
 
-function prepareSankeyLabels({
+function placeSankeyLabels({
     layout,
     nodePadding,
     fontSettings,
@@ -693,7 +623,7 @@ function prepareSankeyLabels({
     layout: LaidOutGraph | null
     nodePadding: number
     fontSettings: FontSettings
-}): PreparedSankeyLabel[] {
+}): PlacedSankeyLabel[] {
     if (!layout) return []
 
     return layout.nodes.flatMap((node) => {
@@ -738,7 +668,6 @@ function prepareSankeyLabels({
             return [
                 {
                     nodeId: node.id,
-                    nodeClassName: node.className,
                     x,
                     y,
                     textAnchor,
@@ -752,7 +681,6 @@ function prepareSankeyLabels({
             return [
                 {
                     nodeId: node.id,
-                    nodeClassName: node.className,
                     x,
                     y,
                     textAnchor,
@@ -781,7 +709,7 @@ function isNodeOnLeftSide(node: LaidOutNode): boolean {
     return (node.depth ?? 0) <= (node.height ?? 0)
 }
 
-function nodeId(
+function makeNodeId(
     endpoint: LaidOutLink["source"] | LaidOutLink["target"]
 ): string {
     if (typeof endpoint === "string" || typeof endpoint === "number")
@@ -789,32 +717,25 @@ function nodeId(
     return (endpoint as SankeyLayoutNode).id
 }
 
+function makeLinkKey(source: string, target: string): string {
+    return `${source}->${target}`
+}
+
 function toLinkData(link: LaidOutLink): SankeyLink {
     const l = link as SankeyLink & LaidOutLink
     return {
-        source: nodeId(link.source),
-        target: nodeId(link.target),
+        source: makeNodeId(link.source),
+        target: makeNodeId(link.target),
         value: l.value,
     }
 }
 
-// Strip d3-sankey's layout-augmented fields back to the plain SankeyNode
-// shape the consumer originally passed in (id, label, optional valueLabel
-// and className). Used when exposing a hovered node to renderNodeTooltip.
 function toNodeData(node: LaidOutNode): SankeyNode {
     return {
         id: node.id,
         label: node.label,
         valueLabel: node.valueLabel,
-        className: node.className,
     }
-}
-
-// Stable string key for (source, target) link identity. Used to match
-// caller-returned SankeyLink descriptors back to the laid-out link refs
-// in `activeLinkSet`. `→` is a separator that won't appear in entity IDs.
-function makeLinkKey(source: string, target: string): string {
-    return `${source}→${target}`
 }
 
 const measureMaxLabelWidth = (
@@ -867,13 +788,13 @@ const NODE_HIT_TOLERANCE = 8
  */
 function findNodeAtPoint(
     nodes: LaidOutNode[],
-    labels: PreparedSankeyLabel[],
+    labels: PlacedSankeyLabel[],
     mouseX: number,
     mouseY: number,
     isHoverable?: (node: SankeyNode) => boolean
 ): LaidOutNode | null {
     // Index labels so we can look up label bounds per node id.
-    const labelByNodeId = new Map<string, PreparedSankeyLabel>()
+    const labelByNodeId = new Map<string, PlacedSankeyLabel>()
     for (const l of labels) labelByNodeId.set(l.nodeId, l)
 
     let best: { node: LaidOutNode; dist: number } | null = null
@@ -990,4 +911,14 @@ function linkCenterY(link: LaidOutLink, mouseX: number): number | null {
     const t = (lo + hi) / 2
     const s = t * t * (3 - 2 * t) // smoothstep
     return y0 + (y1 - y0) * s
+}
+
+/**
+ * Per-side label margin Sankey reserves at the top and bottom of the inner
+ * SVG to prevent the first/last labels from overflowing the chart bounds
+ */
+export function getSankeyVerticalLabelPadding(
+    fontSettings: FontSettings
+): number {
+    return 0.5 * fontSettings.fontSize * fontSettings.lineHeight
 }

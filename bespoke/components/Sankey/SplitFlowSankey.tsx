@@ -13,7 +13,7 @@ import {
     Sankey,
     SankeyLink,
     SankeyNode,
-    SankeyTooltipDescriptor,
+    SankeyTooltip,
 } from "./Sankey.js"
 import {
     assignColors,
@@ -96,7 +96,7 @@ type Half = {
      *  non-central endpoint (already de-prefixed); link.value is the raw
      *  flow value. SplitFlowSankey hides the `in:`/`out:` ID scheme from
      *  this callback. */
-    renderTooltip?: (args: HalfTooltipArgs) => SankeyTooltipDescriptor | null
+    renderTooltip?: (args: HalfTooltipArgs) => SankeyTooltip | undefined
 }
 
 export type HalfTooltipArgs = {
@@ -414,7 +414,8 @@ export function SplitFlowSankey({
                         linkColor={linkColor}
                         innerMargin={{ left: sharedOuterMargin }}
                         fontSettings={fontSettings}
-                        renderLinkTooltip={
+                        anchorNodeId={central}
+                        getLinkTooltip={
                             incoming.renderTooltip && incomingBuild
                                 ? wrapHalfTooltipRenderer({
                                       direction: "incoming",
@@ -425,7 +426,7 @@ export function SplitFlowSankey({
                                   })
                                 : undefined
                         }
-                        renderNodeTooltip={
+                        getNodeTooltip={
                             incoming.renderTooltip && incomingBuild
                                 ? wrapHalfNodeTooltipRenderer({
                                       otherBreakdown:
@@ -448,7 +449,8 @@ export function SplitFlowSankey({
                         linkColor={linkColor}
                         innerMargin={{ right: sharedOuterMargin }}
                         fontSettings={fontSettings}
-                        renderLinkTooltip={
+                        anchorNodeId={central}
+                        getLinkTooltip={
                             outgoing.renderTooltip && outgoingBuild
                                 ? wrapHalfTooltipRenderer({
                                       direction: "outgoing",
@@ -459,7 +461,7 @@ export function SplitFlowSankey({
                                   })
                                 : undefined
                         }
-                        renderNodeTooltip={
+                        getNodeTooltip={
                             outgoing.renderTooltip && outgoingBuild
                                 ? wrapHalfNodeTooltipRenderer({
                                       otherBreakdown:
@@ -511,7 +513,7 @@ function partnerFromId(id: string): string | null {
 }
 
 // Adapt a half-level tooltip renderer (which thinks in {partner, value}) to
-// the Sankey-level renderLinkTooltip signature. For the incoming half the
+// the Sankey-level getLinkTooltip signature. For the incoming half the
 // partner is the link source; for the outgoing half it's the target. The
 // Other bucket's raw key (OTHER_KEY) is mapped back to its display label
 // "Other" so callers don't have to know about the internal sentinel; when
@@ -526,8 +528,8 @@ function wrapHalfTooltipRenderer({
     direction: "incoming" | "outgoing"
     central: string
     otherBreakdown?: EntityTotal[]
-    render: (args: HalfTooltipArgs) => SankeyTooltipDescriptor | null
-}): (args: LinkTooltipArgs) => SankeyTooltipDescriptor | null {
+    render: (args: HalfTooltipArgs) => SankeyTooltip | undefined
+}): (args: LinkTooltipArgs) => SankeyTooltip | undefined {
     return ({ link }) => {
         const partnerId =
             direction === "incoming"
@@ -558,13 +560,13 @@ function wrapHalfNodeTooltipRenderer({
     render,
 }: {
     otherBreakdown?: EntityTotal[]
-    render: (args: HalfTooltipArgs) => SankeyTooltipDescriptor | null
-}): (args: NodeTooltipArgs) => SankeyTooltipDescriptor | null {
+    render: (args: HalfTooltipArgs) => SankeyTooltip | undefined
+}): (args: NodeTooltipArgs) => SankeyTooltip | undefined {
     return ({ node, incomingLinks, outgoingLinks }) => {
         // Central is excluded by `isNodeHoverable`, so any node reaching
         // here is a partner with exactly one connecting link.
         const link = incomingLinks[0] ?? outgoingLinks[0]
-        if (!link) return null
+        if (!link) return undefined
         const partnerKey = partnerFromId(node.id) ?? node.id
         const isOther = partnerKey === OTHER_KEY
         const partner = isOther ? "Other" : partnerKey
@@ -613,8 +615,9 @@ function HalfChart({
     linkColor,
     innerMargin,
     fontSettings,
-    renderLinkTooltip,
-    renderNodeTooltip,
+    anchorNodeId,
+    getLinkTooltip,
+    getNodeTooltip,
     isNodeHoverable,
 }: {
     which: "incoming" | "outgoing"
@@ -632,12 +635,9 @@ function HalfChart({
         left?: number
     }
     fontSettings: FontSettings
-    renderLinkTooltip?: (
-        args: LinkTooltipArgs
-    ) => SankeyTooltipDescriptor | null
-    renderNodeTooltip?: (
-        args: NodeTooltipArgs
-    ) => SankeyTooltipDescriptor | null
+    anchorNodeId?: string
+    getLinkTooltip?: (args: LinkTooltipArgs) => SankeyTooltip | undefined
+    getNodeTooltip?: (args: NodeTooltipArgs) => SankeyTooltip | undefined
     isNodeHoverable?: (node: SankeyNode) => boolean
 }) {
     return (
@@ -657,9 +657,9 @@ function HalfChart({
                             innerMargin={innerMargin}
                             fontSettings={fontSettings}
                             nodePadding={SANKEY_NODE_PADDING}
-                            topAnchored
-                            renderLinkTooltip={renderLinkTooltip}
-                            renderNodeTooltip={renderNodeTooltip}
+                            anchorNodeId={anchorNodeId}
+                            getLinkTooltip={getLinkTooltip}
+                            getNodeTooltip={getNodeTooltip}
                             isNodeHoverable={isNodeHoverable}
                         />
                     )}
@@ -747,14 +747,14 @@ function buildHalf({
     // Central node sits at the open end of the half: as a sink at the end of
     // the incoming half, as a source at the start of the outgoing half. Empty
     // label — the chart title names it, and the inner edge meets the other
-    // half's central rect. Mark it with a class so the SplitFlow stylesheet
-    // can keep both halves' central rects at full opacity during any hover
-    // (without the class, the un-hovered half's central would dim and split
-    // the visually-continuous central column).
+    // half's central rect. Sankey tags it with `sankey__node--anchored` /
+    // `sankey__label--anchored` (via `anchorNodeId`), which the SplitFlow
+    // stylesheet uses to keep both halves' central rects at full opacity
+    // during any hover — otherwise the un-hovered half's central would dim
+    // and split the visually-continuous central column.
     const centralNode: SankeyNode = {
         id: central,
         label: "",
-        className: "is-central",
     }
     const nodes: SankeyNode[] = isIncoming
         ? [...partners, centralNode]

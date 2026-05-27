@@ -6,7 +6,7 @@ import {
     Sankey,
     SankeyLink,
     SankeyNode,
-    SankeyTooltipDescriptor,
+    SankeyTooltip,
 } from "./Sankey.js"
 import {
     assignColors,
@@ -72,9 +72,7 @@ export function BilateralFlowSankey({
      *  exporter (source) group: all of that exporter's links highlight as
      *  one unit, and the consumer is handed the source name + the list of
      *  importers it sent to. */
-    renderTooltip?: (
-        args: BilateralTooltipArgs
-    ) => SankeyTooltipDescriptor | null
+    renderTooltip?: (args: BilateralTooltipArgs) => SankeyTooltip | undefined
     /** When set, clicking a column label (or its band) fires this with the
      *  entity name and the side it's on. The Other bucket is non-clickable
      *  because it isn't a single entity. */
@@ -129,8 +127,8 @@ export function BilateralFlowSankey({
     // the consumer hovers the right column. Computed once from the
     // memoized build above (`topSources`); a target-side equivalent is
     // captured below.
-    const renderLinkTooltip = renderTooltip
-        ? ({ link }: LinkTooltipArgs): SankeyTooltipDescriptor | null => {
+    const getLinkTooltip = renderTooltip
+        ? ({ link }: LinkTooltipArgs): SankeyTooltip | undefined => {
               // Link hover resolves to the exporter side: the source-side
               // ribbon shares the hovered link's source entity (see
               // `relatedLinksByLink` above). Node hover handles the
@@ -147,8 +145,8 @@ export function BilateralFlowSankey({
           }
         : undefined
 
-    const renderNodeTooltip = renderTooltip
-        ? ({ node }: NodeTooltipArgs): SankeyTooltipDescriptor | null => {
+    const getNodeTooltip = renderTooltip
+        ? ({ node }: NodeTooltipArgs): SankeyTooltip | undefined => {
               const isTarget = node.id.startsWith("target:")
               const side = isTarget ? "importer" : "exporter"
               const entityKey = entityFromId(node.id)
@@ -186,9 +184,9 @@ export function BilateralFlowSankey({
             height={height}
             nodeColor={nodeColor}
             linkColor={linkColor}
-            renderLinkTooltip={renderLinkTooltip}
-            relatedLinks={renderTooltip ? relatedLinksByLink : undefined}
-            renderNodeTooltip={renderNodeTooltip}
+            getLinkTooltip={getLinkTooltip}
+            getRelatedLinks={renderTooltip ? relatedLinksByLink : undefined}
+            getNodeTooltip={getNodeTooltip}
             onNodeClick={handleNodeClick}
             isNodeClickable={onSelectEntity ? isNodeClickable : undefined}
         />

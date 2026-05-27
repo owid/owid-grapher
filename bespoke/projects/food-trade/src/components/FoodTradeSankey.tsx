@@ -15,7 +15,7 @@ import {
     FlowRow,
 } from "../../../../components/Sankey/helpers.js"
 
-import { SankeyTooltipDescriptor } from "../../../../components/Sankey/Sankey.js"
+import { SankeyTooltip } from "../../../../components/Sankey/Sankey.js"
 import {
     BilateralFlowSankey,
     BilateralTooltipArgs,
@@ -292,7 +292,7 @@ function tradeLinkTooltip({
     halfTotal: number
     year: number
     otherBreakdown?: EntityTotal[]
-}): SankeyTooltipDescriptor {
+}): SankeyTooltip {
     const isOther = !!otherBreakdown
     // For Other links, replace the "Country → Country" arrow with a short
     // noun phrase naming the long-tail bucket. Which role (exporters /
@@ -419,7 +419,7 @@ function bilateralTooltip({
     partners,
     tradeRows,
     year,
-}: BilateralTooltipArgs & { year: number }): SankeyTooltipDescriptor {
+}: BilateralTooltipArgs & { year: number }): SankeyTooltip {
     const isOther = country === "Other"
     // Named country: title is its name, subtitle scopes it
     // ("Exports in 2024" or "Imports in 2024"). Other bucket: title

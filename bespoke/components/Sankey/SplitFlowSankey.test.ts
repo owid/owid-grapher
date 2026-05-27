@@ -72,7 +72,7 @@ function realizedKy({
             [0, vlp],
             [width, height - vlp],
         ])
-        .iterations(0) // matches topAnchored=true in SplitFlowSankey
+        .iterations(0) // matches anchorNodeId set in SplitFlowSankey
 
     const result = generator({
         nodes: build.nodes.map((n) => ({ ...n })),

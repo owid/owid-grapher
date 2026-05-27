@@ -25,9 +25,12 @@
 // The central node is the same entity rendered as inner-edge bands on both
 // halves; one half's hover only marks its own central rect "active". Keep
 // both halves' central rects (and labels — usually empty) bright by
-// overriding the dim above when the element carries `is-central`.
+// overriding the dim above. Sankey tags the anchored node's rect and label
+// with `--anchored` modifiers (via the `anchorNodeId` prop).
 .split-flow-sankey:has(.sankey__link--hovered, .sankey__node--hovered)
-    .is-central {
+    .sankey__node--anchored,
+.split-flow-sankey:has(.sankey__link--hovered, .sankey__node--hovered)
+    .sankey__label--anchored {
     opacity: 1;
 }
 
