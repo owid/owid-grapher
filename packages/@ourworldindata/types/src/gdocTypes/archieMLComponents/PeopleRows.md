@@ -2,13 +2,16 @@ A grid of `{.person}` cards, used on about pages to present team
 members. Wraps an inner `[.+people]` list of people blocks.
 
 ## When to use
+
 - On about pages (`type: about-page`) to list team, board, or
   advisors.
 
 ## When NOT to use
+
 - Elsewhere.
 
 ## Variations
+
 - `columns`: `2` or `4` — 4 suits compact cards, 2 suits cards with
   longer bios.
 
