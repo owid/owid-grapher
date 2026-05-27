@@ -100,9 +100,7 @@ async function getExplorerDefaultViewConfigIds(
     }
     if (explorerSlugByViewKey.size === 0) return result
 
-    const rows = await knex<
-        Pick<DbRawExplorerView, "explorerSlug" | "viewId" | "chartConfigId">
-    >(ExplorerViewsTableName)
+    const rows = await knex<DbRawExplorerView>(ExplorerViewsTableName)
         .select("explorerSlug", "viewId", "chartConfigId")
         .whereIn("explorerSlug", [...new Set(explorerSlugs)])
         .whereNotNull("chartConfigId")
