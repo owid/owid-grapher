@@ -19,9 +19,9 @@ import {
     assignColors,
     DEFAULT_MIN_NODE_SHARE,
     DEFAULT_TOP_N,
-    entityShortLabel,
+    getEntityShortLabel,
     EntityTotal,
-    FlowRow,
+    Flow,
     makeValueLabel,
     NEUTRAL_COLOR,
     OTHER_KEY,
@@ -84,7 +84,7 @@ export type HeadingContent = {
 }
 
 type Half = {
-    rows: FlowRow[]
+    rows: Flow[]
     /** Heading shown above this half. Callers pass a different label when
      * `rows` is empty (e.g. "No imports"). */
     heading: HeadingContent
@@ -685,7 +685,7 @@ function buildHalf({
     minNodeShare,
     formatValue,
 }: {
-    rows: FlowRow[]
+    rows: Flow[]
     central: string
     direction: "incoming" | "outgoing"
     topN: number
@@ -718,21 +718,22 @@ function buildHalf({
         // chart's full-name surface matters. The on-chart label uses the
         // shorter form for readability.
         id: idPrefix + d.entity,
-        label: entityShortLabel(d.entity),
+        label: getEntityShortLabel(d.entity),
         valueLabel: makeValueLabel({
             value: d.total,
-            total: selection.grandTotal,
+            total: selection.total,
             formatValue,
         }),
         value: d.total,
     }))
 
+    const otherTotal = R.sumBy(selection.other, (d) => d.total)
     const otherPartner: Partner | null =
-        selection.otherTotal > 0
+        otherTotal > 0
             ? {
                   id: idPrefix + OTHER_KEY,
                   label: "Other",
-                  value: selection.otherTotal,
+                  value: otherTotal,
               }
             : null
 

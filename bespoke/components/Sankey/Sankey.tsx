@@ -106,6 +106,9 @@ export type SankeyLink = {
     value: number
 }
 
+/** Which side of a link (or, equivalently, which column of the chart). */
+export type LinkSide = "source" | "target"
+
 type PlacedSankeyLabel = {
     nodeId: string
     x: number

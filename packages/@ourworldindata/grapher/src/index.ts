@@ -57,11 +57,16 @@ export {
     GRAPHER_DENIM,
     GRAPHER_DARK_TEXT,
     GRAPHER_LIGHT_TEXT,
+    GRAY_70,
+    GRAY_80,
+    GRAY_90,
+    GRAY_100,
 } from "./color/ColorConstants"
 export { darkenColorForText } from "./color/ColorUtils"
 export {
     getColorNameOwidDistinctAndSemanticPalettes,
     getColorNameOwidDistinctLinesAndSemanticPalettes,
+    OwidDistinctColors,
 } from "./color/CustomSchemes"
 export { ColorSchemes } from "./color/ColorSchemes"
 export { DimensionSlot } from "./chart/DimensionSlot"

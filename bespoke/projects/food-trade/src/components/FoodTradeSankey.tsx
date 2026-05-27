@@ -10,12 +10,15 @@ import {
 } from "@ourworldindata/grapher/src/tooltip/TooltipContents.js"
 
 import {
-    entityShortLabel,
+    getEntityShortLabel,
     EntityTotal,
-    FlowRow,
+    Flow,
 } from "../../../../components/Sankey/helpers.js"
 
-import { SankeyTooltip } from "../../../../components/Sankey/Sankey.js"
+import {
+    LinkSide,
+    SankeyTooltip,
+} from "../../../../components/Sankey/Sankey.js"
 import {
     BilateralFlowSankey,
     BilateralTooltipArgs,
@@ -116,7 +119,7 @@ export function FoodTradeSankey({
     // Heading uses the short name (e.g. "USA" instead of "United States")
     // but keeps the "the" article when the full name calls for one — so
     // "the United States" becomes "the USA" rather than dropping the article.
-    const countryShort = entityShortLabel(country)
+    const countryShort = getEntityShortLabel(country)
     const countryArticulated =
         articulateEntity(country) === country
             ? countryShort
@@ -302,7 +305,7 @@ function tradeLinkTooltip({
         ? exporter === "Other"
             ? "Other exporters"
             : "Other importers"
-        : `${entityShortLabel(exporter)} → ${entityShortLabel(importer)}`
+        : `${getEntityShortLabel(exporter)} → ${getEntityShortLabel(importer)}`
 
     const share = halfTotal > 0 ? value / halfTotal : 0
     const formattedShare = formatShare(share)
@@ -339,7 +342,7 @@ function OtherBreakdownContent({ breakdown }: { breakdown: EntityTotal[] }) {
         },
     ]
     const rows = visible.map((d) => ({
-        name: entityShortLabel(d.entity),
+        name: getEntityShortLabel(d.entity),
         values: [d.total],
     }))
 
@@ -394,10 +397,20 @@ export function FoodTradeBilateralSankey({
 
     const flowRows = useMemo(() => tradeToFlow(rows), [rows])
 
-    const renderTooltip = useCallback(
+    const getTooltip = useCallback(
         (args: BilateralTooltipArgs) => bilateralTooltip({ ...args, year }),
         [year]
     )
+
+    // Translate `BilateralFlowSankey`'s neutral source/target back into
+    // exporter/importer at the domain boundary.
+    const handleSelect = onSelectEntity
+        ? (entity: string, side: LinkSide) =>
+              onSelectEntity(
+                  entity,
+                  side === "source" ? "exporter" : "importer"
+              )
+        : undefined
 
     return (
         <div ref={parentRef} className="food-trade-sankey">
@@ -406,8 +419,8 @@ export function FoodTradeBilateralSankey({
                 width={width}
                 height={height}
                 formatValue={formatTrade}
-                renderTooltip={renderTooltip}
-                onSelectEntity={onSelectEntity}
+                getTooltip={getTooltip}
+                onSelectEntity={handleSelect}
             />
         </div>
     )
@@ -415,24 +428,25 @@ export function FoodTradeBilateralSankey({
 
 function bilateralTooltip({
     side,
-    country,
+    entity,
     partners,
-    tradeRows,
+    flows,
     year,
 }: BilateralTooltipArgs & { year: number }): SankeyTooltip {
-    const isOther = country === "Other"
+    const isOther = entity === "Other"
+    // In trade terms: source-side hover = exporter, target-side = importer.
     // Named country: title is its name, subtitle scopes it
     // ("Exports in 2024" or "Imports in 2024"). Other bucket: title
     // names *which side* of the chart is the small one — the left and
     // right Other ribbons aren't symmetric (they reflect the source and
     // target Other buckets independently), so making the role explicit
     // disambiguates what each tooltip is listing.
-    const otherTitle =
-        side === "exporter" ? "Other exporters" : "Other importers"
-    const title = isOther ? otherTitle : entityShortLabel(country)
+    const isExporterSide = side === "source"
+    const otherTitle = isExporterSide ? "Other exporters" : "Other importers"
+    const title = isOther ? otherTitle : getEntityShortLabel(entity)
     const subtitle = isOther
         ? String(year)
-        : side === "exporter"
+        : isExporterSide
           ? `Exports in ${year}`
           : `Imports in ${year}`
 
@@ -444,11 +458,11 @@ function bilateralTooltip({
     // Named country: one row per partner — the redundant side is implicit
     // from the title.
     const visibleItems = isOther
-        ? capItems(bucketTotalsBySmallSide(tradeRows, side))
+        ? capItems(bucketTotalsBySmallSide(flows, side))
         : capItems(
               partners.map((p) => ({
-                  name: entityShortLabel(p.entity),
-                  value: p.value,
+                  name: getEntityShortLabel(p.entity),
+                  value: p.total,
               }))
           )
     const overflowNoun = "countries"
@@ -492,15 +506,15 @@ function capItems<T>(items: T[]): { visible: T[]; hiddenCount: number } {
 // one country in the bucket with its total trade in that role. Sorted
 // desc by value.
 function bucketTotalsBySmallSide(
-    tradeRows: FlowRow[],
-    side: "exporter" | "importer"
+    flows: Flow[],
+    side: LinkSide
 ): { name: string; value: number }[] {
     const totals = new Map<string, number>()
-    for (const r of tradeRows) {
-        const key = side === "exporter" ? r.source : r.target
+    for (const r of flows) {
+        const key = side === "source" ? r.source : r.target
         totals.set(key, (totals.get(key) ?? 0) + r.value)
     }
     return Array.from(totals.entries())
-        .map(([name, value]) => ({ name: entityShortLabel(name), value }))
+        .map(([name, value]) => ({ name: getEntityShortLabel(name), value }))
         .sort((a, b) => b.value - a.value)
 }
