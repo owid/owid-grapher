@@ -24,6 +24,7 @@ import {
     ChartRecordType,
     ExplorerType,
     IndexingContext,
+    ChartViewsMap,
 } from "@ourworldindata/types"
 
 import * as db from "../../../db/db.js"
@@ -641,7 +642,7 @@ async function processAvailableEntities(
 async function finalizeRecords(
     records: EnrichedExplorerRecord[],
     slug: string,
-    views: Map<string, number>,
+    chartViewsMap: ChartViewsMap,
     explorerViewConfigIds: Map<string, string>,
     explorerInfo: MinimalExplorerInfo,
     numRelatedArticles: number
@@ -652,7 +653,10 @@ async function finalizeRecords(
 
     const withPageviews = withCleanEntities.map((record) => {
         const configId = explorerViewConfigIds.get(`${slug}:${record.viewId}`)
-        const views_7d = configId ? (views.get(configId) ?? 0) : 0
+        // Not worrying about resolving predessors here - redirecting charts/multidims to explorers is unlikely
+        const views_7d = configId
+            ? (chartViewsMap.explorer.get(configId) ?? 0)
+            : 0
         return { ...record, views_7d }
     })
     const unsortedFinalRecords = withPageviews.map((record, i) => {
@@ -716,7 +720,7 @@ async function finalizeRecords(
 export const getExplorerViewRecordsForExplorer = async (
     trx: db.KnexReadonlyTransaction,
     explorerInfo: MinimalExplorerInfo,
-    views: Map<string, number>,
+    chartViews: ChartViewsMap,
     explorerViewConfigIds: Map<string, string>,
     explorerAdminServer: ExplorerAdminServer,
     skipGrapherViews: boolean
@@ -813,7 +817,7 @@ export const getExplorerViewRecordsForExplorer = async (
     return finalizeRecords(
         enrichedRecords,
         slug,
-        views,
+        chartViews,
         explorerViewConfigIds,
         explorerInfo,
         numRelatedArticles
@@ -883,7 +887,7 @@ export const getExplorerViewRecords = async (
             getExplorerViewRecordsForExplorer(
                 trx,
                 explorerInfo,
-                context.chartViews,
+                context.chartViewsMap,
                 explorerViewConfigIds,
                 explorerAdminServer,
                 skipGrapherViews

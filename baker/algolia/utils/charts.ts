@@ -91,7 +91,13 @@ function getChartViews7d(
     chartId: number
 ): number {
     const redirectSlugs = context.redirectsByChartId.get(chartId) ?? []
-    return getMaxChartViews(context.chartViews, [slug, ...redirectSlugs])
+    return getMaxChartViews(
+        context.chartViewsMap,
+        [slug, ...redirectSlugs].map((s) => ({
+            type: "grapher_chart" as const,
+            id: s,
+        }))
+    )
 }
 
 /**

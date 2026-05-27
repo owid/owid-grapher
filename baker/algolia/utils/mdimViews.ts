@@ -18,6 +18,7 @@ import { logErrorAndMaybeCaptureInSentry } from "../../../serverUtils/errorLog.j
 import {
     ChartRecord,
     ChartRecordType,
+    ChartViewsMap,
     ContentGraphLinkType,
     IndexingContext,
 } from "@ourworldindata/types"
@@ -29,6 +30,7 @@ import {
     attributeLinksToViewIds,
     bucketPredecessorsByQueryStr,
     dimensionsToSortedQueryStr,
+    multiDimRedirectsToChartViewsMapKeys,
 } from "./mdimViewsLogic.js"
 import { getMaxChartViews } from "./pageviews.js"
 import {
@@ -101,7 +103,7 @@ async function getRecords(
     trx: db.KnexReadonlyTransaction,
     multiDim: PublishedMultiDimWithSlug,
     tags: string[],
-    views: Map<string, number>,
+    chartViewsMap: ChartViewsMap,
     redirects: MultiDimRedirectWithLookupKey[]
 ) {
     const { slug } = multiDim
@@ -179,11 +181,10 @@ async function getRecords(
         // Max across own views and any predecessors that redirect into this view,
         // so the search score doesn't lose pre-redirect signal during the first week.
         const predecessors = predecessorsByQueryStr.get(queryStr) ?? []
-        const predecessorKeys = predecessors
-            .map((p) => p.lookupKey)
-            .filter((k): k is string => k !== undefined)
-        const views_7d = getMaxChartViews(views, [
-            view.fullConfigId,
+        const predecessorKeys =
+            multiDimRedirectsToChartViewsMapKeys(predecessors)
+        const views_7d = getMaxChartViews(chartViewsMap, [
+            { type: "multidim", id: view.fullConfigId },
             ...predecessorKeys,
         ])
         const score = computeRecordScore(
@@ -301,7 +302,7 @@ export async function getMultiDimViewRecords(
                 trx,
                 multiDim,
                 tags,
-                context.chartViews,
+                context.chartViewsMap,
                 context.redirectsByMultiDimSlug.get(multiDim.slug) ?? []
             ),
         { concurrency: 10 }

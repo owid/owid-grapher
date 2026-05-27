@@ -1,4 +1,5 @@
 import {
+    AnalyticsChartViewsType,
     dimensionsToViewId,
     extractMultiDimChoicesFromSearchParams,
     MultiDimDataPageConfig,
@@ -68,4 +69,27 @@ export function bucketPredecessorsByQueryStr(
         else result.set(key, [redirect])
     }
     return result
+}
+
+/**
+ * ChartViewsMap distinguishes between grapher_chart and multidim views,
+ * but bucketPredecessorsByQueryStr returns redirects without that distinction.
+ * This function takes a list of redirects and gives us keys that we can check against
+ * chartViewsMap to find the relevant pageviews for each redirect.
+ */
+export function multiDimRedirectsToChartViewsMapKeys(
+    lookups: MultiDimRedirectWithLookupKey[]
+): { id: string; type: AnalyticsChartViewsType }[] {
+    const keys: { id: string; type: AnalyticsChartViewsType }[] = []
+    for (const redirect of lookups) {
+        if (!redirect.lookupKey) continue
+        if (redirect.sourcePrefix === "/explorers/") {
+            keys.push({ type: "explorer", id: redirect.lookupKey })
+        } else {
+            keys.push({ type: "multidim", id: redirect.lookupKey })
+            keys.push({ type: "grapher_chart", id: redirect.lookupKey })
+        }
+    }
+
+    return keys
 }

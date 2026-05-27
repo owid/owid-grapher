@@ -353,6 +353,7 @@ export {
     AnalyticsPageviewsTableName,
 } from "./dbTypes/AnalyticsPageviews.js"
 export {
+    type AnalyticsChartViewsType,
     AnalyticsChartViewsTableName,
     type DbPlainAnalyticsChartViewsRow,
 } from "./dbTypes/AnalyticsChartViews.js"
