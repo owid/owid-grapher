@@ -18,10 +18,7 @@ import {
 import { toLeftRight } from "./DumbbellChartHelpers"
 import { GRID_LINE_DASH_PATTERN, TICK_COLOR } from "../axis/AxisViews.js"
 import { darkenColorForText } from "../color/ColorUtils.js"
-import {
-    GRAPHER_DARK_TEXT,
-    GRAPHER_LIGHT_TEXT,
-} from "../color/ColorConstants.js"
+import { GRAPHER_DARK_TEXT } from "../color/ColorConstants.js"
 
 export function DumbbellChartRow({
     series,
@@ -68,7 +65,7 @@ export function DumbbellChartRow({
                     state={series.label}
                     x={series.labelPosition.x}
                     y={series.labelPosition.yOffset}
-                    color={{ name: GRAPHER_LIGHT_TEXT }}
+                    color={{ name: style.labelColor }}
                     onInfoTooltipShow={onInfoTooltipShow}
                 />
             )}
