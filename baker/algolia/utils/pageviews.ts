@@ -45,9 +45,7 @@ export async function getAnalyticsChartViews(
 export async function getExplorerViewConfigIds(
     trx: db.KnexReadonlyTransaction
 ): Promise<Map<string, string>> {
-    const rows = await trx<
-        Pick<DbRawExplorerView, "explorerSlug" | "viewId" | "chartConfigId">
-    >(ExplorerViewsTableName)
+    const rows = await trx<DbRawExplorerView>(ExplorerViewsTableName)
         .select("explorerSlug", "viewId", "chartConfigId")
         .whereNotNull("chartConfigId")
     return new Map(
