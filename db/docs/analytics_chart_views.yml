@@ -20,7 +20,7 @@ fields:
   view_config_id:
     description: Dimension config ID (empty string if no config)
   type:
-    description: Type of view - "explorer", "mdim", or "grapher_chart"
+    description: Type of view - "explorer", "multidim", or "grapher_chart"
   views_7d:
     description: Rolling 7-day view count
   views_14d:

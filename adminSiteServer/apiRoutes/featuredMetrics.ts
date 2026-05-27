@@ -6,11 +6,12 @@ import {
 import { Request } from "express"
 import { HandlerResponse } from "../FunctionalRouter.js"
 import * as db from "../../db/db.js"
+import { expectInt } from "../../serverUtils/serverUtil.js"
 
 export async function createFeaturedMetric(
     req: Request,
     _res: HandlerResponse,
-    trx: db.KnexReadonlyTransaction
+    trx: db.KnexReadWriteTransaction
 ) {
     const { url, parentTagName, ranking, incomeGroup } = req.body
 
@@ -68,7 +69,7 @@ export async function createFeaturedMetric(
 export async function rerankFeaturedMetrics(
     req: Request,
     _res: HandlerResponse,
-    trx: db.KnexReadonlyTransaction
+    trx: db.KnexReadWriteTransaction
 ) {
     const featuredMetrics = req.body
 
@@ -94,9 +95,9 @@ export async function rerankFeaturedMetrics(
 export async function deleteFeaturedMetric(
     req: Request,
     _res: HandlerResponse,
-    trx: db.KnexReadonlyTransaction
+    trx: db.KnexReadWriteTransaction
 ) {
-    const { id } = req.params
+    const id = expectInt(req.params.id)
 
     const featuredMetric = await trx(FeaturedMetricsTableName)
         .where({ id })
@@ -121,9 +122,9 @@ export async function deleteFeaturedMetric(
 export async function updateFeaturedMetricBoost(
     req: Request,
     _res: HandlerResponse,
-    trx: db.KnexReadonlyTransaction
+    trx: db.KnexReadWriteTransaction
 ) {
-    const { id } = req.params
+    const id = expectInt(req.params.id)
     const { boostInSearch } = req.body
 
     if (boostInSearch === undefined) {

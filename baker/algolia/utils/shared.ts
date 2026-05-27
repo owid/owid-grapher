@@ -192,16 +192,15 @@ export const MAX_NON_FM_RECORD_SCORE = 10000
 
 /**
  * Unified score formula for all record types (charts, multi-dim views, explorer views).
- * Uses the number of related articles as the primary editorial signal,
- * pageviews as a secondary signal, and a small penalty for longer titles
- * to downrank more specific variants (e.g. "Male life expectancy, 16-24"
- * ranks below "Life expectancy").
+ * Pageviews are the dominant signal — for most records they're far larger than
+ * the related-articles term, so ranking is effectively pageview-driven. The
+ * related-articles term adds a modest editorial bump that mainly matters at the
+ * low-traffic end.
  */
 export const computeRecordScore = (
     numRelatedArticles: number,
-    views_7d: number,
-    titleLength: number = 0
-): number => numRelatedArticles * 500 + views_7d - titleLength
+    views_7d: number
+): number => numRelatedArticles * 500 + views_7d
 
 /**
  * All featured metrics start at a score of 11000, which places them above all

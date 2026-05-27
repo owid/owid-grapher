@@ -1,20 +1,17 @@
 import * as db from "../../../db/db.js"
 import {
     ChartsIndexingContext,
-    DbRawExplorerView,
-    ExplorerViewsTableName,
+    ChartViewsMap,
+    DbPlainMultiDimXChartConfig,
+    ExplorerIndexingContext,
     IndexingContext,
+    MultiDimXChartConfigsTableName,
 } from "@ourworldindata/types"
-import { dimensionsToViewId } from "@ourworldindata/utils"
 import { getChartRedirectSlugsByChartId } from "./charts.js"
-import { getAnalyticsChartViews } from "./pageviews.js"
 import {
-    getMultiDimRedirects,
-    MultiDimRedirect,
-} from "../../../db/model/MultiDimRedirects.js"
-import { ExplorerAdminServer } from "../../../explorerAdminServer/ExplorerAdminServer.js"
-import { isDefined, pickBy } from "remeda"
-import { ExplorerChoiceParams } from "@ourworldindata/explorer"
+    getChartViewsMap,
+    getMaxChartViewsFromMultiDimPredecessors,
+} from "./pageviews.js"
 
 /**
  * Creates a base IndexingContext containing the shared enrichment data.
@@ -22,12 +19,13 @@ import { ExplorerChoiceParams } from "@ourworldindata/explorer"
 export async function createBaseIndexingContext(
     knex: db.KnexReadonlyTransaction
 ): Promise<IndexingContext> {
-    const [chartViewsMap, topicHierarchies] = await Promise.all([
-        getAnalyticsChartViews(knex),
+    const [topicHierarchies] = await Promise.all([
         db.getTopicHierarchiesByChildName(knex),
     ])
 
-    return { chartViewsMap, topicHierarchies }
+    return {
+        topicHierarchies,
+    }
 }
 
 /**
@@ -39,12 +37,17 @@ export async function createChartsIndexingContext(
     chartIds?: number[],
     baseContext?: IndexingContext
 ): Promise<ChartsIndexingContext> {
-    const [base, redirectsByChartId] = await Promise.all([
+    const [base, redirectsByChartId, chartViewsMap] = await Promise.all([
         baseContext ?? createBaseIndexingContext(knex),
         getChartRedirectSlugsByChartId(knex, chartIds),
+        getChartViewsMap(knex),
     ])
 
-    return { ...base, redirectsByChartId }
+    return {
+        ...base,
+        redirectsByChartId,
+        chartViewsMap,
+    }
 }
 
 /**
@@ -54,120 +57,31 @@ export async function createChartsIndexingContext(
 export async function createExplorersIndexingContext(
     knex: db.KnexReadonlyTransaction,
     baseContext?: IndexingContext
-): Promise<IndexingContext> {
-    return baseContext ?? createBaseIndexingContext(knex)
-}
-
-/**
- * A redirect with a resolved key for looking up its source's views_7d in the
- * analytics_chart_views map. For grapher sources the key is just the slug;
- * for explorer sources it's the explorer's default view's chartConfigId.
- * Undefined means the source can't be resolved (e.g. explorer was deleted or
- * its default view failed to extract) — treated as "no signal", not an error.
- */
-export type MultiDimRedirectWithLookupKey = MultiDimRedirect & {
-    lookupKey: string | undefined
-}
-
-/**
- * For each explorer slug, resolves the chartConfigId of its default view
- * Used to look up the explorer's default-view pageviews in analytics_chart_views,
- * which is keyed by chartConfigId rather than explorer slug.
- */
-async function getExplorerDefaultViewConfigIds(
-    knex: db.KnexReadonlyTransaction,
-    explorerSlugs: string[]
-): Promise<Map<string, string>> {
-    const result = new Map<string, string>()
-    if (explorerSlugs.length === 0) return result
-
-    const explorerAdminServer = new ExplorerAdminServer()
-    const explorerSlugByViewKey = new Map<string, string>()
-    for (const slug of explorerSlugs) {
-        try {
-            const program = await explorerAdminServer.getExplorerFromSlug(
-                knex,
-                slug
-            )
-            const defaultView = pickBy(isDefined)(
-                program.decisionMatrix.currentParams
-            ) as ExplorerChoiceParams
-            const viewId = dimensionsToViewId(defaultView)
-            explorerSlugByViewKey.set(`${slug}:${viewId}`, slug)
-        } catch (e) {
-            // Explorer may have been deleted; skip silently — caller treats
-            // missing entries as "no signal".
-            console.error(
-                `Failed to resolve default view for explorer ${slug}:`,
-                e
-            )
-        }
-    }
-    if (explorerSlugByViewKey.size === 0) return result
-
-    const rows = await knex<DbRawExplorerView>(ExplorerViewsTableName)
-        .select("explorerSlug", "viewId", "chartConfigId")
-        .whereNotNull("chartConfigId")
-
-    for (const row of rows) {
-        const slug = explorerSlugByViewKey.get(
-            `${row.explorerSlug}:${row.viewId}`
-        )
-        if (slug && row.chartConfigId) result.set(slug, row.chartConfigId)
-    }
-    return result
-}
-
-/**
- * Inverts the grapher/explorer→multi-dim redirect map into a lookup keyed by the
- * multi-dim target slug, so each mdim can find the sources that now redirect into
- * it. Each redirect is enriched with a resolved analytics_chart_views lookup
- * key (see MultiDimRedirectWithLookupKey).
- */
-async function getMultiDimRedirectsByMultiDimSlug(
-    knex: db.KnexReadonlyTransaction
-): Promise<Map<string, MultiDimRedirectWithLookupKey[]>> {
-    const [grapherTargets, explorerTargets] = await Promise.all([
-        getMultiDimRedirects(knex, undefined, "/grapher/"),
-        getMultiDimRedirects(knex, undefined, "/explorers/"),
+): Promise<ExplorerIndexingContext> {
+    const [base, chartViewsMap] = await Promise.all([
+        baseContext ?? createBaseIndexingContext(knex),
+        getChartViewsMap(knex),
     ])
 
-    const explorerSourceSlugs = [...new Set(explorerTargets.keys())]
-    const explorerDefaultViewConfigIds = await getExplorerDefaultViewConfigIds(
-        knex,
-        explorerSourceSlugs
-    )
-
-    const result = new Map<string, MultiDimRedirectWithLookupKey[]>()
-    for (const [, redirect] of grapherTargets) {
-        const enriched: MultiDimRedirectWithLookupKey = {
-            ...redirect,
-            lookupKey: redirect.sourceSlug,
-        }
-        const existing = result.get(redirect.targetSlug)
-        if (existing) existing.push(enriched)
-        else result.set(redirect.targetSlug, [enriched])
+    return {
+        ...base,
+        chartViewsMap,
     }
-    for (const [, redirect] of explorerTargets) {
-        const enriched: MultiDimRedirectWithLookupKey = {
-            ...redirect,
-            lookupKey: explorerDefaultViewConfigIds.get(redirect.sourceSlug),
-        }
-        const existing = result.get(redirect.targetSlug)
-        if (existing) existing.push(enriched)
-        else result.set(redirect.targetSlug, [enriched])
-    }
-    return result
 }
 
 export type MultiDimIndexingContext = IndexingContext & {
-    /**
-     * Redirect sources (grapher or explorer slugs) grouped by the target mdim's
-     * slug. Used to attribute a pre-redirect chart's views_7d to the mdim view
-     * it now redirects to, so the search score doesn't lose that signal during
-     * the redirect's first week.
-     */
-    redirectsByMultiDimSlug: Map<string, MultiDimRedirectWithLookupKey[]>
+    multiDimXChartConfigIdMap: Map<string, number>
+    predecessorMaxChartViewsByMultiDimViewConfigId: Map<string, number>
+    chartViewsMap: ChartViewsMap
+}
+
+async function getMultiDimXChartConfigIdMap(trx: db.KnexReadonlyTransaction) {
+    const rows = await trx<DbPlainMultiDimXChartConfig>(
+        MultiDimXChartConfigsTableName
+    ).select("id", "multiDimId", "viewId")
+    return new Map(
+        rows.map((row) => [`${row.multiDimId}-${row.viewId}`, row.id])
+    )
 }
 
 /**
@@ -178,10 +92,22 @@ export async function createMultiDimIndexingContext(
     knex: db.KnexReadonlyTransaction,
     baseContext?: IndexingContext
 ): Promise<MultiDimIndexingContext> {
-    const [base, redirectsByMultiDimSlug] = await Promise.all([
+    const [
+        base,
+        multiDimXChartConfigIdMap,
+        predecessorMaxChartViewsByMultiDimViewConfigId,
+        chartViewsMap,
+    ] = await Promise.all([
         baseContext ?? createBaseIndexingContext(knex),
-        getMultiDimRedirectsByMultiDimSlug(knex),
+        getMultiDimXChartConfigIdMap(knex),
+        getMaxChartViewsFromMultiDimPredecessors(knex),
+        getChartViewsMap(knex),
     ])
 
-    return { ...base, redirectsByMultiDimSlug }
+    return {
+        ...base,
+        multiDimXChartConfigIdMap,
+        predecessorMaxChartViewsByMultiDimViewConfigId,
+        chartViewsMap,
+    }
 }

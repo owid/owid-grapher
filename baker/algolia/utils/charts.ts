@@ -25,7 +25,6 @@ import {
 } from "./shared.js"
 import { GrapherState } from "@ourworldindata/grapher"
 import { toPlaintext } from "@ourworldindata/components"
-import { getMaxChartViews } from "./pageviews.js"
 import { createChartsIndexingContext } from "./context.js"
 import pMap from "p-map"
 
@@ -91,12 +90,11 @@ function getChartViews7d(
     chartId: number
 ): number {
     const redirectSlugs = context.redirectsByChartId.get(chartId) ?? []
-    return getMaxChartViews(
-        context.chartViewsMap,
-        [slug, ...redirectSlugs].map((s) => ({
-            type: "grapher_chart" as const,
-            id: s,
-        }))
+    return Math.max(
+        0,
+        ...[slug, ...redirectSlugs].map(
+            (s) => context.chartViewsMap.byGrapherSlug.get(s) ?? 0
+        )
     )
 }
 
@@ -277,11 +275,7 @@ async function buildChartRecord(
         datasetVersions: chart.datasetVersions,
         datasetProducts: chart.datasetProducts,
         datasetProducers: chart.datasetProducers,
-        score: computeRecordScore(
-            numRelatedArticles,
-            views_7d,
-            chart.config.title?.length
-        ),
+        score: computeRecordScore(numRelatedArticles, views_7d),
     }
 }
 
