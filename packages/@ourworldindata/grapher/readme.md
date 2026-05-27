@@ -84,3 +84,116 @@ Render --> UserEditsTransforms((When User Uses Controls))
 UserEditsTransforms --> GlobalTransforms
 UserEditsTransforms --> DataNeeds
 ```
+
+## Embedding & Programmatic API
+
+The Grapher package can be built as a standalone library or CDN bundle, allowing external applications or plain HTML pages to dynamically render Our World in Data visualizations.
+
+### 1. Build Outputs
+
+Running the build script produces the following outputs under `dist/`:
+
+- `grapher.js`: The ES module library build. React and React DOM are marked as external peer dependencies (ideal for modern React apps or bundler environments).
+- `grapher.bundle.js`: The standalone CDN bundle. All dependencies (including React and React DOM) are bundled, enabling plug-and-play usage directly in any HTML page.
+- `grapher.css`: The stylesheet containing all Grapher layouts and components styles.
+- `grapher.public.d.ts`: TypeScript declaration entry point for the public API.
+
+To compile these assets:
+
+```bash
+cd packages/@ourworldindata/grapher
+yarn build
+```
+
+---
+
+### 2. Quick Start: CDN / Direct HTML Usage
+
+For direct embedding on static sites or non-React applications, include the CSS stylesheet and import the bundle dynamically:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Embed Grapher</title>
+        <!-- 1. Include Grapher Styles -->
+        <link rel="stylesheet" href="path/to/dist/grapher.css" />
+        <style>
+            .my-chart-container {
+                width: 100%;
+                max-width: 800px;
+                aspect-ratio: 850 / 600;
+                border: 1px solid #ddd;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="chart" class="my-chart-container"></div>
+
+        <script type="module">
+            // 2. Import GrapherLoader from the standalone bundle
+            import { GrapherLoader } from "./path/to/dist/grapher.bundle.js"
+
+            // 3. Load from a CSV URL and mount it
+            const chart = GrapherLoader.fromCsv({
+                config: {
+                    title: "My Custom Chart",
+                    selectedEntityNames: ["France", "Germany"],
+                },
+                csvUrl: "./data.csv",
+                columnDefs: [
+                    {
+                        slug: "indicator_slug",
+                        type: "Numeric",
+                        name: "Indicator Name",
+                        unit: "units",
+                    },
+                ],
+            })
+
+            chart.mount(document.getElementById("chart"))
+        </script>
+    </body>
+</html>
+```
+
+---
+
+### 3. API Reference: `GrapherLoader`
+
+The `GrapherLoader` class orchestrates dataset downloading, metadata normalization, state management, container sizing, and React rendering.
+
+#### Static Factories
+
+##### `GrapherLoader.fromTable({ config, data })`
+
+Initializes a chart using an in-memory `OwidTable` instance. Excellent for cases where you already have data in memory.
+
+- **`config`** (`GrapherInterface`): The standard Grapher configuration object (e.g. `title`, `selectedEntityNames`).
+- **`data`** (`OwidTable`): An `OwidTable` instance containing the rows.
+
+##### `GrapherLoader.fromCsv({ config, csvUrl, columnDefs })`
+
+Asynchronously fetches and parses a remote CSV file, automatically creating an `OwidTable` inside Grapher.
+
+- **`config`** (`GrapherInterface`): Grapher configuration.
+- **`csvUrl`** (`string`): URL pointing to a CSV file. The file must include `entityName`, `entityCode`, `entityId`, and `year` (or `day`) columns, plus one or more value columns.
+- **`columnDefs`** (`OwidColumnDef[]`, optional): Definitions describing the types, names, colors, and formatting of each column.
+
+##### `GrapherLoader.fromApi({ config, dataApiUrl })`
+
+Loads data directly from the Our World in Data Catalog/Indicators API.
+
+- **`config`** (`GrapherInterface`): Grapher configuration. Must include a `dimensions` array listing the required variable/indicator IDs (e.g., `variableId: 1118466`).
+- **`dataApiUrl`** (`string`, optional): Custom indicators base URL. Defaults to `"https://api.ourworldindata.org/v1/indicators/"`.
+
+#### Instance Methods
+
+- **`mount(container: HTMLElement): this`**
+  Renders the chart inside the target container. Resizes of the container will be observed and automatically update the chart bounds.
+- **`dispose(): void`**
+  Unmounts the chart, cleans up the React root, and disconnects all observers.
+- **`grapherState`** (`GrapherState`)
+  The underlying mutable MobX state of the chart. You can read properties or modify them programmatically (e.g., changing `selectedEntityNames` on the fly).
