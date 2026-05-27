@@ -105,9 +105,8 @@ const indexExplorerViewsMdimViewsAndChartsToAlgolia = async () => {
             objects: records as Array<Record<string, any>>,
         })
         console.log(`Indexing complete`)
+        await reportFeaturedMetricFailuresToSlack(failures)
     }
-
-    await reportFeaturedMetricFailuresToSlack(failures)
 }
 
 indexExplorerViewsMdimViewsAndChartsToAlgolia().catch(async (e) => {

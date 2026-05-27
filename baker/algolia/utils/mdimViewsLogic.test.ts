@@ -5,11 +5,7 @@ import {
     MultiDimDataPageConfig,
 } from "@ourworldindata/utils"
 import { MultiDimDataPageConfigEnriched } from "@ourworldindata/types"
-import { MultiDimRedirectWithLookupKey } from "./context.js"
-import {
-    attributeLinksToViewIds,
-    bucketPredecessorsByQueryStr,
-} from "./mdimViewsLogic.js"
+import { attributeLinksToViewIds } from "./mdimViewsLogic.js"
 
 // Two dimensions, two choices each. Default view (first choice in each
 // dimension) is {view: "stunting", interval: "yearly"}.
@@ -119,67 +115,5 @@ describe(attributeLinksToViewIds, () => {
         )
         expect(result.get(povertyViewId)).toBe(2)
         expect(result.get(defaultViewId)).toBe(1)
-    })
-})
-
-const makeRedirect = (
-    overrides: Partial<MultiDimRedirectWithLookupKey> = {}
-): MultiDimRedirectWithLookupKey => ({
-    sourcePrefix: "/grapher/",
-    sourceSlug: "old-chart",
-    targetSlug: "new-mdim",
-    targetQueryStr: undefined,
-    lookupKey: "old-chart",
-    ...overrides,
-})
-
-describe(bucketPredecessorsByQueryStr, () => {
-    it("returns an empty map for no redirects", () => {
-        const result = bucketPredecessorsByQueryStr([], "view=stunting")
-        expect(result.size).toBe(0)
-    })
-
-    it("buckets a redirect with targetQueryStr under that queryStr", () => {
-        const redirect = makeRedirect({ targetQueryStr: "view=poverty" })
-        const result = bucketPredecessorsByQueryStr([redirect], "view=stunting")
-        expect(result.get("view=poverty")).toEqual([redirect])
-        expect(result.has("view=stunting")).toBe(false)
-    })
-
-    it("buckets a redirect without targetQueryStr under the default queryStr", () => {
-        const redirect = makeRedirect({ targetQueryStr: undefined })
-        const result = bucketPredecessorsByQueryStr([redirect], "view=stunting")
-        expect(result.get("view=stunting")).toEqual([redirect])
-    })
-
-    it("groups multiple redirects targeting the same view", () => {
-        const a = makeRedirect({
-            sourceSlug: "a",
-            lookupKey: "a",
-            targetQueryStr: "view=poverty",
-        })
-        const b = makeRedirect({
-            sourceSlug: "b",
-            lookupKey: "b",
-            targetQueryStr: "view=poverty",
-        })
-        const result = bucketPredecessorsByQueryStr([a, b], "view=stunting")
-        expect(result.get("view=poverty")).toEqual([a, b])
-    })
-
-    it("keeps redirects targeting different views in separate buckets", () => {
-        const a = makeRedirect({
-            sourceSlug: "a",
-            lookupKey: "a",
-            targetQueryStr: undefined, // default view
-        })
-        const b = makeRedirect({
-            sourceSlug: "b",
-            lookupKey: "b",
-            targetQueryStr: "view=poverty",
-        })
-        const result = bucketPredecessorsByQueryStr([a, b], "view=stunting")
-        expect(result.get("view=stunting")).toEqual([a])
-        expect(result.get("view=poverty")).toEqual([b])
     })
 })

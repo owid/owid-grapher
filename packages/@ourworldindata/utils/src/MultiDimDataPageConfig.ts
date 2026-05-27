@@ -155,6 +155,14 @@ export class MultiDimDataPageConfig {
         }
     }
 
+    getDefaultSelectedChoices(): MultiDimDimensionChoices {
+        return this.filterToAvailableChoices({}).selectedChoices
+    }
+
+    getDefaultView(): ViewEnriched | undefined {
+        return this.findViewByDimensions(this.getDefaultSelectedChoices())
+    }
+
     mergeViewMetadata(
         dimensions: MultiDimDimensionChoices,
         variableMetadata: OwidVariableWithSourceAndDimension
@@ -241,7 +249,7 @@ export function searchParamsToMultiDimView(
     )
     if (_.isEmpty(dimensions)) {
         // Get the default dimensions.
-        dimensions = multiDimConfig.filterToAvailableChoices({}).selectedChoices
+        dimensions = multiDimConfig.getDefaultSelectedChoices()
     }
     const view = multiDimConfig.findViewByDimensions(dimensions)
     if (!view) {

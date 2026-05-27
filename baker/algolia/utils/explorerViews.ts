@@ -655,7 +655,7 @@ async function finalizeRecords(
         const configId = explorerViewConfigIds.get(`${slug}:${record.viewId}`)
         // Not worrying about resolving predessors here - redirecting charts/multidims to explorers is unlikely
         const views_7d = configId
-            ? (chartViewsMap.explorer.get(configId) ?? 0)
+            ? (chartViewsMap.byConfigId.get(configId) ?? 0)
             : 0
         return { ...record, views_7d }
     })
@@ -687,8 +687,7 @@ async function finalizeRecords(
             id: `explorer/${explorerInfo.slug}${record.viewQueryParams}`,
             score: computeRecordScore(
                 viewNumRelatedArticles,
-                record.views_7d,
-                record.titleLength
+                record.views_7d
             ),
             views_7d: record.views_7d,
             availableEntities: record.availableEntities,

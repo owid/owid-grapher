@@ -2,13 +2,11 @@ import * as _ from "lodash-es"
 import {
     ChartConfigsTableName,
     DbEnrichedMultiDimDataPage,
-    DbPlainMultiDimXChartConfig,
     DbRawChartConfig,
     getUniqueNamesFromTagHierarchies,
     merge,
     dimensionsToViewId,
     MultiDimDataPageConfig,
-    MultiDimXChartConfigsTableName,
     parseChartConfig,
 } from "@ourworldindata/utils"
 import { toPlaintext } from "@ourworldindata/components"
@@ -22,17 +20,11 @@ import {
     ContentGraphLinkType,
     IndexingContext,
 } from "@ourworldindata/types"
-import {
-    createMultiDimIndexingContext,
-    MultiDimRedirectWithLookupKey,
-} from "./context.js"
+import { createMultiDimIndexingContext } from "./context.js"
 import {
     attributeLinksToViewIds,
-    bucketPredecessorsByQueryStr,
     dimensionsToSortedQueryStr,
-    multiDimRedirectsToChartViewsMapKeys,
 } from "./mdimViewsLogic.js"
-import { getMaxChartViews } from "./pageviews.js"
 import {
     getRelevantVariableIds,
     getRelevantVariableMetadata,
@@ -59,15 +51,6 @@ async function getChartConfigsByIds(
         .select("id", "full")
         .whereIn("id", ids)
     return new Map(rows.map((row) => [row.id, parseChartConfig(row.full)]))
-}
-
-async function getMultiDimXChartConfigIdMap(trx: db.KnexReadonlyTransaction) {
-    const rows = await trx<DbPlainMultiDimXChartConfig>(
-        MultiDimXChartConfigsTableName
-    ).select("id", "multiDimId", "viewId")
-    return new Map(
-        rows.map((row) => [`${row.multiDimId}-${row.viewId}`, row.id])
-    )
 }
 
 async function getDatasetDimensionsByVariableIds(
@@ -104,13 +87,13 @@ async function getRecords(
     multiDim: PublishedMultiDimWithSlug,
     tags: string[],
     chartViewsMap: ChartViewsMap,
-    redirects: MultiDimRedirectWithLookupKey[]
+    predecessorMaxChartViewsByMultiDimViewConfigId: Map<string, number>,
+    multiDimXChartConfigIdMap: Map<string, number>
 ) {
     const { slug } = multiDim
     console.log(
         `Creating ${multiDim.config.views.length} records for mdim ${slug}`
     )
-    const multiDimXChartConfigIdMap = await getMultiDimXChartConfigIdMap(trx)
     const chartConfigs = await getChartConfigsByIds(
         trx,
         multiDim.config.views.map((view) => view.fullConfigId)
@@ -126,17 +109,11 @@ async function getRecords(
         ContentGraphLinkType.Grapher
     )
     const multiDimConfig = MultiDimDataPageConfig.fromObject(multiDim.config)
-    const defaultViewQueryStr = dimensionsToSortedQueryStr(
-        multiDimConfig.filterToAvailableChoices({}).selectedChoices
-    )
     const numRelatedArticlesByViewId = attributeLinksToViewIds(
         linksFromGdocs,
         multiDimConfig
     )
-    const predecessorsByQueryStr = bucketPredecessorsByQueryStr(
-        redirects,
-        defaultViewQueryStr
-    )
+
     return multiDim.config.views.map((view) => {
         const viewId = dimensionsToViewId(view.dimensions)
         const viewNumRelatedArticles =
@@ -177,21 +154,14 @@ async function getRecords(
         const availableEntities = metadata.dimensions.entities.values
             .map((entity) => entity.name)
             .filter(Boolean)
-        // Keyed by config ID so we don't have to worry about slug renames/redirects.
-        // Max across own views and any predecessors that redirect into this view,
-        // so the search score doesn't lose pre-redirect signal during the first week.
-        const predecessors = predecessorsByQueryStr.get(queryStr) ?? []
-        const predecessorKeys =
-            multiDimRedirectsToChartViewsMapKeys(predecessors)
-        const views_7d = getMaxChartViews(chartViewsMap, [
-            { type: "multidim", id: view.fullConfigId },
-            ...predecessorKeys,
-        ])
-        const score = computeRecordScore(
-            viewNumRelatedArticles,
-            views_7d,
-            title.length
+
+        const views_7d = Math.max(
+            chartViewsMap.byConfigId.get(view.fullConfigId) ?? 0,
+            predecessorMaxChartViewsByMultiDimViewConfigId.get(
+                view.fullConfigId
+            ) ?? 0
         )
+        const score = computeRecordScore(viewNumRelatedArticles, views_7d)
 
         const datasetDimensions = view.indicators.y
             .map((ind) => datasetDimensionsByVariableId.get(ind.id))
@@ -303,7 +273,8 @@ export async function getMultiDimViewRecords(
                 multiDim,
                 tags,
                 context.chartViewsMap,
-                context.redirectsByMultiDimSlug.get(multiDim.slug) ?? []
+                context.predecessorMaxChartViewsByMultiDimViewConfigId,
+                context.multiDimXChartConfigIdMap
             ),
         { concurrency: 10 }
     )
