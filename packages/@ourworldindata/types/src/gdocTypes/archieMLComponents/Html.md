@@ -3,11 +3,13 @@ supports things that inline Google Docs formatting doesn't — such as
 iframes or inline styling.
 
 ## When to use
+
 - To embed external iframes (YouTube, third-party tools).
 - For the very rare case where inline styling is needed and nothing else
   will do.
 
 ## When NOT to use
+
 - Regular text styling — use Google Docs formatting (bold, italic, links,
   superscript / subscript) instead.
 - Code samples to display verbatim — use `{.code}`.

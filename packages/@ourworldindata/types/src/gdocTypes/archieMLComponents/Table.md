@@ -2,13 +2,16 @@ A simple table, built from a native Google Docs table wrapped in an
 archie block. Three header templates are supported.
 
 ## When to use
+
 - Small-to-medium tables that are best authored directly in Google Docs.
 
 ## When NOT to use
+
 - For very large or complex tables, wrap a Google Docs table inside an
   `{.expander}` so it can be hidden by default.
 
 ## Variations
+
 - `template`: `header-column` | `header-row` | `header-column-row`
 - `size`: `narrow` | `wide` — defaults to spanning 6 columns; use `wide`
   for full width.

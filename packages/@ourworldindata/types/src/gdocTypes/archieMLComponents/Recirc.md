@@ -3,17 +3,20 @@ readers to related content (articles, graphers, explorers, MDIMs, or
 external URLs).
 
 ## When to use
+
 - Surfacing related reading alongside an article.
 - Linking to charts, explorers, MDIMs, or external sources without
   interrupting the main flow.
 
 ## When NOT to use
+
 - Prefer `{.prominent-link}` for a single, more visually prominent link
   tile.
 - Prefer `{.resource-panel}` on linear topic pages when you want a sticky
   sidebar CTA.
 
 ## Variations
+
 - `align`: `left` | `center` | `right`
 - Each link can use the linked document's own title/subtitle, or override
   them via `title` and `subtitle`.

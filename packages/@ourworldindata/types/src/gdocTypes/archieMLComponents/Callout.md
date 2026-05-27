@@ -3,15 +3,18 @@ information — e.g. "data was last updated", caveats about methodology,
 or short editorial notes.
 
 ## When to use
+
 - Flagging data freshness, caveats, or other meta-textual notes.
 - Short side notes that should stand out from the main body.
 
 ## When NOT to use
+
 - Prefer `{.aside}` for a plaintext caption placed to the side of a
   paragraph.
 - Prefer `{.data-callout}` when interpolating live chart data.
 
 ## Variations
+
 - `title` is optional.
 - `icon` is optional; only the `info` icon is supported.
 - The text block can contain paragraphs, headings, and lists.

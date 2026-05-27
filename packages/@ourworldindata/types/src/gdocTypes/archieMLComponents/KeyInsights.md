@@ -3,13 +3,16 @@ page. Each slide has a title, optional visual (chart, narrative chart,
 or image), and a body of rich content.
 
 ## When to use
+
 - Near the top of a topic page, summarising the most important
   findings on the topic.
 
 ## When NOT to use
+
 - On articles or data insights.
 
 ## Variations
+
 - Each slide's visual is either a `url` (grapher/explorer), a
   `narrativeChartName`, or a `filename` (image). Use at most one.
 
