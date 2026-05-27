@@ -184,24 +184,46 @@ export class DumbbellTwoColumnTooltip extends React.Component<DumbbellTooltipPro
     }
 
     @computed private get roundingNotice(): FooterItem | undefined {
-        const [startColumn, endColumn] = this.columns
-        const numSigFigs = excludeUndefined([
-            startColumn.roundsToSignificantFigures
-                ? startColumn.numSignificantFigures
-                : undefined,
-            endColumn.roundsToSignificantFigures
-                ? endColumn.numSignificantFigures
-                : undefined,
-        ])
-        if (numSigFigs.length === 0) return undefined
+        const entries = excludeUndefined([...this.columns, this.changeRow])
+
+        const allRoundedToSigFigs = entries.every(
+            (entry) => entry.roundsToSignificantFigures
+        )
+        const anyRoundedToSigFigs = entries.some(
+            (entry) => entry.roundsToSignificantFigures
+        )
+
+        if (!anyRoundedToSigFigs) return undefined
+
+        const sigFigs = excludeUndefined(
+            entries.map((entry) =>
+                entry.roundsToSignificantFigures
+                    ? entry.numSignificantFigures
+                    : undefined
+            )
+        )
+
         return {
-            icon: TooltipFooterIcon.None,
-            text: makeTooltipRoundingNotice(numSigFigs),
+            icon: allRoundedToSigFigs
+                ? TooltipFooterIcon.None
+                : TooltipFooterIcon.Significance,
+            text: makeTooltipRoundingNotice(sigFigs, {
+                plural: sigFigs.length > 1,
+            }),
         }
     }
 
+    @computed private get showSignificanceSuperscript(): boolean {
+        return this.roundingNotice?.icon === TooltipFooterIcon.Significance
+    }
+
     @computed private get changeRow():
-        | { label: string; value: string }
+        | {
+              label: string
+              value: string
+              roundsToSignificantFigures: boolean
+              numSignificantFigures: number
+          }
         | undefined {
         const { valueLabelMode } = this.chartState
 
@@ -214,12 +236,24 @@ export class DumbbellTwoColumnTooltip extends React.Component<DumbbellTooltipPro
         const value = this.target?.end.label?.text
         if (value === undefined) return undefined
 
-        const label = match(valueLabelMode)
-            .with(DumbbellValueLabelMode.Change, () => "Change")
-            .with(DumbbellValueLabelMode.PercentChange, () => "Percent change")
+        const [startColumn] = this.columns
+        return match(valueLabelMode)
+            .with(DumbbellValueLabelMode.Change, () => ({
+                label: "Change",
+                value,
+                // Formatted via startColumn (= formatColumn)
+                roundsToSignificantFigures:
+                    startColumn.roundsToSignificantFigures,
+                numSignificantFigures: startColumn.numSignificantFigures,
+            }))
+            .with(DumbbellValueLabelMode.PercentChange, () => ({
+                label: "Percent change",
+                value,
+                // Formatted with numDecimalPlaces: 1
+                roundsToSignificantFigures: false,
+                numSignificantFigures: 0,
+            }))
             .exhaustive()
-
-        return { label, value }
     }
 
     override render(): React.ReactElement | null {
@@ -262,6 +296,9 @@ export class DumbbellTwoColumnTooltip extends React.Component<DumbbellTooltipPro
                     isRoundedToSignificantFigures={
                         startColumn.roundsToSignificantFigures
                     }
+                    showSignificanceSuperscript={
+                        this.showSignificanceSuperscript
+                    }
                     labelVariant="label+unit"
                 />
                 <TooltipValue
@@ -277,6 +314,9 @@ export class DumbbellTwoColumnTooltip extends React.Component<DumbbellTooltipPro
                     isRoundedToSignificantFigures={
                         endColumn.roundsToSignificantFigures
                     }
+                    showSignificanceSuperscript={
+                        this.showSignificanceSuperscript
+                    }
                     labelVariant="label+unit"
                 />
                 {this.changeRow && (
@@ -284,6 +324,12 @@ export class DumbbellTwoColumnTooltip extends React.Component<DumbbellTooltipPro
                         label={this.changeRow.label}
                         value={this.changeRow.value}
                         color={GRAY_90}
+                        isRoundedToSignificantFigures={
+                            this.changeRow.roundsToSignificantFigures
+                        }
+                        showSignificanceSuperscript={
+                            this.showSignificanceSuperscript
+                        }
                     />
                 )}
             </Tooltip>
