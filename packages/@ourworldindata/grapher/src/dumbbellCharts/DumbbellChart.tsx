@@ -609,6 +609,7 @@ export class DumbbellChart
         seriesName: string,
         event: React.MouseEvent<SVGElement>
     ): void {
+        this.chartState.focusArray.clear()
         this.updateTooltipPosition(event)
         this.tooltipState.target = { seriesName }
     }
