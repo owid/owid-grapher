@@ -1,0 +1,296 @@
+.AdminColorPicker {
+    width: 500px;
+    max-height: 75vh;
+    padding: 12px;
+    font-size: 13px;
+    color: #1a1a1a;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
+}
+
+/* Search */
+.AdminColorPicker__search {
+    flex: 0 0 auto;
+    display: block;
+    margin-bottom: 10px;
+}
+
+/* Make the Tabs wrapper transparent to layout so the TabList and active
+   TabPanel become flex children of .AdminColorPicker directly. That way only
+   the panel shrinks under tight vertical space; the chips stay visible. */
+.AdminColorPicker__tabs {
+    display: contents;
+}
+
+.AdminColorPicker__search-input {
+    width: 100%;
+    padding: 6px 10px;
+    border: 1px solid #d9d9d9;
+    border-radius: 4px;
+    font-size: 13px;
+    box-sizing: border-box;
+}
+
+.AdminColorPicker__search-input[data-focused] {
+    outline: none;
+    border-color: #396d8f;
+    box-shadow: 0 0 0 2px rgba(57, 109, 143, 0.2);
+}
+
+/* Tabs / chips */
+.AdminColorPicker__chips {
+    flex: 0 0 auto;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 10px;
+}
+
+.AdminColorPicker__chip {
+    padding: 4px 10px;
+    border: 1px solid #d9d9d9;
+    border-radius: 999px;
+    background: white;
+    font-size: 12px;
+    line-height: 1.4;
+    cursor: pointer;
+    user-select: none;
+    outline: none;
+}
+
+.AdminColorPicker__chip[data-hovered] {
+    background: #f2f2f2;
+}
+
+.AdminColorPicker__chip[data-selected] {
+    background: #e6f0f8;
+    border-color: #396d8f;
+    color: #2a4d65;
+    font-weight: 600;
+}
+
+.AdminColorPicker__chip[data-focus-visible] {
+    box-shadow: 0 0 0 2px rgba(57, 109, 143, 0.4);
+}
+
+/* Panels */
+.AdminColorPicker__panel {
+    flex: 1 1 content;
+    max-height: 320px;
+    overflow-y: auto;
+    outline: none;
+}
+
+.AdminColorPicker__empty {
+    padding: 24px 8px;
+    text-align: center;
+    color: #888;
+    font-size: 12px;
+}
+
+/* Dense swatch grid (All / Hue) */
+.AdminColorPicker__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(26px, 1fr));
+    gap: 5px;
+    padding: 4px;
+}
+
+.AdminColorPicker__tile {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    padding: 0;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    border-radius: 4px;
+    cursor: pointer;
+    outline: none;
+}
+
+.AdminColorPicker__tile[data-hovered] {
+    box-shadow:
+        0 0 0 2px white,
+        0 0 0 3px rgba(0, 0, 0, 0.35);
+}
+
+.AdminColorPicker__tile[data-focus-visible] {
+    box-shadow:
+        0 0 0 2px white,
+        0 0 0 4px #396d8f;
+}
+
+.AdminColorPicker__tile--selected {
+    box-shadow:
+        0 0 0 2px white,
+        0 0 0 4px #1a1a1a;
+}
+
+/* Detailed cards (Regions / Energy) */
+.AdminColorPicker__cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+}
+
+.AdminColorPicker__card {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    border: 1px solid #e8e8e8;
+    border-radius: 4px;
+    background: white;
+    text-align: left;
+    cursor: pointer;
+    outline: none;
+    overflow: hidden;
+}
+
+.AdminColorPicker__card[data-hovered] {
+    background: #f2f2f2;
+}
+
+.AdminColorPicker__card[data-focus-visible] {
+    box-shadow: 0 0 0 2px rgba(57, 109, 143, 0.4);
+}
+
+.AdminColorPicker__card--selected {
+    border-color: #1a1a1a;
+    box-shadow: inset 0 0 0 1px #1a1a1a;
+}
+
+.AdminColorPicker__card-swatch {
+    flex: 0 0 auto;
+    width: 18px;
+    height: 18px;
+    border-radius: 3px;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+}
+
+.AdminColorPicker__card-label {
+    flex: 1 1 auto;
+    font-size: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Shared metadata tooltip */
+.AdminColorPicker__tooltip {
+    background: white;
+    color: #1a1a1a;
+    font-size: 12px;
+    line-height: 1.5;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.18);
+    border-radius: 4px;
+    padding: 8px 10px;
+    max-width: 260px;
+    z-index: 10000;
+}
+
+.AdminColorPicker__tooltip-arrow svg {
+    display: block;
+    fill: white;
+    stroke: none;
+}
+
+/* OverlayArrow only sets data-placement; we rotate the triangle ourselves. */
+.AdminColorPicker__tooltip-arrow[data-placement="bottom"] svg {
+    transform: rotate(180deg);
+}
+
+.AdminColorPicker__tooltip-arrow[data-placement="left"] svg {
+    transform: rotate(-90deg);
+}
+
+.AdminColorPicker__tooltip-arrow[data-placement="right"] svg {
+    transform: rotate(90deg);
+}
+
+.AdminColorPicker__tooltip-row {
+    white-space: normal;
+}
+
+.AdminColorPicker__tooltip-row--name {
+    font-weight: 700;
+}
+
+.AdminColorPicker__tooltip-row--hex {
+    font-family: monospace;
+    color: #666;
+    margin-top: 2px;
+}
+
+/* Inline custom picker */
+.AdminColorPicker__custom {
+    flex: 0 0 auto;
+    width: 100%;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #e8e8e8;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.AdminColorPicker__custom-title {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #888;
+}
+
+.AdminColorPicker__area {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 5 / 3;
+    border-radius: 6px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.AdminColorPicker__slider {
+    width: 100%;
+}
+
+.AdminColorPicker__slider-track {
+    position: relative;
+    height: 16px;
+    border-radius: 8px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.AdminColorPicker__area-thumb,
+.AdminColorPicker__slider-thumb {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid white;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4);
+    box-sizing: border-box;
+}
+
+.AdminColorPicker__area-thumb[data-focus-visible],
+.AdminColorPicker__slider-thumb[data-focus-visible] {
+    box-shadow:
+        0 0 0 1px rgba(0, 0, 0, 0.4),
+        0 0 0 3px #396d8f;
+}
+
+.AdminColorPicker__field-input {
+    width: 100%;
+    padding: 6px 10px;
+    border: 1px solid #d9d9d9;
+    border-radius: 4px;
+    font-size: 13px;
+    font-family: monospace;
+    text-transform: uppercase;
+    box-sizing: border-box;
+}
+
+.AdminColorPicker__field-input[data-focused] {
+    outline: none;
+    border-color: #396d8f;
+    box-shadow: 0 0 0 2px rgba(57, 109, 143, 0.2);
+}
