@@ -181,3 +181,5 @@ export {
     useElementBounds,
     useStateWithDebouncedClear,
 } from "./hooks.js"
+
+export { codeToEntityName, entityNameToCode } from "./core/EntityCodes.js"

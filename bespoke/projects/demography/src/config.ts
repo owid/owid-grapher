@@ -24,6 +24,7 @@ export interface SimulationVariantConfig {
     focusParameter?: ParameterKey
     hidePopulationPyramid?: boolean
     populationPyramidUnit?: PopulationPyramidUnit
+    urlSync?: boolean
     fertilityRateAssumptions?: Record<number, number>
     lifeExpectancyAssumptions?: Record<number, number>
     netMigrationRateAssumptions?: Record<number, number>
@@ -86,6 +87,7 @@ export function parseConfig(
                 populationPyramidUnit: parsePyramidUnit(
                     raw.populationPyramidUnit
                 ),
+                urlSync: parseBoolean(raw.urlSync),
                 fertilityRateAssumptions: parseControlPoints(
                     raw.fertilityRateAssumptions
                 ),
