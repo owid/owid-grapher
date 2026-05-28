@@ -35,3 +35,10 @@
 .migration-controls__switcher-wrapper .switcher {
     flex: 1 1 0;
 }
+
+// "Immigrants" / "Emigrants" are longer than the food-trade equivalents
+// ("Imports" / "Exports") and look cramped against the default 8px item
+// padding. Give them a touch more breathing room.
+.migration-controls__switcher-wrapper .switcher__item {
+    padding: 0 12px;
+}

@@ -19,12 +19,17 @@
     margin: 0;
 }
 
-// Stack the controls vertically at the same container-width threshold
-// the Sankey uses, so the whole UI collapses to one column at narrow
-// widths. Tighter row-gap stacked since vertical spacing reads heavier
-// than horizontal. Also shrink the page heading and drop the chart's
-// border so the chart reads as inline content rather than a card.
-@container migration-chart (max-width: 499.99px) {
+// Narrow layout. The `breakpoint-narrow` modifier is added by
+// SankeyVariant.tsx when the chart drops below MOBILE_BREAKPOINT (matching
+// the SplitFlowSankey stacking threshold), standing in for a CSS container
+// query so the whole UI collapses to one column at narrow widths. Tighter
+// row-gap stacked since vertical spacing reads heavier than horizontal.
+// Also shrink the page heading and drop the chart's border so the chart
+// reads as inline content rather than a card.
+.migration-chart--narrow .migration-controls__content {
+    row-gap: 8px;
+}
+
 .migration-chart--narrow .migration-controls__row {
     flex-direction: column;
     row-gap: 8px;

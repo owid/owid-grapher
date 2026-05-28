@@ -18,10 +18,10 @@
 @import "../../../components/Switcher/Switcher.scss";
 @import "../../../components/TimeSlider/TimeSlider.scss";
 
-// Variants
-@import "./variants/SankeyVariant.scss";
-
 // Project components
 @import "./components/MigrationChart.scss";
 @import "./components/MigrationControls.scss";
 @import "./components/MigrationSankey.scss";
+
+// Variants
+@import "./variants/SankeyVariant.scss";
