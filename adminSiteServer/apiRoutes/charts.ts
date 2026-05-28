@@ -652,9 +652,27 @@ export async function getChartParentJson(
         trx,
         chartId
     )
+
+    // Include the chart's own ETL-authored config in the "parent" returned to
+    // the editor. The editor reconstructs the chart from `parent + patch` and
+    // expects `parent` to be everything above the admin's patch in the merge
+    // chain — that is, the variable's grapher_config plus the chart's etlConfig.
+    const etlConfigRow = await db.knexRawFirst<{ etlConfig: string | null }>(
+        trx,
+        `SELECT cc.etlConfig FROM charts c JOIN chart_configs cc ON cc.id = c.configId WHERE c.id = ?`,
+        [chartId]
+    )
+    const etlConfig = etlConfigRow?.etlConfig
+        ? parseChartConfig(etlConfigRow.etlConfig)
+        : undefined
+
+    const mergedParent = etlConfig
+        ? mergeGrapherConfigs(parent?.config ?? {}, etlConfig)
+        : parent?.config
+
     return omitUndefinedValues({
         variableId: parent?.variableId,
-        config: parent?.config,
+        config: mergedParent,
         isActive: isInheritanceEnabled,
     })
 }
