@@ -167,13 +167,12 @@ export function AdminColorPicker({
         () => [...gridColors].sort((a, b) => hueOf(a) - hueOf(b)),
         [gridColors]
     )
-    const regionEntries = useMemo(() => Object.entries(ContinentColors), [])
-    const energyEntries = useMemo(() => Object.entries(EnergyColors), [])
-
+    const normalizedQuery = query.trim().toLowerCase()
     const matches = (...texts: (string | undefined)[]): boolean => {
-        const q = query.trim().toLowerCase()
-        if (!q) return true
-        return texts.some((text) => text?.toLowerCase().includes(q))
+        if (!normalizedQuery) return true
+        return texts.some((text) =>
+            text?.toLowerCase().includes(normalizedQuery)
+        )
     }
 
     const handleColorChange = (newColor: Color): void => {
@@ -219,8 +218,8 @@ export function AdminColorPicker({
     const isSelected = (hex: string): boolean =>
         color?.toLowerCase() === hex.toLowerCase()
 
-    const renderTile = (hex: string, key: string): ReactElement => {
-        const meta = metaFor(hex)
+    const renderTile = (meta: ColorMeta, key: string): ReactElement => {
+        const { hex } = meta
         return (
             <TooltipTrigger key={key} delay={0} closeDelay={0}>
                 <Button
@@ -265,17 +264,18 @@ export function AdminColorPicker({
     }
 
     const renderGrid = (colors: string[]): ReactElement => {
-        const visible = colors.filter((hex) => {
-            const meta = metaFor(hex)
-            return matches(meta.name, ...meta.regions, meta.energy, meta.hex)
-        })
+        const visible = colors
+            .map(metaFor)
+            .filter((meta) =>
+                matches(meta.name, ...meta.regions, meta.energy, meta.hex)
+            )
         if (visible.length === 0)
             return (
                 <div className="AdminColorPicker__empty">No colors found</div>
             )
         return (
             <div className="AdminColorPicker__grid">
-                {visible.map((hex, i) => renderTile(hex, `${hex}-${i}`))}
+                {visible.map((meta, i) => renderTile(meta, `${meta.hex}-${i}`))}
             </div>
         )
     }
@@ -350,10 +350,10 @@ export function AdminColorPicker({
                     id="regions"
                     className="AdminColorPicker__panel AdminColorPicker__panel--tall"
                 >
-                    {renderCards(regionEntries)}
+                    {renderCards(Object.entries(ContinentColors))}
                 </TabPanel>
                 <TabPanel id="energy" className="AdminColorPicker__panel">
-                    {renderCards(energyEntries)}
+                    {renderCards(Object.entries(EnergyColors))}
                 </TabPanel>
                 <TabPanel id="hue" className="AdminColorPicker__panel">
                     {renderGrid(hueSortedColors)}
