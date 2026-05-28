@@ -69,47 +69,39 @@ export function MigrationSankey({
     )
 
     // When both halves are visible side-by-side AND both have data, the
-    // two headings read as one sentence: "{country} received X immigrants"
-    // + "and sent Y emigrants in {year}". In single-half views, when the
-    // halves stack vertically on narrow containers, or when one half is
-    // empty (its heading is suppressed in favour of a centered "no
-    // immigrants/emigrants" message), the surviving heading switches to a
-    // standalone phrasing that carries the year on its own.
+    // right heading leads with "and …" so it reads as a continuation of
+    // the left. In single-half views, stacked layouts, and one-side-empty
+    // cases, both headings are standalone — no "and".
     const countryArticulated = articulateEntity(country)
     const isStacked = width > 0 && width < MOBILE_BREAKPOINT
     const noImmigrants = incomingFlows.length === 0
     const noEmigrants = outgoingFlows.length === 0
     const isPairedSentence =
         view === "both" && !isStacked && !noImmigrants && !noEmigrants
+    const emigrantsPrefix = isPairedSentence ? "and " : ""
 
     const incomingHeading: SankeyHalfHeading = !noImmigrants
         ? {
-              label: isPairedSentence
-                  ? `${capitalize(countryArticulated)} received ${formatPeople(immigrantsTotal)} immigrants`
-                  : `${capitalize(countryArticulated)} received ${formatPeople(immigrantsTotal)} immigrants in ${year}`,
+              label: `${formatPeople(immigrantsTotal, { unit: false })} immigrants lived in ${countryArticulated}`,
               arrowSide: "start",
           }
         : {
-              label: isPairedSentence
-                  ? `${capitalize(countryArticulated)} received none`
-                  : view === "both"
-                    ? `${capitalize(countryArticulated)} received none`
-                    : "No immigrants",
+              label:
+                  view === "both"
+                      ? `No immigrants lived in ${countryArticulated}`
+                      : "No immigrants",
           }
 
     const outgoingHeading: SankeyHalfHeading = !noEmigrants
         ? {
-              label: isPairedSentence
-                  ? `and sent ${formatPeople(emigrantsTotal)} emigrants in ${year}`
-                  : `${capitalize(countryArticulated)} sent ${formatPeople(emigrantsTotal)} emigrants in ${year}`,
+              label: `${emigrantsPrefix}${formatPeople(emigrantsTotal, { unit: false })} emigrants from ${countryArticulated} lived abroad`,
               arrowSide: "end",
           }
         : {
-              label: isPairedSentence
-                  ? "and sent none"
-                  : view === "both"
-                    ? `${capitalize(countryArticulated)} sent none`
-                    : "No emigrants",
+              label:
+                  view === "both"
+                      ? `No emigrants from ${countryArticulated} lived abroad`
+                      : "No emigrants",
           }
 
     const splitView =
@@ -126,7 +118,7 @@ export function MigrationSankey({
     // case MigrationChart short-circuits before we render at all.
     const incomingEmpty = noImmigrants ? (
         <EmptyHalf
-            message={`${capitalize(countryArticulated)} had no recorded immigrants in ${year}`}
+            message={`No immigrants recorded in ${capitalize(countryArticulated)} in ${year}`}
             cta={
                 view === "immigrants" && !noEmigrants
                     ? {
@@ -139,7 +131,7 @@ export function MigrationSankey({
     ) : undefined
     const outgoingEmpty = noEmigrants ? (
         <EmptyHalf
-            message={`${capitalize(countryArticulated)} had no recorded emigrants in ${year}`}
+            message={`No emigrants from ${capitalize(countryArticulated)} recorded in ${year}`}
             cta={
                 view === "emigrants" && !noImmigrants
                     ? {

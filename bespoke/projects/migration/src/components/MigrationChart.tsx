@@ -40,7 +40,7 @@ export function MigrationChart({
                 />
             ) : (
                 <NoData
-                    message={`No ${year} migration recorded for ${capitalize(articulateEntity(country))}.`}
+                    message={`No migrants recorded in ${capitalize(articulateEntity(country))} in ${year}.`}
                 />
             )}
         </div>

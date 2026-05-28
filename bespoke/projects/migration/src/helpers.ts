@@ -1,9 +1,12 @@
 import { formatValue } from "@ourworldindata/utils"
 import { OwidVariableRoundingMode } from "@ourworldindata/types"
 
-export const formatPeople = (v: number): string =>
+export const formatPeople = (
+    v: number,
+    opts?: { unit?: boolean }
+): string =>
     formatValue(v, {
-        unit: "people",
+        unit: opts?.unit === false ? undefined : "people",
         numberAbbreviation: "long",
         roundingMode: OwidVariableRoundingMode.significantFigures,
         numSignificantFigures: 2,

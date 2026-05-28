@@ -26,7 +26,6 @@ import {
     MigrationView,
 } from "../types.js"
 import { useMigrationData, useMigrationMetadata } from "../data.js"
-import { capitalize, formatPeople } from "../helpers.js"
 import { MigrationChart } from "../components/MigrationChart.js"
 import { MigrationControls } from "../components/MigrationControls.js"
 
@@ -233,10 +232,11 @@ function CaptionedSankeyVariant({
                 <>
                     <header className="migration-heading">
                         <h1 className="migration-heading__title">
-                            How do people move between countries?
+                            Where do migrants live, and where are they from?
                         </h1>
                         <p className="migration-heading__description">
-                            Where people migrate to, and where they come from
+                            Where international migrants live, by country of
+                            birth
                         </p>
                     </header>
                     <MigrationControls
@@ -262,8 +262,6 @@ function CaptionedSankeyVariant({
                     country={country}
                     year={year}
                     view={view}
-                    immigrantsTotal={immigrantsTotal}
-                    emigrantsTotal={emigrantsTotal}
                 />
                 <MigrationChart
                     immigrants={immigrants}
@@ -286,113 +284,25 @@ function MigrationChartHeader({
     country,
     year,
     view,
-    immigrantsTotal,
-    emigrantsTotal,
 }: {
     config: SankeyVariantConfig
     country: string
     year: number
     view: MigrationView
-    immigrantsTotal: number
-    emigrantsTotal: number
 }) {
     const countryArticulated = articulateEntity(country)
     const defaultTitle =
         view === "immigrants"
-            ? `Immigration to ${countryArticulated} in ${year}`
+            ? `Immigrants living in ${countryArticulated} in ${year}`
             : view === "emigrants"
-              ? `Emigration from ${countryArticulated} in ${year}`
-              : `Migration to and from ${countryArticulated} in ${year}`
-
-    const hasData = immigrantsTotal > 0 || emigrantsTotal > 0
-    const defaultSubtitle: React.ReactNode = hasData ? (
-        <Subtitle
-            country={country}
-            year={year}
-            view={view}
-            immigrantsTotal={immigrantsTotal}
-            emigrantsTotal={emigrantsTotal}
-        />
-    ) : null
+              ? `Emigrants from ${countryArticulated} living abroad in ${year}`
+              : `Immigrants and emigrants of ${countryArticulated} in ${year}`
 
     return (
         <ChartHeader
             title={config.title ?? defaultTitle}
-            subtitle={config.subtitle ?? defaultSubtitle}
+            subtitle={config.subtitle}
         />
-    )
-}
-
-function Subtitle({
-    country,
-    year,
-    view,
-    immigrantsTotal,
-    emigrantsTotal,
-}: {
-    country: string
-    year: number
-    view: MigrationView
-    immigrantsTotal: number
-    emigrantsTotal: number
-}) {
-    const name = capitalize(articulateEntity(country))
-    if (view === "immigrants") {
-        if (immigrantsTotal === 0) {
-            return (
-                <>
-                    {name} had no recorded immigrants in {year}.
-                </>
-            )
-        }
-        return (
-            <>
-                {name} received {formatPeople(immigrantsTotal)} immigrants in{" "}
-                {year}.
-            </>
-        )
-    }
-    if (view === "emigrants") {
-        if (emigrantsTotal === 0) {
-            return (
-                <>
-                    {name} had no recorded emigrants in {year}.
-                </>
-            )
-        }
-        return (
-            <>
-                {name} sent {formatPeople(emigrantsTotal)} emigrants in {year}.
-            </>
-        )
-    }
-    if (immigrantsTotal === 0 && emigrantsTotal === 0) {
-        return (
-            <>
-                {name} had no recorded migration in {year}.
-            </>
-        )
-    }
-    if (immigrantsTotal > 0 && emigrantsTotal > 0) {
-        return (
-            <>
-                {name} received {formatPeople(immigrantsTotal)} immigrants and
-                sent {formatPeople(emigrantsTotal)} emigrants in {year}.
-            </>
-        )
-    }
-    if (immigrantsTotal > 0) {
-        return (
-            <>
-                {name} received {formatPeople(immigrantsTotal)} immigrants in{" "}
-                {year}.
-            </>
-        )
-    }
-    return (
-        <>
-            {name} sent {formatPeople(emigrantsTotal)} emigrants in {year}.
-        </>
     )
 }
 
