@@ -5,7 +5,6 @@ import {
     OwidGdocErrorMessageType,
     OwidGdocType,
     OwidEnrichedGdocBlock,
-    RawBlockText,
     RelatedChart,
     OwidGdocMinimalPostInterface,
     OwidGdocBaseInterface,
@@ -14,7 +13,6 @@ import {
 import { excludeNullish, generateToc } from "@ourworldindata/utils"
 import { formatCitation, generateStickyNav } from "./archieToEnriched.js"
 import { parseFaqs, parseLatestFeedExcerpt } from "./rawToEnriched.js"
-import { htmlToEnrichedTextBlock } from "./htmlToEnriched.js"
 import { GdocBase } from "./GdocBase.js"
 import { KnexReadonlyTransaction, knexRaw } from "../../db.js"
 import { getLatestArchivedChartPageVersionsIfEnabled } from "../ArchivedChartVersion.js"
@@ -84,12 +82,6 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
             content.body,
             isTocForSidebar || isLinearTopicPage
         )
-
-        if (content.summary) {
-            content.summary = content.summary.map((html: RawBlockText) =>
-                htmlToEnrichedTextBlock(html.value)
-            )
-        }
 
         if (content["latest-feed-excerpt"]) {
             content["latest-feed-excerpt"] = parseLatestFeedExcerpt(
