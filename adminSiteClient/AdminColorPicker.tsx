@@ -316,7 +316,7 @@ export function AdminColorPicker({
             >
                 <Input
                     className="AdminColorPicker__search-input"
-                    placeholder="Search colors…"
+                    placeholder="Search colors, regions, or energy types…"
                 />
             </SearchField>
 
