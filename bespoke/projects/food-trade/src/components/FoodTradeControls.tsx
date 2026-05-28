@@ -1,4 +1,5 @@
 import { useCallback, useMemo } from "react"
+import * as R from "remeda"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     faArrowRight,
@@ -6,7 +7,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons"
 
 import { BasicDropdownOption } from "@ourworldindata/grapher"
-import { Tippy } from "@ourworldindata/utils"
+import { articulateEntity, Tippy } from "@ourworldindata/utils"
 
 import { useTippyContainer } from "../../../../hooks/useTippyContainer.js"
 import { useUserCountryInformation } from "../../../../hooks/useUserCountryInformation.js"
@@ -22,195 +23,314 @@ import {
 
 import { ALL_COUNTRIES, isAllCountry } from "../constants.js"
 import { TradeFlow } from "../config.js"
-import { FoodTradeMetadata } from "../data.js"
-
-const TRADE_FLOW_ITEMS: SwitcherItem<TradeFlow>[] = [
-    {
-        key: "imports",
-        element: (
-            <>
-                <FontAwesomeIcon icon={faArrowRight} size="sm" aria-hidden />
-                Imports
-            </>
-        ),
-    },
-    {
-        key: "exports",
-        element: (
-            <>
-                Exports
-                <FontAwesomeIcon icon={faArrowRight} size="sm" aria-hidden />
-            </>
-        ),
-    },
-    {
-        key: "both",
-        element: (
-            <>
-                <FontAwesomeIcon
-                    icon={faArrowRightArrowLeft}
-                    size="sm"
-                    aria-hidden
-                />
-                Both
-            </>
-        ),
-    },
-]
+import { FoodTradeMetadata, ProductTradeData } from "../data.js"
 
 export function FoodTradeControls({
     metadata,
-    products,
-    countries,
+    productData,
     product,
     country,
     view,
-    viewDisabledReason,
+    hideFlowSwitcher,
     setProduct,
     setCountry,
     setView,
 }: {
     metadata: FoodTradeMetadata
-    products: string[]
-    countries: string[]
+    productData: ProductTradeData
     product: string
     country: string
     view: TradeFlow
-    /** Set when the trade-flow radios shouldn't apply to the current
-     * country-product combination (no data in one direction, or All
-     * countries selected). When defined, the radios are visually
-     * disabled and a tooltip shows this string on hover. */
-    viewDisabledReason?: string
+    hideFlowSwitcher?: boolean
     setProduct: (value: string) => void
     setCountry: (value: string) => void
     setView: (value: TradeFlow) => void
 }): React.ReactElement {
-    const { ref: switcherWrapperRef, getTippyContainer } =
-        useTippyContainer<HTMLDivElement>()
-    const isViewDisabled = !!viewDisabledReason
-    // Sort products the selected country doesn't trade to the bottom of
-    // the menu, annotated with "No data" — still selectable, just
-    // de-emphasized. Bilateral mode (country === ALL_COUNTRIES) imposes
-    // no country filter, so every product is treated as traded.
-    const { productOptions, productNoDataSet } = useMemo(() => {
-        const traded: BasicDropdownOption[] = []
-        const untraded: BasicDropdownOption[] = []
-        for (const p of products) {
-            const option = { value: p, label: p }
-            if (isAllCountry(country) || metadata.tradesProduct(country, p)) {
-                traded.push(option)
-            } else {
-                untraded.push(option)
-            }
-        }
-        const options: DropdownCollection = [...traded, ...untraded]
-        return {
-            productOptions: options,
-            productNoDataSet: new Set(untraded.map((o) => o.value)),
-        }
-    }, [products, country, metadata])
-
-    const { data: userCountryInfo } = useUserCountryInformation()
-
-    // Build the country options. The Suggested group at the top surfaces
-    // "All countries" plus the user's home country and continental
-    // regions. Countries that don't trade the selected product are
-    // sorted to the bottom of the main list and annotated with "No data".
-    const { countryOptions, countryNoDataSet } = useMemo(() => {
-        const trading: BasicDropdownOption[] = []
-        const untraded: BasicDropdownOption[] = []
-        for (const c of countries) {
-            const option = { value: c, label: c }
-            if (c === ALL_COUNTRIES || metadata.tradesProduct(c, product)) {
-                trading.push(option)
-            } else {
-                untraded.push(option)
-            }
-        }
-        const grouped = groupByUserLocation(trading, userCountryInfo, [
-            ALL_COUNTRIES,
-        ])
-        const noDataSet = new Set(untraded.map((o) => o.value))
-        if (untraded.length === 0) {
-            return { countryOptions: grouped, countryNoDataSet: noDataSet }
-        }
-        // groupByUserLocation returns either a flat array of options or
-        // [Suggested, All countries and regions]. Append untraded to the
-        // tail of the rest-of-the-world group, or to the flat list.
-        const last = grouped[grouped.length - 1]
-        if (last && "options" in last) {
-            const merged = [
-                ...grouped.slice(0, -1),
-                { ...last, options: [...last.options, ...untraded] },
-            ]
-            return { countryOptions: merged, countryNoDataSet: noDataSet }
-        }
-        return {
-            countryOptions: [...grouped, ...untraded],
-            countryNoDataSet: noDataSet,
-        }
-    }, [countries, product, metadata, userCountryInfo])
-
-    const renderProductOption = useCallback(
-        (option: BasicDropdownOption) =>
-            renderOptionWithNoData(option, productNoDataSet),
-        [productNoDataSet]
-    )
-    const renderCountryOption = useCallback(
-        (option: BasicDropdownOption) =>
-            renderOptionWithNoData(option, countryNoDataSet),
-        [countryNoDataSet]
-    )
-
     return (
         <div className="food-trade-controls">
             <h3 className="food-trade-controls__title">Configure the data</h3>
             <div className="food-trade-controls__content">
                 <div className="food-trade-controls__row">
-                    <InlineLabeledDropdown
-                        label="Product"
-                        options={productOptions}
-                        selectedValue={product}
-                        onChange={setProduct}
-                        placeholder="Select a product…"
-                        aria-label="Select a product"
-                        isSearchable
-                        menuClassName="food-trade-controls__menu"
-                        renderMenuOption={renderProductOption}
+                    <ProductDropdown
+                        metadata={metadata}
+                        product={product}
+                        country={country}
+                        setProduct={setProduct}
                     />
-                    <InlineLabeledDropdown
-                        label="Country"
-                        options={countryOptions}
-                        selectedValue={country}
-                        onChange={setCountry}
-                        placeholder="Select a country…"
-                        aria-label="Select a country"
-                        isSearchable
-                        menuClassName="food-trade-controls__menu"
-                        renderMenuOption={renderCountryOption}
+                    <CountryDropdown
+                        metadata={metadata}
+                        product={product}
+                        country={country}
+                        setCountry={setCountry}
+                        includeAllCountries={
+                            !hideFlowSwitcher || view === "both"
+                        }
                     />
-                    <Tippy
-                        content={viewDisabledReason ?? ""}
-                        disabled={!isViewDisabled}
-                        appendTo={getTippyContainer}
-                        maxWidth={270}
-                    >
-                        <div
-                            ref={switcherWrapperRef}
-                            className="food-trade-controls__switcher-wrapper"
-                        >
-                            <Switcher
-                                items={TRADE_FLOW_ITEMS}
-                                selectedKey={view}
-                                onChange={setView}
-                                isDisabled={isViewDisabled}
-                                aria-label="Trade flow"
-                            />
-                        </div>
-                    </Tippy>
+                    {!hideFlowSwitcher && (
+                        <ViewSwitcher
+                            metadata={metadata}
+                            productData={productData}
+                            product={product}
+                            country={country}
+                            view={view}
+                            setView={setView}
+                        />
+                    )}
                 </div>
             </div>
         </div>
+    )
+}
+
+function ProductDropdown({
+    metadata,
+    product,
+    country,
+    setProduct,
+}: {
+    metadata: FoodTradeMetadata
+    product: string
+    country: string
+    setProduct: (value: string) => void
+}) {
+    const productNames = useMemo(
+        () => metadata.products.map((p) => p.name),
+        [metadata]
+    )
+
+    const options = useMemo<DropdownCollection>(
+        () =>
+            R.sortBy(
+                productNames.map((productName) => ({
+                    value: productName,
+                    label: productName,
+                })),
+                // Sort products the selected country doesn't trade to the bottom
+                (option) =>
+                    hasTradeData(metadata, country, option.value) ? 0 : 1
+            ),
+        [productNames, metadata, country]
+    )
+
+    const noDataValues = useMemo(
+        () =>
+            new Set(
+                productNames.filter(
+                    (productName) =>
+                        !hasTradeData(metadata, country, productName)
+                )
+            ),
+        [productNames, metadata, country]
+    )
+
+    const renderProductOption = useCallback(
+        (option: BasicDropdownOption) =>
+            renderOptionWithNoData(option, noDataValues),
+        [noDataValues]
+    )
+
+    return (
+        <InlineLabeledDropdown
+            label="Product"
+            options={options}
+            selectedValue={product}
+            onChange={setProduct}
+            placeholder="Select a product…"
+            aria-label="Select a product"
+            isSearchable
+            menuClassName="food-trade-controls__menu"
+            renderMenuOption={renderProductOption}
+        />
+    )
+}
+
+function CountryDropdown({
+    metadata,
+    product,
+    country,
+    setCountry,
+    includeAllCountries,
+}: {
+    metadata: FoodTradeMetadata
+    product: string
+    country: string
+    setCountry: (value: string) => void
+    includeAllCountries: boolean
+}) {
+    const { data: userCountryInfo } = useUserCountryInformation()
+
+    const countryNames = useMemo(
+        () =>
+            includeAllCountries
+                ? [ALL_COUNTRIES, ...metadata.entities.map((e) => e.name)]
+                : metadata.entities.map((e) => e.name),
+        [metadata, includeAllCountries]
+    )
+
+    const options = useMemo<DropdownCollection>(() => {
+        const options = countryNames.map((countryName) => ({
+            value: countryName,
+            label: countryName,
+        }))
+
+        const [optionsWithData, optionsWithoutData] = R.partition(
+            options,
+            (option) => hasTradeData(metadata, option.value, product)
+        )
+
+        const groupedOptions = groupByUserLocation(
+            optionsWithData,
+            userCountryInfo,
+            includeAllCountries ? [ALL_COUNTRIES] : []
+        )
+
+        if (optionsWithoutData.length === 0) return groupedOptions
+
+        const lastGroup = groupedOptions[groupedOptions.length - 1]
+        if (lastGroup && "options" in lastGroup) {
+            return [
+                ...groupedOptions.slice(0, -1),
+                {
+                    ...lastGroup,
+                    options: [...lastGroup.options, ...optionsWithoutData],
+                },
+            ]
+        }
+
+        return [...groupedOptions, ...optionsWithoutData]
+    }, [countryNames, product, metadata, userCountryInfo, includeAllCountries])
+
+    const noDataValues = useMemo(
+        () =>
+            new Set(
+                countryNames.filter(
+                    (country) => !hasTradeData(metadata, country, product)
+                )
+            ),
+        [countryNames, product, metadata]
+    )
+
+    const renderCountryOption = useCallback(
+        (option: BasicDropdownOption) =>
+            renderOptionWithNoData(option, noDataValues),
+        [noDataValues]
+    )
+
+    return (
+        <InlineLabeledDropdown
+            label="Country"
+            options={options}
+            selectedValue={country}
+            onChange={setCountry}
+            placeholder="Select a country…"
+            aria-label="Select a country"
+            isSearchable
+            menuClassName="food-trade-controls__menu"
+            renderMenuOption={renderCountryOption}
+        />
+    )
+}
+
+function ViewSwitcher({
+    metadata,
+    productData,
+    product,
+    country,
+    view,
+    setView,
+}: {
+    metadata: FoodTradeMetadata
+    productData: ProductTradeData
+    product: string
+    country: string
+    view: TradeFlow
+    setView: (value: TradeFlow) => void
+}) {
+    const { ref: switcherWrapperRef, getTippyContainer } =
+        useTippyContainer<HTMLDivElement>()
+
+    const options: SwitcherItem<TradeFlow>[] = [
+        {
+            key: "imports",
+            element: (
+                <>
+                    <FontAwesomeIcon
+                        icon={faArrowRight}
+                        size="sm"
+                        aria-hidden
+                    />
+                    Imports
+                </>
+            ),
+        },
+        {
+            key: "exports",
+            element: (
+                <>
+                    Exports
+                    <FontAwesomeIcon
+                        icon={faArrowRight}
+                        size="sm"
+                        aria-hidden
+                    />
+                </>
+            ),
+        },
+        {
+            key: "both",
+            element: (
+                <>
+                    <FontAwesomeIcon
+                        icon={faArrowRightArrowLeft}
+                        size="sm"
+                        aria-hidden
+                    />
+                    Both
+                </>
+            ),
+        },
+    ]
+
+    // Whether the selected country only trades this product in one direction
+    // (so the radios should be disabled with a tooltip explaining why)
+    const incomingCount =
+        productData.incomingFlowsByCountry.get(country)?.length ?? 0
+    const outgoingCount =
+        productData.outgoingFlowsByCountry.get(country)?.length ?? 0
+    const hasOnlyImports = incomingCount > 0 && outgoingCount === 0
+    const hasOnlyExports = outgoingCount > 0 && incomingCount === 0
+
+    const countryLabel = R.capitalize(articulateEntity(country))
+    const productLabel = R.uncapitalize(product)
+    const viewDisabledReason: string | undefined = isAllCountry(country)
+        ? "Select a country to view imports and exports separately."
+        : hasOnlyImports
+          ? `${countryLabel} did not export ${productLabel} in ${metadata.year}.`
+          : hasOnlyExports
+            ? `${countryLabel} did not import ${productLabel} in ${metadata.year}.`
+            : undefined
+    const isViewDisabled = !!viewDisabledReason
+
+    return (
+        <Tippy
+            content={viewDisabledReason ?? ""}
+            disabled={!isViewDisabled}
+            appendTo={getTippyContainer}
+            maxWidth={270}
+        >
+            <div
+                ref={switcherWrapperRef}
+                className="food-trade-controls__switcher-wrapper"
+            >
+                <Switcher
+                    items={options}
+                    selectedKey={view}
+                    onChange={setView}
+                    isDisabled={isViewDisabled}
+                    aria-label="Trade flow"
+                />
+            </div>
+        </Tippy>
     )
 }
 
@@ -228,3 +348,9 @@ function renderOptionWithNoData(
         </>
     )
 }
+
+const hasTradeData = (
+    metadata: FoodTradeMetadata,
+    country: string,
+    productName: string
+) => isAllCountry(country) || metadata.hasTradeData(country, productName)

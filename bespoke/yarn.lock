@@ -417,6 +417,7 @@ __metadata:
     react-stately: "npm:^3.46.0"
     remeda: "npm:^2.21.0"
     sass: "npm:^1.87.0"
+    ts-pattern: "npm:^5.8.0"
     vite: "npm:^8.0.5"
     vite-plugin-css-position: "npm:^2.0.9"
   languageName: unknown
@@ -429,6 +430,7 @@ __metadata:
     "@ourworldindata/utils": "link:../../packages/@ourworldindata/utils"
     "@tanstack/react-query": "npm:^5.100.9"
     "@typescript/native-preview": "npm:^7.0.0-dev.20260401.1"
+    nuqs: "npm:^2.8.9"
     react: "npm:^19.2.4"
   languageName: unknown
   linkType: soft

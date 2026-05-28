@@ -36,6 +36,7 @@
         "react-dom": "^19.2.4",
         "react-stately": "^3.46.0",
         "remeda": "^2.21.0",
+        "ts-pattern": "^5.8.0",
         "vite-plugin-css-position": "^2.0.9"
     },
     "devDependencies": {

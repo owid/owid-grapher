@@ -1,13 +1,9 @@
-import { useCallback, useMemo, useRef, useState } from "react"
+import { useCallback, useMemo } from "react"
+import cx from "classnames"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { UNSAFE_PortalProvider } from "react-aria"
 import { NuqsAdapter } from "nuqs/adapters/react"
-import {
-    parseAsString,
-    parseAsStringEnum,
-    useQueryState,
-    type SingleParserBuilder,
-} from "nuqs"
+import { parseAsString, parseAsStringEnum } from "nuqs"
 import * as R from "remeda"
 
 import { articulateEntity } from "@ourworldindata/utils"
@@ -20,16 +16,15 @@ import { ALL_COUNTRIES, isAllCountry } from "../constants.js"
 import { MainVariantConfig, TradeFlow, VariantProps } from "../config.js"
 import {
     FoodTradeMetadata,
+    ProductTradeData,
     TradeRow,
     useFoodTradeMetadata,
     useProductTradeData,
 } from "../data.js"
 import { FoodTradeControls } from "../components/FoodTradeControls.js"
-import {
-    FoodTradeBilateralSankey,
-    FoodTradeSankey,
-    formatTrade,
-} from "../components/FoodTradeSankey.js"
+import { FoodTradeChart } from "../components/FoodTradeChart.js"
+import { formatTrade } from "../components/FoodTradeSankey.js"
+import { useUrlState } from "../../../../hooks/useUrlState.js"
 import { useContainerWidth } from "../../../../hooks/useContainerWidth.js"
 import {
     isUserLocationCountry,
@@ -39,6 +34,7 @@ import { MOBILE_BREAKPOINT } from "../../../../components/Sankey/SplitFlowSankey
 
 const DEFAULT_PRODUCT = "Maize (corn)"
 const DEFAULT_COUNTRY = ALL_COUNTRIES
+const DEFAULT_VIEW: TradeFlow = "both"
 
 const queryClient = new QueryClient()
 
@@ -47,16 +43,15 @@ export function MainVariant({
 }: VariantProps<MainVariantConfig>): React.ReactElement {
     const { width, node, ref } = useContainerWidth()
     const isNarrow = width > 0 && width < MOBILE_BREAKPOINT
+
     // Portal react-aria overlays (dropdown popovers) back into our
-    // Shadow DOM so the chart's scoped styles apply to them. Without
-    // this they end up on document.body and only the globally-available
-    // dropdown base styles reach them — anything food-trade-specific
-    // would silently miss.
+    // Shadow DOM so the chart's scoped styles apply to them
     const getPortalContainer = useCallback((): HTMLElement => {
         const root = node?.getRootNode()
         if (root instanceof ShadowRoot) return root as unknown as HTMLElement
         return document.body
     }, [node])
+
     return (
         <NuqsAdapter>
             <QueryClientProvider client={queryClient}>
@@ -75,112 +70,68 @@ export function MainVariant({
     )
 }
 
-// nuqs can't be turned off per-call — calling useQueryState always reads from
-// and writes to the URL. To honor `config.urlSync`, we call both useState and
-// useQueryState and pick which one to expose. The unused setter is never
-// called, so it doesn't touch the URL.
-function useOptionalUrlState<T extends string>(
-    key: string,
-    parser: SingleParserBuilder<T>,
-    defaultValue: T,
-    enabled: boolean
-): [T, (next: T) => void] {
-    const local = useState<T>(defaultValue)
-    const [urlValue, setUrl] = useQueryState(
-        key,
-        parser.withDefault(defaultValue)
-    )
-    if (enabled) return [urlValue, setUrl]
-    return local
-}
-
 function FetchingMainVariant({ config }: { config: MainVariantConfig }) {
-    const { data: metadata, status: metadataStatus } = useFoodTradeMetadata()
-
-    const initialCountry = config.country ?? DEFAULT_COUNTRY
-    const initialView: TradeFlow = isAllCountry(initialCountry)
-        ? "both"
-        : (config.tradeFlow ?? "both")
+    const initialProduct = config.product ?? DEFAULT_PRODUCT
+    const isUserLocation = isUserLocationCountry(config.country)
+    const initialCountry =
+        !config.country || isUserLocation ? DEFAULT_COUNTRY : config.country
+    const initialView =
+        !isUserLocation && isAllCountry(initialCountry)
+            ? "both"
+            : (config.tradeFlow ?? DEFAULT_VIEW)
     const urlSync = config.urlSync ?? false
 
-    const [product, setProduct] = useOptionalUrlState(
-        "foodTradeProduct",
-        parseAsString,
-        config.product ?? DEFAULT_PRODUCT,
-        urlSync
-    )
-    const [country, setCountry] = useOptionalUrlState(
-        "foodTradeCountry",
-        parseAsString,
-        initialCountry,
-        urlSync
-    )
-    // All countries forces bilateral mode where imports/exports don't
-    // apply — coerce the initial view to "both" so a configured
-    // tradeFlow doesn't leave the disabled radios highlighting a
-    // half-view that isn't shown.
-    const [view, setView] = useOptionalUrlState(
-        "foodTradeView",
-        parseAsStringEnum<TradeFlow>(["both", "imports", "exports"]),
-        initialView,
-        urlSync
-    )
+    const [product, setProduct] = useUrlState({
+        key: "foodTradeProduct",
+        parser: parseAsString,
+        defaultValue: initialProduct,
+        enabled: urlSync,
+    })
+    const [country, _setCountry] = useUrlState({
+        key: "foodTradeCountry",
+        parser: parseAsString,
+        defaultValue: initialCountry,
+        enabled: urlSync,
+    })
+    const [_view, setView] = useUrlState({
+        key: "foodTradeView",
+        parser: parseAsStringEnum<TradeFlow>(["both", "imports", "exports"]),
+        defaultValue: initialView,
+        enabled: urlSync,
+    })
 
+    const { data: metadata, status: metadataStatus } = useFoodTradeMetadata()
     const productId = metadata?.productByName.get(product)?.id
     const { data: productData, status: productStatus } = useProductTradeData(
         productId,
         metadata
     )
 
-    // Same reason at runtime: when the user picks All countries, snap
-    // the stored view to "both" so the (now-disabled) radio group
-    // reflects what's actually on screen.
-    const handleSetCountry = useCallback(
+    // When the selected country only trades this product in one direction,
+    // the other view has nothing to show. Coerce the displayed view to the
+    // half that has data (and disable the view switcher in this case)
+    const incomingFlows = productData?.incomingFlowsByCountry.get(country) ?? []
+    const outgoingFlows = productData?.outgoingFlowsByCountry.get(country) ?? []
+    const hasOnlyIncomingFlows =
+        incomingFlows.length > 0 && outgoingFlows.length === 0
+    const hasOnlyOutgoingFlows =
+        outgoingFlows.length > 0 && incomingFlows.length === 0
+    const view: TradeFlow = hasOnlyIncomingFlows
+        ? "imports"
+        : hasOnlyOutgoingFlows
+          ? "exports"
+          : _view
+
+    const setCountry = useCallback(
         (newCountry: string) => {
-            setCountry(newCountry)
+            _setCountry(newCountry)
+
+            // When the user picks 'All countries', snap the view to "both" so the
+            // (now-disabled) radio group reflects what's actually on screen
             if (isAllCountry(newCountry)) setView("both")
         },
-        [setCountry, setView]
+        [_setCountry, setView]
     )
-
-    const products = useMemo(
-        () =>
-            metadata ? [...metadata.products].map((p) => p.name).sort() : [],
-        [metadata]
-    )
-    const countries = useMemo(() => {
-        if (!metadata) return [ALL_COUNTRIES]
-        const names = [...metadata.entities].map((e) => e.name).sort()
-        return [ALL_COUNTRIES, ...names]
-    }, [metadata])
-
-    const flows = productData?.flows
-    const production = productData?.production
-    const supply = productData?.supply
-
-    const incoming = useMemo(() => {
-        if (!flows || isAllCountry(country)) return []
-        return flows.filter((d) => d.importer === country)
-    }, [flows, country])
-
-    const outgoing = useMemo(() => {
-        if (!flows || isAllCountry(country)) return []
-        return flows.filter((d) => d.exporter === country)
-    }, [flows, country])
-
-    const countryProduction = isAllCountry(country)
-        ? undefined
-        : production?.get(country)
-    const countrySupply = isAllCountry(country)
-        ? undefined
-        : supply?.get(country)
-
-    // Bilateral mode: the entire product file when "All countries" is
-    // selected, since each file is already scoped to one product.
-    const bilateral = useMemo(() => {
-        if (!flows || !isAllCountry(country)) return []
-        return flows
-    }, [flows, country])
 
     const availableCountryNames = useMemo(
         () =>
@@ -205,41 +156,27 @@ function FetchingMainVariant({ config }: { config: MainVariantConfig }) {
         return <FoodTradeSkeleton />
     if (metadataStatus === "error" || !metadata)
         return <FoodTradeChartError message="Failed to load trade metadata" />
-    if (productStatus === "error" || !flows)
+    if (productStatus === "error" || !productData)
         return <FoodTradeChartError message="Failed to load trade data" />
 
     return (
         <CaptionedMainVariant
+            config={config}
             metadata={metadata}
-            incoming={incoming}
-            outgoing={outgoing}
-            bilateral={bilateral}
-            hasAnyTrade={flows.length > 0}
-            countryProduction={countryProduction}
-            countrySupply={countrySupply}
-            products={products}
-            countries={countries}
+            productData={productData}
             product={product}
             country={country}
             view={view}
             setProduct={setProduct}
-            setCountry={handleSetCountry}
+            setCountry={setCountry}
             setView={setView}
-            config={config}
         />
     )
 }
 
 function CaptionedMainVariant({
     metadata,
-    incoming,
-    outgoing,
-    bilateral,
-    hasAnyTrade,
-    countryProduction,
-    countrySupply,
-    products,
-    countries,
+    productData,
     product,
     country,
     view,
@@ -248,87 +185,90 @@ function CaptionedMainVariant({
     setView,
     config,
 }: {
+    config: MainVariantConfig
     metadata: FoodTradeMetadata
-    incoming: TradeRow[]
-    outgoing: TradeRow[]
-    bilateral: TradeRow[]
-    hasAnyTrade: boolean
-    countryProduction: number | undefined
-    countrySupply: number | undefined
-    products: string[]
-    countries: string[]
+    productData: ProductTradeData
     product: string
     country: string
     view: TradeFlow
     setProduct: (value: string) => void
     setCountry: (value: string) => void
     setView: (value: TradeFlow) => void
-    config: MainVariantConfig
 }) {
-    const year = metadata.year
+    const shouldHideChrome =
+        config.hideControls || !!config.title || !!config.subtitle
 
-    const incomingTotal = useMemo(
-        () => incoming.reduce((sum, d) => sum + d.value, 0),
-        [incoming]
+    return (
+        <>
+            {!shouldHideChrome && (
+                <>
+                    <header className="food-trade-heading">
+                        <h1 className="food-trade-heading__title">
+                            How does food move around the world?
+                        </h1>
+                        <p className="food-trade-heading__description">
+                            Where particular food products are exported to, and
+                            imported from
+                        </p>
+                    </header>
+                    <FoodTradeControls
+                        metadata={metadata}
+                        productData={productData}
+                        product={product}
+                        country={country}
+                        view={view}
+                        hideFlowSwitcher={config.hideFlowSwitcher}
+                        setProduct={setProduct}
+                        setCountry={setCountry}
+                        setView={setView}
+                    />
+                </>
+            )}
+            <Frame className="food-trade-captioned-chart">
+                <FoodTradeChartHeader
+                    config={config}
+                    country={country}
+                    product={product}
+                    year={metadata.year}
+                    view={view}
+                    flows={productData.flows}
+                />
+                <FoodTradeChart
+                    productData={productData}
+                    country={country}
+                    product={product}
+                    year={metadata.year}
+                    view={view}
+                    hideFlowSwitcher={config.hideFlowSwitcher}
+                    setCountry={setCountry}
+                    setView={setView}
+                />
+                <FoodTradeChartFooter source={metadata.source} />
+            </Frame>
+        </>
     )
-    const outgoingTotal = useMemo(
-        () => outgoing.reduce((sum, d) => sum + d.value, 0),
-        [outgoing]
-    )
-    const incomingShare =
-        countrySupply && countrySupply > 0
-            ? incomingTotal / countrySupply
-            : undefined
-    const outgoingShare =
-        countryProduction && countryProduction > 0
-            ? outgoingTotal / countryProduction
-            : undefined
+}
 
-    // When the selected country only trades this product in one
-    // direction, the other view has nothing to show — coerce the
-    // displayed view to the half that has data and disable the radios.
-    // The user's stored view preference is left untouched so it comes
-    // back when they navigate to a country-product combo with both
-    // sides.
-    const onlyImports = incoming.length > 0 && outgoing.length === 0
-    const onlyExports = outgoing.length > 0 && incoming.length === 0
-    const effectiveView: TradeFlow = onlyImports
-        ? "imports"
-        : onlyExports
-          ? "exports"
-          : view
-    const viewDisabledReason: string | undefined = isAllCountry(country)
-        ? "Select a country to view imports and exports separately."
-        : onlyImports
-          ? `${R.capitalize(articulateEntity(country))} did not export ${R.uncapitalize(product)} in ${year}.`
-          : onlyExports
-            ? `${R.capitalize(articulateEntity(country))} did not import ${R.uncapitalize(product)} in ${year}.`
-            : undefined
-    const bilateralTotal = useMemo(
-        () => bilateral.reduce((sum, d) => sum + d.value, 0),
-        [bilateral]
-    )
-
-    // Two modes:
-    //   bilateral — All countries + a specific product; 2-column trade flow
-    //   centered  — a specific country (existing 3-column behaviour)
+function FoodTradeChartHeader({
+    config,
+    country,
+    product,
+    year,
+    view,
+    flows,
+}: {
+    config: MainVariantConfig
+    country: string
+    product: string
+    year: number
+    view: TradeFlow
+    flows: TradeRow[]
+}) {
     const mode: "bilateral" | "centered" = isAllCountry(country)
         ? "bilateral"
         : "centered"
-
-    // Drill into a country from a bilateral-mode label click. The clicked
-    // side determines which half to land on: clicking an exporter shows
-    // that country's exports, clicking an importer shows its imports.
-    const handleSelectFromBilateral = useCallback(
-        (entity: string, side: "exporter" | "importer") => {
-            setCountry(entity)
-            setView(side === "exporter" ? "exports" : "imports")
-        },
-        [setCountry, setView]
-    )
-
-    const hasCenteredData = incoming.length > 0 || outgoing.length > 0
-    const hasBilateralData = bilateral.length > 0
+    const hasAnyTrade = flows.length > 0
+    const tradedTotal = useMemo(() => R.sumBy(flows, (d) => d.value), [flows])
 
     const defaultTitle =
         mode === "bilateral"
@@ -345,124 +285,27 @@ function CaptionedMainVariant({
                 Imports to and exports from {articulateEntity(country)} of{" "}
                 {R.uncapitalize(product)}
             </>
-        ) : mode === "bilateral" && hasBilateralData ? (
+        ) : mode === "bilateral" && hasAnyTrade ? (
             <>
-                {formatTrade(bilateralTotal)} of {R.uncapitalize(product)} was
+                {formatTrade(tradedTotal)} of {R.uncapitalize(product)} was
                 traded globally in {year}.
             </>
         ) : null
 
-    const title = config.title ?? defaultTitle
-    const subtitle = config.subtitle ?? defaultSubtitle
-
-    // Hide the big page heading and the controls when the embedder is
-    // providing its own framing (custom title/subtitle) or explicitly opts
-    // out of the controls.
-    const hideOutsideFrame =
-        config.hideControls || !!config.title || !!config.subtitle
-
     return (
-        <>
-            {!hideOutsideFrame && (
-                <>
-                    <header className="food-trade-heading">
-                        <h1 className="food-trade-heading__title">
-                            How does food move around the world?
-                        </h1>
-                        <p className="food-trade-heading__description">
-                            Where particular food products are exported to, and
-                            imported from
-                        </p>
-                    </header>
-                    <FoodTradeControls
-                        metadata={metadata}
-                        products={products}
-                        countries={countries}
-                        product={product}
-                        country={country}
-                        view={effectiveView}
-                        viewDisabledReason={viewDisabledReason}
-                        setProduct={setProduct}
-                        setCountry={setCountry}
-                        setView={setView}
-                    />
-                </>
-            )}
-            <Frame className="food-trade-captioned-chart">
-                <ChartHeader title={title} subtitle={subtitle} />
-                <div className="food-trade-captioned-chart__chart-area">
-                    {mode === "bilateral" ? (
-                        hasBilateralData ? (
-                            <FoodTradeBilateralSankey
-                                rows={bilateral}
-                                year={year}
-                                onSelectEntity={handleSelectFromBilateral}
-                            />
-                        ) : (
-                            <EmptyState
-                                message={`No global trade of ${R.uncapitalize(product)} in ${year}.`}
-                            />
-                        )
-                    ) : hasCenteredData ? (
-                        <FoodTradeSankey
-                            incoming={incoming}
-                            outgoing={outgoing}
-                            country={country}
-                            product={product}
-                            year={year}
-                            incomingTotal={incomingTotal}
-                            outgoingTotal={outgoingTotal}
-                            incomingShare={incomingShare}
-                            outgoingShare={outgoingShare}
-                            view={effectiveView}
-                            setView={setView}
-                        />
-                    ) : (
-                        <EmptyState
-                            message={`${R.capitalize(articulateEntity(country))} did not import or export ${R.uncapitalize(product)} in ${year}.`}
-                            cta={
-                                hasAnyTrade
-                                    ? {
-                                          label: `See global trade of ${R.uncapitalize(product)}`,
-                                          onClick: () =>
-                                              setCountry(ALL_COUNTRIES),
-                                      }
-                                    : undefined
-                            }
-                        />
-                    )}
-                </div>
-                <ChartFooter
-                    source={metadata.source}
-                    note='Only the top ten trade partners are shown; remainder grouped as "Other".'
-                />
-            </Frame>
-        </>
+        <ChartHeader
+            title={config.title ?? defaultTitle}
+            subtitle={config.subtitle ?? defaultSubtitle}
+        />
     )
 }
 
-function EmptyState({
-    message,
-    cta,
-}: {
-    message: React.ReactNode
-    cta?: { label: string; onClick: () => void }
-}) {
+function FoodTradeChartFooter({ source }: { source: string }) {
     return (
-        <div className="food-trade-captioned-chart__empty">
-            <p className="food-trade-captioned-chart__empty-message">
-                {message}
-            </p>
-            {cta && (
-                <button
-                    type="button"
-                    className="food-trade-captioned-chart__empty-cta"
-                    onClick={cta.onClick}
-                >
-                    {cta.label}
-                </button>
-            )}
-        </div>
+        <ChartFooter
+            source={source}
+            note='Only the top ten trade partners are shown; remainder grouped as "Other".'
+        />
     )
 }
 

@@ -30,59 +30,16 @@ import {
     MOBILE_BREAKPOINT,
 } from "../../../../components/Sankey/SplitFlowSankey.js"
 
-import { TradeRow } from "../data.js"
+import { type TradeRow } from "../data.js"
 
-export const formatTrade = (v: number, opts?: { short?: boolean }) =>
-    formatValue(v, {
-        unit: opts?.short ? "t" : "tonnes",
-        numberAbbreviation: opts?.short ? "short" : "long",
-        roundingMode: OwidVariableRoundingMode.significantFigures,
-        numSignificantFigures: 2,
-    })
-
-// 2 significant figures via the shared OWID formatter. Returns "" for
-// non-positive values so callers can drop the parenthetical entirely.
-function formatShare(share: number): string {
-    const pct = share * 100
-    if (!isFinite(pct) || pct <= 0) return ""
-    return formatValue(pct, {
-        unit: "%",
-        numberAbbreviation: false,
-        roundingMode: OwidVariableRoundingMode.significantFigures,
-        numSignificantFigures: 2,
-    })
-}
-
-function shareAnnotation(
-    share: number | undefined,
-    kind: "production" | "supply"
-): string | undefined {
-    if (share === undefined) return undefined
-    const formatted = formatShare(share)
-    if (!formatted) return undefined
-    return kind === "production"
-        ? `${formatted} of its production`
-        : `${formatted} of its domestic supply`
-}
-
-function tradeToFlow(rows: TradeRow[]) {
-    return rows.map((r) => ({
-        source: r.exporter,
-        target: r.importer,
-        value: r.value,
-    }))
-}
-
-export function FoodTradeSankey({
+export function FoodTradeSplitSankey({
     incoming,
     outgoing,
     country,
     product,
     year,
-    incomingTotal,
-    outgoingTotal,
-    incomingShare,
-    outgoingShare,
+    countryProduction,
+    countrySupply,
     view = "both",
     setView,
 }: {
@@ -91,14 +48,11 @@ export function FoodTradeSankey({
     country: string
     product: string
     year: number
-    /** Pre-computed totals used in the column headers. */
-    incomingTotal: number
-    outgoingTotal: number
-    /** Pre-computed shares (0–1). Imports as a share of domestic supply,
-     * exports as a share of production. Undefined when production/supply
-     * data is missing — the heading drops the parenthetical in that case. */
-    incomingShare?: number
-    outgoingShare?: number
+    /** Denominators for the share-of-production / share-of-supply
+     *  parentheticals in the headings. Undefined when production/supply
+     *  data is missing — the heading drops the parenthetical. */
+    countryProduction?: number
+    countrySupply?: number
     /** Which halves to show. Single-half views drop their heading and take
      * the full width. */
     view?: "both" | "imports" | "exports"
@@ -109,6 +63,23 @@ export function FoodTradeSankey({
 
     const incomingFlows = useMemo(() => tradeToFlow(incoming), [incoming])
     const outgoingFlows = useMemo(() => tradeToFlow(outgoing), [outgoing])
+
+    const incomingTotal = useMemo(
+        () => R.sumBy(incoming, (d) => d.value),
+        [incoming]
+    )
+    const outgoingTotal = useMemo(
+        () => R.sumBy(outgoing, (d) => d.value),
+        [outgoing]
+    )
+    const incomingShare =
+        countrySupply && countrySupply > 0
+            ? incomingTotal / countrySupply
+            : undefined
+    const outgoingShare =
+        countryProduction && countryProduction > 0
+            ? outgoingTotal / countryProduction
+            : undefined
 
     // When both halves are visible side-by-side AND both have data, the
     // two headings read as one sentence: "{country} imports X" + "and
@@ -517,4 +488,45 @@ function bucketTotalsBySmallSide(
     return Array.from(totals.entries())
         .map(([name, value]) => ({ name: getEntityShortLabel(name), value }))
         .sort((a, b) => b.value - a.value)
+}
+
+export const formatTrade = (v: number, opts?: { short?: boolean }) =>
+    formatValue(v, {
+        unit: opts?.short ? "t" : "tonnes",
+        numberAbbreviation: opts?.short ? "short" : "long",
+        roundingMode: OwidVariableRoundingMode.significantFigures,
+        numSignificantFigures: 2,
+    })
+
+// 2 significant figures via the shared OWID formatter. Returns "" for
+// non-positive values so callers can drop the parenthetical entirely.
+function formatShare(share: number): string {
+    const pct = share * 100
+    if (!isFinite(pct) || pct <= 0) return ""
+    return formatValue(pct, {
+        unit: "%",
+        numberAbbreviation: false,
+        roundingMode: OwidVariableRoundingMode.significantFigures,
+        numSignificantFigures: 2,
+    })
+}
+
+function shareAnnotation(
+    share: number | undefined,
+    kind: "production" | "supply"
+): string | undefined {
+    if (share === undefined) return undefined
+    const formatted = formatShare(share)
+    if (!formatted) return undefined
+    return kind === "production"
+        ? `${formatted} of its production`
+        : `${formatted} of its domestic supply`
+}
+
+function tradeToFlow(rows: TradeRow[]) {
+    return rows.map((r) => ({
+        source: r.exporter,
+        target: r.importer,
+        value: r.value,
+    }))
 }
