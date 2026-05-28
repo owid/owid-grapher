@@ -1,6 +1,14 @@
-import { useCallback, useMemo, useRef, useState } from "react"
+import { useCallback, useMemo } from "react"
+import cx from "classnames"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { UNSAFE_PortalProvider } from "react-aria"
+import { NuqsAdapter } from "nuqs/adapters/react"
+import {
+    parseAsInteger,
+    parseAsNumberLiteral,
+    parseAsString,
+    parseAsStringEnum,
+} from "nuqs"
 
 import { articulateEntity } from "@ourworldindata/utils"
 import { BasicDropdownOption } from "@ourworldindata/grapher"
@@ -10,6 +18,7 @@ import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
 import { type DropdownCollection } from "../../../../components/InlineLabeledDropdown/InlineLabeledDropdown.js"
 import { groupByUserLocation } from "../../../../components/EntityDropdown/EntityDropdown.js"
+import { useUrlState } from "../../../../hooks/useUrlState.js"
 import { useUserCountryInformation } from "../../../../hooks/useUserCountryInformation.js"
 import {
     isUserLocationCountry,
@@ -20,6 +29,8 @@ import { SankeyVariantConfig, VariantProps } from "../config.js"
 import {
     Entity,
     GENDER_ALL,
+    GENDER_FEMALE,
+    GENDER_MALE,
     GenderId,
     MigrationFlow,
     MigrationRow,
@@ -51,29 +62,65 @@ export function SankeyVariant({
     }, [node])
 
     return (
-        <QueryClientProvider client={queryClient}>
-            <div ref={rootRef} className="migration-chart">
-                <UNSAFE_PortalProvider getContainer={getPortalContainer}>
-                    <FetchingSankeyVariant config={config} />
-                </UNSAFE_PortalProvider>
-            </div>
-        </QueryClientProvider>
+        <NuqsAdapter>
+            <QueryClientProvider client={queryClient}>
+                <div
+                    ref={ref}
+                    className={cx("migration-chart", {
+                        "migration-chart--narrow": isNarrow,
+                    })}
+                >
+                    <UNSAFE_PortalProvider getContainer={getPortalContainer}>
+                        <FetchingSankeyVariant config={config} />
+                    </UNSAFE_PortalProvider>
+                </div>
+            </QueryClientProvider>
+        </NuqsAdapter>
     )
 }
 
 type Metadata = NonNullable<ReturnType<typeof useMigrationMetadata>["data"]>
 
 function FetchingSankeyVariant({ config }: { config: SankeyVariantConfig }) {
-    const [country, setCountry] = useState<string>(
-        config.country ?? DEFAULT_COUNTRY
-    )
-    const [year, setYear] = useState<number>(config.year ?? DEFAULT_YEAR)
-    const [genderId, setGenderId] = useState<GenderId>(
-        config.genderId ?? GENDER_ALL
-    )
-    const [_view, setView] = useState<MigrationView>(
-        config.migrationFlow ?? DEFAULT_VIEW
-    )
+    const urlSync = config.urlSync ?? false
+
+    const initialCountry =
+        !config.country || isUserLocationCountry(config.country)
+            ? DEFAULT_COUNTRY
+            : config.country
+
+    const [country, setCountry] = useUrlState({
+        key: "migrationCountry",
+        parser: parseAsString,
+        defaultValue: initialCountry,
+        enabled: urlSync,
+    })
+    const [year, setYear] = useUrlState({
+        key: "migrationYear",
+        parser: parseAsInteger,
+        defaultValue: config.year ?? DEFAULT_YEAR,
+        enabled: urlSync,
+    })
+    const [genderId, setGenderId] = useUrlState({
+        key: "migrationGender",
+        parser: parseAsNumberLiteral([
+            GENDER_ALL,
+            GENDER_FEMALE,
+            GENDER_MALE,
+        ] as const),
+        defaultValue: config.genderId ?? GENDER_ALL,
+        enabled: urlSync,
+    })
+    const [_view, setView] = useUrlState({
+        key: "migrationView",
+        parser: parseAsStringEnum<MigrationView>([
+            "both",
+            "immigrants",
+            "emigrants",
+        ]),
+        defaultValue: config.migrationFlow ?? DEFAULT_VIEW,
+        enabled: urlSync,
+    })
 
     const { data: metadata, status: metadataStatus } = useMigrationMetadata()
 

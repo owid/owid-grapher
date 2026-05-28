@@ -30,6 +30,7 @@
         "d3-sankey": "^0.12.3",
         "jotai": "^2.18.1",
         "normalize.css": "^8.0.1",
+        "nuqs": "^2.8.9",
         "react": "^19.2.4",
         "react-aria": "^3.41.1",
         "react-aria-components": "^1.8.0",

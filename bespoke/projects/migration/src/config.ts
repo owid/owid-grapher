@@ -19,6 +19,7 @@ export interface SankeyVariantConfig {
     genderId?: GenderId
     year?: number
     migrationFlow?: MigrationView
+    urlSync?: boolean
 }
 
 export function parseConfig(raw: Record<string, string>): SankeyVariantConfig {
@@ -31,6 +32,7 @@ export function parseConfig(raw: Record<string, string>): SankeyVariantConfig {
         genderId: parseGenderId(raw.genderId),
         year: parseYear(raw.year),
         migrationFlow: parseMigrationFlow(raw.migrationFlow),
+        urlSync: parseBoolean(raw.urlSync),
     }
 }
 
