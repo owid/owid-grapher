@@ -813,10 +813,7 @@ describe("Chart-level ETL configs", { timeout: 15000 }, () => {
         // comes from the indicator (not in etlConfig)
         fullConfig = await env.fetchJson(`/charts/${chartId}.config.json`)
         expect(fullConfig).toHaveProperty("note", "Note from etlConfig")
-        expect(fullConfig).toHaveProperty(
-            "subtitle",
-            "Subtitle from etlConfig"
-        )
+        expect(fullConfig).toHaveProperty("subtitle", "Subtitle from etlConfig")
         expect(fullConfig).toHaveProperty("hasMapTab", true)
 
         // now an admin edits the chart and overrides the note
@@ -831,14 +828,8 @@ describe("Chart-level ETL configs", { timeout: 15000 }, () => {
 
         // admin patch wins over etlConfig
         fullConfig = await env.fetchJson(`/charts/${chartId}.config.json`)
-        expect(fullConfig).toHaveProperty(
-            "note",
-            "Note overridden by admin"
-        )
-        expect(fullConfig).toHaveProperty(
-            "subtitle",
-            "Subtitle from etlConfig"
-        )
+        expect(fullConfig).toHaveProperty("note", "Note overridden by admin")
+        expect(fullConfig).toHaveProperty("subtitle", "Subtitle from etlConfig")
     })
 
     it("preserves admin patch when ETL re-pushes the etlConfig", async () => {
@@ -944,9 +935,7 @@ describe("Chart-level ETL configs", { timeout: 15000 }, () => {
         expect(row).toBeUndefined()
 
         // note falls back to the indicator's value; subtitle is gone
-        const fullConfig = await env.fetchJson(
-            `/charts/${chartId}.config.json`
-        )
+        const fullConfig = await env.fetchJson(`/charts/${chartId}.config.json`)
         expect(fullConfig).toHaveProperty("note", "Note from the indicator")
         expect(fullConfig).not.toHaveProperty("subtitle")
     })

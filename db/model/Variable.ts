@@ -231,8 +231,7 @@ export interface UpdatedChartInheritanceRecord {
     isPublished: boolean
 }
 
-interface ChartInheritanceRecordWithEtlConfig
-    extends UpdatedChartInheritanceRecord {
+interface ChartInheritanceRecordWithEtlConfig extends UpdatedChartInheritanceRecord {
     etlConfig: GrapherInterface | null
 }
 
@@ -338,8 +337,7 @@ interface MultiDimViewInheritanceRecord {
     isPublished: boolean
 }
 
-interface MultiDimViewInheritanceRecordWithEtlConfig
-    extends MultiDimViewInheritanceRecord {
+interface MultiDimViewInheritanceRecordWithEtlConfig extends MultiDimViewInheritanceRecord {
     etlConfig: GrapherInterface | null
 }
 
