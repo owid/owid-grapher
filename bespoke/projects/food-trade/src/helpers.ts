@@ -2,7 +2,11 @@ import { formatValue } from "@ourworldindata/utils"
 import { OwidVariableRoundingMode } from "@ourworldindata/types"
 
 import { Flow } from "../../../components/Sankey/helpers.js"
-import { TradeRow } from "./data.js"
+import { TradeRow } from "./types.js"
+
+export const ALL_COUNTRIES = "All countries"
+
+export const isAllCountry = (c: string): boolean => c === ALL_COUNTRIES
 
 export const formatTrade = (v: number, opts?: { short?: boolean }): string =>
     formatValue(v, {

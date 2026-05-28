@@ -21,9 +21,9 @@ import {
     SwitcherItem,
 } from "../../../../components/Switcher/Switcher.js"
 
-import { ALL_COUNTRIES, isAllCountry } from "../constants.js"
 import { TradeFlow } from "../config.js"
-import { FoodTradeMetadata, ProductTradeData } from "../data.js"
+import { ALL_COUNTRIES, isAllCountry } from "../helpers.js"
+import { FoodTradeMetadata, ProductTradeData } from "../types.js"
 
 export function FoodTradeControls({
     metadata,

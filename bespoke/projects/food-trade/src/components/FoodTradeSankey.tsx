@@ -30,7 +30,7 @@ import {
     MOBILE_BREAKPOINT,
 } from "../../../../components/Sankey/SplitFlowSankey.js"
 
-import { type TradeRow } from "../data.js"
+import { type TradeRow } from "../types.js"
 
 export function FoodTradeSplitSankey({
     incoming,

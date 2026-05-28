@@ -12,18 +12,12 @@ import { Frame } from "../../../../components/Frame/Frame.js"
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
 
-import { ALL_COUNTRIES, isAllCountry } from "../constants.js"
 import { SankeyVariantConfig, TradeFlow, VariantProps } from "../config.js"
-import {
-    FoodTradeMetadata,
-    ProductTradeData,
-    TradeRow,
-    useFoodTradeMetadata,
-    useProductTradeData,
-} from "../data.js"
+import { FoodTradeMetadata, ProductTradeData, TradeRow } from "../types.js"
+import { useFoodTradeMetadata, useProductTradeData } from "../data.js"
 import { FoodTradeControls } from "../components/FoodTradeControls.js"
 import { FoodTradeChart } from "../components/FoodTradeChart.js"
-import { formatTrade } from "../helpers.js"
+import { ALL_COUNTRIES, formatTrade, isAllCountry } from "../helpers.js"
 import { useUrlState } from "../../../../hooks/useUrlState.js"
 import { useContainerWidth } from "../../../../hooks/useContainerWidth.js"
 import {

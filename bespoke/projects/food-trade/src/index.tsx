@@ -2,7 +2,7 @@ import { createRoot } from "react-dom/client"
 
 import "./reactAriaShadowDomSetup"
 
-import { VariantName } from "./constants.js"
+import { VariantName } from "./types.js"
 import { parseConfig } from "./config.js"
 import { SankeyVariant } from "./variants/SankeyVariant"
 

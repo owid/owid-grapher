@@ -4,9 +4,9 @@ import * as R from "remeda"
 
 import { articulateEntity } from "@ourworldindata/utils"
 
-import { ALL_COUNTRIES, isAllCountry } from "../constants.js"
 import { TradeFlow } from "../config.js"
-import { ProductTradeData } from "../data.js"
+import { ALL_COUNTRIES, isAllCountry } from "../helpers.js"
+import { ProductTradeData } from "../types.js"
 import { FoodTradeBilateralSankey } from "./FoodTradeBilateralSankey.js"
 import { FoodTradeSplitSankey } from "./FoodTradeSplitSankey.js"
 
