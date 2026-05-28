@@ -17,10 +17,10 @@
 @import "../../../components/Sankey/SplitFlowSankey.scss";
 @import "../../../components/Switcher/Switcher.scss";
 
-// Variants
-@import "./variants/SankeyVariant.scss";
-
 // Project components
 @import "./components/FoodTradeChart.scss";
 @import "./components/FoodTradeControls.scss";
 @import "./components/FoodTradeSankey.scss";
+
+// Variants
+@import "./variants/SankeyVariant.scss";

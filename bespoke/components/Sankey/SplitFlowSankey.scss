@@ -142,6 +142,13 @@
         // heading and its own chart; the deliberate inter-half separation
         // is handled by the second heading's margin-top below instead.
         row-gap: 0;
+        // HEADING_HEIGHT (44px, sized for a wrapped + annotated heading)
+        // overestimates how much space single-line, no-annotation headings
+        // (migration's case) actually need. The unused slack defaults to
+        // distributing across auto rows, which shows up as a gap between
+        // each heading and its chart. `start` pools the slack after the
+        // last row instead.
+        align-content: start;
     }
 
     // Shrink the headings to match the smaller in-chart labels driven by
