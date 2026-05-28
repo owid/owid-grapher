@@ -17,8 +17,8 @@ export interface SlopeChartSeries extends ChartSeries {
     column: CoreColumn
     entityName: EntityName
     displayName: string
-    start: Pick<OwidVariableRow<number>, "value" | "originalTime">
-    end: Pick<OwidVariableRow<number>, "value" | "originalTime">
+    start: OwidVariableRow<number>
+    end: OwidVariableRow<number>
     annotation?: string
     focus: InteractionState
 }

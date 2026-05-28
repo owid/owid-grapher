@@ -22,6 +22,7 @@ import {
     SortBy,
     SortConfig,
     SortOrder,
+    OwidVariableRow,
 } from "@ourworldindata/types"
 import { LineChartSeries } from "../lineCharts/LineChartConstants"
 import { SelectionArray } from "../selection/SelectionArray"
@@ -364,4 +365,25 @@ export function textWidth(text: string, fontSettings: FontSettings): number {
 
 export function roundFontSize(fontSize: number): number {
     return Math.round(fontSize * 2) / 2
+}
+
+/**
+ * Checks whether a pair of observations spanning two points in time is valid
+ * given tolerance
+ */
+export function isToleranceDistanceValid(args: {
+    start: OwidVariableRow<number>
+    end: OwidVariableRow<number>
+    tolerance: number
+}): boolean {
+    const { start, end, tolerance } = args
+
+    if (start.originalTime >= end.originalTime) return false
+
+    const isToleranceAppliedToStart = start.originalTime !== start.time
+    const isToleranceAppliedToEnd = end.originalTime !== end.time
+    if (!isToleranceAppliedToStart && !isToleranceAppliedToEnd) return true
+
+    const minRequiredGap = Math.min(tolerance, end.time - start.time)
+    return end.originalTime - start.originalTime >= minRequiredGap
 }
