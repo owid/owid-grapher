@@ -147,14 +147,29 @@ export function AdminColorPicker({
     const regionsByHex = useMemo(() => groupNamesByHex(ContinentColors), [])
     const energyByHex = useMemo(() => invertColorMap(EnergyColors), [])
 
+    // The line-chart palette swaps in darker variants (PeachDarker, etc.) that
+    // aren't keys in ContinentColors/EnergyColors. Map each darker hex back to
+    // its base hex so region/energy metadata still resolves.
+    const baseHexByDarkerHex = useMemo(() => {
+        const result: Record<string, string> = {}
+        const distinct = OwidDistinctColors as Record<string, string>
+        for (const [name, hex] of Object.entries(OwidDistinctLinesColors)) {
+            if (!name.endsWith("Darker")) continue
+            const baseHex = distinct[name.replace(/Darker$/, "")]
+            if (baseHex) result[hex.toUpperCase()] = baseHex.toUpperCase()
+        }
+        return result
+    }, [])
+
     const metaFor = (hex: string): ColorMeta => {
         const key = hex.toUpperCase()
+        const baseKey = baseHexByDarkerHex[key] ?? key
         return {
             hex,
             name: nameByHex[key] ? humanizeName(nameByHex[key]) : undefined,
-            regions: regionsByHex[key] ?? [],
-            energy: energyByHex[key]
-                ? humanizeName(energyByHex[key])
+            regions: regionsByHex[baseKey] ?? [],
+            energy: energyByHex[baseKey]
+                ? humanizeName(energyByHex[baseKey])
                 : undefined,
         }
     }
@@ -167,12 +182,14 @@ export function AdminColorPicker({
         () => [...gridColors].sort((a, b) => hueOf(a) - hueOf(b)),
         [gridColors]
     )
-    const normalizedQuery = query.trim().toLowerCase()
+    const queryTokens = query.trim().toLowerCase().split(/\s+/).filter(Boolean)
     const matches = (...texts: (string | undefined)[]): boolean => {
-        if (!normalizedQuery) return true
-        return texts.some((text) =>
-            text?.toLowerCase().includes(normalizedQuery)
-        )
+        if (queryTokens.length === 0) return true
+        const haystack = texts
+            .filter((t): t is string => !!t)
+            .join(" ")
+            .toLowerCase()
+        return queryTokens.every((token) => haystack.includes(token))
     }
 
     const handleColorChange = (newColor: Color): void => {
