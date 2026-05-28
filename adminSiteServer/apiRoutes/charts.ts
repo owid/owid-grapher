@@ -356,8 +356,7 @@ const updateExistingChart = async (
     // layer (written separately via PUT /charts/:id/etlConfig) when
     // recomputing patch/full.
     const chartConfigIdRow = await db.knexRawFirst<
-        Pick<DbPlainChart, "configId"> &
-            Pick<DbRawChartConfig, "etlConfig">
+        Pick<DbPlainChart, "configId"> & Pick<DbRawChartConfig, "etlConfig">
     >(
         knex,
         `-- sql
@@ -1014,10 +1013,7 @@ export async function deleteChartsChartIdEtlConfig(
         ? await getParentByChartConfig(trx, previousFullConfig)
         : undefined
 
-    const newFullConfig = mergeGrapherConfigs(
-        parent?.config ?? {},
-        patchConfig
-    )
+    const newFullConfig = mergeGrapherConfigs(parent?.config ?? {}, patchConfig)
 
     const now = new Date()
 
