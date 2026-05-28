@@ -197,12 +197,8 @@ export abstract class AbstractChartEditor<
 
     /** original grapher config used to init the grapherState instance */
     @computed get originalGrapherConfig(): GrapherInterface {
-        const {
-            patchConfig,
-            parentConfig,
-            etlConfig,
-            isInheritanceEnabled,
-        } = this.manager
+        const { patchConfig, parentConfig, etlConfig, isInheritanceEnabled } =
+            this.manager
         const effectiveParent = mergeGrapherConfigs(
             isInheritanceEnabled ? (parentConfig ?? {}) : {},
             etlConfig ?? {}
