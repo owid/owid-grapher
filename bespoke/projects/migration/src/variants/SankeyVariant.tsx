@@ -16,6 +16,7 @@ import { articulateEntity } from "@ourworldindata/utils"
 import { Frame } from "../../../../components/Frame/Frame.js"
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
+import { assignColors } from "../../../../components/Sankey/helpers.js"
 import { MOBILE_BREAKPOINT } from "../../../../components/Sankey/SplitFlowSankey.js"
 import { useUrlState } from "../../../../hooks/useUrlState.js"
 import { useContainerWidth } from "../../../../hooks/useContainerWidth.js"
@@ -171,6 +172,26 @@ function FetchingSankeyVariant({ config }: { config: SankeyVariantConfig }) {
         [emigrants]
     )
 
+    // Country-scoped, all-time partner color map. Computed from the full
+    // migration response (all years, both genders, immigrants + emigrants
+    // combined) and ordered by total volume, so partner colors stay
+    // stable as the user drags the time slider or switches gender.
+    // Recomputes when the country changes (because `migration` refetches).
+    const colorMap = useMemo<Map<string, string> | undefined>(() => {
+        if (!migration || !entitiesById) return undefined
+        const totals = new Map<string, number>()
+        for (const r of [...migration.immigrants, ...migration.emigrants]) {
+            const name = entitiesById.get(r.partnerId)?.name
+            if (name) totals.set(name, (totals.get(name) ?? 0) + r.value)
+        }
+        const ordered = R.pipe(
+            [...totals],
+            R.sortBy([(p) => p[1], "desc"]),
+            R.map(([name]) => name)
+        )
+        return assignColors(ordered)
+    }, [migration, entitiesById])
+
     // When the selected country only migrates in one direction for the
     // current year/gender, the other view has nothing to show — coerce
     // the displayed view to the half that has data and disable the radios.
@@ -217,6 +238,7 @@ function FetchingSankeyVariant({ config }: { config: SankeyVariantConfig }) {
             emigrants={emigrants}
             immigrantsTotal={immigrantsTotal}
             emigrantsTotal={emigrantsTotal}
+            colorMap={colorMap}
             setCountry={setCountry}
             setYear={setYear}
             setGenderId={setGenderId}
@@ -237,6 +259,7 @@ function CaptionedSankeyVariant({
     emigrants,
     immigrantsTotal,
     emigrantsTotal,
+    colorMap,
     setCountry,
     setYear,
     setGenderId,
@@ -253,6 +276,7 @@ function CaptionedSankeyVariant({
     emigrants: MigrationFlow[]
     immigrantsTotal: number
     emigrantsTotal: number
+    colorMap: Map<string, string> | undefined
     setCountry: (name: string) => void
     setYear: (year: number) => void
     setGenderId: (id: GenderId) => void
@@ -305,6 +329,7 @@ function CaptionedSankeyVariant({
                     emigrantsTotal={emigrantsTotal}
                     view={view}
                     setView={setView}
+                    colorMap={colorMap}
                 />
                 <MigrationChartFooter source={metadata.source} />
             </Frame>

@@ -14,6 +14,7 @@ export function MigrationChart({
     emigrantsTotal,
     view,
     setView,
+    colorMap,
 }: {
     immigrants: MigrationFlow[]
     emigrants: MigrationFlow[]
@@ -23,6 +24,9 @@ export function MigrationChart({
     emigrantsTotal: number
     view: MigrationView
     setView: (view: MigrationView) => void
+    /** Stable partner → color map — passed through to the sankey so
+     *  colors don't shift with year/gender changes. */
+    colorMap?: Map<string, string>
 }) {
     const hasData = immigrants.length > 0 || emigrants.length > 0
 
@@ -38,6 +42,7 @@ export function MigrationChart({
                     emigrantsTotal={emigrantsTotal}
                     view={view}
                     setView={setView}
+                    colorMap={colorMap}
                 />
             ) : (
                 <NoData

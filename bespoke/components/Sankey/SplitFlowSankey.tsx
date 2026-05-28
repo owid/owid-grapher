@@ -121,6 +121,13 @@ interface SplitFlowSankeyProps {
     maxNodesToShrinkOther?: number
     minNodeShare?: number
     formatValue: (v: number) => string
+    /**
+     * If provided, used directly as the partner → color map — lets
+     * callers stabilize colors across data slices that would otherwise
+     * reorder partners by value (e.g. a time slider). When omitted, a
+     * color map is derived from the currently displayed nodes.
+     */
+    colorMap?: Map<string, string>
 }
 
 export function SplitFlowSankey({
@@ -136,6 +143,7 @@ export function SplitFlowSankey({
     maxNodesToShrinkOther = DEFAULT_MAX_NODES_TO_SHRINK_OTHER,
     minNodeShare = DEFAULT_MIN_NODE_SHARE,
     formatValue,
+    colorMap: colorMapOverride,
 }: SplitFlowSankeyProps) {
     const showIncoming = view === "both" || view === "incoming"
     const showOutgoing = view === "both" || view === "outgoing"
@@ -184,8 +192,12 @@ export function SplitFlowSankey({
         ]
     )
 
-    // Color partners in node display order
+    // Color partners by the caller-supplied map if available — this is
+    // what lets a parent stabilize colors across data slices that would
+    // otherwise reorder partners. Falls back to node display order
+    // (value-sorted) when no override is given.
     const colorMap = useMemo(() => {
+        if (colorMapOverride) return colorMapOverride
         const partners = R.pipe(
             [...(incomingBuild?.nodes ?? []), ...(outgoingBuild?.nodes ?? [])],
             R.map((n) => getPartnerFromNodeId(n.id)),
@@ -193,7 +205,7 @@ export function SplitFlowSankey({
             R.unique()
         )
         return assignColors(partners)
-    }, [incomingBuild, outgoingBuild])
+    }, [incomingBuild, outgoingBuild, colorMapOverride])
 
     const getNodeColor = (node: SankeyNode): string => {
         if (node.id === centralEntity) return NEUTRAL_COLOR

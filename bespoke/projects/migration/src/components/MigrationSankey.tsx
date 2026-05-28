@@ -35,6 +35,7 @@ export function MigrationSankey({
     emigrantsTotal,
     view = "both",
     setView,
+    colorMap,
 }: {
     immigrants: MigrationFlow[]
     emigrants: MigrationFlow[]
@@ -48,6 +49,10 @@ export function MigrationSankey({
     view?: MigrationView
     /** Lets the empty-half CTA flip the user to the half that has data. */
     setView: (view: MigrationView) => void
+    /** Country-scoped partner → color map for stable colors across
+     *  year/gender changes. Recomputed by the parent when country
+     *  changes. */
+    colorMap?: Map<string, string>
 }) {
     const { parentRef, width, height } = useParentSize()
 
@@ -128,6 +133,7 @@ export function MigrationSankey({
                 height={height}
                 formatValue={formatPeople}
                 view={splitView}
+                colorMap={colorMap}
             />
         </div>
     )
