@@ -5,6 +5,7 @@ import {
     JsonError,
     DbPlainUser,
     Base64String,
+    parseChartConfig,
     serializeChartConfig,
     DbPlainChart,
     R2GrapherConfigDirectory,
@@ -410,16 +411,37 @@ const updateExistingChart = async (
         ? await getParentByChartConfig(knex, config)
         : undefined
 
-    // compute patch and full configs
-    const patchConfig = diffGrapherConfigs(config, parent?.config ?? {})
-    const fullConfig = mergeGrapherConfigs(parent?.config ?? {}, patchConfig)
-
+    // fetch existing chart_configs row so we can keep the chart's etlConfig
+    // layer (written separately via PUT /charts/:id/etlConfig) when
+    // recomputing patch/full.
     const chartConfigIdRow = await db.knexRawFirst<
-        Pick<DbPlainChart, "configId">
-    >(knex, `SELECT configId FROM charts WHERE id = ?`, [chartId])
+        Pick<DbPlainChart, "configId"> &
+            Pick<DbRawChartConfig, "etlConfig">
+    >(
+        knex,
+        `-- sql
+            SELECT c.configId, cc.etlConfig
+            FROM charts c
+            JOIN chart_configs cc ON cc.id = c.configId
+            WHERE c.id = ?
+        `,
+        [chartId]
+    )
 
     if (!chartConfigIdRow)
         throw new JsonError(`No chart config found for id ${chartId}`, 404)
+
+    const etlConfig = chartConfigIdRow.etlConfig
+        ? parseChartConfig(chartConfigIdRow.etlConfig)
+        : {}
+
+    // compute patch and full configs.
+    // The "parent stack" against which we diff is the indicator's grapher
+    // config plus the chart's own etlConfig (if any). Patch only carries
+    // admin-authored overrides on top of that stack.
+    const parentStack = mergeGrapherConfigs(parent?.config ?? {}, etlConfig)
+    const patchConfig = diffGrapherConfigs(config, parentStack)
+    const fullConfig = mergeGrapherConfigs(parentStack, patchConfig)
 
     const now = new Date()
 
@@ -913,6 +935,189 @@ export async function updateChart(
             error: { message: String(err), status: 500 },
         }
     }
+}
+
+/**
+ * Inserts or updates the chart's ETL-authored grapher config.
+ *
+ * This config lives in `chart_configs.etlConfig` and is a layer between the
+ * indicator's grapher_config (variableETL) and the chart's admin-authored
+ * `patch`. ETL writes only to `etlConfig`; admin writes only to `patch`. The
+ * rendered `full` is `merge(variableETL, etlConfig, patch)`.
+ */
+export async function putChartsChartIdEtlConfig(
+    req: Request,
+    res: HandlerResponse,
+    trx: db.KnexReadWriteTransaction
+) {
+    const chartId = expectInt(req.params.chartId)
+
+    let etlConfig: GrapherInterface
+    try {
+        etlConfig = migrateGrapherConfigToLatestVersionAndFailOnError(req.body)
+    } catch (err) {
+        return { success: false, error: String(err) }
+    }
+
+    const row = await db.knexRawFirst<
+        Pick<DbPlainChart, "configId" | "isInheritanceEnabled"> &
+            Pick<DbRawChartConfig, "patch" | "full">
+    >(
+        trx,
+        `-- sql
+            SELECT
+                c.configId,
+                c.isInheritanceEnabled,
+                cc.patch,
+                cc.full
+            FROM charts c
+            JOIN chart_configs cc ON cc.id = c.configId
+            WHERE c.id = ?
+        `,
+        [chartId]
+    )
+
+    if (!row) {
+        throw new JsonError(`Chart with id ${chartId} not found`, 404)
+    }
+
+    const patchConfig = parseChartConfig(row.patch)
+    const previousFullConfig = parseChartConfig(row.full)
+
+    // Resolve the chart's parent (a single Y-indicator's grapher_config, if
+    // inheritance is enabled and the chart has exactly one Y dimension). We
+    // look it up via the chart's effective full config so dimensions resolve
+    // to the variables the chart actually plots.
+    const parent = row.isInheritanceEnabled
+        ? await getParentByChartConfig(trx, previousFullConfig)
+        : undefined
+
+    // Merge order (low → high precedence):
+    //   variable's ETL grapher_config → chart's etlConfig → admin patch
+    const newFullConfig = mergeGrapherConfigs(
+        parent?.config ?? {},
+        etlConfig,
+        patchConfig
+    )
+
+    const now = new Date()
+
+    await db.knexRaw(
+        trx,
+        `-- sql
+            UPDATE chart_configs cc
+            JOIN charts c ON c.configId = cc.id
+            SET
+                cc.etlConfig = ?,
+                cc.full = ?,
+                cc.updatedAt = ?,
+                c.updatedAt = ?
+            WHERE c.id = ?
+        `,
+        [
+            serializeChartConfig(etlConfig),
+            serializeChartConfig(newFullConfig),
+            now,
+            now,
+            chartId,
+        ]
+    )
+
+    await retrieveChartConfigFromDbAndSaveToR2(
+        trx,
+        row.configId as Base64String
+    )
+
+    if (newFullConfig.isPublished) {
+        await triggerStaticBuild(
+            res.locals.user,
+            `Updating ETL config for chart ${chartId}`
+        )
+    }
+
+    return { success: true, etlConfig }
+}
+
+/**
+ * Clears the chart's ETL-authored grapher config, returning the chart to a
+ * state where only the admin patch (and the indicator's grapher_config, if
+ * inheritance is enabled) contribute to `full`.
+ */
+export async function deleteChartsChartIdEtlConfig(
+    req: Request,
+    res: HandlerResponse,
+    trx: db.KnexReadWriteTransaction
+) {
+    const chartId = expectInt(req.params.chartId)
+
+    const row = await db.knexRawFirst<
+        Pick<DbPlainChart, "configId" | "isInheritanceEnabled"> &
+            Pick<DbRawChartConfig, "patch" | "full" | "etlConfig">
+    >(
+        trx,
+        `-- sql
+            SELECT
+                c.configId,
+                c.isInheritanceEnabled,
+                cc.patch,
+                cc.full,
+                cc.etlConfig
+            FROM charts c
+            JOIN chart_configs cc ON cc.id = c.configId
+            WHERE c.id = ?
+        `,
+        [chartId]
+    )
+
+    if (!row) {
+        throw new JsonError(`Chart with id ${chartId} not found`, 404)
+    }
+
+    // no-op if the chart doesn't have an ETL config
+    if (!row.etlConfig) return { success: true }
+
+    const patchConfig = parseChartConfig(row.patch)
+    const previousFullConfig = parseChartConfig(row.full)
+
+    const parent = row.isInheritanceEnabled
+        ? await getParentByChartConfig(trx, previousFullConfig)
+        : undefined
+
+    const newFullConfig = mergeGrapherConfigs(
+        parent?.config ?? {},
+        patchConfig
+    )
+
+    const now = new Date()
+
+    await db.knexRaw(
+        trx,
+        `-- sql
+            UPDATE chart_configs cc
+            JOIN charts c ON c.configId = cc.id
+            SET
+                cc.etlConfig = NULL,
+                cc.full = ?,
+                cc.updatedAt = ?,
+                c.updatedAt = ?
+            WHERE c.id = ?
+        `,
+        [serializeChartConfig(newFullConfig), now, now, chartId]
+    )
+
+    await retrieveChartConfigFromDbAndSaveToR2(
+        trx,
+        row.configId as Base64String
+    )
+
+    if (newFullConfig.isPublished) {
+        await triggerStaticBuild(
+            res.locals.user,
+            `Clearing ETL config for chart ${chartId}`
+        )
+    }
+
+    return { success: true }
 }
 
 export async function deleteChart(
