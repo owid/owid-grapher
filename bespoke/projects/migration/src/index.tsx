@@ -1,5 +1,6 @@
 import { createRoot } from "react-dom/client"
-import { enableShadowDOM } from "@react-stately/flags"
+
+import "./reactAriaShadowDomSetup"
 
 import { VariantName } from "./constants.js"
 import { parseConfig } from "./config.js"
@@ -12,13 +13,6 @@ import type {
 import StylesTarget from "vite-plugin-css-position/react"
 
 import "./index.scss"
-
-// Enable react-aria's internal Shadow DOM handling paths.
-// Must be called before any react-aria components render.
-// (Unlike the food-trade project, we don't alias react-aria to the
-// repo-root install, so we only need the standalone @react-stately/flags
-// call — not the bundled-private-flags workaround.)
-enableShadowDOM()
 
 export const VARIANTS = [
     { name: "main", component: MainVariant, demoConfig: {} },

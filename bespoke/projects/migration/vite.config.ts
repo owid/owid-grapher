@@ -1,9 +1,15 @@
+import path from "node:path"
 import { defineConfig, withFilter } from "vite"
 import pluginReact from "@vitejs/plugin-react"
 import { viteCssPosition } from "vite-plugin-css-position"
 import pluginSwc from "@rollup/plugin-swc"
 
 import { entrypoints } from "./package.json"
+
+// Resolve react-aria packages to the repo-root install
+const repoRoot = path.resolve(import.meta.dirname, "../../..")
+const reactAriaRoot = (pkg: string): string =>
+    path.join(repoRoot, "node_modules", pkg)
 
 export default defineConfig({
     plugins: [
@@ -43,6 +49,11 @@ export default defineConfig({
         // and break hooks. This forces all React imports to resolve to
         // the single copy in this project's node_modules.
         dedupe: ["react", "react-dom", "@react-stately/flags"],
+        alias: {
+            "react-aria-components": reactAriaRoot("react-aria-components"),
+            "react-aria": reactAriaRoot("react-aria"),
+            "react-stately": reactAriaRoot("react-stately"),
+        },
     },
     build: {
         lib: {

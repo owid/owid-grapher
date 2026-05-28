@@ -1,5 +1,6 @@
-import { useCallback, useMemo, useState } from "react"
+import { useCallback, useMemo, useRef, useState } from "react"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
+import { UNSAFE_PortalProvider } from "react-aria"
 
 import { articulateEntity } from "@ourworldindata/utils"
 import { BasicDropdownOption } from "@ourworldindata/grapher"
@@ -42,10 +43,23 @@ const queryClient = new QueryClient()
 export function MainVariant({
     config,
 }: VariantProps<MainVariantConfig>): React.ReactElement {
+    const { width, node, ref } = useContainerWidth()
+    const isNarrow = width > 0 && width < MOBILE_BREAKPOINT
+
+    // Portal react-aria overlays (dropdown popovers) back into our
+    // Shadow DOM so the chart's scoped styles apply to them
+    const getPortalContainer = useCallback((): HTMLElement => {
+        const root = node?.getRootNode()
+        if (root instanceof ShadowRoot) return root as unknown as HTMLElement
+        return document.body
+    }, [node])
+
     return (
         <QueryClientProvider client={queryClient}>
-            <div className="migration-chart">
-                <FetchingMainVariant config={config} />
+            <div ref={rootRef} className="migration-chart">
+                <UNSAFE_PortalProvider getContainer={getPortalContainer}>
+                    <FetchingMainVariant config={config} />
+                </UNSAFE_PortalProvider>
             </div>
         </QueryClientProvider>
     )
