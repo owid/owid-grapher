@@ -44,7 +44,7 @@ describe("Charts API", { timeout: 15000 }, () => {
 
         const parentConfig = (
             await env.fetchJson(`/charts/${chartId}.parent.json`)
-        )?.config
+        )?.variableConfig
         expect(parentConfig).toBeUndefined()
 
         const fullConfig = await env.fetchJson(`/charts/${chartId}.config.json`)
@@ -372,7 +372,7 @@ describe("Indicator-level chart configs", { timeout: 15000 }, () => {
         // fetch the parent config of the chart and verify that it's the merged etl+admin config
         const parentConfig = (
             await env.fetchJson(`/charts/${chartId}.parent.json`)
-        )?.config
+        )?.variableConfig
         const mergedGrapherConfig = await env.fetchJson(
             `/variables/mergedGrapherConfig/${variableId}.json`
         )
@@ -430,7 +430,7 @@ describe("Indicator-level chart configs", { timeout: 15000 }, () => {
         // fetch the parent config of the chart and verify there is none
         const parentConfigAfterDelete = (
             await env.fetchJson(`/charts/${chartId}.parent.json`)
-        )?.config
+        )?.variableConfig
         expect(parentConfigAfterDelete).toBeUndefined()
 
         // fetch the full config of the chart and verify that it doesn't have
@@ -525,7 +525,7 @@ describe("Indicator-level chart configs", { timeout: 15000 }, () => {
         // check the parent of the chart
         const parent = await env.fetchJson(`/charts/${chartId}.parent.json`)
         expect(parent.variableId).toEqual(variableId)
-        expect(parent.config).toEqual(fullConfigETL)
+        expect(parent.variableConfig).toEqual(fullConfigETL)
 
         // verify that inheritance is enabled by default
         await checkInheritance({ shouldBeEnabled: true })

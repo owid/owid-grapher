@@ -57,6 +57,7 @@ export class ChartEditorPage
 
     patchConfig: GrapherInterface = {}
     parentConfig: GrapherInterface | undefined = undefined
+    etlConfig: GrapherInterface | undefined = undefined
 
     isInheritanceEnabled: boolean | undefined = undefined
 
@@ -82,8 +83,12 @@ export class ChartEditorPage
                     `/api/charts/${grapherId}.settings.json`
                 ),
             ])
-            this.parentConfig = parent?.config
-            this.isInheritanceEnabled = parent?.isActive ?? true
+            // The parent endpoint returns the two layers above the admin's
+            // patch separately: the indicator's grapher_config and the
+            // chart's own etlConfig. They are merged on the editor side.
+            this.parentConfig = parent?.variableConfig
+            this.etlConfig = parent?.etlConfig
+            this.isInheritanceEnabled = parent?.isInheritanceEnabled ?? true
             this.forceDatapage = settings?.forceDatapage ?? false
         } else if (grapherConfig) {
             const parentIndicatorId =
