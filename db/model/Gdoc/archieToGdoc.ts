@@ -1,11 +1,6 @@
-import {
-    OwidGdocPostContent,
-    EnrichedBlockText,
-    EnrichedBlockSimpleText,
-} from "@ourworldindata/utils"
+import { OwidGdocPostContent } from "@ourworldindata/utils"
 import {
     propertyToArchieMLString,
-    encloseLinesAsPropertyPossiblyMultiline,
     OwidRawGdocBlockToArchieMLStringGenerator,
 } from "./rawToArchie.js"
 import { GDOCS_BACKPORTING_TARGET_FOLDER } from "../../../settings/serverSettings.js"
@@ -15,23 +10,6 @@ import { type drive_v3, drive as googleDrive } from "@googleapis/drive"
 import { OwidGoogleAuth } from "../../OwidGoogleAuth.js"
 import * as cheerio from "cheerio"
 import type { AnyNode } from "domhandler"
-
-function* yieldMultiBlockPropertyIfDefined(
-    property: keyof OwidGdocPostContent,
-    article: OwidGdocPostContent,
-    target: (EnrichedBlockText | EnrichedBlockSimpleText)[] | undefined
-): Generator<string, void, undefined> {
-    if (property in article && target) {
-        yield* encloseLinesAsPropertyPossiblyMultiline(
-            property,
-            target.flatMap((item) => [
-                ...OwidRawGdocBlockToArchieMLStringGenerator(
-                    enrichedBlockToRawBlock(item)
-                ),
-            ])
-        )
-    }
-}
 
 function* owidArticleToArchieMLStringGenerator(
     article: OwidGdocPostContent
@@ -55,7 +33,6 @@ function* owidArticleToArchieMLStringGenerator(
     yield* propertyToArchieMLString("heading-variant", article)
     yield* propertyToArchieMLString("hide-subscribe-banner", article)
     // TODO: inline refs
-    yieldMultiBlockPropertyIfDefined("summary", article, article.summary)
     yield* propertyToArchieMLString("hide-citation", article)
     yield* propertyToArchieMLString("cover-image", article)
     yield* propertyToArchieMLString("cover-color", article)

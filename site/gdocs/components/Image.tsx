@@ -53,7 +53,6 @@ const containerSizes: Record<ImageParentContainer, string> = {
     ["sticky-left-left-column"]: gridSpan7,
     ["sticky-left-right-column"]: gridSpan5,
     ["side-by-side"]: gridSpan6,
-    ["summary"]: gridSpan6,
     ["thumbnail"]: "350px",
     ["datapage"]: gridSpan6,
     ["data-insight"]: "100%",

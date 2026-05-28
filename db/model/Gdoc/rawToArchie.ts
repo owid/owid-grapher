@@ -76,24 +76,6 @@ export function appendDotEndIfMultiline(
     return line ?? ""
 }
 
-export function* encloseLinesAsPropertyPossiblyMultiline(
-    key: string,
-    lines: Iterable<string>
-): Generator<string, void, unknown> {
-    let first = true
-    let multiLine = false
-    for (const line of lines) {
-        if (first) {
-            yield `${key}: ${line}`
-            first = false
-        } else {
-            yield line
-            multiLine = true
-        }
-    }
-    if (multiLine) yield ":end"
-}
-
 export function keyValueToArchieMlString(
     key: string,
     val: string | undefined | null

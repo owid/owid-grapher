@@ -495,7 +495,6 @@ export interface OwidGdocPostContent {
     dateline?: string
     excerpt?: string
     refs?: { definitions: RefDictionary; errors: OwidGdocErrorMessage[] }
-    summary?: EnrichedBlockText[]
     "deprecation-notice"?: EnrichedBlockText[]
     "latest-feed-featured-image"?: string
     "latest-feed-excerpt"?: EnrichedBlockText[]

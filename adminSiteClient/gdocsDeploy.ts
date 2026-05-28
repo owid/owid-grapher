@@ -85,7 +85,6 @@ export const checkIsLightningUpdate = (
         details: true,
         refs: true,
         subtitle: true,
-        summary: true,
         "sticky-nav": true,
         supertitle: true,
         toc: true,

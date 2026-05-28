@@ -128,18 +128,6 @@ export function GdocPost({
                     />
                 </nav>
             ) : null}
-            {content.summary ? (
-                <details
-                    className="article-summary col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12"
-                    open={true}
-                >
-                    <summary>Summary</summary>
-                    <ArticleBlocks
-                        blocks={content.summary}
-                        containerType="summary"
-                    />
-                </details>
-            ) : null}
             {content.body ? (
                 <ArticleBlocks
                     toc={content.toc}
