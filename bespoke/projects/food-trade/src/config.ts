@@ -4,7 +4,7 @@ export interface VariantProps<Config> {
 
 export type TradeFlow = "both" | "imports" | "exports"
 
-export interface MainVariantConfig {
+export interface SankeyVariantConfig {
     hideControls?: boolean
     hideFlowSwitcher?: boolean
     title?: string
@@ -15,7 +15,7 @@ export interface MainVariantConfig {
     urlSync?: boolean
 }
 
-export function parseConfig(raw: Record<string, string>): MainVariantConfig {
+export function parseConfig(raw: Record<string, string>): SankeyVariantConfig {
     return {
         hideControls: parseBoolean(raw.hideControls),
         hideFlowSwitcher: parseBoolean(raw.hideFlowSwitcher),

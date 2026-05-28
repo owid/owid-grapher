@@ -1,4 +1,4 @@
-export type VariantName = "main"
+export type VariantName = "sankey"
 
 /** Sentinel for the country dropdown: shows global bilateral trade for the
  *  selected product (no central country anchor). */

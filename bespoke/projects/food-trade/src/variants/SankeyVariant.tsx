@@ -13,7 +13,7 @@ import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
 
 import { ALL_COUNTRIES, isAllCountry } from "../constants.js"
-import { MainVariantConfig, TradeFlow, VariantProps } from "../config.js"
+import { SankeyVariantConfig, TradeFlow, VariantProps } from "../config.js"
 import {
     FoodTradeMetadata,
     ProductTradeData,
@@ -38,9 +38,9 @@ const DEFAULT_VIEW: TradeFlow = "both"
 
 const queryClient = new QueryClient()
 
-export function MainVariant({
+export function SankeyVariant({
     config,
-}: VariantProps<MainVariantConfig>): React.ReactElement {
+}: VariantProps<SankeyVariantConfig>): React.ReactElement {
     const { width, node, ref } = useContainerWidth()
     const isNarrow = width > 0 && width < MOBILE_BREAKPOINT
 
@@ -62,7 +62,7 @@ export function MainVariant({
                     })}
                 >
                     <UNSAFE_PortalProvider getContainer={getPortalContainer}>
-                        <FetchingMainVariant config={config} />
+                        <FetchingSankeyVariant config={config} />
                     </UNSAFE_PortalProvider>
                 </div>
             </QueryClientProvider>
@@ -70,7 +70,7 @@ export function MainVariant({
     )
 }
 
-function FetchingMainVariant({ config }: { config: MainVariantConfig }) {
+function FetchingSankeyVariant({ config }: { config: SankeyVariantConfig }) {
     const initialProduct = config.product ?? DEFAULT_PRODUCT
     const isUserLocation = isUserLocationCountry(config.country)
     const initialCountry =
@@ -160,7 +160,7 @@ function FetchingMainVariant({ config }: { config: MainVariantConfig }) {
         return <FoodTradeChartError message="Failed to load trade data" />
 
     return (
-        <CaptionedMainVariant
+        <CaptionedSankeyVariant
             config={config}
             metadata={metadata}
             productData={productData}
@@ -174,7 +174,7 @@ function FetchingMainVariant({ config }: { config: MainVariantConfig }) {
     )
 }
 
-function CaptionedMainVariant({
+function CaptionedSankeyVariant({
     metadata,
     productData,
     product,
@@ -185,7 +185,7 @@ function CaptionedMainVariant({
     setView,
     config,
 }: {
-    config: MainVariantConfig
+    config: SankeyVariantConfig
     metadata: FoodTradeMetadata
     productData: ProductTradeData
     product: string
@@ -257,7 +257,7 @@ function FoodTradeChartHeader({
     view,
     flows,
 }: {
-    config: MainVariantConfig
+    config: SankeyVariantConfig
     country: string
     product: string
     year: number

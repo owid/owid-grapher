@@ -155,7 +155,7 @@ export function FoodTradeSplitSankey({
     // CTA shows up only in single-half views where the displayed half is
     // empty but the other direction has data. In both-view, the populated
     // half is already on screen so no CTA is needed; in the no-data-at-all
-    // case MainVariant short-circuits before we render at all.
+    // case SankeyVariant short-circuits before we render at all.
     const incomingEmpty = noImports ? (
         <EmptyHalf
             message={`${R.capitalize(countryArticulated)} didn't import ${R.uncapitalize(product)} in ${year}`}

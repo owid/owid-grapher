@@ -4,7 +4,7 @@ import "./reactAriaShadowDomSetup"
 
 import { VariantName } from "./constants.js"
 import { parseConfig } from "./config.js"
-import { MainVariant } from "./variants/MainVariant"
+import { SankeyVariant } from "./variants/SankeyVariant"
 
 import type {
     BespokeComponentMountFn,
@@ -16,23 +16,23 @@ import "./index.scss"
 
 export const VARIANTS = [
     // {
-    //     name: "main",
-    //     component: MainVariant,
+    //     name: "sankey",
+    //     component: SankeyVariant,
     //     demoConfig: { country: "Germany" },
     // },
     // {
-    //     name: "main",
-    //     component: MainVariant,
+    //     name: "sankey",
+    //     component: SankeyVariant,
     //     demoConfig: { country: "United Kingdom" },
     // },
     // {
-    //     name: "main",
-    //     component: MainVariant,
+    //     name: "sankey",
+    //     component: SankeyVariant,
     //     demoConfig: { country: "United Kingdom", tradeFlow: "imports" },
     // },
     {
-        name: "main",
-        component: MainVariant,
+        name: "sankey",
+        component: SankeyVariant,
         demoConfig: {
             country: "United Kingdom",
             tradeFlow: "imports",
