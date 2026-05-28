@@ -1,5 +1,4 @@
 import * as _ from "lodash-es"
-import { LongFormPage } from "../site/LongFormPage.js"
 import { LatestPage } from "../site/LatestPage.js"
 import { buildLatestPagePath } from "../site/latest/latestUtils.js"
 import { SearchPage } from "../site/search/SearchPage.js"
@@ -28,7 +27,6 @@ import {
 } from "../settings/clientSettings.js"
 import { FeedbackPage } from "../site/FeedbackPage.js"
 import {
-    FullPost,
     Url,
     OwidGdocType,
     OwidGdoc,
@@ -36,7 +34,6 @@ import {
     mergeGrapherConfigs,
     flattenNonTopicNodes,
 } from "@ourworldindata/utils"
-import { extractFormattingOptions } from "../serverUtils/wordpressUtils.js"
 import {
     ArchiveContext,
     DEFAULT_THUMBNAIL_FILENAME,
@@ -52,7 +49,6 @@ import {
     ResolvedSlideChartInfo,
     Slide,
 } from "@ourworldindata/types"
-import { formatPost } from "./formatWordpressPost.js"
 import {
     knexRaw,
     KnexReadonlyTransaction,
@@ -79,7 +75,6 @@ import { DEPRECATED_resolveInternalRedirectForWordpressProminentLinks } from "./
 import {
     getBlockContentFromSnapshot,
     getFullPostBySlugFromSnapshot,
-    isPostSlugCitable,
 } from "../db/model/Post.js"
 import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
 import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
@@ -189,36 +184,6 @@ export function renderGdocTombstone(
         <AttachmentsContext.Provider value={attachments}>
             <TombstonePage baseUrl={BAKED_BASE_URL} tombstone={tombstone} />
         </AttachmentsContext.Provider>
-    )
-}
-
-export const renderPageBySlug = async (
-    slug: string,
-    knex: KnexReadonlyTransaction
-) => {
-    const post = await getFullPostBySlugFromSnapshot(knex, slug)
-    return renderPost(post, knex)
-}
-
-export const renderPost = async (
-    post: FullPost,
-    knex: KnexReadonlyTransaction,
-    baseUrl: string = BAKED_BASE_URL
-) => {
-    // Extract formatting options from post HTML comment (if any)
-    const formattingOptions = extractFormattingOptions(post.content)
-
-    const formatted = await formatPost(post, formattingOptions, knex)
-
-    const citationStatus = isPostSlugCitable(post.slug)
-
-    return renderToHtmlPage(
-        <LongFormPage
-            withCitation={citationStatus}
-            post={formatted}
-            formattingOptions={formattingOptions}
-            baseUrl={baseUrl}
-        />
     )
 }
 
