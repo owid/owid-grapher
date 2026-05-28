@@ -26,6 +26,10 @@
         margin: 0;
         margin-bottom: 8px;
 
+        &:last-child {
+            margin-bottom: 12px;
+        }
+
         @include sm-only {
             font-size: 1.125rem;
         }
