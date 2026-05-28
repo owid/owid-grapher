@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import * as R from "remeda"
 import { migrateGrapherConfigToLatestVersionAndFailOnError } from "@ourworldindata/grapher"
 import {
@@ -885,13 +886,122 @@ export async function updateChart(
     }
 }
 
+// Chart-table-style fields that are never inherited. The chart's patch always
+// keeps these even when they match the parent stack — same convention as
+// `KEYS_EXCLUDED_FROM_INHERITANCE` in `mergeGrapherConfigs`.
+const NON_INHERITABLE_PATCH_KEYS = [
+    "$schema",
+    "id",
+    "slug",
+    "version",
+    "isPublished",
+] as const
+
+/**
+ * Recompute the chart's `patch` against a new parent stack. Strips redundant
+ * patch entries that now match the parent stack — including `dimensions`, so
+ * ETL can change dimensions via `etlConfig` without being blocked by stale
+ * patch entries from a prior bootstrap or admin save.
+ *
+ * Differs from `diffGrapherConfigs` only in that we don't keep `REQUIRED_KEYS`
+ * (`$schema`, `dimensions`) unconditionally; we want `dimensions` to fall
+ * through to the parent stack when they match.
+ */
+function rediffPatchAgainstNewParentStack(
+    existingPatch: GrapherInterface,
+    newParentStack: GrapherInterface
+): GrapherInterface {
+    const result: Record<string, unknown> = {}
+    for (const [key, value] of Object.entries(existingPatch)) {
+        if ((NON_INHERITABLE_PATCH_KEYS as readonly string[]).includes(key)) {
+            result[key] = value
+        } else if (
+            !_.isEqual(value, (newParentStack as Record<string, unknown>)[key])
+        ) {
+            result[key] = value
+        }
+    }
+    return result as GrapherInterface
+}
+
+/**
+ * Refresh `chart_dimensions` and the chart's grapher_config in R2 (both the
+ * UUID-keyed object and, if published, the slug-keyed object).
+ *
+ * Shared by the ETL config endpoints; the regular `saveGrapher` path has its
+ * own inline equivalent because it also has to handle publish-state
+ * transitions (slug redirects, publishedAt, etc.) that an ETL push never does.
+ */
+async function refreshChartDimensionsAndR2(
+    trx: db.KnexReadWriteTransaction,
+    chartId: number,
+    chartConfigId: Base64String,
+    fullConfig: GrapherInterface
+): Promise<void> {
+    await db.knexRaw(trx, `DELETE FROM chart_dimensions WHERE chartId = ?`, [
+        chartId,
+    ])
+    const dimensions = fullConfig.dimensions ?? []
+    for (const [i, dim] of dimensions.entries()) {
+        await db.knexRaw(
+            trx,
+            `INSERT INTO chart_dimensions (chartId, variableId, property, \`order\`) VALUES (?, ?, ?, ?)`,
+            [chartId, dim.variableId, dim.property, i]
+        )
+    }
+    await retrieveChartConfigFromDbAndSaveToR2(trx, chartConfigId)
+    if (fullConfig.isPublished && fullConfig.slug) {
+        await retrieveChartConfigFromDbAndSaveToR2(trx, chartConfigId, {
+            directory: R2GrapherConfigDirectory.publishedGrapherBySlug,
+            filename: `${fullConfig.slug}.json`,
+        })
+    }
+}
+
+async function insertChartRevision(
+    trx: db.KnexReadWriteTransaction,
+    chartId: number,
+    userId: number,
+    patchConfig: GrapherInterface,
+    now: Date
+): Promise<void> {
+    const chartRevisionLog = {
+        chartId,
+        userId,
+        config: serializeChartConfig(patchConfig),
+        createdAt: now,
+        updatedAt: now,
+    } satisfies DbInsertChartRevision
+    await db.knexRaw(
+        trx,
+        `INSERT INTO chart_revisions (chartId, userId, config, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?)`,
+        [
+            chartRevisionLog.chartId,
+            chartRevisionLog.userId,
+            chartRevisionLog.config,
+            chartRevisionLog.createdAt,
+            chartRevisionLog.updatedAt,
+        ]
+    )
+}
+
 /**
  * Inserts or updates the chart's ETL-authored grapher config.
  *
- * This config lives in `chart_configs.etlConfig` and is a layer between the
- * indicator's grapher_config (variableETL) and the chart's admin-authored
- * `patch`. ETL writes only to `etlConfig`; admin writes only to `patch`. The
- * rendered `full` is `merge(variableETL, etlConfig, patch)`.
+ * `chart_configs.etlConfig` is a layer between the indicator's grapher_config
+ * (variableETL) and the chart's admin-authored `patch`. ETL writes only to
+ * `etlConfig`; admin writes only to `patch`. The rendered `full` is
+ * `merge(variableETL, etlConfig, patch)`.
+ *
+ * On each call we also re-diff the existing `patch` against the new parent
+ * stack: redundant patch entries are stripped so future ETL changes to those
+ * fields propagate (this matters especially for `dimensions`, which the
+ * bootstrap creation flow writes into patch and which would otherwise block
+ * future indicator re-versioning).
+ *
+ * Also bumps `version`, refreshes `chart_dimensions`, saves to R2 (UUID +
+ * slug if published), records a chart_revisions entry, and triggers a static
+ * build if the chart is published — same housekeeping as `saveGrapher`.
  */
 export async function putChartsChartIdEtlConfig(
     req: Request,
@@ -913,11 +1023,7 @@ export async function putChartsChartIdEtlConfig(
     >(
         trx,
         `-- sql
-            SELECT
-                c.configId,
-                c.isInheritanceEnabled,
-                cc.patch,
-                cc.full
+            SELECT c.configId, c.isInheritanceEnabled, cc.patch, cc.full
             FROM charts c
             JOIN chart_configs cc ON cc.id = c.configId
             WHERE c.id = ?
@@ -929,24 +1035,32 @@ export async function putChartsChartIdEtlConfig(
         throw new JsonError(`Chart with id ${chartId} not found`, 404)
     }
 
-    const patchConfig = parseChartConfig(row.patch)
-    const previousFullConfig = parseChartConfig(row.full)
+    const existingPatch = parseChartConfig(row.patch)
+    const existingFull = parseChartConfig(row.full)
 
-    // Resolve the chart's parent (a single Y-indicator's grapher_config, if
-    // inheritance is enabled and the chart has exactly one Y dimension). We
-    // look it up via the chart's effective full config so dimensions resolve
-    // to the variables the chart actually plots.
+    // Look up the chart's parent indicator (only if inheritance is enabled).
+    // We use the chart's existing full config so dimensions resolve to the
+    // variables the chart currently plots.
     const parent = row.isInheritanceEnabled
-        ? await getParentByChartConfig(trx, previousFullConfig)
+        ? await getParentByChartConfig(trx, existingFull)
         : undefined
 
-    // Merge order (low → high precedence):
-    //   variable's ETL grapher_config → chart's etlConfig → admin patch
-    const newFullConfig = mergeGrapherConfigs(
-        parent?.config ?? {},
-        etlConfig,
-        patchConfig
+    const newParentStack = mergeGrapherConfigs(parent?.config ?? {}, etlConfig)
+
+    const newPatch = rediffPatchAgainstNewParentStack(
+        existingPatch,
+        newParentStack
     )
+
+    // Bump version for cache-busting on every ETL push, mirroring saveGrapher.
+    const newVersion = (existingFull.version ?? 0) + 1
+    newPatch.version = newVersion
+
+    const newFullConfig: GrapherInterface = {
+        ...mergeGrapherConfigs(newParentStack, newPatch),
+        id: chartId,
+        version: newVersion,
+    }
 
     const now = new Date()
 
@@ -956,6 +1070,7 @@ export async function putChartsChartIdEtlConfig(
             UPDATE chart_configs cc
             JOIN charts c ON c.configId = cc.id
             SET
+                cc.patch = ?,
                 cc.etlConfig = ?,
                 cc.full = ?,
                 cc.updatedAt = ?,
@@ -963,6 +1078,7 @@ export async function putChartsChartIdEtlConfig(
             WHERE c.id = ?
         `,
         [
+            serializeChartConfig(newPatch),
             serializeChartConfig(etlConfig),
             serializeChartConfig(newFullConfig),
             now,
@@ -971,9 +1087,13 @@ export async function putChartsChartIdEtlConfig(
         ]
     )
 
-    await retrieveChartConfigFromDbAndSaveToR2(
+    await insertChartRevision(trx, chartId, res.locals.user.id, newPatch, now)
+
+    await refreshChartDimensionsAndR2(
         trx,
-        row.configId as Base64String
+        chartId,
+        row.configId as Base64String,
+        newFullConfig
     )
 
     if (newFullConfig.isPublished) {
@@ -983,13 +1103,14 @@ export async function putChartsChartIdEtlConfig(
         )
     }
 
-    return { success: true, etlConfig }
+    return { success: true, etlConfig, patch: newPatch }
 }
 
 /**
- * Clears the chart's ETL-authored grapher config, returning the chart to a
- * state where only the admin patch (and the indicator's grapher_config, if
- * inheritance is enabled) contribute to `full`.
+ * Clears the chart's ETL-authored grapher config. The chart's `full` is
+ * recomputed against the (possibly empty) variable inheritance stack only,
+ * and the admin patch is re-diffed against that smaller stack. Same
+ * housekeeping as the PUT endpoint.
  */
 export async function deleteChartsChartIdEtlConfig(
     req: Request,
@@ -1004,12 +1125,7 @@ export async function deleteChartsChartIdEtlConfig(
     >(
         trx,
         `-- sql
-            SELECT
-                c.configId,
-                c.isInheritanceEnabled,
-                cc.patch,
-                cc.full,
-                cc.etlConfig
+            SELECT c.configId, c.isInheritanceEnabled, cc.patch, cc.full, cc.etlConfig
             FROM charts c
             JOIN chart_configs cc ON cc.id = c.configId
             WHERE c.id = ?
@@ -1024,14 +1140,27 @@ export async function deleteChartsChartIdEtlConfig(
     // no-op if the chart doesn't have an ETL config
     if (!row.etlConfig) return { success: true }
 
-    const patchConfig = parseChartConfig(row.patch)
-    const previousFullConfig = parseChartConfig(row.full)
+    const existingPatch = parseChartConfig(row.patch)
+    const existingFull = parseChartConfig(row.full)
 
     const parent = row.isInheritanceEnabled
-        ? await getParentByChartConfig(trx, previousFullConfig)
+        ? await getParentByChartConfig(trx, existingFull)
         : undefined
 
-    const newFullConfig = mergeGrapherConfigs(parent?.config ?? {}, patchConfig)
+    const newParentStack = parent?.config ?? {}
+    const newPatch = rediffPatchAgainstNewParentStack(
+        existingPatch,
+        newParentStack
+    )
+
+    const newVersion = (existingFull.version ?? 0) + 1
+    newPatch.version = newVersion
+
+    const newFullConfig: GrapherInterface = {
+        ...mergeGrapherConfigs(newParentStack, newPatch),
+        id: chartId,
+        version: newVersion,
+    }
 
     const now = new Date()
 
@@ -1041,18 +1170,29 @@ export async function deleteChartsChartIdEtlConfig(
             UPDATE chart_configs cc
             JOIN charts c ON c.configId = cc.id
             SET
+                cc.patch = ?,
                 cc.etlConfig = NULL,
                 cc.full = ?,
                 cc.updatedAt = ?,
                 c.updatedAt = ?
             WHERE c.id = ?
         `,
-        [serializeChartConfig(newFullConfig), now, now, chartId]
+        [
+            serializeChartConfig(newPatch),
+            serializeChartConfig(newFullConfig),
+            now,
+            now,
+            chartId,
+        ]
     )
 
-    await retrieveChartConfigFromDbAndSaveToR2(
+    await insertChartRevision(trx, chartId, res.locals.user.id, newPatch, now)
+
+    await refreshChartDimensionsAndR2(
         trx,
-        row.configId as Base64String
+        chartId,
+        row.configId as Base64String,
+        newFullConfig
     )
 
     if (newFullConfig.isPublished) {
@@ -1062,7 +1202,7 @@ export async function deleteChartsChartIdEtlConfig(
         )
     }
 
-    return { success: true }
+    return { success: true, patch: newPatch }
 }
 
 export async function deleteChart(
