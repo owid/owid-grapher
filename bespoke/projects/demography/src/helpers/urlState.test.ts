@@ -129,7 +129,24 @@ describe(simulationStateToQueryParams, () => {
             [DEMOGRAPHY_COUNTRY_PARAM]: "JPN",
             [DEMOGRAPHY_FERTILITY_PARAM]: "1.2,1.4,1.7",
             [DEMOGRAPHY_LIFE_EXPECTANCY_PARAM]: "84,88,92",
-            [DEMOGRAPHY_NET_MIGRATION_PARAM]: "-1.0,0.0,1.0",
+            // 2100 (1) matches baseline so it's omitted to avoid lossy round-trips
+            [DEMOGRAPHY_NET_MIGRATION_PARAM]: "-1.0,0.0,",
+        })
+    })
+
+    it("omits unchanged control points so reloads don't show false modifications", () => {
+        expect(
+            simulationStateToQueryParams({
+                ...baseWriteState,
+                baselineEntityName: "Japan",
+                scenarioParams: {
+                    fertilityRate: { 2030: 1.4, 2050: 2.0, 2100: 1.6 },
+                    lifeExpectancy: baselineScenarioParams.lifeExpectancy,
+                    netMigrationRate: baselineScenarioParams.netMigrationRate,
+                },
+            })
+        ).toEqual({
+            [DEMOGRAPHY_FERTILITY_PARAM]: ",2.0,",
         })
     })
 
