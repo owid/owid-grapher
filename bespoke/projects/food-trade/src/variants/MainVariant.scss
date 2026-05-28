@@ -1,7 +1,3 @@
-// Establish a container so the @container query below can stack the
-// controls vertically at narrow widths. Matches the SplitFlowSankey
-// stacking threshold (STACKED_BREAKPOINT_PX = 500) so the whole layout
-// collapses to single-column consistently below 500px.
 .food-trade-heading {
     margin-bottom: 24px;
 }
@@ -11,7 +7,7 @@
     font-size: 2rem;
     font-weight: 600;
     line-height: 1.25;
-    color: #1d3d63;
+    color: $blue-90;
     margin: 0;
     margin-bottom: 2px;
 }
@@ -19,113 +15,40 @@
 .food-trade-heading__description {
     font-size: 1rem;
     line-height: 1.5;
-    color: #1d3d63;
+    color: $blue-90;
     margin: 0;
-}
-
-.food-trade-controls {
-    margin-bottom: 16px;
-}
-
-.food-trade-controls__title {
-    font-size: 10px;
-    font-weight: 900;
-    letter-spacing: 0.15em;
-    color: $light-text;
-    text-transform: uppercase;
-    margin: 0;
-    margin-bottom: 12px;
-}
-
-.food-trade-controls__content {
-    display: flex;
-    flex-direction: column;
-    row-gap: 16px;
-}
-
-.food-trade-controls__row {
-    display: flex;
-    column-gap: 16px;
-    row-gap: 16px;
-
-    > * {
-        flex: 1 1 0;
-    }
-}
-
-// The switcher is wrapped in a div so a Tippy tooltip can attach when
-// the radios are disabled. Make the wrapper a flex container so the
-// Switcher stretches to the column's full width like its unwrapped
-// siblings.
-.food-trade-controls__switcher-wrapper {
-    display: flex;
-}
-.food-trade-controls__switcher-wrapper .switcher {
-    flex: 1 1 0;
-}
-
-// Stack the controls vertically at the same container-width threshold
-// the Sankey uses, so the whole UI collapses to one column at narrow
-// widths. Tighter row-gap stacked since vertical spacing reads heavier
-// than horizontal.
-@container food-trade-chart (max-width: 499.99px) {
-    .food-trade-controls__row {
-        flex-direction: column;
-        row-gap: 8px;
-    }
-    .food-trade-controls__row > * {
-        flex: 0 0 auto;
-        width: 100%;
-    }
-    .food-trade-heading__title {
-        font-size: 1.5rem;
-    }
-    .food-trade-heading__description {
-        font-size: 0.875rem;
-    }
-    // Drop the Frame's border and side/bottom padding so the viz can use
-    // the full container width — every pixel matters once the halves
-    // stack. Keep a bit of top padding to separate from the controls.
-    .food-trade-captioned-chart {
-        border: none;
-        padding: 8px 0 0;
-    }
-}
-
-// The dropdown popover is portaled out of .food-trade-controls, so we
-// target it via the menuClassName instead of nesting under the controls.
-.food-trade-controls__menu .option {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.food-trade-controls__option-label {
-    flex: 1 1 auto;
-    min-width: 0;
-}
-
-.food-trade-controls__option-no-data {
-    margin-left: auto;
-    // Pull into the right padding the option reserves for the
-    // [data-selected] checkmark — we already hide this label on the
-    // selected option, so there's no overlap to worry about.
-    margin-right: -14px;
-    color: $light-text;
-    white-space: nowrap;
-}
-
-// Hide the "No data" annotation on the selected option to avoid overlap
-// with the absolutely-positioned checkmark at right: 18px.
-.food-trade-controls__menu
-    .option[data-selected]
-    .food-trade-controls__option-no-data {
-    display: none;
 }
 
 .food-trade-chart__error {
     padding: 24px;
-    color: #b00020;
+    color: $error-text-color;
+}
+
+// Narrow layout. The `breakpoint-narrow` modifier is added by
+// SankeyVariant.tsx when the chart drops below MOBILE_BREAKPOINT, standing
+// in for a CSS container query. Stacks the controls, shrinks the heading,
+// and drops the chart border so it reads as inline content rather than a card.
+.food-trade-chart--narrow .food-trade-controls__row {
+    flex-direction: column;
+    row-gap: 8px;
+}
+
+.food-trade-chart--narrow .food-trade-controls__row > * {
+    flex: 0 0 auto;
+    width: 100%;
+}
+
+.food-trade-chart--narrow .food-trade-heading__title {
+    font-size: 1.5rem;
+}
+
+.food-trade-chart--narrow .food-trade-heading__description {
+    font-size: 0.875rem;
+}
+
+.food-trade-chart--narrow .food-trade-captioned-chart {
+    border: none;
+    padding: 8px 0 0;
 }
 
 // Trim the chart a little on narrow screens, where vertical space is tighter

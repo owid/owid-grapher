@@ -38,6 +38,7 @@ export const VARIANTS = [
             tradeFlow: "imports",
             product: "Barley",
         },
+        demoSize: "widest",
     },
 ] satisfies BespokeComponentVariantsList<VariantName>
 

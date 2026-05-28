@@ -1,14 +1,11 @@
 .food-trade-sankey {
     width: 100%;
     height: 100%;
-    // Cap on wide screens so labels don't drift too far from the flows.
-    // Centered within the column when the cap kicks in.
-    max-width: 1000px;
+    max-width: 1000px; // Cap on wide screens so labels
     margin-inline: auto;
 }
 
-// Single-half views (imports-only / exports-only) carry just one chart, so
-// the same wide cap leaves too much empty space — tighten it.
+// Single-half views carry just one chart, so tighten the cap
 .food-trade-sankey--single {
     max-width: 600px;
 }
@@ -17,9 +14,6 @@
     fill: $light-text;
 }
 
-// Centered "didn't import/export …" placeholder that fills an empty half.
-// Used in both single-half views (with a CTA) and both-view when one half
-// is empty (text only).
 .food-trade-sankey__empty-half {
     width: 100%;
     height: 100%;

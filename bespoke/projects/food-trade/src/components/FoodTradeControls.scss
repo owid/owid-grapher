@@ -1,0 +1,63 @@
+.food-trade-controls {
+    margin-bottom: 16px;
+}
+
+.food-trade-controls__title {
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 0.15em;
+    color: $light-text;
+    text-transform: uppercase;
+    margin: 0;
+    margin-bottom: 12px;
+}
+
+.food-trade-controls__content {
+    display: flex;
+    flex-direction: column;
+    row-gap: 16px;
+}
+
+.food-trade-controls__row {
+    display: flex;
+    column-gap: 16px;
+    row-gap: 16px;
+
+    > * {
+        flex: 1 1 0;
+    }
+}
+
+.food-trade-controls__switcher-wrapper {
+    display: flex;
+}
+.food-trade-controls__switcher-wrapper .switcher {
+    flex: 1 1 0;
+}
+
+.food-trade-controls__menu .option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.food-trade-controls__option-label {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.food-trade-controls__option-no-data {
+    margin-left: auto;
+    // Pull into the right padding the option reserves for the [data-selected] checkmark
+    margin-right: -14px;
+    color: $light-text;
+    white-space: nowrap;
+}
+
+// Hide the "No data" annotation on the selected option to avoid overlap
+// with the absolutely-positioned checkmark
+.food-trade-controls__menu
+    .option[data-selected]
+    .food-trade-controls__option-no-data {
+    display: none;
+}
