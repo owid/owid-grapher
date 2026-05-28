@@ -8,6 +8,11 @@ import { ALGOLIA_INDEXING } from "../../settings/serverSettings.js"
 import { getAlgoliaClient } from "./configureAlgolia.js"
 import { PAGES_INDEX } from "../../site/search/searchUtils.js"
 import { getPagesRecords } from "./utils/pages.js"
+import { ensureRecordFitsAlgoliaLimit } from "./utils/shared.js"
+import { partition } from "remeda"
+import { logErrorAndMaybeCaptureInSentry } from "../../serverUtils/errorLog.js"
+import { getIndexName } from "../../site/search/searchClient.js"
+import { SearchIndexName } from "@ourworldindata/types"
 
 const indexPagesToAlgolia = async () => {
     if (!ALGOLIA_INDEXING) {
@@ -26,10 +31,20 @@ const indexPagesToAlgolia = async () => {
         getPagesRecords,
         db.TransactionCloseMode.Close
     )
+    const [fittedRecords, unfittedRecords] = partition(
+        records,
+        ensureRecordFitsAlgoliaLimit
+    )
+    if (unfittedRecords.length > 0) {
+        await logErrorAndMaybeCaptureInSentry(
+            `${getIndexName(SearchIndexName.Pages)}: ${unfittedRecords.length} records exceed Algolia size limit and will not be indexed.
+ObjectIDs: ${unfittedRecords.map((r) => r.objectID).join(", ")}`
+        )
+    }
 
     await client.replaceAllObjects({
         indexName,
-        objects: records as Array<Record<string, any>>,
+        objects: fittedRecords as Array<Record<string, any>>,
     })
 
     process.exit(0)

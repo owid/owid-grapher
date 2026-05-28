@@ -9,6 +9,9 @@ import { getAlgoliaClient } from "./configureAlgolia.js"
 import { getIndexName } from "../../site/search/searchClient.js"
 import { SearchIndexName } from "@ourworldindata/types"
 import { getPagesChronologicalRecords } from "./utils/pagesChronological.js"
+import { ensureRecordFitsAlgoliaLimit } from "./utils/shared.js"
+import { partition } from "remeda"
+import { logErrorAndMaybeCaptureInSentry } from "../../serverUtils/errorLog.js"
 
 const indexPagesChronologicalToAlgolia = async () => {
     if (!ALGOLIA_INDEXING) {
@@ -31,9 +34,20 @@ const indexPagesChronologicalToAlgolia = async () => {
         db.TransactionCloseMode.Close
     )
 
+    const [fittedRecords, unfittedRecords] = partition(
+        records,
+        ensureRecordFitsAlgoliaLimit
+    )
+    if (unfittedRecords.length > 0) {
+        await logErrorAndMaybeCaptureInSentry(
+            `${getIndexName(SearchIndexName.PagesChronological)}: ${unfittedRecords.length} records exceed Algolia size limit and will not be indexed.
+Gdoc IDs: ${unfittedRecords.map((r) => r.objectID).join(", ")}`
+        )
+    }
+
     await client.replaceAllObjects({
         indexName,
-        objects: records as Array<Record<string, unknown>>,
+        objects: fittedRecords as Array<Record<string, unknown>>,
     })
 
     console.log(`Indexed ${records.length} records to ${indexName}`)
