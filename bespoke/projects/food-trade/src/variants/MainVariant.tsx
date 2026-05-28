@@ -23,7 +23,7 @@ import {
 } from "../data.js"
 import { FoodTradeControls } from "../components/FoodTradeControls.js"
 import { FoodTradeChart } from "../components/FoodTradeChart.js"
-import { formatTrade } from "../components/FoodTradeSankey.js"
+import { formatTrade } from "../helpers.js"
 import { useUrlState } from "../../../../hooks/useUrlState.js"
 import { useContainerWidth } from "../../../../hooks/useContainerWidth.js"
 import {

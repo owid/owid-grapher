@@ -7,10 +7,8 @@ import { articulateEntity } from "@ourworldindata/utils"
 import { ALL_COUNTRIES, isAllCountry } from "../constants.js"
 import { TradeFlow } from "../config.js"
 import { ProductTradeData } from "../data.js"
-import {
-    FoodTradeBilateralSankey,
-    FoodTradeSplitSankey,
-} from "./FoodTradeSankey.js"
+import { FoodTradeBilateralSankey } from "./FoodTradeBilateralSankey.js"
+import { FoodTradeSplitSankey } from "./FoodTradeSplitSankey.js"
 
 export function FoodTradeChart({
     productData,
