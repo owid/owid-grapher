@@ -1,12 +1,3 @@
-// Establish a container so the @container query below can stack the
-// controls vertically at narrow widths. Matches the SplitFlowSankey
-// stacking threshold (STACKED_BREAKPOINT_PX = 500) so the whole layout
-// collapses to single-column consistently below 500px.
-.migration-chart {
-    container-type: inline-size;
-    container-name: migration-chart;
-}
-
 .migration-heading {
     margin-bottom: 24px;
 }
@@ -73,54 +64,9 @@
 }
 }
 
-.migration-captioned-chart__chart-area {
-    position: relative;
-    height: 480px;
-    min-height: 360px;
-}
-
-.migration-captioned-chart__empty {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 24px;
-    text-align: center;
-}
-
-.migration-captioned-chart__empty-message {
-    margin: 0;
-    font-size: 14px;
-    line-height: 1.4;
-    max-width: 420px;
-    color: $light-text;
-}
-
-.migration-captioned-chart__empty-cta {
-    margin-top: 4px;
-    appearance: none;
-    background: transparent;
-    color: $blue-50;
-    border: 0;
-    padding: 0;
-    font: 500 14px/1.3 $sans-serif-font-stack;
-    letter-spacing: 0.01em;
-    text-decoration: underline;
-    text-underline-offset: 3px;
-    cursor: pointer;
-
-    &:hover {
-        color: $blue-90;
-    }
-
-    &:focus-visible {
-        outline: 1px solid $blue-50;
-        outline-offset: 2px;
-        border-radius: 2px;
-    }
+// Trim the chart a little on narrow screens, where vertical space is tighter
+.migration-chart--narrow .migration-captioned-chart__chart-area {
+    height: 380px;
 }
 
 .migration-chart__error {

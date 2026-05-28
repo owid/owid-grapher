@@ -19,7 +19,8 @@
 @import "../../../components/TimeSlider/TimeSlider.scss";
 
 // Variants
-@import "./variants/MainVariant.scss";
+@import "./variants/SankeyVariant.scss";
 
 // Project components
+@import "./components/MigrationChart.scss";
 @import "./components/MigrationSankey.scss";

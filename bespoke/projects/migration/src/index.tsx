@@ -2,9 +2,9 @@ import { createRoot } from "react-dom/client"
 
 import "./reactAriaShadowDomSetup"
 
-import { VariantName } from "./constants.js"
+import { VariantName } from "./types.js"
 import { parseConfig } from "./config.js"
-import { MainVariant } from "./variants/MainVariant"
+import { SankeyVariant } from "./variants/SankeyVariant"
 
 import type {
     BespokeComponentMountFn,
@@ -15,7 +15,7 @@ import StylesTarget from "vite-plugin-css-position/react"
 import "./index.scss"
 
 export const VARIANTS = [
-    { name: "main", component: MainVariant, demoConfig: {} },
+    { name: "sankey", component: SankeyVariant, demoConfig: {} },
 ] satisfies BespokeComponentVariantsList<VariantName>
 
 export const mount: BespokeComponentMountFn = (

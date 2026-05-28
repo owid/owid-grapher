@@ -1,44 +1,18 @@
 import { useQuery } from "@tanstack/react-query"
 
+import {
+    MigrationData,
+    MigrationMetadata,
+    MigrationRow,
+    RawCountry,
+    RawMetadata,
+    RawSeries,
+} from "./types.js"
+
 const BASE_URL = "https://owid-public.owid.io/data/migration"
 const METADATA_URL = `${BASE_URL}/migration-stock-flows.metadata.json`
 const countryUrl = (entityId: number) =>
     `${BASE_URL}/migration-stock-flows.${entityId}.json`
-
-// Genders, with id matching the metadata file.
-export const GENDER_ALL = 1
-export const GENDER_FEMALE = 2
-export const GENDER_MALE = 3
-export type GenderId =
-    | typeof GENDER_ALL
-    | typeof GENDER_FEMALE
-    | typeof GENDER_MALE
-
-export type Entity = {
-    id: number
-    name: string
-    /** Population at each time-point in metadata.times, same length. */
-    population: number[]
-}
-
-export type Gender = { id: number; name: string }
-
-export type MigrationMetadata = {
-    times: number[]
-    source: string
-    entities: Entity[]
-    genders: Gender[]
-}
-
-// Raw shape returned by the metadata endpoint.
-type RawMetadata = {
-    timeRange: { start: number; end: number }
-    source: string
-    dimensions: {
-        entities: { id: number; name: string; population: number[] }[]
-        genders: { id: number; name: string }[]
-    }
-}
 
 // The 8 time-points the data is reported at. Hardcoded because the metadata's
 // timeRange only gives endpoints, and the population array is keyed by these
@@ -70,41 +44,6 @@ export const useMigrationMetadata = () =>
         staleTime: Infinity,
     })
 
-export type MigrationRow = {
-    /** Partner country id — origin for immigrants, destination for emigrants. */
-    partnerId: number
-    year: number
-    genderId: number
-    value: number
-}
-
-export type MigrationData = {
-    immigrants: MigrationRow[]
-    emigrants: MigrationRow[]
-}
-
-// Raw shape returned per country: two blocks of parallel arrays.
-type RawSeries = {
-    entities: number[]
-    years: number[]
-    genders: number[]
-    values: number[]
-}
-type RawCountry = { immigrants: RawSeries; emigrants: RawSeries }
-
-function decodeSeries(s: RawSeries): MigrationRow[] {
-    const out: MigrationRow[] = new Array(s.values.length)
-    for (let i = 0; i < s.values.length; i++) {
-        out[i] = {
-            partnerId: s.entities[i],
-            year: s.years[i],
-            genderId: s.genders[i],
-            value: s.values[i],
-        }
-    }
-    return out
-}
-
 export const useMigrationData = (entityId: number | undefined) =>
     useQuery({
         queryKey: queryKeys.country(entityId ?? -1),
@@ -121,5 +60,21 @@ export const useMigrationData = (entityId: number | undefined) =>
                 emigrants: decodeSeries(raw.emigrants),
             }
         },
-        staleTime: Infinity,
+        staleTime: Infinity, // Never refetch
+        // Keep the previous country on screen while a new one loads,
+        // so country switches don't flash the skeleton.
+        placeholderData: (previousData) => previousData,
     })
+
+function decodeSeries(s: RawSeries): MigrationRow[] {
+    const out: MigrationRow[] = new Array(s.values.length)
+    for (let i = 0; i < s.values.length; i++) {
+        out[i] = {
+            partnerId: s.entities[i],
+            year: s.years[i],
+            genderId: s.genders[i],
+            value: s.values[i],
+        }
+    }
+    return out
+}

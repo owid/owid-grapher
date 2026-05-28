@@ -1,8 +1,7 @@
 import { useCallback, useMemo } from "react"
 import { useParentSize } from "@visx/responsive"
 
-import { articulateEntity, formatValue } from "@ourworldindata/utils"
-import { OwidVariableRoundingMode } from "@ourworldindata/types"
+import { articulateEntity } from "@ourworldindata/utils"
 import {
     TooltipTable,
     TooltipValue,
@@ -20,42 +19,10 @@ import {
     SplitFlowSankey,
 } from "../../../../components/Sankey/SplitFlowSankey.js"
 
-const capitalize = (s: string): string => s.charAt(0).toUpperCase() + s.slice(1)
+import { MigrationFlow, MigrationView } from "../types.js"
+import { capItems, capitalize, formatPeople, formatShare } from "../helpers.js"
 
 export const TOP_N = 10
-
-// Caps for the Other-bucket tooltip table — mirror food-trade's tooltip
-// caps. show-all kicks in just two above the cap so we never get a
-// "+1 / +2 more" line.
-const OTHER_BREAKDOWN_TOP_N = 8
-const OTHER_BREAKDOWN_SHOW_ALL_BELOW = 10
-
-export type MigrationFlow = {
-    /** Origin (immigrants) or destination (emigrants) country name. */
-    partner: string
-    value: number
-}
-
-export type MigrationView = "both" | "immigrants" | "emigrants"
-
-export const formatPeople = (v: number) =>
-    formatValue(v, {
-        unit: "people",
-        numberAbbreviation: "long",
-        roundingMode: OwidVariableRoundingMode.significantFigures,
-        numSignificantFigures: 2,
-    })
-
-function formatShare(share: number): string {
-    const pct = share * 100
-    if (!isFinite(pct) || pct <= 0) return ""
-    return formatValue(pct, {
-        unit: "%",
-        numberAbbreviation: false,
-        roundingMode: OwidVariableRoundingMode.significantFigures,
-        numSignificantFigures: 2,
-    })
-}
 
 export function MigrationSankey({
     immigrants,
@@ -156,7 +123,7 @@ export function MigrationSankey({
     // CTA shows up only in single-half views where the displayed half is
     // empty but the other direction has data. In both-view, the populated
     // half is already on screen so no CTA is needed; in the no-data-at-all
-    // case MainVariant short-circuits before we render at all.
+    // case MigrationChart short-circuits before we render at all.
     const incomingEmpty = noImmigrants ? (
         <EmptyHalf
             message={`${capitalize(countryArticulated)} had no recorded immigrants in ${year}`}
@@ -296,11 +263,7 @@ function getMigrationLinkTooltip({
 }
 
 function OtherBreakdownContent({ breakdown }: { breakdown: EntityTotal[] }) {
-    const showAll = breakdown.length <= OTHER_BREAKDOWN_SHOW_ALL_BELOW
-    const visible = showAll
-        ? breakdown
-        : breakdown.slice(0, OTHER_BREAKDOWN_TOP_N)
-    const hiddenCount = breakdown.length - visible.length
+    const { visible, hiddenCount } = capItems(breakdown)
 
     const columns = [
         {

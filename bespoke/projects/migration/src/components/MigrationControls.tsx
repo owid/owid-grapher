@@ -18,8 +18,7 @@ import {
     SwitcherItem,
 } from "../../../../components/Switcher/Switcher.js"
 
-import { GenderId } from "../data.js"
-import { MigrationView } from "./MigrationSankey.js"
+import { GenderId, MigrationView } from "../types.js"
 
 const VIEW_ITEMS: SwitcherItem<MigrationView>[] = [
     {

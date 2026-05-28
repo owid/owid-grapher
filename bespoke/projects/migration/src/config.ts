@@ -1,11 +1,16 @@
-import { GenderId, GENDER_ALL, GENDER_FEMALE, GENDER_MALE } from "./data.js"
-import { MigrationView } from "./components/MigrationSankey.js"
+import {
+    GENDER_ALL,
+    GENDER_FEMALE,
+    GENDER_MALE,
+    GenderId,
+    MigrationView,
+} from "./types.js"
 
 export interface VariantProps<Config> {
     config: Config
 }
 
-export interface MainVariantConfig {
+export interface SankeyVariantConfig {
     hideControls?: boolean
     hideFlowSwitcher?: boolean
     title?: string
@@ -16,7 +21,7 @@ export interface MainVariantConfig {
     migrationFlow?: MigrationView
 }
 
-export function parseConfig(raw: Record<string, string>): MainVariantConfig {
+export function parseConfig(raw: Record<string, string>): SankeyVariantConfig {
     return {
         hideControls: parseBoolean(raw.hideControls),
         hideFlowSwitcher: parseBoolean(raw.hideFlowSwitcher),

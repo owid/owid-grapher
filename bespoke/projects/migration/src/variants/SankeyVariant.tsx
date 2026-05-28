@@ -16,33 +16,30 @@ import {
     useResolveUserLocation,
 } from "../../../../hooks/useResolveUserLocation.js"
 
-import { MainVariantConfig, VariantProps } from "../config.js"
+import { SankeyVariantConfig, VariantProps } from "../config.js"
 import {
     Entity,
     GENDER_ALL,
     GenderId,
-    MigrationData,
-    MigrationRow,
-    useMigrationData,
-    useMigrationMetadata,
-} from "../data.js"
-import {
     MigrationFlow,
-    MigrationSankey,
+    MigrationRow,
     MigrationView,
-    formatPeople,
-} from "../components/MigrationSankey.js"
+} from "../types.js"
+import { useMigrationData, useMigrationMetadata } from "../data.js"
+import { capitalize, formatPeople } from "../helpers.js"
+import { MigrationChart } from "../components/MigrationChart.js"
 import { MigrationControls } from "../components/MigrationControls.js"
 
 // Default focal country name. Resolved to an id once metadata loads.
 const DEFAULT_COUNTRY = "United States"
 const DEFAULT_YEAR = 2024
+const DEFAULT_VIEW: MigrationView = "both"
 
 const queryClient = new QueryClient()
 
-export function MainVariant({
+export function SankeyVariant({
     config,
-}: VariantProps<MainVariantConfig>): React.ReactElement {
+}: VariantProps<SankeyVariantConfig>): React.ReactElement {
     const { width, node, ref } = useContainerWidth()
     const isNarrow = width > 0 && width < MOBILE_BREAKPOINT
 
@@ -58,20 +55,16 @@ export function MainVariant({
         <QueryClientProvider client={queryClient}>
             <div ref={rootRef} className="migration-chart">
                 <UNSAFE_PortalProvider getContainer={getPortalContainer}>
-                    <FetchingMainVariant config={config} />
+                    <FetchingSankeyVariant config={config} />
                 </UNSAFE_PortalProvider>
             </div>
         </QueryClientProvider>
     )
 }
 
-function FetchingMainVariant({ config }: { config: MainVariantConfig }) {
-    const {
-        data: metadata,
-        status: metadataStatus,
-        error: metadataError,
-    } = useMigrationMetadata()
+type Metadata = NonNullable<ReturnType<typeof useMigrationMetadata>["data"]>
 
+function FetchingSankeyVariant({ config }: { config: SankeyVariantConfig }) {
     const [country, setCountry] = useState<string>(
         config.country ?? DEFAULT_COUNTRY
     )
@@ -79,9 +72,11 @@ function FetchingMainVariant({ config }: { config: MainVariantConfig }) {
     const [genderId, setGenderId] = useState<GenderId>(
         config.genderId ?? GENDER_ALL
     )
-    const [view, setView] = useState<MigrationView>(
-        config.migrationFlow ?? "both"
+    const [_view, setView] = useState<MigrationView>(
+        config.migrationFlow ?? DEFAULT_VIEW
     )
+
+    const { data: metadata, status: metadataStatus } = useMigrationMetadata()
 
     // Resolve the country name to an entity id via metadata; falls back to
     // undefined until metadata loads (at which point the query enables).
@@ -90,72 +85,125 @@ function FetchingMainVariant({ config }: { config: MainVariantConfig }) {
         return metadata.entities.find((e) => e.name === country)?.id
     }, [metadata, country])
 
-    const {
-        data: migration,
-        status: migrationStatus,
-        error: migrationError,
-    } = useMigrationData(countryId)
+    const { data: migration, status: migrationStatus } =
+        useMigrationData(countryId)
 
-    if (metadataStatus === "pending") return <MigrationSkeleton />
+    const entitiesById = useMemo(() => {
+        if (!metadata) return undefined
+        const map = new Map<number, Entity>()
+        for (const e of metadata.entities) map.set(e.id, e)
+        return map
+    }, [metadata])
+
+    // Filter raw rows down to the active year/gender and resolve partner
+    // ids to names. Used by the chart and the chart header.
+    const immigrants = useMemo(
+        () =>
+            migration && entitiesById
+                ? filterRows(
+                      migration.immigrants,
+                      year,
+                      genderId,
+                      entitiesById
+                  )
+                : [],
+        [migration, entitiesById, year, genderId]
+    )
+    const emigrants = useMemo(
+        () =>
+            migration && entitiesById
+                ? filterRows(migration.emigrants, year, genderId, entitiesById)
+                : [],
+        [migration, entitiesById, year, genderId]
+    )
+
+    const immigrantsTotal = useMemo(
+        () => immigrants.reduce((sum, d) => sum + d.value, 0),
+        [immigrants]
+    )
+    const emigrantsTotal = useMemo(
+        () => emigrants.reduce((sum, d) => sum + d.value, 0),
+        [emigrants]
+    )
+
+    // When the selected country only migrates in one direction for the
+    // current year/gender, the other view has nothing to show — coerce
+    // the displayed view to the half that has data and disable the radios.
+    // The user's stored view preference is left untouched so it comes back
+    // when they navigate to a combo with both sides.
+    const onlyImmigrants = immigrants.length > 0 && emigrants.length === 0
+    const onlyEmigrants = emigrants.length > 0 && immigrants.length === 0
+    const view: MigrationView = onlyImmigrants
+        ? "immigrants"
+        : onlyEmigrants
+          ? "emigrants"
+          : _view
+
+    if (
+        metadataStatus === "pending" ||
+        migrationStatus === "pending" ||
+        !isCountryResolved
+    )
+        return <MigrationSkeleton />
     if (metadataStatus === "error" || !metadata)
-        return <MigrationChartError error={metadataError} />
+        return <MigrationChartError message="Failed to load migration metadata" />
+    if (migrationStatus === "error" || !migration)
+        return <MigrationChartError message="Failed to load migration data" />
 
     return (
-        <CaptionedMainVariant
+        <CaptionedSankeyVariant
+            config={config}
             metadata={metadata}
-            migration={migration}
-            migrationStatus={migrationStatus}
-            migrationError={migrationError}
             country={country}
             year={year}
             genderId={genderId}
             view={view}
+            isViewDisabled={onlyImmigrants || onlyEmigrants}
+            immigrants={immigrants}
+            emigrants={emigrants}
+            immigrantsTotal={immigrantsTotal}
+            emigrantsTotal={emigrantsTotal}
             setCountry={setCountry}
             setYear={setYear}
             setGenderId={setGenderId}
             setView={setView}
-            config={config}
         />
     )
 }
 
-type Metadata = NonNullable<ReturnType<typeof useMigrationMetadata>["data"]>
-
-function CaptionedMainVariant({
+function CaptionedSankeyVariant({
+    config,
     metadata,
-    migration,
-    migrationStatus,
-    migrationError,
     country,
     year,
     genderId,
     view,
+    isViewDisabled,
+    immigrants,
+    emigrants,
+    immigrantsTotal,
+    emigrantsTotal,
     setCountry,
     setYear,
     setGenderId,
     setView,
-    config,
 }: {
+    config: SankeyVariantConfig
     metadata: Metadata
-    migration: MigrationData | undefined
-    migrationStatus: "pending" | "error" | "success"
-    migrationError: Error | null
     country: string
     year: number
     genderId: GenderId
     view: MigrationView
+    isViewDisabled: boolean
+    immigrants: MigrationFlow[]
+    emigrants: MigrationFlow[]
+    immigrantsTotal: number
+    emigrantsTotal: number
     setCountry: (name: string) => void
     setYear: (year: number) => void
     setGenderId: (id: GenderId) => void
     setView: (view: MigrationView) => void
-    config: MainVariantConfig
 }) {
-    const entitiesById = useMemo(() => {
-        const map = new Map<number, Entity>()
-        for (const e of metadata.entities) map.set(e.id, e)
-        return map
-    }, [metadata.entities])
-
     // Country options are keyed by name so groupByUserLocation can match
     // the user's home country (also keyed by name in the geo lookup) and
     // surface it at the top.
@@ -176,83 +224,12 @@ function CaptionedMainVariant({
         [metadata.genders]
     )
 
-    const filterRows = useCallback(
-        (rows: MigrationRow[]): MigrationFlow[] =>
-            rows
-                .filter((r) => r.year === year && r.genderId === genderId)
-                .map((r) => ({
-                    partner: entitiesById.get(r.partnerId)?.name ?? "Unknown",
-                    value: r.value,
-                })),
-        [year, genderId, entitiesById]
-    )
-
-    const immigrants = useMemo(
-        () => (migration ? filterRows(migration.immigrants) : []),
-        [migration, filterRows]
-    )
-    const emigrants = useMemo(
-        () => (migration ? filterRows(migration.emigrants) : []),
-        [migration, filterRows]
-    )
-
-    const immigrantsTotal = useMemo(
-        () => immigrants.reduce((sum, d) => sum + d.value, 0),
-        [immigrants]
-    )
-    const emigrantsTotal = useMemo(
-        () => emigrants.reduce((sum, d) => sum + d.value, 0),
-        [emigrants]
-    )
-
-    // When the selected country only migrates in one direction for the
-    // current year/gender, the other view has nothing to show — coerce
-    // the displayed view to the half that has data and disable the radios.
-    // The user's stored view preference is left untouched so it comes back
-    // when they navigate to a combo with both sides.
-    const onlyImmigrants = immigrants.length > 0 && emigrants.length === 0
-    const onlyEmigrants = emigrants.length > 0 && immigrants.length === 0
-    const effectiveView: MigrationView = onlyImmigrants
-        ? "immigrants"
-        : onlyEmigrants
-          ? "emigrants"
-          : view
-    const isViewDisabled = onlyImmigrants || onlyEmigrants
-
-    const hasData = immigrants.length > 0 || emigrants.length > 0
-    const isLoadingMigration = migrationStatus === "pending"
-    const isErrorMigration = migrationStatus === "error"
-
-    const countryArticulated = articulateEntity(country)
-    const defaultTitle =
-        effectiveView === "immigrants"
-            ? `Immigration to ${countryArticulated} in ${year}`
-            : effectiveView === "emigrants"
-              ? `Emigration from ${countryArticulated} in ${year}`
-              : `Migration to and from ${countryArticulated} in ${year}`
-
-    const defaultSubtitle: React.ReactNode = hasData ? (
-        <Subtitle
-            country={country}
-            year={year}
-            view={effectiveView}
-            immigrantsTotal={immigrantsTotal}
-            emigrantsTotal={emigrantsTotal}
-        />
-    ) : null
-
-    const title = config.title ?? defaultTitle
-    const subtitle = config.subtitle ?? defaultSubtitle
-
-    // Hide the big page heading and the controls when the embedder is
-    // providing its own framing (custom title/subtitle) or explicitly opts
-    // out of the controls.
-    const hideOutsideFrame =
+    const shouldHideChrome =
         config.hideControls || !!config.title || !!config.subtitle
 
     return (
         <>
-            {!hideOutsideFrame && (
+            {!shouldHideChrome && (
                 <>
                     <header className="migration-heading">
                         <h1 className="migration-heading__title">
@@ -269,7 +246,7 @@ function CaptionedMainVariant({
                         country={country}
                         genderId={genderId}
                         year={year}
-                        view={effectiveView}
+                        view={view}
                         viewDisabled={isViewDisabled}
                         hideFlowSwitcher={config.hideFlowSwitcher}
                         setCountry={setCountry}
@@ -280,32 +257,69 @@ function CaptionedMainVariant({
                 </>
             )}
             <Frame className="migration-captioned-chart">
-                <ChartHeader title={title} subtitle={subtitle} />
-                <div className="migration-captioned-chart__chart-area">
-                    {isLoadingMigration ? (
-                        <MigrationSkeleton />
-                    ) : isErrorMigration ? (
-                        <MigrationChartError error={migrationError} />
-                    ) : hasData ? (
-                        <MigrationSankey
-                            immigrants={immigrants}
-                            emigrants={emigrants}
-                            country={country}
-                            year={year}
-                            immigrantsTotal={immigrantsTotal}
-                            emigrantsTotal={emigrantsTotal}
-                            view={effectiveView}
-                            setView={setView}
-                        />
-                    ) : (
-                        <EmptyState
-                            message={`No ${year} migration recorded for ${countryArticulated}.`}
-                        />
-                    )}
-                </div>
-                <ChartFooter source={metadata.source} />
+                <MigrationChartHeader
+                    config={config}
+                    country={country}
+                    year={year}
+                    view={view}
+                    immigrantsTotal={immigrantsTotal}
+                    emigrantsTotal={emigrantsTotal}
+                />
+                <MigrationChart
+                    immigrants={immigrants}
+                    emigrants={emigrants}
+                    country={country}
+                    year={year}
+                    immigrantsTotal={immigrantsTotal}
+                    emigrantsTotal={emigrantsTotal}
+                    view={view}
+                    setView={setView}
+                />
+                <MigrationChartFooter source={metadata.source} />
             </Frame>
         </>
+    )
+}
+
+function MigrationChartHeader({
+    config,
+    country,
+    year,
+    view,
+    immigrantsTotal,
+    emigrantsTotal,
+}: {
+    config: SankeyVariantConfig
+    country: string
+    year: number
+    view: MigrationView
+    immigrantsTotal: number
+    emigrantsTotal: number
+}) {
+    const countryArticulated = articulateEntity(country)
+    const defaultTitle =
+        view === "immigrants"
+            ? `Immigration to ${countryArticulated} in ${year}`
+            : view === "emigrants"
+              ? `Emigration from ${countryArticulated} in ${year}`
+              : `Migration to and from ${countryArticulated} in ${year}`
+
+    const hasData = immigrantsTotal > 0 || emigrantsTotal > 0
+    const defaultSubtitle: React.ReactNode = hasData ? (
+        <Subtitle
+            country={country}
+            year={year}
+            view={view}
+            immigrantsTotal={immigrantsTotal}
+            emigrantsTotal={emigrantsTotal}
+        />
+    ) : null
+
+    return (
+        <ChartHeader
+            title={config.title ?? defaultTitle}
+            subtitle={config.subtitle ?? defaultSubtitle}
+        />
     )
 }
 
@@ -382,41 +396,33 @@ function Subtitle({
     )
 }
 
-const capitalize = (s: string): string => s.charAt(0).toUpperCase() + s.slice(1)
-
-function EmptyState({
-    message,
-    cta,
-}: {
-    message: React.ReactNode
-    cta?: { label: string; onClick: () => void }
-}) {
+function MigrationChartFooter({ source }: { source: string }) {
     return (
-        <div className="migration-captioned-chart__empty">
-            <p className="migration-captioned-chart__empty-message">
-                {message}
-            </p>
-            {cta && (
-                <button
-                    type="button"
-                    className="migration-captioned-chart__empty-cta"
-                    onClick={cta.onClick}
-                >
-                    {cta.label} →
-                </button>
-            )}
-        </div>
+        <ChartFooter
+            source={source}
+            note='Only the top ten partners are shown; remainder grouped as "Other".'
+        />
     )
+}
+
+function filterRows(
+    rows: MigrationRow[],
+    year: number,
+    genderId: GenderId,
+    entitiesById: Map<number, Entity>
+): MigrationFlow[] {
+    return rows
+        .filter((r) => r.year === year && r.genderId === genderId)
+        .map((r) => ({
+            partner: entitiesById.get(r.partnerId)?.name ?? "Unknown",
+            value: r.value,
+        }))
 }
 
 function MigrationSkeleton() {
     return <div className="migration-skeleton" />
 }
 
-function MigrationChartError({ error }: { error: Error | null }) {
-    return (
-        <div className="migration-chart__error">
-            Failed to load migration data{error ? `: ${error.message}` : ""}
-        </div>
-    )
+function MigrationChartError({ message }: { message: string }) {
+    return <div className="migration-chart__error">{message}</div>
 }
