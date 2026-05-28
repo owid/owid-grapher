@@ -30,7 +30,7 @@ import {
 } from "./helpers.js"
 
 interface BilateralFlowSankeyProps {
-    rows: Flow[]
+    flows: Flow[]
     width: number
     height: number
     /** Number of top sources/targets shown individually before bucketing into "Other" */
@@ -55,7 +55,7 @@ export type BilateralTooltipArgs = {
 }
 
 export function BilateralFlowSankey({
-    rows,
+    flows,
     width,
     height,
     topN = DEFAULT_TOP_N,
@@ -68,13 +68,13 @@ export function BilateralFlowSankey({
     const { sourceNodes, targetNodes, links } = useMemo(
         () =>
             buildBilateral({
-                rows,
+                flows,
                 topN,
                 minNodeShare,
                 minLinkShare,
                 formatValue,
             }),
-        [rows, topN, minNodeShare, minLinkShare, formatValue]
+        [flows, topN, minNodeShare, minLinkShare, formatValue]
     )
 
     const getEntityIdsFromNodes = (nodes: SankeyNode[]) =>
@@ -117,13 +117,13 @@ export function BilateralFlowSankey({
 
     // Rows whose entity on `side` matches `entityId` exactly
     const getFlowsForEntity = (side: LinkSide, entityId: string): Flow[] =>
-        rows.filter((r) => r[side] === entityId)
+        flows.filter((r) => r[side] === entityId)
 
     // Rows in the Other bucket on `side`, i.e. every row whose entity on
     // that side was folded into "Other" (not in the visible top-N)
     const getFlowsForOtherBucket = (side: LinkSide): Flow[] => {
         const topSet = side === "source" ? sourceIdSet : targetIdSet
-        return rows.filter((r) => !topSet.has(r[side]))
+        return flows.filter((r) => !topSet.has(r[side]))
     }
 
     const getNodeTooltip = getTooltip
@@ -205,13 +205,13 @@ function buildTooltipArgs({
 }
 
 function buildBilateral({
-    rows,
+    flows,
     topN,
     minNodeShare,
     minLinkShare,
     formatValue,
 }: {
-    rows: Flow[]
+    flows: Flow[]
     topN: number
     minNodeShare: number
     minLinkShare: number
@@ -222,13 +222,13 @@ function buildBilateral({
     links: SankeyLink[]
 } {
     const sourceSelection = selectTopEntities({
-        rows,
+        flows,
         side: "source",
         topN,
         minNodeShare,
     })
     const targetSelection = selectTopEntities({
-        rows,
+        flows,
         side: "target",
         topN,
         minNodeShare,
@@ -243,7 +243,7 @@ function buildBilateral({
     // Aggregate row values into (source, target) pairs.
     // Non-top entities collapse into the Other buckets per side.
     const pairsByKey = new Map<string, Flow>()
-    for (const row of rows) {
+    for (const row of flows) {
         const source = topSources.has(row.source) ? row.source : OTHER_KEY
         const target = topTargets.has(row.target) ? row.target : OTHER_KEY
 

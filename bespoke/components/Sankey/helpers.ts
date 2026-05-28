@@ -122,13 +122,13 @@ export function aggregateBySide(flows: Flow[], side: LinkSide): EntityTotal[] {
  * minNodeShare.
  */
 export function selectTopEntities({
-    rows,
+    flows,
     side,
     topN,
     minNodeShare,
     showAllOtherBelow = 0,
 }: {
-    rows: Flow[]
+    flows: Flow[]
     side: LinkSide
     topN: number
     minNodeShare: number
@@ -143,7 +143,7 @@ export function selectTopEntities({
     other: EntityTotal[]
     total: number
 } {
-    const sortedEntities = aggregateBySide(rows, side)
+    const sortedEntities = aggregateBySide(flows, side)
 
     const total = R.sumBy(sortedEntities, (d) => d.total)
 

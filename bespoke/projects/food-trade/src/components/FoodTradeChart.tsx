@@ -55,7 +55,7 @@ export function FoodTradeChart({
                 .with("bilateral", () => {
                     return flows.length > 0 ? (
                         <FoodTradeBilateralSankey
-                            rows={flows}
+                            trades={flows}
                             year={year}
                             onSelectEntity={
                                 hideFlowSwitcher
@@ -95,8 +95,8 @@ export function FoodTradeChart({
 
                     return (
                         <FoodTradeSplitSankey
-                            incoming={incomingFlows}
-                            outgoing={outgoingFlows}
+                            incomingTrades={incomingFlows}
+                            outgoingTrades={outgoingFlows}
                             country={country}
                             product={product}
                             year={year}

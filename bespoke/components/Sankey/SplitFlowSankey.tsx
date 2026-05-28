@@ -128,7 +128,7 @@ export function SplitFlowSankey({
     const incomingBuild = useMemo(
         () =>
             buildSankeyHalf({
-                rows: incoming.rows,
+                flows: incoming.rows,
                 centralEntity,
                 direction: "incoming",
                 topN,
@@ -140,7 +140,7 @@ export function SplitFlowSankey({
     const outgoingBuild = useMemo(
         () =>
             buildSankeyHalf({
-                rows: outgoing.rows,
+                flows: outgoing.rows,
                 centralEntity,
                 direction: "outgoing",
                 topN,
@@ -491,14 +491,14 @@ function makeNodeTooltipGetter({
  * central → partners (outgoing)
  */
 function buildSankeyHalf({
-    rows,
+    flows,
     centralEntity,
     direction,
     topN,
     minNodeShare,
     formatValue,
 }: {
-    rows: Flow[]
+    flows: Flow[]
     centralEntity: string
     direction: "incoming" | "outgoing"
     topN: number
@@ -510,7 +510,7 @@ function buildSankeyHalf({
     const idPrefix = isIncoming ? "in:" : "out:"
 
     const selection = selectTopEntities({
-        rows,
+        flows,
         side,
         topN,
         minNodeShare,
