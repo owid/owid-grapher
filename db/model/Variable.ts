@@ -229,14 +229,20 @@ export interface UpdatedChartInheritanceRecord {
     isPublished: boolean
 }
 
+interface ChartInheritanceRecordWithEtlConfig
+    extends UpdatedChartInheritanceRecord {
+    etlConfig: GrapherInterface | null
+}
+
 async function findAllChartsThatInheritFromIndicator(
     trx: db.KnexReadonlyTransaction,
     variableId: number
-): Promise<UpdatedChartInheritanceRecord[]> {
+): Promise<ChartInheritanceRecordWithEtlConfig[]> {
     const charts = await db.knexRaw<{
         chartId: DbPlainChart["id"]
         chartConfigId: DbRawChartConfig["id"]
         patchConfig: DbRawChartConfig["patch"]
+        etlConfig: DbRawChartConfig["etlConfig"]
         isPublished: boolean
     }>(
         trx,
@@ -245,6 +251,7 @@ async function findAllChartsThatInheritFromIndicator(
                 c.id as chartId,
                 cc.id as chartConfigId,
                 cc.patch as patchConfig,
+                cc.etlConfig as etlConfig,
                 cc.full ->> "$.isPublished" as isPublished
             FROM charts c
                 JOIN chart_configs cc ON cc.id = c.configId
@@ -259,6 +266,7 @@ async function findAllChartsThatInheritFromIndicator(
         chartId: chart.chartId,
         chartConfigId: chart.chartConfigId,
         patchConfig: parseChartConfig(chart.patchConfig),
+        etlConfig: chart.etlConfig ? parseChartConfig(chart.etlConfig) : null,
         isPublished: chart.isPublished,
     }))
 }
@@ -282,9 +290,13 @@ export async function updateAllChartsThatInheritFromIndicator(
     )
 
     for (const chart of inheritingCharts) {
+        // Merge order (low → high precedence):
+        //   variable's ETL grapher_config → variable's admin override
+        //   → chart's own etlConfig → chart's admin patch
         const fullConfig = mergeGrapherConfigs(
             patchConfigETL ?? {},
             patchConfigAdmin ?? {},
+            chart.etlConfig ?? {},
             chart.patchConfig
         )
         await db.knexRaw(
@@ -307,23 +319,36 @@ export async function updateAllChartsThatInheritFromIndicator(
         )
     }
 
-    // let the caller know if any charts were updated
-    return inheritingCharts
+    // strip the internal etlConfig field before returning to callers
+    return inheritingCharts.map(
+        ({ chartId, chartConfigId, patchConfig, isPublished }) => ({
+            chartId,
+            chartConfigId,
+            patchConfig,
+            isPublished,
+        })
+    )
+}
+
+interface MultiDimViewInheritanceRecord {
+    chartConfigId: string
+    patchConfig: GrapherInterface
+    isPublished: boolean
+}
+
+interface MultiDimViewInheritanceRecordWithEtlConfig
+    extends MultiDimViewInheritanceRecord {
+    etlConfig: GrapherInterface | null
 }
 
 async function findAllMultiDimViewsThatInheritFromIndicator(
     trx: db.KnexReadonlyTransaction,
     variableId: number
-): Promise<
-    {
-        chartConfigId: string
-        patchConfig: GrapherInterface
-        isPublished: boolean
-    }[]
-> {
+): Promise<MultiDimViewInheritanceRecordWithEtlConfig[]> {
     const charts = await db.knexRaw<{
         chartConfigId: DbPlainMultiDimXChartConfig["chartConfigId"]
         patchConfig: DbRawChartConfig["patch"]
+        etlConfig: DbRawChartConfig["etlConfig"]
         isPublished: boolean
     }>(
         trx,
@@ -331,6 +356,7 @@ async function findAllMultiDimViewsThatInheritFromIndicator(
             SELECT
                 mdxcc.chartConfigId as chartConfigId,
                 cc.patch as patchConfig,
+                cc.etlConfig as etlConfig,
                 md.published as isPublished
             FROM multi_dim_data_pages md
                 JOIN multi_dim_x_chart_configs mdxcc ON mdxcc.multiDimId = md.id
@@ -340,8 +366,10 @@ async function findAllMultiDimViewsThatInheritFromIndicator(
         [variableId]
     )
     return charts.map((chart) => ({
-        ...chart,
+        chartConfigId: chart.chartConfigId,
         patchConfig: parseChartConfig(chart.patchConfig),
+        etlConfig: chart.etlConfig ? parseChartConfig(chart.etlConfig) : null,
+        isPublished: chart.isPublished,
     }))
 }
 
@@ -357,22 +385,19 @@ export async function updateAllMultiDimViewsThatInheritFromIndicator(
         patchConfigETL?: GrapherInterface
         patchConfigAdmin?: GrapherInterface
     }
-): Promise<
-    {
-        chartConfigId: string
-        patchConfig: GrapherInterface
-        isPublished: boolean
-    }[]
-> {
+): Promise<MultiDimViewInheritanceRecord[]> {
     const inheritingViews = await findAllMultiDimViewsThatInheritFromIndicator(
         trx,
         variableId
     )
 
     for (const view of inheritingViews) {
+        // Same merge order as for standalone charts: variable layers, then the
+        // view's own etlConfig (NULL until Phase 3), then its admin patch.
         const fullConfig = mergeGrapherConfigs(
             patchConfigETL ?? {},
             patchConfigAdmin ?? {},
+            view.etlConfig ?? {},
             view.patchConfig
         )
         await db.knexRaw(
@@ -388,8 +413,14 @@ export async function updateAllMultiDimViewsThatInheritFromIndicator(
         )
     }
 
-    // let the caller know if any views were updated
-    return inheritingViews
+    // strip the internal etlConfig field before returning to callers
+    return inheritingViews.map(
+        ({ chartConfigId, patchConfig, isPublished }) => ({
+            chartConfigId,
+            patchConfig,
+            isPublished,
+        })
+    )
 }
 
 export async function updateGrapherConfigETLOfVariable(
