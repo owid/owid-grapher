@@ -3,6 +3,7 @@ import { codeToEntityName, entityNameToCode } from "@ourworldindata/grapher"
 
 import { CONTROL_YEARS, START_YEAR, END_YEAR } from "./constants.js"
 import { isValidParameterKey, type ParameterKey } from "./types.js"
+import { parameterConfigByKey } from "./parameterConfigs.js"
 import type { ScenarioParams } from "../model/scenarios.js"
 
 export const DEMOGRAPHY_COUNTRY_PARAM = "demographyCountry"
@@ -21,29 +22,18 @@ const DEMOGRAPHY_URL_PARAM_KEYS = [
     DEMOGRAPHY_YEAR_PARAM,
 ] as const
 
-const ASSUMPTION_PARAM_CONFIG = {
-    fertilityRate: {
-        param: DEMOGRAPHY_FERTILITY_PARAM,
-        decimals: 1,
-    },
-    lifeExpectancy: {
-        param: DEMOGRAPHY_LIFE_EXPECTANCY_PARAM,
-        decimals: 0,
-    },
-    netMigrationRate: {
-        param: DEMOGRAPHY_NET_MIGRATION_PARAM,
-        decimals: 1,
-    },
-} as const
-
-type AssumptionParamKey = keyof typeof ASSUMPTION_PARAM_CONFIG
+const ASSUMPTION_URL_PARAMS: Record<ParameterKey, string> = {
+    fertilityRate: DEMOGRAPHY_FERTILITY_PARAM,
+    lifeExpectancy: DEMOGRAPHY_LIFE_EXPECTANCY_PARAM,
+    netMigrationRate: DEMOGRAPHY_NET_MIGRATION_PARAM,
+}
 
 export function isControlPointModified(
     userVal: number,
     refVal: number,
-    parameterKey: AssumptionParamKey
+    parameterKey: ParameterKey
 ): boolean {
-    const { decimals } = ASSUMPTION_PARAM_CONFIG[parameterKey]
+    const { decimals } = parameterConfigByKey[parameterKey]
     return formatNumber(userVal, decimals) !== formatNumber(refVal, decimals)
 }
 
@@ -130,19 +120,20 @@ export function simulationStateToQueryParams(
         params[DEMOGRAPHY_COUNTRY_PARAM] = entityNameToCode(state.entityName)
     }
 
-    for (const [key, config] of Object.entries(ASSUMPTION_PARAM_CONFIG)) {
-        const parameterKey = key as keyof typeof ASSUMPTION_PARAM_CONFIG
+    for (const [key, param] of Object.entries(ASSUMPTION_URL_PARAMS)) {
+        const parameterKey = key as ParameterKey
+        const { decimals } = parameterConfigByKey[parameterKey]
         if (
             !areControlPointsEqual(
                 state.scenarioParams[parameterKey],
                 state.baselineScenarioParams[parameterKey],
-                config.decimals
+                decimals
             )
         ) {
-            params[config.param] = serializeAssumptionParam(
+            params[param] = serializeAssumptionParam(
                 state.scenarioParams[parameterKey],
                 state.baselineScenarioParams[parameterKey],
-                config.decimals
+                decimals
             )
         }
     }

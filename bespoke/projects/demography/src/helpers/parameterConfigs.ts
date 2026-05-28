@@ -12,7 +12,7 @@ import {
     getProjectionPopulationForYear,
     calculateTFR,
 } from "../model/model.js"
-import { Simulation } from "./useSimulation.js"
+import type { Simulation } from "./useSimulation.js"
 import { getDeathsForYear, getMigrationRateForYear } from "./utils.js"
 import { ParameterKey } from "./types.js"
 
