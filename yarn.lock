@@ -3049,7 +3049,7 @@ __metadata:
     "@types/react-dom": "npm:^19.2.3"
     classnames: "npm:^2.5.1"
     lodash-es: "npm:^4.18.1"
-    mobx: "npm:^6.13.7"
+    mobx: "npm:^6.15.4"
     mobx-react: "npm:^7.6.0"
     react: "npm:^19.2.4"
     react-dom: "npm:^19.2.4"
@@ -3095,7 +3095,7 @@ __metadata:
     indefinite: "npm:^2.5.2"
     js-cookie: "npm:^3.0.7"
     lodash-es: "npm:^4.18.1"
-    mobx: "npm:^6.13.7"
+    mobx: "npm:^6.15.4"
     mobx-react: "npm:^7.6.0"
     mousetrap: "npm:^1.6.5"
     react: "npm:^19.2.4"
@@ -3143,7 +3143,7 @@ __metadata:
     fuzzysort: "npm:^3.1.0"
     js-cookie: "npm:^3.0.7"
     lodash-es: "npm:^4.18.1"
-    mobx: "npm:^6.13.7"
+    mobx: "npm:^6.15.4"
     react: "npm:^19.2.4"
     remeda: "npm:^2.32.0"
     striptags: "npm:^3.2.0"
@@ -9758,7 +9758,7 @@ __metadata:
     lodash-es: "npm:^4.18.1"
     mdast-util-from-markdown: "npm:^2.0.2"
     minimist: "npm:^1.2.6"
-    mobx: "npm:^6.13.7"
+    mobx: "npm:^6.15.4"
     mobx-react: "npm:^7.6.0"
     mousetrap: "npm:^1.6.5"
     multer: "npm:^2.1.1"
@@ -11623,10 +11623,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mobx@npm:^6.13.7":
-  version: 6.13.7
-  resolution: "mobx@npm:6.13.7"
-  checksum: 10/5e27d8934e7ce820f436cf189a11ce94dc8c76a7b33b68ce476f46b88258be2c3f37830b13f2817a0f273666aea0fd7d530ff1676467862516ba22343040a192
+"mobx@npm:^6.15.4":
+  version: 6.15.4
+  resolution: "mobx@npm:6.15.4"
+  checksum: 10/5c8dc30a9418359dc5aa0214fda105f878c34cefe47ecda72dfa0414c0c33e743bc4798fb4699ff5e2f6e34faabcdd326812198531a5b23e50a37fbbb507a78c
   languageName: node
   linkType: hard
 
