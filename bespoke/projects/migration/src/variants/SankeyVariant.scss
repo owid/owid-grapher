@@ -7,7 +7,7 @@
     font-size: 2rem;
     font-weight: 600;
     line-height: 1.25;
-    color: #1d3d63;
+    color: $blue-90;
     margin: 0;
     margin-bottom: 2px;
 }
@@ -15,7 +15,7 @@
 .migration-heading__description {
     font-size: 1rem;
     line-height: 1.5;
-    color: #1d3d63;
+    color: $blue-90;
     margin: 0;
 }
 
@@ -55,5 +55,5 @@
 
 .migration-chart__error {
     padding: 24px;
-    color: #b00020;
+    color: $error-text-color;
 }

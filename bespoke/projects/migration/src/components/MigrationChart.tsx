@@ -1,7 +1,8 @@
+import * as R from "remeda"
+
 import { articulateEntity } from "@ourworldindata/utils"
 
 import { MigrationFlow, MigrationView } from "../types.js"
-import { capitalize } from "../helpers.js"
 import { MigrationSankey } from "./MigrationSankey.js"
 
 export function MigrationChart({
@@ -40,7 +41,7 @@ export function MigrationChart({
                 />
             ) : (
                 <NoData
-                    message={`No migrants recorded in ${capitalize(articulateEntity(country))} in ${year}.`}
+                    message={`No migrants recorded in ${R.capitalize(articulateEntity(country))} in ${year}.`}
                 />
             )}
         </div>

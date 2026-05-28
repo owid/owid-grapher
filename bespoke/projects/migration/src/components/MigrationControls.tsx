@@ -1,3 +1,4 @@
+import { useMemo } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     faArrowRight,
@@ -5,10 +6,9 @@ import {
 } from "@fortawesome/free-solid-svg-icons"
 
 import { BasicDropdownOption } from "@ourworldindata/grapher"
-import { Time } from "@ourworldindata/types"
+import { Tippy } from "@ourworldindata/utils"
 
-import { Frame } from "../../../../components/Frame/Frame.js"
-import { TimeSlider } from "../../../../components/TimeSlider/TimeSlider.js"
+import { groupByUserLocation } from "../../../../components/EntityDropdown/EntityDropdown.js"
 import {
     type DropdownCollection,
     InlineLabeledDropdown,
@@ -17,8 +17,11 @@ import {
     Switcher,
     SwitcherItem,
 } from "../../../../components/Switcher/Switcher.js"
+import { TimeSlider } from "../../../../components/TimeSlider/TimeSlider.js"
+import { useTippyContainer } from "../../../../hooks/useTippyContainer.js"
+import { useUserCountryInformation } from "../../../../hooks/useUserCountryInformation.js"
 
-import { GenderId, MigrationView } from "../types.js"
+import { GenderId, MigrationMetadata, MigrationView } from "../types.js"
 
 const VIEW_ITEMS: SwitcherItem<MigrationView>[] = [
     {
@@ -55,74 +58,161 @@ const VIEW_ITEMS: SwitcherItem<MigrationView>[] = [
 ]
 
 export function MigrationControls({
-    countryOptions,
-    genderOptions,
-    times,
+    metadata,
     country,
     genderId,
     year,
     view,
-    viewDisabled,
+    viewDisabledReason,
     hideFlowSwitcher,
     setCountry,
     setGenderId,
     setYear,
     setView,
 }: {
-    countryOptions: DropdownCollection
-    genderOptions: BasicDropdownOption[]
-    times: Time[]
+    metadata: MigrationMetadata
     country: string
     genderId: GenderId
-    year: Time
+    year: number
     view: MigrationView
-    /** Visually disables the migration-flow radios. Set when the current
-     * country has data in only one direction, so the radios reflect
-     * "doesn't apply here" rather than letting the user pick a half with
-     * no data. */
-    viewDisabled?: boolean
+    /** Reason text for the disabled-switcher tooltip. Undefined when the
+     *  switcher is enabled (both halves have data). */
+    viewDisabledReason?: string
     hideFlowSwitcher?: boolean
     setCountry: (name: string) => void
     setGenderId: (id: GenderId) => void
-    setYear: (year: Time) => void
+    setYear: (year: number) => void
     setView: (view: MigrationView) => void
 }): React.ReactElement {
     return (
-        <Frame className="migration-controls">
+        <div className="migration-controls">
             <h3 className="migration-controls__title">Configure the data</h3>
             <div className="migration-controls__content">
                 <div className="migration-controls__row">
-                    <InlineLabeledDropdown
-                        label="Country"
-                        options={countryOptions}
-                        selectedValue={country}
-                        onChange={setCountry}
-                        placeholder="Select a country…"
-                        aria-label="Select a country"
-                        isSearchable
+                    <CountryDropdown
+                        metadata={metadata}
+                        country={country}
+                        setCountry={setCountry}
                     />
-                    <InlineLabeledDropdown
-                        label="Gender"
-                        options={genderOptions}
-                        selectedValue={String(genderId)}
-                        onChange={(v) => setGenderId(Number(v) as GenderId)}
-                        placeholder="Select gender…"
-                        aria-label="Select gender"
+                    <GenderDropdown
+                        metadata={metadata}
+                        genderId={genderId}
+                        setGenderId={setGenderId}
                     />
-                    <Switcher
-                        items={VIEW_ITEMS}
-                        selectedKey={view}
-                        onChange={setView}
-                        isDisabled={viewDisabled}
-                        aria-label="Migration flow"
-                    />
+                    {!hideFlowSwitcher && (
+                        <ViewSwitcher
+                            view={view}
+                            disabledReason={viewDisabledReason}
+                            setView={setView}
+                        />
+                    )}
                 </div>
                 <TimeSlider
-                    times={times}
+                    times={metadata.times}
                     selectedTime={year}
                     onChange={setYear}
                 />
             </div>
-        </Frame>
+        </div>
+    )
+}
+
+function CountryDropdown({
+    metadata,
+    country,
+    setCountry,
+}: {
+    metadata: MigrationMetadata
+    country: string
+    setCountry: (name: string) => void
+}) {
+    // Country options are keyed by name so groupByUserLocation can match
+    // the user's home country (also keyed by name in the geo lookup) and
+    // surface it at the top.
+    const { data: userCountryInfo } = useUserCountryInformation()
+    const options = useMemo<DropdownCollection>(() => {
+        const flat: BasicDropdownOption[] = metadata.entities
+            .map((e) => ({ value: e.name, label: e.name }))
+            .sort((a, b) => a.label.localeCompare(b.label))
+        return groupByUserLocation(flat, userCountryInfo)
+    }, [metadata.entities, userCountryInfo])
+
+    return (
+        <InlineLabeledDropdown
+            label="Country"
+            options={options}
+            selectedValue={country}
+            onChange={setCountry}
+            placeholder="Select a country…"
+            aria-label="Select a country"
+            isSearchable
+        />
+    )
+}
+
+function GenderDropdown({
+    metadata,
+    genderId,
+    setGenderId,
+}: {
+    metadata: MigrationMetadata
+    genderId: GenderId
+    setGenderId: (id: GenderId) => void
+}) {
+    const options = useMemo<BasicDropdownOption[]>(
+        () =>
+            metadata.genders.map((g) => ({
+                value: String(g.id),
+                label: g.name,
+            })),
+        [metadata.genders]
+    )
+
+    return (
+        <InlineLabeledDropdown
+            label="Gender"
+            options={options}
+            selectedValue={String(genderId)}
+            onChange={(v) => setGenderId(Number(v) as GenderId)}
+            placeholder="Select gender…"
+            aria-label="Select gender"
+        />
+    )
+}
+
+function ViewSwitcher({
+    view,
+    disabledReason,
+    setView,
+}: {
+    view: MigrationView
+    disabledReason?: string
+    setView: (view: MigrationView) => void
+}) {
+    const { ref: switcherWrapperRef, getTippyContainer } =
+        useTippyContainer<HTMLDivElement>()
+
+    const isDisabled = !!disabledReason
+
+    return (
+        <Tippy
+            content={disabledReason ?? ""}
+            disabled={!isDisabled}
+            appendTo={getTippyContainer}
+            maxWidth={270}
+        >
+            <div
+                ref={switcherWrapperRef}
+                className="migration-controls__switcher-wrapper"
+            >
+                <Switcher
+                    items={VIEW_ITEMS}
+                    selectedKey={view}
+                    onChange={setView}
+                    isDisabled={isDisabled}
+                    aria-label="Migration flow"
+                />
+            </div>
+        </Tippy>
     )
 }

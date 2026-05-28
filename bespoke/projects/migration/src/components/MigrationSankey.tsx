@@ -1,5 +1,8 @@
-import { useCallback, useMemo } from "react"
+import { useMemo } from "react"
 import { useParentSize } from "@visx/responsive"
+import cx from "classnames"
+import * as R from "remeda"
+import { match } from "ts-pattern"
 
 import { articulateEntity } from "@ourworldindata/utils"
 import {
@@ -9,6 +12,7 @@ import {
 
 import {
     EntityTotal,
+    Flow,
     getEntityShortLabel,
 } from "../../../../components/Sankey/helpers.js"
 import { SankeyTooltip } from "../../../../components/Sankey/Sankey.js"
@@ -20,9 +24,7 @@ import {
 } from "../../../../components/Sankey/SplitFlowSankey.js"
 
 import { MigrationFlow, MigrationView } from "../types.js"
-import { capItems, capitalize, formatPeople, formatShare } from "../helpers.js"
-
-export const TOP_N = 10
+import { capItems, formatPeople, formatShare } from "../helpers.js"
 
 export function MigrationSankey({
     immigrants,
@@ -49,9 +51,12 @@ export function MigrationSankey({
 }) {
     const { parentRef, width, height } = useParentSize()
 
+    // Convert filtered domain rows to the central-anchored Flow shape the
+    // sankey expects. Memoized so SplitFlowSankey's downstream useMemo
+    // doesn't rebuild on every render.
     const incomingFlows = useMemo(
         () =>
-            immigrants.map((f) => ({
+            immigrants.map<Flow>((f) => ({
                 source: f.partner,
                 target: country,
                 value: f.value,
@@ -60,7 +65,7 @@ export function MigrationSankey({
     )
     const outgoingFlows = useMemo(
         () =>
-            emigrants.map((f) => ({
+            emigrants.map<Flow>((f) => ({
                 source: country,
                 target: f.partner,
                 value: f.value,
@@ -68,139 +73,175 @@ export function MigrationSankey({
         [emigrants, country]
     )
 
+    const isStacked = width > 0 && width < MOBILE_BREAKPOINT
+    const noImmigrants = incomingFlows.length === 0
+    const noEmigrants = outgoingFlows.length === 0
     // When both halves are visible side-by-side AND both have data, the
     // right heading leads with "and …" so it reads as a continuation of
     // the left. In single-half views, stacked layouts, and one-side-empty
     // cases, both headings are standalone — no "and".
-    const countryArticulated = articulateEntity(country)
-    const isStacked = width > 0 && width < MOBILE_BREAKPOINT
-    const noImmigrants = incomingFlows.length === 0
-    const noEmigrants = outgoingFlows.length === 0
     const isPairedSentence =
         view === "both" && !isStacked && !noImmigrants && !noEmigrants
-    const emigrantsPrefix = isPairedSentence ? "and " : ""
 
-    const incomingHeading: SankeyHalfHeading = !noImmigrants
-        ? {
-              label: `${formatPeople(immigrantsTotal, { unit: false })} immigrants lived in ${countryArticulated}`,
-              arrowSide: "start",
-          }
-        : {
-              label:
-                  view === "both"
-                      ? `No immigrants lived in ${countryArticulated}`
-                      : "No immigrants",
-          }
+    const sharedHalfArgs = {
+        country,
+        year,
+        view,
+        isPairedSentence,
+        setView,
+    }
 
-    const outgoingHeading: SankeyHalfHeading = !noEmigrants
-        ? {
-              label: `${emigrantsPrefix}${formatPeople(emigrantsTotal, { unit: false })} emigrants from ${countryArticulated} lived abroad`,
-              arrowSide: "end",
-          }
-        : {
-              label:
-                  view === "both"
-                      ? `No emigrants from ${countryArticulated} lived abroad`
-                      : "No emigrants",
-          }
+    const incomingHalf = buildSankeyHalf({
+        ...sharedHalfArgs,
+        direction: "incoming",
+        flows: incomingFlows,
+        total: immigrantsTotal,
+        otherHasData: !noEmigrants,
+    })
+    const outgoingHalf = buildSankeyHalf({
+        ...sharedHalfArgs,
+        direction: "outgoing",
+        flows: outgoingFlows,
+        total: emigrantsTotal,
+        otherHasData: !noImmigrants,
+    })
 
-    const splitView =
-        view === "immigrants"
-            ? "incoming"
-            : view === "emigrants"
-              ? "outgoing"
-              : "both"
+    const splitView = match(view)
+        .with("immigrants", () => "incoming" as const)
+        .with("emigrants", () => "outgoing" as const)
+        .with("both", () => "both" as const)
+        .exhaustive()
     const isSingleHalf = view !== "both"
-
-    // CTA shows up only in single-half views where the displayed half is
-    // empty but the other direction has data. In both-view, the populated
-    // half is already on screen so no CTA is needed; in the no-data-at-all
-    // case MigrationChart short-circuits before we render at all.
-    const incomingEmpty = noImmigrants ? (
-        <EmptyHalf
-            message={`No immigrants recorded in ${capitalize(countryArticulated)} in ${year}`}
-            cta={
-                view === "immigrants" && !noEmigrants
-                    ? {
-                          label: "See emigrants",
-                          onClick: () => setView("emigrants"),
-                      }
-                    : undefined
-            }
-        />
-    ) : undefined
-    const outgoingEmpty = noEmigrants ? (
-        <EmptyHalf
-            message={`No emigrants from ${capitalize(countryArticulated)} recorded in ${year}`}
-            cta={
-                view === "emigrants" && !noImmigrants
-                    ? {
-                          label: "See immigrants",
-                          onClick: () => setView("immigrants"),
-                      }
-                    : undefined
-            }
-        />
-    ) : undefined
-
-    // Same denominator as the partner-node label percentages (half total),
-    // so the tooltip's share matches the number already shown on the chart.
-    const renderIncomingTooltip = useCallback(
-        (args: SankeyHalfTooltipArgs) =>
-            getMigrationLinkTooltip({
-                direction: "incoming",
-                partner: args.partner,
-                central: country,
-                value: args.value,
-                halfTotal: immigrantsTotal,
-                year,
-                otherBreakdown: args.otherBreakdown,
-            }),
-        [country, immigrantsTotal, year]
-    )
-    const renderOutgoingTooltip = useCallback(
-        (args: SankeyHalfTooltipArgs) =>
-            getMigrationLinkTooltip({
-                direction: "outgoing",
-                partner: args.partner,
-                central: country,
-                value: args.value,
-                halfTotal: emigrantsTotal,
-                year,
-                otherBreakdown: args.otherBreakdown,
-            }),
-        [country, emigrantsTotal, year]
-    )
 
     return (
         <div
             ref={parentRef}
-            className={`migration-sankey${
-                isSingleHalf ? " migration-sankey--single" : ""
-            }`}
+            className={cx("migration-sankey", {
+                "migration-sankey--single": isSingleHalf,
+            })}
         >
             <SplitFlowSankey
                 centralEntity={country}
-                incoming={{
-                    rows: incomingFlows,
-                    heading: incomingHeading,
-                    empty: incomingEmpty,
-                    getTooltip: renderIncomingTooltip,
-                }}
-                outgoing={{
-                    rows: outgoingFlows,
-                    heading: outgoingHeading,
-                    empty: outgoingEmpty,
-                    getTooltip: renderOutgoingTooltip,
-                }}
+                incoming={incomingHalf}
+                outgoing={outgoingHalf}
                 width={width}
                 height={height}
                 formatValue={formatPeople}
                 view={splitView}
-                topN={TOP_N}
             />
         </div>
     )
+}
+
+function buildSankeyHalf({
+    direction,
+    flows,
+    total,
+    country,
+    year,
+    view,
+    isPairedSentence,
+    otherHasData,
+    setView,
+}: {
+    direction: "incoming" | "outgoing"
+    flows: Flow[]
+    total: number
+    country: string
+    year: number
+    view: MigrationView
+    isPairedSentence: boolean
+    /** Whether the other half has data — drives the empty-state CTA. */
+    otherHasData: boolean
+    setView: (view: MigrationView) => void
+}) {
+    const isIncoming = direction === "incoming"
+    const ownView: MigrationView = isIncoming ? "immigrants" : "emigrants"
+    const otherView: MigrationView = isIncoming ? "emigrants" : "immigrants"
+    const arrowSide: "start" | "end" = isIncoming ? "start" : "end"
+
+    const hasData = flows.length > 0
+
+    // Heading uses the short name (e.g. "USA" instead of "United States") but
+    // keeps the "the" article when the full name calls for one — so "the
+    // United States" becomes "the USA" rather than dropping the article.
+    const shortEntityName = getEntityShortLabel(country)
+    const shortEntityNameWithArticle =
+        articulateEntity(country) === country
+            ? shortEntityName
+            : `the ${shortEntityName}`
+
+    const heading: SankeyHalfHeading = hasData
+        ? {
+              label: makeHeadingLabel({
+                  direction,
+                  total,
+                  shortEntityNameWithArticle,
+                  isPairedSentence,
+              }),
+              arrowSide,
+          }
+        : {
+              label:
+                  view === "both"
+                      ? isIncoming
+                            ? `No immigrants lived in ${shortEntityNameWithArticle}`
+                            : `No emigrants from ${shortEntityNameWithArticle} lived abroad`
+                      : isIncoming
+                        ? "No immigrants"
+                        : "No emigrants",
+          }
+
+    const cta =
+        view === ownView && otherHasData
+            ? {
+                  label: `See ${otherView}`,
+                  onClick: () => setView(otherView),
+              }
+            : undefined
+
+    const empty = !hasData ? (
+        <EmptyHalf
+            message={
+                isIncoming
+                    ? `No immigrants recorded in ${R.capitalize(shortEntityNameWithArticle)} in ${year}`
+                    : `No emigrants from ${R.capitalize(shortEntityNameWithArticle)} recorded in ${year}`
+            }
+            cta={cta}
+        />
+    ) : undefined
+
+    const getTooltip = (args: SankeyHalfTooltipArgs) =>
+        getMigrationLinkTooltip({
+            direction,
+            partner: args.partner,
+            central: country,
+            value: args.value,
+            halfTotal: total,
+            year,
+            otherBreakdown: args.otherBreakdown,
+        })
+
+    return { rows: flows, heading, empty, getTooltip }
+}
+
+function makeHeadingLabel({
+    direction,
+    total,
+    shortEntityNameWithArticle,
+    isPairedSentence,
+}: {
+    direction: "incoming" | "outgoing"
+    total: number
+    shortEntityNameWithArticle: string
+    isPairedSentence: boolean
+}): string {
+    const count = formatPeople(total, { unit: false })
+    if (direction === "incoming") {
+        return `${count} immigrants lived in ${shortEntityNameWithArticle}`
+    }
+    const prefix = isPairedSentence ? "and " : ""
+    return `${prefix}${count} emigrants from ${shortEntityNameWithArticle} lived abroad`
 }
 
 function getMigrationLinkTooltip({

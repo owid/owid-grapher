@@ -9,17 +9,16 @@ import {
     parseAsString,
     parseAsStringEnum,
 } from "nuqs"
+import * as R from "remeda"
 
 import { articulateEntity } from "@ourworldindata/utils"
-import { BasicDropdownOption } from "@ourworldindata/grapher"
 
 import { Frame } from "../../../../components/Frame/Frame.js"
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
-import { type DropdownCollection } from "../../../../components/InlineLabeledDropdown/InlineLabeledDropdown.js"
-import { groupByUserLocation } from "../../../../components/EntityDropdown/EntityDropdown.js"
+import { MOBILE_BREAKPOINT } from "../../../../components/Sankey/SplitFlowSankey.js"
 import { useUrlState } from "../../../../hooks/useUrlState.js"
-import { useUserCountryInformation } from "../../../../hooks/useUserCountryInformation.js"
+import { useContainerWidth } from "../../../../hooks/useContainerWidth.js"
 import {
     isUserLocationCountry,
     useResolveUserLocation,
@@ -164,11 +163,11 @@ function FetchingSankeyVariant({ config }: { config: SankeyVariantConfig }) {
     )
 
     const immigrantsTotal = useMemo(
-        () => immigrants.reduce((sum, d) => sum + d.value, 0),
+        () => R.sumBy(immigrants, (d) => d.value),
         [immigrants]
     )
     const emigrantsTotal = useMemo(
-        () => emigrants.reduce((sum, d) => sum + d.value, 0),
+        () => R.sumBy(emigrants, (d) => d.value),
         [emigrants]
     )
 
@@ -184,6 +183,15 @@ function FetchingSankeyVariant({ config }: { config: SankeyVariantConfig }) {
         : onlyEmigrants
           ? "emigrants"
           : _view
+
+    // The disabled-switcher tooltip explains *why* the other half is
+    // unpickable. Undefined when both halves have data (switcher enabled).
+    const countryLabel = R.capitalize(articulateEntity(country))
+    const viewDisabledReason: string | undefined = onlyImmigrants
+        ? `No emigrants from ${countryLabel} recorded in ${year}.`
+        : onlyEmigrants
+          ? `No immigrants recorded in ${countryLabel} in ${year}.`
+          : undefined
 
     if (
         metadataStatus === "pending" ||
@@ -204,7 +212,7 @@ function FetchingSankeyVariant({ config }: { config: SankeyVariantConfig }) {
             year={year}
             genderId={genderId}
             view={view}
-            isViewDisabled={onlyImmigrants || onlyEmigrants}
+            viewDisabledReason={viewDisabledReason}
             immigrants={immigrants}
             emigrants={emigrants}
             immigrantsTotal={immigrantsTotal}
@@ -224,7 +232,7 @@ function CaptionedSankeyVariant({
     year,
     genderId,
     view,
-    isViewDisabled,
+    viewDisabledReason,
     immigrants,
     emigrants,
     immigrantsTotal,
@@ -240,7 +248,7 @@ function CaptionedSankeyVariant({
     year: number
     genderId: GenderId
     view: MigrationView
-    isViewDisabled: boolean
+    viewDisabledReason: string | undefined
     immigrants: MigrationFlow[]
     emigrants: MigrationFlow[]
     immigrantsTotal: number
@@ -250,26 +258,6 @@ function CaptionedSankeyVariant({
     setGenderId: (id: GenderId) => void
     setView: (view: MigrationView) => void
 }) {
-    // Country options are keyed by name so groupByUserLocation can match
-    // the user's home country (also keyed by name in the geo lookup) and
-    // surface it at the top.
-    const { data: userCountryInfo } = useUserCountryInformation()
-    const countryOptions = useMemo<DropdownCollection>(() => {
-        const flat: BasicDropdownOption[] = metadata.entities
-            .map((e) => ({ value: e.name, label: e.name }))
-            .sort((a, b) => a.label.localeCompare(b.label))
-        return groupByUserLocation(flat, userCountryInfo)
-    }, [metadata.entities, userCountryInfo])
-
-    const genderOptions = useMemo<BasicDropdownOption[]>(
-        () =>
-            metadata.genders.map((g) => ({
-                value: String(g.id),
-                label: g.name,
-            })),
-        [metadata.genders]
-    )
-
     const shouldHideChrome =
         config.hideControls || !!config.title || !!config.subtitle
 
@@ -287,14 +275,12 @@ function CaptionedSankeyVariant({
                         </p>
                     </header>
                     <MigrationControls
-                        countryOptions={countryOptions}
-                        genderOptions={genderOptions}
-                        times={metadata.times}
+                        metadata={metadata}
                         country={country}
                         genderId={genderId}
                         year={year}
                         view={view}
-                        viewDisabled={isViewDisabled}
+                        viewDisabledReason={viewDisabledReason}
                         hideFlowSwitcher={config.hideFlowSwitcher}
                         setCountry={setCountry}
                         setGenderId={setGenderId}
