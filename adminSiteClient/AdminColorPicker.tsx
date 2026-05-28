@@ -346,10 +346,7 @@ export function AdminColorPicker({
                 <TabPanel id="all" className="AdminColorPicker__panel">
                     {renderGrid(gridColors)}
                 </TabPanel>
-                <TabPanel
-                    id="regions"
-                    className="AdminColorPicker__panel AdminColorPicker__panel--tall"
-                >
+                <TabPanel id="regions" className="AdminColorPicker__panel">
                     {renderCards(Object.entries(ContinentColors))}
                 </TabPanel>
                 <TabPanel id="energy" className="AdminColorPicker__panel">

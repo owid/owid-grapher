@@ -1,15 +1,27 @@
 .AdminColorPicker {
     width: 500px;
+    max-height: 75vh;
     padding: 12px;
     font-size: 13px;
     color: #1a1a1a;
     box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
 }
 
 /* Search */
 .AdminColorPicker__search {
+    flex: 0 0 auto;
     display: block;
     margin-bottom: 10px;
+}
+
+/* Make the Tabs wrapper transparent to layout so the TabList and active
+   TabPanel become flex children of .AdminColorPicker directly. That way only
+   the panel shrinks under tight vertical space; the chips stay visible. */
+.AdminColorPicker__tabs {
+    display: contents;
 }
 
 .AdminColorPicker__search-input {
@@ -29,6 +41,7 @@
 
 /* Tabs / chips */
 .AdminColorPicker__chips {
+    flex: 0 0 auto;
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
@@ -64,13 +77,10 @@
 
 /* Panels */
 .AdminColorPicker__panel {
-    max-height: 220px;
+    flex: 1 1 0;
+    min-height: 140px;
     overflow-y: auto;
     outline: none;
-}
-
-.AdminColorPicker__panel--tall {
-    max-height: 360px;
 }
 
 .AdminColorPicker__empty {
@@ -214,6 +224,7 @@
 
 /* Inline custom picker */
 .AdminColorPicker__custom {
+    flex: 0 0 auto;
     width: 100%;
     margin-top: 12px;
     padding-top: 12px;
