@@ -47,6 +47,7 @@ import {
     type ScenarioConstants,
 } from "../model/scenarios"
 import { runProjectionResults } from "../model/projectionRunner"
+import { isControlPointModified } from "./urlState"
 
 const SCENARIO_CONSTANTS: ScenarioConstants = {
     HISTORICAL_END_YEAR,
@@ -446,10 +447,12 @@ export function useSimulation(
         if (!core || !effectiveScenarioParams) return modified
         const un = core.defaultScenario
         for (const key of PARAMETER_KEYS) {
-            const isModified = CONTROL_YEARS.some(
-                (y) =>
-                    Math.abs(effectiveScenarioParams[key][y] - un[key][y]) >=
-                    0.01
+            const isModified = CONTROL_YEARS.some((y) =>
+                isControlPointModified(
+                    effectiveScenarioParams[key][y],
+                    un[key][y],
+                    key
+                )
             )
             if (isModified) modified.add(key)
         }

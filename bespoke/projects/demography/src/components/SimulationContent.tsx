@@ -12,7 +12,10 @@ import {
     computeScenarioOverrides,
     type Simulation,
 } from "../helpers/useSimulation"
-import { updateWindowUrlForSimulationState } from "../helpers/urlState.js"
+import {
+    updateWindowUrlForSimulationState,
+    isControlPointModified,
+} from "../helpers/urlState.js"
 import { PopulationChart } from "./PopulationChart.js"
 import { DemographyParameterEditor } from "./DemographyParameterEditor.js"
 import { PopulationPyramid } from "./PopulationPyramid.js"
@@ -542,8 +545,11 @@ function AssumptionsTable({ simulation }: { simulation: Simulation }) {
                             const userVal = simulation.scenarioParams[key][yr]
                             const refVal =
                                 simulation.unwppScenarioParams[key][yr]
-                            const isModified =
-                                Math.abs(userVal - refVal) >= 0.01
+                            const isModified = isControlPointModified(
+                                userVal,
+                                refVal,
+                                key
+                            )
                             const direction =
                                 userVal > refVal ? "up" : ("down" as const)
                             return (

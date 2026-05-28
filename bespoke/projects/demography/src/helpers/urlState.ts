@@ -36,6 +36,17 @@ const ASSUMPTION_PARAM_CONFIG = {
     },
 } as const
 
+type AssumptionParamKey = keyof typeof ASSUMPTION_PARAM_CONFIG
+
+export function isControlPointModified(
+    userVal: number,
+    refVal: number,
+    parameterKey: AssumptionParamKey
+): boolean {
+    const { decimals } = ASSUMPTION_PARAM_CONFIG[parameterKey]
+    return formatNumber(userVal, decimals) !== formatNumber(refVal, decimals)
+}
+
 export interface SimulationUrlState {
     entityName?: string
     fertilityRateAssumptions?: Record<number, number>
