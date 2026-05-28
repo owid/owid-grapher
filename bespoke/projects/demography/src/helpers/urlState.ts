@@ -130,6 +130,7 @@ export function simulationStateToQueryParams(
         ) {
             params[config.param] = serializeAssumptionParam(
                 state.scenarioParams[parameterKey],
+                state.baselineScenarioParams[parameterKey],
                 config.decimals
             )
         }
@@ -174,11 +175,14 @@ function parseAssumptionParam(
 
 function serializeAssumptionParam(
     points: Record<number, number>,
+    baseline: Record<number, number>,
     decimals: number
 ): string {
-    return CONTROL_YEARS.map((year) =>
-        formatNumber(points[year], decimals)
-    ).join(",")
+    return CONTROL_YEARS.map((year) => {
+        const formatted = formatNumber(points[year], decimals)
+        if (formatted === formatNumber(baseline[year], decimals)) return ""
+        return formatted
+    }).join(",")
 }
 
 function areControlPointsEqual(
