@@ -36,19 +36,9 @@ const computeChartScore = (
 const parseRawChartRecord = (
     rawRecord: RawChartRecordRow
 ): ParsedChartRecordRow => {
-    let parsedEntities: string[] = []
-    if (rawRecord.entityNames !== null) {
-        // This is a very rough way to check for the Algolia record size limit, but it's better than the update failing
-        // because we exceed the 20KB record size limit
-        if (rawRecord.entityNames.length < 12000)
-            parsedEntities = JSON.parse(rawRecord.entityNames) as string[]
-        else {
-            console.info(
-                `Chart ${rawRecord.id} has too many entities, skipping its entities`
-            )
-        }
-    }
-    const entityNames = processAvailableEntities(parsedEntities)
+    const entityNames = processAvailableEntities(
+        JSON.parse(rawRecord.entityNames)
+    )
 
     const tags = JSON.parse(rawRecord.tags) as string[]
     const keyChartForTags = JSON.parse(rawRecord.keyChartForTags) as string[]

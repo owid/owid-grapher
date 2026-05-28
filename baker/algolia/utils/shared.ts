@@ -72,8 +72,15 @@ export const processAvailableEntities = (
 // the record fits.
 const ALGOLIA_TARGET_RECORD_BYTES = 19500
 
-const byteLength = (value: unknown): number =>
+const checkByteLength = (value: unknown): number =>
     Buffer.byteLength(JSON.stringify(value), "utf8")
+
+export function ensureRecordFitsAlgoliaLimit<T extends { objectID: string }>(
+    record: T
+): boolean {
+    const size = checkByteLength(record)
+    return size <= ALGOLIA_TARGET_RECORD_BYTES
+}
 
 export function shrinkRecordsToFitAlgoliaLimit<
     T extends { availableEntities: string[]; objectID: string },
@@ -84,10 +91,10 @@ export function shrinkRecordsToFitAlgoliaLimit<
 function shrinkRecordToFitAlgoliaLimit<
     T extends { availableEntities: string[]; objectID: string },
 >(record: T): T {
-    const size = byteLength(record)
+    const size = checkByteLength(record)
     if (size <= ALGOLIA_TARGET_RECORD_BYTES) return record
 
-    const baseSize = byteLength({ ...record, availableEntities: [] })
+    const baseSize = checkByteLength({ ...record, availableEntities: [] })
     const entitiesBudget = ALGOLIA_TARGET_RECORD_BYTES - baseSize
 
     if (entitiesBudget <= 0) {
@@ -101,7 +108,8 @@ function shrinkRecordToFitAlgoliaLimit<
     // Account for surrounding `[]`
     let runningSize = 2
     for (const entity of record.availableEntities) {
-        const entrySize = byteLength(entity) + (truncated.length > 0 ? 1 : 0) // comma
+        const entrySize =
+            checkByteLength(entity) + (truncated.length > 0 ? 1 : 0) // comma
         if (runningSize + entrySize > entitiesBudget) break
         truncated.push(entity)
         runningSize += entrySize
