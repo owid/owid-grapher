@@ -653,10 +653,13 @@ export async function getChartParentJson(
         chartId
     )
 
-    // Include the chart's own ETL-authored config in the "parent" returned to
-    // the editor. The editor reconstructs the chart from `parent + patch` and
-    // expects `parent` to be everything above the admin's patch in the merge
-    // chain — that is, the variable's grapher_config plus the chart's etlConfig.
+    // Return the two layers above the admin's `patch` separately, so the
+    // editor on the client can merge them with awareness of which fields
+    // come from which layer:
+    //   - `variableConfig`: the indicator's grapher_config (variable.grapherConfigETL).
+    //     Only applied to the chart when `isInheritanceEnabled` is true.
+    //   - `etlConfig`: the chart's own ETL-authored config (chart_configs.etlConfig).
+    //     Always applied, independent of indicator inheritance.
     const etlConfigRow = await db.knexRawFirst<{ etlConfig: string | null }>(
         trx,
         `SELECT cc.etlConfig FROM charts c JOIN chart_configs cc ON cc.id = c.configId WHERE c.id = ?`,
@@ -666,14 +669,11 @@ export async function getChartParentJson(
         ? parseChartConfig(etlConfigRow.etlConfig)
         : undefined
 
-    const mergedParent = etlConfig
-        ? mergeGrapherConfigs(parent?.config ?? {}, etlConfig)
-        : parent?.config
-
     return omitUndefinedValues({
         variableId: parent?.variableId,
-        config: mergedParent,
-        isActive: isInheritanceEnabled,
+        variableConfig: parent?.config,
+        etlConfig,
+        isInheritanceEnabled,
     })
 }
 
