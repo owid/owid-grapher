@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class AddEtlConfigToChartConfigs1779983981061
-    implements MigrationInterface
-{
+export class AddEtlConfigToChartConfigs1779983981061 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         // Adds a third layer to chart_configs: `etlConfig` is written by ETL
         // (independent of any indicator's grapher_config) and merged into
