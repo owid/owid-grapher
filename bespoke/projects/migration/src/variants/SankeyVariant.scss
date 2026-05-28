@@ -19,49 +19,33 @@
     margin: 0;
 }
 
-.migration-controls {
-    margin-bottom: 16px;
-}
-
-.migration-controls__title {
-    font-size: 10px;
-    font-weight: 900;
-    letter-spacing: 0.15em;
-    color: $light-text;
-    text-transform: uppercase;
-    margin: 0;
-    margin-bottom: 12px;
-}
-
-.migration-controls__content {
-    display: flex;
-    flex-direction: column;
-    row-gap: 16px;
-}
-
-.migration-controls__row {
-    display: flex;
-    column-gap: 16px;
-    row-gap: 16px;
-
-    > * {
-        flex: 1 1 0;
-    }
-}
-
 // Stack the controls vertically at the same container-width threshold
 // the Sankey uses, so the whole UI collapses to one column at narrow
 // widths. Tighter row-gap stacked since vertical spacing reads heavier
-// than horizontal.
+// than horizontal. Also shrink the page heading and drop the chart's
+// border so the chart reads as inline content rather than a card.
 @container migration-chart (max-width: 499.99px) {
 .migration-chart--narrow .migration-controls__row {
     flex-direction: column;
     row-gap: 8px;
 }
+
 .migration-chart--narrow .migration-controls__row > * {
     flex: 0 0 auto;
     width: 100%;
 }
+
+.migration-chart--narrow .migration-heading__title {
+    font-size: 1.5rem;
+}
+
+.migration-chart--narrow .migration-heading__description {
+    font-size: 0.875rem;
+}
+
+.migration-chart--narrow .migration-captioned-chart {
+    border: none;
+    padding: 8px 0 0;
 }
 
 // Trim the chart a little on narrow screens, where vertical space is tighter
