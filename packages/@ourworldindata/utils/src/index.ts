@@ -70,7 +70,6 @@ export {
     isInIFrame,
     differenceObj,
     findDOMParent,
-    wrapInDiv,
     textAnchorFromAlign,
     dyFromAlign,
     stringifyUnknownError,
