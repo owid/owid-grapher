@@ -1,7 +1,20 @@
 import { describe, expect, it } from "vitest"
-import { OwidTableSlugs } from "@ourworldindata/types"
-import { makeDimensionValuesForTimeDirect } from "./GrapherValuesJson"
-import { OwidTable } from "@ourworldindata/core-table"
+import {
+    DimensionProperty,
+    GRAPHER_CHART_TYPES,
+    OwidTableSlugs,
+} from "@ourworldindata/types"
+import {
+    constructGrapherValuesJson,
+    makeDimensionValuesForTimeDirect,
+} from "./GrapherValuesJson"
+import {
+    OwidTable,
+    SynthesizeGDPTable,
+    SampleColumnSlugs,
+} from "@ourworldindata/core-table"
+import { GrapherState } from "./GrapherState"
+import { GrapherProgrammaticInterface } from "./Grapher"
 
 describe(makeDimensionValuesForTimeDirect, () => {
     const makeTestTable = (): OwidTable => {
@@ -120,5 +133,114 @@ describe(makeDimensionValuesForTimeDirect, () => {
 
         expect(result?.y?.[0].columnSlug).toBe("gdp")
         expect(result?.y?.[0].value).toBeUndefined()
+    })
+})
+
+describe(constructGrapherValuesJson, () => {
+    const selectedEntityNames = ["Philippines", "Benin", "Eritrea"]
+
+    const makeGrapherState = (
+        overrides: GrapherProgrammaticInterface = {}
+    ): GrapherState => {
+        const table = SynthesizeGDPTable(
+            { entityCount: 5, timeRange: [2000, 2010] },
+            12 // Seed
+        )
+        return new GrapherState({
+            table,
+            selectedEntityNames,
+            dimensions: [
+                {
+                    slug: SampleColumnSlugs.GDP,
+                    property: DimensionProperty.y,
+                    variableId: SampleColumnSlugs.GDP as any,
+                },
+            ],
+            ...overrides,
+        })
+    }
+
+    it("extracts start and end values for the entity over the default time range", () => {
+        const result = constructGrapherValuesJson(
+            makeGrapherState(),
+            "Philippines"
+        )
+
+        expect(result.entityName).toBe("Philippines")
+        expect(result.startTime).toBe(2000)
+        expect(result.endTime).toBe(2009)
+        expect(result.startValues?.y).toHaveLength(1)
+        expect(result.startValues?.y[0]).toMatchObject({
+            columnSlug: SampleColumnSlugs.GDP,
+            time: 2000,
+            formattedValueShort: "$663.99 billion",
+        })
+        expect(result.endValues?.y[0]).toMatchObject({
+            columnSlug: SampleColumnSlugs.GDP,
+            time: 2009,
+            formattedValueShort: "$682.03 billion",
+        })
+    })
+
+    it("omits the start values for a single-time chart (two-column dumbbell)", () => {
+        // A two-column dumbbell compares two columns at a single time point,
+        // so there's no start time and hence no start values.
+        const grapherState = makeGrapherState({
+            chartTypes: [GRAPHER_CHART_TYPES.Dumbbell],
+            selectedEntityNames: ["Philippines"],
+            dimensions: [
+                {
+                    slug: SampleColumnSlugs.GDP,
+                    property: DimensionProperty.y,
+                    variableId: SampleColumnSlugs.GDP as any,
+                },
+                {
+                    slug: SampleColumnSlugs.Population,
+                    property: DimensionProperty.y,
+                    variableId: SampleColumnSlugs.Population as any,
+                },
+            ],
+        })
+
+        const result = constructGrapherValuesJson(grapherState, "Philippines")
+
+        expect(result.startTime).toBeUndefined()
+        expect(result.startValues).toBeUndefined()
+        expect(result.endTime).toBe(2009)
+        expect(result.endValues?.y).toHaveLength(2)
+        expect(result.endValues?.y[0].time).toBe(2009)
+    })
+
+    it("restores the original selection afterwards", () => {
+        const grapherState = makeGrapherState()
+        constructGrapherValuesJson(grapherState, "Benin")
+        expect(grapherState.selection.selectedEntityNames).toEqual(
+            selectedEntityNames
+        )
+    })
+
+    it("includes one y data point per y-column", () => {
+        const grapherState = makeGrapherState({
+            selectedEntityNames: ["Philippines"],
+            dimensions: [
+                {
+                    slug: SampleColumnSlugs.GDP,
+                    property: DimensionProperty.y,
+                    variableId: SampleColumnSlugs.GDP as any,
+                },
+                {
+                    slug: SampleColumnSlugs.Population,
+                    property: DimensionProperty.y,
+                    variableId: SampleColumnSlugs.Population as any,
+                },
+            ],
+        })
+
+        const result = constructGrapherValuesJson(grapherState, "Philippines")
+
+        expect(result.endValues?.y.map((d) => d.columnSlug)).toEqual([
+            SampleColumnSlugs.GDP,
+            SampleColumnSlugs.Population,
+        ])
     })
 })
