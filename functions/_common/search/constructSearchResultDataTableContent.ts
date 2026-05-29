@@ -20,6 +20,7 @@ import {
     isNoDataBin,
     NumericBin,
     ColorScaleBin,
+    darkenColorForText,
 } from "@ourworldindata/grapher"
 import { calculateTrendDirection, getDisplayUnit } from "@ourworldindata/utils"
 import {
@@ -355,7 +356,9 @@ function buildDataTableContentForDumbbellChart({
                     seriesName: series.seriesName,
                     label: series.displayName,
                     value: endColumn.formatValueShort(end.value),
+                    valueColor: darkenColorForText(end.color),
                     startValue: startColumn.formatValueShort(start.value),
+                    startValueColor: darkenColorForText(start.color),
                     time: startColumn.formatTime(endTime),
                     timePreposition: OwidTable.getPreposition(
                         chartState.transformedTable.timeColumn
