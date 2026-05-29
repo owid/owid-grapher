@@ -5,7 +5,7 @@ import { useTriggerWhenClickOutside } from "./hooks.js"
 import { TocHeading } from "@ourworldindata/utils"
 import classNames from "classnames"
 
-export const TOC_WRAPPER_CLASSNAME = "toc-wrapper"
+const TOC_WRAPPER_CLASSNAME = "toc-wrapper"
 
 export interface TableOfContentsData {
     headings: TocHeading[]
@@ -33,7 +33,7 @@ const getPreviousHeading = (
     )?.previous
 }
 
-export const TableOfContents = ({
+export const SidebarTableOfContents = ({
     headings,
     pageTitle,
     hideSubheadings,
