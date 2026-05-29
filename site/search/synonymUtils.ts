@@ -5,7 +5,7 @@ import { SynonymMap } from "@ourworldindata/types"
 export const synonyms = [
     // Organizations
     ["owid", "our world in data"],
-    ["imf", "international monetary fund"],
+    ["imf", "international monetary fund", "fmi" /* spanish, french */],
     ["united nations", "un", "onu" /* spanish, french */],
     ["maddison project database", "bolt and van zanden"],
     ["world inequality database", "wid"],
@@ -21,8 +21,13 @@ export const synonyms = [
         "faostat",
     ],
     ["penn world table", "pwt"],
-    ["world trade organization", "wto", "world trade organisation"],
-    ["international energy agency", "iea"],
+    [
+        "world trade organization",
+        "wto",
+        "world trade organisation",
+        "omc" /* spanish, french */,
+    ],
+    ["international energy agency", "iea", "aie" /* spanish, french */],
     ["luxembourg income study", "lis"],
     ["institute for health metrics and evaluation", "ihme"],
     ["integrated values surveys", "ivs", "wvs", "world values survey"],
@@ -30,7 +35,11 @@ export const synonyms = [
     ["world bank poverty and inequality platform", "pip"],
     ["world wildlife fund", "wwf"],
     ["international renewable energy agency", "irena"],
-    ["international telecommunication union", "itu"],
+    [
+        "international telecommunication union",
+        "itu",
+        "uit" /* spanish, french */,
+    ],
     ["us food and drug administration", "fda"],
     [
         "international labour organization",
@@ -40,7 +49,11 @@ export const synonyms = [
     ],
     ["united nations population division", "un wpp"],
     ["centers for disease control and prevention", "cdc"],
-    ["international union for conservation of nature", "iucn"],
+    [
+        "international union for conservation of nature",
+        "iucn",
+        "uicn" /* spanish, french */,
+    ],
     ["un framework convention on climate change", "unfccc"],
     [
         "united nations development programme",
@@ -50,11 +63,29 @@ export const synonyms = [
     ["united nations environment programme", "unep"],
     ["uppsala conflict data program", "ucdp"],
     ["u.s. energy information administration", "eia"],
-    ["world tourism organization", "unwto", "un tourism"],
-    ["un high commissioner for refugees", "unhcr"],
+    [
+        "world tourism organization",
+        "unwto",
+        "un tourism",
+        "omt" /* spanish, french */,
+    ],
+    [
+        "un high commissioner for refugees",
+        "unhcr",
+        "acnur" /* spanish */,
+        "hcr" /* french */,
+    ],
     ["office for national statistics", "ons"],
-    ["joint united nations programme on hiv/aids", "unaids"],
-    ["world intellectual property organization", "wipo"],
+    [
+        "joint united nations programme on hiv/aids",
+        "unaids",
+        "onusida" /* spanish, french */,
+    ],
+    [
+        "world intellectual property organization",
+        "wipo",
+        "ompi" /* spanish, french */,
+    ],
     ["wellbeing research centre", "whr"],
     ["stockholm international peace research institute", "sipri"],
     ["wittgenstein centre", "wic"],
@@ -63,6 +94,7 @@ export const synonyms = [
     ["varieties of democracy", "v-dem", "vdem"],
     ["bertelsmann transformation index", "bti"],
     ["federal bureau of investigation", "fbi"],
+    ["world health organization", "oms" /* spanish, french */],
 
     // Units & measurements
     ["rate", "share", "percentage", "percent"],
