@@ -3,7 +3,7 @@ import { faArrowDown, faPlus, faMinus } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import cx from "classnames"
 
-export default function TableOfContents({
+export default function InlineTableOfContents({
     toc,
     className = "",
     title,
@@ -13,15 +13,15 @@ export default function TableOfContents({
     title: string
 }) {
     return (
-        <div className={cx(className, "toc")}>
-            <details className="toc-details-wrapper span-cols-6 span-md-cols-8 span-sm-cols-10">
+        <div className={cx(className, "inline-toc")}>
+            <details className="inline-toc__details-wrapper span-cols-6 span-md-cols-8 span-sm-cols-10">
                 <summary
-                    className="toc-toggle"
+                    className="inline-toc__toggle"
                     aria-label="Toggle table of contents"
                     data-track-note="toc_toggle"
                 >
                     <span>{title}</span>
-                    <span className="toc-toggle-icon">
+                    <span className="inline-toc__toggle-icon">
                         <FontAwesomeIcon
                             className="icon-closed"
                             icon={faPlus}
@@ -29,9 +29,9 @@ export default function TableOfContents({
                         <FontAwesomeIcon className="icon-open" icon={faMinus} />
                     </span>
                 </summary>
-                <div className="toc-content">
+                <div className="inline-toc__content">
                     <ul
-                        id="toc-menu"
+                        id="inline-toc__menu"
                         role="menu"
                         aria-labelledby="toc-menu-button"
                     >

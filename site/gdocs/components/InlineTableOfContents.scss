@@ -1,4 +1,4 @@
-.toc {
+.inline-toc {
     --expand-collapse-animation-duration: 0.5s;
 
     padding: 40px 0;
@@ -6,7 +6,7 @@
     background-color: $beige;
 
     // Red line on the left, only visible when expanded
-    &:has(.toc-details-wrapper[open])::before {
+    &:has(.inline-toc__details-wrapper[open])::before {
         grid-column: span 1;
         grid-row: span 2;
         content: "";
@@ -14,7 +14,7 @@
         margin-right: var(--grid-gap);
     }
 
-    .toc-details-wrapper {
+    .inline-toc__details-wrapper {
         grid-column-start: 2;
 
         // ::details-content is quite new (Baseline September 2025), but if it's not supported,
@@ -27,7 +27,7 @@
         }
     }
 
-    .toc-toggle {
+    .inline-toc__toggle {
         @include h2-bold;
         & {
             margin: 0;
@@ -46,14 +46,14 @@
         }
     }
 
-    .toc-toggle-icon {
+    .inline-toc__toggle-icon {
         .icon-open {
             display: none;
         }
     }
 
-    .toc-details-wrapper[open] {
-        .toc-toggle-icon {
+    .inline-toc__details-wrapper[open] {
+        .inline-toc__toggle-icon {
             .icon-closed {
                 display: none;
             }
@@ -65,7 +65,7 @@
 
     // Use a grid trick to animate height changes smoothly
     // see https://keithjgrant.com/posts/2023/04/transitioning-to-height-auto/#with-grid
-    .toc-content {
+    .inline-toc__content {
         display: grid;
 
         grid-template-rows: 0fr;
@@ -75,7 +75,7 @@
             opacity var(--expand-collapse-animation-duration);
     }
 
-    .toc-details-wrapper[open] .toc-content {
+    .inline-toc__details-wrapper[open] .inline-toc__content {
         grid-template-rows: 1fr;
         opacity: 1;
 
