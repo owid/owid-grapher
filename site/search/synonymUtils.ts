@@ -42,7 +42,11 @@ export const synonyms = [
     ["centers for disease control and prevention", "cdc"],
     ["international union for conservation of nature", "iucn"],
     ["un framework convention on climate change", "unfccc"],
-    ["united nations development programme", "undp"],
+    [
+        "united nations development programme",
+        "undp",
+        "pnud" /* spanish, french */,
+    ],
     ["united nations environment programme", "unep"],
     ["uppsala conflict data program", "ucdp"],
     ["u.s. energy information administration", "eia"],
