@@ -745,19 +745,6 @@ function ArticleBlockInternal({
                 />
             ) : null
         })
-        .with({ type: "entry-summary" }, (block) => {
-            return (
-                <InlineTableOfContents
-                    title="Summary"
-                    toc={block.items.map((item) => ({
-                        ...item,
-                        title: item.text,
-                        isSubheading: false,
-                    }))}
-                    className={getLayout("toc", containerType)}
-                />
-            )
-        })
         .with({ type: "ltp-toc" }, (block) => {
             const layoutClassName = getLayout("ltp-toc", containerType)
             const tagName = tags[0]?.name

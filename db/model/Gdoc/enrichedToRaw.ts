@@ -34,7 +34,6 @@ import {
     EnrichedBlockResearchAndWritingLink,
     RawBlockResearchAndWritingLink,
     RawBlockAlign,
-    RawBlockEntrySummary,
     RawBlockVideo,
     RawBlockTable,
     RawBlockBlockquote,
@@ -634,14 +633,6 @@ export function enrichedBlockToRawBlock(
                 value: {
                     alignment: b.alignment as string,
                     content: b.content.map(enrichedBlockToRawBlock),
-                },
-            }
-        })
-        .with({ type: "entry-summary" }, (b): RawBlockEntrySummary => {
-            return {
-                type: b.type,
-                value: {
-                    items: b.items,
                 },
             }
         })
