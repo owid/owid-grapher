@@ -24,9 +24,9 @@ import { match } from "ts-pattern"
 export const VALID_CHART_TYPE_COMBINATIONS: GrapherChartType[][] = [
     [
         GRAPHER_CHART_TYPES.LineChart,
-        GRAPHER_CHART_TYPES.SlopeChart,
         GRAPHER_CHART_TYPES.DiscreteBar,
         GRAPHER_CHART_TYPES.Dumbbell,
+        GRAPHER_CHART_TYPES.SlopeChart,
         GRAPHER_CHART_TYPES.Marimekko,
         GRAPHER_CHART_TYPES.ScatterPlot,
     ],
