@@ -122,6 +122,14 @@ export class DumbbellChartState implements ChartState {
             : DumbbellMode.TimeRange
     }
 
+    @computed get columnColors(): { start: string; end: string } {
+        const [startColumn, endColumn] = this.yColumns
+        return {
+            start: startColumn?.def.color ?? START_COLUMN_COLOR,
+            end: endColumn?.def.color ?? END_COLUMN_COLOR,
+        }
+    }
+
     @computed get connectorStyle(): DumbbellConnectorStyle {
         return (
             this.manager.dumbbell?.connectorStyle ??
@@ -232,7 +240,7 @@ export class DumbbellChartState implements ChartState {
 
     /** Constructs series by comparing two different columns' values at a single time point */
     private constructSeriesForTwoColumns(): DumbbellSeries[] {
-        const { endTime, focusArray, annotationsMap } = this
+        const { endTime, focusArray, annotationsMap, columnColors } = this
         const [startColumn, endColumn] = this.yColumns
 
         if (!startColumn || !endColumn) return []
@@ -256,12 +264,12 @@ export class DumbbellChartState implements ChartState {
                 const start = {
                     value: startRow.value,
                     time: startRow.originalTime,
-                    color: START_COLUMN_COLOR,
+                    color: columnColors.start,
                 } satisfies DumbbellHead
                 const end = {
                     value: endRow.value,
                     time: endRow.originalTime,
-                    color: END_COLUMN_COLOR,
+                    color: columnColors.end,
                 } satisfies DumbbellHead
 
                 const shortEntityName = getShortNameForEntity(entityName)
@@ -278,7 +286,7 @@ export class DumbbellChartState implements ChartState {
                     displayName,
                     shortEntityName,
                     annotation,
-                    color: START_COLUMN_COLOR,
+                    color: columnColors.start,
                     start,
                     end,
                     focus: focusArray.state(entityName),
