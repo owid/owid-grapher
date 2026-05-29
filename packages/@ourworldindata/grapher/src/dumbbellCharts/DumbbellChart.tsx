@@ -280,7 +280,7 @@ export class DumbbellChart
     @computed private get verticalScale() {
         return scalePoint<string>()
             .domain(this.series.map((s) => s.seriesName))
-            .range(this.innerBounds.yRange())
+            .range([this.innerBounds.top, this.innerBounds.bottom])
             .padding(0.5)
     }
 
