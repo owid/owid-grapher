@@ -21,6 +21,7 @@ import {
     PeerCountryStrategy,
     ALL_GRAPHER_CHART_TYPES,
     StackMode,
+    ScaleType,
 } from "@ourworldindata/types"
 import {
     DimensionSlot,
@@ -679,11 +680,17 @@ export class EditorBasicTab<
         const hasX = existingDimensions.find(
             (d) => d.property === DimensionProperty.x
         )
-        if (!hasX)
+        if (!hasX) {
             newDimensions.push({
                 variableId: GDP_PER_CAPITA_INDICATOR_ID_USED_IN_ADMIN,
                 property: DimensionProperty.x,
             })
+
+            // GDP per capita is best viewed on a log scale,
+            // so enable the log/linear switch and default to log
+            grapherState.xAxis.canChangeScaleType = true
+            grapherState.xAxis.scaleType = ScaleType.log
+        }
 
         // Add default color indicator if not already present
         const hasColor = existingDimensions.find(
