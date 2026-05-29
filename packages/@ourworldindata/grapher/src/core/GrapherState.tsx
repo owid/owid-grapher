@@ -1924,8 +1924,14 @@ export class GrapherState
         tabName: GrapherTabName
     ): boolean => {
         // Scatter plots can show a time range, but a single time is preferred
-        // when the scatter is not the main chart, but a secondary tab
-        return !this.isScatter && tabName === GRAPHER_TAB_NAMES.ScatterPlot
+        // when the scatter is not the main chart, but a secondary tab.
+        // In relative mode, a scatter shows the average annual change, which
+        // requires a time range, so we don't collapse to a single time then.
+        return (
+            tabName === GRAPHER_TAB_NAMES.ScatterPlot &&
+            !this.isScatter &&
+            !this.isRelativeMode
+        )
     }
 
     private readonly checkOnlyTimeRangeSelectionPossible = (
@@ -1940,6 +1946,15 @@ export class GrapherState
     private readonly checkTimeRangeSelectionPreferred = (
         tabName: GrapherTabName
     ): boolean => {
+        // In relative mode, a scatter shows the average annual change, which
+        // requires a time range rather than a single time
+        if (
+            tabName === GRAPHER_TAB_NAMES.ScatterPlot &&
+            !this.isScatter &&
+            this.isRelativeMode
+        )
+            return true
+
         return [
             GRAPHER_TAB_NAMES.StackedArea,
             GRAPHER_TAB_NAMES.StackedBar,
