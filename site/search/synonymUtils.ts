@@ -57,6 +57,8 @@ export const synonyms = [
     ["u.s. bureau of labor statistics", "bls"],
     ["peace research institute oslo", "prio"],
     ["varieties of democracy", "v-dem", "vdem"],
+    ["bertelsmann transformation index", "bti"],
+    ["federal bureau of investigation", "fbi"],
 
     // Units & measurements
     ["rate", "share", "percentage", "percent"],
