@@ -295,10 +295,89 @@ function buildDataTableContentForSlopeChart({
     return { rows, title }
 }
 
-function buildDataTableContentForDumbbellChart(
-    _args: Args<DumbbellChartState>
-): SearchChartHitDataTableProps {
-    return { rows: [], title: "" }
+function buildDataTableContentForDumbbellChart({
+    grapherState,
+    chartState,
+    maxRows,
+}: Args<DumbbellChartState>): SearchChartHitDataTableProps {
+    // Dumbbell charts have two modes:
+    // - entity strategy: compares one column's values across two time points
+    // - column strategy: compares two different columns at a single time point
+    const mode = chartState.isEntityStrategy ? "time-range" : "two-columns"
+
+    return match(mode)
+        .with("time-range", () => {
+            const formatColumn = chartState.formatColumn
+
+            let rows = chartState.series.map((series) => {
+                const { start, end } = series
+
+                const formattedStartValue = formatColumn.formatValueShort(
+                    start.value
+                )
+                const formattedEndValue = formatColumn.formatValueShort(
+                    end.value
+                )
+
+                const formattedStartTime = formatColumn.formatTime(start.time)
+                const formattedEndTime = formatColumn.formatTime(end.time)
+
+                const trend =
+                    // If both labels are the same, trivially show a right arrow
+                    formattedStartValue &&
+                    formattedStartValue === formattedEndValue
+                        ? "right"
+                        : // Otherwise, calculate based on numeric values
+                          calculateTrendDirection(start.value, end.value)
+
+                return {
+                    seriesName: series.seriesName,
+                    label: series.displayName,
+                    value: formattedEndValue,
+                    startValue: formattedStartValue,
+                    trend,
+                    time: `${formattedStartTime}–${formattedEndTime}`,
+                    timePreposition: "",
+                    muted: series.focus.background,
+                }
+            })
+
+            // Take the first X rows if maxRows is specified
+            if (maxRows && maxRows > 0) rows = _.take(rows, maxRows)
+
+            const title = makeTableTitle(grapherState, chartState, formatColumn)
+
+            return { rows, title }
+        })
+        .with("two-columns", () => {
+            const { endTime } = chartState
+            const [startColumn, endColumn] = chartState.yColumns
+
+            let rows = chartState.series.map((series) => {
+                const { start, end } = series
+                return {
+                    seriesName: series.seriesName,
+                    label: series.displayName,
+                    value: endColumn.formatValueShort(end.value),
+                    startValue: startColumn.formatValueShort(start.value),
+                    time: startColumn.formatTime(endTime),
+                    timePreposition: OwidTable.getPreposition(
+                        chartState.transformedTable.timeColumn
+                    ),
+                    muted: series.focus.background,
+                }
+            })
+
+            // Take the first X rows if maxRows is specified
+            if (maxRows && maxRows > 0) rows = _.take(rows, maxRows)
+
+            const startName = getColumnNameForDisplay(startColumn)
+            const endName = getColumnNameForDisplay(endColumn)
+            const title = `${startName} vs. ${endName}`
+
+            return { rows, title }
+        })
+        .exhaustive()
 }
 
 function buildDataTableContentForStackedDiscreteBarChart({
