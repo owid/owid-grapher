@@ -56,6 +56,7 @@ export const synonyms = [
     ["wittgenstein centre", "wic"],
     ["u.s. bureau of labor statistics", "bls"],
     ["peace research institute oslo", "prio"],
+    ["varieties of democracy", "v-dem", "vdem"],
 
     // Units & measurements
     ["rate", "share", "percentage", "percent"],
