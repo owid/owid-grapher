@@ -3,9 +3,11 @@ import { computed, makeObservable } from "mobx"
 import { match } from "ts-pattern"
 import { ChartState } from "../chart/ChartInterface"
 import {
+    DISCRETE_BAR_SORT_KEYS,
     DiscreteBarChartManager,
     DiscreteBarItem,
     DiscreteBarSeries,
+    DiscreteBarSortKey,
     YColumnMode,
 } from "./DiscreteBarChartConstants"
 import {
@@ -17,6 +19,8 @@ import { ColorScale, ColorScaleManager } from "../color/ColorScale"
 import { SelectionArray } from "../selection/SelectionArray"
 import {
     sortByConfig,
+    SortKeyFn,
+    keepInputOrder,
     autoDetectSeriesStrategy,
     autoDetectYColumnSlugs,
     combineHistoricalAndProjectionColumns,
@@ -358,19 +362,29 @@ export class DiscreteBarChartState implements ChartState, ColorScaleManager {
                 ? this.entitiesAsSeries
                 : this.columnsAsSeries
 
-        return sortByConfig(raw, this.sortConfig, {
+        const keyFns: Record<
+            DiscreteBarSortKey | SortBy.column,
+            SortKeyFn<DiscreteBarItem>
+        > = {
             [SortBy.custom]:
                 this.seriesStrategy === SeriesStrategy.entity
                     ? (item): number =>
                           this.selectionArray.selectedEntityNames.indexOf(
                               item.seriesName
                           )
-                    : (): undefined => undefined,
+                    : keepInputOrder,
             [SortBy.entityName]: (item): string => item.seriesName,
-            // We only have one yColumn, so total and column are the same
-            [SortBy.column]: (item): number => item.value,
             [SortBy.total]: (item): number => item.value,
-        })
+            // We only have one yColumn, so 'column' is the same as 'total'
+            // (keep for backwards compatibility)
+            [SortBy.column]: (item): number => item.value,
+        }
+
+        return sortByConfig(raw, this.sortConfig, keyFns)
+    }
+
+    @computed get availableSortKeys(): DiscreteBarSortKey[] {
+        return [...DISCRETE_BAR_SORT_KEYS]
     }
 
     @computed private get valuesToColorsMap(): Map<number, string> {

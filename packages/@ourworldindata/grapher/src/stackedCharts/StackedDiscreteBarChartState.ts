@@ -9,10 +9,14 @@ import {
     EntityName,
     FacetStrategy,
     MissingDataStrategy,
+    SortBy,
     SortConfig,
 } from "@ourworldindata/types"
 import {
     sortByConfig,
+    SortKeyFn,
+    keepInputOrder,
+    sortByColumnValue,
     autoDetectYColumnSlugs,
     getDefaultFailMessage,
     getShortNameForEntity,
@@ -20,7 +24,11 @@ import {
 } from "../chart/ChartUtils"
 import { SelectionArray } from "../selection/SelectionArray"
 import { StackedSeries } from "./StackedConstants"
-import { DiscreteBarRow } from "./StackedDiscreteBarChartConstants.js"
+import {
+    DiscreteBarRow,
+    STACKED_DISCRETE_BAR_SORT_KEYS,
+    StackedDiscreteBarSortKey,
+} from "./StackedDiscreteBarChartConstants.js"
 import {
     stackSeriesInBothDirections,
     withMissingValuesAsZeroes,
@@ -242,14 +250,23 @@ export class StackedDiscreteBarChartState implements ChartState {
     }
 
     @computed get sortedRows(): readonly DiscreteBarRow[] {
-        return sortByConfig(this.rows, this.sortConfig, {
-            custom: () => undefined,
-            entityName: (row): string => row.entityName,
-            column: (row): number =>
-                this.sortColumn?.owidRowsByEntityName?.get(row.entityName)?.[0]
-                    ?.value ?? 0,
-            total: (row): number => row.totalValue,
-        })
+        const keyFns: Record<
+            StackedDiscreteBarSortKey,
+            SortKeyFn<DiscreteBarRow>
+        > = {
+            [SortBy.custom]: keepInputOrder,
+            [SortBy.entityName]: (row): string => row.entityName,
+            [SortBy.column]: sortByColumnValue(
+                this.sortColumn,
+                (row) => row.entityName
+            ),
+            [SortBy.total]: (row): number => row.totalValue,
+        }
+        return sortByConfig(this.rows, this.sortConfig, keyFns)
+    }
+
+    @computed get availableSortKeys(): StackedDiscreteBarSortKey[] {
+        return [...STACKED_DISCRETE_BAR_SORT_KEYS]
     }
 
     @computed get availableFacetStrategies(): FacetStrategy[] {
