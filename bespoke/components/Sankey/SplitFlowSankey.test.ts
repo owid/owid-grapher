@@ -9,10 +9,14 @@ import {
     SankeyNode,
 } from "./Sankey.js"
 import {
+    computeChartHeight,
     computeHalfHeights,
     DEFAULT_FONT_SETTINGS,
+    HEADING_CHART_GAP,
+    HEADING_HEIGHT,
     SANKEY_NODE_PADDING,
     SankeyHalfBuild,
+    STACKED_VERTICAL_PADDING,
 } from "./SplitFlowSankey.js"
 
 // All tests use this as the central entity. Mirrors `buildHalf`'s structure:
@@ -99,6 +103,82 @@ const defaultOpts = {
 function equalSplit(total: number, n: number): number[] {
     return Array.from({ length: n }, () => total / n)
 }
+
+describe("computeChartHeight (heading-aware chart space)", () => {
+    it("subtracts the taller shown heading + row gap (side-by-side)", () => {
+        expect(
+            computeChartHeight({
+                height: 500,
+                isStacked: false,
+                headingHeights: [20, 36],
+            })
+        ).toBe(500 - 36 - HEADING_CHART_GAP)
+    })
+
+    it("uses the single shown heading in single-half view", () => {
+        // A real heading shorter than the HEADING_HEIGHT fallback must win —
+        // i.e. the unmeasured (not-shown) half must not be counted here
+        expect(
+            computeChartHeight({
+                height: 500,
+                isStacked: false,
+                headingHeights: [18],
+            })
+        ).toBe(500 - 18 - HEADING_CHART_GAP)
+    })
+
+    it("falls back to HEADING_HEIGHT for unmeasured headings", () => {
+        expect(
+            computeChartHeight({
+                height: 500,
+                isStacked: false,
+                headingHeights: [undefined, undefined],
+            })
+        ).toBe(500 - HEADING_HEIGHT - HEADING_CHART_GAP)
+    })
+
+    it("returns height minus gap when no headings are shown", () => {
+        expect(
+            computeChartHeight({
+                height: 500,
+                isStacked: false,
+                headingHeights: [],
+            })
+        ).toBe(500 - HEADING_CHART_GAP)
+    })
+
+    it("subtracts both headings + padding then halves (stacked)", () => {
+        const result = computeChartHeight({
+            height: 500,
+            isStacked: true,
+            headingHeights: [20, 30],
+        })
+        expect(result).toBe((500 - 20 - 30 - STACKED_VERTICAL_PADDING) / 2)
+        // The stacked invariant computeHalfHeights relies on: 2 * chartHeight
+        // reconstructs the combined SVG space
+        expect(2 * result).toBe(500 - 20 - 30 - STACKED_VERTICAL_PADDING)
+    })
+
+    it("mixes measured and fallback heading heights (stacked)", () => {
+        expect(
+            computeChartHeight({
+                height: 500,
+                isStacked: true,
+                headingHeights: [undefined, 30],
+            })
+        ).toBe((500 - HEADING_HEIGHT - 30 - STACKED_VERTICAL_PADDING) / 2)
+    })
+
+    it("clamps to 0 when headings exceed the available height", () => {
+        expect(
+            computeChartHeight({
+                height: 10,
+                isStacked: false,
+                headingHeights: [40],
+            })
+        ).toBe(0)
+    })
+})
 
 describe("computeHalfHeights (side-by-side)", () => {
     it("yields the same ky when totals & partner counts match", () => {

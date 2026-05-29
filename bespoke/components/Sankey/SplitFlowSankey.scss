@@ -133,73 +133,80 @@
 // chart_out]. Both headings switch to left-align since the meeting-in-
 // the-middle dance no longer makes sense when stacked. Only applies to
 // the split (both-halves) layout; single-half views are unaffected.
-@container split-flow-sankey (max-width: 499.99px) {
-    .split-flow-sankey__grid--split {
-        grid-template-columns: 1fr;
-        grid-template-rows: auto 1fr auto 1fr;
-        // Drop the 4px row-gap that applies between every grid row on
-        // desktop. In stacked mode it inserts visible padding between each
-        // heading and its own chart; the deliberate inter-half separation
-        // is handled by the second heading's margin-top below instead.
-        row-gap: 0;
-        // HEADING_HEIGHT (44px, sized for a wrapped + annotated heading)
-        // overestimates how much space single-line, no-annotation headings
-        // (migration's case) actually need. The unused slack defaults to
-        // distributing across auto rows, which shows up as a gap between
-        // each heading and its chart. `start` pools the slack after the
-        // last row instead.
-        align-content: start;
-    }
+.split-flow-sankey--stacked .split-flow-sankey__grid--split {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr auto 1fr;
+    // Drop the 4px row-gap that applies between every grid row on
+    // desktop. In stacked mode it inserts visible padding between each
+    // heading and its own chart; the deliberate inter-half separation
+    // is handled by the second heading's margin-top below instead.
+    row-gap: 0;
+    // HEADING_HEIGHT (36px, sized for a wrapped + annotated heading)
+    // overestimates how much space single-line, no-annotation headings
+    // (migration's case) actually need. The unused slack defaults to
+    // distributing across auto rows, which shows up as a gap between
+    // each heading and its chart. `start` pools the slack after the
+    // last row instead.
+    align-content: start;
+}
 
-    // Shrink the headings to match the smaller in-chart labels driven by
-    // STACKED_FONT_SETTINGS in SplitFlowSankey.tsx.
-    .split-flow-sankey__heading {
-        font-size: 13px;
-    }
+// Shrink the headings to match the smaller in-chart labels driven by
+// STACKED_FONT_SETTINGS in SplitFlowSankey.tsx.
+.split-flow-sankey--stacked .split-flow-sankey__heading {
+    font-size: 13px;
+    line-height: 1.1;
+}
 
-    // Inline the annotation next to the label instead of dropping it to a
-    // new line. Stacked headings are tight on vertical space, and the
-    // shorter desktop "block" layout already nudges the chart down; inline
-    // reads more compactly here. Add an em-dash via a pseudo-element so
-    // the inline phrasing has a clear separator from the label.
-    .split-flow-sankey__heading-annotation {
-        display: inline;
-    }
+// Inline the annotation next to the label instead of dropping it to a
+// new line. Stacked headings are tight on vertical space, and the
+// shorter desktop "block" layout already nudges the chart down; inline
+// reads more compactly here. Add an em-dash via a pseudo-element so
+// the inline phrasing has a clear separator from the label.
+.split-flow-sankey--stacked .split-flow-sankey__heading-annotation {
+    display: inline;
+}
 
-    .split-flow-sankey__heading-annotation::before {
-        content: " — ";
-    }
+.split-flow-sankey--stacked .split-flow-sankey__heading-annotation::before {
+    content: " — ";
+}
 
-    // Drop the directional arrows in stacked headings — each half stands
-    // on its own with its own label, so the "→" affordance from the
-    // paired-sentence desktop layout doesn't add anything here.
-    .split-flow-sankey__heading-arrow {
-        display: none;
-    }
+// Drop the directional arrows in stacked headings — each half stands
+// on its own with its own label, so the "→" affordance from the
+// paired-sentence desktop layout doesn't add anything here.
+.split-flow-sankey--stacked .split-flow-sankey__heading-arrow {
+    display: none;
+}
 
-    .split-flow-sankey__grid--split .split-flow-sankey__heading--right {
-        grid-row: 1;
-        grid-column: 1;
-        text-align: left;
-    }
+.split-flow-sankey--stacked
+    .split-flow-sankey__grid--split
+    .split-flow-sankey__heading--right {
+    grid-row: 1;
+    grid-column: 1;
+    text-align: left;
+}
 
-    .split-flow-sankey__grid--split .split-flow-sankey__heading--left {
-        grid-row: 3;
-        grid-column: 1;
-        text-align: left;
-        // Visually separate the two stacked sankeys. Adding margin to the
-        // second heading (rather than widening grid row-gap) keeps the
-        // tighter spacing between each heading and its own chart.
-        margin-top: 16px;
-    }
+.split-flow-sankey--stacked
+    .split-flow-sankey__grid--split
+    .split-flow-sankey__heading--left {
+    grid-row: 3;
+    grid-column: 1;
+    text-align: left;
+    // Visually separate the two stacked sankeys. Adding margin to the
+    // second heading (rather than widening grid row-gap) keeps the
+    // tighter spacing between each heading and its own chart.
+    margin-top: 16px;
+}
 
-    .split-flow-sankey__grid--split .split-flow-sankey__chart-area--incoming {
-        grid-row: 2;
-        grid-column: 1;
-    }
+.split-flow-sankey--stacked
+    .split-flow-sankey__grid--split
+    .split-flow-sankey__chart-area--incoming {
+    grid-row: 2;
+    grid-column: 1;
+}
 
-    .split-flow-sankey__grid--split .split-flow-sankey__chart-area--outgoing {
-        grid-row: 4;
-        grid-column: 1;
-    }
+.split-flow-sankey--stacked
+    .split-flow-sankey__grid--split
+    .split-flow-sankey__chart-area--outgoing {
+    grid-row: 4;
+    grid-column: 1;
 }

@@ -1,4 +1,4 @@
-import { useMemo } from "react"
+import { useCallback, useMemo, useRef, useState } from "react"
 import cx from "classnames"
 import * as R from "remeda"
 
@@ -29,11 +29,11 @@ import {
 } from "./helpers.js"
 
 /**
- * Vertical space reserved for the heading row + row-gap in
- * SplitFlowSankey.scss. Sized for the worst case where one heading wraps
- * to two lines
+ * First-paint fallback for a heading's height, used only until the real
+ * heading height has been measured from the DOM (see `useMeasuredHeight`)
+ * Sized for the worst case where one heading wraps to two lines.
  */
-const HEADING_HEIGHT = 44
+export const HEADING_HEIGHT = 36
 
 /**
  * Horizontal gap between the two halves of the Sankey chart
@@ -62,7 +62,13 @@ const MOBILE_FONT_SETTINGS: FontSettings = {
 export const SANKEY_NODE_PADDING = 12
 
 /** Vertical space the stacked sankey charts */
-const STACKED_VERTICAL_PADDING = 16
+export const STACKED_VERTICAL_PADDING = 16
+
+/**
+ * Gap between the heading row and the chart row in side-by-side and
+ * single-half layouts. Must match `row-gap` in SplitFlowSankey.scss.
+ */
+export const HEADING_CHART_GAP = 4
 
 type View = "both" | "incoming" | "outgoing"
 
@@ -187,12 +193,28 @@ export function SplitFlowSankey({
         isSingleHalf || isStacked
             ? width
             : Math.max(0, (width - SANKEY_HALVES_GAP) / 2)
-    const chartHeight = isStacked
-        ? Math.max(
-              0,
-              (height - 2 * HEADING_HEIGHT - STACKED_VERTICAL_PADDING) / 2
-          )
-        : Math.max(0, height - HEADING_HEIGHT)
+
+    // Measure the actual rendered heading heights
+    const [incomingHeadingRef, incomingHeadingHeight] =
+        useMeasuredHeight<HTMLDivElement>()
+    const [outgoingHeadingRef, outgoingHeadingHeight] =
+        useMeasuredHeight<HTMLDivElement>()
+
+    const showIncomingHeading =
+        showIncoming && !(incomingBuild === undefined && incoming.empty)
+    const showOutgoingHeading =
+        showOutgoing && !(outgoingBuild === undefined && outgoing.empty)
+
+    // Only the headings that are actually rendered take up space in the grid
+    const headingHeights: Array<number | undefined> = []
+    if (showIncomingHeading) headingHeights.push(incomingHeadingHeight)
+    if (showOutgoingHeading) headingHeights.push(outgoingHeadingHeight)
+
+    const chartHeight = computeChartHeight({
+        height,
+        isStacked,
+        headingHeights,
+    })
 
     // Give both halves the same value-to-pixel scale (`ky`), so a node of
     // value X on one side renders the same height as a node of value X on
@@ -250,11 +272,6 @@ export function SplitFlowSankey({
             ? `auto ${halfHeights.incoming}px auto ${halfHeights.outgoing}px`
             : undefined
 
-    const showIncomingHeading =
-        showIncoming && !(incomingBuild === undefined && incoming.empty)
-    const showOutgoingHeading =
-        showOutgoing && !(outgoingBuild === undefined && outgoing.empty)
-
     return (
         <div
             className={cx("split-flow-sankey", {
@@ -269,12 +286,14 @@ export function SplitFlowSankey({
                     <SankeyHalfHeading
                         heading={incoming.heading}
                         align="right"
+                        innerRef={incomingHeadingRef}
                     />
                 )}
                 {showOutgoingHeading && (
                     <SankeyHalfHeading
                         heading={outgoing.heading}
                         align="left"
+                        innerRef={outgoingHeadingRef}
                     />
                 )}
                 {showIncoming && (
@@ -313,12 +332,15 @@ export function SplitFlowSankey({
 function SankeyHalfHeading({
     heading,
     align,
+    innerRef,
 }: {
     heading: SankeyHalfHeading
     align: "left" | "right"
+    innerRef?: React.Ref<HTMLDivElement>
 }) {
     return (
         <div
+            ref={innerRef}
             className={`split-flow-sankey__heading split-flow-sankey__heading--${align}`}
         >
             {heading.arrowSide === "start" && (
@@ -560,6 +582,37 @@ function buildSankeyHalf({
 }
 
 /**
+ * Vertical space available to the chart SVGs once the heading rows are
+ * accounted for
+ */
+export function computeChartHeight({
+    height,
+    isStacked,
+    headingHeights,
+}: {
+    height: number
+    isStacked: boolean
+    headingHeights: Array<number | undefined>
+}): number {
+    const resolvedHeadingHeights = headingHeights.map(
+        (h) => h ?? HEADING_HEIGHT
+    )
+
+    if (isStacked) {
+        const totalHeadingsHeight = R.sum(resolvedHeadingHeights)
+        const combinedHeight =
+            height - totalHeadingsHeight - STACKED_VERTICAL_PADDING
+        return Math.max(0, combinedHeight / 2)
+    }
+
+    const maxHeadingHeight =
+        resolvedHeadingHeights.length > 0
+            ? Math.max(...resolvedHeadingHeights)
+            : 0
+    return Math.max(0, height - maxHeadingHeight - HEADING_CHART_GAP)
+}
+
+/**
  * Compute the per-half SVG heights so both halves end up with the same
  * value-to-pixel scale (`ky`) once d3-sankey lays them out
  */
@@ -654,4 +707,43 @@ export function computeHalfHeights({
     const ky = Math.min(kyInFull, kyOutFull)
 
     return heightsAtKy(ky)
+}
+
+/**
+ * Track an element's rendered height via ResizeObserver
+ */
+function useMeasuredHeight<E extends HTMLElement>(): [
+    (node: E | null) => void,
+    number | undefined,
+] {
+    const [height, setHeight] = useState<number | undefined>(undefined)
+    const observerRef = useRef<ResizeObserver | null>(null)
+
+    // A *callback* ref (not useRef + effect) is essential here: the headings
+    // are conditionally rendered, so toggling the view swaps in fresh DOM
+    // nodes. The callback re-binds the observer to each new node as it mounts,
+    // and clears the measurement when the node detaches so a stale height from
+    // a different layout can't leak across view switches.
+    const ref = useCallback((node: E | null) => {
+        // Detach any observer bound to the previous node
+        observerRef.current?.disconnect()
+        observerRef.current = null
+
+        if (!node || typeof ResizeObserver === "undefined") {
+            setHeight(undefined)
+            return
+        }
+
+        const measure = (): void => {
+            const measured = node.offsetHeight
+            setHeight((prev) => (prev === measured ? prev : measured))
+        }
+        measure()
+
+        const observer = new ResizeObserver(measure)
+        observer.observe(node)
+        observerRef.current = observer
+    }, [])
+
+    return [ref, height]
 }
