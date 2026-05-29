@@ -12,6 +12,7 @@ import {
     StackedBarChartState,
     MarimekkoChartState,
     DumbbellChartState,
+    DumbbellMode,
     MapChartState,
     ChartState,
     makeChartState,
@@ -300,13 +301,8 @@ function buildDataTableContentForDumbbellChart({
     chartState,
     maxRows,
 }: Args<DumbbellChartState>): SearchChartHitDataTableProps {
-    // Dumbbell charts have two modes:
-    // - entity strategy: compares one column's values across two time points
-    // - column strategy: compares two different columns at a single time point
-    const mode = chartState.isEntityStrategy ? "time-range" : "two-columns"
-
-    return match(mode)
-        .with("time-range", () => {
+    return match(chartState.mode)
+        .with(DumbbellMode.TimeRange, () => {
             const formatColumn = chartState.formatColumn
 
             let rows = chartState.series.map((series) => {
@@ -349,7 +345,7 @@ function buildDataTableContentForDumbbellChart({
 
             return { rows, title }
         })
-        .with("two-columns", () => {
+        .with(DumbbellMode.TwoColumn, () => {
             const { endTime } = chartState
             const [startColumn, endColumn] = chartState.yColumns
 
