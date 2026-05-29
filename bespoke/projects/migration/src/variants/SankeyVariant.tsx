@@ -27,7 +27,7 @@ import {
 
 import { SankeyVariantConfig, VariantProps } from "../config.js"
 import {
-    Entity,
+    Gender,
     GENDER_ALL,
     GENDER_FEMALE,
     GENDER_MALE,
@@ -37,6 +37,7 @@ import {
     MigrationView,
 } from "../types.js"
 import { useMigrationData, useMigrationMetadata } from "../data.js"
+import { genderFromId, getGenderAdjective } from "../helpers.js"
 import { MigrationChart } from "../components/MigrationChart.js"
 import { MigrationControls } from "../components/MigrationControls.js"
 
@@ -124,43 +125,41 @@ function FetchingSankeyVariant({ config }: { config: SankeyVariantConfig }) {
 
     const { data: metadata, status: metadataStatus } = useMigrationMetadata()
 
-    // Resolve the country name to an entity id via metadata; falls back to
-    // undefined until metadata loads (at which point the query enables).
+    const availableCountryNames = useMemo(
+        () =>
+            metadata
+                ? new Set(metadata.entities.map((e) => e.name))
+                : undefined,
+        [metadata]
+    )
+    const { isResolved: isCountryResolved } = useResolveUserLocation({
+        configCountry: config.country,
+        availableCountryNames,
+        urlSync,
+        urlStateKey: "migrationCountry",
+        setCountry,
+    })
+
     const countryId = useMemo(() => {
         if (!metadata) return undefined
         return metadata.entities.find((e) => e.name === country)?.id
     }, [metadata, country])
 
-    const { data: migration, status: migrationStatus } =
-        useMigrationData(countryId)
+    const { data: migration, status: migrationStatus } = useMigrationData(
+        countryId,
+        metadata
+    )
 
-    const entitiesById = useMemo(() => {
-        if (!metadata) return undefined
-        const map = new Map<number, Entity>()
-        for (const e of metadata.entities) map.set(e.id, e)
-        return map
-    }, [metadata])
+    const gender = genderFromId(genderId)
 
-    // Filter raw rows down to the active year/gender and resolve partner
-    // ids to names. Used by the chart and the chart header.
+    // Filter rows down to the active year/gender
     const immigrants = useMemo(
-        () =>
-            migration && entitiesById
-                ? filterRows(
-                      migration.immigrants,
-                      year,
-                      genderId,
-                      entitiesById
-                  )
-                : [],
-        [migration, entitiesById, year, genderId]
+        () => (migration ? filterRows(migration.immigrants, year, gender) : []),
+        [migration, year, gender]
     )
     const emigrants = useMemo(
-        () =>
-            migration && entitiesById
-                ? filterRows(migration.emigrants, year, genderId, entitiesById)
-                : [],
-        [migration, entitiesById, year, genderId]
+        () => (migration ? filterRows(migration.emigrants, year, gender) : []),
+        [migration, year, gender]
     )
 
     const immigrantsTotal = useMemo(
@@ -178,11 +177,10 @@ function FetchingSankeyVariant({ config }: { config: SankeyVariantConfig }) {
     // stable as the user drags the time slider or switches gender.
     // Recomputes when the country changes (because `migration` refetches).
     const colorMap = useMemo<Map<string, string> | undefined>(() => {
-        if (!migration || !entitiesById) return undefined
+        if (!migration) return undefined
         const totals = new Map<string, number>()
         for (const r of [...migration.immigrants, ...migration.emigrants]) {
-            const name = entitiesById.get(r.partnerId)?.name
-            if (name) totals.set(name, (totals.get(name) ?? 0) + r.value)
+            totals.set(r.partner, (totals.get(r.partner) ?? 0) + r.value)
         }
         const ordered = R.pipe(
             [...totals],
@@ -190,7 +188,7 @@ function FetchingSankeyVariant({ config }: { config: SankeyVariantConfig }) {
             R.map(([name]) => name)
         )
         return assignColors(ordered)
-    }, [migration, entitiesById])
+    }, [migration])
 
     // When the selected country only migrates in one direction for the
     // current year/gender, the other view has nothing to show — coerce
@@ -221,7 +219,9 @@ function FetchingSankeyVariant({ config }: { config: SankeyVariantConfig }) {
     )
         return <MigrationSkeleton />
     if (metadataStatus === "error" || !metadata)
-        return <MigrationChartError message="Failed to load migration metadata" />
+        return (
+            <MigrationChartError message="Failed to load migration metadata" />
+        )
     if (migrationStatus === "error" || !migration)
         return <MigrationChartError message="Failed to load migration data" />
 
@@ -285,6 +285,8 @@ function CaptionedSankeyVariant({
     const shouldHideChrome =
         config.hideControls || !!config.title || !!config.subtitle
 
+    const gender = genderFromId(genderId)
+
     return (
         <>
             {!shouldHideChrome && (
@@ -318,6 +320,7 @@ function CaptionedSankeyVariant({
                     config={config}
                     country={country}
                     year={year}
+                    gender={gender}
                     view={view}
                 />
                 <MigrationChart
@@ -325,6 +328,7 @@ function CaptionedSankeyVariant({
                     emigrants={emigrants}
                     country={country}
                     year={year}
+                    gender={gender}
                     immigrantsTotal={immigrantsTotal}
                     emigrantsTotal={emigrantsTotal}
                     view={view}
@@ -341,20 +345,28 @@ function MigrationChartHeader({
     config,
     country,
     year,
+    gender,
     view,
 }: {
     config: SankeyVariantConfig
     country: string
     year: number
+    gender: Gender
     view: MigrationView
 }) {
     const countryArticulated = articulateEntity(country)
+
+    const adjective = getGenderAdjective(gender)
+    const lead = adjective ? `${R.capitalize(adjective)} ` : ""
+    const immigrantsWord = adjective ? "immigrants" : "Immigrants"
+    const emigrantsWord = adjective ? "emigrants" : "Emigrants"
+
     const defaultTitle =
         view === "immigrants"
-            ? `Immigrants living in ${countryArticulated} in ${year}`
+            ? `${lead}${immigrantsWord} living in ${countryArticulated} in ${year}`
             : view === "emigrants"
-              ? `Emigrants from ${countryArticulated} living abroad in ${year}`
-              : `Immigrants and emigrants of ${countryArticulated} in ${year}`
+              ? `${lead}${emigrantsWord} from ${countryArticulated} living abroad in ${year}`
+              : `${lead}${immigrantsWord} and emigrants of ${countryArticulated} in ${year}`
 
     return (
         <ChartHeader
@@ -376,15 +388,11 @@ function MigrationChartFooter({ source }: { source: string }) {
 function filterRows(
     rows: MigrationRow[],
     year: number,
-    genderId: GenderId,
-    entitiesById: Map<number, Entity>
+    gender: Gender
 ): MigrationFlow[] {
     return rows
-        .filter((r) => r.year === year && r.genderId === genderId)
-        .map((r) => ({
-            partner: entitiesById.get(r.partnerId)?.name ?? "Unknown",
-            value: r.value,
-        }))
+        .filter((r) => r.year === year && r.gender === gender)
+        .map((r) => ({ partner: r.partner, value: r.value }))
 }
 
 function MigrationSkeleton() {

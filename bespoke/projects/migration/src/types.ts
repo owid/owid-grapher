@@ -9,6 +9,8 @@ export type GenderId =
     | typeof GENDER_FEMALE
     | typeof GENDER_MALE
 
+export type Gender = "all" | "female" | "male"
+
 export type Entity = {
     id: number
     name: string
@@ -16,20 +18,19 @@ export type Entity = {
     population: number[]
 }
 
-export type Gender = { id: number; name: string }
+export type GenderOption = { id: number; name: string }
 
 export type MigrationMetadata = {
     times: number[]
     source: string
     entities: Entity[]
-    genders: Gender[]
+    genders: GenderOption[]
 }
 
 export type MigrationRow = {
-    /** Partner country id — origin for immigrants, destination for emigrants. */
-    partnerId: number
+    partner: string
     year: number
-    genderId: number
+    gender: Gender
     value: number
 }
 

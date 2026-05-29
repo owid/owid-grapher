@@ -23,14 +23,20 @@ import {
     SplitFlowSankey,
 } from "../../../../components/Sankey/SplitFlowSankey.js"
 
-import { MigrationFlow, MigrationView } from "../types.js"
-import { capItems, formatPeople, formatShare } from "../helpers.js"
+import { Gender, MigrationFlow, MigrationView } from "../types.js"
+import {
+    capItems,
+    formatPeople,
+    formatShare,
+    getGenderAdjective,
+} from "../helpers.js"
 
 export function MigrationSankey({
     immigrants,
     emigrants,
     country,
     year,
+    gender,
     immigrantsTotal,
     emigrantsTotal,
     view = "both",
@@ -41,6 +47,7 @@ export function MigrationSankey({
     emigrants: MigrationFlow[]
     country: string
     year: number
+    gender: Gender
     /** Pre-computed totals used in the column headers. */
     immigrantsTotal: number
     emigrantsTotal: number
@@ -93,6 +100,7 @@ export function MigrationSankey({
         year,
         view,
         isPairedSentence,
+        gender,
         setView,
     }
 
@@ -147,6 +155,7 @@ function buildSankeyHalf({
     year,
     view,
     isPairedSentence,
+    gender,
     otherHasData,
     setView,
 }: {
@@ -157,6 +166,7 @@ function buildSankeyHalf({
     year: number
     view: MigrationView
     isPairedSentence: boolean
+    gender: Gender
     /** Whether the other half has data — drives the empty-state CTA. */
     otherHasData: boolean
     setView: (view: MigrationView) => void
@@ -168,6 +178,10 @@ function buildSankeyHalf({
 
     const hasData = flows.length > 0
 
+    const adjective = getGenderAdjective(gender)
+    const headingAdjective =
+        isPairedSentence && !isIncoming ? undefined : adjective
+
     // Heading uses the short name (e.g. "USA" instead of "United States") but
     // keeps the "the" article when the full name calls for one — so "the
     // United States" becomes "the USA" rather than dropping the article.
@@ -177,6 +191,8 @@ function buildSankeyHalf({
             ? shortEntityName
             : `the ${shortEntityName}`
 
+    const genderPrefix = adjective ? `${adjective} ` : ""
+
     const heading: SankeyHalfHeading = hasData
         ? {
               label: makeHeadingLabel({
@@ -184,6 +200,7 @@ function buildSankeyHalf({
                   total,
                   shortEntityNameWithArticle,
                   isPairedSentence,
+                  genderAdjective: headingAdjective,
               }),
               arrowSide,
           }
@@ -191,11 +208,11 @@ function buildSankeyHalf({
               label:
                   view === "both"
                       ? isIncoming
-                            ? `No immigrants lived in ${shortEntityNameWithArticle}`
-                            : `No emigrants from ${shortEntityNameWithArticle} lived abroad`
+                          ? `No ${genderPrefix}immigrants lived in ${shortEntityNameWithArticle}`
+                          : `No ${genderPrefix}emigrants from ${shortEntityNameWithArticle} lived abroad`
                       : isIncoming
-                        ? "No immigrants"
-                        : "No emigrants",
+                        ? `No ${genderPrefix}immigrants`
+                        : `No ${genderPrefix}emigrants`,
           }
 
     const cta =
@@ -210,8 +227,8 @@ function buildSankeyHalf({
         <EmptyHalf
             message={
                 isIncoming
-                    ? `No immigrants recorded in ${R.capitalize(shortEntityNameWithArticle)} in ${year}`
-                    : `No emigrants from ${R.capitalize(shortEntityNameWithArticle)} recorded in ${year}`
+                    ? `No ${genderPrefix}immigrants recorded in ${R.capitalize(shortEntityNameWithArticle)} in ${year}`
+                    : `No ${genderPrefix}emigrants from ${R.capitalize(shortEntityNameWithArticle)} recorded in ${year}`
             }
             cta={cta}
         />
@@ -236,18 +253,21 @@ function makeHeadingLabel({
     total,
     shortEntityNameWithArticle,
     isPairedSentence,
+    genderAdjective,
 }: {
     direction: "incoming" | "outgoing"
     total: number
     shortEntityNameWithArticle: string
     isPairedSentence: boolean
+    genderAdjective?: string
 }): string {
     const count = formatPeople(total, { unit: false })
+    const genderPrefix = genderAdjective ? `${genderAdjective} ` : ""
     if (direction === "incoming") {
-        return `${count} immigrants lived in ${shortEntityNameWithArticle}`
+        return `${count} ${genderPrefix}immigrants lived in ${shortEntityNameWithArticle}`
     }
     const prefix = isPairedSentence ? "and " : ""
-    return `${prefix}${count} emigrants from ${shortEntityNameWithArticle} lived abroad`
+    return `${prefix}${count} ${genderPrefix}emigrants from ${shortEntityNameWithArticle} lived abroad`
 }
 
 function getMigrationLinkTooltip({

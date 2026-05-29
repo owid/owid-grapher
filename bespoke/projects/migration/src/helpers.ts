@@ -1,10 +1,23 @@
+import { match } from "ts-pattern"
+
 import { formatValue } from "@ourworldindata/utils"
 import { OwidVariableRoundingMode } from "@ourworldindata/types"
 
-export const formatPeople = (
-    v: number,
-    opts?: { unit?: boolean }
-): string =>
+import { GENDER_FEMALE, GENDER_MALE, Gender } from "./types.js"
+
+/** Translate a raw metadata gender id into the semantic `Gender` enum. */
+export function genderFromId(id: number): Gender {
+    return match(id)
+        .with(GENDER_FEMALE, () => "female" as const)
+        .with(GENDER_MALE, () => "male" as const)
+        .otherwise(() => "all" as const)
+}
+
+export function getGenderAdjective(gender: Gender): string | undefined {
+    return gender === "all" ? undefined : gender
+}
+
+export const formatPeople = (v: number, opts?: { unit?: boolean }): string =>
     formatValue(v, {
         unit: opts?.unit === false ? undefined : "people",
         numberAbbreviation: "long",

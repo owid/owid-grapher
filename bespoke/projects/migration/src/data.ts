@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query"
 
 import {
+    Entity,
     MigrationData,
     MigrationMetadata,
     MigrationRow,
@@ -8,6 +9,7 @@ import {
     RawMetadata,
     RawSeries,
 } from "./types.js"
+import { genderFromId } from "./helpers.js"
 
 const BASE_URL = "https://owid-public.owid.io/data/migration"
 const METADATA_URL = `${BASE_URL}/migration-stock-flows.metadata.json`
@@ -44,10 +46,13 @@ export const useMigrationMetadata = () =>
         staleTime: Infinity,
     })
 
-export const useMigrationData = (entityId: number | undefined) =>
+export const useMigrationData = (
+    entityId: number | undefined,
+    metadata: MigrationMetadata | undefined
+) =>
     useQuery({
         queryKey: queryKeys.country(entityId ?? -1),
-        enabled: entityId !== undefined,
+        enabled: entityId !== undefined && metadata !== undefined,
         queryFn: async (): Promise<MigrationData> => {
             const res = await fetch(countryUrl(entityId as number))
             if (!res.ok)
@@ -56,8 +61,8 @@ export const useMigrationData = (entityId: number | undefined) =>
                 )
             const raw = (await res.json()) as RawCountry
             return {
-                immigrants: decodeSeries(raw.immigrants),
-                emigrants: decodeSeries(raw.emigrants),
+                immigrants: decodeSeries(raw.immigrants, metadata),
+                emigrants: decodeSeries(raw.emigrants, metadata),
             }
         },
         staleTime: Infinity, // Never refetch
@@ -66,13 +71,19 @@ export const useMigrationData = (entityId: number | undefined) =>
         placeholderData: (previousData) => previousData,
     })
 
-function decodeSeries(s: RawSeries): MigrationRow[] {
+function decodeSeries(
+    s: RawSeries,
+    metadata?: MigrationMetadata
+): MigrationRow[] {
+    const entitiesById = new Map<number, Entity>(
+        metadata?.entities.map((e) => [e.id, e]) ?? []
+    )
     const out: MigrationRow[] = new Array(s.values.length)
     for (let i = 0; i < s.values.length; i++) {
         out[i] = {
-            partnerId: s.entities[i],
+            partner: entitiesById.get(s.entities[i])?.name ?? "Unknown",
             year: s.years[i],
-            genderId: s.genders[i],
+            gender: genderFromId(s.genders[i]),
             value: s.values[i],
         }
     }
