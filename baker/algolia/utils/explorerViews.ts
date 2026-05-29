@@ -685,10 +685,7 @@ async function finalizeRecords(
             tags: explorerInfo.tags,
             objectID: `${explorerInfo.slug}-${i}`,
             id: `explorer/${explorerInfo.slug}${record.viewQueryParams}`,
-            score: computeRecordScore(
-                viewNumRelatedArticles,
-                record.views_7d
-            ),
+            score: computeRecordScore(viewNumRelatedArticles, record.views_7d),
             views_7d: record.views_7d,
             availableEntities: record.availableEntities,
             titleLength: record.titleLength,
