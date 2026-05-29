@@ -1,12 +1,12 @@
 import { expect, it, describe } from "vitest"
 
 import { OwidTable } from "@ourworldindata/core-table"
-import { SeriesStrategy } from "@ourworldindata/types"
 import { DumbbellChartState } from "./DumbbellChartState"
 import {
     DECREASE_COLOR,
     INCREASE_COLOR,
     DumbbellChartManager,
+    DumbbellMode,
 } from "./DumbbellChartConstants"
 
 describe("entity strategy", () => {
@@ -86,11 +86,10 @@ describe("column strategy", () => {
             table,
             selection: table.availableEntityNames,
             yColumnSlugs: ["population", "gdp"],
-            seriesStrategy: SeriesStrategy.column,
         }
         const chartState = new DumbbellChartState({ manager })
 
-        expect(chartState.seriesStrategy).toEqual(SeriesStrategy.column)
+        expect(chartState.mode).toEqual(DumbbellMode.TwoColumn)
         expect(chartState.series.length).toEqual(1)
 
         const series = chartState.series[0]

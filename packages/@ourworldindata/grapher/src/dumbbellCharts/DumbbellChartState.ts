@@ -4,7 +4,6 @@ import {
     DumbbellConnectorStyle,
     DumbbellValueLabelMode,
     ScaleType,
-    SeriesStrategy,
     FacetStrategy,
     ChartErrorInfo,
     SortBy,
@@ -17,6 +16,7 @@ import {
     DECREASE_COLOR,
     DumbbellChartManager,
     DumbbellHead,
+    DumbbellMode,
     DumbbellSeries,
     END_COLUMN_COLOR,
     INCREASE_COLOR,
@@ -28,7 +28,6 @@ import {
 import { SelectionArray } from "../selection/SelectionArray"
 import { FocusArray } from "../focus/FocusArray"
 import {
-    autoDetectSeriesStrategy,
     autoDetectYColumnSlugs,
     getDefaultFailMessage,
     getShortNameForEntity,
@@ -109,15 +108,13 @@ export class DumbbellChartState implements ChartState {
 
     /**
      * Determines how dumbbell series are constructed:
-     * - entity: compares the same column's values across two time points
-     * - column: compares two different columns' values at a single time point
-     * */
-    @computed get seriesStrategy(): SeriesStrategy {
-        return autoDetectSeriesStrategy(this.manager)
-    }
-
-    @computed get isEntityStrategy(): boolean {
-        return this.seriesStrategy === SeriesStrategy.entity
+     * - TimeRange: compares one column's values across two time points
+     * - TwoColumn: compares two different columns' values at a single time point
+     */
+    @computed get mode(): DumbbellMode {
+        return this.yColumnSlugs.length > 1
+            ? DumbbellMode.TwoColumn
+            : DumbbellMode.TimeRange
     }
 
     @computed get connectorStyle(): DumbbellConnectorStyle {
@@ -286,7 +283,7 @@ export class DumbbellChartState implements ChartState {
     }
 
     @computed private get unsortedSeries(): DumbbellSeries[] {
-        return this.isEntityStrategy
+        return this.mode === DumbbellMode.TimeRange
             ? this.constructSeriesForTimeRange()
             : this.constructSeriesForTwoColumns()
     }

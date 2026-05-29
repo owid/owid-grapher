@@ -1,17 +1,14 @@
 import React from "react"
 import { makeFigmaId, dyFromAlign } from "@ourworldindata/utils"
 import { Halo, TextWrapSvg } from "@ourworldindata/components"
-import {
-    DumbbellConnectorStyle,
-    SeriesStrategy,
-    VerticalAlign,
-} from "@ourworldindata/types"
+import { DumbbellConnectorStyle, VerticalAlign } from "@ourworldindata/types"
 import { FontSettings } from "../core/GrapherConstants"
 import { SeriesLabel } from "../seriesLabel/SeriesLabel"
 import { TimeRangeDumbbell, TwoColumnDumbbell } from "./Dumbbell"
 import {
     LabelledDumbbellHead,
     RenderDumbbellSeries,
+    DumbbellMode,
     DUMBBELL_STYLE,
     PlacedDumbbellHead,
 } from "./DumbbellChartConstants"
@@ -22,7 +19,7 @@ import { GRAPHER_DARK_TEXT } from "../color/ColorConstants.js"
 
 export function DumbbellChartRow({
     series,
-    seriesStrategy,
+    mode,
     connectorStyle,
     y,
     range,
@@ -30,7 +27,7 @@ export function DumbbellChartRow({
     onInfoTooltipShow,
 }: {
     series: RenderDumbbellSeries
-    seriesStrategy: SeriesStrategy
+    mode: DumbbellMode
     connectorStyle: DumbbellConnectorStyle
     y: number
     range: [number, number]
@@ -83,7 +80,7 @@ export function DumbbellChartRow({
                 )}
 
             {/* Dumbbell */}
-            {seriesStrategy === SeriesStrategy.entity ? (
+            {mode === DumbbellMode.TimeRange ? (
                 <TimeRangeDumbbell series={series} />
             ) : (
                 <TwoColumnDumbbell

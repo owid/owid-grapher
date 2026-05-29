@@ -195,3 +195,5 @@ export {
 } from "./hooks.js"
 
 export { codeToEntityName, entityNameToCode } from "./core/EntityCodes.js"
+
+export { DumbbellMode } from "./dumbbellCharts/DumbbellChartConstants"

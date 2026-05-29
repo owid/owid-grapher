@@ -36,6 +36,17 @@ export const LIGHT_DECREASE_COLOR = "#E78A96"
 export const START_COLUMN_COLOR = GRAPHER_DENIM
 export const END_COLUMN_COLOR = "#B13507"
 
+/**
+ * A dumbbell always plots one row per entity. What its two ends compare
+ * depends on the mode:
+ * - TimeRange: one column's values across two time points
+ * - TwoColumn: two different columns' values at a single time point
+ */
+export enum DumbbellMode {
+    TimeRange = "TimeRange",
+    TwoColumn = "TwoColumn",
+}
+
 export type DumbbellChartManager = ChartManager
 
 export interface DumbbellSeries extends ChartSeries {
