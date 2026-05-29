@@ -251,7 +251,6 @@ export function extractFilenamesFromBlock(
                     "cta",
                     "data-callout",
                     "donors",
-                    "entry-summary",
                     "expandable-paragraph",
                     "expander",
                     "explorer-tiles",

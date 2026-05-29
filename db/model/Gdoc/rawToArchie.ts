@@ -35,7 +35,6 @@ import {
     RawBlockTopicPageIntro,
     RawBlockExpandableParagraph,
     RawBlockAlign,
-    RawBlockEntrySummary,
     RawBlockTable,
     RawBlockTableRow,
     RawBlockBlockquote,
@@ -828,21 +827,6 @@ function* rawBlockAlignToArchieMLString(
     yield "{}"
 }
 
-function* rawBlockEntrySummaryToArchieMLString(
-    block: RawBlockEntrySummary
-): Generator<string, void, undefined> {
-    yield "{.entry-summary}"
-    yield "[.items]"
-    if (block.value.items) {
-        for (const item of block.value.items) {
-            yield* propertyToArchieMLString("text", item)
-            yield* propertyToArchieMLString("slug", item)
-        }
-    }
-    yield "[]"
-    yield "{}"
-}
-
 function* rawBlockRowToArchieMLString(
     row: RawBlockTableRow
 ): Generator<string, void, undefined> {
@@ -1174,7 +1158,6 @@ export function* OwidRawGdocBlockToArchieMLStringGenerator(
             rawResearchAndWritingToArchieMLString
         )
         .with({ type: "align" }, rawBlockAlignToArchieMLString)
-        .with({ type: "entry-summary" }, rawBlockEntrySummaryToArchieMLString)
         .with({ type: "table" }, rawBlockTableToArchieMLString)
         .with({ type: "table-row" }, rawBlockRowToArchieMLString)
         .with({ type: "explorer-tiles" }, rawBlockExplorerTilesToArchieMLString)
