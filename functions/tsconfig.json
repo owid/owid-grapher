@@ -10,9 +10,13 @@
         "types": ["@cloudflare/workers-types"],
         "esModuleInterop": true,
 
-        "noEmit": true,
-
-        "outDir": "./dist",
+        // Emit declarations (into the gitignored ./_dist) so this project can
+        // be referenced by other composite projects, e.g. the admin client's
+        // dumbbell table preview page imports the search data-table builder.
+        // The outDir MUST stay underscore-prefixed: `wrangler pages` scans the
+        // whole functions/ tree for file-based routes, and a non-prefixed dist/
+        // gets picked up as routes (Pages ignores any path starting with _).
+        "outDir": "./_dist",
         "skipLibCheck": true,
         "resolveJsonModule": true,
 

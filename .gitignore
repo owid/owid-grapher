@@ -39,6 +39,7 @@ packages/@ourworldindata/*/dist/
 packages/@ourworldindata/*/node_modules
 wpmigration
 dist/
+functions/_dist/
 .wrangler/
 .nx/cache
 .nx/workspace-data

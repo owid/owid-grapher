@@ -36,6 +36,9 @@
 @import "./slideshows/SlideshowAdmin.scss";
 // Slide content styles reused for slideshow preview
 @import "../site/slideshows/SlideContent.scss";
+// Search data table styles reused for the dumbbell table preview page
+@import "../site/search/SearchChartHitDataTable.scss";
+@import "../packages/@ourworldindata/components/src/GrapherTrendArrow.scss";
 
 html {
     font-size: 14px;

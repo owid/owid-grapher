@@ -590,6 +590,13 @@ export class Grapher extends React.Component<GrapherProps> {
 
     // Chart should only render SVG when it's on the screen
     @action.bound private setUpIntersectionObserver(): void {
+        // Static exports render their SVG immediately (and don't mount the
+        // container element the observer would watch), so there's nothing to
+        // lazily reveal — skip the observer entirely.
+        if (this.grapherState.isExportingToSvgOrPng) {
+            this.hasBeenVisible = true
+            return
+        }
         if (typeof window !== "undefined" && "IntersectionObserver" in window) {
             const observer = new IntersectionObserver(
                 (entries) => {
