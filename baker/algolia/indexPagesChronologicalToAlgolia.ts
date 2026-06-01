@@ -10,7 +10,7 @@ import { getIndexName } from "../../site/search/searchClient.js"
 import { SearchIndexName } from "@ourworldindata/types"
 import { getPagesChronologicalRecords } from "./utils/pagesChronological.js"
 import { ensureRecordFitsAlgoliaLimit } from "./utils/shared.js"
-import { partition } from "remeda"
+import * as R from "remeda"
 import { logErrorAndMaybeCaptureInSentry } from "../../serverUtils/errorLog.js"
 
 const indexPagesChronologicalToAlgolia = async () => {
@@ -34,7 +34,7 @@ const indexPagesChronologicalToAlgolia = async () => {
         db.TransactionCloseMode.Close
     )
 
-    const [fittedRecords, unfittedRecords] = partition(
+    const [fittedRecords, unfittedRecords] = R.partition(
         records,
         ensureRecordFitsAlgoliaLimit
     )
