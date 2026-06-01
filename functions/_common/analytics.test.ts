@@ -3,7 +3,7 @@ import { getCommonEventParams } from "./analytics.js"
 
 describe(getCommonEventParams, () => {
     it("prefixes all URL query params with q_", () => {
-        const request = new Request(
+        const request = new Request<unknown, IncomingRequestCfProperties>(
             "https://ourworldindata.org/grapher/foo?country=DE&host=evil&bar=baz&status_code=999",
             {
                 headers: {
@@ -41,9 +41,12 @@ describe(getCommonEventParams, () => {
     })
 
     it("captures ASN org / number from request.cf", () => {
-        const request = new Request("https://ourworldindata.org/grapher/foo", {
-            headers: { "user-agent": "Mozilla/5.0 (test)" },
-        })
+        const request = new Request<unknown, IncomingRequestCfProperties>(
+            "https://ourworldindata.org/grapher/foo",
+            {
+                headers: { "user-agent": "Mozilla/5.0 (test)" },
+            }
+        )
         // Cloudflare populates request.cf in production; simulate it here.
         Object.assign(request, {
             cf: { asOrganization: "Amazon.com", asn: 16509 },

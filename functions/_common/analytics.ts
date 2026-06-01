@@ -49,7 +49,7 @@ export async function sendEventToGA4(
 }
 
 export function getCommonEventParams(
-    request: Request,
+    request: Request<unknown, IncomingRequestCfProperties>,
     env: Pick<Env, "CLOUDFLARE_GOOGLE_ANALYTICS_SAMPLING_RATE">
 ) {
     const url = new URL(request.url)
@@ -65,14 +65,8 @@ export function getCommonEventParams(
     // "Hetzner Online GmbH". A hosting/cloud ASN behind a browser user-agent is a
     // strong bot signal, used downstream to separate datacenter scrapers from real
     // visitors. Not PII.
-    // `request.cf` is a union type (incoming metadata | outgoing request-init),
-    // so member access widens to `{}`; narrow it to the fields we read — same
-    // approach as `api/detect-country` (which casts `request.cf?.country`).
-    const cf = request.cf as
-        | { asOrganization?: string; asn?: number }
-        | undefined
-    const as_org = (cf?.asOrganization || "").slice(0, 100)
-    const asn = cf?.asn ?? 0
+    const as_org = (request.cf?.asOrganization || "").slice(0, 100)
+    const asn = request.cf?.asn ?? 0
 
     const params: Record<string, string | number> = {
         host: url.hostname,
