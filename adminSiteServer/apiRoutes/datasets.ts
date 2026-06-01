@@ -149,22 +149,34 @@ export async function getDataset(
     if (variables.length > 0) {
         const variableIds = variables.map((v) => v.id)
 
-        // 1. Fetch chart usage count per variable
+        // 1. Fetch chart usage count and details per variable
         const chartUsages = await db.knexRaw<{
             variableId: number
             chartsCount: number
+            chartsJson: string
         }>(
             trx,
             `-- sql
-            SELECT variableId, COUNT(DISTINCT chartId) AS chartsCount
-            FROM chart_dimensions
-            WHERE variableId IN (?)
-            GROUP BY variableId
+            SELECT
+                cd.variableId,
+                COUNT(DISTINCT cd.chartId) AS chartsCount,
+                JSON_ARRAYAGG(JSON_OBJECT('id', c.id, 'slug', cc.slug, 'title', cc.full->>'$.title')) AS chartsJson
+            FROM chart_dimensions cd
+            JOIN charts c ON c.id = cd.chartId
+            JOIN chart_configs cc ON cc.id = c.configId
+            WHERE cd.variableId IN (?)
+            GROUP BY cd.variableId
             `,
             [variableIds]
         )
         const chartsMap = new Map(
-            chartUsages.map((u) => [u.variableId, Number(u.chartsCount)])
+            chartUsages.map((u) => [
+                u.variableId,
+                {
+                    count: Number(u.chartsCount),
+                    items: u.chartsJson,
+                },
+            ])
         )
 
         // 2. Fetch multi-dim details per variable (scan view chart configurations to catch y / x / size / color)
@@ -249,7 +261,15 @@ export async function getDataset(
         for (const v of variables) {
             v.display = JSON.parse(v.display)
 
-            const chartsCount = chartsMap.get(v.id) ?? 0
+            const chartInfo = chartsMap.get(v.id)
+            const chartsCount = chartInfo?.count ?? 0
+            const charts = chartInfo?.items
+                ? parseJsonArray<{
+                      id: number
+                      slug: string | null
+                      title: string | null
+                  }>(chartInfo.items)
+                : []
             const mDim = multiDimsMap.get(v.id)
             const multiDimCount = mDim?.count ?? 0
             const multiDims = mDim?.items
@@ -263,6 +283,7 @@ export async function getDataset(
 
             Object.assign(v, {
                 chartsCount,
+                charts,
                 multiDimCount,
                 explorersCount,
                 usageCount: chartsCount + multiDimCount + explorersCount,

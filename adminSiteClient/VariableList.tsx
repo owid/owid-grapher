@@ -19,6 +19,7 @@ export interface VariableListItem {
     isPrivate?: boolean
     nonRedistributable?: boolean
     chartsCount?: number
+    charts?: { id: number; slug: string | null; title: string | null }[]
     multiDimCount?: number
     explorersCount?: number
     usageCount?: number
@@ -94,15 +95,52 @@ class VariableRow extends React.Component<VariableRowProps> {
                         {(variable.usageCount ?? 0) > 0 ? (
                             <>
                                 {variable.usageCount} (
-                                <span
-                                    title={`Used in ${variable.chartsCount ?? 0} ${
-                                        variable.chartsCount === 1
-                                            ? "chart"
-                                            : "charts"
-                                    }`}
-                                >
-                                    {variable.chartsCount}C
-                                </span>{" "}
+                                {(variable.charts?.length ?? 0) > 0 ? (
+                                    <Popover
+                                        title={`Used in ${variable.chartsCount ?? 0} ${
+                                            variable.chartsCount === 1
+                                                ? "chart"
+                                                : "charts"
+                                        }`}
+                                        content={
+                                            <ul className="list-unstyled mb-0">
+                                                {variable.charts!.map(
+                                                    (chart) => (
+                                                        <li key={chart.id}>
+                                                            <a
+                                                                href={`/admin/charts/${chart.id}/edit`}
+                                                                title={
+                                                                    chart.title ||
+                                                                    undefined
+                                                                }
+                                                            >
+                                                                {chart.slug ||
+                                                                    `Chart #${chart.id}`}
+                                                            </a>
+                                                        </li>
+                                                    )
+                                                )}
+                                            </ul>
+                                        }
+                                    >
+                                        <span
+                                            style={{ cursor: "help" }}
+                                            className="text-decoration-underline"
+                                        >
+                                            {variable.chartsCount}C
+                                        </span>
+                                    </Popover>
+                                ) : (
+                                    <span
+                                        title={`Used in ${variable.chartsCount ?? 0} ${
+                                            variable.chartsCount === 1
+                                                ? "chart"
+                                                : "charts"
+                                        }`}
+                                    >
+                                        {variable.chartsCount}C
+                                    </span>
+                                )}{" "}
                                 {(variable.multiDims?.length ?? 0) > 0 ? (
                                     <Popover
                                         title={`Used in ${variable.multiDimCount ?? 0} ${
