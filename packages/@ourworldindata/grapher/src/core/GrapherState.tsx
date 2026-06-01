@@ -2700,11 +2700,14 @@ export class GrapherState
 
         if (startTime === undefined || endTime === undefined) return undefined
 
+        // Dumbbell charts compare two points, so use "vs" instead of "to"
+        const separator = this.isOnDumbbellTab ? " vs. " : " to "
+
         const time =
             startTime === endTime
                 ? timeColumn.formatValue(startTime)
                 : timeColumn.formatValue(startTime) +
-                  " to " +
+                  separator +
                   timeColumn.formatValue(endTime)
 
         return time
