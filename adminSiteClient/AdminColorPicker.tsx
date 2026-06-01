@@ -1,5 +1,6 @@
 import { type ReactElement, useEffect, useMemo, useState } from "react"
 import cx from "classnames"
+import { useDebounceCallback } from "usehooks-ts"
 import {
     type Color,
     type Key,
@@ -216,9 +217,11 @@ export function AdminColorPicker({
         return queryTokens.every((token) => haystack.includes(token))
     }
 
+    const debouncedOnColor = useDebounceCallback(onColor, 200)
+
     const handleColorChange = (newColor: Color): void => {
         setPickerColor(newColor)
-        onColor(newColor.toString("hex"))
+        debouncedOnColor(newColor.toString("hex"))
     }
     const handleFieldChange = (newColor: Color | null): void => {
         if (newColor) handleColorChange(newColor.toFormat("hsb"))
