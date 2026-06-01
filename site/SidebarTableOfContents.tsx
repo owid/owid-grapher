@@ -1,218 +1,206 @@
-import { useState, useEffect, useRef } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faBars, faTimes } from "@fortawesome/free-solid-svg-icons"
-import { useTriggerWhenClickOutside } from "./hooks.js"
-import { TocHeading } from "@ourworldindata/utils"
-import classNames from "classnames"
+import { faArrowUp, faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons"
+import { Toc, TocChartEntry, TocSidebarSection } from "@ourworldindata/utils"
+import {
+    ChartConfigType,
+    LinkedChart,
+    SearchResultType,
+} from "@ourworldindata/types"
+import { useLinkedChart, useLinkedNarrativeChart } from "./gdocs/utils.js"
+import { buildSearchHrefForCard } from "./search/searchState.js"
 
-const TOC_WRAPPER_CLASSNAME = "toc-wrapper"
-
-export interface TableOfContentsData {
-    headings: TocHeading[]
-    pageTitle: string
-    hideSubheadings?: boolean
-    headingLevels?: {
-        primary: number
-        secondary: number
-    }
-}
-
-const isRecordTopViewport = (record: IntersectionObserverEntry) => {
-    return (
-        record.rootBounds &&
-        record.boundingClientRect.top < record.rootBounds.height / 2
-    )
-}
-
-const getPreviousHeading = (
-    nextHeadingRecord: IntersectionObserverEntry | undefined,
-    previousHeadings: Array<{ slug: string; previous: string | null }>
-) => {
-    return previousHeadings.find(
-        (heading) => heading.slug === nextHeadingRecord?.target.id
-    )?.previous
+const chartBulletLabel = (linkedChart: LinkedChart): string => {
+    const isDataExplorer =
+        linkedChart.configType === ChartConfigType.MultiDim ||
+        linkedChart.configType === ChartConfigType.Explorer
+    return isDataExplorer
+        ? `Data Explorer: ${linkedChart.title}`
+        : linkedChart.title
 }
 
 export const SidebarTableOfContents = ({
-    headings,
-    pageTitle,
-    hideSubheadings,
-    // Original WP articles used a hierarchy of h2 and h3 headings
-    // New Gdoc articles use a hierarchy of h1 and h2 headings
-    headingLevels = {
-        primary: 2,
-        secondary: 3,
-    },
-}: TableOfContentsData) => {
-    const [isOpen, setIsOpen] = useState(false)
-    const [activeHeading, setActiveHeading] = useState("")
-    const { primary, secondary } = headingLevels
-    const tocRef = useRef<HTMLElement>(null)
+    toc,
+    tagName,
+}: {
+    /** Sidebar-shaped TOC generated for the desktop sidebar. */
+    toc: Extract<Toc, { kind: "sidebar" }>
+    /** Topic tag used to build the bottom "See all charts" CTA. The desktop
+     *  sidebar still renders without it — the CTA is simply omitted. */
+    tagName?: string
+}) => {
+    const { sections } = toc
 
-    const toggleIsOpen = () => {
-        setIsOpen(!isOpen)
-    }
-    // The Gdocs sidebar can't rely on the same CSS logic that old-style entries use, so we need to
-    // explicitly trigger these toggles based on screen width
-    const toggleIsOpenOnMobile = () => {
-        if (window.innerWidth < 1536) {
-            toggleIsOpen()
-        }
-    }
-
-    useTriggerWhenClickOutside(tocRef, isOpen, () => setIsOpen(false))
-
-    useEffect(() => {
-        if ("IntersectionObserver" in window) {
-            const previousHeadings = headings.map((heading, i) => ({
-                slug: heading.slug,
-                previous: i > 0 ? headings[i - 1].slug : null,
-            }))
-
-            let currentHeadingRecord: IntersectionObserverEntry | undefined
-            let init = true
-
-            const observer = new IntersectionObserver(
-                (records) => {
-                    let nextHeadingRecord: IntersectionObserverEntry | undefined
-
-                    // Target headings going down
-                    currentHeadingRecord = records.find(
-                        (record) =>
-                            // filter out records no longer intersecting (triggering on exit)
-                            record.isIntersecting &&
-                            // filter out records fully in the page (upcoming section)
-                            record.intersectionRatio !== 1 &&
-                            // filter out intersections happening at the bottom of the viewport
-                            isRecordTopViewport(record)
-                    )
-
-                    if (currentHeadingRecord) {
-                        setActiveHeading(currentHeadingRecord.target.id)
-                    } else {
-                        // Target headings going up
-                        nextHeadingRecord = records.find(
-                            (record) =>
-                                isRecordTopViewport(record) &&
-                                record.intersectionRatio === 1
-                        )
-                        if (nextHeadingRecord) {
-                            setActiveHeading(
-                                getPreviousHeading(
-                                    nextHeadingRecord,
-                                    previousHeadings
-                                ) || ""
-                            )
-                        } else if (init) {
-                            currentHeadingRecord = records.findLast(
-                                (record) => record.boundingClientRect.top < 0
-                            )
-                            setActiveHeading(
-                                currentHeadingRecord?.target.id || ""
-                            )
-                        }
-                    }
-                    init = false
-                },
-                {
-                    rootMargin: "-10px", // 10px offset to trigger intersection when landing exactly at the border when clicking an anchor
-                    threshold: new Array(11).fill(0).map((v, i) => i / 10),
-                }
-            )
-
-            let contentHeadings: NodeListOf<Element>
-            // In Gdocs articles, these sections are ID'd via unique elements
-            const appendixDivs =
-                ", h3#article-endnotes, section#article-citation, section#article-licence"
-            if (hideSubheadings) {
-                contentHeadings = document.querySelectorAll(
-                    `h${secondary} ${appendixDivs}`
-                )
-            } else {
-                contentHeadings = document.querySelectorAll(
-                    `h${primary}, h${secondary} ${appendixDivs}`
-                )
-            }
-            contentHeadings.forEach((contentHeading) => {
-                observer.observe(contentHeading)
-            })
-
-            return () => observer.disconnect()
-        }
-        return
-    }, [headings, hideSubheadings, primary, secondary])
+    // No H1 sections → no sidebar. This is intentional: an LTP with no H1s is
+    // an editorial fix, not a runtime fallback.
+    if (sections.length === 0) return null
 
     return (
-        <div className={TOC_WRAPPER_CLASSNAME}>
-            <div
-                className={classNames({
-                    "entry-sidebar__overlay": isOpen,
-                })}
-            />
-            <aside
-                className={classNames("entry-sidebar", {
-                    "entry-sidebar--is-open": isOpen,
-                })}
-                ref={tocRef}
-            >
-                <nav className="entry-toc">
-                    <ul>
-                        <li>
-                            <a
-                                onClick={() => {
-                                    toggleIsOpenOnMobile()
-                                    setActiveHeading("")
-                                }}
-                                href="#"
-                                data-track-note="toc_header"
-                            >
-                                {pageTitle}
-                            </a>
-                        </li>
-                        {headings
-                            .filter((heading) =>
-                                hideSubheadings && heading.isSubheading
-                                    ? false
-                                    : true
-                            )
-                            .map((heading, i: number) => (
-                                <li
-                                    key={i}
-                                    className={
-                                        (heading.isSubheading
-                                            ? "subsection"
-                                            : "section") +
-                                        (heading.slug === activeHeading
-                                            ? " active"
-                                            : "")
-                                    }
-                                >
-                                    <a
-                                        onClick={toggleIsOpenOnMobile}
-                                        href={`#${heading.slug}`}
-                                        data-track-note="toc_link"
-                                    >
-                                        {heading.text}
-                                    </a>
-                                </li>
-                            ))}
-                    </ul>
-                </nav>
-                <div className="toggle-toc">
-                    <button
-                        data-track-note="page_toggle_toc"
-                        aria-label={`${
-                            isOpen ? "Close" : "Open"
-                        } table of contents`}
-                        onClick={toggleIsOpen}
-                    >
-                        <FontAwesomeIcon icon={isOpen ? faTimes : faBars} />
-                        <span className="label">
-                            {isOpen ? "Close" : "Contents"}
-                        </span>
-                    </button>
+        <div className="sidebar-toc">
+            <nav className="sidebar-toc__sidebar" aria-label="Table of contents">
+                <TocBody sections={sections} tagName={tagName} />
+                <div
+                    className="sidebar-toc__sidebar-content"
+                    id={sidebarContentId}
+                    ref={sidebarContentRef}
+                >
+                    <BackToTop />
+                    <TocSections
+                        sections={sections}
+                        tagName={tagName}
+                        activeId={activeId}
+                    />
                 </div>
-            </aside>
+            </nav>
         </div>
+    )
+}
+
+const TocBody = ({
+    sections,
+    tagName,
+    activeId,
+    onLinkClick,
+}: {
+    sections: TocSidebarSection[]
+    tagName?: string
+} & TocNavProps) => {
+    return (
+        <>
+            <a
+                className="sidebar-toc__back-to-top"
+                href="#"
+                data-track-note="toc_back_to_top"
+            >
+                <FontAwesomeIcon icon={faArrowUp} />
+                Back to top
+            </a>
+            {sections.map((section, i) => (
+                // Index-qualified: two H1s can slug identically (no dedup).
+                <SectionGroup
+                    key={`${section.heading.slug}-${i}`}
+                    section={section}
+                />
+            ))}
+            {tagName ? <SeeAllChartsCta tagName={tagName} /> : null}
+        </>
+    )
+}
+
+const SectionGroup = ({
+    section,
+    activeId,
+    onLinkClick,
+}: { section: TocSidebarSection } & TocNavProps) => {
+    const { heading, charts } = section
+    return (
+        <div className="sidebar-toc__section">
+            <a
+                className="sidebar-toc__h1"
+                href={`#${heading.slug}`}
+                data-track-note="toc_link"
+                aria-current={
+                    activeId === heading.slug ? "location" : undefined
+                }
+            >
+                {heading.text}
+            </a>
+            {charts.length > 0 ? (
+                <>
+                    <p className="sidebar-toc__charts-eyebrow">Charts</p>
+                    <ul
+                        className={cx("sidebar-toc__bullets", {
+                            "sidebar-toc__bullets--single": charts.length === 1,
+                        })}
+                    >
+                        {charts.map((entry) => (
+                            <ChartBullet
+                                key={entry.anchorId}
+                                entry={entry}
+                                activeId={activeId}
+                                onLinkClick={onLinkClick}
+                            />
+                        ))}
+                    </ul>
+                </>
+            ) : null}
+        </div>
+    )
+}
+
+const ChartBullet = ({
+    entry,
+    ...navProps
+}: { entry: TocChartEntry } & TocNavProps) => {
+    if (entry.kind === "narrative-chart")
+        return <NarrativeChartBullet entry={entry} {...navProps} />
+    return <GrapherChartBullet entry={entry} {...navProps} />
+}
+
+const GrapherChartBullet = ({
+    entry,
+    ...navProps
+}: {
+    entry: Extract<TocChartEntry, { kind: "chart" }>
+} & TocNavProps) => {
+    const { linkedChart } = useLinkedChart(entry.url)
+    // The chart isn't rendering on the page either, so there's no anchor to
+    // link to — skip the bullet entirely rather than show a dead link.
+    if (!linkedChart) return null
+
+    const label = chartBulletLabel(linkedChart)
+
+    return (
+        <Bullet
+            anchorId={entry.anchorId}
+            label={label}
+            visibility={entry.visibility}
+        />
+    )
+}
+
+const NarrativeChartBullet = ({
+    entry,
+    ...navProps
+}: {
+    entry: Extract<TocChartEntry, { kind: "narrative-chart" }>
+} & TocNavProps) => {
+    const info = useLinkedNarrativeChart(entry.name)
+    if (!info) return null
+    return <Bullet anchorId={entry.anchorId} label={info.title} />
+}
+
+const Bullet = ({
+    anchorId,
+    label,
+    visibility,
+}: {
+    anchorId: string
+    label: string
+    visibility?: Extract<TocChartEntry, { kind: "chart" }>["visibility"]
+}) => {
+    return (
+        <li
+            className={cx("sidebar-toc__bullet", {
+                "hide-sm-only": visibility === "desktop",
+                "show-sm-only": visibility === "mobile",
+            })}
+        >
+            <a href={`#${anchorId}`} data-track-note="toc_link">
+                {label}
+            </a>
+        </li>
+    )
+}
+
+const SeeAllChartsCta = ({ tagName }: { tagName: string }) => {
+    return (
+        <a
+            className="sidebar-toc__cta"
+            href={buildSearchHrefForCard(SearchResultType.DATA, tagName)}
+            data-track-note="toc_see_all_charts"
+        >
+            <FontAwesomeIcon icon={faMagnifyingGlass} />
+            See all charts on this topic
+        </a>
     )
 }

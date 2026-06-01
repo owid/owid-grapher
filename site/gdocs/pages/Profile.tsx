@@ -24,7 +24,7 @@ type ProfileProps = Omit<
     isPreviewing?: boolean
 }
 
-export function Profile({ content, publishedAt, slug }: ProfileProps) {
+export function Profile({ content, publishedAt, slug, tags }: ProfileProps) {
     const hasSidebarToc = content["sidebar-toc"]
     const instantiatedEntity = content.instantiatedEntity
 
@@ -93,16 +93,8 @@ export function Profile({ content, publishedAt, slug }: ProfileProps) {
             </header>
             {hasSidebarToc && content.toc?.kind === "sidebar" ? (
                 <SidebarTableOfContents
-                    // Bridge until the sidebar rewrite (PR3): project the
-                    // sidebar sections down to the legacy h1-only TocHeading[]
-                    // shape this sidebar still expects.
-                    headings={content.toc.sections.map((section) => ({
-                        text: section.heading.text,
-                        slug: section.heading.slug,
-                        isSubheading: false,
-                    }))}
-                    headingLevels={{ primary: 1, secondary: 2 }}
-                    pageTitle={content.title || ""}
+                    toc={content.toc}
+                    tagName={tags?.[0]?.name}
                 />
             ) : null}
             {content.body ? (
