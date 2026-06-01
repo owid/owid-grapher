@@ -9,7 +9,7 @@ import { getAlgoliaClient } from "./configureAlgolia.js"
 import { PAGES_INDEX } from "../../site/search/searchUtils.js"
 import { getPagesRecords } from "./utils/pages.js"
 import { ensureRecordFitsAlgoliaLimit } from "./utils/shared.js"
-import { partition } from "remeda"
+import * as R from "remeda"
 import { logErrorAndMaybeCaptureInSentry } from "../../serverUtils/errorLog.js"
 import { getIndexName } from "../../site/search/searchClient.js"
 import { SearchIndexName } from "@ourworldindata/types"
@@ -31,7 +31,7 @@ const indexPagesToAlgolia = async () => {
         getPagesRecords,
         db.TransactionCloseMode.Close
     )
-    const [fittedRecords, unfittedRecords] = partition(
+    const [fittedRecords, unfittedRecords] = R.partition(
         records,
         ensureRecordFitsAlgoliaLimit
     )

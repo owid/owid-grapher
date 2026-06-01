@@ -10,7 +10,7 @@ import {
     MultiDimRedirectsTableName,
 } from "@ourworldindata/types"
 import * as db from "../../../db/db.js"
-import { partition } from "remeda"
+import * as R from "remeda"
 import { MultiDimDataPageConfig } from "@ourworldindata/utils"
 
 /**
@@ -38,7 +38,7 @@ function makeChartViewsForMultiDimRedirectSources(
     >[],
     redirects: Pick<DbPlainMultiDimRedirect, "source">[]
 ): Map<string, number> {
-    const [explorerRows, grapherAndMultiDimRows] = partition(
+    const [explorerRows, grapherAndMultiDimRows] = R.partition(
         chartViews,
         (v) => v.type === "explorer"
     )
