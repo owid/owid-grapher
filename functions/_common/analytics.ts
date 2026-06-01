@@ -68,6 +68,24 @@ export function getCommonEventParams(
     const as_org = (request.cf?.asOrganization || "").slice(0, 100)
     const asn = request.cf?.asn ?? 0
 
+    // Cloudflare bot-detection signals, also on `request.cf`. We're on Super Bot
+    // Fight Mode (Pro/Business), NOT Enterprise Bot Management, so the numeric
+    // `score` and JA3/JA4 fingerprints are very likely absent — these fields are
+    // captured to empirically confirm what actually populates on our plan, and
+    // would start carrying real data automatically if we ever add the Enterprise
+    // add-on. `bot_score` uses a -1 sentinel so "field absent" stays
+    // distinguishable from a real score (which is always 1–99). `verified_bot`
+    // flags Cloudflare's Verified Bots program (authoritative Googlebot/Bingbot/
+    // etc.), with the category in `verified_bot_category`. Not PII.
+    const bot_score = request.cf?.botManagement?.score ?? -1
+    const verified_bot = request.cf?.botManagement?.verifiedBot ? 1 : 0
+    // verifiedBotCategory isn't in this @cloudflare/workers-types version yet, so
+    // it surfaces via the cf index signature as `unknown`; String() keeps it
+    // type-safe without an `as` cast.
+    const verified_bot_category = String(
+        request.cf?.verifiedBotCategory ?? "",
+    ).slice(0, 100)
+
     const params: Record<string, string | number> = {
         host: url.hostname,
         pathname: url.pathname,
@@ -77,6 +95,9 @@ export function getCommonEventParams(
         country: request.headers.get("cf-ipcountry") || "",
         as_org,
         asn,
+        bot_score,
+        verified_bot,
+        verified_bot_category,
         // Stamp the sampling rate that was active when this event fired, so periods
         // with different rates can be combined correctly downstream
         // (events / sampling ≈ unbiased request count).
