@@ -129,7 +129,9 @@ export class DumbbellTimeRangeTooltip extends React.Component<DumbbellTooltipPro
                     label={formatColumn.displayName}
                     unit={formatColumn.displayUnit}
                     values={formatTooltipRangeValues(values, formatColumn)}
-                    trend={calculateTrendDirection(...values)}
+                    trend={calculateTrendDirection(...values, (value) =>
+                        formatColumn.formatValueShort(value)
+                    )}
                     arrowColor={target.color}
                     labelVariant="unit-only"
                 />

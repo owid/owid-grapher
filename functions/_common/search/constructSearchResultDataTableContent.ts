@@ -265,12 +265,9 @@ function buildDataTableContentForSlopeChart({
         const formattedStartValue = formatColumn.formatValueShort(start.value)
         const formattedEndValue = formatColumn.formatValueShort(end.value)
 
-        const trend =
-            // If both labels are the same, trivially show a right arrow
-            formattedStartValue && formattedStartValue === formattedEndValue
-                ? "right"
-                : // Otherwise, calculate based on numeric values
-                  calculateTrendDirection(start.value, end.value)
+        const trend = calculateTrendDirection(start.value, end.value, (value) =>
+            formatColumn.formatValueShort(value)
+        )
 
         return {
             seriesName: series.seriesName,
@@ -319,13 +316,11 @@ function buildDataTableContentForDumbbellChart({
                 const formattedStartTime = formatColumn.formatTime(start.time)
                 const formattedEndTime = formatColumn.formatTime(end.time)
 
-                const trend =
-                    // If both labels are the same, trivially show a right arrow
-                    formattedStartValue &&
-                    formattedStartValue === formattedEndValue
-                        ? "right"
-                        : // Otherwise, calculate based on numeric values
-                          calculateTrendDirection(start.value, end.value)
+                const trend = calculateTrendDirection(
+                    start.value,
+                    end.value,
+                    (value) => formatColumn.formatValueShort(value)
+                )
 
                 return {
                     seriesName: series.seriesName,
