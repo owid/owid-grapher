@@ -1,7 +1,6 @@
 import * as db from "../../../db/db.js"
 import {
     ChartsIndexingContext,
-    ChartViewsMap,
     DbPlainMultiDimXChartConfig,
     ExplorerIndexingContext,
     IndexingContext,
@@ -19,12 +18,14 @@ import {
 export async function createBaseIndexingContext(
     knex: db.KnexReadonlyTransaction
 ): Promise<IndexingContext> {
-    const [topicHierarchies] = await Promise.all([
+    const [topicHierarchies, chartViewsMap] = await Promise.all([
         db.getTopicHierarchiesByChildName(knex),
+        getChartViewsMap(knex),
     ])
 
     return {
         topicHierarchies,
+        chartViewsMap,
     }
 }
 
@@ -37,16 +38,14 @@ export async function createChartsIndexingContext(
     chartIds?: number[],
     baseContext?: IndexingContext
 ): Promise<ChartsIndexingContext> {
-    const [base, redirectsByChartId, chartViewsMap] = await Promise.all([
+    const [base, redirectsByChartId] = await Promise.all([
         baseContext ?? createBaseIndexingContext(knex),
         getChartRedirectSlugsByChartId(knex, chartIds),
-        getChartViewsMap(knex),
     ])
 
     return {
         ...base,
         redirectsByChartId,
-        chartViewsMap,
     }
 }
 
@@ -58,21 +57,16 @@ export async function createExplorersIndexingContext(
     knex: db.KnexReadonlyTransaction,
     baseContext?: IndexingContext
 ): Promise<ExplorerIndexingContext> {
-    const [base, chartViewsMap] = await Promise.all([
+    const [base] = await Promise.all([
         baseContext ?? createBaseIndexingContext(knex),
-        getChartViewsMap(knex),
     ])
 
-    return {
-        ...base,
-        chartViewsMap,
-    }
+    return base
 }
 
 export type MultiDimIndexingContext = IndexingContext & {
     multiDimXChartConfigIdMap: Map<string, number>
     predecessorMaxChartViewsByMultiDimViewConfigId: Map<string, number>
-    chartViewsMap: ChartViewsMap
 }
 
 async function getMultiDimXChartConfigIdMap(trx: db.KnexReadonlyTransaction) {
@@ -96,18 +90,15 @@ export async function createMultiDimIndexingContext(
         base,
         multiDimXChartConfigIdMap,
         predecessorMaxChartViewsByMultiDimViewConfigId,
-        chartViewsMap,
     ] = await Promise.all([
         baseContext ?? createBaseIndexingContext(knex),
         getMultiDimXChartConfigIdMap(knex),
         getMaxChartViewsFromMultiDimPredecessors(knex),
-        getChartViewsMap(knex),
     ])
 
     return {
         ...base,
         multiDimXChartConfigIdMap,
         predecessorMaxChartViewsByMultiDimViewConfigId,
-        chartViewsMap,
     }
 }

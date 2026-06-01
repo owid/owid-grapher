@@ -341,13 +341,11 @@ export interface IndexingContext {
         string,
         Array<Array<{ id: number; name: string; slug: string | null }>>
     >
+    chartViewsMap: ChartViewsMap
 }
 
 export type ChartsIndexingContext = IndexingContext & {
     redirectsByChartId: Map<number, string[]>
-    chartViewsMap: ChartViewsMap
 }
 
-export type ExplorerIndexingContext = IndexingContext & {
-    chartViewsMap: ChartViewsMap
-}
+export type ExplorerIndexingContext = IndexingContext
