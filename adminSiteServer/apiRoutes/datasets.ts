@@ -124,47 +124,61 @@ export async function getDataset(
     // so the admin UI can show them in a tooltip on the usage cell. Dedup uses
     // entity ids (charts.id, multi_dim_data_pages.id) where available, since
     // drafts can have NULL slugs.
-    const variables = await db.knexRaw<
-        Pick<
-            DbRawVariable,
-            "id" | "name" | "description" | "display" | "catalogPath"
-        > & {
-            chartsCount: number
-            multiDimCount: number
-            explorersCount: number
-            usageCount: number
-            multiDims: string | null
-            explorerSlugs: string | null
-        }
-    >(
+    interface VariableWithUsage extends Pick<
+        DbRawVariable,
+        "id" | "name" | "description" | "display" | "catalogPath"
+    > {
+        chartsCount?: number
+        multiDimCount?: number
+        explorersCount?: number
+        usageCount?: number
+        multiDims?: { id: number; slug: string }[]
+        explorerSlugs?: string[]
+    }
+
+    const variables = await db.knexRaw<VariableWithUsage>(
         trx,
         `-- sql
-        SELECT
-            v.id,
-            v.name,
-            v.description,
-            v.display,
-            v.catalogPath,
-            COALESCE(cu.n, 0) AS chartsCount,
-            COALESCE(mu.n, 0) AS multiDimCount,
-            COALESCE(eu.n, 0) AS explorersCount,
-            (COALESCE(cu.n, 0) + COALESCE(mu.n, 0) + COALESCE(eu.n, 0)) AS usageCount,
-            mu.items AS multiDims,
-            eu.slugs AS explorerSlugs
-        FROM variables AS v
-        LEFT JOIN (
-            SELECT variableId, COUNT(DISTINCT chartId) AS n
+        SELECT id, name, description, display, catalogPath
+        FROM variables
+        WHERE datasetId = ?
+        `,
+        [datasetId]
+    )
+
+    if (variables.length > 0) {
+        const variableIds = variables.map((v) => v.id)
+
+        // 1. Fetch chart usage count per variable
+        const chartUsages = await db.knexRaw<{
+            variableId: number
+            chartsCount: number
+        }>(
+            trx,
+            `-- sql
+            SELECT variableId, COUNT(DISTINCT chartId) AS chartsCount
             FROM chart_dimensions
+            WHERE variableId IN (?)
             GROUP BY variableId
-        ) cu ON cu.variableId = v.id
-        LEFT JOIN (
-            -- multi_dim_x_chart_configs.variableId only stores each view's first
-            -- y indicator. Scan the view's chart_config dimensions to catch
-            -- every variable used as y / x / size / color in any view. Roll up
-            -- (id, slug) pairs so the admin UI can link to each MDim page.
-            SELECT variableId,
-                   COUNT(*) AS n,
-                   JSON_ARRAYAGG(JSON_OBJECT('id', multiDimId, 'slug', slug)) AS items
+            `,
+            [variableIds]
+        )
+        const chartsMap = new Map(
+            chartUsages.map((u) => [u.variableId, Number(u.chartsCount)])
+        )
+
+        // 2. Fetch multi-dim details per variable (scan view chart configurations to catch y / x / size / color)
+        const multiDimUsages = await db.knexRaw<{
+            variableId: number
+            multiDimCount: number
+            multiDimsJson: string
+        }>(
+            trx,
+            `-- sql
+            SELECT
+                variableId,
+                COUNT(DISTINCT multiDimId) AS multiDimCount,
+                JSON_ARRAYAGG(JSON_OBJECT('id', multiDimId, 'slug', slug)) AS multiDimsJson
             FROM (
                 SELECT DISTINCT mdxcc.multiDimId, mdp.slug, jt.variableId
                 FROM multi_dim_x_chart_configs mdxcc
@@ -174,41 +188,88 @@ export async function getDataset(
                     cc.full,
                     '$.dimensions[*]' COLUMNS (variableId INT PATH '$.variableId')
                 ) jt ON jt.variableId IS NOT NULL
+                WHERE jt.variableId IN (?)
             ) t
             GROUP BY variableId
-        ) mu ON mu.variableId = v.id
-        LEFT JOIN (
-            SELECT variableId,
-                   COUNT(*) AS n,
-                   JSON_ARRAYAGG(explorerSlug) AS slugs
+            `,
+            [variableIds]
+        )
+        const multiDimsMap = new Map(
+            multiDimUsages.map((u) => [
+                u.variableId,
+                {
+                    count: Number(u.multiDimCount),
+                    items: u.multiDimsJson,
+                },
+            ])
+        )
+
+        // 3. Fetch explorer details per variable
+        const explorerUsages = await db.knexRaw<{
+            variableId: number
+            explorersCount: number
+            explorerSlugsJson: string
+        }>(
+            trx,
+            `-- sql
+            SELECT
+                variableId,
+                COUNT(DISTINCT explorerSlug) AS explorersCount,
+                JSON_ARRAYAGG(explorerSlug) AS explorerSlugsJson
             FROM (
                 SELECT DISTINCT variableId, explorerSlug
                 FROM explorer_variables
+                WHERE variableId IN (?)
             ) t
             GROUP BY variableId
-        ) eu ON eu.variableId = v.id
-        WHERE v.datasetId = ?
-    `,
-        [datasetId]
-    )
-
-    const parseJsonArray = <T>(raw: unknown): T[] => {
-        if (!raw) return []
-        if (Array.isArray(raw)) return raw as T[]
-        try {
-            const parsed = JSON.parse(raw as string)
-            return Array.isArray(parsed) ? parsed : []
-        } catch {
-            return []
-        }
-    }
-
-    for (const v of variables) {
-        v.display = JSON.parse(v.display)
-        ;(v as any).multiDims = parseJsonArray<{ id: number; slug: string }>(
-            v.multiDims
+            `,
+            [variableIds]
         )
-        ;(v as any).explorerSlugs = parseJsonArray<string>(v.explorerSlugs)
+        const explorersMap = new Map(
+            explorerUsages.map((u) => [
+                u.variableId,
+                {
+                    count: Number(u.explorersCount),
+                    slugs: u.explorerSlugsJson,
+                },
+            ])
+        )
+
+        const parseJsonArray = <T>(raw: unknown): T[] => {
+            if (!raw) return []
+            if (Array.isArray(raw)) return raw as T[]
+            try {
+                const parsed = JSON.parse(raw as string)
+                return Array.isArray(parsed) ? parsed : []
+            } catch {
+                return []
+            }
+        }
+
+        for (const v of variables) {
+            v.display = JSON.parse(v.display)
+
+            const chartsCount = chartsMap.get(v.id) ?? 0
+            const mDim = multiDimsMap.get(v.id)
+            const multiDimCount = mDim?.count ?? 0
+            const multiDims = mDim?.items
+                ? parseJsonArray<{ id: number; slug: string }>(mDim.items)
+                : []
+            const exp = explorersMap.get(v.id)
+            const explorersCount = exp?.count ?? 0
+            const explorerSlugs = exp?.slugs
+                ? parseJsonArray<string>(exp.slugs)
+                : []
+
+            Object.assign(v, {
+                chartsCount,
+                multiDimCount,
+                explorersCount,
+                usageCount: chartsCount + multiDimCount + explorersCount,
+                multiDims,
+                explorerSlugs,
+            })
+        }
     }
 
     dataset.variables = variables
