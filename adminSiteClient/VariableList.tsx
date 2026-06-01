@@ -30,6 +30,41 @@ interface VariableRowProps {
     searchHighlight?: (text: string) => string | React.ReactElement
 }
 
+interface ChartItem {
+    id: number
+    slug: string | null
+    title: string | null
+}
+
+const ChartListPopoverContent = ({ charts }: { charts: ChartItem[] }) => {
+    const sortedCharts = React.useMemo(() => {
+        return charts.toSorted((a, b) =>
+            (a.slug || "").localeCompare(b.slug || "")
+        )
+    }, [charts])
+
+    return (
+        <ul
+            className="list-unstyled mb-0"
+            style={{
+                maxHeight: "80vh",
+                overflowY: "auto",
+            }}
+        >
+            {sortedCharts.map((chart) => (
+                <li key={chart.id}>
+                    <a
+                        href={`/admin/charts/${chart.id}/edit`}
+                        title={chart.title || undefined}
+                    >
+                        {chart.slug || `Chart #${chart.id}`}
+                    </a>
+                </li>
+            ))}
+        </ul>
+    )
+}
+
 @observer
 class VariableRow extends React.Component<VariableRowProps> {
     static override contextType = AdminAppContext
@@ -104,28 +139,9 @@ class VariableRow extends React.Component<VariableRowProps> {
                                                 : "charts"
                                         }`}
                                         content={
-                                            <ul
-                                                className="list-unstyled mb-0"
-                                                style={{
-                                                    maxHeight: "80vh",
-                                                    overflowY: "auto",
-                                                }}
-                                            >
-                                                {charts.map((chart) => (
-                                                    <li key={chart.id}>
-                                                        <a
-                                                            href={`/admin/charts/${chart.id}/edit`}
-                                                            title={
-                                                                chart.title ||
-                                                                undefined
-                                                            }
-                                                        >
-                                                            {chart.slug ||
-                                                                `Chart #${chart.id}`}
-                                                        </a>
-                                                    </li>
-                                                ))}
-                                            </ul>
+                                            <ChartListPopoverContent
+                                                charts={charts}
+                                            />
                                         }
                                     >
                                         <span
