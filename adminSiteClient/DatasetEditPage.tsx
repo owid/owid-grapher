@@ -414,6 +414,7 @@ class DatasetEditor extends Component<DatasetEditorProps> {
     searchInput: string = ""
     usedOnly: boolean = false
     sortConfig: VariableListSortConfig | null = null
+    maxVisibleRows: number = 100
 
     constructor(props: DatasetEditorProps) {
         super(props)
@@ -425,6 +426,7 @@ class DatasetEditor extends Component<DatasetEditorProps> {
             searchInput: observable,
             usedOnly: observable,
             sortConfig: observable.ref,
+            maxVisibleRows: observable,
         })
     }
 
@@ -493,6 +495,10 @@ class DatasetEditor extends Component<DatasetEditorProps> {
         return variables
     }
 
+    @computed get variablesToShow(): VariableListItem[] {
+        return this.filteredVariables.slice(0, this.maxVisibleRows)
+    }
+
     @computed get collectionUrl(): string | null {
         const { publishedCharts } = this
         if (publishedCharts.length === 0) {
@@ -519,10 +525,12 @@ class DatasetEditor extends Component<DatasetEditorProps> {
 
     @action.bound onSearchInput(input: string) {
         this.searchInput = input
+        this.maxVisibleRows = 100
     }
 
     @action.bound onTabChange(tab: string) {
         this.activeTab = tab
+        this.maxVisibleRows = 100
     }
 
     async save() {
@@ -697,12 +705,16 @@ class DatasetEditor extends Component<DatasetEditorProps> {
                             />
                         </div>
                         <p>
-                            Showing {filteredVariables.length} of{" "}
-                            {dataset.variables.length} indicators
+                            Showing{" "}
+                            {Math.min(
+                                filteredVariables.length,
+                                this.maxVisibleRows
+                            )}{" "}
+                            of {filteredVariables.length} indicators
                             {searchInput && <> for "{searchInput}"</>}
                         </p>
                         <VariableList
-                            variables={filteredVariables}
+                            variables={this.variablesToShow}
                             fields={["usage"]}
                             searchHighlight={highlight}
                             sortConfig={this.sortConfig}
@@ -711,6 +723,16 @@ class DatasetEditor extends Component<DatasetEditorProps> {
                                     (this.sortConfig = config)
                             )}
                         />
+                        {filteredVariables.length > this.maxVisibleRows && (
+                            <button
+                                className="btn btn-secondary mt-3"
+                                onClick={action(() => {
+                                    this.maxVisibleRows += 200
+                                })}
+                            >
+                                Show more indicators...
+                            </button>
+                        )}
                     </section>
                 )
 
