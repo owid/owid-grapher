@@ -158,14 +158,21 @@ export async function getDataset(
             trx,
             `-- sql
             SELECT
-                cd.variableId,
-                COUNT(DISTINCT cd.chartId) AS chartsCount,
-                JSON_ARRAYAGG(JSON_OBJECT('id', c.id, 'slug', cc.slug, 'title', cc.full->>'$.title')) AS chartsJson
-            FROM chart_dimensions cd
-            JOIN charts c ON c.id = cd.chartId
-            JOIN chart_configs cc ON cc.id = c.configId
-            WHERE cd.variableId IN (?)
-            GROUP BY cd.variableId
+                variableId,
+                COUNT(DISTINCT chartId) AS chartsCount,
+                JSON_ARRAYAGG(JSON_OBJECT('id', chartId, 'slug', slug, 'title', title)) AS chartsJson
+            FROM (
+                SELECT DISTINCT
+                    cd.variableId,
+                    cd.chartId,
+                    cc.slug,
+                    cc.full->>'$.title' AS title
+                FROM chart_dimensions cd
+                JOIN charts c ON c.id = cd.chartId
+                JOIN chart_configs cc ON cc.id = c.configId
+                WHERE cd.variableId IN (?)
+            ) t
+            GROUP BY variableId
             `,
             [variableIds]
         )
