@@ -355,7 +355,7 @@ export {
 export {
     type AnalyticsChartViewsType,
     AnalyticsChartViewsTableName,
-    type DbPlainAnalyticsChartViewsRow,
+    type DbPlainAnalyticsChartView,
 } from "./dbTypes/AnalyticsChartViews.js"
 export {
     type DbPlainAnalyticsGrapherView,

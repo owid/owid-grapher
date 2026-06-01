@@ -2,7 +2,7 @@ export const AnalyticsChartViewsTableName = "analytics_chart_views"
 
 export type AnalyticsChartViewsType = "grapher_chart" | "explorer" | "multidim"
 
-export interface DbPlainAnalyticsChartViewsRow {
+export interface DbPlainAnalyticsChartView {
     day: Date
     chart_slug: string
     view_config_id: string

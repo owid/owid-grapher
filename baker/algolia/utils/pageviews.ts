@@ -1,7 +1,7 @@
 import {
     AnalyticsChartViewsTableName,
     ChartViewsMap,
-    DbPlainAnalyticsChartViewsRow,
+    DbPlainAnalyticsChartView,
     DbPlainMultiDimDataPage,
     DbPlainMultiDimRedirect,
     DbRawExplorerView,
@@ -19,7 +19,7 @@ import { MultiDimDataPageConfig } from "@ourworldindata/utils"
  * mdim slug), so we keep the highest count rather than an arbitrary one.
  */
 function maxViewsBySlug(
-    rows: Pick<DbPlainAnalyticsChartViewsRow, "chart_slug" | "views_7d">[]
+    rows: Pick<DbPlainAnalyticsChartView, "chart_slug" | "views_7d">[]
 ): Map<string, number> {
     const map = new Map<string, number>()
     for (const row of rows) {
@@ -33,7 +33,7 @@ function maxViewsBySlug(
 
 function makeChartViewsForMultiDimRedirectSources(
     chartViews: Pick<
-        DbPlainAnalyticsChartViewsRow,
+        DbPlainAnalyticsChartView,
         "chart_slug" | "views_7d" | "type"
     >[],
     redirects: Pick<DbPlainMultiDimRedirect, "source">[]
@@ -65,7 +65,7 @@ function makeChartViewsForMultiDimRedirectSources(
 export async function getMaxChartViewsFromMultiDimPredecessors(
     trx: db.KnexReadonlyTransaction
 ): Promise<Map<string, number>> {
-    const chartViews = await trx<DbPlainAnalyticsChartViewsRow>(
+    const chartViews = await trx<DbPlainAnalyticsChartView>(
         AnalyticsChartViewsTableName
     ).select("chart_slug", "view_config_id", "type", "views_7d")
     const redirects = await trx<DbPlainMultiDimRedirect>(
@@ -125,7 +125,7 @@ export async function getMaxChartViewsFromMultiDimPredecessors(
 export async function getChartViewsMap(
     trx: db.KnexReadonlyTransaction
 ): Promise<ChartViewsMap> {
-    const chartViewsRows = await trx<DbPlainAnalyticsChartViewsRow>(
+    const chartViewsRows = await trx<DbPlainAnalyticsChartView>(
         AnalyticsChartViewsTableName
     ).select("chart_slug", "view_config_id", "views_7d", "type")
 
