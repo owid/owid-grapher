@@ -49,7 +49,7 @@ export async function sendEventToGA4(
 }
 
 export function getCommonEventParams(
-    request: Request,
+    request: Request<unknown, IncomingRequestCfProperties>,
     env: Pick<Env, "CLOUDFLARE_GOOGLE_ANALYTICS_SAMPLING_RATE">
 ) {
     const url = new URL(request.url)
@@ -59,6 +59,15 @@ export function getCommonEventParams(
     const fullUserAgent = request.headers.get("user-agent") || ""
     const user_agent = fullUserAgent.slice(0, 100)
 
+    // Network operator (ASN) of the request, derived by Cloudflare on `request.cf`
+    // — same source as the country lookup. This is NOT the client IP (which we
+    // don't have/forward); it's the owning org, e.g. "Amazon.com", "Google Cloud",
+    // "Hetzner Online GmbH". A hosting/cloud ASN behind a browser user-agent is a
+    // strong bot signal, used downstream to separate datacenter scrapers from real
+    // visitors. Not PII.
+    const as_org = (request.cf?.asOrganization || "").slice(0, 100)
+    const asn = request.cf?.asn ?? 0
+
     const params: Record<string, string | number> = {
         host: url.hostname,
         pathname: url.pathname,
@@ -66,6 +75,8 @@ export function getCommonEventParams(
         user_agent,
         method: request.method,
         country: request.headers.get("cf-ipcountry") || "",
+        as_org,
+        asn,
         // Stamp the sampling rate that was active when this event fired, so periods
         // with different rates can be combined correctly downstream
         // (events / sampling ≈ unbiased request count).
