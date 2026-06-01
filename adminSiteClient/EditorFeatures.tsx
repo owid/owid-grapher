@@ -137,6 +137,13 @@ export class EditorFeatures {
         )
     }
 
+    @computed get canConfigureDumbbellColors() {
+        return (
+            this.grapherState.hasDumbbellChart &&
+            this.grapherState.yColumnSlugs.length === 1
+        )
+    }
+
     @computed get canCustomizeVariableType() {
         return this.grapherState.hasMultipleYColumns
     }

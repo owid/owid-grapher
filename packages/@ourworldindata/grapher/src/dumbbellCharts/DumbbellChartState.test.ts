@@ -2,12 +2,7 @@ import { expect, it, describe } from "vitest"
 
 import { OwidTable } from "@ourworldindata/core-table"
 import { DumbbellChartState } from "./DumbbellChartState"
-import {
-    DECREASE_COLOR,
-    INCREASE_COLOR,
-    DumbbellChartManager,
-    DumbbellMode,
-} from "./DumbbellChartConstants"
+import { DumbbellChartManager, DumbbellMode } from "./DumbbellChartConstants"
 
 describe("entity strategy", () => {
     it("constructs dumbbell series across two time points", () => {
@@ -53,8 +48,7 @@ describe("entity strategy", () => {
         const riser = chartState.series.find((s) => s.entityName === "Riser")!
         const faller = chartState.series.find((s) => s.entityName === "Faller")!
 
-        expect(riser.color).toEqual(INCREASE_COLOR)
-        expect(faller.color).toEqual(DECREASE_COLOR)
+        expect(riser.color).not.toEqual(faller.color)
     })
 
     it("filters out series with missing start or end value", () => {

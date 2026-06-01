@@ -197,4 +197,7 @@ export {
 
 export { codeToEntityName, entityNameToCode } from "./core/EntityCodes.js"
 
-export { DumbbellMode } from "./dumbbellCharts/DumbbellChartConstants"
+export {
+    DumbbellMode,
+    DEFAULT_DUMBBELL_TREND_COLOR_MAP,
+} from "./dumbbellCharts/DumbbellChartConstants"

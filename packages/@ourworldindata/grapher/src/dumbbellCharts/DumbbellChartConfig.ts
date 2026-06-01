@@ -2,6 +2,7 @@ import { observable, makeObservable } from "mobx"
 import {
     DumbbellChartConfigInterface,
     DumbbellConnectorStyle,
+    DumbbellTrendColorMap,
     DumbbellValueLabelMode,
 } from "@ourworldindata/types"
 import {
@@ -16,11 +17,13 @@ import {
 class DumbbellChartConfigDefaults {
     connectorStyle: DumbbellConnectorStyle = DumbbellConnectorStyle.Arrow
     valueLabelMode: DumbbellValueLabelMode = DumbbellValueLabelMode.Absolute
+    trendColorMap: DumbbellTrendColorMap = {}
 
     constructor() {
         makeObservable(this, {
             connectorStyle: observable.ref,
             valueLabelMode: observable.ref,
+            trendColorMap: observable.ref,
         })
     }
 }

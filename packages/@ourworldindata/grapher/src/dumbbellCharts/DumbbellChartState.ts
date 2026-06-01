@@ -9,12 +9,13 @@ import {
     ChartErrorInfo,
     SortBy,
     SortConfig,
+    DumbbellTrendColorMap,
 } from "@ourworldindata/types"
 import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
 import { domainExtent } from "@ourworldindata/utils"
 import { ChartState } from "../chart/ChartInterface"
 import {
-    DECREASE_COLOR,
+    DEFAULT_DUMBBELL_TREND_COLOR_MAP,
     DUMBBELL_SORT_KEYS,
     DumbbellChartManager,
     DumbbellHead,
@@ -22,9 +23,6 @@ import {
     DumbbellSeries,
     DumbbellSortKey,
     END_COLUMN_COLOR,
-    INCREASE_COLOR,
-    LIGHT_DECREASE_COLOR,
-    LIGHT_INCREASE_COLOR,
     NO_CHANGE_COLOR,
     START_COLUMN_COLOR,
 } from "./DumbbellChartConstants"
@@ -130,6 +128,19 @@ export class DumbbellChartState implements ChartState {
         }
     }
 
+    /** Colors for the time-range encoding, by direction of change */
+    @computed get directionColors(): Required<DumbbellTrendColorMap> {
+        const trendColorMap = this.manager.dumbbell?.trendColorMap
+        return {
+            increase:
+                trendColorMap?.increase ??
+                DEFAULT_DUMBBELL_TREND_COLOR_MAP.increase,
+            decrease:
+                trendColorMap?.decrease ??
+                DEFAULT_DUMBBELL_TREND_COLOR_MAP.decrease,
+        }
+    }
+
     @computed get connectorStyle(): DumbbellConnectorStyle {
         return (
             this.manager.dumbbell?.connectorStyle ??
@@ -168,7 +179,14 @@ export class DumbbellChartState implements ChartState {
 
     /** Constructs series by comparing the same column's values across two time points */
     private constructSeriesForTimeRange(): DumbbellSeries[] {
-        const { yColumn, startTime, endTime, focusArray, annotationsMap } = this
+        const {
+            yColumn,
+            startTime,
+            endTime,
+            focusArray,
+            annotationsMap,
+            directionColors: colors,
+        } = this
 
         return this.selectionArray.selectedEntityNames
             .map((entityName): DumbbellSeries | undefined => {
@@ -196,12 +214,12 @@ export class DumbbellChartState implements ChartState {
 
                 // The color of the dumbbell is determined by whether
                 // the value has increased or decreased over time
-                const [color, lightColor] =
+                const color =
                     startRow.value === endRow.value
-                        ? [NO_CHANGE_COLOR, NO_CHANGE_COLOR]
+                        ? NO_CHANGE_COLOR
                         : startRow.value < endRow.value
-                          ? [INCREASE_COLOR, LIGHT_INCREASE_COLOR]
-                          : [DECREASE_COLOR, LIGHT_DECREASE_COLOR]
+                          ? colors.increase
+                          : colors.decrease
 
                 const start = {
                     value: startRow.value,
@@ -229,7 +247,6 @@ export class DumbbellChartState implements ChartState {
                     shortEntityName,
                     annotation,
                     color,
-                    lightColor,
                     start,
                     end,
                     focus: focusArray.state(entityName),

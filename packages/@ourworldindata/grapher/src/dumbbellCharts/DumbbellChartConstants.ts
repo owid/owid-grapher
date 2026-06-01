@@ -2,7 +2,11 @@ import { ChartManager } from "../chart/ChartManager"
 import { ChartSeries } from "../chart/ChartInterface"
 import { InteractionState } from "../interaction/InteractionState"
 import { Emphasis } from "../interaction/Emphasis"
-import { EntityName, SortBy } from "@ourworldindata/types"
+import {
+    DumbbellTrendColorMap,
+    EntityName,
+    SortBy,
+} from "@ourworldindata/types"
 import { TextWrap } from "@ourworldindata/components"
 import { SeriesLabelState } from "../seriesLabel/SeriesLabelState"
 import { GRAPHER_OPACITY_MUTED } from "../core/GrapherConstants.js"
@@ -12,6 +16,7 @@ import {
     GRAPHER_LIGHT_TEXT,
     OWID_NO_DATA_GRAY,
 } from "../color/ColorConstants.js"
+import { BinaryMapPaletteF } from "../color/CustomSchemes.js"
 
 /** Horizontal gap between the value label and the dumbbell */
 export const VALUE_LABEL_DOT_GAP = 6
@@ -27,11 +32,10 @@ export const MIN_LEGEND_LABEL_GAP = 8
 
 export const NO_CHANGE_COLOR = OWID_NO_DATA_GRAY
 
-export const INCREASE_COLOR = "#00875E"
-export const DECREASE_COLOR = "#D73C50"
-
-export const LIGHT_INCREASE_COLOR = "#47A98B"
-export const LIGHT_DECREASE_COLOR = "#E78A96"
+export const DEFAULT_DUMBBELL_TREND_COLOR_MAP = {
+    increase: BinaryMapPaletteF.colorSets[0][0],
+    decrease: BinaryMapPaletteF.colorSets[0][1],
+} satisfies DumbbellTrendColorMap
 
 export const START_COLUMN_COLOR = GRAPHER_DENIM
 export const END_COLUMN_COLOR = "#B13507"
@@ -54,7 +58,6 @@ export interface DumbbellSeries extends ChartSeries {
     displayName: string
     shortEntityName?: string
     annotation?: string
-    lightColor?: string
     start: DumbbellHead
     end: DumbbellHead
     focus: InteractionState

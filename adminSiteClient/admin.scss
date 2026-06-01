@@ -1852,3 +1852,19 @@ main:not(.ChartEditorPage):not(.GdocsEditPage):not(.MultiDimDetailPage) {
 .table-preview-col--centered {
     text-align: center;
 }
+
+.dumbbell-trend-colors {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    .dumbbell-trend-colors__invert {
+        margin-left: auto;
+    }
+
+    .dumbbell-trend-colors__invert-icon {
+        position: relative;
+        top: 1px;
+        margin-right: 6px;
+    }
+}
