@@ -83,7 +83,7 @@ export function getCommonEventParams(
     // it surfaces via the cf index signature as `unknown`; String() keeps it
     // type-safe without an `as` cast.
     const verified_bot_category = String(
-        request.cf?.verifiedBotCategory ?? "",
+        request.cf?.verifiedBotCategory ?? ""
     ).slice(0, 100)
 
     const params: Record<string, string | number> = {
