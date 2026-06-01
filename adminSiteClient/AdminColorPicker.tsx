@@ -51,6 +51,12 @@ interface ColorMeta {
 
 const DEFAULT_COLOR = "#000000"
 
+// Shared, page-load-scoped UI state remembered across popover opens. Each
+// picker reads these on mount; since Tippy `lazy` remounts the content on
+// every show, sibling pickers can't drift out of sync.
+let lastSelectedTab: TabKey = "all"
+let isCustomSectionOpen = false
+
 /** Turn camelCase identifiers ("SubSaharanAfrica") into readable labels. */
 function humanizeName(name: string): string {
     if (name.includes(" ")) return name
@@ -121,7 +127,22 @@ export function AdminColorPicker({
     onColor,
     onResize,
 }: AdminColorPickerProps): ReactElement {
-    const [tab, setTab] = useState<TabKey>("all")
+    // The picker remounts on every popover open (Tippy `lazy`), so these
+    // initializers always pick up the latest shared UI state.
+    const [tab, setTab] = useState<TabKey>(lastSelectedTab)
+    const selectTab = (key: TabKey): void => {
+        lastSelectedTab = key
+        setTab(key)
+    }
+    const [customOpen, setCustomOpen] = useState(isCustomSectionOpen)
+    const handleCustomToggle = (
+        e: React.SyntheticEvent<HTMLDetailsElement>
+    ): void => {
+        const open = e.currentTarget.open
+        isCustomSectionOpen = open
+        setCustomOpen(open)
+        onResize?.()
+    }
     const [query, setQuery] = useState("")
     const [pickerColor, setPickerColor] = useState<Color>(() =>
         toHsbColor(color ?? DEFAULT_COLOR)
@@ -343,7 +364,7 @@ export function AdminColorPicker({
             <Tabs
                 className="AdminColorPicker__tabs"
                 selectedKey={tab}
-                onSelectionChange={(key: Key) => setTab(key as TabKey)}
+                onSelectionChange={(key: Key) => selectTab(key as TabKey)}
             >
                 <TabList
                     className="AdminColorPicker__chips"
@@ -379,7 +400,8 @@ export function AdminColorPicker({
 
             <details
                 className="AdminColorPicker__custom"
-                onToggle={() => onResize?.()}
+                open={customOpen}
+                onToggle={handleCustomToggle}
             >
                 <summary className="AdminColorPicker__custom-title">
                     Custom color

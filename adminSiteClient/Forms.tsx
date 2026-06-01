@@ -730,6 +730,7 @@ export class ColorBox extends React.Component<ColorBoxProps> {
                 onCreate={(instance) => {
                     this.tippyInstance = instance
                 }}
+                lazy
                 popperOptions={{
                     modifiers: [
                         {
