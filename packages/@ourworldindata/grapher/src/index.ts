@@ -67,19 +67,16 @@ export {
     getColorNameOwidDistinctAndSemanticPalettes,
     getColorNameOwidDistinctLinesAndSemanticPalettes,
     OwidDistinctColors,
+    OwidMapColors,
+    OwidDistinctLinesColors,
+    EnergyColors,
+    ContinentColors,
 } from "./color/CustomSchemes"
 export { ColorSchemes } from "./color/ColorSchemes"
 export { DimensionSlot } from "./chart/DimensionSlot"
 export { EntityPicker } from "./controls/entityPicker/EntityPicker"
 export type { EntityPickerManager } from "./controls/entityPicker/EntityPickerConstants"
 export { getColorSchemeForChartType } from "./color/ColorSchemes"
-export {
-    OwidMapColors,
-    OwidDistinctColors,
-    OwidDistinctLinesColors,
-    EnergyColors,
-    ContinentColors,
-} from "./color/CustomSchemes"
 export {
     isCategoricalBin,
     isNumericBin,

@@ -15,30 +15,10 @@ import StylesTarget from "vite-plugin-css-position/react"
 import "./index.scss"
 
 export const VARIANTS = [
-    // {
-    //     name: "sankey",
-    //     component: SankeyVariant,
-    //     demoConfig: { country: "Germany" },
-    // },
-    // {
-    //     name: "sankey",
-    //     component: SankeyVariant,
-    //     demoConfig: { country: "United Kingdom" },
-    // },
-    // {
-    //     name: "sankey",
-    //     component: SankeyVariant,
-    //     demoConfig: { country: "United Kingdom", tradeFlow: "imports" },
-    // },
     {
         name: "sankey",
         component: SankeyVariant,
-        demoConfig: {
-            country: "United Kingdom",
-            tradeFlow: "imports",
-            product: "Barley",
-        },
-        demoSize: "widest",
+        demoConfig: {},
     },
 ] satisfies BespokeComponentVariantsList<VariantName>
 

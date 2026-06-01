@@ -26,7 +26,7 @@ import {
 } from "../../../../hooks/useResolveUserLocation.js"
 import { MOBILE_BREAKPOINT } from "../../../../components/Sankey/SplitFlowSankey.js"
 
-const DEFAULT_PRODUCT = "Maize (corn)"
+const DEFAULT_PRODUCT = "Maize"
 const DEFAULT_COUNTRY = ALL_COUNTRIES
 const DEFAULT_VIEW: TradeFlow = "both"
 
