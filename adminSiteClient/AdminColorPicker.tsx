@@ -36,6 +36,8 @@ interface AdminColorPickerProps {
     showLineChartColors: boolean
     baseColorScheme?: ColorSchemeName
     onColor: (color: string | undefined) => void
+    /** Called when the picker's intrinsic size changes (e.g. on details toggle). */
+    onResize?: () => void
 }
 
 type TabKey = "all" | "regions" | "energy" | "hue"
@@ -117,6 +119,7 @@ export function AdminColorPicker({
     showLineChartColors,
     baseColorScheme,
     onColor,
+    onResize,
 }: AdminColorPickerProps): ReactElement {
     const [tab, setTab] = useState<TabKey>("all")
     const [query, setQuery] = useState("")
@@ -374,10 +377,13 @@ export function AdminColorPicker({
                 </TabPanel>
             </Tabs>
 
-            <div className="AdminColorPicker__custom">
-                <div className="AdminColorPicker__custom-title">
+            <details
+                className="AdminColorPicker__custom"
+                onToggle={() => onResize?.()}
+            >
+                <summary className="AdminColorPicker__custom-title">
                     Custom color
-                </div>
+                </summary>
                 <ColorArea
                     className="AdminColorPicker__area"
                     value={pickerColor}
@@ -407,7 +413,7 @@ export function AdminColorPicker({
                 >
                     <Input className="AdminColorPicker__field-input" />
                 </ColorField>
-            </div>
+            </details>
         </div>
     )
 }
