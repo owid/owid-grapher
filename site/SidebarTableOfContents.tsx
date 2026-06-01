@@ -1,13 +1,20 @@
+import { ReactNode } from "react"
+import Tippy from "@tippyjs/react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowUp, faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons"
-import { Toc, TocChartEntry, TocSidebarSection } from "@ourworldindata/utils"
+import { Toc, TocChartEntry, TocSidebarSection, queryParamsToStr, Url, } from "@ourworldindata/utils"
 import {
     ChartConfigType,
     LinkedChart,
     SearchResultType,
 } from "@ourworldindata/types"
 import { useLinkedChart, useLinkedNarrativeChart } from "./gdocs/utils.js"
+import { useDocumentContext } from "./gdocs/DocumentContext.js"
+import { ChartPreview } from "./gdocs/components/ChartPreview.js"
 import { buildSearchHrefForCard } from "./search/searchState.js"
+import { SiteAnalytics } from "./SiteAnalytics.js"
+
+const analytics = new SiteAnalytics()
 
 const chartBulletLabel = (linkedChart: LinkedChart): string => {
     const isDataExplorer =
@@ -149,11 +156,25 @@ const GrapherChartBullet = ({
 
     const label = chartBulletLabel(linkedChart)
 
+    const url = Url.fromURL(linkedChart.resolvedUrl)
+    // Best-effort preview: a multi-dim resolves to its /grapher route, so the
+    // thumbnail shows the default dimension view, not the doc's selection.
+    const preview = (
+        <ChartPreview
+            chartType={url.isExplorer ? "explorer" : "chart"}
+            chartSlug={url.slug || ""}
+            queryString={url.queryStr}
+        />
+    )
+
     return (
         <Bullet
             anchorId={entry.anchorId}
             label={label}
+            preview={preview}
+            previewUrl={linkedChart.resolvedUrl}
             visibility={entry.visibility}
+            {...navProps}
         />
     )
 }
@@ -166,18 +187,52 @@ const NarrativeChartBullet = ({
 } & TocNavProps) => {
     const info = useLinkedNarrativeChart(entry.name)
     if (!info) return null
-    return <Bullet anchorId={entry.anchorId} label={info.title} />
+
+    // Best-effort preview: the dynamic thumbnail renders the parent chart and
+    // may not reflect narrative-specific config tweaks.
+    const queryString = queryParamsToStr(info.queryParamsForParentChart)
+    const preview = (
+        <ChartPreview
+            chartSlug={info.parentChartSlug}
+            queryString={queryString}
+        />
+    )
+
+    return (
+        <Bullet
+            anchorId={entry.anchorId}
+            label={info.title}
+            preview={preview}
+            previewUrl={`${info.parentChartSlug}${queryString}`}
+            {...navProps}
+        />
+    )
 }
 
 const Bullet = ({
     anchorId,
     label,
+    preview,
+    previewUrl,
     visibility,
+    activeId,
+    onLinkClick,
 }: {
     anchorId: string
     label: string
+    preview: ReactNode
+    previewUrl: string
     visibility?: Extract<TocChartEntry, { kind: "chart" }>["visibility"]
-}) => {
+} & TocNavProps) => {
+    const { archiveContext } = useDocumentContext()
+    const isOnArchivalPage = archiveContext?.type === "archive-page"
+
+    const link = (
+        <a href={`#${anchorId}`} data-track-note="toc_link">
+            {label}
+        </a>
+    )
+
     return (
         <li
             className={cx("sidebar-toc__bullet", {
@@ -185,9 +240,24 @@ const Bullet = ({
                 "show-sm-only": visibility === "mobile",
             })}
         >
-            <a href={`#${anchorId}`} data-track-note="toc_link">
-                {label}
-            </a>
+            {isOnArchivalPage ? (
+                link
+            ) : (
+                <Tippy
+                    content={preview}
+                    onShow={() =>
+                        analytics.logChartPreviewMouseover(previewUrl)
+                    }
+                    delay={[300, 0]}
+                    placement="top"
+                    maxWidth={512}
+                    theme="light"
+                    arrow={false}
+                    touch={false}
+                >
+                    {link}
+                </Tippy>
+            )}
         </li>
     )
 }
