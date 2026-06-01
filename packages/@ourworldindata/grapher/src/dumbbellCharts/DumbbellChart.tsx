@@ -508,8 +508,9 @@ export class DumbbellChart
                 .exhaustive()
 
         // Shift outward-anchored labels inward by a bit
-        const offsetMagnitude = Math.floor(
-            Math.abs(topSeries.end.x - topSeries.start.x) / 4
+        const offsetMagnitude = Math.min(
+            20,
+            Math.floor(Math.abs(topSeries.end.x - topSeries.start.x) / 4)
         )
         const inwardOffset = (textAnchor: HorizontalAlign): number =>
             match(textAnchor)
