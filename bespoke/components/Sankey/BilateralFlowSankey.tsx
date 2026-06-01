@@ -160,9 +160,18 @@ export function BilateralFlowSankey({
           }
         : undefined
 
+    const handleLinkClick = onSelectEntity
+        ? (link: SankeyLink) =>
+              onSelectEntity(getEntityFromNodeId(link.source), "source")
+        : undefined
+
     // Other isn't a single entity, so it can't be drilled into
     const isNodeClickable = (node: SankeyNode): boolean =>
         getEntityFromNodeId(node.id) !== OTHER_KEY
+
+    // Likewise, links out of the Other source bucket can't be drilled into
+    const isLinkClickable = (link: SankeyLink): boolean =>
+        getEntityFromNodeId(link.source) !== OTHER_KEY
 
     const nodes = [...sourceNodes, ...targetNodes]
 
@@ -179,6 +188,8 @@ export function BilateralFlowSankey({
             getNodeTooltip={getNodeTooltip}
             onNodeClick={handleNodeClick}
             isNodeClickable={onSelectEntity ? isNodeClickable : undefined}
+            onLinkClick={handleLinkClick}
+            isLinkClickable={onSelectEntity ? isLinkClickable : undefined}
         />
     )
 }

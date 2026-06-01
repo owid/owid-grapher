@@ -74,6 +74,8 @@ interface SankeyProps {
     onNodeClick?: (node: SankeyNode) => void
     isNodeClickable?: (node: SankeyNode) => boolean
     isNodeHoverable?: (node: SankeyNode) => boolean
+    onLinkClick?: (link: SankeyLink) => void
+    isLinkClickable?: (link: SankeyLink) => boolean
     /** Other links to be highlighted as a group with the hovered one */
     getRelatedLinks?: (link: SankeyLink) => SankeyLink[]
 }
@@ -149,6 +151,8 @@ export function Sankey({
     isNodeHoverable,
     onNodeClick,
     isNodeClickable,
+    onLinkClick,
+    isLinkClickable,
 }: SankeyProps): React.ReactElement | null {
     const nodeWidth = bandWidth + bandFlowGap
 
@@ -304,18 +308,42 @@ export function Sankey({
 
     const onSvgClick = useCallback(
         (event: React.MouseEvent<SVGSVGElement>) => {
-            if (!svgRef.current || !layout || !onNodeClick) return
+            if (!svgRef.current || !layout) return
             const mouse = getRelativeMouse(svgRef.current, event.nativeEvent)
-            const node = findNodeAtPoint({
-                nodes: layout.nodes,
-                labels,
-                mouseX: mouse.x,
-                mouseY: mouse.y,
-                isHoverable: isNodeClickable,
-            })
-            if (node) onNodeClick(toNodeData(node))
+            if (onNodeClick) {
+                const node = findNodeAtPoint({
+                    nodes: layout.nodes,
+                    labels,
+                    mouseX: mouse.x,
+                    mouseY: mouse.y,
+                    isHoverable: isNodeClickable,
+                })
+                if (node) {
+                    onNodeClick(toNodeData(node))
+                    return
+                }
+            }
+            if (onLinkClick) {
+                const link = findLinkAtPoint({
+                    links: layout.links,
+                    mouseX: mouse.x,
+                    mouseY: mouse.y,
+                })
+                if (link) {
+                    const linkData = toLinkData(link)
+                    if (!isLinkClickable || isLinkClickable(linkData))
+                        onLinkClick(linkData)
+                }
+            }
         },
-        [layout, labels, onNodeClick, isNodeClickable]
+        [
+            layout,
+            labels,
+            onNodeClick,
+            isNodeClickable,
+            onLinkClick,
+            isLinkClickable,
+        ]
     )
 
     /** Links related to the hovered link that should also be highlighted */
@@ -419,13 +447,15 @@ export function Sankey({
         .with(null, () => undefined)
         .exhaustive()
 
-    // Show pointer cursor only when the cursor is over a clickable node.
-    // Relies on the hover state already tracking node-under-cursor (which
-    // assumes clickable nodes are also hoverable — true for our consumers).
+    // Show pointer cursor only when the cursor is over a clickable node or link
     const isOverClickableNode =
         !!onNodeClick &&
         hover?.kind === "node" &&
         (!isNodeClickable || isNodeClickable(toNodeData(hover.node)))
+    const isOverClickableLink =
+        !!onLinkClick &&
+        hover?.kind === "link" &&
+        (!isLinkClickable || isLinkClickable(toLinkData(hover.link)))
 
     return (
         <div ref={containerRef} className="sankey-container">
@@ -437,8 +467,12 @@ export function Sankey({
                 viewBox={`0 0 ${width} ${height}`}
                 onMouseMove={onSvgMouseMove}
                 onMouseLeave={onSvgMouseLeave}
-                onClick={onNodeClick ? onSvgClick : undefined}
-                style={isOverClickableNode ? { cursor: "pointer" } : undefined}
+                onClick={onNodeClick || onLinkClick ? onSvgClick : undefined}
+                style={
+                    isOverClickableNode || isOverClickableLink
+                        ? { cursor: "pointer" }
+                        : undefined
+                }
             >
                 <g className="sankey__links">
                     {linksInRenderOrder.map((link) => (
