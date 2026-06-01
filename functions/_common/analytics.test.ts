@@ -15,7 +15,12 @@ describe(getCommonEventParams, () => {
         )
         // Cloudflare populates request.cf in production; simulate it here.
         Object.assign(request, {
-            cf: { asOrganization: "Amazon.com", asn: 16509 },
+            cf: {
+                asOrganization: "Amazon.com",
+                asn: 16509,
+                botManagement: { verifiedBot: true, score: 30 },
+                verifiedBotCategory: "Search Engine Crawler",
+            },
         })
 
         const params = getCommonEventParams(request, {
@@ -31,6 +36,9 @@ describe(getCommonEventParams, () => {
         expect(params.sampling).toBe(0.25)
         expect(params.as_org).toBe("Amazon.com")
         expect(params.asn).toBe(16509)
+        expect(params.bot_score).toBe(30)
+        expect(params.verified_bot).toBe(1)
+        expect(params.verified_bot_category).toBe("Search Engine Crawler")
 
         expect(params.q_bar).toBe("baz")
         expect(params.q_country).toBe("DE")
