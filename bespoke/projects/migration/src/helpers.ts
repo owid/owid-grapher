@@ -17,6 +17,13 @@ export function getGenderAdjective(gender: Gender): string | undefined {
     return gender === "all" ? undefined : gender
 }
 
+export function getGenderNoun(genderAdjective: string | undefined): string {
+    return match(genderAdjective)
+        .with("male", () => "men")
+        .with("female", () => "women")
+        .otherwise(() => "people")
+}
+
 export const formatPeople = (v: number, opts?: { unit?: boolean }): string =>
     formatValue(v, {
         unit: opts?.unit === false ? undefined : "people",

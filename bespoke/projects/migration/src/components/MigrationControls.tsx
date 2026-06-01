@@ -21,7 +21,12 @@ import { TimeSlider } from "../../../../components/TimeSlider/TimeSlider.js"
 import { useTippyContainer } from "../../../../hooks/useTippyContainer.js"
 import { useUserCountryInformation } from "../../../../hooks/useUserCountryInformation.js"
 
-import { GenderId, MigrationMetadata, MigrationView } from "../types.js"
+import {
+    GENDER_ALL,
+    GenderId,
+    MigrationMetadata,
+    MigrationView,
+} from "../types.js"
 
 const VIEW_ITEMS: SwitcherItem<MigrationView>[] = [
     {
@@ -163,19 +168,19 @@ function GenderDropdown({
         () =>
             metadata.genders.map((g) => ({
                 value: String(g.id),
-                label: g.name,
+                label: g.id === GENDER_ALL ? "Both sexes" : g.name,
             })),
         [metadata.genders]
     )
 
     return (
         <InlineLabeledDropdown
-            label="Gender"
+            label="Sex"
             options={options}
             selectedValue={String(genderId)}
             onChange={(v) => setGenderId(Number(v) as GenderId)}
-            placeholder="Select gender…"
-            aria-label="Select gender"
+            placeholder="Select sex…"
+            aria-label="Select sex"
         />
     )
 }

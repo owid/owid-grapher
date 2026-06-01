@@ -29,6 +29,7 @@ import {
     formatPeople,
     formatShare,
     getGenderAdjective,
+    getGenderNoun,
 } from "../helpers.js"
 
 export function MigrationSankey({
@@ -192,6 +193,7 @@ function buildSankeyHalf({
             : `the ${shortEntityName}`
 
     const genderPrefix = adjective ? `${adjective} ` : ""
+    const genderNoun = getGenderNoun(adjective)
 
     const heading: SankeyHalfHeading = hasData
         ? {
@@ -201,6 +203,7 @@ function buildSankeyHalf({
                   shortEntityNameWithArticle,
                   isPairedSentence,
                   genderAdjective: headingAdjective,
+                  view,
               }),
               arrowSide,
           }
@@ -208,8 +211,8 @@ function buildSankeyHalf({
               label:
                   view === "both"
                       ? isIncoming
-                          ? `No ${genderPrefix}immigrants lived in ${shortEntityNameWithArticle}`
-                          : `No ${genderPrefix}emigrants from ${shortEntityNameWithArticle} lived abroad`
+                          ? `No ${genderNoun} in ${shortEntityNameWithArticle} were born elsewhere`
+                          : `No ${genderNoun} born in ${shortEntityNameWithArticle} live abroad`
                       : isIncoming
                         ? `No ${genderPrefix}immigrants`
                         : `No ${genderPrefix}emigrants`,
@@ -226,9 +229,13 @@ function buildSankeyHalf({
     const empty = !hasData ? (
         <EmptyHalf
             message={
-                isIncoming
-                    ? `No ${genderPrefix}immigrants recorded in ${R.capitalize(shortEntityNameWithArticle)} in ${year}`
-                    : `No ${genderPrefix}emigrants from ${R.capitalize(shortEntityNameWithArticle)} recorded in ${year}`
+                view === "both"
+                    ? isIncoming
+                        ? `No ${genderNoun} in ${R.capitalize(shortEntityNameWithArticle)} were born elsewhere in ${year}`
+                        : `No ${genderNoun} born in ${R.capitalize(shortEntityNameWithArticle)} lived abroad in ${year}`
+                    : isIncoming
+                      ? `No ${genderPrefix}immigrants recorded in ${R.capitalize(shortEntityNameWithArticle)} in ${year}`
+                      : `No ${genderPrefix}emigrants from ${R.capitalize(shortEntityNameWithArticle)} recorded in ${year}`
             }
             cta={cta}
         />
@@ -254,15 +261,25 @@ function makeHeadingLabel({
     shortEntityNameWithArticle,
     isPairedSentence,
     genderAdjective,
+    view,
 }: {
     direction: "incoming" | "outgoing"
     total: number
     shortEntityNameWithArticle: string
     isPairedSentence: boolean
     genderAdjective?: string
+    view: MigrationView
 }): string {
     const count = formatPeople(total, { unit: false })
     const genderPrefix = genderAdjective ? `${genderAdjective} ` : ""
+    if (view === "both") {
+        const peopleNoun = getGenderNoun(genderAdjective)
+        if (direction === "incoming") {
+            return `${count} ${peopleNoun} in ${shortEntityNameWithArticle} were born elsewhere`
+        }
+        const prefix = isPairedSentence ? "and " : ""
+        return `${prefix}${count} ${peopleNoun} born in ${shortEntityNameWithArticle} live abroad`
+    }
     if (direction === "incoming") {
         return `${count} ${genderPrefix}immigrants lived in ${shortEntityNameWithArticle}`
     }

@@ -37,7 +37,12 @@ import {
     MigrationView,
 } from "../types.js"
 import { useMigrationData, useMigrationMetadata } from "../data.js"
-import { genderFromId, getGenderAdjective } from "../helpers.js"
+import {
+    formatPeople,
+    genderFromId,
+    getGenderAdjective,
+    getGenderNoun,
+} from "../helpers.js"
 import { MigrationChart } from "../components/MigrationChart.js"
 import { MigrationControls } from "../components/MigrationControls.js"
 
@@ -293,11 +298,12 @@ function CaptionedSankeyVariant({
                 <>
                     <header className="migration-heading">
                         <h1 className="migration-heading__title">
-                            Where do migrants live, and where are they from?
+                            Where do migrants live, and where did they move
+                            from?
                         </h1>
                         <p className="migration-heading__description">
-                            Where international migrants live, by country of
-                            birth
+                            Based on the total migrant population living in
+                            another country, not annual migration flows.
                         </p>
                     </header>
                     <MigrationControls
@@ -322,6 +328,8 @@ function CaptionedSankeyVariant({
                     year={year}
                     gender={gender}
                     view={view}
+                    immigrantsTotal={immigrantsTotal}
+                    emigrantsTotal={emigrantsTotal}
                 />
                 <MigrationChart
                     immigrants={immigrants}
@@ -347,26 +355,32 @@ function MigrationChartHeader({
     year,
     gender,
     view,
+    immigrantsTotal,
+    emigrantsTotal,
 }: {
     config: SankeyVariantConfig
     country: string
     year: number
     gender: Gender
     view: MigrationView
+    immigrantsTotal: number
+    emigrantsTotal: number
 }) {
     const countryArticulated = articulateEntity(country)
 
     const adjective = getGenderAdjective(gender)
-    const lead = adjective ? `${R.capitalize(adjective)} ` : ""
-    const immigrantsWord = adjective ? "immigrants" : "Immigrants"
-    const emigrantsWord = adjective ? "emigrants" : "Emigrants"
+    const genderPrefix = adjective ? `${adjective} ` : ""
+    const peopleNoun = getGenderNoun(adjective)
+
+    const immigrantsCount = formatPeople(immigrantsTotal, { unit: false })
+    const emigrantsCount = formatPeople(emigrantsTotal, { unit: false })
 
     const defaultTitle =
         view === "immigrants"
-            ? `${lead}${immigrantsWord} living in ${countryArticulated} in ${year}`
+            ? `${immigrantsCount} ${peopleNoun} living in ${countryArticulated} in ${year} were born in another country. Where were they born?`
             : view === "emigrants"
-              ? `${lead}${emigrantsWord} from ${countryArticulated} living abroad in ${year}`
-              : `${lead}${immigrantsWord} and emigrants of ${countryArticulated} in ${year}`
+              ? `${emigrantsCount} ${peopleNoun} born in ${countryArticulated} lived abroad in ${year}. Where did they live?`
+              : `Where ${genderPrefix}immigrants in ${countryArticulated} came from, and where its emigrants lived in ${year}`
 
     return (
         <ChartHeader
@@ -380,7 +394,7 @@ function MigrationChartFooter({ source }: { source: string }) {
     return (
         <ChartFooter
             source={source}
-            note='Only the top ten partners are shown; remainder grouped as "Other".'
+            note='Only the top ten partners are named; the remainder are grouped as "Other". Figures represent migrant stocks — the number of migrants living in a country at a given time — not annual flows.'
         />
     )
 }
