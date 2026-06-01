@@ -282,10 +282,7 @@ export async function getDataset(
                 : []
 
             Object.assign(v, {
-                chartsCount,
                 charts,
-                multiDimCount,
-                explorersCount,
                 usageCount: chartsCount + multiDimCount + explorersCount,
                 multiDims,
                 explorerSlugs,

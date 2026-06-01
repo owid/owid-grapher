@@ -18,10 +18,7 @@ export interface VariableListItem {
     uploadedBy?: string
     isPrivate?: boolean
     nonRedistributable?: boolean
-    chartsCount?: number
     charts?: { id: number; slug: string | null; title: string | null }[]
-    multiDimCount?: number
-    explorersCount?: number
     usageCount?: number
     multiDims?: { id: number; slug: string }[]
     explorerSlugs?: string[]
@@ -40,6 +37,9 @@ class VariableRow extends React.Component<VariableRowProps> {
 
     override render() {
         const { variable, fields, searchHighlight } = this.props
+        const chartsCount = variable.charts?.length ?? 0
+        const multiDimCount = variable.multiDims?.length ?? 0
+        const explorersCount = variable.explorerSlugs?.length ?? 0
 
         return (
             <tr>
@@ -95,10 +95,10 @@ class VariableRow extends React.Component<VariableRowProps> {
                         {(variable.usageCount ?? 0) > 0 ? (
                             <>
                                 {variable.usageCount} (
-                                {(variable.charts?.length ?? 0) > 0 ? (
+                                {chartsCount > 0 ? (
                                     <Popover
-                                        title={`Used in ${variable.chartsCount ?? 0} ${
-                                            variable.chartsCount === 1
+                                        title={`Used in ${chartsCount} ${
+                                            chartsCount === 1
                                                 ? "chart"
                                                 : "charts"
                                         }`}
@@ -127,24 +127,24 @@ class VariableRow extends React.Component<VariableRowProps> {
                                             style={{ cursor: "help" }}
                                             className="text-decoration-underline"
                                         >
-                                            {variable.chartsCount}C
+                                            {chartsCount}C
                                         </span>
                                     </Popover>
                                 ) : (
                                     <span
-                                        title={`Used in ${variable.chartsCount ?? 0} ${
-                                            variable.chartsCount === 1
+                                        title={`Used in ${chartsCount} ${
+                                            chartsCount === 1
                                                 ? "chart"
                                                 : "charts"
                                         }`}
                                     >
-                                        {variable.chartsCount}C
+                                        {chartsCount}C
                                     </span>
                                 )}{" "}
-                                {(variable.multiDims?.length ?? 0) > 0 ? (
+                                {multiDimCount > 0 ? (
                                     <Popover
-                                        title={`Used in ${variable.multiDimCount ?? 0} ${
-                                            variable.multiDimCount === 1
+                                        title={`Used in ${multiDimCount} ${
+                                            multiDimCount === 1
                                                 ? "multi-dim"
                                                 : "multi-dims"
                                         }`}
@@ -168,24 +168,24 @@ class VariableRow extends React.Component<VariableRowProps> {
                                             style={{ cursor: "help" }}
                                             className="text-decoration-underline"
                                         >
-                                            {variable.multiDimCount}M
+                                            {multiDimCount}M
                                         </span>
                                     </Popover>
                                 ) : (
                                     <span
-                                        title={`Used in ${variable.multiDimCount ?? 0} ${
-                                            variable.multiDimCount === 1
+                                        title={`Used in ${multiDimCount} ${
+                                            multiDimCount === 1
                                                 ? "multi-dim"
                                                 : "multi-dims"
                                         }`}
                                     >
-                                        {variable.multiDimCount}M
+                                        {multiDimCount}M
                                     </span>
                                 )}{" "}
-                                {(variable.explorerSlugs?.length ?? 0) > 0 ? (
+                                {explorersCount > 0 ? (
                                     <Popover
-                                        title={`Used in ${variable.explorersCount ?? 0} path-based ${
-                                            variable.explorersCount === 1
+                                        title={`Used in ${explorersCount} path-based ${
+                                            explorersCount === 1
                                                 ? "explorer"
                                                 : "explorers"
                                         }`}
@@ -209,18 +209,18 @@ class VariableRow extends React.Component<VariableRowProps> {
                                             style={{ cursor: "help" }}
                                             className="text-decoration-underline"
                                         >
-                                            {variable.explorersCount}E
+                                            {explorersCount}E
                                         </span>
                                     </Popover>
                                 ) : (
                                     <span
-                                        title={`Used in ${variable.explorersCount ?? 0} path-based ${
-                                            variable.explorersCount === 1
+                                        title={`Used in ${explorersCount} path-based ${
+                                            explorersCount === 1
                                                 ? "explorer"
                                                 : "explorers"
                                         }`}
                                     >
-                                        {variable.explorersCount}E
+                                        {explorersCount}E
                                     </span>
                                 )}
                                 )
