@@ -37,7 +37,8 @@ class VariableRow extends React.Component<VariableRowProps> {
 
     override render() {
         const { variable, fields, searchHighlight } = this.props
-        const chartsCount = variable.charts?.length ?? 0
+        const charts = variable.charts ?? []
+        const chartsCount = charts.length
         const multiDimCount = variable.multiDims?.length ?? 0
         const explorersCount = variable.explorerSlugs?.length ?? 0
 
@@ -103,23 +104,27 @@ class VariableRow extends React.Component<VariableRowProps> {
                                                 : "charts"
                                         }`}
                                         content={
-                                            <ul className="list-unstyled mb-0">
-                                                {variable.charts!.map(
-                                                    (chart) => (
-                                                        <li key={chart.id}>
-                                                            <a
-                                                                href={`/admin/charts/${chart.id}/edit`}
-                                                                title={
-                                                                    chart.title ||
-                                                                    undefined
-                                                                }
-                                                            >
-                                                                {chart.slug ||
-                                                                    `Chart #${chart.id}`}
-                                                            </a>
-                                                        </li>
-                                                    )
-                                                )}
+                                            <ul
+                                                className="list-unstyled mb-0"
+                                                style={{
+                                                    maxHeight: "80vh",
+                                                    overflowY: "auto",
+                                                }}
+                                            >
+                                                {charts.map((chart) => (
+                                                    <li key={chart.id}>
+                                                        <a
+                                                            href={`/admin/charts/${chart.id}/edit`}
+                                                            title={
+                                                                chart.title ||
+                                                                undefined
+                                                            }
+                                                        >
+                                                            {chart.slug ||
+                                                                `Chart #${chart.id}`}
+                                                        </a>
+                                                    </li>
+                                                ))}
                                             </ul>
                                         }
                                     >
