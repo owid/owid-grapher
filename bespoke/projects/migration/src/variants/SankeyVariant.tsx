@@ -16,7 +16,10 @@ import { articulateEntity } from "@ourworldindata/utils"
 import { Frame } from "../../../../components/Frame/Frame.js"
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
-import { assignColors } from "../../../../components/Sankey/helpers.js"
+import {
+    assignColors,
+    OTHER_KEY,
+} from "../../../../components/Sankey/helpers.js"
 import { MOBILE_BREAKPOINT } from "../../../../components/Sankey/SplitFlowSankey.js"
 import { useUrlState } from "../../../../hooks/useUrlState.js"
 import { useContainerWidth } from "../../../../hooks/useContainerWidth.js"
@@ -192,7 +195,7 @@ function FetchingSankeyVariant({ config }: { config: SankeyVariantConfig }) {
             R.sortBy([(p) => p[1], "desc"]),
             R.map(([name]) => name)
         )
-        return assignColors(ordered)
+        return assignColors([...ordered, OTHER_KEY])
     }, [migration])
 
     // When the selected country only migrates in one direction for the
