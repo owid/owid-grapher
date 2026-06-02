@@ -49,24 +49,14 @@ export function MigrationSankey({
     country: string
     year: number
     gender: Gender
-    /** Pre-computed totals used in the column headers. */
     immigrantsTotal: number
     emigrantsTotal: number
-    /** Which halves to show. Single-half views drop their heading and take
-     * the full width. */
     view?: MigrationView
-    /** Lets the empty-half CTA flip the user to the half that has data. */
     setView: (view: MigrationView) => void
-    /** Country-scoped partner → color map for stable colors across
-     *  year/gender changes. Recomputed by the parent when country
-     *  changes. */
     colorMap?: Map<string, string>
 }) {
     const { parentRef, width, height } = useParentSize()
 
-    // Convert filtered domain rows to the central-anchored Flow shape the
-    // sankey expects. Memoized so SplitFlowSankey's downstream useMemo
-    // doesn't rebuild on every render.
     const incomingFlows = useMemo(
         () =>
             immigrants.map<Flow>((f) => ({
@@ -89,10 +79,6 @@ export function MigrationSankey({
     const isStacked = width > 0 && width < MOBILE_BREAKPOINT
     const noImmigrants = incomingFlows.length === 0
     const noEmigrants = outgoingFlows.length === 0
-    // When both halves are visible side-by-side AND both have data, the
-    // right heading leads with "and …" so it reads as a continuation of
-    // the left. In single-half views, stacked layouts, and one-side-empty
-    // cases, both headings are standalone — no "and".
     const isPairedSentence =
         view === "both" && !isStacked && !noImmigrants && !noEmigrants
 
@@ -168,7 +154,6 @@ function buildSankeyHalf({
     view: MigrationView
     isPairedSentence: boolean
     gender: Gender
-    /** Whether the other half has data — drives the empty-state CTA. */
     otherHasData: boolean
     setView: (view: MigrationView) => void
 }) {
@@ -183,9 +168,6 @@ function buildSankeyHalf({
     const headingAdjective =
         isPairedSentence && !isIncoming ? undefined : adjective
 
-    // Heading uses the short name (e.g. "USA" instead of "United States") but
-    // keeps the "the" article when the full name calls for one — so "the
-    // United States" becomes "the USA" rather than dropping the article.
     const shortEntityName = getEntityShortLabel(country)
     const shortEntityNameWithArticle =
         articulateEntity(country) === country
@@ -321,9 +303,6 @@ function getMigrationLinkTooltip({
 }): SankeyTooltip {
     const isOther = !!otherBreakdown
 
-    // For "Other" links, replace the "Country → Country" arrow with a
-    // short noun phrase naming the long-tail bucket. Which role
-    // (origins / destinations) is determined by the half's direction.
     const otherTitle =
         direction === "incoming" ? "Other origins" : "Other destinations"
     const title = isOther

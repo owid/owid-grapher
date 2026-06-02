@@ -211,8 +211,6 @@ function FetchingSankeyVariant({ config }: { config: SankeyVariantConfig }) {
           ? "emigrants"
           : _view
 
-    // The disabled-switcher tooltip explains *why* the other half is
-    // unpickable. Undefined when both halves have data (switcher enabled).
     const countryLabel = R.capitalize(articulateEntity(country))
     const viewDisabledReason: string | undefined = onlyImmigrants
         ? `No emigrants from ${countryLabel} recorded in ${year}.`

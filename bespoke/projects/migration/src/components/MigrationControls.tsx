@@ -80,8 +80,6 @@ export function MigrationControls({
     genderId: GenderId
     year: number
     view: MigrationView
-    /** Reason text for the disabled-switcher tooltip. Undefined when the
-     *  switcher is enabled (both halves have data). */
     viewDisabledReason?: string
     hideFlowSwitcher?: boolean
     setCountry: (name: string) => void
@@ -131,9 +129,6 @@ function CountryDropdown({
     country: string
     setCountry: (name: string) => void
 }) {
-    // Country options are keyed by name so groupByUserLocation can match
-    // the user's home country (also keyed by name in the geo lookup) and
-    // surface it at the top.
     const { data: userCountryInfo } = useUserCountryInformation()
     const options = useMemo<DropdownCollection>(() => {
         const flat: BasicDropdownOption[] = metadata.entities

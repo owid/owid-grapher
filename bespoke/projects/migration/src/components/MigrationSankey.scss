@@ -1,14 +1,10 @@
 .migration-sankey {
     width: 100%;
     height: 100%;
-    // Cap on wide screens so labels don't drift too far from the flows.
-    // Centered within the column when the cap kicks in.
     max-width: 1000px;
     margin-inline: auto;
 }
 
-// Single-half views (immigrants-only / emigrants-only) carry just one chart,
-// so the same wide cap leaves too much empty space — tighten it.
 .migration-sankey--single {
     max-width: 600px;
 }
@@ -21,9 +17,6 @@
     fill: $light-text;
 }
 
-// Centered "no immigrants/emigrants" placeholder that fills an empty half.
-// Used in both single-half views (with a CTA, once wired up) and both-view
-// when one half is empty (text only).
 .migration-sankey__empty-half {
     width: 100%;
     height: 100%;
