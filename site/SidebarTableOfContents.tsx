@@ -1,8 +1,22 @@
-import { useMemo, ReactNode } from "react"
+import {
+    createContext,
+    useContext,
+    useEffect,
+    useMemo,
+    useState,
+    ReactNode,
+} from "react"
+import { ModalOverlay, Modal, Dialog } from "react-aria-components"
+import { useMediaQuery } from "usehooks-ts"
 import cx from "classnames"
 import Tippy from "@tippyjs/react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faArrowUp, faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons"
+import {
+    faArrowUp,
+    faMagnifyingGlass,
+    faListUl,
+    faXmark,
+} from "@fortawesome/free-solid-svg-icons"
 import { Toc, TocChartEntry, TocSidebarSection, queryParamsToStr, Url, } from "@ourworldindata/utils"
 import {
     ChartConfigType,
@@ -19,10 +33,19 @@ import { SiteAnalytics } from "./SiteAnalytics.js"
 
 const analytics = new SiteAnalytics()
 
+// Mirrors $sidebar-toc-breakpoint in SidebarTableOfContents.scss: at/below this
+// width the mobile pill + mobile drawer replace the desktop sidebar.
+const SIDEBAR_TOC_BREAKPOINT = 1200
+
 // Scroll-spy state threaded through the section/bullet tree.
 interface TocNavProps {
     activeId: string
 }
+
+// Navigating via any TOC link (or Back to top) must dismiss the mobile drawer.
+// Only the mobile drawer provides a value; in the desktop sidebar there's
+// nothing to dismiss, so links there are plain anchors.
+const TocNavigateContext = createContext<(() => void) | undefined>(undefined)
 
 const chartBulletLabel = (linkedChart: LinkedChart): string => {
     const isDataExplorer =
@@ -58,6 +81,16 @@ export const SidebarTableOfContents = ({
     )
     const activeId = useTocScrollSpy(spyIds)
     const isWideBlockInView = useWideBlockInView()
+    const [isDrawerOpen, setIsDrawerOpen] = useState(false)
+    // Close the mobile drawer if the viewport grows to desktop (resize /
+    // rotate / zoom) so it isn't stranded over the sidebar.
+    const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false)
+    const isDesktop = useMediaQuery(
+        `(min-width: ${SIDEBAR_TOC_BREAKPOINT + 1}px)`
+    )
+    useEffect(() => {
+        if (isDesktop) setIsMobileDrawerOpen(false)
+    }, [isDesktop])
 
     // No H1 sections → no sidebar. This is intentional: an LTP with no H1s is
     // an editorial fix, not a runtime fallback.
@@ -65,10 +98,14 @@ export const SidebarTableOfContents = ({
 
     return (
         <div className="sidebar-toc">
-            <nav className={cx("sidebar-toc__sidebar", {
-                "sidebar-toc__sidebar--wide-in-view": wideBlockInView,
-            })} aria-label="Table of contents">
-                <TocBody
+            <nav
+                className={cx("sidebar-toc__sidebar", {
+                    "sidebar-toc__sidebar--wide-in-view": wideBlockInView,
+                })}
+                aria-label="Table of contents"
+            >
+                <BackToTop />
+                <TocSections
                     sections={sections}
                     tagName={tagName}
                     activeId={activeId}
@@ -86,11 +123,87 @@ export const SidebarTableOfContents = ({
                     />
                 </div>
             </nav>
+
+            <button
+                className="sidebar-toc__mobile-pill"
+                onClick={() => setIsMobileDrawerOpen(true)}
+                aria-haspopup="dialog"
+                aria-expanded={isMobileDrawerOpen}
+                data-track-note="toc_expand"
+            >
+                <FontAwesomeIcon icon={faListUl} />
+                Contents
+            </button>
+
+            {/* react-aria Modal: portals out of the article grid's stacking
+                contexts, traps + restores focus, locks body scroll, and closes
+                on Escape / outside click (isDismissable). Mounted only while
+                open, keeping Tippy/preview machinery dormant. */}
+            <ModalOverlay
+                className="sidebar-toc__mobile-drawer-overlay"
+                isOpen={isMobileDrawerOpen}
+                onOpenChange={setIsMobileDrawerOpen}
+                isDismissable
+            >
+                <Modal className="sidebar-toc__mobile-drawer-modal">
+                    <Dialog
+                        className="sidebar-toc__mobile-drawer"
+                        aria-label="Table of contents"
+                    >
+                        {({ close }) => (
+                            <TocNavigateContext.Provider value={close}>
+                                <div className="sidebar-toc__mobile-drawer-header">
+                                    <BackToTop />
+                                    <button
+                                        className="sidebar-toc__mobile-drawer-close"
+                                        onClick={close}
+                                        aria-label="Close table of contents"
+                                    >
+                                        <FontAwesomeIcon icon={faXmark} />
+                                    </button>
+                                </div>
+                                <TocSections
+                                    sections={sections}
+                                    tagName={tagName}
+                                    activeId={activeId}
+                                />
+                            </TocNavigateContext.Provider>
+                        )}
+                    </Dialog>
+                </Modal>
+            </ModalOverlay>
         </div>
     )
 }
 
-const TocBody = ({
+const BackToTop = () => {
+    const onNavigate = useContext(TocNavigateContext)
+    return (
+        <a
+            className="sidebar-toc__back-to-top"
+            href="#"
+            // Own the scroll instead of relying on the bare "#" default, which
+            // appends "#" to the URL and pushes a history entry.
+            onClick={(e) => {
+                e.preventDefault()
+                const reduceMotion = window.matchMedia(
+                    "(prefers-reduced-motion: reduce)"
+                ).matches
+                window.scrollTo({
+                    top: 0,
+                    behavior: reduceMotion ? "auto" : "smooth",
+                })
+                onNavigate?.()
+            }}
+            data-track-note="toc_back_to_top"
+        >
+            <FontAwesomeIcon icon={faArrowUp} />
+            Back to top
+        </a>
+    )
+}
+
+const TocSections = ({
     sections,
     tagName,
     activeId,
@@ -100,14 +213,6 @@ const TocBody = ({
 } & TocNavProps) => {
     return (
         <>
-            <a
-                className="sidebar-toc__back-to-top"
-                href="#"
-                data-track-note="toc_back_to_top"
-            >
-                <FontAwesomeIcon icon={faArrowUp} />
-                Back to top
-            </a>
             {sections.map((section, i) => (
                 // Index-qualified: two H1s can slug identically (no dedup).
                 <SectionGroup
@@ -125,6 +230,7 @@ const SectionGroup = ({
     section,
     activeId,
 }: { section: TocSidebarSection } & TocNavProps) => {
+    const onNavigate = useContext(TocNavigateContext)
     const { heading, charts } = section
     return (
         <div
@@ -135,6 +241,7 @@ const SectionGroup = ({
             <a
                 className="sidebar-toc__h1"
                 href={`#${heading.slug}`}
+                onClick={onNavigate}
                 data-track-note="toc_link"
                 aria-current={
                     activeId === heading.slug ? "location" : undefined
@@ -253,12 +360,14 @@ const Bullet = ({
     previewUrl: string
     visibility?: Extract<TocChartEntry, { kind: "chart" }>["visibility"]
 } & TocNavProps) => {
+    const onNavigate = useContext(TocNavigateContext)
     const { archiveContext } = useDocumentContext()
     const isOnArchivalPage = archiveContext?.type === "archive-page"
 
     const link = (
         <a
             href={`#${anchorId}`}
+            onClick={onNavigate}
             data-track-note="toc_link"
             aria-current={activeId === anchorId ? "location" : undefined}
         >
