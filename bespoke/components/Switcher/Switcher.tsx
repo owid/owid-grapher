@@ -13,14 +13,14 @@ export function Switcher<Key extends string = string>({
     onChange,
     className,
     isDisabled,
-    "aria-label": ariaLabel,
+    ariaLabel,
 }: {
     items: SwitcherItem<Key>[]
     selectedKey: Key
     onChange: (key: Key) => void
     className?: string
     isDisabled?: boolean
-    "aria-label"?: string
+    ariaLabel?: string
 }): React.ReactElement {
     return (
         <RadioGroup

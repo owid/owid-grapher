@@ -327,7 +327,7 @@ function ViewSwitcher({
                     selectedKey={view}
                     onChange={setView}
                     isDisabled={isViewDisabled}
-                    aria-label="Trade flow"
+                    ariaLabel="Trade flow"
                 />
             </div>
         </Tippy>

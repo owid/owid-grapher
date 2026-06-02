@@ -19,13 +19,8 @@ import {
     STACKED_VERTICAL_PADDING,
 } from "./SplitFlowSankey.js"
 
-// All tests use this as the central entity. Mirrors `buildHalf`'s structure:
-// partner nodes carry an "in:"/"out:" prefix to disambiguate same-name partners
-// across the two halves; the central node is shared.
-const CENTRAL = "X"
+const CENTRAL_NODE_NAME = "centralNode"
 
-// Build a minimal half (n partners with the given values + the central node),
-// shaped exactly like `buildHalf` so d3-sankey lays it out the same way.
 function makeBuild({
     side,
     partnerValues,
@@ -41,20 +36,17 @@ function makeBuild({
     }))
     const links: SankeyLink[] = partnerValues.map((value, i) =>
         isIncoming
-            ? { source: `${prefix}p${i}`, target: CENTRAL, value }
-            : { source: CENTRAL, target: `${prefix}p${i}`, value }
+            ? { source: `${prefix}p${i}`, target: CENTRAL_NODE_NAME, value }
+            : { source: CENTRAL_NODE_NAME, target: `${prefix}p${i}`, value }
     )
-    const centralNode: SankeyNode = { id: CENTRAL, label: "" }
+    const centralNode: SankeyNode = { id: CENTRAL_NODE_NAME, label: "" }
     const nodes = isIncoming
         ? [...partners, centralNode]
         : [centralNode, ...partners]
     return { nodes, links }
 }
 
-// Run d3-sankey on a build using the same options Sankey.tsx uses (extent,
-// nodePadding, nodeSort, iterations) and return the realized value-to-pixel
-// scale `ky`. ky is constant across all nodes in a layout, so we read it off
-// the first node (its band height divided by its value).
+// Mirror Sankey.tsx layout options and read realized value-to-pixel scale (ky).
 function realizedKy({
     build,
     width,
@@ -95,11 +87,10 @@ const DEFAULT_CHART_HEIGHT = 480
 const defaultOpts = {
     chartHeight: DEFAULT_CHART_HEIGHT,
     isSingleHalf: false,
-    centralEntity: CENTRAL,
+    centralEntity: CENTRAL_NODE_NAME,
     fontSettings: DEFAULT_FONT_SETTINGS,
 }
 
-// Equal partner values summing to `total`.
 function equalSplit(total: number, n: number): number[] {
     return Array.from({ length: n }, () => total / n)
 }
@@ -116,8 +107,6 @@ describe("computeChartHeight (heading-aware chart space)", () => {
     })
 
     it("uses the single shown heading in single-half view", () => {
-        // A real heading shorter than the HEADING_HEIGHT fallback must win —
-        // i.e. the unmeasured (not-shown) half must not be counted here
         expect(
             computeChartHeight({
                 height: 500,
@@ -154,8 +143,6 @@ describe("computeChartHeight (heading-aware chart space)", () => {
             headingHeights: [20, 30],
         })
         expect(result).toBe((500 - 20 - 30 - STACKED_VERTICAL_PADDING) / 2)
-        // The stacked invariant computeHalfHeights relies on: 2 * chartHeight
-        // reconstructs the combined SVG space
         expect(2 * result).toBe(500 - 20 - 30 - STACKED_VERTICAL_PADDING)
     })
 
@@ -212,9 +199,7 @@ describe("computeHalfHeights (side-by-side)", () => {
     })
 
     it("yields the same ky when partner counts differ (regression: padding-aware sizing)", () => {
-        // Same total flow on both halves; the asymmetric partner count is
-        // the case where the old buggy formula under-counted vertical margin
-        // and made the shorter half ride a smaller ky.
+        // Regression case: equal totals, asymmetric partner counts.
         const incomingBuild = makeBuild({
             side: "incoming",
             partnerValues: equalSplit(100, 10),
@@ -305,9 +290,6 @@ describe("computeHalfHeights (side-by-side)", () => {
     })
 
     it("the more constrained half fills the available chartHeight", () => {
-        // Lots of partners on incoming → its padding overhead dominates,
-        // making it the limiting side. Its height should hit chartHeight;
-        // the outgoing half shrinks to maintain the same ky.
         const incomingBuild = makeBuild({
             side: "incoming",
             partnerValues: equalSplit(100, 12),
@@ -325,19 +307,75 @@ describe("computeHalfHeights (side-by-side)", () => {
         expect(h.incoming).toBeCloseTo(DEFAULT_CHART_HEIGHT, 6)
         expect(h.outgoing).toBeLessThan(DEFAULT_CHART_HEIGHT)
     })
+
+    it("keeps each non-degenerate half within (0, chartHeight]", () => {
+        const incomingBuild = makeBuild({
+            side: "incoming",
+            partnerValues: [60, 20, 10, 10],
+        })
+        const outgoingBuild = makeBuild({
+            side: "outgoing",
+            partnerValues: [30, 12, 5, 3],
+        })
+        const h = computeHalfHeights({
+            ...defaultOpts,
+            isStacked: false,
+            incomingBuild,
+            outgoingBuild,
+        })
+
+        expect(h.incoming).toBeGreaterThan(0)
+        expect(h.outgoing).toBeGreaterThan(0)
+        expect(h.incoming).toBeLessThanOrEqual(DEFAULT_CHART_HEIGHT)
+        expect(h.outgoing).toBeLessThanOrEqual(DEFAULT_CHART_HEIGHT)
+        expect(Math.max(h.incoming, h.outgoing)).toBeCloseTo(
+            DEFAULT_CHART_HEIGHT,
+            6
+        )
+    })
+
+    it("is symmetric when incoming/outgoing distributions are swapped", () => {
+        const incomingA = [80, 5, 5, 5, 3, 2]
+        const outgoingB = [40, 8, 2]
+
+        const hAB = computeHalfHeights({
+            ...defaultOpts,
+            isStacked: false,
+            incomingBuild: makeBuild({
+                side: "incoming",
+                partnerValues: incomingA,
+            }),
+            outgoingBuild: makeBuild({
+                side: "outgoing",
+                partnerValues: outgoingB,
+            }),
+        })
+
+        const hBA = computeHalfHeights({
+            ...defaultOpts,
+            isStacked: false,
+            incomingBuild: makeBuild({
+                side: "incoming",
+                partnerValues: outgoingB,
+            }),
+            outgoingBuild: makeBuild({
+                side: "outgoing",
+                partnerValues: incomingA,
+            }),
+        })
+
+        expect(hAB.incoming).toBeCloseTo(hBA.outgoing, 6)
+        expect(hAB.outgoing).toBeCloseTo(hBA.incoming, 6)
+    })
 })
 
 describe("computeHalfHeights (stacked)", () => {
-    // Stacked mode uses smaller font settings. The fix made the per-cell
-    // overhead font-aware, so the test mirrors what the real component does.
     const STACKED_FONT: FontSettings = {
         fontSize: 10.5,
         fontWeight: 400,
         lineHeight: 1,
     }
     const stackedOpts = { ...defaultOpts, fontSettings: STACKED_FONT }
-    // In stacked mode each row is half of `chartHeight` in the component;
-    // for the test we just plug the per-cell value directly.
     const STACKED_CELL_HEIGHT = 200
 
     it("yields the same ky across the two stacked halves", () => {
@@ -387,10 +425,39 @@ describe("computeHalfHeights (stacked)", () => {
             incomingBuild,
             outgoingBuild,
         })
-        // Combined cell space == 2 * per-cell chartHeight (the stacked
-        // formula's invariant: SVGs sit flush in the two grid rows with no
-        // wasted space, unlike side-by-side where the shorter SVG just sits
-        // shorter inside its equal-height cell).
+        expect(h.incoming + h.outgoing).toBeCloseTo(2 * STACKED_CELL_HEIGHT, 6)
+    })
+
+    it("preserves combined-space invariant for asymmetric totals and counts", () => {
+        const incomingBuild = makeBuild({
+            side: "incoming",
+            partnerValues: [80, 5, 5, 5, 3, 2],
+        })
+        const outgoingBuild = makeBuild({
+            side: "outgoing",
+            partnerValues: [12, 8],
+        })
+        const h = computeHalfHeights({
+            ...stackedOpts,
+            chartHeight: STACKED_CELL_HEIGHT,
+            isStacked: true,
+            incomingBuild,
+            outgoingBuild,
+        })
+        const kyIn = realizedKy({
+            build: incomingBuild,
+            width: DEFAULT_WIDTH,
+            height: h.incoming,
+            fontSettings: STACKED_FONT,
+        })
+        const kyOut = realizedKy({
+            build: outgoingBuild,
+            width: DEFAULT_WIDTH,
+            height: h.outgoing,
+            fontSettings: STACKED_FONT,
+        })
+
+        expect(kyIn).toBeCloseTo(kyOut, 6)
         expect(h.incoming + h.outgoing).toBeCloseTo(2 * STACKED_CELL_HEIGHT, 6)
     })
 })
@@ -431,6 +498,51 @@ describe("computeHalfHeights (font sensitivity)", () => {
                 fontSettings,
             })
             expect(kyIn).toBeCloseTo(kyOut, 6)
+        }
+    })
+
+    it("matching ky also holds in stacked mode across fonts", () => {
+        const incomingBuild = makeBuild({
+            side: "incoming",
+            partnerValues: [60, 20, 10, 10],
+        })
+        const outgoingBuild = makeBuild({
+            side: "outgoing",
+            partnerValues: [25, 15, 10],
+        })
+
+        for (const fontSettings of [
+            DEFAULT_FONT_SETTINGS,
+            {
+                fontSize: 8,
+                fontWeight: 400,
+                lineHeight: 1.2,
+            } as FontSettings,
+        ]) {
+            const chartHeight = 180
+            const h = computeHalfHeights({
+                ...defaultOpts,
+                chartHeight,
+                fontSettings,
+                isStacked: true,
+                incomingBuild,
+                outgoingBuild,
+            })
+            const kyIn = realizedKy({
+                build: incomingBuild,
+                width: DEFAULT_WIDTH,
+                height: h.incoming,
+                fontSettings,
+            })
+            const kyOut = realizedKy({
+                build: outgoingBuild,
+                width: DEFAULT_WIDTH,
+                height: h.outgoing,
+                fontSettings,
+            })
+
+            expect(kyIn).toBeCloseTo(kyOut, 6)
+            expect(h.incoming + h.outgoing).toBeCloseTo(2 * chartHeight, 6)
         }
     })
 })
@@ -485,6 +597,31 @@ describe("computeHalfHeights (degenerate cases)", () => {
         ).toEqual({
             incoming: DEFAULT_CHART_HEIGHT,
             outgoing: DEFAULT_CHART_HEIGHT,
+        })
+    })
+
+    it("returns chartHeight for both halves when stacked ky would be non-positive", () => {
+        const crowdedIn = makeBuild({
+            side: "incoming",
+            partnerValues: equalSplit(10, 20),
+        })
+        const crowdedOut = makeBuild({
+            side: "outgoing",
+            partnerValues: equalSplit(10, 20),
+        })
+
+        const chartHeight = 80
+        expect(
+            computeHalfHeights({
+                ...defaultOpts,
+                chartHeight,
+                isStacked: true,
+                incomingBuild: crowdedIn,
+                outgoingBuild: crowdedOut,
+            })
+        ).toEqual({
+            incoming: chartHeight,
+            outgoing: chartHeight,
         })
     })
 })

@@ -10,8 +10,6 @@ import {
     TradeRow,
 } from "./types.js"
 
-// TODO: drop ?nocache
-
 const BASE_URL = "https://owid-public.owid.io/data/food-trade"
 const METADATA_PATH = `${BASE_URL}/food-trade.metadata.json`
 const PRODUCT_DATA_PATH = (productId: number) =>
@@ -29,7 +27,7 @@ export const useFoodTradeMetadata = (): {
 } => {
     const result = useQuery({
         queryKey: queryKeys.metadata(),
-        queryFn: () => fetchJson<MetadataJson>(METADATA_PATH + "?nocache"),
+        queryFn: () => fetchJson<MetadataJson>(METADATA_PATH),
         staleTime: Infinity, // Never refetch
     })
 
@@ -47,8 +45,7 @@ export const useProductTradeData = (
 } => {
     const result = useQuery({
         queryKey: queryKeys.product(productId!),
-        queryFn: () =>
-            fetchJson<ProductJson>(PRODUCT_DATA_PATH(productId!) + "?nocache"),
+        queryFn: () => fetchJson<ProductJson>(PRODUCT_DATA_PATH(productId!)),
         enabled: productId !== undefined && metadata !== undefined,
         staleTime: Infinity, // Never refetch
         // Keep the previous product on screen while a new one loads,

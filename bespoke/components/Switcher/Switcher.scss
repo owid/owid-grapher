@@ -14,11 +14,6 @@ $switcher-visual-gap: 1px;
 
 .switcher__item {
     flex: 1 1 0;
-    // Floor on the item width so flex-shrinking doesn't crush short labels
-    // (e.g. "Imports") against the padding and trigger ellipsis. Items can
-    // still grow beyond this when the switcher has slack; only the minimum
-    // is constrained.
-    min-width: 64px;
     position: relative;
     display: flex;
     min-width: 0;

@@ -24,10 +24,6 @@
     color: $error-text-color;
 }
 
-// Narrow layout. The `breakpoint-narrow` modifier is added by
-// SankeyVariant.tsx when the chart drops below MOBILE_BREAKPOINT, standing
-// in for a CSS container query. Stacks the controls, shrinks the heading,
-// and drops the chart border so it reads as inline content rather than a card.
 .food-trade-chart--narrow .food-trade-controls__row {
     flex-direction: column;
     row-gap: 8px;
@@ -51,7 +47,6 @@
     padding: 8px 0 0;
 }
 
-// Trim the chart a little on narrow screens, where vertical space is tighter
 .food-trade-chart--narrow .food-trade-captioned-chart__chart-area {
     height: 380px;
 }
