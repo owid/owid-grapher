@@ -588,6 +588,12 @@ export async function getAllChartsForIndicator(
 /**
  * Returns the indicator ID to use for datapage metadata if the grapher is
  * eligible for a datapage, otherwise undefined.
+ *
+ * An explicit `datapages` row always wins when present — `forceDatapage` only
+ * comes into play when no row exists, in which case it falls back to the first
+ * y-dimension variable. Prevents `forceDatapage=true` from silently swapping
+ * the bake's primary variable on a chart that has an explicitly configured
+ * datapage indicator.
  */
 export async function getDatapageIndicatorId(
     knex: db.KnexReadonlyTransaction,
@@ -596,7 +602,24 @@ export async function getDatapageIndicatorId(
         forceDatapage?: boolean
     }
 ): Promise<number | undefined> {
-    // If a data page is forced, simply return the first y-dimension
+    if (grapher.id) {
+        const row = await knexRawFirst<DbPlainDatapage>(
+            knex,
+            `-- sql
+                SELECT variableId
+                FROM datapages
+                WHERE chartId = ?
+            `,
+            [grapher.id]
+        )
+        if (row) return row.variableId
+    } else if (!options?.forceDatapage) {
+        console.warn(
+            "Grapher must have an ID to check for datapage eligibility"
+        )
+        return undefined
+    }
+
     if (options?.forceDatapage) {
         const yVariableIds = grapher
             .dimensions!.filter((d) => d.property === DimensionProperty.y)
@@ -604,24 +627,7 @@ export async function getDatapageIndicatorId(
         return yVariableIds[0]
     }
 
-    if (!grapher.id) {
-        console.warn(
-            "Grapher must have an ID to check for datapage eligibility"
-        )
-        return undefined
-    }
-
-    const row = await knexRawFirst<DbPlainDatapage>(
-        knex,
-        `-- sql
-            SELECT variableId
-            FROM datapages
-            WHERE chartId = ?
-        `,
-        [grapher.id]
-    )
-
-    return row?.variableId
+    return undefined
 }
 
 // TODO: these are domain functions and should live somewhere else

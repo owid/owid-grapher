@@ -6,6 +6,8 @@ import {
     excludeUndefined,
     mergeGrapherConfigs,
     Url,
+    isUrlInActiveExperiment,
+    DATA_PAGE_METADATA_EXPERIMENT_ID,
 } from "@ourworldindata/utils"
 import fs from "fs-extra"
 import {
@@ -25,6 +27,7 @@ import {
     DimensionProperty,
     OwidVariableWithSource,
     OwidChartDimensionInterface,
+    AdditionalIndicator,
     FaqEntryData,
     ImageMetadata,
     DbPlainChart,
@@ -38,6 +41,7 @@ import {
     getVariableDistribution,
     getMergedGrapherConfigForVariable,
     getVariableOfDatapageIfApplicable,
+    getVariableMetadata,
 } from "../db/model/Variable.js"
 import {
     fetchAndParseFaqs,
@@ -102,6 +106,12 @@ const renderDatapageIfApplicable = async (
 
 /**
  * Render a datapage if available, otherwise render a grapher page.
+ *
+ * Charts enrolled in the data-page metadata experiment are forced to bake
+ * as data pages — otherwise an enrolled grapher that wouldn't normally
+ * qualify (e.g. one without a primary datapage indicator) would fall
+ * through to `renderGrapherPage` and never see the metadata-box treatment
+ * the experiment is supposed to test.
  */
 export const renderDataPageOrGrapherPage = async (
     grapher: GrapherInterface,
@@ -114,9 +124,17 @@ export const renderDataPageOrGrapherPage = async (
         archiveContextDictionary?: Record<number, ArchiveContext | undefined>
     } = {}
 ): Promise<string> => {
+    const forceDatapage =
+        !!grapher.slug &&
+        isUrlInActiveExperiment(
+            DATA_PAGE_METADATA_EXPERIMENT_ID,
+            `/grapher/${grapher.slug}`
+        )
+
     const datapage = await renderDatapageIfApplicable(grapher, false, knex, {
         imageMetadataDictionary,
         archiveContextDictionary,
+        forceDatapage,
     })
     if (datapage) return datapage
     return renderGrapherPage(grapher, knex, {
@@ -159,30 +177,39 @@ export async function renderDataPageV2(
         ? mergeGrapherConfigs(grapherConfigForVariable ?? {}, pageGrapher ?? {})
         : (pageGrapher ?? {})
 
-    const faqDocIds = _.compact(
-        _.uniq(variableMetadata.presentation?.faqs?.map((faq) => faq.gdocId))
-    )
-
-    const faqGdocs = await fetchAndParseFaqs(knex, faqDocIds, { isPreviewing })
-
-    const { resolvedFaqs, errors: faqResolveErrors } = resolveFaqsForVariable(
-        faqGdocs,
-        variableMetadata
-    )
-
-    if (faqResolveErrors.length > 0) {
-        for (const error of faqResolveErrors) {
-            await logErrorAndMaybeCaptureInSentry(
-                new Error(
-                    `Data page error in finding FAQs for variable ${variableId}: ${error.error}`
+    // Resolve the FAQ blocks for a single variable. Factored out so we can
+    // resolve FAQs both for the primary indicator and, on charts enrolled in
+    // the metadata box experiment, for each additional Y-indicator.
+    const resolveFaqsForOneVariable = async (
+        metadata: OwidVariableWithSource,
+        idForLog: number
+    ): Promise<FaqEntryData> => {
+        const faqDocIds = _.compact(
+            _.uniq(metadata.presentation?.faqs?.map((faq) => faq.gdocId))
+        )
+        const faqGdocs = await fetchAndParseFaqs(knex, faqDocIds, {
+            isPreviewing,
+        })
+        const { resolvedFaqs, errors: faqResolveErrors } =
+            resolveFaqsForVariable(faqGdocs, metadata)
+        if (faqResolveErrors.length > 0) {
+            for (const error of faqResolveErrors) {
+                await logErrorAndMaybeCaptureInSentry(
+                    new Error(
+                        `Data page error in finding FAQs for variable ${idForLog}: ${error.error}`
+                    )
                 )
-            )
+            }
+        }
+        return {
+            faqs: resolvedFaqs?.flatMap((faq) => faq.enrichedFaq.content) ?? [],
         }
     }
 
-    const faqEntries: FaqEntryData = {
-        faqs: resolvedFaqs?.flatMap((faq) => faq.enrichedFaq.content) ?? [],
-    }
+    const faqEntries = await resolveFaqsForOneVariable(
+        variableMetadata,
+        variableId
+    )
 
     // If we are rendering this in the context of an indicator page preview or similar,
     // then the chart config might be entirely empty. Make sure that dimensions is
@@ -201,7 +228,67 @@ export async function renderDataPageV2(
         _.compact(grapher.dimensions.map(({ variableId }) => variableId))
     )
     const distribution = await getVariableDistribution(knex, variableIds)
-    const datapageData = getDatapageDataV2(variableMetadata, grapher)
+
+    // The metadata box experiment renders an indicator switcher over all of a
+    // chart's Y-indicators. Only the enrolled charts (the experiment's `paths`)
+    // pay the cost of loading the extra per-indicator metadata; everything else
+    // bakes exactly as before with `additionalIndicators` left undefined. The
+    // experiment's `paths` list is the single source of truth, shared with the
+    // React component that decides whether to emit the dual-arm markup.
+    const isInMetadataExperiment =
+        !!grapher.slug &&
+        isUrlInActiveExperiment(
+            DATA_PAGE_METADATA_EXPERIMENT_ID,
+            `/grapher/${grapher.slug}`
+        )
+
+    // For multi-indicator charts the per-dimension `display.name` (set by the
+    // chart author) is the right per-indicator label — the chart-level `title`
+    // describes the whole chart, not any one indicator. Only used on enrolled
+    // charts so non-enrolled data pages keep their existing title resolution
+    // (which falls back to `grapherConfig.title`).
+    const indicatorTitleOverrideFor = (varId: number): string | undefined =>
+        grapher.dimensions?.find(
+            (d) => d.property === DimensionProperty.y && d.variableId === varId
+        )?.display?.name
+
+    const datapageData = getDatapageDataV2(
+        variableMetadata,
+        grapher,
+        isInMetadataExperiment
+            ? { indicatorTitleOverride: indicatorTitleOverrideFor(variableId) }
+            : undefined
+    )
+
+    let additionalIndicators: AdditionalIndicator[] | undefined
+    if (isInMetadataExperiment) {
+        const additionalYVariableIds = _.uniq(
+            _.compact(
+                grapher.dimensions
+                    .filter((d) => d.property === DimensionProperty.y)
+                    .map((d) => d.variableId)
+            )
+        ).filter((id) => id !== variableId)
+
+        additionalIndicators = await pMap(
+            additionalYVariableIds,
+            async (id) => {
+                // noCache to match how the primary indicator's metadata is
+                // fetched (getVariableOfDatapageIfApplicable), so a bake always
+                // reflects the latest variable metadata.
+                const metadata = await getVariableMetadata(id, {
+                    noCache: true,
+                })
+                return {
+                    datapageData: getDatapageDataV2(metadata, grapher, {
+                        indicatorTitleOverride: indicatorTitleOverrideFor(id),
+                    }),
+                    faqEntries: await resolveFaqsForOneVariable(metadata, id),
+                }
+            },
+            { concurrency: 5 }
+        )
+    }
 
     datapageData.primaryTopic = await getPrimaryTopic(
         knex,
@@ -260,6 +347,7 @@ export async function renderDataPageV2(
         <DataPageV2
             grapher={grapher}
             datapageData={datapageData}
+            additionalIndicators={additionalIndicators}
             canonicalUrl={canonicalUrl}
             baseUrl={BAKED_BASE_URL}
             isPreviewing={isPreviewing}
@@ -284,9 +372,20 @@ export const renderPreviewDataPageOrGrapherPage = async (
 ) => {
     const archiveContextDictionary =
         await getLatestArchivedChartPageVersionsIfEnabled(knex)
+    // Force data-page rendering for experiment-enrolled charts (same as the
+    // production bake path in `renderDataPageOrGrapherPage`), so admin
+    // previews show the metadata box on enrolled charts even if they
+    // wouldn't normally qualify as data pages.
+    const forceDatapage =
+        options?.forceDatapage ||
+        (!!grapher.slug &&
+            isUrlInActiveExperiment(
+                DATA_PAGE_METADATA_EXPERIMENT_ID,
+                `/grapher/${grapher.slug}`
+            ))
     const datapage = await renderDatapageIfApplicable(grapher, true, knex, {
         archiveContextDictionary,
-        forceDatapage: options?.forceDatapage,
+        forceDatapage,
     })
     if (datapage) return datapage
 
