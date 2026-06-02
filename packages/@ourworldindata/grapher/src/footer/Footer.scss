@@ -20,10 +20,63 @@
     .sources a.learn-more-about-data,
     .note a {
         text-decoration: underline;
+        cursor: pointer;
 
         &:hover {
             text-decoration: none;
         }
+    }
+
+    // --- Metadata box A/B experiment: source line variants on data pages ---
+    // The Footer.tsx render emits BOTH variants inside <p class="sources">
+    // on data pages — control ("Data source: … — Learn more about this
+    // data") and treatment (source text itself is the link, no suffix).
+    // Toggled via the experiment's body class. We don't use the generic
+    // experiment --show/--hide classes here because their active rule sets
+    // `display: block` + 24px margin, which is meant for big section blocks
+    // and would break the inline footer layout. Using inline-friendly
+    // BEM modifier classes scoped to .sources keeps the styling local and
+    // explicit about the layout constraint.
+
+    // Default state (no experiment cookie, control arm assigned, or chart
+    // not enrolled): show the control variant only.
+    .sources__variant--treatment {
+        display: none;
+    }
+
+    // Treatment arm: swap which variant is visible. `inline` preserves the
+    // footer's text flow inside the <p>.
+    body.exp-data-page-metadata-v1--treatment & {
+        .sources__variant--control {
+            display: none;
+        }
+        .sources__variant--treatment {
+            display: inline;
+        }
+    }
+
+    // In the treatment arm the source text itself is the link
+    // (`learn-more-about-data--datapage-link`). The last
+    // markdown-text-wrap line is `display: inline-block` (see rule below),
+    // which creates its own text-decoration scope so the underline from
+    // the <a> doesn't visually pass through. Apply underline to every
+    // line of markdown text inside the link so the whole source reads as
+    // a link — but exclude the leading "Data source:" <strong> so the
+    // label itself isn't underlined (the user clicks the source name,
+    // not the prefix).
+    .sources a.learn-more-about-data--datapage-link .markdown-text-wrap__line {
+        text-decoration: underline;
+    }
+    .sources
+        a.learn-more-about-data--datapage-link:hover
+        .markdown-text-wrap__line {
+        text-decoration: none;
+    }
+    .sources a.learn-more-about-data--datapage-link strong {
+        // inline-block creates a new text-decoration scope so the
+        // underline from the line above doesn't visually pass through.
+        display: inline-block;
+        text-decoration: none;
     }
 
     // show "Learn more about this data" link on the same line

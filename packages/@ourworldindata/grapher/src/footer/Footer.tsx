@@ -10,6 +10,7 @@ import {
 } from "@ourworldindata/utils"
 import {
     DATAPAGE_ABOUT_THIS_DATA_SECTION_ID,
+    DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID,
     MarkdownTextWrap,
     MarkdownTextWrapHtml,
     MarkdownTextWrapSvg,
@@ -446,6 +447,90 @@ abstract class AbstractFooter<
             lineHeight: this.lineHeight,
         })
 
+        // Builds the click handler that scrolls (or opens the modal as a
+        // fallback) for the source-line link. Parameterized by which
+        // section to scroll to so the treatment variant on data pages can
+        // jump directly to "Data sources" without changing the existing
+        // "About this data" behavior on non-enrolled data pages.
+        const makeOnClickSources = (
+            datapageSectionId: string
+        ): ((e: React.MouseEvent) => void) =>
+            action((e: React.MouseEvent) => {
+                e.stopPropagation()
+
+                // if embedded (and not on a data page), open the sources modal
+                if (
+                    this.manager.isEmbeddedInAnOwidPage ||
+                    this.manager.isInIFrame
+                ) {
+                    this.manager.activeModal = GrapherModal.Sources
+                    return
+                }
+
+                const sourcesElement =
+                    document.getElementById(datapageSectionId)
+                if (sourcesElement && sourcesElement.scrollIntoView) {
+                    sourcesElement.scrollIntoView({ behavior: "smooth" })
+                    this.manager.isInFullScreenMode = false
+                } else if (sourcesElement) {
+                    window.location.hash = "#" + datapageSectionId
+                    this.manager.isInFullScreenMode = false
+                } else {
+                    this.manager.activeModal = GrapherModal.Sources
+                }
+            })
+
+        // Control variant + non-data-page grapher pages: existing behavior —
+        // scroll to (or open the modal if absent) "About this data".
+        const onClickSourcesControl = makeOnClickSources(
+            DATAPAGE_ABOUT_THIS_DATA_SECTION_ID
+        )
+
+        if (this.manager.isEmbeddedInADataPage) {
+            // Render BOTH variants inside the same <p>. Custom class names
+            // (NOT the generic experiment show/hide classes — those apply
+            // `display: block` + 24px margin meant for big section blocks
+            // and break inline footer layout). The CSS toggle lives in
+            // Footer.scss, keyed off the experiment's body class:
+            // - default / control arm / non-enrolled data pages:
+            //   "Data source: … — Learn more about this data" visible,
+            //   click scrolls to "About this data" (unchanged).
+            // - treatment arm (body has
+            //   `exp-data-page-metadata-v1--treatment`): source text
+            //   itself is the link, no trailing "Learn more about this
+            //   data", click scrolls straight to "Data sources" inside
+            //   the metadata box.
+            const onClickSourcesTreatment = makeOnClickSources(
+                DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID
+            )
+            return (
+                <p className="sources" style={sources.style}>
+                    <span className="sources__variant sources__variant--control">
+                        <MarkdownTextWrapHtml textWrap={sources} />
+                        {" – "}
+                        <a
+                            className="learn-more-about-data"
+                            data-track-note="chart_click_sources"
+                            tabIndex={0}
+                            onClick={onClickSourcesControl}
+                        >
+                            Learn more about this data
+                        </a>
+                    </span>
+                    <span className="sources__variant sources__variant--treatment">
+                        <a
+                            className="learn-more-about-data learn-more-about-data--datapage-link"
+                            data-track-note="chart_click_sources"
+                            tabIndex={0}
+                            onClick={onClickSourcesTreatment}
+                        >
+                            <MarkdownTextWrapHtml textWrap={sources} />
+                        </a>
+                    </span>
+                </p>
+            )
+        }
+
         return (
             <p className="sources" style={sources.style}>
                 <MarkdownTextWrapHtml textWrap={sources} />
@@ -454,37 +539,7 @@ abstract class AbstractFooter<
                     className="learn-more-about-data"
                     data-track-note="chart_click_sources"
                     tabIndex={0}
-                    onClick={action((e) => {
-                        e.stopPropagation()
-
-                        // if embbedded, open the sources modal
-                        if (
-                            this.manager.isEmbeddedInAnOwidPage ||
-                            this.manager.isInIFrame
-                        ) {
-                            this.manager.activeModal = GrapherModal.Sources
-                            return
-                        }
-
-                        // on data pages, scroll to the "Sources and Processing" section
-                        // on grapher pages, open the sources modal
-                        const datapageSectionId =
-                            DATAPAGE_ABOUT_THIS_DATA_SECTION_ID
-                        const sourcesElement =
-                            document.getElementById(datapageSectionId)
-                        if (sourcesElement && sourcesElement.scrollIntoView) {
-                            sourcesElement.scrollIntoView({
-                                behavior: "smooth",
-                            })
-                            this.manager.isInFullScreenMode = false
-                        } else if (sourcesElement) {
-                            window.location.hash = "#" + datapageSectionId
-                            this.manager.isInFullScreenMode = false
-                        } else {
-                            // on grapher pages, open the sources modal
-                            this.manager.activeModal = GrapherModal.Sources
-                        }
-                    })}
+                    onClick={onClickSourcesControl}
                 >
                     Learn more about this data
                 </a>
