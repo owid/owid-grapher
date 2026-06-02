@@ -37,6 +37,18 @@ $sidebar-toc-top-offset: 24px;
     display: flex;
     flex-direction: column;
     gap: $sidebar-toc-section-gap;
+    transition:
+        transform 300ms ease,
+        opacity 300ms ease;
+}
+
+// Slide-out: when a wide (12-col) block enters the viewport, the sidebar steps
+// left off-canvas so the block can use the full width. Scroll-spy keeps
+// updating underneath so the active entry is correct when it slides back.
+.sidebar-toc__sidebar--wide-in-view {
+    transform: translateX(-100%);
+    opacity: 0;
+    pointer-events: none;
 }
 
 .sidebar-toc__back-to-top {

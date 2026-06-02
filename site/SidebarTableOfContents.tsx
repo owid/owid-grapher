@@ -14,6 +14,7 @@ import { useDocumentContext } from "./gdocs/DocumentContext.js"
 import { ChartPreview } from "./gdocs/components/ChartPreview.js"
 import { buildSearchHrefForCard } from "./search/searchState.js"
 import { useTocScrollSpy } from "./useTocScrollSpy.js"
+import { useWideBlockInView } from "./useWideBlockInView.js"
 import { SiteAnalytics } from "./SiteAnalytics.js"
 
 const analytics = new SiteAnalytics()
@@ -56,13 +57,17 @@ export const SidebarTableOfContents = ({
         [sections]
     )
     const activeId = useTocScrollSpy(spyIds)
+    const isWideBlockInView = useWideBlockInView()
+
     // No H1 sections → no sidebar. This is intentional: an LTP with no H1s is
     // an editorial fix, not a runtime fallback.
     if (sections.length === 0) return null
 
     return (
         <div className="sidebar-toc">
-            <nav className="sidebar-toc__sidebar" aria-label="Table of contents">
+            <nav className={cx("sidebar-toc__sidebar", {
+                "sidebar-toc__sidebar--wide-in-view": wideBlockInView,
+            })} aria-label="Table of contents">
                 <TocBody
                     sections={sections}
                     tagName={tagName}
