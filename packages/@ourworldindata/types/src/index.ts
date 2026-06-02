@@ -237,6 +237,7 @@ export {
 export {
     type Distribution,
     type DataPageV2ContentFields,
+    type AdditionalIndicator,
     type DataPageDataV2,
     type DataPageRelatedResearch,
     type PrimaryTopic,
