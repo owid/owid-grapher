@@ -8,6 +8,9 @@ import {
 import {
     EXPERIMENT_ARM_SEPARATOR,
     EXPERIMENT_PREFIX,
+    DATA_PAGE_METADATA_EXPERIMENT_ID,
+    DATA_PAGE_METADATA_EXPERIMENT_TREATMENT_ARM,
+    isUrlInActiveExperiment,
     DataPageV2ContentFields,
     GrapherInterface,
     joinTitleFragments,
@@ -25,8 +28,11 @@ import {
     BAKED_GRAPHER_URL,
 } from "../settings/clientSettings.js"
 import AboutThisData from "./AboutThisData.js"
+import MetadataSectionCollapsible from "./MetadataSectionCollapsible.js"
 import DataPageResearchAndWriting from "./DataPageResearchAndWriting.js"
-import { type DownloadSectionProps } from "./DownloadSection.js"
+import DownloadSection, {
+    type DownloadSectionProps,
+} from "./DownloadSection.js"
 import MetadataSection from "./MetadataSection.js"
 import TopicTags from "./TopicTags.js"
 import { processRelatedResearch } from "./dataPage.js"
@@ -46,6 +52,7 @@ export const OWID_DATAPAGE_CONTENT_ROOT_ID = "owid-datapageJson-root"
 
 export const DataPageV2Content = ({
     datapageData,
+    additionalIndicators,
     grapherConfig,
     isPreviewing = false,
     faqEntries,
@@ -59,6 +66,24 @@ export const DataPageV2Content = ({
     imageMetadata: Record<string, ImageMetadata>
 }) => {
     const slug = grapherConfig.slug
+
+    // Whether this chart is enrolled in the metadata box experiment. Both arms
+    // are baked into the static HTML; CSS (site/experiments.scss) shows the one
+    // matching the body class the Cloudflare middleware sets. Derived from the
+    // experiment's `paths` — the same source of truth the baker uses to decide
+    // whether to load the per-indicator metadata — so we never render the
+    // treatment markup for a chart that wasn't baked with its data.
+    const inMetadataExperiment =
+        !!slug &&
+        isUrlInActiveExperiment(
+            DATA_PAGE_METADATA_EXPERIMENT_ID,
+            `/grapher/${slug}`
+        )
+    const metadataArmClass = `${EXPERIMENT_PREFIX}-${DATA_PAGE_METADATA_EXPERIMENT_ID}${EXPERIMENT_ARM_SEPARATOR}${DATA_PAGE_METADATA_EXPERIMENT_TREATMENT_ARM}`
+    // Shown only in the treatment arm; hidden by default.
+    const metadataTreatmentShowClass = `${metadataArmClass}${EXPERIMENT_ARM_SEPARATOR}show`
+    // Shown by default; hidden in the treatment arm (the box subsumes these).
+    const metadataTreatmentHideClass = `${metadataArmClass}${EXPERIMENT_ARM_SEPARATOR}hide`
     const queryStr =
         typeof window !== "undefined" ? window?.location?.search : undefined
     const reactiveQueryStr = useWindowQueryParams()
@@ -183,7 +208,21 @@ export const DataPageV2Content = ({
                             />
                         </div>
                     </div>
-                    <nav className="sticky-nav sticky-nav--dark span-cols-14 grid grid-cols-12-full-width">
+                    {/*
+                     * In the metadata-box treatment arm the box subsumes
+                     * AboutThisData, Sources & Processing, and Reuse This Work,
+                     * so most of the sticky-nav targets would resolve to
+                     * display:none elements. Hide the nav entirely in treatment
+                     * via the experiment CSS until we decide what a treatment-
+                     * specific nav should expose.
+                     */}
+                    <nav
+                        className={`sticky-nav sticky-nav--dark span-cols-14 grid grid-cols-12-full-width${
+                            inMetadataExperiment
+                                ? ` ${metadataTreatmentHideClass}`
+                                : ""
+                        }`}
+                    >
                         <StickyNav
                             className="span-cols-12 col-start-2"
                             links={stickyNavLinks}
@@ -209,7 +248,25 @@ export const DataPageV2Content = ({
                                 datapageData={datapageData}
                                 hasFaq={!!faqEntries?.faqs.length}
                                 id={DATAPAGE_ABOUT_THIS_DATA_SECTION_ID}
+                                className={
+                                    inMetadataExperiment
+                                        ? metadataTreatmentHideClass
+                                        : undefined
+                                }
                             />
+                            {inMetadataExperiment && (
+                                <div className={metadataTreatmentShowClass}>
+                                    <MetadataSectionCollapsible
+                                        datapageData={datapageData}
+                                        additionalIndicators={
+                                            additionalIndicators
+                                        }
+                                        faqEntries={faqEntries}
+                                        canonicalUrl={canonicalUrl}
+                                        archiveContext={archiveContext}
+                                    />
+                                </div>
+                            )}
                         </div>
                     </div>
                     <div className="col-start-2 span-cols-12">
@@ -281,6 +338,11 @@ export const DataPageV2Content = ({
                         )}
                     </div>
                     <MetadataSection
+                        className={
+                            inMetadataExperiment
+                                ? metadataTreatmentHideClass
+                                : undefined
+                        }
                         attributionShort={datapageData.attributionShort}
                         attributions={datapageData.attributions}
                         canonicalUrl={canonicalUrl}
@@ -297,6 +359,26 @@ export const DataPageV2Content = ({
                         archiveContext={archiveContext}
                         downloadProps={downloadProps}
                     />
+                    {/*
+                     * Treatment arm: the metadata box replaces the FAQs /
+                     * sources / citations of MetadataSection above (hidden by
+                     * --hide), but the page still needs a Download section at
+                     * the bottom. Render it standalone, gated by the treatment
+                     * --show class so the matching DownloadSection inside
+                     * the (hidden) MetadataSection above isn't duplicated.
+                     */}
+                    {inMetadataExperiment && downloadProps && (
+                        <div
+                            className={`MetadataSection span-cols-14 grid grid-cols-12-full-width ${metadataTreatmentShowClass}`}
+                        >
+                            <div className="col-start-2 span-cols-12">
+                                <DownloadSection
+                                    {...downloadProps}
+                                    archivedChartInfo={archiveContext}
+                                />
+                            </div>
+                        </div>
+                    )}
                 </div>
             </DocumentContext.Provider>
         </AttachmentsContext.Provider>

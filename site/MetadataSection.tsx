@@ -43,6 +43,7 @@ export default function MetadataSection({
     titleVariant,
     archiveContext,
     downloadProps,
+    className,
 }: {
     attributionShort?: string
     attributions: string[]
@@ -57,6 +58,7 @@ export default function MetadataSection({
     titleVariant?: string
     archiveContext?: ArchiveContext
     downloadProps?: DownloadSectionProps
+    className?: string
 }) {
     const sourcesForDisplay = prepareSourcesForDisplay({ origins, source })
     const citationUrl = archiveContext?.archiveUrl ?? canonicalUrl
@@ -99,7 +101,11 @@ export default function MetadataSection({
         }`,
     ]).join(" ")
     return (
-        <div className="MetadataSection span-cols-14 grid grid-cols-12-full-width">
+        <div
+            className={`MetadataSection span-cols-14 grid grid-cols-12-full-width${
+                className ? ` ${className}` : ""
+            }`}
+        >
             <div className="col-start-2 span-cols-12">
                 {!!faqEntries?.faqs.length && (
                     <div className="section-wrapper section-wrapper__faqs grid">
