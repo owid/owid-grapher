@@ -308,6 +308,7 @@ export function Sankey({
 
     const onSvgClick = useCallback(
         (event: React.MouseEvent<SVGSVGElement>) => {
+            if (isPinned) return // Disable on touch devices
             if (!svgRef.current || !layout) return
             const mouse = getRelativeMouse(svgRef.current, event.nativeEvent)
             if (onNodeClick) {
@@ -337,6 +338,7 @@ export function Sankey({
             }
         },
         [
+            isPinned,
             layout,
             labels,
             onNodeClick,
