@@ -2,7 +2,7 @@ import { Component } from "react"
 import { observer } from "mobx-react"
 import { observable, runInAction, makeObservable } from "mobx"
 import { BindString, Toggle } from "./Forms.js"
-import { Redirect } from "react-router-dom"
+import { Navigate } from "react-router-dom"
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { UserIndexMeta } from "./UserMeta.js"
@@ -27,7 +27,7 @@ export class UserEditPage extends Component<{ userId: number }> {
     override render() {
         const { user, isSaved } = this
         if (!user) return null
-        else if (isSaved) return <Redirect to="/users" />
+        else if (isSaved) return <Navigate to="/users" replace />
 
         return (
             <AdminLayout>

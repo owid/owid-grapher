@@ -1,5 +1,5 @@
 import * as React from "react"
-import { useHistory, useLocation } from "react-router-dom"
+import { useNavigate, useLocation } from "react-router-dom"
 import { action, computed, makeObservable, observable } from "mobx"
 import { observer } from "mobx-react"
 import type { History } from "history"
@@ -19,7 +19,16 @@ import {
 import { NotFoundPage } from "./NotFoundPage.js"
 
 export function CreateNarrativeChartEditorPage() {
-    const history = useHistory()
+    const navigate = useNavigate()
+    const history = React.useMemo(
+        () =>
+            ({
+                push: (to: string) => navigate(to),
+                replace: (to: string) => navigate(to, { replace: true }),
+                goBack: () => navigate(-1),
+            }) as any,
+        [navigate]
+    )
     const { search } = useLocation()
     const searchParams = new URLSearchParams(search)
     const type = searchParams.get("type")

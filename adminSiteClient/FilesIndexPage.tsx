@@ -1,6 +1,6 @@
 import * as _ from "lodash-es"
 import React, { useContext, useState, useMemo, useEffect } from "react"
-import { useHistory, useLocation } from "react-router-dom"
+import { useNavigate, useLocation } from "react-router-dom"
 import { Flex, Input, Breadcrumb, Space, Tooltip } from "antd"
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext } from "./AdminAppContext.js"
@@ -119,10 +119,10 @@ function FileMapViewer({
     fileMap: FileMap
     currentPath: string
 }) {
-    const history = useHistory()
+    const navigate = useNavigate()
 
     const handleFolderClick = (folderName: string) => {
-        history.push(`?path=${urlJoin(currentPath, folderName)}`)
+        void navigate(`?path=${urlJoin(currentPath, folderName)}`)
     }
 
     const pathSegments = currentPath.split("/").filter(Boolean)
@@ -218,7 +218,7 @@ function SearchResultsViewer({
 function PostFileButton({ currentPath }: { currentPath: string }) {
     const { admin } = useContext(AdminAppContext)
     const queryClient = useQueryClient()
-    const history = useHistory()
+    const navigate = useNavigate()
 
     const now = new Date()
     const defaultPath = urlJoin(
@@ -251,7 +251,7 @@ function PostFileButton({ currentPath }: { currentPath: string }) {
         },
         onSuccess: async (response) => {
             await queryClient.invalidateQueries({ queryKey: ["files"] })
-            history.push(`?path=${response.path}`)
+            void navigate(`?path=${response.path}`)
         },
         onError: (error) => {
             console.error("File upload error:", error)
@@ -303,7 +303,7 @@ function PostFileButton({ currentPath }: { currentPath: string }) {
 export function FilesIndexPage() {
     const { admin } = useContext(AdminAppContext)
     const location = useLocation()
-    const history = useHistory()
+    const navigate = useNavigate()
     const [searchValue, setSearchValue] = useState("")
 
     const { data } = useQuery({
@@ -322,11 +322,11 @@ export function FilesIndexPage() {
         for (const segment of pathSegments) {
             activeNode = activeNode[segment] as FileMap
             if (!activeNode) {
-                history.push("/files")
+                void navigate("/files")
                 break
             }
         }
-    }, [data, currentPath, history])
+    }, [data, currentPath, navigate])
 
     const clearSearch = () => {
         setSearchValue("")
@@ -363,7 +363,7 @@ export function FilesIndexPage() {
                                 href: "#",
                                 onClick: (e) => {
                                     e.preventDefault()
-                                    history.push("/files")
+                                    void navigate("/files")
                                 },
                             },
                             ...currentPath
@@ -378,7 +378,7 @@ export function FilesIndexPage() {
                                         href: `?path=${path}`,
                                         onClick: (e: any) => {
                                             e.preventDefault()
-                                            history.push(`?path=${path}`)
+                                            void navigate(`?path=${path}`)
                                         },
                                     }
                                 }),

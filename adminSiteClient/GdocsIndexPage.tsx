@@ -28,7 +28,22 @@ import {
     filterFunctionForSearchWords,
     SearchWord,
 } from "../adminShared/search.js"
-import { Route, RouteComponentProps } from "react-router-dom"
+import { useLocation } from "react-router-dom"
+
+interface RouteComponentProps<
+    Params extends Record<string, string | undefined> = Record<
+        string,
+        string | undefined
+    >,
+> {
+    location: ReturnType<typeof useLocation>
+    history: any
+    match: {
+        params: Params
+        path: string
+        url: string
+    }
+}
 import { Link } from "./Link.js"
 import { GdocsAdd } from "./GdocsAdd.js"
 import { observer } from "mobx-react"
@@ -418,25 +433,19 @@ export class GdocsIndexPage extends React.Component<RouteComponentProps> {
                         </div>
                     ))}
 
-                    <Route
-                        path={`${this.props.match.path}/add`}
-                        render={() => {
-                            const onClose = () =>
-                                this.props.history.push(this.props.match.path)
-
-                            return (
-                                <Modal onClose={onClose}>
-                                    <GdocsAdd
-                                        onAdd={(id: string) => {
-                                            this.props.history.push(
-                                                `${this.props.match.path}/${id}/preview`
-                                            )
-                                        }}
-                                    />
-                                </Modal>
-                            )
-                        }}
-                    />
+                    {this.props.location.pathname.endsWith("/add") && (
+                        <Modal
+                            onClose={() => this.props.history.push("/gdocs")}
+                        >
+                            <GdocsAdd
+                                onAdd={(id: string) => {
+                                    this.props.history.push(
+                                        `/gdocs/${id}/preview`
+                                    )
+                                }}
+                            />
+                        </Modal>
+                    )}
                 </main>
             </AdminLayout>
         )

@@ -58,7 +58,17 @@ import {
     BAKED_BASE_URL,
     PUBLISHED_AT_FORMAT,
 } from "../settings/clientSettings.js"
-import { RouteComponentProps } from "react-router-dom"
+import { useLocation } from "react-router-dom"
+
+interface RouteComponentProps<Params = any> {
+    location: ReturnType<typeof useLocation>
+    history: any
+    match: {
+        params: Params
+        path: string
+        url: string
+    }
+}
 import * as R from "remeda"
 
 interface GdocsMatchParams {

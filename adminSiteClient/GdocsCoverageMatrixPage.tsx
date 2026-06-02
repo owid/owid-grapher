@@ -1,5 +1,20 @@
 import { useContext, useEffect, useMemo, useState } from "react"
-import { RouteComponentProps } from "react-router-dom"
+import { useLocation } from "react-router-dom"
+
+interface RouteComponentProps<
+    Params extends Record<string, string | undefined> = Record<
+        string,
+        string | undefined
+    >,
+> {
+    location: ReturnType<typeof useLocation>
+    history: any
+    match: {
+        params: Params
+        path: string
+        url: string
+    }
+}
 import { AdminAppContext } from "./AdminAppContext.js"
 import { AdminLayout } from "./AdminLayout.js"
 import { Spin } from "antd"

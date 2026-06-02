@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState } from "react"
-import { useParams, useHistory } from "react-router-dom"
+import { useParams, useNavigate } from "react-router-dom"
 import { Button, Form, Input, Select, Spin } from "antd"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { AdminLayout } from "./AdminLayout.js"
@@ -127,7 +127,7 @@ function useInitializeForm(
 export function StaticVizEditPage() {
     const { staticVizId } = useParams<{ staticVizId?: string }>()
     const isEditing = !!(staticVizId && staticVizId !== "new")
-    const history = useHistory()
+    const navigate = useNavigate()
     const { admin } = useContext(AdminAppContext)
     const queryClient = useQueryClient()
 
@@ -184,7 +184,7 @@ export function StaticVizEditPage() {
         },
         onSuccess: async () => {
             await queryClient.invalidateQueries({ queryKey: ["static-viz"] })
-            history.push("/static-viz")
+            void navigate("/static-viz")
         },
     })
 
@@ -198,7 +198,7 @@ export function StaticVizEditPage() {
         },
         onSuccess: async () => {
             await queryClient.invalidateQueries({ queryKey: ["static-viz"] })
-            history.push("/static-viz")
+            void navigate("/static-viz")
         },
     })
 
@@ -208,7 +208,7 @@ export function StaticVizEditPage() {
         : "Create static visualization"
 
     const handleCancel = () => {
-        history.push("/static-viz")
+        void navigate("/static-viz")
     }
 
     const handleSubmit = (values: StaticVizUpdate) => {

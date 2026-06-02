@@ -12,7 +12,7 @@ import { registerAllModules } from "handsontable/registry"
 import { action, computed, observable, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { Component, createRef } from "react"
-import { Prompt } from "react-router-dom"
+import { Prompt } from "./Prompt.js"
 import {
     DefaultNewExplorerSlug,
     ExplorerChoiceParams,

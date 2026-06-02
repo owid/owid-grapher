@@ -2,7 +2,7 @@ import { Component } from "react"
 import { observer } from "mobx-react"
 import { observable, computed, runInAction, action, makeObservable } from "mobx"
 import * as lodash from "lodash-es"
-import { Prompt } from "react-router-dom"
+import { Prompt } from "./Prompt.js"
 
 import { OwidSource, DbChartTagJoin, OwidOrigin } from "@ourworldindata/utils"
 

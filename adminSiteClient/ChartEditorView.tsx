@@ -12,7 +12,8 @@ import {
     makeObservable,
     comparer,
 } from "mobx"
-import { Prompt, Redirect } from "react-router-dom"
+import { Navigate } from "react-router-dom"
+import { Prompt } from "./Prompt.js"
 import {
     Bounds,
     DetailDictionary,
@@ -423,7 +424,10 @@ export class ChartEditorView<
                     />
                 )}
                 {chartEditor?.newChartId && (
-                    <Redirect to={`/charts/${chartEditor.newChartId}/edit`} />
+                    <Navigate
+                        to={`/charts/${chartEditor.newChartId}/edit`}
+                        replace
+                    />
                 )}
                 <div className="chart-editor-settings">
                     <div className="p-2">

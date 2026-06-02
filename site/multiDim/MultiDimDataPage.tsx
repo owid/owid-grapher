@@ -1,5 +1,5 @@
 import urljoin from "url-join"
-import { StaticRouter } from "react-router-dom-v5-compat"
+import { StaticRouter } from "react-router"
 
 import { Head } from "../Head.js"
 import { IFrameDetector } from "../IframeDetector.js"

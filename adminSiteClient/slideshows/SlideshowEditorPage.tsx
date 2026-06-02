@@ -1,6 +1,6 @@
 import { useCallback, useContext, useEffect, useMemo, useState } from "react"
 import * as React from "react"
-import { useHistory } from "react-router-dom"
+import { useNavigate } from "react-router-dom"
 import cx from "classnames"
 import { Button, Dropdown, Popconfirm, Tabs, Tooltip } from "antd"
 import type { MenuProps } from "antd"
@@ -75,7 +75,7 @@ export function SlideshowEditorPage(props: {
     slideshowId?: number
 }): React.ReactElement {
     const { admin } = useContext(AdminAppContext)
-    const history = useHistory()
+    const navigate = useNavigate()
     const isCreate = props.slideshowId === undefined
 
     const [title, setTitle] = useState("")
@@ -261,7 +261,7 @@ export function SlideshowEditorPage(props: {
                 if (res.success) {
                     if (shouldPublish) setIsPublished(true)
                     setIsDirty(false)
-                    history.push(`/slideshows/${res.slideshowId}/edit`)
+                    void navigate(`/slideshows/${res.slideshowId}/edit`)
                 }
             } else {
                 await admin.requestJSON(
@@ -282,7 +282,7 @@ export function SlideshowEditorPage(props: {
             authors,
             interactiveCharts,
             slides,
-            history,
+            navigate,
             isPublished,
         ]
     )
@@ -304,8 +304,8 @@ export function SlideshowEditorPage(props: {
             {},
             "DELETE"
         )
-        history.push("/slideshows")
-    }, [admin, isCreate, props.slideshowId, history])
+        void navigate("/slideshows")
+    }, [admin, isCreate, props.slideshowId, navigate])
 
     const canSave = slug.trim().length > 0 && title.trim().length > 0
 

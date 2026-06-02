@@ -23,11 +23,14 @@ import { NotFoundPage } from "./NotFoundPage.js"
 import { DeployStatusPage } from "./DeployStatusPage.js"
 import { ExplorerTagsPage } from "./ExplorerTagsPage.js"
 import {
-    BrowserRouter as Router,
-    Route,
-    Switch,
-    Redirect,
-    RouteComponentProps,
+    Navigate,
+    useParams,
+    useSearchParams,
+    useNavigate,
+    useLocation,
+    createBrowserRouter,
+    RouterProvider,
+    Outlet,
 } from "react-router-dom"
 import { LoadingBlocker, Modal } from "./Forms.js"
 import { AdminAppContext } from "./AdminAppContext.js"
@@ -37,7 +40,7 @@ import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
 import { AdminLayout } from "./AdminLayout.js"
 import { BulkGrapherConfigEditorPage } from "./BulkGrapherConfigEditor.js"
 import { GdocsIndexPage } from "./GdocsIndexPage.js"
-import { GdocsMatchProps, GdocsPreviewPage } from "./GdocsPreviewPage.js"
+import { GdocsPreviewPage } from "./GdocsPreviewPage.js"
 import { GdocsCoverageMatrixPage } from "./GdocsCoverageMatrixPage.js"
 import { CalloutFunctionsPage } from "./CalloutFunctionsPage.js"
 import { GdocsStoreProvider } from "./GdocsStoreProvider.js"
@@ -120,6 +123,216 @@ class AdminLoader extends React.Component<{ admin: Admin }> {
     }
 }
 
+const ChartCreatePageWrapper = () => {
+    const [searchParams] = useSearchParams()
+    const configParam = searchParams.get("config")
+    const grapherConfig = configParam ? JSON.parse(configParam) : undefined
+    return <ChartEditorPage grapherConfig={grapherConfig} />
+}
+
+const ChartEditorPageWrapper = () => {
+    const params = useParams<{ chartId: string }>()
+    return (
+        <ChartEditorPage
+            key={params.chartId}
+            grapherId={parseInt(params.chartId!)}
+        />
+    )
+}
+
+const NarrativeChartEditorPageWrapper = () => {
+    const params = useParams<{ narrativeChartId: string }>()
+    const navigate = useNavigate()
+    const history = React.useMemo(
+        () =>
+            ({
+                push: (to: string) => navigate(to),
+                replace: (to: string) => navigate(to, { replace: true }),
+                goBack: () => navigate(-1),
+            }) as any,
+        [navigate]
+    )
+
+    return (
+        <NarrativeChartEditorPage
+            key={params.narrativeChartId}
+            narrativeChartId={parseInt(params.narrativeChartId!)}
+            history={history}
+        />
+    )
+}
+
+const MultiDimDetailPageWrapper = () => {
+    const params = useParams<{ id: string }>()
+    return <MultiDimDetailPage id={parseInt(params.id!)} />
+}
+
+const SlideshowEditorPageWrapper = () => {
+    const params = useParams<{ slideshowId: string }>()
+    return <SlideshowEditorPage slideshowId={parseInt(params.slideshowId!)} />
+}
+
+const ExplorerCreatePageWrapper = () => {
+    const params = useParams<{ slug: string }>()
+    const { admin } = React.useContext(AdminAppContext)
+    return (
+        <AdminLayout title="Create Explorer">
+            <ExplorerCreatePage slug={params.slug!} manager={admin} />
+        </AdminLayout>
+    )
+}
+
+const UserEditPageWrapper = () => {
+    const params = useParams<{ userId: string }>()
+    return <UserEditPage userId={parseInt(params.userId!)} />
+}
+
+const IndicatorChartEditorPageWrapper = () => {
+    const params = useParams<{ variableId: string }>()
+    return (
+        <IndicatorChartEditorPage variableId={parseInt(params.variableId!)} />
+    )
+}
+
+const VariableEditPageWrapper = () => {
+    const params = useParams<{ variableId: string }>()
+    return <VariableEditPage variableId={parseInt(params.variableId!)} />
+}
+
+const DatasetEditPageWrapper = () => {
+    const params = useParams<{ datasetId: string }>()
+    return <DatasetEditPage datasetId={parseInt(params.datasetId!)} />
+}
+
+const SourceEditPageWrapper = () => {
+    const params = useParams<{ sourceId: string }>()
+    return <SourceEditPage sourceId={parseInt(params.sourceId!)} />
+}
+
+const TagEditPageWrapper = () => {
+    const params = useParams<{ tagId: string }>()
+    return <TagEditPage tagId={parseInt(params.tagId!)} />
+}
+
+const GdocsPreviewPageWrapper = () => {
+    const params = useParams<{ id: string }>()
+    const location = useLocation()
+    const navigate = useNavigate()
+    const history = React.useMemo(
+        () =>
+            ({
+                push: (to: string) => navigate(to),
+                replace: (to: string) => navigate(to, { replace: true }),
+                goBack: () => navigate(-1),
+            }) as any,
+        [navigate]
+    )
+
+    const match = React.useMemo(
+        () => ({
+            params,
+            path: location.pathname,
+            url: location.pathname,
+        }),
+        [params, location]
+    )
+
+    return (
+        <GdocsStoreProvider>
+            <GdocsPreviewPage
+                match={match as any}
+                location={location}
+                history={history}
+            />
+        </GdocsStoreProvider>
+    )
+}
+
+const GdocsCoverageMatrixPageWrapper = () => {
+    const params = useParams<{ id: string }>()
+    const location = useLocation()
+    const navigate = useNavigate()
+    const history = React.useMemo(
+        () =>
+            ({
+                push: (to: string) => navigate(to),
+                replace: (to: string) => navigate(to, { replace: true }),
+                goBack: () => navigate(-1),
+            }) as any,
+        [navigate]
+    )
+
+    const match = React.useMemo(
+        () => ({
+            params,
+            path: location.pathname,
+            url: location.pathname,
+        }),
+        [params, location]
+    )
+
+    return (
+        <GdocsStoreProvider>
+            <GdocsCoverageMatrixPage
+                match={match as any}
+                location={location}
+                history={history}
+            />
+        </GdocsStoreProvider>
+    )
+}
+
+const GdocsIndexPageWrapper = () => {
+    const location = useLocation()
+    const navigate = useNavigate()
+    const history = React.useMemo(
+        () =>
+            ({
+                push: (to: string) => navigate(to),
+                replace: (to: string) => navigate(to, { replace: true }),
+                goBack: () => navigate(-1),
+            }) as any,
+        [navigate]
+    )
+
+    const match = React.useMemo(
+        () => ({
+            params: {},
+            path: "/gdocs",
+            url: "/gdocs",
+        }),
+        []
+    )
+
+    return (
+        <GdocsStoreProvider>
+            <GdocsIndexPage
+                match={match as any}
+                location={location}
+                history={history}
+            />
+        </GdocsStoreProvider>
+    )
+}
+
+const AdminAppLayout = ({
+    admin,
+    childContext,
+}: {
+    admin: Admin
+    childContext: any
+}) => {
+    return (
+        <AdminAppContext.Provider value={childContext}>
+            <div className="AdminApp">
+                <AdminErrorMessage admin={admin} />
+                <AdminLoader admin={admin} />
+                <Outlet />
+            </div>
+        </AdminAppContext.Provider>
+    )
+}
+
 @observer
 export class AdminApp extends React.Component<{
     admin: Admin
@@ -128,335 +341,218 @@ export class AdminApp extends React.Component<{
         return { admin: this.props.admin }
     }
 
-    override render(): React.ReactElement {
-        const { admin } = this.props
+    router: any
 
+    constructor(props: { admin: Admin }) {
+        super(props)
+        this.router = createBrowserRouter(
+            [
+                {
+                    path: "/",
+                    element: (
+                        <AdminAppLayout
+                            admin={props.admin}
+                            childContext={this.childContext}
+                        />
+                    ),
+                    children: [
+                        {
+                            path: "charts/create",
+                            element: <ChartCreatePageWrapper />,
+                        },
+                        {
+                            path: "charts/:chartId/edit",
+                            element: <ChartEditorPageWrapper />,
+                        },
+                        {
+                            path: "charts",
+                            element: <ChartIndexPage />,
+                        },
+                        {
+                            path: "narrative-charts",
+                            element: <NarrativeChartIndexPage />,
+                        },
+                        {
+                            path: "narrative-charts/create",
+                            element: <CreateNarrativeChartEditorPage />,
+                        },
+                        {
+                            path: "narrative-charts/:narrativeChartId/edit",
+                            element: <NarrativeChartEditorPageWrapper />,
+                        },
+                        {
+                            path: "featured-metrics",
+                            element: <FeaturedMetricsPage />,
+                        },
+                        {
+                            path: "multi-dims",
+                            element: <MultiDimIndexPage />,
+                        },
+                        {
+                            path: "multi-dims/:id",
+                            element: <MultiDimDetailPageWrapper />,
+                        },
+                        {
+                            path: "multi-dim-redirects",
+                            element: <MultiDimRedirectsIndexPage />,
+                        },
+                        {
+                            path: "dods",
+                            element: <DodsIndexPage />,
+                        },
+                        {
+                            path: "images",
+                            element: <ImageIndexPage />,
+                        },
+                        {
+                            path: "files",
+                            element: <FilesIndexPage />,
+                        },
+                        {
+                            path: "static-viz",
+                            element: <StaticVizIndexPage />,
+                        },
+                        {
+                            path: "static-viz/:staticVizId",
+                            element: <StaticVizEditPage />,
+                        },
+                        {
+                            path: "slideshows",
+                            element: <SlideshowsIndexPage />,
+                        },
+                        {
+                            path: "slideshows/create",
+                            element: <SlideshowEditorPage />,
+                        },
+                        {
+                            path: "slideshows/:slideshowId/edit",
+                            element: <SlideshowEditorPageWrapper />,
+                        },
+                        {
+                            path: `${EXPLORERS_ROUTE_FOLDER}/:slug`,
+                            element: <ExplorerCreatePageWrapper />,
+                        },
+                        {
+                            path: EXPLORERS_ROUTE_FOLDER,
+                            element: (
+                                <AdminLayout title="Explorers">
+                                    <ExplorersIndexPage />
+                                </AdminLayout>
+                            ),
+                        },
+                        {
+                            path: "bulk-grapher-config-editor",
+                            element: <BulkGrapherConfigEditorPage />,
+                        },
+                        {
+                            path: "variable-annotations",
+                            element: <VariablesAnnotationPage />,
+                        },
+                        {
+                            path: "users/:userId",
+                            element: <UserEditPageWrapper />,
+                        },
+                        {
+                            path: "users",
+                            element: <UsersIndexPage />,
+                        },
+                        {
+                            path: "variables/:variableId/config",
+                            element: <IndicatorChartEditorPageWrapper />,
+                        },
+                        {
+                            path: "variables/:variableId",
+                            element: <VariableEditPageWrapper />,
+                        },
+                        {
+                            path: "variables",
+                            element: <VariablesIndexPage />,
+                        },
+                        {
+                            path: "datasets/:datasetId",
+                            element: <DatasetEditPageWrapper />,
+                        },
+                        {
+                            path: "datasets",
+                            element: <DatasetsIndexPage />,
+                        },
+                        {
+                            path: "sources/:sourceId",
+                            element: <SourceEditPageWrapper />,
+                        },
+                        {
+                            path: "redirects",
+                            element: <RedirectsIndexPage />,
+                        },
+                        {
+                            path: "site-redirects",
+                            element: <SiteRedirectsIndexPage />,
+                        },
+                        {
+                            path: "tags/:tagId",
+                            element: <TagEditPageWrapper />,
+                        },
+                        {
+                            path: "tag-graph",
+                            element: <TagGraphPage />,
+                        },
+                        {
+                            path: "tags",
+                            element: <TagsIndexPage />,
+                        },
+                        {
+                            path: "gdocs/:id/preview",
+                            element: <GdocsPreviewPageWrapper />,
+                        },
+                        {
+                            path: "gdocs/:id/coverage",
+                            element: <GdocsCoverageMatrixPageWrapper />,
+                        },
+                        {
+                            path: "callout-functions",
+                            element: <CalloutFunctionsPage />,
+                        },
+                        {
+                            path: "gdocs/*",
+                            element: <GdocsIndexPageWrapper />,
+                        },
+                        {
+                            path: "data-insights",
+                            element: <DataInsightIndexPage />,
+                        },
+                        {
+                            path: "test",
+                            element: <TestIndexPage />,
+                        },
+                        {
+                            path: "deploys",
+                            element: <DeployStatusPage />,
+                        },
+                        {
+                            path: "explorer-tags",
+                            element: <ExplorerTagsPage />,
+                        },
+                        {
+                            path: "",
+                            element: <Navigate to="/charts" replace />,
+                        },
+                        {
+                            path: "*",
+                            element: <NotFoundPage />,
+                        },
+                    ],
+                },
+            ],
+            {
+                basename: props.admin.basePath,
+            }
+        )
+    }
+
+    override render(): React.ReactElement {
         return (
             <QueryClientProvider client={queryClient}>
-                <AdminAppContext.Provider value={this.childContext}>
-                    <Router basename={admin.basePath}>
-                        <div className="AdminApp">
-                            <AdminErrorMessage admin={admin} />
-                            <AdminLoader admin={admin} />
-                            <Switch>
-                                <Route
-                                    exact
-                                    path="/charts/create"
-                                    render={({ location }) => {
-                                        const params = new URLSearchParams(
-                                            location.search
-                                        )
-                                        const configParam = params.get("config")
-                                        const grapherConfig = configParam
-                                            ? JSON.parse(configParam)
-                                            : undefined
-                                        return (
-                                            <ChartEditorPage
-                                                grapherConfig={grapherConfig}
-                                            />
-                                        )
-                                    }}
-                                />
-                                <Route
-                                    exact
-                                    path="/charts/:chartId/edit"
-                                    render={({ match }) => {
-                                        return (
-                                            <ChartEditorPage
-                                                key={match.params.chartId}
-                                                grapherId={parseInt(
-                                                    match.params.chartId
-                                                )}
-                                            />
-                                        )
-                                    }}
-                                />
-                                <Route
-                                    exact
-                                    path="/charts"
-                                    component={ChartIndexPage}
-                                />
-                                <Route
-                                    exact
-                                    path="/narrative-charts"
-                                    component={NarrativeChartIndexPage}
-                                />
-                                <Route
-                                    exact
-                                    path="/narrative-charts/create"
-                                    component={CreateNarrativeChartEditorPage}
-                                />
-                                <Route
-                                    exact
-                                    path="/narrative-charts/:narrativeChartId/edit"
-                                    render={({ match, history }) => (
-                                        <NarrativeChartEditorPage
-                                            narrativeChartId={parseInt(
-                                                match.params.narrativeChartId
-                                            )}
-                                            history={history}
-                                        />
-                                    )}
-                                />
-                                <Route
-                                    exact
-                                    path="/featured-metrics"
-                                    component={FeaturedMetricsPage}
-                                />
-                                <Route
-                                    exact
-                                    path="/multi-dims"
-                                    component={MultiDimIndexPage}
-                                />
-                                <Route
-                                    exact
-                                    path="/multi-dims/:id"
-                                    render={({ match }) => (
-                                        <MultiDimDetailPage
-                                            id={parseInt(match.params.id)}
-                                        />
-                                    )}
-                                />
-                                <Route
-                                    exact
-                                    path="/multi-dim-redirects"
-                                    component={MultiDimRedirectsIndexPage}
-                                />
-                                <Route path="/dods" component={DodsIndexPage} />
-
-                                <Route
-                                    path="/images"
-                                    component={ImageIndexPage}
-                                />
-                                <Route
-                                    path="/files"
-                                    component={FilesIndexPage}
-                                />
-                                <Route
-                                    exact
-                                    path="/static-viz"
-                                    component={StaticVizIndexPage}
-                                />
-                                <Route
-                                    exact
-                                    path="/static-viz/:staticVizId"
-                                    component={StaticVizEditPage}
-                                />
-                                <Route
-                                    exact
-                                    path="/slideshows"
-                                    component={SlideshowsIndexPage}
-                                />
-                                <Route
-                                    exact
-                                    path="/slideshows/create"
-                                    component={SlideshowEditorPage}
-                                />
-                                <Route
-                                    exact
-                                    path="/slideshows/:slideshowId/edit"
-                                    render={({ match }) => (
-                                        <SlideshowEditorPage
-                                            slideshowId={parseInt(
-                                                match.params.slideshowId
-                                            )}
-                                        />
-                                    )}
-                                />
-                                <Route
-                                    exact
-                                    path={`/${EXPLORERS_ROUTE_FOLDER}/:slug`}
-                                    render={({ match }) => (
-                                        <AdminLayout title="Create Explorer">
-                                            <ExplorerCreatePage
-                                                slug={match.params.slug}
-                                                manager={admin}
-                                            />
-                                        </AdminLayout>
-                                    )}
-                                />
-                                <Route
-                                    exact
-                                    path={`/${EXPLORERS_ROUTE_FOLDER}`}
-                                    render={() => (
-                                        <AdminLayout title="Explorers">
-                                            <ExplorersIndexPage />
-                                        </AdminLayout>
-                                    )}
-                                />
-                                <Route
-                                    exact
-                                    path={`/bulk-grapher-config-editor`}
-                                    render={() => (
-                                        <BulkGrapherConfigEditorPage />
-                                    )}
-                                />
-                                <Route
-                                    exact
-                                    path={`/variable-annotations`}
-                                    render={() => <VariablesAnnotationPage />}
-                                />
-                                <Route
-                                    exact
-                                    path="/users/:userId"
-                                    render={({ match }) => (
-                                        <UserEditPage
-                                            userId={parseInt(
-                                                match.params.userId
-                                            )}
-                                        />
-                                    )}
-                                />
-                                <Route
-                                    exact
-                                    path="/users"
-                                    component={UsersIndexPage}
-                                />
-                                <Route
-                                    exact
-                                    path="/variables/:variableId/config"
-                                    render={({ match }) => (
-                                        <IndicatorChartEditorPage
-                                            variableId={parseInt(
-                                                match.params.variableId
-                                            )}
-                                        />
-                                    )}
-                                />
-                                <Route
-                                    exact
-                                    path="/variables/:variableId"
-                                    render={({ match }) => (
-                                        <VariableEditPage
-                                            variableId={parseInt(
-                                                match.params.variableId
-                                            )}
-                                        />
-                                    )}
-                                />
-                                <Route
-                                    exact
-                                    path="/variables"
-                                    component={VariablesIndexPage}
-                                />
-                                <Route
-                                    exact
-                                    path="/datasets/:datasetId"
-                                    render={({ match }) => (
-                                        <DatasetEditPage
-                                            datasetId={parseInt(
-                                                match.params.datasetId
-                                            )}
-                                        />
-                                    )}
-                                />
-                                <Route
-                                    exact
-                                    path="/datasets"
-                                    component={DatasetsIndexPage}
-                                />
-                                <Route
-                                    exact
-                                    path="/sources/:sourceId"
-                                    render={({ match }) => (
-                                        <SourceEditPage
-                                            sourceId={parseInt(
-                                                match.params.sourceId
-                                            )}
-                                        />
-                                    )}
-                                />
-                                <Route
-                                    exact
-                                    path="/redirects"
-                                    component={RedirectsIndexPage}
-                                />
-                                <Route
-                                    exact
-                                    path="/site-redirects"
-                                    component={SiteRedirectsIndexPage}
-                                />
-                                <Route
-                                    exact
-                                    path="/tags/:tagId"
-                                    render={({ match }) => (
-                                        <TagEditPage
-                                            tagId={parseInt(match.params.tagId)}
-                                        />
-                                    )}
-                                />
-                                <Route
-                                    exact
-                                    path="/tag-graph"
-                                    component={TagGraphPage}
-                                />
-                                <Route
-                                    exact
-                                    path="/tags"
-                                    component={TagsIndexPage}
-                                />
-                                <Route
-                                    exact
-                                    path="/gdocs/:id/preview"
-                                    render={(props: GdocsMatchProps) => (
-                                        <GdocsStoreProvider>
-                                            <GdocsPreviewPage {...props} />
-                                        </GdocsStoreProvider>
-                                    )}
-                                />
-                                <Route
-                                    exact
-                                    path="/gdocs/:id/coverage"
-                                    render={(props: GdocsMatchProps) => (
-                                        <GdocsStoreProvider>
-                                            <GdocsCoverageMatrixPage
-                                                {...props}
-                                            />
-                                        </GdocsStoreProvider>
-                                    )}
-                                />
-                                <Route
-                                    exact
-                                    path="/callout-functions"
-                                    component={CalloutFunctionsPage}
-                                />
-                                <Route
-                                    path="/gdocs"
-                                    render={(props: RouteComponentProps) => (
-                                        <GdocsStoreProvider>
-                                            <GdocsIndexPage {...props} />
-                                        </GdocsStoreProvider>
-                                    )}
-                                />
-                                <Route
-                                    path="/data-insights"
-                                    component={DataInsightIndexPage}
-                                />
-                                <Route
-                                    exact
-                                    path="/test"
-                                    component={TestIndexPage}
-                                />
-                                <Route
-                                    exact
-                                    path="/deploys"
-                                    component={DeployStatusPage}
-                                />
-                                <Route
-                                    exact
-                                    path="/explorer-tags"
-                                    component={ExplorerTagsPage}
-                                />
-                                <Route
-                                    exact
-                                    path="/"
-                                    render={() => <Redirect to="/charts" />}
-                                />
-                                <Route component={NotFoundPage} />
-                            </Switch>
-                        </div>
-                    </Router>
-                </AdminAppContext.Provider>
+                <RouterProvider router={this.router} />
             </QueryClientProvider>
         )
     }

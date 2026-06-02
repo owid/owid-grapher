@@ -1,7 +1,7 @@
 import { Component } from "react"
 import { observer } from "mobx-react"
 import { observable, computed, runInAction, makeObservable } from "mobx"
-import { Prompt } from "react-router-dom"
+import { Prompt } from "./Prompt.js"
 
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { AdminLayout } from "./AdminLayout.js"

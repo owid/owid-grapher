@@ -1,5 +1,5 @@
 import { useContext, useState, useEffect, useCallback } from "react"
-import { useLocation, useHistory } from "react-router-dom"
+import { useLocation, useNavigate } from "react-router-dom"
 import { AdminAppContext } from "./AdminAppContext.js"
 import { AdminLayout } from "./AdminLayout.js"
 import { Spin } from "antd"
@@ -12,7 +12,7 @@ type CalloutFunctionsResponse = {
 export const CalloutFunctionsPage = () => {
     const { admin } = useContext(AdminAppContext)
     const location = useLocation()
-    const history = useHistory()
+    const navigate = useNavigate()
 
     // Get initial URL from query params
     const searchParams = new URLSearchParams(location.search)
@@ -59,7 +59,7 @@ export const CalloutFunctionsPage = () => {
         // Update query params
         const newSearchParams = new URLSearchParams()
         newSearchParams.set("url", chartUrl)
-        history.replace({ search: newSearchParams.toString() })
+        void navigate({ search: newSearchParams.toString() }, { replace: true })
 
         await fetchFunctions(chartUrl)
     }

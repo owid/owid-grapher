@@ -1,7 +1,8 @@
 import { Component } from "react"
 import { observer } from "mobx-react"
 import { observable, computed, runInAction, makeObservable } from "mobx"
-import { Prompt, Redirect } from "react-router-dom"
+import { Navigate } from "react-router-dom"
+import { Prompt } from "./Prompt.js"
 import { DbChartTagJoin } from "@ourworldindata/utils"
 import { AdminLayout } from "./AdminLayout.js"
 import { BindString, Timeago, Toggle } from "./Forms.js"
@@ -241,7 +242,7 @@ class TagEditor extends Component<{
                     <h3>Charts</h3>
                     <ChartList charts={tag.charts} />
                 </section>
-                {this.isDeleted && <Redirect to={`/tags`} />}
+                {this.isDeleted && <Navigate to="/tags" replace />}
             </main>
         )
     }
