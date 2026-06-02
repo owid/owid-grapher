@@ -60,8 +60,10 @@ export const synonyms = [
     ],
     ["framework convention on climate change", "unfccc"],
     [
-        "development programme",
-        "development program",
+        "united nations development programme",
+        "united nations development program",
+        "un development programme",
+        "un development program",
         "undp",
         "pnud" /* spanish, french */,
     ],
