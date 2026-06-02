@@ -41,7 +41,6 @@ export { type BreadcrumbItem } from "./domainTypes/Site.js"
 export { type IndexPost, type FullPost } from "./domainTypes/Posts.js"
 
 export {
-    type TocHeading,
     type TocHeadingItem,
     type TocChartEntry,
     type TocSidebarSection,

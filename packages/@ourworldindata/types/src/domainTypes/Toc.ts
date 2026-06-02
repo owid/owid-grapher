@@ -1,12 +1,6 @@
 import type { BlockVisibility } from "../gdocTypes/archieMLComponents/generic.js"
 import type { EnrichedBlockHeading } from "../gdocTypes/archieMLComponents/Heading.js"
 
-export interface TocHeading {
-    text: string
-    slug: string
-    isSubheading: boolean
-}
-
 /** A heading entry in a {@link Toc}. */
 export interface TocHeadingItem {
     level: EnrichedBlockHeading["level"]

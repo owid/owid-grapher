@@ -223,8 +223,8 @@ const BackToTop = () => {
             }}
             data-track-note="toc_back_to_top"
         >
-            <FontAwesomeIcon icon={faArrowUp} />
             Back to top
+            <FontAwesomeIcon icon={faArrowUp} />
         </a>
     )
 }

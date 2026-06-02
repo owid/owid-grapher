@@ -107,7 +107,6 @@
 @import "css/footer.scss";
 @import "css/content.scss";
 @import "css/forms.scss";
-@import "css/sidebar.scss";
 
 @import "./archive/ArchiveNavigation.scss";
 @import "./archive/VersionsDrawer.scss";
@@ -633,7 +632,6 @@ a.ref sup {
     .site-header,
     .site-footer,
     .cookie-notice,
-    .entry-sidebar,
     address,
     #wpadminbar,
     .no-print {

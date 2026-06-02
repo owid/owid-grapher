@@ -6,26 +6,29 @@ $sidebar-toc-sidebar-frame: 273px; // outer frame
 $sidebar-toc-sidebar-inset: 24px; // L/R padding (273 - 225 = 48, split evenly)
 $sidebar-toc-section-gap: 24px;
 $sidebar-toc-bullet-gap: 12px;
-$sidebar-toc-top-offset: 24px;
+// The eyebrow text and the bullet glyphs align at this indent from the section
+// (heading) left edge.
+$sidebar-toc-sub-indent: 16px;
+// How far the outside marker's disc overhangs the li's content edge (~16.5px at
+// our font size), tuned so the disc sits optically on the sub-indent line. The
+// sum is the bullets' text indent from the section edge.
+$sidebar-toc-bullet-glyph-offset: 14px;
+$sidebar-toc-bullet-indent: $sidebar-toc-sub-indent +
+    $sidebar-toc-bullet-glyph-offset;
 
 .sidebar-toc {
-    // Desktop: live in the outer-left 1fr margin track (column 1). No article
-    // block starts there (they all use col-start >= 2, including the header),
-    // so we never collide with or displace content. `position: sticky` here
-    // makes the sidebar stick within the full-height .centered-article-container
-    // (its containing block) — spanning the whole article, regardless of the
-    // grid's implicit rows. align-self: start pins it to the top of its row.
-    // z-index here keeps the sidebar above article content; scoped to desktop so
-    // it doesn't trap the mobile drawer's fixed overlay in a low stacking
-    // context.
+    // Desktop: a zero-footprint sticky anchor in the outer-left 1fr margin
+    // track. It carries no in-flow content — the sidebar is positioned absolutely
+    // against it — so collapsing/expanding the sidebar never resizes the track or
+    // reflows the article. $zindex-sidebar lifts the sidebar above the article
+    // content it overlaps: charts form their own stacking contexts further
+    // down the DOM and would otherwise paint over it.
     @media (min-width: #{$sidebar-toc-breakpoint + 1px}) {
         grid-column: 1;
         align-self: start;
         position: sticky;
-        top: $sidebar-toc-top-offset;
-        display: flex;
-        justify-content: flex-end;
-        z-index: 3;
+        top: 0;
+        z-index: $zindex-sidebar;
     }
 
     // Mobile: the "Contents" pill lives in the content column, just below the
@@ -43,34 +46,50 @@ $sidebar-toc-top-offset: 24px;
 }
 
 .sidebar-toc__sidebar {
-    position: relative;
+    // Absolute against the sticky anchor: out of flow (overlay, no track
+    // resize) and pinned to the anchor's left edge. Capped to the viewport
+    // height and scrollable so a TOC taller than the screen is fully reachable.
+    position: absolute;
+    top: 0;
+    left: 0;
     box-sizing: border-box;
     width: $sidebar-toc-frame;
-    padding: 0 $sidebar-toc-sidebar-inset;
+    // Full-height white panel with a right-edge divider (per Figma): spans the
+    // viewport top-to-bottom (no gaps) and scrolls internally when the TOC is
+    // taller than the screen.
+    height: 100vh;
+    overflow-y: auto;
+    padding: $sidebar-toc-sidebar-inset;
+    background: $white;
+    border-right: 1px solid $blue-10;
     display: flex;
     flex-direction: column;
     gap: $sidebar-toc-section-gap;
     transition:
         transform 300ms ease,
-        opacity 300ms ease;
+        opacity 300ms ease,
+        width 200ms ease,
+        background 200ms ease;
 
     @media (max-width: $sidebar-toc-breakpoint) {
         display: none;
     }
 }
 
-// Collapsed: the sidebar shrinks to a 40px stub holding only the restore button.
+// Collapsed: the sidebar shrinks to just the restore button, centered between the
+// page edge and the divider (24px inset each side, matching the expanded
+// content's left inset). width: auto so the white panel + divider hug it.
 .sidebar-toc__sidebar--collapsed {
-    width: 40px;
-    padding: 0;
+    width: auto;
     align-items: center;
+    padding: var(--sidebar-toc-inset);
 }
 
 // 31x32 caret button pinned to the sidebar's top-right edge (outside the content
 // column). list-ul restore button (40px stub) reuses the same look, centered.
 .sidebar-toc__collapse-toggle {
     position: absolute;
-    top: 0;
+    top: $sidebar-toc-sidebar-inset; // align with the Back-to-top row
     right: 0;
 }
 
@@ -111,7 +130,7 @@ $sidebar-toc-top-offset: 24px;
     text-decoration: none;
 
     svg {
-        margin-right: 8px;
+        margin-left: 8px;
         width: 9px;
     }
 
@@ -139,19 +158,21 @@ $sidebar-toc-top-offset: 24px;
     @include h6-black-caps;
     color: $blue-50;
     margin: 16px 0 0;
-    padding-inline-start: 7px; // align with the bullet glyph, not the H1 text
+    padding-inline-start: $sidebar-toc-sub-indent; // align with the bullet glyph, not the H1 text
 }
 
 .sidebar-toc__bullets {
     list-style: disc;
     margin: $sidebar-toc-bullet-gap 0 0;
+    margin-inline-start: $sidebar-toc-sub-indent; // align glyphs with the eyebrow
     padding: 0;
 }
 
 .sidebar-toc__bullet {
     position: relative;
-    margin-inline-start: 19.5px; // bullet glyph sits in the indent gutter
+    margin-inline-start: $sidebar-toc-bullet-glyph-offset; // glyph sits in the gutter
     color: $blue-50;
+    line-height: 1rem; // on the li, or wrapped bullets inherit the article's 1.6
 
     &:not(:last-child) {
         margin-bottom: $sidebar-toc-bullet-gap;
@@ -190,10 +211,13 @@ $sidebar-toc-top-offset: 24px;
     color: $vermillion; // recolors the list marker too
 }
 
+// Each row backs out its distance to the sidebar's left edge from structural
+// values (the sidebar's L padding, plus the bullet indent for bullets), so the
+// two bars line up on the sidebar edge automatically.
 .sidebar-toc__section--active > .sidebar-toc__h1::before {
     content: "";
     position: absolute;
-    left: 0;
+    left: -$sidebar-toc-sidebar-inset;
     top: 0;
     width: 4px;
     height: 100%;
@@ -203,7 +227,7 @@ $sidebar-toc-top-offset: 24px;
 .sidebar-toc__bullet--active::before {
     content: "";
     position: absolute;
-    left: -19.5px; // back out the bullet indent to reach the section's edge
+    left: calc(-1 * (var(--sidebar-toc-inset) + #{$sidebar-toc-bullet-indent}));
     top: 0;
     width: 4px;
     height: 100%;
@@ -216,6 +240,13 @@ $sidebar-toc-top-offset: 24px;
     left: calc(-1 * (var(--sidebar-toc-inset) + #{$sidebar-toc-sub-indent}));
 }
 
+// Selected + hover keeps the active vermillion. Without this the active
+// bullet's hover rule (higher specificity) would flip it back to blue.
+.sidebar-toc__section--active > .sidebar-toc__h1:hover,
+.sidebar-toc__bullet--active > a:hover {
+    color: $vermillion;
+}
+
 .sidebar-toc__cta {
     @include note-13-medium;
     box-sizing: border-box;
@@ -223,7 +254,8 @@ $sidebar-toc-top-offset: 24px;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    width: 225px;
+    width: 100%; // fill the content column (avoids overflow when the vertical
+    // scrollbar narrows the sidebar)
     min-height: 40px;
     padding: 0 var(--sidebar-toc-inset);
     border: 2px solid $white;
@@ -295,7 +327,8 @@ $sidebar-toc-top-offset: 24px;
     // `none` suppresses the bounce itself. (iOS Safari 16+; older iOS ignores
     // overscroll-behavior and keeps the bounce.)
     overscroll-behavior: none;
-    padding: 24px;
+    --sidebar-toc-inset: #{$sidebar-toc-inset};
+    padding: var(--sidebar-toc-inset);
     background: $white;
     display: flex;
     flex-direction: column;
@@ -328,5 +361,17 @@ $sidebar-toc-top-offset: 24px;
     .sidebar-toc__sidebar,
     .sidebar-toc__sidebar--wide-in-view {
         transition: none;
+    }
+}
+
+// Anchor breathing space: a TOC link jumps the target to the very top edge by
+// default. Leave 16px above charts and headings so they don't sit flush
+// against the viewport top. Scoped with :has() to articles that actually
+// render the sidebar (topic + profile pages); Firefox < 121 lacks :has() and
+// simply keeps the old flush landing.
+.centered-article-container:has(.sidebar-toc) {
+    .article-block__chart,
+    .article-block__heading {
+        scroll-margin-top: 16px;
     }
 }
