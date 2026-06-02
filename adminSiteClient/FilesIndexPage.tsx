@@ -1,6 +1,6 @@
 import * as _ from "lodash-es"
 import React, { useContext, useState, useMemo, useEffect } from "react"
-import { useNavigate, useLocation } from "react-router-dom"
+import { useNavigate, useLocation } from "react-router"
 import { Flex, Input, Breadcrumb, Space, Tooltip } from "antd"
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext } from "./AdminAppContext.js"

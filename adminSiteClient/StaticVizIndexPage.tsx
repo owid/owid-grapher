@@ -13,7 +13,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext } from "./AdminAppContext.js"
 import { Timeago } from "./Forms.js"
-import { Link } from "react-router-dom"
+import { Link } from "react-router"
 import { copyToClipboard, DbEnrichedStaticViz } from "@ourworldindata/utils"
 import {
     faCopy,

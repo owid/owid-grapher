@@ -5,7 +5,7 @@ import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { observable, runInAction, makeObservable } from "mobx"
 import { DbPlainTag } from "@ourworldindata/types"
 import { TagBadge } from "./TagBadge.js"
-import { Link } from "react-router-dom"
+import { Link } from "react-router"
 import { Button, Modal } from "antd"
 
 @observer

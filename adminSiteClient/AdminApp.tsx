@@ -31,7 +31,7 @@ import {
     createBrowserRouter,
     RouterProvider,
     Outlet,
-} from "react-router-dom"
+} from "react-router"
 import { LoadingBlocker, Modal } from "./Forms.js"
 import { AdminAppContext } from "./AdminAppContext.js"
 import { ExplorerCreatePage } from "./ExplorerCreatePage.js"

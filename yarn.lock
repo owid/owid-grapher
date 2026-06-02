@@ -9698,8 +9698,7 @@ __metadata:
     react-horizontal-scrolling-menu: "npm:^8.2.0"
     react-instantsearch: "npm:^7.26.0"
     react-recaptcha: "npm:^2.3.10"
-    react-router: "npm:^7.0.0"
-    react-router-dom: "npm:^7.0.0"
+    react-router: "npm:^7.16.0"
     react-tag-autocomplete: "npm:^7.5.0"
     react-zoom-pan-pinch: "npm:^3.7.0"
     remeda: "npm:^2.32.0"
@@ -13416,19 +13415,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-router-dom@npm:^7.0.0":
-  version: 7.16.0
-  resolution: "react-router-dom@npm:7.16.0"
-  dependencies:
-    react-router: "npm:7.16.0"
-  peerDependencies:
-    react: ">=18"
-    react-dom: ">=18"
-  checksum: 10/f8d7da28bf1276c8a3bd2d85948b104810aa1b08e1ac761fbeccafbeb2f381aeb04c4ff3ec53c43e6a4e96564d1aa571d16b3a07e115f2b3782a16705bfde2c3
-  languageName: node
-  linkType: hard
-
-"react-router@npm:7.16.0, react-router@npm:^7.0.0":
+"react-router@npm:^7.16.0":
   version: 7.16.0
   resolution: "react-router@npm:7.16.0"
   dependencies:

@@ -1,11 +1,13 @@
 import * as React from "react"
-import { useBlocker } from "react-router-dom"
+import { useBlocker } from "react-router"
 
 export function Prompt({ when, message }: { when: boolean; message: string }) {
     const blocker = useBlocker(
         React.useCallback(
             ({ currentLocation, nextLocation }) => {
-                return when && currentLocation.pathname !== nextLocation.pathname
+                return (
+                    when && currentLocation.pathname !== nextLocation.pathname
+                )
             },
             [when]
         )

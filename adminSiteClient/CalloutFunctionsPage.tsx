@@ -1,5 +1,5 @@
 import { useContext, useState, useEffect, useCallback } from "react"
-import { useLocation, useNavigate } from "react-router-dom"
+import { useLocation, useNavigate } from "react-router"
 import { AdminAppContext } from "./AdminAppContext.js"
 import { AdminLayout } from "./AdminLayout.js"
 import { Spin } from "antd"

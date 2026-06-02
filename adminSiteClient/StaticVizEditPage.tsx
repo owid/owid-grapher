@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState } from "react"
-import { useParams, useNavigate } from "react-router-dom"
+import { useParams, useNavigate } from "react-router"
 import { Button, Form, Input, Select, Spin } from "antd"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { AdminLayout } from "./AdminLayout.js"

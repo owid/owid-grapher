@@ -1,5 +1,5 @@
 import * as React from "react"
-import { NavLink } from "react-router-dom"
+import { NavLink } from "react-router"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 
 interface LinkProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {

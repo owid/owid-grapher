@@ -58,7 +58,7 @@ import {
     BAKED_BASE_URL,
     PUBLISHED_AT_FORMAT,
 } from "../settings/clientSettings.js"
-import { useLocation, useNavigate } from "react-router-dom"
+import { useLocation, useNavigate } from "react-router"
 
 interface RouteComponentProps<Params = any> {
     location: ReturnType<typeof useLocation>

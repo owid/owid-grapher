@@ -1,5 +1,5 @@
 import { useContext, useEffect, useMemo, useState } from "react"
-import { useLocation } from "react-router-dom"
+import { useLocation } from "react-router"
 
 interface RouteComponentProps<
     Params extends Record<string, string | undefined> = Record<

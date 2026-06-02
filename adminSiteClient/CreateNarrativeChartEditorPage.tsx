@@ -1,5 +1,5 @@
 import * as React from "react"
-import { useNavigate, useLocation, NavigateFunction } from "react-router-dom"
+import { useNavigate, useLocation, NavigateFunction } from "react-router"
 import { action, computed, makeObservable, observable } from "mobx"
 import { observer } from "mobx-react"
 import { GrapherInterface } from "@ourworldindata/utils"

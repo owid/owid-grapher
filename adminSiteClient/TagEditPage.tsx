@@ -1,7 +1,7 @@
 import { Component } from "react"
 import { observer } from "mobx-react"
 import { observable, computed, runInAction, makeObservable } from "mobx"
-import { Navigate } from "react-router-dom"
+import { Navigate } from "react-router"
 import { Prompt } from "./Prompt.js"
 import { DbChartTagJoin } from "@ourworldindata/utils"
 import { AdminLayout } from "./AdminLayout.js"

@@ -30,7 +30,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faGrip } from "@fortawesome/free-solid-svg-icons"
 import { AutoComplete, Button, Popconfirm } from "antd"
 import { FlatTagGraph, FlatTagGraphNode } from "@ourworldindata/types"
-import { Link } from "react-router-dom"
+import { Link } from "react-router"
 
 function DraggableDroppable(props: {
     id: string

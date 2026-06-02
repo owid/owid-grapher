@@ -37,7 +37,7 @@ import {
     MultiDimDataPageContent,
     MultiDimDataPageData,
 } from "./multiDim/MultiDimDataPageContent.js"
-import { BrowserRouter } from "react-router-dom"
+import { BrowserRouter } from "react-router"
 import { REDUCED_TRACKING } from "../settings/clientSettings.js"
 import { SiteHeaderNavigation } from "./SiteHeader.js"
 import { NewsletterSubscriptionForm } from "./NewsletterSubscription.js"

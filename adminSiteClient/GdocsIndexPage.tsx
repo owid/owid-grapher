@@ -28,7 +28,7 @@ import {
     filterFunctionForSearchWords,
     SearchWord,
 } from "../adminShared/search.js"
-import { useLocation, NavigateFunction } from "react-router-dom"
+import { useLocation, NavigateFunction } from "react-router"
 
 interface RouteComponentProps<
     Params extends Record<string, string | undefined> = Record<

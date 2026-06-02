@@ -1,7 +1,7 @@
 import * as _ from "lodash-es"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { unstable_batchedUpdates } from "react-dom"
-import { useSearchParams } from "react-router-dom"
+import { useSearchParams } from "react-router"
 import * as Sentry from "@sentry/react"
 import { useIsClient } from "usehooks-ts"
 import {

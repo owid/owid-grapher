@@ -12,7 +12,7 @@ import {
     makeObservable,
     comparer,
 } from "mobx"
-import { Navigate } from "react-router-dom"
+import { Navigate } from "react-router"
 import { Prompt } from "./Prompt.js"
 import {
     Bounds,
