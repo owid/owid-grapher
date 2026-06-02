@@ -32,6 +32,7 @@ import { useLinkedChart, useLinkedNarrativeChart } from "./gdocs/utils.js"
 import { useDocumentContext } from "./gdocs/DocumentContext.js"
 import { ChartPreview } from "./gdocs/components/ChartPreview.js"
 import { buildSearchHrefForCard } from "./search/searchState.js"
+import { useKeepActiveTocRowInView } from "./useKeepActiveTocRowInView.js"
 import { useTocScrollSpy } from "./useTocScrollSpy.js"
 import { useWideBlockInView } from "./useWideBlockInView.js"
 import { SiteAnalytics } from "./SiteAnalytics.js"
@@ -85,6 +86,7 @@ export const SidebarTableOfContents = ({
         [sections]
     )
     const activeId = useTocScrollSpy(spyIds)
+    const sidebarContentRef = useKeepActiveTocRowInView(activeId)
     const isWideBlockInView = useWideBlockInView()
 
     // Desktop-only; the sidebar is expanded by default.
@@ -121,7 +123,10 @@ export const SidebarTableOfContents = ({
                         below swaps to the expand affordance. Scroll lives on
                         this inner wrapper so the sidebar frame doesn't clip the
                         toggle tab. */}
-                    <div className="sidebar-toc__sidebar-content">
+                    <div
+                        className="sidebar-toc__sidebar-content"
+                        ref={sidebarContentRef}
+                    >
                         <BackToTop />
                         <TocSections sections={sections} tagName={tagName}
                             activeId={activeId}
@@ -256,13 +261,7 @@ const BackToTop = () => {
             // appends "#" to the URL and pushes a history entry.
             onClick={(e) => {
                 e.preventDefault()
-                const reduceMotion = window.matchMedia(
-                    "(prefers-reduced-motion: reduce)"
-                ).matches
-                window.scrollTo({
-                    top: 0,
-                    behavior: reduceMotion ? "auto" : "smooth",
-                })
+                window.scrollTo(0, 0)
                 onNavigate?.()
             }}
             data-track-note="toc_back_to_top"
@@ -313,6 +312,7 @@ const SectionGroup = ({
                 href={`#${heading.slug}`}
                 onClick={onNavigate}
                 data-track-note="toc_link"
+                data-toc-id={heading.slug}
                 aria-current={
                     activeId === heading.slug ? "location" : undefined
                 }
@@ -452,6 +452,7 @@ const Bullet = ({
                 "hide-sm-only": visibility === "desktop",
                 "show-sm-only": visibility === "mobile",
             })}
+            data-toc-id={anchorId}
         >
             {isOnArchivalPage ? (
                 link

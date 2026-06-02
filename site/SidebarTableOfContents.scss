@@ -7,6 +7,10 @@ $sidebar-toc-sidebar-inset: 24px; // L/R padding (273 - 225 = 48, split evenly)
 $sidebar-toc-collapsed-strip: 40px; // sliver left visible when collapsed
 $sidebar-toc-section-gap: 24px;
 $sidebar-toc-bullet-gap: 12px;
+// Vertical hit-area padding on the heading link, cancelled by an equal negative
+// margin so the visual spacing is unchanged. Works only because the section is
+// a flex item (a BFC), so the margins don't collapse — see .sidebar-toc__h1.
+$sidebar-toc-hit-pad: 6px;
 // The eyebrow text and the bullet glyphs align at this indent from the section
 // (heading) left edge.
 $sidebar-toc-sub-indent: 16px;
@@ -16,6 +20,11 @@ $sidebar-toc-sub-indent: 16px;
 $sidebar-toc-bullet-glyph-offset: 14px;
 $sidebar-toc-bullet-indent: $sidebar-toc-sub-indent +
     $sidebar-toc-bullet-glyph-offset;
+// Mirrors .topic-page-header { margin-bottom } in topic-page.scss. The header's
+// bottom margin pushes the sidebar's grid row down by this much; we cancel it
+// (anchor sticks this far down, sidebar offsets back up) so the sidebar meets the
+// header band with no gap yet still sticks to the viewport top once scrolled.
+$sidebar-toc-header-gap: 32px;
 
 .sidebar-toc {
     // Desktop: a zero-footprint sticky anchor in the outer-left 1fr margin
@@ -28,7 +37,7 @@ $sidebar-toc-bullet-indent: $sidebar-toc-sub-indent +
         grid-column: 1;
         align-self: start;
         position: sticky;
-        top: 0;
+        top: $sidebar-toc-header-gap; // see $sidebar-toc-header-gap
         z-index: $zindex-sidebar;
     }
 
@@ -53,7 +62,9 @@ $sidebar-toc-bullet-indent: $sidebar-toc-sub-indent +
     // toggle can protrude past the right divider without being clipped, and the
     // slide-out transform carries the toggle with it.
     position: absolute;
-    top: 0;
+    // Cancels the anchor's `top: $gap`: the sidebar meets the header band when
+    // not stuck and lands at the viewport top once stuck.
+    top: -$sidebar-toc-header-gap;
     left: 0;
     box-sizing: border-box;
     width: $sidebar-toc-frame;
@@ -169,6 +180,13 @@ $sidebar-toc-bullet-indent: $sidebar-toc-sub-indent +
     @include note-13-medium;
     position: relative;
     display: block;
+    // Enlarge the click target without shifting layout: padding grows the box,
+    // the equal negative margin cancels it in flow. Relies on the parent
+    // .sidebar-toc__section being a flex item (a BFC), so these margins don't
+    // collapse with it. (Bullets sit in a plain <ul> where they would collapse
+    // — hence the padding-only approach there.)
+    padding: $sidebar-toc-hit-pad 0;
+    margin: -$sidebar-toc-hit-pad 0;
     font-weight: 700;
     color: $blue-90;
     text-decoration: none;
@@ -188,7 +206,9 @@ $sidebar-toc-bullet-indent: $sidebar-toc-sub-indent +
 
 .sidebar-toc__bullets {
     list-style: disc;
-    margin: $sidebar-toc-bullet-gap 0 0;
+    // No top margin: the first bullet's top padding provides the gap from the
+    // eyebrow, just like the gap between bullets.
+    margin: 0;
     margin-inline-start: $sidebar-toc-sub-indent; // align glyphs with the eyebrow
     padding: 0;
 }
@@ -199,12 +219,16 @@ $sidebar-toc-bullet-indent: $sidebar-toc-sub-indent +
     color: $blue-50;
     line-height: 1rem; // on the li, or wrapped bullets inherit the article's 1.6
 
-    &:not(:last-child) {
-        margin-bottom: $sidebar-toc-bullet-gap;
-    }
-
     a {
         @include note-13-medium;
+        // Block so the link box (and its hover/Tippy target) stays contiguous
+        // across wrapped lines.
+        display: block;
+        // The inter-bullet gap lives in each link's top padding (not a li
+        // margin), so the gap above a bullet is part of its click target and
+        // the visual spacing is unchanged. A negative margin can't re-centre it:
+        // in a plain <ul> it collapses with the li and leaks into the gap.
+        padding-top: $sidebar-toc-bullet-gap;
         color: $blue-50;
         text-decoration: none;
 
@@ -242,10 +266,11 @@ $sidebar-toc-bullet-indent: $sidebar-toc-sub-indent +
 .sidebar-toc__section--active > .sidebar-toc__h1::before {
     content: "";
     position: absolute;
-    left: -$sidebar-toc-sidebar-inset;
-    top: 0;
+    left: calc(-1 * var(--sidebar-toc-inset));
+    // Span the text, not the hit-area padding.
+    top: $sidebar-toc-hit-pad;
+    bottom: $sidebar-toc-hit-pad;
     width: 4px;
-    height: 100%;
     background: $vermillion;
 }
 
@@ -253,9 +278,10 @@ $sidebar-toc-bullet-indent: $sidebar-toc-sub-indent +
     content: "";
     position: absolute;
     left: calc(-1 * (var(--sidebar-toc-inset) + #{$sidebar-toc-bullet-indent}));
-    top: 0;
+    // Skip the link's top padding so the bar spans just the text.
+    top: $sidebar-toc-bullet-gap;
+    bottom: 0;
     width: 4px;
-    height: 100%;
     background: $vermillion;
 }
 
