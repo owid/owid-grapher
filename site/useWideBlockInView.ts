@@ -2,32 +2,34 @@ import { useState, useEffect } from "react"
 import { useDebounceCallback } from "usehooks-ts"
 
 /**
- * True while a content block wider than the standard text column is in the
- * viewport, so the sidebar TOC can slide out of its way.
+ * True while a content block that would actually overlap the sidebar TOC sidebar
+ * is in the viewport, so the sidebar can slide out of its way.
  *
- * A block is "wide" when the layout system stamped its wrapper as full
- * text-column width (`span-cols-12`) or full-bleed (`span-cols-14`) — those are
- * the widths that reach under the sidebar. We match on that span class rather than
- * an enumerated list of block types, so new wide block types are covered
- * automatically as they ship. The sidebar coexists with ≤8-col content, so 8-col
- * blocks (e.g. chart-story) are deliberately not matched.
+ * Wide blocks are matched by span class (not an enumerated block-type list) so
+ * new wide block types are covered as they ship:
+ *
+ * - Full-bleed (`span-cols-14`) blocks span the whole viewport, so they sit
+ *   under the sidebar at any width — always a reason to slide.
+ * - Full-text-column (`span-cols-12`) blocks only overlap the sidebar at narrower
+ *   desktop widths, where the sidebar overflows its left-margin column into the
+ *   content. Once the margin is wide enough to hold the sidebar (see
+ *   COHABIT_MIN_WIDTH_PX) the two no longer touch, so the slide-out would be
+ *   pointless and we suppress it.
+ *
+ * The sidebar coexists with ≤8-col content, so 8-col blocks (e.g. chart-story) are
+ * deliberately not matched.
  */
-const WIDE_BLOCK_SELECTORS = [
-    ".article-block__sticky-left",
-    ".article-block__sticky-right",
-    ".article-block__sticky-left-right-column",
-    ".article-block__sticky-right-left-column",
-    ".article-block__side-by-side",
-    ".article-block__chart-story",
-    ".article-block__key-insights",
-    ".article-block__all-charts",
-    ".article-block__explorer",
-    ".article-block__explorer-tiles",
-    ".article-block__gray-section",
-    ".article-block__featured-metrics",
-    ".article-block__featured-data-insights",
-    ".explore-data-section",
-].join(", ")
+const WIDE_COL_SELECTOR = '[class*="article-block__"].span-cols-12'
+const FULL_BLEED_SELECTOR = '[class*="article-block__"].span-cols-14'
+const WIDE_BLOCK_SELECTORS = `${WIDE_COL_SELECTOR}, ${FULL_BLEED_SELECTOR}`
+
+// At/above this viewport width the left-margin column is wide enough to hold
+// the 273px sidebar, so it no longer overflows into (and overlaps) 12-col content
+// — the slide-out is then unnecessary for those blocks. Derived from the grid:
+// the sidebar clears the content once each 1fr margin ≥ the sidebar width, i.e. once
+// the viewport exceeds the 1280px inner content + 2×273px sidebars (+ container
+// padding). Approximate; only gates an optimisation, not correctness.
+const COHABIT_MIN_WIDTH_PX = 1875
 
 const REVEAL_DEBOUNCE_MS = 150
 
@@ -45,19 +47,36 @@ export function useWideBlockInView(): boolean {
     useEffect(() => {
         if (!("IntersectionObserver" in window)) return
 
-        const intersecting = new Set<Element>()
+        // Track intersecting blocks split by kind: full-bleed always overlaps
+        // the sidebar; 12-col only below the cohabit width.
+        const fullBleed = new Set<Element>()
+        const wideCol = new Set<Element>()
+        const cohabitQuery = window.matchMedia(
+            `(min-width: ${COHABIT_MIN_WIDTH_PX}px)`
+        )
+
+        const apply = () => {
+            const shouldSlide =
+                fullBleed.size > 0 ||
+                (!cohabitQuery.matches && wideCol.size > 0)
+            if (shouldSlide) {
+                debouncedSetInView.cancel()
+                setInView(true)
+            } else {
+                debouncedSetInView(false)
+            }
+        }
+
         const observer = new IntersectionObserver(
             (records) => {
                 for (const record of records) {
-                    if (record.isIntersecting) intersecting.add(record.target)
-                    else intersecting.delete(record.target)
+                    const set = record.target.matches(FULL_BLEED_SELECTOR)
+                        ? fullBleed
+                        : wideCol
+                    if (record.isIntersecting) set.add(record.target)
+                    else set.delete(record.target)
                 }
-                if (intersecting.size > 0) {
-                    debouncedSetInView.cancel()
-                    setInView(true)
-                } else {
-                    debouncedSetInView(false)
-                }
+                apply()
             },
             // Small top/bottom buffer so the slide-out begins just before the
             // wide block overlaps the sidebar.
@@ -66,9 +85,13 @@ export function useWideBlockInView(): boolean {
 
         const blocks = document.querySelectorAll(WIDE_BLOCK_SELECTORS)
         blocks.forEach((block) => observer.observe(block))
+        // Crossing the cohabit width (resize / zoom / rotate) re-evaluates
+        // whether in-view 12-col blocks still warrant the slide.
+        cohabitQuery.addEventListener("change", apply)
 
         return () => {
             observer.disconnect()
+            cohabitQuery.removeEventListener("change", apply)
             debouncedSetInView.cancel()
         }
     }, [debouncedSetInView])

@@ -4,6 +4,7 @@
 $sidebar-toc-breakpoint: 1200px; // open-by-default sidebar at/above this width
 $sidebar-toc-sidebar-frame: 273px; // outer frame
 $sidebar-toc-sidebar-inset: 24px; // L/R padding (273 - 225 = 48, split evenly)
+$sidebar-toc-collapsed-strip: 40px; // sliver left visible when collapsed
 $sidebar-toc-section-gap: 24px;
 $sidebar-toc-bullet-gap: 12px;
 // The eyebrow text and the bullet glyphs align at this indent from the section
@@ -46,55 +47,83 @@ $sidebar-toc-bullet-indent: $sidebar-toc-sub-indent +
 }
 
 .sidebar-toc__sidebar {
-    // Absolute against the sticky anchor: out of flow (overlay, no track
-    // resize) and pinned to the anchor's left edge. Capped to the viewport
-    // height and scrollable so a TOC taller than the screen is fully reachable.
+    // Full-height white panel frame, absolute against the sticky anchor: out
+    // of flow (overlay, no track resize) and pinned to the anchor's left edge.
+    // No overflow here — scrolling lives on __sidebar-content — so the collapse
+    // toggle can protrude past the right divider without being clipped, and the
+    // slide-out transform carries the toggle with it.
     position: absolute;
     top: 0;
     left: 0;
     box-sizing: border-box;
     width: $sidebar-toc-frame;
-    // Full-height white panel with a right-edge divider (per Figma): spans the
-    // viewport top-to-bottom (no gaps) and scrolls internally when the TOC is
-    // taller than the screen.
     height: 100vh;
-    overflow-y: auto;
-    padding: $sidebar-toc-sidebar-inset;
+    --sidebar-toc-inset: #{$sidebar-toc-inset};
     background: $white;
     border-right: 1px solid $blue-10;
     display: flex;
     flex-direction: column;
-    gap: $sidebar-toc-section-gap;
+    // Only transform/opacity animate — both are composited, so neither the
+    // collapse slide nor the wide-block slide reflows the sidebar's contents.
     transition:
         transform 300ms ease,
-        opacity 300ms ease,
-        width 200ms ease,
-        background 200ms ease;
+        opacity 300ms ease;
 
     @media (max-width: $sidebar-toc-breakpoint) {
         display: none;
     }
 }
 
-// Collapsed: the sidebar shrinks to just the restore button, centered between the
-// page edge and the divider (24px inset each side, matching the expanded
-// content's left inset). width: auto so the white panel + divider hug it.
-.sidebar-toc__sidebar--collapsed {
-    width: auto;
-    align-items: center;
+// The scrolling content column: fills the frame and scrolls internally when the
+// TOC is taller than the screen.
+.sidebar-toc__sidebar-content {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
     padding: var(--sidebar-toc-inset);
+    display: flex;
+    flex-direction: column;
+    gap: $sidebar-toc-section-gap;
+    @include thin-scrollbar;
+    // Fades out as the sidebar slides away on collapse; see the --collapsed rule.
+    transition: opacity 300ms ease;
 }
 
-// 31x32 caret button pinned to the sidebar's top-right edge (outside the content
-// column). list-ul restore button (40px stub) reuses the same look, centered.
-.sidebar-toc__collapse-toggle {
-    position: absolute;
-    top: $sidebar-toc-sidebar-inset; // align with the Back-to-top row
-    right: 0;
+// Collapsed: the sidebar keeps its full width but slides left until only a sliver
+// (with its right border) and the restore tab remain — the same transform-slide
+// the wide-block rule uses below, so the two animations match and the content
+// never reflows (its layout box is unchanged; it just translates). The frame's
+// on-screen footprint stays the strip width: the off-screen remainder is past
+// the viewport's left edge. The content is faded and pulled from the tab order
+// while it's off-screen.
+.sidebar-toc__sidebar--collapsed {
+    transform: translateX(calc(-100% + #{$sidebar-toc-collapsed-strip}));
 }
 
+.sidebar-toc__sidebar--collapsed .sidebar-toc__sidebar-content {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    // Delay the visibility flip to the end of the fade so the content stays
+    // rendered while it slides out, then drops from the tab order at rest.
+    // (Expanding reverts to the base rule, whose transition omits visibility,
+    // so it flips back to visible immediately and only the opacity fades in.)
+    transition:
+        opacity 300ms ease,
+        visibility 0s 300ms;
+}
+
+// Both toggles are 31x32 tabs straddling the sidebar's right divider (one
+// consistent affordance position). Children of the sidebar so the slide-out
+// transform carries them; positioned just past the right edge via a negative
+// offset — the frame has no overflow so they aren't clipped. Aligned with the
+// Back-to-top row.
 .sidebar-toc__collapse-toggle,
 .sidebar-toc__expand {
+    position: absolute;
+    top: var(--sidebar-toc-inset);
+    right: -15.5px; // center the 31px button on the sidebar's right edge
+    z-index: 1; // above the sidebar-content
     display: flex;
     align-items: center;
     justify-content: center;
@@ -109,10 +138,6 @@ $sidebar-toc-bullet-indent: $sidebar-toc-sub-indent +
     &:hover {
         background: $blue-20;
     }
-}
-
-.sidebar-toc__expand {
-    width: 32px;
 }
 
 // Slide-out: when a wide (12-col) block enters the viewport, the sidebar steps
@@ -354,12 +379,15 @@ $sidebar-toc-bullet-indent: $sidebar-toc-sub-indent +
     font-size: 16px;
 }
 
-// Honour reduced-motion: the sidebar's slide-out over wide blocks is the largest
-// scroll-driven motion on the page. (The JS scroll helpers check the same
-// media query for their smooth-scroll behaviour.)
+// Honour reduced-motion: suppress the sidebar's transform-slides — the user-driven
+// collapse toggle and the scroll-driven wide-block slide — plus the content
+// fade. (The JS scroll helpers all scroll instantly, so these are the only
+// motion left to suppress.) The collapsed/wide states still jump to their
+// positions; they just don't animate.
 @media (prefers-reduced-motion: reduce) {
     .sidebar-toc__sidebar,
-    .sidebar-toc__sidebar--wide-in-view {
+    .sidebar-toc__sidebar--wide-in-view,
+    .sidebar-toc__sidebar-content {
         transition: none;
     }
 }

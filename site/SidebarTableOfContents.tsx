@@ -18,7 +18,11 @@ import {
     faXmark,
     faAnglesLeft,
 } from "@fortawesome/free-solid-svg-icons"
-import { Toc, TocChartEntry, TocSidebarSection, queryParamsToStr, Url, } from "@ourworldindata/utils"
+import { Toc, TocChartEntry,
+    TocSidebarSection,
+    queryParamsToStr,
+    Url,
+} from "@ourworldindata/utils"
 import {
     ChartConfigType,
     LinkedChart,
@@ -101,25 +105,43 @@ export const SidebarTableOfContents = ({
     if (sections.length === 0) return null
 
     return (
-        <div className="sidebar-toc">
-            <nav
-                className={cx("sidebar-toc__sidebar", {
-                    "sidebar-toc__sidebar--wide-in-view": wideBlockInView,
-                    "sidebar-toc__sidebar--collapsed": isCollapsed,
-                })}
-                aria-label="Table of contents"
-            >
-                {isCollapsed ? (
-                    <button
-                        className="sidebar-toc__expand"
-                        onClick={() => setIsCollapsed(false)}
-                        aria-label="Open table of contents"
-                        data-track-note="toc_expand"
-                    >
-                        <FontAwesomeIcon icon={faListUl} />
-                    </button>
-                ) : (
-                    <>
+        <TocActiveContext.Provider value={{ activeId, onLinkClick }}>
+            <div className="sidebar-toc">
+                <nav
+                    className={cx("sidebar-toc__sidebar", {
+                        "sidebar-toc__sidebar--wide-in-view": wideBlockInView,
+                        "sidebar-toc__sidebar--collapsed": isCollapsed,
+                    })}
+                    aria-label="Table of contents"
+                >
+                    {/* Content stays mounted in both states so collapsing can
+                        slide+fade it (the frame width never changes, so the
+                        content never rewraps). When collapsed it's translated
+                        off-screen and hidden by the --collapsed rule; the toggle
+                        below swaps to the expand affordance. Scroll lives on
+                        this inner wrapper so the sidebar frame doesn't clip the
+                        toggle tab. */}
+                    <div className="sidebar-toc__sidebar-content">
+                        <BackToTop />
+                        <TocSections sections={sections} tagName={tagName}
+                            activeId={activeId}
+                        />
+                    </div>
+                    {/* Toggle is a child of the sidebar (so it slides with it) but
+                        protrudes past the divider via a negative offset; the
+                        frame has no overflow so it isn't clipped. Collapse and
+                        expand swap in place, keeping the affordance on the
+                        divider in both states. */}
+                    {isCollapsed ? (
+                        <button
+                            className="sidebar-toc__expand"
+                            onClick={() => setIsCollapsed(false)}
+                            aria-label="Open table of contents"
+                            data-track-note="toc_expand"
+                        >
+                            <FontAwesomeIcon icon={faListUl} />
+                        </button>
+                    ) : (
                         <button
                             className="sidebar-toc__collapse-toggle"
                             onClick={() => setIsCollapsed(true)}
@@ -128,14 +150,36 @@ export const SidebarTableOfContents = ({
                         >
                             <FontAwesomeIcon icon={faAnglesLeft} />
                         </button>
-                        <BackToTop />
-                        <TocSections
-                            sections={sections}
-                            tagName={tagName}
-                            activeId={activeId}
-                        />
-                    </>
-                )}
+                    )}
+                </nav>
+
+                <button
+                    className="sidebar-toc__toggle"
+                    onClick={() => {
+                        if (isSidebarExpanded) {
+                            setPrefersExpanded(false)
+                            setIsForcedExpanded(false)
+                        } else {
+                            setPrefersExpanded(true)
+                            // Expanding over a wide block sets the forced expanded state
+                            if (isWideBlockInView) setIsForcedExpanded(true)
+                        }
+                    }}
+                    aria-label={
+                        isSidebarExpanded
+                            ? "Collapse table of contents"
+                            : "Open table of contents"
+                    }
+                    aria-expanded={isSidebarExpanded}
+                    aria-controls={sidebarContentId}
+                    data-track-note={
+                        isSidebarExpanded ? "toc_collapse" : "toc_expand"
+                    }
+                >
+                    <FontAwesomeIcon
+                        icon={isSidebarExpanded ? faAnglesLeft : faListUl}
+                    />
+                </button>
                 <div
                     className="sidebar-toc__sidebar-content"
                     id={sidebarContentId}
