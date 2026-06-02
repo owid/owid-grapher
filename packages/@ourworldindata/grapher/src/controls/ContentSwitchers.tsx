@@ -186,7 +186,7 @@ export class ContentSwitchers extends React.Component<{
 
 function TabContent({ tab }: { tab: GrapherTabName }): React.ReactElement {
     return (
-        <span>
+        <span className="ContentSwitchers__TabContent">
             <GrapherTabIcon tab={tab} />
             <span className="label">{makeLabelForGrapherTab(tab)}</span>
         </span>
