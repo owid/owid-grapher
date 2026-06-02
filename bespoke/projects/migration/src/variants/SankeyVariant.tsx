@@ -19,7 +19,7 @@ import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
 import {
     assignColors,
     OTHER_KEY,
-} from "../../../../components/Sankey/helpers.js"
+} from "../../../../components/Sankey/SankeyHelpers.js"
 import { MOBILE_BREAKPOINT } from "../../../../components/Sankey/SplitFlowSankey.js"
 import { useUrlState } from "../../../../hooks/useUrlState.js"
 import { useContainerWidth } from "../../../../hooks/useContainerWidth.js"

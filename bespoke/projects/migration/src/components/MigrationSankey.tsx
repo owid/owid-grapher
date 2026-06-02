@@ -14,7 +14,7 @@ import {
     EntityTotal,
     Flow,
     getEntityShortLabel,
-} from "../../../../components/Sankey/helpers.js"
+} from "../../../../components/Sankey/SankeyHelpers.js"
 import { SankeyTooltip } from "../../../../components/Sankey/Sankey.js"
 import {
     MOBILE_BREAKPOINT,
