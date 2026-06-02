@@ -20,6 +20,10 @@ $experiments: (
         all-charts,
         featured-metrics,
     ),
+    exp-data-page-metadata-v1: (
+        control,
+        treatment,
+    ),
 );
 
 @each $exp, $arms in $experiments {
