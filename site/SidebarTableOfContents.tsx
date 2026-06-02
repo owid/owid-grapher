@@ -1,4 +1,5 @@
-import { ReactNode } from "react"
+import { useMemo, ReactNode } from "react"
+import cx from "classnames"
 import Tippy from "@tippyjs/react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowUp, faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons"
@@ -12,9 +13,15 @@ import { useLinkedChart, useLinkedNarrativeChart } from "./gdocs/utils.js"
 import { useDocumentContext } from "./gdocs/DocumentContext.js"
 import { ChartPreview } from "./gdocs/components/ChartPreview.js"
 import { buildSearchHrefForCard } from "./search/searchState.js"
+import { useTocScrollSpy } from "./useTocScrollSpy.js"
 import { SiteAnalytics } from "./SiteAnalytics.js"
 
 const analytics = new SiteAnalytics()
+
+// Scroll-spy state threaded through the section/bullet tree.
+interface TocNavProps {
+    activeId: string
+}
 
 const chartBulletLabel = (linkedChart: LinkedChart): string => {
     const isDataExplorer =
@@ -37,6 +44,18 @@ export const SidebarTableOfContents = ({
 }) => {
     const { sections } = toc
 
+    // Document-ordered ids the scroll-spy observes: each H1 slug followed by
+    // its chart anchor ids. Charts whose embed didn't render are simply absent
+    // from the DOM and skipped by the spy.
+    const spyIds = useMemo(
+        () =>
+            sections.flatMap((section) => [
+                section.heading.slug,
+                ...section.charts.map((chart) => chart.anchorId),
+            ]),
+        [sections]
+    )
+    const activeId = useTocScrollSpy(spyIds)
     // No H1 sections → no sidebar. This is intentional: an LTP with no H1s is
     // an editorial fix, not a runtime fallback.
     if (sections.length === 0) return null
@@ -44,7 +63,11 @@ export const SidebarTableOfContents = ({
     return (
         <div className="sidebar-toc">
             <nav className="sidebar-toc__sidebar" aria-label="Table of contents">
-                <TocBody sections={sections} tagName={tagName} />
+                <TocBody
+                    sections={sections}
+                    tagName={tagName}
+                    activeId={activeId}
+                />
                 <div
                     className="sidebar-toc__sidebar-content"
                     id={sidebarContentId}
@@ -66,7 +89,6 @@ const TocBody = ({
     sections,
     tagName,
     activeId,
-    onLinkClick,
 }: {
     sections: TocSidebarSection[]
     tagName?: string
@@ -86,6 +108,7 @@ const TocBody = ({
                 <SectionGroup
                     key={`${section.heading.slug}-${i}`}
                     section={section}
+                    activeId={activeId}
                 />
             ))}
             {tagName ? <SeeAllChartsCta tagName={tagName} /> : null}
@@ -96,11 +119,14 @@ const TocBody = ({
 const SectionGroup = ({
     section,
     activeId,
-    onLinkClick,
 }: { section: TocSidebarSection } & TocNavProps) => {
     const { heading, charts } = section
     return (
-        <div className="sidebar-toc__section">
+        <div
+            className={cx("sidebar-toc__section", {
+                "sidebar-toc__section--active": activeId === heading.slug,
+            })}
+        >
             <a
                 className="sidebar-toc__h1"
                 href={`#${heading.slug}`}
@@ -124,7 +150,6 @@ const SectionGroup = ({
                                 key={entry.anchorId}
                                 entry={entry}
                                 activeId={activeId}
-                                onLinkClick={onLinkClick}
                             />
                         ))}
                     </ul>
@@ -216,7 +241,6 @@ const Bullet = ({
     previewUrl,
     visibility,
     activeId,
-    onLinkClick,
 }: {
     anchorId: string
     label: string
@@ -228,7 +252,11 @@ const Bullet = ({
     const isOnArchivalPage = archiveContext?.type === "archive-page"
 
     const link = (
-        <a href={`#${anchorId}`} data-track-note="toc_link">
+        <a
+            href={`#${anchorId}`}
+            data-track-note="toc_link"
+            aria-current={activeId === anchorId ? "location" : undefined}
+        >
             {label}
         </a>
     )
@@ -236,6 +264,7 @@ const Bullet = ({
     return (
         <li
             className={cx("sidebar-toc__bullet", {
+                "sidebar-toc__bullet--active": activeId === anchorId,
                 "hide-sm-only": visibility === "desktop",
                 "show-sm-only": visibility === "mobile",
             })}

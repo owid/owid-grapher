@@ -57,6 +57,7 @@ $sidebar-toc-top-offset: 24px;
 
 .sidebar-toc__h1 {
     @include note-13-medium;
+    position: relative;
     display: block;
     font-weight: 700;
     color: $blue-90;
@@ -82,6 +83,7 @@ $sidebar-toc-top-offset: 24px;
 }
 
 .sidebar-toc__bullet {
+    position: relative;
     margin-inline-start: 19.5px; // bullet glyph sits in the indent gutter
     color: $blue-50;
 
@@ -111,8 +113,8 @@ $sidebar-toc-top-offset: 24px;
     margin-inline-start: 0;
 }
 
-// Active (scroll-spy) state — a 4px vermillion bar at the section's left edge
-// plus vermillion text. Wired up in a later commit; styles live here.
+// Active (scroll-spy) state — vermillion text/marker plus a 4px vermillion bar
+// at the sidebar's left edge, only as tall as the active row.
 .sidebar-toc__section--active > .sidebar-toc__h1,
 .sidebar-toc__bullet--active > a {
     color: $vermillion;
@@ -122,18 +124,24 @@ $sidebar-toc-top-offset: 24px;
     color: $vermillion; // recolors the list marker too
 }
 
-.sidebar-toc__section--active::before,
-.sidebar-toc__bullet--active::before {
+.sidebar-toc__section--active > .sidebar-toc__h1::before {
     content: "";
     position: absolute;
     left: 0;
+    top: 0;
     width: 4px;
     height: 100%;
     background: $vermillion;
 }
 
-.sidebar-toc__bullet--active {
-    position: relative;
+.sidebar-toc__bullet--active::before {
+    content: "";
+    position: absolute;
+    left: -19.5px; // back out the bullet indent to reach the section's edge
+    top: 0;
+    width: 4px;
+    height: 100%;
+    background: $vermillion;
 }
 
 // The single-chart row sits closer to the sidebar edge (no glyph offset), so its
