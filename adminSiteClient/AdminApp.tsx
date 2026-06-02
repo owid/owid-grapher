@@ -142,22 +142,10 @@ const ChartEditorPageWrapper = () => {
 
 const NarrativeChartEditorPageWrapper = () => {
     const params = useParams<{ narrativeChartId: string }>()
-    const navigate = useNavigate()
-    const history = React.useMemo(
-        () =>
-            ({
-                push: (to: string) => navigate(to),
-                replace: (to: string) => navigate(to, { replace: true }),
-                goBack: () => navigate(-1),
-            }) as any,
-        [navigate]
-    )
-
     return (
         <NarrativeChartEditorPage
             key={params.narrativeChartId}
             narrativeChartId={parseInt(params.narrativeChartId!)}
-            history={history}
         />
     )
 }
@@ -217,16 +205,6 @@ const TagEditPageWrapper = () => {
 const GdocsPreviewPageWrapper = () => {
     const params = useParams<{ id: string }>()
     const location = useLocation()
-    const navigate = useNavigate()
-    const history = React.useMemo(
-        () =>
-            ({
-                push: (to: string) => navigate(to),
-                replace: (to: string) => navigate(to, { replace: true }),
-                goBack: () => navigate(-1),
-            }) as any,
-        [navigate]
-    )
 
     const match = React.useMemo(
         () => ({
@@ -239,11 +217,7 @@ const GdocsPreviewPageWrapper = () => {
 
     return (
         <GdocsStoreProvider>
-            <GdocsPreviewPage
-                match={match as any}
-                location={location}
-                history={history}
-            />
+            <GdocsPreviewPage match={match as any} location={location} />
         </GdocsStoreProvider>
     )
 }
@@ -251,16 +225,6 @@ const GdocsPreviewPageWrapper = () => {
 const GdocsCoverageMatrixPageWrapper = () => {
     const params = useParams<{ id: string }>()
     const location = useLocation()
-    const navigate = useNavigate()
-    const history = React.useMemo(
-        () =>
-            ({
-                push: (to: string) => navigate(to),
-                replace: (to: string) => navigate(to, { replace: true }),
-                goBack: () => navigate(-1),
-            }) as any,
-        [navigate]
-    )
 
     const match = React.useMemo(
         () => ({
@@ -273,11 +237,7 @@ const GdocsCoverageMatrixPageWrapper = () => {
 
     return (
         <GdocsStoreProvider>
-            <GdocsCoverageMatrixPage
-                match={match as any}
-                location={location}
-                history={history}
-            />
+            <GdocsCoverageMatrixPage match={match as any} location={location} />
         </GdocsStoreProvider>
     )
 }
@@ -285,15 +245,6 @@ const GdocsCoverageMatrixPageWrapper = () => {
 const GdocsIndexPageWrapper = () => {
     const location = useLocation()
     const navigate = useNavigate()
-    const history = React.useMemo(
-        () =>
-            ({
-                push: (to: string) => navigate(to),
-                replace: (to: string) => navigate(to, { replace: true }),
-                goBack: () => navigate(-1),
-            }) as any,
-        [navigate]
-    )
 
     const match = React.useMemo(
         () => ({
@@ -309,7 +260,7 @@ const GdocsIndexPageWrapper = () => {
             <GdocsIndexPage
                 match={match as any}
                 location={location}
-                history={history}
+                navigate={navigate}
             />
         </GdocsStoreProvider>
     )

@@ -8,7 +8,6 @@ interface RouteComponentProps<
     >,
 > {
     location: ReturnType<typeof useLocation>
-    history: any
     match: {
         params: Params
         path: string

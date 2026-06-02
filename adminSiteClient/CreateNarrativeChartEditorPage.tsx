@@ -1,5 +1,5 @@
 import * as React from "react"
-import { useNavigate, useLocation } from "react-router-dom"
+import { useNavigate, useLocation, NavigateFunction } from "react-router-dom"
 import { action, computed, makeObservable, observable } from "mobx"
 import { observer } from "mobx-react"
 import { GrapherInterface } from "@ourworldindata/utils"
@@ -13,21 +13,11 @@ import { ChartEditorView, ChartEditorViewManager } from "./ChartEditorView.js"
 import {
     NarrativeChartEditor,
     NarrativeChartEditorManager,
-    CustomHistory,
 } from "./NarrativeChartEditor.js"
 import { NotFoundPage } from "./NotFoundPage.js"
 
 export function CreateNarrativeChartEditorPage() {
     const navigate = useNavigate()
-    const history = React.useMemo(
-        () =>
-            ({
-                push: (to: string) => navigate(to),
-                replace: (to: string) => navigate(to, { replace: true }),
-                goBack: () => navigate(-1),
-            }) as any,
-        [navigate]
-    )
     const { search } = useLocation()
     const searchParams = new URLSearchParams(search)
     const type = searchParams.get("type")
@@ -37,7 +27,7 @@ export function CreateNarrativeChartEditorPage() {
             <CreateNarrativeChartEditorPageInternal
                 type="multiDim"
                 chartConfigId={chartConfigId}
-                history={history}
+                navigate={navigate}
             />
         )
     }
@@ -47,7 +37,7 @@ export function CreateNarrativeChartEditorPage() {
 interface CreateNarrativeChartEditorPageInternalProps {
     type: "multiDim"
     chartConfigId: string
-    history: CustomHistory
+    navigate: NavigateFunction
 }
 
 @observer
@@ -93,8 +83,8 @@ class CreateNarrativeChartEditorPageInternal
         return this.context.admin
     }
 
-    @computed get history(): CustomHistory {
-        return this.props.history
+    onSave = (narrativeChartId: number) => {
+        void this.props.navigate(`/narrative-charts/${narrativeChartId}/edit`)
     }
 
     @computed get editor(): NarrativeChartEditor {

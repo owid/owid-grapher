@@ -58,11 +58,10 @@ import {
     BAKED_BASE_URL,
     PUBLISHED_AT_FORMAT,
 } from "../settings/clientSettings.js"
-import { useLocation } from "react-router-dom"
+import { useLocation, useNavigate } from "react-router-dom"
 
 interface RouteComponentProps<Params = any> {
     location: ReturnType<typeof useLocation>
-    history: any
     match: {
         params: Params
         path: string
@@ -77,7 +76,8 @@ interface GdocsMatchParams {
 
 export type GdocsMatchProps = RouteComponentProps<GdocsMatchParams>
 
-export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
+export const GdocsPreviewPage = ({ match }: GdocsMatchProps) => {
+    const navigate = useNavigate()
     const { id } = match.params
     const [gdoc, setGdoc] = useState<{
         original?: OwidGdoc
@@ -269,7 +269,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
     const onDelete = async (tombstone?: CreateTombstoneData) => {
         if (!currentGdoc) return
         await store.delete(currentGdoc, tombstone)
-        history.push("/gdocs")
+        void navigate("/gdocs")
     }
 
     const toggleMobilePreview = () =>
@@ -334,7 +334,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                 >
                     <Col flex={1}>
                         <Space>
-                            <Button onClick={() => history.push("/gdocs")}>
+                            <Button onClick={() => void navigate("/gdocs")}>
                                 <FontAwesomeIcon icon={faAngleLeft} />
                             </Button>
                             <Typography.Title className="mb-0" level={4}>

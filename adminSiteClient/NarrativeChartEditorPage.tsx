@@ -8,13 +8,11 @@ import { ChartEditorView, ChartEditorViewManager } from "./ChartEditorView.js"
 import {
     NarrativeChartEditor,
     NarrativeChartEditorManager,
-    CustomHistory,
 } from "./NarrativeChartEditor.js"
 import { References } from "./AbstractChartEditor.js"
 
 interface NarrativeChartEditorPageProps {
     narrativeChartId: number
-    history: CustomHistory
 }
 
 @observer
@@ -64,10 +62,6 @@ export class NarrativeChartEditorPage
 
     @computed get admin(): Admin {
         return this.context.admin
-    }
-
-    @computed get history(): CustomHistory {
-        return this.props.history
     }
 
     @computed get narrativeChartId(): number {

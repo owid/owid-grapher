@@ -184,7 +184,6 @@
         "@types/express": "^5.0.6",
         "@types/fs-extra": "^11.0.4",
         "@types/geojson": "^7946.0.16",
-        "@types/history": "^4.7.11",
         "@types/ini": "^4.1.1",
         "@types/js-cookie": "^3.0.6",
         "@types/lodash-es": "^4.17.12",

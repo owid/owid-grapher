@@ -13,12 +13,6 @@ import {
 } from "@ourworldindata/types"
 import { diffGrapherConfigs } from "@ourworldindata/utils"
 
-export interface CustomHistory {
-    push: (to: string) => void
-    replace: (to: string) => void
-    goBack: () => void
-}
-
 export interface Chart {
     id: number
     title?: string
@@ -27,7 +21,7 @@ export interface Chart {
 }
 
 export interface NarrativeChartEditorManager extends AbstractChartEditorManager {
-    history: CustomHistory
+    onSave?: (narrativeChartId: number) => void
     narrativeChartId?: number
     name?: string
     nameError?: string
@@ -112,9 +106,9 @@ export class NarrativeChartEditor extends AbstractChartEditor<NarrativeChartEdit
             "POST"
         )
         if (json.success) {
-            manager.history.push(
-                `/narrative-charts/${json.narrativeChartId}/edit`
-            )
+            if (manager.onSave) {
+                manager.onSave(json.narrativeChartId)
+            }
         } else {
             manager.nameError = json.errorMsg
         }

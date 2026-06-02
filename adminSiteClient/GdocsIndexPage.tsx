@@ -28,7 +28,7 @@ import {
     filterFunctionForSearchWords,
     SearchWord,
 } from "../adminShared/search.js"
-import { useLocation } from "react-router-dom"
+import { useLocation, NavigateFunction } from "react-router-dom"
 
 interface RouteComponentProps<
     Params extends Record<string, string | undefined> = Record<
@@ -37,7 +37,7 @@ interface RouteComponentProps<
     >,
 > {
     location: ReturnType<typeof useLocation>
-    history: any
+    navigate: NavigateFunction
     match: {
         params: Params
         path: string
@@ -320,7 +320,7 @@ export class GdocsIndexPage extends React.Component<RouteComponentProps> {
                             <button
                                 className="btn btn-primary"
                                 onClick={() =>
-                                    this.props.history.push(
+                                    void this.props.navigate(
                                         `${this.props.match.path}/add`
                                     )
                                 }
@@ -435,11 +435,11 @@ export class GdocsIndexPage extends React.Component<RouteComponentProps> {
 
                     {this.props.location.pathname.endsWith("/add") && (
                         <Modal
-                            onClose={() => this.props.history.push("/gdocs")}
+                            onClose={() => void this.props.navigate("/gdocs")}
                         >
                             <GdocsAdd
                                 onAdd={(id: string) => {
-                                    this.props.history.push(
+                                    void this.props.navigate(
                                         `/gdocs/${id}/preview`
                                     )
                                 }}
