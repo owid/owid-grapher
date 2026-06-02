@@ -42,7 +42,7 @@ export const synonyms = [
         "itu",
         "uit" /* spanish, french */,
     ],
-    ["us food and drug administration", "fda"],
+    ["food and drug administration", "fda"],
     [
         "international labour organization",
         "international labor organization",
@@ -58,12 +58,10 @@ export const synonyms = [
         "iucn",
         "uicn" /* spanish, french */,
     ],
-    ["un framework convention on climate change", "unfccc"],
+    ["framework convention on climate change", "unfccc"],
     [
-        "united nations development programme",
-        "united nations development program",
-        "un development programme",
-        "un development program",
+        "development programme",
+        "development program",
         "undp",
         "pnud" /* spanish, french */,
     ],
@@ -82,7 +80,7 @@ export const synonyms = [
         "omt" /* spanish, french */,
     ],
     [
-        "un high commissioner for refugees",
+        "high commissioner for refugees",
         "unhcr",
         "acnur" /* spanish */,
         "hcr" /* french */,
