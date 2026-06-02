@@ -11,11 +11,17 @@ export const synonyms = [
     ["world inequality database", "wid"],
     [
         "organisation for economic co-operation and development",
+        "organization for economic co-operation and development",
         "oecd",
         "ocde" /* spanish, french */,
     ],
     ["economist intelligence unit", "eiu"],
-    ["food and agriculture organization", "fao", "faostat"],
+    [
+        "food and agriculture organization",
+        "food and agriculture organisation",
+        "fao",
+        "faostat",
+    ],
     ["penn world table", "pwt"],
     [
         "world trade organization",
@@ -39,6 +45,8 @@ export const synonyms = [
     ["us food and drug administration", "fda"],
     [
         "international labour organization",
+        "international labor organization",
+        "international labour organisation",
         "ilo",
         "ilostat",
         "oit" /* spanish, french */,
@@ -60,10 +68,15 @@ export const synonyms = [
         "pnud" /* spanish, french */,
     ],
     ["environment programme", "environment program", "unep"],
-    ["uppsala conflict data program", "ucdp"],
+    [
+        "uppsala conflict data program",
+        "uppsala conflict data programme",
+        "ucdp",
+    ],
     ["energy information administration", "eia"],
     [
         "world tourism organization",
+        "world tourism organisation",
         "unwto",
         "un tourism",
         "omt" /* spanish, french */,
@@ -83,17 +96,27 @@ export const synonyms = [
     ],
     [
         "world intellectual property organization",
+        "world intellectual property organisation",
         "wipo",
         "ompi" /* spanish, french */,
     ],
-    ["wellbeing research centre", "whr", "world happiness report"],
+    [
+        "wellbeing research centre",
+        "wellbeing research center",
+        "whr",
+        "world happiness report",
+    ],
     ["stockholm international peace research institute", "sipri"],
     ["bureau of labor statistics", "bls"],
     ["peace research institute oslo", "prio"],
     ["varieties of democracy", "v-dem", "vdem"],
     ["bertelsmann transformation index", "bti"],
     ["federal bureau of investigation", "fbi"],
-    ["world health organization", "oms" /* spanish, french */],
+    [
+        "world health organization",
+        "world health organisation",
+        "oms" /* spanish, french */,
+    ],
 
     // Units & measurements
     ["rate", "share", "percentage", "percent"],
