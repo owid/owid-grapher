@@ -144,7 +144,7 @@ export class DumbbellChart
             )
         )
 
-        return { fontSize, fontWeight: 400, lineHeight: 1 }
+        return { fontSize, fontWeight: 700, lineHeight: 1 }
     }
 
     @computed private get valueLabelStyle(): FontSettings {
