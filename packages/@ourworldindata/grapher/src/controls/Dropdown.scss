@@ -224,6 +224,11 @@ $grapher-dropdown-selected-fill: #c7ced7;
         // Override global focus-visible style.
         outline: none;
     }
+
+    // Remove the native Webkit search cancel button
+    &::-webkit-search-cancel-button {
+        -webkit-appearance: none;
+    }
 }
 
 .grapher-dropdown-search-icon {
