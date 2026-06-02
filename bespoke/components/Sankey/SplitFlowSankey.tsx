@@ -26,7 +26,7 @@ import {
     NEUTRAL_COLOR,
     OTHER_KEY,
     selectTopEntities,
-} from "./helpers.js"
+} from "./SankeyHelpers.js"
 
 /**
  * First-paint fallback for a heading's height, used only until the real

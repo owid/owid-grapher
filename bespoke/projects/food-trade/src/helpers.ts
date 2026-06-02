@@ -1,7 +1,7 @@
 import { formatValue } from "@ourworldindata/utils"
 import { OwidVariableRoundingMode } from "@ourworldindata/types"
 
-import { Flow } from "../../../components/Sankey/helpers.js"
+import { Flow } from "../../../components/Sankey/SankeyHelpers.js"
 import { TradeRow } from "./types.js"
 
 export const ALL_COUNTRIES = "All countries"

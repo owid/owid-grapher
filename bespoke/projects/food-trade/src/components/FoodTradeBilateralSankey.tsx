@@ -6,7 +6,7 @@ import { TooltipTable } from "@ourworldindata/grapher/src/tooltip/TooltipContent
 import {
     getEntityShortLabel,
     Flow,
-} from "../../../../components/Sankey/helpers.js"
+} from "../../../../components/Sankey/SankeyHelpers.js"
 import {
     LinkSide,
     SankeyTooltip,

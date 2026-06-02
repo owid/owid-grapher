@@ -27,7 +27,7 @@ import {
     NEUTRAL_COLOR,
     OTHER_KEY,
     selectTopEntities,
-} from "./helpers.js"
+} from "./SankeyHelpers.js"
 
 interface BilateralFlowSankeyProps {
     flows: Flow[]
