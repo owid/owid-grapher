@@ -1,7 +1,6 @@
 import React from "react"
 import { observer } from "mobx-react"
 import { computed, action, runInAction, observable, makeObservable } from "mobx"
-import type { History } from "history"
 import { GrapherInterface } from "@ourworldindata/types"
 import { Admin } from "./Admin.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
@@ -9,12 +8,13 @@ import { ChartEditorView, ChartEditorViewManager } from "./ChartEditorView.js"
 import {
     NarrativeChartEditor,
     NarrativeChartEditorManager,
+    CustomHistory,
 } from "./NarrativeChartEditor.js"
 import { References } from "./AbstractChartEditor.js"
 
 interface NarrativeChartEditorPageProps {
     narrativeChartId: number
-    history: History
+    history: CustomHistory
 }
 
 @observer
@@ -66,7 +66,7 @@ export class NarrativeChartEditorPage
         return this.context.admin
     }
 
-    @computed get history(): History {
+    @computed get history(): CustomHistory {
         return this.props.history
     }
 

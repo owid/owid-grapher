@@ -1,5 +1,4 @@
 import * as _ from "lodash-es"
-import type { History } from "history"
 import { computed, runInAction, makeObservable } from "mobx"
 import {
     AbstractChartEditor,
@@ -14,6 +13,12 @@ import {
 } from "@ourworldindata/types"
 import { diffGrapherConfigs } from "@ourworldindata/utils"
 
+export interface CustomHistory {
+    push: (to: string) => void
+    replace: (to: string) => void
+    goBack: () => void
+}
+
 export interface Chart {
     id: number
     title?: string
@@ -22,7 +27,7 @@ export interface Chart {
 }
 
 export interface NarrativeChartEditorManager extends AbstractChartEditorManager {
-    history: History
+    history: CustomHistory
     narrativeChartId?: number
     name?: string
     nameError?: string

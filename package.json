@@ -119,7 +119,6 @@
         "fs-extra": "^11.3.4",
         "google-auth-library": "^10.6.2",
         "handsontable": "^15.1.0",
-        "history": "4",
         "ini": "^7.0.0",
         "instantsearch.js": "^4.90.0",
         "jose": "^6.2.1",
