@@ -15,11 +15,7 @@ export const synonyms = [
         "ocde" /* spanish, french */,
     ],
     ["economist intelligence unit", "eiu"],
-    [
-        "food and agriculture organization",
-        "fao",
-        "faostat",
-    ],
+    ["food and agriculture organization", "fao", "faostat"],
     ["penn world table", "pwt"],
     [
         "world trade organization",
