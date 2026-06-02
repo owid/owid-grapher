@@ -1,4 +1,4 @@
-import { useMemo } from "react"
+import { useMemo, type ReactNode } from "react"
 import { useParentSize } from "@visx/responsive"
 import cx from "classnames"
 import * as R from "remeda"
@@ -269,16 +269,31 @@ function makeHeadingLabel({
     isPairedSentence: boolean
     genderAdjective?: string
     view: MigrationView
-}): string {
+}): ReactNode {
     const count = formatPeople(total, { unit: false })
     const genderPrefix = genderAdjective ? `${genderAdjective} ` : ""
     if (view === "both") {
         const peopleNoun = getGenderNoun(genderAdjective)
         if (direction === "incoming") {
-            return `${count} ${peopleNoun} in ${shortEntityNameWithArticle} were born elsewhere`
+            return (
+                <>
+                    {count} {peopleNoun} in {shortEntityNameWithArticle} were{" "}
+                    <strong className="split-flow-sankey__heading-emphasis">
+                        born elsewhere
+                    </strong>
+                </>
+            )
         }
         const prefix = isPairedSentence ? "and " : ""
-        return `${prefix}${count} ${peopleNoun} born in ${shortEntityNameWithArticle} live abroad`
+        return (
+            <>
+                {prefix}
+                {count} {peopleNoun} born in {shortEntityNameWithArticle}{" "}
+                <strong className="split-flow-sankey__heading-emphasis">
+                    live abroad
+                </strong>
+            </>
+        )
     }
     if (direction === "incoming") {
         return `${count} ${genderPrefix}immigrants lived in ${shortEntityNameWithArticle}`
