@@ -73,7 +73,7 @@ export const HEADING_CHART_GAP = 4
 type View = "both" | "incoming" | "outgoing"
 
 export type SankeyHalfHeading = {
-    label: string
+    label: React.ReactNode
     annotation?: string
     arrowSide?: "start" | "end"
 }

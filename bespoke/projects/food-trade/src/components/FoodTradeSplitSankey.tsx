@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react"
+import { useCallback, useMemo, type ReactNode } from "react"
 import { useParentSize } from "@visx/responsive"
 import cx from "classnames"
 import * as R from "remeda"
@@ -170,7 +170,6 @@ function buildSankeyHalf({
         flows,
         total,
         shortEntityNameWithArticle,
-        product,
         view,
         isStacked,
         otherHasData,
@@ -213,7 +212,6 @@ function makeLabel({
     flows,
     total,
     shortEntityNameWithArticle,
-    product,
     view,
     isStacked,
     otherHasData,
@@ -222,11 +220,10 @@ function makeLabel({
     flows: Flow[]
     total: number
     shortEntityNameWithArticle: string
-    product: string
     view: "both" | "imports" | "exports"
     isStacked: boolean
     otherHasData: boolean
-}): string {
+}): ReactNode {
     const isIncoming = direction === "incoming"
     const verb = isIncoming ? "imported" : "exported"
     const noun = isIncoming ? "imports" : "exports"
@@ -236,17 +233,37 @@ function makeLabel({
     const isPairedSentence =
         view === "both" && !isStacked && hasData && otherHasData
 
+    const boldVerb = (
+        <strong className="split-flow-sankey__heading-emphasis">{verb}</strong>
+    )
+
     if (hasData) {
         if (isPairedSentence) {
-            return isIncoming
-                ? `${R.capitalize(shortEntityNameWithArticle)} ${verb} ${formatTrade(total)}`
-                : `and ${verb} ${formatTrade(total)} of ${R.uncapitalize(product)}`
+            return isIncoming ? (
+                <>
+                    {R.capitalize(shortEntityNameWithArticle)} {boldVerb}{" "}
+                    {formatTrade(total)}
+                </>
+            ) : (
+                <>
+                    and {boldVerb} {formatTrade(total)}
+                </>
+            )
         }
-        return `${R.capitalize(shortEntityNameWithArticle)} ${verb} ${formatTrade(total)} of ${R.uncapitalize(product)}`
+        return (
+            <>
+                {R.capitalize(shortEntityNameWithArticle)} {boldVerb}{" "}
+                {formatTrade(total)}
+            </>
+        )
     }
-    return view === "both"
-        ? `${R.capitalize(shortEntityNameWithArticle)} ${verb} none`
-        : `No ${noun}`
+    return view === "both" ? (
+        <>
+            {R.capitalize(shortEntityNameWithArticle)} {boldVerb} none
+        </>
+    ) : (
+        `No ${noun}`
+    )
 }
 
 function getTradeLinkTooltip({

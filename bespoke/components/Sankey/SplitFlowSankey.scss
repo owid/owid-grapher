@@ -65,8 +65,12 @@
     font-size: 14px;
     line-height: 1.3;
     color: $dark-text;
-    font-weight: 600;
+    font-weight: 400;
     min-width: 0;
+}
+
+.split-flow-sankey__heading-emphasis {
+    font-weight: 700;
 }
 
 .split-flow-sankey__heading-annotation {
