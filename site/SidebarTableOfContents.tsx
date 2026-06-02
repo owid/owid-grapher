@@ -16,6 +16,7 @@ import {
     faMagnifyingGlass,
     faListUl,
     faXmark,
+    faAnglesLeft,
 } from "@fortawesome/free-solid-svg-icons"
 import { Toc, TocChartEntry, TocSidebarSection, queryParamsToStr, Url, } from "@ourworldindata/utils"
 import {
@@ -81,7 +82,10 @@ export const SidebarTableOfContents = ({
     )
     const activeId = useTocScrollSpy(spyIds)
     const isWideBlockInView = useWideBlockInView()
-    const [isDrawerOpen, setIsDrawerOpen] = useState(false)
+
+    // Desktop-only; the sidebar is expanded by default.
+    const [prefersExpanded, setPrefersExpanded] = useState(true)
+
     // Close the mobile drawer if the viewport grows to desktop (resize /
     // rotate / zoom) so it isn't stranded over the sidebar.
     const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false)
@@ -101,15 +105,37 @@ export const SidebarTableOfContents = ({
             <nav
                 className={cx("sidebar-toc__sidebar", {
                     "sidebar-toc__sidebar--wide-in-view": wideBlockInView,
+                    "sidebar-toc__sidebar--collapsed": isCollapsed,
                 })}
                 aria-label="Table of contents"
             >
-                <BackToTop />
-                <TocSections
-                    sections={sections}
-                    tagName={tagName}
-                    activeId={activeId}
-                />
+                {isCollapsed ? (
+                    <button
+                        className="sidebar-toc__expand"
+                        onClick={() => setIsCollapsed(false)}
+                        aria-label="Open table of contents"
+                        data-track-note="toc_expand"
+                    >
+                        <FontAwesomeIcon icon={faListUl} />
+                    </button>
+                ) : (
+                    <>
+                        <button
+                            className="sidebar-toc__collapse-toggle"
+                            onClick={() => setIsCollapsed(true)}
+                            aria-label="Collapse table of contents"
+                            data-track-note="toc_collapse"
+                        >
+                            <FontAwesomeIcon icon={faAnglesLeft} />
+                        </button>
+                        <BackToTop />
+                        <TocSections
+                            sections={sections}
+                            tagName={tagName}
+                            activeId={activeId}
+                        />
+                    </>
+                )}
                 <div
                     className="sidebar-toc__sidebar-content"
                     id={sidebarContentId}

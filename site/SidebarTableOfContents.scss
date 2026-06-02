@@ -43,6 +43,7 @@ $sidebar-toc-top-offset: 24px;
 }
 
 .sidebar-toc__sidebar {
+    position: relative;
     box-sizing: border-box;
     width: $sidebar-toc-frame;
     padding: 0 $sidebar-toc-sidebar-inset;
@@ -56,6 +57,43 @@ $sidebar-toc-top-offset: 24px;
     @media (max-width: $sidebar-toc-breakpoint) {
         display: none;
     }
+}
+
+// Collapsed: the sidebar shrinks to a 40px stub holding only the restore button.
+.sidebar-toc__sidebar--collapsed {
+    width: 40px;
+    padding: 0;
+    align-items: center;
+}
+
+// 31x32 caret button pinned to the sidebar's top-right edge (outside the content
+// column). list-ul restore button (40px stub) reuses the same look, centered.
+.sidebar-toc__collapse-toggle {
+    position: absolute;
+    top: 0;
+    right: 0;
+}
+
+.sidebar-toc__collapse-toggle,
+.sidebar-toc__expand {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 31px;
+    height: 32px;
+    padding: 0;
+    border: 1px solid $white;
+    background: $blue-10;
+    color: $blue-60;
+    cursor: pointer;
+
+    &:hover {
+        background: $blue-20;
+    }
+}
+
+.sidebar-toc__expand {
+    width: 32px;
 }
 
 // Slide-out: when a wide (12-col) block enters the viewport, the sidebar steps
