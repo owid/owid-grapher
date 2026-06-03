@@ -15,5 +15,5 @@
         { "path": "../settings" },
         { "path": "../bespoke/shared" }
     ],
-    "include": ["./**/*", "../bespoke/shared/**/*"]
+    "include": ["./**/*", "./**/*.json", "../bespoke/shared/**/*"]
 }
