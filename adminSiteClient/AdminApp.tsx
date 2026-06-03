@@ -202,66 +202,13 @@ const TagEditPageWrapper = () => {
     return <TagEditPage tagId={parseInt(params.tagId!)} />
 }
 
-const GdocsPreviewPageWrapper = () => {
-    const params = useParams<{ id: string }>()
-    const location = useLocation()
-
-    const match = React.useMemo(
-        () => ({
-            params,
-            path: location.pathname,
-            url: location.pathname,
-        }),
-        [params, location]
-    )
-
-    return (
-        <GdocsStoreProvider>
-            <GdocsPreviewPage match={match as any} location={location} />
-        </GdocsStoreProvider>
-    )
-}
-
-const GdocsCoverageMatrixPageWrapper = () => {
-    const params = useParams<{ id: string }>()
-    const location = useLocation()
-
-    const match = React.useMemo(
-        () => ({
-            params,
-            path: location.pathname,
-            url: location.pathname,
-        }),
-        [params, location]
-    )
-
-    return (
-        <GdocsStoreProvider>
-            <GdocsCoverageMatrixPage match={match as any} location={location} />
-        </GdocsStoreProvider>
-    )
-}
-
 const GdocsIndexPageWrapper = () => {
     const location = useLocation()
     const navigate = useNavigate()
 
-    const match = React.useMemo(
-        () => ({
-            params: {},
-            path: "/gdocs",
-            url: "/gdocs",
-        }),
-        []
-    )
-
     return (
         <GdocsStoreProvider>
-            <GdocsIndexPage
-                match={match as any}
-                location={location}
-                navigate={navigate}
-            />
+            <GdocsIndexPage location={location} navigate={navigate} />
         </GdocsStoreProvider>
     )
 }
@@ -453,11 +400,19 @@ export class AdminApp extends React.Component<{
                         },
                         {
                             path: "gdocs/:id/preview",
-                            element: <GdocsPreviewPageWrapper />,
+                            element: (
+                                <GdocsStoreProvider>
+                                    <GdocsPreviewPage />
+                                </GdocsStoreProvider>
+                            ),
                         },
                         {
                             path: "gdocs/:id/coverage",
-                            element: <GdocsCoverageMatrixPageWrapper />,
+                            element: (
+                                <GdocsStoreProvider>
+                                    <GdocsCoverageMatrixPage />
+                                </GdocsStoreProvider>
+                            ),
                         },
                         {
                             path: "callout-functions",

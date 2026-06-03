@@ -58,27 +58,17 @@ import {
     BAKED_BASE_URL,
     PUBLISHED_AT_FORMAT,
 } from "../settings/clientSettings.js"
-import { useLocation, useNavigate } from "react-router"
+import { useNavigate, useParams } from "react-router"
 
-interface RouteComponentProps<Params = any> {
-    location: ReturnType<typeof useLocation>
-    match: {
-        params: Params
-        path: string
-        url: string
-    }
-}
 import * as R from "remeda"
 
-interface GdocsMatchParams {
+type GdocsMatchParams = {
     id: string
 }
 
-export type GdocsMatchProps = RouteComponentProps<GdocsMatchParams>
-
-export const GdocsPreviewPage = ({ match }: GdocsMatchProps) => {
+export const GdocsPreviewPage = () => {
     const navigate = useNavigate()
-    const { id } = match.params
+    const { id } = useParams<GdocsMatchParams>()
     const [gdoc, setGdoc] = useState<{
         original?: OwidGdoc
         current?: OwidGdoc
@@ -295,6 +285,10 @@ export const GdocsPreviewPage = ({ match }: GdocsMatchProps) => {
         const errors = getErrors(currentGdoc)
         setErrors(errors)
     }, [currentGdoc])
+
+    if (!id) {
+        throw new Error("No gdoc id provided in URL")
+    }
 
     if (criticalErrorMessage) {
         return (

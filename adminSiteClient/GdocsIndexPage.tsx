@@ -28,21 +28,11 @@ import {
     filterFunctionForSearchWords,
     SearchWord,
 } from "../adminShared/search.js"
-import { useLocation, NavigateFunction } from "react-router"
+import type { useLocation, NavigateFunction } from "react-router"
 
-interface RouteComponentProps<
-    Params extends Record<string, string | undefined> = Record<
-        string,
-        string | undefined
-    >,
-> {
+interface RouteComponentProps {
     location: ReturnType<typeof useLocation>
     navigate: NavigateFunction
-    match: {
-        params: Params
-        path: string
-        url: string
-    }
 }
 import { Link } from "./Link.js"
 import { GdocsAdd } from "./GdocsAdd.js"
@@ -321,7 +311,7 @@ export class GdocsIndexPage extends React.Component<RouteComponentProps> {
                                 className="btn btn-primary"
                                 onClick={() =>
                                     void this.props.navigate(
-                                        `${this.props.match.path}/add`
+                                        `${this.props.location.pathname}/add`
                                     )
                                 }
                             >
@@ -348,7 +338,7 @@ export class GdocsIndexPage extends React.Component<RouteComponentProps> {
                                     </span>
                                 ) : null}
                                 <Link
-                                    to={`${this.props.match.path}/${gdoc.id}/preview`}
+                                    to={`${this.props.location.pathname}/${gdoc.id}/preview`}
                                 >
                                     <h5
                                         className="gdoc-index-item__title"

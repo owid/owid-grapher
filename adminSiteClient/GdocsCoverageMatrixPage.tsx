@@ -1,19 +1,5 @@
 import { useContext, useEffect, useMemo, useState } from "react"
-import { useLocation } from "react-router"
-
-interface RouteComponentProps<
-    Params extends Record<string, string | undefined> = Record<
-        string,
-        string | undefined
-    >,
-> {
-    location: ReturnType<typeof useLocation>
-    match: {
-        params: Params
-        path: string
-        url: string
-    }
-}
+import { useParams } from "react-router"
 import { AdminAppContext } from "./AdminAppContext.js"
 import { AdminLayout } from "./AdminLayout.js"
 import { Spin } from "antd"
@@ -26,10 +12,9 @@ type CoverageResponse = {
     coverageByEntity: Record<string, Record<string, boolean>>
 }
 
-export const GdocsCoverageMatrixPage = ({
-    match,
-}: RouteComponentProps<{ id: string }>) => {
+export const GdocsCoverageMatrixPage = () => {
     const { admin } = useContext(AdminAppContext)
+    const { id } = useParams<{ id: string }>()
     const [data, setData] = useState<CoverageResponse | undefined>()
     const [error, setError] = useState<string | undefined>()
     const [isLoading, setIsLoading] = useState(true)
@@ -39,7 +24,7 @@ export const GdocsCoverageMatrixPage = ({
         const fetchCoverage = async () => {
             try {
                 const response = await admin.getJSON(
-                    `/api/gdocs/${match.params.id}/coverage?contentSource=gdocs`
+                    `/api/gdocs/${id}/coverage?contentSource=gdocs`
                 )
                 if (!isMounted) return
                 setData(response as CoverageResponse)
@@ -56,7 +41,7 @@ export const GdocsCoverageMatrixPage = ({
         return () => {
             isMounted = false
         }
-    }, [admin, match.params.id])
+    }, [admin, id])
 
     const entityNames = useMemo(
         () => data?.entities.map((entity) => entity.name) ?? [],
