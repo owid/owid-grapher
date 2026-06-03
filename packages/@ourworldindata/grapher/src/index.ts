@@ -54,6 +54,7 @@ export { ColorScale } from "./color/ColorScale"
 export { ColorScaleConfig } from "./color/ColorScaleConfig"
 export { ColorScheme } from "./color/ColorScheme"
 export { GRAPHER_BACKGROUND } from "./color/ColorConstants"
+export { darkenColorForText } from "./color/ColorUtils"
 export {
     getColorNameOwidDistinctAndSemanticPalettes,
     getColorNameOwidDistinctLinesAndSemanticPalettes,
@@ -195,3 +196,5 @@ export {
 } from "./hooks.js"
 
 export { codeToEntityName, entityNameToCode } from "./core/EntityCodes.js"
+
+export { DumbbellMode } from "./dumbbellCharts/DumbbellChartConstants"

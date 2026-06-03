@@ -8,7 +8,6 @@ import {
     makeFigmaId,
     exposeInstanceOnWindow,
     ScaleType,
-    SeriesStrategy,
     formatValue,
     getRelativeMouse,
     guid,
@@ -41,6 +40,7 @@ import { HorizontalAxis } from "../axis/Axis"
 import { ChartInterface } from "../chart/ChartInterface"
 import {
     DumbbellChartManager,
+    DumbbellMode,
     DumbbellSeries,
     SizedDumbbellSeries,
     PlacedDumbbellSeries,
@@ -166,9 +166,10 @@ export class DumbbellChart
         return {
             text,
             width: textWidth(text, this.valueLabelStyle),
-            padding: this.chartState.isEntityStrategy
-                ? VALUE_LABEL_DOT_GAP
-                : VALUE_LABEL_DOT_GAP + this.dumbbellHeadRadius,
+            padding:
+                this.chartState.mode === DumbbellMode.TimeRange
+                    ? VALUE_LABEL_DOT_GAP
+                    : VALUE_LABEL_DOT_GAP + this.dumbbellHeadRadius,
         }
     }
 
@@ -180,7 +181,7 @@ export class DumbbellChart
             .with(DumbbellValueLabelMode.Absolute, () => {
                 // Only show one label if the values are the same
                 if (
-                    this.chartState.isEntityStrategy &&
+                    this.chartState.mode === DumbbellMode.TimeRange &&
                     startValue === endValue
                 ) {
                     return { start: this.formatValue(startValue) }
@@ -280,7 +281,7 @@ export class DumbbellChart
     @computed private get verticalScale() {
         return scalePoint<string>()
             .domain(this.series.map((s) => s.seriesName))
-            .range(this.innerBounds.yRange())
+            .range([this.innerBounds.top, this.innerBounds.bottom])
             .padding(0.5)
     }
 
@@ -329,7 +330,7 @@ export class DumbbellChart
     }
 
     @computed private get dumbbellHeadRadius(): number {
-        return this.chartState.seriesStrategy === SeriesStrategy.entity
+        return this.chartState.mode === DumbbellMode.TimeRange
             ? _.clamp(Math.floor(this.availableHeightPerSeries / 2), 2, 4)
             : _.clamp(Math.floor(this.availableHeightPerSeries / 2), 2, 6.5)
     }
@@ -395,9 +396,9 @@ export class DumbbellChart
         if (!showLegend || this.series.length === 0) return undefined
 
         return (
-            match(this.chartState.seriesStrategy)
-                // In entity mode, the legend labels are the start and end times
-                .with(SeriesStrategy.entity, () => {
+            match(this.chartState.mode)
+                // In time-range mode, the legend labels are the start and end times
+                .with(DumbbellMode.TimeRange, () => {
                     const { formatColumn, startTime, endTime } = this.chartState
                     return {
                         start: {
@@ -412,8 +413,8 @@ export class DumbbellChart
                         } satisfies LegendLabel,
                     }
                 })
-                // In column mode, the legend labels are the two columns
-                .with(SeriesStrategy.column, () => {
+                // In two-column mode, the legend labels are the two columns
+                .with(DumbbellMode.TwoColumn, () => {
                     const [startColumn, endColumn] = this.chartState.yColumns
                     if (!startColumn || !endColumn) return undefined
                     return {
@@ -447,9 +448,11 @@ export class DumbbellChart
     @computed private get topLegendType(): TopLegendType {
         if (!this.legendLabels) return "none"
         if (this.inlineLegendFits) return "inline"
-        // In column mode, fall back to a categorical legend when the inline
-        // labels don't fit. In entity mode, no legend is shown in that case.
-        return this.chartState.isEntityStrategy ? "none" : "swatches"
+        // In two-column mode, fall back to a categorical legend when the inline
+        // labels don't fit. In time-range mode, no legend is shown in that case.
+        return this.chartState.mode === DumbbellMode.TimeRange
+            ? "none"
+            : "swatches"
     }
 
     @computed private get topLegendHeight(): number {
@@ -663,7 +666,7 @@ export class DumbbellChart
                         <DumbbellChartRow
                             key={series.seriesName}
                             series={series}
-                            seriesStrategy={this.chartState.seriesStrategy}
+                            mode={this.chartState.mode}
                             connectorStyle={this.chartState.connectorStyle}
                             range={this.xRange}
                             valueLabelStyle={this.valueLabelStyle}
@@ -678,7 +681,7 @@ export class DumbbellChart
 
     private renderInteractive(): React.ReactElement {
         const { xRange, valueLabelStyle } = this
-        const { seriesStrategy, connectorStyle } = this.chartState
+        const { mode, connectorStyle } = this.chartState
 
         return (
             <g>
@@ -710,7 +713,7 @@ export class DumbbellChart
                         <DumbbellChartRow
                             key={series.seriesName}
                             series={series}
-                            seriesStrategy={seriesStrategy}
+                            mode={mode}
                             connectorStyle={connectorStyle}
                             range={xRange}
                             valueLabelStyle={valueLabelStyle}
@@ -720,7 +723,7 @@ export class DumbbellChart
                     )}
                 />
                 {this.renderLegend()}
-                {this.chartState.seriesStrategy === SeriesStrategy.entity ? (
+                {this.chartState.mode === DumbbellMode.TimeRange ? (
                     <DumbbellTimeRangeTooltip
                         id={this.tooltipId}
                         chartState={this.chartState}

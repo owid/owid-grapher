@@ -366,6 +366,80 @@ describe("constructSearchResultDataTableContent for SlopeChart", () => {
     })
 })
 
+describe("constructSearchResultDataTableContent for DumbbellChart", () => {
+    it("compares a column's values across two time points (entity strategy)", () => {
+        const grapherState = createSingleIndicatorGrapherState({
+            chartTypes: [GRAPHER_CHART_TYPES.Dumbbell],
+        })
+
+        const dataTable = constructSearchResultDataTableContent({
+            grapherState,
+        })
+
+        expect(dataTable!.title).toBe("GDP")
+        expect(dataTable!.rows).toMatchObject([
+            {
+                label: "Philippines",
+                time: "2000–2009",
+                startValue: "$663.99 billion",
+                value: "$682.03 billion",
+                trend: "up",
+            },
+            {
+                label: "Benin",
+                time: "2000–2009",
+                startValue: "$252.54 billion",
+                value: "$233.42 billion",
+                trend: "down",
+            },
+            {
+                label: "Eritrea",
+                time: "2000–2009",
+                startValue: "$69.27 billion",
+                value: "$63.2 billion",
+                trend: "down",
+            },
+        ])
+    })
+
+    it("compares two columns at a single time point (column strategy)", () => {
+        const grapherState = createFruityMultipleIndicatorsGrapherState({
+            chartTypes: [GRAPHER_CHART_TYPES.Dumbbell],
+            addCountryMode: EntitySelectionMode.MultipleEntities,
+            selectedEntityNames: ["Benin", "Philippines", "Eritrea"],
+        })
+
+        const dataTable = constructSearchResultDataTableContent({
+            grapherState,
+        })
+
+        expect(dataTable!.title).toBe("Fruit vs. Vegetables")
+        expect(dataTable!.rows).toMatchObject([
+            {
+                label: "Philippines",
+                startValue: "844",
+                time: "2009",
+                timePreposition: "in",
+                value: "893",
+            },
+            {
+                label: "Benin",
+                startValue: "573",
+                time: "2009",
+                timePreposition: "in",
+                value: "542",
+            },
+            {
+                label: "Eritrea",
+                startValue: "479",
+                time: "2009",
+                timePreposition: "in",
+                value: "430",
+            },
+        ])
+    })
+})
+
 describe("constructSearchResultDataTableContent for StackedAreaChart", () => {
     it("lists entities when entities are plotted", () => {
         const grapherState = createSingleIndicatorGrapherState({
