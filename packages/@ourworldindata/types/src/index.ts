@@ -132,6 +132,7 @@ export {
     GrapherTooltipAnchor,
     type MapConfigInterface,
     type DumbbellChartConfigInterface,
+    type DumbbellTrendColorMap,
     DumbbellConnectorStyle,
     DumbbellValueLabelMode,
     type GlobeConfig,

@@ -49,8 +49,6 @@ import {
     ENTITY_LABEL_CHART_GAP,
     DumbbellValueLabel,
     TOP_LEGEND_BOTTOM_PADDING,
-    START_COLUMN_COLOR,
-    END_COLUMN_COLOR,
     LegendLabel,
     PlacedDumbbellHead,
     MIN_LEGEND_LABEL_GAP,
@@ -68,6 +66,7 @@ import {
 import { AnimatedRows } from "../animation/AnimatedRows"
 import { roundFontSize, textWidth } from "../chart/ChartUtils.js"
 import { GRAPHER_LIGHT_TEXT } from "../color/ColorConstants.js"
+import { darkenColorForText } from "../color/ColorUtils.js"
 import { HorizontalLabelPair } from "../horizontalLabelPair/HorizontalLabelPair.js"
 import { HorizontalLabelPairState } from "../horizontalLabelPair/HorizontalLabelPairState.js"
 import { HorizontalLabel } from "../horizontalLabelPair/HorizontalLabelPairTypes.js"
@@ -415,17 +414,18 @@ export class DumbbellChart
                 })
                 // In two-column mode, the legend labels are the two columns
                 .with(DumbbellMode.TwoColumn, () => {
-                    const [startColumn, endColumn] = this.chartState.yColumns
+                    const { yColumns, columnColors } = this.chartState
+                    const [startColumn, endColumn] = yColumns
                     if (!startColumn || !endColumn) return undefined
                     return {
                         start: {
                             text: startColumn.nonEmptyDisplayName,
-                            color: START_COLUMN_COLOR,
+                            color: darkenColorForText(columnColors.start),
                             textAnchor: "outward",
                         } satisfies LegendLabel,
                         end: {
                             text: endColumn.nonEmptyDisplayName,
-                            color: END_COLUMN_COLOR,
+                            color: darkenColorForText(columnColors.end),
                             textAnchor: "outward",
                         } satisfies LegendLabel,
                     }

@@ -7,20 +7,26 @@ const ARROW_PATHS = {
     right: "m19.59198,6.82422L13.22803.46021c-.39105-.39099-1.02405-.39099-1.414,0-.39105.39001-.39105,1.02405,0,1.414l4.65698,4.65704H.5v2h15.97101l-4.65698,4.65698c-.39105.39001-.39105,1.02399,0,1.414.38995.39099,1.02295.39099,1.414,0l6.36395-6.36401c.39001-.39001.39001-1.02399,0-1.414Z",
 } as const
 
+// Default semantic coloring by direction.
+const SEMANTIC_COLORS: Record<GrapherTrendArrowDirection, string> = {
+    up: "#2c8465", // Green
+    down: "#cc3b55", // Red
+    right: "#787878", // Grey
+}
+
 export function GrapherTrendArrow({
     direction,
-    isColored = true,
+    color,
     className,
 }: {
     direction: GrapherTrendArrowDirection
-    isColored?: boolean
+    color?: string
     className?: string
 }): React.ReactElement {
     return (
         <svg
-            className={cx("GrapherTrendArrow", direction, className, {
-                colored: isColored,
-            })}
+            className={cx("GrapherTrendArrow", direction, className)}
+            style={{ fill: color ?? SEMANTIC_COLORS[direction] }}
             xmlns="http://www.w3.org/2000/svg"
             viewBox={`0 0 ${direction === "right" ? 20 : 15} 15`}
         >

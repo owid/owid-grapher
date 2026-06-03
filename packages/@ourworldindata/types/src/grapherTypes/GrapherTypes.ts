@@ -508,6 +508,7 @@ export enum ColorSchemeName {
     BinaryMapPaletteC = "BinaryMapPaletteC",
     BinaryMapPaletteD = "BinaryMapPaletteD",
     BinaryMapPaletteE = "BinaryMapPaletteE",
+    BinaryMapPaletteF = "BinaryMapPaletteF",
     SingleColorGradientDenim = "SingleColorGradientDenim",
     SingleColorGradientTeal = "SingleColorGradientTeal",
     SingleColorGradientPurple = "SingleColorGradientPurple",
@@ -547,9 +548,18 @@ export enum DumbbellValueLabelMode {
     None = "none",
 }
 
+export interface DumbbellTrendColorMap {
+    /** Color for dumbbells whose value increased over time */
+    increase?: Color
+    /** Color for dumbbells whose value decreased over time */
+    decrease?: Color
+}
+
 export interface DumbbellChartConfigInterface {
     connectorStyle?: DumbbellConnectorStyle
     valueLabelMode?: DumbbellValueLabelMode
+    /** Custom colors for the time-range encoding */
+    trendColorMap?: DumbbellTrendColorMap
 }
 
 export interface MapConfigInterface {

@@ -60,6 +60,7 @@ export function TooltipValueRange({
     unit,
     values,
     colors,
+    arrowColor,
     originalTimes,
     trend,
     labelVariant = "label+unit",
@@ -72,6 +73,10 @@ export function TooltipValueRange({
     const superscript = showSignificanceSuperscript ? (
         <SignificanceIcon asSuperscript={true} />
     ) : null
+
+    // Use the explicit arrow color if given; otherwise use a neutral color
+    // when the value terms are colored, or fallback to semantic coloring
+    const trendArrowColor = arrowColor ?? (colors ? "#787878" : undefined)
 
     return (
         <Variable
@@ -86,7 +91,10 @@ export function TooltipValueRange({
                     {!lastTerm && superscript}
                 </span>
                 {trend && (
-                    <GrapherTrendArrow direction={trend} isColored={!colors} />
+                    <GrapherTrendArrow
+                        direction={trend}
+                        color={trendArrowColor}
+                    />
                 )}
                 {lastTerm && (
                     <span className="term">

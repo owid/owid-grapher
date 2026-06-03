@@ -66,6 +66,7 @@ export interface TooltipValueRangeProps {
     values: [string | undefined, string | undefined]
     trend?: GrapherTrendArrowDirection
     colors?: string[] // value colors, matched by indices
+    arrowColor?: string // explicit color for the trend arrow
     originalTimes?: (string | undefined)[] // actual year data was drawn from (when ≠ target year)
     showSignificanceSuperscript?: boolean // show significance-s superscript if applicable
     labelVariant?: "label+unit" | "unit-only"
