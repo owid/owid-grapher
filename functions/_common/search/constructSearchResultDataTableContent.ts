@@ -11,6 +11,7 @@ import {
     SlopeChartState,
     StackedBarChartState,
     MarimekkoChartState,
+    DumbbellChartState,
     MapChartState,
     ChartState,
     makeChartState,
@@ -102,6 +103,12 @@ export function constructSearchResultDataTableContent(
             buildDataTableContentForMarimekkoChart({
                 ...props,
                 chartState: chartState as MarimekkoChartState,
+            })
+        )
+        .with(GRAPHER_TAB_NAMES.Dumbbell, () =>
+            buildDataTableContentForDumbbellChart({
+                ...props,
+                chartState: chartState as DumbbellChartState,
             })
         )
         .with(GRAPHER_TAB_NAMES.WorldMap, () =>
@@ -286,6 +293,12 @@ function buildDataTableContentForSlopeChart({
     const title = makeTableTitle(grapherState, chartState, formatColumn)
 
     return { rows, title }
+}
+
+function buildDataTableContentForDumbbellChart(
+    _args: Args<DumbbellChartState>
+): SearchChartHitDataTableProps {
+    return { rows: [], title: "" }
 }
 
 function buildDataTableContentForStackedDiscreteBarChart({

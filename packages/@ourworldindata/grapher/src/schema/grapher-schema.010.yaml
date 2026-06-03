@@ -264,6 +264,7 @@ properties:
         - SlopeChart
         - StackedBar
         - Marimekko
+        - Dumbbell
   hasMapTab:
     type: boolean
     default: false
@@ -284,6 +285,7 @@ properties:
       - stacked-area
       - stacked-bar
       - stacked-discrete-bar
+      - dumbbell
   xAxis:
     $ref: "#/$defs/axis"
   yAxis:

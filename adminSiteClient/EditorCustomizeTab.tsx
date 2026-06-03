@@ -916,39 +916,43 @@ export class EditorCustomizeTab<
                         errorMessagesKey={"colorScale"}
                     />
                 )}
-                <Section name="Legend">
-                    {features.canHideSeriesLabels && (
-                        <FieldsRow>
-                            <Toggle
-                                label={`Hide series labels`}
-                                value={!!grapherState.hideSeriesLabels}
-                                onValue={(value) =>
-                                    (grapherState.hideSeriesLabels =
-                                        value || undefined)
-                                }
-                            />
-                        </FieldsRow>
-                    )}
-                    {features.canCustomizeVariableType && (
-                        <FieldsRow>
-                            <BindString
-                                label={
-                                    <>
-                                        Split by <s>metric</s>
-                                    </>
-                                }
-                                field="facettingLabelByYVariables"
-                                store={grapherState}
-                                helpText={
-                                    "When facetting is active, one option is to split " +
-                                    "by entity/country, the other is by metric. This option  " +
-                                    'lets you override "metric" with a custom word like ' +
-                                    '"products" or "species".'
-                                }
-                            />
-                        </FieldsRow>
-                    )}
-                </Section>
+                {(features.canHideSeriesLabels ||
+                    features.canCustomizeVariableType) && (
+                    <Section name="Legend">
+                        {features.canHideSeriesLabels && (
+                            <FieldsRow>
+                                <Toggle
+                                    label={`Hide series labels`}
+                                    value={!!grapherState.hideSeriesLabels}
+                                    onValue={(value) =>
+                                        (grapherState.hideSeriesLabels =
+                                            value || undefined)
+                                    }
+                                />
+                            </FieldsRow>
+                        )}
+                        {features.canCustomizeVariableType && (
+                            <FieldsRow>
+                                <BindString
+                                    label={
+                                        <>
+                                            Split by <s>metric</s>
+                                        </>
+                                    }
+                                    field="facettingLabelByYVariables"
+                                    store={grapherState}
+                                    helpText={
+                                        "When facetting is active, one option is to split " +
+                                        "by entity/country, the other is by metric. This option  " +
+                                        'lets you override "metric" with a custom word like ' +
+                                        '"products" or "species".'
+                                    }
+                                />
+                            </FieldsRow>
+                        )}
+                    </Section>
+                )}
+
                 {features.relativeModeToggle && (
                     <Section name="Controls">
                         <FieldsRow>

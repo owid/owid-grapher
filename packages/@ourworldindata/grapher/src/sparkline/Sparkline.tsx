@@ -3,7 +3,7 @@ import { scaleLinear } from "d3-scale"
 import { extent, line } from "d3"
 import { Bounds } from "@ourworldindata/utils"
 import { OwidVariableRow } from "@ourworldindata/types"
-import { GRAY_30 } from "../color/ColorConstants"
+import { GRAPHER_DENIM, GRAY_30 } from "../color/ColorConstants"
 import { SparklineHighlight } from "../dataTable/DataTableConstants"
 
 export function Sparkline({
@@ -14,7 +14,7 @@ export function Sparkline({
     maxTime,
     highlights = [],
     dotSize = 3.5,
-    color = "#4C6A9C",
+    color = GRAPHER_DENIM,
     strokeStyle = "solid",
 }: {
     width?: number

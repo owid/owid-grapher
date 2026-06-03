@@ -54,7 +54,9 @@ export class EditorFeatures {
             this.grapherState.hasSlopeChart ||
             this.grapherState.hasStackedBar ||
             this.grapherState.hasStackedArea ||
-            this.grapherState.hasScatter
+            this.grapherState.hasScatter ||
+            (this.grapherState.hasDumbbellChart &&
+                this.grapherState.yColumnSlugs.length <= 1)
         )
     }
 
@@ -113,14 +115,17 @@ export class EditorFeatures {
         return (
             this.grapherState.hasStackedDiscreteBar ||
             this.grapherState.hasDiscreteBar ||
-            this.grapherState.hasMarimekko
+            this.grapherState.hasMarimekko ||
+            this.grapherState.hasDumbbellChart
         )
     }
 
     @computed get canSortByColumn() {
         return (
             this.grapherState.hasStackedDiscreteBar ||
-            this.grapherState.hasMarimekko
+            this.grapherState.hasMarimekko ||
+            (this.grapherState.hasDumbbellChart &&
+                this.grapherState.yColumnSlugs.length > 1)
         )
     }
 
