@@ -25,6 +25,16 @@ body.exp-topnav-v1--show-on-scroll-up .site-header.site-header--hidden {
     transform: translateY(-100%);
 }
 
+// Experiment topnav-v1: trim vertical padding on sticky arms so the pinned
+// header takes up less viewport real estate.
+body.exp-topnav-v1--sticky,
+body.exp-topnav-v1--show-on-scroll-up {
+    .site-navigation-bar {
+        padding-top: 8px;
+        padding-bottom: 8px;
+    }
+}
+
 .site-navigation {
     position: relative;
     z-index: $zindex-lightbox;
