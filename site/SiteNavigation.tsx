@@ -1,4 +1,6 @@
-import { useState, useCallback, useEffect } from "react"
+import { useState, useCallback, useEffect, useRef } from "react"
+import { getExperimentState } from "@ourworldindata/utils"
+import { SiteAnalytics } from "./SiteAnalytics.js"
 import {
     faListUl,
     faBars,
@@ -32,6 +34,12 @@ import { SEARCH_BASE_PATH } from "./search/searchUtils.js"
 // Note: tranforming the flag from an env string to a boolean in
 // clientSettings.ts is convoluted due to the two-pass SSR/Vite build process.
 const HAS_DONATION_FLAG = false
+
+const TOPNAV_EXPERIMENT_ID = "exp-topnav-v1"
+const TOPNAV_HIDE_THRESHOLD_PX = 120
+const TOPNAV_SCROLL_DELTA_PX = 6
+
+const analytics = new SiteAnalytics()
 
 export const SiteNavigation = ({
     hideDonationFlag,
@@ -103,6 +111,68 @@ export const SiteNavigation = ({
     }, [query])
 
     useTriggerOnEscape(closeOverlay, { active: menu !== null })
+
+    // Experiment topnav-v1: log a one-shot view event for treatment arms so we
+    // can split engagement metrics by arm in GA.
+    useEffect(() => {
+        const arm = getExperimentState()[TOPNAV_EXPERIMENT_ID]?.arm
+        if (arm === "sticky" || arm === "show-on-scroll-up") {
+            analytics.logTopnavView(arm)
+        }
+    }, [])
+
+    // Experiment topnav-v1, show-on-scroll-up arm: hide the header on scroll-down,
+    // reveal it on scroll-up. Body class .exp-topnav-v1--show-on-scroll-up is set
+    // by the CF middleware; this effect adds/removes .site-header--hidden.
+    const menuRef = useRef(menu)
+    menuRef.current = menu
+    useEffect(() => {
+        const arm = getExperimentState()[TOPNAV_EXPERIMENT_ID]?.arm
+        if (arm !== "show-on-scroll-up") return
+
+        const header = document.querySelector<HTMLElement>(".site-header")
+        if (!header) return
+
+        let lastY = window.scrollY
+        let ticking = false
+
+        const update = () => {
+            ticking = false
+            const y = window.scrollY
+            const delta = y - lastY
+            if (Math.abs(delta) < TOPNAV_SCROLL_DELTA_PX) return
+            // Keep the header visible while a menu/dropdown is open so its
+            // anchor doesn't slide out from under the user.
+            if (menuRef.current !== null) {
+                header.classList.remove("site-header--hidden")
+            } else if (delta > 0 && y > TOPNAV_HIDE_THRESHOLD_PX) {
+                header.classList.add("site-header--hidden")
+            } else if (delta < 0) {
+                header.classList.remove("site-header--hidden")
+            }
+            lastY = y
+        }
+
+        const onScroll = () => {
+            if (!ticking) {
+                window.requestAnimationFrame(update)
+                ticking = true
+            }
+        }
+
+        window.addEventListener("scroll", onScroll, { passive: true })
+        return () => {
+            window.removeEventListener("scroll", onScroll)
+            header.classList.remove("site-header--hidden")
+        }
+    }, [])
+
+    // Whenever a menu opens, immediately reveal the header.
+    useEffect(() => {
+        if (menu === null) return
+        const header = document.querySelector<HTMLElement>(".site-header")
+        header?.classList.remove("site-header--hidden")
+    }, [menu])
 
     return (
         <>

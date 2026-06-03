@@ -5,6 +5,26 @@
     }
 }
 
+// Experiment topnav-v1: sticky arm — header stays pinned to the top of the viewport.
+body.exp-topnav-v1--sticky .site-header {
+    position: sticky;
+    top: 0;
+}
+
+// Experiment topnav-v1: show-on-scroll-up arm — sticky, but slides out of view
+// on scroll-down and slides back in on scroll-up. The .site-header--hidden class
+// is toggled by a scroll listener in SiteNavigation.tsx.
+body.exp-topnav-v1--show-on-scroll-up .site-header {
+    position: sticky;
+    top: 0;
+    transition: transform 0.2s ease-in-out;
+    will-change: transform;
+}
+
+body.exp-topnav-v1--show-on-scroll-up .site-header.site-header--hidden {
+    transform: translateY(-100%);
+}
+
 .site-navigation {
     position: relative;
     z-index: $zindex-lightbox;

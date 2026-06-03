@@ -27,6 +27,14 @@ export class SiteAnalytics extends GrapherAnalytics {
         })
     }
 
+    logTopnavView(experimentArm: string) {
+        this.logToGA({
+            event: EventCategory.SiteTopnavView,
+            eventAction: "view",
+            experimentArm,
+        })
+    }
+
     logInstantSearchClick({
         query,
         url,

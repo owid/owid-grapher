@@ -81,4 +81,26 @@ export const experiments: Experiment[] = [
         ],
         paths: ["/"],
     }),
+    /*
+     * Experiment: topnav-v1
+     *
+     * Tests whether keeping the site topnav persistently visible improves
+     * navigation discoverability. Same path surface as the popup survey
+     * (paths: ["/"] matches every URL under RFC 6265 cookie-path semantics).
+     *
+     * Conditions:
+     * - (a) control: status quo, position: relative
+     * - (b) sticky: position: sticky; top: 0
+     * - (c) show-on-scroll-up: sticky, hidden on scroll-down, shown on scroll-up
+     */
+    new Experiment({
+        id: "topnav-v1",
+        expires: "2026-12-31T00:00:00.000Z",
+        arms: [
+            { id: "control", fraction: 0.0 },
+            { id: "sticky", fraction: 0.5 },
+            { id: "show-on-scroll-up", fraction: 0.5 },
+        ],
+        paths: ["/"],
+    }),
 ]

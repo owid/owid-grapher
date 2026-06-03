@@ -51,6 +51,7 @@ export enum EventCategory {
     SiteChartPreviewMouseover = "owid.site_chart_preview_mouseover",
     SiteStaticVizDownload = "owid.site_static_viz_download",
     SiteUserSurvey = "owid.site_user_survey",
+    SiteTopnavView = "owid.site_topnav_view",
     TranslatePage = "owid.translate_page",
 }
 
@@ -79,6 +80,7 @@ export type EventParamsMap = {
     [EventCategory.SiteChartPreviewMouseover]: SiteChartPreviewMouseoverParams
     [EventCategory.SiteStaticVizDownload]: SiteStaticVizDownloadParams
     [EventCategory.SiteUserSurvey]: SiteUserSurveyParams
+    [EventCategory.SiteTopnavView]: SiteTopnavViewParams
     [EventCategory.SiteClick]: SiteClickParams
     [EventCategory.SiteFormSubmit]: SiteFormSubmitParams
     [EventCategory.SiteInstantSearchClick]: SiteInstantSearchClickParams
@@ -193,6 +195,13 @@ export interface SiteErrorParams {
     eventAction: string
     /** Error details or URL */
     eventContext: string
+}
+
+export interface SiteTopnavViewParams {
+    /** Always 'view' for this event */
+    eventAction: "view"
+    /** Experiment arm: 'sticky' or 'show-on-scroll-up' */
+    experimentArm: string
 }
 
 export interface SiteGuidedChartLinkClickParams {
