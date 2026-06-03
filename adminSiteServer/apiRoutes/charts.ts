@@ -975,6 +975,14 @@ const NON_INHERITABLE_PATCH_KEYS = [
  * Differs from `diffGrapherConfigs` only in that we don't keep `REQUIRED_KEYS`
  * (`$schema`, `dimensions`) unconditionally; we want `dimensions` to fall
  * through to the parent stack when they match.
+ *
+ * For ETL-managed charts (where the parent stack supplies `dimensions`),
+ * `dimensions` are taken as ETL-owned even when the patch's value differs
+ * from the parent — otherwise an admin's regular Save would re-introduce
+ * `dimensions` into patch (via the global `REQUIRED_KEYS` in
+ * `diffGrapherConfigs`) and silently block future ETL changes to which
+ * indicator the chart plots. Admin overrides of other fields (title,
+ * subtitle, map config, ...) still survive normally.
  */
 function rediffPatchAgainstNewParentStack(
     existingPatch: GrapherInterface,
@@ -989,6 +997,12 @@ function rediffPatchAgainstNewParentStack(
         ) {
             result[key] = value
         }
+    }
+    // ETL is authoritative for `dimensions` whenever it supplies them. The
+    // regular admin save uses `diffGrapherConfigs` which keeps `dimensions`
+    // in patch unconditionally; this drops it back out on the next ETL push.
+    if ((newParentStack as Record<string, unknown>).dimensions !== undefined) {
+        delete result.dimensions
     }
     return result as GrapherInterface
 }
