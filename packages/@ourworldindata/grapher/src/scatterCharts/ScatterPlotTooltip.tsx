@@ -254,7 +254,9 @@ function TooltipValueRangeX({
             label={xColumn.displayName}
             unit={xColumn.displayUnit}
             values={formatTooltipRangeValues(xValues, xColumn)}
-            trend={calculateTrendDirection(...xValues)}
+            trend={calculateTrendDirection(xValues[0], xValues[1], (value) =>
+                xColumn.formatValueShort(value)
+            )}
             originalTimes={formattedOriginalTimes}
             showSignificanceSuperscript={
                 showSignificanceSuperscriptIfApplicable &&
@@ -290,7 +292,13 @@ function TooltipValueRangeY({
             label={yColumn.displayName}
             unit={yColumn.displayUnit}
             values={formatTooltipRangeValues(yValues, yColumn)}
-            trend={calculateTrendDirection(...yValues)}
+            trend={
+                yValues.length === 2
+                    ? calculateTrendDirection(yValues[0], yValues[1], (value) =>
+                          yColumn.formatValueShort(value)
+                      )
+                    : undefined
+            }
             originalTimes={formattedOriginalTimes}
             showSignificanceSuperscript={
                 showSignificanceSuperscriptIfApplicable &&
@@ -316,7 +324,15 @@ function TooltipValueRangeSize({
             label={sizeColumn.displayName}
             unit={sizeColumn.displayUnit}
             values={formatTooltipRangeValues(sizeValues, sizeColumn)}
-            trend={calculateTrendDirection(...sizeValues)}
+            trend={
+                sizeValues.length === 2
+                    ? calculateTrendDirection(
+                          sizeValues[0],
+                          sizeValues[1],
+                          (value) => sizeColumn.formatValueShort(value)
+                      )
+                    : undefined
+            }
             showSignificanceSuperscript={
                 showSignificanceSuperscriptIfApplicable &&
                 sizeColumn.roundsToSignificantFigures

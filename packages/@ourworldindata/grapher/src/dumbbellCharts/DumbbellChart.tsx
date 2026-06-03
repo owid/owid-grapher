@@ -144,7 +144,7 @@ export class DumbbellChart
             )
         )
 
-        return { fontSize, fontWeight: 400, lineHeight: 1 }
+        return { fontSize, fontWeight: 700, lineHeight: 1 }
     }
 
     @computed private get valueLabelStyle(): FontSettings {
@@ -329,9 +329,17 @@ export class DumbbellChart
     }
 
     @computed private get dumbbellHeadRadius(): number {
-        return this.chartState.mode === DumbbellMode.TimeRange
-            ? _.clamp(Math.floor(this.availableHeightPerSeries / 2), 2, 4)
-            : _.clamp(Math.floor(this.availableHeightPerSeries / 2), 2, 6.5)
+        const valueLabelHeight =
+            this.valueLabelStyle.fontSize * this.valueLabelStyle.lineHeight
+
+        // Cap the radius based on the value label's height
+        const maxRadius = roundToNearestHalf((valueLabelHeight / 2) * 1.1)
+
+        return _.clamp(
+            Math.floor(this.availableHeightPerSeries / 2),
+            2,
+            maxRadius
+        )
     }
 
     @computed private get placedSeries(): PlacedDumbbellSeries[] {
@@ -508,8 +516,9 @@ export class DumbbellChart
                 .exhaustive()
 
         // Shift outward-anchored labels inward by a bit
-        const offsetMagnitude = Math.floor(
-            Math.abs(topSeries.end.x - topSeries.start.x) / 4
+        const offsetMagnitude = Math.min(
+            20,
+            Math.floor(Math.abs(topSeries.end.x - topSeries.start.x) / 4)
         )
         const inwardOffset = (textAnchor: HorizontalAlign): number =>
             match(textAnchor)
@@ -818,4 +827,8 @@ function DumbbellHoverArea({
             onMouseLeave={onMouseLeave}
         />
     )
+}
+
+function roundToNearestHalf(value: number): number {
+    return Math.round(value * 2) / 2
 }

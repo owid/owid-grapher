@@ -2340,10 +2340,20 @@ export const merge: typeof _.merge = (
 
 export function calculateTrendDirection(
     startValue?: PrimitiveType,
-    endValue?: PrimitiveType
+    endValue?: PrimitiveType,
+    formatValue?: (value: PrimitiveType) => string
 ): GrapherTrendArrowDirection | undefined {
-    if (typeof startValue !== "number" || typeof endValue !== "number")
+    if (
+        startValue === undefined ||
+        endValue === undefined ||
+        typeof startValue !== "number" ||
+        typeof endValue !== "number"
+    )
         return undefined
+
+    if (formatValue && formatValue(startValue) === formatValue(endValue))
+        return "right"
+
     return endValue > startValue
         ? "up"
         : endValue < startValue

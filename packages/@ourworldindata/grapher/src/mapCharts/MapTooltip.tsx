@@ -393,7 +393,11 @@ function MapTooltipRangeValues({
             unit={mapColumn.displayUnit}
             values={formatTooltipRangeValues(values, mapColumn)}
             colors={colors}
-            trend={calculateTrendDirection(...values) ?? "right"}
+            trend={
+                calculateTrendDirection(values[0], values[1], (value) =>
+                    mapColumn.formatValueShort(value)
+                ) ?? "right"
+            }
             labelVariant="unit-only"
         />
     )

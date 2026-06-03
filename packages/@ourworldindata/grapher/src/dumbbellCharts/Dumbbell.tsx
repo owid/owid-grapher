@@ -19,14 +19,17 @@ export function TimeRangeDumbbell({
     const style = DUMBBELL_STYLE[series.emphasis]
     const { start, end } = series
 
+    const labelFontSize = series.label.fontSettings.fontSize
+    const strokeWidth = labelFontSize <= 10.5 ? 1 : 1.5
+
     return (
         <g id={makeFigmaId("dumbbell")} opacity={style.opacity}>
             <DumbbellArrow
                 startX={start.x}
                 endX={end.x}
                 color={series.color}
-                width={2}
-                headLength={series.end.radius}
+                width={strokeWidth}
+                headLength={Math.min(5.5, 0.8 * end.radius)}
             />
         </g>
     )
