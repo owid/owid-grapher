@@ -1,6 +1,6 @@
 import { useCallback, useContext, useEffect, useMemo, useState } from "react"
 import * as React from "react"
-import { useNavigate } from "react-router"
+import { useNavigate, useParams } from "react-router"
 import cx from "classnames"
 import { Button, Dropdown, Popconfirm, Tabs, Tooltip } from "antd"
 import type { MenuProps } from "antd"
@@ -23,7 +23,7 @@ import {
     SLIDE_TEMPLATE_LABELS,
     SlideshowConfig,
 } from "@ourworldindata/types"
-import { slugify, Url } from "@ourworldindata/utils"
+import { parseIntOrUndefined, slugify, Url } from "@ourworldindata/utils"
 import { toPlaintext } from "@ourworldindata/components"
 import { SlideshowEditTab } from "./SlideshowEditTab.js"
 import { makeDefaultSlideForTemplate } from "../../site/slideshows/slideshowUtils.js"
@@ -71,12 +71,12 @@ function haveSlideChartUrlsChanged(
     return previousUrls.some((url, index) => url !== nextUrls[index])
 }
 
-export function SlideshowEditorPage(props: {
-    slideshowId?: number
-}): React.ReactElement {
+export function SlideshowEditorPage(): React.ReactElement {
     const { admin } = useContext(AdminAppContext)
     const navigate = useNavigate()
-    const isCreate = props.slideshowId === undefined
+    const params = useParams<{ slideshowId?: string }>()
+    const slideshowId = parseIntOrUndefined(params.slideshowId)
+    const isCreate = slideshowId === undefined
 
     const [title, setTitle] = useState("")
     const [slug, setSlug] = useState("")
@@ -112,7 +112,7 @@ export function SlideshowEditorPage(props: {
         const load = async () => {
             const res = await admin.getJSON<{
                 slideshow: DbPlainSlideshow
-            }>(`/api/slideshows/${props.slideshowId}.json`)
+            }>(`/api/slideshows/${slideshowId}.json`)
             const { slideshow } = res
             setTitle(slideshow.title)
             setSlug(slideshow.slug)
@@ -125,7 +125,7 @@ export function SlideshowEditorPage(props: {
             }
         }
         void load()
-    }, [admin, props.slideshowId, isCreate])
+    }, [admin, slideshowId, isCreate])
 
     const updateCurrentSlide = useCallback(
         (updatedSlide: Slide) => {
@@ -265,7 +265,7 @@ export function SlideshowEditorPage(props: {
                 }
             } else {
                 await admin.requestJSON(
-                    `/api/slideshows/${props.slideshowId}`,
+                    `/api/slideshows/${slideshowId}`,
                     payload,
                     "PUT"
                 )
@@ -276,7 +276,7 @@ export function SlideshowEditorPage(props: {
         [
             admin,
             isCreate,
-            props.slideshowId,
+            slideshowId,
             slug,
             title,
             authors,
@@ -288,24 +288,20 @@ export function SlideshowEditorPage(props: {
     )
 
     const unpublish = useCallback(async () => {
-        if (isCreate || !props.slideshowId) return
+        if (isCreate || !slideshowId) return
         await admin.requestJSON(
-            `/api/slideshows/${props.slideshowId}`,
+            `/api/slideshows/${slideshowId}`,
             { isPublished: false },
             "PUT"
         )
         setIsPublished(false)
-    }, [admin, isCreate, props.slideshowId])
+    }, [admin, isCreate, slideshowId])
 
     const deleteSlideshow = useCallback(async () => {
-        if (isCreate || !props.slideshowId) return
-        await admin.requestJSON(
-            `/api/slideshows/${props.slideshowId}`,
-            {},
-            "DELETE"
-        )
+        if (isCreate || !slideshowId) return
+        await admin.requestJSON(`/api/slideshows/${slideshowId}`, {}, "DELETE")
         void navigate("/slideshows")
-    }, [admin, isCreate, props.slideshowId, navigate])
+    }, [admin, isCreate, slideshowId, navigate])
 
     const canSave = slug.trim().length > 0 && title.trim().length > 0
 
@@ -485,7 +481,7 @@ export function SlideshowEditorPage(props: {
                         )}
                         {!isCreate && (
                             <a
-                                href={`/admin/slideshows/${props.slideshowId}/preview`}
+                                href={`/admin/slideshows/${slideshowId}/preview`}
                                 target="_blank"
                                 rel="noopener"
                             >

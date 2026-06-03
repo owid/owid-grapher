@@ -29,12 +29,14 @@ import {
     dimensionsToViewId,
     MultiDimDataPageConfig,
     MultiDimDimensionChoices,
+    parseIntOrUndefined,
     queryParamsToStr,
 } from "@ourworldindata/utils"
 import {
     DimensionEnriched,
     MultiDimDataPageConfigEnriched,
 } from "@ourworldindata/types"
+import { useParams } from "react-router"
 import { LoadingBlocker } from "./Forms.js"
 
 // Source path must start with /grapher/ or /explorers/ and cannot end with a slash.
@@ -239,7 +241,12 @@ function getRedirectColumns(ctx: {
     ]
 }
 
-export function MultiDimDetailPage({ id }: { id: number }) {
+export function MultiDimDetailPage() {
+    const params = useParams<{ id: string }>()
+    const id = parseIntOrUndefined(params.id)
+    if (id === undefined) {
+        throw new Error("No id provided")
+    }
     const { admin } = useContext(AdminAppContext)
     const queryClient = useQueryClient()
     const [redirectForm] = Form.useForm<RedirectFormValues>()

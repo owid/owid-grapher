@@ -150,16 +150,6 @@ const NarrativeChartEditorPageWrapper = () => {
     )
 }
 
-const MultiDimDetailPageWrapper = () => {
-    const params = useParams<{ id: string }>()
-    return <MultiDimDetailPage id={parseInt(params.id!)} />
-}
-
-const SlideshowEditorPageWrapper = () => {
-    const params = useParams<{ slideshowId: string }>()
-    return <SlideshowEditorPage slideshowId={parseInt(params.slideshowId!)} />
-}
-
 const ExplorerCreatePageWrapper = () => {
     const params = useParams<{ slug: string }>()
     const { admin } = React.useContext(AdminAppContext)
@@ -288,7 +278,7 @@ export class AdminApp extends React.Component<{
                         },
                         {
                             path: "multi-dims/:id",
-                            element: <MultiDimDetailPageWrapper />,
+                            element: <MultiDimDetailPage />,
                         },
                         {
                             path: "multi-dim-redirects",
@@ -324,7 +314,7 @@ export class AdminApp extends React.Component<{
                         },
                         {
                             path: "slideshows/:slideshowId/edit",
-                            element: <SlideshowEditorPageWrapper />,
+                            element: <SlideshowEditorPage />,
                         },
                         {
                             path: `${EXPLORERS_ROUTE_FOLDER}/:slug`,
