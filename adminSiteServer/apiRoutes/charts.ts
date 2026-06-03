@@ -381,7 +381,21 @@ const updateExistingChart = async (
     // config plus the chart's own etlConfig (if any). Patch only carries
     // admin-authored overrides on top of that stack.
     const parentStack = mergeGrapherConfigs(parent?.config ?? {}, etlConfig)
-    const patchConfig = diffGrapherConfigs(config, parentStack)
+    let patchConfig = diffGrapherConfigs(config, parentStack)
+    // `diffGrapherConfigs` always retains `dimensions` (it's in `REQUIRED_KEYS`),
+    // even when they match the parent. For ETL-managed charts that turns
+    // every admin no-op Save into a phantom "dimensions override" stuck in
+    // patch — which would then block subsequent ETL changes to the chart's
+    // indicators. Drop the residue when the chart has an etlConfig and
+    // `dimensions` matches the parent stack. An admin who actually changed
+    // dimensions sees them stay in patch (real override) and that override
+    // survives subsequent ETL pushes, like any other admin field override.
+    if (
+        !_.isEmpty(etlConfig) &&
+        _.isEqual(patchConfig.dimensions, parentStack.dimensions)
+    ) {
+        patchConfig = _.omit(patchConfig, "dimensions")
+    }
     const fullConfig = mergeGrapherConfigs(parentStack, patchConfig)
 
     const now = new Date()
@@ -904,16 +918,11 @@ const NON_INHERITABLE_PATCH_KEYS = [
  * patch entries from a prior bootstrap or admin save.
  *
  * Differs from `diffGrapherConfigs` only in that we don't keep `REQUIRED_KEYS`
- * (`$schema`, `dimensions`) unconditionally; we want `dimensions` to fall
- * through to the parent stack when they match.
- *
- * For ETL-managed charts (where the parent stack supplies `dimensions`),
- * `dimensions` are taken as ETL-owned even when the patch's value differs
- * from the parent — otherwise an admin's regular Save would re-introduce
- * `dimensions` into patch (via the global `REQUIRED_KEYS` in
- * `diffGrapherConfigs`) and silently block future ETL changes to which
- * indicator the chart plots. Admin overrides of other fields (title,
- * subtitle, map config, ...) still survive normally.
+ * (`$schema`, `dimensions`) unconditionally; every field falls through to the
+ * parent stack when they match, and only real admin overrides (values that
+ * actually differ from the parent stack) survive in patch. The admin save
+ * path applies the same convention for `dimensions` on ETL-managed charts;
+ * see `updateExistingChart`.
  */
 function rediffPatchAgainstNewParentStack(
     existingPatch: GrapherInterface,
@@ -928,12 +937,6 @@ function rediffPatchAgainstNewParentStack(
         ) {
             result[key] = value
         }
-    }
-    // ETL is authoritative for `dimensions` whenever it supplies them. The
-    // regular admin save uses `diffGrapherConfigs` which keeps `dimensions`
-    // in patch unconditionally; this drops it back out on the next ETL push.
-    if ((newParentStack as Record<string, unknown>).dimensions !== undefined) {
-        delete result.dimensions
     }
     return result as GrapherInterface
 }
