@@ -20,6 +20,12 @@ $experiments: (
         all-charts,
         featured-metrics,
     ),
+    exp-data-page-search-v1: (
+        control,
+        treat1,
+        treat2,
+        treat3,
+    ),
 );
 
 @each $exp, $arms in $experiments {
@@ -69,4 +75,187 @@ $experiments: (
             text-align: left;
         }
     }
+}
+
+// styles specific to experiment exp-data-page-search-v1
+.exp-data-page-search-v1 {
+    $arms: map.get($experiments, exp-data-page-search-v1);
+    @each $a in $arms {
+        &--#{$a} .DataPageContent {
+            // Tinted card that visually separates the search block from the
+            // surrounding white page background. Centered and narrowed so it
+            // doesn't span the full content column.
+            .datapage-search-wrapper {
+                background-color: $blue-100;
+                background-image: url("https://ourworldindata.org/images/world.svg");
+                background-repeat: no-repeat;
+                background-position: center;
+                background-size: 80%;
+                border-radius: 8px;
+                margin: 32px auto;
+                padding: 40px 32px;
+                max-width: 880px;
+                width: 100%;
+
+                @include sm-only {
+                    margin: 24px 0;
+                    padding: 24px 16px;
+                    border-radius: 0;
+                    max-width: none;
+                    background-size: 100%;
+                }
+            }
+
+            .datapage-search__heading {
+                color: $white;
+                text-align: center;
+                @include datapage-section-title;
+            }
+
+            .datapage-search {
+                #datapage-autocomplete {
+                    height: 56px;
+                    background-color: $white;
+                }
+
+                .aa-DetachedFormContainer .aa-Form,
+                .aa-Autocomplete[aria-expanded="true"] .aa-Form,
+                .aa-Form {
+                    background-color: $white;
+                    border: 1px solid $blue-20;
+                    border-radius: 0;
+                    height: 56px;
+                }
+
+                // Mobile / "detached" mode: the input collapses into a
+                // button that opens a modal. Give it the same visible border
+                // as the desktop input so it doesn't disappear into the card.
+                .aa-DetachedSearchButton {
+                    background-color: $white;
+                    border: 1px solid $blue-20;
+                    border-radius: 0;
+                    justify-content: space-between;
+                    cursor: text;
+                    height: 56px;
+                    width: 100%;
+
+                    &:hover,
+                    &:focus {
+                        border-color: $blue-40;
+                    }
+                }
+
+                .aa-DetachedSearchButtonIcon {
+                    position: absolute;
+                    right: 0;
+                    background: $white;
+                    svg {
+                        fill: $blue-50;
+                    }
+                }
+
+                .aa-DetachedSearchButtonPlaceholder {
+                    display: block;
+                    margin-left: 16px;
+                    white-space: nowrap;
+                    color: $blue-40;
+                    width: calc(100% - 56px);
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    // Explicit line-height to prevent Safari from clipping
+                    // descenders (g, y, p, etc.) with overflow: hidden.
+                    line-height: 1.4;
+                }
+
+                .aa-Input {
+                    padding: 40px 0;
+                    font-size: 1rem;
+                    &::placeholder {
+                        color: $blue-40;
+                    }
+
+                    &:placeholder-shown {
+                        text-overflow: ellipsis;
+                    }
+                }
+
+                .aa-InputWrapperPrefix {
+                    display: initial;
+                    margin-right: 8px;
+                }
+
+                .aa-Input::placeholder {
+                    color: $blue-30;
+                }
+
+                // Suggested-search pills mirror the homepage's
+                // `.homepage-search__link` design (centered-article.scss):
+                // rounded transparent pill on the dark navy card, with a
+                // $blue-50 border and $blue-20 text. Hover flips to white.
+                .suggested-searches {
+                    display: flex;
+                    flex-wrap: wrap;
+                    justify-content: flex-start;
+                    gap: 12px;
+                    margin-top: 16px;
+                    margin-bottom: 0;
+                }
+
+                .suggested-search-item {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 6px;
+                    padding: 4.5px 12px;
+                    background-color: transparent;
+                    border: 1px solid $blue-50;
+                    border-radius: 32px;
+                    text-decoration: none;
+                    color: $blue-20;
+                    @include body-3-medium;
+                    transition: 0.125s;
+
+                    &:visited {
+                        color: $blue-20;
+                    }
+                    &:hover {
+                        color: $white;
+                        border-color: $white;
+                        .suggested-search-item__icon {
+                            color: $blue-30;
+                        }
+                    }
+                }
+
+                .suggested-search-item__icon {
+                    color: $blue-50;
+                }
+
+                // We render up to SUGGESTED_SEARCHES_LIMIT (6) pills.
+                // Cap visibility to 4 on the small breakpoint to avoid
+                // a multi-row wrap that overwhelms the card on mobile.
+                @include sm-only {
+                    .suggested-search-item:nth-child(n + 5) {
+                        display: none;
+                    }
+                }
+
+                // The generic `--show` rule (experiments.scss top) adds
+                // 24/40px margin-bottom for top-level swap blocks like the
+                // all-charts ↔ featured-metrics experiment. The treat2/3
+                // gates here wrap the suggested-search pills *inside* the
+                // search card, so they shouldn't contribute outer spacing.
+                .exp-data-page-search-v1--treat2--show,
+                .exp-data-page-search-v1--treat3--show {
+                    margin-bottom: 0;
+                }
+            }
+        }
+    }
+}
+
+// The autocomplete panel is portaled to document.body by the algolia library,
+// so it lives outside .DataPageContent in the DOM. Style it at the top level
+// — selectors nested under .DataPageContent above would never match.
+.datapage-search__panel {
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.05);
 }

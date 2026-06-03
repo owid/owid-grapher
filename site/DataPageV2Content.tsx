@@ -17,6 +17,9 @@ import {
     getExperimentState,
     ExperimentState,
 } from "@ourworldindata/utils"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons"
+import { getSuggestedKeywordsForTopics } from "./data/topicVocabulary.js"
 import { RelatedCharts } from "./blocks/RelatedCharts.js"
 import { FeaturedMetrics } from "./FeaturedMetrics.js"
 import StickyNav from "./blocks/StickyNav.js"
@@ -35,6 +38,7 @@ import { AttachmentsContext } from "./gdocs/AttachmentsContext.js"
 import { DocumentContext } from "./gdocs/DocumentContext.js"
 import { SiteQueryClientProvider } from "./SiteQueryClientProvider.js"
 import { useWindowQueryParams } from "./hooks.js"
+import { Autocomplete } from "./search/Autocomplete.js"
 
 declare global {
     interface Window {
@@ -117,6 +121,15 @@ export const DataPageV2Content = ({
             setExperimentState(s)
         }
     }, [])
+
+    // The assigned arm for the data-page-search experiment, used to drive the
+    // Autocomplete `showSuggestionsWhenEmpty` prop. Initial render returns
+    // undefined (server + first client render before the cookie has been
+    // read), so the autocomplete defaults to showing featured searches —
+    // safe because the dropdown is closed until the user focuses the input,
+    // by which time the experiment state has loaded.
+    const searchArm =
+        experimentState[`${EXPERIMENT_PREFIX}-data-page-search-v1`]?.arm
 
     const downloadProps: DownloadSectionProps | undefined = useMemo(() => {
         if (!slug) return undefined
@@ -210,9 +223,52 @@ export const DataPageV2Content = ({
                                 hasFaq={!!faqEntries?.faqs.length}
                                 id={DATAPAGE_ABOUT_THIS_DATA_SECTION_ID}
                             />
+
+                            <div
+                                className={`datapage-search-wrapper ${EXPERIMENT_PREFIX}-data-page-search-v1${EXPERIMENT_ARM_SEPARATOR}treat1--show ${EXPERIMENT_PREFIX}-data-page-search-v1${EXPERIMENT_ARM_SEPARATOR}treat2--show ${EXPERIMENT_PREFIX}-data-page-search-v1${EXPERIMENT_ARM_SEPARATOR}treat3--show`}
+                            >
+                                <div className="datapage-search">
+                                    <h2 className="datapage-search__heading">
+                                        Search all our content
+                                    </h2>
+                                    <SiteQueryClientProvider>
+                                        <Autocomplete
+                                            id="datapage-autocomplete"
+                                            className="datapage-search__input"
+                                            panelClassName="datapage-search__panel"
+                                            placeholder="What do you want to see next?"
+                                            // Hide default featured-search
+                                            // suggestions on focus for the
+                                            // arms that show their own topic-
+                                            // driven suggestion pills below
+                                            // the input (past searches still
+                                            // surface because that plugin is
+                                            // unconditional). treat1 keeps
+                                            // the default suggestions since
+                                            // it has no pills.
+                                            showSuggestionsWhenEmpty={
+                                                searchArm !== "treat2" &&
+                                                searchArm !== "treat3"
+                                            }
+                                        />
+                                    </SiteQueryClientProvider>
+                                    <div
+                                        className={`${EXPERIMENT_PREFIX}-data-page-search-v1${EXPERIMENT_ARM_SEPARATOR}treat2--show ${EXPERIMENT_PREFIX}-data-page-search-v1${EXPERIMENT_ARM_SEPARATOR}treat3--show`}
+                                    >
+                                        <SuggestedSearches
+                                            topicTagsLinks={
+                                                datapageData.topicTagsLinks
+                                            }
+                                            tagToSlugMap={tagToSlugMap}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div className="col-start-2 span-cols-12">
+                    <div
+                        className={`col-start-2 span-cols-12 ${EXPERIMENT_PREFIX}-data-page-search-v1${EXPERIMENT_ARM_SEPARATOR}treat3--hide`}
+                    >
                         {relatedResearch && relatedResearch.length > 0 && (
                             <DataPageResearchAndWriting
                                 relatedResearch={relatedResearch}
@@ -300,5 +356,58 @@ export const DataPageV2Content = ({
                 </div>
             </DocumentContext.Provider>
         </AttachmentsContext.Provider>
+    )
+}
+
+const SUGGESTED_SEARCHES_LIMIT = 6
+
+const SuggestedSearches = ({
+    topicTagsLinks,
+    tagToSlugMap,
+}: {
+    topicTagsLinks: string[] | undefined
+    tagToSlugMap: Record<string, string>
+}) => {
+    // SSR renders a deterministic top-N so the baked HTML matches what the
+    // client renders on hydration (no hydration mismatch warning). After
+    // mount, useEffect re-shuffles per visitor, so different users see
+    // different subsets of the vocabulary even when the page bake is shared.
+    const [suggestions, setSuggestions] = useState<string[]>(() =>
+        getSuggestedKeywordsForTopics(
+            topicTagsLinks,
+            tagToSlugMap,
+            SUGGESTED_SEARCHES_LIMIT,
+            false
+        )
+    )
+    useEffect(() => {
+        setSuggestions(
+            getSuggestedKeywordsForTopics(
+                topicTagsLinks,
+                tagToSlugMap,
+                SUGGESTED_SEARCHES_LIMIT,
+                true
+            )
+        )
+    }, [topicTagsLinks, tagToSlugMap])
+
+    if (suggestions.length === 0) return null
+
+    return (
+        <div className="suggested-searches">
+            {suggestions.map((query) => (
+                <a
+                    key={query}
+                    href={`/search?q=${encodeURIComponent(query)}`}
+                    className="suggested-search-item"
+                >
+                    <FontAwesomeIcon
+                        icon={faMagnifyingGlass}
+                        className="suggested-search-item__icon"
+                    />
+                    <span className="suggested-search-item__text">{query}</span>
+                </a>
+            ))}
+        </div>
     )
 }
