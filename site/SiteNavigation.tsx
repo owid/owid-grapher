@@ -39,6 +39,42 @@ const TOPNAV_EXPERIMENT_ID = "exp-topnav-v1"
 const TOPNAV_HIDE_THRESHOLD_PX = 120
 const TOPNAV_SCROLL_DELTA_PX = 6
 
+// Query param that lets us preview an arm of the topnav-v1 experiment without
+// relying on cookie assignment — useful for QA on staging.
+//   ?topnav=control               → behave like the control arm (non-sticky)
+//   ?topnav=sticky                → behave like the sticky arm
+//   ?topnav=show-on-scroll-up     → behave like the show-on-scroll-up arm
+const TOPNAV_OVERRIDE_PARAM = "topnav"
+
+type TopnavArm = "control" | "sticky" | "show-on-scroll-up"
+
+const TOPNAV_VALID_ARMS: readonly TopnavArm[] = [
+    "control",
+    "sticky",
+    "show-on-scroll-up",
+]
+
+const TOPNAV_BODY_CLASS_PREFIX = `${TOPNAV_EXPERIMENT_ID}--`
+
+function getTopnavArmFromUrl(): TopnavArm | null {
+    if (typeof window === "undefined") return null
+    const value = new URLSearchParams(window.location.search).get(
+        TOPNAV_OVERRIDE_PARAM
+    )
+    return (TOPNAV_VALID_ARMS as readonly string[]).includes(value ?? "")
+        ? (value as TopnavArm)
+        : null
+}
+
+function getActiveTopnavArm(): TopnavArm | undefined {
+    const override = getTopnavArmFromUrl()
+    if (override) return override
+    const arm = getExperimentState()[TOPNAV_EXPERIMENT_ID]?.arm
+    return (TOPNAV_VALID_ARMS as readonly string[]).includes(arm ?? "")
+        ? (arm as TopnavArm)
+        : undefined
+}
+
 const analytics = new SiteAnalytics()
 
 export const SiteNavigation = ({
@@ -112,12 +148,34 @@ export const SiteNavigation = ({
 
     useTriggerOnEscape(closeOverlay, { active: menu !== null })
 
+    // Experiment topnav-v1: when ?topnav=<arm> is present, swap the body
+    // class so the CSS rules match the requested arm regardless of the
+    // cookie-assigned arm set by the CF middleware. Server-rendered pages
+    // always start with the cookie's class (if any); this effect reconciles
+    // client-side.
+    useEffect(() => {
+        const override = getTopnavArmFromUrl()
+        if (!override) return
+        for (const cls of Array.from(document.body.classList)) {
+            if (cls.startsWith(TOPNAV_BODY_CLASS_PREFIX)) {
+                document.body.classList.remove(cls)
+            }
+        }
+        if (override !== "control") {
+            document.body.classList.add(
+                `${TOPNAV_BODY_CLASS_PREFIX}${override}`
+            )
+        }
+    }, [])
+
     // Experiment topnav-v1: log a one-shot view event for treatment arms so we
     // can split engagement metrics by arm in GA. Skip on pages where the
     // sticky behavior is disabled (own .sticky-nav present) — the user
-    // isn't actually experiencing the treatment there.
+    // isn't actually experiencing the treatment there. Also skip when the
+    // URL overrides the arm (QA/staging traffic shouldn't pollute data).
     useEffect(() => {
-        const arm = getExperimentState()[TOPNAV_EXPERIMENT_ID]?.arm
+        if (getTopnavArmFromUrl()) return
+        const arm = getActiveTopnavArm()
         if (arm !== "sticky" && arm !== "show-on-scroll-up") return
         if (document.querySelector(".sticky-nav")) return
         analytics.logTopnavView(arm)
@@ -129,7 +187,7 @@ export const SiteNavigation = ({
     const menuRef = useRef(menu)
     menuRef.current = menu
     useEffect(() => {
-        const arm = getExperimentState()[TOPNAV_EXPERIMENT_ID]?.arm
+        const arm = getActiveTopnavArm()
         if (arm !== "show-on-scroll-up") return
         // Skip when the page has its own sticky nav — the CSS opts out of
         // position: sticky there, so translating the header would just slide
