@@ -447,6 +447,13 @@ export function Autocomplete({
     // container element to scope click-outside / blur detection, and duplicate
     // ids prevent the panel from closing on outside clicks.
     id = "autocomplete",
+    // When false, the empty-state FeaturedSearchesSource (CO2 / Energy / …)
+    // is suppressed. The local-storage recent-searches plugin keeps running
+    // either way, so users still see their own past searches in the empty
+    // dropdown. Useful when the surrounding UI already provides its own
+    // context-specific suggestions (e.g. the datapage search has page-topic-
+    // driven suggestion pills).
+    showSuggestionsWhenEmpty = true,
 }: {
     onActivate?: () => void
     onClose?: () => void
@@ -455,6 +462,7 @@ export function Autocomplete({
     panelClassName?: string
     isPreviewing?: boolean
     id?: string
+    showSuggestionsWhenEmpty?: boolean
 }) {
     const containerRef = useRef<HTMLDivElement>(null)
     const panelRootRef = useRef<Root | null>(null)
@@ -538,7 +546,7 @@ export function Autocomplete({
                         AlgoliaPagesSource,
                         AlgoliaChartsSource
                     )
-                } else {
+                } else if (showSuggestionsWhenEmpty) {
                     sources.push(FeaturedSearchesSource)
                 }
                 return sources
@@ -581,6 +589,7 @@ export function Autocomplete({
         synonymMap,
         recentSearchesPlugin,
         userCountryNameRef,
+        showSuggestionsWhenEmpty,
     ])
 
     // Close the panel on outside click. We can't rely on autocomplete-js's
