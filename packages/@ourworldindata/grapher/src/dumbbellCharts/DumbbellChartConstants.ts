@@ -14,6 +14,12 @@ export const VALUE_LABEL_DOT_GAP = 6
 /** Horizontal gap between entity labels and the chart area */
 export const ENTITY_LABEL_CHART_GAP = 8
 
+/** Vertical gap between the top legend and the chart area */
+export const TOP_LEGEND_BOTTOM_PADDING = 4
+
+/** Minimum horizontal gap between legend labels */
+export const MIN_LEGEND_LABEL_GAP = 8
+
 export const NO_CHANGE_COLOR = OWID_NO_DATA_GRAY
 
 export const INCREASE_COLOR = "#00875E"
@@ -93,4 +99,10 @@ export const DUMBBELL_STYLE: Record<Emphasis, DumbbellStyle> = {
     [Emphasis.Elevated]: DEFAULT_DUMBBELL_STYLE,
     [Emphasis.Highlighted]: DEFAULT_DUMBBELL_STYLE,
     [Emphasis.Muted]: { opacity: GRAPHER_OPACITY_MUTED },
+}
+
+export interface LegendLabel {
+    text: string
+    color: string
+    textAnchor: "center" | "outward"
 }

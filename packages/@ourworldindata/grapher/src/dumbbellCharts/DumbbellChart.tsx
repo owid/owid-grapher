@@ -4,11 +4,13 @@ import React from "react"
 import { match } from "ts-pattern"
 import {
     Bounds,
+    HorizontalAlign,
     makeFigmaId,
     exposeInstanceOnWindow,
     ScaleType,
     SeriesStrategy,
     formatValue,
+    Pair,
 } from "@ourworldindata/utils"
 import {
     DumbbellValueLabelMode,
@@ -44,6 +46,12 @@ import {
     VALUE_LABEL_DOT_GAP,
     ENTITY_LABEL_CHART_GAP,
     DumbbellValueLabel,
+    TOP_LEGEND_BOTTOM_PADDING,
+    START_COLUMN_COLOR,
+    END_COLUMN_COLOR,
+    LegendLabel,
+    PlacedDumbbellHead,
+    MIN_LEGEND_LABEL_GAP,
 } from "./DumbbellChartConstants"
 import { DumbbellChartState } from "./DumbbellChartState"
 import { ChartComponentProps } from "../chart/ChartTypeMap"
@@ -57,13 +65,23 @@ import {
 import { AnimatedRows } from "../animation/AnimatedRows"
 import { roundFontSize, textWidth } from "../chart/ChartUtils.js"
 import { GRAPHER_LIGHT_TEXT } from "../color/ColorConstants.js"
+import { HorizontalLabelPair } from "../horizontalLabelPair/HorizontalLabelPair.js"
+import { HorizontalLabelPairState } from "../horizontalLabelPair/HorizontalLabelPairState.js"
+import { HorizontalLabel } from "../horizontalLabelPair/HorizontalLabelPairTypes.js"
+import {
+    HorizontalCategoricalColorLegend,
+    HorizontalColorLegendManager,
+} from "../legend/HorizontalColorLegends.js"
+import { CategoricalBin } from "../color/ColorScaleBin.js"
 
 export type DumbbellChartProps = ChartComponentProps<DumbbellChartState>
+
+type TopLegendType = "inline" | "swatches" | "none"
 
 @observer
 export class DumbbellChart
     extends React.Component<DumbbellChartProps>
-    implements ChartInterface, AxisManager
+    implements ChartInterface, AxisManager, HorizontalColorLegendManager
 {
     constructor(props: DumbbellChartProps) {
         super(props)
@@ -83,6 +101,10 @@ export class DumbbellChart
         return (this.props.bounds ?? DEFAULT_GRAPHER_BOUNDS).padBottom(2)
     }
 
+    @computed private get boundsWithoutLegend(): Bounds {
+        return this.bounds.padTop(this.topLegendHeightWithPadding)
+    }
+
     @computed get fontSize(): number {
         return this.manager.fontSize ?? BASE_FONT_SIZE
     }
@@ -92,14 +114,19 @@ export class DumbbellChart
     }
 
     @computed private get availableHeightPerSeries(): number {
-        return this.bounds.height / this.series.length
+        return this.boundsWithoutLegend.height / this.series.length
     }
 
     @computed private get entityLabelStyle(): FontSettings {
+        // Slightly overestimates the height available for a series
+        // because `bounds` is used instead of `boundsWithoutLegend`
+        // due to a circular dependency
+        const availableHeightPerSeries = this.bounds.height / this.series.length
+
         const fontSize = roundFontSize(
             Math.min(
                 GRAPHER_FONT_SCALE_12 * this.fontSize,
-                1.1 * this.availableHeightPerSeries
+                availableHeightPerSeries
             )
         )
 
@@ -110,6 +137,14 @@ export class DumbbellChart
         const fontSize = this.entityLabelStyle.fontSize - 0.5
 
         return { fontSize, fontWeight: 400, lineHeight: 1 }
+    }
+
+    @computed private get inlineLegendLabelStyle(): FontSettings {
+        return {
+            fontSize: this.valueLabelStyle.fontSize,
+            fontWeight: 700,
+            lineHeight: 1,
+        }
     }
 
     private buildValueLabel(text: string): DumbbellValueLabel {
@@ -264,7 +299,7 @@ export class DumbbellChart
 
     /** Bounds minus entity labels */
     @computed get axisBounds(): Bounds {
-        return this.bounds.padLeft(
+        return this.boundsWithoutLegend.padLeft(
             this.entityLabelMaxWidth + ENTITY_LABEL_CHART_GAP
         )
     }
@@ -329,6 +364,213 @@ export class DumbbellChart
         })
     }
 
+    @computed get legendLabels():
+        | { start: LegendLabel; end: LegendLabel }
+        | undefined {
+        const { showLegend = true } = this.manager
+
+        if (!showLegend || this.series.length === 0) return undefined
+
+        return (
+            match(this.chartState.seriesStrategy)
+                // In entity mode, the legend labels are the start and end times
+                .with(SeriesStrategy.entity, () => {
+                    const { formatColumn, startTime, endTime } = this.chartState
+                    return {
+                        start: {
+                            text: formatColumn.formatTime(startTime),
+                            color: GRAPHER_LIGHT_TEXT,
+                            textAnchor: "center",
+                        } satisfies LegendLabel,
+                        end: {
+                            text: formatColumn.formatTime(endTime),
+                            color: GRAPHER_LIGHT_TEXT,
+                            textAnchor: "center",
+                        } satisfies LegendLabel,
+                    }
+                })
+                // In column mode, the legend labels are the two columns
+                .with(SeriesStrategy.column, () => {
+                    const [startColumn, endColumn] = this.chartState.yColumns
+                    if (!startColumn || !endColumn) return undefined
+                    return {
+                        start: {
+                            text: startColumn.nonEmptyDisplayName,
+                            color: START_COLUMN_COLOR,
+                            textAnchor: "outward",
+                        } satisfies LegendLabel,
+                        end: {
+                            text: endColumn.nonEmptyDisplayName,
+                            color: END_COLUMN_COLOR,
+                            textAnchor: "outward",
+                        } satisfies LegendLabel,
+                    }
+                })
+                .exhaustive()
+        )
+    }
+
+    /** Whether the inline legend labels can fit side by side */
+    @computed private get inlineLegendFits(): boolean {
+        if (!this.legendLabels) return false
+        const { start, end } = this.legendLabels
+        // We can't use `inlineLegendState.hasOverlap` here due to a circular dependency
+        const labelWidths =
+            textWidth(start.text, this.inlineLegendLabelStyle) +
+            textWidth(end.text, this.inlineLegendLabelStyle)
+        return labelWidths + MIN_LEGEND_LABEL_GAP <= this.bounds.width
+    }
+
+    @computed private get topLegendType(): TopLegendType {
+        if (!this.legendLabels) return "none"
+        if (this.inlineLegendFits) return "inline"
+        // In column mode, fall back to a categorical legend when the inline
+        // labels don't fit. In entity mode, no legend is shown in that case.
+        return this.chartState.isEntityStrategy ? "none" : "swatches"
+    }
+
+    @computed private get topLegendHeight(): number {
+        return match(this.topLegendType)
+            .with(
+                "inline",
+                () =>
+                    this.inlineLegendLabelStyle.fontSize *
+                    this.inlineLegendLabelStyle.lineHeight
+            )
+            .with("swatches", () => this.categoricalLegend.height)
+            .with("none", () => 0)
+            .exhaustive()
+    }
+
+    @computed private get topLegendHeightWithPadding(): number {
+        return this.topLegendHeight
+            ? this.topLegendHeight + TOP_LEGEND_BOTTOM_PADDING
+            : 0
+    }
+
+    @computed private get inlineLegendSeries():
+        | Pair<HorizontalLabel>
+        | undefined {
+        const { legendLabels, topLegendType } = this
+
+        if (!legendLabels || topLegendType !== "inline") return undefined
+
+        const sortedSeries = _.sortBy(this.placedSeries, (series) => series.y)
+
+        // Find the top-most series that has a visible change
+        const topSeries =
+            sortedSeries.find((s) => s.start.x !== s.end.x) ?? sortedSeries[0]
+
+        if (!topSeries) return undefined
+
+        const resolveTextAnchor = ({
+            label,
+            head,
+            otherHead,
+        }: {
+            label: LegendLabel
+            head: PlacedDumbbellHead
+            otherHead: PlacedDumbbellHead
+        }): HorizontalAlign =>
+            match(label.textAnchor)
+                .with("center", () => HorizontalAlign.center)
+                .with("outward", () =>
+                    head.x <= otherHead.x
+                        ? HorizontalAlign.right
+                        : HorizontalAlign.left
+                )
+                .exhaustive()
+
+        // Shift outward-anchored labels inward by a bit
+        const offsetMagnitude = Math.floor(
+            Math.abs(topSeries.end.x - topSeries.start.x) / 4
+        )
+        const inwardOffset = (textAnchor: HorizontalAlign): number =>
+            match(textAnchor)
+                .with(HorizontalAlign.right, () => offsetMagnitude)
+                .with(HorizontalAlign.left, () => -offsetMagnitude)
+                .with(HorizontalAlign.center, () => 0)
+                .exhaustive()
+
+        const startAnchor = resolveTextAnchor({
+            label: legendLabels.start,
+            head: topSeries.start,
+            otherHead: topSeries.end,
+        })
+        const endAnchor = resolveTextAnchor({
+            label: legendLabels.end,
+            head: topSeries.end,
+            otherHead: topSeries.start,
+        })
+
+        return [
+            {
+                text: legendLabels.start.text,
+                x: topSeries.start.x + inwardOffset(startAnchor),
+                color: legendLabels.start.color,
+                textAnchor: startAnchor,
+            },
+            {
+                text: legendLabels.end.text,
+                x: topSeries.end.x + inwardOffset(endAnchor),
+                color: legendLabels.end.color,
+                textAnchor: endAnchor,
+            },
+        ]
+    }
+
+    @computed private get inlineLegendState():
+        | HorizontalLabelPairState
+        | undefined {
+        if (!this.inlineLegendSeries) return undefined
+
+        return new HorizontalLabelPairState(this.inlineLegendSeries, {
+            xRange: [this.bounds.left, this.bounds.right],
+            fontSettings: this.inlineLegendLabelStyle,
+            minGap: MIN_LEGEND_LABEL_GAP,
+        })
+    }
+
+    @computed get legendX(): number {
+        return this.bounds.left
+    }
+
+    @computed get categoryLegendY(): number {
+        return this.bounds.top
+    }
+
+    @computed get legendWidth(): number {
+        return this.bounds.width
+    }
+
+    @computed get legendAlign(): HorizontalAlign {
+        return HorizontalAlign.left
+    }
+
+    @computed get categoricalLegendData(): CategoricalBin[] {
+        if (!this.legendLabels || this.topLegendType !== "swatches") return []
+        const { start, end } = this.legendLabels
+        return [
+            new CategoricalBin({
+                index: 0,
+                value: start.text,
+                label: start.text,
+                color: start.color,
+            }),
+            new CategoricalBin({
+                index: 1,
+                value: end.text,
+                label: end.text,
+                color: end.color,
+            }),
+        ]
+    }
+
+    @computed
+    private get categoricalLegend(): HorizontalCategoricalColorLegend {
+        return new HorizontalCategoricalColorLegend({ manager: this })
+    }
+
     private formatValue(
         value: number,
         options?: TickFormattingOptions
@@ -340,11 +582,28 @@ export class DumbbellChart
         exposeInstanceOnWindow(this)
     }
 
+    private renderLegend(): React.ReactElement | null {
+        return match(this.topLegendType)
+            .with("swatches", () => (
+                <HorizontalCategoricalColorLegend manager={this} />
+            ))
+            .with("inline", () =>
+                this.inlineLegendState ? (
+                    <HorizontalLabelPair
+                        state={this.inlineLegendState}
+                        y={this.bounds.top}
+                    />
+                ) : null
+            )
+            .with("none", () => null)
+            .exhaustive()
+    }
+
     private renderStatic(): React.ReactElement {
         return (
             <>
                 <DumbbellChartAxis
-                    bounds={this.bounds}
+                    bounds={this.boundsWithoutLegend}
                     dataBounds={this.dataBounds}
                     axis={this.axis}
                 />
@@ -361,6 +620,7 @@ export class DumbbellChart
                         />
                     ))}
                 </g>
+                {this.renderLegend()}
             </>
         )
     }
@@ -372,7 +632,7 @@ export class DumbbellChart
         return (
             <g>
                 <DumbbellChartAxis
-                    bounds={this.bounds}
+                    bounds={this.boundsWithoutLegend}
                     dataBounds={this.dataBounds}
                     axis={this.axis}
                 />
@@ -394,6 +654,7 @@ export class DumbbellChart
                         />
                     )}
                 />
+                {this.renderLegend()}
             </g>
         )
     }
