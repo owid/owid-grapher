@@ -32,6 +32,7 @@ import {
     autoDetectYColumnSlugs,
     getDefaultFailMessage,
     getShortNameForEntity,
+    isToleranceDistanceValid,
     makeSelectionArray,
     sortByConfig,
 } from "../chart/ChartUtils"
@@ -171,6 +172,15 @@ export class DumbbellChartState implements ChartState {
                 if (
                     typeof startRow?.value !== "number" ||
                     typeof endRow?.value !== "number"
+                )
+                    return undefined
+
+                if (
+                    !isToleranceDistanceValid({
+                        start: startRow,
+                        end: endRow,
+                        tolerance: yColumn.tolerance,
+                    })
                 )
                     return undefined
 

@@ -6,7 +6,12 @@ import { EntityName } from "@ourworldindata/types"
 import { TextWrap } from "@ourworldindata/components"
 import { SeriesLabelState } from "../seriesLabel/SeriesLabelState"
 import { GRAPHER_OPACITY_MUTED } from "../core/GrapherConstants.js"
-import { GRAPHER_DENIM, OWID_NO_DATA_GRAY } from "../color/ColorConstants.js"
+import {
+    GRAPHER_DARK_TEXT,
+    GRAPHER_DENIM,
+    GRAPHER_LIGHT_TEXT,
+    OWID_NO_DATA_GRAY,
+} from "../color/ColorConstants.js"
 
 /** Horizontal gap between the value label and the dumbbell */
 export const VALUE_LABEL_DOT_GAP = 6
@@ -90,15 +95,25 @@ export type LabelledDumbbellHead = PlacedDumbbellHead & {
 
 interface DumbbellStyle {
     opacity: number
+    labelColor: string
 }
 
-const DEFAULT_DUMBBELL_STYLE: DumbbellStyle = { opacity: 1 }
+const DEFAULT_DUMBBELL_STYLE: DumbbellStyle = {
+    opacity: 1,
+    labelColor: GRAPHER_LIGHT_TEXT,
+}
 
 export const DUMBBELL_STYLE: Record<Emphasis, DumbbellStyle> = {
     [Emphasis.Default]: DEFAULT_DUMBBELL_STYLE,
     [Emphasis.Elevated]: DEFAULT_DUMBBELL_STYLE,
-    [Emphasis.Highlighted]: DEFAULT_DUMBBELL_STYLE,
-    [Emphasis.Muted]: { opacity: GRAPHER_OPACITY_MUTED },
+    [Emphasis.Highlighted]: {
+        ...DEFAULT_DUMBBELL_STYLE,
+        labelColor: GRAPHER_DARK_TEXT,
+    },
+    [Emphasis.Muted]: {
+        ...DEFAULT_DUMBBELL_STYLE,
+        opacity: GRAPHER_OPACITY_MUTED,
+    },
 }
 
 export interface LegendLabel {

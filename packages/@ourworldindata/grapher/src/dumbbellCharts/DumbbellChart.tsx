@@ -10,13 +10,15 @@ import {
     ScaleType,
     SeriesStrategy,
     formatValue,
+    getRelativeMouse,
+    guid,
     Pair,
 } from "@ourworldindata/utils"
 import {
     DumbbellValueLabelMode,
     TickFormattingOptions,
 } from "@ourworldindata/types"
-import { computed, makeObservable } from "mobx"
+import { action, computed, observable, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import {
     BASE_FONT_SIZE,
@@ -56,6 +58,7 @@ import {
 import { DumbbellChartState } from "./DumbbellChartState"
 import { ChartComponentProps } from "../chart/ChartTypeMap"
 import { resolveEmphasis } from "../interaction/Emphasis"
+import { InteractionState } from "../interaction/InteractionState"
 import { DumbbellChartRow } from "./DumbbellChartRow"
 import {
     AxisLayout,
@@ -73,6 +76,11 @@ import {
     HorizontalColorLegendManager,
 } from "../legend/HorizontalColorLegends.js"
 import { CategoricalBin } from "../color/ColorScaleBin.js"
+import { TooltipState } from "../tooltip/Tooltip"
+import {
+    DumbbellTimeRangeTooltip,
+    DumbbellTwoColumnTooltip,
+} from "./DumbbellTooltips.js"
 
 export type DumbbellChartProps = ChartComponentProps<DumbbellChartState>
 
@@ -83,9 +91,16 @@ export class DumbbellChart
     extends React.Component<DumbbellChartProps>
     implements ChartInterface, AxisManager, HorizontalColorLegendManager
 {
+    private readonly tooltipId = guid()
+    private readonly tooltipState = new TooltipState<{ seriesName: string }>({
+        fade: "immediate",
+    })
+
     constructor(props: DumbbellChartProps) {
         super(props)
-        makeObservable(this)
+        makeObservable<DumbbellChart, "tooltipState">(this, {
+            tooltipState: observable,
+        })
     }
 
     @computed get chartState(): DumbbellChartState {
@@ -357,9 +372,17 @@ export class DumbbellChart
             .filter((series) => series !== undefined)
     }
 
+    @computed private get hoveredSeriesName(): string | undefined {
+        return this.tooltipState.target?.seriesName
+    }
+
     @computed private get renderSeries(): RenderDumbbellSeries[] {
         return this.placedSeries.map((series) => {
-            const emphasis = resolveEmphasis({ focus: series.focus })
+            const hover = InteractionState.for(
+                series.seriesName,
+                this.hoveredSeriesName
+            )
+            const emphasis = resolveEmphasis({ hover, focus: series.focus })
             return { ...series, emphasis }
         })
     }
@@ -578,6 +601,34 @@ export class DumbbellChart
         return this.chartState.formatColumn.formatValueShort(value, options)
     }
 
+    @action.bound private dismissTooltip(): void {
+        this.tooltipState.target = null
+    }
+
+    @action.bound private onSeriesMouseEnter(
+        seriesName: string,
+        event: React.MouseEvent<SVGElement>
+    ): void {
+        this.chartState.focusArray.clear()
+        this.updateTooltipPosition(event)
+        this.tooltipState.target = { seriesName }
+    }
+
+    @action.bound private onSeriesMouseMove(
+        event: React.MouseEvent<SVGElement>
+    ): void {
+        this.updateTooltipPosition(event)
+    }
+
+    @action.bound private onSeriesMouseLeave(): void {
+        this.tooltipState.target = null
+    }
+
+    private updateTooltipPosition(event: React.MouseEvent<SVGElement>): void {
+        const ref = this.manager.base?.current
+        if (ref) this.tooltipState.position = getRelativeMouse(ref, event)
+    }
+
     override componentDidMount(): void {
         exposeInstanceOnWindow(this)
     }
@@ -636,6 +687,19 @@ export class DumbbellChart
                     dataBounds={this.dataBounds}
                     axis={this.axis}
                 />
+                <g className="hover-areas">
+                    {this.placedSeries.map((series) => (
+                        <DumbbellHoverArea
+                            key={series.seriesName}
+                            series={series}
+                            height={this.availableHeightPerSeries}
+                            containerBounds={this.boundsWithoutLegend}
+                            onMouseEnter={this.onSeriesMouseEnter}
+                            onMouseMove={this.onSeriesMouseMove}
+                            onMouseLeave={this.onSeriesMouseLeave}
+                        />
+                    ))}
+                </g>
                 <AnimatedRows
                     items={this.renderSeries}
                     keyAccessor={(d: RenderDumbbellSeries): string =>
@@ -651,10 +715,28 @@ export class DumbbellChart
                             range={xRange}
                             valueLabelStyle={valueLabelStyle}
                             y={0}
+                            onInfoTooltipShow={this.dismissTooltip}
                         />
                     )}
                 />
                 {this.renderLegend()}
+                {this.chartState.seriesStrategy === SeriesStrategy.entity ? (
+                    <DumbbellTimeRangeTooltip
+                        id={this.tooltipId}
+                        chartState={this.chartState}
+                        tooltipState={this.tooltipState}
+                        series={this.sizedSeries}
+                        dismissTooltip={this.dismissTooltip}
+                    />
+                ) : (
+                    <DumbbellTwoColumnTooltip
+                        id={this.tooltipId}
+                        chartState={this.chartState}
+                        tooltipState={this.tooltipState}
+                        series={this.sizedSeries}
+                        dismissTooltip={this.dismissTooltip}
+                    />
+                )}
             </g>
         )
     }
@@ -700,5 +782,37 @@ function DumbbellChartAxis({
                 />
             )}
         </>
+    )
+}
+
+function DumbbellHoverArea({
+    series,
+    height,
+    maxHeight = 60,
+    containerBounds,
+    onMouseEnter,
+    onMouseMove,
+    onMouseLeave,
+}: {
+    series: PlacedDumbbellSeries
+    height: number
+    maxHeight?: number
+    containerBounds: Bounds
+    onMouseEnter: (seriesName: string, ev: React.MouseEvent<SVGElement>) => void
+    onMouseMove: (ev: React.MouseEvent<SVGElement>) => void
+    onMouseLeave: () => void
+}): React.ReactElement {
+    const cappedHeight = Math.min(height, maxHeight)
+    return (
+        <rect
+            x={containerBounds.left}
+            y={series.y - cappedHeight / 2}
+            width={containerBounds.width}
+            height={cappedHeight}
+            fill="transparent"
+            onMouseEnter={(ev) => onMouseEnter(series.seriesName, ev)}
+            onMouseMove={onMouseMove}
+            onMouseLeave={onMouseLeave}
+        />
     )
 }

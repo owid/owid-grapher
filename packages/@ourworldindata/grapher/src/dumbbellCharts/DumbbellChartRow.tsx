@@ -18,10 +18,7 @@ import {
 import { toLeftRight } from "./DumbbellChartHelpers"
 import { GRID_LINE_DASH_PATTERN, TICK_COLOR } from "../axis/AxisViews.js"
 import { darkenColorForText } from "../color/ColorUtils.js"
-import {
-    GRAPHER_DARK_TEXT,
-    GRAPHER_LIGHT_TEXT,
-} from "../color/ColorConstants.js"
+import { GRAPHER_DARK_TEXT } from "../color/ColorConstants.js"
 
 export function DumbbellChartRow({
     series,
@@ -30,6 +27,7 @@ export function DumbbellChartRow({
     y,
     range,
     valueLabelStyle,
+    onInfoTooltipShow,
 }: {
     series: RenderDumbbellSeries
     seriesStrategy: SeriesStrategy
@@ -37,6 +35,7 @@ export function DumbbellChartRow({
     y: number
     range: [number, number]
     valueLabelStyle: FontSettings
+    onInfoTooltipShow?: () => void
 }): React.ReactElement {
     const style = DUMBBELL_STYLE[series.emphasis]
     const { left: leftHead, right: rightHead } = toLeftRight(
@@ -49,6 +48,7 @@ export function DumbbellChartRow({
             id={makeFigmaId(series.seriesName)}
             transform={`translate(0, ${y})`}
             opacity={style.opacity}
+            style={{ pointerEvents: "none" }}
         >
             {/* Gray background line spanning the full chart width */}
             <line
@@ -65,7 +65,8 @@ export function DumbbellChartRow({
                     state={series.label}
                     x={series.labelPosition.x}
                     y={series.labelPosition.yOffset}
-                    color={{ name: GRAPHER_LIGHT_TEXT }}
+                    color={{ name: style.labelColor }}
+                    onInfoTooltipShow={onInfoTooltipShow}
                 />
             )}
 

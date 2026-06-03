@@ -24,6 +24,7 @@ import {
     autoDetectYColumnSlugs,
     getDefaultFailMessage,
     getShortNameForEntity,
+    isToleranceDistanceValid,
     makeSelectionArray,
 } from "../chart/ChartUtils"
 import { ColorScheme } from "../color/ColorScheme"
@@ -276,20 +277,7 @@ export class SlopeChartState implements ChartState {
         // if the start or end value is missing, we can't draw the slope
         if (start?.value === undefined || end?.value === undefined) return false
 
-        // sanity check (might happen if tolerance is enabled)
-        if (start.originalTime >= end.originalTime) return false
-
-        const isToleranceAppliedToStartValue =
-            start.originalTime !== this.startTime
-        const isToleranceAppliedToEndValue = end.originalTime !== this.endTime
-
-        // if tolerance has been applied to one of the values, then we require
-        // a minimal distance between the original times
-        if (isToleranceAppliedToStartValue || isToleranceAppliedToEndValue) {
-            return end.originalTime - start.originalTime >= tolerance
-        }
-
-        return true
+        return isToleranceDistanceValid({ start, end, tolerance })
     }
 
     // Usually we drop rows with missing data in the transformTable function.
