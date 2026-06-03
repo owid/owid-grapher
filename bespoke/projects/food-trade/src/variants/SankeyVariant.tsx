@@ -198,11 +198,12 @@ function CaptionedSankeyVariant({
                 <>
                     <header className="food-trade-heading">
                         <h1 className="food-trade-heading__title">
-                            How does food move around the world?
+                            How does food get traded around the world?
                         </h1>
                         <p className="food-trade-heading__description">
-                            Where particular food products are exported to, and
-                            imported from
+                            Where food products are exported to and imported
+                            from, based on trade as reported by importing
+                            countries.
                         </p>
                     </header>
                     <FoodTradeControls
@@ -237,7 +238,11 @@ function CaptionedSankeyVariant({
                     setCountry={setCountry}
                     setView={setView}
                 />
-                <FoodTradeChartFooter source={metadata.source} />
+                <FoodTradeChartFooter
+                    source={metadata.source}
+                    country={country}
+                    view={view}
+                />
             </Frame>
         </>
     )
@@ -268,16 +273,26 @@ function FoodTradeChartHeader({
         mode === "bilateral"
             ? `Global ${R.uncapitalize(product)} trade in ${year}`
             : view === "imports"
-              ? `${product} imports to ${articulateEntity(country)} in ${year}`
+              ? `Where ${articulateEntity(country)} imported ${R.uncapitalize(product)} from in ${year}`
               : view === "exports"
-                ? `${product} exports from ${articulateEntity(country)} in ${year}`
+                ? `Where ${articulateEntity(country)} exported ${R.uncapitalize(product)} to in ${year}`
                 : `${product} trade through ${articulateEntity(country)} in ${year}`
 
     const defaultSubtitle: React.ReactNode =
         mode === "centered" && view === "both" ? (
             <>
-                Imports to and exports from {articulateEntity(country)} of{" "}
-                {R.uncapitalize(product)}
+                Imports and exports of {R.uncapitalize(product)}, as reported by
+                importing countries.
+            </>
+        ) : mode === "centered" && view === "imports" ? (
+            <>
+                {product} imported into {articulateEntity(country)}, as reported
+                by the importing country.
+            </>
+        ) : mode === "centered" && view === "exports" ? (
+            <>
+                {product} exported by {articulateEntity(country)}, as reported
+                by importing countries.
             </>
         ) : mode === "bilateral" && hasAnyTrade ? (
             <>
@@ -294,13 +309,25 @@ function FoodTradeChartHeader({
     )
 }
 
-function FoodTradeChartFooter({ source }: { source: string }) {
-    return (
-        <ChartFooter
-            source={source}
-            note='Only the top ten trade partners are shown; remainder grouped as "Other".'
-        />
-    )
+function FoodTradeChartFooter({
+    source,
+    country,
+    view,
+}: {
+    source: string
+    country: string
+    view: TradeFlow
+}) {
+    const topPartners =
+        'Only the top ten partners are shown; the rest are grouped as "Other".'
+    const reporting =
+        view === "imports"
+            ? `Figures reflect imports reported by ${articulateEntity(country)}; exporter records may differ.`
+            : view === "exports"
+              ? "Figures reflect data reported by importing countries, which may differ from export records."
+              : "Figures reflect trade reported by importers, which may differ from export records."
+
+    return <ChartFooter source={source} note={`${topPartners} ${reporting}`} />
 }
 
 function FoodTradeSkeleton() {
