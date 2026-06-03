@@ -159,6 +159,7 @@ import {
     MapChartManager,
 } from "../mapCharts/MapChartConstants.js"
 import { MapConfig } from "../mapCharts/MapConfig.js"
+import { DumbbellChartConfig } from "../dumbbellCharts/DumbbellChartConfig.js"
 import { getCountriesByRegion } from "../mapCharts/MapHelpers.js"
 import {
     DownloadModalManager,
@@ -358,6 +359,9 @@ export class GrapherState
 
     /** Configuration of the world map chart */
     map = new MapConfig()
+
+    /** Configuration of the dumbbell chart */
+    dumbbell = new DumbbellChartConfig()
 
     /** One of the predefined base color schemes. If not provided, a default is automatically chosen based on the chart type. */
     baseColorScheme: ColorSchemeName | undefined = undefined
@@ -677,6 +681,7 @@ export class GrapherState
             yAxis: observable.ref,
             colorScale: observable,
             map: observable,
+            dumbbell: observable,
             dimensions: observable.ref,
             ySlugs: observable,
             xSlug: observable,

@@ -1,6 +1,8 @@
 import { computed, makeObservable } from "mobx"
 import {
     ColumnSlug,
+    DumbbellConnectorStyle,
+    DumbbellValueLabelMode,
     ScaleType,
     SeriesStrategy,
     FacetStrategy,
@@ -13,12 +15,14 @@ import { domainExtent } from "@ourworldindata/utils"
 import { ChartState } from "../chart/ChartInterface"
 import {
     DECREASE_COLOR,
-    DEFAULT_CONNECTOR_COLOR,
     DumbbellChartManager,
     DumbbellHead,
     DumbbellSeries,
     END_COLUMN_COLOR,
     INCREASE_COLOR,
+    LIGHT_DECREASE_COLOR,
+    LIGHT_INCREASE_COLOR,
+    NO_CHANGE_COLOR,
     START_COLUMN_COLOR,
 } from "./DumbbellChartConstants"
 import { SelectionArray } from "../selection/SelectionArray"
@@ -111,6 +115,24 @@ export class DumbbellChartState implements ChartState {
         return autoDetectSeriesStrategy(this.manager)
     }
 
+    @computed get isEntityStrategy(): boolean {
+        return this.seriesStrategy === SeriesStrategy.entity
+    }
+
+    @computed get connectorStyle(): DumbbellConnectorStyle {
+        return (
+            this.manager.dumbbell?.connectorStyle ??
+            DumbbellConnectorStyle.Arrow
+        )
+    }
+
+    @computed get valueLabelMode(): DumbbellValueLabelMode {
+        return (
+            this.manager.dumbbell?.valueLabelMode ??
+            DumbbellValueLabelMode.Absolute
+        )
+    }
+
     @computed get availableFacetStrategies(): FacetStrategy[] {
         return [FacetStrategy.none]
     }
@@ -154,26 +176,23 @@ export class DumbbellChartState implements ChartState {
 
                 // The color of the dumbbell is determined by whether
                 // the value has increased or decreased over time
-                const direction =
-                    startRow.value <= endRow.value ? "right" : "left"
-                const directionColor =
-                    direction === "right" ? INCREASE_COLOR : DECREASE_COLOR
+                const [color, lightColor] =
+                    startRow.value === endRow.value
+                        ? [NO_CHANGE_COLOR, NO_CHANGE_COLOR]
+                        : startRow.value < endRow.value
+                          ? [INCREASE_COLOR, LIGHT_INCREASE_COLOR]
+                          : [DECREASE_COLOR, LIGHT_DECREASE_COLOR]
 
                 const start = {
-                    type: "start",
                     value: startRow.value,
                     time: startRow.originalTime,
-                    color: directionColor,
+                    color,
                 } satisfies DumbbellHead
                 const end = {
-                    type: "end",
                     value: endRow.value,
                     time: endRow.originalTime,
-                    color: directionColor,
+                    color,
                 } satisfies DumbbellHead
-
-                const [left, right] =
-                    start.value <= end.value ? [start, end] : [end, start]
 
                 const shortEntityName = getShortNameForEntity(entityName)
                 const displayName = shortEntityName ?? entityName
@@ -189,10 +208,10 @@ export class DumbbellChartState implements ChartState {
                     displayName,
                     shortEntityName,
                     annotation,
-                    color: directionColor,
-                    left,
-                    right,
-                    connector: { direction, color: directionColor },
+                    color,
+                    lightColor,
+                    start,
+                    end,
                     focus: focusArray.state(entityName),
                 }
             })
@@ -223,20 +242,15 @@ export class DumbbellChartState implements ChartState {
                     return undefined
 
                 const start = {
-                    type: "start",
                     value: startRow.value,
                     time: startRow.originalTime,
                     color: START_COLUMN_COLOR,
                 } satisfies DumbbellHead
                 const end = {
-                    type: "end",
                     value: endRow.value,
                     time: endRow.originalTime,
                     color: END_COLUMN_COLOR,
                 } satisfies DumbbellHead
-
-                const [left, right] =
-                    start.value <= end.value ? [start, end] : [end, start]
 
                 const shortEntityName = getShortNameForEntity(entityName)
                 const displayName = shortEntityName ?? entityName
@@ -253,12 +267,8 @@ export class DumbbellChartState implements ChartState {
                     shortEntityName,
                     annotation,
                     color: START_COLUMN_COLOR,
-                    left,
-                    right,
-                    connector: {
-                        direction: "none",
-                        color: DEFAULT_CONNECTOR_COLOR,
-                    },
+                    start,
+                    end,
                     focus: focusArray.state(entityName),
                 }
             })
@@ -266,7 +276,7 @@ export class DumbbellChartState implements ChartState {
     }
 
     @computed private get unsortedSeries(): DumbbellSeries[] {
-        return this.seriesStrategy === SeriesStrategy.entity
+        return this.isEntityStrategy
             ? this.constructSeriesForTimeRange()
             : this.constructSeriesForTwoColumns()
     }
@@ -279,7 +289,7 @@ export class DumbbellChartState implements ChartState {
                 ),
             [SortBy.entityName]: (series): string => series.entityName,
             [SortBy.total]: (series): number =>
-                series.left.value + series.right.value,
+                series.start.value + series.end.value,
             [SortBy.column]: (series): number =>
                 this.sortColumn?.owidRowsByEntityName?.get(
                     series.entityName
@@ -289,8 +299,8 @@ export class DumbbellChartState implements ChartState {
 
     @computed get allValues(): number[] {
         return this.series.flatMap((series) => [
-            series.left.value,
-            series.right.value,
+            series.start.value,
+            series.end.value,
         ])
     }
 

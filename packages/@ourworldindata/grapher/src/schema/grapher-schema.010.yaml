@@ -385,6 +385,36 @@ properties:
         additionalProperties: false
     additionalProperties: false
 
+  dumbbell:
+    type: object
+    description: Configuration of the dumbbell chart
+    properties:
+      connectorStyle:
+        type: string
+        default: arrow
+        description: |
+          How the connector between dumbbell heads is drawn.
+          - arrow: draw an arrow pointing from start to end
+          - line: draw a simple line (only respected when two indicators are plotted)
+        enum:
+          - arrow
+          - line
+      valueLabelMode:
+        type: string
+        default: absolute
+        description: |
+          What to display as value labels next to each dumbbell.
+          - absolute: show the raw values at the start and end
+          - change: show the absolute change (e.g. +50)
+          - percentChange: show the percentage change (e.g. +33%)
+          - none: hide value labels
+        enum:
+          - absolute
+          - change
+          - percentChange
+          - none
+    additionalProperties: false
+
   baseColorScheme:
     $ref: "#/$defs/colorScheme"
   invertColorScheme:

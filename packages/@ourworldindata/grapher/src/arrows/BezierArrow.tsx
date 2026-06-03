@@ -32,6 +32,7 @@ export interface BezierArrowProps {
     color?: string
     opacity?: number
     lineCaps?: "round" | "sharp"
+    style?: React.CSSProperties
 }
 
 export function BezierArrow({
@@ -50,6 +51,7 @@ export function BezierArrow({
     width = 1,
     color = GRAY_100,
     opacity = 1,
+    style,
 }: BezierArrowProps): React.ReactElement {
     const startControlPoint = startHandle ?? addOffset(start, startHandleOffset)
     const endControlPoint = endHandle ?? addOffset(end, endHandleOffset)
@@ -85,22 +87,21 @@ export function BezierArrow({
               )
             : undefined
 
-    const style = {
+    const curveStyle = {
         stroke: color,
         strokeWidth: width,
         strokeLinecap: lineCaps === "round" ? "round" : "butt",
         strokeLinejoin: lineCaps === "round" ? "round" : "miter",
-        opacity,
         fill: "none",
     } as const
     const arrowHeadStyle = {
-        ...style,
+        ...curveStyle,
         fill: headOptions.closed ? color : "none",
     }
 
     return (
-        <g className={cx("arrow", className)}>
-            <path d={curvePath} style={style} />
+        <g className={cx("arrow", className)} opacity={opacity} style={style}>
+            <path d={curvePath} style={curveStyle} />
             {startHeadPath && <path d={startHeadPath} style={arrowHeadStyle} />}
             {endHeadPath && <path d={endHeadPath} style={arrowHeadStyle} />}
         </g>
@@ -120,11 +121,16 @@ function arrowHead(
     handle: Point,
     { length = 4, theta = 45, closed = false } = {}
 ): string {
-    const xLen = handle.x - point.x
-    const yLen = handle.y - point.y
+    let xLen = handle.x - point.x
+    let yLen = handle.y - point.y
 
-    const distance = Math.sqrt(Math.pow(xLen, 2) + Math.pow(yLen, 2))
-    if (distance === 0) return ""
+    let distance = Math.sqrt(Math.pow(xLen, 2) + Math.pow(yLen, 2))
+    if (distance === 0) {
+        // No direction information — default to a horizontal head pointing right
+        xLen = -1
+        yLen = 0
+        distance = 1
+    }
 
     const ratio = length / distance
 

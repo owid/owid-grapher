@@ -1,12 +1,19 @@
 import * as _ from "lodash-es"
 import { scalePoint } from "d3-scale"
 import React from "react"
+import { match } from "ts-pattern"
 import {
     Bounds,
     makeFigmaId,
     exposeInstanceOnWindow,
     ScaleType,
+    SeriesStrategy,
+    formatValue,
 } from "@ourworldindata/utils"
+import {
+    DumbbellValueLabelMode,
+    TickFormattingOptions,
+} from "@ourworldindata/types"
 import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import {
@@ -36,16 +43,20 @@ import {
     RenderDumbbellSeries,
     VALUE_LABEL_DOT_GAP,
     ENTITY_LABEL_CHART_GAP,
-    MAX_DUMBBELL_HEAD_RADIUS,
-    MIN_DUMBBELL_HEAD_RADIUS,
+    DumbbellValueLabel,
 } from "./DumbbellChartConstants"
 import { DumbbellChartState } from "./DumbbellChartState"
 import { ChartComponentProps } from "../chart/ChartTypeMap"
 import { resolveEmphasis } from "../interaction/Emphasis"
 import { DumbbellChartRow } from "./DumbbellChartRow"
-import { AxisLayout, calculateAxisLayout } from "./DumbbellChartHelpers"
+import {
+    AxisLayout,
+    calculateAxisLayout,
+    computePercentChange,
+} from "./DumbbellChartHelpers"
 import { AnimatedRows } from "../animation/AnimatedRows"
-import { textWidth } from "../chart/ChartUtils.js"
+import { roundFontSize, textWidth } from "../chart/ChartUtils.js"
+import { GRAPHER_LIGHT_TEXT } from "../color/ColorConstants.js"
 
 export type DumbbellChartProps = ChartComponentProps<DumbbellChartState>
 
@@ -84,15 +95,69 @@ export class DumbbellChart
         return this.bounds.height / this.series.length
     }
 
-    @computed private get labelFontSize(): number {
-        return Math.min(
-            GRAPHER_FONT_SCALE_12 * this.fontSize,
-            1.1 * this.availableHeightPerSeries
+    @computed private get entityLabelStyle(): FontSettings {
+        const fontSize = roundFontSize(
+            Math.min(
+                GRAPHER_FONT_SCALE_12 * this.fontSize,
+                1.1 * this.availableHeightPerSeries
+            )
         )
+
+        return { fontSize, fontWeight: 400, lineHeight: 1 }
     }
 
-    @computed private get labelStyle(): FontSettings {
-        return { fontSize: this.labelFontSize, fontWeight: 400, lineHeight: 1 }
+    @computed private get valueLabelStyle(): FontSettings {
+        const fontSize = this.entityLabelStyle.fontSize - 0.5
+
+        return { fontSize, fontWeight: 400, lineHeight: 1 }
+    }
+
+    private buildValueLabel(text: string): DumbbellValueLabel {
+        return {
+            text,
+            width: textWidth(text, this.valueLabelStyle),
+            padding: this.chartState.isEntityStrategy
+                ? VALUE_LABEL_DOT_GAP
+                : VALUE_LABEL_DOT_GAP + this.dumbbellHeadRadius,
+        }
+    }
+
+    private getValueLabels(
+        startValue: number,
+        endValue: number
+    ): { start?: string; end?: string } {
+        return match(this.chartState.valueLabelMode)
+            .with(DumbbellValueLabelMode.Absolute, () => {
+                // Only show one label if the values are the same
+                if (
+                    this.chartState.isEntityStrategy &&
+                    startValue === endValue
+                ) {
+                    return { start: this.formatValue(startValue) }
+                }
+
+                return {
+                    start: this.formatValue(startValue),
+                    end: this.formatValue(endValue),
+                }
+            })
+            .with(DumbbellValueLabelMode.Change, () => {
+                const diff = endValue - startValue
+                return { end: this.formatValue(diff, { showPlus: true }) }
+            })
+            .with(DumbbellValueLabelMode.PercentChange, () => {
+                const change = computePercentChange(startValue, endValue)
+                if (change === undefined) return {}
+                return {
+                    end: formatValue(change, {
+                        showPlus: true,
+                        unit: "%",
+                        numDecimalPlaces: 1,
+                    }),
+                }
+            })
+            .with(DumbbellValueLabelMode.None, () => ({}))
+            .exhaustive()
     }
 
     @computed get sizedSeries(): SizedDumbbellSeries[] {
@@ -101,31 +166,27 @@ export class DumbbellChart
             availableHeightPerSeries: this.availableHeightPerSeries,
             minLabelWidth: 0.3 * this.bounds.width,
             maxLabelWidth: 0.66 * this.bounds.width,
-            fontSettings: this.labelStyle,
+            fontSettings: this.entityLabelStyle,
             showRegionTooltip: !this.manager.isStatic,
         }).map((series) => {
-            const leftLabel = this.formatValue(series.left.value)
-            const rightLabel = this.formatValue(series.right.value)
+            const { start, end } = this.getValueLabels(
+                series.start.value,
+                series.end.value
+            )
 
-            const leftLabelWidth = textWidth(leftLabel, this.labelStyle)
-            const rightLabelWidth = textWidth(rightLabel, this.labelStyle)
-
-            const padding = this.dumbbellHeadRadius + VALUE_LABEL_DOT_GAP
+            const startLabel = start ? this.buildValueLabel(start) : undefined
+            const endLabel = end ? this.buildValueLabel(end) : undefined
 
             return {
                 ...series,
-                left: {
-                    ...series.left,
-                    label: { text: leftLabel, width: leftLabelWidth, padding },
+                start: {
+                    ...series.start,
+                    label: startLabel,
                     radius: this.dumbbellHeadRadius,
                 },
-                right: {
-                    ...series.right,
-                    label: {
-                        text: rightLabel,
-                        width: rightLabelWidth,
-                        padding,
-                    },
+                end: {
+                    ...series.end,
+                    label: endLabel,
                     radius: this.dumbbellHeadRadius,
                 },
             }
@@ -218,11 +279,9 @@ export class DumbbellChart
     }
 
     @computed private get dumbbellHeadRadius(): number {
-        return _.clamp(
-            Math.floor(this.availableHeightPerSeries / 2),
-            MIN_DUMBBELL_HEAD_RADIUS,
-            MAX_DUMBBELL_HEAD_RADIUS
-        )
+        return this.chartState.seriesStrategy === SeriesStrategy.entity
+            ? _.clamp(Math.floor(this.availableHeightPerSeries / 2), 2, 4)
+            : _.clamp(Math.floor(this.availableHeightPerSeries / 2), 2, 6.5)
     }
 
     @computed private get placedSeries(): PlacedDumbbellSeries[] {
@@ -250,13 +309,13 @@ export class DumbbellChart
                     y: centerY,
                     labelPosition,
                     annotationPosition,
-                    left: {
-                        ...series.left,
-                        x: this.axis.place(series.left.value),
+                    start: {
+                        ...series.start,
+                        x: this.axis.place(series.start.value),
                     },
-                    right: {
-                        ...series.right,
-                        x: this.axis.place(series.right.value),
+                    end: {
+                        ...series.end,
+                        x: this.axis.place(series.end.value),
                     },
                 }
             })
@@ -270,8 +329,11 @@ export class DumbbellChart
         })
     }
 
-    private formatValue(value: number): string {
-        return this.chartState.formatColumn.formatValueShort(value)
+    private formatValue(
+        value: number,
+        options?: TickFormattingOptions
+    ): string {
+        return this.chartState.formatColumn.formatValueShort(value, options)
     }
 
     override componentDidMount(): void {
@@ -291,8 +353,10 @@ export class DumbbellChart
                         <DumbbellChartRow
                             key={series.seriesName}
                             series={series}
+                            seriesStrategy={this.chartState.seriesStrategy}
+                            connectorStyle={this.chartState.connectorStyle}
                             range={this.xRange}
-                            valueLabelStyle={this.labelStyle}
+                            valueLabelStyle={this.valueLabelStyle}
                             y={series.y}
                         />
                     ))}
@@ -302,6 +366,9 @@ export class DumbbellChart
     }
 
     private renderInteractive(): React.ReactElement {
+        const { xRange, valueLabelStyle } = this
+        const { seriesStrategy, connectorStyle } = this.chartState
+
         return (
             <g>
                 <DumbbellChartAxis
@@ -319,8 +386,10 @@ export class DumbbellChart
                         <DumbbellChartRow
                             key={series.seriesName}
                             series={series}
-                            range={this.xRange}
-                            valueLabelStyle={this.labelStyle}
+                            seriesStrategy={seriesStrategy}
+                            connectorStyle={connectorStyle}
+                            range={xRange}
+                            valueLabelStyle={valueLabelStyle}
                             y={0}
                         />
                     )}
@@ -356,10 +425,18 @@ function DumbbellChartAxis({
 }): React.ReactElement {
     return (
         <>
-            <HorizontalAxisComponent bounds={bounds} axis={axis} />
+            <HorizontalAxisComponent
+                bounds={bounds}
+                axis={axis}
+                tickColor={GRAPHER_LIGHT_TEXT}
+            />
             <HorizontalAxisGridLines bounds={dataBounds} axis={axis} />
             {axis.contains(0) && (
-                <HorizontalAxisZeroLine bounds={dataBounds} axis={axis} />
+                <HorizontalAxisZeroLine
+                    bounds={dataBounds}
+                    axis={axis}
+                    color="#999"
+                />
             )}
         </>
     )

@@ -1,30 +1,48 @@
 import React from "react"
 import { makeFigmaId, dyFromAlign } from "@ourworldindata/utils"
 import { Halo, TextWrapSvg } from "@ourworldindata/components"
-import { VerticalAlign } from "@ourworldindata/types"
+import {
+    DumbbellConnectorStyle,
+    SeriesStrategy,
+    VerticalAlign,
+} from "@ourworldindata/types"
 import { FontSettings } from "../core/GrapherConstants"
 import { SeriesLabel } from "../seriesLabel/SeriesLabel"
-import { GRAPHER_DARK_TEXT } from "../color/ColorConstants"
-import { Dumbbell } from "./Dumbbell"
+import { TimeRangeDumbbell, TwoColumnDumbbell } from "./Dumbbell"
 import {
-    PlacedDumbbellHead,
+    LabelledDumbbellHead,
     RenderDumbbellSeries,
     DUMBBELL_STYLE,
+    PlacedDumbbellHead,
 } from "./DumbbellChartConstants"
+import { toLeftRight } from "./DumbbellChartHelpers"
 import { GRID_LINE_DASH_PATTERN, TICK_COLOR } from "../axis/AxisViews.js"
+import { darkenColorForText } from "../color/ColorUtils.js"
+import {
+    GRAPHER_DARK_TEXT,
+    GRAPHER_LIGHT_TEXT,
+} from "../color/ColorConstants.js"
 
 export function DumbbellChartRow({
     series,
+    seriesStrategy,
+    connectorStyle,
     y,
     range,
     valueLabelStyle,
 }: {
     series: RenderDumbbellSeries
+    seriesStrategy: SeriesStrategy
+    connectorStyle: DumbbellConnectorStyle
     y: number
     range: [number, number]
     valueLabelStyle: FontSettings
 }): React.ReactElement {
     const style = DUMBBELL_STYLE[series.emphasis]
+    const { left: leftHead, right: rightHead } = toLeftRight(
+        series.start,
+        series.end
+    )
 
     return (
         <g
@@ -47,6 +65,7 @@ export function DumbbellChartRow({
                     state={series.label}
                     x={series.labelPosition.x}
                     y={series.labelPosition.yOffset}
+                    color={{ name: GRAPHER_LIGHT_TEXT }}
                 />
             )}
 
@@ -57,27 +76,38 @@ export function DumbbellChartRow({
                         textWrap={series.annotationTextWrap}
                         x={series.annotationPosition.x}
                         y={series.annotationPosition.yOffset}
-                        fill="#333"
+                        fill={GRAPHER_DARK_TEXT}
                         textAnchor="end"
                     />
                 )}
 
             {/* Dumbbell */}
-            <Dumbbell series={series} />
+            {seriesStrategy === SeriesStrategy.entity ? (
+                <TimeRangeDumbbell series={series} />
+            ) : (
+                <TwoColumnDumbbell
+                    series={series}
+                    connectorStyle={connectorStyle}
+                />
+            )}
 
             {/* Left value label */}
-            <DumbbellValueLabel
-                side="left"
-                head={series.left}
-                style={valueLabelStyle}
-            />
+            {hasLabel(leftHead) && (
+                <DumbbellValueLabel
+                    side="left"
+                    head={leftHead}
+                    style={valueLabelStyle}
+                />
+            )}
 
             {/* Right value label */}
-            <DumbbellValueLabel
-                side="right"
-                head={series.right}
-                style={valueLabelStyle}
-            />
+            {hasLabel(rightHead) && (
+                <DumbbellValueLabel
+                    side="right"
+                    head={rightHead}
+                    style={valueLabelStyle}
+                />
+            )}
         </g>
     )
 }
@@ -88,7 +118,7 @@ function DumbbellValueLabel({
     style,
 }: {
     side: "left" | "right"
-    head: PlacedDumbbellHead
+    head: LabelledDumbbellHead
     style: FontSettings
 }): React.ReactElement {
     const x =
@@ -103,7 +133,7 @@ function DumbbellValueLabel({
         >
             <text
                 x={x}
-                fill={GRAPHER_DARK_TEXT}
+                fill={darkenColorForText(head.color)}
                 dy={dyFromAlign(VerticalAlign.middle)}
                 textAnchor={side === "left" ? "end" : "start"}
                 fontSize={style.fontSize}
@@ -113,4 +143,10 @@ function DumbbellValueLabel({
             </text>
         </Halo>
     )
+}
+
+export function hasLabel(
+    head: PlacedDumbbellHead
+): head is LabelledDumbbellHead {
+    return head.label !== undefined
 }
