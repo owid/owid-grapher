@@ -91,9 +91,16 @@ export function Profile({ content, publishedAt, slug }: ProfileProps) {
                     </a>
                 </div>
             </header>
-            {hasSidebarToc && content.toc ? (
+            {hasSidebarToc && content.toc?.kind === "sidebar" ? (
                 <SidebarTableOfContents
-                    headings={content.toc}
+                    // Bridge until the sidebar rewrite (PR3): project the
+                    // sidebar sections down to the legacy h1-only TocHeading[]
+                    // shape this sidebar still expects.
+                    headings={content.toc.sections.map((section) => ({
+                        text: section.heading.text,
+                        slug: section.heading.slug,
+                        isSubheading: false,
+                    }))}
                     headingLevels={{ primary: 1, secondary: 2 }}
                     pageTitle={content.title || ""}
                 />

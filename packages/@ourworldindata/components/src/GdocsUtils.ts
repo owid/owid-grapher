@@ -67,6 +67,12 @@ export function getUrlTarget(urlString: string): string {
     return urlString
 }
 
+/**
+ * Text-only heading slug, used to match special sections (Key Insights etc.) by
+ * their text regardless of any supertitle. For the canonical rendered-anchor id
+ * (shared by ArticleBlock and the TOC generator) see {@link convertHeadingToId}
+ * in utils.
+ */
 export function convertHeadingTextToId(headingText: Span[]): string {
     return urlSlug(spansToUnformattedPlainText(headingText))
 }

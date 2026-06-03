@@ -160,9 +160,9 @@ export async function instantiateProfileForEntity(
         options
     )
 
-    if (content["sidebar-toc"]) {
-        content.toc = generateToc(content.body, true)
-    }
+    // Same gating as GdocPost so profiles render TOCs identically.
+    const toc = generateToc(content)
+    if (toc) content.toc = toc
 
     return {
         ...profileTemplate,

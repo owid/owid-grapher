@@ -19,11 +19,14 @@ export default function Chart({
     className,
     fullWidthOnMobile = false,
     hideControls = false,
+    id,
 }: {
     d: EnrichedBlockChart
     className?: string
     fullWidthOnMobile?: boolean
     hideControls?: boolean
+    // TOC anchor id, rendered on the chart wrapper so the sidebar TOC can link to it
+    id?: string
 }) {
     const { isPreviewing, archiveContext } = useDocumentContext()
     const refChartContainer = useRef<HTMLDivElement>(null)
@@ -129,6 +132,7 @@ export default function Chart({
                 : DEFAULT_CHART_HEIGHT
         return (
             <div
+                id={id}
                 className={cx(className, {
                     "full-width-on-mobile":
                         !isExplorerWithControls && fullWidthOnMobile,
@@ -158,6 +162,7 @@ export default function Chart({
 
     return (
         <div
+            id={id}
             className={cx(className, {
                 "full-width-on-mobile":
                     !isExplorerWithControls && fullWidthOnMobile,

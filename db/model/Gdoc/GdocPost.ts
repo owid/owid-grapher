@@ -76,12 +76,9 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
     }
 
     override _enrichSubclassContent = (content: Record<string, any>): void => {
-        const isTocForSidebar = content["sidebar-toc"]
-        const isLinearTopicPage = content.type === OwidGdocType.LinearTopicPage
-        content.toc = generateToc(
-            content.body,
-            isTocForSidebar || isLinearTopicPage
-        )
+        // Pages with no TOC consumer ship no toc at all.
+        const toc = generateToc(content)
+        if (toc) content.toc = toc
 
         if (content["latest-feed-excerpt"]) {
             content["latest-feed-excerpt"] = parseLatestFeedExcerpt(

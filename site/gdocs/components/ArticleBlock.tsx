@@ -19,13 +19,14 @@ import {
     EXPERIMENT_PREFIX,
     OwidEnrichedGdocBlock,
     spansToUnformattedPlainText,
-    TocHeadingWithTitleSupertitle,
+    convertHeadingToId,
+    Toc,
     Url,
     defaultExperimentState,
     getExperimentState,
     ExperimentState,
 } from "@ourworldindata/utils"
-import { CodeSnippet, convertHeadingTextToId } from "@ourworldindata/components"
+import { CodeSnippet } from "@ourworldindata/components"
 import SDGGrid from "./SDGGrid.js"
 import { BlockErrorBoundary, BlockErrorFallback } from "./BlockErrorBoundary.js"
 import { match } from "ts-pattern"
@@ -33,7 +34,6 @@ import SpanElements from "./SpanElements.js"
 import Paragraph from "./Paragraph.js"
 import People from "./People.js"
 import InlineTableOfContents from "./InlineTableOfContents.js"
-import urlSlug from "url-slug"
 import { MissingData } from "./MissingData.js"
 import { AdditionalCharts } from "./AdditionalCharts.js"
 import { ProminentLink } from "./ProminentLink.js"
@@ -80,7 +80,7 @@ function ArticleBlockInternal({
 }: {
     b: OwidEnrichedGdocBlock
     containerType?: Container
-    toc?: TocHeadingWithTitleSupertitle[]
+    toc?: Toc
     shouldRenderLinks?: boolean
     interactiveImages?: boolean
 }) {
@@ -231,6 +231,7 @@ function ArticleBlockInternal({
                         }
                     )}
                     d={block}
+                    id={block.anchorId}
                     fullWidthOnMobile={true}
                 />
             )
@@ -244,6 +245,7 @@ function ArticleBlockInternal({
                         getLayout(`chart--${size}`, containerType)
                     )}
                     d={block}
+                    id={block.anchorId}
                     fullWidthOnMobile={true}
                 />
             )
@@ -400,36 +402,29 @@ function ArticleBlockInternal({
             )
         })
         .with({ type: "simple-text" }, (block) => <>{block.value.text}</>)
-        .with({ type: "heading", level: 1 }, (block) => (
-            <h1
-                className={cx(
-                    "h1-semibold",
-                    getLayout("heading", containerType)
-                )}
-                id={convertHeadingTextToId(block.text)}
-            >
-                <SpanElements
-                    spans={block.text}
-                    shouldRenderLinks={shouldRenderLinks}
-                />
-                {shouldRenderLinks && (
-                    <a
-                        className="deep-link"
-                        href={`#${convertHeadingTextToId(block.text)}`}
+        .with({ type: "heading", level: 1 }, (block) => {
+            const id = convertHeadingToId(block)
+            return (
+                <h1
+                    className={cx(
+                        "h1-semibold",
+                        getLayout("heading", containerType)
+                    )}
+                    id={id}
+                >
+                    <SpanElements
+                        spans={block.text}
+                        shouldRenderLinks={shouldRenderLinks}
                     />
-                )}
-            </h1>
-        ))
+                    {shouldRenderLinks && (
+                        <a className="deep-link" href={`#${id}`} />
+                    )}
+                </h1>
+            )
+        })
         .with({ type: "heading", level: 2 }, (block) => {
             const { supertitle, text } = block
-
-            const id = supertitle
-                ? urlSlug(
-                      `${spansToUnformattedPlainText(
-                          supertitle
-                      )}-${spansToUnformattedPlainText(text)}`
-                  )
-                : convertHeadingTextToId(block.text)
+            const id = convertHeadingToId(block)
 
             return (
                 <>
@@ -466,13 +461,7 @@ function ArticleBlockInternal({
         })
         .with({ type: "heading", level: 3 }, (block) => {
             const { supertitle, text } = block
-            const id = supertitle
-                ? urlSlug(
-                      `${spansToUnformattedPlainText(
-                          supertitle
-                      )}-${spansToUnformattedPlainText(text)}`
-                  )
-                : convertHeadingTextToId(block.text)
+            const id = convertHeadingToId(block)
             return (
                 <h3
                     className={cx(
@@ -511,7 +500,7 @@ function ArticleBlockInternal({
                     "h4-semibold",
                     getLayout("heading", containerType)
                 )}
-                id={convertHeadingTextToId(block.text)}
+                id={convertHeadingToId(block)}
             >
                 <SpanElements
                     spans={block.text}
@@ -525,7 +514,7 @@ function ArticleBlockInternal({
                     "overline-black-caps",
                     getLayout("heading", containerType)
                 )}
-                id={convertHeadingTextToId(block.text)}
+                id={convertHeadingToId(block)}
             >
                 <SpanElements
                     spans={block.text}
@@ -737,15 +726,19 @@ function ArticleBlockInternal({
             />
         ))
         .with({ type: "sdg-toc" }, () => {
-            return toc ? (
+            if (toc?.kind !== "inline") return null
+
+            return (
                 <InlineTableOfContents
                     toc={toc}
                     title="List of targets and indicators"
                     className={getLayout("toc", containerType)}
                 />
-            ) : null
+            )
         })
         .with({ type: "ltp-toc" }, (block) => {
+            if (toc?.kind !== "sidebar") return null
+
             const layoutClassName = getLayout("ltp-toc", containerType)
             const tagName = tags[0]?.name
 
@@ -762,14 +755,14 @@ function ArticleBlockInternal({
                 )
             }
 
-            return toc?.length ? (
+            return (
                 <LTPTableOfContents
                     title={block.title}
                     toc={toc}
                     tagName={tagName}
                     className={layoutClassName}
                 />
-            ) : null
+            )
         })
         .with({ type: "missing-data" }, () => (
             <MissingData className={getLayout("missing-data", containerType)} />
@@ -1036,7 +1029,7 @@ export default function ArticleBlock({
 }: {
     b: OwidEnrichedGdocBlock
     containerType?: Container
-    toc?: TocHeadingWithTitleSupertitle[]
+    toc?: Toc
     shouldRenderLinks?: boolean
     interactiveImages?: boolean
 }) {
