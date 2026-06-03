@@ -105,7 +105,9 @@ export function Profile({ content, publishedAt, slug }: ProfileProps) {
                     pageTitle={content.title || ""}
                 />
             ) : null}
-            {content.body ? <ArticleBlocks blocks={content.body} /> : null}
+            {content.body ? (
+                <ArticleBlocks toc={content.toc} blocks={content.body} />
+            ) : null}
             {content.refs && !_.isEmpty(content.refs.definitions) ? (
                 <Footnotes definitions={content.refs.definitions} />
             ) : null}
