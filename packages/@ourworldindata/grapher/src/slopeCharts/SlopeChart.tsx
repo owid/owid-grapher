@@ -826,9 +826,6 @@ export class SlopeChart
                     unit={series.column.displayUnit}
                     values={formatTooltipRangeValues(values, series.column)}
                     trend={calculateTrendDirection(...values)}
-                    isRoundedToSignificantFigures={
-                        series.column.roundsToSignificantFigures
-                    }
                     labelVariant="unit-only"
                 />
             </Tooltip>
