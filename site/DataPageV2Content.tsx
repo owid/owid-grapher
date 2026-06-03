@@ -190,7 +190,25 @@ export const DataPageV2Content = ({
                     />
                 </div>
                 <div className="DataPageContent grid grid-cols-12-full-width">
-                    <div className="bg-blue-10 span-cols-14">
+                    {/*
+                     * On multi-indicator charts in the metadata-box treatment
+                     * arm, the page-level header names only the primary
+                     * indicator while the box's own indicator switcher and
+                     * title row already cover indicator identification, so the
+                     * page H1 reads as misleading (it doesn't reflect the
+                     * currently-selected indicator). Hide it via the experiment
+                     * --hide class so the body class set by the Cloudflare
+                     * middleware controls visibility per arm. Single-indicator
+                     * treatment pages keep the header — the H1 is accurate.
+                     * Non-enrolled / control charts are unaffected.
+                     */}
+                    <div
+                        className={`bg-blue-10 span-cols-14${
+                            additionalIndicators?.length
+                                ? ` ${metadataTreatmentHideClass}`
+                                : ""
+                        }`}
+                    >
                         <div className="header__wrapper grid grid-cols-12-full-width">
                             <div className="header__left col-start-2 span-cols-8 col-sm-start-2 span-sm-cols-12">
                                 <div className="header__supertitle">Data</div>
