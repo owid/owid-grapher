@@ -43,6 +43,12 @@ export const experiments: Experiment[] = [
             "/grapher/carbon-intensity-electricity",
             "/grapher/share-electricity-renewables",
             "/grapher/unemployment-rate",
+            "/grapher/economic-inequality-gini-index",
+            "/grapher/child-mortality",
+            "/grapher/cross-country-literacy-rates",
+            "/grapher/gender-inequality-index-from-the-human-development-report",
+            "/grapher/daily-per-capita-caloric-supply",
+            "/grapher/number-of-measles-cases",
             // multi-indicator data pages
             "/grapher/annual-number-of-deaths-by-cause",
             "/grapher/electricity-prod-source-stacked",
@@ -50,6 +56,10 @@ export const experiments: Experiment[] = [
             "/grapher/global-energy-substitution",
             "/grapher/population-growth-rates",
             "/grapher/temperature-anomaly",
+            "/grapher/annual-deaths-by-age",
+            "/grapher/measles-cases-and-death-rate",
+            "/grapher/urban-vs-rural-majority",
+            "/grapher/population-by-age-group-with-projections",
         ],
     }),
     /*
