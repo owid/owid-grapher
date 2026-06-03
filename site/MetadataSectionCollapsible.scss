@@ -1264,13 +1264,21 @@
     border: 1px solid $blue-20;
     color: $blue-70;
     cursor: pointer;
+    // min-height (not height) + inline-flex centring lets the pill grow
+    // when its label wraps to a second line on narrow viewports. The
+    // border-radius is intentionally larger than the tallest expected
+    // pill height so wrapped pills still read as stadium-shaped.
     padding: 4px 14px;
-    height: 30px;
+    min-height: 30px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
     border-radius: 999px;
     font-family: $sans-serif-font-stack;
     font-size: 0.8125rem;
     font-weight: 500;
-    line-height: 1;
+    line-height: 1.2;
     transition:
         background-color 120ms ease,
         border-color 120ms ease,

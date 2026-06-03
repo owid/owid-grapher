@@ -155,7 +155,7 @@ const labelForIndicator = (datapageData: DataPageDataV2): string => {
 // data pages. Override per-request via the URL query string,
 // e.g. `?switcher=h-tabs` or `?switcher=v-tabs`.
 export type SwitcherVariant = "dropdown" | "h-tabs" | "v-tabs" | "h-pills"
-const DEFAULT_SWITCHER_VARIANT: SwitcherVariant = "h-tabs"
+const DEFAULT_SWITCHER_VARIANT: SwitcherVariant = "h-pills"
 const ALL_SWITCHER_VARIANTS: readonly SwitcherVariant[] = [
     "dropdown",
     "h-tabs",
