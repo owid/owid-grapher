@@ -301,7 +301,7 @@ __metadata:
     classnames: "npm:^2.5.1"
     d3-sankey: "npm:^0.12.3"
     react: "npm:^19.2.4"
-    react-aria-components: "npm:^1.8.0"
+    react-aria-components: "npm:^1.18.0"
     remeda: "npm:^2.21.0"
     ts-pattern: "npm:^5.8.0"
     vitest: "npm:^4.1.2"
@@ -411,10 +411,10 @@ __metadata:
     normalize.css: "npm:^8.0.1"
     nuqs: "npm:^2.8.9"
     react: "npm:^19.2.4"
-    react-aria: "npm:^3.41.1"
-    react-aria-components: "npm:^1.8.0"
+    react-aria: "npm:^3.49.0"
+    react-aria-components: "npm:^1.18.0"
     react-dom: "npm:^19.2.4"
-    react-stately: "npm:^3.46.0"
+    react-stately: "npm:^3.47.0"
     remeda: "npm:^2.21.0"
     sass: "npm:^1.87.0"
     ts-pattern: "npm:^5.8.0"
@@ -2720,7 +2720,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-aria-components@npm:^1.8.0":
+"react-aria-components@npm:^1.18.0, react-aria-components@npm:^1.8.0":
   version: 1.18.0
   resolution: "react-aria-components@npm:1.18.0"
   dependencies:
@@ -2737,7 +2737,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-aria@npm:3.49.0, react-aria@npm:^3.41.1":
+"react-aria@npm:3.49.0, react-aria@npm:^3.41.1, react-aria@npm:^3.49.0":
   version: 3.49.0
   resolution: "react-aria@npm:3.49.0"
   dependencies:
@@ -2775,7 +2775,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-stately@npm:3.47.0, react-stately@npm:^3.46.0":
+"react-stately@npm:3.47.0, react-stately@npm:^3.46.0, react-stately@npm:^3.47.0":
   version: 3.47.0
   resolution: "react-stately@npm:3.47.0"
   dependencies:

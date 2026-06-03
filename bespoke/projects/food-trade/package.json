@@ -31,10 +31,10 @@
         "normalize.css": "^8.0.1",
         "nuqs": "^2.8.9",
         "react": "^19.2.4",
-        "react-aria": "^3.41.1",
-        "react-aria-components": "^1.8.0",
+        "react-aria": "^3.49.0",
+        "react-aria-components": "^1.18.0",
         "react-dom": "^19.2.4",
-        "react-stately": "^3.46.0",
+        "react-stately": "^3.47.0",
         "remeda": "^2.21.0",
         "ts-pattern": "^5.8.0",
         "vite-plugin-css-position": "^2.0.9"

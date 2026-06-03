@@ -14,7 +14,7 @@
         "classnames": "^2.5.1",
         "d3-sankey": "^0.12.3",
         "react": "^19.2.4",
-        "react-aria-components": "^1.8.0",
+        "react-aria-components": "^1.18.0",
         "remeda": "^2.21.0",
         "ts-pattern": "^5.8.0"
     },

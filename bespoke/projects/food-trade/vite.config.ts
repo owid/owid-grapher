@@ -42,7 +42,15 @@ export default defineConfig({
         // to their real paths, which would load a second copy of React
         // and break hooks. This forces all React imports to resolve to
         // the single copy in this project's node_modules.
-        dedupe: ["react", "react-dom", "@react-stately/flags"],
+        dedupe: [
+            "react",
+            "react-dom",
+            "@react-stately/flags",
+            "react-aria",
+            "react-aria-components",
+            "react-stately",
+            "@react-aria/overlays",
+        ],
     },
     build: {
         lib: {
