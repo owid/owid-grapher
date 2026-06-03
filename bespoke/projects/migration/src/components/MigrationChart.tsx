@@ -2,8 +2,8 @@ import * as R from "remeda"
 
 import { articulateEntity } from "@ourworldindata/utils"
 
-import { Gender, MigrationFlow, MigrationView } from "../types.js"
-import { getGenderAdjective } from "../helpers.js"
+import { MigrationFlow, MigrationView, Sex } from "../types.js"
+import { getSexAdjective } from "../helpers.js"
 import { MigrationSankey } from "./MigrationSankey.js"
 
 export function MigrationChart({
@@ -11,7 +11,7 @@ export function MigrationChart({
     emigrants,
     country,
     year,
-    gender,
+    sex,
     immigrantsTotal,
     emigrantsTotal,
     view,
@@ -22,7 +22,7 @@ export function MigrationChart({
     emigrants: MigrationFlow[]
     country: string
     year: number
-    gender: Gender
+    sex: Sex
     immigrantsTotal: number
     emigrantsTotal: number
     view: MigrationView
@@ -31,7 +31,7 @@ export function MigrationChart({
 }) {
     const hasData = immigrants.length > 0 || emigrants.length > 0
 
-    const adjective = getGenderAdjective(gender)
+    const adjective = getSexAdjective(sex)
     const migrantsNoun = adjective ? `${adjective} migrants` : "migrants"
 
     return (
@@ -42,7 +42,7 @@ export function MigrationChart({
                     emigrants={emigrants}
                     country={country}
                     year={year}
-                    gender={gender}
+                    sex={sex}
                     immigrantsTotal={immigrantsTotal}
                     emigrantsTotal={emigrantsTotal}
                     view={view}

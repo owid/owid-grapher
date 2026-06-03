@@ -9,7 +9,7 @@ export type GenderId =
     | typeof GENDER_FEMALE
     | typeof GENDER_MALE
 
-export type Gender = "all" | "female" | "male"
+export type Sex = "both" | "female" | "male"
 
 export type Entity = {
     id: number
@@ -30,7 +30,7 @@ export type MigrationMetadata = {
 export type MigrationRow = {
     partner: string
     year: number
-    gender: Gender
+    sex: Sex
     value: number
 }
 
@@ -39,7 +39,7 @@ export type MigrationData = {
     emigrants: MigrationRow[]
 }
 
-/** One immigrants/emigrants row already filtered to the active year+gender,
+/** One immigrants/emigrants row already filtered to the active year+sex,
  *  with the partner resolved to a name. Domain type passed from
  *  MigrationChart into MigrationSankey. */
 export type MigrationFlow = {

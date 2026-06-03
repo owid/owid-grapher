@@ -21,12 +21,8 @@ import { TimeSlider } from "../../../../components/TimeSlider/TimeSlider.js"
 import { useTippyContainer } from "../../../../hooks/useTippyContainer.js"
 import { useUserCountryInformation } from "../../../../hooks/useUserCountryInformation.js"
 
-import {
-    GENDER_ALL,
-    GenderId,
-    MigrationMetadata,
-    MigrationView,
-} from "../types.js"
+import { GENDER_ALL, MigrationMetadata, MigrationView, Sex } from "../types.js"
+import { sexFromId } from "../helpers.js"
 
 const VIEW_ITEMS: SwitcherItem<MigrationView>[] = [
     {
@@ -65,25 +61,25 @@ const VIEW_ITEMS: SwitcherItem<MigrationView>[] = [
 export function MigrationControls({
     metadata,
     country,
-    genderId,
+    sex,
     year,
     view,
     viewDisabledReason,
     hideFlowSwitcher,
     setCountry,
-    setGenderId,
+    setSex,
     setYear,
     setView,
 }: {
     metadata: MigrationMetadata
     country: string
-    genderId: GenderId
+    sex: Sex
     year: number
     view: MigrationView
     viewDisabledReason?: string
     hideFlowSwitcher?: boolean
     setCountry: (name: string) => void
-    setGenderId: (id: GenderId) => void
+    setSex: (sex: Sex) => void
     setYear: (year: number) => void
     setView: (view: MigrationView) => void
 }): React.ReactElement {
@@ -97,10 +93,10 @@ export function MigrationControls({
                         country={country}
                         setCountry={setCountry}
                     />
-                    <GenderDropdown
+                    <SexDropdown
                         metadata={metadata}
-                        genderId={genderId}
-                        setGenderId={setGenderId}
+                        sex={sex}
+                        setSex={setSex}
                     />
                     {!hideFlowSwitcher && (
                         <ViewSwitcher
@@ -150,19 +146,19 @@ function CountryDropdown({
     )
 }
 
-function GenderDropdown({
+function SexDropdown({
     metadata,
-    genderId,
-    setGenderId,
+    sex,
+    setSex,
 }: {
     metadata: MigrationMetadata
-    genderId: GenderId
-    setGenderId: (id: GenderId) => void
+    sex: Sex
+    setSex: (sex: Sex) => void
 }) {
     const options = useMemo<BasicDropdownOption[]>(
         () =>
             metadata.genders.map((g) => ({
-                value: String(g.id),
+                value: sexFromId(g.id),
                 label: g.id === GENDER_ALL ? "Both sexes" : g.name,
             })),
         [metadata.genders]
@@ -172,8 +168,8 @@ function GenderDropdown({
         <InlineLabeledDropdown
             label="Sex"
             options={options}
-            selectedValue={String(genderId)}
-            onChange={(v) => setGenderId(Number(v) as GenderId)}
+            selectedValue={sex}
+            onChange={(v) => setSex(v as Sex)}
             placeholder="Select sex…"
             aria-label="Select sex"
         />

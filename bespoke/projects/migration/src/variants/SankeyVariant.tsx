@@ -3,12 +3,7 @@ import cx from "classnames"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { UNSAFE_PortalProvider } from "react-aria"
 import { NuqsAdapter } from "nuqs/adapters/react"
-import {
-    parseAsInteger,
-    parseAsNumberLiteral,
-    parseAsString,
-    parseAsStringEnum,
-} from "nuqs"
+import { parseAsInteger, parseAsString, parseAsStringEnum } from "nuqs"
 import * as R from "remeda"
 
 import { articulateEntity } from "@ourworldindata/utils"
@@ -29,23 +24,9 @@ import {
 } from "../../../../hooks/useResolveUserLocation.js"
 
 import { SankeyVariantConfig, VariantProps } from "../config.js"
-import {
-    Gender,
-    GENDER_ALL,
-    GENDER_FEMALE,
-    GENDER_MALE,
-    GenderId,
-    MigrationFlow,
-    MigrationRow,
-    MigrationView,
-} from "../types.js"
+import { MigrationFlow, MigrationRow, MigrationView, Sex } from "../types.js"
 import { useMigrationData, useMigrationMetadata } from "../data.js"
-import {
-    formatPeople,
-    genderFromId,
-    getGenderAdjective,
-    getGenderNoun,
-} from "../helpers.js"
+import { formatPeople, getSexAdjective, getSexNoun } from "../helpers.js"
 import { MigrationChart } from "../components/MigrationChart.js"
 import { MigrationControls } from "../components/MigrationControls.js"
 
@@ -110,24 +91,20 @@ function FetchingSankeyVariant({ config }: { config: SankeyVariantConfig }) {
         defaultValue: config.year ?? DEFAULT_YEAR,
         enabled: urlSync,
     })
-    const [genderId, setGenderId] = useUrlState({
-        key: "migrationGender",
-        parser: parseAsNumberLiteral([
-            GENDER_ALL,
-            GENDER_FEMALE,
-            GENDER_MALE,
-        ] as const),
-        defaultValue: config.genderId ?? GENDER_ALL,
+    const [sex, setSex] = useUrlState({
+        key: "migrationSex",
+        parser: parseAsStringEnum<Sex>(["both", "female", "male"]),
+        defaultValue: config.sex ?? "both",
         enabled: urlSync,
     })
     const [_view, setView] = useUrlState({
-        key: "migrationView",
+        key: "migrationFlow",
         parser: parseAsStringEnum<MigrationView>([
             "both",
             "immigrants",
             "emigrants",
         ]),
-        defaultValue: config.migrationFlow ?? DEFAULT_VIEW,
+        defaultValue: config.flow ?? DEFAULT_VIEW,
         enabled: urlSync,
     })
 
@@ -158,16 +135,14 @@ function FetchingSankeyVariant({ config }: { config: SankeyVariantConfig }) {
         metadata
     )
 
-    const gender = genderFromId(genderId)
-
-    // Filter rows down to the active year/gender
+    // Filter rows down to the active year/sex
     const immigrants = useMemo(
-        () => (migration ? filterRows(migration.immigrants, year, gender) : []),
-        [migration, year, gender]
+        () => (migration ? filterRows(migration.immigrants, year, sex) : []),
+        [migration, year, sex]
     )
     const emigrants = useMemo(
-        () => (migration ? filterRows(migration.emigrants, year, gender) : []),
-        [migration, year, gender]
+        () => (migration ? filterRows(migration.emigrants, year, sex) : []),
+        [migration, year, sex]
     )
 
     const immigrantsTotal = useMemo(
@@ -180,9 +155,9 @@ function FetchingSankeyVariant({ config }: { config: SankeyVariantConfig }) {
     )
 
     // Country-scoped, all-time partner color map. Computed from the full
-    // migration response (all years, both genders, immigrants + emigrants
+    // migration response (all years, both sexes, immigrants + emigrants
     // combined) and ordered by total volume, so partner colors stay
-    // stable as the user drags the time slider or switches gender.
+    // stable as the user drags the time slider or switches sex.
     // Recomputes when the country changes (because `migration` refetches).
     const colorMap = useMemo<Map<string, string> | undefined>(() => {
         if (!migration) return undefined
@@ -199,7 +174,7 @@ function FetchingSankeyVariant({ config }: { config: SankeyVariantConfig }) {
     }, [migration])
 
     // When the selected country only migrates in one direction for the
-    // current year/gender, the other view has nothing to show — coerce
+    // current year/sex, the other view has nothing to show — coerce
     // the displayed view to the half that has data and disable the radios.
     // The user's stored view preference is left untouched so it comes back
     // when they navigate to a combo with both sides.
@@ -237,7 +212,7 @@ function FetchingSankeyVariant({ config }: { config: SankeyVariantConfig }) {
             metadata={metadata}
             country={country}
             year={year}
-            genderId={genderId}
+            sex={sex}
             view={view}
             viewDisabledReason={viewDisabledReason}
             immigrants={immigrants}
@@ -247,7 +222,7 @@ function FetchingSankeyVariant({ config }: { config: SankeyVariantConfig }) {
             colorMap={colorMap}
             setCountry={setCountry}
             setYear={setYear}
-            setGenderId={setGenderId}
+            setSex={setSex}
             setView={setView}
         />
     )
@@ -258,7 +233,7 @@ function CaptionedSankeyVariant({
     metadata,
     country,
     year,
-    genderId,
+    sex,
     view,
     viewDisabledReason,
     immigrants,
@@ -268,14 +243,14 @@ function CaptionedSankeyVariant({
     colorMap,
     setCountry,
     setYear,
-    setGenderId,
+    setSex,
     setView,
 }: {
     config: SankeyVariantConfig
     metadata: Metadata
     country: string
     year: number
-    genderId: GenderId
+    sex: Sex
     view: MigrationView
     viewDisabledReason: string | undefined
     immigrants: MigrationFlow[]
@@ -285,13 +260,11 @@ function CaptionedSankeyVariant({
     colorMap: Map<string, string> | undefined
     setCountry: (name: string) => void
     setYear: (year: number) => void
-    setGenderId: (id: GenderId) => void
+    setSex: (sex: Sex) => void
     setView: (view: MigrationView) => void
 }) {
     const shouldHideChrome =
         config.hideControls || !!config.title || !!config.subtitle
-
-    const gender = genderFromId(genderId)
 
     return (
         <>
@@ -310,13 +283,13 @@ function CaptionedSankeyVariant({
                     <MigrationControls
                         metadata={metadata}
                         country={country}
-                        genderId={genderId}
+                        sex={sex}
                         year={year}
                         view={view}
                         viewDisabledReason={viewDisabledReason}
                         hideFlowSwitcher={config.hideFlowSwitcher}
                         setCountry={setCountry}
-                        setGenderId={setGenderId}
+                        setSex={setSex}
                         setYear={setYear}
                         setView={setView}
                     />
@@ -327,7 +300,7 @@ function CaptionedSankeyVariant({
                     config={config}
                     country={country}
                     year={year}
-                    gender={gender}
+                    sex={sex}
                     view={view}
                     immigrantsTotal={immigrantsTotal}
                     emigrantsTotal={emigrantsTotal}
@@ -337,7 +310,7 @@ function CaptionedSankeyVariant({
                     emigrants={emigrants}
                     country={country}
                     year={year}
-                    gender={gender}
+                    sex={sex}
                     immigrantsTotal={immigrantsTotal}
                     emigrantsTotal={emigrantsTotal}
                     view={view}
@@ -354,7 +327,7 @@ function MigrationChartHeader({
     config,
     country,
     year,
-    gender,
+    sex,
     view,
     immigrantsTotal,
     emigrantsTotal,
@@ -362,16 +335,16 @@ function MigrationChartHeader({
     config: SankeyVariantConfig
     country: string
     year: number
-    gender: Gender
+    sex: Sex
     view: MigrationView
     immigrantsTotal: number
     emigrantsTotal: number
 }) {
     const countryArticulated = articulateEntity(country)
 
-    const adjective = getGenderAdjective(gender)
-    const genderPrefix = adjective ? `${adjective} ` : ""
-    const peopleNoun = getGenderNoun(adjective)
+    const adjective = getSexAdjective(sex)
+    const sexPrefix = adjective ? `${adjective} ` : ""
+    const peopleNoun = getSexNoun(adjective)
 
     const immigrantsCount = formatPeople(immigrantsTotal, { unit: false })
     const emigrantsCount = formatPeople(emigrantsTotal, { unit: false })
@@ -381,7 +354,7 @@ function MigrationChartHeader({
             ? `${immigrantsCount} ${peopleNoun} living in ${countryArticulated} in ${year} were born in another country. Where were they born?`
             : view === "emigrants"
               ? `${emigrantsCount} ${peopleNoun} born in ${countryArticulated} lived abroad in ${year}. Where did they live?`
-              : `Where ${genderPrefix}immigrants in ${countryArticulated} came from, and where its emigrants lived in ${year}`
+              : `Where ${sexPrefix}immigrants in ${countryArticulated} came from, and where its emigrants lived in ${year}`
 
     return (
         <ChartHeader
@@ -403,10 +376,10 @@ function MigrationChartFooter({ source }: { source: string }) {
 function filterRows(
     rows: MigrationRow[],
     year: number,
-    gender: Gender
+    sex: Sex
 ): MigrationFlow[] {
     return rows
-        .filter((r) => r.year === year && r.gender === gender)
+        .filter((r) => r.year === year && r.sex === sex)
         .map((r) => ({ partner: r.partner, value: r.value }))
 }
 

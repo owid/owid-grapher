@@ -3,22 +3,22 @@ import { match } from "ts-pattern"
 import { formatValue } from "@ourworldindata/utils"
 import { OwidVariableRoundingMode } from "@ourworldindata/types"
 
-import { GENDER_FEMALE, GENDER_MALE, Gender } from "./types.js"
+import { GENDER_FEMALE, GENDER_MALE, Sex } from "./types.js"
 
-/** Translate a raw metadata gender id into the semantic `Gender` enum. */
-export function genderFromId(id: number): Gender {
+/** Translate a raw metadata gender id into the semantic `Sex` enum. */
+export function sexFromId(id: number): Sex {
     return match(id)
         .with(GENDER_FEMALE, () => "female" as const)
         .with(GENDER_MALE, () => "male" as const)
-        .otherwise(() => "all" as const)
+        .otherwise(() => "both" as const)
 }
 
-export function getGenderAdjective(gender: Gender): string | undefined {
-    return gender === "all" ? undefined : gender
+export function getSexAdjective(sex: Sex): string | undefined {
+    return sex === "both" ? undefined : sex
 }
 
-export function getGenderNoun(genderAdjective: string | undefined): string {
-    return match(genderAdjective)
+export function getSexNoun(sexAdjective: string | undefined): string {
+    return match(sexAdjective)
         .with("male", () => "men")
         .with("female", () => "women")
         .otherwise(() => "people")

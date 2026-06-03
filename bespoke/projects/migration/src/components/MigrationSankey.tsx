@@ -23,13 +23,13 @@ import {
     SplitFlowSankey,
 } from "../../../../components/Sankey/SplitFlowSankey.js"
 
-import { Gender, MigrationFlow, MigrationView } from "../types.js"
+import { MigrationFlow, MigrationView, Sex } from "../types.js"
 import {
     capItems,
     formatPeople,
     formatShare,
-    getGenderAdjective,
-    getGenderNoun,
+    getSexAdjective,
+    getSexNoun,
 } from "../helpers.js"
 
 export function MigrationSankey({
@@ -37,7 +37,7 @@ export function MigrationSankey({
     emigrants,
     country,
     year,
-    gender,
+    sex,
     immigrantsTotal,
     emigrantsTotal,
     view = "both",
@@ -48,7 +48,7 @@ export function MigrationSankey({
     emigrants: MigrationFlow[]
     country: string
     year: number
-    gender: Gender
+    sex: Sex
     immigrantsTotal: number
     emigrantsTotal: number
     view?: MigrationView
@@ -87,7 +87,7 @@ export function MigrationSankey({
         year,
         view,
         isPairedSentence,
-        gender,
+        sex,
         setView,
     }
 
@@ -142,7 +142,7 @@ function buildSankeyHalf({
     year,
     view,
     isPairedSentence,
-    gender,
+    sex,
     otherHasData,
     setView,
 }: {
@@ -153,7 +153,7 @@ function buildSankeyHalf({
     year: number
     view: MigrationView
     isPairedSentence: boolean
-    gender: Gender
+    sex: Sex
     otherHasData: boolean
     setView: (view: MigrationView) => void
 }) {
@@ -164,7 +164,7 @@ function buildSankeyHalf({
 
     const hasData = flows.length > 0
 
-    const adjective = getGenderAdjective(gender)
+    const adjective = getSexAdjective(sex)
     const headingAdjective =
         isPairedSentence && !isIncoming ? undefined : adjective
 
@@ -174,8 +174,8 @@ function buildSankeyHalf({
             ? shortEntityName
             : `the ${shortEntityName}`
 
-    const genderPrefix = adjective ? `${adjective} ` : ""
-    const genderNoun = getGenderNoun(adjective)
+    const sexPrefix = adjective ? `${adjective} ` : ""
+    const sexNoun = getSexNoun(adjective)
 
     const heading: SankeyHalfHeading = hasData
         ? {
@@ -184,7 +184,7 @@ function buildSankeyHalf({
                   total,
                   shortEntityNameWithArticle,
                   isPairedSentence,
-                  genderAdjective: headingAdjective,
+                  sexAdjective: headingAdjective,
                   view,
               }),
               arrowSide,
@@ -193,11 +193,11 @@ function buildSankeyHalf({
               label:
                   view === "both"
                       ? isIncoming
-                          ? `No ${genderNoun} in ${shortEntityNameWithArticle} were born elsewhere`
-                          : `No ${genderNoun} born in ${shortEntityNameWithArticle} live abroad`
+                          ? `No ${sexNoun} in ${shortEntityNameWithArticle} were born elsewhere`
+                          : `No ${sexNoun} born in ${shortEntityNameWithArticle} live abroad`
                       : isIncoming
-                        ? `No ${genderPrefix}immigrants`
-                        : `No ${genderPrefix}emigrants`,
+                        ? `No ${sexPrefix}immigrants`
+                        : `No ${sexPrefix}emigrants`,
           }
 
     const cta =
@@ -213,11 +213,11 @@ function buildSankeyHalf({
             message={
                 view === "both"
                     ? isIncoming
-                        ? `No ${genderNoun} in ${R.capitalize(shortEntityNameWithArticle)} were born elsewhere in ${year}`
-                        : `No ${genderNoun} born in ${R.capitalize(shortEntityNameWithArticle)} lived abroad in ${year}`
+                        ? `No ${sexNoun} in ${R.capitalize(shortEntityNameWithArticle)} were born elsewhere in ${year}`
+                        : `No ${sexNoun} born in ${R.capitalize(shortEntityNameWithArticle)} lived abroad in ${year}`
                     : isIncoming
-                      ? `No ${genderPrefix}immigrants recorded in ${R.capitalize(shortEntityNameWithArticle)} in ${year}`
-                      : `No ${genderPrefix}emigrants from ${R.capitalize(shortEntityNameWithArticle)} recorded in ${year}`
+                      ? `No ${sexPrefix}immigrants recorded in ${R.capitalize(shortEntityNameWithArticle)} in ${year}`
+                      : `No ${sexPrefix}emigrants from ${R.capitalize(shortEntityNameWithArticle)} recorded in ${year}`
             }
             cta={cta}
         />
@@ -242,20 +242,20 @@ function makeHeadingLabel({
     total,
     shortEntityNameWithArticle,
     isPairedSentence,
-    genderAdjective,
+    sexAdjective,
     view,
 }: {
     direction: "incoming" | "outgoing"
     total: number
     shortEntityNameWithArticle: string
     isPairedSentence: boolean
-    genderAdjective?: string
+    sexAdjective?: string
     view: MigrationView
 }): ReactNode {
     const count = formatPeople(total, { unit: false })
-    const genderPrefix = genderAdjective ? `${genderAdjective} ` : ""
+    const sexPrefix = sexAdjective ? `${sexAdjective} ` : ""
     if (view === "both") {
-        const peopleNoun = getGenderNoun(genderAdjective)
+        const peopleNoun = getSexNoun(sexAdjective)
         if (direction === "incoming") {
             return (
                 <>
@@ -278,10 +278,10 @@ function makeHeadingLabel({
         )
     }
     if (direction === "incoming") {
-        return `${count} ${genderPrefix}immigrants lived in ${shortEntityNameWithArticle}`
+        return `${count} ${sexPrefix}immigrants lived in ${shortEntityNameWithArticle}`
     }
     const prefix = isPairedSentence ? "and " : ""
-    return `${prefix}${count} ${genderPrefix}emigrants from ${shortEntityNameWithArticle} lived abroad`
+    return `${prefix}${count} ${sexPrefix}emigrants from ${shortEntityNameWithArticle} lived abroad`
 }
 
 function getMigrationLinkTooltip({

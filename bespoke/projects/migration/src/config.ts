@@ -1,10 +1,4 @@
-import {
-    GENDER_ALL,
-    GENDER_FEMALE,
-    GENDER_MALE,
-    GenderId,
-    MigrationView,
-} from "./types.js"
+import { MigrationView, Sex } from "./types.js"
 
 export interface VariantProps<Config> {
     config: Config
@@ -16,9 +10,9 @@ export interface SankeyVariantConfig {
     title?: string
     subtitle?: string
     country?: string
-    genderId?: GenderId
+    sex?: Sex
     year?: number
-    migrationFlow?: MigrationView
+    flow?: MigrationView
     urlSync?: boolean
 }
 
@@ -29,9 +23,9 @@ export function parseConfig(raw: Record<string, string>): SankeyVariantConfig {
         title: raw.title,
         subtitle: raw.subtitle,
         country: raw.country,
-        genderId: parseGenderId(raw.genderId),
+        sex: parseSex(raw.sex),
         year: parseYear(raw.year),
-        migrationFlow: parseMigrationFlow(raw.migrationFlow),
+        flow: parseMigrationFlow(raw.flow),
         urlSync: parseBoolean(raw.urlSync),
     }
 }
@@ -40,9 +34,8 @@ function parseBoolean(value: unknown): boolean {
     return value === true || value === "true"
 }
 
-function parseGenderId(value: unknown): GenderId | undefined {
-    const n = typeof value === "string" ? Number(value) : value
-    if (n === GENDER_ALL || n === GENDER_FEMALE || n === GENDER_MALE) return n
+function parseSex(value: unknown): Sex | undefined {
+    if (value === "both" || value === "female" || value === "male") return value
     return undefined
 }
 

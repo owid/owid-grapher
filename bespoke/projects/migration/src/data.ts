@@ -9,7 +9,7 @@ import {
     RawMetadata,
     RawSeries,
 } from "./types.js"
-import { genderFromId } from "./helpers.js"
+import { sexFromId } from "./helpers.js"
 
 const BASE_URL = "https://owid-public.owid.io/data/migration"
 const METADATA_URL = `${BASE_URL}/migration-stock-flows.metadata.json`
@@ -78,7 +78,7 @@ function decodeSeries(
         out[i] = {
             partner: entitiesById.get(s.entities[i])?.name ?? "Unknown",
             year: s.years[i],
-            gender: genderFromId(s.genders[i]),
+            sex: sexFromId(s.genders[i]),
             value: s.values[i],
         }
     }
