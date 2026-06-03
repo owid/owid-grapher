@@ -16,11 +16,6 @@ const METADATA_URL = `${BASE_URL}/migration-stock-flows.metadata.json`
 const countryUrl = (entityId: number) =>
     `${BASE_URL}/migration-stock-flows.${entityId}.json`
 
-// The 8 time-points the data is reported at. Hardcoded because the metadata's
-// timeRange only gives endpoints, and the population array is keyed by these
-// positions.
-const TIMES = [1990, 1995, 2000, 2005, 2010, 2015, 2020, 2024]
-
 const queryKeys = {
     metadata: () => ["migration", "metadata"],
     country: (entityId: number) => ["migration", "country", entityId],
@@ -37,7 +32,7 @@ export const useMigrationMetadata = () =>
                 )
             const raw = (await res.json()) as RawMetadata
             return {
-                times: TIMES,
+                times: raw.years,
                 source: raw.source,
                 entities: raw.dimensions.entities,
                 genders: raw.dimensions.genders,

@@ -53,6 +53,7 @@ export type MigrationView = "both" | "immigrants" | "emigrants"
 // Raw shape returned by the metadata endpoint.
 export type RawMetadata = {
     timeRange: { start: number; end: number }
+    years: number[]
     source: string
     dimensions: {
         entities: { id: number; name: string; population: number[] }[]
