@@ -2,7 +2,7 @@ export interface VariantProps<Config> {
     config: Config
 }
 
-export type TradeFlow = "both" | "imports" | "exports"
+export type Flow = "both" | "import" | "export"
 
 export interface SankeyVariantConfig {
     hideControls?: boolean
@@ -11,7 +11,7 @@ export interface SankeyVariantConfig {
     subtitle?: string
     product?: string
     country?: string
-    tradeFlow?: TradeFlow
+    flow?: Flow
     urlSync?: boolean
 }
 
@@ -23,7 +23,7 @@ export function parseConfig(raw: Record<string, string>): SankeyVariantConfig {
         subtitle: raw.subtitle,
         product: raw.product,
         country: raw.country,
-        tradeFlow: parseTradeFlow(raw.tradeFlow),
+        flow: parseFlow(raw.flow),
         urlSync: parseBoolean(raw.urlSync),
     }
 }
@@ -32,8 +32,8 @@ function parseBoolean(value: unknown): boolean {
     return value === true || value === "true"
 }
 
-function parseTradeFlow(value: unknown): TradeFlow | undefined {
-    if (value === "both" || value === "imports" || value === "exports")
+function parseFlow(value: unknown): Flow | undefined {
+    if (value === "both" || value === "import" || value === "export")
         return value
     return undefined
 }

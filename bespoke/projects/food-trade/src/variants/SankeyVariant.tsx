@@ -12,7 +12,7 @@ import { Frame } from "../../../../components/Frame/Frame.js"
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
 
-import { SankeyVariantConfig, TradeFlow, VariantProps } from "../config.js"
+import { SankeyVariantConfig, Flow, VariantProps } from "../config.js"
 import { FoodTradeMetadata, ProductTradeData, TradeRow } from "../types.js"
 import { useFoodTradeMetadata, useProductTradeData } from "../data.js"
 import { FoodTradeControls } from "../components/FoodTradeControls.js"
@@ -28,7 +28,7 @@ import { MOBILE_BREAKPOINT } from "../../../../components/Sankey/SplitFlowSankey
 
 const DEFAULT_PRODUCT = "Maize"
 const DEFAULT_COUNTRY = ALL_COUNTRIES
-const DEFAULT_VIEW: TradeFlow = "both"
+const DEFAULT_VIEW: Flow = "both"
 
 const queryClient = new QueryClient()
 
@@ -72,7 +72,7 @@ function FetchingSankeyVariant({ config }: { config: SankeyVariantConfig }) {
     const initialView =
         !isUserLocation && isAllCountry(initialCountry)
             ? "both"
-            : (config.tradeFlow ?? DEFAULT_VIEW)
+            : (config.flow ?? DEFAULT_VIEW)
     const urlSync = config.urlSync ?? false
 
     const [product, setProduct] = useUrlState({
@@ -88,8 +88,8 @@ function FetchingSankeyVariant({ config }: { config: SankeyVariantConfig }) {
         enabled: urlSync,
     })
     const [_view, setView] = useUrlState({
-        key: "foodTradeView",
-        parser: parseAsStringEnum<TradeFlow>(["both", "imports", "exports"]),
+        key: "foodTradeFlow",
+        parser: parseAsStringEnum<Flow>(["both", "import", "export"]),
         defaultValue: initialView,
         enabled: urlSync,
     })
@@ -110,10 +110,10 @@ function FetchingSankeyVariant({ config }: { config: SankeyVariantConfig }) {
         incomingFlows.length > 0 && outgoingFlows.length === 0
     const hasOnlyOutgoingFlows =
         outgoingFlows.length > 0 && incomingFlows.length === 0
-    const view: TradeFlow = hasOnlyIncomingFlows
-        ? "imports"
+    const view: Flow = hasOnlyIncomingFlows
+        ? "import"
         : hasOnlyOutgoingFlows
-          ? "exports"
+          ? "export"
           : _view
 
     const setCountry = useCallback(
@@ -184,10 +184,10 @@ function CaptionedSankeyVariant({
     productData: ProductTradeData
     product: string
     country: string
-    view: TradeFlow
+    view: Flow
     setProduct: (value: string) => void
     setCountry: (value: string) => void
-    setView: (value: TradeFlow) => void
+    setView: (value: Flow) => void
 }) {
     const shouldHideChrome =
         config.hideControls || !!config.title || !!config.subtitle
@@ -260,7 +260,7 @@ function FoodTradeChartHeader({
     country: string
     product: string
     year: number
-    view: TradeFlow
+    view: Flow
     flows: TradeRow[]
 }) {
     const mode: "bilateral" | "centered" = isAllCountry(country)
@@ -272,9 +272,9 @@ function FoodTradeChartHeader({
     const defaultTitle =
         mode === "bilateral"
             ? `Global ${R.uncapitalize(product)} trade in ${year}`
-            : view === "imports"
+            : view === "import"
               ? `Where ${articulateEntity(country)} imported ${R.uncapitalize(product)} from in ${year}`
-              : view === "exports"
+              : view === "export"
                 ? `Where ${articulateEntity(country)} exported ${R.uncapitalize(product)} to in ${year}`
                 : `${product} trade through ${articulateEntity(country)} in ${year}`
 
@@ -284,12 +284,12 @@ function FoodTradeChartHeader({
                 Imports and exports of {R.uncapitalize(product)}, as reported by
                 importing countries.
             </>
-        ) : mode === "centered" && view === "imports" ? (
+        ) : mode === "centered" && view === "import" ? (
             <>
                 {product} imported into {articulateEntity(country)}, as reported
                 by the importing country.
             </>
-        ) : mode === "centered" && view === "exports" ? (
+        ) : mode === "centered" && view === "export" ? (
             <>
                 {product} exported by {articulateEntity(country)}, as reported
                 by importing countries.
@@ -316,14 +316,14 @@ function FoodTradeChartFooter({
 }: {
     source: string
     country: string
-    view: TradeFlow
+    view: Flow
 }) {
     const topPartners =
         'Only the top ten partners are shown; the rest are grouped as "Other".'
     const reporting =
-        view === "imports"
+        view === "import"
             ? `Figures reflect imports reported by ${articulateEntity(country)}; exporter records may differ.`
-            : view === "exports"
+            : view === "export"
               ? "Figures reflect data reported by importing countries, which may differ from export records."
               : "Figures reflect trade reported by importers, which may differ from export records."
 

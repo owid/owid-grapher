@@ -4,7 +4,7 @@ import * as R from "remeda"
 
 import { articulateEntity } from "@ourworldindata/utils"
 
-import { TradeFlow } from "../config.js"
+import { Flow } from "../config.js"
 import { ALL_COUNTRIES, isAllCountry } from "../helpers.js"
 import { ProductTradeData } from "../types.js"
 import { FoodTradeBilateralSankey } from "./FoodTradeBilateralSankey.js"
@@ -24,10 +24,10 @@ export function FoodTradeChart({
     country: string
     product: string
     year: number
-    view: TradeFlow
+    view: Flow
     hideFlowSwitcher?: boolean
     setCountry: (value: string) => void
-    setView: (value: TradeFlow) => void
+    setView: (value: Flow) => void
 }) {
     const {
         flows,
@@ -44,7 +44,7 @@ export function FoodTradeChart({
     const handleSelectEntity = useCallback(
         (entity: string, side: "exporter" | "importer") => {
             setCountry(entity)
-            setView(side === "exporter" ? "exports" : "imports")
+            setView(side === "exporter" ? "export" : "import")
         },
         [setCountry, setView]
     )

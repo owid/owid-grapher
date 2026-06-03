@@ -21,7 +21,7 @@ import {
     SwitcherItem,
 } from "../../../../components/Switcher/Switcher.js"
 
-import { TradeFlow } from "../config.js"
+import { Flow } from "../config.js"
 import { ALL_COUNTRIES, isAllCountry } from "../helpers.js"
 import { FoodTradeMetadata, ProductTradeData } from "../types.js"
 
@@ -40,11 +40,11 @@ export function FoodTradeControls({
     productData: ProductTradeData
     product: string
     country: string
-    view: TradeFlow
+    view: Flow
     hideFlowSwitcher?: boolean
     setProduct: (value: string) => void
     setCountry: (value: string) => void
-    setView: (value: TradeFlow) => void
+    setView: (value: Flow) => void
 }): React.ReactElement {
     return (
         <div className="food-trade-controls">
@@ -243,15 +243,15 @@ function ViewSwitcher({
     productData: ProductTradeData
     product: string
     country: string
-    view: TradeFlow
-    setView: (value: TradeFlow) => void
+    view: Flow
+    setView: (value: Flow) => void
 }) {
     const { ref: switcherWrapperRef, getTippyContainer } =
         useTippyContainer<HTMLDivElement>()
 
-    const options: SwitcherItem<TradeFlow>[] = [
+    const options: SwitcherItem<Flow>[] = [
         {
-            key: "imports",
+            key: "import",
             element: (
                 <>
                     <FontAwesomeIcon
@@ -264,7 +264,7 @@ function ViewSwitcher({
             ),
         },
         {
-            key: "exports",
+            key: "export",
             element: (
                 <>
                     Exports

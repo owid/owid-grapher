@@ -49,8 +49,8 @@ export function FoodTradeSplitSankey({
     outgoingTrades: TradeRow[]
     countryProduction?: number
     countrySupply?: number
-    view?: "both" | "imports" | "exports"
-    setView: (view: "both" | "imports" | "exports") => void
+    view?: "both" | "import" | "export"
+    setView: (view: "both" | "import" | "export") => void
 }) {
     const { parentRef, width, height } = useParentSize()
 
@@ -94,8 +94,8 @@ export function FoodTradeSplitSankey({
     )
 
     const splitView = match(view)
-        .with("imports", () => "incoming" as const)
-        .with("exports", () => "outgoing" as const)
+        .with("import", () => "incoming" as const)
+        .with("export", () => "outgoing" as const)
         .with("both", () => "both" as const)
         .exhaustive()
 
@@ -138,15 +138,17 @@ function buildSankeyHalf({
     country: string
     product: string
     year: number
-    view: "both" | "imports" | "exports"
+    view: "both" | "import" | "export"
     isStacked: boolean
     otherHasData: boolean
-    setView: (view: "both" | "imports" | "exports") => void
+    setView: (view: "both" | "import" | "export") => void
 }) {
     const isIncoming = direction === "incoming"
     const verbInf = isIncoming ? "import" : "export"
-    const ownView: "imports" | "exports" = isIncoming ? "imports" : "exports"
-    const otherView: "imports" | "exports" = isIncoming ? "exports" : "imports"
+    const ownView: "import" | "export" = isIncoming ? "import" : "export"
+    const otherView: "import" | "export" = isIncoming ? "export" : "import"
+    // Plural noun for display text (the flow state values are singular)
+    const otherNoun = isIncoming ? "exports" : "imports"
     const arrowSide: "start" | "end" = isIncoming ? "start" : "end"
 
     const hasData = flows.length > 0
@@ -182,7 +184,7 @@ function buildSankeyHalf({
     const cta =
         view === ownView && otherHasData
             ? {
-                  label: `See ${otherView}`,
+                  label: `See ${otherNoun}`,
                   onClick: () => setView(otherView),
               }
             : undefined
@@ -220,7 +222,7 @@ function makeLabel({
     flows: Flow[]
     total: number
     shortEntityNameWithArticle: string
-    view: "both" | "imports" | "exports"
+    view: "both" | "import" | "export"
     isStacked: boolean
     otherHasData: boolean
 }): ReactNode {
