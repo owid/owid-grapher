@@ -21,4 +21,7 @@ export type EnrichedBlockNarrativeChart = {
     height?: string
     size: BlockSize
     caption?: Span[]
+    // TOC anchor id (e.g. "chart-population-by-age"), assigned by
+    // generateSidebarToc and rendered as the chart wrapper's `id`
+    anchorId?: string
 } & EnrichedBlockWithParseErrors
