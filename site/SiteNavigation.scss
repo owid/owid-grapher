@@ -44,6 +44,20 @@ body.exp-topnav-v1--show-on-scroll-up:has(.sticky-nav) .site-header {
     position: static;
 }
 
+// Experiment topnav-v1: when the topnav is pinned, other top-pinned chrome
+// (ToC sidebar on linear topic pages and centered articles) needs to dock
+// below it instead of fighting for top: 0. Height matches the reduced topnav
+// above: 8px + $search-cta-height (40px) + 8px + $header-border-height (4px).
+// Excluded when the page has its own .sticky-nav — there the topnav is
+// non-sticky, so the ToC should stay at top: 0.
+body.exp-topnav-v1--sticky:not(:has(.sticky-nav)),
+body.exp-topnav-v1--show-on-scroll-up:not(:has(.sticky-nav)) {
+    .toc-wrapper,
+    .entry-sidebar .entry-toc {
+        top: 60px;
+    }
+}
+
 .site-navigation {
     position: relative;
     z-index: $zindex-lightbox;
