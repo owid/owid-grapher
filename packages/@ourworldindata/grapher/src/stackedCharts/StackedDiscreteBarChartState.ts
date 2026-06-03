@@ -14,7 +14,7 @@ import {
 } from "@ourworldindata/types"
 import {
     sortByConfig,
-    SortKeyFn,
+    SortKey,
     keepInputOrder,
     sortByColumnValue,
     autoDetectYColumnSlugs,
@@ -252,7 +252,7 @@ export class StackedDiscreteBarChartState implements ChartState {
     @computed get sortedRows(): readonly DiscreteBarRow[] {
         const keyFns: Record<
             StackedDiscreteBarSortKey,
-            SortKeyFn<DiscreteBarRow>
+            SortKey<DiscreteBarRow>
         > = {
             [SortBy.custom]: keepInputOrder,
             [SortBy.entityName]: (row): string => row.entityName,

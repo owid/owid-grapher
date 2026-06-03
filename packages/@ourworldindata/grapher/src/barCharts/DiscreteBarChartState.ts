@@ -19,7 +19,7 @@ import { ColorScale, ColorScaleManager } from "../color/ColorScale"
 import { SelectionArray } from "../selection/SelectionArray"
 import {
     sortByConfig,
-    SortKeyFn,
+    SortKey,
     keepInputOrder,
     autoDetectSeriesStrategy,
     autoDetectYColumnSlugs,
@@ -364,7 +364,7 @@ export class DiscreteBarChartState implements ChartState, ColorScaleManager {
 
         const keyFns: Record<
             DiscreteBarSortKey | SortBy.column,
-            SortKeyFn<DiscreteBarItem>
+            SortKey<DiscreteBarItem>
         > = {
             [SortBy.custom]:
                 this.seriesStrategy === SeriesStrategy.entity

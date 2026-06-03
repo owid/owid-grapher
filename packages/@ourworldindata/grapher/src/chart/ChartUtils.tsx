@@ -344,10 +344,12 @@ export function getChartSvgProps({
 
 export type SortKeyFn<T> = (item: T) => number | string | undefined
 
-export type SortKeyFunctions<T> = Partial<Record<SortBy, SortKeyFn<T>>>
-
 /** A sort key that leaves items in their input order */
-export const keepInputOrder: SortKeyFn<unknown> = () => undefined
+export const keepInputOrder = Symbol("keepInputOrder")
+
+export type SortKey<T> = SortKeyFn<T> | typeof keepInputOrder
+
+export type SortKeyFunctions<T> = Partial<Record<SortBy, SortKey<T>>>
 
 /** Sort key that orders items by their value in `sortColumn` */
 export function sortByColumnValue<T>(
@@ -355,8 +357,7 @@ export function sortByColumnValue<T>(
     getEntityName: (item: T) => EntityName
 ): SortKeyFn<T> {
     return (item) =>
-        sortColumn?.owidRowsByEntityName.get(getEntityName(item))?.[0]?.value ??
-        0
+        sortColumn?.latestValueByEntityName.get(getEntityName(item)) ?? 0
 }
 
 export function sortByConfig<T>(
@@ -367,6 +368,9 @@ export function sortByConfig<T>(
     const sortByKey = sortConfig.sortBy ?? SortBy.total
     const sortByFunc = keyFns[sortByKey] ?? keepInputOrder
     const sortOrder = sortConfig.sortOrder ?? SortOrder.desc
+
+    if (sortByFunc === keepInputOrder)
+        return sortOrder === SortOrder.desc ? items.toReversed() : [...items]
 
     const sortedRows = _.sortBy(items, sortByFunc)
 
