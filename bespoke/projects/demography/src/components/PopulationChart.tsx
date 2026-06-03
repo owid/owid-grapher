@@ -28,8 +28,8 @@ import { TooltipValue } from "@ourworldindata/grapher/src/tooltip/TooltipContent
 import { formatValue, GrapherTooltipAnchor } from "@ourworldindata/utils"
 import { localPoint } from "@visx/event"
 import * as R from "remeda"
-import { BezierArrow } from "../../../../components/BezierArrow/BezierArrow.js"
 import { Halo, TextWrap } from "@ourworldindata/components"
+import { BezierArrow } from "@ourworldindata/grapher"
 import {
     formatPopulationValueLong,
     formatPopulationAxisLabel,
@@ -657,8 +657,8 @@ function ChangeAnnotation({
         <>
             {/* Arrow between dots */}
             <BezierArrow
-                start={[x, benchmarkEnd]}
-                end={[x, forecastEnd]}
+                start={{ x, y: benchmarkEnd }}
+                end={{ x, y: forecastEnd }}
                 color={color}
                 width={1.5}
             />

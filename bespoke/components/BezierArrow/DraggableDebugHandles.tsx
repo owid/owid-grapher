@@ -1,16 +1,16 @@
 import { useCallback, useRef } from "react"
 import { useDrag } from "@visx/drag"
 
-import type { Coords } from "./BezierArrow"
+import type { Point } from "@ourworldindata/utils"
 
 interface DraggableDebugHandlesProps {
-    start: Coords
-    end: Coords
-    startHandleOffset: Coords
-    endHandleOffset: Coords
-    startHandle?: Coords
-    endHandle?: Coords
-    onOffsetsChange?: (offsets: { start: Coords; end: Coords }) => void
+    start: Point
+    end: Point
+    startHandleOffset: Point
+    endHandleOffset: Point
+    startHandle?: Point
+    endHandle?: Point
+    onOffsetsChange?: (offsets: { start: Point; end: Point }) => void
 }
 
 const DEBUG_COLOR = "#af488f"
@@ -24,14 +24,14 @@ export function DraggableDebugHandles({
     endHandle,
     onOffsetsChange,
 }: DraggableDebugHandlesProps) {
-    const startControlPoint: Coords = startHandle ?? [
-        start[0] + startHandleOffset[0],
-        start[1] + startHandleOffset[1],
-    ]
-    const endControlPoint: Coords = endHandle ?? [
-        end[0] + endHandleOffset[0],
-        end[1] + endHandleOffset[1],
-    ]
+    const startControlPoint: Point = startHandle ?? {
+        x: start.x + startHandleOffset.x,
+        y: start.y + startHandleOffset.y,
+    }
+    const endControlPoint: Point = endHandle ?? {
+        x: end.x + endHandleOffset.x,
+        y: end.y + endHandleOffset.y,
+    }
 
     const startOffsetAtDragStart = useRef(startHandleOffset)
     const endOffsetAtDragStart = useRef(endHandleOffset)
@@ -43,20 +43,20 @@ export function DraggableDebugHandles({
             startOffsetAtDragStart.current = startHandleOffset
         },
         onDragMove: ({ dx, dy }) => {
-            const newOffset: Coords = [
-                startOffsetAtDragStart.current[0] + dx,
-                startOffsetAtDragStart.current[1] + dy,
-            ]
+            const newOffset: Point = {
+                x: startOffsetAtDragStart.current.x + dx,
+                y: startOffsetAtDragStart.current.y + dy,
+            }
             onOffsetsChange?.({ start: newOffset, end: endHandleOffset })
         },
         onDragEnd: ({ dx, dy }) => {
-            const finalStart: Coords = [
-                startOffsetAtDragStart.current[0] + dx,
-                startOffsetAtDragStart.current[1] + dy,
-            ]
+            const finalStart: Point = {
+                x: startOffsetAtDragStart.current.x + dx,
+                y: startOffsetAtDragStart.current.y + dy,
+            }
             // eslint-disable-next-line no-console
             console.log(
-                `Final offsets: startHandleOffset={[${Math.round(finalStart[0])}, ${Math.round(finalStart[1])}]} endHandleOffset={[${Math.round(endHandleOffset[0])}, ${Math.round(endHandleOffset[1])}]}`
+                `Final offsets: startHandleOffset={{ x: ${Math.round(finalStart.x)}, y: ${Math.round(finalStart.y)} }} endHandleOffset={{ x: ${Math.round(endHandleOffset.x)}, y: ${Math.round(endHandleOffset.y)} }}`
             )
             onOffsetsChange?.({ start: finalStart, end: endHandleOffset })
         },
@@ -69,20 +69,20 @@ export function DraggableDebugHandles({
             endOffsetAtDragStart.current = endHandleOffset
         },
         onDragMove: ({ dx, dy }) => {
-            const newOffset: Coords = [
-                endOffsetAtDragStart.current[0] + dx,
-                endOffsetAtDragStart.current[1] + dy,
-            ]
+            const newOffset: Point = {
+                x: endOffsetAtDragStart.current.x + dx,
+                y: endOffsetAtDragStart.current.y + dy,
+            }
             onOffsetsChange?.({ start: startHandleOffset, end: newOffset })
         },
         onDragEnd: ({ dx, dy }) => {
-            const finalEnd: Coords = [
-                endOffsetAtDragStart.current[0] + dx,
-                endOffsetAtDragStart.current[1] + dy,
-            ]
+            const finalEnd: Point = {
+                x: endOffsetAtDragStart.current.x + dx,
+                y: endOffsetAtDragStart.current.y + dy,
+            }
             // eslint-disable-next-line no-console
             console.log(
-                `Final offsets: startHandleOffset={[${Math.round(startHandleOffset[0])}, ${Math.round(startHandleOffset[1])}]} endHandleOffset={[${Math.round(finalEnd[0])}, ${Math.round(finalEnd[1])}]}`
+                `Final offsets: startHandleOffset={{ x: ${Math.round(startHandleOffset.x)}, y: ${Math.round(startHandleOffset.y)} }} endHandleOffset={{ x: ${Math.round(finalEnd.x)}, y: ${Math.round(finalEnd.y)} }}`
             )
             onOffsetsChange?.({ start: startHandleOffset, end: finalEnd })
         },
@@ -126,19 +126,19 @@ export function DraggableDebugHandles({
 
             {/* Lines from anchor points to control points */}
             <line
-                x1={start[0]}
-                y1={start[1]}
-                x2={startControlPoint[0]}
-                y2={startControlPoint[1]}
+                x1={start.x}
+                y1={start.y}
+                x2={startControlPoint.x}
+                y2={startControlPoint.y}
                 stroke={DEBUG_COLOR}
                 strokeWidth={1}
                 style={{ pointerEvents: "none" }}
             />
             <line
-                x1={end[0]}
-                y1={end[1]}
-                x2={endControlPoint[0]}
-                y2={endControlPoint[1]}
+                x1={end.x}
+                y1={end.y}
+                x2={endControlPoint.x}
+                y2={endControlPoint.y}
                 stroke={DEBUG_COLOR}
                 strokeWidth={1}
                 style={{ pointerEvents: "none" }}
@@ -146,8 +146,8 @@ export function DraggableDebugHandles({
 
             {/* Draggable control point circles */}
             <circle
-                cx={startControlPoint[0]}
-                cy={startControlPoint[1]}
+                cx={startControlPoint.x}
+                cy={startControlPoint.y}
                 r={6}
                 fill={DEBUG_COLOR}
                 style={{
@@ -157,8 +157,8 @@ export function DraggableDebugHandles({
                 onTouchStart={startDrag.dragStart}
             />
             <circle
-                cx={endControlPoint[0]}
-                cy={endControlPoint[1]}
+                cx={endControlPoint.x}
+                cy={endControlPoint.y}
                 r={6}
                 fill={DEBUG_COLOR}
                 style={{
