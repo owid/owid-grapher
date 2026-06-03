@@ -3517,6 +3517,14 @@ export class GrapherState
         )
     }
 
+    @computed get availableSortKeysAcrossChartTypes(): SortBy[] {
+        const keys = this.validChartTypes.flatMap(
+            (chartType) =>
+                makeChartState(chartType, this).availableSortKeys ?? []
+        )
+        return _.uniq(keys)
+    }
+
     @computed get isInFullScreenMode(): boolean {
         return this._isInFullScreenMode
     }

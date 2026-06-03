@@ -1,3 +1,4 @@
+import * as R from "remeda"
 import { computed, makeObservable } from "mobx"
 import {
     ColumnSlug,
@@ -14,10 +15,12 @@ import { domainExtent } from "@ourworldindata/utils"
 import { ChartState } from "../chart/ChartInterface"
 import {
     DECREASE_COLOR,
+    DUMBBELL_SORT_KEYS,
     DumbbellChartManager,
     DumbbellHead,
     DumbbellMode,
     DumbbellSeries,
+    DumbbellSortKey,
     END_COLUMN_COLOR,
     INCREASE_COLOR,
     LIGHT_DECREASE_COLOR,
@@ -34,6 +37,8 @@ import {
     isToleranceDistanceValid,
     makeSelectionArray,
     sortByConfig,
+    SortKeyFn,
+    sortByColumnValue,
 } from "../chart/ChartUtils"
 import {
     AnnotationsMap,
@@ -289,7 +294,7 @@ export class DumbbellChartState implements ChartState {
     }
 
     @computed get series(): DumbbellSeries[] {
-        return sortByConfig(this.unsortedSeries, this.sortConfig, {
+        const keyFns: Record<DumbbellSortKey, SortKeyFn<DumbbellSeries>> = {
             [SortBy.custom]: (series): number =>
                 this.selectionArray.selectedEntityNames.indexOf(
                     series.entityName
@@ -297,11 +302,24 @@ export class DumbbellChartState implements ChartState {
             [SortBy.entityName]: (series): string => series.entityName,
             [SortBy.total]: (series): number =>
                 series.start.value + series.end.value,
-            [SortBy.column]: (series): number =>
-                this.sortColumn?.owidRowsByEntityName?.get(
-                    series.entityName
-                )?.[0]?.value ?? 0,
-        })
+            [SortBy.change]: (series): number =>
+                series.end.value - series.start.value,
+            [SortBy.startValue]: (series): number => series.start.value,
+            [SortBy.endValue]: (series): number => series.end.value,
+            [SortBy.column]: sortByColumnValue(
+                this.sortColumn,
+                (series) => series.entityName
+            ),
+        }
+        return sortByConfig(this.unsortedSeries, this.sortConfig, keyFns)
+    }
+
+    @computed get availableSortKeys(): DumbbellSortKey[] {
+        const excluded =
+            this.mode === DumbbellMode.TwoColumn
+                ? [SortBy.startValue, SortBy.endValue]
+                : [SortBy.column]
+        return R.difference([...DUMBBELL_SORT_KEYS], excluded)
     }
 
     @computed get allValues(): number[] {

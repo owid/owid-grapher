@@ -220,6 +220,25 @@ interface SortOrderDropdownOption {
     display?: { name: string; displayName: string }
 }
 
+const SORT_BY_LABELS: Record<Exclude<SortBy, SortBy.column>, string> = {
+    [SortBy.entityName]: "Entity name",
+    [SortBy.total]: "Total value",
+    [SortBy.custom]: "Custom order (use specified entity order)",
+    [SortBy.change]: "Change",
+    [SortBy.startValue]: "Start value",
+    [SortBy.endValue]: "End value",
+}
+
+const SORT_BY_DISPLAY_ORDER: SortBy[] = [
+    SortBy.entityName,
+    SortBy.total,
+    SortBy.custom,
+    SortBy.change,
+    SortBy.startValue,
+    SortBy.endValue,
+    SortBy.column,
+]
+
 @observer
 class SortOrderSection<
     Editor extends AbstractChartEditor,
@@ -238,54 +257,50 @@ class SortOrderSection<
     }
 
     @computed get sortOptions(): SortOrderDropdownOption[] {
-        const { features } = this.props.editor
+        const availableSortKeys = new Set(
+            this.grapherState.availableSortKeysAcrossChartTypes
+        )
 
-        let dimensionSortOptions: SortOrderDropdownOption[] = []
-        if (features.canSortByColumn) {
-            dimensionSortOptions = this.grapherState.yColumnsFromDimensions.map(
-                (column): SortOrderDropdownOption => ({
-                    key: `column:${column.slug}`,
-                    label: column.displayName,
-                    display: {
-                        name: column.name,
-                        displayName: column.displayName,
+        return SORT_BY_DISPLAY_ORDER.flatMap(
+            (sortBy: SortBy): SortOrderDropdownOption[] => {
+                if (!availableSortKeys.has(sortBy)) return []
+
+                // Column sorting expands into one option per dimension.
+                if (sortBy === SortBy.column) {
+                    return this.grapherState.yColumnsFromDimensions.map(
+                        (column): SortOrderDropdownOption => ({
+                            key: `column:${column.slug}`,
+                            label: column.displayName,
+                            display: {
+                                name: column.name,
+                                displayName: column.displayName,
+                            },
+                            value: {
+                                sortBy: SortBy.column,
+                                sortColumnSlug: column.slug,
+                            } satisfies SortConfig,
+                        })
+                    )
+                }
+
+                return [
+                    {
+                        key: sortBy,
+                        label: SORT_BY_LABELS[sortBy],
+                        value: { sortBy },
                     },
-                    value: {
-                        sortBy: SortBy.column,
-                        sortColumnSlug: column.slug,
-                    } as SortConfig,
-                })
-            )
-        }
-
-        return [
-            {
-                key: "entityName",
-                label: "Entity name",
-                value: { sortBy: SortBy.entityName },
-            },
-            {
-                key: "total",
-                label: "Total value",
-                value: { sortBy: SortBy.total },
-            },
-            {
-                key: "custom",
-                label: "Custom order (use specified entity order)",
-                value: { sortBy: SortBy.custom },
-            },
-            ...dimensionSortOptions,
-        ]
+                ]
+            }
+        )
     }
 
     @computed get currentSortOptionKey(): string {
         const { sortBy, sortColumnSlug } = this.sortConfig
         if (sortBy === SortBy.column && sortColumnSlug)
             return `column:${sortColumnSlug}`
-        if (sortBy === SortBy.entityName) return "entityName"
-        if (sortBy === SortBy.total) return "total"
-        if (sortBy === SortBy.custom) return "custom"
-        return this.sortOptions[0]?.key ?? "entityName"
+        if (sortBy && this.sortOptions.some((opt) => opt.key === sortBy))
+            return sortBy
+        return this.sortOptions[0]?.key ?? SortBy.entityName
     }
 
     @action.bound onSortByChange(selectedKey: string) {

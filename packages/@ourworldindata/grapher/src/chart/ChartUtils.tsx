@@ -40,6 +40,7 @@ import {
 } from "../core/GrapherConstants"
 import { ChartSeries } from "./ChartInterface"
 import {
+    CoreColumn,
     ErrorValueTypes,
     isNotErrorValueOrEmptyCell,
     OwidTable,
@@ -341,9 +342,23 @@ export function getChartSvgProps({
     }
 }
 
-type SortKeyFn<T> = (item: T) => number | string | undefined
+export type SortKeyFn<T> = (item: T) => number | string | undefined
 
-export type SortKeyFunctions<T> = Record<SortBy, SortKeyFn<T>>
+/** A sort key that leaves items in their input order */
+export const keepInputOrder = Symbol("keepInputOrder")
+
+export type SortKey<T> = SortKeyFn<T> | typeof keepInputOrder
+
+export type SortKeyFunctions<T> = Partial<Record<SortBy, SortKey<T>>>
+
+/** Sort key that orders items by their value in `sortColumn` */
+export function sortByColumnValue<T>(
+    sortColumn: CoreColumn | undefined,
+    getEntityName: (item: T) => EntityName
+): SortKeyFn<T> {
+    return (item) =>
+        sortColumn?.latestValueByEntityName.get(getEntityName(item)) ?? 0
+}
 
 export function sortByConfig<T>(
     items: readonly T[],
@@ -351,8 +366,11 @@ export function sortByConfig<T>(
     keyFns: SortKeyFunctions<T>
 ): T[] {
     const sortByKey = sortConfig.sortBy ?? SortBy.total
-    const sortByFunc = keyFns[sortByKey]
+    const sortByFunc = keyFns[sortByKey] ?? keepInputOrder
     const sortOrder = sortConfig.sortOrder ?? SortOrder.desc
+
+    if (sortByFunc === keepInputOrder)
+        return sortOrder === SortOrder.desc ? items.toReversed() : [...items]
 
     const sortedRows = _.sortBy(items, sortByFunc)
 

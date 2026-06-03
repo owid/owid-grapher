@@ -46,6 +46,12 @@ export enum SortBy {
     column = "column",
     /** Sort by the total across all columns */
     total = "total",
+    /** Sort by the change between the start and end values (dumbbell charts) */
+    change = "change",
+    /** Sort by the start value (dumbbell charts) */
+    startValue = "startValue",
+    /** Sort by the end value (dumbbell charts) */
+    endValue = "endValue",
 }
 
 export interface SortConfig {

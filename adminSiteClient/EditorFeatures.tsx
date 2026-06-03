@@ -1,4 +1,5 @@
 import { computed, makeObservable } from "mobx"
+import { SortBy } from "@ourworldindata/types"
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
 
 // Responsible for determining what parts of the editor should be shown, based on the
@@ -112,20 +113,12 @@ export class EditorFeatures {
     }
 
     @computed get canSpecifySortOrder() {
-        return (
-            this.grapherState.hasStackedDiscreteBar ||
-            this.grapherState.hasDiscreteBar ||
-            this.grapherState.hasMarimekko ||
-            this.grapherState.hasDumbbellChart
-        )
+        return this.grapherState.availableSortKeysAcrossChartTypes.length > 0
     }
 
     @computed get canSortByColumn() {
-        return (
-            this.grapherState.hasStackedDiscreteBar ||
-            this.grapherState.hasMarimekko ||
-            (this.grapherState.hasDumbbellChart &&
-                this.grapherState.yColumnSlugs.length > 1)
+        return this.grapherState.availableSortKeysAcrossChartTypes.includes(
+            SortBy.column
         )
     }
 

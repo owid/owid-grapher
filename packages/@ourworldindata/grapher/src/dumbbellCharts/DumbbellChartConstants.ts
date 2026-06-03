@@ -2,7 +2,7 @@ import { ChartManager } from "../chart/ChartManager"
 import { ChartSeries } from "../chart/ChartInterface"
 import { InteractionState } from "../interaction/InteractionState"
 import { Emphasis } from "../interaction/Emphasis"
-import { EntityName } from "@ourworldindata/types"
+import { EntityName, SortBy } from "@ourworldindata/types"
 import { TextWrap } from "@ourworldindata/components"
 import { SeriesLabelState } from "../seriesLabel/SeriesLabelState"
 import { GRAPHER_OPACITY_MUTED } from "../core/GrapherConstants.js"
@@ -132,3 +132,14 @@ export interface LegendLabel {
     color: string
     textAnchor: "center" | "outward"
 }
+
+export const DUMBBELL_SORT_KEYS = [
+    SortBy.custom,
+    SortBy.entityName,
+    SortBy.total,
+    SortBy.column,
+    SortBy.change,
+    SortBy.startValue,
+    SortBy.endValue,
+] as const
+export type DumbbellSortKey = (typeof DUMBBELL_SORT_KEYS)[number]

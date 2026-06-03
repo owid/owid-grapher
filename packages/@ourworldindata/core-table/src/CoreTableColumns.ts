@@ -558,6 +558,22 @@ export abstract class AbstractCoreColumn<
         })
         return valueByEntityNameAndTime
     }
+
+    // Not using owidRows for performance reasons
+    @imemo get latestValueByEntityName(): Map<EntityName, JS_TYPE> {
+        const map = new Map<EntityName, JS_TYPE>()
+
+        const entityNames = this.allEntityNames
+        const values = this.values
+
+        // The table is sorted by time, so later rows overwrite earlier ones,
+        // leaving each entity mapped to its latest value
+        for (let i = 0; i < values.length; i++) {
+            map.set(entityNames[i], values[i])
+        }
+
+        return map
+    }
 }
 
 export type CoreColumn<
