@@ -35,6 +35,15 @@ body.exp-topnav-v1--show-on-scroll-up {
     }
 }
 
+// Experiment topnav-v1: opt out of sticky behavior on pages that already have
+// their own sticky nav (data pages, longform posts, gdoc posts with sticky-nav).
+// Letting two sticky bars pin to top: 0 produces overlapping/jarring chrome,
+// so we fall back to the static control behavior on those pages.
+body.exp-topnav-v1--sticky:has(.sticky-nav) .site-header,
+body.exp-topnav-v1--show-on-scroll-up:has(.sticky-nav) .site-header {
+    position: static;
+}
+
 .site-navigation {
     position: relative;
     z-index: $zindex-lightbox;

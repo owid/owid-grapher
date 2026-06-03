@@ -113,12 +113,14 @@ export const SiteNavigation = ({
     useTriggerOnEscape(closeOverlay, { active: menu !== null })
 
     // Experiment topnav-v1: log a one-shot view event for treatment arms so we
-    // can split engagement metrics by arm in GA.
+    // can split engagement metrics by arm in GA. Skip on pages where the
+    // sticky behavior is disabled (own .sticky-nav present) — the user
+    // isn't actually experiencing the treatment there.
     useEffect(() => {
         const arm = getExperimentState()[TOPNAV_EXPERIMENT_ID]?.arm
-        if (arm === "sticky" || arm === "show-on-scroll-up") {
-            analytics.logTopnavView(arm)
-        }
+        if (arm !== "sticky" && arm !== "show-on-scroll-up") return
+        if (document.querySelector(".sticky-nav")) return
+        analytics.logTopnavView(arm)
     }, [])
 
     // Experiment topnav-v1, show-on-scroll-up arm: hide the header on scroll-down,
@@ -129,6 +131,10 @@ export const SiteNavigation = ({
     useEffect(() => {
         const arm = getExperimentState()[TOPNAV_EXPERIMENT_ID]?.arm
         if (arm !== "show-on-scroll-up") return
+        // Skip when the page has its own sticky nav — the CSS opts out of
+        // position: sticky there, so translating the header would just slide
+        // a static element off-screen.
+        if (document.querySelector(".sticky-nav")) return
 
         const header = document.querySelector<HTMLElement>(".site-header")
         if (!header) return
