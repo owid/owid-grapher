@@ -14,10 +14,13 @@ import {
     EntityTotal,
     Flow,
     getEntityShortLabel,
+    STACKED_MAX_NODES_TO_SHRINK_OTHER,
 } from "../../../../components/Sankey/SankeyHelpers.js"
 import { SankeyTooltip } from "../../../../components/Sankey/Sankey.js"
 import {
+    DEFAULT_FONT_SETTINGS,
     MOBILE_BREAKPOINT,
+    MOBILE_FONT_SETTINGS,
     SankeyHalfHeading,
     SankeyHalfTooltipArgs,
     SplitFlowSankey,
@@ -76,7 +79,7 @@ export function MigrationSankey({
         [emigrants, country]
     )
 
-    const isStacked = width > 0 && width < MOBILE_BREAKPOINT
+    const isStacked = view === "both" && width > 0 && width < MOBILE_BREAKPOINT
     const noImmigrants = incomingFlows.length === 0
     const noEmigrants = outgoingFlows.length === 0
     const isPairedSentence =
@@ -111,13 +114,12 @@ export function MigrationSankey({
         .with("emigrants", () => "outgoing" as const)
         .with("both", () => "both" as const)
         .exhaustive()
-    const isSingleHalf = view !== "both"
 
     return (
         <div
             ref={parentRef}
             className={cx("migration-sankey", {
-                "migration-sankey--single": isSingleHalf,
+                "migration-sankey--single": view !== "both",
             })}
         >
             <SplitFlowSankey
@@ -129,6 +131,13 @@ export function MigrationSankey({
                 formatValue={formatPeople}
                 view={splitView}
                 colorMap={colorMap}
+                isStacked={isStacked}
+                fontSettings={
+                    isStacked ? MOBILE_FONT_SETTINGS : DEFAULT_FONT_SETTINGS
+                }
+                maxNodesToShrinkOther={
+                    isStacked ? STACKED_MAX_NODES_TO_SHRINK_OTHER : undefined
+                }
             />
         </div>
     )
