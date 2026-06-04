@@ -552,7 +552,7 @@ export async function indexIndividualGdocPost(
         return
     }
 
-    const records = await getIndividualGdocRecords(gdoc, knex)
+    const records = await getIndividualGdocRecords(gdoc, knex, indexedSlug)
 
     try {
         if (
@@ -594,15 +594,20 @@ export async function getIndividualGdocRecords(
     const cloudflareImagesByFilename =
         await db.getCloudflareImagesByFilename(knex)
 
+    const currentPath = getPrefixedGdocPath("", gdoc)
     // Use indexedSlug if provided (for slug changes), otherwise use gdoc.slug
-    const existingPageviews = pageviews[`/${indexedSlug ?? gdoc.slug}`]
+    const indexedPath = getPrefixedGdocPath("", {
+        slug: indexedSlug ?? gdoc.slug,
+        content: gdoc.content,
+    })
+    const existingPageviews = pageviews[indexedPath]
     const pageviewsForGdoc = {
-        [gdoc.slug]: existingPageviews || {
+        [currentPath]: existingPageviews || {
             views_7d: 0,
             views_14d: 0,
             views_365d: 0,
             day: new Date(),
-            url: gdoc.slug,
+            url: currentPath,
         },
     }
 
