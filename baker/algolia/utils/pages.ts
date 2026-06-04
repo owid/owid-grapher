@@ -499,7 +499,7 @@ async function getExistingRecordsForSlug(
  * - We can't filter by objectID because filters require exact matches and we can't know the objectIDs beforehand
  *   - They're of the form `${gdoc.id}-c${chunkNumber}` but we don't know how many chunks exist
  */
-export async function indexIndividualGdocPost(
+export async function indexIndividualGdoc(
     gdoc: OwidGdocPostInterface | OwidGdocDataInsightInterface,
     knex: db.KnexReadonlyTransaction,
     indexedSlug: string
@@ -619,7 +619,7 @@ export async function getIndividualGdocRecords(
     )
 }
 
-export async function removeIndividualGdocPostFromIndex(slug: string) {
+export async function removeIndividualGdocFromIndex(slug: string) {
     if (!ALGOLIA_INDEXING) return
     const client = getAlgoliaClient()
     if (!client) {

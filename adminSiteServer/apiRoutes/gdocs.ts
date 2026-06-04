@@ -35,8 +35,8 @@ import {
     checkIsLightningUpdate,
 } from "../../adminSiteClient/gdocsDeploy.js"
 import {
-    indexIndividualGdocPost,
-    removeIndividualGdocPostFromIndex,
+    indexIndividualGdoc,
+    removeIndividualGdocFromIndex,
     getIndividualGdocRecords,
     getPreprocessedIndexableText,
     indexIndividualProfile,
@@ -355,7 +355,7 @@ async function indexAndBakeGdocIfNeccesary(
         .with(GdocPublishingAction.SavingDraft, _.noop)
         .with(GdocPublishingAction.Publishing, async () => {
             if (shouldIndexInPages) {
-                await indexIndividualGdocPost(
+                await indexIndividualGdoc(
                     nextJson,
                     trx,
                     // If the gdoc is being published for the first time, prevGdoc.slug will be undefined
@@ -373,7 +373,7 @@ async function indexAndBakeGdocIfNeccesary(
         })
         .with(GdocPublishingAction.Updating, async () => {
             if (shouldIndexInPages) {
-                await indexIndividualGdocPost(nextJson, trx, prevGdoc.slug)
+                await indexIndividualGdoc(nextJson, trx, prevGdoc.slug)
             }
             if (isProfile) {
                 await indexIndividualProfile(nextGdoc as GdocProfile, trx)
@@ -393,7 +393,7 @@ async function indexAndBakeGdocIfNeccesary(
         })
         .with(GdocPublishingAction.Unpublishing, async () => {
             if (wasIndexedInPages) {
-                await removeIndividualGdocPostFromIndex(prevJson.slug)
+                await removeIndividualGdocFromIndex(prevJson.slug)
             }
             if (wasProfile) {
                 await removeIndividualProfileFromIndex(prevGdoc as GdocProfile)
@@ -599,7 +599,7 @@ export async function deleteGdoc(
             checkIsGdocPostExcludingFragments(gdoc) ||
             gdoc.content.type === OwidGdocType.DataInsight
         ) {
-            await removeIndividualGdocPostFromIndex(gdoc.slug)
+            await removeIndividualGdocFromIndex(gdoc.slug)
         }
         if (checkIsProfile(gdoc)) {
             await removeIndividualProfileFromIndex(
