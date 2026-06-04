@@ -340,10 +340,15 @@ async function indexAndBakeGdocIfNeccesary(
     const nextJson = nextGdoc.toJSON()
     const hasChanges = checkHasChanges(prevGdoc, nextGdoc)
     const action = getPublishingAction(prevJson, nextJson)
+    const wasIndexedInPages =
+        checkIsGdocPostExcludingFragments(prevJson) ||
+        checkIsDataInsight(prevJson)
     const shouldIndexInPages =
         checkIsGdocPostExcludingFragments(nextJson) ||
         checkIsDataInsight(nextJson)
+    const wasProfile = checkIsProfile(prevJson)
     const isProfile = checkIsProfile(nextJson)
+    const wasChronologicalPost = checkIsChronologicalGdoc(prevJson)
     const isChronologicalPost = checkIsChronologicalGdoc(nextJson)
 
     await match(action)
@@ -387,14 +392,14 @@ async function indexAndBakeGdocIfNeccesary(
             }
         })
         .with(GdocPublishingAction.Unpublishing, async () => {
-            if (shouldIndexInPages) {
-                await removeIndividualGdocPostFromIndex(nextJson.slug)
+            if (wasIndexedInPages) {
+                await removeIndividualGdocPostFromIndex(prevJson.slug)
             }
-            if (isProfile) {
-                await removeIndividualProfileFromIndex(nextGdoc as GdocProfile)
+            if (wasProfile) {
+                await removeIndividualProfileFromIndex(prevGdoc as GdocProfile)
             }
-            if (isChronologicalPost) {
-                await removeIndividualGdocFromChronological(nextJson.id)
+            if (wasChronologicalPost) {
+                await removeIndividualGdocFromChronological(prevJson.id)
             }
             await triggerStaticBuild(user, `${action} ${nextJson.slug}`)
         })
