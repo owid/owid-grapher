@@ -378,7 +378,7 @@ function MigrationChartFooter({ source }: { source: string }) {
     return (
         <ChartFooter
             source={source}
-            note='Only the top ten partners are named; the remainder are grouped as "Other". Figures represent migrant stocks — the number of migrants living in a country at a given time — not annual flows.'
+            note='Only the largest partners are named; the remainder are grouped as "Other". Figures represent migrant stocks — the number of migrants living in a country at a given time — not annual flows.'
         />
     )
 }
