@@ -165,8 +165,6 @@ function buildSankeyHalf({
     const hasData = flows.length > 0
 
     const adjective = getSexAdjective(sex)
-    const headingAdjective =
-        isPairedSentence && !isIncoming ? undefined : adjective
 
     const shortEntityName = getEntityShortLabel(country)
     const shortEntityNameWithArticle =
@@ -184,20 +182,14 @@ function buildSankeyHalf({
                   total,
                   shortEntityNameWithArticle,
                   isPairedSentence,
-                  sexAdjective: headingAdjective,
-                  view,
+                  sexAdjective: adjective,
               }),
               arrowSide,
           }
         : {
-              label:
-                  view === "both"
-                      ? isIncoming
-                          ? `No ${sexNoun} in ${shortEntityNameWithArticle} were born elsewhere`
-                          : `No ${sexNoun} born in ${shortEntityNameWithArticle} live abroad`
-                      : isIncoming
-                        ? `No ${sexPrefix}immigrants`
-                        : `No ${sexPrefix}emigrants`,
+              label: isIncoming
+                  ? `No ${sexNoun} in ${shortEntityNameWithArticle} were born elsewhere`
+                  : `No ${sexNoun} born in ${shortEntityNameWithArticle} live abroad`,
           }
 
     const cta =
@@ -243,45 +235,35 @@ function makeHeadingLabel({
     shortEntityNameWithArticle,
     isPairedSentence,
     sexAdjective,
-    view,
 }: {
     direction: "incoming" | "outgoing"
     total: number
     shortEntityNameWithArticle: string
     isPairedSentence: boolean
     sexAdjective?: string
-    view: MigrationView
 }): ReactNode {
     const count = formatPeople(total, { unit: false })
-    const sexPrefix = sexAdjective ? `${sexAdjective} ` : ""
-    if (view === "both") {
-        const peopleNoun = getSexNoun(sexAdjective)
-        if (direction === "incoming") {
-            return (
-                <>
-                    {count} {peopleNoun} in {shortEntityNameWithArticle} were{" "}
-                    <strong className="split-flow-sankey__heading-emphasis">
-                        born elsewhere
-                    </strong>
-                </>
-            )
-        }
-        const prefix = isPairedSentence ? "and " : ""
+    const peopleNoun = getSexNoun(sexAdjective)
+    if (direction === "incoming") {
         return (
             <>
-                {prefix}
-                {count} {peopleNoun} born in {shortEntityNameWithArticle}{" "}
+                {count} {peopleNoun} in {shortEntityNameWithArticle} were{" "}
                 <strong className="split-flow-sankey__heading-emphasis">
-                    live abroad
+                    born elsewhere
                 </strong>
             </>
         )
     }
-    if (direction === "incoming") {
-        return `${count} ${sexPrefix}immigrants lived in ${shortEntityNameWithArticle}`
-    }
     const prefix = isPairedSentence ? "and " : ""
-    return `${prefix}${count} ${sexPrefix}emigrants from ${shortEntityNameWithArticle} lived abroad`
+    return (
+        <>
+            {prefix}
+            {count} {peopleNoun} born in {shortEntityNameWithArticle}{" "}
+            <strong className="split-flow-sankey__heading-emphasis">
+                live abroad
+            </strong>
+        </>
+    )
 }
 
 function getMigrationLinkTooltip({
