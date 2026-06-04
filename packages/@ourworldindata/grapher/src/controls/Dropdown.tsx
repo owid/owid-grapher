@@ -75,6 +75,35 @@ function isOptionGroup<DropdownOption extends BasicDropdownOption>(
     return (item as DropdownOptionGroup<DropdownOption>).options !== undefined
 }
 
+// react-aria's Autocomplete triggers the focused option on Enter via
+// `document.getElementById(focusedNodeId)`, which doesn't pierce shadow roots.
+// When the popover is portaled into a shadow DOM (as our bespoke components do),
+// the lookup returns null and Enter silently no-ops, even though arrow-key
+// navigation still works. We replicate react-aria's behavior with a shadow-aware
+// lookup, but only when the option isn't reachable from `document` — so this is a
+// no-op in the light DOM, where react-aria handles Enter as usual.
+function handleSearchableEnterInShadowDom(e: React.KeyboardEvent): void {
+    if (e.key !== "Enter") return
+    // Ignore the Enter that confirms an in-progress IME composition (e.g. when
+    // typing Japanese or Chinese), otherwise we'd select an option before the
+    // user has finished editing their query.
+    if (e.nativeEvent.isComposing) return
+    const input = e.currentTarget.querySelector<HTMLInputElement>(
+        "input[aria-activedescendant]"
+    )
+    const activeId = input?.getAttribute("aria-activedescendant")
+    if (!activeId) return
+    if (document.getElementById(activeId)) return
+    const root = input!.getRootNode()
+    if (!(root instanceof ShadowRoot)) return
+    const item = root.getElementById(activeId)
+    if (!item) return
+    e.preventDefault()
+    item.dispatchEvent(
+        new PointerEvent("click", { bubbles: true, cancelable: true })
+    )
+}
+
 function flattenOptions<DropdownOption extends BasicDropdownOption>(
     options: DropdownCollection<DropdownOption>
 ): DropdownOption[] {
@@ -175,33 +204,41 @@ export function Dropdown<DropdownOption extends BasicDropdownOption>({
             data-owid-dropdown=""
             offset={4}
         >
-            {isSearchable ? (
-                // If inputValue is provided, the component is controlled
-                // and we expect the filtering to happen outside of it.
-                <Autocomplete filter={inputValue ? undefined : contains}>
-                    <SearchField
-                        className="grapher-dropdown-search"
-                        aria-label="Search"
-                        autoFocus
-                        value={inputValue}
-                        onChange={onInputChange}
-                    >
-                        <span className="grapher-dropdown-search-icon" />
-                        <Input
-                            className="grapher-dropdown-search-input"
-                            style={{
-                                fontSize: isTouchDevice() ? 16 : undefined,
-                            }}
-                        />
-                        <Button className="grapher-dropdown-search-reset">
-                            <FontAwesomeIcon icon={faTimesCircle} aria-hidden />
-                        </Button>
-                    </SearchField>
-                    {listBox}
-                </Autocomplete>
-            ) : (
-                listBox
-            )}
+            <div
+                className="grapher-dropdown-menu-content"
+                onKeyDownCapture={handleSearchableEnterInShadowDom}
+            >
+                {isSearchable ? (
+                    // If inputValue is provided, the component is controlled
+                    // and we expect the filtering to happen outside of it.
+                    <Autocomplete filter={inputValue ? undefined : contains}>
+                        <SearchField
+                            className="grapher-dropdown-search"
+                            aria-label="Search"
+                            autoFocus
+                            value={inputValue}
+                            onChange={onInputChange}
+                        >
+                            <span className="grapher-dropdown-search-icon" />
+                            <Input
+                                className="grapher-dropdown-search-input"
+                                style={{
+                                    fontSize: isTouchDevice() ? 16 : undefined,
+                                }}
+                            />
+                            <Button className="grapher-dropdown-search-reset">
+                                <FontAwesomeIcon
+                                    icon={faTimesCircle}
+                                    aria-hidden
+                                />
+                            </Button>
+                        </SearchField>
+                        {listBox}
+                    </Autocomplete>
+                ) : (
+                    listBox
+                )}
+            </div>
         </Popover>
     )
 
