@@ -544,7 +544,7 @@ export class GdocBase implements OwidGdocBaseInterface {
                 return links
             })
             .with({ type: "static-viz" }, (block) => {
-                return [
+                const links: DbInsertPostGdocLink[] = [
                     {
                         target: block.name,
                         linkType: ContentGraphLinkType.StaticViz,
@@ -555,6 +555,15 @@ export class GdocBase implements OwidGdocBaseInterface {
                         sourceId: this.id,
                     },
                 ]
+                if (block.caption) {
+                    for (const span of block.caption) {
+                        traverseEnrichedSpan(span, (span) => {
+                            const link = this.extractLinkFromSpan(span)
+                            if (link) links.push(link)
+                        })
+                    }
+                }
+                return links
             })
             .with({ type: "person" }, (block) => {
                 if (!block.url) return []
