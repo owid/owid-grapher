@@ -15,7 +15,6 @@ import {
     aggregateBySide,
     assignColors,
     DEFAULT_MAX_NODES,
-    DEFAULT_MAX_NODES_TO_SHRINK_OTHER,
     DEFAULT_MIN_LINK_SHARE,
     DEFAULT_MIN_NODE_SHARE,
     getEntityFromNodeId,
@@ -27,17 +26,14 @@ import {
     makeValueLabel,
     NEUTRAL_COLOR,
     OTHER_KEY,
-    selectTopEntities,
 } from "./SankeyHelpers.js"
 
 interface BilateralFlowSankeyProps {
     flows: Flow[]
     width: number
     height: number
-    /** How many significant sources/targets to show by default before bucketing into "Other" */
+    /** How many top sources/targets to show; the rest fold into "Other" */
     maxNodes?: number
-    /** Raised ceiling used to shrink an oversized "Other" bucket */
-    maxNodesToShrinkOther?: number
     /**
      * Minimum share of its column total an entity must reach to keep its own
      * node slot; below this it's folded into the "Other" bucket
@@ -62,7 +58,6 @@ export function BilateralFlowSankey({
     width,
     height,
     maxNodes = DEFAULT_MAX_NODES,
-    maxNodesToShrinkOther = DEFAULT_MAX_NODES_TO_SHRINK_OTHER,
     minNodeShare = DEFAULT_MIN_NODE_SHARE,
     minLinkShare = DEFAULT_MIN_LINK_SHARE,
     getTooltip,
@@ -74,19 +69,11 @@ export function BilateralFlowSankey({
             buildBilateral({
                 flows,
                 maxNodes,
-                maxNodesToShrinkOther,
                 minNodeShare,
                 minLinkShare,
                 formatValue,
             }),
-        [
-            flows,
-            maxNodes,
-            maxNodesToShrinkOther,
-            minNodeShare,
-            minLinkShare,
-            formatValue,
-        ]
+        [flows, maxNodes, minNodeShare, minLinkShare, formatValue]
     )
 
     const getEntityIdsFromNodes = (nodes: SankeyNode[]) =>
@@ -227,17 +214,66 @@ function buildTooltipArgs({
     return { side, entity, partners, flows: sortedFlows }
 }
 
+/**
+ * Aggregate flow rows by side (collapsing multiple rows into one per-entity
+ * total), then pick the top N. An entity that made the top N gets demoted
+ * into the "Other" bucket if its share of the column total is below
+ * minNodeShare.
+ */
+export function selectTopEntities({
+    flows,
+    side,
+    maxNodes,
+    minNodeShare,
+    showAllOtherBelow = 0,
+}: {
+    flows: Flow[]
+    side: LinkSide
+    maxNodes: number
+    minNodeShare: number
+    /**
+     * When the Other bucket would contain this many entries or fewer,
+     * fold them back into `top` instead so the chart shows each
+     * individually
+     */
+    showAllOtherBelow?: number
+}): {
+    top: EntityTotal[]
+    other: EntityTotal[]
+    total: number
+} {
+    const sortedEntities = aggregateBySide(flows, side)
+
+    const total = R.sumBy(sortedEntities, (d) => d.total)
+
+    const topCandidates = R.take(sortedEntities, maxNodes)
+    const topCandidatesAboveFloor = topCandidates.filter(
+        (d) => total > 0 && d.total / total >= minNodeShare
+    )
+    let top =
+        topCandidatesAboveFloor.length > 0
+            ? topCandidatesAboveFloor
+            : R.take(topCandidates, 1)
+    let other = R.drop(sortedEntities, top.length)
+
+    // Inline a small Other tail
+    if (other.length > 0 && other.length <= showAllOtherBelow) {
+        top = [...top, ...other]
+        other = []
+    }
+
+    return { top, other, total }
+}
+
 function buildBilateral({
     flows,
     maxNodes,
-    maxNodesToShrinkOther,
     minNodeShare,
     minLinkShare,
     formatValue,
 }: {
     flows: Flow[]
     maxNodes: number
-    maxNodesToShrinkOther: number
     minNodeShare: number
     minLinkShare: number
     formatValue: (value: number) => string
@@ -250,14 +286,12 @@ function buildBilateral({
         flows,
         side: "source",
         maxNodes,
-        maxNodesToShrinkOther,
         minNodeShare,
     })
     const targetSelection = selectTopEntities({
         flows,
         side: "target",
         maxNodes,
-        maxNodesToShrinkOther,
         minNodeShare,
     })
 

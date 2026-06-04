@@ -7,6 +7,7 @@ import { type FontSettings } from "@ourworldindata/grapher"
 import {
     BAND_LABEL_GAP,
     getSankeyVerticalLabelPadding,
+    LinkSide,
     LinkTooltipArgs,
     measureMaxLabelWidthForNode,
     NodeTooltipArgs,
@@ -16,6 +17,7 @@ import {
     SankeyTooltip,
 } from "./Sankey.js"
 import {
+    aggregateBySide,
     assignColors,
     DEFAULT_MAX_NODES,
     DEFAULT_MAX_NODES_TO_SHRINK_OTHER,
@@ -26,7 +28,6 @@ import {
     makeValueLabel,
     NEUTRAL_COLOR,
     OTHER_KEY,
-    selectTopEntities,
 } from "./SankeyHelpers.js"
 
 /**
@@ -53,7 +54,7 @@ export const DEFAULT_FONT_SETTINGS: FontSettings = {
 }
 
 /** Shrunk font for node labels when the two halves are stacked on narrow containers */
-const MOBILE_FONT_SETTINGS: FontSettings = {
+export const MOBILE_FONT_SETTINGS: FontSettings = {
     fontSize: 10.5,
     fontWeight: 400,
     lineHeight: 1,
@@ -110,6 +111,10 @@ interface SplitFlowSankeyProps {
     height: number
     /** Which halves to show. Single-half view takes the full width. */
     view?: View
+    /** Stack the two halves vertically instead of side-by-side */
+    isStacked?: boolean
+    /** Font for node labels */
+    fontSettings?: FontSettings
     /** How many significant partners to show per half by default */
     maxNodes?: number
     /** Raised ceiling used to shrink an oversized "Other" bucket */
@@ -125,6 +130,8 @@ export function SplitFlowSankey({
     width,
     height,
     view = "both",
+    isStacked = false,
+    fontSettings = DEFAULT_FONT_SETTINGS,
     maxNodes = DEFAULT_MAX_NODES,
     maxNodesToShrinkOther = DEFAULT_MAX_NODES_TO_SHRINK_OTHER,
     minNodeShare = DEFAULT_MIN_NODE_SHARE,
@@ -203,12 +210,6 @@ export function SplitFlowSankey({
         if (partner === null) return NEUTRAL_COLOR
         return colorMap.get(partner) ?? NEUTRAL_COLOR
     }
-
-    // Narrow containers stack the two halves vertically instead of side-by-side
-    const isStacked = !isSingleHalf && width > 0 && width < MOBILE_BREAKPOINT
-    const fontSettings: FontSettings = isStacked
-        ? MOBILE_FONT_SETTINGS
-        : DEFAULT_FONT_SETTINGS
 
     const halfWidth =
         isSingleHalf || isStacked
@@ -527,6 +528,90 @@ function makeNodeTooltipGetter({
             otherBreakdown: isOther ? otherBreakdown : undefined,
         })
     }
+}
+
+/**
+ * Choose which entities on a given side to show as their own Sankey node;
+ * everything else is folded into an "Other" bucket.
+ *
+ *  1. Significance floor — show every entity individually big enough to read as
+ *     its own node (≥ `minNodeShare` of the column total), largest-first, up to
+ *     `maxNodes`.
+ *  2. "Other"-is-smallest — a reader shouldn't see the aggregated "Other"
+ *     bucket outweigh an individually named partner. While it does, promote the
+ *     largest remaining entity out of "Other".
+ */
+export function selectTopEntities({
+    flows,
+    side,
+    maxNodes,
+    maxNodesToShrinkOther = maxNodes,
+    minNodeShare,
+    showAllOtherBelow = 0,
+}: {
+    flows: Flow[]
+    side: LinkSide
+    maxNodes: number
+    maxNodesToShrinkOther?: number
+    minNodeShare: number
+    /**
+     * When the Other bucket would contain this many entries or fewer,
+     * fold them back into `top` instead so the chart shows each
+     * individually
+     */
+    showAllOtherBelow?: number
+}): {
+    top: EntityTotal[]
+    other: EntityTotal[]
+    total: number
+} {
+    const sortedEntities = aggregateBySide(flows, side)
+    const total = R.sumBy(sortedEntities, (d) => d.total)
+
+    if (sortedEntities.length === 0 || total <= 0) {
+        return { top: sortedEntities, other: [], total }
+    }
+
+    // The most nodes we'd ever draw
+    const ceiling = Math.max(maxNodes, maxNodesToShrinkOther)
+
+    // Show all if there are few enough
+    if (sortedEntities.length <= ceiling) {
+        return { top: sortedEntities, other: [], total }
+    }
+
+    const floor = minNodeShare * total
+
+    // 1. Significance floor: the leading run of entities at or above the floor,
+    //    but always ≥ 1 and never more than the default node budget
+    const significant = R.takeWhile(
+        sortedEntities,
+        (d) => d.total >= floor
+    ).length
+    const baseCount = R.clamp(significant, { min: 1, max: maxNodes })
+
+    // 2. "Other"-is-smallest: Promote entities out of "Other" while it both
+    //    outweighs the smallest shown node and is itself above the floor,
+    //    climbing up to the ceiling
+    const otherTotalFrom = (k: number): number =>
+        total - R.sumBy(R.take(sortedEntities, k), (d) => d.total)
+    const promotions = R.takeWhile(R.range(baseCount, ceiling), (k) => {
+        const otherTotal = otherTotalFrom(k)
+        return otherTotal > sortedEntities[k - 1].total && otherTotal >= floor
+    }).length
+
+    const count = baseCount + promotions
+
+    let top = R.take(sortedEntities, count)
+    let other = R.drop(sortedEntities, count)
+
+    // Inline a small Other tail
+    if (other.length > 0 && other.length <= showAllOtherBelow) {
+        top = [...top, ...other]
+        other = []
+    }
+
+    return { top, other, total }
 }
 
 /**
