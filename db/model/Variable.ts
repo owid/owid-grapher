@@ -1204,3 +1204,51 @@ export const getVariableIdsByCatalogPath = async (
         catalogPaths.sort().map((path) => [path, rowsByPath[path]?.id ?? null])
     )
 }
+
+/**
+ * Resolve the latest variable id for each given catalog path.
+ *
+ * Catalog paths follow the structure
+ * `channel/namespace/version/dataset/table#column`, where the version (the 3rd
+ * path segment) is an ISO date such as `2024-07-15`. This helper takes a
+ * version-agnostic catalog path (with the version segment replaced by 'latest',
+ * e.g. `grapher/worldbank_wdi/latest/wdi/wdi#ny_gdp_pcap_pp_kd`) and returns
+ * the id of the most recent version
+ */
+export const getLatestVariableIdsByCatalogPath = async (
+    catalogPaths: string[],
+    knex: db.KnexReadonlyTransaction
+): Promise<Map<string, number | null>> => {
+    const VERSION_SEGMENT_INDEX = 2 // The version is the 3rd path segment
+    const getVersion = (catalogPath: string | null): string =>
+        catalogPath?.split("/")[VERSION_SEGMENT_INDEX] ?? ""
+
+    // Escape the LIKE wildcards `%` and `_`
+    const escapeLike = (segment: string): string =>
+        segment.replace(/[\\%_]/g, "\\$&")
+
+    const entries = await Promise.all(
+        catalogPaths.map(async (catalogPath) => {
+            // Replace the version segment with a SQL wildcard so we match every
+            // published version of the indicator, and escape the rest.
+            const likePattern = catalogPath
+                .split("/")
+                .map((segment, index) =>
+                    index === VERSION_SEGMENT_INDEX ? "%" : escapeLike(segment)
+                )
+                .join("/")
+
+            const rows: Pick<DbRawVariable, "id" | "catalogPath">[] = await knex
+                .select("id", "catalogPath")
+                .from(VariablesTableName)
+                .where("catalogPath", "like", likePattern)
+
+            // Pick the most recent version
+            const latest = _.maxBy(rows, (row) => getVersion(row.catalogPath))
+
+            return [catalogPath, latest?.id ?? null] as const
+        })
+    )
+
+    return new Map(entries)
+}

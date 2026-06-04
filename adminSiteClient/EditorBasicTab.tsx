@@ -27,8 +27,6 @@ import {
     DimensionSlot,
     WORLD_ENTITY_NAME,
     CONTINENTS_INDICATOR_ID,
-    POPULATION_INDICATOR_ID_USED_IN_ADMIN,
-    GDP_PER_CAPITA_INDICATOR_ID_USED_IN_ADMIN,
     findPotentialChartTypeSiblings,
     ChartDimension,
     SelectionArray,
@@ -58,6 +56,10 @@ import {
     isIndicatorChartEditorInstance,
 } from "./IndicatorChartEditor.js"
 import { EditableTags } from "./EditableTags.js"
+import {
+    GDP_PER_CAPITA_CATALOG_PATH,
+    POPULATION_CATALOG_PATH,
+} from "./constants.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import {
     NarrativeChartEditor,
@@ -666,7 +668,8 @@ export class EditorBasicTab<
 
     @action.bound
     private async applyDefaultsForScatter(): Promise<void> {
-        const { grapherState } = this.props.editor
+        const { grapherState, variableIdsByCatalogPath = {} } =
+            this.props.editor
         const { editor } = this.props
 
         const existingDimensions = grapherState.dimensions.map((dim) =>
@@ -676,26 +679,38 @@ export class EditorBasicTab<
             ...existingDimensions,
         ]
 
-        // Add default x indicator if not already present
         const hasX = existingDimensions.find(
             (d) => d.property === DimensionProperty.x
         )
-        if (!hasX) {
-            newDimensions.push({
-                variableId: GDP_PER_CAPITA_INDICATOR_ID_USED_IN_ADMIN,
-                property: DimensionProperty.x,
-            })
-
-            // GDP per capita is best viewed on a log scale,
-            // so enable the log/linear switch and default to log
-            grapherState.xAxis.canChangeScaleType = true
-            grapherState.xAxis.scaleType = ScaleType.log
-        }
-
-        // Add default color indicator if not already present
         const hasColor = existingDimensions.find(
             (d) => d.property === DimensionProperty.color
         )
+        const hasSize = existingDimensions.find(
+            (d) => d.property === DimensionProperty.size
+        )
+
+        // Add default x indicator if not already present
+        const gdpPerCapitaId =
+            variableIdsByCatalogPath[GDP_PER_CAPITA_CATALOG_PATH]
+        if (!hasX) {
+            if (gdpPerCapitaId) {
+                newDimensions.push({
+                    variableId: gdpPerCapitaId,
+                    property: DimensionProperty.x,
+                })
+
+                // GDP per capita is best viewed on a log scale,
+                // so enable the log/linear switch and default to log
+                grapherState.xAxis.canChangeScaleType = true
+                grapherState.xAxis.scaleType = ScaleType.log
+            } else {
+                console.error(
+                    `Could not resolve a variable id for catalog path "${GDP_PER_CAPITA_CATALOG_PATH}"; skipping the default x dimension.`
+                )
+            }
+        }
+
+        // Add default color indicator if not already present
         if (!hasColor)
             newDimensions.push({
                 variableId: CONTINENTS_INDICATOR_ID,
@@ -703,14 +718,19 @@ export class EditorBasicTab<
             })
 
         // Add default size indicator if not already present
-        const hasSize = existingDimensions.find(
-            (d) => d.property === DimensionProperty.size
-        )
-        if (!hasSize)
-            newDimensions.push({
-                variableId: POPULATION_INDICATOR_ID_USED_IN_ADMIN,
-                property: DimensionProperty.size,
-            })
+        const populationId = variableIdsByCatalogPath[POPULATION_CATALOG_PATH]
+        if (!hasSize) {
+            if (populationId) {
+                newDimensions.push({
+                    variableId: populationId,
+                    property: DimensionProperty.size,
+                })
+            } else {
+                console.error(
+                    `Could not resolve a variable id for catalog path "${POPULATION_CATALOG_PATH}"; skipping the default size dimension.`
+                )
+            }
+        }
 
         // Update dimensions if any new ones were added
         if (newDimensions.length > existingDimensions.length) {
