@@ -129,6 +129,11 @@ nav.controlsRow .controls {
     .ContentSwitchers .Tabs__Tab .label {
         display: none;
     }
+
+    // center the icon now that it's the only content in the tab
+    .ContentSwitchers .Tabs__Tab .ContentSwitchers__TabContent {
+        justify-content: center;
+    }
 }
 
 // reduce the horizontal padding of a content switcher tab based on grapher's size
