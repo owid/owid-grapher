@@ -289,7 +289,7 @@ function getTradeLinkTooltip({
         ? exporter === "Other"
             ? "Other exporters"
             : "Other importers"
-        : `${getEntityShortLabel(exporter)} → ${getEntityShortLabel(importer)}`
+        : `${exporter} → ${importer}`
 
     const share = halfTotal > 0 ? value / halfTotal : 0
     const formattedShare = formatShare(share)

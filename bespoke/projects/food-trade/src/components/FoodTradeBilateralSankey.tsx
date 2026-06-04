@@ -80,7 +80,7 @@ function getBilateralTooltip({
         ? isExporterSide
             ? "Other exporters"
             : "Other importers"
-        : getEntityShortLabel(entity)
+        : entity
 
     const subtitle = isOther
         ? year.toString()

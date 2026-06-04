@@ -19,6 +19,7 @@ import { FoodTradeControls } from "../components/FoodTradeControls.js"
 import { FoodTradeChart } from "../components/FoodTradeChart.js"
 import { ALL_COUNTRIES, formatTrade, isAllCountry } from "../helpers.js"
 import { useUrlState } from "../../../../hooks/useUrlState.js"
+import { useDelayedLoading } from "../../../../hooks/useDelayedLoading.js"
 import { useContainerWidth } from "../../../../hooks/useContainerWidth.js"
 import {
     isUserLocationCountry,
@@ -96,10 +97,15 @@ function FetchingSankeyVariant({ config }: { config: SankeyVariantConfig }) {
 
     const { data: metadata, status: metadataStatus } = useFoodTradeMetadata()
     const productId = metadata?.productByName.get(product)?.id
-    const { data: productData, status: productStatus } = useProductTradeData(
-        productId,
-        metadata
-    )
+    const {
+        data: productData,
+        status: productStatus,
+        isPlaceholderData,
+    } = useProductTradeData(productId, metadata)
+
+    // Dim the chart and show a spinner while a new product file loads,
+    // keeping the previous product on screen until the new one arrives.
+    const isLoading = useDelayedLoading(isPlaceholderData)
 
     // When the selected country only trades this product in one direction,
     // the other view has nothing to show. Coerce the displayed view to the
@@ -161,6 +167,7 @@ function FetchingSankeyVariant({ config }: { config: SankeyVariantConfig }) {
             product={product}
             country={country}
             view={view}
+            isLoading={isLoading}
             setProduct={setProduct}
             setCountry={setCountry}
             setView={setView}
@@ -174,6 +181,7 @@ function CaptionedSankeyVariant({
     product,
     country,
     view,
+    isLoading,
     setProduct,
     setCountry,
     setView,
@@ -185,6 +193,7 @@ function CaptionedSankeyVariant({
     product: string
     country: string
     view: Flow
+    isLoading: boolean
     setProduct: (value: string) => void
     setCountry: (value: string) => void
     setView: (value: Flow) => void
@@ -234,6 +243,7 @@ function CaptionedSankeyVariant({
                     product={product}
                     year={metadata.year}
                     view={view}
+                    isLoading={isLoading}
                     hideFlowSwitcher={config.hideFlowSwitcher}
                     setCountry={setCountry}
                     setView={setView}

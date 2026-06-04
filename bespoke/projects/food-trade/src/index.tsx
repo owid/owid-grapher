@@ -21,7 +21,7 @@ export const VARIANTS = [
     {
         name: "sankey",
         component: SankeyVariant,
-        demoConfig: {},
+        demoConfig: { urlSync: "true" },
     },
 ] satisfies BespokeComponentVariantsList<VariantName>
 

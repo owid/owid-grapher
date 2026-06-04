@@ -41,7 +41,7 @@ export const useProductTradeData = (
 ): {
     data?: ProductTradeData
     status: QueryStatus
-    isFetching: boolean
+    isPlaceholderData: boolean
 } => {
     const result = useQuery({
         queryKey: queryKeys.product(productId!),
@@ -61,7 +61,10 @@ export const useProductTradeData = (
     return {
         data,
         status: result.status,
-        isFetching: result.isFetching,
+        // True while a previously-loaded product stays on screen as a new
+        // product file is being fetched — used to dim the chart and show a
+        // spinner. False on the initial load (the skeleton covers that).
+        isPlaceholderData: result.isPlaceholderData,
     }
 }
 

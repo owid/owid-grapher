@@ -4,6 +4,7 @@ import * as R from "remeda"
 
 import { articulateEntity } from "@ourworldindata/utils"
 
+import { Spinner } from "../../../../components/Spinner/Spinner.js"
 import { Flow } from "../config.js"
 import { ALL_COUNTRIES, isAllCountry } from "../helpers.js"
 import { ProductTradeData } from "../types.js"
@@ -16,6 +17,7 @@ export function FoodTradeChart({
     product,
     year,
     view,
+    isLoading,
     hideFlowSwitcher,
     setCountry,
     setView,
@@ -25,6 +27,7 @@ export function FoodTradeChart({
     product: string
     year: number
     view: Flow
+    isLoading?: boolean
     hideFlowSwitcher?: boolean
     setCountry: (value: string) => void
     setView: (value: Flow) => void
@@ -51,6 +54,7 @@ export function FoodTradeChart({
 
     return (
         <div className="food-trade-captioned-chart__chart-area">
+            {isLoading && <Spinner />}
             {match(mode)
                 .with("bilateral", () => {
                     return flows.length > 0 ? (
