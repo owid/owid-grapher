@@ -206,7 +206,7 @@ function ViewSwitcher({
                     selectedKey={view}
                     onChange={setView}
                     isDisabled={isDisabled}
-                    aria-label="Migration flow"
+                    ariaLabel="Migration flow"
                 />
             </div>
         </Tippy>
