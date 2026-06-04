@@ -64,6 +64,7 @@ export interface AbstractChartEditorManager {
     // inheritance. Undefined for editors that don't have this layer.
     etlConfig?: GrapherInterface
     isInheritanceEnabled?: boolean
+    variableIdsByCatalogPath?: Record<string, number | null>
 }
 
 export interface References {
@@ -187,6 +188,12 @@ export abstract class AbstractChartEditor<
     }
 
     abstract get references(): References | undefined
+
+    @computed get variableIdsByCatalogPath():
+        | Record<string, number | null>
+        | undefined {
+        return this.manager.variableIdsByCatalogPath
+    }
 
     /** original grapher config used to init the grapherState instance */
     @computed get originalGrapherConfig(): GrapherInterface {

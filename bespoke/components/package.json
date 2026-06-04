@@ -3,6 +3,7 @@
     "private": true,
     "type": "module",
     "dependencies": {
+        "@ourworldindata/grapher": "link:../../packages/@ourworldindata/grapher",
         "@ourworldindata/types": "link:../../packages/@ourworldindata/types",
         "@ourworldindata/utils": "link:../../packages/@ourworldindata/utils",
         "@visx/drag": "^3.12.0",

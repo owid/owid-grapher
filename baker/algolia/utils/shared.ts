@@ -12,6 +12,7 @@ import {
 } from "@ourworldindata/utils"
 import {
     getFeaturedMetricsByParentTagName,
+    knexRaw,
     KnexReadonlyTransaction,
 } from "../../../db/db.js"
 import {
@@ -29,6 +30,7 @@ import {
 } from "./types.js"
 import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
 import { GRAPHER_ROUTE_FOLDER } from "@ourworldindata/grapher"
+import * as db from "../../../db/db.js"
 
 const countriesWithVariantNames = new Set(
     countries
@@ -187,6 +189,18 @@ function findMatchingRecordByPathnameAndQueryParams(
 }
 
 export const MAX_NON_FM_RECORD_SCORE = 10000
+
+/**
+ * Unified score formula for all record types (charts, multi-dim views, explorer views).
+ * Pageviews are the dominant signal — for most records they're far larger than
+ * the related-articles term, so ranking is effectively pageview-driven. The
+ * related-articles term adds a modest editorial bump that mainly matters at the
+ * low-traffic end.
+ */
+export const computeRecordScore = (
+    numRelatedArticles: number,
+    views_7d: number
+): number => numRelatedArticles * 500 + views_7d
 
 /**
  * All featured metrics start at a score of 11000, which places them above all
@@ -383,3 +397,138 @@ export const EMPTY_DATASET_CHART_RECORD_DIMENSIONS: DatasetChartRecordDimensions
         datasetProducts: [],
         datasetProducers: [],
     }
+
+/**
+ * The route-folder a featured metric lives under, used to disambiguate keys
+ * since graphers/multi-dims and explorers can share the same slug.
+ * Charts and multi-dim views both live under /grapher/ and share a slug
+ * namespace, so a single "grapher" source covers both.
+ */
+export type FeaturedMetricSource = "grapher" | "explorer"
+
+/**
+ * Builds a canonical key for FM lookup from a source, slug and optional query
+ * params. Params are sorted alphabetically so that order differences don't
+ * matter. The source disambiguates records that share a slug across
+ * /grapher/ and /explorers/.
+ */
+export function makeFeaturedMetricKey(
+    source: FeaturedMetricSource,
+    slug: string,
+    queryParams?: string | null
+): string {
+    const base = `${source}:${slug}`
+    if (!queryParams) return base
+    const params = new URLSearchParams(queryParams.replace(/^\?/, ""))
+    params.sort()
+    return `${base}?${params.toString()}`
+}
+
+/**
+ * Returns a set of FM keys (source + slug + sorted query params) for all
+ * featured metrics. This is used to give a scoring bonus to records whose
+ * specific chart/explorer/multi-dim view is editorially featured.
+ */
+export async function getFeaturedMetricSlugs(
+    trx: KnexReadonlyTransaction
+): Promise<Set<string>> {
+    const rows = await knexRaw<{ url: string }>(
+        trx,
+        `SELECT DISTINCT url FROM featured_metrics`
+    )
+    const keys = new Set<string>()
+    for (const row of rows) {
+        const url = Url.fromURL(row.url)
+        if (!url.slug || (!url.isExplorer && !url.isGrapher)) continue
+        const source = url.isExplorer ? "explorer" : "grapher"
+        keys.add(makeFeaturedMetricKey(source, url.slug, url.queryStr))
+    }
+    return keys
+}
+
+const FM_SOURCE_BONUS = 500
+
+/**
+ * Adds a fixed post-scaling bonus to non-FM records whose specific view
+ * is a featured metric. Applied after normalization so the bonus has a
+ * consistent, predictable effect regardless of the raw score distribution.
+ * Capped at MAX_NON_FM_RECORD_SCORE to stay within the normal range.
+ */
+export function applyFMSourceBonus(
+    records: ChartRecord[],
+    fmSlugs: Set<string>
+): ChartRecord[] {
+    if (fmSlugs.size === 0) return records
+
+    return records.map((record) => {
+        if (record.isFM) return record
+        const source: FeaturedMetricSource =
+            record.type === ChartRecordType.ExplorerView
+                ? "explorer"
+                : "grapher"
+        const key = makeFeaturedMetricKey(
+            source,
+            record.slug,
+            record.queryParams
+        )
+        if (fmSlugs.has(key)) {
+            return {
+                ...record,
+                score: Math.min(
+                    record.score + FM_SOURCE_BONUS,
+                    MAX_NON_FM_RECORD_SCORE
+                ),
+            }
+        }
+        return record
+    })
+}
+
+const BOOSTED_FM_SCORE = MAX_NON_FM_RECORD_SCORE - 500
+
+/**
+ * Returns the set of featured metric URLs that have boostInSearch enabled.
+ */
+export async function getBoostedFeaturedMetricUrls(
+    trx: db.KnexReadonlyTransaction
+): Promise<Set<string>> {
+    const rows = await db.knexRaw<{ url: string }>(
+        trx,
+        `SELECT DISTINCT url FROM featured_metrics WHERE boostInSearch = 1`
+    )
+    return new Set(rows.map((r) => r.url))
+}
+
+/**
+ * For each non-FM record whose URL matches a boosted featured metric,
+ * boost its score if necessary. This should be called after scaling so
+ * that it doesn't distort the score distribution for other records.
+ */
+export function applyFeaturedMetricBoosts(
+    records: ChartRecord[],
+    boostedUrls: Set<string>
+): ChartRecord[] {
+    if (boostedUrls.size === 0) return records
+
+    // Pre-parse the boosted URLs for efficient matching
+    const parsedBoostedUrls = [...boostedUrls].map((u) => Url.fromURL(u))
+
+    return records.map((record) => {
+        if (record.isFM) return record
+
+        const recordUrl = createRecordUrl(record)
+        const isBoosted = parsedBoostedUrls.some(
+            (fmUrl) =>
+                fmUrl.pathname === recordUrl.pathname &&
+                fmUrl.areQueryParamsEqual(recordUrl)
+        )
+
+        if (isBoosted) {
+            return {
+                ...record,
+                score: Math.max(record.score, BOOSTED_FM_SCORE),
+            }
+        }
+        return record
+    })
+}

@@ -155,6 +155,14 @@ export class MultiDimDataPageConfig {
         }
     }
 
+    getDefaultSelectedChoices(): MultiDimDimensionChoices {
+        return this.filterToAvailableChoices({}).selectedChoices
+    }
+
+    getDefaultView(): ViewEnriched | undefined {
+        return this.findViewByDimensions(this.getDefaultSelectedChoices())
+    }
+
     mergeViewMetadata(
         dimensions: MultiDimDimensionChoices,
         variableMetadata: OwidVariableWithSourceAndDimension
@@ -234,16 +242,16 @@ export function searchParamsToMultiDimView(
     config: MultiDimDataPageConfigEnriched,
     searchParams: URLSearchParams
 ): ViewEnriched {
-    const mdimConfig = MultiDimDataPageConfig.fromObject(config)
+    const multiDimConfig = MultiDimDataPageConfig.fromObject(config)
     let dimensions = extractMultiDimChoicesFromSearchParams(
         searchParams,
-        mdimConfig
+        multiDimConfig
     )
     if (_.isEmpty(dimensions)) {
         // Get the default dimensions.
-        dimensions = mdimConfig.filterToAvailableChoices({}).selectedChoices
+        dimensions = multiDimConfig.getDefaultSelectedChoices()
     }
-    const view = mdimConfig.findViewByDimensions(dimensions)
+    const view = multiDimConfig.findViewByDimensions(dimensions)
     if (!view) {
         throw new Error(
             `No view found for dimensions ${JSON.stringify(dimensions)}`

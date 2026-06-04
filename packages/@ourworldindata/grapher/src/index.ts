@@ -1,4 +1,9 @@
 export {
+    BezierArrow,
+    type BezierArrowProps,
+    type HeadAnchor,
+} from "./arrows/BezierArrow"
+export {
     NumericBin,
     CategoricalBin,
     type ColorScaleBin,
@@ -32,8 +37,6 @@ export {
     WORLD_ENTITY_NAME,
     Patterns,
     CONTINENTS_INDICATOR_ID,
-    POPULATION_INDICATOR_ID_USED_IN_ADMIN,
-    GDP_PER_CAPITA_INDICATOR_ID_USED_IN_ADMIN,
     latestGrapherConfigSchema,
     DEFAULT_GRAPHER_BOUNDS,
     DEFAULT_GRAPHER_BOUNDS_SQUARE,
@@ -49,6 +52,7 @@ export { ColorScale } from "./color/ColorScale"
 export { ColorScaleConfig } from "./color/ColorScaleConfig"
 export { ColorScheme } from "./color/ColorScheme"
 export { GRAPHER_BACKGROUND } from "./color/ColorConstants"
+export { darkenColorForText } from "./color/ColorUtils"
 export {
     getColorNameOwidDistinctAndSemanticPalettes,
     getColorNameOwidDistinctLinesAndSemanticPalettes,
@@ -153,6 +157,7 @@ export type { StackedBarChartState } from "./stackedCharts/StackedBarChartState.
 export type { StackedDiscreteBarChartState } from "./stackedCharts/StackedDiscreteBarChartState"
 export type { ScatterPlotChartState } from "./scatterCharts/ScatterPlotChartState"
 export type { MarimekkoChartState } from "./stackedCharts/MarimekkoChartState"
+export type { DumbbellChartState } from "./dumbbellCharts/DumbbellChartState"
 
 export {
     selectPeerCountriesForGrapher,
@@ -189,3 +194,8 @@ export {
 } from "./hooks.js"
 
 export { codeToEntityName, entityNameToCode } from "./core/EntityCodes.js"
+
+export {
+    DumbbellMode,
+    DEFAULT_DUMBBELL_TREND_COLOR_MAP,
+} from "./dumbbellCharts/DumbbellChartConstants"

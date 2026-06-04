@@ -5,6 +5,7 @@ import { Bar } from "@visx/shape"
 import { AxisBottom } from "@visx/axis"
 import { Group } from "@visx/group"
 import type { ScaleLinear } from "d3-scale"
+import { BezierArrow } from "@ourworldindata/grapher"
 import type { Simulation } from "../helpers/useSimulation"
 import {
     AGE_ZONE_BACKGROUND_OPACITY,
@@ -19,7 +20,6 @@ import {
 } from "@ourworldindata/grapher/src/color/ColorConstants.js"
 import { darkenColorForText } from "@ourworldindata/grapher/src/color/ColorUtils.js"
 import { TextWrap } from "@ourworldindata/components"
-import { BezierArrow } from "../../../../components/BezierArrow/BezierArrow.js"
 import { computeMaxAgeGroupPopulation } from "../model/projectionRunner"
 import {
     groupByAgeRange,
@@ -664,12 +664,16 @@ function AgeZoneLabels({
                             {zone.label}
                         </text>
                         <BezierArrow
-                            start={[arrowX, lineY + direction * verticalOffset]}
-                            end={[
-                                arrowX,
-                                lineY +
+                            start={{
+                                x: arrowX,
+                                y: lineY + direction * verticalOffset,
+                            }}
+                            end={{
+                                x: arrowX,
+                                y:
+                                    lineY +
                                     direction * (verticalOffset + arrowLength),
-                            ]}
+                            }}
                             color={GRAPHER_DARK_TEXT}
                             headLength={3}
                         />

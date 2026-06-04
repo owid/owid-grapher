@@ -575,7 +575,9 @@ function AssumptionsTable({ simulation }: { simulation: Simulation }) {
                                                 <span className="assumptions-table__arrow-circle">
                                                     <GrapherTrendArrow
                                                         direction={direction}
-                                                        isColored={false}
+                                                        color={
+                                                            USER_MODIFIED_COLOR
+                                                        }
                                                         className="assumptions-table__arrow"
                                                     />
                                                 </span>

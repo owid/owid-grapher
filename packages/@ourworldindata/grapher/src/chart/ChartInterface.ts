@@ -6,6 +6,7 @@ import {
     Color,
     ChartErrorInfo,
     SideWidths,
+    SortBy,
 } from "@ourworldindata/types"
 import { ColorScale } from "../color/ColorScale"
 import { HorizontalAxis, VerticalAxis } from "../axis/Axis"
@@ -61,6 +62,9 @@ export interface ChartState {
      * doesn't make sense.
      */
     availableFacetStrategies?: FacetStrategy[]
+
+    /** Sort keys this chart type supports */
+    availableSortKeys?: SortBy[]
 }
 
 /** Interface implemented by all chart component classes */

@@ -2,12 +2,11 @@ import * as _ from "lodash-es"
 import {
     ChartConfigsTableName,
     DbEnrichedMultiDimDataPage,
-    DbPlainMultiDimXChartConfig,
     DbRawChartConfig,
     getUniqueNamesFromTagHierarchies,
     merge,
     dimensionsToViewId,
-    MultiDimXChartConfigsTableName,
+    MultiDimDataPageConfig,
     parseChartConfig,
 } from "@ourworldindata/utils"
 import { toPlaintext } from "@ourworldindata/components"
@@ -17,44 +16,32 @@ import { logErrorAndMaybeCaptureInSentry } from "../../../serverUtils/errorLog.j
 import {
     ChartRecord,
     ChartRecordType,
+    ChartViewsMap,
+    ContentGraphLinkType,
     IndexingContext,
 } from "@ourworldindata/types"
-import { createMdimIndexingContext } from "./context.js"
+import { createMultiDimIndexingContext } from "./context.js"
+import {
+    attributeLinksToViewIds,
+    dimensionsToSortedQueryStr,
+} from "./mdimViewsLogic.js"
 import {
     getRelevantVariableIds,
     getRelevantVariableMetadata,
 } from "../../MultiDimBaker.js"
 import { GrapherState } from "@ourworldindata/grapher"
 import {
+    computeRecordScore,
     maybeAddChangeInPrefix,
     parseJsonStringArray,
     uniqNonEmptyStrings,
 } from "./shared.js"
-import { getMultiDimRedirectTargets } from "../../../db/model/MultiDimRedirects.js"
-import { getMaxViews7d, PageviewsByUrl } from "./pageviews.js"
+import { getPublishedLinksTo } from "../../../db/model/Link.js"
 import { DatasetDimensionsForVariable } from "./types.js"
+import pMap from "p-map"
 
 // Published multi-dim must have a slug.
 type PublishedMultiDimWithSlug = DbEnrichedMultiDimDataPage & { slug: string }
-type RedirectSourcesByTarget = Map<string, string[]>
-type RedirectSourcesBySlug = Map<string, string[]>
-
-function getRedirectKey(slug: string, queryStr?: string): string {
-    return queryStr ? `${slug}?${queryStr}` : slug
-}
-
-function dimensionsToSortedQueryStr(
-    dimensions: Record<string, string>
-): string {
-    const sortedDimensions = Object.entries(dimensions).sort(([keyA], [keyB]) =>
-        keyA.localeCompare(keyB)
-    )
-    const params = new URLSearchParams()
-    for (const [dimension, choice] of sortedDimensions) {
-        params.set(dimension, choice)
-    }
-    return params.toString()
-}
 
 async function getChartConfigsByIds(
     knex: db.KnexReadonlyTransaction,
@@ -64,15 +51,6 @@ async function getChartConfigsByIds(
         .select("id", "full")
         .whereIn("id", ids)
     return new Map(rows.map((row) => [row.id, parseChartConfig(row.full)]))
-}
-
-async function getMultiDimXChartConfigIdMap(trx: db.KnexReadonlyTransaction) {
-    const rows = await trx<DbPlainMultiDimXChartConfig>(
-        MultiDimXChartConfigsTableName
-    ).select("id", "multiDimId", "viewId")
-    return new Map(
-        rows.map((row) => [`${row.multiDimId}-${row.viewId}`, row.id])
-    )
 }
 
 async function getDatasetDimensionsByVariableIds(
@@ -108,15 +86,14 @@ async function getRecords(
     trx: db.KnexReadonlyTransaction,
     multiDim: PublishedMultiDimWithSlug,
     tags: string[],
-    pageviews: PageviewsByUrl,
-    redirectSourcesByTarget: RedirectSourcesByTarget,
-    redirectSourcesBySlug: RedirectSourcesBySlug
+    chartViewsMap: ChartViewsMap,
+    predecessorMaxChartViewsByMultiDimViewConfigId: Map<string, number>,
+    multiDimXChartConfigIdMap: Map<string, number>
 ) {
     const { slug } = multiDim
     console.log(
         `Creating ${multiDim.config.views.length} records for mdim ${slug}`
     )
-    const multiDimXChartConfigIdMap = await getMultiDimXChartConfigIdMap(trx)
     const chartConfigs = await getChartConfigsByIds(
         trx,
         multiDim.config.views.map((view) => view.fullConfigId)
@@ -126,8 +103,21 @@ async function getRecords(
         await getRelevantVariableMetadata(relevantVariableIds)
     const datasetDimensionsByVariableId =
         await getDatasetDimensionsByVariableIds(trx, [...relevantVariableIds])
+    const linksFromGdocs = await getPublishedLinksTo(
+        trx,
+        [slug],
+        ContentGraphLinkType.Grapher
+    )
+    const multiDimConfig = MultiDimDataPageConfig.fromObject(multiDim.config)
+    const numRelatedArticlesByViewId = attributeLinksToViewIds(
+        linksFromGdocs,
+        multiDimConfig
+    )
+
     return multiDim.config.views.map((view) => {
         const viewId = dimensionsToViewId(view.dimensions)
+        const viewNumRelatedArticles =
+            numRelatedArticlesByViewId.get(viewId) ?? 0
         const id = multiDimXChartConfigIdMap.get(`${multiDim.id}-${viewId}`)
         if (!id) {
             throw new Error(
@@ -164,16 +154,14 @@ async function getRecords(
         const availableEntities = metadata.dimensions.entities.values
             .map((entity) => entity.name)
             .filter(Boolean)
-        const redirectSources = [
-            ...(redirectSourcesBySlug.get(slug) ?? []),
-            ...(redirectSourcesByTarget.get(getRedirectKey(slug, queryStr)) ??
-                []),
-        ]
-        const views_7d = getMaxViews7d(pageviews, [
-            `/grapher/${slug}`,
-            ...redirectSources,
-        ])
-        const score = views_7d * 10 - title.length
+
+        const views_7d = Math.max(
+            chartViewsMap.byConfigId.get(view.fullConfigId) ?? 0,
+            predecessorMaxChartViewsByMultiDimViewConfigId.get(
+                view.fullConfigId
+            ) ?? 0
+        )
+        const score = computeRecordScore(viewNumRelatedArticles, views_7d)
 
         const datasetDimensions = view.indicators.y
             .map((ind) => datasetDimensionsByVariableId.get(ind.id))
@@ -211,7 +199,7 @@ async function getRecords(
             updatedAt: new Date().toISOString(),
             numDimensions: chartConfig.dimensions?.length ?? 0,
             titleLength: title.length,
-            numRelatedArticles: 0,
+            numRelatedArticles: viewNumRelatedArticles,
             views_7d,
             score,
             isIncomeGroupSpecificFM: false,
@@ -257,7 +245,7 @@ async function getMultiDimDataPagesWithInheritedTags(
     return result
 }
 
-export async function getMdimViewRecords(
+export async function getMultiDimViewRecords(
     trx: db.KnexReadonlyTransaction,
     options?: {
         id?: number
@@ -268,7 +256,7 @@ export async function getMdimViewRecords(
 
     console.log("Getting mdim view records")
 
-    const context = await createMdimIndexingContext(trx, baseContext)
+    const context = await createMultiDimIndexingContext(trx, baseContext)
 
     const multiDimsWithTags = (
         await getMultiDimDataPagesWithInheritedTags(
@@ -277,59 +265,18 @@ export async function getMdimViewRecords(
         )
     ).filter((m) => id === undefined || m.multiDim.id === id)
 
-    const [grapherRedirects, explorerRedirects] = await Promise.all([
-        getMultiDimRedirectTargets(trx, undefined, "/grapher/"),
-        getMultiDimRedirectTargets(trx, undefined, "/explorers/"),
-    ])
-    const redirectSourcesByTarget = new Map<string, string[]>()
-    const redirectSourcesBySlug = new Map<string, string[]>()
-    for (const [sourceSlug, target] of grapherRedirects) {
-        const sourcePath = `/grapher/${sourceSlug}`
-        if (target.queryStr) {
-            const sources = redirectSourcesByTarget.get(
-                getRedirectKey(target.targetSlug, target.queryStr)
-            )
-            if (sources) sources.push(sourcePath)
-            else
-                redirectSourcesByTarget.set(
-                    getRedirectKey(target.targetSlug, target.queryStr),
-                    [sourcePath]
-                )
-        } else {
-            const sources = redirectSourcesBySlug.get(target.targetSlug)
-            if (sources) sources.push(sourcePath)
-            else redirectSourcesBySlug.set(target.targetSlug, [sourcePath])
-        }
-    }
-    for (const [sourceSlug, target] of explorerRedirects) {
-        const sourcePath = `/explorers/${sourceSlug}`
-        if (target.queryStr) {
-            const sources = redirectSourcesByTarget.get(
-                getRedirectKey(target.targetSlug, target.queryStr)
-            )
-            if (sources) sources.push(sourcePath)
-            else
-                redirectSourcesByTarget.set(
-                    getRedirectKey(target.targetSlug, target.queryStr),
-                    [sourcePath]
-                )
-        } else {
-            const sources = redirectSourcesBySlug.get(target.targetSlug)
-            if (sources) sources.push(sourcePath)
-            else redirectSourcesBySlug.set(target.targetSlug, [sourcePath])
-        }
-    }
-    const records = await Promise.all(
-        multiDimsWithTags.map(({ multiDim, tags }) =>
+    const records = await pMap(
+        multiDimsWithTags,
+        ({ multiDim, tags }) =>
             getRecords(
                 trx,
                 multiDim,
                 tags,
-                context.pageviews,
-                redirectSourcesByTarget,
-                redirectSourcesBySlug
-            )
-        )
+                context.chartViewsMap,
+                context.predecessorMaxChartViewsByMultiDimViewConfigId,
+                context.multiDimXChartConfigIdMap
+            ),
+        { concurrency: 10 }
     )
     return records.flat()
 }

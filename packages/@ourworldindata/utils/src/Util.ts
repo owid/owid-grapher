@@ -110,6 +110,8 @@ export type RequiredBy<T, K extends keyof T> = Omit<T, K> & Required<Pick<T, K>>
 // PartialRecord<A, B> = Partial<Record<A, B>>
 export type PartialRecord<K extends keyof any, V> = Partial<Record<K, V>>
 
+export type Pair<T> = [T, T]
+
 // d3 v6 changed the default minus sign used in d3-format to "−" (Unicode minus sign), which looks
 // nicer but can cause issues when copy-pasting values into a spreadsheet or script.
 // For that reason we change that back to a plain old hyphen.
@@ -2338,10 +2340,20 @@ export const merge: typeof _.merge = (
 
 export function calculateTrendDirection(
     startValue?: PrimitiveType,
-    endValue?: PrimitiveType
+    endValue?: PrimitiveType,
+    formatValue?: (value: PrimitiveType) => string
 ): GrapherTrendArrowDirection | undefined {
-    if (typeof startValue !== "number" || typeof endValue !== "number")
+    if (
+        startValue === undefined ||
+        endValue === undefined ||
+        typeof startValue !== "number" ||
+        typeof endValue !== "number"
+    )
         return undefined
+
+    if (formatValue && formatValue(startValue) === formatValue(endValue))
+        return "right"
+
     return endValue > startValue
         ? "up"
         : endValue < startValue

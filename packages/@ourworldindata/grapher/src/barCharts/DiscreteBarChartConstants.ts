@@ -5,6 +5,7 @@ import {
     Color,
     CoreValueType,
     ProjectionColumnInfo,
+    SortBy,
     Time,
 } from "@ourworldindata/types"
 import { TextWrap } from "@ourworldindata/components"
@@ -106,3 +107,10 @@ export type YColumnMode =
 
 export const BACKGROUND_COLOR = "#fff"
 export const BAR_SPACING_FACTOR = 0.35
+
+export const DISCRETE_BAR_SORT_KEYS = [
+    SortBy.custom,
+    SortBy.entityName,
+    SortBy.total,
+] as const
+export type DiscreteBarSortKey = (typeof DISCRETE_BAR_SORT_KEYS)[number]

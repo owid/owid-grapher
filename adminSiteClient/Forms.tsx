@@ -682,6 +682,13 @@ interface ColorBoxProps {
 
 @observer
 export class ColorBox extends React.Component<ColorBoxProps> {
+    private tippyInstance: {
+        popperInstance?: { update: () => void } | null
+    } | null = null
+    private readonly handleResize = (): void => {
+        this.tippyInstance?.popperInstance?.update()
+    }
+
     override render() {
         const { color } = this.props
 
@@ -697,6 +704,7 @@ export class ColorBox extends React.Component<ColorBoxProps> {
                             onColor={this.props.onColor}
                             showLineChartColors={this.props.showLineChartColors}
                             baseColorScheme={this.props.baseColorScheme}
+                            onResize={this.handleResize}
                         />
                         <div
                             style={{
@@ -713,18 +721,26 @@ export class ColorBox extends React.Component<ColorBoxProps> {
                         </div>
                     </>
                 }
-                placement="right"
+                placement="right-start"
                 interactive={true}
                 trigger="click"
                 maxWidth="none"
                 appendTo={() => document.body}
                 className="colorpicker-tooltip"
+                onCreate={(instance) => {
+                    this.tippyInstance = instance
+                }}
+                lazy
                 popperOptions={{
                     modifiers: [
                         {
                             name: "flip",
                             options: {
-                                fallbackPlacements: ["left", "bottom", "top"],
+                                fallbackPlacements: [
+                                    "left-start",
+                                    "bottom-start",
+                                    "top-start",
+                                ],
                             },
                         },
                         {

@@ -102,6 +102,15 @@ export function TestIndexPage() {
                             Stacked Discrete Bar
                         </Link>
                     </li>
+                    <li>
+                        <Link
+                            native
+                            target="_blank"
+                            to="/test/embeds?type=Dumbbell"
+                        >
+                            Dumbbell
+                        </Link>
+                    </li>
 
                     <li>
                         <Link

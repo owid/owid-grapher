@@ -141,6 +141,7 @@ export {
     getDisplayUnit,
     stripOuterParentheses,
     dimensionsToViewId,
+    type Pair,
 } from "./Util.js"
 
 export {
@@ -252,6 +253,7 @@ export {
 } from "./profiles.js"
 
 export {
+    type PadObject,
     type GridBounds,
     type SplitBoundsPadding,
     FontFamily,

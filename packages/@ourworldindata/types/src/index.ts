@@ -131,6 +131,10 @@ export {
     AxisMinMaxValueStr,
     GrapherTooltipAnchor,
     type MapConfigInterface,
+    type DumbbellChartConfigInterface,
+    type DumbbellTrendColorMap,
+    DumbbellConnectorStyle,
+    DumbbellValueLabelMode,
     type GlobeConfig,
     type ProjectionColumnInfo,
     GrapherVariant,
@@ -352,6 +356,11 @@ export {
     type DbPlainAnalyticsPageview,
     AnalyticsPageviewsTableName,
 } from "./dbTypes/AnalyticsPageviews.js"
+export {
+    type AnalyticsChartViewsType,
+    AnalyticsChartViewsTableName,
+    type DbPlainAnalyticsChartView,
+} from "./dbTypes/AnalyticsChartViews.js"
 export {
     type DbPlainAnalyticsGrapherView,
     type AnalyticsGrapherViewWithRank,

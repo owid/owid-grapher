@@ -116,6 +116,7 @@ import {
     getVariableDataJson,
     getVariableMetadataJson,
     getVariablesJson,
+    getLatestVariableIdsByCatalogPathJson,
     getVariablesUsagesJson,
     getVariablesGrapherConfigETLPatchConfigJson,
     getVariablesGrapherConfigAdminPatchConfigJson,
@@ -169,6 +170,7 @@ import {
     deleteFeaturedMetric,
     fetchFeaturedMetrics,
     rerankFeaturedMetrics,
+    updateFeaturedMetricBoost,
 } from "./apiRoutes/featuredMetrics.js"
 import {
     getDods,
@@ -500,6 +502,11 @@ postRouteWithRWTransaction(
     "/featured-metrics/rerank",
     rerankFeaturedMetrics
 )
+putRouteWithRWTransaction(
+    apiRouter,
+    "/featured-metrics/:id/boost",
+    updateFeaturedMetricBoost
+)
 deleteRouteWithRWTransaction(
     apiRouter,
     "/featured-metrics/:id",
@@ -617,6 +624,11 @@ getRouteWithROTransaction(
     apiRouter,
     "/variables.usages.json",
     getVariablesUsagesJson
+)
+getRouteWithROTransaction(
+    apiRouter,
+    "/variables/latestByCatalogPath.json",
+    getLatestVariableIdsByCatalogPathJson
 )
 getRouteWithROTransaction(
     apiRouter,

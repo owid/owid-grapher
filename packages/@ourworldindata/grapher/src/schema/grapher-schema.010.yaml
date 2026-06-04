@@ -264,6 +264,7 @@ properties:
         - SlopeChart
         - StackedBar
         - Marimekko
+        - Dumbbell
   hasMapTab:
     type: boolean
     default: false
@@ -284,6 +285,7 @@ properties:
       - stacked-area
       - stacked-bar
       - stacked-discrete-bar
+      - dumbbell
   xAxis:
     $ref: "#/$defs/axis"
   yAxis:
@@ -380,6 +382,47 @@ properties:
           zoom:
             type: number
             description: Zoom level of the globe
+        additionalProperties: false
+    additionalProperties: false
+
+  dumbbell:
+    type: object
+    description: Configuration of the dumbbell chart
+    properties:
+      connectorStyle:
+        type: string
+        default: arrow
+        description: |
+          How the connector between dumbbell heads is drawn.
+          - arrow: draw an arrow pointing from start to end
+          - line: draw a simple line (only respected when two indicators are plotted)
+        enum:
+          - arrow
+          - line
+      valueLabelMode:
+        type: string
+        default: absolute
+        description: |
+          What to display as value labels next to each dumbbell.
+          - absolute: show the raw values at the start and end
+          - change: show the absolute change (e.g. +50)
+          - percentChange: show the percentage change (e.g. +33%)
+          - none: hide value labels
+        enum:
+          - absolute
+          - change
+          - percentChange
+          - none
+      trendColorMap:
+        type: object
+        description: Custom colors for the time-range encoding
+        properties:
+          increase:
+            type: string
+            description: Color for dumbbells whose value increased over time
+          decrease:
+            type: string
+            description: Color for dumbbells whose value decreased over time
         additionalProperties: false
     additionalProperties: false
 
@@ -545,26 +588,32 @@ properties:
   sortBy:
     type: string
     description: |
-      Sort criterion (used by discrete bar, stacked discrete bar, and marimekko charts).
+      Sort criterion (used by discrete bar, stacked discrete bar, marimekko, and dumbbell charts).
       - column: sort by the value of a specific column, identified by sortColumnSlug
       - total: sort by the total across all columns
       - entityName: sort alphabetically by entity name
       - custom: preserve the specified entity order
+      - change: sort by the change between the start and end values (dumbbell charts only)
+      - startValue: sort by the start value (dumbbell charts only)
+      - endValue: sort by the end value (dumbbell charts only)
     default: total
     enum:
       - column
       - total
       - entityName
       - custom
+      - change
+      - startValue
+      - endValue
   sortOrder:
     type: string
-    description: Sort order (used by stacked bar charts and marimekko)
+    description: Sort order
     default: desc
     enum:
       - desc
       - asc
   sortColumnSlug:
-    description: Sort column if sortBy is column (used by stacked bar charts and marimekko)
+    description: Sort column if sortBy is column
     type: string
   comparisonLines:
     description: List of comparison lines to draw
@@ -717,6 +766,7 @@ $defs:
       - BinaryMapPaletteC
       - BinaryMapPaletteD
       - BinaryMapPaletteE
+      - BinaryMapPaletteF
       - SingleColorGradientDenim
       - SingleColorGradientTeal
       - SingleColorGradientPurple

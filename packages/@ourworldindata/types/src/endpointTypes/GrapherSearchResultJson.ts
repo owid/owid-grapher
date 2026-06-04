@@ -28,7 +28,9 @@ interface TableRow {
     label: string
     color?: string
     value?: string
+    valueColor?: string
     startValue?: string
+    startValueColor?: string
     time?: string
     timePreposition?: string
     muted?: boolean

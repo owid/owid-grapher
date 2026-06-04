@@ -17,19 +17,24 @@ import { parseDelimited } from "@ourworldindata/core-table"
 import { toPlaintext } from "@ourworldindata/components"
 import {
     ColumnTypeNames,
+    ContentGraphLinkType,
     CoreRow,
     MinimalExplorerInfo,
     OwidColumnDef,
-    ChartRecord,
     ChartRecordType,
     ExplorerType,
     IndexingContext,
+    ChartViewsMap,
 } from "@ourworldindata/types"
 
 import * as db from "../../../db/db.js"
 import { DATA_API_URL } from "../../../settings/serverSettings.js"
-import { getUniqueNamesFromTagHierarchies } from "@ourworldindata/utils"
+import {
+    dimensionsToViewId,
+    getUniqueNamesFromTagHierarchies,
+} from "@ourworldindata/utils"
 import { createExplorersIndexingContext } from "./context.js"
+import { getExplorerViewConfigIds } from "./pageviews.js"
 import {
     CsvUnenrichedExplorerViewRecord,
     EnrichedExplorerRecord,
@@ -46,14 +51,14 @@ import {
     FinalizedExplorerRecord,
 } from "./types.js"
 import {
+    computeRecordScore,
     EMPTY_DATASET_CHART_RECORD_DIMENSIONS,
-    MAX_NON_FM_RECORD_SCORE,
     maybeAddChangeInPrefix,
     parseJsonStringArray,
     processAvailableEntities as processRecordAvailableEntities,
-    scaleRecordScores,
     uniqNonEmptyStrings,
 } from "./shared.js"
+import { getPublishedLinksTo } from "../../../db/model/Link.js"
 
 /**
  * Matches "duplicate 1234", to catch the (hacky) rows that are using the `duplicate` transformation to create
@@ -106,24 +111,6 @@ function addDuplicateYVariableIds(
             yVariableIds: [...record.yVariableIds, ...yVariableIds],
         }
     })
-}
-
-/**
- * Each explorer has a default view (whichever is defined first in the decision matrix)
- * We scale these default view scores between 0 and 10000, but the rest we scale between 0 and 1000
- * to bury them under the (higher quality) grapher views in the data catalog.
- */
-export function scaleExplorerRecordScores(
-    explorerViews: FinalizedExplorerRecord[]
-): ChartRecord[] {
-    const [firstViews, rest] = _.partition(
-        explorerViews,
-        (view) => view.isFirstExplorerView
-    )
-    return [
-        ...scaleRecordScores(firstViews, [1000, MAX_NON_FM_RECORD_SCORE]),
-        ...scaleRecordScores(rest, [0, 1000]),
-    ]
 }
 
 // Creates a search-ready string from a choice.
@@ -320,15 +307,6 @@ async function getEntitiesPerColumnPerTable(
     ).then((results) => Object.assign({}, ...results))
 }
 
-const computeExplorerViewScore = (record: {
-    views_7d: number
-    numNonDefaultSettings: number
-    titleLength: number
-}) =>
-    (record.views_7d || 0) * 10 -
-    record.numNonDefaultSettings * 50 -
-    record.titleLength
-
 const parseYVariableIds = (matrixRow: CoreRow): (string | number)[] => {
     return (
         matrixRow.yVariableIds
@@ -395,12 +373,12 @@ const createBaseRecord = (
         viewGrapherId,
         yVariableIds,
         viewQueryParams: matrix.toString(),
+        viewId: dimensionsToViewId(choice),
         viewIndexWithinExplorer: index,
         numNonDefaultSettings: nonDefaultSettings.length,
         tableSlug: matrix.selectedRow.tableSlug,
         ySlugs: matrix.selectedRow.ySlugs?.split(" ") || [],
         explorerSlug: explorerInfo.slug,
-        isFirstExplorerView: index === 0,
     }
 }
 
@@ -664,59 +642,63 @@ async function processAvailableEntities(
 async function finalizeRecords(
     records: EnrichedExplorerRecord[],
     slug: string,
-    pageviews: Record<string, { views_7d: number }>,
-    explorerInfo: MinimalExplorerInfo
+    chartViewsMap: ChartViewsMap,
+    explorerViewConfigIds: Map<string, string>,
+    explorerInfo: MinimalExplorerInfo,
+    numRelatedArticles: number
 ): Promise<FinalizedExplorerRecord[]> {
     const withCleanSubtitles = processSubtitles(records)
 
     const withCleanEntities = await processAvailableEntities(withCleanSubtitles)
 
-    const withPageviews = withCleanEntities.map((record) => ({
-        ...record,
-        views_7d: _.get(pageviews, [`/explorers/${slug}`, "views_7d"], 0),
-    }))
+    const withPageviews = withCleanEntities.map((record) => {
+        const configId = explorerViewConfigIds.get(`${slug}:${record.viewId}`)
+        // Not worrying about resolving predessors here - redirecting charts/multidims to explorers is unlikely
+        const views_7d = configId
+            ? (chartViewsMap.byConfigId.get(configId) ?? 0)
+            : 0
+        return { ...record, views_7d }
+    })
+    const unsortedFinalRecords = withPageviews.map((record, i) => {
+        // Related-article links point at the bare explorer slug, which resolves
+        // to the default view. Attribute the count to that view only, so a
+        // popular explorer doesn't boost every one of its views equally.
+        const viewNumRelatedArticles =
+            record.numNonDefaultSettings === 0 ? numRelatedArticles : 0
+        return {
+            type: ChartRecordType.ExplorerView,
+            explorerType: record.explorerType,
+            chartId: record.viewGrapherId,
+            variantName: record.viewTitle,
+            // remap createdAt -> publishedAt
+            publishedAt: explorerInfo.createdAt.toISOString(),
+            updatedAt: explorerInfo.updatedAt.toISOString(),
+            keyChartForTags: [],
+            numDimensions: record.yVariableIds.length,
+            numRelatedArticles: viewNumRelatedArticles,
+            title: record.viewTitle as string,
+            containerTitle: explorerInfo.title,
+            subtitle: record.viewSubtitle!,
+            slug: explorerInfo.slug,
+            queryParams: record.viewQueryParams,
+            availableTabs: record.viewAvailableTabs,
+            tags: explorerInfo.tags,
+            objectID: `${explorerInfo.slug}-${i}`,
+            id: `explorer/${explorerInfo.slug}${record.viewQueryParams}`,
+            score: computeRecordScore(viewNumRelatedArticles, record.views_7d),
+            views_7d: record.views_7d,
+            availableEntities: record.availableEntities,
+            titleLength: record.titleLength,
+            isIncomeGroupSpecificFM: false,
+            isFM: false,
+            datasetNamespaces: record.datasetNamespaces,
+            datasetVersions: record.datasetVersions,
+            datasetProducts: record.datasetProducts,
+            datasetProducers: record.datasetProducers,
+        } as Omit<FinalizedExplorerRecord, "viewTitleIndexWithinExplorer">
+    })
 
-    const unsortedFinalRecords = withPageviews.map(
-        (record, i) =>
-            ({
-                type: ChartRecordType.ExplorerView,
-                explorerType: record.explorerType,
-                chartId: record.viewGrapherId,
-                variantName: record.viewTitle,
-                // remap createdAt -> publishedAt
-                publishedAt: explorerInfo.createdAt.toISOString(),
-                updatedAt: explorerInfo.updatedAt.toISOString(),
-                keyChartForTags: [],
-                numDimensions: record.yVariableIds.length,
-                numRelatedArticles: 0,
-                title: record.viewTitle as string,
-                containerTitle: explorerInfo.title,
-                subtitle: record.viewSubtitle!,
-                slug: explorerInfo.slug,
-                queryParams: record.viewQueryParams,
-                availableTabs: record.viewAvailableTabs,
-                tags: explorerInfo.tags,
-                objectID: `${explorerInfo.slug}-${i}`,
-                id: `explorer/${explorerInfo.slug}${record.viewQueryParams}`,
-                score: computeExplorerViewScore(record),
-                views_7d: record.views_7d,
-                availableEntities: record.availableEntities,
-                titleLength: record.titleLength,
-                isFirstExplorerView: record.isFirstExplorerView,
-                isIncomeGroupSpecificFM: false,
-                isFM: false,
-                datasetNamespaces: record.datasetNamespaces,
-                datasetVersions: record.datasetVersions,
-                datasetProducts: record.datasetProducts,
-                datasetProducers: record.datasetProducers,
-            }) as Omit<FinalizedExplorerRecord, "viewTitleIndexWithinExplorer">
-    )
-
-    const sortedByScore = _.orderBy(
-        unsortedFinalRecords,
-        computeExplorerViewScore,
-        "desc"
-    ) as Omit<FinalizedExplorerRecord, "viewTitleIndexWithinExplorer">[]
+    const sortedByScore = _.orderBy(unsortedFinalRecords, "score", "desc")
 
     const groupedByTitle = _.groupBy(sortedByScore, "title")
 
@@ -734,7 +716,8 @@ async function finalizeRecords(
 export const getExplorerViewRecordsForExplorer = async (
     trx: db.KnexReadonlyTransaction,
     explorerInfo: MinimalExplorerInfo,
-    pageviews: Record<string, { views_7d: number }>,
+    chartViews: ChartViewsMap,
+    explorerViewConfigIds: Map<string, string>,
     explorerAdminServer: ExplorerAdminServer,
     skipGrapherViews: boolean
 ): Promise<FinalizedExplorerRecord[]> => {
@@ -819,8 +802,22 @@ export const getExplorerViewRecordsForExplorer = async (
         ...enrichedCsvRecords,
     ]
 
+    const linksFromGdocs = await getPublishedLinksTo(
+        trx,
+        [slug],
+        ContentGraphLinkType.Explorer
+    )
+    const numRelatedArticles = linksFromGdocs.length
+
     // Finalize records with titles, sorting, and grouping
-    return finalizeRecords(enrichedRecords, slug, pageviews, explorerInfo)
+    return finalizeRecords(
+        enrichedRecords,
+        slug,
+        chartViews,
+        explorerViewConfigIds,
+        explorerInfo,
+        numRelatedArticles
+    )
 }
 
 async function getExplorersWithInheritedTags(
@@ -872,6 +869,8 @@ export const getExplorerViewRecords = async (
 
     const context = await createExplorersIndexingContext(trx, baseContext)
 
+    const explorerViewConfigIds = await getExplorerViewConfigIds(trx)
+
     const publishedExplorersWithTags = (
         await getExplorersWithInheritedTags(trx, context.topicHierarchies)
     ).filter((e) => slug === undefined || e.slug === slug)
@@ -884,7 +883,8 @@ export const getExplorerViewRecords = async (
             getExplorerViewRecordsForExplorer(
                 trx,
                 explorerInfo,
-                context.pageviews,
+                context.chartViewsMap,
+                explorerViewConfigIds,
                 explorerAdminServer,
                 skipGrapherViews
             ),

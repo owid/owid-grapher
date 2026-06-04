@@ -142,7 +142,7 @@
         "polylabel": "^2.0.1",
         "progress": "^2.0.3",
         "react": "^19.2.4",
-        "react-aria-components": "^1.17.0",
+        "react-aria-components": "^1.18.0",
         "react-diff-viewer-continued": "^4.2.0",
         "react-dom": "^19.2.4",
         "react-horizontal-scrolling-menu": "^8.2.0",

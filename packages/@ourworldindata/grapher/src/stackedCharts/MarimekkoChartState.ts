@@ -8,7 +8,9 @@ import {
     BarShape,
     EntityColorData,
     Item,
+    MARIMEKKO_SORT_KEYS,
     MarimekkoChartManager,
+    MarimekkoSortKey,
     SimpleChartSeries,
     SimplePoint,
 } from "./MarimekkoChartConstants"
@@ -381,6 +383,10 @@ export class MarimekkoChartState implements ChartState, ColorScaleManager {
         )
 
         return [...itemsWithValues, ...itemsWithoutValues]
+    }
+
+    @computed get availableSortKeys(): MarimekkoSortKey[] {
+        return [...MARIMEKKO_SORT_KEYS]
     }
 
     @computed get selectedItems(): Item[] {

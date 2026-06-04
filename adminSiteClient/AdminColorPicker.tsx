@@ -1,5 +1,6 @@
 import { type ReactElement, useEffect, useMemo, useState } from "react"
 import cx from "classnames"
+import { useDebounceCallback } from "usehooks-ts"
 import {
     type Color,
     type Key,
@@ -36,6 +37,8 @@ interface AdminColorPickerProps {
     showLineChartColors: boolean
     baseColorScheme?: ColorSchemeName
     onColor: (color: string | undefined) => void
+    /** Called when the picker's intrinsic size changes (e.g. on details toggle). */
+    onResize?: () => void
 }
 
 type TabKey = "all" | "regions" | "energy" | "hue"
@@ -48,6 +51,12 @@ interface ColorMeta {
 }
 
 const DEFAULT_COLOR = "#000000"
+
+// Shared, page-load-scoped UI state remembered across popover opens. Each
+// picker reads these on mount; since Tippy `lazy` remounts the content on
+// every show, sibling pickers can't drift out of sync.
+let lastSelectedTab: TabKey = "all"
+let isCustomSectionOpen = false
 
 /** Turn camelCase identifiers ("SubSaharanAfrica") into readable labels. */
 function humanizeName(name: string): string {
@@ -117,8 +126,24 @@ export function AdminColorPicker({
     showLineChartColors,
     baseColorScheme,
     onColor,
+    onResize,
 }: AdminColorPickerProps): ReactElement {
-    const [tab, setTab] = useState<TabKey>("all")
+    // The picker remounts on every popover open (Tippy `lazy`), so these
+    // initializers always pick up the latest shared UI state.
+    const [tab, setTab] = useState<TabKey>(lastSelectedTab)
+    const selectTab = (key: TabKey): void => {
+        lastSelectedTab = key
+        setTab(key)
+    }
+    const [customOpen, setCustomOpen] = useState(isCustomSectionOpen)
+    const handleCustomToggle = (
+        e: React.SyntheticEvent<HTMLDetailsElement>
+    ): void => {
+        const open = e.currentTarget.open
+        isCustomSectionOpen = open
+        setCustomOpen(open)
+        onResize?.()
+    }
     const [query, setQuery] = useState("")
     const [pickerColor, setPickerColor] = useState<Color>(() =>
         toHsbColor(color ?? DEFAULT_COLOR)
@@ -192,9 +217,11 @@ export function AdminColorPicker({
         return queryTokens.every((token) => haystack.includes(token))
     }
 
+    const debouncedOnColor = useDebounceCallback(onColor, 200)
+
     const handleColorChange = (newColor: Color): void => {
         setPickerColor(newColor)
-        onColor(newColor.toString("hex"))
+        debouncedOnColor(newColor.toString("hex"))
     }
     const handleFieldChange = (newColor: Color | null): void => {
         if (newColor) handleColorChange(newColor.toFormat("hsb"))
@@ -340,7 +367,7 @@ export function AdminColorPicker({
             <Tabs
                 className="AdminColorPicker__tabs"
                 selectedKey={tab}
-                onSelectionChange={(key: Key) => setTab(key as TabKey)}
+                onSelectionChange={(key: Key) => selectTab(key as TabKey)}
             >
                 <TabList
                     className="AdminColorPicker__chips"
@@ -374,10 +401,14 @@ export function AdminColorPicker({
                 </TabPanel>
             </Tabs>
 
-            <div className="AdminColorPicker__custom">
-                <div className="AdminColorPicker__custom-title">
+            <details
+                className="AdminColorPicker__custom"
+                open={customOpen}
+                onToggle={handleCustomToggle}
+            >
+                <summary className="AdminColorPicker__custom-title">
                     Custom color
-                </div>
+                </summary>
                 <ColorArea
                     className="AdminColorPicker__area"
                     value={pickerColor}
@@ -407,7 +438,7 @@ export function AdminColorPicker({
                 >
                     <Input className="AdminColorPicker__field-input" />
                 </ColorField>
-            </div>
+            </details>
         </div>
     )
 }

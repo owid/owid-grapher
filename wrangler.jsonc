@@ -63,7 +63,12 @@
                 "DATA_API_URL_PARTIAL_PREFIX": "https://api-staging.owid.io/staging-site-",
                 "DATA_API_URL_PARTIAL_POSTFIX": "/v1/indicators/",
                 "DATA_API_URL_COMPLETE": "",
-                "CLOUDFLARE_GOOGLE_ANALYTICS_SAMPLING_RATE": "1",
+                // Disable GA4 analytics on preview/staging deployments. Previews
+                // are 100%-sampled while prod is 1%, so their hits (esp. bulk
+                // crawlers like ClaudeBot hammering *.owid.pages.dev) badly skew
+                // any raw event count. "0" passes env validation but shouldSample
+                // (Math.random() < 0) is always false, so no events are sent.
+                "CLOUDFLARE_GOOGLE_ANALYTICS_SAMPLING_RATE": "0",
                 "CATALOG_URL": "https://catalog.ourworldindata.org"
             }
         },

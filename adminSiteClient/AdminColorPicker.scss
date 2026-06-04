@@ -240,6 +240,8 @@
     text-transform: uppercase;
     letter-spacing: 0.04em;
     color: #888;
+    cursor: pointer;
+    user-select: none;
 }
 
 .AdminColorPicker__area {

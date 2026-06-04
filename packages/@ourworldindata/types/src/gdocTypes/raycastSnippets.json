@@ -26,12 +26,12 @@
     },
     {
         "name": "callout",
-        "text": "{.callout}\ntitle: \n[.+text]\n\n[]\n{}",
+        "text": "{.callout}\ntitle: \n[.+text]\n\n\n[.list]\n* \n[]\n{.heading}\ntext: \nlevel: \n{}\n[]\n{}",
         "keyword": "+callout"
     },
     {
         "name": "chart",
-        "text": "{.chart}\nurl: \ncaption: \npeerCountries: \n{}",
+        "text": "{.chart}\nurl: \nheight: \nsize: \ncaption: \n{}",
         "keyword": "+chart"
     },
     {
@@ -81,7 +81,7 @@
     },
     {
         "name": "guided-chart",
-        "text": "[.+guided-chart]\n{.chart}\nurl: \n{}\n\n[]",
+        "text": "[.+guided-chart]\n{.chart}\nurl: \nsize: \n{}\n\n[]",
         "keyword": "+guided-chart"
     },
     {
@@ -96,7 +96,7 @@
     },
     {
         "name": "image",
-        "text": "{.image}\nfilename: \ncaption: \nsize: \n{}",
+        "text": "{.image}\nfilename: \ncaption: \nsize: \nhasOutline: \nalt: \nvisibility: \n{}",
         "keyword": "+image"
     },
     {
@@ -126,7 +126,7 @@
     },
     {
         "name": "narrative-chart",
-        "text": "{.narrative-chart}\nname: \ncaption: \n{}",
+        "text": "{.narrative-chart}\nname: \nheight: \nsize: \ncaption: \n{}",
         "keyword": "+narrative-chart"
     },
     {
@@ -136,7 +136,7 @@
     },
     {
         "name": "prominent-link",
-        "text": "{.prominent-link}\nurl: \n{}",
+        "text": "{.prominent-link}\nurl: \ntitle: \ndescription: \nthumbnail: \n{}",
         "keyword": "+prominent-link"
     },
     {
@@ -151,7 +151,7 @@
     },
     {
         "name": "research-and-writing",
-        "text": "{.research-and-writing}\nheading: \nhide-authors: \nhide-date: \n[.primary]\nurl: \n[]\n[.secondary]\nurl: \nurl: \n[]\n{.more}\nheading: \n[.articles]\nurl: \nurl: \nauthors: \ntitle: \nfilename: \nurl: \nauthors: \ntitle: \nfilename: \n[]\n{}\n{.latest}\nheading: \n{}\n[.rows]\nheading: \n[.articles]\nurl: \nurl: \nauthors: \ntitle: \nfilename: \n[]\n[]\n{}",
+        "text": "{.research-and-writing}\nheading: \nhide-authors: \nhide-date: \nvariant: \n[.primary]\nurl: \n[]\n[.secondary]\nurl: \nurl: \n[]\n{.more}\nheading: \n[.articles]\nurl: \nurl: \nauthors: \ntitle: \nfilename: \nurl: \nauthors: \ntitle: \nfilename: \n[]\n{}\n{.latest}\nheading: \n{}\n[.rows]\nheading: \n[.articles]\nurl: \nurl: \nauthors: \ntitle: \nfilename: \n[]\n[]\n{}",
         "keyword": "+research-and-writing"
     },
     {
@@ -191,7 +191,7 @@
     },
     {
         "name": "table",
-        "text": "{.table}\ntemplate: \nsize: \ncaption: \n\n{}",
+        "text": "{.table}\ntemplate: \nsize: \ncaption: \n[.+rows]\n{.table-row}\n[.+cells]\n[.+table-cell]\n\n\n[]\n[.+table-cell]\n\n\n[]\n[.+table-cell]\n\n\n[]\n[]\n{}\n[]\n{}",
         "keyword": "+table"
     },
     {
@@ -201,7 +201,7 @@
     },
     {
         "name": "video",
-        "text": "{.video}\nurl: \nfilename: \nshouldLoop: \ncaption: \n{}",
+        "text": "{.video}\nurl: \nfilename: \nshouldLoop: \ncaption: \nvisibility: \n{}",
         "keyword": "+video"
     },
     {
@@ -226,7 +226,7 @@
     },
     {
         "name": "static-viz",
-        "text": "{.static-viz}\nname: \nsize: \nhasOutline: \ncaption:\n{}",
+        "text": "{.static-viz}\nname: \nsize: \nhasOutline: \ncaption: \n{}",
         "keyword": "+static-viz"
     },
     {
@@ -256,7 +256,27 @@
     },
     {
         "name": "country-profile-selector",
-        "text": "{.country-profile-selector}\nurl: \n{}",
+        "text": "{.country-profile-selector}\nurl: \ntitle: \ndescription: \ndefaultCountries: \n{}",
         "keyword": "+country-profile-selector"
+    },
+    {
+        "name": "bespoke-component",
+        "text": "{.bespoke-component}\nbundle: \nvariant: \nsize: \n{.config}\nfoo: \n{}\n{}",
+        "keyword": "+bespoke-component"
+    },
+    {
+        "name": "chart-rows",
+        "text": "{.chart-rows}\nkicker: \ntitle: \nsource: \n[.rows]\nimage: \nurl: \n[.+content]\n\n[]\nimage: \nurl: \n[.+content]\n\n[]\n[]\n{}",
+        "keyword": "+chart-rows"
+    },
+    {
+        "name": "data-callout-group",
+        "text": "{.data-callout-group}\n[.+content]\n{.data-callout}\nurl: \n[.+content]\n\n[]\n{}\n[]\n{}",
+        "keyword": "+data-callout-group"
+    },
+    {
+        "name": "pull-chart",
+        "text": "{.pull-chart}\nalign: \nimage: \nurl: \n[.+content]\n\n[]\n{}",
+        "keyword": "+pull-chart"
     }
 ]

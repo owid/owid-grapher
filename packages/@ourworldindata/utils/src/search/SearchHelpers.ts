@@ -26,10 +26,12 @@ export function buildChartHitDataDisplayProps({
 }): SearchChartHitDataDisplayProps | undefined {
     if (!chartInfo) return undefined
 
-    // Showing a time range only makes sense for slope charts and connected scatter plots
+    // Showing a time range only makes sense for charts that compare two time
+    // points: slope charts, connected scatter plots, and time-range dumbbells
     const showTimeRange =
         chartType === GRAPHER_CHART_TYPES.SlopeChart ||
-        chartType === GRAPHER_CHART_TYPES.ScatterPlot
+        chartType === GRAPHER_CHART_TYPES.ScatterPlot ||
+        chartType === GRAPHER_CHART_TYPES.Dumbbell
 
     const endDatapoint = findDatapoint(chartInfo, "end")
     const startDatapoint = showTimeRange

@@ -48,3 +48,5 @@ fields:
     description: Path in the ETL data catalog system
   tables:
     description: Tables within the dataset (for multi-table datasets)
+  owners:
+    description: JSON array of OWID team-member display names who maintain this dataset. The first entry is the accountable owner / point of contact for issues with the data page. Populated from ETL via `DatasetMeta.owners`.

@@ -18,20 +18,15 @@ import {
     getUniqueNamesFromTagHierarchies,
 } from "@ourworldindata/utils"
 import {
+    computeRecordScore,
     maybeAddChangeInPrefix,
     processAvailableEntities,
     parseJsonStringArray,
 } from "./shared.js"
 import { GrapherState } from "@ourworldindata/grapher"
 import { toPlaintext } from "@ourworldindata/components"
-import { getMaxViews7d } from "./pageviews.js"
 import { createChartsIndexingContext } from "./context.js"
 import pMap from "p-map"
-
-const computeChartScore = (
-    numRelatedArticles: number,
-    views_7d: number
-): number => numRelatedArticles * 500 + views_7d
 
 const parseRawChartRecord = (
     rawRecord: RawChartRecordRow
@@ -95,11 +90,12 @@ function getChartViews7d(
     chartId: number
 ): number {
     const redirectSlugs = context.redirectsByChartId.get(chartId) ?? []
-    const urls = [
-        `/grapher/${slug}`,
-        ...redirectSlugs.map((redirectSlug) => `/grapher/${redirectSlug}`),
-    ]
-    return getMaxViews7d(context.pageviews, urls)
+    return Math.max(
+        0,
+        ...[slug, ...redirectSlugs].map(
+            (s) => context.chartViewsMap.byGrapherSlug.get(s) ?? 0
+        )
+    )
 }
 
 /**
@@ -279,7 +275,7 @@ async function buildChartRecord(
         datasetVersions: chart.datasetVersions,
         datasetProducts: chart.datasetProducts,
         datasetProducers: chart.datasetProducers,
-        score: computeChartScore(numRelatedArticles, views_7d),
+        score: computeRecordScore(numRelatedArticles, views_7d),
     }
 }
 

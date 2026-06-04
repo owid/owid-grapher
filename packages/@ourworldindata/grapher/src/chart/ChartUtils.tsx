@@ -1,6 +1,7 @@
 import * as _ from "lodash-es"
 import * as React from "react"
 import {
+    Bounds,
     Box,
     excludeUndefined,
     getRegionByName,
@@ -21,6 +22,7 @@ import {
     SortBy,
     SortConfig,
     SortOrder,
+    OwidVariableRow,
 } from "@ourworldindata/types"
 import { LineChartSeries } from "../lineCharts/LineChartConstants"
 import { SelectionArray } from "../selection/SelectionArray"
@@ -34,9 +36,11 @@ import {
     Patterns,
     GRAPHER_IMAGE_WIDTH_1X,
     GRAPHER_IMAGE_WIDTH_2X,
+    FontSettings,
 } from "../core/GrapherConstants"
 import { ChartSeries } from "./ChartInterface"
 import {
+    CoreColumn,
     ErrorValueTypes,
     isNotErrorValueOrEmptyCell,
     OwidTable,
@@ -338,9 +342,23 @@ export function getChartSvgProps({
     }
 }
 
-type SortKeyFn<T> = (item: T) => number | string | undefined
+export type SortKeyFn<T> = (item: T) => number | string | undefined
 
-export type SortKeyFunctions<T> = Record<SortBy, SortKeyFn<T>>
+/** A sort key that leaves items in their input order */
+export const keepInputOrder = Symbol("keepInputOrder")
+
+export type SortKey<T> = SortKeyFn<T> | typeof keepInputOrder
+
+export type SortKeyFunctions<T> = Partial<Record<SortBy, SortKey<T>>>
+
+/** Sort key that orders items by their value in `sortColumn` */
+export function sortByColumnValue<T>(
+    sortColumn: CoreColumn | undefined,
+    getEntityName: (item: T) => EntityName
+): SortKeyFn<T> {
+    return (item) =>
+        sortColumn?.latestValueByEntityName.get(getEntityName(item)) ?? 0
+}
 
 export function sortByConfig<T>(
     items: readonly T[],
@@ -348,10 +366,42 @@ export function sortByConfig<T>(
     keyFns: SortKeyFunctions<T>
 ): T[] {
     const sortByKey = sortConfig.sortBy ?? SortBy.total
-    const sortByFunc = keyFns[sortByKey]
+    const sortByFunc = keyFns[sortByKey] ?? keepInputOrder
     const sortOrder = sortConfig.sortOrder ?? SortOrder.desc
+
+    if (sortByFunc === keepInputOrder)
+        return sortOrder === SortOrder.desc ? items.toReversed() : [...items]
 
     const sortedRows = _.sortBy(items, sortByFunc)
 
     return sortOrder === SortOrder.desc ? sortedRows.toReversed() : sortedRows
+}
+
+export function textWidth(text: string, fontSettings: FontSettings): number {
+    return Bounds.forText(text, fontSettings).width
+}
+
+export function roundFontSize(fontSize: number): number {
+    return Math.round(fontSize * 2) / 2
+}
+
+/**
+ * Checks whether a pair of observations spanning two points in time is valid
+ * given tolerance
+ */
+export function isToleranceDistanceValid(args: {
+    start: OwidVariableRow<number>
+    end: OwidVariableRow<number>
+    tolerance: number
+}): boolean {
+    const { start, end, tolerance } = args
+
+    if (start.originalTime >= end.originalTime) return false
+
+    const isToleranceAppliedToStart = start.originalTime !== start.time
+    const isToleranceAppliedToEnd = end.originalTime !== end.time
+    if (!isToleranceAppliedToStart && !isToleranceAppliedToEnd) return true
+
+    const minRequiredGap = Math.min(tolerance, end.time - start.time)
+    return end.originalTime - start.originalTime >= minRequiredGap
 }

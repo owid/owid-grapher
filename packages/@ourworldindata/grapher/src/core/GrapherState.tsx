@@ -159,6 +159,7 @@ import {
     MapChartManager,
 } from "../mapCharts/MapChartConstants.js"
 import { MapConfig } from "../mapCharts/MapConfig.js"
+import { DumbbellChartConfig } from "../dumbbellCharts/DumbbellChartConfig.js"
 import { getCountriesByRegion } from "../mapCharts/MapHelpers.js"
 import {
     DownloadModalManager,
@@ -358,6 +359,9 @@ export class GrapherState
 
     /** Configuration of the world map chart */
     map = new MapConfig()
+
+    /** Configuration of the dumbbell chart */
+    dumbbell = new DumbbellChartConfig()
 
     /** One of the predefined base color schemes. If not provided, a default is automatically chosen based on the chart type. */
     baseColorScheme: ColorSchemeName | undefined = undefined
@@ -677,6 +681,7 @@ export class GrapherState
             yAxis: observable.ref,
             colorScale: observable,
             map: observable,
+            dumbbell: observable,
             dimensions: observable.ref,
             ySlugs: observable,
             xSlug: observable,
@@ -1911,35 +1916,54 @@ export class GrapherState
     private readonly checkOnlySingleTimeSelectionPossible = (
         tabName: GrapherTabName
     ): boolean => {
-        // Scatters aren't included here because although single-time selection
-        // is preferred, start and end time selection is still possible
-        return [
-            GRAPHER_TAB_NAMES.DiscreteBar,
-            GRAPHER_TAB_NAMES.StackedDiscreteBar,
-            GRAPHER_TAB_NAMES.Marimekko,
-        ].includes(tabName as any)
+        return (
+            tabName === GRAPHER_TAB_NAMES.DiscreteBar ||
+            tabName === GRAPHER_TAB_NAMES.StackedDiscreteBar ||
+            tabName === GRAPHER_TAB_NAMES.Marimekko ||
+            // Dumbbell charts plotting two indicators use a single time
+            (tabName === GRAPHER_TAB_NAMES.Dumbbell &&
+                this.yColumnSlugs.length >= 2)
+        )
     }
 
     private readonly checkSingleTimeSelectionPreferred = (
         tabName: GrapherTabName
     ): boolean => {
         // Scatter plots can show a time range, but a single time is preferred
-        // when the scatter is not the main chart, but a secondary tab
-        return !this.isScatter && tabName === GRAPHER_TAB_NAMES.ScatterPlot
+        // when the scatter is not the main chart, but a secondary tab.
+        // In relative mode, a scatter shows the average annual change, which
+        // requires a time range, so we don't collapse to a single time then.
+        return (
+            tabName === GRAPHER_TAB_NAMES.ScatterPlot &&
+            !this.isScatter &&
+            !this.isRelativeMode
+        )
     }
 
     private readonly checkOnlyTimeRangeSelectionPossible = (
         tabName: GrapherTabName
     ): boolean => {
-        return [
-            GRAPHER_TAB_NAMES.LineChart,
-            GRAPHER_TAB_NAMES.SlopeChart,
-        ].includes(tabName as any)
+        return (
+            tabName === GRAPHER_TAB_NAMES.LineChart ||
+            tabName === GRAPHER_TAB_NAMES.SlopeChart ||
+            // Dumbbell charts plotting a single indicator use a time range
+            (tabName === GRAPHER_TAB_NAMES.Dumbbell &&
+                this.yColumnSlugs.length < 2)
+        )
     }
 
     private readonly checkTimeRangeSelectionPreferred = (
         tabName: GrapherTabName
     ): boolean => {
+        // In relative mode, a scatter shows the average annual change, which
+        // requires a time range rather than a single time
+        if (
+            tabName === GRAPHER_TAB_NAMES.ScatterPlot &&
+            !this.isScatter &&
+            this.isRelativeMode
+        )
+            return true
+
         return [
             GRAPHER_TAB_NAMES.StackedArea,
             GRAPHER_TAB_NAMES.StackedBar,
@@ -1969,7 +1993,7 @@ export class GrapherState
         if (!isChartTab(tab)) return
 
         // Don't modify the selection for unusual scatters
-        if (this.isTimeScatter || this.isConnectedScatter) return
+        if (this.isOnTimeScatterTab || this.isOnConnectedScatterTab) return
 
         const isChartTypeThatShowsAllEntities =
             this.isChartTypeThatShowsAllEntities(tab)
@@ -2432,8 +2456,8 @@ export class GrapherState
                         this.isOnMarimekkoTab ||
                         this.isOnMapTab ||
                         (this.isOnScatterTab &&
-                            !this.isTimeScatter &&
-                            !this.isConnectedScatter))))
+                            !this.isOnTimeScatterTab &&
+                            !this.isOnConnectedScatterTab))))
         )
     }
 
@@ -2676,11 +2700,14 @@ export class GrapherState
 
         if (startTime === undefined || endTime === undefined) return undefined
 
+        // Dumbbell charts compare two points, so use "vs" instead of "to"
+        const separator = this.isOnDumbbellTab ? " vs. " : " to "
+
         const time =
             startTime === endTime
                 ? timeColumn.formatValue(startTime)
                 : timeColumn.formatValue(startTime) +
-                  " to " +
+                  separator +
                   timeColumn.formatValue(endTime)
 
         return time
@@ -2814,6 +2841,10 @@ export class GrapherState
         return this.chartType === GRAPHER_CHART_TYPES.StackedDiscreteBar
     }
 
+    @computed get isDumbbell(): boolean {
+        return this.chartType === GRAPHER_CHART_TYPES.Dumbbell
+    }
+
     @computed get isOnLineChartTab(): boolean {
         return this.activeChartType === GRAPHER_CHART_TYPES.LineChart
     }
@@ -2844,6 +2875,10 @@ export class GrapherState
 
     @computed get isOnStackedDiscreteBarTab(): boolean {
         return this.activeChartType === GRAPHER_CHART_TYPES.StackedDiscreteBar
+    }
+
+    @computed get isOnDumbbellTab(): boolean {
+        return this.activeChartType === GRAPHER_CHART_TYPES.Dumbbell
     }
 
     @computed get hasLineChart(): boolean {
@@ -2880,17 +2915,21 @@ export class GrapherState
         )
     }
 
+    @computed get hasDumbbellChart(): boolean {
+        return this.validChartTypeSet.has(GRAPHER_CHART_TYPES.Dumbbell)
+    }
+
     @computed get supportsMultipleYColumns(): boolean {
         return !this.isScatter
     }
 
     /** Time scatters plot time on the x-axis */
-    @computed private get isTimeScatter(): boolean {
+    @computed private get isOnTimeScatterTab(): boolean {
         return !!this.isOnScatterTab && this.xColumnSlug === undefined
     }
 
     /** Connected scatters plot lines between points over time */
-    @computed private get isConnectedScatter(): boolean {
+    @computed private get isOnConnectedScatterTab(): boolean {
         return this.isOnScatterTab && !this.areHandlesOnSameTime
     }
 
@@ -3452,6 +3491,7 @@ export class GrapherState
             return this.selectedFacetStrategy
 
         if (
+            !this.isOnDumbbellTab &&
             this.addCountryMode === EntitySelectionMode.SingleEntity &&
             this.selection.selectedEntityNames.length > 1
         ) {
@@ -3478,6 +3518,14 @@ export class GrapherState
             this.selection.numSelectedEntities > 1 &&
             this.yColumnSlugs.length > 1
         )
+    }
+
+    @computed get availableSortKeysAcrossChartTypes(): SortBy[] {
+        const keys = this.validChartTypes.flatMap(
+            (chartType) =>
+                makeChartState(chartType, this).availableSortKeys ?? []
+        )
+        return _.uniq(keys)
     }
 
     @computed get isInFullScreenMode(): boolean {
@@ -4008,7 +4056,11 @@ export class GrapherState
         if (this.isOnMapTab) return true
 
         if (this.numSelectableEntityNames < 2) return false
-        if (this.addCountryMode === EntitySelectionMode.MultipleEntities)
+        if (
+            this.addCountryMode === EntitySelectionMode.MultipleEntities ||
+            (this.isOnDumbbellTab &&
+                this.addCountryMode === EntitySelectionMode.SingleEntity)
+        )
             return true
 
         // If the chart is currently faceted by entity, then use multi-entity
@@ -4026,6 +4078,7 @@ export class GrapherState
         return (
             this.hasChartTab &&
             !this.isOnScatterTab &&
+            !this.isOnDumbbellTab &&
             !this.canSelectMultipleEntities &&
             this.addCountryMode === EntitySelectionMode.SingleEntity &&
             this.numSelectableEntityNames > 1
@@ -4041,7 +4094,8 @@ export class GrapherState
                 this.isOnStackedAreaTab ||
                 this.isOnStackedBarTab ||
                 this.isOnDiscreteBarTab ||
-                this.isOnStackedDiscreteBarTab)
+                this.isOnStackedDiscreteBarTab ||
+                this.isOnDumbbellTab)
         )
     }
 

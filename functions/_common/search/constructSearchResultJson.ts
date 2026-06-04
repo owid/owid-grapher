@@ -8,8 +8,11 @@ import {
     generateSelectedEntityNamesParam,
     GrapherState,
     mapGrapherTabNameToConfigOption,
+    makeChartState,
     MarimekkoChartState,
     ScatterPlotChartState,
+    DumbbellChartState,
+    DumbbellMode,
     WORLD_ENTITY_NAME,
     loadCatalogData,
 } from "@ourworldindata/grapher"
@@ -838,8 +841,22 @@ async function getGrapherQueryParamsForTab({
             getGrapherQueryParamsForMarimekko(grapherState)
         )
         .with(GRAPHER_TAB_NAMES.SlopeChart, () =>
-            getGrapherQueryParamsForSlopeChart(grapherState, { timeBounds })
+            getGrapherQueryParamsForTimeRangeChart(grapherState, { timeBounds })
         )
+        .with(GRAPHER_TAB_NAMES.Dumbbell, () => {
+            // Rebuild the chart state since the dumbbell chart might not be the active tab
+            const chartState = makeChartState(
+                GRAPHER_CHART_TYPES.Dumbbell,
+                grapherState
+            ) as DumbbellChartState
+
+            // Only time-range dumbbells need to adjust the time param
+            if (chartState.mode !== DumbbellMode.TimeRange) return undefined
+
+            return getGrapherQueryParamsForTimeRangeChart(grapherState, {
+                timeBounds,
+            })
+        })
         .with(GRAPHER_TAB_NAMES.WorldMap, () =>
             getGrapherQueryParamsForMap(grapherState)
         )
@@ -915,7 +932,16 @@ async function getGrapherQueryParamsForDiscreteBar(
     return { chartParams: overwriteParams, previewParams: overwriteParams }
 }
 
-function getGrapherQueryParamsForSlopeChart(
+/**
+ * Pins the time query param to the given time bounds.
+ *
+ * Needed for charts that only plot entities with data at both the start and end
+ * time (e.g. slope charts or time-range dumbbells). For entity-targeted
+ * searches we pass the user-picked entity's own data bounds, so the chart's
+ * default time window doesn't fall outside that entity's data and render an
+ * empty thumbnail.
+ */
+function getGrapherQueryParamsForTimeRangeChart(
     grapherState: GrapherState,
     { timeBounds }: { timeBounds?: TimeBounds }
 ):
