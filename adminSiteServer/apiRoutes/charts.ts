@@ -1033,6 +1033,10 @@ export async function putChartsChartIdEtlConfig(
 ) {
     const chartId = expectInt(req.params.chartId)
 
+    // ETL's stable identity for this chart (mirrors `multi_dim_data_pages.catalogPath`).
+    // Optional so other callers don't clobber it; persisted via COALESCE below.
+    const catalogPath = (req.query.catalogPath as string | undefined) ?? null
+
     let etlConfig: GrapherInterface
     try {
         etlConfig = migrateGrapherConfigToLatestVersionAndFailOnError(req.body)
@@ -1097,7 +1101,8 @@ export async function putChartsChartIdEtlConfig(
                 cc.etlConfig = ?,
                 cc.full = ?,
                 cc.updatedAt = ?,
-                c.updatedAt = ?
+                c.updatedAt = ?,
+                c.catalogPath = COALESCE(?, c.catalogPath)
             WHERE c.id = ?
         `,
         [
@@ -1106,6 +1111,7 @@ export async function putChartsChartIdEtlConfig(
             serializeChartConfig(newFullConfig),
             now,
             now,
+            catalogPath,
             chartId,
         ]
     )
