@@ -1,16 +1,22 @@
 import React from "react"
-import { computed, makeObservable } from "mobx"
+import { action, computed, makeObservable, observable } from "mobx"
 import { observer } from "mobx-react"
 import * as _ from "lodash-es"
 import { scaleLinear } from "d3-scale"
-import { Bounds, SeriesName } from "@ourworldindata/utils"
-import { SideWidths } from "@ourworldindata/types"
+import {
+    Bounds,
+    SeriesName,
+    guid,
+    getRelativeMouse,
+} from "@ourworldindata/utils"
+import { SideWidths, Time } from "@ourworldindata/types"
 import { ChartInterface } from "../chart/ChartInterface"
 import { LineChartState } from "./LineChartState"
 import { LineChartProps } from "./LineChart.js"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import {
     CATEGORICAL_LEGEND_STYLE,
+    LINE_CHART_CLASS_NAME,
     LineChartManager,
     LineChartSeries,
     LinePoint,
@@ -28,6 +34,7 @@ import {
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import { Lines } from "./Lines"
 import {
+    findClosestTimeAtMouse,
     getYAxisConfigDefaults,
     toPlacedLineChartSeries,
     toRenderLineChartSeries,
@@ -44,17 +51,31 @@ import { darkenColorForLine } from "../color/ColorUtils.js"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import { HorizontalColorLegendManager } from "../legend/HorizontalColorLegends.js"
 import { CategoricalBin } from "../color/ColorScaleBin.js"
+import { isTargetOutsideElement } from "../chart/ChartUtils"
+import { TooltipState } from "../tooltip/Tooltip"
+import { LineChartTooltip } from "./LineChartTooltip"
+import { LineChartActiveTimeMarkers } from "./LineChartActiveTimeMarkers"
 
 const HORIZONTAL_GRID_LINE_STROKE_WIDTH = 1
+const LINE_STROKE_WIDTH = 1.5
+const ACTIVE_TIME_CIRCLE_RADIUS = LINE_STROKE_WIDTH / 2 + 3.5
 
 @observer
 export class LineChartThumbnail
     extends React.Component<LineChartProps>
     implements ChartInterface, AxisManager
 {
+    private readonly base = React.createRef<SVGGElement>()
+
+    private readonly tooltipState = new TooltipState<{ time: Time }>({
+        fade: "immediate",
+    })
+
     constructor(props: LineChartProps) {
         super(props)
-        makeObservable(this)
+        makeObservable<LineChartThumbnail, "tooltipState">(this, {
+            tooltipState: observable,
+        })
     }
 
     @computed get chartState(): LineChartState {
@@ -555,16 +576,95 @@ export class LineChartThumbnail
         }
     }
 
-    override render(): React.ReactElement {
-        if (this.chartState.errorInfo.reason)
-            return (
-                <NoDataModal
-                    manager={this.manager}
-                    bounds={this.props.bounds}
-                    message={this.chartState.errorInfo.reason}
-                />
-            )
+    @computed private get allValues(): LinePoint[] {
+        return this.placedSeries.flatMap((series) => series.points)
+    }
 
+    @computed get activeTimes(): Time[] {
+        const tooltipTime = this.tooltipState.target?.time
+        return tooltipTime !== undefined ? [tooltipTime] : []
+    }
+
+    @computed private get hasTimeHighlights(): boolean {
+        const { highlightedTimesInLineChart = [] } = this.manager
+        return highlightedTimesInLineChart.length > 0
+    }
+
+    @computed private get renderUid(): number {
+        return guid()
+    }
+
+    @computed private get tooltipId(): number {
+        return this.renderUid
+    }
+
+    @computed private get isTooltipActive(): boolean {
+        return this.manager.tooltip?.get()?.id === this.tooltipId
+    }
+
+    @action.bound private dismissTooltip(): void {
+        this.tooltipState.target = null
+    }
+
+    @action.bound private onCursorLeave(): void {
+        if (!this.manager.shouldPinTooltipToBottom) {
+            this.dismissTooltip()
+        }
+    }
+
+    @action.bound private onCursorMove(
+        ev: React.MouseEvent | React.TouchEvent
+    ): void {
+        const ref = this.base.current,
+            parentRef = this.manager.base?.current
+
+        // The tooltip's origin needs to be in the parent's coordinates
+        if (parentRef) {
+            this.tooltipState.position = getRelativeMouse(parentRef, ev)
+        }
+
+        if (!ref) return
+
+        const hoverTime = findClosestTimeAtMouse({
+            mouse: getRelativeMouse(ref, ev),
+            innerBounds: this.dualAxis.innerBounds,
+            horizontalAxis: this.dualAxis.horizontalAxis,
+            allValues: this.allValues,
+        })
+
+        this.tooltipState.target =
+            hoverTime === undefined ? null : { time: hoverTime }
+    }
+
+    @action.bound private onDocumentClick(e: MouseEvent): void {
+        // Only dismiss the tooltip if the click is outside of the chart area
+        // and outside of the chart areas of neighbouring facets
+        const chartContainer = this.manager.base?.current
+        if (!chartContainer) return
+        const chartAreas = chartContainer.getElementsByClassName(
+            LINE_CHART_CLASS_NAME
+        )
+        const isTargetOutsideChartAreas = Array.from(chartAreas).every(
+            (chartArea) => isTargetOutsideElement(e.target!, chartArea)
+        )
+        if (isTargetOutsideChartAreas) {
+            this.dismissTooltip()
+        }
+    }
+
+    override componentDidMount(): void {
+        document.addEventListener("click", this.onDocumentClick, {
+            capture: true,
+        })
+    }
+
+    override componentWillUnmount(): void {
+        document.removeEventListener("click", this.onDocumentClick, {
+            capture: true,
+        })
+    }
+
+    private renderChartElements(): React.ReactElement {
         return (
             <>
                 <VerticalAxisDomainLine
@@ -591,7 +691,7 @@ export class LineChartThumbnail
                     dualAxis={this.dualAxis}
                     multiColor={this.chartState.hasColorScale}
                     hidePoints
-                    lineStrokeWidth={1.5}
+                    lineStrokeWidth={LINE_STROKE_WIDTH}
                     lineOutlineWidth={0}
                     isStatic={this.manager.isStatic}
                 />
@@ -609,6 +709,66 @@ export class LineChartThumbnail
                 )}
             </>
         )
+    }
+
+    private renderStatic(): React.ReactElement {
+        return this.renderChartElements()
+    }
+
+    private renderInteractive(): React.ReactElement {
+        return (
+            <g
+                ref={this.base}
+                className={LINE_CHART_CLASS_NAME}
+                onMouseLeave={this.onCursorLeave}
+                onTouchEnd={this.onCursorLeave}
+                onTouchCancel={this.onCursorLeave}
+                onMouseMove={this.onCursorMove}
+                onTouchStart={this.onCursorMove}
+                onTouchMove={this.onCursorMove}
+            >
+                <rect {...this.bounds.toProps()} fillOpacity="0">
+                    {/* This <rect> ensures that the parent <g> is big enough such that
+                        we get mouse hover events for the whole charting area, including
+                        the axis, the entity labels, and the whitespace next to them.
+                        We need these to be able to show the tooltip for the first/last
+                        year even if the mouse is outside the charting area. */}
+                </rect>
+                {this.renderChartElements()}
+                {(this.isTooltipActive || this.hasTimeHighlights) && (
+                    <LineChartActiveTimeMarkers
+                        times={this.activeTimes}
+                        renderSeries={this.renderSeries}
+                        dualAxis={this.dualAxis}
+                        chartState={this.chartState}
+                        dotRadius={ACTIVE_TIME_CIRCLE_RADIUS}
+                    />
+                )}
+                <LineChartTooltip
+                    id={this.tooltipId}
+                    chartState={this.chartState}
+                    tooltipState={this.tooltipState}
+                    series={this.renderSeries}
+                    xAxisLabel={this.xAxis.label}
+                    dismissTooltip={this.dismissTooltip}
+                />
+            </g>
+        )
+    }
+
+    override render(): React.ReactElement {
+        if (this.chartState.errorInfo.reason)
+            return (
+                <NoDataModal
+                    manager={this.manager}
+                    bounds={this.props.bounds}
+                    message={this.chartState.errorInfo.reason}
+                />
+            )
+
+        return this.manager.isStatic
+            ? this.renderStatic()
+            : this.renderInteractive()
     }
 }
 
