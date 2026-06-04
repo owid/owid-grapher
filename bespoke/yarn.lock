@@ -252,6 +252,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@owid/bespoke-components@workspace:components"
   dependencies:
+    "@fortawesome/fontawesome-svg-core": "npm:^6.7.2"
+    "@fortawesome/free-solid-svg-icons": "npm:^6.7.2"
+    "@fortawesome/react-fontawesome": "npm:^0.2.2"
     "@ourworldindata/grapher": "link:../../packages/@ourworldindata/grapher"
     "@ourworldindata/types": "link:../../packages/@ourworldindata/types"
     "@ourworldindata/utils": "link:../../packages/@ourworldindata/utils"

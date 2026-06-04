@@ -3,12 +3,12 @@ import cx from "classnames"
 import { faCircleNotch } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 
-export function CausesOfDeathSpinner({ inline }: { inline?: boolean }) {
+export function Spinner({ inline }: { inline?: boolean }) {
     return (
         <div
-            className={cx("causes-of-death-spinner", {
-                "causes-of-death-spinner--inline": inline,
-                "causes-of-death-spinner--standalone": !inline,
+            className={cx("spinner", {
+                "spinner--inline": inline,
+                "spinner--standalone": !inline,
             })}
         >
             <FontAwesomeIcon
