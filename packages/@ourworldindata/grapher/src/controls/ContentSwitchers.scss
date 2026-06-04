@@ -51,6 +51,7 @@ $active-icon: $blue-50;
 
         .ContentSwitchers__TabContent {
             display: flex;
+            height: 100%;
             align-items: center;
             gap: $icon-padding;
         }
