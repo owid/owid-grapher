@@ -116,6 +116,7 @@ import {
     getVariableDataJson,
     getVariableMetadataJson,
     getVariablesJson,
+    getLatestVariableIdsByCatalogPathJson,
     getVariablesUsagesJson,
     getVariablesGrapherConfigETLPatchConfigJson,
     getVariablesGrapherConfigAdminPatchConfigJson,
@@ -610,6 +611,11 @@ getRouteWithROTransaction(
     apiRouter,
     "/variables.usages.json",
     getVariablesUsagesJson
+)
+getRouteWithROTransaction(
+    apiRouter,
+    "/variables/latestByCatalogPath.json",
+    getLatestVariableIdsByCatalogPathJson
 )
 getRouteWithROTransaction(
     apiRouter,
