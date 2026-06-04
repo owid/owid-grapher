@@ -329,7 +329,7 @@ function FoodTradeChartFooter({
     view: Flow
 }) {
     const topPartners =
-        'Only the top ten partners are shown; the rest are grouped as "Other".'
+        'Only the largest partners are shown; the rest are grouped as "Other".'
     const reporting =
         view === "import"
             ? `Figures reflect imports reported by ${articulateEntity(country)}; exporter records may differ.`

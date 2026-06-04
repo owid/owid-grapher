@@ -14,9 +14,10 @@ import {
 import {
     aggregateBySide,
     assignColors,
+    DEFAULT_MAX_NODES,
+    DEFAULT_MAX_NODES_TO_SHRINK_OTHER,
     DEFAULT_MIN_LINK_SHARE,
     DEFAULT_MIN_NODE_SHARE,
-    DEFAULT_TOP_N,
     getEntityFromNodeId,
     getEntityShortLabel,
     EntityTotal,
@@ -33,8 +34,10 @@ interface BilateralFlowSankeyProps {
     flows: Flow[]
     width: number
     height: number
-    /** Number of top sources/targets shown individually before bucketing into "Other" */
-    topN?: number
+    /** How many significant sources/targets to show by default before bucketing into "Other" */
+    maxNodes?: number
+    /** Raised ceiling used to shrink an oversized "Other" bucket */
+    maxNodesToShrinkOther?: number
     /**
      * Minimum share of its column total an entity must reach to keep its own
      * node slot; below this it's folded into the "Other" bucket
@@ -58,7 +61,8 @@ export function BilateralFlowSankey({
     flows,
     width,
     height,
-    topN = DEFAULT_TOP_N,
+    maxNodes = DEFAULT_MAX_NODES,
+    maxNodesToShrinkOther = DEFAULT_MAX_NODES_TO_SHRINK_OTHER,
     minNodeShare = DEFAULT_MIN_NODE_SHARE,
     minLinkShare = DEFAULT_MIN_LINK_SHARE,
     getTooltip,
@@ -69,12 +73,20 @@ export function BilateralFlowSankey({
         () =>
             buildBilateral({
                 flows,
-                topN,
+                maxNodes,
+                maxNodesToShrinkOther,
                 minNodeShare,
                 minLinkShare,
                 formatValue,
             }),
-        [flows, topN, minNodeShare, minLinkShare, formatValue]
+        [
+            flows,
+            maxNodes,
+            maxNodesToShrinkOther,
+            minNodeShare,
+            minLinkShare,
+            formatValue,
+        ]
     )
 
     const getEntityIdsFromNodes = (nodes: SankeyNode[]) =>
@@ -217,13 +229,15 @@ function buildTooltipArgs({
 
 function buildBilateral({
     flows,
-    topN,
+    maxNodes,
+    maxNodesToShrinkOther,
     minNodeShare,
     minLinkShare,
     formatValue,
 }: {
     flows: Flow[]
-    topN: number
+    maxNodes: number
+    maxNodesToShrinkOther: number
     minNodeShare: number
     minLinkShare: number
     formatValue: (value: number) => string
@@ -235,13 +249,15 @@ function buildBilateral({
     const sourceSelection = selectTopEntities({
         flows,
         side: "source",
-        topN,
+        maxNodes,
+        maxNodesToShrinkOther,
         minNodeShare,
     })
     const targetSelection = selectTopEntities({
         flows,
         side: "target",
-        topN,
+        maxNodes,
+        maxNodesToShrinkOther,
         minNodeShare,
     })
 

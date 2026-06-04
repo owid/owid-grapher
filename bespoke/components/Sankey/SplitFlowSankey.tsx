@@ -17,8 +17,9 @@ import {
 } from "./Sankey.js"
 import {
     assignColors,
+    DEFAULT_MAX_NODES,
+    DEFAULT_MAX_NODES_TO_SHRINK_OTHER,
     DEFAULT_MIN_NODE_SHARE,
-    DEFAULT_TOP_N,
     getEntityShortLabel,
     EntityTotal,
     Flow,
@@ -109,7 +110,10 @@ interface SplitFlowSankeyProps {
     height: number
     /** Which halves to show. Single-half view takes the full width. */
     view?: View
-    topN?: number
+    /** How many significant partners to show per half by default */
+    maxNodes?: number
+    /** Raised ceiling used to shrink an oversized "Other" bucket */
+    maxNodesToShrinkOther?: number
     minNodeShare?: number
     formatValue: (v: number) => string
 }
@@ -121,7 +125,8 @@ export function SplitFlowSankey({
     width,
     height,
     view = "both",
-    topN = DEFAULT_TOP_N,
+    maxNodes = DEFAULT_MAX_NODES,
+    maxNodesToShrinkOther = DEFAULT_MAX_NODES_TO_SHRINK_OTHER,
     minNodeShare = DEFAULT_MIN_NODE_SHARE,
     formatValue,
 }: SplitFlowSankeyProps) {
@@ -137,11 +142,19 @@ export function SplitFlowSankey({
                 flows: incoming.rows,
                 centralEntity,
                 direction: "incoming",
-                topN,
+                maxNodes,
+                maxNodesToShrinkOther,
                 minNodeShare,
                 formatValue,
             }),
-        [incoming.rows, centralEntity, topN, minNodeShare, formatValue]
+        [
+            incoming.rows,
+            centralEntity,
+            maxNodes,
+            maxNodesToShrinkOther,
+            minNodeShare,
+            formatValue,
+        ]
     )
     const outgoingBuild = useMemo(
         () =>
@@ -149,11 +162,19 @@ export function SplitFlowSankey({
                 flows: outgoing.rows,
                 centralEntity,
                 direction: "outgoing",
-                topN,
+                maxNodes,
+                maxNodesToShrinkOther,
                 minNodeShare,
                 formatValue,
             }),
-        [outgoing.rows, centralEntity, topN, minNodeShare, formatValue]
+        [
+            outgoing.rows,
+            centralEntity,
+            maxNodes,
+            maxNodesToShrinkOther,
+            minNodeShare,
+            formatValue,
+        ]
     )
 
     // Color partners in node display order
@@ -516,14 +537,16 @@ function buildSankeyHalf({
     flows,
     centralEntity,
     direction,
-    topN,
+    maxNodes,
+    maxNodesToShrinkOther,
     minNodeShare,
     formatValue,
 }: {
     flows: Flow[]
     centralEntity: string
     direction: "incoming" | "outgoing"
-    topN: number
+    maxNodes: number
+    maxNodesToShrinkOther: number
     minNodeShare: number
     formatValue: (v: number) => string
 }): SankeyHalfBuild | undefined {
@@ -534,7 +557,8 @@ function buildSankeyHalf({
     const selection = selectTopEntities({
         flows,
         side,
-        topN,
+        maxNodes,
+        maxNodesToShrinkOther,
         minNodeShare,
         showAllOtherBelow: 1,
     })

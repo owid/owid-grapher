@@ -16,7 +16,11 @@ export type Flow = {
 
 export type EntityTotal = { entity: string; total: number }
 
-export const DEFAULT_TOP_N = 10
+/** How many significant nodes to show by default */
+export const DEFAULT_MAX_NODES = 10
+/** Most nodes we'll ever show */
+export const DEFAULT_MAX_NODES_TO_SHRINK_OTHER = 15
+/** Smallest share of the column total a node may have and still be drawn on its own */
 export const DEFAULT_MIN_NODE_SHARE = 0.01
 export const DEFAULT_MIN_LINK_SHARE = 0.01
 
@@ -116,21 +120,28 @@ export function aggregateBySide(flows: Flow[], side: LinkSide): EntityTotal[] {
 }
 
 /**
- * Aggregate flow rows by side (collapsing multiple rows into one per-entity
- * total), then pick the top N. An entity that made the top N gets demoted
- * into the "Other" bucket if its share of the column total is below
- * minNodeShare.
+ * Choose which entities on a given side to show as their own Sankey node;
+ * everything else is folded into an "Other" bucket.
+ *
+ *  1. Significance floor — show every entity individually big enough to read as
+ *     its own node (≥ `minNodeShare` of the column total), largest-first, up to
+ *     `maxNodes`.
+ *  2. "Other"-is-smallest — a reader shouldn't see the aggregated "Other"
+ *     bucket outweigh an individually named partner. While it does, promote the
+ *     largest remaining entity out of "Other".
  */
 export function selectTopEntities({
     flows,
     side,
-    topN,
+    maxNodes,
+    maxNodesToShrinkOther = maxNodes,
     minNodeShare,
     showAllOtherBelow = 0,
 }: {
     flows: Flow[]
     side: LinkSide
-    topN: number
+    maxNodes: number
+    maxNodesToShrinkOther?: number
     minNodeShare: number
     /**
      * When the Other bucket would contain this many entries or fewer,
@@ -144,18 +155,44 @@ export function selectTopEntities({
     total: number
 } {
     const sortedEntities = aggregateBySide(flows, side)
-
     const total = R.sumBy(sortedEntities, (d) => d.total)
 
-    const topCandidates = R.take(sortedEntities, topN)
-    const topCandidatesAboveFloor = topCandidates.filter(
-        (d) => total > 0 && d.total / total >= minNodeShare
-    )
-    let top =
-        topCandidatesAboveFloor.length > 0
-            ? topCandidatesAboveFloor
-            : R.take(topCandidates, 1)
-    let other = R.drop(sortedEntities, top.length)
+    if (sortedEntities.length === 0 || total <= 0) {
+        return { top: sortedEntities, other: [], total }
+    }
+
+    // The most nodes we'd ever draw
+    const ceiling = Math.max(maxNodes, maxNodesToShrinkOther)
+
+    // Show all if there are few enough
+    if (sortedEntities.length <= ceiling) {
+        return { top: sortedEntities, other: [], total }
+    }
+
+    const floor = minNodeShare * total
+
+    // 1. Significance floor: the leading run of entities at or above the floor,
+    //    but always ≥ 1 and never more than the default node budget
+    const significant = R.takeWhile(
+        sortedEntities,
+        (d) => d.total >= floor
+    ).length
+    const baseCount = R.clamp(significant, { min: 1, max: maxNodes })
+
+    // 2. "Other"-is-smallest: Promote entities out of "Other" while it both
+    //    outweighs the smallest shown node and is itself above the floor,
+    //    climbing up to the ceiling
+    const otherTotalFrom = (k: number): number =>
+        total - R.sumBy(R.take(sortedEntities, k), (d) => d.total)
+    const promotions = R.takeWhile(R.range(baseCount, ceiling), (k) => {
+        const otherTotal = otherTotalFrom(k)
+        return otherTotal > sortedEntities[k - 1].total && otherTotal >= floor
+    }).length
+
+    const count = baseCount + promotions
+
+    let top = R.take(sortedEntities, count)
+    let other = R.drop(sortedEntities, count)
 
     // Inline a small Other tail
     if (other.length > 0 && other.length <= showAllOtherBelow) {
