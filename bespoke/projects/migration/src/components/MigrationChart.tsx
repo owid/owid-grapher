@@ -2,6 +2,7 @@ import * as R from "remeda"
 
 import { articulateEntity } from "@ourworldindata/utils"
 
+import { Spinner } from "../../../../components/Spinner/Spinner.js"
 import { MigrationFlow, MigrationView, Sex } from "../types.js"
 import { getSexAdjective } from "../helpers.js"
 import { MigrationSankey } from "./MigrationSankey.js"
@@ -17,6 +18,7 @@ export function MigrationChart({
     view,
     setView,
     colorMap,
+    isLoading,
 }: {
     immigrants: MigrationFlow[]
     emigrants: MigrationFlow[]
@@ -28,6 +30,7 @@ export function MigrationChart({
     view: MigrationView
     setView: (view: MigrationView) => void
     colorMap?: Map<string, string>
+    isLoading?: boolean
 }) {
     const hasData = immigrants.length > 0 || emigrants.length > 0
 
@@ -36,6 +39,7 @@ export function MigrationChart({
 
     return (
         <div className="migration-captioned-chart__chart-area">
+            {isLoading && <Spinner />}
             {hasData ? (
                 <MigrationSankey
                     immigrants={immigrants}

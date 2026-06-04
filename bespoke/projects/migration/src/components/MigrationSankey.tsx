@@ -308,8 +308,8 @@ function getMigrationLinkTooltip({
     const title = isOther
         ? otherTitle
         : direction === "incoming"
-          ? `${getEntityShortLabel(partner)} → ${getEntityShortLabel(central)}`
-          : `${getEntityShortLabel(central)} → ${getEntityShortLabel(partner)}`
+          ? `${partner} → ${central}`
+          : `${central} → ${partner}`
 
     const share = halfTotal > 0 ? value / halfTotal : 0
     const formattedShare = formatShare(share)

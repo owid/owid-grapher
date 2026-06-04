@@ -17,6 +17,7 @@ import {
 } from "../../../../components/Sankey/SankeyHelpers.js"
 import { MOBILE_BREAKPOINT } from "../../../../components/Sankey/SplitFlowSankey.js"
 import { useUrlState } from "../../../../hooks/useUrlState.js"
+import { useDelayedLoading } from "../../../../hooks/useDelayedLoading.js"
 import { useContainerWidth } from "../../../../hooks/useContainerWidth.js"
 import {
     isUserLocationCountry,
@@ -130,10 +131,15 @@ function FetchingSankeyVariant({ config }: { config: SankeyVariantConfig }) {
         return metadata.entities.find((e) => e.name === country)?.id
     }, [metadata, country])
 
-    const { data: migration, status: migrationStatus } = useMigrationData(
-        countryId,
-        metadata
-    )
+    const {
+        data: migration,
+        status: migrationStatus,
+        isPlaceholderData,
+    } = useMigrationData(countryId, metadata)
+
+    // Dim the chart and show a spinner while a new country file loads,
+    // keeping the previous country on screen until the new one arrives.
+    const isLoading = useDelayedLoading(isPlaceholderData)
 
     // Filter rows down to the active year/sex
     const immigrants = useMemo(
@@ -220,6 +226,7 @@ function FetchingSankeyVariant({ config }: { config: SankeyVariantConfig }) {
             immigrantsTotal={immigrantsTotal}
             emigrantsTotal={emigrantsTotal}
             colorMap={colorMap}
+            isLoading={isLoading}
             setCountry={setCountry}
             setYear={setYear}
             setSex={setSex}
@@ -241,6 +248,7 @@ function CaptionedSankeyVariant({
     immigrantsTotal,
     emigrantsTotal,
     colorMap,
+    isLoading,
     setCountry,
     setYear,
     setSex,
@@ -258,6 +266,7 @@ function CaptionedSankeyVariant({
     immigrantsTotal: number
     emigrantsTotal: number
     colorMap: Map<string, string> | undefined
+    isLoading: boolean
     setCountry: (name: string) => void
     setYear: (year: number) => void
     setSex: (sex: Sex) => void
@@ -316,6 +325,7 @@ function CaptionedSankeyVariant({
                     view={view}
                     setView={setView}
                     colorMap={colorMap}
+                    isLoading={isLoading}
                 />
                 <MigrationChartFooter source={metadata.source} />
             </Frame>
