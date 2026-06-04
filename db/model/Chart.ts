@@ -657,6 +657,46 @@ export const getRelatedChartsForVariable = async (
     )
 }
 
+/**
+ * Get related charts for a chart from the `related_charts` table, which is
+ * populated by the ETL `related-charts` CLI based on chart coviews
+ * (charts viewed together in the same browsing session).
+ */
+export const getRelatedChartsForChart = async (
+    knex: db.KnexReadonlyTransaction,
+    chartId: number,
+    limit: number = 6
+): Promise<RelatedChart[]> => {
+    return db.knexRaw<RelatedChart>(
+        knex,
+        `-- sql
+            SELECT
+                charts.id AS chartId,
+                chart_configs.slug,
+                chart_configs.full->>"$.title" AS title,
+                chart_configs.full->>"$.variantName" AS variantName,
+                MAX(chart_tags.keyChartLevel) as keyChartLevel
+            FROM related_charts
+            JOIN charts ON charts.id = related_charts.relatedChartId
+            JOIN chart_configs ON charts.configId = chart_configs.id
+            LEFT JOIN chart_tags ON charts.id = chart_tags.chartId
+            WHERE related_charts.chartId = ?
+                AND related_charts.reviewer = 'production'
+                AND related_charts.label = 'good'
+                AND chart_configs.full->>"$.isPublished" = "true"
+                AND NOT EXISTS (
+                    SELECT 1 FROM chart_tags ct
+                    JOIN tags t ON ct.tagId = t.id
+                    WHERE ct.chartId = charts.id AND t.name = 'Unlisted'
+                )
+            GROUP BY charts.id
+            ORDER BY MAX(related_charts.score) DESC
+            LIMIT ?
+        `,
+        [chartId, limit]
+    )
+}
+
 export const getRedirectsByChartId = async (
     knex: db.KnexReadonlyTransaction,
     chartId: number
