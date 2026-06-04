@@ -614,7 +614,7 @@ getRouteWithROTransaction(
 )
 getRouteWithROTransaction(
     apiRouter,
-    "/variables/latestByCatalogPath.json",
+    "/variables.latestByCatalogPath.json",
     getLatestVariableIdsByCatalogPathJson
 )
 getRouteWithROTransaction(

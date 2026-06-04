@@ -25,6 +25,7 @@ import {
     GrapherInterface,
     DbRawVariable,
     VariablesTableName,
+    DatasetsTableName,
     DbRawChartConfig,
     DbPlainDatapage,
     parseChartConfig,
@@ -1238,10 +1239,23 @@ export const getLatestVariableIdsByCatalogPath = async (
                 )
                 .join("/")
 
-            const rows: Pick<DbRawVariable, "id" | "catalogPath">[] = await knex
-                .select("id", "catalogPath")
-                .from(VariablesTableName)
-                .where("catalogPath", "like", likePattern)
+            const rows: Pick<DbRawVariable, "id" | "catalogPath">[] =
+                await knex(VariablesTableName)
+                    .join(
+                        DatasetsTableName,
+                        `${VariablesTableName}.datasetId`,
+                        `${DatasetsTableName}.id`
+                    )
+                    .where(
+                        `${VariablesTableName}.catalogPath`,
+                        "like",
+                        likePattern
+                    )
+                    .where(`${DatasetsTableName}.isArchived`, 0) // Ignore archived datasets
+                    .select(
+                        `${VariablesTableName}.id`,
+                        `${VariablesTableName}.catalogPath`
+                    )
 
             // Pick the most recent version
             const latest = _.maxBy(rows, (row) => getVersion(row.catalogPath))

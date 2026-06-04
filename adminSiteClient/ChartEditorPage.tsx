@@ -169,7 +169,7 @@ export class ChartEditorPage
     async fetchVariableIdsByCatalogPath(): Promise<void> {
         const { admin } = this.context
         const json = await admin.getJSON<Record<string, number | null>>(
-            "/api/variables/latestByCatalogPath.json",
+            "/api/variables.latestByCatalogPath.json",
             {
                 catalogPaths: [
                     GDP_PER_CAPITA_CATALOG_PATH,
