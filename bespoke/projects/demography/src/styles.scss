@@ -685,21 +685,6 @@ $panel-gap: 12px;
     font-size: 0.7em;
 }
 
-.demography-spinner {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 10;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(255, 255, 255, 0.8);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: $gray-100;
-}
-
 .breakpoint-medium,
 .breakpoint-small,
 .breakpoint-narrow {
@@ -821,7 +806,7 @@ $panel-gap: 12px;
     height: 600px;
     border: 1px solid $frame-color;
 
-    .demography-spinner {
+    .spinner {
         color: $gray-60;
     }
 }

@@ -29,8 +29,8 @@ import {
 import {
     DemographyChartError,
     DemographySkeleton,
-    LoadingSpinner,
 } from "../components/DemographyLoadAndError.js"
+import { Spinner } from "../../../../components/Spinner/Spinner.js"
 import { PopulationChart } from "../components/PopulationChart.js"
 import { ParameterChartsDisclosure } from "../components/ParameterChartsDisclosure.js"
 import { EntityNameOrSelector } from "../components/EntityNameOrSelector.js"
@@ -162,7 +162,7 @@ function CaptionedPopulationVariant({
             />
 
             <div className="demography-population-variant__chart-area">
-                {isLoading && <LoadingSpinner />}
+                {isLoading && <Spinner />}
                 {simulation && (
                     <PopulationChart
                         simulation={simulation}
