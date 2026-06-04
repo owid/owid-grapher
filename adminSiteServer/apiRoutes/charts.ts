@@ -982,9 +982,15 @@ const NON_INHERITABLE_PATCH_KEYS = [
 
 /**
  * Recompute the chart's `patch` against a new parent stack. Strips redundant
- * patch entries that now match the parent stack — including `dimensions`, so
- * ETL can change dimensions via `etlConfig` without being blocked by stale
- * patch entries from a prior bootstrap or admin save.
+ * patch entries that now match the parent stack — including `dimensions` that
+ * merely echo the parent (e.g. leftover from a bootstrap create), so those
+ * don't linger and block ETL from re-versioning the indicator.
+ *
+ * A genuine admin override — `dimensions` that actually differ from the parent
+ * stack — is deliberately kept and wins over `etlConfig`, so a manual change to
+ * the plotted variables in the admin survives ETL pushes. The trade-off is that
+ * ETL can't re-version a chart whose dimensions were hand-edited; a warning for
+ * such "unlinked" dimensions is planned as a follow-up.
  *
  * Differs from `diffGrapherConfigs` only in that we don't keep `REQUIRED_KEYS`
  * (`$schema`, `dimensions`) unconditionally; every field falls through to the
