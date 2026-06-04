@@ -340,14 +340,16 @@ async function indexAndBakeGdocIfNeccesary(
     const nextJson = nextGdoc.toJSON()
     const hasChanges = checkHasChanges(prevGdoc, nextGdoc)
     const action = getPublishingAction(prevJson, nextJson)
-    const isGdocPost = checkIsGdocPostExcludingFragments(nextJson)
+    const shouldIndexInPages =
+        checkIsGdocPostExcludingFragments(nextJson) ||
+        checkIsDataInsight(nextJson)
     const isProfile = checkIsProfile(nextJson)
     const isChronologicalPost = checkIsChronologicalGdoc(nextJson)
 
     await match(action)
         .with(GdocPublishingAction.SavingDraft, _.noop)
         .with(GdocPublishingAction.Publishing, async () => {
-            if (isGdocPost) {
+            if (shouldIndexInPages) {
                 await indexIndividualGdocPost(
                     nextJson,
                     trx,
@@ -365,7 +367,7 @@ async function indexAndBakeGdocIfNeccesary(
             await triggerStaticBuild(user, `${action} ${nextJson.slug}`)
         })
         .with(GdocPublishingAction.Updating, async () => {
-            if (isGdocPost) {
+            if (shouldIndexInPages) {
                 await indexIndividualGdocPost(nextJson, trx, prevGdoc.slug)
             }
             if (isProfile) {
@@ -385,8 +387,8 @@ async function indexAndBakeGdocIfNeccesary(
             }
         })
         .with(GdocPublishingAction.Unpublishing, async () => {
-            if (isGdocPost) {
-                await removeIndividualGdocPostFromIndex(nextJson)
+            if (shouldIndexInPages) {
+                await removeIndividualGdocPostFromIndex(nextJson.slug)
             }
             if (isProfile) {
                 await removeIndividualProfileFromIndex(nextGdoc as GdocProfile)
@@ -588,8 +590,11 @@ export async function deleteGdoc(
         .where({ gdocId: id })
         .delete()
     if (gdoc.published) {
-        if (checkIsGdocPostExcludingFragments(gdoc)) {
-            await removeIndividualGdocPostFromIndex(gdoc)
+        if (
+            checkIsGdocPostExcludingFragments(gdoc) ||
+            gdoc.content.type === OwidGdocType.DataInsight
+        ) {
+            await removeIndividualGdocPostFromIndex(gdoc.slug)
         }
         if (checkIsProfile(gdoc)) {
             await removeIndividualProfileFromIndex(

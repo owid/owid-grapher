@@ -500,7 +500,7 @@ async function getExistingRecordsForSlug(
  *   - They're of the form `${gdoc.id}-c${chunkNumber}` but we don't know how many chunks exist
  */
 export async function indexIndividualGdocPost(
-    gdoc: OwidGdocPostInterface,
+    gdoc: OwidGdocPostInterface | OwidGdocDataInsightInterface,
     knex: db.KnexReadonlyTransaction,
     indexedSlug: string
 ) {
@@ -614,9 +614,7 @@ export async function getIndividualGdocRecords(
     )
 }
 
-export async function removeIndividualGdocPostFromIndex(
-    gdoc: OwidGdocPostInterface
-) {
+export async function removeIndividualGdocPostFromIndex(slug: string) {
     if (!ALGOLIA_INDEXING) return
     const client = getAlgoliaClient()
     if (!client) {
@@ -629,16 +627,16 @@ export async function removeIndividualGdocPostFromIndex(
     const existingRecordsForPost: Hit[] = await getExistingRecordsForSlug(
         client,
         indexName,
-        gdoc.slug
+        slug
     )
 
     try {
-        console.log("Removing Gdoc post from Algolia index", gdoc.slug)
+        console.log("Removing Gdoc post from Algolia index", slug)
         await client.deleteObjects({
             indexName,
             objectIDs: existingRecordsForPost.map((r) => r.objectID),
         })
-        console.log("Removed Gdoc post from Algolia index", gdoc.slug)
+        console.log("Removed Gdoc post from Algolia index", slug)
     } catch (e) {
         console.error("Error removing Gdoc post from Algolia index: ", e)
     }
