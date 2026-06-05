@@ -60,7 +60,9 @@ async function refreshTable(
     const { tableName, columns, keyColumn } = config
     console.log(`\n==> Refreshing ${tableName}`)
 
-    const csvUrl = `http://analytics/private/${tableName}.csv?_stream=on&_size=max`
+    // The internal Datasette's `analytics` (semantic-layer) database; the former `private`
+    // database is being retired (see owid/analytics#810) and these two tables now live here.
+    const csvUrl = `http://analytics/analytics/${tableName}.csv?_stream=on&_size=max`
     const response = await fetch(csvUrl)
 
     if (!response.ok) {
@@ -107,7 +109,7 @@ async function refreshTable(
 async function refreshAllAnalytics(
     knex: db.KnexReadWriteTransaction
 ): Promise<void> {
-    // Fetch CSV from private Datasette and insert it to a local MySQL. This function
+    // Fetch CSV from the internal Datasette and insert it to a local MySQL. This function
     // exists because `make refresh` uses MySQL dump that excludes analytics tables.
     // That's why it's necessary to call `make refresh.analytics` separately.
     for (const table of tables) {
