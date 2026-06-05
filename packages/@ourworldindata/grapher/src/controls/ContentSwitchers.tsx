@@ -139,7 +139,9 @@ export class ContentSwitchers extends React.Component<{
                     )}
                     aria-label="Show more chart types"
                 >
-                    +&#8202;{this.hiddenTabs.length}
+                    <span className="label">
+                        +&#8202;{this.hiddenTabs.length}
+                    </span>
                 </Button>
                 <Popover
                     className="ContentSwitchers__OverflowMenu"

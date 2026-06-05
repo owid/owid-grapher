@@ -108,7 +108,7 @@ export class MapResetButton extends React.Component<{
                 className="menu-toggle"
             >
                 <FontAwesomeIcon icon={faRotateLeft} />
-                {this.label}
+                <span className="label">{this.label}</span>
             </button>
         ) : null
     }

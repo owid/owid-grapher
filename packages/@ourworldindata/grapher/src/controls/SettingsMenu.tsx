@@ -329,7 +329,7 @@ export class SettingsMenu extends React.Component<SettingsMenuProps> {
                         aria-label="Chart settings"
                     >
                         <FontAwesomeIcon icon={faGear} />
-                        <span className="label"> Settings</span>
+                        <span className="label">Settings</span>
                     </Button>
                     <Popover
                         className={GRAPHER_SETTINGS_CLASS}

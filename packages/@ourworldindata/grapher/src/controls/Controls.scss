@@ -29,6 +29,7 @@ nav.controlsRow .controls {
         align-items: center;
         border: 1px solid $light-stroke;
         border-radius: 4px;
+        height: $control-row-height;
         padding: 7px;
         color: $dark-text;
         white-space: nowrap;
@@ -49,6 +50,10 @@ nav.controlsRow .controls {
             height: 12px;
             margin-right: 5px;
             vertical-align: bottom;
+        }
+
+        .label {
+            padding-top: $control-label-padding-top;
         }
 
         label:hover {
