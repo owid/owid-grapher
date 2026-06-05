@@ -1,0 +1,1418 @@
+// Styles for MetadataSectionCollapsible. Targets only .MetadataSectionCollapsible__*
+// classes (or descendants of .MetadataSectionCollapsible), so the rules apply
+// only inside the rendered metadata box.
+
+.MetadataSectionCollapsible-wrap {
+    position: relative;
+    margin-bottom: 32px;
+
+    @include sm-up {
+        margin-bottom: 48px;
+    }
+
+    // Match the grapher's visible chart width (excluding the entity-selector
+    // panel that renders to the right of the chart on wide viewports). The
+    // grapher switches the entity selector from a side panel to a drawer
+    // when its chart frame crosses ~940px — which, on the data-page layout,
+    // happens at a viewport of 988px. Above that, the chart proper
+    // occupies ~9 of the 12 inner cols (75%); below it, the chart takes
+    // the full 12 cols and the metadata box can grow to match.
+    @media (min-width: 988px) {
+        max-width: 75%;
+        margin-left: 0;
+        margin-right: auto;
+    }
+}
+
+// Inline "Show less" affordance inside the header row (__above-switcher).
+// Pushed to the right via flexbox below. Hidden by default; revealed when
+// the box is open via `:has(.MetadataSectionCollapsible[open])` on the wrap.
+// Click target is the surrounding __above row, not this span — so this is
+// purely visual feedback. Small + $blue-50: meant to read as a quiet
+// "close" hint, not a primary action (the bottom "Show less" bar still
+// renders for users who scrolled deep into the open box).
+.MetadataSectionCollapsible__inline-show-less {
+    display: none;
+    align-items: center;
+    gap: 4px;
+    color: $blue-50;
+    font-family: $sans-serif-font-stack;
+    font-size: 0.75rem;
+    font-weight: 500;
+    line-height: 1;
+    margin-left: auto;
+}
+
+.MetadataSectionCollapsible-wrap:has(.MetadataSectionCollapsible[open])
+    .MetadataSectionCollapsible__inline-show-less {
+    display: inline-flex;
+}
+
+// Whole header row is the click target for collapsing when open — cursor
+// pointer so users know they can click it.
+.MetadataSectionCollapsible-wrap:has(.MetadataSectionCollapsible[open])
+    .MetadataSectionCollapsible__above {
+    cursor: pointer;
+}
+
+// Header strip sitting above the box. Now a flex column containing:
+//   1) `__above-switcher`: the title / dropdown / h-tabs row
+//   2) the short description ("TLDR")
+//   3) the stat factoids row
+// Styled to read as a header subsection of the metadata block — same
+// surface as the box below, attached with shared borders.
+// One pane per indicator wraps each per-indicator section. ALL indicators'
+// metadata are rendered at all times so AI agents / unmodified-HTML
+// consumers can read every indicator's data on a single GET; only the
+// active pane is visible to the human user. `display: contents` lets the
+// active pane's children participate in the parent's flex/grid layout as
+// if there were no wrapper element.
+.MetadataSectionCollapsible__indicator-pane {
+    display: none;
+}
+.MetadataSectionCollapsible__indicator-pane--active {
+    display: contents;
+}
+
+.MetadataSectionCollapsible__above {
+    display: flex;
+    flex-direction: column;
+    // Slightly looser than the previous 8px so the prefixes ("Short
+    // description", "Data source", and the factoid row) get a bit more
+    // breathing room and the closed view doesn't feel cramped.
+    gap: 12px;
+    // Same surface as the collapsible box below — the whole metadata block
+    // reads as one flat $blue-5 panel (Figma has no border / no radius / no
+    // visual seam between the header strip and the body).
+    background-color: $blue-5;
+    border: 0;
+    border-radius: 0;
+    // Top 24 sets the outer-box top inset; bottom 16 + summary's top 16 +
+    // 1px divider = symmetric ~16px above and below the header divider.
+    padding: 24px 24px 16px;
+}
+
+// Inner row of the header: prefix + switcher (+ variant) on one
+// baseline-aligned line that wraps on narrow viewports.
+.MetadataSectionCollapsible__above-switcher {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+}
+
+// Multi-indicator header for h-tabs and h-pills variants — "About this
+// data ({N} indicators)" label + the switcher row, rendered OUTSIDE the
+// $blue-5 box so the row reads as a header for the whole box (the
+// selected indicator's title appears as the first line inside the box).
+.MetadataSectionCollapsible__multi-header {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+
+    // Override the small-caps title-prefix treatment when it lives inside
+    // the multi-header: at this position the label IS the section header
+    // for the box below, so it should match the data page's other h2 tags
+    // (serif h2-bold 20px). The "(N indicators)" count keeps its smaller
+    // sans treatment beside the heading.
+    .MetadataSectionCollapsible__indicator-header-group {
+        align-items: baseline;
+        gap: 8px;
+    }
+
+    .MetadataSectionCollapsible__indicator-title-prefix {
+        @include h2-bold;
+        & {
+            margin: 0;
+            color: $blue-90;
+            text-transform: none;
+            letter-spacing: 0;
+            white-space: normal;
+        }
+    }
+
+    .MetadataSectionCollapsible__indicator-count {
+        font-style: normal;
+        color: $blue-50;
+        font-size: 0.875rem;
+    }
+}
+
+// h-tabs: the tab row is flush with the box top so the active tab can
+// visually fuse with the box. No gap between header and box.
+.MetadataSectionCollapsible-wrap--h-tabs
+    .MetadataSectionCollapsible__multi-header {
+    margin-bottom: 0;
+}
+
+// h-pills: a small gap between the pill row and the box so the pills
+// clearly read as "above" the box rather than attached to it.
+.MetadataSectionCollapsible-wrap--h-pills
+    .MetadataSectionCollapsible__multi-header {
+    margin-bottom: 12px;
+}
+
+// `__main` is the row that holds the (optional) vertical-tab aside and the
+// collapsible box. Single column by default; flex row for the v-tabs variant.
+.MetadataSectionCollapsible__main {
+    display: block;
+}
+
+.MetadataSectionCollapsible-wrap--v-tabs .MetadataSectionCollapsible__main {
+    display: flex;
+    align-items: stretch;
+}
+
+// Figma: the outer box is just $blue-5 fill with 24px padding — no border,
+// no rounded corners. (The v-tabs aside still needs a left border to seam
+// with its sidebar; preserved via the modifier below.)
+.MetadataSectionCollapsible {
+    background-color: $blue-5;
+    border: 0;
+    border-radius: 0;
+    overflow: hidden;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+// The wrapping `.chart-key-info` defines its own 24/80px padding (used on
+// data pages without the collapsible metadata box). On the experiment we
+// let the box's own margin-bottom be the source of truth for the spacing
+// between the metadata block and what follows — avoids doubled spacing.
+.DataPageContent .chart-key-info:has(.MetadataSectionCollapsible-wrap) {
+    padding-bottom: 0;
+}
+
+.MetadataSectionCollapsible__summary {
+    cursor: pointer;
+    display: block;
+    // 1px #d0dae3 divider above the bullets (Figma "Line 55"). Drawn as a
+    // pseudo-element so it sits inset from the box edges (matches the
+    // Figma — the line is 24px short of the outer box on each side, not
+    // flush to the margins). Bottom padding intentionally small so the
+    // "Show more" chip below the fading bullets sits in a tight final
+    // strip, symmetric with the 12px flex-gap above it.
+    position: relative;
+    padding: 16px 24px 12px;
+    list-style: none;
+    transition: background-color 120ms ease;
+
+    &::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 24px;
+        right: 24px;
+        height: 1px;
+        background-color: #d0dae3;
+    }
+
+    &::marker,
+    &::-webkit-details-marker {
+        display: none;
+    }
+}
+
+// Subtle hover hint that the (collapsed) block is clickable. The hex
+// sits ~3% darker than $blue-5 (#f0f4fa) while preserving blue
+// saturation, mirroring the idiom used by .data-page-related-content
+// (which hovers $blue-20 → #cfdaeb). Apply across the whole wrap (the
+// header strip, the v-tabs aside, and the box) so the entire component
+// reads as one hoverable unit. `:has()` keeps the effect off when the
+// box is already open OR when the multi-header (out-of-box "About this
+// data" + switcher row) is the actual hover target — those are not part
+// of the box surface, they're a label/control row above it.
+.MetadataSectionCollapsible-wrap:not(
+        :has(.MetadataSectionCollapsible[open])
+    ):hover:not(:has(.MetadataSectionCollapsible__multi-header:hover)) {
+    cursor: pointer;
+
+    .MetadataSectionCollapsible__above,
+    .MetadataSectionCollapsible__v-tabs,
+    .MetadataSectionCollapsible {
+        background-color: #e3ebf5;
+    }
+}
+
+// When expanded, only the "Show less" toggle collapses on click (the
+// click handler on <summary> preventDefaults clicks elsewhere). Shift
+// the cursor cue accordingly.
+// When the box is open, the summary holds the "What you should know"
+// prose — let the cursor default to the browser's natural per-element
+// behavior (text I-beam over prose so users can select, arrow over
+// non-text), instead of the `default` arrow that would mask the text
+// affordance.
+.MetadataSectionCollapsible[open] .MetadataSectionCollapsible__summary {
+    cursor: auto;
+}
+
+.MetadataSectionCollapsible__summary-key-data {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+// --- Stat factoids (Unit, Last updated, Managed by) ---
+// Rendered inside the metadata box (since the stats describe the indicator,
+// they belong with the rest of its metadata). Plain inline label-value pairs,
+// separated by middots — no pill chrome, since these aren't clickable.
+
+.MetadataSectionCollapsible__factoids {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    // Horizontal spacing between factoids is set via column-gap on the
+    // parent (not margin-left on consecutive children) so that wrapped
+    // items start flush at the left edge instead of getting an extra
+    // 16px indent on the new line.
+    column-gap: 20px;
+    row-gap: 4px;
+}
+
+// Figma: factoid row is Lato-Medium 13/16, labels in $blue-50, values in
+// $blue-90. The whole row sits on a single line — "Unit Tonnes per person
+// · Last updated November 13, 2025 · …".
+.MetadataSectionCollapsible__summary-stat {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 6px;
+    min-width: 0;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    line-height: calc(16 / 13);
+}
+
+// (Horizontal spacing between consecutive factoids is set via
+// `.__factoids` `column-gap` above so wrapped items don't get an indent.)
+
+.MetadataSectionCollapsible__summary-stat-title {
+    color: $blue-50;
+    white-space: nowrap;
+    font-weight: 500;
+    letter-spacing: 0;
+    text-transform: none;
+}
+
+.MetadataSectionCollapsible__summary-stat-value {
+    color: $blue-90;
+    min-width: 0;
+    font-weight: 500;
+}
+
+// --- Toggle (Show more / Show less) ---
+// - Show more: centered chip at the bottom of the summary, only when collapsed.
+// - Show less: same slot at the bottom, only when expanded.
+// No background or hover styling on the chip itself; the whole summary
+// changes color on hover (collapsed only) to hint at clickability.
+
+// Figma: Show more / Show less is Lato-SemiBold 16/24 in $vermillion.
+// Plain inline layout (not inline-flex) so the chevron uses FontAwesome's
+// own `vertical-align: -.125em`, which lines it up with the text x-height
+// the way the existing `key-info__learn-more` link does.
+.MetadataSectionCollapsible__toggle {
+    font-family: $sans-serif-font-stack;
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: calc(24 / 16);
+    color: $vermillion;
+}
+
+.MetadataSectionCollapsible__toggle--show-more {
+    align-self: center;
+    // No extra vertical margin/padding — the 12px flex-gap above (in
+    // __summary-key-data) and the 12px __summary padding-bottom below
+    // already give the chip a symmetric ~12px frame, so it reads as
+    // vertically centered in the small final strip beneath the fade.
+    margin: 0;
+    padding: 0;
+}
+
+// Full-width clickable bottom bar — direct child of <details>, sitting
+// below `__content` so it spans the box's full inner width. The whole
+// strip collapses the box; hover hint mirrors the overall hover color so
+// the bar reads as part of the same action.
+.MetadataSectionCollapsible__toggle--show-less {
+    @include body-3-medium;
+    appearance: none;
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    width: 100%;
+    padding: 10px 16px;
+    color: $blue-60;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background-color 120ms ease;
+
+    @include sm-up {
+        padding: 12px 24px;
+    }
+
+    &:hover,
+    &:focus-visible {
+        background-color: #e3ebf5;
+        color: $blue-90;
+        outline: none;
+    }
+}
+
+.MetadataSectionCollapsible__toggle-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.MetadataSectionCollapsible__icon {
+    font-size: 0.75rem;
+    transition: transform 160ms ease;
+}
+
+// In the inline Show-more chip, the chevron sits to the right of the text
+// with a 6px gap. FontAwesome's default `vertical-align: -.125em` does the
+// optical centering with the text x-height for us — same idiom as
+// `.key-info__learn-more` elsewhere on the data page.
+.MetadataSectionCollapsible__toggle--show-more
+    .MetadataSectionCollapsible__icon {
+    margin-left: 6px;
+}
+
+.MetadataSectionCollapsible__icon--up {
+    transform: rotate(180deg);
+}
+
+.MetadataSectionCollapsible[open]
+    .MetadataSectionCollapsible__toggle--show-more {
+    display: none;
+}
+
+// --- Body content ---
+
+.MetadataSectionCollapsible__content {
+    // Figma Frame 899: 32px itemSpacing between major sections, 24px
+    // outer-box padding (top is contributed by __summary above).
+    padding: 0 24px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+
+    > * {
+        margin: 0;
+    }
+}
+
+// --- Indicator title + variant + (multi) pill, rendered above the box ---
+// Title, variant, and optional "Indicator:" pill are direct children of
+// `.MetadataSectionCollapsible__above`, so their layout comes from that row.
+
+// Figma (Lato-Bold 16/21, #1d3d63 = $blue-90, no caps).
+// Wrapper around the indicator title + optional variant. Inline-flex with
+// baseline alignment so the variant sits on the title's baseline (the
+// __above-switcher's `align-items: center` was centering each span on its
+// own box midline, which doesn't match when the two have different font
+// sizes).
+.MetadataSectionCollapsible__indicator-title-line {
+    display: inline-flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.MetadataSectionCollapsible__indicator-title {
+    font-family: $sans-serif-font-stack;
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: calc(21 / 16);
+    letter-spacing: 0;
+    color: $blue-90;
+    text-transform: none;
+}
+
+.MetadataSectionCollapsible__indicator-title-variant {
+    @include h6-black-caps;
+    color: $blue-50;
+    font-weight: 600;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+}
+
+// --- Multi-indicator: indicator title is a dropdown trigger ---
+// On multi-indicator data pages, the indicator title is rendered as a
+// MDIM-style pill button (mirrors .md-settings__dropdown-toggle in
+// site/multiDim/DimensionDropdown.scss).
+
+.MetadataSectionCollapsible__indicator-title-trigger {
+    @include body-3-medium;
+    appearance: none;
+    background: $white;
+    border: 1px solid $gray-20;
+    color: $blue-90;
+    cursor: pointer;
+    padding: 4px 10px 4px 12px;
+    height: 32px;
+    border-radius: 4px;
+    text-align: left;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    max-width: 100%;
+    min-width: 0;
+    line-height: 1;
+    letter-spacing: 0.01em;
+    transition:
+        background-color 120ms ease,
+        border-color 120ms ease;
+
+    &:hover {
+        background: $gray-5;
+        border-color: $blue-30;
+    }
+
+    &:focus-visible {
+        outline: none;
+        border-color: $blue-50;
+    }
+
+    // Open state — matches MDIM's pressed/[data-pressed] look so the
+    // pill reads as "active control" while the popover is showing.
+    &[aria-expanded="true"] {
+        background: #dbe5f0;
+        border-color: #dbe5f0;
+        color: $blue-90;
+        cursor: default;
+    }
+}
+
+// "About this data (N indicators)" inline pair in the switcher row.
+// The v-tabs aside overrides this to stack vertically (label on top,
+// count below) via the `__v-tabs-label` modifier.
+.MetadataSectionCollapsible__indicator-header-group {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 4px;
+}
+
+.MetadataSectionCollapsible__indicator-header-group.MetadataSectionCollapsible__v-tabs-label {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+}
+
+.MetadataSectionCollapsible__indicator-count {
+    color: $blue-50;
+    font-size: 0.75rem;
+    font-style: italic;
+    white-space: nowrap;
+}
+
+// In the v-tabs aside the count sits underneath the label, not as an
+// inline caption — drop the italic and add bottom spacing before the
+// tabs themselves.
+.MetadataSectionCollapsible__v-tabs-label
+    .MetadataSectionCollapsible__indicator-count {
+    font-style: normal;
+    margin-bottom: 8px;
+}
+
+// "About this data" label sits outside the switcher control. Typography
+// mirrors `__short-description-label` (small caps, $blue-50, weight 700),
+// but a step bigger so it reads as a section heading rather than a tag.
+.MetadataSectionCollapsible__indicator-title-prefix {
+    color: $blue-50;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-size: 0.75rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+// Override the existing block-level title styling when it's rendered
+// inside the pill — we want sentence-case, body-3-medium scale so the
+// pill reads as a control rather than a page heading.
+.MetadataSectionCollapsible__indicator-title-trigger
+    .MetadataSectionCollapsible__indicator-title {
+    color: $blue-90;
+    font-weight: 500;
+    font-size: inherit;
+    letter-spacing: inherit;
+    text-transform: none;
+    display: inline;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+    line-height: 1;
+}
+
+.MetadataSectionCollapsible__indicator-title-caret {
+    color: $blue-50;
+    font-size: 0.75rem;
+    margin-left: auto;
+    transition: transform 160ms ease;
+}
+
+.MetadataSectionCollapsible__indicator-title-trigger[aria-expanded="true"]
+    .MetadataSectionCollapsible__indicator-title-caret {
+    transform: rotate(180deg);
+    color: $blue-70;
+}
+
+// Rendered via React Portal to document.body so it can extend past the
+// rounded metadata box (which has overflow: hidden) without being clipped.
+// Styling mirrors .md-menu for visual consistency with the multi-dim
+// dimension dropdown.
+.MetadataSectionCollapsible__indicator-title-popover {
+    background: $white;
+    border-radius: 4px;
+    box-shadow: 0 4px 23px 4px rgba($oxford-blue, 0.06);
+    padding: 8px 16px;
+    max-width: min(480px, calc(100vw - 24px));
+    max-height: 360px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    z-index: $zindex-popover;
+    display: flex;
+    flex-direction: column;
+}
+
+.MetadataSectionCollapsible__indicator-title-option {
+    @include body-3-medium;
+    appearance: none;
+    background: transparent;
+    border: 0;
+    color: $blue-90;
+    cursor: pointer;
+    text-align: left;
+    padding: 12px 0;
+    line-height: 1.4;
+    border-radius: 0;
+    transition: color 120ms ease;
+
+    & + & {
+        border-top: 1px solid $gray-20;
+    }
+
+    &:hover {
+        color: $blue-50;
+    }
+
+    &:focus-visible {
+        outline: none;
+        color: $blue-50;
+    }
+}
+
+.MetadataSectionCollapsible__indicator-title-option--active {
+    color: $blue-90;
+    font-weight: 700;
+    cursor: default;
+}
+
+// --- Short description (label + text matches stat row treatment) ---
+
+// Figma: "Short description" label + body text are both Lato-Medium 13/16
+// (line-height equals font-size so the text reads compactly stacked on two
+// lines). Label is $blue-50, text is $blue-90. The wrapper is a flex column
+// so the label sits on its own line above the text.
+.MetadataSectionCollapsible__short-description {
+    font-family: $sans-serif-font-stack;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    line-height: calc(16 / 13);
+    color: $blue-90;
+    display: flex;
+    flex-direction: column;
+}
+
+.MetadataSectionCollapsible__short-description-label {
+    color: $blue-50;
+    font-weight: 500;
+    font-size: 0.8125rem;
+    line-height: calc(16 / 13);
+    letter-spacing: 0;
+    text-transform: none;
+    margin-bottom: 4px;
+}
+
+.MetadataSectionCollapsible__short-description-text {
+    color: $blue-90;
+}
+
+// Source attribution line, just below the short description. Mirrors the
+// "Data source: …" footnote that appears beneath the grapher chart. Same
+// type scale as the short description (13/16) so they read as one unit.
+.MetadataSectionCollapsible__source-line {
+    display: flex;
+    flex-direction: column;
+    font-family: $sans-serif-font-stack;
+    font-size: 0.8125rem;
+    line-height: calc(16 / 13);
+}
+
+.MetadataSectionCollapsible__source-line-label {
+    color: $blue-50;
+    font-weight: 500;
+    margin-bottom: 4px;
+}
+
+.MetadataSectionCollapsible__source-line-text {
+    color: $blue-90;
+    font-weight: 500;
+}
+
+// --- Section headings ---
+// Figma: "Data sources" / "How to cite" use Lato-Bold 16/21, $blue-90, no
+// caps. Same treatment for the `--minor` modifier (FAQ sub-headings), kept
+// as a no-op alias to avoid touching every call site.
+.MetadataSectionCollapsible__section-heading,
+.MetadataSectionCollapsible__section-heading--minor {
+    font-family: $sans-serif-font-stack;
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: calc(21 / 16);
+    letter-spacing: 0;
+    text-transform: none;
+    margin: 0 0 16px; // Figma Frame 902 itemSpacing: 16px between heading and items
+    color: $blue-90;
+}
+
+// Extra breathing room above sub-subsection headings — they sit after a
+// heavier major section, so the visual hierarchy benefits from a slightly
+// larger gap than the default `__content` flex gap.
+.MetadataSectionCollapsible__faqs
+    > .MetadataSectionCollapsible__section-heading,
+.MetadataSectionCollapsible__processing-notes
+    > .MetadataSectionCollapsible__section-heading {
+    margin-top: 16px;
+}
+
+// --- Markdown link styling (raw <a> elements only) ---
+// Apply OWID link styling to plain anchors inside the metadata box. Skip
+// purpose-styled buttons that carry their own class names.
+
+.MetadataSectionCollapsible__short-description a:not([class]),
+.MetadataSectionCollapsible__description-key a:not([class]),
+.MetadataSectionCollapsible__processing-notes-body a:not([class]),
+.MetadataSectionCollapsible__faqs-preamble a:not([class]),
+.MetadataSectionCollapsible .ExpandableToggle__content a:not([class]) {
+    @include owid-link-90;
+}
+
+// --- Description key (markdown bullets / paragraphs) ---
+// Lives inside <summary> so it's visible in both states. When collapsed,
+// we clip + fade the bottom to invite the user to expand for the rest.
+
+.MetadataSectionCollapsible__description-key {
+    position: relative;
+    // Preview ~9 lines of bullets before the fade (bullets are 16/24 so
+    // 13em ≈ 9 lines).
+    max-height: 13em;
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(180deg, #000 50%, transparent 100%);
+    mask-image: linear-gradient(180deg, #000 50%, transparent 100%);
+
+    // Figma: bullet body text is Lato-Regular 16/24 in $blue-90.
+    font-family: $sans-serif-font-stack;
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: calc(24 / 16);
+    color: $blue-90;
+
+    .key-info__key-description {
+        margin: 0;
+
+        ul,
+        ol {
+            padding-left: 1em;
+            margin: 1em 0;
+
+            li {
+                margin-bottom: 1em;
+
+                &:last-child {
+                    margin-bottom: 0;
+                }
+            }
+        }
+
+        > *:first-child {
+            margin-top: 0;
+        }
+
+        > *:last-child {
+            margin-bottom: 0;
+        }
+
+        p + p {
+            margin-top: 12px;
+        }
+    }
+}
+
+.MetadataSectionCollapsible[open] .MetadataSectionCollapsible__description-key {
+    max-height: none;
+    overflow: visible;
+    -webkit-mask-image: none;
+    mask-image: none;
+}
+
+// --- Expandable items (sources, citations, FAQs) — shared treatment ---
+// Figma reports Playfair Display SemiBold 16/22 in $blue-60. In the browser
+// our serif stack falls back to system serifs (or synthesizes weight) when
+// SemiBold isn't available, which renders visibly heavier than the Figma
+// frame; weight 400 (Regular) matches the Figma's actual rendered weight
+// better than 600.
+.MetadataSectionCollapsible__sources-list,
+.MetadataSectionCollapsible__citation-toggles,
+.MetadataSectionCollapsible__faqs-items {
+    display: flex;
+    flex-direction: column;
+    --expandable-toggle-title-size: 1rem;
+
+    // When two adjacent rows are BOTH open, their $blue-20 panels would
+    // touch and the divider between them disappears. Insert a 4px strip
+    // (parent's $blue-5 shows through) only in that specific case — closed
+    // rows continue to sit flush against each other.
+    details.ExpandableToggle[open] + details.ExpandableToggle[open] {
+        margin-top: 4px;
+    }
+
+    // Match the component's own 3-class selector
+    // (`details.ExpandableToggle .ExpandableToggle__button .ExpandableToggle__title`)
+    // so the override actually wins.
+    details.ExpandableToggle .ExpandableToggle__title {
+        font-family: $serif-font-stack;
+        font-weight: 400;
+        line-height: calc(22 / 16);
+        color: $blue-60;
+    }
+}
+
+// All multi-item collapsible lists in the metadata section (sources, FAQs,
+// citation questions): Figma renders every row with a 1px #d0dae3 top
+// divider; the open row additionally has a 1px bottom divider and a
+// $blue-20 tinted background. The "+ / -" icon is at the far right (the
+// component's default `justify-content: space-between` — don't override it
+// with flex-start, that collapses the row onto the icon).
+.MetadataSectionCollapsible__sources-list,
+.MetadataSectionCollapsible__faqs-items,
+.MetadataSectionCollapsible__citation-toggles {
+    details.ExpandableToggle {
+        border-top: 1px solid #d0dae3;
+        border-bottom: 0;
+        border-radius: 0;
+
+        // The last row in each list needs its OWN bottom divider since
+        // there's no next sibling whose top border would close the visual
+        // stack. (Non-last rows: their bottom is closed by the next row's
+        // top border.)
+        &:last-child {
+            border-bottom: 1px solid #d0dae3;
+        }
+
+        .ExpandableToggle__button {
+            padding: 16px;
+            gap: 8px;
+        }
+
+        .ExpandableToggle__icon {
+            margin: 0;
+            flex-shrink: 0;
+        }
+
+        // Open state: tinted $blue-20 panel; the top + bottom borders are
+        // already in place (from the per-row top border and the last-child
+        // bottom border above), so we only add bg + tighten padding here.
+        &[open] {
+            background: $blue-20;
+
+            .ExpandableToggle__button {
+                padding-bottom: 8px;
+            }
+
+            .ExpandableToggle__content {
+                padding: 0 16px 24px;
+            }
+        }
+    }
+}
+
+// "How to cite" puts the license-blurb between the section heading and the
+// citation toggles, so the toggles don't sit right under the heading's
+// margin-bottom — give the list its own top margin so the first divider has
+// breathing room from the license text above. Sources and FAQs sit
+// immediately under their headings and already inherit the heading's
+// margin-bottom; no extra top margin needed there.
+.MetadataSectionCollapsible__citation-toggles {
+    margin-top: 16px;
+}
+
+// --- Processing notes (matches descriptionKey styling) ---
+
+.MetadataSectionCollapsible__processing-notes-body {
+    color: $blue-70;
+
+    p {
+        margin: 0 0 12px;
+    }
+
+    p:last-child {
+        margin-bottom: 0;
+    }
+
+    ul,
+    ol {
+        padding-left: 1em;
+        margin: 1em 0;
+
+        li {
+            margin-bottom: 1em;
+
+            &:last-child {
+                margin-bottom: 0;
+            }
+        }
+    }
+}
+
+// --- Citation guidance ---
+
+.MetadataSectionCollapsible__citation-guidance {
+    scroll-margin-top: 24px;
+}
+
+.MetadataSectionCollapsible__citation-lead {
+    @include body-3-regular;
+    color: $blue-70;
+    margin: 0 0 12px;
+}
+
+// "License blurb" — fine-print legal boilerplate that sits beneath the
+// citation toggles. No bullets, muted text, slightly smaller, generous
+// gap from the toggles above so it reads as a footnote.
+.MetadataSectionCollapsible__license-blurb {
+    color: $blue-60;
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    list-style: none;
+    margin: 16px 0 0;
+    padding: 0;
+
+    li + li {
+        margin-top: 6px;
+    }
+
+    a {
+        @include owid-link-60;
+        color: inherit;
+    }
+}
+
+// Inside a citation toggle, the "In-line citation" / "Full citation"
+// labels render as inline <span>s by default — force a line break so
+// they don't run into the following description text.
+.MetadataSectionCollapsible .citation__type {
+    display: block;
+    color: $blue-90;
+    margin-bottom: 4px;
+}
+
+// Citation collapsibles' first paragraph (`.citation__paragraph`) gets
+// stacked right under the button title. The component's own padding
+// already leaves room, so drop the paragraph's own top margin to avoid
+// the doubled gap the user flagged.
+.MetadataSectionCollapsible__citation-toggles .ExpandableToggle__content {
+    .citation__paragraph:first-child,
+    > p:first-child {
+        margin-top: 0;
+    }
+}
+
+// --- Per-source detail panel (rendered by MetadataSingleSource inside
+//     each data source's ExpandableToggle) ---
+// The shared `.indicator-sources` styling gives the description a 16px
+// bottom margin that reads as too much white space before the inline
+// "Retrieved on …" line — tighten it. Add a margin between successive
+// .source-key-data-blocks rows so "Source attribution" doesn't crash into
+// the row above. Render the attribution text as a smaller, muted block
+// because it's fine-print attribution, not main content.
+
+.MetadataSectionCollapsible .indicator-sources .description {
+    margin-top: 8px;
+    margin-bottom: 6px;
+}
+
+.MetadataSectionCollapsible
+    .indicator-sources
+    .source-key-data-blocks
+    + .source-key-data-blocks {
+    // Vertical gap between consecutive subsections of the source detail.
+    // Each titled subsection (producer-description, about-source, citation)
+    // also adds 8px above its own title via the rule below, so the visible
+    // gap between blocks ends up ~16px without the wrapper margin alone
+    // having to be that big — keeps the "Retrieved on" → next-block
+    // transition tighter when the next block is the bare description.
+    margin-top: 8px;
+}
+
+// "Source attribution", "How is this data described by its producer?" and
+// "About the source" subsections share a quiet small-caps header and
+// readable body. The previous citation-only treatment is generalised here
+// so the producer-description block doesn't end up with a bigger header
+// than its own markdown sub-headings.
+.MetadataSectionCollapsible .indicator-sources .source-key-data-citation,
+.MetadataSectionCollapsible
+    .indicator-sources
+    .source-key-data-producer-description,
+.MetadataSectionCollapsible .indicator-sources .source-key-data-about-source {
+    .source-key-data__title {
+        @include h5-black-caps;
+        color: $blue-50;
+        // Consistent top margin separates each titled subsection from the
+        // block above it (e.g. "Retrieved on …" or the previous
+        // subsection's content).
+        margin-top: 8px;
+        margin-bottom: 6px;
+        // The default rule sets `white-space: nowrap` which clips long
+        // titles ("How is this data described by its producer?"). Unset
+        // it so multi-word small-caps titles can wrap.
+        white-space: normal;
+    }
+}
+
+// Producer description + About-the-source body: readable prose size,
+// $blue-90. Override any nested markdown headings so they don't render
+// LARGER than the section's small-caps title above them.
+.MetadataSectionCollapsible
+    .indicator-sources
+    .source-key-data-producer-description,
+.MetadataSectionCollapsible .indicator-sources .source-key-data-about-source {
+    .source-key-data__content {
+        font-size: 0.8125rem;
+        color: $blue-90;
+
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+            font-family: $sans-serif-font-stack;
+            font-size: 0.8125rem;
+            font-weight: 700;
+            line-height: calc(16 / 13);
+            margin: 12px 0 4px;
+            text-transform: none;
+            letter-spacing: 0;
+        }
+
+        p {
+            margin: 0 0 8px;
+            &:last-child {
+                margin-bottom: 0;
+            }
+        }
+    }
+}
+
+// Source attribution is fine-print attribution — make it visibly smaller
+// + quieter than the prose blocks above.
+.MetadataSectionCollapsible .indicator-sources .source-key-data-citation {
+    .source-key-data__content {
+        font-size: 0.6875rem;
+        line-height: calc(15 / 11);
+        color: $blue-50;
+    }
+}
+
+// --- Compact bullets inside any expandable content ---
+
+.MetadataSectionCollapsible .ExpandableToggle__content {
+    ul,
+    ol {
+        padding-left: 1.5em;
+        margin: 8px 0;
+
+        li + li {
+            margin-top: 4px;
+        }
+    }
+}
+
+// --- Blockquotes inside descriptionKey + DDoD content ---
+
+.MetadataSectionCollapsible .key-info__key-description blockquote,
+.DetailedDetailsOnDemand__content blockquote {
+    margin: 12px 0;
+    padding: 12px 14px;
+    border: 1px solid $blue-20;
+    border-radius: 6px;
+
+    p {
+        margin: 0;
+    }
+
+    p + p {
+        margin-top: 8px;
+    }
+}
+
+// --- Inline DDoD trigger styles (used by source links + (how?) trigger) ---
+
+.DetailedDetailsOnDemand__trigger,
+.MetadataMarkdownText__source-trigger,
+.MetadataSectionCollapsible__citation-how-trigger {
+    @include body-3-medium;
+    color: $blue-60;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+
+    &:hover,
+    &:focus-visible {
+        color: $blue-70;
+    }
+}
+
+.DetailedDetailsOnDemand__trigger-icon {
+    font-size: 0.75em;
+    opacity: 0.9;
+}
+
+// --- DDoD modal (rendered via portal) ---
+
+.DetailedDetailsOnDemand__overlay {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 16px;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: $zindex-lightbox;
+}
+
+.DetailedDetailsOnDemand__modal {
+    width: min(760px, 100%);
+    max-height: 100%;
+}
+
+.DetailedDetailsOnDemand {
+    display: flex;
+    flex-direction: column;
+    background: $white;
+    border-radius: 8px;
+    box-shadow: 0 12px 30px rgba($oxford-blue, 0.2);
+    max-height: calc(100vh - 32px);
+    overflow: hidden;
+    color: $blue-90;
+}
+
+.DetailedDetailsOnDemand__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 16px 20px;
+    border-bottom: 1px solid $blue-20;
+    background: $blue-5;
+}
+
+.DetailedDetailsOnDemand__title {
+    @include h5-black-caps;
+    margin: 0;
+}
+
+.DetailedDetailsOnDemand__close-button {
+    color: $blue-50;
+    border: 1px solid $blue-50;
+    background-color: transparent;
+
+    &:hover,
+    &:focus-visible {
+        color: $blue-70;
+        border-color: $blue-70;
+        background-color: transparent;
+    }
+}
+
+.DetailedDetailsOnDemand__content {
+    @include body-3-regular;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.MetadataMarkdownText__source-content {
+    .sources-list {
+        margin-bottom: 0;
+    }
+}
+
+// Trim the trailing margin off the OwidProcessingBlurb / per-source content
+// when they're rendered inside a DetailedDetailsOnDemand modal.
+.DetailedDetailsOnDemand__content {
+    .indicator-processing {
+        margin-bottom: 0;
+    }
+}
+
+@include sm-up {
+    .DetailedDetailsOnDemand__overlay {
+        align-items: center;
+        padding: 24px;
+    }
+
+    .DetailedDetailsOnDemand {
+        max-height: calc(100vh - 48px);
+    }
+
+    .DetailedDetailsOnDemand__header {
+        padding: 20px 24px;
+    }
+
+    .DetailedDetailsOnDemand__content {
+        padding: 24px;
+    }
+}
+
+// --- Horizontal-tabs switcher variant ---
+// A row of pill-style tab buttons in place of the dropdown. The active tab
+// reads as the current indicator; the row wraps on narrow screens.
+
+// h-tabs: tabs sitting directly on top of the box, with the active tab
+// taking on the box's own $blue-5 background so it visually fuses into
+// the box below. Reads as "this tab is the section currently open".
+.MetadataSectionCollapsible__h-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    width: 100%;
+    gap: 2px;
+}
+
+.MetadataSectionCollapsible__h-tab {
+    appearance: none;
+    background: transparent;
+    // Idle tabs get a 1px $blue-20 ring on top/left/right — the open
+    // bottom edge lets the tab visually "open" downward into the box
+    // below, the classic browser-tab look.
+    border: 1px solid $blue-20;
+    border-bottom: 0;
+    color: $blue-50;
+    cursor: pointer;
+    padding: 8px 14px;
+    font-family: $sans-serif-font-stack;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    line-height: 1.4;
+    border-radius: 6px 6px 0 0;
+    transition:
+        background-color 120ms ease,
+        border-color 120ms ease,
+        color 120ms ease;
+
+    &:hover {
+        color: $blue-90;
+        // Match the metadata box's own hover color (the wrap-wide hover
+        // rule uses #e3ebf5) so a hovered tab feels continuous with the
+        // box's hovered state.
+        background: #e3ebf5;
+        border-color: $blue-30;
+    }
+
+    &:focus-visible {
+        outline: none;
+        background: #e3ebf5;
+        border-color: $blue-30;
+    }
+}
+
+// Active tab: same bg as the box below so the two appear as one
+// continuous shape; bottom corners stay sharp so they butt against the
+// (square) box corner.
+.MetadataSectionCollapsible__h-tab--active {
+    background: $blue-5;
+    border-color: $blue-20;
+    color: $blue-90;
+    font-weight: 600;
+    cursor: default;
+
+    &:hover {
+        background: $blue-5;
+        border-color: $blue-20;
+        color: $blue-90;
+    }
+}
+
+// h-pills: rounded pill switcher with middle-ground saturation. The
+// active pill uses $blue-70 (one notch lighter than $blue-90) so it
+// reads as the active button without competing with chart-entity colors
+// or the box title.
+.MetadataSectionCollapsible__h-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.MetadataSectionCollapsible__h-pill {
+    appearance: none;
+    background: $blue-5;
+    border: 1px solid $blue-20;
+    color: $blue-70;
+    cursor: pointer;
+    // min-height (not height) + inline-flex centring lets the pill grow
+    // when its label wraps to a second line on narrow viewports. The
+    // border-radius is intentionally larger than the tallest expected
+    // pill height so wrapped pills still read as stadium-shaped.
+    padding: 4px 14px;
+    min-height: 30px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    border-radius: 999px;
+    font-family: $sans-serif-font-stack;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    line-height: 1.2;
+    transition:
+        background-color 120ms ease,
+        border-color 120ms ease,
+        color 120ms ease;
+
+    &:hover {
+        // Match the metadata box's own hover bg (#e3ebf5) so a hovered
+        // pill reads as part of the same hover surface as the box.
+        background: #e3ebf5;
+        border-color: $blue-30;
+        color: $blue-90;
+    }
+
+    &:focus-visible {
+        outline: none;
+        border-color: $blue-50;
+    }
+}
+
+.MetadataSectionCollapsible__h-pill--active {
+    background: $blue-70;
+    border-color: $blue-70;
+    color: $white;
+    cursor: default;
+
+    &:hover {
+        background: $blue-70;
+        border-color: $blue-70;
+        color: $white;
+    }
+}
+
+// "More ▾" overflow trigger inside the h-tabs / h-pills row — same chrome
+// as the other tabs/pills, plus a small gap between the label and the
+// caret icon (without this the caret sits flush against the "More" text).
+.MetadataSectionCollapsible__h-tab--more,
+.MetadataSectionCollapsible__h-pill--more {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+}
+
+// --- Vertical-tabs switcher variant ---
+// An aside sitting to the left of the collapsible box. Tabs read as a list
+// of indicators; the active one is highlighted with a left rule + bold text.
+
+.MetadataSectionCollapsible__v-tabs {
+    flex: 0 0 200px;
+    display: flex;
+    flex-direction: column;
+    align-self: stretch;
+    // Same surface as the header + box.
+    background-color: $blue-5;
+    border: 1px solid $blue-20;
+    border-top: 0;
+    border-radius: 0 0 0 8px;
+    padding: 12px;
+
+    @include sm-up {
+        flex-basis: 220px;
+        padding: 12px 16px;
+    }
+}
+
+// "Indicator:" label inside the v-tabs aside — reuse the dropdown prefix
+// styling so the label reads consistently across variants.
+.MetadataSectionCollapsible__v-tabs-label {
+    margin-bottom: 8px;
+}
+
+.MetadataSectionCollapsible__v-tab {
+    @include body-3-medium;
+    appearance: none;
+    background: transparent;
+    border: 0;
+    color: $blue-70;
+    cursor: pointer;
+    text-align: left;
+    padding: 8px 10px;
+    border-radius: 4px;
+    line-height: 1.3;
+    transition:
+        background-color 120ms ease,
+        color 120ms ease;
+
+    &:hover {
+        background: $blue-5;
+        color: $blue-90;
+    }
+
+    &:focus-visible {
+        outline: none;
+        background: $blue-5;
+        color: $blue-90;
+    }
+}
+
+.MetadataSectionCollapsible__v-tab--active {
+    background: $blue-10;
+    color: $blue-90;
+    font-weight: 700;
+    cursor: default;
+
+    &:hover {
+        background: $blue-10;
+    }
+}
+
+// "More ▾" overflow trigger inside the v-tabs aside — same row chrome as
+// other v-tabs, plus the caret aligned to the right.
+.MetadataSectionCollapsible__v-tab--more {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    cursor: pointer;
+}
+
+// On narrow viewports collapse the v-tabs aside above the box instead of
+// next to it, so it doesn't squeeze the content. Still attached to header
+// above + box below — keep the seamless surface treatment.
+@media (max-width: 767px) {
+    .MetadataSectionCollapsible-wrap--v-tabs .MetadataSectionCollapsible__main {
+        flex-direction: column;
+    }
+
+    .MetadataSectionCollapsible__v-tabs {
+        flex: 1 1 auto;
+        border-radius: 0;
+    }
+
+    .MetadataSectionCollapsible-wrap--v-tabs .MetadataSectionCollapsible {
+        border-left: 1px solid $blue-20;
+        border-radius: 0 0 8px 8px;
+    }
+}
