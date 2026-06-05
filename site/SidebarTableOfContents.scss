@@ -165,6 +165,12 @@ $sidebar-toc-header-gap: 32px;
 
 .sidebar-toc__back-to-top {
     @include note-13-medium;
+    display: inline-flex;
+    align-items: center;
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
     color: $blue-50;
     text-decoration: none;
 
@@ -177,6 +183,15 @@ $sidebar-toc-header-gap: 32px;
         color: $blue-50;
         text-decoration: underline;
     }
+}
+
+.sidebar-toc__sections {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: $sidebar-toc-section-gap;
 }
 
 .sidebar-toc__h1 {
@@ -209,9 +224,10 @@ $sidebar-toc-header-gap: 32px;
 
 .sidebar-toc__bullets {
     list-style: disc;
-    // No top margin: the first bullet's top padding provides the gap from the
-    // eyebrow, just like the gap between bullets.
-    margin: 0;
+    // Half the inter-bullet gap above the list; the first bullet's top padding
+    // adds the other half, so the eyebrow→first-bullet gap matches the gap
+    // between bullets (see .sidebar-toc__bullet a).
+    margin: calc(#{$sidebar-toc-bullet-gap} / 2) 0 0;
     margin-inline-start: $sidebar-toc-sub-indent; // align glyphs with the eyebrow
     padding: 0;
 }
@@ -227,11 +243,10 @@ $sidebar-toc-header-gap: 32px;
         // Block so the link box (and its hover/Tippy target) stays contiguous
         // across wrapped lines.
         display: block;
-        // The inter-bullet gap lives in each link's top padding (not a li
-        // margin), so the gap above a bullet is part of its click target and
-        // the visual spacing is unchanged. A negative margin can't re-centre it:
-        // in a plain <ul> it collapses with the li and leaks into the gap.
-        padding-top: $sidebar-toc-bullet-gap;
+        // Split the inter-bullet gap evenly into top + bottom padding: the gap
+        // stays part of the click target, and the :focus-visible outline sits
+        // centred on the text. (A li margin would collapse in a plain <ul>.)
+        padding: calc(#{$sidebar-toc-bullet-gap} / 2) 0;
         color: $blue-50;
         text-decoration: none;
 
@@ -281,9 +296,9 @@ $sidebar-toc-header-gap: 32px;
     content: "";
     position: absolute;
     left: calc(-1 * (var(--sidebar-toc-inset) + #{$sidebar-toc-bullet-indent}));
-    // Skip the link's top padding so the bar spans just the text.
-    top: $sidebar-toc-bullet-gap;
-    bottom: 0;
+    // Skip the link's top/bottom padding so the bar spans just the text.
+    top: calc(#{$sidebar-toc-bullet-gap} / 2);
+    bottom: calc(#{$sidebar-toc-bullet-gap} / 2);
     width: 4px;
     background: $vermillion;
 }

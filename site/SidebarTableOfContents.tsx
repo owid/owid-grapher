@@ -43,6 +43,8 @@ const analytics = new SiteAnalytics()
 // width the mobile pill + mobile drawer replace the desktop sidebar.
 const SIDEBAR_TOC_BREAKPOINT = 1200
 
+const SIDEBAR_TOC_CONTENT_ID = "sidebar-toc-content"
+
 // Scroll-spy state threaded through the section/bullet tree.
 interface TocNavProps {
     activeId: string
@@ -125,6 +127,7 @@ export const SidebarTableOfContents = ({
                         toggle tab. */}
                     <div
                         className="sidebar-toc__sidebar-content"
+                        id={sidebarContentId}
                         ref={sidebarContentRef}
                     >
                         <BackToTop />
@@ -142,6 +145,8 @@ export const SidebarTableOfContents = ({
                             className="sidebar-toc__expand"
                             onClick={() => setIsCollapsed(false)}
                             aria-label="Open table of contents"
+                            aria-expanded={false}
+                            aria-controls={sidebarContentId}
                             data-track-note="toc_expand"
                         >
                             <FontAwesomeIcon icon={faListUl} />
@@ -151,6 +156,8 @@ export const SidebarTableOfContents = ({
                             className="sidebar-toc__collapse-toggle"
                             onClick={() => setIsCollapsed(true)}
                             aria-label="Collapse table of contents"
+                            aria-expanded={true}
+                            aria-controls={sidebarContentId}
                             data-track-note="toc_collapse"
                         >
                             <FontAwesomeIcon icon={faAnglesLeft} />
@@ -176,7 +183,7 @@ export const SidebarTableOfContents = ({
                             : "Open table of contents"
                     }
                     aria-expanded={isSidebarExpanded}
-                    aria-controls={sidebarContentId}
+                    aria-controls={SIDEBAR_TOC_CONTENT_ID}
                     data-track-note={
                         isSidebarExpanded ? "toc_collapse" : "toc_expand"
                     }
@@ -187,7 +194,7 @@ export const SidebarTableOfContents = ({
                 </button>
                 <div
                     className="sidebar-toc__sidebar-content"
-                    id={sidebarContentId}
+                    id={SIDEBAR_TOC_CONTENT_ID}
                     ref={sidebarContentRef}
                 >
                     <BackToTop />
@@ -254,13 +261,10 @@ export const SidebarTableOfContents = ({
 const BackToTop = () => {
     const onNavigate = useContext(TocNavigateContext)
     return (
-        <a
+        <button
+            type="button"
             className="sidebar-toc__back-to-top"
-            href="#"
-            // Own the scroll instead of relying on the bare "#" default, which
-            // appends "#" to the URL and pushes a history entry.
-            onClick={(e) => {
-                e.preventDefault()
+            onClick={() => {
                 window.scrollTo(0, 0)
                 onNavigate?.()
             }}
@@ -268,7 +272,7 @@ const BackToTop = () => {
         >
             Back to top
             <FontAwesomeIcon icon={faArrowUp} />
-        </a>
+        </button>
     )
 }
 
@@ -282,14 +286,19 @@ const TocSections = ({
 } & TocNavProps) => {
     return (
         <>
-            {sections.map((section, i) => (
-                // Index-qualified: two H1s can slug identically (no dedup).
-                <SectionGroup
-                    key={`${section.heading.slug}-${i}`}
-                    section={section}
-                    activeId={activeId}
-                />
-            ))}
+            {/* A nested list so assistive technologies announce "list, N items" and the
+                heading→charts hierarchy: each section is an <li> carrying its
+                H1 link and (optionally) a sub-<ul> of chart bullets. */}
+            <ol className="sidebar-toc__sections">
+                {sections.map((section, i) => (
+                    // Index-qualified: two H1s can slug identically (no dedup).
+                    <SectionGroup
+                        key={`${section.heading.slug}-${i}`}
+                        section={section}
+                        activeId={activeId}
+                    />
+                ))}
+            </ol>
             {tagName ? <SeeAllChartsCta tagName={tagName} /> : null}
         </>
     )
@@ -302,7 +311,7 @@ const SectionGroup = ({
     const onNavigate = useContext(TocNavigateContext)
     const { heading, charts } = section
     return (
-        <div
+        <li
             className={cx("sidebar-toc__section", {
                 "sidebar-toc__section--active": activeId === heading.slug,
             })}
@@ -337,7 +346,7 @@ const SectionGroup = ({
                     </ul>
                 </>
             ) : null}
-        </div>
+        </li>
     )
 }
 
