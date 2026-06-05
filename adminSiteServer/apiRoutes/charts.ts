@@ -1013,10 +1013,11 @@ async function insertChartRevision(
 /**
  * Inserts or updates the chart's ETL-authored grapher config.
  *
- * `chart_configs.etlConfig` is a layer between the indicator's grapher_config
- * (variableETL) and the chart's admin-authored `patch`. ETL writes only to
- * `etlConfig`; admin writes only to `patch`. The rendered `full` is
- * `merge(variableETL, etlConfig, patch)`.
+ * The chart's ETL-authored config lives in its own `chart_configs` row,
+ * reached via `charts.configIdETL`. It's a layer between the indicator's
+ * grapher_config (variableETL) and the chart's admin-authored `patch`. ETL
+ * writes only to that row; admin writes only to `patch`. The rendered `full`
+ * is `merge(variableETL, etlConfig, patch)`.
  *
  * On each call we also re-diff the existing `patch` against the new parent
  * stack: redundant patch entries are stripped so future ETL changes to those

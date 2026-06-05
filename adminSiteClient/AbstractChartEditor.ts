@@ -60,8 +60,9 @@ export interface AbstractChartEditorManager {
     // it is whatever their parent layer happens to be.
     parentConfig?: GrapherInterface
     // For the main chart editor, the chart's own ETL-authored grapher config
-    // (chart_configs.etlConfig). Always applied, independent of indicator
-    // inheritance. Undefined for editors that don't have this layer.
+    // (stored as a separate chart_configs row, via charts.configIdETL). Always
+    // applied, independent of indicator inheritance. Undefined for editors that
+    // don't have this layer.
     etlConfig?: GrapherInterface
     isInheritanceEnabled?: boolean
     variableIdsByCatalogPath?: Record<string, number | null>

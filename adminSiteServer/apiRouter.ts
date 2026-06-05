@@ -269,7 +269,7 @@ postRouteWithRWTransaction(
 )
 putRouteWithRWTransaction(apiRouter, "/charts/:chartId", updateChart)
 deleteRouteWithRWTransaction(apiRouter, "/charts/:chartId", deleteChart)
-// ETL-authored chart config: inserts/updates `chart_configs.etlConfig`
+// ETL-authored chart config: stored in its own chart_configs row, via charts.configIdETL
 putRouteWithRWTransaction(
     apiRouter,
     "/charts/:chartId/etlConfig",
