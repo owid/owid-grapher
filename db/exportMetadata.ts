@@ -157,11 +157,12 @@ async function anonymisedUsersSql(): Promise<string> {
         isSuperuser: number
         isActive: number
         fullName: string
+        email: string
         createdAt: string
         updatedAt: string
     }>(
         knex,
-        `SELECT id, isSuperuser, isActive, fullName,
+        `SELECT id, isSuperuser, isActive, fullName, email,
                 DATE_FORMAT(createdAt, '%Y-%m-%d %H:%i:%s') AS createdAt,
                 DATE_FORMAT(updatedAt, '%Y-%m-%d %H:%i:%s') AS updatedAt
          FROM users WHERE id != 1 ORDER BY id`
@@ -171,7 +172,7 @@ async function anonymisedUsersSql(): Promise<string> {
         id: u.id,
         lastLogin: null,
         isSuperuser: u.isSuperuser,
-        email: `user-${u.id}@example.com`,
+        email: u.email, // can't mask email because it's needed for staging auth
         createdAt: u.createdAt,
         updatedAt: u.updatedAt,
         isActive: u.isActive,
