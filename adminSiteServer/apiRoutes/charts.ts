@@ -412,17 +412,18 @@ const updateExistingChart = async (
         ? await getParentByChartConfig(knex, config)
         : undefined
 
-    // fetch existing chart_configs row so we can keep the chart's etlConfig
-    // layer (written separately via PUT /charts/:id/etlConfig) when
-    // recomputing patch/full.
+    // fetch the chart's main config id and its ETL-authored config — a separate
+    // chart_configs row reached via charts.configIdETL (written via
+    // PUT /charts/:id/etlConfig) — so we keep that layer when recomputing
+    // patch/full.
     const chartConfigIdRow = await db.knexRawFirst<
-        Pick<DbPlainChart, "configId"> & Pick<DbRawChartConfig, "etlConfig">
+        Pick<DbPlainChart, "configId"> & { etlConfig: string | null }
     >(
         knex,
         `-- sql
-            SELECT c.configId, cc.etlConfig
+            SELECT c.configId, cc_etl.full AS etlConfig
             FROM charts c
-            JOIN chart_configs cc ON cc.id = c.configId
+            LEFT JOIN chart_configs cc_etl ON cc_etl.id = c.configIdETL
             WHERE c.id = ?
         `,
         [chartId]
@@ -736,11 +737,12 @@ export async function getChartParentJson(
     // come from which layer:
     //   - `variableConfig`: the indicator's grapher_config (variable.grapherConfigETL).
     //     Only applied to the chart when `isInheritanceEnabled` is true.
-    //   - `etlConfig`: the chart's own ETL-authored config (chart_configs.etlConfig).
+    //   - `etlConfig`: the chart's own ETL-authored config — a separate
+    //     chart_configs row reached via charts.configIdETL.
     //     Always applied, independent of indicator inheritance.
     const etlConfigRow = await db.knexRawFirst<{ etlConfig: string | null }>(
         trx,
-        `SELECT cc.etlConfig FROM charts c JOIN chart_configs cc ON cc.id = c.configId WHERE c.id = ?`,
+        `SELECT cc_etl.full AS etlConfig FROM charts c LEFT JOIN chart_configs cc_etl ON cc_etl.id = c.configIdETL WHERE c.id = ?`,
         [chartId]
     )
     const etlConfig = etlConfigRow?.etlConfig
@@ -1110,12 +1112,12 @@ export async function putChartsChartIdEtlConfig(
     }
 
     const row = await db.knexRawFirst<
-        Pick<DbPlainChart, "configId" | "isInheritanceEnabled"> &
+        Pick<DbPlainChart, "configId" | "configIdETL" | "isInheritanceEnabled"> &
             Pick<DbRawChartConfig, "patch" | "full">
     >(
         trx,
         `-- sql
-            SELECT c.configId, c.isInheritanceEnabled, cc.patch, cc.full
+            SELECT c.configId, c.configIdETL, c.isInheritanceEnabled, cc.patch, cc.full
             FROM charts c
             JOIN chart_configs cc ON cc.id = c.configId
             WHERE c.id = ?
@@ -1156,6 +1158,39 @@ export async function putChartsChartIdEtlConfig(
 
     const now = new Date()
 
+    // Upsert the ETL-authored config into its own chart_configs row
+    // (patch == full, absolute — like variables.grapherConfigIdETL rows),
+    // reached via charts.configIdETL. This intermediate row is never uploaded
+    // to R2; only the chart's main `full` is served.
+    const serializedEtlConfig = serializeChartConfig(etlConfig)
+    if (row.configIdETL) {
+        await db.knexRaw(
+            trx,
+            `-- sql
+                UPDATE chart_configs
+                SET patch = ?, full = ?, updatedAt = ?
+                WHERE id = ?
+            `,
+            [serializedEtlConfig, serializedEtlConfig, now, row.configIdETL]
+        )
+    } else {
+        const etlConfigId = uuidv7()
+        await db.knexRaw(
+            trx,
+            `-- sql
+                INSERT INTO chart_configs (id, patch, full, createdAt, updatedAt)
+                VALUES (?, ?, ?, ?, ?)
+            `,
+            [etlConfigId, serializedEtlConfig, serializedEtlConfig, now, now]
+        )
+        await db.knexRaw(
+            trx,
+            `UPDATE charts SET configIdETL = ?, updatedAt = ? WHERE id = ?`,
+            [etlConfigId, now, chartId]
+        )
+    }
+
+    // Update the chart's main config row with the recomputed patch/full.
     await db.knexRaw(
         trx,
         `-- sql
@@ -1163,7 +1198,6 @@ export async function putChartsChartIdEtlConfig(
             JOIN charts c ON c.configId = cc.id
             SET
                 cc.patch = ?,
-                cc.etlConfig = ?,
                 cc.full = ?,
                 cc.updatedAt = ?,
                 c.updatedAt = ?
@@ -1171,7 +1205,6 @@ export async function putChartsChartIdEtlConfig(
         `,
         [
             serializeChartConfig(newPatch),
-            serializeChartConfig(etlConfig),
             serializeChartConfig(newFullConfig),
             now,
             now,
@@ -1212,12 +1245,12 @@ export async function deleteChartsChartIdEtlConfig(
     const chartId = expectInt(req.params.chartId)
 
     const row = await db.knexRawFirst<
-        Pick<DbPlainChart, "configId" | "isInheritanceEnabled"> &
-            Pick<DbRawChartConfig, "patch" | "full" | "etlConfig">
+        Pick<DbPlainChart, "configId" | "configIdETL" | "isInheritanceEnabled"> &
+            Pick<DbRawChartConfig, "patch" | "full">
     >(
         trx,
         `-- sql
-            SELECT c.configId, c.isInheritanceEnabled, cc.patch, cc.full, cc.etlConfig
+            SELECT c.configId, c.configIdETL, c.isInheritanceEnabled, cc.patch, cc.full
             FROM charts c
             JOIN chart_configs cc ON cc.id = c.configId
             WHERE c.id = ?
@@ -1230,7 +1263,7 @@ export async function deleteChartsChartIdEtlConfig(
     }
 
     // no-op if the chart doesn't have an ETL config
-    if (!row.etlConfig) return { success: true }
+    if (!row.configIdETL) return { success: true }
 
     const existingPatch = parseChartConfig(row.patch)
     const existingFull = parseChartConfig(row.full)
@@ -1256,6 +1289,19 @@ export async function deleteChartsChartIdEtlConfig(
 
     const now = new Date()
 
+    // Clear the pointer first, then delete the now-orphaned ETL config row
+    // (the FK is ON DELETE RESTRICT, so the pointer has to go first).
+    const etlConfigId = row.configIdETL
+    await db.knexRaw(
+        trx,
+        `UPDATE charts SET configIdETL = NULL, updatedAt = ? WHERE id = ?`,
+        [now, chartId]
+    )
+    await db.knexRaw(trx, `DELETE FROM chart_configs WHERE id = ?`, [
+        etlConfigId,
+    ])
+
+    // Update the chart's main config row with the recomputed patch/full.
     await db.knexRaw(
         trx,
         `-- sql
@@ -1263,7 +1309,6 @@ export async function deleteChartsChartIdEtlConfig(
             JOIN charts c ON c.configId = cc.id
             SET
                 cc.patch = ?,
-                cc.etlConfig = NULL,
                 cc.full = ?,
                 cc.updatedAt = ?,
                 c.updatedAt = ?
@@ -1322,18 +1367,24 @@ export async function deleteChart(
         chart.id,
     ])
 
-    const row = await db.knexRawFirst<Pick<DbPlainChart, "configId">>(
-        trx,
-        `SELECT configId FROM charts WHERE id = ?`,
-        [chart.id]
-    )
+    const row = await db.knexRawFirst<
+        Pick<DbPlainChart, "configId" | "configIdETL">
+    >(trx, `SELECT configId, configIdETL FROM charts WHERE id = ?`, [chart.id])
     if (!row || !row.configId)
         throw new JsonError(`No chart config found for id ${chart.id}`, 404)
     if (row) {
+        // Delete the chart first (the referencing side of both configId and
+        // configIdETL FKs), then its config rows. The ETL config row, if any,
+        // is the chart's own and isn't shared, so it's safe to drop.
         await db.knexRaw(trx, `DELETE FROM charts WHERE id=?`, [chart.id])
         await db.knexRaw(trx, `DELETE FROM chart_configs WHERE id=?`, [
             row.configId,
         ])
+        if (row.configIdETL) {
+            await db.knexRaw(trx, `DELETE FROM chart_configs WHERE id=?`, [
+                row.configIdETL,
+            ])
+        }
     }
 
     if (chart.isPublished)
