@@ -1116,7 +1116,10 @@ export async function putChartsChartIdEtlConfig(
     }
 
     const row = await db.knexRawFirst<
-        Pick<DbPlainChart, "configId" | "configIdETL" | "isInheritanceEnabled"> &
+        Pick<
+            DbPlainChart,
+            "configId" | "configIdETL" | "isInheritanceEnabled"
+        > &
             Pick<DbRawChartConfig, "patch" | "full">
     >(
         trx,
@@ -1251,7 +1254,10 @@ export async function deleteChartsChartIdEtlConfig(
     const chartId = expectInt(req.params.chartId)
 
     const row = await db.knexRawFirst<
-        Pick<DbPlainChart, "configId" | "configIdETL" | "isInheritanceEnabled"> &
+        Pick<
+            DbPlainChart,
+            "configId" | "configIdETL" | "isInheritanceEnabled"
+        > &
             Pick<DbRawChartConfig, "patch" | "full">
     >(
         trx,
