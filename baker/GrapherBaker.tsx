@@ -50,10 +50,7 @@ import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
 
 import { deleteOldGraphers, getTagToSlugMap } from "./GrapherBakingUtils.js"
 import { knexRaw } from "../db/db.js"
-import {
-    getRelatedChartsForChart,
-    getRelatedChartsForVariable,
-} from "../db/model/Chart.js"
+import { getRelatedChartsForVariable } from "../db/model/Chart.js"
 import { getAllMultiDimDataPageSlugs } from "../db/model/MultiDimDataPage.js"
 import pMap from "p-map"
 import { stringify } from "safe-stable-stringify"
@@ -222,23 +219,14 @@ export async function renderDataPageV2(
     // If we're baking to an archival page, then we want to skip a bunch of sections
     // where the links would break
     if (archiveContext?.type !== "archive-page") {
-        // Get related charts, preferring coviews-based recommendations from
-        // the related_charts table (populated by the ETL related-charts CLI).
-        // Fall back to charts sharing this variable when no recommendations
-        // exist for this chart, and exclude the current chart to avoid
-        // duplicates.
-        let allCharts =
-            grapher && "id" in grapher
-                ? await getRelatedChartsForChart(knex, grapher.id as number)
-                : []
-        if (allCharts.length === 0) {
-            allCharts = await getRelatedChartsForVariable(
-                knex,
-                variableId,
-                grapher && "id" in grapher ? [grapher.id as number] : [],
-                true
-            )
-        }
+        // Get the charts this variable is being used in (aka "related charts")
+        // and exclude the current chart to avoid duplicates
+        const allCharts = await getRelatedChartsForVariable(
+            knex,
+            variableId,
+            grapher && "id" in grapher ? [grapher.id as number] : [],
+            true
+        )
         datapageData.allCharts = allCharts.map((chart) => ({
             ...chart,
             archiveContext: archiveContextDictionary?.[chart.chartId],

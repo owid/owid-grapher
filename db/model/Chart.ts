@@ -661,6 +661,10 @@ export const getRelatedChartsForVariable = async (
  * Get related charts for a chart from the `related_charts` table, which is
  * populated by the ETL `related-charts` CLI based on chart coviews
  * (charts viewed together in the same browsing session).
+ *
+ * Note: deliberately does not return `keyChartLevel` — the `RelatedCharts`
+ * component re-sorts by it, which would scramble the score-based ranking
+ * computed by the ETL.
  */
 export const getRelatedChartsForChart = async (
     knex: db.KnexReadonlyTransaction,
@@ -674,12 +678,10 @@ export const getRelatedChartsForChart = async (
                 charts.id AS chartId,
                 chart_configs.slug,
                 chart_configs.full->>"$.title" AS title,
-                chart_configs.full->>"$.variantName" AS variantName,
-                MAX(chart_tags.keyChartLevel) as keyChartLevel
+                chart_configs.full->>"$.variantName" AS variantName
             FROM related_charts
             JOIN charts ON charts.id = related_charts.relatedChartId
             JOIN chart_configs ON charts.configId = chart_configs.id
-            LEFT JOIN chart_tags ON charts.id = chart_tags.chartId
             WHERE related_charts.chartId = ?
                 AND related_charts.reviewer = 'production'
                 AND related_charts.label = 'good'
@@ -689,8 +691,7 @@ export const getRelatedChartsForChart = async (
                     JOIN tags t ON ct.tagId = t.id
                     WHERE ct.chartId = charts.id AND t.name = 'Unlisted'
                 )
-            GROUP BY charts.id
-            ORDER BY MAX(related_charts.score) DESC
+            ORDER BY related_charts.score DESC
             LIMIT ?
         `,
         [chartId, limit]
