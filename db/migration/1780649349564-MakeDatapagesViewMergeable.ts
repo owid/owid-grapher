@@ -17,9 +17,7 @@ import { MigrationInterface, QueryRunner } from "typeorm"
  * improvement: ties on `order` among y-dimensions are now broken
  * deterministically by id (ROW_NUMBER previously picked an arbitrary row).
  */
-export class MakeDatapagesViewMergeable1780649349564
-    implements MigrationInterface
-{
+export class MakeDatapagesViewMergeable1780649349564 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`DROP VIEW IF EXISTS datapages`)
         await queryRunner.query(`-- sql
