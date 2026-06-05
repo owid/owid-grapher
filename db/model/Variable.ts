@@ -998,7 +998,7 @@ export const searchVariables = async (
         SELECT
             v.id,
             v.name,
-            catalogPath,
+            v.catalogPath AS catalogPath,
             d.id AS datasetId,
             d.name AS datasetName,
             d.isPrivate AS isPrivate,
