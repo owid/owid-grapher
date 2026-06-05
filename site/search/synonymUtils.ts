@@ -314,6 +314,13 @@ export const synonyms = [
     ["inequality", "gini"],
     ["inflation", "price change", "price changes", "change in price"],
     ["employment", "jobs", "workforce", "labor", "labour"],
+    [
+        "informality",
+        "informal sector",
+        "informal employment",
+        "informal work",
+        "informal economy",
+    ],
     ["productivity", "labor productivity", "labour productivity"],
     ["debt", "public debt", "government debt"],
     ["industrialization", "industrialisation", "manufacturing"],
