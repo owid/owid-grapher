@@ -2,8 +2,11 @@
 // BEM block: .sidebar-toc. Companion component: site/SidebarTableOfContents.tsx.
 
 $sidebar-toc-breakpoint: 1200px; // open-by-default sidebar at/above this width
-$sidebar-toc-sidebar-frame: 273px; // outer frame
-$sidebar-toc-sidebar-inset: 24px; // L/R padding (273 - 225 = 48, split evenly)
+$sidebar-toc-wide-breakpoint: 1400px; // ≥ this: full "large" sidebar; 1200–1400px: narrow "small" sidebar
+$sidebar-toc-frame: 273px; // outer frame (large, ≥ 1400px)
+$sidebar-toc-frame-narrow: 208px; // outer frame (small, 1200–1400px) — fits the ~220px left margin at 1201px without overlapping 8-col content
+$sidebar-toc-inset: 24px; // L/R padding (large sidebar + mobile drawer)
+$sidebar-toc-inset-narrow: 16px; // L/R padding (small sidebar)
 $sidebar-toc-collapsed-strip: 40px; // sliver left visible when collapsed
 $sidebar-toc-section-gap: 24px;
 $sidebar-toc-bullet-gap: 12px;
@@ -305,9 +308,7 @@ $sidebar-toc-header-gap: 32px;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    width: 100%; // fill the content column (avoids overflow when the vertical
-    // scrollbar narrows the sidebar)
-    min-height: 40px;
+    min-height: 40px; // no vertical padding — this is the button height
     padding: 0 var(--sidebar-toc-inset);
     border: 2px solid $white;
     background: $blue-20;
@@ -318,6 +319,14 @@ $sidebar-toc-header-gap: 32px;
         background: $blue-10; // note: hover is lighter than default
         color: $blue-90;
     }
+}
+
+// The CTA carries both labels and shows the full one by default; only the
+// narrow sidebar swaps in the short one (see the small-sidebar media query below).
+// Both contexts that render this CTA — the sidebar and the full-width drawer — are
+// sized by the viewport, so a media query suffices; no container query needed.
+.sidebar-toc__cta-label--short {
+    display: none;
 }
 
 // --- Mobile: "Contents" pill + mobile drawer overlay (<= breakpoint) ---------
@@ -403,6 +412,55 @@ $sidebar-toc-header-gap: 32px;
     color: $blue-50;
     cursor: pointer;
     font-size: 16px;
+}
+
+// Small version (1200–1400px): a narrower sidebar with tighter padding so the
+// text column stays usable, and so the 208px frame clears the 8-col content
+// (whose left margin is only ~220px at 1201px). Everything keyed off the L/R
+// inset (content padding, toggle offset, active-bar offsets, CTA padding)
+// follows the custom property. Placed after the base rules it overrides: a
+// media query adds no specificity, so source order decides.
+@media (min-width: #{$sidebar-toc-breakpoint + 1px}) and (max-width: $sidebar-toc-wide-breakpoint) {
+    .sidebar-toc__sidebar {
+        width: $sidebar-toc-frame-narrow;
+        --sidebar-toc-inset: #{$sidebar-toc-inset-narrow};
+    }
+
+    .sidebar-toc__sidebar-content {
+        padding: $sidebar-toc-sidebar-inset-narrow;
+    }
+
+    .sidebar-toc__collapse-toggle,
+    .sidebar-toc__expand {
+        top: $sidebar-toc-sidebar-inset-narrow;
+    }
+
+    .sidebar-toc__section--active > .sidebar-toc__h1::before {
+        left: -$sidebar-toc-sidebar-inset-narrow;
+    }
+
+    .sidebar-toc__bullet--active::before {
+        left: -($sidebar-toc-sidebar-inset-narrow + $sidebar-toc-bullet-indent);
+    }
+
+    .sidebar-toc__bullets--single .sidebar-toc__bullet--active::before {
+        left: -($sidebar-toc-sidebar-inset-narrow + $sidebar-toc-sub-indent);
+    }
+
+    // The narrow column can't fit "See all charts on this topic" on one line:
+    // swap in the shorter label and give the now single-line CTA the tighter
+    // side inset to match the column.
+    .sidebar-toc__cta-label--full {
+        display: none;
+    }
+
+    .sidebar-toc__cta-label--short {
+        display: inline;
+    }
+
+    .sidebar-toc__cta {
+        padding: 0 $sidebar-toc-sidebar-inset-narrow;
+    }
 }
 
 // Honour reduced-motion: suppress the sidebar's transform-slides — the user-driven

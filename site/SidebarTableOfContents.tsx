@@ -484,7 +484,16 @@ const SeeAllChartsCta = ({ tagName }: { tagName: string }) => {
             data-track-note="toc_see_all_charts"
         >
             <FontAwesomeIcon icon={faMagnifyingGlass} />
-            See all charts on this topic
+            {/* Two labels: the full one by default, and a shorter one swapped
+                in for the narrow sidebar (1200–1400px) where the full label won't
+                fit on one line. See .sidebar-toc__cta-label in the companion
+                stylesheet. */}
+            <span className="sidebar-toc__cta-label--full">
+                See all charts on this topic
+            </span>
+            <span className="sidebar-toc__cta-label--short">
+                See all charts
+            </span>
         </a>
     )
 }
