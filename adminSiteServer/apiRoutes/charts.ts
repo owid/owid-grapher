@@ -1089,22 +1089,23 @@ export async function putChartsChartIdEtlConfig(
         newParentStack
     )
 
-    // Bump version for cache-busting on every ETL push, mirroring saveGrapher.
-    const newVersion = (existingFull.version ?? 0) + 1
-    newPatch.version = newVersion
-
-    const newFullConfig: GrapherInterface = {
-        ...mergeGrapherConfigs(newParentStack, newPatch),
-        id: chartId,
-        version: newVersion,
-    }
+    // Does this push actually change the rendered chart? Compare the recomputed
+    // full config against the stored one, ignoring `version`/`id` (which always
+    // differ). If nothing changed, we skip the version bump, the revision, the
+    // R2 re-upload and the static build — so a no-op re-push (e.g. `--force`, a
+    // routine data refresh, or a bulk ETL run) doesn't churn the chart's history.
+    const recomputedFull = mergeGrapherConfigs(newParentStack, newPatch)
+    const fullChanged = !_.isEqual(
+        _.omit(recomputedFull, ["version", "id"]),
+        _.omit(existingFull, ["version", "id"])
+    )
 
     const now = new Date()
 
-    // Upsert the ETL-authored config into its own chart_configs row
-    // (patch == full, absolute — like variables.grapherConfigIdETL rows),
-    // reached via charts.configIdETL. This intermediate row is never uploaded
-    // to R2; only the chart's main `full` is served.
+    // Always keep the ETL-authored config in its own chart_configs row (reached
+    // via charts.configIdETL), so the stored layers stay accurate. This row is
+    // an intermediate layer — never uploaded to R2; only the chart's main `full`
+    // is served.
     const serializedEtlConfig = serializeChartConfig(etlConfig)
     if (row.configIdETL) {
         await db.knexRaw(
@@ -1132,16 +1133,31 @@ export async function putChartsChartIdEtlConfig(
                 UPDATE charts
                 SET
                     configIdETL = ?,
-                    updatedAt = ?,
-                    lastEditedAt = ?,
-                    lastEditedByUserId = ?
+                    catalogPath = COALESCE(?, catalogPath),
+                    updatedAt = ?
                 WHERE id = ?
             `,
-            [etlConfigId, now, now, res.locals.user.id, chartId]
+            [etlConfigId, catalogPath, now, chartId]
         )
     }
 
-    // Update the chart's main config row with the recomputed patch/full.
+    // Nothing the reader sees changed → don't bump `version`, write a revision,
+    // re-upload to R2, or rebuild. (The ETL config row above may have been
+    // refreshed, but that's an internal layer, not part of the chart's history.)
+    if (!fullChanged) {
+        return { success: true, etlConfig, patch: existingPatch }
+    }
+
+    // The rendered chart changed — record it: bump version, rewrite the main
+    // config row, log a revision, refresh R2, and trigger a build if published.
+    const newVersion = (existingFull.version ?? 0) + 1
+    newPatch.version = newVersion
+    const newFullConfig: GrapherInterface = {
+        ...recomputedFull,
+        id: chartId,
+        version: newVersion,
+    }
+
     await db.knexRaw(
         trx,
         `-- sql
@@ -1238,36 +1254,40 @@ export async function deleteChartsChartIdEtlConfig(
         newParentStack
     )
 
-    const newVersion = (existingFull.version ?? 0) + 1
-    newPatch.version = newVersion
-
-    const newFullConfig: GrapherInterface = {
-        ...mergeGrapherConfigs(newParentStack, newPatch),
-        id: chartId,
-        version: newVersion,
-    }
+    const recomputedFull = mergeGrapherConfigs(newParentStack, newPatch)
+    const fullChanged = !_.isEqual(
+        _.omit(recomputedFull, ["version", "id"]),
+        _.omit(existingFull, ["version", "id"])
+    )
 
     const now = new Date()
 
-    // Clear the pointer first, then delete the now-orphaned ETL config row
-    // (the FK is ON DELETE RESTRICT, so the pointer has to go first).
+    // Always remove the ETL layer: clear the pointer first, then delete the
+    // now-orphaned ETL config row (the FK is ON DELETE RESTRICT, so the pointer
+    // has to go first).
     const etlConfigId = row.configIdETL
     await db.knexRaw(
         trx,
-        `-- sql
-            UPDATE charts
-            SET
-                configIdETL = NULL,
-                updatedAt = ?,
-                lastEditedAt = ?,
-                lastEditedByUserId = ?
-            WHERE id = ?
-        `,
-        [now, now, res.locals.user.id, chartId]
+        `UPDATE charts SET configIdETL = NULL, updatedAt = ? WHERE id = ?`,
+        [now, chartId]
     )
     await db.knexRaw(trx, `DELETE FROM chart_configs WHERE id = ?`, [
         etlConfigId,
     ])
+
+    // Removing the layer didn't change the rendered chart (the ETL config was
+    // fully masked by the admin patch) → don't bump version / write a revision.
+    if (!fullChanged) {
+        return { success: true, patch: existingPatch }
+    }
+
+    const newVersion = (existingFull.version ?? 0) + 1
+    newPatch.version = newVersion
+    const newFullConfig: GrapherInterface = {
+        ...recomputedFull,
+        id: chartId,
+        version: newVersion,
+    }
 
     // Update the chart's main config row with the recomputed patch/full.
     await db.knexRaw(

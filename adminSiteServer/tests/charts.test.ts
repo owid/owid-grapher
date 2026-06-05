@@ -1044,6 +1044,58 @@ describe("Chart-level ETL configs", { timeout: 15000 }, () => {
         expect(fullConfig).toHaveProperty("note", "Note from indicator B")
     })
 
+    it("does not bump version or add a revision on a no-op ETL re-push", async () => {
+        const response = await env.request({
+            method: "POST",
+            path: "/charts",
+            body: JSON.stringify(testChartConfig),
+        })
+        const chartId = response.chartId
+
+        // First ETL config push.
+        await env.request({
+            method: "PUT",
+            path: `/charts/${chartId}/etlConfig`,
+            body: JSON.stringify(testChartEtlConfig),
+        })
+        const afterFirst = await env.fetchJson(`/charts/${chartId}.config.json`)
+        const versionAfterFirst = afterFirst.version
+        const revisionsAfterFirst = (
+            await env.testKnex("chart_revisions").where("chartId", chartId)
+        ).length
+
+        // Identical re-push (e.g. --force, a data refresh, a bulk ETL run).
+        await env.request({
+            method: "PUT",
+            path: `/charts/${chartId}/etlConfig`,
+            body: JSON.stringify(testChartEtlConfig),
+        })
+        const afterRepush = await env.fetchJson(
+            `/charts/${chartId}.config.json`
+        )
+        const revisionsAfterRepush = (
+            await env.testKnex("chart_revisions").where("chartId", chartId)
+        ).length
+
+        // No change → version untouched, no new revision.
+        expect(afterRepush.version).toBe(versionAfterFirst)
+        expect(revisionsAfterRepush).toBe(revisionsAfterFirst)
+
+        // A genuine config change still bumps the version.
+        await env.request({
+            method: "PUT",
+            path: `/charts/${chartId}/etlConfig`,
+            body: JSON.stringify({
+                ...testChartEtlConfig,
+                subtitle: "A genuinely different subtitle",
+            }),
+        })
+        const afterChange = await env.fetchJson(
+            `/charts/${chartId}.config.json`
+        )
+        expect(afterChange.version).toBeGreaterThan(versionAfterFirst)
+    })
+
     it("rejects an etlConfig with no $schema", async () => {
         const response = await env.request({
             method: "POST",
