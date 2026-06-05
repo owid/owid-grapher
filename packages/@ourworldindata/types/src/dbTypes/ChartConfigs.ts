@@ -9,27 +9,17 @@ export interface DbInsertChartConfig {
     id: string
     patch: JsonString
     full: JsonString
-    etlConfig?: JsonString | null
     fullMd5?: Base64String
     slug?: string | null
     chartType?: GrapherChartType | null
     createdAt?: Date
     updatedAt?: Date
 }
-export type DbRawChartConfig = Omit<
-    Required<DbInsertChartConfig>,
-    "etlConfig"
-> & {
-    etlConfig: JsonString | null
-}
+export type DbRawChartConfig = Required<DbInsertChartConfig>
 
-export type DbEnrichedChartConfig = Omit<
-    DbRawChartConfig,
-    "patch" | "full" | "etlConfig"
-> & {
+export type DbEnrichedChartConfig = Omit<DbRawChartConfig, "patch" | "full"> & {
     patch: GrapherInterface
     full: GrapherInterface
-    etlConfig: GrapherInterface | null
 }
 
 export function parseChartConfig(config: JsonString): GrapherInterface {
@@ -41,21 +31,17 @@ export function serializeChartConfig(config: GrapherInterface): JsonString {
 }
 
 export function parseChartConfigsRow<
-    T extends Pick<DbRawChartConfig, "patch" | "full"> & {
-        etlConfig?: JsonString | null
-    },
+    T extends Pick<DbRawChartConfig, "patch" | "full">,
 >(
     row: T
-): Omit<T, "patch" | "full" | "etlConfig"> & {
+): Omit<T, "patch" | "full"> & {
     patch: GrapherInterface
     full: GrapherInterface
-    etlConfig: GrapherInterface | null
 } {
     return {
         ...row,
         patch: parseChartConfig(row.patch),
         full: parseChartConfig(row.full),
-        etlConfig: row.etlConfig ? parseChartConfig(row.etlConfig) : null,
     }
 }
 
@@ -66,6 +52,5 @@ export function serializeChartsRow(
         ...row,
         patch: serializeChartConfig(row.patch),
         full: serializeChartConfig(row.full),
-        etlConfig: row.etlConfig ? serializeChartConfig(row.etlConfig) : null,
     }
 }

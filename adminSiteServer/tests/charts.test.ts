@@ -758,11 +758,18 @@ describe("Chart-level ETL configs", { timeout: 15000 }, () => {
         })
         expect(putResponse.success).toBe(true)
 
-        // etlConfig should be stored on the chart_configs row (the test DB
-        // has exactly one chart_configs row at this point)
-        const row = await env.testKnex(ChartConfigsTableName).first()
-        expect(row.etlConfig).not.toBeNull()
-        const storedEtlConfig = JSON.parse(row.etlConfig)
+        // the ETL config is stored in its own chart_configs row, reached via
+        // charts.configIdETL
+        const chartRow = await env
+            .testKnex("charts")
+            .where("id", chartId)
+            .first()
+        expect(chartRow.configIdETL).not.toBeNull()
+        const etlRow = await env
+            .testKnex(ChartConfigsTableName)
+            .where("id", chartRow.configIdETL)
+            .first()
+        const storedEtlConfig = JSON.parse(etlRow.full)
         expect(storedEtlConfig).toMatchObject({
             title: "Title from chart's ETL config",
             subtitle: "Subtitle from chart's ETL config",
@@ -930,14 +937,12 @@ describe("Chart-level ETL configs", { timeout: 15000 }, () => {
         })
         expect(delResponse.success).toBe(true)
 
-        // etlConfig column should be NULL
-        const row = await env
-            .testKnex(ChartConfigsTableName)
-            .whereNotNull("etlConfig")
+        // the chart's ETL pointer is cleared and its ETL config row is deleted
+        const chartRow = await env
+            .testKnex("charts")
+            .where("id", chartId)
             .first()
-        // the chart's chart_configs row no longer has an etlConfig; the only
-        // remaining etlConfig rows would be unrelated (none, in this test)
-        expect(row).toBeUndefined()
+        expect(chartRow.configIdETL).toBeNull()
 
         // note falls back to the indicator's value; subtitle is gone
         const fullConfig = await env.fetchJson(`/charts/${chartId}.config.json`)
