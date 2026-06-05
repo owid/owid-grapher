@@ -42,6 +42,7 @@ export {
     DEFAULT_GRAPHER_BOUNDS_SQUARE,
     ADDITIONAL_REGION_DATA_PROVIDERS,
     type AdditionalRegionDataProvider,
+    type FontSettings,
 } from "./core/GrapherConstants"
 export { OWID_LOGO_SVG, OWID_WORDMARK_SVG } from "./captionedChart/LogosSVG.js"
 export {
@@ -51,24 +52,31 @@ export {
 export { ColorScale } from "./color/ColorScale"
 export { ColorScaleConfig } from "./color/ColorScaleConfig"
 export { ColorScheme } from "./color/ColorScheme"
-export { GRAPHER_BACKGROUND } from "./color/ColorConstants"
+export {
+    GRAPHER_BACKGROUND,
+    GRAPHER_DENIM,
+    GRAPHER_DARK_TEXT,
+    GRAPHER_LIGHT_TEXT,
+    GRAY_70,
+    GRAY_80,
+    GRAY_90,
+    GRAY_100,
+} from "./color/ColorConstants"
 export { darkenColorForText } from "./color/ColorUtils"
 export {
     getColorNameOwidDistinctAndSemanticPalettes,
     getColorNameOwidDistinctLinesAndSemanticPalettes,
+    OwidDistinctColors,
+    OwidMapColors,
+    OwidDistinctLinesColors,
+    EnergyColors,
+    ContinentColors,
 } from "./color/CustomSchemes"
 export { ColorSchemes } from "./color/ColorSchemes"
 export { DimensionSlot } from "./chart/DimensionSlot"
 export { EntityPicker } from "./controls/entityPicker/EntityPicker"
 export type { EntityPickerManager } from "./controls/entityPicker/EntityPickerConstants"
 export { getColorSchemeForChartType } from "./color/ColorSchemes"
-export {
-    OwidMapColors,
-    OwidDistinctColors,
-    OwidDistinctLinesColors,
-    EnergyColors,
-    ContinentColors,
-} from "./color/CustomSchemes"
 export {
     isCategoricalBin,
     isNumericBin,

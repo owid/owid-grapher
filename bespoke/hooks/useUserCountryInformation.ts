@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query"
 import { fetchJson, UserCountryInformation } from "@ourworldindata/utils"
 
-export function useUserCountryInformation(): {
+export function useUserCountryInformation(options?: { enabled?: boolean }): {
     data?: UserCountryInformation
 } {
     return useQuery({
@@ -12,5 +12,6 @@ export function useUserCountryInformation(): {
             }>("https://ourworldindata.org/api/detect-country")
             return response.country
         },
+        enabled: options?.enabled ?? true,
     })
 }
