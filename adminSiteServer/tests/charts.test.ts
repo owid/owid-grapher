@@ -749,6 +749,15 @@ describe("Chart-level ETL configs", { timeout: 15000 }, () => {
             body: JSON.stringify(testChartConfig),
         })
         const chartId = response.chartId
+        const createdChartRow = await env
+            .testKnex("charts")
+            .where("id", chartId)
+            .first()
+        const oldLastEditedAt = new Date("2000-01-01T00:00:00.000Z")
+        await env
+            .testKnex("charts")
+            .where("id", chartId)
+            .update({ lastEditedAt: oldLastEditedAt })
 
         // push an etlConfig
         const putResponse = await env.request({
@@ -765,6 +774,12 @@ describe("Chart-level ETL configs", { timeout: 15000 }, () => {
             .where("id", chartId)
             .first()
         expect(chartRow.configIdETL).not.toBeNull()
+        expect(chartRow.lastEditedAt.getTime()).toBeGreaterThan(
+            oldLastEditedAt.getTime()
+        )
+        expect(chartRow.lastEditedByUserId).toBe(
+            createdChartRow.lastEditedByUserId
+        )
         const etlRow = await env
             .testKnex(ChartConfigsTableName)
             .where("id", chartRow.configIdETL)
@@ -929,6 +944,15 @@ describe("Chart-level ETL configs", { timeout: 15000 }, () => {
                 subtitle: "etlConfig subtitle",
             }),
         })
+        const chartRowBeforeDelete = await env
+            .testKnex("charts")
+            .where("id", chartId)
+            .first()
+        const oldLastEditedAt = new Date("2000-01-01T00:00:00.000Z")
+        await env
+            .testKnex("charts")
+            .where("id", chartId)
+            .update({ lastEditedAt: oldLastEditedAt })
 
         // delete the etlConfig
         const delResponse = await env.request({
@@ -943,6 +967,12 @@ describe("Chart-level ETL configs", { timeout: 15000 }, () => {
             .where("id", chartId)
             .first()
         expect(chartRow.configIdETL).toBeNull()
+        expect(chartRow.lastEditedAt.getTime()).toBeGreaterThan(
+            oldLastEditedAt.getTime()
+        )
+        expect(chartRow.lastEditedByUserId).toBe(
+            chartRowBeforeDelete.lastEditedByUserId
+        )
 
         // note falls back to the indicator's value; subtitle is gone
         const fullConfig = await env.fetchJson(`/charts/${chartId}.config.json`)

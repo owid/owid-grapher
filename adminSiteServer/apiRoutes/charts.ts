@@ -1197,8 +1197,16 @@ export async function putChartsChartIdEtlConfig(
         )
         await db.knexRaw(
             trx,
-            `UPDATE charts SET configIdETL = ?, updatedAt = ? WHERE id = ?`,
-            [etlConfigId, now, chartId]
+            `-- sql
+                UPDATE charts
+                SET
+                    configIdETL = ?,
+                    updatedAt = ?,
+                    lastEditedAt = ?,
+                    lastEditedByUserId = ?
+                WHERE id = ?
+            `,
+            [etlConfigId, now, now, res.locals.user.id, chartId]
         )
     }
 
@@ -1213,6 +1221,8 @@ export async function putChartsChartIdEtlConfig(
                 cc.full = ?,
                 cc.updatedAt = ?,
                 c.updatedAt = ?,
+                c.lastEditedAt = ?,
+                c.lastEditedByUserId = ?,
                 c.catalogPath = COALESCE(?, c.catalogPath)
             WHERE c.id = ?
         `,
@@ -1221,6 +1231,8 @@ export async function putChartsChartIdEtlConfig(
             serializeChartConfig(newFullConfig),
             now,
             now,
+            now,
+            res.locals.user.id,
             catalogPath,
             chartId,
         ]
@@ -1311,8 +1323,16 @@ export async function deleteChartsChartIdEtlConfig(
     const etlConfigId = row.configIdETL
     await db.knexRaw(
         trx,
-        `UPDATE charts SET configIdETL = NULL, updatedAt = ? WHERE id = ?`,
-        [now, chartId]
+        `-- sql
+            UPDATE charts
+            SET
+                configIdETL = NULL,
+                updatedAt = ?,
+                lastEditedAt = ?,
+                lastEditedByUserId = ?
+            WHERE id = ?
+        `,
+        [now, now, res.locals.user.id, chartId]
     )
     await db.knexRaw(trx, `DELETE FROM chart_configs WHERE id = ?`, [
         etlConfigId,
@@ -1328,7 +1348,9 @@ export async function deleteChartsChartIdEtlConfig(
                 cc.patch = ?,
                 cc.full = ?,
                 cc.updatedAt = ?,
-                c.updatedAt = ?
+                c.updatedAt = ?,
+                c.lastEditedAt = ?,
+                c.lastEditedByUserId = ?
             WHERE c.id = ?
         `,
         [
@@ -1336,6 +1358,8 @@ export async function deleteChartsChartIdEtlConfig(
             serializeChartConfig(newFullConfig),
             now,
             now,
+            now,
+            res.locals.user.id,
             chartId,
         ]
     )
