@@ -1071,10 +1071,14 @@ export async function putChartsChartIdEtlConfig(
     const existingFull = parseChartConfig(row.full)
 
     // Look up the chart's parent indicator (only if inheritance is enabled).
-    // We use the chart's existing full config so dimensions resolve to the
-    // variables the chart currently plots.
+    // Resolve it from the *incoming* config (existing full with this push's
+    // etlConfig applied on top), not the stale `existingFull`: when ETL
+    // re-points the chart at a new y-variable (e.g. on dataset re-versioning),
+    // the parent must be the new indicator, otherwise `full` would inherit the
+    // old indicator's fields until a later recompute.
+    const incomingFull = mergeGrapherConfigs(existingFull, etlConfig)
     const parent = row.isInheritanceEnabled
-        ? await getParentByChartConfig(trx, existingFull)
+        ? await getParentByChartConfig(trx, incomingFull)
         : undefined
 
     const newParentStack = mergeGrapherConfigs(parent?.config ?? {}, etlConfig)
