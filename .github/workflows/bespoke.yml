@@ -28,6 +28,23 @@ jobs:
       - name: Typecheck
         run: yarn typecheck
 
+  bespoke-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v5
+
+      - uses: ./.github/actions/setup-node-yarn-deps
+        with:
+          runPostinstallScripts: false
+          cacheDependencyPath: bespoke/yarn.lock
+
+      - name: Install bespoke dependencies
+        run: yarn --immutable
+
+      - name: Test
+        run: yarn test
+
   bespoke-build:
     runs-on: ubuntu-latest
     steps:
