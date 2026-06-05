@@ -158,11 +158,12 @@ async function anonymisedUsersSql(): Promise<string> {
         isActive: number
         fullName: string
         email: string
+        githubUsername: string
         createdAt: string
         updatedAt: string
     }>(
         knex,
-        `SELECT id, isSuperuser, isActive, fullName, email,
+        `SELECT id, isSuperuser, isActive, fullName, githubUsername,
                 DATE_FORMAT(createdAt, '%Y-%m-%d %H:%i:%s') AS createdAt,
                 DATE_FORMAT(updatedAt, '%Y-%m-%d %H:%i:%s') AS updatedAt
          FROM users WHERE id != 1 ORDER BY id`
@@ -172,13 +173,13 @@ async function anonymisedUsersSql(): Promise<string> {
         id: u.id,
         lastLogin: null,
         isSuperuser: u.isSuperuser,
-        email: u.email, // can't mask email because it's needed for staging auth
+        email: `user-${u.id}@example.com`, // not needed in staging/local dev
         createdAt: u.createdAt,
         updatedAt: u.updatedAt,
         isActive: u.isActive,
         fullName: u.fullName,
         lastSeen: null,
-        githubUsername: null,
+        githubUsername: u.githubUsername, // needed for staging tailscale auth
         dataInsightFolderId: null,
         slackId: null,
     }))
