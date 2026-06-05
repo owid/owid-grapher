@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { useQueryState, type SingleParserBuilder } from "nuqs"
 
-export function useUrlState<T extends string>({
+export function useUrlState<T extends NonNullable<unknown>>({
     key,
     parser,
     defaultValue,

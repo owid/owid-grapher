@@ -149,6 +149,12 @@ __metadata:
   languageName: node
   linkType: soft
 
+"@ourworldindata/components@link:../../../packages/@ourworldindata/components::locator=%40owid%2Fbespoke-migration%40workspace%3Aprojects%2Fmigration":
+  version: 0.0.0-use.local
+  resolution: "@ourworldindata/components@link:../../../packages/@ourworldindata/components::locator=%40owid%2Fbespoke-migration%40workspace%3Aprojects%2Fmigration"
+  languageName: node
+  linkType: soft
+
 "@ourworldindata/components@link:../../packages/@ourworldindata/components::locator=%40owid%2Fbespoke-components%40workspace%3Acomponents":
   version: 0.0.0-use.local
   resolution: "@ourworldindata/components@link:../../packages/@ourworldindata/components::locator=%40owid%2Fbespoke-components%40workspace%3Acomponents"
@@ -158,6 +164,12 @@ __metadata:
 "@ourworldindata/core-table@link:../../../packages/@ourworldindata/core-table::locator=%40owid%2Fbespoke-food-trade%40workspace%3Aprojects%2Ffood-trade":
   version: 0.0.0-use.local
   resolution: "@ourworldindata/core-table@link:../../../packages/@ourworldindata/core-table::locator=%40owid%2Fbespoke-food-trade%40workspace%3Aprojects%2Ffood-trade"
+  languageName: node
+  linkType: soft
+
+"@ourworldindata/core-table@link:../../../packages/@ourworldindata/core-table::locator=%40owid%2Fbespoke-migration%40workspace%3Aprojects%2Fmigration":
+  version: 0.0.0-use.local
+  resolution: "@ourworldindata/core-table@link:../../../packages/@ourworldindata/core-table::locator=%40owid%2Fbespoke-migration%40workspace%3Aprojects%2Fmigration"
   languageName: node
   linkType: soft
 
@@ -185,6 +197,12 @@ __metadata:
   languageName: node
   linkType: soft
 
+"@ourworldindata/grapher@link:../../../packages/@ourworldindata/grapher::locator=%40owid%2Fbespoke-migration%40workspace%3Aprojects%2Fmigration":
+  version: 0.0.0-use.local
+  resolution: "@ourworldindata/grapher@link:../../../packages/@ourworldindata/grapher::locator=%40owid%2Fbespoke-migration%40workspace%3Aprojects%2Fmigration"
+  languageName: node
+  linkType: soft
+
 "@ourworldindata/grapher@link:../../packages/@ourworldindata/grapher::locator=%40owid%2Fbespoke-components%40workspace%3Acomponents":
   version: 0.0.0-use.local
   resolution: "@ourworldindata/grapher@link:../../packages/@ourworldindata/grapher::locator=%40owid%2Fbespoke-components%40workspace%3Acomponents"
@@ -206,6 +224,12 @@ __metadata:
 "@ourworldindata/types@link:../../../packages/@ourworldindata/types::locator=%40owid%2Fbespoke-food-trade%40workspace%3Aprojects%2Ffood-trade":
   version: 0.0.0-use.local
   resolution: "@ourworldindata/types@link:../../../packages/@ourworldindata/types::locator=%40owid%2Fbespoke-food-trade%40workspace%3Aprojects%2Ffood-trade"
+  languageName: node
+  linkType: soft
+
+"@ourworldindata/types@link:../../../packages/@ourworldindata/types::locator=%40owid%2Fbespoke-migration%40workspace%3Aprojects%2Fmigration":
+  version: 0.0.0-use.local
+  resolution: "@ourworldindata/types@link:../../../packages/@ourworldindata/types::locator=%40owid%2Fbespoke-migration%40workspace%3Aprojects%2Fmigration"
   languageName: node
   linkType: soft
 
@@ -236,6 +260,12 @@ __metadata:
 "@ourworldindata/utils@link:../../../packages/@ourworldindata/utils::locator=%40owid%2Fbespoke-food-trade%40workspace%3Aprojects%2Ffood-trade":
   version: 0.0.0-use.local
   resolution: "@ourworldindata/utils@link:../../../packages/@ourworldindata/utils::locator=%40owid%2Fbespoke-food-trade%40workspace%3Aprojects%2Ffood-trade"
+  languageName: node
+  linkType: soft
+
+"@ourworldindata/utils@link:../../../packages/@ourworldindata/utils::locator=%40owid%2Fbespoke-migration%40workspace%3Aprojects%2Fmigration":
+  version: 0.0.0-use.local
+  resolution: "@ourworldindata/utils@link:../../../packages/@ourworldindata/utils::locator=%40owid%2Fbespoke-migration%40workspace%3Aprojects%2Fmigration"
   languageName: node
   linkType: soft
 
@@ -432,6 +462,50 @@ __metadata:
     "@typescript/native-preview": "npm:^7.0.0-dev.20260401.1"
     nuqs: "npm:^2.8.9"
     react: "npm:^19.2.4"
+  languageName: unknown
+  linkType: soft
+
+"@owid/bespoke-migration@workspace:projects/migration":
+  version: 0.0.0-use.local
+  resolution: "@owid/bespoke-migration@workspace:projects/migration"
+  dependencies:
+    "@fortawesome/fontawesome-svg-core": "npm:^6.7.2"
+    "@fortawesome/free-solid-svg-icons": "npm:^6.7.2"
+    "@fortawesome/react-fontawesome": "npm:^0.2.2"
+    "@ourworldindata/components": "link:../../../packages/@ourworldindata/components"
+    "@ourworldindata/core-table": "link:../../../packages/@ourworldindata/core-table"
+    "@ourworldindata/grapher": "link:../../../packages/@ourworldindata/grapher"
+    "@ourworldindata/types": "link:../../../packages/@ourworldindata/types"
+    "@ourworldindata/utils": "link:../../../packages/@ourworldindata/utils"
+    "@react-stately/flags": "npm:^3.1.2"
+    "@rollup/plugin-swc": "npm:^0.4.0"
+    "@swc/core": "npm:^1.15.21"
+    "@tanstack/react-query": "npm:^5.100.9"
+    "@types/d3-dsv": "npm:^3.0.7"
+    "@types/d3-sankey": "npm:^0.12.5"
+    "@types/react": "npm:^19.2.14"
+    "@types/react-dom": "npm:^19.2.3"
+    "@typescript/native-preview": "npm:^7.0.0-dev.20260313.1"
+    "@visx/drag": "npm:^3.12.0"
+    "@visx/group": "npm:^3.12.0"
+    "@visx/responsive": "npm:^3.12.0"
+    "@vitejs/plugin-react": "npm:^6.0.0"
+    classnames: "npm:^2.5.1"
+    d3-dsv: "npm:^3.0.1"
+    d3-sankey: "npm:^0.12.3"
+    jotai: "npm:^2.18.1"
+    normalize.css: "npm:^8.0.1"
+    nuqs: "npm:^2.8.9"
+    react: "npm:^19.2.4"
+    react-aria: "npm:^3.49.0"
+    react-aria-components: "npm:^1.18.0"
+    react-dom: "npm:^19.2.4"
+    react-stately: "npm:^3.47.0"
+    remeda: "npm:^2.21.0"
+    sass: "npm:^1.87.0"
+    ts-pattern: "npm:^5.8.0"
+    vite: "npm:^8.0.5"
+    vite-plugin-css-position: "npm:^2.0.9"
   languageName: unknown
   linkType: soft
 
@@ -1068,7 +1142,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/d3-dsv@npm:*":
+"@types/d3-dsv@npm:*, @types/d3-dsv@npm:^3.0.7":
   version: 3.0.7
   resolution: "@types/d3-dsv@npm:3.0.7"
   checksum: 10/8507f542135cae472781dff1c3b391eceedad0f2032d24ac4a0814e72e2f6877e4ddcb66f44627069977ee61029dc0a729edf659ed73cbf1040f55a7451f05ef
@@ -1937,7 +2011,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"d3-dsv@npm:1 - 3, d3-dsv@npm:3":
+"d3-dsv@npm:1 - 3, d3-dsv@npm:3, d3-dsv@npm:^3.0.1":
   version: 3.0.1
   resolution: "d3-dsv@npm:3.0.1"
   dependencies:

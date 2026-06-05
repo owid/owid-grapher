@@ -26,4 +26,7 @@ export const BESPOKE_COMPONENT_REGISTRY: Record<
     "food-trade": {
         scriptUrl: "/food-trade/index.js",
     },
+    migration: {
+        scriptUrl: "/migration/index.js",
+    },
 }
