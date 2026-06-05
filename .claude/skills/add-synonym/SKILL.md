@@ -55,7 +55,11 @@ Add or update synonym entries in `site/search/synonymUtils.ts` so that our Algol
 
 9. Push the branch and create a PR:
     - Push with `git push -u origin HEAD`.
-    - Create a PR with `gh pr create --title "<same as commit message>" --body "" --reviewer edomt`.
+    - Create the PR with `gh pr create --title "<same as commit message>" --reviewer edomt` and a proper description (don't leave `--body` empty). The description should briefly cover:
+        - **What** terms were added and which group they went into.
+        - **Why** they're grouped that way (especially if you created a new array rather than extending an existing group).
+        - The validation results (typecheck / lint / synonym test).
+        - A note that synonyms ship to Algolia automatically on deploy via `baker/algolia/configureAlgolia.ts`.
 
 ## Conventions & lessons
 
