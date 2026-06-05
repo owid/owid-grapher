@@ -104,7 +104,7 @@ export const TabsWithDropdown = <TabKey extends string = string>({
                                 icon={faEllipsisVertical}
                                 aria-hidden="true"
                             />
-                            <span>More</span>
+                            <span className="label">More</span>
                         </Button>
                         {popover}
                     </MenuTrigger>
