@@ -21,9 +21,9 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { isTouchDevice } from "@ourworldindata/utils"
 
 export interface BasicDropdownOption {
-    trackNote?: string
     value: string
     label: React.ReactNode
+    trackNote?: string
 }
 
 export interface DropdownOptionGroup<

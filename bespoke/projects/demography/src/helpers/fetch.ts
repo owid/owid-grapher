@@ -1,5 +1,5 @@
 import { QueryClient, QueryStatus, useQuery } from "@tanstack/react-query"
-import { fetchJson, UserCountryInformation } from "@ourworldindata/utils"
+import { fetchJson } from "@ourworldindata/utils"
 import { CountryData, DemographyMetadata } from "./types"
 import { combineStatuses } from "./utils.js"
 import { useDelayedLoading } from "../../../../hooks/useDelayedLoading.js"
@@ -13,7 +13,6 @@ export const queryClient = new QueryClient()
 const queryKeys = {
     metadata: () => ["demography", "metadata"],
     data: (slug: string) => ["demography", "data", slug],
-    location: () => ["location"],
 }
 
 /** Fetch demography metadata */
@@ -90,18 +89,4 @@ export function useDemographyData(entityName: string): {
         isLoadingEntityData,
         status,
     }
-}
-
-export function useUserCountryInformation(): { data?: UserCountryInformation } {
-    const result = useQuery({
-        queryKey: queryKeys.location(),
-        queryFn: async () => {
-            const response = await fetchJson<{
-                country: UserCountryInformation
-            }>("https://ourworldindata.org/api/detect-country")
-            return response.country
-        },
-    })
-
-    return result
 }
