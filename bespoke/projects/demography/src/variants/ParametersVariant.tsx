@@ -4,8 +4,8 @@ import { QueryClientProvider } from "@tanstack/react-query"
 import {
     DemographyChartError,
     DemographySkeleton,
-    LoadingSpinner,
 } from "../components/DemographyLoadAndError.js"
+import { Spinner } from "../../../../components/Spinner/Spinner.js"
 import { queryClient, useDemographyData } from "../helpers/fetch.js"
 import type { ParametersVariantConfig, VariantProps } from "../config.js"
 
@@ -149,7 +149,7 @@ function CaptionedParametersVariant({
                 subtitle={subtitle}
             />
             <div className="demography-parameters__chart-area">
-                {isLoading && <LoadingSpinner />}
+                {isLoading && <Spinner />}
                 {simulation && (
                     <div className="demography-parameters__panels">
                         <InputChartPanel

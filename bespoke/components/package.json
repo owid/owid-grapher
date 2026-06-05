@@ -3,6 +3,9 @@
     "private": true,
     "type": "module",
     "dependencies": {
+        "@fortawesome/fontawesome-svg-core": "^6.7.2",
+        "@fortawesome/free-solid-svg-icons": "^6.7.2",
+        "@fortawesome/react-fontawesome": "^0.2.2",
         "@ourworldindata/grapher": "link:../../packages/@ourworldindata/grapher",
         "@ourworldindata/types": "link:../../packages/@ourworldindata/types",
         "@ourworldindata/utils": "link:../../packages/@ourworldindata/utils",

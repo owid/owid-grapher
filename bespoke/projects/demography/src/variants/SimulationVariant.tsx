@@ -20,8 +20,8 @@ import {
 import {
     DemographyChartError,
     DemographySkeleton,
-    LoadingSpinner,
 } from "../components/DemographyLoadAndError.js"
+import { Spinner } from "../../../../components/Spinner/Spinner.js"
 import {
     CountryData,
     DemographyMetadata,
@@ -258,7 +258,7 @@ function CaptionedSimulationVariant({
                 subtitle={subtitle}
             />
             <div className="demography-captioned-chart__chart-area">
-                {isLoading && <LoadingSpinner />}
+                {isLoading && <Spinner />}
                 <SimulationContent
                     data={data}
                     focusParameter={focusParameter}
