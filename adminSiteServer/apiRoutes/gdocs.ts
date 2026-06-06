@@ -746,7 +746,7 @@ export async function getPreviewGdocIndexRecords(
  */
 export async function getGdocRaw(
     req: Request,
-    res: e.Response<any, Record<string, any>>
+    res: HandlerResponse
     // Note: no trx parameter - no DB access needed
 ) {
     const { id } = req.params
@@ -784,7 +784,7 @@ export async function getGdocRaw(
  */
 export async function getGdocAttachments(
     req: Request,
-    res: e.Response<any, Record<string, any>>,
+    res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
     const { id } = req.params

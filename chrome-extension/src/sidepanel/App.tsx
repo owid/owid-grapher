@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback, useRef } from "react"
+import { useState, useEffect, useCallback } from "react"
+import { useQuery } from "@tanstack/react-query"
 import { Toolbar } from "./Toolbar.js"
 import { Preview } from "./Preview.js"
 import {
@@ -15,29 +16,17 @@ import type {
 } from "../shared/types.js"
 import { gdocToArchie } from "@owid/db/model/Gdoc/gdocToArchie.js"
 import { archieToEnriched } from "@owid/db/model/Gdoc/archieToEnriched.js"
+import {
+    OwidGdocErrorMessageType,
+    type OwidGdocErrorMessage,
+} from "@ourworldindata/types"
+import type { ParseError } from "@ourworldindata/types/src/gdocTypes/ArchieMlComponents.js"
 
 type LoadingState = "idle" | "loading" | "success" | "error"
 
-interface AppState {
-    docId: string | null
-    rawDoc: RawGdocDocument | null
-    parsedContent: ParsedContent | null
-    attachments: Attachments | null
-    contentLoadingState: LoadingState
-    attachmentsLoadingState: LoadingState
-    error: string | null
-    authError: boolean
-}
-
-const initialState: AppState = {
-    docId: null,
-    rawDoc: null,
-    parsedContent: null,
-    attachments: null,
-    contentLoadingState: "idle",
-    attachmentsLoadingState: "idle",
-    error: null,
-    authError: false,
+interface ParsedContentResult {
+    rawDoc: RawGdocDocument
+    parsedContent: ParsedContent
 }
 
 // Default empty attachments for rendering before attachments are loaded
@@ -59,136 +48,105 @@ const getDocIdFromUrl = (url: string | undefined): string | null => {
     return match ? match[1] : null
 }
 
+const adminBaseUrlPromise = getAdminBaseUrl()
+
+async function getActiveTabDocId(): Promise<string | null> {
+    const [tab] = await chrome.tabs.query({
+        active: true,
+        currentWindow: true,
+    })
+    return getDocIdFromUrl(tab?.url)
+}
+
+const parseErrorToGdocError = (
+    error: ParseError,
+    index: number
+): OwidGdocErrorMessage => ({
+    property: `content.parseErrors[${index}]`,
+    type: error.isWarning
+        ? OwidGdocErrorMessageType.Warning
+        : OwidGdocErrorMessageType.Error,
+    message: error.message,
+})
+
+function collectParseErrors(value: unknown): ParseError[] {
+    if (!value || typeof value !== "object") return []
+
+    const errors: ParseError[] = []
+    const objectValue = value as { parseErrors?: unknown }
+
+    if (Array.isArray(objectValue.parseErrors)) {
+        errors.push(...(objectValue.parseErrors as ParseError[]))
+    }
+
+    if (Array.isArray(value)) {
+        for (const item of value) errors.push(...collectParseErrors(item))
+        return errors
+    }
+
+    for (const child of Object.values(value)) {
+        errors.push(...collectParseErrors(child))
+    }
+
+    return errors
+}
+
+async function fetchAndParseContent(
+    docId: string
+): Promise<ParsedContentResult> {
+    const rawDoc = await getGdocRaw(docId)
+    const { text } = await gdocToArchie(rawDoc)
+    const content = archieToEnriched(text)
+    const errors = collectParseErrors(content).map(parseErrorToGdocError)
+
+    return {
+        rawDoc,
+        parsedContent: {
+            content,
+            errors,
+        },
+    }
+}
+
 export function App() {
-    const [state, setState] = useState<AppState>(initialState)
+    const [docId, setDocId] = useState<string | null>(null)
+    const [docIdError, setDocIdError] = useState<string | null>(null)
     const [autoRefresh, setAutoRefresh] = useState(false)
-    const [adminBaseUrl, setAdminBaseUrl] = useState<string>("")
-    const contentIntervalRef = useRef<number | null>(null)
-    const attachmentsIntervalRef = useRef<number | null>(null)
 
-    // Load admin base URL for auth error link
-    useEffect(() => {
-        void getAdminBaseUrl().then(setAdminBaseUrl)
-    }, [])
+    const adminBaseUrlQuery = useQuery({
+        queryKey: ["adminBaseUrl"],
+        queryFn: () => adminBaseUrlPromise,
+    })
 
-    // Get doc ID directly from the active tab's URL
+    const contentQuery = useQuery({
+        queryKey: ["gdocContent", docId],
+        queryFn: () => fetchAndParseContent(docId!),
+        enabled: !!docId,
+        refetchInterval: autoRefresh ? 3000 : false,
+    })
+
+    const attachmentsQuery = useQuery({
+        queryKey: ["gdocAttachments", docId],
+        queryFn: () => getGdocAttachments(docId!),
+        enabled: !!docId,
+        refetchInterval: autoRefresh ? 60000 : false,
+    })
+
     const fetchDocId = useCallback(async (): Promise<void> => {
         try {
-            const [tab] = await chrome.tabs.query({
-                active: true,
-                currentWindow: true,
-            })
-            const docId = getDocIdFromUrl(tab?.url)
-            if (docId) {
-                setState((prev) => {
-                    if (prev.docId === docId) return prev
-                    return {
-                        ...prev,
-                        docId,
-                        rawDoc: null,
-                        parsedContent: null,
-                        attachments: null,
-                        contentLoadingState: "idle",
-                        attachmentsLoadingState: "idle",
-                        error: null,
-                        authError: false,
-                    }
-                })
-                return
-            }
-            setState((prev) => ({
-                ...prev,
-                docId: null,
-                rawDoc: null,
-                parsedContent: null,
-                attachments: null,
-                contentLoadingState: "idle",
-                attachmentsLoadingState: "idle",
-                error: "Could not get document ID. Make sure you're on a Google Doc.",
-                authError: false,
-            }))
+            const activeDocId = await getActiveTabDocId()
+            setDocId(activeDocId)
+            setDocIdError(
+                activeDocId
+                    ? null
+                    : "Could not get document ID. Make sure you're on a Google Doc."
+            )
         } catch (error) {
             console.error("Error getting doc ID:", error)
-            setState((prev) => ({
-                ...prev,
-                docId: null,
-                rawDoc: null,
-                parsedContent: null,
-                attachments: null,
-                contentLoadingState: "idle",
-                attachmentsLoadingState: "idle",
-                error: "Could not get tab URL. Try refreshing.",
-                authError: false,
-            }))
+            setDocId(null)
+            setDocIdError("Could not get tab URL. Try refreshing.")
         }
     }, [])
-
-    // Fetch and parse raw content
-    const fetchContent = useCallback(async () => {
-        if (!state.docId) return
-
-        setState((prev) => ({
-            ...prev,
-            contentLoadingState: "loading",
-            error: null,
-            authError: false,
-        }))
-
-        try {
-            // 1. Fetch raw Google Doc
-            const rawDoc = await getGdocRaw(state.docId)
-
-            // 2. Convert to ArchieML text
-            const { text } = await gdocToArchie(rawDoc)
-
-            // 3. Parse to enriched blocks
-            const content = archieToEnriched(text)
-
-            setState((prev) => ({
-                ...prev,
-                rawDoc,
-                parsedContent: {
-                    content,
-                    errors: [], // TODO: collect errors from parsing
-                },
-                contentLoadingState: "success",
-            }))
-        } catch (error) {
-            console.error("Error fetching content:", error)
-            setState((prev) => ({
-                ...prev,
-                contentLoadingState: "error",
-                authError: isAuthError(error),
-                error: getErrorMessage(error),
-            }))
-        }
-    }, [state.docId])
-
-    // Fetch attachments
-    const fetchAttachments = useCallback(async () => {
-        if (!state.docId) return
-
-        setState((prev) => ({ ...prev, attachmentsLoadingState: "loading" }))
-
-        try {
-            const attachments = await getGdocAttachments(state.docId)
-            setState((prev) => ({
-                ...prev,
-                attachments,
-                attachmentsLoadingState: "success",
-            }))
-        } catch (error) {
-            console.error("Error fetching attachments:", error)
-            // Don't overwrite content error with attachments error
-            setState((prev) => ({
-                ...prev,
-                attachmentsLoadingState: "error",
-                // Only set error if we don't already have one
-                error: prev.error || getErrorMessage(error),
-                authError: prev.authError || isAuthError(error),
-            }))
-        }
-    }, [state.docId])
 
     // Initialize: get doc ID
     useEffect(() => {
@@ -197,12 +155,8 @@ export function App() {
 
     // Update doc ID when navigating between tabs or docs
     useEffect(() => {
-        const handleActivated = (
-            activeInfo: chrome.tabs.TabActiveInfo
-        ): void => {
-            if (activeInfo.tabId >= 0) {
-                void fetchDocId()
-            }
+        const handleActivated = (): void => {
+            void fetchDocId()
         }
 
         const handleUpdated = (
@@ -226,67 +180,42 @@ export function App() {
         }
     }, [fetchDocId])
 
-    // When doc ID is available, fetch content and attachments
-    useEffect(() => {
-        if (state.docId) {
-            void fetchContent()
-            void fetchAttachments()
-        }
-    }, [state.docId, fetchContent, fetchAttachments])
+    const contentError = contentQuery.error
+    const attachmentsError = attachmentsQuery.error
+    const error = contentError ?? attachmentsError
+    const authError = isAuthError(error)
+    const parsedContent = contentQuery.data?.parsedContent ?? null
+    const contentLoadingState: LoadingState = contentQuery.isPending
+        ? "loading"
+        : contentQuery.isError
+          ? "error"
+          : contentQuery.isSuccess
+            ? "success"
+            : "idle"
+    const attachmentsLoadingState: LoadingState = attachmentsQuery.isPending
+        ? "loading"
+        : attachmentsQuery.isError
+          ? "error"
+          : attachmentsQuery.isSuccess
+            ? "success"
+            : "idle"
 
-    // Auto-refresh management
-    useEffect(() => {
-        if (autoRefresh && state.docId) {
-            // Content refresh every 3 seconds
-            contentIntervalRef.current = window.setInterval(() => {
-                void fetchContent()
-            }, 3000)
-
-            // Attachments refresh every 60 seconds
-            attachmentsIntervalRef.current = window.setInterval(() => {
-                void fetchAttachments()
-            }, 60000)
-        }
-
-        return () => {
-            if (contentIntervalRef.current) {
-                clearInterval(contentIntervalRef.current)
-            }
-            if (attachmentsIntervalRef.current) {
-                clearInterval(attachmentsIntervalRef.current)
-            }
-        }
-    }, [autoRefresh, state.docId, fetchContent, fetchAttachments])
-
-    const handleRefreshContent = useCallback(() => {
-        void fetchContent()
-    }, [fetchContent])
-
-    const handleRefreshAttachments = useCallback(() => {
-        void fetchAttachments()
-    }, [fetchAttachments])
-
-    const handleToggleAutoRefresh = useCallback(() => {
-        setAutoRefresh((prev) => !prev)
-    }, [])
-
-    // Render auth error state
-    if (state.authError) {
+    if (authError) {
         return (
             <div className="owid-preview-extension">
                 <div className="auth-error">
                     <h2>Authentication Required</h2>
                     <p>Please log in to the OWID admin to preview documents.</p>
                     <a
-                        href={`${adminBaseUrl}/admin`}
+                        href={`${adminBaseUrlQuery.data ?? ""}/admin`}
                         target="_blank"
-                        rel="noopener noreferrer"
+                        rel="noopener"
                         className="login-link"
                     >
                         Log in to OWID Admin
                     </a>
                     <button
-                        onClick={handleRefreshContent}
+                        onClick={() => void contentQuery.refetch()}
                         className="retry-button"
                     >
                         Retry
@@ -296,15 +225,14 @@ export function App() {
         )
     }
 
-    // Render error state
-    if (state.error && !state.parsedContent) {
+    if ((error || docIdError) && !parsedContent) {
         return (
             <div className="owid-preview-extension">
                 <div className="error-state">
                     <h2>Error</h2>
-                    <p>{state.error}</p>
+                    <p>{error ? getErrorMessage(error) : docIdError}</p>
                     <button
-                        onClick={handleRefreshContent}
+                        onClick={() => void contentQuery.refetch()}
                         className="retry-button"
                     >
                         Retry
@@ -314,11 +242,7 @@ export function App() {
         )
     }
 
-    // Render loading state
-    if (
-        !state.docId ||
-        (state.contentLoadingState === "loading" && !state.parsedContent)
-    ) {
+    if (!docId || (contentLoadingState === "loading" && !parsedContent)) {
         return (
             <div className="owid-preview-extension">
                 <div className="loading-state">
@@ -331,18 +255,18 @@ export function App() {
     return (
         <div className="owid-preview-extension">
             <Toolbar
-                onRefreshContent={handleRefreshContent}
-                onRefreshAttachments={handleRefreshAttachments}
+                onRefreshContent={() => void contentQuery.refetch()}
+                onRefreshAttachments={() => void attachmentsQuery.refetch()}
                 autoRefresh={autoRefresh}
-                onToggleAutoRefresh={handleToggleAutoRefresh}
-                contentLoading={state.contentLoadingState === "loading"}
-                attachmentsLoading={state.attachmentsLoadingState === "loading"}
+                onToggleAutoRefresh={() => setAutoRefresh((prev) => !prev)}
+                contentLoading={contentLoadingState === "loading"}
+                attachmentsLoading={attachmentsLoadingState === "loading"}
             />
-            {state.parsedContent && (
+            {parsedContent && (
                 <Preview
-                    content={state.parsedContent.content}
-                    attachments={state.attachments || emptyAttachments}
-                    errors={state.parsedContent.errors}
+                    content={parsedContent.content}
+                    attachments={attachmentsQuery.data ?? emptyAttachments}
+                    errors={parsedContent.errors}
                 />
             )}
         </div>

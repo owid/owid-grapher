@@ -3448,6 +3448,7 @@ __metadata:
     "@ourworldindata/components": "workspace:*"
     "@ourworldindata/types": "workspace:*"
     "@ourworldindata/utils": "workspace:*"
+    "@tanstack/react-query": "npm:^5.90.6"
     "@types/chrome": "npm:^0.0.287"
     "@types/react": "npm:^19.2.2"
     "@types/react-dom": "npm:^19.2.2"

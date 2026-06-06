@@ -1,6 +1,6 @@
 {
     "name": "@owid/chrome-extension",
-    "version": "1.0.0",
+    "version": "0.0.1",
     "private": true,
     "type": "module",
     "scripts": {
@@ -13,6 +13,7 @@
         "@ourworldindata/components": "workspace:*",
         "@ourworldindata/types": "workspace:*",
         "@ourworldindata/utils": "workspace:*",
+        "@tanstack/react-query": "^5.90.6",
         "react": "^19.2.0",
         "react-dom": "^19.2.0"
     },

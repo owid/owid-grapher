@@ -55,7 +55,7 @@ async function fetchWithAuth<T>(url: string): Promise<T> {
         } as ApiError
     }
 
-    return response.data as T
+    return response.data
 }
 
 export async function getGdocRaw(docId: string): Promise<RawGdocDocument> {

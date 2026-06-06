@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "OWID Article Preview",
-    "version": "1.0.0",
+    "version": "0.0.1",
     "description": "Preview OWID articles authored in Google Docs",
     "permissions": ["sidePanel", "activeTab", "storage", "cookies", "tabs"],
     "host_permissions": [

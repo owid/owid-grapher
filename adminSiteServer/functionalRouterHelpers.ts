@@ -1,5 +1,5 @@
 import { FunctionalRouter, HandlerResponse } from "./FunctionalRouter.js"
-import { Request } from "express"
+import { Request } from "./authentication.js"
 import * as db from "../db/db.js"
 
 /**
@@ -9,7 +9,7 @@ import * as db from "../db/db.js"
 export function getRouteWithoutTransaction<T>(
     router: FunctionalRouter,
     targetPath: string,
-    handler: (req: Request, res: Response) => Promise<T>
+    handler: (req: Request, res: HandlerResponse) => Promise<T>
 ) {
     return router.get(targetPath, handler)
 }
