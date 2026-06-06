@@ -1,4 +1,3 @@
-import * as _ from "lodash-es"
 import { createRoot, hydrateRoot } from "react-dom/client"
 import {
     ArchiveMetaInformation,
@@ -7,14 +6,13 @@ import {
     isInIFrame,
     MultiDimDataPageConfig,
     OwidGdocType,
-    parseIntOrUndefined,
     SiteFooterContext,
 } from "@ourworldindata/utils"
 import {
     DataPageV2Content,
     OWID_DATAPAGE_CONTENT_ROOT_ID,
 } from "./DataPageV2Content.js"
-import { Footnote } from "./Footnote.js"
+import { hydrateFootnotes } from "./hydrateFootnotes.js"
 import { OwidGdoc } from "./gdocs/OwidGdoc.js"
 import { MultiEmbedderSingleton } from "./multiembedder/MultiEmbedder.js"
 import SiteTools, { SITE_TOOLS_CLASS } from "./SiteTools.js"
@@ -151,42 +149,6 @@ function runUserSurveyWidget() {
     createRoot(div).render(<UserSurvey />)
 }
 
-interface FootnoteContent {
-    index: number
-    href: string
-    htmlContent: string
-}
-
-function getFootnoteContent(element: Element): FootnoteContent | null {
-    const href = element.closest("a.ref")?.getAttribute("href")
-    if (!href) return null
-
-    const index = parseIntOrUndefined(href.split("-")[1])
-    if (index === undefined) return null
-
-    const referencedEl = document.querySelector(href)
-    if (!referencedEl?.innerHTML) return null
-    return { index, href, htmlContent: referencedEl.innerHTML }
-}
-
-function runFootnotes() {
-    const footnotes = document.querySelectorAll("a.ref")
-
-    footnotes.forEach((f) => {
-        const footnoteContent = getFootnoteContent(f)
-        if (_.isNil(footnoteContent)) return
-
-        hydrateRoot(
-            f,
-            <Footnote
-                index={footnoteContent.index}
-                htmlContent={footnoteContent.htmlContent}
-                triggerTarget={f}
-            />
-        )
-    })
-}
-
 function runSiteNavigation({
     hideDonationFlag,
     isPreviewing,
@@ -311,7 +273,7 @@ export const runSiteFooterScriptsForArchive = (args: SiteFooterScriptsArgs) => {
             hydrateOwidGdoc(debug, isPreviewing)
             // runAllGraphersLoadedListener()
             runSiteNavigation({ isPreviewing })
-            runFootnotes()
+            hydrateFootnotes()
             void runDetailsOnDemand()
             // runSiteTools()
             // runCookiePreferencesManager()
@@ -370,7 +332,7 @@ export const runSiteFooterScripts = async (
             hydrateOwidGdoc(debug, isPreviewing)
             runAllGraphersLoadedListener()
             runSiteNavigation({ hideDonationFlag, isPreviewing })
-            runFootnotes()
+            hydrateFootnotes()
             void runDetailsOnDemand()
             runSiteTools()
             runCookiePreferencesManager()
@@ -403,7 +365,7 @@ export const runSiteFooterScripts = async (
             hydrateCodeSnippets()
             MultiEmbedderSingleton.embedAll(isPreviewing)
             runAllGraphersLoadedListener()
-            runFootnotes()
+            hydrateFootnotes()
             runSiteTools()
             runCookiePreferencesManager()
             void runDetailsOnDemand()
