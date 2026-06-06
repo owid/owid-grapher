@@ -2,13 +2,7 @@ import { defineConfig } from "vite"
 import react from "@vitejs/plugin-react"
 import { resolve } from "path"
 import tsconfigPaths from "vite-tsconfig-paths"
-import {
-    copyFileSync,
-    mkdirSync,
-    existsSync,
-    readFileSync,
-    writeFileSync,
-} from "fs"
+import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from "fs"
 
 // Plugin to copy static files after build
 function copyStaticFiles() {
@@ -20,15 +14,9 @@ function copyStaticFiles() {
             const iconsDir = resolve(distDir, "icons")
             const sidepanelDir = resolve(distDir, "sidepanel")
             const optionsDir = resolve(distDir, "options")
-            if (!existsSync(iconsDir)) {
-                mkdirSync(iconsDir, { recursive: true })
-            }
-            if (!existsSync(sidepanelDir)) {
-                mkdirSync(sidepanelDir, { recursive: true })
-            }
-            if (!existsSync(optionsDir)) {
-                mkdirSync(optionsDir, { recursive: true })
-            }
+            mkdirSync(iconsDir, { recursive: true })
+            mkdirSync(sidepanelDir, { recursive: true })
+            mkdirSync(optionsDir, { recursive: true })
 
             // Copy manifest.json
             copyFileSync(
@@ -40,33 +28,30 @@ function copyStaticFiles() {
             // and fix the relative paths
             const srcHtml = resolve(distDir, "src/sidepanel/index.html")
             const destHtml = resolve(sidepanelDir, "sidepanel.html")
-            if (existsSync(srcHtml)) {
-                let html = readFileSync(srcHtml, "utf-8")
-                // Fix paths: ../../sidepanel/X -> ./X
-                html = html.replace(/\.\.\/\.\.\/sidepanel\//g, "./")
-                writeFileSync(destHtml, html)
-            }
+            let html = readFileSync(srcHtml, "utf-8")
+            // Fix paths: ../../sidepanel/X -> ./X
+            html = html.replace(/\.\.\/\.\.\/sidepanel\//g, "./")
+            writeFileSync(destHtml, html)
 
             const srcOptionsHtml = resolve(distDir, "src/options/options.html")
             const destOptionsHtml = resolve(optionsDir, "options.html")
-            if (existsSync(srcOptionsHtml)) {
-                let html = readFileSync(srcOptionsHtml, "utf-8")
-                // Fix paths: ../../options/X -> ./X, ../../sidepanel/X -> ../sidepanel/X
-                html = html.replace(/\.\.\/\.\.\/options\//g, "./")
-                html = html.replace(/\.\.\/\.\.\/sidepanel\//g, "../sidepanel/")
-                writeFileSync(destOptionsHtml, html)
-            }
+            let optionsHtml = readFileSync(srcOptionsHtml, "utf-8")
+            // Fix paths: ../../options/X -> ./X, ../../sidepanel/X -> ../sidepanel/X
+            optionsHtml = optionsHtml.replace(/\.\.\/\.\.\/options\//g, "./")
+            optionsHtml = optionsHtml.replace(
+                /\.\.\/\.\.\/sidepanel\//g,
+                "../sidepanel/"
+            )
+            writeFileSync(destOptionsHtml, optionsHtml)
 
             // Copy icons from parent public folder
             const sourceIcon = resolve(
                 __dirname,
                 "../public/owid-logo-square.png"
             )
-            if (existsSync(sourceIcon)) {
-                copyFileSync(sourceIcon, resolve(iconsDir, "icon16.png"))
-                copyFileSync(sourceIcon, resolve(iconsDir, "icon48.png"))
-                copyFileSync(sourceIcon, resolve(iconsDir, "icon128.png"))
-            }
+            copyFileSync(sourceIcon, resolve(iconsDir, "icon16.png"))
+            copyFileSync(sourceIcon, resolve(iconsDir, "icon48.png"))
+            copyFileSync(sourceIcon, resolve(iconsDir, "icon128.png"))
         },
     }
 }
@@ -115,12 +100,6 @@ export default defineConfig({
                 chunkFileNames: "sidepanel/chunks/[name]-[hash].js",
                 assetFileNames: "sidepanel/assets/[name]-[hash][extname]",
             },
-        },
-    },
-    resolve: {
-        alias: {
-            // Browser-compatible shims for Node.js modules
-            crypto: resolve(__dirname, "src/shims/crypto.ts"),
         },
     },
     define: {

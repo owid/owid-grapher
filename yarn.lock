@@ -2611,6 +2611,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@internationalized/date@npm:^3.10.1":
+  version: 3.10.1
+  resolution: "@internationalized/date@npm:3.10.1"
+  dependencies:
+    "@swc/helpers": "npm:^0.5.0"
+  checksum: 10/f259285157e7b9930d7679cea06e09215c4f6773efd093804bd711cff22cd6f3e5afb1208237c177e752da196b10302bb8adf539e76301af49bfad0baa70565c
+  languageName: node
+  linkType: hard
+
 "@internationalized/date@npm:^3.12.2":
   version: 3.12.2
   resolution: "@internationalized/date@npm:3.12.2"
@@ -10338,6 +10347,8 @@ __metadata:
     "@googleapis/docs": "npm:^9.2.1"
     "@googleapis/drive": "npm:^20.1.0"
     "@handsontable/react": "npm:^15.1.0"
+    "@internationalized/date": "npm:^3.10.1"
+    "@noble/hashes": "npm:^2.0.1"
     "@ourworldindata/components": "workspace:^"
     "@ourworldindata/core-table": "workspace:^"
     "@ourworldindata/explorer": "workspace:^"

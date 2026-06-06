@@ -1,7 +1,8 @@
 import * as _ from "lodash-es"
 import * as R from "remeda"
 import { load } from "archieml"
-import { createHash } from "crypto"
+import { sha1 } from "@noble/hashes/legacy.js"
+import { bytesToHex } from "@noble/hashes/utils.js"
 import {
     OwidGdocPostContent,
     recursivelyMapArticleContent,
@@ -132,7 +133,7 @@ export function extractRefs(text: string): {
         const contentOrId = match[1]
 
         const id = isInlineRef
-            ? createHash("sha1").update(contentOrId).digest("hex")
+            ? bytesToHex(sha1(new TextEncoder().encode(contentOrId)))
             : contentOrId
 
         refsByFirstAppearance.add(id)
