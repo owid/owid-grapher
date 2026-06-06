@@ -20,7 +20,7 @@ import { OwidGdocHeader } from "../components/OwidGdocHeader.js"
 import StickyNav from "../../blocks/StickyNav.js"
 import { getShortPageCitation } from "../utils.js"
 import { TableOfContents } from "../../TableOfContents.js"
-import { useDocumentContext } from "../DocumentContext.js"
+import { useDocumentContext, useSiteAssetUrl } from "../DocumentContext.js"
 import { PROD_URL } from "../../SiteConstants.js"
 
 const BASE_URL = IS_ARCHIVE ? PROD_URL : ""
@@ -62,6 +62,7 @@ export function GdocPost({
     manualBreadcrumbs,
 }: GdocPostProps) {
     const { archiveContext } = useDocumentContext()
+    const owidLogoUrl = useSiteAssetUrl("owid-logo.svg")
     const postType = content.type ?? OwidGdocType.Article
     const citationDescription = citationDescriptionsByArticleType[postType]
     const shortPageCitation = getShortPageCitation(
@@ -180,7 +181,7 @@ export function GdocPost({
                     {!isDeprecated && (
                         <>
                             <img
-                                src="/owid-logo.svg"
+                                src={owidLogoUrl}
                                 alt="Our World in Data logo"
                                 loading="lazy"
                                 width={104}

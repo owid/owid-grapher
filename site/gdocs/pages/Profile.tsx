@@ -16,6 +16,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faBook } from "@fortawesome/free-solid-svg-icons"
 import { faCreativeCommons } from "@fortawesome/free-brands-svg-icons"
 import { TableOfContents } from "../../TableOfContents.js"
+import { useSiteAssetUrl } from "../DocumentContext.js"
 
 type ProfileProps = Omit<
     OwidGdocProfileInterface,
@@ -27,6 +28,10 @@ type ProfileProps = Omit<
 export function Profile({ content, publishedAt, slug }: ProfileProps) {
     const hasSidebarToc = content["sidebar-toc"]
     const instantiatedEntity = content.instantiatedEntity
+    const owidLogoUrl = useSiteAssetUrl("owid-logo.svg")
+    const flagUrl = useSiteAssetUrl(
+        `images/flags/${instantiatedEntity?.code ?? ""}.svg`
+    )
 
     const shortPageCitation = getShortPageCitation(
         content.authors,
@@ -55,7 +60,7 @@ export function Profile({ content, publishedAt, slug }: ProfileProps) {
                         {instantiatedEntity?.isCountry && (
                             <img
                                 className="profile-title__flag"
-                                src={`/images/flags/${instantiatedEntity.code}.svg`}
+                                src={flagUrl}
                                 alt=""
                                 width={64}
                                 height={48}
@@ -129,7 +134,7 @@ export function Profile({ content, publishedAt, slug }: ProfileProps) {
             >
                 <div className="col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12">
                     <img
-                        src="/owid-logo.svg"
+                        src={owidLogoUrl}
                         alt="Our World in Data logo"
                         loading="lazy"
                         width={104}
