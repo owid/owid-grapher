@@ -104,6 +104,39 @@ export function formatCitation(
     return citationArray.map(htmlToSimpleTextBlock)
 }
 
+// Empty out the parts of an ArchieML document that the parser itself discards,
+// so that ref extraction (which scans the text before `load()` runs) doesn't see
+// refs the parser will throw away. Without this, a {ref} after :ignore or inside
+// a :skip block would still be picked up by extractRefs, polluting
+// refsByFirstAppearance, shifting footnote numbers, and rendering inline refs
+// that don't exist in the live document.
+//
+// IMPORTANT: the result is fed to `load()` as well as `extractRefs()`, and
+// ArchieML's own parsing depends on seeing the :skip/:endskip directive lines.
+// At :skip the parser flushes (discards) any buffered multi-line value; at :end
+// it commits it. So we must keep the directive lines exactly where they are and
+// only blank the content between them. If we instead deleted the directives and
+// spliced the surrounding lines together, a value like:
+// `dek: a\nb\n:skip\n…\n:endskip`
+// would wrongly append b to dek's value, yielding "a\nb" instead of "a"
+export function stripIgnoredArchieml(text: string): string {
+    // :ignore wins even inside a skip block, so handle it first. Everything from
+    // the :ignore line onward is discarded; there's nothing after it to splice
+    // back together, so dropping the line itself is safe (the buffered value is
+    // flushed identically whether the parser hits :ignore or the end of input).
+    const ignore = text.match(/^[ \t\r]*:[ \t\r]*ignore\b.*$/im)
+    if (ignore?.index !== undefined) text = text.slice(0, ignore.index)
+
+    // Empty :skip … :endskip blocks while preserving both directive lines (see
+    // note above). An unterminated :skip runs to the end of the document;
+    // `$(?![\s\S])` anchors that fallback to EOF, since `$` alone matches
+    // end-of-line under the `m` flag.
+    return text.replace(
+        /(^[ \t\r]*:[ \t\r]*skip\b.*$)[\s\S]*?(^[ \t\r]*:[ \t\r]*endskip\b.*$|$(?![\s\S]))/gim,
+        "$1\n$2"
+    )
+}
+
 // Match all curly bracket {ref}some_id{/ref} and {ref}I am an inline ref{/ref} syntax in the text
 // Iterate through them
 // If it's an inline ref, hash its contents to use as an ID and parse it
@@ -184,6 +217,12 @@ export const archieToEnriched = (
         content: Record<string, unknown>
     ) => void = _.identity
 ): OwidGdocPostContent => {
+    // Blank out content ArchieML discards (:skip blocks, anything after :ignore)
+    // before extracting refs, so phantom refs from those regions aren't picked
+    // up. The directive lines are preserved, so feeding this to load() below
+    // produces exactly the same parse as the original text.
+    text = stripIgnoredArchieml(text)
+
     const { extractedText, refsByFirstAppearance, rawInlineRefs } =
         extractRefs(text)
     text = extractedText
