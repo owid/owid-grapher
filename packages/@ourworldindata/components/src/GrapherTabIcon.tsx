@@ -42,13 +42,7 @@ const chartIcons: Record<GrapherChartType, React.ReactElement> = {
 
     // Scatter
     [GRAPHER_CHART_TYPES.ScatterPlot]: (
-        <svg
-            className="custom-chart-icon scatter"
-            width="13"
-            height="13"
-            viewBox="2 1.5 13 13"
-            fill="none"
-        >
+        <svg width="13" height="13" viewBox="2 1.5 13 13" fill="none">
             <g clipPath="url(#a)">
                 <path
                     fill="currentColor"
@@ -67,13 +61,7 @@ const chartIcons: Record<GrapherChartType, React.ReactElement> = {
 
     // Marimekko
     [GRAPHER_CHART_TYPES.Marimekko]: (
-        <svg
-            className="custom-chart-icon marimekko"
-            width="13"
-            height="13"
-            viewBox="1 2 14 13"
-            fill="none"
-        >
+        <svg width="13" height="13" viewBox="1 2 14 13" fill="none">
             <g clipPath="url(#a)">
                 <path
                     fill="currentColor"
@@ -92,13 +80,7 @@ const chartIcons: Record<GrapherChartType, React.ReactElement> = {
 
     // Stacked area
     [GRAPHER_CHART_TYPES.StackedArea]: (
-        <svg
-            className="custom-chart-icon stacked-area"
-            width="13"
-            height="13"
-            viewBox="0 0 14 14"
-            fill="none"
-        >
+        <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
             <g
                 stroke="currentColor"
                 strokeLinecap="round"
@@ -113,13 +95,7 @@ const chartIcons: Record<GrapherChartType, React.ReactElement> = {
 
     // Slope chart
     [GRAPHER_CHART_TYPES.SlopeChart]: (
-        <svg
-            className="custom-chart-icon slope"
-            width="13"
-            height="13"
-            viewBox="1 1 14 14"
-            fill="none"
-        >
+        <svg width="13" height="13" viewBox="1 1 14 14" fill="none">
             <g
                 stroke="currentColor"
                 strokeWidth="1.6"
@@ -137,13 +113,7 @@ const chartIcons: Record<GrapherChartType, React.ReactElement> = {
 
     // Dumbbell
     [GRAPHER_CHART_TYPES.Dumbbell]: (
-        <svg
-            className="custom-chart-icon dumbbell"
-            width="13"
-            height="13"
-            viewBox="1 1 13 13"
-            fill="none"
-        >
+        <svg width="13" height="13" viewBox="1 1 13 13" fill="none">
             <path
                 d="M11.9912 10.2949C12.8241 10.2949 13.5 10.9708 13.5 11.8037C13.4998 12.6365 12.824 13.3115 11.9912 13.3115C11.473 13.3114 11.0165 13.0495 10.7451 12.6514H8.52539C8.25391 13.0495 7.79657 13.3105 7.27832 13.3105C6.44549 13.3104 5.77051 12.6356 5.77051 11.8027C5.77055 10.9699 6.44551 10.295 7.27832 10.2949C7.87445 10.2949 8.38797 10.6415 8.63281 11.1436H10.6367C10.8816 10.6417 11.3953 10.295 11.9912 10.2949ZM11.9912 6.14746C12.8241 6.14746 13.5 6.82238 13.5 7.65527C13.5 8.4882 12.8241 9.16309 11.9912 9.16309C11.4333 9.16299 10.9473 8.85965 10.6865 8.40918H4.8125C4.55164 8.85958 4.06575 9.16309 3.50781 9.16309C2.67504 9.1629 2 8.48809 2 7.65527C2.00004 6.82249 2.67507 6.14764 3.50781 6.14746C4.0657 6.14746 4.55162 6.45103 4.8125 6.90137H10.6865C10.9473 6.45096 11.4333 6.14756 11.9912 6.14746ZM8.2207 2C9.05352 2 9.72931 2.67504 9.72949 3.50781C9.72949 4.34074 9.05363 5.0166 8.2207 5.0166C7.70262 5.01647 7.24603 4.75449 6.97461 4.35645H4.75488C4.48341 4.75466 4.02612 5.0166 3.50781 5.0166C2.67503 5.01643 2 4.34063 2 3.50781C2.00018 2.67515 2.67514 2.00017 3.50781 2C4.10385 2 4.61742 2.34675 4.8623 2.84863H6.86621C7.11099 2.34671 7.62472 2.00015 8.2207 2Z"
                 fill="currentColor"
