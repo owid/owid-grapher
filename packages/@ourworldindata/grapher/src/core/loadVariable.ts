@@ -7,6 +7,18 @@ import {
 import { fetchWithRetry, readFromAssetMap } from "@ourworldindata/utils"
 import urljoin from "url-join"
 
+// Identify our own server-side calls to the data API (e.g. the baker fetching
+// indicator data while baking pages) so analytics can attribute them to OWID
+// rather than counting them as anonymous external traffic. Includes "Our World
+// In Data" so the existing bot-classification rule tags it as internal.
+// In the browser, `User-Agent` is a forbidden header name and is silently
+// ignored by fetch(), so this only takes effect in Node (the baker).
+const DATA_FETCH_USER_AGENT =
+    "owid-grapher/1.0 (Our World In Data; +https://ourworldindata.org)"
+const dataFetchOptions: RequestInit = {
+    headers: { "User-Agent": DATA_FETCH_USER_AGENT },
+}
+
 export const getVariableDataRoute = (
     dataApiUrl: string,
     variableId: number,
@@ -53,7 +65,8 @@ export async function loadVariableDataAndMetadata(
     }
 ): Promise<OwidVariableDataMetadataDimensions> {
     const metadataPromise = fetchWithRetry(
-        getVariableMetadataRoute(dataApiUrl, variableId, options)
+        getVariableMetadataRoute(dataApiUrl, variableId, options),
+        dataFetchOptions
     )
 
     if (options?.loadMetadataOnly) {
@@ -65,7 +78,8 @@ export async function loadVariableDataAndMetadata(
     }
 
     const dataPromise = fetchWithRetry(
-        getVariableDataRoute(dataApiUrl, variableId, options)
+        getVariableDataRoute(dataApiUrl, variableId, options),
+        dataFetchOptions
     )
     const [dataResponse, metadataResponse] = await Promise.all([
         dataPromise,
