@@ -11,13 +11,18 @@ import urljoin from "url-join"
 // indicator data while baking pages) so analytics can attribute them to OWID
 // rather than counting them as anonymous external traffic. Includes "Our World
 // In Data" so the existing bot-classification rule tags it as internal.
-// In the browser, `User-Agent` is a forbidden header name and is silently
-// ignored by fetch(), so this only takes effect in Node (the baker).
+//
+// Only attach this in Node (server-side, e.g. the baker). This loader is shared
+// with the client chart path, and `User-Agent` is NOT reliably dropped in the
+// browser — Firefox sends a settable value — which would mislabel real user
+// chart loads as internal and could force a CORS preflight on the cross-origin
+// data API. `typeof window === "undefined"` is true in Node, false in browsers.
 const DATA_FETCH_USER_AGENT =
     "owid-grapher/1.0 (Our World In Data; +https://ourworldindata.org)"
-const dataFetchOptions: RequestInit = {
-    headers: { "User-Agent": DATA_FETCH_USER_AGENT },
-}
+const dataFetchOptions: RequestInit | undefined =
+    typeof window === "undefined"
+        ? { headers: { "User-Agent": DATA_FETCH_USER_AGENT } }
+        : undefined
 
 export const getVariableDataRoute = (
     dataApiUrl: string,
