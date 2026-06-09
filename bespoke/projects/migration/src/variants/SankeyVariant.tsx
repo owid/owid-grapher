@@ -275,12 +275,11 @@ function CaptionedSankeyVariant({
                 <>
                     <header className="migration-heading">
                         <h1 className="migration-heading__title">
-                            Where do migrants live, and where did they move
-                            from?
+                            Where do migrants live, and where were they born?
                         </h1>
                         <p className="migration-heading__description">
-                            Based on the total migrant population living in
-                            another country, not annual migration flows.
+                            Based on the total migrant population — not annual
+                            flows — by country of birth.
                         </p>
                     </header>
                     <MigrationControls
@@ -358,7 +357,7 @@ function MigrationChartHeader({
             ? `${immigrantsCount} ${peopleNoun} living in ${countryArticulated} in ${year} were born in another country. Where were they born?`
             : view === "emigrants"
               ? `${emigrantsCount} ${peopleNoun} born in ${countryArticulated} lived abroad in ${year}. Where did they live?`
-              : `Where ${sexPrefix}immigrants in ${countryArticulated} came from, and where its emigrants lived in ${year}`
+              : `Where ${sexPrefix}immigrants in ${countryArticulated} were born, and where its emigrants lived in ${year}`
 
     return (
         <ChartHeader
