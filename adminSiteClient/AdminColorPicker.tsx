@@ -232,7 +232,7 @@ export function AdminColorPicker({
         requireSixDigitHex: boolean = false
     ): boolean => {
         let cleanText = text.trim()
-        let regex = requireSixDigitHex
+        const regex = requireSixDigitHex
             ? /^#?[0-9A-Fa-f]{6}$/
             : /^#?[0-9A-Fa-f]{3,8}$/
 
