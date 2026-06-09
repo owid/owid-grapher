@@ -227,6 +227,28 @@ export function AdminColorPicker({
         if (newColor) handleColorChange(newColor.toFormat("hsb"))
     }
 
+    const tryApplyColor = (
+        text: string,
+        requireSixDigitHex: boolean = false
+    ): boolean => {
+        let cleanText = text.trim()
+        let regex = requireSixDigitHex
+            ? /^#?[0-9A-Fa-f]{6}$/
+            : /^#?[0-9A-Fa-f]{3,8}$/
+
+        if (!cleanText.startsWith("#") && regex.test(cleanText)) {
+            cleanText = "#" + cleanText
+        } else if (!regex.test(cleanText)) return false
+
+        try {
+            const parsed = parseColor(cleanText)
+            handleFieldChange(parsed)
+            return true
+        } catch {
+            return false
+        }
+    }
+
     const renderTooltip = (meta: ColorMeta): ReactElement => (
         <Tooltip
             className="AdminColorPicker__tooltip"
@@ -436,7 +458,23 @@ export function AdminColorPicker({
                     onChange={handleFieldChange}
                     aria-label="Hex color"
                 >
-                    <Input className="AdminColorPicker__field-input" />
+                    <Input
+                        className="AdminColorPicker__field-input"
+                        onPaste={(
+                            e: React.ClipboardEvent<HTMLInputElement>
+                        ): void => {
+                            // We have an onPaste handler such that you don't necessarily need to clear the field before pasting a new hex code: if the pasted text is a valid hex color, it'll be applied directly without the user needing to manually delete the old value first.
+                            const text = e.clipboardData.getData("text")
+                            if (tryApplyColor(text)) {
+                                e.preventDefault()
+                            }
+                        }}
+                        onChange={(
+                            e: React.ChangeEvent<HTMLInputElement>
+                        ): void => {
+                            tryApplyColor(e.target.value, true)
+                        }}
+                    />
                 </ColorField>
             </details>
         </div>
