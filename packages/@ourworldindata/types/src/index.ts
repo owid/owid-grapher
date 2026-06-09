@@ -715,6 +715,12 @@ export {
 } from "./dbTypes/Redirects.js"
 
 export {
+    RelatedChartsTableName,
+    type DbInsertRelatedChart,
+    type DbPlainRelatedChart,
+} from "./dbTypes/RelatedCharts.js"
+
+export {
     ExplorerViewsTableName,
     type DbInsertExplorerView,
     type DbRawExplorerView,

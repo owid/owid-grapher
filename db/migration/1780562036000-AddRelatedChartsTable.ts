@@ -8,10 +8,9 @@ export class AddRelatedChartsTable1780562036000 implements MigrationInterface {
                 chartId INT NOT NULL,
                 relatedChartId INT NOT NULL,
                 label VARCHAR(255) NOT NULL,
-                reviewer VARCHAR(255) DEFAULT NULL,
-                reason TEXT DEFAULT NULL,
+                reviewer VARCHAR(255) NOT NULL,
                 score DOUBLE DEFAULT NULL,
-                updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                 CONSTRAINT related_charts_ibfk_1
                     FOREIGN KEY (chartId) REFERENCES charts (id)
                     ON DELETE CASCADE
