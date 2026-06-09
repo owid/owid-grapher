@@ -21,6 +21,7 @@ import {
     DbRawChartConfig,
     DbEnrichedChartConfig,
     GrapherChartType,
+    RelatedChartsTableName,
 } from "@ourworldindata/types"
 import { OpenAI } from "openai"
 import { zodResponseFormat } from "openai/helpers/zod"
@@ -657,15 +658,8 @@ export const getRelatedChartsForVariable = async (
     )
 }
 
-/**
- * Get related charts for a chart from the `related_charts` table, which is
- * populated by the ETL `related-charts` CLI based on chart coviews
- * (charts viewed together in the same browsing session).
- *
- * Note: deliberately does not return `keyChartLevel` — the `RelatedCharts`
- * component re-sorts by it, which would scramble the score-based ranking
- * computed by the ETL.
- */
+// Currently only returns charts from ETL (i.e. with "production" as reviewer)
+// Can be changed if we we want manually-added related charts
 export const getRelatedChartsForChart = async (
     knex: db.KnexReadonlyTransaction,
     chartId: number,
@@ -679,19 +673,19 @@ export const getRelatedChartsForChart = async (
                 chart_configs.slug,
                 chart_configs.full->>"$.title" AS title,
                 chart_configs.full->>"$.variantName" AS variantName
-            FROM related_charts
-            JOIN charts ON charts.id = related_charts.relatedChartId
+            FROM ${RelatedChartsTableName} rc
+            JOIN charts ON charts.id = rc.relatedChartId
             JOIN chart_configs ON charts.configId = chart_configs.id
-            WHERE related_charts.chartId = ?
-                AND related_charts.reviewer = 'production'
-                AND related_charts.label = 'good'
+            WHERE rc.chartId = ?
+                AND rc.reviewer = 'production'
+                AND rc.label = 'good'
                 AND chart_configs.full->>"$.isPublished" = "true"
                 AND NOT EXISTS (
                     SELECT 1 FROM chart_tags ct
                     JOIN tags t ON ct.tagId = t.id
                     WHERE ct.chartId = charts.id AND t.name = 'Unlisted'
                 )
-            ORDER BY related_charts.score DESC
+            ORDER BY rc.score DESC
             LIMIT ?
         `,
         [chartId, limit]

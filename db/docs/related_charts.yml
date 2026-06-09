@@ -1,0 +1,31 @@
+metadata:
+  description: |
+    Related-chart recommendations between standalone grapher charts, used to power the
+    "related charts" recommendations on data pages.
+
+    This table is populated automatically by the `etl related-charts` CLI and writes them with
+    `reviewer = 'production'`.
+fields:
+  id:
+    description: Unique identifier for the recommendation row
+  chartId:
+    description: Foreign key to charts table. The chart that the recommendation is shown on. ON DELETE CASCADE.
+  relatedChartId:
+    description: Foreign key to charts table. The chart being recommended as related to `chartId`. ON DELETE CASCADE.
+  label:
+    description: |
+      Quality label for the recommendation, e.g. 'good' or 'bad'. ETL-written production
+      rows use 'good'; the read path only surfaces 'good' rows. Other values can be written
+      during review (see the related charts wizard) to mark recommendations to exclude.
+  reviewer:
+    description: |
+      Who/what produced this recommendation. ETL-written rows use 'production'. Distinguishes
+      machine-written production rows (surfaced on the site) from rows written during manual
+      review. Part of the unique key so a given (chartId, relatedChartId) pair can carry one
+      row per reviewer.
+  score:
+    description: |
+      Relatedness score (higher is more related), computed by the ETL from coviews (jaccard,
+      with popularity regularization). Used to order recommendations. NULL if not scored.
+  updatedAt:
+    description: Timestamp when the row was inserted or last updated (maintained automatically by MySQL).
