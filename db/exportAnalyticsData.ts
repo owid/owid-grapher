@@ -7,12 +7,6 @@
 // (r2:owid-private) — it must never be published. Staging servers and devs
 // with access import it after the public dump via `make refresh.analytics`
 // (see devTools/docker/refresh-analytics-data.sh).
-//
-// The tables are owned and populated on prod by the analytics service
-// (`ana bigquery-to-mysql` in owid/analytics). Keep this list in sync with
-// the analytics tables in SCHEMA_ONLY_TABLES in exportMetadata.ts.
-// (analytics_popularity is also analytics-owned, but it's whitelisted in the
-// public dump with data, so it doesn't need to travel here.)
 
 import parseArgs from "minimist"
 
@@ -28,6 +22,11 @@ import { execWrapper } from "./execWrapper.js"
 const argv = parseArgs(process.argv.slice(2))
 const filePath = argv._[0] || "/tmp/owid_analytics.sql"
 
+// These tables are owned and populated on prod by the analytics service
+// (`ana bigquery-to-mysql` in owid/analytics). Keep this list in sync with
+// the analytics tables in SCHEMA_ONLY_TABLES in exportMetadata.ts.
+// (analytics_popularity is also analytics-owned, but it's whitelisted in the
+// public dump with data, so it doesn't need to travel here.)
 const analyticsTables = [
     "analytics_chart_views",
     "analytics_grapher_views",
