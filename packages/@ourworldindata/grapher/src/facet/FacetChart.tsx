@@ -29,6 +29,7 @@ import {
     FacetStrategy,
     SeriesColorMap,
     SeriesStrategy,
+    SideWidths,
     AxisConfigInterface,
     ChartErrorInfo,
 } from "@ourworldindata/types"
@@ -38,8 +39,7 @@ import { ChartInterface, ChartState } from "../chart/ChartInterface"
 import {
     calculateAspectRatio,
     getFacetGridPadding,
-    getFontSize,
-    getLabelPadding,
+    getFacetLabelFontSize,
 } from "./FacetChartUtils"
 import {
     FacetSeries,
@@ -174,7 +174,7 @@ export class FacetChart
     }
 
     @computed private get labelPadding(): number {
-        return getLabelPadding(this.facetFontSize)
+        return 0.5 * this.facetLabelFontSize
     }
 
     @computed private get facetsContainerBounds(): Bounds {
@@ -182,7 +182,7 @@ export class FacetChart
             this.showLegend && this.legend.height > 0
                 ? this.legend.height + this.legendPadding
                 : 0
-        const labelSpace = this.facetFontSize + this.labelPadding
+        const labelSpace = this.facetLabelFontSize + this.labelPadding
         return this.bounds.padTop(legendHeightWithPadding + labelSpace)
     }
 
@@ -190,13 +190,21 @@ export class FacetChart
         return this.manager.fontSize ?? BASE_FONT_SIZE
     }
 
-    @computed private get facetFontSize(): number {
-        return getFontSize(this.bounds.width, this.series.length, this.fontSize)
+    @computed private get facetLabelFontSize(): number {
+        return getFacetLabelFontSize({
+            containerWidth: this.bounds.width,
+            count: this.series.length,
+            baseFontSize: this.fontSize,
+        })
+    }
+
+    @computed private get facetBaseFontSize(): number {
+        return this.facetLabelFontSize
     }
 
     @computed private get yAxisConfig(): AxisConfig {
         return new AxisConfig(this.manager.yAxisConfig, {
-            fontSize: this.facetFontSize,
+            fontSize: this.facetBaseFontSize,
         })
     }
 
@@ -230,10 +238,10 @@ export class FacetChart
     }
 
     @computed private get facetGridPadding(): SplitBoundsPadding {
-        const { isSharedXAxis, facetFontSize } = this
+        const { facetLabelFontSize, labelPadding } = this
         return getFacetGridPadding({
-            baseFontSize: facetFontSize,
-            shouldAddRowPadding: !isSharedXAxis,
+            labelFontSize: facetLabelFontSize,
+            labelPadding,
         })
     }
 
@@ -261,7 +269,7 @@ export class FacetChart
             this
 
         // Copy properties from manager to facets
-        const fontSize = this.facetFontSize
+        const fontSize = this.facetBaseFontSize
         // We are using `bounds` instead of `facetsContainerBounds` because the legend
         // is not yet created, and it is derived from the intermediate chart series.
         const gridBoundsArr = this.bounds.grid(
@@ -282,7 +290,6 @@ export class FacetChart
             startTime,
             endTime,
             missingDataStrategy,
-            backgroundColor,
             focusArray,
             isStatic,
             base,
@@ -345,7 +352,6 @@ export class FacetChart
                 startTime,
                 endTime,
                 missingDataStrategy,
-                backgroundColor,
                 hideNoDataSection,
                 focusArray,
                 isStatic,
@@ -388,24 +394,29 @@ export class FacetChart
 
     @computed private get isSharedYAxis(): boolean {
         // When the Y axis is uniform for all facets:
-        // - for most charts, we want to only show the axis on the left-most facet charts, and omit
-        //   it on the others
-        // - for bar charts the Y axis is plotted horizontally, so we don't want to omit it
-        return (
-            this.uniformYAxis &&
-            ![
-                GRAPHER_CHART_TYPES.StackedDiscreteBar,
-                GRAPHER_CHART_TYPES.DiscreteBar,
-            ].includes(this.chartTypeName as any)
-        )
+        // - For most charts, we want to only show the axis on the left-most
+        //   facet charts, and omit it on the others
+        // - For bar charts, the Y axis is plotted horizontally, so we don't
+        //   want to omit it
+        const isHorizontalYAxis =
+            this.chartTypeName === GRAPHER_CHART_TYPES.DiscreteBar ||
+            this.chartTypeName === GRAPHER_CHART_TYPES.StackedDiscreteBar
+
+        return this.uniformYAxis && !isHorizontalYAxis
     }
 
     @computed private get isSharedXAxis(): boolean {
+        const supportedChartTypes = [
+            GRAPHER_CHART_TYPES.LineChart,
+            GRAPHER_CHART_TYPES.StackedBar,
+            GRAPHER_CHART_TYPES.StackedArea,
+            GRAPHER_CHART_TYPES.SlopeChart,
+        ]
+
         return (
             this.uniformXAxis &&
-            // TODO: do this for stacked area charts and line charts as well?
-            this.chartTypeName === GRAPHER_CHART_TYPES.StackedBar &&
-            this.facetCount >= SHARED_X_AXIS_MIN_FACET_COUNT
+            this.facetCount >= SHARED_X_AXIS_MIN_FACET_COUNT &&
+            supportedChartTypes.includes(this.chartTypeName as any)
         )
     }
 
@@ -475,9 +486,7 @@ export class FacetChart
                     ])
                     config.minSize = size
                     if (shared) {
-                        const sharedAxisSize =
-                            axis.orient === Position.bottom ? 0 : size
-                        sharedAxesSizes[axis.orient] = sharedAxisSize
+                        sharedAxesSizes[axis.orient] = size
                     }
                 }
             } else if (axisWithMaxSize) {
@@ -485,12 +494,22 @@ export class FacetChart
             }
         })
 
+        // Make sure that all slope facets use the same start and end point
+        let sharedVerticalLabelWidths: SideWidths | undefined
+        if (this.chartTypeName === GRAPHER_CHART_TYPES.SlopeChart) {
+            const widths = excludeUndefined(
+                intermediateChartInstances.map((c) => c.verticalLabelWidths)
+            )
+            sharedVerticalLabelWidths = {
+                left: _.max(widths.map((w) => w.left)) ?? 0,
+                right: _.max(widths.map((w) => w.right)) ?? 0,
+            }
+        }
+
         // Allocate space for shared axes, so that the content areas of charts are all equal.
         // If the axes are "shared", then an axis will only plotted on the facets that are on the
         // same side as the axis.
         // For example, a vertical Y axis would be plotted on the left-most charts only.
-        // An exception is the bottom axis, which gets plotted on the top row of charts, instead of
-        // the bottom row of charts.
         const fullBounds = this.facetsContainerBounds.pad(sharedAxesSizes)
         const gridBoundsArr = fullBounds.grid(
             this.gridParams,
@@ -512,16 +531,9 @@ export class FacetChart
             const manager = {
                 ...series.manager,
                 useValueBasedColorScheme,
+                sharedVerticalLabelWidths,
                 xAxisConfig: {
-                    // For now, sharing an x axis means hiding the tick labels of inner facets.
-                    // This means that none of the x axes are actually hidden (we just don't plot their tick labels).
-                    // If we ever allow shared x axes to be actually hidden, we need to be careful with how we determine
-                    // the `minSize` – in the intermediate series (at this time) all axes are shown in
-                    // order to find the one with maximum size, but in the placed series, some axes are
-                    // hidden. This expands the available area for the chart, which can in turn increase
-                    // the number of ticks shown, which can make the size of the axis in the placed
-                    // series greater than the one in the intermediate series.
-                    hideTickLabels: shouldHideFacetAxis(
+                    hideAxis: shouldHideFacetAxis(
                         xAxis,
                         cellEdges,
                         sharedAxesSizes
@@ -778,7 +790,7 @@ export class FacetChart
                 ...(legend.numericLegendData ?? []),
                 ...(legend.categoricalLegendData ?? []),
             ])
-            .filter((bin) => bin instanceof CategoricalBin) as CategoricalBin[]
+            .filter((bin) => bin instanceof CategoricalBin)
 
         const uniqBins = this.getUniqBins(allBins).map(
             // Remap index to ensure it's unique (the above procedure can lead to duplicates)
@@ -881,7 +893,7 @@ export class FacetChart
         return {
             maxWidth: Infinity, // Facet labels never wrap
             fontWeight: 700,
-            fontSize: this.facetFontSize,
+            fontSize: this.facetLabelFontSize,
             showRegionTooltip: !this.manager.isStatic,
         }
     }

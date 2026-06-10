@@ -4,7 +4,7 @@ import * as _ from "lodash-es"
 // Any classes that the user can edit, save, and then rehydrate should implement this interface
 export interface Persistable {
     toObject(): any // This should dehydrate any runtime instances to a plain object ready to be JSON stringified
-    updateFromObject(obj: any): any // This should parse an incoming object, extend the current instance, and create new instances for any non native class types
+    updateFromObject(obj: unknown): any // This should parse an incoming object, extend the current instance, and create new instances for any non native class types
 }
 
 // Todo: see if there's a better way to do this with Mobx
@@ -16,7 +16,7 @@ export function objectWithPersistablesToObject<T>(
     const keysSet = new Set(keysToSerialize)
     Object.keys(obj).forEach((key) => {
         const val = (objWithPersistables as any)[key]
-        const valIsPersistable = val && val.toObject
+        const valIsPersistable = !!val?.toObject
 
         // Delete any keys we don't want to serialize, if a keep list is provided
         if (keysToSerialize.length && !keysSet.has(key)) {
@@ -27,7 +27,7 @@ export function objectWithPersistablesToObject<T>(
         // Val is persistable, call toObject
         if (valIsPersistable) obj[key] = val.toObject()
         else if (Array.isArray(val))
-            // Scan array for persistables and seriazile.
+            // Scan array for persistables and serialize.
             obj[key] = val.map((item) =>
                 item?.toObject ? item.toObject() : item
             )

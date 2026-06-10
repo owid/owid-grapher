@@ -172,7 +172,7 @@ function assignToArm(experiment: Experiment): ExperimentArm {
 function shouldSkipExperiments(url: string): boolean {
     const pathname = new URL(url).pathname
     if (
-        /\.(js|css|svg|png|jpg|jpeg|gif|webp|woff2?|ttf|eot|otf|json|csv|ico|map)$/.test(
+        /\.(js|mjs|css|svg|png|jpg|jpeg|gif|webp|woff2?|ttf|eot|otf|json|csv|ico|map)$/.test(
             pathname
         )
     ) {

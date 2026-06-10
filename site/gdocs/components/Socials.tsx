@@ -13,20 +13,20 @@ import {
 } from "@fortawesome/free-brands-svg-icons"
 import { faEnvelope, faLink } from "@fortawesome/free-solid-svg-icons"
 
-function SocialLink({ url, text, type }: EnrichedSocialLink) {
-    const typeToIcon: Record<SocialLinkType, IconDefinition> = {
-        x: faXTwitter,
-        facebook: faFacebook,
-        instagram: faInstagram,
-        linkedin: faLinkedin,
-        youtube: faYoutube,
-        threads: faThreads,
-        mastodon: faMastodon,
-        bluesky: faBluesky,
-        email: faEnvelope,
-        link: faLink,
-    }
+const typeToIcon: Record<SocialLinkType, IconDefinition> = {
+    x: faXTwitter,
+    facebook: faFacebook,
+    instagram: faInstagram,
+    linkedin: faLinkedin,
+    youtube: faYoutube,
+    threads: faThreads,
+    mastodon: faMastodon,
+    bluesky: faBluesky,
+    email: faEnvelope,
+    link: faLink,
+}
 
+function SocialLink({ url, text, type }: EnrichedSocialLink) {
     return (
         <li className="article-block__social-link social-link">
             <FontAwesomeIcon icon={type ? typeToIcon[type] : faLink} />

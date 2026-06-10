@@ -1,7 +1,6 @@
 import * as _ from "lodash-es"
 import * as React from "react"
 import classnames from "classnames"
-import { NO_DATA_LABEL } from "../color/ColorScale.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faInfoCircle, faS } from "@fortawesome/free-solid-svg-icons"
 import { formatInlineList, GrapherTooltipAnchor } from "@ourworldindata/utils"
@@ -13,13 +12,14 @@ import {
     TooltipTableProps,
     TooltipVariableProps,
 } from "./TooltipProps"
-import { makeAxisLabel } from "../chart/ChartUtils.js"
+import { makeAxisLabel } from "../axis/AxisUtils.js"
 import * as R from "remeda"
 import { CoreColumn } from "@ourworldindata/core-table"
 
 type TooltipValue = number | string | undefined
 
-export const NO_DATA_COLOR = "#999"
+const NO_DATA_LABEL = "No data"
+const NO_DATA_COLOR = "#999"
 
 export function TooltipValue({
     label,
@@ -29,15 +29,12 @@ export function TooltipValue({
     originalTime,
     isProjection,
     labelVariant = "label+unit",
-    isRoundedToSignificantFigures,
     showSignificanceSuperscript,
 }: TooltipValueProps): React.ReactElement {
     const displayValue = value || NO_DATA_LABEL
     const displayColor = displayValue === NO_DATA_LABEL ? NO_DATA_COLOR : color
 
-    const showSuperscript =
-        showSignificanceSuperscript && isRoundedToSignificantFigures
-    const superscript = showSuperscript ? (
+    const superscript = showSignificanceSuperscript ? (
         <SignificanceIcon asSuperscript={true} />
     ) : null
 
@@ -63,21 +60,23 @@ export function TooltipValueRange({
     unit,
     values,
     colors,
+    arrowColor,
     originalTimes,
     trend,
     labelVariant = "label+unit",
-    isRoundedToSignificantFigures,
     showSignificanceSuperscript,
 }: TooltipValueRangeProps): React.ReactElement | null {
     const [firstTerm, lastTerm] = values
 
     if (firstTerm === undefined && lastTerm === undefined) return null
 
-    const showSuperscript =
-        showSignificanceSuperscript && isRoundedToSignificantFigures
-    const superscript = showSuperscript ? (
+    const superscript = showSignificanceSuperscript ? (
         <SignificanceIcon asSuperscript={true} />
     ) : null
+
+    // Use the explicit arrow color if given; otherwise use a neutral color
+    // when the value terms are colored, or fallback to semantic coloring
+    const trendArrowColor = arrowColor ?? (colors ? "#787878" : undefined)
 
     return (
         <Variable
@@ -92,7 +91,10 @@ export function TooltipValueRange({
                     {!lastTerm && superscript}
                 </span>
                 {trend && (
-                    <GrapherTrendArrow direction={trend} isColored={!colors} />
+                    <GrapherTrendArrow
+                        direction={trend}
+                        color={trendArrowColor}
+                    />
                 )}
                 {lastTerm && (
                     <span className="term">
@@ -172,7 +174,7 @@ export function TooltipTable({
 
     // if the tooltip is pinned to the bottom, show the total at the top,
     // so that it's always visible even if the tooltip is scrollable
-    const showTotalsAtTop = context?.anchor === GrapherTooltipAnchor.bottom
+    const showTotalsAtTop = context?.anchor === GrapherTooltipAnchor.Bottom
 
     const totalsCells = R.zip(columns, totals).map(([column, total]) => (
         <td key={column?.label} className="series-value">
@@ -341,7 +343,7 @@ export function toTooltipTableColumns(
 
     return columnsArray.map((column) => ({
         label: column.displayName,
-        formatValue: (value) =>
+        formatValue: (value: unknown): string =>
             column.formatValueShort(value, { trailingZeroes: true }),
     }))
 }

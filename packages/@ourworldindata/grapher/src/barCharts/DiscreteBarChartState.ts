@@ -3,9 +3,11 @@ import { computed, makeObservable } from "mobx"
 import { match } from "ts-pattern"
 import { ChartState } from "../chart/ChartInterface"
 import {
+    DISCRETE_BAR_SORT_KEYS,
     DiscreteBarChartManager,
     DiscreteBarItem,
     DiscreteBarSeries,
+    DiscreteBarSortKey,
     YColumnMode,
 } from "./DiscreteBarChartConstants"
 import {
@@ -16,6 +18,9 @@ import {
 import { ColorScale, ColorScaleManager } from "../color/ColorScale"
 import { SelectionArray } from "../selection/SelectionArray"
 import {
+    sortByConfig,
+    SortKey,
+    keepInputOrder,
     autoDetectSeriesStrategy,
     autoDetectYColumnSlugs,
     combineHistoricalAndProjectionColumns,
@@ -37,7 +42,6 @@ import {
     SeriesStrategy,
     SortBy,
     SortConfig,
-    SortOrder,
 } from "@ourworldindata/types"
 import { OWID_ERROR_COLOR, OWID_NO_DATA_GRAY } from "../color/ColorConstants"
 import { ColorScheme } from "../color/ColorScheme"
@@ -358,31 +362,29 @@ export class DiscreteBarChartState implements ChartState, ColorScaleManager {
                 ? this.entitiesAsSeries
                 : this.columnsAsSeries
 
-        let sortByFunc: (item: DiscreteBarItem) => number | string | undefined
-        switch (this.sortConfig.sortBy) {
-            case SortBy.custom:
-                if (this.seriesStrategy === SeriesStrategy.entity) {
-                    sortByFunc = (item: DiscreteBarItem): number =>
-                        this.selectionArray.selectedEntityNames.indexOf(
-                            item.seriesName
-                        )
-                } else {
-                    sortByFunc = (): undefined => undefined
-                }
-                break
-            case SortBy.entityName:
-                sortByFunc = (item: DiscreteBarItem): string => item.seriesName
-                break
-            default:
-            case SortBy.total:
-            case SortBy.column: // we only have one yColumn, so total and column are the same
-                sortByFunc = (item: DiscreteBarItem): number => item.value
-                break
+        const keyFns: Record<
+            DiscreteBarSortKey | SortBy.column,
+            SortKey<DiscreteBarItem>
+        > = {
+            [SortBy.custom]:
+                this.seriesStrategy === SeriesStrategy.entity
+                    ? (item): number =>
+                          this.selectionArray.selectedEntityNames.indexOf(
+                              item.seriesName
+                          )
+                    : keepInputOrder,
+            [SortBy.entityName]: (item): string => item.seriesName,
+            [SortBy.total]: (item): number => item.value,
+            // We only have one yColumn, so 'column' is the same as 'total'
+            // (keep for backwards compatibility)
+            [SortBy.column]: (item): number => item.value,
         }
-        const sortedSeries = _.sortBy(raw, sortByFunc)
-        const sortOrder = this.sortConfig.sortOrder ?? SortOrder.desc
-        if (sortOrder === SortOrder.desc) return sortedSeries.toReversed()
-        else return sortedSeries
+
+        return sortByConfig(raw, this.sortConfig, keyFns)
+    }
+
+    @computed get availableSortKeys(): DiscreteBarSortKey[] {
+        return [...DISCRETE_BAR_SORT_KEYS]
     }
 
     @computed private get valuesToColorsMap(): Map<number, string> {

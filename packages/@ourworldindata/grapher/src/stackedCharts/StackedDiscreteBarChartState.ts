@@ -11,9 +11,12 @@ import {
     MissingDataStrategy,
     SortBy,
     SortConfig,
-    SortOrder,
 } from "@ourworldindata/types"
 import {
+    sortByConfig,
+    SortKey,
+    keepInputOrder,
+    sortByColumnValue,
     autoDetectYColumnSlugs,
     getDefaultFailMessage,
     getShortNameForEntity,
@@ -21,7 +24,11 @@ import {
 } from "../chart/ChartUtils"
 import { SelectionArray } from "../selection/SelectionArray"
 import { StackedSeries } from "./StackedConstants"
-import { DiscreteBarRow } from "./StackedDiscreteBarChartConstants.js"
+import {
+    DiscreteBarRow,
+    STACKED_DISCRETE_BAR_SORT_KEYS,
+    StackedDiscreteBarSortKey,
+} from "./StackedDiscreteBarChartConstants.js"
 import {
     stackSeriesInBothDirections,
     withMissingValuesAsZeroes,
@@ -150,9 +157,10 @@ export class StackedDiscreteBarChartState implements ChartState {
     }
 
     @computed get sortColumn(): CoreColumn | undefined {
-        return this.sortColumnSlug
-            ? this.transformedTable.getColumns([this.sortColumnSlug])[0]
-            : undefined
+        if (!this.sortColumnSlug) return undefined
+        const sortColumn = this.transformedTable.get(this.sortColumnSlug)
+        if (sortColumn && !sortColumn.isMissing) return sortColumn
+        return undefined
     }
 
     @computed get sortConfig(): SortConfig {
@@ -242,31 +250,23 @@ export class StackedDiscreteBarChartState implements ChartState {
     }
 
     @computed get sortedRows(): readonly DiscreteBarRow[] {
-        let sortByFunc: (row: DiscreteBarRow) => number | string | undefined
-        switch (this.sortConfig.sortBy) {
-            case SortBy.custom:
-                sortByFunc = (): undefined => undefined
-                break
-            case SortBy.entityName:
-                sortByFunc = (row: DiscreteBarRow): string => row.entityName
-                break
-            case SortBy.column: {
-                const owidRowsByEntityName =
-                    this.sortColumn?.owidRowsByEntityName
-                sortByFunc = (row: DiscreteBarRow): number => {
-                    const rows = owidRowsByEntityName?.get(row.entityName)
-                    return rows?.[0]?.value ?? 0
-                }
-                break
-            }
-            default:
-            case SortBy.total:
-                sortByFunc = (row: DiscreteBarRow): number => row.totalValue
+        const keyFns: Record<
+            StackedDiscreteBarSortKey,
+            SortKey<DiscreteBarRow>
+        > = {
+            [SortBy.custom]: keepInputOrder,
+            [SortBy.entityName]: (row): string => row.entityName,
+            [SortBy.column]: sortByColumnValue(
+                this.sortColumn,
+                (row) => row.entityName
+            ),
+            [SortBy.total]: (row): number => row.totalValue,
         }
-        const sortedRows = _.sortBy(this.rows, sortByFunc)
-        const sortOrder = this.sortConfig.sortOrder ?? SortOrder.desc
-        if (sortOrder === SortOrder.desc) return sortedRows.toReversed()
-        else return sortedRows
+        return sortByConfig(this.rows, this.sortConfig, keyFns)
+    }
+
+    @computed get availableSortKeys(): StackedDiscreteBarSortKey[] {
+        return [...STACKED_DISCRETE_BAR_SORT_KEYS]
     }
 
     @computed get availableFacetStrategies(): FacetStrategy[] {

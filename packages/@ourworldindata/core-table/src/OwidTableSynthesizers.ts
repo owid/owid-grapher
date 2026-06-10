@@ -40,13 +40,13 @@ const SynthesizeOwidTable = (
             OwidTableSlugs.entityId,
             OwidTableSlugs.year,
         ] as ColumnSlug[]
-    ).concat(columnDefs.map((col) => col.slug!))
+    ).concat(columnDefs.map((col) => col.slug))
 
     const entities = entityNames.length
         ? entityNames.map((name) => {
               return {
                   name,
-                  code: name.substr(0, 3).toUpperCase(),
+                  code: name.slice(0, 3).toUpperCase(),
               }
           })
         : sampleFrom(countries, entityCount, seed)

@@ -6,3 +6,10 @@ export interface DbPlainAnalyticsGrapherView {
     views_14d: number
     views_365d: number
 }
+
+export interface AnalyticsGrapherViewWithRank extends DbPlainAnalyticsGrapherView {
+    rank_7d?: number
+    rank_14d?: number
+    rank_365d?: number
+    total_charts?: number
+}

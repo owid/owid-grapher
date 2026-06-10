@@ -9,9 +9,9 @@ import {
     ComparisonLineConfig,
     AxisConfigInterface,
     ColorSchemeName,
+    DumbbellChartConfigInterface,
     EntityName,
     DetailsMarker,
-    Color,
     GrapherVariant,
 } from "@ourworldindata/types"
 import { TooltipManager } from "../tooltip/TooltipProps"
@@ -62,6 +62,8 @@ export interface ChartManager {
     yAxisConfig?: Readonly<AxisConfigInterface>
     xAxisConfig?: Readonly<AxisConfigInterface>
 
+    dumbbell?: Readonly<DumbbellChartConfigInterface>
+
     addCountryMode?: EntitySelectionMode
 
     yColumnSlug?: ColumnSlug
@@ -92,7 +94,6 @@ export interface ChartManager {
     showNoDataArea?: boolean // No data area in Marimekko charts
 
     externalLegendHoverBin?: ColorScaleBin | undefined
-    disableIntroAnimation?: boolean
 
     missingDataStrategy?: MissingDataStrategy
 
@@ -101,7 +102,6 @@ export interface ChartManager {
     isSemiNarrow?: boolean
     isStaticAndSmall?: boolean
     isExportingForWikimedia?: boolean
-    backgroundColor?: Color
     shouldPinTooltipToBottom?: boolean
 
     detailsOrderedByReference?: string[]

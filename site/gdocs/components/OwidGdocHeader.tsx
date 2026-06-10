@@ -118,10 +118,13 @@ function OwidArticleHeader({
                     >
                         {content.authors.length > 0 && (
                             <div>
-                                <Byline names={content.authors} />
+                                <Byline
+                                    names={content.authors}
+                                    authorRoles={content.authorRoles}
+                                />
                             </div>
                         )}
-                        <div>
+                        <div suppressHydrationWarning={true}>
                             {content.dateline ||
                                 (publishedAt && formatDate(publishedAt))}
                         </div>

@@ -52,7 +52,7 @@ export const CalloutFunctionsPage = () => {
         }
     }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
         e.preventDefault()
         if (!chartUrl.trim()) return
 

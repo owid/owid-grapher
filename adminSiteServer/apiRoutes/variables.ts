@@ -18,6 +18,7 @@ import {
     fetchS3DataValuesByPath,
     fetchS3MetadataByPath,
     getAllChartsForIndicator,
+    getLatestVariableIdsByCatalogPath,
     getGrapherConfigsForVariable,
     getMergedGrapherConfigForVariable,
     searchVariables,
@@ -119,7 +120,7 @@ export async function getVariableDataJson(
     _res: HandlerResponse,
     _trx: db.KnexReadonlyTransaction
 ) {
-    const variableStr = req.params.variableStr as string
+    const variableStr = req.params.variableStr
     if (!variableStr) throw new JsonError("No variable id given")
     if (variableStr.includes("+"))
         throw new JsonError(
@@ -137,7 +138,7 @@ export async function getVariableMetadataJson(
     _res: HandlerResponse,
     _trx: db.KnexReadonlyTransaction
 ) {
-    const variableStr = req.params.variableStr as string
+    const variableStr = req.params.variableStr
     if (!variableStr) throw new JsonError("No variable id given")
     if (variableStr.includes("+"))
         throw new JsonError(
@@ -179,6 +180,29 @@ export async function getVariablesUsagesJson(
     const rows = await db.knexRaw(trx, query)
 
     return rows
+}
+
+export async function getLatestVariableIdsByCatalogPathJson(
+    req: Request,
+    _res: HandlerResponse,
+    trx: db.KnexReadonlyTransaction
+): Promise<Record<string, number | null>> {
+    const catalogPathsQueryParam = (req.query.catalogPaths ?? "") as string
+
+    const catalogPaths = catalogPathsQueryParam
+        .split(",")
+        .map((path) => path.trim())
+        .filter((path) => path.length > 0)
+
+    if (catalogPaths.length === 0) {
+        throw new JsonError(
+            "Please provide a non-empty `catalogPaths` query parameter",
+            400
+        )
+    }
+
+    const idsByPath = await getLatestVariableIdsByCatalogPath(catalogPaths, trx)
+    return Object.fromEntries(idsByPath)
 }
 
 export async function getVariablesGrapherConfigETLPatchConfigJson(

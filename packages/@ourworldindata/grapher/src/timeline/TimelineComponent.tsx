@@ -80,7 +80,7 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
 
     private slider?: Element | HTMLElement | null
     private playButton?: Element | HTMLElement | null
-    private disposers: (() => void)[] = []
+    private readonly disposers: (() => void)[] = []
 
     constructor(props: TimelineComponentProps) {
         super(props)
@@ -326,10 +326,10 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
         if (!this.editHandle) this.resetEditState()
     }
 
-    private hideStartTooltipWithDelay = _.debounce(() => {
+    private readonly hideStartTooltipWithDelay = _.debounce(() => {
         this.startTooltipVisible = false
     }, HANDLE_TOOLTIP_FADE_TIME_MS_MOBILE)
-    private hideEndTooltipWithDelay = _.debounce(() => {
+    private readonly hideEndTooltipWithDelay = _.debounce(() => {
         this.endTooltipVisible = false
     }, HANDLE_TOOLTIP_FADE_TIME_MS_MOBILE)
 

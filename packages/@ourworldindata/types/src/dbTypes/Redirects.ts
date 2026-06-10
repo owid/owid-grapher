@@ -10,8 +10,8 @@ export interface DbInsertRedirect {
     source: string
     target: string
     code: RedirectCode
-    createdAt?: Date | null
-    updatedAt?: Date | null
+    createdAt?: Date
+    updatedAt?: Date
     ttl?: Date | null
 }
 

@@ -69,10 +69,10 @@ describe("Tag graph and breadcrumbs", { timeout: 15000 }, () => {
     ]
 
     beforeEach(async () => {
-        await env.testKnex!(TagsTableName).insert(dummyTags)
-        await env.testKnex!(TagGraphTableName).insert(dummyTagGraph)
-        await env.testKnex!(PostsGdocsTableName).insert(dummyTopicPages)
-        await env.testKnex!(PostsGdocsXTagsTableName).insert(dummyPostTags)
+        await env.testKnex(TagsTableName).insert(dummyTags)
+        await env.testKnex(TagGraphTableName).insert(dummyTagGraph)
+        await env.testKnex(PostsGdocsTableName).insert(dummyTopicPages)
+        await env.testKnex(PostsGdocsXTagsTableName).insert(dummyPostTags)
     })
 
     it("should be able to see all the tags", async () => {
@@ -343,24 +343,26 @@ describe("Tag graph and breadcrumbs", { timeout: 15000 }, () => {
                 // 1. Poverty and Economic Development > Women's Employment
                 // 2. Human Rights > Women's Rights > Women's Employment
                 // oxfmt-ignore
-                await env.testKnex!(TagsTableName).insert([
+                await env.testKnex(TagsTableName).insert([
                     { name: "Human Rights", id: 7 },
                     { name: "Women's Rights", slug: "womens-rights", id: 8 },
                     { name: "Women's Employment", slug: "womens-employment", id: 9 },
                     { name: "Poverty and Economic Development", id: 10 },
                 ])
-                await env.testKnex!(TagGraphTableName).insert([
+                await env.testKnex(TagGraphTableName).insert([
                     { parentId: 1, childId: 7 },
                     { parentId: 7, childId: 8 },
                     { parentId: 8, childId: 9 },
                     { parentId: 1, childId: 10 },
                     { parentId: 10, childId: 9 },
                 ])
-                await env.testKnex!(PostsGdocsTableName).insert([
-                    makeDummyTopicPage("womens-rights"),
-                    makeDummyTopicPage("womens-employment"),
-                ])
-                await env.testKnex!(PostsGdocsXTagsTableName).insert([
+                await env
+                    .testKnex(PostsGdocsTableName)
+                    .insert([
+                        makeDummyTopicPage("womens-rights"),
+                        makeDummyTopicPage("womens-employment"),
+                    ])
+                await env.testKnex(PostsGdocsXTagsTableName).insert([
                     { gdocId: "womens-rights", tagId: 8 },
                     { gdocId: "womens-employment", tagId: 9 },
                 ])

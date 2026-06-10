@@ -1,0 +1,369 @@
+@use "sass:math";
+
+@function px-to-cqh($px) {
+    // conversion factor for these slides: 1cqh = 9.52px
+    @return math.div($px, 9.52033) * 1cqh;
+}
+
+// All are magic numbers derived from a Figma mockup.
+$xl-display-font-size: px-to-cqh(96);
+$l-display-font-size: px-to-cqh(66);
+$m-display-font-size: px-to-cqh(52);
+$s-display-font-size: px-to-cqh(48);
+
+$xl-lato-font-size: px-to-cqh(36);
+$l-lato-font-size: px-to-cqh(32);
+$m-lato-font-size: px-to-cqh(28);
+$s-lato-font-size: px-to-cqh(24);
+
+.slideshow-slide {
+    --border-padding: 5.925vh; // 64px on fullscreen 1920px height
+
+    height: min(100cqh, 100cqw * 9 / 16);
+
+    container-type: size;
+    container-name: slide;
+
+    padding: var(--border-padding);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.slideshow-slide--hidden {
+    visibility: hidden;
+}
+
+.slideshow-slide--blue-background {
+    background-color: $blue-5;
+}
+
+.slideshow-slide--narrow {
+    aspect-ratio: 4/3;
+}
+
+.slideshow-slide--wide {
+    aspect-ratio: 16/9;
+}
+
+/**
+ * Universal components
+ */
+
+.slideshow-slide-logo {
+    svg {
+        width: px-to-cqh(111);
+        height: auto;
+    }
+    line-height: 0;
+    position: absolute;
+    right: calc(var(--border-padding) * 1.3);
+}
+
+.cover-slide-logo {
+    svg {
+        width: px-to-cqh(111);
+    }
+    position: absolute;
+    top: unset;
+    bottom: 0;
+    right: px-to-cqh(16);
+    border-bottom: unset;
+}
+
+/**
+ * Specific slide styles
+ */
+
+.slideshow-slide--image {
+    .slideshow-slide-chart-content {
+        margin-top: px-to-cqh(40);
+    }
+    &.slideshow-slide--narrow .slideshow-slide-chart-content {
+        justify-content: center;
+    }
+}
+
+.slideshow-slide-chart-content {
+    flex: 1;
+    display: flex;
+    gap: px-to-cqh(24);
+    min-height: 0;
+    margin-top: px-to-cqh(32);
+}
+
+.slideshow-slide--two-charts {
+    align-items: stretch;
+
+    .slideshow-slide-two-charts__content {
+        flex: 1;
+        display: flex;
+        gap: px-to-cqh(16);
+        min-height: 0;
+        margin-top: px-to-cqh(40);
+    }
+    .slideshow-slide-two-charts__chart {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .Explorer,
+    .ExplorerFigure {
+        height: 100%;
+    }
+}
+
+.slideshow-slide__grapher-container {
+    flex: 1;
+    min-width: 0;
+    .GrapherComponent {
+        border: none;
+        height: 100% !important;
+        overflow: hidden;
+    }
+}
+
+.slideshow-slide__grapher-container--non-interactive {
+    .GrapherTimeline {
+        display: none;
+    }
+}
+
+.slideshow-slide--cover {
+    background-color: $oxford-blue;
+    color: white;
+    display: flex;
+    justify-content: center;
+
+    .cover-title {
+        @include display-1-semibold;
+        margin-top: 0;
+        margin-bottom: px-to-cqh(8);
+        color: white;
+        max-width: 85%;
+        font-size: $xl-display-font-size;
+        line-height: 1.12;
+    }
+
+    .cover-author {
+        @include body-1-regular;
+        margin-top: 0;
+        font-weight: 400;
+        color: rgba(255, 255, 255, 0.7);
+        font-size: $xl-lato-font-size;
+    }
+
+    .cover-supertitle {
+        @include body-3-regular;
+        font-size: $s-lato-font-size;
+        color: $blue-30;
+        margin-bottom: 0;
+        span:nth-child(2) {
+            &:before {
+                content: "|";
+                margin: 0 4px;
+            }
+        }
+    }
+}
+
+.slideshow-slide--text {
+    align-items: flex-start;
+    justify-content: flex-start;
+
+    .slideshow-slide-title {
+        font-size: $l-display-font-size;
+    }
+
+    .slideshow-slide__text-body {
+        @include body-1-regular;
+        color: $blue-90;
+        width: 50%;
+        margin-top: 1.7em;
+        font-size: $l-lato-font-size;
+        &--large {
+            font-size: calc(1.4 * $l-lato-font-size);
+            h2 {
+                font-size: calc(1.4 * $s-display-font-size);
+            }
+        }
+        > *:first-child {
+            margin-top: 0;
+        }
+        > *:last-child {
+            margin-bottom: 0;
+        }
+        ul {
+            margin-left: 1.8em;
+            padding-left: 0;
+            li {
+                margin-bottom: 0.8em;
+            }
+        }
+        h2 {
+            @include display-2-semibold;
+            & {
+                color: $blue-50;
+                margin-bottom: 0;
+                font-size: $s-display-font-size;
+                & + p,
+                + ul {
+                    margin-top: 0.45em;
+                }
+            }
+        }
+    }
+}
+
+.slideshow-slide--statement {
+    align-items: flex-start;
+    justify-content: flex-start;
+
+    .slideshow-slide-statement__text {
+        @include display-1-semibold;
+        font-weight: 700;
+        color: $blue-90;
+        margin: 0;
+        max-width: calc(80%);
+        line-height: 1.25;
+        font-size: $xl-display-font-size;
+    }
+
+    .slideshow-slide-statement__attribution {
+        @include body-1-regular;
+        color: $gray-80;
+        margin-top: px-to-cqh(16);
+        font-size: $xl-lato-font-size;
+    }
+}
+
+.slideshow-slide--contents {
+    align-items: flex-start;
+    .slideshow-slide-title {
+        color: $blue-90;
+        font-size: $l-display-font-size;
+    }
+
+    .slideshow-slide-contents__list {
+        @include display-2-semibold;
+        & {
+            color: $blue-30;
+            margin-top: px-to-cqh(72);
+            font-size: $s-display-font-size;
+        }
+
+        ul,
+        ol {
+            padding-left: 1em;
+            margin: 0;
+            list-style-type: none;
+        }
+
+        li {
+            margin-bottom: 0.5em;
+            // Faking bullets so we can position them
+            &:before {
+                content: "•";
+                display: inline-block;
+                width: 1em;
+                color: currentColor;
+                position: relative;
+                left: -0.4em;
+            }
+            &:has(strong) {
+                &:before {
+                    color: $blue-90;
+                }
+            }
+        }
+
+        // Bolded items appear in a darker "active" color
+        strong {
+            color: $blue-90;
+            font-weight: 600;
+        }
+    }
+}
+
+.slideshow-slide-title {
+    @include display-1-semibold;
+    margin: 0;
+    color: $blue-90;
+    font-size: $m-display-font-size;
+    line-height: 1.2;
+    max-width: 80%;
+    margin-bottom: 0.25em;
+}
+
+.slideshow-slide-subtitle {
+    @include body-1-regular;
+    color: $gray-80;
+    margin: 0;
+    max-width: 80%;
+    font-size: $m-lato-font-size;
+}
+
+.slideshow-slide__text {
+    @include body-1-regular;
+    color: $blue-90;
+    width: 33%;
+    flex-shrink: 0;
+    overflow-y: auto;
+    font-size: $s-lato-font-size;
+    &--large {
+        font-size: calc($s-lato-font-size * 1.4);
+        line-height: 1.2;
+    }
+    > *:first-child {
+        margin-top: 0;
+    }
+    > *:last-child {
+        margin-bottom: 0;
+    }
+    ol,
+    ul {
+        display: flex;
+        flex-direction: column;
+        gap: 0.6em;
+        margin-left: 2em;
+        padding-left: 0;
+    }
+}
+
+.slideshow-slide__media-placeholder {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f0f0f0;
+    color: #999;
+    font-size: $m-lato-font-size;
+}
+
+.slideshow-slide__image {
+    height: 100%;
+    width: auto;
+    flex-shrink: 0;
+    object-fit: contain;
+}
+
+// pad right text column down if there's a slide logo but no title, to prevent overlap
+.slideshow-slide:has(.slideshow-slide-logo):not(:has(.slideshow-slide-title)) {
+    .slideshow-slide__text {
+        margin-top: 8cqh;
+    }
+}
+
+.slideshow-slide-chart-content {
+    .Explorer,
+    .ExplorerFigure,
+    .GrapherComponent {
+        height: 100%;
+    }
+}

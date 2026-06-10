@@ -1,5 +1,4 @@
 import {
-    Base64String,
     ChartConfigsTableName,
     DbInsertChartConfig,
     DbRawChartConfig,
@@ -7,7 +6,7 @@ import {
     R2GrapherConfigDirectory,
     serializeChartConfig,
 } from "@ourworldindata/types"
-import { uuidv7 } from "uuidv7"
+import { v7 as uuidv7 } from "uuid"
 import * as db from "../db/db.js"
 import {
     saveGrapherConfigToR2,
@@ -49,14 +48,14 @@ export const retrieveChartConfigFromDbAndSaveToR2 = async (
         await saveGrapherConfigToR2ByUUID(
             chartConfigId,
             fullConfigMd5.full,
-            fullConfigMd5.fullMd5 as Base64String
+            fullConfigMd5.fullMd5
         )
     } else {
         await saveGrapherConfigToR2(
             fullConfigMd5.full,
             r2Path.directory,
             r2Path.filename,
-            fullConfigMd5.fullMd5 as Base64String
+            fullConfigMd5.fullMd5
         )
     }
 
@@ -71,13 +70,14 @@ export const updateChartConfigInDbAndR2 = async (
     knex: db.KnexReadWriteTransaction,
     chartConfigId: string,
     patchConfig: GrapherInterface,
-    fullConfig: GrapherInterface
+    fullConfig: GrapherInterface,
+    updatedAt: Date = new Date()
 ) => {
     await knex<DbInsertChartConfig>(ChartConfigsTableName)
         .update({
             patch: serializeChartConfig(patchConfig),
             full: serializeChartConfig(fullConfig),
-            updatedAt: new Date(), // It's not updated automatically in the DB.
+            updatedAt, // It's not updated automatically in the DB.
         })
         .where({ id: chartConfigId })
 
@@ -88,7 +88,8 @@ export const saveNewChartConfigInDbAndR2 = async (
     knex: db.KnexReadWriteTransaction,
     chartConfigId: string | undefined,
     patchConfig: GrapherInterface,
-    fullConfig: GrapherInterface
+    fullConfig: GrapherInterface,
+    now: Date = new Date()
 ) => {
     chartConfigId ??= uuidv7()
 
@@ -96,6 +97,8 @@ export const saveNewChartConfigInDbAndR2 = async (
         id: chartConfigId,
         patch: serializeChartConfig(patchConfig),
         full: serializeChartConfig(fullConfig),
+        createdAt: now,
+        updatedAt: now,
     })
 
     return retrieveChartConfigFromDbAndSaveToR2(knex, chartConfigId)

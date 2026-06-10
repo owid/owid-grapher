@@ -7,7 +7,7 @@
 
 import * as _ from "lodash-es"
 import {
-    type DbPlainAnalyticsGrapherView,
+    type AnalyticsGrapherViewWithRank,
     ChartRedirect,
     Json,
     GrapherInterface,
@@ -67,7 +67,7 @@ export interface ChartEditorManager extends AbstractChartEditorManager {
     logs: Log[]
     references: References | undefined
     redirects: ChartRedirect[]
-    views?: DbPlainAnalyticsGrapherView
+    views?: AnalyticsGrapherViewWithRank
     tags?: DbChartTagJoin[]
     availableTags?: DbChartTagJoin[]
     forceDatapage?: boolean

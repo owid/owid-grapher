@@ -12,7 +12,7 @@ import {
     getVariableMetadataRoute,
 } from "@ourworldindata/grapher"
 import pl from "nodejs-polars"
-import { uuidv7 } from "uuidv7"
+import { v7 as uuidv7 } from "uuid"
 import { DATA_API_URL } from "../../settings/serverSettings.js"
 import { escape } from "mysql2"
 import {
@@ -21,17 +21,19 @@ import {
     OwidVariableMixedData,
     OwidVariableWithSourceAndDimension,
     OwidVariableId,
-    GRAPHER_CHART_TYPES,
     DimensionProperty,
     GrapherInterface,
     DbRawVariable,
     VariablesTableName,
+    DatasetsTableName,
     DbRawChartConfig,
+    DbPlainDatapage,
     parseChartConfig,
     DbEnrichedChartConfig,
     DbEnrichedVariable,
     DbPlainChart,
     DbPlainMultiDimXChartConfig,
+    Distribution,
 } from "@ourworldindata/types"
 import { knexRaw, knexRawFirst } from "../db.js"
 import {
@@ -151,11 +153,13 @@ export async function insertNewGrapherConfigForVariable(
         variableId,
         patchConfig,
         fullConfig,
+        now,
     }: {
         type: "admin" | "etl"
         variableId: number
         patchConfig: GrapherInterface
         fullConfig: GrapherInterface
+        now: Date
     }
 ): Promise<void> {
     // insert chart configs into the database
@@ -163,10 +167,16 @@ export async function insertNewGrapherConfigForVariable(
     await db.knexRaw(
         knex,
         `-- sql
-            INSERT INTO chart_configs (id, patch, full)
-            VALUES (?, ?, ?)
+            INSERT INTO chart_configs (id, patch, full, createdAt, updatedAt)
+            VALUES (?, ?, ?, ?, ?)
         `,
-        [configId, JSON.stringify(patchConfig), JSON.stringify(fullConfig)]
+        [
+            configId,
+            JSON.stringify(patchConfig),
+            JSON.stringify(fullConfig),
+            now,
+            now,
+        ]
     )
 
     // make a reference to the config from the variables table
@@ -417,6 +427,7 @@ export async function updateGrapherConfigETLOfVariable(
             variableId,
             patchConfig: configETL,
             fullConfig: configETL,
+            now,
         })
     }
 
@@ -501,6 +512,7 @@ export async function updateGrapherConfigAdminOfVariable(
             variableId,
             patchConfig: patchConfigAdmin,
             fullConfig: fullConfigAdmin,
+            now,
         })
     }
 
@@ -577,14 +589,6 @@ export async function getAllChartsForIndicator(
 /**
  * Returns the indicator ID to use for datapage metadata if the grapher is
  * eligible for a datapage, otherwise undefined.
- *
- * By default, datapages require exactly one Y indicator.
- *
- * If `forceDatapage` is enabled, we instead use the first Y indicator for
- * metadata (same behavior as mdims), even when there are multiple Y indicators.
- *
- * The selected indicator must have schema version >= 2 and include text for at
- * least one of the description* fields or titlePublic.
  */
 export async function getDatapageIndicatorId(
     knex: db.KnexReadonlyTransaction,
@@ -593,50 +597,32 @@ export async function getDatapageIndicatorId(
         forceDatapage?: boolean
     }
 ): Promise<number | undefined> {
-    const yVariableIds = grapher
-        .dimensions!.filter((d) => d.property === DimensionProperty.y)
-        .map((d) => d.variableId)
-    const xVariableIds = grapher
-        .dimensions!.filter((d) => d.property === DimensionProperty.x)
-        .map((d) => d.variableId)
-
-    // For scatter plots we want to only show a data page if it has no X indicator mapped, which
-    // is a special case where time is the X axis. Marimekko charts are the other chart that uses
-    // the X dimension but there we usually map population on X which should not prevent us from
-    // showing a data page.
-    const isScatterWithMappedX =
-        grapher.chartTypes?.[0] === GRAPHER_CHART_TYPES.ScatterPlot &&
-        xVariableIds.length > 0
-
-    let variableId: number | undefined
-    if (
-        options?.forceDatapage ||
-        (yVariableIds.length === 1 && !isScatterWithMappedX)
-    ) {
-        variableId = yVariableIds[0]
+    // If a data page is forced, simply return the first y-dimension
+    if (options?.forceDatapage) {
+        const yVariableIds = grapher
+            .dimensions!.filter((d) => d.property === DimensionProperty.y)
+            .map((d) => d.variableId)
+        return yVariableIds[0]
     }
 
-    if (!variableId) return undefined
+    if (!grapher.id) {
+        console.warn(
+            "Grapher must have an ID to check for datapage eligibility"
+        )
+        return undefined
+    }
 
-    const result = await knexRawFirst<{ id: number }>(
+    const row = await knexRawFirst<DbPlainDatapage>(
         knex,
         `-- sql
-            SELECT id
-            FROM variables
-            WHERE id = ?
-              AND schemaVersion >= 2
-              AND (
-                (descriptionShort IS NOT NULL AND descriptionShort != '') OR
-                (descriptionProcessing IS NOT NULL AND descriptionProcessing != '') OR
-                (descriptionKey IS NOT NULL AND descriptionKey != '' AND descriptionKey != '[]') OR
-                (descriptionFromProducer IS NOT NULL AND descriptionFromProducer != '') OR
-                (titlePublic IS NOT NULL AND titlePublic != '')
-              )
+            SELECT variableId
+            FROM datapages
+            WHERE chartId = ?
         `,
-        [variableId]
+        [grapher.id]
     )
 
-    return result?.id
+    return row?.variableId
 }
 
 // TODO: these are domain functions and should live somewhere else
@@ -674,9 +660,7 @@ export async function getVariableData(
 export async function getDataForMultipleVariables(
     variableIds: number[]
 ): Promise<MultipleOwidVariableDataDimensionsMap> {
-    const promises = variableIds.map(
-        async (id) => await getVariableData(id as number)
-    )
+    const promises = variableIds.map(async (id) => await getVariableData(id))
     const allVariablesDataAndMetadata = await Promise.all(promises)
     const allVariablesDataAndMetadataMap = new Map(
         allVariablesDataAndMetadata.map((item) => [item.metadata.id, item])
@@ -930,15 +914,9 @@ export const readSQLasDF = async (
 export async function getVariableOfDatapageIfApplicable(
     knex: db.KnexReadonlyTransaction,
     grapher: GrapherInterface,
-    options?: {
-        forceDatapage?: boolean
-    }
+    options?: { forceDatapage?: boolean }
 ): Promise<
-    | {
-          id: number
-          metadata: OwidVariableWithSourceAndDimension
-      }
-    | undefined
+    { id: number; metadata: OwidVariableWithSourceAndDimension } | undefined
 > {
     const indicatorId = await getDatapageIndicatorId(knex, grapher, options)
     if (indicatorId) {
@@ -948,6 +926,51 @@ export async function getVariableOfDatapageIfApplicable(
         return { id: indicatorId, metadata: fullMetadata }
     }
     return undefined
+}
+
+export async function getVariableDistribution(
+    knex: db.KnexReadonlyTransaction,
+    variableIds: number[]
+): Promise<Distribution> {
+    if (!variableIds.length) return { allowed: true }
+
+    const result = await knexRawFirst<{
+        hasNonRedistributableVariable: number
+    }>(
+        knex,
+        `-- sql
+            SELECT MAX(COALESCE(d.nonRedistributable, 0)) AS hasNonRedistributableVariable
+            FROM variables v
+            LEFT JOIN active_datasets d ON d.id = v.datasetId
+            WHERE v.id IN (?)
+        `,
+        [variableIds]
+    )
+
+    if (!result?.hasNonRedistributableVariable) return { allowed: true }
+
+    const sourceLinksRows = await knexRaw<{ sourceLink: string | null }>(
+        knex,
+        `-- sql
+            SELECT DISTINCT COALESCE(o.urlMain, s.description->>'$.link') AS sourceLink
+            FROM variables v
+            LEFT JOIN active_datasets d ON d.id = v.datasetId
+            LEFT JOIN origins_variables ov ON ov.variableId = v.id
+            LEFT JOIN origins o ON o.id = ov.originId
+            LEFT JOIN sources s ON s.id = v.sourceId
+            WHERE v.id IN (?)
+              AND COALESCE(d.nonRedistributable, 0) = 1
+              AND COALESCE(o.urlMain, s.description->>'$.link') IS NOT NULL
+        `,
+        [variableIds]
+    )
+
+    return {
+        allowed: false,
+        sourceLinks: sourceLinksRows
+            .map((row) => row.sourceLink)
+            .filter((link): link is string => !!link),
+    }
 }
 
 /**
@@ -975,7 +998,7 @@ export const searchVariables = async (
         SELECT
             v.id,
             v.name,
-            catalogPath,
+            v.catalogPath AS catalogPath,
             d.id AS datasetId,
             d.name AS datasetName,
             d.isPrivate AS isPrivate,
@@ -1181,4 +1204,65 @@ export const getVariableIdsByCatalogPath = async (
         // Sort for good measure and determinism.
         catalogPaths.sort().map((path) => [path, rowsByPath[path]?.id ?? null])
     )
+}
+
+/**
+ * Resolve the latest variable id for each given catalog path.
+ *
+ * Catalog paths follow the structure
+ * `channel/namespace/version/dataset/table#column`, where the version (the 3rd
+ * path segment) is an ISO date such as `2024-07-15`. This helper takes a
+ * version-agnostic catalog path (with the version segment replaced by 'latest',
+ * e.g. `grapher/worldbank_wdi/latest/wdi/wdi#ny_gdp_pcap_pp_kd`) and returns
+ * the id of the most recent version
+ */
+export const getLatestVariableIdsByCatalogPath = async (
+    catalogPaths: string[],
+    knex: db.KnexReadonlyTransaction
+): Promise<Map<string, number | null>> => {
+    const VERSION_SEGMENT_INDEX = 2 // The version is the 3rd path segment
+    const getVersion = (catalogPath: string | null): string =>
+        catalogPath?.split("/")[VERSION_SEGMENT_INDEX] ?? ""
+
+    // Escape the LIKE wildcards `%` and `_`
+    const escapeLike = (segment: string): string =>
+        segment.replace(/[\\%_]/g, "\\$&")
+
+    const entries = await Promise.all(
+        catalogPaths.map(async (catalogPath) => {
+            // Replace the version segment with a SQL wildcard so we match every
+            // published version of the indicator, and escape the rest.
+            const likePattern = catalogPath
+                .split("/")
+                .map((segment, index) =>
+                    index === VERSION_SEGMENT_INDEX ? "%" : escapeLike(segment)
+                )
+                .join("/")
+
+            const rows: Pick<DbRawVariable, "id" | "catalogPath">[] =
+                await knex(VariablesTableName)
+                    .join(
+                        DatasetsTableName,
+                        `${VariablesTableName}.datasetId`,
+                        `${DatasetsTableName}.id`
+                    )
+                    .where(
+                        `${VariablesTableName}.catalogPath`,
+                        "like",
+                        likePattern
+                    )
+                    .where(`${DatasetsTableName}.isArchived`, 0) // Ignore archived datasets
+                    .select(
+                        `${VariablesTableName}.id`,
+                        `${VariablesTableName}.catalogPath`
+                    )
+
+            // Pick the most recent version
+            const latest = _.maxBy(rows, (row) => getVersion(row.catalogPath))
+
+            return [catalogPath, latest?.id ?? null] as const
+        })
+    )
+
+    return new Map(entries)
 }

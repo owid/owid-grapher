@@ -5,6 +5,7 @@ import {
     differenceObj,
     trimObject,
     parseIntOrUndefined,
+    es6mapValues,
 } from "@ourworldindata/utils"
 import { ColumnTypeNames, CoreRow } from "@ourworldindata/types"
 import {
@@ -47,7 +48,7 @@ const makeChoicesMap = (delimited: string) => {
                 words.slice(0, -1).join(" "),
                 words[words.length - 1],
             ]
-            map.set(choiceName as ChoiceName, choiceType as ExplorerControlType)
+            map.set(choiceName, choiceType as ExplorerControlType)
         })
     return map
 }
@@ -166,7 +167,7 @@ export class DecisionMatrix {
         )
     }
 
-    private static allColumnSlugsWithIndicatorIdsOrCatalogPaths = [
+    private static readonly allColumnSlugsWithIndicatorIdsOrCatalogPaths = [
         GrapherGrammar.yVariableIds.keyword,
         GrapherGrammar.xVariableId.keyword,
         GrapherGrammar.colorVariableId.keyword,
@@ -201,10 +202,9 @@ export class DecisionMatrix {
     get tableWithOriginalColumnNames() {
         return this.table.renameColumns(
             Object.fromEntries(
-                [...this.choiceNameToControlTypeMap.entries()].map(
-                    ([choiceName, controlType]) => {
-                        return [choiceName, `${choiceName} ${controlType}`]
-                    }
+                es6mapValues(
+                    this.choiceNameToControlTypeMap,
+                    (controlType, choiceName) => `${choiceName} ${controlType}`
                 )
             )
         )

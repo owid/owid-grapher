@@ -6,7 +6,7 @@ export interface DbInsertMultiDimRedirect {
     multiDimId: number
     viewConfigId?: string | null
     createdAt?: Date
-    updatedAt?: Date | null
+    updatedAt?: Date
 }
 
 export interface DbPlainMultiDimRedirect {
@@ -15,5 +15,5 @@ export interface DbPlainMultiDimRedirect {
     multiDimId: number
     viewConfigId: string | null
     createdAt: Date
-    updatedAt: Date | null
+    updatedAt: Date
 }

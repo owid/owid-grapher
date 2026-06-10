@@ -61,7 +61,7 @@ export class MapZoomToSelectionButton extends React.Component<MapZoomToSelection
                 className="menu-toggle"
             >
                 <GlobeIcon size={16} />
-                Zoom to selection
+                <span className="label">Zoom to selection</span>
             </button>
         ) : null
     }

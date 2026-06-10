@@ -6,6 +6,8 @@ import ChartStory from "./ChartStory.js"
 import Chart from "./Chart.js"
 import Donors from "./Donors.js"
 import PullQuote from "./PullQuote.js"
+import ChartRows from "./ChartRows.js"
+import PullChart from "./PullChart.js"
 import GuidedChart from "./GuidedChart.js"
 import Recirc from "./Recirc.js"
 import SubscribeBanner from "./SubscribeBanner.js"
@@ -63,10 +65,10 @@ import { Cta } from "./Cta.js"
 import { AttachmentsContext } from "../AttachmentsContext.js"
 import { FeaturedMetrics } from "../../FeaturedMetrics.js"
 import { FeaturedDataInsights } from "../../FeaturedDataInsights.js"
-import { BlockQueryClientProvider } from "./BlockQueryClientProvider.js"
 import { ExploreDataSection } from "./ExploreDataSection.js"
 import { LTPTableOfContents } from "./LTPTableOfContents.js"
 import { DataCallout } from "./DataCallout.js"
+import { DataCalloutGroup } from "./DataCalloutGroup.js"
 import { CountryProfileSelector } from "./CountryProfileSelector.js"
 
 function ArticleBlockInternal({
@@ -116,7 +118,7 @@ function ArticleBlockInternal({
         }
     }, [])
 
-    if (block.parseErrors.filter(({ isWarning }) => !isWarning).length > 0) {
+    if (block.parseErrors.some(({ isWarning }) => !isWarning)) {
         return (
             <BlockErrorFallback
                 className={getLayout("default", containerType)}
@@ -188,28 +190,24 @@ function ArticleBlockInternal({
                             `${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1${EXPERIMENT_ARM_SEPARATOR}featured-metrics--hide`
                         )}
                     />
-                    <>
-                        <BlockQueryClientProvider>
-                            <FeaturedMetrics
-                                id={
-                                    experimentState &&
-                                    experimentState[
-                                        `${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1`
-                                    ]?.isPageInExperiment &&
-                                    experimentState[
-                                        `${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1`
-                                    ]?.arm === "featured-metrics"
-                                        ? "all-charts"
-                                        : ""
-                                }
-                                topicName={topicName}
-                                className={cx(
-                                    layoutClassName,
-                                    `${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1${EXPERIMENT_ARM_SEPARATOR}featured-metrics--show`
-                                )}
-                            />
-                        </BlockQueryClientProvider>
-                    </>
+                    <FeaturedMetrics
+                        id={
+                            experimentState &&
+                            experimentState[
+                                `${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1`
+                            ]?.isPageInExperiment &&
+                            experimentState[
+                                `${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1`
+                            ]?.arm === "featured-metrics"
+                                ? "all-charts"
+                                : ""
+                        }
+                        topicName={topicName}
+                        className={cx(
+                            layoutClassName,
+                            `${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1${EXPERIMENT_ARM_SEPARATOR}featured-metrics--show`
+                        )}
+                    />
                 </>
             )
         })
@@ -546,16 +544,6 @@ function ArticleBlockInternal({
                 dangerouslySetInnerHTML={{ __html: block.value }}
             />
         ))
-        .with({ type: "script" }, (block) => (
-            <div
-                className={getLayout("script", containerType)}
-                dangerouslySetInnerHTML={{
-                    __html: `<script type="module">
-                    ${block.lines.join("\n")}
-                    </script>`,
-                }}
-            />
-        ))
         .with({ type: "horizontal-rule" }, () => (
             <hr className={getLayout("horizontal-rule", containerType)} />
         ))
@@ -888,9 +876,7 @@ function ArticleBlockInternal({
             // If the citation exists and is a URL, it uses the cite attribute
             // If the citation exists and is not a URL, it uses the footer
             // Otherwise, we show nothing for cases where the citation is written in the surrounding text
-            const isCitationAUrl = Boolean(
-                block.citation && block.citation.startsWith("http")
-            )
+            const isCitationAUrl = Boolean(block.citation?.startsWith("http"))
             const shouldShowCitationInFooter = block.citation && !isCitationAUrl
             const blockquoteProps = isCitationAUrl
                 ? { cite: block.citation }
@@ -979,12 +965,10 @@ function ArticleBlockInternal({
             }
 
             return (
-                <BlockQueryClientProvider>
-                    <FeaturedMetrics
-                        topicName={topicName}
-                        className={layoutClassName}
-                    />
-                </BlockQueryClientProvider>
+                <FeaturedMetrics
+                    topicName={topicName}
+                    className={layoutClassName}
+                />
             )
         })
         .with({ type: "featured-data-insights" }, () => {
@@ -1008,12 +992,10 @@ function ArticleBlockInternal({
             }
 
             return (
-                <BlockQueryClientProvider>
-                    <FeaturedDataInsights
-                        topicName={topicName}
-                        className={layoutClassName}
-                    />
-                </BlockQueryClientProvider>
+                <FeaturedDataInsights
+                    topicName={topicName}
+                    className={layoutClassName}
+                />
             )
         })
         .with({ type: "socials" }, (block) => (
@@ -1024,6 +1006,9 @@ function ArticleBlockInternal({
         ))
         .with({ type: "data-callout" }, (block) => (
             <DataCallout block={block} containerType={containerType} />
+        ))
+        .with({ type: "data-callout-group" }, (block) => (
+            <DataCalloutGroup block={block} containerType={containerType} />
         ))
         .with({ type: "country-profile-selector" }, (block) => (
             <CountryProfileSelector
@@ -1038,6 +1023,18 @@ function ArticleBlockInternal({
                     containerType
                 )}
                 block={block}
+            />
+        ))
+        .with({ type: "chart-rows" }, (block) => (
+            <ChartRows
+                className={getLayout("chart-rows", containerType)}
+                d={block}
+            />
+        ))
+        .with({ type: "pull-chart" }, (block) => (
+            <PullChart
+                className={getLayout("pull-chart", containerType)}
+                d={block}
             />
         ))
         .exhaustive()

@@ -14,6 +14,7 @@ import {
     DimensionProperty,
     OwidGdocProfileContent,
     EnrichedBlockDataCallout,
+    EnrichedBlockDataCalloutGroup,
 } from "@ourworldindata/types"
 import {
     makeLinkedCalloutKey,
@@ -58,10 +59,13 @@ export function extractDataCalloutUrls(
             }
         })
     }
-    return [...callouts].map((urlStr) => {
-        const url = Url.fromURL(urlStr)
-        return url.pathname + url.queryStr
-    })
+    return callouts
+        .keys()
+        .map((urlStr) => {
+            const url = Url.fromURL(urlStr)
+            return url.pathname + url.queryStr
+        })
+        .toArray()
 }
 
 /**
@@ -260,7 +264,7 @@ export async function loadLinkedCalloutsForBlocks(
     if (calloutUrls.length === 0) return {}
 
     const linkedCallouts: LinkedCallouts = {}
-    const uniqueCalloutUrls = Array.from(new Set(calloutUrls))
+    const uniqueCalloutUrls = new Set(calloutUrls)
 
     // Group URLs by chart key to prepare each chart's table once
     const urlsByChartKey = new Map<string, string[]>()
@@ -428,8 +432,17 @@ export function computeLinkedCalloutsFromPreparedTables(
 
 /**
  * Check if a profile should be rendered.
- * Returns false if there are data-callouts and ALL of them are hidden.
+ * Returns false if there are data-callouts (or data-callout-groups) and ALL of them are hidden.
  * Returns true if there are no data-callouts, or if at least one callout is visible.
+ *
+ * Precondition: `content` must already have been passed through
+ * `clearIncompleteDataCallouts`, which empties callouts/groups whose data is
+ * unavailable for the current entity. This function reads `content.length` to
+ * detect that emptied state — running it on un-cleared content will report
+ * false positives (treating hidden groups as visible).
+ *
+ * In practice this is guaranteed by `instantiateProfileForEntity`, which
+ * clears as its final step before returning.
  */
 export function checkShouldProfileRender(content: {
     body?: OwidEnrichedGdocBlock[]
@@ -437,40 +450,74 @@ export function checkShouldProfileRender(content: {
     if (!content.body || content.body.length === 0) return false
 
     const dataCallouts: EnrichedBlockDataCallout[] = []
+    const dataCalloutGroups: EnrichedBlockDataCalloutGroup[] = []
     content.body.forEach((node) => {
         traverseEnrichedBlock(node, (block) => {
             if (block.type === "data-callout") {
-                dataCallouts.push(block as EnrichedBlockDataCallout)
+                dataCallouts.push(block)
+            }
+            if (block.type === "data-callout-group") {
+                dataCalloutGroups.push(block)
             }
         })
     })
 
-    // No data-callouts means the profile has other content and is renderable
-    if (dataCallouts.length === 0) return true
+    // No data-callouts or groups means the profile has other content and is renderable
+    if (dataCallouts.length === 0 && dataCalloutGroups.length === 0) return true
 
-    // If there are data-callouts, at least one must be visible
-    return dataCallouts.some((callout) => callout.content.length > 0)
+    // If there are standalone data-callouts, at least one must be visible
+    const anyCalloutVisible = dataCallouts.some(
+        (callout) => callout.content.length > 0
+    )
+
+    // A cleared group has empty content; a visible group still has content
+    const anyGroupVisible = dataCalloutGroups.some(
+        (group) => group.content.length > 0
+    )
+
+    return anyCalloutVisible || anyGroupVisible
 }
 
 /**
  * Clear data-callout blocks that have incomplete data.
+ * For data-callout-group blocks, if ALL child data-callouts are cleared,
+ * the entire group's content is cleared (hiding the heading/prose too).
  * This should be called after linkedCallouts are generated.
  */
 export function clearIncompleteDataCallouts(
     content: { body?: OwidEnrichedGdocBlock[] },
     linkedCallouts: LinkedCallouts
 ): void {
+    // First pass: clear individual data-callout blocks with incomplete data
     content.body?.forEach((node) => {
         traverseEnrichedBlock(node, (block) => {
             if (block.type === "data-callout") {
-                const dataCalloutBlock = block as EnrichedBlockDataCallout
+                const dataCalloutBlock = block
                 const shouldRender = checkShouldDataCalloutRender(
                     dataCalloutBlock,
                     linkedCallouts
                 )
                 if (!shouldRender) {
-                    // Clear the content so it renders as empty
                     dataCalloutBlock.content = []
+                }
+            }
+        })
+    })
+
+    // Second pass: clear data-callout-group blocks where all child
+    // data-callouts have been cleared (no entity has data for any chart)
+    content.body?.forEach((node) => {
+        traverseEnrichedBlock(node, (block) => {
+            if (block.type === "data-callout-group") {
+                const childCallouts = block.content.filter(
+                    (child): child is EnrichedBlockDataCallout =>
+                        child.type === "data-callout"
+                )
+                const anyVisible = childCallouts.some(
+                    (callout) => callout.content.length > 0
+                )
+                if (childCallouts.length > 0 && !anyVisible) {
+                    block.content = []
                 }
             }
         })

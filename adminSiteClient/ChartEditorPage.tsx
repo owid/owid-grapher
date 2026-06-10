@@ -3,7 +3,7 @@ import { observer } from "mobx-react"
 import { observable, computed, runInAction, action, makeObservable } from "mobx"
 import { getParentVariableIdFromChartConfig } from "@ourworldindata/utils"
 import {
-    type DbPlainAnalyticsGrapherView,
+    type AnalyticsGrapherViewWithRank,
     GrapherInterface,
     ChartRedirect,
     MinimalTagWithIsTopic,
@@ -19,6 +19,10 @@ import {
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { ChartEditorView, ChartEditorViewManager } from "./ChartEditorView.js"
 import { References } from "./AbstractChartEditor.js"
+import {
+    GDP_PER_CAPITA_CATALOG_PATH,
+    POPULATION_CATALOG_PATH,
+} from "./constants.js"
 
 interface ChartEditorPageProps {
     grapherId?: number
@@ -44,16 +48,19 @@ export class ChartEditorPage
             tags: observable,
             availableTags: observable,
             forceDatapage: observable.ref,
+            variableIdsByCatalogPath: observable.ref,
         })
     }
 
     logs: Log[] = []
     references: References | undefined = undefined
     redirects: ChartRedirect[] = []
-    views: DbPlainAnalyticsGrapherView | undefined = undefined
+    views: AnalyticsGrapherViewWithRank | undefined = undefined
     tags: DbChartTagJoin[] | undefined = undefined
     availableTags: MinimalTagWithIsTopic[] | undefined = undefined
     forceDatapage: boolean | undefined = undefined
+    variableIdsByCatalogPath: Record<string, number | null> | undefined =
+        undefined
 
     patchConfig: GrapherInterface = {}
     parentConfig: GrapherInterface | undefined = undefined
@@ -159,6 +166,20 @@ export class ChartEditorPage
         this.availableTags = json.tags
     }
 
+    async fetchVariableIdsByCatalogPath(): Promise<void> {
+        const { admin } = this.context
+        const json = await admin.getJSON<Record<string, number | null>>(
+            "/api/variables.latestByCatalogPath.json",
+            {
+                catalogPaths: [
+                    GDP_PER_CAPITA_CATALOG_PATH,
+                    POPULATION_CATALOG_PATH,
+                ].join(","),
+            }
+        )
+        runInAction(() => (this.variableIdsByCatalogPath = json))
+    }
+
     @computed get admin(): Admin {
         return this.context.admin
     }
@@ -176,6 +197,7 @@ export class ChartEditorPage
         void this.fetchViews()
         void this.fetchTags()
         void this.fetchAvailableTags()
+        void this.fetchVariableIdsByCatalogPath()
     }
 
     override componentDidMount(): void {

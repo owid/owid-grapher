@@ -102,6 +102,6 @@ async function isCaptchaValid(token: string, key: string): Promise<boolean> {
             method: "POST",
         }
     )
-    const json = (await response.json()) as { success: boolean }
+    const json: { success: boolean } = await response.json()
     return json.success
 }

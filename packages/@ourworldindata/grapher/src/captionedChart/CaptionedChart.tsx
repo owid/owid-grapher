@@ -7,7 +7,11 @@ import {
     exposeInstanceOnWindow,
     makeFigmaId,
 } from "@ourworldindata/utils"
-import { MarkdownTextWrap, LoadingIndicator } from "@ourworldindata/components"
+import {
+    MarkdownTextWrap,
+    MarkdownTextWrapSvg,
+    LoadingIndicator,
+} from "@ourworldindata/components"
 import { Header, StaticHeader } from "../header/Header"
 import { Footer, StaticFooter } from "../footer/Footer"
 import {
@@ -26,7 +30,6 @@ import { SelectionArray } from "../selection/SelectionArray"
 import {
     EntityName,
     RelatedQuestionsConfig,
-    Color,
     GrapherTabName,
     GrapherChartType,
 } from "@ourworldindata/types"
@@ -40,7 +43,7 @@ import {
     ControlsRow,
     ControlsRowManager,
 } from "../controls/controlsRow/ControlsRow"
-import { GRAPHER_BACKGROUND_DEFAULT } from "../color/ColorConstants.js"
+import { GRAPHER_BACKGROUND } from "../color/ColorConstants.js"
 import { ChartAreaContent } from "../chart/ChartAreaContent"
 import { getChartSvgProps } from "../chart/ChartUtils"
 import { StaticChartWrapper } from "../chart/StaticChartWrapper"
@@ -67,7 +70,6 @@ export interface CaptionedChartManager
     isSmall?: boolean
     isMedium?: boolean
     fontSize?: number
-    backgroundColor?: string
 
     // state
     activeTab?: GrapherTabName
@@ -76,6 +78,9 @@ export interface CaptionedChartManager
     activeChartType?: GrapherChartType
     isFaceted?: boolean
     isExportingForWikimedia?: boolean
+
+    // controls
+    hideControlsRow?: boolean
 
     // timeline
     hasTimeline?: boolean
@@ -92,8 +97,6 @@ export interface CaptionedChartManager
 
 interface CaptionedChartProps {
     manager: CaptionedChartManager
-    bounds?: Bounds
-    maxWidth?: number
 }
 
 // keep in sync with sass variables in CaptionedChart.scss
@@ -113,19 +116,11 @@ abstract class AbstractCaptionedChart extends React.Component<CaptionedChartProp
     }
 
     @computed protected get maxWidth(): number {
-        return (
-            this.props.maxWidth ??
-            this.bounds.width - 2 * this.framePaddingHorizontal
-        )
+        return this.bounds.width - 2 * this.framePaddingHorizontal
     }
 
     @computed protected get verticalPadding(): number {
         return this.manager.isSmall ? 8 : this.manager.isMedium ? 12 : 16
-    }
-
-    @computed protected get verticalPaddingSmall(): number {
-        if (this.manager.isOnMapTab) return 4
-        return this.manager.isMedium ? 8 : 16
     }
 
     @computed protected get header(): Header {
@@ -144,16 +139,9 @@ abstract class AbstractCaptionedChart extends React.Component<CaptionedChartProp
 
     @computed protected get bounds(): Bounds {
         const bounds =
-            this.props.bounds ??
-            this.manager.captionedChartBounds ??
-            DEFAULT_GRAPHER_BOUNDS
+            this.manager.captionedChartBounds ?? DEFAULT_GRAPHER_BOUNDS
         // the padding ensures grapher's frame is not cut off
         return bounds.padRight(2).padBottom(2)
-    }
-
-    @computed protected get boundsForChartArea(): Bounds {
-        const { bounds, chartHeight } = this
-        return new Bounds(0, 0, bounds.width, chartHeight)
     }
 
     override componentDidMount(): void {
@@ -164,25 +152,40 @@ abstract class AbstractCaptionedChart extends React.Component<CaptionedChartProp
         return this.manager.selection
     }
 
+    @computed protected get svgProps(): React.SVGProps<SVGSVGElement> {
+        return getChartSvgProps(this.manager)
+    }
+}
+
+@observer
+export class CaptionedChart extends AbstractCaptionedChart {
+    constructor(props: CaptionedChartProps) {
+        super(props)
+        makeObservable(this)
+    }
+
+    @computed private get verticalPaddingSmall(): number {
+        if (this.manager.isOnMapTab) return 4
+        return this.manager.isMedium ? 8 : 16
+    }
+
     @computed private get showRelatedQuestion(): boolean {
         return !!this.manager.showRelatedQuestion
     }
 
-    @computed get relatedQuestionHeight(): number {
+    @computed private get relatedQuestionHeight(): number {
         if (!this.showRelatedQuestion) return 0
         return this.manager.isMedium ? 24 : 28
     }
 
     @computed private get showControlsRow(): boolean {
+        if (this.manager.hideControlsRow) return false
         return ControlsRow.shouldShow(this.manager)
     }
 
     @computed private get settingsPopoverMaxWidth(): number {
-        const availableWidth =
-            this.bounds.width - 2 * this.framePaddingHorizontal
-
         // Ensure the popover is at most 300px wide
-        return Math.min(300, Math.floor(availableWidth))
+        return Math.min(300, Math.floor(this.maxWidth))
     }
 
     @computed private get settingsPopoverMaxHeight(): number {
@@ -249,7 +252,12 @@ abstract class AbstractCaptionedChart extends React.Component<CaptionedChartProp
         )
     }
 
+    @computed private get showHeader(): boolean {
+        return this.header.height > 0
+    }
+
     @computed private get headerHeightWithPadding(): number {
+        if (!this.showHeader) return 0
         return this.header.height + this.verticalPadding
     }
 
@@ -279,7 +287,7 @@ abstract class AbstractCaptionedChart extends React.Component<CaptionedChartProp
      * The height of the chart area is the total height of the frame minus
      * the height of the header, footer, controls, etc.
      */
-    @computed protected get chartHeight(): number {
+    @computed private get chartHeight(): number {
         return Math.floor(
             this.bounds.height -
                 2 * this.framePaddingVertical -
@@ -289,6 +297,11 @@ abstract class AbstractCaptionedChart extends React.Component<CaptionedChartProp
                 this.footerHeightWithPadding -
                 this.relatedQuestionHeightWithPadding
         )
+    }
+
+    @computed private get boundsForChartArea(): Bounds {
+        const { bounds, chartHeight } = this
+        return new Bounds(0, 0, bounds.width, chartHeight)
     }
 
     // make sure to keep this.chartHeight in sync if you edit the render function
@@ -310,13 +323,18 @@ abstract class AbstractCaptionedChart extends React.Component<CaptionedChartProp
         return (
             <div
                 className="CaptionedChart"
-                style={{
-                    backgroundColor: this.backgroundColor,
-                }}
+                style={{ backgroundColor: GRAPHER_BACKGROUND }}
             >
                 {/* #1 Header */}
-                <Header manager={this.manager} maxWidth={this.maxWidth} />
-                <VerticalSpace height={this.verticalPadding} />
+                {this.showHeader && (
+                    <>
+                        <Header
+                            manager={this.manager}
+                            maxWidth={this.maxWidth}
+                        />
+                        <VerticalSpace height={this.verticalPadding} />
+                    </>
+                )}
 
                 {this.manager.isReady ? (
                     <>
@@ -356,18 +374,7 @@ abstract class AbstractCaptionedChart extends React.Component<CaptionedChartProp
             </div>
         )
     }
-
-    @computed protected get backgroundColor(): Color {
-        return this.manager.backgroundColor ?? GRAPHER_BACKGROUND_DEFAULT
-    }
-
-    @computed protected get svgProps(): React.SVGProps<SVGSVGElement> {
-        return getChartSvgProps(this.manager)
-    }
 }
-
-@observer
-export class CaptionedChart extends AbstractCaptionedChart {}
 
 @observer
 export class StaticCaptionedChart extends AbstractCaptionedChart {
@@ -399,11 +406,7 @@ export class StaticCaptionedChart extends AbstractCaptionedChart {
 
     /** Bounds without details */
     protected override get bounds(): Bounds {
-        return (
-            this.props.bounds ??
-            this.manager.staticBounds ??
-            DEFAULT_GRAPHER_BOUNDS
-        )
+        return this.manager.staticBounds ?? DEFAULT_GRAPHER_BOUNDS
     }
 
     /** Padded bounds of the actual chart area (without whitespace around it) */
@@ -414,7 +417,7 @@ export class StaticCaptionedChart extends AbstractCaptionedChart {
     }
 
     /** Bounds of the chart area (without header and footer) */
-    protected override get boundsForChartArea(): Bounds {
+    protected get boundsForChartArea(): Bounds {
         return this.innerBounds
             .padTop(this.staticHeader.height)
             .padBottom(this.staticFooter.height + this.verticalPadding)
@@ -441,7 +444,7 @@ export class StaticCaptionedChart extends AbstractCaptionedChart {
 
     renderSVGDetails(): React.ReactElement {
         let yOffset = 0
-        let previousOffset = 0
+        let previousOffset: number
         return (
             <>
                 <line
@@ -467,7 +470,11 @@ export class StaticCaptionedChart extends AbstractCaptionedChart {
                         yOffset += detail.height + STATIC_EXPORT_DETAIL_SPACING
                         return (
                             <React.Fragment key={i}>
-                                {detail.renderSVG(0, previousOffset)}
+                                <MarkdownTextWrapSvg
+                                    textWrap={detail}
+                                    x={0}
+                                    y={previousOffset}
+                                />
                             </React.Fragment>
                         )
                     })}
@@ -511,13 +518,5 @@ export class StaticCaptionedChart extends AbstractCaptionedChart {
 // makes margin collapsing impossible and makes it easier to track the
 // space available for the chart area (see the CaptionedChart's `chartHeight` method)
 function VerticalSpace({ height }: { height: number }): React.ReactElement {
-    return (
-        <div
-            className="VerticalSpace"
-            style={{
-                height,
-                width: "100%",
-            }}
-        />
-    )
+    return <div className="VerticalSpace" style={{ height, width: "100%" }} />
 }

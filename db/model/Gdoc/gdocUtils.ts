@@ -4,7 +4,6 @@ import {
     Span,
     excludeNullish,
     EnrichedBlockResearchAndWritingLink,
-    DATA_INSIGHTS_INDEX_PAGE_SIZE,
     OwidEnrichedGdocBlock,
     traverseEnrichedBlock,
     plaintextCalloutRegex,
@@ -141,7 +140,7 @@ export function extractUrl(html: string = ""): string {
     const $ = cheerio.load(html)
     const target = $("a").attr("href")
     // "google.com" (without http://) won't get extracted here, so fallback to the html
-    return target || html
+    return target?.trim() || html.trim()
 }
 
 export const getTitleSupertitleFromHeadingText = (
@@ -169,20 +168,24 @@ export const getAllLinksFromResearchAndWritingBlock = (
     return allLinks
 }
 
-export function parseAuthors(authors?: string): string[] {
-    return (authors || "Our World in Data team")
+export function parseAuthors(authors?: string): {
+    authors: string[]
+    authorRoles: Record<string, string>
+} {
+    const authorRoles: Record<string, string> = {}
+    const parsed = (authors || "Our World in Data team")
         .split(",")
-        .map((author: string) => author.trim())
-}
-
-/**
- * Calculate the number of pages needed to display all data insights
- * e.g. if there are 61 data insights and we want to display 20 per page, we need 4 pages
- */
-export function calculateDataInsightIndexPageCount(
-    publishedDataInsightCount: number
-): number {
-    return Math.ceil(publishedDataInsightCount / DATA_INSIGHTS_INDEX_PAGE_SIZE)
+        .map((author: string) => {
+            const trimmed = author.trim()
+            const match = trimmed.match(/^(.+?)\s*\(([^)]+)\)\s*$/)
+            if (match) {
+                const name = match[1].trim()
+                authorRoles[name] = match[2].trim()
+                return name
+            }
+            return trimmed
+        })
+    return { authors: parsed, authorRoles }
 }
 
 export function extractFilenamesFromBlock(
@@ -260,7 +263,6 @@ export function extractFilenamesFromBlock(
                     "homepage-search",
                     "horizontal-rule",
                     "html",
-                    "script",
                     "key-indicator-collection",
                     "key-indicator",
                     "latest-data-insights",
@@ -289,13 +291,40 @@ export function extractFilenamesFromBlock(
                     "text",
                     "topic-page-intro",
                     "data-callout",
+                    "data-callout-group",
                     "country-profile-selector",
                     "bespoke-component"
                 ),
             },
             _.noop
         )
+        .with({ type: "chart-rows" }, (item) => {
+            item.rows.forEach((row) => {
+                if (row.image) filenames.add(row.image)
+            })
+        })
+        .with({ type: "pull-chart" }, (item) => {
+            if (item.image) filenames.add(item.image)
+        })
         .exhaustive()
+    return [...filenames]
+}
+
+/**
+ * Recursively collect every image filename referenced by a list of enriched
+ * blocks (deduped).
+ */
+export function extractFilenamesFromBlocks(
+    blocks: OwidEnrichedGdocBlock[]
+): string[] {
+    const filenames = new Set<string>()
+    for (const block of blocks) {
+        traverseEnrichedBlock(block, (node) => {
+            for (const filename of extractFilenamesFromBlock(node)) {
+                filenames.add(filename)
+            }
+        })
+    }
     return [...filenames]
 }
 
@@ -325,7 +354,7 @@ function transformCalloutTokensInSpan(span: Span): Span[] {
     plaintextCalloutRegex.lastIndex = 0
 
     for (const match of text.matchAll(plaintextCalloutRegex)) {
-        const matchIndex = match.index!
+        const matchIndex = match.index
         // Add text before match
         if (matchIndex > lastIndex) {
             result.push({

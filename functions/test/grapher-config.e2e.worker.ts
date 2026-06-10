@@ -80,7 +80,7 @@ export default {
                 request.method === "POST" &&
                 url.pathname === "/__test__/seed-r2"
             ) {
-                const body = (await request.json()) as SeedR2Body
+                const body: SeedR2Body = await request.json()
                 const bucket = getBucket(env, body.bucket)
                 await bucket.put(body.key, body.value, {
                     httpMetadata: body.contentType

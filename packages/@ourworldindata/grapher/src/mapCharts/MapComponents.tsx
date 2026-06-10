@@ -22,6 +22,8 @@ import { calculateLightnessScore, isDarkColor } from "../color/ColorUtils"
 import { Halo } from "@ourworldindata/components"
 import { InteractionState } from "../interaction/InteractionState"
 
+import * as R from "remeda"
+
 export function BackgroundCountry<Feature extends RenderFeature>({
     feature,
     path,
@@ -68,7 +70,10 @@ export function CountryWithData<Feature extends RenderFeature>({
 
     const stroke =
         isHovered || isSelected ? HOVER_STROKE_COLOR : DEFAULT_STROKE_COLOR
-    const strokeWidth = getStrokeWidth({ isHovered, isSelected }) / strokeScale
+    const strokeWidth = R.round(
+        getStrokeWidth({ isHovered, isSelected }) / strokeScale,
+        3
+    )
     const strokeOpacity = hover?.background ? BLUR_STROKE_OPACITY : 1
 
     const fill = isProjection
@@ -118,7 +123,10 @@ export function CountryWithNoData<Feature extends RenderFeature>({
     const isHovered = hover?.active ?? false
 
     const stroke = isHovered || isSelected ? HOVER_STROKE_COLOR : "#aaa"
-    const strokeWidth = getStrokeWidth({ isHovered, isSelected }) / strokeScale
+    const strokeWidth = R.round(
+        getStrokeWidth({ isHovered, isSelected }) / strokeScale,
+        3
+    )
     const strokeOpacity = hover?.background ? BLUR_STROKE_OPACITY : 1
 
     const fillOpacity = hover?.background ? BLUR_FILL_OPACITY : 1
@@ -148,13 +156,14 @@ export function NoDataPattern({
     patternId: string
     scale?: number
 }): React.ReactElement {
+    const roundedScale = R.round(scale, 3)
     return (
         <pattern
             id={patternId}
             patternUnits="userSpaceOnUse"
             width="4"
             height="4"
-            patternTransform={`rotate(-45 2 2) scale(${scale})`}
+            patternTransform={`rotate(-45 2 2) scale(${roundedScale})`}
         >
             <path
                 d="M -1,2 l 6,0"
@@ -205,13 +214,15 @@ function DottedProjectedDataPattern({
     const lightness = calculateLightnessScore(color) ?? 0
     const opacity = dotOpacity ?? Math.max(1 - lightness, 0.1)
 
+    const roundedScale = R.round(scale, 3)
+
     return (
         <pattern
             id={patternId}
             patternUnits="userSpaceOnUse"
             width={patternSize}
             height={patternSize}
-            patternTransform={`rotate(45) scale(${scale})`}
+            patternTransform={`rotate(45) scale(${roundedScale})`}
         >
             {/* colored background */}
             <rect width={patternSize} height={patternSize} fill={color} />
@@ -240,6 +251,7 @@ export function InternalValueAnnotation({
     const { id, text, color, placedBounds, fontSize } = annotation
 
     const showHalo = showOutline && isDarkColor(color)
+    const strokeWidth = R.round(DEFAULT_STROKE_WIDTH / strokeScale, 3)
 
     return (
         <Halo id={id} outlineWidth={3} show={showHalo}>
@@ -250,7 +262,7 @@ export function InternalValueAnnotation({
                 fontSize={fontSize}
                 fontWeight={700}
                 fill={color}
-                strokeWidth={DEFAULT_STROKE_WIDTH / strokeScale}
+                strokeWidth={strokeWidth}
                 style={{ pointerEvents: "none" }}
             >
                 {text}
@@ -277,6 +289,8 @@ export function ExternalValueAnnotation({
         textBounds: placedBounds,
         direction,
     })
+    const lineStrokeWidth = R.round((0.5 * HOVER_STROKE_WIDTH) / strokeScale, 3)
+    const textStrokeWidth = R.round(DEFAULT_STROKE_WIDTH / strokeScale, 3)
 
     return (
         <g id={makeFigmaId(id)}>
@@ -286,14 +300,14 @@ export function ExternalValueAnnotation({
                 x2={markerEnd[0]}
                 y2={markerEnd[1]}
                 stroke={annotation.color}
-                strokeWidth={(0.5 * HOVER_STROKE_WIDTH) / strokeScale}
+                strokeWidth={lineStrokeWidth}
                 style={{ pointerEvents: "none" }}
             />
             <text
                 x={placedBounds.x}
                 y={placedBounds.y + placedBounds.height - 1}
                 fontSize={fontSize}
-                strokeWidth={DEFAULT_STROKE_WIDTH / strokeScale}
+                strokeWidth={textStrokeWidth}
                 fill={annotation.color}
                 fontWeight={700}
                 onPointerEnter={(e) =>

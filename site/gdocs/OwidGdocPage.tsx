@@ -1,11 +1,4 @@
 import * as _ from "lodash-es"
-import type {
-    Article,
-    ProfilePage,
-    Person,
-    Organization,
-    WithContext,
-} from "schema-dts"
 import { Head } from "../Head.js"
 import { SiteHeader } from "../SiteHeader.js"
 import { SiteFooter } from "../SiteFooter.js"
@@ -13,6 +6,7 @@ import { CitationMeta } from "../CitationMeta.js"
 import { OwidGdoc } from "./OwidGdoc.js"
 import {
     checkIsAuthor,
+    checkIsDataInsight,
     getFeaturedImageFilename,
     OwidGdoc as OwidGdocUnionType,
     SiteFooterContext,
@@ -28,17 +22,20 @@ import { match, P } from "ts-pattern"
 import {
     ARCHIVED_THUMBNAIL_FILENAME,
     ArchiveContext,
-    EnrichedBlockText,
+    OwidGdocDataInsightInterface,
     OwidGdocPostInterface,
-    OwidGdocAuthorInterface,
     OwidGdocProfileInterface,
 } from "@ourworldindata/types"
-import { DATA_INSIGHT_ATOM_FEED_PROPS } from "../SiteConstants.js"
+import {
+    DATA_INSIGHT_ATOM_FEED_PROPS,
+    DEFAULT_ATOM_FEED_PROPS,
+} from "../SiteConstants.js"
 import { Html } from "../Html.js"
 import { CLOUDFLARE_IMAGES_URL } from "../../settings/clientSettings.js"
 import { addPreferSmallFilenameToDataInsightImages } from "../gdocs/utils.js"
 import { AriaAnnouncerProvider } from "../AriaAnnouncerContext.js"
 import { AriaAnnouncer } from "../AriaAnnouncer.js"
+import { JsonLdArticle, JsonLdProfilePage } from "../jsonLd.js"
 
 declare global {
     interface Window {
@@ -67,7 +64,7 @@ function getPageDesc(gdoc: OwidGdocUnionType): string | undefined {
         .with({ content: { type: OwidGdocType.DataInsight } }, (match) => {
             const firstParagraph = match.content.body.find(
                 (block) => block.type === "text"
-            ) as EnrichedBlockText | undefined
+            )
             // different platforms truncate at different lengths, let's leave it up to them
             return firstParagraph
                 ? spansToUnformattedPlainText(firstParagraph.value)
@@ -97,126 +94,6 @@ function getPageDesc(gdoc: OwidGdocUnionType): string | undefined {
         .exhaustive()
 }
 
-type JsonLdAuthor = Person | Organization
-
-function makeJsonLdAuthors(
-    baseUrl: string,
-    gdoc: OwidGdocPostInterface | OwidGdocProfileInterface
-): JsonLdAuthor[] {
-    return gdoc.content.authors.map((gdocAuthor) => {
-        if (gdocAuthor.toLowerCase().includes("our world in data")) {
-            return {
-                "@type": "Organization",
-                name: "Our World in Data",
-                url: baseUrl,
-            } satisfies Organization
-        }
-        const author: Person = {
-            "@type": "Person",
-            name: gdocAuthor,
-        }
-        const linkedAuthor = gdoc.linkedAuthors?.find(
-            (linkedAuthor) => linkedAuthor.name === gdocAuthor
-        )
-        // URLs serve as unique IDs for authors, so we don't use the team page
-        // URL for authors, who don't have their own page.
-        if (linkedAuthor?.slug) {
-            author.url = getCanonicalUrl(baseUrl, {
-                slug: linkedAuthor.slug,
-                content: { type: OwidGdocType.Author },
-            })
-        }
-        return author
-    })
-}
-
-function JsonLdArticle({
-    gdoc,
-    baseUrl,
-    imageUrl,
-}: {
-    gdoc: OwidGdocPostInterface | OwidGdocProfileInterface
-    baseUrl: string
-    imageUrl?: string
-}) {
-    const data: WithContext<Article> = {
-        "@context": "https://schema.org",
-        "@type": "Article",
-        headline: gdoc.content.title,
-        image: imageUrl ? [imageUrl] : [],
-        // NOTE: We don't set dateModified. We have gdoc.updatedAt, but that's
-        // not correct because the semantics of these fields is different.
-        // gdoc.updatedAt is the time the gdoc row was updated in the database,
-        // even if the content hasn't changed and can be even earlier than
-        // gdoc.publishedAt for articles scheduled for publication into the
-        // future.
-        datePublished: gdoc.publishedAt?.toISOString(),
-        author: makeJsonLdAuthors(baseUrl, gdoc),
-    }
-    return (
-        <script
-            type="application/ld+json"
-            dangerouslySetInnerHTML={{
-                __html: JSON.stringify(data),
-            }}
-        />
-    )
-}
-
-function JsonLdProfilePage({
-    gdoc,
-    baseUrl,
-    imageUrl,
-}: {
-    gdoc: OwidGdocAuthorInterface
-    baseUrl: string
-    imageUrl?: string
-}) {
-    const mainAuthorId = `#${gdoc.slug}`
-    const data: WithContext<ProfilePage> = {
-        "@context": "https://schema.org",
-        "@type": "ProfilePage",
-        // NOTE: We don't set dateModified. We have gdoc.updatedAt, but that's
-        // not correct because the semantics of these fields is different.
-        // gdoc.updatedAt is the time the gdoc row was updated in the database,
-        // even if the content hasn't changed and can be even earlier than
-        // gdoc.publishedAt for articles scheduled for publication into the
-        // future.
-        dateCreated: gdoc.publishedAt?.toISOString(),
-        mainEntity: {
-            "@id": mainAuthorId,
-            "@type": "Person",
-            name: gdoc.content.title,
-            jobTitle: gdoc.content.role,
-            description: gdoc.content.bio
-                ?.map((block) => spansToUnformattedPlainText(block.value))
-                .join(" "),
-            image: imageUrl,
-            url: getCanonicalUrl(baseUrl, gdoc),
-        },
-        hasPart: gdoc.latestWorkLinks?.slice(0, 10).map((work) => {
-            return {
-                "@type": "Article",
-                headline: work.title,
-                url: getCanonicalUrl(baseUrl, {
-                    slug: work.slug,
-                    content: { type: OwidGdocType.Article },
-                }),
-                datePublished: work.publishedAt,
-                author: { "@id": mainAuthorId },
-            }
-        }),
-    }
-    return (
-        <script
-            type="application/ld+json"
-            dangerouslySetInnerHTML={{
-                __html: JSON.stringify(data),
-            }}
-        />
-    )
-}
-
 function isPostPredicate(
     gdoc: OwidGdocUnionType
 ): gdoc is OwidGdocPostInterface {
@@ -233,10 +110,40 @@ function isProfilePredicate(
     return gdoc.content.type === OwidGdocType.Profile
 }
 
-function isArticleLikePredicate(
+function isJsonLdArticlePredicate(
     gdoc: OwidGdocUnionType
-): gdoc is OwidGdocPostInterface | OwidGdocProfileInterface {
-    return isPostPredicate(gdoc) || isProfilePredicate(gdoc)
+): gdoc is
+    | OwidGdocPostInterface
+    | OwidGdocProfileInterface
+    | OwidGdocDataInsightInterface {
+    return (
+        isPostPredicate(gdoc) ||
+        isProfilePredicate(gdoc) ||
+        checkIsDataInsight(gdoc)
+    )
+}
+
+function getAtomFeedProps(gdoc: OwidGdocUnionType): {
+    title: string
+    href: string
+} {
+    if (gdoc.content.type === OwidGdocType.DataInsight)
+        return DATA_INSIGHT_ATOM_FEED_PROPS
+
+    if (
+        [OwidGdocType.TopicPage, OwidGdocType.LinearTopicPage].includes(
+            gdoc.content.type!
+        ) &&
+        gdoc.tags?.[0]
+    ) {
+        const topicName = gdoc.tags[0].name
+        return {
+            title: `Atom feed for ${topicName}`,
+            href: `/atom.xml?topics=${encodeURIComponent(topicName)}`,
+        }
+    }
+
+    return DEFAULT_ATOM_FEED_PROPS
 }
 
 export default function OwidGdocPage({
@@ -260,9 +167,9 @@ export default function OwidGdocPage({
     const pageTitle = getPageTitle(gdoc)
     const isOnArchivalPage = archiveContext?.type === "archive-page"
     const assetMaps = isOnArchivalPage ? archiveContext.assets : undefined
-    const isDataInsight = gdoc.content.type === OwidGdocType.DataInsight
+    const isDataInsight = checkIsDataInsight(gdoc)
     const isAuthor = checkIsAuthor(gdoc)
-    const isArticleLike = isArticleLikePredicate(gdoc)
+    const isJsonLdArticle = isJsonLdArticlePredicate(gdoc)
 
     let imageUrl
     if (
@@ -297,7 +204,7 @@ export default function OwidGdocPage({
                 pageDesc={pageDesc}
                 canonicalUrl={canonicalUrl}
                 imageUrl={imageUrl} // uriEncoding is taken care of inside the Head component
-                atom={isDataInsight ? DATA_INSIGHT_ATOM_FEED_PROPS : undefined}
+                atom={getAtomFeedProps(gdoc)}
                 baseUrl={baseUrl}
                 staticAssetMap={assetMaps?.static}
                 archiveContext={archiveContext}
@@ -310,7 +217,7 @@ export default function OwidGdocPage({
                         canonicalUrl={canonicalUrl}
                     />
                 )}
-                {isArticleLike && (
+                {isJsonLdArticle && (
                     <JsonLdArticle
                         gdoc={gdoc}
                         baseUrl={baseUrl}
@@ -336,6 +243,7 @@ export default function OwidGdocPage({
                 <SiteHeader
                     isOnHomepage={gdoc.content.type === OwidGdocType.Homepage}
                     archiveInfo={isOnArchivalPage ? archiveContext : undefined}
+                    isPreviewing={isPreviewing}
                 />
                 <div id="owid-document-root">
                     <AriaAnnouncerProvider>

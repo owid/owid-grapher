@@ -233,12 +233,7 @@ function parseGlobeRotationParam(
     if (value === undefined) return missing()
 
     const rotation = parseGlobeRotation(value)
-    if (
-        rotation &&
-        rotation.length === 2 &&
-        !isNaN(rotation[0]) &&
-        !isNaN(rotation[1])
-    ) {
+    if (rotation?.length === 2 && !isNaN(rotation[0]) && !isNaN(rotation[1])) {
         return valid(rotation)
     }
 
@@ -407,18 +402,16 @@ type ParsedValueTypeMap = {
     peerCountries: PeerCountryStrategyQueryParam
 }
 
-/**
- * Compile-time check: ensures ParsedValueTypeMap has all keys from GrapherQueryParams.
- * If a key is added to GrapherQueryParams but not ParsedValueTypeMap, this will cause
- * a type error.
- */
+// Compile-time check: ensures ParsedValueTypeMap has all keys from GrapherQueryParams.
+// If a key is added to GrapherQueryParams but not ParsedValueTypeMap, this will cause
+// a type error.
 type _AssertAllKeysPresent =
     keyof GrapherQueryParams extends keyof ParsedValueTypeMap
         ? keyof ParsedValueTypeMap extends keyof GrapherQueryParams
             ? true
             : never
         : never
-const _assertAllKeysPresent: _AssertAllKeysPresent = true
+void (true satisfies _AssertAllKeysPresent)
 
 /** Container for all parsed query parameters */
 export type ParsedGrapherQueryParams = {

@@ -9,12 +9,12 @@ export type Container =
     | "sticky-left-left-column"
     | "sticky-left-right-column"
     | "side-by-side"
-    | "summary"
     | "datapage"
     | "key-insight"
     | "about-page"
     | "author-header"
     | "data-insight"
+    | "latest-announcement"
 
 // Each container must have a default layout, usually just full-width
 type Layouts = { default: string; [key: string]: string }
@@ -38,6 +38,7 @@ const layouts: { [key in Container]: Layouts} = {
         ["cta"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["country-profile-selector"]: "span-cols-14 grid grid-cols-12-full-width",
         ["data-callout"]: "span-cols-14 grid grid-cols-12-full-width",
+        ["data-callout-group"]: "span-cols-14 grid grid-cols-12-full-width",
         ["default"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["divider"]: "col-start-2 span-cols-12",
         ["explorer"]: "col-start-2 span-cols-12",
@@ -74,6 +75,8 @@ const layouts: { [key in Container]: Layouts} = {
         ["pull-quote--left-center"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["pull-quote--right-center"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["pull-quote--right"]: "span-cols-14 grid grid-cols-12-full-width",
+        ["chart-rows"]: "col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
+        ["pull-chart"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["resource-panel"]: "col-start-11 span-cols-3 span-rows-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["recirc--left"]: "col-start-2 span-cols-3 span-rows-3 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["recirc--center"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
@@ -151,9 +154,6 @@ const layouts: { [key in Container]: Layouts} = {
         ["prominent-link"]: "grid grid-cols-6 span-cols-6 grid-sm-cols-12 span-sm-cols-12 ",
         ["cookie-notice"]: "span-cols-5 col-start-2 span-md-cols-6 col-md-start-1 span-sm-cols-12 col-sm-start-1"
     },
-    ["summary"]: {
-        ["default"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
-    },
     ["data-insight"]: {
         // no grid containers or grid sizing for data insights - they're always just a single column
         ["default"]: "",
@@ -161,6 +161,13 @@ const layouts: { [key in Container]: Layouts} = {
     ["key-insight"]: {
         ["default"]: "col-start-1 span-cols-5 col-md-start-1 span-md-cols-12",
         ["prominent-link"]: "grid grid-cols-6 span-cols-6 span-md-cols-12 grid-md-cols-12",
+    },
+    ["latest-announcement"]: {
+        ["default"]: "span-cols-8 span-sm-cols-6",
+        ["expandable-text"]: "grid grid-cols-8 grid-sm-cols-6",
+        ["image--narrow"]: "span-cols-6 span-sm-cols-5",
+        ["image--wide"]: "span-cols-6 span-sm-cols-5",
+        ["image--widest"]: "span-cols-6 span-sm-cols-5",
     },
 }
 

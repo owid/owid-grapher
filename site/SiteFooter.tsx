@@ -1,5 +1,5 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faRss } from "@fortawesome/free-solid-svg-icons"
+import { faInbox, faRss } from "@fortawesome/free-solid-svg-icons"
 import { ArchiveContext, SiteFooterContext } from "@ourworldindata/types"
 import { viteAssetsForSite } from "./viteUtils.js"
 import { ScriptLoadErrorDetector } from "./NoJSDetector.js"
@@ -9,6 +9,7 @@ import { SITE_TOOLS_CLASS } from "./SiteTools.js"
 import { OxfordAndGcdlLogos } from "./SiteLogos.js"
 import { IS_ARCHIVE } from "../settings/clientSettings.js"
 import { SEARCH_BASE_PATH } from "./search/searchUtils.js"
+import { buildLatestPagePath } from "./latest/latestUtils.js"
 
 interface SiteFooterProps {
     hideDonate?: boolean
@@ -26,11 +27,11 @@ type LinkData = { title: string; url: string }
 const EXPLORE_LINKS: LinkData[] = [
     { title: "Topics", url: "/#all-topics" },
     { title: "Data", url: SEARCH_BASE_PATH },
-    { title: "Insights", url: "/data-insights" },
+    { title: "Data Insights", url: buildLatestPagePath("data-insight") },
 ]
 
 const RESOURCE_LINKS: LinkData[] = [
-    { title: "Latest", url: "/latest" },
+    { title: "Latest", url: buildLatestPagePath() },
     { title: "SDG Tracker", url: "/sdgs" },
     { title: "Teaching with OWID", url: "/teaching" },
 ]
@@ -43,6 +44,7 @@ const LEGAL_LINKS: LinkData[] = [
         title: "Grapher license",
         url: "https://github.com/owid/owid-grapher/blob/master/LICENSE.md",
     },
+    { title: "Send feedback", url: "/feedback" },
 ]
 
 const FooterLink = (props: LinkData) => {
@@ -164,13 +166,15 @@ export const SiteFooter = (props: SiteFooterProps) => {
                         <a href="https://creativecommons.org/licenses/by/4.0/">
                             CC BY
                         </a>
-                        , unless stated otherwise. Tools and software we develop
-                        are open source under the{" "}
+                        , unless stated otherwise. The source code for our tools
+                        and software is made publicly available for transparency
+                        and educational reference under a{" "}
                         <a href="https://github.com/owid/owid-grapher/blob/master/LICENSE.md">
-                            MIT license
+                            custom license
                         </a>
-                        . Third-party materials, including some charts and data,
-                        are subject to third-party licenses. See our{" "}
+                        . Re-use requires permission. Third-party materials,
+                        including some charts and data, are subject to
+                        third-party licenses. See our{" "}
                         <a href={`${linkBaseUrl}/faqs`}>FAQs</a> for more
                         details.
                     </p>
@@ -206,6 +210,12 @@ export const SiteFooter = (props: SiteFooterProps) => {
                                 <FontAwesomeIcon icon={social.icon} />
                             </a>
                         ))}
+                        <a
+                            href="/subscribe"
+                            data-track-note="footer_social_email"
+                        >
+                            <FontAwesomeIcon icon={faInbox} />
+                        </a>
                     </div>
                     <div className="footer-base__legal">
                         <FooterLinkList links={LEGAL_LINKS} />

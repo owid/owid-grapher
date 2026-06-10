@@ -1,0 +1,41 @@
+@import "../../../../../packages/@ourworldindata/components/src/styles/colors.scss";
+@import "../../../../../packages/@ourworldindata/grapher/src/core/variables.scss";
+
+.picker {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    .picker__description {
+        margin: 0;
+        font-size: 12px;
+        color: $light-text;
+        font-style: italic;
+    }
+
+    .picker__label {
+        margin: 0;
+        font-size: 14px;
+    }
+
+    .picker__dropdown {
+        max-width: 240px;
+    }
+
+    .picker__swatches {
+        display: flex;
+        gap: 8px;
+    }
+
+    .picker__swatch {
+        width: 40px;
+        height: 40px;
+        border-radius: 6px;
+        border: 3px solid transparent;
+        cursor: pointer;
+    }
+
+    .picker__swatch--selected {
+        border-color: #222;
+    }
+}

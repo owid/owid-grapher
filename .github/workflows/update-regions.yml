@@ -1,52 +1,52 @@
 name: "Update regions"
 
 on:
-    schedule:
-        - cron: "0 8 * * 3" # every Wed at 8am
-    workflow_dispatch:
+  schedule:
+    - cron: "0 8 * * 3" # every Wed at 8am
+  workflow_dispatch:
 
 jobs:
-    update-regions:
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout repository
-              uses: actions/checkout@v5
+  update-regions:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
 
-            - uses: ./.github/actions/setup-node-yarn-deps
+      - uses: ./.github/actions/setup-node-yarn-deps
 
-            - name: Get current date
-              id: date
-              run: echo "date=$(date -u '+%Y-%m-%d')" >> $GITHUB_OUTPUT
-              shell: bash
+      - name: Get current date
+        id: date
+        run: echo "date=$(date -u '+%Y-%m-%d')" >> $GITHUB_OUTPUT
+        shell: bash
 
-            - name: Update regions
-              run: yarn tsx devTools/regionsUpdater/update.ts
-              shell: bash
+      - name: Update regions
+        run: yarn tsx devTools/regionsUpdater/update.ts
+        shell: bash
 
-            - name: Check if there are any git changes
-              id: check_changes
-              run: |
-                  git diff --exit-code || echo "has_changes=true" >> $GITHUB_OUTPUT
-              shell: bash
+      - name: Check if there are any git changes
+        id: check_changes
+        run: |
+          git diff --exit-code || echo "has_changes=true" >> $GITHUB_OUTPUT
+        shell: bash
 
-            - name: Create Pull Request
-              uses: peter-evans/create-pull-request@v7
-              if: steps.check_changes.outputs.has_changes == 'true'
-              with:
-                  token: ${{ secrets.GH_OWIDBOT_ACCESS_TOKEN }}
-                  commit-message: "🤖 update regions [${{ steps.date.outputs.date }}]"
-                  title: "🤖 Update regions [${{ steps.date.outputs.date }}]"
-                  body: |
-                      Automated update of regions data
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v7
+        if: steps.check_changes.outputs.has_changes == 'true'
+        with:
+          token: ${{ secrets.GH_OWIDBOT_ACCESS_TOKEN }}
+          commit-message: "🤖 update regions [${{ steps.date.outputs.date }}]"
+          title: "🤖 Update regions [${{ steps.date.outputs.date }}]"
+          body: |
+            Automated update of regions data
 
-                      TODOs:
-                      - [ ] Check if there were any country renames, and if so:
-                          - [ ] Create redirects from old to new slugs
-                          - [ ] Take extra care :)
-                  branch: "bot/update-regions-${{ steps.date.outputs.date }}"
-                  base: "master"
-                  add-paths: "packages/@ourworldindata/utils/src/regions/regions.data.ts"
+            TODOs:
+            - [ ] Check if there were any country renames, and if so:
+                - [ ] Create redirects from old to new slugs
+                - [ ] Take extra care :)
+          branch: "bot/update-regions-${{ steps.date.outputs.date }}"
+          base: "master"
+          add-paths: "packages/@ourworldindata/utils/src/regions/regions.data.ts"
 
 permissions:
-    contents: write
-    pull-requests: write
+  contents: write
+  pull-requests: write

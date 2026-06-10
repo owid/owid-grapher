@@ -8,7 +8,7 @@ import {
 } from "@ourworldindata/explorer"
 import { renderSvgToPng } from "./grapherRenderer.js"
 import { error, png } from "itty-router"
-import { createZip, File } from "littlezipper"
+import { createZip, UncompressedFile } from "littlezipper"
 import { Bounds, slugify, Url } from "@ourworldindata/utils"
 import {
     getEntityNamesParam,
@@ -101,7 +101,7 @@ export async function handleThumbnailRequestForExplorerView(
                 },
             })
         } else {
-            return png(await renderSvgToPng(svg, options, "#fff"))
+            return png(await renderSvgToPng(svg, options))
         }
     } catch (e) {
         console.error(e)
@@ -226,7 +226,7 @@ export async function fetchZipForExplorerView(
 
         const filename = slugify(grapherState.displayTitle)
 
-        const zipContent: File[] = [
+        const zipContent: UncompressedFile[] = [
             {
                 path: `${filename}.metadata.json`,
                 data: JSON.stringify(metadata, undefined, 2),

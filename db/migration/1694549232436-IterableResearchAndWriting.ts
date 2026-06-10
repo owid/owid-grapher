@@ -4,8 +4,8 @@ import { MigrationInterface, QueryRunner } from "typeorm"
 export class IterableResearchAndWriting1694549232436 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await migrateResearchAndWritingBlocks(queryRunner, (node) => {
-            const primary = node.primary as any
-            const secondary = node.secondary as any
+            const primary = node.primary
+            const secondary = node.secondary
             node.primary = [primary]
             node.secondary = [secondary]
         })
@@ -13,8 +13,8 @@ export class IterableResearchAndWriting1694549232436 implements MigrationInterfa
 
     public async down(queryRunner: QueryRunner): Promise<void> {
         await migrateResearchAndWritingBlocks(queryRunner, (node) => {
-            const primary = node.primary as any
-            const secondary = node.secondary as any
+            const primary = node.primary
+            const secondary = node.secondary
             node.primary = primary[0]
             node.secondary = secondary[0]
         })

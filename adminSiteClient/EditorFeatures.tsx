@@ -1,4 +1,5 @@
 import { computed, makeObservable } from "mobx"
+import { SortBy } from "@ourworldindata/types"
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
 
 // Responsible for determining what parts of the editor should be shown, based on the
@@ -54,7 +55,9 @@ export class EditorFeatures {
             this.grapherState.hasSlopeChart ||
             this.grapherState.hasStackedBar ||
             this.grapherState.hasStackedArea ||
-            this.grapherState.hasScatter
+            this.grapherState.hasScatter ||
+            (this.grapherState.hasDumbbellChart &&
+                this.grapherState.yColumnSlugs.length <= 1)
         )
     }
 
@@ -110,22 +113,35 @@ export class EditorFeatures {
     }
 
     @computed get canSpecifySortOrder() {
-        return (
-            this.grapherState.hasStackedDiscreteBar ||
-            this.grapherState.hasDiscreteBar ||
-            this.grapherState.hasMarimekko
-        )
+        return this.grapherState.availableSortKeysAcrossChartTypes.length > 0
     }
 
     @computed get canSortByColumn() {
-        return (
-            this.grapherState.hasStackedDiscreteBar ||
-            this.grapherState.hasMarimekko
+        return this.grapherState.availableSortKeysAcrossChartTypes.includes(
+            SortBy.column
         )
     }
 
     @computed get canHideTotalValueLabel() {
         return this.grapherState.hasStackedDiscreteBar
+    }
+
+    @computed get canConfigureDumbbell() {
+        return this.grapherState.hasDumbbellChart
+    }
+
+    @computed get canConfigureDumbbellConnectorStyle() {
+        return (
+            this.grapherState.hasDumbbellChart &&
+            this.grapherState.yColumnSlugs.length > 1
+        )
+    }
+
+    @computed get canConfigureDumbbellColors() {
+        return (
+            this.grapherState.hasDumbbellChart &&
+            this.grapherState.yColumnSlugs.length === 1
+        )
     }
 
     @computed get canCustomizeVariableType() {
@@ -168,17 +184,6 @@ export class EditorFeatures {
         return (
             !this.grapherState.canChangeEntity &&
             !this.grapherState.canSelectMultipleEntities
-        )
-    }
-
-    @computed get showTimeAnnotationInTitleToggle() {
-        return (
-            !this.grapherState.hasTimeline ||
-            !(
-                this.grapherState.hasDiscreteBar ||
-                this.grapherState.hasStackedDiscreteBar ||
-                this.grapherState.hasMarimekko
-            )
         )
     }
 

@@ -17,3 +17,15 @@ export type EnrichedBlockDataCallout = {
     url: string
     content: OwidEnrichedGdocBlock[]
 } & EnrichedBlockWithParseErrors
+
+export type RawBlockDataCalloutGroup = {
+    type: "data-callout-group"
+    value: {
+        content?: OwidRawGdocBlock[]
+    }
+}
+
+export type EnrichedBlockDataCalloutGroup = {
+    type: "data-callout-group"
+    content: OwidEnrichedGdocBlock[]
+} & EnrichedBlockWithParseErrors

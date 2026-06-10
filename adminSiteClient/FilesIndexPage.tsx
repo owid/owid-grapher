@@ -1,4 +1,4 @@
-import * as R from "remeda"
+import * as _ from "lodash-es"
 import React, { useContext, useState, useMemo, useEffect } from "react"
 import { useHistory, useLocation } from "react-router-dom"
 import { Flex, Input, Breadcrumb, Space, Tooltip } from "antd"
@@ -18,8 +18,10 @@ import {
     highlightFunctionForSearchWords,
 } from "../adminShared/search.js"
 
+type FileMapOrFile = DbPlainFile | FileMap
+
 type FileMap = {
-    [key: string]: DbPlainFile | FileMap
+    [key: string]: FileMapOrFile
 }
 
 async function fetchFiles(admin: Admin): Promise<FileMap> {
@@ -43,7 +45,7 @@ async function fetchFiles(admin: Admin): Promise<FileMap> {
     }, {} as FileMap)
 }
 
-function checkIsFile(node: FileMap[string]): node is DbPlainFile {
+function checkIsFile(node: FileMapOrFile): node is DbPlainFile {
     return "filename" in node
 }
 
@@ -124,7 +126,7 @@ function FileMapViewer({
     }
 
     const pathSegments = currentPath.split("/").filter(Boolean)
-    const currentNode = R.pathOr(fileMap, pathSegments as any, fileMap)
+    const currentNode: FileMapOrFile = _.get(fileMap, pathSegments, fileMap)
 
     return (
         <div>

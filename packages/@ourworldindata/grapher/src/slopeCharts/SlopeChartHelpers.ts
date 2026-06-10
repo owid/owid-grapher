@@ -5,6 +5,7 @@ import {
     ScaleType,
     SeriesName,
 } from "@ourworldindata/utils"
+import { Time } from "@ourworldindata/types"
 import { VerticalAxis } from "../axis/Axis"
 import {
     PlacedSlopeChartSeries,
@@ -24,6 +25,22 @@ export function getYAxisConfigDefaults(
         nice: config?.scaleType !== ScaleType.log,
         // Default to 0 if not set
         min: 0,
+    }
+}
+
+export function getXAxisConfigSettings(
+    config: AxisConfigInterface | undefined,
+    { startTime, endTime }: { startTime: Time; endTime: Time }
+): AxisConfigInterface {
+    return {
+        ticks: [
+            { value: startTime, priority: 1, solid: true },
+            { value: endTime, priority: 1, solid: true },
+        ],
+        // hideAxis is reinterpreted as hideTickLabels for slope chart x-axes
+        // since the vertical lines should always be visible
+        hideTickLabels: config?.hideTickLabels || config?.hideAxis,
+        hideAxis: false,
     }
 }
 

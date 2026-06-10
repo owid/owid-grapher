@@ -12,7 +12,7 @@ export const GdocsAdd = ({ onAdd }: { onAdd: (id: string) => void }) => {
     const [documentUrl, setDocumentUrl] = React.useState("")
     const store = useGdocsStore()
 
-    const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    const onSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
         e.preventDefault()
 
         const [, id] = documentUrl.match(gdocUrlRegex) || []

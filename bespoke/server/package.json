@@ -1,0 +1,8 @@
+{
+    "name": "@owid/bespoke-dev-server",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "dev": "npx tsx devServer.ts"
+    }
+}

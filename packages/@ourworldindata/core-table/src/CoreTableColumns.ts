@@ -497,12 +497,7 @@ export abstract class AbstractCoreColumn<
         EntityName,
         OwidVariableRow<JS_TYPE>[]
     > {
-        const map = new Map<EntityName, OwidVariableRow<JS_TYPE>[]>()
-        this.owidRows.forEach((row) => {
-            if (!map.has(row.entityName)) map.set(row.entityName, [])
-            map.get(row.entityName)!.push(row)
-        })
-        return map
+        return Map.groupBy(this.owidRows, (row) => row.entityName)
     }
 
     @imemo get owidRowByEntityNameAndTime(): Map<
@@ -562,6 +557,22 @@ export abstract class AbstractCoreColumn<
                 .set(row.originalTime, row.value)
         })
         return valueByEntityNameAndTime
+    }
+
+    // Not using owidRows for performance reasons
+    @imemo get latestValueByEntityName(): Map<EntityName, JS_TYPE> {
+        const map = new Map<EntityName, JS_TYPE>()
+
+        const entityNames = this.allEntityNames
+        const values = this.values
+
+        // The table is sorted by time, so later rows overwrite earlier ones,
+        // leaving each entity mapped to its latest value
+        for (let i = 0; i < values.length; i++) {
+            map.set(entityNames[i], values[i])
+        }
+
+        return map
     }
 }
 
@@ -993,7 +1004,7 @@ class QuarterColumn<
 > extends TimeColumn<TABLE_TYPE, DEF_TYPE> {
     preposition = "in"
 
-    private static regEx = /^([+-]?\d+)-Q([1-4])$/
+    private static readonly regEx = /^([+-]?\d+)-Q([1-4])$/
 
     override parse(val: unknown): number | ErrorValue {
         // skip parsing if a date is a number, it's already been parsed
@@ -1073,7 +1084,4 @@ export const ColumnTypeMap = {
 // Keep this in. This is used as a compile-time check that ColumnTypeMap covers all
 // column names defined in ColumnTypeNames, since that is quite difficult to ensure
 // otherwise without losing inferred type information.
-
-const _ColumnTypeMap: {
-    [key in ColumnTypeNames]: unknown
-} = ColumnTypeMap
+ColumnTypeMap satisfies { [key in ColumnTypeNames]: unknown }

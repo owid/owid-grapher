@@ -24,6 +24,7 @@ import {
     autoDetectYColumnSlugs,
     getDefaultFailMessage,
     getShortNameForEntity,
+    isToleranceDistanceValid,
     makeSelectionArray,
 } from "../chart/ChartUtils"
 import { ColorScheme } from "../color/ColorScheme"
@@ -39,7 +40,7 @@ import {
 } from "../lineCharts/LineChartHelpers"
 import { domainExtent } from "@ourworldindata/utils"
 import { AxisConfig } from "../axis/AxisConfig"
-import { VerticalAxis } from "../axis/Axis"
+import { HorizontalAxis, VerticalAxis } from "../axis/Axis"
 
 export class SlopeChartState implements ChartState {
     manager: SlopeChartManager
@@ -276,20 +277,7 @@ export class SlopeChartState implements ChartState {
         // if the start or end value is missing, we can't draw the slope
         if (start?.value === undefined || end?.value === undefined) return false
 
-        // sanity check (might happen if tolerance is enabled)
-        if (start.originalTime >= end.originalTime) return false
-
-        const isToleranceAppliedToStartValue =
-            start.originalTime !== this.startTime
-        const isToleranceAppliedToEndValue = end.originalTime !== this.endTime
-
-        // if tolerance has been applied to one of the values, then we require
-        // a minimal distance between the original times
-        if (isToleranceAppliedToStartValue || isToleranceAppliedToEndValue) {
-            return end.originalTime - start.originalTime >= tolerance
-        }
-
-        return true
+        return isToleranceDistanceValid({ start, end, tolerance })
     }
 
     // Usually we drop rows with missing data in the transformTable function.
@@ -332,13 +320,7 @@ export class SlopeChartState implements ChartState {
         EntityName,
         RawSlopeChartSeries[]
     > {
-        const map = new Map<EntityName, RawSlopeChartSeries[]>()
-        this.rawSeries.forEach((series) => {
-            const { entityName } = series
-            if (!map.has(entityName)) map.set(entityName, [])
-            map.get(entityName)!.push(series)
-        })
-        return map
+        return Map.groupBy(this.rawSeries, (series) => series.entityName)
     }
 
     @computed get series(): SlopeChartSeries[] {
@@ -375,6 +357,17 @@ export class SlopeChartState implements ChartState {
         axis.range = yRange
         axis.formatColumn = this.yColumns[0]
         axis.label = ""
+        return axis
+    }
+
+    toHorizontalAxis(
+        config: AxisConfig,
+        { xRange }: { xRange: [number, number] }
+    ): HorizontalAxis {
+        const axis = config.toHorizontalAxis()
+        axis.domain = this.xDomain
+        axis.range = xRange
+        axis.formatColumn = this.inputTable.timeColumn
         return axis
     }
 

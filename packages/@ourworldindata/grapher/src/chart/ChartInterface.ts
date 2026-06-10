@@ -5,6 +5,8 @@ import {
     SeriesStrategy,
     Color,
     ChartErrorInfo,
+    SideWidths,
+    SortBy,
 } from "@ourworldindata/types"
 import { ColorScale } from "../color/ColorScale"
 import { HorizontalAxis, VerticalAxis } from "../axis/Axis"
@@ -60,6 +62,9 @@ export interface ChartState {
      * doesn't make sense.
      */
     availableFacetStrategies?: FacetStrategy[]
+
+    /** Sort keys this chart type supports */
+    availableSortKeys?: SortBy[]
 }
 
 /** Interface implemented by all chart component classes */
@@ -80,4 +85,10 @@ export interface ChartInterface {
      * Only relevant for StackedBar charts.
      */
     shouldUseValueBasedColorScheme?: boolean
+
+    /**
+     * Width of the vertical labels rendered on each side of the chart's
+     * plotting area.
+     */
+    verticalLabelWidths?: SideWidths
 }

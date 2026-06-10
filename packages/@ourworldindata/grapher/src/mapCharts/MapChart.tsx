@@ -13,8 +13,7 @@ import {
     HorizontalColorLegendManager,
     HorizontalNumericColorLegend,
 } from "../legend/HorizontalColorLegends"
-import { select } from "d3-selection"
-import { easeCubic } from "d3-ease"
+
 import { MapTooltip } from "./MapTooltip"
 import { TooltipState } from "../tooltip/Tooltip.js"
 import { CoreColumn } from "@ourworldindata/core-table"
@@ -246,33 +245,7 @@ export class MapChart
         }
     }
 
-    @computed private get disableIntroAnimation(): boolean {
-        // The intro animation transitions from a neutral color to the actual color.
-        // That doesn't work if a pattern is used to fill the country outlines,
-        // which is the case for projected data.
-        if (this.mapColumnInfo.type !== "historical") return true
-
-        return !!this.manager.disableIntroAnimation
-    }
-
     override componentDidMount(): void {
-        if (!this.disableIntroAnimation) {
-            select(this.base.current)
-                .selectAll(`.${MAP_CHART_CLASSNAME} path`)
-                .attr("data-fill", function () {
-                    return (this as SVGPathElement).getAttribute("fill")
-                })
-                .attr("fill", this.colorScale.noDataColor)
-                .transition()
-                .duration(500)
-                .ease(easeCubic)
-                .attr("fill", function () {
-                    return (this as SVGPathElement).getAttribute("data-fill")
-                })
-                .attr("data-fill", function () {
-                    return (this as SVGPathElement).getAttribute("fill")
-                })
-        }
         exposeInstanceOnWindow(this)
 
         document.addEventListener("keydown", this.onDocumentKeyDown)

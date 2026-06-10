@@ -4,7 +4,7 @@ import { observer } from "mobx-react"
 import { Bounds } from "@ourworldindata/utils"
 import { DEFAULT_GRAPHER_BOUNDS } from "../core/GrapherConstants.js"
 import { CaptionedChartManager } from "../captionedChart/CaptionedChart.js"
-import { GRAPHER_BACKGROUND_DEFAULT } from "../color/ColorConstants.js"
+import { GRAPHER_BACKGROUND } from "../color/ColorConstants.js"
 import { getChartSvgProps, NoDataPattern } from "./ChartUtils.js"
 
 interface StaticChartWrapperProps {
@@ -48,10 +48,6 @@ export class StaticChartWrapper extends React.Component<StaticChartWrapperProps>
         )
     }
 
-    @computed private get backgroundColor(): string {
-        return this.manager.backgroundColor ?? GRAPHER_BACKGROUND_DEFAULT
-    }
-
     @computed private get noDataPattern(): React.ReactElement {
         return (
             <defs>
@@ -82,7 +78,7 @@ export class StaticChartWrapper extends React.Component<StaticChartWrapperProps>
                 {includeBackgroundRect && (
                     <rect
                         className="background-fill"
-                        fill={this.backgroundColor}
+                        fill={GRAPHER_BACKGROUND}
                         width={width}
                         height={height}
                     />

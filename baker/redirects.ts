@@ -9,6 +9,7 @@ import {
     getRecentChartSlugRedirects,
 } from "./redirectsFromDb.js"
 import { getRecentMultiDimRedirects } from "../db/model/MultiDimRedirects.js"
+import { buildLatestPagePath } from "../site/latest/latestUtils.js"
 
 export const getCloudflarePagesRedirects = async (
     knex: db.KnexReadonlyTransaction
@@ -23,6 +24,26 @@ export const getCloudflarePagesRedirects = async (
 
         // Deprecated country index pages
         "/countries /search 301",
+
+        // Retired /data-insights index page (bare + paginated URLs only)
+        // collapses to the unified /latest feed filtered to data insights.
+        // We enumerate numeric pages explicitly rather than using a
+        // `/data-insights/*` wildcard: the wildcard would 301 any unknown
+        // slug, and if a browser or CDN cached that redirect we'd shadow
+        // the slug if we ever publish it. Unlikely, but cheap to avoid.
+        // Numeric-only slugs can't collide with real (kebab-case)
+        // permalinks. Range covers the observed historical max page
+        // count (~22) plus headroom.
+        //
+        // Per Metabase as of 2026-05-01, paginated URLs (/data-insights/2,
+        // /3, …) still get ~7.5k pageviews / 90 days combined. Re-check
+        // after 2026-08-01: if traffic has decayed to noise, drop these.
+        `/data-insights ${buildLatestPagePath("data-insight")} 301`,
+        ...Array.from(
+            { length: 25 },
+            (_unused, i) =>
+                `/data-insights/${i + 1} ${buildLatestPagePath("data-insight")} 301`
+        ),
     ]
 
     // Dynamic redirects are all redirects that contain an asterisk
@@ -45,9 +66,21 @@ export const getCloudflarePagesRedirects = async (
         "/slides/Max_PPT_presentations/* https://www.maxroser.com/slides/Max_PPT_presentations/:splat 301",
         "/slides/Max_Interactive_Presentations/* https://www.maxroser.com/slides/Max_Interactive_Presentations/:splat 301",
 
-        // Entries and blog (we should keep these for a while)
+        // Entries and blog (we should keep these for a while).
         "/entries/* /:splat 301",
-        "/blog/* /latest/:splat 301",
+
+        // The retired SSR /latest exposed /latest/page/:pageno; the SPA
+        // uses infinite scroll and has no concept of pages, so the page
+        // number is dropped on redirect.
+        "/latest/page/* /latest 301",
+
+        // Was `/blog/* /latest/:splat 301`, presumably to forward
+        // /blog/page/N to the SSR /latest's matching /latest/page/N. With
+        // those paginated routes gone (see above) and /latest having no
+        // /:slug route, the :splat lands on 404 for every input. Drop it.
+        // Specific /blog/<slug> recoveries live in DB-backed siteRedirects
+        // (emitted before this rule) and still win.
+        "/blog/* /latest 301",
 
         // Backwards compatibility-- grapher url style
         "/chart-builder/* /grapher/:splat 301",

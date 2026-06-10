@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest"
 import { parseExplorer } from "./explorerParser.js"
 
-describe("parseExplorer", () => {
+describe(parseExplorer, () => {
     it("parses table blocks correctly", () => {
         const tsv = `table
 \tmyDataVar\tanotherVar

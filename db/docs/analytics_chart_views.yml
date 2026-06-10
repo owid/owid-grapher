@@ -1,0 +1,29 @@
+metadata:
+  description: |
+    Chart view event counts imported from external analytics system.
+    Counts how many times each chart or explorer/multi-dim view was viewed
+    (scrolled into viewport), regardless of which page it appeared on.
+
+    Unlike analytics_pageviews (which counts page loads), this table counts
+    actual chart visibility events including embedded charts in articles,
+    topic pages, and iframes.
+
+    Availability:
+    - Production and staging: populated via analytics pipeline
+    - Local development: empty by default
+
+fields:
+  day:
+    description: Snapshot date (max day in dataset)
+  chart_slug:
+    description: Chart slug extracted from URL (e.g., "life-expectancy")
+  view_config_id:
+    description: Dimension config ID (empty string if no config)
+  type:
+    description: Type of view - "explorer", "multidim", or "grapher_chart"
+  views_7d:
+    description: Rolling 7-day view count
+  views_14d:
+    description: Rolling 14-day view count
+  views_365d:
+    description: Rolling 365-day view count

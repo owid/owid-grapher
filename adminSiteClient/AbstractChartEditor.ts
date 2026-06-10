@@ -57,6 +57,7 @@ export interface AbstractChartEditorManager {
     patchConfig: GrapherInterface
     parentConfig?: GrapherInterface
     isInheritanceEnabled?: boolean
+    variableIdsByCatalogPath?: Record<string, number | null>
 }
 
 export interface References {
@@ -102,7 +103,7 @@ export abstract class AbstractChartEditor<
     // if inheritance is enabled, the parent config is applied to grapherState
     isInheritanceEnabled: boolean | undefined = undefined
 
-    private disposers: IReactionDisposer[] = []
+    private readonly disposers: IReactionDisposer[] = []
 
     constructor(props: { manager: Manager }) {
         makeObservable(this, {
@@ -170,6 +171,12 @@ export abstract class AbstractChartEditor<
     }
 
     abstract get references(): References | undefined
+
+    @computed get variableIdsByCatalogPath():
+        | Record<string, number | null>
+        | undefined {
+        return this.manager.variableIdsByCatalogPath
+    }
 
     /** original grapher config used to init the grapherState instance */
     @computed get originalGrapherConfig(): GrapherInterface {

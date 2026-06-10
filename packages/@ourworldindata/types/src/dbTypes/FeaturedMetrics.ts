@@ -14,6 +14,7 @@ export interface DbInsertFeaturedMetric {
     parentTagId: number
     ranking: number
     incomeGroup: FeaturedMetricIncomeGroup
+    boostInSearch?: boolean
 }
 
 export type DbPlainFeaturedMetric = Required<DbInsertFeaturedMetric>

@@ -70,7 +70,6 @@ export async function mapSlugsToConfigs(
     {
         slug: string
         id: number
-        forceDatapage: boolean
         config: GrapherInterface
     }[]
 > {
@@ -79,17 +78,16 @@ export async function mapSlugsToConfigs(
             slug: string
             config: string
             id: number
-            forceDatapage: number
         }>(
             knex,
             `-- sql
-                SELECT csr.slug AS slug, cc.full AS config, c.id AS id, c.forceDatapage AS forceDatapage
+                SELECT csr.slug AS slug, cc.full AS config, c.id AS id
                 FROM chart_slug_redirects csr
                 JOIN charts c ON csr.chart_id = c.id
                 JOIN chart_configs cc ON cc.id = c.configId
                 WHERE cc.full ->> "$.isPublished" = "true"
                 UNION
-                SELECT cc.slug, cc.full AS config, c.id AS id, c.forceDatapage AS forceDatapage
+                SELECT cc.slug, cc.full AS config, c.id AS id
                 FROM charts c
                 JOIN chart_configs cc ON cc.id = c.configId
                 WHERE cc.full ->> "$.isPublished" = "true"
@@ -98,7 +96,6 @@ export async function mapSlugsToConfigs(
         .then((results) =>
             results.map((result) => ({
                 ...result,
-                forceDatapage: Boolean(result.forceDatapage),
                 config: JSON.parse(result.config),
             }))
         )
@@ -279,7 +276,7 @@ export async function getChartConfigBySlug(
     knex: db.KnexReadonlyTransaction,
     slug: string
 ): Promise<
-    Pick<DbPlainChart, "id" | "forceDatapage"> & {
+    Pick<DbPlainChart, "id"> & {
         config: DbEnrichedChartConfig["full"]
     }
 > {
@@ -290,7 +287,7 @@ export async function getChartConfigBySlug(
     >(
         knex,
         `-- sql
-            SELECT c.id, c.forceDatapage, cc.full as config
+            SELECT c.id, cc.full as config
             FROM charts c
             JOIN chart_configs cc ON c.configId = cc.id
             WHERE cc.slug = ?`,
@@ -299,11 +296,7 @@ export async function getChartConfigBySlug(
 
     if (!row) throw new JsonError(`No chart found for slug ${slug}`, 404)
 
-    return {
-        id: row.id,
-        forceDatapage: Boolean(row.forceDatapage),
-        config: parseChartConfig(row.config),
-    }
+    return { id: row.id, config: parseChartConfig(row.config) }
 }
 
 export async function getForceDatapageByChartId(

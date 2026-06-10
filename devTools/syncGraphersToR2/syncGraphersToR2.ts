@@ -122,7 +122,7 @@ async function syncWithR2(
 
     // Delete the files in R2 that are no longer needed
     await pMap(
-        [...hashesOfFilesToDelete.keys()],
+        hashesOfFilesToDelete.keys(),
         async (key) => {
             const deleteObjectCommandInput: DeleteObjectCommandInput = {
                 Bucket: GRAPHER_CONFIG_R2_BUCKET,

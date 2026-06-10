@@ -17,6 +17,7 @@ import {
     OwidGdocType,
 } from "@ourworldindata/types"
 import {
+    checkIsChronologicalGdoc,
     checkIsDataInsight,
     checkIsGdocPostExcludingFragments,
     checkShouldDataCalloutRender,
@@ -34,13 +35,17 @@ import {
     checkIsLightningUpdate,
 } from "../../adminSiteClient/gdocsDeploy.js"
 import {
-    indexIndividualGdocPost,
-    removeIndividualGdocPostFromIndex,
+    indexIndividualGdoc,
+    removeIndividualGdocFromIndex,
     getIndividualGdocRecords,
     getPreprocessedIndexableText,
     indexIndividualProfile,
     removeIndividualProfileFromIndex,
 } from "../../baker/algolia/utils/pages.js"
+import {
+    indexIndividualGdocInChronological,
+    removeIndividualGdocFromChronological,
+} from "../../baker/algolia/utils/pagesChronological.js"
 import { GdocAbout } from "../../db/model/Gdoc/GdocAbout.js"
 import { GdocAuthor } from "../../db/model/Gdoc/GdocAuthor.js"
 import { getMinimalGdocPostsByIds } from "../../db/model/Gdoc/GdocBase.js"
@@ -149,7 +154,7 @@ export async function getGdocCalloutCoverage(
     for (const node of gdoc.content.body ?? []) {
         traverseEnrichedBlock(node, (b) => {
             if (b.type === "data-callout") {
-                dataCalloutBlocks.push(b as EnrichedBlockDataCallout)
+                dataCalloutBlocks.push(b)
             }
         })
     }
@@ -335,14 +340,22 @@ async function indexAndBakeGdocIfNeccesary(
     const nextJson = nextGdoc.toJSON()
     const hasChanges = checkHasChanges(prevGdoc, nextGdoc)
     const action = getPublishingAction(prevJson, nextJson)
-    const isGdocPost = checkIsGdocPostExcludingFragments(nextJson)
+    const wasIndexedInPages =
+        checkIsGdocPostExcludingFragments(prevJson) ||
+        checkIsDataInsight(prevJson)
+    const shouldIndexInPages =
+        checkIsGdocPostExcludingFragments(nextJson) ||
+        checkIsDataInsight(nextJson)
+    const wasProfile = checkIsProfile(prevJson)
     const isProfile = checkIsProfile(nextJson)
+    const wasChronologicalPost = checkIsChronologicalGdoc(prevJson)
+    const isChronologicalPost = checkIsChronologicalGdoc(nextJson)
 
     await match(action)
         .with(GdocPublishingAction.SavingDraft, _.noop)
         .with(GdocPublishingAction.Publishing, async () => {
-            if (isGdocPost) {
-                await indexIndividualGdocPost(
+            if (shouldIndexInPages) {
+                await indexIndividualGdoc(
                     nextJson,
                     trx,
                     // If the gdoc is being published for the first time, prevGdoc.slug will be undefined
@@ -353,14 +366,20 @@ async function indexAndBakeGdocIfNeccesary(
             if (isProfile) {
                 await indexIndividualProfile(nextGdoc as GdocProfile, trx)
             }
+            if (isChronologicalPost) {
+                await indexIndividualGdocInChronological(nextJson, trx)
+            }
             await triggerStaticBuild(user, `${action} ${nextJson.slug}`)
         })
         .with(GdocPublishingAction.Updating, async () => {
-            if (isGdocPost) {
-                await indexIndividualGdocPost(nextJson, trx, prevGdoc.slug)
+            if (shouldIndexInPages) {
+                await indexIndividualGdoc(nextJson, trx, prevGdoc.slug)
             }
             if (isProfile) {
                 await indexIndividualProfile(nextGdoc as GdocProfile, trx)
+            }
+            if (isChronologicalPost) {
+                await indexIndividualGdocInChronological(nextJson, trx)
             }
             if (checkIsLightningUpdate(prevJson, nextJson, hasChanges)) {
                 await enqueueLightningChange(
@@ -373,11 +392,14 @@ async function indexAndBakeGdocIfNeccesary(
             }
         })
         .with(GdocPublishingAction.Unpublishing, async () => {
-            if (isGdocPost) {
-                await removeIndividualGdocPostFromIndex(nextJson)
+            if (wasIndexedInPages) {
+                await removeIndividualGdocFromIndex(prevJson.slug)
             }
-            if (isProfile) {
-                await removeIndividualProfileFromIndex(nextGdoc as GdocProfile)
+            if (wasProfile) {
+                await removeIndividualProfileFromIndex(prevGdoc as GdocProfile)
+            }
+            if (wasChronologicalPost) {
+                await removeIndividualGdocFromChronological(prevJson.id)
             }
             await triggerStaticBuild(user, `${action} ${nextJson.slug}`)
         })
@@ -572,13 +594,21 @@ export async function deleteGdoc(
         .table(PostsGdocsComponentsTableName)
         .where({ gdocId: id })
         .delete()
-    if (gdoc.published && checkIsGdocPostExcludingFragments(gdoc)) {
-        await removeIndividualGdocPostFromIndex(gdoc)
-    }
-    if (gdoc.published && checkIsProfile(gdoc)) {
-        await removeIndividualProfileFromIndex(gdoc as unknown as GdocProfile)
-    }
     if (gdoc.published) {
+        if (
+            checkIsGdocPostExcludingFragments(gdoc) ||
+            gdoc.content.type === OwidGdocType.DataInsight
+        ) {
+            await removeIndividualGdocFromIndex(gdoc.slug)
+        }
+        if (checkIsProfile(gdoc)) {
+            await removeIndividualProfileFromIndex(
+                gdoc as unknown as GdocProfile
+            )
+        }
+        if (checkIsChronologicalGdoc(gdoc)) {
+            await removeIndividualGdocFromChronological(gdoc.id)
+        }
         if (!tombstone && gdocSlug && gdocSlug !== "/") {
             // Assets have TTL of one week in Cloudflare. Add a redirect to make sure
             // the page is no longer accessible.

@@ -1,8 +1,8 @@
 .newsletter-subscription-form {
     display: flex;
     flex-wrap: wrap;
+    row-gap: 16px;
     @include body-3-medium;
-    @include row-gap(16px);
 }
 
 // hidden by default, shown on the /subscribe page
@@ -45,12 +45,16 @@
     flex: 1 1 100%;
     display: flex;
     justify-content: space-between;
-    @include column-gap(8px);
+    column-gap: 8px;
 }
 
 .newsletter-subscription-form__email {
     flex: 1;
     width: 100%;
+
+    @include sm-only {
+        font-size: 16px; // Prevents auto-zoom in iOS Safari.
+    }
 }
 
 .newsletter-subscription-form__submit {

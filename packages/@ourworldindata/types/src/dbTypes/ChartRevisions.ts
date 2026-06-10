@@ -8,7 +8,7 @@ export interface DbInsertChartRevision {
     config?: JsonString | null
     createdAt?: Date
     id?: string
-    updatedAt?: Date | null
+    updatedAt?: Date
     userId?: number | null
 }
 export type DbRawChartRevision = Required<DbInsertChartRevision>

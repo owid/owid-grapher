@@ -875,7 +875,7 @@ export class ChoroplethGlobe extends React.Component<{
     }
 
     renderInteractive(): React.ReactElement {
-        // this needs to be referenced here or it will be recomputed on every mousemove
+        // @ts-expect-error this needs to be referenced here or it will be recomputed on every mousemove
         const _cachedCentroids = this.quadtree
 
         return (

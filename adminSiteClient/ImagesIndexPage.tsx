@@ -76,15 +76,16 @@ type UserMap = Record<string, DbPlainUser>
 type UsageInfo = {
     title: string
     id: string
+    url: string
 }
 
 type ImageEditorApi = {
-    getUsage: () => void
+    getUsage: () => Promise<void>
     getAltText: (id: number) => Promise<{ altText: string; success: boolean }>
     patchImage: (
         image: DbEnrichedImageWithPageviews,
         patch: Partial<DbEnrichedImageWithPageviews>
-    ) => void
+    ) => Promise<void>
     putImage: (
         id: number,
         payload: {
@@ -92,23 +93,23 @@ type ImageEditorApi = {
             content?: string
             type: string
         }
-    ) => void
+    ) => Promise<void>
     postImage: (payload: {
         filename: string
         content?: string
         type: string
-    }) => void
-    deleteImage: (image: DbEnrichedImageWithPageviews) => void
-    getImages: () => void
-    getUsers: () => void
+    }) => Promise<void>
+    deleteImage: (image: DbEnrichedImageWithPageviews) => Promise<void>
+    getImages: () => Promise<void>
+    getUsers: () => Promise<void>
     postUserImage: (
         user: DbPlainUser,
         image: DbEnrichedImageWithPageviews
-    ) => void
+    ) => Promise<void>
     deleteUserImage: (
         user: DbPlainUser,
         image: DbEnrichedImageWithPageviews
-    ) => void
+    ) => Promise<void>
 }
 
 function AltTextEditor({
@@ -132,7 +133,7 @@ function AltTextEditor({
 
     const saveAltText = useCallback(
         (newValue: string) => {
-            patchImage(image, { defaultAlt: newValue })
+            void patchImage(image, { defaultAlt: newValue })
             setValue(newValue)
             setSavedValue(newValue)
         },
@@ -206,7 +207,7 @@ function UserSelect({
 
         if (selectedUser) {
             setValue(selectedUser.fullName)
-            await onUserSelect(selectedUser)
+            onUserSelect(selectedUser)
         }
     }
 
@@ -248,9 +249,13 @@ function UsageViewer({ usage }: { usage: UsageInfo[] | undefined }) {
                 <ul className="ImageIndexPage__usage-list">
                     {usage.map((use) => (
                         <li key={use.id}>
-                            <a href={`/admin/gdocs/${use.id}/preview`}>
-                                {use.title}
-                            </a>
+                            <a href={use.url}>{use.title}</a>
+                            {use.url.includes("/slideshows/") && (
+                                <span className="ImageIndexPage__usage-type">
+                                    {" "}
+                                    (slideshow)
+                                </span>
+                            )}
                         </li>
                     ))}
                 </ul>
@@ -261,7 +266,7 @@ function UsageViewer({ usage }: { usage: UsageInfo[] | undefined }) {
     return (
         <Popover
             content={content}
-            title="Published posts that reference this image"
+            title="Content that references this image"
             trigger="click"
         >
             <Button type="text" disabled={!usage || !usage.length}>
@@ -504,7 +509,7 @@ function PostImageButton({
     async function uploadImage({ file }: { file: File }) {
         const result = await fileToBase64(file)
         if (result) {
-            postImage(result)
+            await postImage(result)
         }
     }
     return (

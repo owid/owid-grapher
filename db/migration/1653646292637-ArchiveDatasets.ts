@@ -143,8 +143,8 @@ const archiveDatasets = async (
     )
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const deleteDatasets = async (
+// @ts-expect-error unused but keep for reference
+const _deleteDatasets = async (
     queryRunner: QueryRunner,
     datasetIds: number[]
 ): Promise<void> => {

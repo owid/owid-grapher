@@ -18,7 +18,10 @@ import {
     initGrapher,
 } from "./grapherTools.js"
 import { GRAPHER_TAB_NAMES } from "@ourworldindata/types"
-import { fetchInputTableForConfig } from "@ourworldindata/grapher"
+import {
+    fetchInputTableForConfig,
+    GRAPHER_BACKGROUND,
+} from "@ourworldindata/grapher"
 import ReactDOMServer from "react-dom/server"
 
 declare global {
@@ -55,31 +58,28 @@ async function fetchAndRenderGrapherToSvg(
     }
 
     grapherLogger.log("initGrapher")
-    const promises = []
-    promises.push(
-        fetchInputTableForConfig({
-            dimensions: grapher.grapherState.dimensions,
-            selectedEntityColors: grapher.grapherState.selectedEntityColors,
-            dataApiUrl: getDataApiUrl(env),
-        })
-    )
+    const fetchTablePromise = fetchInputTableForConfig({
+        dimensions: grapher.grapherState.dimensions,
+        selectedEntityColors: grapher.grapherState.selectedEntityColors,
+        dataApiUrl: getDataApiUrl(env),
+    })
+
+    let fetchDodsPromise: Promise<void> | undefined
     if (
         options.details &&
         grapher.grapherState.detailsOrderedByReference.length
     ) {
-        promises.push(
-            await fetch("https://ourworldindata.org/dods.json")
-                .then((r) => r.json())
-                .then((details) => {
-                    globalThis.window = { details }
-                })
-        )
+        fetchDodsPromise = fetch("https://ourworldindata.org/dods.json")
+            .then((r) => r.json())
+            .then((details) => {
+                globalThis.window = { details }
+            })
     }
 
-    const results = await Promise.all(promises) // Run these (potentially) two fetches in parallel
+    const inputTable = await fetchTablePromise // Run these (potentially) two fetches in parallel
+    await fetchDodsPromise
     grapherLogger.log("fetchDataAndDods")
 
-    const inputTable = results[0]
     if (inputTable) grapher.grapherState.inputTable = inputTable
 
     const svg = await grapher.grapherState.generateStaticSvg(
@@ -87,7 +87,7 @@ async function fetchAndRenderGrapherToSvg(
     )
     grapherLogger.log("generateStaticSvg")
 
-    return { svg, backgroundColor: grapher.grapherState.backgroundColor }
+    return svg
 }
 
 export const fetchAndRenderGrapher = async (
@@ -99,17 +99,12 @@ export const fetchAndRenderGrapher = async (
     const options = extractOptions(searchParams)
 
     console.log("Rendering", id.id, outType, options)
-    const { svg, backgroundColor } = await fetchAndRenderGrapherToSvg(
-        id,
-        options,
-        searchParams,
-        env
-    )
+    const svg = await fetchAndRenderGrapherToSvg(id, options, searchParams, env)
     console.log("fetched svg")
 
     switch (outType) {
         case "png":
-            return png(await renderSvgToPng(svg, options, backgroundColor))
+            return png(await renderSvgToPng(svg, options))
         case "svg":
             return new Response(svg, {
                 headers: {
@@ -121,11 +116,7 @@ export const fetchAndRenderGrapher = async (
 
 let initialized = false
 
-export async function renderSvgToPng(
-    svg: string,
-    options: ImageOptions,
-    backgroundColor: string
-) {
+export async function renderSvgToPng(svg: string, options: ImageOptions) {
     if (!initialized) {
         await initWasm(resvg_wasm)
         initialized = true
@@ -136,7 +127,7 @@ export async function renderSvgToPng(
             mode: "width",
             value: options.pngWidth,
         },
-        background: backgroundColor,
+        background: GRAPHER_BACKGROUND,
         font: {
             fontBuffers: [
                 LatoRegular,
@@ -151,7 +142,7 @@ export async function renderSvgToPng(
     const pngLogger = new TimeLogger("png")
     const resvgJS = new Resvg(svg, opts)
 
-    const pngData = await resvgJS.render().asPng()
+    const pngData = resvgJS.render().asPng()
     pngLogger.log("svg2png")
     return pngData
 }

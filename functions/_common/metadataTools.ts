@@ -1,16 +1,13 @@
 import * as _ from "lodash-es"
 import { GrapherState } from "@ourworldindata/grapher"
-import {
-    OwidTableSlugs,
-    OwidOrigin,
-    OwidColumnDef,
-} from "@ourworldindata/types"
+import { OwidTableSlugs, OwidOrigin } from "@ourworldindata/types"
 import {
     getLastUpdatedFromVariable,
     getNextUpdateFromVariable,
     getCitationShort,
     getAttributionFragmentsFromVariable,
     getCitationLong,
+    stripDetailOnDemandLinks,
 } from "@ourworldindata/utils"
 import { getGrapherFilters } from "./urlTools.js"
 
@@ -81,7 +78,7 @@ export function assembleMetadata(
             sourceName,
             owidVariableId,
             shortName,
-        } = col.def as OwidColumnDef
+        } = col.def
         const lastUpdated = getLastUpdatedFromVariable(col.def)
         const nextUpdate = getNextUpdateFromVariable(col.def)
 
@@ -126,7 +123,7 @@ export function assembleMetadata(
             ]
         }
 
-        const def = col.def as OwidColumnDef
+        const def = col.def
 
         const citationShort = getCitationShort(
             condensedOrigins,
@@ -204,5 +201,7 @@ export function assembleMetadata(
         ),
     }
 
-    return fullMetadata
+    return _.cloneDeepWith(fullMetadata, (value) =>
+        typeof value === "string" ? stripDetailOnDemandLinks(value) : undefined
+    )
 }

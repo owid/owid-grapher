@@ -37,14 +37,14 @@ export class AxisScaleToggle extends React.Component<AxisScaleToggleProps> {
                         onClick={(): void => this.setAxisScale(linear)}
                         data-track-note="chart_toggle_scale"
                     >
-                        {label}Linear
+                        <span className="label">{label}Linear</span>
                     </button>
                     <button
                         className={classnames({ active: !isLinear })}
                         onClick={(): void => this.setAxisScale(log)}
                         data-track-note="chart_toggle_scale"
                     >
-                        {label}Logarithmic
+                        <span className="label">{label}Logarithmic</span>
                     </button>
                 </div>
             </>

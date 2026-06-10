@@ -5,7 +5,7 @@ import {
     GrapherGrammar,
 } from "./GrapherGrammar.js"
 describe("GrapherGrammar helper functions", () => {
-    describe("omitEmptyStringValues", () => {
+    describe(omitEmptyStringValues, () => {
         it("should remove properties with empty string values", () => {
             const input = {
                 title: "Chart Title",
@@ -62,7 +62,7 @@ describe("GrapherGrammar helper functions", () => {
         })
     })
 
-    describe("omitEmptyObjectValues", () => {
+    describe(omitEmptyObjectValues, () => {
         it("should remove properties with empty plain object values", () => {
             const input = {
                 title: "Chart Title",

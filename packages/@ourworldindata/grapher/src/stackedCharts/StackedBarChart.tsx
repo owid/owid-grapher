@@ -40,7 +40,7 @@ import {
 } from "./StackedConstants"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import { Color, HorizontalAlign, SeriesName } from "@ourworldindata/types"
-import { makeClipPath, getHoverStateForSeries } from "../chart/ChartUtils"
+import { getHoverStateForSeries } from "../chart/ChartUtils"
 import { InteractionState } from "../interaction/InteractionState"
 import { resolveEmphasis, Emphasis } from "../interaction/Emphasis"
 import {
@@ -49,8 +49,7 @@ import {
 } from "../legend/HorizontalColorLegends"
 import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig.js"
-import { easeLinear } from "d3-ease"
-import { select, type BaseType, type Selection } from "d3-selection"
+
 import { ChartInterface } from "../chart/ChartInterface"
 import { ChartManager } from "../chart/ChartManager"
 import { ChartComponentProps } from "../chart/ChartTypeMap.js"
@@ -494,7 +493,6 @@ export class StackedBarChart
                 dualAxis={this.dualAxis}
                 showTickMarks={true}
                 detailsMarker={manager.detailsMarkerInSvg}
-                backgroundColor={this.manager.backgroundColor}
             />
         )
     }
@@ -520,13 +518,7 @@ export class StackedBarChart
     }
 
     renderInteractive(): React.ReactElement {
-        const { dualAxis, renderUid, bounds } = this
-        const { innerBounds } = dualAxis
-
-        const clipPath = makeClipPath({
-            renderUid: renderUid,
-            box: innerBounds,
-        })
+        const { bounds } = this
 
         return (
             <g
@@ -534,7 +526,6 @@ export class StackedBarChart
                 height={bounds.height}
                 onMouseMove={this.onMouseMove}
             >
-                {clipPath.element}
                 <rect
                     x={bounds.left}
                     y={bounds.top}
@@ -544,7 +535,7 @@ export class StackedBarChart
                     fill="rgba(255,255,255,0)"
                 />
                 {this.renderAxis()}
-                <g clipPath={clipPath.id}>{this.renderBars()}</g>
+                {this.renderBars()}
                 {this.renderLegend()}
                 {this.tooltip}
             </g>
@@ -614,27 +605,7 @@ export class StackedBarChart
         })
     }
 
-    animSelection?: Selection<BaseType, unknown, SVGGElement | null, unknown>
-
-    base = React.createRef<SVGGElement>()
     override componentDidMount(): void {
-        if (!this.manager.disableIntroAnimation) {
-            // Fancy intro animation
-            this.animSelection = select(this.base.current)
-                .selectAll("clipPath > rect")
-                .attr("width", 0)
-
-            this.animSelection
-                .transition()
-                .duration(800)
-                .ease(easeLinear)
-                .attr("width", this.bounds.width)
-                .on("end", () => this.forceUpdate()) // Important in case bounds changes during transition
-        }
         exposeInstanceOnWindow(this)
-    }
-
-    override componentWillUnmount(): void {
-        if (this.animSelection) this.animSelection.interrupt()
     }
 }

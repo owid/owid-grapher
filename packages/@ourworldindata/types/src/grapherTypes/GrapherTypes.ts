@@ -32,17 +32,26 @@ export interface Box {
     height: number
 }
 
-// TODO: remove duplicate definition, also available in CoreTable
 export enum SortOrder {
     asc = "asc",
     desc = "desc",
 }
 
 export enum SortBy {
+    /** Preserve the specified entity order */
     custom = "custom",
+    /** Sort alphabetically by entity name */
     entityName = "entityName",
+    /** Sort by the value of a specific column, identified by sortColumnSlug */
     column = "column",
+    /** Sort by the total across all columns */
     total = "total",
+    /** Sort by the change between the start and end values (dumbbell charts) */
+    change = "change",
+    /** Sort by the start value (dumbbell charts) */
+    startValue = "startValue",
+    /** Sort by the end value (dumbbell charts) */
+    endValue = "endValue",
 }
 
 export interface SortConfig {
@@ -237,9 +246,9 @@ export const VALID_PEER_COUNTRY_STRATEGY_QUERY_PARAMS: PeerCountryStrategyQueryP
 
 export enum GrapherTooltipAnchor {
     /** The tooltip is positioned relative to the mouse cursor */
-    mouse = "mouse",
+    Mouse = "mouse",
     /** The tooltip is pinned to the bottom of the screen */
-    bottom = "bottom",
+    Bottom = "bottom",
 }
 
 export interface AnnotationFieldsInTitle {
@@ -345,6 +354,18 @@ export interface AxisConfigInterface {
      * for the outermost values.
      */
     domainValues?: number[]
+
+    /**
+     * Whether to offset the leftmost tick label so it doesn't overflow the axis start.
+     * Defaults to true.
+     */
+    shouldOffsetTickLabelAtStart?: boolean
+
+    /**
+     * Whether to offset the rightmost tick label so it doesn't overflow the axis end.
+     * Defaults to true.
+     */
+    shouldOffsetTickLabelAtEnd?: boolean
 }
 
 export interface VerticalComparisonLineConfig {
@@ -361,10 +382,16 @@ export type ComparisonLineConfig =
     | VerticalComparisonLineConfig
     | CustomComparisonLineConfig
 
+export interface VerticalComparisonLineLabelPlacement {
+    x: number
+    anchor: "start" | "end"
+}
+
 export enum LogoOption {
     owid = "owid",
     "core+owid" = "core+owid",
     "gv+owid" = "gv+owid",
+    wordmark = "wordmark",
 }
 
 export interface ProjectionColumnInfo {
@@ -481,6 +508,7 @@ export enum ColorSchemeName {
     BinaryMapPaletteC = "BinaryMapPaletteC",
     BinaryMapPaletteD = "BinaryMapPaletteD",
     BinaryMapPaletteE = "BinaryMapPaletteE",
+    BinaryMapPaletteF = "BinaryMapPaletteF",
     SingleColorGradientDenim = "SingleColorGradientDenim",
     SingleColorGradientTeal = "SingleColorGradientTeal",
     SingleColorGradientPurple = "SingleColorGradientPurple",
@@ -506,6 +534,32 @@ export interface GlobeConfig {
     rotation: [number, number]
     zoom: number
     focusCountry?: EntityName
+}
+
+export enum DumbbellConnectorStyle {
+    Arrow = "arrow",
+    Line = "line",
+}
+
+export enum DumbbellValueLabelMode {
+    Absolute = "absolute",
+    Change = "change",
+    PercentChange = "percentChange",
+    None = "none",
+}
+
+export interface DumbbellTrendColorMap {
+    /** Color for dumbbells whose value increased over time */
+    increase?: Color
+    /** Color for dumbbells whose value decreased over time */
+    decrease?: Color
+}
+
+export interface DumbbellChartConfigInterface {
+    connectorStyle?: DumbbellConnectorStyle
+    valueLabelMode?: DumbbellValueLabelMode
+    /** Custom colors for the time-range encoding */
+    trendColorMap?: DumbbellTrendColorMap
 }
 
 export interface MapConfigInterface {
@@ -586,6 +640,7 @@ export interface GrapherInterface extends SortConfig {
     yAxis?: Partial<AxisConfigInterface>
     colorScale?: Partial<ColorScaleConfigInterface>
     map?: Partial<MapConfigInterface>
+    dumbbell?: Partial<DumbbellChartConfigInterface>
 
     // When we move graphers to Git, and remove dimensions, we can clean this up.
     ySlugs?: ColumnSlugs
@@ -629,6 +684,16 @@ export type GrapherQueryParams = {
 export type LegacyGrapherQueryParams = GrapherQueryParams & {
     year?: string
 }
+
+export type DownloadRewriteTarget =
+    | "download-full-data"
+    | "download-filtered-data"
+    | "api-csv"
+    | "api-metadata"
+    | "api-example-excel"
+    | "api-example-python"
+    | "api-example-r"
+    | "api-example-stata"
 
 // We don't use this anywhere, but this is a way to ensure that we have an object with all keys present
 // ... so GRAPHER_QUERY_PARAM_KEYS below is guaranteed to have all keys of LegacyGrapherQueryParams
@@ -724,8 +789,9 @@ export const grapherKeysToSerialize = [
     "relatedQuestions",
     "missingDataStrategy",
     "peerCountryStrategy",
+    "dumbbell",
 
-    // internals
+    // Internals
     "adminBaseUrl",
     "bakedGrapherURL",
 ]
@@ -761,6 +827,8 @@ export enum GrapherWindowType {
 }
 
 export type GrapherTrendArrowDirection = "up" | "right" | "down"
+
+export type SideWidths = { left: number; right: number }
 
 /** Function type for loading additional indicator data from the catalog */
 export type AdditionalGrapherDataFetchFn = <K extends CatalogKey>(

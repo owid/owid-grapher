@@ -47,7 +47,7 @@ import {
     GRAPHER_THUMBNAIL_HEIGHT,
     mapGrapherTabNameToQueryParam,
 } from "@ourworldindata/grapher"
-import { format, FormatOptions } from "oxfmt"
+import { format, type FormatConfig } from "oxfmt"
 import oxfmtConfig from "../../.oxfmtrc.json"
 import { hashMd5 } from "../../serverUtils/hash.js"
 import * as R from "remeda"
@@ -558,7 +558,7 @@ async function prepareSvgForComparison(svg: string): Promise<string> {
 }
 
 async function formatSvg(svg: string): Promise<string> {
-    const result = await format("input.html", svg, oxfmtConfig as FormatOptions)
+    const result = await format("input.html", svg, oxfmtConfig as FormatConfig)
     return result.code
 }
 
@@ -766,11 +766,11 @@ export function displayVerifyResultsAndGetExitCode(
 
     const errorResults = validationResults.filter(
         (result) => result.kind === "error"
-    ) as VerifyResultError[]
+    )
 
     const differenceResults = validationResults.filter(
         (result) => result.kind === "difference"
-    ) as VerifyResultDifference[]
+    )
 
     if (errorResults.length === 0 && differenceResults.length === 0) {
         logIfVerbose(

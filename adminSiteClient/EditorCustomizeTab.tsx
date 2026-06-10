@@ -5,6 +5,9 @@ import { observer } from "mobx-react"
 import {
     ComparisonLineConfig,
     ColorSchemeName,
+    DumbbellConnectorStyle,
+    DumbbellTrendColorMap,
+    DumbbellValueLabelMode,
     FacetAxisDomain,
     FacetStrategy,
     GRAPHER_CHART_TYPES,
@@ -12,6 +15,7 @@ import {
 import {
     GrapherState,
     isValidVerticalComparisonLineConfig,
+    DEFAULT_DUMBBELL_TREND_COLOR_MAP,
 } from "@ourworldindata/grapher"
 import {
     NumberField,
@@ -24,6 +28,7 @@ import {
     RadioGroup,
     BindAutoFloatExt,
     SelectField,
+    ColorBox,
 } from "./Forms.js"
 import {
     TimeBoundValue,
@@ -33,7 +38,7 @@ import {
     minTimeBoundFromJSONOrNegativeInfinity,
     maxTimeBoundFromJSONOrPositiveInfinity,
 } from "@ourworldindata/utils"
-import { faPlus, faMinus } from "@fortawesome/free-solid-svg-icons"
+import { faPlus, faMinus, faRightLeft } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     ColorSchemeDropdown,
@@ -218,6 +223,25 @@ interface SortOrderDropdownOption {
     display?: { name: string; displayName: string }
 }
 
+const SORT_BY_LABELS: Record<Exclude<SortBy, SortBy.column>, string> = {
+    [SortBy.entityName]: "Entity name",
+    [SortBy.total]: "Total value",
+    [SortBy.custom]: "Custom order (use specified entity order)",
+    [SortBy.change]: "Change",
+    [SortBy.startValue]: "Start value",
+    [SortBy.endValue]: "End value",
+}
+
+const SORT_BY_DISPLAY_ORDER: SortBy[] = [
+    SortBy.entityName,
+    SortBy.total,
+    SortBy.custom,
+    SortBy.change,
+    SortBy.startValue,
+    SortBy.endValue,
+    SortBy.column,
+]
+
 @observer
 class SortOrderSection<
     Editor extends AbstractChartEditor,
@@ -236,54 +260,50 @@ class SortOrderSection<
     }
 
     @computed get sortOptions(): SortOrderDropdownOption[] {
-        const { features } = this.props.editor
+        const availableSortKeys = new Set(
+            this.grapherState.availableSortKeysAcrossChartTypes
+        )
 
-        let dimensionSortOptions: SortOrderDropdownOption[] = []
-        if (features.canSortByColumn) {
-            dimensionSortOptions = this.grapherState.yColumnsFromDimensions.map(
-                (column): SortOrderDropdownOption => ({
-                    key: `column:${column.slug}`,
-                    label: column.displayName,
-                    display: {
-                        name: column.name,
-                        displayName: column.displayName,
+        return SORT_BY_DISPLAY_ORDER.flatMap(
+            (sortBy: SortBy): SortOrderDropdownOption[] => {
+                if (!availableSortKeys.has(sortBy)) return []
+
+                // Column sorting expands into one option per dimension.
+                if (sortBy === SortBy.column) {
+                    return this.grapherState.yColumnsFromDimensions.map(
+                        (column): SortOrderDropdownOption => ({
+                            key: `column:${column.slug}`,
+                            label: column.displayName,
+                            display: {
+                                name: column.name,
+                                displayName: column.displayName,
+                            },
+                            value: {
+                                sortBy: SortBy.column,
+                                sortColumnSlug: column.slug,
+                            } satisfies SortConfig,
+                        })
+                    )
+                }
+
+                return [
+                    {
+                        key: sortBy,
+                        label: SORT_BY_LABELS[sortBy],
+                        value: { sortBy },
                     },
-                    value: {
-                        sortBy: SortBy.column,
-                        sortColumnSlug: column.slug,
-                    } as SortConfig,
-                })
-            )
-        }
-
-        return [
-            {
-                key: "entityName",
-                label: "Entity name",
-                value: { sortBy: SortBy.entityName },
-            },
-            {
-                key: "total",
-                label: "Total value",
-                value: { sortBy: SortBy.total },
-            },
-            {
-                key: "custom",
-                label: "Custom order (use specified entity order)",
-                value: { sortBy: SortBy.custom },
-            },
-            ...dimensionSortOptions,
-        ]
+                ]
+            }
+        )
     }
 
     @computed get currentSortOptionKey(): string {
         const { sortBy, sortColumnSlug } = this.sortConfig
         if (sortBy === SortBy.column && sortColumnSlug)
             return `column:${sortColumnSlug}`
-        if (sortBy === SortBy.entityName) return "entityName"
-        if (sortBy === SortBy.total) return "total"
-        if (sortBy === SortBy.custom) return "custom"
-        return this.sortOptions[0]?.key ?? "entityName"
+        if (sortBy && this.sortOptions.some((opt) => opt.key === sortBy))
+            return sortBy
+        return this.sortOptions[0]?.key ?? SortBy.entityName
     }
 
     @action.bound onSortByChange(selectedKey: string) {
@@ -575,13 +595,17 @@ class ComparisonLineSection<
     @action.bound onAddComparisonLine() {
         const { grapherState } = this.props.editor
         if (!grapherState.comparisonLines) grapherState.comparisonLines = []
-        grapherState.comparisonLines.push({})
+
+        // Default to adding a custom comparison line
+        grapherState.comparisonLines.push({ yEquals: "x" })
     }
 
     @action.bound onRemoveComparisonLine(index: number) {
         const { grapherState } = this.props.editor
-        if (!grapherState.comparisonLines) grapherState.comparisonLines = []
+        if (!grapherState.comparisonLines) return
         grapherState.comparisonLines.splice(index, 1)
+        if (grapherState.comparisonLines.length === 0)
+            grapherState.comparisonLines = undefined
     }
 
     @action.bound onComparisonLineTypeChange(
@@ -683,6 +707,126 @@ class ComparisonLineSection<
                         />
                     </div>
                 ))}
+            </Section>
+        )
+    }
+}
+
+@observer
+class TrendColorField extends React.Component<{
+    grapherState: GrapherState
+    field: keyof DumbbellTrendColorMap
+    defaultColor: string
+}> {
+    constructor(props: {
+        grapherState: GrapherState
+        field: keyof DumbbellTrendColorMap
+        defaultColor: string
+    }) {
+        super(props)
+        makeObservable(this)
+    }
+
+    @action.bound onColor(color?: string): void {
+        const { grapherState, field } = this.props
+        grapherState.dumbbell.trendColorMap = {
+            ...grapherState.dumbbell.trendColorMap,
+            [field]: color,
+        }
+    }
+
+    override render(): React.ReactElement {
+        const { grapherState, field, defaultColor } = this.props
+        const color =
+            grapherState.dumbbell.trendColorMap?.[field] ?? defaultColor
+        return (
+            <>
+                <ColorBox
+                    color={color}
+                    onColor={this.onColor}
+                    showLineChartColors={false}
+                />
+                <span>{_.capitalize(field)}</span>
+            </>
+        )
+    }
+}
+
+@observer
+class DumbbellSection<
+    Editor extends AbstractChartEditor,
+> extends React.Component<{ editor: Editor }> {
+    constructor(props: { editor: Editor }) {
+        super(props)
+        makeObservable(this)
+    }
+
+    @action.bound onInvertColors(): void {
+        const { grapherState } = this.props.editor
+        const currentColorMap = grapherState.dumbbell.trendColorMap ?? {}
+        grapherState.dumbbell.trendColorMap = {
+            increase: currentColorMap.decrease ?? DEFAULT_DECREASE_COLOR,
+            decrease: currentColorMap.increase ?? DEFAULT_INCREASE_COLOR,
+        }
+    }
+
+    override render(): React.ReactElement {
+        const { grapherState, features } = this.props.editor
+        return (
+            <Section name="Dumbbell">
+                {features.canConfigureDumbbellConnectorStyle && (
+                    <SelectField
+                        label="Connector style"
+                        value={grapherState.dumbbell.connectorStyle}
+                        onValue={action((value: string) => {
+                            grapherState.dumbbell.connectorStyle =
+                                value as DumbbellConnectorStyle
+                        })}
+                        options={Object.entries(
+                            DUMBBELL_CONNECTOR_STYLE_LABELS
+                        ).map(([value, label]) => ({ value, label }))}
+                    />
+                )}
+                <SelectField
+                    label="Value labels"
+                    value={grapherState.dumbbell.valueLabelMode}
+                    onValue={action((value: string) => {
+                        grapherState.dumbbell.valueLabelMode =
+                            value as DumbbellValueLabelMode
+                    })}
+                    options={Object.entries(
+                        DUMBBELL_VALUE_LABEL_MODE_LABELS
+                    ).map(([value, label]) => ({ value, label }))}
+                />
+                {features.canConfigureDumbbellColors && (
+                    <FieldsRow>
+                        <div className="form-group">
+                            <label>Trend colors</label>
+                            <div className="dumbbell-trend-colors">
+                                <TrendColorField
+                                    grapherState={grapherState}
+                                    field="increase"
+                                    defaultColor={DEFAULT_INCREASE_COLOR}
+                                />
+                                <TrendColorField
+                                    grapherState={grapherState}
+                                    field="decrease"
+                                    defaultColor={DEFAULT_DECREASE_COLOR}
+                                />
+                                <span className="dumbbell-trend-colors__invert">
+                                    <Button onClick={this.onInvertColors}>
+                                        <FontAwesomeIcon
+                                            icon={faRightLeft}
+                                            size="sm"
+                                            className="dumbbell-trend-colors__invert-icon"
+                                        />
+                                        Invert colors
+                                    </Button>
+                                </span>
+                            </div>
+                        </div>
+                    </FieldsRow>
+                )}
             </Section>
         )
     }
@@ -912,39 +1056,43 @@ export class EditorCustomizeTab<
                         errorMessagesKey={"colorScale"}
                     />
                 )}
-                <Section name="Legend">
-                    {features.canHideSeriesLabels && (
-                        <FieldsRow>
-                            <Toggle
-                                label={`Hide series labels`}
-                                value={!!grapherState.hideSeriesLabels}
-                                onValue={(value) =>
-                                    (grapherState.hideSeriesLabels =
-                                        value || undefined)
-                                }
-                            />
-                        </FieldsRow>
-                    )}
-                    {features.canCustomizeVariableType && (
-                        <FieldsRow>
-                            <BindString
-                                label={
-                                    <>
-                                        Split by <s>metric</s>
-                                    </>
-                                }
-                                field="facettingLabelByYVariables"
-                                store={grapherState}
-                                helpText={
-                                    "When facetting is active, one option is to split " +
-                                    "by entity/country, the other is by metric. This option  " +
-                                    'lets you override "metric" with a custom word like ' +
-                                    '"products" or "species".'
-                                }
-                            />
-                        </FieldsRow>
-                    )}
-                </Section>
+                {(features.canHideSeriesLabels ||
+                    features.canCustomizeVariableType) && (
+                    <Section name="Legend">
+                        {features.canHideSeriesLabels && (
+                            <FieldsRow>
+                                <Toggle
+                                    label={`Hide series labels`}
+                                    value={!!grapherState.hideSeriesLabels}
+                                    onValue={(value) =>
+                                        (grapherState.hideSeriesLabels =
+                                            value || undefined)
+                                    }
+                                />
+                            </FieldsRow>
+                        )}
+                        {features.canCustomizeVariableType && (
+                            <FieldsRow>
+                                <BindString
+                                    label={
+                                        <>
+                                            Split by <s>metric</s>
+                                        </>
+                                    }
+                                    field="facettingLabelByYVariables"
+                                    store={grapherState}
+                                    helpText={
+                                        "When facetting is active, one option is to split " +
+                                        "by entity/country, the other is by metric. This option  " +
+                                        'lets you override "metric" with a custom word like ' +
+                                        '"products" or "species".'
+                                    }
+                                />
+                            </FieldsRow>
+                        )}
+                    </Section>
+                )}
+
                 {features.relativeModeToggle && (
                     <Section name="Controls">
                         <FieldsRow>
@@ -976,7 +1124,27 @@ export class EditorCustomizeTab<
                 {features.canSpecifyComparisonLines && (
                     <ComparisonLineSection editor={this.props.editor} />
                 )}
+                {features.canConfigureDumbbell && (
+                    <DumbbellSection editor={this.props.editor} />
+                )}
             </div>
         )
     }
 }
+
+const DEFAULT_INCREASE_COLOR = DEFAULT_DUMBBELL_TREND_COLOR_MAP.increase
+const DEFAULT_DECREASE_COLOR = DEFAULT_DUMBBELL_TREND_COLOR_MAP.decrease
+
+const DUMBBELL_CONNECTOR_STYLE_LABELS: Record<DumbbellConnectorStyle, string> =
+    {
+        [DumbbellConnectorStyle.Arrow]: "Arrow",
+        [DumbbellConnectorStyle.Line]: "Line",
+    }
+
+const DUMBBELL_VALUE_LABEL_MODE_LABELS: Record<DumbbellValueLabelMode, string> =
+    {
+        [DumbbellValueLabelMode.Absolute]: "Absolute values",
+        [DumbbellValueLabelMode.Change]: "Absolute change",
+        [DumbbellValueLabelMode.PercentChange]: "Percent change",
+        [DumbbellValueLabelMode.None]: "No labels",
+    }

@@ -35,6 +35,8 @@ import { SiteAnalytics } from "../SiteAnalytics.js"
 import { PoweredBy } from "react-instantsearch"
 import { listedRegionsNames } from "@ourworldindata/utils"
 
+const analytics = new SiteAnalytics()
+
 export const Search = ({
     topicTagGraph,
     typesenseClient,
@@ -60,8 +62,6 @@ export const Search = ({
         eligibleTopicsAndAreas,
         synonymMap
     )
-
-    const analytics = useMemo(() => new SiteAnalytics(), [])
 
     // Handle analytics tracking (skips initial page load)
     useSearchAnalytics(state, analytics)

@@ -18,6 +18,7 @@ import { StackedBarChartState } from "../stackedCharts/StackedBarChartState.js"
 import { StackedDiscreteBarChartState } from "../stackedCharts/StackedDiscreteBarChartState"
 import { ScatterPlotChartState } from "../scatterCharts/ScatterPlotChartState"
 import { MarimekkoChartState } from "../stackedCharts/MarimekkoChartState"
+import { DumbbellChartState } from "../dumbbellCharts/DumbbellChartState"
 import { MapChartState } from "../mapCharts/MapChartState"
 
 import { LineChart } from "../lineCharts/LineChart"
@@ -28,6 +29,7 @@ import { StackedBarChart } from "../stackedCharts/StackedBarChart"
 import { StackedDiscreteBarChart } from "../stackedCharts/StackedDiscreteBarChart"
 import { ScatterPlotChart } from "../scatterCharts/ScatterPlotChart"
 import { MarimekkoChart } from "../stackedCharts/MarimekkoChart"
+import { DumbbellChart } from "../dumbbellCharts/DumbbellChart"
 import { MapChart } from "../mapCharts/MapChart"
 
 import { LineChartThumbnail } from "../lineCharts/LineChartThumbnail"
@@ -38,6 +40,7 @@ import { StackedBarChartThumbnail } from "../stackedCharts/StackedBarChartThumbn
 import { StackedDiscreteBarChartThumbnail } from "../stackedCharts/StackedDiscreteBarChartThumbnail"
 import { ScatterPlotChartThumbnail } from "../scatterCharts/ScatterPlotChartThumbnail"
 import { MarimekkoChartThumbnail } from "../stackedCharts/MarimekkoChartThumbnail"
+import { DumbbellChartThumbnail } from "../dumbbellCharts/DumbbellChartThumbnail"
 import { MapChartThumbnail } from "../mapCharts/MapChartThumbnail"
 
 export interface ChartComponentProps<TState extends ChartState = ChartState> {
@@ -70,6 +73,7 @@ const ChartComponentClassMap = new Map<
     [GRAPHER_CHART_TYPES.StackedDiscreteBar, StackedDiscreteBarChart],
     [GRAPHER_CHART_TYPES.ScatterPlot, ScatterPlotChart],
     [GRAPHER_CHART_TYPES.Marimekko, MarimekkoChart],
+    [GRAPHER_CHART_TYPES.Dumbbell, DumbbellChart],
     [GRAPHER_MAP_TYPE, MapChart],
 ])
 
@@ -85,6 +89,7 @@ const ChartThumbnailClassMap = new Map<
     [GRAPHER_CHART_TYPES.StackedDiscreteBar, StackedDiscreteBarChartThumbnail],
     [GRAPHER_CHART_TYPES.ScatterPlot, ScatterPlotChartThumbnail],
     [GRAPHER_CHART_TYPES.Marimekko, MarimekkoChartThumbnail],
+    [GRAPHER_CHART_TYPES.Dumbbell, DumbbellChartThumbnail],
     [GRAPHER_MAP_TYPE, MapChartThumbnail],
 ])
 
@@ -100,6 +105,7 @@ const ChartStateMap = new Map<
     [GRAPHER_CHART_TYPES.StackedDiscreteBar, StackedDiscreteBarChartState],
     [GRAPHER_CHART_TYPES.ScatterPlot, ScatterPlotChartState],
     [GRAPHER_CHART_TYPES.Marimekko, MarimekkoChartState],
+    [GRAPHER_CHART_TYPES.Dumbbell, DumbbellChartState],
     [GRAPHER_MAP_TYPE, MapChartState],
 ])
 

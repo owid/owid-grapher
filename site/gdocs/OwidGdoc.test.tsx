@@ -15,7 +15,7 @@ const fragmentProps: OwidGdocPageProps = {
     },
     contentMd5: "test-content-md5",
     createdAt: new Date("2026-03-10T00:00:00Z"),
-    updatedAt: null,
+    updatedAt: new Date("2026-03-10T00:00:00Z"),
     published: true,
     publishedAt: null,
     breadcrumbs: [],
@@ -32,7 +32,7 @@ const fragmentProps: OwidGdocPageProps = {
     relatedCharts: [],
 }
 
-describe("OwidGdoc", () => {
+describe(OwidGdoc, () => {
     it("does not render admin links into the server HTML", () => {
         const html = renderToStaticMarkup(<OwidGdoc {...fragmentProps} />)
 

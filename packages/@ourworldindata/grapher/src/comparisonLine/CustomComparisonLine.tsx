@@ -6,7 +6,6 @@ import { guid, PointVector, makeFigmaId } from "@ourworldindata/utils"
 import { CustomComparisonLineConfig } from "@ourworldindata/types"
 import { generateComparisonLinePoints } from "./ComparisonLineGenerator"
 import { Halo } from "@ourworldindata/components"
-import { GRAPHER_TEXT_OUTLINE_FACTOR } from "../core/GrapherConstants"
 import { ClipPath, makeClipPath } from "../chart/ChartUtils"
 import {
     COMPARISON_LINE_STYLE,
@@ -18,8 +17,8 @@ import { ComparisonLineProps } from "./ComparisonLine"
 export class CustomComparisonLine extends React.Component<
     ComparisonLineProps<CustomComparisonLineConfig>
 > {
-    private renderUid = guid()
-    private pathId = `path-${this.renderUid}`
+    private readonly renderUid = guid()
+    private readonly pathId = `path-${this.renderUid}`
 
     constructor(props: ComparisonLineProps<CustomComparisonLineConfig>) {
         super(props)
@@ -27,11 +26,7 @@ export class CustomComparisonLine extends React.Component<
     }
 
     @computed private get fontSize(): number {
-        return this.props.dualAxis.comparisonLineLabelFontSize
-    }
-
-    @computed private get haloOutlineWidth(): number {
-        return GRAPHER_TEXT_OUTLINE_FACTOR * this.fontSize
+        return this.props.dualAxis.comparisonLines.fontSize
     }
 
     @computed get clipPath(): ClipPath {
@@ -114,11 +109,7 @@ export class CustomComparisonLine extends React.Component<
                 }}
                 clipPath={this.clipPath.id}
             >
-                <Halo
-                    id={`halo-${renderUid}`}
-                    outlineWidth={this.haloOutlineWidth}
-                    outlineColor={this.props.backgroundColor}
-                >
+                <Halo id={`halo-${renderUid}`} fontSize={this.fontSize}>
                     <textPath
                         baselineShift="-0.2rem"
                         href={`#${pathId}`}

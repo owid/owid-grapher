@@ -35,7 +35,7 @@ export const columnStoreToRows = (
 
 // If string exceeds maxLength, will replace the end char with a ... and drop the rest
 export const truncate = (str: string, maxLength: number): string =>
-    str.length > maxLength ? `${str.substr(0, maxLength - 3)}...` : str
+    str.length > maxLength ? `${str.slice(0, maxLength - 3)}...` : str
 
 // Picks a type for each column from the first row then autotypes all rows after that so all values in
 // a column will have the same type. Only chooses between strings and numbers.
@@ -519,7 +519,7 @@ export const autodetectColumnDefs = (
     definedSlugs: Map<ColumnSlug, any>
 ): CoreColumnDef[] => {
     if (!Array.isArray(rowsOrColumnStore)) {
-        const columnStore = rowsOrColumnStore as CoreColumnStore
+        const columnStore = rowsOrColumnStore
         return Object.keys(columnStore)
             .filter((slug) => !definedSlugs.has(slug))
             .map((slug) => {
@@ -590,7 +590,7 @@ export class Timer {
     }
 
     private _tickTime: number
-    private _firstTickTime: number
+    private readonly _firstTickTime: number
 
     tick(msg?: string): number {
         const elapsed = Date.now() - this._tickTime

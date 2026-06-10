@@ -1,7 +1,7 @@
 import * as React from "react"
 import { computed, makeObservable } from "mobx"
 import { Triangle } from "./Triangle"
-import { TextWrap } from "@ourworldindata/components"
+import { TextWrap, TextWrapSvg } from "@ourworldindata/components"
 import { BASE_FONT_SIZE } from "../core/GrapherConstants"
 import { makeFigmaId } from "@ourworldindata/utils"
 import * as _ from "lodash-es"
@@ -19,14 +19,14 @@ export interface ConnectedScatterLegendManager {
 export class ConnectedScatterLegend {
     manager: ConnectedScatterLegendManager
 
-    private lineToLabelSpacing = 8
-    private dotRadius = 2
-    private arrowRadius = 3
-    private padding = this.arrowRadius
-    private textColor = GRAPHER_DARK_TEXT
-    private arrowColor = GRAY_70
-    private outlineColor = "#fff"
-    private outlineWidth = 0.2
+    private readonly lineToLabelSpacing = 8
+    private readonly dotRadius = 2
+    private readonly arrowRadius = 3
+    private readonly padding = this.arrowRadius
+    private readonly textColor = GRAPHER_DARK_TEXT
+    private readonly arrowColor = GRAY_70
+    private readonly outlineColor = "#fff"
+    private readonly outlineWidth = 0.2
 
     constructor(manager: ConnectedScatterLegendManager) {
         makeObservable(this)
@@ -92,8 +92,6 @@ export class ConnectedScatterLegend {
         const labelY = lineY + lineToLabelSpacing
         const labelStartX = targetX
         const labelEndX = targetX + width - endLabel.width
-        const labelProps = { textProps: { fill: this.textColor } }
-
         return (
             <g
                 id={makeFigmaId("arrow-legend")}
@@ -108,8 +106,18 @@ export class ConnectedScatterLegend {
                     fill="#fff"
                     opacity={0}
                 />
-                {startLabel.renderSVG(labelStartX, labelY, labelProps)}
-                {endLabel.renderSVG(labelEndX, labelY, labelProps)}
+                <TextWrapSvg
+                    textWrap={startLabel}
+                    x={labelStartX}
+                    y={labelY}
+                    fill={this.textColor}
+                />
+                <TextWrapSvg
+                    textWrap={endLabel}
+                    x={labelEndX}
+                    y={labelY}
+                    fill={this.textColor}
+                />
                 <line
                     x1={lineLeft}
                     y1={lineY}

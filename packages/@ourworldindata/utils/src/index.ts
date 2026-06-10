@@ -59,9 +59,7 @@ export {
     rollingMap,
     keyMap,
     intersectionOfSets,
-    differenceOfSets,
     areSetsEqual,
-    isSubsetOf,
     intersection,
     sortByUndefinedLast,
     mapNullToUndefined,
@@ -79,8 +77,6 @@ export {
     toRectangularMatrix,
     checkIsStringIndexable,
     checkIsTouchEvent,
-    triggerDownloadFromBlob,
-    triggerDownloadFromUrl,
     removeAllWhitespace,
     moveArrayItemToIndex,
     getIndexableKeys,
@@ -112,6 +108,8 @@ export {
     checkIsGdocPostExcludingFragments,
     checkIsDataInsight,
     checkIsAuthor,
+    checkIsChronologicalGdoc,
+    checkIsLatestFeedGdoc,
     cartesian,
     removeTrailingParenthetical,
     commafyNumber,
@@ -124,7 +122,6 @@ export {
     getParentVariableIdFromChartConfig,
     isArrayDifferentFromReference,
     readFromAssetMap,
-    downloadImage,
     getUniqueNamesFromTagHierarchies,
     getUserNavigatorLanguages,
     getUserNavigatorLanguagesNonEnglish,
@@ -136,6 +133,7 @@ export {
     guidedChartRegex,
     plaintextCalloutRegex,
     extractDetailsFromSyntax,
+    stripDetailOnDemandLinks,
     parseFloatOrUndefined,
     bind,
     merge,
@@ -143,6 +141,7 @@ export {
     getDisplayUnit,
     stripOuterParentheses,
     dimensionsToViewId,
+    type Pair,
 } from "./Util.js"
 
 export {
@@ -166,6 +165,17 @@ export {
 export { getAllVariableIds } from "./multiDim.js"
 
 export { isPresent } from "./isPresent.js"
+
+export {
+    downloadImage,
+    makeDownloadCodeExamples,
+    makeFilteredDownloadDescription,
+    makeFullDownloadDescription,
+    makeNumberOfRowsSnippet,
+    SERVER_SIDE_DOWNLOAD_HELP_TEXT,
+    triggerDownloadFromBlob,
+    triggerDownloadFromUrl,
+} from "./download.js"
 
 import dayjs from "./dayjs.js"
 export { dayjs }
@@ -243,6 +253,7 @@ export {
 } from "./profiles.js"
 
 export {
+    type PadObject,
     type GridBounds,
     type SplitBoundsPadding,
     FontFamily,
@@ -278,7 +289,11 @@ export {
     removeDiacritics,
 } from "./string.js"
 
-export { serializeJSONForHTML, deserializeJSONFromHTML } from "./serializers.js"
+export {
+    serializeJSONForHTML,
+    deserializeJSONFromHTML,
+    escapeJSONStringForInlineScript,
+} from "./serializers.js"
 
 export { PromiseCache } from "./PromiseCache.js"
 

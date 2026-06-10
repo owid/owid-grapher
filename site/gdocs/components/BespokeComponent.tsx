@@ -1,11 +1,23 @@
 import { EnrichedBlockBespokeComponent } from "@ourworldindata/types"
 import { LoadingIndicator } from "@ourworldindata/components"
 import cx from "classnames"
-import { useEffect, useRef, useState } from "react"
-import {
-    BESPOKE_COMPONENT_REGISTRY,
-    BespokeComponentModule,
-} from "../../bespokeComponentRegistry.js"
+import { useEffect, useMemo, useRef, useState } from "react"
+import { BESPOKE_COMPONENT_REGISTRY } from "../../bespokeComponentRegistry.js"
+import { mountBespokeComponentInShadow } from "../../../bespoke/shared/bespokeComponentShadowDom.js"
+import { BESPOKE_BASE_URL } from "../../../settings/clientSettings.js"
+import urljoin from "url-join"
+
+// Use the `baseUrl` as a base for the URL constructor if set, and use just the URL (which might be host-relative) if not.
+// If `url` is already absolute, it will effectively just get passed through.
+const makeAbsoluteWithBaseUrl = (url: string, baseUrl: string | undefined) => {
+    baseUrl = baseUrl?.trim()
+    if (!baseUrl) return url
+
+    // url is already absolute, so just return it as is
+    if (url.startsWith("http://") || url.startsWith("https://")) return url
+
+    return urljoin(baseUrl, url)
+}
 
 /**
  * Renders a bespoke component inside a Shadow DOM container.
@@ -40,70 +52,58 @@ export function BespokeComponent({
     const [isLoading, setIsLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
 
+    const definition = useMemo(
+        () => BESPOKE_COMPONENT_REGISTRY[block.bundle],
+        [block.bundle]
+    )
+
+    const { scriptUrl, cssUrl } = useMemo(() => {
+        if (!definition || !BESPOKE_BASE_URL.trim())
+            return { scriptUrl: undefined, cssUrl: undefined }
+
+        return {
+            scriptUrl: makeAbsoluteWithBaseUrl(
+                definition.scriptUrl,
+                BESPOKE_BASE_URL
+            ),
+            cssUrl:
+                definition.cssUrl &&
+                makeAbsoluteWithBaseUrl(definition.cssUrl, BESPOKE_BASE_URL),
+        }
+    }, [definition])
+
     useEffect(() => {
         const container = containerRef.current
         if (!container) return
 
-        const definition = BESPOKE_COMPONENT_REGISTRY[block.bundle]
         if (!definition) {
             setError(`Unknown bespoke bundle: "${block.bundle}"`)
             return
         }
-
-        let shadowRoot = container.shadowRoot
-        if (!shadowRoot) {
-            shadowRoot = container.attachShadow({ mode: "open" })
+        if (!scriptUrl) {
+            setError("This custom component cannot be displayed on this page.")
+            return
         }
-
-        // Clear any previous content from the shadow root (e.g. from a
-        // previous run of this effect with different dependencies)
-        shadowRoot.replaceChildren()
 
         const abortController = new AbortController()
 
         setError(null)
         setIsLoading(true)
 
-        async function hydrate() {
-            try {
-                // Load CSS into shadow root
-                const cssPromise = loadCssIntoShadow(
-                    shadowRoot!,
-                    definition.cssUrl
-                )
-                // Dynamically import the JS module
-                const jsPromise = import(
-                    /* @vite-ignore */
-                    definition.scriptUrl
-                ) as Promise<BespokeComponentModule>
-
-                await cssPromise
-                const module = await jsPromise
-
+        mountBespokeComponentInShadow({
+            container,
+            scriptUrl,
+            cssUrl,
+            variant: block.variant,
+            config: block.config,
+            signal: abortController.signal,
+        })
+            .then(({ dispose }) => {
                 if (abortController.signal.aborted) return
-
-                if (typeof module.mount !== "function") {
-                    setError(
-                        `Bespoke bundle "${block.bundle}" does not export a mount function`
-                    )
-                    return
-                }
-
-                // Create a container div inside the shadow root for the component to render into
-                const mountContainer = document.createElement("div")
-                mountContainer.className = "bespoke-container"
-                shadowRoot!.appendChild(mountContainer)
-
-                // Mount the component
-                const dispose = await module.mount(mountContainer, {
-                    variant: block.variant,
-                    config: block.config,
-                })
-                if (typeof dispose === "function") {
-                    disposeRef.current = dispose
-                }
+                if (dispose) disposeRef.current = dispose
                 setIsLoading(false)
-            } catch (err) {
+            })
+            .catch((err) => {
                 if (abortController.signal.aborted) return
                 const message =
                     err instanceof Error ? err.message : "Unknown error"
@@ -114,10 +114,7 @@ export function BespokeComponent({
                     `Failed to hydrate bespoke bundle "${block.bundle}":`,
                     err
                 )
-            }
-        }
-
-        void hydrate()
+            })
 
         return () => {
             abortController.abort()
@@ -125,41 +122,27 @@ export function BespokeComponent({
                 disposeRef.current()
                 disposeRef.current = null
             }
-            // Clear shadow root contents on cleanup
             container.shadowRoot?.replaceChildren()
         }
-    }, [block.bundle, block.variant, block.config])
+    }, [
+        block.bundle,
+        block.variant,
+        block.config,
+        definition,
+        scriptUrl,
+        cssUrl,
+    ])
 
     if (error) {
         return <BespokeError className={className} message={error} />
     }
 
     return (
-        <div
-            className={className}
-            style={{
-                position: "relative",
-                minHeight: 300,
-            }}
-        >
+        <div className={className}>
             {isLoading && <LoadingIndicator />}
             <div ref={containerRef}></div>
         </div>
     )
-}
-
-async function loadCssIntoShadow(
-    shadowRoot: ShadowRoot,
-    cssUrl: string
-): Promise<void> {
-    return new Promise<void>((resolve, reject) => {
-        const link = document.createElement("link")
-        link.rel = "stylesheet"
-        link.href = cssUrl
-        link.onload = () => resolve()
-        link.onerror = () => reject(new Error(`Failed to load CSS: ${cssUrl}`))
-        shadowRoot.appendChild(link)
-    })
 }
 
 function BespokeError({

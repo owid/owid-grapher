@@ -83,7 +83,12 @@ export const breadcrumbColorForCoverColor = (
 
 export const useLinkedAuthor = (
     name: string
-): { name: string; slug: string | null; featuredImage: string | null } => {
+): {
+    name: string
+    slug: string | null
+    featuredImage: string | null
+    role?: string
+} => {
     const { linkedAuthors } = useContext(AttachmentsContext)
     const author = linkedAuthors?.find((author) => author.name === name)
     if (!author) return { name, slug: null, featuredImage: null }

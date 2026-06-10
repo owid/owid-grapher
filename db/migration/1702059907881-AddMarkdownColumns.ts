@@ -55,7 +55,7 @@ export class AddMarkdownColumns1702059907881 implements MigrationInterface {
                               (faq: unknown) => (faq as EnrichedFaq).content
                           )
                         : undefined,
-                    content.refs && content.refs.definitions
+                    content.refs?.definitions
                         ? Object.values(content.refs.definitions).flatMap(
                               (definition: unknown) =>
                                   (definition as Ref).content

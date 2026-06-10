@@ -55,8 +55,10 @@ export default function MultiDimEmbedSettingsPanel({
         const toggleButtonWidth = 90
 
         const dropdowns = Array.from(
-            dropdownsContainer.querySelectorAll(".md-settings__dropdown")
-        ) as HTMLDivElement[]
+            dropdownsContainer.querySelectorAll<HTMLDivElement>(
+                ".md-settings__dropdown"
+            )
+        )
 
         // First, try to fit all dropdowns without toggle button
         let totalWidthAllDropdowns = 0

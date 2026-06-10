@@ -7,9 +7,11 @@ import { dayjs, countries, getEntitiesForProfile } from "@ourworldindata/utils"
 import {
     DbPlainChart,
     DbPlainMultiDimDataPage,
+    DbPlainSlideshow,
     DbRawPostGdoc,
     MultiDimDataPagesTableName,
     OwidGdocType,
+    SlideshowsTableName,
 } from "@ourworldindata/types"
 import {
     EXPLORERS_ROUTE_FOLDER,
@@ -19,7 +21,6 @@ import * as db from "../db/db.js"
 import urljoin from "url-join"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 
-import { calculateDataInsightIndexPageCount } from "../db/model/Gdoc/gdocUtils.js"
 import { getMinimalAuthors } from "../db/model/Gdoc/GdocAuthor.js"
 import {
     GdocProfile,
@@ -106,9 +107,6 @@ export const makeSitemap = async (
         .then((gdocs) => gdocs.map(gdocFromJSON))) as GdocProfile[]
 
     const publishedDataInsights = await db.getPublishedDataInsights(knex)
-    const dataInsightFeedPageCount = calculateDataInsightIndexPageCount(
-        publishedDataInsights.length
-    )
 
     const charts = await db.knexRaw<
         Pick<DbPlainChart, "updatedAt"> & { slug: string }
@@ -132,6 +130,9 @@ export const makeSitemap = async (
 
     const explorers = await explorerAdminServer.getAllPublishedExplorers(knex)
     const multiDims = await getPublishedMultiDims(knex)
+    const slideshows = await knex<DbPlainSlideshow>(SlideshowsTableName)
+        .select("slug", "updatedAt")
+        .where("isPublished", 1)
 
     const profileUrls = profileTemplates.flatMap((profileTemplate) => {
         const lastmod = profileTemplate.updatedAt
@@ -173,19 +174,6 @@ export const makeSitemap = async (
             }))
         )
         .concat(
-            // Data insight index pages: /data-insights, /data-insights/2, /data-insights/3, etc.
-            Array.from({ length: dataInsightFeedPageCount }, (_, i) => ({
-                loc: urljoin(
-                    BAKED_BASE_URL,
-                    "data-insights",
-                    i === 0 ? "" : `/${i + 1}`
-                ),
-                lastmod: dayjs(publishedDataInsights[0].updatedAt).format(
-                    "YYYY-MM-DD"
-                ),
-            }))
-        )
-        .concat(
             charts.map((c) => ({
                 loc: urljoin(BAKED_GRAPHER_URL, c.slug),
                 lastmod: dayjs(c.updatedAt).format("YYYY-MM-DD"),
@@ -205,6 +193,12 @@ export const makeSitemap = async (
             }))
         )
         .concat(profileUrls)
+        .concat(
+            slideshows.map((s) => ({
+                loc: urljoin(BAKED_BASE_URL, "slideshows", s.slug),
+                lastmod: dayjs(s.updatedAt).format("YYYY-MM-DD"),
+            }))
+        )
 
     const sitemap = `<?xml version="1.0" encoding="utf-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">

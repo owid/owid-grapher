@@ -44,7 +44,7 @@ export class OwidAdminApp {
     }
 
     app = express()
-    private options: OwidAdminAppOptions
+    private readonly options: OwidAdminAppOptions
 
     server?: http.Server
     async stopListening() {
@@ -269,6 +269,7 @@ export class OwidAdminApp {
 
     connectToDatabases = async () => {
         try {
+            // @ts-expect-error tests the database connection
             const _ = db.knexInstance()
         } catch (error) {
             // grapher database is in fact required, but we will not fail now in case it

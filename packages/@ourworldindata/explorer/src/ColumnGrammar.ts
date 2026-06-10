@@ -3,6 +3,7 @@ import {
     automaticBinningStrategies,
     ColorSchemeName,
     ColumnTypeNames,
+    OwidVariableRoundingMode,
 } from "@ourworldindata/types"
 import { ToleranceStrategy } from "@ourworldindata/utils"
 import {
@@ -13,6 +14,7 @@ import {
     Grammar,
     IntegerCellDef,
     NumericCellDef,
+    PositiveIntegerCellDef,
     SlugDeclarationCellDef,
     StringCellDef,
     UrlCellDef,
@@ -78,7 +80,6 @@ export const ColumnGrammar: Grammar<ColumnCellDef> = {
         ...StringCellDef,
         keyword: "description",
         description: "Describe the column",
-        isDisplayProperty: true,
     },
     unit: {
         ...StringCellDef,
@@ -90,6 +91,32 @@ export const ColumnGrammar: Grammar<ColumnCellDef> = {
         ...StringCellDef,
         keyword: "shortUnit",
         description: "Short (axis) unit",
+        isDisplayProperty: true,
+    },
+    roundingMode: {
+        ...EnumCellDef,
+        keyword: "roundingMode",
+        terminalOptions: Object.values(OwidVariableRoundingMode).map(
+            (mode) => ({
+                keyword: mode,
+                description: "",
+                cssClass: "",
+            })
+        ),
+        description:
+            "How to round numbers: by decimal places or by significant figures",
+        isDisplayProperty: true,
+    },
+    numDecimalPlaces: {
+        ...PositiveIntegerCellDef,
+        keyword: "numDecimalPlaces",
+        description: "Number of decimal places to display",
+        isDisplayProperty: true,
+    },
+    numSignificantFigures: {
+        ...PositiveIntegerCellDef,
+        keyword: "numSignificantFigures",
+        description: "Number of significant figures to display",
         isDisplayProperty: true,
     },
     notes: {

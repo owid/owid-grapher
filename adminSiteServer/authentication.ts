@@ -135,6 +135,17 @@ export async function apiKeyAuthMiddleware(
         }
 
         if (user.isSuperuser && actAsUserId !== undefined) {
+            if (!user.isActive) {
+                console.error(
+                    "Inactive superuser attempted to use x-act-as-user.",
+                    {
+                        userId: user.id,
+                        actAsUserId,
+                    }
+                )
+                return
+            }
+
             const actAsUser = await trx<DbPlainUser>(UsersTableName)
                 .where({ id: actAsUserId })
                 .first()
@@ -262,7 +273,7 @@ function getClientIp(req: express.Request): string | undefined {
         (req.headers["x-forwarded-for"] as string) ||
         req.socket.remoteAddress ||
         req.ip
-    if (ip && ip.startsWith("::ffff:")) {
+    if (ip?.startsWith("::ffff:")) {
         ip = ip.replace("::ffff:", "")
     }
     return ip

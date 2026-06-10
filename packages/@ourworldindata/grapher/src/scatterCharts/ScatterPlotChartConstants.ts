@@ -140,11 +140,9 @@ export interface ScatterPointsWithLabelsProps {
     isConnected: boolean
     hideConnectedScatterLines: boolean
     noDataModalManager: NoDataModalManager
-    disableIntroAnimation?: boolean
     hideScatterLabels?: boolean
     hideEntityLabels?: boolean
     quadtree?: Quadtree<ScatterPointQuadtreeNode>
-    backgroundColor?: Color
     hideFocusRing?: boolean
 }
 

@@ -331,9 +331,9 @@ export function SExpressionToJsonLogic(
 ): JSONPreciselyTyped {
     return sExpression.toJsonLogic({
         processSqlColumnName: (columnName) => {
-            const item = [...readOnlyEntries.entries()].find(
-                (item) => item[1].sExpressionColumnTarget === columnName
-            )
+            const item = readOnlyEntries
+                .entries()
+                .find(([_, col]) => col.sExpressionColumnTarget === columnName)
             const mappedColumnName = item![0]
             return mappedColumnName
         },
@@ -458,10 +458,10 @@ export function filterTreeToSExpression(
                     }
                 )
                 .when(
-                    (op) => op && getNullCheckOperator(op as string),
+                    (op) => op && getNullCheckOperator(op),
                     (op) => {
                         const operator = getNullCheckOperator(op as string)!
-                        return new NullCheckOperation(operator!, field)
+                        return new NullCheckOperation(operator, field)
                     }
                 )
                 .with("is_empty", "is_not_empty", (operator) => {

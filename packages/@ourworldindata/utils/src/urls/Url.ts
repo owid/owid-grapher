@@ -31,7 +31,7 @@ interface UrlProps {
 }
 
 export class Url {
-    private props: UrlProps
+    private readonly props: UrlProps
 
     /**
      * @param url Absolute or relative URL

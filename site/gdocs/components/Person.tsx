@@ -1,6 +1,7 @@
 import { useMediaQuery } from "usehooks-ts"
 
 import { EnrichedBlockPerson } from "@ourworldindata/types"
+import { slugify } from "@ourworldindata/utils"
 import { SMALL_BREAKPOINT_MEDIA_QUERY } from "../../SiteConstants.js"
 import { useLinkedDocument } from "../utils.js"
 import { ArticleBlocks } from "./ArticleBlocks.js"
@@ -33,7 +34,7 @@ export default function Person({ person }: { person: EnrichedBlockPerson }) {
     ) : null
 
     return (
-        <div className="person">
+        <div className="person" id={slugify(person.name)}>
             {person.image && (
                 <div className="person-image-container">
                     {url ? (

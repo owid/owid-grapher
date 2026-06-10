@@ -19,6 +19,12 @@
 
 @import "@react-awesome-query-builder/antd/css/styles.css";
 
+@import "../packages/@ourworldindata/components/src/styles/colors.scss";
+@import "../packages/@ourworldindata/components/src/styles/variables.scss";
+@import "../packages/@ourworldindata/components/src/styles/mixins.scss";
+@import "../packages/@ourworldindata/components/src/styles/typography-constants.scss";
+@import "../packages/@ourworldindata/components/src/styles/typography.scss";
+
 @import "./GdocsIndexPage.scss";
 @import "./FeaturedMetricsPage.scss";
 @import "./FilesIndexPage.scss";
@@ -27,6 +33,9 @@
 @import "./SortableList.scss";
 @import "./StaticViz.scss";
 @import "./MultiDimDetailPage.scss";
+@import "./slideshows/SlideshowAdmin.scss";
+// Slide content styles reused for slideshow preview
+@import "../site/slideshows/SlideContent.scss";
 
 html {
     font-size: 14px;
@@ -865,10 +874,6 @@ $nav-height: 45px;
 .colorpicker-tooltip {
     .tippy-content {
         padding: 0;
-
-        .sketch-picker {
-            box-shadow: none !important;
-        }
     }
 }
 
@@ -1226,18 +1231,6 @@ main:not(.ChartEditorPage):not(.GdocsEditPage):not(.MultiDimDetailPage) {
     .cell-time {
         font-weight: 400;
         color: #777;
-    }
-}
-
-.BulkDownloadPage {
-    section {
-        background-color: #f9f9f9;
-        padding: 1.2em;
-        border-radius: 0.4em;
-        margin: 0.4em 0;
-        box-shadow:
-            0 1px 3px rgba(0, 0, 0, 0.12),
-            0 1px 2px rgba(0, 0, 0, 0.24);
     }
 }
 
@@ -1858,4 +1851,20 @@ main:not(.ChartEditorPage):not(.GdocsEditPage):not(.MultiDimDetailPage) {
 
 .table-preview-col--centered {
     text-align: center;
+}
+
+.dumbbell-trend-colors {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    .dumbbell-trend-colors__invert {
+        margin-left: auto;
+    }
+
+    .dumbbell-trend-colors__invert-icon {
+        position: relative;
+        top: 1px;
+        margin-right: 6px;
+    }
 }

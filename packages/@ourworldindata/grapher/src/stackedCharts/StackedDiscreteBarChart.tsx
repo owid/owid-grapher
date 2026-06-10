@@ -22,6 +22,7 @@ import {
     FontSettings,
     GRAPHER_FONT_SCALE_12,
 } from "../core/GrapherConstants"
+import { enrichSeriesWithLabels } from "../rowSeriesLabels/RowSeriesLabelHelpers.js"
 import {
     HorizontalAxisComponent,
     HorizontalAxisGridLines,
@@ -62,9 +63,7 @@ import { HorizontalAxis } from "../axis/Axis"
 import { StackedDiscreteBarChartState } from "./StackedDiscreteBarChartState"
 import { ChartComponentProps } from "../chart/ChartTypeMap.js"
 import { StackedDiscreteBarRow } from "./StackedDiscreteBarRow"
-import { HashMap, NodeGroup } from "react-move"
-import { easeQuadOut } from "d3-ease"
-import { enrichSeriesWithLabels } from "../barCharts/DiscreteBarChartHelpers.js"
+import { AnimatedRows } from "../animation/AnimatedRows.js"
 import { InteractionState } from "../interaction/InteractionState.js"
 
 export interface StackedDiscreteBarChartManager extends ChartManager {
@@ -84,11 +83,11 @@ export class StackedDiscreteBarChart
     extends React.Component<StackedDiscreteBarChartProps>
     implements ChartInterface, HorizontalColorLegendManager
 {
-    private base = React.createRef<SVGGElement>()
+    private readonly base = React.createRef<SVGGElement>()
 
     private legendHoverSeriesName: SeriesName | undefined = undefined
 
-    private tooltipState = new TooltipState<{
+    private readonly tooltipState = new TooltipState<{
         entityName: string
         seriesName?: string
     }>()
@@ -129,7 +128,11 @@ export class StackedDiscreteBarChart
     }
 
     @computed private get showLegend(): boolean {
-        return !this.props.hideLegend && !!this.manager.showLegend
+        return (
+            !this.props.hideLegend &&
+            this.legendBins.length > 1 &&
+            !!this.manager.showLegend
+        )
     }
 
     @computed private get boundsWithoutLegend(): Bounds {
@@ -280,11 +283,14 @@ export class StackedDiscreteBarChart
         return this.chartState.rows.length
     }
 
+    @computed private get availableHeightPerSeries(): number {
+        return this.boundsWithoutLegend.height / this.barCount
+    }
+
     @computed private get labelFontSize(): number {
-        const availableHeight = this.boundsWithoutLegend.height / this.barCount
         return Math.min(
             GRAPHER_FONT_SCALE_12 * this.fontSize,
-            1.1 * availableHeight
+            1.1 * this.availableHeightPerSeries
         )
     }
 
@@ -299,8 +305,7 @@ export class StackedDiscreteBarChart
     @computed private get sizedRows(): readonly SizedDiscreteBarRow[] {
         return enrichSeriesWithLabels({
             series: this.chartState.sortedRows,
-            availableHeightPerSeries:
-                this.boundsWithoutLegend.height / this.barCount,
+            availableHeightPerSeries: this.availableHeightPerSeries,
             minLabelWidth: 0.3 * this.boundsWithoutLegend.width,
             maxLabelWidth: 0.66 * this.boundsWithoutLegend.width,
             fontSettings: this.labelStyle,
@@ -626,13 +631,13 @@ export class StackedDiscreteBarChart
                             preferredAxisPosition={innerBounds.bottom}
                         />
                         <HorizontalAxisGridLines
-                            horizontalAxis={yAxis}
+                            axis={yAxis}
                             bounds={innerBounds}
                         />
                     </>
                 )}
                 <HorizontalAxisZeroLine
-                    horizontalAxis={yAxis}
+                    axis={yAxis}
                     bounds={innerBounds}
                     strokeWidth={0.5}
                     // Moves the zero line a little to the left
@@ -653,6 +658,7 @@ export class StackedDiscreteBarChart
                         <StackedDiscreteBarRow
                             key={row.entityName}
                             row={row}
+                            y={row.yPosition}
                             yAxis={this.yAxis}
                             barHeight={this.barHeight}
                             labelFontSize={this.labelFontSize}
@@ -671,11 +677,6 @@ export class StackedDiscreteBarChart
     private renderInteractive(): React.ReactElement {
         const { bounds } = this
 
-        const handlePositionUpdate = (d: RenderDiscreteBarRow): HashMap => ({
-            translateY: [d.yPosition],
-            timing: { duration: 350, ease: easeQuadOut },
-        })
-
         return (
             <g ref={this.base} onMouseMove={this.onMouseMove}>
                 <rect
@@ -688,38 +689,25 @@ export class StackedDiscreteBarChart
                 />
                 {this.renderLegend()}
                 {this.renderAxis()}
-                <NodeGroup
-                    data={this.renderRows}
-                    keyAccessor={(d: RenderDiscreteBarRow): string =>
-                        d.entityName
-                    }
-                    start={handlePositionUpdate}
-                    update={handlePositionUpdate}
-                >
-                    {(nodes): React.ReactElement => (
-                        <g>
-                            {nodes.map((node) => (
-                                <StackedDiscreteBarRow
-                                    key={node.data.entityName}
-                                    row={node.data}
-                                    translateY={node.state.translateY ?? 0}
-                                    barHeight={this.barHeight}
-                                    labelFontSize={this.labelFontSize}
-                                    yAxis={this.yAxis}
-                                    showTotalValueLabel={
-                                        this.showTotalValueLabel
-                                    }
-                                    formatValueForLabel={
-                                        this.formatValueForLabel
-                                    }
-                                    onEntityMouseEnter={this.onEntityMouseEnter}
-                                    onEntityMouseLeave={this.onEntityMouseLeave}
-                                    onClearTooltip={this.clearTooltip}
-                                />
-                            ))}
-                        </g>
+                <AnimatedRows
+                    items={this.renderRows}
+                    keyAccessor={(d) => d.entityName}
+                    getY={(d) => d.yPosition}
+                    renderRow={(row) => (
+                        <StackedDiscreteBarRow
+                            key={row.entityName}
+                            row={row}
+                            barHeight={this.barHeight}
+                            labelFontSize={this.labelFontSize}
+                            yAxis={this.yAxis}
+                            showTotalValueLabel={this.showTotalValueLabel}
+                            formatValueForLabel={this.formatValueForLabel}
+                            onEntityMouseEnter={this.onEntityMouseEnter}
+                            onEntityMouseLeave={this.onEntityMouseLeave}
+                            onClearTooltip={this.clearTooltip}
+                        />
                     )}
-                </NodeGroup>
+                />
                 {this.tooltip}
             </g>
         )

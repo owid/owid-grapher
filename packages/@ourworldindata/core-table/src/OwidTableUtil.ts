@@ -61,7 +61,7 @@ export function toPercentageColumnDef(
     columnDef: CoreColumnDef,
     type = ColumnTypeNames.Percentage
 ): CoreColumnDef {
-    // drops all values that can hinder the correct display of a percentage column
+    // Drops all values that can hinder the correct display of a percentage column
     // (e.g. a "kWh" unit or a numDecimalPlaces value of 0)
     return {
         ...columnDef,
@@ -72,6 +72,7 @@ export function toPercentageColumnDef(
             ...columnDef.display,
             unit: undefined,
             shortUnit: undefined,
+            roundingMode: undefined,
             numDecimalPlaces: undefined,
             conversionFactor: undefined,
         },

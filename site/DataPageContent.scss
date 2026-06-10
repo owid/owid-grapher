@@ -5,6 +5,7 @@
 }
 
 .DataPageContent {
+    // Header components shown in multidims, but not in standalone grapher datapages.
     .header__wrapper {
         padding-top: 24px;
 
@@ -141,7 +142,23 @@
         .GrapherWithFallback__fallback {
             display: flex;
             flex-direction: column;
+            align-items: center;
+
+            picture {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex: 1 1 auto;
+                min-height: 0;
+                max-width: 100%;
+            }
+
             img {
+                display: block;
+                width: auto;
+                max-width: 100%;
+                max-height: 100%;
+                height: auto;
                 margin: auto;
             }
         }

@@ -1,10 +1,6 @@
 import * as _ from "lodash-es"
 import * as React from "react"
-import {
-    differenceOfSets,
-    getRegionByName,
-    checkIsCountry,
-} from "@ourworldindata/utils"
+import { getRegionByName, checkIsCountry } from "@ourworldindata/utils"
 import { computed, action, observable, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import cx from "classnames"
@@ -217,28 +213,7 @@ class QuickAddSection extends React.Component<{
     }
 
     @computed private get shouldShowDataRangeButton() {
-        // Data range selection doesn't make sense for stacked charts
-        if (this.grapherState.isStackedArea || this.grapherState.isStackedBar)
-            return false
-
-        // Data range selection doesn't make sense for charts with multiple y-columns
-        const hasMultipleYColumns = this.grapherState.yColumnSlugs.length > 1
-        if (hasMultipleYColumns) return false
-
-        // Data range selection is only supported for countries
-        const availableCountries =
-            this.grapherState.availableEntityNames.filter((entityName) => {
-                const region = getRegionByName(entityName)
-                return region && checkIsCountry(region)
-            })
-        if (availableCountries.length < 10) return false
-
-        const dataColumn = this.grapherState.table.get(
-            this.grapherState.yColumnSlug
-        )
-
-        // Check if a data column exists and has data
-        return dataColumn && !dataColumn.isMissing && !dataColumn.isEmpty
+        return shouldShowDataRangeButton(this.grapherState)
     }
 
     override render() {
@@ -384,14 +359,40 @@ class AddPeersSection extends React.Component<{
     @action.bound async onAddNeighborsPeers() {
         if (!this.effectiveTargetCountry) return
 
+        const availableEntities = prepareEntitiesForPeerSelection(
+            this.grapherState
+        )
         const peers = await selectPeerCountries({
             peerCountryStrategy: PeerCountryStrategy.Neighbors,
             targetCountry: this.effectiveTargetCountry,
-            availableEntities: this.availableEntities,
+            availableEntities,
             additionalDataLoaderFn: this.grapherState.additionalDataLoaderFn,
         })
 
         this.grapherState.selection.addToSelection(peers)
+    }
+
+    @action.bound async onAddDataRangePeers() {
+        if (!this.effectiveTargetCountry) return
+
+        const { grapherState } = this
+        const dataColumn = grapherState.table.get(grapherState.yColumnSlug)
+
+        const availableEntities = prepareEntitiesForPeerSelection(grapherState)
+        const peers = await selectPeerCountries({
+            peerCountryStrategy: PeerCountryStrategy.DataRange,
+            targetCountry: this.effectiveTargetCountry,
+            availableEntities,
+            dataColumn,
+            additionalDataLoaderFn: grapherState.additionalDataLoaderFn,
+            randomize: false,
+        })
+
+        this.grapherState.selection.addToSelection(peers)
+    }
+
+    @computed private get shouldShowDataRangeButton(): boolean {
+        return shouldShowDataRangeButton(this.grapherState)
     }
 
     @computed private get shouldShow() {
@@ -455,6 +456,14 @@ class AddPeersSection extends React.Component<{
                     >
                         + Neighbors
                     </button>
+                    {this.shouldShowDataRangeButton && (
+                        <button
+                            className="btn btn-outline-secondary"
+                            onClick={this.onAddDataRangePeers}
+                        >
+                            + Data range
+                        </button>
+                    )}
                 </div>
             </div>
         )
@@ -674,10 +683,8 @@ export class FocusSection extends React.Component<{
         const focusedSeriesNames = grapherState.focusArray.seriesNames
 
         const seriesNameSet = new Set(grapherState.focusableSeriesNames)
-        const availableSeriesNameSet = differenceOfSets([
-            seriesNameSet,
-            focusedSeriesNameSet,
-        ])
+        const availableSeriesNameSet =
+            seriesNameSet.difference(focusedSeriesNameSet)
 
         // Focusing only makes sense for two or more plotted series
         if (focusedSeriesNameSet.size === 0 && availableSeriesNameSet.size < 2)
@@ -687,10 +694,8 @@ export class FocusSection extends React.Component<{
             availableSeriesNameSet
         ).sort()
 
-        const invalidFocusedSeriesNames = differenceOfSets([
-            focusedSeriesNameSet,
-            seriesNameSet,
-        ])
+        const invalidFocusedSeriesNames =
+            focusedSeriesNameSet.difference(seriesNameSet)
 
         return (
             <Section name="Data to highlight">
@@ -792,7 +797,7 @@ class PeerCountrySection<
         makeObservable(this)
     }
 
-    private peerCountryStrategyLabels: {
+    private readonly peerCountryStrategyLabels: {
         [key in PeerCountryStrategy]: string
     } = {
         [PeerCountryStrategy.ParentRegions]: "Continent, income group & World",
@@ -1128,4 +1133,24 @@ export class EditorDataTab<
             </div>
         )
     }
+}
+
+function shouldShowDataRangeButton(grapherState: GrapherState): boolean {
+    // Data range selection doesn't make sense for stacked charts
+    if (grapherState.hasStackedArea || grapherState.hasStackedBar) return false
+
+    // Data range selection doesn't make sense for charts with multiple y-columns
+    if (grapherState.yColumnSlugs.length > 1) return false
+
+    // Data range selection is only supported for countries
+    const availableCountries = grapherState.availableEntityNames.filter(
+        (entityName) => {
+            const region = getRegionByName(entityName)
+            return region && checkIsCountry(region)
+        }
+    )
+    if (availableCountries.length < 10) return false
+
+    const dataColumn = grapherState.table.get(grapherState.yColumnSlug)
+    return !!dataColumn && !dataColumn.isMissing && !dataColumn.isEmpty
 }

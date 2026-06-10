@@ -1,0 +1,58 @@
+// Pull-chart: thumbnail floats within text, like the existing PullQuote component.
+// The thumbnail pulls slightly outside the content column via negative margins.
+.pull-chart {
+    margin-bottom: 16px;
+
+    .pull-chart__thumbnail {
+        max-width: 300px;
+        margin-bottom: 8px;
+    }
+
+    &.pull-chart--align-left-center {
+        .pull-chart__thumbnail {
+            float: left;
+            margin-right: 24px;
+            margin-left: calc(-100vw / 12); // one column width
+        }
+    }
+
+    &.pull-chart--align-right-center {
+        .pull-chart__thumbnail {
+            float: right;
+            margin-left: 24px;
+            margin-right: calc(-100vw / 12); // one column width
+        }
+    }
+
+    // Between 768-960px: keep float but remove the offset
+    @include md-only {
+        &.pull-chart--align-left-center {
+            .pull-chart__thumbnail {
+                margin-left: 0;
+            }
+        }
+
+        &.pull-chart--align-right-center {
+            .pull-chart__thumbnail {
+                margin-right: 0;
+            }
+        }
+    }
+
+    // Below 768px: stack vertically, full width
+    @include sm-only {
+        &.pull-chart--align-left-center,
+        &.pull-chart--align-right-center {
+            .pull-chart__thumbnail {
+                float: none;
+                margin: 0 0 16px 0;
+                max-width: unset;
+                width: calc(10 / 12 * 100%);
+            }
+        }
+    }
+
+    .pull-chart__content > *:last-child {
+        margin-bottom: 0;
+    }
+}

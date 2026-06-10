@@ -4,13 +4,29 @@ The monorepo we use at [Our World in Data](https://ourworldindata.org) to create
 
 [![A Grapher chart showing world-wide life expectancy at birth. Click for interactive.](https://ourworldindata.org/grapher/life-expectancy.svg)](https://ourworldindata.org/grapher/life-expectancy)
 
+## 📜 Licence
+
+This repository is made publicly available for transparency and educational
+reference. **It is no longer available under the MIT licence.** You may view
+and study the source code, but you may not copy, modify, distribute,
+sublicense, adapt or otherwise use any part of this
+codebase — in whole or in part — in any project, product, or service
+without prior written permission from Our World in Data.
+
+We remain committed to transparency and to sharing our work: if you would
+like to reuse any part of this codebase, please get in touch and we will
+consider your request. See [LICENSE.md](LICENSE.md) for the full terms and
+contact details.
+
+Contributions are welcome and are accepted under our [Contributor
+Agreement](CONTRIBUTOR_AGREEMENT.md); see [CONTRIBUTING.md](CONTRIBUTING.md)
+for details.
+
 ## ✋ Disclaimer
 
 This repo is currently not well-designed for reuse as a visualization library, nor for reproducing the full production environment we have at Our World in Data, as our tools are tightly coupled with our database structure.
 
 We're gradually making steps towards making our work more reusable, however we still prioritize [needs specific to our project](#why-did-we-start-this-project) that can be at odds with making our tools reusable.
-
-You are still very welcome to reuse and adapt any of our code for your own purposes, and we welcome [contributions](CONTRIBUTING.md)!
 
 ## 🏎 Quick start
 

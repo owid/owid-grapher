@@ -74,7 +74,7 @@ export const ExplorerPage = (props: ExplorerPageSettings) => {
         urlMigrationSpec,
         archiveContext,
     } = props
-    const { explorerTitle, explorerSubtitle, slug, thumbnail } = program
+    const { explorerTitle, explorerSubtitle, slug } = program
 
     const isOnArchivalPage = archiveContext?.type === "archive-page"
     const assetMaps = isOnArchivalPage ? archiveContext.assets : undefined
@@ -125,7 +125,6 @@ window.Explorer.renderSingleExplorerOnExplorerPage(
                 canonicalUrl={`${baseUrl}/${EXPLORERS_ROUTE_FOLDER}/${slug}`}
                 pageTitle={`${explorerTitle} Data Explorer`}
                 pageDesc={explorerSubtitle}
-                imageUrl={thumbnail}
                 baseUrl={baseUrl}
                 staticAssetMap={assetMaps?.static}
                 archiveContext={archiveContext}

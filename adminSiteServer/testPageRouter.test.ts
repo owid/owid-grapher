@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest"
 
 import { getSafeComparisonUrl } from "./testPageRouter.js"
 
-describe("getSafeComparisonUrl", () => {
+describe(getSafeComparisonUrl, () => {
     it("returns the default comparison URL when the query param is missing", () => {
         expect(getSafeComparisonUrl(undefined)).toBe(
             "https://ourworldindata.org"

@@ -6,7 +6,7 @@ import Markdown, {
 import { remarkPlainLinks } from "./markdown/remarkPlainLinks.js"
 import { visit } from "unist-util-visit"
 import type { Plugin } from "unified"
-import type { Root } from "hast"
+import type { Root, ElementContent } from "hast"
 
 type SimpleMarkdownTextProps = {
     text: string
@@ -38,6 +38,57 @@ const transformDodLinks: Plugin<[], Root> = () => {
     }
 }
 
+/**
+ * Rehype plugin that transforms `{#hex: colored text}` syntax into
+ * `<span style="color: #hex">colored text</span>`.
+ *
+ * Example: `I am normal.{#f00: red text here}. More normal text.`
+ */
+const COLOR_SYNTAX_REGEX = /\{(#[0-9a-fA-F]{3,8}):\s*(.*?)\}/g
+
+const transformColorSyntax: Plugin<[], Root> = () => {
+    return function (tree) {
+        visit(tree, "text", function (node, index, parent) {
+            if (!parent || index === undefined) return
+            const text = node.value
+            const matches = [...text.matchAll(COLOR_SYNTAX_REGEX)]
+            if (matches.length === 0) return
+
+            const children: ElementContent[] = []
+            let lastIndex = 0
+
+            for (const match of matches) {
+                // Text before the match
+                if (match.index > lastIndex) {
+                    children.push({
+                        type: "text",
+                        value: text.slice(lastIndex, match.index),
+                    })
+                }
+                // Colored span
+                children.push({
+                    type: "element",
+                    tagName: "span",
+                    properties: { style: `color: ${match[1]}` },
+                    children: [{ type: "text", value: match[2] }],
+                })
+                lastIndex = match.index + match[0].length
+            }
+
+            // Text after the last match
+            if (lastIndex < text.length) {
+                children.push({
+                    type: "text",
+                    value: text.slice(lastIndex),
+                })
+            }
+
+            // Replace the text node with the new children
+            parent.children.splice(index, 1, ...children)
+        })
+    }
+}
+
 // NOTE: We currently don't need to render markdown in React. We should be able
 // to render it only during baking/on the server and pass the HTML as string.
 // This way we could reduce the bundle size by not including a markdown library
@@ -62,7 +113,7 @@ export class SimpleMarkdownText extends React.Component<SimpleMarkdownTextProps>
 
     override render(): React.ReactElement | null {
         const options: Omit<MarkdownOptions, "children"> = {
-            rehypePlugins: [transformDodLinks],
+            rehypePlugins: [transformDodLinks, transformColorSyntax],
             remarkPlugins: [remarkPlainLinks],
             components: this.markdownCustomComponents,
         }

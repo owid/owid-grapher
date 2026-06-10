@@ -1,36 +1,36 @@
 metadata:
-    description: Categorization system for organizing charts, datasets, and posts. Tags are used for navigation, filtering, and determining chart indexability, as well as to create the main navigation structure on our homepage. Parent-child relationships between tags are stored in the tag_graph table.
-    incoming_foreign_keys:
-        - table: chart_tags
-          column: tagId
-        - table: dataset_tags
-          column: tagId
-        - table: explorer_tags
-          column: tagId
-        - table: featured_metrics
-          column: parentTagId
-        - table: post_tags
-          column: tag_id
-        - table: posts_gdocs_x_tags
-          column: tagId
-        - table: tag_graph
-          column: childId
-        - table: tag_graph
-          column: parentId
-        - table: tags_variables_topic_tags
-          column: tagId
+  description: Categorization system for organizing charts, datasets, and posts. Tags are used for navigation, filtering, and determining chart indexability, as well as to create the main navigation structure on our homepage. Parent-child relationships between tags are stored in the tag_graph table.
+  incoming_foreign_keys:
+    - table: chart_tags
+      column: tagId
+    - table: dataset_tags
+      column: tagId
+    - table: explorer_tags
+      column: tagId
+    - table: featured_metrics
+      column: parentTagId
+    - table: post_tags
+      column: tag_id
+    - table: posts_gdocs_x_tags
+      column: tagId
+    - table: tag_graph
+      column: childId
+    - table: tag_graph
+      column: parentId
+    - table: tags_variables_topic_tags
+      column: tagId
 fields:
-    id:
-        description: Unique identifier for the tag
-    name:
-        description: Tag name as it appears in the interface
-    createdAt:
-        description: Timestamp when the tag was created
-    updatedAt:
-        description: Timestamp when the tag was last updated
-    searchableInAlgolia:
-        description: When true, this tag is included in Algolia search filters even if it doesn't have an associated topic page. Used for non-topic tags like "Crime" that should still be searchable.
-    specialType:
-        description: Special type designation for the tag (e.g., 'unlisted' for hidden content)
-    slug:
-        description: URL-friendly identifier used in topic page URLs
+  id:
+    description: Unique identifier for the tag
+  name:
+    description: Tag name as it appears in the interface
+  createdAt:
+    description: Timestamp when the tag was created
+  updatedAt:
+    description: Timestamp when the tag was last updated
+  searchableInAlgolia:
+    description: When true, this tag is included in Algolia search filters even if it doesn't have an associated topic page. Used for non-topic tags like "Crime" that should still be searchable.
+  specialType:
+    description: Special type designation for the tag (e.g., 'unlisted' for hidden content)
+  slug:
+    description: URL-friendly identifier used in topic page URLs

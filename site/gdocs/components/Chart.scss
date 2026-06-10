@@ -2,8 +2,66 @@ figure.chart:not(.grapherPreview) {
     height: $grapher-height;
 }
 
-figure.explorer {
+html.js-disabled figure.chart.GrapherWithFallback__fallback {
+    height: auto;
+}
+
+.owid-chart-frame {
+    width: 100%;
+    height: $grapher-height;
+
+    figure,
+    .GrapherWithFallback,
+    .GrapherWithFallback > figure,
+    .multi-dim-embed,
+    .multi-dim-container,
+    .multi-dim-grapher-container,
+    .Explorer,
+    .ExplorerFigure {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+    }
+
+    .GrapherComponent {
+        display: block;
+        margin: 0 auto;
+    }
+
+    .Explorer {
+        max-width: none;
+        min-height: 0;
+        max-height: none;
+    }
+
+    .ExplorerFigure {
+        min-height: 0;
+        max-height: none;
+    }
+}
+
+.owid-chart-frame--explorer-with-controls {
     height: 700px;
+}
+
+.owid-chart-frame--multi-dim-with-controls {
+    // Let the settings panel take as much space as it needs, while keeping the
+    // Grapher itself at the expected article embed height. The min-height
+    // reserves space before the lazy-loaded multi-dim renders, avoiding layout
+    // shifts. The 74px matches the extra controls height used for
+    // recommendedIframeEmbedHeight in site/multiDim/hooks.ts.
+    height: auto;
+    min-height: calc($grapher-height + 74px);
+
+    .multi-dim-embed,
+    .multi-dim-container {
+        height: auto;
+    }
+
+    .multi-dim-grapher-container {
+        flex: 0 0 auto;
+        height: $grapher-height;
+    }
 }
 
 div.margin-0 figure {
@@ -11,7 +69,7 @@ div.margin-0 figure {
 }
 
 @include sm-only {
-    .full-width-on-mobile {
+    html:not(.IsInIframe) .full-width-on-mobile {
         width: auto;
         margin-left: calc(-1 * var(--grid-gap) / 2);
         margin-right: calc(-1 * var(--grid-gap) / 2);

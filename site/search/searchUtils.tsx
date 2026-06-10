@@ -110,7 +110,7 @@ export function pickEntitiesForChartHit(
     )
 
     // Reverse the order so that the last picked entity is first
-    const sortedEntities = [...filteredEntities].reverse()
+    const sortedEntities = filteredEntities.toReversed()
 
     return sortedEntities
 }
@@ -401,6 +401,9 @@ export const PAGES_INDEX = getIndexName(SearchIndexName.Pages)
 export const CHARTS_INDEX = getIndexName(
     SearchIndexName.ExplorerViewsMdimViewsAndCharts
 )
+export const PAGES_CHRONOLOGICAL_INDEX = getIndexName(
+    SearchIndexName.PagesChronological
+)
 
 // Alpha controls the balance between keyword and semantic search in hybrid mode.
 // 0.0 = pure keyword, 1.0 = pure vector. 0.3 is conservative keyword-heavy.
@@ -421,7 +424,8 @@ export const DATA_CATALOG_ATTRIBUTES = [
 ]
 
 type SearchFacetAttribute =
-    | "tags"
+    | "tags" // also used on /latest
+    | "latestType" // used on /latest only
     | "availableEntities"
     | "datasetProducts"
     | "datasetNamespaces"

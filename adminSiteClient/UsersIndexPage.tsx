@@ -46,7 +46,7 @@ class InviteModal extends React.Component<{ onClose: () => void }> {
         }
     }
 
-    @action.bound onSubmit(event: React.FormEvent) {
+    @action.bound onSubmit(event: React.SubmitEvent<HTMLFormElement>) {
         event.preventDefault()
         void this.submit()
     }
@@ -221,9 +221,9 @@ export class UsersIndexPage extends React.Component {
     async getData() {
         const { admin } = this.context
 
-        const json = (await admin.getJSON("/api/users.json")) as {
+        const json = await admin.getJSON<{
             users: UserIndexMetaWithLastSeen[]
-        }
+        }>("/api/users.json")
 
         runInAction(() => {
             this.users = json.users

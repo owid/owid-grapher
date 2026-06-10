@@ -21,13 +21,12 @@ import { MarkdownTextWrap } from "@ourworldindata/components"
 import { CoreColumn } from "@ourworldindata/core-table"
 import {
     DEFAULT_GRAPHER_BOUNDS,
-    GRAPHER_FONT_SCALE_10_5,
     GRAPHER_FONT_SCALE_11,
     GRAPHER_FONT_SCALE_12,
 } from "../core/GrapherConstants.js"
-import { makeAxisLabel } from "../chart/ChartUtils"
+import { makeAxisLabel } from "./AxisUtils.js"
 import * as R from "remeda"
-import { isValidVerticalComparisonLineConfig } from "../comparisonLine/ComparisonLineHelpers"
+import { ComparisonLines } from "../comparisonLine/ComparisonLines"
 
 interface TickLabelPlacement {
     value: number
@@ -123,6 +122,14 @@ abstract class AbstractAxis {
         return this.config.nice ?? false
     }
 
+    @computed get shouldOffsetTickLabelAtStart(): boolean {
+        return this.config.shouldOffsetTickLabelAtStart ?? true
+    }
+
+    @computed get shouldOffsetTickLabelAtEnd(): boolean {
+        return this.config.shouldOffsetTickLabelAtEnd ?? true
+    }
+
     @computed get fontSize(): number {
         return this.config.fontSize
     }
@@ -157,6 +164,11 @@ abstract class AbstractAxis {
 
     set label(value: string) {
         this._label = value
+    }
+
+    contains(value: number): boolean {
+        const [min, max] = this.domain
+        return value >= min && value <= max
     }
 
     // This will expand the domain but never shrink.
@@ -502,7 +514,11 @@ abstract class AbstractAxis {
             console.error(`Placed value is undefined for ${value}`)
             return value
         }
-        return parseFloat(placedValue.toFixed(1))
+        return this.snapToSubpixel(placedValue)
+    }
+
+    snapToSubpixel(value: number): number {
+        return parseFloat(value.toFixed(1))
     }
 
     /** This function returns the inverse of place - i.e. given a screen space
@@ -618,16 +634,20 @@ export class HorizontalAxis extends AbstractAxis {
         return this.rangeSize
     }
 
-    // note that we intentionally don't take `hideAxisLabels` into account here.
-    // tick labels might be hidden in faceted charts. when faceted, it's important
-    // the axis size doesn't change as a result of hiding the axis labels, or else
-    // we might end up with misaligned axes.
     @computed get height(): number {
-        if (this.hideAxis) return 0
-        const { labelOffset, tickPadding } = this
+        const {
+            hideAxis,
+            labelOffset,
+            tickPadding,
+            config: { minSize = 0 },
+        } = this
+
+        if (hideAxis) return 0
+
         const maxTickHeight = _.max(this.tickLabels.map((tick) => tick.height))
-        const tickHeight = maxTickHeight ? maxTickHeight + tickPadding : 0
-        return Math.max(tickHeight + labelOffset, this.config.minSize ?? 0)
+        const paddedTickHeight = maxTickHeight ? maxTickHeight + tickPadding : 0
+
+        return Math.max(paddedTickHeight + labelOffset, minSize)
     }
 
     @computed get size(): number {
@@ -691,11 +711,14 @@ export class HorizontalAxis extends AbstractAxis {
         const left = x - width / 2
         const right = x + width / 2
         const offset = this.bandWidth ? this.bandWidth / 2 + OUTER_PADDING : 0
-        if (left < this.rangeMin - offset) {
+        if (
+            this.shouldOffsetTickLabelAtStart &&
+            left < this.rangeMin - offset
+        ) {
             x = this.rangeMin
             xAlign = HorizontalAlign.left
         }
-        if (right > this.rangeMax + offset) {
+        if (this.shouldOffsetTickLabelAtEnd && right > this.rangeMax + offset) {
             x = this.rangeMax
             xAlign = HorizontalAlign.right
         }
@@ -740,17 +763,19 @@ export class VerticalAxis extends AbstractAxis {
         return this.labelHeight
     }
 
-    // note that we intentionally don't take `hideAxisLabels` into account here.
-    // tick labels might be hidden in faceted charts. when faceted, it's important
-    // the axis size doesn't change as a result of hiding the axis labels, or else
-    // we might end up with misaligned axes.
     @computed get width(): number {
-        if (this.hideAxis) return 0
-        const { tickPadding } = this
+        const {
+            hideAxis,
+            tickPadding,
+            config: { minSize = 0 },
+        } = this
+
+        if (hideAxis) return 0
+
         const maxTickWidth = _.max(this.tickLabels.map((tick) => tick.width))
-        const tickWidth =
-            maxTickWidth !== undefined ? maxTickWidth + tickPadding : 0
-        return Math.max(tickWidth, this.config.minSize ?? 0)
+        const paddedTickWidth = maxTickWidth ? maxTickWidth + tickPadding : 0
+
+        return Math.max(paddedTickWidth, minSize)
     }
 
     @computed get height(): number {
@@ -862,7 +887,8 @@ interface DualAxisProps {
 // e.g. if the y axis becomes wider because a label is present, the x axis then has less
 // space to work with, and vice versa
 export class DualAxis {
-    private props: DualAxisProps
+    private readonly props: DualAxisProps
+
     constructor(props: DualAxisProps) {
         makeObservable(this)
         this.props = props
@@ -907,7 +933,7 @@ export class DualAxis {
                 // Make space for the y-axis label if plotted above the axis
                 .padTop(this.props.verticalAxis.labelOffsetTop)
                 // Make space for vertical comparison line labels if any
-                .padTop(this.comparisonLineLabelOffset)
+                .padTop(this.comparisonLines.topPadding)
                 .padTop(
                     this.shouldShowLogNotice
                         ? this.props.verticalAxis.logNoticeHeight
@@ -920,24 +946,11 @@ export class DualAxis {
         return this.props.bounds ?? DEFAULT_GRAPHER_BOUNDS
     }
 
-    @computed get comparisonLines(): ComparisonLineConfig[] {
-        return this.props.comparisonLines ?? []
-    }
-
-    @computed get comparisonLineLabelFontSize(): number {
-        return Math.floor(
-            GRAPHER_FONT_SCALE_10_5 * this.props.verticalAxis.fontSize
-        )
-    }
-
-    @computed private get comparisonLineLabelOffset(): number {
-        const hasVerticalComparisonLines = this.comparisonLines.some((line) =>
-            isValidVerticalComparisonLineConfig(line)
-        )
-
-        if (!hasVerticalComparisonLines) return 0
-
-        return this.comparisonLineLabelFontSize
+    @computed get comparisonLines(): ComparisonLines {
+        return new ComparisonLines(this.props.comparisonLines ?? [], {
+            dualAxis: this,
+            fontSize: this.props.verticalAxis.fontSize,
+        })
     }
 
     @computed private get shouldShowLogNotice(): boolean {

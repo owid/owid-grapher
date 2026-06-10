@@ -1,6 +1,7 @@
 import * as R from "remeda"
 import {
     EntityName,
+    LATEST_FEED_TYPE_VALUES,
     OwidGdocType,
     TagGraphRoot,
     SearchState,
@@ -15,20 +16,26 @@ import {
     StackedArticleHit,
     TopicPageHit,
     FilterType,
+    LatestType,
     SearchFlatArticleResponse,
     FlatArticleHit,
     SearchProfileResponse,
     ProfileHit,
+    PageChronologicalRecord,
 } from "@ourworldindata/types"
+import { type SearchResponse } from "algoliasearch"
+import { type LiteClient } from "algoliasearch/lite"
 import {
     getFilterNamesOfType,
     getSelectableTopics,
     CHARTS_INDEX,
     PAGES_INDEX,
+    PAGES_CHRONOLOGICAL_INDEX,
     formatTopicFacetFiltersTypesense,
     formatCountryFacetFiltersTypesense,
     formatFeaturedMetricFilterTypesense,
     formatIncomeGroupFMFilterTypesense,
+    formatDisjunctiveFacetFilters,
     HYBRID_SEARCH_ALPHA,
 } from "./searchUtils.js"
 import { RichDataComponentVariant } from "./SearchChartHitRichDataTypes.js"
@@ -121,6 +128,16 @@ export const searchQueryKeys = {
         [PAGES_INDEX, "topics", makeStateForKey(state)] as const,
     profiles: (state: SearchState) =>
         [PAGES_INDEX, "profiles", makeStateForKey(state)] as const,
+} as const
+
+export const latestPagesQueryKey = {
+    latestPages: (topics: string[], latestType: LatestType | null) =>
+        [
+            PAGES_CHRONOLOGICAL_INDEX,
+            "latest",
+            topics.length > 0 ? topics.sort().join("~") : "all",
+            latestType ?? "all",
+        ] as const,
 } as const
 
 export const chartHitQueryKeys = {
@@ -523,6 +540,101 @@ export async function queryProfiles(
         page,
         length
     )
+}
+
+export interface LatestPagesResult {
+    response: SearchResponse<PageChronologicalRecord>
+    /** Tag facet counts filtered by the active type, disjunctive on topics.
+     *  Used to determine which topic pills to disable. */
+    tagFacetCounts: Record<string, number>
+    /** latestType facet counts filtered by topics only (no type filter).
+     *  Used to determine which type options in the "Filter by type"
+     *  dropdown to disable. */
+    latestTypeFacetCounts: Record<string, number>
+}
+
+// The gdoc-type guard that excludes topic pages and linear topic pages
+// (indexed for the atom feed but hidden from /latest).
+const LATEST_BASE_FILTER = LATEST_FEED_TYPE_VALUES.map((t) => `type:${t}`).join(
+    " OR "
+)
+
+// Issues three searches in a single batched `liteSearchClient.search([...])`
+// call (one network round-trip): the paginated card list plus per-axis facet
+// counts used to disable filter options that would yield zero results. Each
+// facet-count query drops its own axis so the returned counts reflect "what
+// would happen if the user picked a different value here?" rather than being
+// self-narrowed to the current selection.
+//
+// `facetFilters` uses Algolia's array-of-arrays form: outer array is AND,
+// inner array is OR (cf. `formatDisjunctiveFacetFilters` in searchUtils.tsx).
+export async function queryLatestPages(
+    liteSearchClient: LiteClient,
+    topics: string[],
+    offset: number,
+    length: number,
+    latestType: LatestType | null = null
+): Promise<LatestPagesResult> {
+    // Each axis lives in its own `facetFilters` group so queries can include
+    // or omit it independently. Multiple topics are OR'd within their group.
+    const topicFacetFilters =
+        topics.length > 0
+            ? formatDisjunctiveFacetFilters(new Set(topics), "tags")
+            : []
+    const latestTypeFacetFilter = latestType
+        ? formatDisjunctiveFacetFilters(new Set([latestType]), "latestType")
+        : []
+
+    const searchParams = [
+        // Query 1: paginated cards (apply both user filters)
+        {
+            indexName: PAGES_CHRONOLOGICAL_INDEX,
+            query: "",
+            filters: LATEST_BASE_FILTER,
+            facetFilters: [...topicFacetFilters, ...latestTypeFacetFilter],
+            offset,
+            length,
+        },
+        // Query 2: latestType counts under topic selection (drop type
+        // filter) — drives disabling of type options in the "Filter by
+        // type" dropdown.
+        {
+            indexName: PAGES_CHRONOLOGICAL_INDEX,
+            query: "",
+            filters: LATEST_BASE_FILTER,
+            facetFilters: topicFacetFilters,
+            offset: 0,
+            length: 0,
+            facets: ["latestType"],
+        },
+        // Query 3: tag counts under type selection (drop topic filter) —
+        // drives disabling of topic pills.
+        {
+            indexName: PAGES_CHRONOLOGICAL_INDEX,
+            query: "",
+            filters: LATEST_BASE_FILTER,
+            facetFilters: latestTypeFacetFilter,
+            offset: 0,
+            length: 0,
+            facets: ["tags"],
+        },
+    ]
+
+    return liteSearchClient
+        .search<PageChronologicalRecord>(searchParams)
+        .then((response) => {
+            const mainResult = response
+                .results[0] as SearchResponse<PageChronologicalRecord>
+            const typeResult = response
+                .results[1] as SearchResponse<PageChronologicalRecord>
+            const topicResult = response
+                .results[2] as SearchResponse<PageChronologicalRecord>
+            return {
+                response: mainResult,
+                tagFacetCounts: topicResult.facets?.tags ?? {},
+                latestTypeFacetCounts: typeResult.facets?.latestType ?? {},
+            }
+        })
 }
 
 export async function queryWritingTopics(

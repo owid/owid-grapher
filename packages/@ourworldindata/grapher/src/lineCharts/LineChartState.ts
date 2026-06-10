@@ -4,6 +4,7 @@ import { Color } from "@ourworldindata/utils"
 import { computed, makeObservable } from "mobx"
 import {
     ScaleType,
+    SeriesName,
     EntityName,
     SeriesStrategy,
     FacetStrategy,
@@ -251,6 +252,10 @@ export class LineChartState implements ChartState, ColorScaleManager {
         )
 
         return sortedSeries
+    }
+
+    @computed get seriesByName(): Map<SeriesName, LineChartSeries> {
+        return new Map(this.series.map((series) => [series.seriesName, series]))
     }
 
     @computed get availableFacetStrategies(): FacetStrategy[] {

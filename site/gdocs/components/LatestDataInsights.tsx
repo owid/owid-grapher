@@ -14,13 +14,12 @@ import type { EmblaCarouselType } from "embla-carousel"
 import { Button } from "@ourworldindata/components"
 import {
     EnrichedBlockImage,
+    formatAuthors,
     OwidEnrichedGdocBlock,
     LatestDataInsight,
 } from "@ourworldindata/utils"
-import {
-    dataInsightIndexToIdMap,
-    SMALL_BREAKPOINT_MEDIA_QUERY,
-} from "../../SiteConstants.js"
+import { SMALL_BREAKPOINT_MEDIA_QUERY } from "../../SiteConstants.js"
+import { buildLatestPagePath } from "../../latest/latestUtils.js"
 import Image from "./Image.js"
 import { ArticleBlocks } from "./ArticleBlocks.js"
 import DataInsightDateline from "./DataInsightDateline.js"
@@ -83,12 +82,10 @@ export default function LatestDataInsights({
                             key={dataInsight.id}
                             index={index}
                             title={dataInsight.content.title}
+                            authors={dataInsight.content.authors}
                             body={dataInsight.content.body}
                             publishedAt={dataInsight.publishedAt}
-                            // We need to supply a custom index to correctly map
-                            // the URL when we are excluding the current data
-                            // insight from the list, i.e. on the detail page.
-                            href={`/data-insights#${dataInsightIndexToIdMap[dataInsight.index ?? index]}`}
+                            href={`/data-insights/${dataInsight.slug}`}
                         />
                     ))}
                     {isSmallScreen && (
@@ -97,7 +94,7 @@ export default function LatestDataInsights({
                         <li className="latest-data-insights__card">
                             <Button
                                 className="latest-data-insights__card__see-all body-3-medium"
-                                href="/data-insights"
+                                href={buildLatestPagePath("data-insight")}
                                 text="See all our Data Insights"
                                 theme="outline-vermillion"
                             />
@@ -143,12 +140,14 @@ export default function LatestDataInsights({
 const DataInsightCard = memo(function DataInsightCard({
     index,
     title,
+    authors,
     body,
     publishedAt,
     href,
 }: {
     index: number
     title: string
+    authors: string[]
     body: OwidEnrichedGdocBlock[]
     publishedAt?: Date
     href: string
@@ -173,7 +172,7 @@ const DataInsightCard = memo(function DataInsightCard({
                             firstImageBlock.smallFilename ||
                             firstImageBlock.filename
                         }
-                        containerType="span-5"
+                        containerType="latest-data-insight"
                         shouldLightbox={false}
                     />
                 )}
@@ -191,6 +190,9 @@ const DataInsightCard = memo(function DataInsightCard({
                     >
                         {title}
                     </h3>
+                    <p className="latest-data-insights__card-authors">
+                        {formatAuthors(authors)}
+                    </p>
                     <div className="latest-data-insights__card-body">
                         <ArticleBlocks
                             blocks={otherBlocks}

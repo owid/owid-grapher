@@ -164,10 +164,6 @@ export class ExplorerProgram extends GridProgram {
         return this.getLineValue(ExplorerGrammar.googleSheet.keyword)
     }
 
-    get thumbnail() {
-        return this.getLineValue(ExplorerGrammar.thumbnail.keyword)
-    }
-
     get explorerSubtitle() {
         return this.getLineValue(ExplorerGrammar.explorerSubtitle.keyword)
     }
@@ -542,7 +538,7 @@ export class ExplorerProgram extends GridProgram {
      * A static method so that all explorers on the page share requests,
      * and no duplicate requests are sent.
      */
-    private static tableDataLoader = new PromiseCache(
+    private static readonly tableDataLoader = new PromiseCache(
         async (url: string): Promise<CoreTableInputOption> => {
             const response = await fetchWithRetry(url)
             if (!response.ok) throw new Error(response.statusText)
@@ -618,7 +614,7 @@ export const trimAndParseObject = (config: any, grammar: Grammar) => {
     // parse types
     Object.keys(trimmedRow).forEach((key) => {
         const def = grammar[key]
-        if (def && def.parse) trimmedRow[key] = def.parse(trimmedRow[key])
+        if (def?.parse) trimmedRow[key] = def.parse(trimmedRow[key])
         // If there no definition but it is a boolean, parse it (todo: always have a def)
         else if (!def) {
             const value = trimmedRow[key]

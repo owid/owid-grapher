@@ -1,41 +1,51 @@
-import { BASE_FONT_SIZE, GRAPHER_FONT_SCALE_10 } from "../core/GrapherConstants"
+import {
+    BASE_FONT_SIZE,
+    GRAPHER_FONT_SCALE_10,
+    GRAPHER_FONT_SCALE_11,
+    GRAPHER_FONT_SCALE_12,
+    GRAPHER_FONT_SCALE_12_8,
+} from "../core/GrapherConstants"
 
-// not sure if we want to do something more sophisticated
-export const getFontSize = (
-    containerWidth: number,
-    count: number,
+export const getFacetLabelFontSize = ({
+    containerWidth,
+    count,
     baseFontSize = BASE_FONT_SIZE,
-    minSize = 8
-): number => {
+    minSize = 8,
+}: {
+    containerWidth: number
+    count: number
+    baseFontSize?: number
+    minSize?: number
+}): number => {
     // Pick a fixed font size for very small charts
     if (containerWidth < 300) return GRAPHER_FONT_SCALE_10 * baseFontSize
 
     // Scale the font size based on the number of series otherwise
-    if (count <= 2) return Math.max(minSize, baseFontSize * (15 / 16))
-    if (count <= 4) return Math.max(minSize, baseFontSize * (14 / 16))
-    if (count <= 9) return Math.max(minSize, baseFontSize * (13 / 16))
-    if (count <= 16) return Math.max(minSize, baseFontSize * (12 / 16))
-    if (count <= 25) return Math.max(minSize, baseFontSize * (11 / 16))
+    if (count <= 9)
+        return Math.max(minSize, baseFontSize * GRAPHER_FONT_SCALE_12_8)
+    if (count <= 16)
+        return Math.max(minSize, baseFontSize * GRAPHER_FONT_SCALE_12)
+    if (count <= 25)
+        return Math.max(minSize, baseFontSize * GRAPHER_FONT_SCALE_11)
+
     return minSize
 }
 
-export const getLabelPadding = (baseFontSize: number): number =>
-    0.5 * baseFontSize
-
 export const getFacetGridPadding = ({
-    baseFontSize,
+    labelFontSize,
+    labelPadding,
     shouldAddRowPadding = true,
     shouldAddColumnPadding = true,
 }: {
-    baseFontSize: number
+    labelFontSize: number
+    labelPadding: number
     shouldAddRowPadding?: boolean
     shouldAddColumnPadding?: boolean
 }): { rowPadding: number; columnPadding: number; outerPadding: number } => {
-    const labelHeight = baseFontSize
-    const labelPadding = getLabelPadding(baseFontSize)
+    const labelHeight = labelFontSize
 
-    const rowPadding = shouldAddRowPadding ? baseFontSize : 0
-    const columnPadding = shouldAddColumnPadding ? baseFontSize : 0
+    const rowPadding = shouldAddRowPadding ? labelFontSize : 0
+    const columnPadding = shouldAddColumnPadding ? labelFontSize : 0
 
     return {
         rowPadding: Math.round(labelHeight + labelPadding + rowPadding),

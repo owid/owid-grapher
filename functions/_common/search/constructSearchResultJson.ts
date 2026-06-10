@@ -8,8 +8,11 @@ import {
     generateSelectedEntityNamesParam,
     GrapherState,
     mapGrapherTabNameToConfigOption,
+    makeChartState,
     MarimekkoChartState,
     ScatterPlotChartState,
+    DumbbellChartState,
+    DumbbellMode,
     WORLD_ENTITY_NAME,
     loadCatalogData,
 } from "@ourworldindata/grapher"
@@ -274,16 +277,10 @@ export async function pickDisplayEntities(
     const enrichPickedEntities = async () => {
         if (pickedEntities.length === 0) return defaultEntities
 
-        const pickedComparisonEntities = await selectPeerEntitiesForSearch({
+        const comparisonEntities = await selectPeerEntitiesForSearch({
             grapherState,
             targetEntity: pickedEntities[0],
         })
-
-        // Default to the default entities if no comparison entities could be found
-        const comparisonEntities =
-            pickedComparisonEntities.length > 0
-                ? pickedComparisonEntities
-                : defaultEntities
 
         // It's important to prepend the picked entities because we later
         // take the first N entities to render if there are space constraints
@@ -405,13 +402,6 @@ async function pickDisplayEntitiesForScatterPlot({
 }): Promise<EntityName[]> {
     const { series, colorColumnSlug, sizeColumnSlug } = chartState
 
-    // Pick income groups or continents if available
-    const regions = selectRegionGroupByPriority(
-        grapherState.availableEntityNames,
-        { includeWorld: true }
-    )
-    if (regions.length > 0) return regions
-
     // Helper functions
     type ScatterSeries = ScatterPlotChartState["series"][number]
     const getName = (series: ScatterSeries) => series.seriesName
@@ -481,13 +471,6 @@ async function pickDisplayEntitiesForMarimekko({
     entity?: EntityName
 }): Promise<EntityName[]> {
     const { items, colorColumnSlug, xColumnSlug } = chartState
-
-    // Pick income groups or continents if available
-    const regions = selectRegionGroupByPriority(
-        grapherState.availableEntityNames,
-        { includeWorld: true }
-    )
-    if (regions.length > 0) return regions
 
     // Helper functions
     type MarimekkoItem = MarimekkoChartState["items"][number]
@@ -858,8 +841,22 @@ async function getGrapherQueryParamsForTab({
             getGrapherQueryParamsForMarimekko(grapherState)
         )
         .with(GRAPHER_TAB_NAMES.SlopeChart, () =>
-            getGrapherQueryParamsForSlopeChart(grapherState, { timeBounds })
+            getGrapherQueryParamsForTimeRangeChart(grapherState, { timeBounds })
         )
+        .with(GRAPHER_TAB_NAMES.Dumbbell, () => {
+            // Rebuild the chart state since the dumbbell chart might not be the active tab
+            const chartState = makeChartState(
+                GRAPHER_CHART_TYPES.Dumbbell,
+                grapherState
+            ) as DumbbellChartState
+
+            // Only time-range dumbbells need to adjust the time param
+            if (chartState.mode !== DumbbellMode.TimeRange) return undefined
+
+            return getGrapherQueryParamsForTimeRangeChart(grapherState, {
+                timeBounds,
+            })
+        })
         .with(GRAPHER_TAB_NAMES.WorldMap, () =>
             getGrapherQueryParamsForMap(grapherState)
         )
@@ -935,7 +932,16 @@ async function getGrapherQueryParamsForDiscreteBar(
     return { chartParams: overwriteParams, previewParams: overwriteParams }
 }
 
-function getGrapherQueryParamsForSlopeChart(
+/**
+ * Pins the time query param to the given time bounds.
+ *
+ * Needed for charts that only plot entities with data at both the start and end
+ * time (e.g. slope charts or time-range dumbbells). For entity-targeted
+ * searches we pass the user-picked entity's own data bounds, so the chart's
+ * default time window doesn't fall outside that entity's data and render an
+ * empty thumbnail.
+ */
+function getGrapherQueryParamsForTimeRangeChart(
     grapherState: GrapherState,
     { timeBounds }: { timeBounds?: TimeBounds }
 ):
@@ -1018,7 +1024,7 @@ function findTableSlotKey(
 /**
  * Selects peer entities for search, handling both countries and aggregate regions.
  *
- * For countries: delegates to selectPeerCountries with the ParentRegions strategy.
+ * For countries: delegates to selectPeerCountries.
  * For aggregate regions: returns sibling regions at the same hierarchical level.
  * For the World entity: returns continents or income groups if available.
  */
@@ -1040,10 +1046,8 @@ export async function selectPeerEntitiesForSearch({
     if (!targetRegion) return []
 
     if (checkIsCountry(targetRegion)) {
-        // For backward compatibility, default to the ParentRegions strategy
         const peerCountryStrategy =
-            grapherState.peerCountryStrategy ??
-            PeerCountryStrategy.ParentRegions
+            grapherState.peerCountryStrategy ?? PeerCountryStrategy.DataRange
 
         // For countries, use Grapher's peer selection logic
         return selectPeerCountriesForGrapher(grapherState, {
@@ -1085,8 +1089,7 @@ function findAvailableSiblingRegions({
  * regions as defined by the WHO or WB, for example
  */
 export function selectRegionGroupByPriority(
-    availableEntities: EntityName[],
-    { includeWorld }: { includeWorld: boolean } = { includeWorld: false }
+    availableEntities: EntityName[]
 ): EntityName[] {
     const availableEntitySet = new Set(availableEntities)
 
@@ -1118,14 +1121,7 @@ export function selectRegionGroupByPriority(
             .filter((region) => availableEntitySet.has(region.name))
             .map((region) => region.name)
 
-        if (matchingRegions.length > 0) {
-            // Add the World entity if requested and available
-            if (includeWorld && availableEntitySet.has(WORLD_ENTITY_NAME)) {
-                matchingRegions.push(WORLD_ENTITY_NAME)
-            }
-
-            return matchingRegions
-        }
+        if (matchingRegions.length > 0) return matchingRegions
     }
 
     return []

@@ -5,9 +5,9 @@ logs/
 db.sqlite3
 .sublime*
 .nova/
-.yarn/*
-!.yarn/patches
-!.yarn/releases
+**/.yarn/*
+!**/.yarn/patches
+!**/.yarn/releases
 yarn-error.log
 .vscode/tags
 .awcache
@@ -31,6 +31,7 @@ localBake/
 /grapherSvgs
 /differentGrapherSvgs
 /owid-content
+tmp/
 tmp-downloads
 tmp-uploads
 tmp-logs
@@ -42,6 +43,7 @@ dist/
 .wrangler/
 .nx/cache
 .nx/workspace-data
+.turbo/
 .dev.vars
 cfstorage/
 vite.*.mjs
@@ -59,5 +61,14 @@ playwright-report/
 # Claude
 .claude/settings.local.json
 
-# Typesense data directory
+# Auto Claude
+.auto-claude/
+.auto-claude-security.json
+.auto-claude-status
+.claude_settings.json
+
+# Typesense
 typesense-data/
+
+.toolbox/
+.pi/

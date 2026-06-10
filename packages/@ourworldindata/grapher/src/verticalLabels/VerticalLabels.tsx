@@ -1,4 +1,5 @@
 import * as React from "react"
+import { TextWrapSvg } from "@ourworldindata/components"
 import { makeFigmaId } from "@ourworldindata/utils"
 import { SeriesName } from "@ourworldindata/types"
 import { SeriesLabel } from "../seriesLabel/SeriesLabel.js"
@@ -16,12 +17,14 @@ import { Emphasis } from "../interaction/Emphasis.js"
 export function VerticalLabels({
     state,
     x = 0,
+    outline = false,
     onMouseEnter,
     onMouseLeave,
     interactive = true,
 }: {
     state: VerticalLabelsState
     x?: number
+    outline?: boolean
     onMouseEnter?: (key: SeriesName) => void
     onMouseLeave?: () => void
     interactive?: boolean
@@ -46,6 +49,7 @@ export function VerticalLabels({
             )}
             <Labels
                 series={renderSeries}
+                outline={outline}
                 onMouseEnter={onMouseEnter}
                 onMouseLeave={onMouseLeave}
             />
@@ -55,10 +59,12 @@ export function VerticalLabels({
 
 function Labels({
     series,
+    outline = false,
     onMouseEnter,
     onMouseLeave,
 }: {
     series: RenderLabelSeries[]
+    outline: boolean
     onMouseEnter?: (key: SeriesName) => void
     onMouseLeave?: (key: SeriesName) => void
 }): React.ReactElement {
@@ -76,6 +82,7 @@ function Labels({
                         y={series.labelCoords.y}
                         color={{ name: color, value: color }}
                         opacity={LABEL_STYLE[emphasis].opacity}
+                        outline={outline}
                         onMouseEnter={() => onMouseEnter?.(series.seriesName)}
                         onMouseLeave={() => onMouseLeave?.(series.seriesName)}
                     />
@@ -102,20 +109,19 @@ function Annotations({
                 const emphasis = series.emphasis ?? Emphasis.Default
                 return (
                     <React.Fragment key={getSeriesKey(series, index)}>
-                        {series.annotationTextWrap.renderSVG(
-                            series.labelCoords.x,
-                            series.labelCoords.y +
+                        <TextWrapSvg
+                            textWrap={series.annotationTextWrap}
+                            x={series.labelCoords.x}
+                            y={
+                                series.labelCoords.y +
                                 series.seriesLabel.height +
-                                ANNOTATION_PADDING,
-                            {
-                                textProps: {
-                                    fill: "#333",
-                                    opacity: LABEL_STYLE[emphasis].opacity,
-                                    textAnchor: anchor,
-                                    style: { fontWeight: 300 },
-                                },
+                                ANNOTATION_PADDING
                             }
-                        )}
+                            fill="#333"
+                            opacity={LABEL_STYLE[emphasis].opacity}
+                            textAnchor={anchor}
+                            style={{ fontWeight: 300 }}
+                        />
                     </React.Fragment>
                 )
             })}

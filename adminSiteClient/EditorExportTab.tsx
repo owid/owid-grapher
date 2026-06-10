@@ -71,8 +71,8 @@ export class EditorExportTab<
 > extends Component<EditorExportTabProps<Editor>> {
     private settings = DEFAULT_SETTINGS
     private originalSettings: Partial<ExportSettings> = DEFAULT_SETTINGS
-    private originalGrapher: OriginalGrapher
-    private disposers: IReactionDisposer[] = []
+    private readonly originalGrapher: OriginalGrapher
+    private readonly disposers: IReactionDisposer[] = []
 
     constructor(props: EditorExportTabProps<Editor>) {
         super(props)

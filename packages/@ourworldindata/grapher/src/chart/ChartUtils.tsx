@@ -1,5 +1,7 @@
+import * as _ from "lodash-es"
 import * as React from "react"
 import {
+    Bounds,
     Box,
     excludeUndefined,
     getRegionByName,
@@ -17,6 +19,10 @@ import {
     PrimitiveType,
     ColumnTypeNames,
     Time,
+    SortBy,
+    SortConfig,
+    SortOrder,
+    OwidVariableRow,
 } from "@ourworldindata/types"
 import { LineChartSeries } from "../lineCharts/LineChartConstants"
 import { SelectionArray } from "../selection/SelectionArray"
@@ -30,19 +36,22 @@ import {
     Patterns,
     GRAPHER_IMAGE_WIDTH_1X,
     GRAPHER_IMAGE_WIDTH_2X,
+    FontSettings,
 } from "../core/GrapherConstants"
 import { ChartSeries } from "./ChartInterface"
 import {
+    CoreColumn,
     ErrorValueTypes,
     isNotErrorValueOrEmptyCell,
     OwidTable,
 } from "@ourworldindata/core-table"
-import { GRAPHER_BACKGROUND_DEFAULT } from "../color/ColorConstants"
+import { GRAPHER_BACKGROUND } from "../color/ColorConstants"
 import { InteractionState } from "../interaction/InteractionState"
 
+import * as R from "remeda"
+
 export const autoDetectYColumnSlugs = (manager: ChartManager): string[] => {
-    if (manager.yColumnSlugs && manager.yColumnSlugs.length)
-        return manager.yColumnSlugs
+    if (manager.yColumnSlugs?.length) return manager.yColumnSlugs
     if (manager.yColumnSlug) return [manager.yColumnSlug]
     return manager.table.numericColumnSlugs
 }
@@ -198,35 +207,6 @@ export function byHoverThenFocusState(series: {
     return 1
 }
 
-export function makeAxisLabel({
-    label,
-    displayUnit,
-}: {
-    label: string
-    displayUnit?: string
-}): {
-    mainLabel: string // shown in bold
-    unit?: string // shown in normal weight, usually in parens
-} {
-    // No unit to display
-    if (!displayUnit) return { mainLabel: label }
-
-    // Extract text in parens at the end of the label,
-    // e.g. "Population (millions)" is split into "Population " and "(millions)"
-    const [
-        _fullMatch,
-        untrimmedMainLabelText = undefined,
-        labelTextInParens = undefined,
-    ] = label.trim().match(/^(.*?)(\([^()]*\))?$/s) ?? []
-    const mainLabelText = untrimmedMainLabelText?.trim() ?? ""
-
-    // Don't show unit twice if it's contained in the label
-    const displayLabel =
-        labelTextInParens === `(${displayUnit})` ? mainLabelText : label
-
-    return { mainLabel: displayLabel, unit: displayUnit }
-}
-
 /**
  * Given a URL for a CF function grapher thumbnail, generate a srcSet for the image at different widths
  * @param defaultSrc - `https://ourworldindata.org/grapher/thumbnail/life-expectancy.png?tab=chart`
@@ -327,9 +307,10 @@ export function NoDataPattern({
     patternId?: string
     scale?: number
 }): React.ReactElement {
+    const roundedScale = R.round(scale, 3)
     const patternTransforms = excludeUndefined([
         `rotate(-45 2 2)`,
-        scale !== 1 ? `scale(${scale})` : undefined,
+        roundedScale !== 1 ? `scale(${roundedScale})` : undefined,
     ])
     return (
         <pattern
@@ -346,10 +327,8 @@ export function NoDataPattern({
 
 export function getChartSvgProps({
     fontSize,
-    backgroundColor,
 }: {
     fontSize?: number
-    backgroundColor?: string
 }): React.SVGProps<SVGSVGElement> {
     return {
         xmlns: "http://www.w3.org/2000/svg",
@@ -358,7 +337,71 @@ export function getChartSvgProps({
             ...SVG_STYLE_PROPS,
             fontSize: fontSize ?? BASE_FONT_SIZE,
             // Needs to be set here or else pngs will have a black background
-            backgroundColor: backgroundColor ?? GRAPHER_BACKGROUND_DEFAULT,
+            backgroundColor: GRAPHER_BACKGROUND,
         },
     }
+}
+
+export type SortKeyFn<T> = (item: T) => number | string | undefined
+
+/** A sort key that leaves items in their input order */
+export const keepInputOrder = Symbol("keepInputOrder")
+
+export type SortKey<T> = SortKeyFn<T> | typeof keepInputOrder
+
+export type SortKeyFunctions<T> = Partial<Record<SortBy, SortKey<T>>>
+
+/** Sort key that orders items by their value in `sortColumn` */
+export function sortByColumnValue<T>(
+    sortColumn: CoreColumn | undefined,
+    getEntityName: (item: T) => EntityName
+): SortKeyFn<T> {
+    return (item) =>
+        sortColumn?.latestValueByEntityName.get(getEntityName(item)) ?? 0
+}
+
+export function sortByConfig<T>(
+    items: readonly T[],
+    sortConfig: SortConfig,
+    keyFns: SortKeyFunctions<T>
+): T[] {
+    const sortByKey = sortConfig.sortBy ?? SortBy.total
+    const sortByFunc = keyFns[sortByKey] ?? keepInputOrder
+    const sortOrder = sortConfig.sortOrder ?? SortOrder.desc
+
+    if (sortByFunc === keepInputOrder)
+        return sortOrder === SortOrder.desc ? items.toReversed() : [...items]
+
+    const sortedRows = _.sortBy(items, sortByFunc)
+
+    return sortOrder === SortOrder.desc ? sortedRows.toReversed() : sortedRows
+}
+
+export function textWidth(text: string, fontSettings: FontSettings): number {
+    return Bounds.forText(text, fontSettings).width
+}
+
+export function roundFontSize(fontSize: number): number {
+    return Math.round(fontSize * 2) / 2
+}
+
+/**
+ * Checks whether a pair of observations spanning two points in time is valid
+ * given tolerance
+ */
+export function isToleranceDistanceValid(args: {
+    start: OwidVariableRow<number>
+    end: OwidVariableRow<number>
+    tolerance: number
+}): boolean {
+    const { start, end, tolerance } = args
+
+    if (start.originalTime >= end.originalTime) return false
+
+    const isToleranceAppliedToStart = start.originalTime !== start.time
+    const isToleranceAppliedToEnd = end.originalTime !== end.time
+    if (!isToleranceAppliedToStart && !isToleranceAppliedToEnd) return true
+
+    const minRequiredGap = Math.min(tolerance, end.time - start.time)
+    return end.originalTime - start.originalTime >= minRequiredGap
 }

@@ -1,6 +1,6 @@
 import * as _ from "lodash-es"
 import * as R from "remeda"
-import { type BaseType, type Selection, select } from "d3-selection"
+
 import { ScaleLinear } from "d3-scale"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import { SortOrder } from "@ourworldindata/types"
@@ -39,10 +39,7 @@ import {
 } from "./ScatterUtils"
 import { Triangle } from "./Triangle"
 import { ColorScale } from "../color/ColorScale"
-import {
-    BASE_FONT_SIZE,
-    GRAPHER_TEXT_OUTLINE_FACTOR,
-} from "../core/GrapherConstants"
+import { BASE_FONT_SIZE } from "../core/GrapherConstants"
 
 // This is the component that actually renders the points. The higher level ScatterPlot class renders points, legends, comparison lines, etc.
 @observer
@@ -465,10 +462,7 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
                             <Halo
                                 key={series.displayKey + "-endLabel"}
                                 id={makeFigmaId("outline", series.seriesName)}
-                                outlineWidth={
-                                    GRAPHER_TEXT_OUTLINE_FACTOR * label.fontSize
-                                }
-                                outlineColor={this.props.backgroundColor}
+                                fontSize={label.fontSize}
                             >
                                 <text
                                     id={makeFigmaId("label", label.text)}
@@ -605,10 +599,7 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
                             <Halo
                                 id={makeFigmaId("outline", series.seriesName)}
                                 key={`${series.displayKey}-label-${index}`}
-                                outlineWidth={
-                                    GRAPHER_TEXT_OUTLINE_FACTOR * label.fontSize
-                                }
-                                outlineColor={this.props.backgroundColor}
+                                fontSize={label.fontSize}
                             >
                                 <text
                                     id={makeFigmaId("label", series.seriesName)}
@@ -627,34 +618,6 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
                 })}
             </g>
         )
-    }
-
-    animSelection?: Selection<BaseType, unknown, SVGGElement | null, unknown>
-
-    private runAnimation(): void {
-        const radiuses: string[] = []
-        this.animSelection = select(this.base.current).selectAll("circle")
-
-        this.animSelection
-            .each(function () {
-                const circle = this as SVGCircleElement
-                radiuses.push(circle.getAttribute("r") as string)
-                circle.setAttribute("r", "0")
-            })
-            .transition()
-            .duration(500)
-            .attr("r", (_, i) => radiuses[i])
-            .on("end", () => this.forceUpdate())
-    }
-
-    override componentDidMount(): void {
-        if (!this.props.disableIntroAnimation) {
-            this.runAnimation()
-        }
-    }
-
-    override componentWillUnmount(): void {
-        if (this.animSelection) this.animSelection.interrupt()
     }
 
     override render(): React.ReactElement {

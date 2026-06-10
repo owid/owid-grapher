@@ -1,38 +1,32 @@
 import { useMemo, useEffect, useState } from "react"
 import { GrapherProgrammaticInterface } from "@ourworldindata/grapher"
-import {
-    REUSE_THIS_WORK_SECTION_ID,
-    DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID,
-    DATAPAGE_ABOUT_THIS_DATA_SECTION_ID,
-} from "@ourworldindata/components"
+import { DATAPAGE_ABOUT_THIS_DATA_SECTION_ID } from "@ourworldindata/components"
 import {
     EXPERIMENT_ARM_SEPARATOR,
     EXPERIMENT_PREFIX,
     DataPageV2ContentFields,
     GrapherInterface,
-    joinTitleFragments,
     ImageMetadata,
-    excludeNull,
     defaultExperimentState,
     getExperimentState,
     ExperimentState,
 } from "@ourworldindata/utils"
 import { RelatedCharts } from "./blocks/RelatedCharts.js"
 import { FeaturedMetrics } from "./FeaturedMetrics.js"
-import StickyNav from "./blocks/StickyNav.js"
 import {
     ADMIN_BASE_URL,
     BAKED_GRAPHER_URL,
 } from "../settings/clientSettings.js"
 import AboutThisData from "./AboutThisData.js"
 import DataPageResearchAndWriting from "./DataPageResearchAndWriting.js"
+import { type DownloadSectionProps } from "./DownloadSection.js"
 import MetadataSection from "./MetadataSection.js"
-import TopicTags from "./TopicTags.js"
 import { processRelatedResearch } from "./dataPage.js"
 import { GrapherWithFallback } from "./GrapherWithFallback.js"
 import { AttachmentsContext } from "./gdocs/AttachmentsContext.js"
 import { DocumentContext } from "./gdocs/DocumentContext.js"
-import { BlockQueryClientProvider } from "./gdocs/components/BlockQueryClientProvider.js"
+import { SiteQueryClientProvider } from "./SiteQueryClientProvider.js"
+import { useWindowQueryParams } from "./hooks.js"
 
 declare global {
     interface Window {
@@ -48,17 +42,17 @@ export const DataPageV2Content = ({
     isPreviewing = false,
     faqEntries,
     canonicalUrl = "{URL}", // when we bake pages to their proper url this will be set correctly but on preview pages we leave this undefined
-    tagToSlugMap,
     imageMetadata,
     archiveContext,
+    distribution,
 }: DataPageV2ContentFields & {
     grapherConfig: GrapherInterface
     imageMetadata: Record<string, ImageMetadata>
 }) => {
-    const titleFragments = joinTitleFragments(
-        datapageData.attributionShort,
-        datapageData.titleVariant
-    )
+    const slug = grapherConfig.slug
+    const queryStr =
+        typeof window !== "undefined" ? window?.location?.search : undefined
+    const reactiveQueryStr = useWindowQueryParams()
 
     // Initialize the grapher for client-side rendering
     const mergedGrapherConfig: GrapherProgrammaticInterface = useMemo(
@@ -72,27 +66,6 @@ export const DataPageV2Content = ({
         }),
         [grapherConfig, archiveContext]
     )
-    const stickyNavLinks = excludeNull([
-        {
-            text: "Explore the Data",
-            target: "#explore-the-data",
-        },
-        datapageData.relatedResearch?.length
-            ? {
-                  text: "Research & Writing",
-                  target: "#research-and-writing",
-              }
-            : null,
-        datapageData.allCharts?.length
-            ? { text: "All Charts", target: "#all-charts" }
-            : null,
-        faqEntries?.faqs?.length ? { text: "FAQs", target: "#faqs" } : null,
-        {
-            text: "Sources & Processing",
-            target: "#" + DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID,
-        },
-        { text: "Reuse This Work", target: "#" + REUSE_THIS_WORK_SECTION_ID },
-    ])
 
     const relatedResearch = processRelatedResearch(
         datapageData.relatedResearch,
@@ -111,6 +84,28 @@ export const DataPageV2Content = ({
         }
     }, [])
 
+    const downloadProps: DownloadSectionProps | undefined = useMemo(() => {
+        if (!slug) return undefined
+
+        // Note: yColumns is not passed here, which means the short column names
+        // option won't be visible in the download section on data pages.
+        //
+        // To enable this feature on data pages, we would need to:
+        // 1. Load variable metadata on the server to get column definitions with shortName
+        // 2. Pass that data through to this component (similar to how datapageData is passed)
+        // 3. Extract yColumns from the variable metadata and pass them here
+        //
+        // Without yColumns, users can still download data via the API URLs shown
+        // in the "Data API" section, where they can manually add
+        // &useColumnShortNames=true
+        return {
+            slug,
+            baseUrl: `${BAKED_GRAPHER_URL}/${slug}`,
+            searchParams: new URLSearchParams(reactiveQueryStr),
+            distribution,
+        }
+    }, [distribution, reactiveQueryStr, slug])
+
     return (
         <AttachmentsContext.Provider
             value={{
@@ -127,12 +122,8 @@ export const DataPageV2Content = ({
                     <GrapherWithFallback
                         config={mergedGrapherConfig}
                         useProvidedConfigOnly
-                        slug={grapherConfig.slug!}
-                        queryStr={
-                            typeof window !== "undefined"
-                                ? window?.location?.search
-                                : undefined
-                        }
+                        slug={grapherConfig.slug}
+                        queryStr={queryStr}
                         enablePopulatingUrlParams
                         isEmbeddedInAnOwidPage={false}
                         isEmbeddedInADataPage={false}
@@ -140,30 +131,6 @@ export const DataPageV2Content = ({
                     />
                 </div>
                 <div className="DataPageContent grid grid-cols-12-full-width">
-                    <div className="bg-blue-10 span-cols-14">
-                        <div className="header__wrapper grid grid-cols-12-full-width">
-                            <div className="header__left col-start-2 span-cols-8 col-sm-start-2 span-sm-cols-12">
-                                <div className="header__supertitle">Data</div>
-                                <h1 className="header__title">
-                                    {datapageData.title.title}
-                                </h1>
-                                <div className="header__source">
-                                    {titleFragments}
-                                </div>
-                            </div>
-                            <TopicTags
-                                className="header__right col-start-10 span-cols-4 col-sm-start-2 span-sm-cols-12"
-                                topicTagsLinks={datapageData.topicTagsLinks}
-                                tagToSlugMap={tagToSlugMap}
-                            />
-                        </div>
-                    </div>
-                    <nav className="sticky-nav sticky-nav--dark span-cols-14 grid grid-cols-12-full-width">
-                        <StickyNav
-                            className="span-cols-12 col-start-2"
-                            links={stickyNavLinks}
-                        />
-                    </nav>
                     <div className="span-cols-14 grid grid-cols-12-full-width full-width--border">
                         <div className="chart-key-info col-start-2 span-cols-12">
                             {grapherConfig.slug && (
@@ -172,11 +139,7 @@ export const DataPageV2Content = ({
                                     config={mergedGrapherConfig}
                                     useProvidedConfigOnly
                                     id="explore-the-data"
-                                    queryStr={
-                                        typeof window !== "undefined"
-                                            ? window?.location?.search
-                                            : undefined
-                                    }
+                                    queryStr={queryStr}
                                     enablePopulatingUrlParams
                                     isEmbeddedInADataPage={true}
                                     isEmbeddedInAnOwidPage={false}
@@ -248,14 +211,14 @@ export const DataPageV2Content = ({
                                         : ""
                                 }
                             >
-                                <BlockQueryClientProvider>
+                                <SiteQueryClientProvider>
                                     <FeaturedMetrics
                                         topicName={
                                             datapageData.primaryTopic.topicTag
                                         }
                                         isDataPage={true}
                                     />
-                                </BlockQueryClientProvider>
+                                </SiteQueryClientProvider>
                             </div>
                         )}
                     </div>
@@ -274,6 +237,7 @@ export const DataPageV2Content = ({
                         title={datapageData.title}
                         titleVariant={datapageData.titleVariant}
                         archiveContext={archiveContext}
+                        downloadProps={downloadProps}
                     />
                 </div>
             </DocumentContext.Provider>

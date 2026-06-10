@@ -48,7 +48,8 @@ $grapher-dropdown-selected-fill: #c7ced7;
         align-items: center;
         border: 1px solid $gray-20;
         border-radius: 4px;
-        padding: 7px;
+        padding: calc(7px + $control-label-padding-top) 7px
+            calc(7px - $control-label-padding-top);
         color: $gray-90;
         background: white;
         cursor: pointer;
@@ -77,6 +78,7 @@ $grapher-dropdown-selected-fill: #c7ced7;
             width: 16px;
             height: 16px;
             margin-left: auto;
+            margin-top: calc(-1 * $control-label-padding-top);
         }
 
         &.loading:after {
@@ -223,6 +225,11 @@ $grapher-dropdown-selected-fill: #c7ced7;
     &:focus-visible {
         // Override global focus-visible style.
         outline: none;
+    }
+
+    // Remove the native Webkit search cancel button
+    &::-webkit-search-cancel-button {
+        -webkit-appearance: none;
     }
 }
 

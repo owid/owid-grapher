@@ -20,7 +20,7 @@ import { observer } from "mobx-react"
 import cx from "classnames"
 import { useTimeout } from "usehooks-ts"
 
-import { Colorpicker } from "./Colorpicker.js"
+import { AdminColorPicker } from "./AdminColorPicker.js"
 import {
     faCog,
     faLink,
@@ -195,7 +195,7 @@ export class TextField extends React.Component<TextFieldProps> {
 }
 
 export class TextAreaField extends React.Component<TextFieldProps> {
-    @bind onChange(ev: React.FormEvent<HTMLTextAreaElement>) {
+    @bind onChange(ev: React.ChangeEvent<HTMLTextAreaElement>) {
         const value = ev.currentTarget.value
         this.props.onValue?.(value)
     }
@@ -424,9 +424,7 @@ export class SelectField extends React.Component<SelectFieldProps> {
                 {props.label && <label>{props.label}</label>}
                 <select
                     className="form-control"
-                    onChange={(e) =>
-                        props.onValue(e.currentTarget.value as string)
-                    }
+                    onChange={(e) => props.onValue(e.currentTarget.value)}
                     onBlur={this.props.onBlur}
                     value={props.value}
                     defaultValue={undefined}
@@ -480,9 +478,7 @@ export class SelectGroupsField extends React.Component<SelectGroupsFieldProps> {
                 {props.label && <label>{props.label}</label>}
                 <select
                     className="form-control"
-                    onChange={(e) =>
-                        props.onValue(e.currentTarget.value as string)
-                    }
+                    onChange={(e) => props.onValue(e.currentTarget.value)}
                     value={props.value}
                 >
                     {props.options.map((opt) => (
@@ -686,6 +682,13 @@ interface ColorBoxProps {
 
 @observer
 export class ColorBox extends React.Component<ColorBoxProps> {
+    private tippyInstance: {
+        popperInstance?: { update: () => void } | null
+    } | null = null
+    private readonly handleResize = (): void => {
+        this.tippyInstance?.popperInstance?.update()
+    }
+
     override render() {
         const { color } = this.props
 
@@ -696,11 +699,12 @@ export class ColorBox extends React.Component<ColorBoxProps> {
             <Tippy
                 content={
                     <>
-                        <Colorpicker
+                        <AdminColorPicker
                             color={color}
                             onColor={this.props.onColor}
                             showLineChartColors={this.props.showLineChartColors}
                             baseColorScheme={this.props.baseColorScheme}
+                            onResize={this.handleResize}
                         />
                         <div
                             style={{
@@ -717,11 +721,34 @@ export class ColorBox extends React.Component<ColorBoxProps> {
                         </div>
                     </>
                 }
-                placement="right"
+                placement="right-start"
                 interactive={true}
                 trigger="click"
+                maxWidth="none"
                 appendTo={() => document.body}
                 className="colorpicker-tooltip"
+                onCreate={(instance) => {
+                    this.tippyInstance = instance
+                }}
+                lazy
+                popperOptions={{
+                    modifiers: [
+                        {
+                            name: "flip",
+                            options: {
+                                fallbackPlacements: [
+                                    "left-start",
+                                    "bottom-start",
+                                    "top-start",
+                                ],
+                            },
+                        },
+                        {
+                            name: "preventOverflow",
+                            options: { padding: 8, altAxis: true },
+                        },
+                    ],
+                }}
             >
                 <div className="ColorBox" style={style}>
                     {color === undefined && (
@@ -880,93 +907,6 @@ export class BindString extends React.Component<BindStringProps> {
                     {...rest}
                 />
             )
-    }
-}
-
-interface BindStringArrayProps {
-    field: string
-    store: Record<string, any>
-    label?: React.ReactNode
-    secondaryLabel?: string
-    placeholder?: string
-    helpText?: string
-    softCharacterLimit?: number
-    disabled?: boolean
-    rows?: number
-    errorMessage?: string
-    buttonContent?: React.ReactNode
-    onButtonClick?: () => void
-}
-
-@observer
-export class BindStringArray extends React.Component<BindStringArrayProps> {
-    constructor(props: BindStringArrayProps) {
-        super(props)
-        makeObservable(this)
-    }
-
-    @action.bound onValue(value: string = "") {
-        this.props.store[this.props.field] = parseBulletList(value)
-    }
-
-    override render() {
-        const { field, store, label, ...rest } = this.props
-        const values = store[field] as string[] | []
-        return (
-            <TextAreaField
-                label={label === undefined ? _.capitalize(field) : label}
-                secondaryLabel={this.props.secondaryLabel}
-                value={createBulletList(values || [])}
-                onValue={this.onValue}
-                {...rest}
-            />
-        )
-    }
-}
-
-interface BindDropdownProps {
-    field: string
-    store: Record<string, any>
-    label?: React.ReactNode
-    options: Array<{
-        value: string
-        label: string
-    }>
-    disabled?: boolean
-}
-
-@observer
-export class BindDropdown extends React.Component<BindDropdownProps> {
-    constructor(props: BindDropdownProps) {
-        super(props)
-        makeObservable(this)
-    }
-
-    @action.bound onChange(event: React.ChangeEvent<HTMLSelectElement>) {
-        const value = event.target.value
-        this.props.store[this.props.field] = value
-    }
-
-    override render() {
-        const { field, store, label, options, disabled } = this.props
-        const value = store[field] || "" // Default to empty string if no value is set
-
-        return (
-            <div>
-                {label && <label>{label}</label>}{" "}
-                <select
-                    value={value}
-                    onChange={this.onChange}
-                    disabled={disabled}
-                >
-                    {options.map((option) => (
-                        <option key={option.value} value={option.value}>
-                            {option.label}
-                        </option>
-                    ))}
-                </select>
-            </div>
-        )
     }
 }
 
@@ -1488,26 +1428,3 @@ export class Button extends React.Component<ButtonProps> {
 export const Help = ({ children }: { children: React.ReactNode }) => (
     <small className="form-text text-muted mb-4">{children}</small>
 )
-
-const createBulletList = (items: string[]): string => {
-    return items.map((item) => `• ${item}`).join("\n")
-}
-
-const parseBulletList = (bulletedString: string): string[] => {
-    // Return an array with a single empty string if the input is empty
-    if (bulletedString === "") {
-        return [""]
-    }
-
-    const items = bulletedString
-        .split(/\n•\s?/)
-        .map((item) => item.replace(/^•\s?/, ""))
-
-    // Check if the input string ends with a newline. If it does, ensure the last item is an empty string.
-    if (bulletedString.endsWith("\n")) {
-        items[items.length - 1] = items[items.length - 1].trim()
-        items.push("")
-    }
-
-    return items
-}

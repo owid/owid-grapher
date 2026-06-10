@@ -19,6 +19,19 @@ export const DEFAULT_ALPHA = 0.3
 export type DedupStrategy = "typesense" | "api"
 
 /**
+ * Error thrown when the client provides invalid search parameters (e.g. a
+ * non-existent topic name). The API handler uses this to distinguish
+ * user-facing validation errors (→ 400, no Sentry) from unexpected failures
+ * (→ 500, report to Sentry).
+ */
+export class SearchValidationError extends Error {
+    constructor(message: string) {
+        super(message)
+        this.name = "SearchValidationError"
+    }
+}
+
+/**
  * Enriched search result with URL added.
  * This is what we return from the API after processing Typesense results.
  */

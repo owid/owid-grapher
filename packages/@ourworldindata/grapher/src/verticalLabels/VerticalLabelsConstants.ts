@@ -23,6 +23,7 @@ const DEFAULT_LABEL_STYLE: LabelStyleConfig = {
 
 export const LABEL_STYLE: Record<Emphasis, LabelStyleConfig> = {
     [Emphasis.Default]: DEFAULT_LABEL_STYLE,
+    [Emphasis.Elevated]: DEFAULT_LABEL_STYLE,
     [Emphasis.Highlighted]: DEFAULT_LABEL_STYLE,
     [Emphasis.Muted]: {
         opacity: GRAPHER_OPACITY_MUTED,

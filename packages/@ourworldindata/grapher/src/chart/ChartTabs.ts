@@ -21,13 +21,19 @@ import { match } from "ts-pattern"
  *
  * This also determines the order of chart types in the UI.
  */
-export const VALID_CHART_TYPE_COMBINATIONS = [
+export const VALID_CHART_TYPE_COMBINATIONS: GrapherChartType[][] = [
     [
         GRAPHER_CHART_TYPES.LineChart,
-        GRAPHER_CHART_TYPES.SlopeChart,
         GRAPHER_CHART_TYPES.DiscreteBar,
+        GRAPHER_CHART_TYPES.Dumbbell,
+        GRAPHER_CHART_TYPES.SlopeChart,
         GRAPHER_CHART_TYPES.Marimekko,
         GRAPHER_CHART_TYPES.ScatterPlot,
+    ],
+    [
+        GRAPHER_CHART_TYPES.StackedArea,
+        GRAPHER_CHART_TYPES.StackedBar,
+        GRAPHER_CHART_TYPES.StackedDiscreteBar,
     ],
 ]
 
@@ -39,23 +45,25 @@ type ChartTabConfigOption = Exclude<
 export const CHART_TYPE_LABEL: Record<GrapherChartType, string> = {
     [GRAPHER_CHART_TYPES.LineChart]: "Line",
     [GRAPHER_CHART_TYPES.SlopeChart]: "Slope",
-    [GRAPHER_CHART_TYPES.ScatterPlot]: "Scatter",
-    [GRAPHER_CHART_TYPES.StackedArea]: "Stacked area",
-    [GRAPHER_CHART_TYPES.StackedBar]: "Stacked bar",
     [GRAPHER_CHART_TYPES.DiscreteBar]: "Bar",
-    [GRAPHER_CHART_TYPES.StackedDiscreteBar]: "Stacked bar",
+    [GRAPHER_CHART_TYPES.ScatterPlot]: "Scatter",
     [GRAPHER_CHART_TYPES.Marimekko]: "Marimekko",
+    [GRAPHER_CHART_TYPES.StackedArea]: "Area",
+    [GRAPHER_CHART_TYPES.StackedBar]: "Column",
+    [GRAPHER_CHART_TYPES.StackedDiscreteBar]: "Bar",
+    [GRAPHER_CHART_TYPES.Dumbbell]: "Dumbbell",
 }
 
 export const LONG_CHART_TYPE_LABEL: Record<GrapherChartType, string> = {
     [GRAPHER_CHART_TYPES.LineChart]: "Line chart",
     [GRAPHER_CHART_TYPES.SlopeChart]: "Slope chart",
-    [GRAPHER_CHART_TYPES.ScatterPlot]: "Scatter plot",
-    [GRAPHER_CHART_TYPES.StackedArea]: "Stacked area chart",
-    [GRAPHER_CHART_TYPES.StackedBar]: "Bar chart",
     [GRAPHER_CHART_TYPES.DiscreteBar]: "Bar chart",
-    [GRAPHER_CHART_TYPES.StackedDiscreteBar]: "Bar chart",
+    [GRAPHER_CHART_TYPES.ScatterPlot]: "Scatter plot",
     [GRAPHER_CHART_TYPES.Marimekko]: "Marimekko chart",
+    [GRAPHER_CHART_TYPES.StackedArea]: "Area chart",
+    [GRAPHER_CHART_TYPES.StackedBar]: "Column chart",
+    [GRAPHER_CHART_TYPES.StackedDiscreteBar]: "Bar chart",
+    [GRAPHER_CHART_TYPES.Dumbbell]: "Dumbbell chart",
 }
 
 const MAP_CHART_TAB_CONFIG_OPTION_TO_CHART_TYPE_NAME: Record<
@@ -73,6 +81,7 @@ const MAP_CHART_TAB_CONFIG_OPTION_TO_CHART_TYPE_NAME: Record<
     [GRAPHER_TAB_CONFIG_OPTIONS["stacked-discrete-bar"]]:
         GRAPHER_CHART_TYPES.StackedDiscreteBar,
     [GRAPHER_TAB_CONFIG_OPTIONS.marimekko]: GRAPHER_CHART_TYPES.Marimekko,
+    [GRAPHER_TAB_CONFIG_OPTIONS.dumbbell]: GRAPHER_CHART_TYPES.Dumbbell,
 }
 
 const MAP_CHART_TYPE_NAME_TO_CHART_TAB_CONFIG_OPTION = R.invert(
@@ -116,15 +125,13 @@ export const mapGrapherTabNameToQueryParam = mapGrapherTabNameToConfigOption
 
 export function makeLabelForGrapherTab(
     tab: GrapherTabName,
-    options?: { useGenericChartLabel?: boolean; format?: "short" | "long" }
+    options?: { format?: "short" | "long" }
 ): string {
-    const { useGenericChartLabel = false, format = "short" } = options ?? {}
+    const { format = "short" } = options ?? {}
 
     if (tab === GRAPHER_TAB_NAMES.Table) return "Table"
     if (tab === GRAPHER_TAB_NAMES.WorldMap)
         return format === "short" ? "Map" : "World map"
-
-    if (useGenericChartLabel) return "Chart"
 
     return format === "short"
         ? CHART_TYPE_LABEL[tab]

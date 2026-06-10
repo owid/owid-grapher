@@ -8,7 +8,7 @@ export interface DbInsertChartTag {
     isApproved?: boolean
     keyChartLevel?: KeyChartLevel
     tagId: number
-    updatedAt?: Date | null
+    updatedAt?: Date
 }
 export type DbPlainChartTag = Required<DbInsertChartTag>
 

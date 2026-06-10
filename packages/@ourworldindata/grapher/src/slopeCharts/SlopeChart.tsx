@@ -21,19 +21,18 @@ import {
     DEFAULT_GRAPHER_BOUNDS,
     GRAPHER_FONT_SCALE_11,
     GRAPHER_FONT_SCALE_12,
-    GRAPHER_TEXT_OUTLINE_FACTOR,
 } from "../core/GrapherConstants"
 import {
     SeriesName,
     MissingDataStrategy,
     Time,
     SeriesStrategy,
+    SideWidths,
     VerticalAlign,
     HorizontalAlign,
 } from "@ourworldindata/types"
 import { ChartInterface } from "../chart/ChartInterface"
-import { scaleLinear, ScaleLinear } from "d3-scale"
-import { select, type BaseType, type Selection } from "d3-selection"
+
 import {
     PlacedSlopeChartSeries,
     RawSlopeChartSeries,
@@ -43,7 +42,7 @@ import {
 } from "./SlopeChartConstants"
 import { CoreColumn } from "@ourworldindata/core-table"
 import { getHoverStateForSeries } from "../chart/ChartUtils"
-import { VerticalAxis } from "../axis/Axis"
+import { HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import { VerticalAxisZeroLine } from "../axis/AxisViews"
 import { NoDataSection } from "../scatterCharts/NoDataSection"
 
@@ -65,10 +64,7 @@ import { TooltipFooterIcon } from "../tooltip/TooltipProps"
 import { Halo } from "@ourworldindata/components"
 import { HorizontalColorLegendManager } from "../legend/HorizontalColorLegends"
 import { CategoricalBin } from "../color/ColorScaleBin"
-import {
-    GRAPHER_BACKGROUND_DEFAULT,
-    GRAPHER_DARK_TEXT,
-} from "../color/ColorConstants"
+import { GRAPHER_DARK_TEXT } from "../color/ColorConstants"
 import { LabelSeries } from "../verticalLabels/VerticalLabelsTypes"
 import { resolveEmphasis } from "../interaction/Emphasis"
 import { SlopeChartState } from "./SlopeChartState"
@@ -76,20 +72,25 @@ import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import { ChartComponentProps } from "../chart/ChartTypeMap.js"
 import { InteractionState } from "../interaction/InteractionState"
 import {
+    getXAxisConfigSettings,
     getYAxisConfigDefaults,
     toPlacedSlopeChartSeries,
     toRenderSlopeChartSeries,
 } from "./SlopeChartHelpers"
 import { Slope } from "./Slope"
-import { MarkX } from "./MarkX"
+import { SlopeChartXAxis } from "./SlopeChartXAxis"
 import { CATEGORICAL_LEGEND_STYLE } from "../lineCharts/LineChartConstants"
 
 type SVGMouseOrTouchEvent =
     | React.MouseEvent<SVGGElement>
     | React.TouchEvent<SVGGElement>
 
+const DOT_RADIUS = 3.5
+
+const TIME_LABEL_PADDING = 4
 const VERTICAL_LABELS_PADDING = 4
 const SIDEBAR_MARGIN = 10
+const ZERO_LABEL_PADDING = 8
 
 export type SlopeChartProps = ChartComponentProps<SlopeChartState>
 
@@ -98,9 +99,9 @@ export class SlopeChart
     extends React.Component<SlopeChartProps>
     implements ChartInterface, AxisManager
 {
-    private slopeAreaRef = React.createRef<SVGGElement>()
+    private readonly slopeAreaRef = React.createRef<SVGGElement>()
 
-    private tooltipState = new TooltipState<{
+    private readonly tooltipState = new TooltipState<{
         series: SlopeChartSeries
     }>({ fade: "immediate" })
 
@@ -127,11 +128,29 @@ export class SlopeChart
         return this.props.bounds ?? DEFAULT_GRAPHER_BOUNDS
     }
 
-    @computed private get innerBounds(): Bounds {
+    @computed private get boundsWithVerticalPadding(): Bounds {
         return this.bounds
-            .padTop(6) // Leave room for overflowing dots
-            .padBottom(this.bottomPadding)
+            .padTop(DOT_RADIUS) // Leave room for overflowing dots
+            .padBottom(this.xAxisHeight + 3)
+    }
+
+    @computed private get innerBounds(): Bounds {
+        return this.boundsWithVerticalPadding
             .padRight(this.sidebarWidth + SIDEBAR_MARGIN)
+            .padLeft(this.zeroLineLabelWidth + ZERO_LABEL_PADDING)
+    }
+
+    /**
+     * Bounds whose horizontal extent is exactly [startX, endX],
+     * the start and end of the slope lines
+     */
+    @computed private get slopeAreaBounds(): Bounds {
+        return new Bounds(
+            this.startX,
+            this.innerBounds.top,
+            this.endX - this.startX,
+            this.innerBounds.height
+        )
     }
 
     @computed get fontSize(): number {
@@ -148,10 +167,6 @@ export class SlopeChart
 
     @computed private get lineStrokeWidth(): number {
         return this.manager.isStaticAndSmall ? 3 : 1.5
-    }
-
-    @computed private get backgroundColor(): string {
-        return this.manager.backgroundColor ?? GRAPHER_BACKGROUND_DEFAULT
     }
 
     @computed private get isHoverModeActive(): boolean {
@@ -173,11 +188,11 @@ export class SlopeChart
     }
 
     @computed private get startX(): number {
-        return this.xScale(this.startTime)
+        return this.xAxis.place(this.startTime)
     }
 
     @computed private get endX(): number {
-        return this.xScale(this.endTime)
+        return this.xAxis.place(this.endTime)
     }
 
     @computed private get seriesStrategy(): SeriesStrategy {
@@ -237,12 +252,12 @@ export class SlopeChart
         )
     }
 
-    @computed private get bottomPadding(): number {
-        return 1.5 * GRAPHER_FONT_SCALE_12 * this.fontSize
-    }
-
-    @computed private get xLabelPadding(): number {
-        return this.useCompactLayout ? 4 : 8
+    @computed private get xAxisHeight(): number {
+        if (this.xAxisConfig.hideTickLabels) return 0
+        const axisTickFontSize = Math.floor(
+            GRAPHER_FONT_SCALE_12 * this.fontSize
+        )
+        return axisTickFontSize + TIME_LABEL_PADDING
     }
 
     @computed get yAxisConfig(): AxisConfig {
@@ -250,6 +265,15 @@ export class SlopeChart
         const defaults = getYAxisConfigDefaults(yAxisConfig)
         const custom = { hideAxis: true }
         return new AxisConfig({ ...defaults, ...yAxisConfig, ...custom }, this)
+    }
+
+    @computed private get xAxisConfig(): AxisConfig {
+        const { xAxisConfig } = this.manager
+        const overrides = getXAxisConfigSettings(xAxisConfig, {
+            startTime: this.startTime,
+            endTime: this.endTime,
+        })
+        return new AxisConfig({ ...xAxisConfig, ...overrides }, this)
     }
 
     @computed get yDomainDefault(): [number, number] {
@@ -275,6 +299,12 @@ export class SlopeChart
         return this.innerBounds.yRange()
     }
 
+    @computed get xAxis(): HorizontalAxis {
+        return this.chartState.toHorizontalAxis(this.xAxisConfig, {
+            xRange: this.xRange,
+        })
+    }
+
     @computed get yAxis(): VerticalAxis {
         return this.chartState.toVerticalAxis(this.yAxisConfig, {
             yDomain: this.yDomain,
@@ -286,39 +316,10 @@ export class SlopeChart
         return this.yAxis.width
     }
 
-    @computed private get xScale(): ScaleLinear<number, number> {
-        const { xRange } = this
-        return scaleLinear().domain(this.chartState.xDomain).range(xRange)
-    }
-
     @computed private get sidebarWidth(): number {
         return this.showNoDataSection
             ? R.clamp(this.bounds.width * 0.125, { min: 60, max: 140 })
             : 0
-    }
-
-    @computed private get formattedStartTime(): string {
-        return this.formatColumn.formatTime(this.chartState.xDomain[0])
-    }
-
-    @computed private get formattedEndTime(): string {
-        return this.formatColumn.formatTime(this.chartState.xDomain[1])
-    }
-
-    @computed private get xMarkFontSize(): number {
-        return this.yAxis.tickFontSize
-    }
-
-    @computed private get xStartMarkWidth(): number {
-        return Bounds.forText(this.formattedStartTime, {
-            fontSize: this.xMarkFontSize,
-        }).width
-    }
-
-    @computed private get xEndMarkWidth(): number {
-        return Bounds.forText(this.formattedEndTime, {
-            fontSize: this.xMarkFontSize,
-        }).width
     }
 
     @computed get externalLegend(): HorizontalColorLegendManager | undefined {
@@ -354,7 +355,7 @@ export class SlopeChart
         const bottom =
             this.bounds.bottom -
             // leave space for the x-axis labels
-            this.bottomPadding +
+            this.xAxisHeight +
             // but allow for a little extra space
             this.labelsFontSize / 2
 
@@ -451,6 +452,11 @@ export class SlopeChart
             : this.rightLabelsState.stableWidth
     }
 
+    // Consumed by FacetChart to align gridlines across facets
+    @computed get verticalLabelWidths(): SideWidths {
+        return { left: this.leftLabelsWidth, right: this.rightLabelsWidth }
+    }
+
     @computed
     private get visibleRightLabels(): Set<SeriesName> {
         return new Set(this.rightLabelsState?.visibleSeriesNames ?? [])
@@ -475,9 +481,18 @@ export class SlopeChart
             })
     }
 
+    @computed private get effectiveLabelWidths(): SideWidths {
+        const shared = this.manager.sharedVerticalLabelWidths
+        return {
+            left: Math.max(shared?.left ?? 0, this.leftLabelsWidth),
+            right: Math.max(shared?.right ?? 0, this.rightLabelsWidth),
+        }
+    }
+
     @computed private get xRange(): [number, number] {
-        const leftLabelsWidth = this.leftLabelsWidth + VERTICAL_LABELS_PADDING
-        const rightLabelsWidth = this.rightLabelsWidth + VERTICAL_LABELS_PADDING
+        const { left, right } = this.effectiveLabelWidths
+        const leftLabelsWidth = left + VERTICAL_LABELS_PADDING
+        const rightLabelsWidth = right + VERTICAL_LABELS_PADDING
         const chartAreaWidth = this.innerBounds.width
 
         // start and end value when the slopes are as wide as possible
@@ -599,35 +614,37 @@ export class SlopeChart
         )
     }
 
-    private animSelection?: Selection<
-        BaseType,
-        unknown,
-        SVGGElement | null,
-        unknown
-    >
-    private playIntroAnimation() {
-        // Nice little intro animation
-        this.animSelection = select(this.slopeAreaRef.current)
-            .selectAll(".slope")
-            .attr("stroke-dasharray", "100%")
-            .attr("stroke-dashoffset", "100%")
+    @computed private get zeroLineLabelFontSize(): number {
+        return GRAPHER_FONT_SCALE_12 * this.fontSize
+    }
 
-        this.animSelection
-            .transition()
-            .duration(600)
-            .attr("stroke-dashoffset", "0%")
+    @computed private get shouldShowZeroLine(): boolean {
+        const hasAnyNonZeroStartValue = this.chartState.series.some(
+            (series) => series.start.value !== 0
+        )
+        const isZeroInDomain = this.yDomain[0] <= 0 && this.yDomain[1] >= 0
+
+        return (
+            !this.chartState.isRelativeMode &&
+            hasAnyNonZeroStartValue &&
+            isZeroInDomain
+        )
+    }
+
+    @computed private get zeroLineLabel(): string {
+        return this.chartState.yColumns[0].formatForTick(0)
+    }
+
+    @computed private get zeroLineLabelWidth(): number {
+        if (!this.shouldShowZeroLine) return 0
+
+        return Bounds.forText(this.zeroLineLabel, {
+            fontSize: this.zeroLineLabelFontSize,
+        }).width
     }
 
     override componentDidMount() {
         exposeInstanceOnWindow(this)
-
-        if (!this.manager.disableIntroAnimation) {
-            this.playIntroAnimation()
-        }
-    }
-
-    override componentWillUnmount(): void {
-        if (this.animSelection) this.animSelection.interrupt()
     }
 
     @computed private get shouldShowSeriesNamesInLeftLabels(): boolean {
@@ -808,10 +825,11 @@ export class SlopeChart
                     label={series.column.displayName}
                     unit={series.column.displayUnit}
                     values={formatTooltipRangeValues(values, series.column)}
-                    trend={calculateTrendDirection(...values)}
-                    isRoundedToSignificantFigures={
-                        series.column.roundsToSignificantFigures
-                    }
+                    trend={calculateTrendDirection(
+                        values[0],
+                        values[1],
+                        (value) => series.column.formatValueShort(value)
+                    )}
                     labelVariant="unit-only"
                 />
             </Tooltip>
@@ -860,9 +878,12 @@ export class SlopeChart
             this.sidebarWidth,
             this.bounds.height
         )
-        const seriesNames = this.noDataSeries.map((series) =>
-            this.makeMissingDataLabel(series)
-        )
+
+        // Reversing the order so that newly added entities without data
+        // show up at the top of the no data section
+        const seriesNames = this.noDataSeries
+            .map((series) => this.makeMissingDataLabel(series))
+            .reverse()
 
         return (
             <NoDataSection
@@ -881,9 +902,9 @@ export class SlopeChart
                     <Slope
                         key={series.seriesName}
                         series={series}
+                        dotRadius={DOT_RADIUS}
                         strokeWidth={this.lineStrokeWidth}
                         outlineWidth={0.5}
-                        outlineStroke={this.backgroundColor}
                     />
                 ))}
             </g>
@@ -912,48 +933,29 @@ export class SlopeChart
     }
 
     private renderZeroLine(): React.ReactElement | null {
-        // Don't draw a zero line if all start values are zero,
-        // which is trivially true in relative mode
-        if (this.chartState.isRelativeMode) return null
+        if (!this.shouldShowZeroLine) return null
 
-        // Don't draw a zero line if all start values are zero
-        const areAllStartValuesZero = !this.chartState.series.some(
-            (series) => series.start.value !== 0
-        )
-        if (areAllStartValuesZero) return null
-
-        // Don't show a zero line if it's not in the domain
-        const isZeroInDomain =
-            this.yAxis.domain[0] <= 0 && this.yAxis.domain[1] >= 0
-        if (!isZeroInDomain) return null
-
-        const fontSize = GRAPHER_FONT_SCALE_12 * this.fontSize
-        const tickLabelOffset = 5
-
-        const tickLabel = this.yAxis.formatTick(0)
-        const tickLabelLength = Bounds.forText(tickLabel, { fontSize }).width
-        const bounds = this.innerBounds.padLeft(
-            tickLabelLength + tickLabelOffset
-        )
+        const bounds = this.boundsWithVerticalPadding
+        const boundsForLine = bounds.padLeft(this.zeroLineLabelWidth + 2)
 
         return (
             <>
                 {!this.yAxis.hideGridlines && (
                     <VerticalAxisZeroLine
-                        bounds={bounds}
-                        verticalAxis={this.yAxis}
+                        bounds={boundsForLine}
+                        axis={this.yAxis}
                         stroke="#ddd"
                         strokeDasharray="3,2"
                     />
                 )}
                 <text
-                    x={this.innerBounds.left}
+                    x={bounds.left}
                     y={this.yAxis.place(0).toFixed(2)}
                     dy={dyFromAlign(VerticalAlign.middle)}
-                    fontSize={fontSize}
+                    fontSize={this.zeroLineLabelFontSize}
                     fill={GRAPHER_DARK_TEXT}
                 >
-                    {tickLabel}
+                    {this.zeroLineLabel}
                 </text>
             </>
         )
@@ -972,8 +974,9 @@ export class SlopeChart
 
         // Determine how much space is available for the log notice
         const xDist = this.endX - this.startX
-        const rightPadding = 0.5 * this.xEndMarkWidth
-        const leftPadding = 0.5 * this.xStartMarkWidth
+        const [startTickLabel, endTickLabel] = this.xAxis.tickLabels
+        const leftPadding = 0.5 * (startTickLabel?.width ?? 0)
+        const rightPadding = 0.5 * (endTickLabel?.width ?? 0)
         const maxWidth = xDist - rightPadding - leftPadding - 24
 
         // Prefer the long text if it fits. If both texts are too long,
@@ -989,7 +992,10 @@ export class SlopeChart
 
         // Placed in between the start and end x marks
         const midX = (this.startX + this.endX) / 2
-        const y = this.innerBounds.bottom + this.xLabelPadding
+        const y =
+            this.slopeAreaBounds.bottom +
+            TIME_LABEL_PADDING +
+            this.xAxis.tickFontSize
 
         return (
             <text
@@ -997,7 +1003,6 @@ export class SlopeChart
                 y={y}
                 fontSize={fontSize}
                 textAnchor="middle"
-                dy={dyFromAlign(VerticalAlign.bottom)}
                 fill={GRAPHER_DARK_TEXT}
                 fontStyle="italic"
             >
@@ -1015,28 +1020,13 @@ export class SlopeChart
         )
     }
 
-    private renderXAxis() {
-        const { startX, endX } = this
-
+    private renderXAxis(): React.ReactElement {
         return (
-            <g id={makeFigmaId("horizontal-axis")}>
-                <MarkX
-                    label={this.formattedStartTime}
-                    x={startX}
-                    top={this.innerBounds.top}
-                    bottom={this.innerBounds.bottom}
-                    labelPadding={this.xLabelPadding}
-                    fontSize={this.xMarkFontSize}
-                />
-                <MarkX
-                    label={this.formattedEndTime}
-                    x={endX}
-                    top={this.innerBounds.top}
-                    bottom={this.innerBounds.bottom}
-                    labelPadding={this.xLabelPadding}
-                    fontSize={this.xMarkFontSize}
-                />
-            </g>
+            <SlopeChartXAxis
+                axis={this.xAxis}
+                bounds={this.slopeAreaBounds}
+                padding={TIME_LABEL_PADDING}
+            />
         )
     }
 
@@ -1045,6 +1035,7 @@ export class SlopeChart
             <VerticalLabels
                 state={this.rightLabelsState}
                 x={this.xRange[1] + VERTICAL_LABELS_PADDING}
+                outline={true}
                 onMouseEnter={this.onVerticalLabelMouseEnter}
                 onMouseLeave={this.onVerticalLabelMouseLeave}
                 interactive={!this.manager.isStatic}
@@ -1053,7 +1044,7 @@ export class SlopeChart
     }
 
     private renderVerticalLabelsLeft(): React.ReactElement | null {
-        // don't show labels for the start values in relative mode since they're all trivially zero
+        // Don't show labels for the start values in relative mode since they're all trivially zero
         if (this.manager.isRelativeMode) return null
 
         const uniqYValues = _.uniq(
@@ -1062,16 +1053,10 @@ export class SlopeChart
         const allSlopesStartFromZero =
             uniqYValues.length === 1 && uniqYValues[0] === 0
 
-        // if all values have a start value of 0, show the 0-label only once
+        // If all values have a start value of 0, show the 0-label only once
         if (allSlopesStartFromZero)
             return (
-                <Halo
-                    id="x-axis-zero-label"
-                    outlineWidth={
-                        GRAPHER_TEXT_OUTLINE_FACTOR * this.labelsFontSize
-                    }
-                    outlineColor={this.backgroundColor}
-                >
+                <Halo id="x-axis-zero-label" fontSize={this.labelsFontSize}>
                     <text
                         x={this.startX}
                         y={this.yAxis.place(0)}
@@ -1089,6 +1074,7 @@ export class SlopeChart
             <VerticalLabels
                 state={this.leftLabelsState}
                 x={this.xRange[0] - VERTICAL_LABELS_PADDING}
+                outline={true}
                 onMouseEnter={this.onVerticalLabelMouseEnter}
                 onMouseLeave={this.onVerticalLabelMouseLeave}
                 interactive={!this.manager.isStatic}

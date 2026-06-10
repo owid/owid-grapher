@@ -1,0 +1,50 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: "Lato", sans-serif;
+    margin: 0;
+    padding: 24px 0;
+    color: #1d1d1d;
+}
+
+.project-title {
+    font-size: 1.25rem;
+    margin: 0 0 24px;
+    padding: 0 24px;
+}
+
+.variant {
+    margin-bottom: 48px;
+}
+
+.variant-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 12px;
+    padding: 0 24px;
+}
+
+.variant-label-prefix {
+    font-weight: 400;
+    text-decoration: underline;
+    margin-right: 0.4em;
+    text-underline-offset: 3px;
+}
+
+.variant-label-name {
+    font-weight: 600;
+    color: #555;
+}
+
+.demo-error-message {
+    margin: 0 24px;
+    padding: 12px 16px;
+    border-left: 4px solid #b0122a;
+    background: #fff4f4;
+    color: #6d1020;
+    font-size: 0.9375rem;
+    line-height: 1.4;
+}

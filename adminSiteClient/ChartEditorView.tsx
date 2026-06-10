@@ -10,6 +10,7 @@ import {
     reaction,
     IReactionDisposer,
     makeObservable,
+    comparer,
 } from "mobx"
 import { Prompt, Redirect } from "react-router-dom"
 import {
@@ -179,12 +180,12 @@ export class ChartEditorView<
             })
         }
 
-        const usageData = (await admin.getJSON(
-            `/api/variables.usages.json`
-        )) as {
-            variableId: number
-            usageCount: number
-        }[]
+        const usageData = await admin.getJSON<
+            {
+                variableId: number
+                usageCount: number
+            }[]
+        >(`/api/variables.usages.json`)
         this.database.variableUsageCounts = new Map(
             usageData.map(({ variableId, usageCount }) => [
                 variableId,
@@ -370,6 +371,19 @@ export class ChartEditorView<
                     this.grapherState.staticBounds = this.staticBounds
                     this.grapherState.externalBounds = this.bounds
                 }
+            )
+        )
+        this.disposers.push(
+            reaction(
+                () => this.editor?.fullConfig,
+                () => {
+                    // Update the authoredVersion, as it's being used for "author's minTime & maxTime" in some places.
+                    if (this.editor?.fullConfig)
+                        this.editor?.grapherState.setAuthoredVersion(
+                            this.editor?.fullConfig
+                        )
+                },
+                { equals: comparer.structural }
             )
         )
     }

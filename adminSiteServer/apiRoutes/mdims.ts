@@ -26,7 +26,7 @@ import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
 import { Request } from "../authentication.js"
 import { HandlerResponse } from "../FunctionalRouter.js"
 import * as db from "../../db/db.js"
-import { getMdimViewRecords } from "../../baker/algolia/utils/mdimViews.js"
+import { getMultiDimViewRecords } from "../../baker/algolia/utils/mdimViews.js"
 import {
     validateNewGrapherSlug,
     validateMultiDimSlug,
@@ -559,6 +559,6 @@ export async function getMdimRecordsJson(
     trx: db.KnexReadonlyTransaction
 ) {
     const id = expectInt(req.params.id)
-    const records = await getMdimViewRecords(trx, { id })
+    const records = await getMultiDimViewRecords(trx, { id })
     return { records }
 }

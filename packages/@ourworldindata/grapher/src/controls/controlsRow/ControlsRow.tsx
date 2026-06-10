@@ -54,7 +54,7 @@ interface ControlsRowProps {
 
 @observer
 export class ControlsRow extends Component<ControlsRowProps> {
-    private framePaddingHorizontal = GRAPHER_FRAME_PADDING_HORIZONTAL
+    private readonly framePaddingHorizontal = GRAPHER_FRAME_PADDING_HORIZONTAL
 
     constructor(props: ControlsRowProps) {
         super(props)

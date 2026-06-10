@@ -237,10 +237,6 @@
     }
 }
 
-.article-summary {
-    margin-bottom: 32px;
-}
-
 .deprecation-notice {
     --bg-color: #fff5d8;
     position: sticky;
@@ -870,20 +866,17 @@ div.raw-html-table__container {
     width: 100%;
     margin: 32px 0 48px 0;
 
-    figure {
-        margin: 0;
-    }
-
-    .GrapherComponent {
-        display: block;
-        margin: 0 auto;
-    }
-
     .Explorer {
         label {
             margin-bottom: 0;
         }
     }
+}
+
+[class*="article-block__bespoke-component"] {
+    position: relative;
+    min-height: 300px;
+    margin: 32px 0 48px 0;
 }
 
 .article-block__chart-story {

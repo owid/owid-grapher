@@ -8,6 +8,7 @@ import { unstable_batchedUpdates } from "react-dom"
 import { migrateGrapherConfigToLatestVersion } from "../schema/migrations/migrate.js"
 import { useMaybeGlobalGrapherStateRef } from "../chart/guidedChartUtils.js"
 import { loadCatalogData } from "./loadCatalogData.js"
+import { useIsomorphicLayoutEffect } from "usehooks-ts"
 
 export interface FetchingGrapherProps {
     config?: GrapherProgrammaticInterface
@@ -44,7 +45,9 @@ export function FetchingGrapher(
         isConfigReady: !props.configUrl,
     })
 
-    React.useEffect(() => {
+    // Keep the MobX state in sync before paint so Grapher doesn't render a
+    // frame at stale/default bounds.
+    useIsomorphicLayoutEffect(() => {
         if (props.externalBounds) {
             grapherState.current.externalBounds = props.externalBounds
         }

@@ -10,6 +10,7 @@ import {
 import { SiteAnalytics } from "./SiteAnalytics.js"
 import {
     MarkdownTextWrap,
+    MarkdownTextWrapHtml,
     reactRenderToStringClientOnly,
 } from "@ourworldindata/components"
 import urljoin from "url-join"
@@ -55,6 +56,8 @@ export async function runDetailsOnDemand(
         },
     }).then((res) => res.json())
 
+    const dodDepthsByInstance = new Map<Instance, number>()
+
     document.addEventListener("mouseover", handleEvent, { passive: true })
     document.addEventListener("touchstart", handleEvent, { passive: true })
 
@@ -77,13 +80,14 @@ export async function runDetailsOnDemand(
         if (element._tippy) {
             element._tippy.show()
         } else {
+            const markdownTextWrap = new MarkdownTextWrap({
+                text: dod.text,
+                fontSize: 12,
+                lineHeight: 1.55,
+            })
             const content = reactRenderToStringClientOnly(
                 <div className="dod-container">
-                    <MarkdownTextWrap
-                        text={dod.text}
-                        fontSize={12}
-                        lineHeight={1.55}
-                    />
+                    <MarkdownTextWrapHtml textWrap={markdownTextWrap} />
                 </div>
             )
 
@@ -102,7 +106,36 @@ export async function runDetailsOnDemand(
                 aria: {
                     content: "labelledby",
                 },
+                onCreate: (instance) => {
+                    dodDepthsByInstance.set(instance, getDodDepth(element))
+                },
+                onShow: (instance) => {
+                    hideDodsAtOrBelowDepth(
+                        dodDepthsByInstance.get(instance) ?? 0
+                    )
+                },
+                onDestroy: (instance) => {
+                    dodDepthsByInstance.delete(instance)
+                },
             })
         }
+    }
+
+    function hideDodsAtOrBelowDepth(depth: number) {
+        for (const [instance, dodDepth] of dodDepthsByInstance) {
+            if (instance.state.isVisible && dodDepth >= depth) {
+                instance.hide()
+            }
+        }
+    }
+
+    function getDodDepth(element: Element): number {
+        let depth = 0
+        for (const [instance, parentDepth] of dodDepthsByInstance) {
+            if (instance.popper.contains(element)) {
+                depth = Math.max(depth, parentDepth + 1)
+            }
+        }
+        return depth
     }
 }

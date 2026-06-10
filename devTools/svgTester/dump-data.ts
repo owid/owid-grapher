@@ -71,10 +71,13 @@ async function getAllPublishedGraphers(
     trx: KnexReadonlyTransaction
 ): Promise<ChartInfo[]> {
     const allGraphers = await getPublishedGraphersBySlug(trx)
-    return [...allGraphers.graphersBySlug.values()].map((config) => ({
-        id: config.slug!, // All published graphers have slugs
-        config,
-    }))
+    return allGraphers.graphersBySlug
+        .values()
+        .map((config) => ({
+            id: config.slug!, // All published graphers have slugs
+            config,
+        }))
+        .toArray()
 }
 
 async function getAllPublishedMultiDimViews(

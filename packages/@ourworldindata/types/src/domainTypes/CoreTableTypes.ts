@@ -17,11 +17,6 @@ import { Integer } from "./Various.js"
 export type TableSlug = string // a url friendly name for a table
 export type ColumnSlugs = string // slugs cannot have spaces, so this is a space delimited array of ColumnSlugs
 
-export enum SortOrder {
-    asc = "asc",
-    desc = "desc",
-}
-
 /**
  * A concrete point in time (year or date). It's always supposed to be a finite number, but we
  * cannot enforce this in TypeScript.

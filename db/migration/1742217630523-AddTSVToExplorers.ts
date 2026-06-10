@@ -39,8 +39,8 @@ class SilentLogger implements Logger {
 export class AddTSVToExplorers1742217630523 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         // Temporarily override the logger to reduce verbosity.
-        const originalLogger = queryRunner.connection.logger
-        queryRunner.connection.logger = new SilentLogger()
+        const originalLogger = queryRunner.dataSource.logger
+        queryRunner.dataSource.logger = new SilentLogger()
         try {
             await queryRunner.query(
                 `ALTER TABLE explorers ADD COLUMN tsv LONGTEXT NOT NULL`
@@ -152,7 +152,7 @@ export class AddTSVToExplorers1742217630523 implements MigrationInterface {
             }
         } finally {
             // Restore the original logger.
-            queryRunner.connection.logger = originalLogger
+            queryRunner.dataSource.logger = originalLogger
         }
     }
 

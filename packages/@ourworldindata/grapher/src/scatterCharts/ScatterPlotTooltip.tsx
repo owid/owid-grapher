@@ -33,7 +33,7 @@ interface TooltipValueRangeProps {
     chartState: ScatterPlotChartState
     points?: SeriesPoint[]
     values: SeriesPoint[]
-    showSignificanceSuperscript?: boolean
+    showSignificanceSuperscriptIfApplicable?: boolean
     showOriginalTimes?: boolean
 }
 
@@ -144,7 +144,7 @@ export class ScatterPlotTooltip extends React.Component<ScatterPlotTooltipProps>
         }
     }
 
-    @computed private get showSignificanceSuperscript(): boolean {
+    @computed private get showSignificanceSuperscriptIfApplicable(): boolean {
         return this.roundingNotice?.icon === TooltipFooterIcon.Significance
     }
 
@@ -171,7 +171,7 @@ export class ScatterPlotTooltip extends React.Component<ScatterPlotTooltipProps>
     }
 
     override render(): React.ReactElement | null {
-        const { showSignificanceSuperscript } = this
+        const { showSignificanceSuperscriptIfApplicable } = this
         const { chartState, tooltipState } = this.props
 
         const { target, position, fading } = tooltipState
@@ -198,20 +198,26 @@ export class ScatterPlotTooltip extends React.Component<ScatterPlotTooltipProps>
                     chartState={chartState}
                     points={this.points}
                     values={this.values}
-                    showSignificanceSuperscript={showSignificanceSuperscript}
+                    showSignificanceSuperscriptIfApplicable={
+                        showSignificanceSuperscriptIfApplicable
+                    }
                     showOriginalTimes={hasToleranceNotice}
                 />
                 <TooltipValueRangeY
                     chartState={chartState}
                     points={this.points}
                     values={this.values}
-                    showSignificanceSuperscript={showSignificanceSuperscript}
+                    showSignificanceSuperscriptIfApplicable={
+                        showSignificanceSuperscriptIfApplicable
+                    }
                     showOriginalTimes={hasToleranceNotice}
                 />
                 <TooltipValueRangeSize
                     chartState={chartState}
                     values={this.values}
-                    showSignificanceSuperscript={showSignificanceSuperscript}
+                    showSignificanceSuperscriptIfApplicable={
+                        showSignificanceSuperscriptIfApplicable
+                    }
                 />
                 <TooltipValueColor
                     chartState={chartState}
@@ -226,7 +232,7 @@ function TooltipValueRangeX({
     chartState,
     points,
     values,
-    showSignificanceSuperscript,
+    showSignificanceSuperscriptIfApplicable,
     showOriginalTimes,
 }: RequiredBy<TooltipValueRangeProps, "points">): React.ReactElement | null {
     const { xColumn } = chartState
@@ -248,10 +254,14 @@ function TooltipValueRangeX({
             label={xColumn.displayName}
             unit={xColumn.displayUnit}
             values={formatTooltipRangeValues(xValues, xColumn)}
-            trend={calculateTrendDirection(...xValues)}
+            trend={calculateTrendDirection(xValues[0], xValues[1], (value) =>
+                xColumn.formatValueShort(value)
+            )}
             originalTimes={formattedOriginalTimes}
-            isRoundedToSignificantFigures={xColumn.roundsToSignificantFigures}
-            showSignificanceSuperscript={showSignificanceSuperscript}
+            showSignificanceSuperscript={
+                showSignificanceSuperscriptIfApplicable &&
+                xColumn.roundsToSignificantFigures
+            }
         />
     )
 }
@@ -260,7 +270,7 @@ function TooltipValueRangeY({
     chartState,
     points,
     values,
-    showSignificanceSuperscript,
+    showSignificanceSuperscriptIfApplicable,
     showOriginalTimes,
 }: RequiredBy<TooltipValueRangeProps, "points">): React.ReactElement | null {
     const { yColumn } = chartState
@@ -282,10 +292,18 @@ function TooltipValueRangeY({
             label={yColumn.displayName}
             unit={yColumn.displayUnit}
             values={formatTooltipRangeValues(yValues, yColumn)}
-            trend={calculateTrendDirection(...yValues)}
+            trend={
+                yValues.length === 2
+                    ? calculateTrendDirection(yValues[0], yValues[1], (value) =>
+                          yColumn.formatValueShort(value)
+                      )
+                    : undefined
+            }
             originalTimes={formattedOriginalTimes}
-            isRoundedToSignificantFigures={yColumn.roundsToSignificantFigures}
-            showSignificanceSuperscript={showSignificanceSuperscript}
+            showSignificanceSuperscript={
+                showSignificanceSuperscriptIfApplicable &&
+                yColumn.roundsToSignificantFigures
+            }
         />
     )
 }
@@ -293,7 +311,7 @@ function TooltipValueRangeY({
 function TooltipValueRangeSize({
     chartState,
     values,
-    showSignificanceSuperscript,
+    showSignificanceSuperscriptIfApplicable,
 }: TooltipValueRangeProps): React.ReactElement | null {
     const { sizeColumn } = chartState
 
@@ -306,11 +324,19 @@ function TooltipValueRangeSize({
             label={sizeColumn.displayName}
             unit={sizeColumn.displayUnit}
             values={formatTooltipRangeValues(sizeValues, sizeColumn)}
-            trend={calculateTrendDirection(...sizeValues)}
-            isRoundedToSignificantFigures={
+            trend={
+                sizeValues.length === 2
+                    ? calculateTrendDirection(
+                          sizeValues[0],
+                          sizeValues[1],
+                          (value) => sizeColumn.formatValueShort(value)
+                      )
+                    : undefined
+            }
+            showSignificanceSuperscript={
+                showSignificanceSuperscriptIfApplicable &&
                 sizeColumn.roundsToSignificantFigures
             }
-            showSignificanceSuperscript={showSignificanceSuperscript}
         />
     )
 }

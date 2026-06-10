@@ -4,6 +4,20 @@
     "semi": false,
     "tabWidth": 4,
     "trailingComma": "es5",
+    "overrides": [
+        {
+            "files": ["*.jsonc"],
+            "options": {
+                "trailingComma": "none"
+            }
+        },
+        {
+            "files": ["*.yml", "*.yaml"],
+            "options": {
+                "tabWidth": 2
+            }
+        }
+    ],
     "ignorePatterns": [
         ".tscache",
         "/bakedSite",

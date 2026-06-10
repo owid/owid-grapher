@@ -29,6 +29,7 @@ const REGION_DATA_PROVIDER_LABELS: Record<RegionDataProvider, string> = {
     un_m49_3: "UN M49 (detailed)",
     pew: "Pew regions",
     unsdg: "UN SDG regions",
+    iea: "IEA regions",
 }
 
 const ADDITIONAL_REGION_DATA_PROVIDER_LABELS: Record<

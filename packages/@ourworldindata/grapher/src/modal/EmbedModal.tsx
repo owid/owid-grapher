@@ -18,6 +18,7 @@ export interface EmbedModalManager {
     hideExternalControlsInEmbedUrl: boolean
     setHideExternalControlsInEmbedUrl: (value: boolean) => void
     frameBounds?: Bounds
+    recommendedIframeEmbedHeight?: number
 }
 
 interface EmbedModalProps {
@@ -94,8 +95,17 @@ export class EmbedModal extends React.Component<EmbedModalProps> {
         return opts
     }
 
+    @computed private get iframeEmbedHeight(): number {
+        // The base iframe embed height is 600px. Explorers and multi-dims can
+        // override this when their external controls are visible, because those
+        // controls live inside the iframe and need extra vertical space.
+        return this.manager.hideExternalControlsInEmbedUrl
+            ? 600
+            : (this.manager.recommendedIframeEmbedHeight ?? 600)
+    }
+
     private codeSnippetForUrl(url: string): string {
-        return `<iframe src="${url}" loading="lazy" style="width: 100%; height: 600px; border: 0px none;" allow="web-share; clipboard-write"></iframe>`
+        return `<iframe src="${url}" loading="lazy" style="width: 100%; height: ${this.iframeEmbedHeight}px; border: 0px none;" allow="web-share; clipboard-write"></iframe>`
     }
 
     @action.bound private onDismiss(): void {

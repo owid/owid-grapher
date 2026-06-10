@@ -391,39 +391,6 @@
     font-size: 1.125rem;
 }
 
-// Polyfills for flexbox gap (https://caniuse.com/flexbox-gap)
-// In the (near) future, this can be removed and replaced with (column-)gap: $gap
-@mixin column-gap($gap) {
-    > * {
-        margin-right: $gap;
-        &:last-child {
-            margin-right: 0;
-        }
-    }
-}
-
-@mixin row-gap($gap) {
-    > * {
-        display: block;
-        margin-bottom: $gap !important; // for subscribe popup in navbar
-        &:last-child {
-            margin-bottom: 0 !important;
-        }
-    }
-}
-
-// Adapted from https://coryrylan.com/blog/css-gap-space-with-flexbox
-@mixin gap-wrap($row-gap, $col-gap) {
-    display: flex;
-    flex-wrap: wrap;
-    margin: -#{$row-gap} 0 0 -#{$col-gap};
-    width: calc(100% + #{$col-gap});
-
-    & > * {
-        margin: #{$row-gap} 0 0 #{$col-gap};
-    }
-}
-
 @mixin hide-site-chrome {
     .site-header,
     .donate-footer,

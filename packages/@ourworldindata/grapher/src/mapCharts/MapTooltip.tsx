@@ -355,7 +355,6 @@ function MapTooltipValue({
             value={formattedValue}
             color={color}
             isProjection={isProjection}
-            isRoundedToSignificantFigures={mapColumn.roundsToSignificantFigures}
             labelVariant="unit-only"
         />
     )
@@ -394,8 +393,11 @@ function MapTooltipRangeValues({
             unit={mapColumn.displayUnit}
             values={formatTooltipRangeValues(values, mapColumn)}
             colors={colors}
-            trend={calculateTrendDirection(...values) ?? "right"}
-            isRoundedToSignificantFigures={mapColumn.roundsToSignificantFigures}
+            trend={
+                calculateTrendDirection(values[0], values[1], (value) =>
+                    mapColumn.formatValueShort(value)
+                ) ?? "right"
+            }
             labelVariant="unit-only"
         />
     )

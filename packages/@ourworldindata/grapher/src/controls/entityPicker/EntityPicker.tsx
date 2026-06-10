@@ -71,17 +71,17 @@ interface EntityPickerProps {
 @observer
 export class EntityPicker extends React.Component<EntityPickerProps> {
     private searchInput: string | undefined = undefined
-    private searchInputRef = React.createRef<HTMLInputElement>()
+    private readonly searchInputRef = React.createRef<HTMLInputElement>()
 
     private focusIndex: number | undefined = undefined
-    private focusRef = React.createRef<HTMLLabelElement>()
+    private readonly focusRef = React.createRef<HTMLLabelElement>()
     private scrollFocusedIntoViewOnUpdate = false
 
     private blockOptionHover = false
 
     private mostRecentlySelectedEntityName: string | null = null
 
-    private scrollContainerRef = React.createRef<HTMLDivElement>()
+    private readonly scrollContainerRef = React.createRef<HTMLDivElement>()
 
     private isOpen = false
 
@@ -136,7 +136,8 @@ export class EntityPicker extends React.Component<EntityPickerProps> {
         this.searchInput = ""
         this.manager.analytics?.logEntityPickerEvent(
             checked ? "select" : "deselect",
-            name
+            name,
+            this.manager.analyticsContext?.viewConfigId
         )
 
         this.mostRecentlySelectedEntityName = name
@@ -165,7 +166,7 @@ export class EntityPicker extends React.Component<EntityPickerProps> {
         value: string | undefined
     }[] {
         const entityNameColumn = this.grapherTable?.entityNameColumn
-        const entityNameColumnInPickerColumnDefs = !!this.pickerColumnDefs.find(
+        const entityNameColumnInPickerColumnDefs = this.pickerColumnDefs.some(
             (col) => col.slug === entityNameColumn?.slug
         )
         return _.compact([
@@ -379,16 +380,19 @@ export class EntityPicker extends React.Component<EntityPickerProps> {
         this.blockHover()
         switch (event.key) {
             case "Enter": {
-                if (event.keyCode === 229) {
+                if (event.nativeEvent.isComposing) {
                     // ignore the keydown event from an Input Method Editor(IME)
-                    // ref. https://www.w3.org/TR/uievents/#determine-keydown-keyup-keyCode
                     break
                 }
                 if (!this.focusedOption) return
                 const name = this.focusedOption
                 this.selectEntity(name)
                 this.clearSearchInput()
-                this.manager.analytics?.logEntityPickerEvent("enter", name)
+                this.manager.analytics?.logEntityPickerEvent(
+                    "enter",
+                    name,
+                    this.manager.analyticsContext?.viewConfigId
+                )
                 break
             }
             case "ArrowUp":
@@ -415,10 +419,7 @@ export class EntityPicker extends React.Component<EntityPickerProps> {
 
     @action.bound private onSearchBlur(): void {
         // Do not allow focus on elements inside menu; shift focus back to search input.
-        if (
-            this.scrollContainerRef.current &&
-            this.scrollContainerRef.current.contains(document.activeElement)
-        ) {
+        if (this.scrollContainerRef.current?.contains(document.activeElement)) {
             this.focusSearch()
             return
         }
@@ -531,7 +532,11 @@ export class EntityPicker extends React.Component<EntityPickerProps> {
                 ? SortOrder.desc
                 : SortOrder.asc,
         })
-        this.manager.analytics?.logEntityPickerEvent("sortBy", columnSlug)
+        this.manager.analytics?.logEntityPickerEvent(
+            "sortBy",
+            columnSlug,
+            this.manager.analyticsContext?.viewConfigId
+        )
     }
 
     private isColumnTypeNumeric(
@@ -575,7 +580,8 @@ export class EntityPicker extends React.Component<EntityPickerProps> {
                         })
                         this.manager.analytics?.logEntityPickerEvent(
                             "sortOrder",
-                            sortOrder
+                            sortOrder,
+                            this.manager.analyticsContext?.viewConfigId
                         )
                     }}
                 >

@@ -12,8 +12,7 @@ import {
 } from "@ourworldindata/utils"
 import { computed, action, observable, makeObservable } from "mobx"
 import { observer } from "mobx-react"
-import { select, type Selection, type BaseType } from "d3-selection"
-import { easeLinear } from "d3-ease"
+
 import { DualAxisComponent } from "../axis/AxisViews"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import { VerticalLabels } from "../verticalLabels/VerticalLabels"
@@ -46,18 +45,16 @@ import {
     STATIC_SMALL_MARKER_RADIUS,
     DEFAULT_MARKER_RADIUS,
     LINE_CHART_CLASS_NAME,
+    ELEVATED_MARKER_RADIUS,
 } from "./LineChartConstants"
-import { CoreColumn } from "@ourworldindata/core-table"
 import {
-    ClipPath,
     getHoverStateForSeries,
     getSeriesKey,
     isTargetOutsideElement,
-    makeClipPath,
 } from "../chart/ChartUtils"
 import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
 import { ColorScale } from "../color/ColorScale"
-import { GRAPHER_BACKGROUND_DEFAULT } from "../color/ColorConstants"
+import { GRAPHER_BACKGROUND } from "../color/ColorConstants"
 import { darkenColorForLine } from "../color/ColorUtils"
 import {
     HorizontalColorLegendManager,
@@ -85,9 +82,9 @@ export class LineChart
     extends React.Component<LineChartProps>
     implements ChartInterface, HorizontalColorLegendManager, AxisManager
 {
-    private base = React.createRef<SVGGElement>()
+    private readonly base = React.createRef<SVGGElement>()
 
-    private tooltipState = new TooltipState<{ time: Time }>({
+    private readonly tooltipState = new TooltipState<{ time: Time }>({
         fade: "immediate",
     })
 
@@ -207,6 +204,7 @@ export class LineChart
         if (this.hasMarkersOnlySeries) return DISCONNECTED_DOTS_MARKER_RADIUS
         if (this.hasColorScale) return VARIABLE_COLOR_MARKER_RADIUS
         if (this.manager.isStaticAndSmall) return STATIC_SMALL_MARKER_RADIUS
+        if (this.renderSeries.length === 1) return ELEVATED_MARKER_RADIUS
         return DEFAULT_MARKER_RADIUS
     }
 
@@ -265,10 +263,7 @@ export class LineChart
                                     r={this.lineStrokeWidth / 2 + 3.5}
                                     fill={valueColor}
                                     fillOpacity={opacity}
-                                    stroke={
-                                        this.manager.backgroundColor ??
-                                        GRAPHER_BACKGROUND_DEFAULT
-                                    }
+                                    stroke={GRAPHER_BACKGROUND}
                                     strokeWidth={0.5}
                                 />
                             )
@@ -359,16 +354,7 @@ export class LineChart
         }
     }
 
-    private animSelection?: Selection<
-        BaseType,
-        unknown,
-        SVGGElement | null,
-        unknown
-    >
     override componentDidMount(): void {
-        if (!this.manager.disableIntroAnimation) {
-            this.runFancyIntroAnimation()
-        }
         exposeInstanceOnWindow(this)
         document.addEventListener("click", this.onDocumentClick, {
             capture: true,
@@ -376,7 +362,6 @@ export class LineChart
     }
 
     override componentWillUnmount(): void {
-        if (this.animSelection) this.animSelection.interrupt()
         document.removeEventListener("click", this.onDocumentClick, {
             capture: true,
         })
@@ -409,32 +394,6 @@ export class LineChart
         ]
     }
 
-    @computed private get clipPathBounds(): Bounds {
-        const { dualAxis, boundsWithoutColorLegend } = this
-        return boundsWithoutColorLegend
-            .set({ x: dualAxis.innerBounds.x })
-            .expand(10)
-    }
-
-    @computed private get clipPath(): ClipPath {
-        return makeClipPath({
-            renderUid: this.renderUid,
-            box: this.clipPathBounds,
-        })
-    }
-
-    private runFancyIntroAnimation(): void {
-        this.animSelection = select(this.base.current)
-            .selectAll("clipPath > rect")
-            .attr("width", 0)
-        this.animSelection
-            .transition()
-            .duration(800)
-            .ease(easeLinear)
-            .attr("width", this.clipPathBounds.width)
-            .on("end", () => this.forceUpdate()) // Important in case bounds changes during transition
-    }
-
     @computed private get verticalLabelsState(): VerticalLabelsState {
         return new VerticalLabelsState(this.verticalLabelsSeries, {
             yAxis: () => this.yAxis,
@@ -460,7 +419,6 @@ export class LineChart
                 dualAxis={dualAxis}
                 showTickMarks={true}
                 detailsMarker={manager.detailsMarkerInSvg}
-                backgroundColor={manager.backgroundColor}
             />
         )
     }
@@ -493,7 +451,6 @@ export class LineChart
                     hidePoints={this.hidePoints}
                     lineStrokeWidth={this.lineStrokeWidth}
                     lineOutlineWidth={this.lineOutlineWidth}
-                    backgroundColor={this.manager.backgroundColor}
                     markerRadius={this.markerRadius}
                     isStatic={manager.isStatic}
                 />
@@ -523,9 +480,6 @@ export class LineChart
                 onTouchStart={this.onCursorMove}
                 onTouchMove={this.onCursorMove}
             >
-                {/* The tiny bit of extra space in the clippath is to ensure circles
-                    centered on the very edge are still fully visible */}
-                {this.clipPath.element}
                 <rect {...this.bounds.toProps()} fillOpacity="0">
                     {/* This <rect> ensures that the parent <g> is big enough such that
                         we get mouse hover events for the whole charting area, including
@@ -535,7 +489,7 @@ export class LineChart
                 </rect>
                 {this.renderColorLegend()}
                 {this.renderDualAxis()}
-                <g clipPath={this.clipPath.id}>{this.renderChartElements()}</g>
+                {this.renderChartElements()}
 
                 {(this.isTooltipActive || this.hasTimeHighlights) &&
                     this.activeXVerticalLines}
@@ -571,14 +525,6 @@ export class LineChart
 
     @computed protected get yColumnSlugs(): string[] {
         return this.chartState.yColumnSlugs
-    }
-
-    @computed private get colorColumn(): CoreColumn {
-        return this.chartState.colorColumn
-    }
-
-    @computed private get formatColumn(): CoreColumn {
-        return this.chartState.formatColumn
     }
 
     @computed private get hasColorScale(): boolean {
@@ -687,8 +633,8 @@ export class LineChart
 
         // Deduplicate series by seriesName to avoid showing the same label multiple times
         const deduplicatedSeries: LineChartSeries[] = []
-        const seriesGroupedByName = _.groupBy(series, "seriesName")
-        for (const duplicates of Object.values(seriesGroupedByName)) {
+        const seriesGroupedByName = Map.groupBy(series, (s) => s.seriesName)
+        for (const duplicates of seriesGroupedByName.values()) {
             // keep only the label for the series with the most recent data
             // (series are sorted by time, so we can just take the last one)
             deduplicatedSeries.push(R.last(duplicates)!)

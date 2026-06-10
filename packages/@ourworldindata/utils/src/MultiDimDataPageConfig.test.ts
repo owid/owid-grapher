@@ -1,6 +1,6 @@
 import { expect, it, describe } from "vitest"
 
-import { uuidv7 } from "uuidv7"
+import { v7 as uuidv7 } from "uuid"
 
 import { MultiDimDataPageConfigEnriched } from "@ourworldindata/types"
 import { MultiDimDataPageConfig } from "./MultiDimDataPageConfig.js"

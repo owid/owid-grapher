@@ -9,16 +9,6 @@ import {
     faFacebook,
 } from "@fortawesome/free-brands-svg-icons"
 
-// See https://cdnjs.cloudflare.com/polyfill/ for a list of all supported features
-const polyfillFeatures = [
-    "es2022", // Array.at, String.at, ...
-    "es2023", // Array.findLast, Array.toReversed, Array.toSorted, Array.with, ...
-]
-const POLYFILL_VERSION = "4.8.0"
-export const POLYFILL_URL: string = `https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?version=${POLYFILL_VERSION}&features=${polyfillFeatures.join(
-    ","
-)}`
-
 export const PROD_URL = "https://ourworldindata.org"
 
 export const DEFAULT_LOCAL_BAKE_DIR = "localBake"
@@ -30,6 +20,11 @@ export const TOUCH_DEVICE_MEDIA_QUERY =
     "(hover: none), (pointer: coarse), (pointer: none)"
 
 export const DATA_INSIGHTS_ATOM_FEED_NAME = "atom-data-insights.xml"
+
+export const DEFAULT_ATOM_FEED_PROPS = {
+    title: "Atom feed for Our World in Data",
+    href: "/atom.xml",
+}
 
 export const DATA_INSIGHT_ATOM_FEED_PROPS = {
     title: "Atom feed for Data Insights",
@@ -102,7 +97,7 @@ export enum Menu {
 }
 
 export const ABOUT_LINKS = [
-    { title: "About Us", url: "/about" },
+    { title: "About us", url: "/about" },
     { title: "Organization", url: "/organization" },
     { title: "Funding", url: "/funding" },
     { title: "Team", url: "/team" },
@@ -113,22 +108,4 @@ export const ABOUT_LINKS = [
 export enum GalleryArrowDirection {
     prev = "prev",
     next = "next",
-}
-
-export const MOST_RECENT_DATA_INSIGHT = "most-recent-data-insight"
-export const SECOND_MOST_RECENT_INSIGHT = "second-most-recent-data-insight"
-export const THIRD_MOST_RECENT_INSIGHT = "third-most-recent-data-insight"
-export const FOURTH_MOST_RECENT_INSIGHT = "fourth-most-recent-data-insight"
-export const FIFTH_MOST_RECENT_INSIGHT = "fifth-most-recent-data-insight"
-export const SIXTH_MOST_RECENT_INSIGHT = "sixth-most-recent-data-insight"
-export const SEVENTH_MOST_RECENT_INSIGHT = "seventh-most-recent-data-insight"
-
-export const dataInsightIndexToIdMap: Record<number, string> = {
-    0: MOST_RECENT_DATA_INSIGHT,
-    1: SECOND_MOST_RECENT_INSIGHT,
-    2: THIRD_MOST_RECENT_INSIGHT,
-    3: FOURTH_MOST_RECENT_INSIGHT,
-    4: FIFTH_MOST_RECENT_INSIGHT,
-    5: SIXTH_MOST_RECENT_INSIGHT,
-    6: SEVENTH_MOST_RECENT_INSIGHT,
 }

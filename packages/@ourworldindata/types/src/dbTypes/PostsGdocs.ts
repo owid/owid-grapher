@@ -24,7 +24,7 @@ export type DbRawPostGdoc = Required<DbInsertPostGdoc> & {
     authors?: JsonString
     contentMd5: string
     createdAt: Date
-    updatedAt: Date | null
+    updatedAt: Date
 }
 export type DbEnrichedPostGdoc = Omit<
     DbRawPostGdoc,

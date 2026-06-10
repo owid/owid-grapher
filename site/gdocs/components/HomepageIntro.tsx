@@ -3,7 +3,8 @@ import cx from "classnames"
 import {
     EnrichedBlockHomepageIntro,
     EnrichedBlockHomepageIntroPost,
-    OwidGdocMinimalPostInterface,
+    LATEST_TYPE_LABELS,
+    OwidGdocMinimalAnnouncementInterface,
 } from "@ourworldindata/types"
 import { dayjs, formatAuthors } from "@ourworldindata/utils"
 import { useLinkedChart, useLinkedDocument } from "../utils.js"
@@ -23,6 +24,10 @@ import { faArrowRight, faHeart } from "@fortawesome/free-solid-svg-icons"
 import { useResizeObserver } from "usehooks-ts"
 import { OwidSocials } from "../../OwidSocials.js"
 import { NewsletterSubscriptionContext } from "../../newsletter.js"
+import {
+    deriveAnnouncementLatestType,
+    buildLatestPagePath,
+} from "../../latest/latestUtils.js"
 
 type FeaturedWorkTileProps = EnrichedBlockHomepageIntroPost & {
     className?: string
@@ -138,7 +143,7 @@ function useIsOverflowing<T extends HTMLElement = HTMLElement>(
 }
 
 function HomepageAnnouncement(props: {
-    announcement: OwidGdocMinimalPostInterface
+    announcement: OwidGdocMinimalAnnouncementInterface
     index: number
 }) {
     const { announcement, index } = props
@@ -160,7 +165,7 @@ function HomepageAnnouncement(props: {
           announcement.cta?.url ||
           latestPageLink
 
-    const publishedAtDayJs = dayjs(announcement.publishedAt!)
+    const publishedAtDayJs = dayjs(announcement.publishedAt)
     const publishedAtFormatted = publishedAtDayJs.isToday()
         ? "Today"
         : publishedAtDayJs.isYesterday()
@@ -168,6 +173,9 @@ function HomepageAnnouncement(props: {
           : publishedAtDayJs.isSame(dayjs(), "week")
             ? "This Week"
             : publishedAtDayJs.fromNow()
+
+    const latestType = deriveAnnouncementLatestType(announcement.kicker)
+    const kickerLabel = `${LATEST_TYPE_LABELS[latestType]} - `
 
     return (
         <li
@@ -183,7 +191,8 @@ function HomepageAnnouncement(props: {
                 href={href}
             >
                 <span className="homepage-intro__announcement-meta h6-black-caps">
-                    {announcement.kicker} - {publishedAtFormatted}
+                    {kickerLabel}
+                    {publishedAtFormatted}
                 </span>
                 <h3
                     id={`announcement-${announcement.id}`}
@@ -211,7 +220,7 @@ function HomepageAnnouncements() {
         <div className="homepage-intro__announcements span-cols-1 span-md-cols-2">
             <div className="homepage-intro__announcements-header">
                 <AnnouncementsIcon />
-                <h4 className="h3-bold">Updates and Announcements</h4>
+                <h4 className="h3-bold">Updates and announcements</h4>
             </div>
             <ul className="homepage-intro__announcements-list">
                 {announcements.map((announcement, i) => (
@@ -224,7 +233,7 @@ function HomepageAnnouncements() {
             </ul>
             <Button
                 className="homepage-intro__latest-button"
-                href="/latest"
+                href={buildLatestPagePath()}
                 text="See all updates"
                 theme="outline-vermillion"
             />
@@ -244,8 +253,8 @@ function DonationCta() {
             <FontAwesomeIcon icon={faHeart} />
             <div>
                 <p className="homepage-intro__donation-message note-12-medium">
-                    We are a non-profit — all our work is free to use and open
-                    source.
+                    We are a non-profit — all our work is free to use and openly
+                    licensed.
                 </p>
                 <a
                     href="/donate"

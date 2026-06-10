@@ -14,17 +14,14 @@ import {
     checkTableExistsAndNotEmpty,
     recreateCollection,
 } from "./typesenseCacheTable.js"
-import {
-    getExplorerViewRecords,
-    scaleExplorerRecordScores,
-} from "../algolia/utils/explorerViews.js"
+import { getExplorerViewRecords } from "../algolia/utils/explorerViews.js"
 import {
     createFeaturedMetricRecords,
     MAX_NON_FM_RECORD_SCORE,
     scaleRecordScores,
 } from "../algolia/utils/shared.js"
 import { getChartsRecords } from "../algolia/utils/charts.js"
-import { getMdimViewRecords } from "../algolia/utils/mdimViews.js"
+import { getMultiDimViewRecords } from "../algolia/utils/mdimViews.js"
 import { convertDateToUnixTimestamp } from "./indexPagesToTypeSense.js"
 import { chartsCollectionSchema } from "./typesenseCollectionSchemas.js"
 import { CHARTS_INDEX } from "../../site/search/searchUtils.js"
@@ -170,28 +167,16 @@ const generateRecords = async () => {
         const explorerViews = await getExplorerViewRecords(trx, {
             skipGrapherViews: true,
         })
-        const mdimViews = await getMdimViewRecords(trx)
+        const mdimViews = await getMultiDimViewRecords(trx)
         const grapherViews = await getChartsRecords(trx)
 
-        // Scale grapher records and the default explorer views between 1000 and 10000,
-        // Scale the remaining explorer views between 0 and 1000.
-        // This is because Graphers are generally higher quality than Explorers and we don't want
-        // the data catalog to smother Grapher results with hundreds of low-quality Explorer results.
-        const scaledGrapherViews = scaleRecordScores(grapherViews, [
-            1000,
-            MAX_NON_FM_RECORD_SCORE,
-        ])
-        const scaledExplorerViews = scaleExplorerRecordScores(explorerViews)
-        const scaledMdimViews = scaleRecordScores(mdimViews, [
-            1000,
-            MAX_NON_FM_RECORD_SCORE,
-        ])
-
-        const records = [
-            ...scaledGrapherViews,
-            ...scaledExplorerViews,
-            ...scaledMdimViews,
-        ]
+        // Scale charts, mdim views, and explorer views together so scores are
+        // directly comparable (matches the Algolia indexer). Explorer records
+        // are no longer split into "first view" vs the rest.
+        const records = scaleRecordScores(
+            [...explorerViews, ...mdimViews, ...grapherViews],
+            [1000, MAX_NON_FM_RECORD_SCORE]
+        )
         const { records: featuredMetricRecords } =
             await createFeaturedMetricRecords(trx, records)
 

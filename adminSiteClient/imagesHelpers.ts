@@ -46,7 +46,7 @@ export function fileToBase64(
         file: Blob | RcFile,
         filename?: string
     ): string | undefined {
-        if ("name" in file) return file.name as string
+        if ("name" in file) return file.name
         return filename
     }
 

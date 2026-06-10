@@ -127,9 +127,9 @@ export async function fetchGptGeneratedAltText(url: string) {
 - DO NOT mention colors unless the data doesn't make sense without them
 - When describing a number range, write "X to Y" not "X-Y".
 - If the image is a generic thumbnail or decorative, describe it in one short sentence.
-- DO NOT describe data sources, licenses, or footer metadata.
-Example 1: "Line chart of cumulative burnt area in Europe where the 2022 area is more than double the 2006 to 2021 average, and well above the range for the same period"
-Example 2: "Changes in forest area by world region since 1990 is a set of bar charts overlaid on a world map to compare forest cover between 1990 and 2025 across different continents. The visualization highlights that while forest area has expanded in regions like Europe and North and Central America, it has significantly declined in South America and parts of Asia. Oceania is shown to have had no change in its total forest area over this period."`,
+- Describe data sources and licenses (if specified)
+Example 1: "Line chart of cumulative burnt area in Europe where the 2022 area is more than double the 2006 to 2021 average, and well above the range for the same period. Source: Global Wildfire Information System (2025). License: CC BY to Our World in Data."
+Example 2: "Changes in forest area by world region since 1990 is a set of bar charts overlaid on a world map to compare forest cover between 1990 and 2025 across different continents. The visualization highlights that while forest area has expanded in regions like Europe and North and Central America, it has significantly declined in South America and parts of Asia. Oceania is shown to have had no change in its total forest area over this period. Data source: Food and Agriculture Organization of the United Nations, Global Forest Resources Assessment (2025). License: CC BY to Our World in Data."`,
             },
             {
                 role: "user",
@@ -154,11 +154,18 @@ Example 2: "Changes in forest area by world region since 1990 is a set of bar ch
     return null
 }
 
-/**
- * Currently unused, but will be useful for extracting text from images when we want to index more of
- * them in the future.
- */
-export async function fetchGptGeneratedTextFromImage(url: string) {
+export interface TextExtractionResult {
+    text: string | null
+    usage: {
+        promptTokens: number
+        completionTokens: number
+        totalTokens: number
+    } | null
+}
+
+export async function fetchGptGeneratedTextFromImage(
+    url: string
+): Promise<TextExtractionResult> {
     const openai = new OpenAI({
         apiKey: OPENAI_API_KEY,
     })
@@ -169,7 +176,7 @@ export async function fetchGptGeneratedTextFromImage(url: string) {
                 role: "user",
                 content: `Extract all text from this image, including any text in the footer.
 Do not use markdown in the text.
-If the image is a data visualization, do not include numbers or data points, just the text labels, footer text, titles, etc.
+If the image is a data visualization, do not include numbers or data points or axis ticks, just the text annotations, footer text, titles, etc.
 If there is no text in the image, return an empty string.`,
             },
             {
@@ -184,16 +191,24 @@ If there is no text in the image, return an empty string.`,
                 ],
             },
         ],
-        model: "gpt-4o-mini",
+        model: "gpt-5-mini",
     })
 
     const content = completion.choices[0].message.content
+    const usage = completion.usage
+        ? {
+              promptTokens: completion.usage.prompt_tokens,
+              completionTokens: completion.usage.completion_tokens,
+              totalTokens: completion.usage.total_tokens,
+          }
+        : null
 
-    if (content) {
-        return content
-            .replaceAll(/\s+/g, " ") // Normalize whitespace to a single space
-            .replaceAll(/(www\.)?ourworldindata(\.org)?\/?/gi, "") // Remove OWID domain references
+    if (content !== null) {
+        return {
+            text: content.replaceAll(/\s+/g, " "),
+            usage,
+        }
     }
 
-    return null
+    return { text: null, usage }
 }

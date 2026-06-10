@@ -1,38 +1,38 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/compose-spec/compose-spec/refs/heads/main/schema/compose-spec.json
 
 services:
-    # Stock mysql database. Root password is hardcoded for now
-    db:
-        image: mysql:8
-        command: --log-bin-trust-function-creators=ON
-        restart: always
-        volumes:
-            - mysql_data_testing:/var/lib/mysql
-        ports:
-            # Exposing via the port specified for Grapher
-            - "${GRAPHER_TEST_DB_PORT}:3306"
-        environment:
-            MYSQL_ROOT_PASSWORD: weeniest-stretch-contaminate-gnarl
-            MYSQL_ROOT_HOST: "%"
+  # Stock mysql database. Root password is hardcoded for now
+  db:
+    image: mysql:8
+    command: --log-bin-trust-function-creators=ON
+    restart: always
+    volumes:
+      - mysql_data_testing:/var/lib/mysql
+    ports:
+      # Exposing via the port specified for Grapher
+      - "${GRAPHER_TEST_DB_PORT}:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: weeniest-stretch-contaminate-gnarl
+      MYSQL_ROOT_HOST: "%"
 
-    # mysql:8 container for running the DB creation scripts
-    db-load-data:
-        image: mysql:8
-        command: "/app/create-test-db.sh"
-        volumes:
-            - ./devTools/docker:/app
-            - ./db/migration:/migration
-            - ./tmp-downloads:/tmp-downloads
-            - mysql_data_testing_temp:/var/lib/mysql
-        environment:
-            DB_ROOT_PASS: weeniest-stretch-contaminate-gnarl
-            DB_ROOT_HOST: db
-            DATA_FOLDER: "/tmp-downloads"
-        env_file:
-            - .env
-        depends_on:
-            - db
+  # mysql:8 container for running the DB creation scripts
+  db-load-data:
+    image: mysql:8
+    command: "/app/create-test-db.sh"
+    volumes:
+      - ./devTools/docker:/app
+      - ./db/migration:/migration
+      - ./tmp-downloads:/tmp-downloads
+      - mysql_data_testing_temp:/var/lib/mysql
+    environment:
+      DB_ROOT_PASS: weeniest-stretch-contaminate-gnarl
+      DB_ROOT_HOST: db
+      DATA_FOLDER: "/tmp-downloads"
+    env_file:
+      - .env
+    depends_on:
+      - db
 
 volumes:
-    mysql_data_testing:
-    mysql_data_testing_temp:
+  mysql_data_testing:
+  mysql_data_testing_temp:

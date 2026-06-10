@@ -1,22 +1,22 @@
 name: PR Todo Checker
 
 on:
-    pull_request_review_comment:
-        types: [edited, deleted]
-    pull_request:
-        types: [opened, synchronize, reopened, ready_for_review]
+  pull_request_review_comment:
+    types: [edited, deleted]
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
 
 jobs:
-    find_todos:
-        runs-on: ubuntu-latest
-        # don't run on draft PRs
-        if: github.event.pull_request.draft == false
+  find_todos:
+    runs-on: ubuntu-latest
+    # don't run on draft PRs
+    if: github.event.pull_request.draft == false
 
-        steps:
-            - name: Checkout code
-              uses: actions/checkout@v5
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
 
-            - name: Check for Todos
-              uses: phntmxyz/pr_todo_checker@v1
-              with:
-                  token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Check for Todos
+        uses: phntmxyz/pr_todo_checker@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}

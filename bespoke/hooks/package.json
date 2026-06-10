@@ -1,0 +1,18 @@
+{
+    "name": "@owid/bespoke-hooks",
+    "private": true,
+    "type": "module",
+    "dependencies": {
+        "@ourworldindata/utils": "link:../../packages/@ourworldindata/utils",
+        "@tanstack/react-query": "^5.100.9",
+        "nuqs": "^2.8.9",
+        "react": "^19.2.4"
+    },
+    "devDependencies": {
+        "@typescript/native-preview": "^7.0.0-dev.20260401.1"
+    },
+    "scripts": {
+        "build": "",
+        "typecheck": "tsgo --noEmit"
+    }
+}

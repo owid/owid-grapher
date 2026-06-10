@@ -1,0 +1,14 @@
+# Allow read-only OWID database queries.
+prefix_rule(
+    pattern = ["yarn", "query"],
+    decision = "allow",
+    justification = "OWID documents yarn query as the read-only database query helper for this repository.",
+    match = [
+        "yarn query SELECT 1",
+        "yarn query -s SELECT 1",
+    ],
+    not_match = [
+        "yarn createDbMigration",
+        "yarn test",
+    ],
+)

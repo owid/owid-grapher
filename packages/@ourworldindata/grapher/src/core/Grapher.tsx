@@ -49,7 +49,6 @@ import { TooltipContainer } from "../tooltip/Tooltip"
 import { EntitySelectorModal } from "../modal/EntitySelectorModal"
 import { DownloadModal } from "../modal/DownloadModal"
 import { observer } from "mobx-react"
-import "d3-transition"
 import { SourcesModal } from "../modal/SourcesModal"
 import { Command, CommandPalette } from "../controls/CommandPalette"
 import { EmbedModal } from "../modal/EmbedModal"
@@ -91,8 +90,11 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     hideSubtitle?: boolean
     hideNote?: boolean
     hideOriginUrl?: boolean
+    hideFullscreenButton?: boolean
+    hideDownloadButton?: boolean
 
     hideEntityControls?: boolean
+    hideControlsRow?: boolean
     forceHideAnnotationFieldsInTitle?: AnnotationFieldsInTitle
     hasTableTab?: boolean
     hideShareButton?: boolean
@@ -107,6 +109,7 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     isConfigReady?: boolean
     isDataReady?: boolean
     canHideExternalControlsInEmbed?: boolean
+    recommendedIframeEmbedHeight?: number
 
     narrativeChartInfo?: MinimalNarrativeChartInfo
     archiveContext?: ArchiveContext
@@ -121,8 +124,8 @@ export type MinimalNarrativeChartInfo = Pick<
 >
 
 interface AnalyticsContext {
-    mdimSlug?: string
-    mdimViewConfigId?: string
+    slug?: string
+    viewConfigId?: string
 }
 
 export interface GrapherManager {
@@ -149,7 +152,7 @@ export class Grapher extends React.Component<GrapherProps> {
 
     // stored on Grapher so state is preserved when switching to full-screen mode
 
-    private legacyVariableDataJson:
+    private readonly legacyVariableDataJson:
         | MultipleOwidVariableDataDimensionsMap
         | undefined = undefined
     private hasLoggedGAViewEvent = false
@@ -480,6 +483,8 @@ export class Grapher extends React.Component<GrapherProps> {
                     grapherUrl: this.grapherState.canonicalUrl,
                     narrativeChartName:
                         this.grapherState.narrativeChartInfo?.name,
+                    viewConfigId:
+                        this.grapherState.analyticsContext.viewConfigId,
                 })}
             >
                 {this.commandPalette}
@@ -570,7 +575,7 @@ export class Grapher extends React.Component<GrapherProps> {
                     <BodyPortal>
                         <TooltipContainer
                             tooltipManager={this.grapherState}
-                            anchor={GrapherTooltipAnchor.bottom}
+                            anchor={GrapherTooltipAnchor.Bottom}
                         />
                     </BodyPortal>
                 ) : (

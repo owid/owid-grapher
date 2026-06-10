@@ -232,7 +232,7 @@ describe(rollingMap, () => {
     })
 })
 
-describe("intersection", () => {
+describe(intersection, () => {
     const groupA = ["a", "b", "c"]
     const groupB = ["a", "b", "c", "d"]
     const groupC = ["a", "c", "d"]
@@ -266,7 +266,7 @@ describe("intersection", () => {
     })
 })
 
-describe("anyToString", () => {
+describe(anyToString, () => {
     const values = [
         false,
         0,
@@ -525,7 +525,7 @@ describe(toRectangularMatrix, () => {
     })
 })
 
-describe("slugify", () => {
+describe(slugify, () => {
     it("handles subscript numbers correctly", () => {
         expect(slugify("Per capita CO₂ emissions")).toBe(
             "per-capita-co2-emissions"
@@ -558,7 +558,7 @@ describe("slugify", () => {
     })
 })
 
-describe("slugifySameCase", () => {
+describe(slugifySameCase, () => {
     const cases = [
         [" *hello world*   ", ""],
         [" *hello world*afterwards   ", "afterwards"],

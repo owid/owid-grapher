@@ -156,10 +156,11 @@ export class MapChartState implements ChartState, ColorScaleManager {
             )
             if (!countriesInRegionSet) return table
 
-            const countriesInRegion = Array.from(countriesInRegionSet)
-            const mappableCountriesInRegion = countriesInRegion.filter(
-                (countryName) => mappableCountryNameSet.has(countryName)
-            )
+            const mappableCountriesInRegion = countriesInRegionSet
+                .keys()
+                .filter((countryName) =>
+                    mappableCountryNameSet.has(countryName)
+                )
 
             return table.filterByEntityNames(
                 R.unique([

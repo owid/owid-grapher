@@ -1,0 +1,20 @@
+{
+    "private": true,
+    "packageManager": "yarn@4.14.1",
+    "workspaces": [
+        "components/",
+        "hooks/",
+        "projects/*"
+    ],
+    "scripts": {
+        "build": "yarn workspaces foreach -A run build",
+        "typecheck": "yarn workspaces foreach -A run typecheck",
+        "test": "vitest run"
+    },
+    "devDependencies": {
+        "@rollup/plugin-swc": "^0.4.0",
+        "@vitejs/plugin-react": "^6.0.0",
+        "vite": "^8.0.5",
+        "vitest": "^4.1.2"
+    }
+}

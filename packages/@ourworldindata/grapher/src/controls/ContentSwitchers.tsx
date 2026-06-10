@@ -17,7 +17,6 @@ import { GrapherTabIcon } from "@ourworldindata/components"
 export interface ContentSwitchersManager {
     availableTabs?: GrapherTabName[]
     activeTab?: GrapherTabName
-    hasMultipleChartTypes?: boolean
     setTab: (tab: GrapherTabName) => void
     onTabChange: (oldTab: GrapherTabName, newTab: GrapherTabName) => void
     isMedium?: boolean
@@ -47,10 +46,6 @@ export class ContentSwitchers extends React.Component<{
 
     @computed private get manager(): ContentSwitchersManager {
         return this.props.manager
-    }
-
-    @computed private get hasMultipleChartTypes(): boolean {
-        return !!this.manager.hasMultipleChartTypes
     }
 
     @computed private get availableTabs(): GrapherTabName[] {
@@ -94,23 +89,13 @@ export class ContentSwitchers extends React.Component<{
     }
 
     @computed private get tabItems(): TabItem<GrapherTabName>[] {
-        const { hasMultipleChartTypes } = this
-
         return this.visibleTabs.map((tab) => ({
             key: tab,
-            element: (
-                <TabContent
-                    key={tab}
-                    tab={tab}
-                    hasMultipleChartTypes={hasMultipleChartTypes}
-                />
-            ),
+            element: <TabContent key={tab} tab={tab} />,
             buttonProps: {
                 className: cx({ active: tab === this.activeTab }),
                 dataTrackNote: "chart_click_" + tab,
-                ariaLabel: makeLabelForGrapherTab(tab, {
-                    useGenericChartLabel: !hasMultipleChartTypes,
-                }),
+                ariaLabel: makeLabelForGrapherTab(tab),
             },
         }))
     }
@@ -139,8 +124,6 @@ export class ContentSwitchers extends React.Component<{
     }
 
     private renderOverflowMenu(): React.ReactElement {
-        const { hasMultipleChartTypes } = this
-
         return (
             <MenuTrigger
                 isOpen={this.isOverflowMenuOpen}
@@ -156,7 +139,9 @@ export class ContentSwitchers extends React.Component<{
                     )}
                     aria-label="Show more chart types"
                 >
-                    +&#8202;{this.hiddenTabs.length}
+                    <span className="label">
+                        +&#8202;{this.hiddenTabs.length}
+                    </span>
                 </Button>
                 <Popover
                     className="ContentSwitchers__OverflowMenu"
@@ -174,12 +159,7 @@ export class ContentSwitchers extends React.Component<{
                                 id={tab}
                                 className="ContentSwitchers__OverflowMenuItem"
                             >
-                                <TabContent
-                                    tab={tab}
-                                    hasMultipleChartTypes={
-                                        hasMultipleChartTypes
-                                    }
-                                />
+                                <TabContent tab={tab} />
                             </MenuItem>
                         ))}
                     </Menu>
@@ -206,21 +186,11 @@ export class ContentSwitchers extends React.Component<{
     }
 }
 
-function TabContent({
-    tab,
-    hasMultipleChartTypes,
-}: {
-    tab: GrapherTabName
-    hasMultipleChartTypes?: boolean
-}): React.ReactElement {
+function TabContent({ tab }: { tab: GrapherTabName }): React.ReactElement {
     return (
-        <span>
+        <span className="ContentSwitchers__TabContent">
             <GrapherTabIcon tab={tab} />
-            <span className="label">
-                {makeLabelForGrapherTab(tab, {
-                    useGenericChartLabel: !hasMultipleChartTypes,
-                })}
-            </span>
+            <span className="label">{makeLabelForGrapherTab(tab)}</span>
         </span>
     )
 }

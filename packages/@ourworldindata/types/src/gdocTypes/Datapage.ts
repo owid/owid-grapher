@@ -58,15 +58,19 @@ export type FaqEntryData = {
     faqs: OwidEnrichedGdocBlock[]
 }
 
+export type Distribution =
+    | { allowed: true }
+    | { allowed: false; sourceLinks: string[] }
+
 export interface DataPageV2ContentFields {
     datapageData: DataPageDataV2
     faqEntries: FaqEntryData | undefined
     // TODO: add gdocs for FAQs
     isPreviewing?: boolean
     canonicalUrl: string
-    tagToSlugMap: Record<string, string>
     imageMetadata: Record<string, ImageMetadata>
     archiveContext?: ArchiveContext
+    distribution: Distribution
 }
 
 export interface DisplaySource {

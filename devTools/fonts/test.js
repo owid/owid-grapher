@@ -1,3 +1,5 @@
+/* oxlint-disable */
+
 const express = require("express"),
     { readFileSync } = require("fs")
 

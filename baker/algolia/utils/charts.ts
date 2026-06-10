@@ -18,39 +18,22 @@ import {
     getUniqueNamesFromTagHierarchies,
 } from "@ourworldindata/utils"
 import {
+    computeRecordScore,
     maybeAddChangeInPrefix,
     processAvailableEntities,
     parseJsonStringArray,
 } from "./shared.js"
 import { GrapherState } from "@ourworldindata/grapher"
 import { toPlaintext } from "@ourworldindata/components"
-import { getMaxViews7d } from "./pageviews.js"
 import { createChartsIndexingContext } from "./context.js"
 import pMap from "p-map"
-
-const computeChartScore = (
-    numRelatedArticles: number,
-    views_7d: number
-): number => numRelatedArticles * 500 + views_7d
 
 const parseRawChartRecord = (
     rawRecord: RawChartRecordRow
 ): ParsedChartRecordRow => {
-    let parsedEntities: string[] = []
-    if (rawRecord.entityNames !== null) {
-        // This is a very rough way to check for the Algolia record size limit, but it's better than the update failing
-        // because we exceed the 20KB record size limit
-        if (rawRecord.entityNames.length < 12000)
-            parsedEntities = JSON.parse(
-                rawRecord.entityNames as string
-            ) as string[]
-        else {
-            console.info(
-                `Chart ${rawRecord.id} has too many entities, skipping its entities`
-            )
-        }
-    }
-    const entityNames = processAvailableEntities(parsedEntities)
+    const entityNames = processAvailableEntities(
+        JSON.parse(rawRecord.entityNames)
+    )
 
     const tags = JSON.parse(rawRecord.tags) as string[]
     const keyChartForTags = JSON.parse(rawRecord.keyChartForTags) as string[]
@@ -107,11 +90,12 @@ function getChartViews7d(
     chartId: number
 ): number {
     const redirectSlugs = context.redirectsByChartId.get(chartId) ?? []
-    const urls = [
-        `/grapher/${slug}`,
-        ...redirectSlugs.map((redirectSlug) => `/grapher/${redirectSlug}`),
-    ]
-    return getMaxViews7d(context.pageviews, urls)
+    return Math.max(
+        0,
+        ...[slug, ...redirectSlugs].map(
+            (s) => context.chartViewsMap.byGrapherSlug.get(s) ?? 0
+        )
+    )
 }
 
 /**
@@ -280,7 +264,7 @@ async function buildChartRecord(
         publishedAt: chart.publishedAt,
         updatedAt: chart.updatedAt,
         tags: topicTags,
-        keyChartForTags: chart.keyChartForTags as string[],
+        keyChartForTags: chart.keyChartForTags,
         titleLength: chart.config.title?.length ?? 0,
         numRelatedArticles,
 
@@ -291,7 +275,7 @@ async function buildChartRecord(
         datasetVersions: chart.datasetVersions,
         datasetProducts: chart.datasetProducts,
         datasetProducers: chart.datasetProducers,
-        score: computeChartScore(numRelatedArticles, views_7d),
+        score: computeRecordScore(numRelatedArticles, views_7d),
     }
 }
 

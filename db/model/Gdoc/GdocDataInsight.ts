@@ -1,6 +1,4 @@
 import {
-    OwidGdocErrorMessage,
-    OwidGdocErrorMessageType,
     OwidGdocDataInsightContent,
     OwidGdocDataInsightInterface,
     OwidGdocMinimalPostInterface,
@@ -11,7 +9,7 @@ import {
 import { GdocBase } from "./GdocBase.js"
 import * as db from "../../../db/db.js"
 import {
-    getAndLoadPublishedDataInsightsPage,
+    getAndLoadPublishedDataInsights,
     getLatestDataInsights,
 } from "./GdocFactory.js"
 
@@ -40,18 +38,6 @@ export class GdocDataInsight
         return excludeNullish([this.content["grapher-url"]])
     }
 
-    override _validateSubclass = async (): Promise<OwidGdocErrorMessage[]> => {
-        const errors: OwidGdocErrorMessage[] = []
-        if (!this.content["approved-by"]) {
-            errors.push({
-                type: OwidGdocErrorMessageType.Error,
-                property: "approved-by",
-                message: "Missing an approved-by field in the front-matter",
-            })
-        }
-        return errors
-    }
-
     override _loadSubclassAttachments = async (
         knex: db.KnexReadWriteTransaction
     ): Promise<void> => {
@@ -63,10 +49,8 @@ export class GdocDataInsight
     }
 
     static async getPublishedDataInsights(
-        knex: db.KnexReadonlyTransaction,
-        page?: number,
-        topicSlug?: string
+        knex: db.KnexReadonlyTransaction
     ): Promise<GdocDataInsight[]> {
-        return getAndLoadPublishedDataInsightsPage(knex, page, topicSlug)
+        return getAndLoadPublishedDataInsights(knex)
     }
 }

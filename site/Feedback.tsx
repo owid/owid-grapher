@@ -248,7 +248,7 @@ export class FeedbackForm extends React.Component<FeedbackFormProps> {
         }
     }
 
-    @action.bound onSubmit(e: React.FormEvent<HTMLFormElement>) {
+    @action.bound onSubmit(e: React.SubmitEvent<HTMLFormElement>) {
         e.preventDefault()
         this.done = false
         this.error = undefined

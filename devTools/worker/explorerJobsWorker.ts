@@ -72,11 +72,11 @@ async function processJob(): Promise<boolean> {
                     )
                 })
                 console.log(
-                    `[${new Date().toISOString()}] Marked job ${currentJob!.id} as failed after worker error`
+                    `[${new Date().toISOString()}] Marked job ${currentJob.id} as failed after worker error`
                 )
             } catch (fallbackError) {
                 console.error(
-                    `[${new Date().toISOString()}] Failed to mark job ${currentJob!.id} as failed:`,
+                    `[${new Date().toISOString()}] Failed to mark job ${currentJob.id} as failed:`,
                     fallbackError
                 )
                 // Job will remain in "running" state, but we've logged the issue

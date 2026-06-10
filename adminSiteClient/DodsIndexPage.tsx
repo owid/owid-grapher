@@ -21,9 +21,12 @@ import { EditableTextarea } from "./EditableTextarea.js"
 import * as R from "remeda"
 import { Admin } from "./Admin.js"
 import { fromMarkdown } from "mdast-util-from-markdown"
-import { Content, PhrasingContent } from "mdast"
+import { PhrasingContent, RootContent } from "mdast"
 import { renderToStaticMarkup } from "react-dom/server"
-import { MarkdownTextWrap } from "@ourworldindata/components"
+import {
+    MarkdownTextWrap,
+    MarkdownTextWrapHtml,
+} from "@ourworldindata/components"
 import TextArea from "antd/es/input/TextArea.js"
 import { match } from "ts-pattern"
 import { BAKED_BASE_URL } from "../settings/clientSettings.js"
@@ -35,7 +38,7 @@ type ValidPhrasingContent = Extract<
 >
 
 function validateParagraphChildren(
-    children: Content[],
+    children: RootContent[],
     dods: Record<string, DbPlainDod> | undefined
 ): children is ValidPhrasingContent[] {
     return children.every((child) => {
@@ -45,7 +48,7 @@ function validateParagraphChildren(
         if (child.type === "link") {
             const referencedDods = extractDetailsFromSyntax(child.url)
             const areAllReferencedDodsValid = referencedDods.every(
-                (dod) => dods && dods[dod]
+                (dod) => dods?.[dod]
             )
             return (
                 child &&
@@ -286,9 +289,14 @@ function createColumns({
 }
 
 function showDodPreviewTooltip(text: string, element: Element): void {
+    const markdownTextWrap = new MarkdownTextWrap({
+        text,
+        fontSize: 16,
+        lineHeight: 1.55,
+    })
     const content = renderToStaticMarkup(
         <div className="dod-container">
-            <MarkdownTextWrap text={text} fontSize={16} lineHeight={1.55} />
+            <MarkdownTextWrapHtml textWrap={markdownTextWrap} />
         </div>
     )
     tippy(element, {

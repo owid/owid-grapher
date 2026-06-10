@@ -71,7 +71,7 @@ function ImagePreview({
     if (!image) return null
     return (
         <img
-            src={makeImageSrc(image.cloudflareId!, 300)}
+            src={makeImageSrc(image.cloudflareId, 300)}
             alt={image.filename}
             style={{ maxWidth: "300px", maxHeight: "200px" }}
         />

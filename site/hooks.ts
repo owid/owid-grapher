@@ -1,16 +1,8 @@
 import * as _ from "lodash-es"
-import {
-    useEffect,
-    RefObject,
-    useState,
-    useCallback,
-    useMemo,
-    useSyncExternalStore,
-} from "react"
+import { useEffect, useState, useSyncExternalStore } from "react"
+import type { RefObject } from "react"
 import { MultiEmbedderSingleton } from "./multiembedder/MultiEmbedder.js"
-import { Bounds, getWindowQueryStr } from "@ourworldindata/utils"
-import { DEFAULT_GRAPHER_BOUNDS } from "@ourworldindata/grapher"
-import { useResizeObserver } from "usehooks-ts"
+import { getWindowQueryStr } from "@ourworldindata/utils"
 import { reaction } from "mobx"
 
 export const useTriggerWhenClickOutside = (
@@ -99,48 +91,6 @@ export const useTriggerOnEscape = (
             document.removeEventListener("keydown", handleEscape)
         }
     }, [trigger, active])
-}
-
-// Auto-updating Bounds object based on ResizeObserver
-// Optionally throttles the bounds updates
-export const useElementBounds = (
-    ref: RefObject<HTMLElement | null>,
-    initialValue: Bounds = DEFAULT_GRAPHER_BOUNDS,
-    throttleTime: number | undefined = 100
-) => {
-    const [bounds, setBounds] = useState<Bounds>(initialValue)
-
-    type Size = {
-        width: number | undefined
-        height: number | undefined
-    }
-
-    const updateBoundsImmediately = useCallback((size: Size) => {
-        if (size.width === undefined || size.height === undefined) return
-        setBounds(new Bounds(0, 0, size.width, size.height))
-    }, [])
-
-    const updateBoundsThrottled = useMemo(
-        () =>
-            throttleTime !== undefined
-                ? _.throttle(
-                      updateBoundsImmediately,
-                      throttleTime,
-
-                      // We use `leading` because, in many cases, there is only a single resize event (e.g. phone screen
-                      // orientation change), and we want to optimize for a fast response time in that case
-                      { leading: true }
-                  )
-                : updateBoundsImmediately,
-        [throttleTime, updateBoundsImmediately]
-    )
-
-    useResizeObserver({
-        ref: ref as React.RefObject<HTMLDivElement>,
-        onResize: updateBoundsThrottled,
-    })
-
-    return bounds
 }
 
 // Transforms Mobx state into a functional React state, by setting up

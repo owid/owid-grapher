@@ -11,7 +11,11 @@ import {
     type MouseEvent,
 } from "react"
 import { BlockErrorFallback } from "./BlockErrorBoundary.js"
-import { MarkdownTextWrap, OverlayHeader } from "@ourworldindata/components"
+import {
+    MarkdownTextWrap,
+    MarkdownTextWrapHtml,
+    OverlayHeader,
+} from "@ourworldindata/components"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowRight, faDownload } from "@fortawesome/free-solid-svg-icons"
 import { CLOUDFLARE_IMAGES_URL } from "../../../settings/clientSettings.js"
@@ -224,10 +228,9 @@ const StaticVizDownloadModal = ({
         [onClose]
     )
 
-    const grapherLink =
-        staticViz.grapherUrl && staticViz.grapherUrl.trim().length
-            ? staticViz.grapherUrl
-            : undefined
+    const grapherLink = staticViz.grapherUrl?.trim().length
+        ? staticViz.grapherUrl
+        : undefined
 
     const hasTwoImages = imageOptions.length > 1
 
@@ -258,10 +261,14 @@ const StaticVizDownloadModal = ({
                                 <h3>How this visualization was made</h3>
                             </div>
                             <div className="static-viz-download-modal__description">
-                                <MarkdownTextWrap
-                                    text={staticViz.description}
-                                    fontSize={14}
-                                    lineHeight={1.2}
+                                <MarkdownTextWrapHtml
+                                    textWrap={
+                                        new MarkdownTextWrap({
+                                            text: staticViz.description,
+                                            fontSize: 14,
+                                            lineHeight: 1.2,
+                                        })
+                                    }
                                 />
                             </div>
                         </section>

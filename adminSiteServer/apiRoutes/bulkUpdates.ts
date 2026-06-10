@@ -107,7 +107,7 @@ export async function updateBulkChartConfigs(
             JOIN chart_configs cc ON cc.id = c.configId
             WHERE c.id IN (?)
         `,
-        [[...chartIds.values()]]
+        [chartIds.values().toArray()]
     )
     const configMap = new Map<number, GrapherInterface>(
         configsAndIds.map((item: any) => [
@@ -217,7 +217,7 @@ export async function updateVariableAnnotations(
           FROM variables v
           LEFT JOIN chart_configs cc ON v.grapherConfigIdAdmin = cc.id
           WHERE v.id IN (?)`,
-        [[...variableIds.values()]]
+        [variableIds.values().toArray()]
     )
     const configMap = new Map(
         configsAndIds.map((item: any) => [

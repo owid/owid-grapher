@@ -12,7 +12,7 @@ import {
     TransactionCloseMode,
 } from "../db.js"
 import { deleteUser, insertUser, updateUser } from "../model/User.js"
-import { uuidv7 } from "uuidv7"
+import { v7 as uuidv7 } from "uuid"
 import {
     ChartsTableName,
     ChartConfigsTableName,
@@ -67,7 +67,7 @@ test("it can query a user created in fixture via TypeORM", async () => {
     expect(user.email).toBe("admin@example.com")
 })
 
-test("createdAt timestamp is automatically created", async () => {
+test("createdAt and updatedAt timestamps are automatically created", async () => {
     await knexReadWriteTransaction(
         async (trx) => {
             const user = await knexInstance!
@@ -98,7 +98,8 @@ test("createdAt timestamp is automatically created", async () => {
             expect(created).not.toBeNull()
             if (created) {
                 expect(created.createdAt).not.toBeNull()
-                expect(created.updatedAt).toBeNull()
+                expect(created.updatedAt).not.toBeNull()
+                expect(created.updatedAt).toEqual(created.createdAt)
             }
         },
         TransactionCloseMode.KeepOpen,

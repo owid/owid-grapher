@@ -12,6 +12,7 @@ import { LegendStyleConfig } from "../legend/LegendStyleConfig"
 
 const opacityByEmphasis: Record<Emphasis, number> = {
     [Emphasis.Default]: GRAPHER_AREA_OPACITY_DEFAULT,
+    [Emphasis.Elevated]: GRAPHER_AREA_OPACITY_DEFAULT,
     [Emphasis.Highlighted]: GRAPHER_AREA_OPACITY_HIGHLIGHTED,
     [Emphasis.Muted]: GRAPHER_AREA_OPACITY_MUTED,
 } as const
@@ -26,12 +27,15 @@ export interface StackedBarStyleConfig {
     opacity: number
 }
 
+const DEFAULT_STACKED_AREA_STYLE: StackedAreaStyleConfig = {
+    fillOpacity: opacityByEmphasis.default,
+    borderOpacity: 0.7,
+    borderWidth: 0.5,
+}
+
 export const STACKED_AREA_STYLE: Record<Emphasis, StackedAreaStyleConfig> = {
-    [Emphasis.Default]: {
-        fillOpacity: opacityByEmphasis.default,
-        borderOpacity: 0.7,
-        borderWidth: 0.5,
-    },
+    [Emphasis.Default]: DEFAULT_STACKED_AREA_STYLE,
+    [Emphasis.Elevated]: DEFAULT_STACKED_AREA_STYLE,
     [Emphasis.Highlighted]: {
         fillOpacity: opacityByEmphasis.highlighted,
         borderOpacity: 1,
@@ -46,6 +50,7 @@ export const STACKED_AREA_STYLE: Record<Emphasis, StackedAreaStyleConfig> = {
 
 export const STACKED_BAR_STYLE: Record<Emphasis, StackedBarStyleConfig> = {
     [Emphasis.Default]: { opacity: opacityByEmphasis.default },
+    [Emphasis.Elevated]: { opacity: opacityByEmphasis.default },
     [Emphasis.Highlighted]: { opacity: opacityByEmphasis.highlighted },
     [Emphasis.Muted]: { opacity: opacityByEmphasis.muted },
 }

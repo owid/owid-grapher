@@ -13,7 +13,8 @@ import {
 import { observer } from "mobx-react"
 import { Component } from "react"
 import {
-    DefaultNewExplorerSlug,
+    // DefaultNewExplorerSlug, // re-enable when restoring the Create button
+    ExplorerChartCreationMode,
     ExplorersRouteResponse,
     EXPLORERS_PREVIEW_ROUTE,
     EXPLORERS_ROUTE_FOLDER,
@@ -30,6 +31,23 @@ interface ExplorerRowProps {
     indexPage: ExplorersIndexPage
     searchHighlight?: (text: string) => any
 }
+
+function explorerTypeBadge(mode: ExplorerChartCreationMode): {
+    label: string
+    className: string
+} {
+    switch (mode) {
+        case ExplorerChartCreationMode.FromVariableIds:
+            return { label: "Indicator", className: "badge badge-success" }
+        case ExplorerChartCreationMode.FromGrapherId:
+            return { label: "Grapher", className: "badge badge-secondary" }
+        case ExplorerChartCreationMode.FromExplorerTableColumnSlugs:
+            return { label: "CSV", className: "badge badge-secondary" }
+    }
+}
+
+type SortColumn = "type" | "lastUpdated"
+type SortDirection = "asc" | "desc"
 
 @observer
 class ExplorerRow extends Component<ExplorerRowProps> {
@@ -87,6 +105,14 @@ class ExplorerRow extends Component<ExplorerRowProps> {
                     </div>
                 </td>
                 <td>
+                    {(() => {
+                        const { label, className } = explorerTypeBadge(
+                            explorer.chartCreationMode
+                        )
+                        return <span className={className}>{label}</span>
+                    })()}
+                </td>
+                <td>
                     <div>{lastCommit?.message}</div>
                     <div style={{ fontSize: "80%", opacity: 0.8 }}>
                         <a>
@@ -135,15 +161,37 @@ interface ExplorerListProps {
 
 @observer
 class ExplorerList extends Component<ExplorerListProps> {
+    sortIndicator(column: SortColumn) {
+        const { indexPage } = this.props
+        if (indexPage.sortBy !== column) return null
+        return indexPage.sortDirection === "asc" ? " ↑" : " ↓"
+    }
+
     override render() {
         const { props } = this
+        const { indexPage } = props
+        const sortableHeaderStyle = {
+            cursor: "pointer",
+            userSelect: "none" as const,
+        }
         return (
             <table className="table table-bordered">
                 <thead>
                     <tr>
                         <th>Slug</th>
                         <th>Title</th>
-                        <th>Last Updated</th>
+                        <th
+                            style={sortableHeaderStyle}
+                            onClick={() => indexPage.onSort("type")}
+                        >
+                            Type{this.sortIndicator("type")}
+                        </th>
+                        <th
+                            style={sortableHeaderStyle}
+                            onClick={() => indexPage.onSort("lastUpdated")}
+                        >
+                            Last Updated{this.sortIndicator("lastUpdated")}
+                        </th>
                         <th></th>
                         <th></th>
                         <th></th>
@@ -176,6 +224,9 @@ export class ExplorersIndexPage extends Component<{
     numTotalRows: number | undefined = undefined
     searchInput: string | undefined = undefined
     highlightSearch: string | undefined = undefined
+    sortBy: SortColumn = "lastUpdated"
+    sortDirection: SortDirection = "desc"
+    showOnlyPublished = false
 
     constructor(props: { manager?: AdminManager }) {
         super(props)
@@ -187,19 +238,40 @@ export class ExplorersIndexPage extends Component<{
             searchInput: observable,
             highlightSearch: observable,
             isReady: observable,
+            sortBy: observable,
+            sortDirection: observable,
+            showOnlyPublished: observable,
         })
     }
 
     @computed get explorersToShow(): ExplorerProgram[] {
-        return _.orderBy(
-            this.explorers,
-            (program) => dayjs(program.lastCommit?.date).unix(),
-            ["desc"]
-        )
+        const filtered = this.showOnlyPublished
+            ? this.explorers.filter((exp) => exp.isPublished)
+            : this.explorers
+        const sortValue =
+            this.sortBy === "type"
+                ? (program: ExplorerProgram) =>
+                      explorerTypeBadge(program.chartCreationMode).label
+                : (program: ExplorerProgram) =>
+                      dayjs(program.lastCommit?.date).unix()
+        return _.orderBy(filtered, sortValue, [this.sortDirection])
     }
 
     @action.bound onShowMore() {
         this.maxVisibleRows += 100
+    }
+
+    @action.bound onSort(column: SortColumn) {
+        if (this.sortBy === column) {
+            this.sortDirection = this.sortDirection === "asc" ? "desc" : "asc"
+        } else {
+            this.sortBy = column
+            this.sortDirection = column === "lastUpdated" ? "desc" : "asc"
+        }
+    }
+
+    @action.bound onToggleShowOnlyPublished() {
+        this.showOnlyPublished = !this.showOnlyPublished
     }
 
     override render() {
@@ -231,14 +303,31 @@ export class ExplorersIndexPage extends Component<{
                         Showing {explorersToShow.length} of {numTotalRows}{" "}
                         explorers
                     </div>
-                    <div style={{ textAlign: "right" }}>
+                    <div>
+                        <label
+                            style={{
+                                marginBottom: 0,
+                                cursor: "pointer",
+                                userSelect: "none",
+                            }}
+                        >
+                            <input
+                                type="checkbox"
+                                checked={this.showOnlyPublished}
+                                onChange={this.onToggleShowOnlyPublished}
+                                style={{ marginRight: 6 }}
+                            />
+                            Show only published
+                        </label>
+                    </div>
+                    {/* <div style={{ textAlign: "right" }}>
                         <a
                             className="btn btn-primary"
                             href={`/admin/${EXPLORERS_ROUTE_FOLDER}/${DefaultNewExplorerSlug}`}
                         >
                             Create
                         </a>
-                    </div>
+                    </div> */}
                 </div>
                 <ExplorerList
                     explorers={explorersToShow}

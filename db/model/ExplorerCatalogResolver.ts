@@ -31,9 +31,9 @@ export const transformExplorerProgramToResolveCatalogPaths = async (
     )
 
     const unresolvedCatalogPaths = new Set(
-        [...requiredCatalogPaths].filter(
-            (path) => !catalogPathToIndicatorIdMap.get(path)
-        )
+        requiredCatalogPaths
+            .keys()
+            .filter((path) => !catalogPathToIndicatorIdMap.get(path))
     )
 
     const transformedProgram = resolveExplorerCatalogPaths(

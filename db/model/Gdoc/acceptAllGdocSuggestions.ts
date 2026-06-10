@@ -26,14 +26,14 @@ type AnyNode = unknown
 const hasDeletionMarker = (value: AnyNode): boolean =>
     R.isPlainObject(value) &&
     Array.isArray(value[SUGGESTED_DELETION_KEY]) &&
-    value[SUGGESTED_DELETION_KEY]!.length > 0
+    value[SUGGESTED_DELETION_KEY].length > 0
 
 /**
  * Checks if a node contains a textRun that has been marked for deletion
  */
 const hasTextRunDeletion = (value: AnyNode): boolean => {
     if (!R.isPlainObject(value)) return false
-    const textRun = value.textRun as AnyNode
+    const textRun = value.textRun
     return hasDeletionMarker(textRun)
 }
 
@@ -168,7 +168,7 @@ const acceptSuggestionsRecursive = (value: AnyNode): AnyNode | undefined => {
             Record<string, AnyNode>
         if (
             Array.isArray(textRun[SUGGESTED_DELETION_KEY]) &&
-            textRun[SUGGESTED_DELETION_KEY]!.length > 0
+            textRun[SUGGESTED_DELETION_KEY].length > 0
         ) {
             return undefined
         }

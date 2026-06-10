@@ -2,7 +2,6 @@ import * as _ from "lodash-es"
 import { createRoot, hydrateRoot } from "react-dom/client"
 import {
     ArchiveMetaInformation,
-    DATA_INSIGHTS_INDEX_PAGE_SIZE,
     DataPageV2ContentFields,
     deserializeOwidGdocPageData,
     isInIFrame,
@@ -10,7 +9,6 @@ import {
     OwidGdocType,
     parseIntOrUndefined,
     SiteFooterContext,
-    TagGraphRoot,
 } from "@ourworldindata/utils"
 import {
     DataPageV2Content,
@@ -23,16 +21,7 @@ import SiteTools, { SITE_TOOLS_CLASS } from "./SiteTools.js"
 import { runDetailsOnDemand } from "./detailsOnDemand.js"
 import { hydrateCodeSnippets } from "@ourworldindata/components"
 import { hydrateDynamicCollectionPage } from "./collections/DynamicCollection.js"
-import {
-    _OWID_DATA_INSIGHTS_INDEX_PAGE_DATA,
-    DataInsightsIndexPageContent,
-} from "./DataInsightsIndexPageContent.js"
-import {
-    _OWID_LATEST_PAGE_DATA,
-    LatestPageContent,
-    LatestPageContentProps,
-    LATEST_PAGE_CONTAINER_ID,
-} from "./LatestPageContent.js"
+import { LatestSearchWrapper } from "./latest/LatestSearchWrapper.js"
 import { runAllGraphersLoadedListener } from "./runAllGraphersLoadedListener.js"
 import {
     __OWID_EXPLORER_INDEX_PAGE_PROPS,
@@ -51,15 +40,18 @@ import {
 import { BrowserRouter } from "react-router-dom-v5-compat"
 import { REDUCED_TRACKING } from "../settings/clientSettings.js"
 import { SiteHeaderNavigation } from "./SiteHeader.js"
-import { DataInsightsIndexPageProps } from "./DataInsightsIndexPage.js"
 import { NewsletterSubscriptionForm } from "./NewsletterSubscription.js"
 import { NewsletterSubscriptionContext } from "./newsletter.js"
 import { SUBSCRIBE_PAGE_FORM_CONTAINER_ID } from "@ourworldindata/types"
 import UserSurvey from "./gdocs/components/UserSurvey.js"
+import {
+    SlideshowPresentation,
+    _OWID_SLIDESHOW_PROPS,
+} from "./slideshows/SlideshowPresentation.js"
 
 function runSearchPage() {
     const root = document.getElementById("search-page-root")
-    const topicTagGraph = window._OWID_TOPIC_TAG_GRAPH as TagGraphRoot
+    const topicTagGraph = window._OWID_TOPIC_TAG_GRAPH
     if (root) {
         createRoot(root).render(
             <BrowserRouter>
@@ -84,63 +76,23 @@ function hydrateSubscribePage() {
     }
 }
 
-async function hydrateDataInsightsIndexPage() {
-    const props: DataInsightsIndexPageProps = (window as any)[
-        _OWID_DATA_INSIGHTS_INDEX_PAGE_DATA
-    ]
-    const container = document.querySelector(
-        `#data-insights-index-page-container`
-    )
-
+function hydrateSlideshowPage() {
+    const props = (window as any)[_OWID_SLIDESHOW_PROPS]
+    const container = document.querySelector("#slideshow-page-container")
     if (container && props) {
-        const urlParams = new URLSearchParams(window.location.search)
-        const topicName = urlParams.get("topic")
-        if (topicName) {
-            // filter data insights to {topic}
-            const response = await fetch(`/dataInsights.json`)
-            if (!response.ok) {
-                throw new Error("Failed to fetch data insights for topic")
-            }
-            let dataInsights = await response.json()
-            dataInsights = dataInsights.filter(
-                (di: { tags: { name: string }[] }) =>
-                    di.tags &&
-                    di.tags.some(
-                        (tag: { name: string }) => tag.name === topicName
-                    )
-            )
-
-            if (dataInsights.length) {
-                const tag = dataInsights[0].tags.find(
-                    (tag: { name: string }) => tag.name === topicName
-                )
-                props.totalPageCount = Math.ceil(
-                    dataInsights.length / DATA_INSIGHTS_INDEX_PAGE_SIZE
-                )
-                props.topicTag = { name: tag.name, slug: tag.slug }
-                props.dataInsights = dataInsights.slice(
-                    props.pageNumber * DATA_INSIGHTS_INDEX_PAGE_SIZE,
-                    (props.pageNumber + 1) * DATA_INSIGHTS_INDEX_PAGE_SIZE
-                )
-            }
-        }
-        hydrateRoot(
-            container,
-            <DebugProvider>
-                <DataInsightsIndexPageContent {...props} />
-            </DebugProvider>
-        )
+        hydrateRoot(container, <SlideshowPresentation {...props} />)
     }
 }
 
-function hydrateLatestPage() {
-    const props: LatestPageContentProps = (window as any)[
-        _OWID_LATEST_PAGE_DATA
-    ]
-    const container = document.querySelector(`#${LATEST_PAGE_CONTAINER_ID}`)
-
-    if (container && props) {
-        hydrateRoot(container, <LatestPageContent {...props} />)
+function runLatestPage() {
+    const root = document.getElementById("latest-page-root")
+    const topicTagGraph = window._OWID_TOPIC_TAG_GRAPH
+    if (root) {
+        createRoot(root).render(
+            <BrowserRouter>
+                <LatestSearchWrapper topicTagGraph={topicTagGraph} />
+            </BrowserRouter>
+        )
     }
 }
 
@@ -235,7 +187,13 @@ function runFootnotes() {
     })
 }
 
-function runSiteNavigation(hideDonationFlag?: boolean) {
+function runSiteNavigation({
+    hideDonationFlag,
+    isPreviewing,
+}: {
+    hideDonationFlag?: boolean
+    isPreviewing?: boolean
+} = {}) {
     const siteNavigationElem = document.querySelector(".site-navigation-root")
     if (siteNavigationElem) {
         let isOnHomepage = false
@@ -259,6 +217,7 @@ function runSiteNavigation(hideDonationFlag?: boolean) {
                         ? archiveInfo
                         : undefined
                 }
+                isPreviewing={isPreviewing}
             />
         )
     }
@@ -327,7 +286,7 @@ export const runSiteFooterScriptsForArchive = (args: SiteFooterScriptsArgs) => {
         case SiteFooterContext.dataPageV2:
             hydrateDataPageV2Content({ isPreviewing })
             // runAllGraphersLoadedListener()
-            runSiteNavigation()
+            runSiteNavigation({ isPreviewing })
             // runSiteTools()
             // runCookiePreferencesManager()
             void runDetailsOnDemand()
@@ -335,14 +294,14 @@ export const runSiteFooterScriptsForArchive = (args: SiteFooterScriptsArgs) => {
         case SiteFooterContext.multiDimDataPage:
             hydrateMultiDimDataPageContent(isPreviewing)
             // runAllGraphersLoadedListener()
-            runSiteNavigation()
+            runSiteNavigation({ isPreviewing })
             // runSiteTools()
             // runCookiePreferencesManager()
             void runDetailsOnDemand()
             break
         case SiteFooterContext.grapherPage:
         case SiteFooterContext.explorerPage:
-            runSiteNavigation()
+            runSiteNavigation({ isPreviewing })
             // runAllGraphersLoadedListener()
             // runSiteTools()
             // runCookiePreferencesManager()
@@ -351,7 +310,7 @@ export const runSiteFooterScriptsForArchive = (args: SiteFooterScriptsArgs) => {
         case SiteFooterContext.gdocsDocument:
             hydrateOwidGdoc(debug, isPreviewing)
             // runAllGraphersLoadedListener()
-            runSiteNavigation()
+            runSiteNavigation({ isPreviewing })
             runFootnotes()
             void runDetailsOnDemand()
             // runSiteTools()
@@ -377,7 +336,7 @@ export const runSiteFooterScripts = async (
         case SiteFooterContext.dataPageV2:
             hydrateDataPageV2Content({ isPreviewing })
             runAllGraphersLoadedListener()
-            runSiteNavigation(hideDonationFlag)
+            runSiteNavigation({ hideDonationFlag, isPreviewing })
             runSiteTools()
             runCookiePreferencesManager()
             runUserSurveyWidget()
@@ -386,7 +345,7 @@ export const runSiteFooterScripts = async (
         case SiteFooterContext.multiDimDataPage:
             hydrateMultiDimDataPageContent(isPreviewing)
             runAllGraphersLoadedListener()
-            runSiteNavigation(hideDonationFlag)
+            runSiteNavigation({ hideDonationFlag, isPreviewing })
             runSiteTools()
             runCookiePreferencesManager()
             runUserSurveyWidget()
@@ -394,7 +353,7 @@ export const runSiteFooterScripts = async (
             break
         case SiteFooterContext.grapherPage:
         case SiteFooterContext.explorerPage:
-            runSiteNavigation(hideDonationFlag)
+            runSiteNavigation({ hideDonationFlag, isPreviewing })
             runAllGraphersLoadedListener()
             runSiteTools()
             runCookiePreferencesManager()
@@ -403,14 +362,14 @@ export const runSiteFooterScripts = async (
             break
         case SiteFooterContext.explorerIndexPage:
             hydrateExplorerIndex()
-            runSiteNavigation()
+            runSiteNavigation({ isPreviewing })
             runCookiePreferencesManager()
             runSiteTools()
             break
         case SiteFooterContext.gdocsDocument:
             hydrateOwidGdoc(debug, isPreviewing)
             runAllGraphersLoadedListener()
-            runSiteNavigation(hideDonationFlag)
+            runSiteNavigation({ hideDonationFlag, isPreviewing })
             runFootnotes()
             void runDetailsOnDemand()
             runSiteTools()
@@ -418,8 +377,8 @@ export const runSiteFooterScripts = async (
             runUserSurveyWidget()
             break
         case SiteFooterContext.latestPage:
-            hydrateLatestPage()
-            runSiteNavigation(hideDonationFlag)
+            runLatestPage()
+            runSiteNavigation({ hideDonationFlag, isPreviewing })
             runSiteTools()
             runCookiePreferencesManager()
             void runDetailsOnDemand()
@@ -428,12 +387,11 @@ export const runSiteFooterScripts = async (
             // Don't break, run default case too
             hydrateDynamicCollectionPage()
         // falls through
-        case SiteFooterContext.dataInsightsIndexPage:
-            // Don't break, run default case too
-            await hydrateDataInsightsIndexPage()
-        // falls through
         case SiteFooterContext.searchPage:
             runSearchPage()
+        // falls through
+        case SiteFooterContext.slideshowPage:
+            hydrateSlideshowPage()
         // falls through
         case SiteFooterContext.subscribePage:
             hydrateSubscribePage()
@@ -441,7 +399,7 @@ export const runSiteFooterScripts = async (
         default:
             // Features that were not ported over to gdocs, are only being run on WP pages:
             // - embedding charts through MultiEmbedderSingleton.embedAll()
-            runSiteNavigation(hideDonationFlag)
+            runSiteNavigation({ hideDonationFlag, isPreviewing })
             hydrateCodeSnippets()
             MultiEmbedderSingleton.embedAll(isPreviewing)
             runAllGraphersLoadedListener()

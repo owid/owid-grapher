@@ -1,4 +1,4 @@
-import { JsonError, FlatTagGraph } from "@ourworldindata/types"
+import { JsonError, FlatTagGraph, TagGraphRoot } from "@ourworldindata/types"
 import * as db from "../../db/db.js"
 import * as R from "remeda"
 import { Request } from "../authentication.js"
@@ -11,6 +11,14 @@ export async function handleGetFlatTagGraph(
 ) {
     const flatTagGraph = await db.getFlatTagGraph(trx)
     return flatTagGraph
+}
+
+export async function handleGetTopicTagGraph(
+    req: Request,
+    res: HandlerResponse,
+    trx: db.KnexReadonlyTransaction
+): Promise<TagGraphRoot> {
+    return db.generateTopicTagGraph(trx)
 }
 
 export async function handlePostTagGraph(

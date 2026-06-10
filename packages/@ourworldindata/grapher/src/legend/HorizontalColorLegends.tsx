@@ -11,7 +11,7 @@ import {
     VerticalAlign,
     makeFigmaId,
 } from "@ourworldindata/utils"
-import { TextWrap } from "@ourworldindata/components"
+import { TextWrap, TextWrapSvg } from "@ourworldindata/components"
 import {
     ColorScaleBin,
     NumericBin,
@@ -594,14 +594,19 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
                         )
                     })}
                 </g>
-                {this.legendTitle?.renderSVG(
-                    this.x,
-                    // Align legend title baseline with bottom of color bins
-                    this.numericLegendY +
-                        height -
-                        this.legendTitle.height +
-                        this.legendTitleFontSize * 0.2,
-                    { textProps: { fill: textColor } }
+                {this.legendTitle && (
+                    <TextWrapSvg
+                        textWrap={this.legendTitle}
+                        x={this.x}
+                        y={
+                            // Align legend title baseline with bottom of color bins
+                            this.numericLegendY +
+                            height -
+                            this.legendTitle.height +
+                            this.legendTitleFontSize * 0.2
+                        }
+                        fill={textColor}
+                    />
                 )}
             </g>
         )
@@ -653,8 +658,8 @@ const NumericBinRect = (props: NumericBinRectProps) => {
 
 @observer
 export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
-    private rectPadding = 5
-    private markPadding = 5
+    private readonly rectPadding = 5
+    private readonly markPadding = 5
 
     constructor(props: { manager: HorizontalColorLegendManager }) {
         super(props)

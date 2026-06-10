@@ -9,16 +9,13 @@ import {
     faArrowUpLong,
     faInfoCircle,
 } from "@fortawesome/free-solid-svg-icons"
-import { scaleLinear } from "d3-scale"
-import { extent } from "d3-array"
-import { line } from "d3-shape"
+
 import {
     SortOrder,
     Time,
     EntityName,
     OwidTableSlugs,
     OwidVariableRoundingMode,
-    OwidVariableRow,
 } from "@ourworldindata/types"
 import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
 import {
@@ -33,14 +30,12 @@ import {
     joinTitleFragments,
     FuzzySearch,
 } from "@ourworldindata/utils"
-import { SelectionArray } from "../selection/SelectionArray"
 import {
     DEFAULT_GRAPHER_BOUNDS,
     DEFAULT_GRAPHER_ENTITY_TYPE,
     SVG_STYLE_PROPS,
 } from "../core/GrapherConstants"
 import * as R from "remeda"
-import { makeSelectionArray } from "../chart/ChartUtils"
 import { isEntityRegionGroupKey } from "../core/RegionGroups"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import {
@@ -67,7 +62,7 @@ import {
     DataTableFilter,
     SparklineKey,
 } from "./DataTableConstants"
-import { GRAY_30 } from "../color/ColorConstants"
+import { Sparkline } from "../sparkline/Sparkline"
 
 const ENTITY_SORT_INDEX = -1
 
@@ -96,7 +91,7 @@ interface DataTableProps {
 
 @observer
 export class DataTable extends React.Component<DataTableProps> {
-    private storedState: DataTableState = {
+    private readonly storedState: DataTableState = {
         sort: DEFAULT_SORT_STATE,
     }
 
@@ -109,10 +104,6 @@ export class DataTable extends React.Component<DataTableProps> {
 
     @computed get manager(): DataTableManager {
         return this.props.manager
-    }
-
-    @computed private get selectionArray(): SelectionArray {
-        return makeSelectionArray(this.manager.dataTableSelection)
     }
 
     @computed private get tableConfig(): DataTableConfig {
@@ -279,7 +270,7 @@ export class DataTable extends React.Component<DataTableProps> {
         // display values
         const values = excludeUndefined(
             this.displayRows.map(
-                (row) => (row?.values[0] as PointValuesForEntity).single
+                (row) => (row.values[0] as PointValuesForEntity).single
             )
         )
 
@@ -1190,100 +1181,6 @@ function ClosestTimeNotice({
                 </span>
             </span>
         </Tippy>
-    )
-}
-
-function Sparkline({
-    width = 75,
-    height = 18,
-    owidRows,
-    minTime,
-    maxTime,
-    highlights = [],
-    dotSize = 3.5,
-    color = "#4C6A9C",
-    strokeStyle = "solid",
-}: {
-    width?: number
-    height?: number
-    owidRows: OwidVariableRow<number>[]
-    minTime: number
-    maxTime: number
-    highlights?: SparklineHighlight[]
-    dotSize?: number
-    color?: string
-    strokeStyle?: "solid" | "dotted"
-}): React.ReactElement | null {
-    if (owidRows.length <= 1) return null
-
-    // add a little padding so the dots don't overflow
-    const bounds = new Bounds(0, 0, width, height).padWidth(dotSize)
-
-    // calculate x-scale
-    const xDomain = [minTime, maxTime]
-    const xScale = scaleLinear()
-        .domain(xDomain)
-        .range([bounds.left, bounds.right])
-
-    // calculate y-scale
-    const yDomain = extent(owidRows.map((row) => row.value)) as [number, number]
-    const yScale = scaleLinear()
-        .domain(yDomain)
-        .range([bounds.bottom, bounds.top])
-
-    const makePath = line<OwidVariableRow<number>>()
-        .x((row) => xScale(row.originalTime))
-        .y((row) => yScale(row.value))
-
-    const path = makePath(owidRows)
-    if (!path) return null
-
-    const strokeDasharray = strokeStyle === "dotted" ? "2,3" : undefined
-
-    return (
-        <svg
-            width={width}
-            height={height}
-            viewBox={`0 0 ${width} ${height}`}
-            style={{ overflow: "visible" }}
-        >
-            {/* marker lines of highlights */}
-            {highlights
-                .filter((highlight) => highlight.showMarker)
-                .map((highlight) => (
-                    <line
-                        key={highlight.time}
-                        x1={xScale(highlight.time)}
-                        x2={xScale(highlight.time)}
-                        y1={0}
-                        y2={height}
-                        stroke={GRAY_30}
-                    />
-                ))}
-
-            {/* sparkline */}
-            <path
-                d={path}
-                stroke={color}
-                fill="none"
-                strokeWidth={1.5}
-                strokeDasharray={strokeDasharray}
-            />
-
-            {/* highlighted data points */}
-            {highlights
-                .filter((highlight) => highlight.value !== undefined)
-                .map((highlight) => (
-                    <circle
-                        key={highlight.time}
-                        cx={xScale(highlight.time)}
-                        cy={yScale(highlight.value!)}
-                        r={dotSize}
-                        fill={color}
-                        stroke="#fff"
-                    />
-                ))}
-        </svg>
     )
 }
 

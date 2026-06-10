@@ -128,18 +128,6 @@ export function GdocPost({
                     />
                 </nav>
             ) : null}
-            {content.summary ? (
-                <details
-                    className="article-summary col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12"
-                    open={true}
-                >
-                    <summary>Summary</summary>
-                    <ArticleBlocks
-                        blocks={content.summary}
-                        containerType="summary"
-                    />
-                </details>
-            ) : null}
             {content.body ? (
                 <ArticleBlocks
                     toc={content.toc}
@@ -203,8 +191,8 @@ export function GdocPost({
                     )}
 
                     <p>
-                        All visualizations, data, and code produced by Our World
-                        in Data are completely open access under the{" "}
+                        All visualizations, data, and articles produced by Our
+                        World in Data are completely open access under the{" "}
                         <a href="https://creativecommons.org/licenses/by/4.0/">
                             Creative Commons BY license
                         </a>

@@ -5,7 +5,6 @@ import "../serverUtils/instrument.js"
 import * as _ from "lodash-es"
 import fs from "fs-extra"
 import path from "path"
-import { glob } from "glob"
 import ProgressBar from "progress"
 import { stringify } from "safe-stable-stringify"
 import * as db from "../db/db.js"
@@ -18,12 +17,10 @@ import {
     makeAtomFeed,
     feedbackPage,
     renderNotFoundPage,
-    renderPost,
     renderGdoc,
     makeAtomFeedNoTopicPages,
     renderDynamicCollectionPage,
     renderTopChartsCollectionPage,
-    renderDataInsightsIndexPage,
     renderThankYouPage,
     makeDataInsightsAtomFeed,
     renderGdocTombstone,
@@ -33,7 +30,6 @@ import {
 } from "../baker/siteRenderers.js"
 import { makeSitemap } from "../baker/sitemap.js"
 import {
-    FullPost,
     LinkedAuthor,
     LinkedChart,
     LinkedIndicator,
@@ -41,7 +37,6 @@ import {
     OwidGdocErrorMessageType,
     ImageMetadata,
     OwidGdoc,
-    DATA_INSIGHTS_INDEX_PAGE_SIZE,
     OwidGdocMinimalPostInterface,
     excludeUndefined,
     TombstonePageData,
@@ -77,7 +72,6 @@ import {
     prepareCalloutTablesForProfile,
     checkShouldProfileRender,
 } from "../db/model/Gdoc/dataCallouts.js"
-import { calculateDataInsightIndexPageCount } from "../db/model/Gdoc/gdocUtils.js"
 import {
     gdocFromJSON,
     getMinimalGdocBaseObjects,
@@ -96,6 +90,7 @@ import {
 import { DATA_INSIGHTS_ATOM_FEED_NAME } from "../site/SiteConstants.js"
 import { getTombstones } from "../db/model/GdocTombstone.js"
 import { bakeAllMultiDimDataPages } from "./MultiDimBaker.js"
+import { bakeAllPublishedSlideshows } from "./SlideshowBaker.js"
 import { getAllLinkedPublishedMultiDimDataPages } from "../db/model/MultiDimDataPage.js"
 import { getPublicDonorNames } from "../db/model/Donor.js"
 import { getNarrativeChartsInfo } from "../db/model/NarrativeChart.js"
@@ -109,10 +104,6 @@ import { getDods, getParsedDodsDictionary } from "../db/model/Dod.js"
 import { getLatestArchivedChartPageVersionsIfEnabled } from "../db/model/ArchivedChartVersion.js"
 import { getLatestArchivedMultiDimPageVersionsIfEnabled } from "../db/model/ArchivedMultiDimVersion.js"
 import { SEARCH_BASE_PATH } from "../site/search/searchUtils.js"
-import {
-    getLatestPageItems,
-    enrichLatestPageItems,
-} from "../db/model/Gdoc/GdocPost.js"
 import { PostArchivalManifest } from "../serverUtils/archivalUtils.js"
 
 type PrefetchedAttachments = {
@@ -148,6 +139,7 @@ const nonWordpressSteps = [
     "dods",
     "dataInsights",
     "authors",
+    "slideshows",
 ] as const
 
 const otherSteps = ["removeDeletedPosts"] as const
@@ -171,12 +163,13 @@ function getProgressBarTotal(bakeSteps: BakeStepConfig): number {
 }
 
 export class SiteBaker {
-    private bakedSiteDir: string
+    private readonly bakedSiteDir: string
     baseUrl: string
     progressBar: ProgressBar
     explorerAdminServer: ExplorerAdminServer
     bakeSteps: BakeStepConfig
-    private _renderedProfileEntityCodes: Map<string, string[]> = new Map()
+    private readonly _renderedProfileEntityCodes: Map<string, string[]> =
+        new Map()
 
     constructor(
         bakedSiteDir: string,
@@ -212,15 +205,19 @@ export class SiteBaker {
         if (profileTemplates.length === 0) return
 
         for (const profileTemplate of profileTemplates) {
-            const attachments = await this.getPrefetchedGdocAttachments(knex, [
-                profileTemplate.content.authors,
-                profileTemplate.linkedDocumentIds,
-                profileTemplate.linkedImageFilenames,
-                profileTemplate.linkedChartSlugs.grapher,
-                profileTemplate.linkedChartSlugs.explorer,
-                profileTemplate.linkedNarrativeChartNames,
-                profileTemplate.linkedStaticVizNames,
-            ])
+            const attachments = await this.getPrefetchedGdocAttachments(
+                knex,
+                [
+                    profileTemplate.content.authors,
+                    profileTemplate.linkedDocumentIds,
+                    profileTemplate.linkedImageFilenames,
+                    profileTemplate.linkedChartSlugs.grapher,
+                    profileTemplate.linkedChartSlugs.explorer,
+                    profileTemplate.linkedNarrativeChartNames,
+                    profileTemplate.linkedStaticVizNames,
+                ],
+                profileTemplate.content.authorRoles
+            )
 
             profileTemplate.donors = attachments.donors
             profileTemplate.linkedAuthors = attachments.linkedAuthors
@@ -316,22 +313,13 @@ export class SiteBaker {
         await this.stageWrite(outPath, html)
     }
 
-    // Bake an individual post/page
-    private async bakePost(post: FullPost, knex: db.KnexReadonlyTransaction) {
-        const html = await renderPost(post, knex, this.baseUrl)
-
-        const outPath = path.join(this.bakedSiteDir, `${post.slug}.html`)
-        await fs.mkdirp(path.dirname(outPath))
-        await this.stageWrite(outPath, html)
-    }
-
     // Returns the slugs of posts which exist on the filesystem but are not in the DB anymore.
     // This happens when posts have been saved in previous bakes but have been since then deleted, unpublished or renamed.
     // Among all existing slugs on the filesystem, some are not coming from WP. They are baked independently and should not
     // be deleted if WP does not list them (e.g. grapher/*).
     private getPostSlugsToRemove(postSlugsFromDb: string[]) {
-        const existingSlugs = glob
-            .sync(`${this.bakedSiteDir}/**/*.html`)
+        const existingSlugs = fs
+            .globSync(`${this.bakedSiteDir}/**/*.html`)
             .map((path) =>
                 path.replace(`${this.bakedSiteDir}/`, "").replace(".html", "")
             )
@@ -342,6 +330,7 @@ export class SiteBaker {
                     !path.startsWith("countries") &&
                     !path.startsWith("latest") &&
                     !path.startsWith("explore") &&
+                    !path.startsWith("slideshows") &&
                     path !== "donate" &&
                     path !== "feedback" &&
                     path !== "charts" &&
@@ -371,7 +360,11 @@ export class SiteBaker {
             string[],
             string[],
             string[],
-        ]
+        ],
+        // Author roles are per-gdoc (e.g. "writing", "data work"), not global,
+        // so they can't be part of the shared prefetch cache. They need to be
+        // applied when filtering authors for a specific gdoc.
+        authorRoles?: Record<string, string>
     ): Promise<PrefetchedAttachments> {
         if (!this._prefetchedAttachmentsCache) {
             console.log("Prefetching donors")
@@ -396,7 +389,14 @@ export class SiteBaker {
                 .getAllPublishedExplorersBySlugCached(knex)
                 .then((results) =>
                     _.mapValues(results, (explorer) => {
-                        return makeExplorerLinkedChart(explorer, explorer.slug)
+                        return makeExplorerLinkedChart(
+                            {
+                                slug: explorer.slug,
+                                title: explorer.explorerTitle,
+                                subtitle: explorer.explorerSubtitle,
+                            },
+                            explorer.slug
+                        )
                     })
                 )
             console.log(
@@ -451,7 +451,6 @@ export class SiteBaker {
                                 chart.config,
                                 chart.slug,
                                 {
-                                    forceDatapage: chart.forceDatapage,
                                     archivedPageVersion:
                                         archivedVersions.charts[chart.id] ||
                                         undefined,
@@ -463,11 +462,19 @@ export class SiteBaker {
             }
 
             const multiDims = await getAllLinkedPublishedMultiDimDataPages(knex)
-            for (const { id, slug, config } of multiDims) {
+            for (const {
+                id,
+                slug,
+                config,
+                originalSlug,
+                queryStr,
+            } of multiDims) {
                 publishedCharts.push(
-                    makeMultiDimLinkedChart(config, slug, {
+                    makeMultiDimLinkedChart(config, originalSlug, {
                         archivedPageVersion:
                             archivedVersions.multiDims[id] || undefined,
+                        queryStr,
+                        resolvedSlug: originalSlug !== slug ? slug : undefined,
                     })
                 )
             }
@@ -605,10 +612,13 @@ export class SiteBaker {
                     this._prefetchedAttachmentsCache.linkedIndicators,
                     linkedIndicatorIds
                 ),
-                linkedAuthors:
-                    this._prefetchedAttachmentsCache.linkedAuthors.filter(
-                        (author) => authorNames.includes(author.name)
-                    ),
+                linkedAuthors: this._prefetchedAttachmentsCache.linkedAuthors
+                    .filter((author) => authorNames.includes(author.name))
+                    .map((author) => {
+                        const role = authorRoles?.[author.name]
+                        if (role) return { ...author, role }
+                        return author
+                    }),
                 linkedNarrativeCharts: _.pick(
                     this._prefetchedAttachmentsCache.linkedNarrativeCharts,
                     linkedNarrativeChartNames
@@ -642,6 +652,7 @@ export class SiteBaker {
     async bakeGDocPosts(knex: db.KnexReadonlyTransaction, slugs?: string[]) {
         if (!this.bakeSteps.has("gdocPosts")) return
         this.progressBar.tick({ name: "Baking Google doc posts" })
+        const slugsToBake = slugs === undefined ? undefined : _.uniq(slugs)
         // We don't need to call `load` on these, because we prefetch all attachments
         const publishedGdocs = await db
             .getPublishedGdocsWithTags(knex)
@@ -651,8 +662,10 @@ export class SiteBaker {
             await db.getTagHierarchiesByChildName(knex)
 
         const gdocsToBake =
-            slugs !== undefined
-                ? publishedGdocs.filter((gdoc) => slugs.includes(gdoc.slug))
+            slugsToBake !== undefined
+                ? publishedGdocs.filter((gdoc) =>
+                      slugsToBake.includes(gdoc.slug)
+                  )
                 : publishedGdocs
 
         const gdocIds = gdocsToBake.map((gdoc) => gdoc.id)
@@ -666,25 +679,29 @@ export class SiteBaker {
                 : {}
 
         // Ensure we have a published gdoc for each slug given
-        if (slugs !== undefined && slugs.length !== gdocsToBake.length) {
-            const slugsNotFound = slugs.filter(
-                (slug) => !gdocsToBake.find((gdoc) => gdoc.slug === slug)
+        if (slugsToBake && slugsToBake.length !== gdocsToBake.length) {
+            const slugsNotFound = slugsToBake.filter(
+                (slug) => !gdocsToBake.some((gdoc) => gdoc.slug === slug)
             )
             throw new Error(
-                `Some of the gdoc slugs were not found or are not published: ${slugsNotFound}`
+                `Some of the gdoc slugs were not found or are not published: ${slugsNotFound.join(", ")}`
             )
         }
 
         for (const publishedGdoc of gdocsToBake) {
-            const attachments = await this.getPrefetchedGdocAttachments(knex, [
-                publishedGdoc.content.authors,
-                publishedGdoc.linkedDocumentIds,
-                publishedGdoc.linkedImageFilenames,
-                publishedGdoc.linkedChartSlugs.grapher,
-                publishedGdoc.linkedChartSlugs.explorer,
-                publishedGdoc.linkedNarrativeChartNames,
-                publishedGdoc.linkedStaticVizNames,
-            ])
+            const attachments = await this.getPrefetchedGdocAttachments(
+                knex,
+                [
+                    publishedGdoc.content.authors,
+                    publishedGdoc.linkedDocumentIds,
+                    publishedGdoc.linkedImageFilenames,
+                    publishedGdoc.linkedChartSlugs.grapher,
+                    publishedGdoc.linkedChartSlugs.explorer,
+                    publishedGdoc.linkedNarrativeChartNames,
+                    publishedGdoc.linkedStaticVizNames,
+                ],
+                publishedGdoc.content.authorRoles
+            )
             publishedGdoc.donors = attachments.donors
             publishedGdoc.linkedAuthors = attachments.linkedAuthors
             publishedGdoc.linkedDocuments = attachments.linkedDocuments
@@ -798,7 +815,7 @@ export class SiteBaker {
         )
         await this.stageWrite(
             `${this.bakedSiteDir}/feedback.html`,
-            await feedbackPage()
+            feedbackPage()
         )
         await this.stageWrite(
             `${this.bakedSiteDir}${SEARCH_BASE_PATH}.html`,
@@ -814,7 +831,7 @@ export class SiteBaker {
         )
         await this.stageWrite(
             `${this.bakedSiteDir}/collection/custom.html`,
-            await renderDynamicCollectionPage()
+            renderDynamicCollectionPage()
         )
         await this.stageWrite(
             `${this.bakedSiteDir}/collection/top-charts.html`,
@@ -822,7 +839,7 @@ export class SiteBaker {
         )
         await this.stageWrite(
             `${this.bakedSiteDir}/404.html`,
-            await renderNotFoundPage()
+            renderNotFoundPage()
         )
         await this.stageWrite(
             `${this.bakedSiteDir}/sitemap.xml`,
@@ -926,15 +943,19 @@ export class SiteBaker {
             await GdocDataInsight.getPublishedDataInsights(knex)
 
         for (const dataInsight of publishedDataInsights) {
-            const attachments = await this.getPrefetchedGdocAttachments(knex, [
-                dataInsight.content.authors,
-                dataInsight.linkedDocumentIds,
-                dataInsight.linkedImageFilenames,
-                dataInsight.linkedChartSlugs.grapher,
-                dataInsight.linkedChartSlugs.explorer,
-                dataInsight.linkedNarrativeChartNames,
-                dataInsight.linkedStaticVizNames,
-            ])
+            const attachments = await this.getPrefetchedGdocAttachments(
+                knex,
+                [
+                    dataInsight.content.authors,
+                    dataInsight.linkedDocumentIds,
+                    dataInsight.linkedImageFilenames,
+                    dataInsight.linkedChartSlugs.grapher,
+                    dataInsight.linkedChartSlugs.explorer,
+                    dataInsight.linkedNarrativeChartNames,
+                    dataInsight.linkedStaticVizNames,
+                ],
+                dataInsight.content.authorRoles
+            )
             dataInsight.linkedDocuments = attachments.linkedDocuments
             dataInsight.imageMetadata = {
                 ...attachments.imageMetadata,
@@ -958,52 +979,7 @@ export class SiteBaker {
                     )
                 )
             }
-            // We don't need the latest data insights nor their images in the
-            // feed later, when we render the list of all data insights.
-            dataInsight.latestDataInsights = []
-            dataInsight.imageMetadata = attachments.imageMetadata
         }
-
-        const totalPageCount = calculateDataInsightIndexPageCount(
-            publishedDataInsights.length
-        )
-
-        for (let pageNumber = 1; pageNumber <= totalPageCount; pageNumber++) {
-            const html = renderDataInsightsIndexPage(
-                publishedDataInsights.slice(
-                    (pageNumber - 1) * DATA_INSIGHTS_INDEX_PAGE_SIZE,
-                    pageNumber * DATA_INSIGHTS_INDEX_PAGE_SIZE
-                ),
-                pageNumber,
-                totalPageCount
-            )
-            // Page 1 is data-insights.html, page 2 is data-insights/2.html, etc.
-            const filename = pageNumber === 1 ? "" : `/${pageNumber}`
-            const outPath = path.join(
-                this.bakedSiteDir,
-                `data-insights${filename}.html`
-            )
-            await fs.mkdirp(path.dirname(outPath))
-            await this.stageWrite(outPath, html)
-        }
-
-        // bake all data insights to dataInsights.json to allow for a topic-filtered
-        // view of the feed (temporary, for the purposes of a data pages experiment).
-        const publishedDataInsightsForJson = publishedDataInsights.map((di) => {
-            // removes fields that are omitted from <DataInsightBody /> props
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const { markdown, publicationContext, revisionId, ...rest } = di
-
-            // removes data that isn't need for rendering the feed page (based on comments in DataInsightsIndexPageContent.tsx)
-            // (but we kep tags b/c we need it to filter dataInsights.json)
-            rest.linkedIndicators = {}
-            rest.latestDataInsights = []
-            return rest
-        })
-        await this.stageWrite(
-            `${this.bakedSiteDir}/dataInsights.json`,
-            JSON.stringify(publishedDataInsightsForJson)
-        )
     }
 
     private async bakeAuthors(knex: db.KnexReadonlyTransaction) {
@@ -1013,15 +989,19 @@ export class SiteBaker {
         const publishedAuthors = await GdocAuthor.getPublishedAuthors(knex)
 
         for (const publishedAuthor of publishedAuthors) {
-            const attachments = await this.getPrefetchedGdocAttachments(knex, [
-                publishedAuthor.content.authors,
-                publishedAuthor.linkedDocumentIds,
-                publishedAuthor.linkedImageFilenames,
-                publishedAuthor.linkedChartSlugs.grapher,
-                publishedAuthor.linkedChartSlugs.explorer,
-                publishedAuthor.linkedNarrativeChartNames,
-                publishedAuthor.linkedStaticVizNames,
-            ])
+            const attachments = await this.getPrefetchedGdocAttachments(
+                knex,
+                [
+                    publishedAuthor.content.authors,
+                    publishedAuthor.linkedDocumentIds,
+                    publishedAuthor.linkedImageFilenames,
+                    publishedAuthor.linkedChartSlugs.grapher,
+                    publishedAuthor.linkedChartSlugs.explorer,
+                    publishedAuthor.linkedNarrativeChartNames,
+                    publishedAuthor.linkedStaticVizNames,
+                ],
+                publishedAuthor.content.authorRoles
+            )
 
             // We don't need these to be attached to the gdoc in the current
             // state of author pages. We'll keep them here as documentation
@@ -1069,66 +1049,19 @@ export class SiteBaker {
         }
     }
 
+    private async bakeSlideshows(knex: db.KnexReadonlyTransaction) {
+        if (!this.bakeSteps.has("slideshows")) return
+        this.progressBar.tick({ name: "Baking slideshows" })
+        await bakeAllPublishedSlideshows(this.bakedSiteDir, knex)
+    }
+
     // Bake the blog index
     private async bakeBlogIndex(knex: db.KnexReadonlyTransaction) {
         if (!this.bakeSteps.has("blogIndex")) return
         this.progressBar.tick({ name: "Baking blog index" })
 
-        // Fetch and render page 1
-        const indexPageData = await getLatestPageItems(knex, 1, [
-            OwidGdocType.Article,
-            OwidGdocType.DataInsight,
-            OwidGdocType.Announcement,
-        ])
-
-        const { linkedAuthors, imageMetadata, linkedCharts, linkedDocuments } =
-            await enrichLatestPageItems(knex, indexPageData.items)
-
-        const indexPageHtml = renderLatestPage(
-            indexPageData.items,
-            imageMetadata,
-            linkedAuthors,
-            linkedCharts,
-            linkedDocuments,
-            indexPageData.pagination.pageNum,
-            indexPageData.pagination.totalPages
-        )
-
-        await this.stageWrite(`${this.bakedSiteDir}/latest.html`, indexPageHtml)
-
-        // Render remaining pages
-        const totalPages = indexPageData.pagination.totalPages
-        for (let pageNum = 2; pageNum <= totalPages; pageNum++) {
-            const pageData = await getLatestPageItems(knex, pageNum, [
-                OwidGdocType.Article,
-                OwidGdocType.DataInsight,
-                OwidGdocType.Announcement,
-            ])
-
-            const {
-                linkedAuthors,
-                imageMetadata,
-                linkedCharts,
-                linkedDocuments,
-            } = await enrichLatestPageItems(knex, pageData.items)
-
-            const pageHtml = renderLatestPage(
-                pageData.items,
-                imageMetadata,
-                linkedAuthors,
-                linkedCharts,
-                linkedDocuments,
-                pageData.pagination.pageNum,
-                pageData.pagination.totalPages
-            )
-
-            const outPath = path.join(
-                this.bakedSiteDir,
-                `latest/page/${pageNum}.html`
-            )
-            await fs.mkdirp(path.dirname(outPath))
-            await this.stageWrite(outPath, pageHtml)
-        }
+        const html = await renderLatestPage(knex)
+        await this.stageWrite(`${this.bakedSiteDir}/latest.html`, html)
     }
 
     // Bake the RSS feed
@@ -1188,6 +1121,11 @@ export class SiteBaker {
         // The `assets-admin` folder is optional; don't fail if it doesn't exist
         await execWrapper(
             `rm -rf ${this.bakedSiteDir}/assets-admin && (cp -r ${BASE_DIR}/dist/assets-admin ${this.bakedSiteDir}/assets-admin || true)`
+        )
+
+        // The bespoke assets are optional; they need not exist on the admin server, for example; don't fail if they don't exist
+        await execWrapper(
+            `rm -rf ${this.bakedSiteDir}/assets/bespoke && (cp -r ${BASE_DIR}/dist/assets-bespoke ${this.bakedSiteDir}/assets/bespoke || true)`
         )
 
         await this.validateTagIcons(trx)
@@ -1256,6 +1194,7 @@ export class SiteBaker {
         await this.bakeGDocTombstones(knex)
         await this.bakeDataInsights(knex)
         await this.bakeAuthors(knex)
+        await this.bakeSlideshows(knex)
     }
 
     async bakeNonWordpressPages(knex: db.KnexReadonlyTransaction) {

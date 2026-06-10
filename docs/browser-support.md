@@ -1,31 +1,67 @@
 ## Supported browsers
 
-As of **2025-07-15**, we support the following browsers:
+As of **2026-03-24**, we officially support the following browsers:
 
-- Safari 14.1+ [April 2021] (earlier versions are missing support for [the nullish coalescing assignment operator (`??=`)](https://caniuse.com/mdn-javascript_operators_nullish_coalescing_assignment) and [the CSS `gap` property for flexbox](https://caniuse.com/flexbox-gap))
-- iOS Safari 14.1+ [April 2021]
-- Chrome/Edge 91+ [May 2021]
-- Opera 77+ [June 2021] (since Opera 77 is based on Chromium 91)
-- Firefox 91+ [August 2021] (91 is a ESR version)
+- Safari 16.0+ [September 2022]
+- iOS Safari 16.0+ [September 2022]
+- Chrome/Edge 106+ [September 2022] (note that Chrome 109 is the last supported version on Windows 7/8, so we want to support that for a tad bit longer)
+- Firefox 110+ [February 2023] (note that 115 is an ESR version)
 
-**Overall, [this caniuse link shows which browsers are supported](https://caniuse.com/mdn-javascript_operators_nullish_coalescing,mdn-css_properties_gap_grid_context,mdn-javascript_regular_expressions_unicode_character_class_escape,flexbox-gap,mdn-javascript_operators_nullish_coalescing_assignment)** (scroll down to "Feature summary").
+Older versions of these browsers may still work, but we don't actively test or support them, and the site may be seriously broken.
 
 ### "Most breaking" features
 
 "Most breaking" features we use are:
 
-- [Nullish coalescing assignment operator (`??=`)](https://caniuse.com/mdn-javascript_operators_nullish_coalescing_assignment), allowing for expressions like `foo ??= true`.
-- [The CSS `gap` property for flexbox](https://caniuse.com/flexbox-gap).
-- [The CSS `gap` property](https://caniuse.com/mdn-css_properties_gap_grid_context), together with `row-gap` and `column-gap`, which was previously prefixed by `grid-` in most browsers. Without support for these properties Google Docs-based pages are borderline unusable; however our interactive charts themselves work pretty much fine on their standalone pages.
-- [Unicode character class escapes in regular expressions](https://caniuse.com/mdn-javascript_regular_expressions_unicode_character_class_escape), which lets you do something like `\p{Letter}` to match any unicode letters in a RegExp.
+- [CSS `:has()` selector](https://caniuse.com/css-has) (Chrome 105+, Safari 15.4+, Firefox 121+) — used extensively in stylesheets. Note: Firefox only supports `:has()` from version 121 (December 2023), so make sure it degrades gracefully in Firefox <120.
+- [CSS container queries (`@container`)](https://caniuse.com/css-container-queries) (Chrome 106+, Safari 16.0+, Firefox 110+) — used in grapher controls and tooltips.
+
+### "Most breaking" features in Vite-generated code
+
+Vite/Rolldown may emit syntax in the bundled output that we don't actively write ourselves. Vite will use syntax that are not supported in older browsers. The most notable examples are:
+
+- [Private class methods](https://caniuse.com/mdn-javascript_classes_private_class_methods) - Chrome 84+, Safari 15+, Firefox 90+.
+- [Nullish coalescing assignment operator (`??=`)](https://caniuse.com/mdn-javascript_operators_nullish_coalescing_assignment) — Chrome 85+, Safari 14+, Firefox 79+.
+
+Both are safe for our current targets, but they will causes issues (incl. SyntaxErrors) when our code is run in older browsers, especially in Safari < 16.0.
+
+### Features we can't yet use
+
+The following features are **not** available across all our supported browsers and should be avoided (or guarded) until we raise our minimum targets:
+
+- [`Promise.withResolvers()`](https://caniuse.com/mdn-javascript_builtins_promise_withresolvers) — Chrome 119+, Firefox 121+, Safari 17.4+.
+- [CSS native nesting](https://caniuse.com/css-nesting) — Chrome 112+, Firefox 117+, Safari 16.4+.
+- [`URL.canParse()`](https://caniuse.com/mdn-api_url_canparse_static) — Chrome 120+, Firefox 115+, Safari 17+.
+- [Popover API (`popover` attribute, `showPopover()`)](https://caniuse.com/mdn-api_htmlelement_popover) — Chrome 114+, Firefox 125+, Safari 17+.
+- [`Array.fromAsync()`](https://caniuse.com/mdn-javascript_builtins_array_fromasync) — Chrome 121+, Firefox 115+, Safari 16.4+. Missing in Chrome 111–120.
+- [RegExp `v` flag (unicodeSets)](https://caniuse.com/mdn-javascript_builtins_regexp_unicodesets) — Chrome 112+, Firefox 116+, Safari 17+.
+- [CSS `@starting-style`](https://caniuse.com/mdn-css_at-rules_starting-style) — Chrome 117+, Firefox 129+, Safari 17.5+.
+- [View Transitions API](https://caniuse.com/view-transitions) — Chrome 111+, Safari 18+, Firefox 144+.
+- [CSS subgrid](https://caniuse.com/css-subgrid) — Firefox 71+, Safari 16+, but Chrome 117+.
+- [Lookbehind assertions in regular expressions](https://caniuse.com/js-regexp-lookbehind) — Chrome 62+, Firefox 78+, Safari 16.4+.
+- [CSS support for oklab, oklch, lab, lch color spaces](https://caniuse.com/wf-oklab) — Chrome 111+, Firefox 113+, Safari 15.4+.
+- [CSS `color-mix()` function](https://caniuse.com/wf-color-mix) — Chrome 111+, Firefox 113+, Safari 16.2+.
+- [`Map.getOrInsert()`](https://caniuse.com/wf-getorinsert) — Chrome 145+, Firefox 144+, Safari 26.2+.
+
+Note: some of the JS features above (e.g. `Map.getOrInsert`) could be polyfilled using [core-js](https://github.com/nicolo-ribaudo/core-js-contrib) or similar libraries if we wanted to use them before raising our browser targets. CSS features or JS syntax features obviously can't be polyfilled this way.
 
 ### Polyfills
 
-We use https://cdnjs.cloudflare.com/polyfill (see `site/SiteConstants.ts`), so using modern methods like `str.replaceAll()` is fine as long as it's included in the list of polyfilled functions.
+We ship explicit polyfills in `site/polyfills.ts` (via [core-js](https://github.com/nicolo-ribaudo/core-js-contrib)) for features that aren't available in all supported browsers. Currently polyfilled:
+
+- `Array.prototype.at`, `String.prototype.at` — Chrome 92+, Safari 15.4+, Firefox 90+
+- `Object.hasOwn` — Chrome 93+, Safari 15.4+, Firefox 92+
+- `Array.prototype.findLast`, `Array.prototype.findLastIndex` — Chrome 97+, Safari 15.4+, Firefox 104+
+- `Array.prototype.toReversed`, `Array.prototype.toSorted`, `Array.prototype.toSpliced`, `Array.prototype.with` — Chrome 110+, Safari 16.0+, Firefox 115+
+- `Object.groupBy`, `Map.groupBy` — Chrome 117+, Safari 17.4+, Firefox 119+
+- `Set` methods (`union`, `intersection`, `difference`, `symmetricDifference`, etc.) — Chrome 122+, Safari 17.0+, Firefox 127+
+- Iterator helpers (`.map()`, `.filter()`, `.reduce()`, `.some()`, `.every()`, `.find()`, etc.) — Chrome 122+, Safari 18.4+, Firefox 131+
+
+This means that we can use these features in our code without worrying about browser support.
 
 ### Setting the Vite `target`
 
-We have to be careful in increasing the `vite.config-common.ts` field `build.target`.
+We have to be careful in increasing the `vite.config-common.mts` field `build.target`.
 
 Dropping support for older browsers is fine, but it should be a conscious decision.
 

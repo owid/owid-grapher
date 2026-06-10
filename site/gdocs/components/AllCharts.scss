@@ -29,3 +29,10 @@
         height: $grapher-height;
     }
 }
+
+// e.g. /air-pollution
+.centered-article-container--linear-topic-page .article-block__all-charts,
+// e.g. /human-development-index
+.centered-article-container--article .article-block__all-charts {
+    padding-top: 48px;
+}

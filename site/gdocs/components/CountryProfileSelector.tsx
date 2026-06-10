@@ -146,7 +146,10 @@ export function CountryProfileSelector({
         <div className={className}>
             <div className="country-profile-selector grid grid-cols-12 col-start-2 span-cols-12">
                 <div className="country-profile-selector__info span-cols-5 span-sm-cols-12">
-                    <h2 className="country-profile-selector__title h1-semibold">
+                    <h2
+                        className="country-profile-selector__title h1-semibold"
+                        id="country-profile-selector"
+                    >
                         {title}
                     </h2>
                     <p className="country-profile-selector__description body-2-regular">
