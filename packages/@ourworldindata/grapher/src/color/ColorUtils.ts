@@ -69,8 +69,8 @@ function darkenColorToTargetYiq(colorHex: Color, targetYiq: number): Color {
     const c = color(colorHex)?.rgb()
     if (!c) return colorHex
     const darkenCoeff = getYiq(c) / targetYiq - 1.0
-    if (darkenCoeff > 0) return c.darker(darkenCoeff).hex()
-    return c.hex()
+    if (darkenCoeff > 0) return c.darker(darkenCoeff).formatHex()
+    return c.formatHex()
 }
 
 export function darkenColorForLine(colorHex: Color): Color {

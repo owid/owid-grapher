@@ -18,6 +18,7 @@ import { SiteResources } from "./SiteResources.js"
 import { SiteSearchNavigation } from "./SiteSearchNavigation.js"
 import { SiteMobileMenu } from "./SiteMobileMenu.js"
 import { SiteNavigationToggle } from "./SiteNavigationToggle.js"
+import { buildLatestPagePath } from "./latest/latestUtils.js"
 import classnames from "classnames"
 import { useTriggerOnEscape } from "./hooks.js"
 import { useTopicTagGraph } from "./search/searchHooks.js"
@@ -35,13 +36,17 @@ const HAS_DONATION_FLAG = false
 export const SiteNavigation = ({
     hideDonationFlag,
     isOnHomepage,
+    isPreviewing,
 }: {
     hideDonationFlag?: boolean
     isOnHomepage?: boolean
+    isPreviewing?: boolean
 }) => {
     const [menu, setActiveMenu] = useState<Menu | null>(null)
     const [query, setQuery] = useState<string>("")
-    const tagGraph = useTopicTagGraph()
+    const { data: tagGraph } = useTopicTagGraph({
+        isPreviewing: Boolean(isPreviewing),
+    })
 
     const isActiveMobileMenu =
         menu !== null &&
@@ -155,7 +160,7 @@ export const SiteNavigation = ({
                                     <a href={SEARCH_BASE_PATH}>Data</a>
                                 </li>
                                 <li>
-                                    <a href="/data-insights">Insights</a>
+                                    <a href={buildLatestPagePath()}>Latest</a>
                                 </li>
                                 <li className="with-relative-dropdown">
                                     <SiteNavigationToggle
@@ -189,6 +194,7 @@ export const SiteNavigation = ({
                                     isActive={menu === Menu.Search}
                                     onClose={closeOverlay}
                                     onActivate={setSearchAsActiveMenu}
+                                    isPreviewing={isPreviewing}
                                 />
                             )}
                             <SiteNavigationToggle

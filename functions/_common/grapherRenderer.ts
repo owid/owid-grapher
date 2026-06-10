@@ -18,7 +18,10 @@ import {
     initGrapher,
 } from "./grapherTools.js"
 import { GRAPHER_TAB_NAMES } from "@ourworldindata/types"
-import { fetchInputTableForConfig } from "@ourworldindata/grapher"
+import {
+    fetchInputTableForConfig,
+    GRAPHER_BACKGROUND,
+} from "@ourworldindata/grapher"
 import ReactDOMServer from "react-dom/server"
 
 declare global {
@@ -84,7 +87,7 @@ async function fetchAndRenderGrapherToSvg(
     )
     grapherLogger.log("generateStaticSvg")
 
-    return { svg, backgroundColor: grapher.grapherState.backgroundColor }
+    return svg
 }
 
 export const fetchAndRenderGrapher = async (
@@ -96,17 +99,12 @@ export const fetchAndRenderGrapher = async (
     const options = extractOptions(searchParams)
 
     console.log("Rendering", id.id, outType, options)
-    const { svg, backgroundColor } = await fetchAndRenderGrapherToSvg(
-        id,
-        options,
-        searchParams,
-        env
-    )
+    const svg = await fetchAndRenderGrapherToSvg(id, options, searchParams, env)
     console.log("fetched svg")
 
     switch (outType) {
         case "png":
-            return png(await renderSvgToPng(svg, options, backgroundColor))
+            return png(await renderSvgToPng(svg, options))
         case "svg":
             return new Response(svg, {
                 headers: {
@@ -118,11 +116,7 @@ export const fetchAndRenderGrapher = async (
 
 let initialized = false
 
-export async function renderSvgToPng(
-    svg: string,
-    options: ImageOptions,
-    backgroundColor: string
-) {
+export async function renderSvgToPng(svg: string, options: ImageOptions) {
     if (!initialized) {
         await initWasm(resvg_wasm)
         initialized = true
@@ -133,7 +127,7 @@ export async function renderSvgToPng(
             mode: "width",
             value: options.pngWidth,
         },
-        background: backgroundColor,
+        background: GRAPHER_BACKGROUND,
         font: {
             fontBuffers: [
                 LatoRegular,

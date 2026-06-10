@@ -17,7 +17,7 @@ import {
 import { uploadToR2 } from "./utils/aiSearch.js"
 import { getChartsRecords } from "./utils/charts.js"
 import { getExplorerViewRecords } from "./utils/explorerViews.js"
-import { getMdimViewRecords } from "./utils/mdimViews.js"
+import { getMultiDimViewRecords } from "./utils/mdimViews.js"
 import parseArgs from "minimist"
 
 interface CliArgs {
@@ -236,7 +236,7 @@ const indexExplorerViewsMdimViewsAndChartsToAISearch = async () => {
                   })
                 : []
             const mdimViews = shouldFetchMdim
-                ? await getMdimViewRecords(trx)
+                ? await getMultiDimViewRecords(trx)
                 : []
             const grapherViews = shouldFetchCharts
                 ? await getChartsRecords(trx)

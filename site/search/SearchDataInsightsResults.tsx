@@ -58,13 +58,10 @@ export function SearchDataInsightsResults() {
                                     key={hit.objectID}
                                     hit={hit}
                                     onClick={() => {
-                                        analytics.logSiteSearchResultClick(
-                                            hit,
-                                            {
-                                                position: index + 1,
-                                                source: "search",
-                                            }
-                                        )
+                                        analytics.logSearchResultClick(hit, {
+                                            position: index + 1,
+                                            source: "search",
+                                        })
                                     }}
                                 />
                             ))}

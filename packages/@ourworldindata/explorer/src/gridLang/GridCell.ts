@@ -169,18 +169,6 @@ export class GridCell implements ParsedCell {
         return row === numRows
     }
 
-    private get suggestions() {
-        return []
-    }
-
-    private get definitionLinks(): CellPosition[] {
-        return []
-    }
-
-    private get implementationLinks(): CellPosition[] {
-        return []
-    }
-
     @imemo get cellDef(): CellDef {
         const def = this.cellTerminalTypeDefinition
         if (def) return def

@@ -92,10 +92,7 @@ export default function MultiDim({
         )
         return config.filterToAvailableChoices(choices).selectedChoices
     })
-    // We want to preserve the grapher tab when switching between views, except
-    // when the switch happens via a guided chart link.
-    const [shouldPreserveTab, setShouldPreserveTab] = useState(true)
-    const [additionalQueryParams, setAdditionalQueryParams] =
+    const [guidedQueryParams, setGuidedQueryParams] =
         useState<GrapherQueryParams | null>(null)
 
     const handleBaseSettingsChange = useCallback(
@@ -110,8 +107,7 @@ export default function MultiDim({
     const handleSettingsChange = useCallback(
         (settings: MultiDimDimensionChoices) => {
             handleBaseSettingsChange(settings)
-            setShouldPreserveTab(true)
-            setAdditionalQueryParams(null)
+            setGuidedQueryParams(null)
         },
         [handleBaseSettingsChange]
     )
@@ -122,13 +118,12 @@ export default function MultiDim({
             queryParams: GrapherQueryParams
         ) => {
             handleBaseSettingsChange(settings)
-            setShouldPreserveTab(false)
-            setAdditionalQueryParams(queryParams)
+            setGuidedQueryParams(queryParams)
         },
         [handleBaseSettingsChange]
     )
 
-    useMultiDimAnalytics(slug, config, settings)
+    useMultiDimAnalytics(slug, config, settings, grapherContainerRef)
 
     // Register with GuidedChartContext for guided chart link support
     const guidedChartContext = useContext(GuidedChartContext)
@@ -170,20 +165,28 @@ export default function MultiDim({
                 ? `variables/${variables[0].id}/config`
                 : undefined
         const analyticsContext = {
-            mdimSlug: slug ?? undefined,
-            mdimViewConfigId: newView.fullConfigId,
+            slug: slug ?? undefined,
+            viewConfigId: newView.fullConfigId,
         }
         manager.current.adminEditPath = adminEditPath
         manager.current.analyticsContext = analyticsContext
         manager.current.adminCreateNarrativeChartPath = `narrative-charts/create?type=multiDim&chartConfigId=${newView.fullConfigId}`
         if (slug) manager.current.baseUrl = `${BAKED_GRAPHER_URL}/${slug}`
 
+        const isGuidedChartUpdate = guidedQueryParams !== null
+        // Guided chart links should not inherit query params from the
+        // previously selected view. Otherwise omitted params, such as
+        // `country`, can stick around after clicking a different guided link.
+        const queryParams = isGuidedChartUpdate
+            ? guidedQueryParams
+            : grapherState.changedParams
         const newGrapherParams: GrapherQueryParams = {
-            ...grapherState.changedParams,
+            ...queryParams,
             ...settings,
-            ...additionalQueryParams,
         }
-        if (shouldPreserveTab) {
+        // We want to preserve the grapher tab when switching between views,
+        // except when the switch happens via a guided chart link.
+        if (!isGuidedChartUpdate) {
             // If the grapher has data, preserve the active tab in the new view,
             // otherwise use the tab from the URL.
             newGrapherParams.tab = grapherState.hasData
@@ -262,8 +265,7 @@ export default function MultiDim({
         searchParams,
         settings,
         slug,
-        shouldPreserveTab,
-        additionalQueryParams,
+        guidedQueryParams,
         baseGrapherConfig,
         manager,
         grapherStateRef,

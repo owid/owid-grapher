@@ -27,42 +27,42 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/compose-spec/compose-spec/refs/heads/main/schema/compose-spec.json
 
 services:
-    # Stock mysql database. Root password is hardcoded for now
-    db:
-        image: mysql:8
-        restart: always
-        volumes:
-            - ./devTools/docker/my.cnf:/etc/my.cnf:ro
-            - mysql_data_public:/var/lib/mysql
-            - ./logs:/var/log/mysql
-        ports:
-            # Exposing via the port specified for Grapher
-            - "${GRAPHER_DB_PORT}:3306"
-        environment:
-            MYSQL_ROOT_PASSWORD: weeniest-stretch-contaminate-gnarl
-            MYSQL_ROOT_HOST: "%"
+  # Stock mysql database. Root password is hardcoded for now
+  db:
+    image: mysql:8
+    restart: always
+    volumes:
+      - ./devTools/docker/my.cnf:/etc/my.cnf:ro
+      - mysql_data_public:/var/lib/mysql
+      - ./logs:/var/log/mysql
+    ports:
+      # Exposing via the port specified for Grapher
+      - "${GRAPHER_DB_PORT}:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: weeniest-stretch-contaminate-gnarl
+      MYSQL_ROOT_HOST: "%"
 
-    # mysql:8 container for running the DB init scripts
-    # These init scripts check if the grapher database and users are missing, if so they create them
-    # and pull the data to have a working dev environment.
-    db-load-data:
-        image: mysql:8
-        command: "/app/grapher-mysql-init.sh"
-        volumes:
-            - ./devTools/docker:/app
-            - mysql_load_data:/var/lib/mysql
-            - ./tmp-downloads:/tmp-downloads
-        environment:
-            DB_ROOT_PASS: weeniest-stretch-contaminate-gnarl
-            DB_ROOT_HOST: db
-            DATA_FOLDER: "/tmp-downloads"
-        env_file:
-            - .env
-        depends_on:
-            - db
+  # mysql:8 container for running the DB init scripts
+  # These init scripts check if the grapher database and users are missing, if so they create them
+  # and pull the data to have a working dev environment.
+  db-load-data:
+    image: mysql:8
+    command: "/app/grapher-mysql-init.sh"
+    volumes:
+      - ./devTools/docker:/app
+      - mysql_load_data:/var/lib/mysql
+      - ./tmp-downloads:/tmp-downloads
+    environment:
+      DB_ROOT_PASS: weeniest-stretch-contaminate-gnarl
+      DB_ROOT_HOST: db
+      DATA_FOLDER: "/tmp-downloads"
+    env_file:
+      - .env
+    depends_on:
+      - db
 
 volumes:
-    mysql_data_public:
-        name: ${COMPOSE_PROJECT_NAME:-owid-grapher}_mysql_data_public
-    mysql_load_data:
-        name: ${COMPOSE_PROJECT_NAME:-owid-grapher}_mysql_load_data
+  mysql_data_public:
+    name: ${COMPOSE_PROJECT_NAME:-owid-grapher}_mysql_data_public
+  mysql_load_data:
+    name: ${COMPOSE_PROJECT_NAME:-owid-grapher}_mysql_load_data

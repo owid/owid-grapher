@@ -38,3 +38,13 @@ body {
     font-weight: 600;
     color: #555;
 }
+
+.demo-error-message {
+    margin: 0 24px;
+    padding: 12px 16px;
+    border-left: 4px solid #b0122a;
+    background: #fff4f4;
+    color: #6d1020;
+    font-size: 0.9375rem;
+    line-height: 1.4;
+}

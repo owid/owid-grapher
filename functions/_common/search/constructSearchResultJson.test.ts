@@ -376,22 +376,4 @@ describe(selectRegionGroupByPriority, () => {
 
         expect(selectedRegions).not.toContain(WORLD_ENTITY_NAME)
     })
-
-    it("includes World when includeWorld option is true", () => {
-        const availableEntities = [
-            WORLD_ENTITY_NAME,
-            "Europe",
-            "Asia",
-            "Italy",
-            "Africa (WHO)",
-        ]
-
-        const selectedRegions = selectRegionGroupByPriority(availableEntities, {
-            includeWorld: true,
-        })
-
-        expect(selectedRegions).toContain(WORLD_ENTITY_NAME)
-        expect(selectedRegions).toContain("Europe")
-        expect(selectedRegions).toContain("Asia")
-    })
 })

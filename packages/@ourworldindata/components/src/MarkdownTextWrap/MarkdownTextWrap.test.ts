@@ -1,6 +1,6 @@
 import { expect, it, describe } from "vitest"
 
-import { FontFamily } from "@ourworldindata/utils"
+import { FontFamily, VerticalAlign } from "@ourworldindata/utils"
 import {
     IRText,
     MarkdownTextWrap,
@@ -77,6 +77,54 @@ describe(MarkdownTextWrap, () => {
         })
 
         expect(element.height).toEqual(0)
+    })
+
+    it("should default to bottom verticalAlign", () => {
+        const defaultAligned = new MarkdownTextWrap({
+            text: "a\nb",
+            fontSize: 12,
+            lineHeight: 1.3,
+        })
+        const bottomAligned = new MarkdownTextWrap({
+            text: "a\nb",
+            fontSize: 12,
+            lineHeight: 1.3,
+            verticalAlign: VerticalAlign.bottom,
+        })
+
+        const [, defaultY] = defaultAligned.getPositionForSvgRendering(0, 100)
+        const [, bottomY] = bottomAligned.getPositionForSvgRendering(0, 100)
+
+        expect(defaultY).toEqual(bottomY)
+    })
+
+    it("should adjust SVG y-position based on verticalAlign", () => {
+        const topAligned = new MarkdownTextWrap({
+            text: "a\nb\nc",
+            fontSize: 10,
+            lineHeight: 1.2,
+            verticalAlign: VerticalAlign.top,
+        })
+        const middleAligned = new MarkdownTextWrap({
+            text: "a\nb\nc",
+            fontSize: 10,
+            lineHeight: 1.2,
+            verticalAlign: VerticalAlign.middle,
+        })
+        const bottomAligned = new MarkdownTextWrap({
+            text: "a\nb\nc",
+            fontSize: 10,
+            lineHeight: 1.2,
+            verticalAlign: VerticalAlign.bottom,
+        })
+
+        const [, topY] = topAligned.getPositionForSvgRendering(0, 50)
+        const [, middleY] = middleAligned.getPositionForSvgRendering(0, 50)
+        const [, bottomY] = bottomAligned.getPositionForSvgRendering(0, 50)
+
+        expect(bottomY - topY).toBeCloseTo(topAligned.height)
+        expect(bottomY - middleY).toBeCloseTo(topAligned.height / 2)
+        expect(middleY - topY).toBeCloseTo(topAligned.height / 2)
     })
 
     it("should split on newline", () => {

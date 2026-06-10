@@ -36,10 +36,10 @@ export enum SiteFooterContext {
     explorerPage = "explorerPage",
     explorerIndexPage = "explorerIndexPage",
     default = "default",
-    dataInsightsIndexPage = "data-insights-index-page",
     latestPage = "latestPage",
     searchPage = "search-page",
     subscribePage = "subscribe-page",
+    slideshowPage = "slideshow-page",
 }
 
 export interface GitCommit {

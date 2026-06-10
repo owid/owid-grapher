@@ -9,8 +9,8 @@ export interface DbInsertNarrativeChart {
     parentChartId?: number | null
     parentMultiDimXChartConfigId?: number | null
     queryParamsForParentChart: JsonString
-    createdAt?: Date | null
-    updatedAt?: Date | null
+    createdAt?: Date
+    updatedAt?: Date
     lastEditedByUserId: number
 }
 export type DbPlainNarrativeChart = Required<DbInsertNarrativeChart> & {

@@ -6,11 +6,12 @@ import {
     imemo,
     Bounds,
     FontFamily,
+    VerticalAlign,
     type RequiredBy,
 } from "@ourworldindata/utils"
 import { type ITextWrap } from "../TextWrap/TextWrap.js"
 import { fromMarkdown } from "mdast-util-from-markdown"
-import type { Content, Root } from "mdast"
+import type { Root, RootContent } from "mdast"
 import { match } from "ts-pattern"
 import { urlRegex } from "../markdown/remarkPlainLinks.js"
 import * as R from "remeda"
@@ -504,6 +505,7 @@ type MarkdownTextWrapOptions = {
     fontSize: number
     fontWeight?: number
     lineHeight?: number
+    verticalAlign?: VerticalAlign
     style?: CSSProperties
     detailsOrderedByReference?: string[]
 }
@@ -516,6 +518,7 @@ export class MarkdownTextWrap implements ITextWrap {
     private static readonly defaultOptions = {
         maxWidth: Infinity,
         lineHeight: 1.1,
+        verticalAlign: VerticalAlign.bottom,
         detailsOrderedByReference: [] as string[],
     } as const satisfies Partial<MarkdownTextWrapProps>
 
@@ -604,6 +607,9 @@ export class MarkdownTextWrap implements ITextWrap {
     }
     @imemo get fontFamily(): FontFamily | undefined {
         return this.props.fontFamily
+    }
+    @imemo get verticalAlign(): VerticalAlign {
+        return this.props.verticalAlign
     }
     @imemo get fontParams(): IRFontParams {
         return {
@@ -702,7 +708,7 @@ export class MarkdownTextWrap implements ITextWrap {
     }
 
     getPositionForSvgRendering(x: number, y: number): [number, number] {
-        const { fontSize, lineHeight } = this
+        const { fontSize, lineHeight, height, verticalAlign } = this
 
         // Magic number set through experimentation.
         // The HTML and SVG renderers need to position lines identically.
@@ -712,10 +718,16 @@ export class MarkdownTextWrap implements ITextWrap {
 
         const textHeight = fontSize * HEIGHT_CORRECTION_FACTOR
         const containerHeight = lineHeight * fontSize
-        const yOffset =
+        const correctedY =
             y + (containerHeight - (containerHeight - textHeight) / 2)
 
-        return [x, yOffset]
+        const renderY = match(verticalAlign)
+            .with(VerticalAlign.top, () => correctedY - height)
+            .with(VerticalAlign.middle, () => correctedY - height / 2)
+            .with(VerticalAlign.bottom, () => correctedY)
+            .exhaustive()
+
+        return [x, renderY]
     }
 }
 
@@ -737,7 +749,7 @@ export function convertMarkdownToIRTokens(
 // When using mdast types version 4 this should be typed as:
 // node: RootContentMap[keyof RootContentMap]
 function convertMarkdownNodeToIRTokens(
-    node: Content,
+    node: RootContent,
     fontParams: IRFontParams = {}
 ): IRToken[] {
     const converted = match(node)

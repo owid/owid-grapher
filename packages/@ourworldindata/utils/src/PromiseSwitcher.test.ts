@@ -16,9 +16,9 @@ it("handles fulfilling single promise", async () => {
     const onResolve = vi.fn(() => undefined)
     const selector = new PromiseSwitcher({ onResolve })
     await selector.set(Promise.resolve("done"))
-    expect(onResolve).toBeCalledWith("done")
+    expect(onResolve).toHaveBeenCalledWith("done")
     await selector.set(Promise.resolve("done"))
-    expect(onResolve).toBeCalledTimes(2)
+    expect(onResolve).toHaveBeenCalledTimes(2)
 })
 
 it("selecting a new promise while one is pending discards the pending promise", async () => {

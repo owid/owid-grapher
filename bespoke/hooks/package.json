@@ -3,8 +3,9 @@
     "private": true,
     "type": "module",
     "dependencies": {
-        "@ourworldindata/types": "link:../../packages/@ourworldindata/types",
         "@ourworldindata/utils": "link:../../packages/@ourworldindata/utils",
+        "@tanstack/react-query": "^5.100.9",
+        "nuqs": "^2.8.9",
         "react": "^19.2.4"
     },
     "devDependencies": {

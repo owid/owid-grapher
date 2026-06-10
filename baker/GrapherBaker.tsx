@@ -48,7 +48,7 @@ import { getDatapageDataV2 } from "../site/dataPage.js"
 import { getAllImages } from "../db/model/Image.js"
 import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
 
-import { deleteOldGraphers, getTagToSlugMap } from "./GrapherBakingUtils.js"
+import { deleteOldGraphers } from "./GrapherBakingUtils.js"
 import { knexRaw } from "../db/db.js"
 import { getRelatedChartsForVariable } from "../db/model/Chart.js"
 import { getAllMultiDimDataPageSlugs } from "../db/model/MultiDimDataPage.js"
@@ -209,7 +209,6 @@ export async function renderDataPageV2(
     )
 
     let imageMetadata: Record<string, ImageMetadata> = {}
-    let tagToSlugMap: Record<string, string> = {}
 
     const archiveContext =
         grapher.id !== undefined
@@ -243,8 +242,6 @@ export async function renderDataPageV2(
             imageMetadataDictionary,
             _.uniq(relatedResearchFilenames)
         )
-
-        tagToSlugMap = await getTagToSlugMap(knex)
     }
 
     let canonicalUrl: string
@@ -265,7 +262,6 @@ export async function renderDataPageV2(
             isPreviewing={isPreviewing}
             imageMetadata={imageMetadata}
             faqEntries={faqEntries}
-            tagToSlugMap={tagToSlugMap}
             archiveContext={archiveContext}
             distribution={distribution}
         />

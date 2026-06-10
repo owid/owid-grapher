@@ -31,6 +31,7 @@ localBake/
 /grapherSvgs
 /differentGrapherSvgs
 /owid-content
+tmp/
 tmp-downloads
 tmp-uploads
 tmp-logs
@@ -70,3 +71,4 @@ playwright-report/
 typesense-data/
 
 .toolbox/
+.pi/

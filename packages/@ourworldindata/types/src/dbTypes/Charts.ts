@@ -9,6 +9,6 @@ export interface DbInsertChart {
     lastEditedByUserId: number
     publishedAt?: Date | null
     publishedByUserId?: number | null
-    updatedAt?: Date | null
+    updatedAt?: Date
 }
 export type DbPlainChart = Required<DbInsertChart>

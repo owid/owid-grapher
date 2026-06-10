@@ -37,12 +37,8 @@ export {
     type QueryParams,
     R2GrapherConfigDirectory,
 } from "./domainTypes/Various.js"
-export { type BreadcrumbItem, type KeyValueProps } from "./domainTypes/Site.js"
-export {
-    type FormattedPost,
-    type IndexPost,
-    type FullPost,
-} from "./domainTypes/Posts.js"
+export { type BreadcrumbItem } from "./domainTypes/Site.js"
+export { type IndexPost, type FullPost } from "./domainTypes/Posts.js"
 
 export {
     type TocHeading,
@@ -135,6 +131,10 @@ export {
     AxisMinMaxValueStr,
     GrapherTooltipAnchor,
     type MapConfigInterface,
+    type DumbbellChartConfigInterface,
+    type DumbbellTrendColorMap,
+    DumbbellConnectorStyle,
+    DumbbellValueLabelMode,
     type GlobeConfig,
     type ProjectionColumnInfo,
     GrapherVariant,
@@ -166,8 +166,6 @@ export {
     ContentGraphLinkType,
 } from "./domainTypes/ContentGraph.js"
 export {
-    WP_BlockClass,
-    WP_ColumnStyle,
     WP_PostType,
     type PostRestApi,
     type BlockGraphQlApi,
@@ -190,6 +188,7 @@ export {
     type OwidGdocPostContent,
     type OwidGdocPostInterface,
     type OwidGdocMinimalPostInterface,
+    type OwidGdocMinimalAnnouncementInterface,
     type OwidGdocDataInsightContent,
     type OwidGdocDataInsightInterface,
     type MinimalDataInsightInterface,
@@ -202,9 +201,13 @@ export {
     type OwidGdocProfileContent,
     type OwidGdocProfileInterface,
     type OwidGdocProfileEntitySummary,
-    DATA_INSIGHTS_INDEX_PAGE_SIZE,
-    LATEST_INDEX_PAGE_SIZE,
     type OwidGdoc,
+    type ChronologicalGdoc,
+    type LatestFeedGdoc,
+    CHRONOLOGICAL_INDEX_TYPE_VALUES,
+    LATEST_FEED_TYPE_VALUES,
+    CHRONOLOGICAL_INDEX_TYPES,
+    LATEST_FEED_TYPES,
     OwidGdocType,
     ALL_GDOC_TYPES,
     type OwidGdocStickyNavItem,
@@ -214,7 +217,6 @@ export {
     type EnrichedFaq,
     type DetailDictionary,
     GdocsContentSource,
-    type LatestPageItem,
     type LatestDataInsight,
     type LinkedAuthor,
     type LinkedChart,
@@ -354,6 +356,11 @@ export {
     type DbPlainAnalyticsPageview,
     AnalyticsPageviewsTableName,
 } from "./dbTypes/AnalyticsPageviews.js"
+export {
+    type AnalyticsChartViewsType,
+    AnalyticsChartViewsTableName,
+    type DbPlainAnalyticsChartView,
+} from "./dbTypes/AnalyticsChartViews.js"
 export {
     type DbPlainAnalyticsGrapherView,
     type AnalyticsGrapherViewWithRank,
@@ -599,6 +606,39 @@ export {
     PostsGdocsXImagesTableName,
 } from "./dbTypes/PostsGdocsXImages.js"
 export {
+    type DbPlainSlideshow,
+    type DbInsertSlideshow,
+    SlideshowsTableName,
+} from "./dbTypes/Slideshows.js"
+export {
+    SlideTemplate,
+    SLIDE_TEMPLATE_LABELS,
+    type SlideImageOnly,
+    type SlideChartOnly,
+    type SlideTwoCharts,
+    type SlideCover,
+    type SlideStatement,
+    type SlideContents,
+    type SlideText,
+    type Slide,
+    type ResolvedSlideChartInfo,
+    type SlideshowConfig,
+    SlideSchema,
+    SlideshowConfigSchema,
+    SlideshowCreateSchema,
+    SlideshowUpdateSchema,
+} from "./domainTypes/Slideshow.js"
+export {
+    type DbPlainSlideshowLink,
+    type DbInsertSlideshowLink,
+    SlideshowLinksTableName,
+} from "./dbTypes/SlideshowLinks.js"
+export {
+    type DbPlainSlideshowXImage,
+    type DbInsertSlideshowXImage,
+    SlideshowXImagesTableName,
+} from "./dbTypes/SlideshowXImages.js"
+export {
     type DbPlainPostGdocXTag,
     type DbInsertPostGdocXTag,
     PostsGdocsXTagsTableName,
@@ -763,6 +803,7 @@ export {
 export {
     type AdditionalGrapherDataFetchFn,
     type GrapherTrendArrowDirection,
+    type SideWidths,
 } from "./grapherTypes/GrapherTypes.js"
 export {
     type CatalogKey,
@@ -803,4 +844,5 @@ export {
 } from "./endpointTypes/GrapherSearchResultJson.js"
 
 export * from "./analyticsTypes/analyticsTypes.js"
+export * from "./domainTypes/Latest.js"
 export * from "./domainTypes/Search.js"

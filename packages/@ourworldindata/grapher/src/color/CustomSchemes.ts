@@ -699,6 +699,16 @@ export const BinaryMapPaletteE = {
 
 CustomColorSchemes.push(BinaryMapPaletteE)
 
+export const BinaryMapPaletteF = {
+    name: ColorSchemeName.BinaryMapPaletteF,
+    displayName: "Binary map palette F",
+    singleColorScale: false,
+    isDistinct: true,
+    colorSets: [[OwidDistinctColors.TealishGreen, OwidDistinctColors.Coral]],
+}
+
+CustomColorSchemes.push(BinaryMapPaletteF)
+
 export const OwidMapColors: Record<string, Color> = {
     // Main
     MutedDenim: "#526F9B",

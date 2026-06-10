@@ -56,7 +56,6 @@ export interface TooltipValueProps {
     color?: string
     isProjection?: boolean
     originalTime?: string // actual year data was drawn from (when ≠ target year)
-    isRoundedToSignificantFigures?: boolean
     showSignificanceSuperscript?: boolean // show significance-s superscript if applicable
     labelVariant?: "label+unit" | "unit-only"
 }
@@ -67,8 +66,8 @@ export interface TooltipValueRangeProps {
     values: [string | undefined, string | undefined]
     trend?: GrapherTrendArrowDirection
     colors?: string[] // value colors, matched by indices
+    arrowColor?: string // explicit color for the trend arrow
     originalTimes?: (string | undefined)[] // actual year data was drawn from (when ≠ target year)
-    isRoundedToSignificantFigures?: boolean
     showSignificanceSuperscript?: boolean // show significance-s superscript if applicable
     labelVariant?: "label+unit" | "unit-only"
 }

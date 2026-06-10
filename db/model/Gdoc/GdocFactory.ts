@@ -2,7 +2,6 @@ import * as _ from "lodash-es"
 import { match, P } from "ts-pattern"
 import {
     ARCHIVED_THUMBNAIL_FILENAME,
-    DATA_INSIGHTS_INDEX_PAGE_SIZE,
     DbEnrichedPostGdoc,
     DbInsertPostGdocLink,
     DbInsertPostGdocXImage,
@@ -75,9 +74,9 @@ export function gdocFromJSON(
         )
     }
 
-    json.createdAt = json.createdAt ? new Date(json.createdAt) : null
+    json.createdAt = json.createdAt ? new Date(json.createdAt) : new Date()
     json.publishedAt = json.publishedAt ? new Date(json.publishedAt) : null
-    json.updatedAt = json.updatedAt ? new Date(json.updatedAt) : null
+    json.updatedAt = json.updatedAt ? new Date(json.updatedAt) : json.createdAt
 
     return match(type)
         .with(
@@ -518,31 +517,22 @@ async function getAndLoadPublishedGdocs<T extends GdocBase>(
     return gdocs
 }
 
-export async function getAndLoadPublishedDataInsightsPage(
-    knex: KnexReadonlyTransaction,
-    page?: number, // 1-indexed
-    topicSlug?: string
+export async function getAndLoadPublishedDataInsights(
+    knex: KnexReadonlyTransaction
 ): Promise<GdocDataInsight[]> {
-    let options:
-        | { limit: number; offset?: number; topicSlug?: string }
-        | undefined
-    if (page !== undefined) {
-        options = {
-            limit: DATA_INSIGHTS_INDEX_PAGE_SIZE,
-            offset: (page - 1) * DATA_INSIGHTS_INDEX_PAGE_SIZE,
-        }
-    }
-    if (topicSlug !== undefined) {
-        options = {
-            limit: options?.limit ?? DATA_INSIGHTS_INDEX_PAGE_SIZE,
-            offset: options?.offset,
-            topicSlug,
-        }
-    }
+    return await getAndLoadPublishedGdocs<GdocDataInsight>(
+        knex,
+        OwidGdocType.DataInsight
+    )
+}
+
+export async function getAndLoadLastPublishedDataInsights(
+    knex: KnexReadonlyTransaction
+): Promise<GdocDataInsight[]> {
     return await getAndLoadPublishedGdocs<GdocDataInsight>(
         knex,
         OwidGdocType.DataInsight,
-        options
+        { limit: 20 }
     )
 }
 

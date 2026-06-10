@@ -45,8 +45,8 @@ import {
     STATIC_SMALL_MARKER_RADIUS,
     DEFAULT_MARKER_RADIUS,
     LINE_CHART_CLASS_NAME,
+    ELEVATED_MARKER_RADIUS,
 } from "./LineChartConstants"
-import { CoreColumn } from "@ourworldindata/core-table"
 import {
     getHoverStateForSeries,
     getSeriesKey,
@@ -54,7 +54,7 @@ import {
 } from "../chart/ChartUtils"
 import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
 import { ColorScale } from "../color/ColorScale"
-import { GRAPHER_BACKGROUND_DEFAULT } from "../color/ColorConstants"
+import { GRAPHER_BACKGROUND } from "../color/ColorConstants"
 import { darkenColorForLine } from "../color/ColorUtils"
 import {
     HorizontalColorLegendManager,
@@ -204,6 +204,7 @@ export class LineChart
         if (this.hasMarkersOnlySeries) return DISCONNECTED_DOTS_MARKER_RADIUS
         if (this.hasColorScale) return VARIABLE_COLOR_MARKER_RADIUS
         if (this.manager.isStaticAndSmall) return STATIC_SMALL_MARKER_RADIUS
+        if (this.renderSeries.length === 1) return ELEVATED_MARKER_RADIUS
         return DEFAULT_MARKER_RADIUS
     }
 
@@ -262,10 +263,7 @@ export class LineChart
                                     r={this.lineStrokeWidth / 2 + 3.5}
                                     fill={valueColor}
                                     fillOpacity={opacity}
-                                    stroke={
-                                        this.manager.backgroundColor ??
-                                        GRAPHER_BACKGROUND_DEFAULT
-                                    }
+                                    stroke={GRAPHER_BACKGROUND}
                                     strokeWidth={0.5}
                                 />
                             )
@@ -421,7 +419,6 @@ export class LineChart
                 dualAxis={dualAxis}
                 showTickMarks={true}
                 detailsMarker={manager.detailsMarkerInSvg}
-                backgroundColor={manager.backgroundColor}
             />
         )
     }
@@ -454,7 +451,6 @@ export class LineChart
                     hidePoints={this.hidePoints}
                     lineStrokeWidth={this.lineStrokeWidth}
                     lineOutlineWidth={this.lineOutlineWidth}
-                    backgroundColor={this.manager.backgroundColor}
                     markerRadius={this.markerRadius}
                     isStatic={manager.isStatic}
                 />
@@ -529,14 +525,6 @@ export class LineChart
 
     @computed protected get yColumnSlugs(): string[] {
         return this.chartState.yColumnSlugs
-    }
-
-    @computed private get colorColumn(): CoreColumn {
-        return this.chartState.colorColumn
-    }
-
-    @computed private get formatColumn(): CoreColumn {
-        return this.chartState.formatColumn
     }
 
     @computed private get hasColorScale(): boolean {

@@ -1,6 +1,5 @@
 import { DualAxis } from "../axis/Axis"
 import {
-    Color,
     ComparisonLineConfig,
     VerticalComparisonLineConfig,
 } from "@ourworldindata/types"
@@ -11,7 +10,6 @@ import { isValidVerticalComparisonLineConfig } from "./ComparisonLineHelpers"
 export interface ComparisonLineProps<LineConfig extends ComparisonLineConfig> {
     dualAxis: DualAxis
     comparisonLine: LineConfig
-    backgroundColor?: Color
 }
 
 export const ComparisonLine = <LineConfig extends ComparisonLineConfig>(

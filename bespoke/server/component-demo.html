@@ -14,8 +14,8 @@
         <h1 class="project-title">{{PROJECT}}</h1>
         <div id="demo-root"></div>
         <script type="module">
+            import * as ComponentModule from "/{{PROJECT}}/{{ENTRYPOINT_JS}}"
             import { mountBespokeComponentInShadow } from "/__bespoke/shared/bespokeComponentShadowDom.ts"
-            import { VARIANTS } from "/{{PROJECT}}/{{ENTRYPOINT_JS}}"
 
             const SIZE_CLASSES = {
                 narrow: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
@@ -24,44 +24,54 @@
             }
 
             const root = document.getElementById("demo-root")
-            for (const variant of VARIANTS) {
-                const size = variant.demoSize ?? "wide"
+            const { VARIANTS } = ComponentModule
 
-                const wrapper = document.createElement("div")
-                wrapper.className = "variant"
-                wrapper.id = `variant--${variant.name}`
+            if (VARIANTS === undefined) {
+                const errorMessage = document.createElement("div")
+                errorMessage.className = "demo-error-message"
+                errorMessage.textContent =
+                    "No VARIANTS export found. Add `export const VARIANTS = [...]` to the project entrypoint to use this demo page."
+                root.appendChild(errorMessage)
+            } else {
+                for (const variant of VARIANTS) {
+                    const size = variant.demoSize ?? "wide"
 
-                const label = document.createElement("div")
-                label.className = "variant-label"
-                const prefix = document.createElement("span")
-                prefix.className = "variant-label-prefix"
-                prefix.textContent = "Variant:"
-                const name = document.createElement("span")
-                name.className = "variant-label-name"
-                name.textContent = variant.name
-                label.appendChild(prefix)
-                label.appendChild(name)
-                wrapper.appendChild(label)
+                    const wrapper = document.createElement("div")
+                    wrapper.className = "variant"
+                    wrapper.id = `variant--${variant.name}`
 
-                const gridContainer = document.createElement("div")
-                gridContainer.className = "grid grid-cols-12-full-width"
+                    const label = document.createElement("div")
+                    label.className = "variant-label"
+                    const prefix = document.createElement("span")
+                    prefix.className = "variant-label-prefix"
+                    prefix.textContent = "Variant:"
+                    const name = document.createElement("span")
+                    name.className = "variant-label-name"
+                    name.textContent = variant.name
+                    label.appendChild(prefix)
+                    label.appendChild(name)
+                    wrapper.appendChild(label)
 
-                const gridCell = document.createElement("div")
-                gridCell.className = SIZE_CLASSES[size] ?? SIZE_CLASSES.wide
+                    const gridContainer = document.createElement("div")
+                    gridContainer.className = "grid grid-cols-12-full-width"
 
-                const container = document.createElement("div")
-                gridCell.appendChild(container)
-                gridContainer.appendChild(gridCell)
-                wrapper.appendChild(gridContainer)
-                root.appendChild(wrapper)
+                    const gridCell = document.createElement("div")
+                    gridCell.className = SIZE_CLASSES[size] ?? SIZE_CLASSES.wide
 
-                mountBespokeComponentInShadow({
-                    container,
-                    scriptUrl: "/{{PROJECT}}/{{ENTRYPOINT_JS}}",
-                    cssUrl: "{{CSS_URL}}" || undefined,
-                    variant: variant.name,
-                    config: variant.demoConfig,
-                })
+                    const container = document.createElement("div")
+                    gridCell.appendChild(container)
+                    gridContainer.appendChild(gridCell)
+                    wrapper.appendChild(gridContainer)
+                    root.appendChild(wrapper)
+
+                    mountBespokeComponentInShadow({
+                        container,
+                        scriptUrl: "/{{PROJECT}}/{{ENTRYPOINT_JS}}",
+                        cssUrl: "{{CSS_URL}}" || undefined,
+                        variant: variant.name,
+                        config: variant.demoConfig,
+                    })
+                }
             }
         </script>
     </body>

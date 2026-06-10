@@ -22,7 +22,6 @@ import { TestIndexPage } from "./TestIndexPage.js"
 import { NotFoundPage } from "./NotFoundPage.js"
 import { DeployStatusPage } from "./DeployStatusPage.js"
 import { ExplorerTagsPage } from "./ExplorerTagsPage.js"
-import { BulkDownloadPage } from "./BulkDownloadPage.js"
 import {
     BrowserRouter as Router,
     Route,
@@ -56,6 +55,8 @@ import { FeaturedMetricsPage } from "./FeaturedMetricsPage.js"
 import { DodsIndexPage } from "./DodsIndexPage.js"
 import { StaticVizIndexPage } from "./StaticVizIndexPage.js"
 import { StaticVizEditPage } from "./StaticVizEditPage.js"
+import { SlideshowsIndexPage } from "./slideshows/SlideshowsIndexPage.js"
+import { SlideshowEditorPage } from "./slideshows/SlideshowEditorPage.js"
 
 const queryClient = new QueryClient({
     defaultOptions: {
@@ -243,6 +244,27 @@ export class AdminApp extends React.Component<{
                                 />
                                 <Route
                                     exact
+                                    path="/slideshows"
+                                    component={SlideshowsIndexPage}
+                                />
+                                <Route
+                                    exact
+                                    path="/slideshows/create"
+                                    component={SlideshowEditorPage}
+                                />
+                                <Route
+                                    exact
+                                    path="/slideshows/:slideshowId/edit"
+                                    render={({ match }) => (
+                                        <SlideshowEditorPage
+                                            slideshowId={parseInt(
+                                                match.params.slideshowId
+                                            )}
+                                        />
+                                    )}
+                                />
+                                <Route
+                                    exact
                                     path={`/${EXPLORERS_ROUTE_FOLDER}/:slug`}
                                     render={({ match }) => (
                                         <AdminLayout title="Create Explorer">
@@ -424,11 +446,6 @@ export class AdminApp extends React.Component<{
                                     exact
                                     path="/explorer-tags"
                                     component={ExplorerTagsPage}
-                                />
-                                <Route
-                                    exact
-                                    path="/bulk-downloads"
-                                    component={BulkDownloadPage}
                                 />
                                 <Route
                                     exact

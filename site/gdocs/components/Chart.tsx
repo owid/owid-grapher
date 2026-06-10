@@ -11,14 +11,19 @@ import { MultiDimEmbed } from "../../MultiDimEmbed.js"
 import { useEmbedChart } from "../../hooks.js"
 import { useDocumentContext } from "../DocumentContext.js"
 
+const DEFAULT_CHART_HEIGHT = "575px"
+const CHART_WITH_EXTERNAL_CONTROLS_HEIGHT = "700px"
+
 export default function Chart({
     d,
     className,
     fullWidthOnMobile = false,
+    hideControls = false,
 }: {
     d: EnrichedBlockChart
     className?: string
     fullWidthOnMobile?: boolean
+    hideControls?: boolean
 }) {
     const { isPreviewing, archiveContext } = useDocumentContext()
     const refChartContainer = useRef<HTMLDivElement>(null)
@@ -39,6 +44,10 @@ export default function Chart({
     // This means we can link to the same chart multiple times with different querystrings
     // and it should all resolve correctly via the same linkedChart
     const { linkedChart } = useLinkedChart(d.url)
+    const configType = linkedChart?.configType
+    const isExplorer = configType === ChartConfigType.Explorer
+    const isMultiDim = configType === ChartConfigType.MultiDim
+    const shouldApplyHideControls = hideControls && (isExplorer || isMultiDim)
     const resolvedUrl = linkedChart?.resolvedUrl ?? ""
     const resolvedUrlParsed = useMemo(() => {
         let baseUrl = Url.fromURL(resolvedUrl)
@@ -50,8 +59,12 @@ export default function Chart({
             })
         }
 
+        if (shouldApplyHideControls) {
+            baseUrl = baseUrl.updateQueryParams({ hideControls: "true" })
+        }
+
         return baseUrl
-    }, [resolvedUrl, d.peerCountries])
+    }, [resolvedUrl, d.peerCountries, shouldApplyHideControls])
     const resolvedQueryParams = useMemo(() => {
         return { ...resolvedUrlParsed.queryParams }
     }, [resolvedUrlParsed])
@@ -61,12 +74,11 @@ export default function Chart({
         }),
         [linkedChart?.archivedPageVersion]
     )
-    const configType = linkedChart?.configType
-    const isExplorer = configType === ChartConfigType.Explorer
-    const isMultiDim = configType === ChartConfigType.MultiDim
-    const hasControls = resolvedUrlParsed.queryParams.hideControls !== "true"
-    const isExplorerWithControls = isExplorer && hasControls
-    const isMultiDimWithControls = isMultiDim && hasControls
+    const controlsAreVisible =
+        resolvedUrlParsed.queryParams.hideControls !== "true"
+    const isExplorerWithControls = isExplorer && controlsAreVisible
+    const isMultiDimWithControls = isMultiDim && controlsAreVisible
+    const hasExternalControls = isExplorerWithControls || isMultiDimWithControls
 
     const archivedChartVersion = linkedChart?.archivedPageVersion
     const shouldRenderArchiveEmbed =
@@ -112,7 +124,9 @@ export default function Chart({
 
     if (shouldRenderArchiveEmbed && archiveUrl) {
         const defaultHeight =
-            isMultiDimWithControls || isExplorerWithControls ? "680px" : "600px"
+            isExplorerWithControls || isMultiDimWithControls
+                ? CHART_WITH_EXTERNAL_CONTROLS_HEIGHT
+                : DEFAULT_CHART_HEIGHT
         return (
             <div
                 className={cx(className, {
@@ -150,46 +164,49 @@ export default function Chart({
             })}
             ref={refChartContainer}
         >
-            {isExplorer ? (
-                <figure
-                    // Use unique `key` to force React to re-render tree
-                    key={resolvedUrl}
-                    className={cx({
-                        [GRAPHER_PREVIEW_CLASS]: !isExplorer,
-                        chart:
-                            !isExplorerWithControls && !isMultiDimWithControls,
-                        explorer: isExplorerWithControls,
-                        "multi-dim": isMultiDimWithControls,
-                    })}
-                    data-is-multi-dim={isMultiDim || undefined}
-                    data-grapher-src={isExplorer ? undefined : resolvedUrl}
-                    data-explorer-src={
-                        isExplorer ? resolvedUrlParsed.fullUrl : undefined
-                    }
-                    style={{
-                        width: "100%",
-                        border: "0px none",
-                        height: d.height,
-                    }}
-                >
-                    <div className="js--show-warning-block-if-js-disabled" />
-                </figure>
-            ) : isMultiDim ? (
-                <MultiDimEmbed
-                    url={resolvedUrl}
-                    chartConfig={chartConfig}
-                    isPreviewing={isPreviewing}
-                />
-            ) : (
-                <GrapherWithFallback
-                    slug={slug}
-                    config={chartConfig}
-                    queryStr={queryStr}
-                    isEmbeddedInAnOwidPage={true}
-                    isEmbeddedInADataPage={false}
-                    isPreviewing={isPreviewing}
-                />
-            )}
+            <div
+                className={cx("owid-chart-frame", {
+                    "owid-chart-frame--explorer-with-controls":
+                        isExplorerWithControls,
+                    "owid-chart-frame--multi-dim-with-controls":
+                        isMultiDimWithControls,
+                })}
+                style={d.height ? { height: d.height } : undefined}
+            >
+                {isExplorer ? (
+                    <figure
+                        // Use unique `key` to force React to re-render tree
+                        key={resolvedUrl}
+                        className={cx({
+                            [GRAPHER_PREVIEW_CLASS]: !isExplorer,
+                            chart: !hasExternalControls,
+                            explorer: isExplorerWithControls,
+                            "multi-dim": isMultiDimWithControls,
+                        })}
+                        data-grapher-src={isExplorer ? undefined : resolvedUrl}
+                        data-explorer-src={
+                            isExplorer ? resolvedUrlParsed.fullUrl : undefined
+                        }
+                    >
+                        <div className="js--show-warning-block-if-js-disabled" />
+                    </figure>
+                ) : isMultiDim ? (
+                    <MultiDimEmbed
+                        url={resolvedUrlParsed.fullUrl}
+                        chartConfig={chartConfig}
+                        isPreviewing={isPreviewing}
+                    />
+                ) : (
+                    <GrapherWithFallback
+                        slug={slug}
+                        config={chartConfig}
+                        queryStr={queryStr}
+                        isEmbeddedInAnOwidPage={true}
+                        isEmbeddedInADataPage={false}
+                        isPreviewing={isPreviewing}
+                    />
+                )}
+            </div>
             {d.caption ? (
                 <figcaption>
                     <SpanElements spans={d.caption} />

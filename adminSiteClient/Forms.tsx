@@ -20,7 +20,7 @@ import { observer } from "mobx-react"
 import cx from "classnames"
 import { useTimeout } from "usehooks-ts"
 
-import { Colorpicker } from "./Colorpicker.js"
+import { AdminColorPicker } from "./AdminColorPicker.js"
 import {
     faCog,
     faLink,
@@ -195,7 +195,7 @@ export class TextField extends React.Component<TextFieldProps> {
 }
 
 export class TextAreaField extends React.Component<TextFieldProps> {
-    @bind onChange(ev: React.FormEvent<HTMLTextAreaElement>) {
+    @bind onChange(ev: React.ChangeEvent<HTMLTextAreaElement>) {
         const value = ev.currentTarget.value
         this.props.onValue?.(value)
     }
@@ -682,6 +682,13 @@ interface ColorBoxProps {
 
 @observer
 export class ColorBox extends React.Component<ColorBoxProps> {
+    private tippyInstance: {
+        popperInstance?: { update: () => void } | null
+    } | null = null
+    private readonly handleResize = (): void => {
+        this.tippyInstance?.popperInstance?.update()
+    }
+
     override render() {
         const { color } = this.props
 
@@ -692,11 +699,12 @@ export class ColorBox extends React.Component<ColorBoxProps> {
             <Tippy
                 content={
                     <>
-                        <Colorpicker
+                        <AdminColorPicker
                             color={color}
                             onColor={this.props.onColor}
                             showLineChartColors={this.props.showLineChartColors}
                             baseColorScheme={this.props.baseColorScheme}
+                            onResize={this.handleResize}
                         />
                         <div
                             style={{
@@ -713,11 +721,34 @@ export class ColorBox extends React.Component<ColorBoxProps> {
                         </div>
                     </>
                 }
-                placement="right"
+                placement="right-start"
                 interactive={true}
                 trigger="click"
+                maxWidth="none"
                 appendTo={() => document.body}
                 className="colorpicker-tooltip"
+                onCreate={(instance) => {
+                    this.tippyInstance = instance
+                }}
+                lazy
+                popperOptions={{
+                    modifiers: [
+                        {
+                            name: "flip",
+                            options: {
+                                fallbackPlacements: [
+                                    "left-start",
+                                    "bottom-start",
+                                    "top-start",
+                                ],
+                            },
+                        },
+                        {
+                            name: "preventOverflow",
+                            options: { padding: 8, altAxis: true },
+                        },
+                    ],
+                }}
             >
                 <div className="ColorBox" style={style}>
                     {color === undefined && (

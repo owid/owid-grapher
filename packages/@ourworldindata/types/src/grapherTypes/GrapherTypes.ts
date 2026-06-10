@@ -46,6 +46,12 @@ export enum SortBy {
     column = "column",
     /** Sort by the total across all columns */
     total = "total",
+    /** Sort by the change between the start and end values (dumbbell charts) */
+    change = "change",
+    /** Sort by the start value (dumbbell charts) */
+    startValue = "startValue",
+    /** Sort by the end value (dumbbell charts) */
+    endValue = "endValue",
 }
 
 export interface SortConfig {
@@ -348,6 +354,18 @@ export interface AxisConfigInterface {
      * for the outermost values.
      */
     domainValues?: number[]
+
+    /**
+     * Whether to offset the leftmost tick label so it doesn't overflow the axis start.
+     * Defaults to true.
+     */
+    shouldOffsetTickLabelAtStart?: boolean
+
+    /**
+     * Whether to offset the rightmost tick label so it doesn't overflow the axis end.
+     * Defaults to true.
+     */
+    shouldOffsetTickLabelAtEnd?: boolean
 }
 
 export interface VerticalComparisonLineConfig {
@@ -373,6 +391,7 @@ export enum LogoOption {
     owid = "owid",
     "core+owid" = "core+owid",
     "gv+owid" = "gv+owid",
+    wordmark = "wordmark",
 }
 
 export interface ProjectionColumnInfo {
@@ -489,6 +508,7 @@ export enum ColorSchemeName {
     BinaryMapPaletteC = "BinaryMapPaletteC",
     BinaryMapPaletteD = "BinaryMapPaletteD",
     BinaryMapPaletteE = "BinaryMapPaletteE",
+    BinaryMapPaletteF = "BinaryMapPaletteF",
     SingleColorGradientDenim = "SingleColorGradientDenim",
     SingleColorGradientTeal = "SingleColorGradientTeal",
     SingleColorGradientPurple = "SingleColorGradientPurple",
@@ -514,6 +534,32 @@ export interface GlobeConfig {
     rotation: [number, number]
     zoom: number
     focusCountry?: EntityName
+}
+
+export enum DumbbellConnectorStyle {
+    Arrow = "arrow",
+    Line = "line",
+}
+
+export enum DumbbellValueLabelMode {
+    Absolute = "absolute",
+    Change = "change",
+    PercentChange = "percentChange",
+    None = "none",
+}
+
+export interface DumbbellTrendColorMap {
+    /** Color for dumbbells whose value increased over time */
+    increase?: Color
+    /** Color for dumbbells whose value decreased over time */
+    decrease?: Color
+}
+
+export interface DumbbellChartConfigInterface {
+    connectorStyle?: DumbbellConnectorStyle
+    valueLabelMode?: DumbbellValueLabelMode
+    /** Custom colors for the time-range encoding */
+    trendColorMap?: DumbbellTrendColorMap
 }
 
 export interface MapConfigInterface {
@@ -594,6 +640,7 @@ export interface GrapherInterface extends SortConfig {
     yAxis?: Partial<AxisConfigInterface>
     colorScale?: Partial<ColorScaleConfigInterface>
     map?: Partial<MapConfigInterface>
+    dumbbell?: Partial<DumbbellChartConfigInterface>
 
     // When we move graphers to Git, and remove dimensions, we can clean this up.
     ySlugs?: ColumnSlugs
@@ -742,8 +789,9 @@ export const grapherKeysToSerialize = [
     "relatedQuestions",
     "missingDataStrategy",
     "peerCountryStrategy",
+    "dumbbell",
 
-    // internals
+    // Internals
     "adminBaseUrl",
     "bakedGrapherURL",
 ]
@@ -779,6 +827,8 @@ export enum GrapherWindowType {
 }
 
 export type GrapherTrendArrowDirection = "up" | "right" | "down"
+
+export type SideWidths = { left: number; right: number }
 
 /** Function type for loading additional indicator data from the catalog */
 export type AdditionalGrapherDataFetchFn = <K extends CatalogKey>(

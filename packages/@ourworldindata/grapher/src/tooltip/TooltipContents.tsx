@@ -29,15 +29,12 @@ export function TooltipValue({
     originalTime,
     isProjection,
     labelVariant = "label+unit",
-    isRoundedToSignificantFigures,
     showSignificanceSuperscript,
 }: TooltipValueProps): React.ReactElement {
     const displayValue = value || NO_DATA_LABEL
     const displayColor = displayValue === NO_DATA_LABEL ? NO_DATA_COLOR : color
 
-    const showSuperscript =
-        showSignificanceSuperscript && isRoundedToSignificantFigures
-    const superscript = showSuperscript ? (
+    const superscript = showSignificanceSuperscript ? (
         <SignificanceIcon asSuperscript={true} />
     ) : null
 
@@ -63,21 +60,23 @@ export function TooltipValueRange({
     unit,
     values,
     colors,
+    arrowColor,
     originalTimes,
     trend,
     labelVariant = "label+unit",
-    isRoundedToSignificantFigures,
     showSignificanceSuperscript,
 }: TooltipValueRangeProps): React.ReactElement | null {
     const [firstTerm, lastTerm] = values
 
     if (firstTerm === undefined && lastTerm === undefined) return null
 
-    const showSuperscript =
-        showSignificanceSuperscript && isRoundedToSignificantFigures
-    const superscript = showSuperscript ? (
+    const superscript = showSignificanceSuperscript ? (
         <SignificanceIcon asSuperscript={true} />
     ) : null
+
+    // Use the explicit arrow color if given; otherwise use a neutral color
+    // when the value terms are colored, or fallback to semantic coloring
+    const trendArrowColor = arrowColor ?? (colors ? "#787878" : undefined)
 
     return (
         <Variable
@@ -92,7 +91,10 @@ export function TooltipValueRange({
                     {!lastTerm && superscript}
                 </span>
                 {trend && (
-                    <GrapherTrendArrow direction={trend} isColored={!colors} />
+                    <GrapherTrendArrow
+                        direction={trend}
+                        color={trendArrowColor}
+                    />
                 )}
                 {lastTerm && (
                     <span className="term">

@@ -8,7 +8,6 @@ import {
     DEFAULT_GRAPHER_BOUNDS,
     DEFAULT_GRAPHER_ENTITY_TYPE,
     DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL,
-    GRAPHER_TEXT_OUTLINE_FACTOR,
 } from "../core/GrapherConstants"
 import { Halo } from "@ourworldindata/components"
 import { GRAPHER_DARK_TEXT, GRAPHER_LIGHT_TEXT } from "../color/ColorConstants"
@@ -79,7 +78,7 @@ export class NoDataModal extends React.Component<NoDataModalProps> {
 
                 <Halo
                     id="no-data-message"
-                    outlineWidth={GRAPHER_TEXT_OUTLINE_FACTOR * this.fontSize}
+                    fontSize={this.fontSize}
                     show={!this.props.hideTextOutline}
                 >
                     <text
@@ -102,9 +101,7 @@ export class NoDataModal extends React.Component<NoDataModalProps> {
                 {showHelpText && (
                     <Halo
                         id="no-data-help"
-                        outlineWidth={
-                            GRAPHER_TEXT_OUTLINE_FACTOR * helpTextFontSize
-                        }
+                        fontSize={helpTextFontSize}
                         show={!this.props.hideTextOutline}
                     >
                         <text

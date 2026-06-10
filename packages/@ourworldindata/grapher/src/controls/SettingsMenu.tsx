@@ -39,6 +39,7 @@ import {
     NoDataAreaToggleManager,
 } from "./settings/NoDataAreaToggle"
 import { GRAPHER_SETTINGS_CLASS } from "../core/GrapherConstants"
+import { LONG_CHART_TYPE_LABEL } from "../chart/ChartTabs"
 
 const {
     LineChart,
@@ -116,6 +117,7 @@ export class SettingsMenu extends React.Component<SettingsMenuProps> {
                 GRAPHER_CHART_TYPES.DiscreteBar,
                 GRAPHER_CHART_TYPES.StackedDiscreteBar,
                 GRAPHER_CHART_TYPES.Marimekko,
+                GRAPHER_CHART_TYPES.Dumbbell,
             ].includes(this.chartType as any)
         )
             return false // We currently do not have these charts with log scale
@@ -224,10 +226,6 @@ export class SettingsMenu extends React.Component<SettingsMenuProps> {
         return this.props.manager
     }
 
-    @computed private get chartTypeLabel(): string {
-        return this.chartType.replace(/([A-Z])/g, " $1")
-    }
-
     @computed private get selectionArray(): SelectionArray {
         return makeSelectionArray(this.manager.selection)
     }
@@ -313,8 +311,7 @@ export class SettingsMenu extends React.Component<SettingsMenuProps> {
     }
 
     @computed private get menuTitle(): string {
-        const { chartTypeLabel } = this
-        return `${chartTypeLabel} settings`
+        return `${LONG_CHART_TYPE_LABEL[this.chartType]} settings`
     }
 
     private renderSettingsButtonAndPopup(): React.ReactElement {
@@ -332,7 +329,7 @@ export class SettingsMenu extends React.Component<SettingsMenuProps> {
                         aria-label="Chart settings"
                     >
                         <FontAwesomeIcon icon={faGear} />
-                        <span className="label"> Settings</span>
+                        <span className="label">Settings</span>
                     </Button>
                     <Popover
                         className={GRAPHER_SETTINGS_CLASS}

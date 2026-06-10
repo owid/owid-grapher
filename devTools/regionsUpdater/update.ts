@@ -7,7 +7,7 @@ import {
     type Polygon,
     type MultiPolygon,
 } from "geojson"
-import { format, FormatOptions } from "oxfmt"
+import { format, type FormatConfig } from "oxfmt"
 import oxfmtConfig from "../../.oxfmtrc.json"
 import * as _ from "lodash-es"
 import * as R from "remeda"
@@ -132,7 +132,7 @@ async function prettifiedTs(content: string): Promise<string> {
     const result = await format(
         "input.ts",
         content,
-        oxfmtConfig as FormatOptions
+        oxfmtConfig as FormatConfig
     )
     return result.code
 }

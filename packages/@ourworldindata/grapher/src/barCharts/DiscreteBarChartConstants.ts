@@ -5,6 +5,7 @@ import {
     Color,
     CoreValueType,
     ProjectionColumnInfo,
+    SortBy,
     Time,
 } from "@ourworldindata/types"
 import { TextWrap } from "@ourworldindata/components"
@@ -57,11 +58,14 @@ interface DiscreteBarStyle {
     labelOpacity: number
 }
 
+const DEFAULT_DISCRETE_BAR_STYLE: DiscreteBarStyle = {
+    barOpacity: GRAPHER_AREA_OPACITY_DEFAULT,
+    labelOpacity: 1,
+}
+
 export const DISCRETE_BAR_STYLE: Record<Emphasis, DiscreteBarStyle> = {
-    [Emphasis.Default]: {
-        barOpacity: GRAPHER_AREA_OPACITY_DEFAULT,
-        labelOpacity: 1,
-    },
+    [Emphasis.Default]: DEFAULT_DISCRETE_BAR_STYLE,
+    [Emphasis.Elevated]: DEFAULT_DISCRETE_BAR_STYLE,
     [Emphasis.Highlighted]: {
         barOpacity: GRAPHER_AREA_OPACITY_HIGHLIGHTED,
         labelOpacity: 1,
@@ -103,3 +107,10 @@ export type YColumnMode =
 
 export const BACKGROUND_COLOR = "#fff"
 export const BAR_SPACING_FACTOR = 0.35
+
+export const DISCRETE_BAR_SORT_KEYS = [
+    SortBy.custom,
+    SortBy.entityName,
+    SortBy.total,
+] as const
+export type DiscreteBarSortKey = (typeof DISCRETE_BAR_SORT_KEYS)[number]

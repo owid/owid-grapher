@@ -18,6 +18,7 @@ export const VARIABLE_COLOR_STROKE_WIDTH = 2.5
 
 // Marker radius
 export const DEFAULT_MARKER_RADIUS = 1.8
+export const ELEVATED_MARKER_RADIUS = 2.2
 export const VARIABLE_COLOR_MARKER_RADIUS = 2.2
 export const DISCONNECTED_DOTS_MARKER_RADIUS = 2.6
 export const STATIC_SMALL_MARKER_RADIUS = 3
@@ -41,6 +42,10 @@ const DEFAULT_LINE_STYLE: LineStyleConfig = {
 export const LINE_STYLE: Record<Emphasis, LineStyleConfig> = {
     [Emphasis.Default]: DEFAULT_LINE_STYLE,
     [Emphasis.Highlighted]: DEFAULT_LINE_STYLE,
+    [Emphasis.Elevated]: {
+        ...DEFAULT_LINE_STYLE,
+        strokeWidthFactor: 1.33,
+    },
     [Emphasis.Muted]: {
         strokeWidthFactor: 0.66,
         opacity: GRAPHER_OPACITY_MUTED,

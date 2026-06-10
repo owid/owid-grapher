@@ -66,6 +66,10 @@ export const defaultGrapherConfig = {
         time: "latest",
         selectedEntityNames: [],
     },
+    dumbbell: {
+        connectorStyle: "arrow",
+        valueLabelMode: "absolute",
+    },
     invertColorScheme: false,
     logo: "owid",
     hideSeriesLabels: false,

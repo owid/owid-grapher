@@ -173,19 +173,6 @@ function validateManualBreadcrumbs(
     }
 }
 
-function validateApprovedBy(
-    gdoc: OwidGdocDataInsightInterface,
-    errors: OwidGdocErrorMessage[]
-) {
-    if (!gdoc.content["approved-by"]) {
-        errors.push({
-            property: "approved-by",
-            type: OwidGdocErrorMessageType.Error,
-            message: `This data insight hasn't been approved by anyone yet. Please have someone approve it and add "approved-by: their name" to the front-matter.`,
-        })
-    }
-}
-
 function validateGrapherUrl(
     gdoc: OwidGdocDataInsightInterface,
     errors: OwidGdocErrorMessage[]
@@ -307,7 +294,6 @@ export const getErrors = (gdoc: OwidGdoc): OwidGdocErrorMessage[] => {
         validateManualBreadcrumbs(gdoc, errors)
         validateAtomFields(gdoc, errors)
     } else if (checkIsDataInsight(gdoc)) {
-        validateApprovedBy(gdoc, errors)
         validateGrapherUrl(gdoc, errors)
         validateDataInsightImage(gdoc, errors)
     } else if (checkIsAuthor(gdoc)) {

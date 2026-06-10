@@ -248,6 +248,10 @@ export class Explorer
             isEmbeddedInAnOwidPage: this.props.isEmbeddedInAnOwidPage,
             adminBaseUrl: this.adminBaseUrl,
             canHideExternalControlsInEmbed: true,
+            // Iframe embeds are 600px tall when external controls are hidden.
+            // Explorer controls need another 96px, so the embed code we
+            // recommend for explorers with controls is 696px tall.
+            recommendedIframeEmbedHeight: 696,
             archiveContext: props.archiveContext,
             additionalDataLoaderFn: (catalogKey) =>
                 loadCatalogData(catalogKey, {
@@ -558,6 +562,10 @@ export class Explorer
         const params = decisionMatrix.getChoiceParamsForRow(selectedRow)
         const viewId = dimensionsToViewId(params)
         return this.props.chartConfigIdByViewId?.[viewId]
+    }
+
+    @computed get analyticsContext() {
+        return { viewConfigId: this.getChartConfigIdForCurrentParams() }
     }
 
     @action.bound private setGrapherTable(table: OwidTable) {

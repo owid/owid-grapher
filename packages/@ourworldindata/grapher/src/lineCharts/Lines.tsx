@@ -19,7 +19,7 @@ import {
 } from "./LineChartConstants"
 import { Emphasis } from "../interaction/Emphasis"
 import { getSeriesKey } from "../chart/ChartUtils"
-import { GRAPHER_BACKGROUND_DEFAULT } from "../color/ColorConstants"
+import { GRAPHER_BACKGROUND } from "../color/ColorConstants"
 import { MultiColorPolyline } from "../scatterCharts/MultiColorPolyline"
 import { DualAxis } from "../axis/Axis.js"
 
@@ -32,7 +32,6 @@ export interface LinesProps {
     markerRadius?: number
     isStatic?: boolean
     multiColor?: boolean
-    backgroundColor?: string
 }
 
 @observer
@@ -63,11 +62,16 @@ export class Lines extends React.Component<LinesProps> {
     }
 
     @computed private get outlineColor(): string {
-        return this.props.backgroundColor ?? GRAPHER_BACKGROUND_DEFAULT
+        return GRAPHER_BACKGROUND
     }
 
-    // Don't display point markers if there are very many of them for performance reasons
-    // Note that we're using circle elements instead of marker-mid because marker performance in Safari 10 is very poor for some reason
+    /**
+     * Don't display point markers if there are very many of them for
+     * performance reasons
+     *
+     * Note that we're using circle elements instead of marker-mid because
+     * marker performance in Safari 10 is very poor for some reason
+     */
     @computed private get hasMarkers(): boolean {
         if (this.props.hidePoints) return false
         const totalPoints = _.sum(

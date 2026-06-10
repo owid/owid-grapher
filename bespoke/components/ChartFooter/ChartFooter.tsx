@@ -38,7 +38,7 @@ export function ChartFooter({
         <footer ref={footerRef} className={cx("chart-footer", className)}>
             {note ? (
                 <>
-                    <div>
+                    <div className="chart-footer__source">
                         <strong>Data source:</strong> {source}
                     </div>
                     <div className="chart-footer__row chart-footer__note-row">
@@ -50,7 +50,7 @@ export function ChartFooter({
                 </>
             ) : (
                 <div className="chart-footer__row">
-                    <div>
+                    <div className="chart-footer__source">
                         <strong>Data source:</strong> {source}
                     </div>
                     {ccBy}

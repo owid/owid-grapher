@@ -182,8 +182,8 @@ async function writeToSlugMap(path: string, slug: string): Promise<void> {
     return
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-async function resolveSlugs(): Promise<void> {
+// @ts-expect-error unused but keep for reference
+async function _resolveSlugs(): Promise<void> {
     console.log("Resolving slugs 🚀")
     const slugMap = await readSlugMap()
     for (const topicTagName of topicTagNames) {

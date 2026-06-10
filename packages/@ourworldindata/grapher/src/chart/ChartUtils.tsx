@@ -1,6 +1,7 @@
 import * as _ from "lodash-es"
 import * as React from "react"
 import {
+    Bounds,
     Box,
     excludeUndefined,
     getRegionByName,
@@ -21,6 +22,7 @@ import {
     SortBy,
     SortConfig,
     SortOrder,
+    OwidVariableRow,
 } from "@ourworldindata/types"
 import { LineChartSeries } from "../lineCharts/LineChartConstants"
 import { SelectionArray } from "../selection/SelectionArray"
@@ -34,14 +36,16 @@ import {
     Patterns,
     GRAPHER_IMAGE_WIDTH_1X,
     GRAPHER_IMAGE_WIDTH_2X,
+    FontSettings,
 } from "../core/GrapherConstants"
 import { ChartSeries } from "./ChartInterface"
 import {
+    CoreColumn,
     ErrorValueTypes,
     isNotErrorValueOrEmptyCell,
     OwidTable,
 } from "@ourworldindata/core-table"
-import { GRAPHER_BACKGROUND_DEFAULT } from "../color/ColorConstants"
+import { GRAPHER_BACKGROUND } from "../color/ColorConstants"
 import { InteractionState } from "../interaction/InteractionState"
 
 import * as R from "remeda"
@@ -323,10 +327,8 @@ export function NoDataPattern({
 
 export function getChartSvgProps({
     fontSize,
-    backgroundColor,
 }: {
     fontSize?: number
-    backgroundColor?: string
 }): React.SVGProps<SVGSVGElement> {
     return {
         xmlns: "http://www.w3.org/2000/svg",
@@ -335,14 +337,28 @@ export function getChartSvgProps({
             ...SVG_STYLE_PROPS,
             fontSize: fontSize ?? BASE_FONT_SIZE,
             // Needs to be set here or else pngs will have a black background
-            backgroundColor: backgroundColor ?? GRAPHER_BACKGROUND_DEFAULT,
+            backgroundColor: GRAPHER_BACKGROUND,
         },
     }
 }
 
-type SortKeyFn<T> = (item: T) => number | string | undefined
+export type SortKeyFn<T> = (item: T) => number | string | undefined
 
-export type SortKeyFunctions<T> = Record<SortBy, SortKeyFn<T>>
+/** A sort key that leaves items in their input order */
+export const keepInputOrder = Symbol("keepInputOrder")
+
+export type SortKey<T> = SortKeyFn<T> | typeof keepInputOrder
+
+export type SortKeyFunctions<T> = Partial<Record<SortBy, SortKey<T>>>
+
+/** Sort key that orders items by their value in `sortColumn` */
+export function sortByColumnValue<T>(
+    sortColumn: CoreColumn | undefined,
+    getEntityName: (item: T) => EntityName
+): SortKeyFn<T> {
+    return (item) =>
+        sortColumn?.latestValueByEntityName.get(getEntityName(item)) ?? 0
+}
 
 export function sortByConfig<T>(
     items: readonly T[],
@@ -350,10 +366,42 @@ export function sortByConfig<T>(
     keyFns: SortKeyFunctions<T>
 ): T[] {
     const sortByKey = sortConfig.sortBy ?? SortBy.total
-    const sortByFunc = keyFns[sortByKey]
+    const sortByFunc = keyFns[sortByKey] ?? keepInputOrder
     const sortOrder = sortConfig.sortOrder ?? SortOrder.desc
+
+    if (sortByFunc === keepInputOrder)
+        return sortOrder === SortOrder.desc ? items.toReversed() : [...items]
 
     const sortedRows = _.sortBy(items, sortByFunc)
 
     return sortOrder === SortOrder.desc ? sortedRows.toReversed() : sortedRows
+}
+
+export function textWidth(text: string, fontSettings: FontSettings): number {
+    return Bounds.forText(text, fontSettings).width
+}
+
+export function roundFontSize(fontSize: number): number {
+    return Math.round(fontSize * 2) / 2
+}
+
+/**
+ * Checks whether a pair of observations spanning two points in time is valid
+ * given tolerance
+ */
+export function isToleranceDistanceValid(args: {
+    start: OwidVariableRow<number>
+    end: OwidVariableRow<number>
+    tolerance: number
+}): boolean {
+    const { start, end, tolerance } = args
+
+    if (start.originalTime >= end.originalTime) return false
+
+    const isToleranceAppliedToStart = start.originalTime !== start.time
+    const isToleranceAppliedToEnd = end.originalTime !== end.time
+    if (!isToleranceAppliedToStart && !isToleranceAppliedToEnd) return true
+
+    const minRequiredGap = Math.min(tolerance, end.time - start.time)
+    return end.originalTime - start.originalTime >= minRequiredGap
 }

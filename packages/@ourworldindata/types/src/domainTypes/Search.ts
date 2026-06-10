@@ -31,20 +31,6 @@ export const PagesIndexRecordSchema = z.object({
 
 export type PageRecord = z.infer<typeof PagesIndexRecordSchema>
 
-// Lightweight record for the chronological pages index (one per page, no chunked content)
-export type PageChronologicalRecord = {
-    objectID: string
-    type: string
-    slug: string
-    title: string
-    excerpt: string
-    date: string
-    modifiedDate: string
-    authors: string[]
-    tags: string[]
-    thumbnailUrl: string
-}
-
 export const PagesIndexRecordsResponseSchema = z.object({
     records: z.array(PagesIndexRecordSchema),
     count: z.number(),
@@ -342,11 +328,21 @@ export interface WordPositioned {
 
 export type Ngram = WordPositioned[]
 
+export type ChartViewsMap = {
+    byConfigId: Map<string, number>
+    byGrapherSlug: Map<string, number>
+}
+
 /**
  * Context object containing shared enrichment data needed for Algolia indexing of chart, explorer and multi-dim views.
  */
 export interface IndexingContext {
-    /** Pageview data by URL (e.g., "/grapher/life-expectancy" -> { views_7d: 1234, views_14d: 5678, views_365d: 12345 }) */
+    /**
+     * Page-level pageview data by URL (e.g., "/grapher/life-expectancy" ->
+     * { views_7d: 1234, views_14d: 5678, views_365d: 12345 }). Used by the
+     * AI-search chart index to expose the longer (14d/365d) ranking windows
+     * that chartViewsMap (7d only) does not provide.
+     */
     pageviews: Record<
         string,
         { views_7d: number; views_14d: number; views_365d: number }
@@ -360,16 +356,11 @@ export interface IndexingContext {
         string,
         Array<Array<{ id: number; name: string; slug: string | null }>>
     >
+    chartViewsMap: ChartViewsMap
 }
 
 export type ChartsIndexingContext = IndexingContext & {
     redirectsByChartId: Map<number, string[]>
 }
 
-export const CHRONOLOGICAL_INDEX_TYPES = new Set<string>([
-    OwidGdocType.Article,
-    OwidGdocType.LinearTopicPage,
-    OwidGdocType.TopicPage,
-    OwidGdocType.DataInsight,
-    OwidGdocType.Announcement,
-])
+export type ExplorerIndexingContext = IndexingContext

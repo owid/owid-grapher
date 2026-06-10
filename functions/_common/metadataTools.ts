@@ -7,6 +7,7 @@ import {
     getCitationShort,
     getAttributionFragmentsFromVariable,
     getCitationLong,
+    stripDetailOnDemandLinks,
 } from "@ourworldindata/utils"
 import { getGrapherFilters } from "./urlTools.js"
 
@@ -200,5 +201,7 @@ export function assembleMetadata(
         ),
     }
 
-    return fullMetadata
+    return _.cloneDeepWith(fullMetadata, (value) =>
+        typeof value === "string" ? stripDetailOnDemandLinks(value) : undefined
+    )
 }

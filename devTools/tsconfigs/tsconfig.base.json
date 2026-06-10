@@ -1,5 +1,5 @@
 {
-    "extends": "@tsconfig/node22/tsconfig.json",
+    "extends": "@tsconfig/node24/tsconfig.json",
     "compilerOptions": {
         "module": "commonjs",
         "resolveJsonModule": true,
@@ -28,6 +28,7 @@
 
         "alwaysStrict": true,
         "noImplicitReturns": true,
+        "noUnusedLocals": true,
         "allowJs": false,
         "sourceMap": true,
         "moduleResolution": "bundler",

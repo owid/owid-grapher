@@ -18,6 +18,7 @@ import {
     getUniqueNamesFromTagHierarchies,
 } from "@ourworldindata/utils"
 import {
+    computeRecordScore,
     maybeAddChangeInPrefix,
     processAvailableEntities,
     parseJsonStringArray,
@@ -28,27 +29,12 @@ import { getMaxViewsAllWindows } from "./pageviews.js"
 import { createChartsIndexingContext } from "./context.js"
 import pMap from "p-map"
 
-const computeChartScore = (
-    numRelatedArticles: number,
-    views_7d: number
-): number => numRelatedArticles * 500 + views_7d
-
 const parseRawChartRecord = (
     rawRecord: RawChartRecordRow
 ): ParsedChartRecordRow => {
-    let parsedEntities: string[] = []
-    if (rawRecord.entityNames !== null) {
-        // This is a very rough way to check for the Algolia record size limit, but it's better than the update failing
-        // because we exceed the 20KB record size limit
-        if (rawRecord.entityNames.length < 12000)
-            parsedEntities = JSON.parse(rawRecord.entityNames) as string[]
-        else {
-            console.info(
-                `Chart ${rawRecord.id} has too many entities, skipping its entities`
-            )
-        }
-    }
-    const entityNames = processAvailableEntities(parsedEntities)
+    const entityNames = processAvailableEntities(
+        JSON.parse(rawRecord.entityNames)
+    )
 
     const tags = JSON.parse(rawRecord.tags) as string[]
     const keyChartForTags = JSON.parse(rawRecord.keyChartForTags) as string[]
@@ -105,11 +91,20 @@ function getChartViewsAllWindows(
     chartId: number
 ): { views_7d: number; views_14d: number; views_365d: number } {
     const redirectSlugs = context.redirectsByChartId.get(chartId) ?? []
-    const urls = [
-        `/grapher/${slug}`,
-        ...redirectSlugs.map((redirectSlug) => `/grapher/${redirectSlug}`),
-    ]
-    return getMaxViewsAllWindows(context.pageviews, urls)
+    const slugs = [slug, ...redirectSlugs]
+    // 7d comes from chartViewsMap (master's authoritative chart-view source,
+    // keyed by grapher slug). The longer 14d/365d windows aren't available
+    // there, so derive them from page-level pageviews keyed by /grapher URL.
+    const views_7d = Math.max(
+        0,
+        ...slugs.map((s) => context.chartViewsMap.byGrapherSlug.get(s) ?? 0)
+    )
+    const urls = slugs.map((s) => `/grapher/${s}`)
+    const { views_14d, views_365d } = getMaxViewsAllWindows(
+        context.pageviews,
+        urls
+    )
+    return { views_7d, views_14d, views_365d }
 }
 
 /**
@@ -295,7 +290,7 @@ async function buildChartRecord(
         datasetVersions: chart.datasetVersions,
         datasetProducts: chart.datasetProducts,
         datasetProducers: chart.datasetProducers,
-        score: computeChartScore(numRelatedArticles, views_7d),
+        score: computeRecordScore(numRelatedArticles, views_7d),
     }
 }
 

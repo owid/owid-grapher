@@ -21,6 +21,8 @@ import {
     type EnrichedHybridLink,
     type OwidGdocPostInterface,
     type OwidGdocDataInsightInterface,
+    type ChronologicalGdoc,
+    type LatestFeedGdoc,
     type OwidGdocAuthorInterface,
     type OwidGdoc,
     OwidGdocType,
@@ -46,8 +48,8 @@ import {
     FEATURED_DATA_INSIGHTS_ID,
     EXPLORE_DATA_SECTION_DEFAULT_TITLE,
     EXPLORE_DATA_SECTION_ID,
-    OwidGdocAnnouncementInterface,
     CHRONOLOGICAL_INDEX_TYPES,
+    LATEST_FEED_TYPES,
 } from "@ourworldindata/types"
 import { Point, PointVector } from "./PointVector.js"
 import * as React from "react"
@@ -107,6 +109,8 @@ export type RequiredBy<T, K extends keyof T> = Omit<T, K> & Required<Pick<T, K>>
 // doesn't do anything fancy, but makes it a bit more readable by skipping one layer of angle brackets:
 // PartialRecord<A, B> = Partial<Record<A, B>>
 export type PartialRecord<K extends keyof any, V> = Partial<Record<K, V>>
+
+export type Pair<T> = [T, T]
 
 // d3 v6 changed the default minus sign used in d3-format to "−" (Unicode minus sign), which looks
 // nicer but can cause issues when copy-pasting values into a spreadsheet or script.
@@ -1196,11 +1200,12 @@ export const formatDate = (date: Date): string => {
  * stage, the manual approach is probably simpler.
  */
 export const getOwidGdocFromJSON = (json: OwidGdocJSON): OwidGdoc => {
+    const createdAt = new Date(json.createdAt)
     return {
         ...json,
-        createdAt: new Date(json.createdAt),
+        createdAt,
         publishedAt: json.publishedAt ? new Date(json.publishedAt) : null,
-        updatedAt: json.updatedAt ? new Date(json.updatedAt) : null,
+        updatedAt: json.updatedAt ? new Date(json.updatedAt) : createdAt,
     }
 }
 
@@ -1353,6 +1358,7 @@ export async function copyToClipboard(text: string): Promise<boolean> {
         textarea.select()
 
         try {
+            // oxlint-disable-next-line typescript/no-deprecated we're using a deprecated API only as a fallback here
             return document.execCommand("copy")
         } catch (err) {
             console.error("Failed to copy text to clipboard", err)
@@ -1733,6 +1739,12 @@ export function traverseEnrichedBlock(
                 traverseEnrichedBlock(node, callback, spanCallback)
             }
         })
+        .with({ type: "data-callout-group" }, (dataCalloutGroup) => {
+            callback(dataCalloutGroup)
+            for (const node of dataCalloutGroup.content) {
+                traverseEnrichedBlock(node, callback, spanCallback)
+            }
+        })
         .with({ type: "chart-rows" }, (block) => {
             callback(block)
             for (const row of block.rows) {
@@ -1932,7 +1944,9 @@ export function lowercaseObjectKeys(
  * #dod:text_underscored-and-hyphenated
  * Duplicated in parser.ts
  */
-export const detailOnDemandRegex = /#dod:([\w\-_]+)/
+export const detailOnDemandRegex = /#dod:([A-Za-z0-9_-]+)/
+
+export const detailOnDemandLinkRegex = /\[([^\]]+)\]\(#dod:([A-Za-z0-9_-]+)\)/g
 
 export const guidedChartRegex = /#guide:(https?:\/\/[^\s]+)/
 
@@ -1951,6 +1965,10 @@ export function extractDetailsFromSyntax(str: string): string[] {
     return [...str.matchAll(new RegExp(detailOnDemandRegex, "g"))].map(
         ([_, term]) => term
     )
+}
+
+export function stripDetailOnDemandLinks(str: string): string {
+    return str.replace(detailOnDemandLinkRegex, "$1")
 }
 
 /**
@@ -2010,15 +2028,26 @@ export function checkIsHomepage(
 
 /**
  * Posts that should show up in the chronological algolia index
- * for dynamic RSS feeds & /latest page
+ * for dynamic RSS feeds & /latest page.
+ *
+ * See `isChronologicalGdocInstance` for a class-narrowing variant used by
+ * the bulk indexer.
  */
-export function checkIsChronologicalFeedPost(gdoc: {
+export function checkIsChronologicalGdoc(gdoc: {
     content: { type?: OwidGdocType }
-}): gdoc is
-    | OwidGdocPostInterface
-    | OwidGdocDataInsightInterface
-    | OwidGdocAnnouncementInterface {
+}): gdoc is ChronologicalGdoc {
     return CHRONOLOGICAL_INDEX_TYPES.has(gdoc.content.type as string)
+}
+
+/**
+ * Posts that should show up on /latest. Subset of `checkIsChronologicalGdoc`
+ * that excludes topic pages (which are indexed for the atom feed but
+ * filtered out of /latest by `LATEST_BASE_FILTER`).
+ */
+export function checkIsLatestFeedGdoc(gdoc: {
+    content: { type?: OwidGdocType }
+}): gdoc is LatestFeedGdoc {
+    return LATEST_FEED_TYPES.has(gdoc.content.type as string)
 }
 
 /**
@@ -2311,10 +2340,20 @@ export const merge: typeof _.merge = (
 
 export function calculateTrendDirection(
     startValue?: PrimitiveType,
-    endValue?: PrimitiveType
+    endValue?: PrimitiveType,
+    formatValue?: (value: PrimitiveType) => string
 ): GrapherTrendArrowDirection | undefined {
-    if (typeof startValue !== "number" || typeof endValue !== "number")
+    if (
+        startValue === undefined ||
+        endValue === undefined ||
+        typeof startValue !== "number" ||
+        typeof endValue !== "number"
+    )
         return undefined
+
+    if (formatValue && formatValue(startValue) === formatValue(endValue))
+        return "right"
+
     return endValue > startValue
         ? "up"
         : endValue < startValue

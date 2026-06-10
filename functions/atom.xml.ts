@@ -1,8 +1,9 @@
 import * as Sentry from "@sentry/cloudflare"
 import {
+    LATEST_TYPE_VALUES,
+    LatestType,
     OwidGdocType,
     SearchIndexName,
-    CHRONOLOGICAL_INDEX_TYPES,
 } from "@ourworldindata/types"
 import { getCanonicalUrl } from "@ourworldindata/components"
 import { Env } from "./_common/env.js"
@@ -37,7 +38,7 @@ interface FeedHit {
 
 async function queryChronologicalPages(
     config: AlgoliaConfig,
-    pageTypes: string[] | undefined,
+    latestTypes: LatestType[] | undefined,
     topicFacetFilters: (string | string[])[]
 ): Promise<FeedHit[]> {
     const indexName = getIndexName(
@@ -45,8 +46,8 @@ async function queryChronologicalPages(
         config.indexPrefix
     )
 
-    const filters = pageTypes?.length
-        ? pageTypes.map((type) => `type:${type}`).join(" OR ")
+    const filters = latestTypes?.length
+        ? latestTypes.map((type) => `latestType:${type}`).join(" OR ")
         : undefined
     const facetFilters = topicFacetFilters.length
         ? topicFacetFilters
@@ -159,7 +160,7 @@ function generateAtomFeed(
 <feed xmlns="http://www.w3.org/2005/Atom">
 <title>${title}</title>
 <subtitle>Research and data to make progress against the world’s largest problems</subtitle>
-<id>${escapeXml(baseUrl)}/</id>
+<id>${escapeXml(feedUrl)}</id>
 <link type="text/html" rel="alternate" href="${escapeXml(baseUrl)}"/>
 <link type="application/atom+xml" rel="self" href="${escapeXml(feedUrl)}"/>
 <updated>${updated}</updated>
@@ -167,20 +168,24 @@ ${entries}
 </feed>`
 }
 
+// "~" separator matches /search and /latest URL conventions
+// (see serializeSet/deserializeSet in site/search/searchUtils.tsx).
 function parseTopics(param: string | null): string[] {
     if (!param) return []
     return param
-        .split(",")
+        .split("~")
         .map((t) => t.trim())
         .filter(Boolean)
 }
 
-function parsePageTypes(param: string | null): string[] | undefined {
+function parseLatestTypes(param: string | null): LatestType[] | undefined {
     if (!param) return undefined
     return param
-        .split(",")
+        .split("~")
         .map((t) => t.trim())
-        .filter((t) => CHRONOLOGICAL_INDEX_TYPES.has(t))
+        .filter((t): t is LatestType =>
+            (LATEST_TYPE_VALUES as readonly string[]).includes(t)
+        )
 }
 
 export const onRequestGet: PagesFunction<Env> = async (context) => {
@@ -197,11 +202,11 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
 
     try {
         const topics = parseTopics(topicsParam)
-        const pageTypes = parsePageTypes(typeParam)
+        const latestTypes = parseLatestTypes(typeParam)
 
-        if (typeParam && pageTypes?.length === 0) {
+        if (typeParam && latestTypes?.length === 0) {
             return new Response(
-                `Invalid type parameter. Allowed types: ${[...CHRONOLOGICAL_INDEX_TYPES].join(", ")}`,
+                `Invalid type parameter. Allowed types: ${LATEST_TYPE_VALUES.join(", ")}`,
                 { status: 400, headers: { "Content-Type": "text/plain" } }
             )
         }
@@ -215,7 +220,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
 
         const hits = await queryChronologicalPages(
             algoliaConfig,
-            pageTypes,
+            latestTypes,
             topicFacetFilters
         )
 

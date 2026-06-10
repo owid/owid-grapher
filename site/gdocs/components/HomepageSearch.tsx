@@ -1,6 +1,7 @@
 import { useContext } from "react"
 import { Autocomplete } from "../../search/Autocomplete.js"
 import { AttachmentsContext } from "../AttachmentsContext.js"
+import { useDocumentContext } from "../DocumentContext.js"
 import { commafyNumber } from "@ourworldindata/utils"
 import { SEARCH_BASE_PATH } from "../../search/searchUtils.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -9,16 +10,20 @@ import {
     faBookmark,
     faChartLine,
     faMagnifyingGlassChart,
+    faNewspaper,
 } from "@fortawesome/free-solid-svg-icons"
 import { BAKED_BASE_URL } from "../../../settings/clientSettings.js"
+import { buildLatestPagePath } from "../../latest/latestUtils.js"
 
 export function HomepageSearch(props: { className?: string }) {
     const { homepageMetadata } = useContext(AttachmentsContext)
+    const { isPreviewing } = useDocumentContext()
     const chartCount = homepageMetadata?.chartCount
     const topicCount = homepageMetadata?.topicCount
     const explorerCount = homepageMetadata?.explorerCount
+    const articleCount = homepageMetadata?.articleCount
     const message =
-        chartCount && topicCount && explorerCount ? (
+        chartCount && topicCount && explorerCount && articleCount ? (
             <div>
                 <ul className="homepage-search__links">
                     <li>
@@ -48,6 +53,15 @@ export function HomepageSearch(props: { className?: string }) {
                             {commafyNumber(explorerCount)} data explorers
                         </a>
                     </li>
+                    <li>
+                        <a
+                            className="homepage-search__link body-3-medium"
+                            href={buildLatestPagePath("article")}
+                        >
+                            <FontAwesomeIcon icon={faNewspaper} />
+                            {commafyNumber(articleCount)} articles
+                        </a>
+                    </li>
                 </ul>
                 <div className="homepage-search__links--mobile">
                     <a href="/data" className="body-3-medium">
@@ -56,13 +70,13 @@ export function HomepageSearch(props: { className?: string }) {
                     across {commafyNumber(topicCount)} topics
                 </div>
                 <p className="homepage-search__tagline">
-                    All free: open access and open source
+                    All free: open access and openly licensed
                 </p>
             </div>
         ) : (
             <p className="homepage-search__tagline">
                 Thousands of charts across 200 topics - All free: open access
-                and open source
+                and openly licensed
             </p>
         )
     return (
@@ -80,6 +94,7 @@ export function HomepageSearch(props: { className?: string }) {
             <Autocomplete
                 className="span-cols-6 col-start-5 span-md-cols-10 col-md-start-3 span-sm-cols-12 col-sm-start-2"
                 panelClassName="homepage-search__panel"
+                isPreviewing={isPreviewing}
             />
             <div className="span-cols-14 homepage-search__links-and-tagline">
                 {message}

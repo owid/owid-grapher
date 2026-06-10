@@ -1,8 +1,13 @@
 import { InteractionState } from "./InteractionState.js"
 
 export enum Emphasis {
+    /** Default emphasis */
     Default = "default",
+    /** Slightly elevated emphasis */
+    Elevated = "elevated",
+    /** Strongly highlighted emphasis */
     Highlighted = "highlighted",
+    /** Muted emphasis */
     Muted = "muted",
 }
 

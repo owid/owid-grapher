@@ -790,6 +790,12 @@ export function enrichedBlockToRawBlock(
                 ) as RawBlockText[],
             },
         }))
+        .with({ type: "data-callout-group" }, (b) => ({
+            type: "data-callout-group" as const,
+            value: {
+                content: b.content.map(enrichedBlockToRawBlock),
+            },
+        }))
         .with(
             { type: "country-profile-selector" },
             (b): RawBlockCountryProfileSelector => ({

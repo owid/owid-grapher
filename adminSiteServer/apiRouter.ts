@@ -1,6 +1,13 @@
 /* eslint @typescript-eslint/no-unused-vars: [ "warn", { argsIgnorePattern: "^(res|req)$" } ] */
 
 import { TaggableType } from "@ourworldindata/types"
+import {
+    getSlideshows,
+    getSlideshowById,
+    createSlideshow,
+    updateSlideshow,
+    deleteSlideshow,
+} from "./apiRoutes/slideshows.js"
 import { DeployQueueServer } from "../baker/DeployQueueServer.js"
 import {
     updateVariableAnnotations,
@@ -85,6 +92,7 @@ import {
 } from "./apiRoutes/suggest.js"
 import {
     handleGetFlatTagGraph,
+    handleGetTopicTagGraph,
     handlePostTagGraph,
 } from "./apiRoutes/tagGraph.js"
 import {
@@ -108,6 +116,7 @@ import {
     getVariableDataJson,
     getVariableMetadataJson,
     getVariablesJson,
+    getLatestVariableIdsByCatalogPathJson,
     getVariablesUsagesJson,
     getVariablesGrapherConfigETLPatchConfigJson,
     getVariablesGrapherConfigAdminPatchConfigJson,
@@ -131,7 +140,6 @@ import {
 } from "./functionalRouterHelpers.js"
 import {
     getChartsJson,
-    getChartsCsv,
     getChartConfigJson,
     getChartParentJson,
     getChartSettingsJson,
@@ -160,6 +168,7 @@ import {
     deleteFeaturedMetric,
     fetchFeaturedMetrics,
     rerankFeaturedMetrics,
+    updateFeaturedMetricBoost,
 } from "./apiRoutes/featuredMetrics.js"
 import {
     getDods,
@@ -199,7 +208,6 @@ getRouteWithROTransaction(
 
 // Chart routes
 getRouteWithROTransaction(apiRouter, "/charts.json", getChartsJson)
-getRouteWithROTransaction(apiRouter, "/charts.csv", getChartsCsv)
 getRouteWithROTransaction(
     apiRouter,
     "/charts/:chartId.config.json",
@@ -289,6 +297,13 @@ getRouteWithROTransaction(
     "/narrative-charts/:id.references.json",
     getNarrativeChartReferences
 )
+
+// Slideshow routes
+getRouteWithROTransaction(apiRouter, "/slideshows.json", getSlideshows)
+getRouteWithROTransaction(apiRouter, "/slideshows/:id.json", getSlideshowById)
+postRouteWithRWTransaction(apiRouter, "/slideshows", createSlideshow)
+putRouteWithRWTransaction(apiRouter, "/slideshows/:id", updateSlideshow)
+deleteRouteWithRWTransaction(apiRouter, "/slideshows/:id", deleteSlideshow)
 
 // Dataset routes
 getRouteWithROTransaction(apiRouter, "/datasets.json", getDatasets)
@@ -474,6 +489,11 @@ postRouteWithRWTransaction(
     "/featured-metrics/rerank",
     rerankFeaturedMetrics
 )
+putRouteWithRWTransaction(
+    apiRouter,
+    "/featured-metrics/:id/boost",
+    updateFeaturedMetricBoost
+)
 deleteRouteWithRWTransaction(
     apiRouter,
     "/featured-metrics/:id",
@@ -541,6 +561,11 @@ getRouteWithROTransaction(
     "/flatTagGraph.json",
     handleGetFlatTagGraph
 )
+getRouteWithROTransaction(
+    apiRouter,
+    "/topicTagGraph.json",
+    handleGetTopicTagGraph
+)
 postRouteWithRWTransaction(apiRouter, "/tagGraph", handlePostTagGraph)
 getRouteWithROTransaction(apiRouter, "/tags/:tagId.json", getTagById)
 putRouteWithRWTransaction(apiRouter, "/tags/:tagId", updateTag)
@@ -586,6 +611,11 @@ getRouteWithROTransaction(
     apiRouter,
     "/variables.usages.json",
     getVariablesUsagesJson
+)
+getRouteWithROTransaction(
+    apiRouter,
+    "/variables.latestByCatalogPath.json",
+    getLatestVariableIdsByCatalogPathJson
 )
 getRouteWithROTransaction(
     apiRouter,

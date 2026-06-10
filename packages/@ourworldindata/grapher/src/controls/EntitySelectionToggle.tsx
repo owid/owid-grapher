@@ -125,7 +125,7 @@ export class EntitySelectionToggle extends React.Component<{
                     aria-label={`${label.action} ${label.entity}`}
                 >
                     {label.icon}
-                    <label>
+                    <label className="label">
                         {label.action} <span>{label.entity}</span>
                     </label>
                 </button>

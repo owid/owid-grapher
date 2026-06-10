@@ -10,6 +10,7 @@ import {
     type DataDownloadContextBase,
     type DataDownloadContextServerSide,
 } from "./download.js"
+import { useIsomorphicLayoutEffect } from "usehooks-ts"
 
 /**
  * Like useState, but clearing (setting to undefined) is debounced.
@@ -91,19 +92,40 @@ export function useDataApiDownloadConfig({
 
 // Auto-updating Bounds object based on ResizeObserver
 // Optionally throttles the bounds updates
-export const useElementBounds = (
+//
+// The `T` type parameter narrows the return type based on `initialValue`:
+// passing `null` widens the return to `Bounds | null` (so callers can detect
+// the pre-measurement state); omitting it keeps the return as `Bounds`.
+export function useElementBounds<T extends Bounds | null = Bounds>(
     ref: RefObject<HTMLElement | null>,
-    initialValue: Bounds = DEFAULT_GRAPHER_BOUNDS,
-    throttleTime: number | undefined = 100
-) => {
-    const [bounds, setBounds] = useState<Bounds>(initialValue)
+    initialValue: T = DEFAULT_GRAPHER_BOUNDS as T,
+    throttleTime: number = 100
+): Bounds | T {
+    const [bounds, setBounds] = useState<Bounds | T>(initialValue)
 
     const updateBoundsImmediately = useCallback(
         (width: number, height: number) => {
-            setBounds(new Bounds(0, 0, width, height))
+            setBounds((currentBounds) => {
+                if (
+                    currentBounds?.width === width &&
+                    currentBounds.height === height
+                ) {
+                    return currentBounds
+                }
+
+                return new Bounds(0, 0, width, height)
+            })
         },
         []
     )
+
+    useIsomorphicLayoutEffect(() => {
+        const element = ref.current
+        if (!element) return
+
+        const { width, height } = element.getBoundingClientRect()
+        updateBoundsImmediately(width, height)
+    }, [ref, updateBoundsImmediately])
 
     const updateBoundsThrottled = useMemo(
         () =>

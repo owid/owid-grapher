@@ -21,9 +21,9 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { isTouchDevice } from "@ourworldindata/utils"
 
 export interface BasicDropdownOption {
-    trackNote?: string
     value: string
     label: React.ReactNode
+    trackNote?: string
 }
 
 export interface DropdownOptionGroup<
@@ -56,9 +56,16 @@ export interface DropdownProps<DropdownOption extends BasicDropdownOption> {
         option: DropdownOption | null
     ) => React.ReactNode | undefined
     renderMenuOption?: (option: DropdownOption) => React.ReactNode
-    portalContainer?: HTMLElement
     "data-track-note"?: string
     "aria-label"?: string
+}
+
+// This attribute and function are being used to detect whether a dropdown is currently open in order to prevent modals or drawers from being dismissed by their click-outside handler.
+// React-Aria portals popovers (used for the dropdown menu) to the end of the document body, so we can't rely on simple DOM containment checks to determine if a click is happening inside the dropdown or not.
+const owidDropdownDataAttribute = "data-owid-dropdown"
+
+export function isOwidDropdownOpen(): boolean {
+    return document.querySelector(`[${owidDropdownDataAttribute}]`) !== null
 }
 
 function isOptionGroup<DropdownOption extends BasicDropdownOption>(
@@ -93,7 +100,6 @@ export function Dropdown<DropdownOption extends BasicDropdownOption>({
     isSearchable,
     renderTriggerValue,
     renderMenuOption,
-    portalContainer,
     ...otherProps
 }: DropdownProps<DropdownOption>): React.ReactElement {
     const { contains } = useFilter({ sensitivity: "base" })
@@ -160,13 +166,49 @@ export function Dropdown<DropdownOption extends BasicDropdownOption>({
         </ListBox>
     )
 
+    const popover = (
+        <Popover
+            className={cx("grapher-dropdown-menu", menuClassName)}
+            data-owid-dropdown=""
+            offset={4}
+        >
+            {isSearchable ? (
+                // If inputValue is provided, the component is controlled
+                // and we expect the filtering to happen outside of it.
+                <Autocomplete filter={inputValue ? undefined : contains}>
+                    <SearchField
+                        className="grapher-dropdown-search"
+                        aria-label="Search"
+                        autoFocus
+                        value={inputValue}
+                        onChange={onInputChange}
+                    >
+                        <span className="grapher-dropdown-search-icon" />
+                        <Input
+                            className="grapher-dropdown-search-input"
+                            style={{
+                                fontSize: isTouchDevice() ? 16 : undefined,
+                            }}
+                        />
+                        <Button className="grapher-dropdown-search-reset">
+                            <FontAwesomeIcon icon={faTimesCircle} aria-hidden />
+                        </Button>
+                    </SearchField>
+                    {listBox}
+                </Autocomplete>
+            ) : (
+                listBox
+            )}
+        </Popover>
+    )
+
     return (
         <Select
             className={cx("grapher-dropdown", className)}
             // null means no selection, undefined means the component is
             // uncontrolled, so we need to set it explicitly.
-            selectedKey={value?.value ?? null}
-            onSelectionChange={handleSelectionChange}
+            value={value?.value ?? null}
+            onChange={handleSelectionChange}
             placeholder={placeholder}
             isDisabled={isDisabled}
             {...otherProps}
@@ -194,48 +236,7 @@ export function Dropdown<DropdownOption extends BasicDropdownOption>({
                     aria-label="Clear selection"
                 />
             )}
-            {/* Note: "portaled-popover" class is used by SlideInDrawer to detect
-                clicks inside portaled popovers. Update both if renaming. */}
-            <Popover
-                className={cx(
-                    "grapher-dropdown-menu",
-                    "portaled-popover",
-                    menuClassName
-                )}
-                offset={4}
-                UNSTABLE_portalContainer={portalContainer}
-            >
-                {isSearchable ? (
-                    // If inputValue is provided, the component is controlled
-                    // and we expect the filtering to happen outside of it.
-                    <Autocomplete filter={inputValue ? undefined : contains}>
-                        <SearchField
-                            className="grapher-dropdown-search"
-                            aria-label="Search"
-                            autoFocus
-                            value={inputValue}
-                            onChange={onInputChange}
-                        >
-                            <span className="grapher-dropdown-search-icon" />
-                            <Input
-                                className="grapher-dropdown-search-input"
-                                style={{
-                                    fontSize: isTouchDevice() ? 16 : undefined,
-                                }}
-                            />
-                            <Button className="grapher-dropdown-search-reset">
-                                <FontAwesomeIcon
-                                    icon={faTimesCircle}
-                                    aria-hidden
-                                />
-                            </Button>
-                        </SearchField>
-                        {listBox}
-                    </Autocomplete>
-                ) : (
-                    listBox
-                )}
-            </Popover>
+            {popover}
         </Select>
     )
 }

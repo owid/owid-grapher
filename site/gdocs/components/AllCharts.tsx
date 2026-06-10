@@ -53,7 +53,7 @@ export function AllCharts(props: AllChartsProps) {
 
     const sortedRelatedCharts = sortRelatedCharts(relatedCharts, topSlugs)
     return (
-        <div className={cx(className)}>
+        <section className={cx(className, "needs-dividers")}>
             <h1 className="article-block__heading h1-semibold" id={id}>
                 <span>
                     {firstTag ? `Key Charts on ${firstTag.name}` : heading}
@@ -69,6 +69,6 @@ export function AllCharts(props: AllChartsProps) {
                 showKeyChartsOnly={true}
                 charts={sortedRelatedCharts}
             />
-        </div>
+        </section>
     )
 }

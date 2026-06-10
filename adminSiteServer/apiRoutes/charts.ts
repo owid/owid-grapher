@@ -23,8 +23,7 @@ import {
     parseIntOrUndefined,
     omitUndefinedValues,
 } from "@ourworldindata/utils"
-import Papa from "papaparse"
-import { uuidv7 } from "uuidv7"
+import { v7 as uuidv7 } from "uuid"
 import {
     References,
     StaticVizReference,
@@ -51,10 +50,6 @@ import {
 import { UpdatedChartInheritanceRecord } from "../../db/model/Variable.js"
 import { enqueueExplorerRefreshJobsForDependencies } from "../../db/model/Explorer.js"
 import { expectInt } from "../../serverUtils/serverUtil.js"
-import {
-    BAKED_BASE_URL,
-    ADMIN_BASE_URL,
-} from "../../settings/clientSettings.js"
 import {
     retrieveChartConfigFromDbAndSaveToR2,
     updateChartConfigInDbAndR2,
@@ -266,6 +261,8 @@ const saveNewChart = async (
     const patchConfig = diffGrapherConfigs(config, parent?.config ?? {})
     const fullConfig = mergeGrapherConfigs(parent?.config ?? {}, patchConfig)
 
+    const now = new Date()
+
     // insert patch & full configs into the chart_configs table
     // We can't quite use `saveNewChartConfigInDbAndR2` here, because
     // we need to update the chart id in the config after inserting it.
@@ -273,13 +270,15 @@ const saveNewChart = async (
     await db.knexRaw(
         knex,
         `-- sql
-            INSERT INTO chart_configs (id, patch, full)
-            VALUES (?, ?, ?)
+            INSERT INTO chart_configs (id, patch, full, createdAt, updatedAt)
+            VALUES (?, ?, ?, ?, ?)
         `,
         [
             chartConfigId,
             serializeChartConfig(patchConfig),
             serializeChartConfig(fullConfig),
+            now,
+            now,
         ]
     )
 
@@ -287,10 +286,18 @@ const saveNewChart = async (
     const result = await db.knexRawInsert(
         knex,
         `-- sql
-            INSERT INTO charts (configId, isInheritanceEnabled, forceDatapage, lastEditedAt, lastEditedByUserId)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO charts (
+                configId,
+                isInheritanceEnabled,
+                forceDatapage,
+                createdAt,
+                updatedAt,
+                lastEditedAt,
+                lastEditedByUserId
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?)
         `,
-        [chartConfigId, shouldInherit, forceDatapage, new Date(), user.id]
+        [chartConfigId, shouldInherit, forceDatapage, now, now, now, user.id]
     )
 
     // The chart config itself has an id field that should store the id of the chart - update the chart now so this is true
@@ -361,7 +368,8 @@ const updateExistingChart = async (
         knex,
         chartConfigIdRow.configId as Base64String,
         patchConfig,
-        fullConfig
+        fullConfig,
+        now
     )
 
     const forceDatapage =
@@ -602,66 +610,6 @@ export async function getChartsJson(
     await assignTagsForCharts(trx, charts)
 
     return { charts }
-}
-
-export async function getChartsCsv(
-    req: Request,
-    res: HandlerResponse,
-    trx: db.KnexReadonlyTransaction
-) {
-    const limit = parseIntOrUndefined(req.query.limit as string) ?? 10000
-
-    // note: this query is extended from OldChart.listFields.
-    const charts = await db.knexRaw(
-        trx,
-        `-- sql
-            SELECT
-                charts.id,
-                chart_configs.full->>"$.version" AS version,
-                CONCAT("${BAKED_BASE_URL}/grapher/", chart_configs.full->>"$.slug") AS url,
-                CONCAT("${ADMIN_BASE_URL}", "/admin/charts/", charts.id, "/edit") AS editUrl,
-                chart_configs.full->>"$.slug" AS slug,
-                chart_configs.full->>"$.title" AS title,
-                chart_configs.full->>"$.subtitle" AS subtitle,
-                chart_configs.full->>"$.sourceDesc" AS sourceDesc,
-                chart_configs.full->>"$.note" AS note,
-                chart_configs.chartType AS type,
-                chart_configs.full->>"$.internalNotes" AS internalNotes,
-                chart_configs.full->>"$.variantName" AS variantName,
-                chart_configs.full->>"$.isPublished" AS isPublished,
-                chart_configs.full->>"$.tab" AS tab,
-                chart_configs.chartType IS NOT NULL AS hasChartTab,
-                JSON_EXTRACT(chart_configs.full, "$.hasMapTab") = true AS hasMapTab,
-                chart_configs.full->>"$.originUrl" AS originUrl,
-                charts.lastEditedAt,
-                charts.lastEditedByUserId,
-                lastEditedByUser.fullName AS lastEditedBy,
-                charts.publishedAt,
-                charts.publishedByUserId,
-                publishedByUser.fullName AS publishedBy
-            FROM charts
-            JOIN chart_configs ON chart_configs.id = charts.configId
-            JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
-            LEFT JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
-            ORDER BY charts.lastEditedAt DESC
-            LIMIT ?
-        `,
-        [limit]
-    )
-    // note: retrieving references is VERY slow.
-    // await Promise.all(
-    //     charts.map(async (chart: any) => {
-    //         const references = await getReferencesByChartId(chart.id)
-    //         chart.references = references.length
-    //             ? references.map((ref) => ref.url)
-    //             : ""
-    //     })
-    // )
-    // await Chart.assignTagsForCharts(charts)
-    res.setHeader("Content-disposition", "attachment; filename=charts.csv")
-    res.setHeader("content-type", "text/csv")
-    const csv = Papa.unparse(charts)
-    return csv
 }
 
 export async function getChartConfigJson(

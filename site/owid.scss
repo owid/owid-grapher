@@ -9,8 +9,8 @@
 
     Tags: responsive layout
 
-    License: MIT
-    License URI: https://opensource.org/licenses/MIT
+    License: Custom (see LICENSE file)
+    License URI: https://github.com/owid/owid-grapher/blob/master/LICENSE.md
 */
 
 @import "normalize.css";
@@ -35,7 +35,6 @@
 @import "../packages/@ourworldindata/components/src/DownloadButton/DownloadButton.scss";
 @import "../packages/@ourworldindata/components/src/DownloadApiOptions/DownloadApiOptions.scss";
 @import "../packages/@ourworldindata/components/src/TextInput.scss";
-@import "../packages/@ourworldindata/components/src/GrapherTrendArrow.scss";
 
 @import "../packages/@ourworldindata/explorer/src/Explorer.scss";
 @import "../packages/@ourworldindata/explorer/src/ExplorerControls.scss";
@@ -45,10 +44,19 @@
 @import "css/layout.scss";
 @import "css/general.scss";
 @import "css/noscript.scss";
+@import "./NewsletterSignupBlock.scss";
 @import "./ExplorerIndexPage.scss";
 @import "./SubscribePage.scss";
 @import "./LatestPage.scss";
-@import "./NewsletterSignupBlock.scss";
+@import "./latest/LatestSearch.scss";
+@import "./latest/LatestTopicFacets.scss";
+@import "./latest/LatestHitMetadata.scss";
+@import "./latest/LatestArticleHit.scss";
+@import "./latest/LatestDataInsightHit.scss";
+@import "./latest/LatestAnnouncementHit.scss";
+@import "./latest/AnnouncementContent.scss";
+@import "./latest/LatestSearchSkeleton.scss";
+@import "./latest/ExpandableText.scss";
 @import "./Pagination.scss";
 @import "./collections/CollectionsPage.scss";
 @import "./SiteSearchNavigation.scss";
@@ -98,7 +106,6 @@
 @import "css/footer.scss";
 @import "css/content.scss";
 @import "css/forms.scss";
-@import "css/page.scss";
 @import "css/sidebar.scss";
 
 @import "./archive/ArchiveNavigation.scss";
@@ -192,6 +199,8 @@
 @import "./gdocs/pages/AboutPage.scss";
 @import "./gdocs/pages/Announcement.scss";
 @import "./gdocs/pages/Profile.scss";
+@import "./slideshows/SlideshowPage.scss";
+@import "./slideshows/SlideContent.scss";
 @import "./experiments.scss";
 
 @import "css/donate.scss";
@@ -316,10 +325,6 @@ h6 {
     }
 }
 
-.article-footer a {
-    @include owid-link-90;
-}
-
 /* Header
 --------------------------------------------- */
 .site-header {
@@ -395,10 +400,6 @@ h6 {
             background: transparent;
         }
     }
-
-    .authors-byline {
-        display: none;
-    }
 }
 
 /* Pages & Posts
@@ -432,11 +433,6 @@ h6 {
         @include h3-style;
     }
 
-    > .section-heading + h3 {
-        border-top: none;
-        padding-top: 0;
-    }
-
     /* Intratext headings e.g. How different are countries in terms of central government involvement in the economy? */
     .wp-block-columns h4 {
         margin-top: 2.75rem;
@@ -466,93 +462,6 @@ h6 {
     }
 }
 
-/* Major sections e.g. I. Empirical View */
-.article-content .section-heading {
-    @include full-width;
-    padding-top: 2.5rem;
-    padding-bottom: 2.5rem;
-    margin-bottom: 2rem;
-    background-color: $blue-20;
-    @include md-up {
-        padding-top: 4 * $vertical-spacing;
-        padding-bottom: 4 * $vertical-spacing;
-        margin-bottom: 5rem;
-    }
-
-    @include xxlg-up {
-        width: calc(100vw - #{2 * $padding-x-md});
-        margin-left: calc(50% - 50vw - #{$padding-x-md});
-    }
-
-    .wrapper {
-        @include content-wrapper;
-    }
-
-    h2 {
-        margin: 0;
-        font-family: $serif-font-stack;
-        font-size: 2.5rem;
-        font-weight: 400;
-        line-height: 1.25em;
-        @include md-up {
-            font-size: 3rem;
-        }
-    }
-
-    .in-this-section {
-        display: flex;
-        align-items: center;
-        margin: 1.5 * $vertical-spacing 0 $vertical-spacing;
-        text-transform: uppercase;
-        font-size: 0.9rem;
-        font-weight: bold;
-        color: $blue-40;
-        @include md-up {
-            margin-top: 2 * $vertical-spacing;
-        }
-        .border {
-            margin-left: 1rem;
-            background-color: $blue-30;
-            height: 0.7em;
-            flex: 1;
-        }
-    }
-
-    ul {
-        margin-bottom: 0;
-        list-style: none;
-        padding: 0;
-        font-size: 0.9rem;
-    }
-    li {
-        line-height: 1.2;
-        margin-bottom: $vertical-spacing * 0.5;
-    }
-
-    a {
-        color: $blue-100;
-        &:hover svg {
-            color: inherit;
-        }
-    }
-    svg {
-        color: $blue-40;
-        margin-right: 0.5rem;
-    }
-}
-
-.with-sidebar .section-heading {
-    @include xxlg-up {
-        position: relative;
-        width: calc(100vw - $sidebar-width);
-        margin-left: 0;
-        left: min(
-            calc((100vw - 100% - $sidebar-width) / -2),
-            calc(-1 * $padding-x-md)
-        );
-    }
-}
-
 hr {
     color: $blue-20;
     border-bottom: none;
@@ -562,55 +471,6 @@ hr {
     border-top: 1px;
     border-top-style: solid;
     margin-bottom: 0;
-}
-
-.article-footer {
-    font-size: 0.8em;
-    line-height: 1.7em;
-    margin-top: 40px;
-    margin-bottom: 0;
-    border-top: 1px solid rgba(0, 0, 0, 0.1);
-    color: rgba(0, 0, 0, 0.5);
-    padding-top: 60px;
-    padding-bottom: 48px;
-
-    h3 {
-        font-size: 15px;
-        font-weight: 400;
-        margin-top: 2em;
-        margin-bottom: 0;
-        color: rgba(0, 0, 0, 0.65);
-    }
-
-    ol.endnotes {
-        margin-top: 1em;
-        padding-bottom: 24px;
-        border-bottom: 1px solid $blue-20;
-    }
-
-    ol.endnotes > li {
-        margin-left: 20px;
-        padding-left: 5px;
-        margin-bottom: 1em;
-        list-style-type: decimal;
-        list-style-position: outside;
-    }
-
-    .citation {
-        font-size: 11px;
-        line-height: 15px;
-        border-left: 1px solid rgba(0, 0, 0, 0.1);
-        padding-left: 18px;
-        border: 1px solid rgba(0, 0, 0, 0.1);
-        background: rgba(0, 0, 0, 0.02);
-        padding: 10px 18px;
-        border-radius: 3px;
-        color: rgba(150, 150, 150, 1);
-        overflow: hidden;
-        margin-top: -6px;
-        white-space: pre-wrap;
-        word-wrap: break-word;
-    }
 }
 
 .article-content ol,
@@ -653,10 +513,6 @@ iframe:not(:first-child) {
 }
 
 @include sm-only {
-    article.post {
-        padding: $padding-x-sm;
-    }
-
     .deep-link {
         width: 12px;
         height: 12px;
@@ -775,7 +631,6 @@ a.ref sup {
     .site-header,
     .site-footer,
     .cookie-notice,
-    .citation-note,
     .entry-sidebar,
     address,
     #wpadminbar,

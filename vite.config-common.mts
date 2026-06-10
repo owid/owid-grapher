@@ -1,7 +1,6 @@
-import { defineConfig, withFilter } from "vite"
+import { defineConfig, type Plugin, withFilter } from "vite"
 import pluginReact from "@vitejs/plugin-react"
 import pluginSwc from "@rollup/plugin-swc"
-import optimizeReactAriaLocales from "@react-aria/optimize-locales-plugin"
 import { sentryVitePlugin } from "@sentry/vite-plugin"
 import * as clientSettings from "./settings/clientSettings.js"
 import {
@@ -100,18 +99,9 @@ export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
                 { transform: { code: /[^"]@/, id: /.*\.(ts|tsx)$/ } }
             ),
             pluginReact(),
-            withFilter(
-                optimizeReactAriaLocales.vite({
-                    locales: ["en-US"],
-                }),
-                {
-                    transform: {
-                        // This filter is taken directly from the plugin itself: https://github.com/adobe/react-spectrum/blob/b5cbf5bcf32edc6350b8051e390c003013223d93/packages/dev/optimize-locales-plugin/LocalesPlugin.js#L20
-                        // But adding this filter on the rolldown level is way more efficient, which is why we duplicate it here.
-                        id: /[/\\](@react-stately|@react-aria|@react-spectrum|react-aria-components)[/\\]/,
-                    },
-                }
-            ),
+            pluginOptimizeReactAriaLocales({
+                locales: ["en-US"],
+            }),
             // Put the Sentry vite plugin after all other plugins.
             clientSettings.LOAD_SENTRY &&
                 sentryVitePlugin({
@@ -144,4 +134,81 @@ export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
             port: vitePort,
         },
     })
+}
+
+// This plugin removes locale imports from react-aria packages.
+// It is a copy of https://github.com/adobe/react-spectrum/tree/0a84129f133bc549df31ad4be17a2fe6a9bceed4/packages/dev/optimize-locales-plugin (available as @react-aria/optimize-locales-plugin on npm),
+// but fixed to work correctly, and optimized (using Rolldown-native filtering).
+const pluginOptimizeReactAriaLocales = ({
+    locales,
+}: {
+    locales: readonly string[]
+}): Plugin => {
+    const emptyLocaleModuleId = "\0owid-empty-react-aria-locale"
+    const emptyLocaleModule = `export default undefined;`
+    const reactAriaPackagePathRegex =
+        /[/\\](?:@?react-stately|@?react-aria|@?react-spectrum|@?react-aria-components)[/\\]/
+    const localeImportSpecifierRegex =
+        /(?:^|[/\\])([a-z]{2}-[A-Z]{2})(?:\.(?:[cm]?js|json))?(?:[?#].*)?$/
+
+    const getLocaleFromFilename = (specifier: string): string | undefined => {
+        return specifier.match(localeImportSpecifierRegex)?.[1]
+    }
+
+    const getIntlLocale = (localeName: string): Intl.Locale | undefined => {
+        try {
+            return new Intl.Locale(localeName)
+        } catch {
+            return undefined
+        }
+    }
+
+    const localeMatches = (
+        localeToMatch: Intl.Locale,
+        includedLocale: Intl.Locale
+    ): boolean =>
+        localeToMatch.language === includedLocale.language &&
+        (!includedLocale.region ||
+            localeToMatch.region === includedLocale.region)
+
+    const includedLocales = locales.map((locale) => new Intl.Locale(locale))
+
+    return {
+        name: "owid-optimize-react-aria-locales",
+        enforce: "pre",
+        resolveId: {
+            filter: { id: localeImportSpecifierRegex },
+            handler(source, importer, options) {
+                if (
+                    !importer ||
+                    options.ssr ||
+                    !reactAriaPackagePathRegex.test(importer)
+                )
+                    return null
+
+                const localeName = getLocaleFromFilename(source)
+                if (!localeName) return null
+
+                const locale = getIntlLocale(localeName)
+                if (!locale) return null
+
+                if (
+                    includedLocales.some((includedLocale) =>
+                        localeMatches(locale, includedLocale)
+                    )
+                )
+                    return null
+
+                return emptyLocaleModuleId
+            },
+        },
+        load: {
+            filter: { id: new RegExp(`^${emptyLocaleModuleId}$`) },
+            handler(id) {
+                if (id === emptyLocaleModuleId) return emptyLocaleModule
+
+                return null
+            },
+        },
+    }
 }

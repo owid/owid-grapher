@@ -1,7 +1,17 @@
 import * as db from "../../../db/db.js"
-import { ChartsIndexingContext, IndexingContext } from "@ourworldindata/types"
-import { getAnalyticsPageviewsByUrlObj } from "../../../db/model/Pageview.js"
+import {
+    ChartsIndexingContext,
+    DbPlainMultiDimXChartConfig,
+    ExplorerIndexingContext,
+    IndexingContext,
+    MultiDimXChartConfigsTableName,
+} from "@ourworldindata/types"
 import { getChartRedirectSlugsByChartId } from "./charts.js"
+import {
+    getChartViewsMap,
+    getMaxChartViewsFromMultiDimPredecessors,
+} from "./pageviews.js"
+import { getAnalyticsPageviewsByUrlObj } from "../../../db/model/Pageview.js"
 
 /**
  * Creates a base IndexingContext containing the shared enrichment data.
@@ -9,12 +19,17 @@ import { getChartRedirectSlugsByChartId } from "./charts.js"
 export async function createBaseIndexingContext(
     knex: db.KnexReadonlyTransaction
 ): Promise<IndexingContext> {
-    const [pageviews, topicHierarchies] = await Promise.all([
-        getAnalyticsPageviewsByUrlObj(knex),
+    const [topicHierarchies, chartViewsMap, pageviews] = await Promise.all([
         db.getTopicHierarchiesByChildName(knex),
+        getChartViewsMap(knex),
+        getAnalyticsPageviewsByUrlObj(knex),
     ])
 
-    return { pageviews, topicHierarchies }
+    return {
+        topicHierarchies,
+        chartViewsMap,
+        pageviews,
+    }
 }
 
 /**
@@ -31,7 +46,10 @@ export async function createChartsIndexingContext(
         getChartRedirectSlugsByChartId(knex, chartIds),
     ])
 
-    return { ...base, redirectsByChartId }
+    return {
+        ...base,
+        redirectsByChartId,
+    }
 }
 
 /**
@@ -41,17 +59,49 @@ export async function createChartsIndexingContext(
 export async function createExplorersIndexingContext(
     knex: db.KnexReadonlyTransaction,
     baseContext?: IndexingContext
-): Promise<IndexingContext> {
-    return baseContext ?? createBaseIndexingContext(knex)
+): Promise<ExplorerIndexingContext> {
+    const [base] = await Promise.all([
+        baseContext ?? createBaseIndexingContext(knex),
+    ])
+
+    return base
+}
+
+export type MultiDimIndexingContext = IndexingContext & {
+    multiDimXChartConfigIdMap: Map<string, number>
+    predecessorMaxChartViewsByMultiDimViewConfigId: Map<string, number>
+}
+
+async function getMultiDimXChartConfigIdMap(trx: db.KnexReadonlyTransaction) {
+    const rows = await trx<DbPlainMultiDimXChartConfig>(
+        MultiDimXChartConfigsTableName
+    ).select("id", "multiDimId", "viewId")
+    return new Map(
+        rows.map((row) => [`${row.multiDimId}-${row.viewId}`, row.id])
+    )
 }
 
 /**
  * Creates an IndexingContext for multi-dim views.
  * If a base context is provided, uses it; otherwise fetches everything.
  */
-export async function createMdimIndexingContext(
+export async function createMultiDimIndexingContext(
     knex: db.KnexReadonlyTransaction,
     baseContext?: IndexingContext
-): Promise<IndexingContext> {
-    return baseContext ?? createBaseIndexingContext(knex)
+): Promise<MultiDimIndexingContext> {
+    const [
+        base,
+        multiDimXChartConfigIdMap,
+        predecessorMaxChartViewsByMultiDimViewConfigId,
+    ] = await Promise.all([
+        baseContext ?? createBaseIndexingContext(knex),
+        getMultiDimXChartConfigIdMap(knex),
+        getMaxChartViewsFromMultiDimPredecessors(knex),
+    ])
+
+    return {
+        ...base,
+        multiDimXChartConfigIdMap,
+        predecessorMaxChartViewsByMultiDimViewConfigId,
+    }
 }

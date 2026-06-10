@@ -46,30 +46,21 @@ $active-icon: $blue-50;
 
     .Tabs.ContentSwitchers .Tabs__Tab,
     .ContentSwitchers__OverflowMenuItem {
-        $icon-width: 13px;
         $icon-padding: 6px;
 
+        .ContentSwitchers__TabContent {
+            display: flex;
+            height: 100%;
+            align-items: center;
+            gap: $icon-padding;
+        }
+
         .label {
-            margin-left: $icon-padding;
+            padding-top: $control-label-padding-top;
         }
 
         svg {
             color: $gray-60;
-
-            &.custom-icon {
-                --size: $icon-width;
-
-                display: inline-block;
-                height: var(--size);
-                width: var(--size);
-                vertical-align: -1.625px;
-
-                &.scatter,
-                &.marimekko,
-                &.slope {
-                    --size: 14px;
-                }
-            }
         }
 
         &[data-selected] {
@@ -107,6 +98,10 @@ $active-icon: $blue-50;
         padding: 0 8px;
         margin: $visual-gap;
         margin-left: -$visual-gap;
+
+        .label {
+            padding-top: $control-label-padding-top;
+        }
 
         &:focus:not([data-focus-visible]) {
             outline: none;

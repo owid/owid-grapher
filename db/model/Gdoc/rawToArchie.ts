@@ -60,6 +60,7 @@ import {
     RawBlockStaticViz,
     RawBlockConditionalSection,
     RawBlockDataCallout,
+    RawBlockDataCalloutGroup,
     RawBlockCountryProfileSelector,
     RawBlockBespokeComponent,
     RawBlockChartRows,
@@ -73,24 +74,6 @@ export function appendDotEndIfMultiline(
     if (typeof line === "boolean") return line ? "true" : "false"
     if (line?.includes("\n")) return line + "\n:end"
     return line ?? ""
-}
-
-export function* encloseLinesAsPropertyPossiblyMultiline(
-    key: string,
-    lines: Iterable<string>
-): Generator<string, void, unknown> {
-    let first = true
-    let multiLine = false
-    for (const line of lines) {
-        if (first) {
-            yield `${key}: ${line}`
-            first = false
-        } else {
-            yield line
-            multiLine = true
-        }
-    }
-    if (multiLine) yield ":end"
 }
 
 export function keyValueToArchieMlString(
@@ -1061,6 +1044,20 @@ function* rawBlockDataCalloutToArchieMLString(
     yield "{}"
 }
 
+function* rawBlockDataCalloutGroupToArchieMLString(
+    block: RawBlockDataCalloutGroup
+): Generator<string, void, undefined> {
+    yield "{.data-callout-group}"
+    if (block.value.content) {
+        yield "[.+content]"
+        for (const contentBlock of block.value.content) {
+            yield* OwidRawGdocBlockToArchieMLStringGenerator(contentBlock)
+        }
+        yield "[]"
+    }
+    yield "{}"
+}
+
 function* rawBlockCountryProfileSelectorToArchieMLString(
     block: RawBlockCountryProfileSelector
 ): Generator<string, void, undefined> {
@@ -1207,6 +1204,10 @@ export function* OwidRawGdocBlockToArchieMLStringGenerator(
         )
         .with({ type: "socials" }, rawBlockSocialsToArchieMLString)
         .with({ type: "data-callout" }, rawBlockDataCalloutToArchieMLString)
+        .with(
+            { type: "data-callout-group" },
+            rawBlockDataCalloutGroupToArchieMLString
+        )
         .with(
             { type: "country-profile-selector" },
             rawBlockCountryProfileSelectorToArchieMLString

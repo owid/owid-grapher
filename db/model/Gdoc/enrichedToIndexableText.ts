@@ -201,6 +201,9 @@ export function enrichedBlockToIndexableText(
                 }
                 return enrichedBlocksToIndexableText(b.content, nestedOptions)
             })
+            .with({ type: "data-callout-group" }, (b): string | undefined =>
+                enrichedBlocksToIndexableText(b.content, options)
+            )
             .with({ type: "expandable-paragraph" }, (b): string | undefined =>
                 enrichedBlocksToIndexableText(b.items, options)
             )

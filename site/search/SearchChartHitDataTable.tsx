@@ -109,7 +109,15 @@ function Row({
                     <span className="search-chart-hit-table-row__value">
                         {row.startValue && (
                             <>
-                                {row.startValue}
+                                <span
+                                    style={
+                                        row.startValueColor
+                                            ? { color: row.startValueColor }
+                                            : undefined
+                                    }
+                                >
+                                    {row.startValue}
+                                </span>
                                 {row.trend ? (
                                     <GrapherTrendArrow
                                         className="search-chart-hit-table-row__arrow"
@@ -123,7 +131,15 @@ function Row({
                                 )}
                             </>
                         )}
-                        {row.value}
+                        <span
+                            style={
+                                row.valueColor
+                                    ? { color: row.valueColor }
+                                    : undefined
+                            }
+                        >
+                            {row.value}
+                        </span>
                         {row.time && (
                             <span className="search-chart-hit-table-row__time">
                                 {" "}

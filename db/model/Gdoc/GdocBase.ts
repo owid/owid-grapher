@@ -31,6 +31,7 @@ import { archieToEnriched } from "./archieToEnriched.js"
 import { getChartConfigById, mapSlugsToIds } from "../Chart.js"
 import {
     BAKED_BASE_URL,
+    EXPLORER_DYNAMIC_THUMBNAIL_URL,
     GRAPHER_DYNAMIC_THUMBNAIL_URL,
     IS_ARCHIVE,
 } from "../../../settings/clientSettings.js"
@@ -58,7 +59,6 @@ import {
     ChartConfigType,
     NarrativeChartInfo,
     ContentGraphLinkType,
-    DEFAULT_THUMBNAIL_FILENAME,
     GrapherInterface,
     LatestDataInsight,
     LinkedAuthor,
@@ -263,7 +263,7 @@ export class GdocBase implements OwidGdocBaseInterface {
     published: boolean = false
     createdAt: Date = new Date()
     publishedAt: Date | null = null
-    updatedAt: Date | null = null
+    updatedAt: Date = this.createdAt
     revisionId: string | null = null
     markdown: string | null = null
     publicationContext: OwidGdocPublicationContext =
@@ -544,7 +544,7 @@ export class GdocBase implements OwidGdocBaseInterface {
                 return links
             })
             .with({ type: "static-viz" }, (block) => {
-                return [
+                const links: DbInsertPostGdocLink[] = [
                     {
                         target: block.name,
                         linkType: ContentGraphLinkType.StaticViz,
@@ -555,6 +555,15 @@ export class GdocBase implements OwidGdocBaseInterface {
                         sourceId: this.id,
                     },
                 ]
+                if (block.caption) {
+                    for (const span of block.caption) {
+                        traverseEnrichedSpan(span, (span) => {
+                            const link = this.extractLinkFromSpan(span)
+                            if (link) links.push(link)
+                        })
+                    }
+                }
+                return links
             })
             .with({ type: "person" }, (block) => {
                 if (!block.url) return []
@@ -894,7 +903,8 @@ export class GdocBase implements OwidGdocBaseInterface {
                         "latest-data-insights",
                         "socials", // only external links
                         "subscribe-banner",
-                        "bespoke-component"
+                        "bespoke-component",
+                        "data-callout-group"
                     ),
                 },
                 () => []
@@ -1524,7 +1534,6 @@ export function makeExplorerLinkedChart(
         slug: string
         title?: string
         subtitle?: string
-        thumbnail?: string
         tags?: string[]
     },
     originalSlug: string,
@@ -1539,9 +1548,7 @@ export function makeExplorerLinkedChart(
         title: explorer.title ?? "",
         subtitle: explorer.subtitle ?? "",
         resolvedUrl: `${BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${originalSlug}`,
-        thumbnail:
-            explorer.thumbnail ||
-            `${BAKED_BASE_URL}/${DEFAULT_THUMBNAIL_FILENAME}`,
+        thumbnail: `${EXPLORER_DYNAMIC_THUMBNAIL_URL}/${originalSlug}.png`,
         tags: explorer.tags ?? [],
         archivedPageVersion: options?.archivedPageVersion,
     }

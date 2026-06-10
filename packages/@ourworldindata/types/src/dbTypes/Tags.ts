@@ -7,7 +7,7 @@ export interface DbInsertTag {
     searchableInAlgolia?: boolean
     slug?: string | null
     specialType?: string | null
-    updatedAt?: Date | null
+    updatedAt?: Date
 }
 
 export type DbPlainTag = Required<DbInsertTag>

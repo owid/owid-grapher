@@ -593,7 +593,7 @@ export class ChoroplethMap extends React.Component<{
     renderInteractive(): React.ReactElement {
         const { bounds, matrixTransform } = this
 
-        // this needs to be referenced here or it will be recomputed on every mousemove
+        // @ts-expect-error this needs to be referenced here or it will be recomputed on every mousemove
         const _cachedCentroids = this.quadtree
 
         // SVG layering is based on order of appearance in the element tree (later elements rendered on top)

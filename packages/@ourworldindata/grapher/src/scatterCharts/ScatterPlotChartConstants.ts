@@ -143,7 +143,6 @@ export interface ScatterPointsWithLabelsProps {
     hideScatterLabels?: boolean
     hideEntityLabels?: boolean
     quadtree?: Quadtree<ScatterPointQuadtreeNode>
-    backgroundColor?: Color
     hideFocusRing?: boolean
 }
 

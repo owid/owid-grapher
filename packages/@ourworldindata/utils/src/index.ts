@@ -108,7 +108,8 @@ export {
     checkIsGdocPostExcludingFragments,
     checkIsDataInsight,
     checkIsAuthor,
-    checkIsChronologicalFeedPost,
+    checkIsChronologicalGdoc,
+    checkIsLatestFeedGdoc,
     cartesian,
     removeTrailingParenthetical,
     commafyNumber,
@@ -132,6 +133,7 @@ export {
     guidedChartRegex,
     plaintextCalloutRegex,
     extractDetailsFromSyntax,
+    stripDetailOnDemandLinks,
     parseFloatOrUndefined,
     bind,
     merge,
@@ -139,6 +141,7 @@ export {
     getDisplayUnit,
     stripOuterParentheses,
     dimensionsToViewId,
+    type Pair,
 } from "./Util.js"
 
 export {
@@ -250,6 +253,7 @@ export {
 } from "./profiles.js"
 
 export {
+    type PadObject,
     type GridBounds,
     type SplitBoundsPadding,
     FontFamily,

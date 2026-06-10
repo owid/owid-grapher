@@ -603,6 +603,9 @@ ${links}`
                 nestedOptions
             )
         })
+        .with({ type: "data-callout-group" }, (b): string | undefined =>
+            enrichedBlocksToMarkdown(b.content, exportComponents, options)
+        )
         .with({ type: "country-profile-selector" }, () => undefined)
         .with(
             { type: "bespoke-component" },

@@ -1,6 +1,6 @@
 import { writeFile } from "fs/promises"
 import { Position } from "geojson"
-import { format, FormatOptions } from "oxfmt"
+import { format, type FormatConfig } from "oxfmt"
 import oxfmtConfig from "../../.oxfmtrc.json"
 import * as R from "remeda"
 import {
@@ -38,7 +38,7 @@ async function prettifiedJson(obj: any): Promise<string> {
     const result = await format(
         "input.json",
         JSON.stringify(obj),
-        oxfmtConfig as FormatOptions
+        oxfmtConfig as FormatConfig
     )
     return result.code
 }

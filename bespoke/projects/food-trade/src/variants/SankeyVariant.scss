@@ -1,0 +1,52 @@
+.food-trade-heading {
+    margin-bottom: 24px;
+}
+
+.food-trade-heading__title {
+    font-family: $serif-font-stack;
+    font-size: 2rem;
+    font-weight: 600;
+    line-height: 1.25;
+    color: $blue-90;
+    margin: 0;
+    margin-bottom: 2px;
+}
+
+.food-trade-heading__description {
+    font-size: 1rem;
+    line-height: 1.5;
+    color: $blue-90;
+    margin: 0;
+}
+
+.food-trade-chart__error {
+    padding: 24px;
+    color: $error-text-color;
+}
+
+.food-trade-chart--narrow .food-trade-controls__row {
+    flex-direction: column;
+    row-gap: 8px;
+}
+
+.food-trade-chart--narrow .food-trade-controls__row > * {
+    flex: 0 0 auto;
+    width: 100%;
+}
+
+.food-trade-chart--narrow .food-trade-heading__title {
+    font-size: 1.5rem;
+}
+
+.food-trade-chart--narrow .food-trade-heading__description {
+    font-size: 0.875rem;
+}
+
+.food-trade-chart--narrow .food-trade-captioned-chart {
+    border: none;
+    padding: 8px 0 0;
+}
+
+.food-trade-chart--narrow .food-trade-captioned-chart__chart-area {
+    height: 380px;
+}

@@ -12,17 +12,16 @@
     "author": "",
     "dependencies": {
         "@fortawesome/fontawesome-svg-core": "^6.7.2",
-        "@fortawesome/free-brands-svg-icons": "^6.7.2",
         "@fortawesome/free-solid-svg-icons": "^6.7.2",
         "@fortawesome/react-fontawesome": "^0.2.2",
-        "@internationalized/date": "^3.10.1",
+        "@internationalized/date": "^3.12.2",
         "@ourworldindata/components": "workspace:^",
         "@ourworldindata/core-table": "workspace:^",
         "@ourworldindata/types": "workspace:^",
         "@ourworldindata/utils": "workspace:^",
         "@react-spring/web": "^10.0.3",
-        "@sentry/browser": "^10.40.0",
-        "@sentry/react": "^10.40.0",
+        "@sentry/browser": "^10.51.0",
+        "@sentry/react": "^10.51.0",
         "@tippyjs/react": "^4.2.6",
         "@turf/boolean-intersects": "^7.2.0",
         "@turf/center": "^7.2.0",
@@ -31,13 +30,14 @@
         "d3": "^7.9.0",
         "fparser": "^3.1.0",
         "indefinite": "^2.5.2",
-        "js-cookie": "^3.0.5",
+        "js-cookie": "^3.0.7",
         "lodash-es": "^4.18.1",
-        "mobx": "^6.13.7",
+        "mobx": "^6.15.4",
         "mobx-react": "^7.6.0",
         "mousetrap": "^1.6.5",
         "react": "^19.2.4",
-        "react-aria-components": "^1.14.0",
+        "react-aria": "^3.49.0",
+        "react-aria-components": "^1.18.0",
         "react-dom": "^19.2.4",
         "react-flip-toolkit": "^7.2.4",
         "remeda": "^2.32.0",
@@ -46,6 +46,7 @@
         "topojson-client": "^3.1.0",
         "ts-pattern": "^5.8.0",
         "url-join": "^5.0.0",
+        "usehooks-ts": "^3.1.1",
         "versor": "^0.2.0"
     },
     "devDependencies": {
@@ -60,7 +61,7 @@
         "@types/react": "^19.2.14",
         "@types/react-dom": "^19.2.3",
         "@types/topojson-client": "^3.1.5",
-        "vitest": "^4.1.2"
+        "vitest": "^4.1.7"
     },
-    "license": "MIT"
+    "license": "SEE LICENSE IN LICENSE.md"
 }

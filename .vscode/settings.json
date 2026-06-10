@@ -4,7 +4,6 @@
     "editor.tabSize": 4,
     "editor.detectIndentation": false,
     "editor.defaultFormatter": "oxc.oxc-vscode",
-
     "oxc.fmt.configPath": ".oxfmtrc.json",
     "files.insertFinalNewline": false,
     "search.exclude": {
@@ -16,9 +15,6 @@
     "typescript.tsdk": "node_modules/typescript/lib",
     "typescript.preferences.useAliasesForRenames": false,
     "editor.formatOnSave": true,
-    "editor.codeActionsOnSave": {
-        "source.fixAll.eslint": "explicit"
-    },
     "typescript.preferences.importModuleSpecifierEnding": "js",
     "javascript.preferences.importModuleSpecifierEnding": "js",
     "[sql]": {

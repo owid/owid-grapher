@@ -35,11 +35,14 @@ export function GrapherFigureView(
     }
 
     const base = useRef<HTMLDivElement>(null)
-    const bounds = useElementBounds(base)
+    // Wait for the figure to be measured before mounting Grapher. Otherwise,
+    // embedded charts briefly render at DEFAULT_GRAPHER_BOUNDS (850px wide)
+    // before ResizeObserver reports the actual container size.
+    const bounds = useElementBounds(base, null)
 
     const config: GrapherProgrammaticInterface = useMemo(() => {
         return {
-            enableKeyboardShortcuts: true,
+            enableKeyboardShortcuts: !props.isEmbeddedInAnOwidPage,
             ...props.config,
             bakedGrapherURL: BAKED_GRAPHER_URL,
             adminBaseUrl: ADMIN_BASE_URL,
@@ -70,6 +73,10 @@ export function GrapherFigureView(
         <figure className="chart grapher-component" ref={base}>
             {bounds && (
                 <FetchingGrapher
+                    // Remount when switching between chart configs (e.g. related charts)
+                    // so we don't briefly render the previous GrapherState while
+                    // fetching the new config/data.
+                    key={configUrl ?? slug}
                     config={config}
                     configUrl={configUrl}
                     dataApiUrl={DATA_API_URL}

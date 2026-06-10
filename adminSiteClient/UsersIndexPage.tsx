@@ -46,7 +46,7 @@ class InviteModal extends React.Component<{ onClose: () => void }> {
         }
     }
 
-    @action.bound onSubmit(event: React.FormEvent) {
+    @action.bound onSubmit(event: React.SubmitEvent<HTMLFormElement>) {
         event.preventDefault()
         void this.submit()
     }

@@ -1,0 +1,64 @@
+.food-trade-sankey {
+    width: 100%;
+    height: 100%;
+    max-width: 1000px; // Cap on wide screens so labels
+    margin-inline: auto;
+}
+
+// Single-half views carry just one chart, so tighten the cap
+.food-trade-sankey--single {
+    max-width: 600px;
+}
+
+.food-trade-sankey .sankey__label tspan:not(:first-child) {
+    fill: $light-text;
+}
+
+.food-trade-sankey__empty-half {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 16px;
+    text-align: center;
+    color: $light-text;
+}
+
+.food-trade-sankey__empty-half-message {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.3;
+    max-width: 360px;
+}
+
+.food-trade-sankey__empty-half-cta {
+    appearance: none;
+    background: transparent;
+    color: $blue-50;
+    border: 0;
+    padding: 0;
+    font: 500 14px/1.3 $sans-serif-font-stack;
+    letter-spacing: 0.01em;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+
+    &:hover {
+        color: $blue-90;
+    }
+
+    &:focus-visible {
+        outline: 1px solid $blue-50;
+        outline-offset: 2px;
+        border-radius: 2px;
+    }
+}
+
+.food-trade-sankey__tooltip-more {
+    color: $light-text;
+    font-size: 12px;
+    padding: 4px 0 0;
+}

@@ -6,5 +6,54 @@
             }
         }
     ],
-    "format_on_save": "on"
+    "format_on_save": "on",
+    "languages": {
+        "JavaScript": {
+            "language_servers": [
+                "!eslint",
+                "!tailwindcss-language-server",
+                "..."
+            ]
+        },
+        "TypeScript": {
+            "language_servers": [
+                "tsgo",
+                "!vtsls",
+                "!typescript-language-server",
+                "!eslint",
+                "!tailwindcss-language-server",
+                "..."
+            ]
+        },
+        "TSX": {
+            "language_servers": [
+                "tsgo",
+                "!vtsls",
+                "!typescript-language-server",
+                "!eslint",
+                "!tailwindcss-language-server",
+                "..."
+            ]
+        },
+        "JSX": {
+            "language_servers": [
+                "!eslint",
+                "!tailwindcss-language-server",
+                "..."
+            ]
+        },
+        "HTML": {
+            "language_servers": ["!tailwindcss-language-server", "..."]
+        },
+        "CSS": {
+            "language_servers": ["!tailwindcss-language-server", "..."]
+        },
+        "SCSS": {
+            "language_servers": [
+                "!scss-lsp",
+                "!tailwindcss-language-server",
+                "..."
+            ]
+        }
+    }
 }

@@ -70,10 +70,11 @@ interface BinningStrategyOutput {
     midpoint?: number
 }
 
-// If the log10 difference between the min and max values is less than or equal to 1.2,
-// the data is considered to be close enough in magnitude to use equal-size bins.
-// This threshold was chosen empirically.
-const AUTO_EQUAL_BINS_MAX_MAGNITUDE_DIFF = 1.2
+// If the log10 difference between the min and max values is less than or equal
+// to 3, the data is considered to be close enough in magnitude to use equal-size bins.
+// This threshold was chosen empirically by aiming for a 75% / 25% split between
+// equal-size and log bins across our charts.
+const AUTO_EQUAL_BINS_MAX_MAGNITUDE_DIFF = 3
 
 /**
  * Calculates the log10 difference between two numbers, i.e. compute x such that lowerValue * 10^x = upperValue.

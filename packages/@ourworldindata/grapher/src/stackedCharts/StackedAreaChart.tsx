@@ -566,7 +566,6 @@ export class StackedAreaChart
                 showTickMarks={true}
                 insetEdgeMarks={true}
                 detailsMarker={manager.detailsMarkerInSvg}
-                backgroundColor={this.manager.backgroundColor}
             />
         )
     }

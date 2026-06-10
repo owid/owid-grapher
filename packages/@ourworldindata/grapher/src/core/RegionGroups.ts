@@ -62,6 +62,7 @@ export const regionGroupLabels: Record<RegionGroupKey, string> = {
     un_m49_1: "United Nations regions",
     un_m49_2: "United Nations regions",
     un_m49_3: "United Nations regions",
+    iea: "International Energy Agency regions",
 
     // Regions defined by an institution, but we don't have region definitions in regions.ts for these (we recognize them by their suffix)
     maddison: "Maddison Project Database regions",

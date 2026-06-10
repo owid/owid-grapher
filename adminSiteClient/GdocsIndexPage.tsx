@@ -20,7 +20,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     DbChartTagJoin,
     OwidGdocType,
-    spansToUnformattedPlainText,
     checkIsGdocPost,
     OwidGdocIndexItem,
 } from "@ourworldindata/utils"
@@ -247,16 +246,7 @@ export class GdocsIndexPage extends React.Component<RouteComponentProps> {
                     ]
 
                     if (checkIsGdocPost(gdoc)) {
-                        properties.push(
-                            gdoc.content.subtitle,
-                            gdoc.content.summary
-                                ? spansToUnformattedPlainText(
-                                      gdoc.content.summary.flatMap(
-                                          (block) => block.value
-                                      )
-                                  )
-                                : undefined
-                        )
+                        properties.push(gdoc.content.subtitle)
                     }
                     return properties
                 }

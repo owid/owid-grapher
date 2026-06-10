@@ -14,7 +14,7 @@ export const SiteNavigationTopics = ({
     onClose,
     className,
 }: {
-    tagGraph: TagGraphRoot | null
+    tagGraph?: TagGraphRoot
     onClose: () => void
     className?: string
 }) => {

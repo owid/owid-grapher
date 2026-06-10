@@ -46,6 +46,8 @@ class AxisConfigDefaults implements AxisConfigInterface {
     singleValueAxisPointAlign: AxisAlign | undefined = undefined
     label: string | undefined = undefined
     domainValues: number[] | undefined = undefined
+    shouldOffsetTickLabelAtStart: boolean | undefined = undefined
+    shouldOffsetTickLabelAtEnd: boolean | undefined = undefined
 
     constructor() {
         makeObservable(this, {
@@ -69,6 +71,8 @@ class AxisConfigDefaults implements AxisConfigInterface {
             singleValueAxisPointAlign: observable.ref,
             label: observable.ref,
             domainValues: observable.ref,
+            shouldOffsetTickLabelAtStart: observable.ref,
+            shouldOffsetTickLabelAtEnd: observable.ref,
         })
     }
 }

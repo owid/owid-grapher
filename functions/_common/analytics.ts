@@ -1,7 +1,12 @@
+// This file is mirrored in cloudflare-workers/utils/analytics.ts so the
+// proxy workers emit the same GA4 events. Keep the two in sync; see
+// https://github.com/owid/cloudflare-workers/issues/26 for the rationale
+// against extracting a shared library.
+
 import * as Sentry from "@sentry/cloudflare"
-import { extractClientIdFromGACookie, parseCookies } from "./cookieTools.js"
+import { parseCookie } from "cookie"
 import { Env } from "./env.js"
-import { uuidv7 } from "uuidv7"
+import { v7 as uuidv7 } from "uuid"
 
 export async function sendEventToGA4(
     event: { name: string; params: Record<string, string | number> },
@@ -11,7 +16,7 @@ export async function sendEventToGA4(
     if (!validateAnalyticsEnvVariables(env)) {
         return
     }
-    const cookies = parseCookies(request)
+    const cookies = parseCookie(request.headers.get("Cookie") || "")
     const client_id = extractClientIdFromGACookie(cookies["_ga"]) || uuidv7()
 
     const ga4Endpoint = `https://www.google-analytics.com/mp/collect?api_secret=${env.CLOUDFLARE_GOOGLE_ANALYTICS_MEASUREMENT_PROTOCOL_KEY}&measurement_id=${env.CLOUDFLARE_GOOGLE_ANALYTICS_MEASUREMENT_ID}`
@@ -43,7 +48,10 @@ export async function sendEventToGA4(
     }
 }
 
-export function getCommonEventParams(request: Request, pathname: string) {
+export function getCommonEventParams(
+    request: Request<unknown, IncomingRequestCfProperties>,
+    env: Pick<Env, "CLOUDFLARE_GOOGLE_ANALYTICS_SAMPLING_RATE">
+) {
     const url = new URL(request.url)
 
     // null values aren't allowed & param values must be 100 characters or less
@@ -51,12 +59,49 @@ export function getCommonEventParams(request: Request, pathname: string) {
     const fullUserAgent = request.headers.get("user-agent") || ""
     const user_agent = fullUserAgent.slice(0, 100)
 
+    // Network operator (ASN) of the request, derived by Cloudflare on `request.cf`
+    // — same source as the country lookup. This is NOT the client IP (which we
+    // don't have/forward); it's the owning org, e.g. "Amazon.com", "Google Cloud",
+    // "Hetzner Online GmbH". A hosting/cloud ASN behind a browser user-agent is a
+    // strong bot signal, used downstream to separate datacenter scrapers from real
+    // visitors. Not PII.
+    const as_org = (request.cf?.asOrganization || "").slice(0, 100)
+    const asn = request.cf?.asn ?? 0
+
+    // Cloudflare bot-detection signals, also on `request.cf`. We're on Super Bot
+    // Fight Mode (Pro/Business), NOT Enterprise Bot Management, so the numeric
+    // `score` and JA3/JA4 fingerprints are very likely absent — these fields are
+    // captured to empirically confirm what actually populates on our plan, and
+    // would start carrying real data automatically if we ever add the Enterprise
+    // add-on. `bot_score` uses a -1 sentinel so "field absent" stays
+    // distinguishable from a real score (which is always 1–99). `verified_bot`
+    // flags Cloudflare's Verified Bots program (authoritative Googlebot/Bingbot/
+    // etc.), with the category in `verified_bot_category`. Not PII.
+    const bot_score = request.cf?.botManagement?.score ?? -1
+    const verified_bot = request.cf?.botManagement?.verifiedBot ? 1 : 0
+    // verifiedBotCategory isn't in this @cloudflare/workers-types version yet, so
+    // it surfaces via the cf index signature as `unknown`; String() keeps it
+    // type-safe without an `as` cast.
+    const verified_bot_category = String(
+        request.cf?.verifiedBotCategory ?? ""
+    ).slice(0, 100)
+
     const params: Record<string, string | number> = {
-        pathname: pathname,
+        host: url.hostname,
+        pathname: url.pathname,
         referrer,
         user_agent,
         method: request.method,
         country: request.headers.get("cf-ipcountry") || "",
+        as_org,
+        asn,
+        bot_score,
+        verified_bot,
+        verified_bot_category,
+        // Stamp the sampling rate that was active when this event fired, so periods
+        // with different rates can be combined correctly downstream
+        // (events / sampling ≈ unbiased request count).
+        sampling: getSamplingRate(env),
     }
 
     // If user-agent is longer than 100 chars, capture the next 100 chars
@@ -64,9 +109,10 @@ export function getCommonEventParams(request: Request, pathname: string) {
         params.user_agent_next = fullUserAgent.slice(100, 200)
     }
 
-    const searchParams = url.searchParams
-    for (const [key, value] of searchParams) {
-        params[key] = value.slice(0, 100)
+    // Prefix every URL query parameter so user-supplied params can't clobber
+    // structured event params such as `host`, `country`, or `status_code`.
+    for (const [key, value] of url.searchParams) {
+        params[`q_${key}`] = value.slice(0, 100)
     }
 
     return params
@@ -85,9 +131,6 @@ export const analyticsMiddleware: PagesFunction<Env> = async (context) => {
     if (!validateAnalyticsEnvVariables(env)) {
         return context.next()
     }
-    const url = new URL(request.url)
-    const pathname = url.pathname
-
     if (shouldSample(env)) {
         // Get the response first to capture status code
         const response = await context.next()
@@ -95,7 +138,7 @@ export const analyticsMiddleware: PagesFunction<Env> = async (context) => {
         const event = {
             name: "cf_function_invocation",
             params: {
-                ...getCommonEventParams(request, pathname),
+                ...getCommonEventParams(request, env),
                 status_code: response.status,
             },
         }
@@ -110,8 +153,19 @@ export const analyticsMiddleware: PagesFunction<Env> = async (context) => {
 }
 
 function shouldSample(env: Env): boolean {
-    return (
-        Math.random() <
-        parseFloat(env.CLOUDFLARE_GOOGLE_ANALYTICS_SAMPLING_RATE)
-    )
+    return Math.random() < getSamplingRate(env)
+}
+
+function getSamplingRate(
+    env: Pick<Env, "CLOUDFLARE_GOOGLE_ANALYTICS_SAMPLING_RATE">
+): number {
+    return parseFloat(env.CLOUDFLARE_GOOGLE_ANALYTICS_SAMPLING_RATE)
+}
+
+// e.g. GA1.1.156980023.1749503476 -> 156980023.1749503476
+function extractClientIdFromGACookie(cookieValue?: string): string | null {
+    if (!cookieValue) return null
+    const parts = cookieValue.split(".")
+    if (parts.length >= 4) return `${parts[2]}.${parts[3]}`
+    return cookieValue
 }

@@ -30,14 +30,12 @@ import {
     joinTitleFragments,
     FuzzySearch,
 } from "@ourworldindata/utils"
-import { SelectionArray } from "../selection/SelectionArray"
 import {
     DEFAULT_GRAPHER_BOUNDS,
     DEFAULT_GRAPHER_ENTITY_TYPE,
     SVG_STYLE_PROPS,
 } from "../core/GrapherConstants"
 import * as R from "remeda"
-import { makeSelectionArray } from "../chart/ChartUtils"
 import { isEntityRegionGroupKey } from "../core/RegionGroups"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import {
@@ -106,10 +104,6 @@ export class DataTable extends React.Component<DataTableProps> {
 
     @computed get manager(): DataTableManager {
         return this.props.manager
-    }
-
-    @computed private get selectionArray(): SelectionArray {
-        return makeSelectionArray(this.manager.dataTableSelection)
     }
 
     @computed private get tableConfig(): DataTableConfig {

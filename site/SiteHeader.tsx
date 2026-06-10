@@ -4,6 +4,7 @@ import {
     ArchiveDataNavigation,
 } from "./archive/ArchiveNavigation.js"
 import { SiteNavigation } from "./SiteNavigation.js"
+import { SiteQueryClientProvider } from "./SiteQueryClientProvider.js"
 
 interface SiteHeaderProps {
     hideDonationFlag?: boolean
@@ -14,6 +15,7 @@ interface SiteHeaderProps {
 
     // If this is an archived page, we need to render a different version of the site header
     archiveInfo?: ArchiveMetaInformation
+    isPreviewing?: boolean
 }
 
 export const SiteHeaderNavigation = (props: SiteHeaderProps) => {
@@ -36,10 +38,13 @@ export const SiteHeaderNavigation = (props: SiteHeaderProps) => {
     }
 
     return (
-        <SiteNavigation
-            hideDonationFlag={props.hideDonationFlag}
-            isOnHomepage={props.isOnHomepage}
-        />
+        <SiteQueryClientProvider>
+            <SiteNavigation
+                hideDonationFlag={props.hideDonationFlag}
+                isOnHomepage={props.isOnHomepage}
+                isPreviewing={props.isPreviewing}
+            />
+        </SiteQueryClientProvider>
     )
 }
 

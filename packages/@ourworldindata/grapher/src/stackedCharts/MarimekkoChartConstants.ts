@@ -2,6 +2,7 @@ import { ChartManager } from "../chart/ChartManager"
 
 import {
     Color,
+    SortBy,
     SortConfig,
     Time,
     Bounds,
@@ -111,3 +112,11 @@ export interface MarimekkoBarProps {
     y0: number
     dualAxis: DualAxis
 }
+
+export const MARIMEKKO_SORT_KEYS = [
+    SortBy.custom,
+    SortBy.entityName,
+    SortBy.total,
+    SortBy.column,
+] as const
+export type MarimekkoSortKey = (typeof MARIMEKKO_SORT_KEYS)[number]

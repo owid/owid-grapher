@@ -49,7 +49,9 @@ import type {
 import type { EnrichedBlockCta, RawBlockCta } from "./archieMLComponents/Cta.js"
 import type {
     EnrichedBlockDataCallout,
+    EnrichedBlockDataCalloutGroup,
     RawBlockDataCallout,
+    RawBlockDataCalloutGroup,
 } from "./archieMLComponents/DataCallout.js"
 import type {
     EnrichedBlockDonorList,
@@ -249,6 +251,7 @@ export type OwidRawGdocBlock =
     | RawBlockAside
     | RawBlockCallout
     | RawBlockDataCallout
+    | RawBlockDataCalloutGroup
     | RawBlockChart
     | RawBlockExpander
     | RawBlockNarrativeChart
@@ -315,6 +318,7 @@ export type OwidEnrichedGdocBlock =
     | EnrichedBlockAside
     | EnrichedBlockCallout
     | EnrichedBlockDataCallout
+    | EnrichedBlockDataCalloutGroup
     | EnrichedBlockChart
     | EnrichedBlockExpander
     | EnrichedBlockNarrativeChart

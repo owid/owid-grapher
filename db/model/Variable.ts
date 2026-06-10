@@ -12,7 +12,7 @@ import {
     getVariableMetadataRoute,
 } from "@ourworldindata/grapher"
 import pl from "nodejs-polars"
-import { uuidv7 } from "uuidv7"
+import { v7 as uuidv7 } from "uuid"
 import { DATA_API_URL } from "../../settings/serverSettings.js"
 import { escape } from "mysql2"
 import {
@@ -25,6 +25,7 @@ import {
     GrapherInterface,
     DbRawVariable,
     VariablesTableName,
+    DatasetsTableName,
     DbRawChartConfig,
     DbPlainDatapage,
     parseChartConfig,
@@ -152,11 +153,13 @@ export async function insertNewGrapherConfigForVariable(
         variableId,
         patchConfig,
         fullConfig,
+        now,
     }: {
         type: "admin" | "etl"
         variableId: number
         patchConfig: GrapherInterface
         fullConfig: GrapherInterface
+        now: Date
     }
 ): Promise<void> {
     // insert chart configs into the database
@@ -164,10 +167,16 @@ export async function insertNewGrapherConfigForVariable(
     await db.knexRaw(
         knex,
         `-- sql
-            INSERT INTO chart_configs (id, patch, full)
-            VALUES (?, ?, ?)
+            INSERT INTO chart_configs (id, patch, full, createdAt, updatedAt)
+            VALUES (?, ?, ?, ?, ?)
         `,
-        [configId, JSON.stringify(patchConfig), JSON.stringify(fullConfig)]
+        [
+            configId,
+            JSON.stringify(patchConfig),
+            JSON.stringify(fullConfig),
+            now,
+            now,
+        ]
     )
 
     // make a reference to the config from the variables table
@@ -418,6 +427,7 @@ export async function updateGrapherConfigETLOfVariable(
             variableId,
             patchConfig: configETL,
             fullConfig: configETL,
+            now,
         })
     }
 
@@ -502,6 +512,7 @@ export async function updateGrapherConfigAdminOfVariable(
             variableId,
             patchConfig: patchConfigAdmin,
             fullConfig: fullConfigAdmin,
+            now,
         })
     }
 
@@ -987,7 +998,7 @@ export const searchVariables = async (
         SELECT
             v.id,
             v.name,
-            catalogPath,
+            v.catalogPath AS catalogPath,
             d.id AS datasetId,
             d.name AS datasetName,
             d.isPrivate AS isPrivate,
@@ -1193,4 +1204,65 @@ export const getVariableIdsByCatalogPath = async (
         // Sort for good measure and determinism.
         catalogPaths.sort().map((path) => [path, rowsByPath[path]?.id ?? null])
     )
+}
+
+/**
+ * Resolve the latest variable id for each given catalog path.
+ *
+ * Catalog paths follow the structure
+ * `channel/namespace/version/dataset/table#column`, where the version (the 3rd
+ * path segment) is an ISO date such as `2024-07-15`. This helper takes a
+ * version-agnostic catalog path (with the version segment replaced by 'latest',
+ * e.g. `grapher/worldbank_wdi/latest/wdi/wdi#ny_gdp_pcap_pp_kd`) and returns
+ * the id of the most recent version
+ */
+export const getLatestVariableIdsByCatalogPath = async (
+    catalogPaths: string[],
+    knex: db.KnexReadonlyTransaction
+): Promise<Map<string, number | null>> => {
+    const VERSION_SEGMENT_INDEX = 2 // The version is the 3rd path segment
+    const getVersion = (catalogPath: string | null): string =>
+        catalogPath?.split("/")[VERSION_SEGMENT_INDEX] ?? ""
+
+    // Escape the LIKE wildcards `%` and `_`
+    const escapeLike = (segment: string): string =>
+        segment.replace(/[\\%_]/g, "\\$&")
+
+    const entries = await Promise.all(
+        catalogPaths.map(async (catalogPath) => {
+            // Replace the version segment with a SQL wildcard so we match every
+            // published version of the indicator, and escape the rest.
+            const likePattern = catalogPath
+                .split("/")
+                .map((segment, index) =>
+                    index === VERSION_SEGMENT_INDEX ? "%" : escapeLike(segment)
+                )
+                .join("/")
+
+            const rows: Pick<DbRawVariable, "id" | "catalogPath">[] =
+                await knex(VariablesTableName)
+                    .join(
+                        DatasetsTableName,
+                        `${VariablesTableName}.datasetId`,
+                        `${DatasetsTableName}.id`
+                    )
+                    .where(
+                        `${VariablesTableName}.catalogPath`,
+                        "like",
+                        likePattern
+                    )
+                    .where(`${DatasetsTableName}.isArchived`, 0) // Ignore archived datasets
+                    .select(
+                        `${VariablesTableName}.id`,
+                        `${VariablesTableName}.catalogPath`
+                    )
+
+            // Pick the most recent version
+            const latest = _.maxBy(rows, (row) => getVersion(row.catalogPath))
+
+            return [catalogPath, latest?.id ?? null] as const
+        })
+    )
+
+    return new Map(entries)
 }

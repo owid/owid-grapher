@@ -451,9 +451,8 @@ export const getPagesRecords = async (
         await (gdoc as GdocBase).loadAndClearLinkedCallouts(knex)
     }
 
-    const cloudflareImagesByFilename = await db
-        .getCloudflareImages(knex)
-        .then((images) => _.keyBy(images, "filename"))
+    const cloudflareImagesByFilename =
+        await db.getCloudflareImagesByFilename(knex)
 
     const gdocsRecords = await generateGdocRecords(
         gdocs,
@@ -521,8 +520,8 @@ async function getExistingRecordsForSlug(
  * - We can't filter by objectID because filters require exact matches and we can't know the objectIDs beforehand
  *   - They're of the form `${gdoc.id}-c${chunkNumber}` but we don't know how many chunks exist
  */
-export async function indexIndividualGdocPost(
-    gdoc: OwidGdocPostInterface,
+export async function indexIndividualGdoc(
+    gdoc: OwidGdocPostInterface | OwidGdocDataInsightInterface,
     knex: db.KnexReadonlyTransaction,
     indexedSlug: string
 ) {
@@ -574,7 +573,7 @@ export async function indexIndividualGdocPost(
         return
     }
 
-    const records = await getIndividualGdocRecords(gdoc, knex)
+    const records = await getIndividualGdocRecords(gdoc, knex, indexedSlug)
 
     try {
         if (
@@ -613,19 +612,23 @@ export async function getIndividualGdocRecords(
     indexedSlug?: string
 ) {
     const pageviews = await getAnalyticsPageviewsByUrlObj(knex)
-    const cloudflareImagesByFilename = await db
-        .getCloudflareImages(knex)
-        .then((images) => _.keyBy(images, "filename"))
+    const cloudflareImagesByFilename =
+        await db.getCloudflareImagesByFilename(knex)
 
+    const currentPath = getPrefixedGdocPath("", gdoc)
     // Use indexedSlug if provided (for slug changes), otherwise use gdoc.slug
-    const existingPageviews = pageviews[`/${indexedSlug ?? gdoc.slug}`]
+    const indexedPath = getPrefixedGdocPath("", {
+        slug: indexedSlug ?? gdoc.slug,
+        content: gdoc.content,
+    })
+    const existingPageviews = pageviews[indexedPath]
     const pageviewsForGdoc = {
-        [gdoc.slug]: existingPageviews || {
+        [currentPath]: existingPageviews || {
             views_7d: 0,
             views_14d: 0,
             views_365d: 0,
             day: new Date(),
-            url: gdoc.slug,
+            url: currentPath,
         },
     }
 
@@ -637,9 +640,7 @@ export async function getIndividualGdocRecords(
     )
 }
 
-export async function removeIndividualGdocPostFromIndex(
-    gdoc: OwidGdocPostInterface
-) {
+export async function removeIndividualGdocFromIndex(slug: string) {
     if (!ALGOLIA_INDEXING) return
     const client = getAlgoliaClient()
     if (!client) {
@@ -652,16 +653,16 @@ export async function removeIndividualGdocPostFromIndex(
     const existingRecordsForPost: Hit[] = await getExistingRecordsForSlug(
         client,
         indexName,
-        gdoc.slug
+        slug
     )
 
     try {
-        console.log("Removing Gdoc post from Algolia index", gdoc.slug)
+        console.log("Removing Gdoc post from Algolia index", slug)
         await client.deleteObjects({
             indexName,
             objectIDs: existingRecordsForPost.map((r) => r.objectID),
         })
-        console.log("Removed Gdoc post from Algolia index", gdoc.slug)
+        console.log("Removed Gdoc post from Algolia index", slug)
     } catch (e) {
         console.error("Error removing Gdoc post from Algolia index: ", e)
     }
@@ -748,9 +749,8 @@ export async function indexIndividualProfile(
 
     // Generate new records for all entities in scope
     const pageviews = await getAnalyticsPageviewsByUrlObj(knex)
-    const cloudflareImagesByFilename = await db
-        .getCloudflareImages(knex)
-        .then((images) => _.keyBy(images, "filename"))
+    const cloudflareImagesByFilename =
+        await db.getCloudflareImagesByFilename(knex)
 
     const records = await generateProfileRecords(
         profileTemplate,

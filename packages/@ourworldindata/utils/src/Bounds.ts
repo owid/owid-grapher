@@ -13,7 +13,7 @@ import {
 // can't rely on the DOM to do these calculations for us, and instead must
 // calculate using geometry and first principles
 
-type PadObject = PositionMap<number>
+export type PadObject = PositionMap<number>
 
 export interface GridBounds {
     col: number
@@ -34,7 +34,7 @@ export class Bounds {
         return this.fromProps(bbox)
     }
 
-    static fromRect(rect: ClientRect): Bounds {
+    static fromRect(rect: DOMRect): Bounds {
         return new Bounds(rect.left, rect.top, rect.width, rect.height)
     }
 
@@ -112,6 +112,10 @@ export class Bounds {
         }
 
         return bounds
+    }
+
+    static forDot(x: number, y: number, radius: number): Bounds {
+        return new Bounds(x - radius, y - radius, radius * 2, radius * 2)
     }
 
     readonly x: number

@@ -71,8 +71,8 @@ export default function DimensionDropdown({
             isDisabled={isDisabled}
             isOpen={isOpen}
             onOpenChange={setIsOpen}
-            selectedKey={value}
-            onSelectionChange={(key) => {
+            value={value}
+            onChange={(key) => {
                 if (typeof key === "string") onChange(key)
             }}
             aria-label={dimension.name}

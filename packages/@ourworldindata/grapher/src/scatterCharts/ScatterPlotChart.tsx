@@ -510,7 +510,6 @@ export class ScatterPlotChart
                 onMouseLeave={this.onScatterMouseLeave}
                 onClick={this.onScatterClick}
                 quadtree={this.quadtree}
-                backgroundColor={this.manager.backgroundColor}
             />
         )
     }
@@ -572,12 +571,14 @@ export class ScatterPlotChart
 
     @computed
     private get selectedEntitiesWithoutData(): string[] {
+        // Reversing the order so that newly added entities without data
+        // show up at the top of the no data section
         const entitiesWithoutData = _.uniq(
             _.difference(
                 this.selectedEntityNames,
                 this.series.map((s) => s.seriesName)
             )
-        )
+        ).reverse()
 
         return entitiesWithoutData.map((entityName) => {
             const shortName = getShortNameForEntity(entityName)
@@ -694,7 +695,6 @@ export class ScatterPlotChart
                     dualAxis={this.dualAxis}
                     showTickMarks={false}
                     detailsMarker={this.manager.detailsMarkerInSvg}
-                    backgroundColor={this.manager.backgroundColor}
                 />
                 <g clipPath={this.clipPath.id}>
                     {this.points}

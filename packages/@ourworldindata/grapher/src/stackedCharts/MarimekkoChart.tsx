@@ -516,7 +516,7 @@ export class MarimekkoChart
                   }),
               }
             : undefined
-        const superscript =
+        const showSignificanceSuperscriptIfApplicable =
             !!roundingNotice && roundingNotice.icon !== TooltipFooterIcon.None
 
         const footer = excludeUndefined([toleranceNotice, roundingNotice])
@@ -540,7 +540,6 @@ export class MarimekkoChart
                     dualAxis={dualAxis}
                     showTickMarks={true}
                     detailsMarker={manager.detailsMarkerInSvg}
-                    backgroundColor={manager.backgroundColor}
                 />
                 {this.showLegend && (
                     <HorizontalCategoricalColorLegend manager={this} />
@@ -571,10 +570,10 @@ export class MarimekkoChart
                                     unit={column.displayUnit}
                                     value={column.formatValueShort(value)}
                                     originalTime={originalTime}
-                                    isRoundedToSignificantFigures={
+                                    showSignificanceSuperscript={
+                                        showSignificanceSuperscriptIfApplicable &&
                                         column.roundsToSignificantFigures
                                     }
-                                    showSignificanceSuperscript={superscript}
                                 />
                             )
                         )}
@@ -584,10 +583,10 @@ export class MarimekkoChart
                                 unit={xColumn.displayUnit}
                                 value={xColumn.formatValueShort(xPoint?.value)}
                                 originalTime={xOriginalTimeFormatted}
-                                isRoundedToSignificantFigures={
+                                showSignificanceSuperscript={
+                                    showSignificanceSuperscriptIfApplicable &&
                                     xColumn.roundsToSignificantFigures
                                 }
-                                showSignificanceSuperscript={superscript}
                             />
                         )}
                         {colorColumn &&

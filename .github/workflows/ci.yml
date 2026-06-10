@@ -1,110 +1,111 @@
 name: CI
 on:
-    pull_request:
-    push:
-        branches:
-            - master
+  pull_request:
+  push:
+    branches:
+      - master
 
 jobs:
-    # Checks for prettify errors, TypeScript errors and runs vitest tests.
-    "test-db":
-        runs-on: ubuntu-latest
+  # Checks for prettify errors, TypeScript errors and runs vitest tests.
+  "test-db":
+    runs-on: ubuntu-latest
 
-        steps:
-            - name: Clone repository
-              uses: actions/checkout@v5
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v5
 
-            - uses: ./.github/actions/setup-node-yarn-deps
+      - uses: ./.github/actions/setup-node-yarn-deps
 
-            - name: Install dependencies
-              run: cp .env.example-grapher .env
-              shell: bash
+      - name: Install dependencies
+        run: cp .env.example-grapher .env
+        shell: bash
 
-            - name: Build and run db tests
-              run: make dbtest
-              timeout-minutes: 6
+      - name: Build and run db tests
+        run: make dbtest
+        timeout-minutes: 6
 
-    test:
-        runs-on: ubuntu-latest
+  test:
+    runs-on: ubuntu-latest
 
-        steps:
-            - name: Clone repository
-              uses: actions/checkout@v5
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v5
 
-            - uses: ./.github/actions/setup-node-yarn-deps
+      - uses: ./.github/actions/setup-node-yarn-deps
 
-            - name: Run vitest
-              run: yarn test --pool=forks
+      - name: Run vitest
+        run: yarn test --pool=forks
 
-    typecheck:
-        runs-on: ubuntu-latest
+  typecheck:
+    runs-on: ubuntu-latest
 
-        steps:
-            - name: Clone repository
-              uses: actions/checkout@v5
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v5
 
-            - uses: ./.github/actions/setup-node-yarn-deps
-              with:
-                  runPostinstallScripts: false
+      - uses: ./.github/actions/setup-node-yarn-deps
+        with:
+          runPostinstallScripts: false
 
-            - name: Run typecheck
-              run: yarn typecheck
-    typecheck-legacy:
-        runs-on: ubuntu-latest
+      - name: Run typecheck
+        run: yarn typecheck
 
-        steps:
-            - name: Clone repository
-              uses: actions/checkout@v5
+  format:
+    runs-on: ubuntu-latest
 
-            - uses: ./.github/actions/setup-node-yarn-deps
-              with:
-                  runPostinstallScripts: false
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v5
 
-            - name: Run typecheck (legacy)
-              run: yarn tsc -b
+      - uses: ./.github/actions/setup-node-yarn-deps
+        with:
+          runPostinstallScripts: false
 
-    format:
-        runs-on: ubuntu-latest
+      - name: Check formatting
+        run: yarn testFormatAll
 
-        steps:
-            - name: Clone repository
-              uses: actions/checkout@v5
+  oxlint:
+    runs-on: ubuntu-latest
 
-            - uses: ./.github/actions/setup-node-yarn-deps
-              with:
-                  runPostinstallScripts: false
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v5
 
-            - name: Check formatting
-              run: yarn testFormatAll
+      - uses: ./.github/actions/setup-node-yarn-deps
+        with:
+          runPostinstallScripts: false
 
-    oxlint:
-        runs-on: ubuntu-latest
+      - name: Run oxlint
+        run: yarn testLint
 
-        steps:
-            - name: Clone repository
-              uses: actions/checkout@v5
+  raycast-snippets:
+    runs-on: ubuntu-latest
 
-            - uses: ./.github/actions/setup-node-yarn-deps
-              with:
-                  runPostinstallScripts: false
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v5
 
-            - name: Run oxlint
-              run: yarn testLint
+      - uses: ./.github/actions/setup-node-yarn-deps
+        with:
+          runPostinstallScripts: false
 
-    # Runs `bundlemon` on the code to see if our Vite build assets exceed a given file size.
-    bundlemon:
-        runs-on: ubuntu-latest
+      - name: Check Raycast snippets are in sync
+        run: yarn checkRaycastSnippets
 
-        steps:
-            - name: Clone repository
-              uses: actions/checkout@v5
+  # Runs `bundlemon` on the code to see if our Vite build assets exceed a given file size.
+  bundlemon:
+    runs-on: ubuntu-latest
 
-            - uses: ./.github/actions/setup-node-yarn-deps
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v5
 
-            - name: Build
-              run: yarn buildViteSite
-              env:
-                  BUNDLEMON: true
+      - uses: ./.github/actions/setup-node-yarn-deps
 
-            - name: BundleMon
-              uses: lironer/bundlemon-action@v1
+      - name: Build
+        run: yarn buildViteSite
+        env:
+          BUNDLEMON: true
+
+      - name: BundleMon
+        uses: lironer/bundlemon-action@v1

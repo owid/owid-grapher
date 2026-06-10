@@ -1,4 +1,3 @@
-// todo: remove when we ditch Year and YearIsDay
 export const EPOCH_DATE = "2020-01-21"
 
 /** The "plot" is a chart without any header, footer or controls */
@@ -15,6 +14,7 @@ export const GRAPHER_CHART_TYPES = {
     SlopeChart: "SlopeChart",
     StackedBar: "StackedBar",
     Marimekko: "Marimekko",
+    Dumbbell: "Dumbbell",
 } as const
 
 export const ALL_GRAPHER_CHART_TYPES = Object.values(GRAPHER_CHART_TYPES)
@@ -39,6 +39,7 @@ export const GRAPHER_TAB_CONFIG_OPTIONS = {
     slope: "slope",
     "stacked-bar": "stacked-bar",
     marimekko: "marimekko",
+    dumbbell: "dumbbell",
 } as const
 
 /** Internal tab names used in Grapher */

@@ -7,16 +7,16 @@
     "r2_buckets": [
         {
             "binding": "GRAPHER_CONFIG_R2_BUCKET",
-            "bucket_name": "test-grapher-configs",
+            "bucket_name": "test-grapher-configs"
         },
         {
             "binding": "GRAPHER_CONFIG_R2_BUCKET_FALLBACK",
-            "bucket_name": "test-grapher-configs-fallback",
-        },
+            "bucket_name": "test-grapher-configs-fallback"
+        }
     ],
     "vars": {
         "CF_PAGES_BRANCH": "test-branch",
         "GRAPHER_CONFIG_R2_BUCKET_PATH": "v1",
-        "GRAPHER_CONFIG_R2_BUCKET_FALLBACK_PATH": "v1",
-    },
+        "GRAPHER_CONFIG_R2_BUCKET_FALLBACK_PATH": "v1"
+    }
 }

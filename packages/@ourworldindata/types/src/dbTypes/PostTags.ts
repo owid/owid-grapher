@@ -3,6 +3,6 @@ export interface DbInsertPostTag {
     createdAt?: Date
     post_id: number
     tag_id: number
-    updatedAt?: Date | null
+    updatedAt?: Date
 }
 export type DbPlainPostTag = Required<DbInsertPostTag>

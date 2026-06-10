@@ -15,7 +15,7 @@ export interface DbInsertSource {
     description: JsonString
     id?: number
     name?: string | null
-    updatedAt?: Date | null
+    updatedAt?: Date
 }
 export type DbRawSource = Required<DbInsertSource>
 export type DbEnrichedSource = Omit<DbRawSource, "description"> & {

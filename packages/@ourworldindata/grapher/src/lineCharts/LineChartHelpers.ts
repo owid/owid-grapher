@@ -23,7 +23,7 @@ import {
     byHoverThenFocusState,
     getHoverStateForSeries,
 } from "../chart/ChartUtils"
-import { resolveEmphasis } from "../interaction/Emphasis"
+import { Emphasis, resolveEmphasis } from "../interaction/Emphasis"
 
 export type AnnotationsMap = Map<PrimitiveType, Set<PrimitiveType>>
 
@@ -156,26 +156,38 @@ export function toRenderLineChartSeries(
         isFocusModeActive = false,
         isHoverModeActive = false,
         hoveredSeriesNames = [],
+        shouldElevateSingleSeries = true,
     }: {
         isFocusModeActive?: boolean
         isHoverModeActive?: boolean
         hoveredSeriesNames?: SeriesName[]
+        shouldElevateSingleSeries?: boolean
     }
 ): RenderLineChartSeries[] {
+    const isSingleSeries = placedSeries.length === 1
+
     let series: RenderLineChartSeries[] = placedSeries.map((series) => {
         const hover = getHoverStateForSeries(series, {
             isHoverModeActive,
             hoveredSeriesNames,
         })
-        const emphasis = resolveEmphasis({ hover, focus: series.focus })
+        let emphasis = resolveEmphasis({ hover, focus: series.focus })
+
+        // Emphasize series if it's the only one in the chart
+        if (
+            shouldElevateSingleSeries &&
+            isSingleSeries &&
+            emphasis === Emphasis.Default
+        )
+            emphasis = Emphasis.Elevated
 
         return { ...series, hover, emphasis }
     })
 
-    // draw lines on top of markers-only series
+    // Draw lines on top of markers-only series
     series = _.sortBy(series, (series) => !series.plotMarkersOnly)
 
-    // sort by interaction state so that foreground series
+    // Sort by interaction state so that foreground series
     // are drawn on top of background series
     if (isFocusModeActive || isHoverModeActive) {
         series = _.sortBy(series, byHoverThenFocusState)

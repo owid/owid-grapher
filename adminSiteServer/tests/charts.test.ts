@@ -637,9 +637,10 @@ describe("Indicator-level chart configs", { timeout: 15000 }, () => {
         const configUpdatedAt = async (): Promise<Date> =>
             (await env.testKnex(ChartConfigsTableName).first()).updatedAt
 
-        // verify that both updatedAt timestamps are null initially
-        expect(await chartUpdatedAt()).toBeNull()
-        expect(await configUpdatedAt()).toBeNull()
+        // verify that both updatedAt timestamps are initialized on create
+        expect(await chartUpdatedAt()).not.toBeNull()
+        expect(await configUpdatedAt()).not.toBeNull()
+        expect(await chartUpdatedAt()).toEqual(await configUpdatedAt())
 
         // update the chart
         await env.request({

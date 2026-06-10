@@ -16,6 +16,7 @@ import {
     SpanLine,
 } from "./SeriesLabelState.js"
 import { Bounds, isTouchDevice } from "@ourworldindata/utils"
+import { Halo } from "@ourworldindata/components"
 import { RegionTooltip } from "./RegionTooltip.js"
 import { getDescriptionForKey, getRegionsForKey } from "./RegionTooltipData.js"
 
@@ -33,6 +34,7 @@ export interface SeriesLabelProps {
     id?: string
     color?: Partial<Record<TextRole, string>>
     opacity?: number
+    outline?: boolean
     onMouseEnter?: React.MouseEventHandler<SVGElement>
     onMouseLeave?: React.MouseEventHandler<SVGElement>
     onInfoTooltipShow?: () => void
@@ -55,6 +57,7 @@ export function SeriesLabel({
     id,
     color,
     opacity,
+    outline,
     onMouseEnter,
     onMouseLeave,
     onInfoTooltipShow,
@@ -66,9 +69,25 @@ export function SeriesLabel({
     const colors = { ...defaultColors, ...color }
     const props = { id, opacity, onMouseEnter, onMouseLeave }
 
+    const withHalo = (
+        element: React.ReactElement<{
+            id?: string
+            style?: React.CSSProperties
+        }>
+    ): React.ReactElement => {
+        const haloId = id ? `${id}__halo` : "label__halo"
+        return outline ? (
+            <Halo id={haloId} fontSize={state.fontSettings.fontSize}>
+                {element}
+            </Halo>
+        ) : (
+            element
+        )
+    }
+
     // Rely on browser rendering if there are no icons
     if (!state.hasIcon) {
-        return (
+        return withHalo(
             <NativeAlignedLabelText
                 x={renderX}
                 y={renderY}
@@ -90,13 +109,15 @@ export function SeriesLabel({
 
     return (
         <g {...props}>
-            <LabelText
-                x={renderX}
-                y={renderY}
-                fragments={textFragments}
-                fontSize={fontSize}
-                colors={colors}
-            />
+            {withHalo(
+                <LabelText
+                    x={renderX}
+                    y={renderY}
+                    fragments={textFragments}
+                    fontSize={fontSize}
+                    colors={colors}
+                />
+            )}
             {iconFragments.map((fragment) => (
                 <IconFragment
                     key={fragment.tooltipKey}
@@ -124,6 +145,7 @@ function NativeAlignedLabelText({
     colors,
     id,
     opacity,
+    style,
     onMouseEnter,
     onMouseLeave,
 }: {
@@ -136,12 +158,14 @@ function NativeAlignedLabelText({
     colors: Record<TextRole, string>
     id?: string
     opacity?: number
+    style?: React.CSSProperties // Necessary for Halo
     onMouseEnter?: React.MouseEventHandler<SVGElement>
     onMouseLeave?: React.MouseEventHandler<SVGElement>
 }): React.ReactElement {
     return (
         <text
             id={id}
+            style={style}
             x={x.toFixed(1)}
             y={y.toFixed(1)}
             textAnchor={textAnchor}
@@ -186,6 +210,7 @@ function LabelText({
     colors,
     id,
     opacity,
+    style,
     onMouseEnter,
     onMouseLeave,
 }: {
@@ -196,6 +221,7 @@ function LabelText({
     colors: Record<TextRole, string>
     id?: string
     opacity?: number
+    style?: React.CSSProperties // Necessary for Halo
     onMouseEnter?: React.MouseEventHandler<SVGElement>
     onMouseLeave?: React.MouseEventHandler<SVGElement>
 }): React.ReactElement {
@@ -209,6 +235,7 @@ function LabelText({
                 fontSize={fontSize}
                 fill={colors[fragments[0].role]}
                 opacity={opacity}
+                style={style}
                 onMouseEnter={onMouseEnter}
                 onMouseLeave={onMouseLeave}
             />
@@ -218,6 +245,7 @@ function LabelText({
     return (
         <text
             id={id}
+            style={style}
             fontSize={fontSize}
             opacity={opacity}
             onMouseEnter={onMouseEnter}
@@ -244,6 +272,7 @@ function TextFragment({
     fill,
     id,
     opacity,
+    style,
     onMouseEnter,
     onMouseLeave,
 }: {
@@ -254,12 +283,14 @@ function TextFragment({
     fill: string
     id?: string
     opacity?: number
+    style?: React.CSSProperties // Necessary for Halo
     onMouseEnter?: React.MouseEventHandler<SVGElement>
     onMouseLeave?: React.MouseEventHandler<SVGElement>
 }): React.ReactElement {
     return (
         <text
             id={id}
+            style={style}
             fontSize={fontSize}
             opacity={opacity}
             onMouseEnter={onMouseEnter}

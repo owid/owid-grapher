@@ -38,24 +38,24 @@
         {
             "bucket_name": "owid-grapher-configs-staging",
             "binding": "GRAPHER_CONFIG_R2_BUCKET",
-            "remote": true,
+            "remote": true
         },
         {
             "bucket_name": "owid-grapher-configs",
             "binding": "GRAPHER_CONFIG_R2_BUCKET_FALLBACK",
-            "remote": true,
+            "remote": true
         },
         {
             "bucket_name": "owid-user-surveys-staging",
-            "binding": "USER_SURVEYS_R2",
-        },
+            "binding": "USER_SURVEYS_R2"
+        }
     ],
 
     "vars": {
         "ENV": "development",
         "GRAPHER_CONFIG_R2_BUCKET_FALLBACK_PATH": "v1",
         "DATA_API_URL_COMPLETE": "https://api.ourworldindata.org/v1/indicators/",
-        "CATALOG_URL": "https://catalog.ourworldindata.org",
+        "CATALOG_URL": "https://catalog.ourworldindata.org"
     },
 
     "env": {
@@ -67,17 +67,17 @@
                 {
                     "bucket_name": "owid-grapher-configs-staging",
                     "binding": "GRAPHER_CONFIG_R2_BUCKET",
-                    "remote": true,
+                    "remote": true
                 },
                 {
                     "bucket_name": "owid-grapher-configs",
                     "binding": "GRAPHER_CONFIG_R2_BUCKET_FALLBACK",
-                    "remote": true,
+                    "remote": true
                 },
                 {
                     "bucket_name": "owid-user-surveys-staging",
-                    "binding": "USER_SURVEYS_R2",
-                },
+                    "binding": "USER_SURVEYS_R2"
+                }
             ],
             "vars": {
                 // Overrides for CF preview deployments
@@ -88,9 +88,14 @@
                 "DATA_API_URL_PARTIAL_PREFIX": "https://api-staging.owid.io/staging-site-",
                 "DATA_API_URL_PARTIAL_POSTFIX": "/v1/indicators/",
                 "DATA_API_URL_COMPLETE": "",
-                "CLOUDFLARE_GOOGLE_ANALYTICS_SAMPLING_RATE": "1",
-                "CATALOG_URL": "https://catalog.ourworldindata.org",
-            },
+                // Disable GA4 analytics on preview/staging deployments. Previews
+                // are 100%-sampled while prod is 1%, so their hits (esp. bulk
+                // crawlers like ClaudeBot hammering *.owid.pages.dev) badly skew
+                // any raw event count. "0" passes env validation but shouldSample
+                // (Math.random() < 0) is always false, so no events are sent.
+                "CLOUDFLARE_GOOGLE_ANALYTICS_SAMPLING_RATE": "0",
+                "CATALOG_URL": "https://catalog.ourworldindata.org"
+            }
         },
         "production": {
             // Overrides for CF production deployment
@@ -102,12 +107,12 @@
                 {
                     "bucket_name": "owid-grapher-configs",
                     "binding": "GRAPHER_CONFIG_R2_BUCKET",
-                    "remote": true,
+                    "remote": true
                 },
                 {
                     "bucket_name": "owid-user-surveys",
-                    "binding": "USER_SURVEYS_R2",
-                },
+                    "binding": "USER_SURVEYS_R2"
+                }
             ],
             "vars": {
                 "ENV": "production",
@@ -117,8 +122,8 @@
                 "GRAPHER_CONFIG_R2_BUCKET_PATH": "v1",
                 "DATA_API_URL_COMPLETE": "https://api.ourworldindata.org/v1/indicators/",
                 "CLOUDFLARE_GOOGLE_ANALYTICS_SAMPLING_RATE": "0.01",
-                "CATALOG_URL": "https://catalog.ourworldindata.org",
-            },
-        },
-    },
+                "CATALOG_URL": "https://catalog.ourworldindata.org"
+            }
+        }
+    }
 }

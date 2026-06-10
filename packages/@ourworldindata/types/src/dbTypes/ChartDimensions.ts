@@ -5,7 +5,7 @@ export interface DbInsertChartDimension {
     id?: number
     order: number
     property: string
-    updatedAt?: Date | null
+    updatedAt?: Date
     variableId: number
 }
 export type DbPlainChartDimension = Required<DbInsertChartDimension>

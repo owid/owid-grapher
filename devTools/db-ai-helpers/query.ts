@@ -93,9 +93,6 @@ async function main() {
         if (stagingHost) {
             console.log(`Connected to staging: ${stagingHost}`)
         }
-        console.log(`Executing query: ${sql}`)
-        console.log("---")
-
         const queryRunner = db.createQueryRunner()
         await queryRunner.connect()
         try {

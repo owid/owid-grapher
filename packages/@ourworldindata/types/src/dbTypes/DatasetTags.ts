@@ -3,6 +3,6 @@ export interface DbInsertDatasetTag {
     createdAt?: Date
     datasetId: number
     tagId: number
-    updatedAt?: Date | null
+    updatedAt?: Date
 }
 export type DbPlainDatasetTag = Required<DbInsertDatasetTag>

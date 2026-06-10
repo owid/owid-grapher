@@ -47,6 +47,7 @@ const descriptions: Record<TooltipKey, string> = {
         "The **World Bank** defines [four income groups](https://ourworldindata.org/world-bank-income-groups-explained):",
     continents:
         "Our team defines [six world regions](https://ourworldindata.org/world-region-map-definitions#our-world-in-data):",
+    iea: "The **International Energy Agency (IEA)** defines seven world regions:",
 }
 
 // Geographic display order: left-to-right on the map.

@@ -41,10 +41,8 @@ export type ImageParentContainer =
     | "thumbnail"
     | "full-width"
     | "person"
-    | "span-5"
-    | "span-6"
-    | "span-7"
-    | "span-8"
+    | "latest-article"
+    | "latest-data-insight"
     | "chart-rows"
     | "pull-chart"
 
@@ -55,7 +53,6 @@ const containerSizes: Record<ImageParentContainer, string> = {
     ["sticky-left-left-column"]: gridSpan7,
     ["sticky-left-right-column"]: gridSpan5,
     ["side-by-side"]: gridSpan6,
-    ["summary"]: gridSpan6,
     ["thumbnail"]: "350px",
     ["datapage"]: gridSpan6,
     ["data-insight"]: "100%",
@@ -65,10 +62,9 @@ const containerSizes: Record<ImageParentContainer, string> = {
     ["author-byline"]: "48px",
     ["author-header"]: gridSpan2,
     ["person"]: gridSpan2,
-    ["span-5"]: gridSpan5,
-    ["span-6"]: gridSpan6,
-    ["span-7"]: gridSpan7,
-    ["span-8"]: gridSpan8,
+    ["latest-article"]: gridSpan3Sm,
+    ["latest-data-insight"]: gridSpan5,
+    ["latest-announcement"]: gridSpan6,
     ["chart-rows"]: gridSpan3Sm,
     ["pull-chart"]: gridSpan3Sm,
 }

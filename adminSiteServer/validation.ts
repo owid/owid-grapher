@@ -56,7 +56,7 @@ export async function validateNewGrapherSlug(
     }
     if (await isSlugUsedInRedirect(knex, slug, existingConfigId)) {
         throw new JsonError(
-            `This chart slug was previously used by another chart: ${slug}`
+            `Cannot use slug "${slug}" because it is already configured as a redirect to another chart. Choose a different slug or remove the conflicting redirect first.`
         )
     }
     if (await isSlugUsedInOtherGrapher(knex, slug, existingConfigId)) {
@@ -112,7 +112,7 @@ export async function validateMultiDimSlug(
     }
     if (await isSlugUsedInRedirect(knex, slug, existingConfigId)) {
         throw new JsonError(
-            `This chart slug was previously used by another chart: ${slug}`
+            `Cannot use slug "${slug}" because it is already configured as a redirect to another chart. Choose a different slug or remove the conflicting redirect first.`
         )
     }
     if (await isSlugUsedInOtherGrapher(knex, slug, existingConfigId)) {

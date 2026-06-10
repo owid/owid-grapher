@@ -962,6 +962,29 @@ export const enrichedBlockExamples: Record<
         ],
         parseErrors: [],
     },
+    "data-callout-group": {
+        type: "data-callout-group",
+        content: [
+            {
+                type: "data-callout",
+                url: "https://ourworldindata.org/grapher/life-expectancy?country=KEN",
+                content: [
+                    {
+                        type: "text",
+                        value: [
+                            {
+                                spanType: "span-simple-text",
+                                text: "Example callout text",
+                            },
+                        ],
+                        parseErrors: [],
+                    },
+                ],
+                parseErrors: [],
+            },
+        ],
+        parseErrors: [],
+    },
     "data-callout": {
         type: "data-callout",
         url: "https://ourworldindata.org/grapher/life-expectancy?country=KEN",

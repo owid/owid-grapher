@@ -39,10 +39,7 @@ import {
 } from "./ScatterUtils"
 import { Triangle } from "./Triangle"
 import { ColorScale } from "../color/ColorScale"
-import {
-    BASE_FONT_SIZE,
-    GRAPHER_TEXT_OUTLINE_FACTOR,
-} from "../core/GrapherConstants"
+import { BASE_FONT_SIZE } from "../core/GrapherConstants"
 
 // This is the component that actually renders the points. The higher level ScatterPlot class renders points, legends, comparison lines, etc.
 @observer
@@ -465,10 +462,7 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
                             <Halo
                                 key={series.displayKey + "-endLabel"}
                                 id={makeFigmaId("outline", series.seriesName)}
-                                outlineWidth={
-                                    GRAPHER_TEXT_OUTLINE_FACTOR * label.fontSize
-                                }
-                                outlineColor={this.props.backgroundColor}
+                                fontSize={label.fontSize}
                             >
                                 <text
                                     id={makeFigmaId("label", label.text)}
@@ -605,10 +599,7 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
                             <Halo
                                 id={makeFigmaId("outline", series.seriesName)}
                                 key={`${series.displayKey}-label-${index}`}
-                                outlineWidth={
-                                    GRAPHER_TEXT_OUTLINE_FACTOR * label.fontSize
-                                }
-                                outlineColor={this.props.backgroundColor}
+                                fontSize={label.fontSize}
                             >
                                 <text
                                     id={makeFigmaId("label", series.seriesName)}

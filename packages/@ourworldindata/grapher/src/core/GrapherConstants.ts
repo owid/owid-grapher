@@ -69,8 +69,6 @@ export const GRAPHER_AREA_OPACITY_DEFAULT = 0.8
 export const GRAPHER_AREA_OPACITY_MUTED = 0.3
 export const GRAPHER_AREA_OPACITY_HIGHLIGHTED = 1
 
-export const GRAPHER_TEXT_OUTLINE_FACTOR = 0.25
-
 export const BASE_FONT_SIZE = 16
 
 export const GRAPHER_FONT_SCALE_9_6 = 9.6 / BASE_FONT_SIZE
@@ -82,6 +80,7 @@ export const GRAPHER_FONT_SCALE_12 = 12 / BASE_FONT_SIZE
 export const GRAPHER_FONT_SCALE_12_8 = 12.8 / BASE_FONT_SIZE
 export const GRAPHER_FONT_SCALE_13 = 13 / BASE_FONT_SIZE
 export const GRAPHER_FONT_SCALE_14 = 14 / BASE_FONT_SIZE
+export const GRAPHER_FONT_SCALE_15 = 15 / BASE_FONT_SIZE
 export const GRAPHER_FONT_SCALE_18 = 18 / BASE_FONT_SIZE
 
 // keep in sync with $max-tooltip-width in Tooltip.scss
@@ -99,8 +98,6 @@ export const isWorldEntityName = (entityName: EntityName): boolean =>
     entityName === WORLD_ENTITY_NAME
 
 export const CONTINENTS_INDICATOR_ID = 900801 // "Countries Continent"
-export const POPULATION_INDICATOR_ID_USED_IN_ADMIN = 953899 // "Population (various sources, 2024-07-15)"
-export const GDP_PER_CAPITA_INDICATOR_ID_USED_IN_ADMIN = 1204826 // "GDP per capita, PPP (constant 2021 international $)"
 
 export const isContinentsVariableId = (id: string | number): boolean =>
     id.toString() === CONTINENTS_INDICATOR_ID.toString()

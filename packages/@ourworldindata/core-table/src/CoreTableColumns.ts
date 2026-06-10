@@ -558,6 +558,22 @@ export abstract class AbstractCoreColumn<
         })
         return valueByEntityNameAndTime
     }
+
+    // Not using owidRows for performance reasons
+    @imemo get latestValueByEntityName(): Map<EntityName, JS_TYPE> {
+        const map = new Map<EntityName, JS_TYPE>()
+
+        const entityNames = this.allEntityNames
+        const values = this.values
+
+        // The table is sorted by time, so later rows overwrite earlier ones,
+        // leaving each entity mapped to its latest value
+        for (let i = 0; i < values.length; i++) {
+            map.set(entityNames[i], values[i])
+        }
+
+        return map
+    }
 }
 
 export type CoreColumn<
@@ -1068,7 +1084,4 @@ export const ColumnTypeMap = {
 // Keep this in. This is used as a compile-time check that ColumnTypeMap covers all
 // column names defined in ColumnTypeNames, since that is quite difficult to ensure
 // otherwise without losing inferred type information.
-
-const _ColumnTypeMap: {
-    [key in ColumnTypeNames]: unknown
-} = ColumnTypeMap
+ColumnTypeMap satisfies { [key in ColumnTypeNames]: unknown }

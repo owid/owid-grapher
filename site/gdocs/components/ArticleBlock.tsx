@@ -65,10 +65,10 @@ import { Cta } from "./Cta.js"
 import { AttachmentsContext } from "../AttachmentsContext.js"
 import { FeaturedMetrics } from "../../FeaturedMetrics.js"
 import { FeaturedDataInsights } from "../../FeaturedDataInsights.js"
-import { BlockQueryClientProvider } from "./BlockQueryClientProvider.js"
 import { ExploreDataSection } from "./ExploreDataSection.js"
 import { LTPTableOfContents } from "./LTPTableOfContents.js"
 import { DataCallout } from "./DataCallout.js"
+import { DataCalloutGroup } from "./DataCalloutGroup.js"
 import { CountryProfileSelector } from "./CountryProfileSelector.js"
 
 function ArticleBlockInternal({
@@ -190,28 +190,24 @@ function ArticleBlockInternal({
                             `${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1${EXPERIMENT_ARM_SEPARATOR}featured-metrics--hide`
                         )}
                     />
-                    <>
-                        <BlockQueryClientProvider>
-                            <FeaturedMetrics
-                                id={
-                                    experimentState &&
-                                    experimentState[
-                                        `${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1`
-                                    ]?.isPageInExperiment &&
-                                    experimentState[
-                                        `${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1`
-                                    ]?.arm === "featured-metrics"
-                                        ? "all-charts"
-                                        : ""
-                                }
-                                topicName={topicName}
-                                className={cx(
-                                    layoutClassName,
-                                    `${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1${EXPERIMENT_ARM_SEPARATOR}featured-metrics--show`
-                                )}
-                            />
-                        </BlockQueryClientProvider>
-                    </>
+                    <FeaturedMetrics
+                        id={
+                            experimentState &&
+                            experimentState[
+                                `${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1`
+                            ]?.isPageInExperiment &&
+                            experimentState[
+                                `${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1`
+                            ]?.arm === "featured-metrics"
+                                ? "all-charts"
+                                : ""
+                        }
+                        topicName={topicName}
+                        className={cx(
+                            layoutClassName,
+                            `${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1${EXPERIMENT_ARM_SEPARATOR}featured-metrics--show`
+                        )}
+                    />
                 </>
             )
         })
@@ -969,12 +965,10 @@ function ArticleBlockInternal({
             }
 
             return (
-                <BlockQueryClientProvider>
-                    <FeaturedMetrics
-                        topicName={topicName}
-                        className={layoutClassName}
-                    />
-                </BlockQueryClientProvider>
+                <FeaturedMetrics
+                    topicName={topicName}
+                    className={layoutClassName}
+                />
             )
         })
         .with({ type: "featured-data-insights" }, () => {
@@ -998,12 +992,10 @@ function ArticleBlockInternal({
             }
 
             return (
-                <BlockQueryClientProvider>
-                    <FeaturedDataInsights
-                        topicName={topicName}
-                        className={layoutClassName}
-                    />
-                </BlockQueryClientProvider>
+                <FeaturedDataInsights
+                    topicName={topicName}
+                    className={layoutClassName}
+                />
             )
         })
         .with({ type: "socials" }, (block) => (
@@ -1014,6 +1006,9 @@ function ArticleBlockInternal({
         ))
         .with({ type: "data-callout" }, (block) => (
             <DataCallout block={block} containerType={containerType} />
+        ))
+        .with({ type: "data-callout-group" }, (block) => (
+            <DataCalloutGroup block={block} containerType={containerType} />
         ))
         .with({ type: "country-profile-selector" }, (block) => (
             <CountryProfileSelector
