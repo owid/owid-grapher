@@ -73,6 +73,8 @@ $sidebar-toc-header-gap: 32px;
     width: $sidebar-toc-frame;
     height: 100vh;
     --sidebar-toc-inset: #{$sidebar-toc-inset};
+    // Query container for the CTA label swap (see .sidebar-toc__cta-label).
+    container: sidebar-toc-panel / inline-size;
     background: $white;
     border-right: 1px solid $blue-10;
     display: flex;
@@ -336,12 +338,23 @@ $sidebar-toc-header-gap: 32px;
     }
 }
 
-// The CTA carries both labels and shows the full one by default; only the
-// narrow sidebar swaps in the short one (see the small-sidebar media query below).
-// Both contexts that render this CTA — the sidebar and the full-width drawer — are
-// sized by the viewport, so a media query suffices; no container query needed.
+// The CTA carries both labels; the container query below swaps in the short
+// one inside panels too narrow to fit the full one.
 .sidebar-toc__cta-label--short {
     display: none;
+}
+
+// The full label only fits panels at least as wide as the large sidebar: the
+// small sidebar and mobile drawers on sub-320px viewports get the short one. The −2px
+// keeps the threshold under the large sidebar's content box (frame − 1px border).
+@container sidebar-toc-panel (max-width: #{$sidebar-toc-frame - 2px}) {
+    .sidebar-toc__cta-label--full {
+        display: none;
+    }
+
+    .sidebar-toc__cta-label--short {
+        display: inline;
+    }
 }
 
 // --- Mobile: "Contents" pill + mobile drawer overlay (<= breakpoint) ---------
@@ -409,6 +422,8 @@ $sidebar-toc-header-gap: 32px;
     flex-direction: column;
     gap: $sidebar-toc-section-gap;
     outline: none; // react-aria moves focus here on open; no ring on the panel
+    // Second host of the CTA label-swap query (see .sidebar-toc__cta-label).
+    container: sidebar-toc-panel / inline-size;
 }
 
 .sidebar-toc__mobile-drawer-header {
@@ -462,17 +477,8 @@ $sidebar-toc-header-gap: 32px;
         left: -($sidebar-toc-sidebar-inset-narrow + $sidebar-toc-sub-indent);
     }
 
-    // The narrow column can't fit "See all charts on this topic" on one line:
-    // swap in the shorter label and give the now single-line CTA the tighter
-    // side inset to match the column.
-    .sidebar-toc__cta-label--full {
-        display: none;
-    }
-
-    .sidebar-toc__cta-label--short {
-        display: inline;
-    }
-
+    // The label swap is handled by the container query (see
+    // .sidebar-toc__cta-label); only the tighter side inset is viewport-keyed.
     .sidebar-toc__cta {
         padding: 0 $sidebar-toc-sidebar-inset-narrow;
     }
