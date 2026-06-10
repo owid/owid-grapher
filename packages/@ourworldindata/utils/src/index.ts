@@ -330,6 +330,7 @@ export {
     MIN_DONATION_AMOUNT,
     MAX_DONATION_AMOUNT,
     PLEASE_TRY_AGAIN,
+    PLEASE_GET_IN_TOUCH,
 } from "./DonateUtils.js"
 
 export { isAndroid, isIOS } from "./BrowserUtils.js"

@@ -1,4 +1,5 @@
 import * as React from "react"
+import { Turnstile, type TurnstileInstance } from "@marsidev/react-turnstile"
 import * as Sentry from "@sentry/react"
 import cx from "classnames"
 import { observable, action, computed, makeObservable } from "mobx"
@@ -15,13 +16,13 @@ import {
     SUPPORTED_CURRENCY_CODES,
     getCurrencySymbol,
     DonateSessionResponse,
+    PLEASE_GET_IN_TOUCH,
     PLEASE_TRY_AGAIN,
 } from "@ourworldindata/utils"
-import Recaptcha from "react-recaptcha"
 import {
     DONATE_API_URL,
     BAKED_BASE_URL,
-    RECAPTCHA_SITE_KEY,
+    TURNSTILE_SITE_KEY,
 } from "../settings/clientSettings.js"
 import { Checkbox } from "@ourworldindata/components"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -29,6 +30,7 @@ import { faArrowRight, faInfoCircle } from "@fortawesome/free-solid-svg-icons"
 import { SiteAnalytics } from "./SiteAnalytics.js"
 
 const DEFAULT_AMOUNT_INDEX = 2
+const TURNSTILE_SENTRY_ERROR_CODES = [110100, 110110, 110200]
 
 const amountsByInterval = {
     once: [20, 50, 100, 500, 1000],
@@ -122,13 +124,7 @@ export class DonateForm extends React.Component<{ countryCode?: string }> {
     isLoading: boolean = true
     currencyCode: DonationCurrencyCode = "GBP"
 
-    captchaInstance = React.createRef<Recaptcha>()
-    captchaPromiseHandlers:
-        | {
-              resolve: (value: any) => void
-              reject: (value: any) => void
-          }
-        | undefined = undefined
+    turnstileRef = React.createRef<TurnstileInstance>()
 
     constructor(props: { countryCode?: string }) {
         super(props)
@@ -144,7 +140,6 @@ export class DonateForm extends React.Component<{ countryCode?: string }> {
             isSubmitting: observable,
             isLoading: observable,
             currencyCode: observable,
-            captchaPromiseHandlers: observable.ref,
         })
     }
 
@@ -265,25 +260,41 @@ export class DonateForm extends React.Component<{ countryCode?: string }> {
         window.location.href = session.url
     }
 
-    @bind async getCaptchaToken(): Promise<string> {
-        return new Promise((resolve, reject) => {
-            if (!this.captchaInstance.current)
-                return reject(
-                    new Error(`Could not load reCAPTCHA. ${PLEASE_TRY_AGAIN}`)
-                )
-            this.captchaPromiseHandlers = { resolve, reject }
-            this.captchaInstance.current.reset()
-            this.captchaInstance.current.execute()
-        })
+    @bind async getCaptchaToken() {
+        const turnstile = this.turnstileRef.current
+        if (!turnstile) {
+            throw new Error(`Could not load Turnstile. ${PLEASE_TRY_AGAIN}`)
+        }
+        turnstile.reset()
+        turnstile.execute()
+        return turnstile.getResponsePromise()
     }
 
     @bind onCaptchaLoad() {
         this.isLoading = false
     }
 
-    @bind onCaptchaVerify(token: string) {
-        if (this.captchaPromiseHandlers)
-            this.captchaPromiseHandlers.resolve(token)
+    @bind onCaptchaError(errorCode: string) {
+        // https://developers.cloudflare.com/turnstile/troubleshooting/client-side-errors/error-codes/
+        const errorCodeNumber = Number(errorCode)
+        const errorFamily = Math.floor(errorCodeNumber / 1000)
+
+        if (TURNSTILE_SENTRY_ERROR_CODES.includes(errorCodeNumber)) {
+            Sentry.captureException(new Error(`Turnstile error: ${errorCode}`))
+        }
+
+        switch (errorFamily) {
+            case 300:
+            case 600:
+                this.setErrorMessage(
+                    `Security check failed. Please try refreshing the page or using a different browser. ${PLEASE_GET_IN_TOUCH}`
+                )
+                break
+            default:
+                this.setErrorMessage(
+                    `An unexpected error occurred. ${PLEASE_TRY_AGAIN}`
+                )
+        }
     }
 
     @bind async onSubmit(event: React.SubmitEvent<HTMLFormElement>) {
@@ -297,13 +308,10 @@ export class DonateForm extends React.Component<{ countryCode?: string }> {
             this.setIsSubmitting(false)
 
             const prefixedErrorMessage = stringifyUnknownError(error)
-            // Send all errors to Sentry. This will help surface issues
-            // with our aging reCAPTCHA setup, and pull the trigger on a
-            // (hook-based?) rewrite if it starts failing. This reporting
-            // also includes form validation errors, which are useful to
-            // identify possible UX improvements or validate UX experiments
-            // (such as the combination of the name field and the "include
-            // my name on the list" checkbox).
+            // Send all errors to Sentry. This also includes form validation
+            // errors, which are useful to identify possible UX improvements
+            // or validate UX experiments (such as the combination of the name
+            // field and the "include my name on the list" checkbox).
             Sentry.captureException(
                 error instanceof Error ? error : new Error(prefixedErrorMessage)
             )
@@ -468,14 +476,16 @@ export class DonateForm extends React.Component<{ countryCode?: string }> {
                     <p className="error">{this.errorMessage}</p>
                 )}
 
-                <Recaptcha
-                    ref={this.captchaInstance}
-                    sitekey={RECAPTCHA_SITE_KEY}
-                    size="invisible"
-                    badge="bottomleft"
-                    render="explicit"
-                    onloadCallback={this.onCaptchaLoad}
-                    verifyCallback={this.onCaptchaVerify}
+                <Turnstile
+                    ref={this.turnstileRef}
+                    siteKey={TURNSTILE_SITE_KEY}
+                    options={{
+                        action: "donate",
+                        execution: "execute",
+                        appearance: "interaction-only",
+                    }}
+                    onWidgetLoad={this.onCaptchaLoad}
+                    onError={this.onCaptchaError}
                 />
                 <div className="donation-payment">
                     <button
@@ -529,15 +539,11 @@ export class DonateForm extends React.Component<{ countryCode?: string }> {
                 </div>
                 {!this.isUsa && <EveryOrgSection buttonVariant="secondary" />}
                 <p className="donation-note">
-                    This site is protected by reCAPTCHA and the Google{" "}
-                    <a href="https://policies.google.com/privacy">
-                        Privacy Policy
+                    This site is protected by Turnstile.{" "}
+                    <a href="https://www.cloudflare.com/privacypolicy/">
+                        Cloudflare's Privacy Policy
                     </a>{" "}
-                    and{" "}
-                    <a href="https://policies.google.com/terms">
-                        Terms of Service
-                    </a>{" "}
-                    apply.
+                    applies.
                 </p>
             </form>
         )

@@ -69,8 +69,8 @@ export const CLOUDFLARE_IMAGES_URL = process.env.CLOUDFLARE_IMAGES_URL ?? ""
 export const DONATE_API_URL: string =
     process.env.DONATE_API_URL ?? "http://localhost:8788/donation/donate"
 
-export const RECAPTCHA_SITE_KEY: string =
-    process.env.RECAPTCHA_SITE_KEY ?? "6LcJl5YUAAAAAATQ6F4vl9dAWRZeKPBm15MAZj4Q"
+export const TURNSTILE_SITE_KEY: string =
+    process.env.TURNSTILE_SITE_KEY ?? "0x4AAAAAADh7N4W5ajeRXkYb"
 
 // e.g. "GTM-N2D4V8S" (our production GTM container)
 export const GOOGLE_TAG_MANAGER_ID: string =
