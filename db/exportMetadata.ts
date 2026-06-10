@@ -95,6 +95,9 @@ const INCLUDE_DATA_TABLES = [
 // classification check below confirm every table has been considered. Keep
 // alphabetised.
 const SCHEMA_ONLY_TABLES = [
+    // The analytics_* tables ship schema-only here; their data travels in a
+    // private sidecar dump instead. Keep them in sync with analyticsTables in
+    // exportAnalyticsData.ts.
     "analytics_chart_views", // internal analytics, large
     "analytics_grapher_views", // internal analytics, large
     "analytics_pageviews", // internal analytics, large

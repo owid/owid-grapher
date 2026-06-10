@@ -26,7 +26,7 @@ help:
 	@echo '  make up                     start dev environment via docker-compose and tmux'
 	@echo '  make down                   stop any services still running'
 	@echo '  make refresh                (while up) download a new grapher snapshot and update MySQL'
-	@echo '  make refresh.analytics      (while up) download and load analytics from the private datasette instance'
+	@echo '  make refresh.analytics      (while up) download and load the private analytics dump (needs access)'
 	@echo '  make refresh.full           (while up) run refresh and refresh.analytics'
 	@echo '  make migrate                (while up) run any outstanding db migrations'
 	@echo '  make test                   run full suite (except db tests) of CI checks including unit tests'
@@ -167,9 +167,14 @@ refresh.atomic:
 	@echo '!!! If you use ETL, wipe indicators from your R2 staging with `rclone delete r2:owid-api-staging/[yourname]/ ' \
 	'--fast-list --transfers 32 --checkers 32  --verbose`'
 
-refresh.analytics: node_modules
-	@echo '==> Refreshing analytics'
-	yarn refreshAnalytics
+refresh.analytics:
+	@make check-not-prod
+
+	@echo '==> Downloading private analytics dump'
+	./devTools/docker/download-grapher-analytics-mysql.sh
+
+	@echo '==> Refreshing analytics tables'
+	DATA_FOLDER=tmp-downloads ./devTools/docker/refresh-analytics-data.sh
 
 sync-images:
 	@echo 'Task has been deprecated.'
