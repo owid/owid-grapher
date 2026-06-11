@@ -6,12 +6,16 @@ import type { TypesenseConfig } from "./typesenseClient.js"
 /**
  * Integration tests for Typesense search.
  *
- * These tests require a running Typesense instance with indexed data.
- * Run `make up.full` and `make reindex.typesense` before running these.
+ * These tests require a running Typesense instance with indexed data, so
+ * they are skipped by default (e.g. in CI). Run `make up.full` and
+ * `make reindex.typesense` before running these.
  *
- * To run:  yarn test run functions/api/search/searchApi.integration.test.ts
+ * To run:
+ *   TYPESENSE_INTEGRATION_TESTS=true yarn test run functions/api/search/searchApi.integration.test.ts
  */
-describe("searchCharts with real Typesense", () => {
+const runIntegrationTests = process.env.TYPESENSE_INTEGRATION_TESTS === "true"
+
+describe.runIf(runIntegrationTests)("searchCharts with real Typesense", () => {
     const typesenseConfig: TypesenseConfig = {
         host: "localhost",
         port: 8108,
@@ -241,7 +245,7 @@ describe("searchCharts with real Typesense", () => {
     })
 })
 
-describe("searchPages with real Typesense", () => {
+describe.runIf(runIntegrationTests)("searchPages with real Typesense", () => {
     const typesenseConfig: TypesenseConfig = {
         host: "localhost",
         port: 8108,

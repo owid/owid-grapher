@@ -255,7 +255,7 @@ export async function searchCharts(
         const seen = new Set<string>()
         const deduped: typeof rawHits = []
         for (const hit of rawHits) {
-            const doc = hit.document as Record<string, unknown>
+            const doc = hit.document
             const dedupId = doc.deduplicationId as string
             if (!seen.has(dedupId)) {
                 seen.add(dedupId)
@@ -266,7 +266,7 @@ export async function searchCharts(
     }
 
     const cleanedHits = rawHits.map((hit, index): EnrichedSearchChartHit => {
-        const doc = hit.document as Record<string, unknown>
+        const doc = hit.document
 
         let url: string
         if (doc.type === ChartRecordType.ExplorerView) {
@@ -280,7 +280,7 @@ export async function searchCharts(
         }
 
         // Remove deduplicationId from output — it's internal
-        const { deduplicationId: _, ...rest } = doc as Record<string, unknown>
+        const { deduplicationId: _, ...rest } = doc
 
         return {
             ...(rest as unknown as SearchChartHit),
@@ -290,7 +290,7 @@ export async function searchCharts(
     })
 
     // For API-side dedup, found count is approximate (includes dupes)
-    const nbHits = useTypesenseDedup ? response.found : response.found
+    const nbHits = response.found
     const nbPages = Math.ceil(nbHits / hitsPerPage)
 
     return {
@@ -362,7 +362,7 @@ export async function searchPages(
         const seen = new Set<string>()
         const deduped: typeof rawHits = []
         for (const hit of rawHits) {
-            const doc = hit.document as Record<string, unknown>
+            const doc = hit.document
             const slug = doc.slug as string
             if (!seen.has(slug)) {
                 seen.add(slug)
@@ -373,7 +373,7 @@ export async function searchPages(
     }
 
     const cleanedHits = rawHits.map((hit): EnrichedSearchPageHit => {
-        const doc = hit.document as Record<string, unknown>
+        const doc = hit.document
         return {
             title: doc.title as string,
             slug: doc.slug as string,

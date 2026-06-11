@@ -1,7 +1,7 @@
 import { TagGraphRoot } from "@ourworldindata/types"
 import { QueryClientProvider } from "@tanstack/react-query"
 import { Search } from "./Search.js"
-import { } from "./searchClients.js"
+import {} from "./searchClients.js"
 import { getTypesenseClient } from "./typesense/typesenseClient.js"
 import { getSiteQueryClient } from "../queryClient.js"
 

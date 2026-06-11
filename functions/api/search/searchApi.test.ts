@@ -6,7 +6,7 @@ import {
     formatTopicFilter,
 } from "./searchApi.js"
 
-describe("formatCountryFilter", () => {
+describe(formatCountryFilter, () => {
     it("returns undefined when no countries provided", () => {
         const result = formatCountryFilter(new Set(), false)
         expect(result).toBeUndefined()
@@ -43,7 +43,7 @@ describe("formatCountryFilter", () => {
     })
 })
 
-describe("formatFeaturedMetricFilter", () => {
+describe(formatFeaturedMetricFilter, () => {
     it("returns filter to exclude FMs when query is non-empty", () => {
         const result = formatFeaturedMetricFilter("population")
         expect(result).toBe("isFM:!=true")
@@ -60,7 +60,7 @@ describe("formatFeaturedMetricFilter", () => {
     })
 })
 
-describe("formatIncomeGroupFMFilter", () => {
+describe(formatIncomeGroupFMFilter, () => {
     it("returns filter when no countries selected", () => {
         const result = formatIncomeGroupFMFilter(new Set())
         expect(result).toBe("isIncomeGroupSpecificFM:!=true")
@@ -72,7 +72,7 @@ describe("formatIncomeGroupFMFilter", () => {
     })
 })
 
-describe("formatTopicFilter", () => {
+describe(formatTopicFilter, () => {
     it("returns undefined when no topics provided", () => {
         const result = formatTopicFilter(new Set())
         expect(result).toBeUndefined()
