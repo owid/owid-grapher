@@ -366,6 +366,7 @@ export function rewriteMetaTags(
     // Take the origin (e.g. https://ourworldindata.org) from the canonical URL, which should appear before the image elements.
     // If we fail to capture the origin, we end up with relative image URLs, which should also be okay.
     let origin = ""
+    let mdimDimensions: string[] | undefined = undefined
 
     const thumbnailUrl = `${url.pathname}.png${url.search}`
     const downloadCtxBase = getDownloadContextBase(url)
@@ -386,6 +387,44 @@ export function rewriteMetaTags(
             element: (img) => {
                 if (thumbnailUrl) {
                     img.setAttribute("src", thumbnailUrl)
+                }
+            },
+        })
+        .on("head", {
+            element: (element) => {
+                const dimensionsAttr = element.getAttribute(
+                    "data-owid-mdim-dimensions"
+                )
+                if (dimensionsAttr) {
+                    mdimDimensions = dimensionsAttr.split(",")
+                }
+            },
+        })
+        .on('link[rel="canonical"]', {
+            // Rewrite the canonical URL for Multi-Dim pages to preserve only the valid dimension query parameters.
+            // This ensures search engines index specific dimension configurations separately while ignoring other query parameters.
+            element: (element) => {
+                const href = element.getAttribute("href")
+                if (href && mdimDimensions) {
+                    try {
+                        const searchParams = url.searchParams
+                        const newSearchParams = new URLSearchParams()
+                        // Ensure that the dimensions are set in dimension order, so we always have a consistent order.
+                        for (const dim of mdimDimensions) {
+                            const value = searchParams.get(dim)
+                            if (value) {
+                                newSearchParams.set(dim, value)
+                            }
+                        }
+                        if (newSearchParams.toString()) {
+                            element.setAttribute(
+                                "href",
+                                href + "?" + newSearchParams.toString()
+                            )
+                        }
+                    } catch (e) {
+                        console.error("Error rewriting canonical URL", e)
+                    }
                 }
             },
         })
