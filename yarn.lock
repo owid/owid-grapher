@@ -7165,10 +7165,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"diff@npm:^8.0.3":
-  version: 8.0.3
-  resolution: "diff@npm:8.0.3"
-  checksum: 10/52f957e1fa53db4616ff5f4811b92b22b97a160c12a2f86f22debd4181227b0f6751aa8fd711d6a8fcf4618acb13b86bc702e6d9d6d6ed82acfd00c9cb26ace2
+"diff@npm:^9.0.0":
+  version: 9.0.0
+  resolution: "diff@npm:9.0.0"
+  checksum: 10/f8b5e38a6a7ec73d1850ccb7ff19cda1d02502dc0f2c562ada0f40d7211bfb3075c2f3742104619a1f8f47ae333d48a6c77bffb080a2df900db36935080ea4fb
   languageName: node
   linkType: hard
 
@@ -8428,7 +8428,7 @@ __metadata:
     core-js: "npm:^3.49.0"
     d3: "npm:^7.9.0"
     dayjs: "npm:^1.11.19"
-    diff: "npm:^8.0.3"
+    diff: "npm:^9.0.0"
     dotenv: "npm:^16.0.1"
     embla-carousel-class-names: "npm:^8.6.0"
     embla-carousel-react: "npm:^8.6.0"
@@ -8476,7 +8476,7 @@ __metadata:
     progress: "npm:^2.0.3"
     react: "npm:^19.2.4"
     react-aria-components: "npm:^1.18.0"
-    react-diff-viewer-continued: "npm:^4.2.0"
+    react-diff-viewer-continued: "npm:^4.2.2"
     react-dom: "npm:^19.2.4"
     react-horizontal-scrolling-menu: "npm:^8.2.0"
     react-instantsearch: "npm:^7.26.0"
@@ -11977,20 +11977,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-diff-viewer-continued@npm:^4.2.0":
-  version: 4.2.0
-  resolution: "react-diff-viewer-continued@npm:4.2.0"
+"react-diff-viewer-continued@npm:^4.2.2":
+  version: 4.2.2
+  resolution: "react-diff-viewer-continued@npm:4.2.2"
   dependencies:
     "@emotion/css": "npm:^11.13.5"
     "@emotion/react": "npm:^11.14.0"
     classnames: "npm:^2.5.1"
-    diff: "npm:^8.0.3"
+    diff: "npm:^9.0.0"
     js-yaml: "npm:^4.1.1"
     memoize-one: "npm:^6.0.0"
   peerDependencies:
     react: ^15.3.0 || ^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
     react-dom: ^15.3.0 || ^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
-  checksum: 10/f5612df8eab4e6e068c9e0e73b407c8fc8b1da2a4abaa5f4b23d6da270f411791946c989b89840f69fb470f84351a1511b555ad368e7df15c0e8e9797102fd52
+  checksum: 10/38b374e10bfa47c2a3e1ea40c8baf9d57ca8e2ea0708fab5997fe5b78d3fdb7cf7f89925b3bfce1dac3bc962d5b27dc545bef1f9d56470e5a96dc2625934c3cc
   languageName: node
   linkType: hard
 
