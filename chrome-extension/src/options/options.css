@@ -1,0 +1,47 @@
+.options-container {
+    font-family: system-ui, sans-serif;
+    padding: 16px;
+    max-width: 400px;
+}
+
+.options-container h2 {
+    margin: 0 0 12px;
+    font-size: 16px;
+}
+
+.options-container label {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.options-container input {
+    width: 100%;
+    padding: 6px 8px;
+    font-size: 13px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.options-container button {
+    margin-top: 8px;
+    padding: 6px 16px;
+    font-size: 13px;
+    cursor: pointer;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background: #1a73e8;
+    color: #fff;
+}
+
+.options-container button:hover {
+    background: #1557b0;
+}
+
+#status {
+    margin-top: 8px;
+    font-size: 12px;
+    color: #188038;
+}

@@ -1,7 +1,7 @@
 import * as React from "react"
 import { EnrichedBlockSDGGrid } from "@ourworldindata/utils"
 import cx from "classnames"
-import { BAKED_BASE_URL } from "../../../settings/clientSettings.js"
+import { useSiteAssetUrl } from "../DocumentContext.js"
 
 export default function SDGGrid({
     d,
@@ -36,7 +36,9 @@ const SDGTile = ({
     link: string
 }) => {
     const sdgNumberPadded = number.toString().padStart(2, "0")
-    const sdgIconUrl = `${BAKED_BASE_URL}/images/sdg-icons/sdg-icon-${sdgNumberPadded}.svg`
+    const sdgIconUrl = useSiteAssetUrl(
+        `images/sdg-icons/sdg-icon-${sdgNumberPadded}.svg`
+    )
 
     return (
         <li

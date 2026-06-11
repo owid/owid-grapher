@@ -1,12 +1,14 @@
 import { EnrichedBlockExplorerTiles } from "@ourworldindata/types"
 import { Button } from "@ourworldindata/components"
 import { useLinkedChart } from "../utils.js"
-import { useDocumentContext } from "../DocumentContext.js"
-import { BAKED_BASE_URL } from "../../../settings/clientSettings.js"
+import { useDocumentContext, useSiteAssetUrl } from "../DocumentContext.js"
 
 function ExplorerTile({ url }: { url: string }) {
     const { linkedChart, errorMessage } = useLinkedChart(url)
     const { isPreviewing } = useDocumentContext()
+    const tagIconUrl = useSiteAssetUrl(
+        `images/tag-icons/${encodeURIComponent(linkedChart?.tags[0] ?? "")}.svg`
+    )
     if (errorMessage && isPreviewing) {
         return <p>{errorMessage}</p>
     }
@@ -18,9 +20,7 @@ function ExplorerTile({ url }: { url: string }) {
             className="explorer-tile__icon"
             height={40}
             width={40}
-            src={`${BAKED_BASE_URL}/images/tag-icons/${encodeURIComponent(
-                linkedChart.tags[0]
-            )}.svg`}
+            src={tagIconUrl}
             alt={`Icon for topic ${linkedChart.tags[0]}`}
             loading="lazy"
         />
