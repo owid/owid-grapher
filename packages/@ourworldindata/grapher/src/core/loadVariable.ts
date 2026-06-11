@@ -4,25 +4,21 @@ import {
     MultipleOwidVariableDataDimensionsMap,
     OwidVariableDataMetadataDimensions,
 } from "@ourworldindata/types"
-import { fetchWithRetry, readFromAssetMap } from "@ourworldindata/utils"
+import {
+    fetchWithRetry,
+    getOwidDataFetchUserAgent,
+    readFromAssetMap,
+} from "@ourworldindata/utils"
 import urljoin from "url-join"
 
-// Identify our own server-side calls to the data API (e.g. the baker fetching
-// indicator data while baking pages) so analytics can attribute them to OWID
-// rather than counting them as anonymous external traffic. Includes "Our World
-// In Data" so the existing bot-classification rule tags it as internal.
-//
-// Only attach this in Node (server-side, e.g. the baker). This loader is shared
-// with the client chart path, and `User-Agent` is NOT reliably dropped in the
-// browser — Firefox sends a settable value — which would mislabel real user
-// chart loads as internal and could force a CORS preflight on the cross-origin
-// data API. `typeof window === "undefined"` is true in Node, false in browsers.
-const DATA_FETCH_USER_AGENT =
-    "owid-grapher/1.0 (Our World In Data; +https://ourworldindata.org)"
-const dataFetchOptions: RequestInit | undefined =
-    typeof window === "undefined"
-        ? { headers: { "User-Agent": DATA_FETCH_USER_AGENT } }
-        : undefined
+// Attach a descriptive User-Agent to our own server-side data API calls so
+// analytics can attribute them to OWID rather than counting them as anonymous
+// external traffic. See getOwidDataFetchUserAgent for details; it returns
+// undefined in the browser, so the shared client chart path is unaffected.
+const dataFetchUserAgent = getOwidDataFetchUserAgent()
+const dataFetchOptions: RequestInit | undefined = dataFetchUserAgent
+    ? { headers: { "User-Agent": dataFetchUserAgent } }
+    : undefined
 
 export const getVariableDataRoute = (
     dataApiUrl: string,

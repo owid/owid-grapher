@@ -82,6 +82,7 @@ export {
     getIndexableKeys,
     retryPromise,
     fetchWithRetry,
+    getOwidDataFetchUserAgent,
     getOwidGdocFromJSON,
     extractGdocPageData,
     deserializeOwidGdocPageData,
