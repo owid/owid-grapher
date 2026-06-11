@@ -49,6 +49,7 @@ export const Head = (props: {
     }
     staticAssetMap?: AssetMap
     archiveContext?: ArchiveContext
+    attrs?: Record<string, string>
 }) => {
     const { canonicalUrl, baseUrl } = props
     const pageTitle = props.pageTitle || `Our World in Data`
@@ -74,7 +75,7 @@ export const Head = (props: {
     }
 
     return (
-        <head>
+        <head {...props.attrs}>
             <meta
                 name="viewport"
                 content="width=device-width, initial-scale=1, minimum-scale=1"

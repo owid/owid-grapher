@@ -71,6 +71,8 @@ export function MultiDimDataPage({
         : undefined
     const canonicalUrlForHead = liveUrlIfIsArchive ?? canonicalUrl
 
+    const mdimDimensions = configObj.dimensions.map((d) => d.slug).join(",")
+
     return (
         <Html>
             <Head
@@ -81,6 +83,7 @@ export function MultiDimDataPage({
                 baseUrl={baseUrl}
                 staticAssetMap={assetMaps?.static}
                 archiveContext={archiveContext}
+                attrs={{ "data-owid-mdim-dimensions": mdimDimensions }}
             >
                 <meta property="og:image:width" content={imageWidth} />
                 <meta property="og:image:height" content={imageHeight} />
