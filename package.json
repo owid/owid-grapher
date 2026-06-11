@@ -232,7 +232,7 @@
         "wrangler": "^4.94.0"
     },
     "resolutions": {
-        "whatwg-url": "15.0.0",
+        "@sentry/cli": "3.5.0",
         "preact@npm:^10.13.2": "patch:preact@npm%3A10.17.0#~/.yarn/patches/preact-npm-10.17.0-e831e619a5.patch",
         "preact@npm:^10.10.0": "patch:preact@npm%3A10.17.0#~/.yarn/patches/preact-npm-10.17.0-e831e619a5.patch",
         "@codemirror/view": "6.40.0",
