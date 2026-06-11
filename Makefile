@@ -426,6 +426,10 @@ reindex: node_modules
 	@echo '--- Running indexExplorerViewsMdimViewsAndChartsToAlgolia...'
 	yarn tsx --tsconfig tsconfig.tsx.json baker/algolia/indexExplorerViewsMdimViewsAndChartsToAlgolia.js
 
+index-scheduled: node_modules
+	@echo '==> Indexing scheduled (newly-live) gdocs into the pages-chronological Algolia index'
+	yarn tsx --tsconfig tsconfig.tsx.json baker/algolia/indexScheduledPagesChronologicalToAlgolia.js
+
 delete-algolia-index: node_modules
 	@echo '==> Deleting Algolia index'
 	yarn tsx --tsconfig tsconfig.tsx.json baker/algolia/deleteAlgoliaIndex.js

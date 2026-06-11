@@ -512,6 +512,26 @@ export const getPublishedGdocsWithTags = async (
     }).then((rows) => rows.map(parsePostsGdocsWithTagsRow))
 }
 
+// Ids of published gdocs of the given types that went live in the last
+// `withinHours`.
+export const getRecentlyPublishedGdocIds = async (
+    knex: KnexReadonlyTransaction,
+    gdocTypes: OwidGdocType[],
+    withinHours = 24
+): Promise<string[]> => {
+    const rows = await knexRaw<{ id: string }>(
+        knex,
+        `-- sql
+        SELECT id FROM posts_gdocs
+        WHERE published = 1
+          AND type IN (:gdocTypes)
+          AND publishedAt <= NOW()
+          AND publishedAt > (NOW() - INTERVAL :hours HOUR)`,
+        { gdocTypes, hours: withinHours }
+    )
+    return rows.map((r) => r.id)
+}
+
 export const getNonGrapherExplorerViewCount = (
     knex: KnexReadonlyTransaction
 ): Promise<number> => {

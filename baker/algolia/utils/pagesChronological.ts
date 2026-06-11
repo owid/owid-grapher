@@ -302,6 +302,13 @@ export async function indexIndividualGdocInChronological(
 ): Promise<void> {
     if (!ALGOLIA_INDEXING) return
 
+    // Don't index scheduled posts (publishedAt in the future); they're picked
+    // up by indexScheduledPagesChronologicalToAlgolia once they go live.
+    const isScheduled = gdoc.publishedAt
+        ? gdoc.publishedAt.getTime() > Date.now()
+        : false
+    if (isScheduled) return
+
     const client = getAlgoliaClient()
     if (!client) {
         console.error(
