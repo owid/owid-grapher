@@ -49,7 +49,7 @@ export const Head = (props: {
     }
     staticAssetMap?: AssetMap
     archiveContext?: ArchiveContext
-    attrs?: Record<string, string>
+    attrs?: Record<string, string | undefined>
 }) => {
     const { canonicalUrl, baseUrl } = props
     const pageTitle = props.pageTitle || `Our World in Data`

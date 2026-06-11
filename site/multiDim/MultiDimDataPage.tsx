@@ -71,7 +71,9 @@ export function MultiDimDataPage({
         : undefined
     const canonicalUrlForHead = liveUrlIfIsArchive ?? canonicalUrl
 
-    const mdimDimensions = configObj.dimensions.map((d) => d.slug).join(",")
+    const mdimDimensions = initialViewDimensions
+        ? JSON.stringify(initialViewDimensions)
+        : undefined
 
     return (
         <Html>

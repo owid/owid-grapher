@@ -366,7 +366,7 @@ export function rewriteMetaTags(
     // Take the origin (e.g. https://ourworldindata.org) from the canonical URL, which should appear before the image elements.
     // If we fail to capture the origin, we end up with relative image URLs, which should also be okay.
     let origin = ""
-    let mdimDimensions: string[] | undefined = undefined
+    let mdimDimensionsObj: Record<string, string> | undefined = undefined
 
     const thumbnailUrl = `${url.pathname}.png${url.search}`
     const downloadCtxBase = getDownloadContextBase(url)
@@ -392,11 +392,19 @@ export function rewriteMetaTags(
         })
         .on("head", {
             element: (element) => {
-                const dimensionsAttr = element.getAttribute(
-                    "data-owid-mdim-dimensions"
-                )
+                // HTMLRewriter doesn't un-encode &quot; in attribute values, so we need to replace them before parsing the JSON.
+                const dimensionsAttr = element
+                    .getAttribute("data-owid-mdim-dimensions")
+                    ?.replaceAll("&quot;", '"')
+
                 if (dimensionsAttr) {
-                    mdimDimensions = dimensionsAttr.split(",")
+                    try {
+                        mdimDimensionsObj = JSON.parse(
+                            dimensionsAttr
+                        ) as Record<string, string>
+                    } catch (e) {
+                        console.error("Error parsing dimensions JSON", e)
+                    }
                 }
             },
         })
@@ -405,16 +413,16 @@ export function rewriteMetaTags(
             // This ensures search engines index specific dimension configurations separately while ignoring other query parameters.
             element: (element) => {
                 const href = element.getAttribute("href")
-                if (href && mdimDimensions) {
+                if (href && mdimDimensionsObj) {
                     try {
                         const searchParams = url.searchParams
                         const newSearchParams = new URLSearchParams()
                         // Ensure that the dimensions are set in dimension order, so we always have a consistent order.
-                        for (const dim of mdimDimensions) {
-                            const value = searchParams.get(dim)
-                            if (value) {
-                                newSearchParams.set(dim, value)
-                            }
+                        for (const [dim, defaultChoice] of Object.entries(
+                            mdimDimensionsObj
+                        )) {
+                            const value = searchParams.get(dim) ?? defaultChoice
+                            newSearchParams.set(dim, value)
                         }
                         if (newSearchParams.toString()) {
                             element.setAttribute(
