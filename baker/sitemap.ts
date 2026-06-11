@@ -6,10 +6,8 @@ import {
 import { dayjs, countries, getEntitiesForProfile } from "@ourworldindata/utils"
 import {
     DbPlainChart,
-    DbPlainMultiDimDataPage,
     DbPlainSlideshow,
     DbRawPostGdoc,
-    MultiDimDataPagesTableName,
     OwidGdocType,
     SlideshowsTableName,
 } from "@ourworldindata/types"
@@ -20,6 +18,7 @@ import {
 import * as db from "../db/db.js"
 import urljoin from "url-join"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
+import { getAllPublishedMultiDimDataPages } from "../db/model/MultiDimDataPage.js"
 
 import { getMinimalAuthors } from "../db/model/Gdoc/GdocAuthor.js"
 import {
@@ -86,16 +85,6 @@ async function getPublishedGdocPosts(knex: db.KnexReadonlyTransaction) {
     )
 }
 
-async function getPublishedMultiDims(knex: db.KnexReadonlyTransaction) {
-    // Published multi-dims must have a slug.
-    return knex<DbPlainMultiDimDataPage & { slug: string }>(
-        MultiDimDataPagesTableName
-    )
-        .select("slug", "updatedAt")
-        .where("published", true)
-        .orderBy("updatedAt", "desc")
-}
-
 export const makeSitemap = async (
     explorerAdminServer: ExplorerAdminServer,
     knex: db.KnexReadonlyTransaction
@@ -129,7 +118,7 @@ export const makeSitemap = async (
     ]
 
     const explorers = await explorerAdminServer.getAllPublishedExplorers(knex)
-    const multiDims = await getPublishedMultiDims(knex)
+    const multiDims = await getAllPublishedMultiDimDataPages(knex)
     const slideshows = await knex<DbPlainSlideshow>(SlideshowsTableName)
         .select("slug", "updatedAt")
         .where("isPublished", 1)
@@ -181,10 +170,28 @@ export const makeSitemap = async (
         )
         .concat(explorers.map(explorerToSitemapUrl))
         .concat(
-            multiDims.map((multiDim) => ({
-                loc: urljoin(BAKED_GRAPHER_URL, multiDim.slug),
-                lastmod: dayjs(multiDim.updatedAt).format("YYYY-MM-DD"),
-            }))
+            multiDims.flatMap((multiDim) => {
+                const lastmod = dayjs(multiDim.updatedAt).format("YYYY-MM-DD")
+
+                const { slug, config } = multiDim
+                if (!slug) return []
+                if (!config.views || !Array.isArray(config.views)) {
+                    return [
+                        {
+                            loc: urljoin(BAKED_GRAPHER_URL, slug),
+                            lastmod,
+                        },
+                    ]
+                }
+                return config.views.map((view) => {
+                    const searchParams = new URLSearchParams(view.dimensions)
+                    const queryStr = searchParams.toString()
+                    return {
+                        loc: urljoin(BAKED_GRAPHER_URL, `${slug}?${queryStr}`),
+                        lastmod,
+                    }
+                })
+            })
         )
         .concat(
             authorPages.map((a) => ({
