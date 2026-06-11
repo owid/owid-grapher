@@ -12,7 +12,7 @@
     "author": "",
     "dependencies": {
         "@ourworldindata/types": "workspace:^",
-        "@sentry/browser": "^10.57.0",
+        "@sentry/browser": "^10.56.0",
         "@tippyjs/react": "^4.2.6",
         "d3-array": "^3.2.4",
         "d3-format": "^3.1.0",
