@@ -58,6 +58,7 @@ export interface TooltipValueProps {
     originalTime?: string // actual year data was drawn from (when ≠ target year)
     showSignificanceSuperscript?: boolean // show significance-s superscript if applicable
     labelVariant?: "label+unit" | "unit-only"
+    noDataLabel?: string
 }
 
 export interface TooltipValueRangeProps {

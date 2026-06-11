@@ -30,9 +30,11 @@ export function TooltipValue({
     isProjection,
     labelVariant = "label+unit",
     showSignificanceSuperscript,
+    noDataLabel = NO_DATA_LABEL,
 }: TooltipValueProps): React.ReactElement {
-    const displayValue = value || NO_DATA_LABEL
-    const displayColor = displayValue === NO_DATA_LABEL ? NO_DATA_COLOR : color
+    const hasNoData = value === undefined || value === null
+    const displayValue = value || noDataLabel
+    const displayColor = hasNoData ? NO_DATA_COLOR : color
 
     const superscript = showSignificanceSuperscript ? (
         <SignificanceIcon asSuperscript={true} />
@@ -350,15 +352,22 @@ export function toTooltipTableColumns(
 
 export function formatTooltipRangeValues(
     values: TooltipValue[],
-    column: CoreColumn
+    column: CoreColumn,
+    noDataLabel: string = NO_DATA_LABEL
 ): [string, string] {
     const formatTooltipValueShort = (value: TooltipValue): string =>
-        formatTooltipValue(value, (value) => column.formatValueShort(value))
+        formatTooltipValue(
+            value,
+            (value) => column.formatValueShort(value),
+            noDataLabel
+        )
     const formatTooltipValueShortWithAbbreviations = (
         value: TooltipValue
     ): string =>
-        formatTooltipValue(value, (value) =>
-            column.formatValueShortWithAbbreviations(value)
+        formatTooltipValue(
+            value,
+            (value) => column.formatValueShortWithAbbreviations(value),
+            noDataLabel
         )
 
     const [firstValue, lastValue] = values.map((v) =>
@@ -377,9 +386,10 @@ export function formatTooltipRangeValues(
 
 function formatTooltipValue(
     value: TooltipValue,
-    formatValue: (value: number) => string
+    formatValue: (value: number) => string,
+    noDataLabel: string = NO_DATA_LABEL
 ): string {
-    if (value === undefined) return NO_DATA_LABEL
+    if (value === undefined) return noDataLabel
     if (typeof value === "string") return value
     return formatValue(value)
 }

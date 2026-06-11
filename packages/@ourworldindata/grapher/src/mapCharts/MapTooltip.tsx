@@ -356,6 +356,7 @@ function MapTooltipValue({
             color={color}
             isProjection={isProjection}
             labelVariant="unit-only"
+            noDataLabel={colorScale.noDataLabel}
         />
     )
 }
@@ -391,7 +392,11 @@ function MapTooltipRangeValues({
         <TooltipValueRange
             label={mapColumn.displayName}
             unit={mapColumn.displayUnit}
-            values={formatTooltipRangeValues(values, mapColumn)}
+            values={formatTooltipRangeValues(
+                values,
+                mapColumn,
+                colorScale.noDataLabel
+            )}
             colors={colors}
             trend={
                 calculateTrendDirection(values[0], values[1], (value) =>
