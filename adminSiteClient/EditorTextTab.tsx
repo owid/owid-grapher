@@ -331,11 +331,13 @@ export class EditorTextTab<
                             value={grapherState.originUrl ?? ""}
                             onChange={this.onOriginUrlChange}
                             options={this.originUrlOptions}
-                            filterOption={(inputValue, option) =>
-                                option?.value
-                                    .toLowerCase()
-                                    .includes(inputValue.toLowerCase()) ?? false
-                            }
+                            showSearch={{
+                                filterOption: (inputValue, option) =>
+                                    option?.value
+                                        .toLowerCase()
+                                        .includes(inputValue.toLowerCase()) ??
+                                    false,
+                            }}
                             optionRender={(option) => {
                                 const data = option.data as {
                                     value: string
@@ -369,7 +371,7 @@ export class EditorTextTab<
                                     this.onDropdownNavigated()
                                 }
                             }}
-                            dropdownRender={(menu) => {
+                            popupRender={(menu) => {
                                 const val = grapherState.originUrl ?? ""
                                 const showHint =
                                     val.length > 4 &&
@@ -511,7 +513,7 @@ export class EditorTextTab<
                 {(this.hasCopyAdminURLButton ||
                     this.hasCopyGrapherURLButton) && (
                     <Section name="Copy as Markdown">
-                        <Space direction="vertical" size="small">
+                        <Space orientation="vertical" size="small">
                             {this.hasCopyAdminURLButton && (
                                 <AntdButton
                                     onClick={() =>

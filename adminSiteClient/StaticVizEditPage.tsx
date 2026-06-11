@@ -12,7 +12,6 @@ import {
 import { makeImageSrc } from "./imagesHelpers.js"
 import { ChartListItem } from "./ChartList.js"
 
-const { Option } = Select
 const { TextArea } = Input
 
 const hasInputValue = (value: unknown): boolean => {
@@ -302,21 +301,20 @@ export function StaticVizEditPage() {
                                 <Select
                                     placeholder="Select an image from the library"
                                     loading={isLoadingImages}
-                                    showSearch
-                                    filterOption={(input, option) =>
-                                        option?.children
-                                            ?.toString()
-                                            .toLowerCase()
-                                            .includes(input.toLowerCase()) ??
-                                        false
-                                    }
-                                >
-                                    {imagesData?.map((image: any) => (
-                                        <Option key={image.id} value={image.id}>
-                                            {image.filename}
-                                        </Option>
-                                    ))}
-                                </Select>
+                                    showSearch={{
+                                        filterOption: (input, option) =>
+                                            option?.label
+                                                ?.toString()
+                                                .toLowerCase()
+                                                .includes(
+                                                    input.toLowerCase()
+                                                ) ?? false,
+                                    }}
+                                    options={imagesData?.map((image) => ({
+                                        label: image.filename,
+                                        value: image.id,
+                                    }))}
+                                />
                             </Form.Item>
 
                             <Form.Item>
@@ -338,21 +336,20 @@ export function StaticVizEditPage() {
                                     placeholder="Select a mobile image from the library (optional)"
                                     loading={isLoadingImages}
                                     allowClear
-                                    showSearch
-                                    filterOption={(input, option) =>
-                                        option?.children
-                                            ?.toString()
-                                            .toLowerCase()
-                                            .includes(input.toLowerCase()) ??
-                                        false
-                                    }
-                                >
-                                    {imagesData?.map((image: any) => (
-                                        <Option key={image.id} value={image.id}>
-                                            {image.filename}
-                                        </Option>
-                                    ))}
-                                </Select>
+                                    showSearch={{
+                                        filterOption: (input, option) =>
+                                            option?.label
+                                                ?.toString()
+                                                .toLowerCase()
+                                                .includes(
+                                                    input.toLowerCase()
+                                                ) ?? false,
+                                    }}
+                                    options={imagesData?.map((image) => ({
+                                        label: image.filename,
+                                        value: image.id,
+                                    }))}
+                                />
                             </Form.Item>
 
                             <Form.Item>
@@ -404,21 +401,20 @@ export function StaticVizEditPage() {
                             <Select
                                 placeholder="e.g. life-expectancy"
                                 loading={!grapherSlugs}
-                                showSearch
+                                showSearch={{
+                                    filterOption: (input, option) =>
+                                        option?.label
+                                            ?.toString()
+                                            .toLowerCase()
+                                            .includes(input.toLowerCase()) ??
+                                        false,
+                                }}
                                 allowClear
-                                filterOption={(input, option) =>
-                                    option?.children
-                                        ?.toString()
-                                        .toLowerCase()
-                                        .includes(input.toLowerCase()) ?? false
-                                }
-                            >
-                                {grapherSlugs?.map((slug: string) => (
-                                    <Option key={slug} value={slug}>
-                                        {slug}
-                                    </Option>
-                                ))}
-                            </Select>
+                                options={grapherSlugs?.map((slug: string) => ({
+                                    label: slug,
+                                    value: slug,
+                                }))}
+                            />
                         </Form.Item>
 
                         <h6>Source URL</h6>

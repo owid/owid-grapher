@@ -894,7 +894,7 @@ class DatasetEditor extends Component<DatasetEditorProps> {
                         </Button>
                         {this.hasPublishedCharts && (
                             <>
-                                <Divider type="vertical" />
+                                <Divider orientation="vertical" />
                                 <Space size={0}>
                                     <Typography.Text type="secondary">
                                         View published charts:

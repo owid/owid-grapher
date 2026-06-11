@@ -342,7 +342,7 @@ export function MultiDimIndexPage() {
         <AdminLayout title="Multidimensional Data Pages">
             {notificationContextHolder}
             <main>
-                <Space direction="vertical" size="middle">
+                <Space orientation="vertical" size="middle">
                     <Flex align="center" justify="space-between" gap={24}>
                         <Input
                             placeholder="Search by title or slug"

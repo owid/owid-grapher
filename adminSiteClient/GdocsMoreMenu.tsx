@@ -196,7 +196,7 @@ function DeleteModal({
             confirmLoading={isSubmitting}
             cancelText="Cancel"
             onCancel={() => setIsOpen(false)}
-            destroyOnClose
+            destroyOnHidden
             // https://ant.design/components/form#why-is-there-a-form-warning-when-used-in-modal
             forceRender
             // Render the ok submit button inside the form.

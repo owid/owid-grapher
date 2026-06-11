@@ -593,7 +593,7 @@ export function CreateDataInsightModal(props: {
                             />
                             <Space
                                 size="small"
-                                direction="vertical"
+                                orientation="vertical"
                                 style={{ width: "100%" }}
                             >
                                 <FormField
@@ -636,7 +636,7 @@ export function CreateDataInsightModal(props: {
                             <div className="image-preview">
                                 <h3>Image preview</h3>
 
-                                <Space size="small" direction="vertical">
+                                <Space size="small" orientation="vertical">
                                     <ImagePreview
                                         imageUrl={imageUrl}
                                         progress={progress.loadFigmaImage}
@@ -803,11 +803,13 @@ function TopicTagsSelect({
                     value: id,
                     label: name,
                 }))}
-                filterOption={(input, option) => {
-                    if (!option) return false
-                    return option.label
-                        .toLowerCase()
-                        .includes(input.toLowerCase())
+                showSearch={{
+                    filterOption: (input, option) => {
+                        if (!option) return false
+                        return option.label
+                            .toLowerCase()
+                            .includes(input.toLowerCase())
+                    },
                 }}
                 allowClear
             />

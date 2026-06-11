@@ -36,7 +36,7 @@ export function ImageSelectorModal(props: {
             onCancel={onCancel}
             footer={null}
             width={720}
-            destroyOnClose
+            destroyOnHidden
         >
             <Input
                 placeholder="Search by filename or alt text..."

@@ -335,7 +335,7 @@ export function FilesIndexPage() {
     return (
         <AdminLayout title="Files">
             <main className="FilesIndexPage">
-                <Space direction="vertical" style={{ width: "100%" }}>
+                <Space orientation="vertical" style={{ width: "100%" }}>
                     <Flex justify="space-between" align="center">
                         <Input
                             placeholder="Search files and folders (min 4 characters)"

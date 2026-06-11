@@ -172,12 +172,16 @@ class TagEditor extends Component<{
                                         label: slug,
                                     })
                                 )}
-                                filterOption={(inputValue, option) =>
-                                    option?.value
-                                        .toLowerCase()
-                                        .includes(inputValue.toLowerCase()) ??
-                                    false
-                                }
+                                showSearch={{
+                                    filterOption: (inputValue, option) => {
+                                        if (!option?.label) return false
+                                        return option.label
+                                            .toLowerCase()
+                                            .startsWith(
+                                                inputValue.toLowerCase()
+                                            )
+                                    },
+                                }}
                                 allowClear
                             />
                             <small className="form-text text-muted">

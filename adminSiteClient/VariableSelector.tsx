@@ -267,12 +267,13 @@ export class VariableSelector<
                                         (namespace) => namespace.name
                                     )}
                                     onChange={this.onNamespace}
-                                    filterOption={(inputValue, option) =>
-                                        this.filterNamespace(
-                                            option?.searchText ?? "",
-                                            inputValue
-                                        )
-                                    }
+                                    showSearch={{
+                                        filterOption: (inputValue, option) =>
+                                            this.filterNamespace(
+                                                option?.searchText ?? "",
+                                                inputValue
+                                            ),
+                                    }}
                                     mode="multiple"
                                     placement="bottomLeft"
                                     getPopupContainer={(trigger) =>

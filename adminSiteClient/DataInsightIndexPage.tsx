@@ -210,7 +210,7 @@ function createColumns(ctx: {
             title: "Links",
             key: "links",
             render: (_, dataInsight) => (
-                <Space size="small" direction="vertical">
+                <Space size="small" orientation="vertical">
                     <Button
                         href={makePreviewLink(dataInsight)}
                         target="_blank"
@@ -261,7 +261,7 @@ function createColumns(ctx: {
             title: "Actions",
             key: "actions",
             render: (_, dataInsight) => (
-                <Space size="small" direction="vertical">
+                <Space size="small" orientation="vertical">
                     <Button
                         target="_blank"
                         href={makeGDocEditLink(dataInsight)}

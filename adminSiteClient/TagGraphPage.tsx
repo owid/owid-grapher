@@ -132,11 +132,13 @@ class AddChildForm extends React.Component<AddChildFormProps> {
                         value: tag.name,
                         label: tag.name,
                     }))}
-                    filterOption={(inputValue, option) => {
-                        if (!option?.label) return false
-                        return option.label
-                            .toLowerCase()
-                            .startsWith(inputValue.toLowerCase())
+                    showSearch={{
+                        filterOption: (inputValue, option) => {
+                            if (!option?.label) return false
+                            return option.label
+                                .toLowerCase()
+                                .startsWith(inputValue.toLowerCase())
+                        },
                     }}
                 />
                 <Button

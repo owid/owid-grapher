@@ -99,7 +99,7 @@ export const GdocsRecordsPreview = ({
     const error = activeQuery.error
 
     return (
-        <Space direction="vertical" size="large" style={{ width: "100%" }}>
+        <Space orientation="vertical" size="large" style={{ width: "100%" }}>
             {isFetching && (
                 <div style={{ textAlign: "center", padding: 48 }}>
                     <Spin size="large" />
@@ -113,7 +113,7 @@ export const GdocsRecordsPreview = ({
 
             {error && (
                 <Alert
-                    message="Error"
+                    title="Error"
                     description={
                         error instanceof Error ? error.message : String(error)
                     }
@@ -126,7 +126,7 @@ export const GdocsRecordsPreview = ({
                 <>
                     {recordsQuery.data.message && (
                         <Alert
-                            message={recordsQuery.data.message}
+                            title={recordsQuery.data.message}
                             type="info"
                             showIcon
                         />
@@ -135,7 +135,7 @@ export const GdocsRecordsPreview = ({
                     {recordsQuery.data.count > 0 && (
                         <>
                             <Alert
-                                message={`This document will be split into ${recordsQuery.data.count} searchable record${
+                                title={`This document will be split into ${recordsQuery.data.count} searchable record${
                                     recordsQuery.data.count === 1 ? "" : "s"
                                 } in Algolia`}
                                 type="success"
@@ -159,7 +159,7 @@ export const GdocsRecordsPreview = ({
                     {recordsQuery.data.count === 0 &&
                         !recordsQuery.data.message && (
                             <Alert
-                                message="No records would be generated"
+                                title="No records would be generated"
                                 description="This document has no indexable content"
                                 type="warning"
                                 showIcon
@@ -186,7 +186,7 @@ export const GdocsRecordsPreview = ({
                         </pre>
                     ) : (
                         <Alert
-                            message="No plain text content"
+                            title="No plain text content"
                             description="This document has no extractable text content"
                             type="warning"
                             showIcon
