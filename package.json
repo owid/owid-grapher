@@ -171,7 +171,7 @@
         "zod": "^4.4.3"
     },
     "devDependencies": {
-        "@playwright/test": "^1.57.0",
+        "@playwright/test": "^1.60.0",
         "@rmp135/sql-ts": "^2.1.0",
         "@rollup/plugin-swc": "^0.4.0",
         "@swc/core": "^1.15.21",
@@ -222,7 +222,7 @@
         "oxfmt": "^0.51.0",
         "oxlint": "^1.66.0",
         "oxlint-tsgolint": "^0.23.0",
-        "playwright-bdd": "^8.4.2",
+        "playwright-bdd": "^9.0.0",
         "sass": "^1.89.2",
         "schema-dts": "^2.0.0",
         "topojson-server": "^3.0.1",
