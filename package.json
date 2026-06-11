@@ -229,7 +229,7 @@
         "tsx": "^4.21.0",
         "vite": "^8.0.14",
         "vitest": "^4.1.7",
-        "wrangler": "^4.94.0"
+        "wrangler": "^4.98.0"
     },
     "resolutions": {
         "@sentry/cli": "3.5.0",
