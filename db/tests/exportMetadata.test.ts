@@ -37,8 +37,7 @@ test("every table created by migrations is classified for the metadata export", 
     expect(allTables).toContain("charts")
 
     const unclassified = findUnclassifiedTables(allTables)
-    expect(
-        unclassified,
-        unclassifiedTablesErrorMessage(unclassified)
-    ).toEqual([])
+    expect(unclassified, unclassifiedTablesErrorMessage(unclassified)).toEqual(
+        []
+    )
 })
