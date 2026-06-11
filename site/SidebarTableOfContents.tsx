@@ -93,6 +93,16 @@ export const SidebarTableOfContents = ({
 
     // Desktop-only; the sidebar is expanded by default.
     const [prefersExpanded, setPrefersExpanded] = useState(true)
+    // One-shot override: the user expanded the sidebar over the wide block(s)
+    // currently in view. Cleared once no wide block is in view, so the next
+    // wide-block encounter auto-collapses the sidebar again.
+    const [isForcedExpanded, setIsForcedExpanded] = useState(false)
+    useEffect(() => {
+        if (!isWideBlockInView) setIsForcedExpanded(false)
+    }, [isWideBlockInView])
+
+    const isSidebarExpanded =
+        prefersExpanded && (!isWideBlockInView || isForcedExpanded)
 
     // Close the mobile drawer if the viewport grows to desktop (resize /
     // rotate / zoom) so it isn't stranded over the sidebar.
@@ -109,62 +119,18 @@ export const SidebarTableOfContents = ({
     if (sections.length === 0) return null
 
     return (
-        <TocActiveContext.Provider value={{ activeId, onLinkClick }}>
-            <div className="sidebar-toc">
-                <nav
-                    className={cx("sidebar-toc__sidebar", {
-                        "sidebar-toc__sidebar--wide-in-view": wideBlockInView,
-                        "sidebar-toc__sidebar--collapsed": isCollapsed,
-                    })}
-                    aria-label="Table of contents"
-                >
-                    {/* Content stays mounted in both states so collapsing can
-                        slide+fade it (the frame width never changes, so the
-                        content never rewraps). When collapsed it's translated
-                        off-screen and hidden by the --collapsed rule; the toggle
-                        below swaps to the expand affordance. Scroll lives on
-                        this inner wrapper so the sidebar frame doesn't clip the
-                        toggle tab. */}
-                    <div
-                        className="sidebar-toc__sidebar-content"
-                        id={sidebarContentId}
-                        ref={sidebarContentRef}
-                    >
-                        <BackToTop />
-                        <TocSections sections={sections} tagName={tagName}
-                            activeId={activeId}
-                        />
-                    </div>
-                    {/* Toggle is a child of the sidebar (so it slides with it) but
-                        protrudes past the divider via a negative offset; the
-                        frame has no overflow so it isn't clipped. Collapse and
-                        expand swap in place, keeping the affordance on the
-                        divider in both states. */}
-                    {isCollapsed ? (
-                        <button
-                            className="sidebar-toc__expand"
-                            onClick={() => setIsCollapsed(false)}
-                            aria-label="Open table of contents"
-                            aria-expanded={false}
-                            aria-controls={sidebarContentId}
-                            data-track-note="toc_expand"
-                        >
-                            <FontAwesomeIcon icon={faListUl} />
-                        </button>
-                    ) : (
-                        <button
-                            className="sidebar-toc__collapse-toggle"
-                            onClick={() => setIsCollapsed(true)}
-                            aria-label="Collapse table of contents"
-                            aria-expanded={true}
-                            aria-controls={sidebarContentId}
-                            data-track-note="toc_collapse"
-                        >
-                            <FontAwesomeIcon icon={faAnglesLeft} />
-                        </button>
-                    )}
-                </nav>
-
+        <div className="sidebar-toc">
+            <nav
+                className={cx("sidebar-toc__sidebar", {
+                    "sidebar-toc__sidebar--collapsed": !isSidebarExpanded,
+                })}
+                aria-label="Table of contents"
+            >
+                {/* The toggle precedes the content in the DOM (though absolute
+                    positioning places it visually on the right edge) so that
+                    expanding a collapsed sidebar via the keyboard leaves focus
+                    on the toggle, and the next Tab flows forward into the
+                    revealed links rather than out into the article. */}
                 <button
                     className="sidebar-toc__toggle"
                     onClick={() => {

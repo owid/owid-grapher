@@ -1,44 +1,48 @@
 import { useState, useEffect } from "react"
-import { useDebounceCallback } from "usehooks-ts"
+import { useDebounceCallback, useMediaQuery } from "usehooks-ts"
 
 /**
- * True while a content block that would actually overlap the sidebar TOC sidebar
- * is in the viewport, so the sidebar can slide out of its way.
+ * True while a content block that would overlap the sidebar TOC is in the
+ * viewport, so the sidebar can collapse out of its way (see isSidebarExpanded
+ * in SidebarTableOfContents.tsx).
  *
- * Wide blocks are matched by span class (not an enumerated block-type list) so
- * new wide block types are covered as they ship:
+ * Wide blocks are matched by span class so new wide block types are covered as
+ * they ship:
  *
- * - Full-bleed (`span-cols-14`) blocks span the whole viewport, so they sit
- *   under the sidebar at any width — always a reason to slide.
- * - Full-text-column (`span-cols-12`) blocks only overlap the sidebar at narrower
- *   desktop widths, where the sidebar overflows its left-margin column into the
- *   content. Once the margin is wide enough to hold the sidebar (see
- *   COHABIT_MIN_WIDTH_PX) the two no longer touch, so the slide-out would be
- *   pointless and we suppress it.
+ * - Full-bleed (`span-cols-14`) blocks sit under the sidebar at any width.
+ * - Full-text-column (`span-cols-12`) blocks only overlap while the viewport is
+ *   too narrow to fit the 12-col content plus a full sidebar-width outer track
+ *   on each side.
  *
- * The sidebar coexists with ≤8-col content, so 8-col blocks (e.g. chart-story) are
- * deliberately not matched.
+ * The sidebar coexists with ≤8-col content, so 8-col blocks (e.g. chart-story)
+ * are deliberately not matched.
  */
 const WIDE_COL_SELECTOR = '[class*="article-block__"].span-cols-12'
 const FULL_BLEED_SELECTOR = '[class*="article-block__"].span-cols-14'
 const WIDE_BLOCK_SELECTORS = `${WIDE_COL_SELECTOR}, ${FULL_BLEED_SELECTOR}`
 
-// At/above this viewport width the left-margin column is wide enough to hold
-// the 273px sidebar, so it no longer overflows into (and overlaps) 12-col content
-// — the slide-out is then unnecessary for those blocks. Derived from the grid:
-// the sidebar clears the content once each 1fr margin ≥ the sidebar width, i.e. once
-// the viewport exceeds the 1280px inner content + 2×273px sidebars (+ container
-// padding). Approximate; only gates an optimisation, not correctness.
-const COHABIT_MIN_WIDTH_PX = 1875
-
 const REVEAL_DEBOUNCE_MS = 150
+
+// Keep in sync with --inner-cols-max-total-width in site/css/grid.scss.
+const GRID_INNER_COLS_MAX_WIDTH_PX = 1280
+// Keep in sync with $sidebar-toc-frame in site/SidebarTableOfContents.scss.
+// At widths where 12-col content can coexist with the sidebar, that frame applies.
+const SIDEBAR_FRAME_WIDTH_PX = 273
+const SIDEBAR_COHABIT_BREATHING_ROOM_PX = 48
+const COHABIT_MIN_WIDTH_PX =
+    GRID_INNER_COLS_MAX_WIDTH_PX +
+    2 * SIDEBAR_FRAME_WIDTH_PX +
+    SIDEBAR_COHABIT_BREATHING_ROOM_PX
 
 export function useWideBlockInView(): boolean {
     const [inView, setInView] = useState(false)
-    // Hiding the sidebar (→ true) is immediate; revealing it again (→ false) is
-    // debounced, so the brief gap between two wide blocks in quick succession
-    // doesn't flicker the sidebar back in. A wide block (re)entering cancels the
-    // pending reveal.
+    const canWideColCohabit = useMediaQuery(
+        `(min-width: ${COHABIT_MIN_WIDTH_PX}px)`
+    )
+    // Collapsing the sidebar (→ true) is immediate; releasing it again (→ false)
+    // is debounced, so the brief gap between two wide blocks in quick
+    // succession doesn't flicker the sidebar back open. A wide block (re)entering
+    // cancels the pending release.
     const debouncedSetInView = useDebounceCallback(
         setInView,
         REVEAL_DEBOUNCE_MS
@@ -51,15 +55,11 @@ export function useWideBlockInView(): boolean {
         // the sidebar; 12-col only below the cohabit width.
         const fullBleed = new Set<Element>()
         const wideCol = new Set<Element>()
-        const cohabitQuery = window.matchMedia(
-            `(min-width: ${COHABIT_MIN_WIDTH_PX}px)`
-        )
 
         const apply = () => {
-            const shouldSlide =
-                fullBleed.size > 0 ||
-                (!cohabitQuery.matches && wideCol.size > 0)
-            if (shouldSlide) {
+            const shouldCollapse =
+                fullBleed.size > 0 || (!canWideColCohabit && wideCol.size > 0)
+            if (shouldCollapse) {
                 debouncedSetInView.cancel()
                 setInView(true)
             } else {
@@ -78,23 +78,19 @@ export function useWideBlockInView(): boolean {
                 }
                 apply()
             },
-            // Small top/bottom buffer so the slide-out begins just before the
-            // wide block overlaps the sidebar.
+            // Small top/bottom buffer so the collapse begins just before the
+            // wide block reaches the sidebar.
             { rootMargin: "80px 0px 80px 0px" }
         )
 
         const blocks = document.querySelectorAll(WIDE_BLOCK_SELECTORS)
         blocks.forEach((block) => observer.observe(block))
-        // Crossing the cohabit width (resize / zoom / rotate) re-evaluates
-        // whether in-view 12-col blocks still warrant the slide.
-        cohabitQuery.addEventListener("change", apply)
 
         return () => {
             observer.disconnect()
-            cohabitQuery.removeEventListener("change", apply)
             debouncedSetInView.cancel()
         }
-    }, [debouncedSetInView])
+    }, [canWideColCohabit, debouncedSetInView])
 
     return inView
 }
