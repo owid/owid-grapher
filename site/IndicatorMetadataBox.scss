@@ -78,6 +78,9 @@
     p {
         margin: 0;
     }
+    a {
+        @include owid-link-90;
+    }
 }
 
 .meta-description-table__secondary-values {
