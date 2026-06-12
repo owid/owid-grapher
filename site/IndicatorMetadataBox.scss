@@ -175,31 +175,11 @@
 
 .meta-expander__data-sources-title,
 .meta-expander__citations-title,
+.meta-expander__faqs-title,
 .citation__how-to-header {
     color: $blue-90;
     margin-top: 32px;
     margin-bottom: 16px;
-}
-
-// Specificity override
-.DataPageContent .meta-expander .section-wrapper__faqs {
-    display: unset;
-    @include sm-up {
-        padding: 0;
-    }
-    .faqs__items {
-        display: unset;
-    }
-
-    .article-block__heading {
-        margin: 0;
-    }
-}
-
-.section-wrapper__faqs {
-    .metadata-section__title {
-        @include body-2-bold-tight;
-    }
 }
 
 .meta-expander__reuse-notice {
