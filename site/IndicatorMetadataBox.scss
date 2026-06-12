@@ -1,4 +1,4 @@
-.about-this-data-v2 {
+.indicator-metadata-box {
     position: relative;
     padding: 24px;
     background-color: $blue-5;
@@ -17,24 +17,24 @@
     }
 }
 
-.chart-key-info:has(.side-panel) ~ .about-this-data-v2 {
+.chart-key-info:has(.side-panel) ~ .indicator-metadata-box {
     grid-template-columns: repeat(9, 1fr);
     grid-column-start: 2;
     grid-column-end: span 9;
 }
 
-.about-this-data__indicator-title {
+.indicator-metadata-box__indicator-title {
     margin: 0;
     color: $blue-90;
 }
 
-.about-this-data__title-variant {
+.indicator-metadata-box__title-variant {
     @include note-13-medium;
     margin-left: 8px;
     color: $blue-50;
 }
 
-.about-this-data__show-less {
+.indicator-metadata-box__show-less {
     display: none;
     position: absolute;
     top: 0px;
@@ -48,7 +48,7 @@
     &:hover {
         text-decoration: none;
     }
-    .about-this-data__show-less-icon {
+    .indicator-metadata-box__show-less-icon {
         font-size: 0.75em;
         margin-left: 4px;
         position: relative;
@@ -56,7 +56,7 @@
     }
 }
 
-.about-this-data-v2:has(details[open]) .about-this-data__show-less {
+.indicator-metadata-box:has(details[open]) .indicator-metadata-box__show-less {
     display: inline-block;
 }
 

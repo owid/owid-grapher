@@ -28,7 +28,7 @@ import { GrapherWithFallback } from "./GrapherWithFallback.js"
 import { AttachmentsContext } from "./gdocs/AttachmentsContext.js"
 import { DocumentContext } from "./gdocs/DocumentContext.js"
 import { useWindowQueryParams } from "./hooks.js"
-import AboutThisDataV2 from "./AboutThisDataV2.js"
+import IndicatorMetadataBox from "./IndicatorMetadataBox.js"
 import AboutThisData from "./AboutThisData.js"
 import DataPageResearchAndWriting from "./DataPageResearchAndWriting.js"
 import MetadataSection from "./MetadataSection.js"
@@ -182,7 +182,7 @@ export const DataPageV2Content = ({
                             )}
                         </div>
                         {useNewDatapageDesign && (
-                            <AboutThisDataV2
+                            <IndicatorMetadataBox
                                 datapageData={datapageData}
                                 grapherConfig={grapherConfig}
                                 faqEntries={faqEntries}
