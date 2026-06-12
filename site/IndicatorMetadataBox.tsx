@@ -170,6 +170,27 @@ function ExpandableSection({
                         hideTeasers
                     />
                 </section>
+                {datapageData.descriptionFromProducer && (
+                    <section>
+                        <h2
+                            id="sources-and-processing"
+                            className="meta-expander__data-sources-title body-2-bold-tight"
+                        >
+                            Documentation
+                        </h2>
+                        <ExpandableToggle
+                            label={
+                                datapageData.attributionShort ||
+                                "Principal producer"
+                            }
+                            content={
+                                <SimpleMarkdownText
+                                    text={datapageData.descriptionFromProducer}
+                                />
+                            }
+                        />
+                    </section>
+                )}
                 {(citationShort || citationLong) && (
                     <section>
                         <h2 className="meta-expander__citations-title body-2-bold-tight">
