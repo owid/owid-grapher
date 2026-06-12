@@ -2,6 +2,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import * as React from "react"
 import { Admin } from "./Admin.js"
 import { ChartEditorPage } from "./ChartEditorPage.js"
+import { AgenticWritingPage } from "./AgenticWritingPage.js"
+import { AgenticWritingDetailPage } from "./AgenticWritingDetailPage.js"
 import { action } from "mobx"
 import { observer } from "mobx-react"
 import { ChartIndexPage } from "./ChartIndexPage.js"
@@ -202,6 +204,21 @@ export class AdminApp extends React.Component<{
                                     exact
                                     path="/featured-metrics"
                                     component={FeaturedMetricsPage}
+                                />
+                                <Route
+                                    exact
+                                    path="/agentic-writing"
+                                    component={AgenticWritingPage}
+                                />
+                                <Route
+                                    exact
+                                    path="/agentic-writing/view/:lineageKey"
+                                    render={({ match }) => (
+                                        <AgenticWritingDetailPage
+                                            key={match.params.lineageKey}
+                                            lineageKey={match.params.lineageKey}
+                                        />
+                                    )}
                                 />
                                 <Route
                                     exact

@@ -1,0 +1,384 @@
+.agentic-writing {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding-bottom: 140px;
+}
+
+.agentic-writing__controls {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    flex-wrap: wrap;
+    padding: 12px 0;
+    border-bottom: 1px solid #e5e7eb;
+    margin-bottom: 24px;
+    font-size: 14px;
+    position: sticky;
+    top: 0;
+    background: #fff;
+    z-index: 5;
+}
+
+.agentic-writing__progress {
+    color: #6b7280;
+}
+
+.agentic-writing__progress strong {
+    color: #111827;
+}
+
+// Single-chart view: small thumbnail beside the text.
+.agentic-writing__single {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+    margin-bottom: 16px;
+}
+
+.agentic-writing__single .agentic-writing__chart-tile {
+    flex: 0 0 300px;
+    max-width: 300px;
+}
+
+.agentic-writing__text {
+    flex: 1 1 0;
+    min-width: 0;
+}
+
+// Multi-chart view: thumbnails in a wrapping row beneath the text.
+.agentic-writing__charts--row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 16px;
+}
+
+.agentic-writing__charts--row .agentic-writing__chart-tile {
+    flex: 0 0 260px;
+    max-width: 260px;
+}
+
+.agentic-writing__chart-tile {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+// Caption rendered as a title above the chart, so multi-chart thumbnails
+// are distinguishable at a glance.
+.agentic-writing__chart-title {
+    padding: 7px 10px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #1f2937;
+    background: #fff;
+    border-bottom: 1px solid #e5e7eb;
+    line-height: 1.3;
+}
+
+.agentic-writing__chart-media {
+    display: block;
+    position: relative;
+}
+
+.agentic-writing__chart-tile img {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 850 / 600;
+    object-fit: contain;
+    background: #fff;
+}
+
+.agentic-writing__open-link {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: #fff;
+    padding: 2px 8px;
+    font-size: 12px;
+    text-decoration: none;
+    border-radius: 4px;
+    border: 1px solid #e5e7eb;
+    opacity: 0;
+    transition: opacity 0.12s ease-in-out;
+}
+
+.agentic-writing__chart-media:hover .agentic-writing__open-link {
+    opacity: 1;
+}
+
+.agentic-writing__title {
+    font-size: 24px;
+    font-weight: 600;
+    line-height: 1.2;
+    margin: 0 0 8px;
+}
+
+.agentic-writing__description {
+    font-size: 17px;
+    color: #374151;
+    margin: 0 0 12px;
+}
+
+.agentic-writing__meta {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+    font-size: 12px;
+    color: #6b7280;
+    margin-bottom: 12px;
+}
+
+.agentic-writing__badge {
+    display: inline-block;
+    padding: 1px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.agentic-writing__badge--key {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.agentic-writing__badge--notable {
+    background: #dbeafe;
+    color: #1e3a8a;
+}
+
+.agentic-writing__badge--multi {
+    background: #ede9fe;
+    color: #5b21b6;
+}
+
+.agentic-writing__badge--entities {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+.agentic-writing__badge--editorial-private {
+    background: #e0e7ff;
+    color: #3730a3;
+}
+
+.agentic-writing__badge--editorial-submitted {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.agentic-writing__badge--editorial-published {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.agentic-writing__factcheck {
+    font-size: 13px;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 8px 12px;
+    color: #374151;
+    margin-bottom: 12px;
+}
+
+.agentic-writing__factcheck-issue {
+    padding: 4px 0;
+    border-top: 1px solid #e5e7eb;
+}
+
+.agentic-writing__factcheck-issue:first-of-type {
+    border-top: 0;
+}
+
+.agentic-writing__detail-link {
+    margin: 8px 0 16px;
+    font-size: 13px;
+}
+
+.agentic-writing__history {
+    margin-top: 24px;
+    border-top: 1px solid #e5e7eb;
+    padding-top: 8px;
+}
+
+.agentic-writing__history-heading {
+    font-size: 14px;
+    font-weight: 600;
+    color: #374151;
+    margin: 8px 0;
+}
+
+.agentic-writing__version {
+    font-size: 13px;
+    padding: 8px 0;
+    border-top: 1px solid #e5e7eb;
+}
+
+.agentic-writing__version--focus {
+    background: #fffbeb;
+    border-left: 3px solid #f59e0b;
+    padding-left: 10px;
+    margin-left: -13px;
+}
+
+.agentic-writing__version-tag {
+    margin-left: 8px;
+}
+
+.agentic-writing__version-title {
+    margin-top: 4px;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.agentic-writing__version-desc {
+    color: #4b5563;
+}
+
+.agentic-writing__terminal-note {
+    font-size: 12px;
+    color: #b45309;
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    border-radius: 4px;
+    padding: 4px 8px;
+    margin-bottom: 6px;
+}
+
+.agentic-writing__version-comment {
+    margin-top: 4px;
+    padding: 6px 10px;
+    background: #fff;
+    border-left: 3px solid #e5e7eb;
+    font-style: italic;
+}
+
+.agentic-writing__actionbar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #fff;
+    border-top: 1px solid #e5e7eb;
+    padding: 12px 24px;
+    z-index: 6;
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.04);
+}
+
+.agentic-writing__actionbar-row {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 16px;
+    align-items: end;
+}
+
+.agentic-writing__buttons {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.agentic-writing__help {
+    font-size: 11px;
+    color: #6b7280;
+    margin-top: 6px;
+    text-align: right;
+}
+
+.agentic-writing__kbd {
+    display: inline-block;
+    background: rgba(0, 0, 0, 0.06);
+    padding: 0 5px;
+    border-radius: 3px;
+    font-family: ui-monospace, Menlo, Consolas, monospace;
+    font-size: 11px;
+    margin-left: 4px;
+}
+
+.agentic-writing__empty {
+    padding: 80px 24px;
+    text-align: center;
+    color: #6b7280;
+}
+
+// Inline reviewer rewrite editor
+.agentic-writing__editor {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 16px;
+    padding: 16px;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+}
+
+.agentic-writing__field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.agentic-writing__field-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #6b7280;
+}
+
+.agentic-writing__chart-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.agentic-writing__chart-row {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    padding: 8px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+}
+
+.agentic-writing__chart-row--invalid {
+    border-color: #ef4444;
+    background: #fef2f2;
+}
+
+.agentic-writing__chart-row-preview {
+    flex: 0 0 120px;
+    width: 120px;
+    aspect-ratio: 850 / 600;
+    object-fit: contain;
+    background: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+}
+
+.agentic-writing__chart-row-fields {
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.agentic-writing__chart-row-remove {
+    flex: 0 0 auto;
+}
+
+.agentic-writing__add-chart {
+    align-self: flex-start;
+    margin-top: 8px;
+}
