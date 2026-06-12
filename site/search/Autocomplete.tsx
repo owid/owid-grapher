@@ -594,10 +594,19 @@ export function Autocomplete({
     // Autocomplete instances` comment for this. addEventListener stacks
     // rather than overwriting, so a per-instance listener here works for any
     // number of instances.
+    //
+    // This only applies to the docked panel. In detached (mobile) mode the
+    // library renders a full-screen modal portaled to document.body — outside
+    // both containerRef and the panel root — and handles its own dismissal
+    // (backdrop tap, cancel button). Running our handler there would treat a
+    // tap on the modal's own input or buttons as an outside click and close it,
+    // so we bail when the detached media query matches.
     useEffect(() => {
         if (!search) return
 
         const onDocMouseDown = (e: MouseEvent) => {
+            if (window.matchMedia(DETACHED_MEDIA_QUERY).matches) return
+
             const target = e.target as Node | null
             if (!target) return
             const isInsideContainer =
