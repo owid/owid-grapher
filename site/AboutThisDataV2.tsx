@@ -22,6 +22,7 @@ import {
 import { DownloadSectionProps } from "./DownloadSection.js"
 import { BAKED_GRAPHER_URL } from "../settings/clientSettings.js"
 import { useWindowQueryParams } from "./hooks.js"
+import { Byline } from "./gdocs/components/Byline.js"
 import { ArticleBlocks } from "./gdocs/components/ArticleBlocks.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faChevronUp } from "@fortawesome/free-solid-svg-icons"
@@ -216,6 +217,10 @@ export default function AboutThisDataV2({
 }) {
     const hasDescriptionKey =
         datapageData.descriptionKey && datapageData.descriptionKey.length > 0
+    // Owners of the dataset backing this indicator. For now we show a single
+    // indicator's owners; multi-indicator charts will get a separate metadata
+    // expander per indicator, so we don't merge owners across datasets here.
+    const owners = datapageData.owners?.[0]?.owners ?? []
 
     const detailsRef = useRef<HTMLDetailsElement | null>(null)
 
@@ -318,6 +323,16 @@ export default function AboutThisDataV2({
                             </dt>
                             <dd className="meta-description-table__value">
                                 {datapageData.nextUpdate}
+                            </dd>
+                        </span>
+                    )}
+                    {owners.length > 0 && (
+                        <span className="meta-description-table__pair meta-description-table__owners">
+                            <dt className="meta-description-table__key">
+                                Managed by
+                            </dt>
+                            <dd className="meta-description-table__value">
+                                <Byline names={owners} prefix="" />
                             </dd>
                         </span>
                     )}

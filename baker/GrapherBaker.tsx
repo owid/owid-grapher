@@ -38,9 +38,11 @@ import {
     getVariableDistribution,
     getMergedGrapherConfigForVariable,
     getVariableOfDatapageIfApplicable,
+    getOwnersForVariables,
 } from "../db/model/Variable.js"
 import {
     fetchAndParseFaqs,
+    getLinkedAuthorsForDatasetOwners,
     getPrimaryTopic,
     resolveFaqsForVariable,
 } from "./DatapageHelpers.js"
@@ -203,12 +205,20 @@ export async function renderDataPageV2(
     const distribution = await getVariableDistribution(knex, variableIds)
     const datapageData = getDatapageDataV2(variableMetadata, grapher)
 
+    datapageData.owners = await getOwnersForVariables(knex, variableIds)
+
+    // Resolve owner names to author pages so they can be rendered with links and
+    // featured images. The author images are merged into `imageMetadata` below.
+    const { linkedAuthors, imageMetadata: ownerImageMetadata } =
+        await getLinkedAuthorsForDatasetOwners(knex, datapageData.owners)
+    datapageData.linkedAuthors = linkedAuthors
+
     datapageData.primaryTopic = await getPrimaryTopic(
         knex,
         datapageData.topicTagsLinks
     )
 
-    let imageMetadata: Record<string, ImageMetadata> = {}
+    let imageMetadata: Record<string, ImageMetadata> = ownerImageMetadata
 
     const archiveContext =
         grapher.id !== undefined
@@ -238,10 +248,13 @@ export async function renderDataPageV2(
             .map((r) => r.imageUrl)
             .filter((f): f is string => !!f)
 
-        imageMetadata = _.pick(
-            imageMetadataDictionary,
-            _.uniq(relatedResearchFilenames)
-        )
+        imageMetadata = {
+            ...imageMetadata,
+            ..._.pick(
+                imageMetadataDictionary,
+                _.uniq(relatedResearchFilenames)
+            ),
+        }
     }
 
     let canonicalUrl: string

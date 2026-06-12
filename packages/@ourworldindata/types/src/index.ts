@@ -240,6 +240,7 @@ export {
     type DataPageDataV2,
     type DataPageRelatedResearch,
     type PrimaryTopic,
+    type DatasetOwners,
     type FaqLink,
     type FaqEntryData,
     type DisplaySource,

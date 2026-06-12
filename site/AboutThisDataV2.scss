@@ -96,6 +96,12 @@
     gap: 0 4px;
 }
 
+.meta-description-table__owners {
+    a {
+        @include owid-link-90;
+    }
+}
+
 .meta-expander {
     padding-top: 16px;
     margin-top: 16px;

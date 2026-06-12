@@ -137,6 +137,7 @@ export const DataPageV2Content = ({
                 imageMetadata,
                 linkedCharts: {},
                 linkedIndicators: {},
+                linkedAuthors: datapageData.linkedAuthors,
                 relatedCharts: [],
                 tags: [],
             }}

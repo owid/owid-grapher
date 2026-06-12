@@ -14,14 +14,57 @@ import {
 } from "../db/model/Gdoc/GdocFactory.js"
 import { OwidGoogleAuth } from "../db/OwidGoogleAuth.js"
 import {
+    DatasetOwners,
     EnrichedFaq,
     FaqDictionary,
+    ImageMetadata,
+    LinkedAuthor,
     OwidGdocBaseInterface,
 } from "@ourworldindata/types"
-import { KnexReadonlyTransaction } from "../db/db.js"
+import {
+    KnexReadonlyTransaction,
+    getImageMetadataByFilenames,
+} from "../db/db.js"
 import { parseFaqs } from "../db/model/Gdoc/rawToEnriched.js"
+import { getMinimalAuthorsByNames } from "../db/model/Gdoc/GdocBase.js"
 import { getSlugForTopicTag } from "./GrapherBakingUtils.js"
 import { getShortPageCitation } from "../site/gdocs/utils.js"
+
+/**
+ * Resolve the dataset owner names of a datapage to their author pages, so the
+ * owners can be rendered with links and featured images (like a gdoc byline).
+ *
+ * Resolution is best-effort: only owners that have a published author gdoc
+ * appear in `linkedAuthors`. Owner names without an author page are left to the
+ * UI to render as plain text. Featured-image metadata for the resolved authors
+ * is returned alongside so it can be merged into the page's image metadata.
+ */
+export async function getLinkedAuthorsForDatasetOwners(
+    knex: KnexReadonlyTransaction,
+    owners: DatasetOwners[] | undefined
+): Promise<{
+    linkedAuthors: LinkedAuthor[]
+    imageMetadata: Record<string, ImageMetadata>
+}> {
+    const ownerNames = _.uniq(
+        (owners ?? []).flatMap((dataset) => dataset.owners)
+    )
+    if (!ownerNames.length) return { linkedAuthors: [], imageMetadata: {} }
+
+    const linkedAuthors = await getMinimalAuthorsByNames(knex, ownerNames)
+
+    const featuredImageFilenames = _.uniq(
+        linkedAuthors
+            .map((author) => author.featuredImage)
+            .filter((filename): filename is string => !!filename)
+    )
+    const imageMetadata = await getImageMetadataByFilenames(
+        knex,
+        featuredImageFilenames
+    )
+
+    return { linkedAuthors, imageMetadata }
+}
 
 /**
  * Get the datapage companion gdoc, if any.

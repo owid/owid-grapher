@@ -19,7 +19,10 @@ import {
     ArchivedPageVersion,
     DataPageRelatedResearch,
 } from "@ourworldindata/types"
-import { MultiDimDataPageConfig } from "@ourworldindata/utils"
+import {
+    getAllVariableIds,
+    MultiDimDataPageConfig,
+} from "@ourworldindata/utils"
 import * as db from "../db/db.js"
 import { getImagesByFilenames } from "../db/model/Image.js"
 import { getRelatedResearchAndWritingForVariables } from "../db/model/Post.js"
@@ -31,7 +34,10 @@ import {
     BAKED_GRAPHER_URL,
 } from "../settings/serverSettings.js"
 import { deleteOldGraphers, getTagToSlugMap } from "./GrapherBakingUtils.js"
-import { getVariableMetadata } from "../db/model/Variable.js"
+import {
+    getOwnersForVariables,
+    getVariableMetadata,
+} from "../db/model/Variable.js"
 import pMap from "p-map"
 import { fetchAndParseFaqs, getPrimaryTopic } from "./DatapageHelpers.js"
 import { getAllPublishedChartSlugs } from "../db/model/Chart.js"
@@ -154,8 +160,12 @@ export async function renderMultiDimDataPageFromConfig({
             initialViewDimensions,
             variableMetadata
         )
+        // Use all of the initial view's indicator variables (y, x, size, color)
+        // so owners are correct for multi-indicator views (e.g. scatterplots).
+        const initialViewVariableIds = [...getAllVariableIds([initialView])]
         initialViewData = {
             ...getDatapageDataV2(mergedMetadata, fullGrapherConfig),
+            owners: await getOwnersForVariables(knex, initialViewVariableIds),
             faqs: mergedMetadata.presentation?.faqs ?? [],
         }
     }
