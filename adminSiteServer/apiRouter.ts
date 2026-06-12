@@ -8,6 +8,17 @@ import {
     updateSlideshow,
     deleteSlideshow,
 } from "./apiRoutes/slideshows.js"
+import {
+    getAgenticWritingList,
+    getAgenticWritingHistory,
+    postAgenticWritingDecision,
+    postAgenticWritingRevision,
+    postAgenticWritingEdit,
+    postAgenticWritingLineage,
+    postAgenticWritingSubmit,
+    postAgenticWritingPublish,
+    getAgenticWritingSlugs,
+} from "./apiRoutes/agenticWriting.js"
 import { DeployQueueServer } from "../baker/DeployQueueServer.js"
 import {
     updateVariableAnnotations,
@@ -498,6 +509,53 @@ deleteRouteWithRWTransaction(
     apiRouter,
     "/featured-metrics/:id",
     deleteFeaturedMetric
+)
+
+// Agentic-writing playground routes (DB-backed via knex transactions)
+getRouteWithROTransaction(
+    apiRouter,
+    "/agentic-writing.json",
+    getAgenticWritingList
+)
+getRouteWithROTransaction(
+    apiRouter,
+    "/agentic-writing/slugs.json",
+    getAgenticWritingSlugs
+)
+postRouteWithRWTransaction(
+    apiRouter,
+    "/agentic-writing/lineages",
+    postAgenticWritingLineage
+)
+getRouteWithROTransaction(
+    apiRouter,
+    "/agentic-writing/:lineageKey",
+    getAgenticWritingHistory
+)
+postRouteWithRWTransaction(
+    apiRouter,
+    "/agentic-writing/:lineageKey/decisions",
+    postAgenticWritingDecision
+)
+postRouteWithRWTransaction(
+    apiRouter,
+    "/agentic-writing/:lineageKey/revisions",
+    postAgenticWritingRevision
+)
+postRouteWithRWTransaction(
+    apiRouter,
+    "/agentic-writing/:lineageKey/edits",
+    postAgenticWritingEdit
+)
+postRouteWithRWTransaction(
+    apiRouter,
+    "/agentic-writing/:lineageKey/submit",
+    postAgenticWritingSubmit
+)
+postRouteWithRWTransaction(
+    apiRouter,
+    "/agentic-writing/:lineageKey/publish",
+    postAgenticWritingPublish
 )
 
 // Misc routes
