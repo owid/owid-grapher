@@ -17,6 +17,7 @@ import {
     SearchResultType,
 } from "@ourworldindata/types"
 import { useLinkedChart, useLinkedNarrativeChart } from "./gdocs/utils.js"
+import { useDocumentContext } from "./gdocs/DocumentContext.js"
 import { buildSearchHrefForCard } from "./search/searchState.js"
 import { useKeepActiveTocRowInView } from "./useKeepActiveTocRowInView.js"
 import { useTocScrollSpy } from "./useTocScrollSpy.js"
@@ -371,6 +372,13 @@ const Bullet = ({
 }
 
 const SeeAllChartsCta = ({ tagName }: { tagName: string }) => {
+    const { archiveContext } = useDocumentContext()
+    // The CTA links to the live site's search, which doesn't exist on (and
+    // wouldn't reflect) an archived snapshot — omit it there. Currently
+    // defensive: only articles get archived and none use the sidebar TOC,
+    // so this only kicks in if LTP/profile archiving ships.
+    if (archiveContext?.type === "archive-page") return null
+
     return (
         <a
             className="sidebar-toc__cta"
