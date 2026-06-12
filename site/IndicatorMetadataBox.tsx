@@ -6,17 +6,20 @@ import {
     IndicatorSources,
     ExpandableToggle,
     CodeSnippet,
+    makeSource,
 } from "@ourworldindata/components"
 import {
     ArchiveContext,
     DataPageDataV2,
     FaqEntryData,
+    OwidEnrichedGdocBlock,
 } from "@ourworldindata/types"
 import { useRef } from "react"
 import {
     prepareSourcesForDisplay,
     getCitationShort,
     getCitationLong,
+    spansToUnformattedPlainText,
 } from "@ourworldindata/utils"
 import { Byline } from "./gdocs/components/Byline.js"
 import { ArticleBlocks } from "./gdocs/components/ArticleBlocks.js"
@@ -33,6 +36,34 @@ interface ExpandableSectionProps {
 }
 
 const KEY_DESCRIPTION_PREVIEW_COUNT = 3
+
+// FAQs arrive as a flat block list — each question is a heading followed by its
+// answer blocks. Split on headings so each question can render as its own toggle.
+function groupFaqsByQuestion(
+    blocks: OwidEnrichedGdocBlock[]
+): { question: string; answer: OwidEnrichedGdocBlock[] }[] {
+    const questions: {
+        question: string
+        answer: OwidEnrichedGdocBlock[]
+    }[] = []
+    for (const block of blocks) {
+        if (block.type === "heading") {
+            questions.push({
+                question: spansToUnformattedPlainText(block.text),
+                answer: [],
+            })
+        } else if (questions.length > 0) {
+            const answer = questions[questions.length - 1].answer
+            if (block.type === "expandable-paragraph") {
+                // Flatten expandable paragraphs into the main answer, since the question is already hidden behind a toggle.
+                answer.push(...block.items)
+            } else {
+                answer.push(block)
+            }
+        }
+    }
+    return questions
+}
 
 function ExpandableSection({
     datapageData,
@@ -73,6 +104,8 @@ function ExpandableSection({
         archiveContext?.archivalDate
     )
 
+    const faqQuestions = groupFaqsByQuestion(faqEntries?.faqs ?? [])
+
     return (
         <div className={cx("meta-expander", className)}>
             {preview.length > 0 && (
@@ -97,6 +130,31 @@ function ExpandableSection({
                             </li>
                         ))}
                     </ul>
+                )}
+                {faqQuestions.length > 0 && (
+                    <section>
+                        <h2
+                            className="meta-expander__faqs-title body-2-bold-tight"
+                            id="faqs"
+                        >
+                            Frequently asked questions
+                        </h2>
+                        <div className="indicator-sources">
+                            {faqQuestions.map((faq, i) => (
+                                <ExpandableToggle
+                                    key={faq.question}
+                                    label={faq.question}
+                                    isStacked={i < faqQuestions.length - 1}
+                                    content={
+                                        <ArticleBlocks
+                                            blocks={faq.answer}
+                                            containerType="datapage"
+                                        />
+                                    }
+                                />
+                            ))}
+                        </div>
+                    </section>
                 )}
                 <section>
                     <h2 className="meta-expander__data-sources-title body-2-bold-tight">
@@ -171,24 +229,6 @@ function ExpandableSection({
                         reproduce these in any medium, provided the source and
                         authors are credited.
                     </p>
-                </section>
-                <section>
-                    {!!faqEntries?.faqs.length && (
-                        <div className="section-wrapper section-wrapper__faqs grid">
-                            <h2
-                                className="metadata-section__title span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12"
-                                id="faqs"
-                            >
-                                Frequently Asked Questions
-                            </h2>
-                            <div className="faqs__items grid grid-cols-10 grid-lg-cols-9 grid-md-cols-12 span-cols-10 span-lg-cols-9 span-md-cols-12 span-sm-cols-12">
-                                <ArticleBlocks
-                                    blocks={faqEntries.faqs}
-                                    containerType="datapage"
-                                />
-                            </div>
-                        </div>
-                    )}
                 </section>
             </details>
         </div>

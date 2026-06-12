@@ -9,6 +9,9 @@
             @include body-2-regular;
             color: $blue-60;
         }
+        .metadata-section__title {
+            @include body-2-bold-tight;
+        }
     }
 
     .metadata-section__title {
