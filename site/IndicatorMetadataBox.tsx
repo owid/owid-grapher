@@ -25,6 +25,7 @@ import { Byline } from "./gdocs/components/Byline.js"
 import { ArticleBlocks } from "./gdocs/components/ArticleBlocks.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faChevronUp } from "@fortawesome/free-solid-svg-icons"
+import { getAttributionUnshortened } from "./datapageUtils.js"
 
 interface ExpandableSectionProps {
     datapageData: DataPageDataV2
@@ -157,7 +158,10 @@ function ExpandableSection({
                     </section>
                 )}
                 <section>
-                    <h2 className="meta-expander__data-sources-title body-2-bold-tight">
+                    <h2
+                        id="sources-and-processing"
+                        className="meta-expander__data-sources-title body-2-bold-tight"
+                    >
                         Data sources
                     </h2>
                     <IndicatorSources
@@ -255,6 +259,12 @@ export default function IndicatorMetadataBox({
     // expander per indicator, so we don't merge owners across datasets here.
     const owners = datapageData.owners?.[0]?.owners ?? []
 
+    const attributionUnshortened = getAttributionUnshortened(datapageData)
+    const sourceString = makeSource({
+        attribution: attributionUnshortened,
+        owidProcessingLevel: datapageData.owidProcessingLevel,
+    })
+
     const detailsRef = useRef<HTMLDetailsElement | null>(null)
 
     const id_ = id ?? DATAPAGE_ABOUT_THIS_DATA_SECTION_ID
@@ -299,9 +309,7 @@ export default function IndicatorMetadataBox({
                             Data source
                         </dt>
                         <dd className="meta-description-table__value">
-                            <SimpleMarkdownText
-                                text={datapageData.attributionShort}
-                            />
+                            {sourceString}
                         </dd>
                     </>
                 )}

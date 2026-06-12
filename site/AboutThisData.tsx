@@ -2,7 +2,6 @@ import * as _ from "lodash-es"
 import cx from "clsx"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowDown } from "@fortawesome/free-solid-svg-icons"
-import dayjs from "dayjs"
 
 import {
     DATAPAGE_ABOUT_THIS_DATA_SECTION_ID,
@@ -10,18 +9,9 @@ import {
     ExpandableToggle,
     HtmlOrSimpleMarkdownText,
 } from "@ourworldindata/components"
-import { DataPageDataV2, OwidOrigin } from "@ourworldindata/types"
+import { DataPageDataV2 } from "@ourworldindata/types"
 import KeyDataTable from "./KeyDataTable.js"
-
-function getYearSuffixFromOrigin(origin: OwidOrigin) {
-    const year = origin.dateAccessed
-        ? dayjs(origin.dateAccessed, ["YYYY-MM-DD", "YYYY"]).year()
-        : origin.datePublished
-          ? dayjs(origin.datePublished, ["YYYY-MM-DD", "YYYY"]).year()
-          : undefined
-    if (year) return ` (${year})`
-    else return ""
-}
+import { getAttributionUnshortened } from "./datapageUtils.js"
 
 export default function AboutThisData({
     datapageData,
@@ -36,13 +26,7 @@ export default function AboutThisData({
 }) {
     const hasDescriptionKey =
         datapageData.descriptionKey && datapageData.descriptionKey.length > 0
-    const producersWithYear = _.uniq(
-        datapageData.origins.map(
-            (o) => `${o.producer}${getYearSuffixFromOrigin(o)}`
-        )
-    )
-    const attributionFragments = datapageData.attributions ?? producersWithYear
-    const attributionUnshortened = attributionFragments.join("; ")
+    const attributionUnshortened = getAttributionUnshortened(datapageData)
     const id_ = id ?? DATAPAGE_ABOUT_THIS_DATA_SECTION_ID
 
     return (
