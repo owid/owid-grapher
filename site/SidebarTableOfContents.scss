@@ -235,8 +235,7 @@ $sidebar-toc-header-gap: 32px;
 
     a {
         @include note-13-medium;
-        // Block so the link box (and its hover/Tippy target) stays contiguous
-        // across wrapped lines.
+        // Block so the link box stays contiguous across wrapped lines.
         display: block;
         // Split the inter-bullet gap evenly into top + bottom padding: the gap
         // stays part of the click target, and the :focus-visible outline sits

@@ -1,29 +1,8 @@
 import * as _ from "lodash-es"
 import { useEffect, useState, useSyncExternalStore } from "react"
-import type { RefObject } from "react"
 import { MultiEmbedderSingleton } from "./multiembedder/MultiEmbedder.js"
 import { getWindowQueryStr } from "@ourworldindata/utils"
 import { reaction } from "mobx"
-
-export const useTriggerWhenClickOutside = (
-    container: RefObject<HTMLElement | null>,
-    active: boolean,
-    trigger: () => void
-) => {
-    useEffect(() => {
-        if (!active) return
-        const handleClick = (e: MouseEvent) => {
-            if (container && !container.current?.contains(e.target as Node)) {
-                trigger()
-            }
-        }
-        document.addEventListener("mousedown", handleClick)
-
-        return () => {
-            document.removeEventListener("mousedown", handleClick)
-        }
-    }, [active, container, trigger])
-}
 
 export enum ScrollDirection {
     Up = "up",

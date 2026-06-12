@@ -1,15 +1,7 @@
-import {
-    createContext,
-    useContext,
-    useEffect,
-    useMemo,
-    useState,
-    ReactNode,
-} from "react"
+import { createContext, useContext, useEffect, useMemo, useState } from "react"
 import { ModalOverlay, Modal, Dialog } from "react-aria-components"
 import { useMediaQuery } from "usehooks-ts"
 import cx from "classnames"
-import Tippy from "@tippyjs/react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     faArrowUp,
@@ -18,26 +10,17 @@ import {
     faXmark,
     faAnglesLeft,
 } from "@fortawesome/free-solid-svg-icons"
-import { Toc, TocChartEntry,
-    TocSidebarSection,
-    queryParamsToStr,
-    Url,
-} from "@ourworldindata/utils"
+import { Toc, TocChartEntry, TocSidebarSection } from "@ourworldindata/utils"
 import {
     ChartConfigType,
     LinkedChart,
     SearchResultType,
 } from "@ourworldindata/types"
 import { useLinkedChart, useLinkedNarrativeChart } from "./gdocs/utils.js"
-import { useDocumentContext } from "./gdocs/DocumentContext.js"
-import { ChartPreview } from "./gdocs/components/ChartPreview.js"
 import { buildSearchHrefForCard } from "./search/searchState.js"
 import { useKeepActiveTocRowInView } from "./useKeepActiveTocRowInView.js"
 import { useTocScrollSpy } from "./useTocScrollSpy.js"
 import { useWideBlockInView } from "./useWideBlockInView.js"
-import { SiteAnalytics } from "./SiteAnalytics.js"
-
-const analytics = new SiteAnalytics()
 
 // Mirrors $sidebar-toc-breakpoint in SidebarTableOfContents.scss: at/below this
 // width the mobile pill + mobile drawer replace the desktop sidebar.
@@ -183,10 +166,6 @@ export const SidebarTableOfContents = ({
                 Contents
             </button>
 
-            {/* react-aria Modal: portals out of the article grid's stacking
-                contexts, traps + restores focus, locks body scroll, and closes
-                on Escape / outside click (isDismissable). Mounted only while
-                open, keeping Tippy/preview machinery dormant. */}
             <ModalOverlay
                 className="sidebar-toc__mobile-drawer-overlay"
                 isOpen={isMobileDrawerOpen}
@@ -336,25 +315,10 @@ const GrapherChartBullet = ({
     // link to — skip the bullet entirely rather than show a dead link.
     if (!linkedChart) return null
 
-    const label = chartBulletLabel(linkedChart)
-
-    const url = Url.fromURL(linkedChart.resolvedUrl)
-    // Best-effort preview: a multi-dim resolves to its /grapher route, so the
-    // thumbnail shows the default dimension view, not the doc's selection.
-    const preview = (
-        <ChartPreview
-            chartType={url.isExplorer ? "explorer" : "chart"}
-            chartSlug={url.slug || ""}
-            queryString={url.queryStr}
-        />
-    )
-
     return (
         <Bullet
             anchorId={entry.anchorId}
-            label={label}
-            preview={preview}
-            previewUrl={linkedChart.resolvedUrl}
+            label={chartBulletLabel(linkedChart)}
             visibility={entry.visibility}
             {...navProps}
         />
@@ -370,55 +334,20 @@ const NarrativeChartBullet = ({
     const info = useLinkedNarrativeChart(entry.name)
     if (!info) return null
 
-    // Best-effort preview: the dynamic thumbnail renders the parent chart and
-    // may not reflect narrative-specific config tweaks.
-    const queryString = queryParamsToStr(info.queryParamsForParentChart)
-    const preview = (
-        <ChartPreview
-            chartSlug={info.parentChartSlug}
-            queryString={queryString}
-        />
-    )
-
-    return (
-        <Bullet
-            anchorId={entry.anchorId}
-            label={info.title}
-            preview={preview}
-            previewUrl={`${info.parentChartSlug}${queryString}`}
-            {...navProps}
-        />
-    )
+    return <Bullet anchorId={entry.anchorId} label={info.title} {...navProps} />
 }
 
 const Bullet = ({
     anchorId,
     label,
-    preview,
-    previewUrl,
     visibility,
     activeId,
 }: {
     anchorId: string
     label: string
-    preview: ReactNode
-    previewUrl: string
     visibility?: Extract<TocChartEntry, { kind: "chart" }>["visibility"]
 } & TocNavProps) => {
     const onNavigate = useContext(TocNavigateContext)
-    const { archiveContext } = useDocumentContext()
-    const isOnArchivalPage = archiveContext?.type === "archive-page"
-
-    const link = (
-        <a
-            href={`#${anchorId}`}
-            onClick={onNavigate}
-            data-track-note="toc_link"
-            aria-current={activeId === anchorId ? "location" : undefined}
-        >
-            {label}
-        </a>
-    )
 
     return (
         <li
@@ -429,24 +358,14 @@ const Bullet = ({
             })}
             data-toc-id={anchorId}
         >
-            {isOnArchivalPage ? (
-                link
-            ) : (
-                <Tippy
-                    content={preview}
-                    onShow={() =>
-                        analytics.logChartPreviewMouseover(previewUrl)
-                    }
-                    delay={[300, 0]}
-                    placement="top"
-                    maxWidth={512}
-                    theme="light"
-                    arrow={false}
-                    touch={false}
-                >
-                    {link}
-                </Tippy>
-            )}
+            <a
+                href={`#${anchorId}`}
+                onClick={onNavigate}
+                data-track-note="toc_link"
+                aria-current={activeId === anchorId ? "location" : undefined}
+            >
+                {label}
+            </a>
         </li>
     )
 }
