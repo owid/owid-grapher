@@ -184,9 +184,7 @@ export const DataPageV2Content = ({
                         {useNewDatapageDesign && (
                             <IndicatorMetadataBox
                                 datapageData={datapageData}
-                                grapherConfig={grapherConfig}
                                 faqEntries={faqEntries}
-                                distribution={distribution}
                                 canonicalUrl={canonicalUrl}
                                 archiveContext={archiveContext}
                                 id={DATAPAGE_ABOUT_THIS_DATA_SECTION_ID}
