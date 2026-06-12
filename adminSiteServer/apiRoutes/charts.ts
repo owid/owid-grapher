@@ -1240,10 +1240,16 @@ export async function putChartsChartIdEtlConfig(
 }
 
 /**
- * Clears the chart's ETL-authored grapher config. The chart's `full` is
- * recomputed against the (possibly empty) variable inheritance stack only,
- * and the admin patch is re-diffed against that smaller stack. Same
- * housekeeping as the PUT endpoint.
+ * Detaches the chart from ETL: clears its ETL-authored grapher config.
+ *
+ * Detaching is render-neutral. The chart's current rendered config is
+ * re-diffed against the remaining parent (the indicator's config, if
+ * inheritance is on) and stored as the new patch: fields matching the
+ * indicator's config stay inherited, everything else — in particular the
+ * grapher `dimensions`, which the patch deliberately doesn't carry while a
+ * chart is ETL-managed — becomes a regular admin override. Rebuilding from
+ * the leftover layers instead would silently drop those dimensions and blank
+ * the chart.
  */
 export async function deleteChartsChartIdEtlConfig(
     req: Request,
@@ -1284,10 +1290,11 @@ export async function deleteChartsChartIdEtlConfig(
         : undefined
 
     const newParentStack = parent?.config ?? {}
-    const newPatch = rediffPatchAgainstNewParentStack(
-        existingPatch,
-        newParentStack
-    )
+
+    // Re-diff the chart's current rendered config (not its patch) against the
+    // remaining parent, so the departing ETL layer's contributions move into
+    // the patch instead of vanishing. See the function docstring.
+    const newPatch = diffGrapherConfigs(existingFull, newParentStack)
 
     const recomputedFull = mergeGrapherConfigs(newParentStack, newPatch)
     const fullChanged = !_.isEqual(
@@ -1310,10 +1317,25 @@ export async function deleteChartsChartIdEtlConfig(
         etlConfigId,
     ])
 
-    // Removing the layer didn't change the rendered chart (the ETL config was
-    // fully masked by the admin patch) → don't bump version / write a revision.
+    // A render-neutral detach is the normal case → no version bump, revision,
+    // R2 re-upload or rebuild. But the patch must still be persisted: it just
+    // absorbed the departed ETL layer's fields (notably the grapher
+    // `dimensions`), and without it the chart would lose them on its next
+    // recompute.
     if (!fullChanged) {
-        return { success: true, patch: existingPatch }
+        if (!_.isEqual(newPatch, existingPatch)) {
+            await db.knexRaw(
+                trx,
+                `-- sql
+                    UPDATE chart_configs cc
+                    JOIN charts c ON c.configId = cc.id
+                    SET cc.patch = ?, cc.updatedAt = ?, c.updatedAt = ?
+                    WHERE c.id = ?
+                `,
+                [serializeChartConfig(newPatch), now, now, chartId]
+            )
+        }
+        return { success: true, patch: newPatch }
     }
 
     const newVersion = (existingFull.version ?? 0) + 1
