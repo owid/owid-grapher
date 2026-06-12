@@ -199,3 +199,15 @@ it("Can index intermingled inline and ID refs correctly", () => {
         ],
     })
 })
+
+it("Treats a ref without whitespace as an ID ref, not an inline ref", () => {
+    // The inline-vs-ID distinction rests on the content containing a space.
+    // Pinned so a future change is conscious: if write-back ever emitted an
+    // inline ref whose content has no spaces, re-parsing would silently flip
+    // it into an ID ref with no definition.
+    expect(extractRefs(`some text{ref}single_token.{/ref}`)).toEqual({
+        extractedText: `some text${idRef(1, "single_token.")}`,
+        refsByFirstAppearance: new Set(["single_token."]),
+        rawInlineRefs: [],
+    })
+})
