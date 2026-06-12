@@ -611,6 +611,19 @@ export {
     SlideshowsTableName,
 } from "./dbTypes/Slideshows.js"
 export {
+    type DbPlainAgenticWritingLineage,
+    type DbInsertAgenticWritingLineage,
+    type AgenticWritingContentType,
+    AgenticWritingLineagesTableName,
+} from "./dbTypes/AgenticWritingLineages.js"
+export {
+    type DbPlainAgenticWritingVersion,
+    type DbInsertAgenticWritingVersion,
+    type AgenticWritingVersionKind,
+    type AgenticWritingDecision,
+    AgenticWritingVersionsTableName,
+} from "./dbTypes/AgenticWritingVersions.js"
+export {
     SlideTemplate,
     SLIDE_TEMPLATE_LABELS,
     type SlideImageOnly,

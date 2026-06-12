@@ -1,0 +1,61 @@
+metadata:
+  description: |
+    Immutable, append-only version snapshots for agentic-writing lineages.
+    Each row is one version: either the initial draft, a reviewer decision
+    (approve / reject / request_revisions), or a content revision (rewrite).
+    Versions are never updated in place — every state change writes a new row.
+    The latest version of a lineage (largest id within the lineage) determines
+    the derived review state.
+fields:
+  id:
+    description: Unique identifier for the version row
+  lineageId:
+    description: Foreign key to agentic_writing_lineages
+  versionId:
+    description: |
+      Monotonic, sortable timestamp id (e.g. "v-20260527T214858-727Z"). Unique
+      per lineage. The store ensures strictly-increasing ids per process so two
+      writes inside the same millisecond can't collide.
+  parentVersionId:
+    description: The prior version's `versionId` string, or null for the initial version
+  createdAt:
+    description: Timestamp this version was created
+  createdByUserId:
+    description: |
+      Foreign key to users, or null when authored by a non-user agent (e.g.
+      AI-generated initial versions or the bootstrap script). Use
+      `createdByLabel` for non-user authorship.
+  createdByLabel:
+    description: Free-text identifier of the author (user email, agent name like "claude-opus-4-7", or "bootstrap")
+  kind:
+    description: |
+      Version kind:
+        - "initial"  : the first version (no prior); review block is null
+        - "decision" : copies content from prior, fills the review block
+        - "revision" : new content (title/description/payload edited); review reset to null
+  title:
+    description: Piece title at this version (a copy on `decision`, edited on `revision`). Common across all content types.
+  description:
+    description: Piece description at this version. Common across all content types.
+  payload:
+    description: |
+      Content-type-specific JSON payload. Shape is discriminated by the
+      lineage's `contentType`. For data_nugget: { grapherViews: [{ slug,
+      url, queryParams, caption }, ...] }. Other content types would have
+      different payload shapes.
+  metadata:
+    description: |
+      JSON metadata blob carried through versions. Includes fields like
+      `entities`, `keyInsightLevel`, `factCheck`, `refinement` (for data
+      nuggets). Generation-stage skills populate sub-blocks of this object
+      before the first version.
+  reviewDecision:
+    description: Reviewer's decision on this version, or null. One of approved / rejected / request_revisions
+  reviewComment:
+    description: Reviewer's comment. Required when reviewDecision is "request_revisions"
+  reviewedAt:
+    description: Timestamp the review decision was recorded
+  reviewedByUserId:
+    description: Foreign key to users, or null for non-user reviewers
+  reviewedByLabel:
+    description: Free-text identifier of the reviewer (user email or agent name)
