@@ -622,6 +622,47 @@ export function Autocomplete({
         }
     }, [search])
 
+    // Preserve the page scroll position across the detached (mobile) modal.
+    // autocomplete-theme-classic locks the page with `body.aa-Detached {
+    // height: 100vh; overflow: hidden }` while the modal is open, which clamps
+    // the window scroll to 0 and never restores it on close — so closing the
+    // modal jumps the page to the top. The library does no save/restore, and we
+    // can't read the position in onStateChange because the class (and the
+    // reset) is applied before our callback runs. So we track the page scroll
+    // while the modal is closed and restore it once it closes again.
+    useEffect(() => {
+        if (!search) return
+
+        let savedScrollY = window.scrollY
+        let isModalOpen = document.body.classList.contains("aa-Detached")
+
+        const onScroll = () => {
+            if (!isModalOpen) savedScrollY = window.scrollY
+        }
+
+        // Key off the exact class that triggers the reset. The observer
+        // callback (a microtask) runs before the clamp's async scroll event, so
+        // isModalOpen is already true by the time the scroll-to-0 fires and we
+        // don't overwrite the saved position.
+        const observer = new MutationObserver(() => {
+            const open = document.body.classList.contains("aa-Detached")
+            if (open === isModalOpen) return
+            isModalOpen = open
+            if (!open) window.scrollTo(0, savedScrollY)
+        })
+
+        window.addEventListener("scroll", onScroll, { passive: true })
+        observer.observe(document.body, {
+            attributes: true,
+            attributeFilter: ["class"],
+        })
+
+        return () => {
+            window.removeEventListener("scroll", onScroll)
+            observer.disconnect()
+        }
+    }, [search])
+
     // Register a global shortcut to open the search box on typing "/"
     useEffect(() => {
         if (!search) return
