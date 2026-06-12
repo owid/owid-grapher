@@ -1032,6 +1032,99 @@ describe("Chart-level ETL configs", { timeout: 15000 }, () => {
         expect(afterChange.version).toBeGreaterThan(versionAfterFirst)
     })
 
+    it("persists the rediffed patch on a no-op so ETL can later update a field it adopted", async () => {
+        const response = await env.request({
+            method: "POST",
+            path: "/charts",
+            body: JSON.stringify({
+                $schema: latestGrapherConfigSchema,
+                slug: "adopt-test",
+                chartTypes: ["LineChart"],
+                dimensions: [{ variableId, property: "y" }],
+            }),
+        })
+        const chartId = response.chartId
+
+        // Admin sets a title in the chart editor → lands in the admin patch.
+        let fullConfig = await env.fetchJson(`/charts/${chartId}.config.json`)
+        await env.request({
+            method: "PUT",
+            path: `/charts/${chartId}`,
+            body: JSON.stringify({ ...fullConfig, title: "Shared title" }),
+        })
+
+        // ETL adopts that exact title. The rendered `full` is unchanged (still
+        // "Shared title"), so this is a no-op render-wise, but `title` must be
+        // dropped from the admin patch so ETL now owns it.
+        await env.request({
+            method: "PUT",
+            path: `/charts/${chartId}/etlConfig`,
+            body: JSON.stringify({
+                $schema: latestGrapherConfigSchema,
+                title: "Shared title",
+            }),
+        })
+        const patchAfterAdopt = await env.fetchJson(
+            `/charts/${chartId}.patchConfig.json`
+        )
+        expect(patchAfterAdopt.title).toBeUndefined()
+
+        // ETL now changes the title it owns — it must propagate to `full`
+        // (without the patch persistence above, the stale patch entry would
+        // mask this and the title would stay "Shared title").
+        await env.request({
+            method: "PUT",
+            path: `/charts/${chartId}/etlConfig`,
+            body: JSON.stringify({
+                $schema: latestGrapherConfigSchema,
+                title: "ETL-owned title",
+            }),
+        })
+        fullConfig = await env.fetchJson(`/charts/${chartId}.config.json`)
+        expect(fullConfig.title).toBe("ETL-owned title")
+    })
+
+    it("backfills catalogPath on a no-op re-push for a chart that already has an etlConfig", async () => {
+        const response = await env.request({
+            method: "POST",
+            path: "/charts",
+            body: JSON.stringify({
+                $schema: latestGrapherConfigSchema,
+                slug: "catalogpath-test",
+                chartTypes: ["LineChart"],
+                dimensions: [{ variableId, property: "y" }],
+            }),
+        })
+        const chartId = response.chartId
+
+        // First push creates the etlConfig row; no catalogPath supplied yet.
+        await env.request({
+            method: "PUT",
+            path: `/charts/${chartId}/etlConfig`,
+            body: JSON.stringify({
+                $schema: latestGrapherConfigSchema,
+                subtitle: "ETL subtitle",
+            }),
+        })
+        let chartRow = await env.testKnex("charts").where("id", chartId).first()
+        expect(chartRow.catalogPath).toBeNull()
+
+        // Identical re-push (no-op for `full`) but now carrying a catalogPath —
+        // it must still be backfilled despite the early return.
+        await env.request({
+            method: "PUT",
+            path: `/charts/${chartId}/etlConfig?catalogPath=${encodeURIComponent(
+                "grapher/test/latest/x#y"
+            )}`,
+            body: JSON.stringify({
+                $schema: latestGrapherConfigSchema,
+                subtitle: "ETL subtitle",
+            }),
+        })
+        chartRow = await env.testKnex("charts").where("id", chartId).first()
+        expect(chartRow.catalogPath).toBe("grapher/test/latest/x#y")
+    })
+
     it("rejects an etlConfig with no $schema", async () => {
         const response = await env.request({
             method: "POST",
