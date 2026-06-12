@@ -28,6 +28,7 @@
 
 @import "../packages/@ourworldindata/components/src/LabeledSwitch/LabeledSwitch.scss";
 @import "../packages/@ourworldindata/components/src/CodeSnippet/code-snippet.scss";
+@import "../packages/@ourworldindata/components/src/ExpandableDataCitation/ExpandableDataCitation.scss";
 @import "../packages/@ourworldindata/components/src/ExpandableToggle/ExpandableToggle.scss";
 @import "../packages/@ourworldindata/components/src/IndicatorSources/IndicatorSources.scss";
 @import "../packages/@ourworldindata/components/src/IndicatorProcessing/IndicatorProcessing.scss";
@@ -178,6 +179,7 @@
 @import "./gdocs/components/Socials.scss";
 @import "./gdocs/components/UserSurvey.scss";
 @import "./AboutThisData.scss";
+@import "./AboutThisDataV2.scss";
 @import "./DataPage.scss";
 @import "./DataPageContent.scss";
 @import "./multiDim/MultiDim.scss";

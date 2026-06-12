@@ -11,6 +11,8 @@ import { makeLinks } from "../IndicatorKeyData/IndicatorKeyData.js"
 export interface IndicatorSourcesProps {
     sources: DisplaySource[]
     isEmbeddedInADataPage?: boolean // true by default
+    hideReuseThisWorkText?: boolean
+    hideTeasers?: boolean
 }
 
 export const IndicatorSources = (props: IndicatorSourcesProps) => {
@@ -29,6 +31,7 @@ export const IndicatorSources = (props: IndicatorSourcesProps) => {
                     <SourceContent
                         source={source}
                         isEmbeddedInADataPage={isEmbeddedInADataPage}
+                        hideReuseThisWorkText={props.hideReuseThisWorkText}
                     />
                 )
                 const useExpandableToggle =
@@ -39,7 +42,7 @@ export const IndicatorSources = (props: IndicatorSourcesProps) => {
                         label={source.label}
                         content={content}
                         isStacked={isStacked}
-                        hasTeaser
+                        hasTeaser={!props.hideTeasers}
                     />
                 ) : (
                     <NonExpandable
@@ -74,6 +77,7 @@ const NonExpandable = (props: {
 const SourceContent = (props: {
     source: DisplaySource
     isEmbeddedInADataPage: boolean
+    hideReuseThisWorkText?: boolean
 }) => {
     const { source } = props
     const retrievedOn = formatSourceDate(source.retrievedOn, "MMMM D, YYYY")
@@ -143,19 +147,20 @@ const SourceContent = (props: {
                                 This is the citation of the original data
                                 obtained from the source, prior to any
                                 processing or adaptation by Our World in Data.{" "}
-                                {props.isEmbeddedInADataPage && (
-                                    <>
-                                        To cite data downloaded from this page,
-                                        please use the suggested citation given
-                                        in{" "}
-                                        <a
-                                            href={`#${REUSE_THIS_WORK_SECTION_ID}`}
-                                        >
-                                            Reuse This Work
-                                        </a>{" "}
-                                        below.
-                                    </>
-                                )}
+                                {props.isEmbeddedInADataPage &&
+                                    !props.hideReuseThisWorkText && (
+                                        <>
+                                            To cite data downloaded from this
+                                            page, please use the suggested
+                                            citation given in{" "}
+                                            <a
+                                                href={`#${REUSE_THIS_WORK_SECTION_ID}`}
+                                            >
+                                                Reuse This Work
+                                            </a>{" "}
+                                            below.
+                                        </>
+                                    )}
                                 <CodeSnippet
                                     code={source.citation.trim()}
                                     theme="light"
