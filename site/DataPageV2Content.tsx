@@ -10,6 +10,8 @@ import {
     defaultExperimentState,
     getExperimentState,
     ExperimentState,
+    isUrlInActiveExperiment,
+    DATA_PAGE_METADATA_EXPERIMENT_ID,
 } from "@ourworldindata/utils"
 import { RelatedCharts } from "./blocks/RelatedCharts.js"
 import { FeaturedMetrics } from "./FeaturedMetrics.js"
@@ -17,18 +19,19 @@ import {
     ADMIN_BASE_URL,
     BAKED_GRAPHER_URL,
 } from "../settings/clientSettings.js"
-import AboutThisData from "./AboutThisData.js"
-import DataPageResearchAndWriting from "./DataPageResearchAndWriting.js"
 import DownloadSection, {
     type DownloadSectionProps,
 } from "./DownloadSection.js"
-import MetadataSection from "./MetadataSection.js"
 import { processRelatedResearch } from "./dataPage.js"
 import { GrapherWithFallback } from "./GrapherWithFallback.js"
 import { AttachmentsContext } from "./gdocs/AttachmentsContext.js"
 import { DocumentContext } from "./gdocs/DocumentContext.js"
-import { SiteQueryClientProvider } from "./SiteQueryClientProvider.js"
 import { useWindowQueryParams } from "./hooks.js"
+import AboutThisDataV2 from "./AboutThisDataV2.js"
+import AboutThisData from "./AboutThisData.js"
+import DataPageResearchAndWriting from "./DataPageResearchAndWriting.js"
+import MetadataSection from "./MetadataSection.js"
+import { SiteQueryClientProvider } from "./SiteQueryClientProvider.js"
 
 declare global {
     interface Window {
@@ -77,6 +80,10 @@ export const DataPageV2Content = ({
     imageMetadata: Record<string, ImageMetadata>
 }) => {
     const slug = grapherConfig.slug
+    const useNewDatapageDesign = isUrlInActiveExperiment(
+        DATA_PAGE_METADATA_EXPERIMENT_ID,
+        `/grapher/${slug}`
+    )
     const queryStr =
         typeof window !== "undefined" ? window?.location?.search : undefined
 
@@ -163,99 +170,144 @@ export const DataPageV2Content = ({
                                     isPreviewing={isPreviewing}
                                 />
                             )}
-
-                            <AboutThisData
+                            {!useNewDatapageDesign && (
+                                <AboutThisData
+                                    datapageData={datapageData}
+                                    hasFaq={!!faqEntries?.faqs.length}
+                                    id={DATAPAGE_ABOUT_THIS_DATA_SECTION_ID}
+                                />
+                            )}
+                        </div>
+                        {useNewDatapageDesign && (
+                            <AboutThisDataV2
                                 datapageData={datapageData}
-                                hasFaq={!!faqEntries?.faqs.length}
+                                grapherConfig={grapherConfig}
+                                faqEntries={faqEntries}
+                                distribution={distribution}
+                                canonicalUrl={canonicalUrl}
+                                archiveContext={archiveContext}
                                 id={DATAPAGE_ABOUT_THIS_DATA_SECTION_ID}
                             />
-                        </div>
-                    </div>
-                    <div className="col-start-2 span-cols-12">
-                        {relatedResearch && relatedResearch.length > 0 && (
-                            <DataPageResearchAndWriting
-                                relatedResearch={relatedResearch}
-                            />
                         )}
-                        {/*
-                         * The id is swapped between the all-charts section and the
-                         * featured-metrics section based on experiment arm so that the
-                         * #all-charts sticky nav link always scrolls to the visible
-                         * element. Browsers won't scroll to a display:none element, so
-                         * a static id on the all-charts section would break navigation
-                         * in the featured-metrics arm.
-                         */}
-                        {datapageData.allCharts &&
-                        datapageData.allCharts.length > 0 ? (
-                            <div
-                                className={`section-wrapper section-wrapper__related-charts ${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1${EXPERIMENT_ARM_SEPARATOR}featured-metrics--hide`}
-                            >
-                                <h2
-                                    className="related-charts__title"
-                                    id={
-                                        experimentState &&
-                                        experimentState[
-                                            `${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1`
-                                        ]?.isPageInExperiment &&
-                                        experimentState[
-                                            `${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1`
-                                        ]?.arm !== "all-charts"
-                                            ? ""
-                                            : "all-charts"
-                                    }
-                                >
-                                    Explore charts that include this data
-                                </h2>
-                                <div>
-                                    <RelatedCharts
-                                        charts={datapageData.allCharts}
+                        {useNewDatapageDesign &&
+                            relatedResearch &&
+                            relatedResearch.length > 0 && (
+                                <div className="datapage-research-and-writing-v2 col-start-2 span-cols-12">
+                                    <DataPageResearchAndWriting
+                                        relatedResearch={relatedResearch}
                                     />
                                 </div>
-                            </div>
-                        ) : null}
-                        {datapageData.primaryTopic && (
-                            <div
-                                className={`section-wrapper ${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1${EXPERIMENT_ARM_SEPARATOR}featured-metrics--show`}
-                                id={
-                                    experimentState &&
-                                    experimentState[
-                                        `${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1`
-                                    ]?.isPageInExperiment &&
-                                    experimentState[
-                                        `${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1`
-                                    ]?.arm === "featured-metrics"
-                                        ? "all-charts"
-                                        : ""
-                                }
-                            >
-                                <SiteQueryClientProvider>
-                                    <FeaturedMetrics
-                                        topicName={
-                                            datapageData.primaryTopic.topicTag
-                                        }
-                                        isDataPage={true}
-                                    />
-                                </SiteQueryClientProvider>
-                            </div>
-                        )}
+                            )}
                     </div>
-                    <MetadataSection
-                        attributionShort={datapageData.attributionShort}
-                        attributions={datapageData.attributions}
-                        canonicalUrl={canonicalUrl}
-                        descriptionProcessing={
-                            datapageData.descriptionProcessing
-                        }
-                        faqEntries={faqEntries}
-                        origins={datapageData.origins}
-                        owidProcessingLevel={datapageData.owidProcessingLevel}
-                        primaryTopic={datapageData.primaryTopic}
-                        source={datapageData.source}
-                        title={datapageData.title}
-                        titleVariant={datapageData.titleVariant}
-                        archiveContext={archiveContext}
-                        downloadSection={downloadSection}
-                    />
+                    {useNewDatapageDesign && (
+                        <MetadataSection
+                            useNewDatapageDesign
+                            attributionShort={datapageData.attributionShort}
+                            attributions={datapageData.attributions}
+                            canonicalUrl={canonicalUrl}
+                            descriptionProcessing={
+                                datapageData.descriptionProcessing
+                            }
+                            origins={datapageData.origins}
+                            owidProcessingLevel={
+                                datapageData.owidProcessingLevel
+                            }
+                            primaryTopic={datapageData.primaryTopic}
+                            source={datapageData.source}
+                            title={datapageData.title}
+                            titleVariant={datapageData.titleVariant}
+                            archiveContext={archiveContext}
+                            downloadSection={downloadSection}
+                        />
+                    )}
+                    {!useNewDatapageDesign && (
+                        <>
+                            <div className="col-start-2 span-cols-12">
+                                {/*
+                                 * The id is swapped between the all-charts section and the
+                                 * featured-metrics section based on experiment arm so that the
+                                 * #all-charts sticky nav link always scrolls to the visible
+                                 * element. Browsers won't scroll to a display:none element, so
+                                 * a static id on the all-charts section would break navigation
+                                 * in the featured-metrics arm.
+                                 */}
+                                {datapageData.allCharts &&
+                                datapageData.allCharts.length > 0 ? (
+                                    <div
+                                        className={`section-wrapper section-wrapper__related-charts ${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1${EXPERIMENT_ARM_SEPARATOR}featured-metrics--hide`}
+                                    >
+                                        <h2
+                                            className="related-charts__title"
+                                            id={
+                                                experimentState &&
+                                                experimentState[
+                                                    `${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1`
+                                                ]?.isPageInExperiment &&
+                                                experimentState[
+                                                    `${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1`
+                                                ]?.arm !== "all-charts"
+                                                    ? ""
+                                                    : "all-charts"
+                                            }
+                                        >
+                                            Explore charts that include this
+                                            data
+                                        </h2>
+                                        <div>
+                                            <RelatedCharts
+                                                charts={datapageData.allCharts}
+                                            />
+                                        </div>
+                                    </div>
+                                ) : null}
+                                {datapageData.primaryTopic && (
+                                    <div
+                                        className={`section-wrapper ${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1${EXPERIMENT_ARM_SEPARATOR}featured-metrics--show`}
+                                        id={
+                                            experimentState &&
+                                            experimentState[
+                                                `${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1`
+                                            ]?.isPageInExperiment &&
+                                            experimentState[
+                                                `${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1`
+                                            ]?.arm === "featured-metrics"
+                                                ? "all-charts"
+                                                : ""
+                                        }
+                                    >
+                                        <SiteQueryClientProvider>
+                                            <FeaturedMetrics
+                                                topicName={
+                                                    datapageData.primaryTopic
+                                                        .topicTag
+                                                }
+                                                isDataPage={true}
+                                            />
+                                        </SiteQueryClientProvider>
+                                    </div>
+                                )}
+                            </div>
+                            <MetadataSection
+                                attributionShort={datapageData.attributionShort}
+                                attributions={datapageData.attributions}
+                                canonicalUrl={canonicalUrl}
+                                descriptionProcessing={
+                                    datapageData.descriptionProcessing
+                                }
+                                faqEntries={faqEntries}
+                                origins={datapageData.origins}
+                                owidProcessingLevel={
+                                    datapageData.owidProcessingLevel
+                                }
+                                primaryTopic={datapageData.primaryTopic}
+                                source={datapageData.source}
+                                title={datapageData.title}
+                                titleVariant={datapageData.titleVariant}
+                                archiveContext={archiveContext}
+                                downloadSection={downloadSection}
+                            />
+                        </>
+                    )}
                 </div>
             </DocumentContext.Provider>
         </AttachmentsContext.Provider>
