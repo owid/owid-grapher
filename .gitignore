@@ -72,3 +72,9 @@ typesense-data/
 
 .toolbox/
 .pi/
+
+# Data Nuggets — generation artifacts (keep README.md tracked)
+/data-nuggets/reports/
+/data-nuggets/views/
+/data-nuggets/versions/
+/data-nuggets/.scratch/
