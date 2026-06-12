@@ -52,7 +52,10 @@ import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
 
 import { deleteOldGraphers } from "./GrapherBakingUtils.js"
 import { knexRaw } from "../db/db.js"
-import { getRelatedChartsForVariable } from "../db/model/Chart.js"
+import {
+    getRelatedChartsForVariable,
+    getRelatedChartsForChart,
+} from "../db/model/Chart.js"
 import { getAllMultiDimDataPageSlugs } from "../db/model/MultiDimDataPage.js"
 import pMap from "p-map"
 import { stringify } from "safe-stable-stringify"
@@ -240,6 +243,22 @@ export async function renderDataPageV2(
             ...chart,
             archiveContext: archiveContextDictionary?.[chart.chartId],
         }))
+
+        // Coviews-based related charts ("Explore related charts" section on the
+        // redesigned data page). Keyed on the chart id, so only populated when
+        // this datapage is backed by a standalone chart.
+        if (grapher.id !== undefined) {
+            const relatedChartsByCoview = await getRelatedChartsForChart(
+                knex,
+                grapher.id
+            )
+            datapageData.relatedChartsByCoview = relatedChartsByCoview.map(
+                (chart) => ({
+                    ...chart,
+                    archiveContext: archiveContextDictionary?.[chart.chartId],
+                })
+            )
+        }
 
         datapageData.relatedResearch =
             await getRelatedResearchAndWritingForVariables(knex, [variableId])

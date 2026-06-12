@@ -63,6 +63,7 @@ export function getDatapageDataV2(
         lastUpdated: lastUpdated,
         nextUpdate: nextUpdate,
         allCharts: [],
+        relatedChartsByCoview: [],
         relatedResearch: [],
         source: variableMetadata.source,
         origins: variableMetadata.origins ?? [],

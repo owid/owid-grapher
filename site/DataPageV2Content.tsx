@@ -15,6 +15,7 @@ import {
 } from "@ourworldindata/utils"
 import { RelatedCharts } from "./blocks/RelatedCharts.js"
 import { FeaturedMetrics } from "./FeaturedMetrics.js"
+import { RelatedDataCharts } from "./RelatedDataCharts.js"
 import {
     ADMIN_BASE_URL,
     BAKED_GRAPHER_URL,
@@ -203,6 +204,9 @@ export const DataPageV2Content = ({
 
                         {useNewDatapageDesign && (
                             <div className="datapage-search-wrapper span-cols-14 grid-cols-12-full-width grid">
+                                <h2 className="datapage-v2__related-charts-heading span-cols-12 col-start-2 h2-bold">
+                                    Related charts
+                                </h2>
                                 <div className="datapage-search span-cols-12 col-start-2">
                                     <SiteQueryClientProvider>
                                         <Autocomplete
@@ -214,6 +218,18 @@ export const DataPageV2Content = ({
                                 </div>
                             </div>
                         )}
+                        {useNewDatapageDesign &&
+                            datapageData.relatedChartsByCoview &&
+                            datapageData.relatedChartsByCoview.length > 0 && (
+                                <div className="span-cols-14 grid grid-cols-12-full-width">
+                                    <RelatedDataCharts
+                                        className="col-start-2 span-cols-12"
+                                        charts={
+                                            datapageData.relatedChartsByCoview
+                                        }
+                                    />
+                                </div>
+                            )}
                     </div>
                     {useNewDatapageDesign && (
                         <MetadataSection

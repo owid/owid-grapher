@@ -201,6 +201,7 @@ export async function constructSearchResultJson(
         entityType: grapherState.entityType,
         entityTypePlural: grapherState.entityTypePlural,
         unit: strippedUnit,
+        numAvailableEntities: grapherState.availableEntityNames.length,
     })
 }
 

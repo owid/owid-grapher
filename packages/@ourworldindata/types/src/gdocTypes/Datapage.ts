@@ -46,6 +46,10 @@ export interface DataPageDataV2 {
     nextUpdate?: string
     relatedResearch: DataPageRelatedResearch[]
     allCharts: RelatedChart[] // Chart slugs
+    // Coviews-based related charts (charts viewed together in the same browsing
+    // session), populated from the `related_charts` table by the ETL. Distinct
+    // from `allCharts`, which are charts that share this indicator's data.
+    relatedChartsByCoview: RelatedChart[]
     source: OwidSource | undefined
     origins: OwidOrigin[]
     owners?: DatasetOwners[]

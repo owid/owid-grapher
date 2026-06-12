@@ -677,6 +677,7 @@ export const getRelatedChartsForChart = async (
             JOIN charts ON charts.id = rc.relatedChartId
             JOIN chart_configs ON charts.configId = chart_configs.id
             WHERE rc.chartId = ?
+                AND rc.relatedChartId != rc.chartId
                 AND rc.reviewer = 'production'
                 AND rc.label = 'good'
                 AND chart_configs.full->>"$.isPublished" = "true"
