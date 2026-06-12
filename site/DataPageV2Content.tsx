@@ -32,6 +32,7 @@ import AboutThisData from "./AboutThisData.js"
 import DataPageResearchAndWriting from "./DataPageResearchAndWriting.js"
 import MetadataSection from "./MetadataSection.js"
 import { SiteQueryClientProvider } from "./SiteQueryClientProvider.js"
+import { Autocomplete } from "./search/Autocomplete.js"
 
 declare global {
     interface Window {
@@ -199,6 +200,20 @@ export const DataPageV2Content = ({
                                     />
                                 </div>
                             )}
+
+                        {useNewDatapageDesign && (
+                            <div className="datapage-search-wrapper span-cols-14 grid-cols-12-full-width grid">
+                                <div className="datapage-search span-cols-12 col-start-2">
+                                    <SiteQueryClientProvider>
+                                        <Autocomplete
+                                            id="datapage-autocomplete"
+                                            className="datapage-search__input"
+                                            panelClassName="datapage-search__panel"
+                                        />
+                                    </SiteQueryClientProvider>
+                                </div>
+                            </div>
+                        )}
                     </div>
                     {useNewDatapageDesign && (
                         <MetadataSection
