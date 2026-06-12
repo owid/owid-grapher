@@ -8,9 +8,11 @@ import {
     OwidRawGdocBlock,
     omitUndefinedValues,
     RawBlockText,
+    EnrichedBlockText,
     EnrichedBlockTopicPageIntro,
     EnrichedBlockSocials,
     SocialLinkType,
+    traverseEnrichedBlock,
 } from "@ourworldindata/utils"
 import {
     spansToHtmlString,
@@ -20,6 +22,7 @@ import { archieToEnriched } from "./model/Gdoc/archieToEnriched.js"
 import { OwidRawGdocBlockToArchieMLString } from "./model/Gdoc/rawToArchie.js"
 import { owidArticleToArchieMLStringGenerator } from "./model/Gdoc/archieToGdoc.js"
 import {
+    OwidEnrichedGdocBlock,
     OwidGdocPostContent,
     OwidGdocType,
     SpanRef,
@@ -27,25 +30,40 @@ import {
 import { enrichedBlockExamples } from "./model/Gdoc/exampleEnrichedBlocks.js"
 import { enrichedBlockToRawBlock } from "./model/Gdoc/enrichedToRaw.js"
 import { load } from "archieml"
-import {
-    parseRawBlocksToEnrichedBlocks,
-    parseSimpleText,
-} from "./model/Gdoc/rawToEnriched.js"
+import { parseSimpleText } from "./model/Gdoc/rawToEnriched.js"
 import { gdocToArchie } from "./model/Gdoc/gdocToArchie.js"
 import { docs_v1 } from "@googleapis/docs"
 import { documentContainsMixedStraightAndCurlyQuotes } from "./model/Gdoc/gdocValidation.js"
 
-function getArchieMLDocWithContent(content: string): string {
+function getArchieMLDocWithContent(
+    content: string,
+    extraFrontmatter: string = ""
+): string {
     return `title: Writing OWID Articles With Google Docs
 subtitle: This article documents how to use and configure the various built in features of our template system
 byline: Matthew Conlen
 dateline: June 30, 2022
 template: centered
-
+${extraFrontmatter}
 [+body]
 ${content}
 []
 `
+}
+
+// Builds a [.refs] frontmatter block in the same shape the write-back
+// emits, for use as extraFrontmatter above.
+function getRefsFrontmatter(refs: { id: string; content: string }[]): string {
+    return [
+        "[.refs]",
+        ...refs.flatMap((ref) => [
+            `id: ${ref.id}`,
+            "[.+content]",
+            ref.content,
+            "[]",
+        ]),
+        "[]",
+    ].join("\n")
 }
 
 describe(documentContainsMixedStraightAndCurlyQuotes, () => {
@@ -610,25 +628,258 @@ level: 2
             `
             const deserializedRawBlock = load(simpleArchieMLDocument)
             const bodyNodes: OwidRawGdocBlock[] = deserializedRawBlock.body
-            let deserializedEnrichedBlocks = bodyNodes.map(
-                parseRawBlocksToEnrichedBlocks
-            )
-            if (example.type === "simple-text") {
-                // RawBlockText blocks are always parsed to EnrichedBlockText, never automatically
-                // to EnrichedBlockSimpleText. So we need to manually parse them here.
-                deserializedEnrichedBlocks = [
-                    parseSimpleText(bodyNodes[0] as RawBlockText),
-                ]
-            }
-            expect(deserializedEnrichedBlocks).toHaveLength(1)
+            expect(bodyNodes).toHaveLength(1)
             expect(omitUndefinedValues(bodyNodes[0])).toEqual(
                 omitUndefinedValues(rawBlock)
             )
-            expect(omitUndefinedValues(deserializedEnrichedBlocks[0])).toEqual(
+
+            // Parse back through the full document pipeline rather than bare
+            // load(), so every block type also proves immune to the
+            // document-level text surgery (extractRefs, whitespace-link
+            // fixups, stripIgnoredArchieml).
+            const article = archieToEnriched(
+                getArchieMLDocWithContent(serializedRawBlock)
+            )
+            expect(article.body).toHaveLength(1)
+            // RawBlockText blocks are always parsed to EnrichedBlockText, never automatically
+            // to EnrichedBlockSimpleText. So we need to manually parse them here.
+            const deserializedEnrichedBlock =
+                example.type === "simple-text"
+                    ? parseSimpleText(bodyNodes[0] as RawBlockText)
+                    : article.body?.[0]
+            expect(omitUndefinedValues(deserializedEnrichedBlock)).toEqual(
                 omitUndefinedValues(example)
             )
         }
     )
+
+    it("round-trips a text block with an inline ref through the document pipeline", () => {
+        // Unlike the catalogue examples above, a span-ref can only round-trip
+        // through archieToEnriched: its serialized form `{ref}…{/ref}` is
+        // ArchieML-layer syntax that extractRefs resolves before load(), and
+        // its url/children (#note-1, <sup>1</sup>) are document-derived. This
+        // pins single-block fillInlineRefSourceContent behavior, including
+        // formatting inside the ref content.
+        const example: EnrichedBlockText = {
+            type: "text",
+            value: [
+                { spanType: "span-simple-text", text: "A claim" },
+                {
+                    spanType: "span-ref",
+                    url: "#note-1",
+                    sourceForm: {
+                        kind: "inline",
+                        content: [
+                            { spanType: "span-simple-text", text: "see " },
+                            {
+                                spanType: "span-bold",
+                                children: [
+                                    {
+                                        spanType: "span-simple-text",
+                                        text: "this paper",
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                    children: [
+                        {
+                            spanType: "span-superscript",
+                            children: [
+                                { spanType: "span-simple-text", text: "1" },
+                            ],
+                        },
+                    ],
+                },
+                { spanType: "span-simple-text", text: " and more." },
+            ],
+            parseErrors: [],
+        }
+        const serializedRawBlock = OwidRawGdocBlockToArchieMLString(
+            enrichedBlockToRawBlock(example)
+        )
+        const article = archieToEnriched(
+            getArchieMLDocWithContent(serializedRawBlock)
+        )
+        expect(article.body).toHaveLength(1)
+        expect(omitUndefinedValues(article.body?.[0])).toEqual(
+            omitUndefinedValues(example)
+        )
+    })
+})
+
+describe("document-level ArchieML round trip", () => {
+    // The inverse of archieToEnriched: full-document enriched → ArchieML
+    // write-back, including frontmatter and the [.refs] block.
+    const enrichedToArchieML = (content: OwidGdocPostContent): string =>
+        [...owidArticleToArchieMLStringGenerator(content)].join("\n")
+
+    // Asserts that parsing a handwritten ArchieML document and writing it
+    // back is a fixed point. The write-back canonicalizes formatting —
+    // property order, key casing, whitespace — without losing content, so the
+    // string comparison is against that canonical form rather than the
+    // handwritten input; content preservation is what the enriched-level
+    // comparison checks. Returns the first parse and its canonical write-back
+    // for fixture-specific assertions.
+    function expectDocToRoundTrip(archieml: string): {
+        first: OwidGdocPostContent
+        canonicalArchieML: string
+    } {
+        const first = archieToEnriched(archieml)
+        const canonicalArchieML = enrichedToArchieML(first)
+        const second = archieToEnriched(canonicalArchieML)
+        expect(omitUndefinedValues(second.body)).toEqual(
+            omitUndefinedValues(first.body)
+        )
+        expect(omitUndefinedValues(second.refs?.definitions)).toEqual(
+            omitUndefinedValues(first.refs?.definitions)
+        )
+        expect(enrichedToArchieML(second)).toEqual(canonicalArchieML)
+        return { first, canonicalArchieML }
+    }
+
+    const collectRefSpans = (
+        body: OwidEnrichedGdocBlock[] | undefined
+    ): SpanRef[] => {
+        const refs: SpanRef[] = []
+        for (const block of body ?? []) {
+            traverseEnrichedBlock(
+                block,
+                () => undefined,
+                (span) => {
+                    if (span.spanType === "span-ref") refs.push(span)
+                }
+            )
+        }
+        return refs
+    }
+
+    it("round-trips inline refs and fills their sourceForm content", () => {
+        const { first } = expectDocToRoundTrip(
+            getArchieMLDocWithContent(
+                `One claim{ref}An inline citation with spaces.{/ref} and another{ref}A second, <b>bolder</b> citation.{/ref}.`
+            )
+        )
+        const refSpans = collectRefSpans(first.body)
+        expect(refSpans.map((span) => span.sourceForm)).toEqual([
+            {
+                kind: "inline",
+                content: [
+                    {
+                        spanType: "span-simple-text",
+                        text: "An inline citation with spaces.",
+                    },
+                ],
+            },
+            {
+                kind: "inline",
+                content: [
+                    { spanType: "span-simple-text", text: "A second, " },
+                    {
+                        spanType: "span-bold",
+                        children: [
+                            { spanType: "span-simple-text", text: "bolder" },
+                        ],
+                    },
+                    { spanType: "span-simple-text", text: " citation." },
+                ],
+            },
+        ])
+    })
+
+    it("round-trips ID-based refs and regenerates the [.refs] frontmatter block", () => {
+        const doc = getArchieMLDocWithContent(
+            `A claim{ref}first_ref{/ref} and another{ref}second_ref{/ref}.`,
+            getRefsFrontmatter([
+                { id: "first_ref", content: "The first citation." },
+                { id: "second_ref", content: "The second citation." },
+            ])
+        )
+        const { first } = expectDocToRoundTrip(doc)
+        expect(Object.keys(first.refs?.definitions ?? {})).toEqual([
+            "first_ref",
+            "second_ref",
+        ])
+    })
+
+    it("keeps note numbering stable for interleaved inline and ID refs across blocks", () => {
+        const doc = getArchieMLDocWithContent(
+            `First paragraph{ref}An inline citation first.{/ref} of text.
+
+Second paragraph{ref}an_id_ref{/ref} of text.`,
+            getRefsFrontmatter([
+                { id: "an_id_ref", content: "The ID-based citation." },
+            ])
+        )
+        const { first } = expectDocToRoundTrip(doc)
+        const refSpans = collectRefSpans(first.body)
+        expect(refSpans.map((s) => s.url)).toEqual(["#note-1", "#note-2"])
+        expect(refSpans.map((s) => s.sourceForm.kind)).toEqual(["inline", "id"])
+    })
+
+    it("emits a single [.refs] entry and note number for a repeated ID ref", () => {
+        const doc = getArchieMLDocWithContent(
+            `A claim{ref}reused_ref{/ref} and the same claim again{ref}reused_ref{/ref}.`,
+            getRefsFrontmatter([
+                { id: "reused_ref", content: "The reused citation." },
+            ])
+        )
+        const { first, canonicalArchieML } = expectDocToRoundTrip(doc)
+        const refSpans = collectRefSpans(first.body)
+        expect(refSpans.map((s) => s.url)).toEqual(["#note-1", "#note-1"])
+        expect(canonicalArchieML.match(/id: reused_ref/g)).toHaveLength(1)
+    })
+
+    it("gives repeated identical inline refs one note number and fills both spans", () => {
+        const doc = getArchieMLDocWithContent(
+            `First{ref}The same citation text.{/ref} and second{ref}The same citation text.{/ref}.`
+        )
+        const { first } = expectDocToRoundTrip(doc)
+        expect(Object.keys(first.refs?.definitions ?? {})).toHaveLength(1)
+        const refSpans = collectRefSpans(first.body)
+        expect(refSpans.map((span) => span.url)).toEqual(["#note-1", "#note-1"])
+        const expectedSourceForm = {
+            kind: "inline",
+            content: [
+                {
+                    spanType: "span-simple-text",
+                    text: "The same citation text.",
+                },
+            ],
+        }
+        expect(refSpans.map((span) => span.sourceForm)).toEqual([
+            expectedSourceForm,
+            expectedSourceForm,
+        ])
+    })
+
+    it("fills inline ref content inside list items", () => {
+        const doc = getArchieMLDocWithContent(`[.list]
+* Item one{ref}A citation inside a list.{/ref}
+* Item two
+[]`)
+        const { first } = expectDocToRoundTrip(doc)
+        const refSpans = collectRefSpans(first.body)
+        expect(refSpans.map((span) => span.sourceForm)).toEqual([
+            {
+                kind: "inline",
+                content: [
+                    {
+                        spanType: "span-simple-text",
+                        text: "A citation inside a list.",
+                    },
+                ],
+            },
+        ])
+    })
+
+    it("round-trips rich spans at the document level", () => {
+        expectDocToRoundTrip(
+            getArchieMLDocWithContent(
+                `Plain, <b>bold</b>, <i>italic</i>, <u>underlined</u>, <s>struck</s>, H<sub>2</sub>O, E=mc<sup>2</sup> and <a href="https://ourworldindata.org">a link</a>.`
+            )
+        )
+    })
 })
 
 describe("refs source-form serializer", () => {

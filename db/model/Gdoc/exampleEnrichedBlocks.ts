@@ -43,6 +43,71 @@ const enrichedBlockText: EnrichedBlockText = {
     parseErrors: [],
 }
 
+// A text block exercising the full set of inline span types that round-trip
+// through the ArchieML serializers (see the round-trip test in gdocTests).
+// Kept separate from boldLinkExampleText, which many other examples embed.
+const richSpansExampleText: Span[] = [
+    ...boldLinkExampleText,
+    {
+        spanType: "span-simple-text",
+        text: ", ",
+    },
+    {
+        spanType: "span-italic",
+        children: [{ spanType: "span-simple-text", text: "italic" }],
+    },
+    {
+        spanType: "span-simple-text",
+        text: ", ",
+    },
+    {
+        spanType: "span-underline",
+        children: [{ spanType: "span-simple-text", text: "underlined" }],
+    },
+    {
+        spanType: "span-simple-text",
+        text: " and ",
+    },
+    {
+        spanType: "span-strikethrough",
+        children: [{ spanType: "span-simple-text", text: "struck-through" }],
+    },
+    {
+        spanType: "span-simple-text",
+        text: " text, H",
+    },
+    {
+        spanType: "span-subscript",
+        children: [{ spanType: "span-simple-text", text: "2" }],
+    },
+    {
+        spanType: "span-simple-text",
+        text: "O, E=mc",
+    },
+    {
+        spanType: "span-superscript",
+        children: [{ spanType: "span-simple-text", text: "2" }],
+    },
+    {
+        spanType: "span-simple-text",
+        text: " and ",
+    },
+    {
+        spanType: "span-quote",
+        children: [{ spanType: "span-simple-text", text: "a quote" }],
+    },
+    {
+        spanType: "span-simple-text",
+        text: ".",
+    },
+]
+
+const enrichedBlockRichText: EnrichedBlockText = {
+    type: "text",
+    value: richSpansExampleText,
+    parseErrors: [],
+}
+
 const enrichedChart: EnrichedBlockChart = {
     type: "chart",
     url: "https://ourworldindata.org/grapher/total-cases-covid-19",
@@ -91,7 +156,7 @@ export const enrichedBlockExamples: Record<
     OwidEnrichedGdocBlock["type"],
     OwidEnrichedGdocBlock
 > = {
-    text: enrichedBlockText,
+    text: enrichedBlockRichText,
     "simple-text": {
         type: "simple-text",
         value: {
