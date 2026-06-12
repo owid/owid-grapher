@@ -1207,10 +1207,35 @@ export async function putChartsChartIdEtlConfig(
     }
 
     // Nothing the reader sees changed → don't bump `version`, write a revision,
-    // re-upload to R2, or rebuild. (The ETL config row above may have been
-    // refreshed, but that's an internal layer, not part of the chart's history.)
+    // re-upload to R2, or rebuild. But two things may still need persisting,
+    // neither of which affects the rendered chart:
+    //   - The rediffed patch. An ETL push can move a field out of the admin
+    //     patch into the ETL layer (e.g. ETL adopting a `title` that was an
+    //     admin override): `full` is identical, but if we don't store the
+    //     reduced patch, that stale entry would mask future ETL updates to a
+    //     field ETL now owns.
+    //   - A newly-supplied `catalogPath`, which still needs backfilling onto a
+    //     chart that already has a `configIdETL` (the catalogPath writes below
+    //     this point would otherwise be skipped).
     if (!fullChanged) {
-        return { success: true, etlConfig, patch: existingPatch }
+        const patchChanged = !_.isEqual(newPatch, existingPatch)
+        if (patchChanged || catalogPath) {
+            await db.knexRaw(
+                trx,
+                `-- sql
+                    UPDATE chart_configs cc
+                    JOIN charts c ON c.configId = cc.id
+                    SET
+                        cc.patch = ?,
+                        cc.updatedAt = ?,
+                        c.catalogPath = COALESCE(?, c.catalogPath),
+                        c.updatedAt = ?
+                    WHERE c.id = ?
+                `,
+                [serializeChartConfig(newPatch), now, catalogPath, now, chartId]
+            )
+        }
+        return { success: true, etlConfig, patch: newPatch }
     }
 
     // The rendered chart changed — record it: bump version, rewrite the main
