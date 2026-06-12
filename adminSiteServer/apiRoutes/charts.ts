@@ -1140,11 +1140,25 @@ export async function putChartsChartIdEtlConfig(
     const existingPatch = parseChartConfig(row.patch)
     const existingFull = parseChartConfig(row.full)
 
-    // Look up the chart's parent indicator (only if inheritance is enabled).
-    // We use the chart's existing full config so dimensions resolve to the
-    // variables the chart currently plots.
+    // Look up the chart's parent indicator (only if inheritance is enabled),
+    // resolving it from the dimensions the chart will plot *after* this push:
+    // the admin's override if the patch carries one (patch is the top merge
+    // layer, so it wins), else the incoming ETL config's. Resolving from the
+    // pre-push config would, on a dataset re-version, leave the chart
+    // inheriting the old indicator's fields (title, subtitle, note) while
+    // plotting the new one — and nothing later recomputes it. Variable configs
+    // never carry `dimensions`, so this doesn't depend on which parent we pick.
     const parent = row.isInheritanceEnabled
-        ? await getParentByChartConfig(trx, existingFull)
+        ? await getParentByChartConfig(trx, {
+              dimensions:
+                  existingPatch.dimensions ??
+                  etlConfig.dimensions ??
+                  existingFull.dimensions,
+              chartTypes:
+                  existingPatch.chartTypes ??
+                  etlConfig.chartTypes ??
+                  existingFull.chartTypes,
+          })
         : undefined
 
     const newParentStack = mergeGrapherConfigs(parent?.config ?? {}, etlConfig)
