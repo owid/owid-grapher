@@ -10,19 +10,14 @@ import {
 import {
     ArchiveContext,
     DataPageDataV2,
-    Distribution,
     FaqEntryData,
-    GrapherInterface,
 } from "@ourworldindata/types"
-import { useMemo, useRef } from "react"
+import { useRef } from "react"
 import {
     prepareSourcesForDisplay,
     getCitationShort,
     getCitationLong,
 } from "@ourworldindata/utils"
-import { DownloadSectionProps } from "./DownloadSection.js"
-import { BAKED_GRAPHER_URL } from "../settings/clientSettings.js"
-import { useWindowQueryParams } from "./hooks.js"
 import { Byline } from "./gdocs/components/Byline.js"
 import { ArticleBlocks } from "./gdocs/components/ArticleBlocks.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -32,7 +27,6 @@ interface ExpandableSectionProps {
     datapageData: DataPageDataV2
     className?: string
     faqEntries: FaqEntryData | undefined
-    downloadProps: DownloadSectionProps | undefined
     detailsRef: React.RefObject<HTMLDetailsElement | null>
     canonicalUrl: string
     archiveContext: ArchiveContext | undefined
@@ -81,25 +75,29 @@ function ExpandableSection({
 
     return (
         <div className={cx("meta-expander", className)}>
-            <ul className="meta-expander__list meta-expander__preview">
-                {preview.map((p) => (
-                    <li className="meta-expander__list-item" key={p}>
-                        <SimpleMarkdownText text={p} />
-                    </li>
-                ))}
-            </ul>
+            {preview.length > 0 && (
+                <ul className="meta-expander__list meta-expander__preview">
+                    {preview.map((p) => (
+                        <li className="meta-expander__list-item" key={p}>
+                            <SimpleMarkdownText text={p} />
+                        </li>
+                    ))}
+                </ul>
+            )}
             <details ref={detailsRef}>
                 <summary className="meta-expander__summary">
                     <span className="meta-expander__show-more">Show more</span>
                     <span className="meta-expander__show-less">Show less</span>
                 </summary>
-                <ul className="meta-expander__list">
-                    {remainder.map((p) => (
-                        <li key={p}>
-                            <SimpleMarkdownText text={p} />
-                        </li>
-                    ))}
-                </ul>
+                {remainder.length > 0 && (
+                    <ul className="meta-expander__list">
+                        {remainder.map((p) => (
+                            <li key={p}>
+                                <SimpleMarkdownText text={p} />
+                            </li>
+                        ))}
+                    </ul>
+                )}
                 <section>
                     <h2 className="meta-expander__data-sources-title body-2-bold-tight">
                         Data sources
@@ -202,52 +200,22 @@ export default function IndicatorMetadataBox({
     faqEntries,
     className,
     id,
-    grapherConfig,
-    distribution,
     canonicalUrl,
     archiveContext,
 }: {
     datapageData: DataPageDataV2
-    grapherConfig: GrapherInterface
     className?: string
     id?: string
     faqEntries: FaqEntryData | undefined
-    distribution: Distribution
     canonicalUrl: string
     archiveContext: ArchiveContext | undefined
 }) {
-    const hasDescriptionKey =
-        datapageData.descriptionKey && datapageData.descriptionKey.length > 0
     // Owners of the dataset backing this indicator. For now we show a single
     // indicator's owners; multi-indicator charts will get a separate metadata
     // expander per indicator, so we don't merge owners across datasets here.
     const owners = datapageData.owners?.[0]?.owners ?? []
 
     const detailsRef = useRef<HTMLDetailsElement | null>(null)
-
-    const slug = grapherConfig.slug
-    const reactiveQueryStr = useWindowQueryParams()
-    const downloadProps: DownloadSectionProps | undefined = useMemo(() => {
-        if (!slug) return undefined
-
-        // Note: yColumns is not passed here, which means the short column names
-        // option won't be visible in the download section on data pages.
-        //
-        // To enable this feature on data pages, we would need to:
-        // 1. Load variable metadata on the server to get column definitions with shortName
-        // 2. Pass that data through to this component (similar to how datapageData is passed)
-        // 3. Extract yColumns from the variable metadata and pass them here
-        //
-        // Without yColumns, users can still download data via the API URLs shown
-        // in the "Data API" section, where they can manually add
-        // &useColumnShortNames=true
-        return {
-            slug,
-            baseUrl: `${BAKED_GRAPHER_URL}/${slug}`,
-            searchParams: new URLSearchParams(reactiveQueryStr),
-            distribution,
-        }
-    }, [distribution, reactiveQueryStr, slug])
 
     const id_ = id ?? DATAPAGE_ABOUT_THIS_DATA_SECTION_ID
     return (
@@ -274,6 +242,7 @@ export default function IndicatorMetadataBox({
             <dl className="meta-description-table">
                 {datapageData.descriptionShort && (
                     <>
+                        <dt className="sr-only">Description</dt>
                         <dd className="meta-description-table__value">
                             <SimpleMarkdownText
                                 text={datapageData.descriptionShort}
@@ -298,57 +267,54 @@ export default function IndicatorMetadataBox({
                 )}
                 <div className="meta-description-table__secondary-values">
                     {datapageData.unit && (
-                        <span className="meta-description-table__pair">
+                        <div className="meta-description-table__pair">
                             <dt className="meta-description-table__key">
                                 Unit
                             </dt>
                             <dd className="meta-description-table__value">
                                 {datapageData.unit}
                             </dd>
-                        </span>
+                        </div>
                     )}
                     {datapageData.lastUpdated && (
-                        <span className="meta-description-table__pair">
+                        <div className="meta-description-table__pair">
                             <dt className="meta-description-table__key">
                                 Last updated
                             </dt>
                             <dd className="meta-description-table__value">
                                 {datapageData.lastUpdated}
                             </dd>
-                        </span>
+                        </div>
                     )}
                     {datapageData.nextUpdate && (
-                        <span className="meta-description-table__pair">
+                        <div className="meta-description-table__pair">
                             <dt className="meta-description-table__key">
                                 Next expected update
                             </dt>
                             <dd className="meta-description-table__value">
                                 {datapageData.nextUpdate}
                             </dd>
-                        </span>
+                        </div>
                     )}
                     {owners.length > 0 && (
-                        <span className="meta-description-table__pair meta-description-table__owners">
+                        <div className="meta-description-table__pair meta-description-table__owners">
                             <dt className="meta-description-table__key">
                                 Managed by
                             </dt>
                             <dd className="meta-description-table__value">
                                 <Byline names={owners} prefix="" />
                             </dd>
-                        </span>
+                        </div>
                     )}
                 </div>
             </dl>
-            {hasDescriptionKey && (
-                <ExpandableSection
-                    datapageData={datapageData}
-                    faqEntries={faqEntries}
-                    downloadProps={downloadProps}
-                    detailsRef={detailsRef}
-                    canonicalUrl={canonicalUrl}
-                    archiveContext={archiveContext}
-                />
-            )}
+            <ExpandableSection
+                datapageData={datapageData}
+                faqEntries={faqEntries}
+                detailsRef={detailsRef}
+                canonicalUrl={canonicalUrl}
+                archiveContext={archiveContext}
+            />
         </div>
     )
 }
