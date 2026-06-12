@@ -975,6 +975,144 @@ describe("Chart-level ETL configs", { timeout: 15000 }, () => {
         expect(fullConfig).not.toHaveProperty("subtitle")
     })
 
+    it("re-points the chart and its inheritance when ETL changes the y-variable", async () => {
+        // A dataset re-version gives the same indicator a new id. When ETL
+        // re-pushes the chart pointing at the new variable, the chart must
+        // plot the new variable *and* inherit the new indicator's fields,
+        // not the old one's.
+        const variableB = 2
+        await env
+            .testKnex(VariablesTableName)
+            .insert([{ ...dummyVariable, id: variableB }])
+
+        // Two indicators, each with a distinct inherited note.
+        await env.request({
+            method: "PUT",
+            path: `/variables/${variableId}/grapherConfigETL`,
+            body: JSON.stringify({
+                $schema: latestGrapherConfigSchema,
+                note: "Note from indicator A",
+            }),
+        })
+        await env.request({
+            method: "PUT",
+            path: `/variables/${variableB}/grapherConfigETL`,
+            body: JSON.stringify({
+                $schema: latestGrapherConfigSchema,
+                note: "Note from indicator B",
+            }),
+        })
+
+        // Create a chart plotting indicator A.
+        const response = await env.request({
+            method: "POST",
+            path: "/charts",
+            body: JSON.stringify({
+                $schema: latestGrapherConfigSchema,
+                slug: "reversion-test",
+                chartTypes: ["LineChart"],
+                dimensions: [{ variableId, property: "y" }],
+            }),
+        })
+        const chartId = response.chartId
+
+        // ETL's first push carries the same dimensions — this clears the
+        // bootstrap dimensions from `patch` (mirrors the real chart-upsert flow).
+        await env.request({
+            method: "PUT",
+            path: `/charts/${chartId}/etlConfig`,
+            body: JSON.stringify({
+                $schema: latestGrapherConfigSchema,
+                dimensions: [{ variableId, property: "y" }],
+            }),
+        })
+        let fullConfig = await env.fetchJson(`/charts/${chartId}.config.json`)
+        expect(fullConfig).toHaveProperty("note", "Note from indicator A")
+
+        // ETL re-points the chart at indicator B (dataset re-versioning).
+        await env.request({
+            method: "PUT",
+            path: `/charts/${chartId}/etlConfig`,
+            body: JSON.stringify({
+                $schema: latestGrapherConfigSchema,
+                dimensions: [{ variableId: variableB, property: "y" }],
+            }),
+        })
+
+        // The chart now plots indicator B and inherits B's note, not A's.
+        fullConfig = await env.fetchJson(`/charts/${chartId}.config.json`)
+        expect(fullConfig.dimensions?.[0]?.variableId).toBe(variableB)
+        expect(fullConfig).toHaveProperty("note", "Note from indicator B")
+    })
+
+    it("keeps inheriting from the admin's variable when patch overrides dimensions", async () => {
+        // An admin who hand-edits the plotted variable in the chart editor
+        // creates a genuine dimensions override in `patch`. A later ETL push
+        // pointing elsewhere must not re-point the chart, and the inherited
+        // fields must follow the variable the chart actually plots (the
+        // admin's), not the ETL layer's.
+        const variableB = 2
+        const variableC = 3
+        await env.testKnex(VariablesTableName).insert([
+            { ...dummyVariable, id: variableB },
+            { ...dummyVariable, id: variableC },
+        ])
+        await env.request({
+            method: "PUT",
+            path: `/variables/${variableC}/grapherConfigETL`,
+            body: JSON.stringify({
+                $schema: latestGrapherConfigSchema,
+                note: "Note from indicator C",
+            }),
+        })
+
+        // ETL-authored chart plotting indicator A.
+        const response = await env.request({
+            method: "POST",
+            path: "/charts",
+            body: JSON.stringify({
+                $schema: latestGrapherConfigSchema,
+                slug: "admin-dims-override-test",
+                chartTypes: ["LineChart"],
+                dimensions: [{ variableId, property: "y" }],
+            }),
+        })
+        const chartId = response.chartId
+        await env.request({
+            method: "PUT",
+            path: `/charts/${chartId}/etlConfig`,
+            body: JSON.stringify({
+                $schema: latestGrapherConfigSchema,
+                dimensions: [{ variableId, property: "y" }],
+            }),
+        })
+
+        // Admin re-points the chart at indicator C in the chart editor.
+        let fullConfig = await env.fetchJson(`/charts/${chartId}.config.json`)
+        await env.request({
+            method: "PUT",
+            path: `/charts/${chartId}`,
+            body: JSON.stringify({
+                ...fullConfig,
+                dimensions: [{ variableId: variableC, property: "y" }],
+            }),
+        })
+
+        // ETL re-points at indicator B — the admin's override must win.
+        await env.request({
+            method: "PUT",
+            path: `/charts/${chartId}/etlConfig`,
+            body: JSON.stringify({
+                $schema: latestGrapherConfigSchema,
+                dimensions: [{ variableId: variableB, property: "y" }],
+            }),
+        })
+
+        fullConfig = await env.fetchJson(`/charts/${chartId}.config.json`)
+        expect(fullConfig.dimensions?.[0]?.variableId).toBe(variableC)
+        expect(fullConfig).toHaveProperty("note", "Note from indicator C")
+    })
+
     it("does not bump version or add a revision on a no-op ETL re-push", async () => {
         const response = await env.request({
             method: "POST",
