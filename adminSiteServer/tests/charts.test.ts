@@ -915,7 +915,7 @@ describe("Chart-level ETL configs", { timeout: 15000 }, () => {
         expect(fullConfig.subtitle).toBe("New ETL subtitle") // etlConfig updates
     })
 
-    it("DELETE clears etlConfig and recomputes full", async () => {
+    it("DELETE detaches the ETL layer without changing the rendered chart", async () => {
         // setup: indicator + chart + etlConfig
         await env.request({
             method: "PUT",
@@ -967,17 +967,82 @@ describe("Chart-level ETL configs", { timeout: 15000 }, () => {
             .where("id", chartId)
             .first()
         expect(chartRow.configIdETL).toBeNull()
-        expect(chartRow.lastEditedAt.getTime()).toBeGreaterThan(
-            oldLastEditedAt.getTime()
-        )
+        // a render-neutral detach is not a content edit: lastEditedAt untouched
+        expect(chartRow.lastEditedAt.getTime()).toBe(oldLastEditedAt.getTime())
         expect(chartRow.lastEditedByUserId).toBe(
             chartRowBeforeDelete.lastEditedByUserId
         )
 
-        // note falls back to the indicator's value; subtitle is gone
+        // detaching is render-neutral: the ETL layer's fields survive as admin
+        // overrides, and fields matching the indicator stay inherited
         const fullConfig = await env.fetchJson(`/charts/${chartId}.config.json`)
-        expect(fullConfig).toHaveProperty("note", "Note from the indicator")
-        expect(fullConfig).not.toHaveProperty("subtitle")
+        expect(fullConfig).toHaveProperty("note", "etlConfig note")
+        expect(fullConfig).toHaveProperty("subtitle", "etlConfig subtitle")
+        expect(fullConfig).toHaveProperty("hasMapTab", true) // from indicator
+
+        const patchConfig = await env.fetchJson(
+            `/charts/${chartId}.patchConfig.json`
+        )
+        // absorbed from the departed ETL layer
+        expect(patchConfig).toHaveProperty("note", "etlConfig note")
+        expect(patchConfig).toHaveProperty("subtitle", "etlConfig subtitle")
+        // still inherited from the indicator, so not in patch
+        expect(patchConfig).not.toHaveProperty("hasMapTab")
+    })
+
+    it("DELETE preserves the grapher dimensions the patch no longer carries", async () => {
+        // The realistic state of an ETL-managed chart: after the first ETL
+        // push, `dimensions` lives only in the ETL layer (it gets stripped
+        // from the patch). Detaching must fold it back into the patch, not
+        // blank the chart.
+        const response = await env.request({
+            method: "POST",
+            path: "/charts",
+            body: JSON.stringify({
+                $schema: latestGrapherConfigSchema,
+                slug: "detach-dims-test",
+                chartTypes: ["LineChart"],
+                dimensions: [{ variableId, property: "y" }],
+            }),
+        })
+        const chartId = response.chartId
+
+        await env.request({
+            method: "PUT",
+            path: `/charts/${chartId}/etlConfig`,
+            body: JSON.stringify({
+                $schema: latestGrapherConfigSchema,
+                title: "ETL-managed chart",
+                dimensions: [{ variableId, property: "y" }],
+            }),
+        })
+
+        // precondition: the ETL layer owns the dimensions, the patch doesn't
+        let patchConfig = await env.fetchJson(
+            `/charts/${chartId}.patchConfig.json`
+        )
+        expect(patchConfig.dimensions).toBeUndefined()
+
+        const delResponse = await env.request({
+            method: "DELETE",
+            path: `/charts/${chartId}/etlConfig`,
+        })
+        expect(delResponse.success).toBe(true)
+
+        // the chart still plots its indicator...
+        const fullConfig = await env.fetchJson(`/charts/${chartId}.config.json`)
+        expect(fullConfig.dimensions).toEqual([{ variableId, property: "y" }])
+        expect(fullConfig.title).toBe("ETL-managed chart")
+
+        // ...because the patch absorbed the dimensions from the ETL layer
+        patchConfig = await env.fetchJson(`/charts/${chartId}.patchConfig.json`)
+        expect(patchConfig.dimensions).toEqual([{ variableId, property: "y" }])
+
+        // chart_dimensions stays intact
+        const dimRows = await env
+            .testKnex("chart_dimensions")
+            .where("chartId", chartId)
+        expect(dimRows.length).toBe(1)
     })
 
     it("re-points the chart and its inheritance when ETL changes the y-variable", async () => {
