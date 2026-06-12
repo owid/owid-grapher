@@ -220,6 +220,113 @@
     }
 }
 
+.datapage-search__heading {
+    text-align: center;
+    @include datapage-section-title;
+    & {
+        margin-bottom: 12px;
+    }
+}
+
+.datapage-search-wrapper {
+    margin-bottom: 16px;
+    #datapage-autocomplete {
+        height: 56px;
+        background-color: $white;
+        margin: 0 auto;
+    }
+
+    .aa-DetachedFormContainer .aa-Form,
+    .aa-Autocomplete[aria-expanded="true"] .aa-Form,
+    .aa-Form {
+        background-color: $white;
+        border: 1px solid $blue-20;
+        border-radius: 0;
+        height: 56px;
+    }
+
+    // Mobile / "detached" mode: the input collapses into a
+    // button that opens a modal. Give it the same visible border
+    // as the desktop input so it doesn't disappear into the card.
+    .aa-DetachedSearchButton {
+        background-color: $white;
+        border: 1px solid $blue-20;
+        border-radius: 0;
+        justify-content: space-between;
+        cursor: text;
+        height: 56px;
+        width: 100%;
+
+        &:hover,
+        &:focus {
+            border-color: $blue-40;
+        }
+    }
+
+    .aa-DetachedSearchButtonIcon {
+        position: absolute;
+        right: 0;
+        background: $white;
+        svg {
+            fill: $blue-50;
+        }
+    }
+
+    .aa-DetachedSearchButtonPlaceholder {
+        display: block;
+        margin-left: 16px;
+        white-space: nowrap;
+        color: $blue-40;
+        width: calc(100% - 56px);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        // Explicit line-height to prevent Safari from clipping
+        // descenders (g, y, p, etc.) with overflow: hidden.
+        line-height: 1.4;
+    }
+
+    .aa-Input {
+        padding: 40px 0;
+        font-size: 1rem;
+        &::placeholder {
+            color: $blue-40;
+        }
+
+        &:placeholder-shown {
+            text-overflow: ellipsis;
+        }
+    }
+
+    .aa-InputWrapperPrefix {
+        display: initial;
+        margin-right: 8px;
+    }
+
+    .aa-Input::placeholder {
+        color: $blue-30;
+    }
+
+    // Suggested-search pills mirror the homepage's
+    // `.homepage-search__link` design (centered-article.scss):
+    // rounded transparent pill on the dark navy card, with a
+    // $blue-50 border and $blue-20 text. Hover flips to white.
+    .suggested-searches {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-start;
+        gap: 12px;
+        margin-top: 16px;
+        margin-bottom: 0;
+    }
+}
+
+// The autocomplete panel is portaled to document.body by the algolia library,
+// so it lives outside .DataPageContent in the DOM. Style it at the top level
+// — selectors nested under .DataPageContent above would never match.
+.datapage-search__panel {
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.05);
+}
+
 .DataPageContent .datapage-research-and-writing-v2 {
     .section-wrapper {
         padding: 24px 0;
