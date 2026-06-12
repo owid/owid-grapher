@@ -35,6 +35,8 @@ import {
     DbPlainChart,
     DbPlainMultiDimXChartConfig,
     Distribution,
+    DatasetOwners,
+    DbPlainDataset,
 } from "@ourworldindata/types"
 import { knexRaw, knexRawFirst } from "../db.js"
 import {
@@ -986,6 +988,48 @@ export async function getVariableDistribution(
             .map((row) => row.sourceLink)
             .filter((link): link is string => !!link),
     }
+}
+
+/**
+ * Returns the OWID team-member owners of the datasets backing the given
+ * variables, grouped by dataset. A datapage can be backed by multiple variables
+ * (e.g. scatterplots) spanning multiple datasets, so we keep the per-dataset
+ * grouping rather than flattening to a single list. The first entry of each
+ * dataset's `owners` is the accountable owner / point of contact.
+ */
+export async function getOwnersForVariables(
+    knex: db.KnexReadonlyTransaction,
+    variableIds: number[]
+): Promise<DatasetOwners[]> {
+    if (!variableIds.length) return []
+
+    const rows = await knexRaw<Pick<DbPlainDataset, "id" | "name" | "owners">>(
+        knex,
+        `-- sql
+            SELECT DISTINCT
+                d.id AS id,
+                d.name AS name,
+                d.owners AS owners
+            FROM variables v
+            JOIN active_datasets d ON d.id = v.datasetId
+            WHERE v.id IN (?)
+              AND d.owners IS NOT NULL
+        `,
+        [variableIds]
+    )
+
+    return rows
+        .map((row) => ({
+            datasetId: row.id,
+            datasetName: row.name,
+            // `owners` is a JSON column. Depending on the driver it may arrive
+            // already parsed as an array, or as a JSON string to be parsed.
+            owners:
+                typeof row.owners === "string"
+                    ? (JSON.parse(row.owners) as string[])
+                    : ((row.owners as string[] | null) ?? []),
+        }))
+        .filter((dataset) => dataset.owners.length > 0)
 }
 
 /**

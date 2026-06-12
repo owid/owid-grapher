@@ -8,6 +8,7 @@ import { RelatedChart } from "../grapherTypes/GrapherTypes.js"
 import { OwidEnrichedGdocBlock } from "./ArchieMlComponents.js"
 import { ImageMetadata } from "./Image.js"
 import { ArchiveContext } from "../domainTypes/Archive.js"
+import { LinkedAuthor } from "./Gdoc.js"
 
 export interface FaqLink {
     gdocId: string
@@ -17,6 +18,13 @@ export interface FaqLink {
 export interface PrimaryTopic {
     topicTag: string
     citation: string
+}
+
+export interface DatasetOwners {
+    datasetId: number
+    datasetName: string
+    /** First entry is the accountable owner / point of contact. */
+    owners: string[]
 }
 
 export interface DataPageDataV2 {
@@ -40,6 +48,11 @@ export interface DataPageDataV2 {
     allCharts: RelatedChart[] // Chart slugs
     source: OwidSource | undefined
     origins: OwidOrigin[]
+    owners?: DatasetOwners[]
+    // Resolved author pages for owner names that have one. Used to enrich the
+    // owner display with links and featured images; owner names without an
+    // author page simply won't appear here.
+    linkedAuthors?: LinkedAuthor[]
     chartConfig: Record<string, unknown>
     unit?: string
     unitConversionFactor?: number
