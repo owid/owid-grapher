@@ -556,6 +556,19 @@ export const getNonGrapherExplorerViewCount = (
     ).then((res) => res?.count ?? 0)
 }
 
+export const getMultiDimViewCount = (
+    knex: KnexReadonlyTransaction
+): Promise<number> => {
+    return knexRawFirst<{ count: number }>(
+        knex,
+        `-- sql
+        SELECT
+            COALESCE(SUM(JSON_LENGTH(config -> "$.views")), 0) AS count
+        FROM ${MultiDimDataPagesTableName}
+        WHERE published = TRUE`
+    ).then((res) => Number(res?.count ?? 0))
+}
+
 /**
  * 1. Fetch all records in tag_graph:
  *    - isTopic = true when there is a published TP/LTP with the same slug as the tag
