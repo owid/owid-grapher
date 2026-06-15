@@ -13,6 +13,8 @@ on:
       - review_requested
       - closed
 
+permissions: {}
+
 jobs:
   prio:
     name: Sync issue priority to project board
@@ -32,6 +34,8 @@ jobs:
     name: Add "needs triage" label
     runs-on: ubuntu-latest
     if: github.event_name == 'issues' && github.event.action == 'opened'
+    permissions:
+      issues: write
     steps:
       - name: Label issue
         uses: andymckay/labeler@e6c4322d0397f3240f0e7e30a33b5c5df2d39e90 # 1.0.4
@@ -42,6 +46,8 @@ jobs:
     name: Add "staging-viz" label to Sophia's PRs
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request' && github.event.action == 'opened' && github.actor == 'sophiamersmann'
+    permissions:
+      issues: write
     steps:
       - uses: andymckay/labeler@e6c4322d0397f3240f0e7e30a33b5c5df2d39e90 # 1.0.4
         with:

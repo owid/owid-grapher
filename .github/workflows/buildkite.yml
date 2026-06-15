@@ -5,6 +5,9 @@ on:
     types:
       - closed
 
+permissions:
+  contents: read
+
 jobs:
   destroy_staging:
     runs-on: ubuntu-latest
