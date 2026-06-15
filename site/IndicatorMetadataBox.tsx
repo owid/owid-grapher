@@ -1,5 +1,5 @@
 import cx from "classnames"
-
+import * as _ from "lodash-es"
 import {
     DATAPAGE_ABOUT_THIS_DATA_SECTION_ID,
     SimpleMarkdownText,
@@ -12,7 +12,9 @@ import {
     ArchiveContext,
     DataPageDataV2,
     FaqEntryData,
+    IndicatorTitleWithFragments,
     OwidEnrichedGdocBlock,
+    PrimaryTopic,
 } from "@ourworldindata/types"
 import { useRef } from "react"
 import {
@@ -20,12 +22,15 @@ import {
     getCitationShort,
     getCitationLong,
     spansToUnformattedPlainText,
+    excludeUndefined,
+    getPhraseForArchivalDate,
 } from "@ourworldindata/utils"
 import { Byline } from "./gdocs/components/Byline.js"
 import { ArticleBlocks } from "./gdocs/components/ArticleBlocks.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faChevronDown, faChevronUp } from "@fortawesome/free-solid-svg-icons"
 import { getAttributionUnshortened } from "./datapageUtils.js"
+import dayjs from "dayjs"
 
 interface ExpandableSectionProps {
     datapageData: DataPageDataV2
@@ -34,6 +39,8 @@ interface ExpandableSectionProps {
     detailsRef: React.RefObject<HTMLDetailsElement | null>
     canonicalUrl: string
     archiveContext: ArchiveContext | undefined
+    primaryTopic?: PrimaryTopic
+    title: IndicatorTitleWithFragments
 }
 
 const KEY_DESCRIPTION_PREVIEW_COUNT = 3
@@ -73,6 +80,8 @@ function ExpandableSection({
     detailsRef,
     canonicalUrl,
     archiveContext,
+    primaryTopic,
+    title,
 }: ExpandableSectionProps) {
     const { origins, source } = datapageData
     const preview = datapageData.descriptionKey.slice(
@@ -104,6 +113,26 @@ function ExpandableSection({
         citationUrl,
         archiveContext?.archivalDate
     )
+    const currentYear = dayjs().year()
+    const producers = _.uniq(origins.map((o) => `${o.producer}`))
+    const adaptedFrom =
+        producers.length > 0 ? producers.join(", ") : source?.name
+    const maybeAddPeriod = (s: string) =>
+        s.endsWith("?") || s.endsWith(".") ? s : `${s}.`
+    // For the citation of the data page add a period it doesn't have that or a question mark
+    const primaryTopicCitation = maybeAddPeriod(primaryTopic?.citation ?? "")
+    const archivalString = getPhraseForArchivalDate(
+        archiveContext?.archivalDate
+    )
+    const citationDatapage = excludeUndefined([
+        primaryTopic
+            ? `“Data Page: ${title.title}”, part of the following publication: ${primaryTopicCitation}`
+            : `“Data Page: ${title.title}”. Our World in Data (${currentYear}).`,
+        adaptedFrom ? `Data adapted from ${adaptedFrom}.` : undefined,
+        `Retrieved from ${citationUrl} [online resource]${
+            archivalString ? ` ${archivalString}` : ""
+        }`,
+    ]).join(" ")
 
     const faqQuestions = groupFaqsByQuestion(faqEntries?.faqs ?? [])
 
@@ -184,10 +213,7 @@ function ExpandableSection({
                 </section>
                 {datapageData.descriptionFromProducer && (
                     <section>
-                        <h2
-                            id="sources-and-processing"
-                            className="meta-expander__data-sources-title body-2-bold-tight"
-                        >
+                        <h2 className="meta-expander__data-sources-title body-2-bold-tight">
                             Documentation
                         </h2>
                         <ExpandableToggle
@@ -208,10 +234,32 @@ function ExpandableSection({
                         <h2 className="meta-expander__citations-title body-2-bold-tight">
                             Citations
                         </h2>
+                        {citationDatapage && (
+                            <ExpandableToggle
+                                label="How to cite this page"
+                                isStacked
+                                content={
+                                    <>
+                                        <p>
+                                            To cite this page overall, including
+                                            any descriptions, FAQs or
+                                            explanations of the data authored by
+                                            Our World in Data, please use the
+                                            following citation:
+                                        </p>
+                                        <CodeSnippet
+                                            code={citationDatapage}
+                                            theme="light"
+                                            useMarkdown={true}
+                                        />
+                                    </>
+                                }
+                            />
+                        )}
                         <div className="indicator-sources">
                             {citationShort && (
                                 <ExpandableToggle
-                                    label="How should I cite this data in a news article?"
+                                    label="How to cite this data"
                                     isStacked={!!citationLong}
                                     content={
                                         <>
@@ -226,19 +274,19 @@ function ExpandableSection({
                                                 theme="light"
                                                 useMarkdown={true}
                                             />
+                                            {citationLong && (
+                                                <>
+                                                    <p className="citation__paragraph">
+                                                        Full citation
+                                                    </p>
+                                                    <CodeSnippet
+                                                        code={citationLong}
+                                                        theme="light"
+                                                        useMarkdown={true}
+                                                    />
+                                                </>
+                                            )}
                                         </>
-                                    }
-                                />
-                            )}
-                            {citationLong && (
-                                <ExpandableToggle
-                                    label="How should I cite this in an academic article or report?"
-                                    content={
-                                        <CodeSnippet
-                                            code={citationLong}
-                                            theme="light"
-                                            useMarkdown={true}
-                                        />
                                     }
                                 />
                             )}
@@ -395,6 +443,7 @@ export default function IndicatorMetadataBox({
                 detailsRef={detailsRef}
                 canonicalUrl={canonicalUrl}
                 archiveContext={archiveContext}
+                title={datapageData.title}
             />
         </div>
     )

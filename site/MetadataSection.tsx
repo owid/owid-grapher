@@ -58,7 +58,7 @@ export default function MetadataSection({
     downloadSection?: ReactNode
     // In the new datapage design the data sources, processing and reuse notice
     // live in the per-indicator metadata expander, so this section is reduced to
-    // the chart-level concerns: how to cite the chart, and the data download.
+    // the data download.
     useNewDatapageDesign?: boolean
 }) {
     const sourcesForDisplay = prepareSourcesForDisplay({ origins, source })
