@@ -77,6 +77,10 @@ export const INCLUDE_DATA_TABLES = [
 // classification check confirm every table has been considered. Keep
 // alphabetised.
 export const SCHEMA_ONLY_TABLES = [
+    // Internal agentic-writing playground: in-progress AI-authored drafts,
+    // reviewer comments, and owner/user references — not for public export.
+    "agentic_writing_lineages",
+    "agentic_writing_versions",
     // The analytics_* tables ship schema-only here; their data travels in a
     // private sidecar dump instead. Keep them in sync with analyticsTables in
     // exportAnalyticsData.ts.
