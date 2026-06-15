@@ -510,6 +510,7 @@ export class GrapherState
 
     isEmbeddedInAnOwidPage?: boolean = false
     isEmbeddedInADataPage?: boolean = false
+    useNewDatapageMetadataLayout?: boolean = false
 
     archiveContext?: ArchiveContext
     narrativeChartInfo?: MinimalNarrativeChartInfo = undefined
@@ -754,6 +755,8 @@ export class GrapherState
         this.additionalDataLoaderFn = options.additionalDataLoaderFn
         this.isEmbeddedInAnOwidPage = options.isEmbeddedInAnOwidPage ?? false
         this.isEmbeddedInADataPage = options.isEmbeddedInADataPage ?? false
+        this.useNewDatapageMetadataLayout =
+            options.useNewDatapageMetadataLayout ?? false
 
         this._inputTable =
             options.table ?? BlankOwidTable(`initialGrapherTable`)

@@ -10,6 +10,7 @@ import {
 } from "@ourworldindata/utils"
 import {
     DATAPAGE_ABOUT_THIS_DATA_SECTION_ID,
+    DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID,
     MarkdownTextWrap,
     MarkdownTextWrapHtml,
     MarkdownTextWrapSvg,
@@ -111,7 +112,21 @@ abstract class AbstractFooter<
         return this.manager.sourcesLine?.replace(/\r\n|\n|\r/g, "") ?? ""
     }
 
+    // On data pages running the new metadata-layout experiment we turn the
+    // sources line itself into a link to the on-page metadata box (rather than
+    // appending a separate "Learn more about this data" link). Embeds/iframes
+    // don't have that box, so they keep the default behavior.
+    @computed protected get linkSourcesToDatapageMetadata(): boolean {
+        return (
+            !!this.manager.useNewDatapageMetadataLayout &&
+            !!this.manager.isEmbeddedInADataPage &&
+            !this.manager.isInIFrame
+        )
+    }
+
     @computed protected get sourcesText(): string {
+        if (this.linkSourcesToDatapageMetadata)
+            return `Data source: ${this.sourcesLine}`
         return `Data source: ${this.sourcesLine} - Learn more about this data`
     }
 
@@ -438,6 +453,26 @@ abstract class AbstractFooter<
         )
     }
 
+    // Open the metadata box's "Sources & processing" section and scroll to it.
+    // The section lives inside a collapsed <details>, so we open it explicitly:
+    // browsers won't reveal hidden <details> content for a programmatic
+    // scrollIntoView(), and fragment-navigation auto-expansion isn't supported
+    // across all the browsers we target.
+    @action.bound private scrollToDatapageMetadataSources(): void {
+        const sourcesElement = document.getElementById(
+            DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID
+        )
+        if (!sourcesElement) {
+            // No on-page metadata box (shouldn't happen given the gating) –
+            // fall back to the sources modal.
+            this.manager.activeModal = GrapherModal.Sources
+            return
+        }
+        sourcesElement.closest("details")?.setAttribute("open", "")
+        sourcesElement.scrollIntoView({ behavior: "smooth" })
+        this.manager.isInFullScreenMode = false
+    }
+
     private renderSources(): React.ReactElement | null {
         const sources = new MarkdownTextWrap({
             text: `**Data source:** ${this.sourcesLine}`,
@@ -445,6 +480,43 @@ abstract class AbstractFooter<
             fontSize: this.sourcesFontSize,
             lineHeight: this.lineHeight,
         })
+
+        // On new-datapage-design pages, the sources line itself links to the
+        // on-page metadata box instead of a trailing "Learn more" link. The
+        // bold "Data source:" label and the separating space are rendered
+        // outside the markdown so that only the source name is underlined (the
+        // markdown renderer merges the separator space into the source text, so
+        // it can't be excluded from the underline via CSS). We reserve the
+        // label's width in the source's wrap so long source names still wrap.
+        if (this.linkSourcesToDatapageMetadata) {
+            const label = "Data source: "
+            const labelWidth = Bounds.forText(label, {
+                fontSize: this.sourcesFontSize,
+                fontWeight: 700,
+            }).width
+            const sourceName = new MarkdownTextWrap({
+                text: this.sourcesLine,
+                maxWidth: this.sourcesMaxWidth - labelWidth,
+                fontSize: this.sourcesFontSize,
+                lineHeight: this.lineHeight,
+            })
+            return (
+                <p className="sources" style={sources.style}>
+                    <a
+                        className="sources-link"
+                        data-track-note="chart_click_sources"
+                        tabIndex={0}
+                        onClick={action((e) => {
+                            e.stopPropagation()
+                            this.scrollToDatapageMetadataSources()
+                        })}
+                    >
+                        <strong>Data source:</strong>{" "}
+                        <MarkdownTextWrapHtml textWrap={sourceName} />
+                    </a>
+                </p>
+            )
+        }
 
         return (
             <p className="sources" style={sources.style}>

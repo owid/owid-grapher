@@ -26,6 +26,27 @@
         }
     }
 
+    // the sources line links to the on-page metadata box. We underline only the
+    // source name (the direct <span> children), not the bold "Data source:"
+    // label (which is wrapped in <strong>). The underline goes on the spans
+    // rather than the <a> because the last line is display:inline-block (see
+    // rule below), which doesn't inherit text-decoration from its ancestor.
+    .sources a.sources-link {
+        cursor: pointer;
+
+        .markdown-text-wrap__line {
+            display: inline;
+        }
+
+        .markdown-text-wrap__line > span {
+            text-decoration: underline;
+        }
+
+        &:hover .markdown-text-wrap__line > span {
+            text-decoration: none;
+        }
+    }
+
     // show "Learn more about this data" link on the same line
     .sources .markdown-text-wrap__line:last-child {
         display: inline-block;
