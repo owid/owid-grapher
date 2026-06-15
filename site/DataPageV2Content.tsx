@@ -98,8 +98,9 @@ export const DataPageV2Content = ({
             bakedGrapherURL: BAKED_GRAPHER_URL,
             enableKeyboardShortcuts: typeof window !== "undefined",
             archiveContext,
+            useNewDatapageMetadataLayout: useNewDatapageDesign,
         }),
-        [grapherConfig, archiveContext]
+        [grapherConfig, archiveContext, useNewDatapageDesign]
     )
 
     const relatedResearch = processRelatedResearch(

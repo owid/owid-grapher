@@ -106,6 +106,7 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     bindUrlToWindow?: boolean
     isEmbeddedInAnOwidPage?: boolean
     isEmbeddedInADataPage?: boolean
+    useNewDatapageMetadataLayout?: boolean
     isConfigReady?: boolean
     isDataReady?: boolean
     canHideExternalControlsInEmbed?: boolean

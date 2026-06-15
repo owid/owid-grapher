@@ -2,6 +2,7 @@ import cx from "classnames"
 import * as _ from "lodash-es"
 import {
     DATAPAGE_ABOUT_THIS_DATA_SECTION_ID,
+    DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID,
     SimpleMarkdownText,
     IndicatorSources,
     ExpandableToggle,
@@ -200,7 +201,7 @@ function ExpandableSection({
                 )}
                 <section>
                     <h2
-                        id="sources-and-processing"
+                        id={DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID}
                         className="meta-expander__data-sources-title body-2-bold-tight"
                     >
                         Data sources
