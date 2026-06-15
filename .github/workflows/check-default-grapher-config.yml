@@ -14,7 +14,7 @@ jobs:
 
     steps:
       - name: Clone repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           ref: ${{ github.head_ref }}
 
@@ -22,7 +22,7 @@ jobs:
         with:
           runPostinstallScripts: false
 
-      - uses: hustcer/setup-nu@v3
+      - uses: hustcer/setup-nu@ccd5bb5426b05a32009c2ba967946231f3919c97 # v3.25
         with:
           version: "0.101" # Don't use 0.101 here, as it was a float number and will be convert to 0.101, you can use v0.101/0.101.0 or '0.101'
 
@@ -50,7 +50,7 @@ jobs:
       - name: Run formatter
         run: yarn fixFormatAll
 
-      - uses: stefanzweifel/git-auto-commit-action@v7
+      - uses: stefanzweifel/git-auto-commit-action@04702edda442b2e678b25b537cec683a1493fcb9 # v7.1.0
         with:
           commit_message: "🤖 update default grapher config"
           file_pattern: "packages/@ourworldindata/grapher/src/schema/defaultGrapherConfig.ts"

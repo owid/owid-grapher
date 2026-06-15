@@ -72,6 +72,8 @@ All code is written in [TypeScript](https://www.typescriptlang.org/).
 
 If you want to enable pre-commit hooks, run `yarn husky`.
 
+We use [pinact](https://github.com/suzuki-shunsuke/pinact) to manage GitHub Actions and workflow versions. Action references in `.github/workflows/*` and `.github/actions/*` should be pinned to immutable commit SHAs with version comments.
+
 [Visual Studio Code](https://code.visualstudio.com/) is recommended for autocompletion and other awesome editor analysis features enabled by static typing.
 
 - We don't have many plain SQL files, but for formatting, we use the [SQL Formatter VSCode](https://marketplace.visualstudio.com/items?itemName=ReneSaarsoo.sql-formatter-vsc) extension.
