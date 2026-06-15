@@ -24,7 +24,7 @@ import {
 import { Byline } from "./gdocs/components/Byline.js"
 import { ArticleBlocks } from "./gdocs/components/ArticleBlocks.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faChevronUp } from "@fortawesome/free-solid-svg-icons"
+import { faChevronDown, faChevronUp } from "@fortawesome/free-solid-svg-icons"
 import { getAttributionUnshortened } from "./datapageUtils.js"
 
 interface ExpandableSectionProps {
@@ -120,8 +120,20 @@ function ExpandableSection({
             )}
             <details ref={detailsRef}>
                 <summary className="meta-expander__summary">
-                    <span className="meta-expander__show-more">Show more</span>
-                    <span className="meta-expander__show-less">Show less</span>
+                    <span className="meta-expander__show-more">
+                        Show more{" "}
+                        <FontAwesomeIcon
+                            className="indicator-metadata-box__chevron"
+                            icon={faChevronDown}
+                        />
+                    </span>
+                    <span className="meta-expander__show-less">
+                        Show less{" "}
+                        <FontAwesomeIcon
+                            className="indicator-metadata-box__chevron"
+                            icon={faChevronUp}
+                        />
+                    </span>
                 </summary>
                 {remainder.length > 0 && (
                     <ul className="meta-expander__list">
@@ -301,7 +313,7 @@ export default function IndicatorMetadataBox({
                 Show less
                 <FontAwesomeIcon
                     icon={faChevronUp}
-                    className="indicator-metadata-box__show-less-icon"
+                    className="indicator-metadata-box__chevron"
                 />
             </button>
             <h2 className="indicator-metadata-box__indicator-title body-2-bold-tight">

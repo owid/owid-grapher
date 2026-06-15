@@ -40,6 +40,7 @@
     top: 0px;
     right: 0px;
     padding: 24px;
+    padding-bottom: 16px;
     border: none;
     background: none;
     cursor: pointer;
@@ -47,12 +48,6 @@
     color: $blue-50;
     &:hover {
         text-decoration: none;
-    }
-    .indicator-metadata-box__show-less-icon {
-        font-size: 0.75em;
-        margin-left: 4px;
-        position: relative;
-        top: -1px;
     }
 }
 
@@ -113,20 +108,22 @@
             display: inline-block;
             cursor: pointer;
             align-self: start;
-            padding-top: 4px;
             @include body-2-semibold;
-            text-decoration: underline;
-            color: $vermillion;
+            margin-left: -24px;
+            margin-bottom: -24px;
+            width: calc(100% + 48px);
+            padding: 16px;
+            @include note-13-medium;
+            color: $blue-50;
+            text-align: center;
             &:hover {
-                text-decoration: none;
+                background-color: $blue-20;
             }
+            transition: background-color 0.15s;
             &::marker,
             &::-webkit-details-marker {
                 content: "";
             }
-        }
-        .meta-expander__show-more {
-            margin-left: 24px;
         }
         .meta-expander__show-less {
             display: none;
@@ -134,10 +131,6 @@
         &[open] {
             .meta-expander__show-less {
                 display: inline-block;
-                text-decoration: underline;
-                &:hover {
-                    text-decoration: none;
-                }
             }
             .meta-expander__show-more {
                 display: none;
@@ -148,7 +141,11 @@
         }
     }
     .ExpandableToggle {
-        .ExpandableToggle__button,
+        .ExpandableToggle__button {
+            --title: #{$blue-60};
+            --button-hover: #{$blue-50};
+            padding: 16px;
+        }
         .ExpandableToggle__content {
             padding: 16px;
         }
@@ -156,6 +153,13 @@
             background-color: $blue-20;
         }
     }
+}
+
+.indicator-metadata-box__chevron {
+    font-size: 0.75em;
+    margin-left: 4px;
+    position: relative;
+    top: -1px;
 }
 
 .meta-expander__list {
