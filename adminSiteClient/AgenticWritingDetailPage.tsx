@@ -1,19 +1,17 @@
-import { useContext, useMemo, useState, useCallback } from "react"
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+import { useContext, useState, useCallback } from "react"
+import { useQuery } from "@tanstack/react-query"
 import { Link } from "react-router-dom"
-import { Button, Input, notification } from "antd"
+import { Button, Input } from "antd"
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext } from "./AdminAppContext.js"
 import {
-    Decision,
     HistoryResponse,
     VersionRecord,
     ViewContent,
     ViewDraft,
     ViewEditor,
     draftFromVersion,
-    draftToEditPayload,
-    isDraftValid,
+    useReviewActions,
 } from "./AgenticWritingShared.js"
 import "./AgenticWritingPage.scss"
 
@@ -30,7 +28,6 @@ export function AgenticWritingDetailPage({
     lineageKey: string
 }) {
     const { admin } = useContext(AdminAppContext)
-    const queryClient = useQueryClient()
     const [comment, setComment] = useState("")
     const [editing, setEditing] = useState(false)
     const [draft, setDraft] = useState<ViewDraft | null>(null)
@@ -49,78 +46,27 @@ export function AgenticWritingDetailPage({
     const versions = data?.versions ?? []
     const latest = versions[versions.length - 1]
 
-    const decisionMutation = useMutation({
-        mutationFn: async (vars: { decision: Decision }) => {
-            if (!data || !latest) return
-            return admin.requestJSON(
-                `/api/agentic-writing/${encodeURIComponent(data.lineageKey)}/decisions`,
-                {
-                    decision: vars.decision,
-                    comment: comment.trim() || null,
-                    parentVersionId: latest.versionId,
-                },
-                "POST"
-            )
-        },
-        onSuccess: (_d, vars) => {
-            notification.success({
-                message: vars.decision.replace("_", " "),
-                placement: "bottomRight",
-                duration: 1.2,
-            })
-            setComment("")
-            void queryClient.invalidateQueries({
-                queryKey: ["agenticWritingHistory", lineageKey],
-            })
-            void queryClient.invalidateQueries({
-                queryKey: ["agenticWriting"],
-            })
-        },
-    })
-
-    // Reviewer rewrite: posts the edited content (and an optional decision) to
-    // the /edits endpoint, which writes a revision and stacks the decision.
-    const editMutation = useMutation({
-        mutationFn: async (vars: { decision?: Decision }) => {
-            if (!data || !latest || !draft) return
-            const payload = draftToEditPayload(draft, latest)
-            return admin.requestJSON(
-                `/api/agentic-writing/${encodeURIComponent(data.lineageKey)}/edits`,
-                {
-                    ...payload,
-                    parentVersionId: latest.versionId,
-                    decision: vars.decision ?? null,
-                    comment: comment.trim() || null,
-                },
-                "POST"
-            )
-        },
-        onSuccess: (_d, vars) => {
-            notification.success({
-                message: vars.decision
-                    ? `rewrite + ${vars.decision.replace("_", " ")}`
-                    : "rewrite saved",
-                placement: "bottomRight",
-                duration: 1.2,
-            })
+    // Decision / rewrite / editorial mutations shared with the queue page.
+    const {
+        submitDecision,
+        saveRewrite,
+        editorialMutation,
+        decisionMutation,
+        editMutation,
+        dirty,
+    } = useReviewActions({
+        lineageKey: data?.lineageKey,
+        latest,
+        comment,
+        draft,
+        editing,
+        onDecided: () => setComment(""),
+        onEdited: () => {
             setEditing(false)
             setDraft(null)
             setComment("")
-            void queryClient.invalidateQueries({
-                queryKey: ["agenticWritingHistory", lineageKey],
-            })
-            void queryClient.invalidateQueries({
-                queryKey: ["agenticWriting"],
-            })
         },
     })
-
-    const dirty = useMemo(() => {
-        if (!editing || !draft || !latest) return false
-        return (
-            JSON.stringify(draftFromVersion(latest)) !== JSON.stringify(draft)
-        )
-    }, [editing, draft, latest])
 
     const toggleEdit = useCallback(() => {
         if (editing) {
@@ -131,70 +77,6 @@ export function AgenticWritingDetailPage({
             setEditing(true)
         }
     }, [editing, latest])
-
-    const submit = useCallback(
-        (decision: Decision) => {
-            if (!latest) return
-            if (decision === "request_revisions" && !comment.trim()) {
-                notification.warning({
-                    message: "Comment required to request revisions",
-                    placement: "bottomRight",
-                })
-                return
-            }
-            if (editing && dirty) {
-                if (draft && !isDraftValid(draft)) {
-                    notification.warning({
-                        message:
-                            "Fix the view first: title, description, and a valid chart URL are required",
-                        placement: "bottomRight",
-                    })
-                    return
-                }
-                editMutation.mutate({ decision })
-            } else {
-                decisionMutation.mutate({ decision })
-            }
-        },
-        [latest, comment, editing, dirty, draft, editMutation, decisionMutation]
-    )
-
-    const saveRewrite = useCallback(() => {
-        if (!latest || !draft) return
-        if (!isDraftValid(draft)) {
-            notification.warning({
-                message:
-                    "Fix the view first: title, description, and a valid chart URL are required",
-                placement: "bottomRight",
-            })
-            return
-        }
-        editMutation.mutate({})
-    }, [latest, draft, editMutation])
-
-    const editorialMutation = useMutation({
-        mutationFn: async (action: "submit" | "publish") => {
-            if (!data) return
-            return admin.requestJSON(
-                `/api/agentic-writing/${encodeURIComponent(data.lineageKey)}/${action}`,
-                {},
-                "POST"
-            )
-        },
-        onSuccess: (_d, action) => {
-            notification.success({
-                message: action === "submit" ? "submitted" : "published",
-                placement: "bottomRight",
-                duration: 1.2,
-            })
-            void queryClient.invalidateQueries({
-                queryKey: ["agenticWritingHistory", lineageKey],
-            })
-            void queryClient.invalidateQueries({
-                queryKey: ["agenticWriting"],
-            })
-        },
-    })
 
     const isTerminal = latest?.kind === "decision"
 
@@ -216,9 +98,7 @@ export function AgenticWritingDetailPage({
                 </div>
 
                 {query.isLoading ? (
-                    <div className="agentic-writing__empty">
-                        Loading…
-                    </div>
+                    <div className="agentic-writing__empty">Loading…</div>
                 ) : query.isError || !data || !latest ? (
                     <div className="agentic-writing__empty">
                         No view found for <code>{lineageKey}</code>.
@@ -255,7 +135,7 @@ export function AgenticWritingDetailPage({
                             <Input.TextArea
                                 value={comment}
                                 onChange={(e) => setComment(e.target.value)}
-                                placeholder="Comment (required for 'request revisions'; optional otherwise)"
+                                placeholder="Note — required for reject / request revisions; optional for approve"
                                 autoSize={{ minRows: 2, maxRows: 5 }}
                             />
                         </div>
@@ -287,7 +167,7 @@ export function AgenticWritingDetailPage({
                                     decisionMutation.isPending ||
                                     editMutation.isPending
                                 }
-                                onClick={() => submit("approved")}
+                                onClick={() => submitDecision("approved")}
                             >
                                 ✓ Approve
                             </Button>
@@ -298,14 +178,16 @@ export function AgenticWritingDetailPage({
                                     color: "#ea580c",
                                 }}
                                 disabled={!latest}
-                                onClick={() => submit("request_revisions")}
+                                onClick={() =>
+                                    submitDecision("request_revisions")
+                                }
                             >
                                 ↻ Revisions
                             </Button>
                             <Button
                                 danger
                                 disabled={!latest}
-                                onClick={() => submit("rejected")}
+                                onClick={() => submitDecision("rejected")}
                             >
                                 ✗ Reject
                             </Button>
@@ -377,9 +259,7 @@ function VersionHistory({
                     <div
                         className={
                             "agentic-writing__version" +
-                            (isFocus
-                                ? " agentic-writing__version--focus"
-                                : "")
+                            (isFocus ? " agentic-writing__version--focus" : "")
                         }
                         key={ver.versionId}
                         id={ver.versionId}
