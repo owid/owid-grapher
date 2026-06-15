@@ -103,6 +103,10 @@ export const PRIVATE_DATA_TABLES = [
 // on a default) documents *why* they're excluded and lets the classification
 // check confirm every table has been considered. Keep alphabetised.
 export const SCHEMA_ONLY_TABLES = [
+    // Internal agentic-writing playground: in-progress AI-authored drafts,
+    // reviewer comments, and owner/user references — not for public export.
+    "agentic_writing_lineages",
+    "agentic_writing_versions",
     "donors", // donor PII
 ]
 
