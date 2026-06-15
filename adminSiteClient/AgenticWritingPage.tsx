@@ -1,11 +1,10 @@
 import { useContext, useEffect, useMemo, useState, useCallback } from "react"
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+import { useQuery } from "@tanstack/react-query"
 import { Link } from "react-router-dom"
-import { Button, Input, Select, notification } from "antd"
+import { Button, Input, Select } from "antd"
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext } from "./AdminAppContext.js"
 import {
-    Decision,
     HistoryResponse,
     ListItem,
     VersionRecord,
@@ -13,8 +12,7 @@ import {
     ViewDraft,
     ViewEditor,
     draftFromVersion,
-    draftToEditPayload,
-    isDraftValid,
+    useReviewActions,
 } from "./AgenticWritingShared.js"
 import "./AgenticWritingPage.scss"
 
@@ -42,7 +40,6 @@ const SCOPE_OPTIONS: { value: Scope; label: string }[] = [
 
 export function AgenticWritingPage() {
     const { admin } = useContext(AdminAppContext)
-    const queryClient = useQueryClient()
 
     const [scope, setScope] = useState<Scope>("mine")
     const [status, setStatus] = useState("")
@@ -112,78 +109,28 @@ export function AgenticWritingPage() {
         enabled: !!current,
     })
 
-    const decisionMutation = useMutation({
-        mutationFn: async (vars: { decision: Decision }) => {
-            if (!current) return
-            return admin.requestJSON(
-                `/api/agentic-writing/${encodeURIComponent(current.lineageKey)}/decisions`,
-                {
-                    decision: vars.decision,
-                    comment: comment.trim() || null,
-                    parentVersionId: current.latest.versionId,
-                },
-                "POST"
-            )
-        },
-        onSuccess: (_data, vars) => {
-            notification.success({
-                message: vars.decision.replace("_", " "),
-                placement: "bottomRight",
-                duration: 1.2,
-            })
-            setComment("")
-            // Refetch the queue; idx stays so the next item slides in.
-            void queryClient.invalidateQueries({
-                queryKey: ["agenticWriting"],
-            })
-        },
-    })
-
-    // Reviewer rewrite: posts the edited content (and an optional decision) to
-    // the /edits endpoint, which writes a revision and stacks the decision.
-    const editMutation = useMutation({
-        mutationFn: async (vars: { decision?: Decision }) => {
-            if (!current || !draft) return
-            const payload = draftToEditPayload(draft, current.latest)
-            return admin.requestJSON(
-                `/api/agentic-writing/${encodeURIComponent(current.lineageKey)}/edits`,
-                {
-                    ...payload,
-                    parentVersionId: current.latest.versionId,
-                    decision: vars.decision ?? null,
-                    comment: comment.trim() || null,
-                },
-                "POST"
-            )
-        },
-        onSuccess: (_data, vars) => {
-            notification.success({
-                message: vars.decision
-                    ? `rewrite + ${vars.decision.replace("_", " ")}`
-                    : "rewrite saved",
-                placement: "bottomRight",
-                duration: 1.2,
-            })
+    // Decision / rewrite / editorial mutations shared with the detail page.
+    // On a decision the queue refetches; idx stays so the next item slides in.
+    const {
+        submitDecision,
+        saveRewrite,
+        editorialMutation,
+        decisionMutation,
+        editMutation,
+        dirty,
+    } = useReviewActions({
+        lineageKey: current?.lineageKey,
+        latest: current?.latest,
+        comment,
+        draft,
+        editing,
+        onDecided: () => setComment(""),
+        onEdited: () => {
             setEditing(false)
             setDraft(null)
-            void queryClient.invalidateQueries({
-                queryKey: ["agenticWriting"],
-            })
-            void queryClient.invalidateQueries({
-                queryKey: ["agenticWritingHistory"],
-            })
+            setComment("")
         },
     })
-
-    // Has the reviewer actually changed anything? Both sides go through the same
-    // normalization so formatting differences don't count as edits.
-    const dirty = useMemo(() => {
-        if (!editing || !draft || !current) return false
-        return (
-            JSON.stringify(draftFromVersion(current.latest)) !==
-            JSON.stringify(draft)
-        )
-    }, [editing, draft, current])
 
     const toggleEdit = useCallback(() => {
         if (editing) {
@@ -194,80 +141,6 @@ export function AgenticWritingPage() {
             setEditing(true)
         }
     }, [editing, current])
-
-    const submit = useCallback(
-        (decision: Decision) => {
-            if (!current) return
-            if (
-                (decision === "request_revisions" ||
-                    decision === "rejected") &&
-                !comment.trim()
-            ) {
-                notification.warning({
-                    message:
-                        decision === "rejected"
-                            ? "Reason required to reject"
-                            : "Comment required to request revisions",
-                    placement: "bottomRight",
-                })
-                return
-            }
-            // When the reviewer has edited content, apply the rewrite first and
-            // stack the decision on top; otherwise it's a plain decision.
-            if (editing && dirty) {
-                if (draft && !isDraftValid(draft)) {
-                    notification.warning({
-                        message:
-                            "Fix the view first: title, description, and a valid chart URL are required",
-                        placement: "bottomRight",
-                    })
-                    return
-                }
-                editMutation.mutate({ decision })
-            } else {
-                decisionMutation.mutate({ decision })
-            }
-        },
-        [current, comment, editing, dirty, draft, editMutation, decisionMutation]
-    )
-
-    const saveRewrite = useCallback(() => {
-        if (!current || !draft) return
-        if (!isDraftValid(draft)) {
-            notification.warning({
-                message:
-                    "Fix the view first: title, description, and a valid chart URL are required",
-                placement: "bottomRight",
-            })
-            return
-        }
-        editMutation.mutate({})
-    }, [current, draft, editMutation])
-
-    // Editorial transitions: submit (private → submitted) and publish (submitted → published).
-    const editorialMutation = useMutation({
-        mutationFn: async (action: "submit" | "publish") => {
-            if (!current) return
-            return admin.requestJSON(
-                `/api/agentic-writing/${encodeURIComponent(current.lineageKey)}/${action}`,
-                {},
-                "POST"
-            )
-        },
-        onSuccess: (_d, action) => {
-            notification.success({
-                message: action === "submit" ? "submitted" : "published",
-                placement: "bottomRight",
-                duration: 1.2,
-            })
-            void queryClient.invalidateQueries({
-                queryKey: ["agenticWriting"],
-            })
-            void queryClient.invalidateQueries({
-                queryKey: ["agenticWritingHistory"],
-            })
-        },
-    })
 
     const moveNext = useCallback(() => {
         if (items.length) setIdx((i) => Math.min(i + 1, items.length - 1))
@@ -305,15 +178,15 @@ export function AgenticWritingPage() {
                     break
                 case "a":
                     e.preventDefault()
-                    submit("approved")
+                    submitDecision("approved")
                     break
                 case "r":
                     e.preventDefault()
-                    submit("request_revisions")
+                    submitDecision("request_revisions")
                     break
                 case "x":
                     e.preventDefault()
-                    submit("rejected")
+                    submitDecision("rejected")
                     break
                 case "e":
                     e.preventDefault()
@@ -329,7 +202,7 @@ export function AgenticWritingPage() {
         }
         document.addEventListener("keydown", onKey)
         return () => document.removeEventListener("keydown", onKey)
-    }, [moveNext, movePrev, submit, editing, toggleEdit])
+    }, [moveNext, movePrev, submitDecision, editing, toggleEdit])
 
     return (
         <AdminLayout title="Agentic writing — playground">
@@ -394,9 +267,7 @@ export function AgenticWritingPage() {
                 </div>
 
                 {listQuery.isLoading ? (
-                    <div className="agentic-writing__empty">
-                        Loading…
-                    </div>
+                    <div className="agentic-writing__empty">Loading…</div>
                 ) : !current ? (
                     <div className="agentic-writing__empty">
                         No views match the current filter.
@@ -422,9 +293,7 @@ export function AgenticWritingPage() {
                         <div className="agentic-writing__buttons">
                             {editing ? (
                                 <>
-                                    <Button onClick={toggleEdit}>
-                                        Cancel
-                                    </Button>
+                                    <Button onClick={toggleEdit}>Cancel</Button>
                                     <Button
                                         loading={editMutation.isPending}
                                         disabled={!dirty}
@@ -454,12 +323,10 @@ export function AgenticWritingPage() {
                                     decisionMutation.isPending ||
                                     editMutation.isPending
                                 }
-                                onClick={() => submit("approved")}
+                                onClick={() => submitDecision("approved")}
                             >
                                 ✓ Approve
-                                <span className="agentic-writing__kbd">
-                                    a
-                                </span>
+                                <span className="agentic-writing__kbd">a</span>
                             </Button>
                             <Button
                                 style={{
@@ -467,21 +334,19 @@ export function AgenticWritingPage() {
                                     borderColor: "#ea580c",
                                     color: "#ea580c",
                                 }}
-                                onClick={() => submit("request_revisions")}
+                                onClick={() =>
+                                    submitDecision("request_revisions")
+                                }
                             >
                                 ↻ Revisions
-                                <span className="agentic-writing__kbd">
-                                    r
-                                </span>
+                                <span className="agentic-writing__kbd">r</span>
                             </Button>
                             <Button
                                 danger
-                                onClick={() => submit("rejected")}
+                                onClick={() => submitDecision("rejected")}
                             >
                                 ✗ Reject
-                                <span className="agentic-writing__kbd">
-                                    x
-                                </span>
+                                <span className="agentic-writing__kbd">x</span>
                             </Button>
                             {!editing && current && (
                                 <>
@@ -526,18 +391,15 @@ export function AgenticWritingPage() {
                         </div>
                     </div>
                     <div className="agentic-writing__help">
-                        Keys:{" "}
-                        <span className="agentic-writing__kbd">j</span>/
+                        Keys: <span className="agentic-writing__kbd">j</span>/
                         <span className="agentic-writing__kbd">k</span>{" "}
                         next/prev ·{" "}
                         <span className="agentic-writing__kbd">a</span>/
                         <span className="agentic-writing__kbd">r</span>/
                         <span className="agentic-writing__kbd">x</span>{" "}
                         approve/revise/reject ·{" "}
-                        <span className="agentic-writing__kbd">e</span>{" "}
-                        edit ·{" "}
-                        <span className="agentic-writing__kbd">c</span>{" "}
-                        comment
+                        <span className="agentic-writing__kbd">e</span> edit ·{" "}
+                        <span className="agentic-writing__kbd">c</span> comment
                         {editing && (
                             <>
                                 {" "}

@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 // Shared types and rendering for the agentic-writing playground:
 // the queue page (AgenticWritingPage) and the per-lineage detail page
 // (AgenticWritingDetailPage). Keep the visual rendering here so both stay in
@@ -5,13 +6,21 @@
 // other content types (when added) would extend the type union and the
 // renderer.
 
-import { Button, Input, Select } from "antd"
+import { useCallback, useContext, useMemo } from "react"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { Button, Input, Select, notification } from "antd"
+import {
+    AgenticWritingContentType,
+    AgenticWritingDecision,
+    AgenticWritingVersionKind,
+} from "@ourworldindata/types"
+import { AdminAppContext } from "./AdminAppContext.js"
 
 const GRAPHER_BASE = "https://ourworldindata.org/grapher"
 
-export type Decision = "approved" | "rejected" | "request_revisions"
+export type Decision = AgenticWritingDecision
 export type EditorialState = "private" | "submitted" | "published"
-export type ContentType = "data_nugget"
+export type ContentType = AgenticWritingContentType
 
 export interface GrapherView {
     slug: string
@@ -40,7 +49,7 @@ export interface VersionRecord {
     parentVersionId: string | null
     createdAt: string
     createdBy: string
-    kind: string
+    kind: AgenticWritingVersionKind
     title: string
     description: string
     payload: DataNuggetPayload // discriminated by contentType when more types exist
@@ -92,9 +101,7 @@ function ChartTile({ gv }: { gv: GrapherView }) {
     return (
         <div className="agentic-writing__chart-tile">
             {gv.caption && (
-                <div className="agentic-writing__chart-title">
-                    {gv.caption}
-                </div>
+                <div className="agentic-writing__chart-title">{gv.caption}</div>
             )}
             <a
                 className="agentic-writing__chart-media"
@@ -305,6 +312,199 @@ export function draftToEditPayload(
             keyInsightLevel: draft.keyInsightLevel || null,
             entities,
         },
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Shared review actions: decision / rewrite / editorial mutations with
+// uniform validation, success toasts, error surfacing, and cache invalidation.
+// Used by both the queue page and the detail page so they can't drift apart.
+// ---------------------------------------------------------------------------
+
+const INVALID_DRAFT_MESSAGE =
+    "Fix the view first: title, description, and a valid chart URL are required"
+
+export function useReviewActions({
+    lineageKey,
+    latest,
+    comment,
+    draft,
+    editing,
+    onDecided,
+    onEdited,
+}: {
+    lineageKey: string | undefined
+    latest: VersionRecord | undefined
+    comment: string
+    draft: ViewDraft | null
+    editing: boolean
+    onDecided: () => void
+    onEdited: () => void
+}) {
+    const { admin } = useContext(AdminAppContext)
+    const queryClient = useQueryClient()
+
+    const apiPath = lineageKey
+        ? `/api/agentic-writing/${encodeURIComponent(lineageKey)}`
+        : null
+
+    const invalidate = useCallback(() => {
+        void queryClient.invalidateQueries({ queryKey: ["agenticWriting"] })
+        void queryClient.invalidateQueries({
+            queryKey: ["agenticWritingHistory"],
+        })
+    }, [queryClient])
+
+    // Surface failures (e.g. a 409 stale-version conflict when someone else
+    // reviewed first) instead of silently doing nothing, and refetch so the
+    // newer state is on screen.
+    const onError = useCallback(
+        (err: unknown) => {
+            notification.error({
+                message: "Action failed",
+                description: err instanceof Error ? err.message : String(err),
+                placement: "bottomRight",
+            })
+            invalidate()
+        },
+        [invalidate]
+    )
+
+    const decisionMutation = useMutation({
+        mutationFn: async (vars: { decision: Decision }) => {
+            if (!apiPath || !latest) return
+            return admin.requestJSON(
+                `${apiPath}/decisions`,
+                {
+                    decision: vars.decision,
+                    comment: comment.trim() || null,
+                    parentVersionId: latest.versionId,
+                },
+                "POST"
+            )
+        },
+        onSuccess: (_d, vars) => {
+            notification.success({
+                message: vars.decision.replace("_", " "),
+                placement: "bottomRight",
+                duration: 1.2,
+            })
+            onDecided()
+            invalidate()
+        },
+        onError,
+    })
+
+    // Reviewer rewrite: posts the edited content (and an optional decision) to
+    // the /edits endpoint, which writes a revision and stacks the decision.
+    const editMutation = useMutation({
+        mutationFn: async (vars: { decision?: Decision }) => {
+            if (!apiPath || !latest || !draft) return
+            const payload = draftToEditPayload(draft, latest)
+            return admin.requestJSON(
+                `${apiPath}/edits`,
+                {
+                    ...payload,
+                    parentVersionId: latest.versionId,
+                    decision: vars.decision ?? null,
+                    comment: comment.trim() || null,
+                },
+                "POST"
+            )
+        },
+        onSuccess: (_d, vars) => {
+            notification.success({
+                message: vars.decision
+                    ? `rewrite + ${vars.decision.replace("_", " ")}`
+                    : "rewrite saved",
+                placement: "bottomRight",
+                duration: 1.2,
+            })
+            onEdited()
+            invalidate()
+        },
+        onError,
+    })
+
+    // Editorial transitions: submit (private → submitted) and
+    // publish (submitted → published).
+    const editorialMutation = useMutation({
+        mutationFn: async (action: "submit" | "publish") => {
+            if (!apiPath) return
+            return admin.requestJSON(`${apiPath}/${action}`, {}, "POST")
+        },
+        onSuccess: (_d, action) => {
+            notification.success({
+                message: action === "submit" ? "submitted" : "published",
+                placement: "bottomRight",
+                duration: 1.2,
+            })
+            invalidate()
+        },
+        onError,
+    })
+
+    // Has the reviewer actually changed anything? Both sides go through the
+    // same normalization so formatting differences don't count as edits.
+    const dirty = useMemo(() => {
+        if (!editing || !draft || !latest) return false
+        return (
+            JSON.stringify(draftFromVersion(latest)) !== JSON.stringify(draft)
+        )
+    }, [editing, draft, latest])
+
+    // Validate then dispatch a decision. When the reviewer has edited content,
+    // apply the rewrite first and stack the decision on top; otherwise it's a
+    // plain decision. Mirrors the server rule: reject and request-revisions
+    // both require a reason.
+    const submitDecision = useCallback(
+        (decision: Decision) => {
+            if (!latest) return
+            if (decision !== "approved" && !comment.trim()) {
+                notification.warning({
+                    message:
+                        decision === "rejected"
+                            ? "Reason required to reject"
+                            : "Comment required to request revisions",
+                    placement: "bottomRight",
+                })
+                return
+            }
+            if (editing && dirty) {
+                if (draft && !isDraftValid(draft)) {
+                    notification.warning({
+                        message: INVALID_DRAFT_MESSAGE,
+                        placement: "bottomRight",
+                    })
+                    return
+                }
+                editMutation.mutate({ decision })
+            } else {
+                decisionMutation.mutate({ decision })
+            }
+        },
+        [latest, comment, editing, dirty, draft, editMutation, decisionMutation]
+    )
+
+    const saveRewrite = useCallback(() => {
+        if (!latest || !draft) return
+        if (!isDraftValid(draft)) {
+            notification.warning({
+                message: INVALID_DRAFT_MESSAGE,
+                placement: "bottomRight",
+            })
+            return
+        }
+        editMutation.mutate({})
+    }, [latest, draft, editMutation])
+
+    return {
+        submitDecision,
+        saveRewrite,
+        editorialMutation,
+        decisionMutation,
+        editMutation,
+        dirty,
     }
 }
 

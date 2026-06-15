@@ -5,6 +5,8 @@ import {
     UsersTableName,
     DbPlainAgenticWritingLineage,
     AgenticWritingContentType,
+    AgenticWritingDecision,
+    AgenticWritingVersionKind,
 } from "@ourworldindata/types"
 import * as db from "../db/db.js"
 
@@ -19,7 +21,7 @@ import * as db from "../db/db.js"
 // the common `title` and `description`. For data_nugget the payload shape is
 // `{ grapherViews: [{ slug, url, queryParams, caption }, ...] }`.
 
-export type Decision = "approved" | "rejected" | "request_revisions"
+export type Decision = AgenticWritingDecision
 
 export interface ReviewBlock {
     decision: Decision | null
@@ -36,7 +38,7 @@ export interface VersionRecord {
     parentVersionId: string | null
     createdAt: string
     createdBy: string
-    kind: "initial" | "decision" | "revision"
+    kind: AgenticWritingVersionKind
     sourceId: string
     localId: string
     title: string
@@ -102,10 +104,7 @@ export function deriveStatus(latest: VersionRecord): LineageStatus {
 }
 
 export function deriveEditorial(
-    lineage: Pick<
-        DbPlainAgenticWritingLineage,
-        "submittedAt" | "publishedAt"
-    >
+    lineage: Pick<DbPlainAgenticWritingLineage, "submittedAt" | "publishedAt">
 ): EditorialState {
     if (lineage.publishedAt) return "published"
     if (lineage.submittedAt) return "submitted"
@@ -261,7 +260,7 @@ export async function listLineages(
         wheres.push("l.contentType = ?")
         params.push(opts.contentType)
     }
-    if (opts.ownerUserId != null) {
+    if (opts.ownerUserId !== undefined) {
         wheres.push("l.ownerUserId = ?")
         params.push(opts.ownerUserId)
     } else if (opts.ownerEmail) {
@@ -359,8 +358,7 @@ export async function getHistory(
         ORDER BY v.id ASC`,
         [lineage.id]
     )
-    if (rows.length === 0)
-        throw new JsonError("lineage has no versions", 500)
+    if (rows.length === 0) throw new JsonError("lineage has no versions", 500)
     const versions = rows.map(toVersionRecord)
     return {
         lineageKey,
@@ -397,7 +395,10 @@ export async function createLineage(
 ): Promise<{ ok: true; version: VersionRecord; alreadyExisted: boolean }> {
     if (!input.sourceId || !input.localId)
         throw new JsonError("sourceId and localId are required", 400)
-    if (typeof input.title !== "string" || typeof input.description !== "string")
+    if (
+        typeof input.title !== "string" ||
+        typeof input.description !== "string"
+    )
         throw new JsonError("title and description are required", 400)
     if (typeof input.payload !== "object" || input.payload === null)
         throw new JsonError("payload must be an object", 400)
@@ -451,6 +452,30 @@ export async function createLineage(
     return { ok: true, version: created, alreadyExisted: false }
 }
 
+// Shared by recordDecision and recordReviewerEdit. Approvals may stand alone;
+// rejections and revision requests must carry a reason.
+function validateDecisionInput(
+    decision: unknown,
+    comment: string | null
+): asserts decision is Decision {
+    if (
+        decision !== "approved" &&
+        decision !== "rejected" &&
+        decision !== "request_revisions"
+    ) {
+        throw new JsonError(
+            "decision must be approved, rejected, or request_revisions",
+            400
+        )
+    }
+    if (decision !== "approved" && !comment) {
+        throw new JsonError(
+            `comment is required when decision is ${decision}`,
+            400
+        )
+    }
+}
+
 export interface RecordDecisionInput {
     decision: Decision
     comment?: string | null
@@ -465,23 +490,8 @@ export async function recordDecision(
     input: RecordDecisionInput
 ): Promise<{ ok: true; version: VersionRecord }> {
     const { decision } = input
-    if (
-        decision !== "approved" &&
-        decision !== "rejected" &&
-        decision !== "request_revisions"
-    ) {
-        throw new JsonError(
-            "decision must be approved, rejected, or request_revisions",
-            400
-        )
-    }
     const comment = input.comment ?? null
-    if (decision === "request_revisions" && !comment) {
-        throw new JsonError(
-            "comment is required when requesting revisions",
-            400
-        )
-    }
+    validateDecisionInput(decision, comment)
     const reviewedByLabel = input.reviewedByLabel ?? "unknown"
     const lineage = await requireLineage(trx, lineageKey)
     const prior = await readLatestVersion(trx, lineage.id)
@@ -538,10 +548,7 @@ export async function recordRevision(
         typeof input.payload !== "object" ||
         input.payload === null
     ) {
-        throw new JsonError(
-            "title, description, and payload are required",
-            400
-        )
+        throw new JsonError("title, description, and payload are required", 400)
     }
     const lineage = await requireLineage(trx, lineageKey)
     const prior = await readLatestVersion(trx, lineage.id)
@@ -596,24 +603,7 @@ export async function recordReviewerEdit(
 ): Promise<{ ok: true; version: VersionRecord }> {
     const decision = input.decision ?? null
     const comment = input.comment ?? null
-    if (decision !== null) {
-        if (
-            decision !== "approved" &&
-            decision !== "rejected" &&
-            decision !== "request_revisions"
-        ) {
-            throw new JsonError(
-                "decision must be approved, rejected, or request_revisions",
-                400
-            )
-        }
-        if (decision === "request_revisions" && !comment) {
-            throw new JsonError(
-                "comment is required when requesting revisions",
-                400
-            )
-        }
-    }
+    if (decision !== null) validateDecisionInput(decision, comment)
     const editedByLabel = input.editedByLabel ?? "unknown"
     const editedByUserId = input.editedByUserId ?? null
 
@@ -673,10 +663,7 @@ export async function publishLineage(
         return { ok: true, editorial: "published" }
     }
     if (!lineage.submittedAt) {
-        throw new JsonError(
-            "lineage must be submitted before publishing",
-            400
-        )
+        throw new JsonError("lineage must be submitted before publishing", 400)
     }
     const latest = await readLatestVersion(trx, lineage.id)
     if (!latest) throw new JsonError("lineage has no versions", 500)

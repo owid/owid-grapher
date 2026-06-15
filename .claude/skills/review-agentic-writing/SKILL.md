@@ -78,8 +78,8 @@ Free-text from the user. Possible shapes:
 4. **Use AskUserQuestion to collect the decision.** Offer four options: `Approve`, `Request revisions`, `Reject`, `Skip (no version written)`. If the user already stated their intent in their message, skip this and proceed.
 
 5. **Collect a comment as appropriate.**
-    - `request_revisions`: comment is **required**. If none, ask for it explicitly. Offer to draft one if the user wants.
-    - `approve` / `reject`: comment is optional but volunteer the option.
+    - `request_revisions` / `reject`: comment is **required** (the API rejects the write without one). If none, ask for it explicitly. Offer to draft one if the user wants.
+    - `approve`: comment is optional but volunteer the option.
     - `skip`: no comment, no write.
 
 6. **POST the decision:**
