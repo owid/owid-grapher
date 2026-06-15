@@ -26,7 +26,12 @@ import {
 import { SankeyVariantConfig, VariantProps } from "../config.js"
 import { MigrationFlow, MigrationRow, MigrationView, Sex } from "../types.js"
 import { useMigrationData, useMigrationMetadata } from "../data.js"
-import { formatPeople, getSexAdjective, getSexNoun } from "../helpers.js"
+import {
+    formatPeople,
+    getPopulation,
+    getSexAdjective,
+    getSexNoun,
+} from "../helpers.js"
 import { MigrationChart } from "../components/MigrationChart.js"
 import { MigrationControls } from "../components/MigrationControls.js"
 
@@ -269,6 +274,8 @@ function CaptionedSankeyVariant({
     const shouldHideChrome =
         config.hideControls || !!config.title || !!config.subtitle
 
+    const population = getPopulation(metadata, displayedCountry, year)
+
     return (
         <>
             {!shouldHideChrome && (
@@ -315,8 +322,10 @@ function CaptionedSankeyVariant({
                     sex={sex}
                     immigrantsTotal={immigrantsTotal}
                     emigrantsTotal={emigrantsTotal}
+                    population={population}
                     view={view}
                     setView={setView}
+                    setCountry={setCountry}
                     colorMap={colorMap}
                     isLoading={isLoading}
                 />

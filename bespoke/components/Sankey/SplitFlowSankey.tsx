@@ -128,6 +128,12 @@ interface SplitFlowSankeyProps {
      * color map is derived from the currently displayed nodes.
      */
     colorMap?: Map<string, string>
+    /**
+     * When set, partner nodes and the flows touching them become clickable;
+     * clicking calls back with the partner entity. The central entity and the
+     * aggregated "Other" bucket are never selectable.
+     */
+    onSelectPartner?: (partner: string) => void
 }
 
 export function SplitFlowSankey({
@@ -144,6 +150,7 @@ export function SplitFlowSankey({
     minNodeShare = DEFAULT_MIN_NODE_SHARE,
     formatValue,
     colorMap: colorMapOverride,
+    onSelectPartner,
 }: SplitFlowSankeyProps) {
     const showIncoming = view === "both" || view === "incoming"
     const showOutgoing = view === "both" || view === "outgoing"
@@ -342,6 +349,7 @@ export function SplitFlowSankey({
                         fontSettings={fontSettings}
                         nodeColor={getNodeColor}
                         linkColor={getLinkColor}
+                        onSelectPartner={onSelectPartner}
                     />
                 )}
                 {showOutgoing && (
@@ -356,6 +364,7 @@ export function SplitFlowSankey({
                         fontSettings={fontSettings}
                         nodeColor={getNodeColor}
                         linkColor={getLinkColor}
+                        onSelectPartner={onSelectPartner}
                     />
                 )}
             </div>
@@ -404,6 +413,7 @@ function SankeyHalfChart({
     fontSettings,
     nodeColor,
     linkColor,
+    onSelectPartner,
 }: {
     direction: "incoming" | "outgoing"
     half: SankeyHalf
@@ -415,11 +425,39 @@ function SankeyHalfChart({
     fontSettings: FontSettings
     nodeColor: (node: SankeyNode) => string
     linkColor: (link: SankeyLink) => string
+    onSelectPartner?: (partner: string) => void
 }) {
     const innerMargin =
         direction === "incoming"
             ? { left: sharedOuterMargin }
             : { right: sharedOuterMargin }
+
+    // A partner is selectable when it resolves to a named entity — never the
+    // central node (no prefix → null) or the aggregated "Other" bucket.
+    const partnerFromLink = (link: SankeyLink): string | null =>
+        getPartnerFromNodeId(link.source) ?? getPartnerFromNodeId(link.target)
+    const isSelectablePartner = (partner: string | null): partner is string =>
+        partner !== null && partner !== OTHER_KEY
+
+    const onLinkClick = onSelectPartner
+        ? (link: SankeyLink) => {
+              const partner = partnerFromLink(link)
+              if (isSelectablePartner(partner)) onSelectPartner(partner)
+          }
+        : undefined
+    const isLinkClickable = onSelectPartner
+        ? (link: SankeyLink) => isSelectablePartner(partnerFromLink(link))
+        : undefined
+    const onNodeClick = onSelectPartner
+        ? (node: SankeyNode) => {
+              const partner = getPartnerFromNodeId(node.id)
+              if (isSelectablePartner(partner)) onSelectPartner(partner)
+          }
+        : undefined
+    const isNodeClickable = onSelectPartner
+        ? (node: SankeyNode) =>
+              isSelectablePartner(getPartnerFromNodeId(node.id))
+        : undefined
 
     const getLinkTooltip =
         half.getTooltip && build
@@ -462,6 +500,10 @@ function SankeyHalfChart({
                             isNodeHoverable={(node) =>
                                 node.id !== centralEntity
                             }
+                            onLinkClick={onLinkClick}
+                            isLinkClickable={isLinkClickable}
+                            onNodeClick={onNodeClick}
+                            isNodeClickable={isNodeClickable}
                         />
                     )}
                 </div>
