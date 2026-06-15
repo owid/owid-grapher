@@ -8,6 +8,9 @@ on:
       - "packages/@ourworldindata/grapher/src/schema/**"
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   commit-default-config:
     runs-on: ubuntu-latest

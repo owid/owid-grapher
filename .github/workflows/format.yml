@@ -5,6 +5,9 @@ on:
   pull_request:
     branches: [master]
 
+permissions:
+  contents: write
+
 # Runs `oxfmt` on a pull request so everything is nice and formatted!
 # If something's wrong, a new commit fixing the issues will automatically be pushed to the PR branch.
 

@@ -1,6 +1,9 @@
 name: Sentry Release
 on: push
 
+permissions:
+  contents: read
+
 jobs:
   create-release:
     runs-on: ubuntu-latest
