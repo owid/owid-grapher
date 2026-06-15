@@ -143,30 +143,28 @@ async function main(args: Args) {
                 // The new schema wraps it inside `payload` so future content
                 // types can ship different payload shapes.
                 const payload = { grapherViews: v.grapherViews }
-                await trx
-                    .table(AgenticWritingVersionsTableName)
-                    .insert({
-                        lineageId,
-                        versionId: v.versionId,
-                        parentVersionId: v.parentVersionId,
-                        createdAt: new Date(v.createdAt),
-                        createdByUserId: resolveUserId(v.createdBy),
-                        createdByLabel: v.createdBy,
-                        kind: v.kind,
-                        title: v.title,
-                        description: v.description,
-                        payload: JSON.stringify(payload),
-                        metadata: JSON.stringify(v.metadata ?? {}),
-                        reviewDecision: v.review?.decision ?? null,
-                        reviewComment: v.review?.comment ?? null,
-                        reviewedAt: v.review?.reviewedAt
-                            ? new Date(v.review.reviewedAt)
-                            : null,
-                        reviewedByUserId: resolveUserId(
-                            v.review?.reviewedBy ?? null
-                        ),
-                        reviewedByLabel: v.review?.reviewedBy ?? null,
-                    })
+                await trx.table(AgenticWritingVersionsTableName).insert({
+                    lineageId,
+                    versionId: v.versionId,
+                    parentVersionId: v.parentVersionId,
+                    createdAt: new Date(v.createdAt),
+                    createdByUserId: resolveUserId(v.createdBy),
+                    createdByLabel: v.createdBy,
+                    kind: v.kind,
+                    title: v.title,
+                    description: v.description,
+                    payload: JSON.stringify(payload),
+                    metadata: JSON.stringify(v.metadata ?? {}),
+                    reviewDecision: v.review?.decision ?? null,
+                    reviewComment: v.review?.comment ?? null,
+                    reviewedAt: v.review?.reviewedAt
+                        ? new Date(v.review.reviewedAt)
+                        : null,
+                    reviewedByUserId: resolveUserId(
+                        v.review?.reviewedBy ?? null
+                    ),
+                    reviewedByLabel: v.review?.reviewedBy ?? null,
+                })
                 versionsInserted++
             }
         }
@@ -187,7 +185,8 @@ void yargs(hideBin(process.argv))
             y
                 .option("owner", {
                     type: "string",
-                    description: "Email of the user to own the migrated lineages",
+                    description:
+                        "Email of the user to own the migrated lineages",
                     default: "bobbie@ourworldindata.org",
                 })
                 .option("rootDir", {

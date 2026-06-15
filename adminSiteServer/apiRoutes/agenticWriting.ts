@@ -26,16 +26,11 @@ import {
 function currentUser(res: HandlerResponse): DbPlainUser {
     const user = res.locals.user as DbPlainUser | undefined
     if (!user)
-        throw new JsonError(
-            "no authenticated user — admin auth required",
-            401
-        )
+        throw new JsonError("no authenticated user — admin auth required", 401)
     return user
 }
 
-function parseContentType(
-    raw: unknown
-): AgenticWritingContentType | undefined {
+function parseContentType(raw: unknown): AgenticWritingContentType | undefined {
     if (raw === "data_nugget") return "data_nugget"
     return undefined
 }
