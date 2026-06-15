@@ -20,14 +20,14 @@ jobs:
     name: Sync issue priority to project board
     runs-on: ubuntu-latest
     steps:
-      - uses: owid/actions/assign-priority@main
+      - uses: owid/actions/assign-priority@main # zizmor: ignore[unpinned-uses] internal unversioned actions repo
         with:
           PROJECT_ISSUES_TOKEN: ${{ secrets.PROJECT_ISSUES_TOKEN }}
   status:
     name: Set status based on event
     runs-on: ubuntu-latest
     steps:
-      - uses: owid/actions/set-project-status@main
+      - uses: owid/actions/set-project-status@main # zizmor: ignore[unpinned-uses] internal unversioned actions repo
         with:
           PROJECT_ISSUES_TOKEN: ${{ secrets.PROJECT_ISSUES_TOKEN }}
   needs_triage:
