@@ -215,7 +215,7 @@ function createColumns(
             sorter: (a, b) => a.mdimViews - b.mdimViews,
         },
         {
-            title: "Pageviews",
+            title: "Pageviews (14d)",
             dataIndex: "pageviews",
             key: "pageviews",
             align: "right",

@@ -214,7 +214,7 @@ export async function handleGetMultiDims(
                 mdp.config->>'$.title.title' as title,
                 mdp.updatedAt,
                 mdp.published,
-                COALESCE(agv.views_365d, 0) as pageviews,
+                COALESCE(agv.views_14d, 0) as pageviews,
                 COALESCE(JSON_LENGTH(mdp.config, '$.views'), 0) as mdimViews
             FROM ${MultiDimDataPagesTableName} mdp
             LEFT JOIN analytics_grapher_views agv ON (
