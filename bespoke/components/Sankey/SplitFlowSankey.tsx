@@ -128,6 +128,7 @@ interface SplitFlowSankeyProps {
      * color map is derived from the currently displayed nodes.
      */
     colorMap?: Map<string, string>
+    excludeFromTop?: string[]
 }
 
 export function SplitFlowSankey({
@@ -144,6 +145,7 @@ export function SplitFlowSankey({
     minNodeShare = DEFAULT_MIN_NODE_SHARE,
     formatValue,
     colorMap: colorMapOverride,
+    excludeFromTop,
 }: SplitFlowSankeyProps) {
     const showIncoming = view === "both" || view === "incoming"
     const showOutgoing = view === "both" || view === "outgoing"
@@ -161,6 +163,7 @@ export function SplitFlowSankey({
                 maxNodesToShrinkOther,
                 minNodeShare,
                 formatValue,
+                excludeFromTop,
             }),
         [
             incoming.rows,
@@ -169,6 +172,7 @@ export function SplitFlowSankey({
             maxNodesToShrinkOther,
             minNodeShare,
             formatValue,
+            excludeFromTop,
         ]
     )
     const outgoingBuild = useMemo(
@@ -181,6 +185,7 @@ export function SplitFlowSankey({
                 maxNodesToShrinkOther,
                 minNodeShare,
                 formatValue,
+                excludeFromTop,
             }),
         [
             outgoing.rows,
@@ -189,6 +194,7 @@ export function SplitFlowSankey({
             maxNodesToShrinkOther,
             minNodeShare,
             formatValue,
+            excludeFromTop,
         ]
     )
 
@@ -560,6 +566,7 @@ export function selectTopEntities({
     maxNodesToShrinkOther = maxNodes,
     minNodeShare,
     showAllOtherBelow = 0,
+    excludeFromTop = [],
 }: {
     flows: Flow[]
     side: LinkSide
@@ -572,24 +579,36 @@ export function selectTopEntities({
      * individually
      */
     showAllOtherBelow?: number
+    excludeFromTop?: string[]
 }): {
     top: EntityTotal[]
     other: EntityTotal[]
     total: number
 } {
-    const sortedEntities = aggregateBySide(flows, side)
-    const total = R.sumBy(sortedEntities, (d) => d.total)
+    const allSortedEntities = aggregateBySide(flows, side)
+    const total = R.sumBy(allSortedEntities, (d) => d.total)
 
-    if (sortedEntities.length === 0 || total <= 0) {
-        return { top: sortedEntities, other: [], total }
+    if (allSortedEntities.length === 0 || total <= 0) {
+        return { top: allSortedEntities, other: [], total }
     }
+
+    const sortedEntities = allSortedEntities.filter(
+        (d) => !excludeFromTop.includes(d.entity)
+    )
+    const excludedEntities = allSortedEntities.filter((d) =>
+        excludeFromTop.includes(d.entity)
+    )
 
     // The most nodes we'd ever draw
     const ceiling = Math.max(maxNodes, maxNodesToShrinkOther)
 
-    // Show all if there are few enough
+    // Show all allowed entities if there are few enough
     if (sortedEntities.length <= ceiling) {
-        return { top: sortedEntities, other: [], total }
+        return {
+            top: sortedEntities,
+            other: R.sortBy(excludedEntities, [(d) => d.total, "desc"]),
+            total,
+        }
     }
 
     const floor = minNodeShare * total
@@ -623,7 +642,10 @@ export function selectTopEntities({
         other = []
     }
 
-    return { top, other, total }
+    const otherMerged = [...other, ...excludedEntities]
+    const otherSorted = R.sortBy(otherMerged, [(d) => d.total, "desc"])
+
+    return { top, other: otherSorted, total }
 }
 
 /**
@@ -638,6 +660,7 @@ function buildSankeyHalf({
     maxNodesToShrinkOther,
     minNodeShare,
     formatValue,
+    excludeFromTop,
 }: {
     flows: Flow[]
     centralEntity: string
@@ -646,6 +669,7 @@ function buildSankeyHalf({
     maxNodesToShrinkOther: number
     minNodeShare: number
     formatValue: (v: number) => string
+    excludeFromTop?: string[]
 }): SankeyHalfBuild | undefined {
     const isIncoming = direction === "incoming"
     const side = isIncoming ? "source" : "target"
@@ -658,6 +682,7 @@ function buildSankeyHalf({
         maxNodesToShrinkOther,
         minNodeShare,
         showAllOtherBelow: 1,
+        excludeFromTop,
     })
     if (selection.top.length === 0) return undefined
 

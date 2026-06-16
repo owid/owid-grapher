@@ -46,6 +46,7 @@ export function MigrationSankey({
     view = "both",
     setView,
     colorMap,
+    excludeFromTop,
 }: {
     immigrants: MigrationFlow[]
     emigrants: MigrationFlow[]
@@ -57,6 +58,7 @@ export function MigrationSankey({
     view?: MigrationView
     setView: (view: MigrationView) => void
     colorMap?: Map<string, string>
+    excludeFromTop?: string[]
 }) {
     const { parentRef, width, height } = useParentSize()
 
@@ -138,6 +140,7 @@ export function MigrationSankey({
                 maxNodesToShrinkOther={
                     isStacked ? STACKED_MAX_NODES_TO_SHRINK_OTHER : undefined
                 }
+                excludeFromTop={excludeFromTop}
             />
         </div>
     )

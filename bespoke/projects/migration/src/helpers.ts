@@ -56,3 +56,5 @@ export function capItems<T>(items: T[]): { visible: T[]; hiddenCount: number } {
     const visible = showAll ? items : items.slice(0, 8)
     return { visible, hiddenCount: items.length - visible.length }
 }
+
+export const OTHERS_ENTITY_NAME = "Other countries"

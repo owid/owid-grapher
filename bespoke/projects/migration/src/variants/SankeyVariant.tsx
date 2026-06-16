@@ -26,7 +26,12 @@ import {
 import { SankeyVariantConfig, VariantProps } from "../config.js"
 import { MigrationFlow, MigrationRow, MigrationView, Sex } from "../types.js"
 import { useMigrationData, useMigrationMetadata } from "../data.js"
-import { formatPeople, getSexAdjective, getSexNoun } from "../helpers.js"
+import {
+    formatPeople,
+    getSexAdjective,
+    getSexNoun,
+    OTHERS_ENTITY_NAME,
+} from "../helpers.js"
 import { MigrationChart } from "../components/MigrationChart.js"
 import { MigrationControls } from "../components/MigrationControls.js"
 
@@ -101,7 +106,11 @@ function FetchingSankeyVariant({ config }: { config: SankeyVariantConfig }) {
     const availableCountryNames = useMemo(
         () =>
             metadata
-                ? new Set(metadata.entities.map((e) => e.name))
+                ? new Set(
+                      metadata.entities
+                          .filter((e) => e.name !== OTHERS_ENTITY_NAME)
+                          .map((e) => e.name)
+                  )
                 : undefined,
         [metadata]
     )
@@ -319,6 +328,7 @@ function CaptionedSankeyVariant({
                     setView={setView}
                     colorMap={colorMap}
                     isLoading={isLoading}
+                    excludeFromTop={[OTHERS_ENTITY_NAME]}
                 />
                 <MigrationChartFooter source={metadata.source} />
             </Frame>
