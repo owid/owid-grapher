@@ -5,10 +5,16 @@
 
 .datapage-search-wrapper {
     margin-bottom: 16px;
+    background-color: $blue-5;
+    padding: 24px 0 36px;
     #datapage-autocomplete {
         height: 56px;
         background-color: $white;
         margin: 0 auto;
+    }
+    h2 {
+        margin: 0;
+        margin-bottom: 24px;
     }
 
     .aa-DetachedFormContainer .aa-Form,

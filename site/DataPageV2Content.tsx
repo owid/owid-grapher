@@ -191,6 +191,23 @@ export const DataPageV2Content = ({
                                 id={DATAPAGE_ABOUT_THIS_DATA_SECTION_ID}
                             />
                         )}
+                        {useNewDatapageDesign && (
+                            <div className="datapage-search-wrapper span-cols-14 grid-cols-12-full-width grid">
+                                <h2 className="h2-bold span-cols-9 col-start-2 col-md-start-2 span-md-cols-12 col-sm-start-2 span-sm-cols-12">
+                                    What do you want to see next?
+                                </h2>
+                                <div className="datapage-search span-cols-9 col-start-2 col-md-start-2 span-md-cols-12 col-sm-start-2 span-sm-cols-12">
+                                    <SiteQueryClientProvider>
+                                        <Autocomplete
+                                            id="datapage-autocomplete"
+                                            className="datapage-search__input"
+                                            panelClassName="datapage-search__panel"
+                                            placeholder="Search across all our charts and indicators"
+                                        />
+                                    </SiteQueryClientProvider>
+                                </div>
+                            </div>
+                        )}
                         {useNewDatapageDesign &&
                             relatedResearch &&
                             relatedResearch.length > 0 && (
@@ -201,33 +218,22 @@ export const DataPageV2Content = ({
                                 </div>
                             )}
 
-                        {useNewDatapageDesign && (
-                            <div className="datapage-search-wrapper span-cols-14 grid-cols-12-full-width grid">
-                                <h2 className="datapage-v2__related-charts-heading span-cols-12 col-start-2 h2-bold">
-                                    Related charts
-                                </h2>
-                                <div className="datapage-search span-cols-12 col-start-2">
-                                    <SiteQueryClientProvider>
-                                        <Autocomplete
-                                            id="datapage-autocomplete"
-                                            className="datapage-search__input"
-                                            panelClassName="datapage-search__panel"
-                                        />
-                                    </SiteQueryClientProvider>
-                                </div>
-                            </div>
-                        )}
                         {useNewDatapageDesign &&
                             datapageData.relatedChartsByCoview &&
                             datapageData.relatedChartsByCoview.length > 0 && (
-                                <div className="span-cols-14 grid grid-cols-12-full-width">
-                                    <RelatedDataCharts
-                                        className="col-start-2 span-cols-12"
-                                        charts={
-                                            datapageData.relatedChartsByCoview
-                                        }
-                                    />
-                                </div>
+                                <>
+                                    <h2 className="datapage-v2__related-charts-heading span-cols-12 col-start-2 h2-bold">
+                                        Related charts
+                                    </h2>
+                                    <div className="span-cols-14 grid grid-cols-12-full-width">
+                                        <RelatedDataCharts
+                                            className="col-start-2 span-cols-12"
+                                            charts={
+                                                datapageData.relatedChartsByCoview
+                                            }
+                                        />
+                                    </div>
+                                </>
                             )}
                     </div>
                     {useNewDatapageDesign && (
