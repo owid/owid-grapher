@@ -108,25 +108,6 @@ jobs:
         run: yarn checkRaycastSnippets
 
   # Runs `bundlemon` on the code to see if our Vite build assets exceed a given file size.
-
-  components-reference:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Clone repository
-        uses: actions/checkout@v5
-
-      - uses: ./.github/actions/setup-node-yarn-deps
-        with:
-          runPostinstallScripts: false
-
-      - name: Regenerate components reference
-        run: yarn generateComponentsReference
-
-      - name: Fail if regenerate produces drift
-        run: git diff --exit-code docs/components-reference.generated.md docs/components.registry.generated.json
-
-  # Runs `bundlemon` on the code to see if our Vite build assets exceed a given file size.
   bundlemon:
     runs-on: ubuntu-latest
 

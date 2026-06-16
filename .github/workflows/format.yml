@@ -12,8 +12,41 @@ permissions:
 # If something's wrong, a new commit fixing the issues will automatically be pushed to the PR branch.
 
 jobs:
+  # Keep the committed component registry in sync when a sidecar .md is edited
+  # (e.g. directly on master through the GitHub web editor), so authors never
+  # have to run the generator locally. The generated JSON is excluded from oxfmt
+  # (see .oxfmtrc.json). This is its own job, and `format` waits on it (via
+  # `needs`) so the two don't both push to the same ref at once.
+  regenerate-components-reference:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+
+      - uses: ./.github/actions/setup-node-yarn-deps
+        with:
+          runPostinstallScripts: false
+
+      # The generator validates every archie example through archieToEnriched
+      # and exits non-zero (writing nothing) if any example fails to parse. On
+      # failure this job goes red and the auto-commit step below is skipped, so
+      # the committed registry is never corrupted — it just stays at its
+      # last-good content. NOTE: there is no separate gate, so a broken example
+      # pushed straight to master is not *blocked*, only surfaced as a red job;
+      # the edit silently has no effect (stale JSON) until the example is fixed.
+      - name: Regenerate components reference
+        run: yarn generateComponentsReference
+
+      - uses: stefanzweifel/git-auto-commit-action@v7
+        with:
+          commit_message: "🤖 chore: regenerate components registry"
+
   format:
     runs-on: ubuntu-latest
+    needs: regenerate-components-reference
 
     steps:
       - name: Clone repository
