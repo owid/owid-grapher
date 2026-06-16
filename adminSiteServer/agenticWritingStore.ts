@@ -38,6 +38,9 @@ export interface VersionRecord {
     parentVersionId: string | null
     createdAt: string
     createdBy: string
+    // Full name of the user who authored this version, when it was a user (null
+    // for AI/agent-authored versions, where `createdBy` carries the agent label).
+    createdByName: string | null
     kind: AgenticWritingVersionKind
     sourceId: string
     localId: string
@@ -63,6 +66,7 @@ export interface ListItem {
     status: LineageStatus
     editorial: EditorialState
     ownerEmail: string
+    ownerName: string
     ownerUserId: number
     versionCount: number
     latest: VersionRecord
@@ -120,6 +124,7 @@ interface VersionRowWithLineage {
     parentVersionId: string | null
     createdAt: Date
     createdByLabel: string
+    createdByName: string | null
     kind: VersionRecord["kind"]
     title: string
     description: string
@@ -144,6 +149,7 @@ function toVersionRecord(row: VersionRowWithLineage): VersionRecord {
         parentVersionId: row.parentVersionId,
         createdAt: row.createdAt.toISOString(),
         createdBy: row.createdByLabel,
+        createdByName: row.createdByName,
         kind: row.kind,
         sourceId: row.sourceId,
         localId: row.localId,
@@ -174,10 +180,17 @@ const VERSION_SELECT_WITH_LINEAGE = `
     v.reviewComment,
     v.reviewedAt,
     v.reviewedByLabel,
+    cu.fullName AS createdByName,
     l.lineageKey,
     l.contentType,
     l.sourceId,
     l.localId
+`
+
+// Joins the version's author (createdByUserId) to the users table so callers
+// can show a real name. LEFT JOIN: AI/agent-authored versions have no user id.
+const VERSION_AUTHOR_JOIN = `
+    LEFT JOIN ${UsersTableName} cu ON cu.id = v.createdByUserId
 `
 
 // ---------------------------------------------------------------------------
@@ -212,7 +225,7 @@ async function readLatestVersion(
         `-- sql
         SELECT ${VERSION_SELECT_WITH_LINEAGE}
         FROM ${AgenticWritingVersionsTableName} v
-        JOIN ${AgenticWritingLineagesTableName} l ON l.id = v.lineageId
+        JOIN ${AgenticWritingLineagesTableName} l ON l.id = v.lineageId${VERSION_AUTHOR_JOIN}
         WHERE v.lineageId = ?
         ORDER BY v.id DESC
         LIMIT 1`,
@@ -238,6 +251,7 @@ interface ListRow extends VersionRowWithLineage {
     lineagePkId: number
     ownerUserId: number
     ownerEmail: string
+    ownerName: string
     submittedAt: Date | null
     publishedAt: Date | null
     versionCount: number
@@ -277,6 +291,7 @@ export async function listLineages(
             l.id AS lineagePkId,
             l.ownerUserId,
             u.email AS ownerEmail,
+            u.fullName AS ownerName,
             l.submittedAt,
             l.publishedAt,
             vc.cnt AS versionCount
@@ -293,7 +308,7 @@ export async function listLineages(
             SELECT lineageId, COUNT(*) AS cnt
             FROM ${AgenticWritingVersionsTableName}
             GROUP BY lineageId
-        ) vc ON vc.lineageId = l.id
+        ) vc ON vc.lineageId = l.id${VERSION_AUTHOR_JOIN}
         ${whereSql}
         ORDER BY l.id ASC`,
         params
@@ -320,6 +335,7 @@ export async function listLineages(
                 publishedAt: row.publishedAt,
             }),
             ownerEmail: row.ownerEmail,
+            ownerName: row.ownerName,
             ownerUserId: row.ownerUserId,
             versionCount: row.versionCount,
             latest,
@@ -334,6 +350,7 @@ export interface HistoryResult {
     status: LineageStatus
     editorial: EditorialState
     ownerEmail: string
+    ownerName: string
     ownerUserId: number
     versions: VersionRecord[]
 }
@@ -343,9 +360,9 @@ export async function getHistory(
     lineageKey: string
 ): Promise<HistoryResult> {
     const lineage = await requireLineage(trx, lineageKey)
-    const owner = await db.knexRawFirst<{ email: string }>(
+    const owner = await db.knexRawFirst<{ email: string; fullName: string }>(
         trx,
-        `SELECT email FROM ${UsersTableName} WHERE id = ?`,
+        `SELECT email, fullName FROM ${UsersTableName} WHERE id = ?`,
         [lineage.ownerUserId]
     )
     const rows = await db.knexRaw<VersionRowWithLineage>(
@@ -353,7 +370,7 @@ export async function getHistory(
         `-- sql
         SELECT ${VERSION_SELECT_WITH_LINEAGE}
         FROM ${AgenticWritingVersionsTableName} v
-        JOIN ${AgenticWritingLineagesTableName} l ON l.id = v.lineageId
+        JOIN ${AgenticWritingLineagesTableName} l ON l.id = v.lineageId${VERSION_AUTHOR_JOIN}
         WHERE v.lineageId = ?
         ORDER BY v.id ASC`,
         [lineage.id]
@@ -366,6 +383,7 @@ export async function getHistory(
         status: deriveStatus(versions[versions.length - 1]),
         editorial: deriveEditorial(lineage),
         ownerEmail: owner?.email ?? "",
+        ownerName: owner?.fullName ?? "",
         ownerUserId: lineage.ownerUserId,
         versions,
     }

@@ -22,6 +22,29 @@ export type Decision = AgenticWritingDecision
 export type EditorialState = "private" | "submitted" | "published"
 export type ContentType = AgenticWritingContentType
 
+// Display a user as a compact "@first-last" handle derived from their full
+// name, e.g. "Bobbie Macdonald" -> "@bobbie-macdonald". Falls back to the
+// local part of an email ("user-47@example.com" -> "@user-47"), and shows a
+// non-email agent label (e.g. "claude-fable-5") verbatim. Avoids surfacing raw
+// emails — which on staging are anonymised to {id}@example.com.
+export function userHandle(
+    name?: string | null,
+    fallbackLabel?: string | null
+): string {
+    const n = (name ?? "").trim()
+    if (n && !n.includes("@")) {
+        const slug = n
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, "-")
+            .replace(/^-+|-+$/g, "")
+        if (slug) return `@${slug}`
+    }
+    const fb = (fallbackLabel ?? "").trim() || n
+    if (!fb) return "unknown"
+    if (fb.includes("@")) return `@${fb.split("@")[0]}`
+    return fb
+}
+
 export interface GrapherView {
     slug: string
     url: string
@@ -49,6 +72,7 @@ export interface VersionRecord {
     parentVersionId: string | null
     createdAt: string
     createdBy: string
+    createdByName: string | null
     kind: AgenticWritingVersionKind
     title: string
     description: string
@@ -76,6 +100,7 @@ export interface ListItem {
     status: string
     editorial: EditorialState
     ownerEmail: string
+    ownerName: string
     ownerUserId: number
     versionCount: number
     latest: VersionRecord
@@ -87,6 +112,7 @@ export interface HistoryResponse {
     status: string
     editorial: EditorialState
     ownerEmail: string
+    ownerName: string
     ownerUserId: number
     versions: VersionRecord[]
 }
@@ -123,11 +149,13 @@ export function ViewContent({
     status,
     editorial,
     ownerEmail,
+    ownerName,
 }: {
     version: VersionRecord
     status: string
     editorial?: EditorialState
     ownerEmail?: string
+    ownerName?: string
 }) {
     const charts = version.payload?.grapherViews ?? []
     const isMulti = charts.length > 1
@@ -155,9 +183,9 @@ export function ViewContent({
                         {editorial}
                     </span>
                 )}
-                {ownerEmail && (
+                {(ownerName || ownerEmail) && (
                     <span className="agentic-writing__badge agentic-writing__badge--entities">
-                        @{ownerEmail}
+                        {userHandle(ownerName, ownerEmail)}
                     </span>
                 )}
                 {lvl === "key" && (

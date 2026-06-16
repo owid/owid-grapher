@@ -12,6 +12,7 @@ import {
     ViewEditor,
     draftFromVersion,
     useReviewActions,
+    userHandle,
 } from "./AgenticWritingShared.js"
 import "./AgenticWritingPage.scss"
 
@@ -93,7 +94,7 @@ export function AgenticWritingDetailPage({
                         </span>
                     )}
                     <span style={{ marginLeft: "auto", color: "#6b7280" }}>
-                        Reviewer: {admin.email}
+                        Reviewer: {userHandle(admin.username, admin.email)}
                     </span>
                 </div>
 
@@ -112,6 +113,7 @@ export function AgenticWritingDetailPage({
                             status={data.status}
                             editorial={data.editorial}
                             ownerEmail={data.ownerEmail}
+                            ownerName={data.ownerName}
                         />
 
                         <VersionHistory
@@ -281,7 +283,8 @@ function VersionHistory({
                             )}
                         </div>
                         <div style={{ color: "#6b7280", fontSize: 11 }}>
-                            {ver.createdAt} · by {ver.createdBy}
+                            {ver.createdAt} · by{" "}
+                            {userHandle(ver.createdByName, ver.createdBy)}
                         </div>
                         <div className="agentic-writing__version-title">
                             {ver.title}
