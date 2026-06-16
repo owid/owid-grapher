@@ -13,6 +13,7 @@ import {
     ViewEditor,
     draftFromVersion,
     useReviewActions,
+    userHandle,
 } from "./AgenticWritingShared.js"
 import "./AgenticWritingPage.scss"
 
@@ -262,7 +263,7 @@ export function AgenticWritingPage() {
                         />
                     </span>
                     <span style={{ marginLeft: "auto", color: "#6b7280" }}>
-                        Reviewer: {admin.email}
+                        Reviewer: {userHandle(admin.username, admin.email)}
                     </span>
                 </div>
 
@@ -431,6 +432,7 @@ function ViewCard({
                 status={item.status}
                 editorial={item.editorial}
                 ownerEmail={item.ownerEmail}
+                ownerName={item.ownerName}
             />
 
             <div className="agentic-writing__detail-link">
@@ -463,7 +465,8 @@ function ViewCard({
                                     : ""}
                             </div>
                             <div style={{ color: "#6b7280", fontSize: 11 }}>
-                                {ver.createdAt} · by {ver.createdBy}
+                                {ver.createdAt} · by{" "}
+                                {userHandle(ver.createdByName, ver.createdBy)}
                             </div>
                             {ver.review?.comment && (
                                 <div className="agentic-writing__version-comment">
