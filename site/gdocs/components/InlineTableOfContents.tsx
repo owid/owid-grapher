@@ -13,7 +13,7 @@ export default function InlineTableOfContents({
     title: string
 }) {
     return (
-        <div className={cx(className, "inline-toc")}>
+        <nav className={cx(className, "inline-toc")}>
             <details className="inline-toc__details-wrapper span-cols-6 span-md-cols-8 span-sm-cols-10">
                 <summary
                     className="inline-toc__toggle"
@@ -30,11 +30,7 @@ export default function InlineTableOfContents({
                     </span>
                 </summary>
                 <div className="inline-toc__content">
-                    <ul
-                        id="inline-toc__menu"
-                        role="menu"
-                        aria-labelledby="toc-menu-button"
-                    >
+                    <ul>
                         {toc.map(
                             (
                                 { title, supertitle, isSubheading, slug },
@@ -49,7 +45,6 @@ export default function InlineTableOfContents({
                                     <a
                                         href={`#${slug}`}
                                         data-track-note="toc_link"
-                                        role="menuitem"
                                     >
                                         {supertitle ? (
                                             <span className="supertitle">
@@ -67,6 +62,6 @@ export default function InlineTableOfContents({
                     </ul>
                 </div>
             </details>
-        </div>
+        </nav>
     )
 }
