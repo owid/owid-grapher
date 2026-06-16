@@ -5,14 +5,14 @@
  * Run:
  *     yarn generateComponentsReference
  *
- * Outputs:
- *     docs/components-reference.generated.md
+ * Output:
  *     docs/components.registry.generated.json
  *
  * Exits non-zero on: missing sidecar, missing "type:" discriminator, archie
- * example that fails to parse via archieToEnriched. CI also fails the build
- * if regenerating produces a diff against the committed artifacts (see the
- * "components-reference" job in .github/workflows/ci.yml).
+ * example that fails to parse via archieToEnriched. CI regenerates this file
+ * and auto-commits any drift back to the branch (see the
+ * "regenerate-components-reference" job in .github/workflows/format.yml), so
+ * authors editing sidecars via the GitHub web editor never run it locally.
  *
  * Pipeline:
  *   1. Parse OwidEnrichedGdocBlock (in ArchieMlComponents.ts) via tsgo AST to
@@ -24,8 +24,7 @@
  *      every fenced archie block, and derive the id from the alias body's
  *      "type" property literal.
  *   4. Validate every archie example through archieToEnriched.
- *   5. Render docs/components-reference.generated.md and
- *      docs/components.registry.generated.json.
+ *   5. Write docs/components.registry.generated.json.
  *
  * Completeness is structural: every union member becomes a doc entry by
  * iteration, and missing/malformed sidecars fail the build.
@@ -58,6 +57,7 @@ import {
 } from "@typescript/native-preview/ast/is"
 
 import { archieToEnriched } from "../../db/model/Gdoc/archieToEnriched.js"
+import type { ComponentDoc, ComponentExample } from "@ourworldindata/types"
 
 const BT = String.fromCharCode(96)
 const FENCE = BT + BT + BT
@@ -76,24 +76,8 @@ const TSCONFIG_PATH = path.resolve(
     "packages/@ourworldindata/types/tsconfig.json"
 )
 const DOCS_DIR = path.resolve(REPO_ROOT, "docs")
-const MD_OUT = path.join(DOCS_DIR, "components-reference.generated.md")
 const JSON_OUT = path.join(DOCS_DIR, "components.registry.generated.json")
 const UNION_NAME = "OwidEnrichedGdocBlock"
-
-type ComponentExample = {
-    name: string
-    archie: string
-}
-
-type ComponentDoc = {
-    id: string
-    title: string
-    sourceFile: string
-    sidecarFile: string
-    typeName: string
-    body: string
-    examples: ComponentExample[]
-}
 
 function findUnionDecl(sf: SourceFile): TypeAliasDeclaration {
     let found: TypeAliasDeclaration | undefined
@@ -262,47 +246,6 @@ function validateExamples(docs: ComponentDoc[]): {
     return { ok: failures.length === 0, failures }
 }
 
-function slug(id: string): string {
-    return id.toLowerCase().replace(/[^a-z0-9]+/g, "-")
-}
-
-function renderMarkdown(docs: ComponentDoc[]): string {
-    const lines: string[] = []
-    lines.push("<!-- GENERATED FILE — DO NOT EDIT -->")
-    lines.push(
-        "<!-- Source: sibling .md sidecars in packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/ -->"
-    )
-    lines.push("<!-- Regenerate: yarn generateComponentsReference -->\n")
-    lines.push("# OWID Archie Components Reference\n")
-    lines.push(
-        "Generated reference for every component authors can use in Gdocs / content-repo files. "
-    )
-    lines.push(
-        "Every example in this doc is parsed through archieToEnriched at generation time; CI fails on drift.\n"
-    )
-    lines.push("## Components\n")
-    for (const doc of docs) {
-        lines.push(
-            "- [" + doc.title + "](#" + slug(doc.id) + ") — `{." + doc.id + "}`"
-        )
-    }
-    lines.push("")
-    for (const doc of docs) {
-        lines.push("\n## " + doc.title + "\n")
-        lines.push(
-            "`{." +
-                doc.id +
-                "}` — defined in `" +
-                doc.sourceFile +
-                "`, documented in `" +
-                doc.sidecarFile +
-                "`\n"
-        )
-        lines.push(doc.body + "\n")
-    }
-    return lines.join("\n")
-}
-
 function extractComponentDocs(api: InstanceType<typeof API>): ComponentDoc[] {
     const snapshot = api.updateSnapshot({ openProject: TSCONFIG_PATH })
     const project = snapshot.getProject(TSCONFIG_PATH)
@@ -417,9 +360,7 @@ async function main(): Promise<void> {
         console.log("All examples parsed cleanly.")
 
         await fs.ensureDir(DOCS_DIR)
-        await fs.writeFile(MD_OUT, renderMarkdown(allDocs))
         await fs.writeFile(JSON_OUT, JSON.stringify(allDocs, null, 2))
-        console.log("Wrote " + path.relative(process.cwd(), MD_OUT))
         console.log("Wrote " + path.relative(process.cwd(), JSON_OUT))
     } finally {
         api.close()
