@@ -103,10 +103,12 @@ export function AgenticWritingPage() {
 
     const historyQuery = useQuery({
         queryKey: ["agenticWritingHistory", current?.lineageKey],
-        queryFn: async () =>
-            admin.getJSON<HistoryResponse>(
-                `/api/agentic-writing/${encodeURIComponent(current!.lineageKey)}`
-            ),
+        queryFn: async () => {
+            if (!current) throw new Error("no focused lineage")
+            return admin.getJSON<HistoryResponse>(
+                `/api/agentic-writing/${encodeURIComponent(current.lineageKey)}`
+            )
+        },
         enabled: !!current,
     })
 
