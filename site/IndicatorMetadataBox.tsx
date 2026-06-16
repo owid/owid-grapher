@@ -8,6 +8,8 @@ import {
     ExpandableToggle,
     CodeSnippet,
     makeSource,
+    IndicatorProcessing,
+    INDICATOR_PROCESSING_SECTION_ID,
 } from "@ourworldindata/components"
 import {
     ArchiveContext,
@@ -42,6 +44,7 @@ interface ExpandableSectionProps {
     archiveContext: ArchiveContext | undefined
     primaryTopic?: PrimaryTopic
     title: IndicatorTitleWithFragments
+    descriptionProcessing: string | undefined
 }
 
 const KEY_DESCRIPTION_PREVIEW_COUNT = 3
@@ -83,6 +86,7 @@ function ExpandableSection({
     archiveContext,
     primaryTopic,
     title,
+    descriptionProcessing,
 }: ExpandableSectionProps) {
     const { origins, source } = datapageData
     const preview = datapageData.descriptionKey.slice(
@@ -148,7 +152,7 @@ function ExpandableSection({
                     ))}
                 </ul>
             )}
-            <details ref={detailsRef}>
+            <details className="meta-expander__details" ref={detailsRef}>
                 <summary className="meta-expander__summary">
                     <span className="meta-expander__show-more">
                         Show more{" "}
@@ -174,31 +178,40 @@ function ExpandableSection({
                         ))}
                     </ul>
                 )}
-                {faqQuestions.length > 0 && (
-                    <section>
+                {
+                    <section className="meta-expander__faqs">
                         <h2
                             className="meta-expander__faqs-title body-2-bold-tight"
                             id="faqs"
                         >
                             Frequently asked questions
                         </h2>
-                        <div className="indicator-sources">
-                            {faqQuestions.map((faq, i) => (
-                                <ExpandableToggle
-                                    key={faq.question}
-                                    label={faq.question}
-                                    isStacked={i < faqQuestions.length - 1}
-                                    content={
-                                        <ArticleBlocks
-                                            blocks={faq.answer}
-                                            containerType="datapage"
-                                        />
+                        {faqQuestions.map((faq, i) => (
+                            <ExpandableToggle
+                                key={faq.question}
+                                label={faq.question}
+                                isStacked={i < faqQuestions.length - 1}
+                                content={
+                                    <ArticleBlocks
+                                        blocks={faq.answer}
+                                        containerType="datapage"
+                                    />
+                                }
+                            />
+                        ))}
+                        <ExpandableToggle
+                            label="How did Our World in Data process this data?"
+                            contentId={INDICATOR_PROCESSING_SECTION_ID}
+                            content={
+                                <IndicatorProcessing
+                                    descriptionProcessing={
+                                        descriptionProcessing
                                     }
                                 />
-                            ))}
-                        </div>
+                            }
+                        />
                     </section>
-                )}
+                }
                 <section>
                     <h2
                         id={DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID}
@@ -215,7 +228,7 @@ function ExpandableSection({
                 {datapageData.descriptionFromProducer && (
                     <section>
                         <h2 className="meta-expander__data-sources-title body-2-bold-tight">
-                            Documentation
+                            Documentation from data producers
                         </h2>
                         <ExpandableToggle
                             label={
@@ -233,7 +246,7 @@ function ExpandableSection({
                 {(citationShort || citationLong) && (
                     <section>
                         <h2 className="meta-expander__citations-title body-2-bold-tight">
-                            Citations
+                            How to cite
                         </h2>
                         {citationDatapage && (
                             <ExpandableToggle
@@ -345,6 +358,7 @@ export default function IndicatorMetadataBox({
     const sourceString = makeSource({
         attribution: attributionUnshortened,
         owidProcessingLevel: datapageData.owidProcessingLevel,
+        processingId: INDICATOR_PROCESSING_SECTION_ID,
     })
 
     const detailsRef = useRef<HTMLDetailsElement | null>(null)
@@ -445,6 +459,7 @@ export default function IndicatorMetadataBox({
                 canonicalUrl={canonicalUrl}
                 archiveContext={archiveContext}
                 title={datapageData.title}
+                descriptionProcessing={datapageData.descriptionProcessing}
             />
         </div>
     )

@@ -51,7 +51,8 @@
     }
 }
 
-.indicator-metadata-box:has(details[open]) .indicator-metadata-box__show-less {
+.indicator-metadata-box:has(.meta-expander__details[open])
+    .indicator-metadata-box__show-less {
     display: inline-block;
 }
 
@@ -187,6 +188,16 @@
     color: $blue-90;
     margin-top: 32px;
     margin-bottom: 16px;
+}
+
+.meta-expander__faqs {
+    .indicator-processing .indicator-processing-callout {
+        margin: 16px 8px;
+    }
+    // Prevent borders stacking when FAQ and "How we process this data" is present
+    > .ExpandableToggle:nth-last-child(2) {
+        border-bottom: none;
+    }
 }
 
 .meta-expander__reuse-notice {
