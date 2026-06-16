@@ -145,6 +145,7 @@
         "react-dom": "^19.2.4",
         "react-horizontal-scrolling-menu": "^8.2.0",
         "react-instantsearch": "^7.35.0",
+        "react-markdown": "^10.1.0",
         "react-router": "^5.3.4",
         "react-router-dom": "^5.3.4",
         "react-router-dom-v5-compat": "^6.30.0",
