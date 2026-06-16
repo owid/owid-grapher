@@ -60,6 +60,8 @@ chart slug(s)
 
 Each step is a discrete skill — invoke them in order. Steps 1–4 are local craft (files on disk); step 5 bridges to the shared admin DB so the nugget enters the My drafts queue for review and eventual submission/publication.
 
+For the common case, the **`/data-nuggets`** orchestrator skill runs steps 1–5 end to end for one or more chart slugs and deletes the local working JSON after a successful push (the DB becomes the source of truth). Use the discrete skills directly only when you want manual control over a single stage.
+
 ## Local JSON schema (data nugget draft file)
 
 ```json
@@ -111,7 +113,7 @@ Each step is a discrete skill — invoke them in order. Steps 1–4 are local cr
 
 ## Out of scope (for now)
 
-- No orchestrator skill — invoke the five pipeline steps individually.
+- No automated scheduling — the `/data-nuggets` orchestrator still runs on demand, one batch of slugs at a time.
 - No embedding generation.
 - No rendering of these nuggets on the public ourworldindata.org site (only the admin workspace).
 - No gdocs export when a nugget graduates into a full article — designed but not implemented.
