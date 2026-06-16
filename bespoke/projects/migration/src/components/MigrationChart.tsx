@@ -19,6 +19,7 @@ export function MigrationChart({
     setView,
     colorMap,
     isLoading,
+    entitiesToSortLast,
 }: {
     immigrants: MigrationFlow[]
     emigrants: MigrationFlow[]
@@ -31,6 +32,7 @@ export function MigrationChart({
     setView: (view: MigrationView) => void
     colorMap?: Map<string, string>
     isLoading?: boolean
+    entitiesToSortLast?: string[]
 }) {
     const hasData = immigrants.length > 0 || emigrants.length > 0
 
@@ -52,6 +54,7 @@ export function MigrationChart({
                     view={view}
                     setView={setView}
                     colorMap={colorMap}
+                    entitiesToSortLast={entitiesToSortLast}
                 />
             ) : (
                 <NoData

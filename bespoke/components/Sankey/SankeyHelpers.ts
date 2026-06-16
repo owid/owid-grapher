@@ -107,7 +107,11 @@ export function assignColors(entities: string[]): Map<string, string> {
  * Group flow rows by entity on the given side, sum their values, and sort
  * descending by total.
  */
-export function aggregateBySide(flows: Flow[], side: LinkSide): EntityTotal[] {
+export function aggregateBySide(
+    flows: Flow[],
+    side: LinkSide,
+    entitiesToSortLast: string[] = []
+): EntityTotal[] {
     return R.pipe(
         flows,
         R.groupBy((r) => r[side]),
@@ -116,6 +120,9 @@ export function aggregateBySide(flows: Flow[], side: LinkSide): EntityTotal[] {
             entity,
             total: R.sumBy(group, (r) => r.value),
         })),
-        R.sortBy([(d) => d.total, "desc"])
+        R.sortBy(
+            [(d) => (entitiesToSortLast.includes(d.entity) ? 1 : 0), "asc"],
+            [(d) => d.total, "desc"]
+        )
     )
 }
