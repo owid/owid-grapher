@@ -1,8 +1,23 @@
-import { describe, it } from "vitest"
+import { describe, it, expect } from "vitest"
+import { deriveEditorial } from "./agenticWritingStore.js"
 
-// Tests for the new DB-backed store are pending — they need to run against the
-// `make dbtest` test database (knex transactions, real users table). The old
-// file-backed test suite that lived here is gone with its store.
-describe.skip("agenticWritingStore — pending DB-backed rewrite (see plan task #16)", () => {
-    it("placeholder", () => {})
+// The DB-backed store paths (create/decision/revision/push) are exercised by
+// `make dbtest`. This unit suite covers the pure derivation helpers, which need
+// no database — a fuller DB-backed rewrite of the old file-backed tests is still
+// pending.
+describe("agenticWritingStore — pure helpers", () => {
+    it("derives editorial state from the lineage timestamps", () => {
+        expect(deriveEditorial({ submittedAt: null, publishedAt: null })).toBe(
+            "private"
+        )
+        expect(
+            deriveEditorial({ submittedAt: new Date(), publishedAt: null })
+        ).toBe("submitted")
+        expect(
+            deriveEditorial({
+                submittedAt: new Date(),
+                publishedAt: new Date(),
+            })
+        ).toBe("published")
+    })
 })
