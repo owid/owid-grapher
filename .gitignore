@@ -78,3 +78,6 @@ typesense-data/
 /data-nuggets/views/
 /data-nuggets/versions/
 /data-nuggets/.scratch/
+
+# Posterity snapshots of local nuggets (kept on disk, not committed)
+/data-nuggets/nuggets-archive-*.json
