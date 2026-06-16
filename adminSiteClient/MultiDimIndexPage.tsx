@@ -36,6 +36,8 @@ type ApiMultiDim = {
     slug: string | null
     updatedAt: string
     published: boolean
+    mdimViews: number
+    pageviews: number
 }
 
 type MultiDim = Omit<ApiMultiDim, "updatedAt"> & {
@@ -202,6 +204,22 @@ function createColumns(
                 if (b.slug === null) return -1
                 return a.slug.localeCompare(b.slug)
             },
+        },
+        {
+            title: "Mdim views",
+            dataIndex: "mdimViews",
+            key: "mdimViews",
+            align: "right",
+            render: (views) => views?.toLocaleString(),
+            sorter: (a, b) => a.mdimViews - b.mdimViews,
+        },
+        {
+            title: "Pageviews",
+            dataIndex: "pageviews",
+            key: "pageviews",
+            align: "right",
+            render: (views) => views?.toLocaleString(),
+            sorter: (a, b) => a.pageviews - b.pageviews,
         },
         {
             title: "Last updated",
