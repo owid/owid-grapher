@@ -1,7 +1,6 @@
 import React, { useCallback, useMemo, useRef, useState } from "react"
 import {
     sankey as d3Sankey,
-    sankeyLinkHorizontal,
     SankeyGraph,
     SankeyNode as D3SankeyNode,
     SankeyLink as D3SankeyLink,
@@ -247,8 +246,6 @@ export function Sankey({
         fontSettings,
     ])
 
-    const linkPath = sankeyLinkHorizontal<SankeyNode, SankeyLink>()
-
     const labels = useMemo<PlacedSankeyLabel[]>(
         () => placeSankeyLabels({ layout, nodePadding, fontSettings }),
         [layout, nodePadding, fontSettings]
@@ -484,7 +481,6 @@ export function Sankey({
                                 makeNodeId(link.target)
                             )}
                             link={link}
-                            linkPath={linkPath}
                             linkColor={linkColor}
                             isHovered={hoveredLink === link}
                             isActive={activeLinks.has(link)}
@@ -538,36 +534,65 @@ export function Sankey({
 
 function SankeyLink({
     link,
-    linkPath,
     linkColor,
     isHovered,
     isActive,
 }: {
     link: LaidOutLink
-    linkPath: (link: LaidOutLink) => string | null
     linkColor?: (link: SankeyLink) => string
     isHovered?: boolean
     isActive?: boolean
 }): React.ReactElement | null {
-    const path = linkPath(link)
+    const path = makeSankeyRibbonPath(link)
     if (!path) return null
 
     const color = linkColor?.(toLinkData(link)) ?? GRAPHER_DENIM
-    const width = Math.max(0.5, link.width ?? 0)
 
     const className = cx("sankey__link", {
         "sankey__link--hovered": isHovered,
         "sankey__link--active": isActive,
     })
 
-    return (
-        <path
-            className={className}
-            d={path}
-            stroke={color}
-            strokeWidth={width}
-        />
-    )
+    return <path className={className} d={path} fill={color} />
+}
+
+// d3-sankey builds a single curved centerline for each link, and the visible band is a thick stroke around it.
+// This works well for thin links, but for wider, bendy links it can result in messy-looking ribbons and overlaps.
+// Instead, we build a filled ribbon. This keeps large links from visually spilling over neighboring ribbons on sharp bends.
+function makeSankeyRibbonPath(link: LaidOutLink): string | null {
+    const sourceNode = link.source as LaidOutNode
+    const targetNode = link.target as LaidOutNode
+
+    const x0 = sourceNode.x1
+    const x1 = targetNode.x0
+    const y0 = link.y0
+    const y1 = link.y1
+    const width = link.width ?? 0
+
+    if (
+        x0 === undefined ||
+        x1 === undefined ||
+        y0 === undefined ||
+        y1 === undefined ||
+        width <= 0
+    ) {
+        return null
+    }
+
+    const halfWidth = Math.max(0.25, width / 2)
+    const xi = (x0 + x1) / 2
+    const y0Top = y0 - halfWidth
+    const y0Bottom = y0 + halfWidth
+    const y1Top = y1 - halfWidth
+    const y1Bottom = y1 + halfWidth
+
+    return [
+        `M${x0},${y0Top}`, // start point: left top
+        `C${xi},${y0Top},${xi},${y1Top},${x1},${y1Top}`, // top curve to right top
+        `L${x1},${y1Bottom}`, // line to right bottom
+        `C${xi},${y1Bottom},${xi},${y0Bottom},${x0},${y0Bottom}`, // bottom curve to left bottom
+        "Z", // close path back to start
+    ].join("")
 }
 
 function SankeyNode({
