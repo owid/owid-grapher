@@ -42,6 +42,9 @@ import {
     ChartConfigsTableName,
     FeaturedMetricsTableName,
     TagsTableName,
+    PostsGdocsXTagsTableName,
+    PostsGdocsLinksTableName,
+    TopicPageOrphanReport,
     TagGraphTableName,
     ExplorersTableName,
     MultiDimDataPagesTableName,
@@ -1110,6 +1113,186 @@ export const getAllTopicTags = async (
                 OwidGdocType.Article,
             ],
         }
+    )
+}
+
+/**
+ * For every published topic page (a tag whose slug matches a published
+ * topic-page or linear-topic-page gdoc), find the published articles that are
+ * tagged to the topic but NOT linked from the topic page's research-and-writing
+ * section. These articles are "orphaned" — they belong to the topic but the
+ * topic page hasn't been updated to feature them.
+ *
+ * Coverage is measured against the topic's tagged articles: covered = tagged
+ * articles that the research-and-writing section links to, orphaned = the rest.
+ * Only topics that currently have at least one orphan are returned.
+ */
+const parseAuthorsColumn = (authors: string | string[] | null): string[] => {
+    if (!authors) return []
+    if (Array.isArray(authors)) return authors
+    try {
+        const parsed = JSON.parse(authors)
+        return Array.isArray(parsed) ? parsed : []
+    } catch {
+        return []
+    }
+}
+
+export const getResearchAndWritingOrphans = async (
+    trx: KnexReadonlyTransaction
+): Promise<TopicPageOrphanReport[]> => {
+    // 1. Topic pages: tags whose slug matches a published topic page.
+    const topicPages = await knexRaw<{
+        tagId: number
+        tagName: string
+        slug: string
+        gdocId: string
+    }>(
+        trx,
+        `-- sql
+        SELECT t.id AS tagId, t.name AS tagName, t.slug AS slug, pg.id AS gdocId
+        FROM ${TagsTableName} t
+        JOIN ${PostsGdocsTableName} pg ON pg.slug = t.slug
+        WHERE pg.published = TRUE
+        AND pg.type IN (:types)
+        AND t.slug IS NOT NULL
+        `,
+        {
+            types: [OwidGdocType.TopicPage, OwidGdocType.LinearTopicPage],
+        }
+    )
+
+    if (!topicPages.length) return []
+
+    const tagIds = topicPages.map((topicPage) => topicPage.tagId)
+    const gdocIds = topicPages.map((topicPage) => topicPage.gdocId)
+
+    // 2. Published articles tagged to those topics.
+    const taggedArticles = await knexRaw<{
+        tagId: number
+        id: string
+        slug: string
+        title: string
+        authors: string | string[]
+        publishedAt: Date | null
+    }>(
+        trx,
+        `-- sql
+        SELECT
+            pgt.tagId AS tagId,
+            pg.id AS id,
+            pg.slug AS slug,
+            pg.content ->> '$.title' AS title,
+            pg.authors AS authors,
+            pg.publishedAt AS publishedAt
+        FROM ${PostsGdocsTableName} pg
+        JOIN ${PostsGdocsXTagsTableName} pgt ON pgt.gdocId = pg.id
+        WHERE pg.published = TRUE
+        AND pg.type = :articleType
+        AND pgt.tagId IN (:tagIds)
+        -- Exclude SDG tracker articles (slugs like "sdgs/...")
+        AND pg.slug NOT LIKE 'sdgs%'
+        `,
+        { articleType: OwidGdocType.Article, tagIds }
+    )
+
+    // 3. The links curated in each topic page's research-and-writing section.
+    // (The auto-populated "latest work" block is not recorded here, so it
+    // correctly does not count towards coverage.)
+    const researchAndWritingLinks = await knexRaw<{
+        sourceId: string
+        target: string
+        linkType: string
+    }>(
+        trx,
+        `-- sql
+        SELECT sourceId, target, linkType
+        FROM ${PostsGdocsLinksTableName}
+        WHERE componentType = 'research-and-writing'
+        AND sourceId IN (:gdocIds)
+        `,
+        { gdocIds }
+    )
+
+    // Index the links by topic page. Gdoc links target a gdoc id directly;
+    // url links target a URL, from which we extract the slug to match articles.
+    const linkedGdocIdsByGdocId = new Map<string, Set<string>>()
+    const linkedSlugsByGdocId = new Map<string, Set<string>>()
+    for (const link of researchAndWritingLinks) {
+        if (link.linkType === ContentGraphLinkType.Gdoc) {
+            if (!linkedGdocIdsByGdocId.has(link.sourceId))
+                linkedGdocIdsByGdocId.set(link.sourceId, new Set())
+            linkedGdocIdsByGdocId.get(link.sourceId)!.add(link.target)
+        } else if (link.linkType === ContentGraphLinkType.Url) {
+            const slug = Url.fromURL(link.target).slug
+            if (slug) {
+                if (!linkedSlugsByGdocId.has(link.sourceId))
+                    linkedSlugsByGdocId.set(link.sourceId, new Set())
+                linkedSlugsByGdocId.get(link.sourceId)!.add(slug)
+            }
+        }
+    }
+
+    const articlesByTagId = new Map<number, typeof taggedArticles>()
+    for (const article of taggedArticles) {
+        if (!articlesByTagId.has(article.tagId))
+            articlesByTagId.set(article.tagId, [])
+        articlesByTagId.get(article.tagId)!.push(article)
+    }
+
+    const reports: TopicPageOrphanReport[] = []
+    for (const topicPage of topicPages) {
+        const candidates = articlesByTagId.get(topicPage.tagId) ?? []
+        if (!candidates.length) continue
+
+        const linkedGdocIds =
+            linkedGdocIdsByGdocId.get(topicPage.gdocId) ?? new Set()
+        const linkedSlugs =
+            linkedSlugsByGdocId.get(topicPage.gdocId) ?? new Set()
+
+        const orphans = candidates
+            .filter(
+                (article) =>
+                    !linkedGdocIds.has(article.id) &&
+                    !linkedSlugs.has(article.slug)
+            )
+            .map((article) => ({
+                id: article.id,
+                slug: article.slug,
+                title: article.title ?? "",
+                authors: parseAuthorsColumn(article.authors),
+                publishedAt: article.publishedAt,
+            }))
+            .sort(
+                (a, b) =>
+                    (a.publishedAt ? new Date(a.publishedAt).getTime() : 0) <
+                    (b.publishedAt ? new Date(b.publishedAt).getTime() : 0)
+                        ? 1
+                        : -1
+            )
+
+        if (!orphans.length) continue
+
+        const taggedCount = candidates.length
+        const orphanedCount = orphans.length
+        const coveredCount = taggedCount - orphanedCount
+        reports.push({
+            tagId: topicPage.tagId,
+            tagName: topicPage.tagName,
+            slug: topicPage.slug,
+            gdocId: topicPage.gdocId,
+            taggedCount,
+            coveredCount,
+            orphanedCount,
+            coveragePercent: Math.round((coveredCount / taggedCount) * 100),
+            orphans,
+        })
+    }
+
+    return reports.sort(
+        (a, b) =>
+            b.orphanedCount - a.orphanedCount ||
+            a.tagName.localeCompare(b.tagName)
     )
 }
 

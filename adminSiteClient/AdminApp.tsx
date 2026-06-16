@@ -37,6 +37,7 @@ import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
 import { AdminLayout } from "./AdminLayout.js"
 import { BulkGrapherConfigEditorPage } from "./BulkGrapherConfigEditor.js"
 import { GdocsIndexPage } from "./GdocsIndexPage.js"
+import { OrphanedArticlesIndexPage } from "./OrphanedArticlesIndexPage.js"
 import { GdocsMatchProps, GdocsPreviewPage } from "./GdocsPreviewPage.js"
 import { GdocsCoverageMatrixPage } from "./GdocsCoverageMatrixPage.js"
 import { CalloutFunctionsPage } from "./CalloutFunctionsPage.js"
@@ -394,6 +395,11 @@ export class AdminApp extends React.Component<{
                                     exact
                                     path="/tags"
                                     component={TagsIndexPage}
+                                />
+                                <Route
+                                    exact
+                                    path="/orphaned-articles"
+                                    component={OrphanedArticlesIndexPage}
                                 />
                                 <Route
                                     exact

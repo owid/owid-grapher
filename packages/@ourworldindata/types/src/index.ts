@@ -228,6 +228,8 @@ export {
     type OwidGdocContent,
     type OwidGdocIndexItem,
     extractGdocIndexItem,
+    type OrphanedTopicArticle,
+    type TopicPageOrphanReport,
     type NarrativeChartInfo,
     type OwidGdocDataInsightIndexItem,
 } from "./gdocTypes/Gdoc.js"

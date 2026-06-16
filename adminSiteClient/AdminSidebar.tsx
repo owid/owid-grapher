@@ -25,6 +25,7 @@ import {
     faFolder,
     faMonument,
     faDisplay,
+    faLinkSlash,
 } from "@fortawesome/free-solid-svg-icons"
 
 import { ETL_WIZARD_URL } from "../settings/clientSettings.js"
@@ -64,6 +65,12 @@ export const AdminSidebar = (): React.ReactElement => (
             <li>
                 <Link to="/gdocs">
                     <FontAwesomeIcon icon={faFile} fixedWidth /> Google Docs
+                </Link>
+            </li>
+            <li>
+                <Link to="/orphaned-articles">
+                    <FontAwesomeIcon icon={faLinkSlash} fixedWidth /> Orphaned
+                    articles
                 </Link>
             </li>
             <li>
