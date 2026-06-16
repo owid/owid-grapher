@@ -26,6 +26,7 @@ import {
     faMonument,
     faDisplay,
     faLinkSlash,
+    faPuzzlePiece,
 } from "@fortawesome/free-solid-svg-icons"
 
 import { ETL_WIZARD_URL } from "../settings/clientSettings.js"
@@ -71,6 +72,12 @@ export const AdminSidebar = (): React.ReactElement => (
                 <Link to="/orphaned-articles">
                     <FontAwesomeIcon icon={faLinkSlash} fixedWidth /> Orphaned
                     articles
+                </Link>
+            </li>
+            <li>
+                <Link to="/components">
+                    <FontAwesomeIcon icon={faPuzzlePiece} fixedWidth />{" "}
+                    Components
                 </Link>
             </li>
             <li>

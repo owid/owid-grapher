@@ -1,0 +1,636 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>ArchieML component reference — mockup</title>
+        <link
+            rel="stylesheet"
+            href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.21.0/dist/tabler-icons.min.css"
+        />
+        <style>
+            :root {
+                --color-text-primary: #1a1a18;
+                --color-text-secondary: #5f5e5a;
+                --color-text-tertiary: #888780;
+                --color-text-info: #185fa5;
+                --color-text-success: #0f6e56;
+                --color-text-danger: #a32d2d;
+                --color-text-warning: #854f0b;
+                --color-background-primary: #ffffff;
+                --color-background-secondary: #f4f3ee;
+                --color-background-tertiary: #eceae2;
+                --color-background-info: #e6f1fb;
+                --color-background-success: #e1f5ee;
+                --color-background-danger: #fcebeb;
+                --color-background-warning: #faeeda;
+                --color-border-tertiary: rgba(0, 0, 0, 0.15);
+                --color-border-secondary: rgba(0, 0, 0, 0.3);
+                --color-border-info: #378add;
+                --font-sans:
+                    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+                    Helvetica, Arial, sans-serif;
+                --font-mono:
+                    ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+                --font-serif: Georgia, "Times New Roman", serif;
+                --border-radius-md: 8px;
+                --border-radius-lg: 12px;
+            }
+            @media (prefers-color-scheme: dark) {
+                :root {
+                    --color-text-primary: #ececec;
+                    --color-text-secondary: #a8a79f;
+                    --color-text-tertiary: #777;
+                    --color-background-primary: #1f1f1d;
+                    --color-background-secondary: #2a2a27;
+                    --color-background-tertiary: #333330;
+                    --color-border-tertiary: rgba(255, 255, 255, 0.15);
+                    --color-border-secondary: rgba(255, 255, 255, 0.3);
+                }
+            }
+            * {
+                box-sizing: border-box;
+            }
+            body {
+                font-family: var(--font-sans);
+                color: var(--color-text-primary);
+                background: var(--color-background-tertiary);
+                margin: 0;
+                padding: 24px;
+            }
+            .wrap {
+                max-width: 720px;
+                margin: 0 auto;
+                background: var(--color-background-tertiary);
+            }
+            .sr-only {
+                position: absolute;
+                width: 1px;
+                height: 1px;
+                overflow: hidden;
+                clip: rect(0 0 0 0);
+            }
+            input {
+                height: 36px;
+                border-radius: var(--border-radius-md);
+                border: 0.5px solid var(--color-border-secondary);
+                background: var(--color-background-primary);
+                color: var(--color-text-primary);
+                font-size: 14px;
+                padding: 0 10px;
+                outline: none;
+            }
+            input:focus {
+                box-shadow: 0 0 0 2px var(--color-border-info);
+            }
+            button {
+                font-family: inherit;
+                border-radius: var(--border-radius-md);
+                border: 0.5px solid var(--color-border-secondary);
+                background: transparent;
+                color: var(--color-text-primary);
+            }
+            button:hover {
+                background: var(--color-background-secondary);
+            }
+            pre {
+                margin: 0;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="wrap">
+            <h2 class="sr-only">
+                ArchieML component reference: a searchable, filterable gallery
+                of components that opens to a detail view pairing the rendered
+                output with paste-ready archie source.
+            </h2>
+
+            <div
+                style="
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    margin-bottom: 14px;
+                "
+            >
+                <div style="flex: 1">
+                    <div
+                        style="
+                            font-size: 18px;
+                            font-weight: 500;
+                            color: var(--color-text-primary);
+                        "
+                    >
+                        ArchieML components
+                    </div>
+                    <div
+                        id="countline"
+                        style="
+                            font-size: 13px;
+                            color: var(--color-text-secondary);
+                        "
+                    >
+                        65 components
+                    </div>
+                </div>
+                <div style="position: relative; width: 230px">
+                    <i
+                        class="ti ti-search"
+                        aria-hidden="true"
+                        style="
+                            position: absolute;
+                            left: 10px;
+                            top: 9px;
+                            font-size: 16px;
+                            color: var(--color-text-tertiary);
+                        "
+                    ></i>
+                    <input
+                        id="q"
+                        type="text"
+                        placeholder="Search  &#8984;K"
+                        aria-label="Search components"
+                        style="width: 100%; padding-left: 32px"
+                    />
+                </div>
+            </div>
+
+            <div
+                id="cats"
+                style="
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 6px;
+                    margin-bottom: 16px;
+                "
+            ></div>
+
+            <div
+                id="gallery"
+                style="
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                    gap: 10px;
+                "
+            ></div>
+            <div id="detail" style="display: none"></div>
+        </div>
+
+        <script>
+            const C = [
+                {
+                    id: "side-by-side",
+                    title: "Side by side",
+                    type: "EnrichedBlockSideBySideContainer",
+                    cat: "Layout",
+                    usage: 142,
+                    desc: "Two-column layout with left and right columns of roughly equal weight.",
+                    use: [
+                        "Pairing two charts, or a chart and explanatory text, at equal weight.",
+                    ],
+                    not: [
+                        "One column should dominate — use {.sticky-left} / {.sticky-right} instead.",
+                    ],
+                    vars: ["accepts: [.+left], [.+right]"],
+                    prev: `<div style="display:flex; gap:6px; height:100%;"><div style="flex:1; background:var(--color-background-primary); border:0.5px solid var(--color-border-secondary); border-radius:4px;"></div><div style="flex:1; background:var(--color-background-primary); border:0.5px solid var(--color-border-secondary); border-radius:4px;"></div></div>`,
+                    ex: [
+                        {
+                            name: "Basic two columns",
+                            archie: "{.side-by-side}\n[.+left]\nI am content on the left.\n[]\n[.+right]\nI am content on the right.\n[]\n{}",
+                        },
+                    ],
+                },
+
+                {
+                    id: "sticky-right",
+                    title: "Sticky right",
+                    type: "EnrichedBlockStickyRightContainer",
+                    cat: "Layout",
+                    usage: 88,
+                    desc: "Two-column layout where the right column sticks to the viewport as the reader scrolls through the left.",
+                    use: [
+                        "A chart that should stay visible while the reader scrolls long explanatory text.",
+                    ],
+                    not: ["Both columns are short — use {.side-by-side}."],
+                    vars: ["accepts: [.+left], [.+right]"],
+                    prev: `<div style="display:flex; gap:6px; height:100%;"><div style="flex:1.3; display:flex; flex-direction:column; gap:3px; justify-content:center;"><span style="height:4px;background:var(--color-border-secondary);border-radius:2px;"></span><span style="height:4px;width:80%;background:var(--color-border-secondary);border-radius:2px;"></span><span style="height:4px;width:90%;background:var(--color-border-secondary);border-radius:2px;"></span></div><div style="flex:1; background:var(--color-background-info); border:0.5px solid var(--color-border-info); border-radius:4px;"></div></div>`,
+                    ex: [
+                        {
+                            name: "Chart sticky beside text",
+                            archie: "{.sticky-right}\n[.+left]\nLots of explanatory text here that scrolls...\n[]\n[.+right]\n{.chart}\nurl: https://ourworldindata.org/grapher/life-expectancy\n{}\n[]\n{}",
+                        },
+                    ],
+                },
+
+                {
+                    id: "chart",
+                    title: "Chart",
+                    type: "EnrichedBlockChart",
+                    cat: "Charts & data",
+                    usage: 980,
+                    desc: "A Grapher chart, explorer, or MDIM embed.",
+                    use: [
+                        "Embedding any interactive Grapher chart by its URL.",
+                    ],
+                    not: [
+                        "You want a static, non-interactive image — use {.image} or {.static-viz}.",
+                    ],
+                    vars: [
+                        "url",
+                        "title (override)",
+                        "subtitle",
+                        "tab",
+                        "position",
+                    ],
+                    prev: `<svg viewBox="0 0 100 48" style="width:100%;height:100%"><polyline points="4,40 22,28 40,32 58,16 76,20 94,6" fill="none" stroke="#185FA5" stroke-width="2.5"/><line x1="4" y1="44" x2="96" y2="44" stroke="var(--color-border-secondary)" stroke-width="1"/></svg>`,
+                    ex: [
+                        {
+                            name: "Single chart by URL",
+                            archie: "{.chart}\nurl: https://ourworldindata.org/grapher/military-expenditure-share-gdp\n{}",
+                        },
+                    ],
+                },
+
+                {
+                    id: "chart-story",
+                    title: "Chart story",
+                    type: "EnrichedBlockChartStory",
+                    cat: "Charts & data",
+                    usage: 31,
+                    desc: "A carousel of charts, each paired with a narrative caption and a block of technical text.",
+                    use: [
+                        "Walking readers through a sequence of chart states as a guided narrative.",
+                    ],
+                    not: ["A single chart suffices — use {.chart}."],
+                    vars: ["narrative", "chart", "{.technical}"],
+                    prev: `<div style="display:flex;flex-direction:column;gap:4px;height:100%;"><div style="flex:1;background:var(--color-background-primary);border:0.5px solid var(--color-border-secondary);border-radius:4px;"></div><div style="display:flex;gap:4px;justify-content:center;"><span style="width:5px;height:5px;border-radius:50%;background:var(--color-text-secondary);"></span><span style="width:5px;height:5px;border-radius:50%;background:var(--color-border-secondary);"></span><span style="width:5px;height:5px;border-radius:50%;background:var(--color-border-secondary);"></span></div></div>`,
+                    ex: [
+                        {
+                            name: "Two-slide story",
+                            archie: "[.chart-story]\nnarrative: Text for slide 1, an overview of the world\nchart: https://ourworldindata.org/grapher/military-expenditure-share-gdp\n{.technical}\nExtreme poverty is defined as living below $1.90 per day.\n{}\n\nnarrative: Slide two looks at Africa\nchart: https://ourworldindata.org/grapher/military-expenditure-share-gdp?region=Africa\n{.technical}\nData is measured in international-$.\n{}\n[]",
+                        },
+                    ],
+                },
+
+                {
+                    id: "key-insights",
+                    title: "Key insights",
+                    type: "EnrichedBlockKeyInsights",
+                    cat: "Callouts",
+                    usage: 64,
+                    desc: "A slide carousel of the core takeaways of a topic page.",
+                    use: [
+                        "Summarising the 3–6 headline findings of a topic at the top of the page.",
+                    ],
+                    not: ["A single highlight — use {.callout}."],
+                    vars: [
+                        "heading",
+                        "[.insights] (title, url | filename | narrativeChartName, [.+content])",
+                    ],
+                    prev: `<div style="display:flex;gap:5px;height:100%;align-items:stretch;"><div style="flex:1;background:var(--color-background-secondary);border-radius:4px;"></div><div style="flex:2;display:flex;flex-direction:column;gap:3px;justify-content:center;"><span style="height:5px;width:60%;background:var(--color-text-secondary);border-radius:2px;"></span><span style="height:4px;background:var(--color-border-secondary);border-radius:2px;"></span><span style="height:4px;width:85%;background:var(--color-border-secondary);border-radius:2px;"></span></div></div>`,
+                    ex: [
+                        {
+                            name: "Carousel with mixed slides",
+                            archie: "{.key-insights}\nheading: Key Insights on Poverty\n[.insights]\n\ntitle: The age dependency ratio changes by country\nurl: https://ourworldindata.org/grapher/age-dependency-breakdown\n[.+content]\nAll sorts of content can go in here.\n[]\n\ntitle: This slide uses an image\nfilename: default-featured-image.png\n[.+content]\nBlah blah.\n[]\n\n[]\n{}",
+                        },
+                    ],
+                },
+
+                {
+                    id: "callout",
+                    title: "Callout",
+                    type: "EnrichedBlockCallout",
+                    cat: "Callouts",
+                    usage: 210,
+                    desc: "A small gray-background block used to draw attention to meta-textual information.",
+                    use: [
+                        "Notes about data vintage, caveats, or editorial asides.",
+                    ],
+                    not: [
+                        "Highlighting a key finding — use {.key-insights} or {.pull-quote}.",
+                    ],
+                    vars: ["title", "icon: info | …", "[.+text]"],
+                    prev: `<div style="height:100%;background:var(--color-background-secondary);border-radius:6px;display:flex;align-items:center;gap:8px;padding:0 10px;"><i class="ti ti-info-circle" style="font-size:18px;color:var(--color-text-secondary);"></i><div style="flex:1;display:flex;flex-direction:column;gap:3px;"><span style="height:4px;width:40%;background:var(--color-text-secondary);border-radius:2px;"></span><span style="height:4px;background:var(--color-border-secondary);border-radius:2px;"></span></div></div>`,
+                    ex: [
+                        {
+                            name: "Info callout",
+                            archie: "{.callout}\ntitle: Update\nicon: info\n[.+text]\nThis article uses data from 2020\n\nBut the conclusions are solid.\n[]\n{}",
+                        },
+                    ],
+                },
+
+                {
+                    id: "prominent-link",
+                    title: "Prominent link",
+                    type: "EnrichedBlockProminentLink",
+                    cat: "Callouts",
+                    usage: 155,
+                    desc: "A visually prominent link tile.",
+                    use: [
+                        "Driving readers to a single important related article or resource.",
+                    ],
+                    not: [
+                        "Several links of equal weight — use {.pill-row} or {.recirc}.",
+                    ],
+                    vars: [
+                        "url",
+                        "title (override)",
+                        "description",
+                        "thumbnail",
+                    ],
+                    prev: `<div style="height:100%;background:var(--color-background-primary);border:0.5px solid var(--color-border-secondary);border-radius:6px;display:flex;align-items:center;justify-content:space-between;padding:0 10px;"><div style="display:flex;flex-direction:column;gap:3px;flex:1;"><span style="height:4px;width:55%;background:var(--color-text-secondary);border-radius:2px;"></span><span style="height:4px;width:80%;background:var(--color-border-secondary);border-radius:2px;"></span></div><i class="ti ti-arrow-right" style="font-size:18px;color:var(--color-text-info);"></i></div>`,
+                    ex: [
+                        {
+                            name: "Link by URL",
+                            archie: "{.prominent-link}\nurl: https://ourworldindata.org/grapher/life-expectancy\n{}",
+                        },
+                    ],
+                },
+
+                {
+                    id: "pull-quote",
+                    title: "Pull quote",
+                    type: "EnrichedBlockPullQuote",
+                    cat: "Text",
+                    usage: 47,
+                    desc: "A centered, italicized h1 used to re-emphasize a phrase from the surrounding body text.",
+                    use: [
+                        "Re-emphasising a striking sentence already present in the prose.",
+                    ],
+                    not: ["Quoting an external source — use {.blockquote}."],
+                    vars: [
+                        "quote",
+                        "align: left-center | center",
+                        "[.+content]",
+                    ],
+                    prev: `<div style="height:100%;display:flex;align-items:center;gap:8px;padding:0 8px;"><span style="font-family:var(--font-serif);font-size:34px;line-height:1;color:var(--color-border-secondary);">&ldquo;</span><div style="flex:1;display:flex;flex-direction:column;gap:4px;"><span style="height:5px;width:90%;background:var(--color-text-secondary);border-radius:2px;"></span><span style="height:5px;width:70%;background:var(--color-text-secondary);border-radius:2px;"></span></div></div>`,
+                    ex: [
+                        {
+                            name: "Left-center quote",
+                            archie: "{.pull-quote}\nquote: I am a left-center aligned quote that should span multiple lines.\nalign: left-center\n[.+content]\nSuspendisse commodo turpis nunc, sit amet cursus odio porttitor.\n[]\n{}",
+                        },
+                    ],
+                },
+
+                {
+                    id: "image",
+                    title: "Image",
+                    type: "EnrichedBlockImage",
+                    cat: "Media",
+                    usage: 520,
+                    desc: "A static image uploaded to the OWID admin.",
+                    use: [
+                        "Photographs, diagrams, or any non-interactive visual.",
+                    ],
+                    not: ["An interactive chart — use {.chart}."],
+                    vars: [
+                        "filename",
+                        "alt",
+                        "size: narrow | wide",
+                        "caption",
+                        "hasOutline",
+                        "visibility",
+                    ],
+                    prev: `<div style="height:100%;background:var(--color-background-secondary);border-radius:4px;display:flex;align-items:center;justify-content:center;"><i class="ti ti-photo" style="font-size:26px;color:var(--color-text-tertiary);"></i></div>`,
+                    ex: [
+                        {
+                            name: "Narrow image with caption",
+                            archie: "{.image}\nfilename: default-featured-image.png\nalt: my alt text that is optional\nsize: narrow\ncaption: I am a caption that would appear below the image\nhasOutline: true\nvisibility: desktop\n{}",
+                        },
+                    ],
+                },
+
+                {
+                    id: "people-rows",
+                    title: "People rows",
+                    type: "EnrichedBlockPeopleRows",
+                    cat: "People",
+                    usage: 9,
+                    desc: "A grid of person cards, used on about pages to present team members.",
+                    use: ["Team / contributor listings on about pages."],
+                    not: ["A single person — use {.person}."],
+                    vars: ["columns", "[.people] of {.person}"],
+                    prev: `<div style="display:flex;gap:8px;height:100%;align-items:center;justify-content:center;">${[0, 1, 2].map(() => '<div style="display:flex;flex-direction:column;align-items:center;gap:3px;"><span style="width:18px;height:18px;border-radius:50%;background:var(--color-background-secondary);"></span><span style="width:22px;height:3px;background:var(--color-border-secondary);border-radius:2px;"></span></div>').join("")}</div>`,
+                    ex: [
+                        {
+                            name: "Team grid",
+                            archie: "{.people-rows}\ncolumns: 4\n[.people]\n{.person}\nname: Max Roser\ntitle: Founder\n[.+text]\nBio text here.\n[]\n{}\n[]\n{}",
+                        },
+                    ],
+                },
+
+                {
+                    id: "topic-page-intro",
+                    title: "Topic page intro",
+                    type: "EnrichedBlockTopicPageIntro",
+                    cat: "Page structure",
+                    usage: 58,
+                    desc: "The introduction section of a topic page.",
+                    use: ["The canonical opening block of any topic page."],
+                    not: [
+                        "Article or data-insight pages — they have their own intro patterns.",
+                    ],
+                    vars: [
+                        "[.+content]",
+                        "[.downloadButton]",
+                        "[.relatedTopics]",
+                    ],
+                    prev: `<div style="display:flex;flex-direction:column;gap:5px;height:100%;justify-content:center;"><span style="height:7px;width:55%;background:var(--color-text-secondary);border-radius:2px;"></span><span style="height:4px;background:var(--color-border-secondary);border-radius:2px;"></span><span style="height:4px;width:85%;background:var(--color-border-secondary);border-radius:2px;"></span></div>`,
+                    ex: [
+                        {
+                            name: "Topic intro",
+                            archie: "{.topic-page-intro}\n[.+content]\nThis page presents the data on poverty...\n[]\n[.relatedTopics]\nurl: https://ourworldindata.org/economic-growth\n[]\n{}",
+                        },
+                    ],
+                },
+
+                {
+                    id: "expandable-paragraph",
+                    title: "Expandable paragraph",
+                    type: "EnrichedBlockExpandableParagraph",
+                    cat: "Layout",
+                    usage: 38,
+                    desc: "Displays a short preview with a Show more button that reveals the rest.",
+                    use: [
+                        "Long methodological detail you want collapsed by default.",
+                    ],
+                    not: ["Content that should always be visible."],
+                    vars: ["[.+content]"],
+                    prev: `<div style="display:flex;flex-direction:column;gap:4px;height:100%;justify-content:center;"><span style="height:4px;background:var(--color-border-secondary);border-radius:2px;"></span><span style="height:4px;width:88%;background:var(--color-border-secondary);border-radius:2px;"></span><span style="font-size:11px;color:var(--color-text-info);">Show more</span></div>`,
+                    ex: [
+                        {
+                            name: "Collapsed detail",
+                            archie: "{.expandable-paragraph}\n[.+content]\nA long methodological note that is collapsed until the reader expands it.\n[]\n{}",
+                        },
+                    ],
+                },
+            ]
+
+            const CATS = [
+                "All",
+                "Layout",
+                "Charts & data",
+                "Callouts",
+                "Text",
+                "Media",
+                "People",
+                "Page structure",
+            ]
+            let activeCat = "All",
+                query = ""
+
+            const catsEl = document.getElementById("cats")
+            const galEl = document.getElementById("gallery")
+            const detEl = document.getElementById("detail")
+            const countEl = document.getElementById("countline")
+
+            function catCount(c) {
+                return c === "All" ? 65 : C.filter((x) => x.cat === c).length
+            }
+
+            function renderCats() {
+                catsEl.innerHTML = CATS.map((c) => {
+                    const on = c === activeCat
+                    return `<button data-cat="${c}" style="font-size:13px; padding:5px 11px; border-radius:999px; border:0.5px solid ${on ? "var(--color-border-info)" : "var(--color-border-tertiary)"}; background:${on ? "var(--color-background-info)" : "transparent"}; color:${on ? "var(--color-text-info)" : "var(--color-text-secondary)"}; cursor:pointer;">${c} <span style="opacity:.6">${catCount(c)}</span></button>`
+                }).join("")
+                catsEl.querySelectorAll("button").forEach(
+                    (b) =>
+                        (b.onclick = () => {
+                            activeCat = b.dataset.cat
+                            renderGallery()
+                        })
+                )
+            }
+
+            function matches(c) {
+                const inCat = activeCat === "All" || c.cat === activeCat
+                const q = query.trim().toLowerCase()
+                const inQ =
+                    !q ||
+                    c.title.toLowerCase().includes(q) ||
+                    c.id.includes(q) ||
+                    c.desc.toLowerCase().includes(q)
+                return inCat && inQ
+            }
+
+            function usageBadge(n) {
+                const label =
+                    n >= 300 ? "Common" : n >= 40 ? "Frequent" : "Rare"
+                const ramp =
+                    n >= 300
+                        ? [
+                              "var(--color-background-success)",
+                              "var(--color-text-success)",
+                          ]
+                        : n >= 40
+                          ? [
+                                "var(--color-background-secondary)",
+                                "var(--color-text-secondary)",
+                            ]
+                          : [
+                                "var(--color-background-warning)",
+                                "var(--color-text-warning)",
+                            ]
+                return `<span style="font-size:11px; padding:2px 7px; border-radius:4px; background:${ramp[0]}; color:${ramp[1]};">${label} · ${n}</span>`
+            }
+
+            function renderGallery() {
+                detEl.style.display = "none"
+                galEl.style.display = "grid"
+                renderCats()
+                const list = C.filter(matches)
+                countEl.textContent = `${list.length} of 65 components${activeCat !== "All" ? " · " + activeCat : ""}`
+                galEl.innerHTML =
+                    list
+                        .map(
+                            (c) => `
+    <div data-id="${c.id}" role="button" tabindex="0" style="background:var(--color-background-primary); border:0.5px solid var(--color-border-tertiary); border-radius:var(--border-radius-lg); padding:10px; cursor:pointer;">
+      <div style="height:62px; margin-bottom:9px;">${c.prev}</div>
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:6px;">
+        <span style="font-size:14px; font-weight:500; color:var(--color-text-primary);">${c.title}</span>
+        ${usageBadge(c.usage)}
+      </div>
+      <div style="font-family:var(--font-mono); font-size:11px; color:var(--color-text-tertiary); margin:2px 0 5px;">{.${c.id}}</div>
+      <div style="font-size:12px; color:var(--color-text-secondary); line-height:1.45;">${c.desc}</div>
+    </div>`
+                        )
+                        .join("") ||
+                    `<div style="color:var(--color-text-secondary); font-size:14px;">No components match.</div>`
+                galEl.querySelectorAll("[data-id]").forEach((el) => {
+                    el.onclick = () => openDetail(el.dataset.id)
+                    el.onkeydown = (e) => {
+                        if (e.key === "Enter") openDetail(el.dataset.id)
+                    }
+                })
+            }
+
+            function esc(s) {
+                return s
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+            }
+
+            function openDetail(id) {
+                const c = C.find((x) => x.id === id)
+                galEl.style.display = "none"
+                detEl.style.display = "block"
+                detEl.innerHTML = `
+    <button id="back" style="font-size:13px; padding:5px 10px; margin-bottom:12px; cursor:pointer;"><i class="ti ti-arrow-left" aria-hidden="true"></i> All components</button>
+    <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:4px;">
+      <span style="font-size:18px; font-weight:500;">${c.title}</span>
+      ${usageBadge(c.usage)}
+      <span style="font-family:var(--font-mono); font-size:12px; color:var(--color-text-tertiary);">${c.type}</span>
+    </div>
+    <div style="font-size:15px; color:var(--color-text-secondary); line-height:1.6; margin-bottom:16px;">${c.desc}</div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px;">
+      <div style="background:var(--color-background-success); border-radius:var(--border-radius-md); padding:10px 12px;">
+        <div style="font-size:12px; font-weight:500; color:var(--color-text-success); margin-bottom:5px;"><i class="ti ti-check" aria-hidden="true"></i> When to use</div>
+        ${c.use.map((u) => `<div style="font-size:13px; color:var(--color-text-success); line-height:1.5;">${u}</div>`).join("")}
+      </div>
+      <div style="background:var(--color-background-danger); border-radius:var(--border-radius-md); padding:10px 12px;">
+        <div style="font-size:12px; font-weight:500; color:var(--color-text-danger); margin-bottom:5px;"><i class="ti ti-x" aria-hidden="true"></i> When not to</div>
+        ${c.not.map((u) => `<div style="font-size:13px; color:var(--color-text-danger); line-height:1.5;">${u}</div>`).join("")}
+      </div>
+    </div>
+
+    <div style="margin-bottom:16px;">
+      <div style="font-size:12px; color:var(--color-text-secondary); margin-bottom:6px;">Fields &amp; structure</div>
+      <div style="display:flex; flex-wrap:wrap; gap:6px;">${c.vars.map((v) => `<span style="font-family:var(--font-mono); font-size:12px; padding:3px 8px; border-radius:4px; background:var(--color-background-secondary); color:var(--color-text-secondary);">${esc(v)}</span>`).join("")}</div>
+    </div>
+
+    <div style="font-size:12px; color:var(--color-text-secondary); margin-bottom:6px;">Example · ${esc(c.ex[0].name)}</div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; align-items:stretch;">
+      <div style="background:var(--color-background-secondary); border-radius:var(--border-radius-md); padding:14px; display:flex; align-items:center;">
+        <div style="width:100%; height:90px;">${c.prev}</div>
+      </div>
+      <div style="position:relative; background:var(--color-background-primary); border:0.5px solid var(--color-border-tertiary); border-radius:var(--border-radius-md); overflow:hidden;">
+        <button id="copy" aria-label="Copy archie" style="position:absolute; top:6px; right:6px; font-size:12px; padding:3px 8px; cursor:pointer; background:var(--color-background-primary);"><i class="ti ti-copy" aria-hidden="true"></i> Copy</button>
+        <pre style="margin:0; padding:12px; font-family:var(--font-mono); font-size:11.5px; line-height:1.55; color:var(--color-text-primary); white-space:pre-wrap; word-break:break-word;">${esc(c.ex[0].archie)}</pre>
+      </div>
+    </div>
+    <div style="margin-top:14px; font-size:13px; color:var(--color-text-secondary);"><i class="ti ti-link" aria-hidden="true"></i> Seen in <span style="color:var(--color-text-info);">${Math.max(2, Math.round(c.usage / 20))} published articles</span> · deep-link: <span style="font-family:var(--font-mono); font-size:12px;">/admin/components#${c.id}</span></div>
+  `
+                document.getElementById("back").onclick = renderGallery
+                document.getElementById("copy").onclick = () => {
+                    navigator.clipboard &&
+                        navigator.clipboard.writeText(c.ex[0].archie)
+                    const b = document.getElementById("copy")
+                    b.innerHTML = '<i class="ti ti-check"></i> Copied'
+                    setTimeout(
+                        () => (b.innerHTML = '<i class="ti ti-copy"></i> Copy'),
+                        1400
+                    )
+                }
+            }
+
+            document.getElementById("q").addEventListener("input", (e) => {
+                query = e.target.value
+                renderGallery()
+            })
+            renderGallery()
+        </script>
+    </body>
+</html>

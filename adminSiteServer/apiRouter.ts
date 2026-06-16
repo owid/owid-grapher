@@ -60,6 +60,7 @@ import {
     getImageUsageHandler,
 } from "./apiRoutes/images.js"
 import { getFiles, uploadFileToR2 } from "./apiRoutes/files.js"
+import { getComponentsReference } from "./apiRoutes/components.js"
 import {
     handlePutMultiDim,
     handleGetMultiDim,
@@ -677,6 +678,9 @@ getRouteWithROTransaction(apiRouter, "/figma/image", getFigmaImageUrl)
 
 // Slack routes
 postRouteWithRWTransaction(apiRouter, "/slack/sendMessage", sendMessageToSlack)
+
+// ArchieML component reference (served from the committed registry JSON)
+apiRouter.get("/components.json", getComponentsReference)
 
 // Deploy helpers
 apiRouter.get("/deploys.json", async () => ({
