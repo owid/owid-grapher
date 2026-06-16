@@ -4,6 +4,8 @@ This directory is where the data-nugget pipeline does its local work: investigat
 
 Data nuggets are the first content type in the broader **agentic-writing playground** — a place for OWID staff to experiment with AI-first writing. Other content types (e.g. micro-explainers, side-by-side comparisons) can be added later as separate `contentType` values on the lineage row, with their own pipelines.
 
+> **New here? Start with [GETTING-STARTED.md](./GETTING-STARTED.md)** — prerequisites, one-time auth, generating your first nuggets, and reviewing them. This README is the reference for layout, schema, and the review model.
+
 ## Layout
 
 ```
