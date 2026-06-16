@@ -7,6 +7,7 @@ import {
 import { useContext, useEffect, useMemo, useState } from "react"
 import {
     Button,
+    Checkbox,
     Flex,
     Input,
     Popconfirm,
@@ -345,14 +346,17 @@ export function MultiDimIndexPage() {
         },
     })
 
+    const [showOnlyPublished, setShowOnlyPublished] = useState(false)
+
     const filteredMdims = useMemo(() => {
         const query = search.trim().toLowerCase()
-        return data?.filter((mdim) =>
-            [mdim.title, mdim.slug ?? ""].some((field) =>
+        return data?.filter((mdim) => {
+            if (showOnlyPublished && !mdim.published) return false
+            return [mdim.title, mdim.slug ?? ""].some((field) =>
                 field.toLowerCase().includes(query)
             )
-        )
-    }, [data, search])
+        })
+    }, [data, search, showOnlyPublished])
 
     const columns = createColumns(slugMutation, publishMutation)
 
@@ -362,13 +366,23 @@ export function MultiDimIndexPage() {
             <main>
                 <Space orientation="vertical" size="middle">
                     <Flex align="center" justify="space-between" gap={24}>
-                        <Input
-                            placeholder="Search by title or slug"
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            style={{ width: 500 }}
-                            autoFocus
-                        />
+                        <Space size="middle">
+                            <Input
+                                placeholder="Search by title or slug"
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                style={{ width: 500 }}
+                                autoFocus
+                            />
+                            <Checkbox
+                                checked={showOnlyPublished}
+                                onChange={(e) =>
+                                    setShowOnlyPublished(e.target.checked)
+                                }
+                            >
+                                Show only published
+                            </Checkbox>
+                        </Space>
                         <Space>
                             <a
                                 href={urljoin(
