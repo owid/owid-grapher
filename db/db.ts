@@ -1263,12 +1263,11 @@ export const getResearchAndWritingOrphans = async (
                 authors: parseAuthorsColumn(article.authors),
                 publishedAt: article.publishedAt,
             }))
-            .sort(
-                (a, b) =>
-                    (a.publishedAt ? new Date(a.publishedAt).getTime() : 0) <
-                    (b.publishedAt ? new Date(b.publishedAt).getTime() : 0)
-                        ? 1
-                        : -1
+            .sort((a, b) =>
+                (a.publishedAt ? new Date(a.publishedAt).getTime() : 0) <
+                (b.publishedAt ? new Date(b.publishedAt).getTime() : 0)
+                    ? 1
+                    : -1
             )
 
         if (!orphans.length) continue

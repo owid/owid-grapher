@@ -86,9 +86,7 @@ function OrphanTable({
     )
 }
 
-function topicPanelHeader(
-    report: TopicPageOrphanReport
-): React.ReactElement {
+function topicPanelHeader(report: TopicPageOrphanReport): React.ReactElement {
     return (
         <div className="OrphanedArticlesIndexPage__topic-header">
             <span className="OrphanedArticlesIndexPage__topic-name">
