@@ -10,6 +10,7 @@ export const ExpandableToggle = ({
     isExpandedDefault = false,
     isStacked = false,
     hasTeaser = false,
+    contentId,
 }: {
     label: string
     content?: ReactNode
@@ -17,6 +18,7 @@ export const ExpandableToggle = ({
     isExpandedDefault?: boolean
     isStacked?: boolean
     hasTeaser?: boolean
+    contentId?: string
 }) => (
     <details
         className={cx("ExpandableToggle", {
@@ -55,6 +57,8 @@ export const ExpandableToggle = ({
                 </div>
             )}
         </summary>
-        <div className="ExpandableToggle__content">{content}</div>
+        <div className="ExpandableToggle__content" id={contentId}>
+            {content}
+        </div>
     </details>
 )
