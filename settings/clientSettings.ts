@@ -70,7 +70,10 @@ export const DONATE_API_URL: string =
     process.env.DONATE_API_URL ?? "http://localhost:8788/donation/donate"
 
 export const TURNSTILE_SITE_KEY: string =
-    process.env.TURNSTILE_SITE_KEY ?? "0x4AAAAAADh7N4W5ajeRXkYb"
+    process.env.TURNSTILE_SITE_KEY ??
+    (ENV === "development"
+        ? "1x00000000000000000000AA" // Test key, always passes.
+        : "0x4AAAAAADh7N4W5ajeRXkYb")
 
 // e.g. "GTM-N2D4V8S" (our production GTM container)
 export const GOOGLE_TAG_MANAGER_ID: string =

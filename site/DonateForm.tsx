@@ -1,5 +1,5 @@
 import * as React from "react"
-import { Turnstile, type TurnstileInstance } from "@marsidev/react-turnstile"
+import { Turnstile } from "@marsidev/react-turnstile"
 import * as Sentry from "@sentry/react"
 import cx from "classnames"
 import { observable, action, computed, makeObservable } from "mobx"
@@ -119,12 +119,10 @@ export class DonateForm extends React.Component<{ countryCode?: string }> {
     name: string = ""
     showOnList: boolean = true
     subscribeToDonorNewsletter: boolean = true
+    captchaToken: string | undefined = undefined
     errorMessage: string | undefined = undefined
     isSubmitting: boolean = false
-    isLoading: boolean = true
     currencyCode: DonationCurrencyCode = "GBP"
-
-    turnstileRef = React.createRef<TurnstileInstance>()
 
     constructor(props: { countryCode?: string }) {
         super(props)
@@ -136,9 +134,9 @@ export class DonateForm extends React.Component<{ countryCode?: string }> {
             name: observable,
             showOnList: observable,
             subscribeToDonorNewsletter: observable,
+            captchaToken: observable,
             errorMessage: observable,
             isSubmitting: observable,
-            isLoading: observable,
             currencyCode: observable,
         })
     }
@@ -230,7 +228,12 @@ export class DonateForm extends React.Component<{ countryCode?: string }> {
         if (errorMessage) throw new Error(errorMessage)
 
         // Get the CAPTCHA token once the request body is validated.
-        const captchaToken = await this.getCaptchaToken()
+        const captchaToken = this.captchaToken
+        if (!captchaToken) {
+            // This should never happen, because we don't allow submitting the
+            // form when the token is not set.
+            throw new Error("Missing captcha token")
+        }
 
         const requestBody: DonationRequest = {
             ...requestBodyForClientSideValidation,
@@ -260,18 +263,8 @@ export class DonateForm extends React.Component<{ countryCode?: string }> {
         window.location.href = session.url
     }
 
-    @bind async getCaptchaToken() {
-        const turnstile = this.turnstileRef.current
-        if (!turnstile) {
-            throw new Error(`Could not load Turnstile. ${PLEASE_TRY_AGAIN}`)
-        }
-        turnstile.reset()
-        turnstile.execute()
-        return turnstile.getResponsePromise()
-    }
-
-    @bind onCaptchaLoad() {
-        this.isLoading = false
+    @bind onCaptchaSuccess(token: string) {
+        this.captchaToken = token
     }
 
     @bind onCaptchaError(errorCode: string) {
@@ -295,6 +288,11 @@ export class DonateForm extends React.Component<{ countryCode?: string }> {
                     `An unexpected error occurred. ${PLEASE_TRY_AGAIN}`
                 )
         }
+    }
+
+    @bind onCaptchaTimeout() {
+        this.captchaToken = undefined
+        this.setErrorMessage(`Security check timed out. ${PLEASE_TRY_AGAIN}`)
     }
 
     @bind async onSubmit(event: React.SubmitEvent<HTMLFormElement>) {
@@ -477,15 +475,14 @@ export class DonateForm extends React.Component<{ countryCode?: string }> {
                 )}
 
                 <Turnstile
-                    ref={this.turnstileRef}
                     siteKey={TURNSTILE_SITE_KEY}
                     options={{
                         action: "donate",
-                        execution: "execute",
                         appearance: "interaction-only",
                     }}
-                    onWidgetLoad={this.onCaptchaLoad}
+                    onSuccess={this.onCaptchaSuccess}
                     onError={this.onCaptchaError}
+                    onTimeout={this.onCaptchaTimeout}
                 />
                 <div className="donation-payment">
                     <button
@@ -494,7 +491,7 @@ export class DonateForm extends React.Component<{ countryCode?: string }> {
                         className={cx("donation-submit", {
                             "donation-submit--light": this.isUsa,
                         })}
-                        disabled={this.isLoading || this.isSubmitting}
+                        disabled={!this.captchaToken || this.isSubmitting}
                         onClick={() => analytics.logSiteClick("donate-now")}
                     >
                         Donate now
