@@ -31,13 +31,16 @@ export function getSexNoun(sexAdjective: string | undefined): string {
         .otherwise(() => "people")
 }
 
-export const formatPeople = (v: number, opts?: { unit?: boolean }): string =>
-    formatValue(v, {
+export const formatPeople = (v: number, opts?: { unit?: boolean }): string => {
+    if (v < 10) return parseInt(v.toString()).toString() // show small numbers without trailing zeros, e.g. "5" instead of "5.0"
+
+    return formatValue(v, {
         unit: opts?.unit === false ? undefined : "people",
         numberAbbreviation: "long",
         roundingMode: OwidVariableRoundingMode.significantFigures,
         numSignificantFigures: 2,
     })
+}
 
 export function formatShare(share: number): string {
     const pct = share * 100

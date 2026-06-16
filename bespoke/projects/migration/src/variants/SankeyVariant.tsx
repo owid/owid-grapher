@@ -392,7 +392,7 @@ function filterRows(
     sex: Sex
 ): MigrationFlow[] {
     return rows
-        .filter((r) => r.year === year && r.sex === sex)
+        .filter((r) => r.year === year && r.sex === sex && r.value > 0)
         .map((r) => ({ partner: r.partner, value: r.value }))
 }
 
