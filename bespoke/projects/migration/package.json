@@ -41,8 +41,8 @@
         "vite-plugin-css-position": "^2.0.9"
     },
     "devDependencies": {
-        "@rollup/plugin-swc": "^0.4.0",
-        "@swc/core": "^1.15.21",
+        "@rollup/plugin-swc": "^0.4.1",
+        "@swc/core": "^1.15.41",
         "@types/d3-dsv": "^3.0.7",
         "@types/d3-sankey": "^0.12.5",
         "@types/react": "^19.2.14",
