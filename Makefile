@@ -161,6 +161,9 @@ refresh.atomic:
 	@echo '==> Downloading chart data'
 	./devTools/docker/download-grapher-metadata-mysql.sh
 
+	@echo '==> Downloading private sidecar dump'
+	./devTools/docker/download-grapher-private-mysql.sh
+
 	@echo '==> Updating grapher database (atomic swap)'
 	DATA_FOLDER=tmp-downloads ./devTools/docker/atomic-grapher-data.sh
 
