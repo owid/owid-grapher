@@ -21,7 +21,6 @@ import {
 import {
     ADMIN_BASE_URL,
     BAKED_GRAPHER_URL,
-    RECAPTCHA_SITE_KEY,
     GRAPHER_DYNAMIC_THUMBNAIL_URL,
     CLOUDFLARE_IMAGES_URL,
 } from "../settings/clientSettings.js"
@@ -212,11 +211,7 @@ export const renderDonatePage = async (knex: KnexReadonlyTransaction) => {
         )
 
     return renderToHtmlPage(
-        <DonatePage
-            baseUrl={BAKED_BASE_URL}
-            faqsGdoc={faqsGdoc}
-            recaptchaKey={RECAPTCHA_SITE_KEY}
-        />
+        <DonatePage baseUrl={BAKED_BASE_URL} faqsGdoc={faqsGdoc} />
     )
 }
 
