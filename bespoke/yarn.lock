@@ -298,7 +298,7 @@ __metadata:
     "@types/d3": "npm:^7.4.3"
     "@types/react": "npm:^19.2.14"
     "@types/react-dom": "npm:^19.2.3"
-    "@typescript/native-preview": "npm:^7.0.0-dev.20260313.1"
+    "@typescript/native-preview": "npm:^7.0.0-dev.20260613.1"
     "@vitejs/plugin-react": "npm:^6.0.2"
     classnames: "npm:^2.5.1"
     d3: "npm:^7.9.0"
@@ -326,7 +326,7 @@ __metadata:
     "@ourworldindata/types": "link:../../packages/@ourworldindata/types"
     "@ourworldindata/utils": "link:../../packages/@ourworldindata/utils"
     "@types/d3-sankey": "npm:^0.12.5"
-    "@typescript/native-preview": "npm:^7.0.0-dev.20260401.1"
+    "@typescript/native-preview": "npm:^7.0.0-dev.20260613.1"
     "@visx/drag": "npm:^3.12.0"
     classnames: "npm:^2.5.1"
     d3-sankey: "npm:^0.12.3"
@@ -356,7 +356,7 @@ __metadata:
     "@types/lodash-es": "npm:^4.17.12"
     "@types/react": "npm:^19.2.14"
     "@types/react-dom": "npm:^19.2.3"
-    "@typescript/native-preview": "npm:^7.0.0-dev.20260313.1"
+    "@typescript/native-preview": "npm:^7.0.0-dev.20260613.1"
     "@visx/axis": "npm:^3.12.0"
     "@visx/event": "npm:^3.3.0"
     "@visx/group": "npm:^3.12.0"
@@ -396,7 +396,7 @@ __metadata:
     "@swc/core": "npm:^1.15.41"
     "@types/react": "npm:^19.2.14"
     "@types/react-dom": "npm:^19.2.3"
-    "@typescript/native-preview": "npm:^7.0.0-dev.20260313.1"
+    "@typescript/native-preview": "npm:^7.0.0-dev.20260613.1"
     "@visx/group": "npm:^3.12.0"
     "@visx/responsive": "npm:^3.12.0"
     "@vitejs/plugin-react": "npm:^6.0.2"
@@ -430,7 +430,7 @@ __metadata:
     "@types/d3-sankey": "npm:^0.12.5"
     "@types/react": "npm:^19.2.14"
     "@types/react-dom": "npm:^19.2.3"
-    "@typescript/native-preview": "npm:^7.0.0-dev.20260313.1"
+    "@typescript/native-preview": "npm:^7.0.0-dev.20260613.1"
     "@visx/drag": "npm:^3.12.0"
     "@visx/group": "npm:^3.12.0"
     "@visx/responsive": "npm:^3.12.0"
@@ -459,7 +459,7 @@ __metadata:
   dependencies:
     "@ourworldindata/utils": "link:../../packages/@ourworldindata/utils"
     "@tanstack/react-query": "npm:^5.100.9"
-    "@typescript/native-preview": "npm:^7.0.0-dev.20260401.1"
+    "@typescript/native-preview": "npm:^7.0.0-dev.20260613.1"
     nuqs: "npm:^2.8.9"
     react: "npm:^19.2.4"
   languageName: unknown
@@ -485,7 +485,7 @@ __metadata:
     "@types/d3-sankey": "npm:^0.12.5"
     "@types/react": "npm:^19.2.14"
     "@types/react-dom": "npm:^19.2.3"
-    "@typescript/native-preview": "npm:^7.0.0-dev.20260313.1"
+    "@typescript/native-preview": "npm:^7.0.0-dev.20260613.1"
     "@visx/drag": "npm:^3.12.0"
     "@visx/group": "npm:^3.12.0"
     "@visx/responsive": "npm:^3.12.0"
@@ -1461,66 +1461,66 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@typescript/native-preview-darwin-arm64@npm:7.0.0-dev.20260527.2":
-  version: 7.0.0-dev.20260527.2
-  resolution: "@typescript/native-preview-darwin-arm64@npm:7.0.0-dev.20260527.2"
+"@typescript/native-preview-darwin-arm64@npm:7.0.0-dev.20260613.1":
+  version: 7.0.0-dev.20260613.1
+  resolution: "@typescript/native-preview-darwin-arm64@npm:7.0.0-dev.20260613.1"
   conditions: os=darwin & cpu=arm64
   languageName: node
   linkType: hard
 
-"@typescript/native-preview-darwin-x64@npm:7.0.0-dev.20260527.2":
-  version: 7.0.0-dev.20260527.2
-  resolution: "@typescript/native-preview-darwin-x64@npm:7.0.0-dev.20260527.2"
+"@typescript/native-preview-darwin-x64@npm:7.0.0-dev.20260613.1":
+  version: 7.0.0-dev.20260613.1
+  resolution: "@typescript/native-preview-darwin-x64@npm:7.0.0-dev.20260613.1"
   conditions: os=darwin & cpu=x64
   languageName: node
   linkType: hard
 
-"@typescript/native-preview-linux-arm64@npm:7.0.0-dev.20260527.2":
-  version: 7.0.0-dev.20260527.2
-  resolution: "@typescript/native-preview-linux-arm64@npm:7.0.0-dev.20260527.2"
+"@typescript/native-preview-linux-arm64@npm:7.0.0-dev.20260613.1":
+  version: 7.0.0-dev.20260613.1
+  resolution: "@typescript/native-preview-linux-arm64@npm:7.0.0-dev.20260613.1"
   conditions: os=linux & cpu=arm64
   languageName: node
   linkType: hard
 
-"@typescript/native-preview-linux-arm@npm:7.0.0-dev.20260527.2":
-  version: 7.0.0-dev.20260527.2
-  resolution: "@typescript/native-preview-linux-arm@npm:7.0.0-dev.20260527.2"
+"@typescript/native-preview-linux-arm@npm:7.0.0-dev.20260613.1":
+  version: 7.0.0-dev.20260613.1
+  resolution: "@typescript/native-preview-linux-arm@npm:7.0.0-dev.20260613.1"
   conditions: os=linux & cpu=arm
   languageName: node
   linkType: hard
 
-"@typescript/native-preview-linux-x64@npm:7.0.0-dev.20260527.2":
-  version: 7.0.0-dev.20260527.2
-  resolution: "@typescript/native-preview-linux-x64@npm:7.0.0-dev.20260527.2"
+"@typescript/native-preview-linux-x64@npm:7.0.0-dev.20260613.1":
+  version: 7.0.0-dev.20260613.1
+  resolution: "@typescript/native-preview-linux-x64@npm:7.0.0-dev.20260613.1"
   conditions: os=linux & cpu=x64
   languageName: node
   linkType: hard
 
-"@typescript/native-preview-win32-arm64@npm:7.0.0-dev.20260527.2":
-  version: 7.0.0-dev.20260527.2
-  resolution: "@typescript/native-preview-win32-arm64@npm:7.0.0-dev.20260527.2"
+"@typescript/native-preview-win32-arm64@npm:7.0.0-dev.20260613.1":
+  version: 7.0.0-dev.20260613.1
+  resolution: "@typescript/native-preview-win32-arm64@npm:7.0.0-dev.20260613.1"
   conditions: os=win32 & cpu=arm64
   languageName: node
   linkType: hard
 
-"@typescript/native-preview-win32-x64@npm:7.0.0-dev.20260527.2":
-  version: 7.0.0-dev.20260527.2
-  resolution: "@typescript/native-preview-win32-x64@npm:7.0.0-dev.20260527.2"
+"@typescript/native-preview-win32-x64@npm:7.0.0-dev.20260613.1":
+  version: 7.0.0-dev.20260613.1
+  resolution: "@typescript/native-preview-win32-x64@npm:7.0.0-dev.20260613.1"
   conditions: os=win32 & cpu=x64
   languageName: node
   linkType: hard
 
-"@typescript/native-preview@npm:^7.0.0-dev.20260313.1, @typescript/native-preview@npm:^7.0.0-dev.20260401.1":
-  version: 7.0.0-dev.20260527.2
-  resolution: "@typescript/native-preview@npm:7.0.0-dev.20260527.2"
+"@typescript/native-preview@npm:^7.0.0-dev.20260613.1":
+  version: 7.0.0-dev.20260613.1
+  resolution: "@typescript/native-preview@npm:7.0.0-dev.20260613.1"
   dependencies:
-    "@typescript/native-preview-darwin-arm64": "npm:7.0.0-dev.20260527.2"
-    "@typescript/native-preview-darwin-x64": "npm:7.0.0-dev.20260527.2"
-    "@typescript/native-preview-linux-arm": "npm:7.0.0-dev.20260527.2"
-    "@typescript/native-preview-linux-arm64": "npm:7.0.0-dev.20260527.2"
-    "@typescript/native-preview-linux-x64": "npm:7.0.0-dev.20260527.2"
-    "@typescript/native-preview-win32-arm64": "npm:7.0.0-dev.20260527.2"
-    "@typescript/native-preview-win32-x64": "npm:7.0.0-dev.20260527.2"
+    "@typescript/native-preview-darwin-arm64": "npm:7.0.0-dev.20260613.1"
+    "@typescript/native-preview-darwin-x64": "npm:7.0.0-dev.20260613.1"
+    "@typescript/native-preview-linux-arm": "npm:7.0.0-dev.20260613.1"
+    "@typescript/native-preview-linux-arm64": "npm:7.0.0-dev.20260613.1"
+    "@typescript/native-preview-linux-x64": "npm:7.0.0-dev.20260613.1"
+    "@typescript/native-preview-win32-arm64": "npm:7.0.0-dev.20260613.1"
+    "@typescript/native-preview-win32-x64": "npm:7.0.0-dev.20260613.1"
   dependenciesMeta:
     "@typescript/native-preview-darwin-arm64":
       optional: true
@@ -1538,7 +1538,7 @@ __metadata:
       optional: true
   bin:
     tsgo: bin/tsgo.js
-  checksum: 10/831a30c56a78bd1f18b35a2b2d941e476adce608f63ce2ecd24d56e6b93c6010966bd633eb58cf4f14dd1026f95210e84706add041d383d995446c3da0740266
+  checksum: 10/abcbf1a773a00c94bdbec0fb0989a49367d875ead67c80f9cf3588f3c3b593fb16f1e9182389bb9aa26bc9348e6f151eaa09c3ec80171415d785905ce40a1048
   languageName: node
   linkType: hard
 
