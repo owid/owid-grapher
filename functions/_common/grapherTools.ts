@@ -417,13 +417,13 @@ export function rewriteMetaTags(
                     try {
                         const searchParams = url.searchParams
                         const newSearchParams = new URLSearchParams()
-                        // Ensure that the dimensions are set in dimension order, so we always have a consistent order.
                         for (const [dim, defaultChoice] of Object.entries(
                             mdimDimensionsObj
                         )) {
                             const value = searchParams.get(dim) ?? defaultChoice
                             newSearchParams.set(dim, value)
                         }
+                        newSearchParams.sort() // Sort parameters for consistent ordering in the URL
                         if (newSearchParams.toString()) {
                             element.setAttribute(
                                 "href",
