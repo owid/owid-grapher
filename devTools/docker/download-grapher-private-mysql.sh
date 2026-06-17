@@ -18,6 +18,11 @@ FOLDER="${DATA_FOLDER:-./tmp-downloads}"
 
 mkdir -p $FOLDER
 
+# Start clean so a run without access can't silently import a stale dump left
+# by an earlier run. This sidecar carries admin_api_keys, so a rotated/revoked
+# key hash must never linger — "no access" must really mean "tables stay empty".
+rm -f "$FOLDER/owid_private.sql.gz"
+
 if [[ -n "${OWID_PRIVATE_DUMP_URL:-}" ]]; then
     echo "Downloading private dump (owid_private) from \$OWID_PRIVATE_DUMP_URL"
     curl -fLo $FOLDER/owid_private.sql.gz "$OWID_PRIVATE_DUMP_URL"
