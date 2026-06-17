@@ -3,7 +3,7 @@ import {
     BAKED_BASE_URL,
     BAKED_GRAPHER_URL,
 } from "../settings/serverSettings.js"
-import { dayjs, countries, getEntitiesForProfile } from "@ourworldindata/utils"
+import { dayjs, getEntitiesForProfile } from "@ourworldindata/utils"
 import {
     DbPlainChart,
     DbPlainSlideshow,
@@ -148,16 +148,9 @@ export const makeSitemap = async (
         }))
     })
 
-    let urls = countries.map((c) => ({
-        loc: urljoin(BAKED_BASE_URL, "country", c.slug),
-    })) as SitemapUrl[]
-
-    urls = urls
-        .concat(
-            ...STATIC_PAGES.map((path) => {
-                return [{ loc: urljoin(BAKED_BASE_URL, path) }]
-            })
-        )
+    const urls: SitemapUrl[] = STATIC_PAGES.map((path) => ({
+        loc: urljoin(BAKED_BASE_URL, path),
+    }))
         .concat(
             gdocPosts.map((p) => ({
                 loc: urljoin(BAKED_BASE_URL, p.slug),
