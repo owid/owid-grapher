@@ -3,6 +3,15 @@
 // "Related charts" heading, and the restyled Research & Writing wrapper. The
 // metadata box itself lives in IndicatorMetadataBox.scss.
 
+// Disable scroll anchoring across the datapage content region. The metadata box
+// is full of nested <details>/ExpandableToggle elements; when one expands, the
+// browser's scroll anchor can land on a section below it (search, related
+// charts, etc.) and shift scrollY to "expand up". Opting the whole region out of
+// anchoring makes every expansion push content down with scrollY preserved.
+.DataPageContent {
+    overflow-anchor: none;
+}
+
 .datapage-search-wrapper {
     margin-bottom: 16px;
     background-color: $blue-5;

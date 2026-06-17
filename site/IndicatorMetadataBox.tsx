@@ -141,6 +141,25 @@ function ExpandableSection({
 
     const faqQuestions = groupFaqsByQuestion(faqEntries?.faqs ?? [])
 
+    // The "Show less" summary sits at the bottom of the expanded content (it has
+    // order: 1 in the flex column), so collapsing removes a large chunk of height
+    // above the control. With scroll anchoring disabled on the datapage, the
+    // viewport would stay put and "Show more" would jump upwards. To keep it
+    // under the cursor, we collapse the details ourselves and scroll by however
+    // far the summary moved. (The top-right "Show less" button closes the details
+    // directly, bypassing this, which is intended — pinning only matters here.)
+    const summaryRef = useRef<HTMLElement>(null)
+    const handleSummaryClick = (event: React.MouseEvent<HTMLElement>) => {
+        const details = detailsRef.current
+        const summary = summaryRef.current
+        if (!details?.open || !summary) return // expanding — let the native toggle run
+        event.preventDefault()
+        const before = summary.getBoundingClientRect().top
+        details.open = false
+        const after = summary.getBoundingClientRect().top
+        window.scrollBy(0, after - before)
+    }
+
     return (
         <div className={cx("meta-expander", className)}>
             {preview.length > 0 && (
@@ -153,7 +172,11 @@ function ExpandableSection({
                 </ul>
             )}
             <details className="meta-expander__details" ref={detailsRef}>
-                <summary className="meta-expander__summary">
+                <summary
+                    className="meta-expander__summary"
+                    ref={summaryRef}
+                    onClick={handleSummaryClick}
+                >
                     <span className="meta-expander__show-more">
                         Show more{" "}
                         <FontAwesomeIcon
