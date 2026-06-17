@@ -263,11 +263,13 @@ export class DonateForm extends React.Component<{ countryCode?: string }> {
         window.location.href = session.url
     }
 
-    @bind onCaptchaSuccess(token: string) {
+    @action.bound onCaptchaSuccess(token: string) {
         this.captchaToken = token
     }
 
-    @bind onCaptchaError(errorCode: string) {
+    @action.bound onCaptchaError(errorCode: string) {
+        this.captchaToken = undefined
+
         // https://developers.cloudflare.com/turnstile/troubleshooting/client-side-errors/error-codes/
         const errorCodeNumber = Number(errorCode)
         const errorFamily = Math.floor(errorCodeNumber / 1000)
@@ -290,9 +292,8 @@ export class DonateForm extends React.Component<{ countryCode?: string }> {
         }
     }
 
-    @bind onCaptchaTimeout() {
+    @action.bound onCaptchaExpire() {
         this.captchaToken = undefined
-        this.setErrorMessage(`Security check timed out. ${PLEASE_TRY_AGAIN}`)
     }
 
     @bind async onSubmit(event: React.SubmitEvent<HTMLFormElement>) {
@@ -482,7 +483,7 @@ export class DonateForm extends React.Component<{ countryCode?: string }> {
                     }}
                     onSuccess={this.onCaptchaSuccess}
                     onError={this.onCaptchaError}
-                    onTimeout={this.onCaptchaTimeout}
+                    onExpire={this.onCaptchaExpire}
                 />
                 <div className="donation-payment">
                     <button
