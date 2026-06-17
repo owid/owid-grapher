@@ -137,8 +137,13 @@ export async function getEnrichedStaticVizById(
 export async function getEnrichedStaticVizList(
     trx: db.KnexReadonlyTransaction
 ): Promise<DbEnrichedStaticViz[]> {
-    const vizList = await db.knexRaw<StaticVizRow>(trx, BASE_STATIC_VIZ_QUERY)
-    return vizList.map(rowToEnrichedStaticViz)
+    return db.cachedInTransaction(trx, "enrichedStaticVizList", async () => {
+        const vizList = await db.knexRaw<StaticVizRow>(
+            trx,
+            BASE_STATIC_VIZ_QUERY
+        )
+        return vizList.map(rowToEnrichedStaticViz)
+    })
 }
 
 /**

@@ -1143,16 +1143,13 @@ export class GdocBase implements OwidGdocBaseInterface {
             getAllNarrativeChartNames(knex),
             getDods(knex).then((dods) => indexBy(dods, (dod) => dod.name)),
             getEnrichedStaticVizList(knex),
-            getMultiDimRedirectTargets(
-                knex,
-                this.linkedChartSlugs.grapher,
-                "/grapher/"
-            ),
-            getMultiDimRedirectTargets(
-                knex,
-                this.linkedChartSlugs.explorer,
-                "/explorers/"
-            ),
+            // Fetch the full (gdoc-independent) redirect maps so the result is
+            // cached for the whole transaction. Passing the gdoc's own slugs
+            // would issue an uncached query per gdoc during baking; the full
+            // maps are supersets keyed identically, so the .get(link.target)
+            // lookups below are unchanged.
+            getMultiDimRedirectTargets(knex, undefined, "/grapher/"),
+            getMultiDimRedirectTargets(knex, undefined, "/explorers/"),
         ])
 
         const linkErrors: OwidGdocErrorMessage[] = []

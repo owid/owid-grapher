@@ -47,6 +47,27 @@ export async function getMultiDimRedirectTargets(
     const redirectMap = new Map<string, MultiDimRedirectTarget>()
     if (slugs && slugs.length === 0) return redirectMap
 
+    // When fetching all redirects for a prefix (slugs === undefined), cache the
+    // result for the lifetime of the transaction. This is the gdoc-independent
+    // case used during baking (validate() of every gdoc), so caching it avoids
+    // re-running the query once per gdoc.
+    if (!slugs) {
+        return db.cachedInTransaction(
+            knex,
+            `multiDimRedirectTargets:${sourcePrefix}`,
+            () => fetchMultiDimRedirectTargets(knex, undefined, sourcePrefix)
+        )
+    }
+    return fetchMultiDimRedirectTargets(knex, slugs, sourcePrefix)
+}
+
+async function fetchMultiDimRedirectTargets(
+    knex: db.KnexReadonlyTransaction,
+    slugs: string[] | undefined,
+    sourcePrefix: MultiDimRedirectSourcePrefix
+): Promise<Map<string, MultiDimRedirectTarget>> {
+    const redirectMap = new Map<string, MultiDimRedirectTarget>()
+
     let whereClause: string
     let params: string[]
     if (!slugs) {
