@@ -24,18 +24,18 @@
         "classnames": "^2.5.1",
         "jotai": "^2.20.1",
         "normalize.css": "^8.0.1",
-        "react": "^19.2.4",
-        "react-dom": "^19.2.4",
+        "react": "^19.2.7",
+        "react-dom": "^19.2.7",
         "vite-plugin-css-position": "^2.0.9"
     },
     "devDependencies": {
         "@rollup/plugin-swc": "^0.4.1",
         "@swc/core": "^1.15.41",
-        "@types/react": "^19.2.14",
+        "@types/react": "^19.2.17",
         "@types/react-dom": "^19.2.3",
         "@typescript/native-preview": "^7.0.0-dev.20260613.1",
         "@vitejs/plugin-react": "^6.0.2",
-        "sass": "^1.87.0",
+        "sass": "^1.101.0",
         "vite": "^8.0.16"
     }
 }

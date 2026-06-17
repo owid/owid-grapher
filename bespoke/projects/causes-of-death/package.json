@@ -25,19 +25,19 @@
         "classnames": "^2.5.1",
         "d3": "^7.9.0",
         "normalize.css": "^8.0.1",
-        "react": "^19.2.4",
-        "react-dom": "^19.2.4",
+        "react": "^19.2.7",
+        "react-dom": "^19.2.7",
         "remeda": "^2.39.0",
         "ts-pattern": "^5.9.0",
         "vite-plugin-css-position": "^2.0.9"
     },
     "devDependencies": {
         "@types/d3": "^7.4.3",
-        "@types/react": "^19.2.14",
+        "@types/react": "^19.2.17",
         "@types/react-dom": "^19.2.3",
         "@typescript/native-preview": "^7.0.0-dev.20260613.1",
         "@vitejs/plugin-react": "^6.0.2",
-        "sass": "^1.87.0",
+        "sass": "^1.101.0",
         "vite": "^8.0.16",
         "vitest": "^4.1.8"
     }
