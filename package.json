@@ -221,7 +221,7 @@
         "oxfmt": "^0.53.0",
         "oxlint": "^1.68.0",
         "oxlint-tsgolint": "^0.23.0",
-        "playwright-bdd": "^9.0.0",
+        "playwright-bdd": "^9.1.0",
         "sass": "^1.89.2",
         "schema-dts": "^2.0.0",
         "topojson-server": "^3.0.1",

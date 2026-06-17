@@ -8953,7 +8953,7 @@ __metadata:
     oxlint-tsgolint: "npm:^0.23.0"
     p-map: "npm:^7.0.3"
     papaparse: "npm:^5.5.3"
-    playwright-bdd: "npm:^9.0.0"
+    playwright-bdd: "npm:^9.1.0"
     polylabel: "npm:^2.0.1"
     progress: "npm:^2.0.3"
     react: "npm:^19.2.4"
@@ -11660,9 +11660,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"playwright-bdd@npm:^9.0.0":
-  version: 9.0.0
-  resolution: "playwright-bdd@npm:9.0.0"
+"playwright-bdd@npm:^9.1.0":
+  version: 9.1.0
+  resolution: "playwright-bdd@npm:9.1.0"
   dependencies:
     "@cucumber/cucumber-expressions": "npm:19.0.0"
     "@cucumber/gherkin": "npm:^39.1.0"
@@ -11675,12 +11675,12 @@ __metadata:
     cli-table3: "npm:0.6.5"
     commander: "npm:^13.1.0"
     mime-types: "npm:^3.0.2"
-    tinyglobby: "npm:0.2.16"
+    tinyglobby: "npm:0.2.17"
   peerDependencies:
     "@playwright/test": ">=1.44"
   bin:
     bddgen: dist/cli/index.js
-  checksum: 10/77a95fe7777de89e3c0aa23f560939ba8937f74530c61f3eee879d6b6d6fd8342e201296c57e43ce3575216cadf1a2350d6be984d5410ae0690460b2e6e2b2f6
+  checksum: 10/bf326826ea7d53c00d155e036f6bc5ced21c0336e2bd341de0ca2a17603bc5f3410f65a248dd8990055b1ebedc985f17cbe38ab40f97904dd9b946417ff6166e
   languageName: node
   linkType: hard
 
@@ -13395,17 +13395,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tinyglobby@npm:0.2.16":
-  version: 0.2.16
-  resolution: "tinyglobby@npm:0.2.16"
-  dependencies:
-    fdir: "npm:^6.5.0"
-    picomatch: "npm:^4.0.4"
-  checksum: 10/5c2c41b572ada38449e7c86a5fe034f204a1dbba577225a761a14f29f48dc3f2fc0d81a6c56fcc67c5a742cc3aa9fb5e2ca18dbf22b610b0bc0e549b34d5a0f8
-  languageName: node
-  linkType: hard
-
-"tinyglobby@npm:^0.2.12, tinyglobby@npm:^0.2.15, tinyglobby@npm:^0.2.16, tinyglobby@npm:^0.2.17":
+"tinyglobby@npm:0.2.17, tinyglobby@npm:^0.2.12, tinyglobby@npm:^0.2.15, tinyglobby@npm:^0.2.16, tinyglobby@npm:^0.2.17":
   version: 0.2.17
   resolution: "tinyglobby@npm:0.2.17"
   dependencies:
