@@ -308,7 +308,7 @@ __metadata:
     remeda: "npm:^2.21.0"
     sass: "npm:^1.87.0"
     ts-pattern: "npm:^5.7.1"
-    vite: "npm:^8.0.5"
+    vite: "npm:^8.0.16"
     vite-plugin-css-position: "npm:^2.0.9"
     vitest: "npm:^4.1.2"
   languageName: unknown
@@ -375,7 +375,7 @@ __metadata:
     remeda: "npm:^2.21.0"
     sass: "npm:^1.87.0"
     tippy.js: "npm:^6.3.7"
-    vite: "npm:^8.0.0"
+    vite: "npm:^8.0.16"
     vite-plugin-css-position: "npm:^2.0.9"
     vitest: "npm:^4.1.2"
   languageName: unknown
@@ -406,7 +406,7 @@ __metadata:
     react: "npm:^19.2.4"
     react-dom: "npm:^19.2.4"
     sass: "npm:^1.87.0"
-    vite: "npm:^8.0.5"
+    vite: "npm:^8.0.16"
     vite-plugin-css-position: "npm:^2.0.9"
   languageName: unknown
   linkType: soft
@@ -448,7 +448,7 @@ __metadata:
     remeda: "npm:^2.21.0"
     sass: "npm:^1.87.0"
     ts-pattern: "npm:^5.8.0"
-    vite: "npm:^8.0.5"
+    vite: "npm:^8.0.16"
     vite-plugin-css-position: "npm:^2.0.9"
   languageName: unknown
   linkType: soft
@@ -504,7 +504,7 @@ __metadata:
     remeda: "npm:^2.21.0"
     sass: "npm:^1.87.0"
     ts-pattern: "npm:^5.8.0"
-    vite: "npm:^8.0.5"
+    vite: "npm:^8.0.16"
     vite-plugin-css-position: "npm:^2.0.9"
   languageName: unknown
   linkType: soft
@@ -2977,7 +2977,7 @@ __metadata:
   dependencies:
     "@rollup/plugin-swc": "npm:^0.4.0"
     "@vitejs/plugin-react": "npm:^6.0.0"
-    vite: "npm:^8.0.5"
+    vite: "npm:^8.0.16"
     vitest: "npm:^4.1.2"
   languageName: unknown
   linkType: soft
@@ -3176,7 +3176,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vite@npm:^6.0.0 || ^7.0.0 || ^8.0.0, vite@npm:^8.0.0, vite@npm:^8.0.5":
+"vite@npm:^6.0.0 || ^7.0.0 || ^8.0.0":
   version: 8.0.15
   resolution: "vite@npm:8.0.15"
   dependencies:
@@ -3230,6 +3230,63 @@ __metadata:
   bin:
     vite: bin/vite.js
   checksum: 10/b130eb541caa794b81c1e584892e45e73f0e472871c010dd23cc376874e645e90267bcc9c6f73b5cd894594e4ba494a6e70c40c1e5ad9568a28834d416bf6b11
+  languageName: node
+  linkType: hard
+
+"vite@npm:^8.0.16":
+  version: 8.0.16
+  resolution: "vite@npm:8.0.16"
+  dependencies:
+    fsevents: "npm:~2.3.3"
+    lightningcss: "npm:^1.32.0"
+    picomatch: "npm:^4.0.4"
+    postcss: "npm:^8.5.15"
+    rolldown: "npm:1.0.3"
+    tinyglobby: "npm:^0.2.17"
+  peerDependencies:
+    "@types/node": ^20.19.0 || >=22.12.0
+    "@vitejs/devtools": ^0.1.18
+    esbuild: ^0.27.0 || ^0.28.0
+    jiti: ">=1.21.0"
+    less: ^4.0.0
+    sass: ^1.70.0
+    sass-embedded: ^1.70.0
+    stylus: ">=0.54.8"
+    sugarss: ^5.0.0
+    terser: ^5.16.0
+    tsx: ^4.8.1
+    yaml: ^2.4.2
+  dependenciesMeta:
+    fsevents:
+      optional: true
+  peerDependenciesMeta:
+    "@types/node":
+      optional: true
+    "@vitejs/devtools":
+      optional: true
+    esbuild:
+      optional: true
+    jiti:
+      optional: true
+    less:
+      optional: true
+    sass:
+      optional: true
+    sass-embedded:
+      optional: true
+    stylus:
+      optional: true
+    sugarss:
+      optional: true
+    terser:
+      optional: true
+    tsx:
+      optional: true
+    yaml:
+      optional: true
+  bin:
+    vite: bin/vite.js
+  checksum: 10/a5d91d26f6110672a292a06ca161af9a58279fe9d27106c8c0afb725a942b0b47091c440c3b1e7ebc8e0fe901f64ac6a2ffee3cdae2f899339686dbecd0c0266
   languageName: node
   linkType: hard
 
