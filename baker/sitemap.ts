@@ -6,10 +6,8 @@ import {
 import { dayjs, countries, getEntitiesForProfile } from "@ourworldindata/utils"
 import {
     DbPlainChart,
-    DbPlainMultiDimDataPage,
     DbPlainSlideshow,
     DbRawPostGdoc,
-    MultiDimDataPagesTableName,
     OwidGdocType,
     SlideshowsTableName,
 } from "@ourworldindata/types"
@@ -20,6 +18,7 @@ import {
 import * as db from "../db/db.js"
 import urljoin from "url-join"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
+import { getAllPublishedMultiDimDataPages } from "../db/model/MultiDimDataPage.js"
 
 import { getMinimalAuthors } from "../db/model/Gdoc/GdocAuthor.js"
 import {
@@ -86,14 +85,12 @@ async function getPublishedGdocPosts(knex: db.KnexReadonlyTransaction) {
     )
 }
 
-async function getPublishedMultiDims(knex: db.KnexReadonlyTransaction) {
-    // Published multi-dims must have a slug.
-    return knex<DbPlainMultiDimDataPage & { slug: string }>(
-        MultiDimDataPagesTableName
-    )
-        .select("slug", "updatedAt")
-        .where("published", true)
-        .orderBy("updatedAt", "desc")
+const MDIM_INDEX_INDIVIDUAL_VIEWS: Record<
+    string,
+    boolean | Record<string, string>
+> = {
+    "vaccination-coverage-who-unicef": true,
+    "years-of-schooling": { sex: "both" }, // only index all views with sex=both
 }
 
 export const makeSitemap = async (
@@ -129,7 +126,7 @@ export const makeSitemap = async (
     ]
 
     const explorers = await explorerAdminServer.getAllPublishedExplorers(knex)
-    const multiDims = await getPublishedMultiDims(knex)
+    const multiDims = await getAllPublishedMultiDimDataPages(knex)
     const slideshows = await knex<DbPlainSlideshow>(SlideshowsTableName)
         .select("slug", "updatedAt")
         .where("isPublished", 1)
@@ -181,10 +178,50 @@ export const makeSitemap = async (
         )
         .concat(explorers.map(explorerToSitemapUrl))
         .concat(
-            multiDims.map((multiDim) => ({
-                loc: urljoin(BAKED_GRAPHER_URL, multiDim.slug),
-                lastmod: dayjs(multiDim.updatedAt).format("YYYY-MM-DD"),
-            }))
+            multiDims.flatMap((multiDim) => {
+                const lastmod = dayjs(multiDim.updatedAt).format("YYYY-MM-DD")
+
+                const { slug, config } = multiDim
+                if (!slug) return []
+
+                const indexIndividualViews = MDIM_INDEX_INDIVIDUAL_VIEWS[slug]
+
+                if (!indexIndividualViews) {
+                    return [
+                        {
+                            loc: urljoin(BAKED_GRAPHER_URL, slug),
+                            lastmod,
+                        },
+                    ]
+                } else {
+                    return config.views.flatMap((view) => {
+                        if (
+                            typeof indexIndividualViews === "object" &&
+                            Object.entries(indexIndividualViews).some(
+                                ([dimension, value]) =>
+                                    view.dimensions[dimension] !== value
+                            )
+                        ) {
+                            return []
+                        }
+
+                        const searchParams = new URLSearchParams(
+                            view.dimensions
+                        )
+                        searchParams.sort()
+                        const queryStr = searchParams.toString()
+                        return [
+                            {
+                                loc: urljoin(
+                                    BAKED_GRAPHER_URL,
+                                    `${slug}?${queryStr}`
+                                ),
+                                lastmod,
+                            },
+                        ]
+                    })
+                }
+            })
         )
         .concat(
             authorPages.map((a) => ({

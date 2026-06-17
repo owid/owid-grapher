@@ -363,11 +363,20 @@ export function DataPageContent({
         !!grapherStateRef.current
     )
 
+    const fullTitle = useMemo(() => {
+        const grapherTitle = grapherCurrentTitle
+        if (!grapherTitle) return undefined
+        const mdimTitle = titleFragments
+            ? `${config.config.title.title} - ${titleFragments}`
+            : config.config.title.title
+        return `${grapherTitle} | ${mdimTitle} | Our World in Data`
+    }, [grapherCurrentTitle, titleFragments, config.config.title.title])
+
     useEffect(() => {
-        if (grapherCurrentTitle) {
-            document.title = grapherCurrentTitle
+        if (fullTitle) {
+            document.title = fullTitle
         }
-    }, [grapherCurrentTitle])
+    }, [fullTitle])
 
     const bounds = useElementBounds(grapherFigureRef)
 
