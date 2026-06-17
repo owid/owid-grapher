@@ -292,7 +292,7 @@ __metadata:
     "@ourworldindata/grapher": "link:../../../packages/@ourworldindata/grapher"
     "@ourworldindata/types": "link:../../../packages/@ourworldindata/types"
     "@ourworldindata/utils": "link:../../../packages/@ourworldindata/utils"
-    "@react-stately/flags": "npm:^3.1.2"
+    "@react-stately/flags": "npm:^3.2.1"
     "@rollup/plugin-swc": "npm:^0.4.0"
     "@tanstack/react-query": "npm:^5.90.6"
     "@types/d3": "npm:^7.4.3"
@@ -349,7 +349,7 @@ __metadata:
     "@ourworldindata/grapher": "link:../../../packages/@ourworldindata/grapher"
     "@ourworldindata/types": "link:../../../packages/@ourworldindata/types"
     "@ourworldindata/utils": "link:../../../packages/@ourworldindata/utils"
-    "@react-stately/flags": "npm:^3.1.2"
+    "@react-stately/flags": "npm:^3.2.1"
     "@rollup/plugin-swc": "npm:^0.4.0"
     "@tanstack/react-query": "npm:^5.90.6"
     "@types/d3-scale": "npm:^4.0.9"
@@ -369,8 +369,8 @@ __metadata:
     lodash-es: "npm:^4.17.21"
     normalize.css: "npm:^8.0.1"
     react: "npm:^19.2.4"
-    react-aria: "npm:^3.41.1"
-    react-aria-components: "npm:^1.8.0"
+    react-aria: "npm:^3.49.0"
+    react-aria-components: "npm:^1.18.0"
     react-dom: "npm:^19.2.4"
     remeda: "npm:^2.21.0"
     sass: "npm:^1.87.0"
@@ -391,7 +391,7 @@ __metadata:
     "@ourworldindata/components": "link:../../../packages/@ourworldindata/components"
     "@ourworldindata/grapher": "link:../../../packages/@ourworldindata/grapher"
     "@ourworldindata/utils": "link:../../../packages/@ourworldindata/utils"
-    "@react-stately/flags": "npm:^3.1.2"
+    "@react-stately/flags": "npm:^3.2.1"
     "@rollup/plugin-swc": "npm:^0.4.0"
     "@swc/core": "npm:^1.15.21"
     "@types/react": "npm:^19.2.14"
@@ -423,7 +423,7 @@ __metadata:
     "@ourworldindata/grapher": "link:../../../packages/@ourworldindata/grapher"
     "@ourworldindata/types": "link:../../../packages/@ourworldindata/types"
     "@ourworldindata/utils": "link:../../../packages/@ourworldindata/utils"
-    "@react-stately/flags": "npm:^3.1.2"
+    "@react-stately/flags": "npm:^3.2.1"
     "@rollup/plugin-swc": "npm:^0.4.0"
     "@swc/core": "npm:^1.15.21"
     "@tanstack/react-query": "npm:^5.100.9"
@@ -477,7 +477,7 @@ __metadata:
     "@ourworldindata/grapher": "link:../../../packages/@ourworldindata/grapher"
     "@ourworldindata/types": "link:../../../packages/@ourworldindata/types"
     "@ourworldindata/utils": "link:../../../packages/@ourworldindata/utils"
-    "@react-stately/flags": "npm:^3.1.2"
+    "@react-stately/flags": "npm:^3.2.1"
     "@rollup/plugin-swc": "npm:^0.4.0"
     "@swc/core": "npm:^1.15.21"
     "@tanstack/react-query": "npm:^5.100.9"
@@ -667,7 +667,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@react-stately/flags@npm:^3.1.2":
+"@react-stately/flags@npm:^3.2.1":
   version: 3.2.1
   resolution: "@react-stately/flags@npm:3.2.1"
   dependencies:
@@ -2794,7 +2794,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-aria-components@npm:^1.18.0, react-aria-components@npm:^1.8.0":
+"react-aria-components@npm:^1.18.0":
   version: 1.18.0
   resolution: "react-aria-components@npm:1.18.0"
   dependencies:
@@ -2811,7 +2811,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-aria@npm:3.49.0, react-aria@npm:^3.41.1, react-aria@npm:^3.49.0":
+"react-aria@npm:3.49.0, react-aria@npm:^3.49.0":
   version: 3.49.0
   resolution: "react-aria@npm:3.49.0"
   dependencies:
