@@ -85,6 +85,14 @@ async function getPublishedGdocPosts(knex: db.KnexReadonlyTransaction) {
     )
 }
 
+const MDIM_INDEX_INDIVIDUAL_VIEWS: Record<
+    string,
+    boolean | Record<string, string>
+> = {
+    "vaccination-coverage-who-unicef": true,
+    "years-of-schooling": { sex: "both" }, // only index all views with sex=both
+}
+
 export const makeSitemap = async (
     explorerAdminServer: ExplorerAdminServer,
     knex: db.KnexReadonlyTransaction
@@ -175,22 +183,44 @@ export const makeSitemap = async (
 
                 const { slug, config } = multiDim
                 if (!slug) return []
-                if (!config.views || !Array.isArray(config.views)) {
+
+                const indexIndividualViews = MDIM_INDEX_INDIVIDUAL_VIEWS[slug]
+
+                if (!indexIndividualViews) {
                     return [
                         {
                             loc: urljoin(BAKED_GRAPHER_URL, slug),
                             lastmod,
                         },
                     ]
+                } else {
+                    return config.views.flatMap((view) => {
+                        if (
+                            typeof indexIndividualViews === "object" &&
+                            Object.entries(indexIndividualViews).some(
+                                ([dimension, value]) =>
+                                    view.dimensions[dimension] !== value
+                            )
+                        ) {
+                            return []
+                        }
+
+                        const searchParams = new URLSearchParams(
+                            view.dimensions
+                        )
+                        searchParams.sort()
+                        const queryStr = searchParams.toString()
+                        return [
+                            {
+                                loc: urljoin(
+                                    BAKED_GRAPHER_URL,
+                                    `${slug}?${queryStr}`
+                                ),
+                                lastmod,
+                            },
+                        ]
+                    })
                 }
-                return config.views.map((view) => {
-                    const searchParams = new URLSearchParams(view.dimensions)
-                    const queryStr = searchParams.toString()
-                    return {
-                        loc: urljoin(BAKED_GRAPHER_URL, `${slug}?${queryStr}`),
-                        lastmod,
-                    }
-                })
             })
         )
         .concat(
