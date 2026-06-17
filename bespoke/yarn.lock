@@ -294,7 +294,7 @@ __metadata:
     "@ourworldindata/utils": "link:../../../packages/@ourworldindata/utils"
     "@react-stately/flags": "npm:^3.2.1"
     "@rollup/plugin-swc": "npm:^0.4.1"
-    "@tanstack/react-query": "npm:^5.90.6"
+    "@tanstack/react-query": "npm:^5.101.0"
     "@types/d3": "npm:^7.4.3"
     "@types/react": "npm:^19.2.14"
     "@types/react-dom": "npm:^19.2.3"
@@ -305,9 +305,9 @@ __metadata:
     normalize.css: "npm:^8.0.1"
     react: "npm:^19.2.4"
     react-dom: "npm:^19.2.4"
-    remeda: "npm:^2.21.0"
+    remeda: "npm:^2.39.0"
     sass: "npm:^1.87.0"
-    ts-pattern: "npm:^5.7.1"
+    ts-pattern: "npm:^5.9.0"
     vite: "npm:^8.0.16"
     vite-plugin-css-position: "npm:^2.0.9"
     vitest: "npm:^4.1.8"
@@ -332,8 +332,8 @@ __metadata:
     d3-sankey: "npm:^0.12.3"
     react: "npm:^19.2.4"
     react-aria-components: "npm:^1.18.0"
-    remeda: "npm:^2.21.0"
-    ts-pattern: "npm:^5.8.0"
+    remeda: "npm:^2.39.0"
+    ts-pattern: "npm:^5.9.0"
     vitest: "npm:^4.1.8"
   languageName: unknown
   linkType: soft
@@ -351,7 +351,7 @@ __metadata:
     "@ourworldindata/utils": "link:../../../packages/@ourworldindata/utils"
     "@react-stately/flags": "npm:^3.2.1"
     "@rollup/plugin-swc": "npm:^0.4.1"
-    "@tanstack/react-query": "npm:^5.90.6"
+    "@tanstack/react-query": "npm:^5.101.0"
     "@types/d3-scale": "npm:^4.0.9"
     "@types/lodash-es": "npm:^4.17.12"
     "@types/react": "npm:^19.2.14"
@@ -366,13 +366,13 @@ __metadata:
     "@vitejs/plugin-react": "npm:^6.0.2"
     classnames: "npm:^2.5.1"
     d3-scale: "npm:^4.0.2"
-    lodash-es: "npm:^4.17.21"
+    lodash-es: "npm:^4.18.1"
     normalize.css: "npm:^8.0.1"
     react: "npm:^19.2.4"
     react-aria: "npm:^3.49.0"
     react-aria-components: "npm:^1.18.0"
     react-dom: "npm:^19.2.4"
-    remeda: "npm:^2.21.0"
+    remeda: "npm:^2.39.0"
     sass: "npm:^1.87.0"
     tippy.js: "npm:^6.3.7"
     vite: "npm:^8.0.16"
@@ -401,7 +401,7 @@ __metadata:
     "@visx/responsive": "npm:^3.12.0"
     "@vitejs/plugin-react": "npm:^6.0.2"
     classnames: "npm:^2.5.1"
-    jotai: "npm:^2.18.1"
+    jotai: "npm:^2.20.1"
     normalize.css: "npm:^8.0.1"
     react: "npm:^19.2.4"
     react-dom: "npm:^19.2.4"
@@ -426,7 +426,7 @@ __metadata:
     "@react-stately/flags": "npm:^3.2.1"
     "@rollup/plugin-swc": "npm:^0.4.1"
     "@swc/core": "npm:^1.15.41"
-    "@tanstack/react-query": "npm:^5.100.9"
+    "@tanstack/react-query": "npm:^5.101.0"
     "@types/d3-sankey": "npm:^0.12.5"
     "@types/react": "npm:^19.2.14"
     "@types/react-dom": "npm:^19.2.3"
@@ -437,7 +437,7 @@ __metadata:
     "@vitejs/plugin-react": "npm:^6.0.2"
     classnames: "npm:^2.5.1"
     d3-sankey: "npm:^0.12.3"
-    jotai: "npm:^2.18.1"
+    jotai: "npm:^2.20.1"
     normalize.css: "npm:^8.0.1"
     nuqs: "npm:^2.8.9"
     react: "npm:^19.2.4"
@@ -445,9 +445,9 @@ __metadata:
     react-aria-components: "npm:^1.18.0"
     react-dom: "npm:^19.2.4"
     react-stately: "npm:^3.47.0"
-    remeda: "npm:^2.21.0"
+    remeda: "npm:^2.39.0"
     sass: "npm:^1.87.0"
-    ts-pattern: "npm:^5.8.0"
+    ts-pattern: "npm:^5.9.0"
     vite: "npm:^8.0.16"
     vite-plugin-css-position: "npm:^2.0.9"
   languageName: unknown
@@ -458,7 +458,7 @@ __metadata:
   resolution: "@owid/bespoke-hooks@workspace:hooks"
   dependencies:
     "@ourworldindata/utils": "link:../../packages/@ourworldindata/utils"
-    "@tanstack/react-query": "npm:^5.100.9"
+    "@tanstack/react-query": "npm:^5.101.0"
     "@typescript/native-preview": "npm:^7.0.0-dev.20260613.1"
     nuqs: "npm:^2.8.9"
     react: "npm:^19.2.4"
@@ -480,7 +480,7 @@ __metadata:
     "@react-stately/flags": "npm:^3.2.1"
     "@rollup/plugin-swc": "npm:^0.4.1"
     "@swc/core": "npm:^1.15.41"
-    "@tanstack/react-query": "npm:^5.100.9"
+    "@tanstack/react-query": "npm:^5.101.0"
     "@types/d3-dsv": "npm:^3.0.7"
     "@types/d3-sankey": "npm:^0.12.5"
     "@types/react": "npm:^19.2.14"
@@ -493,7 +493,7 @@ __metadata:
     classnames: "npm:^2.5.1"
     d3-dsv: "npm:^3.0.1"
     d3-sankey: "npm:^0.12.3"
-    jotai: "npm:^2.18.1"
+    jotai: "npm:^2.20.1"
     normalize.css: "npm:^8.0.1"
     nuqs: "npm:^2.8.9"
     react: "npm:^19.2.4"
@@ -501,9 +501,9 @@ __metadata:
     react-aria-components: "npm:^1.18.0"
     react-dom: "npm:^19.2.4"
     react-stately: "npm:^3.47.0"
-    remeda: "npm:^2.21.0"
+    remeda: "npm:^2.39.0"
     sass: "npm:^1.87.0"
-    ts-pattern: "npm:^5.8.0"
+    ts-pattern: "npm:^5.9.0"
     vite: "npm:^8.0.16"
     vite-plugin-css-position: "npm:^2.0.9"
   languageName: unknown
@@ -1012,21 +1012,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tanstack/query-core@npm:5.100.14":
-  version: 5.100.14
-  resolution: "@tanstack/query-core@npm:5.100.14"
-  checksum: 10/76018531e06a94bb7d7b7f766ae223b43cdb11528689fd54fd29e19e247ed4233ab66caf360e9fd5ebd5116e7239292bc5ba109bb657e381fe6e7888250aa3fe
+"@tanstack/query-core@npm:5.101.0":
+  version: 5.101.0
+  resolution: "@tanstack/query-core@npm:5.101.0"
+  checksum: 10/9144f3365897c3902d983d3314e0eab888a46295356d654eab475045188ba336269e540f6d4ea807f5724c87af347fcd48ce1dc09b95b51d650c645c11db5235
   languageName: node
   linkType: hard
 
-"@tanstack/react-query@npm:^5.100.9, @tanstack/react-query@npm:^5.90.6":
-  version: 5.100.14
-  resolution: "@tanstack/react-query@npm:5.100.14"
+"@tanstack/react-query@npm:^5.101.0":
+  version: 5.101.0
+  resolution: "@tanstack/react-query@npm:5.101.0"
   dependencies:
-    "@tanstack/query-core": "npm:5.100.14"
+    "@tanstack/query-core": "npm:5.101.0"
   peerDependencies:
     react: ^18 || ^19
-  checksum: 10/985bb0fe1b90510c2fdc1d771fa6da65a883762cc5b97501d5c5ae9cf76bccbe7c7781e446c6ec601e7f8e01fd25ce83e4feb5cc72a87f76952f0092f010e6c1
+  checksum: 10/86257b39b8673ca8b85760723996e05f373d5a93915395f17d7af0c06373f03aedb67031c2016ebbc25c43a999ace26b0acb0a43f1aca479a95f0002219256f5
   languageName: node
   linkType: hard
 
@@ -2442,9 +2442,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jotai@npm:^2.18.1":
-  version: 2.20.0
-  resolution: "jotai@npm:2.20.0"
+"jotai@npm:^2.20.1":
+  version: 2.20.1
+  resolution: "jotai@npm:2.20.1"
   peerDependencies:
     "@babel/core": ">=7.0.0"
     "@babel/template": ">=7.0.0"
@@ -2459,7 +2459,7 @@ __metadata:
       optional: true
     react:
       optional: true
-  checksum: 10/674f2ed28344aa44a204b5547c59eebf60852c502bf91d15a3d62ba056d7340d4a60b49bf232fe638bad2ad73288d32b16bf718b68517da56b92645b0672c829
+  checksum: 10/ef80f16c5322edb9673f5717d4c73d69205cf77fca94d4d766646bc121cc2811107769c0a3c1f322c2e97446635848feb86ce6467e1d35474facedd04ddcd73f
   languageName: node
   linkType: hard
 
@@ -2590,7 +2590,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lodash-es@npm:^4.17.21":
+"lodash-es@npm:^4.18.1":
   version: 4.18.1
   resolution: "lodash-es@npm:4.18.1"
   checksum: 10/8bfad225ef09ef42b04283cdaf7830efcc2ba29ae41b56501c74422155ee1ccaa1f0f6e8319def3451a1fe54dec501c8e4bee622bae2b2d98ac993731e0a5cce
@@ -2899,10 +2899,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"remeda@npm:^2.21.0":
-  version: 2.37.0
-  resolution: "remeda@npm:2.37.0"
-  checksum: 10/245be0efee3d2971d15b1b78f0569b5163391aa1ef3f9c4cbe3182334a66c9572fa5dee746c1539efc260d1703cb7bb7123ffad9cd5e585e060d5cc84a7a1469
+"remeda@npm:^2.39.0":
+  version: 2.39.0
+  resolution: "remeda@npm:2.39.0"
+  checksum: 10/5b0dc3aaf291a4b35c694bd1cd6584c1aeab90de31da47797c5e83f1cda2553a33cf557fe199d9a06c29814f608b808722ad82a51245e99f85df1b633f792258
   languageName: node
   linkType: hard
 
@@ -3117,7 +3117,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ts-pattern@npm:^5.7.1, ts-pattern@npm:^5.8.0":
+"ts-pattern@npm:^5.9.0":
   version: 5.9.0
   resolution: "ts-pattern@npm:5.9.0"
   checksum: 10/0df8cc63d731a596f3541a305eff10f055c9a761d1a8b3776781dc6d6430c6bd8be8cd333fac62138c5d88e1209b4d8dccf1f40041091b634e5018908281417b
