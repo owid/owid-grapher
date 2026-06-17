@@ -299,7 +299,7 @@ __metadata:
     "@types/react": "npm:^19.2.14"
     "@types/react-dom": "npm:^19.2.3"
     "@typescript/native-preview": "npm:^7.0.0-dev.20260313.1"
-    "@vitejs/plugin-react": "npm:^6.0.0"
+    "@vitejs/plugin-react": "npm:^6.0.2"
     classnames: "npm:^2.5.1"
     d3: "npm:^7.9.0"
     normalize.css: "npm:^8.0.1"
@@ -308,9 +308,9 @@ __metadata:
     remeda: "npm:^2.21.0"
     sass: "npm:^1.87.0"
     ts-pattern: "npm:^5.7.1"
-    vite: "npm:^8.0.5"
+    vite: "npm:^8.0.16"
     vite-plugin-css-position: "npm:^2.0.9"
-    vitest: "npm:^4.1.2"
+    vitest: "npm:^4.1.8"
   languageName: unknown
   linkType: soft
 
@@ -334,7 +334,7 @@ __metadata:
     react-aria-components: "npm:^1.18.0"
     remeda: "npm:^2.21.0"
     ts-pattern: "npm:^5.8.0"
-    vitest: "npm:^4.1.2"
+    vitest: "npm:^4.1.8"
   languageName: unknown
   linkType: soft
 
@@ -363,7 +363,7 @@ __metadata:
     "@visx/responsive": "npm:^3.12.0"
     "@visx/scale": "npm:^3.12.0"
     "@visx/shape": "npm:^3.12.0"
-    "@vitejs/plugin-react": "npm:^6.0.0"
+    "@vitejs/plugin-react": "npm:^6.0.2"
     classnames: "npm:^2.5.1"
     d3-scale: "npm:^4.0.2"
     lodash-es: "npm:^4.17.21"
@@ -375,9 +375,9 @@ __metadata:
     remeda: "npm:^2.21.0"
     sass: "npm:^1.87.0"
     tippy.js: "npm:^6.3.7"
-    vite: "npm:^8.0.0"
+    vite: "npm:^8.0.16"
     vite-plugin-css-position: "npm:^2.0.9"
-    vitest: "npm:^4.1.2"
+    vitest: "npm:^4.1.8"
   languageName: unknown
   linkType: soft
 
@@ -399,14 +399,14 @@ __metadata:
     "@typescript/native-preview": "npm:^7.0.0-dev.20260313.1"
     "@visx/group": "npm:^3.12.0"
     "@visx/responsive": "npm:^3.12.0"
-    "@vitejs/plugin-react": "npm:^6.0.0"
+    "@vitejs/plugin-react": "npm:^6.0.2"
     classnames: "npm:^2.5.1"
     jotai: "npm:^2.18.1"
     normalize.css: "npm:^8.0.1"
     react: "npm:^19.2.4"
     react-dom: "npm:^19.2.4"
     sass: "npm:^1.87.0"
-    vite: "npm:^8.0.5"
+    vite: "npm:^8.0.16"
     vite-plugin-css-position: "npm:^2.0.9"
   languageName: unknown
   linkType: soft
@@ -434,7 +434,7 @@ __metadata:
     "@visx/drag": "npm:^3.12.0"
     "@visx/group": "npm:^3.12.0"
     "@visx/responsive": "npm:^3.12.0"
-    "@vitejs/plugin-react": "npm:^6.0.0"
+    "@vitejs/plugin-react": "npm:^6.0.2"
     classnames: "npm:^2.5.1"
     d3-sankey: "npm:^0.12.3"
     jotai: "npm:^2.18.1"
@@ -448,7 +448,7 @@ __metadata:
     remeda: "npm:^2.21.0"
     sass: "npm:^1.87.0"
     ts-pattern: "npm:^5.8.0"
-    vite: "npm:^8.0.5"
+    vite: "npm:^8.0.16"
     vite-plugin-css-position: "npm:^2.0.9"
   languageName: unknown
   linkType: soft
@@ -489,7 +489,7 @@ __metadata:
     "@visx/drag": "npm:^3.12.0"
     "@visx/group": "npm:^3.12.0"
     "@visx/responsive": "npm:^3.12.0"
-    "@vitejs/plugin-react": "npm:^6.0.0"
+    "@vitejs/plugin-react": "npm:^6.0.2"
     classnames: "npm:^2.5.1"
     d3-dsv: "npm:^3.0.1"
     d3-sankey: "npm:^0.12.3"
@@ -504,7 +504,7 @@ __metadata:
     remeda: "npm:^2.21.0"
     sass: "npm:^1.87.0"
     ts-pattern: "npm:^5.8.0"
-    vite: "npm:^8.0.5"
+    vite: "npm:^8.0.16"
     vite-plugin-css-position: "npm:^2.0.9"
   languageName: unknown
   linkType: soft
@@ -1702,7 +1702,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vitejs/plugin-react@npm:^6.0.0":
+"@vitejs/plugin-react@npm:^6.0.2":
   version: 6.0.2
   resolution: "@vitejs/plugin-react@npm:6.0.2"
   dependencies:
@@ -2976,9 +2976,9 @@ __metadata:
   resolution: "root-workspace-0b6124@workspace:."
   dependencies:
     "@rollup/plugin-swc": "npm:^0.4.0"
-    "@vitejs/plugin-react": "npm:^6.0.0"
-    vite: "npm:^8.0.5"
-    vitest: "npm:^4.1.2"
+    "@vitejs/plugin-react": "npm:^6.0.2"
+    vite: "npm:^8.0.16"
+    vitest: "npm:^4.1.8"
   languageName: unknown
   linkType: soft
 
@@ -3176,9 +3176,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vite@npm:^6.0.0 || ^7.0.0 || ^8.0.0, vite@npm:^8.0.0, vite@npm:^8.0.5":
-  version: 8.0.15
-  resolution: "vite@npm:8.0.15"
+"vite@npm:^6.0.0 || ^7.0.0 || ^8.0.0, vite@npm:^8.0.16":
+  version: 8.0.16
+  resolution: "vite@npm:8.0.16"
   dependencies:
     fsevents: "npm:~2.3.3"
     lightningcss: "npm:^1.32.0"
@@ -3229,11 +3229,11 @@ __metadata:
       optional: true
   bin:
     vite: bin/vite.js
-  checksum: 10/b130eb541caa794b81c1e584892e45e73f0e472871c010dd23cc376874e645e90267bcc9c6f73b5cd894594e4ba494a6e70c40c1e5ad9568a28834d416bf6b11
+  checksum: 10/a5d91d26f6110672a292a06ca161af9a58279fe9d27106c8c0afb725a942b0b47091c440c3b1e7ebc8e0fe901f64ac6a2ffee3cdae2f899339686dbecd0c0266
   languageName: node
   linkType: hard
 
-"vitest@npm:^4.1.2":
+"vitest@npm:^4.1.8":
   version: 4.1.8
   resolution: "vitest@npm:4.1.8"
   dependencies:
