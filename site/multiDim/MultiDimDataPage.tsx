@@ -19,6 +19,7 @@ import {
     MultiDimDataPageData,
 } from "./MultiDimDataPageContent.js"
 import { DEFAULT_PAGE_DESCRIPTION } from "../dataPage.js"
+import { useMemo } from "react"
 
 export function MultiDimDataPage({
     baseUrl,
@@ -75,6 +76,13 @@ export function MultiDimDataPage({
         ? JSON.stringify(initialViewDimensions)
         : undefined
 
+    const headAttrs = useMemo(
+        () => ({
+            "data-owid-mdim-initial-view-dimensions": mdimDimensions,
+        }),
+        [mdimDimensions]
+    )
+
     return (
         <Html>
             <Head
@@ -85,7 +93,7 @@ export function MultiDimDataPage({
                 baseUrl={baseUrl}
                 staticAssetMap={assetMaps?.static}
                 archiveContext={archiveContext}
-                attrs={{ "data-owid-mdim-dimensions": mdimDimensions }}
+                attrs={headAttrs}
             >
                 <meta property="og:image:width" content={imageWidth} />
                 <meta property="og:image:height" content={imageHeight} />

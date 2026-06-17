@@ -394,7 +394,7 @@ export function rewriteMetaTags(
             element: (element) => {
                 // HTMLRewriter doesn't un-encode &quot; in attribute values, so we need to replace them before parsing the JSON.
                 const dimensionsAttr = element
-                    .getAttribute("data-owid-mdim-dimensions")
+                    .getAttribute("data-owid-mdim-initial-view-dimensions")
                     ?.replaceAll("&quot;", '"')
 
                 if (dimensionsAttr) {
