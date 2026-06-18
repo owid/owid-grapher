@@ -47,6 +47,9 @@
     cursor: pointer;
     @include note-13-medium;
     color: $blue-50;
+    svg {
+        margin-left: 6px;
+    }
     &:hover {
         text-decoration: none;
     }
