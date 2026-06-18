@@ -48,8 +48,7 @@ $grapher-dropdown-selected-fill: #c7ced7;
         align-items: center;
         border: 1px solid $gray-20;
         border-radius: 4px;
-        padding: calc(7px + $control-label-padding-top) 7px
-            calc(7px - $control-label-padding-top);
+        padding: 7px;
         color: $gray-90;
         background: white;
         cursor: pointer;
@@ -78,7 +77,6 @@ $grapher-dropdown-selected-fill: #c7ced7;
             width: 16px;
             height: 16px;
             margin-left: auto;
-            margin-top: calc(-1 * $control-label-padding-top);
         }
 
         &.loading:after {

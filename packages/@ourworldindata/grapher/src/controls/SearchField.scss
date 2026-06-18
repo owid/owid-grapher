@@ -36,7 +36,6 @@
         width: 100%;
         height: 32px;
         border: 1px solid $gray-20;
-        padding-top: $control-label-padding-top;
         padding-left: $svg-margin + $svg-size + 4px;
         padding-right: $svg-margin + $svg-size + 4px;
         border-radius: 4px;
@@ -64,8 +63,6 @@
         top: 50%;
         left: $svg-size + $svg-margin + 6px;
         transform: translateY(-50%);
-        padding-top: $control-label-padding-top;
-
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;

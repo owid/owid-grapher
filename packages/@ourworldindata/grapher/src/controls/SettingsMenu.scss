@@ -127,11 +127,6 @@ $control-row-height: 32px;
                 button {
                     width: calc(50% - 5px);
                     padding: 7px 16px;
-
-                    .label {
-                        display: inline-block;
-                        padding-top: $control-label-padding-top;
-                    }
                 }
             }
 
