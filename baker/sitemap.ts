@@ -179,15 +179,15 @@ export const makeSitemap = async (
 
                 const indexIndividualViews = MDIM_INDEX_INDIVIDUAL_VIEWS[slug]
 
+                const mdimEntry: SitemapUrl = {
+                    loc: urljoin(BAKED_GRAPHER_URL, slug),
+                    lastmod,
+                }
+
                 if (!indexIndividualViews) {
-                    return [
-                        {
-                            loc: urljoin(BAKED_GRAPHER_URL, slug),
-                            lastmod,
-                        },
-                    ]
+                    return [mdimEntry]
                 } else {
-                    return config.views.flatMap((view) => {
+                    const individualViews = config.views.flatMap((view) => {
                         if (
                             typeof indexIndividualViews === "object" &&
                             Object.entries(indexIndividualViews).some(
@@ -213,6 +213,8 @@ export const makeSitemap = async (
                             },
                         ]
                     })
+                    // Include the top-level entry in the sitemap in any case, too
+                    return [mdimEntry, ...individualViews]
                 }
             })
         )
