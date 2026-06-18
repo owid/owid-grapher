@@ -195,18 +195,15 @@ function ExpandableSection({
                 {remainder.length > 0 && (
                     <ul className="meta-expander__list">
                         {remainder.map((p) => (
-                            <li key={p}>
+                            <li className="meta-expander__list-item" key={p}>
                                 <SimpleMarkdownText text={p} />
                             </li>
                         ))}
                     </ul>
                 )}
                 {
-                    <section className="meta-expander__faqs">
-                        <h2
-                            className="meta-expander__faqs-title body-2-bold-tight"
-                            id="faqs"
-                        >
+                    <section className="meta-expander__section meta-expander__section--faqs">
+                        <h2 className="meta-expander__section-title" id="faqs">
                             Frequently asked questions
                         </h2>
                         {faqQuestions.map((faq, i) => (
@@ -235,28 +232,15 @@ function ExpandableSection({
                         />
                     </section>
                 }
-                <section>
-                    <h2
-                        id={DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID}
-                        className="meta-expander__data-sources-title body-2-bold-tight"
-                    >
-                        Data sources
-                    </h2>
-                    <IndicatorSources
-                        sources={sourcesForDisplay}
-                        hideReuseThisWorkText
-                        hideTeasers
-                    />
-                </section>
                 {datapageData.descriptionFromProducer && (
-                    <section>
-                        <h2 className="meta-expander__data-sources-title body-2-bold-tight">
-                            Documentation from data producers
+                    <section className="meta-expander__section">
+                        <h2 className="meta-expander__section-title">
+                            Documentation from data sources
                         </h2>
                         <ExpandableToggle
                             label={
                                 datapageData.attributionShort ||
-                                "Principal producer"
+                                "Principal data source"
                             }
                             content={
                                 <SimpleMarkdownText
@@ -266,9 +250,22 @@ function ExpandableSection({
                         />
                     </section>
                 )}
+                <section className="meta-expander__section">
+                    <h2
+                        id={DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID}
+                        className="meta-expander__section-title"
+                    >
+                        Data sources
+                    </h2>
+                    <IndicatorSources
+                        sources={sourcesForDisplay}
+                        hideReuseThisWorkText
+                        hideTeasers
+                    />
+                </section>
                 {(citationShort || citationLong) && (
-                    <section>
-                        <h2 className="meta-expander__citations-title body-2-bold-tight">
+                    <section className="meta-expander__section">
+                        <h2 className="meta-expander__section-title">
                             How to cite
                         </h2>
                         {citationDatapage && (
@@ -293,7 +290,7 @@ function ExpandableSection({
                                 }
                             />
                         )}
-                        <div className="indicator-sources">
+                        <section className="indicator-sources">
                             {citationShort && (
                                 <ExpandableToggle
                                     label="How to cite this data"
@@ -327,10 +324,10 @@ function ExpandableSection({
                                     }
                                 />
                             )}
-                        </div>
+                        </section>
                     </section>
                 )}
-                <section className="meta-expander__reuse-notice">
+                <section className="meta-expander__section meta-expander__reuse-notice">
                     <p>
                         All data produced by third-party providers and made
                         available by Our World in Data are subject to the
@@ -410,70 +407,73 @@ export default function IndicatorMetadataBox({
             </h2>
             <dl className="meta-description-table">
                 {datapageData.descriptionShort && (
-                    <>
+                    <div className="meta-description-table__pair meta-description-table__pair--full-width">
                         <dt className="sr-only">Description</dt>
                         <dd className="meta-description-table__value">
                             <SimpleMarkdownText
                                 text={datapageData.descriptionShort}
                             />
                         </dd>
-                    </>
+                    </div>
                 )}
-                {datapageData.attributionShort && (
-                    <>
-                        <dt
-                            className="meta-description-table__key"
-                            style={{ marginTop: 8 }}
-                        >
+                {sourceString && (
+                    <div className="meta-description-table__pair meta-description-table__pair--full-width">
+                        <dt className="meta-description-table__key meta-description-table__key--source">
                             Data source
                         </dt>
                         <dd className="meta-description-table__value">
                             {sourceString}
                         </dd>
-                    </>
+                    </div>
                 )}
-                <div className="meta-description-table__secondary-values">
-                    {datapageData.unit && (
-                        <div className="meta-description-table__pair">
-                            <dt className="meta-description-table__key">
-                                Unit
-                            </dt>
-                            <dd className="meta-description-table__value">
-                                {datapageData.unit}
-                            </dd>
-                        </div>
-                    )}
-                    {datapageData.lastUpdated && (
-                        <div className="meta-description-table__pair">
-                            <dt className="meta-description-table__key">
-                                Last updated
-                            </dt>
-                            <dd className="meta-description-table__value">
-                                {datapageData.lastUpdated}
-                            </dd>
-                        </div>
-                    )}
-                    {datapageData.nextUpdate && (
-                        <div className="meta-description-table__pair">
-                            <dt className="meta-description-table__key">
-                                Next expected update
-                            </dt>
-                            <dd className="meta-description-table__value">
-                                {datapageData.nextUpdate}
-                            </dd>
-                        </div>
-                    )}
-                    {owners.length > 0 && (
-                        <div className="meta-description-table__pair meta-description-table__owners">
-                            <dt className="meta-description-table__key">
-                                Managed by
-                            </dt>
-                            <dd className="meta-description-table__value">
-                                <Byline names={owners} prefix="" />
-                            </dd>
-                        </div>
-                    )}
-                </div>
+                {datapageData.unit && (
+                    <div className="meta-description-table__pair">
+                        <dt className="meta-description-table__key">Unit</dt>
+                        <dd className="meta-description-table__value">
+                            {datapageData.unit}
+                        </dd>
+                    </div>
+                )}
+                {datapageData.dateRange && (
+                    <div className="meta-description-table__pair">
+                        <dt className="meta-description-table__key">
+                            Date range
+                        </dt>
+                        <dd className="meta-description-table__value">
+                            {datapageData.dateRange}
+                        </dd>
+                    </div>
+                )}
+                {datapageData.lastUpdated && (
+                    <div className="meta-description-table__pair">
+                        <dt className="meta-description-table__key">
+                            Last updated
+                        </dt>
+                        <dd className="meta-description-table__value">
+                            {datapageData.lastUpdated}
+                        </dd>
+                    </div>
+                )}
+                {datapageData.nextUpdate && (
+                    <div className="meta-description-table__pair">
+                        <dt className="meta-description-table__key">
+                            Next expected update
+                        </dt>
+                        <dd className="meta-description-table__value">
+                            {datapageData.nextUpdate}
+                        </dd>
+                    </div>
+                )}
+                {owners.length > 0 && (
+                    <div className="meta-description-table__pair">
+                        <dt className="meta-description-table__key">
+                            Managed by
+                        </dt>
+                        <dd className="meta-description-table__value">
+                            <Byline names={owners} prefix="" />
+                        </dd>
+                    </div>
+                )}
             </dl>
             <ExpandableSection
                 datapageData={datapageData}

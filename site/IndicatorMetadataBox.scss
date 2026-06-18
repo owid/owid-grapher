@@ -26,6 +26,7 @@
 .indicator-metadata-box__indicator-title {
     margin: 0;
     color: $blue-90;
+    max-width: calc(100% - 104px);
 }
 
 .indicator-metadata-box__title-variant {
@@ -51,21 +52,34 @@
     }
 }
 
-.indicator-metadata-box:has(.meta-expander__details[open])
+.indicator-metadata-box:has(.meta-expander__details[open]) {
     .indicator-metadata-box__show-less {
-    display: inline-block;
+        display: inline-block;
+    }
 }
 
 .meta-description-table {
     margin-top: 8px;
     margin-bottom: 0;
+    line-height: 1.2;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+}
+
+.meta-description-table__pair {
+    display: flex;
+    gap: 4px;
+}
+
+.meta-description-table__pair--full-width {
+    flex-basis: 100%;
 }
 
 .meta-description-table__key {
     @include note-13-medium;
     color: $blue-50;
 }
-
 .meta-description-table__value {
     @include note-13-medium;
     margin: 0;
@@ -79,16 +93,8 @@
     }
 }
 
-.meta-description-table__secondary-values {
-    margin-top: 12px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px 24px;
-}
-
-.meta-description-table__pair {
-    display: flex;
-    gap: 0 4px;
+.meta-description-table__key--source {
+    text-wrap: nowrap;
 }
 
 .meta-description-table__owners {
@@ -98,7 +104,6 @@
 }
 
 .meta-expander {
-    padding-top: 16px;
     margin-top: 16px;
     border-top: 1px solid $blue-20;
     details {
@@ -156,6 +161,10 @@
     }
 }
 
+.meta-expander__preview {
+    margin-top: 16px;
+}
+
 .indicator-metadata-box__chevron {
     font-size: 0.75em;
     margin-left: 4px;
@@ -168,12 +177,13 @@
     a {
         @include owid-link-90;
     }
+    ul {
+        margin-left: 24px;
+    }
 }
 
 .meta-expander__list-item {
-    &:not(:last-child) {
-        margin-bottom: 8px;
-    }
+    margin-bottom: 8px;
 
     p {
         @include body-2-regular;
@@ -181,16 +191,22 @@
     }
 }
 
-.meta-expander__data-sources-title,
-.meta-expander__citations-title,
-.meta-expander__faqs-title,
-.citation__how-to-header {
+.meta-expander__section {
+    margin-bottom: 32px;
+}
+
+.meta-expander__section:first-of-type .meta-expander__section-title {
+    margin-top: 16px;
+}
+
+.meta-expander__section-title {
+    @include body-2-bold-tight;
     color: $blue-90;
-    margin-top: 32px;
+    margin-top: 0;
     margin-bottom: 16px;
 }
 
-.meta-expander__faqs {
+.meta-expander__section--faqs {
     .indicator-processing .indicator-processing-callout {
         margin: 16px 8px;
     }
