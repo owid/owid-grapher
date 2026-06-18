@@ -231,7 +231,26 @@ export async function renderDataPageV2(
     let imageMetadata: Record<string, ImageMetadata> = {}
 
     if (datapageMetadataExperimentActive) {
-        datapageData.owners = await getOwnersForVariables(knex, variableIds)
+        // Only the plotted indicators (the y and x axes, including both axes of
+        // a scatterplot) represent what the page is "about" for the purpose of
+        // owner attribution. Auxiliary encodings like `size`/`color` (e.g. the
+        // population variable sizing a marimekko) shouldn't surface their
+        // dataset owners on an unrelated indicator's page.
+        const ownerVariableIds = _.uniq(
+            _.compact(
+                grapher.dimensions
+                    .filter(
+                        ({ property }) =>
+                            property === DimensionProperty.y ||
+                            property === DimensionProperty.x
+                    )
+                    .map(({ variableId }) => variableId)
+            )
+        )
+        datapageData.owners = await getOwnersForVariables(
+            knex,
+            ownerVariableIds
+        )
 
         // Resolve owner names to author pages so they can be rendered with
         // links and featured images. The author images are merged into
