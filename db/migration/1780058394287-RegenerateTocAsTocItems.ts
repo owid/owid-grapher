@@ -3,9 +3,19 @@ import { generateToc, traverseEnrichedBlock } from "@ourworldindata/utils"
 import {
     OwidEnrichedGdocBlock,
     OwidGdocPostContent,
-    TocHeadingWithTitleSupertitle,
 } from "@ourworldindata/types"
 import { gdocFromJSON } from "../model/Gdoc/GdocFactory.js"
+
+// The pre-Toc on-disk shape, frozen here next to its only consumer (down()
+// below). Kept out of the shared types package so a future refactor there can't
+// silently break this migration.
+interface TocHeadingWithTitleSupertitle {
+    text: string
+    slug: string
+    isSubheading: boolean
+    title: string
+    supertitle?: string
+}
 
 // down() only: strip the chart / narrative-chart anchorIds that
 // generateSidebarToc wrote onto the body.

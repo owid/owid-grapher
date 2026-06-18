@@ -7,11 +7,6 @@ export interface TocHeading {
     isSubheading: boolean
 }
 
-export interface TocHeadingWithTitleSupertitle extends TocHeading {
-    title: string
-    supertitle?: string
-}
-
 /** A heading entry in a {@link Toc}. */
 export interface TocHeadingItem {
     level: EnrichedBlockHeading["level"]
