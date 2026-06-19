@@ -238,27 +238,28 @@ const algoliaItemTemplate: AutocompleteSource<BaseItem>["templates"] = {
     },
 }
 
-const algoliaOnSelect: AutocompleteSource<BaseItem>["onSelect"] = ({
-    navigator,
-    item,
-    state,
-}) => {
-    const itemUrl = prependSubdirectoryToAlgoliaItemUrl(item)
-    siteAnalytics.logInstantSearchClick({
-        query: state.query,
-        url: itemUrl,
-        position: String(state.activeItemId),
-    })
-    navigator.navigate({ itemUrl, item, state })
-}
+const makeAlgoliaOnSelect =
+    (searchSource?: string): AutocompleteSource<BaseItem>["onSelect"] =>
+    ({ navigator, item, state }) => {
+        const itemUrl = prependSubdirectoryToAlgoliaItemUrl(item)
+        siteAnalytics.logInstantSearchClick({
+            query: state.query,
+            url: itemUrl,
+            position: String(state.activeItemId),
+            source: searchSource,
+        })
+        navigator.navigate({ itemUrl, item, state })
+    }
 
 const algoliaGetItemUrl: AutocompleteSource<BaseItem>["getItemUrl"] = ({
     item,
 }) => prependSubdirectoryToAlgoliaItemUrl(item)
 
-const AlgoliaPagesSource: AutocompleteSource<BaseItem> = {
+const createAlgoliaPagesSource = (
+    searchSource?: string
+): AutocompleteSource<BaseItem> => ({
     sourceId: "autocomplete",
-    onSelect: algoliaOnSelect,
+    onSelect: makeAlgoliaOnSelect(searchSource),
     getItemUrl: algoliaGetItemUrl,
     getItems({ query }) {
         if (!liteSearchClient) return []
@@ -279,11 +280,13 @@ const AlgoliaPagesSource: AutocompleteSource<BaseItem> = {
         })
     },
     templates: algoliaItemTemplate,
-}
+})
 
-const AlgoliaChartsSource: AutocompleteSource<BaseItem> = {
+const createAlgoliaChartsSource = (
+    searchSource?: string
+): AutocompleteSource<BaseItem> => ({
     sourceId: "autocomplete-charts",
-    onSelect: algoliaOnSelect,
+    onSelect: makeAlgoliaOnSelect(searchSource),
     getItemUrl: algoliaGetItemUrl,
     getItems({ query }) {
         if (!liteSearchClient) return []
@@ -303,11 +306,12 @@ const AlgoliaChartsSource: AutocompleteSource<BaseItem> = {
         })
     },
     templates: algoliaItemTemplate,
-}
+})
 
 const createFiltersSource = (
     allTopics: string[],
-    synonymMap: SynonymMap
+    synonymMap: SynonymMap,
+    searchSource?: string
 ): AutocompleteSource<BaseItem> => ({
     sourceId: "filters",
     onSelect({ navigator, item, state }) {
@@ -316,6 +320,7 @@ const createFiltersSource = (
             query: state.query,
             url: itemUrl,
             position: String(state.activeItemId),
+            source: searchSource,
         })
         navigator.navigate({ itemUrl, item, state })
     },
@@ -404,10 +409,11 @@ const createFiltersSource = (
  * (see configureAlgolia.ts).
  */
 const createProfileSource = (
-    countryName: string | undefined
+    countryName: string | undefined,
+    searchSource?: string
 ): AutocompleteSource<BaseItem> => ({
     sourceId: "profiles",
-    onSelect: algoliaOnSelect,
+    onSelect: makeAlgoliaOnSelect(searchSource),
     getItemUrl: algoliaGetItemUrl,
     getItems({ query }) {
         if (!liteSearchClient) return []
@@ -447,6 +453,10 @@ export function Autocomplete({
     // container element to scope click-outside / blur detection, and duplicate
     // ids prevent the panel from closing on outside clicks.
     id = "autocomplete",
+    // Where this autocomplete is rendered (e.g. "topnav", "homepage",
+    // "datapage"). Attached to instant-search-click analytics so we can tell
+    // which search bar a click came from.
+    searchSource,
 }: {
     onActivate?: () => void
     onClose?: () => void
@@ -455,6 +465,7 @@ export function Autocomplete({
     panelClassName?: string
     isPreviewing?: boolean
     id?: string
+    searchSource?: string
 }) {
     const containerRef = useRef<HTMLDivElement>(null)
     const panelRootRef = useRef<Root | null>(null)
@@ -533,10 +544,17 @@ export function Autocomplete({
                 const sources: AutocompleteSource<BaseItem>[] = []
                 if (query) {
                     sources.push(
-                        createFiltersSource(allTopics, synonymMap),
-                        createProfileSource(userCountryNameRef.current),
-                        AlgoliaPagesSource,
-                        AlgoliaChartsSource
+                        createFiltersSource(
+                            allTopics,
+                            synonymMap,
+                            searchSource
+                        ),
+                        createProfileSource(
+                            userCountryNameRef.current,
+                            searchSource
+                        ),
+                        createAlgoliaPagesSource(searchSource),
+                        createAlgoliaChartsSource(searchSource)
                     )
                 } else {
                     sources.push(FeaturedSearchesSource)
@@ -581,6 +599,7 @@ export function Autocomplete({
         synonymMap,
         recentSearchesPlugin,
         userCountryNameRef,
+        searchSource,
     ])
 
     // Close the panel on outside click. We can't rely on autocomplete-js's

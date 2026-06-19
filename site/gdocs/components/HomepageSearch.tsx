@@ -95,6 +95,7 @@ export function HomepageSearch(props: { className?: string }) {
                 className="span-cols-6 col-start-5 span-md-cols-10 col-md-start-3 span-sm-cols-12 col-sm-start-2"
                 panelClassName="homepage-search__panel"
                 isPreviewing={isPreviewing}
+                searchSource="homepage"
             />
             <div className="span-cols-14 homepage-search__links-and-tagline">
                 {message}

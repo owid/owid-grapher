@@ -33,7 +33,12 @@ export const makeSource = ({
                 <>
                     {" – "}
                     {isEmbedded ? (
-                        <a href={`#${processingId}`}>{processingLevelPhrase}</a>
+                        <a
+                            href={`#${processingId}`}
+                            data-track-note="data_processing_level"
+                        >
+                            {processingLevelPhrase}
+                        </a>
                     ) : (
                         processingLevelPhrase
                     )}{" "}

@@ -203,6 +203,7 @@ export const DataPageV2Content = ({
                                             className="datapage-search__input"
                                             panelClassName="datapage-search__panel"
                                             placeholder="Search across all our charts and indicators"
+                                            searchSource="datapage"
                                         />
                                     </SiteQueryClientProvider>
                                 </div>
