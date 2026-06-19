@@ -23,13 +23,13 @@ import { useKeepActiveTocRowInView } from "./useKeepActiveTocRowInView.js"
 import { useTocScrollSpy } from "./useTocScrollSpy.js"
 import { useWideBlockInView } from "./useWideBlockInView.js"
 
-// Mirrors $sidebar-toc-breakpoint in SidebarTableOfContents.scss: at/below this
+// Mirrors $sidebar-toc-sm in SidebarTableOfContents.scss: at/below this
 // width the mobile pill + mobile drawer replace the desktop sidebar.
-const SIDEBAR_TOC_BREAKPOINT = 1200
+const SIDEBAR_TOC_SM = 1200
 
 const SIDEBAR_TOC_CONTENT_ID = "sidebar-toc-content"
 
-// Scroll-spy state threaded through the section/bullet tree.
+// Scroll-spy state threaded through the section/chart tree.
 interface TocNavProps {
     activeId: string
 }
@@ -39,7 +39,7 @@ interface TocNavProps {
 // nothing to dismiss, so links there are plain anchors.
 const TocNavigateContext = createContext<(() => void) | undefined>(undefined)
 
-const chartBulletLabel = (linkedChart: LinkedChart): string => {
+const chartLabel = (linkedChart: LinkedChart): string => {
     const isDataExplorer =
         linkedChart.configType === ChartConfigType.MultiDim ||
         linkedChart.configType === ChartConfigType.Explorer
@@ -91,9 +91,7 @@ export const SidebarTableOfContents = ({
     // Close the mobile drawer if the viewport grows to desktop (resize /
     // rotate / zoom) so it isn't stranded over the sidebar.
     const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false)
-    const isDesktop = useMediaQuery(
-        `(min-width: ${SIDEBAR_TOC_BREAKPOINT + 1}px)`
-    )
+    const isDesktop = useMediaQuery(`(min-width: ${SIDEBAR_TOC_SM + 1}px)`)
     useEffect(() => {
         if (isDesktop) setIsMobileDrawerOpen(false)
     }, [isDesktop])
@@ -127,11 +125,9 @@ export const SidebarTableOfContents = ({
                             if (isWideBlockInView) setIsForcedExpanded(true)
                         }
                     }}
-                    aria-label={
-                        isSidebarExpanded
-                            ? "Collapse table of contents"
-                            : "Open table of contents"
-                    }
+                    // Disclosure button: a stable noun-phrase name; aria-expanded
+                    // carries the state. https://www.w3.org/WAI/ARIA/apg/patterns/disclosure/
+                    aria-label="Table of contents"
                     aria-expanded={isSidebarExpanded}
                     aria-controls={SIDEBAR_TOC_CONTENT_ID}
                     data-track-note={
@@ -234,7 +230,7 @@ const TocSections = ({
         <>
             {/* A nested list so assistive technologies announce "list, N items" and the
                 heading→charts hierarchy: each section is an <li> carrying its
-                H1 link and (optionally) a sub-<ul> of chart bullets. */}
+                H1 link and (optionally) a sub-<ul> of charts. */}
             <ol className="sidebar-toc__sections">
                 {sections.map((section, i) => (
                     // Index-qualified: two H1s can slug identically (no dedup).
@@ -278,12 +274,12 @@ const SectionGroup = ({
                 <>
                     <p className="sidebar-toc__charts-eyebrow">Charts</p>
                     <ul
-                        className={cx("sidebar-toc__bullets", {
-                            "sidebar-toc__bullets--single": charts.length === 1,
+                        className={cx("sidebar-toc__charts", {
+                            "sidebar-toc__charts--single": charts.length === 1,
                         })}
                     >
                         {charts.map((entry) => (
-                            <ChartBullet
+                            <ChartEntry
                                 key={entry.anchorId}
                                 entry={entry}
                                 activeId={activeId}
@@ -296,16 +292,16 @@ const SectionGroup = ({
     )
 }
 
-const ChartBullet = ({
+const ChartEntry = ({
     entry,
     ...navProps
 }: { entry: TocChartEntry } & TocNavProps) => {
     if (entry.kind === "narrative-chart")
-        return <NarrativeChartBullet entry={entry} {...navProps} />
-    return <GrapherChartBullet entry={entry} {...navProps} />
+        return <NarrativeChartEntry entry={entry} {...navProps} />
+    return <GrapherChartEntry entry={entry} {...navProps} />
 }
 
-const GrapherChartBullet = ({
+const GrapherChartEntry = ({
     entry,
     ...navProps
 }: {
@@ -313,20 +309,20 @@ const GrapherChartBullet = ({
 } & TocNavProps) => {
     const { linkedChart } = useLinkedChart(entry.url)
     // The chart isn't rendering on the page either, so there's no anchor to
-    // link to — skip the bullet entirely rather than show a dead link.
+    // link to — skip the row entirely rather than show a dead link.
     if (!linkedChart) return null
 
     return (
-        <Bullet
+        <ChartRow
             anchorId={entry.anchorId}
-            label={chartBulletLabel(linkedChart)}
+            label={chartLabel(linkedChart)}
             visibility={entry.visibility}
             {...navProps}
         />
     )
 }
 
-const NarrativeChartBullet = ({
+const NarrativeChartEntry = ({
     entry,
     ...navProps
 }: {
@@ -335,10 +331,12 @@ const NarrativeChartBullet = ({
     const info = useLinkedNarrativeChart(entry.name)
     if (!info) return null
 
-    return <Bullet anchorId={entry.anchorId} label={info.title} {...navProps} />
+    return (
+        <ChartRow anchorId={entry.anchorId} label={info.title} {...navProps} />
+    )
 }
 
-const Bullet = ({
+const ChartRow = ({
     anchorId,
     label,
     visibility,
@@ -352,8 +350,8 @@ const Bullet = ({
 
     return (
         <li
-            className={cx("sidebar-toc__bullet", {
-                "sidebar-toc__bullet--active": activeId === anchorId,
+            className={cx("sidebar-toc__chart", {
+                "sidebar-toc__chart--active": activeId === anchorId,
                 "hide-sm-only": visibility === "desktop",
                 "show-sm-only": visibility === "mobile",
             })}

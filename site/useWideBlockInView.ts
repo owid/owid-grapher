@@ -24,20 +24,20 @@ const WIDE_BLOCK_SELECTORS = `${WIDE_COL_SELECTOR}, ${FULL_BLEED_SELECTOR}`
 const REVEAL_DEBOUNCE_MS = 150
 
 // Keep in sync with --inner-cols-max-total-width in site/css/grid.scss.
-const GRID_INNER_COLS_MAX_WIDTH_PX = 1280
-// Keep in sync with $sidebar-toc-frame in site/SidebarTableOfContents.scss.
+const GRID_INNER_COLS_MAX_WIDTH = 1280
+// Keep in sync with $sidebar-toc-frame-wide in site/SidebarTableOfContents.scss.
 // At widths where 12-col content can coexist with the sidebar, that frame applies.
-const SIDEBAR_FRAME_WIDTH_PX = 273
-const SIDEBAR_COHABIT_BREATHING_ROOM_PX = 48
-const COHABIT_MIN_WIDTH_PX =
-    GRID_INNER_COLS_MAX_WIDTH_PX +
-    2 * SIDEBAR_FRAME_WIDTH_PX +
-    SIDEBAR_COHABIT_BREATHING_ROOM_PX
+const SIDEBAR_TOC_FRAME_WIDE = 273
+const SIDEBAR_COEXIST_BREATHING_ROOM = 48
+const COEXIST_MIN_WIDTH =
+    GRID_INNER_COLS_MAX_WIDTH +
+    2 * SIDEBAR_TOC_FRAME_WIDE +
+    SIDEBAR_COEXIST_BREATHING_ROOM
 
 export function useWideBlockInView(): boolean {
     const [inView, setInView] = useState(false)
-    const canWideColCohabit = useMediaQuery(
-        `(min-width: ${COHABIT_MIN_WIDTH_PX}px)`
+    const canWideColCoexist = useMediaQuery(
+        `(min-width: ${COEXIST_MIN_WIDTH}px)`
     )
     // Collapsing the sidebar (→ true) is immediate; releasing it again (→ false)
     // is debounced, so the brief gap between two wide blocks in quick
@@ -52,13 +52,13 @@ export function useWideBlockInView(): boolean {
         if (!("IntersectionObserver" in window)) return
 
         // Track intersecting blocks split by kind: full-bleed always overlaps
-        // the sidebar; 12-col only below the cohabit width.
+        // the sidebar; 12-col only below the coexist width.
         const fullBleed = new Set<Element>()
         const wideCol = new Set<Element>()
 
         const apply = () => {
             const shouldCollapse =
-                fullBleed.size > 0 || (!canWideColCohabit && wideCol.size > 0)
+                fullBleed.size > 0 || (!canWideColCoexist && wideCol.size > 0)
             if (shouldCollapse) {
                 debouncedSetInView.cancel()
                 setInView(true)
@@ -90,7 +90,7 @@ export function useWideBlockInView(): boolean {
             observer.disconnect()
             debouncedSetInView.cancel()
         }
-    }, [canWideColCohabit, debouncedSetInView])
+    }, [canWideColCoexist, debouncedSetInView])
 
     return inView
 }
