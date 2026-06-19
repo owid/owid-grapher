@@ -18,6 +18,8 @@ $sidebar-toc-chart-y-padding: math.div($sidebar-toc-chart-gap, 2);
 $sidebar-toc-link-y-padding: 6px;
 $sidebar-toc-sub-indent: 16px; // eyebrow + bullet indent from the section edge
 $sidebar-toc-chart-bullet-offset: 14px; // aligns outside bullets with the eyebrow
+$sidebar-toc-chart-bullet-size: 5px;
+$sidebar-toc-chart-bullet-svg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 5 5'%3E%3Ccircle cx='2.5' cy='2.5' r='2.5' fill='black'/%3E%3C/svg%3E");
 $sidebar-toc-chart-indent: $sidebar-toc-sub-indent +
     $sidebar-toc-chart-bullet-offset; // chart text indent from the section edge
 $sidebar-toc-header-gap: $topic-page-header-margin-bottom;
@@ -178,7 +180,10 @@ $sidebar-toc-header-gap: $topic-page-header-margin-bottom;
 }
 
 .sidebar-toc__charts {
-    list-style: disc;
+    // Bullets are drawn per-row (see .sidebar-toc__chart::after) rather than with
+    // the native disc marker, whose horizontal offset differs between Firefox and
+    // Chrome/WebKit and would misalign with the eyebrow.
+    list-style: none;
     // The first chart's padding supplies the other half of the eyebrow gap.
     margin: $sidebar-toc-chart-y-padding 0 0;
     margin-inline-start: $sidebar-toc-sub-indent; // align bullets with the eyebrow
@@ -189,6 +194,22 @@ $sidebar-toc-header-gap: $topic-page-header-margin-bottom;
     position: relative;
     margin-inline-start: $sidebar-toc-chart-bullet-offset; // bullet sits in the gutter
     color: $blue-50;
+
+    // Custom SVG bullet in the gutter, starting under the eyebrow's first
+    // letter. Masking the SVG with currentColor keeps active-state coloring
+    // without relying on browser-specific native marker offsets.
+    &::after {
+        content: "";
+        position: absolute;
+        top: calc(#{$sidebar-toc-chart-y-padding} + 0.5rem);
+        left: -$sidebar-toc-chart-bullet-offset;
+        width: $sidebar-toc-chart-bullet-size;
+        height: $sidebar-toc-chart-bullet-size;
+        background: currentColor;
+        -webkit-mask: $sidebar-toc-chart-bullet-svg center / contain no-repeat;
+        mask: $sidebar-toc-chart-bullet-svg center / contain no-repeat;
+        transform: translateY(-50%);
+    }
 
     a {
         @include note-13-medium;
@@ -204,13 +225,13 @@ $sidebar-toc-header-gap: $topic-page-header-margin-bottom;
     }
 }
 
-// A single-chart section drops the disc — one row reads as a label, not a list —
+// A single-chart section drops the bullet — one row reads as a label, not a list —
 // and its text sits on the sub-indent line where the bullet would be.
-.sidebar-toc__charts--single {
-    list-style: none;
+.sidebar-toc__charts--single .sidebar-toc__chart {
+    margin-inline-start: 0;
 
-    .sidebar-toc__chart {
-        margin-inline-start: 0;
+    &::after {
+        content: none;
     }
 }
 
