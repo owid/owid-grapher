@@ -1,3 +1,5 @@
+import { type FoodTradeSankeySettings } from "./types.js"
+
 export interface VariantProps<Config> {
     config: Config
 }
@@ -13,6 +15,13 @@ export interface SankeyVariantConfig {
     country?: string
     flow?: Flow
     urlSync?: boolean
+}
+
+export const DEFAULT_SANKEY_SETTINGS: FoodTradeSankeySettings = {
+    minNodeShare: 0.01,
+    minNodes: 1,
+    maxNodes: 10,
+    shouldFadeSmallFlows: false,
 }
 
 export function parseConfig(raw: Record<string, string>): SankeyVariantConfig {

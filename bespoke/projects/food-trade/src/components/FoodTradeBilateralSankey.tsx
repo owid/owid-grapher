@@ -17,16 +17,18 @@ import {
 } from "../../../../components/Sankey/BilateralFlowSankey.js"
 import { MOBILE_BREAKPOINT } from "../../../../components/Sankey/SplitFlowSankey.js"
 
-import { type TradeRow } from "../types.js"
+import { type FoodTradeSankeySettings, type TradeRow } from "../types.js"
 import { capItems, formatTrade, tradesToFlows } from "../helpers.js"
 
 export function FoodTradeBilateralSankey({
     trades,
     year,
+    sankeySettings,
     onSelectEntity,
 }: {
     trades: TradeRow[]
     year: number
+    sankeySettings: FoodTradeSankeySettings
     onSelectEntity?: (entity: string, side: "exporter" | "importer") => void
 }) {
     const { parentRef, width, height } = useParentSize()
@@ -58,6 +60,11 @@ export function FoodTradeBilateralSankey({
                 flows={flows}
                 width={width}
                 height={height}
+                minNodes={sankeySettings.minNodes}
+                maxNodes={sankeySettings.maxNodes}
+                minNodeShare={sankeySettings.minNodeShare}
+                minLinkShare={0}
+                shouldFadeSmallFlows={sankeySettings.shouldFadeSmallFlows}
                 formatValue={formatValue}
                 getTooltip={getTooltip}
                 onSelectEntity={handleSelectEntity}

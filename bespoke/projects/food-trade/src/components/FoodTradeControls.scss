@@ -38,3 +38,64 @@
 .food-trade-controls__switcher-wrapper .switcher__item {
     min-width: 64px;
 }
+
+.food-trade-controls__settings-row {
+    display: grid;
+    grid-template-columns:
+        minmax(220px, 2fr) repeat(2, minmax(90px, 0.75fr))
+        minmax(140px, 1fr);
+    column-gap: 16px;
+    row-gap: 12px;
+    align-items: end;
+}
+
+.food-trade-controls__setting,
+.food-trade-controls__checkbox-setting {
+    min-width: 0;
+    color: $dark-text;
+    font-size: 13px;
+}
+
+.food-trade-controls__setting {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    column-gap: 8px;
+    row-gap: 4px;
+    align-items: center;
+}
+
+.food-trade-controls__setting--wide input {
+    grid-column: 1 / -1;
+}
+
+.food-trade-controls__setting-label {
+    color: $light-text;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.food-trade-controls__setting-value {
+    color: $dark-text;
+    font-variant-numeric: tabular-nums;
+}
+
+.food-trade-controls__setting input[type="number"] {
+    width: 100%;
+    min-height: 32px;
+    padding: 4px 8px;
+    border: 1px solid #d8d8d8;
+    border-radius: 2px;
+    font: inherit;
+    font-variant-numeric: tabular-nums;
+}
+
+.food-trade-controls__checkbox-setting {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 32px;
+}
+
+.food-trade-controls__checkbox-setting input {
+    margin: 0;
+}

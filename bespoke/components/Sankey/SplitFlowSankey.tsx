@@ -23,6 +23,7 @@ import {
     DEFAULT_MAX_NODES_TO_SHRINK_OTHER,
     DEFAULT_MIN_NODE_SHARE,
     getEntityShortLabel,
+    getSmallFlowFillOpacity,
     EntityTotal,
     Flow,
     makeValueLabel,
@@ -116,10 +117,12 @@ interface SplitFlowSankeyProps {
     /** Font for node labels */
     fontSettings?: FontSettings
     /** How many significant partners to show per half by default */
+    minNodes?: number
     maxNodes?: number
     /** Raised ceiling used to shrink an oversized "Other" bucket */
     maxNodesToShrinkOther?: number
     minNodeShare?: number
+    shouldFadeSmallFlows?: boolean
     formatValue: (v: number) => string
     /**
      * If provided, used directly as the partner → color map — lets
@@ -140,9 +143,11 @@ export function SplitFlowSankey({
     view = "both",
     isStacked = false,
     fontSettings = DEFAULT_FONT_SETTINGS,
+    minNodes = 1,
     maxNodes = DEFAULT_MAX_NODES,
     maxNodesToShrinkOther = DEFAULT_MAX_NODES_TO_SHRINK_OTHER,
     minNodeShare = DEFAULT_MIN_NODE_SHARE,
+    shouldFadeSmallFlows = false,
     formatValue,
     colorMap: colorMapOverride,
     entitiesToSortLast,
@@ -159,6 +164,7 @@ export function SplitFlowSankey({
                 flows: incoming.rows,
                 centralEntity,
                 direction: "incoming",
+                minNodes,
                 maxNodes,
                 maxNodesToShrinkOther,
                 minNodeShare,
@@ -168,6 +174,7 @@ export function SplitFlowSankey({
         [
             incoming.rows,
             centralEntity,
+            minNodes,
             maxNodes,
             maxNodesToShrinkOther,
             minNodeShare,
@@ -181,6 +188,7 @@ export function SplitFlowSankey({
                 flows: outgoing.rows,
                 centralEntity,
                 direction: "outgoing",
+                minNodes,
                 maxNodes,
                 maxNodesToShrinkOther,
                 minNodeShare,
@@ -190,6 +198,7 @@ export function SplitFlowSankey({
         [
             outgoing.rows,
             centralEntity,
+            minNodes,
             maxNodes,
             maxNodesToShrinkOther,
             minNodeShare,
@@ -348,6 +357,7 @@ export function SplitFlowSankey({
                         fontSettings={fontSettings}
                         nodeColor={getNodeColor}
                         linkColor={getLinkColor}
+                        shouldFadeSmallFlows={shouldFadeSmallFlows}
                     />
                 )}
                 {showOutgoing && (
@@ -362,6 +372,7 @@ export function SplitFlowSankey({
                         fontSettings={fontSettings}
                         nodeColor={getNodeColor}
                         linkColor={getLinkColor}
+                        shouldFadeSmallFlows={shouldFadeSmallFlows}
                     />
                 )}
             </div>
@@ -410,6 +421,7 @@ function SankeyHalfChart({
     fontSettings,
     nodeColor,
     linkColor,
+    shouldFadeSmallFlows,
 }: {
     direction: "incoming" | "outgoing"
     half: SankeyHalf
@@ -421,6 +433,7 @@ function SankeyHalfChart({
     fontSettings: FontSettings
     nodeColor: (node: SankeyNode) => string
     linkColor: (link: SankeyLink) => string
+    shouldFadeSmallFlows: boolean
 }) {
     const innerMargin =
         direction === "incoming"
@@ -445,6 +458,17 @@ function SankeyHalfChart({
               })
             : undefined
 
+    const maxLinkValue = build
+        ? Math.max(0, ...build.links.map((link) => link.value))
+        : 0
+    const getLinkOpacity = shouldFadeSmallFlows
+        ? (link: SankeyLink): number =>
+              getSmallFlowFillOpacity({
+                  value: link.value,
+                  maxValue: maxLinkValue,
+              })
+        : undefined
+
     return (
         <div
             className={`split-flow-sankey__chart-area split-flow-sankey__chart-area--${direction}`}
@@ -459,6 +483,7 @@ function SankeyHalfChart({
                             height={height}
                             nodeColor={nodeColor}
                             linkColor={linkColor}
+                            linkOpacity={getLinkOpacity}
                             innerMargin={innerMargin}
                             fontSettings={fontSettings}
                             nodePadding={SANKEY_NODE_PADDING}
@@ -562,6 +587,7 @@ function makeNodeTooltipGetter({
 export function selectTopEntities({
     flows,
     side,
+    minNodes = 1,
     maxNodes,
     maxNodesToShrinkOther = maxNodes,
     minNodeShare,
@@ -570,6 +596,7 @@ export function selectTopEntities({
 }: {
     flows: Flow[]
     side: LinkSide
+    minNodes?: number
     maxNodes: number
     maxNodesToShrinkOther?: number
     minNodeShare: number
@@ -608,7 +635,15 @@ export function selectTopEntities({
         sortedEntities,
         (d) => d.total >= floor
     ).length
-    const baseCount = R.clamp(significant, { min: 1, max: maxNodes })
+    const maxVisibleCount = Math.min(maxNodes, sortedEntities.length)
+    const minVisibleCount = R.clamp(minNodes, {
+        min: 1,
+        max: maxVisibleCount,
+    })
+    const baseCount = R.clamp(significant, {
+        min: minVisibleCount,
+        max: maxVisibleCount,
+    })
 
     // 2. "Other"-is-smallest: Promote entities out of "Other" while it both
     //    outweighs the smallest shown node and is itself above the floor,
@@ -642,6 +677,7 @@ function buildSankeyHalf({
     flows,
     centralEntity,
     direction,
+    minNodes,
     maxNodes,
     maxNodesToShrinkOther,
     minNodeShare,
@@ -651,6 +687,7 @@ function buildSankeyHalf({
     flows: Flow[]
     centralEntity: string
     direction: "incoming" | "outgoing"
+    minNodes: number
     maxNodes: number
     maxNodesToShrinkOther: number
     minNodeShare: number
@@ -664,6 +701,7 @@ function buildSankeyHalf({
     const selection = selectTopEntities({
         flows,
         side,
+        minNodes,
         maxNodes,
         maxNodesToShrinkOther,
         minNodeShare,

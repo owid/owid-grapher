@@ -52,6 +52,7 @@ interface SankeyProps {
     height: number
     nodeColor?: (node: SankeyNode) => string
     linkColor?: (link: SankeyLink) => string
+    linkOpacity?: (link: SankeyLink) => number | undefined
     /** Outer padding around the whole visualization */
     margin?: Margin
     /** Floor for the inner padding that reserves space for labels */
@@ -137,6 +138,7 @@ export function Sankey({
     height,
     nodeColor,
     linkColor,
+    linkOpacity,
     margin = DEFAULT_MARGIN,
     innerMargin,
     anchorNodeId,
@@ -483,6 +485,7 @@ export function Sankey({
                             )}
                             link={link}
                             linkColor={linkColor}
+                            linkOpacity={linkOpacity}
                             isHovered={hoveredLink === link}
                             isActive={activeLinks.has(link)}
                         />
@@ -536,25 +539,35 @@ export function Sankey({
 function SankeyLink({
     link,
     linkColor,
+    linkOpacity,
     isHovered,
     isActive,
 }: {
     link: LaidOutLink
     linkColor?: (link: SankeyLink) => string
+    linkOpacity?: (link: SankeyLink) => number | undefined
     isHovered?: boolean
     isActive?: boolean
 }): React.ReactElement | null {
     const path = makeSankeyRibbonPath(link)
     if (!path) return null
 
-    const color = linkColor?.(toLinkData(link)) ?? GRAPHER_DENIM
+    const linkData = toLinkData(link)
+    const color = linkColor?.(linkData) ?? GRAPHER_DENIM
+    const opacity = linkOpacity?.(linkData)
+    const style =
+        opacity === undefined
+            ? undefined
+            : ({
+                  "--sankey-link-fill-opacity": opacity,
+              } as React.CSSProperties)
 
     const className = cx("sankey__link", {
         "sankey__link--hovered": isHovered,
         "sankey__link--active": isActive,
     })
 
-    return <path className={className} d={path} fill={color} />
+    return <path className={className} d={path} fill={color} style={style} />
 }
 
 // d3-sankey builds a single curved centerline for each link, and the visible band is a thick stroke around it.

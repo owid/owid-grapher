@@ -14,7 +14,6 @@ import {
     getEntityShortLabel,
     EntityTotal,
     Flow,
-    STACKED_MAX_NODES_TO_SHRINK_OTHER,
 } from "../../../../components/Sankey/SankeyHelpers.js"
 import { SankeyTooltip } from "../../../../components/Sankey/Sankey.js"
 import {
@@ -26,7 +25,7 @@ import {
     DEFAULT_FONT_SETTINGS,
 } from "../../../../components/Sankey/SplitFlowSankey.js"
 
-import { type TradeRow } from "../types.js"
+import { type FoodTradeSankeySettings, type TradeRow } from "../types.js"
 import {
     capItems,
     formatShare,
@@ -40,6 +39,7 @@ export function FoodTradeSplitSankey({
     country,
     product,
     year,
+    sankeySettings,
     countryProduction,
     countrySupply,
     view = "both",
@@ -48,6 +48,7 @@ export function FoodTradeSplitSankey({
     country: string
     product: string
     year: number
+    sankeySettings: FoodTradeSankeySettings
     incomingTrades: TradeRow[]
     outgoingTrades: TradeRow[]
     countryProduction?: number
@@ -121,9 +122,11 @@ export function FoodTradeSplitSankey({
                 fontSettings={
                     isStacked ? MOBILE_FONT_SETTINGS : DEFAULT_FONT_SETTINGS
                 }
-                maxNodesToShrinkOther={
-                    isStacked ? STACKED_MAX_NODES_TO_SHRINK_OTHER : undefined
-                }
+                minNodes={sankeySettings.minNodes}
+                maxNodes={sankeySettings.maxNodes}
+                maxNodesToShrinkOther={sankeySettings.maxNodes}
+                minNodeShare={sankeySettings.minNodeShare}
+                shouldFadeSmallFlows={sankeySettings.shouldFadeSmallFlows}
             />
         </div>
     )

@@ -16,6 +16,13 @@ export type ProductTradeData = {
     outgoingFlowsByCountry: Map<string, TradeRow[]>
 }
 
+export type FoodTradeSankeySettings = {
+    minNodeShare: number
+    minNodes: number
+    maxNodes: number
+    shouldFadeSmallFlows: boolean
+}
+
 export type Entity = { id: number; name: string }
 export type Product = { id: number; name: string }
 
