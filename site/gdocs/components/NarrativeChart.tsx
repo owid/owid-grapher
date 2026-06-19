@@ -26,10 +26,13 @@ export default function NarrativeChart({
     d,
     className,
     fullWidthOnMobile = false,
+    id,
 }: {
     d: EnrichedBlockNarrativeChart
     className?: string
     fullWidthOnMobile?: boolean
+    // TOC anchor id, rendered on the chart wrapper so the sidebar TOC can link to it
+    id?: string
 }) {
     const refChartContainer = useRef<HTMLDivElement>(null)
     const { isPreviewing, archiveContext } = useDocumentContext()
@@ -78,6 +81,7 @@ export default function NarrativeChart({
 
     return (
         <div
+            id={id}
             className={cx(className, {
                 "full-width-on-mobile": fullWidthOnMobile,
             })}

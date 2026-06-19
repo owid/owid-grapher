@@ -5,7 +5,7 @@ import {
     faBook,
     faChartSimple,
 } from "@fortawesome/free-solid-svg-icons"
-import { TocHeadingWithTitleSupertitle } from "@ourworldindata/utils"
+import { Toc } from "@ourworldindata/utils"
 import { SearchResultType, SearchState } from "@ourworldindata/types"
 import {
     createTopicFilter,
@@ -32,20 +32,20 @@ const SECONDARY_CARDS = [
     },
 ] as const
 
-type Props = {
-    toc?: TocHeadingWithTitleSupertitle[]
-    className?: string
-    title?: string
-    tagName: string
-}
-
 export const LTPTableOfContents = ({
     toc,
     className,
     title,
     tagName,
-}: Props) => {
-    if (!toc || toc.length === 0) return null
+}: {
+    toc: Extract<Toc, { kind: "sidebar" }>
+    className?: string
+    title?: string
+    tagName: string
+}) => {
+    const headings = toc.sections.map((section) => section.heading)
+
+    if (headings.length === 0) return null
 
     const resolvedTitle = title ?? DEFAULT_TITLE
     const resourceSectionTitle = `All our work on ${tagName}`
@@ -62,9 +62,9 @@ export const LTPTableOfContents = ({
             </p>
             <div className="ltp-toc__primary col-start-2 span-cols-7 col-md-start-1 span-md-cols-8 span-sm-cols-12">
                 <ul className="ltp-toc__primary-list">
-                    {toc.map(({ slug, title: headingTitle, text }) => {
-                        const displayTitle = headingTitle || text
-                        if (!slug || !displayTitle) return null
+                    {headings.map((heading) => {
+                        const { slug, text } = heading
+                        if (!slug || !text) return null
                         return (
                             <li key={slug} className="ltp-toc__primary-item">
                                 <FontAwesomeIcon icon={faArrowDown} />
@@ -73,7 +73,7 @@ export const LTPTableOfContents = ({
                                     className="ltp-toc__primary-link"
                                     data-track-note="toc_link"
                                 >
-                                    {displayTitle}
+                                    {text}
                                 </a>
                             </li>
                         )

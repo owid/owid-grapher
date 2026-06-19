@@ -42,7 +42,10 @@ export { type IndexPost, type FullPost } from "./domainTypes/Posts.js"
 
 export {
     type TocHeading,
-    type TocHeadingWithTitleSupertitle,
+    type TocHeadingItem,
+    type TocChartEntry,
+    type TocSidebarSection,
+    type Toc,
 } from "./domainTypes/Toc.js"
 
 export {

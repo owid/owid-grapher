@@ -30,4 +30,7 @@ export type EnrichedBlockChart = {
     caption?: Span[]
     visibility?: BlockVisibility
     peerCountries?: PeerCountryStrategyQueryParam
+    // TOC anchor id (e.g. "chart-life-expectancy"), assigned by
+    // generateSidebarToc and rendered as the chart wrapper's `id`
+    anchorId?: string
 } & EnrichedBlockWithParseErrors

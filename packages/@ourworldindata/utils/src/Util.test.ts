@@ -33,11 +33,13 @@ import {
     normaliseToSingleDigitNumber,
     getUniqueNamesFromTagHierarchies,
     stripOuterParentheses,
+    convertHeadingToId,
 } from "./Util.js"
 import {
     BlockSize,
     OwidEnrichedGdocBlock,
     SortOrder,
+    Span,
     TagGraphRoot,
 } from "@ourworldindata/types"
 
@@ -1083,5 +1085,45 @@ describe(stripOuterParentheses, () => {
 
     it("trims whitespace before checking for parentheses", () => {
         expect(stripOuterParentheses("   (trimmed)   ")).toBe("trimmed")
+    })
+})
+
+describe(convertHeadingToId, () => {
+    const span = (text: string): Span => ({
+        spanType: "span-simple-text",
+        text,
+    })
+
+    it("slugs an H1 from its text only, ignoring any supertitle", () => {
+        expect(
+            convertHeadingToId({
+                level: 1,
+                text: [span("Life expectancy")],
+                supertitle: [span("Ignored")],
+            })
+        ).toBe("life-expectancy")
+    })
+
+    it("folds the supertitle into an H2/H3 id (matching the rendered heading)", () => {
+        expect(
+            convertHeadingToId({
+                level: 2,
+                text: [span("Title")],
+                supertitle: [span("Super")],
+            })
+        ).toBe("super-title")
+        expect(
+            convertHeadingToId({
+                level: 3,
+                text: [span("Title")],
+                supertitle: [span("Super")],
+            })
+        ).toBe("super-title")
+    })
+
+    it("slugs a supertitle-less heading from its text", () => {
+        expect(
+            convertHeadingToId({ level: 2, text: [span("By country")] })
+        ).toBe("by-country")
     })
 })

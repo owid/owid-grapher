@@ -25,7 +25,7 @@ This note complements the Google Docs CMS pipeline overview by mapping the serve
 ### `GdocPost` (`db/model/Gdoc/GdocPost.ts`)
 
 - Represents the majority of articles (article, topic page, linear topic page, fragment).
-- Generates derived structures: table of contents (`generateToc`), sticky nav (`generateStickyNav`), citations (`formatCitation`), FAQ parsing (`parseFaqs`), and summary text blocks.
+- Generates derived structures: table of contents, sticky nav (`generateStickyNav`), citations (`formatCitation`), FAQ parsing (`parseFaqs`), and summary text blocks. The `content.toc` is only generated when the page actually renders a TOC, tailored to that consumer: `generateSidebarToc` (`{ kind: "sidebar", sections }`) when the `sidebar-toc` flag or an `ltp-toc` block is present, `generateInlineToc` (`{ kind: "inline", headings }`) for an `sdg-toc` block, and omitted otherwise.
 - Exposes FAQ, reference, and deprecation notice blocks via `_getSubclassEnrichedBlocks` for markdown conversion.
 - Validates required tags for certain components and ensures linked charts/indicators are present.
 

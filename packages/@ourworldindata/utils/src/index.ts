@@ -92,10 +92,10 @@ export {
     recursivelyMapArticleContent,
     traverseEnrichedBlock,
     checkNodeIsSpan,
-    generateToc,
     extractLinksFromMarkdown,
     getPaginationPageNumbers,
     spansToUnformattedPlainText,
+    convertHeadingToId,
     checkIsOwidGdocType,
     isArrayOfNumbers,
     greatestCommonDivisor,
@@ -141,6 +141,8 @@ export {
     stripOuterParentheses,
     dimensionsToViewId,
 } from "./Util.js"
+
+export { generateToc } from "./generateToc.js"
 
 export {
     getOriginAttributionFragments,
