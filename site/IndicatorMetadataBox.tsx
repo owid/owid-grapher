@@ -1,4 +1,4 @@
-import cx from "classnames"
+import cx from "clsx"
 import * as _ from "lodash-es"
 import {
     DATAPAGE_ABOUT_THIS_DATA_SECTION_ID,
@@ -33,7 +33,20 @@ import { ArticleBlocks } from "./gdocs/components/ArticleBlocks.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faChevronDown, faChevronUp } from "@fortawesome/free-solid-svg-icons"
 import { getAttributionUnshortened } from "./datapageUtils.js"
+import { SiteAnalytics } from "./SiteAnalytics.js"
 import dayjs from "dayjs"
+
+const analytics = new SiteAnalytics()
+
+// Log expand/collapse of an ExpandableToggle in the metadata box. `target` is a
+// codified, English-language identifier (not the rendered label) so the event
+// isn't affected by browser/page translation.
+function logExpandableToggle(target: string, isOpen: boolean): void {
+    analytics.logSiteClick(
+        isOpen ? "expand_expandable_toggle" : "collapse_expandable_toggle",
+        target
+    )
+}
 
 interface ExpandableSectionProps {
     datapageData: DataPageDataV2
@@ -171,7 +184,21 @@ function ExpandableSection({
                     ))}
                 </ul>
             )}
-            <details className="meta-expander__details" ref={detailsRef}>
+            <details
+                className="meta-expander__details"
+                ref={detailsRef}
+                // React 19 simulates bubbling for `toggle`, so toggles from the
+                // nested ExpandableToggles would otherwise fire this handler too.
+                // Guard to only react to this element's own toggle.
+                onToggle={(e) => {
+                    if (e.target !== e.currentTarget) return
+                    analytics.logSiteClick(
+                        e.currentTarget.open
+                            ? "expand_metadata_box"
+                            : "collapse_metadata_box"
+                    )
+                }}
+            >
                 <summary
                     className="meta-expander__summary"
                     ref={summaryRef}
@@ -217,6 +244,15 @@ function ExpandableSection({
                                         containerType="datapage"
                                     />
                                 }
+                                onToggle={(isOpen) =>
+                                    logExpandableToggle(
+                                        // faq.question comes from the gdoc data
+                                        // (source English text), not the
+                                        // possibly-translated DOM.
+                                        faq.question.slice(0, 100),
+                                        isOpen
+                                    )
+                                }
                             />
                         ))}
                         <ExpandableToggle
@@ -228,6 +264,12 @@ function ExpandableSection({
                                         descriptionProcessing
                                     }
                                 />
+                            }
+                            onToggle={(isOpen) =>
+                                logExpandableToggle(
+                                    "how_owid_processed_data",
+                                    isOpen
+                                )
                             }
                         />
                     </section>
@@ -247,6 +289,12 @@ function ExpandableSection({
                                     text={datapageData.descriptionFromProducer}
                                 />
                             }
+                            onToggle={(isOpen) =>
+                                logExpandableToggle(
+                                    "producer_documentation",
+                                    isOpen
+                                )
+                            }
                         />
                     </section>
                 )}
@@ -261,6 +309,12 @@ function ExpandableSection({
                         sources={sourcesForDisplay}
                         hideReuseThisWorkText
                         hideTeasers
+                        onSourceToggle={(_source, index, isOpen) =>
+                            logExpandableToggle(
+                                `data_source_${index + 1}`,
+                                isOpen
+                            )
+                        }
                     />
                 </section>
                 {(citationShort || citationLong) && (
@@ -285,8 +339,20 @@ function ExpandableSection({
                                             code={citationDatapage}
                                             theme="light"
                                             useMarkdown={true}
+                                            onCopy={() =>
+                                                analytics.logSiteClick(
+                                                    "copy_citation",
+                                                    "citation_page"
+                                                )
+                                            }
                                         />
                                     </>
+                                }
+                                onToggle={(isOpen) =>
+                                    logExpandableToggle(
+                                        "how_to_cite_page",
+                                        isOpen
+                                    )
                                 }
                             />
                         )}
@@ -307,6 +373,12 @@ function ExpandableSection({
                                                 code={citationShort}
                                                 theme="light"
                                                 useMarkdown={true}
+                                                onCopy={() =>
+                                                    analytics.logSiteClick(
+                                                        "copy_citation",
+                                                        "citation_data_short"
+                                                    )
+                                                }
                                             />
                                             {citationLong && (
                                                 <>
@@ -317,10 +389,22 @@ function ExpandableSection({
                                                         code={citationLong}
                                                         theme="light"
                                                         useMarkdown={true}
+                                                        onCopy={() =>
+                                                            analytics.logSiteClick(
+                                                                "copy_citation",
+                                                                "citation_data_full"
+                                                            )
+                                                        }
                                                     />
                                                 </>
                                             )}
                                         </>
+                                    }
+                                    onToggle={(isOpen) =>
+                                        logExpandableToggle(
+                                            "how_to_cite_data",
+                                            isOpen
+                                        )
                                     }
                                 />
                             )}

@@ -13,6 +13,13 @@ export interface IndicatorSourcesProps {
     isEmbeddedInADataPage?: boolean // true by default
     hideReuseThisWorkText?: boolean
     hideTeasers?: boolean
+    /** Called when an expandable source toggle is expanded or collapsed.
+     * `index` is the position of the source among the deduplicated sources. */
+    onSourceToggle?: (
+        source: DisplaySource,
+        index: number,
+        isOpen: boolean
+    ) => void
 }
 
 export const IndicatorSources = (props: IndicatorSourcesProps) => {
@@ -43,6 +50,16 @@ export const IndicatorSources = (props: IndicatorSourcesProps) => {
                         content={content}
                         isStacked={isStacked}
                         hasTeaser={!props.hideTeasers}
+                        onToggle={
+                            props.onSourceToggle
+                                ? (isOpen) =>
+                                      props.onSourceToggle?.(
+                                          source,
+                                          idx,
+                                          isOpen
+                                      )
+                                : undefined
+                        }
                     />
                 ) : (
                     <NonExpandable
