@@ -132,12 +132,9 @@ export const ADDITIONAL_REGION_DATA_PROVIDERS = [
     "unicef",
     "unaids",
     "undp",
-    "wid",
     "oecd",
     "unsd",
     "unm49",
-    "maddison",
-    "ilo",
 ] as const
 
 export type AdditionalRegionDataProvider =

@@ -48,6 +48,11 @@ const descriptions: Record<TooltipKey, string> = {
     continents:
         "Our team defines [six world regions](https://ourworldindata.org/world-region-map-definitions#our-world-in-data):",
     iea: "The **International Energy Agency (IEA)** defines seven world regions:",
+    maddison:
+        "The **Maddison Project Database** groups countries into eight world regions:",
+    wid: "The **World Inequality Database (WID)** groups countries into nine world regions:",
+    ilo_1: "The **International Labour Organization (ILO)** defines five broad world regions:",
+    ilo_2: "The **International Labour Organization (ILO)** divides the world into eleven subregions:",
 }
 
 // Geographic display order: left-to-right on the map.
@@ -110,6 +115,47 @@ const customRegionDisplayOrder: Partial<Record<TooltipKey, string[]>> = {
         "Upper-middle-income countries",
         "High-income countries",
     ],
+    maddison: [
+        "Western offshoots (Maddison)",
+        "Western Europe (Maddison)",
+        "Eastern Europe (Maddison)",
+        "Latin America (Maddison)",
+        "East Asia (Maddison)",
+        "South and South East Asia (Maddison)",
+        "Middle East and North Africa (Maddison)",
+        "Sub Saharan Africa (Maddison)",
+    ],
+    wid: [
+        "North America (WID)",
+        "Latin America (WID)",
+        "Europe (WID)",
+        "Russia and Central Asia (WID)",
+        "MENA (WID)",
+        "Sub-Saharan Africa (WID)",
+        "East Asia (WID)",
+        "South & South-East Asia (WID)",
+        "Oceania (WID)",
+    ],
+    ilo_1: [
+        "Africa (ILO)",
+        "Americas (ILO)",
+        "Arab States (ILO)",
+        "Asia and the Pacific (ILO)",
+        "Europe and Central Asia (ILO)",
+    ],
+    ilo_2: [
+        "Northern Africa (ILO)",
+        "Sub-Saharan Africa (ILO)",
+        "Latin America and the Caribbean (ILO)",
+        "Northern America (ILO)",
+        "Arab States (ILO)",
+        "Eastern Asia (ILO)",
+        "South-Eastern Asia and the Pacific (ILO)",
+        "Southern Asia (ILO)",
+        "Northern, Southern and Western Europe (ILO)",
+        "Eastern Europe (ILO)",
+        "Central and Western Asia (ILO)",
+    ],
 }
 
 export function hasTooltipData(
@@ -123,12 +169,23 @@ export function getDescriptionForKey(key: TooltipKey): string {
 }
 
 export function getRegionsForKey(key: TooltipKey): TooltipRegion[] {
+    // ILO's Arab States is a broad region (ilo_1) with no intermediate breakdown, so it's
+    // absent from the ilo_2 set and would otherwise leave a grey "no data" hole over the
+    // Arab world. Splice it into the ilo_2 (subregion) set so that map is a complete
+    // partition — this mirrors the back-fill the ETL applies to the ilo_2_region indicator.
     const regions =
         key === "incomeGroups"
             ? getIncomeGroups()
             : key === "continents"
               ? getContinents()
-              : getAggregatesByProvider(key)
+              : key === "ilo_2"
+                ? [
+                      ...getAggregatesByProvider("ilo_2"),
+                      ...getAggregatesByProvider("ilo_1").filter(
+                          (region) => region.name === "Arab States (ILO)"
+                      ),
+                  ]
+                : getAggregatesByProvider(key)
 
     const customOrder = customRegionDisplayOrder[key]
     const sortFn = (

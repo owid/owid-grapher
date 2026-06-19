@@ -30,6 +30,10 @@ const REGION_DATA_PROVIDER_LABELS: Record<RegionDataProvider, string> = {
     pew: "Pew regions",
     unsdg: "UN SDG regions",
     iea: "IEA regions",
+    maddison: "Maddison regions",
+    wid: "WID regions",
+    ilo_1: "ILO (broad)",
+    ilo_2: "ILO (sub)",
 }
 
 const ADDITIONAL_REGION_DATA_PROVIDER_LABELS: Record<
@@ -45,12 +49,9 @@ const ADDITIONAL_REGION_DATA_PROVIDER_LABELS: Record<
     unicef: "UNICEF regions",
     unaids: "UNAIDS regions",
     undp: "UNDP regions",
-    wid: "WID regions",
     oecd: "OECD regions",
     unsd: "UNSD regions",
     unm49: "UN M49 regions",
-    maddison: "Maddison regions",
-    ilo: "ILO regions",
 }
 
 /** Extracts entities matching a custom source pattern like "Africa (FAO)" */
