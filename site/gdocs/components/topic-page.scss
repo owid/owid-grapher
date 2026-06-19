@@ -8,7 +8,7 @@
 .topic-page-header {
     background-color: $blue-10;
     color: $blue-90;
-    margin-bottom: 32px;
+    margin-bottom: $topic-page-header-margin-bottom;
     z-index: $zindex-extended-header;
 
     h1 {
