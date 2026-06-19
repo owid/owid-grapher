@@ -60,6 +60,7 @@ export function GdocPost({
     slug,
     breadcrumbs,
     manualBreadcrumbs,
+    tags,
 }: GdocPostProps) {
     const { archiveContext } = useDocumentContext()
     const postType = content.type ?? OwidGdocType.Article
@@ -115,16 +116,8 @@ export function GdocPost({
             )}
             {hasSidebarToc && content.toc?.kind === "sidebar" ? (
                 <SidebarTableOfContents
-                    // Bridge until the sidebar rewrite (PR3): project the
-                    // sidebar sections down to the legacy h1-only TocHeading[]
-                    // shape this sidebar still expects.
-                    headings={content.toc.sections.map((section) => ({
-                        text: section.heading.text,
-                        slug: section.heading.slug,
-                        isSubheading: false,
-                    }))}
-                    headingLevels={{ primary: 1, secondary: 2 }}
-                    pageTitle={content.title || ""}
+                    toc={content.toc}
+                    tagName={tags?.[0]?.name}
                 />
             ) : null}
             {postType === OwidGdocType.TopicPage && stickyNavLinks?.length ? (

@@ -1,218 +1,397 @@
-import { useState, useEffect, useRef } from "react"
+import { createContext, useContext, useEffect, useMemo, useState } from "react"
+import { ModalOverlay, Modal, Dialog } from "react-aria-components"
+import { useMediaQuery } from "usehooks-ts"
+import cx from "classnames"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faBars, faTimes } from "@fortawesome/free-solid-svg-icons"
-import { useTriggerWhenClickOutside } from "./hooks.js"
-import { TocHeading } from "@ourworldindata/utils"
-import classNames from "classnames"
+import {
+    faArrowUp,
+    faMagnifyingGlass,
+    faListUl,
+    faXmark,
+    faAnglesLeft,
+} from "@fortawesome/free-solid-svg-icons"
+import { Toc, TocChartEntry, TocSidebarSection } from "@ourworldindata/utils"
+import {
+    ChartConfigType,
+    LinkedChart,
+    SearchResultType,
+} from "@ourworldindata/types"
+import { useLinkedChart, useLinkedNarrativeChart } from "./gdocs/utils.js"
+import { useDocumentContext } from "./gdocs/DocumentContext.js"
+import { buildSearchHrefForCard } from "./search/searchState.js"
+import { useKeepActiveTocRowInView } from "./useKeepActiveTocRowInView.js"
+import { useTocScrollSpy } from "./useTocScrollSpy.js"
+import { useWideBlockInView } from "./useWideBlockInView.js"
 
-const TOC_WRAPPER_CLASSNAME = "toc-wrapper"
+// Mirrors $sidebar-toc-sm in SidebarTableOfContents.scss: at/below this
+// width the mobile pill + mobile drawer replace the desktop sidebar.
+const SIDEBAR_TOC_SM = 1200
 
-export interface TableOfContentsData {
-    headings: TocHeading[]
-    pageTitle: string
-    hideSubheadings?: boolean
-    headingLevels?: {
-        primary: number
-        secondary: number
-    }
+const SIDEBAR_TOC_CONTENT_ID = "sidebar-toc-content"
+
+// Scroll-spy state threaded through the section/chart tree.
+interface TocNavProps {
+    activeId: string
 }
 
-const isRecordTopViewport = (record: IntersectionObserverEntry) => {
-    return (
-        record.rootBounds &&
-        record.boundingClientRect.top < record.rootBounds.height / 2
-    )
-}
+// Navigating via any TOC link (or Back to top) must dismiss the mobile drawer.
+// Only the mobile drawer provides a value; in the desktop sidebar there's
+// nothing to dismiss, so links there are plain anchors.
+const TocNavigateContext = createContext<(() => void) | undefined>(undefined)
 
-const getPreviousHeading = (
-    nextHeadingRecord: IntersectionObserverEntry | undefined,
-    previousHeadings: Array<{ slug: string; previous: string | null }>
-) => {
-    return previousHeadings.find(
-        (heading) => heading.slug === nextHeadingRecord?.target.id
-    )?.previous
+const chartLabel = (linkedChart: LinkedChart): string => {
+    const isDataExplorer =
+        linkedChart.configType === ChartConfigType.MultiDim ||
+        linkedChart.configType === ChartConfigType.Explorer
+    return isDataExplorer
+        ? `Data Explorer: ${linkedChart.title}`
+        : linkedChart.title
 }
 
 export const SidebarTableOfContents = ({
-    headings,
-    pageTitle,
-    hideSubheadings,
-    // Original WP articles used a hierarchy of h2 and h3 headings
-    // New Gdoc articles use a hierarchy of h1 and h2 headings
-    headingLevels = {
-        primary: 2,
-        secondary: 3,
-    },
-}: TableOfContentsData) => {
-    const [isOpen, setIsOpen] = useState(false)
-    const [activeHeading, setActiveHeading] = useState("")
-    const { primary, secondary } = headingLevels
-    const tocRef = useRef<HTMLElement>(null)
+    toc,
+    tagName,
+}: {
+    /** Sidebar-shaped TOC generated for the desktop sidebar. */
+    toc: Extract<Toc, { kind: "sidebar" }>
+    /** Topic tag used to build the bottom "See all charts" CTA. The desktop
+     *  sidebar still renders without it — the CTA is simply omitted. */
+    tagName?: string
+}) => {
+    const { sections } = toc
 
-    const toggleIsOpen = () => {
-        setIsOpen(!isOpen)
-    }
-    // The Gdocs sidebar can't rely on the same CSS logic that old-style entries use, so we need to
-    // explicitly trigger these toggles based on screen width
-    const toggleIsOpenOnMobile = () => {
-        if (window.innerWidth < 1536) {
-            toggleIsOpen()
-        }
-    }
+    // Document-ordered ids the scroll-spy observes: each H1 slug followed by
+    // its chart anchor ids. Charts whose embed didn't render are simply absent
+    // from the DOM and skipped by the spy.
+    const spyIds = useMemo(
+        () =>
+            sections.flatMap((section) => [
+                section.heading.slug,
+                ...section.charts.map((chart) => chart.anchorId),
+            ]),
+        [sections]
+    )
+    const activeId = useTocScrollSpy(spyIds)
+    const sidebarContentRef = useKeepActiveTocRowInView(activeId)
+    const isWideBlockInView = useWideBlockInView()
 
-    useTriggerWhenClickOutside(tocRef, isOpen, () => setIsOpen(false))
-
+    // Desktop-only; the sidebar is expanded by default.
+    const [prefersExpanded, setPrefersExpanded] = useState(true)
+    // One-shot override: the user expanded the sidebar over the wide block(s)
+    // currently in view. Cleared once no wide block is in view, so the next
+    // wide-block encounter auto-collapses the sidebar again.
+    const [isForcedExpanded, setIsForcedExpanded] = useState(false)
     useEffect(() => {
-        if ("IntersectionObserver" in window) {
-            const previousHeadings = headings.map((heading, i) => ({
-                slug: heading.slug,
-                previous: i > 0 ? headings[i - 1].slug : null,
-            }))
+        if (!isWideBlockInView) setIsForcedExpanded(false)
+    }, [isWideBlockInView])
 
-            let currentHeadingRecord: IntersectionObserverEntry | undefined
-            let init = true
+    const isSidebarExpanded =
+        prefersExpanded && (!isWideBlockInView || isForcedExpanded)
 
-            const observer = new IntersectionObserver(
-                (records) => {
-                    let nextHeadingRecord: IntersectionObserverEntry | undefined
+    // Close the mobile drawer if the viewport grows to desktop (resize /
+    // rotate / zoom) so it isn't stranded over the sidebar.
+    const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false)
+    const isDesktop = useMediaQuery(`(min-width: ${SIDEBAR_TOC_SM + 1}px)`)
+    useEffect(() => {
+        if (isDesktop) setIsMobileDrawerOpen(false)
+    }, [isDesktop])
 
-                    // Target headings going down
-                    currentHeadingRecord = records.find(
-                        (record) =>
-                            // filter out records no longer intersecting (triggering on exit)
-                            record.isIntersecting &&
-                            // filter out records fully in the page (upcoming section)
-                            record.intersectionRatio !== 1 &&
-                            // filter out intersections happening at the bottom of the viewport
-                            isRecordTopViewport(record)
-                    )
-
-                    if (currentHeadingRecord) {
-                        setActiveHeading(currentHeadingRecord.target.id)
-                    } else {
-                        // Target headings going up
-                        nextHeadingRecord = records.find(
-                            (record) =>
-                                isRecordTopViewport(record) &&
-                                record.intersectionRatio === 1
-                        )
-                        if (nextHeadingRecord) {
-                            setActiveHeading(
-                                getPreviousHeading(
-                                    nextHeadingRecord,
-                                    previousHeadings
-                                ) || ""
-                            )
-                        } else if (init) {
-                            currentHeadingRecord = records.findLast(
-                                (record) => record.boundingClientRect.top < 0
-                            )
-                            setActiveHeading(
-                                currentHeadingRecord?.target.id || ""
-                            )
-                        }
-                    }
-                    init = false
-                },
-                {
-                    rootMargin: "-10px", // 10px offset to trigger intersection when landing exactly at the border when clicking an anchor
-                    threshold: new Array(11).fill(0).map((v, i) => i / 10),
-                }
-            )
-
-            let contentHeadings: NodeListOf<Element>
-            // In Gdocs articles, these sections are ID'd via unique elements
-            const appendixDivs =
-                ", h3#article-endnotes, section#article-citation, section#article-licence"
-            if (hideSubheadings) {
-                contentHeadings = document.querySelectorAll(
-                    `h${secondary} ${appendixDivs}`
-                )
-            } else {
-                contentHeadings = document.querySelectorAll(
-                    `h${primary}, h${secondary} ${appendixDivs}`
-                )
-            }
-            contentHeadings.forEach((contentHeading) => {
-                observer.observe(contentHeading)
-            })
-
-            return () => observer.disconnect()
-        }
-        return
-    }, [headings, hideSubheadings, primary, secondary])
+    // No H1 sections → no sidebar. This is intentional: an LTP with no H1s is
+    // an editorial fix, not a runtime fallback.
+    if (sections.length === 0) return null
 
     return (
-        <div className={TOC_WRAPPER_CLASSNAME}>
-            <div
-                className={classNames({
-                    "entry-sidebar__overlay": isOpen,
+        <div className="sidebar-toc">
+            <nav
+                className={cx("sidebar-toc__sidebar", {
+                    "sidebar-toc__sidebar--collapsed": !isSidebarExpanded,
                 })}
-            />
-            <aside
-                className={classNames("entry-sidebar", {
-                    "entry-sidebar--is-open": isOpen,
-                })}
-                ref={tocRef}
+                aria-label="Table of contents"
             >
-                <nav className="entry-toc">
-                    <ul>
-                        <li>
-                            <a
-                                onClick={() => {
-                                    toggleIsOpenOnMobile()
-                                    setActiveHeading("")
-                                }}
-                                href="#"
-                                data-track-note="toc_header"
-                            >
-                                {pageTitle}
-                            </a>
-                        </li>
-                        {headings
-                            .filter((heading) =>
-                                hideSubheadings && heading.isSubheading
-                                    ? false
-                                    : true
-                            )
-                            .map((heading, i: number) => (
-                                <li
-                                    key={i}
-                                    className={
-                                        (heading.isSubheading
-                                            ? "subsection"
-                                            : "section") +
-                                        (heading.slug === activeHeading
-                                            ? " active"
-                                            : "")
-                                    }
-                                >
-                                    <a
-                                        onClick={toggleIsOpenOnMobile}
-                                        href={`#${heading.slug}`}
-                                        data-track-note="toc_link"
-                                    >
-                                        {heading.text}
-                                    </a>
-                                </li>
-                            ))}
-                    </ul>
-                </nav>
-                <div className="toggle-toc">
-                    <button
-                        data-track-note="page_toggle_toc"
-                        aria-label={`${
-                            isOpen ? "Close" : "Open"
-                        } table of contents`}
-                        onClick={toggleIsOpen}
-                    >
-                        <FontAwesomeIcon icon={isOpen ? faTimes : faBars} />
-                        <span className="label">
-                            {isOpen ? "Close" : "Contents"}
-                        </span>
-                    </button>
+                {/* The toggle precedes the content in the DOM (though absolute
+                    positioning places it visually on the right edge) so that
+                    expanding a collapsed sidebar via the keyboard leaves focus
+                    on the toggle, and the next Tab flows forward into the
+                    revealed links rather than out into the article. */}
+                <button
+                    className="sidebar-toc__toggle"
+                    onClick={() => {
+                        if (isSidebarExpanded) {
+                            setPrefersExpanded(false)
+                            setIsForcedExpanded(false)
+                        } else {
+                            setPrefersExpanded(true)
+                            // Expanding over a wide block sets the forced expanded state
+                            if (isWideBlockInView) setIsForcedExpanded(true)
+                        }
+                    }}
+                    // Disclosure button: a stable noun-phrase name; aria-expanded
+                    // carries the state. https://www.w3.org/WAI/ARIA/apg/patterns/disclosure/
+                    aria-label="Table of contents"
+                    aria-expanded={isSidebarExpanded}
+                    aria-controls={SIDEBAR_TOC_CONTENT_ID}
+                    data-track-note={
+                        isSidebarExpanded ? "toc_collapse" : "toc_expand"
+                    }
+                >
+                    <FontAwesomeIcon
+                        icon={isSidebarExpanded ? faAnglesLeft : faListUl}
+                    />
+                </button>
+                <div
+                    className="sidebar-toc__sidebar-content"
+                    id={SIDEBAR_TOC_CONTENT_ID}
+                    ref={sidebarContentRef}
+                >
+                    <BackToTop />
+                    <TocSections
+                        sections={sections}
+                        tagName={tagName}
+                        activeId={activeId}
+                    />
                 </div>
-            </aside>
+            </nav>
+
+            <button
+                className="sidebar-toc__mobile-pill"
+                onClick={() => setIsMobileDrawerOpen(true)}
+                aria-haspopup="dialog"
+                aria-expanded={isMobileDrawerOpen}
+                data-track-note="toc_expand"
+            >
+                <FontAwesomeIcon icon={faListUl} />
+                Contents
+            </button>
+
+            <ModalOverlay
+                className="sidebar-toc__mobile-drawer-overlay"
+                isOpen={isMobileDrawerOpen}
+                onOpenChange={setIsMobileDrawerOpen}
+                isDismissable
+            >
+                <Modal className="sidebar-toc__mobile-drawer-modal">
+                    <Dialog
+                        className="sidebar-toc__mobile-drawer"
+                        aria-label="Table of contents"
+                    >
+                        {({ close }) => (
+                            <TocNavigateContext.Provider value={close}>
+                                <div className="sidebar-toc__mobile-drawer-header">
+                                    <BackToTop />
+                                    <button
+                                        className="sidebar-toc__mobile-drawer-close"
+                                        onClick={close}
+                                        aria-label="Close table of contents"
+                                    >
+                                        <FontAwesomeIcon icon={faXmark} />
+                                    </button>
+                                </div>
+                                <TocSections
+                                    sections={sections}
+                                    tagName={tagName}
+                                    activeId={activeId}
+                                />
+                            </TocNavigateContext.Provider>
+                        )}
+                    </Dialog>
+                </Modal>
+            </ModalOverlay>
         </div>
+    )
+}
+
+const BackToTop = () => {
+    const onNavigate = useContext(TocNavigateContext)
+    return (
+        <button
+            type="button"
+            className="sidebar-toc__back-to-top"
+            onClick={() => {
+                window.scrollTo(0, 0)
+                onNavigate?.()
+            }}
+            data-track-note="toc_back_to_top"
+        >
+            Back to top
+            <FontAwesomeIcon icon={faArrowUp} />
+        </button>
+    )
+}
+
+const TocSections = ({
+    sections,
+    tagName,
+    activeId,
+}: {
+    sections: TocSidebarSection[]
+    tagName?: string
+} & TocNavProps) => {
+    return (
+        <>
+            {/* A nested list so assistive technologies announce "list, N items" and the
+                heading→charts hierarchy: each section is an <li> carrying its
+                H1 link and (optionally) a sub-<ul> of charts. */}
+            <ol className="sidebar-toc__sections">
+                {sections.map((section, i) => (
+                    // Index-qualified: two H1s can slug identically (no dedup).
+                    <SectionGroup
+                        key={`${section.heading.slug}-${i}`}
+                        section={section}
+                        activeId={activeId}
+                    />
+                ))}
+            </ol>
+            {tagName ? <SeeAllChartsCta tagName={tagName} /> : null}
+        </>
+    )
+}
+
+const SectionGroup = ({
+    section,
+    activeId,
+}: { section: TocSidebarSection } & TocNavProps) => {
+    const onNavigate = useContext(TocNavigateContext)
+    const { heading, charts } = section
+    return (
+        <li
+            className={cx("sidebar-toc__section", {
+                "sidebar-toc__section--active": activeId === heading.slug,
+            })}
+        >
+            <a
+                className="sidebar-toc__h1"
+                href={`#${heading.slug}`}
+                onClick={onNavigate}
+                data-track-note="toc_link"
+                data-toc-id={heading.slug}
+                aria-current={
+                    activeId === heading.slug ? "location" : undefined
+                }
+            >
+                {heading.text}
+            </a>
+            {charts.length > 0 ? (
+                <>
+                    <p className="sidebar-toc__charts-eyebrow">Charts</p>
+                    <ul
+                        className={cx("sidebar-toc__charts", {
+                            "sidebar-toc__charts--single": charts.length === 1,
+                        })}
+                    >
+                        {charts.map((entry) => (
+                            <ChartEntry
+                                key={entry.anchorId}
+                                entry={entry}
+                                activeId={activeId}
+                            />
+                        ))}
+                    </ul>
+                </>
+            ) : null}
+        </li>
+    )
+}
+
+const ChartEntry = ({
+    entry,
+    ...navProps
+}: { entry: TocChartEntry } & TocNavProps) => {
+    if (entry.kind === "narrative-chart")
+        return <NarrativeChartEntry entry={entry} {...navProps} />
+    return <GrapherChartEntry entry={entry} {...navProps} />
+}
+
+const GrapherChartEntry = ({
+    entry,
+    ...navProps
+}: {
+    entry: Extract<TocChartEntry, { kind: "chart" }>
+} & TocNavProps) => {
+    const { linkedChart } = useLinkedChart(entry.url)
+    // The chart isn't rendering on the page either, so there's no anchor to
+    // link to — skip the row entirely rather than show a dead link.
+    if (!linkedChart) return null
+
+    return (
+        <ChartRow
+            anchorId={entry.anchorId}
+            label={chartLabel(linkedChart)}
+            visibility={entry.visibility}
+            {...navProps}
+        />
+    )
+}
+
+const NarrativeChartEntry = ({
+    entry,
+    ...navProps
+}: {
+    entry: Extract<TocChartEntry, { kind: "narrative-chart" }>
+} & TocNavProps) => {
+    const info = useLinkedNarrativeChart(entry.name)
+    if (!info) return null
+
+    return (
+        <ChartRow anchorId={entry.anchorId} label={info.title} {...navProps} />
+    )
+}
+
+const ChartRow = ({
+    anchorId,
+    label,
+    visibility,
+    activeId,
+}: {
+    anchorId: string
+    label: string
+    visibility?: Extract<TocChartEntry, { kind: "chart" }>["visibility"]
+} & TocNavProps) => {
+    const onNavigate = useContext(TocNavigateContext)
+
+    return (
+        <li
+            className={cx("sidebar-toc__chart", {
+                "sidebar-toc__chart--active": activeId === anchorId,
+                "hide-sm-only": visibility === "desktop",
+                "show-sm-only": visibility === "mobile",
+            })}
+            data-toc-id={anchorId}
+        >
+            <a
+                href={`#${anchorId}`}
+                onClick={onNavigate}
+                data-track-note="toc_link"
+                aria-current={activeId === anchorId ? "location" : undefined}
+            >
+                {label}
+            </a>
+        </li>
+    )
+}
+
+const SeeAllChartsCta = ({ tagName }: { tagName: string }) => {
+    const { archiveContext } = useDocumentContext()
+    // The CTA links to the live site's search, which doesn't exist on (and
+    // wouldn't reflect) an archived snapshot — omit it there. Currently
+    // defensive: only articles get archived and none use the sidebar TOC,
+    // so this only kicks in if LTP/profile archiving ships.
+    if (archiveContext?.type === "archive-page") return null
+
+    return (
+        <a
+            className="sidebar-toc__cta"
+            href={buildSearchHrefForCard(SearchResultType.DATA, tagName)}
+            data-track-note="toc_see_all_charts"
+        >
+            <FontAwesomeIcon icon={faMagnifyingGlass} />
+            {/* Full label by default; a container query swaps in the short one
+                in panels too narrow to fit it. */}
+            <span className="sidebar-toc__cta-label--full">
+                See all charts on this topic
+            </span>
+            <span className="sidebar-toc__cta-label--short">
+                See all charts
+            </span>
+        </a>
     )
 }

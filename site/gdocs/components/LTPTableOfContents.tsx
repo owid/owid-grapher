@@ -6,12 +6,8 @@ import {
     faChartSimple,
 } from "@fortawesome/free-solid-svg-icons"
 import { Toc } from "@ourworldindata/utils"
-import { SearchResultType, SearchState } from "@ourworldindata/types"
-import {
-    createTopicFilter,
-    SEARCH_BASE_PATH,
-} from "../../search/searchUtils.js"
-import { stateToSearchParams } from "../../search/searchState.js"
+import { SearchResultType } from "@ourworldindata/types"
+import { buildSearchHrefForCard } from "../../search/searchState.js"
 import cx from "classnames"
 
 const DEFAULT_TITLE = "Sections"
@@ -121,18 +117,4 @@ export const LTPTableOfContents = ({
             </div>
         </nav>
     )
-}
-
-const buildSearchHrefForCard = (
-    resultType: SearchResultType,
-    tagName: string
-) => {
-    const searchState: SearchState = {
-        query: "",
-        filters: [createTopicFilter(tagName)],
-        requireAllCountries: false,
-        resultType,
-    }
-    const params = stateToSearchParams(searchState)
-    return `${SEARCH_BASE_PATH}?${params.toString()}`
 }
