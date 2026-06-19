@@ -204,6 +204,7 @@ export function Sankey({
             .nodeWidth(nodeWidth)
             .nodePadding(nodePadding)
             .nodeSort(null) // Sort by input order
+            .linkSort(null) // Sort by input order
             .extent([
                 [resolvedMargin.left, resolvedMargin.top],
                 [width - resolvedMargin.right, height - resolvedMargin.bottom],

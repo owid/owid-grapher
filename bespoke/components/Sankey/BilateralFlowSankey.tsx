@@ -333,11 +333,24 @@ function buildBilateral({
         formatValue,
     })
 
-    const links: SankeyLink[] = visiblePairs.map((p) => ({
-        source: makeSourceId(p.source),
-        target: makeTargetId(p.target),
-        value: p.value,
-    }))
+    const links: SankeyLink[] = visiblePairs
+        .map((p) => ({
+            source: makeSourceId(p.source),
+            target: makeTargetId(p.target),
+            value: p.value,
+        }))
+        .sort((a, b) => {
+            // sort links by target node order, so that links of the same color don't cross.
+            const targetIndexA = targetNodes.findIndex((n) => n.id === a.target)
+            const targetIndexB = targetNodes.findIndex((n) => n.id === b.target)
+
+            if (targetIndexA !== targetIndexB)
+                return targetIndexA - targetIndexB
+
+            const sourceIndexA = sourceNodes.findIndex((n) => n.id === a.source)
+            const sourceIndexB = sourceNodes.findIndex((n) => n.id === b.source)
+            return sourceIndexA - sourceIndexB
+        })
 
     return { sourceNodes, targetNodes, links }
 }
