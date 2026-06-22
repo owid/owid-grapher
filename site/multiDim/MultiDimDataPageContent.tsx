@@ -36,6 +36,7 @@ import {
 import AboutThisData from "../AboutThisData.js"
 import TopicTags from "../TopicTags.js"
 import MetadataSection from "../MetadataSection.js"
+import DownloadSection from "../DownloadSection.js"
 import GrapherImage from "../GrapherImage.js"
 import { useMobxStateToReactState } from "../hooks.js"
 import { MultiDimSettingsPanel } from "./MultiDimDataPageSettingsPanel.js"
@@ -424,18 +425,19 @@ export function DataPageContent({
         !!grapherStateRef.current
     )
 
-    const downloadProps = slug
-        ? {
-              slug,
-              baseUrl: `${BAKED_GRAPHER_URL}/${slug}`,
-              searchParams: displayedSearchParams,
-              externalQueryParams: displayedSettings,
-              tableForDownload,
-              filteredTableForDownload,
-              yColumns,
-              hideRowCounts: !isClient,
-          }
-        : undefined
+    const downloadSection = slug ? (
+        <DownloadSection
+            slug={slug}
+            baseUrl={`${BAKED_GRAPHER_URL}/${slug}`}
+            searchParams={displayedSearchParams}
+            externalQueryParams={displayedSettings}
+            tableForDownload={tableForDownload}
+            filteredTableForDownload={filteredTableForDownload}
+            yColumns={yColumns}
+            hideRowCounts={!isClient}
+            archivedChartInfo={archiveContext}
+        />
+    ) : undefined
 
     return (
         <AttachmentsContext.Provider
@@ -543,7 +545,7 @@ export function DataPageContent({
                         title={varDatapageData.title}
                         titleVariant={varDatapageData.titleVariant}
                         archiveContext={archiveContext}
-                        downloadProps={downloadProps}
+                        downloadSection={downloadSection}
                     />
                 )}
             </div>

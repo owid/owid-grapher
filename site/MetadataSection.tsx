@@ -1,5 +1,6 @@
 import * as _ from "lodash-es"
 import dayjs from "dayjs"
+import { type ReactNode } from "react"
 
 import {
     DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID,
@@ -25,9 +26,6 @@ import {
     getPhraseForArchivalDate,
 } from "@ourworldindata/utils"
 import { ArticleBlocks } from "./gdocs/components/ArticleBlocks.js"
-import DownloadSection, {
-    type DownloadSectionProps,
-} from "./DownloadSection.js"
 
 export default function MetadataSection({
     attributionShort,
@@ -42,7 +40,7 @@ export default function MetadataSection({
     title,
     titleVariant,
     archiveContext,
-    downloadProps,
+    downloadSection,
 }: {
     attributionShort?: string
     attributions: string[]
@@ -56,7 +54,7 @@ export default function MetadataSection({
     title: IndicatorTitleWithFragments
     titleVariant?: string
     archiveContext?: ArchiveContext
-    downloadProps?: DownloadSectionProps
+    downloadSection?: ReactNode
 }) {
     const sourcesForDisplay = prepareSourcesForDisplay({ origins, source })
     const citationUrl = archiveContext?.archiveUrl ?? canonicalUrl
@@ -216,12 +214,7 @@ export default function MetadataSection({
                             </div>
                         </div>
                     )}
-                    {downloadProps && (
-                        <DownloadSection
-                            {...downloadProps}
-                            archivedChartInfo={archiveContext}
-                        />
-                    )}
+                    {downloadSection}
                 </div>
             </div>
         </div>

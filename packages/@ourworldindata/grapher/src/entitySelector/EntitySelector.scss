@@ -226,6 +226,8 @@
             position: relative;
             z-index: 0;
             background: #fff;
+            content-visibility: auto;
+            contain-intrinsic-block-size: 34px;
         }
 
         ul {
