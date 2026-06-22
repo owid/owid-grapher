@@ -91,9 +91,10 @@ export const getRegionDataProviders = lazy(() =>
 // The ETL back-fills such a region into the sub-tier's `*_region` indicator; mirror that here
 // so the sub-tier is a complete partition for *all* consumers (tooltips, entity presets, …),
 // not just the ones that special-case it.
-const PROVIDER_REGION_BACKFILLS: Partial<Record<RegionDataProvider, string[]>> = {
-    ilo_2: ["Arab States (ILO)"],
-}
+const PROVIDER_REGION_BACKFILLS: Partial<Record<RegionDataProvider, string[]>> =
+    {
+        ilo_2: ["Arab States (ILO)"],
+    }
 
 export const getAggregatesByProvider = (
     provider: RegionDataProvider
