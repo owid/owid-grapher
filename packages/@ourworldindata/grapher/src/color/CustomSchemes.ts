@@ -381,16 +381,6 @@ export const ContinentColors = {
     "Western Pacific (WHO)": OwidDistinctColors.Turquoise,
     "Eastern Mediterranean (WHO)": OwidDistinctColors.Camel,
 
-    // Maddison regions
-    "East Asia (Maddison)": OwidDistinctColors.Copper,
-    "Latin America (Maddison)": OwidDistinctColors.Maroon,
-    "Eastern Europe (Maddison)": OwidDistinctColors.MidnightBlue,
-    "Western Europe (Maddison)": OwidDistinctColors.Denim,
-    "Western Offshoots (Maddison)": OwidDistinctColors.Peach,
-    "Sub Saharan Africa (Maddison)": OwidDistinctColors.DarkMauve,
-    "South and South East Asia (Maddison)": OwidDistinctColors.OliveGreen,
-    "Middle East and North Africa (Maddison)": OwidDistinctColors.Camel,
-
     // Pew Research Center regions
     "Europe (Pew)": OwidDistinctColors.Denim,
     "Asia-Pacific (Pew)": OwidDistinctColors.Teal,
@@ -408,13 +398,6 @@ export const ContinentColors = {
     "Northern Africa and Western Asia (UN SDG)": OwidDistinctColors.Camel,
     "Oceania (UN SDG)": OwidDistinctColors.Turquoise,
     "Sub-Saharan Africa (UN SDG)": OwidDistinctColors.DarkMauve,
-
-    // ILO regions
-    "Africa (ILO)": OwidDistinctColors.DarkMauve,
-    "Americas (ILO)": OwidDistinctColors.Peach,
-    "Arab States (ILO)": OwidDistinctColors.Camel,
-    "Asia and the Pacific (ILO)": OwidDistinctColors.OliveGreen,
-    "Europe and Central Asia (ILO)": OwidDistinctColors.Denim,
 
     // Income groups
     "High-income countries": IncomeGroupColors.HighIncome,
@@ -823,16 +806,6 @@ export const MapContinentColors = {
     "Western Pacific (WHO)": OwidMapColors.SkyTurquoise,
     "Eastern Mediterranean (WHO)": OwidMapColors.Sand,
 
-    // Maddison regions
-    "East Asia (Maddison)": OwidMapColors.LightCherry,
-    "Latin America (Maddison)": OwidMapColors.MutedCherry,
-    "Eastern Europe (Maddison)": OwidMapColors.LightDenim,
-    "Western Europe (Maddison)": OwidMapColors.MutedDenim,
-    "Western Offshoots (Maddison)": OwidMapColors.SoftOrange,
-    "Sub Saharan Africa (Maddison)": OwidMapColors.LightPurple,
-    "South and South East Asia (Maddison)": OwidMapColors.Olive,
-    "Middle East and North Africa (Maddison)": OwidMapColors.Sand,
-
     // Pew Research Center regions
     "Europe (Pew)": OwidMapColors.MutedDenim,
     "Asia-Pacific (Pew)": OwidMapColors.MutedTeal,
@@ -850,6 +823,38 @@ export const MapContinentColors = {
     "Northern Africa and Western Asia (UN SDG)": OwidMapColors.Sand,
     "Oceania (UN SDG)": OwidMapColors.SkyTurquoise,
     "Sub-Saharan Africa (UN SDG)": OwidMapColors.LightPurple,
+
+    // Maddison Project Database regions — pinned to the exact colors their map chart
+    // renders (the default categorical map palette in CategoricalMapPalette10, in
+    // legend/display order) so the region tooltip matches the chart and stays put if
+    // the display order ever changes.
+    "Western offshoots (Maddison)": OwidMapColors.MutedDenim,
+    "Western Europe (Maddison)": OwidMapColors.SoftOrange,
+    "Eastern Europe (Maddison)": OwidMapColors.MutedTeal,
+    "Latin America (Maddison)": OwidMapColors.SoftPurple,
+    "East Asia (Maddison)": OwidMapColors.Sand,
+    "South and South East Asia (Maddison)": OwidMapColors.MutedCherry,
+    "Middle East and North Africa (Maddison)": OwidMapColors.LeafGreen,
+    "Sub Saharan Africa (Maddison)": OwidMapColors.SkyTurquoise,
+
+    // WID regions — pinned to their map chart's colors (see Maddison note above).
+    "North America (WID)": OwidMapColors.MutedDenim,
+    "Latin America (WID)": OwidMapColors.SoftOrange,
+    "Europe (WID)": OwidMapColors.MutedTeal,
+    "Russia and Central Asia (WID)": OwidMapColors.SoftPurple,
+    "MENA (WID)": OwidMapColors.Sand,
+    "Sub-Saharan Africa (WID)": OwidMapColors.MutedCherry,
+    "East Asia (WID)": OwidMapColors.LeafGreen,
+    "South & South-East Asia (WID)": OwidMapColors.SkyTurquoise,
+    "Oceania (WID)": OwidMapColors.Lavendar,
+
+    // ILO regions are deliberately NOT pinned here. "Arab States (ILO)" is shared by
+    // both ILO tiers (the broad `ilo_1` and the `ilo_2` subregions), but a name-keyed
+    // entry can only hold one color, and that region sits at a different palette
+    // position in each tier — so pinning it would mismatch one tier's chart or collide
+    // with another region's color in the other tier. Leaving ILO on the position-based
+    // fallback (CategoricalMapPalette17 by display order) keeps every ILO tier matching
+    // its own chart, with no shared-region clash.
 } as const
 
 export const DefaultColorScheme = OwidDistinctColorScheme
