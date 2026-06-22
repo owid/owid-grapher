@@ -1439,7 +1439,7 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
                             name={entity.name}
                             type={this.isMultiMode ? "checkbox" : "radio"}
                             checked={this.isEntitySelected(entity)}
-                            bar={this.getBarConfigForEntity(entity)}
+                            {...this.getBarPropsForEntity(entity)}
                             onChange={this.onChange}
                             isLocal={entity.isLocal}
                             isMuted={this.isEntityMuted(entity.name)}
@@ -1463,7 +1463,7 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
                                 name={entity.name}
                                 type="radio"
                                 checked={this.isEntitySelected(entity)}
-                                bar={this.getBarConfigForEntity(entity)}
+                                {...this.getBarPropsForEntity(entity)}
                                 onChange={this.onChange}
                                 isLocal={entity.isLocal}
                                 isMuted={this.isEntityMuted(entity.name)}
@@ -1498,25 +1498,23 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
             .range([0, 1])
     }
 
-    private getBarConfigForEntity(
-        entity: SearchableEntity
-    ): BarConfig | undefined {
+    private getBarPropsForEntity(entity: SearchableEntity): BarProps {
         const { selectedSortColumn, barScale } = this
 
-        if (!selectedSortColumn) return undefined
+        if (!selectedSortColumn) return {}
 
         const value = entity.sortColumnValues[selectedSortColumn.slug]
 
-        if (!isFiniteWithGuard(value)) return { formattedValue: "No data" }
+        if (!isFiniteWithGuard(value)) return { barFormattedValue: "No data" }
 
-        const formattedValue =
+        const barFormattedValue =
             selectedSortColumn.formatValueShortWithAbbreviations(value)
 
-        if (value < 0) return { formattedValue, width: 0 }
+        if (value < 0) return { barFormattedValue, barWidth: 0 }
 
         return {
-            formattedValue,
-            width: R.clamp(barScale(value), { min: 0, max: 1 }),
+            barFormattedValue,
+            barWidth: R.clamp(barScale(value), { min: 0, max: 1 }),
         }
     }
 
@@ -1563,24 +1561,20 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
                         </Flipped>
                     )}
                     <ul>
-                        {selectedEntities.map((entity, entityIndex) => (
-                            <FlippedListItem
-                                index={entityIndex}
+                        {selectedEntities.map((entity) => (
+                            <SelectableEntityListItem
                                 key={entity.name}
                                 flipId={`selected_${makeSafeForCSS(
                                     entity.name
                                 )}`}
-                            >
-                                <SelectableEntity
-                                    name={entity.name}
-                                    type="checkbox"
-                                    checked={true}
-                                    bar={this.getBarConfigForEntity(entity)}
-                                    onChange={this.onChange}
-                                    isLocal={entity.isLocal}
-                                    isMuted={this.isEntityMuted(entity.name)}
-                                />
-                            </FlippedListItem>
+                                name={entity.name}
+                                type="checkbox"
+                                checked={true}
+                                {...this.getBarPropsForEntity(entity)}
+                                onChange={this.onChange}
+                                isLocal={entity.isLocal}
+                                isMuted={this.isEntityMuted(entity.name)}
+                            />
                         ))}
                     </ul>
                 </div>
@@ -1606,33 +1600,21 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
                         )}
 
                         <ul>
-                            {filteredAvailableEntities.map(
-                                (entity, entityIndex) => (
-                                    <FlippedListItem
-                                        index={entityIndex}
-                                        key={entity.name}
-                                        flipId={`available_${makeSafeForCSS(
-                                            entity.name
-                                        )}`}
-                                    >
-                                        <SelectableEntity
-                                            name={entity.name}
-                                            type="checkbox"
-                                            checked={this.isEntitySelected(
-                                                entity
-                                            )}
-                                            bar={this.getBarConfigForEntity(
-                                                entity
-                                            )}
-                                            onChange={this.onChange}
-                                            isLocal={entity.isLocal}
-                                            isMuted={this.isEntityMuted(
-                                                entity.name
-                                            )}
-                                        />
-                                    </FlippedListItem>
-                                )
-                            )}
+                            {filteredAvailableEntities.map((entity) => (
+                                <SelectableEntityListItem
+                                    key={entity.name}
+                                    flipId={`available_${makeSafeForCSS(
+                                        entity.name
+                                    )}`}
+                                    name={entity.name}
+                                    type="checkbox"
+                                    checked={this.isEntitySelected(entity)}
+                                    {...this.getBarPropsForEntity(entity)}
+                                    onChange={this.onChange}
+                                    isLocal={entity.isLocal}
+                                    isMuted={this.isEntityMuted(entity.name)}
+                                />
+                            ))}
                         </ul>
                     </div>
                 )}
@@ -1672,33 +1654,26 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
     }
 }
 
-type BarConfig = { formattedValue: string; width?: number }
+// Bar props are flattened into primitives (rather than a `bar` object) so that
+// the default `React.memo` shallow comparison works without a hand-written
+// equality function. A freshly-allocated object would fail reference equality
+// on every render and defeat memoization.
+interface BarProps {
+    barFormattedValue?: string
+    barWidth?: number
+}
 
-function SelectableEntity({
-    name,
-    checked,
-    type,
-    bar,
-    onChange,
-    isLocal,
-    isMuted,
-}: {
+interface SelectableEntityProps extends BarProps {
     name: string
     checked: boolean
     type: "checkbox" | "radio"
-    bar?: BarConfig
     onChange: (entityName: EntityName) => void
     isLocal?: boolean
     isMuted?: boolean
-}) {
-    const Input = {
-        checkbox: Checkbox,
-        radio: RadioButton,
-    }[type]
+}
 
-    const { name: displayName, suffix } = parseLabel(name)
-
-    const locationIcon = (
+function LocationIcon() {
+    return (
         <span className="location-icon">
             {/* Non-breaking space prevents the icon from wrapping to a new line alone */}
             {"\u00A0"}
@@ -1711,62 +1686,76 @@ function SelectableEntity({
             </Tippy>
         </span>
     )
+}
+
+const SelectableEntity = React.memo(function SelectableEntity({
+    name,
+    checked,
+    type,
+    barFormattedValue,
+    barWidth,
+    onChange,
+    isLocal,
+    isMuted,
+}: SelectableEntityProps) {
+    const Input = type === "checkbox" ? Checkbox : RadioButton
+    const { name: displayName, suffix } = parseLabel(name)
 
     const label = (
         <span>
             {displayName}
             {suffix && <span className="suffix"> ({suffix})</span>}
-            {isLocal && locationIcon}
+            {isLocal && <LocationIcon />}
         </span>
     )
 
     return (
         <div
             className={cx("selectable-entity", {
-                "selectable-entity--with-bar": bar && bar.width !== undefined,
+                "selectable-entity--with-bar": barWidth !== undefined,
                 "selectable-entity--muted": isMuted,
             })}
         >
-            {bar && bar.width !== undefined && (
-                <div className="bar" style={{ width: `${bar.width * 100}%` }} />
+            {barWidth !== undefined && (
+                <div className="bar" style={{ width: `${barWidth * 100}%` }} />
             )}
             <Input
                 label={label}
                 checked={checked}
                 onChange={() => onChange(name)}
             />
-            {bar && (
+            {barFormattedValue !== undefined && (
                 <span className="value grapher_label-1-regular">
-                    {bar.formattedValue}
+                    {barFormattedValue}
                 </span>
             )}
         </div>
     )
+})
+
+const flippedListItemSpring = { stiffness: 300, damping: 33 }
+
+type SelectableEntityListItemProps = SelectableEntityProps & {
+    flipId: string
 }
 
-function FlippedListItem({
+const SelectableEntityListItem = React.memo(function SelectableEntityListItem({
     flipId,
-    index = 0,
-    children,
-}: {
-    flipId: string
-    index?: number
-    children: React.ReactNode
-}) {
+    ...selectableEntityProps
+}: SelectableEntityListItemProps) {
     return (
         <Flipped
             flipId={flipId}
             translate
             opacity
-            spring={{
-                stiffness: Math.max(300 - index, 180),
-                damping: 33,
-            }}
+            spring={flippedListItemSpring}
         >
-            <li>{children}</li>
+            <li>
+                <SelectableEntity {...selectableEntityProps} />
+            </li>
         </Flipped>
     )
-}
+})
 
 function renderSortTriggerValue(
     option: SortDropdownOption | null
