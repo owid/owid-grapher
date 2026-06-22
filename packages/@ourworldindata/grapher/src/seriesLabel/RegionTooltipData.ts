@@ -49,10 +49,10 @@ const descriptions: Record<TooltipKey, string> = {
         "Our team defines [six world regions](https://ourworldindata.org/world-region-map-definitions#our-world-in-data):",
     iea: "The **International Energy Agency (IEA)** defines seven world regions:",
     maddison:
-        "The **Maddison Project Database** groups countries into eight world regions:",
-    wid: "The **World Inequality Database (WID)** groups countries into nine world regions:",
-    ilo_1: "The **International Labour Organization (ILO)** defines five broad world regions:",
-    ilo_2: "The **International Labour Organization (ILO)** divides the world into eleven subregions:",
+        "The **Maddison Project Database** groups countries into [eight world regions](https://ourworldindata.org/world-region-map-definitions#maddison-project-database-maddison):",
+    wid: "The **World Inequality Database (WID)** groups countries into [nine world regions](https://ourworldindata.org/world-region-map-definitions#world-inequality-database-wid):",
+    ilo_1: "The **International Labour Organization (ILO)** defines [five broad world regions](https://ourworldindata.org/world-region-map-definitions#international-labour-organization-ilo):",
+    ilo_2: "The **International Labour Organization (ILO)** divides the world into [eleven subregions](https://ourworldindata.org/world-region-map-definitions#international-labour-organization-ilo):",
 }
 
 // Geographic display order: left-to-right on the map.
