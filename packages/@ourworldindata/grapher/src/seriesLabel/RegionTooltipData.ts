@@ -169,23 +169,14 @@ export function getDescriptionForKey(key: TooltipKey): string {
 }
 
 export function getRegionsForKey(key: TooltipKey): TooltipRegion[] {
-    // ILO's Arab States is a broad region (ilo_1) with no intermediate breakdown, so it's
-    // absent from the ilo_2 set and would otherwise leave a grey "no data" hole over the
-    // Arab world. Splice it into the ilo_2 (subregion) set so that map is a complete
-    // partition — this mirrors the back-fill the ETL applies to the ilo_2_region indicator.
+    // `getAggregatesByProvider` already back-fills shared regions (e.g. ILO's Arab States into
+    // `ilo_2`), so the sub-tier set is complete here without a special-case.
     const regions =
         key === "incomeGroups"
             ? getIncomeGroups()
             : key === "continents"
               ? getContinents()
-              : key === "ilo_2"
-                ? [
-                      ...getAggregatesByProvider("ilo_2"),
-                      ...getAggregatesByProvider("ilo_1").filter(
-                          (region) => region.name === "Arab States (ILO)"
-                      ),
-                  ]
-                : getAggregatesByProvider(key)
+              : getAggregatesByProvider(key)
 
     const customOrder = customRegionDisplayOrder[key]
     const sortFn = (

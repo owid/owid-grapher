@@ -86,9 +86,26 @@ export const getRegionDataProviders = lazy(() =>
     )
 )
 
+// A region can belong to a parent tier and a sub-tier at once (e.g. ILO's "Arab States
+// (ILO)" is both a broad region and a subregion), but a region carries a single `definedBy`.
+// The ETL back-fills such a region into the sub-tier's `*_region` indicator; mirror that here
+// so the sub-tier is a complete partition for *all* consumers (tooltips, entity presets, …),
+// not just the ones that special-case it.
+const PROVIDER_REGION_BACKFILLS: Partial<Record<RegionDataProvider, string[]>> = {
+    ilo_2: ["Arab States (ILO)"],
+}
+
 export const getAggregatesByProvider = (
     provider: RegionDataProvider
-): Aggregate[] => getAggregates().filter((r) => r.definedBy === provider)
+): Aggregate[] => {
+    const direct = getAggregates().filter((r) => r.definedBy === provider)
+    const backfill = PROVIDER_REGION_BACKFILLS[provider]
+    if (!backfill) return direct
+    return [
+        ...direct,
+        ...getAggregates().filter((r) => backfill.includes(r.name)),
+    ]
+}
 
 const regionsByName = lazy(() =>
     Object.fromEntries(regions.map((region) => [region.name, region]))
