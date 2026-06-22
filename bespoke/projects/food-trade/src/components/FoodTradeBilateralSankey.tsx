@@ -63,6 +63,7 @@ export function FoodTradeBilateralSankey({
                 flows={flows}
                 width={width}
                 height={height}
+                maxNodes={isNarrow ? 8 : 10} // show fewer nodes on mobile to avoid overcrowding
                 linkLowVolumeThreshold={BILATERAL_LOW_VOLUME_THRESHOLD}
                 formatValue={formatValue}
                 getTooltip={getTooltip}
