@@ -9,7 +9,7 @@
 }
 
 .sankey__link {
-    fill-opacity: 0.6;
+    fill-opacity: var(--sankey-link-fill-opacity, 0.6);
     cursor: default;
     pointer-events: none;
 

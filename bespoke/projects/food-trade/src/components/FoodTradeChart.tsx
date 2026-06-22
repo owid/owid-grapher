@@ -5,9 +5,12 @@ import * as R from "remeda"
 import { articulateEntity } from "@ourworldindata/utils"
 
 import { Spinner } from "../../../../components/Spinner/Spinner.js"
-import { Flow } from "../config.js"
+import { type Flow } from "../config.js"
 import { ALL_COUNTRIES, isAllCountry } from "../helpers.js"
-import { ProductTradeData } from "../types.js"
+import {
+    type FoodTradeSankeySettings,
+    type ProductTradeData,
+} from "../types.js"
 import { FoodTradeBilateralSankey } from "./FoodTradeBilateralSankey.js"
 import { FoodTradeSplitSankey } from "./FoodTradeSplitSankey.js"
 
@@ -17,6 +20,7 @@ export function FoodTradeChart({
     product,
     year,
     view,
+    sankeySettings,
     isLoading,
     hideFlowSwitcher,
     setCountry,
@@ -27,6 +31,7 @@ export function FoodTradeChart({
     product: string
     year: number
     view: Flow
+    sankeySettings: FoodTradeSankeySettings
     isLoading?: boolean
     hideFlowSwitcher?: boolean
     setCountry: (value: string) => void
@@ -61,6 +66,7 @@ export function FoodTradeChart({
                         <FoodTradeBilateralSankey
                             trades={flows}
                             year={year}
+                            sankeySettings={sankeySettings}
                             onSelectEntity={
                                 hideFlowSwitcher
                                     ? undefined
@@ -104,6 +110,7 @@ export function FoodTradeChart({
                             country={country}
                             product={product}
                             year={year}
+                            sankeySettings={sankeySettings}
                             countryProduction={countryProduction}
                             countrySupply={countrySupply}
                             view={view}

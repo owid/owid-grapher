@@ -24,9 +24,13 @@ import {
     SwitcherItem,
 } from "../../../../components/Switcher/Switcher.js"
 
-import { Flow } from "../config.js"
+import { type Flow } from "../config.js"
 import { ALL_COUNTRIES, isAllCountry } from "../helpers.js"
-import { FoodTradeMetadata, ProductTradeData } from "../types.js"
+import {
+    type FoodTradeMetadata,
+    type FoodTradeSankeySettings,
+    type ProductTradeData,
+} from "../types.js"
 
 export function FoodTradeControls({
     metadata,
@@ -34,20 +38,24 @@ export function FoodTradeControls({
     product,
     country,
     view,
+    sankeySettings,
     hideFlowSwitcher,
     setProduct,
     setCountry,
     setView,
+    setSankeySettings,
 }: {
     metadata: FoodTradeMetadata
     productData: ProductTradeData
     product: string
     country: string
     view: Flow
+    sankeySettings: FoodTradeSankeySettings
     hideFlowSwitcher?: boolean
     setProduct: (value: string) => void
     setCountry: (value: string) => void
     setView: (value: Flow) => void
+    setSankeySettings: (value: FoodTradeSankeySettings) => void
 }): React.ReactElement {
     return (
         <div className="food-trade-controls">
@@ -80,9 +88,118 @@ export function FoodTradeControls({
                         />
                     )}
                 </div>
+                <SankeySettingsControls
+                    settings={sankeySettings}
+                    setSettings={setSankeySettings}
+                />
             </div>
         </div>
     )
+}
+
+function SankeySettingsControls({
+    settings,
+    setSettings,
+}: {
+    settings: FoodTradeSankeySettings
+    setSettings: (value: FoodTradeSankeySettings) => void
+}) {
+    const updateSettings = (patch: Partial<FoodTradeSankeySettings>) => {
+        setSettings(normalizeSankeySettings({ ...settings, ...patch }))
+    }
+
+    return (
+        <div className="food-trade-controls__settings-row">
+            <label className="food-trade-controls__setting food-trade-controls__setting--wide">
+                <span className="food-trade-controls__setting-label">
+                    Min node share
+                </span>
+                <input
+                    type="range"
+                    min={0.01}
+                    max={0.2}
+                    step={0.01}
+                    value={settings.minNodeShare}
+                    onChange={(event) =>
+                        updateSettings({
+                            minNodeShare: Number(event.currentTarget.value),
+                        })
+                    }
+                />
+                <output className="food-trade-controls__setting-value">
+                    {Math.round(settings.minNodeShare * 100)}%
+                </output>
+            </label>
+            <label className="food-trade-controls__setting">
+                <span className="food-trade-controls__setting-label">
+                    Min nodes
+                </span>
+                <input
+                    type="number"
+                    min={1}
+                    max={settings.maxNodes}
+                    step={1}
+                    value={settings.minNodes}
+                    onChange={(event) =>
+                        updateSettings({
+                            minNodes: Number(event.currentTarget.value),
+                        })
+                    }
+                />
+            </label>
+            <label className="food-trade-controls__setting">
+                <span className="food-trade-controls__setting-label">
+                    Max nodes
+                </span>
+                <input
+                    type="number"
+                    min={settings.minNodes}
+                    max={30}
+                    step={1}
+                    value={settings.maxNodes}
+                    onChange={(event) =>
+                        updateSettings({
+                            maxNodes: Number(event.currentTarget.value),
+                        })
+                    }
+                />
+            </label>
+            <label className="food-trade-controls__checkbox-setting">
+                <input
+                    type="checkbox"
+                    checked={settings.shouldFadeSmallFlows}
+                    onChange={(event) =>
+                        updateSettings({
+                            shouldFadeSmallFlows: event.currentTarget.checked,
+                        })
+                    }
+                />
+                <span>Fade small flows</span>
+            </label>
+        </div>
+    )
+}
+
+function normalizeSankeySettings(
+    settings: FoodTradeSankeySettings
+): FoodTradeSankeySettings {
+    const minNodeShare = clampFinite(settings.minNodeShare, 0.01, 0.2)
+    const maxNodes = Math.round(clampFinite(settings.maxNodes, 1, 30))
+    const minNodes = Math.round(
+        clampFinite(settings.minNodes, 1, Math.max(1, maxNodes))
+    )
+
+    return {
+        minNodeShare,
+        minNodes,
+        maxNodes,
+        shouldFadeSmallFlows: settings.shouldFadeSmallFlows,
+    }
+}
+
+function clampFinite(value: number, min: number, max: number): number {
+    if (!Number.isFinite(value)) return min
+    return R.clamp(value, { min, max })
 }
 
 function ProductDropdown({

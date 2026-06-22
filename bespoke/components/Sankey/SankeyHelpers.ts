@@ -23,7 +23,9 @@ export const DEFAULT_MAX_NODES_TO_SHRINK_OTHER = 10
 export const STACKED_MAX_NODES_TO_SHRINK_OTHER = 10
 /** Smallest share of the column total a node may have and still be drawn on its own */
 export const DEFAULT_MIN_NODE_SHARE = 0.01
-export const DEFAULT_MIN_LINK_SHARE = 0.01
+export const DEFAULT_MIN_LINK_SHARE = 0
+export const DEFAULT_LINK_FILL_OPACITY = 0.6
+export const MIN_SMALL_FLOW_FILL_OPACITY = 0.12
 
 export const OTHER_KEY = "__other__"
 
@@ -100,6 +102,22 @@ export function assignColors(entities: string[]): Map<string, string> {
             entity,
             COLOR_PALETTE[i % COLOR_PALETTE.length], // Cycle through palette if more entities than colors
         ])
+    )
+}
+
+export function getSmallFlowFillOpacity({
+    value,
+    maxValue,
+}: {
+    value: number
+    maxValue: number
+}): number {
+    if (maxValue <= 0) return DEFAULT_LINK_FILL_OPACITY
+    const shareOfMax = Math.max(0, Math.min(1, value / maxValue))
+    return (
+        MIN_SMALL_FLOW_FILL_OPACITY +
+        (DEFAULT_LINK_FILL_OPACITY - MIN_SMALL_FLOW_FILL_OPACITY) *
+            Math.sqrt(shareOfMax)
     )
 }
 

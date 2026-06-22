@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react"
+import { useCallback, useMemo, useState } from "react"
 import cx from "classnames"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { NuqsAdapter } from "nuqs/adapters/react"
@@ -11,8 +11,18 @@ import { Frame } from "../../../../components/Frame/Frame.js"
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
 
-import { SankeyVariantConfig, Flow, VariantProps } from "../config.js"
-import { FoodTradeMetadata, ProductTradeData, TradeRow } from "../types.js"
+import {
+    DEFAULT_SANKEY_SETTINGS,
+    type SankeyVariantConfig,
+    type Flow,
+    type VariantProps,
+} from "../config.js"
+import {
+    type FoodTradeMetadata,
+    type FoodTradeSankeySettings,
+    type ProductTradeData,
+    type TradeRow,
+} from "../types.js"
 import { useFoodTradeMetadata, useProductTradeData } from "../data.js"
 import { FoodTradeControls } from "../components/FoodTradeControls.js"
 import { FoodTradeChart } from "../components/FoodTradeChart.js"
@@ -83,6 +93,8 @@ function FetchingSankeyVariant({ config }: { config: SankeyVariantConfig }) {
         defaultValue: initialView,
         enabled: urlSync,
     })
+    const [sankeySettings, setSankeySettings] =
+        useState<FoodTradeSankeySettings>(DEFAULT_SANKEY_SETTINGS)
 
     const { data: metadata, status: metadataStatus } = useFoodTradeMetadata()
     const productId = metadata?.productByName.get(product)?.id
@@ -155,10 +167,12 @@ function FetchingSankeyVariant({ config }: { config: SankeyVariantConfig }) {
             product={product}
             country={country}
             view={view}
+            sankeySettings={sankeySettings}
             isLoading={isLoading}
             setProduct={setProduct}
             setCountry={setCountry}
             setView={setView}
+            setSankeySettings={setSankeySettings}
         />
     )
 }
@@ -169,10 +183,12 @@ function CaptionedSankeyVariant({
     product,
     country,
     view,
+    sankeySettings,
     isLoading,
     setProduct,
     setCountry,
     setView,
+    setSankeySettings,
     config,
 }: {
     config: SankeyVariantConfig
@@ -181,10 +197,12 @@ function CaptionedSankeyVariant({
     product: string
     country: string
     view: Flow
+    sankeySettings: FoodTradeSankeySettings
     isLoading: boolean
     setProduct: (value: string) => void
     setCountry: (value: string) => void
     setView: (value: Flow) => void
+    setSankeySettings: (value: FoodTradeSankeySettings) => void
 }) {
     const shouldHideChrome =
         config.hideControls || !!config.title || !!config.subtitle
@@ -213,10 +231,12 @@ function CaptionedSankeyVariant({
                         product={product}
                         country={country}
                         view={view}
+                        sankeySettings={sankeySettings}
                         hideFlowSwitcher={config.hideFlowSwitcher}
                         setProduct={setProduct}
                         setCountry={setCountry}
                         setView={setView}
+                        setSankeySettings={setSankeySettings}
                     />
                 </>
             )}
@@ -235,6 +255,7 @@ function CaptionedSankeyVariant({
                     product={displayedProduct}
                     year={metadata.year}
                     view={view}
+                    sankeySettings={sankeySettings}
                     isLoading={isLoading}
                     hideFlowSwitcher={config.hideFlowSwitcher}
                     setCountry={setCountry}

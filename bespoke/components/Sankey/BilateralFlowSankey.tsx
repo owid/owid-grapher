@@ -19,6 +19,7 @@ import {
     DEFAULT_MIN_NODE_SHARE,
     getEntityFromNodeId,
     getEntityShortLabel,
+    getSmallFlowFillOpacity,
     EntityTotal,
     Flow,
     makeSourceId,
@@ -32,9 +33,11 @@ interface BilateralFlowSankeyProps {
     flows: Flow[]
     width: number
     height: number
+    minNodes?: number
     maxNodes?: number
     minNodeShare?: number
     minLinkShare?: number
+    shouldFadeSmallFlows?: boolean
     getTooltip?: (args: BilateralTooltipArgs) => SankeyTooltip | undefined
     onSelectEntity?: (entity: string, side: LinkSide) => void
     formatValue: (value: number) => string
@@ -51,9 +54,11 @@ export function BilateralFlowSankey({
     flows,
     width,
     height,
+    minNodes = 1,
     maxNodes = DEFAULT_MAX_NODES,
     minNodeShare = DEFAULT_MIN_NODE_SHARE,
     minLinkShare = DEFAULT_MIN_LINK_SHARE,
+    shouldFadeSmallFlows = false,
     getTooltip,
     onSelectEntity,
     formatValue,
@@ -62,12 +67,13 @@ export function BilateralFlowSankey({
         () =>
             buildBilateral({
                 flows,
+                minNodes,
                 maxNodes,
                 minNodeShare,
                 minLinkShare,
                 formatValue,
             }),
-        [flows, maxNodes, minNodeShare, minLinkShare, formatValue]
+        [flows, minNodes, maxNodes, minNodeShare, minLinkShare, formatValue]
     )
 
     const getEntityIdsFromNodes = (nodes: SankeyNode[]) =>
@@ -101,6 +107,19 @@ export function BilateralFlowSankey({
         const source = getEntityFromNodeId(link.source)
         return colorMap.get(source) ?? NEUTRAL_COLOR
     }
+
+    const maxLinkValue = useMemo(
+        () => Math.max(0, ...links.map((link) => link.value)),
+        [links]
+    )
+
+    const getLinkOpacity = shouldFadeSmallFlows
+        ? (link: SankeyLink): number =>
+              getSmallFlowFillOpacity({
+                  value: link.value,
+                  maxValue: maxLinkValue,
+              })
+        : undefined
 
     // All other links sharing the hovered link's source
     const getRelatedLinks = (link: SankeyLink): SankeyLink[] =>
@@ -176,6 +195,7 @@ export function BilateralFlowSankey({
             height={height}
             nodeColor={getNodeColor}
             linkColor={getLinkColor}
+            linkOpacity={getLinkOpacity}
             getLinkTooltip={getLinkTooltip}
             getRelatedLinks={getTooltip ? getRelatedLinks : undefined}
             getNodeTooltip={getNodeTooltip}
@@ -210,6 +230,7 @@ function buildTooltipArgs({
 
 export function selectTopEntities({
     flows,
+    minNodes,
     side,
     maxNodes,
     minNodeShare,
@@ -217,6 +238,7 @@ export function selectTopEntities({
 }: {
     flows: Flow[]
     side: LinkSide
+    minNodes: number
     maxNodes: number
     minNodeShare: number
     /**
@@ -234,14 +256,24 @@ export function selectTopEntities({
 
     const total = R.sumBy(sortedEntities, (d) => d.total)
 
-    const topCandidates = R.take(sortedEntities, maxNodes)
-    const topCandidatesAboveFloor = topCandidates.filter(
+    if (sortedEntities.length === 0 || total <= 0) {
+        return { top: sortedEntities, other: [], total }
+    }
+
+    const maxVisibleCount = Math.min(maxNodes, sortedEntities.length)
+    const minVisibleCount = R.clamp(minNodes, {
+        min: 1,
+        max: maxVisibleCount,
+    })
+    const topCandidates = R.take(sortedEntities, maxVisibleCount)
+    const aboveFloorCount = topCandidates.filter(
         (d) => total > 0 && d.total / total >= minNodeShare
-    )
-    let top =
-        topCandidatesAboveFloor.length > 0
-            ? topCandidatesAboveFloor
-            : R.take(topCandidates, 1)
+    ).length
+    const topCount = R.clamp(aboveFloorCount, {
+        min: minVisibleCount,
+        max: maxVisibleCount,
+    })
+    let top = R.take(topCandidates, topCount)
     let other = R.drop(sortedEntities, top.length)
 
     // Inline a small Other tail
@@ -255,12 +287,14 @@ export function selectTopEntities({
 
 function buildBilateral({
     flows,
+    minNodes,
     maxNodes,
     minNodeShare,
     minLinkShare,
     formatValue,
 }: {
     flows: Flow[]
+    minNodes: number
     maxNodes: number
     minNodeShare: number
     minLinkShare: number
@@ -273,12 +307,14 @@ function buildBilateral({
     const sourceSelection = selectTopEntities({
         flows,
         side: "source",
+        minNodes,
         maxNodes,
         minNodeShare,
     })
     const targetSelection = selectTopEntities({
         flows,
         side: "target",
+        minNodes,
         maxNodes,
         minNodeShare,
     })
