@@ -328,6 +328,36 @@ export const IncomeGroupColors = {
     LowIncome: "#974e94",
 } as const
 
+// Defined before ContinentColors so both ContinentColors and MapContinentColors can
+// reference it (the provider-region pins below use these map-palette colors).
+export const OwidMapColors: Record<string, Color> = {
+    // Main
+    MutedDenim: "#526F9B",
+    SoftOrange: "#CC7641",
+    MutedTeal: "#238A84",
+    SoftPurple: "#77538F",
+    Sand: "#C3A27C",
+    MutedCherry: "#B04E74",
+    LeafGreen: "#6FA54F",
+    SkyTurquoise: "#5FB8C8",
+    Lavendar: "#8E97C7",
+    Olive: "#5B6D35",
+
+    // Extended
+    LightDenim: "#92D3DE",
+    LightOrange: "#E2A17A",
+    LightTeal: "#4FB2AC",
+    LightPurple: "#A07AB8",
+    LightSand: "#D8C0A2",
+    LightCherry: "#CB7FA0",
+    LightGreen: "#9DCA7B",
+
+    // Special
+    Taupe: "#B9B2A6",
+    Mustard: "#D9BC54",
+    Tomato: "#D94C3F",
+} as const
+
 export const ContinentColors = {
     // World
     World: OwidDistinctColors.DarkOliveGreen,
@@ -398,6 +428,35 @@ export const ContinentColors = {
     "Northern Africa and Western Asia (UN SDG)": OwidDistinctColors.Camel,
     "Oceania (UN SDG)": OwidDistinctColors.Turquoise,
     "Sub-Saharan Africa (UN SDG)": OwidDistinctColors.DarkMauve,
+
+    // Maddison Project Database regions — pinned to the exact colors their map chart renders
+    // (the default categorical palette CategoricalMapPalette10, in legend/display order).
+    // Defined here (not only in MapContinentColors) so the admin "Continents" picker offers
+    // the same colors, letting a Maddison-region chart be colored to match the map. They flow
+    // into MapContinentColors via its spread, so the region hover matches too.
+    "Western offshoots (Maddison)": OwidMapColors.MutedDenim,
+    "Western Europe (Maddison)": OwidMapColors.SoftOrange,
+    "Eastern Europe (Maddison)": OwidMapColors.MutedTeal,
+    "Latin America (Maddison)": OwidMapColors.SoftPurple,
+    "East Asia (Maddison)": OwidMapColors.Sand,
+    "South and South East Asia (Maddison)": OwidMapColors.MutedCherry,
+    "Middle East and North Africa (Maddison)": OwidMapColors.LeafGreen,
+    "Sub Saharan Africa (Maddison)": OwidMapColors.SkyTurquoise,
+
+    // WID regions — same idea (see Maddison note above).
+    "North America (WID)": OwidMapColors.MutedDenim,
+    "Latin America (WID)": OwidMapColors.SoftOrange,
+    "Europe (WID)": OwidMapColors.MutedTeal,
+    "Russia and Central Asia (WID)": OwidMapColors.SoftPurple,
+    "MENA (WID)": OwidMapColors.Sand,
+    "Sub-Saharan Africa (WID)": OwidMapColors.MutedCherry,
+    "East Asia (WID)": OwidMapColors.LeafGreen,
+    "South & South-East Asia (WID)": OwidMapColors.SkyTurquoise,
+    "Oceania (WID)": OwidMapColors.Lavendar,
+
+    // ILO regions are intentionally NOT pinned: "Arab States (ILO)" is shared by both ILO
+    // tiers and sits at a different palette position in each, so one name-keyed color can't
+    // match both charts without a clash. ILO stays on the position-based palette fallback.
 
     // Income groups
     "High-income countries": IncomeGroupColors.HighIncome,
@@ -692,34 +751,6 @@ export const BinaryMapPaletteF = {
 
 CustomColorSchemes.push(BinaryMapPaletteF)
 
-export const OwidMapColors: Record<string, Color> = {
-    // Main
-    MutedDenim: "#526F9B",
-    SoftOrange: "#CC7641",
-    MutedTeal: "#238A84",
-    SoftPurple: "#77538F",
-    Sand: "#C3A27C",
-    MutedCherry: "#B04E74",
-    LeafGreen: "#6FA54F",
-    SkyTurquoise: "#5FB8C8",
-    Lavendar: "#8E97C7",
-    Olive: "#5B6D35",
-
-    // Extended
-    LightDenim: "#92D3DE",
-    LightOrange: "#E2A17A",
-    LightTeal: "#4FB2AC",
-    LightPurple: "#A07AB8",
-    LightSand: "#D8C0A2",
-    LightCherry: "#CB7FA0",
-    LightGreen: "#9DCA7B",
-
-    // Special
-    Taupe: "#B9B2A6",
-    Mustard: "#D9BC54",
-    Tomato: "#D94C3F",
-} as const
-
 const CategoricalMapPalette10 = [
     OwidMapColors.MutedDenim,
     OwidMapColors.SoftOrange,
@@ -824,37 +855,9 @@ export const MapContinentColors = {
     "Oceania (UN SDG)": OwidMapColors.SkyTurquoise,
     "Sub-Saharan Africa (UN SDG)": OwidMapColors.LightPurple,
 
-    // Maddison Project Database regions — pinned to the exact colors their map chart
-    // renders (the default categorical map palette in CategoricalMapPalette10, in
-    // legend/display order) so the region tooltip matches the chart and stays put if
-    // the display order ever changes.
-    "Western offshoots (Maddison)": OwidMapColors.MutedDenim,
-    "Western Europe (Maddison)": OwidMapColors.SoftOrange,
-    "Eastern Europe (Maddison)": OwidMapColors.MutedTeal,
-    "Latin America (Maddison)": OwidMapColors.SoftPurple,
-    "East Asia (Maddison)": OwidMapColors.Sand,
-    "South and South East Asia (Maddison)": OwidMapColors.MutedCherry,
-    "Middle East and North Africa (Maddison)": OwidMapColors.LeafGreen,
-    "Sub Saharan Africa (Maddison)": OwidMapColors.SkyTurquoise,
-
-    // WID regions — pinned to their map chart's colors (see Maddison note above).
-    "North America (WID)": OwidMapColors.MutedDenim,
-    "Latin America (WID)": OwidMapColors.SoftOrange,
-    "Europe (WID)": OwidMapColors.MutedTeal,
-    "Russia and Central Asia (WID)": OwidMapColors.SoftPurple,
-    "MENA (WID)": OwidMapColors.Sand,
-    "Sub-Saharan Africa (WID)": OwidMapColors.MutedCherry,
-    "East Asia (WID)": OwidMapColors.LeafGreen,
-    "South & South-East Asia (WID)": OwidMapColors.SkyTurquoise,
-    "Oceania (WID)": OwidMapColors.Lavendar,
-
-    // ILO regions are deliberately NOT pinned here. "Arab States (ILO)" is shared by
-    // both ILO tiers (the broad `ilo_1` and the `ilo_2` subregions), but a name-keyed
-    // entry can only hold one color, and that region sits at a different palette
-    // position in each tier — so pinning it would mismatch one tier's chart or collide
-    // with another region's color in the other tier. Leaving ILO on the position-based
-    // fallback (CategoricalMapPalette17 by display order) keeps every ILO tier matching
-    // its own chart, with no shared-region clash.
+    // Maddison/WID provider regions are inherited from the ContinentColors spread above
+    // (pinned to their map-chart colors there); ILO is intentionally left unpinned. See the
+    // ContinentColors block for the full explanation.
 } as const
 
 export const DefaultColorScheme = OwidDistinctColorScheme
