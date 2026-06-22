@@ -135,6 +135,9 @@ export const ADDITIONAL_REGION_DATA_PROVIDERS = [
     "oecd",
     "unsd",
     "unm49",
+    // ILO entities are recognized by their "(ILO)" suffix here; the per-level region
+    // definitions live under the `ilo_1`/`ilo_2` RegionDataProviders (cf. unm49 vs un_m49_*).
+    "ilo",
 ] as const
 
 export type AdditionalRegionDataProvider =

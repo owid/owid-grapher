@@ -52,6 +52,7 @@ const ADDITIONAL_REGION_DATA_PROVIDER_LABELS: Record<
     oecd: "OECD regions",
     unsd: "UNSD regions",
     unm49: "UN M49 regions",
+    ilo: "ILO regions",
 }
 
 /** Extracts entities matching a custom source pattern like "Africa (FAO)" */

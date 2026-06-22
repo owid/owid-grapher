@@ -82,6 +82,7 @@ export const regionGroupLabels: Record<RegionGroupKey, string> = {
     unaids: "UNAIDS regions", // Joint United Nations Programme on HIV and AIDS
     undp: "UN Development Programme regions",
     oecd: "OECD regions", // Organisation for Economic Co-operation and Development
+    ilo: "International Labour Organization regions", // suffix handle; per-level defs under ilo_1/ilo_2
 }
 
 function toProviderKey(
