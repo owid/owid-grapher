@@ -50,6 +50,8 @@ interface SankeyProps {
     links: SankeyLink[]
     width: number
     height: number
+    totalFlowVolume?: number
+    linkLowVolumeThreshold?: number
     nodeColor?: (node: SankeyNode) => string
     linkColor?: (link: SankeyLink) => string
     /** Outer padding around the whole visualization */
@@ -135,6 +137,8 @@ export function Sankey({
     links,
     width,
     height,
+    totalFlowVolume,
+    linkLowVolumeThreshold,
     nodeColor,
     linkColor,
     margin = DEFAULT_MARGIN,
@@ -485,6 +489,8 @@ export function Sankey({
                             linkColor={linkColor}
                             isHovered={hoveredLink === link}
                             isActive={activeLinks.has(link)}
+                            totalFlowVolume={totalFlowVolume}
+                            linkLowVolumeThreshold={linkLowVolumeThreshold}
                         />
                     ))}
                 </g>
@@ -538,20 +544,30 @@ function SankeyLink({
     linkColor,
     isHovered,
     isActive,
+    totalFlowVolume,
+    linkLowVolumeThreshold,
 }: {
     link: LaidOutLink
     linkColor?: (link: SankeyLink) => string
     isHovered?: boolean
     isActive?: boolean
+    totalFlowVolume?: number
+    linkLowVolumeThreshold?: number
 }): React.ReactElement | null {
     const path = makeSankeyRibbonPath(link)
     if (!path) return null
 
     const color = linkColor?.(toLinkData(link)) ?? GRAPHER_DENIM
 
+    const isLowVolume =
+        totalFlowVolume &&
+        linkLowVolumeThreshold &&
+        link.value / totalFlowVolume < linkLowVolumeThreshold
+
     const className = cx("sankey__link", {
         "sankey__link--hovered": isHovered,
         "sankey__link--active": isActive,
+        "sankey__link--low-volume": isLowVolume,
     })
 
     return <path className={className} d={path} fill={color} />

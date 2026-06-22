@@ -97,6 +97,7 @@ export type SankeyHalfTooltipArgs = {
 export type SankeyHalfBuild = {
     nodes: SankeyNode[]
     links: SankeyLink[]
+    totalFlowVolume: number
     /** Entities folded into this half's Other bucket */
     otherBreakdown?: EntityTotal[]
 }
@@ -129,6 +130,7 @@ interface SplitFlowSankeyProps {
      */
     colorMap?: Map<string, string>
     entitiesToSortLast?: string[]
+    linkLowVolumeThreshold?: number
 }
 
 export function SplitFlowSankey({
@@ -146,6 +148,7 @@ export function SplitFlowSankey({
     formatValue,
     colorMap: colorMapOverride,
     entitiesToSortLast,
+    linkLowVolumeThreshold,
 }: SplitFlowSankeyProps) {
     const showIncoming = view === "both" || view === "incoming"
     const showOutgoing = view === "both" || view === "outgoing"
@@ -348,6 +351,7 @@ export function SplitFlowSankey({
                         fontSettings={fontSettings}
                         nodeColor={getNodeColor}
                         linkColor={getLinkColor}
+                        linkLowVolumeThreshold={linkLowVolumeThreshold}
                     />
                 )}
                 {showOutgoing && (
@@ -362,6 +366,7 @@ export function SplitFlowSankey({
                         fontSettings={fontSettings}
                         nodeColor={getNodeColor}
                         linkColor={getLinkColor}
+                        linkLowVolumeThreshold={linkLowVolumeThreshold}
                     />
                 )}
             </div>
@@ -410,6 +415,7 @@ function SankeyHalfChart({
     fontSettings,
     nodeColor,
     linkColor,
+    linkLowVolumeThreshold,
 }: {
     direction: "incoming" | "outgoing"
     half: SankeyHalf
@@ -421,6 +427,7 @@ function SankeyHalfChart({
     fontSettings: FontSettings
     nodeColor: (node: SankeyNode) => string
     linkColor: (link: SankeyLink) => string
+    linkLowVolumeThreshold?: number
 }) {
     const innerMargin =
         direction === "incoming"
@@ -457,6 +464,8 @@ function SankeyHalfChart({
                             links={build.links}
                             width={width}
                             height={height}
+                            totalFlowVolume={build.totalFlowVolume}
+                            linkLowVolumeThreshold={linkLowVolumeThreshold}
                             nodeColor={nodeColor}
                             linkColor={linkColor}
                             innerMargin={innerMargin}
@@ -709,6 +718,7 @@ function buildSankeyHalf({
     return {
         nodes,
         links,
+        totalFlowVolume: selection.total,
         otherBreakdown: otherPartner ? selection.other : undefined,
     }
 }

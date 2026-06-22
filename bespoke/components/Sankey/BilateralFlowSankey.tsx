@@ -36,6 +36,7 @@ interface BilateralFlowSankeyProps {
     getTooltip?: (args: BilateralTooltipArgs) => SankeyTooltip | undefined
     onSelectEntity?: (entity: string, side: LinkSide) => void
     formatValue: (value: number) => string
+    linkLowVolumeThreshold?: number
 }
 
 export type BilateralTooltipArgs = {
@@ -54,8 +55,9 @@ export function BilateralFlowSankey({
     getTooltip,
     onSelectEntity,
     formatValue,
+    linkLowVolumeThreshold,
 }: BilateralFlowSankeyProps) {
-    const { sourceNodes, targetNodes, links } = useMemo(
+    const { sourceNodes, targetNodes, links, totalFlowVolume } = useMemo(
         () =>
             buildBilateral({
                 flows,
@@ -170,6 +172,8 @@ export function BilateralFlowSankey({
             links={links}
             width={width}
             height={height}
+            totalFlowVolume={totalFlowVolume}
+            linkLowVolumeThreshold={linkLowVolumeThreshold}
             nodeColor={getNodeColor}
             linkColor={getLinkColor}
             getLinkTooltip={getLinkTooltip}
@@ -263,6 +267,7 @@ function buildBilateral({
     sourceNodes: SankeyNode[]
     targetNodes: SankeyNode[]
     links: SankeyLink[]
+    totalFlowVolume: number
 } {
     const sourceSelection = selectTopEntities({
         flows,
@@ -278,7 +283,13 @@ function buildBilateral({
     })
 
     const total = Math.max(sourceSelection.total, targetSelection.total)
-    if (total === 0) return { sourceNodes: [], targetNodes: [], links: [] }
+    if (total === 0)
+        return {
+            sourceNodes: [],
+            targetNodes: [],
+            links: [],
+            totalFlowVolume: 0,
+        }
 
     const topSources = new Set(sourceSelection.top.map((d) => d.entity))
     const topTargets = new Set(targetSelection.top.map((d) => d.entity))
@@ -339,7 +350,7 @@ function buildBilateral({
             return sourceIndexA - sourceIndexB
         })
 
-    return { sourceNodes, targetNodes, links }
+    return { sourceNodes, targetNodes, links, totalFlowVolume: total }
 }
 
 function buildColumnNodes({

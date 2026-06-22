@@ -58,6 +58,7 @@ export function FoodTradeBilateralSankey({
                 flows={flows}
                 width={width}
                 height={height}
+                linkLowVolumeThreshold={0.01} // decrease opacity for flows below 1% of the total
                 formatValue={formatValue}
                 getTooltip={getTooltip}
                 onSelectEntity={handleSelectEntity}
