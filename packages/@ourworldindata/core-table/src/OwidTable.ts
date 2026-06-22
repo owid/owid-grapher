@@ -59,6 +59,19 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         return true
     }
 
+    static async fromUrl(
+        url: string,
+        columnDefs: OwidColumnDef[] = []
+    ): Promise<OwidTable> {
+        const response = await fetch(url)
+        if (!response.ok)
+            throw new Error(
+                `Failed to fetch CSV from ${url}: ${response.statusText}`
+            )
+        const csv = await response.text()
+        return new OwidTable(csv, columnDefs)
+    }
+
     @imemo get availableEntityNames(): any[] {
         return Array.from(this.availableEntityNameSet)
     }
