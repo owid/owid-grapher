@@ -1,5 +1,5 @@
 import * as React from "react"
-import cx from "classnames"
+import cx from "clsx"
 import { AdminLayout } from "./AdminLayout.js"
 import { Modal, SearchField } from "./Forms.js"
 import { EditableTags } from "./EditableTags.js"

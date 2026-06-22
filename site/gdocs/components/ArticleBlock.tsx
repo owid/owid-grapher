@@ -1,4 +1,4 @@
-import cx from "classnames"
+import cx from "clsx"
 import { useContext, useState, useEffect } from "react"
 
 import Callout from "./Callout.js"

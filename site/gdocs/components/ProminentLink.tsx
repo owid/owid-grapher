@@ -1,4 +1,4 @@
-import cx from "classnames"
+import cx from "clsx"
 import { HybridLinkList } from "./HybridLinkList.js"
 import { useLinkedChart, useLinkedDocument } from "../utils.js"
 import { useDocumentContext } from "../DocumentContext.js"

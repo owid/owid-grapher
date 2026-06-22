@@ -1,7 +1,7 @@
 import { TocHeadingWithTitleSupertitle } from "@ourworldindata/utils"
 import { faArrowDown, faPlus, faMinus } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import cx from "classnames"
+import cx from "clsx"
 
 export default function TableOfContents({
     toc,

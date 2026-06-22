@@ -1,4 +1,4 @@
-import cx from "classnames"
+import cx from "clsx"
 import { GrapherTrendArrowDirection } from "@ourworldindata/types"
 
 const ARROW_PATHS = {

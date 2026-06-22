@@ -1,4 +1,4 @@
-import cx from "classnames"
+import cx from "clsx"
 import { useLinkedStaticViz } from "../utils.js"
 import Image, { ImageParentContainer } from "./Image.js"
 import { useDocumentContext } from "../DocumentContext.js"

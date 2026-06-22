@@ -1,7 +1,7 @@
 import { faMinus, faPlus } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import type { ReactNode } from "react"
-import cx from "classnames"
+import cx from "clsx"
 
 export const ExpandableToggle = ({
     label,

@@ -300,7 +300,7 @@ __metadata:
     "@types/react-dom": "npm:^19.2.3"
     "@typescript/native-preview": "npm:^7.0.0-dev.20260613.1"
     "@vitejs/plugin-react": "npm:^6.0.2"
-    classnames: "npm:^2.5.1"
+    clsx: "npm:^2.1.1"
     d3: "npm:^7.9.0"
     normalize.css: "npm:^8.0.1"
     react: "npm:^19.2.7"
@@ -328,7 +328,7 @@ __metadata:
     "@types/d3-sankey": "npm:^0.12.5"
     "@typescript/native-preview": "npm:^7.0.0-dev.20260613.1"
     "@visx/drag": "npm:^4.0.0"
-    classnames: "npm:^2.5.1"
+    clsx: "npm:^2.1.1"
     d3-sankey: "npm:^0.12.3"
     react: "npm:^19.2.7"
     react-aria-components: "npm:^1.18.0"
@@ -364,7 +364,7 @@ __metadata:
     "@visx/scale": "npm:^4.0.0"
     "@visx/shape": "npm:^4.0.0"
     "@vitejs/plugin-react": "npm:^6.0.2"
-    classnames: "npm:^2.5.1"
+    clsx: "npm:^2.1.1"
     d3-scale: "npm:^4.0.2"
     lodash-es: "npm:^4.18.1"
     normalize.css: "npm:^8.0.1"
@@ -400,7 +400,7 @@ __metadata:
     "@visx/group": "npm:^4.0.0"
     "@visx/responsive": "npm:^4.0.0"
     "@vitejs/plugin-react": "npm:^6.0.2"
-    classnames: "npm:^2.5.1"
+    clsx: "npm:^2.1.1"
     jotai: "npm:^2.20.1"
     normalize.css: "npm:^8.0.1"
     react: "npm:^19.2.7"
@@ -435,7 +435,7 @@ __metadata:
     "@visx/group": "npm:^4.0.0"
     "@visx/responsive": "npm:^4.0.0"
     "@vitejs/plugin-react": "npm:^6.0.2"
-    classnames: "npm:^2.5.1"
+    clsx: "npm:^2.1.1"
     d3-sankey: "npm:^0.12.3"
     jotai: "npm:^2.20.1"
     normalize.css: "npm:^8.0.1"
@@ -490,7 +490,7 @@ __metadata:
     "@visx/group": "npm:^4.0.0"
     "@visx/responsive": "npm:^4.0.0"
     "@vitejs/plugin-react": "npm:^6.0.2"
-    classnames: "npm:^2.5.1"
+    clsx: "npm:^2.1.1"
     d3-dsv: "npm:^3.0.1"
     d3-sankey: "npm:^0.12.3"
     jotai: "npm:^2.20.1"
@@ -1881,7 +1881,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"classnames@npm:^2.3.1, classnames@npm:^2.5.1":
+"classnames@npm:^2.3.1":
   version: 2.5.1
   resolution: "classnames@npm:2.5.1"
   checksum: 10/58eb394e8817021b153bb6e7d782cfb667e4ab390cb2e9dac2fc7c6b979d1cc2b2a733093955fc5c94aa79ef5c8c89f11ab77780894509be6afbb91dddd79d15
@@ -1895,7 +1895,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"clsx@npm:^2.0.0":
+"clsx@npm:^2.0.0, clsx@npm:^2.1.1":
   version: 2.1.1
   resolution: "clsx@npm:2.1.1"
   checksum: 10/cdfb57fa6c7649bbff98d9028c2f0de2f91c86f551179541cf784b1cfdc1562dcb951955f46d54d930a3879931a980e32a46b598acaea274728dbe068deca919

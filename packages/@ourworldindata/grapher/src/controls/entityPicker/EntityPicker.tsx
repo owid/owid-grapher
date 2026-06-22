@@ -24,7 +24,7 @@ import {
     CoreColumnDef,
     OwidTableSlugs,
 } from "@ourworldindata/utils"
-import classnames from "classnames"
+import classnames from "clsx"
 import { scaleLinear, ScaleLinear } from "d3-scale"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faSearch, faTimes } from "@fortawesome/free-solid-svg-icons"

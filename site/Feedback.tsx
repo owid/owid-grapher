@@ -8,7 +8,7 @@ import {
     faPaperPlane,
 } from "@fortawesome/free-solid-svg-icons"
 import { observable, action, toJS, computed, makeObservable } from "mobx"
-import classnames from "classnames"
+import classnames from "clsx"
 import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 import { stringifyUnknownError } from "@ourworldindata/utils"
 import { createRoot } from "react-dom/client"

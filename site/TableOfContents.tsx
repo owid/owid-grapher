@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faBars, faTimes } from "@fortawesome/free-solid-svg-icons"
 import { useTriggerWhenClickOutside } from "./hooks.js"
 import { TocHeading } from "@ourworldindata/utils"
-import classNames from "classnames"
+import classNames from "clsx"
 
 export const TOC_WRAPPER_CLASSNAME = "toc-wrapper"
 

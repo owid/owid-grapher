@@ -3,7 +3,7 @@ import { action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { ScaleType } from "@ourworldindata/types"
 import { AxisConfig } from "../../axis/AxisConfig"
-import classnames from "classnames"
+import classnames from "clsx"
 
 interface AxisScaleToggleProps {
     axis: AxisConfig

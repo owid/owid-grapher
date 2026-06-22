@@ -1,5 +1,5 @@
 import { useContext } from "react"
-import cx from "classnames"
+import cx from "clsx"
 
 import { AttachmentsContext } from "../AttachmentsContext.js"
 import { Button } from "@ourworldindata/components"

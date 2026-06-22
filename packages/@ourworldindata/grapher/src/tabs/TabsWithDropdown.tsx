@@ -1,5 +1,5 @@
 import * as R from "remeda"
-import cx from "classnames"
+import cx from "clsx"
 import { useState } from "react"
 import {
     Button,

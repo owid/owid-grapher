@@ -1,5 +1,5 @@
 import { type ReactElement, useEffect, useMemo, useState } from "react"
-import cx from "classnames"
+import cx from "clsx"
 import { useDebounceCallback } from "usehooks-ts"
 import {
     type Color,

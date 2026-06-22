@@ -8,7 +8,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { EnrichedBlockChartStory } from "@ourworldindata/utils"
 import SpanElements from "./SpanElements.js"
 import Chart from "./Chart.js"
-import cx from "classnames"
+import cx from "clsx"
 
 export default function ChartStory({
     d,

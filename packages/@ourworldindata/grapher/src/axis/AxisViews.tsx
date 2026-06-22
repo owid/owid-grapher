@@ -13,7 +13,7 @@ import {
     Point,
 } from "@ourworldindata/utils"
 import { VerticalAxis, HorizontalAxis, DualAxis } from "./Axis"
-import classNames from "classnames"
+import classNames from "clsx"
 import { GRAPHER_DARK_TEXT } from "../color/ColorConstants"
 import { ScaleType, DetailsMarker } from "@ourworldindata/types"
 import { MarkdownTextWrapSvg } from "@ourworldindata/components"

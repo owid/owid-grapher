@@ -1,6 +1,6 @@
 import { EnrichedBlockBespokeComponent } from "@ourworldindata/types"
 import { LoadingIndicator } from "@ourworldindata/components"
-import cx from "classnames"
+import cx from "clsx"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { BESPOKE_COMPONENT_REGISTRY } from "../../bespokeComponentRegistry.js"
 import { mountBespokeComponentInShadow } from "../../../bespoke/shared/bespokeComponentShadowDom.js"

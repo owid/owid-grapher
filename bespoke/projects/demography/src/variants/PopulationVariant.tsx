@@ -1,5 +1,5 @@
 import { useMemo } from "react"
-import cx from "classnames"
+import cx from "clsx"
 import { QueryClientProvider } from "@tanstack/react-query"
 
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"

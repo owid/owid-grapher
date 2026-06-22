@@ -1,6 +1,6 @@
 import { useAtom } from "jotai"
 import { useCallback } from "react"
-import cx from "classnames"
+import cx from "clsx"
 
 import { selectedColorAtom, selectedFoodAtom } from "../atoms"
 import { Dropdown } from "@ourworldindata/grapher/src/controls/Dropdown"

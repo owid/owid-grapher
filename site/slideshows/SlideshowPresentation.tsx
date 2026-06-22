@@ -5,7 +5,7 @@ import React, {
     useRef,
     useState,
 } from "react"
-import cx from "classnames"
+import cx from "clsx"
 import { match } from "ts-pattern"
 import {
     SlideTemplate,

@@ -13,7 +13,7 @@ import { getLiteSearchClient } from "./search/searchClients.js"
 import { SearchDataResultsSkeleton } from "./search/SearchDataResultsSkeleton.js"
 import { Button } from "@ourworldindata/components"
 import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons"
-import cx from "classnames"
+import cx from "clsx"
 
 const MAX_MEDIUM_RESULTS = 4
 const MAX_SMALL_RESULTS = 5

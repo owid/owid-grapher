@@ -5,7 +5,7 @@ import {
     useQueryClient,
 } from "@tanstack/react-query"
 import { useContext, useEffect, useMemo, useState } from "react"
-import cx from "classnames"
+import cx from "clsx"
 import { tippy } from "@tippyjs/react"
 import { Button, Flex, Form, Input, Modal, Popconfirm, Table } from "antd"
 import { AdminLayout } from "./AdminLayout.js"

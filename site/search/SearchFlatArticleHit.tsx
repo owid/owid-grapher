@@ -1,4 +1,4 @@
-import cx from "classnames"
+import cx from "clsx"
 import { Snippet } from "react-instantsearch"
 import { getCanonicalPath } from "@ourworldindata/components"
 import { OwidGdocType, FlatArticleHit } from "@ourworldindata/types"

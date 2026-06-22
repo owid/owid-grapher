@@ -1,7 +1,7 @@
 import * as React from "react"
 import { Turnstile } from "@marsidev/react-turnstile"
 import * as Sentry from "@sentry/react"
-import cx from "classnames"
+import cx from "clsx"
 import { observable, action, computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import {

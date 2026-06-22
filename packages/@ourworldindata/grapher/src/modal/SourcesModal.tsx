@@ -25,7 +25,7 @@ import {
     LoadingIndicator,
 } from "@ourworldindata/components"
 import * as React from "react"
-import cx from "classnames"
+import cx from "clsx"
 import { action, computed, makeObservable, observable } from "mobx"
 import { observer } from "mobx-react"
 import { faPencilAlt } from "@fortawesome/free-solid-svg-icons"
