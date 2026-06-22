@@ -1,5 +1,5 @@
 import * as _ from "lodash-es"
-import cx from "classnames"
+import cx from "clsx"
 import { useIntersectionObserver } from "usehooks-ts"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faBoxArchive } from "@fortawesome/free-solid-svg-icons"

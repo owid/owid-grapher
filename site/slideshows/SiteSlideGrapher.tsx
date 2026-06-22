@@ -1,5 +1,5 @@
 import React, { useMemo, useRef } from "react"
-import cx from "classnames"
+import cx from "clsx"
 import { FetchingGrapher, useElementBounds } from "@ourworldindata/grapher"
 import {
     ADMIN_BASE_URL,

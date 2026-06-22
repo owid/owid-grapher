@@ -27,7 +27,7 @@ import {
     useMemo,
     useState,
 } from "react"
-import cx from "classnames"
+import cx from "clsx"
 import {
     fetchFigmaProvidedImageUrl,
     ImageUploadResponse,

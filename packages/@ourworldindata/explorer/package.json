@@ -19,7 +19,7 @@
         "@ourworldindata/grapher": "workspace:^",
         "@ourworldindata/types": "workspace:^",
         "@ourworldindata/utils": "workspace:^",
-        "classnames": "^2.5.1",
+        "clsx": "^2.1.1",
         "lodash-es": "^4.18.1",
         "mobx": "^6.15.4",
         "mobx-react": "^7.6.0",

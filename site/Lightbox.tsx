@@ -11,7 +11,7 @@ import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch"
 import { LoadingIndicator, BodyPortal } from "@ourworldindata/components"
 import { triggerDownloadFromBlob } from "@ourworldindata/utils"
 import { useTriggerOnEscape } from "./hooks.js"
-import cx from "classnames"
+import cx from "clsx"
 
 const LightboxImage = ({
     src,

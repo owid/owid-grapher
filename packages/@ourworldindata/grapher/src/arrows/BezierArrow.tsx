@@ -1,6 +1,6 @@
 import * as React from "react"
 import * as _ from "lodash-es"
-import cx from "classnames"
+import cx from "clsx"
 import { Point } from "@ourworldindata/utils"
 import { GRAY_100 } from "../color/ColorConstants.js"
 

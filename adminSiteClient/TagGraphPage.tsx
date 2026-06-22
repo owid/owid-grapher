@@ -25,7 +25,7 @@ import {
     useDraggable,
     useDroppable,
 } from "@dnd-kit/core"
-import cx from "classnames"
+import cx from "clsx"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faGrip } from "@fortawesome/free-solid-svg-icons"
 import { AutoComplete, Button, Popconfirm } from "antd"

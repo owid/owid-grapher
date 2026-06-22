@@ -3,7 +3,7 @@ import * as React from "react"
 import { OwidEnrichedGdocBlock } from "@ourworldindata/types"
 import { ArticleBlocks } from "../gdocs/components/ArticleBlocks.js"
 import { Container, getLayout } from "../gdocs/components/layout.js"
-import cx from "classnames"
+import cx from "clsx"
 
 const MAX_LEAD_TEXT_BLOCKS = 2
 

@@ -3,7 +3,7 @@ import { action, computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faEye, faRightLeft, faPen } from "@fortawesome/free-solid-svg-icons"
-import classnames from "classnames"
+import classnames from "clsx"
 import { GrapherWindowType } from "@ourworldindata/types"
 
 export interface EntitySelectionManager {

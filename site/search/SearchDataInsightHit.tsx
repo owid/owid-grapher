@@ -1,4 +1,4 @@
-import cx from "classnames"
+import cx from "clsx"
 import { getCanonicalUrl } from "@ourworldindata/components"
 import { formatDate } from "@ourworldindata/utils"
 import { OwidGdocType, DataInsightHit } from "@ourworldindata/types"

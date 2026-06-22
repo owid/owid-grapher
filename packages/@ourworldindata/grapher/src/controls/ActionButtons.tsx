@@ -18,7 +18,7 @@ import {
     shouldShareUsingShareApi,
 } from "./ShareMenu.js"
 import { Bounds, Tippy } from "@ourworldindata/utils"
-import classNames from "classnames"
+import classNames from "clsx"
 import {
     DEFAULT_GRAPHER_BOUNDS,
     GrapherModal,

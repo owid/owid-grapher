@@ -1,5 +1,5 @@
 import * as React from "react"
-import cx from "classnames"
+import cx from "clsx"
 
 export const RadioButton = ({
     className,

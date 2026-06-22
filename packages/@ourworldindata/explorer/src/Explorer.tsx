@@ -59,7 +59,7 @@ import {
     MarkdownTextWrap,
     MarkdownTextWrapHtml,
 } from "@ourworldindata/components"
-import classNames from "classnames"
+import classNames from "clsx"
 import { action, computed, makeObservable, observable, reaction } from "mobx"
 import { observer } from "mobx-react"
 import React, { useCallback, useEffect, useState } from "react"

@@ -12,7 +12,7 @@ import {
     SEARCH_BASE_PATH,
 } from "../../search/searchUtils.js"
 import { stateToSearchParams } from "../../search/searchState.js"
-import cx from "classnames"
+import cx from "clsx"
 
 const DEFAULT_TITLE = "Sections"
 const SECONDARY_CARDS = [

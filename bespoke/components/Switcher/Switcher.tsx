@@ -1,4 +1,4 @@
-import cx from "classnames"
+import cx from "clsx"
 import { RadioButton, RadioField, RadioGroup } from "react-aria-components"
 
 export interface SwitcherItem<Key extends string = string> {

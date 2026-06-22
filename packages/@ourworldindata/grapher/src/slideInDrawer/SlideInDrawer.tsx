@@ -1,5 +1,5 @@
 import * as React from "react"
-import cx from "classnames"
+import cx from "clsx"
 import { computed, action, observable, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { isTargetOutsideElement } from "../chart/ChartUtils"

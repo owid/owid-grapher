@@ -20,7 +20,7 @@ import {
 } from "@ourworldindata/grapher"
 import { TooltipCard } from "@ourworldindata/grapher/src/tooltip/TooltipCard.js"
 import { TextWrap, TextWrapSvg } from "@ourworldindata/components"
-import cx from "classnames"
+import cx from "clsx"
 import { usePinnedTooltip } from "../../hooks/usePinnedTooltip.js"
 import { match } from "ts-pattern"
 

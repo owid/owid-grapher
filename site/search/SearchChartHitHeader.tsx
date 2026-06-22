@@ -1,4 +1,4 @@
-import cx from "classnames"
+import cx from "clsx"
 import { Highlight } from "react-instantsearch"
 import { CHARTS_INDEX } from "./searchUtils.js"
 import { SearchChartHit } from "@ourworldindata/types"

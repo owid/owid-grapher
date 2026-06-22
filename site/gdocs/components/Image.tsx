@@ -6,7 +6,7 @@ import {
     readFromAssetMap,
     triggerDownloadFromBlob,
 } from "@ourworldindata/utils"
-import cx from "classnames"
+import cx from "clsx"
 import { CLOUDFLARE_IMAGES_URL } from "../../../settings/clientSettings.js"
 import { useDocumentContext } from "../DocumentContext.js"
 import { useImage } from "../utils.js"

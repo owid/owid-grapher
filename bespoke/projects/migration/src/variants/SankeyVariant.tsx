@@ -1,5 +1,5 @@
 import { useMemo } from "react"
-import cx from "classnames"
+import cx from "clsx"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { NuqsAdapter } from "nuqs/adapters/react"
 import { parseAsInteger, parseAsString, parseAsStringEnum } from "nuqs"

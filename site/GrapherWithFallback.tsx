@@ -1,6 +1,6 @@
 import { HIDE_IF_JS_ENABLED_CLASSNAME } from "@ourworldindata/types"
 import { GrapherFigureView } from "./GrapherFigureView.js"
-import cx from "classnames"
+import cx from "clsx"
 import GrapherImage from "./GrapherImage.js"
 import { useIntersectionObserver, useIsClient } from "usehooks-ts"
 import { GrapherProgrammaticInterface } from "@ourworldindata/grapher"

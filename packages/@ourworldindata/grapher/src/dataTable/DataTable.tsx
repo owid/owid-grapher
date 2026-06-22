@@ -2,7 +2,7 @@ import * as _ from "lodash-es"
 import * as React from "react"
 import { computed, observable, action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
-import classnames from "classnames"
+import classnames from "clsx"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     faArrowDownLong,

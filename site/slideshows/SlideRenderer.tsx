@@ -1,5 +1,5 @@
 import React from "react"
-import cx from "classnames"
+import cx from "clsx"
 import { Slide, SlideTemplate, ImageMetadata } from "@ourworldindata/types"
 import { SimpleMarkdownText } from "@ourworldindata/components"
 import { CLOUDFLARE_IMAGES_URL } from "../../settings/clientSettings.js"

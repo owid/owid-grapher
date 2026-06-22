@@ -1,6 +1,6 @@
 import * as React from "react"
 import { useCallback, useState } from "react"
-import cx from "classnames"
+import cx from "clsx"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faDownload, faSpinner } from "@fortawesome/free-solid-svg-icons"
 import { DownloadIconFull } from "../icons/DownloadIconFull.js"

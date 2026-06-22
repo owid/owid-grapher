@@ -10,7 +10,7 @@ import {
     IReactionDisposer,
     makeObservable,
 } from "mobx"
-import cx from "classnames"
+import cx from "clsx"
 import a from "indefinite"
 import {
     isTouchDevice,

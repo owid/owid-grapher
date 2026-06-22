@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react"
 
 import * as React from "react"
-import classnames from "classnames"
+import classnames from "clsx"
 
 type VerticalScrollContainerProps = React.DetailedHTMLProps<
     React.HTMLAttributes<HTMLDivElement>,

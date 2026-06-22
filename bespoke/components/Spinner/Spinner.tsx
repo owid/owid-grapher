@@ -1,4 +1,4 @@
-import cx from "classnames"
+import cx from "clsx"
 
 import { faCircleNotch } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"

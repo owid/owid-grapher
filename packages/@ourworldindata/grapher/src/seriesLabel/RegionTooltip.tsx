@@ -1,5 +1,5 @@
 import React, { useMemo } from "react"
-import cx from "classnames"
+import cx from "clsx"
 import { SimpleMarkdownText } from "@ourworldindata/components"
 import { InteractionState } from "../interaction/InteractionState.js"
 import { RegionMap } from "./RegionMap"

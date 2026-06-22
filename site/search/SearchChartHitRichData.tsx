@@ -1,6 +1,6 @@
 import * as R from "remeda"
 import { useMemo } from "react"
-import cx from "classnames"
+import cx from "clsx"
 import { useIntersectionObserver, useMediaQuery } from "usehooks-ts"
 import { faDownload } from "@fortawesome/free-solid-svg-icons"
 import { match } from "ts-pattern"

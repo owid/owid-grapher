@@ -1,5 +1,5 @@
 import * as _ from "lodash-es"
-import cx from "classnames"
+import cx from "clsx"
 
 import {
     BlockSize,

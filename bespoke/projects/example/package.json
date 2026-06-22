@@ -21,7 +21,7 @@
         "@react-stately/flags": "^3.2.1",
         "@visx/group": "^4.0.0",
         "@visx/responsive": "^4.0.0",
-        "classnames": "^2.5.1",
+        "clsx": "^2.1.1",
         "jotai": "^2.20.1",
         "normalize.css": "^8.0.1",
         "react": "^19.2.7",

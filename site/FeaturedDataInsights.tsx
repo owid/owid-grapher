@@ -13,7 +13,7 @@ import { getLiteSearchClient } from "./search/searchClients.js"
 import { SearchDataInsightsResultsSkeleton } from "./search/SearchDataInsightsResultsSkeleton.js"
 import { SearchDataInsightHit } from "./search/SearchDataInsightHit.js"
 import { Button } from "@ourworldindata/components"
-import cx from "classnames"
+import cx from "clsx"
 import { buildLatestPagePath } from "./latest/latestUtils.js"
 
 const MAX_DATA_INSIGHTS_RESULTS = 1000 // setting to maximum allowed to get all results

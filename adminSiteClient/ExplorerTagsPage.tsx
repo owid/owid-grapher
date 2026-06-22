@@ -11,7 +11,7 @@ import {
     ExplorerProgram,
 } from "@ourworldindata/explorer"
 import { EditableTags } from "./EditableTags.js"
-import cx from "classnames"
+import cx from "clsx"
 
 type ExplorerWithTags = {
     slug: string

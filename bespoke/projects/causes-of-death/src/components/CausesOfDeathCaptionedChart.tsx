@@ -1,6 +1,6 @@
 import { useMemo } from "react"
 import * as R from "remeda"
-import cx from "classnames"
+import cx from "clsx"
 
 import { EntityName, Time } from "@ourworldindata/types"
 

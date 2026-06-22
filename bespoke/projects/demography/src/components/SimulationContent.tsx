@@ -1,4 +1,4 @@
-import cx from "classnames"
+import cx from "clsx"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { useBreakpoint } from "../helpers/useBreakpoint.js"
 import { Tippy } from "@ourworldindata/utils"

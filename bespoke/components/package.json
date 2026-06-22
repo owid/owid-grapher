@@ -11,7 +11,7 @@
         "@ourworldindata/types": "link:../../packages/@ourworldindata/types",
         "@ourworldindata/utils": "link:../../packages/@ourworldindata/utils",
         "@visx/drag": "^4.0.0",
-        "classnames": "^2.5.1",
+        "clsx": "^2.1.1",
         "d3-sankey": "^0.12.3",
         "react": "^19.2.7",
         "react-aria-components": "^1.18.0",

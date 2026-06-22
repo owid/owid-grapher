@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useRef, useState } from "react"
-import cx from "classnames"
+import cx from "clsx"
 import * as R from "remeda"
 
 import { type FontSettings } from "@ourworldindata/grapher"

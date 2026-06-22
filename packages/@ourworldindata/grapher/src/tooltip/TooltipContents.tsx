@@ -1,6 +1,6 @@
 import * as _ from "lodash-es"
 import * as React from "react"
-import classnames from "classnames"
+import classnames from "clsx"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faInfoCircle, faS } from "@fortawesome/free-solid-svg-icons"
 import { formatInlineList, GrapherTooltipAnchor } from "@ourworldindata/utils"

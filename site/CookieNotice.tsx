@@ -1,4 +1,4 @@
-import classnames from "classnames"
+import classnames from "clsx"
 import { useState } from "react"
 import { useMediaQuery, useTimeout } from "usehooks-ts"
 import { faCheck } from "@fortawesome/free-solid-svg-icons"
