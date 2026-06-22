@@ -18,7 +18,12 @@ import {
 import { MOBILE_BREAKPOINT } from "../../../../components/Sankey/SplitFlowSankey.js"
 
 import { type TradeRow } from "../types.js"
-import { capItems, formatTrade, tradesToFlows } from "../helpers.js"
+import {
+    capItems,
+    formatTrade,
+    tradesToFlows,
+    BILATERAL_LOW_VOLUME_THRESHOLD,
+} from "../helpers.js"
 
 export function FoodTradeBilateralSankey({
     trades,
@@ -58,7 +63,7 @@ export function FoodTradeBilateralSankey({
                 flows={flows}
                 width={width}
                 height={height}
-                linkLowVolumeThreshold={0.01} // decrease opacity for flows below 1% of the total
+                linkLowVolumeThreshold={BILATERAL_LOW_VOLUME_THRESHOLD}
                 formatValue={formatValue}
                 getTooltip={getTooltip}
                 onSelectEntity={handleSelectEntity}

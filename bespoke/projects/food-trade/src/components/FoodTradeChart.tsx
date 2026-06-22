@@ -6,8 +6,8 @@ import { articulateEntity } from "@ourworldindata/utils"
 
 import { Spinner } from "../../../../components/Spinner/Spinner.js"
 import { Flow } from "../config.js"
-import { ALL_COUNTRIES, isAllCountry } from "../helpers.js"
-import { ProductTradeData } from "../types.js"
+import { ALL_COUNTRIES } from "../helpers.js"
+import { ProductTradeData, Mode } from "../types.js"
 import { FoodTradeBilateralSankey } from "./FoodTradeBilateralSankey.js"
 import { FoodTradeSplitSankey } from "./FoodTradeSplitSankey.js"
 
@@ -17,6 +17,7 @@ export function FoodTradeChart({
     product,
     year,
     view,
+    mode,
     isLoading,
     hideFlowSwitcher,
     setCountry,
@@ -27,6 +28,7 @@ export function FoodTradeChart({
     product: string
     year: number
     view: Flow
+    mode: Mode
     isLoading?: boolean
     hideFlowSwitcher?: boolean
     setCountry: (value: string) => void
@@ -39,10 +41,6 @@ export function FoodTradeChart({
         incomingFlowsByCountry,
         outgoingFlowsByCountry,
     } = productData
-
-    const mode: "bilateral" | "split" = isAllCountry(country)
-        ? "bilateral"
-        : "split"
 
     const handleSelectEntity = useCallback(
         (entity: string, side: "exporter" | "importer") => {

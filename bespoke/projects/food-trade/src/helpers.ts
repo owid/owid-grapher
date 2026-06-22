@@ -52,3 +52,6 @@ export function capItems<T>(items: T[]): { visible: T[]; hiddenCount: number } {
     const visible = showAll ? items : items.slice(0, 8)
     return { visible, hiddenCount: items.length - visible.length }
 }
+
+// decrease opacity for bilateral flows below 1% of the total
+export const BILATERAL_LOW_VOLUME_THRESHOLD = 0.01

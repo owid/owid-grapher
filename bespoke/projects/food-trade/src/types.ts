@@ -48,3 +48,5 @@ export type FoodTradeMetadata = {
     productByName: Map<string, Product>
     hasTradeData: (entityName: string, productName: string) => boolean
 }
+
+export type Mode = "bilateral" | "split"
