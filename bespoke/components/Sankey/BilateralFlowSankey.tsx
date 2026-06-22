@@ -15,7 +15,6 @@ import {
     aggregateBySide,
     assignColors,
     DEFAULT_MAX_NODES,
-    DEFAULT_MIN_LINK_SHARE,
     DEFAULT_MIN_NODE_SHARE,
     getEntityFromNodeId,
     getEntityShortLabel,
@@ -34,7 +33,6 @@ interface BilateralFlowSankeyProps {
     height: number
     maxNodes?: number
     minNodeShare?: number
-    minLinkShare?: number
     getTooltip?: (args: BilateralTooltipArgs) => SankeyTooltip | undefined
     onSelectEntity?: (entity: string, side: LinkSide) => void
     formatValue: (value: number) => string
@@ -53,7 +51,6 @@ export function BilateralFlowSankey({
     height,
     maxNodes = DEFAULT_MAX_NODES,
     minNodeShare = DEFAULT_MIN_NODE_SHARE,
-    minLinkShare = DEFAULT_MIN_LINK_SHARE,
     getTooltip,
     onSelectEntity,
     formatValue,
@@ -64,10 +61,9 @@ export function BilateralFlowSankey({
                 flows,
                 maxNodes,
                 minNodeShare,
-                minLinkShare,
                 formatValue,
             }),
-        [flows, maxNodes, minNodeShare, minLinkShare, formatValue]
+        [flows, maxNodes, minNodeShare, formatValue]
     )
 
     const getEntityIdsFromNodes = (nodes: SankeyNode[]) =>
@@ -257,13 +253,11 @@ function buildBilateral({
     flows,
     maxNodes,
     minNodeShare,
-    minLinkShare,
     formatValue,
 }: {
     flows: Flow[]
     maxNodes: number
     minNodeShare: number
-    minLinkShare: number
     formatValue: (value: number) => string
 }): {
     sourceNodes: SankeyNode[]
@@ -307,16 +301,9 @@ function buildBilateral({
     }
 
     // Drop links below the floor
-    const positivePairs = Array.from(pairsByKey.values()).filter(
+    const visiblePairs = Array.from(pairsByKey.values()).filter(
         (p) => p.value > 0
     )
-    const filteredPairs = positivePairs.filter((p) => {
-        const involvesOther = p.source === OTHER_KEY || p.target === OTHER_KEY
-        if (involvesOther) return true
-        return p.value / total >= minLinkShare
-    })
-    const visiblePairs =
-        filteredPairs.length > 0 ? filteredPairs : positivePairs
 
     const sourceNodes = buildColumnNodes({
         selection: sourceSelection,
