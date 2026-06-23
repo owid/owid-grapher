@@ -42,6 +42,7 @@ const minimalGrapherConfig: Partial<GrapherProgrammaticInterface> = {
     hideControlsRow: true,
     hideDownloadButton: true,
     hideExploreTheDataButton: true,
+    hideEntityControls: true,
 }
 
 /** Additional config when charts should be interactive */
