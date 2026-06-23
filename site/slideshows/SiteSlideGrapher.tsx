@@ -38,6 +38,8 @@ export function SiteSlideGrapher(props: {
         <div
             ref={containerRef}
             className={cx("slideshow-slide__grapher-container", {
+                "slideshow-slide__grapher-container--interactive":
+                    interactiveCharts,
                 "slideshow-slide__grapher-container--non-interactive":
                     !interactiveCharts,
             })}
