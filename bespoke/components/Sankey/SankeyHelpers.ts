@@ -23,7 +23,6 @@ export const DEFAULT_MAX_NODES_TO_SHRINK_OTHER = 10
 export const STACKED_MAX_NODES_TO_SHRINK_OTHER = 10
 /** Smallest share of the column total a node may have and still be drawn on its own */
 export const DEFAULT_MIN_NODE_SHARE = 0.01
-export const DEFAULT_MIN_LINK_SHARE = 0.01
 
 export const OTHER_KEY = "__other__"
 

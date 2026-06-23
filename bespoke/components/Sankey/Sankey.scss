@@ -13,6 +13,10 @@
     cursor: default;
     pointer-events: none;
 
+    &.sankey__link--low-volume {
+        fill-opacity: 0.3;
+    }
+
     &.sankey__link--hovered,
     &.sankey__link--active {
         fill-opacity: 1;
