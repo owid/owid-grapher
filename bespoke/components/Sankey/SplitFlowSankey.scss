@@ -133,6 +133,7 @@
 .split-flow-sankey:has(.sankey__link--hovered, .sankey__node--hovered)
     .sankey__link:not(.sankey__link--hovered):not(.sankey__link--active) {
     fill-opacity: 0.3;
+    filter: none;
 }
 
 .split-flow-sankey:has(.sankey__link--hovered, .sankey__node--hovered)
