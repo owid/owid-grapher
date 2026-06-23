@@ -169,8 +169,6 @@ export function getDescriptionForKey(key: TooltipKey): string {
 }
 
 export function getRegionsForKey(key: TooltipKey): TooltipRegion[] {
-    // `getAggregatesByProvider` already back-fills shared regions (e.g. ILO's Arab States into
-    // `ilo_2`), so the sub-tier set is complete here without a special-case.
     const regions =
         key === "incomeGroups"
             ? getIncomeGroups()
