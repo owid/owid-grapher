@@ -255,6 +255,7 @@ export async function queryArticles(
     )
     const hasCountry = selectedCountryNames.size > 0
     const selectedTopics = getFilterNamesOfType(state.filters, FilterType.TOPIC)
+    const isFilterOnly = state.query.trim() === ""
     // Using the selected countries as query search terms until articles
     // are tagged with countries.
     const query = [
@@ -285,7 +286,7 @@ export async function queryArticles(
                 "date",
                 "slug",
                 "type",
-                "content",
+                isFilterOnly ? "excerpt" : "content",
                 "authors",
             ],
             highlightPreTag: "<mark>",
@@ -492,7 +493,7 @@ export async function queryWritingTopics(
                     "title",
                     "slug",
                     "thumbnailUrl",
-                    "content",
+                    "excerpt",
                     "type",
                 ],
                 filters: `type:${OwidGdocType.Article} OR type:${OwidGdocType.AboutPage}`,
