@@ -1,8 +1,6 @@
 import { useMemo } from "react"
 import { useQuery } from "@tanstack/react-query"
 import {
-    DataInsightHit,
-    SearchDataInsightResponse,
     SearchResultType,
     SearchState,
     FEATURED_DATA_INSIGHTS_ID,
@@ -39,10 +37,7 @@ export const FeaturedDataInsights = ({
         [topicName]
     )
 
-    const { data, isError, isLoading } = useQuery<
-        SearchDataInsightResponse,
-        Error
-    >({
+    const { data, isError, isLoading } = useQuery({
         // reusing the same query key function as search for simplicity but
         // would technically collide if using the same query client instance
         queryKey: searchQueryKeys.dataInsights(searchState),
@@ -80,7 +75,7 @@ export const FeaturedDataInsights = ({
             ) : (
                 <>
                     <div className="article-block__featured-data-insights__hits">
-                        {hits.map((hit: DataInsightHit) => (
+                        {hits.map((hit) => (
                             <SearchDataInsightHit
                                 key={hit.objectID}
                                 className="article-block__featured-data-insights__hit"

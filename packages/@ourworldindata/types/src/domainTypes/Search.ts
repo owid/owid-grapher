@@ -1,9 +1,4 @@
-import type {
-    SearchResponse,
-    BaseHit,
-    Hit,
-    HitHighlightResult,
-} from "instantsearch.js"
+import type { BaseHit, Hit, HitHighlightResult } from "instantsearch.js"
 import { OwidGdocType } from "../gdocTypes/Gdoc.js"
 import { GrapherTabName } from "../grapherTypes/GrapherTypes.js"
 import * as z from "zod/mini"
@@ -158,14 +153,6 @@ export interface SearchChartHitComponentProps {
 
 export type SearchChartHitComponentVariant = "large" | "medium" | "small"
 
-// SearchResponse adds the extra fields from Algolia: page, nbHits, etc
-export type SearchChartsResponse = SearchResponse<SearchChartHit>
-
-export type SearchDataTopicsResponse = {
-    title: string
-    charts: SearchResponse<SearchChartHit>
-}
-
 export type ScoredFilter = Filter & {
     name: string
     score: number
@@ -184,8 +171,6 @@ export type DataInsightHit = {
     objectID: string
     __position: number
 }
-
-export type SearchDataInsightResponse = SearchResponse<DataInsightHit>
 
 export type FlatArticleHit = {
     title: string
@@ -210,9 +195,6 @@ export type StackedArticleHit = {
     __position: number
 }
 
-export type SearchStackedArticleResponse = SearchResponse<StackedArticleHit>
-export type SearchFlatArticleResponse = SearchResponse<FlatArticleHit>
-
 export type TopicPageHit = {
     title: string
     type: OwidGdocType.TopicPage | OwidGdocType.LinearTopicPage
@@ -223,8 +205,6 @@ export type TopicPageHit = {
     __position: number
 }
 
-export type SearchTopicPageResponse = SearchResponse<TopicPageHit>
-
 export type ProfileHit = {
     title: string
     thumbnailUrl: string
@@ -234,15 +214,6 @@ export type ProfileHit = {
     availableEntities: string[]
     objectID: string
     __position: number
-}
-
-export type SearchProfileResponse = SearchResponse<ProfileHit>
-
-export type SearchWritingTopicsResponse = {
-    title: string
-    articles: SearchStackedArticleResponse
-    topicPages: SearchTopicPageResponse
-    totalCount: number
 }
 
 export enum FilterType {

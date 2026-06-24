@@ -1,8 +1,8 @@
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { commafyNumber } from "@ourworldindata/utils"
-import * as React from "react"
-import { SearchDataTopicsResponse } from "@ourworldindata/types"
+import type { SearchChartHit } from "@ourworldindata/types"
+import type { SearchResponse } from "instantsearch.js"
 import { useSearchContext } from "./SearchContext.js"
 import { useSelectedRegionNames } from "./searchHooks.js"
 import { SearchChartHitComponent } from "./SearchChartHitComponent.js"
@@ -10,7 +10,10 @@ import { SearchChartHitComponent } from "./SearchChartHitComponent.js"
 export const SearchDataTopic = ({
     result: { title, charts },
 }: {
-    result: SearchDataTopicsResponse
+    result: {
+        title: string
+        charts: SearchResponse<SearchChartHit>
+    }
 }) => {
     const {
         actions: { setTopic },
@@ -22,11 +25,23 @@ export const SearchDataTopic = ({
     if (charts.nbHits === 0) return null
     const titleLabel = title.replaceAll(" and ", " & ")
 
-    const handleAddTopicClick = (e: React.MouseEvent) => {
-        e.preventDefault()
+    function handleAddTopicClick() {
         setTopic(title)
         window.scrollTo({
             top: 0,
+        })
+    }
+
+    function handleHitClick(
+        hit: SearchChartHit,
+        position: number,
+        vizType?: string | null
+    ) {
+        analytics.logSearchResultClick(hit, {
+            position,
+            source: "ribbon",
+            ribbonTag: title,
+            vizType,
         })
     }
 
@@ -34,6 +49,7 @@ export const SearchDataTopic = ({
         <div className="search-data-topic col-start-2 span-cols-12 col-sm-start-2 span-sm-cols-13">
             <button
                 className="search-data-topic__header-button"
+                type="button"
                 aria-label={`Add topic ${title} to filters`}
                 onClick={handleAddTopicClick}
             >
@@ -56,14 +72,9 @@ export const SearchDataTopic = ({
                             <SearchChartHitComponent
                                 hit={hit}
                                 variant={hitIndex === 0 ? "medium" : "small"}
-                                onClick={(vizType?: string | null) => {
-                                    analytics.logSearchResultClick(hit, {
-                                        position: hitIndex + 1,
-                                        source: "ribbon",
-                                        ribbonTag: title,
-                                        vizType,
-                                    })
-                                }}
+                                onClick={(vizType) =>
+                                    handleHitClick(hit, hitIndex + 1, vizType)
+                                }
                                 selectedRegionNames={selectedRegionNames}
                             />
                         </li>
@@ -72,6 +83,7 @@ export const SearchDataTopic = ({
             </div>
             <button
                 className="search-data-topic__see-all-button"
+                type="button"
                 aria-label={`Add ${title} to filters`}
                 onClick={handleAddTopicClick}
             >

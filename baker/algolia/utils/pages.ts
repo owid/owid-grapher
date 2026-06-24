@@ -476,7 +476,7 @@ async function getExistingRecordsForSlug(
         )
     }
     const existingRecordsForPost: Hit[] = []
-    await searchClient.browseObjects({
+    await searchClient.browseObjects<Hit>({
         indexName,
         browseParams: {
             attributesToRetrieve: ["objectID"],
@@ -657,7 +657,7 @@ async function getExistingRecordsForProfileTemplate(
     templateId: string
 ): Promise<Hit[]> {
     const existingRecords: Hit[] = []
-    await searchClient.browseObjects({
+    await searchClient.browseObjects<Hit>({
         indexName,
         browseParams: {
             attributesToRetrieve: ["objectID"],

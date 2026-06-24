@@ -1,7 +1,8 @@
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { commafyNumber } from "@ourworldindata/utils"
-import { SearchWritingTopicsResponse } from "@ourworldindata/types"
+import type { StackedArticleHit, TopicPageHit } from "@ourworldindata/types"
+import type { SearchResponse } from "instantsearch.js"
 import { useSearchContext } from "./SearchContext.js"
 import { Button, getCanonicalPath } from "@ourworldindata/components"
 import { SearchStackedArticleHit } from "./SearchStackedArticleHit.js"
@@ -9,7 +10,12 @@ import { SearchStackedArticleHit } from "./SearchStackedArticleHit.js"
 export const SearchWritingTopic = ({
     result,
 }: {
-    result: SearchWritingTopicsResponse
+    result: {
+        title: string
+        articles: SearchResponse<StackedArticleHit>
+        topicPages: SearchResponse<TopicPageHit>
+        totalCount: number
+    }
 }) => {
     const {
         actions: { setTopic },
@@ -21,6 +27,17 @@ export const SearchWritingTopic = ({
     function handleAddTopicClick() {
         setTopic(result.title)
         window.scrollTo({ top: 0 })
+    }
+
+    function handleHitClick(
+        hit: StackedArticleHit | TopicPageHit,
+        position: number
+    ) {
+        analytics.logSearchResultClick(hit, {
+            position,
+            source: "ribbon",
+            ribbonTag: result.title,
+        })
     }
 
     return (
@@ -54,13 +71,9 @@ export const SearchWritingTopic = ({
                                 <SearchStackedArticleHit
                                     key={hit.objectID}
                                     hit={hit}
-                                    onClick={() => {
-                                        analytics.logSearchResultClick(hit, {
-                                            position: index + 1,
-                                            source: "ribbon",
-                                            ribbonTag: result.title,
-                                        })
-                                    }}
+                                    onClick={() =>
+                                        handleHitClick(hit, index + 1)
+                                    }
                                 />
                             ))}
                         </div>
@@ -84,16 +97,9 @@ export const SearchWritingTopic = ({
                                             hit.slug,
                                             hit.type
                                         )}
-                                        onClick={() => {
-                                            analytics.logSearchResultClick(
-                                                hit,
-                                                {
-                                                    position: index + 1,
-                                                    source: "ribbon",
-                                                    ribbonTag: result.title,
-                                                }
-                                            )
-                                        }}
+                                        onClick={() =>
+                                            handleHitClick(hit, index + 1)
+                                        }
                                     >
                                         {hit.title}
                                         <FontAwesomeIcon

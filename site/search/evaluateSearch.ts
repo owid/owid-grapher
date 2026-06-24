@@ -38,6 +38,10 @@ type ScoredQuery = {
     scores: Scores
 }
 
+type SearchEvaluationHit = {
+    slug: string
+}
+
 type SearchResults = {
     name: string
     scope: "articles" | "charts" | "all"
@@ -67,7 +71,7 @@ const evaluateArticleSearch = async (name: string): Promise<SearchResults> => {
     const indexName = PAGES_INDEX
 
     // make a search client
-    const client = getClient()
+    const client = algoliasearch(ALGOLIA_ID, ALGOLIA_SEARCH_KEY)
 
     // run the evaluation
     const results = await simulateQueries(client, indexName, ds.queries)
@@ -90,11 +94,6 @@ const evaluateArticleSearch = async (name: string): Promise<SearchResults> => {
     }
 }
 
-const getClient = (): any => {
-    const client = algoliasearch(ALGOLIA_ID, ALGOLIA_SEARCH_KEY)
-    return client
-}
-
 const fetchQueryDataset = async (name: string): Promise<QueryDataset> => {
     const url: string = `${SEARCH_EVAL_URL}/${name}`
     const resp = await fetchWithRetry(url)
@@ -107,11 +106,11 @@ const simulateQuery = async (
     indexName: string,
     query: Query
 ): Promise<ScoredQuery> => {
-    const { hits } = await searchClient.searchSingleIndex({
+    const { hits } = await searchClient.searchSingleIndex<SearchEvaluationHit>({
         indexName,
         searchParams: { query: query.query },
     })
-    const actual = hits.map((h: any) => h.slug)
+    const actual = hits.map((h) => h.slug)
     const scores = scoreResults(query.slugs, actual)
     return { query: query.query, expected: query.slugs, actual, scores }
 }
