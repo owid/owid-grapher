@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class RemoveLatestMinTimeFromLineCharts1782293706138
-    implements MigrationInterface
-{
+export class RemoveLatestMinTimeFromLineCharts1782293706138 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         // `minTime: "latest"` collapses the selected time range to a single
         // year. That's a no-op for the map and discrete-bar tabs (they only
