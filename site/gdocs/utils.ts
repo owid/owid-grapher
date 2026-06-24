@@ -97,6 +97,7 @@ export const useLinkedAuthor = (
 }
 
 export const getAuthorTeamAnchorUrl = (name: string): string => {
+    // Older gdoc content can still pass "Name (role)" through to rendering.
     const nameWithoutRole = name.replace(/\s*\([^)]+\)\s*$/, "")
     return `/team#${slugify(nameWithoutRole)}`
 }
