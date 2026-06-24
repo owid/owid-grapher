@@ -27,7 +27,7 @@ export const BreadcrumbLine = ({
             <Row gutter={8}>
                 <Col span={11}>
                     <Space.Compact>
-                        URL
+                        <Space.Addon>URL</Space.Addon>
                         <Input
                             value={item.href}
                             onChange={(e) =>
@@ -41,7 +41,7 @@ export const BreadcrumbLine = ({
                 </Col>
                 <Col span={11}>
                     <Space.Compact>
-                        Label
+                        <Space.Addon>Label</Space.Addon>
                         <Input
                             value={item.label}
                             onChange={(e) =>

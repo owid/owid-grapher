@@ -43,8 +43,10 @@ export const GdocsSlug = <T extends OwidGdoc>({
             <label htmlFor="slug">Slug</label>
             <Row gutter={24}>
                 <Col span={16}>
-                    <Space.Compact>
-                        ourworldindata.org/{subdirectory}
+                    <Space.Compact block>
+                        <Space.Addon>
+                            ourworldindata.org/{subdirectory}
+                        </Space.Addon>
                         <Input
                             value={slug}
                             onChange={(e) =>

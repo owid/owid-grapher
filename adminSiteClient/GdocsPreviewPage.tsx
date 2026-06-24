@@ -570,7 +570,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                 </Drawer>
                 <Drawer
                     placement="bottom"
-                    size="large"
+                    size="90%"
                     open={isDiffOpen}
                     onClose={onDiffClose}
                     extra={
@@ -586,7 +586,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                 </Drawer>
                 <Drawer
                     placement="bottom"
-                    size="large"
+                    size="90%"
                     title="Index preview"
                     extra={
                         <RecordsPreviewModeToggle

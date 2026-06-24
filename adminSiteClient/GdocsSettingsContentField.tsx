@@ -93,8 +93,8 @@ export const GdocsSettingsTextField = ({
     errorType?: OwidGdocErrorMessageType
     inputProps?: InputProps
 }) => (
-    <Space.Compact>
-        {name}:
+    <Space.Compact block>
+        <Space.Addon>{name}:</Space.Addon>
         <Input
             value={value}
             status={errorType}
