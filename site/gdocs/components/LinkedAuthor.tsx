@@ -1,6 +1,6 @@
 import { getCanonicalUrl } from "@ourworldindata/components"
 import { OwidGdocType } from "@ourworldindata/types"
-import { useLinkedAuthor } from "../utils.js"
+import { getAuthorTeamAnchorUrl, useLinkedAuthor } from "../utils.js"
 import Image from "./Image.js"
 import { IS_ARCHIVE } from "../../../settings/clientSettings.js"
 import { PROD_URL } from "../../SiteConstants.js"
@@ -31,11 +31,12 @@ export default function LinkedAuthor({
             />
         ) : undefined
 
-    const path = getCanonicalUrl(BASE_URL, {
-        // If there's no author slug, this will link to /team/
-        slug: author.slug || "",
-        content: { type: OwidGdocType.Author },
-    })
+    const path = author.slug
+        ? getCanonicalUrl(BASE_URL, {
+              slug: author.slug,
+              content: { type: OwidGdocType.Author },
+          })
+        : getAuthorTeamAnchorUrl(author.name)
     return (
         <span>
             <a className={className} href={path}>

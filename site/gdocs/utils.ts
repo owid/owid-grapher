@@ -25,6 +25,7 @@ import {
     getCalloutValue,
     getRegionByNameOrVariantName,
     makeLinkedCalloutKey,
+    slugify,
     traverseEnrichedBlock,
     Url,
 } from "@ourworldindata/utils"
@@ -93,6 +94,11 @@ export const useLinkedAuthor = (
     const author = linkedAuthors?.find((author) => author.name === name)
     if (!author) return { name, slug: null, featuredImage: null }
     return author
+}
+
+export const getAuthorTeamAnchorUrl = (name: string): string => {
+    const nameWithoutRole = name.replace(/\s*\([^)]+\)\s*$/, "")
+    return `/team#${slugify(nameWithoutRole)}`
 }
 
 type LinkedDocument = OwidGdocMinimalPostInterface & { url: string }

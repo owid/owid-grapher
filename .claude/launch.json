@@ -1,0 +1,11 @@
+{
+    "version": "0.0.1",
+    "configurations": [
+        {
+            "name": "bespoke",
+            "runtimeExecutable": "yarn",
+            "runtimeArgs": ["startBespokeDevServer"],
+            "port": 8089
+        }
+    ]
+}
