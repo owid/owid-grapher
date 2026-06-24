@@ -193,7 +193,8 @@ export type FlatArticleHit = {
     date: string
     slug: string
     type: OwidGdocType.Article | OwidGdocType.AboutPage
-    content: string
+    content?: string
+    excerpt?: string
     authors: string[]
     objectID: string
     __position: number
@@ -204,7 +205,7 @@ export type StackedArticleHit = {
     thumbnailUrl: string
     slug: string
     type: OwidGdocType.Article | OwidGdocType.AboutPage
-    content: string
+    excerpt: string
     objectID: string
     __position: number
 }

@@ -49,14 +49,20 @@ export function SearchFlatArticleHit({
                                 by {formatAuthors(hit.authors)} —{" "}
                             </span>
                         )}
-                        <Snippet
-                            classNames={{
-                                root: "search-flat-article-hit__excerpt",
-                            }}
-                            attribute="content"
-                            highlightedTagName="strong"
-                            hit={hit}
-                        />
+                        {hit.excerpt ? (
+                            <span className="search-flat-article-hit__excerpt">
+                                {hit.excerpt}
+                            </span>
+                        ) : (
+                            <Snippet
+                                classNames={{
+                                    root: "search-flat-article-hit__excerpt",
+                                }}
+                                attribute="content"
+                                highlightedTagName="strong"
+                                hit={hit}
+                            />
+                        )}
                     </div>
                 </div>
             </article>
