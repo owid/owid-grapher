@@ -1,4 +1,11 @@
-import { useCallback, useContext, useEffect, useMemo, useState } from "react"
+import {
+    useCallback,
+    useContext,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from "react"
 import * as React from "react"
 import { useHistory } from "react-router-dom"
 import cx from "clsx"
@@ -90,6 +97,16 @@ export function SlideshowEditorPage(props: {
     const [isPublished, setIsPublished] = useState(false)
     const [interactiveCharts, setInteractiveCharts] = useState(false)
     const [chartApplyVersion, setChartApplyVersion] = useState(0)
+
+    const activeThumbRef = useRef<HTMLButtonElement>(null)
+
+    useEffect(() => {
+        activeThumbRef.current?.scrollIntoView({
+            behavior: "smooth",
+            block: "nearest",
+            inline: "nearest",
+        })
+    }, [currentSlideIndex])
 
     const bumpChartApplyVersion = useCallback(() => {
         setChartApplyVersion((version) => version + 1)
@@ -537,6 +554,11 @@ export function SlideshowEditorPage(props: {
                             {slides.map((slide, i) => (
                                 <button
                                     key={i}
+                                    ref={
+                                        i === currentSlideIndex
+                                            ? activeThumbRef
+                                            : undefined
+                                    }
                                     className={`SlideshowEditorPage__slide-thumbnail ${
                                         i === currentSlideIndex
                                             ? "SlideshowEditorPage__slide-thumbnail--active"
