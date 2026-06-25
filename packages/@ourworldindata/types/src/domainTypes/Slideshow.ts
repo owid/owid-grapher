@@ -23,7 +23,7 @@ export const SLIDE_TEMPLATE_LABELS: Record<SlideTemplate, string> = {
 const SlideImageOnlySchema = z.object({
     template: z.literal(SlideTemplate.Image),
     filename: z.nullable(z.string()),
-    slideTitle: z.optional(z.string()),
+    title: z.optional(z.string()),
     text: z.optional(z.string()),
     largeText: z.optional(z.boolean()),
     hideLogo: z.optional(z.boolean()),
