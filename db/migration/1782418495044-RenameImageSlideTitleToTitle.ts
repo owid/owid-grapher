@@ -56,9 +56,7 @@ async function renameImageSlideTitleField(
     }
 }
 
-export class RenameImageSlideTitleToTitle1782418495044
-    implements MigrationInterface
-{
+export class RenameImageSlideTitleToTitle1782418495044 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         // Image slides previously stored their heading under `slideTitle`,
         // unlike every other slide type which uses `title`. Rename it so the
