@@ -615,6 +615,7 @@ export {
 export {
     SlideTemplate,
     SLIDE_TEMPLATE_LABELS,
+    SLIDE_TEMPLATE_FIELDS,
     type SlideImageOnly,
     type SlideChartOnly,
     type SlideTwoCharts,

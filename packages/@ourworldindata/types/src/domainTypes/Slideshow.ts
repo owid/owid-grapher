@@ -96,6 +96,22 @@ export const SlideSchema = z.discriminatedUnion("template", [
     SlideTextSchema,
 ])
 
+/**
+ * The valid field names for each slide template, derived from the per-template
+ * zod schemas above. Kept adjacent to the schemas so it stays in sync when a
+ * field is added or removed. Used by slide-conversion logic to know which
+ * fields can be carried over when changing a slide's template.
+ */
+export const SLIDE_TEMPLATE_FIELDS: Record<SlideTemplate, string[]> = {
+    [SlideTemplate.Image]: Object.keys(SlideImageOnlySchema.shape),
+    [SlideTemplate.Chart]: Object.keys(SlideChartOnlySchema.shape),
+    [SlideTemplate.TwoCharts]: Object.keys(SlideTwoChartsSchema.shape),
+    [SlideTemplate.Cover]: Object.keys(SlideCoverSchema.shape),
+    [SlideTemplate.Statement]: Object.keys(SlideStatementSchema.shape),
+    [SlideTemplate.Outline]: Object.keys(SlideContentsSchema.shape),
+    [SlideTemplate.Text]: Object.keys(SlideTextSchema.shape),
+}
+
 export const SlideshowConfigSchema = z.object({
     slides: z.array(SlideSchema),
     authors: z.optional(z.string()),
