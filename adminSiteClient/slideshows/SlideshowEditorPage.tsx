@@ -9,7 +9,7 @@ import {
 import * as React from "react"
 import { useHistory } from "react-router-dom"
 import cx from "clsx"
-import { Button, Dropdown, Popconfirm, Tabs, Tooltip } from "antd"
+import { Button, Dropdown, Modal, Popconfirm, Tabs, Tooltip } from "antd"
 import type { MenuProps } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
@@ -19,6 +19,7 @@ import {
     faChevronLeft,
     faChevronRight,
     faExternalLinkAlt,
+    faRightLeft,
 } from "@fortawesome/free-solid-svg-icons"
 import { AdminLayout } from "../AdminLayout.js"
 import { AdminAppContext } from "../AdminAppContext.js"
@@ -33,7 +34,12 @@ import {
 import { slugify, Url } from "@ourworldindata/utils"
 import { toPlaintext } from "@ourworldindata/components"
 import { SlideshowEditTab } from "./SlideshowEditTab.js"
-import { makeDefaultSlideForTemplate } from "../../site/slideshows/slideshowUtils.js"
+import {
+    makeDefaultSlideForTemplate,
+    convertSlide,
+    isLossyConversion,
+    buildConversionWarning,
+} from "../../site/slideshows/slideshowUtils.js"
 import { SlideshowArrangeTab } from "./SlideshowArrangeTab.js"
 import { useImages } from "../useImages.js"
 import { SlideRenderer } from "../../site/slideshows/SlideRenderer.js"
@@ -235,6 +241,26 @@ export function SlideshowEditorPage(props: {
         [bumpChartApplyVersion, currentSlideIndex]
     )
 
+    const convertCurrentSlide = useCallback(
+        (target: SlideTemplate) => {
+            const slide = slides[currentSlideIndex]
+            if (!slide || slide.template === target) return
+            const apply = () => updateCurrentSlide(convertSlide(slide, target))
+            if (isLossyConversion(slide, target)) {
+                Modal.confirm({
+                    title: `Convert to ${SLIDE_TEMPLATE_LABELS[target]}?`,
+                    content: buildConversionWarning(slide, target),
+                    okText: "Convert",
+                    cancelText: "Cancel",
+                    onOk: apply,
+                })
+            } else {
+                apply()
+            }
+        },
+        [currentSlideIndex, slides, updateCurrentSlide]
+    )
+
     const duplicateSlide = useCallback(() => {
         setSlides((prev) => {
             const next = [...prev]
@@ -333,6 +359,16 @@ export function SlideshowEditorPage(props: {
         label,
         onClick: () => addSlide(value as SlideTemplate),
     }))
+
+    const convertSlideMenuItems: MenuProps["items"] = Object.entries(
+        SLIDE_TEMPLATE_LABELS
+    )
+        .filter(([value]) => value !== currentSlide?.template)
+        .map(([value, label]) => ({
+            key: value,
+            label,
+            onClick: () => convertCurrentSlide(value as SlideTemplate),
+        }))
 
     const tabItems = [
         {
@@ -615,6 +651,17 @@ export function SlideshowEditorPage(props: {
                                 <FontAwesomeIcon icon={faPlus} />
                             </Button>
                         </Dropdown>
+                        <Tooltip title="Convert this slide to a different type">
+                            <Dropdown
+                                menu={{ items: convertSlideMenuItems }}
+                                trigger={["click"]}
+                            >
+                                <Button size="small">
+                                    <FontAwesomeIcon icon={faRightLeft} />{" "}
+                                    Convert to
+                                </Button>
+                            </Dropdown>
+                        </Tooltip>
                     </div>
                 </div>
             </main>
