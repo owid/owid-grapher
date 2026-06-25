@@ -96,9 +96,12 @@ export const useLinkedAuthor = (
     return author
 }
 
+// Older gdoc content can still pass "Name (role)" through to rendering.
+const stripTrailingAuthorRole = (name: string): string =>
+    name.replace(/\s*\([^)]+\)\s*$/, "")
+
 export const getAuthorTeamAnchorId = (name: string): string => {
-    // Older gdoc content can still pass "Name (role)" through to rendering.
-    const nameWithoutRole = name.replace(/\s*\([^)]+\)\s*$/, "")
+    const nameWithoutRole = stripTrailingAuthorRole(name)
     const nameWithoutTitle = nameWithoutRole
         .replace(/^(Dr\.|Professor)\s+/, "")
         .replace(/\s*,\s*[^,]+$/, "")
@@ -119,10 +122,11 @@ export const getAuthorTeamAnchorUrl = (
     name: string,
     baseUrl: string = ""
 ): string => {
-    if (authorNamesWithoutTeamAnchors.has(name.toLowerCase())) {
+    const nameWithoutRole = stripTrailingAuthorRole(name)
+    if (authorNamesWithoutTeamAnchors.has(nameWithoutRole.toLowerCase())) {
         return `${baseUrl}/team`
     }
-    return `${baseUrl}/team#${getAuthorTeamAnchorId(name)}`
+    return `${baseUrl}/team#${getAuthorTeamAnchorId(nameWithoutRole)}`
 }
 
 type LinkedDocument = OwidGdocMinimalPostInterface & { url: string }

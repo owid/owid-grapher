@@ -120,15 +120,22 @@ describe(getAuthorTeamAnchorUrl, () => {
     })
 
     it.each(["Guest Authors", "Our World In Data", "Our World in Data team"])(
-        "links non-person byline %s to the team page without an anchor",
+        "links %s byline to the team page without an anchor",
         (name) => {
             expect(getAuthorTeamAnchorUrl(name)).toBe("/team")
         }
     )
 
-    it("matches non-person bylines case-insensitively", () => {
+    it("matches known authors without team page bylines case-insensitively", () => {
         expect(getAuthorTeamAnchorUrl("our world in data team")).toBe("/team")
     })
+
+    it.each(["Guest Authors (essay)", "Our World in Data team (data work)"])(
+        "strips trailing roles before matching known author without team page byline %s",
+        (name) => {
+            expect(getAuthorTeamAnchorUrl(name)).toBe("/team")
+        }
+    )
 })
 
 describe(getAuthorTeamAnchorId, () => {
