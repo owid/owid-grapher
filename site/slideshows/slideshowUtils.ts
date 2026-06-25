@@ -119,7 +119,7 @@ export function convertSlide(slide: Slide, target: SlideTemplate): Slide {
 export function describeConversionLoss(
     slide: Slide,
     target: SlideTemplate
-): { droppedFields: string[]; emptyRequiredFields: string[] } {
+): { droppedFields: string[] } {
     const targetFields = new Set(SLIDE_TEMPLATE_FIELDS[target])
     const source = slide as Record<string, unknown>
 
@@ -147,15 +147,7 @@ export function describeConversionLoss(
         droppedFields.push(fieldLabel(key))
     }
 
-    const converted = convertSlide(slide, target) as Record<string, unknown>
-    const emptyRequiredFields: string[] = []
-    for (const field of SLIDE_TEMPLATE_REQUIRED_FIELDS[target]) {
-        if (isEmptyFieldValue(converted[field])) {
-            emptyRequiredFields.push(fieldLabel(field))
-        }
-    }
-
-    return { droppedFields, emptyRequiredFields }
+    return { droppedFields }
 }
 
 /** Whether converting between two templates loses any content. */
@@ -163,11 +155,8 @@ export function isLossyConversion(
     slide: Slide,
     target: SlideTemplate
 ): boolean {
-    const { droppedFields, emptyRequiredFields } = describeConversionLoss(
-        slide,
-        target
-    )
-    return droppedFields.length > 0 || emptyRequiredFields.length > 0
+    const { droppedFields } = describeConversionLoss(slide, target)
+    return droppedFields.length > 0
 }
 
 /** Build the warning message shown before a lossy conversion. */
@@ -175,27 +164,18 @@ export function buildConversionWarning(
     slide: Slide,
     target: SlideTemplate
 ): string {
-    const { droppedFields, emptyRequiredFields } = describeConversionLoss(
-        slide,
-        target
-    )
+    const { droppedFields } = describeConversionLoss(slide, target)
     const fromLabel = SLIDE_TEMPLATE_LABELS[slide.template]
     const toLabel = SLIDE_TEMPLATE_LABELS[target]
     const parts: string[] = []
     if (droppedFields.length > 0) {
         parts.push(
-            `Converting ${fromLabel} → ${toLabel} will discard: ${droppedFields.join(
+            `Converting ${fromLabel} → ${toLabel} will irrecoverably discard: ${droppedFields.join(
                 ", "
             )}.`
         )
     }
-    if (emptyRequiredFields.length > 0) {
-        parts.push(
-            `You'll need to add ${emptyRequiredFields.join(
-                ", "
-            )} after converting.`
-        )
-    }
+
     return parts.join(" ")
 }
 
