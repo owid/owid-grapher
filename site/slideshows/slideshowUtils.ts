@@ -49,7 +49,6 @@ const SLIDE_FIELD_LABELS: Record<string, string> = {
     url1: "first chart URL",
     url2: "second chart URL",
     filename: "image",
-    slideTitle: "image title",
     title: "title",
     subtitle: "subtitle",
     text: "text",

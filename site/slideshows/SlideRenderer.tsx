@@ -67,11 +67,11 @@ export function SlideRenderer(props: {
         .with({ template: SlideTemplate.Image }, (slide) => (
             <div className={`${className} slideshow-slide--image`}>
                 {!slide.hideLogo && <SlideLogo />}
-                {slide.slideTitle && (
+                {slide.title && (
                     <h1 className="slideshow-slide-title">
                         <SimpleMarkdownText
                             openLinksInNewTab
-                            text={slide.slideTitle}
+                            text={slide.title}
                             useParagraphs={false}
                         />
                     </h1>
