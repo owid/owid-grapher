@@ -219,7 +219,7 @@ function TemplateOptionsEditor(props: {
                     onChange={(filename) => onUpdate({ ...slide, filename })}
                 />
                 <label>
-                    Slide title
+                    Title
                     <InlineMarkdownEditor
                         value={slide.title ?? ""}
                         onChange={(e) =>
