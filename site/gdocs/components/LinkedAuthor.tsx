@@ -36,7 +36,7 @@ export default function LinkedAuthor({
               slug: author.slug,
               content: { type: OwidGdocType.Author },
           })
-        : getAuthorTeamAnchorUrl(author.name)
+        : getAuthorTeamAnchorUrl(author.name, BASE_URL)
     return (
         <span>
             <a className={className} href={path}>

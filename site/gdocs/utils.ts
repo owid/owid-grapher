@@ -96,10 +96,24 @@ export const useLinkedAuthor = (
     return author
 }
 
-export const getAuthorTeamAnchorUrl = (name: string): string => {
+export const getAuthorTeamAnchorId = (name: string): string => {
     // Older gdoc content can still pass "Name (role)" through to rendering.
     const nameWithoutRole = name.replace(/\s*\([^)]+\)\s*$/, "")
-    return `/team#${slugify(nameWithoutRole)}`
+    const nameWithoutTitle = nameWithoutRole
+        .replace(/^(Dr\.|Professor)\s+/, "")
+        .replace(/\s*,\s*[^,]+$/, "")
+    return slugify(
+        // Convert letters with diacritics to their base Latin letters,
+        // e.g. "é" -> "e".
+        nameWithoutTitle.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    )
+}
+
+export const getAuthorTeamAnchorUrl = (
+    name: string,
+    baseUrl: string = ""
+): string => {
+    return `${baseUrl}/team#${getAuthorTeamAnchorId(name)}`
 }
 
 type LinkedDocument = OwidGdocMinimalPostInterface & { url: string }
