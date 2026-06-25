@@ -53,4 +53,11 @@ describe(LinkedAuthor, () => {
 
         expect(html).toContain('href="/team#daniel-bachler"')
     })
+
+    it("links non-person bylines without author pages to the team page", () => {
+        const html = renderLinkedAuthor("Our World in Data team")
+
+        expect(html).toContain('href="/team"')
+        expect(html).not.toContain('href="/team#our-world-in-data-team"')
+    })
 })

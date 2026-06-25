@@ -118,6 +118,17 @@ describe(getAuthorTeamAnchorUrl, () => {
             )
         ).toBe("https://ourworldindata.org/team#daniel-bachler")
     })
+
+    it.each(["Guest Authors", "Our World In Data", "Our World in Data team"])(
+        "links non-person byline %s to the team page without an anchor",
+        (name) => {
+            expect(getAuthorTeamAnchorUrl(name)).toBe("/team")
+        }
+    )
+
+    it("matches non-person bylines case-insensitively", () => {
+        expect(getAuthorTeamAnchorUrl("our world in data team")).toBe("/team")
+    })
 })
 
 describe(getAuthorTeamAnchorId, () => {

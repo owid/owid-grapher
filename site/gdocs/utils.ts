@@ -109,10 +109,19 @@ export const getAuthorTeamAnchorId = (name: string): string => {
     )
 }
 
+const authorNamesWithoutTeamAnchors = new Set([
+    "guest authors",
+    "our world in data",
+    "our world in data team",
+])
+
 export const getAuthorTeamAnchorUrl = (
     name: string,
     baseUrl: string = ""
 ): string => {
+    if (authorNamesWithoutTeamAnchors.has(name.toLowerCase())) {
+        return `${baseUrl}/team`
+    }
     return `${baseUrl}/team#${getAuthorTeamAnchorId(name)}`
 }
 
