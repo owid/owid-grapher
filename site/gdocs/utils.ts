@@ -25,6 +25,7 @@ import {
     getCalloutValue,
     getRegionByNameOrVariantName,
     makeLinkedCalloutKey,
+    slugify,
     traverseEnrichedBlock,
     Url,
 } from "@ourworldindata/utils"
@@ -93,6 +94,39 @@ export const useLinkedAuthor = (
     const author = linkedAuthors?.find((author) => author.name === name)
     if (!author) return { name, slug: null, featuredImage: null }
     return author
+}
+
+// Older gdoc content can still pass "Name (role)" through to rendering.
+const stripTrailingAuthorRole = (name: string): string =>
+    name.replace(/\s*\([^)]+\)\s*$/, "")
+
+export const getAuthorTeamAnchorId = (name: string): string => {
+    const nameWithoutRole = stripTrailingAuthorRole(name)
+    const nameWithoutTitle = nameWithoutRole
+        .replace(/^(Dr\.|Professor)\s+/, "")
+        .replace(/\s*,\s*[^,]+$/, "")
+    return slugify(
+        // Convert letters with diacritics to their base Latin letters,
+        // e.g. "é" -> "e".
+        nameWithoutTitle.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    )
+}
+
+const authorNamesWithoutTeamAnchors = new Set([
+    "guest authors",
+    "our world in data",
+    "our world in data team",
+])
+
+export const getAuthorTeamAnchorUrl = (
+    name: string,
+    baseUrl: string = ""
+): string => {
+    const nameWithoutRole = stripTrailingAuthorRole(name)
+    if (authorNamesWithoutTeamAnchors.has(nameWithoutRole.toLowerCase())) {
+        return `${baseUrl}/team`
+    }
+    return `${baseUrl}/team#${getAuthorTeamAnchorId(nameWithoutRole)}`
 }
 
 type LinkedDocument = OwidGdocMinimalPostInterface & { url: string }
