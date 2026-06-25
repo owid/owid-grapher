@@ -20,6 +20,7 @@ import {
     faChevronRight,
     faExternalLinkAlt,
     faRightLeft,
+    faWarning,
 } from "@fortawesome/free-solid-svg-icons"
 import { AdminLayout } from "../AdminLayout.js"
 import { AdminAppContext } from "../AdminAppContext.js"
@@ -245,18 +246,7 @@ export function SlideshowEditorPage(props: {
         (target: SlideTemplate) => {
             const slide = slides[currentSlideIndex]
             if (!slide || slide.template === target) return
-            const apply = () => updateCurrentSlide(convertSlide(slide, target))
-            if (isLossyConversion(slide, target)) {
-                Modal.confirm({
-                    title: `Convert to ${SLIDE_TEMPLATE_LABELS[target]}?`,
-                    content: buildConversionWarning(slide, target),
-                    okText: "Convert",
-                    cancelText: "Cancel",
-                    onOk: apply,
-                })
-            } else {
-                apply()
-            }
+            updateCurrentSlide(convertSlide(slide, target))
         },
         [currentSlideIndex, slides, updateCurrentSlide]
     )
@@ -352,23 +342,41 @@ export function SlideshowEditorPage(props: {
 
     const canSave = slug.trim().length > 0 && title.trim().length > 0
 
-    const addSlideMenuItems: MenuProps["items"] = Object.entries(
-        SLIDE_TEMPLATE_LABELS
+    const addSlideMenuItems: MenuProps["items"] = (
+        Object.entries(SLIDE_TEMPLATE_LABELS) as [SlideTemplate, string][]
     ).map(([value, label]) => ({
         key: value,
         label,
-        onClick: () => addSlide(value as SlideTemplate),
+        onClick: () => addSlide(value),
     }))
 
-    const convertSlideMenuItems: MenuProps["items"] = Object.entries(
-        SLIDE_TEMPLATE_LABELS
+    const convertSlideMenuItems: MenuProps["items"] = (
+        Object.entries(SLIDE_TEMPLATE_LABELS) as [SlideTemplate, string][]
     )
         .filter(([value]) => value !== currentSlide?.template)
-        .map(([value, label]) => ({
-            key: value,
-            label,
-            onClick: () => convertCurrentSlide(value as SlideTemplate),
-        }))
+        .map(([value, label]) => {
+            if (!currentSlide) return { key: value, label, disabled: true }
+            const willBeLossy = isLossyConversion(currentSlide, value)
+            const labelMaybeWithWarning = willBeLossy ? (
+                <Tooltip title={buildConversionWarning(currentSlide, value)}>
+                    <span>
+                        {label}
+                        <FontAwesomeIcon
+                            icon={faWarning}
+                            className="SlideshowEditorPage__convert-warning-icon"
+                        />
+                    </span>
+                </Tooltip>
+            ) : (
+                label
+            )
+
+            return {
+                key: value,
+                label: labelMaybeWithWarning,
+                onClick: () => convertCurrentSlide(value),
+            }
+        })
 
     const tabItems = [
         {
