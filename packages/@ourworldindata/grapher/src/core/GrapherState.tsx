@@ -560,6 +560,7 @@ export class GrapherState
     activeModal?: GrapherModal
     activeDownloadModalTab: DownloadModalTabName = DownloadModalTabName.Vis
     isShareMenuActive = false
+    isCommandPaletteOpen = false
 
     isTimelineAnimationPlaying = false
     /** True if the timeline animation is either playing or paused but not finished */
@@ -733,6 +734,7 @@ export class GrapherState
             slideShow: observable,
             _baseFontSize: observable,
             isShareMenuActive: observable,
+            isCommandPaletteOpen: observable,
             hideTitle: observable,
             hideSubtitle: observable,
             hideNote: observable,
