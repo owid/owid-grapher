@@ -9,7 +9,7 @@ import {
 import * as React from "react"
 import { useHistory } from "react-router-dom"
 import cx from "clsx"
-import { Button, Dropdown, Modal, Popconfirm, Tabs, Tooltip } from "antd"
+import { Button, Dropdown, Popconfirm, Tabs, Tooltip } from "antd"
 import type { MenuProps } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {

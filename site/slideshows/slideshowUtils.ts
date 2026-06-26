@@ -28,21 +28,6 @@ export function makeDefaultSlideForTemplate(template: SlideTemplate): Slide {
         .exhaustive()
 }
 
-/**
- * Required, content-bearing fields for each template. These are the fields a
- * slide must have filled in to be valid/useful; conversion warns when any of
- * them end up empty on the target slide.
- */
-const SLIDE_TEMPLATE_REQUIRED_FIELDS: Record<SlideTemplate, string[]> = {
-    [SlideTemplate.Image]: ["filename"],
-    [SlideTemplate.Chart]: ["url"],
-    [SlideTemplate.TwoCharts]: ["url1", "url2"],
-    [SlideTemplate.Cover]: ["title"],
-    [SlideTemplate.Statement]: ["text"],
-    [SlideTemplate.Outline]: ["text"],
-    [SlideTemplate.Text]: ["text"],
-}
-
 /** Human-readable labels for slide fields, used in conversion warnings. */
 const SLIDE_FIELD_LABELS: Record<string, string> = {
     url: "chart URL",
