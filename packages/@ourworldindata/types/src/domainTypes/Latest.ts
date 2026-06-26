@@ -23,6 +23,7 @@ export const LATEST_TYPE_VALUES = [
     "data-insight",
     "article",
     "data-update",
+    "topic-update",
     "website-upgrade",
     "announcement",
 ] as const
@@ -33,6 +34,7 @@ export type LatestType = (typeof LATEST_TYPE_VALUES)[number]
 // so unrecognized kickers can't reach a published announcement.
 export const ANNOUNCEMENT_LATEST_TYPES = [
     "data-update",
+    "topic-update",
     "website-upgrade",
     "announcement",
 ] as const satisfies readonly LatestType[]
@@ -46,6 +48,7 @@ export const LATEST_TYPE_LABELS: Record<LatestType, string> = {
     "data-insight": "Data Insight",
     article: "Article",
     "data-update": "Data update",
+    "topic-update": "Topic update",
     "website-upgrade": "Website upgrade",
     announcement: "Announcement",
 }
