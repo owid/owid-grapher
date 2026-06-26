@@ -88,6 +88,33 @@ $s-lato-font-size: px-to-cqh(24);
     }
 }
 
+// "textImage" variant: the text becomes the dominant column and the image is
+// rendered as a smaller accent on the right.
+.slideshow-slide--image-text-dominant {
+    .slideshow-slide-chart-content {
+        align-items: center;
+    }
+    // Text leads (left) and takes most of the available width.
+    .slideshow-slide__text {
+        order: 0;
+        width: auto;
+        flex: 1 1 auto;
+        min-width: 0;
+        font-size: $l-lato-font-size;
+        &--large {
+            font-size: calc($l-lato-font-size * 1.4);
+        }
+    }
+    // Image is a smaller accent on the right.
+    .slideshow-slide__image {
+        order: 1;
+        height: auto;
+        width: auto;
+        max-width: 33%;
+        max-height: 100%;
+    }
+}
+
 .slideshow-slide-chart-content {
     flex: 1;
     display: flex;
@@ -256,6 +283,18 @@ $s-lato-font-size: px-to-cqh(24);
         color: $gray-80;
         margin-top: px-to-cqh(16);
         font-size: $xl-lato-font-size;
+    }
+}
+
+// "sectionDivider" variant: center the text vertically and horizontally so the
+// slide reads as a section break.
+.slideshow-slide--statement-section-divider {
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+
+    .slideshow-slide-statement__text {
+        max-width: 90%;
     }
 }
 

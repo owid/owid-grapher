@@ -1,7 +1,7 @@
 import { useContext, useState } from "react"
 import * as React from "react"
 import { match } from "ts-pattern"
-import { Button, Upload } from "antd"
+import { Button, Segmented, Upload } from "antd"
 import { useQueryClient } from "@tanstack/react-query"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faImages, faUpload } from "@fortawesome/free-solid-svg-icons"
@@ -219,6 +219,26 @@ function TemplateOptionsEditor(props: {
                     onChange={(filename) => onUpdate({ ...slide, filename })}
                 />
                 <label>
+                    Layout
+                    <Segmented
+                        block
+                        value={slide.variant ?? "imageText"}
+                        options={[
+                            { label: "Image + text", value: "imageText" },
+                            { label: "Text + image", value: "textImage" },
+                        ]}
+                        onChange={(value) =>
+                            onUpdate({
+                                ...slide,
+                                variant:
+                                    value === "textImage"
+                                        ? "textImage"
+                                        : undefined,
+                            })
+                        }
+                    />
+                </label>
+                <label>
                     Title
                     <InlineMarkdownEditor
                         value={slide.title ?? ""}
@@ -378,6 +398,29 @@ function TemplateOptionsEditor(props: {
         ))
         .with({ template: SlideTemplate.Statement }, (slide) => (
             <>
+                <label>
+                    Layout
+                    <Segmented
+                        block
+                        value={slide.variant ?? "standard"}
+                        options={[
+                            { label: "Standard", value: "standard" },
+                            {
+                                label: "Section divider",
+                                value: "sectionDivider",
+                            },
+                        ]}
+                        onChange={(value) =>
+                            onUpdate({
+                                ...slide,
+                                variant:
+                                    value === "sectionDivider"
+                                        ? "sectionDivider"
+                                        : undefined,
+                            })
+                        }
+                    />
+                </label>
                 <label>
                     Statement
                     <MarkdownEditor
