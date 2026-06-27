@@ -261,14 +261,6 @@ export const DataPageV2Content = ({
                     {!useNewDatapageDesign && (
                         <>
                             <div className="col-start-2 span-cols-12">
-                                {/*
-                                 * The id is swapped between the all-charts section and the
-                                 * featured-metrics section based on experiment arm so that the
-                                 * #all-charts sticky nav link always scrolls to the visible
-                                 * element. Browsers won't scroll to a display:none element, so
-                                 * a static id on the all-charts section would break navigation
-                                 * in the featured-metrics arm.
-                                 */}
                                 {datapageData.allCharts &&
                                 datapageData.allCharts.length > 0 ? (
                                     <div
@@ -276,17 +268,7 @@ export const DataPageV2Content = ({
                                     >
                                         <h2
                                             className="related-charts__title"
-                                            id={
-                                                experimentState &&
-                                                experimentState[
-                                                    `${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1`
-                                                ]?.isPageInExperiment &&
-                                                experimentState[
-                                                    `${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1`
-                                                ]?.arm !== "all-charts"
-                                                    ? ""
-                                                    : "all-charts"
-                                            }
+                                            id="all-charts"
                                         >
                                             Explore charts that include this
                                             data

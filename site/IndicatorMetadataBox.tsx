@@ -1,7 +1,6 @@
 import cx from "clsx"
 import * as _ from "lodash-es"
 import {
-    DATAPAGE_ABOUT_THIS_DATA_SECTION_ID,
     DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID,
     SimpleMarkdownText,
     IndicatorSources,
