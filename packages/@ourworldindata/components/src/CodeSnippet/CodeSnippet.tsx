@@ -26,7 +26,6 @@ export const CodeSnippet = ({
     useMarkdown?: boolean
     forceShowCopyButton?: boolean
     codeAttributes?: HTMLAttributes<HTMLElement> & Record<string, string>
-    /** Called after the snippet is successfully copied to the clipboard. */
     onCopy?: () => void
 }) => {
     const [canCopy, setCanCopy] = useState(false)

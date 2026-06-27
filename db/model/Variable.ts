@@ -990,13 +990,6 @@ export async function getVariableDistribution(
     }
 }
 
-/**
- * Returns the OWID team-member owners of the datasets backing the given
- * variables, grouped by dataset. A datapage can be backed by multiple variables
- * (e.g. scatterplots) spanning multiple datasets, so we keep the per-dataset
- * grouping rather than flattening to a single list. The first entry of each
- * dataset's `owners` is the accountable owner / point of contact.
- */
 export async function getOwnersForVariables(
     knex: db.KnexReadonlyTransaction,
     variableIds: number[]
@@ -1022,12 +1015,7 @@ export async function getOwnersForVariables(
         .map((row) => ({
             datasetId: row.id,
             datasetName: row.name,
-            // `owners` is a JSON column. Depending on the driver it may arrive
-            // already parsed as an array, or as a JSON string to be parsed.
-            owners:
-                typeof row.owners === "string"
-                    ? (JSON.parse(row.owners) as string[])
-                    : ((row.owners as string[] | null) ?? []),
+            owners: row.owners ? (JSON.parse(row.owners) as string[]) : [],
         }))
         .filter((dataset) => dataset.owners.length > 0)
 }
