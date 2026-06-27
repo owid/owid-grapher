@@ -46,20 +46,14 @@ export interface DataPageDataV2 {
     nextUpdate?: string
     relatedResearch: DataPageRelatedResearch[]
     allCharts: RelatedChart[] // Chart slugs
-    // Coviews-based related charts (charts viewed together in the same browsing
-    // session), populated from the `related_charts` table by the ETL. Distinct
-    // from `allCharts`, which are charts that share this indicator's data.
-    relatedChartsByCoview: RelatedChart[]
     source: OwidSource | undefined
     origins: OwidOrigin[]
-    owners?: DatasetOwners[]
-    // Resolved author pages for owner names that have one. Used to enrich the
-    // owner display with links and featured images; owner names without an
-    // author page simply won't appear here.
-    linkedAuthors?: LinkedAuthor[]
     chartConfig: Record<string, unknown>
     unit?: string
     unitConversionFactor?: number
+    relatedChartsByCoview: RelatedChart[] // only needed for the new datapage design
+    owners?: DatasetOwners[] // only needed for the new datapage design
+    linkedAuthors?: LinkedAuthor[] // only needed for the new datapage design
 }
 
 export interface DataPageRelatedResearch {

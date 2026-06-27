@@ -1,8 +1,3 @@
-// Styles for the redesigned data page chrome rendered by DataPageV2Content
-// behind the data-page-metadata-v1 experiment: the in-page search bar, the
-// "Related charts" heading, and the restyled Research & Writing wrapper. The
-// metadata box itself lives in IndicatorMetadataBox.scss.
-
 // Disable scroll anchoring across the datapage content region. The metadata box
 // is full of nested <details>/ExpandableToggle elements; when one expands, the
 // browser's scroll anchor can land on a section below it (search, related

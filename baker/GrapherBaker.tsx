@@ -210,12 +210,6 @@ export async function renderDataPageV2(
     const distribution = await getVariableDistribution(knex, variableIds)
     const datapageData = getDatapageDataV2(variableMetadata, grapher)
 
-    // Whether this page is enrolled in the redesigned data page experiment
-    // (data-page-metadata-v1). Mirrors the check the client component runs on
-    // `/grapher/<slug>`, so we only do the extra data loading (dataset owners,
-    // linked authors, coviews-based related charts) for pages that will
-    // actually render the new design. For every other data page that work would
-    // be wasted queries and dead weight serialized into the baked page props.
     const datapageMetadataExperimentActive = grapher.slug
         ? isUrlInActiveExperiment(
               DATA_PAGE_METADATA_EXPERIMENT_ID,
@@ -231,11 +225,7 @@ export async function renderDataPageV2(
     let imageMetadata: Record<string, ImageMetadata> = {}
 
     if (datapageMetadataExperimentActive) {
-        // Only the plotted indicators (the y and x axes, including both axes of
-        // a scatterplot) represent what the page is "about" for the purpose of
-        // owner attribution. Auxiliary encodings like `size`/`color` (e.g. the
-        // population variable sizing a marimekko) shouldn't surface their
-        // dataset owners on an unrelated indicator's page.
+        // Only show owners for x&y plotted variables (i.e. exclude color/size for scatterplots/marimekkos)
         const ownerVariableIds = _.uniq(
             _.compact(
                 grapher.dimensions
@@ -252,9 +242,6 @@ export async function renderDataPageV2(
             ownerVariableIds
         )
 
-        // Resolve owner names to author pages so they can be rendered with
-        // links and featured images. The author images are merged into
-        // `imageMetadata` below.
         const { linkedAuthors, imageMetadata: ownerImageMetadata } =
             await getLinkedAuthorsForDatasetOwners(knex, datapageData.owners)
         datapageData.linkedAuthors = linkedAuthors
@@ -282,10 +269,6 @@ export async function renderDataPageV2(
             archiveContext: archiveContextDictionary?.[chart.chartId],
         }))
 
-        // Coviews-based related charts ("Explore related charts" section on the
-        // redesigned data page). Keyed on the chart id, so only populated when
-        // this datapage is backed by a standalone chart and enrolled in the
-        // redesign experiment.
         if (datapageMetadataExperimentActive && grapher.id !== undefined) {
             const relatedChartsByCoview = await getRelatedChartsForChart(
                 knex,

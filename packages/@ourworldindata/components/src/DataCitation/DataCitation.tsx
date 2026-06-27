@@ -9,7 +9,7 @@ export const DataCitation = (props: {
             {props.citationShort && (
                 <div className="data-citation__item">
                     <p className="citation__paragraph">
-                        <div className="citation__type">In-line citation</div>
+                        <span className="citation__type">In-line citation</span>
                         If you have limited space (e.g. in data visualizations),
                         you can use this abbreviated in-line citation:
                     </p>
@@ -23,7 +23,7 @@ export const DataCitation = (props: {
             {props.citationLong && (
                 <div className="data-citation__item">
                     <p className="citation__paragraph">
-                        <div className="citation__type">Full citation</div>
+                        <span className="citation__type">Full citation</span>
                     </p>
                     <CodeSnippet
                         code={props.citationLong}

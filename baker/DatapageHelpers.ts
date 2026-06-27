@@ -30,15 +30,6 @@ import { getMinimalAuthorsByNames } from "../db/model/Gdoc/GdocBase.js"
 import { getSlugForTopicTag } from "./GrapherBakingUtils.js"
 import { getShortPageCitation } from "../site/gdocs/utils.js"
 
-/**
- * Resolve the dataset owner names of a datapage to their author pages, so the
- * owners can be rendered with links and featured images (like a gdoc byline).
- *
- * Resolution is best-effort: only owners that have a published author gdoc
- * appear in `linkedAuthors`. Owner names without an author page are left to the
- * UI to render as plain text. Featured-image metadata for the resolved authors
- * is returned alongside so it can be merged into the page's image metadata.
- */
 export async function getLinkedAuthorsForDatasetOwners(
     knex: KnexReadonlyTransaction,
     owners: DatasetOwners[] | undefined

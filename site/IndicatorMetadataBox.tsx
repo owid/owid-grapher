@@ -154,13 +154,8 @@ function ExpandableSection({
 
     const faqQuestions = groupFaqsByQuestion(faqEntries?.faqs ?? [])
 
-    // The "Show less" summary sits at the bottom of the expanded content (it has
-    // order: 1 in the flex column), so collapsing removes a large chunk of height
-    // above the control. With scroll anchoring disabled on the datapage, the
-    // viewport would stay put and "Show more" would jump upwards. To keep it
-    // under the cursor, we collapse the details ourselves and scroll by however
-    // far the summary moved. (The top-right "Show less" button closes the details
-    // directly, bypassing this, which is intended — pinning only matters here.)
+    // overflow-anchor: none; is set on this page so that scroll position doesn't jump when collapsing FAQ/sources
+    // but when collapsing the metadata box itself, we want to jump back to the top
     const summaryRef = useRef<HTMLElement>(null)
     const handleSummaryClick = (event: React.MouseEvent<HTMLElement>) => {
         const details = detailsRef.current
@@ -467,9 +462,8 @@ export default function IndicatorMetadataBox({
 
     const detailsRef = useRef<HTMLDetailsElement | null>(null)
 
-    const id_ = id ?? DATAPAGE_ABOUT_THIS_DATA_SECTION_ID
     return (
-        <div className={cx("indicator-metadata-box", className)} id={id_}>
+        <div className={cx("indicator-metadata-box", className)} id={id}>
             <button
                 type="button"
                 className="indicator-metadata-box__show-less"
