@@ -16,6 +16,7 @@
         <script type="module">
             import * as ComponentModule from "/{{PROJECT}}/{{ENTRYPOINT_JS}}"
             import { mountBespokeComponentInShadow } from "/__bespoke/shared/bespokeComponentShadowDom.ts"
+            import { downloadSvg } from "/__bespoke/shared/exportSvg.ts"
 
             const SIZE_CLASSES = {
                 narrow: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
@@ -50,6 +51,22 @@
                     name.textContent = variant.name
                     label.appendChild(prefix)
                     label.appendChild(name)
+
+                    const container = document.createElement("div")
+
+                    const downloadButton = document.createElement("button")
+                    downloadButton.className = "variant-download"
+                    downloadButton.type = "button"
+                    downloadButton.textContent = "Download SVG"
+                    downloadButton.addEventListener("click", () => {
+                        const shadowRoot = container.shadowRoot
+                        if (!shadowRoot) return
+                        downloadSvg(
+                            shadowRoot,
+                            `{{PROJECT}}-${variant.name}.svg`
+                        )
+                    })
+                    label.appendChild(downloadButton)
                     wrapper.appendChild(label)
 
                     const gridContainer = document.createElement("div")
@@ -58,7 +75,6 @@
                     const gridCell = document.createElement("div")
                     gridCell.className = SIZE_CLASSES[size] ?? SIZE_CLASSES.wide
 
-                    const container = document.createElement("div")
                     gridCell.appendChild(container)
                     gridContainer.appendChild(gridCell)
                     wrapper.appendChild(gridContainer)
