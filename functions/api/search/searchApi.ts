@@ -43,7 +43,6 @@ export interface SearchPageHit {
     content?: string
     authors?: string[]
     objectID: string
-    __position: number
 }
 
 /**

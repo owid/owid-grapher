@@ -8932,7 +8932,6 @@ __metadata:
     http-server: "npm:^14.1.1"
     husky: "npm:^9.0.11"
     ini: "npm:^7.0.0"
-    instantsearch.js: "npm:^4.101.0"
     jose: "npm:^6.2.1"
     js-cookie: "npm:^3.0.7"
     json8-pointer: "npm:^1.0.6"
@@ -9419,7 +9418,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"instantsearch.js@npm:4.101.0, instantsearch.js@npm:^4.101.0":
+"instantsearch.js@npm:4.101.0":
   version: 4.101.0
   resolution: "instantsearch.js@npm:4.101.0"
   dependencies:

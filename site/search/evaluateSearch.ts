@@ -10,6 +10,7 @@ import {
 import { SEARCH_EVAL_URL } from "../../settings/serverSettings.js"
 import { PAGES_INDEX } from "./searchUtils.js"
 import { algoliasearch, SearchClient } from "algoliasearch"
+import { PageRecord } from "@ourworldindata/types"
 
 /* eslint-disable no-console */
 
@@ -38,9 +39,7 @@ type ScoredQuery = {
     scores: Scores
 }
 
-type SearchEvaluationHit = {
-    slug: string
-}
+type SearchEvaluationHit = Pick<PageRecord, "slug">
 
 type SearchResults = {
     name: string

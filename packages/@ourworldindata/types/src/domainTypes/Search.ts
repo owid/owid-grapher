@@ -1,4 +1,4 @@
-import type { BaseHit, Hit, HitHighlightResult } from "instantsearch.js"
+import type { HighlightResultOption, SnippetResultOption } from "algoliasearch"
 import { OwidGdocType } from "../gdocTypes/Gdoc.js"
 import { GrapherTabName } from "../grapherTypes/GrapherTypes.js"
 import * as z from "zod/mini"
@@ -33,8 +33,6 @@ export const PagesIndexRecordsResponseSchema = z.object({
 export type PagesIndexRecordsResponse = z.infer<
     typeof PagesIndexRecordsResponseSchema
 >
-
-export type IPageHit = PageRecord & Hit<BaseHit>
 
 export enum ChartRecordType {
     Chart = "chart",
@@ -95,8 +93,6 @@ export interface ChartRecord {
     id: string
 }
 
-export type IChartHit = Hit<BaseHit> & ChartRecord
-
 export enum SearchIndexName {
     Pages = "pages",
     PagesChronological = "pages-chronological",
@@ -113,9 +109,18 @@ interface BaseSearchChartHit {
     variantName?: string
     subtitle?: string
     availableTabs: GrapherTabName[]
+    /**
+     * Required by react-instantsearch's `<Highlight>`/`<Snippet>` components:
+     * their `hit` prop must satisfy instantsearch.js's `Hit<BaseHit>` type,
+     * which mandates `__position` (a hit's 1-based rank within an InstantSearch
+     * result set). We query Algolia with the algoliasearch lite client instead
+     * of letting InstantSearch do the fetching, so this is never populated at
+     * runtime — it exists purely to satisfy those components' types. Kept only
+     * on the hit types we actually pass to them.
+     */
     __position: number
-    _highlightResult?: HitHighlightResult
-    _snippetResult?: HitHighlightResult
+    _highlightResult?: Record<string, HighlightResultOption>
+    _snippetResult?: Record<string, SnippetResultOption>
 }
 
 type SearchChartViewHit = BaseSearchChartHit & {
@@ -169,7 +174,6 @@ export type DataInsightHit = {
     slug: string
     type: OwidGdocType.DataInsight
     objectID: string
-    __position: number
 }
 
 export type FlatArticleHit = {
@@ -182,6 +186,8 @@ export type FlatArticleHit = {
     excerpt?: string
     authors: string[]
     objectID: string
+    // Required by react-instantsearch's `<Snippet>`; see the note on
+    // `BaseSearchChartHit.__position`.
     __position: number
 }
 
@@ -192,7 +198,6 @@ export type StackedArticleHit = {
     type: OwidGdocType.Article | OwidGdocType.AboutPage
     excerpt: string
     objectID: string
-    __position: number
 }
 
 export type TopicPageHit = {
@@ -202,7 +207,6 @@ export type TopicPageHit = {
     excerpt: string
     excerptLong?: string[]
     objectID: string
-    __position: number
 }
 
 export type ProfileHit = {
@@ -213,7 +217,6 @@ export type ProfileHit = {
     type: OwidGdocType.Profile
     availableEntities: string[]
     objectID: string
-    __position: number
 }
 
 export enum FilterType {
