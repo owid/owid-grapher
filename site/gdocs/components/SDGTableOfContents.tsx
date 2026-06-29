@@ -3,7 +3,7 @@ import { faArrowDown, faPlus, faMinus } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import cx from "clsx"
 
-export default function InlineTableOfContents({
+export default function SDGTableOfContents({
     toc,
     className = "",
     title,
