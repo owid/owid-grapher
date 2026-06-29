@@ -32,7 +32,7 @@ import { match } from "ts-pattern"
 import SpanElements from "./SpanElements.js"
 import Paragraph from "./Paragraph.js"
 import People from "./People.js"
-import InlineTableOfContents from "./InlineTableOfContents.js"
+import SDGTableOfContents from "./SDGTableOfContents.js"
 import urlSlug from "url-slug"
 import { MissingData } from "./MissingData.js"
 import { AdditionalCharts } from "./AdditionalCharts.js"
@@ -738,7 +738,7 @@ function ArticleBlockInternal({
         ))
         .with({ type: "sdg-toc" }, () => {
             return toc ? (
-                <InlineTableOfContents
+                <SDGTableOfContents
                     toc={toc}
                     title="List of targets and indicators"
                     className={getLayout("toc", containerType)}

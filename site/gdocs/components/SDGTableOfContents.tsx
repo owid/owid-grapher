@@ -13,15 +13,15 @@ export default function InlineTableOfContents({
     title: string
 }) {
     return (
-        <nav className={cx(className, "inline-toc")}>
-            <details className="inline-toc__details-wrapper span-cols-6 span-md-cols-8 span-sm-cols-10">
+        <nav className={cx(className, "sdg-toc")}>
+            <details className="sdg-toc__details-wrapper span-cols-6 span-md-cols-8 span-sm-cols-10">
                 <summary
-                    className="inline-toc__toggle"
+                    className="sdg-toc__toggle"
                     aria-label="Toggle table of contents"
                     data-track-note="toc_toggle"
                 >
                     <span>{title}</span>
-                    <span className="inline-toc__toggle-icon">
+                    <span className="sdg-toc__toggle-icon">
                         <FontAwesomeIcon
                             className="icon-closed"
                             icon={faPlus}
@@ -29,7 +29,7 @@ export default function InlineTableOfContents({
                         <FontAwesomeIcon className="icon-open" icon={faMinus} />
                     </span>
                 </summary>
-                <div className="inline-toc__content">
+                <div className="sdg-toc__content">
                     <ul>
                         {toc.map(
                             (
