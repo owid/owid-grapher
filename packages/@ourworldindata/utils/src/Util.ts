@@ -1862,7 +1862,7 @@ export function generateToc(
     // For linear topic pages, we record h1s and h2s
     // For the sdg-toc, we record h2s & h3s (as it was developed before we decided to use h1s as our top level heading)
     // It would be nice to standardise this but it would require a migration, updating CSS, updating Gdocs, etc.
-    const [primary, secondary] = isTocForSidebar ? [1, undefined] : [2, 3]
+    const [primary, secondary] = isTocForSidebar ? [1, 2] : [2, 3]
     const toc: TocHeadingWithSupertitle[] = []
 
     body.forEach((block) =>
