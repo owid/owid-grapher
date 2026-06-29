@@ -202,7 +202,7 @@ export const DataPageV2Content = ({
                                             id="datapage-autocomplete"
                                             className="datapage-search__input"
                                             panelClassName="datapage-search__panel"
-                                            placeholder="Search across all our charts and indicators"
+                                            placeholder="Search across all our charts and writing"
                                             searchSource="datapage"
                                         />
                                     </SiteQueryClientProvider>
@@ -237,27 +237,20 @@ export const DataPageV2Content = ({
                                 </>
                             )}
                     </div>
-                    {useNewDatapageDesign && (
-                        <MetadataSection
-                            useNewDatapageDesign
-                            attributionShort={datapageData.attributionShort}
-                            attributions={datapageData.attributions}
-                            canonicalUrl={canonicalUrl}
-                            descriptionProcessing={
-                                datapageData.descriptionProcessing
-                            }
-                            origins={datapageData.origins}
-                            owidProcessingLevel={
-                                datapageData.owidProcessingLevel
-                            }
-                            primaryTopic={datapageData.primaryTopic}
-                            source={datapageData.source}
-                            title={datapageData.title}
-                            titleVariant={datapageData.titleVariant}
-                            archiveContext={archiveContext}
-                            downloadSection={downloadSection}
-                        />
-                    )}
+                    {useNewDatapageDesign &&
+                        downloadSection && (
+                            // The new design moves sources/processing/citations into
+                            // the IndicatorMetadataBox above, so only the data
+                            // download remains here. Rendered with the same wrapper
+                            // markup MetadataSection used so the layout is unchanged.
+                            <div className="MetadataSection span-cols-14 grid grid-cols-12-full-width">
+                                <div className="col-start-2 span-cols-12">
+                                    <div className="section-wrapper grid">
+                                        {downloadSection}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     {!useNewDatapageDesign && (
                         <>
                             <div className="col-start-2 span-cols-12">

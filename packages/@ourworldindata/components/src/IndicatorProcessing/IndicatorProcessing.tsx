@@ -8,7 +8,7 @@ export interface IndicatorProcessingProps {
 
 export const IndicatorProcessing = (props: IndicatorProcessingProps) => {
     return (
-        <div className="indicator-processing" id="indicator-processing">
+        <div className="indicator-processing">
             <div className="data-processing">
                 <p>
                     All data and visualizations on Our World in Data rely on

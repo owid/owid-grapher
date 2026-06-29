@@ -1,5 +1,3 @@
-import * as _ from "lodash-es"
-import dayjs from "dayjs"
 import { type ReactNode } from "react"
 
 import {
@@ -22,8 +20,7 @@ import {
     prepareSourcesForDisplay,
     getCitationShort,
     getCitationLong,
-    excludeUndefined,
-    getPhraseForArchivalDate,
+    getCitationDatapage,
 } from "@ourworldindata/utils"
 import { ArticleBlocks } from "./gdocs/components/ArticleBlocks.js"
 
@@ -41,7 +38,6 @@ export default function MetadataSection({
     titleVariant,
     archiveContext,
     downloadSection,
-    useNewDatapageDesign = false,
 }: {
     attributionShort?: string
     attributions: string[]
@@ -56,10 +52,6 @@ export default function MetadataSection({
     titleVariant?: string
     archiveContext?: ArchiveContext
     downloadSection?: ReactNode
-    // In the new datapage design the data sources, processing and reuse notice
-    // live in the per-indicator metadata expander, so this section is reduced to
-    // the data download.
-    useNewDatapageDesign?: boolean
 }) {
     const sourcesForDisplay = prepareSourcesForDisplay({ origins, source })
     const citationUrl = archiveContext?.archiveUrl ?? canonicalUrl
@@ -79,32 +71,18 @@ export default function MetadataSection({
         citationUrl,
         archiveContext?.archivalDate
     )
-    const currentYear = dayjs().year()
-    const producers = _.uniq(origins.map((o) => `${o.producer}`))
-    const adaptedFrom =
-        producers.length > 0 ? producers.join(", ") : source?.name
-
-    const maybeAddPeriod = (s: string) =>
-        s.endsWith("?") || s.endsWith(".") ? s : `${s}.`
-
-    // For the citation of the data page add a period it doesn't have that or a question mark
-    const primaryTopicCitation = maybeAddPeriod(primaryTopic?.citation ?? "")
-    const archivalString = getPhraseForArchivalDate(
+    const citationDatapage = getCitationDatapage(
+        title,
+        origins,
+        source,
+        primaryTopic,
+        citationUrl,
         archiveContext?.archivalDate
     )
-    const citationDatapage = excludeUndefined([
-        primaryTopic
-            ? `“Data Page: ${title.title}”, part of the following publication: ${primaryTopicCitation}`
-            : `“Data Page: ${title.title}”. Our World in Data (${currentYear}).`,
-        adaptedFrom ? `Data adapted from ${adaptedFrom}.` : undefined,
-        `Retrieved from ${citationUrl} [online resource]${
-            archivalString ? ` ${archivalString}` : ""
-        }`,
-    ]).join(" ")
     return (
         <div className="MetadataSection span-cols-14 grid grid-cols-12-full-width">
             <div className="col-start-2 span-cols-12">
-                {!useNewDatapageDesign && !!faqEntries?.faqs.length && (
+                {!!faqEntries?.faqs.length && (
                     <div className="section-wrapper section-wrapper__faqs grid">
                         <h2
                             className="metadata-section__title span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12"
@@ -120,118 +98,105 @@ export default function MetadataSection({
                         </div>
                     </div>
                 )}
-                {!useNewDatapageDesign && (
-                    <div className="section-wrapper grid">
-                        <h2
-                            className="data-sources-processing__title span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12"
-                            id={DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID}
-                        >
-                            Sources and processing
-                        </h2>
-                        <div className="data-sources grid span-cols-12">
-                            <h3 className="metadata-section__heading span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
-                                This data is based on the following sources
-                            </h3>
-                            <div className="col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
-                                <IndicatorSources sources={sourcesForDisplay} />
-                            </div>
-                        </div>
-                        <div className="data-processing grid span-cols-12">
-                            <h3 className="metadata-section__heading span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
-                                How we process data at Our World in Data
-                            </h3>
-                            <div className="col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
-                                <IndicatorProcessing
-                                    descriptionProcessing={
-                                        descriptionProcessing
-                                    }
-                                />
-                            </div>
+                <div className="section-wrapper grid">
+                    <h2
+                        className="data-sources-processing__title span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12"
+                        id={DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID}
+                    >
+                        Sources and processing
+                    </h2>
+                    <div className="data-sources grid span-cols-12">
+                        <h3 className="metadata-section__heading span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
+                            This data is based on the following sources
+                        </h3>
+                        <div className="col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
+                            <IndicatorSources sources={sourcesForDisplay} />
                         </div>
                     </div>
-                )}
+                    <div className="data-processing grid span-cols-12">
+                        <h3 className="metadata-section__heading span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
+                            How we process data at Our World in Data
+                        </h3>
+                        <div className="col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
+                            <IndicatorProcessing
+                                descriptionProcessing={descriptionProcessing}
+                            />
+                        </div>
+                    </div>
+                </div>
                 <div className="section-wrapper grid">
-                    {!useNewDatapageDesign && (
-                        <>
-                            <h2
-                                className="metadata-section__title span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12"
-                                id="reuse-this-work"
-                            >
-                                Reuse this work
-                            </h2>
-                            <div className="col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
-                                <ul className="metadata-list">
-                                    <li>
-                                        All data produced by third-party
-                                        providers and made available by Our
-                                        World in Data are subject to the license
-                                        terms from the original providers. Our
-                                        work would not be possible without the
-                                        data providers we rely on, so we ask you
-                                        to always cite them appropriately (see
-                                        below). This is crucial to allow data
-                                        providers to continue doing their work,
-                                        enhancing, maintaining and updating
-                                        valuable data.
-                                    </li>
-                                    <li>
-                                        All data, visualizations, and code
-                                        produced by Our World in Data are
-                                        completely open access under the{" "}
-                                        <a href="https://creativecommons.org/licenses/by/4.0/">
-                                            Creative Commons BY license
-                                        </a>
-                                        . You have the permission to use,
-                                        distribute, and reproduce these in any
-                                        medium, provided the source and authors
-                                        are credited.
-                                    </li>
-                                </ul>
-                            </div>
-                        </>
-                    )}
+                    <h2
+                        className="metadata-section__title span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12"
+                        id="reuse-this-work"
+                    >
+                        Reuse this work
+                    </h2>
+                    <div className="col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
+                        <ul className="metadata-list">
+                            <li>
+                                All data produced by third-party providers and
+                                made available by Our World in Data are subject
+                                to the license terms from the original
+                                providers. Our work would not be possible
+                                without the data providers we rely on, so we ask
+                                you to always cite them appropriately (see
+                                below). This is crucial to allow data providers
+                                to continue doing their work, enhancing,
+                                maintaining and updating valuable data.
+                            </li>
+                            <li>
+                                All data, visualizations, and code produced by
+                                Our World in Data are completely open access
+                                under the{" "}
+                                <a href="https://creativecommons.org/licenses/by/4.0/">
+                                    Creative Commons BY license
+                                </a>
+                                . You have the permission to use, distribute,
+                                and reproduce these in any medium, provided the
+                                source and authors are credited.
+                            </li>
+                        </ul>
+                    </div>
 
-                    {!useNewDatapageDesign &&
-                        (citationShort || citationLong || citationDatapage) && (
-                            <div className="citations grid span-cols-12">
-                                <h3 className="metadata-section__heading span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
-                                    Citations
-                                </h3>
-                                <div className="col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
-                                    {citationDatapage && (
-                                        <div className="citations-section">
-                                            <h4 className="citation__how-to-header">
-                                                How to cite this page
-                                            </h4>
-                                            <p className="citation__paragraph">
-                                                To cite this page overall,
-                                                including any descriptions, FAQs
-                                                or explanations of the data
-                                                authored by Our World in Data,
-                                                please use the following
-                                                citation:
-                                            </p>
-                                            <CodeSnippet
-                                                code={citationDatapage}
-                                                theme="light"
-                                                useMarkdown={true}
-                                            />
-                                        </div>
-                                    )}
+                    {(citationShort || citationLong || citationDatapage) && (
+                        <div className="citations grid span-cols-12">
+                            <h3 className="metadata-section__heading span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
+                                Citations
+                            </h3>
+                            <div className="col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
+                                {citationDatapage && (
                                     <div className="citations-section">
                                         <h4 className="citation__how-to-header">
-                                            How to cite this data
+                                            How to cite this page
                                         </h4>
-                                        {(citationShort || citationLong) && (
-                                            <DataCitation
-                                                citationLong={citationLong}
-                                                citationShort={citationShort}
-                                            />
-                                        )}
+                                        <p className="citation__paragraph">
+                                            To cite this page overall, including
+                                            any descriptions, FAQs or
+                                            explanations of the data authored by
+                                            Our World in Data, please use the
+                                            following citation:
+                                        </p>
+                                        <CodeSnippet
+                                            code={citationDatapage}
+                                            theme="light"
+                                            useMarkdown={true}
+                                        />
                                     </div>
+                                )}
+                                <div className="citations-section">
+                                    <h4 className="citation__how-to-header">
+                                        How to cite this data
+                                    </h4>
+                                    {(citationShort || citationLong) && (
+                                        <DataCitation
+                                            citationLong={citationLong}
+                                            citationShort={citationShort}
+                                        />
+                                    )}
                                 </div>
                             </div>
-                        )}
+                        </div>
+                    )}
                     {downloadSection}
                 </div>
             </div>

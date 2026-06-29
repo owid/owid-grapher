@@ -1,16 +1,6 @@
 import * as _ from "lodash-es"
 import { OwidOrigin } from "@ourworldindata/types"
-import dayjs from "dayjs"
-
-export function getYearSuffixFromOrigin(origin: OwidOrigin) {
-    const year = origin.dateAccessed
-        ? dayjs(origin.dateAccessed, ["YYYY-MM-DD", "YYYY"]).year()
-        : origin.datePublished
-          ? dayjs(origin.datePublished, ["YYYY-MM-DD", "YYYY"]).year()
-          : undefined
-    if (year) return ` (${year})`
-    else return ""
-}
+import { getYearSuffixFromOrigin } from "@ourworldindata/utils"
 
 export function getProducersFromYears(origins: OwidOrigin[]) {
     return _.uniq(

@@ -1,5 +1,4 @@
 import cx from "clsx"
-import * as _ from "lodash-es"
 import {
     DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID,
     SimpleMarkdownText,
@@ -23,9 +22,8 @@ import {
     prepareSourcesForDisplay,
     getCitationShort,
     getCitationLong,
+    getCitationDatapage,
     spansToUnformattedPlainText,
-    excludeUndefined,
-    getPhraseForArchivalDate,
 } from "@ourworldindata/utils"
 import { Byline } from "./gdocs/components/Byline.js"
 import { ArticleBlocks } from "./gdocs/components/ArticleBlocks.js"
@@ -33,7 +31,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faChevronDown, faChevronUp } from "@fortawesome/free-solid-svg-icons"
 import { getAttributionUnshortened } from "./datapageUtils.js"
 import { SiteAnalytics } from "./SiteAnalytics.js"
-import dayjs from "dayjs"
 
 const analytics = new SiteAnalytics()
 
@@ -130,26 +127,14 @@ function ExpandableSection({
         citationUrl,
         archiveContext?.archivalDate
     )
-    const currentYear = dayjs().year()
-    const producers = _.uniq(origins.map((o) => `${o.producer}`))
-    const adaptedFrom =
-        producers.length > 0 ? producers.join(", ") : source?.name
-    const maybeAddPeriod = (s: string) =>
-        s.endsWith("?") || s.endsWith(".") ? s : `${s}.`
-    // For the citation of the data page add a period it doesn't have that or a question mark
-    const primaryTopicCitation = maybeAddPeriod(primaryTopic?.citation ?? "")
-    const archivalString = getPhraseForArchivalDate(
+    const citationDatapage = getCitationDatapage(
+        title,
+        origins,
+        source,
+        primaryTopic,
+        citationUrl,
         archiveContext?.archivalDate
     )
-    const citationDatapage = excludeUndefined([
-        primaryTopic
-            ? `“Data Page: ${title.title}”, part of the following publication: ${primaryTopicCitation}`
-            : `“Data Page: ${title.title}”. Our World in Data (${currentYear}).`,
-        adaptedFrom ? `Data adapted from ${adaptedFrom}.` : undefined,
-        `Retrieved from ${citationUrl} [online resource]${
-            archivalString ? ` ${archivalString}` : ""
-        }`,
-    ]).join(" ")
 
     const faqQuestions = groupFaqsByQuestion(faqEntries?.faqs ?? [])
 
@@ -558,6 +543,7 @@ export default function IndicatorMetadataBox({
                 detailsRef={detailsRef}
                 canonicalUrl={canonicalUrl}
                 archiveContext={archiveContext}
+                primaryTopic={datapageData.primaryTopic}
                 title={datapageData.title}
                 descriptionProcessing={datapageData.descriptionProcessing}
             />
