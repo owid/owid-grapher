@@ -1,5 +1,5 @@
 import cx from "clsx"
-import { useContext, useState, useEffect } from "react"
+import { useContext } from "react"
 
 import Callout from "./Callout.js"
 import ChartStory from "./ChartStory.js"
@@ -15,15 +15,10 @@ import List from "./List.js"
 import NumberedList from "./NumberedList.js"
 import Image, { ImageParentContainer } from "./Image.js"
 import {
-    EXPERIMENT_ARM_SEPARATOR,
-    EXPERIMENT_PREFIX,
     OwidEnrichedGdocBlock,
     spansToUnformattedPlainText,
     TocHeadingWithTitleSupertitle,
     Url,
-    defaultExperimentState,
-    getExperimentState,
-    ExperimentState,
 } from "@ourworldindata/utils"
 import { CodeSnippet, convertHeadingTextToId } from "@ourworldindata/components"
 import SDGGrid from "./SDGGrid.js"
@@ -41,7 +36,7 @@ import { ExpandableParagraph } from "../../blocks/ExpandableParagraph.js"
 import { TopicPageIntro } from "./TopicPageIntro.js"
 import { KeyInsights } from "./KeyInsights.js"
 import { ResearchAndWriting } from "./ResearchAndWriting.js"
-import { AllCharts } from "./AllCharts.js"
+import { AllChartsBlock } from "../../AllChartsBlock.js"
 import Video from "./Video.js"
 import StaticViz from "./StaticViz.js"
 import { Table } from "./Table.js"
@@ -106,18 +101,6 @@ function ArticleBlockInternal({
         rightIsChart ? rightBlock.url : ""
     )
 
-    // note: experimentState should NOT be used to conditionally render content b/c
-    // it will cause a flash of content before js loads.
-    const [experimentState, setExperimentState] = useState<ExperimentState>(
-        defaultExperimentState
-    )
-    useEffect(() => {
-        if (typeof window !== "undefined") {
-            const s = getExperimentState()
-            setExperimentState(s)
-        }
-    }, [])
-
     if (block.parseErrors.some(({ isWarning }) => !isWarning)) {
         return (
             <BlockErrorFallback
@@ -157,58 +140,18 @@ function ArticleBlockInternal({
                         error={{
                             name: `Error in ${block.type}`,
                             message:
-                                "Featured metrics requires at least one tag on the document.",
+                                "The all-charts block requires at least one tag on the document.",
                         }}
                     />
                 )
             }
 
             return (
-                <>
-                    {/*
-                     * The id is swapped between AllCharts and FeaturedMetrics based
-                     * on experiment arm so that the #all-charts sticky nav link always
-                     * scrolls to the visible element. Browsers won't scroll to a
-                     * display:none element, so a static id on AllCharts would break
-                     * navigation in the featured-metrics arm.
-                     */}
-                    <AllCharts
-                        {...block}
-                        id={
-                            experimentState &&
-                            experimentState[
-                                `${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1`
-                            ]?.isPageInExperiment &&
-                            experimentState[
-                                `${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1`
-                            ]?.arm !== "all-charts"
-                                ? ""
-                                : "all-charts"
-                        }
-                        className={cx(
-                            getLayout("all-charts", containerType),
-                            `${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1${EXPERIMENT_ARM_SEPARATOR}featured-metrics--hide`
-                        )}
-                    />
-                    <FeaturedMetrics
-                        id={
-                            experimentState &&
-                            experimentState[
-                                `${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1`
-                            ]?.isPageInExperiment &&
-                            experimentState[
-                                `${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1`
-                            ]?.arm === "featured-metrics"
-                                ? "all-charts"
-                                : ""
-                        }
-                        topicName={topicName}
-                        className={cx(
-                            layoutClassName,
-                            `${EXPERIMENT_PREFIX}-all-charts-vs-featured-v1${EXPERIMENT_ARM_SEPARATOR}featured-metrics--show`
-                        )}
-                    />
-                </>
+                <AllChartsBlock
+                    topicName={topicName}
+                    suggested={block.suggested}
+                    className={layoutClassName}
+                />
             )
         })
         .with({ type: "chart" }, (block) => {

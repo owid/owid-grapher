@@ -164,6 +164,7 @@ export const enrichedBlockExamples: Record<
         type: "all-charts",
         heading: "All our charts on Poverty",
         top: [{ url: "https://ourworldindata.org/grapher/poverty-over-time" }],
+        suggested: ["child poverty", "extreme poverty", "income inequality"],
         parseErrors: [],
     },
     aside: {
