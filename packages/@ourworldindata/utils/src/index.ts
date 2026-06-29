@@ -160,7 +160,9 @@ export {
     getDateRange,
     getCitationLong,
     getCitationShort,
+    getCitationDatapage,
     getPhraseForArchivalDate,
+    getYearSuffixFromOrigin,
 } from "./metadataHelpers.js"
 
 export { getAllVariableIds } from "./multiDim.js"
