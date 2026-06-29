@@ -57,6 +57,12 @@ export const AdminSidebar = (): React.ReactElement => (
                 </Link>
             </li>
             <li>
+                <Link to="/agentic-writing">
+                    <FontAwesomeIcon icon={faEye} fixedWidth />{" "}
+                    <span style={{ fontSize: 12 }}>Agentic writing</span>
+                </Link>
+            </li>
+            <li>
                 <Link to="/data-insights">
                     <FontAwesomeIcon icon={faLightbulb} fixedWidth /> Data
                     insights
