@@ -31,22 +31,24 @@ const STYLE_PROPS = [
     "alignment-baseline",
 ]
 
-const renderedArea = (el: Element): number => {
-    const rect = el.getBoundingClientRect()
-    return rect.width * rect.height
-}
+// Smallest dimension (px) an <svg> must have to count as a viz
+const MIN_VIZ_SIZE = 60
 
-/** Find the largest <svg> by rendered area, descending into shadow roots. */
-function findLargestSvg(root: ParentNode): SVGSVGElement | undefined {
+/** Find the viz <svg>s under `root` (excluding small icons/swatches), descending into shadow roots. */
+function findVizSvgs(root: ParentNode): SVGSVGElement[] {
     const svgs: SVGSVGElement[] = []
     const collect = (node: ParentNode): void => {
         for (const el of node.querySelectorAll("*")) {
-            if (el instanceof SVGSVGElement) svgs.push(el)
+            if (el instanceof SVGSVGElement) {
+                const rect = el.getBoundingClientRect()
+                if (Math.max(rect.width, rect.height) >= MIN_VIZ_SIZE)
+                    svgs.push(el)
+            }
             if (el.shadowRoot) collect(el.shadowRoot)
         }
     }
     collect(root)
-    return svgs.sort((a, b) => renderedArea(b) - renderedArea(a))[0]
+    return svgs
 }
 
 /** Clone an SVG with its computed styles inlined so it stands on its own. */
@@ -84,20 +86,30 @@ function serializeStandaloneSvg(source: SVGSVGElement): string {
     return new XMLSerializer().serializeToString(clone)
 }
 
-/** Find the largest viz SVG under `root` and download it as a standalone file. */
-export function downloadSvg(root: ParentNode, filename: string): void {
-    const svg = findLargestSvg(root)
-    if (!svg) {
-        console.error("downloadSvg: no <svg> found under the given root.")
-        return
-    }
-    const blob = new Blob([serializeStandaloneSvg(svg)], {
-        type: "image/svg+xml",
-    })
+function triggerDownload(markup: string, filename: string): void {
+    const blob = new Blob([markup], { type: "image/svg+xml" })
     const url = URL.createObjectURL(blob)
     const link = document.createElement("a")
     link.href = url
     link.download = filename
     link.click()
     URL.revokeObjectURL(url)
+}
+
+/**
+ * Download every viz SVG under `root` as a standalone file, named `<baseName>.svg`
+ * (or `<baseName>-1.svg`, `<baseName>-2.svg`, … when a viz has more than one, e.g.
+ * the split Sankey). Pass `baseName` without an extension.
+ */
+export function downloadSvgs(root: ParentNode, baseName: string): void {
+    const svgs = findVizSvgs(root)
+    if (svgs.length === 0) {
+        console.error("No viz <svg> found under the given root.")
+        return
+    }
+    svgs.forEach((svg, i) => {
+        const filename =
+            svgs.length > 1 ? `${baseName}-${i + 1}.svg` : `${baseName}.svg`
+        triggerDownload(serializeStandaloneSvg(svg), filename)
+    })
 }
