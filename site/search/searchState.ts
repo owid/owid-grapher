@@ -23,6 +23,7 @@ import {
     splitIntoWords,
     removeMatchedWordsWithStopWords,
     createFilter,
+    SEARCH_BASE_PATH,
 } from "./searchUtils.js"
 import { useMemo, useEffect, useCallback } from "react"
 import { useSearchParams } from "react-router-dom-v5-compat"
@@ -379,6 +380,25 @@ export function stateToSearchParams(state: SearchState): URLSearchParams {
     }
 
     return params
+}
+
+/**
+ * Build a link to the site search, pre-filtered to a single topic and a given
+ * result type (Data / Writing). Used by the LTP "Sections" block and the
+ * sidebar TOC's bottom "See all charts" CTA.
+ */
+export function buildSearchHrefForCard(
+    resultType: SearchResultType,
+    tagName: string
+): string {
+    const searchState: SearchState = {
+        query: "",
+        filters: [createTopicFilter(tagName)],
+        requireAllCountries: false,
+        resultType,
+    }
+    const params = stateToSearchParams(searchState)
+    return `${SEARCH_BASE_PATH}?${params.toString()}`
 }
 
 /**

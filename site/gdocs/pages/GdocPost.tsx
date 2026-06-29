@@ -60,6 +60,7 @@ export function GdocPost({
     slug,
     breadcrumbs,
     manualBreadcrumbs,
+    tags,
 }: GdocPostProps) {
     const { archiveContext } = useDocumentContext()
     const postType = content.type ?? OwidGdocType.Article
@@ -116,8 +117,7 @@ export function GdocPost({
             {hasSidebarToc && content.toc ? (
                 <SidebarTableOfContents
                     headings={content.toc}
-                    headingLevels={{ primary: 1, secondary: 2 }}
-                    pageTitle={content.title || ""}
+                    tagName={tags?.[0]?.name}
                 />
             ) : null}
             {postType === OwidGdocType.TopicPage && stickyNavLinks?.length ? (
