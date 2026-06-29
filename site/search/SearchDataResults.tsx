@@ -1,11 +1,7 @@
 import { queryCharts, searchQueryKeys } from "./queries.js"
 import { useSelectedRegionNames, useInfiniteSearch } from "./searchHooks.js"
 import { SearchResultHeader } from "./SearchResultHeader.js"
-import {
-    SearchChartsResponse,
-    SearchChartHit,
-    SearchChartHitComponentVariant,
-} from "@ourworldindata/types"
+import { SearchChartHit } from "@ourworldindata/types"
 import { SearchDataResultsSkeleton } from "./SearchDataResultsSkeleton.js"
 import { SearchChartHitComponent } from "./SearchChartHitComponent.js"
 import { SearchHorizontalDivider } from "./SearchHorizontalDivider.js"
@@ -19,12 +15,24 @@ export const SearchDataResults = ({
     const { analytics } = useSearchContext()
     const selectedRegionNames = useSelectedRegionNames()
 
-    const query = useInfiniteSearch<SearchChartsResponse, SearchChartHit>({
+    const query = useInfiniteSearch({
         queryKey: (state) => searchQueryKeys.charts(state),
         queryFn: queryCharts,
     })
 
     const { hits, totalResults, isLoading } = query
+
+    function handleClick(
+        hit: SearchChartHit,
+        position: number,
+        vizType: string | null
+    ) {
+        analytics.logSearchResultClick(hit, {
+            position,
+            source: "search",
+            vizType,
+        })
+    }
 
     if (!isLoading && totalResults === 0) return null
 
@@ -40,24 +48,15 @@ export const SearchDataResults = ({
                         </SearchResultHeader>
                         <ul className="search-data-results__list">
                             {hits.map((hit, hitIndex) => {
-                                const variant: SearchChartHitComponentVariant =
-                                    isFirstChartLarge
-                                        ? hitIndex === 0
-                                            ? "large"
-                                            : hitIndex <= 3
-                                              ? "medium"
-                                              : "small"
-                                        : hitIndex < 4
+                                const variant = isFirstChartLarge
+                                    ? hitIndex === 0
+                                        ? "large"
+                                        : hitIndex <= 3
                                           ? "medium"
                                           : "small"
-
-                                const onClick = (vizType: string | null) => {
-                                    analytics.logSearchResultClick(hit, {
-                                        position: hitIndex + 1,
-                                        source: "search",
-                                        vizType,
-                                    })
-                                }
+                                    : hitIndex < 4
+                                      ? "medium"
+                                      : "small"
 
                                 return (
                                     <li
@@ -70,7 +69,13 @@ export const SearchDataResults = ({
                                             selectedRegionNames={
                                                 selectedRegionNames
                                             }
-                                            onClick={onClick}
+                                            onClick={(vizType) =>
+                                                handleClick(
+                                                    hit,
+                                                    hitIndex + 1,
+                                                    vizType
+                                                )
+                                            }
                                         />
                                     </li>
                                 )

@@ -259,7 +259,7 @@ const AlgoliaPagesSource: AutocompleteSource<BaseItem> = {
     getItems({ query }) {
         if (!liteSearchClient) return []
 
-        return getAlgoliaResults({
+        return getAlgoliaResults<BaseItem>({
             searchClient: liteSearchClient,
             queries: [
                 {
@@ -284,7 +284,7 @@ const AlgoliaChartsSource: AutocompleteSource<BaseItem> = {
     getItems({ query }) {
         if (!liteSearchClient) return []
 
-        return getAlgoliaResults({
+        return getAlgoliaResults<BaseItem>({
             searchClient: liteSearchClient,
             queries: [
                 {
@@ -408,7 +408,7 @@ const createProfileSource = (
     getItems({ query }) {
         if (!liteSearchClient) return []
 
-        return getAlgoliaResults({
+        return getAlgoliaResults<BaseItem>({
             searchClient: liteSearchClient,
             queries: [
                 {

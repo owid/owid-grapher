@@ -10,18 +10,18 @@ import { useSearchContext } from "./SearchContext.js"
 import { fetchJson, flattenNonTopicNodes } from "@ourworldindata/utils"
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query"
 import { LiteClient } from "algoliasearch/lite"
-import type { SearchResponse } from "instantsearch.js"
+import type { SearchResponse } from "algoliasearch"
 import { useEffect, useMemo, useRef } from "react"
 import type { TagGraphNode, TagGraphRoot } from "@ourworldindata/types"
 import { SiteAnalytics } from "../SiteAnalytics.js"
 import * as R from "remeda"
 
-export const useSelectedTopic = (): string | undefined => {
+export function useSelectedTopic() {
     const { state } = useSearchContext()
     return getSelectedTopic(state.filters)
 }
 
-export const useSelectedRegionNames = (): string[] => {
+export function useSelectedRegionNames() {
     const { state } = useSearchContext()
     return Array.from(getFilterNamesOfType(state.filters, FilterType.COUNTRY))
 }
@@ -30,10 +30,7 @@ export const useSelectedRegionNames = (): string[] => {
  * Extracts and memoizes area names and all searchable tags from the topic tag graph.
  * Searchable tags include both topics (tags with a topic page) and tags with searchableInAlgolia set.
  */
-export function useTagGraphTopics(topicTagGraph?: TagGraphRoot): {
-    allAreas: string[]
-    allTopics: string[]
-} {
+export function useTagGraphTopics(topicTagGraph?: TagGraphRoot) {
     const allAreas = useMemo(
         () => topicTagGraph?.children.map((child) => child.name) || [],
         [topicTagGraph]
@@ -42,7 +39,7 @@ export function useTagGraphTopics(topicTagGraph?: TagGraphRoot): {
     const allTopics = useMemo(() => {
         if (!topicTagGraph) return []
 
-        function getAllSearchableTopics(node: TagGraphNode): Set<string> {
+        function getAllSearchableTopics(node: TagGraphNode) {
             return node.children.reduce((acc, child) => {
                 if (child.isSearchable) {
                     acc.add(child.name)
@@ -66,7 +63,7 @@ export function useTagGraphTopics(topicTagGraph?: TagGraphRoot): {
 export function useSearchAnalytics(
     state: SearchState,
     analytics: SiteAnalytics
-): void {
+) {
     const lastLoggedStateRef = useRef<SearchState | null>(null)
 
     useEffect(() => {
@@ -113,7 +110,7 @@ type QueryKeyState = Pick<
  * - UI page 2 -> offset=8, length=6 -> results 8..13
  */
 
-export function useInfiniteSearchOffset<T extends SearchResponse<U>, U>({
+export function useInfiniteSearchOffset<THit>({
     queryKey,
     queryFn,
     firstPageSize,
@@ -126,13 +123,13 @@ export function useInfiniteSearchOffset<T extends SearchResponse<U>, U>({
         state: SearchState,
         offset: number,
         length: number
-    ) => Promise<T>
+    ) => Promise<SearchResponse<THit>>
     firstPageSize: number
     laterPageSize: number
     enabled?: boolean
 }) {
     const { state, liteSearchClient } = useSearchContext()
-    const query = useInfiniteQuery<T, Error>({
+    const query = useInfiniteQuery({
         queryKey: queryKey(state),
         queryFn: ({ pageParam }) => {
             if (typeof pageParam !== "number")
@@ -164,7 +161,7 @@ export function useInfiniteSearchOffset<T extends SearchResponse<U>, U>({
         initialPageParam: 0,
     })
 
-    const hits: U[] = query.data?.pages.flatMap((page) => page.hits) || []
+    const hits = query.data?.pages.flatMap((page) => page.hits) || []
     const totalResults = query.data?.pages[0]?.nbHits || 0
 
     return {
@@ -174,7 +171,7 @@ export function useInfiniteSearchOffset<T extends SearchResponse<U>, U>({
     }
 }
 
-export function useInfiniteSearch<T extends SearchResponse<U>, U>({
+export function useInfiniteSearch<THit>({
     queryKey,
     queryFn,
     enabled = true,
@@ -184,12 +181,12 @@ export function useInfiniteSearch<T extends SearchResponse<U>, U>({
         liteSearchClient: LiteClient,
         state: SearchState,
         page: number
-    ) => Promise<T>
+    ) => Promise<SearchResponse<THit>>
     enabled?: boolean
 }) {
     const { state, liteSearchClient } = useSearchContext()
 
-    const query = useInfiniteQuery<T, Error>({
+    const query = useInfiniteQuery({
         // All paginated subqueries share the same query key
         queryKey: queryKey(state),
         queryFn: ({ pageParam }) => {
@@ -206,7 +203,7 @@ export function useInfiniteSearch<T extends SearchResponse<U>, U>({
         enabled,
     })
 
-    const hits: U[] = query.data?.pages.flatMap((page) => page.hits) || []
+    const hits = query.data?.pages.flatMap((page) => page.hits) || []
     const totalResults = query.data?.pages[0]?.nbHits || 0
 
     return {

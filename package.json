@@ -120,7 +120,6 @@
         "handsontable": "^15.1.0",
         "history": "4",
         "ini": "^7.0.0",
-        "instantsearch.js": "^4.101.0",
         "jose": "^6.2.1",
         "js-cookie": "^3.0.7",
         "json8-pointer": "^1.0.6",

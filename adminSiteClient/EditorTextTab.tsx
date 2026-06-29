@@ -5,7 +5,7 @@ import { getErrorMessageRelatedQuestionUrl } from "@ourworldindata/grapher"
 import { copyToClipboard, slugify } from "@ourworldindata/utils"
 import { action, computed, makeObservable, observable, runInAction } from "mobx"
 import { observer } from "mobx-react"
-import { Component } from "react"
+import { Component, ReactElement } from "react"
 import { isChartEditorInstance } from "./ChartEditor.js"
 import {
     AutoTextField,
@@ -183,7 +183,7 @@ export class EditorTextTab<
     }
 
     // Bold the substring matching the user's query in each dropdown option
-    highlightMatch(text: string, query: string): JSX.Element | string {
+    highlightMatch(text: string, query: string): ReactElement | string {
         if (!query) return text
         const idx = text.toLowerCase().indexOf(query.toLowerCase())
         if (idx === -1) return text
