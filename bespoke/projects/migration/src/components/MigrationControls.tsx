@@ -131,8 +131,10 @@ function CountryDropdown({
             .filter((e) => e.name !== OTHERS_ENTITY_NAME)
             .map((e) => ({ value: e.name, label: e.name }))
             .sort((a, b) => a.label.localeCompare(b.label))
-        return groupByUserLocation(flat, userCountryInfo)
-    }, [metadata.entities, userCountryInfo])
+        return groupByUserLocation(flat, userCountryInfo, {
+            selectedValue: country,
+        })
+    }, [metadata.entities, userCountryInfo, country])
 
     return (
         <InlineLabeledDropdown
