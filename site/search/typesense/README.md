@@ -14,10 +14,12 @@ The embedding field must be listed in `query_by` for hybrid search to work.
 
 ## Collections
 
-| Collection | Index name                  | `query_by` fields                                                                            | Embedding source            |
-| ---------- | --------------------------- | -------------------------------------------------------------------------------------------- | --------------------------- |
-| Pages      | `pages`                     | `embedding,title,excerpt,tags,authors,content`                                               | `title`, `content`          |
-| Charts     | `explorer-views-and-charts` | `embedding,title,slug,variantName,subtitle,tags,availableEntities,originalAvailableEntities` | `title`, `subtitle`, `tags` |
+| Collection | Index name                  | `query_by` fields                                | Embedding source            |
+| ---------- | --------------------------- | ------------------------------------------------ | --------------------------- |
+| Pages      | `pages`                     | `embedding,title,excerpt,tags,authors,content`   | `title`, `content`          |
+| Charts     | `explorer-views-and-charts` | `embedding,title,slug,variantName,subtitle,tags` | `title`, `subtitle`, `tags` |
+
+> **Note:** `availableEntities` / `originalAvailableEntities` are intentionally **not** in the charts `query_by`. Keyword (BM25) matching against entity names lets a single sector entity (e.g. "Education", "Manufacturing") outrank real title/topic matches on one-word topic queries. Country filtering still uses these fields via `filter_by` (`availableEntities:=...`), just not free-text `query_by`.
 
 ## Query Examples
 
@@ -66,7 +68,7 @@ Our standard mode. `alpha: 0.3` blends 70% keyword + 30% vector scores.
 curl "http://localhost:8108/collections/explorer-views-and-charts/documents/search" \
   -H "X-TYPESENSE-API-KEY:xyz" \
   --data-urlencode 'q=CO2 emissions per capita' \
-  --data-urlencode 'query_by=embedding,title,slug,variantName,subtitle,tags,availableEntities,originalAvailableEntities' \
+  --data-urlencode 'query_by=embedding,title,slug,variantName,subtitle,tags' \
   --data-urlencode 'vector_query=embedding:([], k:100, alpha:0.3)' \
   --data-urlencode 'prefix=false' \
   --data-urlencode 'include_fields=title,slug,type,score' \
@@ -86,7 +88,7 @@ Combine hybrid search with topic and country filters.
 curl "http://localhost:8108/collections/explorer-views-and-charts/documents/search" \
   -H "X-TYPESENSE-API-KEY:xyz" \
   --data-urlencode 'q=poverty' \
-  --data-urlencode 'query_by=embedding,title,slug,variantName,subtitle,tags,availableEntities,originalAvailableEntities' \
+  --data-urlencode 'query_by=embedding,title,slug,variantName,subtitle,tags' \
   --data-urlencode 'vector_query=embedding:([], k:100, alpha:0.3)' \
   --data-urlencode 'prefix=false' \
   --data-urlencode 'include_fields=title,slug,type,score' \

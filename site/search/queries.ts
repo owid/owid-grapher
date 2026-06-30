@@ -229,8 +229,11 @@ export const chartHitQueryKeys = {
         ] as const,
 } as const
 
-const CHARTS_QUERY_BY =
-    "embedding,title,slug,subtitle,variantName,tags,availableEntities,originalAvailableEntities"
+// Deliberately excludes availableEntities/originalAvailableEntities: keyword
+// (BM25) matching against entity names lets a single sector entity (e.g.
+// "Education", "Manufacturing") hijack one-word topic queries and outrank real
+// title/topic matches. Country search is handled via filter_by, not query_by.
+const CHARTS_QUERY_BY = "embedding,title,slug,subtitle,variantName,tags"
 const PAGES_QUERY_BY = "embedding,title,excerpt,tags,authors,content"
 const PAGES_QUERY_BY_RESTRICTED = "embedding,title,excerpt,tags,authors"
 

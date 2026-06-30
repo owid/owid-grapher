@@ -95,8 +95,12 @@ const CHART_INCLUDE_FIELDS = [
     "updatedAt",
 ].join(",")
 
-const CHARTS_QUERY_BY =
-    "embedding,title,slug,subtitle,variantName,tags,availableEntities,originalAvailableEntities"
+// Deliberately excludes availableEntities/originalAvailableEntities: keyword
+// (BM25) matching against entity names lets a single sector entity (e.g.
+// "Education", "Manufacturing") hijack one-word topic queries and outrank real
+// title/topic matches. Country search doesn't need them here — it's handled via
+// filter_by (availableEntities:=...), see formatCountryFilter.
+const CHARTS_QUERY_BY = "embedding,title,slug,subtitle,variantName,tags"
 
 const PAGE_INCLUDE_FIELDS = [
     "title",
