@@ -246,7 +246,9 @@ export function BespokeVizLightbox({
             for (const el of candidates) {
                 const shadow = el.shadowRoot
                 if (!shadow) continue
-                if (shadow.querySelector("style[data-bespoke-viz-hide-heading]"))
+                if (
+                    shadow.querySelector("style[data-bespoke-viz-hide-heading]")
+                )
                     return true
                 const style = document.createElement("style")
                 style.setAttribute("data-bespoke-viz-hide-heading", "")
