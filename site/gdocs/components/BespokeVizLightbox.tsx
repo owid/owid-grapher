@@ -224,6 +224,55 @@ export function BespokeVizLightbox({
         return () => document.removeEventListener("keydown", onKeyDown)
     }, [isExpanded, collapse])
 
+    // Hide the viz's OWN internal heading (title + subtitle) inside its shadow
+    // root, but ONLY here in the bespoke-viz chrome — the standalone migration
+    // article must keep its heading. The bespoke component mounts into an open
+    // shadow root asynchronously, so we watch for the shadow host to appear and
+    // then inject a scoped <style> into that shadow root. (The selector is
+    // migration-specific for now, since that's the only bespoke bundle.)
+    useEffect(() => {
+        const root = vizHostRef.current
+        if (!root) return
+
+        let cancelled = false
+        // Stop polling after ~10s so we never leak a timer if the shadow root
+        // (for whatever reason) never appears.
+        const deadline = performance.now() + 10_000
+
+        const tryInject = (): boolean => {
+            // Find the shadow host (the element attachShadow was called on)
+            // among the viz host's descendants, and inject once.
+            const candidates = root.querySelectorAll<HTMLElement>("*")
+            for (const el of candidates) {
+                const shadow = el.shadowRoot
+                if (!shadow) continue
+                if (shadow.querySelector("style[data-bespoke-viz-hide-heading]"))
+                    return true
+                const style = document.createElement("style")
+                style.setAttribute("data-bespoke-viz-hide-heading", "")
+                style.textContent = ".migration-heading { display: none; }"
+                shadow.appendChild(style)
+                return true
+            }
+            return false
+        }
+
+        // The shadow root is attached asynchronously (dynamic import in
+        // BespokeComponent), and attaching it does not produce a light-DOM
+        // mutation we could observe — so poll on a frame timer until it exists.
+        const tick = () => {
+            if (cancelled) return
+            if (tryInject()) return
+            if (performance.now() > deadline) return
+            window.setTimeout(tick, 100)
+        }
+        tick()
+
+        return () => {
+            cancelled = true
+        }
+    }, [])
+
     return (
         <>
             <div className="bespoke-viz-layout__viz">
@@ -232,7 +281,8 @@ export function BespokeVizLightbox({
                     ref={inlineSlotRef}
                 >
                     <div className="bespoke-viz-layout__viz-inner">
-                        {/* Explicit open trigger. */}
+                        {/* Explicit open trigger — icon-only; the aria-label
+                            provides the accessible name. */}
                         <button
                             type="button"
                             className="bespoke-viz-expand-button"
@@ -240,7 +290,6 @@ export function BespokeVizLightbox({
                             aria-label="Expand visualization"
                         >
                             <FontAwesomeIcon icon={faExpand} />
-                            Expand
                         </button>
                         {/* The live viz host. Its JSX is static across renders,
                             so the reconciler never relocates the DOM node we

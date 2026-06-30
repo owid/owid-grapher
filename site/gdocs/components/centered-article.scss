@@ -1379,40 +1379,39 @@ $bespoke-viz-page-padding: 4vw;
 $bespoke-viz-gutter: 48px;
 $bespoke-viz-commentary-fr: 37fr;
 $bespoke-viz-viz-fr: 63fr;
-$bespoke-viz-band-bg: #ebeef2;
 $bespoke-viz-card-border: #d6dae0;
 $bespoke-viz-commentary-text: #6a7178;
 
 .centered-article-container--bespoke-viz {
-    /* The header band and the two-column body both break out of the standard
+    /* The header and the two-column body both break out of the standard
        centred grid to sit close to the full viewport width. They're direct
        children of the `.grid grid-cols-12-full-width` article container and
        span all columns (span-cols-14), then apply their own horizontal
        padding. */
 
-    // --- Header band -----------------------------------------------------
+    // --- Header (plain white, two-column, aligned with the body grid) ----
+    // No band/border. Laid out on the same VIZ | COMMENTARY column split as
+    // the body (viz wider on the left, commentary narrower on the right), so
+    // the title wraps at the viz column's width and the byline sits in the
+    // right column aligned with the subtitle.
     .bespoke-viz-header {
-        background-color: $bespoke-viz-band-bg;
-        padding: 48px $bespoke-viz-page-padding 40px;
-        margin-bottom: 40px;
+        display: grid;
+        grid-template-columns: $bespoke-viz-viz-fr $bespoke-viz-commentary-fr;
+        // Rows: eyebrow, title, then a shared subtitle/byline row.
+        grid-template-rows: auto auto auto;
+        column-gap: $bespoke-viz-gutter;
+        padding: 40px $bespoke-viz-page-padding 32px;
 
         @include sm-only {
-            padding-top: 32px;
-            padding-bottom: 28px;
-        }
-
-        // The inner wrapper aligns the header content with the left edge of
-        // the commentary column below (same ~4vw page padding). It spans the
-        // full band width so the title has room to breathe; the title only
-        // wraps when it genuinely must rather than at a narrow text measure.
-        .bespoke-viz-header__inner {
-            // Neutralise the grid placement classes: inside the band we lay
-            // the header out as a simple left-aligned block.
-            grid-column: 1 / -1;
-            max-width: 1100px;
+            grid-template-columns: 1fr;
+            padding-top: 28px;
+            padding-bottom: 24px;
+            row-gap: 4px;
         }
 
         .bespoke-viz-header__eyebrow {
+            grid-column: 1;
+            grid-row: 1;
             display: flex;
             align-items: center;
             gap: 8px;
@@ -1422,7 +1421,7 @@ $bespoke-viz-commentary-text: #6a7178;
             font-size: 12.5px;
             text-transform: uppercase;
             letter-spacing: 0.13em;
-            color: $blue-60; // #426591
+            color: $blue-90; // #1d3d63 (navy)
         }
 
         .bespoke-viz-header__eyebrow-icon {
@@ -1430,10 +1429,10 @@ $bespoke-viz-commentary-text: #6a7178;
         }
 
         .bespoke-viz-header__title {
+            grid-column: 1;
+            grid-row: 2;
+            // Wraps at the (left) viz column's width, not full-page width.
             margin: 0 0 12px;
-            // Use the full available header width: only wrap when the text
-            // genuinely doesn't fit, not at a narrow ~8-column text measure.
-            max-width: none;
             font-family: $serif-font-stack; // Playfair Display
             font-weight: 600;
             font-size: clamp(32px, 3vw, 44px);
@@ -1443,15 +1442,28 @@ $bespoke-viz-commentary-text: #6a7178;
         }
 
         .bespoke-viz-header__subtitle {
-            margin: 0 0 16px;
-            // Keep the subtitle to a comfortable reading measure, but wider
-            // than the default so it doesn't wrap prematurely either.
-            max-width: 760px;
+            grid-column: 1;
+            grid-row: 3;
+            margin: 0;
             font-family: $sans-serif-font-stack; // Lato
             font-weight: 400;
             font-size: 18px;
             line-height: 1.4;
             color: $blue-90; // #1d3d63
+        }
+
+        // Right column, on the subtitle's row, so the byline's top aligns
+        // vertically with the subtitle.
+        .bespoke-viz-header__aside {
+            grid-column: 2;
+            grid-row: 3;
+            min-width: 0;
+
+            @include sm-only {
+                grid-column: 1;
+                grid-row: auto;
+                margin-top: 8px;
+            }
         }
 
         .bespoke-viz-header__byline,
@@ -1470,28 +1482,29 @@ $bespoke-viz-commentary-text: #6a7178;
         }
     }
 
-    // --- Two-column body -------------------------------------------------
+    // --- Two-column body: VIZ (left, wider) | COMMENTARY (right, narrower) -
     .bespoke-viz-layout {
-        // Positioned so the hover lightbox (stage 2) can be absolutely
-        // positioned over the article body rather than fixed to the viewport,
-        // keeping the site nav and header band uncovered.
+        // Positioned so the lightbox (stage 2) can be absolutely positioned
+        // over the article body rather than fixed to the viewport, keeping the
+        // site nav and header uncovered.
         position: relative;
         display: grid;
-        grid-template-columns: $bespoke-viz-commentary-fr $bespoke-viz-viz-fr;
+        grid-template-columns: $bespoke-viz-viz-fr $bespoke-viz-commentary-fr;
         gap: $bespoke-viz-gutter;
         padding: 0 $bespoke-viz-page-padding;
         align-items: start;
 
         // Stack into a single column on small screens. (Full mobile polish is
-        // out of scope for stage 1, but a graceful stack avoids a broken page.)
+        // out of scope, but a graceful stack avoids a broken page.) Source
+        // order is viz-then-commentary, which is the sensible mobile order too.
         @include sm-only {
             grid-template-columns: 1fr;
             gap: 32px;
         }
     }
 
-    // Left column: secondary meta-commentary. Lighter, smaller, muted grey,
-    // comfortable line height, no background box.
+    // Right column: secondary meta-commentary. Lighter, smaller, muted grey,
+    // comfortable line height, no background box. Scrolls normally.
     .bespoke-viz-layout__commentary {
         min-width: 0; // allow the column to shrink rather than overflow
 
@@ -1518,7 +1531,7 @@ $bespoke-viz-commentary-text: #6a7178;
         }
     }
 
-    // Right column: the viz sits in a bordered white card and sticks while the
+    // Left column: the viz sits in a bordered white card and sticks while the
     // commentary scrolls past it.
     //
     // For position:sticky to have anywhere to travel, this grid item must be
@@ -1532,23 +1545,25 @@ $bespoke-viz-commentary-text: #6a7178;
     }
 
     .bespoke-viz-layout__viz-sticky {
-        // The "above the chart" allowance: roughly the inline viz's own header
-        // (title + description + controls) plus a little breathing room, so the
-        // sticky column + the fitted chart together stay within the viewport.
-        // This is a tuning knob — adjust alongside --bespoke-viz-chart-area-height.
+        // The "above/around the chart" allowance: the box padding plus the
+        // viz's own controls + data-source footer (its title/subtitle are
+        // hidden in this layout, so there's more vertical room than before).
+        // This is the fit-to-viewport tuning knob — increase if the chart
+        // overflows, decrease to give the chart more height.
         --bespoke-viz-top-offset: 1rem;
-        --bespoke-viz-chrome-allowance: 260px;
+        --bespoke-viz-chrome-allowance: 200px;
 
         position: sticky;
         top: var(--bespoke-viz-top-offset);
 
-        // No outline/box around the inline viz — it sits cleanly on the page.
-        // A little padding keeps the Expand button off the chart edge.
-        padding: 8px;
+        // Bordered white card around the viz (controls + chart + footer).
+        border: 1px solid $bespoke-viz-card-border; // #d6dae0
+        border-radius: 12px;
+        padding: 18px 20px;
         background-color: $white;
 
         // Fit-to-viewport: cap the inline column to the visible viewport height
-        // (minus the top offset) so the whole plot — title, controls, chart —
+        // (minus the top offset) so the whole plot — controls, chart, footer —
         // is visible without scrolling. The migration bundle reads its chart
         // box height from this CSS var, which inherits through the shadow
         // boundary into the bundle. It's declared HERE (an inline-only
@@ -1570,7 +1585,7 @@ $bespoke-viz-commentary-text: #6a7178;
         }
     }
 
-    // Position context + the inline Expand button.
+    // Position context for the absolutely-placed Expand button.
     .bespoke-viz-layout__viz-inner {
         position: relative;
     }
@@ -1590,19 +1605,20 @@ $bespoke-viz-commentary-text: #6a7178;
         }
     }
 
-    // Inline "Expand" button, pinned to the top-right of the viz, above the viz.
+    // Inline icon-only Expand button, pinned to the top-right corner of the
+    // viz box (above the viz). Visually icon-only; an aria-label provides the
+    // accessible name.
     .bespoke-viz-expand-button {
         position: absolute;
-        top: 6px;
-        right: 6px;
+        top: 8px;
+        right: 8px;
         z-index: 2;
         display: inline-flex;
         align-items: center;
-        gap: 6px;
-        padding: 6px 10px;
-        font-family: $sans-serif-font-stack;
-        font-size: 13px;
-        font-weight: 700;
+        justify-content: center;
+        width: 30px;
+        height: 30px;
+        padding: 0;
         color: $blue-60;
         background-color: rgba(255, 255, 255, 0.9);
         border: 1px solid $bespoke-viz-card-border; // #d6dae0
@@ -1615,7 +1631,7 @@ $bespoke-viz-commentary-text: #6a7178;
         }
 
         svg {
-            font-size: 12px;
+            font-size: 13px;
         }
     }
 

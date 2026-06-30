@@ -263,15 +263,17 @@ function BespokeVizBody({
 
     return (
         <div className="bespoke-viz-layout span-cols-14">
+            {/* Viz on the LEFT (wider, sticky, boxed). The lightbox controller
+                renders the viz column and owns the click-to-expand behaviour;
+                the viz instance stays mounted and is moved imperatively, never
+                remounted. */}
+            <BespokeVizLightbox blocks={vizBlocks} toc={toc} />
+            {/* Commentary on the RIGHT (narrower, scrolls normally). */}
             <div className="bespoke-viz-layout__commentary">
                 {/* No automatic subscribe banner here: the commentary column
                     reads as secondary meta-commentary, kept deliberately clean. */}
                 <ArticleBlocks blocks={commentaryBlocks} toc={toc} />
             </div>
-            {/* The lightbox controller renders the viz column and owns the
-                hover-to-expand behaviour (stage 2). The viz instance stays
-                mounted and is moved imperatively, never remounted. */}
-            <BespokeVizLightbox blocks={vizBlocks} toc={toc} />
         </div>
     )
 }

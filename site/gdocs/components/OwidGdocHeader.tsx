@@ -245,32 +245,31 @@ function OwidLinearTopicPageHeader({
 /**
  * Header for the `layout: bespoke-viz` article variant.
  *
- * Visually this is the Linear Topic Page header (large serif title, subtitle,
- * byline) but LEFT-ALIGNED using the same column placement the Topic Page
- * header uses (col-start-2), lined up with the left edge of the commentary
- * column, sitting on a soft blue-grey band. It also adds an eyebrow /
- * content-type label above the title (small-caps, letter-spaced, with a
- * placeholder sparkle icon). All styling is scoped under the
+ * Sits on plain white (no band/border) and is laid out on the SAME two-column
+ * grid as the body: the LEFT (wider) column holds the eyebrow, title and
+ * subtitle — so the title wraps at the viz column's width, not full-page width
+ * — and the RIGHT (narrower) column holds the byline, vertically aligned with
+ * the subtitle. All styling is scoped under the
  * `.centered-article-container--bespoke-viz` modifier in centered-article.scss.
  */
 function OwidBespokeVizHeader({ content }: { content: OwidGdocPostContent }) {
     return (
-        <header className="bespoke-viz-header grid span-cols-14 grid-cols-12-full-width">
-            <div className="bespoke-viz-header__inner col-start-2 span-cols-12 col-sm-start-2 span-sm-cols-12">
+        <header className="bespoke-viz-header span-cols-14">
+            {/* Eyebrow and title stack in the left column. */}
+            <p className="bespoke-viz-header__eyebrow">
                 {/* Placeholder eyebrow + icon — clearly swappable. */}
-                <p className="bespoke-viz-header__eyebrow">
-                    <FontAwesomeIcon
-                        className="bespoke-viz-header__eyebrow-icon"
-                        icon={faWandMagicSparkles}
-                    />
-                    Featured Visualization
-                </p>
-                <h1 className="bespoke-viz-header__title">{content.title}</h1>
-                {content.subtitle && (
-                    <p className="bespoke-viz-header__subtitle">
-                        {content.subtitle}
-                    </p>
-                )}
+                <FontAwesomeIcon
+                    className="bespoke-viz-header__eyebrow-icon"
+                    icon={faWandMagicSparkles}
+                />
+                Featured Visualization
+            </p>
+            <h1 className="bespoke-viz-header__title">{content.title}</h1>
+            {/* Subtitle (left) and byline (right) share the same grid row so
+                the byline's top aligns with the subtitle, regardless of how
+                many lines the title wraps to. */}
+            <p className="bespoke-viz-header__subtitle">{content.subtitle}</p>
+            <div className="bespoke-viz-header__aside">
                 {content.authors.length > 0 && (
                     <p className="bespoke-viz-header__byline">
                         <Byline names={content.authors} />
