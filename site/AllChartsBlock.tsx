@@ -483,7 +483,7 @@ const AllChartsEmptyState = ({
                 No indicators on {topicName} match “{query}”.
             </p>
             <Button
-                theme="solid-vermillion"
+                theme="solid-dark-blue"
                 text="Search all charts"
                 href={searchHref}
                 dataTrackNote="all-charts-search-all"
