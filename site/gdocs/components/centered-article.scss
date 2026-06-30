@@ -1472,6 +1472,10 @@ $bespoke-viz-commentary-text: #6a7178;
 
     // --- Two-column body -------------------------------------------------
     .bespoke-viz-layout {
+        // Positioned so the hover lightbox (stage 2) can be absolutely
+        // positioned over the article body rather than fixed to the viewport,
+        // keeping the site nav and header band uncovered.
+        position: relative;
         display: grid;
         grid-template-columns: $bespoke-viz-commentary-fr $bespoke-viz-viz-fr;
         gap: $bespoke-viz-gutter;
@@ -1546,6 +1550,82 @@ $bespoke-viz-commentary-text: #6a7178;
         [class*="article-block__"] {
             width: 100%;
             max-width: 100%;
+        }
+    }
+
+    // Wrapper that physically holds the live viz DOM node. We move THIS node
+    // between the inline card and the modal; it must fill whichever container
+    // it's in (inline card or modal body) so the viz reflows to fit.
+    .bespoke-viz-layout__viz-host {
+        width: 100%;
+
+        [class*="article-block__"] {
+            width: 100%;
+            max-width: 100%;
+        }
+    }
+
+    // Hint that the inline card is interactive (hover to expand) on
+    // hover-capable, pointer-fine devices only.
+    @media (hover: hover) and (pointer: fine) {
+        .bespoke-viz-layout__viz-sticky {
+            cursor: zoom-in;
+        }
+    }
+
+    // --- Stage 2: hover expand-to-lightbox -------------------------------
+    // Absolutely positioned over the two-column body (its positioned ancestor
+    // is .bespoke-viz-layout), NOT fixed — so the page header/nav stay visible.
+    .bespoke-viz-lightbox {
+        position: absolute;
+        inset: 0;
+        // Hidden until opened: no layout impact, no pointer interception.
+        display: none;
+        // Sits above the article body content. It's positioned within the
+        // body (not fixed), so it won't cover the site nav / header band.
+        z-index: 30;
+
+        &--open {
+            display: block;
+        }
+
+        .bespoke-viz-lightbox__scrim {
+            position: absolute;
+            inset: 0;
+            background-color: rgba(17, 26, 42, 0.5);
+            backdrop-filter: blur(2.5px);
+            // Animated imperatively (opacity 0 -> 1) to cross-fade with the
+            // FLIP; starts transparent.
+            opacity: 0;
+            transition: opacity 350ms cubic-bezier(0.22, 0.61, 0.36, 1);
+        }
+
+        .bespoke-viz-lightbox__box {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: min(1320px, 100%);
+            background-color: $white;
+            border-radius: 12px;
+            padding: 22px 26px;
+            box-shadow: 0 18px 50px rgba(0, 0, 0, 0.32);
+        }
+
+        // The live viz node is appended here while expanded. Kept invisible
+        // until the inverse FLIP transform has been applied (avoids a
+        // one-frame full-size flash), then revealed imperatively.
+        .bespoke-viz-lightbox__body {
+            visibility: hidden;
+            width: 100%;
+        }
+    }
+
+    // prefers-reduced-motion: drop the FLIP transition; the controller also
+    // skips the transform maths and just cross-fades.
+    @media (prefers-reduced-motion: reduce) {
+        .bespoke-viz-lightbox .bespoke-viz-lightbox__scrim {
+            transition: opacity 120ms linear;
         }
     }
 }

@@ -4,6 +4,7 @@ import { useIntersectionObserver } from "usehooks-ts"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faBoxArchive } from "@fortawesome/free-solid-svg-icons"
 import { ArticleBlocks } from "../components/ArticleBlocks.js"
+import { BespokeVizLightbox } from "../components/BespokeVizLightbox.js"
 import Footnotes from "../components/Footnotes.js"
 import {
     OwidGdocPostInterface,
@@ -267,13 +268,10 @@ function BespokeVizBody({
                     reads as secondary meta-commentary, kept deliberately clean. */}
                 <ArticleBlocks blocks={commentaryBlocks} toc={toc} />
             </div>
-            <div className="bespoke-viz-layout__viz">
-                <div className="bespoke-viz-layout__viz-sticky">
-                    {vizBlocks.length ? (
-                        <ArticleBlocks blocks={vizBlocks} toc={toc} />
-                    ) : null}
-                </div>
-            </div>
+            {/* The lightbox controller renders the viz column and owns the
+                hover-to-expand behaviour (stage 2). The viz instance stays
+                mounted and is moved imperatively, never remounted. */}
+            <BespokeVizLightbox blocks={vizBlocks} toc={toc} />
         </div>
     )
 }
