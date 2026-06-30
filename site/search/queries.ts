@@ -51,6 +51,32 @@ function makeStateForKey(state: SearchState) {
 }
 
 /**
+ * Page documents store `date`/`modifiedDate` as Unix-second integers (see
+ * `convertDateToUnixTimestamp` in the indexer), but the page-hit types expose
+ * them as ISO strings and the renderers call `new Date(hit.date)`, which would
+ * otherwise interpret the seconds as milliseconds and show January 1970.
+ * Convert the numeric timestamps back to ISO strings before they reach hits.
+ * Returns only the keys that need overriding so chart documents (which have no
+ * `date`/`modifiedDate`) are left untouched.
+ */
+function normalizeDateFields(document: object | undefined): {
+    date?: string
+    modifiedDate?: string
+} {
+    const overrides: { date?: string; modifiedDate?: string } = {}
+    const doc = document as
+        | { date?: unknown; modifiedDate?: unknown }
+        | undefined
+    if (typeof doc?.date === "number") {
+        overrides.date = new Date(doc.date * 1000).toISOString()
+    }
+    if (typeof doc?.modifiedDate === "number") {
+        overrides.modifiedDate = new Date(doc.modifiedDate * 1000).toISOString()
+    }
+    return overrides
+}
+
+/**
  * Maps a Typesense search response to the Algolia SearchResponse shape
  * that consuming components expect.
  *
@@ -86,6 +112,7 @@ function mapTypesenseResponse<
 
     const hits = rawHits.map((hit, index) => ({
         ...hit.document,
+        ...normalizeDateFields(hit.document),
         objectID: hit.document?.id ?? hit.document?.slug ?? "",
         __position: page * perPage + index,
     })) as THit[]
