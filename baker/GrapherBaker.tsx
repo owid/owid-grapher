@@ -44,10 +44,10 @@ import {
 } from "../db/model/Variable.js"
 import {
     fetchAndParseFaqs,
-    getLinkedAuthorsForDatasetOwners,
     getPrimaryTopic,
     resolveFaqsForVariable,
 } from "./DatapageHelpers.js"
+import { getMinimalAuthorsByNames } from "../db/model/Gdoc/GdocBase.js"
 import { getDatapageDataV2 } from "../site/dataPage.js"
 import { getAllImages } from "../db/model/Image.js"
 import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
@@ -225,15 +225,14 @@ export async function renderDataPageV2(
     let imageMetadata: Record<string, ImageMetadata> = {}
 
     if (datapageMetadataExperimentActive) {
-        // Only show owners for x&y plotted variables (i.e. exclude color/size for scatterplots/marimekkos)
+        // Only show owners for the y-plotted variable(s). The x-dimension is
+        // usually GDP per capita or population (scatterplots/Marimekkos), and
+        // since we only surface the first dataset's owners, including it risks
+        // showing the owners of the wrong dataset.
         const ownerVariableIds = _.uniq(
             _.compact(
                 grapher.dimensions
-                    .filter(
-                        ({ property }) =>
-                            property === DimensionProperty.y ||
-                            property === DimensionProperty.x
-                    )
+                    .filter(({ property }) => property === DimensionProperty.y)
                     .map(({ variableId }) => variableId)
             )
         )
@@ -242,10 +241,13 @@ export async function renderDataPageV2(
             ownerVariableIds
         )
 
-        const { linkedAuthors, imageMetadata: ownerImageMetadata } =
-            await getLinkedAuthorsForDatasetOwners(knex, datapageData.owners)
-        datapageData.linkedAuthors = linkedAuthors
-        imageMetadata = ownerImageMetadata
+        const ownerNames = _.uniq(
+            (datapageData.owners ?? []).flatMap((dataset) => dataset.owners)
+        )
+        datapageData.linkedAuthors = await getMinimalAuthorsByNames(
+            knex,
+            ownerNames
+        )
     }
 
     const archiveContext =

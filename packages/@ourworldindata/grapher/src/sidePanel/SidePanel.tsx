@@ -10,10 +10,8 @@ export const SidePanel = ({
     children: React.ReactNode
 }) => {
     return (
-        // NOTE: site/IndicatorMetadataBox.scss narrows the indicator metadata
-        // box's grid when this side panel is present, via
-        // `.chart-key-info:has(.side-panel) ~ .indicator-metadata-box`. Removing
-        // or renaming this class will silently break that layout.
+        // NOTE: site/IndicatorMetadataBox.scss keys off this class via
+        // `:has(.side-panel)`; renaming it will silently break that layout.
         <div
             className={GRAPHER_SIDE_PANEL_CLASS}
             style={{

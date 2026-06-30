@@ -225,9 +225,7 @@ function ExpandableSection({
                                 }
                                 onToggle={(isOpen) =>
                                     logExpandableToggle(
-                                        // faq.question comes from the gdoc data
-                                        // (source English text), not the
-                                        // possibly-translated DOM.
+                                        // untranslated source text
                                         faq.question.slice(0, 100),
                                         isOpen
                                     )
