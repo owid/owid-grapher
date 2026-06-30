@@ -18,7 +18,7 @@ import { Button } from "@ourworldindata/components"
 import { GrapherWithFallback } from "./GrapherWithFallback.js"
 import { useDocumentContext } from "./gdocs/DocumentContext.js"
 import { getLiteSearchClient } from "./search/searchClients.js"
-import { queryCharts, searchQueryKeys } from "./search/queries.js"
+import { queryAllCharts, searchQueryKeys } from "./search/queries.js"
 import {
     createTopicFilter,
     createCountryFilter,
@@ -38,7 +38,6 @@ import { SearchDataResultsSkeleton } from "./search/SearchDataResultsSkeleton.js
 import { SearchFilterPill } from "./search/SearchFilterPill.js"
 
 const SEARCH_DEBOUNCE_MS = 200
-const MAX_RESULTS = 50
 
 const SEARCH_PLACEHOLDER =
     "Search indicators by name, keyword, country, or source…"
@@ -123,14 +122,11 @@ export const AllChartsBlock = ({
 
     const { data, isLoading, isError } = useQuery({
         queryKey: searchQueryKeys.charts(searchState),
-        queryFn: () => queryCharts(liteSearchClient, searchState, 0),
+        queryFn: () => queryAllCharts(liteSearchClient, searchState),
         enabled: Boolean(topicName),
     })
 
-    const hits = useMemo(
-        () => (data?.hits ?? []).slice(0, MAX_RESULTS),
-        [data?.hits]
-    )
+    const hits = data ?? []
 
     if (isError || !topicName) return null
 
