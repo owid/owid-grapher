@@ -4,8 +4,8 @@ set -o pipefail
 set -o nounset
 
 # Downloads the PRIVATE sidecar dump: full data for the PRIVATE_DATA_TABLES
-# that the public owid_metadata.sql.gz ships schema-only — hashed admin API
-# keys and analytics_* view counts (see db/exportPrivateData.ts).
+# that the public owid_metadata.sql.gz ships schema-only (see
+# db/exportPrivateData.ts).
 #
 # Access options, in order of preference:
 #   - OWID_PRIVATE_DUMP_URL env var (e.g. a presigned URL)
@@ -19,8 +19,7 @@ FOLDER="${DATA_FOLDER:-./tmp-downloads}"
 mkdir -p $FOLDER
 
 # Start clean so a run without access can't silently import a stale dump left
-# by an earlier run. This sidecar carries admin_api_keys, so a rotated/revoked
-# key hash must never linger — "no access" must really mean "tables stay empty".
+# by an earlier run — "no access" must really mean "tables stay empty".
 rm -f "$FOLDER/owid_private.sql.gz"
 
 if [[ -n "${OWID_PRIVATE_DUMP_URL:-}" ]]; then

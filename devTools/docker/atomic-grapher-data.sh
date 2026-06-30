@@ -51,10 +51,8 @@ import_db() {
     cat $1 | gunzip | sed s/.\*DEFINER\=\`.\*// | grep -vF GLOBAL.GTID_PURGED | _mysql $2
 }
 
-# Import the private sidecar dump (admin_api_keys + analytics_*) into $1 if it
-# was downloaded. We import it into the replacement DB *before* the atomic swap
-# so these tables (notably admin_api_keys, which gates API-key auth) are never
-# empty in the live DB after a refresh. Skips gracefully when not available.
+# Import the private sidecar dump into the replacement DB *before* the atomic
+# swap, so its tables are never empty in the live DB after a refresh.
 import_private() {
     if [ -f "${DATA_FOLDER}/owid_private.sql.gz" ]; then
         echo "==> Importing private sidecar dump into $1"

@@ -5,10 +5,8 @@ set -o nounset
 
 # Imports the private sidecar dump (owid_private.sql.gz, downloaded by
 # download-grapher-private-mysql.sh) into the grapher database. The dump
-# contains DROP TABLE + CREATE TABLE + INSERTs for the PRIVATE_DATA_TABLES
-# (hashed admin API keys + analytics_* view counts), so importing fully
-# replaces them. Run after the public dump so foreign keys (e.g.
-# admin_api_keys.userId → users.id) resolve.
+# contains DROP TABLE + CREATE TABLE + INSERTs, so importing fully replaces
+# the PRIVATE_DATA_TABLES. Run after the public dump so foreign keys resolve.
 
 if [ -e .env ]; then
     source .env
