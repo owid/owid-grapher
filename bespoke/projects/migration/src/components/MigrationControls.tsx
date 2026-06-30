@@ -22,7 +22,7 @@ import { useTippyContainer } from "../../../../hooks/useTippyContainer.js"
 import { useUserCountryInformation } from "../../../../hooks/useUserCountryInformation.js"
 
 import { MigrationMetadata, MigrationView, Sex } from "../types.js"
-import { sexFromName } from "../helpers.js"
+import { sexFromName, OTHERS_ENTITY_NAME } from "../helpers.js"
 
 const VIEW_ITEMS: SwitcherItem<MigrationView>[] = [
     {
@@ -128,6 +128,7 @@ function CountryDropdown({
     const { data: userCountryInfo } = useUserCountryInformation()
     const options = useMemo<DropdownCollection>(() => {
         const flat: BasicDropdownOption[] = metadata.entities
+            .filter((e) => e.name !== OTHERS_ENTITY_NAME)
             .map((e) => ({ value: e.name, label: e.name }))
             .sort((a, b) => a.label.localeCompare(b.label))
         return groupByUserLocation(flat, userCountryInfo)

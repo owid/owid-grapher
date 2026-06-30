@@ -1,10 +1,5 @@
 import { useQuery } from "@tanstack/react-query"
-import {
-    SearchChartsResponse,
-    SearchChartHit,
-    SearchResultType,
-    FEATURED_METRICS_ID,
-} from "@ourworldindata/types"
+import { SearchResultType, FEATURED_METRICS_ID } from "@ourworldindata/types"
 import { SearchChartHitComponent } from "./search/SearchChartHitComponent.js"
 import { createTopicFilter, SEARCH_BASE_PATH } from "./search/searchUtils.js"
 import { stateToSearchParams } from "./search/searchState.js"
@@ -13,7 +8,7 @@ import { getTypesenseClient } from "./search/typesense/typesenseClient.js"
 import { SearchDataResultsSkeleton } from "./search/SearchDataResultsSkeleton.js"
 import { Button } from "@ourworldindata/components"
 import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons"
-import cx from "classnames"
+import cx from "clsx"
 
 const MAX_MEDIUM_RESULTS = 4
 const MAX_SMALL_RESULTS = 5
@@ -40,7 +35,7 @@ export const FeaturedMetrics = ({
         resultType: SearchResultType.DATA,
     }
 
-    const { data, isLoading, isError } = useQuery<SearchChartsResponse>({
+    const { data, isLoading, isError } = useQuery({
         // reusing the same query key function as search for simplicity but
         // would technically collide if using the same query client instance
         queryKey: searchQueryKeys.charts(searchState),
@@ -50,7 +45,7 @@ export const FeaturedMetrics = ({
 
     if (isError || !topicName) return null
 
-    let hits: SearchChartHit[] = (data?.hits ?? []).slice(
+    let hits = (data?.hits ?? []).slice(
         0,
         MAX_MEDIUM_RESULTS + MAX_SMALL_RESULTS
     )

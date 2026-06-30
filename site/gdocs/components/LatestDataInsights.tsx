@@ -6,7 +6,7 @@ import {
     faChevronRight,
     faChevronLeft,
 } from "@fortawesome/free-solid-svg-icons"
-import cx from "classnames"
+import cx from "clsx"
 import useEmblaCarousel from "embla-carousel-react"
 import ClassNames from "embla-carousel-class-names"
 import type { EmblaCarouselType } from "embla-carousel"

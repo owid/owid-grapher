@@ -48,6 +48,11 @@ const descriptions: Record<TooltipKey, string> = {
     continents:
         "Our team defines [six world regions](https://ourworldindata.org/world-region-map-definitions#our-world-in-data):",
     iea: "The **International Energy Agency (IEA)** defines seven world regions:",
+    maddison:
+        "The **Maddison Project Database** groups countries into [eight world regions](https://ourworldindata.org/world-region-map-definitions#maddison-project-database-maddison):",
+    wid: "The **World Inequality Database (WID)** groups countries into [nine world regions](https://ourworldindata.org/world-region-map-definitions#world-inequality-database-wid):",
+    ilo_1: "The **International Labour Organization (ILO)** defines [five broad world regions](https://ourworldindata.org/world-region-map-definitions#international-labour-organization-ilo):",
+    ilo_2: "The **International Labour Organization (ILO)** divides the world into [eleven subregions](https://ourworldindata.org/world-region-map-definitions#international-labour-organization-ilo):",
 }
 
 // Geographic display order: left-to-right on the map.
@@ -109,6 +114,47 @@ const customRegionDisplayOrder: Partial<Record<TooltipKey, string[]>> = {
         "Lower-middle-income countries",
         "Upper-middle-income countries",
         "High-income countries",
+    ],
+    maddison: [
+        "Western offshoots (Maddison)",
+        "Western Europe (Maddison)",
+        "Eastern Europe (Maddison)",
+        "Latin America (Maddison)",
+        "East Asia (Maddison)",
+        "South and South East Asia (Maddison)",
+        "Middle East and North Africa (Maddison)",
+        "Sub Saharan Africa (Maddison)",
+    ],
+    wid: [
+        "North America (WID)",
+        "Latin America (WID)",
+        "Europe (WID)",
+        "Russia and Central Asia (WID)",
+        "MENA (WID)",
+        "Sub-Saharan Africa (WID)",
+        "East Asia (WID)",
+        "South & South-East Asia (WID)",
+        "Oceania (WID)",
+    ],
+    ilo_1: [
+        "Africa (ILO)",
+        "Americas (ILO)",
+        "Arab States (ILO)",
+        "Asia and the Pacific (ILO)",
+        "Europe and Central Asia (ILO)",
+    ],
+    ilo_2: [
+        "Northern Africa (ILO)",
+        "Sub-Saharan Africa (ILO)",
+        "Latin America and the Caribbean (ILO)",
+        "Northern America (ILO)",
+        "Arab States (ILO)",
+        "Eastern Asia (ILO)",
+        "South-Eastern Asia and the Pacific (ILO)",
+        "Southern Asia (ILO)",
+        "Northern, Southern and Western Europe (ILO)",
+        "Eastern Europe (ILO)",
+        "Central and Western Asia (ILO)",
     ],
 }
 

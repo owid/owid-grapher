@@ -209,12 +209,12 @@ export default function SiteRedirectsIndexPage() {
             {notificationContextHolder}
             <main>
                 <Space
-                    direction="vertical"
+                    orientation="vertical"
                     size="large"
                     style={{ width: "100%" }}
                 >
                     <Alert
-                        message="About Site Redirects"
+                        title="About Site Redirects"
                         description={
                             <>
                                 <Typography.Paragraph>

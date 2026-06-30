@@ -1,4 +1,4 @@
-import cx from "classnames"
+import cx from "clsx"
 import { Button } from "@ourworldindata/components"
 import { useState } from "react"
 import { useTimeout } from "usehooks-ts"

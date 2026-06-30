@@ -25,7 +25,7 @@ import {
     useDraggable,
     useDroppable,
 } from "@dnd-kit/core"
-import cx from "classnames"
+import cx from "clsx"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faGrip } from "@fortawesome/free-solid-svg-icons"
 import { AutoComplete, Button, Popconfirm } from "antd"
@@ -132,11 +132,13 @@ class AddChildForm extends React.Component<AddChildFormProps> {
                         value: tag.name,
                         label: tag.name,
                     }))}
-                    filterOption={(inputValue, option) => {
-                        if (!option?.label) return false
-                        return option.label
-                            .toLowerCase()
-                            .startsWith(inputValue.toLowerCase())
+                    showSearch={{
+                        filterOption: (inputValue, option) => {
+                            if (!option?.label) return false
+                            return option.label
+                                .toLowerCase()
+                                .startsWith(inputValue.toLowerCase())
+                        },
                     }}
                 />
                 <Button

@@ -1,5 +1,5 @@
 import LinkedA from "./LinkedA.js"
-import cx from "classnames"
+import cx from "clsx"
 import { SpanLink } from "@ourworldindata/types"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons"

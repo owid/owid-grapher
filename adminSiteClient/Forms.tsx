@@ -17,7 +17,7 @@ import {
 } from "@ourworldindata/utils"
 import { action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
-import cx from "classnames"
+import cx from "clsx"
 import { useTimeout } from "usehooks-ts"
 
 import { AdminColorPicker } from "./AdminColorPicker.js"

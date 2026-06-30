@@ -160,7 +160,7 @@ export class LineChartThumbnail
     @computed private get labelFontSettings(): FontSettings {
         return {
             fontSize: Math.floor(GRAPHER_FONT_SCALE_12 * this.fontSize),
-            fontWeight: 500,
+            fontWeight: 700,
             lineHeight: 1,
         }
     }

@@ -5,6 +5,9 @@ on:
     branches:
       - master
 
+permissions:
+  contents: read
+
 jobs:
   # Checks for prettify errors, TypeScript errors and runs vitest tests.
   "test-db":
@@ -12,7 +15,9 @@ jobs:
 
     steps:
       - name: Clone repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
 
       - uses: ./.github/actions/setup-node-yarn-deps
 
@@ -29,7 +34,9 @@ jobs:
 
     steps:
       - name: Clone repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
 
       - uses: ./.github/actions/setup-node-yarn-deps
 
@@ -41,7 +48,9 @@ jobs:
 
     steps:
       - name: Clone repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
 
       - uses: ./.github/actions/setup-node-yarn-deps
         with:
@@ -55,7 +64,9 @@ jobs:
 
     steps:
       - name: Clone repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
 
       - uses: ./.github/actions/setup-node-yarn-deps
         with:
@@ -69,7 +80,9 @@ jobs:
 
     steps:
       - name: Clone repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
 
       - uses: ./.github/actions/setup-node-yarn-deps
         with:
@@ -83,7 +96,9 @@ jobs:
 
     steps:
       - name: Clone repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
 
       - uses: ./.github/actions/setup-node-yarn-deps
         with:
@@ -98,7 +113,9 @@ jobs:
 
     steps:
       - name: Clone repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
 
       - uses: ./.github/actions/setup-node-yarn-deps
 
@@ -108,4 +125,20 @@ jobs:
           BUNDLEMON: true
 
       - name: BundleMon
-        uses: lironer/bundlemon-action@v1
+        uses: lironer/bundlemon-action@4b47df0793e18e3899eeb07f19b7c88c92c2490e # v1.4.0
+
+  zizmor:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+
+      - name: Run zizmor
+        uses: zizmorcore/zizmor-action@5f14fd08f7cf1cb1609c1e344975f152c7ee938d # v0.5.6
+        with:
+          # Avanced Security mode is a bit too complicated for our use case, but
+          # we might want to switch to it in the future.
+          advanced-security: false

@@ -135,6 +135,22 @@ $s-lato-font-size: px-to-cqh(24);
     }
 }
 
+.slideshow-slide__grapher-container--interactive {
+    .CaptionedChart {
+        padding: 16px 0;
+        border: 1px solid $gray-10;
+        &:has(~ .side-panel) {
+            border-right: none;
+        }
+    }
+    .side-panel {
+        border: 1px solid $gray-10;
+    }
+    .drawer.active {
+        border: 1px solid $gray-10;
+    }
+}
+
 .slideshow-slide--cover {
     background-color: $oxford-blue;
     color: white;

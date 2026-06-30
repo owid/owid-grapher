@@ -1,4 +1,4 @@
-import cx from "classnames"
+import cx from "clsx"
 import { Head } from "../Head.js"
 import { GRAPHER_PREVIEW_CLASS } from "@ourworldindata/types"
 import { SiteHeader } from "../SiteHeader.js"

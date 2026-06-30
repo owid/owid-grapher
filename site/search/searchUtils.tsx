@@ -18,7 +18,6 @@ import {
     SearchFacetFilters,
     ChartRecordType,
     SearchChartHit,
-    IChartHit,
     SearchUrlParam,
     SynonymMap,
     Ngram,
@@ -93,7 +92,7 @@ const STOP_WORDS = new Set([
 ])
 
 export function pickEntitiesForChartHit(
-    hit: IChartHit | SearchChartHit,
+    hit: SearchChartHit,
     selectedRegionNames: string[] | undefined
 ): EntityName[] {
     if (!selectedRegionNames) return []

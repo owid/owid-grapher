@@ -7,6 +7,7 @@ import {
 import { useContext, useEffect, useMemo, useState } from "react"
 import {
     Button,
+    Checkbox,
     Flex,
     Input,
     Popconfirm,
@@ -36,6 +37,8 @@ type ApiMultiDim = {
     slug: string | null
     updatedAt: string
     published: boolean
+    mdimViews: number
+    pageviews: number
 }
 
 type MultiDim = Omit<ApiMultiDim, "updatedAt"> & {
@@ -204,6 +207,22 @@ function createColumns(
             },
         },
         {
+            title: "Mdim views",
+            dataIndex: "mdimViews",
+            key: "mdimViews",
+            align: "right",
+            render: (views) => views?.toLocaleString(),
+            sorter: (a, b) => a.mdimViews - b.mdimViews,
+        },
+        {
+            title: "Pageviews (14d)",
+            dataIndex: "pageviews",
+            key: "pageviews",
+            align: "right",
+            render: (views) => views?.toLocaleString(),
+            sorter: (a, b) => a.pageviews - b.pageviews,
+        },
+        {
             title: "Last updated",
             dataIndex: "updatedAt",
             key: "updatedAt",
@@ -327,14 +346,17 @@ export function MultiDimIndexPage() {
         },
     })
 
+    const [showOnlyPublished, setShowOnlyPublished] = useState(false)
+
     const filteredMdims = useMemo(() => {
         const query = search.trim().toLowerCase()
-        return data?.filter((mdim) =>
-            [mdim.title, mdim.slug ?? ""].some((field) =>
+        return data?.filter((mdim) => {
+            if (showOnlyPublished && !mdim.published) return false
+            return [mdim.title, mdim.slug ?? ""].some((field) =>
                 field.toLowerCase().includes(query)
             )
-        )
-    }, [data, search])
+        })
+    }, [data, search, showOnlyPublished])
 
     const columns = createColumns(slugMutation, publishMutation)
 
@@ -342,15 +364,25 @@ export function MultiDimIndexPage() {
         <AdminLayout title="Multidimensional Data Pages">
             {notificationContextHolder}
             <main>
-                <Space direction="vertical" size="middle">
+                <Space orientation="vertical" size="middle">
                     <Flex align="center" justify="space-between" gap={24}>
-                        <Input
-                            placeholder="Search by title or slug"
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            style={{ width: 500 }}
-                            autoFocus
-                        />
+                        <Space size="middle">
+                            <Input
+                                placeholder="Search by title or slug"
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                style={{ width: 500 }}
+                                autoFocus
+                            />
+                            <Checkbox
+                                checked={showOnlyPublished}
+                                onChange={(e) =>
+                                    setShowOnlyPublished(e.target.checked)
+                                }
+                            >
+                                Show only published
+                            </Checkbox>
+                        </Space>
                         <Space>
                             <a
                                 href={urljoin(

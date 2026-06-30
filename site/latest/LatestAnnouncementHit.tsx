@@ -1,5 +1,5 @@
 import { PageChronologicalAnnouncementRecord } from "@ourworldindata/types"
-import cx from "classnames"
+import cx from "clsx"
 import { AttachmentsContext } from "../gdocs/AttachmentsContext.js"
 import { AnnouncementContent } from "./AnnouncementContent.js"
 import {

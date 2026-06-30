@@ -1,4 +1,4 @@
-import cx from "classnames"
+import cx from "clsx"
 import { getCanonicalPath } from "@ourworldindata/components"
 import { OwidGdocType, FlatArticleHit } from "@ourworldindata/types"
 import { formatAuthors, formatDate } from "@ourworldindata/utils"
@@ -48,7 +48,11 @@ export function SearchFlatArticleHit({
                                 by {formatAuthors(hit.authors)} —{" "}
                             </span>
                         )}
-                        {hit.content && (
+                        {hit.excerpt ? (
+                            <span className="search-flat-article-hit__excerpt">
+                                {hit.excerpt}
+                            </span>
+                        ) : hit.content ? (
                             <span className="search-flat-article-hit__excerpt">
                                 {hit.content
                                     .split(/\s+/)
@@ -56,7 +60,7 @@ export function SearchFlatArticleHit({
                                     .join(" ")}
                                 …
                             </span>
-                        )}
+                        ) : null}
                     </div>
                 </div>
             </article>

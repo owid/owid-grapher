@@ -1,7 +1,6 @@
 import React, { useCallback, useMemo, useRef, useState } from "react"
 import {
     sankey as d3Sankey,
-    sankeyLinkHorizontal,
     SankeyGraph,
     SankeyNode as D3SankeyNode,
     SankeyLink as D3SankeyLink,
@@ -21,7 +20,7 @@ import {
 } from "@ourworldindata/grapher"
 import { TooltipCard } from "@ourworldindata/grapher/src/tooltip/TooltipCard.js"
 import { TextWrap, TextWrapSvg } from "@ourworldindata/components"
-import cx from "classnames"
+import cx from "clsx"
 import { usePinnedTooltip } from "../../hooks/usePinnedTooltip.js"
 import { match } from "ts-pattern"
 
@@ -51,6 +50,8 @@ interface SankeyProps {
     links: SankeyLink[]
     width: number
     height: number
+    totalFlowVolume?: number
+    linkLowVolumeThreshold?: number
     nodeColor?: (node: SankeyNode) => string
     linkColor?: (link: SankeyLink) => string
     /** Outer padding around the whole visualization */
@@ -136,6 +137,8 @@ export function Sankey({
     links,
     width,
     height,
+    totalFlowVolume,
+    linkLowVolumeThreshold,
     nodeColor,
     linkColor,
     margin = DEFAULT_MARGIN,
@@ -205,6 +208,7 @@ export function Sankey({
             .nodeWidth(nodeWidth)
             .nodePadding(nodePadding)
             .nodeSort(null) // Sort by input order
+            .linkSort(null) // Sort by input order
             .extent([
                 [resolvedMargin.left, resolvedMargin.top],
                 [width - resolvedMargin.right, height - resolvedMargin.bottom],
@@ -246,8 +250,6 @@ export function Sankey({
         innerMargin,
         fontSettings,
     ])
-
-    const linkPath = sankeyLinkHorizontal<SankeyNode, SankeyLink>()
 
     const labels = useMemo<PlacedSankeyLabel[]>(
         () => placeSankeyLabels({ layout, nodePadding, fontSettings }),
@@ -484,10 +486,11 @@ export function Sankey({
                                 makeNodeId(link.target)
                             )}
                             link={link}
-                            linkPath={linkPath}
                             linkColor={linkColor}
                             isHovered={hoveredLink === link}
                             isActive={activeLinks.has(link)}
+                            totalFlowVolume={totalFlowVolume}
+                            linkLowVolumeThreshold={linkLowVolumeThreshold}
                         />
                     ))}
                 </g>
@@ -538,36 +541,75 @@ export function Sankey({
 
 function SankeyLink({
     link,
-    linkPath,
     linkColor,
     isHovered,
     isActive,
+    totalFlowVolume,
+    linkLowVolumeThreshold,
 }: {
     link: LaidOutLink
-    linkPath: (link: LaidOutLink) => string | null
     linkColor?: (link: SankeyLink) => string
     isHovered?: boolean
     isActive?: boolean
+    totalFlowVolume?: number
+    linkLowVolumeThreshold?: number
 }): React.ReactElement | null {
-    const path = linkPath(link)
+    const path = makeSankeyRibbonPath(link)
     if (!path) return null
 
     const color = linkColor?.(toLinkData(link)) ?? GRAPHER_DENIM
-    const width = Math.max(0.5, link.width ?? 0)
+
+    const isLowVolume =
+        totalFlowVolume &&
+        linkLowVolumeThreshold &&
+        link.value / totalFlowVolume < linkLowVolumeThreshold
 
     const className = cx("sankey__link", {
         "sankey__link--hovered": isHovered,
         "sankey__link--active": isActive,
+        "sankey__link--low-volume": isLowVolume,
     })
 
-    return (
-        <path
-            className={className}
-            d={path}
-            stroke={color}
-            strokeWidth={width}
-        />
-    )
+    return <path className={className} d={path} fill={color} />
+}
+
+// d3-sankey builds a single curved centerline for each link, and the visible band is a thick stroke around it.
+// This works well for thin links, but for wider, bendy links it can result in messy-looking ribbons and overlaps.
+// Instead, we build a filled ribbon. This keeps large links from visually spilling over neighboring ribbons on sharp bends.
+function makeSankeyRibbonPath(link: LaidOutLink): string | null {
+    const sourceNode = link.source as LaidOutNode
+    const targetNode = link.target as LaidOutNode
+
+    const x0 = sourceNode.x1
+    const x1 = targetNode.x0
+    const y0 = link.y0
+    const y1 = link.y1
+    const width = link.width ?? 0
+
+    if (
+        x0 === undefined ||
+        x1 === undefined ||
+        y0 === undefined ||
+        y1 === undefined ||
+        width <= 0
+    ) {
+        return null
+    }
+
+    const halfWidth = Math.max(0.25, width / 2)
+    const xi = (x0 + x1) / 2
+    const y0Top = y0 - halfWidth
+    const y0Bottom = y0 + halfWidth
+    const y1Top = y1 - halfWidth
+    const y1Bottom = y1 + halfWidth
+
+    return [
+        `M${x0},${y0Top}`, // start point: left top
+        `C${xi},${y0Top},${xi},${y1Top},${x1},${y1Top}`, // top curve to right top
+        `L${x1},${y1Bottom}`, // line to right bottom
+        `C${xi},${y1Bottom},${xi},${y0Bottom},${x0},${y0Bottom}`, // bottom curve to left bottom
+        "Z", // close path back to start
+    ].join("")
 }
 
 function SankeyNode({

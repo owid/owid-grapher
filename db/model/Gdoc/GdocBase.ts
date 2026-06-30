@@ -95,6 +95,7 @@ import { getDods } from "../Dod.js"
 import { getLatestArchivedExplorerPageVersionsIfEnabled } from "../ArchivedExplorerVersion.js"
 import { getLatestArchivedMultiDimPageVersionsIfEnabled } from "../ArchivedMultiDimVersion.js"
 import { getLatestArchivedChartPageVersionsIfEnabled } from "../ArchivedChartVersion.js"
+import { documentContainsMixedStraightAndCurlyQuotes } from "./gdocValidation.js"
 
 const BASE_URL = IS_ARCHIVE ? PROD_URL : BAKED_BASE_URL
 
@@ -1077,11 +1078,14 @@ export class GdocBase implements OwidGdocBaseInterface {
     }
 
     async validate(knex: db.KnexReadonlyTransaction): Promise<void> {
+        const serializedContent = this.content
+            ? JSON.stringify(this.content)
+            : ""
         const whitespaceErrors: OwidGdocErrorMessage[] = []
-        const documentContainsInvalidWhitespace = this.content
-            ? // match on actual whitespace or the literal string '\u000b'
-              /[\v\t\r]|\\u000b/g.test(JSON.stringify(this.content))
-            : false
+        // match on actual whitespace or the literal string '\u000b'
+        const documentContainsInvalidWhitespace = /[\v\t\r]|\\u000b/g.test(
+            serializedContent
+        )
 
         if (documentContainsInvalidWhitespace) {
             whitespaceErrors.push({
@@ -1089,6 +1093,16 @@ export class GdocBase implements OwidGdocBaseInterface {
                 message:
                     "The gdoc contains invalid whitespace characters. To find them, try searching the gdoc for '[\\v\\t\\r\\u000b]' in the 'Find and replace' menu with the 'Use regular expressions' option enabled. Replace them with newlines (i.e. backspace them then press the enter key) or spaces.",
                 type: OwidGdocErrorMessageType.Error,
+            })
+        }
+
+        const quoteErrors: OwidGdocErrorMessage[] = []
+        if (documentContainsMixedStraightAndCurlyQuotes(serializedContent)) {
+            quoteErrors.push({
+                property: "body",
+                message:
+                    "The gdoc contains a mix of straight and curly apostrophes or quotation marks. This is sometimes intentional, but please check for inconsistent quote styles before publishing.",
+                type: OwidGdocErrorMessageType.Warning,
             })
         }
 
@@ -1374,6 +1388,7 @@ export class GdocBase implements OwidGdocBaseInterface {
         const subclassErrors = await this._validateSubclass(knex, this)
         this.errors = [
             ...whitespaceErrors,
+            ...quoteErrors,
             ...authorErrors,
             ...filenameErrors,
             ...linkErrors,

@@ -1,5 +1,5 @@
 import * as _ from "lodash-es"
-import cx from "classnames"
+import cx from "clsx"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowDown } from "@fortawesome/free-solid-svg-icons"
 import dayjs from "dayjs"

@@ -19,7 +19,7 @@ import { SiteSearchNavigation } from "./SiteSearchNavigation.js"
 import { SiteMobileMenu } from "./SiteMobileMenu.js"
 import { SiteNavigationToggle } from "./SiteNavigationToggle.js"
 import { buildLatestPagePath } from "./latest/latestUtils.js"
-import classnames from "classnames"
+import classnames from "clsx"
 import { useTriggerOnEscape } from "./hooks.js"
 import { useTopicTagGraph } from "./search/searchHooks.js"
 import {

@@ -39,7 +39,7 @@ const GdocCommonErrors = ({
                 <Alert
                     key={index}
                     className="GdocsSettingsForm__alert"
-                    message={error.message}
+                    title={error.message}
                     type={error.type}
                     showIcon
                 />
@@ -391,10 +391,9 @@ export const GdocProfileSettings = ({
                     <strong>Preview entity</strong>
                 </label>
                 <Select
-                    showSearch
+                    showSearch={{ optionFilterProp: "label" }}
                     style={{ width: "100%" }}
                     placeholder="Select a country to preview"
-                    optionFilterProp="label"
                     value={selectedEntity}
                     onChange={setSelectedEntity}
                     options={entitiesInScope}

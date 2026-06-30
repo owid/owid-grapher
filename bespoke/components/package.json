@@ -10,18 +10,18 @@
         "@ourworldindata/grapher": "link:../../packages/@ourworldindata/grapher",
         "@ourworldindata/types": "link:../../packages/@ourworldindata/types",
         "@ourworldindata/utils": "link:../../packages/@ourworldindata/utils",
-        "@visx/drag": "^3.12.0",
-        "classnames": "^2.5.1",
+        "@visx/drag": "^4.0.0",
+        "clsx": "^2.1.1",
         "d3-sankey": "^0.12.3",
-        "react": "^19.2.4",
+        "react": "^19.2.7",
         "react-aria-components": "^1.18.0",
-        "remeda": "^2.21.0",
-        "ts-pattern": "^5.8.0"
+        "remeda": "^2.39.0",
+        "ts-pattern": "^5.9.0"
     },
     "devDependencies": {
         "@types/d3-sankey": "^0.12.5",
-        "@typescript/native-preview": "^7.0.0-dev.20260401.1",
-        "vitest": "^4.1.2"
+        "@typescript/native-preview": "^7.0.0-dev.20260613.1",
+        "vitest": "^4.1.8"
     },
     "scripts": {
         "build": "",

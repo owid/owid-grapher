@@ -6,7 +6,7 @@ import {
 } from "@ourworldindata/utils"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons"
-import classnames from "classnames"
+import classnames from "clsx"
 import { SiteNavigationTopic } from "./SiteNavigationTopic.js"
 
 export const SiteNavigationTopics = ({

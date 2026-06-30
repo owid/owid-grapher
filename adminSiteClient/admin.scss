@@ -30,6 +30,7 @@
 @import "./FilesIndexPage.scss";
 @import "./TagGraphPage.scss";
 @import "./DodsIndexPage.scss";
+@import "./OrphanedArticlesIndexPage.scss";
 @import "./SortableList.scss";
 @import "./StaticViz.scss";
 @import "./MultiDimDetailPage.scss";
@@ -1491,7 +1492,7 @@ main:not(.ChartEditorPage):not(.GdocsEditPage):not(.MultiDimDetailPage) {
             right: 0;
             bottom: 0;
             left: 0;
-            z-index: 1;
+            z-index: 10;
             display: flex;
             align-items: center;
             justify-content: center;

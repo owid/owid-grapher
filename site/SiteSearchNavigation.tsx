@@ -1,4 +1,4 @@
-import cx from "classnames"
+import cx from "clsx"
 import { Autocomplete } from "./search/Autocomplete.js"
 
 export const SiteSearchNavigation = ({

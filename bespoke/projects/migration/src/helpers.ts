@@ -31,13 +31,16 @@ export function getSexNoun(sexAdjective: string | undefined): string {
         .otherwise(() => "people")
 }
 
-export const formatPeople = (v: number, opts?: { unit?: boolean }): string =>
-    formatValue(v, {
+export const formatPeople = (v: number, opts?: { unit?: boolean }): string => {
+    const numSignificantFigures = v < 10 ? 1 : 2
+
+    return formatValue(v, {
         unit: opts?.unit === false ? undefined : "people",
         numberAbbreviation: "long",
         roundingMode: OwidVariableRoundingMode.significantFigures,
-        numSignificantFigures: 2,
+        numSignificantFigures,
     })
+}
 
 export function formatShare(share: number): string {
     const pct = share * 100
@@ -56,3 +59,5 @@ export function capItems<T>(items: T[]): { visible: T[]; hiddenCount: number } {
     const visible = showAll ? items : items.slice(0, 8)
     return { visible, hiddenCount: items.length - visible.length }
 }
+
+export const OTHERS_ENTITY_NAME = "Other countries"

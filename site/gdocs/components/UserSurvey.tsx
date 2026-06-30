@@ -4,7 +4,7 @@ import {
     faXmark,
 } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import cx from "classnames"
+import cx from "clsx"
 import * as _ from "lodash-es"
 import * as React from "react"
 import { useEffect, useRef, useState } from "react"

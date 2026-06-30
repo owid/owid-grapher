@@ -1,5 +1,5 @@
 import { LatestType, OwidEnrichedGdocBlock } from "@ourworldindata/types"
-import cx from "classnames"
+import cx from "clsx"
 import LinkedAuthor from "../gdocs/components/LinkedAuthor.js"
 import { Cta } from "../gdocs/components/Cta.js"
 import { ExpandableText } from "./ExpandableText.js"

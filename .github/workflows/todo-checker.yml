@@ -6,6 +6,11 @@ on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
 
+permissions:
+  contents: read
+  pull-requests: write
+  statuses: write
+
 jobs:
   find_todos:
     runs-on: ubuntu-latest
@@ -14,9 +19,11 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
 
       - name: Check for Todos
-        uses: phntmxyz/pr_todo_checker@v1
+        uses: phntmxyz/pr_todo_checker@ca2891552a6cd4069c6afb83c955133e77dac685 # v1.2.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}

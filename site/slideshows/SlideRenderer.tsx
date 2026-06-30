@@ -1,5 +1,5 @@
 import React from "react"
-import cx from "classnames"
+import cx from "clsx"
 import { Slide, SlideTemplate, ImageMetadata } from "@ourworldindata/types"
 import { SimpleMarkdownText } from "@ourworldindata/components"
 import { CLOUDFLARE_IMAGES_URL } from "../../settings/clientSettings.js"
@@ -43,6 +43,7 @@ export function SlideRenderer(props: {
                         {slide.subtitle && (
                             <span>
                                 <SimpleMarkdownText
+                                    openLinksInNewTab
                                     text={slide.subtitle}
                                     useParagraphs={false}
                                 />
@@ -53,6 +54,7 @@ export function SlideRenderer(props: {
                 )}
                 <h1 className="cover-title">
                     <SimpleMarkdownText
+                        openLinksInNewTab
                         text={slide.title}
                         useParagraphs={false}
                     />
@@ -65,10 +67,11 @@ export function SlideRenderer(props: {
         .with({ template: SlideTemplate.Image }, (slide) => (
             <div className={`${className} slideshow-slide--image`}>
                 {!slide.hideLogo && <SlideLogo />}
-                {slide.slideTitle && (
+                {slide.title && (
                     <h1 className="slideshow-slide-title">
                         <SimpleMarkdownText
-                            text={slide.slideTitle}
+                            openLinksInNewTab
+                            text={slide.title}
                             useParagraphs={false}
                         />
                     </h1>
@@ -84,7 +87,10 @@ export function SlideRenderer(props: {
                                 "slideshow-slide__text--large": slide.largeText,
                             })}
                         >
-                            <SimpleMarkdownText text={slide.text} />
+                            <SimpleMarkdownText
+                                text={slide.text}
+                                openLinksInNewTab
+                            />
                         </div>
                     )}
                 </div>
@@ -96,6 +102,7 @@ export function SlideRenderer(props: {
                 {slide.title && (
                     <h1 className="slideshow-slide-title">
                         <SimpleMarkdownText
+                            openLinksInNewTab
                             text={slide.title}
                             useParagraphs={false}
                         />
@@ -104,6 +111,7 @@ export function SlideRenderer(props: {
                 {slide.subtitle && (
                     <p className="slideshow-slide-subtitle">
                         <SimpleMarkdownText
+                            openLinksInNewTab
                             text={slide.subtitle}
                             useParagraphs={false}
                         />
@@ -126,7 +134,10 @@ export function SlideRenderer(props: {
                                 "slideshow-slide__text--large": slide.largeText,
                             })}
                         >
-                            <SimpleMarkdownText text={slide.text} />
+                            <SimpleMarkdownText
+                                text={slide.text}
+                                openLinksInNewTab
+                            />
                         </div>
                     )}
                 </div>
@@ -138,13 +149,14 @@ export function SlideRenderer(props: {
                 {slide.title && (
                     <h1 className="slideshow-slide-title">
                         <SimpleMarkdownText
+                            openLinksInNewTab
                             text={slide.title}
                             useParagraphs={false}
                         />
                     </h1>
                 )}
                 <div className="slideshow-slide-contents__list">
-                    <SimpleMarkdownText text={slide.text} />
+                    <SimpleMarkdownText text={slide.text} openLinksInNewTab />
                 </div>
             </div>
         ))
@@ -153,6 +165,7 @@ export function SlideRenderer(props: {
                 {!slide.hideLogo && <SlideLogo />}
                 <h1 className="slideshow-slide-statement__text">
                     <SimpleMarkdownText
+                        openLinksInNewTab
                         text={slide.text}
                         useParagraphs={false}
                     />
@@ -170,6 +183,7 @@ export function SlideRenderer(props: {
                 {slide.title && (
                     <h1 className="slideshow-slide-title">
                         <SimpleMarkdownText
+                            openLinksInNewTab
                             text={slide.title}
                             useParagraphs={false}
                         />
@@ -180,7 +194,7 @@ export function SlideRenderer(props: {
                         "slideshow-slide__text-body--large": slide.largeText,
                     })}
                 >
-                    <SimpleMarkdownText text={slide.text} />
+                    <SimpleMarkdownText text={slide.text} openLinksInNewTab />
                 </div>
             </div>
         ))
@@ -190,6 +204,7 @@ export function SlideRenderer(props: {
                 {slide.title && (
                     <h1 className="slideshow-slide-title">
                         <SimpleMarkdownText
+                            openLinksInNewTab
                             text={slide.title}
                             useParagraphs={false}
                         />
@@ -198,6 +213,7 @@ export function SlideRenderer(props: {
                 {slide.subtitle && (
                     <p className="slideshow-slide-subtitle">
                         <SimpleMarkdownText
+                            openLinksInNewTab
                             text={slide.subtitle}
                             useParagraphs={false}
                         />

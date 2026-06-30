@@ -259,7 +259,9 @@ export const archieToEnriched = (
     }
 
     // Parse elements of the ArchieML into enrichedBlocks
-    parsed.body = _.compact(parsed.body.map(parseRawBlocksToEnrichedBlocks))
+    parsed.body = _.compact(
+        (parsed.body ?? []).map(parseRawBlocksToEnrichedBlocks)
+    )
     const deprecationNotice = parsed["deprecation-notice"]
     if (deprecationNotice) {
         parsed["deprecation-notice"] = _.compact(

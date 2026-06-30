@@ -749,6 +749,31 @@ export async function fetchWithRetry(
         retryOptions ?? defaultRetryOptions
     )
 }
+
+// Identify our own server-side calls to the OWID data API (e.g. the baker
+// fetching indicator data while baking, or the grapher Cloudflare functions
+// generating downloads/thumbnails) so analytics can attribute them to us rather
+// than counting them as anonymous external traffic.
+//
+// We *extend* the runtime's own identity rather than replacing it: the UA embeds
+// `navigator.userAgent` ("Node.js/<version>" in the baker, "Cloudflare-Workers"
+// in CF functions) so the two server origins stay distinguishable, and it
+// contains "Our World In Data" so the existing Cloudflare bot-classification
+// rule tags it as internal.
+//
+// Returns undefined in the browser: `User-Agent` is a forbidden header name there
+// and is mostly ignored, but Firefox does send a settable value, which would
+// mislabel real user chart loads as internal and could force a CORS preflight on
+// the cross-origin data API. `typeof window === "undefined"` is true in Node and
+// in Cloudflare Workers, false in browsers.
+export function getOwidDataFetchUserAgent(): string | undefined {
+    if (typeof window !== "undefined") return undefined
+    const runtime =
+        typeof navigator !== "undefined" && navigator.userAgent
+            ? navigator.userAgent
+            : "unknown"
+    return `owid-grapher/1.0 (Our World In Data; +https://ourworldindata.org; ${runtime})`
+}
 export async function retryPromise<T>(
     promiseGetter: () => Promise<T>,
     {

@@ -26,10 +26,10 @@ export function SearchStackedArticleHit({
                 <h3 className="search-stacked-article-hit__title">
                     {hit.title}
                 </h3>
-                {hit.content && (
-                    <p className="search-stacked-article-hit__excerpt">
-                        {hit.content.split(/\s+/).slice(0, 20).join(" ")}…
-                    </p>
+                {hit.excerpt && (
+                    <span className="search-stacked-article-hit__excerpt">
+                        {hit.excerpt}
+                    </span>
                 )}
             </article>
         </a>

@@ -6,6 +6,7 @@ import {
     omitUndefinedValues,
     mergeGrapherConfigs,
     diffGrapherConfigs,
+    getOwidDataFetchUserAgent,
 } from "@ourworldindata/utils"
 import {
     getVariableDataRoute,
@@ -835,12 +836,23 @@ const createS3JsonParseError = (
     )
 }
 
+// Tag our server-side data API fetches with a descriptive User-Agent; see
+// getOwidDataFetchUserAgent. This code only ever runs in Node (the baker and
+// admin), so a value is always present, but we guard for undefined anyway.
+const dataFetchHeaders: HeadersInit | undefined = (() => {
+    const userAgent = getOwidDataFetchUserAgent()
+    return userAgent ? { "User-Agent": userAgent } : undefined
+})()
+
 export const fetchS3DataValuesByPath = async (
     dataPath: string
 ): Promise<OwidVariableMixedData> => {
     const resp = await retryPromise(
         () =>
-            fetch(dataPath, { keepalive: true }).then((response) => {
+            fetch(dataPath, {
+                keepalive: true,
+                headers: dataFetchHeaders,
+            }).then((response) => {
                 if (!response.ok) {
                     // Trigger retry
                     throw new Error(
@@ -867,7 +879,10 @@ export const fetchS3MetadataByPath = async (
 ): Promise<OwidVariableWithSourceAndDimension> => {
     const resp = await retryPromise(
         () =>
-            fetch(metadataPath, { keepalive: true }).then((response) => {
+            fetch(metadataPath, {
+                keepalive: true,
+                headers: dataFetchHeaders,
+            }).then((response) => {
                 if (!response.ok) {
                     // Trigger retry
                     throw new Error(

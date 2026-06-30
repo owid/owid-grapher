@@ -250,12 +250,12 @@ export default function MultiDimRedirectsIndexPage() {
             {notificationContextHolder}
             <main>
                 <Space
-                    direction="vertical"
+                    orientation="vertical"
                     size="large"
                     style={{ width: "100%" }}
                 >
                     <Alert
-                        message="About Multi-Dim Redirects"
+                        title="About Multi-Dim Redirects"
                         description={
                             <>
                                 <Typography.Paragraph className="mb-0">

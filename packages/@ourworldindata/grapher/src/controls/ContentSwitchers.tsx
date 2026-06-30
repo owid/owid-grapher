@@ -1,6 +1,6 @@
 import * as React from "react"
 import { action, computed, observable, makeObservable } from "mobx"
-import cx from "classnames"
+import cx from "clsx"
 import { observer } from "mobx-react"
 import { GrapherTabName } from "@ourworldindata/types"
 import { TabItem, Tabs } from "../tabs/Tabs.js"

@@ -1,4 +1,4 @@
-import cx from "classnames"
+import cx from "clsx"
 import * as R from "remeda"
 import { SearchChartHitDataTableProps } from "@ourworldindata/types"
 import { GrapherTrendArrow } from "@ourworldindata/components"

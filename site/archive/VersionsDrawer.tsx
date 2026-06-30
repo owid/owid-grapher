@@ -1,4 +1,4 @@
-import cx from "classnames"
+import cx from "clsx"
 import { ModalOverlay, Modal, Dialog } from "react-aria-components"
 import type { QueryStatus } from "@tanstack/react-query"
 import { CloseButton, LoadingIndicator } from "@ourworldindata/components"

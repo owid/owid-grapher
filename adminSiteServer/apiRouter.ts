@@ -49,6 +49,7 @@ import {
     setGdocTags,
     getPreviewGdocIndexRecords,
     getPublishedGdocTopicSlugs,
+    getResearchAndWritingOrphans,
 } from "./apiRoutes/gdocs.js"
 import {
     getImagesHandler,
@@ -369,6 +370,11 @@ getRouteWithROTransaction(
     apiRouter,
     "/gdocs/publishedTopicSlugs",
     getPublishedGdocTopicSlugs
+)
+getRouteWithROTransaction(
+    apiRouter,
+    "/gdocs/researchAndWritingOrphans",
+    getResearchAndWritingOrphans
 )
 getRouteNonIdempotentWithRWTransaction(
     apiRouter,

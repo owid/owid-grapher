@@ -173,21 +173,13 @@ export class VisionDeficiencyDropdown extends Component<VisionDeficiencyDropdown
                 optionLabelProp="label"
                 placement="topLeft"
                 style={{ width: "100%" }}
-            >
-                {this.optionGroups.map((group) => (
-                    <Select.OptGroup key={group.label} label={group.label}>
-                        {group.options.map((option) => (
-                            <Select.Option
-                                key={option.value}
-                                value={option.value}
-                                label={option.label}
-                            >
-                                <VisionDeficiencyOptionLabel {...option} />
-                            </Select.Option>
-                        ))}
-                    </Select.OptGroup>
-                ))}
-            </Select>
+                options={this.optionGroups}
+                optionRender={(option) => (
+                    <VisionDeficiencyOptionLabel
+                        {...(option.data as unknown as VisionDeficiencyEntity)}
+                    />
+                )}
+            />
         )
     }
 }

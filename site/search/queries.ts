@@ -5,8 +5,8 @@ import {
     OwidGdocType,
     TagGraphRoot,
     SearchState,
-    SearchChartsResponse,
     SearchChartHit,
+    SearchChartsResponse,
     SearchDataTopicsResponse,
     SearchDataInsightResponse,
     DataInsightHit,
@@ -45,7 +45,6 @@ import {
     SearchResponse as TypesenseSearchResponse,
     SearchResponseHit,
 } from "typesense/lib/Typesense/Documents.js"
-import { SearchResponse as AlgoliaSearchResponse } from "instantsearch.js"
 
 function makeStateForKey(state: SearchState) {
     return R.pick(state, ["query", "filters", "requireAllCountries"])
@@ -77,7 +76,7 @@ function mapTypesenseResponse<
     query: string,
     page: number,
     perPage: number
-): AlgoliaSearchResponse<THit> {
+): SearchResponse<THit> {
     // When group_by is used, results come back in grouped_hits.
     // Extract the first hit from each group (group_limit: 1).
     const rawHits: SearchResponseHit<TDoc>[] =
@@ -102,7 +101,7 @@ function mapTypesenseResponse<
         query,
         params: "",
         processingTimeMS: response.search_time_ms || 0,
-    } as AlgoliaSearchResponse<THit>
+    } as SearchResponse<THit>
 }
 
 /** Build a Typesense filter_by string combining type filter and optional extra filters. */
@@ -493,7 +492,8 @@ export async function queryArticles(
                 formatTypeFilter(OwidGdocType.Article, OwidGdocType.AboutPage),
                 formatTopicFacetFiltersTypesense(selectedTopics)
             ),
-            include_fields: "title,thumbnailUrl,date,slug,type,content,authors",
+            include_fields:
+                "title,thumbnailUrl,date,slug,type,content,excerpt,authors",
             highlight_start_tag: "<mark>",
             highlight_end_tag: "</mark>",
             group_by: "slug",
@@ -627,7 +627,7 @@ const LATEST_BASE_FILTER = LATEST_FEED_TYPE_VALUES.map((t) => `type:${t}`).join(
     " OR "
 )
 
-// Issues three searches in a single batched `liteSearchClient.search([...])`
+// Issues three searches in a single batched `liteSearchClient.searchForHits([...])`
 // call (one network round-trip): the paginated card list plus per-axis facet
 // counts used to disable filter options that would yield zero results. Each
 // facet-count query drops its own axis so the returned counts reflect "what
@@ -642,7 +642,7 @@ export async function queryLatestPages(
     offset: number,
     length: number,
     latestType: LatestType | null = null
-): Promise<LatestPagesResult> {
+) {
     // Each axis lives in its own `facetFilters` group so queries can include
     // or omit it independently. Multiple topics are OR'd within their group.
     const topicFacetFilters =
@@ -688,21 +688,16 @@ export async function queryLatestPages(
         },
     ]
 
-    return liteSearchClient
-        .search<PageChronologicalRecord>(searchParams)
-        .then((response) => {
-            const mainResult = response
-                .results[0] as SearchResponse<PageChronologicalRecord>
-            const typeResult = response
-                .results[1] as SearchResponse<PageChronologicalRecord>
-            const topicResult = response
-                .results[2] as SearchResponse<PageChronologicalRecord>
-            return {
-                response: mainResult,
-                tagFacetCounts: topicResult.facets?.tags ?? {},
-                latestTypeFacetCounts: typeResult.facets?.latestType ?? {},
-            }
-        })
+    const response =
+        await liteSearchClient.searchForHits<PageChronologicalRecord>(
+            searchParams
+        )
+    const [mainResult, typeResult, topicResult] = response.results
+    return {
+        response: mainResult,
+        tagFacetCounts: topicResult.facets?.tags ?? {},
+        latestTypeFacetCounts: typeResult.facets?.latestType ?? {},
+    }
 }
 
 export async function queryWritingTopics(
@@ -728,7 +723,7 @@ export async function queryWritingTopics(
                     ),
                     topicFilter
                 ),
-                include_fields: "title,slug,thumbnailUrl,content,type",
+                include_fields: "title,slug,thumbnailUrl,content,excerpt,type",
                 highlight_start_tag: "<mark>",
                 highlight_end_tag: "</mark>",
                 group_by: "slug",

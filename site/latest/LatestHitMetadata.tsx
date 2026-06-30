@@ -4,6 +4,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     faArrowPointer,
     faBook,
+    faBookmark,
     faChartLine,
     faLightbulb,
     faNewspaper,
@@ -17,6 +18,7 @@ const LATEST_TYPE_ICONS: Record<LatestType, IconDefinition> = {
     article: faBook,
     "data-insight": faLightbulb,
     "data-update": faChartLine,
+    "topic-update": faBookmark,
     "website-upgrade": faArrowPointer,
     announcement: faNewspaper,
 }

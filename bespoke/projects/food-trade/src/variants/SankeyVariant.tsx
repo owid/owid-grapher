@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from "react"
-import cx from "classnames"
+import cx from "clsx"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { NuqsAdapter } from "nuqs/adapters/react"
 import { parseAsString, parseAsStringEnum } from "nuqs"
@@ -12,11 +12,16 @@ import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
 import { ChartFooter } from "../../../../components/ChartFooter/ChartFooter.js"
 
 import { SankeyVariantConfig, Flow, VariantProps } from "../config.js"
-import { FoodTradeMetadata, ProductTradeData, TradeRow } from "../types.js"
+import { FoodTradeMetadata, ProductTradeData, Mode } from "../types.js"
 import { useFoodTradeMetadata, useProductTradeData } from "../data.js"
 import { FoodTradeControls } from "../components/FoodTradeControls.js"
 import { FoodTradeChart } from "../components/FoodTradeChart.js"
-import { ALL_COUNTRIES, formatTrade, isAllCountry } from "../helpers.js"
+import {
+    ALL_COUNTRIES,
+    formatTrade,
+    isAllCountry,
+    BILATERAL_LOW_VOLUME_THRESHOLD,
+} from "../helpers.js"
 import { useUrlState } from "../../../../hooks/useUrlState.js"
 import { useDelayedLoading } from "../../../../hooks/useDelayedLoading.js"
 import { useContainerWidth } from "../../../../hooks/useContainerWidth.js"
@@ -193,6 +198,16 @@ function CaptionedSankeyVariant({
     // as a placeholder
     const displayedProduct = productData.product
 
+    const mode = useMemo<Mode>(
+        () => (isAllCountry(country) ? "bilateral" : "split"),
+        [country]
+    )
+
+    const tradedTotal = useMemo(
+        () => R.sumBy(productData.flows, (d) => d.value),
+        [productData.flows]
+    )
+
     return (
         <>
             {!shouldHideChrome && (
@@ -227,7 +242,8 @@ function CaptionedSankeyVariant({
                     product={displayedProduct}
                     year={metadata.year}
                     view={view}
-                    flows={productData.flows}
+                    tradedTotal={tradedTotal}
+                    mode={mode}
                 />
                 <FoodTradeChart
                     productData={productData}
@@ -235,6 +251,7 @@ function CaptionedSankeyVariant({
                     product={displayedProduct}
                     year={metadata.year}
                     view={view}
+                    mode={mode}
                     isLoading={isLoading}
                     hideFlowSwitcher={config.hideFlowSwitcher}
                     setCountry={setCountry}
@@ -244,6 +261,8 @@ function CaptionedSankeyVariant({
                     source={metadata.source}
                     country={country}
                     view={view}
+                    tradedTotal={tradedTotal}
+                    mode={mode}
                 />
             </Frame>
         </>
@@ -256,20 +275,18 @@ function FoodTradeChartHeader({
     product,
     year,
     view,
-    flows,
+    mode,
+    tradedTotal,
 }: {
     config: SankeyVariantConfig
     country: string
     product: string
     year: number
     view: Flow
-    flows: TradeRow[]
+    mode: Mode
+    tradedTotal: number
 }) {
-    const mode: "bilateral" | "centered" = isAllCountry(country)
-        ? "bilateral"
-        : "centered"
-    const hasAnyTrade = flows.length > 0
-    const tradedTotal = useMemo(() => R.sumBy(flows, (d) => d.value), [flows])
+    const hasAnyTrade = tradedTotal > 0
 
     const defaultTitle =
         mode === "bilateral"
@@ -281,17 +298,17 @@ function FoodTradeChartHeader({
                 : `${product} trade through ${articulateEntity(country)} in ${year}`
 
     const defaultSubtitle: React.ReactNode =
-        mode === "centered" && view === "both" ? (
+        mode === "split" && view === "both" ? (
             <>
                 Imports and exports of {R.uncapitalize(product)}, as reported by
                 importing countries.
             </>
-        ) : mode === "centered" && view === "import" ? (
+        ) : mode === "split" && view === "import" ? (
             <>
                 {product} imported into {articulateEntity(country)}, as reported
                 by the importing country.
             </>
-        ) : mode === "centered" && view === "export" ? (
+        ) : mode === "split" && view === "export" ? (
             <>
                 {product} exported by {articulateEntity(country)}, as reported
                 by importing countries.
@@ -315,10 +332,14 @@ function FoodTradeChartFooter({
     source,
     country,
     view,
+    mode,
+    tradedTotal,
 }: {
     source: string
     country: string
     view: Flow
+    mode: Mode
+    tradedTotal: number
 }) {
     const topPartners =
         'Only the largest partners are shown; the rest are grouped as "Other".'
@@ -329,7 +350,17 @@ function FoodTradeChartFooter({
               ? "Figures reflect data reported by importing countries, which may differ from export records."
               : "Figures reflect trade reported by importers, which may differ from export records."
 
-    return <ChartFooter source={source} note={`${topPartners} ${reporting}`} />
+    const lowVolumeLinksTotal = tradedTotal * BILATERAL_LOW_VOLUME_THRESHOLD
+    const smallFlowsNote =
+        mode === "bilateral"
+            ? `Trade flows smaller than ${formatTrade(lowVolumeLinksTotal)} (${BILATERAL_LOW_VOLUME_THRESHOLD * 100}% of the total trade volume) are shown with reduced opacity.`
+            : ""
+
+    const note = [topPartners, reporting, smallFlowsNote]
+        .filter(Boolean)
+        .join(" ")
+
+    return <ChartFooter source={source} note={note} />
 }
 
 function FoodTradeSkeleton() {

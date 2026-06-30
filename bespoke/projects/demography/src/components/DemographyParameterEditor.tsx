@@ -672,16 +672,16 @@ function DemographyParameterEditorContent({
 
 export const DemographyParameterEditor = memo(
     function DemographyParameterEditor(props: DemographyParameterEditorProps) {
-        const { parentRef, width, height } = useParentSize()
+        const { parentRef, width, height, node: parentNode } = useParentSize()
 
         // Inside a Shadow DOM, portal overlays back into the shadow root so
         // the chart's styles apply.
         const getPortalContainer = useCallback(() => {
-            const root = parentRef.current?.getRootNode()
+            const root = parentNode?.getRootNode()
             if (root instanceof ShadowRoot)
                 return root as unknown as HTMLElement
             return document.body
-        }, [parentRef])
+        }, [parentNode])
 
         return (
             <div

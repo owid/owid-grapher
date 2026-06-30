@@ -7,7 +7,7 @@ import {
     HIDE_IF_JS_ENABLED_CLASSNAME,
 } from "@ourworldindata/types"
 import { useLinkedNarrativeChart } from "../utils.js"
-import cx from "classnames"
+import cx from "clsx"
 import { BlockErrorFallback } from "./BlockErrorBoundary.js"
 import SpanElements from "./SpanElements.js"
 import { useDocumentContext } from "../DocumentContext.js"

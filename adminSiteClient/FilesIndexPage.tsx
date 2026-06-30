@@ -5,7 +5,7 @@ import { Flex, Input, Breadcrumb, Space, Tooltip } from "antd"
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext } from "./AdminAppContext.js"
 import { DbPlainFile } from "@ourworldindata/types"
-import cx from "classnames"
+import cx from "clsx"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Admin } from "./Admin.js"
 import urlJoin from "url-join"
@@ -335,7 +335,7 @@ export function FilesIndexPage() {
     return (
         <AdminLayout title="Files">
             <main className="FilesIndexPage">
-                <Space direction="vertical" style={{ width: "100%" }}>
+                <Space orientation="vertical" style={{ width: "100%" }}>
                     <Flex justify="space-between" align="center">
                         <Input
                             placeholder="Search files and folders (min 4 characters)"

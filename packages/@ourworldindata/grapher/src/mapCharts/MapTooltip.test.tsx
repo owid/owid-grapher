@@ -73,3 +73,39 @@ test("map tooltip renders iff mouseenter", () => {
     ).toContain("% of children under 5")
     expect(tooltip.querySelector(".variable .values")).toHaveTextContent("4%")
 })
+
+test("map tooltip renders custom no data label", () => {
+    const customState = new GrapherState({
+        ...legacyMapGrapher,
+        map: {
+            ...legacyMapGrapher.map,
+            colorScale: {
+                customCategoryLabels: {
+                    "No data": "Missing Info",
+                },
+            },
+        },
+    })
+    customState.inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
+        legacyMapGrapherData,
+        legacyMapGrapher.dimensions!,
+        legacyMapGrapher.selectedEntityColors
+    )
+
+    const { container } = render(<Grapher grapherState={customState} />)
+
+    // Hover over a country that has no data (e.g. Argentina)
+    const argentinaPath = container.querySelector(
+        'path[data-feature-id="Argentina"]'
+    )
+    assert(argentinaPath, "Argentina path should exist")
+    fireEvent.pointerEnter(argentinaPath, {
+        clientX: 50,
+        clientY: 50,
+    })
+
+    const tooltip = screen.getByRole("tooltip")
+    expect(tooltip.querySelector(".variable .values")).toHaveTextContent(
+        "Missing Info"
+    )
+})

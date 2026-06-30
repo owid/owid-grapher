@@ -1,6 +1,6 @@
 import { ENDNOTES_ID, RefDictionary } from "@ourworldindata/utils"
 import ArticleBlock from "./ArticleBlock.js"
-import cx from "classnames"
+import cx from "clsx"
 
 export default function Footnotes({
     definitions,

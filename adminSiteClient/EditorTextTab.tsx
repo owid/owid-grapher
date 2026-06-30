@@ -5,7 +5,7 @@ import { getErrorMessageRelatedQuestionUrl } from "@ourworldindata/grapher"
 import { copyToClipboard, slugify } from "@ourworldindata/utils"
 import { action, computed, makeObservable, observable, runInAction } from "mobx"
 import { observer } from "mobx-react"
-import { Component } from "react"
+import { Component, ReactElement } from "react"
 import { isChartEditorInstance } from "./ChartEditor.js"
 import {
     AutoTextField,
@@ -183,7 +183,7 @@ export class EditorTextTab<
     }
 
     // Bold the substring matching the user's query in each dropdown option
-    highlightMatch(text: string, query: string): JSX.Element | string {
+    highlightMatch(text: string, query: string): ReactElement | string {
         if (!query) return text
         const idx = text.toLowerCase().indexOf(query.toLowerCase())
         if (idx === -1) return text
@@ -331,11 +331,13 @@ export class EditorTextTab<
                             value={grapherState.originUrl ?? ""}
                             onChange={this.onOriginUrlChange}
                             options={this.originUrlOptions}
-                            filterOption={(inputValue, option) =>
-                                option?.value
-                                    .toLowerCase()
-                                    .includes(inputValue.toLowerCase()) ?? false
-                            }
+                            showSearch={{
+                                filterOption: (inputValue, option) =>
+                                    option?.value
+                                        .toLowerCase()
+                                        .includes(inputValue.toLowerCase()) ??
+                                    false,
+                            }}
                             optionRender={(option) => {
                                 const data = option.data as {
                                     value: string
@@ -369,7 +371,7 @@ export class EditorTextTab<
                                     this.onDropdownNavigated()
                                 }
                             }}
-                            dropdownRender={(menu) => {
+                            popupRender={(menu) => {
                                 const val = grapherState.originUrl ?? ""
                                 const showHint =
                                     val.length > 4 &&
@@ -511,7 +513,7 @@ export class EditorTextTab<
                 {(this.hasCopyAdminURLButton ||
                     this.hasCopyGrapherURLButton) && (
                     <Section name="Copy as Markdown">
-                        <Space direction="vertical" size="small">
+                        <Space orientation="vertical" size="small">
                             {this.hasCopyAdminURLButton && (
                                 <AntdButton
                                     onClick={() =>

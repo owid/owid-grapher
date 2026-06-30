@@ -8,21 +8,25 @@ on:
       - "packages/@ourworldindata/grapher/src/schema/**"
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   commit-default-config:
     runs-on: ubuntu-latest
 
     steps:
       - name: Clone repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
+          persist-credentials: false
           ref: ${{ github.head_ref }}
 
       - uses: ./.github/actions/setup-node-yarn-deps
         with:
           runPostinstallScripts: false
 
-      - uses: hustcer/setup-nu@v3
+      - uses: hustcer/setup-nu@ccd5bb5426b05a32009c2ba967946231f3919c97 # v3.25
         with:
           version: "0.101" # Don't use 0.101 here, as it was a float number and will be convert to 0.101, you can use v0.101/0.101.0 or '0.101'
 
@@ -50,7 +54,19 @@ jobs:
       - name: Run formatter
         run: yarn fixFormatAll
 
-      - uses: stefanzweifel/git-auto-commit-action@v7
-        with:
-          commit_message: "🤖 update default grapher config"
-          file_pattern: "packages/@ourworldindata/grapher/src/schema/defaultGrapherConfig.ts"
+      - name: Commit default grapher config
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git add packages/@ourworldindata/grapher/src/schema/defaultGrapherConfig.ts
+
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+
+          branch="${GITHUB_HEAD_REF:-$GITHUB_REF_NAME}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git commit -m "🤖 update default grapher config"
+          git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "HEAD:$branch"

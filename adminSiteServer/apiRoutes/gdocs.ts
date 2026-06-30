@@ -88,6 +88,14 @@ export async function getAllGdocIndexItems(
     return getAllGdocIndexItemsOrderedByUpdatedAt(trx)
 }
 
+export async function getResearchAndWritingOrphans(
+    req: Request,
+    res: HandlerResponse,
+    trx: db.KnexReadonlyTransaction
+) {
+    return db.getResearchAndWritingOrphans(trx)
+}
+
 export async function getIndividualGdoc(
     req: Request,
     res: HandlerResponse,

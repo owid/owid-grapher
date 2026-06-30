@@ -8,9 +8,10 @@ ENV=development
 # required by /donation/donate
 STRIPE_API_KEY=
 
-# https://www.google.com/recaptcha/admin/site/345413385
+# https://dash.cloudflare.com/?to=/:account/turnstile
 # required by /donation/donate
-RECAPTCHA_SECRET_KEY=
+# for testing: https://developers.cloudflare.com/turnstile/troubleshooting/testing/
+TURNSTILE_SECRET_KEY=
 
 # required by /donation/thank-you
 # see README for getting STRIPE_WEBHOOK_SECRET

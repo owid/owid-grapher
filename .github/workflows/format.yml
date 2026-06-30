@@ -5,6 +5,9 @@ on:
   pull_request:
     branches: [master]
 
+permissions:
+  contents: write
+
 # Runs `oxfmt` on a pull request so everything is nice and formatted!
 # If something's wrong, a new commit fixing the issues will automatically be pushed to the PR branch.
 
@@ -14,8 +17,9 @@ jobs:
 
     steps:
       - name: Clone repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
+          persist-credentials: false
           ref: ${{ github.head_ref }}
 
       - uses: ./.github/actions/setup-node-yarn-deps
@@ -25,6 +29,19 @@ jobs:
       - name: Run formatter
         run: yarn fixFormatAll
 
-      - uses: stefanzweifel/git-auto-commit-action@v7
-        with:
-          commit_message: "🤖 style: format code"
+      - name: Commit formatting changes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git add -A
+
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+
+          branch="${GITHUB_HEAD_REF:-$GITHUB_REF_NAME}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git commit -m "🤖 style: format code"
+          git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "HEAD:$branch"

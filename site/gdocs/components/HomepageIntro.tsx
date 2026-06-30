@@ -1,5 +1,5 @@
 import { RefObject, useContext, useRef, useState } from "react"
-import cx from "classnames"
+import cx from "clsx"
 import {
     EnrichedBlockHomepageIntro,
     EnrichedBlockHomepageIntroPost,

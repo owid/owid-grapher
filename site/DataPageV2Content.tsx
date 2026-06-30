@@ -19,7 +19,9 @@ import {
 } from "../settings/clientSettings.js"
 import AboutThisData from "./AboutThisData.js"
 import DataPageResearchAndWriting from "./DataPageResearchAndWriting.js"
-import { type DownloadSectionProps } from "./DownloadSection.js"
+import DownloadSection, {
+    type DownloadSectionProps,
+} from "./DownloadSection.js"
 import MetadataSection from "./MetadataSection.js"
 import { processRelatedResearch } from "./dataPage.js"
 import { GrapherWithFallback } from "./GrapherWithFallback.js"
@@ -35,6 +37,31 @@ declare global {
     }
 }
 export const OWID_DATAPAGE_CONTENT_ROOT_ID = "owid-datapageJson-root"
+
+type DataPageDownloadSectionProps = Pick<
+    DownloadSectionProps,
+    "archivedChartInfo" | "baseUrl" | "distribution" | "slug"
+>
+
+function DataPageDownloadSection({
+    archivedChartInfo,
+    baseUrl,
+    distribution,
+    slug,
+}: DataPageDownloadSectionProps) {
+    const reactiveQueryStr = useWindowQueryParams()
+    const searchParams = new URLSearchParams(reactiveQueryStr)
+
+    return (
+        <DownloadSection
+            slug={slug}
+            baseUrl={baseUrl}
+            searchParams={searchParams}
+            distribution={distribution}
+            archivedChartInfo={archivedChartInfo}
+        />
+    )
+}
 
 export const DataPageV2Content = ({
     datapageData,
@@ -52,7 +79,6 @@ export const DataPageV2Content = ({
     const slug = grapherConfig.slug
     const queryStr =
         typeof window !== "undefined" ? window?.location?.search : undefined
-    const reactiveQueryStr = useWindowQueryParams()
 
     // Initialize the grapher for client-side rendering
     const mergedGrapherConfig: GrapherProgrammaticInterface = useMemo(
@@ -84,27 +110,18 @@ export const DataPageV2Content = ({
         }
     }, [])
 
-    const downloadProps: DownloadSectionProps | undefined = useMemo(() => {
-        if (!slug) return undefined
-
-        // Note: yColumns is not passed here, which means the short column names
-        // option won't be visible in the download section on data pages.
-        //
-        // To enable this feature on data pages, we would need to:
-        // 1. Load variable metadata on the server to get column definitions with shortName
-        // 2. Pass that data through to this component (similar to how datapageData is passed)
-        // 3. Extract yColumns from the variable metadata and pass them here
-        //
-        // Without yColumns, users can still download data via the API URLs shown
-        // in the "Data API" section, where they can manually add
-        // &useColumnShortNames=true
-        return {
-            slug,
-            baseUrl: `${BAKED_GRAPHER_URL}/${slug}`,
-            searchParams: new URLSearchParams(reactiveQueryStr),
-            distribution,
-        }
-    }, [distribution, reactiveQueryStr, slug])
+    // Note: yColumns is not passed here, which means the short column names
+    // option won't be visible in the download section on data pages. To enable
+    // this feature, we'd need to load variable metadata on the server and pass
+    // the column definitions through to this component.
+    const downloadSection = slug ? (
+        <DataPageDownloadSection
+            slug={slug}
+            baseUrl={`${BAKED_GRAPHER_URL}/${slug}`}
+            distribution={distribution}
+            archivedChartInfo={archiveContext}
+        />
+    ) : undefined
 
     return (
         <AttachmentsContext.Provider
@@ -237,7 +254,7 @@ export const DataPageV2Content = ({
                         title={datapageData.title}
                         titleVariant={datapageData.titleVariant}
                         archiveContext={archiveContext}
-                        downloadProps={downloadProps}
+                        downloadSection={downloadSection}
                     />
                 </div>
             </DocumentContext.Provider>

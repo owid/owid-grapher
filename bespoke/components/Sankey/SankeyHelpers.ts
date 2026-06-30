@@ -23,7 +23,6 @@ export const DEFAULT_MAX_NODES_TO_SHRINK_OTHER = 10
 export const STACKED_MAX_NODES_TO_SHRINK_OTHER = 10
 /** Smallest share of the column total a node may have and still be drawn on its own */
 export const DEFAULT_MIN_NODE_SHARE = 0.01
-export const DEFAULT_MIN_LINK_SHARE = 0.01
 
 export const OTHER_KEY = "__other__"
 
@@ -107,7 +106,11 @@ export function assignColors(entities: string[]): Map<string, string> {
  * Group flow rows by entity on the given side, sum their values, and sort
  * descending by total.
  */
-export function aggregateBySide(flows: Flow[], side: LinkSide): EntityTotal[] {
+export function aggregateBySide(
+    flows: Flow[],
+    side: LinkSide,
+    entitiesToSortLast: string[] = []
+): EntityTotal[] {
     return R.pipe(
         flows,
         R.groupBy((r) => r[side]),
@@ -116,6 +119,9 @@ export function aggregateBySide(flows: Flow[], side: LinkSide): EntityTotal[] {
             entity,
             total: R.sumBy(group, (r) => r.value),
         })),
-        R.sortBy([(d) => d.total, "desc"])
+        R.sortBy(
+            [(d) => (entitiesToSortLast.includes(d.entity) ? 1 : 0), "asc"],
+            [(d) => d.total, "desc"]
+        )
     )
 }

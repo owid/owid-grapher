@@ -228,6 +228,8 @@ export {
     type OwidGdocContent,
     type OwidGdocIndexItem,
     extractGdocIndexItem,
+    type OrphanedTopicArticle,
+    type TopicPageOrphanReport,
     type NarrativeChartInfo,
     type OwidGdocDataInsightIndexItem,
 } from "./gdocTypes/Gdoc.js"
@@ -613,6 +615,7 @@ export {
 export {
     SlideTemplate,
     SLIDE_TEMPLATE_LABELS,
+    SLIDE_TEMPLATE_FIELDS,
     type SlideImageOnly,
     type SlideChartOnly,
     type SlideTwoCharts,
@@ -713,6 +716,12 @@ export {
     RedirectCode,
     type DbPlainRedirect,
 } from "./dbTypes/Redirects.js"
+
+export {
+    RelatedChartsTableName,
+    type DbInsertRelatedChart,
+    type DbPlainRelatedChart,
+} from "./dbTypes/RelatedCharts.js"
 
 export {
     ExplorerViewsTableName,

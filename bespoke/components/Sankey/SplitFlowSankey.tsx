@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useRef, useState } from "react"
-import cx from "classnames"
+import cx from "clsx"
 import * as R from "remeda"
 
 import { type FontSettings } from "@ourworldindata/grapher"
@@ -97,6 +97,7 @@ export type SankeyHalfTooltipArgs = {
 export type SankeyHalfBuild = {
     nodes: SankeyNode[]
     links: SankeyLink[]
+    totalFlowVolume: number
     /** Entities folded into this half's Other bucket */
     otherBreakdown?: EntityTotal[]
 }
@@ -128,6 +129,8 @@ interface SplitFlowSankeyProps {
      * color map is derived from the currently displayed nodes.
      */
     colorMap?: Map<string, string>
+    entitiesToSortLast?: string[]
+    linkLowVolumeThreshold?: number
 }
 
 export function SplitFlowSankey({
@@ -144,6 +147,8 @@ export function SplitFlowSankey({
     minNodeShare = DEFAULT_MIN_NODE_SHARE,
     formatValue,
     colorMap: colorMapOverride,
+    entitiesToSortLast,
+    linkLowVolumeThreshold,
 }: SplitFlowSankeyProps) {
     const showIncoming = view === "both" || view === "incoming"
     const showOutgoing = view === "both" || view === "outgoing"
@@ -161,6 +166,7 @@ export function SplitFlowSankey({
                 maxNodesToShrinkOther,
                 minNodeShare,
                 formatValue,
+                entitiesToSortLast,
             }),
         [
             incoming.rows,
@@ -169,6 +175,7 @@ export function SplitFlowSankey({
             maxNodesToShrinkOther,
             minNodeShare,
             formatValue,
+            entitiesToSortLast,
         ]
     )
     const outgoingBuild = useMemo(
@@ -181,6 +188,7 @@ export function SplitFlowSankey({
                 maxNodesToShrinkOther,
                 minNodeShare,
                 formatValue,
+                entitiesToSortLast,
             }),
         [
             outgoing.rows,
@@ -189,6 +197,7 @@ export function SplitFlowSankey({
             maxNodesToShrinkOther,
             minNodeShare,
             formatValue,
+            entitiesToSortLast,
         ]
     )
 
@@ -342,6 +351,7 @@ export function SplitFlowSankey({
                         fontSettings={fontSettings}
                         nodeColor={getNodeColor}
                         linkColor={getLinkColor}
+                        linkLowVolumeThreshold={linkLowVolumeThreshold}
                     />
                 )}
                 {showOutgoing && (
@@ -356,6 +366,7 @@ export function SplitFlowSankey({
                         fontSettings={fontSettings}
                         nodeColor={getNodeColor}
                         linkColor={getLinkColor}
+                        linkLowVolumeThreshold={linkLowVolumeThreshold}
                     />
                 )}
             </div>
@@ -404,6 +415,7 @@ function SankeyHalfChart({
     fontSettings,
     nodeColor,
     linkColor,
+    linkLowVolumeThreshold,
 }: {
     direction: "incoming" | "outgoing"
     half: SankeyHalf
@@ -415,6 +427,7 @@ function SankeyHalfChart({
     fontSettings: FontSettings
     nodeColor: (node: SankeyNode) => string
     linkColor: (link: SankeyLink) => string
+    linkLowVolumeThreshold?: number
 }) {
     const innerMargin =
         direction === "incoming"
@@ -451,6 +464,8 @@ function SankeyHalfChart({
                             links={build.links}
                             width={width}
                             height={height}
+                            totalFlowVolume={build.totalFlowVolume}
+                            linkLowVolumeThreshold={linkLowVolumeThreshold}
                             nodeColor={nodeColor}
                             linkColor={linkColor}
                             innerMargin={innerMargin}
@@ -560,6 +575,7 @@ export function selectTopEntities({
     maxNodesToShrinkOther = maxNodes,
     minNodeShare,
     showAllOtherBelow = 0,
+    entitiesToSortLast = [],
 }: {
     flows: Flow[]
     side: LinkSide
@@ -572,12 +588,13 @@ export function selectTopEntities({
      * individually
      */
     showAllOtherBelow?: number
+    entitiesToSortLast?: string[]
 }): {
     top: EntityTotal[]
     other: EntityTotal[]
     total: number
 } {
-    const sortedEntities = aggregateBySide(flows, side)
+    const sortedEntities = aggregateBySide(flows, side, entitiesToSortLast)
     const total = R.sumBy(sortedEntities, (d) => d.total)
 
     if (sortedEntities.length === 0 || total <= 0) {
@@ -638,6 +655,7 @@ function buildSankeyHalf({
     maxNodesToShrinkOther,
     minNodeShare,
     formatValue,
+    entitiesToSortLast,
 }: {
     flows: Flow[]
     centralEntity: string
@@ -646,6 +664,7 @@ function buildSankeyHalf({
     maxNodesToShrinkOther: number
     minNodeShare: number
     formatValue: (v: number) => string
+    entitiesToSortLast?: string[]
 }): SankeyHalfBuild | undefined {
     const isIncoming = direction === "incoming"
     const side = isIncoming ? "source" : "target"
@@ -658,6 +677,7 @@ function buildSankeyHalf({
         maxNodesToShrinkOther,
         minNodeShare,
         showAllOtherBelow: 1,
+        entitiesToSortLast,
     })
     if (selection.top.length === 0) return undefined
 
@@ -698,6 +718,7 @@ function buildSankeyHalf({
     return {
         nodes,
         links,
+        totalFlowVolume: selection.total,
         otherBreakdown: otherPartner ? selection.other : undefined,
     }
 }

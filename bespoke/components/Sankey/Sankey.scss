@@ -9,14 +9,17 @@
 }
 
 .sankey__link {
-    fill: none;
-    stroke-opacity: 0.6;
+    fill-opacity: 0.6;
     cursor: default;
     pointer-events: none;
 
+    &.sankey__link--low-volume {
+        fill-opacity: 0.3;
+    }
+
     &.sankey__link--hovered,
     &.sankey__link--active {
-        stroke-opacity: 1;
+        fill-opacity: 1;
     }
 }
 
@@ -34,7 +37,8 @@
 .sankey__links:has(.sankey__link--hovered)
     .sankey__link:not(.sankey__link--hovered):not(.sankey__link--active),
 .sankey:has(.sankey__node--hovered) .sankey__link:not(.sankey__link--active) {
-    stroke-opacity: 0.3;
+    fill-opacity: 0.1;
+    filter: saturate(20%); // make it almost grayscale
 }
 .sankey:has(.sankey__link--hovered, .sankey__node--hovered)
     .sankey__node:not(.sankey__node--hovered):not(.sankey__node--active),

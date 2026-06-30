@@ -7,7 +7,7 @@ import { useGuidedChartLinkHandler } from "@ourworldindata/grapher"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faEye } from "@fortawesome/free-solid-svg-icons"
 import { spansToUnformattedPlainText } from "@ourworldindata/utils"
-import cx from "classnames"
+import cx from "clsx"
 import { useCalloutValue } from "../utils.js"
 
 function SpanCalloutElement({

@@ -2,6 +2,7 @@ import {
     DbEnrichedImage,
     JsonError,
     PostsGdocsXImagesTableName,
+    StaticVizTableName,
 } from "@ourworldindata/types"
 import pMap from "p-map"
 import {
@@ -200,6 +201,16 @@ export async function putImageHandler(
     await trx(PostsGdocsXImagesTableName)
         .where("imageId", "=", id)
         .update({ imageId: newImageId })
+
+    // Static viz entries reference images directly via imageId/mobileImageId,
+    // so re-point those too, otherwise they keep rendering the old image.
+    await trx(StaticVizTableName)
+        .where("imageId", "=", id)
+        .update({ imageId: newImageId })
+
+    await trx(StaticVizTableName)
+        .where("mobileImageId", "=", id)
+        .update({ mobileImageId: newImageId })
 
     const updated = await db.getCloudflareImage(trx, originalFilename)
 

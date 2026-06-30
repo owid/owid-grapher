@@ -55,10 +55,6 @@ $active-icon: $blue-50;
             gap: $icon-padding;
         }
 
-        .label {
-            padding-top: $control-label-padding-top;
-        }
-
         svg {
             color: $gray-60;
         }
@@ -98,10 +94,6 @@ $active-icon: $blue-50;
         padding: 0 8px;
         margin: $visual-gap;
         margin-left: -$visual-gap;
-
-        .label {
-            padding-top: $control-label-padding-top;
-        }
 
         &:focus:not([data-focus-visible]) {
             outline: none;

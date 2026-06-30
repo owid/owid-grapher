@@ -9,7 +9,7 @@
         "@ourworldindata/types": "workspace:^",
         "@ourworldindata/utils": "workspace:^",
         "@resvg/resvg-wasm": "^2.6.2",
-        "@sentry/cloudflare": "^10.51.0",
+        "@sentry/cloudflare": "^10.56.0",
         "cookie": "^1.1.1",
         "itty-router": "^5.0.23",
         "littlezipper": "^0.1.5",
@@ -27,7 +27,7 @@
         "@types/lodash-es": "^4.17.12",
         "@types/react": "^19.2.14",
         "@types/react-dom": "^19.2.3",
-        "vitest": "^4.1.7",
-        "wrangler": "^4.94.0"
+        "vitest": "^4.1.8",
+        "wrangler": "^4.98.0"
     }
 }

@@ -1,4 +1,4 @@
-import cx from "classnames"
+import cx from "clsx"
 import { EnrichedBlockRecirc } from "@ourworldindata/utils"
 import { HybridLinkList } from "./HybridLinkList.js"
 

@@ -5,7 +5,7 @@ import {
     OwidGdocErrorMessage,
     OwidGdocPostInterface,
 } from "@ourworldindata/utils"
-import { Button, Col, Input, Row } from "antd"
+import { Button, Col, Input, Row, Space } from "antd"
 import { getPropertyMostCriticalError } from "./gdocsValidation.js"
 import { GdocsErrorHelp } from "./GdocsErrorHelp.js"
 
@@ -26,27 +26,31 @@ export const BreadcrumbLine = ({
         <div className="my-2">
             <Row gutter={8}>
                 <Col span={11}>
-                    <Input
-                        addonBefore="URL"
-                        value={item.href}
-                        onChange={(e) =>
-                            setItem({ ...item, href: e.target.value })
-                        }
-                        status={hrefError?.type}
-                        placeholder="e.g. /poverty"
-                    />
+                    <Space.Compact>
+                        <Space.Addon>URL</Space.Addon>
+                        <Input
+                            value={item.href}
+                            onChange={(e) =>
+                                setItem({ ...item, href: e.target.value })
+                            }
+                            status={hrefError?.type}
+                            placeholder="e.g. /poverty"
+                        />
+                    </Space.Compact>
                     {hrefError && <GdocsErrorHelp error={hrefError} />}
                 </Col>
                 <Col span={11}>
-                    <Input
-                        addonBefore="Label"
-                        value={item.label}
-                        onChange={(e) =>
-                            setItem({ ...item, label: e.target.value })
-                        }
-                        placeholder={"A topic name"}
-                        status={labelError?.type}
-                    />
+                    <Space.Compact>
+                        <Space.Addon>Label</Space.Addon>
+                        <Input
+                            value={item.label}
+                            onChange={(e) =>
+                                setItem({ ...item, label: e.target.value })
+                            }
+                            placeholder={"A topic name"}
+                            status={labelError?.type}
+                        />
+                    </Space.Compact>
                     {labelError && <GdocsErrorHelp error={labelError} />}
                 </Col>
                 <Col span={2}>

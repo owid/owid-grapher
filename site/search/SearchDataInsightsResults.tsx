@@ -1,11 +1,8 @@
 import { useRef } from "react"
 import { useIntersectionObserver, useMediaQuery } from "usehooks-ts"
 
+import { DataInsightHit } from "@ourworldindata/types"
 import { SMALL_BREAKPOINT_MEDIA_QUERY } from "../SiteConstants.js"
-import {
-    DataInsightHit,
-    SearchDataInsightResponse,
-} from "@ourworldindata/types"
 import { queryDataInsights, searchQueryKeys } from "./queries.js"
 import { SearchDataInsightHit } from "./SearchDataInsightHit.js"
 import { SearchResultHeader } from "./SearchResultHeader.js"
@@ -17,7 +14,7 @@ import { useSearchContext } from "./SearchContext.js"
 export function SearchDataInsightsResults() {
     const { analytics } = useSearchContext()
     const isSmallScreen = useMediaQuery(SMALL_BREAKPOINT_MEDIA_QUERY)
-    const query = useInfiniteSearch<SearchDataInsightResponse, DataInsightHit>({
+    const query = useInfiniteSearch({
         queryKey: (state) => searchQueryKeys.dataInsights(state),
         queryFn: queryDataInsights,
     })
@@ -37,6 +34,13 @@ export function SearchDataInsightsResults() {
 
     const { hits, totalResults, isLoading } = query
 
+    function handleClick(hit: DataInsightHit, position: number) {
+        analytics.logSearchResultClick(hit, {
+            position,
+            source: "search",
+        })
+    }
+
     if (!isLoading && totalResults === 0) return null
 
     return (
@@ -53,16 +57,11 @@ export function SearchDataInsightsResults() {
                             ref={container}
                             className="search-data-insights-results__hits"
                         >
-                            {hits.map((hit: DataInsightHit, index) => (
+                            {hits.map((hit, index) => (
                                 <SearchDataInsightHit
                                     key={hit.objectID}
                                     hit={hit}
-                                    onClick={() => {
-                                        analytics.logSearchResultClick(hit, {
-                                            position: index + 1,
-                                            source: "search",
-                                        })
-                                    }}
+                                    onClick={() => handleClick(hit, index + 1)}
                                 />
                             ))}
                             {query.hasNextPage && (

@@ -1,6 +1,6 @@
 import { faCaretDown } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import cx from "classnames"
+import cx from "clsx"
 import { useState } from "react"
 import {
     Select,

@@ -4,11 +4,14 @@
 // runs the Grapher stack locally, so it shouldn't contain anything sensitive.
 //
 // By default, only each table's structure is exported, with no rows.
-// For data to be exported, it must be explicitly included in the INCLUDE_DATA_TABLES list
+// For data to be exported, it must be explicitly included in the
+// INCLUDE_DATA_TABLES list in exportMetadataTables.ts.
 //
 // As a backstop, the script fails if it encounters a table that isn't
-// classified in any of the lists below, forcing whoever added it to make a
-// conscious include/exclude decision.
+// classified in any of those lists, forcing whoever added it to make a
+// conscious include/exclude decision. The db test suite runs the same check
+// against a freshly migrated database, so an unclassified table already
+// fails in CI when its migration is added (see db/tests/exportMetadata.test.ts).
 
 import * as db from "./db.js"
 import fs from "fs-extra"
@@ -22,87 +25,15 @@ import {
     GRAPHER_DB_PORT,
 } from "../settings/serverSettings.js"
 import { execWrapper } from "./execWrapper.js"
+import {
+    INCLUDE_DATA_TABLES,
+    SCHEMA_ONLY_TABLES,
+    findUnclassifiedTables,
+    unclassifiedTablesErrorMessage,
+} from "./exportMetadataTables.js"
 
 const argv = parseArgs(process.argv.slice(2))
 const filePath = argv._[0] || "/tmp/owid_metadata.sql"
-
-const INCLUDE_DATA_TABLES = [
-    "admin_api_keys",
-    "analytics_popularity",
-    "archived_chart_versions",
-    "archived_explorer_versions",
-    "archived_multi_dim_versions",
-    "archived_post_versions",
-    "chart_configs",
-    "chart_diff_approvals",
-    "chart_diff_conflicts",
-    "chart_dimensions",
-    "chart_revisions",
-    "chart_slug_redirects",
-    "chart_tags",
-    "charts_x_entities",
-    "charts",
-    "dataset_tags",
-    "datasets",
-    "dod_links",
-    "dods",
-    "entities",
-    "explorer_charts",
-    "explorer_tags",
-    "explorer_variables",
-    "explorer_view_dimensions",
-    "explorer_views",
-    "explorers",
-    "featured_metrics",
-    "files",
-    "housekeeper_reviews",
-    "images",
-    "importer_additionalcountryinfo",
-    "jobs",
-    "migrations",
-    "multi_dim_data_pages",
-    "multi_dim_redirects",
-    "multi_dim_view_dimensions",
-    "multi_dim_x_chart_configs",
-    "namespaces",
-    "narrative_charts",
-    "origins_variables",
-    "origins",
-    "post_tags",
-    "posts_gdocs_components",
-    "posts_gdocs_links",
-    "posts_gdocs_tombstones",
-    "posts_gdocs_variables_faqs",
-    "posts_gdocs_x_images",
-    "posts_gdocs_x_tags",
-    "posts_gdocs",
-    "posts_links",
-    "posts",
-    "redirects",
-    "slideshow_links",
-    "slideshow_x_images",
-    "slideshows",
-    "sources",
-    "static_viz",
-    "tag_graph",
-    "tags_variables_topic_tags",
-    "tags",
-    "variables",
-]
-
-// Tables that are intentionally schema-only. Listing them here (rather than
-// relying on the default) documents *why* they're excluded and lets the
-// classification check below confirm every table has been considered. Keep
-// alphabetised.
-const SCHEMA_ONLY_TABLES = [
-    "analytics_chart_views", // internal analytics, large
-    "analytics_grapher_views", // internal analytics, large
-    "analytics_pageviews", // internal analytics, large
-    "donors", // donor PII
-]
-
-// The users table is exported with anonymised data (see anonymisedUsersSql).
-const USERS_TABLE = "users"
 
 async function assertAllTablesClassified(): Promise<void> {
     const knex = db.knexInstance()
@@ -113,20 +44,11 @@ async function assertAllTablesClassified(): Promise<void> {
         [GRAPHER_DB_NAME]
     )
     const allTables = rows.map((r) => r.TABLE_NAME)
-    const classified = new Set([
-        ...INCLUDE_DATA_TABLES,
-        ...SCHEMA_ONLY_TABLES,
-        USERS_TABLE,
-    ])
 
-    const unclassified = allTables.filter((t) => !classified.has(t))
+    const unclassified = findUnclassifiedTables(allTables)
     if (unclassified.length > 0) {
         throw new Error(
-            `exportMetadata: the following tables are not classified in ` +
-                `INCLUDE_DATA_TABLES or SCHEMA_ONLY_TABLES: ${unclassified.join(
-                    ", "
-                )}.\nAdd each one to exactly one of those lists (data will only ` +
-                `be exported for tables in INCLUDE_DATA_TABLES).`
+            `exportMetadata: ${unclassifiedTablesErrorMessage(unclassified)}`
         )
     }
 

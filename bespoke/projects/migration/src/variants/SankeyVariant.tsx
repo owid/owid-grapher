@@ -1,5 +1,5 @@
 import { useMemo } from "react"
-import cx from "classnames"
+import cx from "clsx"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { NuqsAdapter } from "nuqs/adapters/react"
 import { parseAsInteger, parseAsString, parseAsStringEnum } from "nuqs"
@@ -26,7 +26,12 @@ import {
 import { SankeyVariantConfig, VariantProps } from "../config.js"
 import { MigrationFlow, MigrationRow, MigrationView, Sex } from "../types.js"
 import { useMigrationData, useMigrationMetadata } from "../data.js"
-import { formatPeople, getSexAdjective, getSexNoun } from "../helpers.js"
+import {
+    formatPeople,
+    getSexAdjective,
+    getSexNoun,
+    OTHERS_ENTITY_NAME,
+} from "../helpers.js"
 import { MigrationChart } from "../components/MigrationChart.js"
 import { MigrationControls } from "../components/MigrationControls.js"
 
@@ -269,6 +274,8 @@ function CaptionedSankeyVariant({
     const shouldHideChrome =
         config.hideControls || !!config.title || !!config.subtitle
 
+    const entitiesToSortLast = useMemo(() => [OTHERS_ENTITY_NAME], [])
+
     return (
         <>
             {!shouldHideChrome && (
@@ -319,6 +326,7 @@ function CaptionedSankeyVariant({
                     setView={setView}
                     colorMap={colorMap}
                     isLoading={isLoading}
+                    entitiesToSortLast={entitiesToSortLast}
                 />
                 <MigrationChartFooter source={metadata.source} />
             </Frame>
@@ -382,7 +390,7 @@ function filterRows(
     sex: Sex
 ): MigrationFlow[] {
     return rows
-        .filter((r) => r.year === year && r.sex === sex)
+        .filter((r) => r.year === year && r.sex === sex && r.value > 0)
         .map((r) => ({ partner: r.partner, value: r.value }))
 }
 

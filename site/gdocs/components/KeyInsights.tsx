@@ -3,7 +3,7 @@ import * as React from "react"
 import { ScrollMenu, VisibilityContext } from "react-horizontal-scrolling-menu"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faAngleRight } from "@fortawesome/free-solid-svg-icons"
-import cx from "classnames"
+import cx from "clsx"
 import {
     getWindowUrl,
     setWindowUrl,

@@ -4,7 +4,7 @@ import {
     EnrichedChartRowItem,
 } from "@ourworldindata/types"
 import { useGuidedChartLinkHandler } from "@ourworldindata/grapher"
-import cx from "classnames"
+import cx from "clsx"
 import ChartThumbnail from "./ChartThumbnail.js"
 import Paragraph from "./Paragraph.js"
 

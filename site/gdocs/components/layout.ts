@@ -1,5 +1,5 @@
 import * as R from "remeda"
-import cx from "classnames"
+import cx from "clsx"
 
 export type Container =
     | "default"

@@ -217,9 +217,9 @@ export class ColorSchemeSelector extends React.Component<ColorSchemeSelectorProp
 }
 
 interface SortOrderDropdownOption {
-    key: string
+    value: string
     label: string
-    value: Omit<SortConfig, "sortOrder">
+    dataValue: Omit<SortConfig, "sortOrder">
     display?: { name: string; displayName: string }
 }
 
@@ -272,13 +272,13 @@ class SortOrderSection<
                 if (sortBy === SortBy.column) {
                     return this.grapherState.yColumnsFromDimensions.map(
                         (column): SortOrderDropdownOption => ({
-                            key: `column:${column.slug}`,
+                            value: `column:${column.slug}`,
                             label: column.displayName,
                             display: {
                                 name: column.name,
                                 displayName: column.displayName,
                             },
-                            value: {
+                            dataValue: {
                                 sortBy: SortBy.column,
                                 sortColumnSlug: column.slug,
                             } satisfies SortConfig,
@@ -288,9 +288,9 @@ class SortOrderSection<
 
                 return [
                     {
-                        key: sortBy,
                         label: SORT_BY_LABELS[sortBy],
-                        value: { sortBy },
+                        value: sortBy,
+                        dataValue: { sortBy },
                     },
                 ]
             }
@@ -301,16 +301,18 @@ class SortOrderSection<
         const { sortBy, sortColumnSlug } = this.sortConfig
         if (sortBy === SortBy.column && sortColumnSlug)
             return `column:${sortColumnSlug}`
-        if (sortBy && this.sortOptions.some((opt) => opt.key === sortBy))
+        if (sortBy && this.sortOptions.some((opt) => opt.value === sortBy))
             return sortBy
-        return this.sortOptions[0]?.key ?? SortBy.entityName
+        return this.sortOptions[0]?.value ?? SortBy.entityName
     }
 
     @action.bound onSortByChange(selectedKey: string) {
-        const selected = this.sortOptions.find((opt) => opt.key === selectedKey)
+        const selected = this.sortOptions.find(
+            (opt) => opt.value === selectedKey
+        )
         if (!selected) return
-        this.grapherState.sortBy = selected.value.sortBy
-        this.grapherState.sortColumnSlug = selected.value.sortColumnSlug
+        this.grapherState.sortBy = selected.dataValue.sortBy
+        this.grapherState.sortColumnSlug = selected.dataValue.sortColumnSlug
     }
 
     @action.bound onSortOrderChange(sortOrder: string) {
@@ -327,27 +329,21 @@ class SortOrderSection<
                         value={this.currentSortOptionKey}
                         optionLabelProp="label"
                         style={{ width: "100%" }}
-                    >
-                        {this.sortOptions.map((opt) => (
-                            <Select.Option
-                                key={opt.key}
-                                value={opt.key}
-                                label={opt.label}
-                            >
-                                {opt.display ? (
-                                    <span>
-                                        {opt.display.displayName}
-                                        <br />
-                                        <small style={{ opacity: 0.8 }}>
-                                            {opt.display.name}
-                                        </small>
-                                    </span>
-                                ) : (
-                                    opt.label
-                                )}
-                            </Select.Option>
-                        ))}
-                    </Select>
+                        options={this.sortOptions}
+                        optionRender={(opt) =>
+                            opt.data.display ? (
+                                <span>
+                                    {opt.data.display.displayName}
+                                    <br />
+                                    <small style={{ opacity: 0.8 }}>
+                                        {opt.data.display.name}
+                                    </small>
+                                </span>
+                            ) : (
+                                opt.label
+                            )
+                        }
+                    />
                 </div>
                 <div className="form-group">
                     Sort order

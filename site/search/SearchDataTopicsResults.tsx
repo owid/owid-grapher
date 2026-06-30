@@ -2,7 +2,6 @@ import { useQuery } from "@tanstack/react-query"
 import { queryDataTopics, searchQueryKeys } from "./queries.js"
 import { useSearchContext } from "./SearchContext.js"
 import { useSelectedTopic } from "./searchHooks.js"
-import { SearchDataTopicsResponse } from "@ourworldindata/types"
 import { SearchDataTopic } from "./SearchDataTopic.js"
 import { SearchDataTopicsResultsSkeleton } from "./SearchDataTopicsResultsSkeleton.js"
 
@@ -10,7 +9,7 @@ export const SearchDataTopicsResults = () => {
     const { state, typesenseClient, topicTagGraph } = useSearchContext()
     const selectedTopic = useSelectedTopic()
 
-    const query = useQuery<SearchDataTopicsResponse[], Error>({
+    const query = useQuery({
         queryKey: searchQueryKeys.dataTopics(state),
         queryFn: () =>
             queryDataTopics(

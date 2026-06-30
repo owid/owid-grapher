@@ -168,7 +168,7 @@ sequenceDiagram
     box Purple Donor flow
     participant Donor
     participant Donation Form
-    participant Recaptcha
+    participant Turnstile
     participant Cloud Functions
     participant Stripe Checkout
     participant "Thank you" page
@@ -186,14 +186,14 @@ sequenceDiagram
     break when donation parameters invalid
     Donation Form -->> Donor: Show error
     end
-    Donation Form ->>+ Recaptcha: is human?
-    Recaptcha -->>- Donation Form: yes
+    Donation Form ->>+ Turnstile: is human?
+    Turnstile -->>- Donation Form: yes
     break when bot suspected
-    Recaptcha -->> Donor: show challenge
+    Turnstile -->> Donor: show challenge
     end
     Donation Form ->>+ Cloud Functions: submits
-    Cloud Functions ->> Recaptcha: is token valid?
-    Recaptcha -->> Cloud Functions: yes
+    Cloud Functions ->> Turnstile: is token valid?
+    Turnstile -->> Cloud Functions: yes
     break when token invalid or donation parameters invalid
     Cloud Functions -->> Donor: Show error
     end

@@ -203,22 +203,30 @@ export async function handleGetMultiDims(
             Pick<
                 DbPlainMultiDimDataPage,
                 "id" | "catalogPath" | "slug" | "updatedAt" | "published"
-            > & { title: string }
+            > & { title: string; pageviews: number; mdimViews: number }
         >(
             trx,
             `-- sql
             SELECT
-                id,
-                catalogPath,
-                slug,
-                config->>'$.title.title' as title,
-                updatedAt,
-                published
-            FROM ${MultiDimDataPagesTableName}`
+                mdp.id,
+                mdp.catalogPath,
+                mdp.slug,
+                mdp.config->>'$.title.title' as title,
+                mdp.updatedAt,
+                mdp.published,
+                COALESCE(agv.views_14d, 0) as pageviews,
+                COALESCE(JSON_LENGTH(mdp.config, '$.views'), 0) as mdimViews
+            FROM ${MultiDimDataPagesTableName} mdp
+            LEFT JOIN analytics_grapher_views agv ON (
+                agv.grapher_slug = mdp.slug
+                AND agv.day = (SELECT MAX(day) FROM analytics_grapher_views)
+            )`
         )
         const multiDims = results.map((row) => ({
             ...row,
             published: Boolean(row.published),
+            pageviews: Number(row.pageviews),
+            mdimViews: Number(row.mdimViews),
         }))
         return { multiDims }
     } catch (error) {

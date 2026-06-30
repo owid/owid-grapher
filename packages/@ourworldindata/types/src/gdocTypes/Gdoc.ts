@@ -204,6 +204,30 @@ export function extractGdocIndexItem(
     }
 }
 
+/** A published article that is tagged to a topic but not linked from the
+    topic page's research-and-writing section. */
+export interface OrphanedTopicArticle {
+    id: string
+    slug: string
+    title: string
+    authors: string[]
+    publishedAt: Date | null
+}
+
+/** Coverage report for a single topic page: how many of its tagged articles
+    are linked from its research-and-writing section, and which are orphaned. */
+export interface TopicPageOrphanReport {
+    tagId: number
+    tagName: string
+    slug: string
+    gdocId: string
+    taggedCount: number
+    coveredCount: number
+    orphanedCount: number
+    coveragePercent: number
+    orphans: OrphanedTopicArticle[]
+}
+
 export interface OwidGdocDataInsightContent {
     title: string
     authors: string[]

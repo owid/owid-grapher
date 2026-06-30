@@ -1,4 +1,4 @@
-import cx from "classnames"
+import cx from "clsx"
 import { Tippy } from "@ourworldindata/utils"
 import { useTippyContainer } from "../../hooks/useTippyContainer.js"
 

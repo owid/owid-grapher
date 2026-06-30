@@ -1,6 +1,6 @@
 import { useCallback, useMemo, type ReactNode } from "react"
 import { useParentSize } from "@visx/responsive"
-import cx from "classnames"
+import cx from "clsx"
 import * as R from "remeda"
 import { match } from "ts-pattern"
 

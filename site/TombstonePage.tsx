@@ -1,4 +1,4 @@
-import cx from "classnames"
+import cx from "clsx"
 import urljoin from "url-join"
 
 import { TombstonePageData } from "@ourworldindata/types"

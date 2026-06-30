@@ -7,16 +7,21 @@ on:
       - "packages/@ourworldindata/grapher/src/schema/**"
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   upload:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@master
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
 
       - uses: ./.github/actions/setup-node-yarn-deps
 
-      - uses: hustcer/setup-nu@v3
+      - uses: hustcer/setup-nu@ccd5bb5426b05a32009c2ba967946231f3919c97 # v3.25
         with:
           version: "0.101" # Don't use 0.101 here, as it was a float number and will be convert to 0.101, you can use v0.101/0.101.0 or '0.101'
       # Turn all yaml files in the schema directory into json (should only be one)

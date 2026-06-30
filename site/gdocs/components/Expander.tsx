@@ -1,5 +1,5 @@
 import React from "react"
-import cx from "classnames"
+import cx from "clsx"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faMinus, faPlus } from "@fortawesome/free-solid-svg-icons"
 import { SiteAnalytics } from "../../SiteAnalytics.js"

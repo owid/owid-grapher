@@ -1,6 +1,6 @@
 import { useMemo, type ReactNode } from "react"
 import { useParentSize } from "@visx/responsive"
-import cx from "classnames"
+import cx from "clsx"
 import * as R from "remeda"
 import { match } from "ts-pattern"
 
@@ -46,6 +46,7 @@ export function MigrationSankey({
     view = "both",
     setView,
     colorMap,
+    entitiesToSortLast,
 }: {
     immigrants: MigrationFlow[]
     emigrants: MigrationFlow[]
@@ -57,6 +58,7 @@ export function MigrationSankey({
     view?: MigrationView
     setView: (view: MigrationView) => void
     colorMap?: Map<string, string>
+    entitiesToSortLast?: string[]
 }) {
     const { parentRef, width, height } = useParentSize()
 
@@ -138,6 +140,7 @@ export function MigrationSankey({
                 maxNodesToShrinkOther={
                     isStacked ? STACKED_MAX_NODES_TO_SHRINK_OTHER : undefined
                 }
+                entitiesToSortLast={entitiesToSortLast}
             />
         </div>
     )
