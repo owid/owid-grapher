@@ -177,7 +177,11 @@ export function useInfiniteSearch<THit>({
     enabled = true,
 }: {
     queryKey: (state: SearchState) => readonly (string | QueryKeyState)[]
-    queryFn: (client: Client, state: SearchState, page: number) => Promise<SearchResponse<THit>>
+    queryFn: (
+        client: Client,
+        state: SearchState,
+        page: number
+    ) => Promise<SearchResponse<THit>>
     enabled?: boolean
 }) {
     const { state, typesenseClient } = useSearchContext()
