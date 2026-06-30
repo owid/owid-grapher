@@ -74,6 +74,7 @@ export const ALGOLIA_INDEXING: boolean =
 
 export const TYPESENSE_HOST: string = clientSettings.TYPESENSE_HOST
 export const TYPESENSE_PORT: number = clientSettings.TYPESENSE_PORT
+export const TYPESENSE_PROTOCOL: string = clientSettings.TYPESENSE_PROTOCOL
 export const TYPESENSE_API_KEY: string =
     serverSettings.TYPESENSE_API_KEY ?? "xyz"
 export const TYPESENSE_INDEXING: boolean =

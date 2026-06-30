@@ -67,6 +67,8 @@ export const ALGOLIA_INDEX_PREFIX: string =
 export const TYPESENSE_HOST: string = process.env.TYPESENSE_HOST ?? "localhost"
 export const TYPESENSE_PORT: number =
     parseIntOrUndefined(process.env.TYPESENSE_PORT) ?? 8108
+export const TYPESENSE_PROTOCOL: string =
+    process.env.TYPESENSE_PROTOCOL ?? "http"
 export const TYPESENSE_SEARCH_KEY: string =
     process.env.TYPESENSE_SEARCH_KEY ?? ""
 

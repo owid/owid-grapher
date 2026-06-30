@@ -2,6 +2,7 @@ import { Client } from "typesense"
 import {
     TYPESENSE_HOST,
     TYPESENSE_PORT,
+    TYPESENSE_PROTOCOL,
     TYPESENSE_SEARCH_KEY,
 } from "../../../settings/clientSettings.js"
 
@@ -15,7 +16,7 @@ export const getTypesenseClient = (): Client => {
                 {
                     host: TYPESENSE_HOST,
                     port: TYPESENSE_PORT,
-                    protocol: "http",
+                    protocol: TYPESENSE_PROTOCOL,
                 },
             ],
         })
