@@ -496,6 +496,11 @@ abstract class AbstractFooter<
             }).width
             const sourceName = new MarkdownTextWrap({
                 text: this.sourcesLine,
+                // Reserving the label width on every line means a source name
+                // that wraps doesn't use the full width on its second line
+                // onwards (cosmetic), and its measured height can drift from
+                // the rendered height. The 10 experiment pages don't wrap here;
+                // a proper fix would be a first-line offset on MarkdownTextWrap.
                 maxWidth: this.sourcesMaxWidth - labelWidth,
                 fontSize: this.sourcesFontSize,
                 lineHeight: this.lineHeight,

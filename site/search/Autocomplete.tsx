@@ -465,7 +465,7 @@ export function Autocomplete({
     panelClassName?: string
     isPreviewing?: boolean
     id?: string
-    searchSource?: string
+    searchSource: string
 }) {
     const containerRef = useRef<HTMLDivElement>(null)
     const panelRootRef = useRef<Root | null>(null)
