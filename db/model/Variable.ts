@@ -232,7 +232,7 @@ export interface UpdatedChartInheritanceRecord {
 }
 
 interface ChartInheritanceRecordWithEtlConfig extends UpdatedChartInheritanceRecord {
-    etlConfig: GrapherInterface | null
+    patchConfigETL: GrapherInterface | null
 }
 
 async function findAllChartsThatInheritFromIndicator(
@@ -243,7 +243,7 @@ async function findAllChartsThatInheritFromIndicator(
         chartId: DbPlainChart["id"]
         chartConfigId: DbRawChartConfig["id"]
         patchConfig: DbRawChartConfig["patch"]
-        etlConfig: DbRawChartConfig["full"] | null
+        patchConfigETL: DbRawChartConfig["patch"] | null
         isPublished: boolean
     }>(
         trx,
@@ -252,7 +252,7 @@ async function findAllChartsThatInheritFromIndicator(
                 c.id as chartId,
                 cc.id as chartConfigId,
                 cc.patch as patchConfig,
-                cc_etl.full as etlConfig,
+                cc_etl.patch as patchConfigETL,
                 cc.full ->> "$.isPublished" as isPublished
             FROM charts c
                 JOIN chart_configs cc ON cc.id = c.configId
@@ -268,7 +268,9 @@ async function findAllChartsThatInheritFromIndicator(
         chartId: chart.chartId,
         chartConfigId: chart.chartConfigId,
         patchConfig: parseChartConfig(chart.patchConfig),
-        etlConfig: chart.etlConfig ? parseChartConfig(chart.etlConfig) : null,
+        patchConfigETL: chart.patchConfigETL
+            ? parseChartConfig(chart.patchConfigETL)
+            : null,
         isPublished: chart.isPublished,
     }))
 }
@@ -292,13 +294,10 @@ export async function updateAllChartsThatInheritFromIndicator(
     )
 
     for (const chart of inheritingCharts) {
-        // Merge order (low → high precedence):
-        //   variable's ETL grapher_config → variable's admin override
-        //   → chart's own etlConfig → chart's admin patch
         const fullConfig = mergeGrapherConfigs(
             patchConfigETL ?? {},
             patchConfigAdmin ?? {},
-            chart.etlConfig ?? {},
+            chart.patchConfigETL ?? {},
             chart.patchConfig
         )
         await db.knexRaw(
@@ -321,7 +320,7 @@ export async function updateAllChartsThatInheritFromIndicator(
         )
     }
 
-    // strip the internal etlConfig field before returning to callers
+    // strip the internal patchConfigETL field before returning to callers
     return inheritingCharts.map(
         ({ chartId, chartConfigId, patchConfig, isPublished }) => ({
             chartId,
@@ -342,10 +341,6 @@ async function findAllMultiDimViewsThatInheritFromIndicator(
     trx: db.KnexReadonlyTransaction,
     variableId: number
 ): Promise<MultiDimViewInheritanceRecord[]> {
-    // MDIM views don't yet have their own ETL-authored config layer: unlike
-    // charts they have no `configIdETL` pointer (that arrives in Phase 3, on
-    // the multi_dim_x_chart_configs link table). So a view's full config is
-    // just the variable layers merged with the view's own patch.
     const charts = await db.knexRaw<{
         chartConfigId: DbPlainMultiDimXChartConfig["chartConfigId"]
         patchConfig: DbRawChartConfig["patch"]
@@ -390,8 +385,6 @@ export async function updateAllMultiDimViewsThatInheritFromIndicator(
     )
 
     for (const view of inheritingViews) {
-        // Variable layers, then the view's admin patch. MDIM views don't yet
-        // have their own ETL-authored layer (that arrives in Phase 3).
         const fullConfig = mergeGrapherConfigs(
             patchConfigETL ?? {},
             patchConfigAdmin ?? {},
