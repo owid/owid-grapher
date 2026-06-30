@@ -4,7 +4,7 @@ import {
     RelatedChart,
 } from "../grapherTypes/GrapherTypes.js"
 import { BreadcrumbItem } from "../domainTypes/Site.js"
-import { TocHeadingWithTitleSupertitle } from "../domainTypes/Toc.js"
+import { TocHeadingWithSupertitle } from "../domainTypes/Toc.js"
 import { ImageMetadata } from "./Image.js"
 import {
     EnrichedBlockSocials,
@@ -311,7 +311,7 @@ export interface OwidGdocProfileContent {
     excerpt?: string
     "featured-image"?: string
     "sidebar-toc"?: boolean
-    toc?: TocHeadingWithTitleSupertitle[]
+    toc?: TocHeadingWithSupertitle[]
     body: OwidEnrichedGdocBlock[]
     refs?: { definitions: RefDictionary; errors: OwidGdocErrorMessage[] }
     instantiatedEntity?: OwidGdocProfileEntitySummary
@@ -523,7 +523,7 @@ export interface OwidGdocPostContent {
     "latest-feed-featured-image"?: string
     "latest-feed-excerpt"?: EnrichedBlockText[]
     "hide-citation"?: boolean
-    toc?: TocHeadingWithTitleSupertitle[]
+    toc?: TocHeadingWithSupertitle[]
     "cover-image"?: string
     "featured-image"?: string
     "atom-title"?: string

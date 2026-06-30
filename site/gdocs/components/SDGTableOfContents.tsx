@@ -1,4 +1,4 @@
-import { TocHeadingWithTitleSupertitle } from "@ourworldindata/utils"
+import { TocHeadingWithSupertitle } from "@ourworldindata/utils"
 import { faArrowDown, faPlus, faMinus } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import cx from "clsx"
@@ -8,7 +8,7 @@ export default function SDGTableOfContents({
     className = "",
     title,
 }: {
-    toc: TocHeadingWithTitleSupertitle[]
+    toc: TocHeadingWithSupertitle[]
     className?: string
     title: string
 }) {
