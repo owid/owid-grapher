@@ -108,6 +108,8 @@ interface BaseSearchChartHit {
     objectID: string
     variantName?: string
     subtitle?: string
+    /** Data producers of the variables used in this chart (e.g., "World Bank") */
+    datasetProducers?: string[]
     availableTabs: GrapherTabName[]
     /**
      * Required by react-instantsearch's `<Highlight>`/`<Snippet>` components:

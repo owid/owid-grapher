@@ -374,6 +374,7 @@ export const DATA_CATALOG_ATTRIBUTES = [
     "subtitle",
     "chartConfigId",
     "explorerType",
+    "datasetProducers",
 ]
 
 type SearchFacetAttribute =

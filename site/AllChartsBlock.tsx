@@ -22,16 +22,20 @@ import { queryCharts, searchQueryKeys } from "./search/queries.js"
 import {
     createTopicFilter,
     createCountryFilter,
+    createDatasetProducerFilter,
     constructConfigUrl,
     constructChartUrl,
     getEntityQueryStr,
     extractFiltersFromQuery,
     pickEntitiesForChartHit,
+    getFilterIcon,
+    getFilterAriaLabel,
     SEARCH_BASE_PATH,
 } from "./search/searchUtils.js"
 import { stateToSearchParams } from "./search/searchState.js"
 import { buildSynonymMap } from "./search/synonymUtils.js"
 import { SearchDataResultsSkeleton } from "./search/SearchDataResultsSkeleton.js"
+import { SearchFilterPill } from "./search/SearchFilterPill.js"
 
 const SEARCH_DEBOUNCE_MS = 200
 const MAX_RESULTS = 50
@@ -64,6 +68,17 @@ export const AllChartsBlock = ({
     const [query, setQuery] = useState("")
     const [debouncedQuery] = useDebounceValue(query, SEARCH_DEBOUNCE_MS)
 
+    // Active producer ("source") filters, mirroring the global search's
+    // `datasetProducers` facet. Adding/removing one narrows the result list to
+    // charts whose data comes from that producer.
+    const [producerFilters, setProducerFilters] = useState<string[]>([])
+    const addProducerFilter = (producer: string) =>
+        setProducerFilters((prev) =>
+            prev.includes(producer) ? prev : [...prev, producer]
+        )
+    const removeProducerFilter = (producer: string) =>
+        setProducerFilters((prev) => prev.filter((p) => p !== producer))
+
     // Region names and synonym map are needed to detect a country mentioned in
     // the query, reusing the same infrastructure as the search page.
     const regionNames = useMemo(() => listedRegionsNames(), [])
@@ -91,13 +106,20 @@ export const AllChartsBlock = ({
         const countryFilters = detectedCountries.map((country) =>
             createCountryFilter(country)
         )
+        const datasetProducerFilters = producerFilters.map((producer) =>
+            createDatasetProducerFilter(producer)
+        )
         return {
             query: debouncedQuery,
-            filters: [createTopicFilter(topicName), ...countryFilters],
+            filters: [
+                createTopicFilter(topicName),
+                ...countryFilters,
+                ...datasetProducerFilters,
+            ],
             requireAllCountries: false,
             resultType: SearchResultType.DATA,
         }
-    }, [debouncedQuery, detectedCountries, topicName])
+    }, [debouncedQuery, detectedCountries, producerFilters, topicName])
 
     const { data, isLoading, isError } = useQuery({
         queryKey: searchQueryKeys.charts(searchState),
@@ -126,6 +148,9 @@ export const AllChartsBlock = ({
                     hits={hits}
                     isLoading={isLoading}
                     detectedCountries={detectedCountries}
+                    producerFilters={producerFilters}
+                    onAddProducerFilter={addProducerFilter}
+                    onRemoveProducerFilter={removeProducerFilter}
                     topicName={topicName}
                     searchParams={stateToSearchParams(searchState)}
                 />
@@ -141,6 +166,9 @@ type AllChartsLeftPaneProps = {
     hits: SearchChartHit[]
     isLoading: boolean
     detectedCountries: string[]
+    producerFilters: string[]
+    onAddProducerFilter: (producer: string) => void
+    onRemoveProducerFilter: (producer: string) => void
     topicName: string
     searchParams: URLSearchParams
 }
@@ -153,6 +181,9 @@ const AllChartsLeftPane = (props: AllChartsLeftPaneProps) => {
         hits,
         isLoading,
         detectedCountries,
+        producerFilters,
+        onAddProducerFilter,
+        onRemoveProducerFilter,
         topicName,
         searchParams,
     } = props
@@ -173,6 +204,8 @@ const AllChartsLeftPane = (props: AllChartsLeftPaneProps) => {
                 <AllChartsSearchInput
                     query={query}
                     onQueryChange={onQueryChange}
+                    producerFilters={producerFilters}
+                    onRemoveProducerFilter={onRemoveProducerFilter}
                 />
                 {suggested.length > 0 && (
                     <div className="all-charts-block__suggested">
@@ -205,6 +238,8 @@ const AllChartsLeftPane = (props: AllChartsLeftPaneProps) => {
                         selectedIndex={selectedIndex}
                         onSelect={setSelectedIndex}
                         detectedCountries={detectedCountries}
+                        producerFilters={producerFilters}
+                        onAddProducerFilter={onAddProducerFilter}
                     />
                 )}
             </div>
@@ -223,25 +258,56 @@ const AllChartsLeftPane = (props: AllChartsLeftPaneProps) => {
 const AllChartsSearchInput = ({
     query,
     onQueryChange,
+    producerFilters,
+    onRemoveProducerFilter,
 }: {
     query: string
     onQueryChange: (query: string) => void
+    producerFilters: string[]
+    onRemoveProducerFilter: (producer: string) => void
 }) => {
     return (
-        <div className="all-charts-block__search">
-            <FontAwesomeIcon
-                className="all-charts-block__search-icon"
-                icon={faMagnifyingGlass}
-            />
-            <input
-                type="search"
-                className="all-charts-block__search-input"
-                placeholder={SEARCH_PLACEHOLDER}
-                aria-label={SEARCH_PLACEHOLDER}
-                value={query}
-                onChange={(e) => onQueryChange(e.target.value)}
-            />
-        </div>
+        <>
+            <div className="all-charts-block__search">
+                <FontAwesomeIcon
+                    className="all-charts-block__search-icon"
+                    icon={faMagnifyingGlass}
+                />
+                <input
+                    type="search"
+                    className="all-charts-block__search-input"
+                    placeholder={SEARCH_PLACEHOLDER}
+                    aria-label={SEARCH_PLACEHOLDER}
+                    value={query}
+                    onChange={(e) => onQueryChange(e.target.value)}
+                />
+            </div>
+            {producerFilters.length > 0 && (
+                <div className="all-charts-block__active-filters">
+                    {producerFilters.map((producer) => {
+                        const filter = createDatasetProducerFilter(producer)
+                        return (
+                            <button
+                                key={producer}
+                                type="button"
+                                className="all-charts-block__active-filter-button"
+                                aria-label={getFilterAriaLabel(
+                                    filter,
+                                    "remove"
+                                )}
+                                onClick={() => onRemoveProducerFilter(producer)}
+                            >
+                                <SearchFilterPill
+                                    name={producer}
+                                    icon={getFilterIcon(filter)}
+                                    selected
+                                />
+                            </button>
+                        )
+                    })}
+                </div>
+            )}
+        </>
     )
 }
 
@@ -250,11 +316,15 @@ const AllChartsTable = ({
     selectedIndex,
     onSelect,
     detectedCountries,
+    producerFilters,
+    onAddProducerFilter,
 }: {
     hits: SearchChartHit[]
     selectedIndex: number
     onSelect: (index: number) => void
     detectedCountries: string[]
+    producerFilters: string[]
+    onAddProducerFilter: (producer: string) => void
 }) => {
     return (
         <ul className="all-charts-block__table" role="list">
@@ -265,6 +335,8 @@ const AllChartsTable = ({
                     isSelected={index === selectedIndex}
                     onSelect={() => onSelect(index)}
                     detectedCountries={detectedCountries}
+                    producerFilters={producerFilters}
+                    onAddProducerFilter={onAddProducerFilter}
                 />
             ))}
         </ul>
@@ -276,16 +348,22 @@ const AllChartsTableRow = ({
     isSelected,
     onSelect,
     detectedCountries,
+    producerFilters,
+    onAddProducerFilter,
 }: {
     hit: SearchChartHit
     isSelected: boolean
     onSelect: () => void
     detectedCountries: string[]
+    producerFilters: string[]
+    onAddProducerFilter: (producer: string) => void
 }) => {
     const chartUrl = constructChartUrl({ hit })
 
     // Entities from the query that are actually available on this chart.
     const shownEntities = pickEntitiesForChartHit(hit, detectedCountries)
+
+    const producers = hit.datasetProducers ?? []
 
     return (
         <li
@@ -314,10 +392,31 @@ const AllChartsTableRow = ({
                         </span>
                     )}
                 </span>
-                <span className="all-charts-block__row-source">
-                    {hit.containerTitle ?? ""}
-                </span>
             </button>
+            {/* The source column lives outside the row-selection button so its
+                producer buttons can be clicked independently (no nested
+                buttons). Clicking a producer adds a discardable filter. */}
+            <span className="all-charts-block__row-source">
+                {producers.map((producer) => {
+                    const isActive = producerFilters.includes(producer)
+                    return (
+                        <button
+                            key={producer}
+                            type="button"
+                            className={cx("all-charts-block__producer", {
+                                "all-charts-block__producer--active": isActive,
+                            })}
+                            onClick={() => onAddProducerFilter(producer)}
+                            aria-label={`Filter by ${producer}`}
+                            aria-pressed={isActive}
+                            data-track-note="all-charts-producer-filter"
+                            disabled={isActive}
+                        >
+                            {producer}
+                        </button>
+                    )
+                })}
+            </span>
             <a
                 className="all-charts-block__row-link"
                 href={chartUrl}
