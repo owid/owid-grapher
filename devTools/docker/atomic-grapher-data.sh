@@ -51,6 +51,17 @@ import_db() {
     cat $1 | gunzip | sed s/.\*DEFINER\=\`.\*// | grep -vF GLOBAL.GTID_PURGED | _mysql $2
 }
 
+# Import the private sidecar dump into the replacement DB *before* the atomic
+# swap, so its tables are never empty in the live DB after a refresh.
+import_private() {
+    if [ -f "${DATA_FOLDER}/owid_private.sql.gz" ]; then
+        echo "==> Importing private sidecar dump into $1"
+        import_db $DATA_FOLDER/owid_private.sql.gz $1
+    else
+        echo "==> No private sidecar dump present — private tables stay empty in $1"
+    fi
+}
+
 swapGrapherDb() {
     local NEW_DB="${GRAPHER_DB_NAME}_new"
     local OLD_DB="${GRAPHER_DB_NAME}_old"
@@ -62,6 +73,7 @@ swapGrapherDb() {
         echo "==> First-time setup: importing directly (no tables to swap)"
         _mysql --database="" -e "DROP DATABASE IF EXISTS $GRAPHER_DB_NAME; CREATE DATABASE $GRAPHER_DB_NAME CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_as_cs;"
         import_db $DATA_FOLDER/owid_metadata.sql.gz $GRAPHER_DB_NAME
+        import_private $GRAPHER_DB_NAME
         echo "==> Grapher DB initial setup complete"
         return 0
     fi
@@ -77,6 +89,10 @@ swapGrapherDb() {
         _mysql --database="" -e "DROP DATABASE IF EXISTS $NEW_DB;"
         return 1
     fi
+
+    # Populate the private tables in the replacement DB before the swap, so the
+    # live DB never exposes an empty admin_api_keys (auth) after the swap.
+    import_private $NEW_DB
 
     echo "==> Preparing atomic table swap"
     # Drop old backup database if exists, create fresh one

@@ -3,12 +3,18 @@
 // that the db test suite can verify that every table created by our
 // migrations is classified here.
 //
-// By default, only each table's structure is exported, with no rows.
-// For data to be exported, it must be explicitly included in the
-// INCLUDE_DATA_TABLES list. Keep both lists alphabetised.
+// Every table falls into exactly one tier:
+//   - PUBLIC_DATA_TABLES: structure + data ship in the public owid_metadata
+//     dump (downloaded by anyone running the stack locally).
+//   - PRIVATE_DATA_TABLES: structure ships in the public dump, but the data
+//     is sensitive/internal and travels only in the private sidecar dump
+//     (exportPrivateData.ts → r2:owid-private). Never published.
+//   - SCHEMA_ONLY_TABLES: structure ships publicly, data goes nowhere.
+//   - USERS_TABLE: exported publicly with anonymised data.
+//
+// Keep every list alphabetised.
 
-export const INCLUDE_DATA_TABLES = [
-    "admin_api_keys",
+export const PUBLIC_DATA_TABLES = [
     "analytics_popularity",
     "archived_chart_versions",
     "archived_explorer_versions",
@@ -72,17 +78,31 @@ export const INCLUDE_DATA_TABLES = [
     "variables",
 ]
 
-// Tables that are intentionally schema-only. Listing them here (rather than
-// relying on the default) documents *why* they're excluded and lets the
-// classification check confirm every table has been considered. Keep
-// alphabetised.
+// Tables whose structure is public but whose data is sensitive/internal and
+// therefore only travels in the private sidecar dump (exportPrivateData.ts),
+// uploaded to r2:owid-private and imported by staging servers and devs-with-
+// access via `make refresh.private`. exportPrivateData.ts dumps exactly this
+// list, so it stays the single source of truth. Keep alphabetised.
+export const PRIVATE_DATA_TABLES = [
+    // Hashed admin API keys — authentication material that must never appear
+    // in the public dump. Staging needs the rows so ETL can authenticate
+    // against the staging admin API with the shared ADMIN_API_KEY.
+    "admin_api_keys",
+    // The analytics_* tables are internal and large; their per-page/per-chart
+    // view counts ship only here. Populated on prod by the analytics service
+    // (`ana bigquery-to-mysql` in owid/analytics).
+    // (analytics_popularity is also analytics-owned, but it's whitelisted in
+    // PUBLIC_DATA_TABLES with data, so it doesn't need to travel here.)
+    "analytics_chart_views",
+    "analytics_grapher_views",
+    "analytics_pageviews",
+]
+
+// Tables that are intentionally schema-only: their structure ships publicly
+// but their data is exported nowhere. Listing them here (rather than relying
+// on a default) documents *why* they're excluded and lets the classification
+// check confirm every table has been considered. Keep alphabetised.
 export const SCHEMA_ONLY_TABLES = [
-    // The analytics_* tables ship schema-only here; their data travels in a
-    // private sidecar dump instead. Keep them in sync with analyticsTables in
-    // exportAnalyticsData.ts.
-    "analytics_chart_views", // internal analytics, large
-    "analytics_grapher_views", // internal analytics, large
-    "analytics_pageviews", // internal analytics, large
     "donors", // donor PII
 ]
 
@@ -92,7 +112,8 @@ export const USERS_TABLE = "users"
 
 export function findUnclassifiedTables(allTables: string[]): string[] {
     const classified = new Set([
-        ...INCLUDE_DATA_TABLES,
+        ...PUBLIC_DATA_TABLES,
+        ...PRIVATE_DATA_TABLES,
         ...SCHEMA_ONLY_TABLES,
         USERS_TABLE,
     ])
@@ -101,11 +122,12 @@ export function findUnclassifiedTables(allTables: string[]): string[] {
 
 export function unclassifiedTablesErrorMessage(unclassified: string[]): string {
     return (
-        `the following tables are not classified in ` +
-        `INCLUDE_DATA_TABLES or SCHEMA_ONLY_TABLES: ${unclassified.join(
+        `the following tables are not classified in PUBLIC_DATA_TABLES, ` +
+        `PRIVATE_DATA_TABLES or SCHEMA_ONLY_TABLES: ${unclassified.join(
             ", "
         )}.\nAdd each one to exactly one of those lists in ` +
-        `db/exportMetadataTables.ts (data will only be exported for tables ` +
-        `in INCLUDE_DATA_TABLES).`
+        `db/exportMetadataTables.ts (data is exported publicly only for ` +
+        `tables in PUBLIC_DATA_TABLES; PRIVATE_DATA_TABLES data travels in ` +
+        `the private sidecar dump, see db/exportPrivateData.ts).`
     )
 }
