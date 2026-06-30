@@ -164,18 +164,30 @@ export const LatestTopicFacets = ({
         }
     }, [])
 
-    // Scroll the selected topic into view on initial load
+    // Scroll the selected topic into view on initial load. The ScrollMenu
+    // registers items and their visibility asynchronously via an
+    // IntersectionObserver, so on mount `getItemById` may return an item whose
+    // `entry` is not yet populated — and `scrollToItem` silently no-ops without
+    // it. Retry across a few animation frames until the item is measured, then
+    // scroll once.
     useEffect(() => {
         const topic = selectedTopics[0]
         if (!topic) return
-        // Delay to allow ScrollMenu to register items
-        const timer = requestAnimationFrame(() => {
+        let rafId = 0
+        let attempts = 0
+        const MAX_ATTEMPTS = 30
+        const tryScroll = () => {
             const item = apiRef.current.getItemById?.(topic)
-            if (item) {
+            if (item?.entry) {
                 apiRef.current.scrollToItem(item, "smooth", "center")
+                return
             }
-        })
-        return () => cancelAnimationFrame(timer)
+            if (attempts++ < MAX_ATTEMPTS) {
+                rafId = requestAnimationFrame(tryScroll)
+            }
+        }
+        rafId = requestAnimationFrame(tryScroll)
+        return () => cancelAnimationFrame(rafId)
     }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
     return (
