@@ -1381,6 +1381,9 @@ $bespoke-viz-commentary-fr: 37fr;
 $bespoke-viz-viz-fr: 63fr;
 $bespoke-viz-card-border: #d6dae0;
 $bespoke-viz-commentary-text: #6a7178;
+// Shared two-column track definition so the header's left column and the
+// body's viz column have IDENTICAL geometry (same edges, same width).
+$bespoke-viz-columns: $bespoke-viz-viz-fr $bespoke-viz-commentary-fr;
 
 .centered-article-container--bespoke-viz {
     /* The header and the two-column body both break out of the standard
@@ -1396,11 +1399,19 @@ $bespoke-viz-commentary-text: #6a7178;
     // right column aligned with the subtitle.
     .bespoke-viz-header {
         display: grid;
-        grid-template-columns: $bespoke-viz-viz-fr $bespoke-viz-commentary-fr;
+        // SAME columns + gutter + horizontal padding as the body grid, so the
+        // header's left column pixel-aligns with the body's viz column (same
+        // left edge, right edge and width). The title therefore wraps only at
+        // the viz column's right edge.
+        grid-template-columns: $bespoke-viz-columns;
         // Rows: eyebrow, title, then a shared subtitle/byline row.
         grid-template-rows: auto auto auto;
         column-gap: $bespoke-viz-gutter;
-        padding: 40px $bespoke-viz-page-padding 32px;
+        padding: 40px $bespoke-viz-page-padding 28px;
+        // Thin divider at the header/body boundary (where the scrim's top edge
+        // sits when expanded). Plain white header otherwise — no heavy band.
+        border-bottom: 1px solid $bespoke-viz-card-border; // #d6dae0
+        margin-bottom: 28px;
 
         @include sm-only {
             grid-template-columns: 1fr;
@@ -1431,14 +1442,16 @@ $bespoke-viz-commentary-text: #6a7178;
         .bespoke-viz-header__title {
             grid-column: 1;
             grid-row: 2;
-            // Wraps at the (left) viz column's width, not full-page width.
+            // Fills the full left-column (viz) width and only wraps at its
+            // right edge. No max-width and no `text-wrap: balance` — balancing
+            // is what made the title wrap early, short of the column edge.
             margin: 0 0 12px;
+            max-width: none;
             font-family: $serif-font-stack; // Playfair Display
             font-weight: 600;
             font-size: clamp(32px, 3vw, 44px);
             line-height: 1.1;
             color: $blue-90; // #1d3d63
-            text-wrap: balance;
         }
 
         .bespoke-viz-header__subtitle {
@@ -1489,7 +1502,10 @@ $bespoke-viz-commentary-text: #6a7178;
         // site nav and header uncovered.
         position: relative;
         display: grid;
-        grid-template-columns: $bespoke-viz-viz-fr $bespoke-viz-commentary-fr;
+        // SAME track definition, gutter and horizontal padding as the header
+        // grid, so the viz column lines up exactly under the header's left
+        // column.
+        grid-template-columns: $bespoke-viz-columns;
         gap: $bespoke-viz-gutter;
         padding: 0 $bespoke-viz-page-padding;
         align-items: start;
@@ -1545,21 +1561,26 @@ $bespoke-viz-commentary-text: #6a7178;
     }
 
     .bespoke-viz-layout__viz-sticky {
-        // The "above/around the chart" allowance: the box padding plus the
-        // viz's own controls + data-source footer (its title/subtitle are
-        // hidden in this layout, so there's more vertical room than before).
-        // This is the fit-to-viewport tuning knob — increase if the chart
-        // overflows, decrease to give the chart more height.
+        // The "above/around the chart" allowance: everything in the box that is
+        // NOT the chart drawing area — this box's padding, the viz's inner
+        // frame border/padding, its "Configure the data" controls and its
+        // data-source footer. This is the fit-to-viewport tuning knob: increase
+        // it if the chart overflows the box, decrease to give the chart more
+        // height. (The viz's own title/subtitle are hidden in this layout.)
         --bespoke-viz-top-offset: 1rem;
-        --bespoke-viz-chrome-allowance: 200px;
+        --bespoke-viz-chrome-allowance: 250px;
 
         position: sticky;
         top: var(--bespoke-viz-top-offset);
 
-        // Bordered white card around the viz (controls + chart + footer).
+        // Bordered white card around the viz (controls + chart + footer). Tight
+        // top padding so the controls header starts near the top (the viz has
+        // its own inner frame padding too).
+        display: flex;
+        flex-direction: column;
         border: 1px solid $bespoke-viz-card-border; // #d6dae0
         border-radius: 12px;
-        padding: 18px 20px;
+        padding: 6px 16px 14px;
         background-color: $white;
 
         // Fit-to-viewport: cap the inline column to the visible viewport height
@@ -1585,9 +1606,16 @@ $bespoke-viz-commentary-text: #6a7178;
         }
     }
 
-    // Position context for the absolutely-placed Expand button.
+    // Position context for the absolutely-placed Expand button; also centres
+    // the viz horizontally within the box if it ends up narrower than the box.
     .bespoke-viz-layout__viz-inner {
         position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        // Keep the viz within the box bounds — never spill past the border.
+        min-width: 0;
+        max-width: 100%;
     }
 
     // Wrapper that physically holds the live viz DOM node. We move THIS node
@@ -1605,19 +1633,22 @@ $bespoke-viz-commentary-text: #6a7178;
         }
     }
 
-    // Inline icon-only Expand button, pinned to the top-right corner of the
-    // viz box (above the viz). Visually icon-only; an aria-label provides the
-    // accessible name.
+    // Inline icon-only Expand button. Pinned top-right and nudged up so it sits
+    // level with the viz's "Configure the data" controls-header row (which
+    // renders at the top of the viz content inside the shadow DOM) rather than
+    // on its own line above the controls. `top` is a tuning knob — adjust it to
+    // line the button up with that label. Visually icon-only; aria-label
+    // supplies the accessible name.
     .bespoke-viz-expand-button {
         position: absolute;
-        top: 8px;
-        right: 8px;
+        top: 14px;
+        right: 4px;
         z-index: 2;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        width: 30px;
-        height: 30px;
+        width: 28px;
+        height: 28px;
         padding: 0;
         color: $blue-60;
         background-color: rgba(255, 255, 255, 0.9);
@@ -1666,9 +1697,12 @@ $bespoke-viz-commentary-text: #6a7178;
 
         .bespoke-viz-lightbox__box {
             position: absolute;
-            top: 50%;
+            // Top-aligned: the modal sits just below the header, near the top
+            // of the article body, rather than vertically centred low in the
+            // (tall) body region. Horizontally centred.
+            top: 16px;
             left: 50%;
-            transform: translate(-50%, -50%);
+            transform: translateX(-50%);
             width: min(1320px, 100%);
             background-color: $white;
             border-radius: 12px;
