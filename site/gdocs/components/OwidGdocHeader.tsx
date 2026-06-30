@@ -9,7 +9,11 @@ import {
     formatDate,
 } from "@ourworldindata/utils"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faBook, faClockRotateLeft } from "@fortawesome/free-solid-svg-icons"
+import {
+    faBook,
+    faClockRotateLeft,
+    faWandMagicSparkles,
+} from "@fortawesome/free-solid-svg-icons"
 import { faCreativeCommons } from "@fortawesome/free-brands-svg-icons"
 import Image from "./Image.js"
 import { Breadcrumbs } from "../../Breadcrumb/Breadcrumb.js"
@@ -238,12 +242,60 @@ function OwidLinearTopicPageHeader({
     )
 }
 
+/**
+ * Header for the `layout: bespoke-viz` article variant.
+ *
+ * Visually this is the Linear Topic Page header (large serif title, subtitle,
+ * byline) but LEFT-ALIGNED using the same column placement the Topic Page
+ * header uses (col-start-2), lined up with the left edge of the commentary
+ * column, sitting on a soft blue-grey band. It also adds an eyebrow /
+ * content-type label above the title (small-caps, letter-spaced, with a
+ * placeholder sparkle icon). All styling is scoped under the
+ * `.centered-article-container--bespoke-viz` modifier in centered-article.scss.
+ */
+function OwidBespokeVizHeader({ content }: { content: OwidGdocPostContent }) {
+    return (
+        <header className="bespoke-viz-header grid span-cols-14 grid-cols-12-full-width">
+            <div className="bespoke-viz-header__inner col-start-2 span-cols-12 col-sm-start-2 span-sm-cols-12">
+                {/* Placeholder eyebrow + icon — clearly swappable. */}
+                <p className="bespoke-viz-header__eyebrow">
+                    <FontAwesomeIcon
+                        className="bespoke-viz-header__eyebrow-icon"
+                        icon={faWandMagicSparkles}
+                    />
+                    Featured Visualization
+                </p>
+                <h1 className="bespoke-viz-header__title">{content.title}</h1>
+                {content.subtitle && (
+                    <p className="bespoke-viz-header__subtitle">
+                        {content.subtitle}
+                    </p>
+                )}
+                {content.authors.length > 0 && (
+                    <p className="bespoke-viz-header__byline">
+                        <Byline names={content.authors} />
+                    </p>
+                )}
+                {content.dateline && (
+                    <p className="bespoke-viz-header__dateline">
+                        {content.dateline}
+                    </p>
+                )}
+            </div>
+        </header>
+    )
+}
+
 export function OwidGdocHeader(props: {
     content: OwidGdocPostContent
     publishedAt: Date | null
     breadcrumbs?: BreadcrumbItem[]
     isDeprecated?: boolean
 }) {
+    // The viz-forward layout flag takes precedence over the content type so
+    // that a regular Article (the usual type for these) gets the banded header.
+    if (props.content.layout === "bespoke-viz")
+        return <OwidBespokeVizHeader content={props.content} />
     if (props.content.type === OwidGdocType.Article)
         return <OwidArticleHeader {...props} />
     if (props.content.type === OwidGdocType.TopicPage)

@@ -12,6 +12,7 @@ import {
     OwidGdocType,
     formatAuthorsForBibtex,
     EnrichedBlockText,
+    OwidEnrichedGdocBlock,
     getPhraseForArchivalDate,
 } from "@ourworldindata/utils"
 import { CodeSnippet } from "@ourworldindata/components"
@@ -77,6 +78,11 @@ export function GdocPost({
     const citationText = `${shortPageCitation} Published online at OurWorldinData.org. Retrieved from: '${citationUrl}' [Online Resource]${archivalPhrase ? ` ${archivalPhrase}` : ""}`
     const hasSidebarToc = content["sidebar-toc"]
     const headingVariant = content["heading-variant"] ?? "light"
+    // Opt-in viz-forward chrome. When the article front-matter sets
+    // `layout: bespoke-viz`, we render a two-column layout (commentary left,
+    // bespoke-component viz in a sticky right column). Everything below is
+    // gated behind this flag so normal articles render exactly as before.
+    const isBespokeViz = content.layout === "bespoke-viz"
     const shouldHideSubscribeBanner =
         content["hide-subscribe-banner"] || postType === OwidGdocType.TopicPage
     const isDeprecated =
@@ -101,6 +107,7 @@ export function GdocPost({
                 {
                     [`centered-article-container--${content.type}`]:
                         content.type,
+                    "centered-article-container--bespoke-viz": isBespokeViz,
                 }
             )}
         >
@@ -128,7 +135,9 @@ export function GdocPost({
                     />
                 </nav>
             ) : null}
-            {content.body ? (
+            {content.body && isBespokeViz ? (
+                <BespokeVizBody blocks={content.body} toc={content.toc} />
+            ) : content.body ? (
                 <ArticleBlocks
                     toc={content.toc}
                     blocks={content.body}
@@ -222,6 +231,50 @@ export function GdocPost({
                 </div>
             </section>
         </article>
+    )
+}
+
+/**
+ * Body renderer for the `layout: bespoke-viz` variant.
+ *
+ * Splits the article body into two columns: all the regular text/commentary
+ * blocks go in the (narrower) left column, and any `bespoke-component` viz
+ * block(s) go in the (wider) sticky right column. The actual grid sizing,
+ * stickiness and gutters live in centered-article.scss, scoped under the
+ * `.centered-article-container--bespoke-viz` modifier.
+ *
+ * The bespoke-component renders inline at the right-column width — it already
+ * reflows to its container via a ResizeObserver, so no extra sizing is needed.
+ */
+function BespokeVizBody({
+    blocks,
+    toc,
+}: {
+    blocks: OwidEnrichedGdocBlock[]
+    toc?: GdocPostProps["content"]["toc"]
+}) {
+    const vizBlocks = blocks.filter(
+        (block) => block.type === "bespoke-component"
+    )
+    const commentaryBlocks = blocks.filter(
+        (block) => block.type !== "bespoke-component"
+    )
+
+    return (
+        <div className="bespoke-viz-layout span-cols-14">
+            <div className="bespoke-viz-layout__commentary">
+                {/* No automatic subscribe banner here: the commentary column
+                    reads as secondary meta-commentary, kept deliberately clean. */}
+                <ArticleBlocks blocks={commentaryBlocks} toc={toc} />
+            </div>
+            <div className="bespoke-viz-layout__viz">
+                <div className="bespoke-viz-layout__viz-sticky">
+                    {vizBlocks.length ? (
+                        <ArticleBlocks blocks={vizBlocks} toc={toc} />
+                    ) : null}
+                </div>
+            </div>
+        </div>
     )
 }
 

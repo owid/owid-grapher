@@ -31,6 +31,7 @@ function* owidArticleToArchieMLStringGenerator(
     }
     yield* propertyToArchieMLString("sidebar-toc", article)
     yield* propertyToArchieMLString("heading-variant", article)
+    yield* propertyToArchieMLString("layout", article)
     yield* propertyToArchieMLString("hide-subscribe-banner", article)
     // TODO: inline refs
     yield* propertyToArchieMLString("hide-citation", article)

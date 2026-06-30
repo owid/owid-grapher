@@ -1361,3 +1361,173 @@ div.raw-html-table__container {
 .article-block__sticky-left:has(+ .article-block__heading) {
     margin-bottom: 0;
 }
+
+/* ==========================================================================
+   Bespoke-viz layout (stage 1: static chrome only)
+   --------------------------------------------------------------------------
+   Opt-in viz-forward presentation, enabled by `layout: bespoke-viz` in the
+   article front-matter. Everything here is scoped under the
+   `.centered-article-container--bespoke-viz` modifier so that normal articles
+   are completely unaffected.
+
+   Layout: a wide two-column band — commentary on the left (minority width),
+   the bespoke-component viz in a sticky right column (larger width).
+   ========================================================================== */
+
+// Column split + spacing tokens (kept here so the header and body share them).
+$bespoke-viz-page-padding: 4vw;
+$bespoke-viz-gutter: 48px;
+$bespoke-viz-commentary-fr: 37fr;
+$bespoke-viz-viz-fr: 63fr;
+$bespoke-viz-band-bg: #ebeef2;
+$bespoke-viz-card-border: #d6dae0;
+$bespoke-viz-commentary-text: #6a7178;
+
+.centered-article-container--bespoke-viz {
+    /* The header band and the two-column body both break out of the standard
+       centred grid to sit close to the full viewport width. They're direct
+       children of the `.grid grid-cols-12-full-width` article container and
+       span all columns (span-cols-14), then apply their own horizontal
+       padding. */
+
+    // --- Header band -----------------------------------------------------
+    .bespoke-viz-header {
+        background-color: $bespoke-viz-band-bg;
+        padding: 48px $bespoke-viz-page-padding 40px;
+        margin-bottom: 40px;
+
+        @include sm-only {
+            padding-top: 32px;
+            padding-bottom: 28px;
+        }
+
+        // The inner wrapper aligns the header content with the left edge of
+        // the commentary column below (same ~4vw page padding).
+        .bespoke-viz-header__inner {
+            // Neutralise the grid placement classes: inside the band we lay
+            // the header out as a simple left-aligned block.
+            grid-column: 1 / -1;
+            max-width: 760px;
+        }
+
+        .bespoke-viz-header__eyebrow {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 0 0 14px;
+            font-family: $sans-serif-font-stack;
+            font-weight: 700;
+            font-size: 12.5px;
+            text-transform: uppercase;
+            letter-spacing: 0.13em;
+            color: $blue-60; // #426591
+        }
+
+        .bespoke-viz-header__eyebrow-icon {
+            font-size: 14px;
+        }
+
+        .bespoke-viz-header__title {
+            margin: 0 0 12px;
+            font-family: $serif-font-stack; // Playfair Display
+            font-weight: 600;
+            font-size: clamp(32px, 3vw, 44px);
+            line-height: 1.1;
+            color: $blue-90; // #1d3d63
+        }
+
+        .bespoke-viz-header__subtitle {
+            margin: 0 0 16px;
+            font-family: $sans-serif-font-stack; // Lato
+            font-weight: 400;
+            font-size: 18px;
+            line-height: 1.4;
+            color: $blue-90; // #1d3d63
+        }
+
+        .bespoke-viz-header__byline,
+        .bespoke-viz-header__dateline {
+            margin: 0;
+            font-family: $sans-serif-font-stack; // Lato
+            font-size: 14px;
+            color: $blue-60; // #426591
+        }
+
+        .bespoke-viz-header__byline {
+            margin-bottom: 4px;
+            a {
+                color: $blue-60;
+            }
+        }
+    }
+
+    // --- Two-column body -------------------------------------------------
+    .bespoke-viz-layout {
+        display: grid;
+        grid-template-columns: $bespoke-viz-commentary-fr $bespoke-viz-viz-fr;
+        gap: $bespoke-viz-gutter;
+        padding: 0 $bespoke-viz-page-padding;
+        align-items: start;
+
+        // Stack into a single column on small screens. (Full mobile polish is
+        // out of scope for stage 1, but a graceful stack avoids a broken page.)
+        @include sm-only {
+            grid-template-columns: 1fr;
+            gap: 32px;
+        }
+    }
+
+    // Left column: secondary meta-commentary. Lighter, smaller, muted grey,
+    // comfortable line height, no background box.
+    .bespoke-viz-layout__commentary {
+        min-width: 0; // allow the column to shrink rather than overflow
+
+        // The text blocks inside still carry the standard grid placement
+        // classes (col-start-*, span-cols-*), but this wrapper is not a grid,
+        // so they fall back to normal block flow. We restyle the text here.
+        [class*="article-block__"] {
+            // Reset any grid-driven widths so blocks fill the commentary column.
+            width: 100%;
+            max-width: 100%;
+        }
+
+        p,
+        li {
+            font-family: $sans-serif-font-stack; // Lato
+            font-weight: 300;
+            font-size: 15.5px;
+            line-height: 1.62;
+            color: $bespoke-viz-commentary-text; // #6a7178
+        }
+
+        a {
+            color: $blue-50; // #577291
+        }
+    }
+
+    // Right column: the viz sits in a bordered white card and sticks while the
+    // commentary scrolls past it.
+    .bespoke-viz-layout__viz {
+        min-width: 0;
+    }
+
+    .bespoke-viz-layout__viz-sticky {
+        position: sticky;
+        top: 24px;
+
+        // Bordered white card around the viz.
+        border: 1px solid $bespoke-viz-card-border; // #d6dae0
+        border-radius: 10px;
+        padding: 18px 20px;
+        margin: 6px;
+        background-color: $white;
+
+        // The bespoke-component renders inline and reflows to its container
+        // width via a ResizeObserver, so it simply fills the card. Neutralise
+        // its grid placement classes for the same reason as the commentary.
+        [class*="article-block__"] {
+            width: 100%;
+            max-width: 100%;
+        }
+    }
+}
