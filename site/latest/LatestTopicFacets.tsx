@@ -164,12 +164,7 @@ export const LatestTopicFacets = ({
         }
     }, [])
 
-    // Scroll the selected topic into view on initial load. The ScrollMenu
-    // registers items and their visibility asynchronously via an
-    // IntersectionObserver, so on mount `getItemById` may return an item whose
-    // `entry` is not yet populated — and `scrollToItem` silently no-ops without
-    // it. Retry across a few animation frames until the item is measured, then
-    // scroll once.
+    // Scroll the selected topic into view on initial load
     useEffect(() => {
         const topic = selectedTopics[0]
         if (!topic) return
