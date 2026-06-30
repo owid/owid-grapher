@@ -48,6 +48,9 @@ import {
     FEATURED_DATA_INSIGHTS_ID,
     EXPLORE_DATA_SECTION_DEFAULT_TITLE,
     EXPLORE_DATA_SECTION_ID,
+    FEATURED_METRICS_ID,
+    RESEARCH_AND_WRITING_ID,
+    RESEARCH_AND_WRITING_DEFAULT_HEADING,
     CHRONOLOGICAL_INDEX_TYPES,
     LATEST_FEED_TYPES,
 } from "@ourworldindata/types"
@@ -1853,6 +1856,10 @@ export function spansToUnformattedPlainText(spans: Span[]): string {
         .join("")
 }
 
+export function getResearchAndWritingId(heading?: string): string {
+    return heading ? slugify(heading) : RESEARCH_AND_WRITING_ID
+}
+
 export function generateToc(
     body: OwidEnrichedGdocBlock[] | undefined,
     isTocForSidebar: boolean = false
@@ -1886,8 +1893,27 @@ export function generateToc(
 
             if (child.type === "all-charts") {
                 toc.push({
-                    title: child.heading,
+                    title: "Key charts",
                     slug: ALL_CHARTS_ID,
+                    isSubheading: false,
+                })
+                return
+            }
+
+            if (child.type === "featured-metrics") {
+                toc.push({
+                    title: "Featured data",
+                    slug: FEATURED_METRICS_ID,
+                    isSubheading: false,
+                })
+                return
+            }
+
+            if (child.type === "research-and-writing") {
+                const { heading } = child
+                toc.push({
+                    title: heading || RESEARCH_AND_WRITING_DEFAULT_HEADING,
+                    slug: getResearchAndWritingId(heading),
                     isSubheading: false,
                 })
                 return
