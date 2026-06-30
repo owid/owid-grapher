@@ -100,8 +100,8 @@ $active-icon: $blue-50;
         }
 
         // Hide the separator line when interacted with
-        &[data-hovered]:not(.is-open)::before,
-        &[data-pressed]:not(.is-open)::before {
+        &[data-hovered]:not([data-open])::before,
+        &[data-pressed]:not([data-open])::before {
             display: none;
         }
     }
