@@ -1402,12 +1402,14 @@ $bespoke-viz-commentary-text: #6a7178;
         }
 
         // The inner wrapper aligns the header content with the left edge of
-        // the commentary column below (same ~4vw page padding).
+        // the commentary column below (same ~4vw page padding). It spans the
+        // full band width so the title has room to breathe; the title only
+        // wraps when it genuinely must rather than at a narrow text measure.
         .bespoke-viz-header__inner {
             // Neutralise the grid placement classes: inside the band we lay
             // the header out as a simple left-aligned block.
             grid-column: 1 / -1;
-            max-width: 760px;
+            max-width: 1100px;
         }
 
         .bespoke-viz-header__eyebrow {
@@ -1429,15 +1431,22 @@ $bespoke-viz-commentary-text: #6a7178;
 
         .bespoke-viz-header__title {
             margin: 0 0 12px;
+            // Use the full available header width: only wrap when the text
+            // genuinely doesn't fit, not at a narrow ~8-column text measure.
+            max-width: none;
             font-family: $serif-font-stack; // Playfair Display
             font-weight: 600;
             font-size: clamp(32px, 3vw, 44px);
             line-height: 1.1;
             color: $blue-90; // #1d3d63
+            text-wrap: balance;
         }
 
         .bespoke-viz-header__subtitle {
             margin: 0 0 16px;
+            // Keep the subtitle to a comfortable reading measure, but wider
+            // than the default so it doesn't wrap prematurely either.
+            max-width: 760px;
             font-family: $sans-serif-font-stack; // Lato
             font-weight: 400;
             font-size: 18px;
@@ -1507,13 +1516,22 @@ $bespoke-viz-commentary-text: #6a7178;
 
     // Right column: the viz sits in a bordered white card and sticks while the
     // commentary scrolls past it.
+    //
+    // For position:sticky to have anywhere to travel, this grid item must be
+    // as tall as the row (i.e. as tall as the long commentary column). The
+    // grid sets `align-items: start`, which would otherwise collapse this
+    // column to its content height and leave the sticky child nothing to
+    // travel within — so we explicitly stretch it.
     .bespoke-viz-layout__viz {
         min-width: 0;
+        align-self: stretch;
     }
 
     .bespoke-viz-layout__viz-sticky {
+        // ~1rem from the top. (No persistent site nav overlaps the article
+        // body here, so a small offset is enough.)
         position: sticky;
-        top: 24px;
+        top: 1rem;
 
         // Bordered white card around the viz.
         border: 1px solid $bespoke-viz-card-border; // #d6dae0
