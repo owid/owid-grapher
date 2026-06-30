@@ -1407,11 +1407,9 @@ $bespoke-viz-columns: $bespoke-viz-viz-fr $bespoke-viz-commentary-fr;
         // Rows: eyebrow, title, then a shared subtitle/byline row.
         grid-template-rows: auto auto auto;
         column-gap: $bespoke-viz-gutter;
-        padding: 40px $bespoke-viz-page-padding 28px;
-        // Thin divider at the header/body boundary (where the scrim's top edge
-        // sits when expanded). Plain white header otherwise — no heavy band.
-        border-bottom: 1px solid $bespoke-viz-card-border; // #d6dae0
-        margin-bottom: 28px;
+        // Plain white header, no divider line. Tight bottom so the body sits
+        // close to the header.
+        padding: 40px $bespoke-viz-page-padding 24px;
 
         @include sm-only {
             grid-template-columns: 1fr;
@@ -1547,8 +1545,8 @@ $bespoke-viz-columns: $bespoke-viz-viz-fr $bespoke-viz-commentary-fr;
         }
     }
 
-    // Left column: the viz sits in a bordered white card and sticks while the
-    // commentary scrolls past it.
+    // Left column: the viz sits directly in the column (no box/card) and
+    // sticks while the commentary scrolls past it.
     //
     // For position:sticky to have anywhere to travel, this grid item must be
     // as tall as the row (i.e. as tall as the long commentary column). The
@@ -1561,27 +1559,21 @@ $bespoke-viz-columns: $bespoke-viz-viz-fr $bespoke-viz-commentary-fr;
     }
 
     .bespoke-viz-layout__viz-sticky {
-        // The "above/around the chart" allowance: everything in the box that is
-        // NOT the chart drawing area — this box's padding, the viz's inner
-        // frame border/padding, its "Configure the data" controls and its
-        // data-source footer. This is the fit-to-viewport tuning knob: increase
-        // it if the chart overflows the box, decrease to give the chart more
-        // height. (The viz's own title/subtitle are hidden in this layout.)
+        // The "above/around the chart" allowance: everything that is NOT the
+        // chart drawing area — the viz's inner frame border/padding, its
+        // "Configure the data" controls and its data-source footer. This is the
+        // fit-to-viewport tuning knob: increase it if the chart overflows,
+        // decrease to give the chart more height. (The viz's own title/subtitle
+        // are hidden in this layout.)
         --bespoke-viz-top-offset: 1rem;
-        --bespoke-viz-chrome-allowance: 250px;
+        --bespoke-viz-chrome-allowance: 220px;
 
         position: sticky;
         top: var(--bespoke-viz-top-offset);
 
-        // Bordered white card around the viz (controls + chart + footer). Tight
-        // top padding so the controls header starts near the top (the viz has
-        // its own inner frame padding too).
+        // No box/card around the viz — it sits directly in the column.
         display: flex;
         flex-direction: column;
-        border: 1px solid $bespoke-viz-card-border; // #d6dae0
-        border-radius: 12px;
-        padding: 6px 16px 14px;
-        background-color: $white;
 
         // Fit-to-viewport: cap the inline column to the visible viewport height
         // (minus the top offset) so the whole plot — controls, chart, footer —
@@ -1598,7 +1590,7 @@ $bespoke-viz-columns: $bespoke-viz-viz-fr $bespoke-viz-commentary-fr;
         );
 
         // The bespoke-component renders inline and reflows to its container
-        // width via a ResizeObserver, so it simply fills the card. Neutralise
+        // width via a ResizeObserver, so it simply fills the column. Neutralise
         // its grid placement classes for the same reason as the commentary.
         [class*="article-block__"] {
             width: 100%;
@@ -1607,7 +1599,7 @@ $bespoke-viz-columns: $bespoke-viz-viz-fr $bespoke-viz-commentary-fr;
     }
 
     // Position context for the absolutely-placed Expand button; also centres
-    // the viz horizontally within the box if it ends up narrower than the box.
+    // the viz horizontally within the column if it ends up narrower.
     .bespoke-viz-layout__viz-inner {
         position: relative;
         display: flex;
