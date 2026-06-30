@@ -57,6 +57,17 @@ function makeStateForKey(state: SearchState) {
  *
  * Handles both regular and grouped responses (when using `group_by`).
  * Grouped responses return results under `grouped_hits` instead of `hits`.
+ *
+ * NOTE: the page-search callers below (queryDataInsights/queryArticles/
+ * queryTopicPages/queryProfiles) still pass `group_by: "slug"` together with a
+ * hybrid `vector_query`, so they share the Typesense bug worked around in
+ * `dedupHitsByDeduplicationId` (group_by + vector-only matches collapses
+ * results). They're lower-risk than the chart searches because they query full
+ * `content`, so the keyword arm rarely matches nothing — but for purely
+ * semantic queries they can still under-return. Apply the same over-fetch +
+ * client-side dedup (by `slug`, which is load-bearing here: pages are indexed
+ * as multiple content chunks sharing one slug) if/when this surfaces, or revert
+ * all of these to native `group_by` once we're on Typesense v31+.
  */
 function mapTypesenseResponse<
     TDoc extends { id?: string; slug?: string },
@@ -106,6 +117,36 @@ function buildFilterBy(
 function formatTypeFilter(...types: string[]): string {
     if (types.length === 1) return `type:=${types[0]}`
     return `type:=[${types.join(", ")}]`
+}
+
+/**
+ * Deduplicate Typesense chart hits by `deduplicationId` (falling back to
+ * `slug`), keeping the highest-ranked hit per chart and preserving relevance
+ * order.
+ *
+ * We do this in application code instead of using Typesense's native
+ * `group_by` because `group_by` combined with hybrid/vector search collapses
+ * the result set for natural-language queries — e.g. "tax on personal income"
+ * returns 101 results without `group_by` but only 1 with it, so the UI showed
+ * "no results" (or a single chart) for queries the keyword arm couldn't match.
+ * See typesense/typesense#2723; fixed by typesense/typesense#2738, but that fix
+ * only landed on the (still unreleased) `v31` branch — no released version
+ * contains it (we run v30.x). This mirrors the `/api/search` endpoint's default
+ * `dedup=api` strategy. Once we're on Typesense v31+ this can be replaced by
+ * `group_by: "deduplicationId", group_limit: 1`.
+ */
+function dedupHitsByDeduplicationId(
+    hits: SearchResponseHit<ChartDocument>[]
+): SearchResponseHit<ChartDocument>[] {
+    const seen = new Set<string>()
+    const deduped: SearchResponseHit<ChartDocument>[] = []
+    for (const hit of hits) {
+        const dedupId = hit.document?.deduplicationId ?? hit.document?.slug
+        if (!dedupId || seen.has(dedupId)) continue
+        seen.add(dedupId)
+        deduped.push(hit)
+    }
+    return deduped
 }
 
 /**
@@ -190,6 +231,13 @@ export async function queryDataTopics(
     const incomeGroupFMFilter =
         formatIncomeGroupFMFilterTypesense(selectedCountryNames)
 
+    // Number of charts displayed per topic row.
+    const TOPIC_CHARTS_LIMIT = 4
+    // Over-fetch (without Typesense's buggy `group_by` — see
+    // `dedupHitsByDeduplicationId`) so we have enough hits to still show
+    // TOPIC_CHARTS_LIMIT distinct charts after deduplicating in app code.
+    const TOPIC_DEDUP_FETCH_SIZE = 20
+
     const searches = dataTopics.map((topic) => {
         const topicFilter = formatTopicFacetFiltersTypesense(new Set([topic]))
         return {
@@ -211,12 +259,10 @@ export async function queryDataTopics(
                 .filter(Boolean)
                 .join(" && "),
             include_fields:
-                "title,slug,availableEntities,originalAvailableEntities,variantName,type,queryParams,availableTabs,subtitle,chartConfigId,explorerType,chartId",
+                "title,slug,availableEntities,originalAvailableEntities,variantName,type,queryParams,availableTabs,subtitle,chartConfigId,explorerType,chartId,deduplicationId",
             highlight_start_tag: "<mark>",
             highlight_end_tag: "</mark>",
-            group_by: "deduplicationId",
-            group_limit: 1,
-            per_page: 4,
+            per_page: TOPIC_DEDUP_FETCH_SIZE,
             page: 1,
         }
     })
@@ -230,14 +276,33 @@ export async function queryDataTopics(
         const result = (
             response.results as TypesenseSearchResponse<ChartDocument>[]
         )[i]
+        const dedupedHits = dedupHitsByDeduplicationId(result.hits ?? []).slice(
+            0,
+            TOPIC_CHARTS_LIMIT
+        )
+        const hits = dedupedHits.map((hit, index) => ({
+            ...hit.document,
+            objectID: hit.document?.id ?? hit.document?.slug ?? "",
+            __position: index,
+        })) as SearchChartHit[]
         return {
             title: topic,
-            charts: mapTypesenseResponse<ChartDocument, SearchChartHit>(
-                result,
-                state.query,
-                0,
-                4
-            ),
+            // `result.found` is the total matching documents (slightly
+            // over-counts duplicate chart views vs. the old grouped count, but
+            // never collapses to a wrong tiny value the way `group_by` does).
+            // It drives the "N charts" header and row visibility.
+            charts: {
+                hits,
+                nbHits: result.found,
+                page: 0,
+                nbPages: 1,
+                hitsPerPage: TOPIC_CHARTS_LIMIT,
+                exhaustiveNbHits: true,
+                exhaustiveTypo: true,
+                query: state.query,
+                params: "",
+                processingTimeMS: result.search_time_ms || 0,
+            } as SearchChartsResponse,
         }
     })
 }
@@ -257,6 +322,11 @@ export async function queryCharts(
     const fmFilter = formatFeaturedMetricFilterTypesense(state.query)
     const incomeGroupFMFilter =
         formatIncomeGroupFMFilterTypesense(selectedCountryNames)
+
+    // Over-fetch and deduplicate by `deduplicationId` in application code
+    // instead of using Typesense's native `group_by`, which is buggy for
+    // hybrid/vector queries — see `dedupHitsByDeduplicationId`.
+    const DEDUP_FETCH_SIZE = 250 // Typesense's max per_page
     const response = await client
         .collections<ChartDocument>(CHARTS_INDEX)
         .documents()
@@ -281,22 +351,18 @@ export async function queryCharts(
                 .filter(Boolean)
                 .join(" && "),
             include_fields:
-                "title,slug,availableEntities,originalAvailableEntities,variantName,type,queryParams,availableTabs,subtitle,chartConfigId,explorerType,chartId",
+                "title,slug,availableEntities,originalAvailableEntities,variantName,type,queryParams,availableTabs,subtitle,chartConfigId,explorerType,chartId,deduplicationId",
             highlight_start_tag: "<mark>",
             highlight_end_tag: "</mark>",
-            group_by: "deduplicationId",
-            group_limit: 1,
-            per_page: 9,
-            page: page + 1, // Typesense pages are 1-indexed
+            per_page: DEDUP_FETCH_SIZE,
+            page: 1,
         })
 
-    // Map hits to match SearchChartHit structure.
-    // Handle both regular and grouped responses (when using group_by).
-    const rawHits: SearchResponseHit<ChartDocument>[] =
-        response.hits ??
-        response.grouped_hits?.flatMap((group) => group.hits ?? []) ??
-        []
-    const hits: SearchChartHit[] = rawHits.map((hit, index) => ({
+    // Deduplicate, then paginate over the unique results client-side.
+    const dedupedHits = dedupHitsByDeduplicationId(response.hits ?? [])
+
+    const pageHits = dedupedHits.slice(page * 9, page * 9 + 9)
+    const hits: SearchChartHit[] = pageHits.map((hit, index) => ({
         ...hit.document,
         objectID: hit.document?.slug,
         __position: page * 9 + index,
@@ -304,12 +370,14 @@ export async function queryCharts(
         availableEntities: hit.document?.availableEntities || [],
     })) as SearchChartHit[]
 
-    // Return structure matching SearchChartsResponse
+    // nbHits is the count of unique charts within the fetched window (an
+    // approximation of the true total, which is enough to drive pagination).
+    const nbHits = dedupedHits.length
     return {
         hits,
-        nbHits: response.found,
+        nbHits,
         page,
-        nbPages: Math.ceil(response.found / 9),
+        nbPages: Math.ceil(nbHits / 9),
         hitsPerPage: 9,
         exhaustiveNbHits: true,
         exhaustiveTypo: true,
