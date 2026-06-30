@@ -192,7 +192,7 @@ export const SidebarTableOfContents = ({
                                         href={`#${heading.slug}`}
                                         data-track-note="toc_link"
                                     >
-                                        {heading.text}
+                                        {heading.title}
                                     </a>
                                 </li>
                             ))}

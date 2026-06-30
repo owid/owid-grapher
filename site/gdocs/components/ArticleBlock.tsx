@@ -19,7 +19,7 @@ import {
     EXPERIMENT_PREFIX,
     OwidEnrichedGdocBlock,
     spansToUnformattedPlainText,
-    TocHeadingWithTitleSupertitle,
+    TocHeadingWithSupertitle,
     Url,
     defaultExperimentState,
     getExperimentState,
@@ -80,7 +80,7 @@ function ArticleBlockInternal({
 }: {
     b: OwidEnrichedGdocBlock
     containerType?: Container
-    toc?: TocHeadingWithTitleSupertitle[]
+    toc?: TocHeadingWithSupertitle[]
     shouldRenderLinks?: boolean
     interactiveImages?: boolean
 }) {
@@ -1036,7 +1036,7 @@ export default function ArticleBlock({
 }: {
     b: OwidEnrichedGdocBlock
     containerType?: Container
-    toc?: TocHeadingWithTitleSupertitle[]
+    toc?: TocHeadingWithSupertitle[]
     shouldRenderLinks?: boolean
     interactiveImages?: boolean
 }) {

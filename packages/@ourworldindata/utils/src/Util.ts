@@ -43,7 +43,7 @@ import {
     OwidGdocHomepageInterface,
     PrimitiveType,
     GrapherTrendArrowDirection,
-    TocHeadingWithTitleSupertitle,
+    TocHeadingWithSupertitle,
     ALL_CHARTS_ID,
     FEATURED_DATA_INSIGHTS_ID,
     EXPLORE_DATA_SECTION_DEFAULT_TITLE,
@@ -1856,14 +1856,14 @@ export function spansToUnformattedPlainText(spans: Span[]): string {
 export function generateToc(
     body: OwidEnrichedGdocBlock[] | undefined,
     isTocForSidebar: boolean = false
-): TocHeadingWithTitleSupertitle[] {
+): TocHeadingWithSupertitle[] {
     if (!body) return []
 
     // For linear topic pages, we record h1s and h2s
     // For the sdg-toc, we record h2s & h3s (as it was developed before we decided to use h1s as our top level heading)
     // It would be nice to standardise this but it would require a migration, updating CSS, updating Gdocs, etc.
     const [primary, secondary] = isTocForSidebar ? [1, undefined] : [2, 3]
-    const toc: TocHeadingWithTitleSupertitle[] = []
+    const toc: TocHeadingWithSupertitle[] = []
 
     body.forEach((block) =>
         traverseEnrichedBlock(block, (child) => {
@@ -1877,7 +1877,6 @@ export function generateToc(
                     toc.push({
                         title: titleString,
                         supertitle: supertitleString,
-                        text: titleString,
                         slug: urlSlug(`${supertitleString} ${titleString}`),
                         isSubheading: level === secondary,
                     })
@@ -1888,7 +1887,6 @@ export function generateToc(
             if (child.type === "all-charts") {
                 toc.push({
                     title: child.heading,
-                    text: child.heading,
                     slug: ALL_CHARTS_ID,
                     isSubheading: false,
                 })
@@ -1899,7 +1897,6 @@ export function generateToc(
                 const title = "Data insights"
                 toc.push({
                     title,
-                    text: title,
                     slug: FEATURED_DATA_INSIGHTS_ID,
                     isSubheading: false,
                 })
@@ -1910,7 +1907,6 @@ export function generateToc(
                 const title = child.title || EXPLORE_DATA_SECTION_DEFAULT_TITLE
                 toc.push({
                     title,
-                    text: title,
                     slug: EXPLORE_DATA_SECTION_ID,
                     isSubheading: false,
                 })
