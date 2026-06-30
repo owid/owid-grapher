@@ -83,3 +83,21 @@ export function diffGrapherConfigs(
 
     return { ...diffed, ...keep }
 }
+
+/**
+ * Recompute a chart patch against a new parent stack. Unlike
+ * `diffGrapherConfigs`, this doesn't keep required keys unconditionally: every
+ * field falls through to the parent stack when it matches, and only real
+ * overrides survive in the patch.
+ */
+export function rediffPatchAgainstNewParentStack(
+    existingPatch: GrapherInterface,
+    newParentStack: GrapherInterface
+): GrapherInterface {
+    return _.pickBy(
+        existingPatch,
+        (value, key) =>
+            KEYS_EXCLUDED_FROM_INHERITANCE.includes(key) ||
+            !_.isEqual(value, _.get(newParentStack, key))
+    )
+}

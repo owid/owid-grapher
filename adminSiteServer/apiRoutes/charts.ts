@@ -24,6 +24,7 @@ import {
     mergeGrapherConfigs,
     parseIntOrUndefined,
     omitUndefinedValues,
+    rediffPatchAgainstNewParentStack,
 } from "@ourworldindata/utils"
 import { v7 as uuidv7, validate as uuidValidate } from "uuid"
 import {
@@ -412,10 +413,6 @@ const updateExistingChart = async (
         ? await getParentByChartConfig(knex, config)
         : undefined
 
-    // fetch the chart's main config id and its ETL-authored config — a separate
-    // chart_configs row reached via charts.configIdETL (written via
-    // PUT /charts/:id/etlConfig) — so we keep that layer when recomputing
-    // patch/full.
     const chartConfigIdRow = await db.knexRawFirst<
         Pick<DbPlainChart, "configId"> & { etlConfig: string | null }
     >(
@@ -587,25 +584,10 @@ export const saveGrapher = async (
         chartId = fullConfig.id!
     }
 
+    const now = new Date()
+
     // Record this change in version history
-    const chartRevisionLog = {
-        chartId: chartId,
-        userId: user.id,
-        config: serializeChartConfig(patchConfig),
-        createdAt: new Date(),
-        updatedAt: new Date(),
-    } satisfies DbInsertChartRevision
-    await db.knexRaw(
-        knex,
-        `INSERT INTO chart_revisions (chartId, userId, config, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?)`,
-        [
-            chartRevisionLog.chartId,
-            chartRevisionLog.userId,
-            chartRevisionLog.config,
-            chartRevisionLog.createdAt,
-            chartRevisionLog.updatedAt,
-        ]
-    )
+    await insertChartRevision(knex, chartId, user.id, patchConfig, now)
 
     // Remove any old dimensions and store the new ones
     // We only note that a relationship exists between the chart and variable in the database; the actual dimension configuration is left to the json
@@ -637,7 +619,7 @@ export const saveGrapher = async (
         await db.knexRaw(
             knex,
             `UPDATE charts SET publishedAt=?, publishedByUserId=? WHERE id = ? `,
-            [new Date(), user.id, chartId]
+            [now, user.id, chartId]
         )
         await triggerStaticBuild(user, `Publishing chart ${fullConfig.slug}`)
     } else if (
@@ -971,60 +953,9 @@ export async function updateChart(
     }
 }
 
-// Chart-table-style fields that are never inherited. The chart's patch always
-// keeps these even when they match the parent stack — same convention as
-// `KEYS_EXCLUDED_FROM_INHERITANCE` in `mergeGrapherConfigs`.
-const NON_INHERITABLE_PATCH_KEYS = [
-    "$schema",
-    "id",
-    "slug",
-    "version",
-    "isPublished",
-] as const
-
-/**
- * Recompute the chart's `patch` against a new parent stack. Strips redundant
- * patch entries that now match the parent stack — including `dimensions` that
- * merely echo the parent (e.g. leftover from a bootstrap create), so those
- * don't linger and block ETL from re-versioning the indicator.
- *
- * A genuine admin override — `dimensions` that actually differ from the parent
- * stack — is deliberately kept and wins over `etlConfig`, so a manual change to
- * the plotted variables in the admin survives ETL pushes. The trade-off is that
- * ETL can't re-version a chart whose dimensions were hand-edited; a warning for
- * such "unlinked" dimensions is planned as a follow-up.
- *
- * Differs from `diffGrapherConfigs` only in that we don't keep `REQUIRED_KEYS`
- * (`$schema`, `dimensions`) unconditionally; every field falls through to the
- * parent stack when they match, and only real admin overrides (values that
- * actually differ from the parent stack) survive in patch. The admin save
- * path applies the same convention for `dimensions` on ETL-managed charts;
- * see `updateExistingChart`.
- */
-function rediffPatchAgainstNewParentStack(
-    existingPatch: GrapherInterface,
-    newParentStack: GrapherInterface
-): GrapherInterface {
-    const result: Record<string, unknown> = {}
-    for (const [key, value] of Object.entries(existingPatch)) {
-        if ((NON_INHERITABLE_PATCH_KEYS as readonly string[]).includes(key)) {
-            result[key] = value
-        } else if (
-            !_.isEqual(value, (newParentStack as Record<string, unknown>)[key])
-        ) {
-            result[key] = value
-        }
-    }
-    return result as GrapherInterface
-}
-
 /**
  * Refresh `chart_dimensions` and the chart's grapher_config in R2 (both the
  * UUID-keyed object and, if published, the slug-keyed object).
- *
- * Shared by the ETL config endpoints; the regular `saveGrapher` path has its
- * own inline equivalent because it also has to handle publish-state
- * transitions (slug redirects, publishedAt, etc.) that an ETL push never does.
  */
 async function refreshChartDimensionsAndR2(
     trx: db.KnexReadWriteTransaction,

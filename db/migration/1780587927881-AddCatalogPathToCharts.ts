@@ -9,7 +9,7 @@ export class AddCatalogPathToCharts1780587927881 implements MigrationInterface {
         await queryRunner.query(
             `-- sql
             ALTER TABLE charts
-            ADD COLUMN catalogPath VARCHAR(767) NULL AFTER configId,
+            ADD COLUMN catalogPath VARCHAR(767) NULL AFTER id,
             ADD UNIQUE INDEX idx_charts_catalog_path (catalogPath)`
         )
     }
