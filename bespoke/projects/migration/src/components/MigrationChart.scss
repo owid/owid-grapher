@@ -1,6 +1,15 @@
 .migration-captioned-chart__chart-area {
     position: relative;
-    height: 450px;
+    // Default chart height. The sankey reads this box's height via
+    // useParentSize and lays itself out to fit, so this is the single knob
+    // that controls the rendered chart height.
+    //
+    // When the bundle is embedded in the OWID "bespoke-viz" article layout, a
+    // CSS var (--bespoke-viz-chart-area-height) is set on the shadow host so
+    // the inline (non-expanded) chart shrinks to fit the viewport. It falls
+    // back to 450px everywhere else (the standalone demo, the expanded
+    // lightbox, etc.), so this change is a no-op outside that layout.
+    height: var(--bespoke-viz-chart-area-height, 450px);
 }
 
 .migration-captioned-chart__empty {

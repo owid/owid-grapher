@@ -1532,17 +1532,34 @@ $bespoke-viz-commentary-text: #6a7178;
     }
 
     .bespoke-viz-layout__viz-sticky {
-        // ~1rem from the top. (No persistent site nav overlaps the article
-        // body here, so a small offset is enough.)
-        position: sticky;
-        top: 1rem;
+        // The "above the chart" allowance: roughly the inline viz's own header
+        // (title + description + controls) plus a little breathing room, so the
+        // sticky column + the fitted chart together stay within the viewport.
+        // This is a tuning knob — adjust alongside --bespoke-viz-chart-area-height.
+        --bespoke-viz-top-offset: 1rem;
+        --bespoke-viz-chrome-allowance: 260px;
 
-        // Bordered white card around the viz.
-        border: 1px solid $bespoke-viz-card-border; // #d6dae0
-        border-radius: 10px;
-        padding: 18px 20px;
-        margin: 6px;
+        position: sticky;
+        top: var(--bespoke-viz-top-offset);
+
+        // No outline/box around the inline viz — it sits cleanly on the page.
+        // A little padding keeps the Expand button off the chart edge.
+        padding: 8px;
         background-color: $white;
+
+        // Fit-to-viewport: cap the inline column to the visible viewport height
+        // (minus the top offset) so the whole plot — title, controls, chart —
+        // is visible without scrolling. The migration bundle reads its chart
+        // box height from this CSS var, which inherits through the shadow
+        // boundary into the bundle. It's declared HERE (an inline-only
+        // ancestor the viz host does NOT travel with), so when the host is
+        // moved into the lightbox it stops inheriting this cap and instead
+        // picks up the modal's full-size value — see the lightbox body rule.
+        max-height: calc(100dvh - var(--bespoke-viz-top-offset) - 8px);
+        --bespoke-viz-chart-area-height: min(
+            450px,
+            calc(100dvh - var(--bespoke-viz-chrome-allowance))
+        );
 
         // The bespoke-component renders inline and reflows to its container
         // width via a ResizeObserver, so it simply fills the card. Neutralise
@@ -1553,9 +1570,17 @@ $bespoke-viz-commentary-text: #6a7178;
         }
     }
 
+    // Position context + the inline Expand button.
+    .bespoke-viz-layout__viz-inner {
+        position: relative;
+    }
+
     // Wrapper that physically holds the live viz DOM node. We move THIS node
     // between the inline card and the modal; it must fill whichever container
-    // it's in (inline card or modal body) so the viz reflows to fit.
+    // it's in (inline card or modal body) so the viz reflows to fit. It does
+    // NOT declare --bespoke-viz-chart-area-height itself, so the value it
+    // inherits depends on where it currently lives (inline sticky vs. modal
+    // body) — which is exactly how the chart resizes between the two.
     .bespoke-viz-layout__viz-host {
         width: 100%;
 
@@ -1565,15 +1590,36 @@ $bespoke-viz-commentary-text: #6a7178;
         }
     }
 
-    // Hint that the inline card is interactive (hover to expand) on
-    // hover-capable, pointer-fine devices only.
-    @media (hover: hover) and (pointer: fine) {
-        .bespoke-viz-layout__viz-sticky {
-            cursor: zoom-in;
+    // Inline "Expand" button, pinned to the top-right of the viz, above the viz.
+    .bespoke-viz-expand-button {
+        position: absolute;
+        top: 6px;
+        right: 6px;
+        z-index: 2;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 10px;
+        font-family: $sans-serif-font-stack;
+        font-size: 13px;
+        font-weight: 700;
+        color: $blue-60;
+        background-color: rgba(255, 255, 255, 0.9);
+        border: 1px solid $bespoke-viz-card-border; // #d6dae0
+        border-radius: 6px;
+        cursor: pointer;
+
+        &:hover {
+            color: $blue-90;
+            border-color: $blue-50;
+        }
+
+        svg {
+            font-size: 12px;
         }
     }
 
-    // --- Stage 2: hover expand-to-lightbox -------------------------------
+    // --- Stage 2: click expand-to-lightbox -------------------------------
     // Absolutely positioned over the two-column body (its positioned ancestor
     // is .bespoke-viz-layout), NOT fixed — so the page header/nav stay visible.
     .bespoke-viz-lightbox {
@@ -1598,6 +1644,8 @@ $bespoke-viz-commentary-text: #6a7178;
             // FLIP; starts transparent.
             opacity: 0;
             transition: opacity 350ms cubic-bezier(0.22, 0.61, 0.36, 1);
+            // Clicking the dimmed scrim closes the lightbox.
+            cursor: pointer;
         }
 
         .bespoke-viz-lightbox__box {
@@ -1610,21 +1658,54 @@ $bespoke-viz-commentary-text: #6a7178;
             border-radius: 12px;
             padding: 22px 26px;
             box-shadow: 0 18px 50px rgba(0, 0, 0, 0.32);
+            // Faded in/out imperatively, cross-fading with the scrim, so the
+            // white card doesn't pop in at full size before the viz FLIPs.
+            opacity: 0;
+            transition: opacity 350ms cubic-bezier(0.22, 0.61, 0.36, 1);
+        }
+
+        // Close (×) button, top-right of the modal box.
+        .bespoke-viz-lightbox__close {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            z-index: 2;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            color: $blue-60;
+            background-color: $white;
+            border: 1px solid $bespoke-viz-card-border;
+            border-radius: 50%;
+            cursor: pointer;
+
+            &:hover {
+                color: $blue-90;
+                border-color: $blue-50;
+            }
         }
 
         // The live viz node is appended here while expanded. Kept invisible
         // until the inverse FLIP transform has been applied (avoids a
         // one-frame full-size flash), then revealed imperatively.
+        //
+        // Reset the fit-to-viewport chart cap so the EXPANDED viz draws at its
+        // full natural height (the inline cap only applies while inline).
         .bespoke-viz-lightbox__body {
             visibility: hidden;
             width: 100%;
+            --bespoke-viz-chart-area-height: 450px;
         }
     }
 
     // prefers-reduced-motion: drop the FLIP transition; the controller also
     // skips the transform maths and just cross-fades.
     @media (prefers-reduced-motion: reduce) {
-        .bespoke-viz-lightbox .bespoke-viz-lightbox__scrim {
+        .bespoke-viz-lightbox .bespoke-viz-lightbox__scrim,
+        .bespoke-viz-lightbox .bespoke-viz-lightbox__box {
             transition: opacity 120ms linear;
         }
     }
