@@ -239,10 +239,15 @@ export async function searchCharts(
         params.per_page = fetchSize.toString()
         params.page = (page + 1).toString() // Typesense pages are 1-indexed
     } else {
-        // For API-side dedup we use offset/limit so we can paginate
-        // through unique results properly. We over-fetch and then trim.
+        // For API-side dedup we fetch the full available window of raw hits in
+        // one request, deduplicate it, then paginate the deduplicated list
+        // client-side. We can't paginate raw Typesense pages and dedup per-page
+        // because duplicates collapse the unique offset, so a single window is
+        // both simpler and correct. Hybrid search is already capped (per_page
+        // max 250, vector k:100), so deep pagination beyond this window has no
+        // more results to return regardless.
         params.per_page = "250" // max allowed by Typesense
-        params.page = (Math.floor((page * fetchSize) / 250) + 1).toString()
+        params.page = "1"
     }
 
     const collection = SearchIndexName.ExplorerViewsMdimViewsAndCharts
@@ -250,7 +255,8 @@ export async function searchCharts(
 
     let rawHits = extractHits(response)
 
-    // API-side deduplication: keep only the first hit per deduplicationId
+    // API-side deduplication: keep only the first hit per deduplicationId,
+    // then slice the requested page out of the deduplicated list.
     if (!useTypesenseDedup) {
         const seen = new Set<string>()
         const deduped: typeof rawHits = []
@@ -262,7 +268,8 @@ export async function searchCharts(
                 deduped.push(hit)
             }
         }
-        rawHits = deduped.slice(0, hitsPerPage)
+        const start = page * hitsPerPage
+        rawHits = deduped.slice(start, start + hitsPerPage)
     }
 
     const cleanedHits = rawHits.map((hit, index): EnrichedSearchChartHit => {
