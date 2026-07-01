@@ -346,7 +346,7 @@ class AddRedirectForm<Editor extends AbstractChartEditor> extends Component<
                         }
                     />
                 </div>
-                <div className="input-group mb-3">
+                <div className="input-group mb-2">
                     <div className="input-group-prepend">
                         <span className="input-group-text">
                             Target query params (optional)
@@ -361,15 +361,15 @@ class AddRedirectForm<Editor extends AbstractChartEditor> extends Component<
                             this.onTargetQueryParamChange(event.target.value)
                         }
                     />
-                    <div className="input-group-append">
-                        <button
-                            className="btn btn-primary"
-                            type="submit"
-                            disabled={!this.slug || this.isLoading}
-                        >
-                            Add
-                        </button>
-                    </div>
+                </div>
+                <div className="text-right mb-3">
+                    <button
+                        className="btn btn-primary"
+                        type="submit"
+                        disabled={!this.slug || this.isLoading}
+                    >
+                        Add redirect
+                    </button>
                 </div>
                 {this.errorMessage && (
                     <div className="alert alert-danger">
