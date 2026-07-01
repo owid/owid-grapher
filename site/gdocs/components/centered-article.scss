@@ -1390,35 +1390,39 @@ $bespoke-viz-columns: $bespoke-viz-viz-fr $bespoke-viz-commentary-fr;
        restyle THAT container (and the header) here. Everything is scoped to
        this modifier so normal articles are unaffected. */
 
-    // --- Header (plain white, two-column, aligned with the body grid) ----
-    // No band/border. Laid out on the same VIZ | COMMENTARY column split as
-    // the body (viz wider on the left, commentary narrower on the right), so
-    // the title wraps at the viz column's width and the byline sits in the
-    // right column aligned with the subtitle.
+    // --- Header (beige full-bleed band; content stacked left-aligned) ----
+    // The <header> spans the whole viewport width (span-cols-14) as a nested
+    // full-width grid, so the beige band reads edge-to-edge like OWID's other
+    // section backgrounds (e.g. the "cite this work" / reuse section). The
+    // content sits on the centred content grid inside it (__inner at
+    // col-start-2 span-cols-12).
     .bespoke-viz-header {
-        display: grid;
-        // SAME column split + gutter as the body's {.sticky-left} container,
-        // and placed on the same centred content grid (col-start-2 span-cols-12
-        // in the markup), so the header's left column pixel-aligns with the
-        // body's viz column. The title therefore wraps at the viz column's
-        // right edge.
-        grid-template-columns: $bespoke-viz-columns;
-        // Rows: eyebrow, title, then a shared subtitle/byline row.
-        grid-template-rows: auto auto auto;
-        column-gap: $bespoke-viz-gutter;
-        // Plain white header, no divider line. Tight bottom so the body sits
-        // close to the header. (Horizontal placement comes from the grid, so
-        // no horizontal padding here.)
-        padding: 40px 0 24px;
+        // Beige band — the exact colour used by #article-citation /
+        // #article-licence ("cite this work" / reuse-this-work sections).
+        background-color: $beige; // #fbf9f3
+        padding-top: 40px;
+        padding-bottom: 28px;
 
-        @include sm-only {
-            grid-template-columns: 1fr;
-            row-gap: 4px;
+        // Content column: laid out on the same VIZ | COMMENTARY split as the
+        // body so the title wraps at the viz column's width. Everything now
+        // stacks in the left column (eyebrow -> title -> subtitle -> byline),
+        // left-aligned; the right column is intentionally empty.
+        .bespoke-viz-header__inner {
+            display: grid;
+            grid-template-columns: $bespoke-viz-columns;
+            column-gap: $bespoke-viz-gutter;
+
+            @include sm-only {
+                grid-template-columns: 1fr;
+            }
+
+            // Keep all header content in the left (viz-width) column.
+            > * {
+                grid-column: 1;
+            }
         }
 
         .bespoke-viz-header__eyebrow {
-            grid-column: 1;
-            grid-row: 1;
             display: flex;
             align-items: center;
             gap: 8px;
@@ -1436,8 +1440,6 @@ $bespoke-viz-columns: $bespoke-viz-viz-fr $bespoke-viz-commentary-fr;
         }
 
         .bespoke-viz-header__title {
-            grid-column: 1;
-            grid-row: 2;
             // Fills the full left-column (viz) width and only wraps at its
             // right edge. No max-width and no `text-wrap: balance` — balancing
             // is what made the title wrap early, short of the column edge.
@@ -1451,9 +1453,7 @@ $bespoke-viz-columns: $bespoke-viz-viz-fr $bespoke-viz-commentary-fr;
         }
 
         .bespoke-viz-header__subtitle {
-            grid-column: 1;
-            grid-row: 3;
-            margin: 0;
+            margin: 0 0 12px;
             font-family: $sans-serif-font-stack; // Lato
             font-weight: 400;
             font-size: 18px;
@@ -1461,20 +1461,7 @@ $bespoke-viz-columns: $bespoke-viz-viz-fr $bespoke-viz-commentary-fr;
             color: $blue-90; // #1d3d63
         }
 
-        // Right column, on the subtitle's row, so the byline's top aligns
-        // vertically with the subtitle.
-        .bespoke-viz-header__aside {
-            grid-column: 2;
-            grid-row: 3;
-            min-width: 0;
-
-            @include sm-only {
-                grid-column: 1;
-                grid-row: auto;
-                margin-top: 8px;
-            }
-        }
-
+        // Byline now sits directly below the subtitle, left-aligned.
         .bespoke-viz-header__byline,
         .bespoke-viz-header__dateline {
             margin: 0;

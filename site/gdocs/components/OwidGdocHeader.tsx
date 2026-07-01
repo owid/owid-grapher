@@ -254,22 +254,26 @@ function OwidLinearTopicPageHeader({
  */
 function OwidBespokeVizHeader({ content }: { content: OwidGdocPostContent }) {
     return (
-        <header className="bespoke-viz-header col-start-2 span-cols-12">
-            {/* Eyebrow and title stack in the left column. */}
-            <p className="bespoke-viz-header__eyebrow">
-                {/* Placeholder eyebrow + icon — clearly swappable. */}
-                <FontAwesomeIcon
-                    className="bespoke-viz-header__eyebrow-icon"
-                    icon={faWandMagicSparkles}
-                />
-                Featured Visualization
-            </p>
-            <h1 className="bespoke-viz-header__title">{content.title}</h1>
-            {/* Subtitle (left) and byline (right) share the same grid row so
-                the byline's top aligns with the subtitle, regardless of how
-                many lines the title wraps to. */}
-            <p className="bespoke-viz-header__subtitle">{content.subtitle}</p>
-            <div className="bespoke-viz-header__aside">
+        // Full-bleed beige band (spans the whole viewport width). The content
+        // is placed on the centred content grid inside it.
+        <header className="bespoke-viz-header span-cols-14 grid grid-cols-12-full-width">
+            <div className="bespoke-viz-header__inner col-start-2 span-cols-12">
+                {/* Everything stacks vertically, left-aligned in the left
+                    (viz-width) column: eyebrow -> title -> subtitle -> byline. */}
+                <p className="bespoke-viz-header__eyebrow">
+                    {/* Placeholder eyebrow + icon — clearly swappable. */}
+                    <FontAwesomeIcon
+                        className="bespoke-viz-header__eyebrow-icon"
+                        icon={faWandMagicSparkles}
+                    />
+                    Featured Visualization
+                </p>
+                <h1 className="bespoke-viz-header__title">{content.title}</h1>
+                {content.subtitle && (
+                    <p className="bespoke-viz-header__subtitle">
+                        {content.subtitle}
+                    </p>
+                )}
                 {content.authors.length > 0 && (
                     <p className="bespoke-viz-header__byline">
                         <Byline names={content.authors} />
