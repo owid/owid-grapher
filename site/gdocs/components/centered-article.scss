@@ -1390,6 +1390,14 @@ $bespoke-viz-columns: $bespoke-viz-viz-fr $bespoke-viz-commentary-fr;
        restyle THAT container (and the header) here. Everything is scoped to
        this modifier so normal articles are unaffected. */
 
+    // v2: whole-page beige background. The article container is a
+    // `grid grid-cols-12-full-width` that already spans the full viewport width
+    // (its outer 1fr gutter tracks reach the edges), so a background-color here
+    // reads full-bleed edge-to-edge behind everything below the nav — the
+    // metadata, commentary, and the viz box. The metadata/commentary sit
+    // directly on the beige; only the viz gets a white box (below).
+    background-color: $beige; // #fbf9f3
+
     // --- v2: metadata at the top of the sticky-left RIGHT column ----------
     // No full-width header band. The article metadata (eyebrow, title,
     // subtitle, byline) leads the right column above the authored commentary,
@@ -1501,12 +1509,22 @@ $bespoke-viz-columns: $bespoke-viz-viz-fr $bespoke-viz-commentary-fr;
         // `.sticky-column-wrapper` is a real class in the sticky-left markup.
         .sticky-column-wrapper {
             // The "above/around the chart" allowance: everything that is NOT
-            // the chart drawing area — the viz's inner frame border/padding,
-            // its "Configure the data" controls and its data-source footer.
-            // Fit-to-viewport tuning knob: increase if the chart overflows,
-            // decrease to give the chart more height.
+            // the chart drawing area — the white box's padding, the viz's inner
+            // frame border/padding, its "Configure the data" controls and its
+            // data-source footer. Fit-to-viewport tuning knob: increase if the
+            // chart overflows the box, decrease to give the chart more height.
+            // v2: raised from 220 -> 260 to account for the white box padding
+            // (18px top + 18px bottom + borders) re-added below, so the whole
+            // viz still fits inside the box with no clipping.
             --bespoke-viz-top-offset: 1rem;
-            --bespoke-viz-chrome-allowance: 220px;
+            --bespoke-viz-chrome-allowance: 260px;
+
+            // v2: white bordered card so the viz stands out against the beige
+            // page. Only the viz gets a box (not the metadata/commentary).
+            background-color: $white;
+            border: 1px solid $bespoke-viz-card-border; // #d6dae0
+            border-radius: 12px;
+            padding: 18px;
             // v2: the right column now LEADS with the metadata eyebrow
             // ("Featured Visualization"), then the title. Push the viz (left
             // column) DOWN by roughly the eyebrow's rendered height + its
