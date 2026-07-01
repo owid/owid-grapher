@@ -1,0 +1,404 @@
+@use "sass:math";
+
+// ── Variables ───────────────────────────────────────────────────────────────
+
+// Breakpoints — boundary values; use + 1px for the min-width side (per $sm/$md).
+$sidebar-toc-sm: 1200px; // ≤ this → mobile pill + drawer; above → sidebar
+$sidebar-toc-lg: 1400px; // sm–lg band → narrow sidebar; ≥ lg (this) → wide sidebar
+$sidebar-toc-frame-wide: 273px; // ≥ lg; sync with SIDEBAR_TOC_FRAME_WIDE
+$sidebar-toc-frame-narrow: 208px; // sm–lg band — clears 8-col content at 1201px
+$sidebar-toc-padding-wide: 24px; // L/R padding (wide sidebar + mobile drawer)
+$sidebar-toc-padding-narrow: 16px; // L/R padding (narrow sidebar)
+$sidebar-toc-collapsed-strip: 40px; // sliver left visible when collapsed
+$sidebar-toc-toggle-width: 31px; // straddles the sidebar's right edge
+$sidebar-toc-transition: 300ms ease;
+$sidebar-toc-section-gap: 24px;
+$sidebar-toc-chart-gap: 12px;
+$sidebar-toc-chart-y-padding: math.div($sidebar-toc-chart-gap, 2);
+$sidebar-toc-link-y-padding: 6px;
+$sidebar-toc-sub-indent: 16px; // bullet indent from the section edge
+$sidebar-toc-chart-bullet-offset: 14px; // pulls the bullet out into the gutter
+$sidebar-toc-chart-bullet-size: 5px;
+$sidebar-toc-chart-bullet-svg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 5 5'%3E%3Ccircle cx='2.5' cy='2.5' r='2.5' fill='black'/%3E%3C/svg%3E");
+$sidebar-toc-chart-indent: $sidebar-toc-sub-indent +
+    $sidebar-toc-chart-bullet-offset; // chart text indent from the section edge
+$sidebar-toc-header-gap: $topic-page-header-margin-bottom;
+
+// ── Sticky container (positioning) ────────────────────────────────────────────
+
+.sidebar-toc {
+    position: sticky;
+    top: $sidebar-toc-header-gap;
+    z-index: $zindex-sidebar;
+
+    @media (max-width: $sidebar-toc-sm) {
+        grid-column: 2 / span 12;
+    }
+
+    @media (min-width: #{$sidebar-toc-sm + 1px}) {
+        grid-column: 1;
+        align-self: start;
+    }
+}
+
+// ── Sidebar panel ─────────────────────────────────────────────────────────────
+
+.sidebar-toc__sidebar {
+    position: absolute;
+    top: -$sidebar-toc-header-gap; // meet the header band while the container sticks lower
+    left: 0;
+    width: $sidebar-toc-frame-wide;
+    height: 100vh;
+    --sidebar-toc-padding: #{$sidebar-toc-padding-wide};
+    container: sidebar-toc-panel / inline-size; // for the CTA label swap
+    background: $white;
+    border-right: 1px solid $blue-10;
+    display: flex;
+    flex-direction: column;
+    transition:
+        transform $sidebar-toc-transition,
+        background-color $sidebar-toc-transition,
+        border-color $sidebar-toc-transition;
+
+    @media (max-width: $sidebar-toc-sm) {
+        display: none;
+    }
+}
+
+// Scrolling content column: fills the frame, scrolls internally when taller.
+.sidebar-toc__sidebar-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--sidebar-toc-padding);
+    display: flex;
+    flex-direction: column;
+    gap: $sidebar-toc-section-gap;
+    @include thin-scrollbar;
+    transition: opacity $sidebar-toc-transition;
+}
+
+// ── Collapse state ────────────────────────────────────────────────────────────
+
+// Slide left until only a strip and toggle remain; avoid any content reflow.
+.sidebar-toc__sidebar--collapsed {
+    transform: translateX(calc(-100% + #{$sidebar-toc-collapsed-strip}));
+    background: transparent; // the strip shows the page through it
+
+    .sidebar-toc__sidebar-content {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        // Delay the visibility flip to the end of the fade so the content stays
+        // rendered while sliding out, then drops from the tab order.
+        transition:
+            opacity $sidebar-toc-transition,
+            visibility 0s $sidebar-toc-transition;
+    }
+}
+
+// ── Toggle ──────────────────────────────────────────────────────────────────
+
+// Child of the sidebar so it rides the collapse slide.
+.sidebar-toc__toggle {
+    position: absolute;
+    top: var(--sidebar-toc-padding);
+    right: math.div(-$sidebar-toc-toggle-width, 2);
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: $sidebar-toc-toggle-width;
+    height: 32px;
+    padding: 0;
+    border: 1px solid $white;
+    background: $blue-10;
+    color: $blue-60;
+    cursor: pointer;
+
+    &:hover {
+        background: $blue-20;
+    }
+}
+
+// ── Back-to-top ───────────────────────────────────────────────────────────────
+
+.sidebar-toc__back-to-top {
+    @include note-13-medium;
+    display: inline-flex;
+    align-items: center;
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: $blue-50;
+    text-decoration: none;
+
+    svg {
+        margin-left: 8px;
+        width: 9px;
+    }
+
+    &:hover {
+        color: $blue-50;
+        text-decoration: underline;
+    }
+}
+
+// ── Sections, headings & subheadings ─────────────────────────────────────────
+
+.sidebar-toc__sections {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: $sidebar-toc-section-gap;
+}
+
+.sidebar-toc__h1 {
+    @include note-13-medium;
+    position: relative;
+    display: block;
+    // Larger click target without changing visual spacing.
+    padding: $sidebar-toc-link-y-padding 0;
+    margin: -$sidebar-toc-link-y-padding 0;
+    font-weight: 700;
+    color: $blue-90;
+    text-decoration: none;
+
+    &:hover {
+        color: $blue-90;
+        text-decoration: underline;
+    }
+}
+
+.sidebar-toc__subheadings {
+    // Bullets are drawn per-row (see .sidebar-toc__subheading::after) rather than
+    // with the native disc marker, whose horizontal offset differs between Firefox
+    // and Chrome/WebKit and would misalign with the rows.
+    list-style: none;
+    margin: $sidebar-toc-chart-y-padding 0 0;
+    margin-inline-start: $sidebar-toc-sub-indent; // align bullets under the H1
+    padding: 0;
+}
+
+.sidebar-toc__subheading {
+    position: relative;
+    margin-inline-start: $sidebar-toc-chart-bullet-offset; // bullet sits in the gutter
+    color: $blue-50;
+
+    // Custom SVG bullet in the gutter. Masking the SVG with currentColor keeps
+    // active-state coloring without relying on browser-specific native marker
+    // offsets.
+    &::after {
+        content: "";
+        position: absolute;
+        top: calc(#{$sidebar-toc-chart-y-padding} + 0.5rem);
+        left: -$sidebar-toc-chart-bullet-offset;
+        width: $sidebar-toc-chart-bullet-size;
+        height: $sidebar-toc-chart-bullet-size;
+        background: currentColor;
+        -webkit-mask: $sidebar-toc-chart-bullet-svg center / contain no-repeat;
+        mask: $sidebar-toc-chart-bullet-svg center / contain no-repeat;
+        transform: translateY(-50%);
+    }
+
+    a {
+        @include note-13-medium;
+        display: block; // keep the link box contiguous across wrapped lines
+        padding: $sidebar-toc-chart-y-padding 0;
+        color: $blue-50;
+        text-decoration: none;
+
+        &:hover {
+            color: $blue-50;
+            text-decoration: underline;
+        }
+    }
+}
+
+// ── Active (scroll-spy) state ─────────────────────────────────────────────────
+
+// An active row turns vermillion and grows a 4px vermillion bar at the sidebar's
+// left edge, as tall as the row's text. Each ::before backs its bar out to the
+// edge from structural values (the sidebar padding, plus the subheading indent
+// for subheading rows) so the bars line up.
+.sidebar-toc__section--active > .sidebar-toc__h1 {
+    &,
+    &:hover {
+        color: $vermillion;
+    }
+
+    &::before {
+        content: "";
+        position: absolute;
+        width: 4px;
+        background: $vermillion;
+        left: calc(-1 * var(--sidebar-toc-padding));
+        top: $sidebar-toc-link-y-padding; // span the text, not the hit-area padding
+        bottom: $sidebar-toc-link-y-padding;
+    }
+}
+
+.sidebar-toc__subheading--active {
+    &,
+    & > a,
+    & > a:hover {
+        color: $vermillion;
+    }
+
+    &::before {
+        content: "";
+        position: absolute;
+        width: 4px;
+        background: $vermillion;
+        left: calc(
+            -1 * (var(--sidebar-toc-padding) + #{$sidebar-toc-chart-indent})
+        );
+        top: $sidebar-toc-chart-y-padding; // skip the link padding; span the text
+        bottom: $sidebar-toc-chart-y-padding;
+    }
+}
+
+// ── CTA ───────────────────────────────────────────────────────────────────────
+
+.sidebar-toc__cta {
+    @include note-13-medium;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 40px; // no vertical padding — this is the button height
+    padding: 0 var(--sidebar-toc-padding);
+    border: 2px solid $white;
+    background: $blue-20;
+    color: $blue-90;
+    text-decoration: none;
+
+    &:hover {
+        background: $blue-10; // note: hover is lighter than default
+        color: $blue-90;
+    }
+}
+
+// The CTA carries both labels; the container query swaps in the short one inside
+// panels too narrow to fit the full one.
+.sidebar-toc__cta-label--short {
+    display: none;
+}
+
+// Narrow panels use a shorter CTA label.
+@container sidebar-toc-panel (max-width: #{$sidebar-toc-frame-wide - 2px}) {
+    .sidebar-toc__cta-label--full {
+        display: none;
+    }
+
+    .sidebar-toc__cta-label--short {
+        display: inline;
+    }
+}
+
+// ── Mobile pill & drawer (≤ sm) ───────────────────────────────────────────────
+
+.sidebar-toc__mobile-pill {
+    @include note-13-medium;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 32px;
+    // Pull into the header margin so the in-flow and stuck positions match.
+    margin: calc(16px - #{$sidebar-toc-header-gap}) 0 16px;
+    padding: 0 12px;
+    border: 1px solid $white;
+    background: $blue-10;
+    color: $blue-60;
+    cursor: pointer;
+
+    svg {
+        color: $blue-60;
+    }
+
+    @media (min-width: #{$sidebar-toc-sm + 1px}) {
+        display: none;
+    }
+}
+
+// Focus trap, restore, scroll-lock, and Escape are handled by react-aria.
+.sidebar-toc__mobile-drawer-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: $zindex-site-header + 1; // overlay the site chrome
+}
+
+.sidebar-toc__mobile-drawer-modal {
+    position: absolute;
+    inset: 0;
+}
+
+.sidebar-toc__mobile-drawer {
+    position: absolute;
+    inset: 0;
+    overflow-y: auto;
+    @include thin-scrollbar;
+    overscroll-behavior: none; // suppress drawer bounce where supported
+    --sidebar-toc-padding: #{$sidebar-toc-padding-wide};
+    padding: var(--sidebar-toc-padding);
+    background: $white;
+    display: flex;
+    flex-direction: column;
+    gap: $sidebar-toc-section-gap;
+    outline: none; // react-aria moves focus here on open; no ring on the panel
+    container: sidebar-toc-panel / inline-size; // second host of the CTA label swap
+}
+
+.sidebar-toc__mobile-drawer-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.sidebar-toc__mobile-drawer-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    margin: -16px;
+    border: none;
+    background: none;
+    color: $blue-50;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+// ── Narrow sidebar (sm band) ──────────────────────────────────────────────────
+
+// Tighter frame and padding so 8-col content still fits.
+@media (min-width: #{$sidebar-toc-sm + 1px}) and (max-width: $sidebar-toc-lg) {
+    .sidebar-toc__sidebar {
+        width: $sidebar-toc-frame-narrow;
+        --sidebar-toc-padding: #{$sidebar-toc-padding-narrow};
+    }
+
+    .sidebar-toc__sidebar--collapsed {
+        border-right-color: transparent;
+    }
+}
+
+// ── Reduced motion ────────────────────────────────────────────────────────────
+
+@media (prefers-reduced-motion: reduce) {
+    .sidebar-toc__sidebar,
+    .sidebar-toc__sidebar-content,
+    .sidebar-toc__sidebar--collapsed .sidebar-toc__sidebar-content {
+        transition: none;
+    }
+}
+
+// ── Jump-target scroll-margin ─────────────────────────────────────────────────
+
+.centered-article-container:has(.sidebar-toc) {
+    .article-block__chart,
+    .article-block__heading {
+        scroll-margin-top: 16px;
+    }
+}

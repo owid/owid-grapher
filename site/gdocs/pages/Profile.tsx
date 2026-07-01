@@ -24,7 +24,7 @@ type ProfileProps = Omit<
     isPreviewing?: boolean
 }
 
-export function Profile({ content, publishedAt, slug }: ProfileProps) {
+export function Profile({ content, publishedAt, slug, tags }: ProfileProps) {
     const hasSidebarToc = content["sidebar-toc"]
     const instantiatedEntity = content.instantiatedEntity
 
@@ -94,8 +94,7 @@ export function Profile({ content, publishedAt, slug }: ProfileProps) {
             {hasSidebarToc && content.toc ? (
                 <SidebarTableOfContents
                     headings={content.toc}
-                    headingLevels={{ primary: 1, secondary: 2 }}
-                    pageTitle={content.title || ""}
+                    tagName={tags?.[0]?.name}
                 />
             ) : null}
             {content.body ? <ArticleBlocks blocks={content.body} /> : null}
