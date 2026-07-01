@@ -212,19 +212,26 @@ export async function verifySvg(
         return resultOk()
     }
 
-    const referenceSvg = await loadReferenceSvg(
+    // The stored reference .svg file is already in oxfmt-formatted canonical
+    // form - that's what wrote it in the first place (renderSvgAndSave /
+    // commit_differences), and formatting is idempotent (verified: reformatting
+    // an already-formatted reference file is a no-op). So there's no need to
+    // reformat it again here - compare the freshly-formatted new svg directly
+    // against the file's bytes.
+    //
+    // Note results.csv's md5 column can go stale independently of the .svg
+    // file itself (commit_differences in svg-tester.sh updates the file but
+    // never the CSV), which is why the fast-path check above frequently
+    // misses even when there's no real difference - don't rely on md5 for
+    // anything beyond that optimistic early-exit.
+    const preparedReferenceSvg = await loadReferenceSvg(
         referenceSvgsPath,
         referenceSvgRecord
     )
-    const preparedReferenceSvg = await prepareSvgForComparison(referenceSvg)
     const firstDiffIndex = findFirstDiffIndex(
         preparedNewSvg,
         preparedReferenceSvg
     )
-    // Sometimes the md5 hash comparison above indicated a difference
-    // but the character by character comparison gives -1 (no differences)
-    // Weird - maybe an artifact of a change in how the ids are stripped
-    // across version?
     if (firstDiffIndex === -1) {
         return resultOk()
     }
