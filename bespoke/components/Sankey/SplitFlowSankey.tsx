@@ -131,6 +131,20 @@ interface SplitFlowSankeyProps {
     colorMap?: Map<string, string>
     entitiesToSortLast?: string[]
     linkLowVolumeThreshold?: number
+    /**
+     * When set, partner nodes and the flows touching them become clickable;
+     * clicking calls back with the partner entity. The central entity and the
+     * aggregated "Other" bucket are never selectable.
+     */
+    onSelectPartner?: (partner: string) => void
+    /**
+     * Partner entities that must not be selectable even when
+     * `onSelectPartner` is set — e.g. real aggregate rows in the data
+     * (like migration's "Other countries") that aren't navigable countries.
+     * This is distinct from the internal "Other" bucket, which is always
+     * unselectable.
+     */
+    nonSelectablePartners?: Set<string>
 }
 
 export function SplitFlowSankey({
@@ -149,6 +163,8 @@ export function SplitFlowSankey({
     colorMap: colorMapOverride,
     entitiesToSortLast,
     linkLowVolumeThreshold,
+    onSelectPartner,
+    nonSelectablePartners,
 }: SplitFlowSankeyProps) {
     const showIncoming = view === "both" || view === "incoming"
     const showOutgoing = view === "both" || view === "outgoing"
@@ -352,6 +368,8 @@ export function SplitFlowSankey({
                         nodeColor={getNodeColor}
                         linkColor={getLinkColor}
                         linkLowVolumeThreshold={linkLowVolumeThreshold}
+                        onSelectPartner={onSelectPartner}
+                        nonSelectablePartners={nonSelectablePartners}
                     />
                 )}
                 {showOutgoing && (
@@ -367,6 +385,8 @@ export function SplitFlowSankey({
                         nodeColor={getNodeColor}
                         linkColor={getLinkColor}
                         linkLowVolumeThreshold={linkLowVolumeThreshold}
+                        onSelectPartner={onSelectPartner}
+                        nonSelectablePartners={nonSelectablePartners}
                     />
                 )}
             </div>
@@ -416,6 +436,8 @@ function SankeyHalfChart({
     nodeColor,
     linkColor,
     linkLowVolumeThreshold,
+    onSelectPartner,
+    nonSelectablePartners,
 }: {
     direction: "incoming" | "outgoing"
     half: SankeyHalf
@@ -428,11 +450,43 @@ function SankeyHalfChart({
     nodeColor: (node: SankeyNode) => string
     linkColor: (link: SankeyLink) => string
     linkLowVolumeThreshold?: number
+    onSelectPartner?: (partner: string) => void
+    nonSelectablePartners?: Set<string>
 }) {
     const innerMargin =
         direction === "incoming"
             ? { left: sharedOuterMargin }
             : { right: sharedOuterMargin }
+
+    // A partner is selectable when it resolves to a named entity — never the
+    // central node (no prefix → null), the aggregated "Other" bucket, or a
+    // caller-flagged aggregate row (e.g. migration's "Other countries").
+    const partnerFromLink = (link: SankeyLink): string | null =>
+        getPartnerFromNodeId(link.source) ?? getPartnerFromNodeId(link.target)
+    const isSelectablePartner = (partner: string | null): partner is string =>
+        partner !== null &&
+        partner !== OTHER_KEY &&
+        !nonSelectablePartners?.has(partner)
+
+    const onLinkClick = onSelectPartner
+        ? (link: SankeyLink) => {
+              const partner = partnerFromLink(link)
+              if (isSelectablePartner(partner)) onSelectPartner(partner)
+          }
+        : undefined
+    const isLinkClickable = onSelectPartner
+        ? (link: SankeyLink) => isSelectablePartner(partnerFromLink(link))
+        : undefined
+    const onNodeClick = onSelectPartner
+        ? (node: SankeyNode) => {
+              const partner = getPartnerFromNodeId(node.id)
+              if (isSelectablePartner(partner)) onSelectPartner(partner)
+          }
+        : undefined
+    const isNodeClickable = onSelectPartner
+        ? (node: SankeyNode) =>
+              isSelectablePartner(getPartnerFromNodeId(node.id))
+        : undefined
 
     const getLinkTooltip =
         half.getTooltip && build
@@ -477,6 +531,10 @@ function SankeyHalfChart({
                             isNodeHoverable={(node) =>
                                 node.id !== centralEntity
                             }
+                            onLinkClick={onLinkClick}
+                            isLinkClickable={isLinkClickable}
+                            onNodeClick={onNodeClick}
+                            isNodeClickable={isNodeClickable}
                         />
                     )}
                 </div>
