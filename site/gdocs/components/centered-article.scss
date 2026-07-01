@@ -1567,9 +1567,19 @@ $bespoke-viz-columns: $bespoke-viz-viz-fr $bespoke-viz-commentary-fr;
         // are hidden in this layout.)
         --bespoke-viz-top-offset: 1rem;
         --bespoke-viz-chrome-allowance: 220px;
+        // The viz's first visible element (the "Configure the data" controls
+        // label) sits inside the bundle's inner frame, whose 16px top padding
+        // pushes it down relative to the commentary's first line (which starts
+        // at the row top with no top margin). Pull the whole viz column up by
+        // that amount so the controls row top-aligns with the commentary. This
+        // is a tuning knob — adjust if the frame padding changes.
+        --bespoke-viz-align-nudge: 16px;
 
         position: sticky;
         top: var(--bespoke-viz-top-offset);
+        // Raise the viz so its top aligns with the commentary's first line.
+        // Applied in normal flow; the element still sticks at --top-offset.
+        margin-top: calc(-1 * var(--bespoke-viz-align-nudge));
 
         // No box/card around the viz — it sits directly in the column.
         display: flex;
