@@ -283,7 +283,7 @@ export function BespokeVizLightbox({
                     ref={inlineSlotRef}
                 >
                     <div className="bespoke-viz-layout__viz-inner">
-                        {/* Explicit open trigger — icon-only; the aria-label
+                        {/* Explicit open trigger — icon + label; the aria-label
                             provides the accessible name. */}
                         <button
                             type="button"
@@ -292,6 +292,7 @@ export function BespokeVizLightbox({
                             aria-label="Expand visualization"
                         >
                             <FontAwesomeIcon icon={faExpand} />
+                            Full screen
                         </button>
                         {/* The live viz host. Its JSX is static across renders,
                             so the reconciler never relocates the DOM node we

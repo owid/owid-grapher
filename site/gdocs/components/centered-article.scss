@@ -1631,17 +1631,25 @@ $bespoke-viz-columns: $bespoke-viz-viz-fr $bespoke-viz-commentary-fr;
     // on its own line above the controls. `top` is a tuning knob — adjust it to
     // line the button up with that label. Visually icon-only; aria-label
     // supplies the accessible name.
+    // Inline Expand button (icon + "Full screen" label). Pinned top-right,
+    // nudged down by half its own height from the previous position so it sits
+    // a little lower relative to the viz's "Configure the data" controls row.
+    // `top` is a tuning knob. The aria-label supplies the accessible name.
     .bespoke-viz-expand-button {
         position: absolute;
-        top: 14px;
+        top: 28px;
         right: 4px;
         z-index: 2;
         display: inline-flex;
         align-items: center;
-        justify-content: center;
-        width: 28px;
+        gap: 6px;
         height: 28px;
-        padding: 0;
+        padding: 0 10px;
+        font-family: $sans-serif-font-stack;
+        font-size: 12.5px;
+        font-weight: 700;
+        line-height: 1;
+        white-space: nowrap;
         color: $blue-60;
         background-color: rgba(255, 255, 255, 0.9);
         border: 1px solid $bespoke-viz-card-border; // #d6dae0
@@ -1654,7 +1662,7 @@ $bespoke-viz-columns: $bespoke-viz-viz-fr $bespoke-viz-commentary-fr;
         }
 
         svg {
-            font-size: 13px;
+            font-size: 12px;
         }
     }
 
