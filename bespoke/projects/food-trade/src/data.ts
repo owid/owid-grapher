@@ -10,7 +10,10 @@ import {
     TradeRow,
 } from "./types.js"
 
-const BASE_URL = "https://owid-public.owid.io/data/food-trade"
+// TEMPORARY (preview only — do not merge): points at the food-trade-preview R2 folder
+// so the staging server renders the flow-only JSONs produced by the ETL branch that drops
+// the SCL production/supply shares. Revert to "…/data/food-trade" before merging.
+const BASE_URL = "https://owid-public.owid.io/data/food-trade-preview"
 const METADATA_PATH = `${BASE_URL}/food-trade.metadata.json`
 const PRODUCT_DATA_PATH = (productId: number) =>
     `${BASE_URL}/food-trade.${productId}.json`
