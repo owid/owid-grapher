@@ -9,7 +9,7 @@ import * as _ from "lodash-es"
 import { match } from "ts-pattern"
 
 import * as utils from "./utils.js"
-import { JOB_TIMEOUT_MS } from "./utils.js"
+import { JOB_TIMEOUT_MS, MAX_WORKERS } from "./utils.js"
 import { grapherSlugToExportFileKey } from "../../baker/GrapherBakingUtils.js"
 import { ALL_GRAPHER_CHART_TYPES } from "@ourworldindata/types"
 
@@ -80,7 +80,7 @@ async function verifyExplorers(args: ReturnType<typeof parseArguments>) {
 
     const pool = workerpool.pool(__dirname + "/worker.ts", {
         minWorkers: 2,
-        maxWorkers: 12,
+        maxWorkers: MAX_WORKERS,
         workerThreadOpts: {
             execArgv: ["--require", "tsx"],
         },
@@ -211,7 +211,7 @@ async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
 
         const pool = workerpool.pool(__dirname + "/worker.ts", {
             minWorkers: 2,
-            maxWorkers: 12,
+            maxWorkers: MAX_WORKERS,
             workerThreadOpts: {
                 execArgv: ["--require", "tsx"],
             },
