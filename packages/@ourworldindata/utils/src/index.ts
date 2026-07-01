@@ -94,6 +94,7 @@ export {
     traverseEnrichedBlock,
     checkNodeIsSpan,
     generateToc,
+    getResearchAndWritingId,
     extractLinksFromMarkdown,
     getPaginationPageNumbers,
     spansToUnformattedPlainText,
