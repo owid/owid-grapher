@@ -28,6 +28,7 @@ import { MigrationFlow, MigrationRow, MigrationView, Sex } from "../types.js"
 import { useMigrationData, useMigrationMetadata } from "../data.js"
 import {
     formatPeople,
+    getPopulation,
     getSexAdjective,
     getSexNoun,
     OTHERS_ENTITY_NAME,
@@ -275,6 +276,10 @@ function CaptionedSankeyVariant({
         config.hideControls || !!config.title || !!config.subtitle
 
     const entitiesToSortLast = useMemo(() => [OTHERS_ENTITY_NAME], [])
+    const population = useMemo(
+        () => getPopulation(metadata, displayedCountry, year),
+        [metadata, displayedCountry, year]
+    )
 
     return (
         <>
@@ -322,6 +327,7 @@ function CaptionedSankeyVariant({
                     sex={sex}
                     immigrantsTotal={immigrantsTotal}
                     emigrantsTotal={emigrantsTotal}
+                    population={population}
                     view={view}
                     setView={setView}
                     setCountry={setCountry}
