@@ -19,7 +19,16 @@ export async function getRecentChartSlugRedirects(
         `-- sql
         SELECT
             CONCAT('/grapher/', chart_slug_redirects.slug) as source,
-            CONCAT('/grapher/', chart_configs.slug) as target
+            CONCAT(
+                '/grapher/',
+                chart_configs.slug,
+                IF(
+                    chart_slug_redirects.target_query_param IS NULL
+                    OR chart_slug_redirects.target_query_param = '',
+                    '',
+                    CONCAT('?', chart_slug_redirects.target_query_param)
+                )
+            ) as target
         FROM chart_slug_redirects
         INNER JOIN charts ON charts.id=chart_id
         INNER JOIN chart_configs ON chart_configs.id=charts.configId
@@ -53,10 +62,14 @@ export const getGrapherToChartRedirects = async (
     const chartRedirectRows = await db.knexRaw<{
         oldSlug: string
         newSlug: string
+        targetQueryParam: string | null
     }>(
         knex,
         `-- sql
-            SELECT chart_slug_redirects.slug as oldSlug, chart_configs.slug as newSlug
+            SELECT
+                chart_slug_redirects.slug as oldSlug,
+                chart_configs.slug as newSlug,
+                chart_slug_redirects.target_query_param as targetQueryParam
             FROM chart_slug_redirects
             INNER JOIN charts ON charts.id=chart_id
             INNER JOIN chart_configs ON chart_configs.id=charts.configId
@@ -68,7 +81,9 @@ export const getGrapherToChartRedirects = async (
             .filter((row) => row.oldSlug !== row.newSlug)
             .map((row) => [
                 `${urlPrefix}${row.oldSlug}`,
-                `${urlPrefix}${row.newSlug}`,
+                `${urlPrefix}${row.newSlug}${
+                    row.targetQueryParam ? `?${row.targetQueryParam}` : ""
+                }`,
             ])
     )
 }

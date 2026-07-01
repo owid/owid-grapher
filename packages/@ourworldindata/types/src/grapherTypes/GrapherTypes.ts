@@ -818,6 +818,7 @@ export interface ChartRedirect {
     id: number
     slug: string
     chartId: number
+    targetQueryParam: string | null
 }
 
 export enum GrapherWindowType {
