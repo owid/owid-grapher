@@ -149,6 +149,12 @@ export const configureAlgolia = async () => {
             attributesToSnippet: ["subtitle:24"],
             attributeForDistinct: "id",
             optionalWords: ["vs"],
+            // If a query still returns nothing, retry by progressively dropping words
+            // from the end of the query rather than showing a blank page — for a data
+            // site a topic match beats no results. Testing this against the
+            // "allOptional" variant (algolia-remove-words-if-no-results branch) to see
+            // whether the more conservative last-words-first drop order is preferable.
+            removeWordsIfNoResults: "lastWords",
 
             // These lines below essentially demote matches in the `subtitle` and `availableEntities` fields:
             // If we find a match (only) there, then it doesn't count towards `exact`, and is therefore ranked lower.
