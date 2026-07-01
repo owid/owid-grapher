@@ -1497,16 +1497,38 @@ $bespoke-viz-columns: $bespoke-viz-viz-fr $bespoke-viz-commentary-fr;
     // defines the two-column region with a {.sticky-left} container (viz in
     // [.left], commentary in [.right]).
     //
-    // We deliberately do NOT override the stock grid template or the column
-    // span classes — the stock sticky-left is a 12-col grid with the left
-    // column at span-cols-7 and the right at span-cols-5 (≈58/42), which
-    // reliably renders two columns. We only (a) port the fit-to-viewport
-    // sizing onto the left column's sticky wrapper and (b) restyle the right
-    // column's commentary typography. (Column widths can be tuned later via the
-    // span classes in layout.ts; replacing the grid template with 2 tracks
-    // while the children still carry span-cols-7/5 collapses the layout.)
+    // DOM (from ArticleBlock.tsx): .article-block__sticky-left is a grid whose
+    // two DIRECT children are .article-block__sticky-left-left-column (stock
+    // span-cols-7) and .article-block__sticky-left-right-column (stock
+    // span-cols-5). The left column contains .sticky-column-wrapper
+    // (position: sticky), which contains the enhanced viz.
+    //
+    // We match the header's 63/37 split by giving the container an explicit
+    // 2-track fr grid AND cancelling the children's stock 12-col spans on their
+    // REAL class names (article-block__ prefix). With grid-column:auto the two
+    // children land in track 1 (63fr) and track 2 (37fr). A previous attempt
+    // set the 2-track template but neutralised the spans with the WRONG
+    // selector (.sticky-left-left-column, no prefix), so span-cols-7/5 stayed
+    // active — in a 2-track grid the left spanned both tracks and the right
+    // wrapped away (single-column collapse). Using the correct class names is
+    // what prevents that here.
     .article-block__sticky-left {
-        align-items: start;
+        grid-template-columns: $bespoke-viz-columns; // 63fr 37fr
+        column-gap: $bespoke-viz-gutter; // 48px
+        // NOTE: intentionally do NOT set `align-items: start` — the default
+        // `stretch` makes the left column as tall as the row (i.e. as tall as
+        // the scrolling commentary), which is what gives .sticky-column-wrapper
+        // room to travel. `align-items: start` collapses the column to content
+        // height and silently disables the sticky.
+
+        // Cancel the stock span-cols-7 / span-cols-5 on the two DIRECT grid
+        // children so they occupy one fr-track each instead of spanning 7/5 of
+        // the (now absent) 12-col grid.
+        > .article-block__sticky-left-left-column,
+        > .article-block__sticky-left-right-column {
+            grid-column: auto;
+            min-width: 0;
+        }
 
         // Left column: the viz. Its sticky wrapper carries the fit-to-viewport
         // sizing and the top-alignment nudge (ported from the old layout).
@@ -1602,11 +1624,11 @@ $bespoke-viz-columns: $bespoke-viz-viz-fr $bespoke-viz-commentary-fr;
     }
 
     // Full-screen button (icon + label). Pinned top-right of the viz area,
-    // level with the viz's "Configure the data" controls row. `top` is a
-    // tuning knob. The aria-label supplies the accessible name.
+    // lifted above the chart/controls content so it doesn't obscure the viz.
+    // `top` is a tuning knob. The aria-label supplies the accessible name.
     .bespoke-viz-expand-button {
         position: absolute;
-        top: 28px;
+        top: -8px;
         right: 4px;
         z-index: 2;
         display: inline-flex;
