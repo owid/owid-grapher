@@ -1403,10 +1403,17 @@ $bespoke-viz-columns: $bespoke-viz-viz-fr $bespoke-viz-commentary-fr;
         padding-top: 40px;
         padding-bottom: 28px;
 
-        // Content column: laid out on the same VIZ | COMMENTARY split as the
-        // body so the title wraps at the viz column's width. Everything now
-        // stacks in the left column (eyebrow -> title -> subtitle -> byline),
-        // left-aligned; the right column is intentionally empty.
+        // Content column. The grid keeps the VIZ | COMMENTARY (63/37) track
+        // definition (so the geometry still matches the body), but the header
+        // content now spans the FULL content width — the title and subtitle
+        // wrap at the full centred-content width, not at the 63% viz column.
+        // Everything stacks left-aligned (eyebrow -> title -> subtitle ->
+        // byline).
+        //
+        // TO REVERT to "title/subtitle wrap at the viz-column (63%) width":
+        //   change the `> *` rule below from `grid-column: 1 / -1;` back to
+        //   `grid-column: 1;` (that constrains all header content to the left
+        //   63fr track again). Nothing else needs to change.
         .bespoke-viz-header__inner {
             display: grid;
             grid-template-columns: $bespoke-viz-columns;
@@ -1416,9 +1423,9 @@ $bespoke-viz-columns: $bespoke-viz-viz-fr $bespoke-viz-commentary-fr;
                 grid-template-columns: 1fr;
             }
 
-            // Keep all header content in the left (viz-width) column.
+            // Span the full content width (both tracks). See revert note above.
             > * {
-                grid-column: 1;
+                grid-column: 1 / -1;
             }
         }
 
