@@ -65,7 +65,12 @@ export function SlideRenderer(props: {
             </div>
         ))
         .with({ template: SlideTemplate.Image }, (slide) => (
-            <div className={`${className} slideshow-slide--image`}>
+            <div
+                className={cx(className, "slideshow-slide--image", {
+                    "slideshow-slide--image-text-dominant":
+                        slide.variant === "textImage",
+                })}
+            >
                 {!slide.hideLogo && <SlideLogo />}
                 {slide.title && (
                     <h1 className="slideshow-slide-title">
@@ -161,7 +166,12 @@ export function SlideRenderer(props: {
             </div>
         ))
         .with({ template: SlideTemplate.Statement }, (slide) => (
-            <div className={`${className} slideshow-slide--statement`}>
+            <div
+                className={cx(className, "slideshow-slide--statement", {
+                    "slideshow-slide--statement-section-divider":
+                        slide.variant === "sectionDivider",
+                })}
+            >
                 {!slide.hideLogo && <SlideLogo />}
                 <h1 className="slideshow-slide-statement__text">
                     <SimpleMarkdownText
