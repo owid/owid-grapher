@@ -199,7 +199,7 @@ function findFirstDiffIndex(a: string, b: string): number {
 }
 
 export async function verifySvg(
-    newSvg: string,
+    preparedNewSvg: string,
     newSvgRecord: SvgRecord,
     referenceSvgRecord: SvgRecord,
     referenceSvgsPath: string,
@@ -216,15 +216,7 @@ export async function verifySvg(
         referenceSvgsPath,
         referenceSvgRecord
     )
-    const preparedNewSvg = await prepareSvgForComparison(newSvg)
     const preparedReferenceSvg = await prepareSvgForComparison(referenceSvg)
-    // TEMP DEBUG: is formatSvg deterministic across two calls on the same raw input?
-    const rehash = hashMd5(preparedNewSvg)
-    if (rehash !== newSvgRecord.md5) {
-        console.error(
-            `DEBUG nondeterminism ${newSvgRecord.viewId}: firstFormatHash=${newSvgRecord.md5} secondFormatHash=${rehash}`
-        )
-    }
     const firstDiffIndex = findFirstDiffIndex(
         preparedNewSvg,
         preparedReferenceSvg
@@ -486,7 +478,7 @@ export async function renderSvg({
     dir: JobDirectory
     queryStr?: string
     variant?: "default" | "thumbnail"
-}): Promise<[string, SvgRecord]> {
+}): Promise<[string, SvgRecord, string]> {
     const configAndData = await loadGrapherConfigAndData(dir.pathToProcess)
 
     // Graphers sometimes need to generate ids (incrementing numbers). For this
@@ -559,12 +551,18 @@ export async function renderSvg({
     )
     const durationTotal = Date.now() - timeStart
 
+    // Formatting the SVG (to strip non-deterministic fragments before hashing)
+    // is the expensive part of this function. Compute it once here and hand it
+    // back to callers instead of letting them redundantly reformat the same
+    // raw svg again for comparison/output purposes.
+    const preparedSvg = await prepareSvgForComparison(svg)
+
     const svgRecord: SvgRecord = {
         viewId: dir.viewId,
         chartType: grapher.grapherState.activeTab,
         queryStr: queryStr ?? "",
         resolvedQueryStr,
-        md5: await processSvgAndCalculateHash(svg),
+        md5: hashMd5(preparedSvg),
         svgFilename: outFilename,
         performance: {
             durationReceiveData,
@@ -575,7 +573,7 @@ export async function renderSvg({
             totalDataFileSize: configAndData.totalDataFileSize,
         },
     }
-    return Promise.resolve([svg, svgRecord])
+    return Promise.resolve([svg, svgRecord, preparedSvg])
 }
 
 const replaceRegexes = [/id="react-select-\d+-.+"/g]
@@ -609,10 +607,9 @@ export async function renderSvgAndSave(
     jobDescription: RenderSvgAndSaveJobDescription
 ): Promise<SvgRecord> {
     const { dir, outDir, queryStr, variant = "default" } = jobDescription
-    const [svg, svgRecord] = await renderSvg({ dir, queryStr, variant })
+    const [, svgRecord, preparedSvg] = await renderSvg({ dir, queryStr, variant })
     const outPath = path.join(outDir, svgRecord.svgFilename)
-    const cleanedSvg = await prepareSvgForComparison(svg)
-    await fs.writeFile(outPath, cleanedSvg)
+    await fs.writeFile(outPath, preparedSvg)
     return Promise.resolve(svgRecord)
 }
 
@@ -786,10 +783,14 @@ export async function renderAndVerifySvg({
         if (!referenceDir) throw "ReferenceDir was not defined"
         if (!outDir) throw "outdir was not defined"
 
-        const [svg, svgRecord] = await renderSvg({ dir, queryStr, variant })
+        const [, svgRecord, preparedSvg] = await renderSvg({
+            dir,
+            queryStr,
+            variant,
+        })
 
         const validationResult = await verifySvg(
-            svg,
+            preparedSvg,
             svgRecord,
             referenceEntry,
             referenceDir,
@@ -806,8 +807,7 @@ export async function renderAndVerifySvg({
                     outDir,
                     pathFragments.name + pathFragments.ext
                 )
-                const cleanedSvg = await prepareSvgForComparison(svg)
-                await fs.writeFile(outputPath, cleanedSvg)
+                await fs.writeFile(outputPath, preparedSvg)
                 break
             }
         }
@@ -1183,7 +1183,7 @@ export async function renderExplorerViewsToSVGsAndSave({
         const svg = await explorer.grapherState.generateStaticSvg(
             ReactDOMServer.renderToStaticMarkup
         )
-        const cleanedSvg = await prepareSvgForComparison(svg)
+        const preparedSvg = await prepareSvgForComparison(svg)
 
         const queryStr = queryParamsToStr(choiceParams).replace("?", "")
         const viewId = `${explorerSlug}?${queryStr}`
@@ -1199,12 +1199,12 @@ export async function renderExplorerViewsToSVGsAndSave({
             { shouldHashQueryStr: true }
         )
 
-        await fs.writeFile(path.join(outDir, outFilename), cleanedSvg)
+        await fs.writeFile(path.join(outDir, outFilename), preparedSvg)
 
         svgRecords.push({
             viewId,
             chartType: explorer.grapherState.activeTab,
-            md5: await processSvgAndCalculateHash(svg),
+            md5: hashMd5(preparedSvg),
             svgFilename: outFilename,
         })
     }
@@ -1342,16 +1342,17 @@ export async function renderAndVerifyExplorerViews({
                         { shouldHashQueryStr: true }
                     )
 
+                    const preparedSvg = await prepareSvgForComparison(svg)
                     const svgRecord: SvgRecord = {
                         viewId,
                         chartType: explorer.grapherState.activeTab,
-                        md5: await processSvgAndCalculateHash(svg),
+                        md5: hashMd5(preparedSvg),
                         svgFilename: outFilename,
                     }
 
                     // Verify against reference
                     const result = await verifySvg(
-                        svg,
+                        preparedSvg,
                         svgRecord,
                         referenceEntry,
                         referencesDir,
@@ -1366,8 +1367,7 @@ export async function renderAndVerifyExplorerViews({
                             differencesDir,
                             pathFragments.name + pathFragments.ext
                         )
-                        const cleanedSvg = await prepareSvgForComparison(svg)
-                        await fs.writeFile(outputPath, cleanedSvg)
+                        await fs.writeFile(outputPath, preparedSvg)
                     }
 
                     return result
