@@ -87,7 +87,7 @@ export class EditorExportTab<
         this.saveOriginalSettings()
 
         // Show a static chart preview on the export tab
-        this.grapherState.isExportingToSvgOrPng = true
+        action(() => (this.grapherState.isExportingToSvgOrPng = true))()
 
         // Use autorun with the computed property to track settings changes
         const dispose = reaction(
@@ -114,7 +114,7 @@ export class EditorExportTab<
 
     override componentWillUnmount(): void {
         this.resetGrapher()
-        this.grapherState.isExportingToSvgOrPng = false
+        action(() => (this.grapherState.isExportingToSvgOrPng = false))()
 
         if (sessionStorage) {
             this.saveSettingsToSessionStorage()
