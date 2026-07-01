@@ -218,6 +218,13 @@ export async function verifySvg(
     )
     const preparedNewSvg = await prepareSvgForComparison(newSvg)
     const preparedReferenceSvg = await prepareSvgForComparison(referenceSvg)
+    // TEMP DEBUG: is formatSvg deterministic across two calls on the same raw input?
+    const rehash = hashMd5(preparedNewSvg)
+    if (rehash !== newSvgRecord.md5) {
+        console.error(
+            `DEBUG nondeterminism ${newSvgRecord.viewId}: firstFormatHash=${newSvgRecord.md5} secondFormatHash=${rehash}`
+        )
+    }
     const firstDiffIndex = findFirstDiffIndex(
         preparedNewSvg,
         preparedReferenceSvg
