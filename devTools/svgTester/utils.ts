@@ -569,7 +569,8 @@ export async function renderSvg({
     const preparedSvg = await prepareSvgForComparison(svg)
     if (process.env.SVG_TESTER_PROBE_RAW_HASH) {
         let rawStripped = svg
-        for (const re of replaceRegexes) rawStripped = rawStripped.replace(re, "")
+        for (const re of replaceRegexes)
+            rawStripped = rawStripped.replace(re, "")
         console.error(
             `RAWHASH ${dir.viewId} rawHash=${hashMd5(svg)} strippedHash=${hashMd5(rawStripped)} formattedHash=${hashMd5(preparedSvg)}`
         )
