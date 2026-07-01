@@ -26,7 +26,7 @@ export async function getRecentChartSlugRedirects(
                     chart_slug_redirects.target_query_param IS NULL
                     OR chart_slug_redirects.target_query_param = '',
                     '',
-                    CONCAT(CHAR(63), chart_slug_redirects.target_query_param) -- CHAR(63) is the question mark character (?), which we can't write in the SQL query because it would be interpreted as a binding
+                    CONCAT(CHAR(63), chart_slug_redirects.target_query_param) -- CHAR(63) is the question mark character, which we can't write in the SQL query because it would be interpreted as a binding
                 )
             ) as target
         FROM chart_slug_redirects
