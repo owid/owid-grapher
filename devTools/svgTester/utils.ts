@@ -640,51 +640,6 @@ export async function loadReferenceSvg(
     return svg
 }
 
-type CachedVariableData = {
-    data: OwidVariableMixedData
-    metadata: OwidVariableWithSourceAndDimension
-    dataFileSize: number
-}
-
-// Charts frequently share commonly-used variables (e.g. population as a
-// per-capita denominator), and the same variable's data/metadata files are
-// physically duplicated into every chart directory that references it. This
-// cache is per-worker-thread (each worker_thread has its own module state) and
-// avoids re-reading and re-parsing a duplicate we've already loaded in this
-// thread's lifetime. Capped by total bytes rather than entry count since
-// variable file sizes vary by orders of magnitude.
-const MAX_VARIABLE_CACHE_BYTES = 200 * 1024 * 1024
-const variableDataCache = new Map<number, CachedVariableData>()
-let variableDataCacheBytes = 0
-
-async function loadVariableData(
-    inputDir: string,
-    variableId: number
-): Promise<CachedVariableData> {
-    const cached = variableDataCache.get(variableId)
-    if (cached) return cached
-
-    const dataPath = path.join(inputDir, `${variableId}.data.json`)
-    const metadataPath = path.join(inputDir, `${variableId}.metadata.json`)
-    const dataFileSize = await stat(dataPath).then((stats) => stats.size)
-    const data = (await readJsonFile(dataPath)) as OwidVariableMixedData
-    const metadata = (await readJsonFile(
-        metadataPath
-    )) as OwidVariableWithSourceAndDimension
-    const result = { data, metadata, dataFileSize }
-
-    if (dataFileSize <= MAX_VARIABLE_CACHE_BYTES) {
-        if (variableDataCacheBytes + dataFileSize > MAX_VARIABLE_CACHE_BYTES) {
-            variableDataCache.clear()
-            variableDataCacheBytes = 0
-        }
-        variableDataCache.set(variableId, result)
-        variableDataCacheBytes += dataFileSize
-    }
-
-    return result
-}
-
 export async function loadGrapherConfigAndData(
     inputDir: string
 ): Promise<JobConfigAndData> {
@@ -695,10 +650,23 @@ export async function loadGrapherConfigAndData(
     const rawConfig = (await readJsonFile(configPath)) as GrapherInterface
     const config = migrateGrapherConfigToLatestVersion(rawConfig) // ensure the config is migrated to the latest schema version
 
+    // TODO: this bakes the same commonly used variables over and over again - deduplicate
+    // this on the variable level and bake those separately into a different directory.
+    // Tried an in-process per-worker-thread cache here; measured no difference (see PR
+    // description) because data loading isn't the bottleneck, so leaving this as-is.
     const variableIds = config.dimensions?.map((d) => d.variableId) ?? []
-    const data = await Promise.all(
-        variableIds.map((variableId) => loadVariableData(inputDir, variableId))
-    )
+    const loadDataPromises = variableIds.map(async (variableId) => {
+        const dataPath = path.join(inputDir, `${variableId}.data.json`)
+        const metadataPath = path.join(inputDir, `${variableId}.metadata.json`)
+        const dataFileSize = await stat(dataPath).then((stats) => stats.size)
+        const data = (await readJsonFile(dataPath)) as OwidVariableMixedData
+        const metadata = (await readJsonFile(
+            metadataPath
+        )) as OwidVariableWithSourceAndDimension
+        return { data, metadata, dataFileSize }
+    })
+
+    const data = await Promise.all(loadDataPromises)
 
     const variableData = new Map(data.map((d) => [d.metadata.id, d]))
     const totalDataFileSize = _.sum(data.map((d) => d.dataFileSize))
