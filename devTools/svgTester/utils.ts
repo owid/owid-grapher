@@ -212,11 +212,18 @@ export async function verifySvg(
         return resultOk()
     }
 
+    const profStart = performance.now()
     const referenceSvg = await loadReferenceSvg(
         referenceSvgsPath,
         referenceSvgRecord
     )
+    const profLoad = performance.now()
     const preparedReferenceSvg = await prepareSvgForComparison(referenceSvg)
+    if (process.env.SVG_TESTER_PROFILE) {
+        console.error(
+            `PROF-REF ${newSvgRecord.viewId} refLoad=${(profLoad - profStart).toFixed(1)} refFormat=${(performance.now() - profLoad).toFixed(1)}`
+        )
+    }
     const firstDiffIndex = findFirstDiffIndex(
         preparedNewSvg,
         preparedReferenceSvg
@@ -479,7 +486,9 @@ export async function renderSvg({
     queryStr?: string
     variant?: "default" | "thumbnail"
 }): Promise<[string, SvgRecord, string]> {
+    const profStart = performance.now()
     const configAndData = await loadGrapherConfigAndData(dir.pathToProcess)
+    const profLoad = performance.now()
 
     // Graphers sometimes need to generate ids (incrementing numbers). For this
     // they keep a stateful variable in clientutils. To minimize differences
@@ -546,16 +555,24 @@ export async function renderSvg({
 
     const durationReceiveData = Date.now() - timeStart
 
+    const profPreRender = performance.now()
     const svg = await grapher.grapherState.generateStaticSvg(
         ReactDOMServer.renderToStaticMarkup
     )
     const durationTotal = Date.now() - timeStart
+    const profPostRender = performance.now()
 
     // Formatting the SVG (to strip non-deterministic fragments before hashing)
     // is the expensive part of this function. Compute it once here and hand it
     // back to callers instead of letting them redundantly reformat the same
     // raw svg again for comparison/output purposes.
     const preparedSvg = await prepareSvgForComparison(svg)
+    if (process.env.SVG_TESTER_PROFILE) {
+        const profPostFormat = performance.now()
+        console.error(
+            `PROF ${dir.viewId} load=${(profLoad - profStart).toFixed(1)} setup=${(profPreRender - profLoad).toFixed(1)} render=${(profPostRender - profPreRender).toFixed(1)} format=${(profPostFormat - profPostRender).toFixed(1)}`
+        )
+    }
 
     const svgRecord: SvgRecord = {
         viewId: dir.viewId,
