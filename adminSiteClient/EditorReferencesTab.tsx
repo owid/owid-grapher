@@ -186,8 +186,7 @@ export class EditorReferencesTabForChart extends Component<{
                                         {redirect.targetQueryParam ? (
                                             <span className="text-muted">
                                                 {" "}
-                                                -&gt; ?
-                                                {redirect.targetQueryParam}
+                                                ➡️ ?{redirect.targetQueryParam}
                                             </span>
                                         ) : null}
                                     </li>
@@ -331,7 +330,7 @@ class AddRedirectForm<Editor extends AbstractChartEditor> extends Component<
                     void this.onSubmit()
                 }}
             >
-                <div className="input-group mb-3">
+                <div className="input-group mb-2">
                     <div className="input-group-prepend">
                         <span className="input-group-text" id="basic-addon3">
                             {BASE_URL}/
@@ -346,10 +345,17 @@ class AddRedirectForm<Editor extends AbstractChartEditor> extends Component<
                             this.onSlugChange(event.target.value)
                         }
                     />
+                </div>
+                <div className="input-group mb-3">
+                    <div className="input-group-prepend">
+                        <span className="input-group-text">
+                            Target query params (optional)
+                        </span>
+                    </div>
                     <input
                         type="text"
                         className="form-control"
-                        placeholder="Target query param, e.g. tab=map"
+                        placeholder="e.g. 'tab=map'"
                         value={this.targetQueryParam}
                         onChange={(event) =>
                             this.onTargetQueryParamChange(event.target.value)
