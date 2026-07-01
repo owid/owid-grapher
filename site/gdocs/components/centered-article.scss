@@ -1655,122 +1655,138 @@ $bespoke-viz-columns: $bespoke-viz-viz-fr $bespoke-viz-commentary-fr;
             font-size: 12px;
         }
     }
+}
 
-    // --- Click expand-to-lightbox ----------------------------------------
-    // Full-viewport lightbox: the scrim covers the ENTIRE viewport (nav + page
-    // header + body) above the site chrome; background scroll is locked by JS
-    // while open. The FLIP uses viewport-relative getBoundingClientRect,
-    // compatible with position: fixed.
-    .bespoke-viz-lightbox {
-        // Top margin above the modal box, and bottom breathing room.
-        --bespoke-viz-modal-top: 32px;
-        --bespoke-viz-modal-bottom: 32px;
+// --- Click expand-to-lightbox (portaled to document.body) ----------------
+// The modal scaffolding is rendered via createPortal to document.body, OUTSIDE
+// .centered-article-container--bespoke-viz, so it escapes the article's trapped
+// stacking context and covers the site nav. These rules must therefore live at
+// the TOP LEVEL (not nested under the modifier) or they wouldn't match the
+// portaled DOM. The class name is unique to the bespoke-viz lightbox, so
+// top-level scoping is safe.
+//
+// Full-viewport lightbox: the scrim covers the ENTIRE viewport (nav + page
+// header + body); background scroll is locked by JS while open. The FLIP uses
+// viewport-relative getBoundingClientRect, compatible with position: fixed.
+.bespoke-viz-lightbox {
+    // Top margin above the modal box, and bottom breathing room.
+    --bespoke-viz-modal-top: 32px;
+    --bespoke-viz-modal-bottom: 32px;
 
-        position: fixed;
+    position: fixed;
+    inset: 0;
+    // Hidden until opened: no layout impact, no pointer interception.
+    display: none;
+    // Above ALL site chrome including the top nav ($zindex-site-header:120) —
+    // reuses the site's lightbox layer (99990). Portaled to body, so this
+    // z-index competes at the top level and wins over the nav.
+    z-index: $zindex-lightbox;
+
+    &--open {
+        display: block;
+    }
+
+    // Scrim covers the WHOLE viewport (nav + header + body).
+    .bespoke-viz-lightbox__scrim {
+        position: absolute;
         inset: 0;
-        // Hidden until opened: no layout impact, no pointer interception.
-        display: none;
-        // Above ALL site chrome including the top nav ($zindex-site-header:120)
-        // — reuses the site's lightbox layer (99990), which sits above the nav.
-        z-index: $zindex-lightbox;
+        background-color: rgba(17, 26, 42, 0.5);
+        backdrop-filter: blur(2.5px);
+        // Animated imperatively (opacity 0 -> 1) to cross-fade with the FLIP;
+        // starts transparent.
+        opacity: 0;
+        transition: opacity 350ms cubic-bezier(0.22, 0.61, 0.36, 1);
+        // Clicking the dimmed scrim closes the lightbox.
+        cursor: pointer;
+    }
 
-        &--open {
-            display: block;
-        }
-
-        // Scrim covers the WHOLE viewport (nav + header + body).
-        .bespoke-viz-lightbox__scrim {
-            position: absolute;
-            inset: 0;
-            background-color: rgba(17, 26, 42, 0.5);
-            backdrop-filter: blur(2.5px);
-            // Animated imperatively (opacity 0 -> 1) to cross-fade with the
-            // FLIP; starts transparent.
-            opacity: 0;
-            transition: opacity 350ms cubic-bezier(0.22, 0.61, 0.36, 1);
-            // Clicking the dimmed scrim closes the lightbox.
-            cursor: pointer;
-        }
-
-        .bespoke-viz-lightbox__box {
-            position: absolute;
-            // Top-aligned with a comfortable margin, horizontally centred.
-            top: var(--bespoke-viz-modal-top);
-            left: 50%;
-            transform: translateX(-50%);
-            width: min(1320px, 100%);
-            // Never taller than the viewport minus top+bottom margins, so the
-            // whole viz fits on screen with no clipping.
-            max-height: calc(
-                100dvh - var(--bespoke-viz-modal-top) - var(
-                        --bespoke-viz-modal-bottom
-                    )
-            );
-            background-color: $white;
-            border-radius: 12px;
-            padding: 22px 26px;
-            box-shadow: 0 18px 50px rgba(0, 0, 0, 0.32);
-            // Faded in/out imperatively, cross-fading with the scrim, so the
-            // white card doesn't pop in at full size before the viz FLIPs.
-            opacity: 0;
-            transition: opacity 350ms cubic-bezier(0.22, 0.61, 0.36, 1);
-        }
-
-        // Close (×) button, top-right of the modal box.
-        .bespoke-viz-lightbox__close {
-            position: absolute;
-            top: 12px;
-            right: 12px;
-            z-index: 2;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 32px;
-            height: 32px;
-            padding: 0;
-            color: $blue-60;
-            background-color: $white;
-            border: 1px solid $bespoke-viz-card-border;
-            border-radius: 50%;
-            cursor: pointer;
-
-            &:hover {
-                color: $blue-90;
-                border-color: $blue-50;
-            }
-        }
-
-        // The live viz node is appended here while expanded. Kept invisible
-        // until the inverse FLIP transform has been applied (avoids a
-        // one-frame full-size flash), then revealed imperatively.
-        //
-        // Fit-to-viewport for the EXPANDED state: size the chart to the box's
-        // available height (full viewport minus the top+bottom margins) minus
-        // the non-chart chrome (box padding, controls, footer), so the whole
-        // viz (controls + chart + footer) fits with no top/bottom clipping. The
-        // migration bundle reads this var through the shadow boundary. Capped at
-        // 720px so a very tall viewport doesn't blow the chart up unreasonably.
-        .bespoke-viz-lightbox__body {
-            visibility: hidden;
-            width: 100%;
-            --bespoke-viz-chrome-allowance: 200px;
-            --bespoke-viz-chart-area-height: min(
-                720px,
-                calc(
-                    100dvh - var(--bespoke-viz-modal-top) - var(
-                            --bespoke-viz-modal-bottom
-                        ) - var(--bespoke-viz-chrome-allowance)
+    .bespoke-viz-lightbox__box {
+        position: absolute;
+        // Top-aligned with a comfortable margin, horizontally centred.
+        top: var(--bespoke-viz-modal-top);
+        left: 50%;
+        transform: translateX(-50%);
+        width: min(1320px, 100%);
+        // Never taller than the viewport minus top+bottom margins, so the whole
+        // viz fits on screen with no clipping.
+        max-height: calc(
+            100dvh - var(--bespoke-viz-modal-top) - var(
+                    --bespoke-viz-modal-bottom
                 )
-            );
+        );
+        background-color: $white;
+        border-radius: 12px;
+        padding: 22px 26px;
+        box-shadow: 0 18px 50px rgba(0, 0, 0, 0.32);
+        // Faded in/out imperatively, cross-fading with the scrim, so the white
+        // card doesn't pop in at full size before the viz FLIPs.
+        opacity: 0;
+        transition: opacity 350ms cubic-bezier(0.22, 0.61, 0.36, 1);
+    }
+
+    // Close (×) button, top-right of the modal box.
+    .bespoke-viz-lightbox__close {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        z-index: 2;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        padding: 0;
+        color: $blue-60;
+        background-color: $white;
+        border: 1px solid $bespoke-viz-card-border;
+        border-radius: 50%;
+        cursor: pointer;
+
+        &:hover {
+            color: $blue-90;
+            border-color: $blue-50;
         }
     }
 
-    // prefers-reduced-motion: drop the FLIP transition; the controller also
-    // skips the transform maths and just cross-fades.
-    @media (prefers-reduced-motion: reduce) {
-        .bespoke-viz-lightbox .bespoke-viz-lightbox__scrim,
-        .bespoke-viz-lightbox .bespoke-viz-lightbox__box {
-            transition: opacity 120ms linear;
+    // The live viz node is appended here while expanded. Kept invisible until
+    // the inverse FLIP transform has been applied (avoids a one-frame full-size
+    // flash), then revealed imperatively.
+    //
+    // Fit-to-viewport for the EXPANDED state: size the chart to the box's
+    // available height (full viewport minus the top+bottom margins) minus the
+    // non-chart chrome (box padding, controls, footer), so the whole viz
+    // (controls + chart + footer) fits with no top/bottom clipping. The
+    // migration bundle reads this var through the shadow boundary. Capped at
+    // 720px so a very tall viewport doesn't blow the chart up unreasonably.
+    .bespoke-viz-lightbox__body {
+        visibility: hidden;
+        width: 100%;
+        --bespoke-viz-chrome-allowance: 200px;
+        --bespoke-viz-chart-area-height: min(
+            720px,
+            calc(
+                100dvh - var(--bespoke-viz-modal-top) - var(
+                        --bespoke-viz-modal-bottom
+                    ) - var(--bespoke-viz-chrome-allowance)
+            )
+        );
+
+        // The moved viz host lives here while expanded (outside the article
+        // container), so re-assert full-width fill for it and its blocks — the
+        // article-scoped rules no longer apply to the portaled node.
+        .bespoke-viz-enhanced__host,
+        [class*="article-block__"] {
+            width: 100%;
+            max-width: 100%;
         }
+    }
+}
+
+// prefers-reduced-motion: drop the FLIP transition; the controller also skips
+// the transform maths and just cross-fades.
+@media (prefers-reduced-motion: reduce) {
+    .bespoke-viz-lightbox .bespoke-viz-lightbox__scrim,
+    .bespoke-viz-lightbox .bespoke-viz-lightbox__box {
+        transition: opacity 120ms linear;
     }
 }

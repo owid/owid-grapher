@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react"
+import { createPortal } from "react-dom"
 import cx from "clsx"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faExpand, faXmark } from "@fortawesome/free-solid-svg-icons"
@@ -19,10 +20,21 @@ import { BespokeComponent } from "./BespokeComponent.js"
  *   - keep <BespokeComponent> mounted in one stable place in the React tree
  *     (inside `vizHostRef`, whose JSX never changes across renders), and
  *   - physically MOVE that live shadow-host DOM node into the modal and back
- *     via appendChild — never React.createPortal, which would change the
- *     node's React identity and trigger the destructive mount-effect cleanup.
+ *     via appendChild. We never React-RENDER the viz through the portal — that
+ *     would change its React identity and trigger the destructive mount-effect
+ *     cleanup. The imperative appendChild is independent of where the modal
+ *     lives in the React tree, so it works fine into a portaled modal body.
  * Because the host's JSX children are identical across renders, React's
  * reconciler leaves the moved DOM node where we put it.
+ *
+ * Portal: the modal SCAFFOLDING (scrim + box, but NOT the viz) is rendered via
+ * createPortal to document.body. The inline viz sits deep in the article
+ * subtree, which is trapped inside an ancestor stacking context that paints
+ * below the site nav — so a `position: fixed; z-index: 99990` modal left in
+ * that subtree still renders under the nav. Portaling to document.body makes
+ * the overlay a top-level stacking context (sibling to the nav), so its high
+ * z-index wins and it covers the nav. The inline host slot stays in the
+ * article tree for the live viz node to return to on close.
  *
  * Triggers (all explicit clicks/keys — no hover):
  *   - Open: the "Full screen" button on the inline viz.
@@ -31,12 +43,13 @@ import { BespokeComponent } from "./BespokeComponent.js"
  * The expand/collapse uses a FLIP animation (350ms), honouring
  * prefers-reduced-motion (which skips the FLIP and just cross-fades). The modal
  * is `position: fixed`, so getBoundingClientRect (viewport coords) drives the
- * FLIP correctly without depending on any positioned ancestor.
+ * FLIP correctly regardless of the portal (viewport-relative math is unchanged).
  *
  * Full-screen overlay: the scrim covers the ENTIRE viewport (nav + page header
  * + body) above the site chrome, and background scroll is locked (frozen at the
  * current position) while open, restored on close. The scroll lock is torn down
- * on close AND on unmount so the page can never get stuck unscrollable.
+ * on close AND on unmount so the page can never get stuck unscrollable. On
+ * unmount the live viz node is returned inline first so it's never orphaned.
  */
 
 // Timing constants.
@@ -67,6 +80,10 @@ export function BespokeVizLightbox({
     const boxRef = useRef<HTMLDivElement>(null)
 
     const [isExpanded, setIsExpanded] = useState(false)
+    // The modal is portaled to document.body, which doesn't exist during SSR;
+    // only render the portal once mounted on the client.
+    const [isMounted, setIsMounted] = useState(false)
+    useEffect(() => setIsMounted(true), [])
 
     // Prevents overlapping open/close animations.
     const isAnimatingRef = useRef(false)
@@ -256,6 +273,20 @@ export function BespokeVizLightbox({
         }
     }, [isExpanded])
 
+    // Safety: if this component unmounts while the viz is expanded, the live
+    // host node currently lives in the portaled modal body — which React will
+    // tear down. Move it back to its inline slot on unmount so it isn't
+    // orphaned/destroyed. (Runs only on unmount: empty dep array.)
+    useEffect(() => {
+        return () => {
+            const host = vizHostRef.current
+            const inlineSlot = inlineSlotRef.current
+            if (host && inlineSlot && host.parentElement !== inlineSlot) {
+                inlineSlot.appendChild(host)
+            }
+        }
+    }, [])
+
     // Hide the viz's OWN internal heading (title + subtitle) inside its shadow
     // root, but ONLY in the bespoke-viz chrome — the standalone migration
     // article must keep its heading. The bespoke component mounts into an open
@@ -340,35 +371,42 @@ export function BespokeVizLightbox({
                 </div>
             </div>
 
-            {/* Modal scaffolding. position:fixed full-screen lightbox, top
-                aligned. Kept mounted; --open toggles display, the scrim opacity
-                and body transform are animated imperatively. */}
-            <div
-                className={cx("bespoke-viz-lightbox", {
-                    "bespoke-viz-lightbox--open": isExpanded,
-                })}
-                aria-hidden={!isExpanded}
-            >
-                <div
-                    className="bespoke-viz-lightbox__scrim"
-                    ref={scrimRef}
-                    onClick={handleCloseClick}
-                />
-                <div className="bespoke-viz-lightbox__box" ref={boxRef}>
-                    <button
-                        type="button"
-                        className="bespoke-viz-lightbox__close"
-                        onClick={handleCloseClick}
-                        aria-label="Close"
-                    >
-                        <FontAwesomeIcon icon={faXmark} />
-                    </button>
+            {/* Modal scaffolding — portaled to document.body so it escapes the
+                article's trapped stacking context and covers the site nav.
+                Kept mounted (client-only); --open toggles display, the scrim
+                opacity and body transform are animated imperatively. The live
+                viz node is moved into __body imperatively (not rendered here),
+                so no remount. */}
+            {isMounted &&
+                createPortal(
                     <div
-                        className="bespoke-viz-lightbox__body"
-                        ref={modalBodyRef}
-                    />
-                </div>
-            </div>
+                        className={cx("bespoke-viz-lightbox", {
+                            "bespoke-viz-lightbox--open": isExpanded,
+                        })}
+                        aria-hidden={!isExpanded}
+                    >
+                        <div
+                            className="bespoke-viz-lightbox__scrim"
+                            ref={scrimRef}
+                            onClick={handleCloseClick}
+                        />
+                        <div className="bespoke-viz-lightbox__box" ref={boxRef}>
+                            <button
+                                type="button"
+                                className="bespoke-viz-lightbox__close"
+                                onClick={handleCloseClick}
+                                aria-label="Close"
+                            >
+                                <FontAwesomeIcon icon={faXmark} />
+                            </button>
+                            <div
+                                className="bespoke-viz-lightbox__body"
+                                ref={modalBodyRef}
+                            />
+                        </div>
+                    </div>,
+                    document.body
+                )}
         </>
     )
 }
