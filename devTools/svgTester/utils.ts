@@ -607,7 +607,11 @@ export async function renderSvgAndSave(
     jobDescription: RenderSvgAndSaveJobDescription
 ): Promise<SvgRecord> {
     const { dir, outDir, queryStr, variant = "default" } = jobDescription
-    const [, svgRecord, preparedSvg] = await renderSvg({ dir, queryStr, variant })
+    const [, svgRecord, preparedSvg] = await renderSvg({
+        dir,
+        queryStr,
+        variant,
+    })
     const outPath = path.join(outDir, svgRecord.svgFilename)
     await fs.writeFile(outPath, preparedSvg)
     return Promise.resolve(svgRecord)
