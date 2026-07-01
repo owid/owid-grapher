@@ -1375,7 +1375,6 @@ div.raw-html-table__container {
    ========================================================================== */
 
 // Column split + spacing tokens (kept here so the header and body share them).
-$bespoke-viz-page-padding: 4vw;
 $bespoke-viz-gutter: 48px;
 $bespoke-viz-commentary-fr: 37fr;
 $bespoke-viz-viz-fr: 63fr;
@@ -1386,11 +1385,10 @@ $bespoke-viz-commentary-text: #6a7178;
 $bespoke-viz-columns: $bespoke-viz-viz-fr $bespoke-viz-commentary-fr;
 
 .centered-article-container--bespoke-viz {
-    /* The header and the two-column body both break out of the standard
-       centred grid to sit close to the full viewport width. They're direct
-       children of the `.grid grid-cols-12-full-width` article container and
-       span all columns (span-cols-14), then apply their own horizontal
-       padding. */
+    /* The body renders as normal single-column article blocks. The author
+       defines the two-column region with a {.sticky-left} container; we only
+       restyle THAT container (and the header) here. Everything is scoped to
+       this modifier so normal articles are unaffected. */
 
     // --- Header (plain white, two-column, aligned with the body grid) ----
     // No band/border. Laid out on the same VIZ | COMMENTARY column split as
@@ -1399,21 +1397,22 @@ $bespoke-viz-columns: $bespoke-viz-viz-fr $bespoke-viz-commentary-fr;
     // right column aligned with the subtitle.
     .bespoke-viz-header {
         display: grid;
-        // SAME columns + gutter + horizontal padding as the body grid, so the
-        // header's left column pixel-aligns with the body's viz column (same
-        // left edge, right edge and width). The title therefore wraps only at
-        // the viz column's right edge.
+        // SAME column split + gutter as the body's {.sticky-left} container,
+        // and placed on the same centred content grid (col-start-2 span-cols-12
+        // in the markup), so the header's left column pixel-aligns with the
+        // body's viz column. The title therefore wraps at the viz column's
+        // right edge.
         grid-template-columns: $bespoke-viz-columns;
         // Rows: eyebrow, title, then a shared subtitle/byline row.
         grid-template-rows: auto auto auto;
         column-gap: $bespoke-viz-gutter;
         // Plain white header, no divider line. Tight bottom so the body sits
-        // close to the header.
-        padding: 40px $bespoke-viz-page-padding 24px;
+        // close to the header. (Horizontal placement comes from the grid, so
+        // no horizontal padding here.)
+        padding: 40px 0 24px;
 
         @include sm-only {
             grid-template-columns: 1fr;
-            padding-top: 28px;
             padding-bottom: 24px;
             row-gap: 4px;
         }
@@ -1494,139 +1493,110 @@ $bespoke-viz-columns: $bespoke-viz-viz-fr $bespoke-viz-commentary-fr;
     }
 
     // --- Two-column body: VIZ (left, wider) | COMMENTARY (right, narrower) -
-    .bespoke-viz-layout {
-        // Positioned so the lightbox (stage 2) can be absolutely positioned
-        // over the article body rather than fixed to the viewport, keeping the
-        // site nav and header uncovered.
-        position: relative;
-        display: grid;
-        // SAME track definition, gutter and horizontal padding as the header
-        // grid, so the viz column lines up exactly under the header's left
-        // column.
-        grid-template-columns: $bespoke-viz-columns;
-        gap: $bespoke-viz-gutter;
-        padding: 0 $bespoke-viz-page-padding;
+    // --- Author's {.sticky-left} container under the bespoke-viz layout -----
+    // The body renders as normal single-column article blocks. The author
+    // defines the two-column region with a {.sticky-left} container (viz in
+    // [.left], commentary in [.right]); we restyle THAT container here to match
+    // the header: viz column wider (63fr) + sticky, commentary narrower (37fr).
+    .article-block__sticky-left {
+        // Override the stock 7/12–5/12 grid to the header's 63/37 split, with
+        // the same gutter, so the viz column lines up under the header's left
+        // column. (The stock markup uses a 12-col grid + span-cols-7/5.)
+        grid-template-columns: $bespoke-viz-columns !important;
+        column-gap: $bespoke-viz-gutter;
         align-items: start;
 
-        // Stack into a single column on small screens. (Full mobile polish is
-        // out of scope, but a graceful stack avoids a broken page.) Source
-        // order is viz-then-commentary, which is the sensible mobile order too.
-        @include sm-only {
-            grid-template-columns: 1fr;
-            gap: 32px;
+        // Neutralise the stock column span/placement so our two tracks drive
+        // the widths.
+        .sticky-left-left-column,
+        .sticky-left-right-column {
+            grid-column: auto !important;
+            min-width: 0;
+        }
+
+        // Left column: the viz. Its sticky wrapper carries the fit-to-viewport
+        // sizing and the top-alignment nudge (ported from the old layout).
+        .sticky-left-left-column .sticky-column-wrapper {
+            // The "above/around the chart" allowance: everything that is NOT
+            // the chart drawing area — the viz's inner frame border/padding,
+            // its "Configure the data" controls and its data-source footer.
+            // Fit-to-viewport tuning knob: increase if the chart overflows,
+            // decrease to give the chart more height.
+            --bespoke-viz-top-offset: 1rem;
+            --bespoke-viz-chrome-allowance: 220px;
+            // The viz's first visible element (the controls label) sits inside
+            // the bundle's inner frame, whose 16px top padding pushes it below
+            // the commentary's first line. Pull the viz up by that amount so
+            // the controls row top-aligns with the commentary. Tuning knob.
+            --bespoke-viz-align-nudge: 16px;
+
+            // Sticky offset (overrides the stock top:32px on this wrapper).
+            top: var(--bespoke-viz-top-offset);
+            margin-top: calc(-1 * var(--bespoke-viz-align-nudge));
+
+            // Fit-to-viewport: cap the column to the viewport height so the
+            // whole plot (controls, chart, footer) is visible without
+            // scrolling. The migration bundle reads its chart-box height from
+            // this CSS var, which inherits through the shadow boundary. It's
+            // declared on this inline-only ancestor (which the viz host does
+            // NOT travel with), so when the host is moved into the lightbox it
+            // stops inheriting this cap and picks up the modal's full-size
+            // value — see the lightbox body rule.
+            max-height: calc(100dvh - var(--bespoke-viz-top-offset) - 8px);
+            --bespoke-viz-chart-area-height: min(
+                450px,
+                calc(100dvh - var(--bespoke-viz-chrome-allowance))
+            );
+        }
+
+        // Right column: secondary meta-commentary. Lighter, smaller, muted
+        // grey, comfortable line height, no background box. Scrolls normally.
+        .sticky-left-right-column {
+            p,
+            li {
+                font-family: $sans-serif-font-stack; // Lato
+                font-weight: 300;
+                font-size: 15.5px;
+                line-height: 1.62;
+                color: $bespoke-viz-commentary-text; // #6a7178
+            }
+
+            a {
+                color: $blue-50; // #577291
+            }
         }
     }
 
-    // Right column: secondary meta-commentary. Lighter, smaller, muted grey,
-    // comfortable line height, no background box. Scrolls normally.
-    .bespoke-viz-layout__commentary {
-        min-width: 0; // allow the column to shrink rather than overflow
-
-        // The text blocks inside still carry the standard grid placement
-        // classes (col-start-*, span-cols-*), but this wrapper is not a grid,
-        // so they fall back to normal block flow. We restyle the text here.
-        [class*="article-block__"] {
-            // Reset any grid-driven widths so blocks fill the commentary column.
-            width: 100%;
-            max-width: 100%;
-        }
-
-        p,
-        li {
-            font-family: $sans-serif-font-stack; // Lato
-            font-weight: 300;
-            font-size: 15.5px;
-            line-height: 1.62;
-            color: $bespoke-viz-commentary-text; // #6a7178
-        }
-
-        a {
-            color: $blue-50; // #577291
-        }
-    }
-
-    // Left column: the viz sits directly in the column (no box/card) and
-    // sticks while the commentary scrolls past it.
-    //
-    // For position:sticky to have anywhere to travel, this grid item must be
-    // as tall as the row (i.e. as tall as the long commentary column). The
-    // grid sets `align-items: start`, which would otherwise collapse this
-    // column to its content height and leave the sticky child nothing to
-    // travel within — so we explicitly stretch it.
-    .bespoke-viz-layout__viz {
-        min-width: 0;
-        align-self: stretch;
-    }
-
-    .bespoke-viz-layout__viz-sticky {
-        // The "above/around the chart" allowance: everything that is NOT the
-        // chart drawing area — the viz's inner frame border/padding, its
-        // "Configure the data" controls and its data-source footer. This is the
-        // fit-to-viewport tuning knob: increase it if the chart overflows,
-        // decrease to give the chart more height. (The viz's own title/subtitle
-        // are hidden in this layout.)
-        --bespoke-viz-top-offset: 1rem;
-        --bespoke-viz-chrome-allowance: 220px;
-        // The viz's first visible element (the "Configure the data" controls
-        // label) sits inside the bundle's inner frame, whose 16px top padding
-        // pushes it down relative to the commentary's first line (which starts
-        // at the row top with no top margin). Pull the whole viz column up by
-        // that amount so the controls row top-aligns with the commentary. This
-        // is a tuning knob — adjust if the frame padding changes.
-        --bespoke-viz-align-nudge: 16px;
-
-        position: sticky;
-        top: var(--bespoke-viz-top-offset);
-        // Raise the viz so its top aligns with the commentary's first line.
-        // Applied in normal flow; the element still sticks at --top-offset.
-        margin-top: calc(-1 * var(--bespoke-viz-align-nudge));
-
-        // No box/card around the viz — it sits directly in the column.
+    // --- Enhanced viz wrapper (rendered by BespokeVizLightbox) --------------
+    // Sits wherever the bespoke-component block is (e.g. the sticky-left left
+    // column). The host node inside is moved imperatively into the lightbox
+    // and back.
+    .bespoke-viz-enhanced {
+        // The getLayout() className still carries grid col-start/span classes;
+        // override them so the enhanced viz fills its column (the sticky-left
+        // left column is itself a nested grid).
+        grid-column: 1 / -1;
         display: flex;
         flex-direction: column;
-
-        // Fit-to-viewport: cap the inline column to the visible viewport height
-        // (minus the top offset) so the whole plot — controls, chart, footer —
-        // is visible without scrolling. The migration bundle reads its chart
-        // box height from this CSS var, which inherits through the shadow
-        // boundary into the bundle. It's declared HERE (an inline-only
-        // ancestor the viz host does NOT travel with), so when the host is
-        // moved into the lightbox it stops inheriting this cap and instead
-        // picks up the modal's full-size value — see the lightbox body rule.
-        max-height: calc(100dvh - var(--bespoke-viz-top-offset) - 8px);
-        --bespoke-viz-chart-area-height: min(
-            450px,
-            calc(100dvh - var(--bespoke-viz-chrome-allowance))
-        );
-
-        // The bespoke-component renders inline and reflows to its container
-        // width via a ResizeObserver, so it simply fills the column. Neutralise
-        // its grid placement classes for the same reason as the commentary.
-        [class*="article-block__"] {
-            width: 100%;
-            max-width: 100%;
-        }
+        width: 100%;
     }
 
-    // Position context for the absolutely-placed Expand button; also centres
-    // the viz horizontally within the column if it ends up narrower.
-    .bespoke-viz-layout__viz-inner {
+    // Position context for the absolutely-placed Full-screen button; also
+    // centres the viz horizontally if it ends up narrower than the column.
+    .bespoke-viz-enhanced__inner {
         position: relative;
         display: flex;
         flex-direction: column;
         align-items: center;
-        // Keep the viz within the box bounds — never spill past the border.
         min-width: 0;
         max-width: 100%;
     }
 
-    // Wrapper that physically holds the live viz DOM node. We move THIS node
-    // between the inline card and the modal; it must fill whichever container
-    // it's in (inline card or modal body) so the viz reflows to fit. It does
-    // NOT declare --bespoke-viz-chart-area-height itself, so the value it
-    // inherits depends on where it currently lives (inline sticky vs. modal
-    // body) — which is exactly how the chart resizes between the two.
-    .bespoke-viz-layout__viz-host {
+    // Wrapper that physically holds the live viz DOM node. It does NOT declare
+    // --bespoke-viz-chart-area-height itself, so the value it inherits depends
+    // on where it currently lives (inline column vs. modal body) — which is
+    // exactly how the chart resizes between the two.
+    .bespoke-viz-enhanced__host {
         width: 100%;
 
         [class*="article-block__"] {
@@ -1635,16 +1605,9 @@ $bespoke-viz-columns: $bespoke-viz-viz-fr $bespoke-viz-commentary-fr;
         }
     }
 
-    // Inline icon-only Expand button. Pinned top-right and nudged up so it sits
-    // level with the viz's "Configure the data" controls-header row (which
-    // renders at the top of the viz content inside the shadow DOM) rather than
-    // on its own line above the controls. `top` is a tuning knob — adjust it to
-    // line the button up with that label. Visually icon-only; aria-label
-    // supplies the accessible name.
-    // Inline Expand button (icon + "Full screen" label). Pinned top-right,
-    // nudged down by half its own height from the previous position so it sits
-    // a little lower relative to the viz's "Configure the data" controls row.
-    // `top` is a tuning knob. The aria-label supplies the accessible name.
+    // Full-screen button (icon + label). Pinned top-right of the viz area,
+    // level with the viz's "Configure the data" controls row. `top` is a
+    // tuning knob. The aria-label supplies the accessible name.
     .bespoke-viz-expand-button {
         position: absolute;
         top: 28px;
@@ -1676,17 +1639,18 @@ $bespoke-viz-columns: $bespoke-viz-viz-fr $bespoke-viz-commentary-fr;
         }
     }
 
-    // --- Stage 2: click expand-to-lightbox -------------------------------
-    // Absolutely positioned over the two-column body (its positioned ancestor
-    // is .bespoke-viz-layout), NOT fixed — so the page header/nav stay visible.
+    // --- Click expand-to-lightbox ----------------------------------------
+    // Full-screen lightbox fixed to the viewport. The body partition that used
+    // to provide a positioned ancestor is gone, so `position: fixed` gives the
+    // modal a stable viewport-relative frame; the FLIP uses viewport-relative
+    // getBoundingClientRect, so it lands correctly. The box is top-aligned.
     .bespoke-viz-lightbox {
-        position: absolute;
+        position: fixed;
         inset: 0;
         // Hidden until opened: no layout impact, no pointer interception.
         display: none;
-        // Sits above the article body content. It's positioned within the
-        // body (not fixed), so it won't cover the site nav / header band.
-        z-index: 30;
+        // Above page content / site chrome while open.
+        z-index: $zindex-lightbox;
 
         &--open {
             display: block;
@@ -1707,10 +1671,9 @@ $bespoke-viz-columns: $bespoke-viz-viz-fr $bespoke-viz-commentary-fr;
 
         .bespoke-viz-lightbox__box {
             position: absolute;
-            // Top-aligned: the modal sits just below the header, near the top
-            // of the article body, rather than vertically centred low in the
-            // (tall) body region. Horizontally centred.
-            top: 16px;
+            // Top-aligned near the top of the viewport (not vertically centred
+            // low), horizontally centred.
+            top: 24px;
             left: 50%;
             transform: translateX(-50%);
             width: min(1320px, 100%);

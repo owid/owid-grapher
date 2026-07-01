@@ -4,7 +4,6 @@ import { useIntersectionObserver } from "usehooks-ts"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faBoxArchive } from "@fortawesome/free-solid-svg-icons"
 import { ArticleBlocks } from "../components/ArticleBlocks.js"
-import { BespokeVizLightbox } from "../components/BespokeVizLightbox.js"
 import Footnotes from "../components/Footnotes.js"
 import {
     OwidGdocPostInterface,
@@ -13,7 +12,6 @@ import {
     OwidGdocType,
     formatAuthorsForBibtex,
     EnrichedBlockText,
-    OwidEnrichedGdocBlock,
     getPhraseForArchivalDate,
 } from "@ourworldindata/utils"
 import { CodeSnippet } from "@ourworldindata/components"
@@ -80,9 +78,13 @@ export function GdocPost({
     const hasSidebarToc = content["sidebar-toc"]
     const headingVariant = content["heading-variant"] ?? "light"
     // Opt-in viz-forward chrome. When the article front-matter sets
-    // `layout: bespoke-viz`, we render a two-column layout (commentary left,
-    // bespoke-component viz in a sticky right column). Everything below is
-    // gated behind this flag so normal articles render exactly as before.
+    // `layout: bespoke-viz`, we add a modifier class that drives the banded
+    // header and the styling of the author's `{.sticky-left}` container (viz
+    // left/sticky, commentary right). The body itself renders as normal
+    // single-column article blocks; the viz enhancements (Full-screen
+    // lightbox, fit-sizing, hidden heading) attach in ArticleBlock's
+    // bespoke-component arm via the DocumentContext flag, wherever the viz
+    // sits. Everything is gated so normal articles render exactly as before.
     const isBespokeViz = content.layout === "bespoke-viz"
     const shouldHideSubscribeBanner =
         content["hide-subscribe-banner"] || postType === OwidGdocType.TopicPage
@@ -136,9 +138,7 @@ export function GdocPost({
                     />
                 </nav>
             ) : null}
-            {content.body && isBespokeViz ? (
-                <BespokeVizBody blocks={content.body} toc={content.toc} />
-            ) : content.body ? (
+            {content.body ? (
                 <ArticleBlocks
                     toc={content.toc}
                     blocks={content.body}
@@ -232,49 +232,6 @@ export function GdocPost({
                 </div>
             </section>
         </article>
-    )
-}
-
-/**
- * Body renderer for the `layout: bespoke-viz` variant.
- *
- * Splits the article body into two columns: all the regular text/commentary
- * blocks go in the (narrower) left column, and any `bespoke-component` viz
- * block(s) go in the (wider) sticky right column. The actual grid sizing,
- * stickiness and gutters live in centered-article.scss, scoped under the
- * `.centered-article-container--bespoke-viz` modifier.
- *
- * The bespoke-component renders inline at the right-column width — it already
- * reflows to its container via a ResizeObserver, so no extra sizing is needed.
- */
-function BespokeVizBody({
-    blocks,
-    toc,
-}: {
-    blocks: OwidEnrichedGdocBlock[]
-    toc?: GdocPostProps["content"]["toc"]
-}) {
-    const vizBlocks = blocks.filter(
-        (block) => block.type === "bespoke-component"
-    )
-    const commentaryBlocks = blocks.filter(
-        (block) => block.type !== "bespoke-component"
-    )
-
-    return (
-        <div className="bespoke-viz-layout span-cols-14">
-            {/* Viz on the LEFT (wider, sticky, boxed). The lightbox controller
-                renders the viz column and owns the click-to-expand behaviour;
-                the viz instance stays mounted and is moved imperatively, never
-                remounted. */}
-            <BespokeVizLightbox blocks={vizBlocks} toc={toc} />
-            {/* Commentary on the RIGHT (narrower, scrolls normally). */}
-            <div className="bespoke-viz-layout__commentary">
-                {/* No automatic subscribe banner here: the commentary column
-                    reads as secondary meta-commentary, kept deliberately clean. */}
-                <ArticleBlocks blocks={commentaryBlocks} toc={toc} />
-            </div>
-        </div>
     )
 }
 

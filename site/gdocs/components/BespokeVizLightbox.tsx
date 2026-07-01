@@ -2,18 +2,15 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import cx from "clsx"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faExpand, faXmark } from "@fortawesome/free-solid-svg-icons"
-import {
-    OwidEnrichedGdocBlock,
-    TocHeadingWithTitleSupertitle,
-} from "@ourworldindata/utils"
-import { ArticleBlocks } from "./ArticleBlocks.js"
+import { EnrichedBlockBespokeComponent } from "@ourworldindata/types"
+import { BespokeComponent } from "./BespokeComponent.js"
 
 /**
- * Stage 2: click-to-expand lightbox for the `layout: bespoke-viz` variant.
- *
- * Wraps the viz (right) column and provides an explicit, button-triggered
- * lightbox. It's gated behind the bespoke-viz layout; it never affects normal
- * articles.
+ * Click-to-expand lightbox wrapper for a SINGLE `bespoke-component` block,
+ * used by the `layout: bespoke-viz` article variant. It's rendered from
+ * ArticleBlock's bespoke-component arm (gated on the bespoke-viz layout flag),
+ * so it enhances the viz wherever it sits — including inside an author's
+ * `{.sticky-left}` container. Normal articles render a plain <BespokeComponent>.
  *
  * CRITICAL — the live viz instance is preserved across expand/collapse. The
  * bespoke component is imperatively mounted into a shadow root (see
@@ -28,14 +25,16 @@ import { ArticleBlocks } from "./ArticleBlocks.js"
  * reconciler leaves the moved DOM node where we put it.
  *
  * Triggers (all explicit clicks/keys — no hover):
- *   - Open: the "Expand" button on the inline viz.
+ *   - Open: the "Full screen" button on the inline viz.
  *   - Close: the × button, a click on the dimmed scrim, or the Escape key.
  *
  * The expand/collapse uses a FLIP animation (350ms), honouring
- * prefers-reduced-motion (which skips the FLIP and just cross-fades).
+ * prefers-reduced-motion (which skips the FLIP and just cross-fades). The modal
+ * is `position: fixed`, so getBoundingClientRect (viewport coords) drives the
+ * FLIP correctly without depending on any positioned ancestor.
  */
 
-// Timing constants (see spec).
+// Timing constants.
 const FLIP_DURATION_MS = 350
 const FLIP_EASING = "cubic-bezier(.22,.61,.36,1)"
 
@@ -44,11 +43,11 @@ const prefersReducedMotion = (): boolean =>
     window.matchMedia?.("(prefers-reduced-motion: reduce)").matches === true
 
 export function BespokeVizLightbox({
-    blocks,
-    toc,
+    className,
+    block,
 }: {
-    blocks: OwidEnrichedGdocBlock[]
-    toc?: TocHeadingWithTitleSupertitle[]
+    className?: string
+    block: EnrichedBlockBespokeComponent
 }) {
     // The element that holds the live bespoke-component DOM (moved into/out of
     // the modal). Its React JSX is static, so the reconciler never relocates it.
@@ -80,7 +79,7 @@ export function BespokeVizLightbox({
 
         isAnimatingRef.current = true
 
-        // Hold the inline column's height so the dimmed background doesn't
+        // Hold the inline slot's height so the surrounding layout doesn't
         // collapse/jump when the viz node is lifted out.
         const firstRect = host.getBoundingClientRect()
         inlineSlot.style.height = `${firstRect.height}px`
@@ -225,7 +224,7 @@ export function BespokeVizLightbox({
     }, [isExpanded, collapse])
 
     // Hide the viz's OWN internal heading (title + subtitle) inside its shadow
-    // root, but ONLY here in the bespoke-viz chrome — the standalone migration
+    // root, but ONLY in the bespoke-viz chrome — the standalone migration
     // article must keep its heading. The bespoke component mounts into an open
     // shadow root asynchronously, so we watch for the shadow host to appear and
     // then inject a scoped <style> into that shadow root. (The selector is
@@ -277,41 +276,40 @@ export function BespokeVizLightbox({
 
     return (
         <>
-            <div className="bespoke-viz-layout__viz">
-                <div
-                    className="bespoke-viz-layout__viz-sticky"
-                    ref={inlineSlotRef}
-                >
-                    <div className="bespoke-viz-layout__viz-inner">
-                        {/* Explicit open trigger — icon + label; the aria-label
-                            provides the accessible name. */}
-                        <button
-                            type="button"
-                            className="bespoke-viz-expand-button"
-                            onClick={handleExpandClick}
-                            aria-label="Expand visualization"
-                        >
-                            <FontAwesomeIcon icon={faExpand} />
-                            Full screen
-                        </button>
-                        {/* The live viz host. Its JSX is static across renders,
-                            so the reconciler never relocates the DOM node we
-                            move by hand. */}
-                        <div
-                            className="bespoke-viz-layout__viz-host"
-                            ref={vizHostRef}
-                        >
-                            <ArticleBlocks blocks={blocks} toc={toc} />
-                        </div>
+            {/* Inline slot: the viz sits here in the flow (inside whatever
+                container the author placed it in). Fit-to-viewport sizing and
+                the sticky behaviour come from the surrounding column CSS. */}
+            <div
+                className={cx("bespoke-viz-enhanced", className)}
+                ref={inlineSlotRef}
+            >
+                <div className="bespoke-viz-enhanced__inner">
+                    {/* Explicit open trigger — icon + label; the aria-label
+                        provides the accessible name. */}
+                    <button
+                        type="button"
+                        className="bespoke-viz-expand-button"
+                        onClick={handleExpandClick}
+                        aria-label="Expand visualization"
+                    >
+                        <FontAwesomeIcon icon={faExpand} />
+                        Full screen
+                    </button>
+                    {/* The live viz host. Its JSX is static across renders, so
+                        the reconciler never relocates the DOM node we move by
+                        hand. */}
+                    <div
+                        className="bespoke-viz-enhanced__host"
+                        ref={vizHostRef}
+                    >
+                        <BespokeComponent block={block} />
                     </div>
                 </div>
             </div>
 
-            {/* Modal scaffolding, a sibling of the two columns inside
-                .bespoke-viz-layout. It's absolutely positioned over the layout
-                (NOT fixed to the viewport), so the site nav / header band stay
-                uncovered. Kept mounted; --open toggles display, the scrim
-                opacity and body transform are animated imperatively. */}
+            {/* Modal scaffolding. position:fixed full-screen lightbox, top
+                aligned. Kept mounted; --open toggles display, the scrim opacity
+                and body transform are animated imperatively. */}
             <div
                 className={cx("bespoke-viz-lightbox", {
                     "bespoke-viz-lightbox--open": isExpanded,

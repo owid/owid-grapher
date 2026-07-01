@@ -254,7 +254,7 @@ function OwidLinearTopicPageHeader({
  */
 function OwidBespokeVizHeader({ content }: { content: OwidGdocPostContent }) {
     return (
-        <header className="bespoke-viz-header span-cols-14">
+        <header className="bespoke-viz-header col-start-2 span-cols-12">
             {/* Eyebrow and title stack in the left column. */}
             <p className="bespoke-viz-header__eyebrow">
                 {/* Placeholder eyebrow + icon — clearly swappable. */}
