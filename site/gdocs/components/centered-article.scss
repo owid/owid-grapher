@@ -1663,6 +1663,14 @@ $bespoke-viz-columns: $bespoke-viz-viz-fr $bespoke-viz-commentary-fr;
     // modal a stable viewport-relative frame; the FLIP uses viewport-relative
     // getBoundingClientRect, so it lands correctly. The box is top-aligned.
     .bespoke-viz-lightbox {
+        // Start the modal cleanly BELOW the site's fixed top nav so its first
+        // content (the "Configure the data" controls) isn't clipped/covered.
+        // $header-height-md is the desktop nav height (76px); add breathing
+        // room. This is the single knob for the expanded modal's top offset.
+        --bespoke-viz-modal-top: calc($header-height-md + 24px);
+        // Bottom breathing room below the modal box.
+        --bespoke-viz-modal-bottom: 24px;
+
         position: fixed;
         inset: 0;
         // Hidden until opened: no layout impact, no pointer interception.
@@ -1689,12 +1697,18 @@ $bespoke-viz-columns: $bespoke-viz-viz-fr $bespoke-viz-commentary-fr;
 
         .bespoke-viz-lightbox__box {
             position: absolute;
-            // Top-aligned near the top of the viewport (not vertically centred
-            // low), horizontally centred.
-            top: 24px;
+            // Top-aligned below the nav, horizontally centred.
+            top: var(--bespoke-viz-modal-top);
             left: 50%;
             transform: translateX(-50%);
             width: min(1320px, 100%);
+            // Never taller than the space between the nav offset and the bottom
+            // margin, so the whole viz fits on screen.
+            max-height: calc(
+                100dvh - var(--bespoke-viz-modal-top) - var(
+                        --bespoke-viz-modal-bottom
+                    )
+            );
             background-color: $white;
             border-radius: 12px;
             padding: 22px 26px;
@@ -1733,12 +1747,25 @@ $bespoke-viz-columns: $bespoke-viz-viz-fr $bespoke-viz-commentary-fr;
         // until the inverse FLIP transform has been applied (avoids a
         // one-frame full-size flash), then revealed imperatively.
         //
-        // Reset the fit-to-viewport chart cap so the EXPANDED viz draws at its
-        // full natural height (the inline cap only applies while inline).
+        // Fit-to-viewport for the EXPANDED state: size the chart to the modal's
+        // available height (viewport minus the nav offset, bottom margin and
+        // box padding) minus the non-chart chrome, so the whole viz (controls +
+        // chart + footer) fits with no top/bottom clipping. The migration
+        // bundle reads this var through the shadow boundary. Capped at 720px so
+        // a very tall viewport doesn't blow the chart up unreasonably; it grows
+        // from the inline 450-ish up to that on a normal desktop.
         .bespoke-viz-lightbox__body {
             visibility: hidden;
             width: 100%;
-            --bespoke-viz-chart-area-height: 450px;
+            --bespoke-viz-chrome-allowance: 200px;
+            --bespoke-viz-chart-area-height: min(
+                720px,
+                calc(
+                    100dvh - var(--bespoke-viz-modal-top) - var(
+                            --bespoke-viz-modal-bottom
+                        ) - var(--bespoke-viz-chrome-allowance)
+                )
+            );
         }
     }
 
