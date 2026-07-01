@@ -1396,6 +1396,12 @@ $bespoke-viz-columns: $bespoke-viz-viz-fr $bespoke-viz-commentary-fr;
     // /latest-feed style. Rendered by BespokeVizMetadata (prepended in
     // ArticleBlock's sticky-left arm).
     .bespoke-viz-meta {
+        // The sticky-left right column is a nested `grid grid-cols-5`. The
+        // commentary blocks span all 5 tracks (via their getLayout span-cols-5
+        // class); this metadata wrapper carries no span class, so without this
+        // it defaults to a single track and gets squished. Span the full column
+        // width so the title/subtitle/byline wrap like the commentary below.
+        grid-column: 1 / -1;
         margin-bottom: 24px;
 
         .bespoke-viz-meta__eyebrow {
