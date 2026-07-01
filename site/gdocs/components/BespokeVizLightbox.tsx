@@ -33,39 +33,19 @@ import { BespokeComponent } from "./BespokeComponent.js"
  * is `position: fixed`, so getBoundingClientRect (viewport coords) drives the
  * FLIP correctly without depending on any positioned ancestor.
  *
- * Overlay placement: on open we measure the page header's bottom edge (in
- * viewport coords) and set --bespoke-viz-modal-top = max(navBottom,
- * headerBottom) on the lightbox root. The scrim and box start at that top, so
- * the site nav AND the page header stay visible and only the body below the
- * header is dimmed. It's computed ON OPEN only — if the user scrolls or resizes
- * while the lightbox is open, the overlay top is not recomputed (acceptable:
- * the lightbox is a transient full-screen interaction; reopening recomputes).
+ * Full-screen overlay: the scrim covers the ENTIRE viewport (nav + page header
+ * + body) above the site chrome, and background scroll is locked (frozen at the
+ * current position) while open, restored on close. The scroll lock is torn down
+ * on close AND on unmount so the page can never get stuck unscrollable.
  */
 
 // Timing constants.
 const FLIP_DURATION_MS = 350
 const FLIP_EASING = "cubic-bezier(.22,.61,.36,1)"
 
-// Fallback site-nav height, matching $header-height-md in the shared SCSS
-// (72px bar + 4px border). Used to clamp the overlay top so it never tucks
-// under the nav when the page header has scrolled off-screen.
-const NAV_HEIGHT_PX = 76
-
 const prefersReducedMotion = (): boolean =>
     typeof window !== "undefined" &&
     window.matchMedia?.("(prefers-reduced-motion: reduce)").matches === true
-
-// Compute where the overlay should start: just below the bespoke-viz page
-// header, but never above the site nav (so if the header is scrolled up off
-// the top, the overlay clamps to below the nav). Returns a viewport-relative
-// px value.
-const computeOverlayTop = (): number => {
-    if (typeof document === "undefined") return NAV_HEIGHT_PX
-    const header = document.querySelector<HTMLElement>(".bespoke-viz-header")
-    const headerBottom = header?.getBoundingClientRect().bottom ?? NAV_HEIGHT_PX
-    // Clamp to at least the nav bottom (and never negative).
-    return Math.max(NAV_HEIGHT_PX, headerBottom)
-}
 
 export function BespokeVizLightbox({
     className,
@@ -85,8 +65,6 @@ export function BespokeVizLightbox({
     const scrimRef = useRef<HTMLDivElement>(null)
     // The modal box (white card + close button); faded in/out with the scrim.
     const boxRef = useRef<HTMLDivElement>(null)
-    // The lightbox root; we set --bespoke-viz-modal-top on it each open.
-    const lightboxRef = useRef<HTMLDivElement>(null)
 
     const [isExpanded, setIsExpanded] = useState(false)
 
@@ -101,21 +79,10 @@ export function BespokeVizLightbox({
         const inlineSlot = inlineSlotRef.current
         const scrim = scrimRef.current
         const box = boxRef.current
-        const lightbox = lightboxRef.current
-        if (!host || !modalBody || !inlineSlot || !scrim || !box || !lightbox)
-            return
+        if (!host || !modalBody || !inlineSlot || !scrim || !box) return
         if (isAnimatingRef.current) return
 
         isAnimatingRef.current = true
-
-        // Position the overlay to start just below the page header (clamped to
-        // below the nav). Set BEFORE measuring the modal body's Last rect so
-        // the FLIP lands at the new resting position. On-open only — see the
-        // scroll/resize note on the class comment.
-        lightbox.style.setProperty(
-            "--bespoke-viz-modal-top",
-            `${computeOverlayTop()}px`
-        )
 
         // Hold the inline slot's height so the surrounding layout doesn't
         // collapse/jump when the viz node is lifted out.
@@ -261,6 +228,34 @@ export function BespokeVizLightbox({
         return () => document.removeEventListener("keydown", onKeyDown)
     }, [isExpanded, collapse])
 
+    // Lock background scroll while the lightbox is open, freezing the page at
+    // its current position. We use `overflow: hidden` on <html> (rather than
+    // the fixed-body technique) because it does NOT move the page content —
+    // that keeps the inline viz's getBoundingClientRect stable for the FLIP.
+    // We compensate for the removed scrollbar with padding-right so the page
+    // behind doesn't shift. The cleanup restores the original inline styles and
+    // runs on BOTH close (isExpanded -> false re-runs this effect) AND unmount,
+    // so the page can never get stuck unscrollable.
+    useEffect(() => {
+        if (!isExpanded) return
+        if (typeof document === "undefined") return
+
+        const html = document.documentElement
+        const prevOverflow = html.style.overflow
+        const prevPaddingRight = html.style.paddingRight
+
+        const scrollbarWidth = window.innerWidth - html.clientWidth
+        html.style.overflow = "hidden"
+        if (scrollbarWidth > 0) {
+            html.style.paddingRight = `${scrollbarWidth}px`
+        }
+
+        return () => {
+            html.style.overflow = prevOverflow
+            html.style.paddingRight = prevPaddingRight
+        }
+    }, [isExpanded])
+
     // Hide the viz's OWN internal heading (title + subtitle) inside its shadow
     // root, but ONLY in the bespoke-viz chrome — the standalone migration
     // article must keep its heading. The bespoke component mounts into an open
@@ -352,7 +347,6 @@ export function BespokeVizLightbox({
                 className={cx("bespoke-viz-lightbox", {
                     "bespoke-viz-lightbox--open": isExpanded,
                 })}
-                ref={lightboxRef}
                 aria-hidden={!isExpanded}
             >
                 <div
