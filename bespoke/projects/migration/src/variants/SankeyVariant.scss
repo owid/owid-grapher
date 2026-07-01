@@ -54,3 +54,7 @@
     padding: 24px;
     color: $error-text-color;
 }
+
+.migration-chart .tooltip-container.fixed-bottom .content-and-endmatter {
+    max-height: min(230px, 35vh);
+}
