@@ -1,7 +1,11 @@
 import { ALGOLIA_INDEXING } from "../../settings/serverSettings.js"
 import { ALGOLIA_INDEX_PREFIX } from "../../settings/clientSettings.js"
 import { getAlgoliaClient } from "./configureAlgolia.js"
-import { PAGES_INDEX, CHARTS_INDEX } from "../../site/search/searchUtils.js"
+import {
+    PAGES_INDEX,
+    CHARTS_INDEX,
+    PAGES_CHRONOLOGICAL_INDEX,
+} from "../../site/search/searchUtils.js"
 
 const deleteAlgoliaIndex = async () => {
     if (!ALGOLIA_INDEXING) return
@@ -19,7 +23,11 @@ const deleteAlgoliaIndex = async () => {
         return
     }
 
-    for (const indexName of [PAGES_INDEX, CHARTS_INDEX]) {
+    for (const indexName of [
+        PAGES_INDEX,
+        CHARTS_INDEX,
+        PAGES_CHRONOLOGICAL_INDEX,
+    ]) {
         try {
             await client.deleteIndex({ indexName })
             console.log(`Index '${indexName}' removed successfully`)
