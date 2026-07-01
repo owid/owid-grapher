@@ -34,13 +34,8 @@ export function FoodTradeChart({
     setCountry: (value: string) => void
     setView: (value: Flow) => void
 }) {
-    const {
-        flows,
-        productionByCountry,
-        supplyByCountry,
-        incomingFlowsByCountry,
-        outgoingFlowsByCountry,
-    } = productData
+    const { flows, incomingFlowsByCountry, outgoingFlowsByCountry } =
+        productData
 
     const handleSelectEntity = useCallback(
         (entity: string, side: "exporter" | "importer") => {
@@ -77,9 +72,6 @@ export function FoodTradeChart({
                     const outgoingFlows =
                         outgoingFlowsByCountry.get(country) ?? []
 
-                    const countryProduction = productionByCountry.get(country)
-                    const countrySupply = supplyByCountry.get(country)
-
                     const hasData =
                         incomingFlows.length > 0 || outgoingFlows.length > 0
 
@@ -102,8 +94,6 @@ export function FoodTradeChart({
                             country={country}
                             product={product}
                             year={year}
-                            countryProduction={countryProduction}
-                            countrySupply={countrySupply}
                             view={view}
                             setView={setView}
                         />

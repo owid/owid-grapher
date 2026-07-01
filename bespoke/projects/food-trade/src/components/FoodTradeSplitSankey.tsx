@@ -40,8 +40,6 @@ export function FoodTradeSplitSankey({
     country,
     product,
     year,
-    countryProduction,
-    countrySupply,
     view = "both",
     setView,
 }: {
@@ -50,8 +48,6 @@ export function FoodTradeSplitSankey({
     year: number
     incomingTrades: TradeRow[]
     outgoingTrades: TradeRow[]
-    countryProduction?: number
-    countrySupply?: number
     view?: "both" | "import" | "export"
     setView: (view: "both" | "import" | "export") => void
 }) {
@@ -80,14 +76,12 @@ export function FoodTradeSplitSankey({
         ...sharedArgsForBuildingSankeyHalves,
         direction: "incoming",
         flows: incomingFlows,
-        denominator: countrySupply,
         otherHasData: outgoingFlows.length > 0,
     })
     const outgoingHalf = buildSankeyHalf({
         ...sharedArgsForBuildingSankeyHalves,
         direction: "outgoing",
         flows: outgoingFlows,
-        denominator: countryProduction,
         otherHasData: incomingFlows.length > 0,
     })
 
@@ -132,7 +126,6 @@ export function FoodTradeSplitSankey({
 function buildSankeyHalf({
     direction,
     flows,
-    denominator,
     country,
     product,
     year,
@@ -143,8 +136,6 @@ function buildSankeyHalf({
 }: {
     direction: "incoming" | "outgoing"
     flows: Flow[]
-    /** Production for outgoing, supply for incoming */
-    denominator: number | undefined
     country: string
     product: string
     year: number
@@ -163,19 +154,12 @@ function buildSankeyHalf({
 
     const hasData = flows.length > 0
     const total = R.sumBy(flows, (d) => d.value)
-    const share =
-        denominator && denominator > 0 ? total / denominator : undefined
 
     const shortEntityName = getEntityShortLabel(country)
     const shortEntityNameWithArticle =
         articulateEntity(country) === country
             ? shortEntityName
             : `the ${shortEntityName}`
-
-    const annotation = makeAnnotation(
-        share,
-        isIncoming ? "supply" : "production"
-    )
 
     const label = makeLabel({
         direction,
@@ -188,7 +172,7 @@ function buildSankeyHalf({
     })
 
     const heading: SankeyHalfHeading = hasData
-        ? { label, annotation, arrowSide }
+        ? { label, arrowSide }
         : { label }
 
     const cta =
@@ -372,16 +356,4 @@ function EmptyHalf({
             )}
         </div>
     )
-}
-
-function makeAnnotation(
-    share: number | undefined,
-    kind: "production" | "supply"
-): string | undefined {
-    if (share === undefined) return undefined
-    const formatted = formatShare(share)
-    if (!formatted) return undefined
-    return kind === "production"
-        ? `${formatted} of its production`
-        : `${formatted} of its domestic supply`
 }
