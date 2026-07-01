@@ -128,6 +128,7 @@ export {
     getUserNavigatorLanguages,
     getUserNavigatorLanguagesNonEnglish,
     convertDaysSinceEpochToDate,
+    getTimeInterval,
     logPerf,
     sleep,
     lowercaseObjectKeys,

@@ -5,8 +5,14 @@ import {
     OwidTableSlugs,
     StandardOwidColumnDefs,
     LegacyGrapherInterface,
+    OwidVariableDisplayConfigInterface,
+    TimeInterval,
 } from "@ourworldindata/types"
-import { ColumnTypeMap, ErrorValueTypes } from "@ourworldindata/core-table"
+import {
+    ColumnTypeMap,
+    ErrorValueTypes,
+    OwidTable,
+} from "@ourworldindata/core-table"
 import {
     legacyToOwidTableAndDimensions,
     legacyToOwidTableAndDimensionsWithMandatorySlug,
@@ -233,7 +239,7 @@ describe(legacyToOwidTableAndDimensions, () => {
                         metadata: {
                             id: 2,
                             display: {
-                                yearIsDay: true,
+                                timeInterval: TimeInterval.Day,
                                 zeroDay: "2020-01-21",
                             },
                             dimensions: {
@@ -274,7 +280,7 @@ describe(legacyToOwidTableAndDimensions, () => {
                         metadata: {
                             id: 3,
                             display: {
-                                yearIsDay: true,
+                                timeInterval: TimeInterval.Day,
                                 zeroDay: "2020-01-19",
                             },
                             dimensions: {
@@ -344,6 +350,83 @@ describe(legacyToOwidTableAndDimensions, () => {
         })
     })
 
+    describe("timeInterval resolution", () => {
+        const buildTable = (
+            display: OwidVariableDisplayConfigInterface
+        ): OwidTable => {
+            const config: MultipleOwidVariableDataDimensionsMap = new Map([
+                [
+                    2,
+                    {
+                        data: {
+                            entities: [1, 1],
+                            values: [8, 9],
+                            years: [0, 1],
+                        },
+                        metadata: {
+                            id: 2,
+                            display,
+                            dimensions: {
+                                entities: {
+                                    values: [
+                                        {
+                                            name: "World",
+                                            code: "OWID_WRL",
+                                            id: 1,
+                                        },
+                                    ],
+                                },
+                                years: {
+                                    values: [{ id: 0 }, { id: 1 }],
+                                },
+                            },
+                        },
+                    },
+                ],
+            ])
+            return legacyToOwidTableAndDimensionsWithMandatorySlug(
+                config,
+                [{ variableId: 2, property: DimensionProperty.y }],
+                {}
+            )
+        }
+
+        it("routes timeInterval 'day' to a Day time column", () => {
+            const table = buildTable({ timeInterval: TimeInterval.Day })
+            expect(table.columnSlugs).toContain(OwidTableSlugs.day)
+            expect(table.columnSlugs).not.toContain(OwidTableSlugs.year)
+            expect(
+                table.get(OwidTableSlugs.time) instanceof ColumnTypeMap.Day
+            ).toBeTruthy()
+        })
+
+        it("routes timeInterval 'year' to a Year time column", () => {
+            const table = buildTable({ timeInterval: TimeInterval.Year })
+            expect(table.columnSlugs).toContain(OwidTableSlugs.year)
+            expect(table.columnSlugs).not.toContain(OwidTableSlugs.day)
+            expect(
+                table.get(OwidTableSlugs.time) instanceof ColumnTypeMap.Year
+            ).toBeTruthy()
+        })
+
+        it("still treats legacy yearIsDay: true as daily", () => {
+            const table = buildTable({ yearIsDay: true })
+            expect(
+                table.get(OwidTableSlugs.time) instanceof ColumnTypeMap.Day
+            ).toBeTruthy()
+        })
+
+        it("lets timeInterval win over a conflicting yearIsDay flag", () => {
+            const table = buildTable({
+                timeInterval: TimeInterval.Day,
+                yearIsDay: false,
+            })
+            expect(
+                table.get(OwidTableSlugs.time) instanceof ColumnTypeMap.Day
+            ).toBeTruthy()
+        })
+    })
+
     describe("variables with mixed days & years", () => {
         const legacyVariableConfig: MultipleOwidVariableDataDimensionsMap =
             new Map([
@@ -358,7 +441,7 @@ describe(legacyToOwidTableAndDimensions, () => {
                         metadata: {
                             id: 2,
                             display: {
-                                yearIsDay: true,
+                                timeInterval: TimeInterval.Day,
                                 zeroDay: "2020-01-21",
                             },
                             dimensions: {
@@ -502,7 +585,7 @@ describe("variables with mixed days & years with missing overlap and multiple po
                     metadata: {
                         id: 2,
                         display: {
-                            yearIsDay: true,
+                            timeInterval: TimeInterval.Day,
                             zeroDay: "2020-01-21",
                         },
                         dimensions: {

@@ -221,7 +221,10 @@ async function propsFromQueryParams(
             `
             (
                 SELECT COUNT(DISTINCT CASE
-                    WHEN variables.display->"$.yearIsDay" IS NULL
+                    WHEN (
+                        variables.display->"$.yearIsDay" IS NULL
+                        OR variables.display->"$.timeInterval" = "year"
+                    )
                     THEN "year"
                     ELSE "day"
                 END) as timeTypeCount
