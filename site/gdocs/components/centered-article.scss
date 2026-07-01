@@ -1390,13 +1390,8 @@ $bespoke-viz-columns: $bespoke-viz-viz-fr $bespoke-viz-commentary-fr;
        restyle THAT container (and the header) here. Everything is scoped to
        this modifier so normal articles are unaffected. */
 
-    // v2: whole-page beige background. The article container is a
-    // `grid grid-cols-12-full-width` that already spans the full viewport width
-    // (its outer 1fr gutter tracks reach the edges), so a background-color here
-    // reads full-bleed edge-to-edge behind everything below the nav — the
-    // metadata, commentary, and the viz box. The metadata/commentary sit
-    // directly on the beige; only the viz gets a white box (below).
-    background-color: $beige; // #fbf9f3
+    // (Page background is the default white; the beige now lives in a box
+    // around the right column, below.)
 
     // --- v2: metadata at the top of the sticky-left RIGHT column ----------
     // No full-width header band. The article metadata (eyebrow, title,
@@ -1509,22 +1504,16 @@ $bespoke-viz-columns: $bespoke-viz-viz-fr $bespoke-viz-commentary-fr;
         // `.sticky-column-wrapper` is a real class in the sticky-left markup.
         .sticky-column-wrapper {
             // The "above/around the chart" allowance: everything that is NOT
-            // the chart drawing area — the white box's padding, the viz's inner
-            // frame border/padding, its "Configure the data" controls and its
-            // data-source footer. Fit-to-viewport tuning knob: increase if the
-            // chart overflows the box, decrease to give the chart more height.
-            // v2: raised from 220 -> 260 to account for the white box padding
-            // (18px top + 18px bottom + borders) re-added below, so the whole
-            // viz still fits inside the box with no clipping.
+            // the chart drawing area — the viz's inner frame border/padding,
+            // its "Configure the data" controls and its data-source footer.
+            // Fit-to-viewport tuning knob: increase if the chart overflows,
+            // decrease to give the chart more height.
             --bespoke-viz-top-offset: 1rem;
-            --bespoke-viz-chrome-allowance: 260px;
+            --bespoke-viz-chrome-allowance: 220px;
 
-            // v2: white bordered card so the viz stands out against the beige
-            // page. Only the viz gets a box (not the metadata/commentary).
-            background-color: $white;
-            border: 1px solid $bespoke-viz-card-border; // #d6dae0
-            border-radius: 12px;
-            padding: 18px;
+            // No box around the viz — it sits open on the white page. (A white
+            // card was tried and reverted; the beige box is on the RIGHT column
+            // instead, below.)
             // v2: the right column now LEADS with the metadata eyebrow
             // ("Featured Visualization"), then the title. Push the viz (left
             // column) DOWN by roughly the eyebrow's rendered height + its
@@ -1553,10 +1542,19 @@ $bespoke-viz-columns: $bespoke-viz-viz-fr $bespoke-viz-commentary-fr;
             );
         }
 
-        // Right column: secondary meta-commentary. Lighter, smaller, muted
-        // grey, comfortable line height, no background box. Scrolls normally.
-        // (Real class name is `article-block__sticky-left-right-column`.)
+        // Right column: a beige panel containing the WHOLE right column — the
+        // metadata (eyebrow/title/subtitle/byline), the metadata divider, and
+        // all the commentary text — so it reads as one box against the white
+        // page. Padding is on the grid container's box; the nested `grid-cols-5`
+        // tracks lay out inside the padding, so the metadata's
+        // `grid-column: 1 / -1` full-width span and the commentary layout are
+        // unaffected (no squishing). Secondary meta-commentary type: lighter,
+        // smaller, muted grey.
         .article-block__sticky-left-right-column {
+            background-color: $beige; // #fbf9f3
+            padding: 28px;
+            border-radius: 12px;
+
             p,
             li {
                 font-family: $sans-serif-font-stack; // Lato
