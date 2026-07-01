@@ -699,7 +699,11 @@ export const getRedirectsByChartId = async (
     await db.knexRaw(
         knex,
         `-- sql
-        SELECT id, slug, chart_id as chartId
+        SELECT
+            id,
+            slug,
+            chart_id as chartId,
+            target_query_param as targetQueryParam
         FROM chart_slug_redirects
         WHERE chart_id = ?
         ORDER BY id ASC`,
