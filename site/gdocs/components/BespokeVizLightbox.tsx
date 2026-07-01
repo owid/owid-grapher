@@ -277,10 +277,13 @@ export function BespokeVizLightbox({
     // host node currently lives in the portaled modal body — which React will
     // tear down. Move it back to its inline slot on unmount so it isn't
     // orphaned/destroyed. (Runs only on unmount: empty dep array.)
+    // Capture the ref nodes now (they're stable for the component's life) so the
+    // cleanup doesn't read ref.current directly — which the react-hooks lint
+    // rule flags as unsafe. We still check the host's live parent at cleanup.
     useEffect(() => {
+        const host = vizHostRef.current
+        const inlineSlot = inlineSlotRef.current
         return () => {
-            const host = vizHostRef.current
-            const inlineSlot = inlineSlotRef.current
             if (host && inlineSlot && host.parentElement !== inlineSlot) {
                 inlineSlot.appendChild(host)
             }
