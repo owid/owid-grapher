@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useEffect, useRef } from "react"
+import React, { useCallback, useContext, useRef } from "react"
 import cx from "clsx"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
@@ -17,7 +17,6 @@ import {
     ToggleButton,
     ToggleButtonGroup,
     type Key,
-    type ToggleButtonProps,
 } from "react-aria-components"
 import { LATEST_TYPE_VALUES, LatestType } from "@ourworldindata/types"
 import { latestTypeLabelPlural } from "./latestUtils.js"
@@ -26,11 +25,20 @@ import { latestTypeLabelPlural } from "./latestUtils.js"
  * Wrapper that accepts the `itemId` prop required by
  * react-horizontal-scrolling-menu while rendering a react-aria ToggleButton.
  */
-const TopicPill = ({
-    itemId: _itemId,
-    ...props
-}: { itemId: string } & ToggleButtonProps) => {
+type TopicPillProps = React.ComponentProps<typeof ToggleButton> & {
+    itemId: string
+}
+
+const TopicPill = ({ itemId: _itemId, ...props }: TopicPillProps) => {
     return <ToggleButton {...props} />
+}
+
+function scrollPillIntoView(node: HTMLButtonElement | null): void {
+    node?.scrollIntoView({
+        behavior: "smooth",
+        inline: "center",
+        block: "nearest",
+    })
 }
 
 const LeftArrow = () => {
@@ -146,13 +154,6 @@ export const LatestTopicFacets = ({
                 .filter((k) => k !== "all")
                 .map((k) => String(k))
             onTopicsChange(next)
-            const focusKey = next[0]
-            if (focusKey) {
-                const item = apiRef.current.getItemById?.(focusKey)
-                if (item) {
-                    apiRef.current.scrollToItem(item, "smooth", "center")
-                }
-            }
         },
         [onTopicsChange]
     )
@@ -163,27 +164,6 @@ export const LatestTopicFacets = ({
             apiRef.current.scrollToItem(item, "smooth", "nearest")
         }
     }, [])
-
-    // Scroll the selected topic into view on initial load
-    useEffect(() => {
-        const topic = selectedTopics[0]
-        if (!topic) return
-        let rafId = 0
-        let attempts = 0
-        const MAX_ATTEMPTS = 30
-        const tryScroll = () => {
-            const item = apiRef.current.getItemById?.(topic)
-            if (item?.entry) {
-                apiRef.current.scrollToItem(item, "smooth", "center")
-                return
-            }
-            if (attempts++ < MAX_ATTEMPTS) {
-                rafId = requestAnimationFrame(tryScroll)
-            }
-        }
-        rafId = requestAnimationFrame(tryScroll)
-        return () => cancelAnimationFrame(rafId)
-    }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
     return (
         <div className="latest-topic-facets">
@@ -215,6 +195,11 @@ export const LatestTopicFacets = ({
                                     key={topic}
                                     itemId={topic}
                                     id={topic}
+                                    ref={
+                                        topic === selectedTopics[0]
+                                            ? scrollPillIntoView
+                                            : undefined
+                                    }
                                     className="latest-topic-facets__topic-pill"
                                     isDisabled={disabledTopics.has(topic)}
                                     onFocus={() => handlePillFocus(topic)}
