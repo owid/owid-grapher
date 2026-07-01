@@ -106,6 +106,7 @@ export function FoodTradeChart({
                             countrySupply={countrySupply}
                             view={view}
                             setView={setView}
+                            setCountry={setCountry}
                         />
                     )
                 })

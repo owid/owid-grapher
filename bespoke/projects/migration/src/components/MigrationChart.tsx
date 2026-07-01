@@ -17,6 +17,7 @@ export function MigrationChart({
     emigrantsTotal,
     view,
     setView,
+    setCountry,
     colorMap,
     isLoading,
     entitiesToSortLast,
@@ -30,6 +31,7 @@ export function MigrationChart({
     emigrantsTotal: number
     view: MigrationView
     setView: (view: MigrationView) => void
+    setCountry: (name: string) => void
     colorMap?: Map<string, string>
     isLoading?: boolean
     entitiesToSortLast?: string[]
@@ -53,6 +55,7 @@ export function MigrationChart({
                     emigrantsTotal={emigrantsTotal}
                     view={view}
                     setView={setView}
+                    setCountry={setCountry}
                     colorMap={colorMap}
                     entitiesToSortLast={entitiesToSortLast}
                 />

@@ -33,7 +33,13 @@ import {
     formatShare,
     getSexAdjective,
     getSexNoun,
+    OTHERS_ENTITY_NAME,
 } from "../helpers.js"
+
+// "Other countries" is a real aggregate row in the migration data, not a
+// navigable country (the country dropdown filters it out), so it must never
+// be selectable by clicking its Sankey node.
+const NON_SELECTABLE_PARTNERS = new Set([OTHERS_ENTITY_NAME])
 
 export function MigrationSankey({
     immigrants,
@@ -45,6 +51,7 @@ export function MigrationSankey({
     emigrantsTotal,
     view = "both",
     setView,
+    setCountry,
     colorMap,
     entitiesToSortLast,
 }: {
@@ -57,6 +64,7 @@ export function MigrationSankey({
     emigrantsTotal: number
     view?: MigrationView
     setView: (view: MigrationView) => void
+    setCountry: (name: string) => void
     colorMap?: Map<string, string>
     entitiesToSortLast?: string[]
 }) {
@@ -133,6 +141,8 @@ export function MigrationSankey({
                 formatValue={formatPeople}
                 view={splitView}
                 colorMap={colorMap}
+                onSelectPartner={setCountry}
+                nonSelectablePartners={NON_SELECTABLE_PARTNERS}
                 isStacked={isStacked}
                 fontSettings={
                     isStacked ? MOBILE_FONT_SETTINGS : DEFAULT_FONT_SETTINGS

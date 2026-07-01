@@ -38,6 +38,7 @@ export function FoodTradeSplitSankey({
     incomingTrades,
     outgoingTrades,
     country,
+    setCountry,
     product,
     year,
     countryProduction,
@@ -46,6 +47,7 @@ export function FoodTradeSplitSankey({
     setView,
 }: {
     country: string
+    setCountry: (country: string) => void
     product: string
     year: number
     incomingTrades: TradeRow[]
@@ -124,6 +126,7 @@ export function FoodTradeSplitSankey({
                 maxNodesToShrinkOther={
                     isStacked ? STACKED_MAX_NODES_TO_SHRINK_OTHER : undefined
                 }
+                onSelectPartner={setCountry}
             />
         </div>
     )
