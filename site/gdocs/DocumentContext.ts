@@ -17,6 +17,9 @@ export const DocumentContext = createContext<{
         subtitle?: string
         authors?: string[]
         authorRoles?: Record<string, string>
+        // Resolved dateline string (explicit `dateline` field, else the
+        // formatted publication date). Undefined if the doc has neither.
+        dateline?: string
     }
 }>({
     isPreviewing: false,

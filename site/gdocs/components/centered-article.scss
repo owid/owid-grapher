@@ -1459,6 +1459,14 @@ $bespoke-viz-columns: $bespoke-viz-viz-fr $bespoke-viz-commentary-fr;
                 color: $blue-60;
             }
         }
+
+        // Dateline below the byline: small, muted (OWID standard look).
+        .bespoke-viz-meta__dateline {
+            margin: 4px 0 0;
+            font-family: $sans-serif-font-stack; // Lato
+            font-size: 13px;
+            color: $blue-60; // #426591
+        }
     }
 
     // --- Author's {.sticky-left} container under the bespoke-viz layout -----

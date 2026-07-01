@@ -1,7 +1,7 @@
 import * as _ from "lodash-es"
 import * as React from "react"
 import { OwidGdocType, ArchiveContext } from "@ourworldindata/types"
-import { OwidGdocPageProps } from "@ourworldindata/utils"
+import { OwidGdocPageProps, formatDate } from "@ourworldindata/utils"
 import { match, P } from "ts-pattern"
 import { useIsClient } from "usehooks-ts"
 import { GdocPost } from "./pages/GdocPost.js"
@@ -77,7 +77,14 @@ export function OwidGdoc({
               subtitle?: string
               authors?: string[]
               authorRoles?: Record<string, string>
+              dateline?: string
           })
+        : undefined
+    // Standard OWID dateline: prefer the explicit `dateline` field, else the
+    // formatted publication date (same mechanism as OwidArticleHeader).
+    const bespokeVizDateline = bespokeVizContent
+        ? bespokeVizContent.dateline ||
+          (props.publishedAt ? formatDate(props.publishedAt) : undefined)
         : undefined
     const bespokeVizMeta = bespokeVizContent
         ? {
@@ -85,6 +92,7 @@ export function OwidGdoc({
               subtitle: bespokeVizContent.subtitle,
               authors: bespokeVizContent.authors,
               authorRoles: bespokeVizContent.authorRoles,
+              dateline: bespokeVizDateline || undefined,
           }
         : undefined
     const content = match(props)

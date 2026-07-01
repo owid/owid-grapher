@@ -17,7 +17,7 @@ export function BespokeVizMetadata() {
     const { bespokeVizMeta } = useDocumentContext()
     if (!bespokeVizMeta) return null
 
-    const { title, subtitle, authors, authorRoles } = bespokeVizMeta
+    const { title, subtitle, authors, authorRoles, dateline } = bespokeVizMeta
 
     return (
         <div className="bespoke-viz-meta">
@@ -36,6 +36,16 @@ export function BespokeVizMetadata() {
             {authors && authors.length > 0 && (
                 <p className="bespoke-viz-meta__byline">
                     <Byline names={authors} authorRoles={authorRoles} />
+                </p>
+            )}
+            {/* Standard OWID dateline (resolved in OwidGdoc: explicit dateline
+                field, else the formatted publication date). */}
+            {dateline && (
+                <p
+                    className="bespoke-viz-meta__dateline"
+                    suppressHydrationWarning={true}
+                >
+                    {dateline}
                 </p>
             )}
         </div>
