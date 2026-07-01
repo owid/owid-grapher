@@ -12,6 +12,10 @@ import * as utils from "./utils.js"
 import { grapherSlugToExportFileKey } from "../../baker/GrapherBakingUtils.js"
 import { ALL_GRAPHER_CHART_TYPES } from "@ourworldindata/types"
 
+// A single chart should render in well under a second; this is a generous
+// safety margin so one stuck render can't hang the entire run indefinitely.
+const JOB_TIMEOUT_MS = 2 * 60 * 1000
+
 async function verifyExplorers(args: ReturnType<typeof parseArguments>) {
     const testSuite = args.testSuite as utils.TestSuite
     const verbose = args.verbose
@@ -87,7 +91,12 @@ async function verifyExplorers(args: ReturnType<typeof parseArguments>) {
 
     const validationResultsArrays: utils.VerifyResult[][] = await Promise.all(
         explorerJobs.map((job) =>
-            pool.exec("renderAndVerifyExplorerViews", [job])
+            pool
+                .exec("renderAndVerifyExplorerViews", [job])
+                .timeout(JOB_TIMEOUT_MS)
+                .catch((err: Error) => [
+                    utils.resultError(job.explorerSlug, err),
+                ])
         )
     )
 
@@ -214,7 +223,14 @@ async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
         // the reference csv file (from the referenceDataByChartKey lookup above). The entire parallel operation returns a promise containing an array
         // of result values.
         const validationResults: utils.VerifyResult[] = await Promise.all(
-            verifyJobs.map((job) => pool.exec("renderAndVerifySvg", [job]))
+            verifyJobs.map((job) =>
+                pool
+                    .exec("renderAndVerifySvg", [job])
+                    .timeout(JOB_TIMEOUT_MS)
+                    .catch((err: Error) =>
+                        utils.resultError(job.dir.viewId, err)
+                    )
+            )
         )
 
         if (validationResults.length !== verifyJobs.length)

@@ -2961,12 +2961,12 @@ export class GrapherState
 
         // Temporarily set isExportingToSvgOrPng to true
         const _isExportingToSvgOrPng = this.isExportingToSvgOrPng
-        this.isExportingToSvgOrPng = true
+        runInAction(() => (this.isExportingToSvgOrPng = true))
 
         const innerHTML = renderToHtmlString(<Chart manager={this} />)
 
         // Restore isExportingToSvgOrPng
-        this.isExportingToSvgOrPng = _isExportingToSvgOrPng
+        runInAction(() => (this.isExportingToSvgOrPng = _isExportingToSvgOrPng))
 
         return innerHTML
     }

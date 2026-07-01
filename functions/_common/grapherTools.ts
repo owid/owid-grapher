@@ -1,4 +1,5 @@
 import * as _ from "lodash-es"
+import { runInAction } from "mobx"
 import {
     CsvDownloadType,
     type DataDownloadContextBase,
@@ -341,8 +342,10 @@ export async function initGrapher(
         additionalDataLoaderFn,
         ...options.grapherProps,
     })
-    grapherState.isExportingToSvgOrPng = true
-    grapherState.shouldIncludeDetailsInStaticExport = options.details
+    runInAction(() => {
+        grapherState.isExportingToSvgOrPng = true
+        grapherState.shouldIncludeDetailsInStaticExport = options.details
+    })
     const grapher = new Grapher({ grapherState })
 
     return {

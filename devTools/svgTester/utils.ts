@@ -111,7 +111,7 @@ const resultOk = (): VerifyResult => ({
     kind: "ok",
 })
 
-const resultError = (viewId: string, error: Error): VerifyResult => ({
+export const resultError = (viewId: string, error: Error): VerifyResult => ({
     kind: "error",
     viewId,
     error,
