@@ -252,14 +252,25 @@ function OwidLinearTopicPageHeader({
  * the subtitle. All styling is scoped under the
  * `.centered-article-container--bespoke-viz` modifier in centered-article.scss.
  */
-function OwidBespokeVizHeader({ content }: { content: OwidGdocPostContent }) {
+function OwidBespokeVizHeader({
+    content,
+    publishedAt,
+}: {
+    content: OwidGdocPostContent
+    publishedAt: Date | null
+}) {
+    // Standard OWID dateline mechanism: prefer the explicit `dateline` field,
+    // else the formatted publication date (same as OwidArticleHeader).
+    const dateline =
+        content.dateline || (publishedAt && formatDate(publishedAt))
     return (
         // Full-bleed beige band (spans the whole viewport width). The content
         // is placed on the centred content grid inside it.
         <header className="bespoke-viz-header span-cols-14 grid grid-cols-12-full-width">
             <div className="bespoke-viz-header__inner col-start-2 span-cols-12">
                 {/* Everything stacks vertically, left-aligned in the left
-                    (viz-width) column: eyebrow -> title -> subtitle -> byline. */}
+                    (viz-width) column: eyebrow -> title -> subtitle -> byline
+                    -> dateline. */}
                 <p className="bespoke-viz-header__eyebrow">
                     {/* Placeholder eyebrow + icon — clearly swappable. */}
                     <FontAwesomeIcon
@@ -279,9 +290,12 @@ function OwidBespokeVizHeader({ content }: { content: OwidGdocPostContent }) {
                         <Byline names={content.authors} />
                     </p>
                 )}
-                {content.dateline && (
-                    <p className="bespoke-viz-header__dateline">
-                        {content.dateline}
+                {dateline && (
+                    <p
+                        className="bespoke-viz-header__dateline"
+                        suppressHydrationWarning={true}
+                    >
+                        {dateline}
                     </p>
                 )}
             </div>
@@ -298,7 +312,12 @@ export function OwidGdocHeader(props: {
     // The viz-forward layout flag takes precedence over the content type so
     // that a regular Article (the usual type for these) gets the banded header.
     if (props.content.layout === "bespoke-viz")
-        return <OwidBespokeVizHeader content={props.content} />
+        return (
+            <OwidBespokeVizHeader
+                content={props.content}
+                publishedAt={props.publishedAt}
+            />
+        )
     if (props.content.type === OwidGdocType.Article)
         return <OwidArticleHeader {...props} />
     if (props.content.type === OwidGdocType.TopicPage)
