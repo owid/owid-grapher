@@ -147,6 +147,10 @@ async function getRecords(
                 "",
             grapherState.shouldAddChangeInPrefixToTitle
         )
+        const titleVariant =
+            view.indicators.y.length === 1
+                ? metadata.presentation?.titleVariant
+                : undefined
         const containerTitle = multiDim.config.title.title
         const subtitle = toPlaintext(
             metadata.descriptionShort || chartConfig.subtitle || ""
@@ -191,6 +195,7 @@ async function getRecords(
             containerTitle,
             subtitle,
             variantName: chartConfig.variantName,
+            titleVariant,
             availableTabs: grapherState.availableTabs,
             keyChartForTags: [],
             tags,

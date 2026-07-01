@@ -368,6 +368,7 @@ export const DATA_CATALOG_ATTRIBUTES = [
     "availableEntities",
     "originalAvailableEntities",
     "variantName",
+    "titleVariant",
     "type",
     "queryParams",
     "availableTabs",

@@ -32,6 +32,7 @@ export interface RawChartRecordRow {
     datasetVersions: JsonArrayString
     datasetProducts: JsonArrayString
     datasetProducers: JsonArrayString
+    titleVariant: string | null
 }
 
 export type ParsedChartRecordRow = {
@@ -44,6 +45,7 @@ export type ParsedChartRecordRow = {
     entityNames: string[]
     tags: string[]
     keyChartForTags: string[]
+    titleVariant: string | null
 } & DatasetChartRecordDimensions
 
 /** Explorers */
