@@ -251,7 +251,10 @@ export async function verifySvg(
         // only costs an extra format() call on charts that didn't match on
         // the first (cheap) try.
         preparedReferenceSvg = await prepareSvgForComparison(referenceSvgRaw)
-        firstDiffIndex = findFirstDiffIndex(preparedNewSvg, preparedReferenceSvg)
+        firstDiffIndex = findFirstDiffIndex(
+            preparedNewSvg,
+            preparedReferenceSvg
+        )
     }
 
     if (firstDiffIndex === -1) {
