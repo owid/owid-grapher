@@ -15,12 +15,13 @@ import { ALL_GRAPHER_CHART_TYPES } from "@ourworldindata/types"
 
 // Each worker is a separate Node worker_thread with its own V8 isolate/heap -
 // heap is not shared, so peak memory scales close to linearly with worker count
-// regardless of how much of that concurrency is actually used. Measured on a
-// 300-chart sample: 12 workers used only ~700% CPU (not 1200%) while using
-// ~10.5GB RSS; dropping to 8 cut RSS to ~7.4GB for a ~5% wall-clock cost, and 4
-// cut it further to ~4.6GB for a ~36% wall-clock cost. 8 is a reasonable default
-// tradeoff; override via SVG_TESTER_MAX_WORKERS on memory-constrained hosts.
-const MAX_WORKERS = Number(process.env.SVG_TESTER_MAX_WORKERS) || 8
+// regardless of how much of that concurrency is actually used. Swept 4/6/8/12 on
+// a 300-chart sample under two different host-contention levels (see PR
+// description for both full tables) - 6 came out as the sweet spot both times:
+// meaningfully less memory than 8 or 12, and equal-or-better wall-clock, not
+// just a cheaper-but-slower tradeoff. Override via SVG_TESTER_MAX_WORKERS on
+// memory-constrained hosts.
+const MAX_WORKERS = Number(process.env.SVG_TESTER_MAX_WORKERS) || 6
 
 async function verifyExplorers(args: ReturnType<typeof parseArguments>) {
     const testSuite = args.testSuite as utils.TestSuite
