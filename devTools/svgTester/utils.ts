@@ -121,6 +121,16 @@ export const resultError = (viewId: string, error: Error): VerifyResult => ({
 // safety margin so one stuck render can't hang the entire run indefinitely.
 export const JOB_TIMEOUT_MS = 2 * 60 * 1000
 
+// Each worker is a separate Node worker_thread with its own V8 isolate/heap -
+// heap is not shared, so peak memory scales close to linearly with worker count
+// regardless of how much of that concurrency is actually used. Swept 4/6/8/12 on
+// a 300-chart sample under two different host-contention levels (see the
+// verify-graphs PR description for both full tables) - 6 came out as the sweet
+// spot both times: meaningfully less memory than 8 or 12, and equal-or-better
+// wall-clock, not just a cheaper-but-slower tradeoff. Override via
+// SVG_TESTER_MAX_WORKERS on memory-constrained hosts.
+export const MAX_WORKERS = Number(process.env.SVG_TESTER_MAX_WORKERS) || 6
+
 // Rejects if the given promise doesn't settle within `timeoutMs`. Used to bound
 // a single render so one stuck view can't hang a whole worker job.
 async function withTimeout<T>(
@@ -215,23 +225,35 @@ export async function verifySvg(
     // The stored reference .svg file is already in oxfmt-formatted canonical
     // form - that's what wrote it in the first place (renderSvgAndSave /
     // commit_differences), and formatting is idempotent (verified: reformatting
-    // an already-formatted reference file is a no-op). So there's no need to
-    // reformat it again here - compare the freshly-formatted new svg directly
-    // against the file's bytes.
+    // an already-formatted reference file is a no-op). So compare the
+    // freshly-formatted new svg directly against the file's bytes first,
+    // without paying for a reformat on every single chart.
     //
     // Note results.csv's md5 column can go stale independently of the .svg
     // file itself (commit_differences in svg-tester.sh updates the file but
     // never the CSV), which is why the fast-path check above frequently
     // misses even when there's no real difference - don't rely on md5 for
     // anything beyond that optimistic early-exit.
-    const preparedReferenceSvg = await loadReferenceSvg(
+    const referenceSvgRaw = await loadReferenceSvg(
         referenceSvgsPath,
         referenceSvgRecord
     )
-    const firstDiffIndex = findFirstDiffIndex(
-        preparedNewSvg,
-        preparedReferenceSvg
-    )
+    let preparedReferenceSvg = referenceSvgRaw
+    let firstDiffIndex = findFirstDiffIndex(preparedNewSvg, referenceSvgRaw)
+
+    if (firstDiffIndex !== -1) {
+        // Only reached if the direct comparison found a difference. The
+        // reference file is normally already canonical (see above), but if
+        // it was written by an older oxfmt version/config than what's
+        // running now, a fresh render can look "different" purely from
+        // formatting drift rather than an actual content change. Reformat
+        // and re-compare before concluding it's a real difference - this
+        // only costs an extra format() call on charts that didn't match on
+        // the first (cheap) try.
+        preparedReferenceSvg = await prepareSvgForComparison(referenceSvgRaw)
+        firstDiffIndex = findFirstDiffIndex(preparedNewSvg, preparedReferenceSvg)
+    }
+
     if (firstDiffIndex === -1) {
         return resultOk()
     }

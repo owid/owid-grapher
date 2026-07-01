@@ -9,19 +9,9 @@ import * as _ from "lodash-es"
 import { match } from "ts-pattern"
 
 import * as utils from "./utils.js"
-import { JOB_TIMEOUT_MS } from "./utils.js"
+import { JOB_TIMEOUT_MS, MAX_WORKERS } from "./utils.js"
 import { grapherSlugToExportFileKey } from "../../baker/GrapherBakingUtils.js"
 import { ALL_GRAPHER_CHART_TYPES } from "@ourworldindata/types"
-
-// Each worker is a separate Node worker_thread with its own V8 isolate/heap -
-// heap is not shared, so peak memory scales close to linearly with worker count
-// regardless of how much of that concurrency is actually used. Swept 4/6/8/12 on
-// a 300-chart sample under two different host-contention levels (see PR
-// description for both full tables) - 6 came out as the sweet spot both times:
-// meaningfully less memory than 8 or 12, and equal-or-better wall-clock, not
-// just a cheaper-but-slower tradeoff. Override via SVG_TESTER_MAX_WORKERS on
-// memory-constrained hosts.
-const MAX_WORKERS = Number(process.env.SVG_TESTER_MAX_WORKERS) || 6
 
 async function verifyExplorers(args: ReturnType<typeof parseArguments>) {
     const testSuite = args.testSuite as utils.TestSuite
