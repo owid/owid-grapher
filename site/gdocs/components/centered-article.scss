@@ -1413,7 +1413,6 @@ $bespoke-viz-columns: $bespoke-viz-viz-fr $bespoke-viz-commentary-fr;
 
         @include sm-only {
             grid-template-columns: 1fr;
-            padding-bottom: 24px;
             row-gap: 4px;
         }
 
