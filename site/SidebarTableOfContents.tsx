@@ -80,7 +80,7 @@ export const SidebarTableOfContents = ({
     const sidebarContentRef = useKeepActiveTocRowInView(activeId)
     const isWideBlockInView = useWideBlockInView()
 
-    // Desktop-only; the sidebar is expanded by default.
+    // Desktop-only; the user's expand/collapse preference (expanded by default).
     const [prefersExpanded, setPrefersExpanded] = useState(true)
     // One-shot override: the user expanded the sidebar over the wide block(s)
     // currently in view. Cleared once no wide block is in view, so the next
@@ -90,6 +90,8 @@ export const SidebarTableOfContents = ({
         if (!isWideBlockInView) setIsForcedExpanded(false)
     }, [isWideBlockInView])
 
+    // Collapsed on page load (isWideBlockInView defaults to true), then opens
+    // once the client confirms no wide block overlaps.
     const isSidebarExpanded =
         prefersExpanded && (!isWideBlockInView || isForcedExpanded)
 

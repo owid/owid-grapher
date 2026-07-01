@@ -35,7 +35,10 @@ const COEXIST_MIN_WIDTH =
     SIDEBAR_COEXIST_BREATHING_ROOM
 
 export function useWideBlockInView(): boolean {
-    const [inView, setInView] = useState(false)
+    // Defaults to `true` (assume a wide block overlaps) so the sidebar renders
+    // collapsed on the server and on the first client render and only opens
+    // once the client has measured that nothing overlaps.
+    const [inView, setInView] = useState(true)
     const canWideColCoexist = useMediaQuery(
         `(min-width: ${COEXIST_MIN_WIDTH}px)`
     )
@@ -85,6 +88,14 @@ export function useWideBlockInView(): boolean {
 
         const blocks = document.querySelectorAll(WIDE_BLOCK_SELECTORS)
         blocks.forEach((block) => observer.observe(block))
+
+        // A page with no wide block gets no observer callback, so `inView` would
+        // stay stuck at its `true` default and the sidebar would never open.
+        // Resolve it explicitly (→ open). This is not hypothetical: 9 published
+        // linear topic pages currently render zero wide blocks — renewable-energy,
+        // fossil-fuels, energy-mix, electricity-mix, nuclear-energy, energy-access,
+        // clean-water, sanitation, teaching (text + ≤8-col charts only).
+        if (blocks.length === 0) apply()
 
         return () => {
             observer.disconnect()
