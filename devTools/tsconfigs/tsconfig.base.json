@@ -1,9 +1,8 @@
 {
     "extends": "@tsconfig/node24/tsconfig.json",
     "compilerOptions": {
-        "module": "commonjs",
+        "module": "preserve",
         "resolveJsonModule": true,
-        "forceConsistentCasingInFileNames": true,
         "composite": true,
 
         "declaration": true,
@@ -26,11 +25,8 @@
 
         "types": ["@testing-library/jest-dom"],
 
-        "alwaysStrict": true,
         "noImplicitReturns": true,
         "noUnusedLocals": true,
-        "allowJs": false,
-        "sourceMap": true,
         "moduleResolution": "bundler",
         "jsx": "react-jsx",
 
