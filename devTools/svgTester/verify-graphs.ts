@@ -13,6 +13,15 @@ import { JOB_TIMEOUT_MS } from "./utils.js"
 import { grapherSlugToExportFileKey } from "../../baker/GrapherBakingUtils.js"
 import { ALL_GRAPHER_CHART_TYPES } from "@ourworldindata/types"
 
+// Each worker is a separate Node worker_thread with its own V8 isolate/heap -
+// heap is not shared, so peak memory scales close to linearly with worker count
+// regardless of how much of that concurrency is actually used. Measured on a
+// 300-chart sample: 12 workers used only ~700% CPU (not 1200%) while using
+// ~10.5GB RSS; dropping to 8 cut RSS to ~7.4GB for a ~5% wall-clock cost, and 4
+// cut it further to ~4.6GB for a ~36% wall-clock cost. 8 is a reasonable default
+// tradeoff; override via SVG_TESTER_MAX_WORKERS on memory-constrained hosts.
+const MAX_WORKERS = Number(process.env.SVG_TESTER_MAX_WORKERS) || 8
+
 async function verifyExplorers(args: ReturnType<typeof parseArguments>) {
     const testSuite = args.testSuite as utils.TestSuite
     const verbose = args.verbose
@@ -80,7 +89,7 @@ async function verifyExplorers(args: ReturnType<typeof parseArguments>) {
 
     const pool = workerpool.pool(__dirname + "/worker.ts", {
         minWorkers: 2,
-        maxWorkers: 12,
+        maxWorkers: MAX_WORKERS,
         workerThreadOpts: {
             execArgv: ["--require", "tsx"],
         },
@@ -211,7 +220,7 @@ async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
 
         const pool = workerpool.pool(__dirname + "/worker.ts", {
             minWorkers: 2,
-            maxWorkers: 12,
+            maxWorkers: MAX_WORKERS,
             workerThreadOpts: {
                 execArgv: ["--require", "tsx"],
             },
