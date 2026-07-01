@@ -20,6 +20,7 @@ import {
     ToleranceStrategy,
     IndicatorTitleWithFragments,
     stripOuterParentheses,
+    getTimeInterval,
 } from "@ourworldindata/utils"
 import { CoreTable } from "./CoreTable.js"
 import type { OwidTable } from "./OwidTable.js"
@@ -34,6 +35,7 @@ import {
     OwidVariableRow,
     ErrorValue,
     OwidVariableRoundingMode,
+    TimeInterval,
 } from "@ourworldindata/types"
 import { ErrorValueTypes, isNotErrorValue } from "./ErrorValues.js"
 import {
@@ -103,6 +105,10 @@ export abstract class AbstractCoreColumn<
 
     @imemo get display(): OwidVariableDisplayConfigInterface | undefined {
         return this.def.display
+    }
+
+    @imemo get timeInterval(): TimeInterval {
+        return getTimeInterval(this.display)
     }
 
     abstract formatValue(

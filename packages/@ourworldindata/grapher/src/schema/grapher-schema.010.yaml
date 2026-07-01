@@ -134,10 +134,17 @@ properties:
             entityAnnotationsMap:
               type: string
               description: Entity annotations
+            timeInterval:
+              type: string
+              default: year
+              description: Resolution at which the time values should be interpreted and formatted.
+              enum:
+                - day
+                - year
             yearIsDay:
               type: boolean
               default: false
-              description: Switch to indicate if the number in the year column represents a day (since zeroDay) or not i.e. a year
+              description: "(Deprecated, use timeInterval instead) Switch to indicate if the number in the year column represents a day (since zeroDay) or not i.e. a year"
             color:
               type: string
               description: Default color for this time series
@@ -175,7 +182,7 @@ properties:
               default: 3
             zeroDay:
               type: string
-              description: Iso date day string for the starting date if yearIsDay is used
+              description: Iso date day string used as the reference date for day-encoded values
               default: "2020-01-21"
           additionalProperties: false
         variableId:

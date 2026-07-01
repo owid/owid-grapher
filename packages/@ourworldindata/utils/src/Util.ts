@@ -54,6 +54,8 @@ import {
     RESEARCH_AND_WRITING_DEFAULT_HEADING,
     CHRONOLOGICAL_INDEX_TYPES,
     LATEST_FEED_TYPES,
+    TimeInterval,
+    type OwidVariableDisplayConfigInterface,
 } from "@ourworldindata/types"
 import { Point, PointVector } from "./PointVector.js"
 import * as React from "react"
@@ -219,6 +221,19 @@ export function formatDay(
 ): string {
     const format = options?.format ?? "MMM D, YYYY"
     return convertDaysSinceEpochToDate(dayAsYear).format(format)
+}
+
+/**
+ * Resolves the time interval of an indicator from its display config, falling
+ * back to the deprecated `yearIsDay` flag when `timeInterval` is not set.
+ */
+export function getTimeInterval(
+    display?: OwidVariableDisplayConfigInterface
+): TimeInterval {
+    return (
+        display?.timeInterval ??
+        (display?.yearIsDay ? TimeInterval.Day : TimeInterval.Year)
+    )
 }
 
 export const formatYear = (year: number): string => {

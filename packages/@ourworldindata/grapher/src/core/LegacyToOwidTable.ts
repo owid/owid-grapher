@@ -13,6 +13,7 @@ import {
     OwidChartDimensionInterfaceWithMandatorySlug,
     OwidChartDimensionInterface,
     EntityName,
+    TimeInterval,
 } from "@ourworldindata/types"
 import {
     OwidTable,
@@ -33,6 +34,7 @@ import {
     ColumnSlug,
     EPOCH_DATE,
     OwidVariableType,
+    getTimeInterval,
 } from "@ourworldindata/utils"
 import { isContinentsVariableId } from "./GrapherConstants"
 import * as R from "remeda"
@@ -209,7 +211,9 @@ export const legacyToOwidTableAndDimensions = (
             // on entity only (disregarding the year since we already filtered all other years out for
             // those variables)
             variableTablesWithYearToJoinByEntityOnly.push(variableTable)
-        } else if (variable.metadata.display?.yearIsDay)
+        } else if (
+            getTimeInterval(variable.metadata.display) === TimeInterval.Day
+        )
             variableTablesToJoinByDay.push(variableTable)
         else variableTablesToJoinByYear.push(variableTable)
     }
@@ -651,10 +655,12 @@ const columnDefFromOwidVariable = (
             ? getSortFromDimensions(variable.dimensions)
             : undefined
 
+    const isDailyMeasurement = getTimeInterval(display) === TimeInterval.Day
+
     return {
         name,
         slug,
-        isDailyMeasurement: display?.yearIsDay,
+        isDailyMeasurement,
         unit,
         shortUnit,
         description,
@@ -691,7 +697,7 @@ const columnDefFromOwidVariable = (
 const timeColumnDefFromOwidVariable = (
     variableMetadata: OwidVariableWithSource
 ): OwidColumnDef => {
-    return variableMetadata.display?.yearIsDay
+    return getTimeInterval(variableMetadata.display) === TimeInterval.Day
         ? {
               slug: OwidTableSlugs.day,
               type: ColumnTypeNames.Day,
@@ -712,7 +718,7 @@ const timeColumnValuesFromOwidVariable = (
     const { years } = variableData
     const yearsNeedTransform =
         display &&
-        display.yearIsDay &&
+        getTimeInterval(display) === TimeInterval.Day &&
         display.zeroDay !== undefined &&
         display.zeroDay !== EPOCH_DATE
     const yearsRaw = years || []
@@ -723,7 +729,7 @@ const timeColumnValuesFromOwidVariable = (
 
 const convertLegacyYears = (years: number[], zeroDay: string): number[] => {
     // Only shift years if the variable zeroDay is different from EPOCH_DATE
-    // When the dataset uses days (`yearIsDay == true`), the days are expressed as integer
+    // When the dataset uses days, the days are expressed as integer
     // days since the specified `zeroDay`, which can be different for different variables.
     // In order to correctly join variables with different `zeroDay`s in a single chart, we
     // normalize all days to be in reference to a single epoch date.

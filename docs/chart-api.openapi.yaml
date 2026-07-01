@@ -1036,9 +1036,15 @@ components:
         isProjection:
           type: boolean
           description: Whether this column contains projected data.
-        yearIsDay:
-          type: boolean
-          description: Whether the time column represents days instead of years.
+        timeInterval:
+          type: string
+          enum:
+            - day
+            - year
+          description: >-
+            Resolution at which the time values should be interpreted and
+            formatted. "day" means the time values are days since a reference
+            date; "year" means they are literal years.
 
     GrapherValuesJsonDataPoints:
       type: object
