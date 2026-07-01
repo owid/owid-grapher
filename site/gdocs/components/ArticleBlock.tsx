@@ -57,6 +57,7 @@ import Person from "./Person.js"
 import NarrativeChart from "./NarrativeChart.js"
 import { BespokeComponent } from "./BespokeComponent.js"
 import { BespokeVizLightbox } from "./BespokeVizLightbox.js"
+import { BespokeVizMetadata } from "./BespokeVizMetadata.js"
 import { Container, getLayout } from "./layout.js"
 import { Expander } from "./Expander.js"
 import { BlockSize, ChartConfigType } from "@ourworldindata/types"
@@ -644,6 +645,12 @@ function ArticleBlockInternal({
                         containerType
                     )}
                 >
+                    {/* v2 bespoke-viz: lead the right column with the article
+                        metadata (title/subtitle/byline from the front-matter),
+                        /latest-style, above the authored commentary. Assumes the
+                        (first/only) sticky-left in a bespoke-viz article is the
+                        one that hosts the metadata — fine for the prototype. */}
+                    {isBespokeViz && <BespokeVizMetadata />}
                     {block.right.map((item, i) => (
                         <ArticleBlock
                             key={i}

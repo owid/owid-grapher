@@ -69,6 +69,24 @@ export function OwidGdoc({
         "content" in props &&
         (props.content as { layout?: string } | undefined)?.layout ===
             "bespoke-viz"
+    // v2: metadata rendered at the top of the sticky-left right column (see
+    // ArticleBlock's sticky-left arm). Read from the post front-matter.
+    const bespokeVizContent = isBespokeViz
+        ? (props.content as {
+              title?: string
+              subtitle?: string
+              authors?: string[]
+              authorRoles?: Record<string, string>
+          })
+        : undefined
+    const bespokeVizMeta = bespokeVizContent
+        ? {
+              title: bespokeVizContent.title,
+              subtitle: bespokeVizContent.subtitle,
+              authors: bespokeVizContent.authors,
+              authorRoles: bespokeVizContent.authorRoles,
+          }
+        : undefined
     const content = match(props)
         .with(
             {
@@ -143,7 +161,12 @@ export function OwidGdoc({
             }}
         >
             <DocumentContext.Provider
-                value={{ isPreviewing, archiveContext, isBespokeViz }}
+                value={{
+                    isPreviewing,
+                    archiveContext,
+                    isBespokeViz,
+                    bespokeVizMeta,
+                }}
             >
                 <SiteQueryClientProvider>
                     <AdminLinks id={props.id} />

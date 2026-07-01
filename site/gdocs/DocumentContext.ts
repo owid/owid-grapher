@@ -9,6 +9,15 @@ export const DocumentContext = createContext<{
     // (Full-screen lightbox, fit-sizing, hidden viz heading) wherever the
     // bespoke-component sits (e.g. inside an author's sticky-left container).
     isBespokeViz?: boolean
+    // v2: the article metadata (from the gdoc front-matter) that the bespoke-viz
+    // layout renders at the top of the sticky-left RIGHT column (/latest-style),
+    // instead of a full-width header band. Only set when isBespokeViz.
+    bespokeVizMeta?: {
+        title?: string
+        subtitle?: string
+        authors?: string[]
+        authorRoles?: Record<string, string>
+    }
 }>({
     isPreviewing: false,
 })
