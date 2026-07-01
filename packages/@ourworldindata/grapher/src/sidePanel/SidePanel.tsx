@@ -10,8 +10,6 @@ export const SidePanel = ({
     children: React.ReactNode
 }) => {
     return (
-        // NOTE: site/IndicatorMetadataBox.scss keys off this class via
-        // `:has(.side-panel)`; renaming it will silently break that layout.
         <div
             className={GRAPHER_SIDE_PANEL_CLASS}
             style={{

@@ -17,10 +17,12 @@
     }
 }
 
-.chart-key-info:has(.side-panel) ~ .indicator-metadata-box {
-    grid-template-columns: repeat(9, 1fr);
-    grid-column-start: 2;
-    grid-column-end: span 9;
+@include md-up {
+    .indicator-metadata-box {
+        grid-template-columns: repeat(9, 1fr);
+        grid-column-start: 2;
+        grid-column-end: span 9;
+    }
 }
 
 .indicator-metadata-box__indicator-title {

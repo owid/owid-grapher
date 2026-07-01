@@ -18,9 +18,6 @@ export const GRAPHER_ROUTE_FOLDER = "grapher"
 export const GRAPHER_PAGE_BODY_CLASS = "StandaloneGrapherOrExplorerPage"
 export const GRAPHER_IS_IN_IFRAME_CLASS = "IsInIframe"
 export const GRAPHER_TIMELINE_CLASS = "GrapherTimeline"
-// NOTE: site/IndicatorMetadataBox.scss resizes the indicator metadata box when a
-// side panel is present, via `.chart-key-info:has(.side-panel) ~ .indicator-metadata-box`.
-// Renaming this class will silently break that layout — update the selector too.
 export const GRAPHER_SIDE_PANEL_CLASS = "side-panel"
 export const GRAPHER_SETTINGS_CLASS = "GrapherSettingsPopover"
 
