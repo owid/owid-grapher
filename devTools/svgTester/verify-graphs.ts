@@ -9,12 +9,9 @@ import * as _ from "lodash-es"
 import { match } from "ts-pattern"
 
 import * as utils from "./utils.js"
+import { JOB_TIMEOUT_MS } from "./utils.js"
 import { grapherSlugToExportFileKey } from "../../baker/GrapherBakingUtils.js"
 import { ALL_GRAPHER_CHART_TYPES } from "@ourworldindata/types"
-
-// A single chart should render in well under a second; this is a generous
-// safety margin so one stuck render can't hang the entire run indefinitely.
-const JOB_TIMEOUT_MS = 2 * 60 * 1000
 
 async function verifyExplorers(args: ReturnType<typeof parseArguments>) {
     const testSuite = args.testSuite as utils.TestSuite
@@ -91,9 +88,12 @@ async function verifyExplorers(args: ReturnType<typeof parseArguments>) {
 
     const validationResultsArrays: utils.VerifyResult[][] = await Promise.all(
         explorerJobs.map((job) =>
+            // The per-view timeout lives inside renderAndVerifyExplorerViews,
+            // so we deliberately don't wrap this whole (multi-view) call in
+            // .timeout() — a large explorer with many views could legitimately
+            // exceed the per-view budget in aggregate.
             pool
                 .exec("renderAndVerifyExplorerViews", [job])
-                .timeout(JOB_TIMEOUT_MS)
                 .catch((err: Error) => [
                     utils.resultError(job.explorerSlug, err),
                 ])

@@ -117,6 +117,31 @@ export const resultError = (viewId: string, error: Error): VerifyResult => ({
     error,
 })
 
+// A single chart/view should render in well under a second; this is a generous
+// safety margin so one stuck render can't hang the entire run indefinitely.
+export const JOB_TIMEOUT_MS = 2 * 60 * 1000
+
+// Rejects if the given promise doesn't settle within `timeoutMs`. Used to bound
+// a single render so one stuck view can't hang a whole worker job.
+async function withTimeout<T>(
+    promise: Promise<T>,
+    timeoutMs: number,
+    label: string
+): Promise<T> {
+    let timer: ReturnType<typeof setTimeout> | undefined
+    const timeout = new Promise<never>((_resolve, reject) => {
+        timer = setTimeout(
+            () => reject(new Error(`Timed out after ${timeoutMs}ms: ${label}`)),
+            timeoutMs
+        )
+    })
+    try {
+        return await Promise.race([promise, timeout])
+    } finally {
+        if (timer) clearTimeout(timer)
+    }
+}
+
 const resultDifference = (difference: SvgDifference): VerifyResult => ({
     kind: "difference",
     difference: difference,
@@ -1250,53 +1275,65 @@ export async function renderAndVerifyExplorerViews({
                 continue
             }
 
-            // Update the explorer
-            await explorer.reactToUserChangingSelection(oldRow)
+            // Bound each view's render+verify so one stuck view can't hang the
+            // whole worker job. Scoping the timeout here (rather than around the
+            // entire multi-view worker call) means large explorers with many
+            // views aren't misreported as timeouts just for taking a while in
+            // aggregate.
+            const validationResult = await withTimeout(
+                (async (): Promise<VerifyResult> => {
+                    // Update the explorer
+                    await explorer.reactToUserChangingSelection(oldRow)
 
-            // Generate SVG for this view
-            const svg = await explorer.grapherState.generateStaticSvg(
-                ReactDOMServer.renderToStaticMarkup
+                    // Generate SVG for this view
+                    const svg = await explorer.grapherState.generateStaticSvg(
+                        ReactDOMServer.renderToStaticMarkup
+                    )
+
+                    const outFilename = buildSvgOutFilename(
+                        {
+                            slug: explorerSlug,
+                            version: 0, // Explorers don't have versions
+                            width,
+                            height,
+                            queryStr,
+                        },
+                        { shouldHashQueryStr: true }
+                    )
+
+                    const svgRecord: SvgRecord = {
+                        viewId,
+                        chartType: explorer.grapherState.activeTab,
+                        md5: await processSvgAndCalculateHash(svg),
+                        svgFilename: outFilename,
+                    }
+
+                    // Verify against reference
+                    const result = await verifySvg(
+                        svg,
+                        svgRecord,
+                        referenceEntry,
+                        referencesDir,
+                        verbose
+                    )
+
+                    // If there was a difference, write the SVG
+                    if (result.kind === "difference") {
+                        if (verbose) logDifferencesToConsole(svgRecord, result)
+                        const pathFragments = path.parse(svgRecord.svgFilename)
+                        const outputPath = path.join(
+                            differencesDir,
+                            pathFragments.name + pathFragments.ext
+                        )
+                        const cleanedSvg = await prepareSvgForComparison(svg)
+                        await fs.writeFile(outputPath, cleanedSvg)
+                    }
+
+                    return result
+                })(),
+                JOB_TIMEOUT_MS,
+                viewId
             )
-
-            const outFilename = buildSvgOutFilename(
-                {
-                    slug: explorerSlug,
-                    version: 0, // Explorers don't have versions
-                    width,
-                    height,
-                    queryStr,
-                },
-                { shouldHashQueryStr: true }
-            )
-
-            const svgRecord: SvgRecord = {
-                viewId,
-                chartType: explorer.grapherState.activeTab,
-                md5: await processSvgAndCalculateHash(svg),
-                svgFilename: outFilename,
-            }
-
-            // Verify against reference
-            const validationResult = await verifySvg(
-                svg,
-                svgRecord,
-                referenceEntry,
-                referencesDir,
-                verbose
-            )
-
-            // If there was a difference, write the SVG
-            if (validationResult.kind === "difference") {
-                if (verbose)
-                    logDifferencesToConsole(svgRecord, validationResult)
-                const pathFragments = path.parse(svgRecord.svgFilename)
-                const outputPath = path.join(
-                    differencesDir,
-                    pathFragments.name + pathFragments.ext
-                )
-                const cleanedSvg = await prepareSvgForComparison(svg)
-                await fs.writeFile(outputPath, cleanedSvg)
-            }
 
             results.push(validationResult)
         } catch (err) {
