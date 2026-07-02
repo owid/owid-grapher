@@ -129,8 +129,7 @@ export function ChartBlockView(props: NodeViewProps): React.ReactElement {
                         title={url}
                         loading="lazy"
                         style={{
-                            height:
-                                Number(chart.height) || CHART_FRAME_HEIGHT,
+                            height: Number(chart.height) || CHART_FRAME_HEIGHT,
                         }}
                     />
                 </LazyVisible>
@@ -200,8 +199,7 @@ export function NarrativeChartBlockView(
                         title={name}
                         loading="lazy"
                         style={{
-                            height:
-                                Number(chart.height) || CHART_FRAME_HEIGHT,
+                            height: Number(chart.height) || CHART_FRAME_HEIGHT,
                         }}
                     />
                 </LazyVisible>
@@ -331,8 +329,8 @@ export function TableBlockView(props: NodeViewProps): React.ReactElement {
             </table>
             {rows.length > 6 && (
                 <p className="rich-atom-block__caption">
-                    … {rows.length - 6} more rows (table contents are edited
-                    via ⚙ Edit for now)
+                    … {rows.length - 6} more rows (table contents are edited via
+                    ⚙ Edit for now)
                 </p>
             )}
         </BlockChrome>
@@ -381,8 +379,8 @@ export function ResearchAndWritingBlockView(
             onOpenInspector={openInspector}
         >
             <div className="rich-atom-block__card">
-                Research &amp; Writing section (rendered on the site; edit via
-                ⚙ Edit)
+                Research &amp; Writing section (rendered on the site; edit via ⚙
+                Edit)
             </div>
         </BlockChrome>
     )
