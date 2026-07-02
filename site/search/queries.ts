@@ -134,7 +134,8 @@ export async function queryDataTopics(
 export async function queryCharts(
     liteSearchClient: LiteClient,
     state: SearchState,
-    page: number = 0
+    page: number = 0,
+    hitsPerPage: number = 9
 ) {
     const countryFacetFilters = formatCountryFacetFilters(
         getFilterNamesOfType(state.filters, FilterType.COUNTRY),
@@ -178,12 +179,33 @@ export async function queryCharts(
             facetFilters,
             highlightPreTag: "<mark>",
             highlightPostTag: "</mark>",
-            hitsPerPage: 9,
+            hitsPerPage,
             page,
         },
     ]
 
     return searchSingleForHits<SearchChartHit>(liteSearchClient, searchParams)
+}
+
+/**
+ * Fetch *every* chart matching `state`, walking all Algolia result pages and
+ * concatenating their hits. Used by callers that need the full result set (e.g.
+ * a topic's "All charts" block) rather than a single paginated page.
+ */
+export async function queryAllCharts(
+    liteSearchClient: LiteClient,
+    state: SearchState,
+    hitsPerPage: number = 100
+) {
+    const firstPage = await queryCharts(liteSearchClient, state, 0, hitsPerPage)
+    const nbPages = firstPage.nbPages ?? 1
+
+    const remainingPages = await Promise.all(
+        Array.from({ length: nbPages - 1 }, (_, i) =>
+            queryCharts(liteSearchClient, state, i + 1, hitsPerPage)
+        )
+    )
+    return [firstPage, ...remainingPages].flatMap((page) => page.hits)
 }
 
 export async function queryDataInsights(
