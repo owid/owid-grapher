@@ -1,0 +1,14 @@
+metadata:
+  description: |
+    Working copies of natively-edited gdocs (posts_gdocs rows with authoringMode = 'native'). The admin rich editor loads and saves this draft content; posts_gdocs.content remains the published/live version and is only overwritten when the draft is published. One draft row per gdoc.
+fields:
+  gdocId:
+    description: Foreign key to posts_gdocs; primary key (one draft per document)
+  content:
+    description: The draft content JSON (same OwidGdocContent shape as posts_gdocs.content)
+  revisionId:
+    description: Foreign key to posts_gdocs_revisions; the revision that corresponds to this draft head. Used for optimistic concurrency - saves must pass the revision they were based on and are rejected if the draft has moved on.
+  updatedAt:
+    description: When the draft was last saved
+  updatedBy:
+    description: Foreign key to users; who last saved the draft

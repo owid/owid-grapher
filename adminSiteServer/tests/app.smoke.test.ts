@@ -10,7 +10,8 @@ describe("Admin app smoke", { timeout: 10000 }, () => {
     })
 
     it("returns node version", async () => {
-        const res = await fetch("http://localhost:8765/admin/nodeVersion", {
+        const adminBaseUrl = env.baseUrl.replace(/\/api$/, "")
+        const res = await fetch(`${adminBaseUrl}/nodeVersion`, {
             headers: {
                 Authorization: `Bearer ${env.apiKey}`,
             },

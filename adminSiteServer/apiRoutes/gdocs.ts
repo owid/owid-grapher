@@ -15,6 +15,7 @@ import {
     PagesIndexRecordsResponse,
     RedirectsTableName,
     OwidGdocType,
+    OwidGdocAuthoringMode,
 } from "@ourworldindata/types"
 import {
     checkIsChronologicalGdoc,
@@ -102,10 +103,22 @@ export async function getIndividualGdoc(
     trx: db.KnexReadWriteTransaction
 ) {
     const id = req.params.id
-    const contentSource = req.query.contentSource as
+    let contentSource = req.query.contentSource as
         | GdocsContentSource
         | undefined
     const acceptSuggestions = req.query.acceptSuggestions === "true"
+
+    // Natively-edited gdocs are never refetched from Google Docs - the
+    // enriched JSON in the database is their source of truth.
+    const authoringModeRow = await trx
+        .table(PostsGdocsTableName)
+        .where({ id })
+        .first<{ authoringMode: OwidGdocAuthoringMode } | undefined>(
+            "authoringMode"
+        )
+    if (authoringModeRow?.authoringMode === OwidGdocAuthoringMode.Native) {
+        contentSource = GdocsContentSource.Internal
+    }
 
     try {
         // Beware: if contentSource=gdocs this will update images in the DB+S3 even if the gdoc is published

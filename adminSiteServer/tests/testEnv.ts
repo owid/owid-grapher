@@ -11,9 +11,10 @@ import { TABLES_IN_USE } from "../../db/tests/testHelpers.js"
 import { AdminApiKeysTableName, UsersTableName } from "@ourworldindata/types"
 import { createApiKey, hashApiKey } from "../../serverUtils/apiKey.js"
 
-// Fixed port is okay while DB tests run serially
+// Fixed port is okay while DB tests run serially; override via env if the
+// default port is taken on your machine
 const ADMIN_SERVER_HOST = "localhost"
-const ADMIN_SERVER_PORT = 8765
+const ADMIN_SERVER_PORT = Number(process.env.TEST_ADMIN_SERVER_PORT ?? 8765)
 
 export interface TestEnv {
     testKnex: Knex<any, unknown[]>
