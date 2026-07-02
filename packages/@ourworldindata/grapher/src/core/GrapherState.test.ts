@@ -433,6 +433,46 @@ describe("currentTitle", () => {
     })
 })
 
+describe("filteredTableForDownload", () => {
+    const makeGrapher = (): GrapherState => {
+        const table = SynthesizeGDPTable(
+            { entityCount: 2, timeRange: [2000, 2010] },
+            1
+        )
+        return new GrapherState({
+            table,
+            selectedEntityNames: [...table.availableEntityNames],
+            dimensions: [
+                {
+                    slug: SampleColumnSlugs.GDP,
+                    property: DimensionProperty.y,
+                    variableId: 1,
+                },
+            ],
+        })
+    }
+
+    it("restricts the download to the selected time range on the table tab", () => {
+        const grapher = makeGrapher()
+        grapher.setTab(GRAPHER_TAB_NAMES.Table)
+        grapher.timelineHandleTimeBounds = [2003, 2005]
+
+        const times = _.uniq(grapher.filteredTableForDownload.timeColumn.values)
+        expect(_.min(times)).toBe(2003)
+        expect(_.max(times)).toBe(2005)
+    })
+
+    it("does not restrict the full download table by the selected time range", () => {
+        const grapher = makeGrapher()
+        grapher.setTab(GRAPHER_TAB_NAMES.Table)
+        grapher.timelineHandleTimeBounds = [2003, 2005]
+
+        const times = _.uniq(grapher.tableForDownload.timeColumn.values)
+        expect(_.min(times)).toBe(2000)
+        expect(_.max(times)).toBe(2009)
+    })
+})
+
 describe("authors can use maxTime", () => {
     it("can can create a discretebar chart with correct maxtime", () => {
         const table = SynthesizeGDPTable({ timeRange: [2000, 2010] })
