@@ -28,6 +28,13 @@ export enum OwidGdocPublicationContext {
     listed = "listed",
 }
 
+// Which pipeline authors a gdoc's body: fetched from Google Docs (the
+// default) or edited natively in the admin rich editor.
+export enum OwidGdocAuthoringMode {
+    Gdocs = "gdocs",
+    Native = "native",
+}
+
 export interface LatestDataInsight {
     id: string
     slug: string
