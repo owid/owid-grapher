@@ -64,6 +64,46 @@ export const legacyToOwidTableAndDimensionsWithMandatorySlug = (
     )
 }
 
+// DEBUG — do not commit: the ETL doesn't send timeInterval yet, so roughly
+// guess it from the data. Day-encoded variables (legacy yearIsDay or a custom
+// zeroDay) are classified as day/week/month/quarter by the median gap between
+// consecutive unique time values. Calendar-year variables are left alone
+// (getTimeInterval falls back to yearly).
+const WEEKLY_VARIABLE_IDS = new Set([1290463, 1290492])
+
+const guessTimeIntervalFromData = (
+    variable: OwidVariableDataMetadataDimensions
+): TimeInterval | undefined => {
+    // Hard-coded override, takes precedence even over an explicit timeInterval
+    if (WEEKLY_VARIABLE_IDS.has(variable.metadata.id)) return TimeInterval.Week
+    // oxlint-disable-next-line no-unnecessary-type-assertion
+    const display = variable.metadata.display as
+        | { yearIsDay?: boolean; zeroDay?: string; timeInterval?: TimeInterval }
+        | undefined
+    // The ETL replaced yearIsDay with timeInterval=day across the board, so
+    // "day" just means day-encoded — the actual interval still needs guessing.
+    // Only trust an explicit sub-yearly interval other than day.
+    if (display?.timeInterval && display.timeInterval !== TimeInterval.Day)
+        return undefined
+    const isDayEncoded =
+        display?.timeInterval === TimeInterval.Day ||
+        display?.yearIsDay ||
+        display?.zeroDay !== undefined
+    if (!isDayEncoded) return undefined
+    const times = _.sortBy(_.uniq(variable.data.years))
+    if (times.length < 2) return TimeInterval.Day
+    const gaps = times
+        .slice(1)
+        .map((time, index) => time - times[index])
+        .sort((a, b) => a - b)
+    const medianGap = gaps[Math.floor(gaps.length / 2)]
+    if (medianGap <= 3) return TimeInterval.Day
+    if (medianGap <= 14) return TimeInterval.Week
+    if (medianGap <= 45) return TimeInterval.Month
+    if (medianGap <= 150) return TimeInterval.Quarter
+    return TimeInterval.Day
+}
+
 export const legacyToOwidTableAndDimensions = (
     json: MultipleOwidVariableDataDimensionsMap,
     dimensions: OwidChartDimensionInterfaceWithMandatorySlug[],
@@ -100,6 +140,19 @@ export const legacyToOwidTableAndDimensions = (
         // TODO: this shouldn't happen but it does sometimes
         // when adding dimensions in the chart editor
         if (!variable) continue
+
+        // DEBUG — do not commit: guess the time interval from the data since
+        // the ETL doesn't send timeInterval yet.
+        const guessedInterval = guessTimeIntervalFromData(variable)
+        if (guessedInterval) {
+            variable.metadata.display = {
+                ...variable.metadata.display,
+                timeInterval: guessedInterval,
+            }
+            console.warn(
+                `[debug] guessed timeInterval=${guessedInterval} for variable ${variable.metadata.id}`
+            )
+        }
 
         // Copy the base columnDef
         const columnDefs = new Map(baseColumnDefs)
