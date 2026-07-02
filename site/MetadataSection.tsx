@@ -9,6 +9,7 @@ import {
 } from "@ourworldindata/components"
 import {
     FaqEntryData,
+    LicenseOption,
     OwidOrigin,
     PrimaryTopic,
     OwidSource,
@@ -23,6 +24,7 @@ import {
     getCitationDatapage,
 } from "@ourworldindata/utils"
 import { ArticleBlocks } from "./gdocs/components/ArticleBlocks.js"
+import { ChartLicenseNotice } from "./ChartLicenseNotice.js"
 
 export default function MetadataSection({
     attributionShort,
@@ -30,6 +32,7 @@ export default function MetadataSection({
     canonicalUrl,
     descriptionProcessing,
     faqEntries,
+    license,
     origins,
     owidProcessingLevel,
     primaryTopic,
@@ -44,6 +47,7 @@ export default function MetadataSection({
     canonicalUrl: string
     descriptionProcessing?: string
     faqEntries?: FaqEntryData
+    license?: LicenseOption
     origins: OwidOrigin[]
     owidProcessingLevel?: OwidProcessingLevel
     primaryTopic?: PrimaryTopic
@@ -145,15 +149,7 @@ export default function MetadataSection({
                                 maintaining and updating valuable data.
                             </li>
                             <li>
-                                All data, visualizations, and code produced by
-                                Our World in Data are completely open access
-                                under the{" "}
-                                <a href="https://creativecommons.org/licenses/by/4.0/">
-                                    Creative Commons BY license
-                                </a>
-                                . You have the permission to use, distribute,
-                                and reproduce these in any medium, provided the
-                                source and authors are credited.
+                                <ChartLicenseNotice license={license} />
                             </li>
                         </ul>
                     </div>

@@ -17,6 +17,11 @@ import {
     TextWrap,
     TextWrapSvg,
 } from "@ourworldindata/components"
+import {
+    CHART_LICENSES,
+    DEFAULT_CHART_LICENSE,
+    LicenseOption,
+} from "@ourworldindata/types"
 import { Tooltip } from "../tooltip/Tooltip"
 import { FooterManager } from "./FooterManager"
 import { ActionButtons } from "../controls/ActionButtons"
@@ -138,14 +143,17 @@ abstract class AbstractFooter<
         return this.manager.note ? `**Note:** ${this.manager.note}` : ""
     }
 
+    @computed protected get license(): LicenseOption {
+        return this.manager.license ?? DEFAULT_CHART_LICENSE
+    }
+
     @computed protected get licenseText(): string {
-        if (this.manager.hasOWIDLogo) return "CC BY"
+        if (this.manager.hasOWIDLogo) return CHART_LICENSES[this.license].name
         return "Powered by ourworldindata.org"
     }
 
     @computed protected get licenseUrl(): string {
-        if (this.manager.hasOWIDLogo)
-            return "https://creativecommons.org/licenses/by/4.0/"
+        if (this.manager.hasOWIDLogo) return CHART_LICENSES[this.license].url
         return "https://ourworldindata.org"
     }
 
@@ -715,12 +723,26 @@ abstract class AbstractFooter<
                         }}
                     >
                         <p>
-                            Our World in Data charts are licensed under Creative
-                            Commons; you are free to use, share, and adapt this
-                            material. Click through to the CC BY page for more
-                            information. Please bear in mind that the underlying
-                            source data for all our charts might be subject to
-                            different license terms from third-party authors.
+                            {this.license === DEFAULT_CHART_LICENSE ? (
+                                <>
+                                    Our World in Data charts are licensed under
+                                    Creative Commons; you are free to use,
+                                    share, and adapt this material. Click
+                                    through to the CC BY page for more
+                                    information.
+                                </>
+                            ) : (
+                                <>
+                                    This chart is licensed under Creative
+                                    Commons ({CHART_LICENSES[this.license].name}
+                                    ). Click through to the license page for
+                                    more information about how you may use,
+                                    share, and adapt this material.
+                                </>
+                            )}{" "}
+                            Please bear in mind that the underlying source data
+                            for all our charts might be subject to different
+                            license terms from third-party authors.
                         </p>
                     </Tooltip>
                 )}

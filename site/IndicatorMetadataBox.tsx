@@ -14,6 +14,7 @@ import {
     DataPageDataV2,
     FaqEntryData,
     IndicatorTitleWithFragments,
+    LicenseOption,
     OwidEnrichedGdocBlock,
     PrimaryTopic,
 } from "@ourworldindata/types"
@@ -31,6 +32,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faChevronDown, faChevronUp } from "@fortawesome/free-solid-svg-icons"
 import { getAttributionUnshortened } from "./datapageUtils.js"
 import { SiteAnalytics } from "./SiteAnalytics.js"
+import { ChartLicenseNotice } from "./ChartLicenseNotice.js"
 
 const analytics = new SiteAnalytics()
 
@@ -54,6 +56,7 @@ interface ExpandableSectionProps {
     primaryTopic?: PrimaryTopic
     title: IndicatorTitleWithFragments
     descriptionProcessing: string | undefined
+    license?: LicenseOption
 }
 
 const KEY_DESCRIPTION_PREVIEW_COUNT = 3
@@ -96,6 +99,7 @@ function ExpandableSection({
     primaryTopic,
     title,
     descriptionProcessing,
+    license,
 }: ExpandableSectionProps) {
     const { origins, source } = datapageData
     const preview = datapageData.descriptionKey.slice(
@@ -400,14 +404,7 @@ function ExpandableSection({
                         valuable data.
                     </p>
                     <p>
-                        All data, visualizations, and code produced by Our World
-                        in Data are completely open access under the{" "}
-                        <a href="https://creativecommons.org/licenses/by/4.0/">
-                            Creative Commons BY license
-                        </a>
-                        . You have the permission to use, distribute, and
-                        reproduce these in any medium, provided the source and
-                        authors are credited.
+                        <ChartLicenseNotice license={license} />
                     </p>
                 </section>
             </details>
@@ -422,6 +419,7 @@ export default function IndicatorMetadataBox({
     id,
     canonicalUrl,
     archiveContext,
+    license,
 }: {
     datapageData: DataPageDataV2
     className?: string
@@ -429,6 +427,7 @@ export default function IndicatorMetadataBox({
     faqEntries: FaqEntryData | undefined
     canonicalUrl: string
     archiveContext: ArchiveContext | undefined
+    license?: LicenseOption
 }) {
     // Owners of the dataset backing this indicator. For now we show a single
     // indicator's owners; multi-indicator charts will get a separate metadata
@@ -544,6 +543,7 @@ export default function IndicatorMetadataBox({
                 primaryTopic={datapageData.primaryTopic}
                 title={datapageData.title}
                 descriptionProcessing={datapageData.descriptionProcessing}
+                license={license}
             />
         </div>
     )

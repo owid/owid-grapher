@@ -394,6 +394,47 @@ export enum LogoOption {
     wordmark = "wordmark",
 }
 
+export enum LicenseOption {
+    "cc-by" = "cc-by",
+    "cc-by-sa" = "cc-by-sa",
+    "cc-by-nc" = "cc-by-nc",
+    "cc-by-nc-sa" = "cc-by-nc-sa",
+    "cc-by-nd" = "cc-by-nd",
+    "cc-by-nc-nd" = "cc-by-nc-nd",
+}
+
+export const CHART_LICENSES: Record<
+    LicenseOption,
+    { name: string; url: string }
+> = {
+    [LicenseOption["cc-by"]]: {
+        name: "CC BY",
+        url: "https://creativecommons.org/licenses/by/4.0/",
+    },
+    [LicenseOption["cc-by-sa"]]: {
+        name: "CC BY-SA",
+        url: "https://creativecommons.org/licenses/by-sa/4.0/",
+    },
+    [LicenseOption["cc-by-nc"]]: {
+        name: "CC BY-NC",
+        url: "https://creativecommons.org/licenses/by-nc/4.0/",
+    },
+    [LicenseOption["cc-by-nc-sa"]]: {
+        name: "CC BY-NC-SA",
+        url: "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+    },
+    [LicenseOption["cc-by-nd"]]: {
+        name: "CC BY-ND",
+        url: "https://creativecommons.org/licenses/by-nd/4.0/",
+    },
+    [LicenseOption["cc-by-nc-nd"]]: {
+        name: "CC BY-NC-ND",
+        url: "https://creativecommons.org/licenses/by-nc-nd/4.0/",
+    },
+}
+
+export const DEFAULT_CHART_LICENSE = LicenseOption["cc-by"]
+
 export interface ProjectionColumnInfo {
     projectedSlug: ColumnSlug
     historicalSlug: ColumnSlug
@@ -616,6 +657,7 @@ export interface GrapherInterface extends SortConfig {
     internalNotes?: string
     variantName?: string
     originUrl?: string
+    license?: LicenseOption
     isPublished?: boolean
     baseColorScheme?: ColorSchemeName
     invertColorScheme?: boolean
@@ -761,6 +803,7 @@ export const grapherKeysToSerialize = [
     "internalNotes",
     "variantName",
     "originUrl",
+    "license",
     "isPublished",
     "baseColorScheme",
     "invertColorScheme",

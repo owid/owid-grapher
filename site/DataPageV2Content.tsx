@@ -189,6 +189,7 @@ export const DataPageV2Content = ({
                                 canonicalUrl={canonicalUrl}
                                 archiveContext={archiveContext}
                                 id={DATAPAGE_ABOUT_THIS_DATA_SECTION_ID}
+                                license={grapherConfig.license}
                             />
                         )}
                         {useNewDatapageDesign && (
@@ -308,6 +309,7 @@ export const DataPageV2Content = ({
                                     datapageData.descriptionProcessing
                                 }
                                 faqEntries={faqEntries}
+                                license={grapherConfig.license}
                                 origins={datapageData.origins}
                                 owidProcessingLevel={
                                     datapageData.owidProcessingLevel
