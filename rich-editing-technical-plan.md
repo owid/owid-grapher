@@ -1,6 +1,6 @@
 # Rich Editing — Technical Plan
 
-_Status: **M0 built and verified**, 2026-07-02 (see §10a). Companion document to `rich-editing-plan.html` (project slideshow)._
+_Status: **M0–M2 built and verified**, 2026-07-02 (see §10a/§10b). Companion document to `rich-editing-plan.html` (project slideshow)._
 
 This document describes how we build a native, rich in-browser editing experience for OWID content, replacing ArchieML-in-Google-Docs authoring with a block-based WYSIWYG editor in the admin. It reflects four direction decisions already made:
 
@@ -263,6 +263,12 @@ Deliberate deviations and debts to carry forward:
 - Cogwheel Stage A (inspector + embed options).
 - Per-doc conversion opened to articles; opaque-passthrough covers the tail (chart-story, html, bespoke-component, guided-chart… promoted to first-class on demand).
 - Exit criterion: several real articles authored/edited natively, including at least one with sticky-right layout and 10+ charts, with acceptable canvas performance.
+
+### 10b. Status (2026-07-02): M1 and M2 built
+
+**M1** shipped on `rich-editing-m1` (PR #6685, stacked on #6684): publish/unpublish endpoints reusing the full gdocs tail (`indexAndBakeGdocIfNeccesary`), settings rail + `editorSettings` endpoint sharing the draft/revision mechanics, comments v1 (range/block/document threads, mark-based anchors refreshed on save, orphan handling with reopen-on-undo), in-memory presence banner, client-side conversion report gating conversion, and doc-type-filtered palettes. Deviations: Slack notifications and image-reupload polish not included; presence is per-process; block-thread creation has API support but no editor UI yet.
+
+**M2** shipped on `rich-editing-m2` (stacked on M1): all listed blocks first-class — chart/narrative-chart/video/prominent-link/table/recirc/research-and-writing/all-charts/pull-quote as uniform props-carrying atoms, sticky-right/left/side-by-side/gray-section/expandable-paragraph/aside as editable containers — with the corpus still at **1,173/1,173 (100%)**. Cogwheel Stage A: right-rail block inspector with typed fields per block plus a raw-JSON fallback and a chart search picker. Format toolbar (bold/italic/underline/link/DoD/footnote-ref marks), inline title field, native article creation, and the chart-slug N+1 in `loadLinkedChartsForSlugs` fixed via a batched config query. Deviations: charts render as lazy interactive iframes rather than in-page `<Grapher>` instances (the site-CSS/attachments spike moves to M3, where the embedded chart-editor engine needs it anyway); table/R&W/recirc contents are edited via the JSON inspector, not in-canvas; footnote refs are URL-based only (no rich-text ref definitions editing); subtitle/excerpt inline fields not yet added (title only).
 
 **M3 — In-situ chart editing**
 
