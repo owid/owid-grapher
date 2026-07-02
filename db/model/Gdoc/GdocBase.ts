@@ -28,7 +28,7 @@ import {
 import { docs as googleDocs, type docs_v1 } from "@googleapis/docs"
 import { gdocToArchie } from "./gdocToArchie.js"
 import { archieToEnriched } from "./archieToEnriched.js"
-import { getChartConfigById, mapSlugsToIds } from "../Chart.js"
+import { getEnrichedChartsByIds, mapSlugsToIds } from "../Chart.js"
 import {
     BAKED_BASE_URL,
     EXPLORER_DYNAMIC_THUMBNAIL_URL,
@@ -148,6 +148,9 @@ export async function loadLinkedChartsForSlugs(
 
     const slugToIdMap = await mapSlugsToIds(knex)
 
+    const chartIds = excludeUndefined(
+        grapherSlugs.map((slug) => slugToIdMap[slug])
+    )
     const [
         archivedChartVersions,
         archivedMultiDimVersions,
@@ -155,11 +158,9 @@ export async function loadLinkedChartsForSlugs(
         grapherMultiDimRedirects,
         explorerMultiDimRedirects,
         explorerRedirectFanOut,
+        chartConfigs,
     ] = await Promise.all([
-        getLatestArchivedChartPageVersionsIfEnabled(
-            knex,
-            excludeUndefined(grapherSlugs.map((slug) => slugToIdMap[slug]))
-        ),
+        getLatestArchivedChartPageVersionsIfEnabled(knex, chartIds),
         getLatestArchivedMultiDimPageVersionsIfEnabled(knex),
         getLatestArchivedExplorerPageVersionsIfEnabled(knex, explorerSlugs),
         getMultiDimRedirectTargets(knex, grapherSlugs, "/grapher/"),
@@ -173,7 +174,11 @@ export async function loadLinkedChartsForSlugs(
             explorerSlugs,
             "/explorers/"
         ),
+        chartIds.length ? getEnrichedChartsByIds(knex, chartIds) : [],
     ])
+    const chartConfigsById = new Map(
+        chartConfigs.map((chart) => [chart.id, chart])
+    )
 
     for (const [sourceSlug, targetSlugs] of explorerRedirectFanOut) {
         await logErrorAndMaybeCaptureInSentry(
@@ -210,7 +215,7 @@ Explorer '/explorers/${sourceSlug}' is linked from a gdoc, but it redirects to s
 
             const chartId = slugToIdMap[originalSlug]
             if (chartId) {
-                const chart = await getChartConfigById(knex, chartId)
+                const chart = chartConfigsById.get(chartId)
                 if (!chart) return
 
                 return makeGrapherLinkedChart(
