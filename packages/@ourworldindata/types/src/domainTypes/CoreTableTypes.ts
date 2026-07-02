@@ -168,6 +168,8 @@ export enum ColumnTypeNames {
     PopulationDensity = "PopulationDensity",
     Age = "Age",
     Quarter = "Quarter",
+    Month = "Month",
+    Week = "Week",
 }
 
 export interface ColumnColorScale {
@@ -256,7 +258,6 @@ export interface OwidColumnDef extends CoreColumnDef {
     coverage?: string
     datasetId?: number
     datasetName?: string
-    isDailyMeasurement?: boolean // todo: remove after mysql time refactor
     annotationsColumnSlug?: ColumnSlug
     nonRedistributable?: boolean
     skipParsing?: boolean

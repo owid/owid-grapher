@@ -34,13 +34,17 @@ import {
     getUniqueNamesFromTagHierarchies,
     stripOuterParentheses,
     groupTocIntoSections,
+    snapToIntervalStart,
+    diffDateISOStringInDays,
 } from "./Util.js"
 import {
     BlockSize,
+    EPOCH_DATE,
     OwidEnrichedGdocBlock,
     SortOrder,
     TagGraphRoot,
     TocHeadingWithSupertitle,
+    TimeInterval,
 } from "@ourworldindata/types"
 
 describe(findClosestTime, () => {
@@ -608,6 +612,34 @@ describe(findGreatestCommonDivisorOfArray, () => {
         expect(findGreatestCommonDivisorOfArray([6, 8, 12])).toEqual(2)
         expect(findGreatestCommonDivisorOfArray([6, 6, 6])).toEqual(6)
         expect(findGreatestCommonDivisorOfArray([15])).toEqual(15)
+    })
+})
+
+describe(snapToIntervalStart, () => {
+    const day = (iso: string): number =>
+        diffDateISOStringInDays(iso, EPOCH_DATE)
+
+    it("snaps month values to the first of the month", () => {
+        expect(
+            snapToIntervalStart(day("2021-03-15"), TimeInterval.Month)
+        ).toEqual(day("2021-03-01"))
+        expect(
+            snapToIntervalStart(day("2021-03-31"), TimeInterval.Month)
+        ).toEqual(day("2021-03-01"))
+    })
+
+    it("snaps week values to the ISO-week Monday", () => {
+        // 2021-01-13 is a Wednesday; its ISO week starts Monday 2021-01-11
+        expect(
+            snapToIntervalStart(day("2021-01-13"), TimeInterval.Week)
+        ).toEqual(day("2021-01-11"))
+    })
+
+    it("leaves day and year values unchanged", () => {
+        expect(
+            snapToIntervalStart(day("2021-03-15"), TimeInterval.Day)
+        ).toEqual(day("2021-03-15"))
+        expect(snapToIntervalStart(2021, TimeInterval.Year)).toEqual(2021)
     })
 })
 

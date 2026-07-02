@@ -39,11 +39,13 @@ export enum OwidVariableRoundingMode {
 
 /**
  * Time resolution at which an indicator's time values should be interpreted and
- * formatted. Sub-yearly intervals are encoded as days-since-epoch; `year` values
- * are literal years.
+ * formatted. Sub-yearly intervals (day/week/month) are encoded as
+ * days-since-epoch; `year` values are literal years.
  */
 export enum TimeInterval {
     Day = "day",
+    Week = "week",
+    Month = "month",
     Year = "year",
 }
 

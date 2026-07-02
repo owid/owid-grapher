@@ -4,8 +4,9 @@ import {
     csvEscape,
     formatYear,
     formatDay,
+    convertDaysSinceEpochToDate,
+    convertDateToDaysSinceEpoch,
     sortNumeric,
-    dateDiffInDays,
     omitUndefinedValues,
     isPresent,
     dayjs,
@@ -920,6 +921,9 @@ export abstract class TimeColumn<
 
     abstract preposition: string
 
+    // Human-readable name of the time interval (e.g. "Year", "Month")
+    abstract intervalName: string
+
     @imemo override get displayName(): string {
         return _.capitalize(this.name)
     }
@@ -937,7 +941,12 @@ class YearColumn<
     TABLE_TYPE extends CoreTable = CoreTable,
     DEF_TYPE extends CoreColumnDef = CoreColumnDef,
 > extends TimeColumn<TABLE_TYPE, DEF_TYPE> {
+    intervalName = "Year"
     preposition = "in"
+
+    override get timeInterval(): TimeInterval {
+        return TimeInterval.Year
+    }
 
     formatValue(value: number): string {
         // Include BCE
@@ -949,7 +958,12 @@ class DayColumn<
     TABLE_TYPE extends CoreTable = CoreTable,
     DEF_TYPE extends CoreColumnDef = CoreColumnDef,
 > extends TimeColumn<TABLE_TYPE, DEF_TYPE> {
+    intervalName = "Day"
     preposition = "on"
+
+    override get timeInterval(): TimeInterval {
+        return TimeInterval.Day
+    }
 
     // We cache these values because running `formatDay` thousands of times takes some time.
     static formatValueCache = new Map<number, string>()
@@ -995,12 +1009,67 @@ class DateColumn<
         if (!dateToTimeCache.has(valAsString))
             dateToTimeCache.set(
                 valAsString,
-                dateDiffInDays(
-                    dayjs.utc(valAsString).toDate(),
-                    dayjs.utc("2020-01-21").toDate()
-                )
+                convertDateToDaysSinceEpoch(dayjs.utc(valAsString))
             )
         return dateToTimeCache.get(valAsString)!
+    }
+}
+
+// A sub-yearly month column. Like all sub-yearly columns it stores
+// days-since-epoch internally (a representative day per month)
+// and only differs from DayColumn in how it formats those values.
+class MonthColumn<
+    TABLE_TYPE extends CoreTable = CoreTable,
+    DEF_TYPE extends CoreColumnDef = CoreColumnDef,
+> extends DayColumn<TABLE_TYPE, DEF_TYPE> {
+    override intervalName = "Month"
+    override preposition = "in"
+
+    override get timeInterval(): TimeInterval {
+        return TimeInterval.Month
+    }
+
+    override formatValue(value: number): string {
+        return formatDay(value, { format: "MMM YYYY" }) // "Jan 2023"
+    }
+
+    override formatValueForMobile(value: number): string {
+        return formatDay(value, { format: "MMM 'YY" }) // "Jan '23"
+    }
+
+    override formatForCsv(value: number): string {
+        return formatDay(value, { format: "YYYY-MM" }) // "2023-01"
+    }
+}
+
+// A sub-yearly week column, storing days-since-epoch
+// (a representative day per week)
+class WeekColumn<
+    TABLE_TYPE extends CoreTable = CoreTable,
+    DEF_TYPE extends CoreColumnDef = CoreColumnDef,
+> extends DayColumn<TABLE_TYPE, DEF_TYPE> {
+    override intervalName = "Week"
+    override preposition = "in"
+
+    override get timeInterval(): TimeInterval {
+        return TimeInterval.Week
+    }
+
+    override formatValue(value: number): string {
+        const date = convertDaysSinceEpochToDate(value)
+        return `W${date.isoWeek()} ${date.isoWeekYear()}` // "W3 2023"
+    }
+
+    override formatValueForMobile(value: number): string {
+        const date = convertDaysSinceEpochToDate(value)
+        const yy = String(date.isoWeekYear() % 100).padStart(2, "0")
+        return `W${date.isoWeek()} '${yy}` // "W3 '23"
+    }
+
+    override formatForCsv(value: number): string {
+        const date = convertDaysSinceEpochToDate(value)
+        const ww = String(date.isoWeek()).padStart(2, "0")
+        return `${date.isoWeekYear()}-W${ww}` // "2023-W03"
     }
 }
 
@@ -1009,6 +1078,7 @@ class QuarterColumn<
     DEF_TYPE extends CoreColumnDef = CoreColumnDef,
 > extends TimeColumn<TABLE_TYPE, DEF_TYPE> {
     preposition = "in"
+    intervalName = "Quarter"
 
     private static readonly regEx = /^([+-]?\d+)-Q([1-4])$/
 
@@ -1069,6 +1139,8 @@ export const ColumnTypeMap = {
     Date: DateColumn,
     Year: YearColumn,
     Quarter: QuarterColumn,
+    Month: MonthColumn,
+    Week: WeekColumn,
     Time: TimeColumn,
     Boolean: BooleanColumn,
     Currency: CurrencyColumn,

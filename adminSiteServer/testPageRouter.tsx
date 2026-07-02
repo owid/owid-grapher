@@ -221,12 +221,13 @@ async function propsFromQueryParams(
             `
             (
                 SELECT COUNT(DISTINCT CASE
-                    WHEN (
-                        variables.display->"$.yearIsDay" IS NULL
-                        OR variables.display->"$.timeInterval" = "year"
-                    )
-                    THEN "year"
-                    ELSE "day"
+                    WHEN variables.display->>"$.timeInterval" IN ("day", "week", "month")
+                        THEN "day"
+                    WHEN variables.display->>"$.timeInterval" = "year"
+                        THEN "year"
+                    WHEN variables.display->>"$.yearIsDay" = "true"
+                        THEN "day"
+                    ELSE "year"
                 END) as timeTypeCount
                 FROM variables
                 JOIN chart_dimensions ON chart_dimensions.variableId = variables.id
