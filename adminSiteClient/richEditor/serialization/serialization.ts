@@ -410,7 +410,7 @@ export function pmNodeToEnrichedBlock(node: PmNodeJson): OwidEnrichedGdocBlock {
                 caption: inlineContentToSpans(node.content),
                 parseErrors: [],
             }
-            if (attrs.position != null)
+            if (isPresent(attrs.position))
                 aside.position = attrs.position as BlockPositionChoice
             return aside
         }
@@ -472,7 +472,7 @@ export function pmNodeToEnrichedBlock(node: PmNodeJson): OwidEnrichedGdocBlock {
                 hasOutline: Boolean(attrs.hasOutline),
                 parseErrors: [],
             }
-            if (attrs.smallFilename != null)
+            if (isPresent(attrs.smallFilename))
                 image.smallFilename = String(attrs.smallFilename)
             if (isPresent(attrs.alt)) image.alt = String(attrs.alt)
             if (attrs.caption)
