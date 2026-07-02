@@ -44,6 +44,7 @@ import {
     Grapher,
     GrapherProgrammaticInterface,
     GrapherState,
+    latestGrapherConfigSchema,
     loadCatalogData,
     MapChartState,
 } from "@ourworldindata/grapher"
@@ -1110,9 +1111,9 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
     }
 
     async getFieldDefinitions() {
-        const json = await fetch(
-            "https://files.ourworldindata.org/schemas/grapher-schema.010.json"
-        ).then((response) => response.json())
+        const json = await fetch(latestGrapherConfigSchema!).then((response) =>
+            response.json()
+        )
         const fieldDescriptions = extractFieldDescriptionsFromSchema(json)
         runInAction(() => {
             // Now that we have the field Definitions we can initialize everything, including

@@ -221,11 +221,9 @@ async function propsFromQueryParams(
             `
             (
                 SELECT COUNT(DISTINCT CASE
+                    -- Sub-yearly intervals are day-encoded; everything else
+                    -- (year, or unset) is year-encoded.
                     WHEN variables.display->>"$.timeInterval" IN ("day", "week", "month", "quarter")
-                        THEN "day"
-                    WHEN variables.display->>"$.timeInterval" IN ("year", "decade")
-                        THEN "year"
-                    WHEN variables.display->>"$.yearIsDay" = "true"
                         THEN "day"
                     ELSE "year"
                 END) as timeTypeCount

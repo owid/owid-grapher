@@ -151,6 +151,20 @@ export const migrateFrom009To010 = (config: AnyConfigWithValidSchema) => {
     return config
 }
 
+export const migrateFrom010To011 = (config: AnyConfigWithValidSchema) => {
+    // Drop the deprecated yearIsDay flag in favor of timeInterval
+    for (const dimension of config.dimensions ?? []) {
+        const display = dimension.display
+        if (!display) continue
+        if (display.yearIsDay === true && display.timeInterval === undefined)
+            display.timeInterval = "day"
+        delete display.yearIsDay
+    }
+
+    config.$schema = createSchemaForVersion("011")
+    return config
+}
+
 export const runMigration = (
     config: AnyConfigWithValidSchema
 ): AnyConfigWithValidSchema => {
@@ -166,5 +180,6 @@ export const runMigration = (
         .with("007", () => migrateFrom007To008(config))
         .with("008", () => migrateFrom008To009(config))
         .with("009", () => migrateFrom009To010(config))
+        .with("010", () => migrateFrom010To011(config))
         .exhaustive()
 }

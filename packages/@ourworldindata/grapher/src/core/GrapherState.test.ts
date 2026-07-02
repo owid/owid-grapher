@@ -13,6 +13,7 @@ import {
     GRAPHER_TAB_NAMES,
     OwidChartDimensionInterface,
     GRAPHER_TAB_QUERY_PARAMS,
+    TimeInterval,
 } from "@ourworldindata/types"
 import {
     TimeBoundValue,
@@ -297,7 +298,10 @@ const getGrapher = (): GrapherState => {
                 },
                 metadata: {
                     id: 142609,
-                    display: { zeroDay: "2020-01-21", yearIsDay: true },
+                    display: {
+                        zeroDay: "2020-01-21",
+                        timeInterval: TimeInterval.Day,
+                    },
                     dimensions: {
                         entities: {
                             values: [

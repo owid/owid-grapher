@@ -2,7 +2,11 @@ import { expect, it, vi } from "vitest"
 
 import { defaultGrapherConfig } from "../defaultGrapherConfig"
 import { migrateGrapherConfigToLatestVersion } from "./migrate"
-import { migrateFrom006To007, migrateFrom007To008 } from "./migrations"
+import {
+    migrateFrom006To007,
+    migrateFrom007To008,
+    migrateFrom010To011,
+} from "./migrations"
 import { AnyConfigWithValidSchema } from "./helpers"
 import * as _ from "lodash-es"
 
@@ -132,4 +136,31 @@ it("migrates version 007 to 008 correctly", () => {
         "map.colorScale.customNumericValues",
         [0, 1, 2, 3]
     )
+})
+
+it("migrates version 010 to 011 correctly", () => {
+    const config: AnyConfigWithValidSchema = {
+        $schema:
+            "https://files.ourworldindata.org/schemas/grapher-schema.010.json",
+        dimensions: [
+            { property: "y", variableId: 1, display: { yearIsDay: true } },
+            { property: "y", variableId: 2, display: { yearIsDay: false } },
+            { property: "y", variableId: 3, display: { unit: "%" } },
+        ],
+    }
+
+    const migrated = migrateFrom010To011(config)
+
+    // check that the $schema field is updated
+    expect(migrated).toHaveProperty(
+        "$schema",
+        "https://files.ourworldindata.org/schemas/grapher-schema.011.json"
+    )
+
+    // yearIsDay: true becomes timeInterval: "day"
+    expect(migrated.dimensions[0].display).toEqual({ timeInterval: "day" })
+    // yearIsDay: false is just dropped (year is the default)
+    expect(migrated.dimensions[1].display).toEqual({})
+    // dimensions without yearIsDay are untouched
+    expect(migrated.dimensions[2].display).toEqual({ unit: "%" })
 })
