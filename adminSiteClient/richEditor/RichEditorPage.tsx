@@ -470,7 +470,7 @@ function RichEditorPageForId(props: { id: string }): React.ReactElement {
                     <Alert
                         type="info"
                         showIcon
-                        message={`${activeEditors
+                        title={`${activeEditors
                             .map((editor) => editor.fullName)
                             .join(", ")} ${
                             activeEditors.length === 1 ? "is" : "are"
@@ -589,19 +589,17 @@ function RichEditorPageForId(props: { id: string }): React.ReactElement {
                                 },
                                 {
                                     key: "comments",
-                                    label:
-                                        threads.filter(
-                                            (thread) =>
-                                                thread.status !== "resolved"
-                                        ).length > 0
-                                            ? `Comments (${
-                                                  threads.filter(
-                                                      (thread) =>
-                                                          thread.status !==
-                                                          "resolved"
-                                                  ).length
-                                              })`
-                                            : "Comments",
+                                    label: threads.some(
+                                        (thread) => thread.status !== "resolved"
+                                    )
+                                        ? `Comments (${
+                                              threads.filter(
+                                                  (thread) =>
+                                                      thread.status !==
+                                                      "resolved"
+                                              ).length
+                                          })`
+                                        : "Comments",
                                     children: (
                                         <CommentsPanel
                                             gdocId={id}
@@ -703,7 +701,7 @@ function ConvertToNativePrompt(props: {
                               : "success"
                     }
                     showIcon
-                    message="Conversion report"
+                    title="Conversion report"
                     description={
                         <>
                             <p>
