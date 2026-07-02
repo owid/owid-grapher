@@ -222,6 +222,7 @@ function createBlockContainerNode(name: string, className: string): Node {
         content: "block*",
         defining: true,
         isolating: true,
+        draggable: true,
         parseHTML() {
             return [{ tag: `section[data-rich-container="${name}"]` }]
         },
@@ -276,6 +277,7 @@ function createTwoColumnNode(name: string, className: string): Node {
         content: "layoutColumn layoutColumn",
         defining: true,
         isolating: true,
+        draggable: true,
         parseHTML() {
             return [{ tag: `section[data-rich-layout="${name}"]` }]
         },

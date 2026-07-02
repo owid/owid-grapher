@@ -1,5 +1,4 @@
 import { useContext, useEffect, useRef, useState } from "react"
-import { Button, Tag } from "antd"
 import { useQuery } from "@tanstack/react-query"
 import { NodeViewProps, NodeViewWrapper } from "@tiptap/react"
 import {
@@ -17,50 +16,35 @@ import {
 import { spansToUnformattedPlainText } from "@ourworldindata/utils"
 import { RichEditorResolveReferencesResponse } from "../../../adminShared/RichEditorTypes.js"
 import { AdminAppContext } from "../../AdminAppContext.js"
-import { RichEditorUIContext } from "../uiContext.js"
+import { BlockFrame } from "./BlockFrame.js"
 
 // NodeViews for the atom blocks whose `props` attr carries the enriched
-// block verbatim. They render a preview card with a shared chrome (type tag,
-// summary, cogwheel opening the block inspector in the right rail).
+// block verbatim. They render a preview with a shared BlockFrame chrome:
+// hovering the block's border shows a thin frame that selects on click
+// (opening the block's settings in the right rail) and drags to reorder.
 
-function useBlockChrome(props: NodeViewProps, blockType: string) {
-    const { inspectBlock } = useContext(RichEditorUIContext)
-    const { node, updateAttributes, deleteNode } = props
-    const blockProps = (node.attrs.props ?? {}) as Record<string, unknown>
-    const openInspector = (): void =>
-        inspectBlock({
-            nodeType: node.type.name,
-            blockType,
-            props: blockProps,
-            updateProps: (newProps) => updateAttributes({ props: newProps }),
-            deleteBlock: () => deleteNode(),
-        })
-    return { blockProps, openInspector }
+function getBlockProps(props: NodeViewProps): Record<string, unknown> {
+    return (props.node.attrs.props ?? {}) as Record<string, unknown>
 }
 
 function BlockChrome(props: {
     nodeViewProps: NodeViewProps
     blockType: string
     summary: string
-    onOpenInspector: () => void
     children?: React.ReactNode
 }): React.ReactElement {
-    const { nodeViewProps, blockType, summary, onOpenInspector, children } =
-        props
+    const { nodeViewProps, blockType, summary, children } = props
     return (
         <NodeViewWrapper
             className={`rich-atom-block rich-atom-block--${blockType}${
                 nodeViewProps.selected ? " rich-block--selected" : ""
             }`}
-            data-drag-handle
         >
-            <div className="rich-block__toolbar" contentEditable={false}>
-                <Tag>{blockType}</Tag>
-                <span className="rich-block__toolbar-info">{summary}</span>
-                <Button size="small" onClick={onOpenInspector}>
-                    ⚙ Edit
-                </Button>
-            </div>
+            <BlockFrame
+                nodeViewProps={nodeViewProps}
+                label={blockType}
+                summary={summary}
+            />
             <div contentEditable={false}>{children}</div>
         </NodeViewWrapper>
     )
@@ -111,15 +95,16 @@ function captionText(caption: Span[] | undefined): string {
 }
 
 export function ChartBlockView(props: NodeViewProps): React.ReactElement {
-    const { blockProps, openInspector } = useBlockChrome(props, "chart")
-    const chart = blockProps as unknown as Omit<EnrichedBlockChart, "type">
+    const chart = getBlockProps(props) as unknown as Omit<
+        EnrichedBlockChart,
+        "type"
+    >
     const url = chart.url ?? ""
     return (
         <BlockChrome
             nodeViewProps={props}
             blockType="chart"
             summary={url.replace(/^https?:\/\/[^/]+/, "") || "no chart chosen"}
-            onOpenInspector={openInspector}
         >
             {url ? (
                 <LazyVisible height={CHART_FRAME_HEIGHT}>
@@ -135,7 +120,7 @@ export function ChartBlockView(props: NodeViewProps): React.ReactElement {
                 </LazyVisible>
             ) : (
                 <div className="rich-atom-block__empty">
-                    Pick a chart via ⚙ Edit
+                    Select this block to pick a chart in the right rail
                 </div>
             )}
             {chart.caption && (
@@ -151,11 +136,7 @@ export function NarrativeChartBlockView(
     props: NodeViewProps
 ): React.ReactElement {
     const { admin } = useContext(AdminAppContext)
-    const { blockProps, openInspector } = useBlockChrome(
-        props,
-        "narrative-chart"
-    )
-    const chart = blockProps as unknown as Omit<
+    const chart = getBlockProps(props) as unknown as Omit<
         EnrichedBlockNarrativeChart,
         "type"
     >
@@ -189,7 +170,6 @@ export function NarrativeChartBlockView(
             nodeViewProps={props}
             blockType="narrative-chart"
             summary={info ? `${name} — ${info.title}` : name || "no chart"}
-            onOpenInspector={openInspector}
         >
             {frameUrl ? (
                 <LazyVisible height={CHART_FRAME_HEIGHT}>
@@ -220,14 +200,15 @@ export function NarrativeChartBlockView(
 }
 
 export function VideoBlockView(props: NodeViewProps): React.ReactElement {
-    const { blockProps, openInspector } = useBlockChrome(props, "video")
-    const video = blockProps as unknown as Omit<EnrichedBlockVideo, "type">
+    const video = getBlockProps(props) as unknown as Omit<
+        EnrichedBlockVideo,
+        "type"
+    >
     return (
         <BlockChrome
             nodeViewProps={props}
             blockType="video"
             summary={video.filename || video.url || ""}
-            onOpenInspector={openInspector}
         >
             {video.url ? (
                 <video
@@ -252,11 +233,7 @@ export function VideoBlockView(props: NodeViewProps): React.ReactElement {
 export function ProminentLinkBlockView(
     props: NodeViewProps
 ): React.ReactElement {
-    const { blockProps, openInspector } = useBlockChrome(
-        props,
-        "prominent-link"
-    )
-    const link = blockProps as unknown as Omit<
+    const link = getBlockProps(props) as unknown as Omit<
         EnrichedBlockProminentLink,
         "type"
     >
@@ -265,7 +242,6 @@ export function ProminentLinkBlockView(
             nodeViewProps={props}
             blockType="prominent-link"
             summary={link.url ?? ""}
-            onOpenInspector={openInspector}
         >
             <div className="rich-atom-block__card">
                 <strong>{link.title || link.url}</strong>
@@ -276,8 +252,7 @@ export function ProminentLinkBlockView(
 }
 
 export function PullQuoteBlockView(props: NodeViewProps): React.ReactElement {
-    const { blockProps, openInspector } = useBlockChrome(props, "pull-quote")
-    const pullQuote = blockProps as unknown as Omit<
+    const pullQuote = getBlockProps(props) as unknown as Omit<
         EnrichedBlockPullQuote,
         "type"
     >
@@ -286,7 +261,6 @@ export function PullQuoteBlockView(props: NodeViewProps): React.ReactElement {
             nodeViewProps={props}
             blockType="pull-quote"
             summary={`align: ${pullQuote.align ?? "left"}`}
-            onOpenInspector={openInspector}
         >
             <blockquote className="rich-atom-block__pull-quote">
                 “{pullQuote.quote}”
@@ -296,15 +270,16 @@ export function PullQuoteBlockView(props: NodeViewProps): React.ReactElement {
 }
 
 export function TableBlockView(props: NodeViewProps): React.ReactElement {
-    const { blockProps, openInspector } = useBlockChrome(props, "table")
-    const table = blockProps as unknown as Omit<EnrichedBlockTable, "type">
+    const table = getBlockProps(props) as unknown as Omit<
+        EnrichedBlockTable,
+        "type"
+    >
     const rows = table.rows ?? []
     return (
         <BlockChrome
             nodeViewProps={props}
             blockType="table"
             summary={`${rows.length} rows`}
-            onOpenInspector={openInspector}
         >
             <table className="rich-atom-block__table">
                 <tbody>
@@ -329,8 +304,8 @@ export function TableBlockView(props: NodeViewProps): React.ReactElement {
             </table>
             {rows.length > 6 && (
                 <p className="rich-atom-block__caption">
-                    … {rows.length - 6} more rows (table contents are edited via
-                    ⚙ Edit for now)
+                    … {rows.length - 6} more rows (table contents are edited in
+                    the right rail for now)
                 </p>
             )}
         </BlockChrome>
@@ -338,14 +313,15 @@ export function TableBlockView(props: NodeViewProps): React.ReactElement {
 }
 
 export function RecircBlockView(props: NodeViewProps): React.ReactElement {
-    const { blockProps, openInspector } = useBlockChrome(props, "recirc")
-    const recirc = blockProps as unknown as Omit<EnrichedBlockRecirc, "type">
+    const recirc = getBlockProps(props) as unknown as Omit<
+        EnrichedBlockRecirc,
+        "type"
+    >
     return (
         <BlockChrome
             nodeViewProps={props}
             blockType="recirc"
             summary={recirc.title ?? ""}
-            onOpenInspector={openInspector}
         >
             <div className="rich-atom-block__card">
                 <strong>{recirc.title}</strong>
@@ -362,11 +338,7 @@ export function RecircBlockView(props: NodeViewProps): React.ReactElement {
 export function ResearchAndWritingBlockView(
     props: NodeViewProps
 ): React.ReactElement {
-    const { blockProps, openInspector } = useBlockChrome(
-        props,
-        "research-and-writing"
-    )
-    const block = blockProps as unknown as Omit<
+    const block = getBlockProps(props) as unknown as Omit<
         EnrichedBlockResearchAndWriting,
         "type"
     >
@@ -376,25 +348,25 @@ export function ResearchAndWritingBlockView(
             nodeViewProps={props}
             blockType="research-and-writing"
             summary={`${block.primary?.length ?? 0} primary · ${rowCount} rows`}
-            onOpenInspector={openInspector}
         >
             <div className="rich-atom-block__card">
-                Research &amp; Writing section (rendered on the site; edit via ⚙
-                Edit)
+                Research &amp; Writing section (rendered on the site; edited in
+                the right rail)
             </div>
         </BlockChrome>
     )
 }
 
 export function AllChartsBlockView(props: NodeViewProps): React.ReactElement {
-    const { blockProps, openInspector } = useBlockChrome(props, "all-charts")
-    const block = blockProps as unknown as Omit<EnrichedBlockAllCharts, "type">
+    const block = getBlockProps(props) as unknown as Omit<
+        EnrichedBlockAllCharts,
+        "type"
+    >
     return (
         <BlockChrome
             nodeViewProps={props}
             blockType="all-charts"
             summary={block.heading ?? ""}
-            onOpenInspector={openInspector}
         >
             <div className="rich-atom-block__card">
                 All charts for this topic ({(block.top ?? []).length} pinned)
