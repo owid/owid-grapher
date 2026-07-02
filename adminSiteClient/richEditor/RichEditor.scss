@@ -469,3 +469,187 @@
         margin-bottom: 8px;
     }
 }
+
+// ── M2: canvas column, toolbar, inline title ────────────────────────────────
+
+.rich-editor-page__canvas-col {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.rich-editor-toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    background: #fff;
+    border: 1px solid #e5e1d8;
+    border-radius: 8px 8px 0 0;
+    padding: 4px 8px;
+}
+
+.rich-editor-page__inline-title {
+    font-size: 30px;
+    font-weight: 700;
+    line-height: 1.2;
+    color: #1d2b3d;
+    padding: 12px 32px 0;
+    background: #fff;
+    border-left: 1px solid #e5e1d8;
+    border-right: 1px solid #e5e1d8;
+
+    &:focus {
+        box-shadow: none;
+    }
+}
+
+// ── M2: atom block cards ────────────────────────────────────────────────────
+
+.rich-atom-block {
+    border: 1px solid #e5e1d8;
+    border-radius: 6px;
+    margin: 12px 0;
+    background: #fff;
+
+    figcaption,
+    .rich-atom-block__caption {
+        padding: 4px 12px 8px;
+        color: #6e6a5e;
+        font-size: 13px;
+    }
+}
+
+.rich-atom-block__chart-frame {
+    display: block;
+    width: 100%;
+    border: none;
+}
+
+.rich-atom-block__placeholder,
+.rich-atom-block__empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #8a8577;
+    background: #faf9f6;
+    min-height: 80px;
+}
+
+.rich-atom-block__video {
+    display: block;
+    width: 100%;
+    max-height: 500px;
+    background: #000;
+}
+
+.rich-atom-block__card {
+    padding: 12px;
+
+    p,
+    ul {
+        margin: 4px 0 0;
+        color: #6e6a5e;
+        font-size: 14px;
+    }
+}
+
+.rich-atom-block__pull-quote {
+    margin: 0;
+    padding: 16px 24px;
+    font-size: 22px;
+    font-style: italic;
+    color: #1d2b3d;
+}
+
+.rich-atom-block__table {
+    width: calc(100% - 24px);
+    margin: 8px 12px;
+    border-collapse: collapse;
+    font-size: 13px;
+
+    td {
+        border: 1px solid #e5e1d8;
+        padding: 4px 8px;
+    }
+}
+
+// ── M2: editable containers ─────────────────────────────────────────────────
+
+.rich-editor-canvas__content .rich-aside {
+    border-left: 3px solid #c7c2b4;
+    margin: 12px 0 12px 24px;
+    padding: 4px 12px;
+    color: #6e6a5e;
+    font-style: italic;
+    font-size: 14px;
+}
+
+.rich-editor-canvas__content .rich-gray-section {
+    background: #f3f1ea;
+    border-radius: 6px;
+    padding: 16px 20px;
+    margin: 16px -8px;
+}
+
+.rich-editor-canvas__content .rich-expandable-paragraph {
+    border: 1px dashed #c7c2b4;
+    border-radius: 6px;
+    padding: 8px 16px;
+    margin: 12px 0;
+    position: relative;
+
+    &::before {
+        content: "expandable paragraph";
+        display: block;
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #8a8577;
+    }
+}
+
+.rich-editor-canvas__content .rich-two-column {
+    display: flex;
+    gap: 24px;
+    margin: 16px 0;
+    border: 1px dashed #c7c2b4;
+    border-radius: 6px;
+    padding: 8px;
+    position: relative;
+
+    &::before {
+        content: attr(data-rich-layout);
+        position: absolute;
+        top: -9px;
+        left: 12px;
+        background: #fff;
+        padding: 0 6px;
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #8a8577;
+    }
+}
+
+.rich-editor-canvas__content .rich-two-column--sticky-right::before {
+    content: "sticky right";
+}
+.rich-editor-canvas__content .rich-two-column--sticky-left::before {
+    content: "sticky left";
+}
+.rich-editor-canvas__content .rich-two-column--side-by-side::before {
+    content: "side by side";
+}
+
+.rich-editor-canvas__content .rich-layout-column {
+    flex: 1 1 50%;
+    min-width: 0;
+    border-radius: 4px;
+    padding: 4px 8px;
+    background: #faf9f6;
+}
+
+.rich-editor-inspector__json textarea,
+.rich-editor-inspector__json {
+    font-family: monospace;
+    font-size: 12px;
+}

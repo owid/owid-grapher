@@ -10,6 +10,7 @@ import {
     List,
     Modal,
     Popconfirm,
+    Select,
     Space,
     Tabs,
     Tag,
@@ -38,6 +39,9 @@ import { applyCommentMarks, collectCommentAnchors } from "./comments.js"
 import { computeConversionReport } from "./conversionReport.js"
 import { CommentsPanel } from "./CommentsPanel.js"
 import { SettingsPanel } from "./SettingsPanel.js"
+import { BlockInspector } from "./BlockInspector.js"
+import { FormatToolbar } from "./FormatToolbar.js"
+import { InspectedBlock } from "./uiContext.js"
 
 type SaveState =
     | { kind: "saved"; at: Date | null }
@@ -64,19 +68,23 @@ function CreateNativeGdocPage(
     const [creating, setCreating] = useState(false)
 
     return (
-        <AdminLayout title="New data insight">
+        <AdminLayout title="New document">
             <main className="rich-editor-page rich-editor-page--create">
                 <Typography.Title level={3}>
-                    New native data insight
+                    New native document
                 </Typography.Title>
                 <Form
                     layout="vertical"
-                    onFinish={async (values: { title: string }) => {
+                    initialValues={{ type: OwidGdocType.DataInsight }}
+                    onFinish={async (values: {
+                        title: string
+                        type: string
+                    }) => {
                         setCreating(true)
                         try {
                             const created = (await admin.requestJSON(
                                 "/api/gdocs/createNative",
-                                { title: values.title },
+                                { title: values.title, type: values.type },
                                 "POST"
                             )) as unknown as RichEditorGdocResponse
                             props.history.replace(`/gdocs/${created.id}/edit`)
@@ -91,6 +99,20 @@ function CreateNativeGdocPage(
                         rules={[{ required: true }]}
                     >
                         <Input placeholder="e.g. Global life expectancy has doubled" />
+                    </Form.Item>
+                    <Form.Item label="Type" name="type">
+                        <Select
+                            options={[
+                                {
+                                    value: OwidGdocType.DataInsight,
+                                    label: "Data insight",
+                                },
+                                {
+                                    value: OwidGdocType.Article,
+                                    label: "Article (beta)",
+                                },
+                            ]}
+                        />
                     </Form.Item>
                     <Button type="primary" htmlType="submit" loading={creating}>
                         Create draft
@@ -145,6 +167,9 @@ function RichEditorPageForId(props: { id: string }): React.ReactElement {
     )
     const [revisionsOpen, setRevisionsOpen] = useState(false)
     const [hasTextSelection, setHasTextSelection] = useState(false)
+    const [selectionVersion, setSelectionVersion] = useState(0)
+    const [inspected, setInspected] = useState<InspectedBlock | null>(null)
+    const [railTab, setRailTab] = useState("settings")
     const [activeEditors, setActiveEditors] = useState<
         RichEditorPresenceEditor[]
     >([])
@@ -542,21 +567,63 @@ function RichEditorPageForId(props: { id: string }): React.ReactElement {
                             blocks without leaving the keyboard.
                         </p>
                     </aside>
-                    <RichEditor
-                        initialBody={gdoc.content.body ?? []}
-                        editorRef={editorRef}
-                        requestImageRef={requestImageRef}
-                        onDirty={onDirty}
-                        docType={docType}
-                        onCreate={setEditorInstance}
-                        onSelectionChange={(editor) =>
-                            setHasTextSelection(!editor.state.selection.empty)
-                        }
-                    />
+                    <div className="rich-editor-page__canvas-col">
+                        <FormatToolbar
+                            editor={editorInstance}
+                            selectionVersion={selectionVersion}
+                        />
+                        <InlineTitleField
+                            key={`title-${id}`}
+                            gdocId={id}
+                            title={title}
+                            getBaseRevisionId={() => baseRevisionIdRef.current}
+                            onSaved={(revisionId, newTitle) => {
+                                baseRevisionIdRef.current = revisionId
+                                setDocTitle(newTitle)
+                            }}
+                        />
+                        <RichEditor
+                            initialBody={gdoc.content.body ?? []}
+                            editorRef={editorRef}
+                            requestImageRef={requestImageRef}
+                            onDirty={onDirty}
+                            docType={docType}
+                            onCreate={setEditorInstance}
+                            onSelectionChange={(editor) => {
+                                setHasTextSelection(
+                                    !editor.state.selection.empty
+                                )
+                                setSelectionVersion((version) => version + 1)
+                            }}
+                            onInspectBlock={(nextInspected) => {
+                                setInspected(nextInspected)
+                                setRailTab("block")
+                            }}
+                        />
+                    </div>
                     <aside className="rich-editor-page__rail">
                         <Tabs
                             size="small"
+                            activeKey={railTab}
+                            onChange={setRailTab}
                             items={[
+                                ...(inspected
+                                    ? [
+                                          {
+                                              key: "block",
+                                              label: "Block",
+                                              children: (
+                                                  <BlockInspector
+                                                      inspected={inspected}
+                                                      onClose={() => {
+                                                          setInspected(null)
+                                                          setRailTab("settings")
+                                                      }}
+                                                  />
+                                              ),
+                                          },
+                                      ]
+                                    : []),
                                 {
                                     key: "settings",
                                     label: "Settings",
@@ -631,6 +698,53 @@ function RichEditorPageForId(props: { id: string }): React.ReactElement {
                 />
             </main>
         </AdminLayout>
+    )
+}
+
+/**
+ * The document title as an editable field at the top of the canvas. Saves on
+ * blur through the settings endpoint (same draft/revision mechanics as
+ * everything else).
+ */
+function InlineTitleField(props: {
+    gdocId: string
+    title: string
+    getBaseRevisionId: () => number | null
+    onSaved: (revisionId: number, title: string) => void
+}): React.ReactElement {
+    const { admin } = useContext(AdminAppContext)
+    const [value, setValue] = useState(props.title)
+
+    const save = async (): Promise<void> => {
+        const trimmed = value.trim()
+        if (!trimmed || trimmed === props.title) return
+        const response = await admin.rawRequest(
+            `/api/gdocs/${props.gdocId}/editorSettings`,
+            JSON.stringify({
+                settings: { title: trimmed },
+                baseRevisionId: props.getBaseRevisionId(),
+            }),
+            "PUT"
+        )
+        if (response.ok) {
+            const saved = (await response.json()) as RichEditorSaveBodyResponse
+            props.onSaved(saved.revisionId, trimmed)
+        }
+    }
+
+    return (
+        <Input.TextArea
+            className="rich-editor-page__inline-title"
+            autoSize
+            variant="borderless"
+            value={value}
+            onChange={(event) => setValue(event.target.value)}
+            onBlur={() => void save()}
+            onPressEnter={(event) => {
+                event.preventDefault()
+                event.currentTarget.blur()
+            }}
+        />
     )
 }
 

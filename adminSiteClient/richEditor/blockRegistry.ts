@@ -156,6 +156,216 @@ export const richEditorBlockItems: RichEditorBlockItem[] = [
     },
 ]
 
+function makeTwoColumnCommand(nodeType: string) {
+    return ({ editor, range }: { editor: Editor; range?: Range }): void => {
+        deleteRangeIfAny(editor, range)
+        editor
+            .chain()
+            .focus()
+            .insertContent({
+                type: nodeType,
+                content: [
+                    {
+                        type: pmNodeNames.layoutColumn,
+                        attrs: { side: "left" },
+                        content: [{ type: pmNodeNames.paragraph }],
+                    },
+                    {
+                        type: pmNodeNames.layoutColumn,
+                        attrs: { side: "right" },
+                        content: [{ type: pmNodeNames.paragraph }],
+                    },
+                ],
+            })
+            .run()
+    }
+}
+
+function makePropsAtomCommand(
+    nodeType: string,
+    defaultProps: Record<string, unknown>
+) {
+    return ({ editor, range }: { editor: Editor; range?: Range }): void => {
+        deleteRangeIfAny(editor, range)
+        editor
+            .chain()
+            .focus()
+            .insertContent({
+                type: nodeType,
+                attrs: { props: structuredClone(defaultProps) },
+            })
+            .run()
+    }
+}
+
+richEditorBlockItems.push(
+    {
+        key: "chart",
+        docTypes: ARTICLE_LIKE_TYPES,
+        title: "Chart",
+        description: "Embed a Grapher chart",
+        glyph: "📈",
+        keywords: ["chart", "grapher", "graph", "figure", "data"],
+        command: makePropsAtomCommand(pmNodeNames.chart, {
+            url: "",
+            size: "wide",
+        }),
+    },
+    {
+        key: "narrativeChart",
+        docTypes: ARTICLE_LIKE_TYPES,
+        title: "Narrative chart",
+        description: "Embed a narrative chart by name",
+        glyph: "📉",
+        keywords: ["narrative", "chart", "view"],
+        command: makePropsAtomCommand(pmNodeNames.narrativeChart, {
+            name: "",
+            size: "wide",
+        }),
+    },
+    {
+        key: "video",
+        docTypes: ARTICLE_LIKE_TYPES,
+        title: "Video",
+        description: "Embedded video",
+        glyph: "▶",
+        keywords: ["video", "mp4", "film"],
+        command: makePropsAtomCommand(pmNodeNames.video, {
+            url: "",
+            filename: "",
+            shouldLoop: false,
+            shouldAutoplay: false,
+        }),
+    },
+    {
+        key: "prominentLink",
+        docTypes: ARTICLE_LIKE_TYPES,
+        title: "Prominent link",
+        description: "Highlighted link card",
+        glyph: "🔗",
+        keywords: ["link", "prominent", "card", "related"],
+        command: makePropsAtomCommand(pmNodeNames.prominentLink, { url: "" }),
+    },
+    {
+        key: "pullQuote",
+        docTypes: ARTICLE_LIKE_TYPES,
+        title: "Pull quote",
+        description: "Large standalone quote",
+        glyph: "❞",
+        keywords: ["quote", "pull", "highlight"],
+        command: makePropsAtomCommand(pmNodeNames.pullQuote, {
+            quote: "",
+            align: "left",
+            content: [],
+        }),
+    },
+    {
+        key: "recirc",
+        docTypes: ARTICLE_LIKE_TYPES,
+        title: "Recirc",
+        description: "Related-content box",
+        glyph: "↻",
+        keywords: ["recirc", "related", "links"],
+        command: makePropsAtomCommand(pmNodeNames.recirc, {
+            title: "Related content",
+            links: [],
+        }),
+    },
+    {
+        key: "allCharts",
+        docTypes: ARTICLE_LIKE_TYPES,
+        title: "All charts",
+        description: "All charts for this topic",
+        glyph: "▤",
+        keywords: ["all charts", "topic"],
+        command: makePropsAtomCommand(pmNodeNames.allCharts, {
+            heading: "",
+            top: [],
+        }),
+    },
+    {
+        key: "aside",
+        docTypes: ARTICLE_LIKE_TYPES,
+        title: "Aside",
+        description: "Margin note next to the text",
+        glyph: "¶",
+        keywords: ["aside", "margin", "note"],
+        command: ({ editor, range }) => {
+            deleteRangeIfAny(editor, range)
+            editor
+                .chain()
+                .focus()
+                .insertContent({ type: pmNodeNames.aside })
+                .run()
+        },
+    },
+    {
+        key: "graySection",
+        docTypes: ARTICLE_LIKE_TYPES,
+        title: "Gray section",
+        description: "Shaded full-width section",
+        glyph: "▦",
+        keywords: ["gray", "grey", "section", "background"],
+        command: ({ editor, range }) => {
+            deleteRangeIfAny(editor, range)
+            editor
+                .chain()
+                .focus()
+                .insertContent({
+                    type: pmNodeNames.graySection,
+                    content: [{ type: pmNodeNames.paragraph }],
+                })
+                .run()
+        },
+    },
+    {
+        key: "expandableParagraph",
+        docTypes: ARTICLE_LIKE_TYPES,
+        title: "Expandable paragraph",
+        description: "Collapsed section the reader can expand",
+        glyph: "⌄",
+        keywords: ["expandable", "collapse", "details"],
+        command: ({ editor, range }) => {
+            deleteRangeIfAny(editor, range)
+            editor
+                .chain()
+                .focus()
+                .insertContent({
+                    type: pmNodeNames.expandableParagraph,
+                    content: [{ type: pmNodeNames.paragraph }],
+                })
+                .run()
+        },
+    },
+    {
+        key: "stickyRight",
+        docTypes: ARTICLE_LIKE_TYPES,
+        title: "Sticky right",
+        description: "Text left, sticky chart column right",
+        glyph: "◨",
+        keywords: ["sticky", "right", "columns", "layout"],
+        command: makeTwoColumnCommand(pmNodeNames.stickyRight),
+    },
+    {
+        key: "stickyLeft",
+        docTypes: ARTICLE_LIKE_TYPES,
+        title: "Sticky left",
+        description: "Sticky column left, text right",
+        glyph: "◧",
+        keywords: ["sticky", "left", "columns", "layout"],
+        command: makeTwoColumnCommand(pmNodeNames.stickyLeft),
+    },
+    {
+        key: "sideBySide",
+        docTypes: ARTICLE_LIKE_TYPES,
+        title: "Side by side",
+        description: "Two equal columns",
+        glyph: "◫",
+        keywords: ["side by side", "columns", "layout"],
+        command: makeTwoColumnCommand(pmNodeNames.sideBySide),
+    }
+)
+
 export function getBlockItemsForDocType(
     docType: OwidGdocType | undefined
 ): RichEditorBlockItem[] {
