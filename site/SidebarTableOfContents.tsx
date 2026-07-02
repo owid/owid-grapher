@@ -20,6 +20,7 @@ import {
 import { TocHeadingWithSupertitle } from "@ourworldindata/utils"
 import { SearchResultType } from "@ourworldindata/types"
 import { useDocumentContext } from "./gdocs/DocumentContext.js"
+import { useIsScrolling } from "./hooks.js"
 import { buildSearchHrefForCard } from "./search/searchState.js"
 import { useKeepActiveTocRowInView } from "./useKeepActiveTocRowInView.js"
 import { useTocScrollSpy } from "./useTocScrollSpy.js"
@@ -30,6 +31,11 @@ import { useWideBlockInView } from "./useWideBlockInView.js"
 const SIDEBAR_TOC_SM = 1200
 
 const SIDEBAR_TOC_CONTENT_ID = "sidebar-toc-content"
+
+// Idle gap that counts as "finished scrolling", after which the sidebar
+// re-evaluates whether to show. Mirrors REVEAL_DEBOUNCE_MS in
+// useWideBlockInView.ts.
+const SCROLL_IDLE_MS = 150
 
 // Scroll-spy state threaded through the section/subheading tree.
 interface TocNavProps {
@@ -108,20 +114,18 @@ export const SidebarTableOfContents = ({
         }
     }, [activeId])
 
-    // Desktop-only; the user's expand/collapse preference (expanded by default).
-    const [prefersExpanded, setPrefersExpanded] = useState(true)
-    // One-shot override: the user expanded the sidebar over the wide block(s)
-    // currently in view. Cleared once no wide block is in view, so the next
-    // wide-block encounter auto-collapses the sidebar again.
-    const [isForcedExpanded, setIsForcedExpanded] = useState(false)
-    useEffect(() => {
-        if (!isWideBlockInView) setIsForcedExpanded(false)
-    }, [isWideBlockInView])
+    // Desktop-only. Collapsed on first render to match the baked HTML, then
+    // the effect resolves it once scrolling settles — expanded unless
+    // dismissed via the toggle or a full-width block overlaps — leaving it
+    // untouched mid-scroll so it doesn't flip as blocks pass by.
+    const isScrolling = useIsScrolling(SCROLL_IDLE_MS)
+    const [isSidebarExpanded, setIsSidebarExpanded] = useState(false)
+    const isDismissedRef = useRef(false)
 
-    // Collapsed on page load (isWideBlockInView defaults to true), then opens
-    // once the client confirms no wide block overlaps.
-    const isSidebarExpanded =
-        prefersExpanded && (!isWideBlockInView || isForcedExpanded)
+    useEffect(() => {
+        if (isScrolling) return
+        setIsSidebarExpanded(!isDismissedRef.current && !isWideBlockInView)
+    }, [isScrolling, isWideBlockInView])
 
     // Close the mobile drawer if the viewport grows to desktop (resize /
     // rotate / zoom) so it isn't stranded over the sidebar.
@@ -151,14 +155,10 @@ export const SidebarTableOfContents = ({
                 <button
                     className="sidebar-toc__toggle"
                     onClick={() => {
-                        if (isSidebarExpanded) {
-                            setPrefersExpanded(false)
-                            setIsForcedExpanded(false)
-                        } else {
-                            setPrefersExpanded(true)
-                            // Expanding over a wide block sets the forced expanded state
-                            if (isWideBlockInView) setIsForcedExpanded(true)
-                        }
+                        // Collapsing dismisses (the settle re-evaluation
+                        // keeps it collapsed); expanding re-arms it.
+                        isDismissedRef.current = isSidebarExpanded
+                        setIsSidebarExpanded(!isSidebarExpanded)
                     }}
                     // Disclosure button: a stable noun-phrase name; aria-expanded
                     // carries the state. https://www.w3.org/WAI/ARIA/apg/patterns/disclosure/
