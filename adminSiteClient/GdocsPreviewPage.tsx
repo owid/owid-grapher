@@ -370,6 +370,20 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                     </Col>
                     <Col>
                         <Space>
+                            <Tippy
+                                content="Open this document in the in-admin rich editor. If it is still authored in Google Docs, you'll see a conversion report first."
+                                placement="bottom"
+                            >
+                                <Button
+                                    onClick={() =>
+                                        history.push(
+                                            `/gdocs/${currentGdoc.id}/edit`
+                                        )
+                                    }
+                                >
+                                    Rich editor (beta)
+                                </Button>
+                            </Tippy>
                             <GdocsSaveButtons
                                 published={currentGdoc.published}
                                 originalGdoc={originalGdoc}
