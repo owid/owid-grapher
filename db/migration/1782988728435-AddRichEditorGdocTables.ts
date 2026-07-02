@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class AddRichEditorGdocTables1782988728435
-    implements MigrationInterface
-{
+export class AddRichEditorGdocTables1782988728435 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         // Which pipeline authors a gdoc's body: "gdocs" (fetched from Google
         // Docs, the default) or "native" (edited in the admin rich editor,

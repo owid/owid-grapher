@@ -1,9 +1,6 @@
 import { Editor, Extension, Range } from "@tiptap/core"
 import Suggestion, { SuggestionProps } from "@tiptap/suggestion"
-import {
-    RichEditorBlockItem,
-    filterBlockItems,
-} from "./blockRegistry.js"
+import { RichEditorBlockItem, filterBlockItems } from "./blockRegistry.js"
 
 // "/" opens an inline block inserter at the caret. Rendered with plain DOM
 // (no popper dependency); keyboard navigation via up/down/enter/escape.
@@ -28,7 +25,10 @@ function executeItem(
     item.command({ editor, range, onRequestImage: options.onRequestImage })
 }
 
-function renderMenu(state: SlashMenuState, options: SlashCommandsOptions): void {
+function renderMenu(
+    state: SlashMenuState,
+    options: SlashCommandsOptions
+): void {
     const { element, items, selectedIndex, props } = state
     element.replaceChildren()
     if (items.length === 0) {

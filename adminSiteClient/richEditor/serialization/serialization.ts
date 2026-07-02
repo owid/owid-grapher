@@ -112,8 +112,7 @@ function pmInlineToRuns(nodes: PmNodeJson[] | undefined): SpanRun[] {
             const attrs = node.attrs ?? {}
             const span: SpanCallout = {
                 spanType: "span-callout",
-                functionName:
-                    attrs.functionName as SpanCallout["functionName"],
+                functionName: attrs.functionName as SpanCallout["functionName"],
                 parameters: structuredClone(
                     (attrs.parameters ?? []) as string[]
                 ),
@@ -374,6 +373,8 @@ export function enrichedBlocksToPmDoc(
 }
 
 /** Convert a ProseMirror document back to an enriched gdoc body. */
-export function pmDocToEnrichedBlocks(doc: PmNodeJson): OwidEnrichedGdocBlock[] {
+export function pmDocToEnrichedBlocks(
+    doc: PmNodeJson
+): OwidEnrichedGdocBlock[] {
     return (doc.content ?? []).map(pmNodeToEnrichedBlock)
 }
