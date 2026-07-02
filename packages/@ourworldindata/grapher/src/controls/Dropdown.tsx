@@ -21,6 +21,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { isTouchDevice } from "@ourworldindata/utils"
 
 export interface BasicDropdownOption {
+    id?: string
     value: string
     label: React.ReactNode
     trackNote?: string
@@ -82,6 +83,10 @@ function flattenOptions<DropdownOption extends BasicDropdownOption>(
     )
 }
 
+function getOptionKey(option: BasicDropdownOption): string {
+    return option.id ?? option.value
+}
+
 export function Dropdown<DropdownOption extends BasicDropdownOption>({
     className,
     // We use a separate prop for the menu's className because the Popover
@@ -113,7 +118,9 @@ export function Dropdown<DropdownOption extends BasicDropdownOption>({
         }
 
         if (typeof key === "number") return
-        const selected = flatOptions.find((option) => option.value === key)
+        const selected = flatOptions.find(
+            (option) => getOptionKey(option) === key
+        )
         if (selected) {
             onChange?.(selected)
         }
@@ -132,8 +139,8 @@ export function Dropdown<DropdownOption extends BasicDropdownOption>({
                         {item.options.map((option) => (
                             <ListBoxItem
                                 className="option"
-                                key={option.value}
-                                id={option.value}
+                                key={getOptionKey(option)}
+                                id={getOptionKey(option)}
                                 textValue={
                                     typeof option.label === "string"
                                         ? option.label
@@ -150,8 +157,8 @@ export function Dropdown<DropdownOption extends BasicDropdownOption>({
                 ) : (
                     <ListBoxItem
                         className="option"
-                        key={item.value}
-                        id={item.value}
+                        key={getOptionKey(item)}
+                        id={getOptionKey(item)}
                         textValue={
                             typeof item.label === "string"
                                 ? item.label
@@ -207,7 +214,7 @@ export function Dropdown<DropdownOption extends BasicDropdownOption>({
             className={cx("grapher-dropdown", className)}
             // null means no selection, undefined means the component is
             // uncontrolled, so we need to set it explicitly.
-            value={value?.value ?? null}
+            value={value ? getOptionKey(value) : null}
             onChange={handleSelectionChange}
             placeholder={placeholder}
             isDisabled={isDisabled}

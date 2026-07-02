@@ -183,7 +183,10 @@ function CountryDropdown({
         const groupedOptions = groupByUserLocation(
             optionsWithData,
             userCountryInfo,
-            includeAllCountries ? [ALL_COUNTRIES] : []
+            {
+                alwaysSuggested: includeAllCountries ? [ALL_COUNTRIES] : [],
+                selectedValue: country,
+            }
         )
 
         if (optionsWithoutData.length === 0) return groupedOptions
@@ -200,7 +203,14 @@ function CountryDropdown({
         }
 
         return [...groupedOptions, ...optionsWithoutData]
-    }, [countryNames, product, metadata, userCountryInfo, includeAllCountries])
+    }, [
+        countryNames,
+        product,
+        country,
+        metadata,
+        userCountryInfo,
+        includeAllCountries,
+    ])
 
     const noDataValues = useMemo(
         () =>

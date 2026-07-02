@@ -24,6 +24,7 @@ import { DemographyMetadata } from "../helpers/types.js"
 import { displayEntityName, entityNameForSentence } from "../helpers/utils.js"
 
 interface Option {
+    id?: string
     value: string
     label: string
 }
@@ -38,6 +39,12 @@ type OptionCollection = (Option | OptionGroup)[]
 function isGroup(item: Option | OptionGroup): item is OptionGroup {
     return "options" in item
 }
+
+function flattenOptions(collection: OptionCollection): Option[] {
+    return collection.flatMap((item) => (isGroup(item) ? item.options : [item]))
+}
+
+const optionId = (option: Option): string => option.id ?? option.value
 
 export function InlineEntitySelector({
     metadata,
@@ -100,8 +107,33 @@ function EntityListBox({
             value: name,
             label: displayEntityName(name),
         }))
-        return groupByUserLocation(flat, userCountryInfo) as OptionCollection
-    }, [availableCountries, userCountryInfo])
+        return groupByUserLocation(flat, userCountryInfo, {
+            selectedValue: selectedEntityName,
+        }) as OptionCollection
+    }, [availableCountries, userCountryInfo, selectedEntityName])
+
+    // The selected entity may carry a synthetic id (in the "Suggested"
+    // group), so resolve its collection id rather than assuming `value`.
+    const selectedKey = useMemo(() => {
+        const match = flattenOptions(options).find(
+            (option) => option.value === selectedEntityName
+        )
+        return match ? optionId(match) : selectedEntityName
+    }, [options, selectedEntityName])
+
+    const handleSelectionChange = useCallback(
+        (key: Key | null) => {
+            if (key === null) {
+                onSelectionChange(null)
+                return
+            }
+            const match = flattenOptions(options).find(
+                (option) => optionId(option) === key
+            )
+            onSelectionChange(match ? match.value : key)
+        },
+        [options, onSelectionChange]
+    )
 
     return (
         <Autocomplete filter={contains}>
@@ -122,14 +154,12 @@ function EntityListBox({
             <ListBox
                 className="grapher-dropdown-listbox"
                 selectedKeys={
-                    selectedEntityName
-                        ? new Set([selectedEntityName])
-                        : new Set()
+                    selectedEntityName ? new Set([selectedKey]) : new Set()
                 }
                 selectionMode="single"
                 onSelectionChange={(keys) => {
                     const key = [...keys][0]
-                    onSelectionChange(key ?? null)
+                    handleSelectionChange(key ?? null)
                 }}
             >
                 {options.map((item, index) =>
@@ -145,8 +175,8 @@ function EntityListBox({
                             {item.options.map((option) => (
                                 <ListBoxItem
                                     className="option"
-                                    key={option.value}
-                                    id={option.value}
+                                    key={optionId(option)}
+                                    id={optionId(option)}
                                     textValue={option.label}
                                 >
                                     {option.label}
@@ -156,8 +186,8 @@ function EntityListBox({
                     ) : (
                         <ListBoxItem
                             className="option"
-                            key={item.value}
-                            id={item.value}
+                            key={optionId(item)}
+                            id={optionId(item)}
                             textValue={item.label}
                         >
                             {item.label}
