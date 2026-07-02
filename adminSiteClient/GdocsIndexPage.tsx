@@ -306,23 +306,23 @@ export class GdocsIndexPage extends React.Component<RouteComponentProps> {
                                 className="btn btn-secondary"
                                 onClick={() =>
                                     this.props.history.push(
-                                        `${this.props.match.path}/new/edit`
-                                    )
-                                }
-                            >
-                                <FontAwesomeIcon icon={faCirclePlus} /> New
-                                native draft (beta)
-                            </button>
-                            <button
-                                className="btn btn-primary"
-                                onClick={() =>
-                                    this.props.history.push(
                                         `${this.props.match.path}/add`
                                     )
                                 }
                             >
                                 <FontAwesomeIcon icon={faCirclePlus} /> Add
-                                document
+                                Google Doc
+                            </button>
+                            <button
+                                className="btn btn-primary"
+                                onClick={() =>
+                                    this.props.history.push(
+                                        `${this.props.match.path}/new/edit`
+                                    )
+                                }
+                            >
+                                <FontAwesomeIcon icon={faCirclePlus} /> New data
+                                insight
                             </button>
                         </div>
                     </div>
