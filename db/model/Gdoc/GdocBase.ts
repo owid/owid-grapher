@@ -876,7 +876,6 @@ export class GdocBase implements OwidGdocBaseInterface {
                         "donors",
                         "expandable-paragraph",
                         "expander",
-                        "entry-summary",
                         "gray-section",
                         "explore-data-section",
                         "heading",

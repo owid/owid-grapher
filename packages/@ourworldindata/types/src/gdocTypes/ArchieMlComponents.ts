@@ -58,10 +58,6 @@ import type {
     RawBlockDonorList,
 } from "./archieMLComponents/DonorList.js"
 import type {
-    EnrichedBlockEntrySummary,
-    RawBlockEntrySummary,
-} from "./archieMLComponents/EntrySummary.js"
-import type {
     EnrichedBlockExpandableParagraph,
     RawBlockExpandableParagraph,
 } from "./archieMLComponents/ExpandableParagraph.js"
@@ -293,7 +289,6 @@ export type OwidRawGdocBlock =
     | RawBlockTopicPageIntro
     | RawBlockKeyInsights
     | RawBlockAlign
-    | RawBlockEntrySummary
     | RawBlockTable
     | RawBlockBlockquote
     | RawBlockKeyIndicator
@@ -361,7 +356,6 @@ export type OwidEnrichedGdocBlock =
     | EnrichedBlockKeyInsights
     | EnrichedBlockResearchAndWriting
     | EnrichedBlockAlign
-    | EnrichedBlockEntrySummary
     | EnrichedBlockTable
     | EnrichedBlockBlockquote
     | EnrichedBlockKeyIndicator
@@ -419,7 +413,6 @@ export type * from "./archieMLComponents/Cta.js"
 export type * from "./archieMLComponents/CountryProfileSelector.js"
 export type * from "./archieMLComponents/DataCallout.js"
 export type * from "./archieMLComponents/DonorList.js"
-export type * from "./archieMLComponents/EntrySummary.js"
 export type * from "./archieMLComponents/ExpandableParagraph.js"
 export type * from "./archieMLComponents/Expander.js"
 export type * from "./archieMLComponents/ExplorerTiles.js"

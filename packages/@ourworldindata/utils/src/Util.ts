@@ -43,7 +43,7 @@ import {
     OwidGdocHomepageInterface,
     PrimitiveType,
     GrapherTrendArrowDirection,
-    TocHeadingWithTitleSupertitle,
+    TocHeadingWithSupertitle,
     ALL_CHARTS_ID,
     FEATURED_DATA_INSIGHTS_ID,
     EXPLORE_DATA_SECTION_DEFAULT_TITLE,
@@ -1101,15 +1101,6 @@ export const findDOMParent = (
     return null
 }
 
-export const wrapInDiv = (el: Element, classes?: string[]): Element => {
-    if (!el.parentNode) return el
-    const wrapper = document.createElement("div")
-    if (classes) wrapper.classList.add(...classes)
-    el.parentNode.insertBefore(wrapper, el)
-    wrapper.appendChild(el)
-    return wrapper
-}
-
 export const textAnchorFromAlign = (
     align: HorizontalAlign
 ): "start" | "middle" | "end" => {
@@ -1810,7 +1801,6 @@ export function traverseEnrichedBlock(
                     "ltp-toc",
                     "topic-page-intro",
                     "all-charts",
-                    "entry-summary",
                     "explorer-tiles",
                     "pill-row",
                     "homepage-search",
@@ -1865,17 +1855,15 @@ export function spansToUnformattedPlainText(spans: Span[]): string {
 
 export function generateToc(
     body: OwidEnrichedGdocBlock[] | undefined,
-    isTocForLinearTopicPage: boolean = false
-): TocHeadingWithTitleSupertitle[] {
+    isTocForSidebar: boolean = false
+): TocHeadingWithSupertitle[] {
     if (!body) return []
 
-    // For linear topic pages, we record only h1s
+    // For linear topic pages, we record h1s and h2s
     // For the sdg-toc, we record h2s & h3s (as it was developed before we decided to use h1s as our top level heading)
     // It would be nice to standardise this but it would require a migration, updating CSS, updating Gdocs, etc.
-    const [primary, secondary] = isTocForLinearTopicPage
-        ? [1, undefined]
-        : [2, 3]
-    const toc: TocHeadingWithTitleSupertitle[] = []
+    const [primary, secondary] = isTocForSidebar ? [1, undefined] : [2, 3]
+    const toc: TocHeadingWithSupertitle[] = []
 
     body.forEach((block) =>
         traverseEnrichedBlock(block, (child) => {
@@ -1889,18 +1877,16 @@ export function generateToc(
                     toc.push({
                         title: titleString,
                         supertitle: supertitleString,
-                        text: titleString,
                         slug: urlSlug(`${supertitleString} ${titleString}`),
                         isSubheading: level === secondary,
                     })
                 }
             }
-            if (!isTocForLinearTopicPage) return
+            if (!isTocForSidebar) return
 
             if (child.type === "all-charts") {
                 toc.push({
                     title: child.heading,
-                    text: child.heading,
                     slug: ALL_CHARTS_ID,
                     isSubheading: false,
                 })
@@ -1911,7 +1897,6 @@ export function generateToc(
                 const title = "Data insights"
                 toc.push({
                     title,
-                    text: title,
                     slug: FEATURED_DATA_INSIGHTS_ID,
                     isSubheading: false,
                 })
@@ -1922,7 +1907,6 @@ export function generateToc(
                 const title = child.title || EXPLORE_DATA_SECTION_DEFAULT_TITLE
                 toc.push({
                     title,
-                    text: title,
                     slug: EXPLORE_DATA_SECTION_ID,
                     isSubheading: false,
                 })

@@ -15,7 +15,7 @@ import { Byline } from "../components/Byline.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faBook } from "@fortawesome/free-solid-svg-icons"
 import { faCreativeCommons } from "@fortawesome/free-brands-svg-icons"
-import { TableOfContents } from "../../TableOfContents.js"
+import { SidebarTableOfContents } from "../../SidebarTableOfContents.js"
 
 type ProfileProps = Omit<
     OwidGdocProfileInterface,
@@ -92,7 +92,7 @@ export function Profile({ content, publishedAt, slug }: ProfileProps) {
                 </div>
             </header>
             {hasSidebarToc && content.toc ? (
-                <TableOfContents
+                <SidebarTableOfContents
                     headings={content.toc}
                     headingLevels={{ primary: 1, secondary: 2 }}
                     pageTitle={content.title || ""}

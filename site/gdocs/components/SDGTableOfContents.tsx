@@ -1,27 +1,27 @@
-import { TocHeadingWithTitleSupertitle } from "@ourworldindata/utils"
+import { TocHeadingWithSupertitle } from "@ourworldindata/utils"
 import { faArrowDown, faPlus, faMinus } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import cx from "clsx"
 
-export default function TableOfContents({
+export default function SDGTableOfContents({
     toc,
     className = "",
     title,
 }: {
-    toc: TocHeadingWithTitleSupertitle[]
+    toc: TocHeadingWithSupertitle[]
     className?: string
     title: string
 }) {
     return (
-        <div className={cx(className, "toc")}>
-            <details className="toc-details-wrapper span-cols-6 span-md-cols-8 span-sm-cols-10">
+        <nav className={cx(className, "sdg-toc")}>
+            <details className="sdg-toc__details-wrapper span-cols-6 span-md-cols-8 span-sm-cols-10">
                 <summary
-                    className="toc-toggle"
+                    className="sdg-toc__toggle"
                     aria-label="Toggle table of contents"
                     data-track-note="toc_toggle"
                 >
                     <span>{title}</span>
-                    <span className="toc-toggle-icon">
+                    <span className="sdg-toc__toggle-icon">
                         <FontAwesomeIcon
                             className="icon-closed"
                             icon={faPlus}
@@ -29,12 +29,8 @@ export default function TableOfContents({
                         <FontAwesomeIcon className="icon-open" icon={faMinus} />
                     </span>
                 </summary>
-                <div className="toc-content">
-                    <ul
-                        id="toc-menu"
-                        role="menu"
-                        aria-labelledby="toc-menu-button"
-                    >
+                <div className="sdg-toc__content">
+                    <ul>
                         {toc.map(
                             (
                                 { title, supertitle, isSubheading, slug },
@@ -49,7 +45,6 @@ export default function TableOfContents({
                                     <a
                                         href={`#${slug}`}
                                         data-track-note="toc_link"
-                                        role="menuitem"
                                     >
                                         {supertitle ? (
                                             <span className="supertitle">
@@ -67,6 +62,6 @@ export default function TableOfContents({
                     </ul>
                 </div>
             </details>
-        </div>
+        </nav>
     )
 }
