@@ -36,7 +36,11 @@ import { GdocsAdd } from "./GdocsAdd.js"
 import { observer } from "mobx-react"
 import { GdocsStoreContext } from "./GdocsStoreContext.js"
 import { action, computed, observable, makeObservable } from "mobx"
-import { BAKED_BASE_URL } from "../settings/clientSettings.js"
+import {
+    BAKED_BASE_URL,
+    FEATURE_FLAGS,
+    Features,
+} from "../settings/clientSettings.js"
 import { GdocsEditLink } from "./GdocsEditLink.js"
 import { getTagGraphRolesById } from "./TagGraphMetadata.js"
 
@@ -476,6 +480,19 @@ class GdocsIndexPageContent extends React.Component<GdocsIndexPageContentProps> 
                                 <FontAwesomeIcon icon={faQuestion} /> Open
                                 documentation
                             </a>
+                            {FEATURE_FLAGS.has(Features.RichEditor) && (
+                                <button
+                                    className="btn btn-secondary"
+                                    onClick={() =>
+                                        this.props.history.push(
+                                            `${this.props.match.path}/new/edit`
+                                        )
+                                    }
+                                >
+                                    <FontAwesomeIcon icon={faCirclePlus} /> New
+                                    native draft (beta)
+                                </button>
+                            )}
                             <button
                                 className="btn btn-primary"
                                 onClick={() =>
