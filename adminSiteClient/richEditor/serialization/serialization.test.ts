@@ -146,9 +146,7 @@ describe("span runs", () => {
                 children: [
                     {
                         spanType: "span-bold",
-                        children: [
-                            { spanType: "span-simple-text", text: "a" },
-                        ],
+                        children: [{ spanType: "span-simple-text", text: "a" }],
                     },
                     { spanType: "span-simple-text", text: "b" },
                 ],

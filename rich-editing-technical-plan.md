@@ -25,16 +25,16 @@ The investigation surfaced a very favorable starting position:
 
 ### Component usage (published docs, 2026-07 metadata)
 
-| Rank | Type | Instances | Docs | | Rank | Type | Instances | Docs |
-|---|---|---|---|---|---|---|---|---|
-| 1 | text | 30,065 | 1,115 | | 9 | side-by-side | 202 | 82 |
-| 2 | heading | 4,847 | 547 | | 10 | cta | 197 | 177 |
-| 3 | chart | 2,028 | 390 | | 11 | all-charts | 108 | 108 |
-| 4 | image | 1,302 | 816 | | 12 | aside | 91 | 55 |
-| 5 | list | 690 | 237 | | 13 | chart-story | 87 | 16 |
-| 6 | prominent-link | 675 | 222 | | 14 | research-and-writing | 75 | 70 |
-| 7 | callout | 420 | 247 | | 15 | narrative-chart | 54 | 29 |
-| 8 | sticky-right | 404 | 81 | | | _~40 more types_ | <75 each | |
+| Rank | Type           | Instances | Docs  |     | Rank | Type                 | Instances | Docs |
+| ---- | -------------- | --------- | ----- | --- | ---- | -------------------- | --------- | ---- |
+| 1    | text           | 30,065    | 1,115 |     | 9    | side-by-side         | 202       | 82   |
+| 2    | heading        | 4,847     | 547   |     | 10   | cta                  | 197       | 177  |
+| 3    | chart          | 2,028     | 390   |     | 11   | all-charts           | 108       | 108  |
+| 4    | image          | 1,302     | 816   |     | 12   | aside                | 91        | 55   |
+| 5    | list           | 690       | 237   |     | 13   | chart-story          | 87        | 16   |
+| 6    | prominent-link | 675       | 222   |     | 14   | research-and-writing | 75        | 70   |
+| 7    | callout        | 420       | 247   |     | 15   | narrative-chart      | 54        | 29   |
+| 8    | sticky-right   | 404       | 81    |     |      | _~40 more types_     | <75 each  |      |
 
 Doc volumes: 495 articles, 435 data insights, 68 announcements, 64 topic pages, 64 linear topic pages, 18 fragments, 16 authors, 8 about pages. Data insights use almost exclusively `text` (2,255), `image` (434), `cta` (105) — ideal pilot surface. The top 8 block types cover ~95% of all instances.
 
@@ -68,7 +68,7 @@ Doc volumes: 495 articles, 435 data insights, 68 announcements, 64 topic pages, 
    posts_gdocs_comments / _comment_threads                    [new]
 ```
 
-The baker, site, search indexing, and derived tables (`posts_gdocs_components`, `_links`, `_x_images`) keep consuming `posts_gdocs.content` exactly as today — the editor is a new *producer* of that JSON, sitting beside the gdocs ingestion path rather than replacing it wholesale.
+The baker, site, search indexing, and derived tables (`posts_gdocs_components`, `_links`, `_x_images`) keep consuming `posts_gdocs.content` exactly as today — the editor is a new _producer_ of that JSON, sitting beside the gdocs ingestion path rather than replacing it wholesale.
 
 ---
 
@@ -81,16 +81,16 @@ The single most important engineering artifact is a **lossless bidirectional map
 Three categories of blocks:
 
 1. **Flow content — native PM nodes** (typed and edited directly in contenteditable):
-   - `text` → `paragraph`; `heading` → `heading` (with `supertitle` as node attr); `list`/`numbered-list` → PM list nodes; `blockquote`, `pull-quote`, `callout`, `aside`, `code`, `horizontal-rule`, `simple-text` → corresponding nodes.
-   - Spans → PM marks/inline nodes: `span-bold/italic/underline/subscript/superscript/quote` → marks; `span-link` → link mark; `span-ref` (footnote) → inline atom node referencing the doc's refs map; `span-dod` → mark with `id` attr; `span-callout` → inline atom node (live data value); `span-newline` → hard break.
+    - `text` → `paragraph`; `heading` → `heading` (with `supertitle` as node attr); `list`/`numbered-list` → PM list nodes; `blockquote`, `pull-quote`, `callout`, `aside`, `code`, `horizontal-rule`, `simple-text` → corresponding nodes.
+    - Spans → PM marks/inline nodes: `span-bold/italic/underline/subscript/superscript/quote` → marks; `span-link` → link mark; `span-ref` (footnote) → inline atom node referencing the doc's refs map; `span-dod` → mark with `id` attr; `span-callout` → inline atom node (live data value); `span-newline` → hard break.
 
 2. **Atom blocks — React NodeViews** (selectable/draggable units, not text-editable; edited via inspector UI):
-   - `chart`, `narrative-chart`, `image`, `video`, `prominent-link`, `cta`, `all-charts`, `research-and-writing`, `recirc`, `table`, `chart-story`, `key-insights`, `topic-page-intro`, `additional-charts`, `guided-chart`, `static-viz`, `bespoke-component`, etc.
-   - Each is a PM `atom` node whose attrs are the enriched block's props verbatim. The NodeView renders the **existing site component** (from `site/gdocs/components/`) in preview mode, wrapped in an edit chrome (hover toolbar: cogwheel → inspector, drag handle, duplicate, delete).
-   - `html` blocks render sandboxed (iframe or inert) in the canvas with a source-editing inspector (CodeMirror is already in the tree).
+    - `chart`, `narrative-chart`, `image`, `video`, `prominent-link`, `cta`, `all-charts`, `research-and-writing`, `recirc`, `table`, `chart-story`, `key-insights`, `topic-page-intro`, `additional-charts`, `guided-chart`, `static-viz`, `bespoke-component`, etc.
+    - Each is a PM `atom` node whose attrs are the enriched block's props verbatim. The NodeView renders the **existing site component** (from `site/gdocs/components/`) in preview mode, wrapped in an edit chrome (hover toolbar: cogwheel → inspector, drag handle, duplicate, delete).
+    - `html` blocks render sandboxed (iframe or inert) in the canvas with a source-editing inspector (CodeMirror is already in the tree).
 
 3. **Container blocks — PM nodes with content holes**:
-   - `sticky-right`/`sticky-left` (left/right), `side-by-side`, `gray-section`, `expander`, `expandable-paragraph`, `align`, `explore-data-section` → nodes with one or two child content areas that accept flow + atom nodes. Rendered with the real layout CSS so authors see actual column behavior, plus dashed drop-zone affordances.
+    - `sticky-right`/`sticky-left` (left/right), `side-by-side`, `gray-section`, `expander`, `expandable-paragraph`, `align`, `explore-data-section` → nodes with one or two child content areas that accept flow + atom nodes. Rendered with the real layout CSS so authors see actual column behavior, plus dashed drop-zone affordances.
 
 ### 3.2 Fidelity harness (build first)
 
@@ -122,7 +122,7 @@ One PM schema, parameterized by doc type: the schema's top-level content express
 
 - `posts_gdocs` gains `authoringMode ENUM('gdocs','native') NOT NULL DEFAULT 'gdocs'` (migration). Native docs get generated ids (e.g. `nd_<nanoid>` or UUID — must not collide with Google doc id shape; several code paths regex-match gdoc ids, audit those).
 - **`posts_gdocs.content` remains the published/live content** for published docs — this keeps the baker, site, search, and derived-table pipelines untouched.
-- New table `posts_gdocs_drafts`: `(gdocId PK/FK, content JSON, updatedAt, updatedBy, baseRevisionId)` — the working copy the editor loads and saves. For unpublished native docs the draft *is* the doc.
+- New table `posts_gdocs_drafts`: `(gdocId PK/FK, content JSON, updatedAt, updatedBy, baseRevisionId)` — the working copy the editor loads and saves. For unpublished native docs the draft _is_ the doc.
 - New table `posts_gdocs_revisions`: `(id, gdocId, content JSON, createdAt, createdBy, kind ENUM('autosave','manual','publish'), label NULL)` — append-only. Autosaves are pruned (keep last N + daily snapshots); `publish` revisions are kept forever. This gives us history/restore, which today authors get from Google Docs revision history — we must not regress it.
 
 ### 4.2 Save & publish flow
@@ -157,6 +157,7 @@ We do **not** run a sync server in v1. To keep the door open for real-time and a
 New endpoint `POST /api/editor/resolve-references` accepting `{chartSlugs?, narrativeChartNames?, filenames?, gdocIds?, indicatorIds?, staticVizNames?}` and returning the corresponding slices of the `Attachments` shape (`site/gdocs/AttachmentsContext.ts`). Implementation reuses/extracts the loaders from `GdocBase.loadState` (`loadLinkedCharts`, `loadImageMetadataFromDB`, `loadNarrativeChartsInfo`, …), **batched** (fixing the N+1 at `GdocBase.ts:744` — a win the SSR path inherits too).
 
 Client-side: a react-query-backed `EditorAttachmentsStore` that
+
 - extracts references from the PM doc (same logic as the enriched-side `GdocBase` link extraction, ported to run over PM nodes),
 - fetches missing ones on doc load and on block insert/edit (e.g. author picks a chart in the inspector → resolve → NodeView rerenders),
 - feeds `AttachmentsContext` so site components work unmodified.
@@ -227,6 +228,7 @@ Not built in v1, but v1 choices should make it cheap:
 ## 10. Milestones
 
 **M0 — Foundation (no user-facing ship)**
+
 - PM schema + `enrichedToPm`/`pmToEnriched` for: text (all common spans), heading, list, numbered-list, image, cta, horizontal-rule, blockquote, callout.
 - Corpus round-trip harness (CI + devTools script against DB snapshot); opaque-passthrough raw block.
 - `authoringMode` migration; `posts_gdocs_drafts` + `posts_gdocs_revisions`; body save endpoint with validation + 409s.
@@ -235,12 +237,14 @@ Not built in v1, but v1 choices should make it cheap:
 - Exit criterion: an engineer can create, edit, save, and restore a native test doc; round-trip green on 100% of published data insights and ≥95% of all published docs.
 
 **M1 — Data insights GA**
+
 - DI-specific: doc-type schema (text/image/cta), DI settings form integration, image reupload flow, publish → bake path, DI feed correctness.
 - Comments v1 (range + block threads, resolve, orphan handling), presence banner, revision history UI (list, view, restore).
 - "Convert to native" for DIs + conversion report; new-DI flow defaults to native.
 - Exit criterion: authors write real data insights natively end-to-end; new DIs no longer created in gdocs.
 
 **M2 — Articles beta**
+
 - Remaining top blocks as first-class: chart (live Grapher NodeView + chart picker + lazy hydration), prominent-link, sticky-right/left, side-by-side, gray-section, aside, pull-quote, expandable-paragraph, table, recirc, research-and-writing, all-charts, narrative-chart, video.
 - Refs/footnotes editing, DoD span UI, title/subtitle/excerpt inline fields.
 - Cogwheel Stage A (inspector + embed options).
@@ -248,27 +252,30 @@ Not built in v1, but v1 choices should make it cheap:
 - Exit criterion: several real articles authored/edited natively, including at least one with sticky-right layout and 10+ charts, with acceptable canvas performance.
 
 **M3 — In-situ chart editing**
+
 - Chart-editor engine extraction (`embedded` mode); "Customize this chart" → narrative chart creation + overlay editing (Stage B).
 
 **M4 — AI side panel** (separate detailed plan when we get there)
+
 - Command layer hardening, chat rail, Claude API proxy, suggestion/track-changes mode.
 
 **M5+ — Real-time & long tail**
+
 - Yjs adoption (sync server, live cursors, agent collaborators); topic pages / linear topic pages / remaining doc types; retire gdocs ingestion for migrated types.
 
 ---
 
 ## 11. Risks & mitigations
 
-| Risk | Mitigation |
-|---|---|
-| Round-trip infidelity corrupts content | Corpus harness in CI from M0; opaque-passthrough for anything not proven; publish revisions are immutable, restore always possible. |
-| Site CSS vs admin CSS conflicts in canvas | Early spike; scoped canvas stylesheet; worst case, canvas in a same-origin iframe with a postMessage bridge (last resort — breaks the NodeView model, avoid). |
-| Canvas performance with many live charts | Thumbnail-until-visible/focused hydration; virtualized rendering if needed; measured against the heaviest real articles in M2 exit criteria. |
-| Comment anchors drift/orphan | Mark-based anchors + explicit orphaned state; never silently drop a thread. |
-| Two authoring pipelines forever | Per-doc-type "default to native" switches + adoption dashboards; explicit retirement criterion per doc type; keep migration one-way so the set only grows. |
-| Team adoption / fluency regression vs gdocs | DIs first (small blast radius); paste-from-gdocs quality bar; revision history at parity before pushing conversion; authors involved from M1 beta. |
-| Native doc ids break gdoc-id assumptions | Audit id-shape assumptions in M0 (link resolution, `gdocIdRegex`-style checks, preview routes). |
+| Risk                                        | Mitigation                                                                                                                                                    |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Round-trip infidelity corrupts content      | Corpus harness in CI from M0; opaque-passthrough for anything not proven; publish revisions are immutable, restore always possible.                           |
+| Site CSS vs admin CSS conflicts in canvas   | Early spike; scoped canvas stylesheet; worst case, canvas in a same-origin iframe with a postMessage bridge (last resort — breaks the NodeView model, avoid). |
+| Canvas performance with many live charts    | Thumbnail-until-visible/focused hydration; virtualized rendering if needed; measured against the heaviest real articles in M2 exit criteria.                  |
+| Comment anchors drift/orphan                | Mark-based anchors + explicit orphaned state; never silently drop a thread.                                                                                   |
+| Two authoring pipelines forever             | Per-doc-type "default to native" switches + adoption dashboards; explicit retirement criterion per doc type; keep migration one-way so the set only grows.    |
+| Team adoption / fluency regression vs gdocs | DIs first (small blast radius); paste-from-gdocs quality bar; revision history at parity before pushing conversion; authors involved from M1 beta.            |
+| Native doc ids break gdoc-id assumptions    | Audit id-shape assumptions in M0 (link resolution, `gdocIdRegex`-style checks, preview routes).                                                               |
 
 ---
 

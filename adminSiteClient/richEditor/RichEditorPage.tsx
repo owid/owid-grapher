@@ -153,7 +153,8 @@ function RichEditorPageForId(props: { id: string }): React.ReactElement {
                     })
                     return
                 }
-                const saved = (await response.json()) as RichEditorSaveBodyResponse
+                const saved =
+                    (await response.json()) as RichEditorSaveBodyResponse
                 baseRevisionIdRef.current = saved.revisionId
                 setSaveState({ kind: "saved", at: new Date() })
                 await queryClient.invalidateQueries({
@@ -350,7 +351,11 @@ function SaveStatus(props: { state: SaveState }): React.ReactElement {
                 </Typography.Text>
             )
         case "dirty":
-            return <Typography.Text type="secondary">Unsaved changes…</Typography.Text>
+            return (
+                <Typography.Text type="secondary">
+                    Unsaved changes…
+                </Typography.Text>
+            )
         case "saving":
             return <Typography.Text type="secondary">Saving…</Typography.Text>
         case "conflict":
