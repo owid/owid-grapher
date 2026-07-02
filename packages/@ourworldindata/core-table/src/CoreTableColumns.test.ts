@@ -49,6 +49,31 @@ describe(ColumnTypeNames.Quarter, () => {
     })
 })
 
+describe(ColumnTypeNames.Month, () => {
+    const col = new ColumnTypeMap.Month(new OwidTable(), { slug: "test" })
+
+    it("formats days-since-epoch as months", () => {
+        // day 0 = EPOCH_DATE = 2020-01-21
+        expect(col.formatValue(0)).toEqual("Jan 2020")
+        expect(col.formatForCsv(0)).toEqual("2020-01")
+        expect(col.formatValueForMobile(0)).toEqual("Jan '20")
+        // 400 days later = 2021-02-24
+        expect(col.formatValue(400)).toEqual("Feb 2021")
+        expect(col.formatForCsv(400)).toEqual("2021-02")
+    })
+})
+
+describe(ColumnTypeNames.Week, () => {
+    const col = new ColumnTypeMap.Week(new OwidTable(), { slug: "test" })
+
+    it("formats days-since-epoch as ISO weeks", () => {
+        // day 0 = EPOCH_DATE = 2020-01-21 (ISO week 4 of 2020)
+        expect(col.formatValue(0)).toEqual("W4 2020")
+        expect(col.formatForCsv(0)).toEqual("2020-W04")
+        expect(col.formatValueForMobile(0)).toEqual("W4 '20")
+    })
+})
+
 describe(ColumnTypeMap.NumberOrString, () => {
     const col = new ColumnTypeMap.NumberOrString(new OwidTable(), {
         slug: "test",

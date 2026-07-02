@@ -35,6 +35,8 @@ import {
     EPOCH_DATE,
     OwidVariableType,
     getTimeInterval,
+    isSubYearly,
+    snapToIntervalStart,
 } from "@ourworldindata/utils"
 import { isContinentsVariableId } from "./GrapherConstants"
 import * as R from "remeda"
@@ -211,9 +213,7 @@ export const legacyToOwidTableAndDimensions = (
             // on entity only (disregarding the year since we already filtered all other years out for
             // those variables)
             variableTablesWithYearToJoinByEntityOnly.push(variableTable)
-        } else if (
-            getTimeInterval(variable.metadata.display) === TimeInterval.Day
-        )
+        } else if (isSubYearly(getTimeInterval(variable.metadata.display)))
             variableTablesToJoinByDay.push(variableTable)
         else variableTablesToJoinByYear.push(variableTable)
     }
@@ -655,12 +655,9 @@ const columnDefFromOwidVariable = (
             ? getSortFromDimensions(variable.dimensions)
             : undefined
 
-    const isDailyMeasurement = getTimeInterval(display) === TimeInterval.Day
-
     return {
         name,
         slug,
-        isDailyMeasurement,
         unit,
         shortUnit,
         description,
@@ -694,20 +691,37 @@ const columnDefFromOwidVariable = (
     }
 }
 
+// Maps each time interval to the time column it produces. Sub-yearly intervals
+// all share the `day` slug (days-since-epoch) so they join in the same bucket
+const TIME_COLUMN_DEF_BY_INTERVAL: Record<TimeInterval, OwidColumnDef> = {
+    [TimeInterval.Day]: {
+        slug: OwidTableSlugs.day,
+        type: ColumnTypeNames.Day,
+        name: "Day",
+    },
+    [TimeInterval.Week]: {
+        slug: OwidTableSlugs.day,
+        type: ColumnTypeNames.Week,
+        name: "Week",
+    },
+    [TimeInterval.Month]: {
+        slug: OwidTableSlugs.day,
+        type: ColumnTypeNames.Month,
+        name: "Month",
+    },
+    [TimeInterval.Year]: {
+        slug: OwidTableSlugs.year,
+        type: ColumnTypeNames.Year,
+        name: "Year",
+    },
+}
+
 const timeColumnDefFromOwidVariable = (
     variableMetadata: OwidVariableWithSource
 ): OwidColumnDef => {
-    return getTimeInterval(variableMetadata.display) === TimeInterval.Day
-        ? {
-              slug: OwidTableSlugs.day,
-              type: ColumnTypeNames.Day,
-              name: "Day",
-          }
-        : {
-              slug: OwidTableSlugs.year,
-              type: ColumnTypeNames.Year,
-              name: "Year",
-          }
+    return TIME_COLUMN_DEF_BY_INTERVAL[
+        getTimeInterval(variableMetadata.display)
+    ]
 }
 
 const timeColumnValuesFromOwidVariable = (
@@ -716,15 +730,25 @@ const timeColumnValuesFromOwidVariable = (
 ): number[] => {
     const { display } = variableMetadata
     const { years } = variableData
+    const interval = getTimeInterval(display)
+
+    // Shift day-encoded values expressed relative to a custom zeroDay onto the
+    // shared EPOCH_DATE, so variables with different zeroDays are comparable.
     const yearsNeedTransform =
         display &&
-        getTimeInterval(display) === TimeInterval.Day &&
+        isSubYearly(interval) &&
         display.zeroDay !== undefined &&
         display.zeroDay !== EPOCH_DATE
-    const yearsRaw = years || []
-    return yearsNeedTransform
-        ? convertLegacyYears(yearsRaw, display.zeroDay!)
-        : yearsRaw
+    let times = yearsNeedTransform
+        ? convertLegacyYears(years || [], display.zeroDay!)
+        : years || []
+
+    // Snap week/month values to the start of their period, so variables that
+    // pick different representative days for the same period still align.
+    if (interval === TimeInterval.Week || interval === TimeInterval.Month)
+        times = times.map((time) => snapToIntervalStart(time, interval))
+
+    return times
 }
 
 const convertLegacyYears = (years: number[], zeroDay: string): number[] => {

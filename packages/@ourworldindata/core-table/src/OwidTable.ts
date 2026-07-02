@@ -47,7 +47,7 @@ import {
     InterpolationProvider,
     InterpolationContext,
 } from "./CoreTableUtils.js"
-import { CoreColumn, ColumnTypeMap } from "./CoreTableColumns.js"
+import { CoreColumn, ColumnTypeMap, TimeColumn } from "./CoreTableColumns.js"
 
 export type OwidColumn = CoreColumn<OwidTable, OwidColumnDef>
 
@@ -770,11 +770,10 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
             return label
         }
 
-        const formatTimeColumnName = (col: CoreColumn): string => {
-            const dayOrYear = col instanceof ColumnTypeMap.Day ? "Day" : "Year"
+        const formatTimeColumnName = (col: TimeColumn): string => {
             const timeString = useShortNames
-                ? makeShortName(dayOrYear)
-                : dayOrYear
+                ? makeShortName(col.intervalName)
+                : col.intervalName
 
             if (col.def.derivedFrom?.relationship === "originalTime") {
                 const dataSlug = col.def.derivedFrom.columnSlug
@@ -791,7 +790,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         }
 
         const formatColumnName = (col: OwidColumn): string =>
-            col.isTimeColumn
+            col instanceof TimeColumn
                 ? formatTimeColumnName(col)
                 : formatDataColumnName(col)
 

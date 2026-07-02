@@ -140,6 +140,8 @@ properties:
               description: Resolution at which the time values should be interpreted and formatted.
               enum:
                 - day
+                - week
+                - month
                 - year
             yearIsDay:
               type: boolean
