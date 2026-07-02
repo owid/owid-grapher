@@ -63,6 +63,12 @@ export function OwidGdoc({
     archiveContext,
     ...props
 }: OwidGdocProps): React.ReactElement {
+    // Whether this post uses the viz-forward `layout: bespoke-viz` variant.
+    // Only OwidGdocPostContent carries `layout`; other gdoc types won't have it.
+    const isBespokeViz =
+        "content" in props &&
+        (props.content as { layout?: string } | undefined)?.layout ===
+            "bespoke-viz"
     const content = match(props)
         .with(
             {
@@ -136,7 +142,9 @@ export function OwidGdoc({
                 tags: props.tags ?? [],
             }}
         >
-            <DocumentContext.Provider value={{ isPreviewing, archiveContext }}>
+            <DocumentContext.Provider
+                value={{ isPreviewing, archiveContext, isBespokeViz }}
+            >
                 <SiteQueryClientProvider>
                     <AdminLinks id={props.id} />
                     {content}

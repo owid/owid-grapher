@@ -77,6 +77,15 @@ export function GdocPost({
     const citationText = `${shortPageCitation} Published online at OurWorldinData.org. Retrieved from: '${citationUrl}' [Online Resource]${archivalPhrase ? ` ${archivalPhrase}` : ""}`
     const hasSidebarToc = content["sidebar-toc"]
     const headingVariant = content["heading-variant"] ?? "light"
+    // Opt-in viz-forward chrome. When the article front-matter sets
+    // `layout: bespoke-viz`, we add a modifier class that drives the banded
+    // header and the styling of the author's `{.sticky-left}` container (viz
+    // left/sticky, commentary right). The body itself renders as normal
+    // single-column article blocks; the viz enhancements (Full-screen
+    // lightbox, fit-sizing, hidden heading) attach in ArticleBlock's
+    // bespoke-component arm via the DocumentContext flag, wherever the viz
+    // sits. Everything is gated so normal articles render exactly as before.
+    const isBespokeViz = content.layout === "bespoke-viz"
     const shouldHideSubscribeBanner =
         content["hide-subscribe-banner"] || postType === OwidGdocType.TopicPage
     const isDeprecated =
@@ -101,6 +110,7 @@ export function GdocPost({
                 {
                     [`centered-article-container--${content.type}`]:
                         content.type,
+                    "centered-article-container--bespoke-viz": isBespokeViz,
                 }
             )}
         >

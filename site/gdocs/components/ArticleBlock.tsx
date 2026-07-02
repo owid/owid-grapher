@@ -56,6 +56,7 @@ import { Socials } from "./Socials.js"
 import Person from "./Person.js"
 import NarrativeChart from "./NarrativeChart.js"
 import { BespokeComponent } from "./BespokeComponent.js"
+import { BespokeVizLightbox } from "./BespokeVizLightbox.js"
 import { Container, getLayout } from "./layout.js"
 import { Expander } from "./Expander.js"
 import { BlockSize, ChartConfigType } from "@ourworldindata/types"
@@ -63,6 +64,7 @@ import { useLinkedChart } from "../utils.js"
 import { ResourcePanel } from "./ResourcePanel.js"
 import { Cta } from "./Cta.js"
 import { AttachmentsContext } from "../AttachmentsContext.js"
+import { useDocumentContext } from "../DocumentContext.js"
 import { FeaturedMetrics } from "../../FeaturedMetrics.js"
 import { FeaturedDataInsights } from "../../FeaturedDataInsights.js"
 import { ExploreDataSection } from "./ExploreDataSection.js"
@@ -85,6 +87,10 @@ function ArticleBlockInternal({
     interactiveImages?: boolean
 }) {
     const { tags } = useContext(AttachmentsContext)
+    // Enables the bespoke-viz viz enhancements (Full-screen lightbox,
+    // fit-sizing, hidden viz heading) for `bespoke-component` blocks wherever
+    // they sit under a `layout: bespoke-viz` post.
+    const { isBespokeViz } = useDocumentContext()
     block.type = block.type.toLowerCase() as any // this comes from the user and may not be all lowercase, enforce it here
 
     const { linkedChart } = useLinkedChart(
@@ -1016,15 +1022,21 @@ function ArticleBlockInternal({
                 className={getLayout("country-profile-selector", containerType)}
             />
         ))
-        .with({ type: "bespoke-component" }, (block) => (
-            <BespokeComponent
-                className={getLayout(
-                    `bespoke-component--${block.size}`,
-                    containerType
-                )}
-                block={block}
-            />
-        ))
+        .with({ type: "bespoke-component" }, (block) => {
+            const className = getLayout(
+                `bespoke-component--${block.size}`,
+                containerType
+            )
+            // Under `layout: bespoke-viz`, wrap the viz with the click-to-expand
+            // lightbox + fit-sizing + hidden-heading enhancements. This works
+            // wherever the viz sits (e.g. inside an author's sticky-left
+            // container). Normal articles render a plain BespokeComponent.
+            return isBespokeViz ? (
+                <BespokeVizLightbox className={className} block={block} />
+            ) : (
+                <BespokeComponent className={className} block={block} />
+            )
+        })
         .with({ type: "chart-rows" }, (block) => (
             <ChartRows
                 className={getLayout("chart-rows", containerType)}
