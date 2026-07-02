@@ -144,11 +144,33 @@ const prodAssets = (
     try {
         manifest = fs.readJsonSync(manifestPath) as Manifest
     } catch (err) {
-        throw new Error(
-            `Could not read the build manifest ('${manifestPath}'), which is required for production.
-            If you're running in VITE_PREVIEW mode, wait for the build to finish and then reload this page.`,
-            { cause: err }
-        )
+        // In VITE_PREVIEW mode (staging servers), the manifest is missing
+        // while `yarn buildVite` is (re)running — vite empties the output dir
+        // before writing — so a hard failure here 500s every SSR'd page for
+        // the duration of the build. Our output filenames are deterministic
+        // (`<outName>.mjs`/`<outName>.css`, no content hashes — see
+        // vite.config-common.mts), so the single-entry manifest can be
+        // synthesized instead; it is byte-equivalent to the real one.
+        if (VITE_PREVIEW) {
+            console.error(
+                `Could not read the build manifest ('${manifestPath}'); ` +
+                    `falling back to the static asset names. If assets fail ` +
+                    `to load, wait for 'yarn buildVite' to finish.`
+            )
+            manifest = {
+                [entrypointInfo.entryPointFile]: {
+                    file: `${entrypointInfo.outName}.mjs`,
+                    src: entrypointInfo.entryPointFile,
+                    isEntry: true,
+                    css: [`${entrypointInfo.outName}.css`],
+                },
+            } as Manifest
+        } else {
+            throw new Error(
+                `Could not read the build manifest ('${manifestPath}'), which is required for production.`,
+                { cause: err }
+            )
+        }
     }
 
     const assetBaseUrl = `${baseUrl}/${entrypointInfo.outDir}/`
