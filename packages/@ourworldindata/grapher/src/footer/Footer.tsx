@@ -147,13 +147,22 @@ abstract class AbstractFooter<
         return this.manager.license ?? DEFAULT_CHART_LICENSE
     }
 
+    // Charts without the OWID logo show "Powered by ourworldindata.org"
+    // instead of a license, unless a non-default license is configured —
+    // provider-required license terms must always be shown.
+    @computed protected get showsCcLicense(): boolean {
+        return (
+            !!this.manager.hasOWIDLogo || this.license !== DEFAULT_CHART_LICENSE
+        )
+    }
+
     @computed protected get licenseText(): string {
-        if (this.manager.hasOWIDLogo) return CHART_LICENSES[this.license].name
+        if (this.showsCcLicense) return CHART_LICENSES[this.license].name
         return "Powered by ourworldindata.org"
     }
 
     @computed protected get licenseUrl(): string {
-        if (this.manager.hasOWIDLogo) return CHART_LICENSES[this.license].url
+        if (this.showsCcLicense) return CHART_LICENSES[this.license].url
         return "https://ourworldindata.org"
     }
 
@@ -447,7 +456,7 @@ abstract class AbstractFooter<
                     </>
                 )}
                 <a
-                    className={this.manager.hasOWIDLogo ? "cclogo" : undefined}
+                    className={this.showsCcLicense ? "cclogo" : undefined}
                     href={this.licenseUrl}
                     style={{ textDecoration: "none" }}
                     {...(this.manager.isInIFrame && {

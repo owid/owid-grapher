@@ -68,6 +68,7 @@ export function getDatapageDataV2(
         source: variableMetadata.source,
         origins: variableMetadata.origins ?? [],
         chartConfig: partialGrapherConfig as Record<string, unknown>,
+        license: partialGrapherConfig.license,
         unit: variableMetadata.display?.unit ?? variableMetadata.unit,
         unitConversionFactor: variableMetadata.display?.conversionFactor,
     }
