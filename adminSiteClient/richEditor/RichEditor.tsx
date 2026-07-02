@@ -1,11 +1,12 @@
 import { RefObject, useMemo, useRef, useState } from "react"
 import { Editor, Extensions, Node } from "@tiptap/core"
 import { EditorContent, ReactNodeViewRenderer, useEditor } from "@tiptap/react"
-import { OwidEnrichedGdocBlock } from "@ourworldindata/types"
+import { OwidEnrichedGdocBlock, OwidGdocType } from "@ourworldindata/types"
 import { getRichEditorBaseExtensions } from "./extensions.js"
 import { pmNodeNames } from "./serialization/pmJson.js"
 import { enrichedBlocksToPmDoc } from "./serialization/serialization.js"
 import { SlashCommands } from "./SlashCommands.js"
+import { CommentMark } from "./comments.js"
 import { ImageBlockView } from "./nodeViews/ImageBlockView.js"
 import { CtaBlockView } from "./nodeViews/CtaBlockView.js"
 import { RawBlockView } from "./nodeViews/RawBlockView.js"
@@ -27,8 +28,20 @@ export function RichEditor(props: {
         ((insert: (filename: string) => void) => void) | null
     >
     onDirty: () => void
+    /** Restricts insertable blocks to those allowed in this document type */
+    docType?: OwidGdocType
+    onCreate?: (editor: Editor) => void
+    onSelectionChange?: (editor: Editor) => void
 }): React.ReactElement {
-    const { initialBody, editorRef, requestImageRef, onDirty } = props
+    const {
+        initialBody,
+        editorRef,
+        requestImageRef,
+        onDirty,
+        docType,
+        onCreate,
+        onSelectionChange,
+    } = props
 
     // Set when a slash-menu "Image" command is waiting for the user to pick
     // an image from the library
@@ -38,6 +51,10 @@ export function RichEditor(props: {
     // useEditor only reads the initial value; keep callbacks in refs
     const onDirtyRef = useRef(onDirty)
     onDirtyRef.current = onDirty
+    const onCreateRef = useRef(onCreate)
+    onCreateRef.current = onCreate
+    const onSelectionChangeRef = useRef(onSelectionChange)
+    onSelectionChangeRef.current = onSelectionChange
     if (requestImageRef) {
         requestImageRef.current = (insert) =>
             setPendingImageInsert(() => insert)
@@ -56,10 +73,14 @@ export function RichEditor(props: {
         })
         return [
             ...base,
+            CommentMark,
             SlashCommands.configure({
                 onRequestImage: (insert) => setPendingImageInsert(() => insert),
+                docType,
             }),
         ]
+        // the editor schema is fixed after mount
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
     const initialDoc = useMemo(() => {
@@ -76,9 +97,17 @@ export function RichEditor(props: {
     const editor = useEditor({
         extensions,
         content: initialDoc,
-        onUpdate: () => onDirtyRef.current(),
+        // transactions marked silent (e.g. applying comment highlights on
+        // load) must not trigger the autosave loop
+        onUpdate: ({ transaction }) => {
+            if (!transaction.getMeta("richEditorSilent")) onDirtyRef.current()
+        },
+        onSelectionUpdate: ({ editor: current }) => {
+            onSelectionChangeRef.current?.(current as Editor)
+        },
         onCreate: ({ editor: created }) => {
             editorRef.current = created
+            onCreateRef.current?.(created)
         },
         onDestroy: () => {
             editorRef.current = null
