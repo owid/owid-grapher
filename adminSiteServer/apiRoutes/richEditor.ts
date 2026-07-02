@@ -38,6 +38,7 @@ import {
     loadLinkedChartsForSlugs,
 } from "../../db/model/Gdoc/GdocBase.js"
 import { getImagesByFilenames } from "../../db/model/Image.js"
+import { getNarrativeChartsInfo } from "../../db/model/NarrativeChart.js"
 import {
     RichEditorCommentThread,
     RichEditorCommentThreadsResponse,
@@ -185,13 +186,20 @@ export async function createNativeGdoc(
     res: HandlerResponse,
     trx: db.KnexReadWriteTransaction
 ): Promise<RichEditorGdocResponse> {
-    const { title, slug } = req.body as RichEditorCreateNativeGdocRequest
+    const { title, slug, type } = req.body as RichEditorCreateNativeGdocRequest
     if (!title) throw new JsonError("title is required", 400)
+    const docType = (type ?? OwidGdocType.DataInsight) as OwidGdocType
+    if (![OwidGdocType.DataInsight, OwidGdocType.Article].includes(docType)) {
+        throw new JsonError(
+            `Native creation is not supported for type ${type}`,
+            400
+        )
+    }
 
     const user = res.locals.user
     const id = `native-${randomUUID()}`
     const content: OwidGdocContent = {
-        type: OwidGdocType.DataInsight,
+        type: docType,
         title,
         authors: [user.fullName],
         body: [],
@@ -919,13 +927,16 @@ export async function resolveEditorReferences(
         explorerSlugs = [],
         filenames = [],
         gdocIds = [],
+        narrativeChartNames = [],
     } = req.body as RichEditorResolveReferencesRequest
 
-    const [linkedCharts, images, linkedDocuments] = await Promise.all([
-        loadLinkedChartsForSlugs(trx, grapherSlugs, explorerSlugs),
-        filenames.length ? getImagesByFilenames(trx, filenames) : [],
-        gdocIds.length ? getMinimalGdocPostsByIds(trx, gdocIds) : [],
-    ])
+    const [linkedCharts, images, linkedDocuments, narrativeCharts] =
+        await Promise.all([
+            loadLinkedChartsForSlugs(trx, grapherSlugs, explorerSlugs),
+            filenames.length ? getImagesByFilenames(trx, filenames) : [],
+            gdocIds.length ? getMinimalGdocPostsByIds(trx, gdocIds) : [],
+            getNarrativeChartsInfo(trx, narrativeChartNames),
+        ])
 
     const imageMetadata: Record<string, ImageMetadata> = {}
     for (const image of images) {
@@ -943,5 +954,6 @@ export async function resolveEditorReferences(
         linkedCharts: _.keyBy(linkedCharts, "originalSlug"),
         imageMetadata,
         linkedDocuments: _.keyBy(linkedDocuments, "id"),
+        narrativeCharts: _.keyBy(narrativeCharts, "name"),
     }
 }

@@ -1,6 +1,7 @@
 import {
     ImageMetadata,
     LinkedChart,
+    NarrativeChartInfo,
     OwidEnrichedGdocBlock,
     OwidGdocAuthoringMode,
     OwidGdocContent,
@@ -83,6 +84,8 @@ export interface RichEditorRevisionResponse {
 export interface RichEditorCreateNativeGdocRequest {
     title: string
     slug?: string
+    /** data-insight (default) or article */
+    type?: string
 }
 
 export interface RichEditorResolveReferencesRequest {
@@ -90,12 +93,14 @@ export interface RichEditorResolveReferencesRequest {
     explorerSlugs?: string[]
     filenames?: string[]
     gdocIds?: string[]
+    narrativeChartNames?: string[]
 }
 
 export interface RichEditorResolveReferencesResponse {
     linkedCharts: Record<string, LinkedChart>
     imageMetadata: Record<string, ImageMetadata>
     linkedDocuments: Record<string, OwidGdocMinimalPostInterface>
+    narrativeCharts: Record<string, NarrativeChartInfo>
 }
 
 // ── Publish ────────────────────────────────────────────────────────────────

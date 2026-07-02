@@ -28,7 +28,7 @@ import {
 import { docs as googleDocs, type docs_v1 } from "@googleapis/docs"
 import { gdocToArchie } from "./gdocToArchie.js"
 import { archieToEnriched } from "./archieToEnriched.js"
-import { getChartConfigById, mapSlugsToIds } from "../Chart.js"
+import { getEnrichedChartsByIds, mapSlugsToIds } from "../Chart.js"
 import {
     BAKED_BASE_URL,
     EXPLORER_DYNAMIC_THUMBNAIL_URL,
@@ -144,24 +144,28 @@ export async function loadLinkedChartsForSlugs(
 
     const slugToIdMap = await mapSlugsToIds(knex)
 
+    const chartIds = excludeUndefined(
+        grapherSlugs.map((slug) => slugToIdMap[slug])
+    )
     const [
         archivedChartVersions,
         archivedMultiDimVersions,
         archivedExplorerVersions,
         grapherMultiDimRedirects,
         explorerMultiDimRedirects,
+        chartConfigs,
     ] = await Promise.all([
-        getLatestArchivedChartPageVersionsIfEnabled(
-            knex,
-            excludeUndefined(grapherSlugs.map((slug) => slugToIdMap[slug]))
-        ),
+        getLatestArchivedChartPageVersionsIfEnabled(knex, chartIds),
         getLatestArchivedMultiDimPageVersionsIfEnabled(knex),
         getLatestArchivedExplorerPageVersionsIfEnabled(knex, explorerSlugs),
         getMultiDimRedirectTargets(knex, grapherSlugs, "/grapher/"),
         getMultiDimRedirectTargets(knex, explorerSlugs, "/explorers/"),
+        chartIds.length ? getEnrichedChartsByIds(knex, chartIds) : [],
     ])
+    const chartConfigsById = new Map(
+        chartConfigs.map((chart) => [chart.id, chart])
+    )
 
-    // TODO: rewrite this as a single query instead of N queries
     const linkedGrapherCharts = await Promise.all(
         grapherSlugs.map(async (originalSlug) => {
             const multiDimRedirect = grapherMultiDimRedirects.get(originalSlug)
@@ -185,7 +189,7 @@ export async function loadLinkedChartsForSlugs(
 
             const chartId = slugToIdMap[originalSlug]
             if (chartId) {
-                const chart = await getChartConfigById(knex, chartId)
+                const chart = chartConfigsById.get(chartId)
                 if (!chart) return
 
                 return makeGrapherLinkedChart(
