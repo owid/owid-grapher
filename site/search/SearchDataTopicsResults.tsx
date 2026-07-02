@@ -6,14 +6,14 @@ import { SearchDataTopic } from "./SearchDataTopic.js"
 import { SearchDataTopicsResultsSkeleton } from "./SearchDataTopicsResultsSkeleton.js"
 
 export const SearchDataTopicsResults = () => {
-    const { state, liteSearchClient, topicTagGraph } = useSearchContext()
+    const { state, typesenseClient, topicTagGraph } = useSearchContext()
     const selectedTopic = useSelectedTopic()
 
     const query = useQuery({
         queryKey: searchQueryKeys.dataTopics(state),
         queryFn: () =>
             queryDataTopics(
-                liteSearchClient,
+                typesenseClient,
                 state,
                 topicTagGraph,
                 selectedTopic

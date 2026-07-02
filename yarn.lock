@@ -6093,6 +6093,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"agent-base@npm:6":
+  version: 6.0.2
+  resolution: "agent-base@npm:6.0.2"
+  dependencies:
+    debug: "npm:4"
+  checksum: 10/21fb903e0917e5cb16591b4d0ef6a028a54b83ac30cd1fca58dece3d4e0990512a8723f9f83130d88a41e2af8b1f7be1386fda3ea2d181bb1a62155e75e95e23
+  languageName: node
+  linkType: hard
+
 "agent-base@npm:^7.1.2":
   version: 7.1.3
   resolution: "agent-base@npm:7.1.3"
@@ -6370,6 +6379,18 @@ __metadata:
     form-data: "npm:^4.0.5"
     proxy-from-env: "npm:^2.1.0"
   checksum: 10/cf8b521ff732c21550b38c8739aef556ea5e14b268468bb89e4307416ab262b462e582474e810963a3d61c2392ab47ad35c11d05eff027de7c97113bc7411623
+  languageName: node
+  linkType: hard
+
+"axios@npm:^1.8.4":
+  version: 1.18.1
+  resolution: "axios@npm:1.18.1"
+  dependencies:
+    follow-redirects: "npm:^1.16.0"
+    form-data: "npm:^4.0.5"
+    https-proxy-agent: "npm:^5.0.1"
+    proxy-from-env: "npm:^2.1.0"
+  checksum: 10/c4cdced3ee0a9bf7dcae189fbc74a124aa079d4f04dbd995e602d39c1419476e8d021f87ee39ac8d8398e5a55e6d0b986238b3645f0d9177ac80de87c2a73f18
   languageName: node
   linkType: hard
 
@@ -8975,11 +8996,13 @@ __metadata:
     schema-dts: "npm:^2.0.0"
     sharp: "npm:^0.34.5"
     simple-git: "npm:^3.36.0"
+    stopword: "npm:^3.1.5"
     tinyexec: "npm:^1.1.1"
     topojson-server: "npm:^3.0.1"
     ts-pattern: "npm:^5.8.0"
     tsx: "npm:^4.21.0"
     typeorm: "npm:^1.0.0"
+    typesense: "npm:^2.1.0"
     url-join: "npm:^5.0.0"
     url-slug: "npm:^4.0.1"
     usehooks-ts: "npm:^3.1.1"
@@ -9264,6 +9287,16 @@ __metadata:
   bin:
     http-server: bin/http-server
   checksum: 10/ce3f4606fdd0cc946852f2dcdb11008cb4459e50e3d9cb1e6c6cf65de82022a7eb8b196e0aa77a90a70757b1b7f3df5407e8c0936ece968c5f24274ce87769a8
+  languageName: node
+  linkType: hard
+
+"https-proxy-agent@npm:^5.0.1":
+  version: 5.0.1
+  resolution: "https-proxy-agent@npm:5.0.1"
+  dependencies:
+    agent-base: "npm:6"
+    debug: "npm:4"
+  checksum: 10/f0dce7bdcac5e8eaa0be3c7368bb8836ed010fb5b6349ffb412b172a203efe8f807d9a6681319105ea1b6901e1972c7b5ea899672a7b9aad58309f766dcbe0df
   languageName: node
   linkType: hard
 
@@ -10115,6 +10148,13 @@ __metadata:
     strip-ansi: "npm:^7.1.0"
     wrap-ansi: "npm:^9.0.0"
   checksum: 10/5abb4131e33b1e7f8416bb194fe17a3603d83e4657c5bf5bb81ce4187f3b00ea481643b85c3d5cefe6037a452cdcf7f1391ab8ea0d9c23e75d19589830ec4f11
+  languageName: node
+  linkType: hard
+
+"loglevel@npm:^1.8.1":
+  version: 1.9.2
+  resolution: "loglevel@npm:1.9.2"
+  checksum: 10/6153d8db308323f7ee20130bc40309e7a976c30a10379d8666b596d9c6441965c3e074c8d7ee3347fe5cfc059c0375b6f3e8a10b93d5b813cc5547f5aa412a29
   languageName: node
   linkType: hard
 
@@ -13107,6 +13147,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"stopword@npm:^3.1.5":
+  version: 3.1.5
+  resolution: "stopword@npm:3.1.5"
+  checksum: 10/4710a3e011de1d6d8af9fb0c39b35180fdb1fad3afd859b8d22b962ac67c11ffc703b8226e6a6cf2ef652a0c88f393186ce7e396c1653abb7e50cf87312d7507
+  languageName: node
+  linkType: hard
+
 "streamsearch@npm:^1.1.0":
   version: 1.1.0
   resolution: "streamsearch@npm:1.1.0"
@@ -13645,6 +13692,19 @@ __metadata:
     typeorm-ts-node-commonjs: cli-ts-node-commonjs.js
     typeorm-ts-node-esm: cli-ts-node-esm.js
   checksum: 10/56ed87a4215181482ced4d00f14143c5c4f0e7fcc803e0d748ff7b2b98062c6bcb921819a347e79dca9ab0438f81496a2fbf45a7aeec6b98cc138e7a8528f2fa
+  languageName: node
+  linkType: hard
+
+"typesense@npm:^2.1.0":
+  version: 2.1.0
+  resolution: "typesense@npm:2.1.0"
+  dependencies:
+    axios: "npm:^1.8.4"
+    loglevel: "npm:^1.8.1"
+    tslib: "npm:^2.6.2"
+  peerDependencies:
+    "@babel/runtime": ^7.23.2
+  checksum: 10/f49050a398201b1b2cc4fb803195bf7e23f28563d6c20b8bec37cce974a9f98cf446d0c45ae37a7af9151ab5140c6f66da10c06d01a56dd8991ad77794bdd93b
   languageName: node
   linkType: hard
 

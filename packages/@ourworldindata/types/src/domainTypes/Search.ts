@@ -1,4 +1,8 @@
-import type { HighlightResultOption, SnippetResultOption } from "algoliasearch"
+import type {
+    HighlightResultOption,
+    SnippetResultOption,
+    SearchResponse,
+} from "algoliasearch"
 import { OwidGdocType } from "../gdocTypes/Gdoc.js"
 import { GrapherTabName } from "../grapherTypes/GrapherTypes.js"
 import * as z from "zod/mini"
@@ -157,6 +161,34 @@ export interface SearchChartHitComponentProps {
 }
 
 export type SearchChartHitComponentVariant = "large" | "medium" | "small"
+
+// SearchResponse adds the extra fields from Algolia: page, nbHits, etc.
+// These wrapper types are the return shape of the search query functions in
+// site/search/queries.ts (which map Typesense responses into this Algolia
+// shape) and are consumed by the useInfiniteSearch* hooks.
+export type SearchChartsResponse = SearchResponse<SearchChartHit>
+
+export type SearchDataTopicsResponse = {
+    title: string
+    charts: SearchResponse<SearchChartHit>
+}
+
+export type SearchDataInsightResponse = SearchResponse<DataInsightHit>
+
+export type SearchStackedArticleResponse = SearchResponse<StackedArticleHit>
+
+export type SearchFlatArticleResponse = SearchResponse<FlatArticleHit>
+
+export type SearchTopicPageResponse = SearchResponse<TopicPageHit>
+
+export type SearchProfileResponse = SearchResponse<ProfileHit>
+
+export type SearchWritingTopicsResponse = {
+    title: string
+    articles: SearchStackedArticleResponse
+    topicPages: SearchTopicPageResponse
+    totalCount: number
+}
 
 export type ScoredFilter = Filter & {
     name: string

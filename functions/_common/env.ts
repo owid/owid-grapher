@@ -29,6 +29,10 @@ export interface Env {
     ALGOLIA_ID: string
     ALGOLIA_SEARCH_KEY: string
     ALGOLIA_INDEX_PREFIX?: string
+    TYPESENSE_HOST?: string
+    TYPESENSE_PORT?: string
+    TYPESENSE_PROTOCOL?: string
+    TYPESENSE_SEARCH_KEY?: string
     CATALOG_URL: string
     USER_SURVEYS_R2?: R2Bucket
 }

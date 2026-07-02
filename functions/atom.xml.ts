@@ -12,7 +12,15 @@ import {
     AlgoliaConfig,
     getIndexName,
 } from "./api/search/algoliaClient.js"
-import { formatTopicFacetFilters } from "./api/search/searchApi.js"
+
+// Algolia facet-filter format for topics (OR logic across topics). The atom
+// feed queries Algolia's chronological index directly, independent of the
+// Typesense-based /api/search endpoint.
+function formatTopicFacetFilters(topics: Set<string>): (string | string[])[] {
+    if (topics.size === 0) return []
+    const filters = Array.from(topics).map((topic) => `tags:${topic}`)
+    return [filters]
+}
 
 const HITS_PER_FEED = 50
 
