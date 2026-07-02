@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest"
 import {
     OwidGdocAuthoringMode,
+    PostsGdocsCommentThreadsTableName,
     PostsGdocsDraftsTableName,
     PostsGdocsRevisionsTableName,
     PostsGdocsTableName,
@@ -188,6 +189,305 @@ describe("rich editor API", { timeout: 20000 }, () => {
             }),
         })
         expect(save.revisionId).toBeGreaterThan(0)
+    })
+
+    it("publishes and unpublishes a native doc via the dedicated endpoints", async () => {
+        const created = await createNativeDoc("Publish test")
+        const save = await env.request({
+            method: "PUT",
+            path: `/gdocs/${created.id}/body`,
+            body: JSON.stringify({
+                body: [makeTextBlock("Ready to publish")],
+                baseRevisionId: created.draftRevisionId,
+                kind: "manual",
+            }),
+        })
+
+        // publishing against a stale revision is rejected
+        const stale = await rawRequest({
+            method: "POST",
+            path: `/gdocs/${created.id}/publish`,
+            body: JSON.stringify({
+                baseRevisionId: created.draftRevisionId,
+            }),
+        })
+        expect(stale.status).toBe(409)
+
+        const published = await env.request({
+            method: "POST",
+            path: `/gdocs/${created.id}/publish`,
+            body: JSON.stringify({ baseRevisionId: save.revisionId }),
+        })
+        expect(published.published).toBe(true)
+        expect(published.publishedAt).toBeTruthy()
+
+        let row = (await env
+            .testKnex(PostsGdocsTableName)
+            .where({ id: created.id })
+            .first()) as DbRawPostGdoc
+        expect(row.published).toBe(1)
+        expect(row.publishedAt).toBeTruthy()
+        expect(row.authoringMode).toBe("native")
+        expect(JSON.parse(row.content).body[0].value[0].text).toBe(
+            "Ready to publish"
+        )
+
+        const revisionRows = await env
+            .testKnex(PostsGdocsRevisionsTableName)
+            .where({ gdocId: created.id, kind: "publish" })
+        expect(revisionRows).toHaveLength(1)
+
+        // draft edits after publishing must not touch the live content
+        await env.request({
+            method: "PUT",
+            path: `/gdocs/${created.id}/body`,
+            body: JSON.stringify({
+                body: [makeTextBlock("Unpublished edit")],
+                baseRevisionId: published.revisionId,
+                kind: "manual",
+            }),
+        })
+        row = (await env
+            .testKnex(PostsGdocsTableName)
+            .where({ id: created.id })
+            .first()) as DbRawPostGdoc
+        expect(JSON.parse(row.content).body[0].value[0].text).toBe(
+            "Ready to publish"
+        )
+
+        const unpublished = await env.request({
+            method: "POST",
+            path: `/gdocs/${created.id}/unpublish`,
+        })
+        expect(unpublished.published).toBe(false)
+        row = (await env
+            .testKnex(PostsGdocsTableName)
+            .where({ id: created.id })
+            .first()) as DbRawPostGdoc
+        expect(row.published).toBe(0)
+    })
+
+    it("saves settings without touching the body, with slug rules", async () => {
+        const created = await createNativeDoc("Settings test")
+        const save = await env.request({
+            method: "PUT",
+            path: `/gdocs/${created.id}/body`,
+            body: JSON.stringify({
+                body: [makeTextBlock("Body stays")],
+                baseRevisionId: created.draftRevisionId,
+                kind: "manual",
+            }),
+        })
+
+        const settingsSave = await env.request({
+            method: "PUT",
+            path: `/gdocs/${created.id}/editorSettings`,
+            body: JSON.stringify({
+                settings: {
+                    title: "Settings test (renamed)",
+                    "grapher-url":
+                        "https://ourworldindata.org/grapher/life-expectancy",
+                },
+                slug: "settings-test-renamed",
+                baseRevisionId: save.revisionId,
+            }),
+        })
+        expect(settingsSave.revisionId).toBeGreaterThan(save.revisionId)
+
+        const editorView = await env.fetchJson(`/gdocs/${created.id}/editor`)
+        expect(editorView.content.title).toBe("Settings test (renamed)")
+        expect(editorView.content["grapher-url"]).toBe(
+            "https://ourworldindata.org/grapher/life-expectancy"
+        )
+        expect(editorView.content.body[0].value[0].text).toBe("Body stays")
+        expect(editorView.slug).toBe("settings-test-renamed")
+
+        // clearing a field via null removes it
+        const cleared = await env.request({
+            method: "PUT",
+            path: `/gdocs/${created.id}/editorSettings`,
+            body: JSON.stringify({
+                settings: { "grapher-url": null },
+                baseRevisionId: settingsSave.revisionId,
+            }),
+        })
+        expect(cleared.revisionId).toBeGreaterThan(settingsSave.revisionId)
+        const clearedView = await env.fetchJson(`/gdocs/${created.id}/editor`)
+        expect(clearedView.content["grapher-url"]).toBeUndefined()
+
+        // body changes via the settings endpoint are rejected
+        const bodyRejected = await rawRequest({
+            method: "PUT",
+            path: `/gdocs/${created.id}/editorSettings`,
+            body: JSON.stringify({
+                settings: { body: [] },
+                baseRevisionId: cleared.revisionId,
+            }),
+        })
+        expect(bodyRejected.status).toBe(400)
+    })
+
+    it("prevents the gdocs settings PUT from clobbering native body or publish state", async () => {
+        const created = await createNativeDoc("Guard test")
+        await env.request({
+            method: "PUT",
+            path: `/gdocs/${created.id}/body`,
+            body: JSON.stringify({
+                body: [makeTextBlock("Native body")],
+                baseRevisionId: created.draftRevisionId,
+                kind: "manual",
+            }),
+        })
+
+        const gdoc = await env.fetchJson(`/gdocs/${created.id}`)
+
+        // publish-state change through the legacy endpoint is rejected
+        const publishAttempt = await rawRequest({
+            method: "PUT",
+            path: `/gdocs/${created.id}`,
+            body: JSON.stringify({
+                ...gdoc,
+                published: true,
+                publishedAt: new Date(),
+            }),
+        })
+        expect(publishAttempt.status).toBe(400)
+
+        // body sent through the legacy endpoint is ignored in favor of the DB
+        await env.request({
+            method: "PUT",
+            path: `/gdocs/${created.id}`,
+            body: JSON.stringify({
+                ...gdoc,
+                content: {
+                    ...gdoc.content,
+                    title: "Guard test (renamed)",
+                    body: [makeTextBlock("Should be ignored")],
+                },
+            }),
+        })
+        const row = (await env
+            .testKnex(PostsGdocsTableName)
+            .where({ id: created.id })
+            .first()) as DbRawPostGdoc
+        const content = JSON.parse(row.content)
+        expect(content.title).toBe("Guard test (renamed)")
+        expect(content.body[0].value[0].text).toBe("Native body")
+    })
+
+    it("supports comment threads: create, reply, resolve, orphan via anchors", async () => {
+        const created = await createNativeDoc("Comments test")
+        const save = await env.request({
+            method: "PUT",
+            path: `/gdocs/${created.id}/body`,
+            body: JSON.stringify({
+                body: [makeTextBlock("Some commented text")],
+                baseRevisionId: created.draftRevisionId,
+                kind: "manual",
+            }),
+        })
+
+        const thread = await env.request({
+            method: "POST",
+            path: `/gdocs/${created.id}/comments`,
+            body: JSON.stringify({
+                anchorType: "range",
+                anchorFrom: 1,
+                anchorTo: 10,
+                anchorText: "Some comm",
+                text: "Is this number right?",
+            }),
+        })
+        expect(thread.status).toBe("open")
+        expect(thread.comments).toHaveLength(1)
+        expect(thread.comments[0].userFullName).toBe("Admin")
+
+        const replied = await env.request({
+            method: "POST",
+            path: `/gdocs/${created.id}/comments/${thread.id}/replies`,
+            body: JSON.stringify({ text: "Checked — it is." }),
+        })
+        expect(replied.comments).toHaveLength(2)
+
+        const resolved = await env.request({
+            method: "PUT",
+            path: `/gdocs/${created.id}/comments/${thread.id}`,
+            body: JSON.stringify({ status: "resolved" }),
+        })
+        expect(resolved.status).toBe("resolved")
+        expect(resolved.resolvedAt).toBeTruthy()
+
+        const reopened = await env.request({
+            method: "PUT",
+            path: `/gdocs/${created.id}/comments/${thread.id}`,
+            body: JSON.stringify({ status: "open" }),
+        })
+        expect(reopened.status).toBe("open")
+
+        // a body save reporting the anchor as gone orphans the thread…
+        const orphanSave = await env.request({
+            method: "PUT",
+            path: `/gdocs/${created.id}/body`,
+            body: JSON.stringify({
+                body: [makeTextBlock("Rewritten")],
+                baseRevisionId: save.revisionId,
+                kind: "manual",
+                commentAnchors: [
+                    {
+                        threadId: thread.id,
+                        anchorFrom: null,
+                        anchorTo: null,
+                        anchorText: "Some comm",
+                        orphaned: true,
+                    },
+                ],
+            }),
+        })
+        let threadRow = await env
+            .testKnex(PostsGdocsCommentThreadsTableName)
+            .where({ id: thread.id })
+            .first()
+        expect(threadRow.status).toBe("orphaned")
+
+        // …and a save reporting it back (e.g. after undo) reopens it
+        await env.request({
+            method: "PUT",
+            path: `/gdocs/${created.id}/body`,
+            body: JSON.stringify({
+                body: [makeTextBlock("Some commented text again")],
+                baseRevisionId: orphanSave.revisionId,
+                kind: "manual",
+                commentAnchors: [
+                    {
+                        threadId: thread.id,
+                        anchorFrom: 1,
+                        anchorTo: 10,
+                        anchorText: "Some comm",
+                        orphaned: false,
+                    },
+                ],
+            }),
+        })
+        threadRow = await env
+            .testKnex(PostsGdocsCommentThreadsTableName)
+            .where({ id: thread.id })
+            .first()
+        expect(threadRow.status).toBe("open")
+        expect(threadRow.anchorFrom).toBe(1)
+
+        const list = await env.fetchJson(`/gdocs/${created.id}/comments`)
+        expect(list.threads).toHaveLength(1)
+        expect(list.threads[0].comments).toHaveLength(2)
+    })
+
+    it("answers presence heartbeats", async () => {
+        const created = await createNativeDoc("Presence test")
+        const presence = await env.request({
+            method: "POST",
+            path: `/gdocs/${created.id}/presence`,
+        })
+        // the requester is excluded, and no one else is editing
+        expect(presence.editors).toEqual([])
     })
 
     it("resolves image references", async () => {
