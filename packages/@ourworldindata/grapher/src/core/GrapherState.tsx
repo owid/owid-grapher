@@ -1122,11 +1122,20 @@ export class GrapherState
      * of the currently displayed data.
      */
     @computed get filteredTableForDownload(): OwidTable {
-        const table = this.isOnTableTab
-            ? this.tableForDisplay
-            : this.transformedTable
+        if (this.isOnTableTab) {
+            let table = this.tableForDisplay
 
-        return this.prepareTableForDownload(table)
+            // The data table only shows data within the selected time range,
+            // so restrict the download to that range as well
+            const { startTime, endTime } = this
+            if (startTime !== undefined && endTime !== undefined) {
+                table = table.filterByTimeRange(startTime, endTime)
+            }
+
+            return this.prepareTableForDownload(table)
+        }
+
+        return this.prepareTableForDownload(this.transformedTable)
     }
 
     private prepareTableForDownload(table: OwidTable): OwidTable {
