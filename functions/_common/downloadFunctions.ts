@@ -70,13 +70,16 @@ export async function fetchZipForGrapher(
     searchParams?: URLSearchParams
 ) {
     console.log("preparing to generate zip file")
-    const { grapher, identifierType: effectiveIdentifierType } =
-        await initGrapher(
-            identifier,
-            TWITTER_OPTIONS,
-            searchParams ?? new URLSearchParams(""),
-            env
-        )
+    const {
+        grapher,
+        identifierType: effectiveIdentifierType,
+        multiDimAvailableDimensions,
+    } = await initGrapher(
+        identifier,
+        TWITTER_OPTIONS,
+        searchParams ?? new URLSearchParams(""),
+        env
+    )
     const inputTable = await fetchInputTableForConfig({
         dimensions: grapher.grapherState.dimensions,
         selectedEntityColors: grapher.grapherState.selectedEntityColors,
@@ -89,7 +92,11 @@ export async function fetchZipForGrapher(
         grapher.grapherState,
         effectiveSearchParams
     )
-    const readme = assembleReadme(grapher.grapherState, effectiveSearchParams)
+    const readme = assembleReadme(
+        grapher.grapherState,
+        effectiveSearchParams,
+        multiDimAvailableDimensions
+    )
     const csv = assembleCsv(grapher.grapherState, effectiveSearchParams)
     console.log("Fetched the parts, creating zip file")
 

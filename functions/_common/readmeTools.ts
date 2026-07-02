@@ -244,27 +244,30 @@ function* columnReadmeText(col: CoreColumn) {
 }
 
 function* activeFilterSettings(
-    searchParams: URLSearchParams,
-    multiDimAvailableDimensions?: string[]
+    filterSettings: Record<string, string> | undefined,
+    { isFilteredDownload }: { isFilteredDownload: boolean }
 ) {
-    // NOTE: this is filtered by whitelisted grapher query params - if you want other params to be
-    //       inlucded here, add them to the whitelist inside getGrapherFilters
-    const filterSettings = getGrapherFilters(
-        searchParams,
-        multiDimAvailableDimensions
-    )
-    if (filterSettings) {
-        yield ""
+    if (!filterSettings || _.isEmpty(filterSettings)) return
+
+    yield ""
+    if (isFilteredDownload) {
         yield `### Active Filters`
         yield ""
         yield `A filtered subset of the full data was downloaded. The following filters were applied:`
-        for (const [key, val] of Object.entries(filterSettings)) {
-            if (key === "country")
-                yield `- ${key}: ${val.replaceAll("~", ", ")}` // country filter is separated with tilde
-            else yield `- ${key}: ${val}`
-        }
+    } else {
+        // Full download of a multi-dimensional chart: the only settings left
+        // are the dimension choices, which select which view's data is
+        // included rather than filtering it.
+        yield `### Selected Dimensions`
         yield ""
+        yield `The following dimension choices determine which data this file contains:`
     }
+    for (const [key, val] of Object.entries(filterSettings)) {
+        if (key === "country")
+            yield `- ${key}: ${val.replaceAll("~", ", ")}` // country filter is separated with tilde
+        else yield `- ${key}: ${val}`
+    }
+    yield ""
 }
 
 export function constructReadme(
@@ -293,12 +296,33 @@ export function constructReadme(
         (column) => column.def.derivedFrom?.relationship === "originalTime"
     )
 
+    // Standard grapher filters (time, country, …) are only applied to the
+    // filtered download, so listing them for a full download would be
+    // misleading. Multi-dimensional dimension choices (e.g. sex=female) instead
+    // select which view's data is downloaded and apply to both, so they're
+    // always relevant.
+    // NOTE: filterSettings is picked from whitelisted grapher query params - if
+    //       you want other params included, add them to the whitelist inside
+    //       getGrapherFilters
+    const filterSettings = getGrapherFilters(
+        searchParams,
+        multiDimAvailableDimensions
+    )
+    const relevantFilterSettings = shouldUseFilteredTable
+        ? filterSettings
+        : _.pick(filterSettings ?? {}, multiDimAvailableDimensions ?? [])
+    const activeFilters = [
+        ...activeFilterSettings(relevantFilterSettings, {
+            isFilteredDownload: shouldUseFilteredTable,
+        }),
+    ].join("\n")
+
     if (isSingleColumn) {
         const toleranceExplanation = `\nThe data file includes an additional column suffixed with (Original Year) or (Original Day). This column appears when we use "tolerance" to display data for time points where exact data is unavailable. For example, if a country does not have data for one or more years, we use tolerance to fill the gaps using the closest available data points. These suffix columns show you which year (or day) the value really came from, allowing you to see when the data was actually measured.`
         readme = `# ${grapherState.displayTitle} - Data package
 
 This data package contains the data that powers the chart ["${grapherState.displayTitle}"](${urlWithFilters}) on the Our World in Data website. It was downloaded on ${downloadDate}.
-${[...activeFilterSettings(searchParams, multiDimAvailableDimensions)].join("\n")}
+${activeFilters}
 ## CSV Structure
 
 The high level structure of the CSV file is that each row is an observation for an entity (usually a country or region) and a timepoint (usually a year).
