@@ -5,7 +5,7 @@ import { observable, computed, action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import {
     Bounds,
-    canWriteToClipboard,
+    // canWriteToClipboard,
     fetchWithTimeout,
     getOriginAttributionFragments,
     makeDownloadCodeExamples,
@@ -285,7 +285,7 @@ export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
 
     private pngBlob: Blob | undefined = undefined
     private pngPreviewUrl: string | undefined = undefined
-    private canWriteToClipboard: boolean = false
+    // private canWriteToClipboard: boolean = false
 
     private isReady: boolean = false
 
@@ -372,7 +372,7 @@ export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
     }
 
     @computed get showCopyPngButton(): boolean {
-        return !!this.manager.showAdminControls && this.canWriteToClipboard
+        return false // !!this.manager.showAdminControls && this.canWriteToClipboard
     }
 
     @action.bound async onCopyPng(): Promise<void> {
@@ -389,10 +389,10 @@ export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
     override componentDidMount(): void {
         queueMicrotask(() => this.export())
 
-        void canWriteToClipboard().then(
-            (canWriteToClipboard) =>
-                (this.canWriteToClipboard = canWriteToClipboard)
-        )
+        // void canWriteToClipboard().then(
+        //     (canWriteToClipboard) =>
+        //         (this.canWriteToClipboard = canWriteToClipboard)
+        // )
     }
 
     override render(): React.ReactElement {
