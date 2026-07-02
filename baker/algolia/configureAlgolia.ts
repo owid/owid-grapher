@@ -148,7 +148,34 @@ export const configureAlgolia = async () => {
             ],
             attributesToSnippet: ["subtitle:24"],
             attributeForDistinct: "id",
-            optionalWords: ["vs"],
+            // Generic, semantically-empty words that OWID's globally-scoped chart
+            // catalogue never contains literally: scope qualifiers ("worldwide")
+            // and "give me data / a chart" meta-words. Left mandatory, they make
+            // otherwise-good queries return ZERO results ("malaria worldwide" ->
+            // no chart title contains "worldwide" -> blank page). As optional
+            // words they no longer gate the match but still boost where present.
+            // (Analysis: ~2% of chart-search volume carries one of these; the
+            // failures are hard zero-result pages. `removeStopWords: ["en"]` does
+            // not catch them — Algolia's stopword dictionary is function words.)
+            optionalWords: [
+                "vs",
+                "worldwide",
+                "statistics",
+                "stats",
+                "chart",
+                "charts",
+                "graph",
+                "graphs",
+                "map",
+                "maps",
+                "dataset",
+                "figures",
+                "data",
+            ],
+            // Safety net for the unenumerated long tail: if a query still returns
+            // nothing, retry treating all words as optional rather than showing a
+            // blank page — for a data site a topic match beats no results.
+            removeWordsIfNoResults: "allOptional",
 
             // These lines below essentially demote matches in the `subtitle` and `availableEntities` fields:
             // If we find a match (only) there, then it doesn't count towards `exact`, and is therefore ranked lower.
