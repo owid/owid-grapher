@@ -96,6 +96,7 @@ export function FoodTradeChart({
                             year={year}
                             view={view}
                             setView={setView}
+                            setCountry={setCountry}
                         />
                     )
                 })

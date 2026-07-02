@@ -324,6 +324,7 @@ function CaptionedSankeyVariant({
                     emigrantsTotal={emigrantsTotal}
                     view={view}
                     setView={setView}
+                    setCountry={setCountry}
                     colorMap={colorMap}
                     isLoading={isLoading}
                     entitiesToSortLast={entitiesToSortLast}
