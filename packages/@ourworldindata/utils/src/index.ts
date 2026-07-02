@@ -340,6 +340,7 @@ export { isAndroid, isIOS } from "./BrowserUtils.js"
 export {
     diffGrapherConfigs,
     mergeGrapherConfigs,
+    rediffPatchAgainstNewParentStack,
 } from "./grapherConfigUtils.js"
 
 export {

@@ -155,6 +155,8 @@ import {
     deleteChart,
     getChartTagsJson,
     getChartRecordsJson,
+    putChartsChartIdEtlConfig,
+    deleteChartsChartIdEtlConfig,
 } from "./apiRoutes/charts.js"
 import { getChartConfig } from "./apiRoutes/chartConfigs.js"
 import {
@@ -267,6 +269,16 @@ postRouteWithRWTransaction(
 )
 putRouteWithRWTransaction(apiRouter, "/charts/:chartId", updateChart)
 deleteRouteWithRWTransaction(apiRouter, "/charts/:chartId", deleteChart)
+putRouteWithRWTransaction(
+    apiRouter,
+    "/charts/:chartId/etlConfig",
+    putChartsChartIdEtlConfig
+)
+deleteRouteWithRWTransaction(
+    apiRouter,
+    "/charts/:chartId/etlConfig",
+    deleteChartsChartIdEtlConfig
+)
 
 // Chart config routes
 getRouteWithROTransaction(
