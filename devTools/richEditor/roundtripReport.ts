@@ -127,9 +127,7 @@ async function main(): Promise<void> {
     let grandPassed = 0
     console.log("\nRound-trip report (published docs)")
     console.log("----------------------------------")
-    const sorted = [...totals.entries()].sort(
-        (a, b) => b[1].total - a[1].total
-    )
+    const sorted = [...totals.entries()].sort((a, b) => b[1].total - a[1].total)
     for (const [type, { total, passed }] of sorted) {
         grandTotal += total
         grandPassed += passed
@@ -155,7 +153,10 @@ async function main(): Promise<void> {
                 .map(([stage, n]) => `${stage}: ${n}`)
                 .join(", ")
         )
-        for (const f of failures.slice(0, verbose ? failures.length : maxFailures)) {
+        for (const f of failures.slice(
+            0,
+            verbose ? failures.length : maxFailures
+        )) {
             console.log(
                 `\n[${f.stage}] ${f.type} ${f.slug} (${f.id})\n    ${f.detail.split("\n").join("\n    ")}`
             )

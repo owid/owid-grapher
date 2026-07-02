@@ -107,15 +107,13 @@ async function insertRevisionAndUpdateDraft(
     userId: number,
     label?: string
 ): Promise<{ revisionId: number; updatedAt: Date }> {
-    const [revisionId] = await trx
-        .table(PostsGdocsRevisionsTableName)
-        .insert({
-            gdocId: row.id,
-            content: JSON.stringify(content),
-            kind,
-            label: label ?? null,
-            createdBy: userId,
-        })
+    const [revisionId] = await trx.table(PostsGdocsRevisionsTableName).insert({
+        gdocId: row.id,
+        content: JSON.stringify(content),
+        kind,
+        label: label ?? null,
+        createdBy: userId,
+    })
 
     await trx
         .table(PostsGdocsDraftsTableName)
@@ -230,8 +228,7 @@ export async function getGdocForEditor(
         id: row.id,
         slug: row.slug,
         published: !!row.published,
-        authoringMode:
-            row.authoringMode ?? OwidGdocAuthoringMode.Gdocs,
+        authoringMode: row.authoringMode ?? OwidGdocAuthoringMode.Gdocs,
         content,
         draftRevisionId: draft ? Number(draft.revisionId) : null,
         updatedAt: draft
@@ -273,9 +270,7 @@ export async function saveGdocBody(
                 status: 409,
             },
             currentRevisionId,
-            updatedAt: draft
-                ? new Date(draft.updatedAt).toISOString()
-                : null,
+            updatedAt: draft ? new Date(draft.updatedAt).toISOString() : null,
         }
         return conflict
     }
@@ -343,10 +338,7 @@ export async function getGdocRevision(
         .where({ gdocId: id, id: Number(revisionId) })
         .first<DbRawPostGdocRevision | undefined>()
     if (!row)
-        throw new JsonError(
-            `No revision ${revisionId} for document ${id}`,
-            404
-        )
+        throw new JsonError(`No revision ${revisionId} for document ${id}`, 404)
     return {
         id: Number(row.id),
         kind: row.kind,
@@ -370,10 +362,7 @@ export async function restoreGdocRevision(
         .where({ gdocId: id, id: Number(revisionId) })
         .first<DbRawPostGdocRevision | undefined>()
     if (!revision)
-        throw new JsonError(
-            `No revision ${revisionId} for document ${id}`,
-            404
-        )
+        throw new JsonError(`No revision ${revisionId} for document ${id}`, 404)
 
     const content: OwidGdocContent = JSON.parse(revision.content)
     const result = await insertRevisionAndUpdateDraft(
@@ -398,10 +387,7 @@ export async function convertGdocToNative(
     const { id } = req.params
     const row = await getGdocRowOrThrow(trx, id)
     if (row.authoringMode === OwidGdocAuthoringMode.Native) {
-        throw new JsonError(
-            `Document ${id} is already natively edited`,
-            400
-        )
+        throw new JsonError(`Document ${id} is already natively edited`, 400)
     }
 
     await trx

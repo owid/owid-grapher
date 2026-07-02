@@ -1,10 +1,6 @@
 import { MutableRefObject, useMemo, useRef, useState } from "react"
 import { Editor, Extensions, Node } from "@tiptap/core"
-import {
-    EditorContent,
-    ReactNodeViewRenderer,
-    useEditor,
-} from "@tiptap/react"
+import { EditorContent, ReactNodeViewRenderer, useEditor } from "@tiptap/react"
 import { OwidEnrichedGdocBlock } from "@ourworldindata/types"
 import { getRichEditorBaseExtensions } from "./extensions.js"
 import { pmNodeNames } from "./serialization/pmJson.js"

@@ -15,7 +15,9 @@ export function CtaBlockView(props: NodeViewProps): React.ReactElement {
         >
             <div className="rich-block__toolbar" contentEditable={false}>
                 <Tag>cta</Tag>
-                <span className="rich-block__toolbar-info">{url || "no URL set"}</span>
+                <span className="rich-block__toolbar-info">
+                    {url || "no URL set"}
+                </span>
                 <Popover
                     open={editing}
                     onOpenChange={setEditing}
