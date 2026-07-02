@@ -275,6 +275,7 @@ async function generateGdocRecords(
         let i = 0
 
         const thumbnailUrl = getThumbnailUrl(gdoc, cloudflareImagesByFilename)
+        const path = getPrefixedGdocPath("", gdoc)
 
         const originalTagNames = gdoc.tags?.map((t) => t.name) ?? []
         // Some Gdocs don't have topic tags by design (e.g. announcements)
@@ -292,10 +293,10 @@ async function generateGdocRecords(
                 importance: getPostImportance(gdoc),
                 type: gdoc.content.type,
                 slug: gdoc.slug,
+                path,
                 title: gdoc.content.title || "",
                 content: flattenToSingleLine(chunk),
-                views_7d:
-                    pageviews[getPrefixedGdocPath("", gdoc)]?.views_7d ?? 0,
+                views_7d: pageviews[path]?.views_7d ?? 0,
                 excerpt: getExcerptFromGdoc(gdoc),
                 excerptLong: getExcerptLongFromGdoc(gdoc),
                 date: gdoc.publishedAt!.toISOString(),
@@ -363,6 +364,10 @@ async function generateProfileRecords(
         const chunks = chunkParagraphs(plaintextContent, 1000)
 
         const slug = getSlugForProfileEntity(profileTemplate, entity)
+        const path = getPrefixedGdocPath("", {
+            slug,
+            content: { type: OwidGdocType.Profile },
+        })
         const thumbnailUrl = getThumbnailUrl(
             instantiatedProfile,
             cloudflareImagesByFilename
@@ -374,17 +379,12 @@ async function generateProfileRecords(
                 importance: getPostImportance(profileTemplate),
                 type: OwidGdocType.Profile,
                 slug,
+                path,
                 title: instantiatedProfile.content.title
                     ? `${instantiatedProfile.content.title} in ${articulateEntity(entity.name)}`
                     : "",
                 content: chunks[i],
-                views_7d:
-                    pageviews[
-                        getPrefixedGdocPath("", {
-                            slug,
-                            content: { type: OwidGdocType.Profile },
-                        })
-                    ]?.views_7d ?? 0,
+                views_7d: pageviews[path]?.views_7d ?? 0,
                 excerpt: instantiatedProfile.content.excerpt ?? "",
                 date: profileTemplate.publishedAt!.toISOString(),
                 modifiedDate: (
@@ -460,17 +460,17 @@ export const getPagesRecords = async (knex: db.KnexReadonlyTransaction) => {
     return [...gdocsRecords, ...profileRecords]
 }
 
-async function getExistingRecordsForSlug(
+async function getExistingRecordsForPath(
     searchClient: SearchClient,
     indexName: string,
-    slug: string
+    path: string
 ): Promise<Hit[]> {
     const settings = await searchClient.getSettings({ indexName })
-    // Settings can be specified with a modifier, e.g. `filterOnly(slug)`.
-    if (!settings.attributesForFaceting?.some((a) => a.includes("slug"))) {
+    // Settings can be specified with a modifier, e.g. `filterOnly(path)`.
+    if (!settings.attributesForFaceting?.some((a) => a.includes("path"))) {
         await logErrorAndMaybeCaptureInSentry(
             new Error(
-                "Attribute 'slug' must be set in the index's attributesForFaceting " +
+                "Attribute 'path' must be set in the index's attributesForFaceting " +
                     "to get existing records in Algolia."
             )
         )
@@ -480,7 +480,7 @@ async function getExistingRecordsForSlug(
         indexName,
         browseParams: {
             attributesToRetrieve: ["objectID"],
-            filters: `slug:${slug}`,
+            filters: `path:"${path}"`,
         },
         // This is the way you get results from browseObjects for some reason 🤷
         aggregator: (batch) => existingRecordsForPost.push(...batch.hits),
@@ -494,10 +494,13 @@ async function getExistingRecordsForSlug(
  * If it's an existing post:
  * - existing records will be overwritten if the new post gets chunked into the same number of records (i.e. they're approx. the same length)
  * - otherwise the old records will be deleted and new ones will be created
- * To delete old records, we need to know the slug of the post before it was updated.
+ * To delete old records, we need to know the path of the post before it was updated
+ * (derived from its slug before it changed, if it changed).
  * - We can't search by objectID because it's not a queryable field
  * - We can't filter by objectID because filters require exact matches and we can't know the objectIDs beforehand
  *   - They're of the form `${gdoc.id}-c${chunkNumber}` but we don't know how many chunks exist
+ * - We filter by `path` rather than the bare `slug`, since different gdoc types can share the
+ *   same slug while resolving to different pages (e.g. a data insight and an article) - see #6591.
  */
 export async function indexIndividualGdoc(
     gdoc: OwidGdocPostInterface | OwidGdocDataInsightInterface,
@@ -530,10 +533,15 @@ export async function indexIndividualGdoc(
     }
     const indexName = PAGES_INDEX
 
-    const existingRecordsForPost: Hit[] = await getExistingRecordsForSlug(
+    const indexedPath = getPrefixedGdocPath("", {
+        slug: indexedSlug,
+        content: gdoc.content,
+    })
+
+    const existingRecordsForPost: Hit[] = await getExistingRecordsForPath(
         client,
         indexName,
-        indexedSlug
+        indexedPath
     )
 
     if (
@@ -619,7 +627,10 @@ export async function getIndividualGdocRecords(
     )
 }
 
-export async function removeIndividualGdocFromIndex(slug: string) {
+export async function removeIndividualGdocFromIndex(gdoc: {
+    slug: string
+    content: { type?: OwidGdocType }
+}) {
     if (!ALGOLIA_INDEXING) return
     const client = getAlgoliaClient()
     if (!client) {
@@ -629,19 +640,20 @@ export async function removeIndividualGdocFromIndex(slug: string) {
         return
     }
     const indexName = PAGES_INDEX
-    const existingRecordsForPost: Hit[] = await getExistingRecordsForSlug(
+    const path = getPrefixedGdocPath("", gdoc)
+    const existingRecordsForPost: Hit[] = await getExistingRecordsForPath(
         client,
         indexName,
-        slug
+        path
     )
 
     try {
-        console.log("Removing Gdoc post from Algolia index", slug)
+        console.log("Removing Gdoc post from Algolia index", path)
         await client.deleteObjects({
             indexName,
             objectIDs: existingRecordsForPost.map((r) => r.objectID),
         })
-        console.log("Removed Gdoc post from Algolia index", slug)
+        console.log("Removed Gdoc post from Algolia index", path)
     } catch (e) {
         console.error("Error removing Gdoc post from Algolia index: ", e)
     }
