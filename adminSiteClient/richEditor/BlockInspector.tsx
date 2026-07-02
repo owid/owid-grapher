@@ -80,7 +80,7 @@ function ChartUrlField(props: {
         <AutoComplete
             value={props.value}
             options={options}
-            onSearch={setSearch}
+            showSearch={{ onSearch: setSearch }}
             onChange={(value) => props.onChange(String(value))}
             placeholder="Search published charts or paste a grapher URL"
         />
@@ -340,7 +340,7 @@ export function BlockInspector(props: {
                                     {jsonError && (
                                         <Alert
                                             type="error"
-                                            message={jsonError}
+                                            title={jsonError}
                                             style={{ marginBottom: 8 }}
                                         />
                                     )}
