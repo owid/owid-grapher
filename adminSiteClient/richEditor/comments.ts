@@ -51,7 +51,7 @@ export function applyCommentMarks(
     for (const thread of threads) {
         if (thread.anchorType !== "range" || thread.status === "orphaned")
             continue
-        if (thread.anchorFrom == null || thread.anchorTo == null) continue
+        if (thread.anchorFrom === null || thread.anchorTo === null) continue
         const from = Math.max(0, Math.min(thread.anchorFrom, doc.content.size))
         const to = Math.max(0, Math.min(thread.anchorTo, doc.content.size))
         if (from >= to) continue

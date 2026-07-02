@@ -103,7 +103,7 @@ export function RichEditor(props: {
             if (!transaction.getMeta("richEditorSilent")) onDirtyRef.current()
         },
         onSelectionUpdate: ({ editor: current }) => {
-            onSelectionChangeRef.current?.(current as Editor)
+            onSelectionChangeRef.current?.(current)
         },
         onCreate: ({ editor: created }) => {
             editorRef.current = created

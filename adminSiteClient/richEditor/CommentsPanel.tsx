@@ -56,8 +56,10 @@ export function CommentsPanel(props: {
             if (
                 editor &&
                 request.anchorType === "range" &&
-                request.anchorFrom != null &&
-                request.anchorTo != null
+                request.anchorFrom !== null &&
+                request.anchorFrom !== undefined &&
+                request.anchorTo !== null &&
+                request.anchorTo !== undefined
             ) {
                 addCommentMark(
                     editor,
