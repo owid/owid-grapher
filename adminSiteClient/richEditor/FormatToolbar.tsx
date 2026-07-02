@@ -37,8 +37,7 @@ function useDodOptions(): { value: string; label: string }[] {
     const { admin } = useContext(AdminAppContext)
     const dodsQuery = useQuery({
         queryKey: ["richEditorDods"],
-        queryFn: () =>
-            admin.getJSON<{ dods: DbPlainDod[] }>("/api/dods.json"),
+        queryFn: () => admin.getJSON<{ dods: DbPlainDod[] }>("/api/dods.json"),
         staleTime: Infinity,
     })
     return (dodsQuery.data?.dods ?? []).map((dod) => ({
@@ -149,8 +148,7 @@ export function FormatToolbar(props: {
                                 : "text"
                         }
                         disabled={
-                            !hasSelection &&
-                            !editor.isActive(pmMarkNames.link)
+                            !hasSelection && !editor.isActive(pmMarkNames.link)
                         }
                     >
                         Link
@@ -204,8 +202,8 @@ export function FormatToolbar(props: {
                         if (open) {
                             setRefUrl(
                                 String(
-                                    editor.getAttributes(pmMarkNames.ref)
-                                        .url ?? ""
+                                    editor.getAttributes(pmMarkNames.ref).url ??
+                                        ""
                                 )
                             )
                         }
@@ -268,9 +266,7 @@ export function FormatToolbar(props: {
                     label="Clear"
                     tooltip="Remove formatting from the selection"
                     active={false}
-                    onClick={() =>
-                        editor.chain().focus().unsetAllMarks().run()
-                    }
+                    onClick={() => editor.chain().focus().unsetAllMarks().run()}
                 />
             </Space>
         </div>

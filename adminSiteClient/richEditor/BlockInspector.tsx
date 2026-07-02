@@ -104,9 +104,7 @@ export function BlockInspector(props: {
 }): React.ReactElement {
     const { inspected, onClose } = props
     // local working copy of the props; applied immediately on field changes
-    const [draft, setDraft] = useState<Record<string, unknown>>(
-        inspected.props
-    )
+    const [draft, setDraft] = useState<Record<string, unknown>>(inspected.props)
     const [jsonText, setJsonText] = useState(() =>
         JSON.stringify(inspected.props, null, 2)
     )
@@ -268,7 +266,10 @@ export function BlockInspector(props: {
                             <Select
                                 value={String(draft.align ?? "left")}
                                 onChange={(align) => apply({ align })}
-                                options={[{ value: "left" }, { value: "right" }]}
+                                options={[
+                                    { value: "left" },
+                                    { value: "right" },
+                                ]}
                             />
                         </Form.Item>
                     </>
