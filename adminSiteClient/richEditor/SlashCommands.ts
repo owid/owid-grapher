@@ -1,5 +1,5 @@
 import { Editor, Extension, Range } from "@tiptap/core"
-import Suggestion, { SuggestionProps } from "@tiptap/suggestion"
+import { Suggestion, SuggestionProps } from "@tiptap/suggestion"
 import { RichEditorBlockItem, filterBlockItems } from "./blockRegistry.js"
 
 // "/" opens an inline block inserter at the caret. Rendered with plain DOM

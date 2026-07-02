@@ -201,7 +201,7 @@ function RichEditorPageForId(props: { id: string }): React.ReactElement {
                 <main className="rich-editor-page">
                     <Alert
                         type="error"
-                        message={`Could not load document ${id}`}
+                        title={`Could not load document ${id}`}
                         description={String(gdocQuery.error ?? "")}
                     />
                 </main>
@@ -262,7 +262,7 @@ function RichEditorPageForId(props: { id: string }): React.ReactElement {
                     <Alert
                         type="warning"
                         showIcon
-                        message="Someone else saved a newer version of this draft."
+                        title="Someone else saved a newer version of this draft."
                         description="Reload to get the newest version. Your unsaved changes will be lost."
                         action={
                             <Button
@@ -278,7 +278,7 @@ function RichEditorPageForId(props: { id: string }): React.ReactElement {
                     <Alert
                         type="error"
                         showIcon
-                        message="Saving failed"
+                        title="Saving failed"
                         description={saveState.message}
                         action={
                             <Button
@@ -382,7 +382,7 @@ function ConvertToNativePrompt(props: {
                 <Alert
                     type="info"
                     showIcon
-                    message="This document is authored in Google Docs"
+                    title="This document is authored in Google Docs"
                     description={
                         <>
                             <p>
@@ -443,7 +443,7 @@ function RevisionsDrawer(props: {
             title="Revision history"
             open={open}
             onClose={onClose}
-            width={420}
+            size={420}
         >
             <List
                 loading={revisionsQuery.isLoading}

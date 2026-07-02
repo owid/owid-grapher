@@ -1,4 +1,4 @@
-import { MutableRefObject, useMemo, useRef, useState } from "react"
+import { RefObject, useMemo, useRef, useState } from "react"
 import { Editor, Extensions, Node } from "@tiptap/core"
 import { EditorContent, ReactNodeViewRenderer, useEditor } from "@tiptap/react"
 import { OwidEnrichedGdocBlock } from "@ourworldindata/types"
@@ -21,9 +21,9 @@ const NODE_VIEWS = {
 
 export function RichEditor(props: {
     initialBody: OwidEnrichedGdocBlock[]
-    editorRef: MutableRefObject<Editor | null>
+    editorRef: RefObject<Editor | null>
     /** Set to a function that opens the image picker and calls back with the chosen filename */
-    requestImageRef?: MutableRefObject<
+    requestImageRef?: RefObject<
         ((insert: (filename: string) => void) => void) | null
     >
     onDirty: () => void

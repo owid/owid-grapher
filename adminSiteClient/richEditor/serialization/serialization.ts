@@ -21,6 +21,11 @@ import {
     spanTreeToRuns,
 } from "./spanRuns.js"
 
+/** null and undefined are both "absent" for ProseMirror attribute values */
+function isPresent(value: unknown): boolean {
+    return value !== null && value !== undefined
+}
+
 // Converts between the enriched gdoc block model (OwidEnrichedGdocBlock[]) and
 // ProseMirror document JSON. Block types the editor supports natively get real
 // ProseMirror nodes; every other block type is carried through opaquely as a
@@ -313,7 +318,7 @@ export function pmNodeToEnrichedBlock(node: PmNodeJson): OwidEnrichedGdocBlock {
                 text: (node.content ?? []).map(paragraphToTextBlock),
                 parseErrors: [],
             }
-            if (attrs.citation != null)
+            if (isPresent(attrs.citation))
                 blockquote.citation = String(attrs.citation)
             return blockquote
         }
@@ -323,8 +328,8 @@ export function pmNodeToEnrichedBlock(node: PmNodeJson): OwidEnrichedGdocBlock {
                 text: (node.content ?? []).map(pmNodeToCalloutChild),
                 parseErrors: [],
             }
-            if (attrs.icon != null) callout.icon = attrs.icon as "info"
-            if (attrs.title != null) callout.title = String(attrs.title)
+            if (isPresent(attrs.icon)) callout.icon = attrs.icon as "info"
+            if (isPresent(attrs.title)) callout.title = String(attrs.title)
             return callout
         }
         case pmNodeNames.image: {
@@ -337,14 +342,14 @@ export function pmNodeToEnrichedBlock(node: PmNodeJson): OwidEnrichedGdocBlock {
             }
             if (attrs.smallFilename)
                 image.smallFilename = String(attrs.smallFilename)
-            if (attrs.alt != null) image.alt = String(attrs.alt)
+            if (isPresent(attrs.alt)) image.alt = String(attrs.alt)
             if (attrs.caption)
                 image.caption = structuredClone(attrs.caption as Span[])
-            if (attrs.originalWidth != null)
+            if (isPresent(attrs.originalWidth))
                 image.originalWidth = Number(attrs.originalWidth)
             if (attrs.visibility)
                 image.visibility = attrs.visibility as BlockVisibility
-            if (attrs.preferSmallFilename != null)
+            if (isPresent(attrs.preferSmallFilename))
                 image.preferSmallFilename = Boolean(attrs.preferSmallFilename)
             return image
         }
