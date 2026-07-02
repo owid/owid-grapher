@@ -1,5 +1,5 @@
 $schema: "http://json-schema.org/draft-07/schema#"
-$id: "https://files.ourworldindata.org/schemas/grapher-schema.010.json"
+$id: "https://files.ourworldindata.org/schemas/grapher-schema.011.json"
 # If you update the required keys, make sure that the mergeGrapherConfigs and
 # diffGrapherConfigs functions both reflect this change
 required:
@@ -14,12 +14,12 @@ properties:
     type: string
     description: Url of the concrete schema version to use to validate this document
     format: uri
-    default: "https://files.ourworldindata.org/schemas/grapher-schema.010.json"
+    default: "https://files.ourworldindata.org/schemas/grapher-schema.011.json"
     # We restrict the $schema field to a single value since we expect all
     # configs in our database to be valid against the latest schema.
     # If we ever need to validate configs against multiple schema versions,
     # we can remove this constraint.
-    const: "https://files.ourworldindata.org/schemas/grapher-schema.010.json"
+    const: "https://files.ourworldindata.org/schemas/grapher-schema.011.json"
   id:
     type: integer
     description: Internal database id
@@ -145,10 +145,6 @@ properties:
                 - quarter
                 - year
                 - decade
-            yearIsDay:
-              type: boolean
-              default: false
-              description: "(Deprecated, use timeInterval instead) Switch to indicate if the number in the year column represents a day (since zeroDay) or not i.e. a year"
             color:
               type: string
               description: Default color for this time series

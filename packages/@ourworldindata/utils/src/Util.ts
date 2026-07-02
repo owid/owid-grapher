@@ -242,16 +242,13 @@ export function formatDay(
 }
 
 /**
- * Resolves the time interval of an indicator from its display config, falling
- * back to the deprecated `yearIsDay` flag when `timeInterval` is not set.
+ * Resolves the time interval of an indicator from its display config,
+ * defaulting to `year` when not set.
  */
 export function getTimeInterval(
     display?: OwidVariableDisplayConfigInterface
 ): TimeInterval {
-    return (
-        display?.timeInterval ??
-        (display?.yearIsDay ? TimeInterval.Day : TimeInterval.Year)
-    )
+    return display?.timeInterval ?? TimeInterval.Year
 }
 
 const SUB_YEARLY_INTERVALS = new Set<TimeInterval>([

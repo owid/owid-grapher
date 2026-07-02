@@ -25,7 +25,6 @@ class OwidVariableDisplayConfigDefaults {
     numSignificantFigures: number | undefined = undefined
     tolerance: number | undefined = undefined
     timeInterval: TimeInterval | undefined = undefined
-    yearIsDay: boolean | undefined = undefined
     zeroDay: string | undefined = undefined
     entityAnnotationsMap: string | undefined = undefined
     includeInTable: boolean | undefined = true
@@ -45,7 +44,6 @@ class OwidVariableDisplayConfigDefaults {
             numSignificantFigures: observable,
             tolerance: observable,
             timeInterval: observable,
-            yearIsDay: observable,
             zeroDay: observable,
             entityAnnotationsMap: observable,
             includeInTable: observable,
