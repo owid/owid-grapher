@@ -27,6 +27,9 @@ export const IndexPage = (props: {
                     name="viewport"
                     content="width=device-width, initial-scale=1"
                 />
+                {/* Site fonts (Lato, Playfair Display) so the rich editor
+                    canvas can match the article typography */}
+                <link rel="stylesheet" href="/fonts.css" />
                 {assets.forHeader}
             </head>
             <body>

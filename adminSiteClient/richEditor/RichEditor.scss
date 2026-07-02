@@ -1,7 +1,11 @@
 // Styles for the rich editor canvas, its block chrome, and the slash menu.
-// The canvas approximates article typography; rendering blocks through the
-// real site components (with scoped site CSS) is planned for the articles
-// milestone.
+// The canvas mirrors the site's article typography (same font stacks and
+// text styles as centered-article.scss / the typography mixins) so what you
+// edit closely resembles what gets published; rendering blocks through the
+// real site components (with scoped site CSS) is planned for the in-situ
+// chart editing milestone.
+
+@import "../../packages/@ourworldindata/components/src/styles/typography-constants.scss";
 
 .rich-editor-page {
     padding: 16px 24px;
@@ -91,18 +95,24 @@
     min-width: 0;
     background: #fff;
     border: 1px solid #e5e1d8;
-    border-radius: 8px;
-    padding: 32px 48px;
+    border-radius: 0 0 8px 8px;
+    border-top: none;
+    padding: 8px 48px 64px;
     min-height: 60vh;
 }
 
+// $blue-90/$blue-60 from the site palette (colors.scss)
+$canvas-text: #1d3d63;
+$canvas-text-muted: #426591;
+
 .rich-editor-canvas__content {
     outline: none;
-    font-family: Georgia, "Times New Roman", serif;
-    font-size: 17px;
-    line-height: 1.6;
-    color: #1d2b3d;
-    max-width: 720px;
+    // body-1-regular (typography.scss), like .article-block__text
+    font-family: $sans-serif-font-stack;
+    font-size: 1.125rem;
+    line-height: 1.55;
+    color: $canvas-text;
+    max-width: 680px;
     margin: 0 auto;
 
     p {
@@ -114,10 +124,31 @@
     h3,
     h4,
     h5 {
-        font-family: inherit;
-        color: #12294a;
-        line-height: 1.2;
-        margin: 24px 0 12px;
+        font-family: $serif-font-stack;
+        color: $canvas-text;
+        margin: 48px 0 24px;
+    }
+
+    // h1-semibold / h2-bold / h3-bold desktop sizes (typography.scss)
+    h1 {
+        font-size: 2rem;
+        line-height: 1.25;
+        font-weight: 600;
+    }
+
+    h2 {
+        font-size: 1.5rem;
+        line-height: calc(4 / 3);
+        font-weight: 700;
+    }
+
+    h3,
+    h4,
+    h5 {
+        font-size: 1.25rem;
+        line-height: calc(4 / 3);
+        font-weight: 700;
+        margin: 32px 0 16px;
     }
 
     ul,
@@ -126,24 +157,27 @@
         padding-left: 24px;
     }
 
+    // like .article-block__blockquote
     blockquote {
-        border-left: 3px solid #c9c3b5;
         margin: 0 0 16px;
-        padding: 4px 0 4px 16px;
-        color: #4d5f72;
+        padding: 0 0 0 24px;
+        border-left: 2px solid #dbe5f1;
+        color: $canvas-text-muted;
         font-style: italic;
     }
 
     hr {
         border: none;
-        border-top: 1px solid #d6d1c4;
-        margin: 24px auto;
-        width: 120px;
+        border-top: 1px solid #dbe5f1;
+        margin: 48px auto;
+        max-width: 680px;
     }
 
     a[data-rich-mark="link"] {
-        color: #3360a9;
+        color: inherit;
         text-decoration: underline;
+        text-decoration-color: #a4b6ca;
+        text-underline-offset: 3px;
         cursor: text;
     }
 
@@ -185,9 +219,18 @@
     border-radius: 8px;
 
     .rich-block__toolbar {
+        position: absolute;
+        top: 6px;
+        right: 6px;
+        z-index: 4;
+        max-width: 90%;
         display: flex;
         align-items: center;
         gap: 8px;
+        padding: 3px 6px;
+        background: rgba(255, 255, 255, 0.95);
+        border: 1px solid #e5e1d8;
+        border-radius: 6px;
         font-family: -apple-system, system-ui, "Segoe UI", Roboto, sans-serif;
         font-size: 12px;
         color: #8a8577;
@@ -488,11 +531,14 @@
 }
 
 .rich-editor-page__inline-title {
-    font-size: 30px;
-    font-weight: 700;
+    // like the article header title: display-2-semibold, Playfair
+    font-family: $serif-font-stack;
+    font-size: 2.5rem;
+    font-weight: 600;
     line-height: 1.2;
-    color: #1d2b3d;
-    padding: 12px 32px 0;
+    text-align: center;
+    color: #1d3d63;
+    padding: 40px 48px 0;
     background: #fff;
     border-left: 1px solid #e5e1d8;
     border-right: 1px solid #e5e1d8;
@@ -505,16 +551,51 @@
 // ── M2: atom block cards ────────────────────────────────────────────────────
 
 .rich-atom-block {
-    border: 1px solid #e5e1d8;
+    position: relative;
+    border: 1px solid transparent;
     border-radius: 6px;
     margin: 12px 0;
     background: #fff;
+    transition: border-color 0.12s;
+
+    // edit chrome floats above the block and only appears on hover/selection,
+    // so the block itself reads like the published article
+    .rich-block__toolbar {
+        position: absolute;
+        top: 6px;
+        right: 6px;
+        z-index: 4;
+        max-width: 90%;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 3px 6px;
+        background: rgba(255, 255, 255, 0.95);
+        border: 1px solid #e5e1d8;
+        border-radius: 6px;
+        font-family: -apple-system, system-ui, "Segoe UI", Roboto, sans-serif;
+        font-size: 12px;
+        color: #8a8577;
+        opacity: 0;
+        transition: opacity 0.12s;
+    }
+
+    &:hover,
+    &.rich-block--selected {
+        border-color: #e5e1d8;
+
+        .rich-block__toolbar {
+            opacity: 1;
+        }
+    }
 
     figcaption,
     .rich-atom-block__caption {
-        padding: 4px 12px 8px;
-        color: #6e6a5e;
-        font-size: 13px;
+        // like .article-block__caption: body-3-medium gray
+        padding: 8px 0 0;
+        color: #577291;
+        font-size: 0.875rem;
+        line-height: 1.5;
     }
 }
 
@@ -553,11 +634,16 @@
 }
 
 .rich-atom-block__pull-quote {
+    // like .article-block__pull-quote: Playfair display
     margin: 0;
-    padding: 16px 24px;
-    font-size: 22px;
+    padding: 24px;
+    font-family: $serif-font-stack;
+    font-size: 1.75rem;
+    line-height: 1.3;
+    font-weight: 500;
     font-style: italic;
-    color: #1d2b3d;
+    text-align: center;
+    color: #1d3d63;
 }
 
 .rich-atom-block__table {
@@ -575,12 +661,13 @@
 // ── M2: editable containers ─────────────────────────────────────────────────
 
 .rich-editor-canvas__content .rich-aside {
-    border-left: 3px solid #c7c2b4;
+    border-left: 2px solid #dbe5f1;
     margin: 12px 0 12px 24px;
     padding: 4px 12px;
-    color: #6e6a5e;
+    color: #577291;
     font-style: italic;
-    font-size: 14px;
+    font-size: 0.875rem;
+    line-height: 1.5;
 }
 
 .rich-editor-canvas__content .rich-gray-section {
@@ -611,10 +698,14 @@
     display: flex;
     gap: 24px;
     margin: 16px 0;
-    border: 1px dashed #c7c2b4;
+    border: 1px dashed #e3e9f1;
     border-radius: 6px;
     padding: 8px;
     position: relative;
+
+    &:hover {
+        border-color: #c3d0e2;
+    }
 
     &::before {
         content: attr(data-rich-layout);
@@ -626,7 +717,7 @@
         font-size: 10px;
         text-transform: uppercase;
         letter-spacing: 0.08em;
-        color: #8a8577;
+        color: #a4b6ca;
     }
 }
 
@@ -645,7 +736,6 @@
     min-width: 0;
     border-radius: 4px;
     padding: 4px 8px;
-    background: #faf9f6;
 }
 
 .rich-editor-inspector__json textarea,
