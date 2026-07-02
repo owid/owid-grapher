@@ -37,6 +37,28 @@ export const useScrollDirection = () => {
     return direction
 }
 
+// True while the user is actively scrolling; flips back to false once
+// scrolling has paused for `idleMs`. Lets consumers react to "scrolling
+// settled" by watching for the transition back to false.
+export const useIsScrolling = (idleMs: number): boolean => {
+    const [isScrolling, setIsScrolling] = useState(false)
+
+    useEffect(() => {
+        const settle = _.debounce(() => setIsScrolling(false), idleMs)
+        const onScroll = () => {
+            setIsScrolling(true)
+            settle()
+        }
+        document.addEventListener("scroll", onScroll, { passive: true })
+        return () => {
+            document.removeEventListener("scroll", onScroll)
+            settle.cancel()
+        }
+    }, [idleMs])
+
+    return isScrolling
+}
+
 export const useEmbedChart = (
     activeChartIdx: number,
     refChartContainer: React.RefObject<HTMLDivElement | null>,
