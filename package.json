@@ -202,8 +202,8 @@
         "@types/topojson-server": "^3.0.4",
         "@types/yargs": "^17.0.35",
         "@typescript/native-preview": "^7.0.0-dev.20260504.1",
-        "@vitejs/plugin-react": "^6.0.2",
-        "@vitest/coverage-v8": "^4.1.8",
+        "@vitejs/plugin-react": "^6.0.3",
+        "@vitest/coverage-v8": "^4.1.9",
         "@yarnpkg/types": "^4.0.1",
         "bundlemon": "^3.1.0",
         "chokidar-cli": "^3.0.0",
@@ -224,8 +224,8 @@
         "schema-dts": "^2.0.0",
         "topojson-server": "^3.0.1",
         "tsx": "^4.22.4",
-        "vite": "^8.0.16",
-        "vitest": "^4.1.8",
+        "vite": "^8.1.0",
+        "vitest": "^4.1.9",
         "wrangler": "^4.105.0"
     },
     "resolutions": {

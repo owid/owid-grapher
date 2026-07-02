@@ -37,7 +37,7 @@
         "@types/react": "^19.2.14",
         "@types/url-parse": "^1.4.11",
         "timezone-mock": "^1.0.18",
-        "vitest": "^4.1.8"
+        "vitest": "^4.1.9"
     },
     "license": "SEE LICENSE IN LICENSE.md"
 }
