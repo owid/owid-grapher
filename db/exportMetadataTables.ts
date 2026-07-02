@@ -100,6 +100,9 @@ export const PRIVATE_DATA_TABLES = [
     // content is internal (published content ships via posts_gdocs).
     "posts_gdocs_drafts",
     "posts_gdocs_revisions",
+    // Editorial discussion on drafts, never part of the public site
+    "posts_gdocs_comment_threads",
+    "posts_gdocs_comments",
 ]
 
 // Tables that are intentionally schema-only: their structure ships publicly

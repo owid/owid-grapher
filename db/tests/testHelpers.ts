@@ -13,6 +13,8 @@ import {
     JobsTableName,
     MultiDimDataPagesTableName,
     MultiDimXChartConfigsTableName,
+    PostsGdocsCommentThreadsTableName,
+    PostsGdocsCommentsTableName,
     PostsGdocsDraftsTableName,
     PostsGdocsRevisionsTableName,
     PostsGdocsTableName,
@@ -39,6 +41,8 @@ export const TABLES_IN_USE = [
     VariablesTableName,
     ChartConfigsTableName,
     DatasetsTableName,
+    PostsGdocsCommentsTableName, // Must come before PostsGdocsCommentThreadsTableName due to foreign key
+    PostsGdocsCommentThreadsTableName, // Must come before PostsGdocsTableName due to foreign key
     PostsGdocsDraftsTableName, // Must come before PostsGdocsRevisionsTableName due to foreign key
     PostsGdocsRevisionsTableName, // Must come before PostsGdocsTableName due to foreign key
     PostsGdocsTableName,
