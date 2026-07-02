@@ -16,6 +16,7 @@ import {
     RedirectsTableName,
     OwidGdocType,
     OwidGdocAuthoringMode,
+    DbRawPostGdoc,
 } from "@ourworldindata/types"
 import {
     checkIsChronologicalGdoc,
@@ -337,7 +338,7 @@ function checkIsProfile(gdoc: { content: { type?: OwidGdocType } }): boolean {
  * - Updating (index and bake (potentially via lightning deploy))
  * - Unpublishing (remove from index and bake)
  */
-async function indexAndBakeGdocIfNeccesary(
+export async function indexAndBakeGdocIfNeccesary(
     trx: db.KnexReadWriteTransaction,
     user: Required<DbInsertUser>,
     prevGdoc:
@@ -427,7 +428,7 @@ async function indexAndBakeGdocIfNeccesary(
         .exhaustive()
 }
 
-async function validateSlugCollisionsIfPublishing(
+export async function validateSlugCollisionsIfPublishing(
     trx: db.KnexReadonlyTransaction,
     gdoc:
         | GdocPost
@@ -530,6 +531,26 @@ export async function createOrUpdateGdoc(
     if (!prevGdoc) throw new JsonError(`No Google Doc with id ${id} found`)
 
     const nextGdoc = gdocFromJSON(req.body)
+
+    // Natively-edited docs own their body and publish state through the rich
+    // editor endpoints; the settings PUT must not clobber either.
+    const nativeRow = await trx
+        .table(PostsGdocsTableName)
+        .where({ id })
+        .first<
+            | Pick<DbRawPostGdoc, "authoringMode" | "content" | "published">
+            | undefined
+        >("authoringMode", "content", "published")
+    if (nativeRow?.authoringMode === OwidGdocAuthoringMode.Native) {
+        nextGdoc.content.body = JSON.parse(nativeRow.content).body
+        if (!!nextGdoc.published !== !!nativeRow.published) {
+            throw new JsonError(
+                "The publish state of natively-edited documents is managed by the rich editor",
+                400
+            )
+        }
+    }
+
     await nextGdoc.loadState(trx)
 
     await validateSlugCollisionsIfPublishing(trx, nextGdoc)

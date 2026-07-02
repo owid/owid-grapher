@@ -55,11 +55,19 @@ import {
     createNativeGdoc,
     getGdocForEditor,
     saveGdocBody,
+    saveGdocEditorSettings,
     getGdocRevisions,
     getGdocRevision,
     restoreGdocRevision,
     convertGdocToNative,
     resolveEditorReferences,
+    publishNativeGdoc,
+    unpublishNativeGdoc,
+    getGdocCommentThreads,
+    createGdocCommentThread,
+    replyToGdocCommentThread,
+    updateGdocCommentThread,
+    heartbeatGdocPresence,
 } from "./apiRoutes/richEditor.js"
 import {
     getImagesHandler,
@@ -434,6 +442,42 @@ postRouteWithRWTransaction(
     apiRouter,
     "/editor/resolveReferences",
     resolveEditorReferences
+)
+postRouteWithRWTransaction(apiRouter, "/gdocs/:id/publish", publishNativeGdoc)
+postRouteWithRWTransaction(
+    apiRouter,
+    "/gdocs/:id/unpublish",
+    unpublishNativeGdoc
+)
+putRouteWithRWTransaction(
+    apiRouter,
+    "/gdocs/:id/editorSettings",
+    saveGdocEditorSettings
+)
+getRouteWithROTransaction(
+    apiRouter,
+    "/gdocs/:id/comments",
+    getGdocCommentThreads
+)
+postRouteWithRWTransaction(
+    apiRouter,
+    "/gdocs/:id/comments",
+    createGdocCommentThread
+)
+postRouteWithRWTransaction(
+    apiRouter,
+    "/gdocs/:id/comments/:threadId/replies",
+    replyToGdocCommentThread
+)
+putRouteWithRWTransaction(
+    apiRouter,
+    "/gdocs/:id/comments/:threadId",
+    updateGdocCommentThread
+)
+postRouteWithRWTransaction(
+    apiRouter,
+    "/gdocs/:id/presence",
+    heartbeatGdocPresence
 )
 
 // Data insight routes
