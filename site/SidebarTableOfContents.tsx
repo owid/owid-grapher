@@ -1,4 +1,11 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react"
+import {
+    createContext,
+    useContext,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from "react"
 import { ModalOverlay, Modal, Dialog } from "react-aria-components"
 import { useMediaQuery } from "usehooks-ts"
 import cx from "clsx"
@@ -13,6 +20,7 @@ import {
 import { TocHeadingWithSupertitle } from "@ourworldindata/utils"
 import { SearchResultType } from "@ourworldindata/types"
 import { useDocumentContext } from "./gdocs/DocumentContext.js"
+import { ScrollDirection, useScrollDirection } from "./hooks.js"
 import { buildSearchHrefForCard } from "./search/searchState.js"
 import { useKeepActiveTocRowInView } from "./useKeepActiveTocRowInView.js"
 import { useTocScrollSpy } from "./useTocScrollSpy.js"
@@ -80,20 +88,36 @@ export const SidebarTableOfContents = ({
     const sidebarContentRef = useKeepActiveTocRowInView(activeId)
     const isWideBlockInView = useWideBlockInView()
 
-    // Desktop-only; the user's expand/collapse preference (expanded by default).
-    const [prefersExpanded, setPrefersExpanded] = useState(true)
-    // One-shot override: the user expanded the sidebar over the wide block(s)
-    // currently in view. Cleared once no wide block is in view, so the next
-    // wide-block encounter auto-collapses the sidebar again.
-    const [isForcedExpanded, setIsForcedExpanded] = useState(false)
-    useEffect(() => {
-        if (!isWideBlockInView) setIsForcedExpanded(false)
-    }, [isWideBlockInView])
+    // Desktop-only expansion state. The sidebar shows unless something
+    // argues against it: the reader is scrolling down, a wide block is in
+    // view, or the reader dismissed it via the toggle. It renders collapsed
+    // at first (matching the baked HTML), then slides in once the client has
+    // measured that no wide block overlaps.
+    // isDismissedRef: the user collapsed the sidebar via the toggle, so
+    // scroll-up no longer auto-expands it; only toggle-expand does (and
+    // re-arms the auto-expand). A ref, not state: it only gates future
+    // scroll events and never changes what's rendered.
+    const scrollDirection = useScrollDirection()
+    const [isSidebarExpanded, setIsSidebarExpanded] = useState(false)
+    const isDismissedRef = useRef(false)
 
-    // Collapsed on page load (isWideBlockInView defaults to true), then opens
-    // once the client confirms no wide block overlaps.
-    const isSidebarExpanded =
-        prefersExpanded && (!isWideBlockInView || isForcedExpanded)
+    // isWideBlockInView is a dependency so that the initial release (page
+    // load, scrollDirection still null) slides the sidebar in, and scrolling
+    // up past a wide block expands it as soon as the block releases it.
+    useEffect(() => {
+        if (scrollDirection === ScrollDirection.Down) {
+            setIsSidebarExpanded(false)
+        } else if (!isDismissedRef.current && !isWideBlockInView) {
+            setIsSidebarExpanded(true)
+        }
+    }, [scrollDirection, isWideBlockInView])
+
+    // Only the transition into view collapses, so toggle-expanding while a
+    // wide block is in view sticks (the user overrode the auto-collapse)
+    // until the next wide-block encounter or scroll-down.
+    useEffect(() => {
+        if (isWideBlockInView) setIsSidebarExpanded(false)
+    }, [isWideBlockInView])
 
     // Close the mobile drawer if the viewport grows to desktop (resize /
     // rotate / zoom) so it isn't stranded over the sidebar.
@@ -123,14 +147,10 @@ export const SidebarTableOfContents = ({
                 <button
                     className="sidebar-toc__toggle"
                     onClick={() => {
-                        if (isSidebarExpanded) {
-                            setPrefersExpanded(false)
-                            setIsForcedExpanded(false)
-                        } else {
-                            setPrefersExpanded(true)
-                            // Expanding over a wide block sets the forced expanded state
-                            if (isWideBlockInView) setIsForcedExpanded(true)
-                        }
+                        // Collapsing dismisses (disables the scroll-up
+                        // auto-expand); expanding re-arms it.
+                        isDismissedRef.current = isSidebarExpanded
+                        setIsSidebarExpanded(!isSidebarExpanded)
                     }}
                     // Disclosure button: a stable noun-phrase name; aria-expanded
                     // carries the state. https://www.w3.org/WAI/ARIA/apg/patterns/disclosure/
