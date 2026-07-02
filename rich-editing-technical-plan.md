@@ -1,6 +1,6 @@
 # Rich Editing — Technical Plan
 
-_Status: proposal, 2026-07-02. Companion document to `rich-editing-plan.html` (project slideshow)._
+_Status: **M0 built and verified**, 2026-07-02 (see §10a). Companion document to `rich-editing-plan.html` (project slideshow)._
 
 This document describes how we build a native, rich in-browser editing experience for OWID content, replacing ArchieML-in-Google-Docs authoring with a block-based WYSIWYG editor in the admin. It reflects four direction decisions already made:
 
@@ -235,6 +235,19 @@ Not built in v1, but v1 choices should make it cheap:
 - `resolve-references` endpoint (charts batched — fixes N+1; images; narrative charts).
 - Editor shell behind a feature flag: canvas, slash menu, palette, autosave, style-isolation spike, image NodeView using `ImageSelectorModal`.
 - Exit criterion: an engineer can create, edit, save, and restore a native test doc; round-trip green on 100% of published data insights and ≥95% of all published docs.
+
+### 10a. Status (2026-07-02): M0 done
+
+M0 shipped on the `rich-editing-plan` branch (PR [#6684](https://github.com/owid/owid-grapher/pull/6684)) and its exit criterion was exceeded: **1,173/1,173 published documents (100%) round-trip losslessly** with schema validation (`devTools/richEditor/roundtripReport.ts`), and the create → edit → autosave → restore loop was verified end-to-end in the real admin against a migrated MySQL. Key locations: serialization in `adminSiteClient/richEditor/serialization/`, schema extensions in `adminSiteClient/richEditor/extensions.ts`, API in `adminSiteServer/apiRoutes/richEditor.ts`, migration `1782988728435-AddRichEditorGdocTables`, editor at `/admin/gdocs/:id/edit` (creation via `/admin/gdocs/new/edit`).
+
+Deliberate deviations and debts to carry forward:
+
+- **Scoped site CSS deferred to M2**: the canvas uses its own article-ish typography; rendering through the real `site/gdocs` components (and the CSS-isolation spike) happens with the articles milestone, where it's load-bearing.
+- **Chart-slug N+1 not fixed**: `resolveReferences` reuses `loadLinkedChartsForSlugs` as-is; batching it is still open (matters from M2, when canvases render many charts).
+- **Autosave pruning is "keep last 50"** per doc; the daily-snapshot thinning described in §4.1 is not implemented yet.
+- **Revision history UI landed early** (planned for M1) — list + restore exist; per-revision preview/diff does not.
+- **Feature flag gate removed** while staging can't set flags; the editor is reachable for everyone on the branch. Re-gate or ship deliberately when merging. (Side fix that stays: client-side `FEATURE_FLAGS` was broken — vite's define step stringified the Set — now derived from a raw string export.)
+- **Conversion is minimal**: `convertToNative` flips the mode and seeds draft+revision; the conversion report and Google-Doc renaming from §8 are still open (needed before opening conversion to real docs).
 
 **M1 — Data insights GA**
 
