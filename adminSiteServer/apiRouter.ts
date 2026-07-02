@@ -52,6 +52,16 @@ import {
     getResearchAndWritingOrphans,
 } from "./apiRoutes/gdocs.js"
 import {
+    createNativeGdoc,
+    getGdocForEditor,
+    saveGdocBody,
+    getGdocRevisions,
+    getGdocRevision,
+    restoreGdocRevision,
+    convertGdocToNative,
+    resolveEditorReferences,
+} from "./apiRoutes/richEditor.js"
+import {
     getImagesHandler,
     postImageHandler,
     putImageHandler,
@@ -399,6 +409,32 @@ getRouteWithROTransaction(
 putRouteWithRWTransaction(apiRouter, "/gdocs/:id", createOrUpdateGdoc)
 deleteRouteWithRWTransaction(apiRouter, "/gdocs/:id", deleteGdoc)
 postRouteWithRWTransaction(apiRouter, "/gdocs/:gdocId/setTags", setGdocTags)
+
+// Rich editor routes (native gdoc editing)
+postRouteWithRWTransaction(apiRouter, "/gdocs/createNative", createNativeGdoc)
+getRouteWithROTransaction(apiRouter, "/gdocs/:id/editor", getGdocForEditor)
+putRouteWithRWTransaction(apiRouter, "/gdocs/:id/body", saveGdocBody)
+getRouteWithROTransaction(apiRouter, "/gdocs/:id/revisions", getGdocRevisions)
+getRouteWithROTransaction(
+    apiRouter,
+    "/gdocs/:id/revisions/:revisionId",
+    getGdocRevision
+)
+postRouteWithRWTransaction(
+    apiRouter,
+    "/gdocs/:id/revisions/:revisionId/restore",
+    restoreGdocRevision
+)
+postRouteWithRWTransaction(
+    apiRouter,
+    "/gdocs/:id/convertToNative",
+    convertGdocToNative
+)
+postRouteWithRWTransaction(
+    apiRouter,
+    "/editor/resolveReferences",
+    resolveEditorReferences
+)
 
 // Data insight routes
 getRouteWithROTransaction(

@@ -303,6 +303,17 @@ export class GdocsIndexPage extends React.Component<RouteComponentProps> {
                                 documentation
                             </a>
                             <button
+                                className="btn btn-secondary"
+                                onClick={() =>
+                                    this.props.history.push(
+                                        `${this.props.match.path}/new/edit`
+                                    )
+                                }
+                            >
+                                <FontAwesomeIcon icon={faCirclePlus} /> New
+                                native draft (beta)
+                            </button>
+                            <button
                                 className="btn btn-primary"
                                 onClick={() =>
                                     this.props.history.push(

@@ -39,6 +39,7 @@ import { BulkGrapherConfigEditorPage } from "./BulkGrapherConfigEditor.js"
 import { GdocsIndexPage } from "./GdocsIndexPage.js"
 import { OrphanedArticlesIndexPage } from "./OrphanedArticlesIndexPage.js"
 import { GdocsMatchProps, GdocsPreviewPage } from "./GdocsPreviewPage.js"
+import { RichEditorPage } from "./richEditor/RichEditorPage.js"
 import { GdocsCoverageMatrixPage } from "./GdocsCoverageMatrixPage.js"
 import { CalloutFunctionsPage } from "./CalloutFunctionsPage.js"
 import { GdocsStoreProvider } from "./GdocsStoreProvider.js"
@@ -400,6 +401,11 @@ export class AdminApp extends React.Component<{
                                     exact
                                     path="/orphaned-articles"
                                     component={OrphanedArticlesIndexPage}
+                                />
+                                <Route
+                                    exact
+                                    path="/gdocs/:id/edit"
+                                    component={RichEditorPage}
                                 />
                                 <Route
                                     exact
