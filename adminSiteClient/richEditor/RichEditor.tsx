@@ -21,8 +21,14 @@ import {
     TableBlockView,
     VideoBlockView,
 } from "./nodeViews/AtomBlockViews.js"
+import {
+    ExpandableParagraphBlockView,
+    GraySectionBlockView,
+    SideBySideBlockView,
+    StickyLeftBlockView,
+    StickyRightBlockView,
+} from "./nodeViews/ContainerBlockViews.js"
 import { ImageSelectorModal } from "../ImageSelectorModal.js"
-import { InspectedBlock, RichEditorUIContext } from "./uiContext.js"
 
 import "./RichEditor.scss"
 
@@ -39,6 +45,11 @@ const NODE_VIEWS = {
     [pmNodeNames.recirc]: RecircBlockView,
     [pmNodeNames.researchAndWriting]: ResearchAndWritingBlockView,
     [pmNodeNames.allCharts]: AllChartsBlockView,
+    [pmNodeNames.stickyRight]: StickyRightBlockView,
+    [pmNodeNames.stickyLeft]: StickyLeftBlockView,
+    [pmNodeNames.sideBySide]: SideBySideBlockView,
+    [pmNodeNames.graySection]: GraySectionBlockView,
+    [pmNodeNames.expandableParagraph]: ExpandableParagraphBlockView,
 }
 
 export function RichEditor(props: {
@@ -53,8 +64,6 @@ export function RichEditor(props: {
     docType?: OwidGdocType
     onCreate?: (editor: Editor) => void
     onSelectionChange?: (editor: Editor) => void
-    /** Called when a block's cogwheel is clicked; opens the inspector */
-    onInspectBlock?: (inspected: InspectedBlock) => void
 }): React.ReactElement {
     const {
         initialBody,
@@ -64,7 +73,6 @@ export function RichEditor(props: {
         docType,
         onCreate,
         onSelectionChange,
-        onInspectBlock,
     } = props
 
     // Set when a slash-menu "Image" command is waiting for the user to pick
@@ -79,15 +87,6 @@ export function RichEditor(props: {
     onCreateRef.current = onCreate
     const onSelectionChangeRef = useRef(onSelectionChange)
     onSelectionChangeRef.current = onSelectionChange
-    const onInspectBlockRef = useRef(onInspectBlock)
-    onInspectBlockRef.current = onInspectBlock
-    const uiContext = useMemo(
-        () => ({
-            inspectBlock: (inspected: InspectedBlock) =>
-                onInspectBlockRef.current?.(inspected),
-        }),
-        []
-    )
     if (requestImageRef) {
         requestImageRef.current = (insert) =>
             setPendingImageInsert(() => insert)
@@ -153,18 +152,16 @@ export function RichEditor(props: {
     })
 
     return (
-        <RichEditorUIContext.Provider value={uiContext}>
-            <div className="rich-editor-canvas">
-                <EditorContent editor={editor} />
-                <ImageSelectorModal
-                    open={pendingImageInsert !== null}
-                    onSelect={(filename) => {
-                        pendingImageInsert?.(filename)
-                        setPendingImageInsert(null)
-                    }}
-                    onCancel={() => setPendingImageInsert(null)}
-                />
-            </div>
-        </RichEditorUIContext.Provider>
+        <div className="rich-editor-canvas">
+            <EditorContent editor={editor} />
+            <ImageSelectorModal
+                open={pendingImageInsert !== null}
+                onSelect={(filename) => {
+                    pendingImageInsert?.(filename)
+                    setPendingImageInsert(null)
+                }}
+                onCancel={() => setPendingImageInsert(null)}
+            />
+        </div>
     )
 }

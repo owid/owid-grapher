@@ -33,7 +33,10 @@ import {
 import { AdminAppContext } from "../AdminAppContext.js"
 import { AdminLayout } from "../AdminLayout.js"
 import { RichEditor } from "./RichEditor.js"
-import { getBlockItemsForDocType } from "./blockRegistry.js"
+import {
+    getBlockItemsForDocType,
+    RichEditorBlockItem,
+} from "./blockRegistry.js"
 import { pmDocToEnrichedBlocks } from "./serialization/serialization.js"
 import { applyCommentMarks, collectCommentAnchors } from "./comments.js"
 import { computeConversionReport } from "./conversionReport.js"
@@ -41,7 +44,14 @@ import { CommentsPanel } from "./CommentsPanel.js"
 import { SettingsPanel } from "./SettingsPanel.js"
 import { BlockInspector } from "./BlockInspector.js"
 import { FormatToolbar } from "./FormatToolbar.js"
-import { InspectedBlock } from "./uiContext.js"
+import {
+    InspectedBlock,
+    hasTextRangeSelection,
+    inspectedBlockFromSelection,
+    placeCursorBelowSelectedBlock,
+    replaceSelectedBlockWithCursor,
+    selectionBlockKey,
+} from "./inspection.js"
 
 type SaveState =
     | { kind: "saved"; at: Date | null }
@@ -169,7 +179,14 @@ function RichEditorPageForId(props: { id: string }): React.ReactElement {
     const [hasTextSelection, setHasTextSelection] = useState(false)
     const [selectionVersion, setSelectionVersion] = useState(0)
     const [inspected, setInspected] = useState<InspectedBlock | null>(null)
+    // key of the block the inspector was last built for, so it is only
+    // rebuilt when the selection moves to a different block
+    const inspectedKeyRef = useRef<string | null>(null)
     const [railTab, setRailTab] = useState("settings")
+    // set while the replace-or-insert-below dialog is open (a palette item
+    // was clicked while a component was selected)
+    const [pendingInsert, setPendingInsert] =
+        useState<RichEditorBlockItem | null>(null)
     const [activeEditors, setActiveEditors] = useState<
         RichEditorPresenceEditor[]
     >([])
@@ -413,6 +430,33 @@ function RichEditorPageForId(props: { id: string }): React.ReactElement {
     const title = docTitle ?? gdoc.content.title ?? "Untitled"
     const paletteItems = getBlockItemsForDocType(docType)
 
+    const closeInspector = (): void => {
+        setInspected(null)
+        inspectedKeyRef.current = null
+        setRailTab((current) => (current === "block" ? "settings" : current))
+    }
+
+    const runInsertItem = (item: RichEditorBlockItem): void => {
+        const editor = editorRef.current
+        if (!editor) return
+        item.command({
+            editor,
+            onRequestImage: (insert) => requestImageRef.current?.(insert),
+        })
+    }
+
+    const confirmPendingInsert = (mode: "replace" | "below"): void => {
+        const editor = editorRef.current
+        const item = pendingInsert
+        setPendingInsert(null)
+        if (!editor || !item) return
+        const prepared =
+            mode === "replace"
+                ? replaceSelectedBlockWithCursor(editor)
+                : placeCursorBelowSelectedBlock(editor)
+        if (prepared) runInsertItem(item)
+    }
+
     return (
         <AdminLayout title={`Editing: ${title}`} noSidebar fixedNav={false}>
             <main className="rich-editor-page">
@@ -549,11 +593,13 @@ function RichEditorPageForId(props: { id: string }): React.ReactElement {
                                 onClick={() => {
                                     const editor = editorRef.current
                                     if (!editor) return
-                                    item.command({
-                                        editor,
-                                        onRequestImage: (insert) =>
-                                            requestImageRef.current?.(insert),
-                                    })
+                                    // with a component selected, ask whether
+                                    // to replace it or insert below it
+                                    if (selectionBlockKey(editor)) {
+                                        setPendingInsert(item)
+                                        return
+                                    }
+                                    runInsertItem(item)
                                 }}
                             >
                                 <span className="rich-editor-page__palette-glyph">
@@ -591,13 +637,24 @@ function RichEditorPageForId(props: { id: string }): React.ReactElement {
                             onCreate={setEditorInstance}
                             onSelectionChange={(editor) => {
                                 setHasTextSelection(
-                                    !editor.state.selection.empty
+                                    hasTextRangeSelection(editor)
                                 )
                                 setSelectionVersion((version) => version + 1)
-                            }}
-                            onInspectBlock={(nextInspected) => {
-                                setInspected(nextInspected)
-                                setRailTab("block")
+                                // selecting a component (via its hover
+                                // border or body) opens it in the right rail
+                                const key = selectionBlockKey(editor)
+                                if (key === inspectedKeyRef.current) return
+                                inspectedKeyRef.current = key
+                                const block =
+                                    inspectedBlockFromSelection(editor)
+                                setInspected(block)
+                                setRailTab((current) =>
+                                    block
+                                        ? "block"
+                                        : current === "block"
+                                          ? "settings"
+                                          : current
+                                )
                             }}
                         />
                     </div>
@@ -615,10 +672,7 @@ function RichEditorPageForId(props: { id: string }): React.ReactElement {
                                               children: (
                                                   <BlockInspector
                                                       inspected={inspected}
-                                                      onClose={() => {
-                                                          setInspected(null)
-                                                          setRailTab("settings")
-                                                      }}
+                                                      onClose={closeInspector}
                                                   />
                                               ),
                                           },
@@ -696,6 +750,38 @@ function RichEditorPageForId(props: { id: string }): React.ReactElement {
                     open={revisionsOpen}
                     onClose={() => setRevisionsOpen(false)}
                 />
+
+                <Modal
+                    open={pendingInsert !== null}
+                    title={`Insert ${pendingInsert?.title ?? "component"}`}
+                    onCancel={() => setPendingInsert(null)}
+                    footer={
+                        <Space>
+                            <Button onClick={() => setPendingInsert(null)}>
+                                Cancel
+                            </Button>
+                            <Button
+                                onClick={() => confirmPendingInsert("below")}
+                            >
+                                Insert below
+                            </Button>
+                            <Button
+                                type="primary"
+                                danger
+                                onClick={() => confirmPendingInsert("replace")}
+                            >
+                                Replace selected
+                            </Button>
+                        </Space>
+                    }
+                >
+                    <p>
+                        A <strong>{inspected?.blockType ?? "component"}</strong>{" "}
+                        is currently selected. Replace it with the new{" "}
+                        <strong>{pendingInsert?.title.toLowerCase()}</strong>,
+                        or insert the new component below it?
+                    </p>
+                </Modal>
             </main>
         </AdminLayout>
     )

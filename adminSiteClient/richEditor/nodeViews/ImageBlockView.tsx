@@ -1,18 +1,16 @@
-import { useMemo, useState } from "react"
-import { Button, Tag } from "antd"
+import { useMemo } from "react"
 import { NodeViewProps, NodeViewWrapper } from "@tiptap/react"
-import { ImageSelectorModal } from "../../ImageSelectorModal.js"
 import { makeImageSrc } from "../../imagesHelpers.js"
 import { useImages } from "../../useImages.js"
+import { BlockFrame } from "./BlockFrame.js"
 
 const PREVIEW_WIDTH = 850
 
 export function ImageBlockView(props: NodeViewProps): React.ReactElement {
-    const { node, updateAttributes, selected } = props
+    const { node, selected } = props
     const filename = String(node.attrs.filename ?? "")
     const smallFilename = node.attrs.smallFilename as string | null
     const { data: images = [] } = useImages()
-    const [selectorOpen, setSelectorOpen] = useState(false)
 
     const image = useMemo(
         () => images.find((candidate) => candidate.filename === filename),
@@ -21,19 +19,17 @@ export function ImageBlockView(props: NodeViewProps): React.ReactElement {
 
     return (
         <NodeViewWrapper
-            className={`rich-image-block${selected ? " rich-block--selected" : ""}`}
-            data-drag-handle
+            className={`rich-atom-block rich-image-block${
+                selected ? " rich-block--selected" : ""
+            }`}
         >
-            <div className="rich-block__toolbar" contentEditable={false}>
-                <Tag>image</Tag>
-                <span className="rich-block__toolbar-info">
-                    {filename}
-                    {smallFilename ? ` · mobile: ${smallFilename}` : ""}
-                </span>
-                <Button size="small" onClick={() => setSelectorOpen(true)}>
-                    Replace…
-                </Button>
-            </div>
+            <BlockFrame
+                nodeViewProps={props}
+                label="image"
+                summary={`${filename}${
+                    smallFilename ? ` · mobile: ${smallFilename}` : ""
+                }`}
+            />
             <figure contentEditable={false}>
                 {image ? (
                     <img
@@ -49,14 +45,6 @@ export function ImageBlockView(props: NodeViewProps): React.ReactElement {
                     </div>
                 )}
             </figure>
-            <ImageSelectorModal
-                open={selectorOpen}
-                onSelect={(newFilename) => {
-                    updateAttributes({ filename: newFilename })
-                    setSelectorOpen(false)
-                }}
-                onCancel={() => setSelectorOpen(false)}
-            />
         </NodeViewWrapper>
     )
 }

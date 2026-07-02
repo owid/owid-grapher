@@ -9,7 +9,9 @@
 
 .rich-editor-page {
     padding: 16px 24px;
-    max-width: 1200px;
+    // full width up to a wide maximum, so the canvas can show the desktop
+    // layout of components (charts, two-column layouts) by default
+    max-width: 2000px;
     margin: 0 auto;
 }
 
@@ -105,6 +107,12 @@
 $canvas-text: #1d3d63;
 $canvas-text-muted: #426591;
 
+// The article text measure and the maximum width of wide components
+// (mirroring the site's grid: text centered at ~680px, wide blocks and
+// layout containers spanning the full content column)
+$canvas-text-measure: 680px;
+$canvas-wide-measure: 1280px;
+
 .rich-editor-canvas__content {
     outline: none;
     // body-1-regular (typography.scss), like .article-block__text
@@ -112,7 +120,7 @@ $canvas-text-muted: #426591;
     font-size: 1.125rem;
     line-height: 1.55;
     color: $canvas-text;
-    max-width: 680px;
+    max-width: $canvas-wide-measure;
     margin: 0 auto;
 
     p {
@@ -170,7 +178,26 @@ $canvas-text-muted: #426591;
         border: none;
         border-top: 1px solid #dbe5f1;
         margin: 48px auto;
-        max-width: 680px;
+        max-width: $canvas-text-measure;
+    }
+
+    // top-level text blocks stay at the article's readable measure,
+    // centered within the wide canvas (like the site's article grid);
+    // inside layout containers text fills its column instead
+    > p,
+    > h1,
+    > h2,
+    > h3,
+    > h4,
+    > h5,
+    > ul,
+    > ol,
+    > blockquote,
+    > .rich-callout,
+    > .rich-aside {
+        max-width: $canvas-text-measure;
+        margin-left: auto;
+        margin-right: auto;
     }
 
     a[data-rich-mark="link"] {
@@ -209,53 +236,105 @@ $canvas-text-muted: #426591;
     margin-bottom: 16px;
 }
 
-// --- block chrome (atom blocks) ---
+// --- block frame (selection & drag chrome shared by all block NodeViews) ---
 
-.rich-image-block,
-.rich-cta-block,
-.rich-raw-block {
-    position: relative;
-    margin: 0 0 16px;
+// The frame is invisible at rest: hovering the edges of a component reveals
+// a thin border that selects the block on click (opening its settings in
+// the right rail) and acts as the drag handle for reordering.
+
+.rich-block-frame {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    pointer-events: none;
+}
+
+.rich-block-frame__ring {
+    position: absolute;
+    inset: -3px;
+    border: 2px solid transparent;
     border-radius: 8px;
-
-    .rich-block__toolbar {
-        position: absolute;
-        top: 6px;
-        right: 6px;
-        z-index: 4;
-        max-width: 90%;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 3px 6px;
-        background: rgba(255, 255, 255, 0.95);
-        border: 1px solid #e5e1d8;
-        border-radius: 6px;
-        font-family: -apple-system, system-ui, "Segoe UI", Roboto, sans-serif;
-        font-size: 12px;
-        color: #8a8577;
-        opacity: 0;
-        transition: opacity 0.12s;
-        padding: 4px 0;
-    }
-
-    &:hover .rich-block__toolbar,
-    &.rich-block--selected .rich-block__toolbar {
-        opacity: 1;
-    }
+    transition: border-color 0.1s;
 }
 
-.rich-block__toolbar-info {
+.rich-block-frame--hovered .rich-block-frame__ring {
+    border-color: #9db8d8;
+}
+
+// --selected is set by BlockFrame only on the exact NodeSelection target,
+// so a selected container doesn't light up the blocks nested inside it
+.rich-block-frame--selected .rich-block-frame__ring {
+    border-color: #3360a9;
+}
+
+.rich-block-frame__label {
+    position: absolute;
+    top: -24px;
+    left: -3px;
+    z-index: 5;
+    max-width: 90%;
     overflow: hidden;
-    text-overflow: ellipsis;
     white-space: nowrap;
-    flex: 1;
-    min-width: 0;
+    text-overflow: ellipsis;
+    padding: 1px 8px;
+    border-radius: 4px;
+    background: #3360a9;
+    color: #fff;
+    font-family: -apple-system, system-ui, "Segoe UI", Roboto, sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 18px;
+    opacity: 0;
+    transition: opacity 0.1s;
+    pointer-events: none;
 }
 
-.rich-block--selected {
-    outline: 2px solid #3360a9;
-    outline-offset: 4px;
+.rich-block-frame--hovered .rich-block-frame__label,
+.rich-block-frame--selected .rich-block-frame__label {
+    opacity: 1;
+}
+
+.rich-block-frame__summary {
+    font-weight: 400;
+    opacity: 0.85;
+}
+
+.rich-block-frame__edge {
+    position: absolute;
+    pointer-events: auto;
+    cursor: grab;
+
+    &:active {
+        cursor: grabbing;
+    }
+}
+
+.rich-block-frame__edge--top {
+    top: -8px;
+    left: -8px;
+    right: -8px;
+    height: 12px;
+}
+
+.rich-block-frame__edge--bottom {
+    bottom: -8px;
+    left: -8px;
+    right: -8px;
+    height: 12px;
+}
+
+.rich-block-frame__edge--left {
+    top: -8px;
+    bottom: -8px;
+    left: -8px;
+    width: 12px;
+}
+
+.rich-block-frame__edge--right {
+    top: -8px;
+    bottom: -8px;
+    right: -8px;
+    width: 12px;
 }
 
 .rich-image-block {
@@ -317,20 +396,12 @@ $canvas-text-muted: #426591;
     background: #faf9f6;
     border: 1px dashed #d6d1c4;
     padding: 8px 12px;
-
-    .rich-block__toolbar {
-        opacity: 1;
-    }
 }
 
-.rich-raw-block__json {
-    background: #f0efe9;
-    border-radius: 6px;
-    padding: 12px;
-    font-size: 12px;
-    max-height: 320px;
-    overflow: auto;
-    margin: 8px 0 0;
+.rich-raw-block__body {
+    font-family: -apple-system, system-ui, "Segoe UI", Roboto, sans-serif;
+    font-size: 13px;
+    color: #8a8577;
 }
 
 // --- slash menu (rendered into document.body) ---
@@ -552,42 +623,12 @@ $canvas-text-muted: #426591;
 
 .rich-atom-block {
     position: relative;
-    border: 1px solid transparent;
     border-radius: 6px;
-    margin: 12px 0;
+    margin: 16px auto;
+    // wide blocks span up to the site's wide-block width, centered within
+    // the canvas; inside a layout column they fill the column instead
+    max-width: 960px;
     background: #fff;
-    transition: border-color 0.12s;
-
-    // edit chrome floats above the block and only appears on hover/selection,
-    // so the block itself reads like the published article
-    .rich-block__toolbar {
-        position: absolute;
-        top: 6px;
-        right: 6px;
-        z-index: 4;
-        max-width: 90%;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 3px 6px;
-        background: rgba(255, 255, 255, 0.95);
-        border: 1px solid #e5e1d8;
-        border-radius: 6px;
-        font-family: -apple-system, system-ui, "Segoe UI", Roboto, sans-serif;
-        font-size: 12px;
-        color: #8a8577;
-        opacity: 0;
-        transition: opacity 0.12s;
-    }
-
-    &:hover,
-    &.rich-block--selected {
-        border-color: #e5e1d8;
-
-        .rich-block__toolbar {
-            opacity: 1;
-        }
-    }
 
     figcaption,
     .rich-atom-block__caption {
@@ -670,72 +711,40 @@ $canvas-text-muted: #426591;
     line-height: 1.5;
 }
 
-.rich-editor-canvas__content .rich-gray-section {
+// Layout containers are React NodeViews sharing the BlockFrame chrome, so
+// at rest they read like the published layout (no borders or labels).
+
+.rich-container-block {
+    position: relative;
+    margin: 24px 0;
+}
+
+.rich-container-block--gray-section {
     background: #f3f1ea;
     border-radius: 6px;
-    padding: 16px 20px;
-    margin: 16px -8px;
+    padding: 16px 24px;
 }
 
-.rich-editor-canvas__content .rich-expandable-paragraph {
-    border: 1px dashed #c7c2b4;
-    border-radius: 6px;
-    padding: 8px 16px;
-    margin: 12px 0;
-    position: relative;
-
-    &::before {
-        content: "expandable paragraph";
-        display: block;
-        font-size: 10px;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        color: #8a8577;
-    }
+.rich-container-block--expandable-paragraph {
+    // a faint hint of the collapsed region's extent; the frame label names it
+    border-left: 2px dashed #d7dee8;
+    padding-left: 16px;
+    max-width: $canvas-text-measure;
+    margin-left: auto;
+    margin-right: auto;
 }
 
-.rich-editor-canvas__content .rich-two-column {
+// TipTap's NodeViewContent wraps the actual contentDOM in one extra div, so
+// the column flexbox goes on that inner element
+.rich-two-column__columns > div {
     display: flex;
-    gap: 24px;
-    margin: 16px 0;
-    border: 1px dashed #e3e9f1;
-    border-radius: 6px;
-    padding: 8px;
-    position: relative;
-
-    &:hover {
-        border-color: #c3d0e2;
-    }
-
-    &::before {
-        content: attr(data-rich-layout);
-        position: absolute;
-        top: -9px;
-        left: 12px;
-        background: #fff;
-        padding: 0 6px;
-        font-size: 10px;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        color: #a4b6ca;
-    }
-}
-
-.rich-editor-canvas__content .rich-two-column--sticky-right::before {
-    content: "sticky right";
-}
-.rich-editor-canvas__content .rich-two-column--sticky-left::before {
-    content: "sticky left";
-}
-.rich-editor-canvas__content .rich-two-column--side-by-side::before {
-    content: "side by side";
+    gap: 32px;
 }
 
 .rich-editor-canvas__content .rich-layout-column {
     flex: 1 1 50%;
     min-width: 0;
     border-radius: 4px;
-    padding: 4px 8px;
 }
 
 .rich-editor-inspector__json textarea,

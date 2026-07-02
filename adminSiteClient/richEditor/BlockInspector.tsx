@@ -16,12 +16,14 @@ import { useQuery } from "@tanstack/react-query"
 import { Span } from "@ourworldindata/types"
 import { spansToUnformattedPlainText } from "@ourworldindata/utils"
 import { AdminAppContext } from "../AdminAppContext.js"
-import { InspectedBlock } from "./uiContext.js"
+import { ImageSelectorModal } from "../ImageSelectorModal.js"
+import { InspectedBlock } from "./inspection.js"
 
-// The right-rail block inspector ("cogwheel", stage A of the in-situ chart
-// editing plan): typed fields for the common props of each atom block, plus
-// a raw-JSON editor covering everything else. Edits are applied as
-// ProseMirror attribute updates, so undo/redo covers them.
+// The right-rail block inspector (stage A of the in-situ chart editing
+// plan): opened by selecting a component in the canvas, it shows typed
+// fields for the common props of each block type, plus a raw-JSON editor
+// covering everything else. Edits are applied as ProseMirror attribute
+// updates, so undo/redo covers them.
 
 const GRAPHER_URL_PREFIX = "https://ourworldindata.org/grapher/"
 
@@ -109,6 +111,7 @@ export function BlockInspector(props: {
         JSON.stringify(inspected.props, null, 2)
     )
     const [jsonError, setJsonError] = useState<string | null>(null)
+    const [imageSelectorOpen, setImageSelectorOpen] = useState(false)
 
     useEffect(() => {
         setDraft(inspected.props)
@@ -128,6 +131,67 @@ export function BlockInspector(props: {
         setDraft(next)
         setJsonText(JSON.stringify(next, null, 2))
         inspected.updateProps(next)
+    }
+
+    const deleteButton = (
+        <Popconfirm
+            title="Delete this block?"
+            onConfirm={() => {
+                inspected.deleteBlock()
+                onClose()
+            }}
+        >
+            <Button danger size="small" style={{ marginTop: 12 }}>
+                Delete block
+            </Button>
+        </Popconfirm>
+    )
+
+    const header = (
+        <div className="rich-editor-comments__thread-header">
+            <Typography.Title level={5} style={{ margin: 0 }}>
+                Block: {inspected.blockType}
+            </Typography.Title>
+            <Button size="small" type="text" onClick={onClose}>
+                ✕
+            </Button>
+        </div>
+    )
+
+    if (inspected.kind === "container") {
+        return (
+            <div className="rich-editor-rail__panel">
+                {header}
+                <Typography.Paragraph type="secondary">
+                    This layout component has no settings of its own — its
+                    contents are edited directly in the canvas. Drag its border
+                    to move it, or delete it below (its contents are deleted
+                    with it).
+                </Typography.Paragraph>
+                {deleteButton}
+            </div>
+        )
+    }
+
+    if (inspected.kind === "raw") {
+        return (
+            <div className="rich-editor-rail__panel">
+                {header}
+                <Alert
+                    type="warning"
+                    title="Not editable here yet"
+                    description="This block type is carried through saves untouched. It can be moved and deleted, but not edited."
+                    style={{ marginBottom: 8 }}
+                />
+                <Input.TextArea
+                    className="rich-editor-inspector__json"
+                    autoSize={{ minRows: 6, maxRows: 24 }}
+                    value={jsonText}
+                    readOnly
+                />
+                {deleteButton}
+            </div>
+        )
     }
 
     const captionEditable =
@@ -174,6 +238,90 @@ export function BlockInspector(props: {
                             }
                         />
                     </Form.Item>
+                )
+            case "image":
+                return (
+                    <>
+                        <Form.Item label="Image">
+                            <Space
+                                orientation="vertical"
+                                style={{ width: "100%" }}
+                            >
+                                <Typography.Text
+                                    ellipsis={{
+                                        tooltip: String(draft.filename ?? ""),
+                                    }}
+                                    style={{ maxWidth: 260 }}
+                                >
+                                    {String(draft.filename ?? "") ||
+                                        "No image selected"}
+                                </Typography.Text>
+                                <Button
+                                    size="small"
+                                    onClick={() => setImageSelectorOpen(true)}
+                                >
+                                    Replace…
+                                </Button>
+                            </Space>
+                        </Form.Item>
+                        <Form.Item label="Alt text (optional override)">
+                            <Input.TextArea
+                                autoSize
+                                value={String(draft.alt ?? "")}
+                                onChange={(event) =>
+                                    apply({ alt: event.target.value })
+                                }
+                            />
+                        </Form.Item>
+                        <Form.Item label="Size">
+                            <Select
+                                value={String(draft.size ?? "wide")}
+                                onChange={(size) => apply({ size })}
+                                options={[
+                                    { value: "narrow" },
+                                    { value: "wide" },
+                                ]}
+                            />
+                        </Form.Item>
+                        <Checkbox
+                            checked={Boolean(draft.hasOutline)}
+                            onChange={(event) =>
+                                apply({ hasOutline: event.target.checked })
+                            }
+                        >
+                            Outline
+                        </Checkbox>
+                        <ImageSelectorModal
+                            open={imageSelectorOpen}
+                            onSelect={(filename) => {
+                                apply({ filename })
+                                setImageSelectorOpen(false)
+                            }}
+                            onCancel={() => setImageSelectorOpen(false)}
+                        />
+                    </>
+                )
+            case "cta":
+                return (
+                    <>
+                        <Form.Item label="Button text">
+                            <Input
+                                value={String(draft.text ?? "")}
+                                onChange={(event) =>
+                                    apply({ text: event.target.value })
+                                }
+                            />
+                        </Form.Item>
+                        <Form.Item label="URL">
+                            <Input
+                                value={String(draft.url ?? "")}
+                                placeholder="https://ourworldindata.org/…"
+                                onChange={(event) =>
+                                    apply({ url: event.target.value })
+                                }
+                            />
+                        </Form.Item>
+                    </>
                 )
             case "video":
                 return (
@@ -291,19 +439,13 @@ export function BlockInspector(props: {
     })()
 
     const showCaptionField =
-        ["chart", "narrative-chart", "video"].includes(inspected.blockType) &&
-        captionEditable
+        ["chart", "narrative-chart", "video", "image"].includes(
+            inspected.blockType
+        ) && captionEditable
 
     return (
         <div className="rich-editor-rail__panel">
-            <div className="rich-editor-comments__thread-header">
-                <Typography.Title level={5} style={{ margin: 0 }}>
-                    Block: {inspected.blockType}
-                </Typography.Title>
-                <Button size="small" type="text" onClick={onClose}>
-                    ✕
-                </Button>
-            </div>
+            {header}
             <Form layout="vertical" size="small">
                 {typedFields}
                 {showCaptionField && (
@@ -374,17 +516,7 @@ export function BlockInspector(props: {
                         },
                     ]}
                 />
-                <Popconfirm
-                    title="Delete this block?"
-                    onConfirm={() => {
-                        inspected.deleteBlock()
-                        onClose()
-                    }}
-                >
-                    <Button danger size="small" style={{ marginTop: 12 }}>
-                        Delete block
-                    </Button>
-                </Popconfirm>
+                {deleteButton}
             </Form>
         </div>
     )
