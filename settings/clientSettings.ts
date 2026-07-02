@@ -101,19 +101,30 @@ export const PUBLISHED_AT_FORMAT = "ddd, MMM D, YYYY HH:mm"
 /** A map of possible features which can be enabled or disabled. */
 export const Features = {
     ExampleFeature: "ExampleFeature",
+    RichEditor: "RichEditor",
 } as const
 
 type Feature = (typeof Features)[keyof typeof Features]
 
 // process.env.FEATURE_FLAGS is a comma-separated list of flags, and they need
 // to be a valid value in the Features object to be considered.
-const featureFlagsRaw =
+//
+// The raw string is exported so that the browser build works: vite's `define`
+// step injects every clientSettings export as a stringified
+// `process.env.<KEY>` replacement, which turns a Set into the useless
+// "[object Set]". The string survives that round-trip; the Set is derived
+// from it on both server and client.
+export const FEATURE_FLAGS_RAW: string =
+    (typeof process.env.FEATURE_FLAGS_RAW === "string" &&
+        process.env.FEATURE_FLAGS_RAW) ||
     (typeof process.env.FEATURE_FLAGS === "string" &&
-        process.env.FEATURE_FLAGS.trim()?.split(",")) ||
-    []
+        process.env.FEATURE_FLAGS) ||
+    ""
 export const FEATURE_FLAGS: Set<Feature> = new Set(
     Object.values(Features).filter((feature) =>
-        featureFlagsRaw.includes(feature)
+        FEATURE_FLAGS_RAW.split(",")
+            .map((flag) => flag.trim())
+            .includes(feature)
     )
 )
 

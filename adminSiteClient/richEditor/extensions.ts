@@ -1,7 +1,13 @@
-import { Extensions, Mark, Node } from "@tiptap/core"
-import StarterKit from "@tiptap/starter-kit"
-import Subscript from "@tiptap/extension-subscript"
-import Superscript from "@tiptap/extension-superscript"
+import {
+    Extensions,
+    Mark,
+    Node,
+    textblockTypeInputRule,
+    wrappingInputRule,
+} from "@tiptap/core"
+import { StarterKit } from "@tiptap/starter-kit"
+import { Subscript } from "@tiptap/extension-subscript"
+import { Superscript } from "@tiptap/extension-superscript"
 import { pmMarkNames, pmNodeNames } from "./serialization/pmJson.js"
 
 // The TipTap extensions defining the rich editor's document schema. This
@@ -39,6 +45,16 @@ const OwidHeading = Node.create({
         const level = Number(node.attrs.level) || 1
         return [`h${Math.min(Math.max(level, 1), 6)}`, 0]
     },
+    addInputRules() {
+        // "# ", "## ", ... at the start of a block turns it into a heading
+        return [1, 2, 3, 4, 5].map((level) =>
+            textblockTypeInputRule({
+                find: new RegExp(`^(#{${level}})\\s$`),
+                type: this.type,
+                getAttributes: { level },
+            })
+        )
+    },
 })
 
 const OwidBlockquote = Node.create({
@@ -54,6 +70,9 @@ const OwidBlockquote = Node.create({
     },
     renderHTML() {
         return ["blockquote", 0]
+    },
+    addInputRules() {
+        return [wrappingInputRule({ find: /^\s*>\s$/, type: this.type })]
     },
 })
 

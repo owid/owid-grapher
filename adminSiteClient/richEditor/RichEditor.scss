@@ -1,0 +1,365 @@
+// Styles for the rich editor canvas, its block chrome, and the slash menu.
+// The canvas approximates article typography; rendering blocks through the
+// real site components (with scoped site CSS) is planned for the articles
+// milestone.
+
+.rich-editor-page {
+    padding: 16px 24px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.rich-editor-page--create {
+    max-width: 640px;
+}
+
+.rich-editor-page__topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+}
+
+.rich-editor-page__workspace {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+    margin-top: 12px;
+}
+
+.rich-editor-page__palette {
+    flex: 0 0 200px;
+    position: sticky;
+    top: 16px;
+    background: #faf9f6;
+    border: 1px solid #e5e1d8;
+    border-radius: 8px;
+    padding: 12px;
+
+    h4 {
+        text-transform: uppercase;
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        color: #8a8577;
+        margin: 0 0 8px;
+    }
+}
+
+.rich-editor-page__palette-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 6px 8px;
+    margin-bottom: 2px;
+    background: none;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    text-align: left;
+
+    &:hover {
+        background: #efece4;
+    }
+}
+
+.rich-editor-page__palette-glyph {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 4px;
+    background: #e8eef7;
+    color: #3360a9;
+    font-size: 12px;
+    font-weight: 700;
+    flex: none;
+}
+
+.rich-editor-page__palette-hint {
+    margin: 10px 0 0;
+    font-size: 12px;
+    color: #8a8577;
+}
+
+// --- canvas ---
+
+.rich-editor-canvas {
+    flex: 1;
+    min-width: 0;
+    background: #fff;
+    border: 1px solid #e5e1d8;
+    border-radius: 8px;
+    padding: 32px 48px;
+    min-height: 60vh;
+}
+
+.rich-editor-canvas__content {
+    outline: none;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 17px;
+    line-height: 1.6;
+    color: #1d2b3d;
+    max-width: 720px;
+    margin: 0 auto;
+
+    p {
+        margin: 0 0 16px;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5 {
+        font-family: inherit;
+        color: #12294a;
+        line-height: 1.2;
+        margin: 24px 0 12px;
+    }
+
+    ul,
+    ol {
+        margin: 0 0 16px;
+        padding-left: 24px;
+    }
+
+    blockquote {
+        border-left: 3px solid #c9c3b5;
+        margin: 0 0 16px;
+        padding: 4px 0 4px 16px;
+        color: #4d5f72;
+        font-style: italic;
+    }
+
+    hr {
+        border: none;
+        border-top: 1px solid #d6d1c4;
+        margin: 24px auto;
+        width: 120px;
+    }
+
+    a[data-rich-mark="link"] {
+        color: #3360a9;
+        text-decoration: underline;
+        cursor: text;
+    }
+
+    a[data-rich-mark="ref"] {
+        color: #b13507;
+        vertical-align: super;
+        font-size: 0.75em;
+    }
+
+    span[data-rich-mark="dod"] {
+        border-bottom: 1px dotted #3360a9;
+    }
+
+    .rich-span-callout {
+        background: #e8f4ee;
+        border-radius: 3px;
+        padding: 0 3px;
+        color: #0d6b44;
+        font-family: Consolas, Menlo, monospace;
+        font-size: 0.85em;
+    }
+}
+
+.rich-callout {
+    background: #f3f7fb;
+    border: 1px solid #d5e2f0;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+}
+
+// --- block chrome (atom blocks) ---
+
+.rich-image-block,
+.rich-cta-block,
+.rich-raw-block {
+    position: relative;
+    margin: 0 0 16px;
+    border-radius: 8px;
+
+    .rich-block__toolbar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-family:
+            -apple-system, system-ui, "Segoe UI", Roboto, sans-serif;
+        font-size: 12px;
+        color: #8a8577;
+        opacity: 0;
+        transition: opacity 0.12s;
+        padding: 4px 0;
+    }
+
+    &:hover .rich-block__toolbar,
+    &.rich-block--selected .rich-block__toolbar {
+        opacity: 1;
+    }
+}
+
+.rich-block__toolbar-info {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+    min-width: 0;
+}
+
+.rich-block--selected {
+    outline: 2px solid #3360a9;
+    outline-offset: 4px;
+}
+
+.rich-image-block {
+    figure {
+        margin: 0;
+        text-align: center;
+
+        img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 4px;
+        }
+    }
+}
+
+.rich-image-block__missing {
+    background: #faf3e8;
+    border: 1px dashed #d9b26a;
+    border-radius: 6px;
+    padding: 32px;
+    text-align: center;
+    color: #8a6d2f;
+    font-family: -apple-system, system-ui, "Segoe UI", Roboto, sans-serif;
+    font-size: 13px;
+}
+
+.rich-cta-block__preview {
+    text-align: center;
+    padding: 8px 0;
+}
+
+.rich-cta-block__button {
+    display: inline-block;
+    background: #12294a;
+    color: #fff;
+    border-radius: 6px;
+    padding: 10px 20px;
+    font-family: -apple-system, system-ui, "Segoe UI", Roboto, sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.rich-cta-block__form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 320px;
+
+    label {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        font-size: 12px;
+        color: #4d5f72;
+    }
+}
+
+.rich-raw-block {
+    background: #faf9f6;
+    border: 1px dashed #d6d1c4;
+    padding: 8px 12px;
+
+    .rich-block__toolbar {
+        opacity: 1;
+    }
+}
+
+.rich-raw-block__json {
+    background: #f0efe9;
+    border-radius: 6px;
+    padding: 12px;
+    font-size: 12px;
+    max-height: 320px;
+    overflow: auto;
+    margin: 8px 0 0;
+}
+
+// --- slash menu (rendered into document.body) ---
+
+.rich-slash-menu {
+    z-index: 1100;
+    width: 280px;
+    max-height: 320px;
+    overflow-y: auto;
+    background: #fff;
+    border: 1px solid #e5e1d8;
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(29, 43, 61, 0.14);
+    padding: 4px;
+}
+
+.rich-slash-menu__item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 6px 8px;
+    background: none;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    text-align: left;
+
+    .rich-slash-menu__glyph {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 22px;
+        height: 22px;
+        border-radius: 4px;
+        background: #e8eef7;
+        color: #3360a9;
+        font-size: 12px;
+        font-weight: 700;
+        flex: none;
+    }
+
+    .rich-slash-menu__label {
+        font-weight: 600;
+        color: #1d2b3d;
+    }
+
+    .rich-slash-menu__description {
+        color: #8a8577;
+        font-size: 12px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    &:hover {
+        background: #f3f1ea;
+    }
+}
+
+.rich-slash-menu__item--selected {
+    background: #e9effa;
+
+    &:hover {
+        background: #e9effa;
+    }
+}
+
+.rich-slash-menu__empty {
+    padding: 10px 12px;
+    color: #8a8577;
+    font-size: 13px;
+}
