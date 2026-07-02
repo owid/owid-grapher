@@ -96,6 +96,10 @@ export const PRIVATE_DATA_TABLES = [
     "analytics_chart_views",
     "analytics_grapher_views",
     "analytics_pageviews",
+    // Rich editor working copies and content history: unpublished draft
+    // content is internal (published content ships via posts_gdocs).
+    "posts_gdocs_drafts",
+    "posts_gdocs_revisions",
 ]
 
 // Tables that are intentionally schema-only: their structure ships publicly
