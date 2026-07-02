@@ -1,4 +1,11 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react"
+import {
+    createContext,
+    useContext,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from "react"
 import { ModalOverlay, Modal, Dialog } from "react-aria-components"
 import { useMediaQuery } from "usehooks-ts"
 import cx from "clsx"
@@ -79,6 +86,27 @@ export const SidebarTableOfContents = ({
     const activeId = useTocScrollSpy(spyIds)
     const sidebarContentRef = useKeepActiveTocRowInView(activeId)
     const isWideBlockInView = useWideBlockInView()
+
+    // Returning to the top of the page — scrolling up above the first section,
+    // or clicking "Back to top" (which scrolls there) — makes the active
+    // section empty. Drop any lingering #section the reader left in the URL so
+    // it no longer points at a section they've scrolled away from. We act only
+    // on the transition to "" (a section had been active): at mount activeId is
+    // "" simply because the spy hasn't measured yet, and treating that as a
+    // return-to-top would wipe a deep-link #section before the spy resolves it.
+    // replaceState avoids both a new history entry and a scroll jump.
+    const prevActiveIdRef = useRef(activeId)
+    useEffect(() => {
+        const hadActiveSection = prevActiveIdRef.current !== ""
+        prevActiveIdRef.current = activeId
+        if (hadActiveSection && activeId === "" && window.location.hash) {
+            history.replaceState(
+                null,
+                "",
+                window.location.pathname + window.location.search
+            )
+        }
+    }, [activeId])
 
     // Desktop-only; the user's expand/collapse preference (expanded by default).
     const [prefersExpanded, setPrefersExpanded] = useState(true)
