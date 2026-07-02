@@ -223,10 +223,10 @@
         "sass": "^1.89.2",
         "schema-dts": "^2.0.0",
         "topojson-server": "^3.0.1",
-        "tsx": "^4.21.0",
+        "tsx": "^4.22.4",
         "vite": "^8.0.16",
         "vitest": "^4.1.8",
-        "wrangler": "^4.98.0"
+        "wrangler": "^4.105.0"
     },
     "resolutions": {
         "@sentry/cli": "3.5.0",
