@@ -37,7 +37,7 @@ export function ImageBlockView(props: NodeViewProps): React.ReactElement {
             <figure contentEditable={false}>
                 {image ? (
                     <img
-                        src={makeImageSrc(image.cloudflareId!, PREVIEW_WIDTH)}
+                        src={makeImageSrc(image.cloudflareId, PREVIEW_WIDTH)}
                         alt={String(node.attrs.alt ?? image.defaultAlt ?? "")}
                         width={image.originalWidth ?? undefined}
                     />
