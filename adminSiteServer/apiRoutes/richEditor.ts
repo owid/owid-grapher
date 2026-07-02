@@ -5,11 +5,15 @@ import {
     OwidEnrichedGdocBlock,
     OwidGdocAuthoringMode,
     OwidGdocContent,
+    OwidGdocErrorMessageType,
     OwidGdocType,
+    PostsGdocsCommentThreadsTableName,
+    PostsGdocsCommentsTableName,
     PostsGdocsDraftsTableName,
     PostsGdocsRevisionsTableName,
     PostsGdocsTableName,
     DbRawPostGdoc,
+    DbRawPostGdocCommentThread,
     DbRawPostGdocDraft,
     DbRawPostGdocRevision,
 } from "@ourworldindata/types"
@@ -17,17 +21,34 @@ import { slugify } from "@ourworldindata/utils"
 import { randomUUID } from "crypto"
 import * as db from "../../db/db.js"
 import {
+    GdocLinkUpdateMode,
     gdocFromJSON,
+    getAndLoadGdocById,
+    setImagesInContentGraph,
+    setLinksForGdoc,
     updateDerivedGdocPostsComponents,
+    upsertGdoc,
 } from "../../db/model/Gdoc/GdocFactory.js"
+import {
+    indexAndBakeGdocIfNeccesary,
+    validateSlugCollisionsIfPublishing,
+} from "./gdocs.js"
 import {
     getMinimalGdocPostsByIds,
     loadLinkedChartsForSlugs,
 } from "../../db/model/Gdoc/GdocBase.js"
 import { getImagesByFilenames } from "../../db/model/Image.js"
 import {
+    RichEditorCommentThread,
+    RichEditorCommentThreadsResponse,
     RichEditorCreateNativeGdocRequest,
+    RichEditorCreateThreadRequest,
     RichEditorGdocResponse,
+    RichEditorPresenceResponse,
+    RichEditorPublishRequest,
+    RichEditorPublishResponse,
+    RichEditorPublishValidationResponse,
+    RichEditorReplyRequest,
     RichEditorResolveReferencesRequest,
     RichEditorResolveReferencesResponse,
     RichEditorRevisionResponse,
@@ -35,6 +56,8 @@ import {
     RichEditorSaveBodyRequest,
     RichEditorSaveBodyResponse,
     RichEditorSaveConflictResponse,
+    RichEditorSaveSettingsRequest,
+    RichEditorUpdateThreadRequest,
 } from "../../adminShared/RichEditorTypes.js"
 import { Request } from "../authentication.js"
 import { HandlerResponse } from "../FunctionalRouter.js"
@@ -249,6 +272,7 @@ export async function saveGdocBody(
         body,
         baseRevisionId,
         kind = "autosave",
+        commentAnchors,
     } = req.body as RichEditorSaveBodyRequest
 
     const row = await getGdocRowOrThrow(trx, id)
@@ -287,6 +311,31 @@ export async function saveGdocBody(
         kind,
         res.locals.user.id
     )
+
+    // The client maps comment anchors through its edits and reports the new
+    // positions with every save; anchors that vanished become orphaned.
+    for (const anchor of commentAnchors ?? []) {
+        await trx
+            .table(PostsGdocsCommentThreadsTableName)
+            .where({ id: anchor.threadId, gdocId: id })
+            .update({
+                anchorFrom: anchor.anchorFrom,
+                anchorTo: anchor.anchorTo,
+                anchorText: anchor.anchorText,
+            })
+        if (anchor.orphaned) {
+            await trx
+                .table(PostsGdocsCommentThreadsTableName)
+                .where({ id: anchor.threadId, gdocId: id, status: "open" })
+                .update({ status: "orphaned" })
+        } else {
+            await trx
+                .table(PostsGdocsCommentThreadsTableName)
+                .where({ id: anchor.threadId, gdocId: id, status: "orphaned" })
+                .update({ status: "open" })
+        }
+    }
+
     return { revisionId, updatedAt: updatedAt.toISOString() }
 }
 
@@ -414,6 +463,449 @@ export async function convertGdocToNative(
         content,
         draftRevisionId: revisionId,
         updatedAt: new Date().toISOString(),
+    }
+}
+
+async function getDraftOrThrow(
+    trx: db.KnexReadonlyTransaction,
+    id: string
+): Promise<DbRawPostGdocDraft> {
+    const draft = await trx
+        .table(PostsGdocsDraftsTableName)
+        .where({ gdocId: id })
+        .first<DbRawPostGdocDraft | undefined>()
+    if (!draft)
+        throw new JsonError(`Document ${id} has no draft to work with`, 400)
+    return draft
+}
+
+function makeConflictResponse(
+    res: HandlerResponse,
+    draft: DbRawPostGdocDraft
+): RichEditorSaveConflictResponse {
+    res.status(409)
+    return {
+        error: {
+            message:
+                "The draft has been changed since you loaded it. Reload to get the newest version.",
+            status: 409,
+        },
+        currentRevisionId: Number(draft.revisionId),
+        updatedAt: new Date(draft.updatedAt).toISOString(),
+    }
+}
+
+/**
+ * Promotes the draft to the live content (posts_gdocs.content) and publishes
+ * the doc, reusing the same machinery as the gdocs settings save: links,
+ * image graph, derived tables, Algolia indexing, and bake/lightning deploy.
+ */
+export async function publishNativeGdoc(
+    req: Request,
+    res: HandlerResponse,
+    trx: db.KnexReadWriteTransaction
+): Promise<
+    | RichEditorPublishResponse
+    | RichEditorSaveConflictResponse
+    | RichEditorPublishValidationResponse
+> {
+    const { id } = req.params
+    const { baseRevisionId } = req.body as RichEditorPublishRequest
+
+    const row = await getGdocRowOrThrow(trx, id)
+    assertNativeAuthoringMode(row)
+    if (!row.slug) throw new JsonError("Set a slug before publishing", 400)
+
+    const draft = await getDraftOrThrow(trx, id)
+    if (Number(draft.revisionId) !== (baseRevisionId ?? null)) {
+        return makeConflictResponse(res, draft)
+    }
+
+    const content: OwidGdocContent = JSON.parse(draft.content)
+
+    const prevGdoc = await getAndLoadGdocById(trx, id)
+    const prevJson = prevGdoc.toJSON()
+    const publishedAt = prevJson.publishedAt
+        ? new Date(prevJson.publishedAt)
+        : new Date()
+    publishedAt.setSeconds(0, 0)
+
+    const nextGdoc = gdocFromJSON({
+        ...prevJson,
+        content,
+        published: true,
+        publishedAt,
+    })
+    await nextGdoc.loadState(trx)
+
+    const validationErrors = nextGdoc.errors.filter(
+        (error) => error.type === OwidGdocErrorMessageType.Error
+    )
+    if (validationErrors.length > 0) {
+        res.status(400)
+        return {
+            error: {
+                message:
+                    "The document has validation errors that block publishing",
+                status: 400,
+            },
+            validationErrors,
+        }
+    }
+
+    await validateSlugCollisionsIfPublishing(trx, nextGdoc)
+    await setImagesInContentGraph(trx, nextGdoc)
+    await setLinksForGdoc(
+        trx,
+        nextGdoc.id,
+        nextGdoc.links,
+        GdocLinkUpdateMode.DeleteAndInsert
+    )
+    await upsertGdoc(trx, nextGdoc)
+
+    // Record an immutable publish revision. The row is already published at
+    // this point, so this does not overwrite the live content again.
+    const { revisionId } = await insertRevisionAndUpdateDraft(
+        trx,
+        { ...row, published: 1 },
+        content,
+        "publish",
+        res.locals.user.id,
+        "Published"
+    )
+
+    await indexAndBakeGdocIfNeccesary(trx, res.locals.user, prevGdoc, nextGdoc)
+
+    return {
+        revisionId,
+        published: true,
+        publishedAt: publishedAt.toISOString(),
+        slug: nextGdoc.slug,
+    }
+}
+
+export async function unpublishNativeGdoc(
+    req: Request,
+    res: HandlerResponse,
+    trx: db.KnexReadWriteTransaction
+): Promise<RichEditorPublishResponse> {
+    const { id } = req.params
+    const row = await getGdocRowOrThrow(trx, id)
+    assertNativeAuthoringMode(row)
+    if (!row.published)
+        throw new JsonError(`Document ${id} is not published`, 400)
+
+    const prevGdoc = await getAndLoadGdocById(trx, id)
+    const nextGdoc = gdocFromJSON({
+        ...prevGdoc.toJSON(),
+        published: false,
+        publishedAt: null,
+    })
+    await nextGdoc.loadState(trx)
+
+    await setLinksForGdoc(
+        trx,
+        nextGdoc.id,
+        nextGdoc.links,
+        GdocLinkUpdateMode.DeleteOnly
+    )
+    await upsertGdoc(trx, nextGdoc)
+    await indexAndBakeGdocIfNeccesary(trx, res.locals.user, prevGdoc, nextGdoc)
+
+    const draft = await trx
+        .table(PostsGdocsDraftsTableName)
+        .where({ gdocId: id })
+        .first<DbRawPostGdocDraft | undefined>()
+
+    return {
+        revisionId: draft ? Number(draft.revisionId) : 0,
+        published: false,
+        publishedAt: null,
+        slug: row.slug,
+    }
+}
+
+/**
+ * Saves non-body content fields (title, authors, grapher-url, …) into the
+ * draft, going through the same revision mechanics as body saves. Row-level
+ * fields (slug) are only editable while the doc is unpublished.
+ */
+export async function saveGdocEditorSettings(
+    req: Request,
+    res: HandlerResponse,
+    trx: db.KnexReadWriteTransaction
+): Promise<RichEditorSaveBodyResponse | RichEditorSaveConflictResponse> {
+    const { id } = req.params
+    const { settings, slug, baseRevisionId } =
+        req.body as RichEditorSaveSettingsRequest
+
+    if (!settings || typeof settings !== "object")
+        throw new JsonError("settings must be an object", 400)
+    if ("body" in settings)
+        throw new JsonError(
+            "body cannot be changed via the settings endpoint",
+            400
+        )
+    if ("type" in settings)
+        throw new JsonError("the document type cannot be changed", 400)
+
+    let row = await getGdocRowOrThrow(trx, id)
+    assertNativeAuthoringMode(row)
+
+    const draft = await getDraftOrThrow(trx, id)
+    if (Number(draft.revisionId) !== (baseRevisionId ?? null)) {
+        return makeConflictResponse(res, draft)
+    }
+
+    if (slug !== undefined && slug !== row.slug) {
+        if (row.published)
+            throw new JsonError(
+                "The slug of a published document cannot be changed here",
+                400
+            )
+        await trx.table(PostsGdocsTableName).where({ id }).update({ slug })
+        row = { ...row, slug }
+    }
+
+    const content: OwidGdocContent = JSON.parse(draft.content)
+    const mutableContent = content as unknown as Record<string, unknown>
+    for (const [key, value] of Object.entries(settings)) {
+        if (value === null || value === undefined) {
+            delete mutableContent[key]
+        } else {
+            mutableContent[key] = value
+        }
+    }
+
+    const { revisionId, updatedAt } = await insertRevisionAndUpdateDraft(
+        trx,
+        row,
+        content,
+        "manual",
+        res.locals.user.id,
+        "Settings"
+    )
+    return { revisionId, updatedAt: updatedAt.toISOString() }
+}
+
+// ── Comments ───────────────────────────────────────────────────────────────
+
+async function queryCommentThreads(
+    trx: db.KnexReadonlyTransaction,
+    gdocId: string,
+    threadId?: number
+): Promise<RichEditorCommentThread[]> {
+    const threadRows = await db.knexRaw<
+        DbRawPostGdocCommentThread & { createdByFullName: string | null }
+    >(
+        trx,
+        `-- sql
+        SELECT t.*, u.fullName AS createdByFullName
+        FROM posts_gdocs_comment_threads t
+        LEFT JOIN users u ON u.id = t.createdBy
+        WHERE t.gdocId = ? ${threadId ? "AND t.id = ?" : ""}
+        ORDER BY t.createdAt ASC`,
+        threadId ? [gdocId, threadId] : [gdocId]
+    )
+    if (threadRows.length === 0) return []
+
+    const commentRows = await db.knexRaw<{
+        id: number
+        threadId: number
+        userId: number | null
+        userFullName: string | null
+        text: string
+        createdAt: Date
+        updatedAt: Date
+    }>(
+        trx,
+        `-- sql
+        SELECT c.id, c.threadId, c.userId, u.fullName AS userFullName,
+            c.text, c.createdAt, c.updatedAt
+        FROM posts_gdocs_comments c
+        LEFT JOIN users u ON u.id = c.userId
+        WHERE c.threadId IN (${threadRows.map(() => "?").join(", ")})
+        ORDER BY c.createdAt ASC`,
+        threadRows.map((thread) => thread.id)
+    )
+    const commentsByThread = _.groupBy(commentRows, "threadId")
+
+    return threadRows.map((thread) => ({
+        id: Number(thread.id),
+        gdocId: thread.gdocId,
+        status: thread.status,
+        anchorType: thread.anchorType,
+        anchorFrom: thread.anchorFrom,
+        anchorTo: thread.anchorTo,
+        anchorText: thread.anchorText,
+        createdAt: new Date(thread.createdAt).toISOString(),
+        createdBy: thread.createdBy,
+        createdByFullName: thread.createdByFullName,
+        resolvedAt: thread.resolvedAt
+            ? new Date(thread.resolvedAt).toISOString()
+            : null,
+        comments: (commentsByThread[thread.id] ?? []).map((comment) => ({
+            id: Number(comment.id),
+            threadId: Number(comment.threadId),
+            userId: comment.userId,
+            userFullName: comment.userFullName,
+            text: comment.text,
+            createdAt: new Date(comment.createdAt).toISOString(),
+            updatedAt: new Date(comment.updatedAt).toISOString(),
+        })),
+    }))
+}
+
+export async function getGdocCommentThreads(
+    req: Request,
+    res: HandlerResponse,
+    trx: db.KnexReadonlyTransaction
+): Promise<RichEditorCommentThreadsResponse> {
+    const { id } = req.params
+    await getGdocRowOrThrow(trx, id)
+    return { threads: await queryCommentThreads(trx, id) }
+}
+
+export async function createGdocCommentThread(
+    req: Request,
+    res: HandlerResponse,
+    trx: db.KnexReadWriteTransaction
+): Promise<RichEditorCommentThread> {
+    const { id } = req.params
+    const {
+        anchorType,
+        anchorFrom = null,
+        anchorTo = null,
+        anchorText = null,
+        text,
+    } = req.body as RichEditorCreateThreadRequest
+
+    if (!text?.trim()) throw new JsonError("Comment text is required", 400)
+    if (!["range", "block", "document"].includes(anchorType))
+        throw new JsonError(`Invalid anchorType ${anchorType}`, 400)
+    await getGdocRowOrThrow(trx, id)
+
+    const [threadId] = await trx
+        .table(PostsGdocsCommentThreadsTableName)
+        .insert({
+            gdocId: id,
+            anchorType,
+            anchorFrom,
+            anchorTo,
+            anchorText,
+            createdBy: res.locals.user.id,
+        })
+    await trx.table(PostsGdocsCommentsTableName).insert({
+        threadId,
+        userId: res.locals.user.id,
+        text: text.trim(),
+    })
+
+    const [thread] = await queryCommentThreads(trx, id, threadId)
+    return thread
+}
+
+export async function replyToGdocCommentThread(
+    req: Request,
+    res: HandlerResponse,
+    trx: db.KnexReadWriteTransaction
+): Promise<RichEditorCommentThread> {
+    const { id, threadId } = req.params
+    const { text } = req.body as RichEditorReplyRequest
+    if (!text?.trim()) throw new JsonError("Comment text is required", 400)
+
+    const thread = await trx
+        .table(PostsGdocsCommentThreadsTableName)
+        .where({ id: Number(threadId), gdocId: id })
+        .first<DbRawPostGdocCommentThread | undefined>()
+    if (!thread)
+        throw new JsonError(`No thread ${threadId} on document ${id}`, 404)
+
+    await trx.table(PostsGdocsCommentsTableName).insert({
+        threadId: Number(threadId),
+        userId: res.locals.user.id,
+        text: text.trim(),
+    })
+
+    const [updated] = await queryCommentThreads(trx, id, Number(threadId))
+    return updated
+}
+
+export async function updateGdocCommentThread(
+    req: Request,
+    res: HandlerResponse,
+    trx: db.KnexReadWriteTransaction
+): Promise<RichEditorCommentThread> {
+    const { id, threadId } = req.params
+    const { status } = req.body as RichEditorUpdateThreadRequest
+    if (!["open", "resolved"].includes(status))
+        throw new JsonError(`Invalid status ${status}`, 400)
+
+    const thread = await trx
+        .table(PostsGdocsCommentThreadsTableName)
+        .where({ id: Number(threadId), gdocId: id })
+        .first<DbRawPostGdocCommentThread | undefined>()
+    if (!thread)
+        throw new JsonError(`No thread ${threadId} on document ${id}`, 404)
+
+    await trx
+        .table(PostsGdocsCommentThreadsTableName)
+        .where({ id: Number(threadId) })
+        .update(
+            status === "resolved"
+                ? {
+                      status,
+                      resolvedAt: new Date(),
+                      resolvedBy: res.locals.user.id,
+                  }
+                : { status, resolvedAt: null, resolvedBy: null }
+        )
+
+    const [updated] = await queryCommentThreads(trx, id, Number(threadId))
+    return updated
+}
+
+// ── Presence ───────────────────────────────────────────────────────────────
+
+// In-memory presence: fine for a single admin server process, resets on
+// restart. Advisory only — the 409 optimistic-concurrency check is the
+// actual protection against overwriting someone else's work.
+const PRESENCE_TTL_MS = 60_000
+const presenceByGdocId = new Map<
+    string,
+    Map<number, { fullName: string; lastSeen: number }>
+>()
+
+export async function heartbeatGdocPresence(
+    req: Request,
+    res: HandlerResponse,
+    trx: db.KnexReadWriteTransaction
+): Promise<RichEditorPresenceResponse> {
+    const { id } = req.params
+    const user = res.locals.user
+    await getGdocRowOrThrow(trx, id)
+
+    const now = Date.now()
+    let editors = presenceByGdocId.get(id)
+    if (!editors) {
+        editors = new Map()
+        presenceByGdocId.set(id, editors)
+    }
+    editors.set(user.id, { fullName: user.fullName, lastSeen: now })
+
+    const active = [...editors.entries()].filter(
+        ([, editor]) => now - editor.lastSeen < PRESENCE_TTL_MS
+    )
+    presenceByGdocId.set(id, new Map(active))
+
+    return {
+        editors: active
+            .filter(([userId]) => userId !== user.id)
+            .map(([userId, editor]) => ({
+                userId,
+                fullName: editor.fullName,
+                lastSeen: new Date(editor.lastSeen).toISOString(),
+            })),
     }
 }
 

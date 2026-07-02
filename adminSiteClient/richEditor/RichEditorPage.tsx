@@ -4,29 +4,40 @@ import {
     Alert,
     Button,
     Drawer,
+    Dropdown,
     Form,
     Input,
     List,
     Modal,
     Popconfirm,
     Space,
+    Tabs,
     Tag,
     Typography,
 } from "antd"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { Editor } from "@tiptap/core"
-import { OwidGdocAuthoringMode } from "@ourworldindata/types"
+import { OwidGdocAuthoringMode, OwidGdocType } from "@ourworldindata/types"
 import { dayjs } from "@ourworldindata/utils"
 import {
+    RichEditorCommentThreadsResponse,
     RichEditorGdocResponse,
+    RichEditorPresenceEditor,
+    RichEditorPresenceResponse,
+    RichEditorPublishResponse,
+    RichEditorPublishValidationResponse,
     RichEditorRevisionsResponse,
     RichEditorSaveBodyResponse,
 } from "../../adminShared/RichEditorTypes.js"
 import { AdminAppContext } from "../AdminAppContext.js"
 import { AdminLayout } from "../AdminLayout.js"
 import { RichEditor } from "./RichEditor.js"
-import { richEditorBlockItems } from "./blockRegistry.js"
+import { getBlockItemsForDocType } from "./blockRegistry.js"
 import { pmDocToEnrichedBlocks } from "./serialization/serialization.js"
+import { applyCommentMarks, collectCommentAnchors } from "./comments.js"
+import { computeConversionReport } from "./conversionReport.js"
+import { CommentsPanel } from "./CommentsPanel.js"
+import { SettingsPanel } from "./SettingsPanel.js"
 
 type SaveState =
     | { kind: "saved"; at: Date | null }
@@ -36,6 +47,7 @@ type SaveState =
     | { kind: "error"; message: string }
 
 const AUTOSAVE_DEBOUNCE_MS = 2000
+const PRESENCE_HEARTBEAT_MS = 20_000
 
 export function RichEditorPage(
     props: RouteComponentProps<{ id: string }>
@@ -103,7 +115,23 @@ function RichEditorPageForId(props: { id: string }): React.ReactElement {
         retry: false,
     })
 
+    const isNative =
+        gdocQuery.data?.authoringMode === OwidGdocAuthoringMode.Native
+
+    const threadsQuery = useQuery<RichEditorCommentThreadsResponse>({
+        queryKey: ["richEditorComments", id],
+        queryFn: () =>
+            admin.getJSON<RichEditorCommentThreadsResponse>(
+                `/api/gdocs/${id}/comments`
+            ),
+        enabled: isNative,
+    })
+    const threads = threadsQuery.data?.threads ?? []
+    const threadsRef = useRef(threads)
+    threadsRef.current = threads
+
     const editorRef = useRef<Editor | null>(null)
+    const [editorInstance, setEditorInstance] = useState<Editor | null>(null)
     const requestImageRef = useRef<
         ((insert: (filename: string) => void) => void) | null
     >(null)
@@ -116,12 +144,63 @@ function RichEditorPageForId(props: { id: string }): React.ReactElement {
         undefined
     )
     const [revisionsOpen, setRevisionsOpen] = useState(false)
+    const [hasTextSelection, setHasTextSelection] = useState(false)
+    const [activeEditors, setActiveEditors] = useState<
+        RichEditorPresenceEditor[]
+    >([])
+    const [publishing, setPublishing] = useState(false)
+
+    // Local overrides for fields the page mutates without refetching
+    const [published, setPublished] = useState<boolean | null>(null)
+    const [docTitle, setDocTitle] = useState<string | null>(null)
+    const [docSlug, setDocSlug] = useState<string | null>(null)
 
     useEffect(() => {
         if (gdocQuery.data) {
             baseRevisionIdRef.current = gdocQuery.data.draftRevisionId
         }
     }, [gdocQuery.data])
+
+    // Presence heartbeat while the editor is open
+    useEffect(() => {
+        if (!isNative) return undefined
+        let cancelled = false
+        const beat = async (): Promise<void> => {
+            try {
+                const response = await admin.rawRequest(
+                    `/api/gdocs/${id}/presence`,
+                    JSON.stringify({}),
+                    "POST"
+                )
+                if (!response.ok) return
+                const payload =
+                    (await response.json()) as RichEditorPresenceResponse
+                if (!cancelled) setActiveEditors(payload.editors)
+            } catch {
+                // presence is advisory; ignore failures
+            }
+        }
+        void beat()
+        const interval = setInterval(() => void beat(), PRESENCE_HEARTBEAT_MS)
+        return () => {
+            cancelled = true
+            clearInterval(interval)
+        }
+    }, [admin, id, isNative])
+
+    // Highlight comment ranges once both the editor and the threads are ready
+    const marksAppliedRef = useRef(false)
+    useEffect(() => {
+        if (
+            !marksAppliedRef.current &&
+            editorInstance &&
+            threadsQuery.data &&
+            threadsQuery.data.threads.length > 0
+        ) {
+            applyCommentMarks(editorInstance, threadsQuery.data.threads)
+            marksAppliedRef.current = true
+        }
+    }, [editorInstance, threadsQuery.data])
 
     const doSave = useCallback(
         async (kind: "autosave" | "manual") => {
@@ -130,12 +209,17 @@ function RichEditorPageForId(props: { id: string }): React.ReactElement {
             setSaveState({ kind: "saving" })
             try {
                 const body = pmDocToEnrichedBlocks(editor.getJSON())
+                const commentAnchors = collectCommentAnchors(
+                    editor,
+                    threadsRef.current
+                )
                 const response = await admin.rawRequest(
                     `/api/gdocs/${id}/body`,
                     JSON.stringify({
                         body,
                         baseRevisionId: baseRevisionIdRef.current,
                         kind,
+                        commentAnchors,
                     }),
                     "PUT"
                 )
@@ -160,6 +244,11 @@ function RichEditorPageForId(props: { id: string }): React.ReactElement {
                 await queryClient.invalidateQueries({
                     queryKey: ["richEditorRevisions", id],
                 })
+                if (commentAnchors.some((anchor) => anchor.orphaned)) {
+                    await queryClient.invalidateQueries({
+                        queryKey: ["richEditorComments", id],
+                    })
+                }
             } catch (error) {
                 setSaveState({ kind: "error", message: String(error) })
             }
@@ -176,6 +265,77 @@ function RichEditorPageForId(props: { id: string }): React.ReactElement {
             void doSave("autosave")
         }, AUTOSAVE_DEBOUNCE_MS)
     }, [doSave])
+
+    const doPublish = useCallback(async () => {
+        // flush pending edits first so the draft head is what gets published
+        if (saveTimeout.current) clearTimeout(saveTimeout.current)
+        await doSave("manual")
+        setPublishing(true)
+        try {
+            const response = await admin.rawRequest(
+                `/api/gdocs/${id}/publish`,
+                JSON.stringify({ baseRevisionId: baseRevisionIdRef.current }),
+                "POST"
+            )
+            if (response.status === 409) {
+                setSaveState({ kind: "conflict" })
+                return
+            }
+            const payload = await response.json()
+            if (!response.ok) {
+                const validation =
+                    payload as RichEditorPublishValidationResponse
+                Modal.error({
+                    title: "Publishing failed",
+                    content: (
+                        <div>
+                            <p>{payload?.error?.message ?? "Unknown error"}</p>
+                            {validation.validationErrors && (
+                                <ul>
+                                    {validation.validationErrors.map(
+                                        (error, index) => (
+                                            <li key={index}>
+                                                <strong>
+                                                    {error.property}
+                                                </strong>
+                                                : {error.message}
+                                            </li>
+                                        )
+                                    )}
+                                </ul>
+                            )}
+                        </div>
+                    ),
+                })
+                return
+            }
+            const publishResult = payload as RichEditorPublishResponse
+            baseRevisionIdRef.current = publishResult.revisionId
+            setPublished(publishResult.published)
+            Modal.success({
+                title: "Published",
+                content:
+                    "The document is queued for deployment and will be live in a few minutes.",
+            })
+            await queryClient.invalidateQueries({
+                queryKey: ["richEditorRevisions", id],
+            })
+        } catch (error) {
+            Modal.error({ title: "Publishing failed", content: String(error) })
+        } finally {
+            setPublishing(false)
+        }
+    }, [admin, doSave, id, queryClient])
+
+    const doUnpublish = useCallback(async () => {
+        setPublishing(true)
+        try {
+            await admin.requestJSON(`/api/gdocs/${id}/unpublish`, {}, "POST")
+            setPublished(false)
+        } finally {
+            setPublishing(false)
+        }
+    }, [admin, id])
 
     // flush pending changes when leaving the page
     useEffect(() => {
@@ -223,7 +383,10 @@ function RichEditorPageForId(props: { id: string }): React.ReactElement {
         )
     }
 
-    const title = gdoc.content.title ?? "Untitled"
+    const docType = gdoc.content.type as OwidGdocType | undefined
+    const isPublished = published ?? gdoc.published
+    const title = docTitle ?? gdoc.content.title ?? "Untitled"
+    const paletteItems = getBlockItemsForDocType(docType)
 
     return (
         <AdminLayout title={`Editing: ${title}`} noSidebar fixedNav={false}>
@@ -235,8 +398,8 @@ function RichEditorPageForId(props: { id: string }): React.ReactElement {
                         </Typography.Title>
                         <Space size="small">
                             <Tag color="blue">{gdoc.content.type}</Tag>
-                            <Tag color={gdoc.published ? "green" : "default"}>
-                                {gdoc.published ? "published" : "draft"}
+                            <Tag color={isPublished ? "green" : "default"}>
+                                {isPublished ? "published" : "draft"}
                             </Tag>
                             <SaveStatus state={saveState} />
                         </Space>
@@ -246,7 +409,6 @@ function RichEditorPageForId(props: { id: string }): React.ReactElement {
                             History
                         </Button>
                         <Button
-                            type="primary"
                             disabled={
                                 saveState.kind === "saving" ||
                                 saveState.kind === "conflict"
@@ -255,8 +417,67 @@ function RichEditorPageForId(props: { id: string }): React.ReactElement {
                         >
                             Save
                         </Button>
+                        {isPublished ? (
+                            <Dropdown.Button
+                                type="primary"
+                                loading={publishing}
+                                disabled={saveState.kind === "conflict"}
+                                onClick={() => void doPublish()}
+                                menu={{
+                                    items: [
+                                        {
+                                            key: "unpublish",
+                                            label: "Unpublish",
+                                            danger: true,
+                                            onClick: () => {
+                                                Modal.confirm({
+                                                    title: "Unpublish this document?",
+                                                    content:
+                                                        "It will be removed from the site with the next deploy.",
+                                                    okText: "Unpublish",
+                                                    okButtonProps: {
+                                                        danger: true,
+                                                    },
+                                                    onOk: () =>
+                                                        void doUnpublish(),
+                                                })
+                                            },
+                                        },
+                                    ],
+                                }}
+                            >
+                                Publish changes
+                            </Dropdown.Button>
+                        ) : (
+                            <Popconfirm
+                                title="Publish this document?"
+                                description="It will go live on the site with the next deploy."
+                                onConfirm={() => void doPublish()}
+                            >
+                                <Button
+                                    type="primary"
+                                    loading={publishing}
+                                    disabled={saveState.kind === "conflict"}
+                                >
+                                    Publish
+                                </Button>
+                            </Popconfirm>
+                        )}
                     </Space>
                 </header>
+
+                {activeEditors.length > 0 && (
+                    <Alert
+                        type="info"
+                        showIcon
+                        message={`${activeEditors
+                            .map((editor) => editor.fullName)
+                            .join(", ")} ${
+                            activeEditors.length === 1 ? "is" : "are"
+                        } also editing this document`}
+                        description="There is no real-time merging yet: the last save wins, and you will be warned if someone else saved first."
+                    />
+                )}
 
                 {saveState.kind === "conflict" && (
                     <Alert
@@ -294,7 +515,7 @@ function RichEditorPageForId(props: { id: string }): React.ReactElement {
                 <div className="rich-editor-page__workspace">
                     <aside className="rich-editor-page__palette">
                         <h4>Insert</h4>
-                        {richEditorBlockItems.map((item) => (
+                        {paletteItems.map((item) => (
                             <button
                                 key={item.key}
                                 type="button"
@@ -326,7 +547,83 @@ function RichEditorPageForId(props: { id: string }): React.ReactElement {
                         editorRef={editorRef}
                         requestImageRef={requestImageRef}
                         onDirty={onDirty}
+                        docType={docType}
+                        onCreate={setEditorInstance}
+                        onSelectionChange={(editor) =>
+                            setHasTextSelection(!editor.state.selection.empty)
+                        }
                     />
+                    <aside className="rich-editor-page__rail">
+                        <Tabs
+                            size="small"
+                            items={[
+                                {
+                                    key: "settings",
+                                    label: "Settings",
+                                    children: docType ? (
+                                        <SettingsPanel
+                                            gdocId={id}
+                                            docType={docType}
+                                            published={isPublished}
+                                            content={gdoc.content}
+                                            slug={docSlug ?? gdoc.slug}
+                                            getBaseRevisionId={() =>
+                                                baseRevisionIdRef.current
+                                            }
+                                            onSaved={(revisionId, values) => {
+                                                baseRevisionIdRef.current =
+                                                    revisionId
+                                                setDocTitle(values.title)
+                                                setDocSlug(values.slug)
+                                                void queryClient.invalidateQueries(
+                                                    {
+                                                        queryKey: [
+                                                            "richEditorRevisions",
+                                                            id,
+                                                        ],
+                                                    }
+                                                )
+                                            }}
+                                        />
+                                    ) : null,
+                                },
+                                {
+                                    key: "comments",
+                                    label:
+                                        threads.filter(
+                                            (thread) =>
+                                                thread.status !== "resolved"
+                                        ).length > 0
+                                            ? `Comments (${
+                                                  threads.filter(
+                                                      (thread) =>
+                                                          thread.status !==
+                                                          "resolved"
+                                                  ).length
+                                              })`
+                                            : "Comments",
+                                    children: (
+                                        <CommentsPanel
+                                            gdocId={id}
+                                            threads={threads}
+                                            editor={editorInstance}
+                                            hasTextSelection={hasTextSelection}
+                                            onThreadsChanged={() =>
+                                                void queryClient.invalidateQueries(
+                                                    {
+                                                        queryKey: [
+                                                            "richEditorComments",
+                                                            id,
+                                                        ],
+                                                    }
+                                                )
+                                            }
+                                        />
+                                    ),
+                                },
+                            ]}
+                        />
+                    </aside>
                 </div>
 
                 <RevisionsDrawer
@@ -373,6 +670,10 @@ function ConvertToNativePrompt(props: {
     const { admin } = useContext(AdminAppContext)
     const [converting, setConverting] = useState(false)
 
+    const report = computeConversionReport(gdoc.content.body ?? [])
+    const rawEntries = Object.entries(report.rawBlockCounts)
+    const canConvert = report.roundTripOk && !report.conversionError
+
     return (
         <AdminLayout title="Rich editor">
             <main className="rich-editor-page rich-editor-page--create">
@@ -384,13 +685,58 @@ function ConvertToNativePrompt(props: {
                     showIcon
                     title="This document is authored in Google Docs"
                     description={
+                        <p>
+                            Converting it to native editing makes the enriched
+                            content in the database the source of truth. The
+                            Google Doc will no longer be synced — edits made
+                            there will be ignored.
+                        </p>
+                    }
+                />
+                <Alert
+                    style={{ marginTop: 12 }}
+                    type={
+                        !canConvert
+                            ? "error"
+                            : rawEntries.length > 0
+                              ? "warning"
+                              : "success"
+                    }
+                    showIcon
+                    message="Conversion report"
+                    description={
                         <>
                             <p>
-                                Converting it to native editing makes the
-                                enriched content in the database the source of
-                                truth. The Google Doc will no longer be synced —
-                                edits made there will be ignored.
+                                {report.editableBlocks} of {report.totalBlocks}{" "}
+                                top-level blocks are fully editable in the rich
+                                editor.
                             </p>
+                            {rawEntries.length > 0 && (
+                                <p>
+                                    These blocks are not natively supported yet
+                                    and will be preserved as read-only raw
+                                    blocks (they can still be moved and
+                                    deleted):{" "}
+                                    {rawEntries
+                                        .map(
+                                            ([type, count]) =>
+                                                `${type} (${count})`
+                                        )
+                                        .join(", ")}
+                                </p>
+                            )}
+                            {report.conversionError ? (
+                                <p>
+                                    Conversion failed: {report.conversionError}
+                                </p>
+                            ) : (
+                                <p>
+                                    Lossless round-trip check:{" "}
+                                    {report.roundTripOk
+                                        ? "passed ✓"
+                                        : "FAILED — do not convert this document; please report it."}
+                                </p>
+                            )}
                             <Popconfirm
                                 title="Convert to native editing?"
                                 description="This is one-way. The Google Doc stops being synced."
@@ -408,7 +754,11 @@ function ConvertToNativePrompt(props: {
                                     }
                                 }}
                             >
-                                <Button type="primary" loading={converting}>
+                                <Button
+                                    type="primary"
+                                    loading={converting}
+                                    disabled={!canConvert}
+                                >
                                     Convert to native editing
                                 </Button>
                             </Popconfirm>
