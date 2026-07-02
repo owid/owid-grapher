@@ -362,3 +362,110 @@
     color: #8a8577;
     font-size: 13px;
 }
+
+.rich-editor-page__rail {
+    flex: 0 0 320px;
+    position: sticky;
+    top: 16px;
+    background: #faf9f6;
+    border: 1px solid #e5e1d8;
+    border-radius: 8px;
+    padding: 4px 12px 12px;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+}
+
+.rich-editor-rail__panel {
+    padding-top: 4px;
+}
+
+.rich-comment-highlight {
+    background: rgba(255, 213, 79, 0.4);
+    border-bottom: 2px solid #f0b429;
+    cursor: pointer;
+}
+
+.rich-editor-comments__composer {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-end;
+    margin-bottom: 16px;
+
+    textarea {
+        width: 100%;
+    }
+}
+
+.rich-editor-comments__thread {
+    border: 1px solid #e5e1d8;
+    border-radius: 6px;
+    padding: 8px 10px;
+    margin-bottom: 10px;
+    background: #fff;
+}
+
+.rich-editor-comments__thread--resolved {
+    opacity: 0.7;
+}
+
+.rich-editor-comments__thread--orphaned {
+    border-color: #f0b429;
+}
+
+.rich-editor-comments__thread-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    min-height: 24px;
+}
+
+.rich-editor-comments__quote {
+    margin: 4px 0 8px;
+    padding: 2px 8px;
+    border-left: 3px solid #f0b429;
+    color: #6e6a5e;
+    font-size: 12px;
+    cursor: pointer;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.rich-editor-comments__comment {
+    margin-bottom: 8px;
+    font-size: 13px;
+
+    p {
+        margin: 2px 0 0;
+        white-space: pre-wrap;
+    }
+}
+
+.rich-editor-comments__author {
+    font-weight: 600;
+    color: #1d2b3d;
+}
+
+.rich-editor-comments__time {
+    color: #8a8577;
+    font-size: 12px;
+}
+
+.rich-editor-comments__reply {
+    display: flex;
+    gap: 6px;
+    align-items: flex-end;
+}
+
+.rich-editor-comments__resolved {
+    margin-top: 12px;
+
+    summary {
+        cursor: pointer;
+        color: #8a8577;
+        font-size: 13px;
+        margin-bottom: 8px;
+    }
+}
