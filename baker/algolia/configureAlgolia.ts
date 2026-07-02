@@ -149,6 +149,11 @@ export const configureAlgolia = async () => {
             attributesToSnippet: ["subtitle:24"],
             attributeForDistinct: "id",
             optionalWords: ["vs"],
+            // If a query still returns nothing, retry treating all words as optional
+            // rather than showing a blank page — for a data site a topic match beats
+            // no results. Testing this alone (without hand-curated optionalWords) to
+            // see if it's sufficient on its own.
+            removeWordsIfNoResults: "allOptional",
 
             // These lines below essentially demote matches in the `subtitle` and `availableEntities` fields:
             // If we find a match (only) there, then it doesn't count towards `exact`, and is therefore ranked lower.
