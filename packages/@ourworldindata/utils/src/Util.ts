@@ -2042,6 +2042,15 @@ export function findGreatestCommonDivisorOfArray(arr: number[]): number | null {
     return _.uniq(arr).reduce((acc, num) => greatestCommonDivisor(acc, num))
 }
 
+// Makes sure that values are evenly spaced by inserting values at the greatest
+// common divisor of the gaps between consecutive values.
+export function withUniformSpacing(values: number[]): number[] {
+    const deltas = rollingMap(values, (a, b) => b - a)
+    const gcd = findGreatestCommonDivisorOfArray(deltas)
+    if (gcd === null) return values
+    return _.range(values[0], values[values.length - 1] + gcd, gcd)
+}
+
 export function lowercaseObjectKeys(
     obj: Record<string, unknown>
 ): Record<string, unknown> {
