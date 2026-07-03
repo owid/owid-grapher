@@ -10,6 +10,7 @@ import {
 } from "@ourworldindata/utils"
 import {
     SpanCallout,
+    SpanDod,
     SpanRef,
     CalloutFunction,
     CALLOUT_FUNCTIONS,
@@ -44,14 +45,16 @@ export function spanToSimpleString(s: Span): string {
         .exhaustive()
 }
 
-// Every span case except span-ref is identical between the HTML serializer
-// (for site rendering, Algolia indexing, etc.) and the ArchieML-source
-// serializer (for write-back into a gdoc). The only divergence is how
-// span-ref renders: HTML form (<a class="ref">...</a>) vs source form
-// ({ref}id_or_content{/ref}). Each wrapper passes its own children
-// recursion so the two trees never mix modes mid-traversal.
-function nonRefSpanToString(
-    s: Exclude<Span, SpanRef>,
+// Every span case except span-ref and span-dod is identical between the HTML
+// serializer (for site rendering, Algolia indexing, etc.) and the
+// ArchieML-source serializer (for write-back into a gdoc). The divergent two
+// render differently per mode: span-ref as <a class="ref">...</a> vs
+// {ref}id_or_content{/ref}, span-dod as the site markup vs the authoring form
+// <a href="#dod:id">...</a> (which is what the parser recognises). Each
+// wrapper passes its own children recursion so the two trees never mix modes
+// mid-traversal.
+function sharedSpanToString(
+    s: Exclude<Span, SpanRef | SpanDod>,
     recurse: (children: Span[]) => string
 ): string {
     return match(s)
@@ -59,13 +62,6 @@ function nonRefSpanToString(
         .with(
             { spanType: "span-link" },
             (span) => `<a href="${span.url}">${recurse(span.children)}</a>`
-        )
-        .with(
-            { spanType: "span-dod" },
-            (span) =>
-                `<span><a href="#dod-${span.id}" data-dod-id="${
-                    span.id
-                }"  class="dod-span">${recurse(span.children)}</a></span>`
         )
         .with(
             { spanType: "span-guided-chart-link" },
@@ -112,12 +108,17 @@ function nonRefSpanToString(
         .exhaustive()
 }
 
-// HTML serializer: emits post-extractRefs HTML for span-ref, suitable for
-// site rendering and any other consumer that wants the rendered form.
+// HTML serializer: emits post-extractRefs HTML for span-ref and the site
+// markup for span-dod, suitable for site rendering and any other consumer
+// that wants the rendered form.
 export function spanToHtmlString(s: Span): string {
     if (s.spanType === "span-ref")
         return `<a href="${s.url}" class="ref">${spansToHtmlString(s.children)}</a>`
-    return nonRefSpanToString(s, spansToHtmlString)
+    if (s.spanType === "span-dod")
+        return `<span><a href="#dod-${s.id}" data-dod-id="${
+            s.id
+        }"  class="dod-span">${spansToHtmlString(s.children)}</a></span>`
+    return sharedSpanToString(s, spansToHtmlString)
 }
 
 export function spansToHtmlString(spans: Span[]): string {
@@ -125,17 +126,31 @@ export function spansToHtmlString(spans: Span[]): string {
     return spans.map(spanToHtmlString).join("")
 }
 
+// Inline ref content is re-parsed by extractRefs through its own ArchieML
+// template, where every paragraph sits at the start of a line. A paragraph
+// beginning like a key ("See: something") would be swallowed as a key/value
+// pair there, so escape the colon the same way authors do in gdocs (and the
+// parse un-escapes): `See\: something`.
+function escapeArchieKeyPrefixes(text: string): string {
+    return text.replace(/^(\s*\w+)\s*:/gm, "$1\\:")
+}
+
 // ArchieML-source serializer: emits the source `{ref}id_or_content{/ref}`
-// for span-ref. Used by the write-back path so a Claude-mediated edit
-// produces gdoc text that an author would recognise — and that the next
-// parse round-trips back to the same SpanRef structure.
+// for span-ref and the authoring form `<a href="#dod:id">` for span-dod (the
+// form htmlToSpans recognises). Used by the write-back path so a
+// Claude-mediated edit produces gdoc text that an author would recognise —
+// and that the next parse round-trips back to the same span structure.
 export function spanToArchieMLSourceString(s: Span): string {
     if (s.spanType === "span-ref") {
         return s.sourceForm.kind === "id"
             ? `{ref}${s.sourceForm.id}{/ref}`
-            : `{ref}${spansToArchieMLSourceString(s.sourceForm.content)}{/ref}`
+            : `{ref}${escapeArchieKeyPrefixes(
+                  spansToArchieMLSourceString(s.sourceForm.content)
+              )}{/ref}`
     }
-    return nonRefSpanToString(s, spansToArchieMLSourceString)
+    if (s.spanType === "span-dod")
+        return `<a href="#dod:${s.id}">${spansToArchieMLSourceString(s.children)}</a>`
+    return sharedSpanToString(s, spansToArchieMLSourceString)
 }
 
 export function spansToArchieMLSourceString(spans: Span[]): string {

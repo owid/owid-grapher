@@ -167,7 +167,18 @@ function fillInlineRefSourceContent(
     for (const ref of Object.values(definitions)) {
         const spans: Span[] = []
         for (const block of ref.content) {
-            if (block.type === "text") spans.push(...block.value)
+            // Skip non-text and empty text blocks (the latter serialize to
+            // nothing, so emitting a separator for them would produce a
+            // double "\n\n" that does not survive a round trip)
+            if (block.type !== "text" || block.value.length === 0) continue
+            // Preserve the paragraph boundary between the definition's text
+            // blocks: the ArchieML write-back joins these spans without any
+            // separator, so an explicit "\n\n" span is what keeps a
+            // multi-paragraph {ref} from being glued into one paragraph —
+            // and keeps its content hash (the ref's id) stable.
+            if (spans.length > 0)
+                spans.push({ spanType: "span-simple-text", text: "\n\n" })
+            spans.push(...block.value)
         }
         byIndex.set(ref.index, spans)
     }
@@ -214,8 +225,13 @@ export function extractRefs(text: string): {
         ) as RegExpMatchArray
         const contentOrId = match[1]
 
+        // Hash the trimmed content: the span parser trims leading/trailing
+        // whitespace anyway, so hashing it raw would give `{ref} x {/ref}`
+        // and `{ref}x{/ref}` different ids even though they parse to the
+        // same footnote — and would make the id unstable across a
+        // write-back round trip (which can only serialize the trimmed form).
         const id = isInlineRef
-            ? createHash("sha1").update(contentOrId).digest("hex")
+            ? createHash("sha1").update(contentOrId.trim()).digest("hex")
             : contentOrId
 
         refsByFirstAppearance.add(id)
