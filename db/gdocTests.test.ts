@@ -22,6 +22,14 @@ import { archieToEnriched } from "./model/Gdoc/archieToEnriched.js"
 import { OwidRawGdocBlockToArchieMLString } from "./model/Gdoc/rawToArchie.js"
 import { owidArticleToArchieMLStringGenerator } from "./model/Gdoc/archieToGdoc.js"
 import {
+    compareArchieMlContent,
+    validateArchieMl,
+} from "./model/Gdoc/validateArchieMl.js"
+import {
+    joinArchieMlSkipSegments,
+    splitArchieMlSkipSegments,
+} from "./model/Gdoc/archieMlSkipBlocks.js"
+import {
     getContentKeysForGdocType,
     OWID_GDOC_DATA_INSIGHT_CONTENT_KEYS,
     OWID_GDOC_POST_CONTENT_KEYS,
@@ -724,23 +732,22 @@ describe("document-level ArchieML round trip", () => {
     // back is a fixed point. The write-back canonicalizes formatting —
     // property order, key casing, whitespace — without losing content, so the
     // string comparison is against that canonical form rather than the
-    // handwritten input; content preservation is what the enriched-level
-    // comparison checks. Returns the first parse and its canonical write-back
+    // handwritten input; content preservation is checked by validateArchieMl,
+    // the same gate the admin API uses, so CI exercises exactly the code the
+    // endpoint runs. Returns the first parse and its canonical write-back
     // for fixture-specific assertions.
     function expectDocToRoundTrip(archieml: string): {
         first: OwidGdocPostContent
         canonicalArchieML: string
     } {
-        const first = archieToEnriched(archieml)
+        const result = validateArchieMl(archieml, { requireType: false })
+        expect(result.errors).toEqual([])
+        const first = result.content!
         const canonicalArchieML = enrichedToArchieML(first)
-        const second = archieToEnriched(canonicalArchieML)
-        expect(omitUndefinedValues(second.body)).toEqual(
-            omitUndefinedValues(first.body)
+        // The canonical form must itself be a fixed point at the string level.
+        expect(enrichedToArchieML(archieToEnriched(canonicalArchieML))).toEqual(
+            canonicalArchieML
         )
-        expect(omitUndefinedValues(second.refs?.definitions)).toEqual(
-            omitUndefinedValues(first.refs?.definitions)
-        )
-        expect(enrichedToArchieML(second)).toEqual(canonicalArchieML)
         return { first, canonicalArchieML }
     }
 
@@ -1222,5 +1229,154 @@ describe("refs source-form serializer", () => {
         expect(text).toContain("Citation.")
         expect(text).not.toContain("id: abc123hash")
         expect(text).not.toContain("inline body\n[]")
+    })
+})
+
+describe(validateArchieMl, () => {
+    const doc = (body: string, frontmatter: string = "type: article"): string =>
+        `title: Test doc
+byline: Author
+${frontmatter}
+[+body]
+${body}
+[]
+`
+
+    it("accepts a valid document", () => {
+        const result = validateArchieMl(doc("Hello world"))
+        expect(result.valid).toBe(true)
+        expect(result.errors).toEqual([])
+        expect(result.content?.body).toHaveLength(1)
+    })
+
+    it("reports an unknown block type as a parse failure", () => {
+        const result = validateArchieMl(doc("{.small-chart}\nurl: test\n{}"))
+        expect(result.valid).toBe(false)
+        expect(result.content).toBeUndefined()
+        expect(result.errors).toHaveLength(1)
+        expect(result.errors[0].message).toContain("failed to parse")
+    })
+
+    it("reports attribute-level parseErrors on known blocks", () => {
+        const result = validateArchieMl(doc("{.chart}\ncaption: hi\n{}"))
+        expect(result.valid).toBe(false)
+        expect(result.errors).toEqual([
+            expect.objectContaining({
+                property: "body",
+                message: "[chart] url property is missing",
+            }),
+        ])
+        // The parse itself succeeded, so the content is still returned
+        expect(result.content).toBeDefined()
+    })
+
+    it("requires a writable gdoc type by default", () => {
+        const missing = validateArchieMl(doc("Hello", ""))
+        expect(missing.valid).toBe(false)
+        expect(missing.errors).toEqual([
+            expect.objectContaining({ property: "type" }),
+        ])
+
+        const wrong = validateArchieMl(doc("Hello", "type: homepage"))
+        expect(wrong.valid).toBe(false)
+        expect(wrong.errors[0].message).toContain('"homepage"')
+
+        const dataInsight = validateArchieMl(doc("Hello", "type: data-insight"))
+        expect(dataInsight.valid).toBe(true)
+
+        const off = validateArchieMl(doc("Hello", ""), { requireType: false })
+        expect(off.valid).toBe(true)
+    })
+
+    it("tolerates empty text blocks dropped by canonicalization", () => {
+        // An inline tag left open across a paragraph break (as produced by
+        // some real gdocs) yields a text block with zero spans. The write-back
+        // emits nothing for it, so the re-parse legitimately drops it — the
+        // fixed-point check must not flag that as content loss.
+        const result = validateArchieMl(
+            doc("Some <i>italic text\n\n</i>\n\nNext paragraph")
+        )
+        expect(result.valid).toBe(true)
+        expect(result.errors).toEqual([])
+    })
+
+    it("passes documents with warnings but reports them", () => {
+        const result = validateArchieMl(
+            doc('Some <a href="https://owid.cloud/foo">link</a>')
+        )
+        expect(result.valid).toBe(true)
+        expect(result.warnings.length).toBeGreaterThan(0)
+    })
+})
+
+describe(splitArchieMlSkipSegments, () => {
+    const skipBlock = ":skip\nSome hidden preview link\n:endskip"
+
+    it("passes through documents without directives", () => {
+        const text = "title: t\n[+body]\nHello\n[]\n"
+        const s = splitArchieMlSkipSegments(text)
+        expect(s.prefix).toBe("")
+        expect(s.core).toBe(text)
+        expect(s.suffix).toBe("")
+        expect(s.midDocumentDirectiveLines).toEqual([])
+    })
+
+    it("captures a leading skip block as prefix", () => {
+        const text = `${skipBlock}\n\ntitle: t\n[+body]\nHello\n[]\n`
+        const s = splitArchieMlSkipSegments(text)
+        expect(s.prefix).toBe(skipBlock)
+        expect(s.core.startsWith("\ntitle: t")).toBe(true)
+        expect(s.midDocumentDirectiveLines).toEqual([])
+        expect(joinArchieMlSkipSegments(s, "CANON")).toBe(`${skipBlock}\nCANON`)
+    })
+
+    it("captures a trailing skip block and an :ignore tail as suffix", () => {
+        const text = `title: t\n[+body]\nHello\n[]\n\n${skipBlock}\n:ignore\ngraveyard text`
+        const s = splitArchieMlSkipSegments(text)
+        expect(s.prefix).toBe("")
+        expect(s.core).toContain("Hello")
+        expect(s.core).not.toContain(":skip")
+        expect(s.suffix).toContain(":skip")
+        expect(s.suffix).toContain(":ignore\ngraveyard text")
+        expect(s.midDocumentDirectiveLines).toEqual([])
+    })
+
+    it("treats an unterminated :skip as a suffix (it runs to EOF)", () => {
+        const text = `title: t\n[+body]\nHello\n[]\n:skip\ndraft stuff`
+        const s = splitArchieMlSkipSegments(text)
+        expect(s.core).not.toContain(":skip")
+        expect(s.suffix).toBe(":skip\ndraft stuff")
+        expect(s.midDocumentDirectiveLines).toEqual([])
+    })
+
+    it("flags mid-document skip blocks with their line numbers", () => {
+        const text = `title: t\n[+body]\nBefore\n${skipBlock}\nAfter\n[]\n`
+        const s = splitArchieMlSkipSegments(text)
+        expect(s.midDocumentDirectiveLines).toEqual([4, 6])
+        expect(s.prefix).toBe("")
+        expect(s.suffix).toBe("")
+    })
+})
+
+describe(compareArchieMlContent, () => {
+    const parse = (body: string): ReturnType<typeof archieToEnriched> =>
+        archieToEnriched(`title: t\ntype: article\n[+body]\n${body}\n[]\n`)
+
+    it("reports identical for equivalent content", () => {
+        const result = compareArchieMlContent(
+            parse("Hello <b>world</b>"),
+            parse("Hello <b>world</b>")
+        )
+        expect(result.identical).toBe(true)
+    })
+
+    it("pinpoints differing blocks", () => {
+        const result = compareArchieMlContent(
+            parse("Same\n\nDiffers here\n\nSame again"),
+            parse("Same\n\nDiffers HERE\n\nSame again")
+        )
+        expect(result.identical).toBe(false)
+        expect(result.differingBodyBlocks).toEqual([1])
+        expect(result.refsMatch).toBe(true)
     })
 })

@@ -271,7 +271,19 @@ function* lineToBatchUpdates(line: Line): Generator<docs_v1.Schema$Request> {
 export function articleToBatchUpdates(
     content: ArchieMlWritableContent
 ): docs_v1.Schema$Request[] {
-    const archieMlLines = [...owidArticleToArchieMLStringGenerator(content)]
+    return archieMlTextToBatchUpdates(
+        [...owidArticleToArchieMLStringGenerator(content)].join("\n")
+    )
+}
+
+// Converts ArchieML text into Google Docs batchUpdate requests with real
+// formatting (the inline HTML becomes styled text runs). Exposed separately
+// from articleToBatchUpdates so callers can write text that carries verbatim
+// segments (e.g. preserved :skip blocks) around the canonical form.
+export function archieMlTextToBatchUpdates(
+    text: string
+): docs_v1.Schema$Request[] {
+    const archieMlLines = text.split("\n")
 
     let isInsideHtmlBlock = false
 
@@ -365,13 +377,15 @@ async function createGdoc(
 
 export async function createGdocAndInsertOwidGdocPostContent(
     content: ArchieMlWritableContent,
-    existingGdocId: string | null
+    existingGdocId: string | null,
+    targetFolder: string = GDOCS_BACKPORTING_TARGET_FOLDER
 ): Promise<string> {
     const batchUpdates = articleToBatchUpdates(content)
 
-    const targetFolder = GDOCS_BACKPORTING_TARGET_FOLDER
-    if (targetFolder === undefined || targetFolder === "")
-        throw new Error("GDOCS_BACKPORTING_TARGET_FOLDER is not set")
+    if (!existingGdocId && !targetFolder)
+        throw new Error(
+            "No target Drive folder given for gdoc creation (GDOCS_BACKPORTING_TARGET_FOLDER is not set)"
+        )
     const auth = OwidGoogleAuth.getGoogleReadWriteAuth()
     const client = googleDocs({
         version: "v1",
