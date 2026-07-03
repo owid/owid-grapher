@@ -473,7 +473,7 @@ export class CoreTable<
     @imemo get timeColumn(): TimeColumn | MissingColumn {
         // "time" is the canonical time column slug.
         // See LegacyToOwidTable where this column is injected for all Graphers.
-        const maybeTimeColumn = this.get(OwidTableSlugs.time)
+        const maybeTimeColumn = this.get(OwidTableSlugs.Time)
         if (maybeTimeColumn instanceof ColumnTypeMap.Time)
             return maybeTimeColumn
         // If a valid "time" column doesn't exist, find _some_ time column to use.

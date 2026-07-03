@@ -1213,7 +1213,7 @@ export class GrapherState
         // Fill in missing entity codes
         if (table.entityCodeColumn.numErrorValues > 0) {
             table = table.replaceCells(
-                [OwidTableSlugs.entityCode],
+                [OwidTableSlugs.EntityCode],
                 (value, index) => {
                     if (isNotErrorValueOrEmptyCell(value)) return value
 
@@ -1233,7 +1233,7 @@ export class GrapherState
             (code) => code && code !== ""
         )
         if (!hasEntityCodes) {
-            table = table.dropColumns([OwidTableSlugs.entityCode])
+            table = table.dropColumns([OwidTableSlugs.EntityCode])
         }
 
         return table

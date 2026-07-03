@@ -203,15 +203,15 @@ describe(legacyToOwidTableAndDimensions, () => {
         it("duplicates 'year' column into 'time'", () => {
             expect(table.columnSlugs).toEqual(
                 expect.arrayContaining([
-                    OwidTableSlugs.year,
-                    OwidTableSlugs.time,
+                    OwidTableSlugs.Year,
+                    OwidTableSlugs.Time,
                 ])
             )
             expect(
-                table.get(OwidTableSlugs.time) instanceof ColumnTypeMap.Year
+                table.get(OwidTableSlugs.Time) instanceof ColumnTypeMap.Year
             ).toBeTruthy()
-            expect(table.columnSlugs).not.toContain(OwidTableSlugs.day)
-            expect(table.get(OwidTableSlugs.time).valuesAscending).toEqual([
+            expect(table.columnSlugs).not.toContain(OwidTableSlugs.Day)
+            expect(table.get(OwidTableSlugs.Time).valuesAscending).toEqual([
                 2020, 2021, 2022, 2022, 2024,
             ])
         })
@@ -336,15 +336,15 @@ describe(legacyToOwidTableAndDimensions, () => {
         it("duplicates 'day' column into 'time'", () => {
             expect(table.columnSlugs).toEqual(
                 expect.arrayContaining([
-                    OwidTableSlugs.day,
-                    OwidTableSlugs.time,
+                    OwidTableSlugs.Day,
+                    OwidTableSlugs.Time,
                 ])
             )
             expect(
-                table.get(OwidTableSlugs.time) instanceof ColumnTypeMap.Day
+                table.get(OwidTableSlugs.Time) instanceof ColumnTypeMap.Day
             ).toBeTruthy()
-            expect(table.columnSlugs).not.toContain(OwidTableSlugs.year)
-            expect(table.get(OwidTableSlugs.time).valuesAscending).toEqual([
+            expect(table.columnSlugs).not.toContain(OwidTableSlugs.Year)
+            expect(table.get(OwidTableSlugs.Time).valuesAscending).toEqual([
                 -6, -5, 0, 1,
             ])
         })
@@ -393,26 +393,26 @@ describe(legacyToOwidTableAndDimensions, () => {
 
         it("routes timeInterval 'day' to a Day time column", () => {
             const table = buildTable({ timeInterval: TimeInterval.Day })
-            expect(table.columnSlugs).toContain(OwidTableSlugs.day)
-            expect(table.columnSlugs).not.toContain(OwidTableSlugs.year)
+            expect(table.columnSlugs).toContain(OwidTableSlugs.Day)
+            expect(table.columnSlugs).not.toContain(OwidTableSlugs.Year)
             expect(
-                table.get(OwidTableSlugs.time) instanceof ColumnTypeMap.Day
+                table.get(OwidTableSlugs.Time) instanceof ColumnTypeMap.Day
             ).toBeTruthy()
         })
 
         it("routes timeInterval 'year' to a Year time column", () => {
             const table = buildTable({ timeInterval: TimeInterval.Year })
-            expect(table.columnSlugs).toContain(OwidTableSlugs.year)
-            expect(table.columnSlugs).not.toContain(OwidTableSlugs.day)
+            expect(table.columnSlugs).toContain(OwidTableSlugs.Year)
+            expect(table.columnSlugs).not.toContain(OwidTableSlugs.Day)
             expect(
-                table.get(OwidTableSlugs.time) instanceof ColumnTypeMap.Year
+                table.get(OwidTableSlugs.Time) instanceof ColumnTypeMap.Year
             ).toBeTruthy()
         })
 
         it("still treats legacy yearIsDay: true as daily", () => {
             const table = buildTable({ yearIsDay: true })
             expect(
-                table.get(OwidTableSlugs.time) instanceof ColumnTypeMap.Day
+                table.get(OwidTableSlugs.Time) instanceof ColumnTypeMap.Day
             ).toBeTruthy()
         })
 
@@ -422,7 +422,7 @@ describe(legacyToOwidTableAndDimensions, () => {
                 yearIsDay: false,
             })
             expect(
-                table.get(OwidTableSlugs.time) instanceof ColumnTypeMap.Day
+                table.get(OwidTableSlugs.Time) instanceof ColumnTypeMap.Day
             ).toBeTruthy()
         })
 
@@ -434,9 +434,9 @@ describe(legacyToOwidTableAndDimensions, () => {
             ] as const
             for (const [interval, ColumnType] of cases) {
                 const table = buildTable({ timeInterval: interval })
-                expect(table.columnSlugs).toContain(OwidTableSlugs.day)
-                expect(table.columnSlugs).not.toContain(OwidTableSlugs.year)
-                const timeColumn = table.get(OwidTableSlugs.time)
+                expect(table.columnSlugs).toContain(OwidTableSlugs.Day)
+                expect(table.columnSlugs).not.toContain(OwidTableSlugs.Year)
+                const timeColumn = table.get(OwidTableSlugs.Time)
                 expect(timeColumn instanceof ColumnType).toBeTruthy()
                 // Sub-yearly columns are day-encoded
                 expect(timeColumn instanceof ColumnTypeMap.Day).toBeTruthy()
@@ -445,9 +445,9 @@ describe(legacyToOwidTableAndDimensions, () => {
 
         it("routes timeInterval 'decade' to the year bucket with a Decade column type", () => {
             const table = buildTable({ timeInterval: TimeInterval.Decade })
-            expect(table.columnSlugs).toContain(OwidTableSlugs.year)
-            expect(table.columnSlugs).not.toContain(OwidTableSlugs.day)
-            const timeColumn = table.get(OwidTableSlugs.time)
+            expect(table.columnSlugs).toContain(OwidTableSlugs.Year)
+            expect(table.columnSlugs).not.toContain(OwidTableSlugs.Day)
+            const timeColumn = table.get(OwidTableSlugs.Time)
             expect(timeColumn instanceof ColumnTypeMap.Decade).toBeTruthy()
             // Decade columns are year-encoded
             expect(timeColumn instanceof ColumnTypeMap.Year).toBeTruthy()
@@ -627,14 +627,14 @@ describe(legacyToOwidTableAndDimensions, () => {
         it("duplicates 'day' column into 'time'", () => {
             expect(table.columnSlugs).toEqual(
                 expect.arrayContaining([
-                    OwidTableSlugs.day,
-                    OwidTableSlugs.time,
+                    OwidTableSlugs.Day,
+                    OwidTableSlugs.Time,
                 ])
             )
             expect(
-                table.get(OwidTableSlugs.time) instanceof ColumnTypeMap.Day
+                table.get(OwidTableSlugs.Time) instanceof ColumnTypeMap.Day
             ).toBeTruthy()
-            expect(table.get(OwidTableSlugs.time).uniqValues).toEqual([
+            expect(table.get(OwidTableSlugs.Time).uniqValues).toEqual([
                 -5, 0, 1,
             ])
         })
@@ -817,12 +817,12 @@ describe("variables with mixed days & years with missing overlap and multiple po
 
     it("duplicates 'day' column into 'time'", () => {
         expect(table.columnSlugs).toEqual(
-            expect.arrayContaining([OwidTableSlugs.day, OwidTableSlugs.time])
+            expect.arrayContaining([OwidTableSlugs.Day, OwidTableSlugs.Time])
         )
         expect(
-            table.get(OwidTableSlugs.time) instanceof ColumnTypeMap.Day
+            table.get(OwidTableSlugs.Time) instanceof ColumnTypeMap.Day
         ).toBeTruthy()
-        expect(table.get(OwidTableSlugs.time).uniqValues).toEqual([
+        expect(table.get(OwidTableSlugs.Time).uniqValues).toEqual([
             1, 2, 3, 400, 800,
         ])
     })
