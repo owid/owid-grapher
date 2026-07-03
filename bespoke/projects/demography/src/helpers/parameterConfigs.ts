@@ -28,7 +28,17 @@ interface ParameterConfig {
     inputMin?: number
     inputMax?: number
     step: number
+    // Precision of the stored (internal-unit) value; used for URL serialization
+    // and modified-vs-baseline comparison, so it must match the stored scale.
     decimals: number
+    // Factor to multiply the internal (stored) value by for display only. The
+    // data and model stay in the internal unit; this only scales what the user
+    // sees (axis ticks, value editor). Defaults to 1 when omitted.
+    displayScale?: number
+    // Decimal places to show in the value editor, in display units. Defaults to
+    // `decimals` when omitted. When displayScale shifts the decimal point (e.g.
+    // ‰→%, /10), this is `decimals + 1` to keep the same effective granularity.
+    displayDecimals?: number
     subtitle: (entityName: string) => string
     tooltipContent: string
     formatValue: (value: number) => string
@@ -179,29 +189,32 @@ export const parameterConfigByKey: Record<ParameterKey, ParameterConfig> = {
         shortTitle: "Migration",
         extraShortTitle: "Migration",
         title: "Net migration rate",
-        unit: "per 1,000 population",
-        axisUnit: "‰",
+        unit: "% of population",
+        axisUnit: "%",
         yPadding: 5,
         inputMin: -20,
         inputMax: 20,
         step: 0.1,
         decimals: 1,
+        // Stored per 1,000 population; displayed as a percentage (divide by 10).
+        displayScale: 0.1,
+        displayDecimals: 2,
         subtitle: (entityName: string) => {
             if (entityName === "World") return "Not applicable."
             const region = getRegionByName(entityName)
             if (region?.regionType === "aggregate")
-                return "Difference between people entering and leaving the continent, per 1,000 population."
-            return "Difference between people entering and leaving the country, per 1,000 population."
+                return "Difference between people entering and leaving the continent, as a percentage of the population."
+            return "Difference between people entering and leaving the country, as a percentage of the population."
         },
         tooltipContent:
-            "Net migration is the difference in immigration (people entering the country) and emigration (people leaving). This number is positive if more people are entering than leaving. This difference is given per 1,000 population.",
+            "Net migration is the difference in immigration (people entering the country) and emigration (people leaving). This number is positive if more people are entering than leaving. This difference is shown as a percentage of the population.",
         formatValue: (v) =>
-            formatValue(v, {
-                numDecimalPlaces: 1,
+            formatValue(v / 10, {
+                numDecimalPlaces: 2,
                 numberAbbreviation: false,
                 showPlus: true,
                 trailingZeroes: true,
-            }) + "‰",
+            }) + "%",
         computeHistorical: (simulation) => {
             const points = R.pipe(
                 HISTORICAL_TIME_RANGE,
