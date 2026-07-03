@@ -23,7 +23,23 @@ export interface RawBlockJson {
  */
 export type EnrichedBlockJson = { type: string } & Record<string, unknown>
 
-export interface MigrationContext {
+/**
+ * Capabilities the engine injects into transforms. The CLI runner backs them
+ * with the DB via knex; the deploy-time DB applier backs them with the
+ * migration's queryRunner; tests pass stubs.
+ */
+export interface MigrationHelpers {
+    /**
+     * Resolves an ourworldindata.org URL to the docs.google.com URL of the
+     * published gdoc behind it, following exact-match redirects. Returns
+     * null for anything that doesn't cleanly resolve (grapher/explorer
+     * pages, query strings, anchors, unknown or ambiguous slugs) — leave
+     * such links unchanged.
+     */
+    resolveOwidUrlToGdocUrl: (url: string) => Promise<string | null>
+}
+
+export interface MigrationContext extends MigrationHelpers {
     gdocId: string
 }
 

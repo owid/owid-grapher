@@ -1,7 +1,8 @@
 import fs from "fs"
 import path from "path"
 import * as db from "../../../db/db.js"
-import { GdocMigration } from "../types.js"
+import { createOwidUrlResolver } from "../../../db/gdocMigrations/urlResolver.js"
+import { GdocMigration, MigrationHelpers } from "../types.js"
 import { gdocToSourceMappedLines } from "./sourceMap.js"
 import { DocPlan, planDocumentPatch } from "./planDoc.js"
 import { buildExpectedLines, compareToExpectedLines } from "./verifyDoc.js"
@@ -71,6 +72,18 @@ export async function teardownDb(): Promise<void> {
     await db.closeTypeOrmAndKnexConnections()
 }
 
+/**
+ * DB-backed helpers for transforms. The connection opens lazily on first
+ * use, so --id runs whose transforms never call a helper need no DB.
+ */
+function createDbBackedHelpers(): MigrationHelpers {
+    return {
+        resolveOwidUrlToGdocUrl: createOwidUrlResolver((sql, parameters) =>
+            db.knexRaw(db.knexInstance(), sql, parameters)
+        ),
+    }
+}
+
 interface DocResult {
     gdocId: string
     status: JournalDocStatus
@@ -90,6 +103,7 @@ export async function runPlan(options: RunnerOptions): Promise<void> {
     const client = new ThrottledDocsClient({
         concurrency: options.concurrency,
     })
+    const helpers = createDbBackedHelpers()
     console.log(
         `Planning "${options.migration.name}" across ${ids.length} doc(s)…`
     )
@@ -103,7 +117,8 @@ export async function runPlan(options: RunnerOptions): Promise<void> {
                 const plan = await planDocumentPatch(
                     gdocId,
                     document,
-                    options.migration
+                    options.migration,
+                    helpers
                 )
                 const status = planStatus(plan)
                 journal.update(gdocId, {
@@ -147,6 +162,7 @@ export async function runApply(options: RunnerOptions): Promise<void> {
         "snapshots",
         options.migration.name
     )
+    const helpers = createDbBackedHelpers()
 
     const results = await mapConcurrent(
         pending,
@@ -157,7 +173,8 @@ export async function runApply(options: RunnerOptions): Promise<void> {
                     gdocId,
                     client,
                     options.migration,
-                    snapshotDir
+                    snapshotDir,
+                    helpers
                 )
                 journal.update(gdocId, {
                     status: result.status,
@@ -192,10 +209,11 @@ async function applyToDoc(
     gdocId: string,
     client: ThrottledDocsClient,
     migration: GdocMigration,
-    snapshotDir: string
+    snapshotDir: string,
+    helpers: MigrationHelpers
 ): Promise<DocResult> {
     let document = await client.getDocument(gdocId)
-    let plan = await planDocumentPatch(gdocId, document, migration)
+    let plan = await planDocumentPatch(gdocId, document, migration, helpers)
 
     for (let attempt = 1; ; attempt++) {
         if (plan.flags.length > 0) return { gdocId, status: "flagged", plan }
@@ -215,7 +233,12 @@ async function applyToDoc(
         } catch (error) {
             if (error instanceof RevisionMismatchError && attempt === 1) {
                 document = await client.getDocument(gdocId)
-                plan = await planDocumentPatch(gdocId, document, migration)
+                plan = await planDocumentPatch(
+                    gdocId,
+                    document,
+                    migration,
+                    helpers
+                )
                 continue
             }
             throw error
@@ -227,7 +250,12 @@ async function applyToDoc(
         buildExpectedLines(plan.lines, plan.blockEdits),
         gdocToSourceMappedLines(refetched)
     )
-    const replan = await planDocumentPatch(gdocId, refetched, migration)
+    const replan = await planDocumentPatch(
+        gdocId,
+        refetched,
+        migration,
+        helpers
+    )
     const problems = [
         ...mismatches,
         ...(replan.requests.length > 0 || replan.editSummaries.length > 0
@@ -254,6 +282,7 @@ export async function runVerify(options: RunnerOptions): Promise<void> {
     const client = new ThrottledDocsClient({
         concurrency: options.concurrency,
     })
+    const helpers = createDbBackedHelpers()
     console.log(
         `Verifying "${options.migration.name}" across ${ids.length} doc(s)…`
     )
@@ -267,7 +296,8 @@ export async function runVerify(options: RunnerOptions): Promise<void> {
                 const plan = await planDocumentPatch(
                     gdocId,
                     document,
-                    options.migration
+                    options.migration,
+                    helpers
                 )
                 const clean =
                     plan.flags.length === 0 && plan.requests.length === 0

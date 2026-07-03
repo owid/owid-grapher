@@ -24,7 +24,10 @@ import {
     simulateRequests,
 } from "./testUtils.js"
 
-const context: MigrationContext = { gdocId: "test-doc" }
+const context: MigrationContext = {
+    gdocId: "test-doc",
+    resolveOwidUrlToGdocUrl: async () => null,
+}
 
 const chartDocSpecs: Array<string | ParagraphSpec> = [
     "title: My article",

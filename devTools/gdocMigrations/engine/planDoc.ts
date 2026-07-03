@@ -5,6 +5,7 @@ import {
     FrontmatterGdocMigration,
     GdocMigration,
     MigrationContext,
+    MigrationHelpers,
     PatchFlag,
     SourceLine,
     SourceRange,
@@ -53,14 +54,27 @@ interface ModePlan {
 }
 
 /**
+ * Used when no helpers are provided (unit tests, transforms that don't need
+ * them) — calling a helper then fails loudly instead of silently misplanning
+ */
+export const NO_DB_HELPERS: MigrationHelpers = {
+    resolveOwidUrlToGdocUrl: () => {
+        throw new Error(
+            "resolveOwidUrlToGdocUrl needs DB access — run via the CLI, which injects DB-backed helpers"
+        )
+    },
+}
+
+/**
  * Computes everything the engine wants to do to one document: pure given the
- * fetched document JSON, no API or DB access. Fails closed — any doubt
- * anywhere surfaces as a flag and an empty request list.
+ * fetched document JSON and the injected helpers, no API access. Fails
+ * closed — any doubt anywhere surfaces as a flag and an empty request list.
  */
 export async function planDocumentPatch(
     gdocId: string,
     document: docs_v1.Schema$Document,
-    migration: GdocMigration
+    migration: GdocMigration,
+    helpers: MigrationHelpers = NO_DB_HELPERS
 ): Promise<DocPlan> {
     const lines = gdocToSourceMappedLines(document)
     const scan = scanScopes(lines)
@@ -68,7 +82,7 @@ export async function planDocumentPatch(
     const modePlan =
         migration.mode === "frontmatter"
             ? planFrontmatterMode(lines, scan, migration)
-            : await planComponentMode(gdocId, lines, scan, migration)
+            : await planComponentMode(gdocId, lines, scan, migration, helpers)
 
     const flags = [...modePlan.flags]
 
@@ -110,9 +124,10 @@ async function planComponentMode(
     gdocId: string,
     lines: SourceLine[],
     scan: ScanResult,
-    migration: ComponentGdocMigration
+    migration: ComponentGdocMigration,
+    helpers: MigrationHelpers
 ): Promise<ModePlan> {
-    const context: MigrationContext = { gdocId }
+    const context: MigrationContext = { gdocId, ...helpers }
     const matches = scan.blocks.filter(
         (block) => block.type === migration.blockType
     )
