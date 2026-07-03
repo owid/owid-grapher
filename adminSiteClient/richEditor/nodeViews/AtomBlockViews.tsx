@@ -129,8 +129,8 @@ export function ChartBlockView(props: NodeViewProps): React.ReactElement {
                 />
             </LazyVisible>
         )
-    } else if (url) {
-        // not a grapher chart (e.g. an explorer) — keep the iframe preview
+    } else if (/^https?:\/\//i.test(url)) {
+        // a non-grapher absolute URL (e.g. an explorer) — iframe preview
         contents = (
             <LazyVisible height={height}>
                 <iframe
@@ -141,6 +141,14 @@ export function ChartBlockView(props: NodeViewProps): React.ReactElement {
                     style={{ height }}
                 />
             </LazyVisible>
+        )
+    } else if (url) {
+        // never iframe a non-absolute URL: it would resolve inside the admin
+        // and render an admin page into the block
+        contents = (
+            <div className="rich-atom-block__empty">
+                Not a valid chart URL — pick a chart in the right rail
+            </div>
         )
     } else {
         contents = (

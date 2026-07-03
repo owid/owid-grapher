@@ -20,6 +20,7 @@ import {
 import { spansToUnformattedPlainText } from "@ourworldindata/utils"
 import { ImageSelectorModal } from "../ImageSelectorModal.js"
 import { InspectedBlock } from "./inspection.js"
+import { parseGrapherUrl } from "./grapherUrls.js"
 import { GRAPHER_URL_PREFIX, useChartList } from "./useChartList.js"
 import {
     ChartBlockActions,
@@ -37,31 +38,62 @@ function ChartUrlField(props: {
     onChange: (url: string) => void
 }): React.ReactElement {
     const charts = useChartList()
-    const [search, setSearch] = useState("")
+    // What the input currently shows. Typing must NOT write the block's url
+    // (a half-typed search would break the chart in the canvas): the value is
+    // only committed when an option is picked or a valid grapher URL is
+    // pasted; anything else is reverted on blur.
+    const [text, setText] = useState(props.value)
+
+    useEffect(() => {
+        setText(props.value)
+        // re-sync when a different block is inspected or the url is changed
+        // from elsewhere (e.g. the JSON editor)
+    }, [props.value])
+
     const options = useMemo(() => {
-        const query = search.trim().toLowerCase()
-        if (!query) return []
+        const raw = text.trim()
+        if (!raw || raw === props.value) return []
+        // pasted grapher URLs search by their slug
+        const query = (parseGrapherUrl(raw)?.slug ?? raw).toLowerCase()
         return charts
             .filter((chart) => chart.isPublished && chart.slug)
             .filter(
                 (chart) =>
-                    chart.title?.toLowerCase().includes(query) ||
-                    chart.slug?.toLowerCase().includes(query)
+                    chart.slug.toLowerCase().includes(query) ||
+                    String(chart.id) === query
             )
             .slice(0, 20)
             .map((chart) => ({
                 value: `${GRAPHER_URL_PREFIX}${chart.slug}`,
-                label: `${chart.title} (${chart.slug})`,
+                label: `${chart.slug} — ${chart.title}`,
             }))
-    }, [charts, search])
+    }, [charts, text, props.value])
+
+    const commitOrRevert = (): void => {
+        const raw = text.trim()
+        // allow clearing the block's chart explicitly
+        if (raw === "") {
+            if (props.value !== "") props.onChange("")
+            return
+        }
+        if (raw !== props.value && parseGrapherUrl(raw)) {
+            props.onChange(raw)
+            return
+        }
+        setText(props.value)
+    }
 
     return (
         <AutoComplete
-            value={props.value}
+            value={text}
             options={options}
-            showSearch={{ onSearch: setSearch }}
-            onChange={(value) => props.onChange(String(value))}
-            placeholder="Search published charts or paste a grapher URL"
+            showSearch={{ onSearch: setText }}
+            onSelect={(value) => {
+                setText(String(value))
+                props.onChange(String(value))
+            }}
+            onBlur={commitOrRevert}
+            placeholder="Search by chart slug or id, or paste a grapher URL"
         />
     )
 }
