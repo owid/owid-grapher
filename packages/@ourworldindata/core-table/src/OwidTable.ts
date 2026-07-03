@@ -70,7 +70,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     @imemo get entityNameColumn(): OwidColumn {
         return (
             this.getFirstColumnWithType(ColumnTypeNames.EntityName) ??
-            this.get(OwidTableSlugs.entityName)
+            this.get(OwidTableSlugs.EntityName)
         )
     }
 
@@ -81,7 +81,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     @imemo get entityCodeColumn(): OwidColumn {
         return (
             this.getFirstColumnWithType(ColumnTypeNames.EntityCode) ??
-            this.get(OwidTableSlugs.entityCode)
+            this.get(OwidTableSlugs.EntityCode)
         )
     }
 
@@ -92,7 +92,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     @imemo get entityIdColumn(): OwidColumn {
         return (
             this.getFirstColumnWithType(ColumnTypeNames.EntityId) ??
-            this.get(OwidTableSlugs.entityId)
+            this.get(OwidTableSlugs.EntityId)
         )
     }
 
@@ -211,7 +211,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         const adjustedStart = start === Infinity ? this.maxTime! : start
         const adjustedEnd = end === -Infinity ? this.minTime : end
         // todo: we should set a time column onload so we don't have to worry about it again.
-        const timeColumnSlug = this.timeColumn?.slug || OwidTableSlugs.time
+        const timeColumnSlug = this.timeColumn?.slug || OwidTableSlugs.Time
 
         const description = `Keep only rows with Time between ${adjustedStart} - ${adjustedEnd}`
 
@@ -831,7 +831,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     @imemo get entityNameColorIndex(): Map<EntityName, Color> {
         return this.valueIndex(
             this.entityNameSlug,
-            OwidTableSlugs.entityColor
+            OwidTableSlugs.EntityColor
         ) as Map<EntityName, Color>
     }
 
@@ -934,7 +934,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         const timeColumnOfTable = !this.timeColumn.isMissing
             ? this.timeColumn
             : // CovidTable does not have a day or year column so we need to use time.
-              this.get(OwidTableSlugs.time)
+              this.get(OwidTableSlugs.Time)
 
         const maybeTimeColumnOfValue =
             getOriginalTimeColumnSlug(this, columnSlug) ??
@@ -1016,7 +1016,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
             getOriginalTimeColumnSlug(this, columnSlug) ??
             timeColumnSlugFromColumnDef(columnDef)
         const timeColumn =
-            this.get(maybeTimeColumnSlug) ?? this.get(OwidTableSlugs.time) // CovidTable does not have a day or year column so we need to use time.
+            this.get(maybeTimeColumnSlug) ?? this.get(OwidTableSlugs.Time) // CovidTable does not have a day or year column so we need to use time.
 
         const originalColumnSlug =
             makeOriginalValueSlugFromColumnSlug(columnSlug)
@@ -1258,8 +1258,8 @@ export const BlankOwidTable = (
     new OwidTable(
         undefined,
         [
-            { slug: OwidTableSlugs.entityName },
-            { slug: OwidTableSlugs.year, type: ColumnTypeNames.Year },
+            { slug: OwidTableSlugs.EntityName },
+            { slug: OwidTableSlugs.Year, type: ColumnTypeNames.Year },
         ],
         {
             tableDescription: BLANK_TABLE_MESSAGE + extraTableDescription,

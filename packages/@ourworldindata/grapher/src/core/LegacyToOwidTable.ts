@@ -168,9 +168,9 @@ export const legacyToOwidTableAndDimensions = (
         }
 
         const columnStore: { [key: string]: any[] } = {
-            [OwidTableSlugs.entityId]: entityIds,
-            [OwidTableSlugs.entityCode]: entityCodes,
-            [OwidTableSlugs.entityName]: entityNames,
+            [OwidTableSlugs.EntityId]: entityIds,
+            [OwidTableSlugs.EntityCode]: entityCodes,
+            [OwidTableSlugs.EntityName]: entityNames,
             [timeColumnDef.slug]: times,
             [valueColumnDef.slug]: values,
         }
@@ -245,8 +245,8 @@ export const legacyToOwidTableAndDimensions = (
 
     // Merge all day based variables together (returns an empty table if there are none)
     const variablesJoinedByDay = fullJoinTables(variableTablesToJoinByDay, [
-        OwidTableSlugs.day,
-        OwidTableSlugs.entityId,
+        OwidTableSlugs.Day,
+        OwidTableSlugs.EntityId,
     ])
 
     let joinedVariablesTable: OwidTable
@@ -257,7 +257,7 @@ export const legacyToOwidTableAndDimensions = (
     ) {
         // Derive the year from the day column and add it to the joined days table
         const daysColumn = variablesJoinedByDay.getColumns([
-            OwidTableSlugs.day,
+            OwidTableSlugs.Day,
         ])[0]
         const getYearFromISOStringMemoized = _.memoize((dayValue: number) =>
             getYearFromISOStringAndDayOffset(EPOCH_DATE, dayValue)
@@ -268,8 +268,8 @@ export const legacyToOwidTableAndDimensions = (
 
         const newYearColumn = {
             ...daysColumn,
-            slug: OwidTableSlugs.year,
-            name: OwidTableSlugs.year,
+            slug: OwidTableSlugs.Year,
+            name: OwidTableSlugs.Year,
             values: yearsForDaysValues,
         } as OwidColumnDef
         const variablesJoinedByDayWithYearFilled =
@@ -282,10 +282,10 @@ export const legacyToOwidTableAndDimensions = (
         // trying to merge first by day+entity, then year+entity and finally entity only
         joinedVariablesTable = fullJoinTables(
             [variablesJoinedByDayWithYearFilled, ...variableTablesToJoinByYear],
-            [OwidTableSlugs.day, OwidTableSlugs.entityId],
+            [OwidTableSlugs.Day, OwidTableSlugs.EntityId],
             [
-                [OwidTableSlugs.year, OwidTableSlugs.entityId],
-                [OwidTableSlugs.entityId],
+                [OwidTableSlugs.Year, OwidTableSlugs.EntityId],
+                [OwidTableSlugs.EntityId],
             ]
         )
         // If we have scatter/marimekko variables that had a targetTime set
@@ -296,15 +296,15 @@ export const legacyToOwidTableAndDimensions = (
                     joinedVariablesTable,
                     ...variableTablesWithYearToJoinByEntityOnly,
                 ],
-                [OwidTableSlugs.day, OwidTableSlugs.entityId],
-                [[OwidTableSlugs.entityId]]
+                [OwidTableSlugs.Day, OwidTableSlugs.EntityId],
+                [[OwidTableSlugs.EntityId]]
             )
     } else if (variableTablesToJoinByYear.length > 0) {
         // If we only have year based variables then life is easy and we just join
         // those together without any special cases
         joinedVariablesTable = fullJoinTables(variableTablesToJoinByYear, [
-            OwidTableSlugs.year,
-            OwidTableSlugs.entityId,
+            OwidTableSlugs.Year,
+            OwidTableSlugs.EntityId,
         ])
 
         // If we have scatter/marimekko variables that had a targetTime set
@@ -315,8 +315,8 @@ export const legacyToOwidTableAndDimensions = (
                     joinedVariablesTable,
                     ...variableTablesWithYearToJoinByEntityOnly,
                 ],
-                [OwidTableSlugs.year, OwidTableSlugs.entityId],
-                [[OwidTableSlugs.entityId]]
+                [OwidTableSlugs.Year, OwidTableSlugs.EntityId],
+                [[OwidTableSlugs.EntityId]]
             )
     } else {
         // If we only have day variables life is also easy but this case is rare
@@ -330,18 +330,18 @@ export const legacyToOwidTableAndDimensions = (
                     joinedVariablesTable,
                     ...variableTablesWithYearToJoinByEntityOnly,
                 ],
-                [OwidTableSlugs.day, OwidTableSlugs.entityId],
-                [[OwidTableSlugs.entityId]]
+                [OwidTableSlugs.Day, OwidTableSlugs.EntityId],
+                [[OwidTableSlugs.EntityId]]
             )
     }
 
     // Inject a common "time" column that is used as the main time column for the table
     // e.g. for the timeline.
-    for (const dayOrYearSlug of [OwidTableSlugs.day, OwidTableSlugs.year]) {
+    for (const dayOrYearSlug of [OwidTableSlugs.Day, OwidTableSlugs.Year]) {
         if (joinedVariablesTable.columnSlugs.includes(dayOrYearSlug)) {
             joinedVariablesTable = joinedVariablesTable.duplicateColumn(
                 dayOrYearSlug,
-                { slug: OwidTableSlugs.time, name: OwidTableSlugs.time }
+                { slug: OwidTableSlugs.Time, name: OwidTableSlugs.Time }
             )
             // Do not inject multiple columns, terminate after one is successful
             break
@@ -350,7 +350,7 @@ export const legacyToOwidTableAndDimensions = (
 
     // Append the entity color column if we have selected entity colors
     if (!_.isEmpty(selectedEntityColors)) {
-        const entityColorColumnSlug = OwidTableSlugs.entityColor
+        const entityColorColumnSlug = OwidTableSlugs.EntityColor
 
         const valueFn = (
             entityName: EntityName | undefined
@@ -695,32 +695,32 @@ const columnDefFromOwidVariable = (
 // all share the `day` slug (days-since-epoch) so they join in the same bucket
 const TIME_COLUMN_DEF_BY_INTERVAL: Record<TimeInterval, OwidColumnDef> = {
     [TimeInterval.Day]: {
-        slug: OwidTableSlugs.day,
+        slug: OwidTableSlugs.Day,
         type: ColumnTypeNames.Day,
         name: "Day",
     },
     [TimeInterval.Week]: {
-        slug: OwidTableSlugs.day,
+        slug: OwidTableSlugs.Day,
         type: ColumnTypeNames.Week,
         name: "Week",
     },
     [TimeInterval.Month]: {
-        slug: OwidTableSlugs.day,
+        slug: OwidTableSlugs.Day,
         type: ColumnTypeNames.Month,
         name: "Month",
     },
     [TimeInterval.Quarter]: {
-        slug: OwidTableSlugs.day,
+        slug: OwidTableSlugs.Day,
         type: ColumnTypeNames.Quarter,
         name: "Quarter",
     },
     [TimeInterval.Year]: {
-        slug: OwidTableSlugs.year,
+        slug: OwidTableSlugs.Year,
         type: ColumnTypeNames.Year,
         name: "Year",
     },
     [TimeInterval.Decade]: {
-        slug: OwidTableSlugs.year,
+        slug: OwidTableSlugs.Year,
         type: ColumnTypeNames.Decade,
         name: "Decade",
     },
@@ -868,9 +868,9 @@ export function buildVariableTable(
     }
 
     const columnStore: { [key: string]: any[] } = {
-        [OwidTableSlugs.entityId]: entityIds,
-        [OwidTableSlugs.entityCode]: entityCodes,
-        [OwidTableSlugs.entityName]: entityNames,
+        [OwidTableSlugs.EntityId]: entityIds,
+        [OwidTableSlugs.EntityCode]: entityCodes,
+        [OwidTableSlugs.EntityName]: entityNames,
         [timeColumnDef.slug]: times,
         [valueColumnDef.slug]: values,
     }

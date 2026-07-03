@@ -1858,16 +1858,16 @@ function buildOwidTableForCatalogData(
     const originalTimeSlug = makeOriginalTimeSlugFromColumnSlug(slug)
 
     const rows = data.map((row) => ({
-        [OwidTableSlugs.entityName]: row.entity,
+        [OwidTableSlugs.EntityName]: row.entity,
         // The catalog data's max year is used as the time for all rows
-        [OwidTableSlugs.year]: maxYear,
+        [OwidTableSlugs.Year]: maxYear,
         [columnDef.slug]: row.value,
         [originalTimeSlug]: row.year,
     }))
 
     // Necessary to ensure correct formatting of the year values
     const yearColumnDef: OwidColumnDef = {
-        slug: OwidTableSlugs.year,
+        slug: OwidTableSlugs.Year,
         type: ColumnTypeNames.Year,
     }
     const originalTimeColumnDef: OwidColumnDef = {

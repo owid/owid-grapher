@@ -35,10 +35,10 @@ const SynthesizeOwidTable = (
     const { entityCount, columnDefs, timeRange, entityNames } = finalOptions
     const colSlugs = (
         [
-            OwidTableSlugs.entityName,
-            OwidTableSlugs.entityCode,
-            OwidTableSlugs.entityId,
-            OwidTableSlugs.year,
+            OwidTableSlugs.EntityName,
+            OwidTableSlugs.EntityCode,
+            OwidTableSlugs.EntityId,
+            OwidTableSlugs.Year,
         ] as ColumnSlug[]
     ).concat(columnDefs.map((col) => col.slug))
 
