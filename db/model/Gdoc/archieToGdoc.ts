@@ -52,10 +52,13 @@ function* owidArticleToArchieMLStringGenerator(
     }
 }
 
-interface TextFragment {
+export interface TextFragment {
     text: string
     style: docs_v1.Schema$TextStyle
 }
+
+export const TEXT_STYLE_FIELDS =
+    "bold,italic,underline,strikethrough,baselineOffset,link"
 
 interface Line {
     fragments: TextFragment[]
@@ -117,6 +120,20 @@ function* convertCheerioNodesToTextFragments(
             yield* convertCheerioNodesToTextFragments(node.children, styleStack)
         }
     }
+}
+
+export function getDefaultTextStyle(): docs_v1.Schema$TextStyle {
+    return mergeStyleStack([])
+}
+
+/**
+ * Converts a single line of ArchieML text (which may contain span HTML such
+ * as <b>, <i>, <a href>) into styled text fragments for insertion into a
+ * Google Doc.
+ */
+export function htmlLineToTextFragments(line: string): TextFragment[] {
+    const $ = cheerio.load(line, null, false)
+    return [...convertCheerioNodesToTextFragments($.root().contents(), [])]
 }
 
 function* lineToBatchUpdates(line: Line): Generator<docs_v1.Schema$Request> {
