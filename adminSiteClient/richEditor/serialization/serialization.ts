@@ -8,10 +8,15 @@ import {
     EnrichedBlockImage,
     EnrichedBlockList,
     EnrichedBlockNumberedList,
+    EnrichedBlockPullQuote,
+    EnrichedBlockTable,
     EnrichedBlockText,
     OwidEnrichedGdocBlock,
+    PullQuoteAlignment,
     Span,
     SpanCallout,
+    TableSize,
+    TableTemplate,
 } from "@ourworldindata/types"
 import {
     PmMarkJson,
@@ -328,6 +333,30 @@ export function enrichedBlockToPmNode(
                 type: pmNodeNames.expandableParagraph,
                 content: block.items.map(enrichedBlockToPmNode),
             }
+        case "pull-quote":
+            return {
+                type: pmNodeNames.pullQuote,
+                attrs: { quote: block.quote, align: block.align },
+                content: block.content.map(textBlockToParagraph),
+            }
+        case "table":
+            return {
+                type: pmNodeNames.tableBlock,
+                attrs: {
+                    template: block.template,
+                    size: block.size,
+                    caption: block.caption
+                        ? structuredClone(block.caption)
+                        : null,
+                },
+                content: block.rows.map((row) => ({
+                    type: pmNodeNames.tableRow,
+                    content: row.cells.map((cell) => ({
+                        type: pmNodeNames.tableCell,
+                        content: cell.content.map(enrichedBlockToPmNode),
+                    })),
+                })),
+            }
         case "text":
             return textBlockToParagraph(block)
         case "heading":
@@ -426,6 +455,36 @@ export function pmNodeToEnrichedBlock(node: PmNodeJson): OwidEnrichedGdocBlock {
                 items: (node.content ?? []).map(pmNodeToEnrichedBlock),
                 parseErrors: [],
             }
+        case pmNodeNames.pullQuote: {
+            const pullQuote: EnrichedBlockPullQuote = {
+                type: "pull-quote",
+                content: (node.content ?? []).map(paragraphToTextBlock),
+                align: (attrs.align ?? "left") as PullQuoteAlignment,
+                quote: String(attrs.quote ?? ""),
+                parseErrors: [],
+            }
+            return pullQuote
+        }
+        case pmNodeNames.tableBlock: {
+            const table: EnrichedBlockTable = {
+                type: "table",
+                template: (attrs.template ?? "header-row") as TableTemplate,
+                size: (attrs.size ?? "narrow") as TableSize,
+                rows: (node.content ?? []).map((row) => ({
+                    type: "table-row",
+                    cells: (row.content ?? []).map((cell) => ({
+                        type: "table-cell",
+                        content: (cell.content ?? []).map(
+                            pmNodeToEnrichedBlock
+                        ),
+                    })),
+                })),
+                parseErrors: [],
+            }
+            if (isPresent(attrs.caption))
+                table.caption = structuredClone(attrs.caption) as Span[]
+            return table
+        }
         case pmNodeNames.paragraph:
             return paragraphToTextBlock(node)
         case pmNodeNames.heading:

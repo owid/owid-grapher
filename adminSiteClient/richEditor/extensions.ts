@@ -66,6 +66,7 @@ const OwidBlockquote = Node.create({
     group: "block",
     content: "paragraph+",
     defining: true,
+    draggable: true,
     addAttributes() {
         return { citation: { default: null } }
     },
@@ -85,6 +86,7 @@ const OwidCallout = Node.create({
     group: "block",
     content: "(paragraph | heading | bulletList)*",
     defining: true,
+    draggable: true,
     addAttributes() {
         return { icon: { default: null }, title: { default: null } }
     },
@@ -204,6 +206,7 @@ const OwidAside = Node.create({
     group: "block",
     content: "inline*",
     defining: true,
+    draggable: true,
     addAttributes() {
         return { position: { default: null } }
     },
@@ -212,6 +215,87 @@ const OwidAside = Node.create({
     },
     renderHTML() {
         return ["aside", { "data-rich-aside": "", class: "rich-aside" }, 0]
+    },
+})
+
+// A pull quote's big quote text lives in the `quote` attr (edited via the
+// inspector); its content hole holds the attribution/context text blocks
+const OwidPullQuote = Node.create({
+    name: pmNodeNames.pullQuote,
+    group: "block",
+    content: "paragraph*",
+    defining: true,
+    isolating: true,
+    draggable: true,
+    addAttributes() {
+        return { quote: { default: "" }, align: { default: "left" } }
+    },
+    parseHTML() {
+        return [{ tag: "blockquote[data-rich-pull-quote]" }]
+    },
+    renderHTML() {
+        return [
+            "blockquote",
+            { "data-rich-pull-quote": "", class: "rich-pull-quote" },
+            0,
+        ]
+    },
+})
+
+// Tables are nested containers (table > row > cell) so that cells hold real
+// editable blocks — anything can be typed or dragged into a cell
+const OwidTableBlock = Node.create({
+    name: pmNodeNames.tableBlock,
+    group: "block",
+    content: "tableRow*",
+    defining: true,
+    isolating: true,
+    draggable: true,
+    addAttributes() {
+        return {
+            template: { default: "header-row" },
+            size: { default: "narrow" },
+            // Span[] carried opaquely; editable as plain text in the inspector
+            caption: { default: null },
+        }
+    },
+    parseHTML() {
+        return [{ tag: "div[data-rich-table]" }]
+    },
+    renderHTML() {
+        return ["div", { "data-rich-table": "", class: "rich-table" }, 0]
+    },
+})
+
+const OwidTableRow = Node.create({
+    name: pmNodeNames.tableRow,
+    content: "tableCell*",
+    parseHTML() {
+        return [{ tag: "div[data-rich-table-row]" }]
+    },
+    renderHTML() {
+        return [
+            "div",
+            { "data-rich-table-row": "", class: "rich-table__row" },
+            0,
+        ]
+    },
+})
+
+const OwidTableCell = Node.create({
+    name: pmNodeNames.tableCell,
+    content: "block*",
+    defining: true,
+    isolating: true,
+    parseHTML() {
+        return [{ tag: "div[data-rich-table-cell]" }]
+    },
+    renderHTML() {
+        return [
+            "div",
+            { "data-rich-table-cell": "", class: "rich-table__cell" },
+            0,
+        ]
     },
 })
 
@@ -427,6 +511,10 @@ export function getRichEditorBaseExtensions(): Extensions {
         OwidRawBlock,
         ...propsAtomNodes,
         OwidAside,
+        OwidPullQuote,
+        OwidTableBlock,
+        OwidTableRow,
+        OwidTableCell,
         OwidGraySection,
         OwidExpandableParagraph,
         OwidLayoutColumn,
