@@ -41,8 +41,14 @@ function scrollPillIntoView(node: Element | null): void {
     })
 }
 
-function scrollFocusedPillIntoView(event: React.FocusEvent<Element>): void {
-    scrollPillIntoView(event.currentTarget)
+function scrollKeyboardFocusedPillIntoView(
+    event: React.FocusEvent<Element>
+): void {
+    // Pointer focus happens on mouse down. If we scroll the pill at that point,
+    // it can move out from under the pointer before mouse up, cancelling the
+    // click/selection. Keep this behavior for keyboard focus only.
+    if (event.currentTarget.matches(":focus-visible"))
+        scrollPillIntoView(event.currentTarget)
 }
 
 const LeftArrow = () => {
@@ -175,7 +181,7 @@ export const LatestTopicFacets = ({
                                 itemId="all"
                                 id="all"
                                 className="latest-topic-facets__topic-pill"
-                                onFocus={scrollFocusedPillIntoView}
+                                onFocus={scrollKeyboardFocusedPillIntoView}
                                 aria-label="All topics"
                             >
                                 All
@@ -192,7 +198,7 @@ export const LatestTopicFacets = ({
                                     }
                                     className="latest-topic-facets__topic-pill"
                                     isDisabled={disabledTopics.has(topic)}
-                                    onFocus={scrollFocusedPillIntoView}
+                                    onFocus={scrollKeyboardFocusedPillIntoView}
                                 >
                                     {topic}
                                 </TopicPill>
