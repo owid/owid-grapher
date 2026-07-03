@@ -33,8 +33,18 @@ export interface InspectedBlock {
     props: Record<string, unknown>
     updateProps: (props: Record<string, unknown>) => void
     deleteBlock: () => void
+    /**
+     * Current ProseMirror position of the inspected block (re-read from the
+     * live selection), or null when the selection moved elsewhere
+     */
+    getPos: () => number | null
     /** Structural commands, set only for the selected table block */
     tableCommands?: InspectedTableCommands
+    /**
+     * Convert this block into a narrative-chart block referencing the given
+     * name; set only for chart blocks. Returns the block's position.
+     */
+    convertToNarrativeChart?: (name: string) => number | null
 }
 
 const nodeNameToPropsAtomBlockType = Object.fromEntries(
@@ -126,6 +136,16 @@ export function inspectedBlockFromSelection(
         editor.chain().focus().deleteSelection().run()
     }
 
+    const getPos = (): number | null => {
+        const current = editor.state.selection
+        if (
+            !(current instanceof NodeSelection) ||
+            current.node.type.name !== nodeType
+        )
+            return null
+        return current.from
+    }
+
     const propsAtomBlockType = nodeNameToPropsAtomBlockType[nodeType]
     if (propsAtomBlockType) {
         return {
@@ -138,6 +158,16 @@ export function inspectedBlockFromSelection(
                 props: newProps,
             })),
             deleteBlock,
+            getPos,
+            ...(nodeType === pmNodeNames.chart
+                ? {
+                      convertToNarrativeChart: (name: string) =>
+                          convertSelectedChartBlockToNarrativeChart(
+                              editor,
+                              name
+                          ),
+                  }
+                : {}),
         }
     }
 
@@ -152,6 +182,7 @@ export function inspectedBlockFromSelection(
                 (_attrs, newProps) => newProps
             ),
             deleteBlock,
+            getPos,
             ...(nodeType === pmNodeNames.tableBlock
                 ? { tableCommands: buildTableCommands(editor) }
                 : {}),
@@ -167,6 +198,7 @@ export function inspectedBlockFromSelection(
             props: (block ?? {}) as Record<string, unknown>,
             updateProps: () => undefined,
             deleteBlock,
+            getPos,
         }
     }
 
@@ -179,6 +211,7 @@ export function inspectedBlockFromSelection(
             props: {},
             updateProps: () => undefined,
             deleteBlock,
+            getPos,
         }
     }
 
@@ -295,6 +328,51 @@ export function replaceSelectedBlockWithCursor(editor: Editor): boolean {
         .insertContentAt(pos, { type: pmNodeNames.paragraph })
         .setTextSelection(pos + 1)
         .run()
+}
+
+/**
+ * Convert the currently selected `chart` block into a `narrative-chart`
+ * block referencing the given narrative chart, carrying over the embed
+ * options (size, height, caption). Legal because both nodes are leaf atoms
+ * with a single `props` attr. Returns the block's position, or null when
+ * the selection is not a chart block. Undoable like any other transaction
+ * (though undo does not delete the created narrative chart).
+ */
+export function convertSelectedChartBlockToNarrativeChart(
+    editor: Editor,
+    name: string
+): number | null {
+    const selection = editor.state.selection
+    if (
+        !(selection instanceof NodeSelection) ||
+        selection.node.type.name !== pmNodeNames.chart
+    )
+        return null
+    const pos = selection.from
+    const chartProps = (selection.node.attrs.props ?? {}) as {
+        size?: string
+        height?: string
+        caption?: unknown
+    }
+    const props: Record<string, unknown> = {
+        name,
+        size: chartProps.size ?? "wide",
+    }
+    if (chartProps.height !== undefined) props.height = chartProps.height
+    if (chartProps.caption !== undefined) props.caption = chartProps.caption
+    const applied = editor
+        .chain()
+        .command(({ tr, state }) => {
+            tr.setNodeMarkup(
+                pos,
+                state.schema.nodes[pmNodeNames.narrativeChart],
+                { props }
+            )
+            return true
+        })
+        .setNodeSelection(pos)
+        .run()
+    return applied ? pos : null
 }
 
 /**

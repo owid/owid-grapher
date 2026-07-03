@@ -116,6 +116,11 @@ class SaveButtonsForChart extends Component<SaveButtonsProps<ChartEditor>> {
         const hasEditingErrors = editingErrors.length > 0
         const isSavingDisabled = grapherState.hasFatalErrors || hasEditingErrors
 
+        // Embedded in another page (e.g. the rich article editor's rail):
+        // deleting navigates the whole page away, and "save as narrative
+        // chart" is replaced by the host's own block-aware flow.
+        const isEmbedded = !!editor.manager.embedded
+
         return (
             <div className="SaveButtons">
                 <div>
@@ -148,16 +153,18 @@ class SaveButtonsForChart extends Component<SaveButtonsProps<ChartEditor>> {
                                     ? "Unpublish"
                                     : "Publish"}
                             </button>{" "}
-                            <button
-                                className="btn btn-danger"
-                                onClick={this.onDeleteChart}
-                            >
-                                Delete
-                            </button>
+                            {!isEmbedded && (
+                                <button
+                                    className="btn btn-danger"
+                                    onClick={this.onDeleteChart}
+                                >
+                                    Delete
+                                </button>
+                            )}
                         </>
                     )}
                 </div>
-                {!isNewGrapher && (
+                {!isNewGrapher && !isEmbedded && (
                     <div className="mt-2">
                         <button
                             className="btn btn-primary"

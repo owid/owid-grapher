@@ -512,8 +512,59 @@ $canvas-wide-measure: 1280px;
     overflow-y: auto;
 }
 
+// wider while the embedded chart editor tab is active: the chart editor
+// form is designed for the standalone page's 550px settings column
+.rich-editor-page__rail--wide {
+    flex: 0 0 600px;
+}
+
 .rich-editor-rail__panel {
     padding-top: 4px;
+}
+
+// ── embedded chart editor (rail "Chart editor" tab) ─────────────────────────
+
+.chart-editor-embedded {
+    display: flex;
+    flex-direction: column;
+    // scroll the form inside the rail so header/warning stay put
+    max-height: calc(100vh - 190px);
+
+    .innerForm {
+        overflow-y: auto;
+        flex-grow: 1;
+    }
+
+    .SaveButtons {
+        padding: 16px 8px;
+        border-top: 1px solid #e5e1d8;
+    }
+}
+
+.chart-editor-embedded__header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 4px 0 8px;
+}
+
+.chart-editor-embedded__title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.chart-editor-embedded__warning {
+    margin-bottom: 8px;
+}
+
+.chart-editor-embedded__loading {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 24px 0;
+    color: #8a8577;
 }
 
 .rich-comment-highlight {
@@ -663,10 +714,26 @@ $canvas-wide-measure: 1280px;
     }
 }
 
+.rich-atom-block--narrow {
+    max-width: $canvas-text-measure;
+}
+
 .rich-atom-block__chart-frame {
     display: block;
     width: 100%;
     border: none;
+}
+
+// container for the live in-page <Grapher> (charts render as real grapher
+// components in the canvas, not iframes)
+.rich-atom-block__grapher {
+    position: relative;
+
+    figure[data-grapher-src],
+    .GrapherComponent {
+        width: 100%;
+        height: 100%;
+    }
 }
 
 .rich-atom-block__placeholder,

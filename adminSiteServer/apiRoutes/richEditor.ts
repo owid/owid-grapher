@@ -930,13 +930,24 @@ export async function resolveEditorReferences(
         narrativeChartNames = [],
     } = req.body as RichEditorResolveReferencesRequest
 
-    const [linkedCharts, images, linkedDocuments, narrativeCharts] =
+    const [linkedCharts, images, linkedDocuments, narrativeCharts, ncIdRows] =
         await Promise.all([
             loadLinkedChartsForSlugs(trx, grapherSlugs, explorerSlugs),
             filenames.length ? getImagesByFilenames(trx, filenames) : [],
             gdocIds.length ? getMinimalGdocPostsByIds(trx, gdocIds) : [],
             getNarrativeChartsInfo(trx, narrativeChartNames),
+            narrativeChartNames.length
+                ? db.knexRaw<{ id: number; name: string }>(
+                      trx,
+                      `SELECT id, name FROM narrative_charts WHERE name IN (?)`,
+                      [narrativeChartNames]
+                  )
+                : [],
         ])
+
+    const narrativeChartIdsByName = new Map(
+        ncIdRows.map((row) => [row.name, row.id])
+    )
 
     const imageMetadata: Record<string, ImageMetadata> = {}
     for (const image of images) {
@@ -954,6 +965,12 @@ export async function resolveEditorReferences(
         linkedCharts: _.keyBy(linkedCharts, "originalSlug"),
         imageMetadata,
         linkedDocuments: _.keyBy(linkedDocuments, "id"),
-        narrativeCharts: _.keyBy(narrativeCharts, "name"),
+        narrativeCharts: _.keyBy(
+            narrativeCharts.map((nc) => ({
+                ...nc,
+                id: narrativeChartIdsByName.get(nc.name) ?? 0,
+            })),
+            "name"
+        ),
     }
 }

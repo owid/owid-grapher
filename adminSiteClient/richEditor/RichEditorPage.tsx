@@ -1,5 +1,5 @@
 import { useCallback, useContext, useEffect, useRef, useState } from "react"
-import { RouteComponentProps } from "react-router-dom"
+import { RouteComponentProps, useHistory } from "react-router-dom"
 import {
     Alert,
     Button,
@@ -52,6 +52,9 @@ import {
     replaceSelectedBlockWithCursor,
     selectionBlockKey,
 } from "./inspection.js"
+import { ChartEditingContext } from "./chartEditing/ChartEditingContext.js"
+import { useChartEditingState } from "./chartEditing/useChartEditingState.js"
+import { EmbeddedChartEditorPanel } from "./chartEditing/EmbeddedChartEditorPanel.js"
 
 type SaveState =
     | { kind: "saved"; at: Date | null }
@@ -183,6 +186,35 @@ function RichEditorPageForId(props: { id: string }): React.ReactElement {
     // rebuilt when the selection moves to a different block
     const inspectedKeyRef = useRef<string | null>(null)
     const [railTab, setRailTab] = useState("settings")
+    const history = useHistory()
+    // Rebuild the inspector from the live selection. Needed when a block's
+    // node type changed under an unchanged selection (converting a chart
+    // block to a narrative chart) — TipTap emits no selectionUpdate then.
+    const syncInspector = useCallback(() => {
+        const editor = editorRef.current
+        if (!editor) return
+        const key = selectionBlockKey(editor)
+        inspectedKeyRef.current = key
+        setInspected(key ? inspectedBlockFromSelection(editor) : null)
+    }, [])
+    const chartEditing = useChartEditingState({
+        admin,
+        tiptapEditor: editorInstance,
+        history,
+        onSessionOpened: () => {
+            syncInspector()
+            setRailTab("chart")
+        },
+        onSessionClosed: () =>
+            setRailTab((current) =>
+                current === "chart"
+                    ? inspectedKeyRef.current
+                        ? "block"
+                        : "settings"
+                    : current
+            ),
+    })
+    const chartEditingSession = chartEditing.contextValue.session
     // set while the replace-or-insert-below dialog is open (a palette item
     // was clicked while a component was selected)
     const [pendingInsert, setPendingInsert] =
@@ -581,169 +613,223 @@ function RichEditorPageForId(props: { id: string }): React.ReactElement {
                     />
                 )}
 
-                <div className="rich-editor-page__workspace">
-                    <aside className="rich-editor-page__palette">
-                        <h4>Insert</h4>
-                        {paletteItems.map((item) => (
-                            <button
-                                key={item.key}
-                                type="button"
-                                className="rich-editor-page__palette-item"
-                                title={item.description}
-                                onClick={() => {
-                                    const editor = editorRef.current
-                                    if (!editor) return
-                                    // with a component selected, ask whether
-                                    // to replace it or insert below it
-                                    if (selectionBlockKey(editor)) {
-                                        setPendingInsert(item)
-                                        return
-                                    }
-                                    runInsertItem(item)
+                <ChartEditingContext.Provider value={chartEditing.contextValue}>
+                    <div className="rich-editor-page__workspace">
+                        <aside className="rich-editor-page__palette">
+                            <h4>Insert</h4>
+                            {paletteItems.map((item) => (
+                                <button
+                                    key={item.key}
+                                    type="button"
+                                    className="rich-editor-page__palette-item"
+                                    title={item.description}
+                                    onClick={() => {
+                                        const editor = editorRef.current
+                                        if (!editor) return
+                                        // with a component selected, ask whether
+                                        // to replace it or insert below it
+                                        if (selectionBlockKey(editor)) {
+                                            setPendingInsert(item)
+                                            return
+                                        }
+                                        runInsertItem(item)
+                                    }}
+                                >
+                                    <span className="rich-editor-page__palette-glyph">
+                                        {item.glyph}
+                                    </span>
+                                    {item.title}
+                                </button>
+                            ))}
+                            <p className="rich-editor-page__palette-hint">
+                                Tip: type <code>/</code> in the text to insert
+                                blocks without leaving the keyboard.
+                            </p>
+                        </aside>
+                        <div className="rich-editor-page__canvas-col">
+                            <FormatToolbar
+                                editor={editorInstance}
+                                selectionVersion={selectionVersion}
+                            />
+                            <InlineTitleField
+                                key={`title-${id}`}
+                                gdocId={id}
+                                title={title}
+                                getBaseRevisionId={() =>
+                                    baseRevisionIdRef.current
+                                }
+                                onSaved={(revisionId, newTitle) => {
+                                    baseRevisionIdRef.current = revisionId
+                                    setDocTitle(newTitle)
                                 }}
-                            >
-                                <span className="rich-editor-page__palette-glyph">
-                                    {item.glyph}
-                                </span>
-                                {item.title}
-                            </button>
-                        ))}
-                        <p className="rich-editor-page__palette-hint">
-                            Tip: type <code>/</code> in the text to insert
-                            blocks without leaving the keyboard.
-                        </p>
-                    </aside>
-                    <div className="rich-editor-page__canvas-col">
-                        <FormatToolbar
-                            editor={editorInstance}
-                            selectionVersion={selectionVersion}
-                        />
-                        <InlineTitleField
-                            key={`title-${id}`}
-                            gdocId={id}
-                            title={title}
-                            getBaseRevisionId={() => baseRevisionIdRef.current}
-                            onSaved={(revisionId, newTitle) => {
-                                baseRevisionIdRef.current = revisionId
-                                setDocTitle(newTitle)
-                            }}
-                        />
-                        <RichEditor
-                            initialBody={gdoc.content.body ?? []}
-                            editorRef={editorRef}
-                            requestImageRef={requestImageRef}
-                            onDirty={onDirty}
-                            docType={docType}
-                            onCreate={setEditorInstance}
-                            onSelectionChange={(editor) => {
-                                setHasTextSelection(
-                                    hasTextRangeSelection(editor)
-                                )
-                                setSelectionVersion((version) => version + 1)
-                                // selecting a component (via its hover
-                                // border or body) opens it in the right rail
-                                const key = selectionBlockKey(editor)
-                                if (key === inspectedKeyRef.current) return
-                                inspectedKeyRef.current = key
-                                const block =
-                                    inspectedBlockFromSelection(editor)
-                                setInspected(block)
-                                setRailTab((current) =>
-                                    block
-                                        ? "block"
-                                        : current === "block"
-                                          ? "settings"
-                                          : current
-                                )
-                            }}
-                        />
-                    </div>
-                    <aside className="rich-editor-page__rail">
-                        <Tabs
-                            size="small"
-                            activeKey={railTab}
-                            onChange={setRailTab}
-                            items={[
-                                ...(inspected
-                                    ? [
-                                          {
-                                              key: "block",
-                                              label: "Block",
-                                              children: (
-                                                  <BlockInspector
-                                                      inspected={inspected}
-                                                      onClose={closeInspector}
-                                                  />
-                                              ),
-                                          },
-                                      ]
-                                    : []),
-                                {
-                                    key: "settings",
-                                    label: "Settings",
-                                    children: docType ? (
-                                        <SettingsPanel
-                                            gdocId={id}
-                                            docType={docType}
-                                            published={isPublished}
-                                            content={gdoc.content}
-                                            slug={docSlug ?? gdoc.slug}
-                                            getBaseRevisionId={() =>
-                                                baseRevisionIdRef.current
-                                            }
-                                            onSaved={(revisionId, values) => {
-                                                baseRevisionIdRef.current =
-                                                    revisionId
-                                                setDocTitle(values.title)
-                                                setDocSlug(values.slug)
-                                                void queryClient.invalidateQueries(
-                                                    {
-                                                        queryKey: [
-                                                            "richEditorRevisions",
-                                                            id,
-                                                        ],
-                                                    }
-                                                )
-                                            }}
-                                        />
-                                    ) : null,
-                                },
-                                {
-                                    key: "comments",
-                                    label: threads.some(
-                                        (thread) => thread.status !== "resolved"
+                            />
+                            <RichEditor
+                                initialBody={gdoc.content.body ?? []}
+                                editorRef={editorRef}
+                                requestImageRef={requestImageRef}
+                                onDirty={onDirty}
+                                docType={docType}
+                                onCreate={setEditorInstance}
+                                onSelectionChange={(editor) => {
+                                    setHasTextSelection(
+                                        hasTextRangeSelection(editor)
                                     )
-                                        ? `Comments (${
-                                              threads.filter(
-                                                  (thread) =>
-                                                      thread.status !==
-                                                      "resolved"
-                                              ).length
-                                          })`
-                                        : "Comments",
-                                    children: (
-                                        <CommentsPanel
-                                            gdocId={id}
-                                            threads={threads}
-                                            editor={editorInstance}
-                                            hasTextSelection={hasTextSelection}
-                                            onThreadsChanged={() =>
-                                                void queryClient.invalidateQueries(
-                                                    {
-                                                        queryKey: [
-                                                            "richEditorComments",
-                                                            id,
-                                                        ],
-                                                    }
-                                                )
-                                            }
-                                        />
-                                    ),
-                                },
-                            ]}
-                        />
-                    </aside>
-                </div>
+                                    setSelectionVersion(
+                                        (version) => version + 1
+                                    )
+                                    // selecting a component (via its hover
+                                    // border or body) opens it in the right rail
+                                    const key = selectionBlockKey(editor)
+                                    if (key === inspectedKeyRef.current) return
+                                    inspectedKeyRef.current = key
+                                    const block =
+                                        inspectedBlockFromSelection(editor)
+                                    setInspected(block)
+                                    const selectionPos =
+                                        editor.state.selection.from
+                                    setRailTab((current) => {
+                                        // while the embedded chart editor is open,
+                                        // interacting with its own block (or
+                                        // deselecting) must not switch tabs
+                                        if (
+                                            current === "chart" &&
+                                            (!block ||
+                                                chartEditingSession?.blockPos ===
+                                                    selectionPos)
+                                        )
+                                            return current
+                                        return block
+                                            ? "block"
+                                            : current === "block"
+                                              ? "settings"
+                                              : current
+                                    })
+                                }}
+                            />
+                        </div>
+                        <aside
+                            className={
+                                "rich-editor-page__rail" +
+                                (railTab === "chart" && chartEditingSession
+                                    ? " rich-editor-page__rail--wide"
+                                    : "")
+                            }
+                        >
+                            <Tabs
+                                size="small"
+                                activeKey={railTab}
+                                onChange={setRailTab}
+                                items={[
+                                    ...(inspected
+                                        ? [
+                                              {
+                                                  key: "block",
+                                                  label: "Block",
+                                                  children: (
+                                                      <BlockInspector
+                                                          inspected={inspected}
+                                                          onClose={
+                                                              closeInspector
+                                                          }
+                                                      />
+                                                  ),
+                                              },
+                                          ]
+                                        : []),
+                                    ...(chartEditingSession
+                                        ? [
+                                              {
+                                                  key: "chart",
+                                                  label: "Chart editor",
+                                                  children: (
+                                                      <EmbeddedChartEditorPanel
+                                                          session={
+                                                              chartEditingSession
+                                                          }
+                                                          environment={
+                                                              chartEditing.environment
+                                                          }
+                                                          onClose={() =>
+                                                              void chartEditing.contextValue.closeSession()
+                                                          }
+                                                      />
+                                                  ),
+                                              },
+                                          ]
+                                        : []),
+                                    {
+                                        key: "settings",
+                                        label: "Settings",
+                                        children: docType ? (
+                                            <SettingsPanel
+                                                gdocId={id}
+                                                docType={docType}
+                                                published={isPublished}
+                                                content={gdoc.content}
+                                                slug={docSlug ?? gdoc.slug}
+                                                getBaseRevisionId={() =>
+                                                    baseRevisionIdRef.current
+                                                }
+                                                onSaved={(
+                                                    revisionId,
+                                                    values
+                                                ) => {
+                                                    baseRevisionIdRef.current =
+                                                        revisionId
+                                                    setDocTitle(values.title)
+                                                    setDocSlug(values.slug)
+                                                    void queryClient.invalidateQueries(
+                                                        {
+                                                            queryKey: [
+                                                                "richEditorRevisions",
+                                                                id,
+                                                            ],
+                                                        }
+                                                    )
+                                                }}
+                                            />
+                                        ) : null,
+                                    },
+                                    {
+                                        key: "comments",
+                                        label: threads.some(
+                                            (thread) =>
+                                                thread.status !== "resolved"
+                                        )
+                                            ? `Comments (${
+                                                  threads.filter(
+                                                      (thread) =>
+                                                          thread.status !==
+                                                          "resolved"
+                                                  ).length
+                                              })`
+                                            : "Comments",
+                                        children: (
+                                            <CommentsPanel
+                                                gdocId={id}
+                                                threads={threads}
+                                                editor={editorInstance}
+                                                hasTextSelection={
+                                                    hasTextSelection
+                                                }
+                                                onThreadsChanged={() =>
+                                                    void queryClient.invalidateQueries(
+                                                        {
+                                                            queryKey: [
+                                                                "richEditorComments",
+                                                                id,
+                                                            ],
+                                                        }
+                                                    )
+                                                }
+                                            />
+                                        ),
+                                    },
+                                ]}
+                            />
+                        </aside>
+                    </div>
+                </ChartEditingContext.Provider>
 
                 <RevisionsDrawer
                     id={id}

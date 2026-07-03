@@ -315,6 +315,41 @@ $nav-height: 45px;
     display: flex;
     flex-grow: 1;
 
+    > .chart-editor-settings {
+        min-width: 550px;
+        width: 550px;
+        min-height: 100%;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .innerForm {
+        overflow-y: scroll;
+        flex-grow: 1;
+    }
+
+    > .chart-editor-view {
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+
+        a.preview {
+            position: absolute;
+            top: 8px;
+            right: 16px;
+        }
+    }
+}
+
+// The chart editor form is also embedded outside the standalone editor pages
+// (in the rich article editor's right rail as .chart-editor-embedded), so
+// the form styling is shared while the page layout above stays page-only.
+.ChartEditorPage,
+.chart-editor-embedded {
     .btn-group .btn {
         width: 50px;
     }
@@ -333,37 +368,8 @@ $nav-height: 45px;
         padding-right: 0.75rem;
     }
 
-    > .chart-editor-settings {
-        min-width: 550px;
-        width: 550px;
-        min-height: 100%;
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-    }
-
-    .innerForm {
-        overflow-y: scroll;
-        flex-grow: 1;
-    }
-
     .SaveButtons {
         padding: 24px;
-    }
-
-    > .chart-editor-view {
-        display: flex;
-        flex-direction: column;
-        flex-grow: 1;
-        align-items: center;
-        justify-content: center;
-        position: relative;
-
-        a.preview {
-            position: absolute;
-            top: 8px;
-            right: 16px;
-        }
     }
 
     section {

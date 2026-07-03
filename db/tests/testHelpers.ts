@@ -13,6 +13,7 @@ import {
     JobsTableName,
     MultiDimDataPagesTableName,
     MultiDimXChartConfigsTableName,
+    NarrativeChartsTableName,
     PostsGdocsCommentThreadsTableName,
     PostsGdocsCommentsTableName,
     PostsGdocsDraftsTableName,
@@ -30,6 +31,7 @@ export const TABLES_IN_USE = [
     ChartDimensionsTableName,
     ChartRevisionsTableName,
     ChartSlugRedirectsTableName, // Must come before ChartsTableName due to foreign key
+    NarrativeChartsTableName, // Must come before ChartsTableName due to foreign key
     MultiDimXChartConfigsTableName,
     MultiDimDataPagesTableName,
     ExplorerViewsTableName, // Must come before ExplorersTableName due to foreign key
