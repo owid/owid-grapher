@@ -215,6 +215,73 @@ describe("post-apply verification", () => {
     })
 })
 
+describe("prominent-link migration", async () => {
+    const { default: prominentLinkMigration } =
+        await import("../../db/gdocMigrations/migrations/2026-07-prominent-link-gdoc-urls.js")
+    const helpers = {
+        resolveOwidUrlToGdocUrl: async (url: string) =>
+            url === "https://ourworldindata.org/life-expectancy"
+                ? "https://docs.google.com/document/d/gdoc-abc/edit"
+                : null,
+    }
+
+    it("rewrites resolvable urls and drops explicit metadata, leaving others alone", async () => {
+        const document = buildDoc([
+            "[+body]",
+            "{.prominent-link}",
+            "url: https://ourworldindata.org/life-expectancy",
+            "title: Life expectancy",
+            "filename: life-expectancy.png",
+            "{}",
+            "{.prominent-link}",
+            "url: https://ourworldindata.org/grapher/life-expectancy",
+            "title: A grapher page",
+            "{}",
+            "[]",
+        ])
+        const plan = await planDocumentPatch(
+            "doc-1",
+            document,
+            prominentLinkMigration,
+            helpers
+        )
+        expect(plan.flags).toEqual([])
+        const result = simulateRequests(document, plan.requests)
+        expect(result).toEqual(
+            [
+                "[+body]",
+                "{.prominent-link}",
+                "url: https://docs.google.com/document/d/gdoc-abc/edit",
+                "{}",
+                "{.prominent-link}",
+                "url: https://ourworldindata.org/grapher/life-expectancy",
+                "title: A grapher page",
+                "{}",
+                "[]",
+                "",
+            ].join("\n")
+        )
+    })
+
+    it("is a no-op on already-migrated docs", async () => {
+        const document = buildDoc([
+            "[+body]",
+            "{.prominent-link}",
+            "url: https://docs.google.com/document/d/gdoc-abc/edit",
+            "{}",
+            "[]",
+        ])
+        const plan = await planDocumentPatch(
+            "doc-1",
+            document,
+            prominentLinkMigration,
+            helpers
+        )
+        expect(plan.flags).toEqual([])
+        expect(plan.requests).toEqual([])
+    })
+})
+
 describe(collectSuggestedRanges, () => {
     it("collects ranges of suggested insertions and deletions", () => {
         const document = buildDoc([

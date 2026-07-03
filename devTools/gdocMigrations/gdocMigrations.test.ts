@@ -24,7 +24,10 @@ import {
     simulateRequests,
 } from "./testUtils.js"
 
-const context: MigrationContext = { gdocId: "test-doc" }
+const context: MigrationContext = {
+    gdocId: "test-doc",
+    resolveOwidUrlToGdocUrl: async () => null,
+}
 
 const chartDocSpecs: Array<string | ParagraphSpec> = [
     "title: My article",
@@ -154,7 +157,7 @@ describe("scopeScanner", () => {
         const lines = gdocToSourceMappedLines(document)
         const scan = scanScopes(lines)
 
-        expect(scan.balanced).toBe(true)
+        expect(scan.imbalances).toEqual([])
         expect(scan.frontmatter.map((p) => p.key)).toEqual(["title"])
         expect(scan.blocks).toHaveLength(1)
         const chart = scan.blocks[0]
@@ -177,7 +180,7 @@ describe("scopeScanner", () => {
         ])
         const lines = gdocToSourceMappedLines(document)
         const scan = scanScopes(lines)
-        expect(scan.balanced).toBe(true)
+        expect(scan.imbalances).toEqual([])
         expect(scan.blocks.map((b) => b.type)).toEqual(["inner", "outer"])
         const outer = scan.blocks.find((b) => b.type === "outer")!
         expect(outer.properties.map((p) => p.key)).toEqual(["position"])
@@ -199,10 +202,84 @@ describe("scopeScanner", () => {
         expect(html.properties[0].extentEndLineIndex).toEqual(3)
     })
 
-    it("reports unbalanced scopes", () => {
+    it("reports unclosed blocks with their location", () => {
         const document = buildDoc(["{.chart}", "url: something"])
         const lines = gdocToSourceMappedLines(document)
-        expect(scanScopes(lines).balanced).toBe(false)
+        const { imbalances } = scanScopes(lines)
+        expect(imbalances).toHaveLength(1)
+        expect(imbalances[0].lineIndex).toEqual(0)
+        expect(imbalances[0].detail).toContain(
+            `"{.chart}" opened at line 0 is never closed`
+        )
+    })
+
+    it("recognizes tag lines wrapped in formatting markup or invisible chars", () => {
+        const document = buildDoc([
+            "[+body]",
+            para({ text: "{.callout}", bold: true }),
+            "title: Some callout",
+            para("{}\u200B"),
+            "{.chart}",
+            "url: https://x.org/a",
+            para({ text: "{}", bold: true }),
+            "[]",
+        ])
+        const lines = gdocToSourceMappedLines(document)
+        const scan = scanScopes(lines)
+        expect(scan.imbalances).toEqual([])
+        expect(scan.blocks.map((b) => b.type)).toEqual(["callout", "chart"])
+        // styled keys are still patchable: raw doc text carries no markup
+        const chart = scan.blocks[1]
+        expect(chart.properties[0].keyOffsetInRaw).toEqual(0)
+    })
+
+    it("recognizes tags with whitespace inside the braces", () => {
+        const document = buildDoc([
+            "[+body]",
+            "{ .sticky-right }",
+            "[ .+left ]",
+            "some content",
+            "[]",
+            "{ }",
+            "[]",
+        ])
+        const scan = scanScopes(gdocToSourceMappedLines(document))
+        expect(scan.imbalances).toEqual([])
+        expect(scan.blocks.map((b) => b.type)).toEqual(["sticky-right"])
+    })
+
+    it("does not treat literal html inside multiline values as structure", () => {
+        const document = buildDoc([
+            "{.html}",
+            "html: <div>",
+            "<div>{}</div>",
+            ":end",
+            "{}",
+        ])
+        const scan = scanScopes(gdocToSourceMappedLines(document))
+        expect(scan.blocks.map((b) => b.type)).toEqual(["html"])
+    })
+
+    it("ignores content in :skip sections and after :ignore", () => {
+        const document = buildDoc([
+            "[+body]",
+            "{.chart}",
+            "url: https://x.org/a",
+            "{}",
+            ":skip",
+            "{.chart}",
+            "url: draft, not closed properly",
+            ":endskip",
+            "[]",
+            ":ignore",
+            "author scraps {} [] {.callout}",
+            "note: not a real key",
+        ])
+        const lines = gdocToSourceMappedLines(document)
+        const scan = scanScopes(lines)
+        expect(scan.imbalances).toEqual([])
+        expect(scan.blocks.map((b) => b.type)).toEqual(["chart"])
+        expect(scan.frontmatter).toEqual([])
     })
 })
 

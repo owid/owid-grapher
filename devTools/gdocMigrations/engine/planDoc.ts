@@ -5,6 +5,7 @@ import {
     FrontmatterGdocMigration,
     GdocMigration,
     MigrationContext,
+    MigrationHelpers,
     PatchFlag,
     SourceLine,
     SourceRange,
@@ -15,6 +16,7 @@ import {
     PropertyLine,
     ScanResult,
     scanScopes,
+    structuralLineText,
 } from "./scopeScanner.js"
 import { extractRawBlock } from "./extractBlock.js"
 import {
@@ -53,14 +55,27 @@ interface ModePlan {
 }
 
 /**
+ * Used when no helpers are provided (unit tests, transforms that don't need
+ * them) — calling a helper then fails loudly instead of silently misplanning
+ */
+export const NO_DB_HELPERS: MigrationHelpers = {
+    resolveOwidUrlToGdocUrl: () => {
+        throw new Error(
+            "resolveOwidUrlToGdocUrl needs DB access — run via the CLI, which injects DB-backed helpers"
+        )
+    },
+}
+
+/**
  * Computes everything the engine wants to do to one document: pure given the
- * fetched document JSON, no API or DB access. Fails closed — any doubt
- * anywhere surfaces as a flag and an empty request list.
+ * fetched document JSON and the injected helpers, no API access. Fails
+ * closed — any doubt anywhere surfaces as a flag and an empty request list.
  */
 export async function planDocumentPatch(
     gdocId: string,
     document: docs_v1.Schema$Document,
-    migration: GdocMigration
+    migration: GdocMigration,
+    helpers: MigrationHelpers = NO_DB_HELPERS
 ): Promise<DocPlan> {
     const lines = gdocToSourceMappedLines(document)
     const scan = scanScopes(lines)
@@ -68,7 +83,7 @@ export async function planDocumentPatch(
     const modePlan =
         migration.mode === "frontmatter"
             ? planFrontmatterMode(lines, scan, migration)
-            : await planComponentMode(gdocId, lines, scan, migration)
+            : await planComponentMode(gdocId, lines, scan, migration, helpers)
 
     const flags = [...modePlan.flags]
 
@@ -110,9 +125,10 @@ async function planComponentMode(
     gdocId: string,
     lines: SourceLine[],
     scan: ScanResult,
-    migration: ComponentGdocMigration
+    migration: ComponentGdocMigration,
+    helpers: MigrationHelpers
 ): Promise<ModePlan> {
-    const context: MigrationContext = { gdocId }
+    const context: MigrationContext = { gdocId, ...helpers }
     const matches = scan.blocks.filter(
         (block) => block.type === migration.blockType
     )
@@ -122,11 +138,13 @@ async function planComponentMode(
     const editSummaries: string[] = []
     const suggestionSensitiveRanges: SourceRange[] = []
 
-    if (matches.length > 0 && !scan.balanced) {
-        flags.push({
-            reason: "unbalanced-scopes",
-            detail: "the document's ArchieML scopes don't pair up cleanly",
-        })
+    if (matches.length > 0) {
+        for (const imbalance of scan.imbalances.slice(0, 5)) {
+            flags.push({
+                reason: "unbalanced-scopes",
+                detail: imbalance.detail,
+            })
+        }
     }
 
     for (const match of matches) {
@@ -191,7 +209,7 @@ function blockDocRange(
 const FRONTMATTER_VALUE = /^[A-Za-z0-9-_.]+[ \t]*:[ ]?(.*)$/
 
 function rawFrontmatterValue(line: SourceLine): string {
-    return line.text.trim().match(FRONTMATTER_VALUE)?.[1] ?? ""
+    return structuralLineText(line.text).match(FRONTMATTER_VALUE)?.[1] ?? ""
 }
 
 /**

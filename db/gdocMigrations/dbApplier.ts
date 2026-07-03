@@ -1,5 +1,6 @@
 import * as _ from "lodash-es"
 import { renameObjectKey } from "./helpers.js"
+import { createOwidUrlResolver } from "./urlResolver.js"
 import {
     ComponentGdocMigration,
     EnrichedBlockJson,
@@ -7,6 +8,7 @@ import {
     FrontmatterOp,
     GdocMigration,
     MigrationContext,
+    MigrationHelpers,
 } from "./types.js"
 
 /**
@@ -73,11 +75,16 @@ async function applyComponentMigrationToDb(
     }
 
     const rows = await fetchContentRows(queryRunner)
+    const helpers: MigrationHelpers = {
+        resolveOwidUrlToGdocUrl: createOwidUrlResolver((sql, parameters) =>
+            queryRunner.query(sql, parameters)
+        ),
+    }
 
     let updated = 0
     for (const row of rows) {
         const content = JSON.parse(row.content) as unknown
-        const context: MigrationContext = { gdocId: row.id }
+        const context: MigrationContext = { gdocId: row.id, ...helpers }
         const result = await transformNode(
             content,
             migration,
