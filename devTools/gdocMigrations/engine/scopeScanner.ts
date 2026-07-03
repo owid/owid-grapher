@@ -23,22 +23,55 @@ export interface BlockMatch {
     properties: PropertyLine[]
 }
 
+export interface ScanImbalance {
+    lineIndex: number
+    detail: string
+}
+
 export interface ScanResult {
     /** Every {.type} block in the doc, in document order, at any nesting depth */
     blocks: BlockMatch[]
     /** Top-level key: value lines outside any scope */
     frontmatter: PropertyLine[]
-    /** False when scope open/close markers didn't pair up cleanly */
-    balanced: boolean
+    /** Scope open/close markers that didn't pair up cleanly, with locations */
+    imbalances: ScanImbalance[]
 }
 
-const BLOCK_OPEN = /^\{[.+]+([A-Za-z0-9-_]+)\}$/
-const BLOCK_CLOSE = /^\{\}$/
-const ARRAY_OPEN = /^\[[.+]+([A-Za-z0-9-_.]+)\]$/
-const ARRAY_CLOSE = /^\[\]$/
+// ArchieML tolerates whitespace inside tag braces ("{ .sticky-right }" is
+// common in real docs), so all tag patterns must too
+const BLOCK_OPEN = /^\{\s*[.+]+\s*([A-Za-z0-9-_]+)\s*\}$/
+const BLOCK_CLOSE = /^\{\s*\}$/
+const ARRAY_OPEN = /^\[\s*[.+]+\s*([A-Za-z0-9-_.]+)\s*\]$/
+const ARRAY_CLOSE = /^\[\s*\]$/
 const END_MARKER = /^:end$/i
+const IGNORE_MARKER = /^:ignore$/i
+const SKIP_MARKER = /^:skip$/i
+const ENDSKIP_MARKER = /^:endskip$/i
 const KEY_LINE = /^([A-Za-z0-9-_.]+)[ \t]*:/
 const RAW_KEY_LINE = /^([ \t]*)([A-Za-z0-9-_.]+)[ \t]*:[ ]?/
+
+/**
+ * The formatting tags gdocToArchie emits for styled doc text. Anything else
+ * (e.g. <div> inside a multiline html value) is literal typed content and
+ * must NOT be treated as styling.
+ */
+const FORMATTING_MARKUP = /<\/?(?:b|i|u|s|q|a|br|sub|sup)(?:\s[^>]*)?>/gi
+const INVISIBLE_CHARS =
+    /(?:\u200B|\u200C|\u200D|\u200E|\u200F|\u2060|\uFEFF|\u00AD)/g
+
+/**
+ * Normalizes a line for structural matching. Authors routinely leave
+ * formatting or invisible characters on tag lines (a bolded "{}", a
+ * zero-width space) — the doc's underlying plain text, which the patcher
+ * computes edit offsets from, never contains the markup, so recognizing the
+ * intended structure here is safe.
+ */
+export function structuralLineText(text: string): string {
+    return text
+        .replace(FORMATTING_MARKUP, "")
+        .replace(INVISIBLE_CHARS, "")
+        .trim()
+}
 
 type Scope =
     | {
@@ -63,15 +96,30 @@ export function scanScopes(lines: SourceLine[]): ScanResult {
     const blocks: BlockMatch[] = []
     const frontmatter: PropertyLine[] = []
     const stack: Scope[] = []
-    let balanced = true
+    const imbalances: ScanImbalance[] = []
     // The property a subsequent ":end" would attach to. Reset on any scope
     // change, mirroring how ArchieML flushes its buffer.
     let pendingProperty: PropertyLine | null = null
+    let skipping = false
 
     for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
         const line = lines[lineIndex]
-        const text = line.text.trim()
+        const text = structuralLineText(line.text)
         const top = stack[stack.length - 1]
+
+        // Mirror stripIgnoredArchieml: the parser never sees content after
+        // :ignore or inside :skip…:endskip, so neither should the scanner
+        if (IGNORE_MARKER.test(text)) break
+        if (SKIP_MARKER.test(text)) {
+            skipping = true
+            pendingProperty = null
+            continue
+        }
+        if (ENDSKIP_MARKER.test(text)) {
+            skipping = false
+            continue
+        }
+        if (skipping) continue
 
         const blockOpen = text.match(BLOCK_OPEN)
         if (blockOpen) {
@@ -95,7 +143,10 @@ export function scanScopes(lines: SourceLine[]): ScanResult {
                     properties: top.properties,
                 })
             } else {
-                balanced = false
+                imbalances.push({
+                    lineIndex,
+                    detail: `"{}" at line ${lineIndex} has no open block to close (enclosing scope: ${describeScope(top)})`,
+                })
             }
             pendingProperty = null
             continue
@@ -112,7 +163,10 @@ export function scanScopes(lines: SourceLine[]): ScanResult {
             if (top?.kind === "array") {
                 stack.pop()
             } else {
-                balanced = false
+                imbalances.push({
+                    lineIndex,
+                    detail: `"[]" at line ${lineIndex} has no open array to close (enclosing scope: ${describeScope(top)})`,
+                })
             }
             pendingProperty = null
             continue
@@ -143,9 +197,24 @@ export function scanScopes(lines: SourceLine[]): ScanResult {
         }
     }
 
-    if (stack.length > 0) balanced = false
+    // Unclosed blocks endanger line attribution and get reported. Unclosed
+    // arrays at EOF are tolerated, as ArchieML tolerates them (and
+    // gdocToArchie itself leaves a trailing bullet list's [.list] unclosed).
+    for (const scope of stack) {
+        if (scope.kind === "block") {
+            imbalances.push({
+                lineIndex: scope.openLineIndex,
+                detail: `"{.${scope.type}}" opened at line ${scope.openLineIndex} is never closed`,
+            })
+        }
+    }
 
-    return { blocks, frontmatter, balanced }
+    return { blocks, frontmatter, imbalances }
+}
+
+function describeScope(scope: Scope | undefined): string {
+    if (!scope) return "document root"
+    return scope.kind === "block" ? `{.${scope.type}}` : `[${scope.name}]`
 }
 
 export function rawLineText(line: SourceLine): string {

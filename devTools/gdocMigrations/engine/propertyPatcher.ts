@@ -345,7 +345,7 @@ function buildTokenReplacement(
     }
 }
 
-const BLOCK_OPEN_RAW = /^([ \t]*\{[.+]+)([A-Za-z0-9-_]+)/
+const BLOCK_OPEN_RAW = /^([ \t]*\{\s*[.+]+\s*)([A-Za-z0-9-_]+)/
 
 function buildBlockTypeRename(
     lines: SourceLine[],

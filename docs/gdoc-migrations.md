@@ -6,8 +6,10 @@ map, scope scanner, block extraction, property patcher), Google API plumbing
 `plan`/`apply`/`verify`/`status` CLI (`yarn gdocMigration`) live under
 `devTools/gdocMigrations/`; migration definitions, transform helpers, and the
 deploy-time DB applier live under `db/gdocMigrations/` (so `db/migration`
-wrappers can import them without a project-reference cycle). Not yet built:
-the `resolveOwidUrlToGdocUrl` helper for the prominent-link use case.
+wrappers can import them without a project-reference cycle). Everything in
+this spec is built; the prominent-link migration
+(`db/gdocMigrations/migrations/2026-07-prominent-link-gdoc-urls.ts`) is
+written and awaiting a production run.
 
 A CLI tool for running structural migrations on our ArchieML content, applied
 simultaneously to the source Google Docs and to the parsed content stored in
@@ -424,39 +426,27 @@ synthetic-line hits.
 
 ## Worked example: prominent-link URL rewrite
 
-```ts
-export default defineGdocMigration({
-    name: "prominent-link-gdoc-urls",
-    mode: "component",
-    blockType: "prominent-link",
-    discover: `
-        SELECT DISTINCT gdocId FROM posts_gdocs_components
-        WHERE config->>'$.type' = 'prominent-link'
-          AND config->>'$.url' LIKE 'https://ourworldindata.org/%'
-    `,
-    transform: async (block, ctx) => {
-        const gdocUrl = await ctx.resolveOwidUrlToGdocUrl(block.value.url)
-        if (!gdocUrl) return block // no gdoc for this URL (e.g. grapher page) — leave it
-        return {
-            ...block,
-            value: omit({ ...block.value, url: gdocUrl }, [
-                "title",
-                "filename",
-            ]),
-        }
-    },
-})
-```
+Implemented: `db/gdocMigrations/migrations/2026-07-prominent-link-gdoc-urls.ts`.
+It rewrites resolvable `https://ourworldindata.org/…` URLs to the gdoc URL,
+drops the now-redundant explicit `title`/`thumbnail` (and stray `filename`)
+properties, and keeps `description` since that may be an intentional
+override.
 
-`resolveOwidUrlToGdocUrl` is a net-new helper assembled from existing pieces:
-normalize the URL, follow `redirects` (and `chart_slug_redirects` /
-`multi_dim_redirects` where relevant), then look up the final slug in
-`posts_gdocs` (type-aware — slug is not unique across types). Returns null
-for URLs that don't resolve to a gdoc, so the transform can leave them
-untouched rather than guess.
+Transforms receive a `context.resolveOwidUrlToGdocUrl` helper
+(`db/gdocMigrations/urlResolver.ts`): it normalizes the URL, follows
+exact-match `redirects` chains, then looks up the final slug in `posts_gdocs`
+type-aware (slug is not unique across types; path prefixes like
+`/data-insights/`, `/team/`, `/profile/` select the type, mirroring
+`getPrefixedGdocPath`). It is deliberately conservative — grapher/explorer
+pages, URLs with query strings or anchors, wildcard-only redirects, and
+unknown or ambiguous slugs return null, and the transform leaves those links
+unchanged. The CLI runner backs the helper with knex; the deploy-time DB
+applier backs it with the migration's queryRunner; results are cached per
+run.
 
 This is a **value-only** migration: no interface changes, no parser alias, no
-cleanup PR — just this file, the thin `db/migration` wrapper, and a CLI run.
+cleanup PR — just the migration file, the thin `db/migration` wrapper, and a
+CLI run.
 
 ## Worked example: frontmatter rename
 

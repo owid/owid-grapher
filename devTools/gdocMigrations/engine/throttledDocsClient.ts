@@ -110,9 +110,13 @@ export class ThrottledDocsClient {
                 } catch (error) {
                     if (attempt >= this.maxAttempts || !isRetryable(error))
                         throw error
+                    // per-minute quota exhaustion needs to wait out the
+                    // window; exponential backoff is enough for the rest
                     const delay =
-                        Math.min(30_000, 1000 * 2 ** (attempt - 1)) *
-                        (0.5 + Math.random())
+                        errorStatus(error) === 429
+                            ? 60_000 * (0.75 + Math.random() * 0.5)
+                            : Math.min(30_000, 1000 * 2 ** (attempt - 1)) *
+                              (0.5 + Math.random())
                     console.warn(
                         `${label} failed (attempt ${attempt}/${this.maxAttempts}, status ${String(
                             errorStatus(error)
