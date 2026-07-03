@@ -787,6 +787,64 @@ describe("document-level ArchieML round trip", () => {
         ])
     })
 
+    it("round-trips multi-paragraph inline refs without gluing their paragraphs", () => {
+        const { first, canonicalArchieML } = expectDocToRoundTrip(
+            getArchieMLDocWithContent(
+                `One claim{ref}First citation, 283–295.\n\nSecond citation, 31–54.{/ref} and text after.`
+            )
+        )
+        // The definition keeps the two paragraphs as separate text blocks
+        const definitions = Object.values(first.refs?.definitions ?? {})
+        expect(definitions).toHaveLength(1)
+        expect(definitions[0].content).toHaveLength(2)
+        // The write-back reproduces the paragraph break inside {ref}…{/ref}
+        // instead of gluing "…295.Second citation…"
+        expect(canonicalArchieML).toContain(
+            "First citation, 283–295.\n\nSecond citation, 31–54."
+        )
+        expect(canonicalArchieML).not.toContain("295.Second")
+    })
+
+    it("re-escapes key-like prefixes in inline ref content", () => {
+        // "See:" at the start of a {ref} would be swallowed as an ArchieML
+        // key when extractRefs re-loads the content, so authors escape it as
+        // "See\:" in the gdoc — the write-back must do the same.
+        const { first, canonicalArchieML } = expectDocToRoundTrip(
+            getArchieMLDocWithContent(
+                `A claim{ref}See\\: (i) Feenstra, 2017. (ii) Khandelwal, 2016.{/ref} and after.`
+            )
+        )
+        const definitions = Object.values(first.refs?.definitions ?? {})
+        expect(definitions).toHaveLength(1)
+        expect(JSON.stringify(definitions[0].content)).toContain(
+            "See: (i) Feenstra"
+        )
+        expect(canonicalArchieML).toContain("{ref}See\\: (i) Feenstra")
+    })
+
+    it("round-trips detail-on-demand spans, including inside formatting", () => {
+        const { first, canonicalArchieML } = expectDocToRoundTrip(
+            getArchieMLDocWithContent(
+                `A rank of 1 means <u><a href="#dod:comparative-advantage">comparative advantage</a></u> applies.`
+            )
+        )
+        const spans: string[] = []
+        for (const block of first.body ?? [])
+            traverseEnrichedBlock(
+                block,
+                () => undefined,
+                (span) => {
+                    if (span.spanType === "span-dod") spans.push(span.id)
+                }
+            )
+        expect(spans).toEqual(["comparative-advantage"])
+        // The write-back emits the authoring form, not the site markup
+        expect(canonicalArchieML).toContain(
+            '<a href="#dod:comparative-advantage">'
+        )
+        expect(canonicalArchieML).not.toContain("dod-span")
+    })
+
     it("round-trips ID-based refs and regenerates the [.refs] frontmatter block", () => {
         const doc = getArchieMLDocWithContent(
             `A claim{ref}first_ref{/ref} and another{ref}second_ref{/ref}.`,
