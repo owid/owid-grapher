@@ -83,7 +83,7 @@ function createColumns(ctx: {
                         danger
                         onClick={() => ctx.deleteFn(slideshow.id)}
                     >
-                        Delete
+                        Delete slideshow
                     </Button>
                 </Space>
             ),
@@ -122,7 +122,11 @@ export function SlideshowsIndexPage() {
 
     const deleteFn = useCallback(
         async (slideshowId: number) => {
-            if (confirm("Are you sure you want to delete this slideshow?")) {
+            if (
+                confirm(
+                    "Delete this entire slideshow? All slides in this deck will be permanently deleted. This cannot be undone."
+                )
+            ) {
                 await admin.requestJSON(
                     `/api/slideshows/${slideshowId}`,
                     {},
