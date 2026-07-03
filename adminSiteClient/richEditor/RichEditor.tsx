@@ -15,18 +15,21 @@ import {
     ChartBlockView,
     NarrativeChartBlockView,
     ProminentLinkBlockView,
-    PullQuoteBlockView,
     RecircBlockView,
     ResearchAndWritingBlockView,
-    TableBlockView,
     VideoBlockView,
 } from "./nodeViews/AtomBlockViews.js"
 import {
+    AsideBlockView,
+    BlockquoteBlockView,
+    CalloutBlockView,
     ExpandableParagraphBlockView,
     GraySectionBlockView,
+    PullQuoteContainerView,
     SideBySideBlockView,
     StickyLeftBlockView,
     StickyRightBlockView,
+    TableContainerView,
 } from "./nodeViews/ContainerBlockViews.js"
 import { ImageSelectorModal } from "../ImageSelectorModal.js"
 
@@ -40,8 +43,8 @@ const NODE_VIEWS = {
     [pmNodeNames.narrativeChart]: NarrativeChartBlockView,
     [pmNodeNames.video]: VideoBlockView,
     [pmNodeNames.prominentLink]: ProminentLinkBlockView,
-    [pmNodeNames.pullQuote]: PullQuoteBlockView,
-    [pmNodeNames.tableBlock]: TableBlockView,
+    [pmNodeNames.pullQuote]: PullQuoteContainerView,
+    [pmNodeNames.tableBlock]: TableContainerView,
     [pmNodeNames.recirc]: RecircBlockView,
     [pmNodeNames.researchAndWriting]: ResearchAndWritingBlockView,
     [pmNodeNames.allCharts]: AllChartsBlockView,
@@ -50,6 +53,9 @@ const NODE_VIEWS = {
     [pmNodeNames.sideBySide]: SideBySideBlockView,
     [pmNodeNames.graySection]: GraySectionBlockView,
     [pmNodeNames.expandableParagraph]: ExpandableParagraphBlockView,
+    [pmNodeNames.blockquote]: BlockquoteBlockView,
+    [pmNodeNames.callout]: CalloutBlockView,
+    [pmNodeNames.aside]: AsideBlockView,
 }
 
 export function RichEditor(props: {

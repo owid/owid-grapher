@@ -37,12 +37,14 @@ export const pmNodeNames = {
     narrativeChart: "narrativeChart",
     video: "video",
     prominentLink: "prominentLink",
-    tableBlock: "tableBlock",
     recirc: "recirc",
     researchAndWriting: "researchAndWriting",
     allCharts: "allCharts",
-    pullQuote: "pullQuote",
     // editable containers
+    pullQuote: "pullQuote",
+    tableBlock: "tableBlock",
+    tableRow: "tableRow",
+    tableCell: "tableCell",
     aside: "aside",
     graySection: "graySection",
     expandableParagraph: "expandableParagraph",
@@ -58,11 +60,9 @@ export const propsAtomBlockTypes = {
     "narrative-chart": pmNodeNames.narrativeChart,
     video: pmNodeNames.video,
     "prominent-link": pmNodeNames.prominentLink,
-    table: pmNodeNames.tableBlock,
     recirc: pmNodeNames.recirc,
     "research-and-writing": pmNodeNames.researchAndWriting,
     "all-charts": pmNodeNames.allCharts,
-    "pull-quote": pmNodeNames.pullQuote,
 } as const
 
 /** The two-column layout containers, all shaped {left, right} */

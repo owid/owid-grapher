@@ -6,10 +6,8 @@ import {
     EnrichedBlockChart,
     EnrichedBlockNarrativeChart,
     EnrichedBlockProminentLink,
-    EnrichedBlockPullQuote,
     EnrichedBlockRecirc,
     EnrichedBlockResearchAndWriting,
-    EnrichedBlockTable,
     EnrichedBlockVideo,
     Span,
 } from "@ourworldindata/types"
@@ -247,67 +245,6 @@ export function ProminentLinkBlockView(
                 <strong>{link.title || link.url}</strong>
                 {link.description && <p>{link.description}</p>}
             </div>
-        </BlockChrome>
-    )
-}
-
-export function PullQuoteBlockView(props: NodeViewProps): React.ReactElement {
-    const pullQuote = getBlockProps(props) as unknown as Omit<
-        EnrichedBlockPullQuote,
-        "type"
-    >
-    return (
-        <BlockChrome
-            nodeViewProps={props}
-            blockType="pull-quote"
-            summary={`align: ${pullQuote.align ?? "left"}`}
-        >
-            <blockquote className="rich-atom-block__pull-quote">
-                “{pullQuote.quote}”
-            </blockquote>
-        </BlockChrome>
-    )
-}
-
-export function TableBlockView(props: NodeViewProps): React.ReactElement {
-    const table = getBlockProps(props) as unknown as Omit<
-        EnrichedBlockTable,
-        "type"
-    >
-    const rows = table.rows ?? []
-    return (
-        <BlockChrome
-            nodeViewProps={props}
-            blockType="table"
-            summary={`${rows.length} rows`}
-        >
-            <table className="rich-atom-block__table">
-                <tbody>
-                    {rows.slice(0, 6).map((row, rowIndex) => (
-                        <tr key={rowIndex}>
-                            {row.cells.map((cell, cellIndex) => (
-                                <td key={cellIndex}>
-                                    {cell.content
-                                        .map((block) =>
-                                            block.type === "text"
-                                                ? spansToUnformattedPlainText(
-                                                      block.value
-                                                  )
-                                                : `[${block.type}]`
-                                        )
-                                        .join(" ")}
-                                </td>
-                            ))}
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
-            {rows.length > 6 && (
-                <p className="rich-atom-block__caption">
-                    … {rows.length - 6} more rows (table contents are edited in
-                    the right rail for now)
-                </p>
-            )}
         </BlockChrome>
     )
 }

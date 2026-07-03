@@ -1,5 +1,6 @@
 import { Editor } from "@tiptap/core"
-import { NodeSelection } from "@tiptap/pm/state"
+import { NodeSelection, Transaction } from "@tiptap/pm/state"
+import { Node as PmNode, Schema } from "@tiptap/pm/model"
 import {
     pmNodeNames,
     propsAtomBlockTypes,
@@ -10,6 +11,13 @@ import {
 // or its body) derives an InspectedBlock from the NodeSelection, which the
 // page shows in the right-rail block inspector. All edits from the inspector
 // are applied as ProseMirror transactions, so undo/redo covers them.
+
+export interface InspectedTableCommands {
+    addRow: () => void
+    addColumn: () => void
+    removeRow: () => void
+    removeColumn: () => void
+}
 
 export interface InspectedBlock {
     /** ProseMirror node type name */
@@ -25,6 +33,8 @@ export interface InspectedBlock {
     props: Record<string, unknown>
     updateProps: (props: Record<string, unknown>) => void
     deleteBlock: () => void
+    /** Structural commands, set only for the selected table block */
+    tableCommands?: InspectedTableCommands
 }
 
 const nodeNameToPropsAtomBlockType = Object.fromEntries(
@@ -43,6 +53,17 @@ const nodeNameToContainerBlockType: Record<string, string> = {
     ),
     [pmNodeNames.graySection]: "gray-section",
     [pmNodeNames.expandableParagraph]: "expandable-paragraph",
+}
+
+// Blocks whose settings are the node attrs, edited directly in the inspector
+const nodeNameToAttrsBlockType: Record<string, string> = {
+    [pmNodeNames.image]: "image",
+    [pmNodeNames.cta]: "cta",
+    [pmNodeNames.aside]: "aside",
+    [pmNodeNames.blockquote]: "blockquote",
+    [pmNodeNames.callout]: "callout",
+    [pmNodeNames.pullQuote]: "pull-quote",
+    [pmNodeNames.tableBlock]: "table",
 }
 
 /**
@@ -120,16 +141,20 @@ export function inspectedBlockFromSelection(
         }
     }
 
-    if (nodeType === pmNodeNames.image || nodeType === pmNodeNames.cta) {
+    const attrsBlockType = nodeNameToAttrsBlockType[nodeType]
+    if (attrsBlockType) {
         return {
             nodeType,
-            blockType: nodeType === pmNodeNames.image ? "image" : "cta",
+            blockType: attrsBlockType,
             kind: "attrs",
             props: node.attrs as Record<string, unknown>,
             updateProps: updateSelectedNodeAttrs(
                 (_attrs, newProps) => newProps
             ),
             deleteBlock,
+            ...(nodeType === pmNodeNames.tableBlock
+                ? { tableCommands: buildTableCommands(editor) }
+                : {}),
         }
     }
 
@@ -158,6 +183,99 @@ export function inspectedBlockFromSelection(
     }
 
     return null
+}
+
+// Structural edits on the selected table: add/remove the last row/column.
+// Positions are computed from the live selection at call time; the node
+// selection is restored afterwards so the inspector stays open.
+function buildTableCommands(editor: Editor): InspectedTableCommands {
+    type TableEditArgs = {
+        tr: Transaction
+        node: PmNode
+        pos: number
+        schema: Schema
+    }
+    const withSelectedTable = (
+        edit: (args: TableEditArgs) => boolean
+    ): (() => void) => {
+        return () => {
+            const selection = editor.state.selection
+            if (
+                !(selection instanceof NodeSelection) ||
+                selection.node.type.name !== pmNodeNames.tableBlock
+            )
+                return
+            const pos = selection.from
+            editor
+                .chain()
+                .command(({ tr, state }) =>
+                    edit({
+                        tr,
+                        node: selection.node,
+                        pos,
+                        schema: state.schema,
+                    })
+                )
+                .setNodeSelection(pos)
+                .run()
+        }
+    }
+
+    const emptyCell = (schema: Schema): PmNode =>
+        schema.nodes[pmNodeNames.tableCell].create(
+            null,
+            schema.nodes[pmNodeNames.paragraph].create()
+        )
+
+    return {
+        addRow: withSelectedTable(({ tr, node, pos, schema }) => {
+            const columns = Math.max(node.firstChild?.childCount ?? 1, 1)
+            const cells = Array.from({ length: columns }, () =>
+                emptyCell(schema)
+            )
+            const row = schema.nodes[pmNodeNames.tableRow].create(null, cells)
+            tr.insert(pos + node.nodeSize - 1, row)
+            return true
+        }),
+        addColumn: withSelectedTable(({ tr, node, pos, schema }) => {
+            // insert a cell at the end of every row, applied bottom-up so
+            // earlier insertions don't shift later positions
+            const insertPositions: number[] = []
+            let rowPos = pos + 1
+            node.forEach((row) => {
+                insertPositions.push(rowPos + row.nodeSize - 1)
+                rowPos += row.nodeSize
+            })
+            for (const insertPos of insertPositions.reverse()) {
+                tr.insert(insertPos, emptyCell(schema))
+            }
+            return true
+        }),
+        removeRow: withSelectedTable(({ tr, node, pos }) => {
+            if (node.childCount <= 1) return false
+            const lastRow = node.child(node.childCount - 1)
+            const tableEnd = pos + node.nodeSize - 1
+            tr.delete(tableEnd - lastRow.nodeSize, tableEnd)
+            return true
+        }),
+        removeColumn: withSelectedTable(({ tr, node, pos }) => {
+            if ((node.firstChild?.childCount ?? 0) <= 1) return false
+            const deleteRanges: [number, number][] = []
+            let rowPos = pos + 1
+            node.forEach((row) => {
+                if (row.childCount > 1) {
+                    const lastCell = row.child(row.childCount - 1)
+                    const rowEnd = rowPos + row.nodeSize - 1
+                    deleteRanges.push([rowEnd - lastCell.nodeSize, rowEnd])
+                }
+                rowPos += row.nodeSize
+            })
+            for (const [from, to] of deleteRanges.reverse()) {
+                tr.delete(from, to)
+            }
+            return true
+        }),
+    }
 }
 
 /**

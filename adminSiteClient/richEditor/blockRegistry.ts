@@ -253,11 +253,47 @@ richEditorBlockItems.push(
         description: "Large standalone quote",
         glyph: "❞",
         keywords: ["quote", "pull", "highlight"],
-        command: makePropsAtomCommand(pmNodeNames.pullQuote, {
-            quote: "",
-            align: "left",
-            content: [],
-        }),
+        command: ({ editor, range }) => {
+            deleteRangeIfAny(editor, range)
+            editor
+                .chain()
+                .focus()
+                .insertContent({
+                    type: pmNodeNames.pullQuote,
+                    attrs: { quote: "", align: "left" },
+                    // seed the attribution area so there is somewhere to type
+                    content: [{ type: pmNodeNames.paragraph }],
+                })
+                .run()
+        },
+    },
+    {
+        key: "table",
+        docTypes: ARTICLE_LIKE_TYPES,
+        title: "Table",
+        description: "Table with editable cells",
+        glyph: "⊞",
+        keywords: ["table", "grid", "cells", "rows"],
+        command: ({ editor, range }) => {
+            deleteRangeIfAny(editor, range)
+            const cell = (): Record<string, unknown> => ({
+                type: pmNodeNames.tableCell,
+                content: [{ type: pmNodeNames.paragraph }],
+            })
+            const row = (): Record<string, unknown> => ({
+                type: pmNodeNames.tableRow,
+                content: [cell(), cell(), cell()],
+            })
+            editor
+                .chain()
+                .focus()
+                .insertContent({
+                    type: pmNodeNames.tableBlock,
+                    attrs: { template: "header-row", size: "narrow" },
+                    content: [row(), row(), row()],
+                })
+                .run()
+        },
     },
     {
         key: "recirc",
