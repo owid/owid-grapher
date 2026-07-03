@@ -26,7 +26,7 @@ function makeEditorWithSelectedChart(): Editor {
     return editor
 }
 
-describe("convertSelectedChartBlockToNarrativeChart", () => {
+describe(convertSelectedChartBlockToNarrativeChart, () => {
     it("converts the selected chart block, preserving embed options", () => {
         const editor = makeEditorWithSelectedChart()
 

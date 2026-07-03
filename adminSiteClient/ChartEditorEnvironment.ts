@@ -65,9 +65,9 @@ export class ChartEditorEnvironment<Editor extends AbstractChartEditor> {
     database = new EditorDatabase({})
     details: DetailDictionary = {}
 
-    private manager: ChartEditorEnvironmentManager<Editor>
-    private onGrapherUpdated?: () => void
-    private disposers: IReactionDisposer[] = []
+    private readonly manager: ChartEditorEnvironmentManager<Editor>
+    private readonly onGrapherUpdated?: () => void
+    private readonly disposers: IReactionDisposer[] = []
     private _isDbSet = false
     private hasAppliedInitialQueryParams = false
     private cleanupDetailsOnDemand: (() => void) | undefined

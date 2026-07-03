@@ -117,9 +117,7 @@ export class EmbeddedChartEditorHost implements ChartEditorManager {
     }
 }
 
-export class EmbeddedNarrativeChartEditorHost
-    implements NarrativeChartEditorManager
-{
+export class EmbeddedNarrativeChartEditorHost implements NarrativeChartEditorManager {
     readonly embedded = true
     admin: Admin
     history: History
