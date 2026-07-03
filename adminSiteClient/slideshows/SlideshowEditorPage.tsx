@@ -573,12 +573,14 @@ export function SlideshowEditorPage(props: {
                         )}
                         {!isCreate && (
                             <Popconfirm
-                                title="Are you sure you want to delete this slideshow? This cannot be undone."
+                                title="Delete this entire slideshow?"
+                                description="All slides in this deck will be permanently deleted. This cannot be undone."
                                 onConfirm={deleteSlideshow}
-                                okText="Yes"
+                                okText="Yes, delete slideshow"
+                                okButtonProps={{ danger: true }}
                                 cancelText="No"
                             >
-                                <Button danger>Delete</Button>
+                                <Button danger>Delete slideshow</Button>
                             </Popconfirm>
                         )}
                     </div>
@@ -638,18 +640,21 @@ export function SlideshowEditorPage(props: {
                             <FontAwesomeIcon icon={faClone} />
                         </Button>
                         <Popconfirm
-                            title="Are you sure you want to delete this slide?"
+                            title="Delete this slide?"
                             onConfirm={deleteSlide}
                             okText="Yes"
                             cancelText="No"
                         >
-                            <Button
-                                size="small"
-                                danger
-                                disabled={slides.length <= 1}
-                            >
-                                <FontAwesomeIcon icon={faTrash} />
-                            </Button>
+                            <Tooltip title="Delete slide">
+                                <Button
+                                    size="small"
+                                    danger
+                                    disabled={slides.length <= 1}
+                                    aria-label="Delete slide"
+                                >
+                                    <FontAwesomeIcon icon={faTrash} />
+                                </Button>
+                            </Tooltip>
                         </Popconfirm>
                         <Dropdown
                             menu={{ items: addSlideMenuItems }}
