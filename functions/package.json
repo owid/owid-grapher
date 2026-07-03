@@ -9,7 +9,7 @@
         "@ourworldindata/types": "workspace:^",
         "@ourworldindata/utils": "workspace:^",
         "@resvg/resvg-wasm": "^2.6.2",
-        "@sentry/cloudflare": "^10.56.0",
+        "@sentry/cloudflare": "^10.62.0",
         "cookie": "^1.1.1",
         "itty-router": "^5.0.23",
         "littlezipper": "^0.1.5",
