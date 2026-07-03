@@ -278,6 +278,17 @@ _Addendum 2 (2026-07-03)_: blockquote, callout and aside became React NodeViews 
 
 - Chart-editor engine extraction (`embedded` mode); "Customize this chart" → narrative chart creation + overlay editing (Stage B).
 
+### 10c. Status (2026-07-03): M3 built
+
+M3 shipped on `rich-editing-m3` (stacked on M2), going beyond Stage B per Daniel's call: **both parent charts and narrative charts are editable in-situ**, and the editor lives in the right rail rather than an overlay.
+
+- **Live in-canvas graphers everywhere**: chart and narrative-chart blocks render as real in-page `<Grapher>` components (via `FetchingGrapher`, configs fetched through the dynamic-config endpoints incl. `by-uuid` for narrative charts, react-query cached, block URL query params applied), replacing the M2 iframe workaround. IntersectionObserver lazy-mounting stays; non-grapher URLs (explorers) keep an iframe fallback. The site-CSS spike turned out unnecessary for this — grapher's own scoped styles coexist fine with the canvas.
+- **Editor engine extraction**: `ChartEditorEnvironment` (editor database, DoD details, validation computeds, config→grapher reactions) and `ChartEditorSettingsPanel` (tab bar + tab dispatch + save buttons) extracted from `ChartEditorView`, which is now a page shell — the four standalone editor pages are unchanged. An `embedded` manager flag disables URL `?tab=` sync; embedded save buttons hide Delete and the redundant "Save as narrative chart".
+- **Rail sessions**: selecting a chart block offers "Edit chart…" (loud this-changes-it-everywhere warning with reference count — Stage C pulled forward), "Create narrative chart…" (derives one from the parent via the existing POST, converts the block in place — undoable — and opens its editor), and full-editor link-outs; narrative-chart blocks get "Edit narrative chart…". A session opens a "Chart editor" rail tab (rail widens to fit the 550px-designed form) with the **full second-level tab set** (basic/data/text/customize/map/…/refs/export/debug). While a session is active the target block's NodeView renders the editor's live `grapherState`, so every form edit updates the chart in place at article proportions; the block's position is remapped through doc transactions (duplicate embeds of the same chart stay independent). Unsaved chart edits are guarded on session switch/close and page unload; closing invalidates the config caches so the canvas shows what was saved. The heavy editor database is fetched once per page, shared across sessions.
+- `resolveReferences` now returns narrative chart numeric ids (needed to open their editor); test-db cleanup learned about `narrative_charts`.
+
+Deviations/notes: slug→chart-id resolution uses the charts list (redirected slugs: button disabled, full editor as escape hatch); the export tab works embedded but has no static-preview pane; undoing a block conversion leaves the created narrative chart orphaned; comment marks and block drag are unaffected by live graphers. Verified: full browser flow (parent edit with live canvas update + discard guard; create-narrative-chart → convert → live edit → save → reopen), corpus still 1,173/1,173, unit (1,995) and db (85) suites green.
+
 **M4 — AI side panel** (separate detailed plan when we get there)
 
 - Command layer hardening, chat rail, Claude API proxy, suggestion/track-changes mode.

@@ -1,4 +1,4 @@
-import { useContext, useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import {
     Alert,
     AutoComplete,
@@ -12,52 +12,25 @@ import {
     Space,
     Typography,
 } from "antd"
-import { useQuery } from "@tanstack/react-query"
 import {
     EnrichedBlockResearchAndWritingLink,
     EnrichedHybridLink,
     Span,
 } from "@ourworldindata/types"
 import { spansToUnformattedPlainText } from "@ourworldindata/utils"
-import { AdminAppContext } from "../AdminAppContext.js"
 import { ImageSelectorModal } from "../ImageSelectorModal.js"
 import { InspectedBlock } from "./inspection.js"
+import { GRAPHER_URL_PREFIX, useChartList } from "./useChartList.js"
+import {
+    ChartBlockActions,
+    NarrativeChartBlockActions,
+} from "./chartEditing/ChartBlockActions.js"
 
 // The right-rail block inspector (stage A of the in-situ chart editing
 // plan): opened by selecting a component in the canvas, it shows typed
 // fields for the props of each block type, plus a raw-JSON editor covering
 // everything else. Edits are applied as ProseMirror attribute updates, so
 // undo/redo covers them.
-
-const GRAPHER_URL_PREFIX = "https://ourworldindata.org/grapher/"
-
-interface ChartListItem {
-    id: number
-    title: string
-    slug: string
-    isPublished: boolean
-}
-
-function useChartList(): ChartListItem[] {
-    const { admin } = useContext(AdminAppContext)
-    const chartsQuery = useQuery({
-        queryKey: ["richEditorChartList"],
-        // fail-soft: without the chart list the field still accepts pasted
-        // grapher URLs, so a failing list endpoint must not break the editor
-        queryFn: async () => {
-            const response = await admin.rawRequest(
-                "/api/charts.json",
-                undefined,
-                "GET"
-            )
-            if (!response.ok) return { charts: [] }
-            return (await response.json()) as { charts: ChartListItem[] }
-        },
-        staleTime: Infinity,
-        retry: false,
-    })
-    return chartsQuery.data?.charts ?? []
-}
 
 function ChartUrlField(props: {
     value: string
@@ -460,6 +433,10 @@ export function BlockInspector(props: {
                                 }
                             />
                         </Form.Item>
+                        <ChartBlockActions
+                            inspected={inspected}
+                            chartUrl={String(draft.url ?? "")}
+                        />
                     </>
                 )
             case "narrative-chart":
@@ -491,6 +468,10 @@ export function BlockInspector(props: {
                                 }
                             />
                         </Form.Item>
+                        <NarrativeChartBlockActions
+                            inspected={inspected}
+                            name={String(draft.name ?? "")}
+                        />
                     </>
                 )
             case "image":

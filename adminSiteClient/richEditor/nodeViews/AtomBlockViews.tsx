@@ -1,5 +1,4 @@
-import { useContext, useEffect, useRef, useState } from "react"
-import { useQuery } from "@tanstack/react-query"
+import { useEffect, useRef, useState } from "react"
 import { NodeViewProps, NodeViewWrapper } from "@tiptap/react"
 import {
     EnrichedBlockAllCharts,
@@ -12,9 +11,12 @@ import {
     Span,
 } from "@ourworldindata/types"
 import { spansToUnformattedPlainText } from "@ourworldindata/utils"
-import { RichEditorResolveReferencesResponse } from "../../../adminShared/RichEditorTypes.js"
-import { AdminAppContext } from "../../AdminAppContext.js"
+import { GRAPHER_DYNAMIC_CONFIG_URL } from "../../../settings/clientSettings.js"
+import { useEditingSessionGrapherState } from "../chartEditing/ChartEditingContext.js"
+import { useNarrativeChartInfo } from "../chartEditing/useNarrativeChartInfo.js"
+import { parseGrapherUrl } from "../grapherUrls.js"
 import { BlockFrame } from "./BlockFrame.js"
+import { LiveChartEmbed } from "./LiveChartEmbed.js"
 
 // NodeViews for the atom blocks whose `props` attr carries the enriched
 // block verbatim. They render a preview with a shared BlockFrame chrome:
@@ -29,14 +31,15 @@ function BlockChrome(props: {
     nodeViewProps: NodeViewProps
     blockType: string
     summary: string
+    narrow?: boolean
     children?: React.ReactNode
 }): React.ReactElement {
     const { nodeViewProps, blockType, summary, children } = props
     return (
         <NodeViewWrapper
             className={`rich-atom-block rich-atom-block--${blockType}${
-                nodeViewProps.selected ? " rich-block--selected" : ""
-            }`}
+                props.narrow ? " rich-atom-block--narrow" : ""
+            }${nodeViewProps.selected ? " rich-block--selected" : ""}`}
         >
             <BlockFrame
                 nodeViewProps={nodeViewProps}
@@ -51,6 +54,8 @@ function BlockChrome(props: {
 /** Renders its children only once the wrapper has scrolled near the viewport */
 function LazyVisible(props: {
     height: number
+    /** render immediately, e.g. while an editing session owns this block */
+    forceVisible?: boolean
     children: React.ReactNode
 }): React.ReactElement {
     const ref = useRef<HTMLDivElement | null>(null)
@@ -72,7 +77,7 @@ function LazyVisible(props: {
     }, [visible])
     return (
         <div ref={ref} style={{ minHeight: props.height }}>
-            {visible ? (
+            {visible || props.forceVisible ? (
                 props.children
             ) : (
                 <div
@@ -98,29 +103,61 @@ export function ChartBlockView(props: NodeViewProps): React.ReactElement {
         "type"
     >
     const url = chart.url ?? ""
+    const grapherUrl = parseGrapherUrl(url)
+    const height = Number(chart.height) || CHART_FRAME_HEIGHT
+
+    const liveGrapherState = useEditingSessionGrapherState({
+        getPos: props.getPos,
+        kind: "chart",
+        identity: grapherUrl?.slug ?? "",
+    })
+
+    let contents: React.ReactNode
+    if (grapherUrl) {
+        contents = (
+            <LazyVisible height={height} forceVisible={!!liveGrapherState}>
+                <LiveChartEmbed
+                    configUrl={`${GRAPHER_DYNAMIC_CONFIG_URL}/${grapherUrl.slug}.config.json${grapherUrl.queryStr}`}
+                    queryKey={[
+                        "richEditorGrapherConfig",
+                        grapherUrl.slug,
+                        grapherUrl.queryStr,
+                    ]}
+                    queryStr={grapherUrl.queryStr}
+                    height={height}
+                    liveGrapherState={liveGrapherState}
+                />
+            </LazyVisible>
+        )
+    } else if (url) {
+        // not a grapher chart (e.g. an explorer) — keep the iframe preview
+        contents = (
+            <LazyVisible height={height}>
+                <iframe
+                    className="rich-atom-block__chart-frame"
+                    src={url}
+                    title={url}
+                    loading="lazy"
+                    style={{ height }}
+                />
+            </LazyVisible>
+        )
+    } else {
+        contents = (
+            <div className="rich-atom-block__empty">
+                Select this block to pick a chart in the right rail
+            </div>
+        )
+    }
+
     return (
         <BlockChrome
             nodeViewProps={props}
             blockType="chart"
             summary={url.replace(/^https?:\/\/[^/]+/, "") || "no chart chosen"}
+            narrow={chart.size === "narrow"}
         >
-            {url ? (
-                <LazyVisible height={CHART_FRAME_HEIGHT}>
-                    <iframe
-                        className="rich-atom-block__chart-frame"
-                        src={url}
-                        title={url}
-                        loading="lazy"
-                        style={{
-                            height: Number(chart.height) || CHART_FRAME_HEIGHT,
-                        }}
-                    />
-                </LazyVisible>
-            ) : (
-                <div className="rich-atom-block__empty">
-                    Select this block to pick a chart in the right rail
-                </div>
-            )}
+            {contents}
             {chart.caption && (
                 <figcaption className="rich-atom-block__caption">
                     {captionText(chart.caption)}
@@ -133,57 +170,45 @@ export function ChartBlockView(props: NodeViewProps): React.ReactElement {
 export function NarrativeChartBlockView(
     props: NodeViewProps
 ): React.ReactElement {
-    const { admin } = useContext(AdminAppContext)
     const chart = getBlockProps(props) as unknown as Omit<
         EnrichedBlockNarrativeChart,
         "type"
     >
     const name = chart.name ?? ""
+    const height = Number(chart.height) || CHART_FRAME_HEIGHT
 
-    const infoQuery = useQuery({
-        queryKey: ["richEditorNarrativeChart", name],
-        queryFn: async () => {
-            const response = (await admin.requestJSON(
-                "/api/editor/resolveReferences",
-                { narrativeChartNames: [name] },
-                "POST"
-            )) as unknown as RichEditorResolveReferencesResponse
-            return response.narrativeCharts[name] ?? null
-        },
-        enabled: !!name,
-        staleTime: Infinity,
+    const { info, isLoading } = useNarrativeChartInfo(name)
+
+    const liveGrapherState = useEditingSessionGrapherState({
+        getPos: props.getPos,
+        kind: "narrative-chart",
+        identity: name,
     })
-    const info = infoQuery.data
-
-    let frameUrl: string | undefined
-    if (info) {
-        const params = new URLSearchParams(
-            info.queryParamsForParentChart as Record<string, string>
-        )
-        frameUrl = `https://ourworldindata.org/grapher/${info.parentChartSlug}?${params.toString()}`
-    }
 
     return (
         <BlockChrome
             nodeViewProps={props}
             blockType="narrative-chart"
             summary={info ? `${name} — ${info.title}` : name || "no chart"}
+            narrow={chart.size === "narrow"}
         >
-            {frameUrl ? (
-                <LazyVisible height={CHART_FRAME_HEIGHT}>
-                    <iframe
-                        className="rich-atom-block__chart-frame"
-                        src={frameUrl}
-                        title={name}
-                        loading="lazy"
-                        style={{
-                            height: Number(chart.height) || CHART_FRAME_HEIGHT,
-                        }}
+            {info ? (
+                <LazyVisible height={height} forceVisible={!!liveGrapherState}>
+                    <LiveChartEmbed
+                        // the narrative chart's own config already encodes
+                        // tab/selection, so no query string is applied
+                        configUrl={`${GRAPHER_DYNAMIC_CONFIG_URL}/by-uuid/${info.chartConfigId}.config.json`}
+                        queryKey={[
+                            "richEditorGrapherConfigByUuid",
+                            info.chartConfigId,
+                        ]}
+                        height={height}
+                        liveGrapherState={liveGrapherState}
                     />
                 </LazyVisible>
             ) : (
                 <div className="rich-atom-block__empty">
-                    {infoQuery.isLoading
+                    {isLoading
                         ? "Resolving narrative chart…"
                         : `Narrative chart "${name}" not found`}
                 </div>
