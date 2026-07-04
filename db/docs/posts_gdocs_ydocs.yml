@@ -1,0 +1,16 @@
+metadata:
+  description: |
+    Live-collaboration state for natively-edited gdocs (rich editor). One row per document: the Yjs CRDT blob the sync server loads on first connection and stores (debounced) while people edit. The blob is a transport, never the source of truth — on every store the server also materializes the document back to enriched JSON in posts_gdocs_drafts, so a row here can always be deleted and reseeded from the draft (PM schema migrations, idle cleanup) without losing content or history.
+fields:
+  gdocId:
+    description: Foreign key to posts_gdocs; one ydoc per document
+  ydoc:
+    description: The encoded Yjs document (Y.encodeStateAsUpdate output, history-compacted)
+  schemaVersion:
+    description: The rich editor ProseMirror schema generation this blob was created under; rows with a stale version are discarded and reseeded on load
+  generation:
+    description: Random id assigned on each seed. Clients that were offline across a discard-and-reseed hold updates against a dead generation and must reload instead of merging
+  seededFromRevisionId:
+    description: The posts_gdocs_revisions id the ydoc was seeded from, for provenance/debugging; null for rows seeded before a draft existed
+  updatedAt:
+    description: Last store time; the idle-disposal job deletes rows not updated in N days

@@ -28,10 +28,19 @@ export function SettingsPanel(props: {
     content: OwidGdocContent
     slug: string
     getBaseRevisionId: () => number | null
+    /** Synced docs skip the revision check (the sync server owns the head) */
+    force?: boolean
     onSaved: (revisionId: number, values: SettingsFormValues) => void
 }): React.ReactElement {
-    const { gdocId, docType, published, content, slug, getBaseRevisionId } =
-        props
+    const {
+        gdocId,
+        docType,
+        published,
+        content,
+        slug,
+        getBaseRevisionId,
+        force,
+    } = props
     const { admin } = useContext(AdminAppContext)
     const [saving, setSaving] = useState(false)
     const [error, setError] = useState<string | null>(null)
@@ -65,6 +74,7 @@ export function SettingsPanel(props: {
                 },
                 slug: values.slug,
                 baseRevisionId: getBaseRevisionId(),
+                ...(force ? { force: true } : {}),
             }
             const response = await admin.rawRequest(
                 `/api/gdocs/${gdocId}/editorSettings`,

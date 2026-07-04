@@ -57,6 +57,7 @@ import {
     RichEditorSaveBodyRequest,
     RichEditorSaveBodyResponse,
     RichEditorSaveConflictResponse,
+    RichEditorCommentAnchorUpdate,
     RichEditorSaveSettingsRequest,
     RichEditorUpdateThreadRequest,
 } from "../../adminShared/RichEditorTypes.js"
@@ -140,7 +141,7 @@ async function insertRevisionAndUpdateDraft(
     row: DbRawPostGdoc,
     content: OwidGdocContent,
     kind: "autosave" | "manual" | "publish" | "restore",
-    userId: number,
+    userId: number | null,
     label?: string
 ): Promise<{ revisionId: number; updatedAt: Date }> {
     const [revisionId] = await trx.table(PostsGdocsRevisionsTableName).insert({
@@ -282,6 +283,44 @@ export async function getGdocForEditor(
     }
 }
 
+/**
+ * The materialization entry point for the sync server: write the body (as
+ * derived from the live Yjs document) into the draft head + an autosave
+ * revision. No optimistic-concurrency check — the ydoc is authoritative for
+ * synced docs. Skips the write when the body is unchanged (e.g. the final
+ * store on disconnect).
+ */
+export async function materializeNativeGdocBody(
+    trx: db.KnexReadWriteTransaction,
+    gdocId: string,
+    body: OwidEnrichedGdocBlock[],
+    userId: number | null
+): Promise<{ revisionId: number } | { unchanged: true }> {
+    const row = await getGdocRowOrThrow(trx, gdocId)
+    assertNativeAuthoringMode(row)
+
+    const draft = await trx
+        .table(PostsGdocsDraftsTableName)
+        .where({ gdocId })
+        .first<DbRawPostGdocDraft | undefined>()
+    const baseContent: OwidGdocContent = draft
+        ? JSON.parse(draft.content)
+        : JSON.parse(row.content)
+    if (draft && JSON.stringify(baseContent.body) === JSON.stringify(body)) {
+        return { unchanged: true }
+    }
+
+    const content: OwidGdocContent = { ...baseContent, body }
+    const { revisionId } = await insertRevisionAndUpdateDraft(
+        trx,
+        row,
+        content,
+        "autosave",
+        userId
+    )
+    return { revisionId }
+}
+
 export async function saveGdocBody(
     req: Request,
     res: HandlerResponse,
@@ -334,10 +373,20 @@ export async function saveGdocBody(
 
     // The client maps comment anchors through its edits and reports the new
     // positions with every save; anchors that vanished become orphaned.
-    for (const anchor of commentAnchors ?? []) {
+    await applyCommentAnchorUpdates(trx, id, commentAnchors ?? [])
+
+    return { revisionId, updatedAt: updatedAt.toISOString() }
+}
+
+async function applyCommentAnchorUpdates(
+    trx: db.KnexReadWriteTransaction,
+    gdocId: string,
+    commentAnchors: RichEditorCommentAnchorUpdate[]
+): Promise<void> {
+    for (const anchor of commentAnchors) {
         await trx
             .table(PostsGdocsCommentThreadsTableName)
-            .where({ id: anchor.threadId, gdocId: id })
+            .where({ id: anchor.threadId, gdocId })
             .update({
                 anchorFrom: anchor.anchorFrom,
                 anchorTo: anchor.anchorTo,
@@ -346,17 +395,37 @@ export async function saveGdocBody(
         if (anchor.orphaned) {
             await trx
                 .table(PostsGdocsCommentThreadsTableName)
-                .where({ id: anchor.threadId, gdocId: id, status: "open" })
+                .where({ id: anchor.threadId, gdocId, status: "open" })
                 .update({ status: "orphaned" })
         } else {
             await trx
                 .table(PostsGdocsCommentThreadsTableName)
-                .where({ id: anchor.threadId, gdocId: id, status: "orphaned" })
+                .where({ id: anchor.threadId, gdocId, status: "orphaned" })
                 .update({ status: "open" })
         }
     }
+}
 
-    return { revisionId, updatedAt: updatedAt.toISOString() }
+/**
+ * Standalone comment-anchor refresh for synced documents: with live
+ * collaboration the body is persisted by the sync server, so the client
+ * reports anchor positions through this endpoint instead of alongside a
+ * body save.
+ */
+export async function updateGdocCommentAnchors(
+    req: Request,
+    res: HandlerResponse,
+    trx: db.KnexReadWriteTransaction
+): Promise<{ success: true }> {
+    const { id } = req.params
+    const { commentAnchors } = req.body as {
+        commentAnchors: RichEditorCommentAnchorUpdate[]
+    }
+    await getGdocRowOrThrow(trx, id)
+    if (!Array.isArray(commentAnchors))
+        throw new JsonError("commentAnchors must be an array", 400)
+    await applyCommentAnchorUpdates(trx, id, commentAnchors)
+    return { success: true }
 }
 
 export async function getGdocRevisions(
@@ -660,7 +729,7 @@ export async function saveGdocEditorSettings(
     trx: db.KnexReadWriteTransaction
 ): Promise<RichEditorSaveBodyResponse | RichEditorSaveConflictResponse> {
     const { id } = req.params
-    const { settings, slug, baseRevisionId } =
+    const { settings, slug, baseRevisionId, force } =
         req.body as RichEditorSaveSettingsRequest
 
     if (!settings || typeof settings !== "object")
@@ -677,7 +746,11 @@ export async function saveGdocEditorSettings(
     assertNativeAuthoringMode(row)
 
     const draft = await getDraftOrThrow(trx, id)
-    if (Number(draft.revisionId) !== (baseRevisionId ?? null)) {
+    // With live collaboration the sync server bumps the draft head with
+    // every materialization, so clients cannot hold a current baseRevisionId;
+    // they send force instead. Settings fields are last-write-wins there —
+    // the body is never touched by this endpoint, so nothing can clobber it.
+    if (!force && Number(draft.revisionId) !== (baseRevisionId ?? null)) {
         return makeConflictResponse(res, draft)
     }
 

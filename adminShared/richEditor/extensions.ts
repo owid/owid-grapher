@@ -17,9 +17,19 @@ import {
 } from "./serialization/pmJson.js"
 
 // The TipTap extensions defining the rich editor's document schema. This
-// module must stay headless-safe (no React imports): it is used both by the
-// editor and by node-side scripts that validate serialized documents against
-// the schema. NodeViews are attached in the editor by extending these nodes.
+// module must stay headless-safe (no React imports): it is used by the
+// editor, by node-side scripts that validate serialized documents against
+// the schema, and by the sync server to seed and materialize Yjs documents.
+// NodeViews are attached in the editor by extending these nodes.
+
+/**
+ * Bump whenever the ProseMirror schema changes in a way that makes stored
+ * Yjs documents invalid (node/mark renames or removals, content-expression
+ * changes, attr renames). The sync server discards and reseeds ydoc rows
+ * with a stale version from the materialized draft JSON — never migrate a
+ * ydoc in place. Purely additive changes (a new node type) don't need a bump.
+ */
+export const RICH_EDITOR_PM_SCHEMA_VERSION = 1
 
 // `block*` rather than the default `block+`: empty documents exist in
 // production (fragments used as pure front-matter containers)
@@ -515,8 +525,13 @@ const OwidBlockIdentity = Extension.create({
 /**
  * The schema-defining extensions, shared between the editor (which layers
  * NodeViews and interaction extensions on top) and headless validation.
+ * With `collaboration`, TipTap's own undo/redo is disabled — the Yjs
+ * binding supplies per-client undo instead (you undo your edits, not your
+ * colleague's).
  */
-export function getRichEditorBaseExtensions(): Extensions {
+export function getRichEditorBaseExtensions(
+    options: { collaboration?: boolean } = {}
+): Extensions {
     return [
         StarterKit.configure({
             document: false,
@@ -529,6 +544,7 @@ export function getRichEditorBaseExtensions(): Extensions {
             // hard breaks may carry formatting marks (span-newline inside
             // formatting spans)
             hardBreak: { keepMarks: true },
+            ...(options.collaboration ? { undoRedo: false } : {}),
         }),
         OwidDocument,
         OwidHeading,
