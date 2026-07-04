@@ -9,7 +9,11 @@ import { getRichEditorBaseExtensions } from "../../../adminShared/richEditor/ext
 import { enrichedBlocksToPmDoc } from "../../../adminShared/richEditor/serialization/serialization.js"
 import { BlockIdAssignment, ensureBlockIds } from "../blockIdentity.js"
 import { Admin } from "../../Admin.js"
-import { createDocTools, describeSelection, type DocToolHost } from "./docTools.js"
+import {
+    createDocTools,
+    describeSelection,
+    type DocToolHost,
+} from "./docTools.js"
 
 const textBlock = (text: string, id?: string): OwidEnrichedGdocBlock =>
     ({
@@ -80,9 +84,7 @@ function makeTools(
         }),
         admin: {} as Admin,
     }
-    const tools = new Map(
-        createDocTools(host).map((tool) => [tool.name, tool])
-    )
+    const tools = new Map(createDocTools(host).map((tool) => [tool.name, tool]))
     return { editor, tools }
 }
 
@@ -95,9 +97,7 @@ async function run(
     if (!tool) throw new Error(`no tool ${name}`)
     const result = await tool.execute("call-1", params, undefined as never)
     return result.content
-        .filter(
-            (c): c is { type: "text"; text: string } => c.type === "text"
-        )
+        .filter((c): c is { type: "text"; text: string } => c.type === "text")
         .map((c) => c.text)
         .join("\n")
 }
@@ -307,9 +307,7 @@ describe("selection context", () => {
 
     it("says so when nothing is selected", () => {
         const bag = makeTools(BODY)
-        expect(describeSelection(bag.editor)).toContain(
-            "Nothing is selected"
-        )
+        expect(describeSelection(bag.editor)).toContain("Nothing is selected")
     })
 })
 
@@ -379,5 +377,52 @@ describe("search_charts", () => {
             "https://ourworldindata.org/grapher/life-expectancy"
         )
         expect(out).not.toContain("co2-emissions")
+    })
+})
+
+describe("applyDocFileDiff (write_doc_from_file)", () => {
+    it("applies replace/insert/delete by id, leaving unchanged blocks alone", async () => {
+        const bag = makeTools(BODY, { collaboration: true })
+        const { fullDocXhtml, applyDocFileDiff, parseXhtmlBlocks } =
+            await import("./docTools.js")
+        const file = fullDocXhtml(bag.editor)
+        // rewrite t-1, drop t-2, add a new block after the chart
+        const edited = file
+            .replace(
+                /<text id="t-1">[\s\S]*?<\/text>/,
+                '<text id="t-1">Rewritten via file.</text>'
+            )
+            .replace(/<text id="t-2">[\s\S]*?<\/text>/, "")
+            .replace(
+                /(<chart[^>]*id="c-1"[^>]*\/>)/,
+                "$1\n\n<text>Brand new block.</text>"
+            )
+        const result = applyDocFileDiff(bag.editor, parseXhtmlBlocks(edited))
+        expect(result).toMatchObject({
+            replaced: 1,
+            inserted: 1,
+            deleted: 1,
+        })
+        const text = bag.editor.state.doc.textContent
+        expect(text).toContain("Rewritten via file.")
+        expect(text).toContain("Brand new block.")
+        expect(text).not.toContain("More words about mortality.")
+        // whole application is one undo step
+        bag.editor.commands.undo()
+        const reverted = bag.editor.state.doc.textContent
+        expect(reverted).not.toContain("Rewritten via file.")
+        expect(reverted).toContain("More words about mortality.")
+    })
+
+    it("rejects reordering of existing blocks", async () => {
+        const bag = makeTools(BODY)
+        const { applyDocFileDiff, parseXhtmlBlocks } =
+            await import("./docTools.js")
+        const reordered =
+            '<text id="t-2">More words about mortality.</text>' +
+            '<text id="t-1">Global life expectancy has risen dramatically.</text>'
+        expect(() =>
+            applyDocFileDiff(bag.editor, parseXhtmlBlocks(reordered))
+        ).toThrow(/reorders existing blocks/)
     })
 })

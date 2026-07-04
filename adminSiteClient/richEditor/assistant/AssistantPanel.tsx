@@ -19,12 +19,25 @@ import { SessionListDialog } from "@earendil-works/pi-web-ui"
 import { AdminAppContext } from "../../AdminAppContext.js"
 import { AssistantChat } from "./agentHost.js"
 import {
+    createCodeTools,
+    type CodeFileStat,
+    type CodeHost,
+    type CodeToolHost,
+} from "./codeTools.js"
+import {
     createDocTools,
     describeSelection,
     type DocToolHost,
 } from "./docTools.js"
+import {
+    createAssistantCodeHost,
+    createAssistantSummarizer,
+    createAssistantWebHost,
+} from "./hosts.js"
 import { SYSTEM_PROMPT } from "./prompts.js"
+import { summariesTool } from "./summaries.js"
 import { registerAssistantToolRenderers } from "./toolRenderers.js"
+import { readUrlTool, webSearchTool } from "./webTools.js"
 
 export interface AssistantPanelProps {
     gdocId: string
@@ -41,6 +54,7 @@ export default function AssistantPanel(
     const { admin } = useContext(AdminAppContext)
     const hostRef = useRef<HTMLDivElement>(null)
     const [chat, setChat] = useState<AssistantChat | null>(null)
+    const [codeFs, setCodeFs] = useState<CodeHost | null>(null)
 
     // tools and selection context close over live, changing state; keep the
     // latest without recreating the chat
@@ -57,6 +71,12 @@ export default function AssistantPanel(
             }),
             admin,
         }
+        // per-mount workspace: a fresh document view gets a fresh file system
+        const code = createAssistantCodeHost(admin)
+        setCodeFs(code)
+        const codeHost: CodeToolHost = { ...toolHost, code }
+        const webHost = { web: createAssistantWebHost(admin) }
+        const summarizer = createAssistantSummarizer()
         const instance = new AssistantChat({
             gdocId,
             get docTitle() {
@@ -64,7 +84,13 @@ export default function AssistantPanel(
             },
             systemPrompt: SYSTEM_PROMPT,
             toolsFactory: () => {
-                const tools = createDocTools(toolHost)
+                const tools = [
+                    ...createDocTools(toolHost),
+                    ...createCodeTools(codeHost),
+                    webSearchTool(webHost),
+                    readUrlTool(webHost),
+                    summariesTool({ ...toolHost, summarizer }),
+                ]
                 registerAssistantToolRenderers(tools)
                 return tools
             },
@@ -82,6 +108,7 @@ export default function AssistantPanel(
             instance.dispose()
             instance.element.remove()
             setChat(null)
+            setCodeFs(null)
         }
         // admin is stable for the app's lifetime
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -112,6 +139,71 @@ export default function AssistantPanel(
                 </Space>
             </div>
             <div className="rich-editor-assistant__chat" ref={hostRef} />
+            {codeFs && <VfsBrowser code={codeFs} />}
         </div>
+    )
+}
+
+/**
+ * Minimal browser for the agent's virtual file system: a collapsed section
+ * listing files (refreshed on open), click to preview.
+ */
+function VfsBrowser(props: { code: CodeHost }): React.ReactElement {
+    const [files, setFiles] = useState<CodeFileStat[]>([])
+    const [preview, setPreview] = useState<{
+        path: string
+        text: string
+    } | null>(null)
+
+    const refresh = async (): Promise<void> => {
+        setFiles(await props.code.listFiles())
+    }
+
+    return (
+        <details
+            className="rich-editor-assistant__files"
+            onToggle={(event) => {
+                if ((event.target as HTMLDetailsElement).open) void refresh()
+                else setPreview(null)
+            }}
+        >
+            <summary>Files ({files.length})</summary>
+            {files.length === 0 && (
+                <p className="rich-editor-assistant__files-empty">
+                    The assistant's workspace is empty.
+                </p>
+            )}
+            <ul>
+                {files
+                    .toSorted((a, b) => a.path.localeCompare(b.path))
+                    .map((file) => (
+                        <li key={file.path}>
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    void props.code
+                                        .readFile(file.path, {
+                                            maxChars: 20_000,
+                                        })
+                                        .then((read) =>
+                                            setPreview({
+                                                path: file.path,
+                                                text: read.text,
+                                            })
+                                        )
+                                }
+                            >
+                                {file.path}
+                            </button>{" "}
+                            <span>{file.chars} chars</span>
+                        </li>
+                    ))}
+            </ul>
+            {preview && (
+                <pre className="rich-editor-assistant__files-preview">
+                    {preview.text}
+                </pre>
+            )}
+        </details>
     )
 }
