@@ -943,8 +943,14 @@ function RichEditorPageForId(props: { id: string }): React.ReactElement {
                                                       >
                                                           <AssistantPanel
                                                               gdocId={id}
+                                                              docType={
+                                                                  docType ??
+                                                                  "article"
+                                                              }
                                                               docTitle={title}
-                                                              toolsFactory={() => []}
+                                                              editor={
+                                                                  editorInstance
+                                                              }
                                                           />
                                                       </Suspense>
                                                   ),

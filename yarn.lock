@@ -10521,6 +10521,7 @@ __metadata:
     lint-staged: "npm:^17.0.5"
     lit: "npm:^3.3.3"
     lodash-es: "npm:^4.18.1"
+    lucide: "npm:^1.23.0"
     mdast-util-from-markdown: "npm:^2.0.2"
     minimist: "npm:^1.2.6"
     mobx: "npm:^6.15.4"
@@ -11936,6 +11937,13 @@ __metadata:
   version: 0.544.0
   resolution: "lucide@npm:0.544.0"
   checksum: 10/32e856fe9f26a0dab40f138d48636fd1b69a6188b633a4c1c87f64ef100c49962caeff90cb67b3b405c841b8ad401935d2222b2a700d10c07d1bda8d3b7142d9
+  languageName: node
+  linkType: hard
+
+"lucide@npm:^1.23.0":
+  version: 1.23.0
+  resolution: "lucide@npm:1.23.0"
+  checksum: 10/b4b8fe293aaa402f928fc600960279504e5f666fc91b46b2ddc2eb592704b7fff435f7eedebf7a64964ee160b111722f3f90bd949a00aace704daf23380260a9
   languageName: node
   linkType: hard
 

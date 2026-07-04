@@ -1,5 +1,6 @@
 import * as _ from "lodash-es"
-import path from "path"
+// no node imports here: this module is bundled into the admin client for the
+// AI assistant's XHTML parsing (via rawToEnriched)
 import {
     Span,
     EnrichedBlockText,
@@ -567,13 +568,13 @@ function cheerioToArchieML(
                             {
                                 type: "image",
                                 // src is the entire path. we only want the filename
-                                filename: path
-                                    .basename(imageAttribs["src"] ?? "")
-                                    .replace(
-                                        // removing size suffixes e.g. some_file-1280x840.png -> some_file.png
-                                        /-\d+x\d+\.(png|jpg|jpeg|gif|svg)$/,
-                                        ".$1"
-                                    ),
+                                filename: (
+                                    imageAttribs["src"]?.split("/").pop() ?? ""
+                                ).replace(
+                                    // removing size suffixes e.g. some_file-1280x840.png -> some_file.png
+                                    /-\d+x\d+\.(png|jpg|jpeg|gif|svg)$/,
+                                    ".$1"
+                                ),
                                 alt: imageAttribs["alt"] ?? "",
                                 parseErrors: [],
                                 originalWidth: undefined,

@@ -159,6 +159,19 @@ function simpleTextBlockToXhtml(block: EnrichedBlockSimpleText): string {
  * Convert a single enriched block to XHTML.
  */
 export function enrichedBlockToXhtml(block: OwidEnrichedGdocBlock): string {
+    const xhtml = enrichedBlockContentToXhtml(block)
+    // Stable block identity (draft-only enriched `id`) surfaces as an `id`
+    // attribute so tools addressing blocks by id can round-trip documents.
+    // Containers recurse through this function, so nested ids come along;
+    // list items (<li>) are the one exception — they serialize inline.
+    if (!block.id) return xhtml
+    return xhtml.replace(
+        /^<([a-zA-Z][\w-]*)/,
+        `<$1 id="${escapeXmlAttr(block.id)}"`
+    )
+}
+
+function enrichedBlockContentToXhtml(block: OwidEnrichedGdocBlock): string {
     return match(block)
         .with({ type: "text" }, textBlockToXhtml)
         .with({ type: "simple-text" }, simpleTextBlockToXhtml)

@@ -14,7 +14,9 @@ import {
     getModel,
     getModels,
     getProviders,
+    type Message,
     type Model,
+    type TextContent,
 } from "@earendil-works/pi-ai"
 import {
     ApiKeyPromptDialog,
@@ -45,11 +47,14 @@ const THINKING_LEVELS: readonly ThinkingLevel[] = [
     "xhigh",
 ]
 
-function findModel(provider: string, modelId: string): Model<never> | undefined {
+function findModel(
+    provider: string,
+    modelId: string
+): Model<never> | undefined {
     if (!(getProviders() as string[]).includes(provider)) return undefined
-    return (
-        getModels(provider as Parameters<typeof getModels>[0]) as Model<never>[]
-    ).find((m) => m.id === modelId)
+    return getModels(provider as Parameters<typeof getModels>[0]).find(
+        (m) => m.id === modelId
+    )
 }
 
 async function defaultModel(): Promise<Model<never>> {
@@ -109,6 +114,12 @@ export interface AssistantChatOptions {
     docTitle: string
     systemPrompt: string
     toolsFactory: () => AgentTool[]
+    /**
+     * Live editor-selection context ("the user has selected ..."), attached
+     * to the latest user message at LLM-call time so "fix this" works
+     * without a tool call. Return null when nothing is selected.
+     */
+    getSelectionContext?: () => string | null
     /** Called after state changes worth re-rendering around (session switch) */
     onSessionChanged?: () => void
 }
@@ -185,7 +196,7 @@ export class AssistantChat {
         this.agentUnsubscribe?.()
 
         const agent = new Agent({
-            convertToLlm: defaultConvertToLlm,
+            convertToLlm: (messages) => this.convertToLlm(messages),
             initialState: initialState
                 ? { ...initialState, systemPrompt: this.options.systemPrompt }
                 : {
@@ -198,6 +209,9 @@ export class AssistantChat {
         })
         if (this.disposed) return
         this.agent = agent
+        // handy for debugging in devtools (and for headless smoke tests)
+        ;(globalThis as { __owidAssistantAgent?: Agent }).__owidAssistantAgent =
+            agent
 
         this.agentUnsubscribe = agent.subscribe((event) => {
             const type = (event as { type: string }).type
@@ -234,7 +248,7 @@ export class AssistantChat {
                     (p) => p.name
                 )
                 const allowed = [...new Set([...known, ...custom])]
-                ModelSelector.open(
+                void ModelSelector.open(
                     agent.state.model,
                     (model) => {
                         agent.state.model = model
@@ -244,6 +258,38 @@ export class AssistantChat {
             },
             toolsFactory: () => this.options.toolsFactory(),
         })
+    }
+
+    /**
+     * defaultConvertToLlm plus editor context: the user's current selection
+     * is appended to the final user message at call time, so "fix this"
+     * refers to what is selected right now.
+     */
+    private convertToLlm(messages: AgentMessage[]): Message[] {
+        const converted = defaultConvertToLlm(messages)
+        const context = this.options.getSelectionContext?.()
+        if (!context) return converted
+        for (let i = converted.length - 1; i >= 0; i--) {
+            const message = converted[i]
+            if (message.role !== "user") continue
+            const note: TextContent = {
+                type: "text",
+                text: `[Editor context — attached automatically] ${context}`,
+            }
+            const content =
+                typeof message.content === "string"
+                    ? [
+                          {
+                              type: "text",
+                              text: message.content,
+                          } as TextContent,
+                          note,
+                      ]
+                    : [...message.content, note]
+            converted[i] = { ...message, content }
+            break
+        }
+        return converted
     }
 
     private ensureSessionId(): string {
@@ -269,7 +315,7 @@ export class AssistantChat {
                 {
                     id: this.currentSessionId,
                     title,
-                    model: state.model!,
+                    model: state.model,
                     thinkingLevel: state.thinkingLevel,
                     messages: state.messages,
                     createdAt: now,

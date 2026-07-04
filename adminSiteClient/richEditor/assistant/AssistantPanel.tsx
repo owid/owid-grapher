@@ -10,44 +10,70 @@
 // DialogBase), which is why shadow-DOM scoping is not an option.
 
 import "@earendil-works/pi-web-ui/app.css"
-import { useEffect, useRef, useState } from "react"
+import { useContext, useEffect, useRef, useState } from "react"
 import { Button, Space } from "antd"
 import { faClockRotateLeft, faPlus } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import type { AgentTool } from "@earendil-works/pi-agent-core"
+import { Editor } from "@tiptap/core"
 import { SessionListDialog } from "@earendil-works/pi-web-ui"
+import { AdminAppContext } from "../../AdminAppContext.js"
 import { AssistantChat } from "./agentHost.js"
+import {
+    createDocTools,
+    describeSelection,
+    type DocToolHost,
+} from "./docTools.js"
 import { SYSTEM_PROMPT } from "./prompts.js"
+import { registerAssistantToolRenderers } from "./toolRenderers.js"
 
 export interface AssistantPanelProps {
     gdocId: string
+    docType: string
     docTitle: string
-    /** Re-evaluated on every agent run, so it can close over live state */
-    toolsFactory: () => AgentTool[]
+    /** The live collaborative editor; tools wait politely while it's null */
+    editor: Editor | null
 }
 
 export default function AssistantPanel(
     props: AssistantPanelProps
 ): React.ReactElement {
-    const { gdocId, docTitle } = props
+    const { gdocId } = props
+    const { admin } = useContext(AdminAppContext)
     const hostRef = useRef<HTMLDivElement>(null)
     const [chat, setChat] = useState<AssistantChat | null>(null)
 
-    // the factory prop closes over changing editor state; keep the latest
-    // without recreating the chat
-    const toolsFactoryRef = useRef(props.toolsFactory)
-    toolsFactoryRef.current = props.toolsFactory
-    const docTitleRef = useRef(docTitle)
-    docTitleRef.current = docTitle
+    // tools and selection context close over live, changing state; keep the
+    // latest without recreating the chat
+    const propsRef = useRef(props)
+    propsRef.current = props
 
     useEffect(() => {
+        const toolHost: DocToolHost = {
+            getEditor: () => propsRef.current.editor,
+            getDocInfo: () => ({
+                id: propsRef.current.gdocId,
+                type: propsRef.current.docType,
+                title: propsRef.current.docTitle,
+            }),
+            admin,
+        }
         const instance = new AssistantChat({
             gdocId,
             get docTitle() {
-                return docTitleRef.current
+                return propsRef.current.docTitle
             },
             systemPrompt: SYSTEM_PROMPT,
-            toolsFactory: () => toolsFactoryRef.current(),
+            toolsFactory: () => {
+                const tools = createDocTools(toolHost)
+                registerAssistantToolRenderers(tools)
+                return tools
+            },
+            getSelectionContext: () => {
+                const editor = propsRef.current.editor
+                if (!editor) return null
+                const description = describeSelection(editor)
+                return description.startsWith("Nothing") ? null : description
+            },
         })
         hostRef.current?.appendChild(instance.element)
         void instance.start()
@@ -57,6 +83,8 @@ export default function AssistantPanel(
             instance.element.remove()
             setChat(null)
         }
+        // admin is stable for the app's lifetime
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [gdocId])
 
     return (
@@ -74,8 +102,8 @@ export default function AssistantPanel(
                         size="small"
                         icon={<FontAwesomeIcon icon={faClockRotateLeft} />}
                         onClick={() =>
-                            void SessionListDialog.open((sessionId) =>
-                                void chat?.loadSession(sessionId)
+                            void SessionListDialog.open(
+                                (sessionId) => void chat?.loadSession(sessionId)
                             )
                         }
                     >
