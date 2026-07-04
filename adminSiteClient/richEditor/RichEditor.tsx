@@ -12,10 +12,12 @@ import { getRichEditorBaseExtensions } from "../../adminShared/richEditor/extens
 import { pmNodeNames } from "../../adminShared/richEditor/serialization/pmJson.js"
 import { enrichedBlocksToPmDoc } from "../../adminShared/richEditor/serialization/serialization.js"
 import { Collaboration } from "@tiptap/extension-collaboration"
+import { CollaborationCaret } from "@tiptap/extension-collaboration-caret"
 import { SlashCommands } from "./SlashCommands.js"
 import { CommentMark } from "./comments.js"
 import { BlockIdAssignment, ensureBlockIds } from "./blockIdentity.js"
 import type { RichEditorCollaboration } from "./collaboration.js"
+import { createRemoteBlockSelectionsExtension } from "./remoteBlockSelections.js"
 import { ImageBlockView } from "./nodeViews/ImageBlockView.js"
 import { CtaBlockView } from "./nodeViews/CtaBlockView.js"
 import { RawBlockView } from "./nodeViews/RawBlockView.js"
@@ -126,11 +128,27 @@ export function RichEditor(props: {
             }
             return extension
         })
+        const collaborationExtensions: Extensions = []
+        if (collaboration) {
+            collaborationExtensions.push(
+                Collaboration.configure({ document: collaboration.ydoc })
+            )
+            collaborationExtensions.push(
+                CollaborationCaret.configure({
+                    provider: collaboration.provider,
+                    user: collaboration.user,
+                })
+            )
+            const awareness = collaboration.provider.awareness
+            if (awareness) {
+                collaborationExtensions.push(
+                    createRemoteBlockSelectionsExtension(awareness)
+                )
+            }
+        }
         return [
             ...base,
-            ...(collaboration
-                ? [Collaboration.configure({ document: collaboration.ydoc })]
-                : []),
+            ...collaborationExtensions,
             BlockIdAssignment,
             CommentMark,
             SlashCommands.configure({

@@ -45,7 +45,6 @@ import {
     RichEditorCreateNativeGdocRequest,
     RichEditorCreateThreadRequest,
     RichEditorGdocResponse,
-    RichEditorPresenceResponse,
     RichEditorPublishRequest,
     RichEditorPublishResponse,
     RichEditorPublishValidationResponse,
@@ -967,49 +966,9 @@ export async function updateGdocCommentThread(
     return updated
 }
 
-// ── Presence ───────────────────────────────────────────────────────────────
-
-// In-memory presence: fine for a single admin server process, resets on
-// restart. Advisory only — the 409 optimistic-concurrency check is the
-// actual protection against overwriting someone else's work.
-const PRESENCE_TTL_MS = 60_000
-const presenceByGdocId = new Map<
-    string,
-    Map<number, { fullName: string; lastSeen: number }>
->()
-
-export async function heartbeatGdocPresence(
-    req: Request,
-    res: HandlerResponse,
-    trx: db.KnexReadWriteTransaction
-): Promise<RichEditorPresenceResponse> {
-    const { id } = req.params
-    const user = res.locals.user
-    await getGdocRowOrThrow(trx, id)
-
-    const now = Date.now()
-    let editors = presenceByGdocId.get(id)
-    if (!editors) {
-        editors = new Map()
-        presenceByGdocId.set(id, editors)
-    }
-    editors.set(user.id, { fullName: user.fullName, lastSeen: now })
-
-    const active = [...editors.entries()].filter(
-        ([, editor]) => now - editor.lastSeen < PRESENCE_TTL_MS
-    )
-    presenceByGdocId.set(id, new Map(active))
-
-    return {
-        editors: active
-            .filter(([userId]) => userId !== user.id)
-            .map(([userId, editor]) => ({
-                userId,
-                fullName: editor.fullName,
-                lastSeen: new Date(editor.lastSeen).toISOString(),
-            })),
-    }
-}
+// (Presence lives in the sync connection's awareness states now — see
+// richEditorSync.ts and the client's useAwarenessPeers. The old in-memory
+// heartbeat presence, which was per-process and reset on restart, is gone.)
 
 export async function resolveEditorReferences(
     req: Request,

@@ -9,13 +9,17 @@ import { getSchema } from "@tiptap/core"
 import { Node as PmNode } from "@tiptap/pm/model"
 import {
     prosemirrorToYXmlFragment,
-    yDocToProsemirrorJSON,
+    yXmlFragmentToProseMirrorRootNode,
 } from "@tiptap/y-tiptap"
 import {
     PostsGdocsYdocsTableName,
     type OwidEnrichedGdocBlock,
 } from "@ourworldindata/types"
-import { getRichEditorBaseExtensions } from "../../adminShared/richEditor/extensions.js"
+import {
+    getRichEditorBaseExtensions,
+    RICH_EDITOR_PM_SCHEMA_VERSION,
+} from "../../adminShared/richEditor/extensions.js"
+import { disposeIdleYdocs } from "../richEditorSync.js"
 import {
     enrichedBlocksToPmDoc,
     pmDocToEnrichedBlocks,
@@ -88,10 +92,10 @@ function connect(gdocId: string): TestClient {
 }
 
 function bodyOf(ydoc: Y.Doc): OwidEnrichedGdocBlock[] {
-    const pmJson = yDocToProsemirrorJSON(
-        ydoc,
-        "default"
-    ) as unknown as PmNodeJson
+    const pmJson = yXmlFragmentToProseMirrorRootNode(
+        ydoc.getXmlFragment("default"),
+        schema
+    ).toJSON() as PmNodeJson
     return pmDocToEnrichedBlocks(pmJson)
 }
 
@@ -329,6 +333,145 @@ describe("rich editor sync server", { timeout: 30000 }, () => {
                 .where({ gdocId: id })
                 .first()
             expect(row.generation).not.toBe(firstGeneration)
+        } finally {
+            clientB.destroy()
+        }
+    })
+
+    it("exposes the generation to clients inside the ydoc", async () => {
+        const { id } = await createDocWithBody("Sync generation test", [
+            makeTextBlock("Generation"),
+        ])
+        const client = connect(id)
+        try {
+            await client.synced
+            await waitFor(
+                () => !!client.ydoc.getMap("richEditorMeta").get("generation"),
+                5000,
+                "generation in ydoc meta"
+            )
+            const row = await env
+                .testKnex(PostsGdocsYdocsTableName)
+                .where({ gdocId: id })
+                .first()
+            expect(client.ydoc.getMap("richEditorMeta").get("generation")).toBe(
+                row.generation
+            )
+        } finally {
+            client.destroy()
+        }
+    })
+
+    it("discards and reseeds a ydoc with a stale schema version", async () => {
+        const { id } = await createDocWithBody("Sync schema bump test", [
+            makeTextBlock("Survives schema bumps"),
+        ])
+
+        const clientA = connect(id)
+        try {
+            await clientA.synced
+            await waitFor(
+                () =>
+                    textOf(bodyOf(clientA.ydoc)).includes(
+                        "Survives schema bumps"
+                    ),
+                5000,
+                "initial sync"
+            )
+        } finally {
+            clientA.destroy()
+        }
+        await waitFor(
+            () => !env.app.richEditorSync?.documents.has(id),
+            5000,
+            "document unload"
+        )
+
+        // simulate a PM schema bump: the stored blob is now a stale generation
+        const before = await env
+            .testKnex(PostsGdocsYdocsTableName)
+            .where({ gdocId: id })
+            .first()
+        await env
+            .testKnex(PostsGdocsYdocsTableName)
+            .where({ gdocId: id })
+            .update({ schemaVersion: RICH_EDITOR_PM_SCHEMA_VERSION - 1 })
+
+        const clientB = connect(id)
+        try {
+            await clientB.synced
+            await waitFor(
+                () =>
+                    textOf(bodyOf(clientB.ydoc)).includes(
+                        "Survives schema bumps"
+                    ),
+                5000,
+                "reseeded content from the draft"
+            )
+            const after = await env
+                .testKnex(PostsGdocsYdocsTableName)
+                .where({ gdocId: id })
+                .first()
+            expect(after.schemaVersion).toBe(RICH_EDITOR_PM_SCHEMA_VERSION)
+            expect(after.generation).not.toBe(before.generation)
+        } finally {
+            clientB.destroy()
+        }
+    })
+
+    it("disposes idle ydoc rows but never loaded ones", async () => {
+        const { id } = await createDocWithBody("Sync disposal test", [
+            makeTextBlock("Dispose me"),
+        ])
+        const client = connect(id)
+        await client.synced
+        await waitFor(
+            () => textOf(bodyOf(client.ydoc)).includes("Dispose me"),
+            5000,
+            "initial sync"
+        )
+
+        // loaded documents are never swept, however old their row is
+        await env
+            .testKnex(PostsGdocsYdocsTableName)
+            .where({ gdocId: id })
+            .update({ updatedAt: new Date("2020-01-01") })
+        await disposeIdleYdocs(1)
+        expect(
+            await env
+                .testKnex(PostsGdocsYdocsTableName)
+                .where({ gdocId: id })
+                .first()
+        ).toBeDefined()
+
+        client.destroy()
+        await waitFor(
+            () => !env.app.richEditorSync?.documents.has(id),
+            5000,
+            "document unload"
+        )
+        await env
+            .testKnex(PostsGdocsYdocsTableName)
+            .where({ gdocId: id })
+            .update({ updatedAt: new Date("2020-01-01") })
+        const deleted = await disposeIdleYdocs(1)
+        expect(deleted).toBeGreaterThanOrEqual(1)
+        expect(
+            await env
+                .testKnex(PostsGdocsYdocsTableName)
+                .where({ gdocId: id })
+                .first()
+        ).toBeUndefined()
+
+        // …and the doc reseeds cleanly afterwards
+        const clientB = connect(id)
+        try {
+            await clientB.synced
+            await waitFor(
+                () => textOf(bodyOf(clientB.ydoc)).includes("Dispose me"),
+                5000,
+                "reseed after disposal"
+            )
         } finally {
             clientB.destroy()
         }
