@@ -1,4 +1,12 @@
-import { useCallback, useContext, useEffect, useRef, useState } from "react"
+import {
+    lazy,
+    Suspense,
+    useCallback,
+    useContext,
+    useEffect,
+    useRef,
+    useState,
+} from "react"
 import { RouteComponentProps, useHistory } from "react-router-dom"
 import {
     Alert,
@@ -58,6 +66,10 @@ import {
     useAwarenessPeers,
     useRichEditorCollaboration,
 } from "./collaboration.js"
+
+// the assistant pulls in the pi agent framework + its stylesheet; load it
+// only when the rich editor page actually renders the tab
+const AssistantPanel = lazy(() => import("./assistant/AssistantPanel.js"))
 
 type SaveState =
     | { kind: "saved"; at: Date | null }
@@ -915,6 +927,30 @@ function RichEditorPageForId(props: { id: string }): React.ReactElement {
                                             />
                                         ) : null,
                                     },
+                                    ...(syncEnabled
+                                        ? [
+                                              {
+                                                  key: "assistant",
+                                                  label: "Assistant",
+                                                  children: (
+                                                      <Suspense
+                                                          fallback={
+                                                              <div className="rich-editor-rail__panel">
+                                                                  Loading
+                                                                  assistant…
+                                                              </div>
+                                                          }
+                                                      >
+                                                          <AssistantPanel
+                                                              gdocId={id}
+                                                              docTitle={title}
+                                                              toolsFactory={() => []}
+                                                          />
+                                                      </Suspense>
+                                                  ),
+                                              },
+                                          ]
+                                        : []),
                                     {
                                         key: "comments",
                                         label: threads.some(
