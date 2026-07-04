@@ -36,6 +36,12 @@ export interface RichEditorCommentAnchorUpdate {
     orphaned: boolean
 }
 
+/** A block selected in the canvas, offered as a comment target */
+export interface RichEditorSelectedBlock {
+    blockId: string
+    blockType: string
+}
+
 export interface RichEditorSaveBodyRequest {
     body: OwidEnrichedGdocBlock[]
     /** The draft revision this save is based on; null if no draft existed */
@@ -159,6 +165,8 @@ export interface RichEditorCommentThread {
     gdocId: string
     status: PostGdocCommentThreadStatus
     anchorType: PostGdocCommentAnchorType
+    /** Rich-editor block id, set for block-anchored threads */
+    anchorBlockId: string | null
     anchorFrom: number | null
     anchorTo: number | null
     anchorText: string | null
@@ -175,6 +183,8 @@ export interface RichEditorCommentThreadsResponse {
 
 export interface RichEditorCreateThreadRequest {
     anchorType: PostGdocCommentAnchorType
+    /** Required for block threads: the target block's stable id */
+    anchorBlockId?: string | null
     anchorFrom?: number | null
     anchorTo?: number | null
     anchorText?: string | null

@@ -52,8 +52,12 @@ export function normalizeValue(value: unknown): unknown {
     if (typeof value === "object" && value !== null) {
         const record = value as Record<string, unknown>
         const out: Record<string, unknown> = {}
+        const isEnrichedBlock =
+            typeof record.type === "string" && Array.isArray(record.parseErrors)
         for (const key of Object.keys(record)) {
             if (key === "parseErrors") continue
+            // editor-assigned block identity is not content
+            if (key === "id" && isEnrichedBlock) continue
             if (
                 key === "value" &&
                 record.type === "horizontal-rule" &&

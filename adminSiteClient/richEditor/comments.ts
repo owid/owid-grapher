@@ -1,6 +1,8 @@
 import { Editor, Mark } from "@tiptap/core"
+import { NodeSelection } from "@tiptap/pm/state"
 import { RichEditorCommentAnchorUpdate } from "../../adminShared/RichEditorTypes.js"
 import type { RichEditorCommentThread } from "../../adminShared/RichEditorTypes.js"
+import { isIdentifiedNodeName } from "../../adminShared/richEditor/serialization/pmJson.js"
 
 // Comment threads are anchored to text ranges via an editor-only `comment`
 // mark carrying the thread id. Marks move naturally with edits, survive
@@ -104,18 +106,46 @@ export function findCommentMarkRanges(editor: Editor): Map<number, MarkRange> {
     return ranges
 }
 
+/** Find the current position of every identified block in the doc. */
+export function findBlockIdPositions(editor: Editor): Map<string, number> {
+    const positions = new Map<string, number>()
+    editor.state.doc.descendants((node, pos) => {
+        if (!isIdentifiedNodeName(node.type.name)) return
+        const blockId = node.attrs.blockId as string | null
+        if (blockId && !positions.has(blockId)) positions.set(blockId, pos)
+    })
+    return positions
+}
+
 /**
  * Compute the anchor updates to send with a save: the current position of
- * every range thread's mark, and orphaned status for threads whose mark was
- * deleted along with its text.
+ * every range thread's mark, orphaned status for threads whose mark was
+ * deleted along with its text, and existence checks for block threads.
  */
 export function collectCommentAnchors(
     editor: Editor,
     threads: RichEditorCommentThread[]
 ): RichEditorCommentAnchorUpdate[] {
     const ranges = findCommentMarkRanges(editor)
+    const blockPositions = findBlockIdPositions(editor)
     const updates: RichEditorCommentAnchorUpdate[] = []
     for (const thread of threads) {
+        if (thread.anchorType === "block") {
+            const exists =
+                thread.anchorBlockId !== null &&
+                blockPositions.has(thread.anchorBlockId)
+            // only report transitions, not every save
+            if (exists === (thread.status === "orphaned")) {
+                updates.push({
+                    threadId: thread.id,
+                    anchorFrom: null,
+                    anchorTo: null,
+                    anchorText: thread.anchorText,
+                    orphaned: !exists,
+                })
+            }
+            continue
+        }
         if (thread.anchorType !== "range") continue
         const range = ranges.get(thread.id)
         if (range) {
@@ -142,12 +172,29 @@ export function collectCommentAnchors(
 }
 
 /** Scroll to and briefly flash a thread's highlight in the canvas. */
-export function focusCommentThread(editor: Editor, threadId: number): void {
-    const range = findCommentMarkRanges(editor).get(threadId)
+export function focusCommentThread(
+    editor: Editor,
+    thread: RichEditorCommentThread
+): void {
+    if (thread.anchorType === "block") {
+        if (!thread.anchorBlockId) return
+        const pos = findBlockIdPositions(editor).get(thread.anchorBlockId)
+        if (pos === undefined) return
+        const { tr } = editor.state
+        tr.setSelection(NodeSelection.create(editor.state.doc, pos))
+        editor.view.dispatch(tr)
+        editor.view.focus()
+        const dom = editor.view.nodeDOM(pos)
+        if (dom instanceof HTMLElement) {
+            dom.scrollIntoView({ behavior: "smooth", block: "center" })
+        }
+        return
+    }
+    const range = findCommentMarkRanges(editor).get(thread.id)
     if (!range) return
     editor.chain().focus().setTextSelection(range.from).run()
     const dom = editor.view.dom.querySelector(
-        `[data-rich-comment-thread="${threadId}"]`
+        `[data-rich-comment-thread="${thread.id}"]`
     )
     dom?.scrollIntoView({ behavior: "smooth", block: "center" })
 }

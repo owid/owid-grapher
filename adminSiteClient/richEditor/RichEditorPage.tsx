@@ -37,7 +37,7 @@ import {
     getBlockItemsForDocType,
     RichEditorBlockItem,
 } from "./blockRegistry.js"
-import { pmDocToEnrichedBlocks } from "./serialization/serialization.js"
+import { pmDocToEnrichedBlocks } from "../../adminShared/richEditor/serialization/serialization.js"
 import { applyCommentMarks, collectCommentAnchors } from "./comments.js"
 import { computeConversionReport } from "./conversionReport.js"
 import { CommentsPanel } from "./CommentsPanel.js"
@@ -811,6 +811,16 @@ function RichEditorPageForId(props: { id: string }): React.ReactElement {
                                                 editor={editorInstance}
                                                 hasTextSelection={
                                                     hasTextSelection
+                                                }
+                                                selectedBlock={
+                                                    inspected?.blockId
+                                                        ? {
+                                                              blockId:
+                                                                  inspected.blockId,
+                                                              blockType:
+                                                                  inspected.blockType,
+                                                          }
+                                                        : null
                                                 }
                                                 onThreadsChanged={() =>
                                                     void queryClient.invalidateQueries(

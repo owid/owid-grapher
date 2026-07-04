@@ -13,15 +13,15 @@ import readline from "readline"
 import { getSchema } from "@tiptap/core"
 import { Node as PmNode } from "@tiptap/pm/model"
 import { OwidEnrichedGdocBlock } from "@ourworldindata/types"
-import { getRichEditorBaseExtensions } from "../../adminSiteClient/richEditor/extensions.js"
+import { getRichEditorBaseExtensions } from "../../adminShared/richEditor/extensions.js"
 import {
     enrichedBlocksToPmDoc,
     pmDocToEnrichedBlocks,
-} from "../../adminSiteClient/richEditor/serialization/serialization.js"
+} from "../../adminShared/richEditor/serialization/serialization.js"
 import {
     enrichedBodiesMatch,
     normalizedBodyKey,
-} from "../../adminSiteClient/richEditor/serialization/normalizeForComparison.js"
+} from "../../adminShared/richEditor/serialization/normalizeForComparison.js"
 
 interface GdocBodyRecord {
     id: string

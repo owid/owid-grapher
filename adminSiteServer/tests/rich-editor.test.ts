@@ -483,6 +483,115 @@ describe("rich editor API", { timeout: 20000 }, () => {
         expect(list.threads[0].comments).toHaveLength(2)
     })
 
+    it("keeps block ids in drafts and revisions but strips them from live content", async () => {
+        const created = await createNativeDoc("Block id test")
+        const identifiedBlock = {
+            type: "blockquote",
+            text: [makeTextBlock("Quoted words")],
+            parseErrors: [],
+            id: "img-block-1",
+        }
+        const save = await env.request({
+            method: "PUT",
+            path: `/gdocs/${created.id}/body`,
+            body: JSON.stringify({
+                body: [makeTextBlock("With identity"), identifiedBlock],
+                baseRevisionId: created.draftRevisionId,
+                kind: "manual",
+            }),
+        })
+
+        // the draft keeps the id …
+        const draft = await env
+            .testKnex(PostsGdocsDraftsTableName)
+            .where({ gdocId: created.id })
+            .first()
+        expect(JSON.parse(draft.content).body[1].id).toBe("img-block-1")
+
+        // … while live content (unpublished ⇒ synced from the draft) is stripped
+        let row = (await env
+            .testKnex(PostsGdocsTableName)
+            .where({ id: created.id })
+            .first()) as DbRawPostGdoc
+        expect(JSON.parse(row.content).body[1].id).toBeUndefined()
+        expect(JSON.parse(row.content).body[1].type).toBe("blockquote")
+
+        // publishing strips ids from live content, revision keeps them
+        const published = await env.request({
+            method: "POST",
+            path: `/gdocs/${created.id}/publish`,
+            body: JSON.stringify({ baseRevisionId: save.revisionId }),
+        })
+        expect(published.published).toBe(true)
+        row = (await env
+            .testKnex(PostsGdocsTableName)
+            .where({ id: created.id })
+            .first()) as DbRawPostGdoc
+        expect(JSON.parse(row.content).body[1].id).toBeUndefined()
+
+        const publishRevision = await env
+            .testKnex(PostsGdocsRevisionsTableName)
+            .where({ gdocId: created.id, kind: "publish" })
+            .first()
+        expect(JSON.parse(publishRevision.content).body[1].id).toBe(
+            "img-block-1"
+        )
+    })
+
+    it("supports block-anchored comment threads keyed by block id", async () => {
+        const created = await createNativeDoc("Block thread test")
+
+        // block threads require an anchorBlockId
+        const missing = await rawRequest({
+            method: "POST",
+            path: `/gdocs/${created.id}/comments`,
+            body: JSON.stringify({
+                anchorType: "block",
+                text: "No block id",
+            }),
+        })
+        expect(missing.status).toBe(400)
+
+        const thread = await env.request({
+            method: "POST",
+            path: `/gdocs/${created.id}/comments`,
+            body: JSON.stringify({
+                anchorType: "block",
+                anchorBlockId: "img-block-9",
+                anchorText: "image",
+                text: "This chart looks wrong",
+            }),
+        })
+        expect(thread.anchorType).toBe("block")
+        expect(thread.anchorBlockId).toBe("img-block-9")
+        expect(thread.status).toBe("open")
+
+        // the client reports orphaning through the same anchors channel
+        await env.request({
+            method: "PUT",
+            path: `/gdocs/${created.id}/body`,
+            body: JSON.stringify({
+                body: [makeTextBlock("Block was deleted")],
+                baseRevisionId: created.draftRevisionId,
+                commentAnchors: [
+                    {
+                        threadId: thread.id,
+                        anchorFrom: null,
+                        anchorTo: null,
+                        anchorText: thread.anchorText,
+                        orphaned: true,
+                    },
+                ],
+            }),
+        })
+        const threads = await env.fetchJson(`/gdocs/${created.id}/comments`)
+        const orphaned = threads.threads.find(
+            (candidate: { id: number }) => candidate.id === thread.id
+        )
+        expect(orphaned.status).toBe("orphaned")
+        expect(orphaned.anchorBlockId).toBe("img-block-9")
+    })
+
     it("creates native articles when requested, rejects unsupported types", async () => {
         const created = await env.request({
             method: "POST",

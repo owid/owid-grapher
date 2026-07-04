@@ -60,6 +60,7 @@ import {
     RichEditorSaveSettingsRequest,
     RichEditorUpdateThreadRequest,
 } from "../../adminShared/RichEditorTypes.js"
+import { stripBlockIds } from "../../adminShared/richEditor/serialization/serialization.js"
 import { Request } from "../authentication.js"
 import { HandlerResponse } from "../FunctionalRouter.js"
 
@@ -105,12 +106,23 @@ function validateBodyBlocks(body: unknown): OwidEnrichedGdocBlock[] {
     return body as OwidEnrichedGdocBlock[]
 }
 
+/**
+ * Editor-assigned block ids live only in drafts and revisions; whatever is
+ * written to posts_gdocs.content (live/published content, consumed by the
+ * baker, site, and search) is stripped of them.
+ */
+function withoutBlockIds(content: OwidGdocContent): OwidGdocContent {
+    if (!content.body) return content
+    return { ...content, body: stripBlockIds(content.body) }
+}
+
 /** Update posts_gdocs.content (+ markdown and derived tables) for a native doc. */
 async function updateNativeGdocContent(
     trx: db.KnexReadWriteTransaction,
     row: DbRawPostGdoc,
-    content: OwidGdocContent
+    draftContent: OwidGdocContent
 ): Promise<void> {
+    const content = withoutBlockIds(draftContent)
     const gdoc = gdocFromJSON({ ...row, content })
     gdoc.updateMarkdown()
     await trx
@@ -529,7 +541,11 @@ export async function publishNativeGdoc(
         return makeConflictResponse(res, draft)
     }
 
-    const content: OwidGdocContent = JSON.parse(draft.content)
+    const draftContent: OwidGdocContent = JSON.parse(draft.content)
+    // published content is stripped of block ids; the draft (and the publish
+    // revision, which stays in the draft lineage) keeps them so block-anchored
+    // comments survive publishing and restores
+    const content = withoutBlockIds(draftContent)
 
     const prevGdoc = await getAndLoadGdocById(trx, id)
     const prevJson = prevGdoc.toJSON()
@@ -576,7 +592,7 @@ export async function publishNativeGdoc(
     const { revisionId } = await insertRevisionAndUpdateDraft(
         trx,
         { ...row, published: 1 },
-        content,
+        draftContent,
         "publish",
         res.locals.user.id,
         "Published"
@@ -743,6 +759,7 @@ async function queryCommentThreads(
         gdocId: thread.gdocId,
         status: thread.status,
         anchorType: thread.anchorType,
+        anchorBlockId: thread.anchorBlockId,
         anchorFrom: thread.anchorFrom,
         anchorTo: thread.anchorTo,
         anchorText: thread.anchorText,
@@ -782,6 +799,7 @@ export async function createGdocCommentThread(
     const { id } = req.params
     const {
         anchorType,
+        anchorBlockId = null,
         anchorFrom = null,
         anchorTo = null,
         anchorText = null,
@@ -791,6 +809,8 @@ export async function createGdocCommentThread(
     if (!text?.trim()) throw new JsonError("Comment text is required", 400)
     if (!["range", "block", "document"].includes(anchorType))
         throw new JsonError(`Invalid anchorType ${anchorType}`, 400)
+    if (anchorType === "block" && !anchorBlockId)
+        throw new JsonError("Block threads require an anchorBlockId", 400)
     await getGdocRowOrThrow(trx, id)
 
     const [threadId] = await trx
@@ -798,6 +818,7 @@ export async function createGdocCommentThread(
         .insert({
             gdocId: id,
             anchorType,
+            anchorBlockId: anchorType === "block" ? anchorBlockId : null,
             anchorFrom,
             anchorTo,
             anchorText,

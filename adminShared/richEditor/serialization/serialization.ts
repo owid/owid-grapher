@@ -21,6 +21,7 @@ import {
 import {
     PmMarkJson,
     PmNodeJson,
+    isIdentifiedNodeName,
     pmMarkNames,
     pmNodeNames,
     propsAtomBlockTypes,
@@ -307,6 +308,19 @@ function twoColumnToPmNode(
 export function enrichedBlockToPmNode(
     block: OwidEnrichedGdocBlock
 ): PmNodeJson {
+    const { id, ...rest } = block
+    const node = enrichedBlockWithoutIdToPmNode(rest as OwidEnrichedGdocBlock)
+    // Identity travels as the node's blockId attr; block types without a
+    // BlockFrame (text flow) never carry ids
+    if (id && isIdentifiedNodeName(node.type)) {
+        node.attrs = { ...node.attrs, blockId: id }
+    }
+    return node
+}
+
+function enrichedBlockWithoutIdToPmNode(
+    block: OwidEnrichedGdocBlock
+): PmNodeJson {
     if (block.type in propsAtomBlockTypes) return propsAtomToPmNode(block)
     if (block.type in twoColumnBlockTypes) {
         return twoColumnToPmNode(
@@ -413,6 +427,17 @@ export function enrichedBlockToPmNode(
 
 /** Convert one ProseMirror node back to an enriched block. */
 export function pmNodeToEnrichedBlock(node: PmNodeJson): OwidEnrichedGdocBlock {
+    const block = pmNodeWithoutIdToEnrichedBlock(node)
+    const blockId = node.attrs?.blockId
+    if (blockId && isIdentifiedNodeName(node.type)) {
+        block.id = String(blockId)
+    }
+    return block
+}
+
+function pmNodeWithoutIdToEnrichedBlock(
+    node: PmNodeJson
+): OwidEnrichedGdocBlock {
     const attrs = node.attrs ?? {}
     const propsAtomType = nodeNameToPropsAtomBlockType[node.type]
     if (propsAtomType) {
@@ -573,4 +598,50 @@ export function pmDocToEnrichedBlocks(
     doc: PmNodeJson
 ): OwidEnrichedGdocBlock[] {
     return (doc.content ?? []).map(pmNodeToEnrichedBlock)
+}
+
+/**
+ * Remove editor-assigned block ids from a body, recursing into the containers
+ * whose children the editor identifies. Ids live only in drafts/revisions;
+ * this runs whenever content is written to posts_gdocs so published/live
+ * content stays exactly as the site pipelines expect it. Pure — returns
+ * copies, never mutates the input.
+ */
+export function stripBlockIds(
+    blocks: OwidEnrichedGdocBlock[]
+): OwidEnrichedGdocBlock[] {
+    return blocks.map(stripBlockIdsFromBlock)
+}
+
+function stripBlockIdsFromBlock(
+    block: OwidEnrichedGdocBlock
+): OwidEnrichedGdocBlock {
+    const { id: _id, ...rest } = block
+    const out = rest as OwidEnrichedGdocBlock
+    switch (out.type) {
+        case "sticky-right":
+        case "sticky-left":
+        case "side-by-side":
+            return {
+                ...out,
+                left: stripBlockIds(out.left),
+                right: stripBlockIds(out.right),
+            }
+        case "gray-section":
+        case "expandable-paragraph":
+            return { ...out, items: stripBlockIds(out.items) }
+        case "table":
+            return {
+                ...out,
+                rows: out.rows.map((row) => ({
+                    ...row,
+                    cells: row.cells.map((cell) => ({
+                        ...cell,
+                        content: stripBlockIds(cell.content),
+                    })),
+                })),
+            }
+        default:
+            return out
+    }
 }
