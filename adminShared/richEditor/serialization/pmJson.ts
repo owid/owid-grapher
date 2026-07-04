@@ -40,6 +40,9 @@ export const pmNodeNames = {
     recirc: "recirc",
     researchAndWriting: "researchAndWriting",
     allCharts: "allCharts",
+    keyInsights: "keyInsights",
+    explorerTiles: "explorerTiles",
+    pillRow: "pillRow",
     // editable containers
     pullQuote: "pullQuote",
     tableBlock: "tableBlock",
@@ -63,6 +66,9 @@ export const propsAtomBlockTypes = {
     recirc: pmNodeNames.recirc,
     "research-and-writing": pmNodeNames.researchAndWriting,
     "all-charts": pmNodeNames.allCharts,
+    "key-insights": pmNodeNames.keyInsights,
+    "explorer-tiles": pmNodeNames.explorerTiles,
+    "pill-row": pmNodeNames.pillRow,
 } as const
 
 /** The two-column layout containers, all shaped {left, right} */
@@ -89,6 +95,9 @@ export const identifiedNodeNames: string[] = [
     pmNodeNames.recirc,
     pmNodeNames.researchAndWriting,
     pmNodeNames.allCharts,
+    pmNodeNames.keyInsights,
+    pmNodeNames.explorerTiles,
+    pmNodeNames.pillRow,
     pmNodeNames.aside,
     pmNodeNames.pullQuote,
     pmNodeNames.tableBlock,

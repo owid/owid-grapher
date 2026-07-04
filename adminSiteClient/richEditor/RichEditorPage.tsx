@@ -126,6 +126,30 @@ function CreateNativeGdocPage(
                                     value: OwidGdocType.Article,
                                     label: "Article (beta)",
                                 },
+                                {
+                                    value: OwidGdocType.LinearTopicPage,
+                                    label: "Linear topic page (beta)",
+                                },
+                                {
+                                    value: OwidGdocType.TopicPage,
+                                    label: "Topic page (beta)",
+                                },
+                                {
+                                    value: OwidGdocType.AboutPage,
+                                    label: "About page (beta)",
+                                },
+                                {
+                                    value: OwidGdocType.Announcement,
+                                    label: "Announcement (beta)",
+                                },
+                                {
+                                    value: OwidGdocType.Author,
+                                    label: "Author (beta)",
+                                },
+                                {
+                                    value: OwidGdocType.Profile,
+                                    label: "Profile (beta)",
+                                },
                             ]}
                         />
                     </Form.Item>

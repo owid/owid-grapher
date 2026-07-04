@@ -739,6 +739,71 @@ export function BlockInspector(props: {
                         </Form.Item>
                     </>
                 )
+            case "key-insights":
+                return (
+                    <>
+                        <Form.Item label="Heading">
+                            <Input
+                                value={String(draft.heading ?? "")}
+                                onChange={(event) =>
+                                    apply({ heading: event.target.value })
+                                }
+                            />
+                        </Form.Item>
+                        <p className="rich-editor-inspector__hint">
+                            Slides (title, chart/image, content blocks) are
+                            edited via Advanced (JSON) below for now.
+                        </p>
+                    </>
+                )
+            case "explorer-tiles":
+                return (
+                    <>
+                        <Form.Item label="Title">
+                            <Input
+                                value={String(draft.title ?? "")}
+                                onChange={(event) =>
+                                    apply({ title: event.target.value })
+                                }
+                            />
+                        </Form.Item>
+                        <Form.Item label="Subtitle">
+                            <Input
+                                value={String(draft.subtitle ?? "")}
+                                onChange={(event) =>
+                                    apply({ subtitle: event.target.value })
+                                }
+                            />
+                        </Form.Item>
+                        <Form.Item label="Explorers">
+                            <UrlListField
+                                value={
+                                    (draft.explorers ?? []) as {
+                                        url: string
+                                    }[]
+                                }
+                                onChange={(explorers) => apply({ explorers })}
+                            />
+                        </Form.Item>
+                    </>
+                )
+            case "pill-row":
+                return (
+                    <>
+                        <Form.Item label="Title">
+                            <Input
+                                value={String(draft.title ?? "")}
+                                onChange={(event) =>
+                                    apply({ title: event.target.value })
+                                }
+                            />
+                        </Form.Item>
+                        <p className="rich-editor-inspector__hint">
+                            Pills (text + url) are edited via Advanced (JSON)
+                            below for now.
+                        </p>
+                    </>
+                )
             case "research-and-writing":
                 return (
                     <>

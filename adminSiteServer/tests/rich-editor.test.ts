@@ -604,6 +604,24 @@ describe("rich editor API", { timeout: 20000 }, () => {
         expect(created.content.type).toBe("article")
         expect(created.authoringMode).toBe(OwidGdocAuthoringMode.Native)
 
+        // every non-singleton doc type can be born natively
+        for (const type of [
+            "linear-topic-page",
+            "topic-page",
+            "about-page",
+            "announcement",
+            "author",
+            "profile",
+        ]) {
+            const doc = await env.request({
+                method: "POST",
+                path: "/gdocs/createNative",
+                body: JSON.stringify({ title: `A native ${type}`, type }),
+            })
+            expect(doc.content.type).toBe(type)
+            expect(doc.authoringMode).toBe(OwidGdocAuthoringMode.Native)
+        }
+
         const rejected = await rawRequest({
             method: "POST",
             path: "/gdocs/createNative",
@@ -670,15 +688,8 @@ describe("rich editor API", { timeout: 20000 }, () => {
         expect(resolved.narrativeCharts["does-not-exist"]).toBeUndefined()
     })
 
-    it("answers presence heartbeats", async () => {
-        const created = await createNativeDoc("Presence test")
-        const presence = await env.request({
-            method: "POST",
-            path: `/gdocs/${created.id}/presence`,
-        })
-        // the requester is excluded, and no one else is editing
-        expect(presence.editors).toEqual([])
-    })
+    // (presence moved into the sync connection's awareness states in M5c;
+    // the heartbeat endpoint is gone — see rich-editor-sync.test.ts)
 
     it("resolves image references", async () => {
         // images is not part of the standard test-table cleanup, so clean up
