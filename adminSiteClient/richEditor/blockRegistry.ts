@@ -1,6 +1,6 @@
 import { Editor, Range } from "@tiptap/core"
 import { OwidGdocType } from "@ourworldindata/types"
-import { pmNodeNames } from "./serialization/pmJson.js"
+import { pmNodeNames } from "../../adminShared/richEditor/serialization/pmJson.js"
 
 // The insertable block types, ranked by real-world usage per document type
 // (see devTools/richEditor and the project plan). Powers both the slash menu

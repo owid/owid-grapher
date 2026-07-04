@@ -5,6 +5,7 @@ import { dayjs } from "@ourworldindata/utils"
 import {
     RichEditorCommentThread,
     RichEditorCreateThreadRequest,
+    RichEditorSelectedBlock,
 } from "../../adminShared/RichEditorTypes.js"
 import { AdminAppContext } from "../AdminAppContext.js"
 import { addCommentMark, focusCommentThread } from "./comments.js"
@@ -20,10 +21,18 @@ export function CommentsPanel(props: {
     editor: Editor | null
     /** Selection state, updated by the page on editor selection changes */
     hasTextSelection: boolean
+    /** The block node currently selected in the canvas, if any */
+    selectedBlock: RichEditorSelectedBlock | null
     onThreadsChanged: () => void
 }): React.ReactElement {
-    const { gdocId, threads, editor, hasTextSelection, onThreadsChanged } =
-        props
+    const {
+        gdocId,
+        threads,
+        editor,
+        hasTextSelection,
+        selectedBlock,
+        onThreadsChanged,
+    } = props
     const { admin } = useContext(AdminAppContext)
     const [newComment, setNewComment] = useState("")
     const [submitting, setSubmitting] = useState(false)
@@ -43,6 +52,13 @@ export function CommentsPanel(props: {
                     anchorText: editor.state.doc
                         .textBetween(from, to, " ")
                         .slice(0, 512),
+                    text: newComment,
+                }
+            } else if (selectedBlock) {
+                request = {
+                    anchorType: "block",
+                    anchorBlockId: selectedBlock.blockId,
+                    anchorText: selectedBlock.blockType,
                     text: newComment,
                 }
             } else {
@@ -92,7 +108,9 @@ export function CommentsPanel(props: {
                     placeholder={
                         hasTextSelection
                             ? "Comment on the selected text…"
-                            : "Comment on this document…"
+                            : selectedBlock
+                              ? `Comment on the selected ${selectedBlock.blockType} block…`
+                              : "Comment on this document…"
                     }
                     value={newComment}
                     onChange={(event) => setNewComment(event.target.value)}
@@ -104,7 +122,11 @@ export function CommentsPanel(props: {
                     disabled={!newComment.trim()}
                     onClick={() => void createThread()}
                 >
-                    {hasTextSelection ? "Comment on selection" : "Comment"}
+                    {hasTextSelection
+                        ? "Comment on selection"
+                        : selectedBlock
+                          ? "Comment on block"
+                          : "Comment"}
                 </Button>
             </div>
 
@@ -193,8 +215,17 @@ function ThreadCard(props: {
         >
             <div className="rich-editor-comments__thread-header">
                 <Space size="small">
+                    {thread.anchorType === "block" && (
+                        <Tag color="blue">{thread.anchorText ?? "block"}</Tag>
+                    )}
                     {thread.status === "orphaned" && (
-                        <Tooltip title="The commented text was deleted">
+                        <Tooltip
+                            title={
+                                thread.anchorType === "block"
+                                    ? "The commented block was deleted"
+                                    : "The commented text was deleted"
+                            }
+                        >
                             <Tag color="orange">orphaned</Tag>
                         </Tooltip>
                     )}
@@ -222,17 +253,29 @@ function ThreadCard(props: {
                     )}
                 </Space>
             </div>
-            {thread.anchorText && (
+            {thread.anchorText && thread.anchorType !== "block" && (
                 <blockquote
                     className="rich-editor-comments__quote"
                     onClick={() => {
                         if (editor && thread.status === "open") {
-                            focusCommentThread(editor, thread.id)
+                            focusCommentThread(editor, thread)
                         }
                     }}
                 >
                     {thread.anchorText}
                 </blockquote>
+            )}
+            {thread.anchorType === "block" && thread.status === "open" && (
+                <Button
+                    size="small"
+                    type="link"
+                    className="rich-editor-comments__goto-block"
+                    onClick={() => {
+                        if (editor) focusCommentThread(editor, thread)
+                    }}
+                >
+                    Show block
+                </Button>
             )}
             {thread.comments.map((comment) => (
                 <div key={comment.id} className="rich-editor-comments__comment">

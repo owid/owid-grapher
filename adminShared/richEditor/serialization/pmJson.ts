@@ -72,6 +72,41 @@ export const twoColumnBlockTypes = {
     "side-by-side": pmNodeNames.sideBySide,
 } as const
 
+/**
+ * The node types that carry a stable block identity (`blockId` attr ↔
+ * enriched `id`): every block type with a BlockFrame — atoms and containers —
+ * but not plain text-flow nodes (paragraph, heading, lists, hr), which are
+ * addressed via their containing block or text ranges.
+ */
+export const identifiedNodeNames: string[] = [
+    pmNodeNames.image,
+    pmNodeNames.cta,
+    pmNodeNames.rawBlock,
+    pmNodeNames.chart,
+    pmNodeNames.narrativeChart,
+    pmNodeNames.video,
+    pmNodeNames.prominentLink,
+    pmNodeNames.recirc,
+    pmNodeNames.researchAndWriting,
+    pmNodeNames.allCharts,
+    pmNodeNames.aside,
+    pmNodeNames.pullQuote,
+    pmNodeNames.tableBlock,
+    pmNodeNames.blockquote,
+    pmNodeNames.callout,
+    pmNodeNames.graySection,
+    pmNodeNames.expandableParagraph,
+    pmNodeNames.stickyRight,
+    pmNodeNames.stickyLeft,
+    pmNodeNames.sideBySide,
+]
+
+const identifiedNodeNameSet = new Set(identifiedNodeNames)
+
+export function isIdentifiedNodeName(name: string): boolean {
+    return identifiedNodeNameSet.has(name)
+}
+
 export const pmMarkNames = {
     bold: "bold",
     italic: "italic",

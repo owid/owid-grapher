@@ -1,4 +1,5 @@
 import {
+    Extension,
     Extensions,
     Mark,
     Node,
@@ -9,6 +10,7 @@ import { StarterKit } from "@tiptap/starter-kit"
 import { Subscript } from "@tiptap/extension-subscript"
 import { Superscript } from "@tiptap/extension-superscript"
 import {
+    identifiedNodeNames,
     pmMarkNames,
     pmNodeNames,
     propsAtomBlockTypes,
@@ -485,6 +487,32 @@ const OwidSpanFallback = Mark.create({
 })
 
 /**
+ * Stable block identity: every framed block node carries a `blockId` attr,
+ * mapped to the enriched block's optional `id` by the serialization layer.
+ * The attr is part of the base schema (headless validation and the sync
+ * server must know it); generating/deduplicating ids is the editor-side
+ * BlockIdAssignment plugin's job. Not rendered to HTML: a copy of a block
+ * is a new block.
+ */
+const OwidBlockIdentity = Extension.create({
+    name: "blockIdentity",
+    addGlobalAttributes() {
+        return [
+            {
+                types: identifiedNodeNames,
+                attributes: {
+                    blockId: {
+                        default: null,
+                        rendered: false,
+                        keepOnSplit: false,
+                    },
+                },
+            },
+        ]
+    },
+})
+
+/**
  * The schema-defining extensions, shared between the editor (which layers
  * NodeViews and interaction extensions on top) and headless validation.
  */
@@ -530,5 +558,6 @@ export function getRichEditorBaseExtensions(): Extensions {
         OwidDod,
         OwidSpanQuote,
         OwidSpanFallback,
+        OwidBlockIdentity,
     ]
 }

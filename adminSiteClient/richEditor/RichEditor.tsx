@@ -1,12 +1,19 @@
 import { RefObject, useMemo, useRef, useState } from "react"
 import { Editor, Extensions, Node } from "@tiptap/core"
 import { EditorContent, ReactNodeViewRenderer, useEditor } from "@tiptap/react"
+// The schema extensions live in adminShared, which is a separate TS project;
+// import the TipTap extension packages here so their module augmentations
+// (chain().toggleBold(), undo(), …) apply to this program's command types.
+import "@tiptap/starter-kit"
+import "@tiptap/extension-subscript"
+import "@tiptap/extension-superscript"
 import { OwidEnrichedGdocBlock, OwidGdocType } from "@ourworldindata/types"
-import { getRichEditorBaseExtensions } from "./extensions.js"
-import { pmNodeNames } from "./serialization/pmJson.js"
-import { enrichedBlocksToPmDoc } from "./serialization/serialization.js"
+import { getRichEditorBaseExtensions } from "../../adminShared/richEditor/extensions.js"
+import { pmNodeNames } from "../../adminShared/richEditor/serialization/pmJson.js"
+import { enrichedBlocksToPmDoc } from "../../adminShared/richEditor/serialization/serialization.js"
 import { SlashCommands } from "./SlashCommands.js"
 import { CommentMark } from "./comments.js"
+import { BlockIdAssignment, ensureBlockIds } from "./blockIdentity.js"
 import { ImageBlockView } from "./nodeViews/ImageBlockView.js"
 import { CtaBlockView } from "./nodeViews/CtaBlockView.js"
 import { RawBlockView } from "./nodeViews/RawBlockView.js"
@@ -111,6 +118,7 @@ export function RichEditor(props: {
         })
         return [
             ...base,
+            BlockIdAssignment,
             CommentMark,
             SlashCommands.configure({
                 onRequestImage: (insert) => setPendingImageInsert(() => insert),
@@ -145,6 +153,7 @@ export function RichEditor(props: {
         },
         onCreate: ({ editor: created }) => {
             editorRef.current = created
+            ensureBlockIds(created)
             onCreateRef.current?.(created)
         },
         onDestroy: () => {

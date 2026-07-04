@@ -5,7 +5,7 @@ import {
     pmNodeNames,
     propsAtomBlockTypes,
     twoColumnBlockTypes,
-} from "./serialization/pmJson.js"
+} from "../../adminShared/richEditor/serialization/pmJson.js"
 
 // Component selection: selecting a block node (by clicking its hover border
 // or its body) derives an InspectedBlock from the NodeSelection, which the
@@ -24,6 +24,8 @@ export interface InspectedBlock {
     nodeType: string
     /** Enriched block type, e.g. "chart" */
     blockType: string
+    /** Stable block id (blockId attr), null before assignment */
+    blockId: string | null
     /**
      * How the inspector's props map onto the node: the `props` attr of a
      * props atom, the node attrs directly, the opaque JSON of a raw block,
@@ -100,6 +102,7 @@ export function inspectedBlockFromSelection(
     if (!(selection instanceof NodeSelection)) return null
     const node = selection.node
     const nodeType = node.type.name
+    const blockId = (node.attrs.blockId as string | null) ?? null
 
     // Re-reads the selection at call time: the inspector can outlive document
     // changes, and the node's position may have shifted since it was built.
@@ -150,6 +153,7 @@ export function inspectedBlockFromSelection(
     if (propsAtomBlockType) {
         return {
             nodeType,
+            blockId,
             blockType: propsAtomBlockType,
             kind: "props",
             props: (node.attrs.props ?? {}) as Record<string, unknown>,
@@ -173,14 +177,19 @@ export function inspectedBlockFromSelection(
 
     const attrsBlockType = nodeNameToAttrsBlockType[nodeType]
     if (attrsBlockType) {
+        // The block id is identity, not a setting: hide it from the
+        // inspector form and survive full-attrs writes
+        const { blockId: _blockIdAttr, ...attrsProps } = node.attrs
         return {
             nodeType,
+            blockId,
             blockType: attrsBlockType,
             kind: "attrs",
-            props: node.attrs as Record<string, unknown>,
-            updateProps: updateSelectedNodeAttrs(
-                (_attrs, newProps) => newProps
-            ),
+            props: attrsProps as Record<string, unknown>,
+            updateProps: updateSelectedNodeAttrs((attrs, newProps) => ({
+                ...newProps,
+                blockId: attrs.blockId ?? null,
+            })),
             deleteBlock,
             getPos,
             ...(nodeType === pmNodeNames.tableBlock
@@ -193,6 +202,7 @@ export function inspectedBlockFromSelection(
         const block = node.attrs.block as { type?: string } | null
         return {
             nodeType,
+            blockId,
             blockType: block?.type ?? "unknown",
             kind: "raw",
             props: (block ?? {}) as Record<string, unknown>,
@@ -206,6 +216,7 @@ export function inspectedBlockFromSelection(
     if (containerBlockType) {
         return {
             nodeType,
+            blockId,
             blockType: containerBlockType,
             kind: "container",
             props: {},
@@ -366,7 +377,8 @@ export function convertSelectedChartBlockToNarrativeChart(
             tr.setNodeMarkup(
                 pos,
                 state.schema.nodes[pmNodeNames.narrativeChart],
-                { props }
+                // an in-place conversion keeps the block's identity
+                { props, blockId: selection.node.attrs.blockId ?? null }
             )
             return true
         })

@@ -3,9 +3,9 @@ import { describe, expect, it } from "vitest"
 import { Editor } from "@tiptap/core"
 import { NodeSelection } from "@tiptap/pm/state"
 import { OwidEnrichedGdocBlock } from "@ourworldindata/types"
-import { getRichEditorBaseExtensions } from "./extensions.js"
-import { enrichedBlocksToPmDoc } from "./serialization/serialization.js"
-import { pmNodeNames } from "./serialization/pmJson.js"
+import { getRichEditorBaseExtensions } from "../../adminShared/richEditor/extensions.js"
+import { enrichedBlocksToPmDoc } from "../../adminShared/richEditor/serialization/serialization.js"
+import { pmNodeNames } from "../../adminShared/richEditor/serialization/pmJson.js"
 import { convertSelectedChartBlockToNarrativeChart } from "./inspection.js"
 
 const chartBlock: OwidEnrichedGdocBlock = {

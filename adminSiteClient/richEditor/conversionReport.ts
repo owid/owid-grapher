@@ -1,11 +1,11 @@
 import { OwidEnrichedGdocBlock } from "@ourworldindata/types"
-import { pmNodeNames } from "./serialization/pmJson.js"
+import { pmNodeNames } from "../../adminShared/richEditor/serialization/pmJson.js"
 import {
     enrichedBlockToPmNode,
     enrichedBlocksToPmDoc,
     pmDocToEnrichedBlocks,
-} from "./serialization/serialization.js"
-import { enrichedBodiesMatch } from "./serialization/normalizeForComparison.js"
+} from "../../adminShared/richEditor/serialization/serialization.js"
+import { enrichedBodiesMatch } from "../../adminShared/richEditor/serialization/normalizeForComparison.js"
 
 // Computed before converting a gdoc to native editing so the author knows
 // exactly what they get: which blocks are fully editable, which are carried
