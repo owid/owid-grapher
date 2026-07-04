@@ -18,6 +18,7 @@ export type Response = express.Response<any, { user: DbPlainUser }>
 
 const API_KEY_HEADER = "authorization"
 const ACT_AS_USER_HEADER = "x-act-as-user"
+const TAILSCALE_USER_LOGIN_HEADER = "tailscale-user-login"
 const CLOUDFLARE_COOKIE_NAME = "CF_Authorization"
 const CLOUDFLARE_TEAM_DOMAIN = "https://owid.cloudflareaccess.com"
 const DEV_ADMIN_EMAIL = "admin@example.com"
@@ -179,11 +180,14 @@ export async function tailscaleAuthMiddleware(
         return next()
     }
 
-    const ipToUserMap = await getTailscaleIpToUserMap()
+    const tailscaleUserLogin = getTrustedTailscaleUserLogin(req, clientIp)
+    const ipToUserMap = tailscaleUserLogin
+        ? undefined
+        : await getTailscaleIpToUserMap()
 
-    const githubUserName = ipToUserMap[clientIp]
+    const loginName = tailscaleUserLogin ?? ipToUserMap?.[clientIp]
 
-    if (!githubUserName) {
+    if (!loginName) {
         return next()
     }
 
@@ -192,7 +196,8 @@ export async function tailscaleAuthMiddleware(
         user = await db
             .knexInstance()
             .table(UsersTableName)
-            .where({ githubUsername: githubUserName })
+            .where({ githubUsername: loginName })
+            .orWhere({ email: loginName })
             .first<DbPlainUser>()
     } catch (error) {
         console.error(`Error looking up user by githubUsername: ${error}`)
@@ -201,7 +206,7 @@ export async function tailscaleAuthMiddleware(
 
     if (!user) {
         console.error(
-            `User with githubUsername ${githubUserName} not found in MySQL.`
+            `User with Tailscale login ${loginName} not found in MySQL.`
         )
         return next()
     }
@@ -266,6 +271,24 @@ async function getDevAdminUser(): Promise<DbPlainUser | undefined> {
             .where({ email: DEV_ADMIN_EMAIL })
             .first()
     })
+}
+
+export function getTrustedTailscaleUserLogin(
+    req: express.Request,
+    clientIp: string
+): string | undefined {
+    // Tailscale Serve forwards authenticated tailnet requests with identity
+    // headers, but the backend connection reaches nginx/admin over localhost.
+    // Only trust the header on that localhost path; direct HTTP access should
+    // continue to authenticate via the Tailscale source IP from X-Forwarded-For.
+    if (!isLoopbackIp(clientIp)) return undefined
+
+    const login = req.get(TAILSCALE_USER_LOGIN_HEADER)?.trim()
+    return login || undefined
+}
+
+export function isLoopbackIp(ip: string): boolean {
+    return ip === "127.0.0.1" || ip === "::1" || ip === "localhost"
 }
 
 function getClientIp(req: express.Request): string | undefined {
