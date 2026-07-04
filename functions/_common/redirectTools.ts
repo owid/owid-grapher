@@ -1,3 +1,7 @@
+import {
+    type DecisionTreeNode,
+    matchQueryParamDecisionTree,
+} from "@ourworldindata/utils"
 import { Env, extensions } from "./env.js"
 
 export function createRedirectResponse(
@@ -142,16 +146,26 @@ async function getOptionalExplorerRedirectForSlug(
     env: Env
 ): Promise<string | undefined> {
     if (!slug) return undefined
-    const redirects: Record<string, string> = await env.ASSETS.fetch(
+    // Each source slug maps to a decision tree that resolves the target based on
+    // the incoming query params (see baker/redirectsFromDb.ts).
+    const redirects: Record<
+        string,
+        DecisionTreeNode<string>
+    > = await env.ASSETS.fetch(
         new URL("/explorers/_explorerRedirects.json", baseUrl),
         { cf: { cacheTtl: 2 * 60 } }
     )
-        .then((r): Promise<Record<string, string>> => r.json())
+        .then(
+            (r): Promise<Record<string, DecisionTreeNode<string>>> => r.json()
+        )
         .catch((e) => {
             console.error("Error fetching explorer redirects", e)
             return {}
         })
-    return redirects[slug]
+    const tree = redirects[slug]
+    if (!tree) return undefined
+    const queryParams = Object.fromEntries(baseUrl.searchParams)
+    return matchQueryParamDecisionTree(tree, queryParams)
 }
 
 export async function handleExplorerPageNotFound(
