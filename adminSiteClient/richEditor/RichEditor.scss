@@ -1010,3 +1010,53 @@ $canvas-wide-measure: 1280px;
         min-height: 0;
     }
 }
+
+.rich-editor-assistant__files {
+    flex: 0 0 auto;
+    border-top: 1px solid #e5e1d8;
+    padding: 4px 0;
+    font-size: 12px;
+    max-height: 40%;
+    overflow-y: auto;
+
+    summary {
+        cursor: pointer;
+        color: #666;
+    }
+
+    ul {
+        list-style: none;
+        margin: 4px 0;
+        padding: 0;
+    }
+
+    li button {
+        background: none;
+        border: none;
+        padding: 0;
+        color: #1677ff;
+        cursor: pointer;
+        font-family: monospace;
+        font-size: 12px;
+    }
+
+    li span {
+        color: #999;
+    }
+}
+
+.rich-editor-assistant__files-empty {
+    color: #999;
+    margin: 4px 0;
+}
+
+.rich-editor-assistant__files-preview {
+    background: #fff;
+    border: 1px solid #e5e1d8;
+    border-radius: 4px;
+    padding: 6px;
+    font-size: 11px;
+    white-space: pre-wrap;
+    max-height: 200px;
+    overflow-y: auto;
+}

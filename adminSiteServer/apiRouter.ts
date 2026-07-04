@@ -73,6 +73,7 @@ import {
     applyDraftToSyncDocument,
     flushRichEditorSyncDocument,
 } from "./richEditorSync.js"
+import { assistantFetchUrl } from "./apiRoutes/assistantFetch.js"
 import * as db from "../db/db.js"
 import {
     getImagesHandler,
@@ -496,6 +497,8 @@ apiRouter.post("/gdocs/:id/syncFlush", async (req) => {
     await flushRichEditorSyncDocument(req.params.id)
     return { success: true }
 })
+// URL fetch proxy for the assistant's web tools (no transaction needed)
+apiRouter.get("/assistant/fetchUrl", async (req) => assistantFetchUrl(req))
 
 // Data insight routes
 getRouteWithROTransaction(

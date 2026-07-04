@@ -7,10 +7,7 @@
 import { Editor } from "@tiptap/core"
 import { Node as PmNode } from "@tiptap/pm/model"
 import { Type, type Static } from "typebox"
-import type {
-    AgentTool,
-    AgentToolResult,
-} from "@earendil-works/pi-agent-core"
+import type { AgentTool, AgentToolResult } from "@earendil-works/pi-agent-core"
 import { OwidEnrichedGdocBlock } from "@ourworldindata/types"
 import { excludeNullish } from "@ourworldindata/utils"
 import {
@@ -33,6 +30,7 @@ import {
     pmNodeToEnrichedBlock,
 } from "../../../adminShared/richEditor/serialization/serialization.js"
 import { isIdentifiedNodeName } from "../../../adminShared/richEditor/serialization/pmJson.js"
+import { normalizedBodyKey } from "../../../adminShared/richEditor/serialization/normalizeForComparison.js"
 import { RichEditorCommentThread } from "../../../adminShared/RichEditorTypes.js"
 import { Admin } from "../../Admin.js"
 import { resolveSelectionRef, selectionRefFromEditor } from "../selectionRef.js"
@@ -58,7 +56,7 @@ const text = (t: string): AgentToolResult<unknown>["content"] => [
     { type: "text", text: t },
 ]
 
-function requireEditor(host: DocToolHost): Editor {
+export function requireEditor(host: DocToolHost): Editor {
     const editor = host.getEditor()
     if (!editor)
         throw new Error(
@@ -72,7 +70,7 @@ function requireEditor(host: DocToolHost): Editor {
  * groups edits by time, so without this an agent edit could merge into the
  * same undo step as the user's own typing (or a previous agent edit).
  */
-function undoBoundary(editor: Editor): void {
+export function undoBoundary(editor: Editor): void {
     undoPluginKey.getState(editor.state)?.undoManager?.stopCapturing()
 }
 
@@ -106,7 +104,7 @@ function locateBlockById(doc: PmNode, blockId: string): LocatedBlock | null {
     return found
 }
 
-function requireBlock(doc: PmNode, blockId: string): LocatedBlock {
+export function requireBlock(doc: PmNode, blockId: string): LocatedBlock {
     const located = locateBlockById(doc, blockId)
     if (!located)
         throw new Error(
@@ -115,11 +113,11 @@ function requireBlock(doc: PmNode, blockId: string): LocatedBlock {
     return located
 }
 
-function nodeToEnriched(node: PmNode): OwidEnrichedGdocBlock {
+export function nodeToEnriched(node: PmNode): OwidEnrichedGdocBlock {
     return pmNodeToEnrichedBlock(node.toJSON())
 }
 
-function nodeToXhtml(node: PmNode): string {
+export function nodeToXhtml(node: PmNode): string {
     return prettyPrintXhtml(enrichedBlockToXhtml(nodeToEnriched(node)))
 }
 
@@ -132,13 +130,8 @@ function blockStub(node: PmNode): string {
     }
     const textContent = node.textContent.trim()
     const detail =
-        textContent ||
-        enriched.url ||
-        enriched.filename ||
-        enriched.title ||
-        ""
-    const shortened =
-        detail.length > 90 ? detail.slice(0, 87) + "..." : detail
+        textContent || enriched.url || enriched.filename || enriched.title || ""
+    const shortened = detail.length > 90 ? detail.slice(0, 87) + "..." : detail
     return shortened ? ` ${JSON.stringify(shortened)}` : ""
 }
 
@@ -148,7 +141,7 @@ interface TopBlock {
     enrichedType: string
 }
 
-function topLevelBlocks(editor: Editor): TopBlock[] {
+export function topLevelBlocks(editor: Editor): TopBlock[] {
     const blocks: TopBlock[] = []
     editor.state.doc.forEach((node) => {
         blocks.push({
@@ -168,15 +161,15 @@ function sectionBlocks(editor: Editor, headingId: string): PmNode[] {
         throw new Error(
             `No top-level block with id "${headingId}" — sections are addressed by a top-level heading's id.`
         )
-    const startNode = blocks[start]!.node
+    const startNode = blocks[start].node
     if (startNode.type.name !== "heading")
         throw new Error(
-            `Block "${headingId}" is a ${blocks[start]!.enrichedType}, not a heading — pass a heading id for section reads.`
+            `Block "${headingId}" is a ${blocks[start].enrichedType}, not a heading — pass a heading id for section reads.`
         )
     const level = startNode.attrs.level as number
     const out: PmNode[] = [startNode]
     for (let i = start + 1; i < blocks.length; i++) {
-        const block = blocks[i]!
+        const block = blocks[i]
         if (
             block.node.type.name === "heading" &&
             (block.node.attrs.level as number) <= level
@@ -208,7 +201,7 @@ const outlineTool = (host: DocToolHost): AgentTool<typeof outlineParams> => ({
         let out = `Document: "${info.title}" (${info.type}, id ${info.id})\n`
         out += `${blocks.length} top-level blocks, ~${totalChars} chars of text.\n\n`
         for (let i = 0; i < blocks.length; i++) {
-            const block = blocks[i]!
+            const block = blocks[i]
             const id = block.id ?? "(no id yet)"
             if (block.node.type.name === "heading") {
                 const level = block.node.attrs.level as number
@@ -217,7 +210,7 @@ const outlineTool = (host: DocToolHost): AgentTool<typeof outlineParams> => ({
                 let sectionBlockCount = 0
                 let sectionChars = 0
                 for (let j = i + 1; j < blocks.length; j++) {
-                    const next = blocks[j]!
+                    const next = blocks[j]
                     if (
                         next.node.type.name === "heading" &&
                         (next.node.attrs.level as number) <= level
@@ -297,7 +290,8 @@ const readTool = (host: DocToolHost): AgentTool<typeof readParams> => ({
 
 const findParams = Type.Object({
     query: Type.String({
-        description: "Text to search for (plain text, or a regex with regex=true)",
+        description:
+            "Text to search for (plain text, or a regex with regex=true)",
     }),
     regex: Type.Optional(
         Type.Boolean({ description: "Treat query as a JavaScript regex" })
@@ -335,10 +329,7 @@ const findTool = (host: DocToolHost): AgentTool<typeof findParams> => ({
                       params.query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
                       flags
                   )
-        const maxMatches = Math.max(
-            1,
-            Math.round(params.max_matches ?? 20)
-        )
+        const maxMatches = Math.max(1, Math.round(params.max_matches ?? 20))
 
         const matches: FindMatch[] = []
         let total = 0
@@ -440,14 +431,15 @@ const editParams = Type.Object({
     ),
 })
 
-function parseXhtmlBlocks(xhtml: string): OwidEnrichedGdocBlock[] {
+export function parseXhtmlBlocks(xhtml: string): OwidEnrichedGdocBlock[] {
     let blocks: OwidEnrichedGdocBlock[]
     try {
         blocks = xhtmlToEnrichedBlocks(xhtml)
     } catch (err) {
         if (err instanceof XhtmlParseError) throw err
         throw new Error(
-            `Could not parse the XHTML: ${err instanceof Error ? err.message : String(err)}`
+            `Could not parse the XHTML: ${err instanceof Error ? err.message : String(err)}`,
+            { cause: err }
         )
     }
     if (blocks.length === 0)
@@ -550,7 +542,8 @@ const editTool = (host: DocToolHost): AgentTool<typeof editParams> => ({
             throw new Error(
                 `The edit is not valid here (${parent.type.name} cannot hold this content): ${
                     err instanceof Error ? err.message : String(err)
-                }`
+                }`,
+                { cause: err }
             )
         }
         undoBoundary(editor)
@@ -582,12 +575,9 @@ const editTool = (host: DocToolHost): AgentTool<typeof editParams> => ({
         ) {
             const child = container.child(i)
             const childType = (nodeToEnriched(child) as { type: string }).type
-            landed.push(
-                `${String(child.attrs.blockId ?? "?")} [${childType}]`
-            )
+            landed.push(`${String(child.attrs.blockId ?? "?")} [${childType}]`)
         }
-        const verb =
-            params.action === "replace" ? "Replaced with" : "Inserted"
+        const verb = params.action === "replace" ? "Replaced with" : "Inserted"
         return {
             content: text(
                 `${verb} ${pmNodes.length} block${pmNodes.length === 1 ? "" : "s"}: ${landed.join(", ")}. The change is live in the user's editor (one undo step).`
@@ -672,8 +662,7 @@ const listCommentsTool = (
         )) as unknown as { threads: RichEditorCommentThread[] }
         const visible = threads.filter(
             (thread) =>
-                params.include_resolved === true ||
-                thread.status !== "resolved"
+                params.include_resolved === true || thread.status !== "resolved"
         )
         if (visible.length === 0)
             return {
@@ -817,9 +806,9 @@ async function chartList(admin: Admin): Promise<ChartRow[]> {
         Date.now() - chartListCache.fetchedAt < CHART_LIST_TTL_MS
     )
         return chartListCache.rows
-    const response = (await admin.getJSON(
-        "/api/charts.json"
-    )) as unknown as { charts: ChartRow[] }
+    const response = (await admin.getJSON("/api/charts.json")) as unknown as {
+        charts: ChartRow[]
+    }
     chartListCache = { rows: response.charts, fetchedAt: Date.now() }
     return chartListCache.rows
 }
@@ -853,12 +842,11 @@ const searchChartsTool = (
                 ]
                     .join(" ")
                     .toLowerCase()
-                if (!terms.every((term) => haystack.includes(term)))
-                    return null
+                if (!terms.every((term) => haystack.includes(term))) return null
                 // crude relevance: published first, then title-prefix matches
                 const score =
                     (row.isPublished ? 2 : 0) +
-                    (row.title.toLowerCase().startsWith(terms[0]!) ? 1 : 0)
+                    (row.title.toLowerCase().startsWith(terms[0]) ? 1 : 0)
                 return { row, score }
             })
         ).sort((a, b) => b.score - a.score)
@@ -907,4 +895,120 @@ export function createDocTools(host: DocToolHost): AgentTool[] {
         describeComponentTool(host) as AgentTool,
         searchChartsTool(host) as AgentTool,
     ]
+}
+
+// ---------------------------------------------------------------------------
+// Whole-file document rewrites (the JavaScript workspace's /doc/current.xhtml
+// path): diff the file's blocks against the live document BY BLOCK ID and
+// apply the delta — untouched blocks are never rewritten, so concurrent
+// edits and comment anchors on them survive. All ops land in one undo group.
+// ---------------------------------------------------------------------------
+
+export function fullDocXhtml(editor: Editor): string {
+    return topLevelBlocks(editor)
+        .map((block) => nodeToXhtml(block.node))
+        .join("\n\n")
+}
+
+export interface DocFileDiffResult {
+    replaced: number
+    inserted: number
+    deleted: number
+    unchanged: number
+}
+
+export function applyDocFileDiff(
+    editor: Editor,
+    newBlocks: OwidEnrichedGdocBlock[]
+): DocFileDiffResult {
+    const old = topLevelBlocks(editor)
+    const oldIds = old.map((block) => block.id).filter(Boolean) as string[]
+    const oldById = new Map(
+        old.filter((block) => block.id).map((block) => [block.id!, block])
+    )
+    const keptIds = newBlocks
+        .map((block) => block.id)
+        .filter((id): id is string => !!id && oldById.has(id))
+
+    // reordering existing blocks via the file is not supported — the diff
+    // would degenerate into delete+reinsert and lose identity
+    const keptInOldOrder = oldIds.filter((id) => keptIds.includes(id))
+    if (keptInOldOrder.join("\n") !== keptIds.join("\n"))
+        throw new Error(
+            "The file reorders existing blocks — that is not supported through /doc/current.xhtml. Use the edit tool to move blocks, or keep their order and only change content."
+        )
+
+    const keptIdSet = new Set(keptIds)
+    const result: DocFileDiffResult = {
+        replaced: 0,
+        inserted: 0,
+        deleted: 0,
+        unchanged: 0,
+    }
+
+    undoBoundary(editor)
+    try {
+        // deletions first (ids re-resolved each time; positions stay valid
+        // because every op re-reads the current state)
+        for (const oldId of oldIds) {
+            if (keptIdSet.has(oldId)) continue
+            const located = requireBlock(editor.state.doc, oldId)
+            const tr = editor.state.tr
+            tr.delete(located.pos, located.pos + located.node.nodeSize)
+            editor.view.dispatch(tr)
+            result.deleted++
+        }
+        // then walk the new list: replace changed kept blocks in place,
+        // insert new blocks after the previously placed one
+        let lastPlacedId: string | null = null
+        for (const block of newBlocks) {
+            const isKept = !!block.id && keptIdSet.has(block.id)
+            if (isKept) {
+                const located = requireBlock(editor.state.doc, block.id!)
+                const changed =
+                    normalizedBodyKey([nodeToEnriched(located.node)]) !==
+                    normalizedBodyKey([block])
+                if (changed) {
+                    const node = editor.schema.nodeFromJSON(
+                        enrichedBlockToPmNode(block)
+                    )
+                    node.check()
+                    const tr = editor.state.tr
+                    tr.replaceWith(
+                        located.pos,
+                        located.pos + located.node.nodeSize,
+                        node
+                    )
+                    editor.view.dispatch(tr)
+                    result.replaced++
+                } else {
+                    result.unchanged++
+                }
+                lastPlacedId = block.id!
+            } else {
+                const node = editor.schema.nodeFromJSON(
+                    enrichedBlockToPmNode(block)
+                )
+                node.check()
+                let insertPos = 0
+                if (lastPlacedId) {
+                    const anchor = requireBlock(editor.state.doc, lastPlacedId)
+                    insertPos = anchor.pos + anchor.node.nodeSize
+                }
+                const tr = editor.state.tr
+                tr.insert(insertPos, node)
+                editor.view.dispatch(tr)
+                result.inserted++
+                // the assignment plugin may have minted the id; read it back
+                const placed: PmNode | null = editor.state.doc
+                    .resolve(insertPos + 1)
+                    .node(1)
+                lastPlacedId =
+                    (placed?.attrs.blockId as string | null) ?? lastPlacedId
+            }
+        }
+    } finally {
+        undoBoundary(editor)
+    }
+    return result
 }
