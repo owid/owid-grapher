@@ -1060,3 +1060,19 @@ $canvas-wide-measure: 1280px;
     max-height: 200px;
     overflow-y: auto;
 }
+
+// blocks the assistant just edited flash briefly so the change is visible
+.rich-editor-assistant-flash {
+    animation: rich-editor-assistant-flash 1.6s ease-out;
+}
+
+@keyframes rich-editor-assistant-flash {
+    0% {
+        background-color: rgba(22, 119, 255, 0.18);
+        box-shadow: 0 0 0 4px rgba(22, 119, 255, 0.18);
+    }
+    100% {
+        background-color: transparent;
+        box-shadow: none;
+    }
+}
