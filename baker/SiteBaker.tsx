@@ -48,9 +48,7 @@ import {
     LinkedStaticViz,
 } from "@ourworldindata/utils"
 import { execWrapper } from "../db/execWrapper.js"
-import {
-    getCloudflarePagesRedirects,
-} from "./redirects.js"
+import { getCloudflarePagesRedirects } from "./redirects.js"
 import { bakeAllChangedGrapherPagesAndDeleteRemovedGraphers } from "./GrapherBaker.js"
 import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
 import {
@@ -1238,8 +1236,6 @@ export class SiteBaker {
     async endDbConnections() {
         await db.closeTypeOrmAndKnexConnections()
     }
-
-
 }
 
 export const bakeSinglePostPageForArchival = async (

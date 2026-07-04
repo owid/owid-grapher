@@ -125,4 +125,3 @@ export async function getExplorerToMultiDimRedirects(
     }
     return redirects
 }
-
