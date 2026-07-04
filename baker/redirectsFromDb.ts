@@ -1,6 +1,4 @@
-import * as _ from "lodash-es"
 import * as db from "../db/db.js"
-import { getSiteRedirects } from "../db/model/Redirect.js"
 import { getMultiDimRedirectTargets } from "../db/model/MultiDimRedirects.js"
 
 // Prevent Cloudflare from serving outdated pages, which can remain in the
@@ -128,30 +126,3 @@ export async function getExplorerToMultiDimRedirects(
     return redirects
 }
 
-export const DEPRECATED_getSiteRedirectsMap = async (
-    knex: db.KnexReadonlyTransaction
-) => {
-    const siteRedirects = await getSiteRedirects(knex)
-
-    return new Map(siteRedirects.map((row) => [row.source, row.target]))
-}
-
-export const DEPRECATED_getAllRedirectsMap = _.memoize(
-    async (knex: db.KnexReadonlyTransaction): Promise<Map<string, string>> => {
-        // source: pathnames only (e.g. /transport)
-        // target: pathnames with or without origins (e.g. /transport-new or https://ourworldindata.org/transport-new)
-
-        const grapherRedirects =
-            await getGrapherToChartAndMultiDimRedirects(knex)
-        const explorerRedirects = await getExplorerToMultiDimRedirects(knex)
-        const siteRedirects = await DEPRECATED_getSiteRedirectsMap(knex)
-
-        // The order matters: site redirects can override both grapher and
-        // explorer redirects.
-        return new Map([
-            ...grapherRedirects,
-            ...explorerRedirects,
-            ...siteRedirects,
-        ])
-    }
-)

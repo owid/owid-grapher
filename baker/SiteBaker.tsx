@@ -50,7 +50,6 @@ import {
 import { execWrapper } from "../db/execWrapper.js"
 import {
     getCloudflarePagesRedirects,
-    flushCache as redirectsFlushCache,
 } from "./redirects.js"
 import { bakeAllChangedGrapherPagesAndDeleteRemovedGraphers } from "./GrapherBaker.js"
 import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
@@ -157,9 +156,7 @@ export type BakeStepConfig = Set<BakeStep>
 const defaultSteps = new Set(bakeSteps)
 
 function getProgressBarTotal(bakeSteps: BakeStepConfig): number {
-    // There are 2 non-optional steps: flushCache at the beginning and flushCache at the end (again)
-    const minimum = 2
-    return minimum + bakeSteps.size
+    return bakeSteps.size
 }
 
 export class SiteBaker {
@@ -1212,12 +1209,9 @@ export class SiteBaker {
     }
 
     async bakeAll(knex: db.KnexReadonlyTransaction) {
-        // Ensure caches are correctly initialized
-        this.flushCache()
         await this.removeDeletedPosts(knex)
         await this.bakeWordpressPages(knex)
         await this._bakeNonWordpressPages(knex)
-        this.flushCache()
     }
 
     async ensureDir(relPath: string) {
@@ -1245,11 +1239,7 @@ export class SiteBaker {
         await db.closeTypeOrmAndKnexConnections()
     }
 
-    private flushCache() {
-        this.progressBar.tick({ name: "Flushing cache" })
-        // Clear caches to allow garbage collection while waiting for next run
-        redirectsFlushCache()
-    }
+
 }
 
 export const bakeSinglePostPageForArchival = async (
