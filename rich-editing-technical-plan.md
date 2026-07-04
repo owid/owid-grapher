@@ -289,9 +289,9 @@ M3 shipped on `rich-editing-m3` (stacked on M2), going beyond Stage B per Daniel
 
 Deviations/notes: slug→chart-id resolution uses the charts list (redirected slugs: button disabled, full editor as escape hatch); the export tab works embedded but has no static-preview pane; undoing a block conversion leaves the created narrative chart orphaned; comment marks and block drag are unaffected by live graphers. Verified: full browser flow (parent edit with live canvas update + discard guard; create-narrative-chart → convert → live edit → save → reopen), corpus still 1,173/1,173, unit (1,995) and db (85) suites green.
 
-**M4 — AI side panel** (separate detailed plan when we get there)
+**M4 — AI side panel** (detailed plan: `rich-editing-m4-plan.md`, drafted 2026-07-04)
 
-- Command layer hardening, chat rail, Claude API proxy, suggestion/track-changes mode.
+- In-browser agent on the pi harness (pi-ai / pi-agent-core / pi-web-ui, as in the [gdocs Chrome extension](https://github.com/owid/gdocs-chrome-extension)); tools adapted from the extension (read/find/edit/selection/comments/describe/code-VFS/web/summaries + search_charts); semantic XHTML (PR #6236 codec resurrected) as the model-facing format; edits applied immediately through the live Yjs editor (no apply gate), undoable per operation. Decisions: browser API keys v1 (proxy later), pi-web-ui ChatPanel embedded, blockIds extended to all top-level blocks, full extension tool parity in v1.
 
 **M5+ — Real-time & long tail**
 
