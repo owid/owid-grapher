@@ -23,8 +23,6 @@ import { dayjs } from "@ourworldindata/utils"
 import {
     RichEditorCommentThreadsResponse,
     RichEditorGdocResponse,
-    RichEditorPresenceEditor,
-    RichEditorPresenceResponse,
     RichEditorPublishResponse,
     RichEditorPublishValidationResponse,
     RichEditorRevisionsResponse,
@@ -57,6 +55,7 @@ import { useChartEditingState } from "./chartEditing/useChartEditingState.js"
 import { EmbeddedChartEditorPanel } from "./chartEditing/EmbeddedChartEditorPanel.js"
 import {
     RichEditorSyncStatus,
+    useAwarenessPeers,
     useRichEditorCollaboration,
 } from "./collaboration.js"
 
@@ -68,7 +67,6 @@ type SaveState =
     | { kind: "error"; message: string }
 
 const AUTOSAVE_DEBOUNCE_MS = 2000
-const PRESENCE_HEARTBEAT_MS = 20_000
 
 export function RichEditorPage(
     props: RouteComponentProps<{ id: string }>
@@ -162,7 +160,8 @@ function RichEditorPageForId(props: { id: string }): React.ReactElement {
     const syncEnabled =
         isNative &&
         new URLSearchParams(window.location.search).get("sync") !== "0"
-    const collab = useRichEditorCollaboration(id, syncEnabled)
+    const collab = useRichEditorCollaboration(id, syncEnabled, admin.username)
+    const peers = useAwarenessPeers(collab.collaboration)
 
     const threadsQuery = useQuery<RichEditorCommentThreadsResponse>({
         queryKey: ["richEditorComments", id],
@@ -230,9 +229,6 @@ function RichEditorPageForId(props: { id: string }): React.ReactElement {
     // was clicked while a component was selected)
     const [pendingInsert, setPendingInsert] =
         useState<RichEditorBlockItem | null>(null)
-    const [activeEditors, setActiveEditors] = useState<
-        RichEditorPresenceEditor[]
-    >([])
     const [publishing, setPublishing] = useState(false)
 
     // Local overrides for fields the page mutates without refetching
@@ -246,32 +242,19 @@ function RichEditorPageForId(props: { id: string }): React.ReactElement {
         }
     }, [gdocQuery.data])
 
-    // Presence heartbeat while the editor is open
+    // The ydoc was discarded and reseeded server-side (schema bump, idle
+    // disposal) while this client was away: local Yjs state belongs to a
+    // dead generation and must not merge. Reload to join the new one.
     useEffect(() => {
-        if (!isNative) return undefined
-        let cancelled = false
-        const beat = async (): Promise<void> => {
-            try {
-                const response = await admin.rawRequest(
-                    `/api/gdocs/${id}/presence`,
-                    JSON.stringify({}),
-                    "POST"
-                )
-                if (!response.ok) return
-                const payload =
-                    (await response.json()) as RichEditorPresenceResponse
-                if (!cancelled) setActiveEditors(payload.editors)
-            } catch {
-                // presence is advisory; ignore failures
-            }
-        }
-        void beat()
-        const interval = setInterval(() => void beat(), PRESENCE_HEARTBEAT_MS)
-        return () => {
-            cancelled = true
-            clearInterval(interval)
-        }
-    }, [admin, id, isNative])
+        if (!collab.generationChanged) return
+        Modal.warning({
+            title: "This document was reset on the server",
+            content:
+                "Reloading to pick up the current version. Unsynced local changes could not be kept.",
+            okText: "Reload",
+            onOk: () => window.location.reload(),
+        })
+    }, [collab.generationChanged])
 
     // Highlight comment ranges once the editor, the threads and (in sync
     // mode) the initial server sync are ready — before sync the doc is empty
@@ -660,20 +643,27 @@ function RichEditorPageForId(props: { id: string }): React.ReactElement {
                     </Space>
                 </header>
 
-                {activeEditors.length > 0 && (
+                {peers.length > 0 && (
                     <Alert
                         type="info"
                         showIcon
-                        title={`${activeEditors
-                            .map((editor) => editor.fullName)
-                            .join(", ")} ${
-                            activeEditors.length === 1 ? "is" : "are"
-                        } also editing this document`}
-                        description={
-                            syncEnabled
-                                ? "Edits merge live — you are looking at the same document."
-                                : "There is no real-time merging yet: the last save wins, and you will be warned if someone else saved first."
+                        title={
+                            <Space size="small" wrap>
+                                {peers.map((peer) => (
+                                    <Tag key={peer.clientId} color={peer.color}>
+                                        {peer.name}
+                                        {peer.kind === "agent"
+                                            ? " (agent)"
+                                            : ""}
+                                    </Tag>
+                                ))}
+                                <span>
+                                    {peers.length === 1 ? "is" : "are"} also
+                                    editing this document
+                                </span>
+                            </Space>
                         }
+                        description="Edits merge live — you are looking at the same document."
                     />
                 )}
 

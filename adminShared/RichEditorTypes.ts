@@ -208,15 +208,5 @@ export interface RichEditorUpdateThreadRequest {
     status: Extract<PostGdocCommentThreadStatus, "open" | "resolved">
 }
 
-// ── Presence ───────────────────────────────────────────────────────────────
-
-export interface RichEditorPresenceEditor {
-    userId: number
-    fullName: string
-    lastSeen: string
-}
-
-export interface RichEditorPresenceResponse {
-    /** Other users with the editor open on this doc (excludes the requester) */
-    editors: RichEditorPresenceEditor[]
-}
+// (Presence types were removed with the heartbeat presence endpoint —
+// presence now travels in the sync connection's awareness states.)

@@ -9,7 +9,7 @@ import { Node as PmNode } from "@tiptap/pm/model"
 import {
     prosemirrorJSONToYDoc,
     prosemirrorToYXmlFragment,
-    yDocToProsemirrorJSON,
+    yXmlFragmentToProseMirrorRootNode,
 } from "@tiptap/y-tiptap"
 import {
     OwidGdocAuthoringMode,
@@ -122,7 +122,12 @@ async function loadOrSeedYdoc(
                 seededFromRevisionId: draft ? Number(draft.revisionId) : null,
             })
             .onConflict("gdocId")
-            .merge(["ydoc", "schemaVersion", "generation", "seededFromRevisionId"])
+            .merge([
+                "ydoc",
+                "schemaVersion",
+                "generation",
+                "seededFromRevisionId",
+            ])
     })
 }
 
@@ -145,17 +150,17 @@ async function storeAndMaterialize(
     user: DbPlainUser | undefined
 ): Promise<void> {
     const update = Buffer.from(Y.encodeStateAsUpdate(document))
-    const pmDoc = yDocToProsemirrorJSON(
-        document,
-        Y_DOC_FIELD
-    ) as unknown as PmNodeJson
 
-    // Materialization must never write invalid JSON: if the serializer
+    // Materialization must never write invalid JSON: if the conversion
     // throws, keep the previous draft head (the ydoc blob is still stored,
     // nothing is lost) and surface the error.
     let body: ReturnType<typeof pmDocToEnrichedBlocks> | null = null
     let materializeError: unknown = null
     try {
+        const pmDoc = yXmlFragmentToProseMirrorRootNode(
+            document.getXmlFragment(Y_DOC_FIELD),
+            serverSchema
+        ).toJSON() as PmNodeJson
         body = pmDocToEnrichedBlocks(pmDoc)
     } catch (error) {
         materializeError = error
@@ -186,6 +191,28 @@ async function storeAndMaterialize(
 }
 
 let syncInstance: Hocuspocus<SyncContext> | null = null
+
+const YDOC_IDLE_DISPOSAL_DAYS = 7
+const YDOC_DISPOSAL_SWEEP_INTERVAL_MS = 6 * 60 * 60 * 1000
+
+/**
+ * Drop ydoc blobs that have not been touched in a while and are not loaded
+ * right now. Purely a growth bound: the draft JSON is the durable format,
+ * so a disposed doc simply reseeds on the next open. Exported for tests.
+ */
+export async function disposeIdleYdocs(
+    idleDays: number = YDOC_IDLE_DISPOSAL_DAYS
+): Promise<number> {
+    const loaded = [...(syncInstance?.documents.keys() ?? [])]
+    return db.knexReadWriteTransaction(async (trx) => {
+        const cutoff = new Date(Date.now() - idleDays * 24 * 60 * 60 * 1000)
+        let query = trx
+            .table(PostsGdocsYdocsTableName)
+            .where("updatedAt", "<", cutoff)
+        if (loaded.length > 0) query = query.whereNotIn("gdocId", loaded)
+        return query.delete()
+    })
+}
 
 /**
  * Reconcile the live collaboration state with the (committed) draft after a
@@ -260,11 +287,7 @@ export function createRichEditorSyncServer(): Hocuspocus<SyncContext> {
         },
 
         onStoreDocument: async ({ document, documentName, lastContext }) => {
-            await storeAndMaterialize(
-                documentName,
-                document,
-                lastContext?.user
-            )
+            await storeAndMaterialize(documentName, document, lastContext?.user)
         },
     })
     return syncInstance
@@ -280,6 +303,15 @@ export function attachRichEditorSyncServer(
     hocuspocus: Hocuspocus<SyncContext>
 ): void {
     const wss = new WebSocketServer({ noServer: true })
+
+    const disposalInterval = setInterval(() => {
+        disposeIdleYdocs().catch((error) =>
+            console.error("rich editor sync: idle ydoc disposal failed", error)
+        )
+    }, YDOC_DISPOSAL_SWEEP_INTERVAL_MS)
+    // don't keep the process alive for the sweep
+    disposalInterval.unref()
+    server.on("close", () => clearInterval(disposalInterval))
 
     server.on(
         "upgrade",

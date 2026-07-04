@@ -68,7 +68,6 @@ import {
     replyToGdocCommentThread,
     updateGdocCommentThread,
     updateGdocCommentAnchors,
-    heartbeatGdocPresence,
 } from "./apiRoutes/richEditor.js"
 import {
     applyDraftToSyncDocument,
@@ -497,11 +496,6 @@ apiRouter.post("/gdocs/:id/syncFlush", async (req) => {
     await flushRichEditorSyncDocument(req.params.id)
     return { success: true }
 })
-postRouteWithRWTransaction(
-    apiRouter,
-    "/gdocs/:id/presence",
-    heartbeatGdocPresence
-)
 
 // Data insight routes
 getRouteWithROTransaction(
