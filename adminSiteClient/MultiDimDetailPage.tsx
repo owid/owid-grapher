@@ -47,6 +47,32 @@ function normalizeRedirectSource(source: string): string {
     return sourceUrl.pathname
 }
 
+// Parses a query-string-style input (e.g. "tab=map&country=USA") into an object,
+// or null when empty. These are the source query params the redirect matches on.
+function parseSourceQueryParamsInput(
+    input: string
+): Record<string, string> | null {
+    const trimmed = input.trim().replace(/^\?/, "")
+    if (!trimmed) return null
+    const result: Record<string, string> = {}
+    for (const [key, value] of new URLSearchParams(trimmed)) {
+        result[key] = value
+    }
+    return Object.keys(result).length > 0 ? result : null
+}
+
+// Formats source query params for display (a `null` value denotes a wildcard).
+function formatSourceQueryParams(
+    params: Record<string, string | null> | null
+): string | null {
+    if (!params || Object.keys(params).length === 0) return null
+    return Object.entries(params)
+        .map(([key, value]) =>
+            value === null ? `${key}=*` : `${key}=${value}`
+        )
+        .join("&")
+}
+
 type ApiMultiDimDetail = {
     id: number
     catalogPath: string
@@ -63,6 +89,7 @@ type MultiDimDetail = Omit<ApiMultiDimDetail, "updatedAt"> & {
 type MultiDimRedirect = {
     id: number
     source: string
+    sourceQueryParams: Record<string, string | null> | null
     viewConfigId: string | null
 }
 
@@ -127,13 +154,14 @@ async function createMultiDimRedirect(
     admin: Admin,
     multiDimId: number,
     source: string,
-    viewConfigId: string | null
+    viewConfigId: string | null,
+    sourceQueryParams: Record<string, string> | null
 ): Promise<MultiDimRedirect> {
     const { redirect } = await admin.requestJSON<{
         redirect: MultiDimRedirect
     }>(
         `/api/multi-dims/${multiDimId}/redirects`,
-        { source, viewConfigId },
+        { source, viewConfigId, sourceQueryParams },
         "POST"
     )
     return redirect
@@ -153,6 +181,7 @@ async function deleteMultiDimRedirect(
 
 type RedirectFormValues = {
     source: string
+    sourceQueryParams: string
     redirectToSpecificView: boolean
 }
 
@@ -169,6 +198,22 @@ function getRedirectColumns(ctx: {
             title: "Source",
             dataIndex: "source",
             key: "source",
+            render: (_, redirect) => {
+                const queryParams = formatSourceQueryParams(
+                    redirect.sourceQueryParams
+                )
+                return (
+                    <>
+                        <Typography.Text>{redirect.source}</Typography.Text>
+                        {queryParams && (
+                            <Typography.Text type="secondary">
+                                {" "}
+                                (when {queryParams})
+                            </Typography.Text>
+                        )}
+                    </>
+                )
+            },
         },
         {
             title: "Target",
@@ -271,15 +316,24 @@ export function MultiDimDetailPage({ id }: { id: number }) {
         mutationFn: ({
             source,
             viewConfigId,
+            sourceQueryParams,
         }: {
             source: string
             viewConfigId: string | null
-        }) => createMultiDimRedirect(admin, id, source, viewConfigId),
+            sourceQueryParams: Record<string, string> | null
+        }) =>
+            createMultiDimRedirect(
+                admin,
+                id,
+                source,
+                viewConfigId,
+                sourceQueryParams
+            ),
         onSuccess: () => {
             void queryClient.invalidateQueries({
                 queryKey: ["multiDimRedirects", id],
             })
-            redirectForm.resetFields(["source"])
+            redirectForm.resetFields(["source", "sourceQueryParams"])
         },
     })
 
@@ -350,6 +404,9 @@ export function MultiDimDetailPage({ id }: { id: number }) {
             viewConfigId: values.redirectToSpecificView
                 ? currentViewConfigId
                 : null,
+            sourceQueryParams: parseSourceQueryParamsInput(
+                values.sourceQueryParams
+            ),
         })
     }
 
@@ -465,6 +522,7 @@ export function MultiDimDetailPage({ id }: { id: number }) {
                             onFinish={handleCreateRedirect}
                             initialValues={{
                                 source: "",
+                                sourceQueryParams: "",
                                 redirectToSpecificView: true,
                             }}
                         >
@@ -485,6 +543,13 @@ export function MultiDimDetailPage({ id }: { id: number }) {
                                 ]}
                             >
                                 <Input placeholder="/grapher/example" />
+                            </Form.Item>
+                            <Form.Item
+                                label="Source query params"
+                                name="sourceQueryParams"
+                                extra="Optional. Only redirect when these query params match, e.g. tab=map&country=USA. Leave empty to match any."
+                            >
+                                <Input placeholder="tab=map&country=USA" />
                             </Form.Item>
                             <Form.Item
                                 name="redirectToSpecificView"

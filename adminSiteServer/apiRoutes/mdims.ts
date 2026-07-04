@@ -49,9 +49,26 @@ function buildRedirectTargetDescription(
     return targetDescription
 }
 
+// Deep-compares two source query param conditions for equality (key order
+// insensitive). Both are either null (no condition) or a non-empty object.
+function sourceQueryParamsEqual(
+    a: Record<string, string | null> | null,
+    b: Record<string, string | null> | null
+): boolean {
+    if (a === null || b === null) return a === b
+    const aKeys = Object.keys(a)
+    if (aKeys.length !== Object.keys(b).length) return false
+    return aKeys.every((key) => Object.hasOwn(b, key) && a[key] === b[key])
+}
+
 async function validatePathIsNotRedirectSource(
     trx: db.KnexReadonlyTransaction,
-    path: string
+    path: string,
+    // When provided (multi-dim redirect creation), the source path may repeat as
+    // long as the source query params differ; only an exact duplicate is
+    // rejected. When omitted (e.g. slug-change validation), any existing
+    // multi-dim redirect with this source path is treated as a conflict.
+    multiDimSourceQueryParams?: Record<string, string | null> | null
 ): Promise<void> {
     if (await redirectWithSourceExists(trx, path)) {
         throw new JsonError(
@@ -59,17 +76,37 @@ async function validatePathIsNotRedirectSource(
             400
         )
     }
-    const existingMultiDimRedirect = await trx<{ id: number }>(
-        MultiDimRedirectsTableName
-    )
-        .select("id")
-        .where("source", path)
-        .first()
-    if (existingMultiDimRedirect) {
-        throw new JsonError(
-            `'${path}' is already a source of an existing multi-dim redirect`,
-            400
+    if (multiDimSourceQueryParams === undefined) {
+        const existingMultiDimRedirect = await trx<{ id: number }>(
+            MultiDimRedirectsTableName
         )
+            .select("id")
+            .where("source", path)
+            .first()
+        if (existingMultiDimRedirect) {
+            throw new JsonError(
+                `'${path}' is already a source of an existing multi-dim redirect`,
+                400
+            )
+        }
+    } else {
+        const existingRows = await trx<{ sourceQueryParams: string | null }>(
+            MultiDimRedirectsTableName
+        )
+            .select("sourceQueryParams")
+            .where("source", path)
+        const isExactDuplicate = existingRows.some((row) =>
+            sourceQueryParamsEqual(
+                parseSourceQueryParamsColumn(row.sourceQueryParams),
+                multiDimSourceQueryParams
+            )
+        )
+        if (isExactDuplicate) {
+            throw new JsonError(
+                `'${path}' is already a source of an existing multi-dim redirect with the same source query params`,
+                400
+            )
+        }
     }
     const slug = Url.fromURL(path).slug
     const existingChartSlugRedirect = await trx<{ id: number }>(
@@ -89,12 +126,13 @@ async function validatePathIsNotRedirectSource(
 async function validateMultiDimRedirect(
     trx: db.KnexReadonlyTransaction,
     source: string,
-    targetSlug: string
+    targetSlug: string,
+    sourceQueryParams: Record<string, string | null> | null
 ): Promise<void> {
     const targetPath = `/grapher/${targetSlug}`
 
-    // Check source is not already a redirect source
-    await validatePathIsNotRedirectSource(trx, source)
+    // Check source is not already a redirect source with the same query params
+    await validatePathIsNotRedirectSource(trx, source, sourceQueryParams)
 
     // Check source is not already a redirect target (would create chain: X -> source -> target)
     const sourceIsTargetOfSiteRedirect = await trx<{ id: number }>("redirects")
@@ -185,7 +223,7 @@ async function createSlugChangeRedirect(
     previousSlug: string
 ): Promise<void> {
     const source = `/grapher/${previousSlug}`
-    await validateMultiDimRedirect(trx, source, multiDim.slug!)
+    await validateMultiDimRedirect(trx, source, multiDim.slug!, null)
     await trx(MultiDimRedirectsTableName).insert({
         source,
         multiDimId: multiDim.id,
@@ -350,9 +388,10 @@ export async function handleGetMultiDimRedirects(
 ) {
     const multiDimId = expectInt(req.params.id)
 
-    const redirects = await db.knexRaw<{
+    const rows = await db.knexRaw<{
         id: number
         source: string
+        sourceQueryParams: string | null
         viewConfigId: string | null
     }>(
         trx,
@@ -360,6 +399,7 @@ export async function handleGetMultiDimRedirects(
         SELECT
             mdr.id,
             mdr.source,
+            mdr.sourceQueryParams,
             mdr.viewConfigId
         FROM ${MultiDimRedirectsTableName} mdr
         WHERE mdr.multiDimId = ?
@@ -367,7 +407,23 @@ export async function handleGetMultiDimRedirects(
         [multiDimId]
     )
 
+    const redirects = rows.map((row) => ({
+        id: row.id,
+        source: row.source,
+        sourceQueryParams: parseSourceQueryParamsColumn(row.sourceQueryParams),
+        viewConfigId: row.viewConfigId,
+    }))
+
     return { redirects }
+}
+
+// Parses the JSON `sourceQueryParams` column (returned as a string by the driver)
+// into an object for API responses, or null when unset.
+function parseSourceQueryParamsColumn(
+    raw: string | null
+): Record<string, string | null> | null {
+    if (!raw) return null
+    return JSON.parse(raw) as Record<string, string | null>
 }
 
 const postMultiDimRedirectSchema = z.object({
@@ -378,6 +434,13 @@ const postMultiDimRedirectSchema = z.object({
             "Source must start with either /grapher/ or /explorers/ and cannot end with a slash"
         ),
     viewConfigId: z.string().nullable().optional(),
+    // Optional source query params the redirect is conditioned on. A `null`
+    // value acts as a wildcard for that param. When omitted/empty, the redirect
+    // matches regardless of query params.
+    sourceQueryParams: z
+        .record(z.string(), z.string().nullable())
+        .nullable()
+        .optional(),
 })
 
 export async function handlePostMultiDimRedirect(
@@ -394,6 +457,12 @@ export async function handlePostMultiDimRedirect(
         )
     }
     const { source, viewConfigId } = parseResult.data
+    // Normalize an empty object to null so "no condition" is stored consistently.
+    const sourceQueryParams =
+        parseResult.data.sourceQueryParams &&
+        Object.keys(parseResult.data.sourceQueryParams).length > 0
+            ? parseResult.data.sourceQueryParams
+            : null
 
     const multiDim = await getMultiDimDataPageById(trx, multiDimId)
     if (!multiDim) {
@@ -430,12 +499,20 @@ export async function handlePostMultiDimRedirect(
         )
     }
 
-    await validateMultiDimRedirect(trx, source, multiDim.slug)
+    await validateMultiDimRedirect(
+        trx,
+        source,
+        multiDim.slug,
+        sourceQueryParams
+    )
 
     const [insertId] = await trx<DbInsertMultiDimRedirect>(
         MultiDimRedirectsTableName
     ).insert({
         source,
+        sourceQueryParams: sourceQueryParams
+            ? JSON.stringify(sourceQueryParams)
+            : null,
         multiDimId,
         viewConfigId,
     })
@@ -455,6 +532,7 @@ export async function handlePostMultiDimRedirect(
         redirect: {
             id: insertId,
             source,
+            sourceQueryParams,
             viewConfigId: viewConfigId ?? null,
         },
     }
@@ -509,6 +587,7 @@ export async function handleGetAllMultiDimRedirects(
     const rows = await db.knexRaw<{
         id: number
         source: string
+        sourceQueryParams: string | null
         viewConfigId: string | null
         multiDimId: number
         multiDimSlug: string
@@ -520,6 +599,7 @@ export async function handleGetAllMultiDimRedirects(
         SELECT
             mdr.id,
             mdr.source,
+            mdr.sourceQueryParams,
             mdr.viewConfigId,
             mddp.id as multiDimId,
             mddp.slug as multiDimSlug,
@@ -547,6 +627,9 @@ export async function handleGetAllMultiDimRedirects(
         return {
             id: row.id,
             source: row.source,
+            sourceQueryParams: parseSourceQueryParamsColumn(
+                row.sourceQueryParams
+            ),
             multiDimId: row.multiDimId,
             multiDimSlug: row.multiDimSlug,
             multiDimTitle: row.multiDimTitle,

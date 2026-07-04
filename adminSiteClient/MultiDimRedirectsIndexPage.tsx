@@ -23,6 +23,7 @@ import { Admin } from "./Admin.js"
 type MultiDimRedirect = {
     id: number
     source: string
+    sourceQueryParams: Record<string, string | null> | null
     multiDimId: number
     multiDimSlug: string
     multiDimTitle: string
@@ -32,7 +33,20 @@ type MultiDimRedirect = {
 type RedirectInGroup = {
     id: number
     source: string
+    sourceQueryParams: Record<string, string | null> | null
     targetQueryStr: string | null
+}
+
+// Formats source query params for display (a `null` value denotes a wildcard).
+function formatSourceQueryParams(
+    params: Record<string, string | null> | null
+): string | null {
+    if (!params || Object.keys(params).length === 0) return null
+    return Object.entries(params)
+        .map(([key, value]) =>
+            value === null ? `${key}=*` : `${key}=${value}`
+        )
+        .join("&")
 }
 
 type GroupedRedirects = {
@@ -77,6 +91,7 @@ function groupRedirectsByMultiDim(
                 redirects: groupRedirects.map((r) => ({
                     id: r.id,
                     source: r.source,
+                    sourceQueryParams: r.sourceQueryParams,
                     targetQueryStr: r.targetQueryStr,
                 })),
             }
@@ -124,11 +139,22 @@ function createNestedColumns(
             title: "Source",
             dataIndex: "source",
             key: "source",
-            render: (source) => (
-                <Typography.Text style={{ wordBreak: "break-all" }}>
-                    {source}
-                </Typography.Text>
-            ),
+            render: (_, record) => {
+                const queryParams = formatSourceQueryParams(
+                    record.sourceQueryParams
+                )
+                return (
+                    <Typography.Text style={{ wordBreak: "break-all" }}>
+                        {record.source}
+                        {queryParams && (
+                            <Typography.Text type="secondary">
+                                {" "}
+                                (when {queryParams})
+                            </Typography.Text>
+                        )}
+                    </Typography.Text>
+                )
+            },
         },
         {
             title: "Target",
