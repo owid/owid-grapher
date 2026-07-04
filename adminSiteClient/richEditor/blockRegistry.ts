@@ -31,7 +31,12 @@ const ARTICLE_LIKE_TYPES = [
     OwidGdocType.AboutPage,
     OwidGdocType.Announcement,
     OwidGdocType.Fragment,
+    OwidGdocType.Author,
+    OwidGdocType.Profile,
 ]
+
+// Blocks that only make sense on (linear) topic pages
+const TOPIC_PAGE_TYPES = [OwidGdocType.TopicPage, OwidGdocType.LinearTopicPage]
 
 function deleteRangeIfAny(editor: Editor, range?: Range): void {
     if (range) editor.chain().focus().deleteRange(range).run()
@@ -317,6 +322,43 @@ richEditorBlockItems.push(
         command: makePropsAtomCommand(pmNodeNames.allCharts, {
             heading: "",
             top: [],
+        }),
+    },
+    {
+        key: "keyInsights",
+        docTypes: TOPIC_PAGE_TYPES,
+        title: "Key insights",
+        description: "Slide deck of key insights for a topic",
+        glyph: "★",
+        keywords: ["key insights", "slides", "insights"],
+        command: makePropsAtomCommand(pmNodeNames.keyInsights, {
+            heading: "Key insights",
+            insights: [],
+        }),
+    },
+    {
+        key: "explorerTiles",
+        docTypes: TOPIC_PAGE_TYPES,
+        title: "Explorer tiles",
+        description: "Grid of data explorer links",
+        glyph: "⚏",
+        keywords: ["explorer", "tiles", "grid"],
+        command: makePropsAtomCommand(pmNodeNames.explorerTiles, {
+            title: "",
+            subtitle: "",
+            explorers: [],
+        }),
+    },
+    {
+        key: "pillRow",
+        docTypes: TOPIC_PAGE_TYPES,
+        title: "Pill row",
+        description: "Row of pill-shaped links",
+        glyph: "▭",
+        keywords: ["pill", "row", "links"],
+        command: makePropsAtomCommand(pmNodeNames.pillRow, {
+            title: "",
+            pills: [],
         }),
     },
     {

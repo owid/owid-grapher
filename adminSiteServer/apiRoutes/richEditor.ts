@@ -201,7 +201,19 @@ export async function createNativeGdoc(
     const { title, slug, type } = req.body as RichEditorCreateNativeGdocRequest
     if (!title) throw new JsonError("title is required", 400)
     const docType = (type ?? OwidGdocType.DataInsight) as OwidGdocType
-    if (![OwidGdocType.DataInsight, OwidGdocType.Article].includes(docType)) {
+    // Homepage is a singleton and fragments are created for specific
+    // pipelines; everything else can be born natively
+    const creatableTypes = [
+        OwidGdocType.DataInsight,
+        OwidGdocType.Article,
+        OwidGdocType.TopicPage,
+        OwidGdocType.LinearTopicPage,
+        OwidGdocType.AboutPage,
+        OwidGdocType.Announcement,
+        OwidGdocType.Author,
+        OwidGdocType.Profile,
+    ]
+    if (!creatableTypes.includes(docType)) {
         throw new JsonError(
             `Native creation is not supported for type ${type}`,
             400
@@ -215,6 +227,8 @@ export async function createNativeGdoc(
         title,
         authors: [user.fullName],
         body: [],
+        // authors are required to have a role
+        ...(docType === OwidGdocType.Author ? { role: "" } : {}),
     } as OwidGdocContent
 
     const gdoc = gdocFromJSON({ id, slug: slug || slugify(title), content })
