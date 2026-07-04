@@ -80,11 +80,19 @@ export const twoColumnBlockTypes = {
 
 /**
  * The node types that carry a stable block identity (`blockId` attr ↔
- * enriched `id`): every block type with a BlockFrame — atoms and containers —
- * but not plain text-flow nodes (paragraph, heading, lists, hr), which are
- * addressed via their containing block or text ranges.
+ * enriched `id`): every node type that maps to a full enriched block,
+ * including plain text-flow nodes (paragraph, heading, lists, hr) — the AI
+ * assistant and block comments address any block by id, and positional
+ * addressing is unsafe while collaborators edit concurrently. Structural
+ * children (list items, table rows/cells, layout columns) stay unidentified;
+ * they are addressed via their parent block.
  */
 export const identifiedNodeNames: string[] = [
+    pmNodeNames.paragraph,
+    pmNodeNames.heading,
+    pmNodeNames.bulletList,
+    pmNodeNames.orderedList,
+    pmNodeNames.horizontalRule,
     pmNodeNames.image,
     pmNodeNames.cta,
     pmNodeNames.rawBlock,

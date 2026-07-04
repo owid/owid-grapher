@@ -161,18 +161,24 @@ function inlineContentToSpans(nodes: PmNodeJson[] | undefined): Span[] {
 }
 
 function textBlockToParagraph(block: EnrichedBlockText): PmNodeJson {
-    return {
+    const node: PmNodeJson = {
         type: pmNodeNames.paragraph,
         content: spansToInlineContent(block.value),
     }
+    // nested text blocks (blockquote/callout/pull-quote children, list items)
+    // don't pass through enrichedBlockToPmNode, so identity attaches here
+    if (block.id) node.attrs = { blockId: block.id }
+    return node
 }
 
 function paragraphToTextBlock(node: PmNodeJson): EnrichedBlockText {
-    return {
+    const block: EnrichedBlockText = {
         type: "text",
         value: inlineContentToSpans(node.content),
         parseErrors: [],
     }
+    if (node.attrs?.blockId) block.id = String(node.attrs.blockId)
+    return block
 }
 
 function listToPmNode(
@@ -204,24 +210,30 @@ function calloutChildToPmNode(
     block: EnrichedBlockCallout["text"][number]
 ): PmNodeJson {
     if (block.type === "text") return textBlockToParagraph(block)
-    if (block.type === "heading") return headingToPmNode(block)
-    return listToPmNode(block)
+    const node =
+        block.type === "heading" ? headingToPmNode(block) : listToPmNode(block)
+    if (block.id) node.attrs = { ...node.attrs, blockId: block.id }
+    return node
 }
 
 function pmNodeToCalloutChild(
     node: PmNodeJson
 ): EnrichedBlockCallout["text"][number] {
     if (node.type === pmNodeNames.paragraph) return paragraphToTextBlock(node)
-    if (node.type === pmNodeNames.heading)
-        return pmNodeToHeading(node) as EnrichedBlockHeading
-    if (node.type === pmNodeNames.bulletList) {
-        return {
+    let block: EnrichedBlockCallout["text"][number]
+    if (node.type === pmNodeNames.heading) {
+        block = pmNodeToHeading(node) as EnrichedBlockHeading
+    } else if (node.type === pmNodeNames.bulletList) {
+        block = {
             type: "list",
             items: pmListItemsToTextBlocks(node),
             parseErrors: [],
         }
+    } else {
+        throw new Error(`Unhandled callout child node type: ${node.type}`)
     }
-    throw new Error(`Unhandled callout child node type: ${node.type}`)
+    if (node.attrs?.blockId) block.id = String(node.attrs.blockId)
+    return block
 }
 
 function headingToPmNode(block: EnrichedBlockHeading): PmNodeJson {
@@ -630,6 +642,21 @@ function stripBlockIdsFromBlock(
         case "gray-section":
         case "expandable-paragraph":
             return { ...out, items: stripBlockIds(out.items) }
+        case "list":
+        case "numbered-list":
+            return {
+                ...out,
+                items: stripBlockIds(out.items) as typeof out.items,
+            }
+        case "blockquote":
+            return { ...out, text: stripBlockIds(out.text) as typeof out.text }
+        case "callout":
+            return { ...out, text: stripBlockIds(out.text) as typeof out.text }
+        case "pull-quote":
+            return {
+                ...out,
+                content: stripBlockIds(out.content) as typeof out.content,
+            }
         case "table":
             return {
                 ...out,
