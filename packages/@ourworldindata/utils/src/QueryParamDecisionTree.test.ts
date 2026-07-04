@@ -171,6 +171,43 @@ describe("QueryParamDecisionTree", () => {
         )
     })
 
+    test("prunes redundant branches beneath a dominating higher-priority rule", () => {
+        // Both rules have equal specificity, so the first-listed one (matching on
+        // `a`) has higher priority. In the `a=1` subtree, the `a` rule reduces to
+        // an unconditional match that outranks the `b` rule, so there is no point
+        // branching on `b` there — the subtree should collapse to a single leaf.
+        const rules: QueryParamMatchRule<string>[] = [
+            { condition: { a: "1" }, target: "aWins" },
+            { condition: { b: "2" }, target: "bWins" },
+        ]
+
+        const tree = buildQueryParamDecisionTree(rules)
+
+        // Structural assertion: the `a=1` branch is a pruned leaf, not a nested
+        // decision on `b`.
+        expect(tree.type).toBe("decision")
+        if (tree.type === "decision") {
+            expect(tree.paramName).toBe("a")
+            const aBranch = tree.branches["1"]
+            expect(aBranch.type).toBe("leaf")
+            if (aBranch.type === "leaf") {
+                expect(aBranch.target).toBe("aWins")
+            }
+        }
+
+        // Matching is unaffected by the pruning.
+        // Both match: higher-priority `a` rule wins.
+        expect(matchQueryParamDecisionTree(tree, { a: "1", b: "2" })).toBe(
+            "aWins"
+        )
+        // Only `a` matches.
+        expect(matchQueryParamDecisionTree(tree, { a: "1" })).toBe("aWins")
+        // Only `b` matches.
+        expect(matchQueryParamDecisionTree(tree, { b: "2" })).toBe("bWins")
+        // Neither matches.
+        expect(matchQueryParamDecisionTree(tree, { c: "3" })).toBeUndefined()
+    })
+
     test("does not treat Object.prototype property names as matching branch values", () => {
         const rules: QueryParamMatchRule<string>[] = [
             { condition: { country: "USA" }, target: "targetUSA" },

@@ -89,11 +89,22 @@ function buildTreeRecursive<T>(
         return { type: "leaf", target: undefined }
     }
 
+    // If the highest-priority rule has no unconsumed condition keys, it already
+    // matches unconditionally on this path (all its conditions were satisfied by
+    // the branches taken to get here) and outranks every remaining rule, so it
+    // wins the whole subtree — there's no point branching further. This prunes
+    // redundant branches beneath a dominating rule, and also covers the case
+    // where every remaining rule is an unconditional fallback.
+    if (Object.keys(rules[0].condition).every((key) => consumed.has(key))) {
+        return { type: "leaf", target: rules[0].target }
+    }
+
     // Choose the parameter name to branch on: the unconsumed key that appears in
     // the most remaining rules' conditions. A Map is used (rather than a plain
     // object) so that a condition key equal to an Object.prototype property name
     // (e.g. "__proto__") is counted correctly instead of silently colliding with
-    // the prototype chain.
+    // the prototype chain. (At least the highest-priority rule has an unconsumed
+    // key here, per the check above, so keyCounts is guaranteed non-empty.)
     const keyCounts = new Map<string, number>()
     for (const rule of rules) {
         for (const key of Object.keys(rule.condition)) {
@@ -101,12 +112,6 @@ function buildTreeRecursive<T>(
                 keyCounts.set(key, (keyCounts.get(key) ?? 0) + 1)
             }
         }
-    }
-
-    // No unconsumed keys means every remaining rule is a fallback; return the
-    // highest-priority one (rules[0], since the list is priority-sorted).
-    if (keyCounts.size === 0) {
-        return { type: "leaf", target: rules[0].target }
     }
 
     let branchKey = ""
