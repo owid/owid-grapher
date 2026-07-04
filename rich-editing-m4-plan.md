@@ -38,7 +38,7 @@ none of that is needed:
   happens at edit time (XHTML parse + enriched-block validation), which is
   where the model can actually self-correct.
 
-Deliberate consequence: a mistaken agent edit is *in* the document until
+Deliberate consequence: a mistaken agent edit is _in_ the document until
 undone. Mitigations: per-op undo granularity, a brief highlight on
 agent-edited blocks (M4f), autosave revisions + the history drawer (M1),
 and comments/live cursors so co-editors see changes as they happen.
@@ -47,7 +47,7 @@ and comments/live cursors so co-editors see changes as they happen.
 
 In the browser, on the rich editor page, as a new right-rail view
 ("Assistant") next to Comments/Settings/Inspector. The agent shares the
-page's TipTap editor instance and its Yjs provider — it *is* the local
+page's TipTap editor instance and its Yjs provider — it _is_ the local
 client, so its edits flow through the exact same pipeline as keystrokes.
 
 - LLM calls go directly from the browser (pi-ai sets Anthropic's
@@ -74,6 +74,7 @@ catalog and system prompt around it, so reusing it keeps almost all prompt
 material verbatim.
 
 Plan:
+
 - Port `enrichedToXhtml` / `xhtmlToEnriched` from the `gdoc-xhtml-roundtrip`
   branch into `adminShared/richEditor/xhtml/`, adapted to current types
   (the branch predates recent block types; diff against
@@ -94,7 +95,7 @@ existing `enrichedBlockToPmNode` → PM transaction. Reads: PM slice →
 ## §3 Block identity on all blocks (M4b)
 
 Today only "identified" node types (chart, image, callout, ...) carry
-`blockId`. The agent must address *every* top-level block, and positional
+`blockId`. The agent must address _every_ top-level block, and positional
 addressing is unsafe while a human types concurrently. Change:
 
 - Extend the `OwidBlockIdentity` global attribute + `BlockIdAssignment`
@@ -119,17 +120,17 @@ addressing is unsafe while a human types concurrently. Change:
   `arquero`, `defuddle`, `linkedom` as needed), pinned 0.75.3 like the
   extension.
 - `adminSiteClient/richEditor/assistant/` package:
-  - `AssistantPanel.tsx` — React wrapper that mounts the Lit `ChatPanel`
-    (custom element) and owns the `Agent` lifecycle, following the
-    extension's `main.ts`: `createAgent` with system prompt + tools factory,
-    `agent.subscribe` for session autosave, model/thinking-level memory,
-    session list dialog, new-session reset.
-  - Storage: `IndexedDBStorageBackend` with `SettingsStore`,
-    `ProviderKeysStore`, `SessionsStore`, `CustomProvidersStore` (db name
-    `owid-rich-editor-assistant`); session metadata records the gdocId so
-    the session list is filtered per document.
-  - Tool renderers registered like the extension's `tool-renderers.ts`
-    (label + one-line params + plain-text output).
+    - `AssistantPanel.tsx` — React wrapper that mounts the Lit `ChatPanel`
+      (custom element) and owns the `Agent` lifecycle, following the
+      extension's `main.ts`: `createAgent` with system prompt + tools factory,
+      `agent.subscribe` for session autosave, model/thinking-level memory,
+      session list dialog, new-session reset.
+    - Storage: `IndexedDBStorageBackend` with `SettingsStore`,
+      `ProviderKeysStore`, `SessionsStore`, `CustomProvidersStore` (db name
+      `owid-rich-editor-assistant`); session metadata records the gdocId so
+      the session list is filtered per document.
+    - Tool renderers registered like the extension's `tool-renderers.ts`
+      (label + one-line params + plain-text output).
 - CSS: import `@earendil-works/pi-web-ui/app.css` scoped to the panel. Risk:
   it's global-ish; plan A is wrapping the panel subtree and prefixing the
   stylesheet at build time (postcss `prefix-selector` in the vite admin
@@ -254,6 +255,66 @@ interface RichEditorToolHost {
 
 Each slice = one commit on a `rich-editing-m4` branch stacked on M5, with
 typecheck/lint/unit/db tests + the relevant verification script.
+
+## §7b Status (2026-07-04): built
+
+All six slices shipped as planned on `rich-editing-m4` (commits M4a–M4f).
+Corpus: PM round-trip AND the new XHTML round-trip both 1,174/1,174 (one doc
+was published since M5's 1,173). 2,165 unit + 98 db tests green; production
+vite build passes (the assistant is its own lazy chunk, ~1.5 MB gzipped —
+cheerio + the raw→enriched validators + the pi stack; loads only with the
+editor page).
+
+Deviations from the plan:
+
+- **Codec location**: `db/model/Gdoc/` (its original home), not
+  `adminShared/richEditor/xhtml/` — `xhtmlToEnriched` needs
+  `parseRawBlocksToEnrichedBlocks` and friends, which live in db/ and can't
+  move cheaply. The admin client now references the db TS project; the
+  transitive chain was made browser-safe (htmlToEnriched's `path` import
+  removed). The extension's post-PR fixes were grafted (stripUndefinedDeep)
+  plus new ones found by the corpus: text-node re-escaping for literal
+  markup chars, span-fallback as <fallback>, image hasOutline
+  render-semantics on parse, chart peerCountries, chart-rows/pull-chart/
+  data-callout-group handlers.
+- **Stable-id round-trip through XHTML** was added to the codec itself
+  (id attributes, incl. nested container children re-attached after
+  raw→enriched) — the plan had underspecified this.
+- **CSS**: neither prefix-scoping nor shadow DOM was needed. pi-web-ui's
+  Tailwind v4 output is fully @layer'd, and unlayered author CSS (our SCSS,
+  antd) always beats layered CSS — verified no bleed into other admin pages.
+  Its dialogs mount on document.body, which had ruled out shadow DOM anyway.
+- **Selection attachment** is done at LLM-call time via a custom
+  convertToLlm (appends the live SelectionRef description to the latest
+  user message) rather than at send time — always current, no UI affordance
+  needed.
+- **Whole-file rewrites** got a dedicated `write_doc_from_file` tool
+  (extension folded this into `apply`, which no longer exists): the file is
+  diffed against the live doc by block id; reordering is rejected; one undo
+  step.
+- **summaries** was rewritten compactly for the block model (~180 lines)
+  instead of porting the 440-line sid-based implementation; cache in
+  localStorage keyed by content hash.
+- **describe_frontmatter / create_archie_document were NOT ported** —
+  frontmatter is native settings now (SettingsPanel + API). An
+  update_settings tool is a follow-up.
+- Session store is per-browser IndexedDB
+  ("owid-rich-editor-assistant"), sessions labeled with the doc title,
+  per-doc last-session pointer; the history dialog is cross-document.
+
+Verified end-to-end (playwright): every tool driven through the real agent
+on a live synced doc; two-browser test with one user typing continuously
+while the other's agent inserts and rewrites blocks — both merge, no lost
+keystrokes, documents converge, ONE Ctrl+Z reverts exactly the agent's last
+edit (and syncs), and the materialized draft reflects exactly the surviving
+state. A real LLM turn still needs a provider key (1Password: "Chrome
+extension OWID Ai Editor API keys") — everything below the model call is
+exercised without one.
+
+Follow-ups (not in M4): update_settings tool + frontmatter reference,
+runtime-editable system prompt, session sharing/DB persistence, LLM proxy
+with central keys, server-side headless agents joining via Yjs, per-block
+attribution of agent edits in presence.
 
 ## §8 Risks / open points
 

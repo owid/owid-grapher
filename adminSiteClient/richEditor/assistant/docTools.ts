@@ -74,6 +74,24 @@ export function undoBoundary(editor: Editor): void {
     undoPluginKey.getState(editor.state)?.undoManager?.stopCapturing()
 }
 
+/** Briefly highlight blocks the assistant just changed, so edits are visible. */
+export function flashBlocks(editor: Editor, blockIds: string[]): void {
+    for (const blockId of blockIds) {
+        const located = locateBlockById(editor.state.doc, blockId)
+        if (!located) continue
+        const dom = editor.view.nodeDOM(located.pos)
+        if (!(dom instanceof HTMLElement)) continue
+        dom.classList.remove("rich-editor-assistant-flash")
+        // restart the animation even when the class was just applied
+        void dom.offsetWidth
+        dom.classList.add("rich-editor-assistant-flash")
+        setTimeout(
+            () => dom.classList.remove("rich-editor-assistant-flash"),
+            1700
+        )
+    }
+}
+
 // ---------------------------------------------------------------------------
 // Locating blocks
 // ---------------------------------------------------------------------------
@@ -564,6 +582,7 @@ const editTool = (host: DocToolHost): AgentTool<typeof editParams> => ({
         // report the blocks as they now exist (ids assigned by the editor)
         const newDoc = editor.state.doc
         const landed: string[] = []
+        const landedIds: string[] = []
         // re-locate the parent in the new state: for the doc it is the doc;
         // otherwise find it via any surviving child position
         const container =
@@ -576,7 +595,9 @@ const editTool = (host: DocToolHost): AgentTool<typeof editParams> => ({
             const child = container.child(i)
             const childType = (nodeToEnriched(child) as { type: string }).type
             landed.push(`${String(child.attrs.blockId ?? "?")} [${childType}]`)
+            if (child.attrs.blockId) landedIds.push(String(child.attrs.blockId))
         }
+        flashBlocks(editor, landedIds)
         const verb = params.action === "replace" ? "Replaced with" : "Inserted"
         return {
             content: text(
@@ -915,6 +936,8 @@ export interface DocFileDiffResult {
     inserted: number
     deleted: number
     unchanged: number
+    /** ids of blocks that were replaced or inserted (for highlighting) */
+    changedIds: string[]
 }
 
 export function applyDocFileDiff(
@@ -944,6 +967,7 @@ export function applyDocFileDiff(
         inserted: 0,
         deleted: 0,
         unchanged: 0,
+        changedIds: [],
     }
 
     undoBoundary(editor)
@@ -981,6 +1005,7 @@ export function applyDocFileDiff(
                     )
                     editor.view.dispatch(tr)
                     result.replaced++
+                    result.changedIds.push(block.id!)
                 } else {
                     result.unchanged++
                 }
@@ -1005,10 +1030,13 @@ export function applyDocFileDiff(
                     .node(1)
                 lastPlacedId =
                     (placed?.attrs.blockId as string | null) ?? lastPlacedId
+                if (placed?.attrs.blockId)
+                    result.changedIds.push(String(placed.attrs.blockId))
             }
         }
     } finally {
         undoBoundary(editor)
     }
+    flashBlocks(editor, result.changedIds)
     return result
 }
