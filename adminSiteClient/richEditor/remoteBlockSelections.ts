@@ -3,11 +3,9 @@ import { Plugin, PluginKey, EditorState } from "@tiptap/pm/state"
 import { Decoration, DecorationSet } from "@tiptap/pm/view"
 import * as Y from "yjs"
 import type { Awareness } from "y-protocols/awareness"
-import {
-    relativePositionToAbsolutePosition,
-    ySyncPluginKey,
-} from "@tiptap/y-tiptap"
+import { relativePositionToAbsolutePosition } from "@tiptap/y-tiptap"
 import { isIdentifiedNodeName } from "../../adminShared/richEditor/serialization/pmJson.js"
+import { syncPluginKey } from "./ySync.js"
 
 // Remote block selections: the CollaborationCaret extension renders remote
 // text carets and inline selection highlights, but an inline decoration is
@@ -24,21 +22,6 @@ interface RemoteCursorState {
 const remoteBlockSelectionsKey = new PluginKey<DecorationSet>(
     "remoteBlockSelections"
 )
-
-// y-tiptap's types resolve prosemirror-state through its own peer instance,
-// which TS treats as a different identity than @tiptap/pm's re-export (the
-// runtime module is one and the same). Re-type the key against ours.
-interface YSyncPluginState {
-    doc: Y.Doc & { clientID: number }
-    type: Parameters<typeof relativePositionToAbsolutePosition>[1]
-    binding: {
-        mapping: Parameters<typeof relativePositionToAbsolutePosition>[3] & {
-            size: number
-        }
-    } | null
-    snapshot?: unknown
-}
-const syncPluginKey = ySyncPluginKey as unknown as PluginKey<YSyncPluginState>
 
 function buildDecorations(
     state: EditorState,

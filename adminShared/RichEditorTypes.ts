@@ -210,3 +210,31 @@ export interface RichEditorUpdateThreadRequest {
 
 // (Presence types were removed with the heartbeat presence endpoint —
 // presence now travels in the sync connection's awareness states.)
+
+// ── Selection references ────────────────────────────────────────────────────
+
+/**
+ * A serializable reference to "this" — the selection a command should act
+ * on. This is the addressing vocabulary shared by humans and agents: block
+ * refs use stable block ids, text refs use Yjs relative positions (which
+ * survive concurrent edits and resolve in any client of the same document
+ * generation), falling back to absolute positions outside sync mode. A ref
+ * whose target vanished resolves to null — consumers show an orphan state,
+ * never a silent mis-target.
+ */
+export type RichEditorSelectionRef =
+    | { kind: "document" }
+    | { kind: "block"; blockId: string; blockType: string }
+    | {
+          kind: "text"
+          /** y-prosemirror relative positions (JSON-encoded), in sync mode */
+          anchor?: unknown
+          head?: unknown
+          /** absolute positions, only valid against an unchanged doc */
+          absoluteAnchor?: number
+          absoluteHead?: number
+          /** the containing framed block, for context and orphan fallback */
+          blockId: string | null
+          /** the selected text at capture time, for prompts and orphan UI */
+          excerpt: string
+      }
