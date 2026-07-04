@@ -9,6 +9,7 @@ import {
 } from "../../adminShared/RichEditorTypes.js"
 import { AdminAppContext } from "../AdminAppContext.js"
 import { addCommentMark, focusCommentThread } from "./comments.js"
+import { selectionRefFromEditor } from "./selectionRef.js"
 
 /**
  * Right-rail comments panel: start threads on the current selection (or the
@@ -41,24 +42,26 @@ export function CommentsPanel(props: {
         if (!newComment.trim()) return
         setSubmitting(true)
         try {
+            // the comment target is the current selection, captured through
+            // the same SelectionRef vocabulary agents use
+            const ref = editor
+                ? selectionRefFromEditor(editor)
+                : ({ kind: "document" } as const)
             let request: RichEditorCreateThreadRequest
-            const selection = editor?.state.selection
-            if (editor && selection && !selection.empty && hasTextSelection) {
-                const { from, to } = selection
+            if (ref.kind === "text" && editor) {
+                const { from, to } = editor.state.selection
                 request = {
                     anchorType: "range",
                     anchorFrom: from,
                     anchorTo: to,
-                    anchorText: editor.state.doc
-                        .textBetween(from, to, " ")
-                        .slice(0, 512),
+                    anchorText: ref.excerpt,
                     text: newComment,
                 }
-            } else if (selectedBlock) {
+            } else if (ref.kind === "block") {
                 request = {
                     anchorType: "block",
-                    anchorBlockId: selectedBlock.blockId,
-                    anchorText: selectedBlock.blockType,
+                    anchorBlockId: ref.blockId,
+                    anchorText: ref.blockType,
                     text: newComment,
                 }
             } else {
