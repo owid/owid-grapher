@@ -146,7 +146,16 @@ export interface RichEditorSaveSettingsRequest {
     /** Row-level fields; only editable while the doc is unpublished */
     slug?: string
     baseRevisionId: number | null
+    /**
+     * Skip the optimistic-concurrency check. Used by synced documents, where
+     * the sync server's materialization bumps the draft head continuously so
+     * clients cannot hold a current baseRevisionId.
+     */
+    force?: boolean
 }
+
+/** The websocket path the rich editor sync server listens on */
+export const RICH_EDITOR_SYNC_PATH = "/admin/api/richEditorSync"
 
 // ── Comments ───────────────────────────────────────────────────────────────
 

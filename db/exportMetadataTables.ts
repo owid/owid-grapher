@@ -111,6 +111,9 @@ export const PRIVATE_DATA_TABLES = [
 // check confirm every table has been considered. Keep alphabetised.
 export const SCHEMA_ONLY_TABLES = [
     "donors", // donor PII
+    // Live-collaboration transport blobs; disposable by design (reseeded
+    // from posts_gdocs_drafts, which travels in the private dump)
+    "posts_gdocs_ydocs",
 ]
 
 // The users table is exported with anonymised data (see anonymisedUsersSql

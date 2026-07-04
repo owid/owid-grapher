@@ -19,6 +19,7 @@ import {
     PostsGdocsDraftsTableName,
     PostsGdocsRevisionsTableName,
     PostsGdocsTableName,
+    PostsGdocsYdocsTableName,
     TagGraphTableName,
     TagsTableName,
     UsersTableName,
@@ -45,6 +46,7 @@ export const TABLES_IN_USE = [
     DatasetsTableName,
     PostsGdocsCommentsTableName, // Must come before PostsGdocsCommentThreadsTableName due to foreign key
     PostsGdocsCommentThreadsTableName, // Must come before PostsGdocsTableName due to foreign key
+    PostsGdocsYdocsTableName, // Must come before PostsGdocsTableName due to foreign key
     PostsGdocsDraftsTableName, // Must come before PostsGdocsRevisionsTableName due to foreign key
     PostsGdocsRevisionsTableName, // Must come before PostsGdocsTableName due to foreign key
     PostsGdocsTableName,

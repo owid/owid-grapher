@@ -15,6 +15,10 @@ import {
 import { apiRouter } from "./apiRouter.js"
 import { testPageRouter } from "./testPageRouter.js"
 import { adminRouter } from "./adminRouter.js"
+import {
+    attachRichEditorSyncServer,
+    createRichEditorSyncServer,
+} from "./richEditorSync.js"
 import { renderToHtmlPage } from "../serverUtils/serverUtil.js"
 
 import { publicApiRouter } from "./publicApiRouter.js"
@@ -47,7 +51,13 @@ export class OwidAdminApp {
     private readonly options: OwidAdminAppOptions
 
     server?: http.Server
+    richEditorSync?: ReturnType<typeof createRichEditorSyncServer>
     async stopListening() {
+        if (this.richEditorSync) {
+            // persist pending document stores before going down
+            this.richEditorSync.flushPendingStores()
+            this.richEditorSync.closeConnections()
+        }
         if (!this.server) return
 
         this.server.close()
@@ -216,6 +226,11 @@ export class OwidAdminApp {
             adminServerHost
         )
         this.server.timeout = 8 * 60 * 1000 // Increase server timeout for long-running uploads
+
+        // Rich editor live collaboration: websocket sync endpoint on the
+        // same server/origin, so the admin auth cookie applies
+        this.richEditorSync = createRichEditorSyncServer()
+        attachRichEditorSyncServer(this.server, this.richEditorSync)
 
         if (!this.options.quiet)
             console.log(

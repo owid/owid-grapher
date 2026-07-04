@@ -606,6 +606,11 @@ export {
     PostsGdocsRevisionsTableName,
 } from "./dbTypes/PostsGdocsRevisions.js"
 export {
+    type DbInsertPostGdocYdoc,
+    type DbRawPostGdocYdoc,
+    PostsGdocsYdocsTableName,
+} from "./dbTypes/PostsGdocsYdocs.js"
+export {
     type PostGdocCommentThreadStatus,
     type PostGdocCommentAnchorType,
     type DbInsertPostGdocCommentThread,

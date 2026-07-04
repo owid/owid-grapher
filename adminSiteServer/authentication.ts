@@ -1,7 +1,7 @@
 import * as Sentry from "@sentry/node"
 import express from "express"
 import * as db from "../db/db.js"
-import { CLOUDFLARE_AUD } from "../settings/serverSettings.js"
+import { CLOUDFLARE_AUD, ENV } from "../settings/serverSettings.js"
 import * as jose from "jose"
 import {
     AdminApiKeysTableName,
@@ -233,6 +233,110 @@ export async function devAuthMiddleware(
         await setAuthenticatedUser(res, user, trx)
     })
     return next()
+}
+
+/**
+ * Authenticate a raw HTTP upgrade request (websocket handshake for the rich
+ * editor sync server). Runs the same checks as the /admin middleware chain —
+ * Bearer API key, then the per-environment identity source — but against a
+ * plain node request instead of an express req/res pair. Returns null when
+ * no active user can be established; the caller must refuse the connection.
+ */
+export async function authenticateWebsocketUpgrade(request: {
+    headers: Record<string, string | string[] | undefined>
+    socketRemoteAddress?: string
+}): Promise<DbPlainUser | null> {
+    const user = await identifyWebsocketUser(request)
+    if (!user?.isActive) return null
+    await db.knexReadWriteTransaction(async (trx) => {
+        await updateUserLastSeen(trx, user.id)
+    })
+    return user
+}
+
+async function identifyWebsocketUser(request: {
+    headers: Record<string, string | string[] | undefined>
+    socketRemoteAddress?: string
+}): Promise<DbPlainUser | undefined> {
+    // Bearer API key (tests, scripts, agents)
+    const authorizationHeader = headerValue(request.headers[API_KEY_HEADER])
+    const bearerPrefix = "Bearer "
+    if (authorizationHeader?.trim().startsWith(bearerPrefix)) {
+        const apiKey = authorizationHeader.trim().slice(bearerPrefix.length)
+        if (apiKey) {
+            return db.knexReadWriteTransaction(async (trx) => {
+                const apiKeyRow = await findAdminApiKey(apiKey, trx)
+                if (!apiKeyRow) return undefined
+                return trx<DbPlainUser>(UsersTableName)
+                    .where({ id: apiKeyRow.userId })
+                    .first()
+            })
+        }
+    }
+
+    if (ENV === "production") {
+        const jwt = parseCookieHeader(headerValue(request.headers.cookie))[
+            CLOUDFLARE_COOKIE_NAME
+        ]
+        if (!jwt || !CLOUDFLARE_AUD) return undefined
+        let verified: jose.JWTVerifyResult<jose.JWTPayload>
+        try {
+            verified = await jose.jwtVerify(jwt, jwks, {
+                audience: CLOUDFLARE_AUD,
+                issuer: CLOUDFLARE_TEAM_DOMAIN,
+            })
+        } catch {
+            return undefined
+        }
+        if (!verified.payload.email) return undefined
+        return db
+            .knexInstance()
+            .table(UsersTableName)
+            .where({ email: verified.payload.email })
+            .first<DbPlainUser>()
+    }
+
+    if (ENV === "staging") {
+        let clientIp =
+            headerValue(request.headers["x-forwarded-for"]) ??
+            request.socketRemoteAddress
+        if (clientIp?.startsWith("::ffff:"))
+            clientIp = clientIp.replace("::ffff:", "")
+        if (!clientIp) return undefined
+        const ipToUserMap = await getTailscaleIpToUserMap().catch(
+            () => ({}) as Record<string, string>
+        )
+        const githubUserName = ipToUserMap[clientIp]
+        if (!githubUserName) return undefined
+        return db
+            .knexInstance()
+            .table(UsersTableName)
+            .where({ githubUsername: githubUserName })
+            .first<DbPlainUser>()
+    }
+
+    // development
+    return getDevAdminUser()
+}
+
+function headerValue(value: string | string[] | undefined): string | undefined {
+    if (Array.isArray(value)) return value[0]
+    return value
+}
+
+function parseCookieHeader(
+    cookieHeader: string | undefined
+): Record<string, string> {
+    const cookies: Record<string, string> = {}
+    if (!cookieHeader) return cookies
+    for (const pair of cookieHeader.split(";")) {
+        const separatorIndex = pair.indexOf("=")
+        if (separatorIndex === -1) continue
+        const name = pair.slice(0, separatorIndex).trim()
+        const value = pair.slice(separatorIndex + 1).trim()
+        if (name) cookies[name] = decodeURIComponent(value)
+    }
+    return cookies
 }
 
 export function requireAdminAuthMiddleware(
