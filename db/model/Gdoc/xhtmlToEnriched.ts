@@ -98,7 +98,7 @@ function nodeToSpan(node: AnyNode): Span | undefined {
 
     if (node.type !== "tag") return undefined
 
-    const element = node as Element
+    const element = node
     const tag = element.tagName.toLowerCase()
     const children = element.children ?? []
 
@@ -185,7 +185,7 @@ export function xhtmlToSpans(xhtml: string): Span[] {
     const $ = cheerio.load(xhtml, { xml: true })
     const body =
         $("body").length > 0 ? $("body").contents() : $.root().contents()
-    return nodesToSpans(body.toArray() as AnyNode[])
+    return nodesToSpans(body.toArray())
 }
 
 /**
@@ -252,7 +252,7 @@ function getSpanContent(element: Element): string {
                         .replace(/>/g, "&gt;")
                 }
                 if (child.type === "tag") {
-                    return convertSpans(child as Element)
+                    return convertSpans(child)
                 }
                 return ""
             })
@@ -267,42 +267,45 @@ function getSpanContent(element: Element): string {
         const tag = el.tagName?.toLowerCase()
         if (!tag) return childContent
 
-        return match(tag)
-            .with("b", () => `<b>${childContent}</b>`)
-            .with("i", () => `<i>${childContent}</i>`)
-            .with("u", () => `<u>${childContent}</u>`)
-            .with("sub", () => `<sub>${childContent}</sub>`)
-            .with("sup", () => `<sup>${childContent}</sup>`)
-            .with(
-                "a",
-                () => `<a href="${el.attribs.href ?? ""}">${childContent}</a>`
-            )
-            .with(
-                "ref",
-                () =>
-                    `<a class="ref" href="${el.attribs.url ?? ""}">${childContent}</a>`
-            )
-            .with(
-                "dod",
-                () =>
-                    `<a href="#dod:${el.attribs.id ?? ""}">${childContent}</a>`
-            )
-            .with(
-                "glink",
-                () =>
-                    `<a href="#guide:${el.attribs.url ?? ""}">${childContent}</a>`
-            )
-            .with("q", () => `<q>${childContent}</q>`)
-            .with("br", () => "<br>")
-            // htmlToSpans maps <span> to span-fallback keeping the children
-            // (truly unknown tags are dropped), so <fallback> bridges as <span>
-            .with("fallback", () => `<span>${childContent}</span>`)
-            .with(
-                "callout-span",
-                () =>
-                    `$${el.attribs.function ?? ""}(${el.attribs.parameters ?? ""})`
-            )
-            .otherwise(() => childContent)
+        return (
+            match(tag)
+                .with("b", () => `<b>${childContent}</b>`)
+                .with("i", () => `<i>${childContent}</i>`)
+                .with("u", () => `<u>${childContent}</u>`)
+                .with("sub", () => `<sub>${childContent}</sub>`)
+                .with("sup", () => `<sup>${childContent}</sup>`)
+                .with(
+                    "a",
+                    () =>
+                        `<a href="${el.attribs.href ?? ""}">${childContent}</a>`
+                )
+                .with(
+                    "ref",
+                    () =>
+                        `<a class="ref" href="${el.attribs.url ?? ""}">${childContent}</a>`
+                )
+                .with(
+                    "dod",
+                    () =>
+                        `<a href="#dod:${el.attribs.id ?? ""}">${childContent}</a>`
+                )
+                .with(
+                    "glink",
+                    () =>
+                        `<a href="#guide:${el.attribs.url ?? ""}">${childContent}</a>`
+                )
+                .with("q", () => `<q>${childContent}</q>`)
+                .with("br", () => "<br>")
+                // htmlToSpans maps <span> to span-fallback keeping the children
+                // (truly unknown tags are dropped), so <fallback> bridges as <span>
+                .with("fallback", () => `<span>${childContent}</span>`)
+                .with(
+                    "callout-span",
+                    () =>
+                        `$${el.attribs.function ?? ""}(${el.attribs.parameters ?? ""})`
+                )
+                .otherwise(() => childContent)
+        )
     }
 
     // Don't trim the result - trailing/leading spaces may be intentional content.
@@ -317,8 +320,7 @@ function getSpanContent(element: Element): string {
 function getChildElements(element: Element, tagName: string): Element[] {
     return (element.children ?? []).filter(
         (child) =>
-            child.type === "tag" &&
-            (child as Element).tagName.toLowerCase() === tagName
+            child.type === "tag" && child.tagName.toLowerCase() === tagName
     ) as Element[]
 }
 
@@ -563,9 +565,8 @@ function elementToRawBlock(element: Element): OwidRawGdocBlock {
                 value: {
                     align: attribs.align as "left" | "right" | undefined,
                     quote: attribs.quote,
-                    content: getAllChildElements(element).map(
-                        elementToRawBlock
-                    ) as OwidRawGdocBlock[],
+                    content:
+                        getAllChildElements(element).map(elementToRawBlock),
                 },
             })
         )
@@ -1259,26 +1260,123 @@ function stripUndefinedDeep<T>(value: T): T {
     return value
 }
 
-export function xhtmlToRawBlocks(xhtml: string): OwidRawGdocBlock[] {
+function rootElements(xhtml: string): Element[] {
     const $ = cheerio.load(xhtml, { xml: true })
-
     // Find the root content - either inside <gdoc> or at root level
     const gdoc = $("gdoc")
     const elements = (
         gdoc.length > 0 ? gdoc.children() : $.root().children()
-    ).toArray() as Element[]
-    return elements
-        .filter((el) => el.type === "tag")
-        .map(elementToRawBlock)
-        .map(stripUndefinedDeep)
+    ).toArray()
+    return elements.filter((el) => el.type === "tag")
+}
+
+export function xhtmlToRawBlocks(xhtml: string): OwidRawGdocBlock[] {
+    return rootElements(xhtml).map(elementToRawBlock).map(stripUndefinedDeep)
+}
+
+// ---------------------------------------------------------------------------
+// Stable block identity: enrichedToXhtml surfaces the draft-only enriched
+// `id` as an `id` attribute. The raw block layer has no id fields, so after
+// the raw→enriched validation we walk the element tree in parallel with the
+// enriched tree and re-attach ids. Child arrays are only paired when their
+// lengths match (a container whose children failed validation degrades to
+// fresh ids rather than misattached ones).
+// ---------------------------------------------------------------------------
+
+function childTags(element: Element, tagName?: string): Element[] {
+    return (element.children ?? []).filter(
+        (child): child is Element =>
+            child.type === "tag" &&
+            (tagName === undefined || child.tagName?.toLowerCase() === tagName)
+    )
+}
+
+function attachIdsToChildren(
+    elements: Element[],
+    blocks: OwidEnrichedGdocBlock[] | undefined
+): void {
+    if (!blocks || elements.length !== blocks.length) return
+    for (let i = 0; i < elements.length; i++)
+        attachBlockIds(elements[i], blocks[i])
+}
+
+function attachBlockIds(
+    element: Element,
+    block: OwidEnrichedGdocBlock | { id?: string } | undefined
+): void {
+    if (!block) return
+    const id = element.attribs?.id
+    if (id) (block as { id?: string }).id = id
+    const enriched = block as OwidEnrichedGdocBlock
+    switch (enriched.type) {
+        case "sticky-right":
+        case "sticky-left":
+        case "side-by-side": {
+            const left = childTags(element, "left")[0]
+            const right = childTags(element, "right")[0]
+            if (left) attachIdsToChildren(childTags(left), enriched.left)
+            if (right) attachIdsToChildren(childTags(right), enriched.right)
+            return
+        }
+        case "gray-section":
+        case "expandable-paragraph":
+            attachIdsToChildren(childTags(element), enriched.items)
+            return
+        case "blockquote":
+        case "callout":
+            attachIdsToChildren(childTags(element), enriched.text)
+            return
+        case "pull-quote":
+        case "data-callout":
+        case "data-callout-group":
+        case "conditional-section":
+            attachIdsToChildren(childTags(element), enriched.content)
+            return
+        case "chart-rows": {
+            const rowElements = childTags(element, "row")
+            if (rowElements.length !== enriched.rows.length) return
+            rowElements.forEach((rowElement, i) =>
+                attachIdsToChildren(
+                    childTags(rowElement),
+                    enriched.rows[i]?.content
+                )
+            )
+            return
+        }
+        case "table": {
+            const rowElements = childTags(element, "row")
+            if (rowElements.length !== enriched.rows.length) return
+            rowElements.forEach((rowElement, i) => {
+                const cellElements = childTags(rowElement, "cell")
+                const cells = enriched.rows[i]?.cells
+                if (!cells || cellElements.length !== cells.length) return
+                cellElements.forEach((cellElement, j) =>
+                    attachIdsToChildren(
+                        childTags(cellElement),
+                        cells[j]?.content
+                    )
+                )
+            })
+            return
+        }
+        default:
+            return
+    }
 }
 
 /**
  * Parse XHTML string to enriched blocks.
- * Runs through the standard raw → enriched conversion for validation.
+ * Runs through the standard raw → enriched conversion for validation, then
+ * re-attaches `id` attributes as enriched block ids (see above).
  * Throws XhtmlParseError for unknown block types.
  */
 export function xhtmlToEnrichedBlocks(xhtml: string): OwidEnrichedGdocBlock[] {
-    const rawBlocks = xhtmlToRawBlocks(xhtml)
-    return excludeNullish(rawBlocks.map(parseRawBlocksToEnrichedBlocks))
+    const elements = rootElements(xhtml)
+    const blocks = elements.map((element) => {
+        const raw = stripUndefinedDeep(elementToRawBlock(element))
+        const block = parseRawBlocksToEnrichedBlocks(raw)
+        if (block) attachBlockIds(element, block)
+        return block
+    })
+    return excludeNullish(blocks)
 }

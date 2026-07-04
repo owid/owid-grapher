@@ -6,7 +6,11 @@ import {
     enrichedBlocksToXhtmlDocument,
     prettyPrintXhtml,
 } from "./enrichedToXhtml.js"
-import { xhtmlToSpans, xhtmlToRawBlocks } from "./xhtmlToEnriched.js"
+import {
+    xhtmlToSpans,
+    xhtmlToRawBlocks,
+    xhtmlToEnrichedBlocks,
+} from "./xhtmlToEnriched.js"
 import {
     parseRawBlocksToEnrichedBlocks,
     parseSimpleText,
@@ -29,7 +33,7 @@ import {
 } from "@ourworldindata/utils"
 import { enrichedBlockExamples } from "./exampleEnrichedBlocks.js"
 
-describe("spanToXhtml", () => {
+describe(spanToXhtml, () => {
     describe("simple text", () => {
         it("escapes special XML characters", () => {
             const span: Span = {
@@ -212,7 +216,7 @@ describe("spanToXhtml", () => {
     })
 })
 
-describe("spansToXhtml", () => {
+describe(spansToXhtml, () => {
     it("concatenates multiple spans", () => {
         const spans: Span[] = [
             { spanType: "span-simple-text", text: "Hello " },
@@ -230,7 +234,7 @@ describe("spansToXhtml", () => {
     })
 })
 
-describe("enrichedBlockToXhtml", () => {
+describe(enrichedBlockToXhtml, () => {
     describe("text blocks", () => {
         it("converts text block", () => {
             const block: EnrichedBlockText = {
@@ -368,19 +372,18 @@ describe("enrichedBlockToXhtml", () => {
             ).not.toThrow()
         })
 
-        it.each([
-            "chart-rows",
-            "pull-chart",
-            "data-callout-group",
-        ] as const)("round-trips %s blocks", (type) => {
-            const block = enrichedBlockExamples[type]
-            const xhtml = enrichedBlockToXhtml(block)
-            const [raw] = xhtmlToRawBlocks(xhtml)
-            const parsed = parseRawBlocksToEnrichedBlocks(raw!)
-            expect(parsed).toBeTruthy()
-            expect(parsed!.type).toBe(type)
-            expect(parsed!.parseErrors ?? []).toEqual([])
-        })
+        it.each(["chart-rows", "pull-chart", "data-callout-group"] as const)(
+            "round-trips %s blocks",
+            (type) => {
+                const block = enrichedBlockExamples[type]
+                const xhtml = enrichedBlockToXhtml(block)
+                const [raw] = xhtmlToRawBlocks(xhtml)
+                const parsed = parseRawBlocksToEnrichedBlocks(raw)
+                expect(parsed).toBeTruthy()
+                expect(parsed!.type).toBe(type)
+                expect(parsed!.parseErrors ?? []).toEqual([])
+            }
+        )
 
         it("round-trips literal markup characters in text", () => {
             const block: EnrichedBlockText = {
@@ -396,7 +399,7 @@ describe("enrichedBlockToXhtml", () => {
             const xhtml = enrichedBlockToXhtml(block)
             const [raw] = xhtmlToRawBlocks(xhtml)
             const parsed = parseRawBlocksToEnrichedBlocks(
-                raw!
+                raw
             ) as EnrichedBlockText
             expect(parsed.value).toEqual(block.value)
         })
@@ -422,24 +425,73 @@ describe("enrichedBlockToXhtml", () => {
             const xhtml = enrichedBlockToXhtml(block)
             const [raw] = xhtmlToRawBlocks(xhtml)
             const parsed = parseRawBlocksToEnrichedBlocks(
-                raw!
+                raw
             ) as EnrichedBlockText
             expect(parsed.value).toEqual(block.value)
         })
 
         it("parses an image without hasOutline as not outlined (render semantics)", () => {
             const [raw] = xhtmlToRawBlocks('<image filename="x.png"/>')
-            const parsed = parseRawBlocksToEnrichedBlocks(raw!) as {
+            const parsed = parseRawBlocksToEnrichedBlocks(raw) as {
                 hasOutline: boolean
             }
             expect(parsed.hasOutline).toBe(false)
+        })
+
+        it("round-trips stable block ids, including nested ones", () => {
+            const blocks: OwidEnrichedGdocBlock[] = [
+                {
+                    type: "text",
+                    value: [{ spanType: "span-simple-text", text: "Hello" }],
+                    parseErrors: [],
+                    id: "text-1",
+                },
+                {
+                    type: "gray-section",
+                    items: [
+                        {
+                            type: "text",
+                            value: [
+                                {
+                                    spanType: "span-simple-text",
+                                    text: "Nested",
+                                },
+                            ],
+                            parseErrors: [],
+                            id: "nested-2",
+                        },
+                        {
+                            type: "chart",
+                            url: "https://ourworldindata.org/grapher/x",
+                            size: BlockSize.Wide,
+                            parseErrors: [],
+                            id: "chart-3",
+                        } as OwidEnrichedGdocBlock,
+                    ],
+                    parseErrors: [],
+                    id: "section-4",
+                },
+            ]
+            const xhtml = blocks
+                .map((block) => enrichedBlockToXhtml(block))
+                .join("")
+            expect(xhtml).toContain('id="text-1"')
+            expect(xhtml).toContain('id="nested-2"')
+            const parsed = xhtmlToEnrichedBlocks(xhtml)
+            expect(parsed[0].id).toBe("text-1")
+            expect(parsed[1].id).toBe("section-4")
+            const section = parsed[1] as {
+                items: OwidEnrichedGdocBlock[]
+            }
+            expect(section.items[0].id).toBe("nested-2")
+            expect(section.items[1].id).toBe("chart-3")
         })
 
         it("round-trips chart peerCountries", () => {
             const [raw] = xhtmlToRawBlocks(
                 '<chart url="https://ourworldindata.org/grapher/x" peerCountries="population"/>'
             )
-            const parsed = parseRawBlocksToEnrichedBlocks(raw!) as {
+            const parsed = parseRawBlocksToEnrichedBlocks(raw) as {
                 peerCountries?: string
             }
             expect(parsed.peerCountries).toBe("population")
@@ -615,7 +667,7 @@ describe("enrichedBlockToXhtml", () => {
     })
 })
 
-describe("enrichedBlocksToXhtmlDocument", () => {
+describe(enrichedBlocksToXhtmlDocument, () => {
     it("wraps blocks in document structure", () => {
         const blocks: OwidEnrichedGdocBlock[] = [
             {
@@ -632,7 +684,7 @@ describe("enrichedBlocksToXhtmlDocument", () => {
     })
 })
 
-describe("prettyPrintXhtml", () => {
+describe(prettyPrintXhtml, () => {
     it("preserves space-only text nodes between inline elements", () => {
         const raw = "<text><b>A</b> <i>B</i></text>"
         const pretty = prettyPrintXhtml(raw)
