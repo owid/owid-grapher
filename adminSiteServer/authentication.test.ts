@@ -1,8 +1,5 @@
 import { describe, expect, it } from "vitest"
-import {
-    getTrustedTailscaleUserLogin,
-    isLoopbackIp,
-} from "./authentication.js"
+import { getTrustedTailscaleUserLogin, isLoopbackIp } from "./authentication.js"
 
 const mockRequest = (headers: Record<string, string | undefined>) => ({
     get: (header: string) => headers[header.toLowerCase()],
