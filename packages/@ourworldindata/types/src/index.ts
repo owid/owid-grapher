@@ -783,6 +783,7 @@ export type {
     ChoicesEnriched,
     DimensionEnriched,
     MultiDimDimensionChoices,
+    ExplorerRedirectTarget,
     View,
     ViewEnriched,
 } from "./siteTypes/MultiDimDataPage.js"

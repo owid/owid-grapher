@@ -2,12 +2,12 @@ import * as db from "../db/db.js"
 import {
     buildQueryParamDecisionTree,
     type DecisionTreeNode,
+    type ExplorerRedirectTarget,
     type QueryParamMatchRule,
 } from "@ourworldindata/utils"
 import {
     getMultiDimRedirectRulesBySource,
     getMultiDimRedirectTargets,
-    type MultiDimRedirectTarget,
 } from "../db/model/MultiDimRedirects.js"
 
 // Prevent Cloudflare from serving outdated pages, which can remain in the
@@ -115,31 +115,27 @@ export const getGrapherToMultiDimRedirects = async (
     return redirects
 }
 
-function buildExplorerRedirectTarget(target: MultiDimRedirectTarget): string {
-    return `/grapher/${target.targetSlug}${
-        target.queryStr ? `?${target.queryStr}` : ""
-    }`
-}
-
 // Builds one query-param decision tree per source explorer slug, so that the
 // Cloudflare Pages Function can resolve which target a given explorer URL (slug +
-// query params) should redirect to. The tree leaves hold full target paths, e.g.
-// "/grapher/some-slug?tab=map". Keyed by source slug (with `urlPrefix` prepended).
+// query params) should redirect to. The tree leaves hold the target multi-dim
+// slug and the query params to apply (see ExplorerRedirectTarget). Keyed by
+// source slug (with `urlPrefix` prepended).
 export async function getExplorerRedirectDecisionTrees(
     knex: db.KnexReadonlyTransaction,
     urlPrefix: string = "/explorers/"
-): Promise<Map<string, DecisionTreeNode<string>>> {
+): Promise<Map<string, DecisionTreeNode<ExplorerRedirectTarget>>> {
     const rulesBySource = await getMultiDimRedirectRulesBySource(
         knex,
         "/explorers/"
     )
 
-    const trees = new Map<string, DecisionTreeNode<string>>()
+    const trees = new Map<string, DecisionTreeNode<ExplorerRedirectTarget>>()
     for (const [sourceSlug, rules] of rulesBySource) {
-        const matchRules: QueryParamMatchRule<string>[] = rules.map((rule) => ({
-            condition: rule.sourceQueryParams,
-            target: buildExplorerRedirectTarget(rule.target),
-        }))
+        const matchRules: QueryParamMatchRule<ExplorerRedirectTarget>[] =
+            rules.map((rule) => ({
+                condition: rule.sourceQueryParams,
+                target: rule.target,
+            }))
         trees.set(
             `${urlPrefix}${sourceSlug}`,
             buildQueryParamDecisionTree(matchRules)

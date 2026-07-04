@@ -1,6 +1,8 @@
 import * as db from "../db.js"
 import {
+    ExplorerRedirectTarget,
     MultiDimDataPageConfigEnriched,
+    MultiDimDimensionChoices,
     MultiDimRedirectsTableName,
 } from "@ourworldindata/types"
 import { MultiDimDataPageConfig } from "@ourworldindata/utils"
@@ -17,15 +19,18 @@ export interface MultiDimRedirectRule {
     // object matches unconditionally; a `null` value acts as a wildcard for that
     // param (see QueryParamDecisionTree). Multiple rules can share a source slug.
     sourceQueryParams: Record<string, string | null>
-    target: MultiDimRedirectTarget
+    target: ExplorerRedirectTarget
 }
 
-export function buildQueryStrFromConfig(
+// Returns the dimension choices (param name -> value) of a specific multi-dim
+// view, or an empty object when no view is specified (the multi-dim's default
+// view). Throws if a view config id is given but no matching view exists.
+export function getViewParamsFromConfig(
     viewConfigId: string | null,
     config: string,
     multiDimSlug: string
-): string | undefined {
-    if (!viewConfigId) return undefined
+): MultiDimDimensionChoices {
+    if (!viewConfigId) return {}
 
     const parsedConfig = JSON.parse(config) as MultiDimDataPageConfigEnriched
     const mdimConfig = MultiDimDataPageConfig.fromObject(parsedConfig)
@@ -35,7 +40,19 @@ export function buildQueryStrFromConfig(
             `No matching view found for viewConfigId ${viewConfigId} on multi-dim ${multiDimSlug}`
         )
     }
+    return dimensions
+}
 
+export function buildQueryStrFromConfig(
+    viewConfigId: string | null,
+    config: string,
+    multiDimSlug: string
+): string | undefined {
+    const dimensions = getViewParamsFromConfig(
+        viewConfigId,
+        config,
+        multiDimSlug
+    )
     const params = new URLSearchParams()
     const sortedDimensions = Object.entries(dimensions).sort(([keyA], [keyB]) =>
         keyA.localeCompare(keyB)
@@ -137,16 +154,23 @@ export async function getMultiDimRedirectRulesBySource(
     )
 
     for (const redirect of redirects) {
-        const queryStr = buildQueryStrFromConfig(
+        const sourceQueryParams = parseSourceQueryParams(
+            redirect.sourceQueryParams
+        )
+        const viewParams = getViewParamsFromConfig(
             redirect.viewConfigId,
             redirect.config,
             redirect.multiDimSlug
         )
         const rule: MultiDimRedirectRule = {
-            sourceQueryParams: parseSourceQueryParams(
-                redirect.sourceQueryParams
-            ),
-            target: { targetSlug: redirect.multiDimSlug, queryStr },
+            sourceQueryParams,
+            target: {
+                targetSlug: redirect.multiDimSlug,
+                targetQueryParams: buildTargetQueryParams(
+                    sourceQueryParams,
+                    viewParams
+                ),
+            },
         }
         const existing = rulesBySource.get(redirect.sourceSlug)
         if (existing) existing.push(rule)
@@ -170,6 +194,28 @@ function parseSourceQueryParams(
         condition[key] = value === null ? null : String(value)
     }
     return condition
+}
+
+// Builds the query params to apply to the redirect target. Every param the
+// target multi-dim view sets is applied (so the redirect always lands on that
+// view). Additionally, any source query param that was matched on but that the
+// target view doesn't constrain is mapped to `null` (a signal to remove the
+// param from the outgoing URL), since it's explorer-specific and shouldn't leak
+// into the grapher URL.
+function buildTargetQueryParams(
+    sourceQueryParams: Record<string, string | null>,
+    viewParams: MultiDimDimensionChoices
+): Record<string, string | null> {
+    const targetQueryParams: Record<string, string | null> = {}
+    for (const key of Object.keys(viewParams).sort()) {
+        targetQueryParams[key] = viewParams[key]
+    }
+    for (const key of Object.keys(sourceQueryParams).sort()) {
+        if (!Object.hasOwn(viewParams, key)) {
+            targetQueryParams[key] = null
+        }
+    }
+    return targetQueryParams
 }
 
 export async function getRecentMultiDimRedirects(
