@@ -297,21 +297,32 @@ async function identifyWebsocketUser(request: {
     }
 
     if (ENV === "staging") {
-        let clientIp =
-            headerValue(request.headers["x-forwarded-for"]) ??
+        // Mirror the regular HTTP staging auth (tailscaleAuthMiddleware):
+        // behind tailscale-serve → nginx, X-Forwarded-For is a comma-
+        // separated chain ("100.x.y.z, 127.0.0.1") — the tailnet client is
+        // the FIRST entry — and Tailscale Serve's identity header is the
+        // fallback for requests whose source IP isn't in the tailnet map.
+        const clientIp = parseForwardedClientIp(
+            headerValue(request.headers["x-forwarded-for"]),
             request.socketRemoteAddress
-        if (clientIp?.startsWith("::ffff:"))
-            clientIp = clientIp.replace("::ffff:", "")
+        )
         if (!clientIp) return undefined
         const ipToUserMap = await getTailscaleIpToUserMap().catch(
             () => ({}) as Record<string, string>
         )
-        const githubUserName = ipToUserMap[clientIp]
-        if (!githubUserName) return undefined
+        let loginName: string | undefined = ipToUserMap[clientIp]
+        if (!loginName && isLoopbackIp(request.socketRemoteAddress)) {
+            loginName =
+                headerValue(
+                    request.headers[TAILSCALE_USER_LOGIN_HEADER]
+                )?.trim() || undefined
+        }
+        if (!loginName) return undefined
         return db
             .knexInstance()
             .table(UsersTableName)
-            .where({ githubUsername: githubUserName })
+            .where({ githubUsername: loginName })
+            .orWhere({ email: loginName })
             .first<DbPlainUser>()
     }
 
@@ -390,17 +401,28 @@ export function isLoopbackIp(ip: string | undefined): boolean {
     return ip === "127.0.0.1" || ip === "::1" || ip === "localhost"
 }
 
-export function getClientIp(req: express.Request): string | undefined {
-    let ip =
-        (req.headers["x-forwarded-for"] as string | undefined)
-            ?.split(",")[0]
-            ?.trim() ||
-        req.socket.remoteAddress ||
-        req.ip
+/**
+ * The real client IP behind reverse proxies: the FIRST entry of
+ * X-Forwarded-For (each proxy hop appends its peer), falling back to the
+ * socket peer address. Shared by the HTTP middleware (getClientIp) and the
+ * websocket upgrade auth so the two can't drift.
+ */
+export function parseForwardedClientIp(
+    xForwardedFor: string | undefined,
+    socketRemoteAddress: string | undefined
+): string | undefined {
+    let ip = xForwardedFor?.split(",")[0]?.trim() || socketRemoteAddress
     if (ip?.startsWith("::ffff:")) {
         ip = ip.replace("::ffff:", "")
     }
-    return ip
+    return ip || undefined
+}
+
+export function getClientIp(req: express.Request): string | undefined {
+    return parseForwardedClientIp(
+        req.headers["x-forwarded-for"] as string | undefined,
+        req.socket.remoteAddress || req.ip
+    )
 }
 
 function getApiKeyFromRequest(req: express.Request): string | undefined {
