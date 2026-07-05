@@ -4,10 +4,7 @@
 // a large document without reading it into the main model's context.
 
 import { Editor } from "@tiptap/core"
-import type {
-    AgentTool,
-    AgentToolResult,
-} from "@earendil-works/pi-agent-core"
+import type { AgentTool, AgentToolResult } from "@earendil-works/pi-agent-core"
 import { Type, type Static } from "typebox"
 import { SUMMARIES_DESCRIPTION } from "./prompts.js"
 import {

@@ -5,10 +5,7 @@
 // write_doc_from_file applies file rewrites immediately (diffed by block id,
 // one undo step) instead of staging them for a later apply.
 
-import type {
-    AgentTool,
-    AgentToolResult,
-} from "@earendil-works/pi-agent-core"
+import type { AgentTool, AgentToolResult } from "@earendil-works/pi-agent-core"
 import { Type, type Static } from "typebox"
 import {
     CODE_FETCH_FILE_DESCRIPTION,
@@ -111,9 +108,9 @@ let scriptCounter = 0
 let runCounter = 0
 
 /** Write the live document into the workspace (/doc/*). */
-export async function materializeDocToCode(host: CodeToolHost): Promise<
-    CodeFileStat[]
-> {
+export async function materializeDocToCode(
+    host: CodeToolHost
+): Promise<CodeFileStat[]> {
     const editor = requireEditor(host)
     const info = host.getDocInfo()
     const current = fullDocXhtml(editor)
@@ -186,7 +183,11 @@ const codeReadFileTool = (
         params: Static<typeof readFileParams>
     ): Promise<AgentToolResult<CodeReadResult>> => {
         const offset = Math.max(0, Math.round(params.offset ?? 0))
-        const maxChars = clamp(Math.round(params.max_chars ?? 12_000), 500, 50_000)
+        const maxChars = clamp(
+            Math.round(params.max_chars ?? 12_000),
+            500,
+            50_000
+        )
         const result = await host.code.readFile(params.path, {
             offset,
             maxChars,
@@ -358,7 +359,11 @@ const codeRunJsTool = (host: CodeToolHost): AgentTool<typeof runJsParams> => ({
             throw new Error("Provide exactly one of code or path.")
         // keep /doc/current.xhtml fresh: the live doc changes constantly
         if (host.getEditor()) await materializeDocToCode(host)
-        const timeoutMs = clamp(Math.round(params.timeout_ms ?? 5_000), 100, 30_000)
+        const timeoutMs = clamp(
+            Math.round(params.timeout_ms ?? 5_000),
+            100,
+            30_000
+        )
         const scriptPath =
             params.path ??
             `/scripts/${String(++scriptCounter).padStart(3, "0")}-${slug(params.script_name ?? "script")}.js`
@@ -399,7 +404,10 @@ const codeRunJsTool = (host: CodeToolHost): AgentTool<typeof runJsParams> => ({
                 "/runs/latest/stdout.txt",
                 result.logs.join("\n")
             ),
-            host.code.writeFile(`${runDir}/result.json`, safeJson(result.result)),
+            host.code.writeFile(
+                `${runDir}/result.json`,
+                safeJson(result.result)
+            ),
             host.code.writeFile(
                 "/runs/latest/result.json",
                 safeJson(result.result)
@@ -408,7 +416,8 @@ const codeRunJsTool = (host: CodeToolHost): AgentTool<typeof runJsParams> => ({
         const files = await host.code.listFiles()
         let out = ""
         out += `Script: ${scriptPath}\nRun: ${runDir}\n\n`
-        if (result.logs.length > 0) out += `Logs:\n${result.logs.join("\n")}\n\n`
+        if (result.logs.length > 0)
+            out += `Logs:\n${result.logs.join("\n")}\n\n`
         out += `Result:\n${rendered}`
         out += `\n\nFiles:\n${formatFiles(files)}`
         return {

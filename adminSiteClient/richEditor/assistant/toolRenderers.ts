@@ -80,7 +80,11 @@ function makeRenderer(tool: AgentTool): ToolRenderer {
                             ? html`<pre
                                   class="text-xs whitespace-pre-wrap max-h-64 overflow-y-auto m-0"
                               >
-${output ? (output.length > 4000 ? output.slice(0, 4000) + "\n…" : output) : "(no output)"}</pre
+${output
+                                      ? output.length > 4000
+                                          ? output.slice(0, 4000) + "\n…"
+                                          : output
+                                      : "(no output)"}</pre
                               >`
                             : ""}
                     </div>
