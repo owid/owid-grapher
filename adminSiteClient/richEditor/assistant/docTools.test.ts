@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { describe, expect, it } from "vitest"
+import { afterEach, describe, expect, it } from "vitest"
 import { Editor } from "@tiptap/core"
 import * as Y from "yjs"
 import { Collaboration } from "@tiptap/extension-collaboration"
@@ -45,6 +45,15 @@ const chartBlock = (url: string, id?: string): OwidEnrichedGdocBlock =>
         ...(id ? { id } : {}),
     }) as OwidEnrichedGdocBlock
 
+// TipTap's EditorView schedules DOM-observer timeouts that must be cleared
+// before happy-dom tears down, or they fire against a torn-down `document`
+// and vitest reports them as unhandled errors on a later, unrelated test.
+const openEditors: Editor[] = []
+
+afterEach(() => {
+    for (const editor of openEditors.splice(0)) editor.destroy()
+})
+
 function makeEditor(
     blocks: OwidEnrichedGdocBlock[],
     { collaboration = false } = {}
@@ -57,6 +66,7 @@ function makeEditor(
             : []),
     ]
     const editor = new Editor({ extensions })
+    openEditors.push(editor)
     editor.commands.setContent(enrichedBlocksToPmDoc(blocks))
     ensureBlockIds(editor)
     // setContent leaves a whole-document selection; a collapsed cursor is
