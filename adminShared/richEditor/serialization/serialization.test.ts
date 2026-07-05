@@ -256,9 +256,11 @@ describe("enriched ⇄ ProseMirror serialization", () => {
             {
                 type: "gray-section",
                 items: [
+                    // simple-text never occurs as a standalone block, which
+                    // makes it a stand-in for a future unknown block type
                     {
-                        type: "sdg-grid",
-                        items: [{ goal: "No poverty", link: "https://x" }],
+                        type: "simple-text",
+                        value: { spanType: "span-simple-text", text: "raw" },
                         parseErrors: [],
                     } as never,
                 ],
@@ -268,6 +270,132 @@ describe("enriched ⇄ ProseMirror serialization", () => {
         const pmDoc = enrichedBlocksToPmDoc(original)
         expect(pmDoc.content?.[0].content?.[0].type).toBe("rawBlock")
         expect(enrichedBodiesMatch(original, roundTrip(original))).toBe(true)
+    })
+})
+
+describe("props containers", () => {
+    const schema = getSchema(getRichEditorBaseExtensions())
+
+    it("maps an expander to an editable container carrying its fields in props", () => {
+        const original: OwidEnrichedGdocBlock[] = [
+            {
+                type: "expander",
+                title: "Details",
+                subtitle: "More context",
+                content: [
+                    {
+                        type: "text",
+                        value: [{ spanType: "span-simple-text", text: "body" }],
+                        parseErrors: [],
+                        id: "inner-text",
+                    },
+                ],
+                parseErrors: [],
+                id: "expander-id",
+            },
+        ]
+        const pmDoc = enrichedBlocksToPmDoc(original)
+        expect(() => PmNode.fromJSON(schema, pmDoc).check()).not.toThrow()
+        const node = pmDoc.content?.[0]
+        expect(node?.type).toBe("expander")
+        expect(node?.attrs?.props).toEqual({
+            title: "Details",
+            subtitle: "More context",
+        })
+        // the content is a real editable hole, not opaque props
+        expect(node?.content?.[0].type).toBe("paragraph")
+        const back = roundTrip(original)
+        expect(enrichedBodiesMatch(original, back)).toBe(true)
+        expect(back[0].id).toBe("expander-id")
+        expect(
+            (back[0] as { content: OwidEnrichedGdocBlock[] }).content[0].id
+        ).toBe("inner-text")
+    })
+
+    it("maps key insights to a container of slide containers", () => {
+        const original: OwidEnrichedGdocBlock[] = [
+            {
+                type: "key-insights",
+                heading: "Key insights",
+                insights: [
+                    {
+                        type: "key-insight-slide",
+                        title: "First insight",
+                        url: "https://ourworldindata.org/grapher/life-expectancy",
+                        content: [
+                            {
+                                type: "text",
+                                value: [
+                                    {
+                                        spanType: "span-simple-text",
+                                        text: "slide text",
+                                    },
+                                ],
+                                parseErrors: [],
+                                id: "slide-text-id",
+                            },
+                        ],
+                    },
+                ],
+                parseErrors: [],
+                id: "ki-id",
+            },
+        ]
+        const pmDoc = enrichedBlocksToPmDoc(original)
+        expect(() => PmNode.fromJSON(schema, pmDoc).check()).not.toThrow()
+        const node = pmDoc.content?.[0]
+        expect(node?.type).toBe("keyInsights")
+        expect(node?.content?.[0].type).toBe("keyInsightSlide")
+        expect(node?.content?.[0].attrs?.props).toEqual({
+            title: "First insight",
+            url: "https://ourworldindata.org/grapher/life-expectancy",
+        })
+        const back = roundTrip(original)
+        expect(enrichedBodiesMatch(original, back)).toBe(true)
+        expect(back[0].id).toBe("ki-id")
+    })
+
+    it("stripBlockIds reaches the new containers", () => {
+        const stripped = stripBlockIds([
+            {
+                type: "data-callout",
+                url: "https://ourworldindata.org/grapher/life-expectancy",
+                content: [
+                    { type: "text", value: [], parseErrors: [], id: "t1" },
+                ],
+                parseErrors: [],
+                id: "dc1",
+            },
+            {
+                type: "key-insights",
+                heading: "h",
+                insights: [
+                    {
+                        type: "key-insight-slide",
+                        title: "s",
+                        content: [
+                            {
+                                type: "text",
+                                value: [],
+                                parseErrors: [],
+                                id: "t2",
+                            },
+                        ],
+                    },
+                ],
+                parseErrors: [],
+                id: "ki1",
+            },
+            {
+                type: "topic-page-intro",
+                content: [
+                    { type: "text", value: [], parseErrors: [], id: "t3" },
+                ],
+                parseErrors: [],
+                id: "tpi1",
+            },
+        ] as OwidEnrichedGdocBlock[])
+        expect(JSON.stringify(stripped)).not.toContain('"id"')
     })
 })
 
