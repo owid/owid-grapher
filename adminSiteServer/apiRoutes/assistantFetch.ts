@@ -49,9 +49,7 @@ export async function assistantFetchUrl(
             )
         const body = await response.text()
         if (body.length > MAX_BODY_BYTES)
-            throw new Error(
-                `Page is too large to read (${body.length} chars).`
-            )
+            throw new Error(`Page is too large to read (${body.length} chars).`)
         return {
             status: response.status,
             finalUrl: response.url || url,
