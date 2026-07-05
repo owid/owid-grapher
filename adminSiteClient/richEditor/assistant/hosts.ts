@@ -87,9 +87,12 @@ async function pickSummarizerModel(): Promise<{
     for (const candidate of candidates) {
         let models: Model<never>[]
         try {
+            // oxlint's type checker doesn't see this as narrowing string to KnownProvider, but tsgo requires it
+            // oxlint-disable typescript/no-unnecessary-type-assertion
             models = getModels(
                 candidate.provider as Parameters<typeof getModels>[0]
             ) as Model<never>[]
+            // oxlint-enable typescript/no-unnecessary-type-assertion
         } catch {
             continue
         }
