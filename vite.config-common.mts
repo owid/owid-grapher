@@ -15,8 +15,20 @@ export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
     const isBundlemon = process.env.BUNDLEMON === "true"
     const vitePort = parseInt(process.env.VITE_PORT || "8090", 10)
 
-    return defineConfig({
+    return defineConfig(({ command }) => ({
         publicDir: false, // don't copy public folder to dist
+        // The admin build contains dynamic imports (e.g. the lazy-loaded
+        // assistant panel). Vite resolves the resulting chunk and CSS URLs
+        // against `base` at runtime, so it has to match the URL path the
+        // output directory is served under (see the express.static mounts in
+        // adminSiteServer/appClass.tsx and SiteBaker.bakeAssets). The default
+        // base of "/" would make the admin bundle request its chunks from
+        // /assets/... instead of /assets-admin/... . Only set in builds — the
+        // dev server serves from the repo root and needs the default base.
+        base:
+            command === "build" && entrypoint === ViteEntryPoint.Admin
+                ? `/${entrypointInfo.outDir}/`
+                : "/",
         css: {
             devSourcemap: true,
             preprocessorOptions: {
@@ -133,7 +145,7 @@ export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
         preview: {
             port: vitePort,
         },
-    })
+    }))
 }
 
 // This plugin removes locale imports from react-aria packages.
