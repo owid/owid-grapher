@@ -4,6 +4,7 @@ import { Node as PmNode, Schema } from "@tiptap/pm/model"
 import {
     pmNodeNames,
     propsAtomBlockTypes,
+    propsContainerBlockTypes,
     twoColumnBlockTypes,
 } from "../../adminShared/richEditor/serialization/pmJson.js"
 
@@ -17,6 +18,14 @@ export interface InspectedTableCommands {
     addColumn: () => void
     removeRow: () => void
     removeColumn: () => void
+}
+
+export interface InspectedKeyInsightsCommands {
+    /** Append a slide (after the selected slide, or at the end) */
+    addSlide: () => void
+    /** Swap the selected slide with its previous/next sibling; unset at the ends */
+    moveUp?: () => void
+    moveDown?: () => void
 }
 
 export interface InspectedBlock {
@@ -42,6 +51,8 @@ export interface InspectedBlock {
     getPos: () => number | null
     /** Structural commands, set only for the selected table block */
     tableCommands?: InspectedTableCommands
+    /** Slide commands, set for a selected key-insights block or slide */
+    keyInsightsCommands?: InspectedKeyInsightsCommands
     /**
      * Convert this block into a narrative-chart block referencing the given
      * name; set only for chart blocks. Returns the block's position.
@@ -49,12 +60,23 @@ export interface InspectedBlock {
     convertToNarrativeChart?: (name: string) => number | null
 }
 
-const nodeNameToPropsAtomBlockType = Object.fromEntries(
-    Object.entries(propsAtomBlockTypes).map(([blockType, nodeName]) => [
-        nodeName,
-        blockType,
-    ])
-)
+// Node types whose settings live in a `props` attr: the atoms, the props
+// containers, and the key-insights container/slide pair
+const nodeNameToPropsBlockType: Record<string, string> = {
+    ...Object.fromEntries(
+        Object.entries(propsAtomBlockTypes).map(([blockType, nodeName]) => [
+            nodeName,
+            blockType,
+        ])
+    ),
+    ...Object.fromEntries(
+        Object.entries(propsContainerBlockTypes).map(
+            ([blockType, nodeName]) => [nodeName, blockType]
+        )
+    ),
+    [pmNodeNames.keyInsights]: "key-insights",
+    [pmNodeNames.keyInsightSlide]: "key-insight-slide",
+}
 
 const nodeNameToContainerBlockType: Record<string, string> = {
     ...Object.fromEntries(
@@ -149,12 +171,12 @@ export function inspectedBlockFromSelection(
         return current.from
     }
 
-    const propsAtomBlockType = nodeNameToPropsAtomBlockType[nodeType]
-    if (propsAtomBlockType) {
+    const propsBlockType = nodeNameToPropsBlockType[nodeType]
+    if (propsBlockType) {
         return {
             nodeType,
             blockId,
-            blockType: propsAtomBlockType,
+            blockType: propsBlockType,
             kind: "props",
             props: (node.attrs.props ?? {}) as Record<string, unknown>,
             updateProps: updateSelectedNodeAttrs((attrs, newProps) => ({
@@ -171,6 +193,10 @@ export function inspectedBlockFromSelection(
                               name
                           ),
                   }
+                : {}),
+            ...(nodeType === pmNodeNames.keyInsights ||
+            nodeType === pmNodeNames.keyInsightSlide
+                ? { keyInsightsCommands: buildKeyInsightsCommands(editor) }
                 : {}),
         }
     }
@@ -319,6 +345,91 @@ function buildTableCommands(editor: Editor): InspectedTableCommands {
             }
             return true
         }),
+    }
+}
+
+// Slide edits on a selected key-insights block (append a slide) or slide
+// (insert after, move up/down). Positions are computed from the live
+// selection at call time; the new/moved slide is selected afterwards so the
+// inspector follows it.
+function buildKeyInsightsCommands(
+    editor: Editor
+): InspectedKeyInsightsCommands {
+    const makeSlide = (schema: Schema): PmNode =>
+        schema.nodes[pmNodeNames.keyInsightSlide].create(
+            { props: { title: "" } },
+            schema.nodes[pmNodeNames.paragraph].create()
+        )
+
+    const addSlide = (): void => {
+        const current = editor.state.selection
+        if (!(current instanceof NodeSelection)) return
+        const name = current.node.type.name
+        let insertPos: number
+        if (name === pmNodeNames.keyInsights) {
+            // append inside the container
+            insertPos = current.from + current.node.nodeSize - 1
+        } else if (name === pmNodeNames.keyInsightSlide) {
+            // insert after the selected slide
+            insertPos = current.from + current.node.nodeSize
+        } else {
+            return
+        }
+        editor
+            .chain()
+            .command(({ tr, state }) => {
+                tr.insert(insertPos, makeSlide(state.schema))
+                return true
+            })
+            .setNodeSelection(insertPos)
+            .run()
+    }
+
+    const moveSlide = (delta: -1 | 1): void => {
+        const current = editor.state.selection
+        if (
+            !(current instanceof NodeSelection) ||
+            current.node.type.name !== pmNodeNames.keyInsightSlide
+        )
+            return
+        const pos = current.from
+        const $pos = editor.state.doc.resolve(pos)
+        const index = $pos.index()
+        const target = index + delta
+        if (target < 0 || target >= $pos.parent.childCount) return
+        const slide = current.node
+        const sibling = $pos.parent.child(target)
+        const newPos =
+            delta === -1 ? pos - sibling.nodeSize : pos + sibling.nodeSize
+        editor
+            .chain()
+            .command(({ tr }) => {
+                tr.delete(pos, pos + slide.nodeSize)
+                tr.insert(newPos, slide)
+                return true
+            })
+            .setNodeSelection(newPos)
+            .run()
+    }
+
+    // whether the selected slide has room to move, computed from the
+    // selection the inspector was built for
+    let canMoveUp = false
+    let canMoveDown = false
+    const selection = editor.state.selection
+    if (
+        selection instanceof NodeSelection &&
+        selection.node.type.name === pmNodeNames.keyInsightSlide
+    ) {
+        const $pos = editor.state.doc.resolve(selection.from)
+        canMoveUp = $pos.index() > 0
+        canMoveDown = $pos.index() < $pos.parent.childCount - 1
+    }
+
+    return {
+        addSlide,
+        ...(canMoveUp ? { moveUp: () => moveSlide(-1) } : {}),
+        ...(canMoveDown ? { moveDown: () => moveSlide(1) } : {}),
     }
 }
 

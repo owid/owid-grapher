@@ -1,7 +1,6 @@
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useState } from "react"
 import {
     Alert,
-    AutoComplete,
     Button,
     Checkbox,
     Collapse,
@@ -18,325 +17,59 @@ import {
     Span,
 } from "@ourworldindata/types"
 import { spansToUnformattedPlainText } from "@ourworldindata/utils"
-import { ImageSelectorModal } from "../ImageSelectorModal.js"
 import { InspectedBlock } from "./inspection.js"
-import { parseGrapherUrl } from "./grapherUrls.js"
-import { GRAPHER_URL_PREFIX, useChartList } from "./useChartList.js"
 import {
     ChartBlockActions,
     NarrativeChartBlockActions,
 } from "./chartEditing/ChartBlockActions.js"
+import {
+    ChartUrlField,
+    HybridLinksField,
+    ImageFilenameField,
+    RnwLinksField,
+    UrlListField,
+    isPlainTextSpans,
+} from "./inspectorFields.js"
+import {
+    AlignSection,
+    BespokeComponentSection,
+    CanvasContentNote,
+    ChartRowsSection,
+    ChartStorySection,
+    CodeSection,
+    ConditionalSectionSection,
+    CountryProfileSelectorSection,
+    DataCalloutSection,
+    EntrySummarySection,
+    ExpanderSection,
+    ExploreDataSectionSection,
+    HomepageIntroSection,
+    HtmlSection,
+    KeyIndicatorCollectionSection,
+    KeyIndicatorSection,
+    KeyInsightSlideSection,
+    KeyInsightsSection,
+    LtpTocSection,
+    NoSettingsNote,
+    PeopleRowsSection,
+    PeopleSection,
+    PersonSection,
+    PillRowPillsSection,
+    PullChartSection,
+    ResearchAndWritingExtrasSection,
+    ResourcePanelSection,
+    SdgGridSection,
+    SocialsSection,
+    StaticVizSection,
+    SubscribeBannerSection,
+    TopicPageIntroSection,
+} from "./inspectorSections.js"
 
 // The right-rail block inspector (stage A of the in-situ chart editing
 // plan): opened by selecting a component in the canvas, it shows typed
 // fields for the props of each block type, plus a raw-JSON editor covering
 // everything else. Edits are applied as ProseMirror attribute updates, so
 // undo/redo covers them.
-
-function ChartUrlField(props: {
-    value: string
-    onChange: (url: string) => void
-}): React.ReactElement {
-    const charts = useChartList()
-    // What the input currently shows. Typing must NOT write the block's url
-    // (a half-typed search would break the chart in the canvas): the value is
-    // only committed when an option is picked or a valid grapher URL is
-    // pasted; anything else is reverted on blur.
-    const [text, setText] = useState(props.value)
-
-    useEffect(() => {
-        setText(props.value)
-        // re-sync when a different block is inspected or the url is changed
-        // from elsewhere (e.g. the JSON editor)
-    }, [props.value])
-
-    const options = useMemo(() => {
-        const raw = text.trim()
-        if (!raw || raw === props.value) return []
-        // pasted grapher URLs search by their slug
-        const query = (parseGrapherUrl(raw)?.slug ?? raw).toLowerCase()
-        return charts
-            .filter((chart) => chart.isPublished && chart.slug)
-            .filter(
-                (chart) =>
-                    chart.slug.toLowerCase().includes(query) ||
-                    String(chart.id) === query
-            )
-            .slice(0, 20)
-            .map((chart) => ({
-                value: `${GRAPHER_URL_PREFIX}${chart.slug}`,
-                label: `${chart.slug} — ${chart.title}`,
-            }))
-    }, [charts, text, props.value])
-
-    const commitOrRevert = (): void => {
-        const raw = text.trim()
-        // allow clearing the block's chart explicitly
-        if (raw === "") {
-            if (props.value !== "") props.onChange("")
-            return
-        }
-        if (raw !== props.value && parseGrapherUrl(raw)) {
-            props.onChange(raw)
-            return
-        }
-        setText(props.value)
-    }
-
-    return (
-        <AutoComplete
-            value={text}
-            options={options}
-            showSearch={{ onSearch: setText }}
-            onSelect={(value) => {
-                setText(String(value))
-                props.onChange(String(value))
-            }}
-            onBlur={commitOrRevert}
-            placeholder="Search by chart slug or id, or paste a grapher URL"
-        />
-    )
-}
-
-/** Image filename with a Replace… button opening the image library */
-function ImageFilenameField(props: {
-    value: string
-    onChange: (filename: string | undefined) => void
-    allowClear?: boolean
-}): React.ReactElement {
-    const [selectorOpen, setSelectorOpen] = useState(false)
-    return (
-        <Space orientation="vertical" style={{ width: "100%" }}>
-            {props.value ? (
-                <Typography.Text
-                    ellipsis={{ tooltip: props.value }}
-                    style={{ maxWidth: 260 }}
-                >
-                    {props.value}
-                </Typography.Text>
-            ) : null}
-            <Space>
-                <Button size="small" onClick={() => setSelectorOpen(true)}>
-                    {props.value ? "Replace…" : "Choose…"}
-                </Button>
-                {props.allowClear && props.value && (
-                    <Button
-                        size="small"
-                        onClick={() => props.onChange(undefined)}
-                    >
-                        Clear
-                    </Button>
-                )}
-            </Space>
-            <ImageSelectorModal
-                open={selectorOpen}
-                onSelect={(filename) => {
-                    props.onChange(filename)
-                    setSelectorOpen(false)
-                }}
-                onCancel={() => setSelectorOpen(false)}
-            />
-        </Space>
-    )
-}
-
-/**
- * Generic ordered-list editor: each item is rendered by the caller; the
- * chrome adds move up/down, remove, and an add button.
- */
-function ListField<Item>(props: {
-    items: Item[]
-    onChange: (items: Item[]) => void
-    makeNew: () => Item
-    addLabel: string
-    renderItem: (item: Item, update: (item: Item) => void) => React.ReactNode
-}): React.ReactElement {
-    const { items, onChange, makeNew, addLabel, renderItem } = props
-    const move = (index: number, delta: number): void => {
-        const target = index + delta
-        if (target < 0 || target >= items.length) return
-        const next = [...items]
-        ;[next[index], next[target]] = [next[target], next[index]]
-        onChange(next)
-    }
-    return (
-        <div className="rich-editor-inspector__list">
-            {items.map((item, index) => (
-                <div key={index} className="rich-editor-inspector__list-item">
-                    <div className="rich-editor-inspector__list-fields">
-                        {renderItem(item, (updated) => {
-                            const next = [...items]
-                            next[index] = updated
-                            onChange(next)
-                        })}
-                    </div>
-                    <div className="rich-editor-inspector__list-controls">
-                        <Button
-                            size="small"
-                            type="text"
-                            disabled={index === 0}
-                            onClick={() => move(index, -1)}
-                        >
-                            ↑
-                        </Button>
-                        <Button
-                            size="small"
-                            type="text"
-                            disabled={index === items.length - 1}
-                            onClick={() => move(index, 1)}
-                        >
-                            ↓
-                        </Button>
-                        <Button
-                            size="small"
-                            type="text"
-                            danger
-                            onClick={() =>
-                                onChange(items.filter((_, i) => i !== index))
-                            }
-                        >
-                            ✕
-                        </Button>
-                    </div>
-                </div>
-            ))}
-            <Button
-                size="small"
-                onClick={() => onChange([...items, makeNew()])}
-            >
-                + {addLabel}
-            </Button>
-        </div>
-    )
-}
-
-/** Recirc-style links: gdoc/grapher/external URL with optional overrides */
-function HybridLinksField(props: {
-    value: EnrichedHybridLink[]
-    onChange: (links: EnrichedHybridLink[]) => void
-}): React.ReactElement {
-    return (
-        <ListField<EnrichedHybridLink>
-            items={props.value}
-            onChange={props.onChange}
-            makeNew={() => ({ type: "hybrid-link", url: "" })}
-            addLabel="Add link"
-            renderItem={(link, update) => (
-                <>
-                    <Input
-                        size="small"
-                        placeholder="URL (gdoc, grapher or external)"
-                        value={link.url}
-                        onChange={(event) =>
-                            update({ ...link, url: event.target.value })
-                        }
-                    />
-                    <Input
-                        size="small"
-                        placeholder="Title override (optional)"
-                        value={link.title ?? ""}
-                        onChange={(event) =>
-                            update({
-                                ...link,
-                                title: event.target.value || undefined,
-                            })
-                        }
-                    />
-                    <Input
-                        size="small"
-                        placeholder="Subtitle override (optional)"
-                        value={link.subtitle ?? ""}
-                        onChange={(event) =>
-                            update({
-                                ...link,
-                                subtitle: event.target.value || undefined,
-                            })
-                        }
-                    />
-                </>
-            )}
-        />
-    )
-}
-
-/** Plain URL list, e.g. the pinned charts of an all-charts block */
-function UrlListField(props: {
-    value: { url: string }[]
-    onChange: (items: { url: string }[]) => void
-}): React.ReactElement {
-    return (
-        <ListField<{ url: string }>
-            items={props.value}
-            onChange={props.onChange}
-            makeNew={() => ({ url: "" })}
-            addLabel="Add chart"
-            renderItem={(item, update) => (
-                <Input
-                    size="small"
-                    placeholder="Grapher or explorer URL"
-                    value={item.url}
-                    onChange={(event) => update({ url: event.target.value })}
-                />
-            )}
-        />
-    )
-}
-
-/** Research & writing links ({value: {url, title?, subtitle?}}) */
-function RnwLinksField(props: {
-    value: EnrichedBlockResearchAndWritingLink[]
-    onChange: (links: EnrichedBlockResearchAndWritingLink[]) => void
-}): React.ReactElement {
-    return (
-        <ListField<EnrichedBlockResearchAndWritingLink>
-            items={props.value}
-            onChange={props.onChange}
-            makeNew={() => ({ value: { url: "" } })}
-            addLabel="Add link"
-            renderItem={(link, update) => (
-                <>
-                    <Input
-                        size="small"
-                        placeholder="URL (gdoc or external)"
-                        value={link.value.url}
-                        onChange={(event) =>
-                            update({
-                                value: {
-                                    ...link.value,
-                                    url: event.target.value,
-                                },
-                            })
-                        }
-                    />
-                    <Input
-                        size="small"
-                        placeholder="Title override (optional)"
-                        value={link.value.title ?? ""}
-                        onChange={(event) =>
-                            update({
-                                value: {
-                                    ...link.value,
-                                    title: event.target.value || undefined,
-                                },
-                            })
-                        }
-                    />
-                </>
-            )}
-        />
-    )
-}
-
-function isPlainTextSpans(spans: unknown): boolean {
-    return (
-        Array.isArray(spans) &&
-        spans.every(
-            (span) =>
-                (span as Span).spanType === "span-simple-text" ||
-                (span as Span).spanType === "span-newline"
-        )
-    )
-}
 
 export function BlockInspector(props: {
     inspected: InspectedBlock
@@ -741,20 +474,19 @@ export function BlockInspector(props: {
                 )
             case "key-insights":
                 return (
-                    <>
-                        <Form.Item label="Heading">
-                            <Input
-                                value={String(draft.heading ?? "")}
-                                onChange={(event) =>
-                                    apply({ heading: event.target.value })
-                                }
-                            />
-                        </Form.Item>
-                        <p className="rich-editor-inspector__hint">
-                            Slides (title, chart/image, content blocks) are
-                            edited via Advanced (JSON) below for now.
-                        </p>
-                    </>
+                    <KeyInsightsSection
+                        draft={draft}
+                        apply={apply}
+                        inspected={inspected}
+                    />
+                )
+            case "key-insight-slide":
+                return (
+                    <KeyInsightSlideSection
+                        draft={draft}
+                        apply={apply}
+                        inspected={inspected}
+                    />
                 )
             case "explorer-tiles":
                 return (
@@ -798,10 +530,7 @@ export function BlockInspector(props: {
                                 }
                             />
                         </Form.Item>
-                        <p className="rich-editor-inspector__hint">
-                            Pills (text + url) are edited via Advanced (JSON)
-                            below for now.
-                        </p>
+                        <PillRowPillsSection draft={draft} apply={apply} />
                     </>
                 )
             case "research-and-writing":
@@ -864,10 +593,10 @@ export function BlockInspector(props: {
                                 onChange={(secondary) => apply({ secondary })}
                             />
                         </Form.Item>
-                        <Typography.Paragraph type="secondary">
-                            Row sections and the “more” list are edited via
-                            Advanced (JSON) below for now.
-                        </Typography.Paragraph>
+                        <ResearchAndWritingExtrasSection
+                            draft={draft}
+                            apply={apply}
+                        />
                     </>
                 )
             case "table":
@@ -980,15 +709,94 @@ export function BlockInspector(props: {
                         </Checkbox>
                     </>
                 )
+            case "expander":
+                return <ExpanderSection draft={draft} apply={apply} />
+            case "align":
+                return <AlignSection draft={draft} apply={apply} />
+            case "data-callout":
+                return <DataCalloutSection draft={draft} apply={apply} />
+            case "explore-data-section":
+                return <ExploreDataSectionSection draft={draft} apply={apply} />
+            case "conditional-section":
+                return <ConditionalSectionSection draft={draft} apply={apply} />
+            case "topic-page-intro":
+                return <TopicPageIntroSection draft={draft} apply={apply} />
+            case "pull-chart":
+                return <PullChartSection draft={draft} apply={apply} />
+            case "guided-chart":
+            case "data-callout-group":
+                return <CanvasContentNote />
+            case "html":
+                return <HtmlSection draft={draft} apply={apply} />
+            case "code":
+                return <CodeSection draft={draft} apply={apply} />
+            case "static-viz":
+                return <StaticVizSection draft={draft} apply={apply} />
+            case "resource-panel":
+                return <ResourcePanelSection draft={draft} apply={apply} />
+            case "entry-summary":
+                return <EntrySummarySection draft={draft} apply={apply} />
+            case "sdg-grid":
+                return <SdgGridSection draft={draft} apply={apply} />
+            case "socials":
+                return <SocialsSection draft={draft} apply={apply} />
+            case "homepage-intro":
+                return <HomepageIntroSection draft={draft} apply={apply} />
+            case "country-profile-selector":
+                return (
+                    <CountryProfileSelectorSection
+                        draft={draft}
+                        apply={apply}
+                    />
+                )
+            case "subscribe-banner":
+                return <SubscribeBannerSection draft={draft} apply={apply} />
+            case "bespoke-component":
+                return <BespokeComponentSection draft={draft} apply={apply} />
+            case "chart-story":
+                return <ChartStorySection draft={draft} apply={apply} />
+            case "chart-rows":
+                return <ChartRowsSection draft={draft} apply={apply} />
+            case "person":
+                return <PersonSection draft={draft} apply={apply} />
+            case "people":
+                return <PeopleSection draft={draft} apply={apply} />
+            case "people-rows":
+                return <PeopleRowsSection draft={draft} apply={apply} />
+            case "key-indicator":
+                return <KeyIndicatorSection draft={draft} apply={apply} />
+            case "key-indicator-collection":
+                return (
+                    <KeyIndicatorCollectionSection
+                        draft={draft}
+                        apply={apply}
+                    />
+                )
+            case "ltp-toc":
+                return <LtpTocSection draft={draft} apply={apply} />
+            case "sdg-toc":
+            case "missing-data":
+            case "donors":
+            case "latest-data-insights":
+            case "featured-data-insights":
+            case "featured-metrics":
+            case "homepage-search":
+            case "cookie-notice":
+                return <NoSettingsNote />
             default:
                 return null
         }
     })()
 
     const showCaptionField =
-        ["chart", "narrative-chart", "video", "image", "table"].includes(
-            inspected.blockType
-        ) && captionEditable
+        [
+            "chart",
+            "narrative-chart",
+            "video",
+            "image",
+            "table",
+            "static-viz",
+        ].includes(inspected.blockType) && captionEditable
 
     return (
         <div className="rich-editor-rail__panel">

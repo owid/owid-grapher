@@ -6,6 +6,8 @@ import {
     EnrichedBlockCallout,
     EnrichedBlockHeading,
     EnrichedBlockImage,
+    EnrichedBlockKeyInsights,
+    EnrichedBlockKeyInsightsSlide,
     EnrichedBlockList,
     EnrichedBlockNumberedList,
     EnrichedBlockPullQuote,
@@ -25,6 +27,7 @@ import {
     pmMarkNames,
     pmNodeNames,
     propsAtomBlockTypes,
+    propsContainerBlockTypes,
     twoColumnBlockTypes,
 } from "./pmJson.js"
 import {
@@ -277,6 +280,13 @@ const nodeNameToTwoColumnBlockType = Object.fromEntries(
     ])
 )
 
+const nodeNameToPropsContainerBlockType = Object.fromEntries(
+    Object.entries(propsContainerBlockTypes).map(([blockType, nodeName]) => [
+        nodeName,
+        blockType,
+    ])
+)
+
 function propsAtomToPmNode(block: OwidEnrichedGdocBlock): PmNodeJson {
     const { parseErrors: _parseErrors, ...props } = block as Record<
         string,
@@ -288,6 +298,91 @@ function propsAtomToPmNode(block: OwidEnrichedGdocBlock): PmNodeJson {
             block.type as keyof typeof propsAtomBlockTypes
         ],
         attrs: { props: structuredClone(props) },
+    }
+}
+
+/**
+ * The single-hole containers: everything except `content` travels verbatim
+ * in the `props` attr (like a props atom); the content is a real editable
+ * node hole. Which block types the hole accepts is the schema's business
+ * (extensions.ts) — e.g. topic-page-intro and pull-chart only hold text.
+ */
+function propsContainerToPmNode(
+    block: OwidEnrichedGdocBlock & { content: OwidEnrichedGdocBlock[] }
+): PmNodeJson {
+    const {
+        parseErrors: _parseErrors,
+        content,
+        ...props
+    } = block as Record<string, unknown> & {
+        parseErrors?: unknown
+        content: OwidEnrichedGdocBlock[]
+    }
+    delete props.type
+    return {
+        type: propsContainerBlockTypes[
+            block.type as keyof typeof propsContainerBlockTypes
+        ],
+        attrs: { props: structuredClone(props) },
+        content: content.map(enrichedBlockToPmNode),
+    }
+}
+
+function pmPropsContainerToEnrichedBlock(
+    node: PmNodeJson,
+    blockType: string
+): OwidEnrichedGdocBlock {
+    const attrs = node.attrs ?? {}
+    return {
+        ...structuredClone((attrs.props ?? {}) as Record<string, unknown>),
+        type: blockType,
+        content: (node.content ?? []).map(pmNodeToEnrichedBlock),
+        parseErrors: [],
+    } as unknown as OwidEnrichedGdocBlock
+}
+
+/**
+ * Key insights nest one more level: the block holds slides, each slide holds
+ * blocks. The slide's own fields (title, image/url/narrative chart) travel
+ * in its `props` attr; its content is an editable hole.
+ */
+function keyInsightsToPmNode(block: EnrichedBlockKeyInsights): PmNodeJson {
+    return {
+        type: pmNodeNames.keyInsights,
+        attrs: { props: { heading: block.heading } },
+        content: block.insights.map((slide) => {
+            const {
+                type: _type,
+                content,
+                ...slideProps
+            } = slide as Record<string, unknown> & {
+                content: OwidEnrichedGdocBlock[]
+            }
+            return {
+                type: pmNodeNames.keyInsightSlide,
+                attrs: { props: structuredClone(slideProps) },
+                content: content.map(enrichedBlockToPmNode),
+            }
+        }),
+    }
+}
+
+function pmNodeToKeyInsights(node: PmNodeJson): EnrichedBlockKeyInsights {
+    const props = (node.attrs?.props ?? {}) as Record<string, unknown>
+    return {
+        type: "key-insights",
+        heading: String(props.heading ?? ""),
+        insights: (node.content ?? []).map(
+            (slide) =>
+                ({
+                    ...structuredClone(
+                        (slide.attrs?.props ?? {}) as Record<string, unknown>
+                    ),
+                    type: "key-insight-slide",
+                    content: (slide.content ?? []).map(pmNodeToEnrichedBlock),
+                }) as EnrichedBlockKeyInsightsSlide
+        ),
+        parseErrors: [],
     }
 }
 
@@ -334,6 +429,14 @@ function enrichedBlockWithoutIdToPmNode(
     block: OwidEnrichedGdocBlock
 ): PmNodeJson {
     if (block.type in propsAtomBlockTypes) return propsAtomToPmNode(block)
+    if (block.type in propsContainerBlockTypes) {
+        return propsContainerToPmNode(
+            block as OwidEnrichedGdocBlock & {
+                content: OwidEnrichedGdocBlock[]
+            }
+        )
+    }
+    if (block.type === "key-insights") return keyInsightsToPmNode(block)
     if (block.type in twoColumnBlockTypes) {
         return twoColumnToPmNode(
             block as OwidEnrichedGdocBlock & {
@@ -459,6 +562,11 @@ function pmNodeWithoutIdToEnrichedBlock(
             parseErrors: [],
         } as unknown as OwidEnrichedGdocBlock
     }
+    const propsContainerType = nodeNameToPropsContainerBlockType[node.type]
+    if (propsContainerType) {
+        return pmPropsContainerToEnrichedBlock(node, propsContainerType)
+    }
+    if (node.type === pmNodeNames.keyInsights) return pmNodeToKeyInsights(node)
     const twoColumnType = nodeNameToTwoColumnBlockType[node.type]
     if (twoColumnType) {
         const columns = node.content ?? []
@@ -642,6 +750,28 @@ function stripBlockIdsFromBlock(
         case "gray-section":
         case "expandable-paragraph":
             return { ...out, items: stripBlockIds(out.items) }
+        case "expander":
+        case "guided-chart":
+        case "align":
+        case "data-callout":
+        case "data-callout-group":
+        case "explore-data-section":
+        case "conditional-section":
+            return { ...out, content: stripBlockIds(out.content) }
+        case "topic-page-intro":
+        case "pull-chart":
+            return {
+                ...out,
+                content: stripBlockIds(out.content) as typeof out.content,
+            }
+        case "key-insights":
+            return {
+                ...out,
+                insights: out.insights.map((slide) => ({
+                    ...slide,
+                    content: stripBlockIds(slide.content),
+                })),
+            }
         case "list":
         case "numbered-list":
             return {
