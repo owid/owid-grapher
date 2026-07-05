@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class AddCommentThreadAnchorBlockId1783135628716
-    implements MigrationInterface
-{
+export class AddCommentThreadAnchorBlockId1783135628716 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         // Block-anchored comment threads reference the rich editor's stable
         // block ids (the enriched block's `id`, present in native drafts)
