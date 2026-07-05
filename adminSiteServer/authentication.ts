@@ -180,12 +180,8 @@ export async function tailscaleAuthMiddleware(
         return next()
     }
 
-    const tailscaleUserLogin = getTrustedTailscaleUserLogin(req, clientIp)
-    const ipToUserMap = tailscaleUserLogin
-        ? undefined
-        : await getTailscaleIpToUserMap()
-
-    const loginName = tailscaleUserLogin ?? ipToUserMap?.[clientIp]
+    const ipToUserMap = await getTailscaleIpToUserMap()
+    const loginName = ipToUserMap[clientIp] ?? getTrustedTailscaleUserLogin(req)
 
     if (!loginName) {
         return next()
@@ -274,26 +270,27 @@ async function getDevAdminUser(): Promise<DbPlainUser | undefined> {
 }
 
 export function getTrustedTailscaleUserLogin(
-    req: express.Request,
-    clientIp: string
+    req: express.Request
 ): string | undefined {
     // Tailscale Serve forwards authenticated tailnet requests with identity
     // headers, but the backend connection reaches nginx/admin over localhost.
-    // Only trust the header on that localhost path; direct HTTP access should
-    // continue to authenticate via the Tailscale source IP from X-Forwarded-For.
-    if (!isLoopbackIp(clientIp)) return undefined
+    // Direct staging HTTP auth should usually authenticate via the Tailscale
+    // source IP from X-Forwarded-For before this header fallback is used.
+    if (!isLoopbackIp(req.socket.remoteAddress)) return undefined
 
     const login = req.get(TAILSCALE_USER_LOGIN_HEADER)?.trim()
     return login || undefined
 }
 
-export function isLoopbackIp(ip: string): boolean {
+export function isLoopbackIp(ip: string | undefined): boolean {
     return ip === "127.0.0.1" || ip === "::1" || ip === "localhost"
 }
 
-function getClientIp(req: express.Request): string | undefined {
+export function getClientIp(req: express.Request): string | undefined {
     let ip =
-        (req.headers["x-forwarded-for"] as string) ||
+        (req.headers["x-forwarded-for"] as string | undefined)
+            ?.split(",")[0]
+            ?.trim() ||
         req.socket.remoteAddress ||
         req.ip
     if (ip?.startsWith("::ffff:")) {
