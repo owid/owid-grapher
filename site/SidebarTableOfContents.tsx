@@ -25,6 +25,7 @@ import { SearchResultType, TocSidebarSection } from "@ourworldindata/types"
 import { useDocumentContext } from "./gdocs/DocumentContext.js"
 import { useIsScrolling } from "./hooks.js"
 import { buildSearchHrefForCard } from "./search/searchState.js"
+import { useClearHashOnReturnToTop } from "./useClearHashOnReturnToTop.js"
 import { useKeepActiveTocRowInView } from "./useKeepActiveTocRowInView.js"
 import { useTocScrollSpy } from "./useTocScrollSpy.js"
 import { useWideBlockInView } from "./useWideBlockInView.js"
@@ -41,7 +42,7 @@ const SCROLL_IDLE_MS = 150
 
 // Scroll-spy state threaded through the section/subheading tree.
 interface TocNavProps {
-    activeId: string
+    activeId: string | undefined
 }
 
 // Navigating via any TOC link (or Back to top) must dismiss the mobile drawer.
@@ -71,26 +72,7 @@ export const SidebarTableOfContents = ({
     const sidebarContentRef = useKeepActiveTocRowInView(activeId)
     const isWideBlockInView = useWideBlockInView()
 
-    // Returning to the top of the page — scrolling up above the first section,
-    // or clicking "Back to top" (which scrolls there) — makes the active
-    // section empty. Drop any lingering #section the reader left in the URL so
-    // it no longer points at a section they've scrolled away from. We act only
-    // on the transition to "" (a section had been active): at mount activeId is
-    // "" simply because the spy hasn't measured yet, and treating that as a
-    // return-to-top would wipe a deep-link #section before the spy resolves it.
-    // replaceState avoids both a new history entry and a scroll jump.
-    const prevActiveIdRef = useRef(activeId)
-    useEffect(() => {
-        const hadActiveSection = prevActiveIdRef.current !== ""
-        prevActiveIdRef.current = activeId
-        if (hadActiveSection && activeId === "" && window.location.hash) {
-            history.replaceState(
-                null,
-                "",
-                window.location.pathname + window.location.search
-            )
-        }
-    }, [activeId])
+    useClearHashOnReturnToTop(activeId)
 
     // Desktop-only. Collapsed on first render to match the baked HTML, then
     // the effect resolves it once scrolling settles — expanded unless

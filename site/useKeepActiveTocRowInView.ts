@@ -3,7 +3,7 @@ import { useEffect, useRef, type RefObject } from "react"
 const ACTIVE_TOC_ROW_SCROLL_MARGIN = 16
 
 export const useKeepActiveTocRowInView = (
-    activeId: string
+    activeId: string | undefined
 ): RefObject<HTMLDivElement | null> => {
     const containerRef = useRef<HTMLDivElement>(null)
 
