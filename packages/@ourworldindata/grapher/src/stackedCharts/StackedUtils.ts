@@ -143,11 +143,7 @@ export function resolveCollision(
 export function getXAxisConfigDefaultsForStackedBar(
     chartState: StackedBarChartState
 ): AxisConfigInterface {
-    return {
-        hideGridlines: true,
-        domainValues: chartState.xValues,
-        ticks: chartState.xValues.map((value) => ({ value, priority: 2 })),
-    }
+    return { hideGridlines: true, bandValues: chartState.xValues }
 }
 
 function placeStackedAreaPoint(
