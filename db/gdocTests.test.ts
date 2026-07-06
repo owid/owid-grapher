@@ -845,6 +845,29 @@ describe("document-level ArchieML round trip", () => {
         expect(canonicalArchieML).not.toContain("dod-span")
     })
 
+    it("round-trips a data insight, including its specific frontmatter", () => {
+        const doc = `title: Test data insight
+authors: OWID Team
+type: data-insight
+grapher-url: https://ourworldindata.org/grapher/life-expectancy
+figma-url: https://www.figma.com/design/abc/def
+[+body]
+A one-paragraph insight with <b>bold</b> text.
+[]
+`
+        const { first, canonicalArchieML } = expectDocToRoundTrip(doc)
+        expect(first.type).toBe(OwidGdocType.DataInsight)
+        expect(canonicalArchieML).toContain("type: data-insight")
+        expect(canonicalArchieML).toContain(
+            "grapher-url: https://ourworldindata.org/grapher/life-expectancy"
+        )
+        expect(canonicalArchieML).toContain(
+            "figma-url: https://www.figma.com/design/abc/def"
+        )
+        // post-only frontmatter is not emitted for data insights
+        expect(canonicalArchieML).not.toContain("sidebar-toc")
+    })
+
     it("round-trips ID-based refs and regenerates the [.refs] frontmatter block", () => {
         const doc = getArchieMLDocWithContent(
             `A claim{ref}first_ref{/ref} and another{ref}second_ref{/ref}.`,

@@ -2,7 +2,12 @@ import {
     OwidGdocPostContent,
     traverseEnrichedBlock,
 } from "@ourworldindata/utils"
-import type { OwidEnrichedGdocBlock, Span } from "@ourworldindata/types"
+import {
+    OwidGdocType,
+    type OwidGdocDataInsightContent,
+    type OwidEnrichedGdocBlock,
+    type Span,
+} from "@ourworldindata/types"
 import {
     propertyToArchieMLString,
     OwidRawGdocBlockToArchieMLStringGenerator,
@@ -63,32 +68,48 @@ function* yieldRefsBlockIfDefined(
     yield "[]"
 }
 
+/** Content shapes the ArchieML write-back layer knows how to serialize. */
+export type ArchieMlWritableContent =
+    | OwidGdocPostContent
+    | OwidGdocDataInsightContent
+
 export function* owidArticleToArchieMLStringGenerator(
-    article: OwidGdocPostContent
+    article: ArchieMlWritableContent
 ): Generator<string, void, undefined> {
-    yield* propertyToArchieMLString("title", article)
-    yield* propertyToArchieMLString("subtitle", article)
-    yield* propertyToArchieMLString("supertitle", article)
-    yield* propertyToArchieMLString("authors", article)
-    yield* propertyToArchieMLString("dateline", article)
-    yield* propertyToArchieMLString("excerpt", article)
-    yield* propertyToArchieMLString("type", article)
-    if (article["sticky-nav"]) {
-        yield "[.sticky-nav]"
-        for (const item of article["sticky-nav"]) {
-            yield* propertyToArchieMLString("target", item)
-            yield* propertyToArchieMLString("text", item)
+    if (article.type === OwidGdocType.DataInsight) {
+        const dataInsight: OwidGdocDataInsightContent = article
+        yield* propertyToArchieMLString("title", dataInsight)
+        yield* propertyToArchieMLString("authors", dataInsight)
+        yield* propertyToArchieMLString("type", dataInsight)
+        yield* propertyToArchieMLString("grapher-url", dataInsight)
+        yield* propertyToArchieMLString("narrative-chart", dataInsight)
+        yield* propertyToArchieMLString("figma-url", dataInsight)
+    } else {
+        const post = article
+        yield* propertyToArchieMLString("title", post)
+        yield* propertyToArchieMLString("subtitle", post)
+        yield* propertyToArchieMLString("supertitle", post)
+        yield* propertyToArchieMLString("authors", post)
+        yield* propertyToArchieMLString("dateline", post)
+        yield* propertyToArchieMLString("excerpt", post)
+        yield* propertyToArchieMLString("type", post)
+        if (post["sticky-nav"]) {
+            yield "[.sticky-nav]"
+            for (const item of post["sticky-nav"]) {
+                yield* propertyToArchieMLString("target", item)
+                yield* propertyToArchieMLString("text", item)
+            }
+            yield "[]"
         }
-        yield "[]"
+        yield* propertyToArchieMLString("sidebar-toc", post)
+        yield* propertyToArchieMLString("heading-variant", post)
+        yield* propertyToArchieMLString("hide-subscribe-banner", post)
+        yield* propertyToArchieMLString("hide-citation", post)
+        yield* propertyToArchieMLString("cover-image", post)
+        yield* propertyToArchieMLString("cover-color", post)
+        yield* propertyToArchieMLString("featured-image", post)
+        yield* yieldRefsBlockIfDefined(post)
     }
-    yield* propertyToArchieMLString("sidebar-toc", article)
-    yield* propertyToArchieMLString("heading-variant", article)
-    yield* propertyToArchieMLString("hide-subscribe-banner", article)
-    yield* propertyToArchieMLString("hide-citation", article)
-    yield* propertyToArchieMLString("cover-image", article)
-    yield* propertyToArchieMLString("cover-color", article)
-    yield* propertyToArchieMLString("featured-image", article)
-    yield* yieldRefsBlockIfDefined(article)
     yield ""
     if (article.body) {
         yield "[+body]"
@@ -205,7 +226,7 @@ function* lineToBatchUpdates(line: Line): Generator<docs_v1.Schema$Request> {
 }
 
 export function articleToBatchUpdates(
-    content: OwidGdocPostContent
+    content: ArchieMlWritableContent
 ): docs_v1.Schema$Request[] {
     const archieMlLines = [...owidArticleToArchieMLStringGenerator(content)]
 
@@ -300,7 +321,7 @@ async function createGdoc(
 }
 
 export async function createGdocAndInsertOwidGdocPostContent(
-    content: OwidGdocPostContent,
+    content: ArchieMlWritableContent,
     existingGdocId: string | null
 ): Promise<string> {
     const batchUpdates = articleToBatchUpdates(content)
