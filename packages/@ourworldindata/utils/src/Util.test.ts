@@ -635,11 +635,23 @@ describe(snapToIntervalStart, () => {
         ).toEqual(day("2021-01-11"))
     })
 
-    it("leaves day and year values unchanged", () => {
+    it("snaps quarter values to the first of the quarter", () => {
+        // 2021-08-15 is in Q3, which starts 2021-07-01
+        expect(
+            snapToIntervalStart(day("2021-08-15"), TimeInterval.Quarter)
+        ).toEqual(day("2021-07-01"))
+        // 2021-03-31 is in Q1, which starts 2021-01-01
+        expect(
+            snapToIntervalStart(day("2021-03-31"), TimeInterval.Quarter)
+        ).toEqual(day("2021-01-01"))
+    })
+
+    it("leaves day, year and decade values unchanged", () => {
         expect(
             snapToIntervalStart(day("2021-03-15"), TimeInterval.Day)
         ).toEqual(day("2021-03-15"))
         expect(snapToIntervalStart(2021, TimeInterval.Year)).toEqual(2021)
+        expect(snapToIntervalStart(2025, TimeInterval.Decade)).toEqual(2025)
     })
 })
 

@@ -709,10 +709,20 @@ const TIME_COLUMN_DEF_BY_INTERVAL: Record<TimeInterval, OwidColumnDef> = {
         type: ColumnTypeNames.Month,
         name: "Month",
     },
+    [TimeInterval.Quarter]: {
+        slug: OwidTableSlugs.day,
+        type: ColumnTypeNames.Quarter,
+        name: "Quarter",
+    },
     [TimeInterval.Year]: {
         slug: OwidTableSlugs.year,
         type: ColumnTypeNames.Year,
         name: "Year",
+    },
+    [TimeInterval.Decade]: {
+        slug: OwidTableSlugs.year,
+        type: ColumnTypeNames.Decade,
+        name: "Decade",
     },
 }
 
@@ -743,9 +753,10 @@ const timeColumnValuesFromOwidVariable = (
         ? convertLegacyYears(years || [], display.zeroDay!)
         : years || []
 
-    // Snap week/month values to the start of their period, so variables that
-    // pick different representative days for the same period still align.
-    if (interval === TimeInterval.Week || interval === TimeInterval.Month)
+    // Snap sub-yearly values (except plain days) to the start of their period,
+    // so variables that pick different representative days for the same period
+    // still align.
+    if (isSubYearly(interval) && interval !== TimeInterval.Day)
         times = times.map((time) => snapToIntervalStart(time, interval))
 
     return times

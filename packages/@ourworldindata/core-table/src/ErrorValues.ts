@@ -26,7 +26,6 @@ export class ValueTooLow extends ErrorValue {}
 class NoValueToCompareAgainst extends ErrorValue {}
 class FilteredValue extends ErrorValue {}
 class NoValueForInterpolation extends ErrorValue {}
-class InvalidQuarterValue extends ErrorValue {}
 class InvalidNegativeValue extends ErrorValue {}
 class NoMatchingVariableId extends ErrorValue {}
 
@@ -52,7 +51,6 @@ export const ErrorValueTypes = {
     NoValueToCompareAgainst: new NoValueToCompareAgainst(),
     FilteredValue: new FilteredValue(),
     NoValueForInterpolation: new NoValueForInterpolation(),
-    InvalidQuarterValue: new InvalidQuarterValue(),
     InvalidNegativeValue: new InvalidNegativeValue(),
     NoMatchingVariableId: new NoMatchingVariableId(),
 }

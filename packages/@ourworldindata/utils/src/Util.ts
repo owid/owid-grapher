@@ -245,11 +245,12 @@ const SUB_YEARLY_INTERVALS = new Set<TimeInterval>([
     TimeInterval.Day,
     TimeInterval.Week,
     TimeInterval.Month,
+    TimeInterval.Quarter,
 ])
 
 /**
  * Whether the interval is finer than a year and therefore encoded as
- * days-since-epoch (day/week/month)
+ * days-since-epoch (day/week/month/quarter)
  */
 export function isSubYearly(interval: TimeInterval): boolean {
     return SUB_YEARLY_INTERVALS.has(interval)
@@ -258,8 +259,8 @@ export function isSubYearly(interval: TimeInterval): boolean {
 /**
  * Snap a time to the start of its interval, so indicators that pick different
  * representative days for the same period still align: month → first of the
- * month, week → the ISO-week Monday. Day and year are their own start and are
- * returned unchanged.
+ * month, quarter → first of the quarter, week → the ISO-week Monday. Day and
+ * year are their own start and are returned unchanged.
  */
 export function snapToIntervalStart(
     time: number,
@@ -269,6 +270,7 @@ export function snapToIntervalStart(
     const date = convertDaysSinceEpochToDate(time)
     let start: dayjs.Dayjs
     if (interval === TimeInterval.Month) start = date.startOf("month")
+    else if (interval === TimeInterval.Quarter) start = date.startOf("quarter")
     else if (interval === TimeInterval.Week) start = date.startOf("isoWeek")
     else return time
     return convertDateToDaysSinceEpoch(start)

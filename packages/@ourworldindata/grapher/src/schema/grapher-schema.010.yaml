@@ -142,7 +142,9 @@ properties:
                 - day
                 - week
                 - month
+                - quarter
                 - year
+                - decade
             yearIsDay:
               type: boolean
               default: false
