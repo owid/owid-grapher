@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { useDebounceCallback, useMediaQuery } from "usehooks-ts"
+import { useMediaQuery } from "usehooks-ts"
 
 /**
  * True while a content block that would overlap the sidebar TOC is in the
@@ -21,8 +21,6 @@ const WIDE_COL_SELECTOR = '[class*="article-block__"].span-cols-12'
 const FULL_BLEED_SELECTOR = '[class*="article-block__"].span-cols-14'
 const WIDE_BLOCK_SELECTORS = `${WIDE_COL_SELECTOR}, ${FULL_BLEED_SELECTOR}`
 
-const REVEAL_DEBOUNCE_MS = 150
-
 // Keep in sync with --inner-cols-max-total-width in site/css/grid.scss.
 const GRID_INNER_COLS_MAX_WIDTH = 1280
 // Keep in sync with $sidebar-toc-frame-wide in site/SidebarTableOfContents.scss.
@@ -42,15 +40,6 @@ export function useWideBlockInView(): boolean {
     const canWideColCoexist = useMediaQuery(
         `(min-width: ${COEXIST_MIN_WIDTH}px)`
     )
-    // Collapsing the sidebar (→ true) is immediate; releasing it again (→ false)
-    // is debounced, so the brief gap between two wide blocks in quick
-    // succession doesn't flicker the sidebar back open. A wide block (re)entering
-    // cancels the pending release.
-    const debouncedSetInView = useDebounceCallback(
-        setInView,
-        REVEAL_DEBOUNCE_MS
-    )
-
     useEffect(() => {
         if (!("IntersectionObserver" in window)) return
 
@@ -60,14 +49,9 @@ export function useWideBlockInView(): boolean {
         const wideCol = new Set<Element>()
 
         const apply = () => {
-            const shouldCollapse =
+            setInView(
                 fullBleed.size > 0 || (!canWideColCoexist && wideCol.size > 0)
-            if (shouldCollapse) {
-                debouncedSetInView.cancel()
-                setInView(true)
-            } else {
-                debouncedSetInView(false)
-            }
+            )
         }
 
         const observer = new IntersectionObserver(
@@ -97,11 +81,8 @@ export function useWideBlockInView(): boolean {
         // clean-water, sanitation, teaching (text + ≤8-col charts only).
         if (blocks.length === 0) apply()
 
-        return () => {
-            observer.disconnect()
-            debouncedSetInView.cancel()
-        }
-    }, [canWideColCoexist, debouncedSetInView])
+        return () => observer.disconnect()
+    }, [canWideColCoexist])
 
     return inView
 }

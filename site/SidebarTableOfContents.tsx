@@ -33,8 +33,7 @@ const SIDEBAR_TOC_SM = 1200
 const SIDEBAR_TOC_CONTENT_ID = "sidebar-toc-content"
 
 // Idle gap that counts as "finished scrolling", after which the sidebar
-// re-evaluates whether to show. Mirrors REVEAL_DEBOUNCE_MS in
-// useWideBlockInView.ts.
+// re-evaluates whether to show.
 const SCROLL_IDLE_MS = 150
 
 // Scroll-spy state threaded through the section/subheading tree.
