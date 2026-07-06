@@ -17,8 +17,11 @@ import {
     faXmark,
     faAnglesLeft,
 } from "@fortawesome/free-solid-svg-icons"
-import { TocHeadingWithSupertitle } from "@ourworldindata/utils"
-import { SearchResultType } from "@ourworldindata/types"
+import {
+    groupTocIntoSections,
+    TocHeadingWithSupertitle,
+} from "@ourworldindata/utils"
+import { SearchResultType, TocSidebarSection } from "@ourworldindata/types"
 import { useDocumentContext } from "./gdocs/DocumentContext.js"
 import { useIsScrolling } from "./hooks.js"
 import { buildSearchHrefForCard } from "./search/searchState.js"
@@ -46,32 +49,6 @@ interface TocNavProps {
 // nothing to dismiss, so links there are plain anchors.
 const TocNavigateContext = createContext<(() => void) | undefined>(undefined)
 
-// A top-level (h1) heading together with the h2 subheadings nested beneath it.
-interface SidebarSection {
-    heading: TocHeadingWithSupertitle
-    subheadings: TocHeadingWithSupertitle[]
-}
-
-// The TOC arrives flat and document-ordered, with `isSubheading` marking the
-// h2s. Group it so each h1 carries its following h2s: every non-subheading
-// opens a new section, every subheading attaches to the current one. A leading
-// subheading with no preceding h1 (editorially unusual) becomes its own
-// section so it isn't dropped.
-const groupIntoSections = (
-    headings: TocHeadingWithSupertitle[]
-): SidebarSection[] => {
-    const sections: SidebarSection[] = []
-    for (const heading of headings) {
-        const current = sections.at(-1)
-        if (heading.isSubheading && current) {
-            current.subheadings.push(heading)
-        } else {
-            sections.push({ heading, subheadings: [] })
-        }
-    }
-    return sections
-}
-
 export const SidebarTableOfContents = ({
     headings,
     tagName,
@@ -83,11 +60,13 @@ export const SidebarTableOfContents = ({
      *  sidebar still renders without it — the CTA is simply omitted. */
     tagName?: string
 }) => {
-    const sections = useMemo(() => groupIntoSections(headings), [headings])
+    const sections = useMemo(() => groupTocIntoSections(headings), [headings])
 
     // Document-ordered ids the scroll-spy observes: every heading slug, which
     // is rendered as the corresponding heading element's id.
     const spyIds = useMemo(() => headings.map((h) => h.slug), [headings])
+    // The spy tracks the page scroll; the ref keeps the highlighted row
+    // visible inside the sidebar's own scroll container.
     const activeId = useTocScrollSpy(spyIds)
     const sidebarContentRef = useKeepActiveTocRowInView(activeId)
     const isWideBlockInView = useWideBlockInView()
@@ -257,7 +236,7 @@ const TocSections = ({
     tagName,
     activeId,
 }: {
-    sections: SidebarSection[]
+    sections: TocSidebarSection[]
     tagName?: string
 } & TocNavProps) => {
     return (
@@ -283,7 +262,7 @@ const TocSections = ({
 const SectionGroup = ({
     section,
     activeId,
-}: { section: SidebarSection } & TocNavProps) => {
+}: { section: TocSidebarSection } & TocNavProps) => {
     const onNavigate = useContext(TocNavigateContext)
     const { heading, subheadings } = section
     return (

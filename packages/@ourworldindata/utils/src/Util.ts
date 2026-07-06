@@ -44,6 +44,7 @@ import {
     PrimitiveType,
     GrapherTrendArrowDirection,
     TocHeadingWithSupertitle,
+    TocSidebarSection,
     ALL_CHARTS_ID,
     FEATURED_DATA_INSIGHTS_ID,
     EXPLORE_DATA_SECTION_DEFAULT_TITLE,
@@ -1942,6 +1943,27 @@ export function generateToc(
     )
 
     return toc
+}
+
+// The TOC arrives flat and document-ordered, with `isSubheading` marking the
+// h2s. Group it so each h1 carries its following h2s: every non-subheading
+// opens a new section, every subheading attaches to the enclosing h1's
+// section. Leading subheadings with no preceding h1 (editorially unusual)
+// each become their own section so none are dropped.
+export function groupTocIntoSections(
+    headings: TocHeadingWithSupertitle[]
+): TocSidebarSection[] {
+    const sections: TocSidebarSection[] = []
+    for (const heading of headings) {
+        const current = sections.at(-1)
+        const currentIsH1Section = current && !current.heading.isSubheading
+        if (heading.isSubheading && currentIsH1Section) {
+            current.subheadings.push(heading)
+        } else {
+            sections.push({ heading, subheadings: [] })
+        }
+    }
+    return sections
 }
 
 export function checkIsOwidGdocType(
