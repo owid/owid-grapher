@@ -68,13 +68,10 @@ export const AllChartsBlock = ({
     const [debouncedQuery] = useDebounceValue(query, SEARCH_DEBOUNCE_MS)
 
     // Active producer ("source") filters, mirroring the global search's
-    // `datasetProducers` facet. Adding/removing one narrows the result list to
-    // charts whose data comes from that producer.
+    // `datasetProducers` facet. Removing one widens the result list back out.
+    // (There is currently no UI to add one from this block — the source
+    // column is plain, non-interactive text.)
     const [producerFilters, setProducerFilters] = useState<string[]>([])
-    const addProducerFilter = (producer: string) =>
-        setProducerFilters((prev) =>
-            prev.includes(producer) ? prev : [...prev, producer]
-        )
     const removeProducerFilter = (producer: string) =>
         setProducerFilters((prev) => prev.filter((p) => p !== producer))
 
@@ -145,7 +142,6 @@ export const AllChartsBlock = ({
                     isLoading={isLoading}
                     detectedCountries={detectedCountries}
                     producerFilters={producerFilters}
-                    onAddProducerFilter={addProducerFilter}
                     onRemoveProducerFilter={removeProducerFilter}
                     topicName={topicName}
                     searchParams={stateToSearchParams(searchState)}
@@ -163,7 +159,6 @@ type AllChartsLeftPaneProps = {
     isLoading: boolean
     detectedCountries: string[]
     producerFilters: string[]
-    onAddProducerFilter: (producer: string) => void
     onRemoveProducerFilter: (producer: string) => void
     topicName: string
     searchParams: URLSearchParams
@@ -178,7 +173,6 @@ const AllChartsLeftPane = (props: AllChartsLeftPaneProps) => {
         isLoading,
         detectedCountries,
         producerFilters,
-        onAddProducerFilter,
         onRemoveProducerFilter,
         topicName,
         searchParams,
@@ -234,8 +228,6 @@ const AllChartsLeftPane = (props: AllChartsLeftPaneProps) => {
                         selectedIndex={selectedIndex}
                         onSelect={setSelectedIndex}
                         detectedCountries={detectedCountries}
-                        producerFilters={producerFilters}
-                        onAddProducerFilter={onAddProducerFilter}
                     />
                 )}
             </div>
@@ -312,15 +304,11 @@ const AllChartsTable = ({
     selectedIndex,
     onSelect,
     detectedCountries,
-    producerFilters,
-    onAddProducerFilter,
 }: {
     hits: SearchChartHit[]
     selectedIndex: number
     onSelect: (index: number) => void
     detectedCountries: string[]
-    producerFilters: string[]
-    onAddProducerFilter: (producer: string) => void
 }) => {
     return (
         <ul className="all-charts-block__table" role="list">
@@ -331,8 +319,6 @@ const AllChartsTable = ({
                     isSelected={index === selectedIndex}
                     onSelect={() => onSelect(index)}
                     detectedCountries={detectedCountries}
-                    producerFilters={producerFilters}
-                    onAddProducerFilter={onAddProducerFilter}
                 />
             ))}
         </ul>
@@ -344,15 +330,11 @@ const AllChartsTableRow = ({
     isSelected,
     onSelect,
     detectedCountries,
-    producerFilters,
-    onAddProducerFilter,
 }: {
     hit: SearchChartHit
     isSelected: boolean
     onSelect: () => void
     detectedCountries: string[]
-    producerFilters: string[]
-    onAddProducerFilter: (producer: string) => void
 }) => {
     const chartUrl = constructChartUrl({ hit })
 
@@ -389,29 +371,11 @@ const AllChartsTableRow = ({
                     )}
                 </span>
             </button>
-            {/* The source column lives outside the row-selection button so its
-                producer buttons can be clicked independently (no nested
-                buttons). Clicking a producer adds a discardable filter. */}
+            {/* The source column lives outside the row-selection button so
+                clicking it doesn't also select the row. It's plain,
+                non-interactive text (no filter-on-click behavior). */}
             <span className="all-charts-block__row-source">
-                {producers.map((producer) => {
-                    const isActive = producerFilters.includes(producer)
-                    return (
-                        <button
-                            key={producer}
-                            type="button"
-                            className={cx("all-charts-block__producer", {
-                                "all-charts-block__producer--active": isActive,
-                            })}
-                            onClick={() => onAddProducerFilter(producer)}
-                            aria-label={`Filter by ${producer}`}
-                            aria-pressed={isActive}
-                            data-track-note="all-charts-producer-filter"
-                            disabled={isActive}
-                        >
-                            {producer}
-                        </button>
-                    )
-                })}
+                {producers.join(", ")}
             </span>
             <a
                 className="all-charts-block__row-link"
