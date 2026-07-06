@@ -5,6 +5,8 @@ import {
     spansToUnformattedPlainText,
 } from "@ourworldindata/utils"
 import {
+    CHART_LICENSES,
+    DEFAULT_CHART_LICENSE,
     OwidGdocAuthorInterface,
     OwidGdocDataInsightInterface,
     OwidGdocPostInterface,
@@ -89,7 +91,8 @@ export function JsonLdDataPage({
               creator: makeJsonLdCreator(baseUrl),
               creditText: makeJsonLdGrapherCreditText(grapher, datapageData),
               copyrightNotice: "Our World in Data",
-              license: "https://creativecommons.org/licenses/by/4.0/",
+              license:
+                  CHART_LICENSES[grapher?.license ?? DEFAULT_CHART_LICENSE].url,
               acquireLicensePage: `${baseUrl}/faqs#can-i-reuse-or-republish-your-charts`,
           }
         : undefined

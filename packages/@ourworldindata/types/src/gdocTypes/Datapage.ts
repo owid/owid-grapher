@@ -4,7 +4,7 @@ import {
     IndicatorTitleWithFragments,
     OwidProcessingLevel,
 } from "../OwidVariable.js"
-import { RelatedChart } from "../grapherTypes/GrapherTypes.js"
+import { LicenseOption, RelatedChart } from "../grapherTypes/GrapherTypes.js"
 import { OwidEnrichedGdocBlock } from "./ArchieMlComponents.js"
 import { ImageMetadata } from "./Image.js"
 import { ArchiveContext } from "../domainTypes/Archive.js"
@@ -49,6 +49,7 @@ export interface DataPageDataV2 {
     source: OwidSource | undefined
     origins: OwidOrigin[]
     chartConfig: Record<string, unknown>
+    license?: LicenseOption
     unit?: string
     unitConversionFactor?: number
     relatedChartsByCoview: RelatedChart[] // only needed for the new datapage design

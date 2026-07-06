@@ -24,6 +24,7 @@ import {
     EntitySelectionMode,
     StackMode,
     LogoOption,
+    LicenseOption,
     GrapherTabConfigOption,
     GRAPHER_TAB_CONFIG_OPTIONS,
     ColorSchemeName,
@@ -282,6 +283,9 @@ export class GrapherState
 
     /** The page containing this chart where more context can be found */
     originUrl: string | undefined = undefined
+
+    /** The license the chart is published under, linked in the chart footer */
+    license: LicenseOption | undefined = undefined
 
     /** Short comma-separated list of source names */
     sourceDesc: string | undefined = undefined
@@ -647,6 +651,7 @@ export class GrapherState
             internalNotes: observable.ref,
             variantName: observable.ref,
             originUrl: observable.ref,
+            license: observable.ref,
             hideAnnotationFieldsInTitle: observable,
             minTime: observable.ref,
             maxTime: observable.ref,
