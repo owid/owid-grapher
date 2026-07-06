@@ -540,11 +540,11 @@ export class FacetChart
                 config.min = _.min(domains.map((d) => d[0]))
                 config.max = _.max(domains.map((d) => d[1]))
 
-                // Find domain values across all facets
-                const domainValues = _.uniq(
-                    axes.flatMap((axis) => axis.config.domainValues ?? [])
+                // Find band values across all facets
+                const bandValues = _.uniq(
+                    axes.flatMap((axis) => axis.config.bandValues ?? [])
                 )
-                if (domainValues.length > 0) config.domainValues = domainValues
+                if (bandValues.length > 0) config.bandValues = bandValues
 
                 // Find ticks across all facets
                 const ticks = _.uniq(

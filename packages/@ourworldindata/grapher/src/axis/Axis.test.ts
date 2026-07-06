@@ -2,13 +2,23 @@ import { expect, it, describe } from "vitest"
 import * as R from "remeda"
 
 import { HorizontalAxis } from "../axis/Axis"
-import { ScaleType, AxisConfigInterface } from "@ourworldindata/types"
 import {
+    ScaleType,
+    AxisConfigInterface,
+    ColumnTypeNames,
+} from "@ourworldindata/types"
+import {
+    OwidTable,
     SynthesizeFruitTable,
     SynthesizeGDPTable,
 } from "@ourworldindata/core-table"
 import { AxisConfig } from "./AxisConfig"
-import { AxisAlign } from "@ourworldindata/utils"
+import {
+    AxisAlign,
+    dayjs,
+    convertDateToDaysSinceEpoch,
+    convertDaysSinceEpochToDate,
+} from "@ourworldindata/utils"
 
 it("can create an axis", () => {
     const axisConfig = new AxisConfig({
@@ -232,5 +242,251 @@ describe("manual ticks", () => {
         expect(
             defaultAxis.tickLabels.map((label) => label.value)
         ).not.toContain(99)
+    })
+})
+
+describe("for months", () => {
+    function makeMonthlyTimeAxis(
+        min: string,
+        max: string,
+        maxTicks?: number
+    ): HorizontalAxis {
+        const day = (date: string): number =>
+            convertDateToDaysSinceEpoch(dayjs.utc(date))
+        const table = new OwidTable({ entityName: ["usa"], month: [0] }, [
+            { slug: "month", type: ColumnTypeNames.Month },
+        ])
+        const axis = new HorizontalAxis(
+            new AxisConfig({
+                scaleType: ScaleType.linear,
+                min: day(min),
+                max: day(max),
+                ...(maxTicks !== undefined ? { maxTicks } : {}),
+            })
+        )
+        axis.formatColumn = table.get("month")
+        axis.hideFractionalTicks = true
+        axis.range = [0, 800]
+        return axis
+    }
+
+    it("places monthly time-axis ticks on first-of-month, January-anchored boundaries", () => {
+        const day = (date: string): number =>
+            convertDateToDaysSinceEpoch(dayjs.utc(date))
+        const axis = makeMonthlyTimeAxis("2020-01-01", "2022-12-01")
+
+        const values = axis.getTickValues().map((tick) => tick.value)
+
+        // every tick lands on the first of a month...
+        for (const value of values)
+            expect(convertDaysSinceEpochToDate(value).date()).toBe(1)
+        // ...and year boundaries are always on the grid regardless of the step
+        expect(values).toContain(day("2021-01-01"))
+        expect(values).toContain(day("2022-01-01"))
+    })
+
+    it("drops repeated years on a sub-year monthly axis, keeping months and Januaries", () => {
+        const labels = makeMonthlyTimeAxis(
+            "2020-03-01",
+            "2022-11-01",
+            8
+        ).tickLabels.map((tick) => tick.formattedValue)
+
+        // no bare year: every label is a month, optionally with a year
+        for (const label of labels)
+            expect(label).toMatch(/^[A-Z][a-z]{2}( \d{4})?$/)
+        // the year rides along on each January
+        expect(labels).toContain("Jan 2021")
+        expect(labels).toContain("Jan 2022")
+        // ...but not on the intervening months
+        expect(labels).toContain("Jul")
+    })
+
+    it("labels a yearly-cadence monthly axis with bare years only", () => {
+        const labels = makeMonthlyTimeAxis(
+            "2000-01-01",
+            "2020-01-01",
+            6
+        ).tickLabels.map((tick) => tick.formattedValue)
+
+        expect(labels.length).toBeGreaterThan(1)
+        for (const label of labels) expect(label).toMatch(/^\d{4}$/)
+    })
+
+    it("keeps per-value labels when a monthly axis has author-supplied ticks", () => {
+        // Custom ticks (as stacked bars / slope / sparkline set) get thinned by
+        // overlap-hiding after labeling, so the year-suppression is skipped and every
+        // label keeps its year — even same-year ticks.
+        const day = (date: string): number =>
+            convertDateToDaysSinceEpoch(dayjs.utc(date))
+        const table = new OwidTable({ entityName: ["usa"], month: [0] }, [
+            { slug: "month", type: ColumnTypeNames.Month },
+        ])
+        const axis = new HorizontalAxis(
+            new AxisConfig({
+                scaleType: ScaleType.linear,
+                min: day("2020-01-01"),
+                max: day("2020-11-01"),
+                ticks: [
+                    { value: day("2020-01-01"), priority: 2 },
+                    { value: day("2020-06-01"), priority: 2 },
+                    { value: day("2020-11-01"), priority: 2 },
+                ],
+            })
+        )
+        axis.formatColumn = table.get("month")
+        axis.range = [0, 800]
+
+        const labels = axis.tickLabels.map((tick) => tick.formattedValue)
+        expect(labels).toEqual(["Jan 2020", "Jun 2020", "Nov 2020"])
+    })
+
+    it("labels every bar with month + year on a discrete monthly axis", () => {
+        const day = (date: string): number =>
+            convertDateToDaysSinceEpoch(dayjs.utc(date))
+        const bandValues = ["2020-01-01", "2020-04-01", "2020-07-01"].map(day)
+        const table = new OwidTable({ entityName: ["usa"], month: [0] }, [
+            { slug: "month", type: ColumnTypeNames.Month },
+        ])
+        const axis = new HorizontalAxis(
+            new AxisConfig({
+                scaleType: ScaleType.linear,
+                min: bandValues[0],
+                max: bandValues[bandValues.length - 1],
+                bandValues,
+            })
+        )
+        axis.formatColumn = table.get("month")
+        axis.range = [0, 800]
+
+        // one tick per bar, each keeping its full month + year
+        expect(axis.getTickValues().map((t) => t.label)).toEqual([
+            "Jan 2020",
+            "Apr 2020",
+            "Jul 2020",
+        ])
+    })
+
+    it("thins a discrete monthly axis to a uniform cadence (no ragged gaps)", () => {
+        const monthlyDomain = (
+            startYear: number,
+            endYear: number
+        ): number[] => {
+            const values: number[] = []
+            for (let y = startYear; y <= endYear; y++)
+                for (let m = 1; m <= 12; m++)
+                    values.push(
+                        convertDateToDaysSinceEpoch(
+                            dayjs.utc(`${y}-${String(m).padStart(2, "0")}-01`)
+                        )
+                    )
+            return values
+        }
+        const monthIndex = (value: number): number => {
+            const d = convertDaysSinceEpochToDate(value)
+            return d.year() * 12 + d.month()
+        }
+        const table = new OwidTable({ entityName: ["usa"], month: [0] }, [
+            { slug: "month", type: ColumnTypeNames.Month },
+        ])
+
+        const bandValues = monthlyDomain(2016, 2023)
+        const tickCountAt = (width: number): number => {
+            const axis = new HorizontalAxis(
+                new AxisConfig({
+                    scaleType: ScaleType.linear,
+                    min: bandValues[0],
+                    max: bandValues[bandValues.length - 1],
+                    bandValues,
+                })
+            )
+            axis.formatColumn = table.get("month")
+            axis.range = [0, width]
+
+            const months = axis.tickLabels
+                .map((label) => monthIndex(label.value))
+                .sort((a, b) => a - b)
+            const gaps = months.slice(1).map((m, i) => m - months[i])
+            // every gap identical → a single uniform tier, never ragged (0 gaps
+            // when only one tick survives)
+            expect(new Set(gaps).size).toBeLessThanOrEqual(1)
+            return months.length
+        }
+
+        const narrow = tickCountAt(120)
+        const wide = tickCountAt(2000)
+        expect(wide).toBeGreaterThan(1) // a wide axis shows a real cadence
+        expect(wide).toBeGreaterThanOrEqual(narrow) // wider fits at least as many
+    })
+
+    it("keeps monthly ticks aligned when min/max are not month boundaries", () => {
+        const day = (date: string): number =>
+            convertDateToDaysSinceEpoch(dayjs.utc(date))
+        const min = day("2020-01-15")
+        const max = day("2022-12-20")
+
+        const axis = makeMonthlyTimeAxis("2020-01-15", "2022-12-20")
+        const values = axis.getTickValues().map((tick) => tick.value)
+
+        expect(values.length).toBeGreaterThan(0)
+        for (const value of values)
+            expect(convertDaysSinceEpochToDate(value).date()).toBe(1)
+        // at least one generated tick falls in the actual requested range
+        expect(values.some((value) => value >= min && value <= max)).toBe(true)
+    })
+
+    it("keeps January boundaries on the grid across sparse and dense cadences", () => {
+        const day = (date: string): number =>
+            convertDateToDaysSinceEpoch(dayjs.utc(date))
+
+        const sparse = makeMonthlyTimeAxis("2020-01-01", "2022-12-01", 4)
+            .getTickValues()
+            .map((tick) => tick.value)
+        const dense = makeMonthlyTimeAxis("2020-01-01", "2022-12-01", 20)
+            .getTickValues()
+            .map((tick) => tick.value)
+
+        for (const values of [sparse, dense]) {
+            expect(values).toContain(day("2021-01-01"))
+            expect(values).toContain(day("2022-01-01"))
+        }
+    })
+
+    it("uses sensible month labels when maxTicks is very low", () => {
+        const labels = makeMonthlyTimeAxis(
+            "2020-01-01",
+            "2022-12-01",
+            1
+        ).tickLabels.map((tick) => tick.formattedValue)
+
+        expect(labels.length).toBeGreaterThanOrEqual(1)
+        for (const label of labels)
+            expect(label).toMatch(/^(\d{4}|[A-Z][a-z]{2}( \d{4})?)$/)
+    })
+
+    it("does not invent missing months on an irregular discrete monthly domain", () => {
+        const day = (date: string): number =>
+            convertDateToDaysSinceEpoch(dayjs.utc(date))
+        const bandValues = [
+            day("2020-01-01"),
+            day("2020-03-01"),
+            day("2020-10-01"),
+        ]
+        const table = new OwidTable({ entityName: ["usa"], month: [0] }, [
+            { slug: "month", type: ColumnTypeNames.Month },
+        ])
+        const axis = new HorizontalAxis(
+            new AxisConfig({
+                scaleType: ScaleType.linear,
+                min: bandValues[0],
+                max: bandValues[bandValues.length - 1],
+                bandValues,
+            })
+        )
+        axis.formatColumn = table.get("month")
+        axis.range = [0, 800]
+
+        const values = axis.getTickValues().map((tick) => tick.value)
+        expect(values).toEqual(bandValues)
     })
 })
