@@ -106,7 +106,10 @@ function computeAutoSuggestedChips(
 
         const producersOnChart = new Set(hit.datasetProducers ?? [])
         for (const producer of producersOnChart) {
-            producerCounts.set(producer, (producerCounts.get(producer) ?? 0) + 1)
+            producerCounts.set(
+                producer,
+                (producerCounts.get(producer) ?? 0) + 1
+            )
         }
     }
 
