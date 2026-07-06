@@ -400,5 +400,9 @@ $sidebar-toc-header-gap: $topic-page-header-margin-bottom;
     .article-block__chart,
     .article-block__heading {
         scroll-margin-top: 16px;
+
+        @media (max-width: $sidebar-toc-sm) {
+            scroll-margin-top: 64px;
+        }
     }
 }
