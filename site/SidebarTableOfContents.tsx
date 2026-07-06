@@ -177,6 +177,7 @@ export const SidebarTableOfContents = ({
                                         className="sidebar-toc__mobile-drawer-close"
                                         onClick={close}
                                         aria-label="Close table of contents"
+                                        data-track-note="toc_collapse"
                                     >
                                         <FontAwesomeIcon icon={faXmark} />
                                     </button>
