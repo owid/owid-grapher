@@ -1042,11 +1042,13 @@ components:
             - day
             - week
             - month
+            - quarter
             - year
+            - decade
           description: >-
             Resolution at which the time values should be interpreted and
-            formatted. Sub-yearly values (day/week/month) are days since a
-            reference date; "year" values are literal years.
+            formatted. Sub-yearly values (day/week/month/quarter) are days since
+            a reference date; "year" and "decade" values are literal years.
 
     GrapherValuesJsonDataPoints:
       type: object

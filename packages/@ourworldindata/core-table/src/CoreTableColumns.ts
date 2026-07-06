@@ -1073,42 +1073,60 @@ class WeekColumn<
     }
 }
 
+// A sub-yearly quarter column, storing days-since-epoch
+// (a representative day per quarter)
 class QuarterColumn<
     TABLE_TYPE extends CoreTable = CoreTable,
     DEF_TYPE extends CoreColumnDef = CoreColumnDef,
-> extends TimeColumn<TABLE_TYPE, DEF_TYPE> {
-    preposition = "in"
-    intervalName = "Quarter"
+> extends DayColumn<TABLE_TYPE, DEF_TYPE> {
+    override intervalName = "Quarter"
+    override preposition = "in"
 
-    private static readonly regEx = /^([+-]?\d+)-Q([1-4])$/
-
-    override parse(val: unknown): number | ErrorValue {
-        // skip parsing if a date is a number, it's already been parsed
-        if (typeof val === "number") return val
-        if (typeof val === "string") {
-            const match = val.match(QuarterColumn.regEx)
-            if (match) {
-                const [, year, quarter] = match
-                return parseInt(year) * 4 + (parseInt(quarter) - 1)
-            }
-        }
-        return ErrorValueTypes.InvalidQuarterValue
+    override get timeInterval(): TimeInterval {
+        return TimeInterval.Quarter
     }
 
-    private static numToQuarter(value: number): number[] {
-        const year = Math.floor(value / 4)
-        const quarter = (Math.abs(value) % 4) + 1
-        return [year, quarter]
+    override formatValue(value: number): string {
+        const date = convertDaysSinceEpochToDate(value)
+        return `Q${date.quarter()} ${date.year()}` // "Q1 2023"
     }
 
-    formatValue(value: number): string {
-        const [year, quarter] = QuarterColumn.numToQuarter(value)
-        return `Q${quarter}/${year}`
+    override formatValueForMobile(value: number): string {
+        const date = convertDaysSinceEpochToDate(value)
+        const yy = String(date.year() % 100).padStart(2, "0")
+        return `Q${date.quarter()} '${yy}` // "Q1 '23"
     }
 
     override formatForCsv(value: number): string {
-        const [year, quarter] = QuarterColumn.numToQuarter(value)
-        return `${year}-Q${quarter}`
+        const date = convertDaysSinceEpochToDate(value)
+        return `${date.year()}-Q${date.quarter()}` // "2023-Q1"
+    }
+}
+
+// A decade column, storing literal years (a representative year per decade)
+class DecadeColumn<
+    TABLE_TYPE extends CoreTable = CoreTable,
+    DEF_TYPE extends CoreColumnDef = CoreColumnDef,
+> extends YearColumn<TABLE_TYPE, DEF_TYPE> {
+    override intervalName = "Decade"
+    override preposition = "in the" // "in the 2020s"
+
+    override get timeInterval(): TimeInterval {
+        return TimeInterval.Decade
+    }
+
+    // The first year of the decade the given year belongs to, e.g. 2025 → 2020
+    private static startOfDecade(year: number): number {
+        return Math.floor(year / 10) * 10
+    }
+
+    override formatValue(value: number): string {
+        const decade = DecadeColumn.startOfDecade(value)
+        return decade < 0 ? `${Math.abs(decade)}s BCE` : `${decade}s` // "2020s"
+    }
+
+    override formatForCsv(value: number): string {
+        return this.formatValue(value)
     }
 }
 
@@ -1141,6 +1159,7 @@ export const ColumnTypeMap = {
     Quarter: QuarterColumn,
     Month: MonthColumn,
     Week: WeekColumn,
+    Decade: DecadeColumn,
     Time: TimeColumn,
     Boolean: BooleanColumn,
     Currency: CurrencyColumn,

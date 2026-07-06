@@ -430,6 +430,7 @@ describe(legacyToOwidTableAndDimensions, () => {
             const cases = [
                 [TimeInterval.Week, ColumnTypeMap.Week],
                 [TimeInterval.Month, ColumnTypeMap.Month],
+                [TimeInterval.Quarter, ColumnTypeMap.Quarter],
             ] as const
             for (const [interval, ColumnType] of cases) {
                 const table = buildTable({ timeInterval: interval })
@@ -440,6 +441,16 @@ describe(legacyToOwidTableAndDimensions, () => {
                 // Sub-yearly columns are day-encoded
                 expect(timeColumn instanceof ColumnTypeMap.Day).toBeTruthy()
             }
+        })
+
+        it("routes timeInterval 'decade' to the year bucket with a Decade column type", () => {
+            const table = buildTable({ timeInterval: TimeInterval.Decade })
+            expect(table.columnSlugs).toContain(OwidTableSlugs.year)
+            expect(table.columnSlugs).not.toContain(OwidTableSlugs.day)
+            const timeColumn = table.get(OwidTableSlugs.time)
+            expect(timeColumn instanceof ColumnTypeMap.Decade).toBeTruthy()
+            // Decade columns are year-encoded
+            expect(timeColumn instanceof ColumnTypeMap.Year).toBeTruthy()
         })
     })
 

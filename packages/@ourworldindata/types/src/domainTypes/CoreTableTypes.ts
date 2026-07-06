@@ -170,6 +170,7 @@ export enum ColumnTypeNames {
     Quarter = "Quarter",
     Month = "Month",
     Week = "Week",
+    Decade = "Decade",
 }
 
 export interface ColumnColorScale {

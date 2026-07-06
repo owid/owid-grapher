@@ -221,9 +221,9 @@ async function propsFromQueryParams(
             `
             (
                 SELECT COUNT(DISTINCT CASE
-                    WHEN variables.display->>"$.timeInterval" IN ("day", "week", "month")
+                    WHEN variables.display->>"$.timeInterval" IN ("day", "week", "month", "quarter")
                         THEN "day"
-                    WHEN variables.display->>"$.timeInterval" = "year"
+                    WHEN variables.display->>"$.timeInterval" IN ("year", "decade")
                         THEN "year"
                     WHEN variables.display->>"$.yearIsDay" = "true"
                         THEN "day"
