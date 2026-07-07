@@ -54,7 +54,7 @@
 
 .all-charts-block__search-input {
     width: 100%;
-    padding: 12px 12px 12px 36px;
+    padding: 12px 36px 12px 36px;
     border: 1px solid $gray-30;
     border-radius: 4px;
     font-size: 16px;
@@ -67,6 +67,28 @@
 
     &::placeholder {
         color: $gray-70;
+    }
+
+    // Hide the native search input clear button so it doesn't clash with
+    // .all-charts-block__search-clear-button.
+    &::-webkit-search-cancel-button {
+        display: none;
+    }
+}
+
+.all-charts-block__search-clear-button {
+    position: absolute;
+    right: 12px;
+    padding: 0;
+    border: none;
+    background: none;
+    color: $gray-70;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+
+    &:hover {
+        color: $text-color;
     }
 }
 

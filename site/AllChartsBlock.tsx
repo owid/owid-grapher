@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     faArrowRight,
     faMagnifyingGlass,
+    faTimesCircle,
 } from "@fortawesome/free-solid-svg-icons"
 import { useDebounceValue } from "usehooks-ts"
 import {
@@ -664,6 +665,16 @@ const AllChartsSearchInput = ({
                     value={query}
                     onChange={(e) => onQueryChange(e.target.value)}
                 />
+                {query && (
+                    <button
+                        type="button"
+                        className="all-charts-block__search-clear-button"
+                        aria-label="Clear search"
+                        onClick={() => onQueryChange("")}
+                    >
+                        <FontAwesomeIcon icon={faTimesCircle} />
+                    </button>
+                )}
             </div>
             {producerFilters.length > 0 && (
                 <div className="all-charts-block__active-filters">
