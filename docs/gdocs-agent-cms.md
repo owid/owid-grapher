@@ -159,14 +159,14 @@ flowchart LR
 ## CI self-heal
 
 The registry JSON is generated, never hand-edited. On every push/PR **targeting
-`master`**, the `regenerate-components-reference` job in
+`master`**, the `regenerate-gdocs-references` job in
 [`format.yml`](../.github/workflows/format.yml) reruns the generator and
 auto-commits any diff. Broken examples make the job red and skip the commit, so
 the committed registry can go stale but never corrupt.
 
 **Stacked PRs:** only the bottom PR of a Graphite stack targets `master`, so
 upstack PRs get no self-heal (and no auto-format). If you change types or
-sidecars upstack, run `yarn generateComponentsReference` locally.
+sidecars upstack, run `yarn generateGdocsReferences` locally.
 
 ## How an agent edits a gdoc
 

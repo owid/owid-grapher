@@ -179,6 +179,11 @@ export type {
     ComponentExample,
 } from "./gdocTypes/ComponentReference.js"
 
+export type {
+    TemplateDoc,
+    TemplateFieldDoc,
+} from "./gdocTypes/TemplateReference.js"
+
 export {
     ChartConfigType,
     OwidGdocPublicationContext,
@@ -241,6 +246,7 @@ export {
     OWID_GDOC_POST_CONTENT_KEYS,
     OWID_GDOC_DATA_INSIGHT_CONTENT_KEYS,
     OWID_GDOC_BASE_ROW_KEYS,
+    OWID_GDOC_ADMIN_MANAGED_KEYS,
     getContentKeysForGdocType,
 } from "./gdocTypes/Gdoc.js"
 

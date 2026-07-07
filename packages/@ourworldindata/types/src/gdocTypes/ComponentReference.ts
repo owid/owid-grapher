@@ -1,5 +1,5 @@
 // Types for the generated ArchieML component reference registry.
-// Produced by devTools/gdocs/generate-components-reference.ts (committed to
+// Produced by devTools/gdocs/generate-gdocs-references.ts (committed to
 // docs/components.registry.generated.json) and consumed by the admin
 // components reference page via the /api/components.json endpoint.
 

@@ -1,0 +1,916 @@
+[
+  {
+    "id": "article",
+    "contentTypeName": "OwidGdocPostContent",
+    "sidecarFile": "packages/@ourworldindata/types/src/gdocTypes/templates/Article.md",
+    "title": "Article",
+    "body": "A standalone piece of writing: our default document type for essays, data\nexplainers and topic deep-dives. Published under `/{slug}`.\n\n## When to use\n\n- Any self-contained narrative piece that is not the entry page of a topic.\n\n## When NOT to use\n\n- Prefer `data-insight` for a short, chart-led observation.\n- Prefer `topic-page` / `linear-topic-page` for the entry page of a topic.\n\n### Example\n\n```archie\ntitle: The decline of global child mortality\nsubtitle: Child deaths have fallen from over 20 million per year in 1950 to under 5 million today.\nauthors: Jane Doe\ndateline: June 30, 2026\nexcerpt: Child mortality has fallen dramatically over the last two centuries.\ntype: article\nfeatured-image: child-mortality-featured.png\n[+body]\nOver the last two centuries, child mortality has declined in every world region.\n\n{.chart}\nurl: https://ourworldindata.org/grapher/child-mortality\n{}\n\n{.heading}\ntext: Why did child mortality decline?\nlevel: 1\n{}\n\nImprovements in nutrition, sanitation, vaccination and access to healthcare all played a role.\n[]\n```",
+    "fields": [
+      {
+        "name": "body",
+        "type": "OwidEnrichedGdocBlock[]",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "The document body: a sequence of ArchieML component blocks. See the components reference for every available block."
+      },
+      {
+        "name": "type",
+        "type": "OwidGdocType.Article | OwidGdocType.TopicPage | OwidGdocType.LinearTopicPage | OwidGdocType.Fragment",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "The document type; decides the layout and where the document appears on the site."
+      },
+      {
+        "name": "title",
+        "type": "string",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "The document headline."
+      },
+      {
+        "name": "supertitle",
+        "type": "string",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "Kicker line shown above the title."
+      },
+      {
+        "name": "subtitle",
+        "type": "string",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "Standfirst shown below the title."
+      },
+      {
+        "name": "authors",
+        "type": "string[]",
+        "optional": false,
+        "writeBack": "emitted",
+        "description": "Comma-separated author names. Append a role in parentheses to credit a specific contribution — e.g. \"Jane Doe (Editor), John Smith\"."
+      },
+      {
+        "name": "authorRoles",
+        "type": "Record<string, string>",
+        "optional": true,
+        "writeBack": "derived"
+      },
+      {
+        "name": "dateline",
+        "type": "string",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "The publication date as displayed under the byline, e.g. \"June 30, 2026\"."
+      },
+      {
+        "name": "excerpt",
+        "type": "string",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "Short plain-text summary used in cards and link previews."
+      },
+      {
+        "name": "refs",
+        "type": "{ definitions: RefDictionary; errors: OwidGdocErrorMessage[] }",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "Footnote definitions for ID-based references, authored as a `[.refs]` block of `id:` + `[.+content]` entries. Inline `{ref}…{/ref}` footnotes need no entry here."
+      },
+      {
+        "name": "deprecation-notice",
+        "type": "EnrichedBlockText[]",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "One or more paragraphs shown in a banner marking the article as outdated, authored as a `[+deprecation-notice]` freeform block of text paragraphs."
+      },
+      {
+        "name": "latest-feed-featured-image",
+        "type": "string",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "Image filename that overrides `featured-image` on the /latest feed."
+      },
+      {
+        "name": "latest-feed-excerpt",
+        "type": "EnrichedBlockText[]",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "Rich-text excerpt (formatting and internal links allowed) shown on the /latest feed instead of `excerpt`, authored as a `[+latest-feed-excerpt]` freeform block of text paragraphs."
+      },
+      {
+        "name": "hide-citation",
+        "type": "boolean",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "Set to true to hide the \"Cite this work\" section at the end of the article."
+      },
+      {
+        "name": "toc",
+        "type": "TocHeadingWithTitleSupertitle[]",
+        "optional": true,
+        "writeBack": "derived"
+      },
+      {
+        "name": "cover-image",
+        "type": "string",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "Filename of the full-width image shown behind the header."
+      },
+      {
+        "name": "featured-image",
+        "type": "string",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "Filename of the image used in cards and social-media previews."
+      },
+      {
+        "name": "atom-title",
+        "type": "string",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "Title override for the document's atom-feed entry."
+      },
+      {
+        "name": "atom-excerpt",
+        "type": "string",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "Excerpt override for the document's atom-feed entry."
+      },
+      {
+        "name": "sidebar-toc",
+        "type": "boolean",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "Set to true to show a table of contents in the sidebar."
+      },
+      {
+        "name": "heading-variant",
+        "type": "\"heavy\" | \"light\"",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "Typography variant for the header: \"heavy\" or \"light\"."
+      },
+      {
+        "name": "hide-subscribe-banner",
+        "type": "boolean",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "Set to true to hide the subscribe banner."
+      },
+      {
+        "name": "cover-color",
+        "type": "\"sdg-color-1\" | \"sdg-color-2\" | \"sdg-color-3\" | \"sdg-color-4\" | \"sdg-color-5\" | \"sdg-color-6\" | \"sdg-color-7\" | \"sdg-color-8\" | \"sdg-color-9\" | \"sdg-color-10\" | \"sdg-color-11\" | \"sdg-color-12\" | \"sdg-color-13\" | \"sdg-color-14\" | \"sdg-color-15\" | \"sdg-color-16\" | \"sdg-color-17\" | \"amber\"",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "Named background color of the header area (one of the sdg-color-N values or \"amber\")."
+      },
+      {
+        "name": "sticky-nav",
+        "type": "OwidGdocStickyNavItem[]",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "Navigation items pinned below the header, authored as a `[.sticky-nav]` array of `target:` (anchor) + `text:` (label) pairs. Linear topic pages get a default set generated automatically."
+      },
+      {
+        "name": "details",
+        "type": "DetailDictionary",
+        "optional": true,
+        "writeBack": "unsupported",
+        "description": "Details-on-demand dictionary sourced from the details fragment. Not yet supported by the ArchieML write-back: documents using it must be edited in Google Docs directly."
+      },
+      {
+        "name": "faqs",
+        "type": "RawFaq[]",
+        "optional": true,
+        "writeBack": "unsupported",
+        "description": "FAQ content consumed by data pages, authored in FAQ fragments. Not yet supported by the ArchieML write-back: documents using it must be edited in Google Docs directly."
+      },
+      {
+        "name": "parsedFaqs",
+        "type": "FaqDictionary",
+        "optional": true,
+        "writeBack": "derived"
+      }
+    ],
+    "adminManagedFields": [
+      "slug",
+      "published",
+      "publishedAt",
+      "publicationContext",
+      "manualBreadcrumbs",
+      "tags"
+    ],
+    "examples": [
+      {
+        "name": "Example",
+        "archie": "title: The decline of global child mortality\nsubtitle: Child deaths have fallen from over 20 million per year in 1950 to under 5 million today.\nauthors: Jane Doe\ndateline: June 30, 2026\nexcerpt: Child mortality has fallen dramatically over the last two centuries.\ntype: article\nfeatured-image: child-mortality-featured.png\n[+body]\nOver the last two centuries, child mortality has declined in every world region.\n\n{.chart}\nurl: https://ourworldindata.org/grapher/child-mortality\n{}\n\n{.heading}\ntext: Why did child mortality decline?\nlevel: 1\n{}\n\nImprovements in nutrition, sanitation, vaccination and access to healthcare all played a role.\n[]"
+      }
+    ]
+  },
+  {
+    "id": "topic-page",
+    "contentTypeName": "OwidGdocPostContent",
+    "sidecarFile": "packages/@ourworldindata/types/src/gdocTypes/templates/TopicPage.md",
+    "title": "Topic Page",
+    "body": "The entry page for a topic: a modular page that opens with a\n`{.topic-page-intro}` block and typically composes key insights, featured\nmetrics and an `{.all-charts}` section. Published under `/{slug}`.\n\n## When to use\n\n- The canonical landing page for a topic in the site navigation.\n\n## When NOT to use\n\n- Prefer `linear-topic-page` when the topic reads as one continuous essay.\n- Prefer `article` for standalone pieces within a topic.\n\n### Example\n\n```archie\ntitle: Child Mortality\nauthors: Jane Doe\nexcerpt: Explore data on child mortality around the world.\ntype: topic-page\n[+body]\n{.topic-page-intro}\n[+.content]\nA short introduction to the topic and why it matters.\n[]\n{}\n\n{.all-charts}\nheading: Interactive Charts on Child Mortality\n{}\n[]\n```",
+    "fields": [
+      {
+        "name": "body",
+        "type": "OwidEnrichedGdocBlock[]",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "The document body: a sequence of ArchieML component blocks. See the components reference for every available block."
+      },
+      {
+        "name": "type",
+        "type": "OwidGdocType.Article | OwidGdocType.TopicPage | OwidGdocType.LinearTopicPage | OwidGdocType.Fragment",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "The document type; decides the layout and where the document appears on the site."
+      },
+      {
+        "name": "title",
+        "type": "string",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "The document headline."
+      },
+      {
+        "name": "supertitle",
+        "type": "string",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "Kicker line shown above the title."
+      },
+      {
+        "name": "subtitle",
+        "type": "string",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "Standfirst shown below the title."
+      },
+      {
+        "name": "authors",
+        "type": "string[]",
+        "optional": false,
+        "writeBack": "emitted",
+        "description": "Comma-separated author names. Append a role in parentheses to credit a specific contribution — e.g. \"Jane Doe (Editor), John Smith\"."
+      },
+      {
+        "name": "authorRoles",
+        "type": "Record<string, string>",
+        "optional": true,
+        "writeBack": "derived"
+      },
+      {
+        "name": "dateline",
+        "type": "string",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "The publication date as displayed under the byline, e.g. \"June 30, 2026\"."
+      },
+      {
+        "name": "excerpt",
+        "type": "string",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "Short plain-text summary used in cards and link previews."
+      },
+      {
+        "name": "refs",
+        "type": "{ definitions: RefDictionary; errors: OwidGdocErrorMessage[] }",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "Footnote definitions for ID-based references, authored as a `[.refs]` block of `id:` + `[.+content]` entries. Inline `{ref}…{/ref}` footnotes need no entry here."
+      },
+      {
+        "name": "deprecation-notice",
+        "type": "EnrichedBlockText[]",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "One or more paragraphs shown in a banner marking the article as outdated, authored as a `[+deprecation-notice]` freeform block of text paragraphs."
+      },
+      {
+        "name": "latest-feed-featured-image",
+        "type": "string",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "Image filename that overrides `featured-image` on the /latest feed."
+      },
+      {
+        "name": "latest-feed-excerpt",
+        "type": "EnrichedBlockText[]",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "Rich-text excerpt (formatting and internal links allowed) shown on the /latest feed instead of `excerpt`, authored as a `[+latest-feed-excerpt]` freeform block of text paragraphs."
+      },
+      {
+        "name": "hide-citation",
+        "type": "boolean",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "Set to true to hide the \"Cite this work\" section at the end of the article."
+      },
+      {
+        "name": "toc",
+        "type": "TocHeadingWithTitleSupertitle[]",
+        "optional": true,
+        "writeBack": "derived"
+      },
+      {
+        "name": "cover-image",
+        "type": "string",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "Filename of the full-width image shown behind the header."
+      },
+      {
+        "name": "featured-image",
+        "type": "string",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "Filename of the image used in cards and social-media previews."
+      },
+      {
+        "name": "atom-title",
+        "type": "string",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "Title override for the document's atom-feed entry."
+      },
+      {
+        "name": "atom-excerpt",
+        "type": "string",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "Excerpt override for the document's atom-feed entry."
+      },
+      {
+        "name": "sidebar-toc",
+        "type": "boolean",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "Set to true to show a table of contents in the sidebar."
+      },
+      {
+        "name": "heading-variant",
+        "type": "\"heavy\" | \"light\"",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "Typography variant for the header: \"heavy\" or \"light\"."
+      },
+      {
+        "name": "hide-subscribe-banner",
+        "type": "boolean",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "Set to true to hide the subscribe banner."
+      },
+      {
+        "name": "cover-color",
+        "type": "\"sdg-color-1\" | \"sdg-color-2\" | \"sdg-color-3\" | \"sdg-color-4\" | \"sdg-color-5\" | \"sdg-color-6\" | \"sdg-color-7\" | \"sdg-color-8\" | \"sdg-color-9\" | \"sdg-color-10\" | \"sdg-color-11\" | \"sdg-color-12\" | \"sdg-color-13\" | \"sdg-color-14\" | \"sdg-color-15\" | \"sdg-color-16\" | \"sdg-color-17\" | \"amber\"",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "Named background color of the header area (one of the sdg-color-N values or \"amber\")."
+      },
+      {
+        "name": "sticky-nav",
+        "type": "OwidGdocStickyNavItem[]",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "Navigation items pinned below the header, authored as a `[.sticky-nav]` array of `target:` (anchor) + `text:` (label) pairs. Linear topic pages get a default set generated automatically."
+      },
+      {
+        "name": "details",
+        "type": "DetailDictionary",
+        "optional": true,
+        "writeBack": "unsupported",
+        "description": "Details-on-demand dictionary sourced from the details fragment. Not yet supported by the ArchieML write-back: documents using it must be edited in Google Docs directly."
+      },
+      {
+        "name": "faqs",
+        "type": "RawFaq[]",
+        "optional": true,
+        "writeBack": "unsupported",
+        "description": "FAQ content consumed by data pages, authored in FAQ fragments. Not yet supported by the ArchieML write-back: documents using it must be edited in Google Docs directly."
+      },
+      {
+        "name": "parsedFaqs",
+        "type": "FaqDictionary",
+        "optional": true,
+        "writeBack": "derived"
+      }
+    ],
+    "adminManagedFields": [
+      "slug",
+      "published",
+      "publishedAt",
+      "publicationContext",
+      "manualBreadcrumbs",
+      "tags"
+    ],
+    "examples": [
+      {
+        "name": "Example",
+        "archie": "title: Child Mortality\nauthors: Jane Doe\nexcerpt: Explore data on child mortality around the world.\ntype: topic-page\n[+body]\n{.topic-page-intro}\n[+.content]\nA short introduction to the topic and why it matters.\n[]\n{}\n\n{.all-charts}\nheading: Interactive Charts on Child Mortality\n{}\n[]"
+      }
+    ]
+  },
+  {
+    "id": "linear-topic-page",
+    "contentTypeName": "OwidGdocPostContent",
+    "sidecarFile": "packages/@ourworldindata/types/src/gdocTypes/templates/LinearTopicPage.md",
+    "title": "Linear Topic Page",
+    "body": "A topic entry page that reads as one continuous essay rather than a modular\ngrid. Gets a sticky navigation generated from its headings (override with\n`sticky-nav`). Published under `/{slug}`.\n\n## When to use\n\n- A topic whose content is best presented as a single narrative flow.\n\n## When NOT to use\n\n- Prefer `topic-page` for modular topic pages composed of self-contained\n  sections.\n\n### Example\n\n```archie\ntitle: Child Mortality\nsubtitle: Child deaths are one of the world's largest problems — and one where progress is possible.\nauthors: Jane Doe\nexcerpt: Explore data on child mortality around the world.\ntype: linear-topic-page\n[+body]\nChild mortality remains one of the world's largest problems.\n\n{.heading}\ntext: The global picture\nlevel: 1\n{}\n\nAround 5 million children under five die every year.\n[]\n```",
+    "fields": [
+      {
+        "name": "body",
+        "type": "OwidEnrichedGdocBlock[]",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "The document body: a sequence of ArchieML component blocks. See the components reference for every available block."
+      },
+      {
+        "name": "type",
+        "type": "OwidGdocType.Article | OwidGdocType.TopicPage | OwidGdocType.LinearTopicPage | OwidGdocType.Fragment",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "The document type; decides the layout and where the document appears on the site."
+      },
+      {
+        "name": "title",
+        "type": "string",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "The document headline."
+      },
+      {
+        "name": "supertitle",
+        "type": "string",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "Kicker line shown above the title."
+      },
+      {
+        "name": "subtitle",
+        "type": "string",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "Standfirst shown below the title."
+      },
+      {
+        "name": "authors",
+        "type": "string[]",
+        "optional": false,
+        "writeBack": "emitted",
+        "description": "Comma-separated author names. Append a role in parentheses to credit a specific contribution — e.g. \"Jane Doe (Editor), John Smith\"."
+      },
+      {
+        "name": "authorRoles",
+        "type": "Record<string, string>",
+        "optional": true,
+        "writeBack": "derived"
+      },
+      {
+        "name": "dateline",
+        "type": "string",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "The publication date as displayed under the byline, e.g. \"June 30, 2026\"."
+      },
+      {
+        "name": "excerpt",
+        "type": "string",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "Short plain-text summary used in cards and link previews."
+      },
+      {
+        "name": "refs",
+        "type": "{ definitions: RefDictionary; errors: OwidGdocErrorMessage[] }",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "Footnote definitions for ID-based references, authored as a `[.refs]` block of `id:` + `[.+content]` entries. Inline `{ref}…{/ref}` footnotes need no entry here."
+      },
+      {
+        "name": "deprecation-notice",
+        "type": "EnrichedBlockText[]",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "One or more paragraphs shown in a banner marking the article as outdated, authored as a `[+deprecation-notice]` freeform block of text paragraphs."
+      },
+      {
+        "name": "latest-feed-featured-image",
+        "type": "string",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "Image filename that overrides `featured-image` on the /latest feed."
+      },
+      {
+        "name": "latest-feed-excerpt",
+        "type": "EnrichedBlockText[]",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "Rich-text excerpt (formatting and internal links allowed) shown on the /latest feed instead of `excerpt`, authored as a `[+latest-feed-excerpt]` freeform block of text paragraphs."
+      },
+      {
+        "name": "hide-citation",
+        "type": "boolean",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "Set to true to hide the \"Cite this work\" section at the end of the article."
+      },
+      {
+        "name": "toc",
+        "type": "TocHeadingWithTitleSupertitle[]",
+        "optional": true,
+        "writeBack": "derived"
+      },
+      {
+        "name": "cover-image",
+        "type": "string",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "Filename of the full-width image shown behind the header."
+      },
+      {
+        "name": "featured-image",
+        "type": "string",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "Filename of the image used in cards and social-media previews."
+      },
+      {
+        "name": "atom-title",
+        "type": "string",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "Title override for the document's atom-feed entry."
+      },
+      {
+        "name": "atom-excerpt",
+        "type": "string",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "Excerpt override for the document's atom-feed entry."
+      },
+      {
+        "name": "sidebar-toc",
+        "type": "boolean",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "Set to true to show a table of contents in the sidebar."
+      },
+      {
+        "name": "heading-variant",
+        "type": "\"heavy\" | \"light\"",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "Typography variant for the header: \"heavy\" or \"light\"."
+      },
+      {
+        "name": "hide-subscribe-banner",
+        "type": "boolean",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "Set to true to hide the subscribe banner."
+      },
+      {
+        "name": "cover-color",
+        "type": "\"sdg-color-1\" | \"sdg-color-2\" | \"sdg-color-3\" | \"sdg-color-4\" | \"sdg-color-5\" | \"sdg-color-6\" | \"sdg-color-7\" | \"sdg-color-8\" | \"sdg-color-9\" | \"sdg-color-10\" | \"sdg-color-11\" | \"sdg-color-12\" | \"sdg-color-13\" | \"sdg-color-14\" | \"sdg-color-15\" | \"sdg-color-16\" | \"sdg-color-17\" | \"amber\"",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "Named background color of the header area (one of the sdg-color-N values or \"amber\")."
+      },
+      {
+        "name": "sticky-nav",
+        "type": "OwidGdocStickyNavItem[]",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "Navigation items pinned below the header, authored as a `[.sticky-nav]` array of `target:` (anchor) + `text:` (label) pairs. Linear topic pages get a default set generated automatically."
+      },
+      {
+        "name": "details",
+        "type": "DetailDictionary",
+        "optional": true,
+        "writeBack": "unsupported",
+        "description": "Details-on-demand dictionary sourced from the details fragment. Not yet supported by the ArchieML write-back: documents using it must be edited in Google Docs directly."
+      },
+      {
+        "name": "faqs",
+        "type": "RawFaq[]",
+        "optional": true,
+        "writeBack": "unsupported",
+        "description": "FAQ content consumed by data pages, authored in FAQ fragments. Not yet supported by the ArchieML write-back: documents using it must be edited in Google Docs directly."
+      },
+      {
+        "name": "parsedFaqs",
+        "type": "FaqDictionary",
+        "optional": true,
+        "writeBack": "derived"
+      }
+    ],
+    "adminManagedFields": [
+      "slug",
+      "published",
+      "publishedAt",
+      "publicationContext",
+      "manualBreadcrumbs",
+      "tags"
+    ],
+    "examples": [
+      {
+        "name": "Example",
+        "archie": "title: Child Mortality\nsubtitle: Child deaths are one of the world's largest problems — and one where progress is possible.\nauthors: Jane Doe\nexcerpt: Explore data on child mortality around the world.\ntype: linear-topic-page\n[+body]\nChild mortality remains one of the world's largest problems.\n\n{.heading}\ntext: The global picture\nlevel: 1\n{}\n\nAround 5 million children under five die every year.\n[]"
+      }
+    ]
+  },
+  {
+    "id": "fragment",
+    "contentTypeName": "OwidGdocPostContent",
+    "sidecarFile": "packages/@ourworldindata/types/src/gdocTypes/templates/Fragment.md",
+    "title": "Fragment",
+    "body": "Reusable content that is not published as a standalone page: fragments hold\nshared material other documents pull in — most commonly the details-on-demand\ndictionary and the FAQ content used by data pages.\n\n## When to use\n\n- Content referenced from other documents or systems rather than read in\n  place.\n\n## Limitations\n\n- The `details` and `faqs` front-matter structures that most existing\n  fragments are built around are not yet supported by the ArchieML\n  write-back — those fragments must be edited in Google Docs directly. The\n  write API refuses such edits rather than losing the content.\n\n### Example\n\n```archie\ntitle: Shared methodology notes\nauthors: Jane Doe\ntype: fragment\n[+body]\nOur estimates combine the sources described below.\n\n{.heading}\ntext: Sources\nlevel: 1\n{}\n\nVital registration data where available, complemented by survey estimates.\n[]\n```",
+    "fields": [
+      {
+        "name": "body",
+        "type": "OwidEnrichedGdocBlock[]",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "The document body: a sequence of ArchieML component blocks. See the components reference for every available block."
+      },
+      {
+        "name": "type",
+        "type": "OwidGdocType.Article | OwidGdocType.TopicPage | OwidGdocType.LinearTopicPage | OwidGdocType.Fragment",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "The document type; decides the layout and where the document appears on the site."
+      },
+      {
+        "name": "title",
+        "type": "string",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "The document headline."
+      },
+      {
+        "name": "supertitle",
+        "type": "string",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "Kicker line shown above the title."
+      },
+      {
+        "name": "subtitle",
+        "type": "string",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "Standfirst shown below the title."
+      },
+      {
+        "name": "authors",
+        "type": "string[]",
+        "optional": false,
+        "writeBack": "emitted",
+        "description": "Comma-separated author names. Append a role in parentheses to credit a specific contribution — e.g. \"Jane Doe (Editor), John Smith\"."
+      },
+      {
+        "name": "authorRoles",
+        "type": "Record<string, string>",
+        "optional": true,
+        "writeBack": "derived"
+      },
+      {
+        "name": "dateline",
+        "type": "string",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "The publication date as displayed under the byline, e.g. \"June 30, 2026\"."
+      },
+      {
+        "name": "excerpt",
+        "type": "string",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "Short plain-text summary used in cards and link previews."
+      },
+      {
+        "name": "refs",
+        "type": "{ definitions: RefDictionary; errors: OwidGdocErrorMessage[] }",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "Footnote definitions for ID-based references, authored as a `[.refs]` block of `id:` + `[.+content]` entries. Inline `{ref}…{/ref}` footnotes need no entry here."
+      },
+      {
+        "name": "deprecation-notice",
+        "type": "EnrichedBlockText[]",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "One or more paragraphs shown in a banner marking the article as outdated, authored as a `[+deprecation-notice]` freeform block of text paragraphs."
+      },
+      {
+        "name": "latest-feed-featured-image",
+        "type": "string",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "Image filename that overrides `featured-image` on the /latest feed."
+      },
+      {
+        "name": "latest-feed-excerpt",
+        "type": "EnrichedBlockText[]",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "Rich-text excerpt (formatting and internal links allowed) shown on the /latest feed instead of `excerpt`, authored as a `[+latest-feed-excerpt]` freeform block of text paragraphs."
+      },
+      {
+        "name": "hide-citation",
+        "type": "boolean",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "Set to true to hide the \"Cite this work\" section at the end of the article."
+      },
+      {
+        "name": "toc",
+        "type": "TocHeadingWithTitleSupertitle[]",
+        "optional": true,
+        "writeBack": "derived"
+      },
+      {
+        "name": "cover-image",
+        "type": "string",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "Filename of the full-width image shown behind the header."
+      },
+      {
+        "name": "featured-image",
+        "type": "string",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "Filename of the image used in cards and social-media previews."
+      },
+      {
+        "name": "atom-title",
+        "type": "string",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "Title override for the document's atom-feed entry."
+      },
+      {
+        "name": "atom-excerpt",
+        "type": "string",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "Excerpt override for the document's atom-feed entry."
+      },
+      {
+        "name": "sidebar-toc",
+        "type": "boolean",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "Set to true to show a table of contents in the sidebar."
+      },
+      {
+        "name": "heading-variant",
+        "type": "\"heavy\" | \"light\"",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "Typography variant for the header: \"heavy\" or \"light\"."
+      },
+      {
+        "name": "hide-subscribe-banner",
+        "type": "boolean",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "Set to true to hide the subscribe banner."
+      },
+      {
+        "name": "cover-color",
+        "type": "\"sdg-color-1\" | \"sdg-color-2\" | \"sdg-color-3\" | \"sdg-color-4\" | \"sdg-color-5\" | \"sdg-color-6\" | \"sdg-color-7\" | \"sdg-color-8\" | \"sdg-color-9\" | \"sdg-color-10\" | \"sdg-color-11\" | \"sdg-color-12\" | \"sdg-color-13\" | \"sdg-color-14\" | \"sdg-color-15\" | \"sdg-color-16\" | \"sdg-color-17\" | \"amber\"",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "Named background color of the header area (one of the sdg-color-N values or \"amber\")."
+      },
+      {
+        "name": "sticky-nav",
+        "type": "OwidGdocStickyNavItem[]",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "Navigation items pinned below the header, authored as a `[.sticky-nav]` array of `target:` (anchor) + `text:` (label) pairs. Linear topic pages get a default set generated automatically."
+      },
+      {
+        "name": "details",
+        "type": "DetailDictionary",
+        "optional": true,
+        "writeBack": "unsupported",
+        "description": "Details-on-demand dictionary sourced from the details fragment. Not yet supported by the ArchieML write-back: documents using it must be edited in Google Docs directly."
+      },
+      {
+        "name": "faqs",
+        "type": "RawFaq[]",
+        "optional": true,
+        "writeBack": "unsupported",
+        "description": "FAQ content consumed by data pages, authored in FAQ fragments. Not yet supported by the ArchieML write-back: documents using it must be edited in Google Docs directly."
+      },
+      {
+        "name": "parsedFaqs",
+        "type": "FaqDictionary",
+        "optional": true,
+        "writeBack": "derived"
+      }
+    ],
+    "adminManagedFields": [
+      "slug",
+      "published",
+      "publishedAt",
+      "publicationContext",
+      "manualBreadcrumbs",
+      "tags"
+    ],
+    "examples": [
+      {
+        "name": "Example",
+        "archie": "title: Shared methodology notes\nauthors: Jane Doe\ntype: fragment\n[+body]\nOur estimates combine the sources described below.\n\n{.heading}\ntext: Sources\nlevel: 1\n{}\n\nVital registration data where available, complemented by survey estimates.\n[]"
+      }
+    ]
+  },
+  {
+    "id": "data-insight",
+    "contentTypeName": "OwidGdocDataInsightContent",
+    "sidecarFile": "packages/@ourworldindata/types/src/gdocTypes/templates/DataInsight.md",
+    "title": "Data Insight",
+    "body": "A short, chart-led observation: a single static image or chart and a few\nparagraphs making one point. Published in the data-insights feed under\n`/data-insights/{slug}`.\n\n## When to use\n\n- One interesting pattern in the data, explained in a few hundred words.\n\n## When NOT to use\n\n- Prefer `article` when the piece needs sections, multiple charts, or a\n  narrative arc.\n\n## Variations\n\n- Set `grapher-url` when the insight is based on a live grapher chart,\n  `narrative-chart` when it is based on a narrative chart, and `figma-url`\n  to point at the Figma file for the static image.\n\n### Example\n\n```archie\ntitle: Solar power keeps getting cheaper\nauthors: Jane Doe\ntype: data-insight\ngrapher-url: https://ourworldindata.org/grapher/solar-pv-prices\n[+body]\nThe price of solar photovoltaic modules has fallen by more than 99% since 1976.\n\nEvery doubling of installed capacity has brought prices down by around 20% — a learning rate that shows no sign of stopping.\n[]\n```",
+    "fields": [
+      {
+        "name": "title",
+        "type": "string",
+        "optional": false,
+        "writeBack": "emitted",
+        "description": "The insight headline."
+      },
+      {
+        "name": "authors",
+        "type": "string[]",
+        "optional": false,
+        "writeBack": "emitted",
+        "description": "Comma-separated author names. Append a role in parentheses to credit a specific contribution — e.g. \"Jane Doe (Editor)\"."
+      },
+      {
+        "name": "authorRoles",
+        "type": "Record<string, string>",
+        "optional": true,
+        "writeBack": "derived"
+      },
+      {
+        "name": "narrative-chart",
+        "type": "string",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "Name of the narrative chart the insight is based on."
+      },
+      {
+        "name": "grapher-url",
+        "type": "string",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "URL of the grapher chart the insight is based on."
+      },
+      {
+        "name": "figma-url",
+        "type": "string",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "URL of the Figma file holding the insight's static image."
+      },
+      {
+        "name": "body",
+        "type": "OwidEnrichedGdocBlock[]",
+        "optional": false,
+        "writeBack": "emitted",
+        "description": "The insight body: typically one image and a handful of short text paragraphs."
+      },
+      {
+        "name": "type",
+        "type": "OwidGdocType.DataInsight",
+        "optional": false,
+        "writeBack": "emitted",
+        "description": "Always \"data-insight\"."
+      }
+    ],
+    "adminManagedFields": [
+      "slug",
+      "published",
+      "publishedAt",
+      "publicationContext",
+      "manualBreadcrumbs",
+      "tags"
+    ],
+    "examples": [
+      {
+        "name": "Example",
+        "archie": "title: Solar power keeps getting cheaper\nauthors: Jane Doe\ntype: data-insight\ngrapher-url: https://ourworldindata.org/grapher/solar-pv-prices\n[+body]\nThe price of solar photovoltaic modules has fallen by more than 99% since 1976.\n\nEvery doubling of installed capacity has brought prices down by around 20% — a learning rate that shows no sign of stopping.\n[]"
+      }
+    ]
+  }
+]
