@@ -75,6 +75,7 @@ import {
 
 const SHARED_X_AXIS_MIN_FACET_COUNT = 12
 const THUMBNAIL_AREA_THRESHOLD = 18000
+const FACET_LABEL_FONT_WEIGHT = 700
 
 const facetBackgroundColor = "none" // we don't use color yet but may use it for background later
 
@@ -913,47 +914,51 @@ export class FacetChart
     }
 
     /**
-     * In order to display a potentially long facet label in the potentially tight space, we
-     * shrink and shorten the label as follows to prevent overlap between neighbouring labels:
-     * - If the label already fits, we're happy :)
-     * - Otherwise, we calculate the ideal font size where it would fit perfectly.
-     *   However, in order to not make the label tiny, we cap the font size at 0.7 * baseFontSize
-     * - If the label still doesn't fit, we shorten it to the number of characters that fit and append an ellispsis (…)
-     * -@MarcelGerber, 2021-10-28
+     * The font size at which a facet label would fit in the available width,
+     * clamped so it doesn't get too tiny. If the label doesn't fit even at
+     * the clamped minimum, it's truncated with an ellipsis elsewhere.
      */
-    private shrinkAndShortenFacetLabel(
+    private getFacetLabelFontSizeToFit(
         label: string,
         availableWidth: number
-    ): { fontSize: number; shortenedLabel: string } {
-        const { fontSize: baseFontSize, fontWeight } = this.facetLabelSettings
+    ): number {
+        const baseFontSize = this.facetLabelFontSize
 
         // How much width would we need if we were to render the text at font size 1?
         // We calculate this to compute the ideal font size from the available width.
-        const textBounds = Bounds.forText(label, { fontSize: 1, fontWeight })
-        const idealFontSize = availableWidth / textBounds.width
+        const textWidth = Bounds.forText(label, {
+            fontSize: 1,
+            fontWeight: FACET_LABEL_FONT_WEIGHT,
+        }).width
+        const idealFontSize = availableWidth / textWidth
 
-        // Clamp the ideal font size: 0.7 * baseFontSize <= fontSize <= baseFontSize
-        const fontSize = Math.min(
+        // Clamp the ideal font size: 0.8 * baseFontSize <= fontSize <= baseFontSize
+        return Math.min(
             baseFontSize,
-            Math.max(0.7 * baseFontSize, idealFontSize)
+            Math.max(0.8 * baseFontSize, idealFontSize)
         )
+    }
 
-        if (fontSize > idealFontSize) {
-            label = shortenWithEllipsis(label, availableWidth, {
-                fontSize,
-                fontWeight,
-            })
-        }
-
-        return { fontSize, shortenedLabel: label }
+    /**
+     * A single font size shared by all facet labels, so they don't render at
+     * different sizes within one chart. Driven by the label that needs to
+     * shrink the most; if none need to shrink, this is the base font size.
+     */
+    @computed private get sharedFacetLabelFontSize(): number {
+        const sizes = this.placedSeries.map(({ contentBounds, seriesName }) => {
+            const availableWidth =
+                contentBounds.width - this.sharedContentInset.left
+            return this.getFacetLabelFontSizeToFit(seriesName, availableWidth)
+        })
+        return sizes.length > 0 ? Math.min(...sizes) : this.facetLabelFontSize
     }
 
     @computed
     private get facetLabelSettings(): Omit<SeriesLabelStateOptions, "text"> {
         return {
             maxWidth: Infinity, // Facet labels never wrap
-            fontWeight: 700,
-            fontSize: this.facetLabelFontSize,
+            fontWeight: FACET_LABEL_FONT_WEIGHT,
+            fontSize: this.sharedFacetLabelFontSize,
             showRegionTooltip: !this.manager.isStatic,
         }
     }
@@ -975,33 +980,21 @@ export class FacetChart
                     const availableLabelWidth =
                         contentBounds.width - contentLeftOffset
 
-                    let { fontSize: shrunkFontSize, shortenedLabel } =
-                        this.shrinkAndShortenFacetLabel(
-                            seriesName,
-                            availableLabelWidth
-                        )
-
                     let seriesLabelState = new SeriesLabelState({
-                        text: shortenedLabel,
+                        text: seriesName,
                         ...facetLabelSettings,
-                        fontSize: shrunkFontSize,
                     })
 
-                    // If the info icon causes overflow, shorten the label
-                    // (which also removes the icon because the suffix gets truncated)
                     if (seriesLabelState.width > availableLabelWidth) {
-                        shortenedLabel = shortenWithEllipsis(
+                        const { fontSize, fontWeight } = facetLabelSettings
+                        const shortenedLabel = shortenWithEllipsis(
                             seriesName,
                             availableLabelWidth,
-                            {
-                                fontSize: shrunkFontSize,
-                                fontWeight: facetLabelSettings.fontWeight,
-                            }
+                            { fontSize, fontWeight }
                         )
                         seriesLabelState = new SeriesLabelState({
                             text: shortenedLabel,
                             ...facetLabelSettings,
-                            fontSize: shrunkFontSize,
                         })
                     }
 
