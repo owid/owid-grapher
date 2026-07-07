@@ -515,6 +515,17 @@ export class LineChartThumbnail
         }
     }
 
+    // Consumed by FacetChart to align the facet label with the plot content
+    // (here: the line chart's domain line)
+    @computed get contentInset(): SideWidths | undefined {
+        if (this.chartState.errorInfo.reason) return undefined
+        const { innerBounds, bounds } = this
+        return {
+            left: innerBounds.left - bounds.left,
+            right: bounds.right - innerBounds.right,
+        }
+    }
+
     @computed private get effectiveLabelWidths(): SideWidths {
         const shared = this.manager.sharedVerticalLabelWidths
         return {

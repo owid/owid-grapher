@@ -413,6 +413,16 @@ export class FacetChart
             ?.bounds
     }
 
+    @computed private get sharedContentInset(): SideWidths {
+        const insets = excludeUndefined(
+            this.intermediateChartInstances.map((c) => c.contentInset)
+        )
+        return {
+            left: _.max(insets.map((inset) => inset.left)) ?? 0,
+            right: _.max(insets.map((inset) => inset.right)) ?? 0,
+        }
+    }
+
     @computed private get variant(): GrapherVariant {
         const { facetBounds } = this
 
@@ -958,10 +968,14 @@ export class FacetChart
                 {this.placedSeries.map((facetChart, index: number) => {
                     const { bounds, contentBounds, seriesName } = facetChart
 
+                    const contentLeftOffset = this.sharedContentInset.left
+                    const availableLabelWidth =
+                        contentBounds.width - contentLeftOffset
+
                     let { fontSize: shrunkFontSize, shortenedLabel } =
                         this.shrinkAndShortenFacetLabel(
                             seriesName,
-                            contentBounds.width
+                            availableLabelWidth
                         )
 
                     let seriesLabelState = new SeriesLabelState({
@@ -972,10 +986,10 @@ export class FacetChart
 
                     // If the info icon causes overflow, shorten the label
                     // (which also removes the icon because the suffix gets truncated)
-                    if (seriesLabelState.width > contentBounds.width) {
+                    if (seriesLabelState.width > availableLabelWidth) {
                         shortenedLabel = shortenWithEllipsis(
                             seriesName,
-                            contentBounds.width,
+                            availableLabelWidth,
                             {
                                 fontSize: shrunkFontSize,
                                 fontWeight: facetLabelSettings.fontWeight,
@@ -992,7 +1006,7 @@ export class FacetChart
                         <React.Fragment key={index}>
                             <SeriesLabel
                                 state={seriesLabelState}
-                                x={contentBounds.x}
+                                x={contentBounds.x + contentLeftOffset}
                                 y={
                                     contentBounds.top -
                                     seriesLabelState.height -
