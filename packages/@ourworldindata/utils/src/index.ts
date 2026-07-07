@@ -160,7 +160,9 @@ export {
     getDateRange,
     getCitationLong,
     getCitationShort,
+    getCitationDatapage,
     getPhraseForArchivalDate,
+    getYearSuffixFromOrigin,
 } from "./metadataHelpers.js"
 
 export { getAllVariableIds } from "./multiDim.js"
@@ -357,7 +359,7 @@ export {
     parseArchivalDate,
 } from "./archival/archivalDate.js"
 
-export { experiments } from "./experiments/config.js"
+export { experiments, isUrlInActiveExperiment } from "./experiments/config.js"
 export {
     Experiment,
     validateUniqueExperimentIds,
@@ -371,6 +373,8 @@ export {
 export {
     EXPERIMENT_ARM_SEPARATOR,
     EXPERIMENT_PREFIX,
+    DATA_PAGE_METADATA_EXPERIMENT_ID,
+    DATA_PAGE_METADATA_EXPERIMENT_TREATMENT_ARM,
 } from "./experiments/constants.js"
 
 export {

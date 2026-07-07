@@ -9,6 +9,7 @@ import * as _ from "lodash-es"
 import { match } from "ts-pattern"
 
 import * as utils from "./utils.js"
+import { JOB_TIMEOUT_MS, MAX_WORKERS } from "./utils.js"
 import { grapherSlugToExportFileKey } from "../../baker/GrapherBakingUtils.js"
 import { ALL_GRAPHER_CHART_TYPES } from "@ourworldindata/types"
 
@@ -79,7 +80,7 @@ async function verifyExplorers(args: ReturnType<typeof parseArguments>) {
 
     const pool = workerpool.pool(__dirname + "/worker.ts", {
         minWorkers: 2,
-        maxWorkers: 12,
+        maxWorkers: MAX_WORKERS,
         workerThreadOpts: {
             execArgv: ["--require", "tsx"],
         },
@@ -87,7 +88,15 @@ async function verifyExplorers(args: ReturnType<typeof parseArguments>) {
 
     const validationResultsArrays: utils.VerifyResult[][] = await Promise.all(
         explorerJobs.map((job) =>
-            pool.exec("renderAndVerifyExplorerViews", [job])
+            // The per-view timeout lives inside renderAndVerifyExplorerViews,
+            // so we deliberately don't wrap this whole (multi-view) call in
+            // .timeout() — a large explorer with many views could legitimately
+            // exceed the per-view budget in aggregate.
+            pool
+                .exec("renderAndVerifyExplorerViews", [job])
+                .catch((err: Error) => [
+                    utils.resultError(job.explorerSlug, err),
+                ])
         )
     )
 
@@ -202,7 +211,7 @@ async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
 
         const pool = workerpool.pool(__dirname + "/worker.ts", {
             minWorkers: 2,
-            maxWorkers: 12,
+            maxWorkers: MAX_WORKERS,
             workerThreadOpts: {
                 execArgv: ["--require", "tsx"],
             },
@@ -214,7 +223,14 @@ async function verifyGraphers(args: ReturnType<typeof parseArguments>) {
         // the reference csv file (from the referenceDataByChartKey lookup above). The entire parallel operation returns a promise containing an array
         // of result values.
         const validationResults: utils.VerifyResult[] = await Promise.all(
-            verifyJobs.map((job) => pool.exec("renderAndVerifySvg", [job]))
+            verifyJobs.map((job) =>
+                pool
+                    .exec("renderAndVerifySvg", [job])
+                    .timeout(JOB_TIMEOUT_MS)
+                    .catch((err: Error) =>
+                        utils.resultError(job.dir.viewId, err)
+                    )
+            )
         )
 
         if (validationResults.length !== verifyJobs.length)

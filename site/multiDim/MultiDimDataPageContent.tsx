@@ -536,6 +536,7 @@ export function DataPageContent({
                             varDatapageData.descriptionProcessing
                         }
                         faqEntries={{ faqs: faqEntriesForView }}
+                        license={varDatapageData.license}
                         origins={varDatapageData.origins}
                         owidProcessingLevel={
                             varDatapageData.owidProcessingLevel

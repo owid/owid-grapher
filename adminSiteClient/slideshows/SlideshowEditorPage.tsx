@@ -1,8 +1,15 @@
-import { useCallback, useContext, useEffect, useMemo, useState } from "react"
+import {
+    useCallback,
+    useContext,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from "react"
 import * as React from "react"
 import { useHistory } from "react-router-dom"
 import cx from "clsx"
-import { Button, Dropdown, Popconfirm, Tabs, Tooltip } from "antd"
+import { Button, Dropdown, Modal, Popconfirm, Tabs, Tooltip } from "antd"
 import type { MenuProps } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
@@ -12,6 +19,8 @@ import {
     faChevronLeft,
     faChevronRight,
     faExternalLinkAlt,
+    faRightLeft,
+    faWarning,
 } from "@fortawesome/free-solid-svg-icons"
 import { AdminLayout } from "../AdminLayout.js"
 import { AdminAppContext } from "../AdminAppContext.js"
@@ -26,7 +35,12 @@ import {
 import { slugify, Url } from "@ourworldindata/utils"
 import { toPlaintext } from "@ourworldindata/components"
 import { SlideshowEditTab } from "./SlideshowEditTab.js"
-import { makeDefaultSlideForTemplate } from "../../site/slideshows/slideshowUtils.js"
+import {
+    makeDefaultSlideForTemplate,
+    convertSlide,
+    isLossyConversion,
+    buildConversionWarning,
+} from "../../site/slideshows/slideshowUtils.js"
 import { SlideshowArrangeTab } from "./SlideshowArrangeTab.js"
 import { useImages } from "../useImages.js"
 import { SlideRenderer } from "../../site/slideshows/SlideRenderer.js"
@@ -90,6 +104,16 @@ export function SlideshowEditorPage(props: {
     const [isPublished, setIsPublished] = useState(false)
     const [interactiveCharts, setInteractiveCharts] = useState(false)
     const [chartApplyVersion, setChartApplyVersion] = useState(0)
+
+    const activeThumbRef = useRef<HTMLButtonElement>(null)
+
+    useEffect(() => {
+        activeThumbRef.current?.scrollIntoView({
+            behavior: "smooth",
+            block: "nearest",
+            inline: "nearest",
+        })
+    }, [currentSlideIndex])
 
     const bumpChartApplyVersion = useCallback(() => {
         setChartApplyVersion((version) => version + 1)
@@ -218,6 +242,15 @@ export function SlideshowEditorPage(props: {
         [bumpChartApplyVersion, currentSlideIndex]
     )
 
+    const convertCurrentSlide = useCallback(
+        (target: SlideTemplate) => {
+            const slide = slides[currentSlideIndex]
+            if (!slide || slide.template === target) return
+            updateCurrentSlide(convertSlide(slide, target))
+        },
+        [currentSlideIndex, slides, updateCurrentSlide]
+    )
+
     const duplicateSlide = useCallback(() => {
         setSlides((prev) => {
             const next = [...prev]
@@ -307,15 +340,55 @@ export function SlideshowEditorPage(props: {
         history.push("/slideshows")
     }, [admin, isCreate, props.slideshowId, history])
 
+    const confirmDeleteSlideshow = useCallback(() => {
+        Modal.confirm({
+            title: "Delete this entire slideshow?",
+            content:
+                "All slides in this deck will be permanently deleted. This cannot be undone.",
+            okText: "Delete slideshow",
+            okType: "danger",
+            cancelText: "Cancel",
+            onOk: deleteSlideshow,
+        })
+    }, [deleteSlideshow])
+
     const canSave = slug.trim().length > 0 && title.trim().length > 0
 
-    const addSlideMenuItems: MenuProps["items"] = Object.entries(
-        SLIDE_TEMPLATE_LABELS
+    const addSlideMenuItems: MenuProps["items"] = (
+        Object.entries(SLIDE_TEMPLATE_LABELS) as [SlideTemplate, string][]
     ).map(([value, label]) => ({
         key: value,
         label,
-        onClick: () => addSlide(value as SlideTemplate),
+        onClick: () => addSlide(value),
     }))
+
+    const convertSlideMenuItems: MenuProps["items"] = (
+        Object.entries(SLIDE_TEMPLATE_LABELS) as [SlideTemplate, string][]
+    )
+        .filter(([value]) => value !== currentSlide?.template)
+        .map(([value, label]) => {
+            if (!currentSlide) return { key: value, label, disabled: true }
+            const willBeLossy = isLossyConversion(currentSlide, value)
+            const labelMaybeWithWarning = willBeLossy ? (
+                <Tooltip title={buildConversionWarning(currentSlide, value)}>
+                    <span>
+                        {label}
+                        <FontAwesomeIcon
+                            icon={faWarning}
+                            className="SlideshowEditorPage__convert-warning-icon"
+                        />
+                    </span>
+                </Tooltip>
+            ) : (
+                label
+            )
+
+            return {
+                key: value,
+                label: labelMaybeWithWarning,
+                onClick: () => convertCurrentSlide(value),
+            }
+        })
 
     const tabItems = [
         {
@@ -511,14 +584,9 @@ export function SlideshowEditorPage(props: {
                             </Popconfirm>
                         )}
                         {!isCreate && (
-                            <Popconfirm
-                                title="Are you sure you want to delete this slideshow? This cannot be undone."
-                                onConfirm={deleteSlideshow}
-                                okText="Yes"
-                                cancelText="No"
-                            >
-                                <Button danger>Delete</Button>
-                            </Popconfirm>
+                            <Button danger onClick={confirmDeleteSlideshow}>
+                                Delete slideshow
+                            </Button>
                         )}
                     </div>
 
@@ -537,6 +605,11 @@ export function SlideshowEditorPage(props: {
                             {slides.map((slide, i) => (
                                 <button
                                     key={i}
+                                    ref={
+                                        i === currentSlideIndex
+                                            ? activeThumbRef
+                                            : undefined
+                                    }
                                     className={`SlideshowEditorPage__slide-thumbnail ${
                                         i === currentSlideIndex
                                             ? "SlideshowEditorPage__slide-thumbnail--active"
@@ -572,18 +645,21 @@ export function SlideshowEditorPage(props: {
                             <FontAwesomeIcon icon={faClone} />
                         </Button>
                         <Popconfirm
-                            title="Are you sure you want to delete this slide?"
+                            title="Delete this slide?"
                             onConfirm={deleteSlide}
                             okText="Yes"
                             cancelText="No"
                         >
-                            <Button
-                                size="small"
-                                danger
-                                disabled={slides.length <= 1}
-                            >
-                                <FontAwesomeIcon icon={faTrash} />
-                            </Button>
+                            <Tooltip title="Delete slide">
+                                <Button
+                                    size="small"
+                                    danger
+                                    disabled={slides.length <= 1}
+                                    aria-label="Delete slide"
+                                >
+                                    <FontAwesomeIcon icon={faTrash} />
+                                </Button>
+                            </Tooltip>
                         </Popconfirm>
                         <Dropdown
                             menu={{ items: addSlideMenuItems }}
@@ -593,6 +669,17 @@ export function SlideshowEditorPage(props: {
                                 <FontAwesomeIcon icon={faPlus} />
                             </Button>
                         </Dropdown>
+                        <Tooltip title="Convert this slide to a different type">
+                            <Dropdown
+                                menu={{ items: convertSlideMenuItems }}
+                                trigger={["click"]}
+                            >
+                                <Button size="small">
+                                    <FontAwesomeIcon icon={faRightLeft} />{" "}
+                                    Convert to
+                                </Button>
+                            </Dropdown>
+                        </Tooltip>
                     </div>
                 </div>
             </main>

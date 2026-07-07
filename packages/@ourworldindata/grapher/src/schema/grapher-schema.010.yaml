@@ -43,6 +43,17 @@ properties:
   originUrl:
     type: string
     description: The page containing this chart where more context can be found
+  license:
+    type: string
+    description: The license the chart is published under, linked in the chart footer
+    default: cc-by
+    enum:
+      - cc-by
+      - cc-by-sa
+      - cc-by-nc
+      - cc-by-nc-sa
+      - cc-by-nd
+      - cc-by-nc-nd
 
   sourceDesc:
     type: string

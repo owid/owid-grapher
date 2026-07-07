@@ -11,6 +11,7 @@ import type { Root, ElementContent } from "hast"
 type SimpleMarkdownTextProps = {
     text: string
     useParagraphs?: boolean // by default, text is wrapped in <p> tags
+    openLinksInNewTab?: boolean // by default, links open in the same tab
 }
 
 const transformDodLinks: Plugin<[], Root> = () => {
@@ -99,16 +100,24 @@ export class SimpleMarkdownText extends React.Component<SimpleMarkdownTextProps>
     }
 
     get markdownCustomComponents(): MarkdownComponents | undefined {
+        const components: MarkdownComponents = {}
+
         if (!this.useParagraphs) {
             // "unwrap" the text by rendering <p /> as a react fragment
-            return {
-                p: ({ children }) => (
-                    <React.Fragment>{children}</React.Fragment>
-                ),
-            }
+            components.p = ({ children }) => (
+                <React.Fragment>{children}</React.Fragment>
+            )
         }
 
-        return undefined
+        if (this.props.openLinksInNewTab) {
+            components.a = ({ children, ...props }) => (
+                <a {...props} target="_blank">
+                    {children}
+                </a>
+            )
+        }
+
+        return Object.keys(components).length > 0 ? components : undefined
     }
 
     override render(): React.ReactElement | null {

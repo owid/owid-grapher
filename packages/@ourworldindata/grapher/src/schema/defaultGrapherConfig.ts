@@ -19,6 +19,7 @@ export const outdatedSchemaVersions = [
 
 export const defaultGrapherConfig = {
     $schema: "https://files.ourworldindata.org/schemas/grapher-schema.010.json",
+    license: "cc-by",
     selectedEntityNames: [],
     focusedSeriesNames: [],
     excludedEntityNames: [],

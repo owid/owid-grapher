@@ -219,13 +219,13 @@ function TemplateOptionsEditor(props: {
                     onChange={(filename) => onUpdate({ ...slide, filename })}
                 />
                 <label>
-                    Slide title
+                    Title
                     <InlineMarkdownEditor
-                        value={slide.slideTitle ?? ""}
+                        value={slide.title ?? ""}
                         onChange={(e) =>
                             onUpdate({
                                 ...slide,
-                                slideTitle: e || undefined,
+                                title: e || undefined,
                             })
                         }
                         placeholder={TEXTAREA_PLACEHOLDERS.title}

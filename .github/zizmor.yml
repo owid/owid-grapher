@@ -1,0 +1,10 @@
+rules:
+  unpinned-uses:
+    config:
+      policies:
+        # Our own actions (https://github.com/owid/actions) are referenced by
+        # branch (@main) rather than a tag/SHA, since they're internal and
+        # unversioned. Allow a branch/tag ref instead of requiring a hash.
+        owid/actions/*: ref-pin
+        # Everything else must be pinned to an immutable commit SHA.
+        "*": hash-pin

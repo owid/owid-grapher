@@ -3,10 +3,10 @@ set -o errexit
 set -o pipefail
 set -o nounset
 
-# Imports the private analytics dump (owid_analytics.sql.gz, downloaded by
-# download-grapher-analytics-mysql.sh) into the grapher database. The dump
-# contains DROP TABLE + CREATE TABLE + INSERTs for the analytics_* tables, so
-# importing fully replaces them.
+# Imports the private sidecar dump (owid_private.sql.gz, downloaded by
+# download-grapher-private-mysql.sh) into the grapher database. The dump
+# contains DROP TABLE + CREATE TABLE + INSERTs, so importing fully replaces
+# the PRIVATE_DATA_TABLES. Run after the public dump so foreign keys resolve.
 
 if [ -e .env ]; then
     source .env
@@ -19,8 +19,8 @@ fi
 : "${GRAPHER_DB_PORT:?Need to set GRAPHER_DB_PORT non-empty}"
 : "${DATA_FOLDER:?Need to set DATA_FOLDER non-empty}"
 
-if [ ! -f "${DATA_FOLDER}/owid_analytics.sql.gz" ]; then
-    echo "owid_analytics.sql.gz missing in ${DATA_FOLDER} — nothing to import (analytics tables stay empty)"
+if [ ! -f "${DATA_FOLDER}/owid_private.sql.gz" ]; then
+    echo "owid_private.sql.gz missing in ${DATA_FOLDER} — nothing to import (private tables stay empty)"
     exit 0
 fi
 
@@ -32,6 +32,6 @@ _mysql() {
     fi
 }
 
-echo "==> Importing analytics tables into $GRAPHER_DB_NAME"
-cat ${DATA_FOLDER}/owid_analytics.sql.gz | gunzip | sed s/.\*DEFINER\=\`.\*// | grep -vF GLOBAL.GTID_PURGED | _mysql $GRAPHER_DB_NAME
-echo "==> Analytics tables refreshed"
+echo "==> Importing private tables into $GRAPHER_DB_NAME"
+cat ${DATA_FOLDER}/owid_private.sql.gz | gunzip | sed s/.\*DEFINER\=\`.\*// | grep -vF GLOBAL.GTID_PURGED | _mysql $GRAPHER_DB_NAME
+echo "==> Private tables refreshed"

@@ -5,21 +5,15 @@ import {
     OwidGdocType,
     TagGraphRoot,
     SearchState,
-    SearchChartsResponse,
     SearchChartHit,
-    SearchDataTopicsResponse,
-    SearchDataInsightResponse,
-    SearchStackedArticleResponse,
-    SearchTopicPageResponse,
-    SearchWritingTopicsResponse,
     StackedArticleHit,
     TopicPageHit,
     FilterType,
     LatestType,
-    SearchFlatArticleResponse,
-    SearchProfileResponse,
     ProfileHit,
     PageChronologicalRecord,
+    DataInsightHit,
+    FlatArticleHit,
 } from "@ourworldindata/types"
 import { type SearchResponse } from "algoliasearch"
 import { type LiteClient } from "algoliasearch/lite"
@@ -39,6 +33,14 @@ import { RichDataComponentVariant } from "./SearchChartHitRichDataTypes.js"
 
 function makeStateForKey(state: SearchState) {
     return R.pick(state, ["query", "filters", "requireAllCountries"])
+}
+
+async function searchSingleForHits<T>(
+    liteSearchClient: LiteClient,
+    searchParams: Parameters<LiteClient["searchForHits"]>[0]
+) {
+    const response = await liteSearchClient.searchForHits<T>(searchParams)
+    return response.results[0]
 }
 
 /**
@@ -100,7 +102,7 @@ export async function queryDataTopics(
     state: SearchState,
     tagGraph: TagGraphRoot,
     selectedTopic: string | undefined
-): Promise<SearchDataTopicsResponse[]> {
+) {
     const dataTopics = [...getSelectableTopics(tagGraph, selectedTopic)]
 
     const countryFacetFilters = formatCountryFacetFilters(
@@ -121,21 +123,19 @@ export async function queryDataTopics(
         }
     })
 
-    return liteSearchClient
-        .search<SearchChartHit>(searchParams)
-        .then((response) =>
-            response.results.map((res, i: number) => ({
-                title: dataTopics[i],
-                charts: res as SearchChartsResponse,
-            }))
-        )
+    const response =
+        await liteSearchClient.searchForHits<SearchChartHit>(searchParams)
+    return response.results.map((res, i) => ({
+        title: dataTopics[i],
+        charts: res,
+    }))
 }
 
 export async function queryCharts(
     liteSearchClient: LiteClient,
     state: SearchState,
     page: number = 0
-): Promise<SearchChartsResponse> {
+) {
     const countryFacetFilters = formatCountryFacetFilters(
         getFilterNamesOfType(state.filters, FilterType.COUNTRY),
         state.requireAllCountries
@@ -183,9 +183,7 @@ export async function queryCharts(
         },
     ]
 
-    return liteSearchClient
-        .search<SearchChartHit>(searchParams)
-        .then((response) => response.results[0] as SearchChartsResponse)
+    return searchSingleForHits<SearchChartHit>(liteSearchClient, searchParams)
 }
 
 export async function queryDataInsights(
@@ -193,7 +191,7 @@ export async function queryDataInsights(
     state: SearchState,
     page: number = 0,
     hitsPerPage: number = 4
-): Promise<SearchDataInsightResponse> {
+) {
     const selectedCountryNames = getFilterNamesOfType(
         state.filters,
         FilterType.COUNTRY
@@ -238,9 +236,7 @@ export async function queryDataInsights(
         },
     ]
 
-    return liteSearchClient
-        .search(searchParams)
-        .then((response) => response.results[0] as SearchDataInsightResponse)
+    return searchSingleForHits<DataInsightHit>(liteSearchClient, searchParams)
 }
 
 export async function queryArticles(
@@ -248,7 +244,7 @@ export async function queryArticles(
     state: SearchState,
     offset: number = 0,
     length: number
-): Promise<SearchFlatArticleResponse> {
+) {
     const selectedCountryNames = getFilterNamesOfType(
         state.filters,
         FilterType.COUNTRY
@@ -296,9 +292,7 @@ export async function queryArticles(
         },
     ]
 
-    return liteSearchClient
-        .search(searchParams)
-        .then((response) => response.results[0] as SearchFlatArticleResponse)
+    return searchSingleForHits<FlatArticleHit>(liteSearchClient, searchParams)
 }
 
 export async function queryTopicPages(
@@ -306,7 +300,7 @@ export async function queryTopicPages(
     state: SearchState,
     offset: number = 0,
     length: number
-): Promise<SearchTopicPageResponse> {
+) {
     const selectedTopics = getFilterNamesOfType(state.filters, FilterType.TOPIC)
 
     const searchParams = [
@@ -329,9 +323,7 @@ export async function queryTopicPages(
         },
     ]
 
-    return liteSearchClient
-        .search(searchParams)
-        .then((response) => response.results[0] as SearchTopicPageResponse)
+    return searchSingleForHits<TopicPageHit>(liteSearchClient, searchParams)
 }
 
 export async function queryProfiles(
@@ -339,7 +331,7 @@ export async function queryProfiles(
     state: SearchState,
     offset: number = 0,
     length: number
-): Promise<SearchProfileResponse> {
+) {
     const selectedCountryNames = getFilterNamesOfType(
         state.filters,
         FilterType.COUNTRY
@@ -375,9 +367,7 @@ export async function queryProfiles(
         },
     ]
 
-    return liteSearchClient
-        .search<ProfileHit>(searchParams)
-        .then((response) => response.results[0] as SearchProfileResponse)
+    return searchSingleForHits<ProfileHit>(liteSearchClient, searchParams)
 }
 
 export interface LatestPagesResult {
@@ -397,7 +387,7 @@ const LATEST_BASE_FILTER = LATEST_FEED_TYPE_VALUES.map((t) => `type:${t}`).join(
     " OR "
 )
 
-// Issues three searches in a single batched `liteSearchClient.search([...])`
+// Issues three searches in a single batched `liteSearchClient.searchForHits([...])`
 // call (one network round-trip): the paginated card list plus per-axis facet
 // counts used to disable filter options that would yield zero results. Each
 // facet-count query drops its own axis so the returned counts reflect "what
@@ -412,7 +402,7 @@ export async function queryLatestPages(
     offset: number,
     length: number,
     latestType: LatestType | null = null
-): Promise<LatestPagesResult> {
+) {
     // Each axis lives in its own `facetFilters` group so queries can include
     // or omit it independently. Multiple topics are OR'd within their group.
     const topicFacetFilters =
@@ -458,28 +448,23 @@ export async function queryLatestPages(
         },
     ]
 
-    return liteSearchClient
-        .search<PageChronologicalRecord>(searchParams)
-        .then((response) => {
-            const mainResult = response
-                .results[0] as SearchResponse<PageChronologicalRecord>
-            const typeResult = response
-                .results[1] as SearchResponse<PageChronologicalRecord>
-            const topicResult = response
-                .results[2] as SearchResponse<PageChronologicalRecord>
-            return {
-                response: mainResult,
-                tagFacetCounts: topicResult.facets?.tags ?? {},
-                latestTypeFacetCounts: typeResult.facets?.latestType ?? {},
-            }
-        })
+    const response =
+        await liteSearchClient.searchForHits<PageChronologicalRecord>(
+            searchParams
+        )
+    const [mainResult, typeResult, topicResult] = response.results
+    return {
+        response: mainResult,
+        tagFacetCounts: topicResult.facets?.tags ?? {},
+        latestTypeFacetCounts: typeResult.facets?.latestType ?? {},
+    }
 }
 
 export async function queryWritingTopics(
     liteSearchClient: LiteClient,
     tagGraph: TagGraphRoot,
     selectedTopic: string | undefined
-): Promise<SearchWritingTopicsResponse[]> {
+) {
     const writingTopics = [...getSelectableTopics(tagGraph, selectedTopic)]
 
     // Create search parameters for both articles and topic pages for each topic
@@ -514,28 +499,23 @@ export async function queryWritingTopics(
         ]
     })
 
-    return liteSearchClient
-        .search<StackedArticleHit | TopicPageHit>(searchParams)
-        .then((response) => {
-            // Process results in pairs (articles, then topic pages for each topic)
-            return writingTopics.map((topic, i) => {
-                const articlesResult = response.results[
-                    i * 2
-                ] as SearchStackedArticleResponse
-                const topicPagesResult = response.results[
-                    i * 2 + 1
-                ] as SearchTopicPageResponse
+    const response = await liteSearchClient.searchForHits<
+        StackedArticleHit | TopicPageHit
+    >(searchParams)
+    // Process results in pairs (articles, then topic pages for each topic).
+    return writingTopics.map((topic, i) => {
+        const articles = response.results[
+            i * 2
+        ] as SearchResponse<StackedArticleHit>
+        const topicPages = response.results[
+            i * 2 + 1
+        ] as SearchResponse<TopicPageHit>
 
-                const totalCount =
-                    (articlesResult.nbHits ?? 0) +
-                    (topicPagesResult.nbHits ?? 0)
-
-                return {
-                    title: topic,
-                    articles: articlesResult,
-                    topicPages: topicPagesResult,
-                    totalCount,
-                }
-            })
-        })
+        return {
+            title: topic,
+            articles,
+            topicPages,
+            totalCount: (articles.nbHits ?? 0) + (topicPages.nbHits ?? 0),
+        }
+    })
 }
