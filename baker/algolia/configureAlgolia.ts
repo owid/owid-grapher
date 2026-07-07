@@ -83,6 +83,10 @@ export const configureAlgolia = async () => {
             customRanking: ["desc(score)", "desc(importance)"],
             attributesToSnippet: ["content:20"],
             attributeForDistinct: "slug",
+            // If a query still returns nothing, retry treating all words as optional
+            // rather than showing a blank page — same experiment as the charts index
+            // (#6676), now on the pages index (writing + data insights).
+            removeWordsIfNoResults: "allOptional",
             attributesForFaceting: [
                 "filterOnly(slug)",
                 "afterDistinct(type)",
