@@ -1,6 +1,10 @@
 import * as _ from "lodash-es"
 import {
+    getContentKeysForGdocType,
+    OWID_GDOC_BASE_ROW_KEYS,
+    OWID_GDOC_POST_CONTENT_KEYS,
     OwidGdocErrorMessage,
+    OwidGdocErrorMessageProperty,
     OwidGdocErrorMessageType,
     OwidGdocPostContent,
     OwidGdocType,
@@ -64,11 +68,16 @@ const normalizeRefDefinitions = (
         }))
         .sort((a, b) => a.index - b.index)
 
+const frontMatterKeys = (content: OwidGdocPostContent): string[] =>
+    Object.keys(content).filter((key) => key !== "body" && key !== "refs")
+
 export interface ArchieMlContentComparison {
     identical: boolean
     /** Indices (in the empty-block-stripped body) of blocks that differ */
     differingBodyBlocks: number[]
     refsMatch: boolean
+    /** Top-level keys (other than body/refs) that are dropped or altered */
+    differingFrontMatterKeys: string[]
 }
 
 /**
@@ -101,10 +110,104 @@ export function compareArchieMlContent(
             normalizeRefDefinitions(actual.refs?.definitions)
         )
     )
+    const expectedByKey = expected as unknown as Record<string, unknown>
+    const actualByKey = actual as unknown as Record<string, unknown>
+    const differingFrontMatterKeys = [
+        ...new Set([...frontMatterKeys(expected), ...frontMatterKeys(actual)]),
+    ].filter(
+        (key) =>
+            !_.isEqual(
+                normalizeForComparison(expectedByKey[key]),
+                normalizeForComparison(actualByKey[key])
+            )
+    )
     return {
-        identical: differingBodyBlocks.length === 0 && refsMatch,
+        identical:
+            differingBodyBlocks.length === 0 &&
+            refsMatch &&
+            differingFrontMatterKeys.length === 0,
         differingBodyBlocks,
         refsMatch,
+        differingFrontMatterKeys,
+    }
+}
+
+/**
+ * Classify front-matter keys that do not survive the write-back round trip,
+ * using the write-back fate classification declared next to the content
+ * interfaces (the single source of truth for what the write-back supports).
+ */
+function collectFrontMatterFindings(
+    differingFrontMatterKeys: string[],
+    type: OwidGdocType | undefined,
+    errors: OwidGdocErrorMessage[],
+    warnings: OwidGdocErrorMessage[]
+): void {
+    const keyFates: Record<string, string> =
+        (type && getContentKeysForGdocType(type)) || OWID_GDOC_POST_CONTENT_KEYS
+    for (const key of differingFrontMatterKeys) {
+        const property = key as OwidGdocErrorMessageProperty
+        switch (keyFates[key]) {
+            case "unsupported":
+                errors.push({
+                    property,
+                    type: OwidGdocErrorMessageType.Error,
+                    message:
+                        `The front-matter field "${key}" is not yet supported ` +
+                        `by the ArchieML write-back — writing this document ` +
+                        `would lose it. Edit this document in Google Docs ` +
+                        `directly instead.`,
+                })
+                break
+            case "derived":
+                warnings.push({
+                    property,
+                    type: OwidGdocErrorMessageType.Warning,
+                    message:
+                        `The front-matter field "${key}" is derived from other ` +
+                        `content and regenerated on every parse — the value in ` +
+                        `the document is ignored and removed by the write.`,
+                })
+                break
+            case "emitted":
+                errors.push({
+                    property,
+                    type: OwidGdocErrorMessageType.Error,
+                    message:
+                        `The front-matter field "${key}" does not survive the ` +
+                        `write-back round trip — its value would be altered or ` +
+                        `lost. Compare your input against the parsed result.`,
+                })
+                break
+            default:
+                if (OWID_GDOC_BASE_ROW_KEYS.includes(key)) {
+                    // Admin-managed row property (slug, tags, …): dropping it
+                    // from the document is correct, so this is only a warning.
+                    warnings.push({
+                        property,
+                        type: OwidGdocErrorMessageType.Warning,
+                        message:
+                            `"${key}" is not part of the document's content — ` +
+                            `it is managed in the admin and will be removed by ` +
+                            `the write. Relay requested changes to it to a ` +
+                            `human author instead of putting it in the document.`,
+                    })
+                } else {
+                    // A key the schema doesn't know — most often a misspelled
+                    // field (e.g. "sutitle"). Dropping it silently would lose
+                    // the author's intent, so refuse the write.
+                    errors.push({
+                        property,
+                        type: OwidGdocErrorMessageType.Error,
+                        message:
+                            `Unrecognized front-matter field "${key}" — it is ` +
+                            `not a known field${type ? ` for a ${type}` : ""} ` +
+                            `and would be dropped on write. If it is a ` +
+                            `misspelling of a real field, fix it; otherwise ` +
+                            `remove it.`,
+                    })
+                }
+        }
     }
 }
 
@@ -182,7 +285,11 @@ export function validateArchieMl(
             ...owidArticleToArchieMLStringGenerator(content),
         ].join("\n")
         const reparsed = archieToEnriched(canonicalArchieMl)
-        if (!compareArchieMlContent(content, reparsed).identical) {
+        const comparison = compareArchieMlContent(content, reparsed)
+        if (
+            comparison.differingBodyBlocks.length > 0 ||
+            !comparison.refsMatch
+        ) {
             errors.push({
                 property: "body",
                 type: OwidGdocErrorMessageType.Error,
@@ -193,6 +300,12 @@ export function validateArchieMl(
                     "block marker). Compare your input against the parsed result.",
             })
         }
+        collectFrontMatterFindings(
+            comparison.differingFrontMatterKeys,
+            content.type,
+            errors,
+            warnings
+        )
     } catch (error) {
         errors.push({
             property: "body",

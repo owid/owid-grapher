@@ -55,9 +55,8 @@ function getArchieMLDocWithContent(
 ): string {
     return `title: Writing OWID Articles With Google Docs
 subtitle: This article documents how to use and configure the various built in features of our template system
-byline: Matthew Conlen
+authors: Matthew Conlen
 dateline: June 30, 2022
-template: centered
 ${extraFrontmatter}
 [+body]
 ${content}
@@ -1235,7 +1234,7 @@ describe("refs source-form serializer", () => {
 describe(validateArchieMl, () => {
     const doc = (body: string, frontmatter: string = "type: article"): string =>
         `title: Test doc
-byline: Author
+authors: Author
 ${frontmatter}
 [+body]
 ${body}
@@ -1306,6 +1305,73 @@ ${body}
         )
         expect(result.valid).toBe(true)
         expect(result.warnings.length).toBeGreaterThan(0)
+    })
+
+    it("rejects unrecognized front-matter keys (e.g. a misspelled field)", () => {
+        // A typo of a real field would otherwise be silently dropped on
+        // write, losing the intended value — so an unknown key is an error.
+        const result = validateArchieMl(
+            doc("Hello", "type: article\nsutitle: Oops a typo")
+        )
+        expect(result.valid).toBe(false)
+        expect(result.errors).toContainEqual(
+            expect.objectContaining({
+                property: "sutitle",
+                message: expect.stringContaining("Unrecognized"),
+            })
+        )
+    })
+
+    it("points admin-managed keys like slug to the admin settings", () => {
+        const result = validateArchieMl(
+            doc("Hello", "type: article\nslug: my-slug")
+        )
+        expect(result.valid).toBe(true)
+        expect(result.warnings).toContainEqual(
+            expect.objectContaining({
+                property: "slug",
+                message: expect.stringContaining("admin"),
+            })
+        )
+    })
+
+    it("refuses front matter the write-back cannot serialize yet", () => {
+        const result = validateArchieMl(
+            doc(
+                "Hello",
+                "type: article\n[.faqs]\nid: what-is-this\n[.+content]\nAn answer.\n[]\n[]"
+            )
+        )
+        expect(result.valid).toBe(false)
+        expect(result.errors).toContainEqual(
+            expect.objectContaining({
+                property: "faqs",
+                message: expect.stringContaining("not yet supported"),
+            })
+        )
+    })
+
+    it("rejects the legacy byline key (new drafts must use authors)", () => {
+        // `byline` is a pre-2023 alias the parse still honours (so authorship
+        // is understood), but it is not a field new drafts should use — the
+        // write-back emits `authors`, so the stray `byline` key is rejected as
+        // unrecognized. The fix is to rename it to `authors`.
+        const result = validateArchieMl(`title: Test doc
+byline: Jane Doe (Editor)
+type: article
+[+body]
+Hello world.
+[]
+`)
+        expect(result.valid).toBe(false)
+        expect(result.errors).toContainEqual(
+            expect.objectContaining({
+                property: "byline",
+                message: expect.stringContaining("Unrecognized"),
+            })
+        )
+        // the parse still understood the authorship, it's just the wrong key
+        expect(result.content?.authorRoles).toEqual({ "Jane Doe": "Editor" })
     })
 })
 

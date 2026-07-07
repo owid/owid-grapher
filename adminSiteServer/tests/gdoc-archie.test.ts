@@ -10,7 +10,7 @@ const FIXTURE_DOC_ID = "gdoc-archie-api-test"
 const FIXTURE_REVISION_ID = "archie-test-revision-1"
 
 const VALID_ARCHIE = `title: Archie API test
-byline: Author
+authors: Author
 type: article
 [+body]
 Hello world
@@ -18,7 +18,7 @@ Hello world
 `
 
 const INVALID_ARCHIE = `title: Archie API test
-byline: Author
+authors: Author
 type: article
 [+body]
 {.small-chart}
@@ -79,6 +79,23 @@ describe("gdoc ArchieML API", { timeout: 20000 }, () => {
             .where({ id: FIXTURE_DOC_ID })
             .first()
         expect(row).toBeUndefined()
+    })
+
+    it("PUT ?dryRun=true warns that invented front matter like slug is dropped", async () => {
+        const res = await rawRequest(
+            "PUT",
+            `/gdocs/${FIXTURE_DOC_ID}/archie?dryRun=true`,
+            { archieMl: `slug: my-new-slug\n${VALID_ARCHIE}` }
+        )
+        expect(res.status).toBe(200)
+        const json = await res.json()
+        expect(json.writable).toBe(true)
+        expect(json.warnings).toContainEqual(
+            expect.objectContaining({
+                property: "slug",
+                message: expect.stringContaining("managed in the admin"),
+            })
+        )
     })
 
     it("PUT rejects invalid ArchieML with 400 and structured errors", async () => {
