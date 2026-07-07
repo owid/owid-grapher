@@ -1,6 +1,7 @@
 .all-charts-block {
     .all-charts-block__heading {
         margin-bottom: $margin-bottom-section-heading-ltp;
+        text-align: left;
     }
 }
 
@@ -27,6 +28,13 @@
     figure[data-grapher-src]:not(.grapherPreview),
     figure.grapher-component:not(.grapherPreview) {
         height: $grapher-height;
+    }
+
+    // Below this breakpoint the persistent sidecar is replaced by an
+    // accordion: each row expands its own chart inline (see
+    // .all-charts-block__row-accordion).
+    @include md-down {
+        display: none;
     }
 }
 
@@ -77,11 +85,9 @@
 }
 
 .all-charts-block__suggested {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 8px;
     margin-bottom: 16px;
+    font-size: 13px;
+    line-height: 1.5;
 }
 
 .all-charts-block__suggested-label {
@@ -92,18 +98,46 @@
     color: $gray-70;
 }
 
-.all-charts-block__chip {
-    padding: 4px 12px;
-    border: 1px solid $blue-20;
-    border-radius: 16px;
-    background-color: $blue-5;
-    color: $blue-90;
+.all-charts-block__suggested-link {
+    padding: 0;
+    border: none;
+    background: none;
+    color: $blue-60;
     font-size: 13px;
+    font-weight: 400;
+    text-decoration: underline;
+    text-underline-offset: 2px;
     cursor: pointer;
 
     &:hover {
-        background-color: $blue-10;
+        color: $vermillion;
     }
+}
+
+// Shared by the header labels row and every table row so the "Source" label
+// and every row's source text land in the same visual column. The trailing
+// 44px column reserves space for the row's arrow-link (empty in the header).
+$all-charts-block-row-columns: minmax(0, 1fr) 140px 44px;
+$all-charts-block-row-column-gap: 16px;
+
+.all-charts-block__table-header {
+    display: grid;
+    grid-template-columns: $all-charts-block-row-columns;
+    column-gap: $all-charts-block-row-column-gap;
+    padding-left: 16px; // matches the row-left inset: 3px accent border + 13px button padding
+    padding-bottom: 8px;
+
+    @include md-down {
+        display: none;
+    }
+}
+
+.all-charts-block__table-header-label {
+    text-transform: uppercase;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: $gray-60;
 }
 
 .all-charts-block__table {
@@ -120,22 +154,36 @@
 }
 
 .all-charts-block__row {
-    display: flex;
-    align-items: stretch;
     border-bottom: 1px solid $gray-20;
-    border-left: 3px solid transparent;
 }
 
-.all-charts-block__row--selected {
+.all-charts-block__row--selected .all-charts-block__row-main {
     border-left-color: $vermillion;
     background-color: $blue-5;
 }
 
+// The clickable row content: a real two-column grid (indicator info, then
+// source) plus the trailing arrow-link column, so source text lines up into
+// a proper column across every row instead of floating at its own width.
+.all-charts-block__row-main {
+    display: grid;
+    grid-template-columns: $all-charts-block-row-columns;
+    column-gap: $all-charts-block-row-column-gap;
+    align-items: stretch;
+    border-left: 3px solid transparent;
+
+    // The source column is hidden on phones (see .all-charts-block__row-source
+    // below) — drop its track too, otherwise it'd leave a blank gap between
+    // the title and the arrow-link.
+    @include sm-only {
+        grid-template-columns: minmax(0, 1fr) 44px;
+    }
+}
+
 .all-charts-block__row-button {
-    flex: 1 1 auto;
-    display: flex;
-    gap: 16px;
-    padding: 12px 12px 12px 13px;
+    display: block;
+    width: 100%;
+    padding: 12px 13px;
     background: none;
     border: none;
     text-align: left;
@@ -155,6 +203,7 @@
 }
 
 .all-charts-block__row-title {
+    font-family: $serif-font-stack;
     font-weight: 700;
     color: $text-color;
 }
@@ -163,9 +212,9 @@
     color: $blue-50;
     font-size: 12px;
     font-weight: 400;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    // Wrap rather than truncate — a cut-off subtitle reads as a rendering
+    // bug, and there's ample vertical room in the row for a second line.
+    overflow-wrap: break-word;
 }
 
 .all-charts-block__row-tag {
@@ -182,13 +231,13 @@
 }
 
 .all-charts-block__row-source {
-    flex-shrink: 0;
-    max-width: 30%;
+    min-width: 0;
     padding: 12px 0;
     text-align: left;
     color: $blue-50;
     font-size: 12px;
     font-weight: 400;
+    overflow-wrap: break-word;
 
     @include sm-only {
         display: none;
@@ -199,13 +248,31 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    flex-shrink: 0;
-    width: 44px;
+    min-width: 0;
     color: $blue-60;
     border-left: 1px solid $gray-20;
 
     &:hover {
         color: $vermillion;
+    }
+}
+
+// Mobile/tablet accordion panel holding the inline chart for the currently
+// expanded row. Hidden on wider viewports, where the persistent sidecar
+// (.all-charts-block__right) is used instead.
+.all-charts-block__row-accordion {
+    display: none;
+    padding: 16px;
+    background-color: $blue-5;
+    border-top: 1px solid $gray-20;
+
+    @include md-down {
+        display: block;
+    }
+
+    figure[data-grapher-src]:not(.grapherPreview),
+    figure.grapher-component:not(.grapherPreview) {
+        height: $grapher-height;
     }
 }
 
