@@ -147,7 +147,13 @@ flowchart LR
 - **Silent content swallow**: ArchieML's `load()` never errors — a typo'd
   marker or unclosed `[.list]` silently drops content. `validateArchieMl`
   catches this with a fixed-point check (parse → write back → re-parse →
-  compare).
+  compare), across the body, refs, **and every top-level front-matter key**.
+- **Dropped front matter**: a front-matter key the write-back doesn't preserve
+  is caught by the same fixed-point check and classified — an authored field
+  the write-back can't yet serialize (`faqs`, `details`) is refused; an
+  admin-managed property (`slug`, `tags`, …) or an unrecognized key is warned
+  about. So an agent that invents a `slug:` line is told it's admin-managed,
+  rather than getting a silent no-op.
 - **Registry drift**: no failure at all — CI regenerates and auto-commits.
 
 ## CI self-heal
@@ -186,9 +192,13 @@ anything). No per-item taxonomy to decode.
 
 The gate, [`validateArchieMl`](../db/model/Gdoc/validateArchieMl.ts), composes
 the pipeline's own primitives: `archieToEnriched` (throws on unknown blocks) →
-collect `parseErrors` → fixed-point re-serialize check → require a post-shaped
-`type`. The round-trip test suite asserts through the same function, so CI
-exercises exactly the gate the endpoints run.
+collect `parseErrors` → fixed-point re-serialize check (body, refs, and
+front-matter keys) → require a post-shaped `type`. Dropped front-matter keys
+are classified against the write-back fate declared next to the content
+interfaces — one source of truth shared with the serializer — so "this field
+would be silently lost" becomes a precise, structured message. The round-trip
+test suite asserts through the same function, so CI exercises exactly the gate
+the endpoints run.
 
 Authors use this through the `gdoc-editor` skill in
 [owid-claude-plugins](https://github.com/owid/owid-claude-plugins) — no repo

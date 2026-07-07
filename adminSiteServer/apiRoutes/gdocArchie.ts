@@ -254,14 +254,21 @@ export async function putGdocArchie(
 
     // Read back and verify at the parse level: Google normalizes bytes
     // (style-run splits, trailing newlines), so a byte comparison would cry
-    // wolf. What must survive is the *content*. A mismatch is reported, not
-    // rolled back — the doc history still has the previous revision.
+    // wolf. What must survive is the *content*. The expected side is the
+    // parse of the canonical text we wrote — not the submission parse, which
+    // may contain front-matter keys the gate already warned would be dropped.
+    // A mismatch is reported, not rolled back — the doc history still has
+    // the previous revision.
     const after = await fetchGdocDocument(client, id)
     const { text: readBack } = await gdocToArchie(after)
-    let verification: { identical: boolean; differingBodyBlocks?: number[] }
+    let verification: {
+        identical: boolean
+        differingBodyBlocks?: number[]
+        differingFrontMatterKeys?: string[]
+    }
     try {
         const comparison = compareArchieMlContent(
-            validation.content!,
+            archieToEnriched(canonicalArchieMl),
             archieToEnriched(readBack)
         )
         verification = comparison.identical
@@ -269,6 +276,7 @@ export async function putGdocArchie(
             : {
                   identical: false,
                   differingBodyBlocks: comparison.differingBodyBlocks,
+                  differingFrontMatterKeys: comparison.differingFrontMatterKeys,
               }
     } catch {
         verification = { identical: false }
