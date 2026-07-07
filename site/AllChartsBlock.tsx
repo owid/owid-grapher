@@ -48,15 +48,173 @@ const SEARCH_PLACEHOLDER =
 const MIN_SUGGESTED_CHIP_COUNT = 2
 const MAX_SUGGESTED_CHIPS = 5
 
-// A chart's own topic tags are noisy for suggestions (very common words like
-// "Uncategorized" or a topic's parent-area tag) — steer clear of surfacing
-// these as if they were interesting secondary groupings.
-const TAG_DENYLIST = new Set(["uncategorized"])
+// Cap on how many of the auto-suggested chips are countries — the rest of
+// the budget goes to keyword chips (see below), with producers only used to
+// top up the list if there isn't enough keyword variety.
+const MAX_SUGGESTED_COUNTRY_CHIPS = 2
+
+// Shortest a keyword must be to be worth suggesting on its own (drops noise
+// like short acronyms picked up mid-title).
+const MIN_KEYWORD_LENGTH = 3
+
+// General English stop words, plus words that are technically accurate but
+// too generic/boilerplate in OWID chart titles & subtitles to read as a
+// meaningful search suggestion on their own (e.g. every chart on a topic
+// might say "rate" or "number", but that's not a useful way to search
+// within it — "deaths" or "fertility" is). Deliberately erring towards
+// excluding borderline words: a shorter, higher-signal chip list beats a
+// longer, noisier one.
+const KEYWORD_STOP_WORDS = new Set([
+    // general English stop words / connectives
+    "the",
+    "a",
+    "an",
+    "of",
+    "and",
+    "or",
+    "in",
+    "on",
+    "at",
+    "by",
+    "to",
+    "for",
+    "with",
+    "from",
+    "per",
+    "vs",
+    "is",
+    "are",
+    "was",
+    "were",
+    "be",
+    "been",
+    "being",
+    "as",
+    "it",
+    "its",
+    "this",
+    "that",
+    "these",
+    "those",
+    "than",
+    "then",
+    "so",
+    "such",
+    "which",
+    "who",
+    "whom",
+    "what",
+    "when",
+    "where",
+    "how",
+    "why",
+    "all",
+    "any",
+    "each",
+    "other",
+    "some",
+    "most",
+    "more",
+    "less",
+    "least",
+    "much",
+    "many",
+    "few",
+    "between",
+    "among",
+    "during",
+    "after",
+    "before",
+    "above",
+    "below",
+    "up",
+    "down",
+    "out",
+    "off",
+    "over",
+    "under",
+    "again",
+    "further",
+    "once",
+    "here",
+    "there",
+    "own",
+    "same",
+    "if",
+    "because",
+    "while",
+    "about",
+    "not",
+    "no",
+    "yes",
+    "their",
+    "our",
+    "you",
+    "your",
+    // OWID chart-title/subtitle boilerplate: technically descriptive, but too
+    // generic to be a useful search shortcut within an already-filtered topic
+    "rate",
+    "rates",
+    "number",
+    "numbers",
+    "share",
+    "shares",
+    "total",
+    "totals",
+    "average",
+    "averages",
+    "annual",
+    "annually",
+    "data",
+    "world",
+    "global",
+    "country",
+    "countries",
+    "region",
+    "regions",
+    "population",
+    "level",
+    "levels",
+    "value",
+    "values",
+    "index",
+    "indicator",
+    "indicators",
+    "estimate",
+    "estimates",
+    "estimated",
+    "projection",
+    "projections",
+    "projected",
+    "million",
+    "millions",
+    "thousand",
+    "thousands",
+    "billion",
+    "billions",
+    "measure",
+    "measured",
+    "measurement",
+    "capita",
+    "year",
+    "years",
+    "group",
+    "groups",
+    "type",
+    "types",
+])
 
 type SuggestedChipCandidate = {
-    dimension: "country" | "producer" | "tag"
+    dimension: "country" | "producer" | "keyword"
     name: string
     count: number
+}
+
+// Splits free text into lowercase word tokens, keeping only alphabetic runs
+// (numbers/punctuation are dropped entirely, so "1950-2023" or "(%)" never
+// become spurious "tokens").
+function splitIntoLowercaseWords(text: string): string[] {
+    return text.toLowerCase().match(/[a-z]+/g) ?? []
 }
 
 export type SuggestedChip = {
@@ -80,18 +238,28 @@ function rankByFrequency(
 
 /**
  * Client-side pass over a topic's full chart list, deriving ~4-5 "suggested
- * search" chips from per-chart dimensions Algolia returns to the client (see
- * DATA_CATALOG_ATTRIBUTES + the `tags` field requested specifically for this
- * block, see `queryAllCharts` callers below): the countries/entities a chart
- * has data for (`availableEntities`/`originalAvailableEntities`), its other
- * topic tags (`tags`, excluding the topic this block is already scoped to),
- * and its data producers (`datasetProducers`).
+ * search" chips from per-chart data Algolia already returns for this block
+ * (see DATA_CATALOG_ATTRIBUTES): the countries/entities a chart has data for
+ * (`availableEntities`/`originalAvailableEntities`), significant keywords
+ * pulled from its `title`/`subtitle` text, and its data producers
+ * (`datasetProducers`).
  *
- * To match the design brief's mix of a couple of countries plus topical
- * groupings (e.g. "Spain, Japan, Fertility, Mortality, UN WPP"), country
+ * An earlier version of this used the chart's topic `tags` for the
+ * non-country chips, but those tend to read as generic category labels
+ * (dataset/producer names, broad sub-topics) rather than the kind of
+ * specific, human search term a visitor would actually type — the design
+ * brief's own examples ("deaths", "births") are words you'd find in a chart
+ * *title*, not in its tag list. Extracting frequent significant words
+ * straight from titles/subtitles gets much closer to that: for a topic like
+ * "Population Growth", a chart titled "Births and deaths per year" now
+ * contributes "births" and "deaths" as candidate chips, rather than a tag
+ * like "Life Expectancy" or a producer like "UN WPP".
+ *
+ * To match the design brief's mix of a couple of countries plus specific
+ * topical terms (e.g. "Spain, Japan, deaths, births, fertility"), country
  * chips are capped at two, remaining slots are filled with the most frequent
- * secondary tags first, and producers are only used to top up the list when
- * there isn't enough tag variety.
+ * keywords first, and producers are only used to top up the list when there
+ * isn't enough keyword variety.
  */
 function computeAutoSuggestedChips(
     hits: SearchChartHit[],
@@ -103,7 +271,12 @@ function computeAutoSuggestedChips(
     const regionNameSet = new Set(regionNames)
     const countryCounts = new Map<string, number>()
     const producerCounts = new Map<string, number>()
-    const tagCounts = new Map<string, number>()
+    const keywordCounts = new Map<string, number>()
+
+    // Words already in the topic's own name shouldn't turn back around as a
+    // suggested chip — searching "Age" on the "Age Structure" topic page
+    // wouldn't narrow anything down.
+    const topicNameWords = new Set(splitIntoLowercaseWords(topicName))
 
     for (const hit of hits) {
         const entities = hit.originalAvailableEntities ?? hit.availableEntities
@@ -122,33 +295,40 @@ function computeAutoSuggestedChips(
             )
         }
 
-        // Other topical groupings the chart belongs to — excluding the topic
-        // this block is already scoped to, since every chart here has it and
-        // it wouldn't narrow anything down.
-        const tagsOnChart = new Set(
-            (hit.tags ?? []).filter(
-                (tag) =>
-                    tag !== topicName && !TAG_DENYLIST.has(tag.toLowerCase())
+        // Significant words from the chart's own title/subtitle — the most
+        // specific, human-readable description of what the chart actually
+        // shows. Counted as a set per chart (like the dimensions above) so a
+        // single title repeating a word doesn't outweigh many different
+        // charts mentioning it once each.
+        const text = [hit.title, hit.subtitle].filter(Boolean).join(" ")
+        const keywordsOnChart = new Set(
+            splitIntoLowercaseWords(text).filter(
+                (word) =>
+                    word.length >= MIN_KEYWORD_LENGTH &&
+                    !KEYWORD_STOP_WORDS.has(word) &&
+                    !topicNameWords.has(word)
             )
         )
-        for (const tag of tagsOnChart) {
-            tagCounts.set(tag, (tagCounts.get(tag) ?? 0) + 1)
+        for (const keyword of keywordsOnChart) {
+            keywordCounts.set(keyword, (keywordCounts.get(keyword) ?? 0) + 1)
         }
     }
 
     const topCountries = rankByFrequency(countryCounts, "country")
     const topProducers = rankByFrequency(producerCounts, "producer")
-    const topTags = rankByFrequency(tagCounts, "tag")
+    const topKeywords = rankByFrequency(keywordCounts, "keyword")
 
     // At most two country chips (both must still clear the frequency
-    // threshold applied above), then prefer topical/dataset groupings for
-    // the remaining slots, falling back to producers only if there isn't
-    // enough tag variety to fill out the list.
-    const chips: SuggestedChipCandidate[] = [...topCountries.slice(0, 2)]
+    // threshold applied above), then prefer specific title/subtitle keywords
+    // for the remaining slots, falling back to producers only if there isn't
+    // enough keyword variety to fill out the list.
+    const chips: SuggestedChipCandidate[] = [
+        ...topCountries.slice(0, MAX_SUGGESTED_COUNTRY_CHIPS),
+    ]
 
-    for (const tag of topTags) {
+    for (const keyword of topKeywords) {
         if (chips.length >= MAX_SUGGESTED_CHIPS) break
-        chips.push(tag)
+        chips.push(keyword)
     }
 
     for (const producer of topProducers) {
@@ -188,15 +368,13 @@ export const AllChartsBlock = ({
     const [debouncedQuery] = useDebounceValue(query, SEARCH_DEBOUNCE_MS)
 
     // Active producer ("source") filters, mirroring the global search's
-    // `datasetProducers` facet. Adding one (via a suggested chip below the
-    // search box) narrows the result list to that producer; removing it
-    // widens the list back out. The source column itself stays plain,
-    // non-interactive text — producers are only added via suggested chips.
+    // `datasetProducers` facet as a removable pill below the search input.
+    // Nothing in this block currently adds to this list — suggested chips
+    // (including producer-derived ones) now populate the search input
+    // instead of applying a structured filter — but the state and its
+    // removal handler stay in place in case a future manually-applied
+    // filter UI needs them.
     const [producerFilters, setProducerFilters] = useState<string[]>([])
-    const addProducerFilter = (producer: string) =>
-        setProducerFilters((prev) =>
-            prev.includes(producer) ? prev : [...prev, producer]
-        )
     const removeProducerFilter = (producer: string) =>
         setProducerFilters((prev) => prev.filter((p) => p !== producer))
 
@@ -269,14 +447,12 @@ export const AllChartsBlock = ({
 
     const { data: baseHits } = useQuery({
         queryKey: searchQueryKeys.charts(baseSearchState),
-        // `tags` isn't part of the shared DATA_CATALOG_ATTRIBUTES (it's not
-        // needed by the data catalog or featured metrics, the other
-        // consumers of queryCharts/queryAllCharts) — request it explicitly
-        // here since computeAutoSuggestedChips uses it for tag-based chips.
-        queryFn: () =>
-            queryAllCharts(liteSearchClient, baseSearchState, undefined, [
-                "tags",
-            ]),
+        // `title`/`subtitle` (used by computeAutoSuggestedChips for its
+        // keyword chips) are already part of the shared
+        // DATA_CATALOG_ATTRIBUTES, so no extra attributes need requesting
+        // here (contrast the old tag-based chips, which needed an explicit
+        // extra `tags` attribute).
+        queryFn: () => queryAllCharts(liteSearchClient, baseSearchState),
         enabled: Boolean(topicName),
     })
 
@@ -286,15 +462,16 @@ export const AllChartsBlock = ({
     )
 
     // Editorially curated suggestions (set on the gdoc block) take precedence
-    // when present, preserving the pre-existing authoring workflow; a curated
-    // chip re-runs its text through the search box, exactly as before.
-    // Otherwise, fall back to the auto-generated country/tag/producer chips:
-    // a country or tag chip populates the search query (reusing the same
-    // country detection that powers manual typing — tag chips just search
-    // for the tag's name as free text), while a producer chip applies the
-    // structured `datasetProducers` filter that the active-filter pills
-    // already use. Chips that are already active are hidden rather than
-    // shown a second time.
+    // when present, preserving the pre-existing authoring workflow. Every
+    // chip — curated or auto-generated, whatever dimension it came from
+    // (country, keyword, or producer) — does exactly one thing when clicked:
+    // populate the search input with its label, so it drives the same
+    // full-text search path as if the visitor had typed it themselves. This
+    // used to differ by dimension (a producer chip applied a structured
+    // `datasetProducers` filter shown as a separate pill below the input
+    // instead), which made suggestion clicks behave inconsistently; now
+    // they're uniform. Chips whose term is already reflected in the current
+    // query/filters are hidden rather than shown a second time.
     const suggestedChips: SuggestedChip[] = useMemo(() => {
         if (suggested.length > 0) {
             return suggested.map((text) => ({
@@ -314,10 +491,7 @@ export const AllChartsBlock = ({
             .map((chip) => ({
                 key: `${chip.dimension}:${chip.name}`,
                 label: chip.name,
-                onClick: () =>
-                    chip.dimension === "producer"
-                        ? addProducerFilter(chip.name)
-                        : setQuery(chip.name),
+                onClick: () => setQuery(chip.name),
             }))
     }, [
         suggested,

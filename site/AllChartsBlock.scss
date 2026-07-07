@@ -203,8 +203,12 @@ $all-charts-block-row-column-gap: 16px;
 }
 
 .all-charts-block__row-title {
+    // Playfair Semibold, matching the weight/family convention used by the
+    // site's serif headings (see h1-semibold/h2-semibold/etc. in
+    // typography.scss), just at a fixed 16px rather than a heading scale.
     font-family: $serif-font-stack;
-    font-weight: 700;
+    font-weight: 600;
+    font-size: 16px;
     color: $text-color;
 }
 
