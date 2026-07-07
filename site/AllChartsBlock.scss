@@ -22,8 +22,20 @@
     min-width: 0;
 }
 
+// How far from the top of the viewport the chart sidecar sticks. The table
+// has no scroll region of its own (it just grows with the page — see
+// .all-charts-block__table below), so as the visitor scrolls down through a
+// long list of indicators, the sidecar stays in view instead of scrolling
+// away with the row that was selected. The offset clears the topic page's
+// own sticky sub-nav (.sticky-nav, ~56px tall) when one is present, plus a
+// small gap; on pages without that sub-nav it's just a comfortable margin
+// from the top of the viewport.
+$all-charts-block-sticky-top: 72px;
+
 .all-charts-block__right {
     min-width: 0;
+    position: sticky;
+    top: $all-charts-block-sticky-top;
 
     figure[data-grapher-src]:not(.grapherPreview),
     figure.grapher-component:not(.grapherPreview) {
@@ -32,7 +44,9 @@
 
     // Below this breakpoint the persistent sidecar is replaced by an
     // accordion: each row expands its own chart inline (see
-    // .all-charts-block__row-accordion).
+    // .all-charts-block__row-accordion). Sticky positioning is irrelevant
+    // once the element is hidden, but scoping it above this breakpoint keeps
+    // the intent clear.
     @include md-down {
         display: none;
     }
@@ -163,16 +177,14 @@ $all-charts-block-row-column-gap: 16px;
 }
 
 .all-charts-block__table {
+    // No inner scroll region here by design — the list grows to its full
+    // height and scrolls with the rest of the page (see
+    // .all-charts-block__right above for how the chart sidecar stays in
+    // view as the visitor scrolls past it).
     list-style: none;
     margin: 0;
     padding: 0;
     border-top: 1px solid $gray-20;
-    overflow-y: auto;
-    max-height: $grapher-height;
-
-    @include md-down {
-        max-height: none;
-    }
 }
 
 .all-charts-block__row {
