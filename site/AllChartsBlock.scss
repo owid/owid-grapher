@@ -209,6 +209,12 @@ $all-charts-block-row-column-gap: 16px;
     font-family: $serif-font-stack;
     font-weight: 600;
     font-size: 16px;
+    // Explicit rather than relying on the inherited html line-height
+    // (1.6), which is too loose for a compact table row heading. Tighter
+    // than the 1.5 used for 16px serif headings elsewhere (h4-semibold in
+    // typography.scss) so the title sits snugly above the subtitle within
+    // the row's 2px indicator gap.
+    line-height: 1.25;
     color: $text-color;
 }
 
@@ -216,9 +222,19 @@ $all-charts-block-row-column-gap: 16px;
     color: $blue-50;
     font-size: 12px;
     font-weight: 400;
+    // Matches .all-charts-block__row-source below.
+    line-height: 1.5;
     // Wrap rather than truncate — a cut-off subtitle reads as a rendering
-    // bug, and there's ample vertical room in the row for a second line.
+    // bug, and there's ample vertical room in the row for a couple of
+    // lines. Long subtitles are still clamped to 3 lines with an ellipsis
+    // below so a single row can't grow unboundedly tall.
     overflow-wrap: break-word;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .all-charts-block__row-tag {
@@ -241,6 +257,8 @@ $all-charts-block-row-column-gap: 16px;
     color: $blue-50;
     font-size: 12px;
     font-weight: 400;
+    // Matches .all-charts-block__row-subtitle above.
+    line-height: 1.5;
     overflow-wrap: break-word;
 
     @include sm-only {
