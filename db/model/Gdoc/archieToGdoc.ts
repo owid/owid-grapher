@@ -4,6 +4,7 @@ import {
 } from "@ourworldindata/utils"
 import {
     OwidGdocType,
+    type EnrichedBlockText,
     type OwidGdocDataInsightContent,
     type OwidEnrichedGdocBlock,
     type Span,
@@ -40,6 +41,37 @@ function collectIdBasedRefIds(
         traverseEnrichedBlock(block, noop, visitSpan)
     }
     return ids
+}
+
+// Emit the authors line in its authoring form, reconstructing the
+// "Name (Role)" annotations that parseAuthors extracted into authorRoles —
+// otherwise roles authored in the document are lost on write-back.
+function* yieldAuthorsWithRoles(content: {
+    authors?: string[]
+    authorRoles?: Record<string, string>
+}): Generator<string, void, undefined> {
+    if (!content.authors?.length) return
+    const authors = content.authors.map((name) => {
+        const role = content.authorRoles?.[name]
+        return role ? `${name} (${role})` : name
+    })
+    yield `authors: ${authors.join(", ")}`
+}
+
+// Emit a [+key] freeform frontmatter block for a text-blocks field
+// (deprecation-notice, latest-feed-excerpt), mirroring the body emission.
+function* yieldTextBlocksIfDefined(
+    key: string,
+    blocks: EnrichedBlockText[] | undefined
+): Generator<string, void, undefined> {
+    if (!blocks?.length) return
+    yield `[+${key}]`
+    for (const block of blocks) {
+        const rawBlock = enrichedBlockToRawBlock(block)
+        yield* OwidRawGdocBlockToArchieMLStringGenerator(rawBlock)
+        yield ""
+    }
+    yield "[]"
 }
 
 // Emit a [.refs] frontmatter block listing each ID-based ref's id +
@@ -79,7 +111,7 @@ export function* owidArticleToArchieMLStringGenerator(
     if (article.type === OwidGdocType.DataInsight) {
         const dataInsight: OwidGdocDataInsightContent = article
         yield* propertyToArchieMLString("title", dataInsight)
-        yield* propertyToArchieMLString("authors", dataInsight)
+        yield* yieldAuthorsWithRoles(dataInsight)
         yield* propertyToArchieMLString("type", dataInsight)
         yield* propertyToArchieMLString("grapher-url", dataInsight)
         yield* propertyToArchieMLString("narrative-chart", dataInsight)
@@ -89,7 +121,7 @@ export function* owidArticleToArchieMLStringGenerator(
         yield* propertyToArchieMLString("title", post)
         yield* propertyToArchieMLString("subtitle", post)
         yield* propertyToArchieMLString("supertitle", post)
-        yield* propertyToArchieMLString("authors", post)
+        yield* yieldAuthorsWithRoles(post)
         yield* propertyToArchieMLString("dateline", post)
         yield* propertyToArchieMLString("excerpt", post)
         yield* propertyToArchieMLString("type", post)
@@ -108,6 +140,17 @@ export function* owidArticleToArchieMLStringGenerator(
         yield* propertyToArchieMLString("cover-image", post)
         yield* propertyToArchieMLString("cover-color", post)
         yield* propertyToArchieMLString("featured-image", post)
+        yield* propertyToArchieMLString("atom-title", post)
+        yield* propertyToArchieMLString("atom-excerpt", post)
+        yield* propertyToArchieMLString("latest-feed-featured-image", post)
+        yield* yieldTextBlocksIfDefined(
+            "deprecation-notice",
+            post["deprecation-notice"]
+        )
+        yield* yieldTextBlocksIfDefined(
+            "latest-feed-excerpt",
+            post["latest-feed-excerpt"]
+        )
         yield* yieldRefsBlockIfDefined(post)
     }
     yield ""

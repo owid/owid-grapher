@@ -22,6 +22,9 @@ import { archieToEnriched } from "./model/Gdoc/archieToEnriched.js"
 import { OwidRawGdocBlockToArchieMLString } from "./model/Gdoc/rawToArchie.js"
 import { owidArticleToArchieMLStringGenerator } from "./model/Gdoc/archieToGdoc.js"
 import {
+    getContentKeysForGdocType,
+    OWID_GDOC_DATA_INSIGHT_CONTENT_KEYS,
+    OWID_GDOC_POST_CONTENT_KEYS,
     OwidEnrichedGdocBlock,
     OwidGdocPostContent,
     OwidGdocType,
@@ -30,7 +33,10 @@ import {
 import { enrichedBlockExamples } from "./model/Gdoc/exampleEnrichedBlocks.js"
 import { enrichedBlockToRawBlock } from "./model/Gdoc/enrichedToRaw.js"
 import { load } from "archieml"
-import { parseSimpleText } from "./model/Gdoc/rawToEnriched.js"
+import {
+    parseLatestFeedExcerpt,
+    parseSimpleText,
+} from "./model/Gdoc/rawToEnriched.js"
 import { gdocToArchie } from "./model/Gdoc/gdocToArchie.js"
 import { docs_v1 } from "@googleapis/docs"
 import { documentContainsMixedStraightAndCurlyQuotes } from "./model/Gdoc/gdocValidation.js"
@@ -960,6 +966,113 @@ Second paragraph{ref}an_id_ref{/ref} of text.`,
                 `Plain, <b>bold</b>, <i>italic</i>, <u>underlined</u>, <s>struck</s>, H<sub>2</sub>O, E=mc<sup>2</sup> and <a href="https://ourworldindata.org">a link</a>.`
             )
         )
+    })
+
+    // Mirrors GdocPost._enrichSubclassContent for the one front-matter field
+    // whose enrichment lives in the subclass rather than archieToEnriched.
+    const enrichLikeGdocPost = (content: Record<string, any>): void => {
+        if (content["latest-feed-excerpt"]) {
+            content["latest-feed-excerpt"] = parseLatestFeedExcerpt(
+                content["latest-feed-excerpt"]
+            )
+        }
+    }
+
+    it("round-trips every front-matter key the spine classifies as emitted", () => {
+        const doc = `title: Full front-matter fixture
+supertitle: The supertitle
+subtitle: A subtitle
+authors: Jane Doe
+dateline: June 30, 2025
+excerpt: A short excerpt
+type: article
+sidebar-toc: true
+heading-variant: light
+hide-subscribe-banner: true
+hide-citation: true
+cover-image: cover.png
+cover-color: amber
+featured-image: featured.png
+atom-title: An atom title
+atom-excerpt: An atom excerpt
+latest-feed-featured-image: latest.png
+[.sticky-nav]
+target: #introduction
+text: Introduction
+[]
+[+deprecation-notice]
+This article is deprecated.
+[]
+[+latest-feed-excerpt]
+A feed excerpt with <b>bold</b> text.
+[]
+[.refs]
+id: a_ref
+[.+content]
+The canonical citation.
+[]
+[]
+[+body]
+Some text{ref}a_ref{/ref} with a reference.
+[]
+`
+        const first = archieToEnriched(doc, enrichLikeGdocPost)
+        const canonicalArchieML = enrichedToArchieML(first)
+        const second = archieToEnriched(canonicalArchieML, enrichLikeGdocPost)
+        const firstByKey = first as unknown as Record<string, unknown>
+        const secondByKey = second as unknown as Record<string, unknown>
+
+        for (const [key, fate] of Object.entries(OWID_GDOC_POST_CONTENT_KEYS)) {
+            if (fate !== "emitted") continue
+            expect(
+                secondByKey[key],
+                `front-matter key "${key}" should survive the round trip`
+            ).toBeDefined()
+            if (key === "body" || key === "refs") continue
+            expect(omitUndefinedValues(secondByKey[key])).toEqual(
+                omitUndefinedValues(firstByKey[key])
+            )
+        }
+        expect(omitUndefinedValues(second.body)).toEqual(
+            omitUndefinedValues(first.body)
+        )
+        expect(omitUndefinedValues(second.refs?.definitions)).toEqual(
+            omitUndefinedValues(first.refs?.definitions)
+        )
+        // The write-back of the second parse is a fixed point
+        expect(enrichedToArchieML(second)).toEqual(canonicalArchieML)
+    })
+
+    it("round-trips author roles authored in the authors field", () => {
+        const doc = `title: Roles fixture
+authors: Jane Doe (Editor), John Smith
+type: article
+[+body]
+Hello world.
+[]
+`
+        const first = archieToEnriched(doc)
+        const canonicalArchieML = enrichedToArchieML(first)
+        const second = archieToEnriched(canonicalArchieML)
+        expect(first.authorRoles).toEqual({ "Jane Doe": "Editor" })
+        expect(canonicalArchieML).toContain(
+            "authors: Jane Doe (Editor), John Smith"
+        )
+        expect(second.authors).toEqual(first.authors)
+        expect(second.authorRoles).toEqual(first.authorRoles)
+    })
+
+    it("maps gdoc types to their content-key classification", () => {
+        expect(getContentKeysForGdocType(OwidGdocType.Article)).toBe(
+            OWID_GDOC_POST_CONTENT_KEYS
+        )
+        expect(getContentKeysForGdocType(OwidGdocType.Fragment)).toBe(
+            OWID_GDOC_POST_CONTENT_KEYS
+        )
+        expect(getContentKeysForGdocType(OwidGdocType.DataInsight)).toBe(
+            OWID_GDOC_DATA_INSIGHT_CONTENT_KEYS
+        )
+        expect(getContentKeysForGdocType(OwidGdocType.Homepage)).toBeUndefined()
     })
 })
 

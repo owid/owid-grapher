@@ -237,6 +237,11 @@ export {
     type TopicPageOrphanReport,
     type NarrativeChartInfo,
     type OwidGdocDataInsightIndexItem,
+    type GdocContentKeyFate,
+    OWID_GDOC_POST_CONTENT_KEYS,
+    OWID_GDOC_DATA_INSIGHT_CONTENT_KEYS,
+    OWID_GDOC_BASE_ROW_KEYS,
+    getContentKeysForGdocType,
 } from "./gdocTypes/Gdoc.js"
 
 export {
