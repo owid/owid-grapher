@@ -74,7 +74,6 @@ import {
 } from "../seriesLabel/SeriesLabelState.js"
 
 const SHARED_X_AXIS_MIN_FACET_COUNT = 12
-const THUMBNAIL_MIN_FACET_COUNT = 12
 const THUMBNAIL_AREA_THRESHOLD = 18000
 
 const facetBackgroundColor = "none" // we don't use color yet but may use it for background later
@@ -423,23 +422,25 @@ export class FacetChart
         }
     }
 
-    @computed private get variant(): GrapherVariant {
+    // Whether the facets are small enough that they should declutter, e.g.
+    // render as thumbnails and share axes instead of repeating them per facet.
+    @computed private get hasSmallFacets(): boolean {
         const { facetBounds } = this
+        return (
+            !!facetBounds &&
+            facetBounds.width * facetBounds.height < THUMBNAIL_AREA_THRESHOLD
+        )
+    }
 
-        if (!this.canShowThumbnails || !facetBounds)
-            return GrapherVariant.Default
+    @computed private get variant(): GrapherVariant {
+        if (!this.canShowThumbnails) return GrapherVariant.Default
 
         // When the whole chart is exported as a thumbnail,
         // always render the facets as thumbnails
         if (this.manager.variant === GrapherVariant.Thumbnail)
             return GrapherVariant.Thumbnail
 
-        const isSmallArea =
-            facetBounds.width * facetBounds.height < THUMBNAIL_AREA_THRESHOLD
-        const hasManyFacets = this.facetCount >= THUMBNAIL_MIN_FACET_COUNT
-        const shouldUseThumbnail = isSmallArea || hasManyFacets
-
-        return shouldUseThumbnail
+        return this.hasSmallFacets
             ? GrapherVariant.Thumbnail
             : GrapherVariant.Default
     }
@@ -465,9 +466,11 @@ export class FacetChart
             GRAPHER_CHART_TYPES.SlopeChart,
         ]
 
+        const hasManyFacets = this.facetCount >= SHARED_X_AXIS_MIN_FACET_COUNT
+
         return (
             this.uniformXAxis &&
-            this.facetCount >= SHARED_X_AXIS_MIN_FACET_COUNT &&
+            (this.hasSmallFacets || hasManyFacets) &&
             supportedChartTypes.includes(this.chartTypeName as any)
         )
     }
