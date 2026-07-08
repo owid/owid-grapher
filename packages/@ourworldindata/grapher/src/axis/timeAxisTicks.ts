@@ -33,12 +33,23 @@ const DAY_STEPS = [
     14, // 2 weeks
 ] as const
 
+// Calendar-nice step sizes in days for weekly axes,
+// so they never show sub-week ticks
+const WEEK_STEPS = [
+    7, // 1 week
+    14, // 2 weeks
+] as const
+
 // A fixed Monday (in days since epoch) that anchors weekly grids
 const MONDAY_REFERENCE = snapToIntervalStart(0, TimeInterval.Week)
 
 // Time intervals with calendar-aware axis ticks; all other intervals
 // fall back to the generic d3 ticks
-const CALENDAR_TICK_INTERVALS = [TimeInterval.Month, TimeInterval.Day] as const
+const CALENDAR_TICK_INTERVALS = [
+    TimeInterval.Month,
+    TimeInterval.Week,
+    TimeInterval.Day,
+] as const
 
 export type CalendarTickInterval = (typeof CALENDAR_TICK_INTERVALS)[number]
 
@@ -61,6 +72,8 @@ interface CalendarValue {
     /** The calendar month, as a linear count of months */
     monthIndex: number
     isFirstOfMonth: boolean
+    /** Whether the value falls within the first seven days of its month */
+    isFirstWeekOfMonth: boolean
 }
 
 function toCalendarValue(value: number): CalendarValue {
@@ -69,6 +82,7 @@ function toCalendarValue(value: number): CalendarValue {
         value,
         monthIndex: date.year() * 12 + date.month(),
         isFirstOfMonth: date.date() === 1,
+        isFirstWeekOfMonth: date.date() <= 7,
     }
 }
 
@@ -137,6 +151,9 @@ export function buildTimeAxisTicks({
     return match(interval)
         .with(TimeInterval.Month, () =>
             buildContinuousMonthlyAxisTicks({ domain, targetCount })
+        )
+        .with(TimeInterval.Week, () =>
+            buildContinuousWeeklyAxisTicks({ domain, targetCount })
         )
         .with(TimeInterval.Day, () =>
             buildContinuousDailyAxisTicks({ domain, targetCount })
@@ -208,16 +225,18 @@ export function buildContinuousMonthlyAxisTicks({
 }
 
 /**
- * A calendar-nice day grid (every day, every other day, weekly or biweekly
- * on Mondays), sized to `targetCount`, with redundant year parts dropped from
- * the labels. Spans too long for day-sized steps continue on the monthly grid.
+ * A calendar-nice day grid stepped by one of the given step sizes, sized to
+ * `targetCount`, with redundant year parts dropped from the labels. Spans
+ * too long for the coarsest step continue on the monthly grid.
  */
-export function buildContinuousDailyAxisTicks({
+function buildContinuousDayGridTicks({
     domain,
     targetCount,
+    steps,
 }: {
     domain: [number, number]
     targetCount: number
+    steps: readonly number[]
 }): Tickmark[] | undefined {
     const spanDays = domain[1] - domain[0]
     if (spanDays <= 0) return undefined
@@ -237,13 +256,13 @@ export function buildContinuousDailyAxisTicks({
     }
 
     // Pick the smallest step that keeps the tick count at or below the
-    // target; if even the coarsest day step produces too many ticks, fall
+    // target; if even the coarsest step produces too many ticks, fall
     // through to the monthly (and yearly) grid. The span/step estimate can
     // count one tick more than actually lands in the domain, so also accept
     // a step by its in-domain count — otherwise a 29-day domain with a
     // target of two would skip the fitting biweekly grid and fall through
     // to a single monthly tick.
-    const step = DAY_STEPS.find(
+    const step = steps.find(
         (s) =>
             spanDays / s <= targetCount || inDomainTickCount(s) <= targetCount
     )
@@ -262,6 +281,44 @@ export function buildContinuousDailyAxisTicks({
     return labelGridWithYearOnChange(grid, {
         format: "MMM D",
         formatWithYear: "MMM D, YYYY",
+    })
+}
+
+/**
+ * A calendar-nice day grid (every day, every other day, weekly or biweekly
+ * on Mondays), sized to `targetCount`, with redundant year parts dropped from
+ * the labels. Spans too long for day-sized steps continue on the monthly grid.
+ */
+export function buildContinuousDailyAxisTicks({
+    domain,
+    targetCount,
+}: {
+    domain: [number, number]
+    targetCount: number
+}): Tickmark[] | undefined {
+    return buildContinuousDayGridTicks({
+        domain,
+        targetCount,
+        steps: DAY_STEPS,
+    })
+}
+
+/**
+ * A calendar-nice week grid (weekly or biweekly on Mondays, labeled with the
+ * week-start dates), sized to `targetCount`. Spans too long for week-sized
+ * steps continue on the monthly grid.
+ */
+export function buildContinuousWeeklyAxisTicks({
+    domain,
+    targetCount,
+}: {
+    domain: [number, number]
+    targetCount: number
+}): Tickmark[] | undefined {
+    return buildContinuousDayGridTicks({
+        domain,
+        targetCount,
+        steps: WEEK_STEPS,
     })
 }
 
@@ -298,6 +355,9 @@ export function getDiscreteTimeTickOptions({
     return match(interval)
         .with(TimeInterval.Month, () =>
             getDiscreteMonthlyTickOptions({ bandValues })
+        )
+        .with(TimeInterval.Week, () =>
+            getDiscreteWeeklyTickOptions({ bandValues })
         )
         .with(TimeInterval.Day, () =>
             getDiscreteDailyTickOptions({ bandValues })
@@ -371,6 +431,27 @@ export function getDiscreteMonthlyTickOptions({
             (step) => (value: CalendarValue) => monthGridPosition(value, step)
         )
     )
+}
+
+/**
+ * See getDiscreteTimeTickOptions; steps weekly and biweekly (on Mondays),
+ * then continues on the monthly grid restricted to each month's first week,
+ * so ticks stay on actual week values.
+ */
+export function getDiscreteWeeklyTickOptions({
+    bandValues,
+}: {
+    bandValues: number[]
+}): Tickmark[][] {
+    return buildTickOptionsFromGrids(bandValues, [
+        ...WEEK_STEPS.map(
+            (step) => (value: CalendarValue) => dayGridPosition(value, step)
+        ),
+        ...MONTH_STEPS.map(
+            (step) => (value: CalendarValue) =>
+                value.isFirstWeekOfMonth ? monthGridPosition(value, step) : NaN
+        ),
+    ])
 }
 
 /**
