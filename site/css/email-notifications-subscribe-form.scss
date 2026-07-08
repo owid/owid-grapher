@@ -1,0 +1,80 @@
+.email-notifications-subscribe-form {
+    p {
+        margin: 8px 0 0;
+    }
+}
+
+.email-notifications-subscribe-form__success {
+    margin-top: 40px;
+    padding: 24px;
+    background-color: $gray-10;
+}
+
+.email-notifications-subscribe-form__fieldset {
+    margin: 24px 0 0;
+    padding: 0;
+    border: none;
+
+    legend {
+        margin-bottom: 8px;
+        color: $gray-60;
+    }
+
+    .checkbox {
+        margin-top: 8px;
+    }
+}
+
+.email-notifications-subscribe-form__hint {
+    color: $gray-60;
+}
+
+.email-notifications-subscribe-form__topic-notifications {
+    margin-top: 24px;
+    padding: 16px 24px 24px;
+    background-color: $gray-10;
+}
+
+.email-notifications-subscribe-form__radio {
+    margin-top: 8px;
+
+    label {
+        margin-left: 8px;
+    }
+}
+
+.email-notifications-subscribe-form__alert {
+    margin-top: 16px;
+    color: $vermillion;
+}
+
+.email-notifications-subscribe-form__email-submit {
+    display: flex;
+    gap: 8px;
+    margin-top: 24px;
+}
+
+.email-notifications-subscribe-form__email {
+    flex: 1;
+    padding: 8px 16px;
+    border: 1px solid $gray-30;
+}
+
+.email-notifications-subscribe-form__submit {
+    padding: 8px 24px;
+    background-color: $blue-90;
+    color: $white;
+    border: none;
+    cursor: pointer;
+
+    &:disabled {
+        background-color: $gray-30;
+        cursor: default;
+    }
+}
+
+.email-notifications-subscribe-form__privacy-notice {
+    margin-top: 16px;
+    font-size: 0.875rem;
+    color: $gray-60;
+}
