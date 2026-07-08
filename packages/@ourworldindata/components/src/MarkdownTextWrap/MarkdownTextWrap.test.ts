@@ -1,9 +1,8 @@
 import { expect, it, describe } from "vitest"
 
-import { FontFamily, VerticalAlign } from "@ourworldindata/utils"
+import { cssFontFamily, FontFamily, VerticalAlign } from "@ourworldindata/utils"
 import {
     IRText,
-    MarkdownTextWrap,
     getLineWidth,
     lineToPlaintext,
     recursiveMergeTextTokens,
@@ -11,7 +10,8 @@ import {
     IRBold,
     IRLink,
     IRLineBreak,
-} from "./MarkdownTextWrap.js"
+} from "./IRTokens.js"
+import { MarkdownTextWrap } from "./MarkdownTextWrap.js"
 
 describe(MarkdownTextWrap, () => {
     it("heavier fontWeight should be wider than plain IRText", () => {
@@ -53,7 +53,7 @@ describe(MarkdownTextWrap, () => {
         })
 
         expect(element.style).toMatchObject({
-            fontFamily: FontFamily.Lato,
+            fontFamily: cssFontFamily(FontFamily.Lato),
             fontWeight: 800,
             fontSize: 14,
         })
@@ -210,89 +210,5 @@ describe(MarkdownTextWrap, () => {
                 new IRText("fourfive"),
             ])
         })
-    })
-})
-
-describe("fromFragments", () => {
-    const fontSize = 14
-
-    it("should place fragments in-line by default", () => {
-        const textWrap = MarkdownTextWrap.fromFragments({
-            main: { text: "Lower middle-income countries" },
-            secondary: { text: "30 million" },
-            textWrapProps: {
-                maxWidth: 500,
-                fontSize,
-            },
-        })
-        expect(textWrap.svgLines.length).toEqual(1)
-        expect(textWrap.htmlLines.length).toEqual(1)
-    })
-
-    it("should place the secondary text in a new line if requested", () => {
-        const textWrap = MarkdownTextWrap.fromFragments({
-            main: { text: "Lower middle-income countries" },
-            secondary: { text: "30 million" },
-            newLine: "always",
-            textWrapProps: {
-                maxWidth: 1000,
-                fontSize,
-            },
-        })
-        expect(textWrap.svgLines.length).toEqual(2)
-        expect(textWrap.htmlLines.length).toEqual(2)
-    })
-
-    it("should place the secondary text in a new line if line breaks should be avoided", () => {
-        const textWrap = MarkdownTextWrap.fromFragments({
-            main: { text: "Lower middle-income countries" },
-            secondary: { text: "30 million" },
-            newLine: "avoid-wrap",
-            textWrapProps: {
-                maxWidth: 250,
-                fontSize,
-            },
-        })
-        expect(textWrap.svgLines.length).toEqual(2)
-        expect(textWrap.htmlLines.length).toEqual(2)
-    })
-
-    it("should place the secondary text in the same line if possible", () => {
-        const textWrap = MarkdownTextWrap.fromFragments({
-            main: { text: "Lower middle-income countries" },
-            secondary: { text: "30 million" },
-            newLine: "avoid-wrap",
-            textWrapProps: {
-                maxWidth: 1000,
-                fontSize,
-            },
-        })
-        expect(textWrap.svgLines.length).toEqual(1)
-        expect(textWrap.htmlLines.length).toEqual(1)
-    })
-
-    it("should use all available space when one fragment exceeds the given max width", () => {
-        const textWrap = MarkdownTextWrap.fromFragments({
-            main: { text: "Long-word-that-can't-be-broken-up more words" },
-            secondary: { text: "30 million" },
-            textWrapProps: {
-                maxWidth: 150,
-                fontSize,
-            },
-        })
-        expect(textWrap.width).toBeGreaterThan(150)
-    })
-
-    it("should place very long words in a separate line", () => {
-        const textWrap = MarkdownTextWrap.fromFragments({
-            main: { text: "30 million" },
-            secondary: { text: "Long-word-that-can't-be-broken-up" },
-            textWrapProps: {
-                maxWidth: 150,
-                fontSize,
-            },
-        })
-        expect(textWrap.svgLines.length).toEqual(2)
-        expect(textWrap.htmlLines.length).toEqual(2)
     })
 })

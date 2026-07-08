@@ -280,7 +280,7 @@ abstract class AbstractHeader<
     }
 
     private renderSubtitle(): React.ReactElement {
-        const style = {
+        const style: React.CSSProperties = {
             ...this.subtitle.style,
             marginTop: this.subtitleMarginTop,
             width: this.useFullWidthForSubtitle ? "100%" : undefined,

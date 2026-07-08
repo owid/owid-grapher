@@ -1,3 +1,5 @@
+import { FontFamily } from "./fonts.js"
+
 /**
  * This file contains hardcoded character widths for our two main fonts (Lato and
  * Playfair Display). It can be used to roughly estimate the width of a string in
@@ -11,11 +13,6 @@
 // We have pixel width data for all ASCII characters, plus the following:
 // ₀₁₂₃₄₅₆₇₈₉⁰¹²³⁴⁵⁶⁷⁸⁹
 // ‑–—…‘’“”°→≤≥£ºµ‰
-
-export enum FontFamily {
-    Lato = "Lato",
-    PlayfairDisplay = "PlayfairDisplay",
-}
 
 // Variant indices: 0=regular, 1=bold, 2=italic, 3=bold+italic
 // Pre-flattened maps: widthsMap[font][variant][char] -> width in pixels
