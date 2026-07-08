@@ -8,6 +8,8 @@ import { TimeInterval } from "@ourworldindata/types"
 import {
     buildTimeAxisTicks,
     buildDiscreteTimeAxisTicks,
+    buildContinuousQuarterlyAxisTicks,
+    getDiscreteQuarterlyTickOptions,
     buildContinuousMonthlyAxisTicks,
     getDiscreteMonthlyTickOptions,
     buildContinuousWeeklyAxisTicks,
@@ -280,6 +282,125 @@ describe(buildContinuousDailyAxisTicks, () => {
             expect(value).toBeGreaterThanOrEqual(minDay)
             expect(value).toBeLessThanOrEqual(maxDay)
         }
+    })
+})
+
+describe(buildContinuousQuarterlyAxisTicks, () => {
+    // The grid tick values, as YYYY-MM-DD (or undefined for a degenerate span).
+    const gridDates = (
+        min: string,
+        max: string,
+        targetCount: number
+    ): string[] | undefined => {
+        const ticks = buildContinuousQuarterlyAxisTicks({
+            domain: [day(min), day(max)],
+            targetCount,
+        })
+        return ticks && asDates(ticks.map((tick) => tick.value))
+    }
+
+    it("steps by quarter (Jan/Apr/Jul/Oct) across a ~1.5-year span", () => {
+        expect(gridDates("2020-01-01", "2021-06-01", 6)).toEqual([
+            "2020-01-01",
+            "2020-04-01",
+            "2020-07-01",
+            "2020-10-01",
+            "2021-01-01",
+            "2021-04-01",
+        ])
+    })
+
+    it("never steps below a quarter, even for short spans", () => {
+        // The monthly ladder would pick a 1-month step here
+        expect(gridDates("2023-01-01", "2023-07-01", 6)).toEqual([
+            "2023-01-01",
+            "2023-04-01",
+            "2023-07-01",
+        ])
+    })
+
+    it("steps by half-years for ~3-year spans, keeping the year on each January", () => {
+        const ticks = buildContinuousQuarterlyAxisTicks({
+            domain: [day("2020-01-01"), day("2022-07-01")],
+            targetCount: 6,
+        })!
+        expect(ticks.map((t) => t.label)).toEqual([
+            "Jan 2020",
+            "Jul",
+            "Jan 2021",
+            "Jul",
+            "Jan 2022",
+            "Jul",
+        ])
+    })
+
+    it("labels multi-year spans with bare years", () => {
+        const ticks = buildContinuousQuarterlyAxisTicks({
+            domain: [day("2015-06-15"), day("2022-03-01")],
+            targetCount: 6,
+        })!
+        expect(ticks.map((t) => t.label)).toEqual([
+            "2016",
+            "2018",
+            "2020",
+            "2022",
+        ])
+    })
+
+    it("returns undefined for a degenerate (single-quarter) span", () => {
+        expect(gridDates("2020-05-03", "2020-05-28", 6)).toBeUndefined()
+    })
+})
+
+describe(getDiscreteQuarterlyTickOptions, () => {
+    const quarterStarts = (startYear: number, endYear: number): number[] => {
+        const values: number[] = []
+        for (let y = startYear; y <= endYear; y++)
+            for (const m of ["01", "04", "07", "10"])
+                values.push(day(`${y}-${m}-01`))
+        return values
+    }
+    const monthGaps = (ticks: { value: number }[]): number[] => {
+        const idx = ticks.map((t) => {
+            const d = convertDaysSinceEpochToDate(t.value)
+            return d.year() * 12 + d.month()
+        })
+        return idx.slice(1).map((m, i) => m - idx[i])
+    }
+
+    // All quarters of 2018-2023
+    const options = getDiscreteQuarterlyTickOptions({
+        bandValues: quarterStarts(2018, 2023),
+    })
+
+    it("orders options from finest to coarsest", () => {
+        const counts = options.map((option) => option.length)
+        expect(counts).toEqual([...counts].sort((a, b) => b - a))
+    })
+
+    it("includes an every-other-quarter option", () => {
+        const halfYearly = options.find((option) => monthGaps(option)[0] === 6)!
+        expect(halfYearly).toHaveLength(12)
+    })
+
+    it("includes a yearly option of first quarters only", () => {
+        const yearly = options.find((option) => monthGaps(option)[0] === 12)!
+        expect(yearly).toHaveLength(6)
+        for (const tick of yearly)
+            expect(convertDaysSinceEpochToDate(tick.value).month()).toBe(0)
+    })
+
+    it("offers only the every-value option for off-grid quarter starts", () => {
+        // A Feb/May/Aug/Nov cadence doesn't lie on the January-anchored grid
+        const bandValues = [
+            "2020-02-01",
+            "2020-05-01",
+            "2020-08-01",
+            "2020-11-01",
+        ].map(day)
+        const options = getDiscreteQuarterlyTickOptions({ bandValues })
+        expect(options).toHaveLength(1)
+        expect(options[0].map((t) => t.value)).toEqual(bandValues)
     })
 })
 
@@ -576,6 +697,12 @@ describe(getDiscreteTimeTickOptions, () => {
                 bandValues,
             })
         ).toEqual(getDiscreteMonthlyTickOptions({ bandValues }))
+        expect(
+            getDiscreteTimeTickOptions({
+                interval: TimeInterval.Quarter,
+                bandValues,
+            })
+        ).toEqual(getDiscreteQuarterlyTickOptions({ bandValues }))
         expect(
             getDiscreteTimeTickOptions({
                 interval: TimeInterval.Week,

@@ -25,6 +25,20 @@ const MONTH_STEPS = [
     1200, // 100 years
 ] as const
 
+// Calendar-nice step sizes in months for quarterly axes,
+// so they never show sub-quarter ticks
+const QUARTER_STEPS = [
+    3, // 1 quarter
+    6, // 2 quarters
+    12, // 1 year
+    24, // 2 years
+    60, // 5 years
+    120, // 10 years
+    300, // 25 years
+    600, // 50 years
+    1200, // 100 years
+] as const
+
 // Calendar-nice step sizes in days
 const DAY_STEPS = [
     1, // 1 day
@@ -46,6 +60,7 @@ const MONDAY_REFERENCE = snapToIntervalStart(0, TimeInterval.Week)
 // Time intervals with calendar-aware axis ticks; all other intervals
 // fall back to the generic d3 ticks
 const CALENDAR_TICK_INTERVALS = [
+    TimeInterval.Quarter,
     TimeInterval.Month,
     TimeInterval.Week,
     TimeInterval.Day,
@@ -149,6 +164,9 @@ export function buildTimeAxisTicks({
     if (bandValues?.length) return buildDiscreteTimeAxisTicks({ bandValues })
 
     return match(interval)
+        .with(TimeInterval.Quarter, () =>
+            buildContinuousQuarterlyAxisTicks({ domain, targetCount })
+        )
         .with(TimeInterval.Month, () =>
             buildContinuousMonthlyAxisTicks({ domain, targetCount })
         )
@@ -162,15 +180,18 @@ export function buildTimeAxisTicks({
 }
 
 /**
- * An evenly-spaced, January-anchored month grid, sized to `targetCount`,
- * with redundant year/month parts dropped from the labels.
+ * An evenly-spaced, January-anchored month grid stepped by one of the given
+ * step sizes, sized to `targetCount`, with redundant year/month parts
+ * dropped from the labels.
  */
-export function buildContinuousMonthlyAxisTicks({
+function buildContinuousMonthGridTicks({
     domain,
     targetCount,
+    steps,
 }: {
     domain: [number, number]
     targetCount: number
+    steps: readonly number[]
 }): Tickmark[] | undefined {
     const minDate = convertDaysSinceEpochToDate(domain[0])
     const maxDate = convertDaysSinceEpochToDate(domain[1])
@@ -182,8 +203,8 @@ export function buildContinuousMonthlyAxisTicks({
 
     // Pick the smallest step that keeps the tick count at or below the target.
     const step =
-        MONTH_STEPS.find((s) => spanMonths / s <= targetCount) ??
-        MONTH_STEPS[MONTH_STEPS.length - 1]
+        steps.find((s) => spanMonths / s <= targetCount) ??
+        steps[steps.length - 1]
 
     // Start from January of a "nice" anchor year. For year-based steps
     // (12+ months), round the year down to the nearest multiple of the step in
@@ -221,6 +242,43 @@ export function buildContinuousMonthlyAxisTicks({
     return labelGridWithYearOnChange(grid, {
         format: "MMM",
         formatWithYear: "MMM YYYY",
+    })
+}
+
+/**
+ * An evenly-spaced, January-anchored month grid, sized to `targetCount`,
+ * with redundant year/month parts dropped from the labels.
+ */
+export function buildContinuousMonthlyAxisTicks({
+    domain,
+    targetCount,
+}: {
+    domain: [number, number]
+    targetCount: number
+}): Tickmark[] | undefined {
+    return buildContinuousMonthGridTicks({
+        domain,
+        targetCount,
+        steps: MONTH_STEPS,
+    })
+}
+
+/**
+ * A calendar-nice quarter grid (quarter starts: Jan/Apr/Jul/Oct 1, labeled
+ * with month names), sized to `targetCount`. Uses the month grid restricted
+ * to quarter-sized steps, so quarterly axes never show sub-quarter ticks.
+ */
+export function buildContinuousQuarterlyAxisTicks({
+    domain,
+    targetCount,
+}: {
+    domain: [number, number]
+    targetCount: number
+}): Tickmark[] | undefined {
+    return buildContinuousMonthGridTicks({
+        domain,
+        targetCount,
+        steps: QUARTER_STEPS,
     })
 }
 
@@ -363,6 +421,9 @@ export function getDiscreteTimeTickOptions({
     bandValues: number[]
 }): Tickmark[][] {
     return match(interval)
+        .with(TimeInterval.Quarter, () =>
+            getDiscreteQuarterlyTickOptions({ bandValues })
+        )
         .with(TimeInterval.Month, () =>
             getDiscreteMonthlyTickOptions({ bandValues })
         )
@@ -438,6 +499,20 @@ export function getDiscreteMonthlyTickOptions({
     return buildTickOptionsFromGrids(
         bandValues,
         MONTH_STEPS.map(
+            (step) => (value: CalendarValue) => monthGridPosition(value, step)
+        )
+    )
+}
+
+/** See getDiscreteTimeTickOptions; steps every quarter, half-year, year, … */
+export function getDiscreteQuarterlyTickOptions({
+    bandValues,
+}: {
+    bandValues: number[]
+}): Tickmark[][] {
+    return buildTickOptionsFromGrids(
+        bandValues,
+        QUARTER_STEPS.map(
             (step) => (value: CalendarValue) => monthGridPosition(value, step)
         )
     )
