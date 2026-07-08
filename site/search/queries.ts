@@ -94,13 +94,23 @@ async function searchSingleForHitsWithClosestMatches<T>(
 
     const words = (hit: T) => (hit as RankedHit)._rankingInfo?.words ?? 0
     const topWords = relaxed.hits.length ? words(relaxed.hits[0]) : 0
-    if (topWords <= 1) return primary
+    // A single shared word is usually noise ("world cup" matching everything
+    // that mentions "world") — but a distinctive word is a real signal
+    // ("malaria worldwide": "worldwide" matches nothing, yet the "malaria"
+    // charts are exactly what the user wants). Distinctiveness proxy: how many
+    // documents that one word matches — common words match hundreds.
+    if (topWords === 0) return primary
+    if (topWords === 1 && (relaxed.nbHits ?? 0) > 100) return primary
 
+    // Algolia ranks relaxed hits by matched words, so the best tier is a
+    // prefix. When the whole fetched page is one tier, the tier extends past
+    // it — report the full count instead of the page length.
     const tier = relaxed.hits.filter((hit) => words(hit) === topWords)
+    const tierExtendsPastPage = tier.length === relaxed.hits.length
     return {
         ...relaxed,
         hits: tier,
-        nbHits: tier.length,
+        nbHits: tierExtendsPastPage ? relaxed.nbHits : tier.length,
         nbPages: 1,
         page: 0,
         closestMatches: true,
