@@ -6621,7 +6621,8 @@ export const regionsData = [
     {
         code: "WID_MENA",
         name: "Middle East and North Africa (WID)",
-        slug: "mena-wid",
+        shortName: "MENA (WID)",
+        slug: "middle-east-and-north-africa-wid",
         regionType: "aggregate",
         definedBy: "wid",
         members: [
@@ -6761,7 +6762,7 @@ export const regionsData = [
     {
         code: "WID_SSEA",
         name: "South and South-East Asia (WID)",
-        slug: "south--south-east-asia-wid",
+        slug: "south-and-south-east-asia-wid",
         regionType: "aggregate",
         definedBy: "wid",
         members: [
