@@ -14,6 +14,7 @@ export type RawBlockRecirc = {
     }
 }
 
+/** @see ./Recirc.md */
 export type EnrichedBlockRecirc = {
     type: "recirc"
     title: string

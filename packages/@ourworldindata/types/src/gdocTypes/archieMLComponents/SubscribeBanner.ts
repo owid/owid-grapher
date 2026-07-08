@@ -7,6 +7,7 @@ export type RawBlockSubscribeBanner = {
     }
 }
 
+/** @see ./SubscribeBanner.md */
 export type EnrichedBlockSubscribeBanner = {
     type: "subscribe-banner"
     align: BlockAlignment

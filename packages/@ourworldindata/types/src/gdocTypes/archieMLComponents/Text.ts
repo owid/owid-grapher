@@ -6,6 +6,7 @@ export type RawBlockText = {
     value: string
 }
 
+/** @see ./Text.md */
 export type EnrichedBlockText = {
     type: "text"
     value: Span[]

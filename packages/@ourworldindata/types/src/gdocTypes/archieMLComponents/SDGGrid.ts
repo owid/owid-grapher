@@ -18,6 +18,7 @@ export type EnrichedSDGGridItem = {
     link: string
 }
 
+/** @see ./SDGGrid.md */
 export type EnrichedBlockSDGGrid = {
     type: "sdg-grid"
     items: EnrichedSDGGridItem[]

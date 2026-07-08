@@ -9,6 +9,7 @@ export type RawBlockBlockquote = {
     }
 }
 
+/** @see ./Blockquote.md */
 export type EnrichedBlockBlockquote = {
     type: "blockquote"
     text: EnrichedBlockText[]

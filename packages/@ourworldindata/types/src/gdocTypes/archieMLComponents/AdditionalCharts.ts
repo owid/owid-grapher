@@ -8,6 +8,7 @@ export type RawBlockAdditionalCharts = {
     }
 }
 
+/** @see ./AdditionalCharts.md */
 export type EnrichedBlockAdditionalCharts = {
     type: "additional-charts"
     items: Span[][]

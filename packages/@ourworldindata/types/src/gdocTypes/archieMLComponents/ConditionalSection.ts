@@ -13,6 +13,7 @@ export type RawBlockConditionalSection = {
     }
 }
 
+/** @see ./ConditionalSection.md */
 export type EnrichedBlockConditionalSection = {
     type: "conditional-section"
     include: string[]

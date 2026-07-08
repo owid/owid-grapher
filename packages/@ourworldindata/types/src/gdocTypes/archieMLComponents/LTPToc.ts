@@ -12,6 +12,7 @@ export type RawBlockLTPToc = {
         | ArchieMLUnexpectedNonObjectValue
 }
 
+/** @see ./LTPToc.md */
 export type EnrichedBlockLTPToc = {
     type: "ltp-toc"
     title?: string

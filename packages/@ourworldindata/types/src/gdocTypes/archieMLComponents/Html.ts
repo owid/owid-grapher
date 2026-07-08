@@ -5,6 +5,7 @@ export type RawBlockHtml = {
     value: string
 }
 
+/** @see ./Html.md */
 export type EnrichedBlockHtml = {
     type: "html"
     value: string

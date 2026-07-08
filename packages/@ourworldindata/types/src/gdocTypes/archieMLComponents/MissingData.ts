@@ -5,6 +5,7 @@ export type RawBlockMissingData = {
     value?: Record<string, never>
 }
 
+/** @see ./MissingData.md */
 export type EnrichedBlockMissingData = {
     type: "missing-data"
     value?: Record<string, never>

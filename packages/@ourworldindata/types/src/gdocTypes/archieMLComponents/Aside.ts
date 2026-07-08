@@ -16,6 +16,7 @@ export type RawBlockAside = {
     value: RawBlockAsideValue | ArchieMLUnexpectedNonObjectValue
 }
 
+/** @see ./Aside.md */
 export type EnrichedBlockAside = {
     type: "aside"
     position?: BlockPositionChoice

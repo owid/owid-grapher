@@ -18,6 +18,7 @@ export type RawBlockExploreDataSection = {
     }
 }
 
+/** @see ./ExploreDataSection.md */
 export type EnrichedBlockExploreDataSection = {
     type: "explore-data-section"
     title?: string

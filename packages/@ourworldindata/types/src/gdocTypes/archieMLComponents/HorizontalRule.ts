@@ -5,6 +5,7 @@ export type RawBlockHorizontalRule = {
     value?: Record<string, never> // dummy value to unify block shapes
 }
 
+/** @see ./HorizontalRule.md */
 export type EnrichedBlockHorizontalRule = {
     type: "horizontal-rule"
     value?: Record<string, never> // dummy value to unify block shapes

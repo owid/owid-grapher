@@ -177,6 +177,11 @@ export {
 
 export * from "./gdocTypes/ArchieMlComponents.js"
 
+export type {
+    ComponentDoc,
+    ComponentExample,
+} from "./gdocTypes/ComponentReference.js"
+
 export {
     ChartConfigType,
     OwidGdocPublicationContext,

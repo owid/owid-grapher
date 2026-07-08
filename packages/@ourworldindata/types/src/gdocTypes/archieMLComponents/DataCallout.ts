@@ -12,6 +12,7 @@ export type RawBlockDataCallout = {
     }
 }
 
+/** @see ./DataCallout.md */
 export type EnrichedBlockDataCallout = {
     type: "data-callout"
     url: string
@@ -25,6 +26,7 @@ export type RawBlockDataCalloutGroup = {
     }
 }
 
+/** @see ./DataCalloutGroup.md */
 export type EnrichedBlockDataCalloutGroup = {
     type: "data-callout-group"
     content: OwidEnrichedGdocBlock[]

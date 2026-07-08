@@ -15,6 +15,7 @@ export type RawBlockNarrativeChart = {
     value: RawBlockNarrativeChartValue | string
 }
 
+/** @see ./NarrativeChart.md */
 export type EnrichedBlockNarrativeChart = {
     type: "narrative-chart"
     name: string

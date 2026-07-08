@@ -19,6 +19,7 @@ export const resourcePanelIcons = ["chart"] as const
 
 export type ResourcePanelIcon = (typeof resourcePanelIcons)[number]
 
+/** @see ./ResourcePanel.md */
 export type EnrichedBlockResourcePanel = {
     type: "resource-panel"
     icon?: ResourcePanelIcon

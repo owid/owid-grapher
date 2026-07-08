@@ -9,6 +9,7 @@ export type RawBlockGraySection = {
     value: OwidRawGdocBlock[]
 }
 
+/** @see ./GraySection.md */
 export type EnrichedBlockGraySection = {
     type: "gray-section"
     items: OwidEnrichedGdocBlock[]

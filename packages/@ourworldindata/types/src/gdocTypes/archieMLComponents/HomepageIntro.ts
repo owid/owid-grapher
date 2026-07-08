@@ -28,6 +28,7 @@ export type EnrichedBlockHomepageIntroPost = {
     isNew?: boolean
 }
 
+/** @see ./HomepageIntro.md */
 export type EnrichedBlockHomepageIntro = {
     type: "homepage-intro"
     featuredWork: EnrichedBlockHomepageIntroPost[]

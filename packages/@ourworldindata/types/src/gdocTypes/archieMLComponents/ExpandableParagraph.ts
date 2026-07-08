@@ -9,6 +9,7 @@ export type RawBlockExpandableParagraph = {
     value: OwidRawGdocBlock[]
 }
 
+/** @see ./ExpandableParagraph.md */
 export type EnrichedBlockExpandableParagraph = {
     type: "expandable-paragraph"
     items: OwidEnrichedGdocBlock[]

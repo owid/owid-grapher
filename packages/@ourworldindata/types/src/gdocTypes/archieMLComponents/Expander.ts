@@ -14,6 +14,7 @@ export type RawBlockExpander = {
     }
 }
 
+/** @see ./Expander.md */
 export type EnrichedBlockExpander = {
     type: "expander"
     heading?: string

@@ -22,6 +22,7 @@ export type EnrichedChartStoryItem = {
     technical: EnrichedBlockText[]
 }
 
+/** @see ./ChartStory.md */
 export type EnrichedBlockChartStory = {
     type: "chart-story"
     items: EnrichedChartStoryItem[]

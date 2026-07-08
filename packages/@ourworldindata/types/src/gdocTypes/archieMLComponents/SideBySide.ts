@@ -12,6 +12,7 @@ export type RawBlockSideBySideContainer = {
     }
 }
 
+/** @see ./SideBySideContainer.md */
 export type EnrichedBlockSideBySideContainer = {
     type: "side-by-side"
     left: OwidEnrichedGdocBlock[]

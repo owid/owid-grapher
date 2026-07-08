@@ -21,6 +21,7 @@ export type EnrichedBlockEntrySummaryItem = {
     slug: string
 }
 
+/** @see ./EntrySummary.md */
 export type EnrichedBlockEntrySummary = {
     type: "entry-summary"
     items: EnrichedBlockEntrySummaryItem[]

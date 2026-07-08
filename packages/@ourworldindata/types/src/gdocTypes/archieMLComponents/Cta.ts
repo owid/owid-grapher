@@ -8,6 +8,7 @@ export type RawBlockCta = {
     }
 }
 
+/** @see ./Cta.md */
 export type EnrichedBlockCta = {
     type: "cta"
     text: string

@@ -13,6 +13,7 @@ export type RawBlockAlign = {
     }
 }
 
+/** @see ./Align.md */
 export type EnrichedBlockAlign = {
     type: "align"
     alignment: HorizontalAlign

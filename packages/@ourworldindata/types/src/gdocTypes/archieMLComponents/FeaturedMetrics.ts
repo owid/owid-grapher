@@ -5,6 +5,7 @@ export type RawBlockFeaturedMetrics = {
     value: Record<string, never>
 }
 
+/** @see ./FeaturedMetrics.md */
 export type EnrichedBlockFeaturedMetrics = {
     type: "featured-metrics"
 } & EnrichedBlockWithParseErrors

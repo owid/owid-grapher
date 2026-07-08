@@ -18,6 +18,7 @@ export type RawBlockImage = {
     }
 }
 
+/** @see ./Image.md */
 export type EnrichedBlockImage = {
     type: "image"
     filename: string

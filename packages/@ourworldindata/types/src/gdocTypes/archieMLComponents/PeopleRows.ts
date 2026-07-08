@@ -30,17 +30,20 @@ export type RawBlockPeople = {
     value: RawBlockPerson[] | ArchieMLUnexpectedNonObjectValue
 }
 
+/** @see ./PeopleRows.md */
 export type EnrichedBlockPeopleRows = {
     type: "people-rows"
     columns: "2" | "4"
     people: EnrichedBlockPerson[]
 } & EnrichedBlockWithParseErrors
 
+/** @see ./People.md */
 export type EnrichedBlockPeople = {
     type: "people"
     items: EnrichedBlockPerson[]
 } & EnrichedBlockWithParseErrors
 
+/** @see ./Person.md */
 export type EnrichedBlockPerson = {
     type: "person"
     image?: string

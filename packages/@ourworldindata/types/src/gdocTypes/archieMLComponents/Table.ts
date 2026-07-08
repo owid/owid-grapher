@@ -39,6 +39,7 @@ export interface RawBlockTableCell {
     value?: OwidRawGdocBlock[]
 }
 
+/** @see ./Table.md */
 export type EnrichedBlockTable = {
     type: "table"
     // template is optional because it can be inferred from the table size

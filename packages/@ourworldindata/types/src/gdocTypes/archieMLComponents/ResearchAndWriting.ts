@@ -63,6 +63,7 @@ export type EnrichedBlockLatestWork = {
     articles?: EnrichedBlockResearchAndWritingLink[]
 }
 
+/** @see ./ResearchAndWriting.md */
 export type EnrichedBlockResearchAndWriting = {
     type: "research-and-writing"
     heading?: string
