@@ -341,7 +341,7 @@ describe("for months", () => {
         expect(labels).toEqual(["Jan 2020", "Jun 2020", "Nov 2020"])
     })
 
-    it("labels every bar with month + year on a discrete monthly axis", () => {
+    it("labels every band value with month + year on a discrete monthly axis", () => {
         const day = (date: string): number =>
             convertDateToDaysSinceEpoch(dayjs.utc(date))
         const bandValues = ["2020-01-01", "2020-04-01", "2020-07-01"].map(day)
@@ -359,8 +359,8 @@ describe("for months", () => {
         axis.formatColumn = table.get("month")
         axis.range = [0, 800]
 
-        // one tick per bar, each keeping its full month + year
-        expect(axis.getTickValues().map((t) => t.label)).toEqual([
+        // one tick per band value, labeled with the column's full month + year format
+        expect(axis.tickLabels.map((t) => t.formattedValue)).toEqual([
             "Jan 2020",
             "Apr 2020",
             "Jul 2020",
@@ -417,6 +417,42 @@ describe("for months", () => {
         const wide = tickCountAt(2000)
         expect(wide).toBeGreaterThan(1) // a wide axis shows a real cadence
         expect(wide).toBeGreaterThanOrEqual(narrow) // wider fits at least as many
+    })
+
+    it("falls back to overlap-hiding when no evenly-spaced option fits on a daily band axis", () => {
+        const day = (date: string): number =>
+            convertDateToDaysSinceEpoch(dayjs.utc(date))
+        // Irregular dates — no Mondays, no first-of-month — so the only
+        // evenly-spaced labeling option is labeling every value
+        const bandValues = [
+            "2020-03-03",
+            "2020-03-06",
+            "2020-03-07",
+            "2020-03-12",
+            "2020-03-13",
+            "2020-03-17",
+            "2020-03-20",
+            "2020-03-26",
+        ].map(day)
+        const table = new OwidTable({ entityName: ["usa"], day: [0] }, [
+            { slug: "day", type: ColumnTypeNames.Day },
+        ])
+        const axis = new HorizontalAxis(
+            new AxisConfig({
+                scaleType: ScaleType.linear,
+                min: bandValues[0],
+                max: bandValues[bandValues.length - 1],
+                bandValues,
+            })
+        )
+        axis.formatColumn = table.get("day")
+        axis.range = [0, 120] // far too narrow to label every value
+
+        // labeling every value does not fit, so the axis greedily
+        // drops overlapping labels instead of rendering them all
+        const labels = axis.tickLabels
+        expect(labels.length).toBeGreaterThan(0)
+        expect(labels.length).toBeLessThan(bandValues.length)
     })
 
     it("keeps monthly ticks aligned when min/max are not month boundaries", () => {

@@ -19,7 +19,9 @@ import { ComparisonLineConfig } from "@ourworldindata/types"
 import { AxisConfig, AxisManager } from "./AxisConfig"
 import {
     buildTimeAxisTicks,
-    getDiscreteMonthlyTickOptions,
+    getDiscreteTimeTickOptions,
+    isCalendarTickInterval,
+    type CalendarTickInterval,
 } from "./timeAxisTicks.js"
 import { MarkdownTextWrap } from "@ourworldindata/components"
 import { CoreColumn } from "@ourworldindata/core-table"
@@ -330,15 +332,30 @@ abstract class AbstractAxis {
     }
 
     /**
+     * The time interval for which this axis shows calendar-aware ticks, or
+     * `undefined` if the axis uses the generic tick pipeline instead (because
+     * ticks are author-supplied, the column isn't a time column, or its
+     * interval has no calendar-aware handling).
+     */
+    @computed protected get calendarTickInterval():
+        | CalendarTickInterval
+        | undefined {
+        const column = this.formatColumn
+        if (this.config.ticks || !column?.isTimeColumn) return undefined
+        return isCalendarTickInterval(column.timeInterval)
+            ? column.timeInterval
+            : undefined
+    }
+
+    /**
      * Calendar-aware ticks (values + labels) for time axes that support them;
      * `undefined` otherwise, so the axis falls through to the generic pipeline.
      */
     @computed protected get timeAxisTicks(): Tickmark[] | undefined {
-        if (this.config.ticks || !this.formatColumn?.isTimeColumn)
-            return undefined
+        if (this.calendarTickInterval === undefined) return undefined
 
         return buildTimeAxisTicks({
-            interval: this.formatColumn.timeInterval,
+            interval: this.calendarTickInterval,
             domain: this.domain,
             targetCount: this.totalTicksTarget,
             bandValues: this.config.bandValues,
@@ -723,19 +740,21 @@ export class HorizontalAxis extends AbstractAxis {
 
     @computed get tickLabels(): TickLabelPlacement[] {
         // A discrete (band) time axis shows a single evenly-spaced labeling:
-        // the finest one that fits (every month, then quarter, year, 2 years, …)
-        if (this.timeAxisTicks && this.config.bandValues) {
-            const options = getDiscreteMonthlyTickOptions({
-                bandValues: this.config.bandValues ?? [],
+        // the finest one that fits (every day, then week, month, quarter, year, …)
+        const interval = this.calendarTickInterval
+        if (interval !== undefined && this.config.bandValues) {
+            const options = getDiscreteTimeTickOptions({
+                interval,
+                bandValues: this.config.bandValues,
             })
-            let placedTickLabels: TickLabelPlacement[] = []
             for (const option of options) {
-                placedTickLabels = option.map((tick) =>
+                const placedTickLabels = option.map((tick) =>
                     this.placeTickLabel(tick.value, tick.label)
                 )
-                if (labelsFit(placedTickLabels, { padding: 3 })) break
+                if (labelsFit(placedTickLabels, { padding: 3 }))
+                    return placedTickLabels
             }
-            return placedTickLabels
+            // If no evenly-spaced option fits, fall through to the greedy labeling below
         }
 
         // Otherwise: place all ticks greedily drop individual overlaps.
