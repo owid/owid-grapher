@@ -436,12 +436,12 @@ export class FacetChart
     }
 
     @computed private get variant(): GrapherVariant {
-        if (!this.canShowThumbnails) return GrapherVariant.Default
-
         // When the whole chart is exported as a thumbnail,
         // always render the facets as thumbnails
         if (this.manager.variant === GrapherVariant.Thumbnail)
             return GrapherVariant.Thumbnail
+
+        if (!this.canShowThumbnails) return GrapherVariant.Default
 
         return this.hasSmallFacets
             ? GrapherVariant.Thumbnail
