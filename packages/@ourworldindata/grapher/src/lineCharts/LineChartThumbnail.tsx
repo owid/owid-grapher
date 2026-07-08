@@ -3,12 +3,7 @@ import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import * as _ from "lodash-es"
 import { scaleLinear } from "d3-scale"
-import {
-    Bounds,
-    SeriesName,
-    VerticalAlign,
-    dyFromAlign,
-} from "@ourworldindata/utils"
+import { Bounds, SeriesName } from "@ourworldindata/utils"
 import { SideWidths } from "@ourworldindata/types"
 import { ChartInterface } from "../chart/ChartInterface"
 import { LineChartState } from "./LineChartState"
@@ -46,7 +41,6 @@ import { InitialAnchoredLabelSeries } from "../anchoredLabels/AnchoredLabelsType
 import { AnchoredLabelsState } from "../anchoredLabels/AnchoredLabelsState"
 import { AnchoredLabels } from "../anchoredLabels/AnchoredLabels"
 import { darkenColorForLine } from "../color/ColorUtils.js"
-import { GRAPHER_LIGHT_TEXT } from "../color/ColorConstants.js"
 import { NoDataMessage } from "../noDataMessage/NoDataMessage"
 import { HorizontalColorLegendManager } from "../legend/HorizontalColorLegends.js"
 import { CategoricalBin } from "../color/ColorScaleBin.js"
@@ -187,10 +181,6 @@ export class LineChartThumbnail
             fontWeight: 700,
             lineHeight: 1,
         }
-    }
-
-    @computed private get tickFontSettings(): FontSettings {
-        return { ...this.labelFontSettings, fontWeight: 400 }
     }
 
     private formatLabel(value: number): string {
@@ -508,10 +498,7 @@ export class LineChartThumbnail
 
     // Consumed by FacetChart to align chart content across facets
     @computed get verticalLabelWidths(): SideWidths {
-        return {
-            left: Math.max(this.estimatedLabelWidths.left, this.zeroLabelWidth),
-            right: this.estimatedLabelWidths.right,
-        }
+        return this.estimatedLabelWidths
     }
 
     // Consumed by FacetChart to align the facet label with the plot content
@@ -586,17 +573,6 @@ export class LineChartThumbnail
         return min <= 0 && max >= 0
     }
 
-    @computed private get zeroLabelText(): string | undefined {
-        if (!this.shouldShowZeroLine) return undefined
-        return this.formatLabel(0)
-    }
-
-    @computed private get zeroLabelWidth(): number {
-        const { zeroLabelText, tickFontSettings } = this
-        if (!zeroLabelText) return 0
-        return Bounds.forText(zeroLabelText, tickFontSettings).width
-    }
-
     override render(): React.ReactElement {
         if (this.chartState.errorInfo.reason)
             return (
@@ -623,15 +599,6 @@ export class LineChartThumbnail
                         verticalAxis={this.dualAxis.verticalAxis}
                         bounds={this.dualAxis.innerBounds}
                         strokeWidth={0.5}
-                    />
-                )}
-                {this.zeroLabelText && (
-                    <ZeroLineLabel
-                        text={this.zeroLabelText}
-                        axis={this.dualAxis.verticalAxis}
-                        bounds={this.dualAxis.innerBounds}
-                        xOffset={this.labelPadding}
-                        fontSettings={this.tickFontSettings}
                     />
                 )}
                 {!this.dualAxis.horizontalAxis.hideAxis && (
@@ -675,35 +642,4 @@ function Dot({
     radius: number
 }): React.ReactElement | null {
     return <circle cx={point.x} cy={point.y} r={radius} fill={point.color} />
-}
-
-/** Value label for the zero line, placed in the left gutter of the plot area. */
-function ZeroLineLabel({
-    text,
-    axis,
-    bounds,
-    xOffset,
-    fontSettings,
-    fill = GRAPHER_LIGHT_TEXT,
-}: {
-    text: string
-    axis: VerticalAxis
-    bounds: Bounds
-    xOffset: number
-    fontSettings: FontSettings
-    fill?: string
-}): React.ReactElement {
-    return (
-        <text
-            x={(bounds.left - xOffset).toFixed(2)}
-            y={axis.place(0).toFixed(2)}
-            dy={dyFromAlign(VerticalAlign.middle)}
-            textAnchor="end"
-            fontSize={fontSettings.fontSize}
-            fontWeight={fontSettings.fontWeight}
-            fill={fill}
-        >
-            {text}
-        </text>
-    )
 }
