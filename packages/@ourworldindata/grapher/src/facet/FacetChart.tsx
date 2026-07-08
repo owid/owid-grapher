@@ -197,7 +197,7 @@ export class FacetChart
     }
 
     @computed private get facetBaseFontSize(): number {
-        return this.facetLabelFontSize
+        return Math.max(11, this.facetLabelFontSize)
     }
 
     @computed private get yAxisConfig(): AxisConfig {
