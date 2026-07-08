@@ -30,6 +30,18 @@
             "binding": "USER_SURVEYS_R2"
         }
     ],
+    "d1_databases": [
+        {
+            "binding": "EMAIL_NOTIFICATIONS_DB",
+            "database_name": "owid-email-notifications-staging",
+            // TODO: create the database with `npx wrangler d1 create
+            // owid-email-notifications-staging` and fill in the real id.
+            // Local dev (`wrangler pages dev`) uses a local SQLite database
+            // and doesn't care about the id.
+            "database_id": "00000000-0000-0000-0000-000000000000",
+            "migrations_dir": "d1/email-notifications/migrations"
+        }
+    ],
     "vars": {
         "ENV": "development",
         "GRAPHER_CONFIG_R2_BUCKET_FALLBACK_PATH": "v1",
@@ -52,6 +64,15 @@
                 {
                     "bucket_name": "owid-user-surveys-staging",
                     "binding": "USER_SURVEYS_R2"
+                }
+            ],
+            "d1_databases": [
+                {
+                    "binding": "EMAIL_NOTIFICATIONS_DB",
+                    "database_name": "owid-email-notifications-staging",
+                    // TODO: create the database and fill in the real id.
+                    "database_id": "00000000-0000-0000-0000-000000000000",
+                    "migrations_dir": "d1/email-notifications/migrations"
                 }
             ],
             "vars": {
@@ -84,6 +105,15 @@
                 {
                     "bucket_name": "owid-user-surveys",
                     "binding": "USER_SURVEYS_R2"
+                }
+            ],
+            "d1_databases": [
+                {
+                    "binding": "EMAIL_NOTIFICATIONS_DB",
+                    "database_name": "owid-email-notifications",
+                    // TODO: create the database and fill in the real id.
+                    "database_id": "00000000-0000-0000-0000-000000000000",
+                    "migrations_dir": "d1/email-notifications/migrations"
                 }
             ],
             "vars": {
