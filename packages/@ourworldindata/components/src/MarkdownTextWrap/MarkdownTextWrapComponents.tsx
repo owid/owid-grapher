@@ -1,18 +1,27 @@
+import * as _ from "lodash-es"
 import * as React from "react"
 import { DetailsMarker } from "@ourworldindata/types"
 import {
-    MarkdownTextWrap,
+    getLineFontSize,
+    getLineGap,
     IRDetailOnDemand,
     IRToken,
-} from "./MarkdownTextWrap.js"
+} from "./IRTokens.js"
+import { AbstractTokenTextWrap } from "./AbstractTokenTextWrap.js"
+import { omitUndefinedValues } from "@ourworldindata/utils"
 
 function MarkdownTextWrapLine({
     line,
+    style,
 }: {
     line: IRToken[]
+    style?: React.CSSProperties
 }): React.ReactElement {
     return (
-        <span className="markdown-text-wrap__line">
+        <span
+            className="markdown-text-wrap__line"
+            style={omitUndefinedValues(style)}
+        >
             {line.length ? line.map((token, i) => token.toHTML(i)) : <br />}
         </span>
     )
@@ -21,7 +30,7 @@ function MarkdownTextWrapLine({
 export function MarkdownTextWrapHtml({
     textWrap,
 }: {
-    textWrap: MarkdownTextWrap
+    textWrap: AbstractTokenTextWrap
 }): React.ReactElement | null {
     const { htmlLines } = textWrap
     if (htmlLines.length === 0) return null
@@ -31,10 +40,23 @@ export function MarkdownTextWrapHtml({
                 const plaintextLine = line
                     .map((token) => token.toPlaintext())
                     .join("")
+
+                const lineFontSize = getLineFontSize(line) ?? textWrap.fontSize
+                const lineGap = getLineGap(line)
+
+                const style = {
+                    fontSize:
+                        lineFontSize !== textWrap.fontSize
+                            ? lineFontSize
+                            : undefined,
+                    marginTop: lineGap > 0 ? lineGap : undefined,
+                }
+
                 return (
                     <MarkdownTextWrapLine
                         key={`${plaintextLine}-${i}`}
                         line={line}
+                        style={style}
                     />
                 )
             })}
@@ -50,13 +72,12 @@ export function MarkdownTextWrapSvg({
     id,
     ...svgTextProps
 }: {
-    textWrap: MarkdownTextWrap
+    textWrap: AbstractTokenTextWrap
     x: number
     y: number
     detailsMarker?: DetailsMarker
     id?: string
 } & React.SVGProps<SVGTextElement>): React.ReactElement {
-    const { fontSize, lineHeight } = textWrap
     const lines =
         detailsMarker === "superscript"
             ? textWrap.svgLinesWithDodReferenceNumbers
@@ -65,8 +86,13 @@ export function MarkdownTextWrapSvg({
 
     const [, yOffset] = textWrap.getPositionForSvgRendering(x, y)
 
-    const getLineY = (lineIndex: number) =>
-        yOffset + lineHeight * fontSize * lineIndex
+    // The first line's baseline is given by yOffset; every subsequent line
+    // advances the baseline by its own line height plus its line gap
+    const lineHeights = lines.map(
+        (line) => textWrap.getLineHeight(line) + getLineGap(line)
+    )
+    const getLineY = (lineIndex: number): number =>
+        yOffset + _.sum(lineHeights.slice(1, lineIndex + 1))
 
     return (
         <g id={id} className="markdown-text-wrap">

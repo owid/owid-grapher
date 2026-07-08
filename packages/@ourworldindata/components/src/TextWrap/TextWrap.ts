@@ -107,6 +107,13 @@ export interface ITextWrap {
     getPositionForSvgRendering(x: number, y: number): [number, number]
 }
 
+export const sumTextWrapHeights = (
+    elements: ITextWrap[],
+    spacer: number = 0
+): number =>
+    _.sum(elements.map((element) => element.height)) +
+    (elements.length - 1) * spacer
+
 export class TextWrap implements ITextWrap {
     private static readonly defaultOptions = {
         maxWidth: Infinity,
