@@ -57,6 +57,7 @@ export interface ChartRecord {
     containerTitle?: string
     subtitle: string | undefined
     variantName: string
+    titleVariant?: string
     availableTabs: GrapherTabName[]
     keyChartForTags: string[]
     tags: string[]
@@ -107,6 +108,7 @@ interface BaseSearchChartHit {
     originalAvailableEntities?: string[]
     objectID: string
     variantName?: string
+    titleVariant?: string
     subtitle?: string
     availableTabs: GrapherTabName[]
     /**
