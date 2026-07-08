@@ -103,14 +103,14 @@ async function searchSingleForHitsWithClosestMatches<T>(
     if (topWords === 1 && (relaxed.nbHits ?? 0) > 100) return primary
 
     // Algolia ranks relaxed hits by matched words, so the best tier is a
-    // prefix. When the whole fetched page is one tier, the tier extends past
-    // it — report the full count instead of the page length.
+    // prefix. For a one-word tier, EVERY match shares that word, so the full
+    // count is the tier size; multi-word tiers may extend past the fetched
+    // page, where the page length is a (honest) undercount.
     const tier = relaxed.hits.filter((hit) => words(hit) === topWords)
-    const tierExtendsPastPage = tier.length === relaxed.hits.length
     return {
         ...relaxed,
         hits: tier,
-        nbHits: tierExtendsPastPage ? relaxed.nbHits : tier.length,
+        nbHits: topWords === 1 ? relaxed.nbHits : tier.length,
         nbPages: 1,
         page: 0,
         closestMatches: true,
