@@ -129,6 +129,21 @@ export const CLOUDFLARE_IMAGES_ACCOUNT_ID: string =
 export const CLOUDFLARE_IMAGES_API_KEY: string =
     serverSettings.CLOUDFLARE_IMAGES_API_KEY || ""
 
+// Email notifications send job (baker/emailNotifications/). The subscriber
+// data lives in a Cloudflare D1 database, which the job (running on our own
+// infra) accesses remotely via the Cloudflare HTTP API.
+export const EMAIL_NOTIFICATIONS_CLOUDFLARE_ACCOUNT_ID: string =
+    serverSettings.EMAIL_NOTIFICATIONS_CLOUDFLARE_ACCOUNT_ID || ""
+// API token with D1 read/write permission for the email notifications
+// database.
+export const EMAIL_NOTIFICATIONS_CLOUDFLARE_API_TOKEN: string =
+    serverSettings.EMAIL_NOTIFICATIONS_CLOUDFLARE_API_TOKEN || ""
+export const EMAIL_NOTIFICATIONS_D1_DATABASE_ID: string =
+    serverSettings.EMAIL_NOTIFICATIONS_D1_DATABASE_ID || ""
+// If unset, sending via Postmark is skipped (useful for local development).
+export const POSTMARK_SERVER_TOKEN: string =
+    serverSettings.POSTMARK_SERVER_TOKEN || ""
+
 export const OWID_ASSETS_R2_ACCESS_KEY: string =
     serverSettings.OWID_ASSETS_R2_ACCESS_KEY || ""
 export const OWID_ASSETS_R2_SECRET_KEY: string =

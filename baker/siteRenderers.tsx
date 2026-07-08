@@ -537,8 +537,17 @@ export const renderExplorerIndexPage = async (
     )
 }
 
-export const renderSubscribePage = async (): Promise<string> => {
-    return renderToHtmlPage(<SubscribePage baseUrl={BAKED_BASE_URL} />)
+export const renderSubscribePage = async (
+    knex: KnexReadonlyTransaction
+): Promise<string> => {
+    const topicTagGraph = await generateTopicTagGraph(knex)
+    const flattenedTopicTagGraph = flattenNonTopicNodes(topicTagGraph)
+    return renderToHtmlPage(
+        <SubscribePage
+            baseUrl={BAKED_BASE_URL}
+            topicTagGraph={flattenedTopicTagGraph}
+        />
+    )
 }
 
 interface ExplorerRenderOpts {

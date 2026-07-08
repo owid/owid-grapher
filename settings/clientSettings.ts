@@ -69,6 +69,15 @@ export const CLOUDFLARE_IMAGES_URL = process.env.CLOUDFLARE_IMAGES_URL ?? ""
 export const DONATE_API_URL: string =
     process.env.DONATE_API_URL ?? "http://localhost:8788/donation/donate"
 
+// The email notifications API (Cloudflare Functions) is served on the same
+// host as the site in every deployed environment, so a relative URL works —
+// except in local development, where the site and the functions dev server
+// run on different ports.
+export const EMAIL_NOTIFICATIONS_API_BASE_URL: string =
+    ENV === "development"
+        ? "http://localhost:8788/api/email-notifications"
+        : "/api/email-notifications"
+
 export const TURNSTILE_SITE_KEY: string =
     process.env.TURNSTILE_SITE_KEY ??
     (ENV === "development"
