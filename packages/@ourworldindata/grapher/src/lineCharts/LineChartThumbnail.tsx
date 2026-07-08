@@ -46,12 +46,10 @@ import { InitialAnchoredLabelSeries } from "../anchoredLabels/AnchoredLabelsType
 import { AnchoredLabelsState } from "../anchoredLabels/AnchoredLabelsState"
 import { AnchoredLabels } from "../anchoredLabels/AnchoredLabels"
 import { darkenColorForLine } from "../color/ColorUtils.js"
-import { GRAPHER_DARK_TEXT } from "../color/ColorConstants.js"
+import { GRAPHER_LIGHT_TEXT } from "../color/ColorConstants.js"
 import { NoDataMessage } from "../noDataMessage/NoDataMessage"
 import { HorizontalColorLegendManager } from "../legend/HorizontalColorLegends.js"
 import { CategoricalBin } from "../color/ColorScaleBin.js"
-
-const HORIZONTAL_GRID_LINE_STROKE_WIDTH = 1
 
 @observer
 export class LineChartThumbnail
@@ -614,7 +612,7 @@ export class LineChartThumbnail
                     <VerticalAxisZeroLine
                         axis={this.dualAxis.verticalAxis}
                         bounds={this.dualAxis.innerBounds}
-                        strokeWidth={HORIZONTAL_GRID_LINE_STROKE_WIDTH}
+                        strokeWidth={0.5}
                     />
                 ) : (
                     // The domain line is the baseline at the bottom of the plot.
@@ -623,7 +621,7 @@ export class LineChartThumbnail
                     <VerticalAxisDomainLine
                         verticalAxis={this.dualAxis.verticalAxis}
                         bounds={this.dualAxis.innerBounds}
-                        strokeWidth={HORIZONTAL_GRID_LINE_STROKE_WIDTH}
+                        strokeWidth={0.5}
                     />
                 )}
                 {this.zeroLabelText && (
@@ -685,7 +683,7 @@ function ZeroLineLabel({
     bounds,
     xOffset,
     fontSettings,
-    fill = GRAPHER_DARK_TEXT,
+    fill = GRAPHER_LIGHT_TEXT,
 }: {
     text: string
     axis: VerticalAxis
