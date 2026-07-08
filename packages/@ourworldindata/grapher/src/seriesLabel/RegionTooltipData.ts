@@ -53,6 +53,9 @@ const descriptions: Record<TooltipKey, string> = {
     wid: "The **World Inequality Database (WID)** groups countries into [nine world regions](https://ourworldindata.org/world-region-map-definitions#world-inequality-database-wid):",
     ilo_1: "The **International Labour Organization (ILO)** defines [five broad world regions](https://ourworldindata.org/world-region-map-definitions#international-labour-organization-ilo):",
     ilo_2: "The **International Labour Organization (ILO)** divides the world into [eleven subregions](https://ourworldindata.org/world-region-map-definitions#international-labour-organization-ilo):",
+    fao_1: "The **Food and Agriculture Organization of the United Nations (FAO)** groups countries into [five broad regions](https://ourworldindata.org/world-region-map-definitions#food-and-agriculture-organization-fao), following the UN M49 continental classification:",
+    fao_2: "The **Food and Agriculture Organization of the United Nations (FAO)** divides the world into [17 subregions](https://ourworldindata.org/world-region-map-definitions#food-and-agriculture-organization-fao), following the UN M49 classification:",
+    fao_3: "At its most detailed level, the **Food and Agriculture Organization of the United Nations (FAO)** subdivides Sub-Saharan Africa and Latin America and the Caribbean into [seven regions](https://ourworldindata.org/world-region-map-definitions#food-and-agriculture-organization-fao):",
 }
 
 // Geographic display order: left-to-right on the map.
@@ -155,6 +158,41 @@ const customRegionDisplayOrder: Partial<Record<TooltipKey, string[]>> = {
         "Northern, Southern and Western Europe (ILO)",
         "Eastern Europe (ILO)",
         "Central and Western Asia (ILO)",
+    ],
+    fao_1: [
+        "Africa (FAO)",
+        "Americas (FAO)",
+        "Asia (FAO)",
+        "Europe (FAO)",
+        "Oceania (FAO)",
+    ],
+    fao_2: [
+        "Northern Africa (FAO)",
+        "Sub-Saharan Africa (FAO)",
+        "Northern America (FAO)",
+        "Latin America and the Caribbean (FAO)",
+        "Western Asia (FAO)",
+        "Central Asia (FAO)",
+        "Southern Asia (FAO)",
+        "Eastern Asia (FAO)",
+        "South-eastern Asia (FAO)",
+        "Southern Europe (FAO)",
+        "Western Europe (FAO)",
+        "Northern Europe (FAO)",
+        "Eastern Europe (FAO)",
+        "Australia and New Zealand (FAO)",
+        "Melanesia (FAO)",
+        "Micronesia (FAO)",
+        "Polynesia (FAO)",
+    ],
+    fao_3: [
+        "Central America (FAO)",
+        "Caribbean (FAO)",
+        "South America (FAO)",
+        "Western Africa (FAO)",
+        "Middle Africa (FAO)",
+        "Southern Africa (FAO)",
+        "Eastern Africa (FAO)",
     ],
 }
 
