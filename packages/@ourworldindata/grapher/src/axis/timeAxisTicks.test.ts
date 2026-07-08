@@ -10,6 +10,8 @@ import {
     buildDiscreteTimeAxisTicks,
     buildContinuousMonthlyAxisTicks,
     getDiscreteMonthlyTickOptions,
+    buildContinuousWeeklyAxisTicks,
+    getDiscreteWeeklyTickOptions,
     buildContinuousDailyAxisTicks,
     getDiscreteDailyTickOptions,
     getDiscreteTimeTickOptions,
@@ -281,6 +283,138 @@ describe(buildContinuousDailyAxisTicks, () => {
     })
 })
 
+describe(buildContinuousWeeklyAxisTicks, () => {
+    // The grid tick values, as YYYY-MM-DD (or undefined for a degenerate span).
+    const gridDates = (
+        min: string,
+        max: string,
+        targetCount: number
+    ): string[] | undefined => {
+        const ticks = buildContinuousWeeklyAxisTicks({
+            domain: [day(min), day(max)],
+            targetCount,
+        })
+        return ticks && asDates(ticks.map((tick) => tick.value))
+    }
+
+    it("steps weekly on Mondays for short spans", () => {
+        expect(gridDates("2020-03-02", "2020-04-06", 6)).toEqual([
+            "2020-03-02",
+            "2020-03-09",
+            "2020-03-16",
+            "2020-03-23",
+            "2020-03-30",
+            "2020-04-06",
+        ])
+    })
+
+    it("never steps below a week, even for tiny spans", () => {
+        // The daily ladder would pick a 2-day step here
+        expect(gridDates("2020-03-02", "2020-03-09", 6)).toEqual([
+            "2020-03-02",
+            "2020-03-09",
+        ])
+    })
+
+    it("steps biweekly on Mondays for ~2-3 month spans", () => {
+        expect(gridDates("2020-03-02", "2020-05-11", 6)).toEqual([
+            "2020-03-02",
+            "2020-03-16",
+            "2020-03-30",
+            "2020-04-13",
+            "2020-04-27",
+            "2020-05-11",
+        ])
+    })
+
+    it("continues on the monthly grid for multi-month spans", () => {
+        const domain: [number, number] = [day("2020-01-06"), day("2020-07-06")]
+        const ticks = buildContinuousWeeklyAxisTicks({ domain, targetCount: 6 })
+        expect(ticks).toEqual(
+            buildContinuousMonthlyAxisTicks({ domain, targetCount: 6 })
+        )
+    })
+
+    it("labels multi-year spans with bare years", () => {
+        const ticks = buildContinuousWeeklyAxisTicks({
+            domain: [day("2015-06-15"), day("2022-03-07")],
+            targetCount: 6,
+        })!
+        expect(ticks.map((t) => t.label)).toEqual([
+            "2016",
+            "2018",
+            "2020",
+            "2022",
+        ])
+    })
+
+    it("shows the year on the first tick and wherever the year changes", () => {
+        const ticks = buildContinuousWeeklyAxisTicks({
+            domain: [day("2020-12-14"), day("2021-01-25")],
+            targetCount: 6,
+        })!
+        expect(ticks.map((t) => t.label)).toEqual([
+            "Dec 14, 2020",
+            "Dec 21",
+            "Dec 28",
+            "Jan 4, 2021",
+            "Jan 11",
+            "Jan 18",
+            "Jan 25",
+        ])
+    })
+
+    it("returns undefined for a degenerate (single-week) span", () => {
+        expect(gridDates("2020-03-02", "2020-03-02", 6)).toBeUndefined()
+    })
+})
+
+describe(getDiscreteWeeklyTickOptions, () => {
+    // `count` consecutive Mondays, starting from a Monday
+    const weeklyValues = (firstMonday: string, count: number): number[] => {
+        const first = day(firstMonday)
+        return Array.from({ length: count }, (_, week) => first + 7 * week)
+    }
+    const dayGaps = (ticks: { value: number }[]): number[] =>
+        ticks.slice(1).map((t, i) => t.value - ticks[i].value)
+
+    // All Mondays of 2020 (Jan 6 through Dec 28)
+    const options = getDiscreteWeeklyTickOptions({
+        bandValues: weeklyValues("2020-01-06", 52),
+    })
+
+    it("orders options from finest to coarsest", () => {
+        const counts = options.map((option) => option.length)
+        expect(counts).toEqual([...counts].sort((a, b) => b - a))
+    })
+
+    it("includes a biweekly option on Mondays", () => {
+        const biweekly = options.find((option) => dayGaps(option)[0] === 14)!
+        expect(biweekly).toHaveLength(26)
+        for (const tick of biweekly)
+            expect(convertDaysSinceEpochToDate(tick.value).day()).toBe(1)
+    })
+
+    it("puts monthly and coarser options on each month's first week", () => {
+        const monthly = options.filter((option) => dayGaps(option)[0] > 14)
+        expect(monthly.length).toBeGreaterThan(0)
+        for (const option of monthly)
+            for (const tick of option) {
+                const date = convertDaysSinceEpochToDate(tick.value)
+                expect(date.day()).toBe(1) // still a week value (a Monday)
+                expect(date.date()).toBeLessThanOrEqual(7) // in the first week
+            }
+    })
+
+    it("offers only the every-value option for weeks on irregular dates", () => {
+        // Not Mondays, and none in a month's first week
+        const bandValues = ["2020-03-10", "2020-03-18", "2020-03-25"].map(day)
+        const options = getDiscreteWeeklyTickOptions({ bandValues })
+        expect(options).toHaveLength(1)
+        expect(options[0].map((t) => t.value)).toEqual(bandValues)
+    })
+})
+
 describe(buildDiscreteTimeAxisTicks, () => {
     it("returns one tick per value, sorted and deduplicated", () => {
         const ticks = buildDiscreteTimeAxisTicks({
@@ -432,6 +566,12 @@ describe(getDiscreteTimeTickOptions, () => {
                 bandValues,
             })
         ).toEqual(getDiscreteMonthlyTickOptions({ bandValues }))
+        expect(
+            getDiscreteTimeTickOptions({
+                interval: TimeInterval.Week,
+                bandValues,
+            })
+        ).toEqual(getDiscreteWeeklyTickOptions({ bandValues }))
         expect(
             getDiscreteTimeTickOptions({
                 interval: TimeInterval.Day,
