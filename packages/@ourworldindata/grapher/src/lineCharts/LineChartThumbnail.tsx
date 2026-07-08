@@ -406,7 +406,8 @@ export class LineChartThumbnail
         dualAxis: DualAxis
         visibleEndLabels: Set<SeriesName>
     }): AnchoredLabelsState | undefined {
-        if (!this.manager.showSeriesLabels) return undefined
+        if (!this.manager.showSeriesLabels || this.manager.hideStartValueLabel)
+            return undefined
 
         // In relative mode, the start label is trivially 0%,
         // so we skip showing start labels to reduce clutter

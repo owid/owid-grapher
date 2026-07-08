@@ -35,6 +35,7 @@ export interface ChartManager {
 
     variant?: GrapherVariant
     useMinimalLabeling?: boolean
+    hideStartValueLabel?: boolean // Only used in LineChartThumbnail
     chartAreaPadding?: number
 
     isExportingToSvgOrPng?: boolean

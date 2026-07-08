@@ -324,6 +324,12 @@ export class FacetChart
 
         // Show start and end value labels for line chart thumbnails
         const useMinimalLabeling = this.variant === GrapherVariant.Thumbnail
+        // Hide the start value label only when facets are auto-switched to
+        // thumbnail mode because they are small (not when the whole chart
+        // is explicitly rendered as a thumbnail).
+        const hideStartValueLabel =
+            this.variant === GrapherVariant.Thumbnail &&
+            this.manager.variant !== GrapherVariant.Thumbnail
         const showSeriesLabels = useMinimalLabeling
             ? true
             : !this.hideFacetLegends
@@ -364,6 +370,7 @@ export class FacetChart
                 shouldPinTooltipToBottom,
                 externalLegendHoverBin: legendHoverBin,
                 useMinimalLabeling,
+                hideStartValueLabel,
                 // Allow labels in line chart thumbnails to overflow facet bounds
                 chartAreaPadding: Infinity,
                 ...series.manager,
