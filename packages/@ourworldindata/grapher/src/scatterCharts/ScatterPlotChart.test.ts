@@ -963,7 +963,7 @@ describe("correct bubble sizes", () => {
         const chart = new ScatterPlotChart({ chartState })
 
         const scatterPoints = new ScatterPointsWithLabels({
-            noDataModalManager: manager,
+            noDataMessageManager: manager,
             isConnected: chartState["isConnected"],
             hideConnectedScatterLines: chart["hideConnectedScatterLines"],
             seriesArray: chart["series"],
@@ -1028,7 +1028,7 @@ describe("correct bubble sizes", () => {
         const chart = new ScatterPlotChart({ chartState })
 
         const scatterPoints = new ScatterPointsWithLabels({
-            noDataModalManager: manager,
+            noDataMessageManager: manager,
             isConnected: chartState["isConnected"],
             hideConnectedScatterLines: chart["hideConnectedScatterLines"],
             seriesArray: chart["series"],

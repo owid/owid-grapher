@@ -37,7 +37,7 @@ import {
 } from "../core/GrapherConstants"
 import * as R from "remeda"
 import { isEntityRegionGroupKey } from "../core/RegionGroups"
-import { NoDataModal } from "../noDataModal/NoDataModal"
+import { NoDataMessage } from "../noDataMessage/NoDataMessage"
 import {
     DataTableColumnKey,
     DisplayDataTableDimension,
@@ -617,14 +617,14 @@ export class DataTable extends React.Component<DataTableProps> {
         ) : null
     }
 
-    private renderNoDataModal(): React.ReactElement {
+    private renderNoDataMessage(): React.ReactElement {
         return (
             <svg
                 width={this.bounds.width}
                 height={this.bounds.height}
                 style={SVG_STYLE_PROPS}
             >
-                <NoDataModal
+                <NoDataMessage
                     manager={this.manager}
                     bounds={this.bounds}
                     message={`No ${this.entityType} matches this query`}
@@ -636,7 +636,8 @@ export class DataTable extends React.Component<DataTableProps> {
     }
 
     override render(): React.ReactElement | null {
-        if (this.sortedDisplayRows.length === 0) return this.renderNoDataModal()
+        if (this.sortedDisplayRows.length === 0)
+            return this.renderNoDataMessage()
 
         return (
             <div className="DataTable">

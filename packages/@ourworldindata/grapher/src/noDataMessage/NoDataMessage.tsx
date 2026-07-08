@@ -2,17 +2,18 @@ import * as React from "react"
 import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import a from "indefinite"
-import { Bounds, VerticalAlign, dyFromAlign } from "@ourworldindata/utils"
+import { Bounds, VerticalAlign } from "@ourworldindata/utils"
 import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
     DEFAULT_GRAPHER_ENTITY_TYPE,
     DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL,
+    GRAPHER_FONT_SCALE_14,
 } from "../core/GrapherConstants"
-import { Halo } from "@ourworldindata/components"
+import { Halo, TextWrap, TextWrapSvg } from "@ourworldindata/components"
 import { GRAPHER_DARK_TEXT, GRAPHER_LIGHT_TEXT } from "../color/ColorConstants"
 
-export interface NoDataModalManager {
+export interface NoDataMessageManager {
     canChangeEntity?: boolean
     canAddEntities?: boolean
     entityType?: string
@@ -21,17 +22,17 @@ export interface NoDataModalManager {
     isStatic?: boolean
 }
 
-interface NoDataModalProps {
+interface NoDataMessageProps {
     bounds?: Bounds
     message?: string
     helpText?: string
     hideTextOutline?: boolean
-    manager: NoDataModalManager
+    manager: NoDataMessageManager
 }
 
 @observer
-export class NoDataModal extends React.Component<NoDataModalProps> {
-    constructor(props: NoDataModalProps) {
+export class NoDataMessage extends React.Component<NoDataMessageProps> {
+    constructor(props: NoDataMessageProps) {
         super(props)
         makeObservable(this)
     }
@@ -40,17 +41,17 @@ export class NoDataModal extends React.Component<NoDataModalProps> {
         return this.props.bounds ?? DEFAULT_GRAPHER_BOUNDS
     }
 
-    @computed private get manager(): NoDataModalManager {
+    @computed private get manager(): NoDataMessageManager {
         return this.props.manager
     }
 
     @computed private get fontSize(): number {
-        // font sizes bigger than the base font size are too large for the no data text
-        return Math.min(this.manager.fontSize ?? BASE_FONT_SIZE, BASE_FONT_SIZE)
+        const baseFontSize = this.manager.fontSize ?? BASE_FONT_SIZE
+        return Math.floor(GRAPHER_FONT_SCALE_14 * baseFontSize)
     }
 
     override render(): React.ReactElement {
-        const { bounds } = this
+        const { bounds, fontSize } = this
         const { message } = this.props
         const {
             entityType = DEFAULT_GRAPHER_ENTITY_TYPE,
@@ -68,9 +69,33 @@ export class NoDataModal extends React.Component<NoDataModalProps> {
         const helpText = this.props.helpText ?? defaultHelpText
 
         const center = bounds.centerPos
-        const padding = 0.75 * this.fontSize
         const showHelpText = !isStatic && !!helpText
-        const helpTextFontSize = 0.9 * this.fontSize
+        const helpTextFontSize = Math.floor(0.9 * fontSize)
+
+        const maxWidth = bounds.width - 2 * fontSize
+        const messageWrap = new TextWrap({
+            text: message || "No available data",
+            maxWidth: bounds.width,
+            fontSize,
+            fontWeight: 500,
+            verticalAlign: VerticalAlign.middle,
+        })
+        const helpWrap = showHelpText
+            ? new TextWrap({
+                  text: helpText,
+                  maxWidth,
+                  fontSize: helpTextFontSize,
+                  verticalAlign: VerticalAlign.middle,
+              })
+            : undefined
+
+        // Vertically center the message + help text block as a whole.
+        const gap = helpWrap ? 0.5 * fontSize : 0
+        const totalHeight = messageWrap.height + gap + (helpWrap?.height ?? 0)
+        const top = center.y - totalHeight / 2
+        const messageY = top + messageWrap.height / 2
+        const helpY =
+            top + messageWrap.height + gap + (helpWrap?.height ?? 0) / 2
 
         return (
             <g className="no-data">
@@ -78,42 +103,31 @@ export class NoDataModal extends React.Component<NoDataModalProps> {
 
                 <Halo
                     id="no-data-message"
-                    fontSize={this.fontSize}
+                    fontSize={fontSize}
                     show={!this.props.hideTextOutline}
                 >
-                    <text
+                    <TextWrapSvg
+                        textWrap={messageWrap}
                         x={center.x}
-                        y={center.y}
-                        dy={
-                            showHelpText
-                                ? -padding / 2
-                                : dyFromAlign(VerticalAlign.middle)
-                        }
+                        y={messageY}
                         textAnchor="middle"
-                        fontSize={this.fontSize}
-                        fontWeight={500}
                         fill={GRAPHER_DARK_TEXT}
-                    >
-                        {message || "No available data"}
-                    </text>
+                    />
                 </Halo>
 
-                {showHelpText && (
+                {helpWrap && (
                     <Halo
                         id="no-data-help"
                         fontSize={helpTextFontSize}
                         show={!this.props.hideTextOutline}
                     >
-                        <text
+                        <TextWrapSvg
+                            textWrap={helpWrap}
                             x={center.x}
-                            y={center.y + padding / 2}
+                            y={helpY}
                             textAnchor="middle"
-                            dy={dyFromAlign(VerticalAlign.bottom)}
-                            fontSize={helpTextFontSize}
                             fill={GRAPHER_LIGHT_TEXT}
-                        >
-                            {helpText}
-                        </text>
+                        />
                     </Halo>
                 )}
             </g>
