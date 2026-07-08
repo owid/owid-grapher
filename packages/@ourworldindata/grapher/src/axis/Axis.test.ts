@@ -419,6 +419,32 @@ describe("for months", () => {
         expect(wide).toBeGreaterThanOrEqual(narrow) // wider fits at least as many
     })
 
+    it("labels every band value with its quarter on a discrete quarterly axis", () => {
+        const day = (date: string): number =>
+            convertDateToDaysSinceEpoch(dayjs.utc(date))
+        const bandValues = ["2020-01-01", "2020-04-01", "2020-07-01"].map(day)
+        const table = new OwidTable({ entityName: ["usa"], quarter: [0] }, [
+            { slug: "quarter", type: ColumnTypeNames.Quarter },
+        ])
+        const axis = new HorizontalAxis(
+            new AxisConfig({
+                scaleType: ScaleType.linear,
+                min: bandValues[0],
+                max: bandValues[bandValues.length - 1],
+                bandValues,
+            })
+        )
+        axis.formatColumn = table.get("quarter")
+        axis.range = [0, 800]
+
+        // one tick per band value, labeled with the column's quarter format
+        expect(axis.tickLabels.map((t) => t.formattedValue)).toEqual([
+            "Q1 2020",
+            "Q2 2020",
+            "Q3 2020",
+        ])
+    })
+
     it("falls back to overlap-hiding when no evenly-spaced option fits on a daily band axis", () => {
         const day = (date: string): number =>
             convertDateToDaysSinceEpoch(dayjs.utc(date))
