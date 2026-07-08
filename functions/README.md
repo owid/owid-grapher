@@ -151,6 +151,101 @@ This route provides a search API for both charts and pages (articles, about page
 
 For detailed API documentation, including all parameters, response schemas, and examples, see [search-api.openapi.yaml](../docs/search-api.openapi.yaml).
 
+## `/api/email-notifications/subscribe`
+
+Handles submissions of the email notifications subscribe form on `/subscribe`
+(prototype). The request body is validated against
+`EmailNotificationsSubscribeRequestTypeObject` from `@ourworldindata/types`,
+which is shared with the client.
+
+It does two things, depending on the request:
+
+1. If the request contains `notifications` preferences (topic tags, content
+   types, frequency), it upserts the user and their preferences into the
+   `EMAIL_NOTIFICATIONS_DB` D1 database. Subscriptions are single opt-in:
+   users are subscribed immediately, and first-time users get a one-time
+   welcome email (sent via Postmark). When the `POSTMARK_SERVER_TOKEN`
+   environment variable is not set, sending is skipped with a console
+   warning, so the flow can be tested locally without Postmark credentials.
+2. If the request has `subscribeToOwidBrief: true`, it upserts the Mailchimp
+   newsletter list member with the OWID Brief interest (group) checked. The
+   OWID Brief newsletter stays in Mailchimp. New Mailchimp list members are
+   created with `status_if_new: "pending"`, so Mailchimp sends them its own
+   double-opt-in confirmation email. The call is skipped (with a console
+   warning) when the `MAILCHIMP_API_KEY`, `MAILCHIMP_API_SERVER` or
+   `MAILCHIMP_NEWSLETTER_LIST_ID` environment variables are not set, so the
+   rest of the flow can be tested locally without Mailchimp credentials.
+
+## `/api/email-notifications/unsubscribe`
+
+Link target from the welcome email and the notification email footers. Takes
+a `token` query parameter — the per-user secret stored in the `users` table —
+sets the user's status to `unsubscribed`, and renders a simple human-readable
+HTML page.
+
+## Sending the notification emails
+
+The actual notification emails are sent by `yarn sendEmailNotifications
+<daily|weekly>`, a cron job that runs on our own infra (not on Cloudflare) —
+see `baker/emailNotifications/sendEmailNotifications.ts`. It reads
+subscribers from the D1 database remotely via the Cloudflare HTTP API,
+collects the latest-feed content (articles, data insights, announcements)
+published since each subscriber's last email from MySQL, renders the
+hardcoded email template, sends via Postmark, and records the send back to
+D1 (`notification_preferences.last_sent_at` + a `sent_emails` row).
+
+Useful flags for local development:
+
+- `--local` reads/writes the local wrangler D1 database (the same one the
+  functions dev server uses) instead of the remote one.
+- `--dry-run` renders the emails to `.email-notifications-preview/` instead
+  of sending them.
+
+### D1 database
+
+The D1 database is configured in `wrangler.jsonc` (binding
+`EMAIL_NOTIFICATIONS_DB`), with migrations in
+`d1/email-notifications/migrations`.
+
+For local development, create and migrate the local database with:
+
+```bash
+npx wrangler d1 migrations apply owid-email-notifications-staging --local
+```
+
+The staging and production databases don't exist yet. Before deploying, create
+them with `npx wrangler d1 create owid-email-notifications-staging` (and
+`owid-email-notifications` for production), fill in the real `database_id`
+values in `wrangler.jsonc`, and apply the migrations with `--remote`.
+
+### Rate limiting
+
+Cloudflare's [rate limiting binding](https://developers.cloudflare.com/workers/runtime-apis/bindings/rate-limit/)
+is only available to Workers, not Pages, so until we migrate to Workers this
+public API needs to be rate limited with a zone-level WAF rate limiting rule
+(Cloudflare dashboard → Security → WAF → Rate limiting rules) on
+`/api/email-notifications/*`. The function already honors an optional
+`EMAIL_NOTIFICATIONS_RATE_LIMITER` binding so that it keeps working after the
+migration.
+
+### Development
+
+The subscribe form on `http://localhost:3030/subscribe` posts to
+`http://localhost:8788/api/email-notifications/subscribe` by default (see
+`EMAIL_NOTIFICATIONS_API_BASE_URL` in `settings/clientSettings.ts`), so run the
+functions dev server alongside the site:
+
+```bash
+yarn startLocalCloudflareFunctions
+```
+
+Inspect the stored subscriptions with:
+
+```bash
+npx wrangler d1 execute owid-email-notifications-staging --local \
+    --command "SELECT * FROM users JOIN notification_preferences ON notification_preferences.user_id = users.id"
+```
+
 ## `/deleted/:slug`
 
 This route is used to handle deleted pages. They are fully baked we just want them to return a 404 status code instead of a 200.
