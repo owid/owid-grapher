@@ -37,11 +37,7 @@ import {
 import { ChartComponent, makeChartInstance } from "../chart/ChartTypeMap"
 import { ChartManager } from "../chart/ChartManager"
 import { ChartInterface, ChartState } from "../chart/ChartInterface"
-import {
-    calculateAspectRatio,
-    getFacetGridPadding,
-    getFacetLabelFontSize,
-} from "./FacetChartUtils"
+import { calculateAspectRatio, getFacetLabelFontSize } from "./FacetChartUtils"
 import {
     FacetSeries,
     FacetChartProps,
@@ -185,8 +181,7 @@ export class FacetChart
             this.showLegend && this.legend.height > 0
                 ? this.legend.height + this.legendPadding
                 : 0
-        const labelSpace = this.facetLabelFontSize + this.labelPadding
-        return this.bounds.padTop(legendHeightWithPadding + labelSpace)
+        return this.bounds.padTop(legendHeightWithPadding)
     }
 
     @computed get fontSize(): number {
@@ -241,11 +236,11 @@ export class FacetChart
     }
 
     @computed private get facetGridPadding(): SplitBoundsPadding {
-        const { facetLabelFontSize, labelPadding } = this
-        return getFacetGridPadding({
-            labelFontSize: facetLabelFontSize,
-            labelPadding,
-        })
+        return {
+            rowPadding: Math.round(this.facetLabelFontSize),
+            columnPadding: Math.round(this.facetLabelFontSize),
+            outerPadding: 0,
+        }
     }
 
     @computed private get hideFacetLegends(): boolean {
@@ -587,6 +582,8 @@ export class FacetChart
                     [edge]: sharedAxesSizes[edge],
                 })
             }
+            // Reserve space for the facet label at the top of the cell
+            bounds = bounds.padTop(this.facetLabelFontSize + this.labelPadding)
             // NOTE: The order of overrides is important!
             // We need to preserve most config coming in.
             const manager = {
