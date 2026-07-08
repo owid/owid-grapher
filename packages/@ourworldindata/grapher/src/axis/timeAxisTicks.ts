@@ -5,6 +5,7 @@ import {
     Tickmark,
     convertDaysSinceEpochToDate,
     convertDateToDaysSinceEpoch,
+    snapToIntervalStart,
 } from "@ourworldindata/utils"
 import { TimeInterval } from "@ourworldindata/types"
 import { match } from "ts-pattern"
@@ -24,9 +25,94 @@ const MONTH_STEPS = [
     1200, // 100 years
 ] as const
 
+// Calendar-nice step sizes in days
+const DAY_STEPS = [
+    1, // 1 day
+    2, // 2 days
+    7, // 1 week
+    14, // 2 weeks
+] as const
+
+// A fixed Monday (in days since epoch) that anchors weekly grids
+const MONDAY_REFERENCE = snapToIntervalStart(0, TimeInterval.Week)
+
+// Time intervals with calendar-aware axis ticks; all other intervals
+// fall back to the generic d3 ticks
+const CALENDAR_TICK_INTERVALS = [TimeInterval.Month, TimeInterval.Day] as const
+
+export type CalendarTickInterval = (typeof CALENDAR_TICK_INTERVALS)[number]
+
+export function isCalendarTickInterval(
+    interval: TimeInterval
+): interval is CalendarTickInterval {
+    return (CALENDAR_TICK_INTERVALS as readonly TimeInterval[]).includes(
+        interval
+    )
+}
+
 /** A tickmark for a day-since-epoch `value`, labeled with the given dayjs format. */
 function makeDayTick(value: number, format: string): Tickmark {
     return { value, priority: 2, label: formatDay(value, { format }) }
+}
+
+/** A band value with its calendar coordinates */
+interface CalendarValue {
+    value: number
+    /** The calendar month, as a linear count of months */
+    monthIndex: number
+    isFirstOfMonth: boolean
+}
+
+function toCalendarValue(value: number): CalendarValue {
+    const date = convertDaysSinceEpochToDate(value)
+    return {
+        value,
+        monthIndex: date.year() * 12 + date.month(),
+        isFirstOfMonth: date.date() === 1,
+    }
+}
+
+/**
+ * The reference day that anchors a day grid with the given step: a Monday for
+ * weekly steps (so ticks land on week starts), the epoch otherwise (so grids
+ * are stable when panning).
+ */
+function dayGridReference(step: number): number {
+    return step % 7 === 0 ? MONDAY_REFERENCE : 0
+}
+
+/**
+ * The position of a value on the day grid with the given step;
+ * an integer only for values that lie on the grid.
+ */
+function dayGridPosition({ value }: CalendarValue, step: number): number {
+    return (value - dayGridReference(step)) / step
+}
+
+/**
+ * The position of a value on the January-anchored month grid with the given
+ * step; an integer only for values that lie on the grid.
+ */
+function monthGridPosition(
+    { monthIndex }: CalendarValue,
+    step: number
+): number {
+    return monthIndex / step
+}
+
+/**
+ * Labels each grid value with `format`, switching to `formatWithYear` on the
+ * first tick and wherever the year changes.
+ */
+function labelGridWithYearOnChange(
+    grid: number[],
+    { format, formatWithYear }: { format: string; formatWithYear: string }
+): Tickmark[] {
+    const years = grid.map((value) => convertDaysSinceEpochToDate(value).year())
+    return grid.map((value, i) => {
+        const isNewYear = i === 0 || years[i] !== years[i - 1]
+        return makeDayTick(value, isNewYear ? formatWithYear : format)
+    })
 }
 
 /**
@@ -44,13 +130,18 @@ export function buildTimeAxisTicks({
     targetCount: number
     bandValues?: number[]
 }): Tickmark[] | undefined {
+    if (!isCalendarTickInterval(interval)) return undefined
+
+    if (bandValues?.length) return buildDiscreteTimeAxisTicks({ bandValues })
+
     return match(interval)
         .with(TimeInterval.Month, () =>
-            bandValues?.length
-                ? buildDiscreteMonthlyAxisTicks({ bandValues })
-                : buildContinuousMonthlyAxisTicks({ domain, targetCount })
+            buildContinuousMonthlyAxisTicks({ domain, targetCount })
         )
-        .otherwise(() => undefined)
+        .with(TimeInterval.Day, () =>
+            buildContinuousDailyAxisTicks({ domain, targetCount })
+        )
+        .exhaustive()
 }
 
 /**
@@ -95,9 +186,12 @@ export function buildContinuousMonthlyAxisTicks({
     const firstStep = Math.ceil(monthsFromAnchor(minDate) / step)
     const lastStep = Math.floor(monthsFromAnchor(maxDate) / step)
 
-    const grid = _.range(firstStep, lastStep + 1).map((k) =>
-        convertDateToDaysSinceEpoch(anchor.add(k * step, "month"))
-    )
+    const grid = _.range(firstStep, lastStep + 1)
+        .map((k) => convertDateToDaysSinceEpoch(anchor.add(k * step, "month")))
+        // The first index is rounded from the domain's start month, so a
+        // mid-month domain start can produce a tick just before it - drop those
+        .filter((value) => value >= domain[0] && value <= domain[1])
+    if (!grid.length) return undefined
 
     // When every tick is a January, drop the redundant month and label only the year.
     const isJanuary = (value: number): boolean =>
@@ -107,53 +201,177 @@ export function buildContinuousMonthlyAxisTicks({
 
     // Otherwise label the month only, keeping the year on the first tick
     // and each January (i.e. wherever the year changes)
-    const years = grid.map((value) => convertDaysSinceEpochToDate(value).year())
-    return grid.map((value, i) => {
-        const isNewYear = i === 0 || years[i] !== years[i - 1]
-        return makeDayTick(value, isNewYear ? "MMM YYYY" : "MMM")
+    return labelGridWithYearOnChange(grid, {
+        format: "MMM",
+        formatWithYear: "MMM YYYY",
     })
 }
 
-/** One tick per domain value, each labeled with its full month and year */
-export function buildDiscreteMonthlyAxisTicks({
+/**
+ * A calendar-nice day grid (every day, every other day, weekly or biweekly
+ * on Mondays), sized to `targetCount`, with redundant year parts dropped from
+ * the labels. Spans too long for day-sized steps continue on the monthly grid.
+ */
+export function buildContinuousDailyAxisTicks({
+    domain,
+    targetCount,
+}: {
+    domain: [number, number]
+    targetCount: number
+}): Tickmark[] | undefined {
+    const spanDays = domain[1] - domain[0]
+    if (spanDays <= 0) return undefined
+
+    // Pick the smallest step that keeps the tick count at or below the
+    // target; if even the coarsest day step produces too many ticks,
+    // fall through to the monthly (and yearly) grid.
+    const step = DAY_STEPS.find((s) => spanDays / s <= targetCount)
+    if (step === undefined)
+        return buildContinuousMonthlyAxisTicks({ domain, targetCount })
+
+    const reference = dayGridReference(step)
+
+    // The first and last indices that stay within the domain: round the
+    // start up and the end down so both ticks land inside the domain.
+    const firstStep = Math.ceil((domain[0] - reference) / step)
+    const lastStep = Math.floor((domain[1] - reference) / step)
+
+    const grid = _.range(firstStep, lastStep + 1).map(
+        (k) => reference + k * step
+    )
+    if (!grid.length) return undefined
+
+    // Label the day and month, keeping the year on the first tick
+    // and wherever the year changes
+    return labelGridWithYearOnChange(grid, {
+        format: "MMM D",
+        formatWithYear: "MMM D, YYYY",
+    })
+}
+
+/**
+ * One tick per domain value. The ticks carry no label: each value is labeled
+ * independently, so the axis falls back to the column's own time format,
+ * which is never abbreviated (e.g. "Jan 2023" for months, "Jan 5, 2023"
+ * for days).
+ */
+export function buildDiscreteTimeAxisTicks({
     bandValues,
 }: {
     bandValues: number[]
 }): Tickmark[] {
-    return _.sortBy(_.uniq(bandValues)).map((value) =>
-        makeDayTick(value, "MMM YYYY")
-    )
+    return _.sortBy(_.uniq(bandValues)).map((value) => ({
+        value,
+        priority: 2,
+    }))
 }
 
 /**
- * The label sets a discrete monthly axis can pick from, ordered from finest to
- * coarsest — each a single evenly-spaced set (every month, quarter, year, 2
- * years, …). The axis shows the finest that fits; using one spacing per set
+ * The label sets a discrete time axis can pick from, ordered from finest to
+ * coarsest — each a single evenly-spaced set (every day, week, month, quarter,
+ * year, …). The axis shows the finest that fits; using one spacing per set
  * ensures the gaps remain uniform.
  */
+export function getDiscreteTimeTickOptions({
+    interval,
+    bandValues,
+}: {
+    interval: CalendarTickInterval
+    bandValues: number[]
+}): Tickmark[][] {
+    return match(interval)
+        .with(TimeInterval.Month, () =>
+            getDiscreteMonthlyTickOptions({ bandValues })
+        )
+        .with(TimeInterval.Day, () =>
+            getDiscreteDailyTickOptions({ bandValues })
+        )
+        .exhaustive()
+}
+
+/**
+ * Maps a value to its position on a grid; an integer for values on the grid,
+ * a non-integer (or NaN) otherwise.
+ */
+type GridPosition = (value: CalendarValue) => number
+
+/**
+ * One label set per grid, starting with a set that labels every value. A grid's
+ * set is only offered when its values sit on consecutive grid points, so
+ * every offered set is evenly spaced. Skips sets that don't thin the previous
+ * one and stops once a set holds a single value (nothing coarser can add).
+ * The grids are expected to be ordered from finest to coarsest.
+ */
+function buildTickOptionsFromGrids(
+    bandValues: number[],
+    grids: GridPosition[]
+): Tickmark[][] {
+    const calendarValues = _.sortBy(_.uniq(bandValues)).map(toCalendarValue)
+    const makeTier = (values: CalendarValue[]): Tickmark[] =>
+        values.map(({ value }) => ({ value, priority: 2 }))
+
+    // The finest option labels every value, evenly spaced or not
+    const tiers: Tickmark[][] = [makeTier(calendarValues)]
+    if (calendarValues.length <= 1) return tiers
+
+    for (const gridPosition of grids) {
+        const valuesOnGrid = calendarValues
+            .map((value) => ({ value, position: gridPosition(value) }))
+            .filter(({ position }) => Number.isInteger(position))
+        if (!valuesOnGrid.length) continue
+
+        // Only offer evenly-spaced sets: the values must sit on consecutive
+        // grid points, otherwise the labels would have ragged gaps
+        const isEvenlySpaced = valuesOnGrid.every(
+            ({ position }, i) =>
+                i === 0 || position - valuesOnGrid[i - 1].position === 1
+        )
+        if (!isEvenlySpaced) continue
+
+        // The axis shows the first set whose labels fit, so a set with as
+        // many labels as the previous one can't fit where that one didn't —
+        // only offer strictly smaller sets
+        if (valuesOnGrid.length === tiers[tiers.length - 1].length) continue
+
+        tiers.push(makeTier(valuesOnGrid.map(({ value }) => value)))
+
+        if (valuesOnGrid.length === 1) break
+    }
+
+    return tiers
+}
+
+/** See getDiscreteTimeTickOptions; steps every month, quarter, year, … */
 export function getDiscreteMonthlyTickOptions({
     bandValues,
 }: {
     bandValues: number[]
 }): Tickmark[][] {
-    const sortedValues = _.sortBy(_.uniq(bandValues))
-
-    const monthIndex = (value: number): number => {
-        const date = convertDaysSinceEpochToDate(value)
-        return date.year() * 12 + date.month()
-    }
-
-    const tiers: Tickmark[][] = []
-    for (const step of MONTH_STEPS) {
-        const valuesOnGrid = sortedValues.filter(
-            (value) => monthIndex(value) % step === 0
+    return buildTickOptionsFromGrids(
+        bandValues,
+        MONTH_STEPS.map(
+            (step) => (value: CalendarValue) => monthGridPosition(value, step)
         )
-        if (!valuesOnGrid.length) continue
+    )
+}
 
-        tiers.push(valuesOnGrid.map((value) => makeDayTick(value, "MMM YYYY")))
-
-        if (valuesOnGrid.length === 1) break // nothing coarser can add
-    }
-
-    return tiers
+/**
+ * See getDiscreteTimeTickOptions; steps every day, every other day,
+ * weekly and biweekly (on Mondays), then continues on the monthly grid
+ * restricted to first-of-month values.
+ */
+export function getDiscreteDailyTickOptions({
+    bandValues,
+}: {
+    bandValues: number[]
+}): Tickmark[][] {
+    return buildTickOptionsFromGrids(bandValues, [
+        ...DAY_STEPS.map(
+            (step) => (value: CalendarValue) => dayGridPosition(value, step)
+        ),
+        ...MONTH_STEPS.map(
+            (step) => (value: CalendarValue) =>
+                value.isFirstOfMonth ? monthGridPosition(value, step) : NaN
+        ),
+    ])
 }
