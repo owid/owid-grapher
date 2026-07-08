@@ -40,9 +40,8 @@ import {
 import { BrowserRouter } from "react-router-dom-v5-compat"
 import { REDUCED_TRACKING } from "../settings/clientSettings.js"
 import { SiteHeaderNavigation } from "./SiteHeader.js"
-import { NewsletterSubscriptionForm } from "./NewsletterSubscription.js"
-import { NewsletterSubscriptionContext } from "./newsletter.js"
-import { SUBSCRIBE_PAGE_FORM_CONTAINER_ID } from "@ourworldindata/types"
+import { SUBSCRIBE_PAGE_NOTIFICATIONS_FORM_CONTAINER_ID } from "@ourworldindata/types"
+import { EmailNotificationsSubscribeForm } from "./EmailNotificationsSubscribeForm.js"
 import UserSurvey from "./gdocs/components/UserSurvey.js"
 import {
     SlideshowPresentation,
@@ -62,16 +61,15 @@ function runSearchPage() {
 }
 
 function hydrateSubscribePage() {
-    const newsletterContainer = document.getElementById(
-        SUBSCRIBE_PAGE_FORM_CONTAINER_ID
+    const notificationsContainer = document.getElementById(
+        SUBSCRIBE_PAGE_NOTIFICATIONS_FORM_CONTAINER_ID
     )
+    const topicTagGraph = window._OWID_TOPIC_TAG_GRAPH
 
-    if (newsletterContainer) {
+    if (notificationsContainer && topicTagGraph) {
         hydrateRoot(
-            newsletterContainer,
-            <NewsletterSubscriptionForm
-                context={NewsletterSubscriptionContext.SubscribePage}
-            />
+            notificationsContainer,
+            <EmailNotificationsSubscribeForm topicTagGraph={topicTagGraph} />
         )
     }
 }

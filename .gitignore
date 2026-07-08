@@ -87,3 +87,6 @@ packageDocs/docs/schema-reference/
 packageDocs/site/
 packageDocs/.venv/
 packageDocs/.cache/
+
+# Email notification previews from `yarn sendEmailNotifications --dry-run`
+.email-notifications-preview/
