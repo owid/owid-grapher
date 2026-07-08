@@ -822,7 +822,7 @@ export class SiteBaker {
         )
         await this.stageWrite(
             `${this.bakedSiteDir}/subscribe.html`,
-            await renderSubscribePage()
+            await renderSubscribePage(knex)
         )
         await this.stageWrite(
             `${this.bakedSiteDir}/collection/custom.html`,

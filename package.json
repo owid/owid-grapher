@@ -26,6 +26,7 @@
         "fixFormatChanged": "bash -c 'files=$((git diff --name-only --diff-filter=ACMRTUXB && git diff --name-only --cached --diff-filter=ACMRTUXB) | sort -u | grep -E \"\\.(tsx?|jsx?|ts|js|json|md|html|css|scss|yml)$\" | tr \"\\n\" \" \"); if [ -n \"$files\" ]; then yarn oxfmt $files; else echo \"No uncommitted files to format\"; fi'",
         "lerna": "echo 'Lerna is not needed anymore; this script is here for compatibility with ops, remove it after the merge!'",
         "runRegionsUpdater": "tsx --tsconfig tsconfig.tsx.json devTools/regionsUpdater/update.ts",
+        "sendEmailNotifications": "tsx --tsconfig tsconfig.tsx.json baker/emailNotifications/sendEmailNotifications.ts",
         "runDbMigrations": "tsx --tsconfig tsconfig.tsx.json node_modules/typeorm/cli.js migration:run -d db/dataSource.ts",
         "refreshExplorerViews": "tsx --tsconfig tsconfig.tsx.json devTools/refreshExplorerViews.ts",
         "revertLastDbMigration": "tsx --tsconfig tsconfig.tsx.json node_modules/typeorm/cli.js migration:revert -d db/dataSource.ts",
