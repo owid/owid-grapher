@@ -1,8 +1,8 @@
 import { configDefaults, defineConfig } from "vitest/config"
 import viteConfig from "./vite.config-site.mts"
 
-export default defineConfig({
-    ...viteConfig,
+export default defineConfig((env) => ({
+    ...viteConfig(env),
     test: {
         exclude: [
             ...configDefaults.exclude,
@@ -16,4 +16,4 @@ export default defineConfig({
         pool: "threads",
         setupFiles: ["devTools/vitest-setup.ts"],
     },
-})
+}))
