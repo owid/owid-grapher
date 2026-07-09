@@ -39,7 +39,10 @@ export function CommentComposer({
                 value={content}
                 onChange={(event) => setContent(event.target.value)}
                 onKeyDown={(event) => {
-                    if (event.key === "Enter" && (event.metaKey || event.ctrlKey))
+                    if (
+                        event.key === "Enter" &&
+                        (event.metaKey || event.ctrlKey)
+                    )
                         void submit()
                 }}
                 placeholder={placeholder}

@@ -44,9 +44,7 @@ function groupIntoThreads(comments: CommentWithAuthor[]): CommentThreadData[] {
     return roots
         .map((root) => ({
             root,
-            replies: comments.filter(
-                (comment) => comment.parentId === root.id
-            ),
+            replies: comments.filter((comment) => comment.parentId === root.id),
         }))
         .reverse()
 }
@@ -90,7 +88,11 @@ function useInvalidateComments(target: CommentTarget): () => Promise<void> {
 }
 
 export type CreateCommentInput =
-    | { content: string; anchor?: string | null; viewState?: CommentViewState | null }
+    | {
+          content: string
+          anchor?: string | null
+          viewState?: CommentViewState | null
+      }
     | { content: string; parentId: number }
 
 export function useCreateComment(

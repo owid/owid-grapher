@@ -21,10 +21,7 @@ function CommentItem({
                 <span className="comment-item__author">
                     {comment.authorFullName}
                 </span>
-                <time
-                    className="comment-item__time"
-                    title={createdAt.format()}
-                >
+                <time className="comment-item__time" title={createdAt.format()}>
                     {createdAt.fromNow()}
                 </time>
             </div>
