@@ -262,12 +262,22 @@ function buildContinuousDayGridTicks({
     // a step by its in-domain count — otherwise a 29-day domain with a
     // target of two would skip the fitting biweekly grid and fall through
     // to a single monthly tick.
-    const step = steps.find(
+    let step = steps.find(
         (s) =>
             spanDays / s <= targetCount || inDomainTickCount(s) <= targetCount
     )
-    if (step === undefined)
-        return buildContinuousMonthlyAxisTicks({ domain, targetCount })
+    if (step === undefined) {
+        const monthlyTicks = buildContinuousMonthlyAxisTicks({
+            domain,
+            targetCount,
+        })
+        if (monthlyTicks) return monthlyTicks
+        // A span within a single calendar month has no monthly grid to
+        // continue on; keep the coarsest step rather than dropping calendar
+        // ticks entirely, which would hand the axis to generic d3 ticks that
+        // can sit between grid points (e.g. sub-week ticks on a weekly axis)
+        step = steps[steps.length - 1]
+    }
 
     const reference = dayGridReference(step)
     const [firstStep, lastStep] = gridIndexRange(step)
