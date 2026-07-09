@@ -79,12 +79,18 @@ export interface ComponentInstance {
  * schema is never exploded combinatorially.
  */
 export interface ComponentVariation {
-    /** Stable signature, e.g. "caption+size:narrow"; "" is the bare form */
+    /** Stable signature, e.g. "caption+size:narrow"; "" is the standard form */
     signature: string
     /** Number of published instances with this shape */
     count: number
     /** A real instance demonstrating the form */
     representative: ComponentInstance
+    /**
+     * Curated name, taken from the sidecar example with the same form.
+     * Absent when no sidecar example documents this observed form — a
+     * visible curation gap the UI labels with the technical signature.
+     */
+    name?: string
 }
 
 /**

@@ -321,7 +321,7 @@ export async function renderGdocsReferenceTemplatePreview(
 // Resolve a posts_gdocs_components path like "$.body[3].items[0]" within a
 // document's enriched content. Returns undefined unless the target is a
 // renderable block (an object with a string "type").
-function resolveBlockAtPath(
+export function resolveBlockAtPath(
     content: unknown,
     path: string
 ): (OwidEnrichedGdocBlock & Record<string, unknown>) | undefined {

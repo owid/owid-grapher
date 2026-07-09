@@ -300,7 +300,13 @@ export function ComponentRealExamples({
                         {variations.map((variation) => (
                             <FormChip
                                 key={variation.signature}
-                                label={humanizeVariation(variation.signature)}
+                                // Curated name from the matching sidecar
+                                // example; the technical signature is the
+                                // fallback for still-unnamed forms.
+                                label={
+                                    variation.name ??
+                                    humanizeVariation(variation.signature)
+                                }
                                 title={`${variation.count} published uses — ${variationFrequencyLabel(
                                     variation.count,
                                     scanned

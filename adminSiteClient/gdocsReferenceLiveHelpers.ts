@@ -47,10 +47,7 @@ const DOC_TYPE_NOUNS: Partial<Record<OwidGdocType, [string, string]>> = {
     [OwidGdocType.Article]: ["article", "articles"],
     [OwidGdocType.DataInsight]: ["data insight", "data insights"],
     [OwidGdocType.TopicPage]: ["topic page", "topic pages"],
-    [OwidGdocType.LinearTopicPage]: [
-        "linear topic page",
-        "linear topic pages",
-    ],
+    [OwidGdocType.LinearTopicPage]: ["linear topic page", "linear topic pages"],
     [OwidGdocType.Fragment]: ["fragment", "fragments"],
     [OwidGdocType.AboutPage]: ["about page", "about pages"],
     [OwidGdocType.Announcement]: ["announcement", "announcements"],
@@ -156,9 +153,13 @@ export function isPopular(usage: ComponentUsage | undefined): boolean {
     )
 }
 
-/** "caption+size:narrow" → "with caption, size: narrow"; "" is the bare form */
+/**
+ * Fallback label for an observed form no sidecar example has named yet:
+ * "caption+size:narrow" → "with caption, size: narrow". "" is the standard
+ * form — what remains once required props and defaults are folded away.
+ */
 export function humanizeVariation(signature: string): string {
-    if (signature === "") return "the bare form"
+    if (signature === "") return "the standard form"
     return signature
         .split("+")
         .map((part) => {
