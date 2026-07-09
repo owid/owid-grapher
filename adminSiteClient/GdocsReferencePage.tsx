@@ -12,6 +12,9 @@ import {
     COMPONENT_CATEGORIES,
     ComponentCategory,
     ComponentDoc,
+    ComponentUsage,
+    GdocsReferenceUsage,
+    OwidGdocType,
     TemplateDoc,
     TemplateFieldDoc,
 } from "@ourworldindata/types"
@@ -22,7 +25,18 @@ import {
     GdocsReferenceMarkdown,
     InlineMarkdownText,
 } from "./GdocsReferenceMarkdown.js"
+import { splitSidecarBody } from "./gdocsReferenceSidecar.js"
 import { CopyButton } from "./GdocsReferenceExample.js"
+import {
+    ComponentRealExamples,
+    ExemplarXray,
+    SkeletonScaffold,
+    TemplateComponentShortlist,
+    UsageStrip,
+    docTypeNoun,
+    isPopular,
+    usageTooltip,
+} from "./GdocsReferenceLive.js"
 
 // Component docs live as .md sidecars in the repo, gated by CI; the detail
 // view links technical editors to the GitHub web editor to propose changes.
@@ -74,6 +88,9 @@ export class GdocsReferencePage extends Component<
     components: ComponentDoc[] = []
     templates: TemplateDoc[] = []
     searchInput: string = ""
+    // Live usage aggregate; null when the lookup failed (the page then falls
+    // back to alphabetical ordering and shows no usage strips).
+    usage: GdocsReferenceUsage | undefined | null = undefined
 
     private readonly searchFieldRef = createRef<HTMLInputElement>()
     private readonly contentRef = createRef<HTMLDivElement>()
@@ -84,6 +101,7 @@ export class GdocsReferencePage extends Component<
             components: observable,
             templates: observable,
             searchInput: observable,
+            usage: observable,
         })
     }
 
@@ -131,16 +149,48 @@ export class GdocsReferencePage extends Component<
         )
     }
 
+    @computed private get usageByComponentId(): Map<string, ComponentUsage> {
+        const map = new Map<string, ComponentUsage>()
+        for (const usage of this.usage?.components ?? [])
+            map.set(usage.componentId, usage)
+        return map
+    }
+
+    private usageOf(doc: ComponentDoc): ComponentUsage | undefined {
+        return this.usageByComponentId.get(doc.id)
+    }
+
+    // Live adoption first, alphabetical as tiebreak — and the whole ordering
+    // degrades to alphabetical when the usage lookup is unavailable.
+    private sortByUsage(docs: ComponentDoc[]): ComponentDoc[] {
+        return [...docs].sort(
+            (a, b) =>
+                (this.usageOf(b)?.docsUsingIt ?? 0) -
+                    (this.usageOf(a)?.docsUsingIt ?? 0) ||
+                a.title.localeCompare(b.title)
+        )
+    }
+
+    // System (platform) blocks never greet an author — they live in a
+    // collapsed group at the end of the nav and the overview.
     @computed private get componentsByCategory(): {
         category: ComponentCategory
         components: ComponentDoc[]
     }[] {
         return COMPONENT_CATEGORIES.map((category) => ({
             category,
-            components: this.filteredComponents.filter(
-                (doc) => doc.category === category
+            components: this.sortByUsage(
+                this.filteredComponents.filter(
+                    (doc) => doc.category === category && !doc.system
+                )
             ),
         })).filter((group) => group.components.length > 0)
+    }
+
+    @computed private get systemComponents(): ComponentDoc[] {
+        return this.sortByUsage(
+            this.filteredComponents.filter((doc) => doc.system)
+        )
     }
 
     @action.bound private onSearch(value: string): void {
@@ -240,11 +290,17 @@ export class GdocsReferencePage extends Component<
     }
 
     private renderNav(): React.ReactElement {
-        const { filteredTemplates, componentsByCategory, query } = this
+        const {
+            filteredTemplates,
+            componentsByCategory,
+            systemComponents,
+            query,
+        } = this
         const nothingMatches =
             query &&
             filteredTemplates.length === 0 &&
-            componentsByCategory.length === 0
+            componentsByCategory.length === 0 &&
+            systemComponents.length === 0
         return (
             <nav className="gdocs-ref__nav">
                 <div className="gdocs-ref__search">
@@ -291,6 +347,21 @@ export class GdocsReferencePage extends Component<
                         </ul>
                     </div>
                 ))}
+                {systemComponents.length > 0 && (
+                    <details
+                        className="gdocs-ref__nav-group gdocs-ref__nav-group--system"
+                        open={!!query}
+                    >
+                        <summary className="gdocs-ref__nav-group-title">
+                            Platform blocks
+                        </summary>
+                        <ul>
+                            {systemComponents.map((doc) =>
+                                this.renderNavItem("components", doc)
+                            )}
+                        </ul>
+                    </details>
+                )}
                 {nothingMatches && (
                     <div className="gdocs-ref__nav-empty">
                         Nothing matches “{this.searchInput.trim()}”
@@ -300,6 +371,31 @@ export class GdocsReferencePage extends Component<
         )
     }
 
+    // The badge a component card/header carries, derived from live usage:
+    // "popular" when it is standard or common somewhere, "new" when it exists
+    // in the registry but no published doc uses it yet (and it is not a
+    // platform block).
+    private renderUsageBadge(doc: ComponentDoc): React.ReactElement | null {
+        if (!this.usage || doc.system) return null
+        const usage = this.usageOf(doc)
+        if (isPopular(usage))
+            return (
+                <span
+                    className="gdocs-ref__badge gdocs-ref__badge--popular"
+                    title={usageTooltip(usage)}
+                >
+                    popular
+                </span>
+            )
+        if (!usage)
+            return (
+                <span className="gdocs-ref__badge gdocs-ref__badge--new">
+                    new — not yet used
+                </span>
+            )
+        return null
+    }
+
     private renderComponentCard(doc: ComponentDoc): React.ReactElement {
         return (
             <Link
@@ -307,12 +403,48 @@ export class GdocsReferencePage extends Component<
                 className="gdocs-ref__card"
                 to={`/gdocs-reference/components/${doc.id}`}
             >
-                <div className="gdocs-ref__card-title">{doc.title}</div>
+                <div className="gdocs-ref__card-title">
+                    {doc.title}
+                    {this.renderUsageBadge(doc)}
+                </div>
                 <code className="gdocs-ref__card-id">{`{.${doc.id}}`}</code>
                 <p className="gdocs-ref__card-desc">
                     <InlineMarkdownText text={firstParagraph(doc.body)} />
                 </p>
             </Link>
+        )
+    }
+
+    // How much of our published content a doc type accounts for, in words —
+    // the raw count lives in the tooltip.
+    private templateContext(doc: TemplateDoc): React.ReactElement | null {
+        const totals = this.usage?.totalDocsByType
+        if (!totals) return null
+        const allDocs = Object.values(totals).reduce(
+            (sum, count) => sum + (count ?? 0),
+            0
+        )
+        const count = totals[doc.id as OwidGdocType] ?? 0
+        if (allDocs === 0) return null
+        const share = count / allDocs
+        const phrase =
+            count === 0
+                ? "not yet published"
+                : share >= 0.3
+                  ? "most of our published content"
+                  : share >= 0.05
+                    ? "a regular format"
+                    : "an occasional format"
+        return (
+            <span
+                className="gdocs-ref__card-context"
+                title={`${count} published ${docTypeNoun(
+                    doc.id as OwidGdocType,
+                    count !== 1
+                )}`}
+            >
+                {phrase}
+            </span>
         )
     }
 
@@ -323,7 +455,10 @@ export class GdocsReferencePage extends Component<
                 className="gdocs-ref__card gdocs-ref__card--template"
                 to={`/gdocs-reference/templates/${doc.id}`}
             >
-                <div className="gdocs-ref__card-title">{doc.title}</div>
+                <div className="gdocs-ref__card-title">
+                    {doc.title}
+                    {this.templateContext(doc)}
+                </div>
                 <code className="gdocs-ref__card-id">{`type: ${doc.id}`}</code>
                 <p className="gdocs-ref__card-desc">
                     <InlineMarkdownText text={firstParagraph(doc.body)} />
@@ -333,21 +468,28 @@ export class GdocsReferencePage extends Component<
     }
 
     private renderOverview(): React.ReactElement {
-        const { filteredTemplates, componentsByCategory, components, query } =
-            this
+        const {
+            filteredTemplates,
+            componentsByCategory,
+            systemComponents,
+            components,
+            query,
+        } = this
         const nothingMatches =
             query &&
             filteredTemplates.length === 0 &&
-            componentsByCategory.length === 0
+            componentsByCategory.length === 0 &&
+            systemComponents.length === 0
         return (
             <div className="gdocs-ref__overview">
                 <h1 className="gdocs-ref__page-title">Writing reference</h1>
                 <p className="gdocs-ref__intro">
                     Everything you can use when writing our content in Google
-                    Docs: a template for each type of document, and every
-                    ArchieML component that can go in a document body — with
-                    copy-paste examples rendered exactly as they will appear on
-                    the site.
+                    Docs. Start from the kind of document you are writing, or
+                    browse the building blocks — every example is rendered
+                    exactly as it will appear on the site, and the guidance is
+                    grounded in how our published content actually uses each
+                    block.
                 </p>
                 {nothingMatches && (
                     <p className="gdocs-ref__empty">
@@ -357,15 +499,14 @@ export class GdocsReferencePage extends Component<
                     </p>
                 )}
                 {filteredTemplates.length > 0 && (
-                    <section className="gdocs-ref__section">
+                    <section className="gdocs-ref__section gdocs-ref__section--entry">
                         <h2 className="gdocs-ref__section-title">
-                            {TEMPLATES_GROUP_TITLE}
+                            What are you writing?
                         </h2>
                         <p className="gdocs-ref__section-desc">
-                            Starting a new document? Each template shows the
-                            canonical structure for that type of content — front
-                            matter, body, and a full example you can copy into a
-                            fresh Google Doc.
+                            Each template page shows the canonical structure of
+                            that kind of document, how a real published one is
+                            built, and the blocks it actually uses.
                         </p>
                         <div className="gdocs-ref__card-grid">
                             {filteredTemplates.map((doc) =>
@@ -374,40 +515,115 @@ export class GdocsReferencePage extends Component<
                         </div>
                     </section>
                 )}
+                {componentsByCategory.length > 0 && (
+                    <section className="gdocs-ref__section gdocs-ref__section--entry">
+                        <h2 className="gdocs-ref__section-title">
+                            Building blocks
+                        </h2>
+                        <p className="gdocs-ref__section-desc">
+                            Every component that can go in a document body,
+                            most-used first. Each page says when to reach for it
+                            — and when a different block serves better.
+                        </p>
+                    </section>
+                )}
                 {componentsByCategory.map(({ category, components: docs }) => (
                     <section className="gdocs-ref__section" key={category}>
-                        <h2 className="gdocs-ref__section-title">
+                        <h3 className="gdocs-ref__section-subtitle">
                             {category}
                             <span className="gdocs-ref__section-count">
                                 {docs.length}
                             </span>
-                        </h2>
+                        </h3>
                         <div className="gdocs-ref__card-grid">
                             {docs.map((doc) => this.renderComponentCard(doc))}
                         </div>
                     </section>
                 ))}
+                {systemComponents.length > 0 && (
+                    <details
+                        className="gdocs-ref__system-details"
+                        open={!!query}
+                    >
+                        <summary>
+                            Platform blocks ({systemComponents.length}) —
+                            rendered on pages the team manages, not part of the
+                            authoring vocabulary
+                        </summary>
+                        <div className="gdocs-ref__card-grid">
+                            {systemComponents.map((doc) =>
+                                this.renderComponentCard(doc)
+                            )}
+                        </div>
+                    </details>
+                )}
                 {!query && components.length > 0 && (
                     <p className="gdocs-ref__footnote">
                         {components.length} components · {this.templates.length}{" "}
-                        templates. This reference is generated from the type
-                        definitions and their documentation in the codebase —
-                        every example is validated by CI against the same parser
-                        that ingests real documents.
+                        templates. The docs are generated from the type
+                        definitions in the codebase; usage guidance and real
+                        examples are computed live from published content.
                     </p>
                 )}
             </div>
         )
     }
 
+    // The "When to use" / "When NOT to use" prose rendered as a decision box
+    // — the choose-this-not-that guidance an author needs before anything
+    // else, with the related-component mentions linked.
+    private renderDecisionBox(
+        whenToUse: string | undefined,
+        whenNotToUse: string | undefined,
+        previewPathForExample: (index: number) => string | undefined,
+        examples: ComponentDoc["examples"]
+    ): React.ReactElement | null {
+        if (!whenToUse && !whenNotToUse) return null
+        return (
+            <div className="gdocs-ref__decision">
+                {whenToUse && (
+                    <div className="gdocs-ref__decision-panel gdocs-ref__decision-panel--use">
+                        <h2 className="gdocs-ref__decision-title">
+                            Use it for
+                        </h2>
+                        <GdocsReferenceMarkdown
+                            body={whenToUse}
+                            examples={examples}
+                            previewPathForExample={previewPathForExample}
+                            componentIds={this.componentIds}
+                        />
+                    </div>
+                )}
+                {whenNotToUse && (
+                    <div className="gdocs-ref__decision-panel gdocs-ref__decision-panel--avoid">
+                        <h2 className="gdocs-ref__decision-title">
+                            Reach for something else when
+                        </h2>
+                        <GdocsReferenceMarkdown
+                            body={whenNotToUse}
+                            examples={examples}
+                            previewPathForExample={previewPathForExample}
+                            componentIds={this.componentIds}
+                        />
+                    </div>
+                )}
+            </div>
+        )
+    }
+
     private renderComponentDetail(doc: ComponentDoc): React.ReactElement {
+        const { intro, whenToUse, whenNotToUse, rest } = splitSidecarBody(
+            doc.body
+        )
+        const previewPath = this.previewPathForComponent(doc)
         return (
             <article className="gdocs-ref__detail">
                 <header className="gdocs-ref__detail-header">
                     <div className="gdocs-ref__detail-title-row">
                         <h1 className="gdocs-ref__detail-title">{doc.title}</h1>
+                        {this.renderUsageBadge(doc)}
                         <span className="gdocs-ref__category-pill">
-                            {doc.category}
+                            {doc.system ? "Platform block" : doc.category}
                         </span>
                     </div>
                     <div className="gdocs-ref__detail-id-row">
@@ -418,12 +634,40 @@ export class GdocsReferencePage extends Component<
                         />
                     </div>
                 </header>
-                <GdocsReferenceMarkdown
-                    body={doc.body}
-                    examples={doc.examples}
-                    previewPathForExample={this.previewPathForComponent(doc)}
-                    componentIds={this.componentIds}
-                />
+                {intro && (
+                    <GdocsReferenceMarkdown
+                        body={intro}
+                        examples={doc.examples}
+                        previewPathForExample={previewPath}
+                        componentIds={this.componentIds}
+                    />
+                )}
+                {this.usage && !doc.system && (
+                    <UsageStrip
+                        usage={this.usageOf(doc)}
+                        totalDocsByType={this.usage.totalDocsByType}
+                    />
+                )}
+                {this.renderDecisionBox(
+                    whenToUse,
+                    whenNotToUse,
+                    previewPath,
+                    doc.examples
+                )}
+                {!doc.system && (
+                    <ComponentRealExamples
+                        doc={doc}
+                        usage={this.usageOf(doc)}
+                    />
+                )}
+                {rest && (
+                    <GdocsReferenceMarkdown
+                        body={rest}
+                        examples={doc.examples}
+                        previewPathForExample={previewPath}
+                        componentIds={this.componentIds}
+                    />
+                )}
                 {doc.examples.length === 0 && (
                     <p className="gdocs-ref__note">
                         This component has no standalone ArchieML example — it
@@ -533,6 +777,10 @@ export class GdocsReferencePage extends Component<
     }
 
     private renderTemplateDetail(doc: TemplateDoc): React.ReactElement {
+        const { intro, whenToUse, whenNotToUse, rest } = splitSidecarBody(
+            doc.body
+        )
+        const previewPath = this.previewPathForTemplate(doc)
         return (
             <article className="gdocs-ref__detail">
                 <header className="gdocs-ref__detail-header">
@@ -546,12 +794,35 @@ export class GdocsReferencePage extends Component<
                         <code className="gdocs-ref__detail-id">{`type: ${doc.id}`}</code>
                     </div>
                 </header>
-                <GdocsReferenceMarkdown
-                    body={doc.body}
-                    examples={doc.examples}
-                    previewPathForExample={this.previewPathForTemplate(doc)}
-                    componentIds={this.componentIds}
+                {intro && (
+                    <GdocsReferenceMarkdown
+                        body={intro}
+                        examples={doc.examples}
+                        previewPathForExample={previewPath}
+                        componentIds={this.componentIds}
+                    />
+                )}
+                {this.renderDecisionBox(
+                    whenToUse,
+                    whenNotToUse,
+                    previewPath,
+                    doc.examples
+                )}
+                <SkeletonScaffold template={doc} />
+                <ExemplarXray template={doc} />
+                <TemplateComponentShortlist
+                    template={doc}
+                    usage={this.usage}
+                    components={this.components}
                 />
+                {rest && (
+                    <GdocsReferenceMarkdown
+                        body={rest}
+                        examples={doc.examples}
+                        previewPathForExample={previewPath}
+                        componentIds={this.componentIds}
+                    />
+                )}
                 {this.renderTemplateFields(doc)}
                 <footer className="gdocs-ref__detail-footer">
                     <a
@@ -609,6 +880,16 @@ export class GdocsReferencePage extends Component<
             this.components = components
             this.templates = templates
         })
+        // Loaded separately, and tolerated when it fails: the reference is
+        // still fully usable without the live usage layer.
+        try {
+            const usage = await admin.getJSON<GdocsReferenceUsage>(
+                "/api/gdocs-reference/usage.json"
+            )
+            runInAction(() => (this.usage = usage))
+        } catch {
+            runInAction(() => (this.usage = null))
+        }
     }
 
     override componentDidMount(): void {
