@@ -5,7 +5,7 @@ import {
     OwidGdocErrorMessageType,
     OwidGdocType,
     checkIsOwidGdocType,
-    traverseEnrichedBlock,
+    getParseFindings,
     OwidGdocErrorMessageProperty,
     OwidGdoc,
     checkIsGdocPost,
@@ -74,19 +74,9 @@ function validateBody(gdoc: OwidGdoc, errors: OwidGdocErrorMessage[]) {
     if (!gdoc.content.body) {
         errors.push(getMissingContentPropertyError("body"))
     } else {
-        for (const block of gdoc.content.body) {
-            traverseEnrichedBlock(block, (block) => {
-                errors.push(
-                    ...block.parseErrors.map((parseError) => ({
-                        message: parseError.message,
-                        type: parseError.isWarning
-                            ? OwidGdocErrorMessageType.Warning
-                            : OwidGdocErrorMessageType.Error,
-                        property: "body" as const,
-                    }))
-                )
-            })
-        }
+        // Findings the parser recorded while parsing, transcribed by the same
+        // shared function the agent-facing write gate uses
+        errors.push(...getParseFindings({ body: gdoc.content.body }))
     }
 }
 
@@ -94,32 +84,8 @@ function validateRefs(
     gdoc: OwidGdocPostInterface,
     errors: OwidGdocErrorMessage[]
 ) {
-    if (gdoc.content.refs) {
-        // Errors due to refs being unused / undefined / malformed
-        if (gdoc.content.refs.errors.length) {
-            errors.push(...gdoc.content.refs.errors)
-        }
-        // Errors due to the content of the refs having parse errors
-        if (gdoc.content.refs.definitions) {
-            Object.values(gdoc.content.refs.definitions).map((definition) => {
-                definition.content.map((block) => {
-                    traverseEnrichedBlock(block, (node) => {
-                        if (node.parseErrors.length) {
-                            for (const parseError of node.parseErrors) {
-                                errors.push({
-                                    message: `Parse error in "${definition.id}" ref content: ${parseError.message}`,
-                                    property: "refs",
-                                    type: parseError.isWarning
-                                        ? OwidGdocErrorMessageType.Warning
-                                        : OwidGdocErrorMessageType.Error,
-                                })
-                            }
-                        }
-                    })
-                })
-            })
-        }
-    }
+    // Unused/undefined/malformed refs, and parse errors inside ref contents
+    errors.push(...getParseFindings({ refs: gdoc.content.refs }))
 }
 
 // Kind of arbitrary, see https://github.com/owid/owid-grapher/issues/2983

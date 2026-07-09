@@ -96,6 +96,13 @@ export const GDOCS_CLIENT_EMAIL: string = clientSettings.GDOCS_CLIENT_EMAIL
 export const GDOCS_CLIENT_ID: string = serverSettings.GDOCS_CLIENT_ID ?? ""
 export const GDOCS_BACKPORTING_TARGET_FOLDER: string =
     serverSettings.GDOCS_BACKPORTING_TARGET_FOLDER ?? ""
+// Default Drive folder for gdocs created through the admin API
+// (POST /gdocs). Must be shared with authors — a doc created outside a shared
+// folder lands in the service account's private Drive, invisible to humans.
+export const GDOCS_AGENT_DRAFTS_FOLDER: string =
+    serverSettings.GDOCS_AGENT_DRAFTS_FOLDER ??
+    serverSettings.GDOCS_BACKPORTING_TARGET_FOLDER ??
+    ""
 
 export const GDOCS_DONATE_FAQS_DOCUMENT_ID: string =
     serverSettings.GDOCS_DONATE_FAQS_DOCUMENT_ID ?? ""

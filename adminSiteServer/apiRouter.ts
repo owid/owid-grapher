@@ -52,6 +52,12 @@ import {
     getResearchAndWritingOrphans,
 } from "./apiRoutes/gdocs.js"
 import {
+    getGdocArchie,
+    getGdocValidation,
+    putGdocArchie,
+    createGdocFromArchie,
+} from "./apiRoutes/gdocArchie.js"
+import {
     getImagesHandler,
     postImageHandler,
     putImageHandler,
@@ -400,6 +406,17 @@ getRouteWithROTransaction(
 putRouteWithRWTransaction(apiRouter, "/gdocs/:id", createOrUpdateGdoc)
 deleteRouteWithRWTransaction(apiRouter, "/gdocs/:id", deleteGdoc)
 postRouteWithRWTransaction(apiRouter, "/gdocs/:gdocId/setTags", setGdocTags)
+// ArchieML view of a gdoc: read/replace the doc content as text, create a new
+// doc from text. Used by author-facing agents; see apiRoutes/gdocArchie.ts.
+getRouteWithROTransaction(apiRouter, "/gdocs/:id/archie", getGdocArchie)
+// RW because loading with contentSource=gdocs can sync image metadata
+getRouteNonIdempotentWithRWTransaction(
+    apiRouter,
+    "/gdocs/:id/validation",
+    getGdocValidation
+)
+putRouteWithRWTransaction(apiRouter, "/gdocs/:id/archie", putGdocArchie)
+postRouteWithRWTransaction(apiRouter, "/gdocs", createGdocFromArchie)
 
 // Data insight routes
 getRouteWithROTransaction(
