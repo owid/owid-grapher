@@ -33,10 +33,12 @@ import {
     SkeletonScaffold,
     TemplateComponentShortlist,
     UsageStrip,
+} from "./GdocsReferenceLive.js"
+import {
     docTypeNoun,
     isPopular,
     usageTooltip,
-} from "./GdocsReferenceLive.js"
+} from "./gdocsReferenceLiveHelpers.js"
 
 // Component docs live as .md sidecars in the repo, gated by CI; the detail
 // view links technical editors to the GitHub web editor to propose changes.
