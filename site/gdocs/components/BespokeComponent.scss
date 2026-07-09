@@ -1,5 +1,23 @@
 @use "sass:color";
 
+html.IsInIframe body.GdocBespokeIframeEmbedPage {
+    @include hide-site-chrome;
+
+    // Drop the article grid so the embed spans the full iframe width
+    .centered-article-container {
+        display: block;
+
+        > * {
+            display: none;
+        }
+
+        > [data-bespoke-iframe-embed="true"] {
+            display: block;
+            margin: 0;
+        }
+    }
+}
+
 .bespoke-component__error {
     padding: 16px;
     background-color: color.scale($vermillion, $lightness: +90%);

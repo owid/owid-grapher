@@ -133,28 +133,27 @@ export function BespokeComponent({
         cssUrl,
     ])
 
+    const iframeEmbedAttribute =
+        block.config.iframeEmbed === "true" ? "true" : undefined
+
     if (error) {
-        return <BespokeError className={className} message={error} />
+        return (
+            <div
+                className={cx(className, "bespoke-component__error")}
+                data-bespoke-iframe-embed={iframeEmbedAttribute}
+            >
+                {error}
+            </div>
+        )
     }
 
     return (
-        <div className={className}>
+        <div
+            className={className}
+            data-bespoke-iframe-embed={iframeEmbedAttribute}
+        >
             {isLoading && <LoadingIndicator />}
             <div ref={containerRef}></div>
-        </div>
-    )
-}
-
-function BespokeError({
-    className,
-    message,
-}: {
-    className?: string
-    message: string
-}) {
-    return (
-        <div className={cx(className, "bespoke-component__error")}>
-            {message}
         </div>
     )
 }

@@ -99,6 +99,46 @@ Ideally, your component adapts fluidly to any width given by its container. But 
 There is currently no mechanism for specifying dimensions ahead of time to prevent layout shifts. Components are rendered at whatever size the container provides once they load, and there will be a layout shift.
 We might add a way to specify dimensions for the loading state in the future.
 
+## Embeds on external sites
+
+External sites can embed a bespoke visualization by iframing the article page that hosts it. When such a page is loaded inside an iframe, all site chrome (header, footer, cookie notice) and article content is hidden and only the visualization is shown.
+
+### Opting in
+
+Set `iframeEmbed: true` in the block's `{.config}`:
+
+```yaml
+{.bespoke-component}
+  bundle: causes-of-death
+  variant: treemap
+  {.config}
+    urlSync: true
+    iframeEmbed: true
+  {}
+{}
+```
+
+The flag is consumed entirely by the site layer ([site/gdocs/OwidGdocPage.tsx](../site/gdocs/OwidGdocPage.tsx)) — projects never see it and don't need to parse it.
+
+**One embeddable block per article**: iframe mode only kicks in when an article has _exactly one_ top-level block with `iframeEmbed: true`.
+
+### URL state (`urlSync`)
+
+For a good embed, the project should also support `urlSync: true`, which syncs the viz state (selected country, year, …) to query parameters. That way an embed can pin a specific view via the iframe URL, e.g. `?migrationCountry=France`. Implement it with the shared [`useUrlState`](hooks/useUrlState.ts) hook and prefix the parameter keys with the project name (`causesOfDeathRegion`, `migrationCountry`, …) so multiple projects on the same page can't collide.
+
+### Embed snippet
+
+Give the iframe a flexible width and a fixed aspect ratio, and point it at the article URL (optionally with state params):
+
+```html
+<iframe
+    src="https://ourworldindata.org/where-do-migrants-live?migrationCountry=France"
+    style="width: 100%; aspect-ratio: 16 / 10; border: 0;"
+    allow="web-share; clipboard-write"
+    loading="lazy"
+></iframe>
+```
+
 ## Shadow DOM considerations
 
 Components run inside a Shadow DOM, which provides full CSS encapsulation but comes with trade-offs:
