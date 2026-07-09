@@ -1,4 +1,4 @@
-import { useContext, useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowUpRightFromSquare } from "@fortawesome/free-solid-svg-icons"
 import {
@@ -15,194 +15,26 @@ import {
     TemplateDoc,
     TemplateExemplarsResponse,
 } from "@ourworldindata/types"
-import { getCanonicalPath } from "@ourworldindata/components"
-import { BAKED_BASE_URL } from "../settings/clientSettings.js"
-import { AdminAppContext } from "./AdminAppContext.js"
 import { Link } from "./Link.js"
 import { GdocsReferenceExample } from "./GdocsReferenceExample.js"
+import {
+    docTypeNoun,
+    humanizeVariation,
+    indefinite,
+    joinWithAnd,
+    liveUrl,
+    usageSentence,
+    usageTooltip,
+    useAdminJson,
+    variationFrequencyLabel,
+} from "./gdocsReferenceLiveHelpers.js"
 
 /**
  * The live (database-backed) half of the writing reference UI: usage strips,
- * observed variations, real examples with provenance, and template exemplar
- * x-rays. Everything here presents computed facts qualitatively — words
- * first, raw numbers only in tooltips.
+ * real examples with provenance navigated by observed forms, and template
+ * exemplar x-rays. Everything here presents computed facts qualitatively —
+ * words first, raw numbers only in tooltips (see gdocsReferenceLiveHelpers).
  */
-
-// -----------------------------------------------------------------------------
-// Data fetching
-// -----------------------------------------------------------------------------
-
-/** Fetch an admin API JSON path; undefined while loading, null on failure. */
-export function useAdminJson<T>(path: string | undefined): T | undefined | null {
-    const { admin } = useContext(AdminAppContext)
-    const [result, setResult] = useState<T | undefined | null>(undefined)
-    useEffect(() => {
-        if (!path) return
-        let cancelled = false
-        setResult(undefined)
-        admin
-            .getJSON(path)
-            // getJSON's Json constraint rejects named interfaces (they lack
-            // an implicit index signature); the cast is as safe as any other
-            // typed API response.
-            .then((json) => {
-                if (!cancelled) setResult(json as unknown as T)
-            })
-            .catch(() => {
-                if (!cancelled) setResult(null)
-            })
-        return () => {
-            cancelled = true
-        }
-    }, [admin, path])
-    return path ? result : undefined
-}
-
-// -----------------------------------------------------------------------------
-// Qualitative wording helpers
-// -----------------------------------------------------------------------------
-
-const DOC_TYPE_NOUNS: Partial<Record<OwidGdocType, [string, string]>> = {
-    [OwidGdocType.Article]: ["article", "articles"],
-    [OwidGdocType.DataInsight]: ["data insight", "data insights"],
-    [OwidGdocType.TopicPage]: ["topic page", "topic pages"],
-    [OwidGdocType.LinearTopicPage]: [
-        "linear topic page",
-        "linear topic pages",
-    ],
-    [OwidGdocType.Fragment]: ["fragment", "fragments"],
-    [OwidGdocType.AboutPage]: ["about page", "about pages"],
-    [OwidGdocType.Announcement]: ["announcement", "announcements"],
-    [OwidGdocType.Author]: ["author page", "author pages"],
-    [OwidGdocType.Profile]: ["profile", "profiles"],
-    [OwidGdocType.Homepage]: ["homepage", "homepage"],
-}
-
-export function docTypeNoun(docType: OwidGdocType, plural: boolean): string {
-    const nouns = DOC_TYPE_NOUNS[docType]
-    if (!nouns) return docType
-    return plural ? nouns[1] : nouns[0]
-}
-
-// The doc types authors actually choose between — the usage sentence talks
-// about these; marginal types only appear when a component is used there.
-const MAJOR_DOC_TYPES: OwidGdocType[] = [
-    OwidGdocType.Article,
-    OwidGdocType.DataInsight,
-    OwidGdocType.TopicPage,
-    OwidGdocType.LinearTopicPage,
-]
-
-const LABEL_PHRASES: Record<ComponentUsageLabel, string> = {
-    standard: "standard in",
-    common: "common in",
-    occasional: "occasional in",
-    rare: "rare in",
-    unused: "not used in",
-}
-
-function joinWithAnd(parts: string[]): string {
-    if (parts.length <= 1) return parts[0] ?? ""
-    return parts.slice(0, -1).join(", ") + " and " + parts[parts.length - 1]
-}
-
-/**
- * One plain sentence about where a component is used, built from the live
- * labels: "Standard in articles and topic pages; occasional in linear topic
- * pages; never used in data insights."
- */
-export function usageSentence(
-    usage: ComponentUsage | undefined,
-    totalDocsByType: GdocsReferenceUsage["totalDocsByType"]
-): string {
-    if (!usage || usage.docsUsingIt === 0)
-        return "Not used in any published document yet."
-    const byLabel = new Map<ComponentUsageLabel, OwidGdocType[]>()
-    const usedTypes = new Set<OwidGdocType>()
-    for (const entry of usage.byDocType) {
-        usedTypes.add(entry.docType)
-        const group = byLabel.get(entry.label)
-        if (group) group.push(entry.docType)
-        else byLabel.set(entry.label, [entry.docType])
-    }
-    const clauses: string[] = []
-    for (const label of ["standard", "common", "occasional", "rare"] as const) {
-        const types = byLabel.get(label)
-        if (!types) continue
-        clauses.push(
-            LABEL_PHRASES[label] +
-                " " +
-                joinWithAnd(types.map((type) => docTypeNoun(type, true)))
-        )
-    }
-    const neverIn = MAJOR_DOC_TYPES.filter(
-        (type) => !usedTypes.has(type) && (totalDocsByType[type] ?? 0) > 0
-    )
-    if (neverIn.length > 0 && clauses.length > 0)
-        clauses.push(
-            "never used in " +
-                joinWithAnd(neverIn.map((type) => docTypeNoun(type, true)))
-        )
-    if (clauses.length === 0) return "Not used in any published document yet."
-    const sentence = clauses.join("; ")
-    return sentence.charAt(0).toUpperCase() + sentence.slice(1) + "."
-}
-
-/** Raw numbers behind the sentence — tooltip material, never the lead. */
-export function usageTooltip(usage: ComponentUsage | undefined): string {
-    if (!usage) return "No published uses"
-    return usage.byDocType
-        .map(
-            (entry) =>
-                `${entry.docsUsingIt} of ${entry.totalDocs} ${docTypeNoun(
-                    entry.docType,
-                    entry.totalDocs === 1 ? false : true
-                )}`
-        )
-        .join(" · ")
-}
-
-/** A component is "popular" when it is standard or common somewhere. */
-export function isPopular(usage: ComponentUsage | undefined): boolean {
-    return (
-        usage?.byDocType.some(
-            (entry) => entry.label === "standard" || entry.label === "common"
-        ) ?? false
-    )
-}
-
-/** "caption+size:narrow" → "with caption, size: narrow"; "" is the bare form */
-export function humanizeVariation(signature: string): string {
-    if (signature === "") return "the bare form"
-    return signature
-        .split("+")
-        .map((part) => {
-            const [key, value] = part.split(":")
-            return value === undefined ? `with ${key}` : `${key}: ${value}`
-        })
-        .join(", ")
-}
-
-function variationFrequencyLabel(count: number, scanned: number): string {
-    const fraction = scanned > 0 ? count / scanned : 0
-    if (fraction >= 0.5) return "the common form"
-    if (fraction >= 0.15) return "frequent"
-    if (fraction >= 0.02) return "occasional"
-    return "rare"
-}
-
-// -----------------------------------------------------------------------------
-// Live links + instance previews
-// -----------------------------------------------------------------------------
-
-export function liveUrl(instance: {
-    slug: string
-    docType: OwidGdocType
-    anchor?: string
-}): string {
-    const path = getCanonicalPath(instance.slug, instance.docType)
-    return `${BAKED_BASE_URL}${path}${instance.anchor ? `#${instance.anchor}` : ""}`
-}
 
 function instancePreviewPath(instance: ComponentInstance): string {
     return `/gdocs-reference/instance/preview?gdocId=${encodeURIComponent(
@@ -258,60 +90,66 @@ export function UsageStrip({
     totalDocsByType: GdocsReferenceUsage["totalDocsByType"]
 }): React.ReactElement {
     return (
-        <p
-            className="gdocs-ref-live__usage-strip"
-            title={usageTooltip(usage)}
-        >
+        <p className="gdocs-ref-live__usage-strip" title={usageTooltip(usage)}>
             {usageSentence(usage, totalDocsByType)}
         </p>
     )
 }
 
 // -----------------------------------------------------------------------------
-// Component page: real examples (pinned, variations, browse all)
+// Component page: examples from the site
 // -----------------------------------------------------------------------------
 
-const BROWSE_PAGE_SIZE = 12
+const GALLERY_PAGE_SIZE = 12
+// Rendered previews are expensive (each is a full page in an iframe), so the
+// gallery starts small and "Show more" reveals already-fetched instances
+// before fetching the next page.
+const GALLERY_INITIAL_VISIBLE = 4
+const GALLERY_VISIBLE_STEP = 8
 
-function VariationCard({
-    variation,
-    scanned,
-    onBrowse,
+// What the gallery is currently showing: every published use, one observed
+// form, or one synthetic sidecar example (a form no published doc uses yet).
+type FormSelection =
+    | { kind: "all" }
+    | { kind: "form"; signature: string }
+    | { kind: "synthetic"; exampleIndex: number }
+
+function FormChip({
+    label,
+    title,
+    isActive,
+    isSynthetic,
+    onClick,
 }: {
-    variation: ComponentVariation
-    scanned: number
-    onBrowse: (signature: string) => void
+    label: string
+    title?: string
+    isActive: boolean
+    isSynthetic?: boolean
+    onClick: () => void
 }): React.ReactElement {
+    const classNames = ["gdocs-ref-live__form-chip"]
+    if (isActive) classNames.push("gdocs-ref-live__form-chip--active")
+    if (isSynthetic) classNames.push("gdocs-ref-live__form-chip--synthetic")
     return (
-        <div className="gdocs-ref-live__variation">
-            <div className="gdocs-ref-live__variation-header">
-                <span className="gdocs-ref-live__variation-name">
-                    {humanizeVariation(variation.signature)}
-                </span>
-                <span
-                    className="gdocs-ref-live__variation-freq"
-                    title={`${variation.count} published uses`}
-                >
-                    {variationFrequencyLabel(variation.count, scanned)}
-                </span>
-                <button
-                    type="button"
-                    className="gdocs-ref-live__variation-browse"
-                    onClick={() => onBrowse(variation.signature)}
-                >
-                    see more like this
-                </button>
-            </div>
-            <InstanceExample instance={variation.representative} />
-        </div>
+        <button
+            type="button"
+            role="tab"
+            aria-selected={isActive}
+            className={classNames.join(" ")}
+            title={title}
+            onClick={onClick}
+        >
+            {label}
+        </button>
     )
 }
 
 /**
- * The live section of a component page: curated pinned examples first, the
- * observed variations of the component, and a browsable, filterable list of
- * every published use. Synthetic sidecar examples whose form is not observed
- * in production are appended to the variations with a distinct treatment.
+ * The live examples section of a component page: one gallery of real,
+ * rendered uses with provenance, navigated by a single chip row of the
+ * component's observed forms. Curated (pinned) examples lead the unfiltered
+ * gallery; sidecar examples whose form no published doc uses appear as
+ * dashed "not yet used" chips showing the reference example instead.
  */
 export function ComponentRealExamples({
     doc,
@@ -320,13 +158,15 @@ export function ComponentRealExamples({
     doc: ComponentDoc
     usage: ComponentUsage | undefined
 }): React.ReactElement | null {
+    const [selection, setSelection] = useState<FormSelection>({ kind: "all" })
     const [docTypeFilter, setDocTypeFilter] = useState<string | undefined>()
-    const [variationFilter, setVariationFilter] = useState<
-        string | undefined
-    >()
     const [page, setPage] = useState(0)
-    const [browsing, setBrowsing] = useState(false)
+    const [visible, setVisible] = useState(GALLERY_INITIAL_VISIBLE)
+    // Instances accumulate across "Show more" clicks
+    const [gallery, setGallery] = useState<ComponentInstance[]>([])
 
+    const variationFilter =
+        selection.kind === "form" ? selection.signature : undefined
     const query = new URLSearchParams()
     if (docTypeFilter !== undefined) query.set("docType", docTypeFilter)
     if (variationFilter !== undefined) query.set("variation", variationFilter)
@@ -338,206 +178,236 @@ export function ComponentRealExamples({
         }`
     )
 
-    // The unfiltered variations arrive with every response; keep the first
-    // ones so the grid doesn't vanish while a filtered page loads.
+    // Chip-row inputs arrive with every response (they are unfiltered);
+    // keep the last ones so the row doesn't vanish while a page loads.
     const [variations, setVariations] = useState<ComponentVariation[]>([])
-    const [scanned, setScanned] = useState(0)
+    const [pinned, setPinned] = useState<ComponentInstance[]>([])
+    const [stalePins, setStalePins] = useState<
+        ComponentInstancesResponse["stalePins"]
+    >([])
+    const [synthetic, setSynthetic] = useState<
+        ComponentInstancesResponse["syntheticExamples"]
+    >([])
+    const [total, setTotal] = useState(0)
+
     useEffect(() => {
-        if (response && response.variations.length > 0) {
-            setVariations(response.variations)
-            setScanned(
-                response.variations.reduce((sum, v) => sum + v.count, 0)
-            )
-        }
+        if (!response) return
+        setVariations(response.variations)
+        setPinned(response.pinned)
+        setStalePins(response.stalePins)
+        setSynthetic(response.syntheticExamples)
+        setTotal(response.total)
+        setGallery((previous) =>
+            page === 0
+                ? response.instances
+                : [...previous, ...response.instances]
+        )
+        // page is what varies between appends; the response carries the data
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [response])
 
-    const onBrowseVariation = (signature: string): void => {
-        setVariationFilter(signature)
+    const selectForm = (next: FormSelection): void => {
+        setSelection(next)
         setPage(0)
-        setBrowsing(true)
+        setVisible(GALLERY_INITIAL_VISIBLE)
+        setGallery([])
+    }
+    const selectDocType = (docType: string | undefined): void => {
+        setDocTypeFilter(docType)
+        setPage(0)
+        setVisible(GALLERY_INITIAL_VISIBLE)
+        setGallery([])
+    }
+    // Reveal already-fetched instances first; fetch the next page once the
+    // fetched ones run out.
+    const showMore = (): void => {
+        const next = visible + GALLERY_VISIBLE_STEP
+        setVisible(next)
+        if (next > gallery.length && (page + 1) * GALLERY_PAGE_SIZE < total)
+            setPage(page + 1)
     }
 
-    if (response === null) return null
-    if (response === undefined && variations.length === 0)
+    if (response === null && variations.length === 0) return null
+    // Full-section loader only before anything has ever arrived — once the
+    // chip row exists it stays mounted while filtered pages load.
+    if (response === undefined && total === 0 && variations.length === 0)
         return (
             <section className="gdocs-ref__section">
-                <h2 className="gdocs-ref__section-title">In the wild</h2>
+                <h2 className="gdocs-ref__section-title">
+                    Examples from the site
+                </h2>
                 <p className="gdocs-ref-live__loading">
                     Looking up published uses…
                 </p>
             </section>
         )
 
-    const unobservedSynthetic =
-        response?.syntheticExamples.filter((example) => !example.observed) ??
-        []
+    const scanned = variations.reduce((sum, v) => sum + v.count, 0)
+    const unobservedSynthetic = synthetic.filter((example) => !example.observed)
     const docTypesInUse = usage?.byDocType.map((entry) => entry.docType) ?? []
-    const totalPages = response
-        ? Math.ceil(response.total / BROWSE_PAGE_SIZE)
-        : 0
+    const showChipRow = variations.length > 1 || unobservedSynthetic.length > 0
+    const isSynthetic = selection.kind === "synthetic"
+    const syntheticExample = isSynthetic
+        ? doc.examples[selection.exampleIndex]
+        : undefined
+
+    // Curated picks lead the unfiltered gallery, deduplicated from the page
+    // of instances that follows them.
+    const showPinned = selection.kind === "all" && docTypeFilter === undefined
+    const pinnedKeys = new Set(
+        pinned.map((instance) => `${instance.gdocId}-${instance.path}`)
+    )
+    const galleryInstances = (
+        showPinned
+            ? gallery.filter(
+                  (instance) =>
+                      !pinnedKeys.has(`${instance.gdocId}-${instance.path}`)
+              )
+            : gallery
+    ).slice(0, visible)
+    const remaining = total - (showPinned ? pinned.length : 0) - visible
 
     return (
         <section className="gdocs-ref__section">
-            <h2 className="gdocs-ref__section-title">In the wild</h2>
-            {response && response.pinned.length > 0 && (
-                <div className="gdocs-ref-live__pinned">
-                    {response.pinned.map((instance) => (
-                        <InstanceExample
-                            key={`${instance.gdocId}-${instance.path}`}
-                            instance={instance}
-                        />
-                    ))}
-                </div>
-            )}
-            {response && response.stalePins.length > 0 && (
+            <h2 className="gdocs-ref__section-title">Examples from the site</h2>
+            {stalePins.length > 0 && (
                 <p className="gdocs-ref-live__stale">
-                    Stale pinned example{response.stalePins.length > 1 && "s"}{" "}
-                    in the sidecar:{" "}
-                    {response.stalePins
-                        .map((pin) => pin.slug + (pin.nth ? ` (#${pin.nth})` : ""))
+                    Stale pinned example{stalePins.length > 1 && "s"} in the
+                    sidecar:{" "}
+                    {stalePins
+                        .map(
+                            (pin) =>
+                                pin.slug + (pin.nth ? ` (#${pin.nth})` : "")
+                        )
                         .join(", ")}{" "}
                     — the document is unpublished or no longer uses this
                     component.
                 </p>
             )}
-            {variations.length > 0 &&
-                (variations.length > 1 || unobservedSynthetic.length > 0) && (
-                    <>
-                        <h3 className="gdocs-ref-live__subheading">
-                            Forms seen in published content
-                        </h3>
-                        <div className="gdocs-ref-live__variations">
-                            {variations.map((variation) => (
-                                <VariationCard
-                                    key={variation.signature}
-                                    variation={variation}
-                                    scanned={scanned}
-                                    onBrowse={onBrowseVariation}
-                                />
-                            ))}
-                            {unobservedSynthetic.map((example) => (
-                                <div
-                                    key={example.exampleIndex}
-                                    className="gdocs-ref-live__variation gdocs-ref-live__variation--synthetic"
-                                >
-                                    <div className="gdocs-ref-live__variation-header">
-                                        <span className="gdocs-ref-live__variation-name">
-                                            {humanizeVariation(
-                                                example.signature
-                                            )}
-                                        </span>
-                                        <span className="gdocs-ref-live__variation-freq gdocs-ref-live__variation-freq--synthetic">
-                                            not used in any published doc yet
-                                        </span>
-                                    </div>
-                                    <GdocsReferenceExample
-                                        archie={
-                                            doc.examples[example.exampleIndex]
-                                                ?.archie ?? ""
-                                        }
-                                        previewPath={`/gdocs-reference/components/${doc.id}/preview?example=${example.exampleIndex}`}
-                                    />
-                                </div>
-                            ))}
-                        </div>
-                    </>
+            <div className="gdocs-ref-live__gallery-controls">
+                {showChipRow && (
+                    <div
+                        className="gdocs-ref-live__form-chips"
+                        role="tablist"
+                        aria-label="Forms of this component"
+                    >
+                        <FormChip
+                            label="All forms"
+                            title={`${total} published uses`}
+                            isActive={selection.kind === "all"}
+                            onClick={() => selectForm({ kind: "all" })}
+                        />
+                        {variations.map((variation) => (
+                            <FormChip
+                                key={variation.signature}
+                                label={humanizeVariation(variation.signature)}
+                                title={`${variation.count} published uses — ${variationFrequencyLabel(
+                                    variation.count,
+                                    scanned
+                                )}`}
+                                isActive={
+                                    selection.kind === "form" &&
+                                    selection.signature === variation.signature
+                                }
+                                onClick={() =>
+                                    selectForm({
+                                        kind: "form",
+                                        signature: variation.signature,
+                                    })
+                                }
+                            />
+                        ))}
+                        {unobservedSynthetic.map((example) => (
+                            <FormChip
+                                key={`synthetic-${example.exampleIndex}`}
+                                label={example.name}
+                                title="Not used in any published doc yet — reference example"
+                                isActive={
+                                    selection.kind === "synthetic" &&
+                                    selection.exampleIndex ===
+                                        example.exampleIndex
+                                }
+                                isSynthetic
+                                onClick={() =>
+                                    selectForm({
+                                        kind: "synthetic",
+                                        exampleIndex: example.exampleIndex,
+                                    })
+                                }
+                            />
+                        ))}
+                    </div>
                 )}
-            {response && response.total > 0 && (
-                <div className="gdocs-ref-live__browse">
-                    {!browsing ? (
+                {docTypesInUse.length > 1 && !isSynthetic && (
+                    <select
+                        className="gdocs-ref-live__doc-type-select"
+                        value={docTypeFilter ?? ""}
+                        onChange={(event) =>
+                            selectDocType(
+                                event.currentTarget.value || undefined
+                            )
+                        }
+                    >
+                        <option value="">All document types</option>
+                        {docTypesInUse.map((docType) => (
+                            <option key={docType} value={docType}>
+                                {docTypeNoun(docType, true)}
+                            </option>
+                        ))}
+                    </select>
+                )}
+            </div>
+            {isSynthetic && syntheticExample ? (
+                <div className="gdocs-ref-live__synthetic">
+                    <p className="gdocs-ref-live__synthetic-note">
+                        No published document uses this form yet — this is the
+                        reference example from the docs.
+                    </p>
+                    <GdocsReferenceExample
+                        archie={syntheticExample.archie}
+                        previewPath={`/gdocs-reference/components/${doc.id}/preview?example=${
+                            (selection as { exampleIndex: number }).exampleIndex
+                        }`}
+                    />
+                </div>
+            ) : (
+                <>
+                    {showPinned &&
+                        pinned.map((instance) => (
+                            <div
+                                key={`pinned-${instance.gdocId}-${instance.path}`}
+                                className="gdocs-ref-live__curated"
+                            >
+                                <span className="gdocs-ref-live__curated-badge">
+                                    curated pick
+                                </span>
+                                <InstanceExample instance={instance} />
+                            </div>
+                        ))}
+                    {galleryInstances.map((instance) => (
+                        <InstanceExample
+                            key={`${instance.gdocId}-${instance.path}`}
+                            instance={instance}
+                        />
+                    ))}
+                    {response !== undefined && total === 0 && (
+                        <p className="gdocs-ref-live__loading">
+                            No published document uses this component yet.
+                        </p>
+                    )}
+                    {response === undefined && (
+                        <p className="gdocs-ref-live__loading">Loading…</p>
+                    )}
+                    {response !== undefined && remaining > 0 && (
                         <button
                             type="button"
-                            className="gdocs-ref-live__browse-toggle"
-                            onClick={() => setBrowsing(true)}
+                            className="gdocs-ref-live__show-more"
+                            onClick={showMore}
                         >
-                            Browse all {response.total} published uses
+                            Show more ({remaining} more)
                         </button>
-                    ) : (
-                        <>
-                            <div className="gdocs-ref-live__browse-controls">
-                                <select
-                                    value={docTypeFilter ?? ""}
-                                    onChange={(event) => {
-                                        setDocTypeFilter(
-                                            event.currentTarget.value ||
-                                                undefined
-                                        )
-                                        setPage(0)
-                                    }}
-                                >
-                                    <option value="">
-                                        All document types
-                                    </option>
-                                    {docTypesInUse.map((docType) => (
-                                        <option key={docType} value={docType}>
-                                            {docTypeNoun(docType, true)}
-                                        </option>
-                                    ))}
-                                </select>
-                                <select
-                                    value={
-                                        variationFilter === undefined
-                                            ? "__all"
-                                            : variationFilter
-                                    }
-                                    onChange={(event) => {
-                                        const value =
-                                            event.currentTarget.value
-                                        setVariationFilter(
-                                            value === "__all"
-                                                ? undefined
-                                                : value
-                                        )
-                                        setPage(0)
-                                    }}
-                                >
-                                    <option value="__all">All forms</option>
-                                    {variations.map((variation) => (
-                                        <option
-                                            key={variation.signature}
-                                            value={variation.signature}
-                                        >
-                                            {humanizeVariation(
-                                                variation.signature
-                                            )}
-                                        </option>
-                                    ))}
-                                </select>
-                                <span className="gdocs-ref-live__browse-count">
-                                    {response.total} use
-                                    {response.total === 1 ? "" : "s"}
-                                </span>
-                            </div>
-                            {response.instances.map((instance) => (
-                                <InstanceExample
-                                    key={`${instance.gdocId}-${instance.path}`}
-                                    instance={instance}
-                                />
-                            ))}
-                            {totalPages > 1 && (
-                                <div className="gdocs-ref-live__pagination">
-                                    <button
-                                        type="button"
-                                        disabled={page === 0}
-                                        onClick={() => setPage(page - 1)}
-                                    >
-                                        Previous
-                                    </button>
-                                    <span>
-                                        Page {page + 1} of {totalPages}
-                                    </span>
-                                    <button
-                                        type="button"
-                                        disabled={page + 1 >= totalPages}
-                                        onClick={() => setPage(page + 1)}
-                                    >
-                                        Next
-                                    </button>
-                                </div>
-                            )}
-                        </>
                     )}
-                </div>
+                </>
             )}
         </section>
     )
@@ -600,10 +470,6 @@ export function SkeletonScaffold({
 // -----------------------------------------------------------------------------
 // Template page: exemplar x-ray
 // -----------------------------------------------------------------------------
-
-function indefinite(noun: string): string {
-    return (/^[aeiou]/.test(noun) ? "an " : "a ") + noun
-}
 
 /** "prose, 2 charts and a callout" — a section's composition in words. */
 function compositionSentence(composition: Record<string, number>): string {
@@ -735,9 +601,7 @@ export function ExemplarXray({
                             rel="noopener"
                         >
                             Read it on the site{" "}
-                            <FontAwesomeIcon
-                                icon={faArrowUpRightFromSquare}
-                            />
+                            <FontAwesomeIcon icon={faArrowUpRightFromSquare} />
                         </a>
                     </p>
                     <ol className="gdocs-ref-live__xray-sections">
@@ -814,7 +678,8 @@ export function TemplateComponentShortlist({
     return (
         <section className="gdocs-ref__section">
             <h2 className="gdocs-ref__section-title">
-                The blocks used in {docTypeNoun(template.id as OwidGdocType, true)}
+                The blocks used in{" "}
+                {docTypeNoun(template.id as OwidGdocType, true)}
             </h2>
             <p className="gdocs-ref__section-desc">
                 Ordered by how widely published{" "}

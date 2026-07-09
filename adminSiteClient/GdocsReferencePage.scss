@@ -807,67 +807,102 @@
     color: $gray-60;
 }
 
-.gdocs-ref-live__pinned {
-    margin-bottom: 8px;
-}
-
-.gdocs-ref-live__variations {
+// The gallery's single navigation idiom: a chip row of the component's
+// observed forms (plus dashed chips for reference-only forms), with an
+// optional document-type select alongside.
+.gdocs-ref-live__gallery-controls {
     display: flex;
-    flex-direction: column;
-    gap: 20px;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 16px;
 }
 
-.gdocs-ref-live__variation--synthetic {
-    border: 1px dashed $gray-30;
-    border-radius: 6px;
-    padding: 12px;
-}
-
-.gdocs-ref-live__variation-header {
+.gdocs-ref-live__form-chips {
     display: flex;
-    align-items: baseline;
-    gap: 10px;
-    margin-bottom: 6px;
+    flex-wrap: wrap;
+    gap: 6px;
+    flex: 1;
 }
 
-.gdocs-ref-live__variation-name {
-    font-size: 13px;
-    font-weight: 600;
+.gdocs-ref-live__form-chip {
+    border: 1px solid $gray-30;
+    background: #fff;
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 12.5px;
     color: $blue-90;
-}
-
-.gdocs-ref-live__variation-freq {
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.02em;
-    text-transform: uppercase;
-    color: $gray-60;
-    cursor: default;
-}
-
-.gdocs-ref-live__variation-freq--synthetic {
-    color: $accent-vermillion;
-}
-
-.gdocs-ref-live__variation-browse {
-    margin-left: auto;
-    border: none;
-    background: none;
-    padding: 0;
-    font-size: 12px;
-    color: $blue-60;
     cursor: pointer;
 
     &:hover {
-        text-decoration: underline;
+        border-color: $blue-40;
     }
 }
 
-.gdocs-ref-live__browse {
-    margin-top: 16px;
+.gdocs-ref-live__form-chip--active {
+    background: $blue-90;
+    border-color: $blue-90;
+    color: #fff;
+
+    &:hover {
+        border-color: $blue-90;
+    }
 }
 
-.gdocs-ref-live__browse-toggle {
+.gdocs-ref-live__form-chip--synthetic {
+    border-style: dashed;
+    color: $gray-70;
+
+    &::before {
+        content: "⊘ ";
+        color: $accent-vermillion;
+    }
+}
+
+.gdocs-ref-live__form-chip--synthetic.gdocs-ref-live__form-chip--active {
+    background: $gray-70;
+    border-color: $gray-70;
+    color: #fff;
+
+    &::before {
+        color: #fff;
+    }
+}
+
+.gdocs-ref-live__doc-type-select {
+    font-size: 12.5px;
+    padding: 4px 8px;
+    border: 1px solid $gray-30;
+    border-radius: 5px;
+    background: #fff;
+    max-width: 220px;
+    flex-shrink: 0;
+}
+
+.gdocs-ref-live__curated-badge {
+    display: inline-block;
+    margin-bottom: 6px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: $blue-90;
+    background: $blue-10;
+    border-radius: 20px;
+    padding: 2px 8px;
+}
+
+.gdocs-ref-live__synthetic-note {
+    font-size: 12.5px;
+    color: $gray-70;
+    margin: 0 0 10px;
+
+    &::before {
+        content: "⊘ ";
+        color: $accent-vermillion;
+    }
+}
+
+.gdocs-ref-live__show-more {
     border: 1px solid $gray-30;
     background: #fff;
     border-radius: 6px;
@@ -878,49 +913,6 @@
 
     &:hover {
         border-color: $blue-40;
-    }
-}
-
-.gdocs-ref-live__browse-controls {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 16px;
-
-    select {
-        font-size: 13px;
-        padding: 5px 8px;
-        border: 1px solid $gray-30;
-        border-radius: 5px;
-        background: #fff;
-        max-width: 260px;
-    }
-}
-
-.gdocs-ref-live__browse-count {
-    font-size: 12.5px;
-    color: $gray-60;
-}
-
-.gdocs-ref-live__pagination {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    font-size: 13px;
-    color: $gray-70;
-
-    button {
-        border: 1px solid $gray-30;
-        background: #fff;
-        border-radius: 5px;
-        padding: 4px 12px;
-        font-size: 12.5px;
-        cursor: pointer;
-
-        &:disabled {
-            opacity: 0.4;
-            cursor: default;
-        }
     }
 }
 
