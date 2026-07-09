@@ -26,18 +26,23 @@ included — disappears.
 ```archie
 {.data-callout-group}
 [.+content]
-{.text}
-## Population
+{.heading}
+text: Life expectancy and child mortality
+level: 2
 {}
 
 {.data-callout}
-title: Total population
-value: {{population}}
+url: https://ourworldindata.org/grapher/life-expectancy?country=CAN
+[.+content]
+In $latestTime(), Canada's life expectancy was $latestValue()
+[]
 {}
 
 {.data-callout}
-title: Population density
-value: {{population_density}}
+url: https://ourworldindata.org/grapher/child-mortality?country=CAN
+[.+content]
+In $latestTime(), child mortality in Canada was $latestValue()
+[]
 {}
 []
 {}

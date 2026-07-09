@@ -649,6 +649,18 @@ export const OWID_GDOC_BASE_ROW_KEYS = Object.keys({
     markdown: true,
 } satisfies Record<Exclude<keyof OwidGdocBaseInterface, "content">, true>)
 
+/** The subset of row keys an author can act on in the admin UI (as opposed
+ *  to runtime attachments like linkedCharts). Surfaced to agents so they
+ *  relay changes to these instead of inventing front matter. */
+export const OWID_GDOC_ADMIN_MANAGED_KEYS = [
+    "slug",
+    "published",
+    "publishedAt",
+    "publicationContext",
+    "manualBreadcrumbs",
+    "tags",
+] as const satisfies readonly (keyof OwidGdocBaseInterface)[]
+
 /** The content-key classification for a gdoc type, or undefined for types
  *  the ArchieML write-back layer does not handle. */
 export function getContentKeysForGdocType(
