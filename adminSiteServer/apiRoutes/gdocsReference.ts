@@ -12,6 +12,7 @@ import {
     JsonError,
     OwidEnrichedGdocBlock,
     OwidGdocType,
+    OwidRawGdocBlock,
     PinnedExampleRef,
     SyntheticExampleInfo,
     TemplateDoc,
@@ -22,6 +23,9 @@ import { convertHeadingTextToId } from "@ourworldindata/components"
 import * as db from "../../db/db.js"
 import { archieToEnriched } from "../../db/model/Gdoc/archieToEnriched.js"
 import { enrichedBlockToRawBlock } from "../../db/model/Gdoc/enrichedToRaw.js"
+import { parseRawBlocksToEnrichedBlocks } from "../../db/model/Gdoc/rawToEnriched.js"
+import { enumerateGdocComponentsWithoutChildren } from "../../db/model/Gdoc/extractGdocComponentInfo.js"
+import { resolveBlockAtPath } from "../gdocsReferencePreview.js"
 import { OwidRawGdocBlockToArchieMLString } from "../../db/model/Gdoc/rawToArchie.js"
 import { Request } from "../authentication.js"
 import { HandlerResponse } from "../FunctionalRouter.js"
@@ -152,11 +156,11 @@ interface InstanceRow {
     title: string | null
 }
 
-// An InstanceRow parsed and signed, before it is trimmed down to the
-// ComponentInstance wire shape.
+// An InstanceRow parsed, minimized and signed, before it is trimmed down to
+// the ComponentInstance wire shape.
 interface ScannedInstance {
     row: InstanceRow
-    block: OwidEnrichedGdocBlock | undefined
+    minimal: MinimalBlock | undefined
     signature: string
 }
 
@@ -174,13 +178,20 @@ const SALIENT_VALUE_KEYS = new Set([
     "level",
 ])
 
-function parseConfig(
-    config: InstanceRow["config"]
-): OwidEnrichedGdocBlock | undefined {
+// A posts_gdocs_components config: the enriched block as stored by
+// extractGdocComponentInfo — child blocks omitted, spans flattened to plain
+// text strings.
+type StoredConfig = Record<string, unknown> & { type: string }
+
+function parseConfig(config: InstanceRow["config"]): StoredConfig | undefined {
     try {
         const parsed = typeof config === "string" ? JSON.parse(config) : config
-        if (parsed && typeof parsed === "object" && "type" in parsed)
-            return parsed as OwidEnrichedGdocBlock
+        if (
+            parsed &&
+            typeof parsed === "object" &&
+            typeof (parsed as { type?: unknown }).type === "string"
+        )
+            return parsed as StoredConfig
     } catch {
         // fall through — a malformed stored config yields no block
     }
@@ -188,27 +199,87 @@ function parseConfig(
 }
 
 /**
- * The observed configuration shape of a block, derived from what an author
- * actually writes: the enriched config is converted back to its raw form
- * (dropping enrichment defaults) and described as the sorted set of authored
- * value keys, with salient scalar values inlined ("caption+size:narrow").
- * The bare form (a plain string value, e.g. a chart that is just a URL) has
- * no parts.
+ * Reconstruct the raw (authoring-shaped) block from a stored config. The
+ * stored form — children omitted, spans flattened to plain strings — is
+ * already essentially the raw value shape, which holds strings everywhere;
+ * only scalars need stringifying (level: 2 → "2", hasOutline: false →
+ * "false").
  */
-function variationParts(block: OwidEnrichedGdocBlock | undefined): string[] {
-    if (!block) return []
-    let raw
-    try {
-        raw = enrichedBlockToRawBlock(block)
-    } catch {
-        return []
+function configToRaw(config: StoredConfig): OwidRawGdocBlock {
+    const { type, parseErrors: _parseErrors, ...props } = config
+    // Blocks whose raw form is a plain string value (e.g. text) store it as
+    // a lone "value" prop.
+    if ("value" in props && Object.keys(props).length === 1)
+        return { type, value: props.value } as unknown as OwidRawGdocBlock
+    const value: Record<string, unknown> = {}
+    for (const [key, v] of Object.entries(props)) {
+        if (v === undefined || v === null) continue
+        value[key] =
+            typeof v === "number" || typeof v === "boolean" ? String(v) : v
     }
+    return { type, value } as unknown as OwidRawGdocBlock
+}
+
+/**
+ * A block reduced to its minimal source: the raw form with every prop the
+ * parser re-injects on its own (a default) stripped away. Two invariants
+ * follow, and both matter:
+ *
+ * - Stored configs are parser output of varying vintage — the same authoring
+ *   is stored with or without injected defaults depending on when its doc
+ *   was last saved. Minimization compares re-parses in TODAY's parser space,
+ *   so vintage differences collapse and analysis can never depend on when a
+ *   doc was saved.
+ * - What survives is exactly what makes the block this block: required props
+ *   (stripping them changes the parse) and deviations from defaults. The
+ *   displayed ArchieML is generated from the same minimization, so the
+ *   reference always shows the canonical, shortest way to type each form.
+ */
+interface MinimalBlock {
+    raw: OwidRawGdocBlock
+    /** Signature parts of the minimal raw, before universal-part folding */
+    parts: string[]
+}
+
+function tryParseRaw(raw: OwidRawGdocBlock): OwidEnrichedGdocBlock | undefined {
+    try {
+        return parseRawBlocksToEnrichedBlocks(raw) ?? undefined
+    } catch {
+        return undefined
+    }
+}
+
+function minimizeRaw(raw: OwidRawGdocBlock): MinimalBlock {
     const value = (raw as { value?: unknown }).value
     if (typeof value !== "object" || value === null || Array.isArray(value))
-        return []
+        return { raw, parts: [] }
+    const props = value as Record<string, unknown>
+    for (const key of Object.keys(props)) {
+        if (props[key] === undefined) delete props[key]
+    }
+
+    // Strip every prop whose removal is parse-invariant — the parser fills
+    // defaults back in, so removing one doesn't change the result, while
+    // removing a required prop or a non-default value does. Only applies
+    // when the block parses cleanly: container blocks are stored without
+    // their child blocks, so they parse to an error either way and stripping
+    // would erase real props. (JSON.stringify comparison is deterministic
+    // because the parsers build their result objects in a fixed order.)
+    const baseEnriched = tryParseRaw(raw)
+    if (baseEnriched && (baseEnriched.parseErrors ?? []).length === 0) {
+        const base = JSON.stringify(baseEnriched)
+        for (const key of Object.keys(props)) {
+            const kept = props[key]
+            delete props[key]
+            const reparsed = tryParseRaw(raw)
+            if (!reparsed || JSON.stringify(reparsed) !== base)
+                props[key] = kept
+        }
+    }
+
     const parts: string[] = []
-    for (const [key, v] of Object.entries(value)) {
-        if (v === undefined || v === null) continue
+    for (const [key, v] of Object.entries(props)) {
+        if (v === null) continue
         if (typeof v === "string" && v.trim() === "") continue
         if (Array.isArray(v) && v.length === 0) continue
         if (
@@ -218,40 +289,61 @@ function variationParts(block: OwidEnrichedGdocBlock | undefined): string[] {
             parts.push(key + ":" + String(v))
         else parts.push(key)
     }
-    return parts.sort()
+    return { raw, parts: parts.sort() }
 }
 
-const partKey = (part: string): string => part.split(":")[0]
+function minimizeConfig(
+    config: StoredConfig | undefined
+): MinimalBlock | undefined {
+    if (!config) return undefined
+    return minimizeRaw(configToRaw(config))
+}
 
 /**
- * Keys present in essentially every instance are the component's baseline
- * (a chart always has a url), not a variation-defining feature — variations
- * are the differences between real instances, so baseline keys are dropped
- * from every signature before grouping.
+ * The minimal ArchieML for a real (fully enriched) block from a document
+ * body — used for the source shown next to rendered examples, where the
+ * children the stored config omits must be present.
  */
-function baselineKeys(allParts: string[][]): Set<string> {
-    const keyCounts = new Map<string, number>()
-    for (const parts of allParts) {
-        for (const key of new Set(parts.map(partKey)))
-            keyCounts.set(key, (keyCounts.get(key) ?? 0) + 1)
-    }
-    const baseline = new Set<string>()
-    for (const [key, count] of keyCounts) {
-        if (count >= allParts.length * 0.99) baseline.add(key)
-    }
-    return baseline
-}
-
-function signatureFromParts(parts: string[], baseline: Set<string>): string {
-    return parts.filter((part) => !baseline.has(partKey(part))).join("+")
-}
-
-function blockToArchie(
+function minimalArchieFromEnriched(
     block: OwidEnrichedGdocBlock | undefined
 ): string | undefined {
     if (!block) return undefined
     try {
-        return OwidRawGdocBlockToArchieMLString(enrichedBlockToRawBlock(block))
+        const minimal = minimizeRaw(enrichedBlockToRawBlock(block))
+        return OwidRawGdocBlockToArchieMLString(minimal.raw)
+    } catch {
+        return undefined
+    }
+}
+
+/**
+ * Parts present on every minimized instance are the component's required
+ * scaffolding (a chart always has a url) — not a variation-defining feature.
+ * Exact by construction: after minimization a part only exists where an
+ * author's source needs it, so "on every instance" means "part of what the
+ * component is".
+ */
+function universalParts(allParts: string[][]): Set<string> {
+    const withParts = allParts.filter((parts) => parts.length > 0)
+    const counts = new Map<string, number>()
+    for (const parts of withParts) {
+        for (const part of parts) counts.set(part, (counts.get(part) ?? 0) + 1)
+    }
+    const universal = new Set<string>()
+    for (const [part, count] of counts) {
+        if (count === withParts.length) universal.add(part)
+    }
+    return universal
+}
+
+function signatureFromParts(parts: string[], universal: Set<string>): string {
+    return parts.filter((part) => !universal.has(part)).join("+")
+}
+
+function blockToArchie(minimal: MinimalBlock | undefined): string | undefined {
+    if (!minimal) return undefined
+    try {
+        return OwidRawGdocBlockToArchieMLString(minimal.raw)
     } catch {
         return undefined
     }
@@ -378,15 +470,17 @@ export async function getComponentInstances(
         [componentId]
     )
 
-    const parsed = rows.map((row) => {
-        const block = parseConfig(row.config)
-        return { row, block, parts: variationParts(block) }
-    })
-    const baseline = baselineKeys(parsed.map((instance) => instance.parts))
-    const scanned: ScannedInstance[] = parsed.map(({ row, block, parts }) => ({
+    const parsed = rows.map((row) => ({
         row,
-        block,
-        signature: signatureFromParts(parts, baseline),
+        minimal: minimizeConfig(parseConfig(row.config)),
+    }))
+    const universal = universalParts(
+        parsed.map((instance) => instance.minimal?.parts ?? [])
+    )
+    const scanned: ScannedInstance[] = parsed.map(({ row, minimal }) => ({
+        row,
+        minimal,
+        signature: signatureFromParts(minimal?.parts ?? [], universal),
     }))
 
     // Variations rank over the full (unfiltered) scan.
@@ -459,22 +553,23 @@ export async function getComponentInstances(
         const instance = toInstance(scannedInstance)
         const body = bodies.get(scannedInstance.row.gdocId)
         if (body) instance.anchor = nearestHeadingAnchor(body, instance.path)
-        instance.archie = blockToArchie(scannedInstance.block)
+        // The shown source comes from the real block in the document body —
+        // the stored config omits child blocks, so its archie would be
+        // incomplete for container blocks. Same minimization either way.
+        const realBlock = body
+            ? resolveBlockAtPath({ body }, instance.path)
+            : undefined
+        instance.archie =
+            minimalArchieFromEnriched(realBlock) ??
+            blockToArchie(scannedInstance.minimal)
         return instance
     }
 
-    const variations: ComponentVariation[] = variationGroups.map(
-        ([signature, group]) => ({
-            signature,
-            count: group.length,
-            representative: present(group[0]),
-        })
-    )
-
     // Match the sidecar's synthetic examples against production: an example
-    // whose form is not observed in any published doc is presented by the UI
-    // as a synthetic variation ("not used in any published doc yet") —
-    // synthetic examples cover exactly the gap reality leaves.
+    // whose form is observed lends the observed variation its curated name;
+    // one whose form is not observed is presented by the UI as a synthetic
+    // variation ("not used in any published doc yet") — synthetic examples
+    // cover exactly the gap reality leaves.
     const syntheticExamples: SyntheticExampleInfo[] = doc.examples.map(
         (example, exampleIndex) => {
             let signature = ""
@@ -485,7 +580,23 @@ export async function getComponentInstances(
                 const blocks = content.body ?? []
                 const block =
                     blocks.find((b) => b.type === componentId) ?? blocks[0]
-                signature = signatureFromParts(variationParts(block), baseline)
+                if (block) {
+                    // Flatten the example block exactly like the extraction
+                    // pipeline flattens stored configs (children omitted,
+                    // spans to plain text), so signatures compare like for
+                    // like.
+                    const [flattened] = enumerateGdocComponentsWithoutChildren(
+                        block,
+                        "$.body",
+                        "$.body[0]"
+                    )
+                    signature = signatureFromParts(
+                        minimizeConfig(
+                            flattened?.content as StoredConfig | undefined
+                        )?.parts ?? [],
+                        universal
+                    )
+                }
             } catch {
                 // an unparsable example has no signature to match
             }
@@ -494,6 +605,28 @@ export async function getComponentInstances(
                 name: example.name,
                 signature,
                 observed: bySignature.has(signature),
+            }
+        }
+    )
+
+    // The curated naming layer: an observed variation takes the name of the
+    // (first) sidecar example with the same form. Variations left with a
+    // technical label are a visible curation gap — name one by adding a
+    // matching example to the sidecar.
+    const nameBySignature = new Map<string, string>()
+    for (const example of syntheticExamples) {
+        if (example.observed && !nameBySignature.has(example.signature))
+            nameBySignature.set(example.signature, example.name)
+    }
+
+    const variations: ComponentVariation[] = variationGroups.map(
+        ([signature, group]) => {
+            const name = nameBySignature.get(signature)
+            return {
+                signature,
+                count: group.length,
+                representative: present(group[0]),
+                ...(name !== undefined && { name }),
             }
         }
     )

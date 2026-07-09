@@ -4,6 +4,7 @@ import {
     PostsGdocsComponentsTableName,
     PostsGdocsTableName,
 } from "@ourworldindata/types"
+import { getGdocComponentsWithoutChildren } from "../../db/model/Gdoc/extractGdocComponentInfo.js"
 import { getAdminTestEnv } from "./testEnv.js"
 
 const env = getAdminTestEnv()
@@ -14,8 +15,9 @@ async function rawGet(path: string): Promise<Response> {
     })
 }
 
-// Seed a published (or not) gdoc and the posts_gdocs_components rows the
-// pipeline would derive from its top-level body blocks.
+// Seed a published (or not) gdoc and its posts_gdocs_components rows,
+// derived through the same extraction the production save path uses
+// (children omitted, spans flattened).
 async function seedDoc(options: {
     id: string
     slug: string
@@ -35,14 +37,9 @@ async function seedDoc(options: {
         createdAt: new Date("2026-01-01"),
         updatedAt: new Date("2026-01-01"),
     })
-    await env.testKnex(PostsGdocsComponentsTableName).insert(
-        body.map((block, index) => ({
-            gdocId: id,
-            config: JSON.stringify(block),
-            parent: "$.body",
-            path: `$.body[${index}]`,
-        }))
-    )
+    await env
+        .testKnex(PostsGdocsComponentsTableName)
+        .insert(getGdocComponentsWithoutChildren(id, body))
 }
 
 const text = (value: string): OwidEnrichedGdocBlock =>
@@ -53,7 +50,12 @@ const text = (value: string): OwidEnrichedGdocBlock =>
     }) as OwidEnrichedGdocBlock
 
 const chart = (url: string, size?: string): OwidEnrichedGdocBlock =>
-    ({ type: "chart", url, ...(size && { size }), parseErrors: [] }) as unknown as OwidEnrichedGdocBlock
+    ({
+        type: "chart",
+        url,
+        ...(size && { size }),
+        parseErrors: [],
+    }) as unknown as OwidEnrichedGdocBlock
 
 const heading = (value: string, level = 1): OwidEnrichedGdocBlock =>
     ({
@@ -109,29 +111,50 @@ describe("writing reference live API", { timeout: 20000 }, () => {
             published: true,
             body: [
                 heading("A section"),
+                // Vintage fixture: the same authoring is stored with or
+                // without injected defaults depending on when its doc was
+                // last saved — a bare chart and an explicit size:wide chart
+                // MUST land in the same variation, or the analysis depends
+                // on parser vintage.
                 chart("https://example.org/grapher/a"),
-                chart("https://example.org/grapher/b", "narrow"),
+                chart("https://example.org/grapher/b", "wide"),
+                chart("https://example.org/grapher/c", "narrow"),
             ],
         })
 
         const json = await env.fetchJson(
             "/gdocs-reference/components/chart/instances.json"
         )
-        expect(json.total).toBe(2)
-        expect(json.instances).toHaveLength(2)
+        expect(json.total).toBe(3)
+        expect(json.instances).toHaveLength(3)
         for (const instance of json.instances) {
             expect(instance.slug).toBe("us-crime-rates")
             expect(instance.archie).toContain("{.chart}")
-            // both charts sit under the seeded heading
+            // all charts sit under the seeded heading
             expect(instance.anchor).toBe("a-section")
         }
-        // the bare form and the narrow form are distinct observed variations
-        // (url is baseline — present on every instance — so it never shows)
-        const signatures = json.variations.map(
-            (variation: { signature: string }) => variation.signature
+        // bare and explicit-wide collapse into the standard form; narrow is
+        // the deviation. url never shows: it is on every instance, so it is
+        // what the component is, not a variation.
+        const bySignature = new Map<string, number>(
+            json.variations.map(
+                (variation: { signature: string; count: number }) => [
+                    variation.signature,
+                    variation.count,
+                ]
+            )
         )
-        expect(signatures).toContain("size:narrow")
-        expect(signatures).not.toContain("url")
+        expect(bySignature.get("")).toBe(2)
+        expect(bySignature.get("size:narrow")).toBe(1)
+        expect([...bySignature.keys()].join("+")).not.toContain("url")
+        // the displayed source is minimal: injected defaults never show as
+        // typed characters, deviations always do
+        const archieOf = (url: string): string =>
+            json.instances.find((instance: { archie: string }) =>
+                instance.archie.includes(url)
+            )?.archie ?? ""
+        expect(archieOf("grapher/b")).not.toContain("size")
+        expect(archieOf("grapher/c")).toContain("size: narrow")
         // the sidecar pin on us-crime-rates resolves against the seeded doc
         expect(json.stalePins).toEqual([])
         expect(json.pinned).toHaveLength(1)
