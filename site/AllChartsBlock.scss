@@ -53,7 +53,16 @@ $all-charts-block-sticky-top: 72px;
 }
 
 .all-charts-block__search {
-    position: relative;
+    position: sticky;
+    // Sticks to the same offset as the chart sidecar (.all-charts-block__right
+    // above) for consistency — both clear the topic page's sticky sub-nav by
+    // the same amount. Only the search input itself sticks; the suggested-
+    // searches row below it scrolls away normally with the rest of the list.
+    top: $all-charts-block-sticky-top;
+    z-index: 1;
+    // Opaque background so table rows scrolling up underneath don't show
+    // through the sticky search bar.
+    background-color: $white;
     display: flex;
     align-items: center;
     margin-bottom: 16px;
@@ -199,12 +208,20 @@ $all-charts-block-row-column-gap: 16px;
 // The clickable row content: a real two-column grid (indicator info, then
 // source) plus the trailing arrow-link column, so source text lines up into
 // a proper column across every row instead of floating at its own width.
+// The whole grid is the row's single click/keyboard target (role="button" in
+// the markup) — selecting/expanding the row works from anywhere in it,
+// including the source column and the arrow-link area.
 .all-charts-block__row-main {
     display: grid;
     grid-template-columns: $all-charts-block-row-columns;
     column-gap: $all-charts-block-row-column-gap;
     align-items: stretch;
     border-left: 3px solid transparent;
+    cursor: pointer;
+
+    &:hover {
+        background-color: $gray-5;
+    }
 
     // The source column is hidden on phones (see .all-charts-block__row-source
     // below) — drop its track too, otherwise it'd leave a blank gap between
@@ -214,26 +231,14 @@ $all-charts-block-row-column-gap: 16px;
     }
 }
 
-.all-charts-block__row-button {
-    display: block;
-    width: 100%;
-    padding: 12px 13px;
-    background: none;
-    border: none;
-    text-align: left;
-    cursor: pointer;
-    min-width: 0;
-
-    &:hover {
-        background-color: $gray-5;
-    }
-}
-
 .all-charts-block__row-indicator {
     display: flex;
     flex-direction: column;
     gap: 2px;
     min-width: 0;
+    // Matches the old row-button's inset (3px accent border + 13px padding =
+    // 16px, matching .all-charts-block__table-header's padding-left).
+    padding: 12px 13px;
 }
 
 .all-charts-block__row-title {
@@ -293,7 +298,16 @@ $all-charts-block-row-column-gap: 16px;
     font-weight: 400;
     // Matches .all-charts-block__row-subtitle above.
     line-height: 1.5;
+    // Long source lists are clamped to 3 lines with an ellipsis, same as
+    // .all-charts-block__row-subtitle above, so a single row can't grow
+    // unboundedly tall.
     overflow-wrap: break-word;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    overflow: hidden;
+    text-overflow: ellipsis;
 
     @include sm-only {
         display: none;

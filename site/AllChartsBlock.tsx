@@ -767,47 +767,64 @@ const AllChartsTableRow = ({
 
     const producers = hit.datasetProducers ?? []
 
+    // Enter/Space activate the row the same way a native <button> would —
+    // needed because the click target below is a div (it has to wrap the
+    // source column and arrow-link too, not just the title/subtitle), so we
+    // reimplement that bit of native button keyboard behavior ourselves.
+    const handleRowKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+        if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault()
+            onSelect()
+        }
+    }
+
     return (
         <li
             className={cx("all-charts-block__row", {
                 "all-charts-block__row--selected": isSelected,
             })}
         >
-            <div className="all-charts-block__row-main">
-                <button
-                    type="button"
-                    className="all-charts-block__row-button"
-                    aria-pressed={isSelected}
-                    aria-expanded={isExpanded}
-                    onClick={onSelect}
-                >
-                    <span className="all-charts-block__row-indicator">
-                        <span className="all-charts-block__row-title">
-                            {hit.title}
-                        </span>
-                        {hit.subtitle && (
-                            <span className="all-charts-block__row-subtitle">
-                                {hit.subtitle}
-                            </span>
-                        )}
-                        {shownEntities.length > 0 && (
-                            <span className="all-charts-block__row-tag">
-                                Shown on chart: {shownEntities.join(", ")}
-                            </span>
-                        )}
+            {/* The whole row (title/subtitle, source column, and arrow-link
+                area) is a single click/keyboard target for selecting the row
+                on desktop or expanding/collapsing its mobile accordion. */}
+            <div
+                className="all-charts-block__row-main"
+                role="button"
+                tabIndex={0}
+                aria-pressed={isSelected}
+                aria-expanded={isExpanded}
+                onClick={onSelect}
+                onKeyDown={handleRowKeyDown}
+            >
+                <span className="all-charts-block__row-indicator">
+                    <span className="all-charts-block__row-title">
+                        {hit.title}
                     </span>
-                </button>
-                {/* The source column lives outside the row-selection button so
-                    clicking it doesn't also select the row. It's plain,
-                    non-interactive text (no filter-on-click behavior). */}
+                    {hit.subtitle && (
+                        <span className="all-charts-block__row-subtitle">
+                            {hit.subtitle}
+                        </span>
+                    )}
+                    {shownEntities.length > 0 && (
+                        <span className="all-charts-block__row-tag">
+                            Shown on chart: {shownEntities.join(", ")}
+                        </span>
+                    )}
+                </span>
                 <span className="all-charts-block__row-source">
                     {producers.join(", ")}
                 </span>
+                {/* Its own navigation action ("view chart"), distinct from
+                    selecting/expanding the row — stop the click from also
+                    bubbling to the row's onClick above so it doesn't
+                    additionally toggle selection/expansion on its way to
+                    navigating away. */}
                 <a
                     className="all-charts-block__row-link"
                     href={chartUrl}
                     aria-label={`Open ${hit.title}`}
                     data-track-note="all-charts-row-link"
+                    onClick={(event) => event.stopPropagation()}
                 >
                     <FontAwesomeIcon icon={faArrowRight} />
                 </a>
