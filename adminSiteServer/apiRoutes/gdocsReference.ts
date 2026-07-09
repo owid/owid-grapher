@@ -13,12 +13,14 @@ import {
     OwidEnrichedGdocBlock,
     OwidGdocType,
     PinnedExampleRef,
+    SyntheticExampleInfo,
     TemplateDoc,
     TemplateExemplarsResponse,
 } from "@ourworldindata/types"
 import { spansToUnformattedPlainText } from "@ourworldindata/utils"
 import { convertHeadingTextToId } from "@ourworldindata/components"
 import * as db from "../../db/db.js"
+import { archieToEnriched } from "../../db/model/Gdoc/archieToEnriched.js"
 import { enrichedBlockToRawBlock } from "../../db/model/Gdoc/enrichedToRaw.js"
 import { OwidRawGdocBlockToArchieMLString } from "../../db/model/Gdoc/rawToArchie.js"
 import { Request } from "../authentication.js"
@@ -78,7 +80,7 @@ export async function getGdocsReferenceUsage(
         `-- sql
         SELECT
             pg.type AS docType,
-            c.config->>'$.type' AS componentId,
+            c.type AS componentId,
             COUNT(DISTINCT c.gdocId) AS docsUsingIt,
             COUNT(*) AS totalUses
         FROM posts_gdocs_components c
@@ -188,21 +190,22 @@ function parseConfig(
 /**
  * The observed configuration shape of a block, derived from what an author
  * actually writes: the enriched config is converted back to its raw form
- * (dropping enrichment defaults), and the signature is the sorted set of
- * authored value keys, with salient scalar values inlined ("caption+size:narrow").
- * The bare form (a plain string value, e.g. a chart that is just a URL) is "".
+ * (dropping enrichment defaults) and described as the sorted set of authored
+ * value keys, with salient scalar values inlined ("caption+size:narrow").
+ * The bare form (a plain string value, e.g. a chart that is just a URL) has
+ * no parts.
  */
-function variationSignature(block: OwidEnrichedGdocBlock | undefined): string {
-    if (!block) return ""
+function variationParts(block: OwidEnrichedGdocBlock | undefined): string[] {
+    if (!block) return []
     let raw
     try {
         raw = enrichedBlockToRawBlock(block)
     } catch {
-        return ""
+        return []
     }
     const value = (raw as { value?: unknown }).value
     if (typeof value !== "object" || value === null || Array.isArray(value))
-        return ""
+        return []
     const parts: string[] = []
     for (const [key, v] of Object.entries(value)) {
         if (v === undefined || v === null) continue
@@ -215,7 +218,32 @@ function variationSignature(block: OwidEnrichedGdocBlock | undefined): string {
             parts.push(key + ":" + String(v))
         else parts.push(key)
     }
-    return parts.sort().join("+")
+    return parts.sort()
+}
+
+const partKey = (part: string): string => part.split(":")[0]
+
+/**
+ * Keys present in essentially every instance are the component's baseline
+ * (a chart always has a url), not a variation-defining feature — variations
+ * are the differences between real instances, so baseline keys are dropped
+ * from every signature before grouping.
+ */
+function baselineKeys(allParts: string[][]): Set<string> {
+    const keyCounts = new Map<string, number>()
+    for (const parts of allParts) {
+        for (const key of new Set(parts.map(partKey)))
+            keyCounts.set(key, (keyCounts.get(key) ?? 0) + 1)
+    }
+    const baseline = new Set<string>()
+    for (const [key, count] of keyCounts) {
+        if (count >= allParts.length * 0.99) baseline.add(key)
+    }
+    return baseline
+}
+
+function signatureFromParts(parts: string[], baseline: Set<string>): string {
+    return parts.filter((part) => !baseline.has(partKey(part))).join("+")
 }
 
 function blockToArchie(
@@ -282,8 +310,7 @@ function nearestHeadingAnchor(
     const index = Math.min(parseInt(m[1], 10), body.length - 1)
     for (let i = index; i >= 0; i--) {
         const block = body[i]
-        if (block?.type === "heading")
-            return convertHeadingTextToId(block.text)
+        if (block?.type === "heading") return convertHeadingTextToId(block.text)
     }
     return undefined
 }
@@ -345,16 +372,22 @@ export async function getComponentInstances(
         FROM posts_gdocs_components c
         JOIN posts_gdocs pg ON pg.id = c.gdocId
         WHERE pg.published = 1
-            AND c.config->>'$.type' = ?
+            AND c.type = ?
         ORDER BY pg.publishedAt DESC, c.gdocId, c.path
         LIMIT ${SCAN_MAX}`,
         [componentId]
     )
 
-    const scanned: ScannedInstance[] = rows.map((row) => {
+    const parsed = rows.map((row) => {
         const block = parseConfig(row.config)
-        return { row, block, signature: variationSignature(block) }
+        return { row, block, parts: variationParts(block) }
     })
+    const baseline = baselineKeys(parsed.map((instance) => instance.parts))
+    const scanned: ScannedInstance[] = parsed.map(({ row, block, parts }) => ({
+        row,
+        block,
+        signature: signatureFromParts(parts, baseline),
+    }))
 
     // Variations rank over the full (unfiltered) scan.
     const bySignature = new Map<string, ScannedInstance[]>()
@@ -404,7 +437,7 @@ export async function getComponentInstances(
             FROM posts_gdocs_components c
             JOIN posts_gdocs pg ON pg.id = c.gdocId
             WHERE pg.published = 1
-                AND c.config->>'$.type' = ?
+                AND c.type = ?
                 ${docTypeFilter === undefined ? "" : "AND pg.type = ?"}`,
             docTypeFilter === undefined
                 ? [componentId]
@@ -438,6 +471,33 @@ export async function getComponentInstances(
         })
     )
 
+    // Match the sidecar's synthetic examples against production: an example
+    // whose form is not observed in any published doc is presented by the UI
+    // as a synthetic variation ("not used in any published doc yet") —
+    // synthetic examples cover exactly the gap reality leaves.
+    const syntheticExamples: SyntheticExampleInfo[] = doc.examples.map(
+        (example, exampleIndex) => {
+            let signature = ""
+            try {
+                const content = archieToEnriched(
+                    `title: example\ntype: fragment\n[+body]\n${example.archie}\n[]\n`
+                )
+                const blocks = content.body ?? []
+                const block =
+                    blocks.find((b) => b.type === componentId) ?? blocks[0]
+                signature = signatureFromParts(variationParts(block), baseline)
+            } catch {
+                // an unparsable example has no signature to match
+            }
+            return {
+                exampleIndex,
+                name: example.name,
+                signature,
+                observed: bySignature.has(signature),
+            }
+        }
+    )
+
     return {
         componentId,
         total,
@@ -445,6 +505,7 @@ export async function getComponentInstances(
         variations,
         pinned: pinned.map(present),
         stalePins,
+        syntheticExamples,
     }
 }
 
@@ -553,8 +614,7 @@ export async function getTemplateExemplars(
     const template = (templatesRegistry as TemplateDoc[]).find(
         (doc) => doc.id === templateId
     )
-    if (!template)
-        throw new JsonError(`No such template: "${templateId}"`, 404)
+    if (!template) throw new JsonError(`No such template: "${templateId}"`, 404)
 
     const exemplars: ExemplarOutline[] = []
     const staleExemplars: string[] = []

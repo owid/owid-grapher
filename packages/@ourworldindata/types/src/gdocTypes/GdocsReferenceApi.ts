@@ -87,6 +87,21 @@ export interface ComponentVariation {
     representative: ComponentInstance
 }
 
+/**
+ * A sidecar (synthetic) example matched against production: when its form is
+ * not observed in any published doc, the UI presents it as a synthetic
+ * variation with a distinct "not used in any published doc yet" treatment —
+ * synthetic examples cover exactly the gap reality leaves.
+ */
+export interface SyntheticExampleInfo {
+    /** Index into the registry doc's examples array */
+    exampleIndex: number
+    name: string
+    signature: string
+    /** Whether this form occurs in published content */
+    observed: boolean
+}
+
 export interface ComponentInstancesResponse {
     componentId: string
     /** Total instances matching the docType/variation filter */
@@ -98,6 +113,8 @@ export interface ComponentInstancesResponse {
     pinned: ComponentInstance[]
     /** Sidecar pins that no longer resolve — surfaced to editors as stale */
     stalePins: PinnedExampleRef[]
+    /** The registry examples matched against the observed variations */
+    syntheticExamples: SyntheticExampleInfo[]
 }
 
 /** A block inside an exemplar section, addressable for preview rendering */
