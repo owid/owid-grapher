@@ -1,34 +1,47 @@
+import * as _ from "lodash-es"
+import { IDEAL_PLOT_ASPECT_RATIO } from "@ourworldindata/utils"
 import {
     BASE_FONT_SIZE,
-    GRAPHER_FONT_SCALE_10,
     GRAPHER_FONT_SCALE_11,
-    GRAPHER_FONT_SCALE_12,
-    GRAPHER_FONT_SCALE_12_8,
+    GRAPHER_FONT_SCALE_15,
 } from "../core/GrapherConstants"
+import { roundFontSize } from "../chart/ChartUtils"
 
+const SMALL_CELL_LENGTH = 125
+const LARGE_CELL_LENGTH = 490
+
+/** Chooses a facet label font size from the size of a single facet cell */
 export const getFacetLabelFontSize = ({
-    containerWidth,
-    count,
+    cellWidth,
+    cellHeight,
     baseFontSize = BASE_FONT_SIZE,
     minSize = 8,
 }: {
-    containerWidth: number
-    count: number
+    cellWidth: number
+    cellHeight: number
     baseFontSize?: number
     minSize?: number
 }): number => {
-    // Pick a fixed font size for very small charts
-    if (containerWidth < 300) return GRAPHER_FONT_SCALE_10 * baseFontSize
+    const minFontSize = Math.max(minSize, GRAPHER_FONT_SCALE_11 * baseFontSize)
+    const maxFontSize =
+        GRAPHER_FONT_SCALE_15 * Math.min(baseFontSize, BASE_FONT_SIZE)
 
-    // Scale the font size based on the number of series otherwise
-    if (count <= 9)
-        return Math.max(minSize, baseFontSize * GRAPHER_FONT_SCALE_12_8)
-    if (count <= 16)
-        return Math.max(minSize, baseFontSize * GRAPHER_FONT_SCALE_12)
-    if (count <= 25)
-        return Math.max(minSize, baseFontSize * GRAPHER_FONT_SCALE_11)
+    // Available room as a single number (width-pixels): the width, but capped at
+    // what it'd be at the ideal aspect ratio, so short-and-wide cells are driven
+    // by their height and tall-or-square cells by their width
+    const length = Math.min(cellWidth, cellHeight * IDEAL_PLOT_ASPECT_RATIO)
 
-    return minSize
+    // Where `length` falls in the small→large cell range, as a 0–1 fraction
+    const sizeFraction = _.clamp(
+        (length - SMALL_CELL_LENGTH) / (LARGE_CELL_LENGTH - SMALL_CELL_LENGTH),
+        0,
+        1
+    )
+
+    // Interpolate between the floor and ceiling
+    const fontSize = minFontSize + sizeFraction * (maxFontSize - minFontSize)
+
+    return roundFontSize(fontSize)
 }
 
 export const calculateAspectRatio = (width: number, height: number): number => {

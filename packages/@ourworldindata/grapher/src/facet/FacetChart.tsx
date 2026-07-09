@@ -21,6 +21,7 @@ import { action, computed, makeObservable, observable } from "mobx"
 import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
+    GRAPHER_FONT_SCALE_12,
 } from "../core/GrapherConstants"
 import {
     GRAPHER_CHART_TYPES,
@@ -69,8 +70,8 @@ import {
     SeriesLabelStateOptions,
 } from "../seriesLabel/SeriesLabelState.js"
 
-const SHARED_X_AXIS_MIN_FACET_COUNT = 12
-const THUMBNAIL_AREA_THRESHOLD = 18000
+const SHARED_X_AXIS_MAX_CELL_HEIGHT = 175
+const THUMBNAIL_MAX_CELL_LENGTH = 150
 const FACET_LABEL_FONT_WEIGHT = 700
 
 const facetBackgroundColor = "none" // we don't use color yet but may use it for background later
@@ -189,15 +190,24 @@ export class FacetChart
     }
 
     @computed private get facetLabelFontSize(): number {
+        const { rows, columns } = this.gridParams
+
+        const cellWidth = this.bounds.width / columns
+        const cellHeight = this.bounds.height / rows
+
         return getFacetLabelFontSize({
-            containerWidth: this.bounds.width,
-            count: this.series.length,
+            cellWidth,
+            cellHeight,
             baseFontSize: this.fontSize,
         })
     }
 
     @computed private get facetBaseFontSize(): number {
-        return Math.max(11, this.facetLabelFontSize)
+        // Facets scale internal font sizes like axis ticks and labels from
+        // this base size, with the largest of them using GRAPHER_FONT_SCALE_12.
+        // Dividing by that factor keeps the biggest internal font at the label
+        // size; the extra 0.9 keeps it slightly smaller.
+        return (this.facetLabelFontSize / GRAPHER_FONT_SCALE_12) * 0.9
     }
 
     @computed private get yAxisConfig(): AxisConfig {
@@ -425,14 +435,19 @@ export class FacetChart
         }
     }
 
-    // Whether the facets are small enough that they should declutter, e.g.
-    // render as thumbnails and share axes instead of repeating them per facet.
     @computed private get hasSmallFacets(): boolean {
         const { facetBounds } = this
-        return (
-            !!facetBounds &&
-            facetBounds.width * facetBounds.height < THUMBNAIL_AREA_THRESHOLD
+        if (!facetBounds) return false
+
+        // Characteristic length in "width units": the cell's width, but no
+        // larger than it would be at the ideal plot aspect ratio, so that
+        // short-and-wide cells are judged by their (limited) height
+        const length = Math.min(
+            facetBounds.width,
+            facetBounds.height * IDEAL_PLOT_ASPECT_RATIO
         )
+
+        return length < THUMBNAIL_MAX_CELL_LENGTH
     }
 
     @computed private get variant(): GrapherVariant {
@@ -469,11 +484,13 @@ export class FacetChart
             GRAPHER_CHART_TYPES.SlopeChart,
         ]
 
-        const hasManyFacets = this.facetCount >= SHARED_X_AXIS_MIN_FACET_COUNT
+        const { facetBounds } = this
+        const hasShortFacets =
+            !!facetBounds && facetBounds.height < SHARED_X_AXIS_MAX_CELL_HEIGHT
 
         return (
             this.uniformXAxis &&
-            (this.hasSmallFacets || hasManyFacets) &&
+            (this.hasSmallFacets || hasShortFacets) &&
             supportedChartTypes.includes(this.chartTypeName as any)
         )
     }
@@ -943,26 +960,14 @@ export class FacetChart
         )
     }
 
-    /**
-     * A single font size shared by all facet labels, so they don't render at
-     * different sizes within one chart. Driven by the label that needs to
-     * shrink the most; if none need to shrink, this is the base font size.
-     */
-    @computed private get sharedFacetLabelFontSize(): number {
-        const sizes = this.placedSeries.map(({ contentBounds, seriesName }) => {
-            const availableWidth =
-                contentBounds.width - this.sharedContentInset.left
-            return this.getFacetLabelFontSizeToFit(seriesName, availableWidth)
-        })
-        return sizes.length > 0 ? Math.min(...sizes) : this.facetLabelFontSize
-    }
-
     @computed
-    private get facetLabelSettings(): Omit<SeriesLabelStateOptions, "text"> {
+    private get facetLabelSettings(): Omit<
+        SeriesLabelStateOptions,
+        "text" | "fontSize"
+    > {
         return {
             maxWidth: Infinity, // Facet labels never wrap
             fontWeight: FACET_LABEL_FONT_WEIGHT,
-            fontSize: this.sharedFacetLabelFontSize,
             showRegionTooltip: !this.manager.isStatic,
         }
     }
@@ -984,21 +989,28 @@ export class FacetChart
                     const availableLabelWidth =
                         contentBounds.width - contentLeftOffset
 
+                    const fontSize = this.getFacetLabelFontSizeToFit(
+                        seriesName,
+                        availableLabelWidth
+                    )
+                    const labelSettings = { ...facetLabelSettings, fontSize }
+
                     let seriesLabelState = new SeriesLabelState({
                         text: seriesName,
-                        ...facetLabelSettings,
+                        ...labelSettings,
                     })
 
+                    // If the label still overflows at the minimum size,
+                    // truncate it with an ellipsis
                     if (seriesLabelState.width > availableLabelWidth) {
-                        const { fontSize, fontWeight } = facetLabelSettings
                         const shortenedLabel = shortenWithEllipsis(
                             seriesName,
                             availableLabelWidth,
-                            { fontSize, fontWeight }
+                            { fontSize, fontWeight: FACET_LABEL_FONT_WEIGHT }
                         )
                         seriesLabelState = new SeriesLabelState({
                             text: shortenedLabel,
-                            ...facetLabelSettings,
+                            ...labelSettings,
                         })
                     }
 
