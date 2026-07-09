@@ -181,6 +181,7 @@ function* rawBlockCalloutToArchieMLString(
 ): Generator<string, void, undefined> {
     yield "{.callout}"
     if (typeof block.value !== "string") {
+        yield* propertyToArchieMLString("icon", block.value)
         yield* propertyToArchieMLString("title", block.value)
         yield "[.+text]"
         for (const rawBlock of block.value.text) {
@@ -214,6 +215,7 @@ function* rawBlockVideoToArchieMLString(
     yield* propertyToArchieMLString("url", block.value)
     yield* propertyToArchieMLString("filename", block.value)
     yield* propertyToArchieMLString("shouldLoop", block.value)
+    yield* propertyToArchieMLString("shouldAutoplay", block.value)
     yield* propertyToArchieMLString("caption", block.value)
     yield* propertyToArchieMLString("visibility", block.value)
     yield "{}"
@@ -691,8 +693,11 @@ function* rawBlockTopicPageIntroToArchieMLString(
     if (relatedTopics?.length) {
         yield "[.related-topics]"
         for (const relatedTopic of relatedTopics) {
-            yield* propertyToArchieMLString("text", relatedTopic)
+            // url first: it is the always-present key, and ArchieML delimits
+            // array items by key repetition — starting with an optional key
+            // (text) would merge a text-less topic into its predecessor.
             yield* propertyToArchieMLString("url", relatedTopic)
+            yield* propertyToArchieMLString("text", relatedTopic)
         }
         yield "[]"
     }
@@ -985,9 +990,12 @@ function* rawBlockHomepageIntroToArchieMLString(
     if (Array.isArray(featuredWork) && featuredWork.length) {
         yield "[.featured-work]"
         for (const post of featuredWork) {
+            // url first: it is the always-present key, and ArchieML delimits
+            // array items by key repetition — starting with an optional key
+            // (title) would merge a title-less post into its predecessor.
+            yield* propertyToArchieMLString("url", post)
             yield* propertyToArchieMLString("title", post)
             yield* propertyToArchieMLString("description", post)
-            yield* propertyToArchieMLString("url", post)
             yield* propertyToArchieMLString("filename", post)
             yield* propertyToArchieMLString("kicker", post)
             yield* propertyToArchieMLString("authors", post)
