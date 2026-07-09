@@ -87,12 +87,93 @@ import {
     OWID_GDOC_ADMIN_MANAGED_KEYS,
     OWID_GDOC_POST_CONTENT_KEYS,
     type OwidGdocType,
+    type ComponentCategory,
     type ComponentDoc,
     type ComponentExample,
     type GdocContentKeyFate,
     type TemplateDoc,
     type TemplateFieldDoc,
 } from "@ourworldindata/types"
+
+// Author-facing grouping used by the admin reference page. Every component id
+// must appear here exactly once — a new member of OwidEnrichedGdocBlock fails
+// the build until it is categorized, and a stale entry (e.g. after a rename)
+// fails it too.
+const COMPONENT_CATEGORY_BY_ID: Record<string, ComponentCategory> = {
+    // Text & structure
+    text: "Text & structure",
+    heading: "Text & structure",
+    "simple-text": "Text & structure",
+    list: "Text & structure",
+    "numbered-list": "Text & structure",
+    blockquote: "Text & structure",
+    "pull-quote": "Text & structure",
+    callout: "Text & structure",
+    aside: "Text & structure",
+    "horizontal-rule": "Text & structure",
+    table: "Text & structure",
+    "expandable-paragraph": "Text & structure",
+    expander: "Text & structure",
+    code: "Text & structure",
+    html: "Text & structure",
+    // Charts & data
+    chart: "Charts & data",
+    "narrative-chart": "Charts & data",
+    "pull-chart": "Charts & data",
+    "guided-chart": "Charts & data",
+    "chart-story": "Charts & data",
+    "chart-rows": "Charts & data",
+    "static-viz": "Charts & data",
+    "key-indicator": "Charts & data",
+    "key-indicator-collection": "Charts & data",
+    "missing-data": "Charts & data",
+    "data-callout": "Charts & data",
+    "data-callout-group": "Charts & data",
+    // Media
+    image: "Media",
+    video: "Media",
+    // Layout & sections
+    "side-by-side": "Layout & sections",
+    "sticky-left": "Layout & sections",
+    "sticky-right": "Layout & sections",
+    "gray-section": "Layout & sections",
+    align: "Layout & sections",
+    "conditional-section": "Layout & sections",
+    // Links & related content
+    "prominent-link": "Links & related content",
+    recirc: "Links & related content",
+    "additional-charts": "Links & related content",
+    "all-charts": "Links & related content",
+    "explorer-tiles": "Links & related content",
+    "resource-panel": "Links & related content",
+    "pill-row": "Links & related content",
+    cta: "Links & related content",
+    "subscribe-banner": "Links & related content",
+    "latest-data-insights": "Links & related content",
+    "featured-data-insights": "Links & related content",
+    // Topic pages
+    "topic-page-intro": "Topic pages",
+    "key-insights": "Topic pages",
+    "entry-summary": "Topic pages",
+    "research-and-writing": "Topic pages",
+    "ltp-toc": "Topic pages",
+    "sdg-grid": "Topic pages",
+    "sdg-toc": "Topic pages",
+    "explore-data-section": "Topic pages",
+    // People
+    people: "People",
+    "people-rows": "People",
+    person: "People",
+    donors: "People",
+    // Special pages
+    "homepage-intro": "Special pages",
+    "homepage-search": "Special pages",
+    "featured-metrics": "Special pages",
+    "cookie-notice": "Special pages",
+    "country-profile-selector": "Special pages",
+    "bespoke-component": "Special pages",
+    socials: "Special pages",
+}
 
 const BT = String.fromCharCode(96)
 const FENCE = BT + BT + BT
@@ -380,17 +461,35 @@ function extractComponentDocs(
                     path.relative(REPO_ROOT, sidecarPath)
             )
 
+        const category = COMPONENT_CATEGORY_BY_ID[id]
+        if (!category)
+            throw new Error(
+                'Component "' +
+                    id +
+                    '" has no category — add it to ' +
+                    "COMPONENT_CATEGORY_BY_ID in devTools/gdocs/generate-gdocs-references.ts"
+            )
+
         const title = titleOverride ?? deriveTitle(typeName)
         docs.push({
             id,
             title,
             typeName,
+            category,
             sourceFile,
             sidecarFile: path.relative(REPO_ROOT, sidecarPath),
             body,
             examples,
         })
     }
+    const staleCategoryIds = Object.keys(COMPONENT_CATEGORY_BY_ID).filter(
+        (id) => !seenIds.has(id)
+    )
+    if (staleCategoryIds.length > 0)
+        throw new Error(
+            "COMPONENT_CATEGORY_BY_ID has entries for unknown component id(s): " +
+                staleCategoryIds.join(", ")
+        )
     return docs
 }
 

@@ -174,9 +174,11 @@ export {
 
 export * from "./gdocTypes/ArchieMlComponents.js"
 
-export type {
-    ComponentDoc,
-    ComponentExample,
+export {
+    COMPONENT_CATEGORIES,
+    type ComponentCategory,
+    type ComponentDoc,
+    type ComponentExample,
 } from "./gdocTypes/ComponentReference.js"
 
 export type {

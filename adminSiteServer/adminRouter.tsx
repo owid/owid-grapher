@@ -40,6 +40,10 @@ import { renderMultiDimDataPageFromConfig } from "../baker/MultiDimBaker.js"
 import { resolveSlideChartTypes } from "../baker/SlideshowBaker.js"
 import { getImageMetadataByFilenames } from "../db/db.js"
 import { getMinimalAuthorsByNames } from "../db/model/Gdoc/GdocBase.js"
+import {
+    renderGdocsReferenceComponentPreview,
+    renderGdocsReferenceTemplatePreview,
+} from "./gdocsReferencePreview.js"
 
 const adminRouter = Router()
 
@@ -226,6 +230,36 @@ getPlainRouteWithROTransaction(
         }
 
         throw new JsonError("No such chart", 404)
+    }
+)
+
+// Live previews for the writing reference page: registry examples rendered
+// through the real gdoc pipeline, embedded in iframes on /admin/gdocs-reference.
+getPlainRouteWithROTransaction(
+    adminRouter,
+    "/gdocs-reference/components/:id/preview",
+    async (req, res, trx) => {
+        res.send(
+            await renderGdocsReferenceComponentPreview(
+                req.params.id,
+                req.query.example as string | undefined,
+                trx
+            )
+        )
+    }
+)
+
+getPlainRouteWithROTransaction(
+    adminRouter,
+    "/gdocs-reference/templates/:id/preview",
+    async (req, res, trx) => {
+        res.send(
+            await renderGdocsReferenceTemplatePreview(
+                req.params.id,
+                req.query.example as string | undefined,
+                trx
+            )
+        )
     }
 )
 
