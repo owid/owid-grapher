@@ -26,6 +26,10 @@ type ProfileProps = Omit<
 
 export function Profile({ content, publishedAt, slug, tags }: ProfileProps) {
     const hasSidebarToc = content["sidebar-toc"]
+    const sidebarHeadings =
+        content.toc && content["sidebar-toc-h1-only"]
+            ? content.toc.filter((heading) => !heading.isSubheading)
+            : content.toc
     const instantiatedEntity = content.instantiatedEntity
 
     const shortPageCitation = getShortPageCitation(
@@ -91,9 +95,9 @@ export function Profile({ content, publishedAt, slug, tags }: ProfileProps) {
                     </a>
                 </div>
             </header>
-            {hasSidebarToc && content.toc ? (
+            {hasSidebarToc && sidebarHeadings ? (
                 <SidebarTableOfContents
-                    headings={content.toc}
+                    headings={sidebarHeadings}
                     tagName={tags?.[0]?.name}
                 />
             ) : null}

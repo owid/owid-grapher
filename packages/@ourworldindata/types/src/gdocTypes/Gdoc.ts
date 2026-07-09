@@ -311,6 +311,7 @@ export interface OwidGdocProfileContent {
     excerpt?: string
     "featured-image"?: string
     "sidebar-toc"?: boolean
+    "sidebar-toc-h1-only"?: boolean
     toc?: TocHeadingWithSupertitle[]
     body: OwidEnrichedGdocBlock[]
     refs?: { definitions: RefDictionary; errors: OwidGdocErrorMessage[] }
@@ -529,6 +530,7 @@ export interface OwidGdocPostContent {
     "atom-title"?: string
     "atom-excerpt"?: string
     "sidebar-toc"?: boolean
+    "sidebar-toc-h1-only"?: boolean
     "heading-variant"?: "heavy" | "light"
     "hide-subscribe-banner"?: boolean
     "cover-color"?:
