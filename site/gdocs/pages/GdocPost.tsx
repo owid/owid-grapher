@@ -19,7 +19,7 @@ import { BAKED_BASE_URL, IS_ARCHIVE } from "../../../settings/clientSettings.js"
 import { OwidGdocHeader } from "../components/OwidGdocHeader.js"
 import StickyNav from "../../blocks/StickyNav.js"
 import { getShortPageCitation } from "../utils.js"
-import { TableOfContents } from "../../TableOfContents.js"
+import { SidebarTableOfContents } from "../../SidebarTableOfContents.js"
 import { useDocumentContext } from "../DocumentContext.js"
 import { PROD_URL } from "../../SiteConstants.js"
 
@@ -114,7 +114,7 @@ export function GdocPost({
                 <DeprecationNotice blocks={content["deprecation-notice"]} />
             )}
             {hasSidebarToc && content.toc ? (
-                <TableOfContents
+                <SidebarTableOfContents
                     headings={content.toc}
                     headingLevels={{ primary: 1, secondary: 2 }}
                     pageTitle={content.title || ""}

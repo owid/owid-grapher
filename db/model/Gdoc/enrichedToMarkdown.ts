@@ -498,7 +498,6 @@ ${links}`
         .with({ type: "align" }, (b): string | undefined =>
             enrichedBlocksToMarkdown(b.content, exportComponents, options)
         )
-        .with({ type: "entry-summary" }, () => undefined) // Note: dropped
         .with({ type: "table" }, (b): string | undefined => {
             const rows = b.rows.map((row) => {
                 const cells = row.cells.map((cell) =>

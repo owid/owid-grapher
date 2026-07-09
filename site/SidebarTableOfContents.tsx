@@ -5,7 +5,7 @@ import { useTriggerWhenClickOutside } from "./hooks.js"
 import { TocHeading } from "@ourworldindata/utils"
 import classNames from "clsx"
 
-export const TOC_WRAPPER_CLASSNAME = "toc-wrapper"
+const TOC_WRAPPER_CLASSNAME = "toc-wrapper"
 
 export interface TableOfContentsData {
     headings: TocHeading[]
@@ -33,7 +33,7 @@ const getPreviousHeading = (
     )?.previous
 }
 
-export const TableOfContents = ({
+export const SidebarTableOfContents = ({
     headings,
     pageTitle,
     hideSubheadings,
@@ -192,7 +192,7 @@ export const TableOfContents = ({
                                         href={`#${heading.slug}`}
                                         data-track-note="toc_link"
                                     >
-                                        {heading.text}
+                                        {heading.title}
                                     </a>
                                 </li>
                             ))}

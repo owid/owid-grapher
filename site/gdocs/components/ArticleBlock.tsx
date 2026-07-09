@@ -19,7 +19,7 @@ import {
     EXPERIMENT_PREFIX,
     OwidEnrichedGdocBlock,
     spansToUnformattedPlainText,
-    TocHeadingWithTitleSupertitle,
+    TocHeadingWithSupertitle,
     Url,
     defaultExperimentState,
     getExperimentState,
@@ -32,7 +32,7 @@ import { match } from "ts-pattern"
 import SpanElements from "./SpanElements.js"
 import Paragraph from "./Paragraph.js"
 import People from "./People.js"
-import TableOfContents from "./TableOfContents.js"
+import SDGTableOfContents from "./SDGTableOfContents.js"
 import urlSlug from "url-slug"
 import { MissingData } from "./MissingData.js"
 import { AdditionalCharts } from "./AdditionalCharts.js"
@@ -80,7 +80,7 @@ function ArticleBlockInternal({
 }: {
     b: OwidEnrichedGdocBlock
     containerType?: Container
-    toc?: TocHeadingWithTitleSupertitle[]
+    toc?: TocHeadingWithSupertitle[]
     shouldRenderLinks?: boolean
     interactiveImages?: boolean
 }) {
@@ -738,25 +738,12 @@ function ArticleBlockInternal({
         ))
         .with({ type: "sdg-toc" }, () => {
             return toc ? (
-                <TableOfContents
+                <SDGTableOfContents
                     toc={toc}
                     title="List of targets and indicators"
                     className={getLayout("toc", containerType)}
                 />
             ) : null
-        })
-        .with({ type: "entry-summary" }, (block) => {
-            return (
-                <TableOfContents
-                    title="Summary"
-                    toc={block.items.map((item) => ({
-                        ...item,
-                        title: item.text,
-                        isSubheading: false,
-                    }))}
-                    className={getLayout("toc", containerType)}
-                />
-            )
         })
         .with({ type: "ltp-toc" }, (block) => {
             const layoutClassName = getLayout("ltp-toc", containerType)
@@ -1049,7 +1036,7 @@ export default function ArticleBlock({
 }: {
     b: OwidEnrichedGdocBlock
     containerType?: Container
-    toc?: TocHeadingWithTitleSupertitle[]
+    toc?: TocHeadingWithSupertitle[]
     shouldRenderLinks?: boolean
     interactiveImages?: boolean
 }) {

@@ -1,10 +1,9 @@
 export interface TocHeading {
-    text: string
+    title: string
     slug: string
     isSubheading: boolean
 }
 
-export interface TocHeadingWithTitleSupertitle extends TocHeading {
-    title: string
+export interface TocHeadingWithSupertitle extends TocHeading {
     supertitle?: string
 }
