@@ -214,6 +214,15 @@ describe(buildContinuousDailyAxisTicks, () => {
         ])
     })
 
+    it("keeps a day step whose in-domain ticks meet a target the raw span/step estimate exceeds", () => {
+        // 29 days / 14 is just over the target of 2, but only two biweekly
+        // Mondays land in the domain — prefer them over a single monthly tick
+        expect(gridDates("2020-03-04", "2020-04-02", 2)).toEqual([
+            "2020-03-16",
+            "2020-03-30",
+        ])
+    })
+
     it("continues on the monthly grid for multi-month spans", () => {
         const domain: [number, number] = [day("2020-01-01"), day("2020-07-01")]
         const ticks = buildContinuousDailyAxisTicks({ domain, targetCount: 6 })

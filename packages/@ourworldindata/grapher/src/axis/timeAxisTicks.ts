@@ -222,20 +222,36 @@ export function buildContinuousDailyAxisTicks({
     const spanDays = domain[1] - domain[0]
     if (spanDays <= 0) return undefined
 
+    // The first and last grid indices that stay within the domain: round the
+    // start up and the end down so both ticks land inside the domain.
+    const gridIndexRange = (step: number): [number, number] => {
+        const reference = dayGridReference(step)
+        return [
+            Math.ceil((domain[0] - reference) / step),
+            Math.floor((domain[1] - reference) / step),
+        ]
+    }
+    const inDomainTickCount = (step: number): number => {
+        const [first, last] = gridIndexRange(step)
+        return last - first + 1
+    }
+
     // Pick the smallest step that keeps the tick count at or below the
-    // target; if even the coarsest day step produces too many ticks,
-    // fall through to the monthly (and yearly) grid.
-    const step = DAY_STEPS.find((s) => spanDays / s <= targetCount)
+    // target; if even the coarsest day step produces too many ticks, fall
+    // through to the monthly (and yearly) grid. The span/step estimate can
+    // count one tick more than actually lands in the domain, so also accept
+    // a step by its in-domain count — otherwise a 29-day domain with a
+    // target of two would skip the fitting biweekly grid and fall through
+    // to a single monthly tick.
+    const step = DAY_STEPS.find(
+        (s) =>
+            spanDays / s <= targetCount || inDomainTickCount(s) <= targetCount
+    )
     if (step === undefined)
         return buildContinuousMonthlyAxisTicks({ domain, targetCount })
 
     const reference = dayGridReference(step)
-
-    // The first and last indices that stay within the domain: round the
-    // start up and the end down so both ticks land inside the domain.
-    const firstStep = Math.ceil((domain[0] - reference) / step)
-    const lastStep = Math.floor((domain[1] - reference) / step)
-
+    const [firstStep, lastStep] = gridIndexRange(step)
     const grid = _.range(firstStep, lastStep + 1).map(
         (k) => reference + k * step
     )
