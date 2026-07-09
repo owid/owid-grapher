@@ -29,7 +29,8 @@
  *      alias minus the EnrichedBlock prefix), parse front-matter + harvest
  *      every fenced archie block, and derive the id from the alias body's
  *      "type" property literal.
- *   4. Validate every archie example through archieToEnriched.
+ *   4. Validate every archie example through validateArchieMl — the same
+ *      gate the write API applies (parse, block errors, fixed point).
  *
  * Templates pipeline:
  *   1. For each type in ARCHIE_WRITABLE_GDOC_TYPES, walk its content
@@ -77,7 +78,6 @@ import {
     isUnionTypeNode,
 } from "@typescript/native-preview/ast/is"
 
-import { archieToEnriched } from "../../db/model/Gdoc/archieToEnriched.js"
 import {
     ARCHIE_WRITABLE_GDOC_TYPES,
     validateArchieMl,
@@ -249,6 +249,11 @@ function parseSidecar(text: string): {
     return { title, body: rest, examples }
 }
 
+// Component examples are body fragments; wrap each as a minimal fragment
+// document and run it through validateArchieMl — the same gate the write API
+// applies (parse, block errors, write-back fixed point) — so a shipped
+// example is guaranteed to survive an agent's read-modify-write round trip,
+// exactly like the template examples below.
 function validateExamples(docs: ComponentDoc[]): {
     ok: boolean
     failures: string[]
@@ -262,30 +267,28 @@ function validateExamples(docs: ComponentDoc[]): {
                 " example\ntype: fragment\n[+body]\n" +
                 ex.archie +
                 "\n[]\n"
-            try {
-                const enriched = archieToEnriched(wrapped)
-                const bodyBlocks = enriched.body ?? []
-                const parseErrors: string[] = []
-                for (const block of bodyBlocks) {
-                    for (const err of block.parseErrors ?? [])
-                        parseErrors.push(err.message)
-                }
-                if (parseErrors.length) {
-                    failures.push(
-                        doc.id +
-                            ' / "' +
-                            ex.name +
-                            '":\n    ' +
-                            parseErrors.join("\n    ")
-                    )
-                }
-            } catch (err) {
+            const result = validateArchieMl(wrapped)
+            if (!result.valid) {
                 failures.push(
                     doc.id +
                         ' / "' +
                         ex.name +
-                        '": threw ' +
-                        (err as Error).message
+                        '":\n    ' +
+                        result.errors
+                            .map((e) => e.property + ": " + e.message)
+                            .join("\n    ")
+                )
+                continue
+            }
+            // The gate can't catch an example that vanishes entirely (an
+            // empty document round-trips fine) — e.g. [socials] instead of
+            // [.socials] inside [+body] is silently dropped by the parser.
+            if ((result.content?.body ?? []).length === 0) {
+                failures.push(
+                    doc.id +
+                        ' / "' +
+                        ex.name +
+                        '": parsed to zero body blocks — the example is silently dropped by the parser'
                 )
             }
         }
