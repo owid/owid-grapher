@@ -327,6 +327,16 @@ describe(buildContinuousWeeklyAxisTicks, () => {
         ])
     })
 
+    it("keeps the biweekly grid for same-month spans where no step meets the target", () => {
+        // No monthly grid exists within a single calendar month, so the
+        // coarsest week step wins over falling back to generic d3 ticks
+        expect(gridDates("2020-03-01", "2020-03-31", 2)).toEqual([
+            "2020-03-02",
+            "2020-03-16",
+            "2020-03-30",
+        ])
+    })
+
     it("continues on the monthly grid for multi-month spans", () => {
         const domain: [number, number] = [day("2020-01-06"), day("2020-07-06")]
         const ticks = buildContinuousWeeklyAxisTicks({ domain, targetCount: 6 })
