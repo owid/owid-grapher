@@ -47,10 +47,33 @@ export function BespokeComponent({
     className?: string
     block: EnrichedBlockBespokeComponent
 }) {
+    const wrapperRef = useRef<HTMLDivElement>(null)
     const containerRef = useRef<HTMLDivElement>(null)
     const disposeRef = useRef<(() => void) | null>(null)
     const [isLoading, setIsLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
+
+    // When shown inside an iframe on an external site, report the rendered
+    // height to the parent window so the embedding page can size the iframe
+    // to fit (see "Embeds on external sites" in bespoke/readme.md).
+    useEffect(() => {
+        if (block.config.iframeEmbed !== "true") return
+        if (window === window.parent) return
+        const wrapper = wrapperRef.current
+        if (!wrapper) return
+
+        const observer = new ResizeObserver(() => {
+            window.parent.postMessage(
+                {
+                    type: "owid-bespoke-embed-height",
+                    height: wrapper.offsetHeight,
+                },
+                "*"
+            )
+        })
+        observer.observe(wrapper)
+        return () => observer.disconnect()
+    }, [block.config])
 
     const definition = useMemo(
         () => BESPOKE_COMPONENT_REGISTRY[block.bundle],
@@ -149,6 +172,7 @@ export function BespokeComponent({
 
     return (
         <div
+            ref={wrapperRef}
             className={className}
             data-bespoke-iframe-embed={iframeEmbedAttribute}
         >

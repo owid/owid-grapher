@@ -128,16 +128,37 @@ For a good embed, the project should also support `urlSync: true`, which syncs t
 
 ### Embed snippet
 
-Give the iframe a flexible width and a fixed aspect ratio, and point it at the article URL (optionally with state params):
+Give the iframe a flexible width and point it at the article URL (optionally with state params):
 
 ```html
 <iframe
     src="https://ourworldindata.org/where-do-migrants-live?migrationCountry=France"
-    style="width: 100%; aspect-ratio: 16 / 10; border: 0;"
+    style="width: 100%; border: 0;"
+    height="600"
     allow="web-share; clipboard-write"
     loading="lazy"
 ></iframe>
 ```
+
+### Sizing the iframe to fit
+
+An iframe can't size itself to its content, so in iframe mode the embedded page reports the visualization's rendered height to the parent window via `postMessage` (an `owid-bespoke-embed-height` message, sent on load and whenever the height changes). Embedding sites that want the iframe to fit exactly — no scrollbar, no whitespace — add a small listener:
+
+```html
+<script>
+    window.addEventListener("message", (event) => {
+        if (event.origin !== "https://ourworldindata.org") return
+        if (event.data?.type !== "owid-bespoke-embed-height") return
+        for (const iframe of document.querySelectorAll("iframe")) {
+            if (iframe.contentWindow === event.source) {
+                iframe.height = event.data.height
+            }
+        }
+    })
+</script>
+```
+
+Without the listener, the iframe keeps its static `height` (or aspect ratio) and scrolls if the content is taller.
 
 ## Shadow DOM considerations
 
