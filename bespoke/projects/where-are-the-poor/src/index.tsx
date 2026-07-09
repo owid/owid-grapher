@@ -9,7 +9,6 @@ import StylesTarget from "vite-plugin-css-position/react"
 
 import { WhereAreThePoorChartWithProviders } from "./components/WhereAreThePoorChart.js"
 import {
-    CONTINENT_OPTIONS,
     GROUP_BY_OPTIONS,
     POVERTY_LINES,
     WhereAreThePoorConfig,
@@ -53,9 +52,8 @@ export const mount: BespokeComponentMountFn = (
         groupBy: GROUP_BY_OPTIONS.find(
             (option) => option.value === rawConfig.groupBy
         )?.value,
-        continent: CONTINENT_OPTIONS.find(
-            (continent) => continent === rawConfig.continent
-        ),
+        // Validated against the active grouping's options in the chart
+        region: rawConfig.region,
         hideControls: rawConfig.hideControls === "true",
     }
 

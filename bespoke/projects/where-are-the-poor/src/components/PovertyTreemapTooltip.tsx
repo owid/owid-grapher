@@ -28,7 +28,7 @@ export function PovertyTreemapTooltip({
     containerBounds,
     timeSeriesData,
     povertyLine,
-    continent,
+    region,
     year,
 }: {
     state: TooltipState
@@ -37,7 +37,7 @@ export function PovertyTreemapTooltip({
     containerBounds?: Bounds
     timeSeriesData: DataRow[]
     povertyLine: PovertyLine
-    continent: string
+    region: string
     year: number
 }) {
     const tooltipCard = (
@@ -45,7 +45,7 @@ export function PovertyTreemapTooltip({
             state={state}
             year={year}
             povertyLine={povertyLine}
-            continent={continent}
+            region={region}
             timeSeriesData={timeSeriesData}
             anchor={
                 shouldPinTooltipToBottom
@@ -65,7 +65,7 @@ function PovertyTreemapTooltipCard({
     state,
     year,
     povertyLine,
-    continent,
+    region,
     timeSeriesData,
     containerBounds,
     anchor,
@@ -73,7 +73,7 @@ function PovertyTreemapTooltipCard({
     state: TooltipState
     year: number
     povertyLine: PovertyLine
-    continent: string
+    region: string
     timeSeriesData: DataRow[]
     containerBounds?: { width: number; height: number }
     anchor?: GrapherTooltipAnchor
@@ -128,9 +128,9 @@ function PovertyTreemapTooltipCard({
     const groupColor = getGroupColor(group)
 
     const shareLabel =
-        continent === WORLD_SELECTION
+        region === WORLD_SELECTION
             ? `Share of the world's poor in ${year}`
-            : `Share of the poor in ${continent} in ${year}`
+            : `Share of the poor in ${formatGroupLabel(region)} in ${year}`
 
     return (
         <TooltipCard

@@ -8,7 +8,8 @@ import {
 import { Frame } from "../../../../components/Frame/Frame.js"
 
 import {
-    CONTINENT_OPTIONS,
+    formatGroupLabel,
+    getRegionSelectionOptions,
     GROUP_BY_OPTIONS,
     GroupBy,
     POVERTY_LINES,
@@ -19,22 +20,22 @@ import { PovertyTimeSlider } from "./PovertyTimeSlider.js"
 export function PovertyControls({
     povertyLineCents,
     groupBy,
-    continent,
+    region,
     years,
     year,
     setPovertyLineCents,
     setGroupBy,
-    setContinent,
+    setRegion,
     setYear,
 }: {
     povertyLineCents: number
     groupBy: GroupBy
-    continent: string
+    region: string
     years: number[]
     year: number
     setPovertyLineCents: (povertyLineCents: number) => void
     setGroupBy: (groupBy: GroupBy) => void
-    setContinent: (continent: string) => void
+    setRegion: (region: string) => void
     setYear: (year: number) => void
 }): React.ReactElement {
     return (
@@ -48,9 +49,10 @@ export function PovertyControls({
                         selectedPovertyLineCents={povertyLineCents}
                         onChange={setPovertyLineCents}
                     />
-                    <ContinentDropdown
-                        selectedContinent={continent}
-                        onChange={setContinent}
+                    <RegionDropdown
+                        groupBy={groupBy}
+                        selectedRegion={region}
+                        onChange={setRegion}
                     />
                     <GroupByDropdown
                         selectedGroupBy={groupBy}
@@ -149,37 +151,43 @@ function PovertyLineDropdown({
     )
 }
 
-function ContinentDropdown({
-    selectedContinent,
+function RegionDropdown({
+    groupBy,
+    selectedRegion,
     onChange,
     className,
 }: {
-    selectedContinent: string
-    onChange: (continent: string) => void
+    groupBy: GroupBy
+    selectedRegion: string
+    onChange: (region: string) => void
     className?: string
 }) {
+    // Offer the regions of the active grouping: continents when grouping by
+    // continent, World Bank regions when grouping by World Bank region
     const options = useMemo(
         () =>
-            CONTINENT_OPTIONS.map((continent) => ({
-                value: continent,
-                label: continent,
-                id: continent,
+            getRegionSelectionOptions(groupBy).map((region) => ({
+                value: region,
+                label: formatGroupLabel(region),
+                id: region,
             })),
-        []
+        [groupBy]
     )
+
+    const triggerLabel = groupBy === "continent" ? "Continent: " : "Region: "
 
     return (
         <Dropdown
             options={options}
-            selectedValue={selectedContinent}
+            selectedValue={selectedRegion}
             onChange={onChange}
             className={className}
-            placeholder="Select a continent..."
-            aria-label="Select a continent"
+            placeholder="Select a region..."
+            aria-label="Select a region"
             isSearchable={false}
             fallbackValue={WORLD_SELECTION}
             renderTriggerValue={(option) => (
-                <DropdownTriggerLabel label="Continent: " option={option} />
+                <DropdownTriggerLabel label={triggerLabel} option={option} />
             )}
         />
     )

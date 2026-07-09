@@ -6,6 +6,7 @@ import { Time } from "@ourworldindata/types"
 
 import {
     DataRow,
+    formatGroupLabel,
     GroupBy,
     POVERTY_LINES,
     PovertyLine,
@@ -32,14 +33,14 @@ export function WhereAreThePoorCaptionedChart({
     data,
     povertyLineCents,
     groupBy,
-    continent,
+    region,
     year,
     isLoading = false,
 }: {
     data: DataRow[]
     povertyLineCents: number
     groupBy: GroupBy
-    continent: string
+    region: string
     year: Time
     isLoading?: boolean
 }) {
@@ -62,7 +63,7 @@ export function WhereAreThePoorCaptionedChart({
             <WhereAreThePoorHeader
                 povertyLine={povertyLine}
                 groupBy={groupBy}
-                continent={continent}
+                region={region}
                 year={year}
                 numTotalPoor={numTotalPoor}
                 isLoading={isLoading}
@@ -76,7 +77,7 @@ export function WhereAreThePoorCaptionedChart({
                     timeSeriesData={data}
                     povertyLine={povertyLine}
                     groupBy={groupBy}
-                    continent={continent}
+                    region={region}
                     year={year}
                 />
             </div>
@@ -88,14 +89,14 @@ export function WhereAreThePoorCaptionedChart({
 function WhereAreThePoorHeader({
     povertyLine,
     groupBy,
-    continent,
+    region,
     year,
     numTotalPoor,
     isLoading,
 }: {
     povertyLine: PovertyLine
     groupBy: GroupBy
-    continent: string
+    region: string
     year: Time
     numTotalPoor: number
     isLoading: boolean
@@ -103,11 +104,12 @@ function WhereAreThePoorHeader({
     const groupingLabel =
         groupBy === "continent" ? "continent" : "World Bank region"
 
-    const isWorld = continent === WORLD_SELECTION
+    const isWorld = region === WORLD_SELECTION
+    const regionLabel = formatGroupLabel(region)
     const title = isWorld
         ? "Where are the poor in the world?"
-        : `Where are the poor in ${continent}?`
-    const location = isWorld ? "" : ` in ${continent}`
+        : `Where are the poor in ${regionLabel}?`
+    const location = isWorld ? "" : ` in ${regionLabel}`
 
     return (
         <ChartHeader

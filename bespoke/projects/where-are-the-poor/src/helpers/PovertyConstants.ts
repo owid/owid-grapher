@@ -50,8 +50,9 @@ export const GROUP_BY_OPTIONS: { value: GroupBy; label: string }[] = [
 
 export const WORLD_SELECTION = "World"
 
-// Continents that can be selected to filter the treemap
-export const CONTINENT_OPTIONS: string[] = [
+// Regions that can be selected to filter the treemap, depending on the
+// active grouping
+const CONTINENT_SELECTION_OPTIONS: string[] = [
     WORLD_SELECTION,
     "Africa",
     "Asia",
@@ -61,7 +62,23 @@ export const CONTINENT_OPTIONS: string[] = [
     "South America",
 ]
 
-export const DEFAULT_CONTINENT = WORLD_SELECTION
+const WB_REGION_SELECTION_OPTIONS: string[] = [
+    WORLD_SELECTION,
+    "East Asia and Pacific (WB)",
+    "Europe and Central Asia (WB)",
+    "Latin America and Caribbean (WB)",
+    "Middle East, North Africa, Afghanistan and Pakistan (WB)",
+    "North America (WB)",
+    "South Asia (WB)",
+    "Sub-Saharan Africa (WB)",
+]
+
+export const getRegionSelectionOptions = (groupBy: GroupBy): string[] =>
+    groupBy === "continent"
+        ? CONTINENT_SELECTION_OPTIONS
+        : WB_REGION_SELECTION_OPTIONS
+
+export const DEFAULT_REGION = WORLD_SELECTION
 
 /** Schema of the committed src/data/headcounts-{cents}.json files */
 export interface HeadcountFileJson {
@@ -101,7 +118,7 @@ export interface WhereAreThePoorConfig {
     povertyLine?: number
     year?: number
     groupBy?: GroupBy
-    continent?: string
+    region?: string
     hideControls?: boolean
 }
 

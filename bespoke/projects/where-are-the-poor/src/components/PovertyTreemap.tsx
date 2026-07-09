@@ -39,14 +39,14 @@ export function ResponsivePovertyTreemap({
     timeSeriesData,
     povertyLine,
     groupBy,
-    continent,
+    region,
     year,
 }: {
     data: DataRow[]
     timeSeriesData: DataRow[]
     povertyLine: PovertyLine
     groupBy: GroupBy
-    continent: string
+    region: string
     year: Time
 }) {
     const config = {
@@ -85,7 +85,7 @@ export function ResponsivePovertyTreemap({
                         timeSeriesData={timeSeriesData}
                         povertyLine={povertyLine}
                         groupBy={groupBy}
-                        continent={continent}
+                        region={region}
                         year={year}
                         width={dimensions.width}
                         height={height}
@@ -101,7 +101,7 @@ function PovertyTreemap({
     timeSeriesData,
     povertyLine,
     groupBy,
-    continent,
+    region,
     year,
     width,
     height,
@@ -110,7 +110,7 @@ function PovertyTreemap({
     timeSeriesData: DataRow[]
     povertyLine: PovertyLine
     groupBy: GroupBy
-    continent: string
+    region: string
     year: Time
     width: number
     height: number
@@ -289,7 +289,7 @@ function PovertyTreemap({
                     containerBounds={containerBounds}
                     timeSeriesData={timeSeriesData}
                     povertyLine={povertyLine}
-                    continent={continent}
+                    region={region}
                     year={year}
                 />
             )}

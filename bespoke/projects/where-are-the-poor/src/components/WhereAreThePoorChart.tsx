@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react"
+import { useCallback, useMemo, useState } from "react"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import * as R from "remeda"
 
@@ -7,16 +7,18 @@ import { Time } from "@ourworldindata/types"
 import { useDelayedLoading } from "../../../../hooks/useDelayedLoading.js"
 
 import {
-    CONTINENT_OPTIONS,
-    DEFAULT_CONTINENT,
     DEFAULT_GROUP_BY,
     DEFAULT_POVERTY_LINE_CENTS,
+    DEFAULT_REGION,
     DEFAULT_YEAR,
+    formatGroupLabel,
+    getRegionSelectionOptions,
     GroupBy,
     POVERTY_LINES,
     WhereAreThePoorConfig,
     WORLD_SELECTION,
 } from "../helpers/PovertyConstants.js"
+import { getGroupForRow } from "../helpers/PovertyData.js"
 import { useHeadcountData } from "../helpers/PovertyDataFetching.js"
 import { WhereAreThePoorCaptionedChart } from "./WhereAreThePoorCaptionedChart.js"
 import { PovertyControls } from "./PovertyControls.js"
@@ -48,23 +50,39 @@ function WhereAreThePoorChart(props: {
     const [groupBy, setGroupBy] = useState<GroupBy>(
         config?.groupBy ?? DEFAULT_GROUP_BY
     )
-    const [continent, setContinent] = useState(
-        CONTINENT_OPTIONS.find((option) => option === config?.continent) ??
-            DEFAULT_CONTINENT
-    )
+    const [region, setRegion] = useState(() => {
+        // The configured region may be given with or without the " (WB)" suffix
+        const initialGroupBy = config?.groupBy ?? DEFAULT_GROUP_BY
+        return (
+            getRegionSelectionOptions(initialGroupBy).find(
+                (option) =>
+                    option === config?.region ||
+                    formatGroupLabel(option) === config?.region
+            ) ?? DEFAULT_REGION
+        )
+    })
     const [year, setYear] = useState<Time | undefined>(config?.year)
+
+    // The region options depend on the grouping, so switching the grouping
+    // resets the region selection
+    const handleSetGroupBy = useCallback((newGroupBy: GroupBy) => {
+        setGroupBy(newGroupBy)
+        setRegion(WORLD_SELECTION)
+    }, [])
 
     // Load the data for the selected poverty line
     const { data, years, status, isPlaceholderData } =
         useHeadcountData(povertyLineCents)
 
-    // Restrict the data to the selected continent
+    // Restrict the data to the selected region
     const scopedData = useMemo(
         () =>
-            continent === WORLD_SELECTION
+            region === WORLD_SELECTION
                 ? data
-                : data?.filter((row) => row.continent === continent),
-        [data, continent]
+                : data?.filter(
+                      (row) => getGroupForRow(row, groupBy) === region
+                  ),
+        [data, region, groupBy]
     )
 
     // Only show loading overlays after 300ms delay to prevent flashing
@@ -96,12 +114,12 @@ function WhereAreThePoorChart(props: {
                 <PovertyControls
                     povertyLineCents={povertyLineCents}
                     groupBy={groupBy}
-                    continent={continent}
+                    region={region}
                     years={years}
                     year={activeYear}
                     setPovertyLineCents={setPovertyLineCents}
-                    setGroupBy={setGroupBy}
-                    setContinent={setContinent}
+                    setGroupBy={handleSetGroupBy}
+                    setRegion={setRegion}
                     setYear={setYear}
                 />
             )}
@@ -109,7 +127,7 @@ function WhereAreThePoorChart(props: {
                 data={scopedData}
                 povertyLineCents={povertyLineCents}
                 groupBy={groupBy}
-                continent={continent}
+                region={region}
                 year={activeYear}
                 isLoading={isLoadingData}
             />
