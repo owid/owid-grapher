@@ -107,6 +107,7 @@ export function enrichedBlockToRawBlock(
         .with({ type: "callout" }, (b): RawBlockCallout => ({
             type: b.type,
             value: {
+                icon: b.icon,
                 title: b.title,
                 text: b.text.map(
                     (enriched) =>
@@ -199,6 +200,7 @@ export function enrichedBlockToRawBlock(
                 filename: b.filename,
                 caption: b.caption ? spansToHtmlText(b.caption) : undefined,
                 shouldLoop: String(b.shouldLoop),
+                shouldAutoplay: String(b.shouldAutoplay),
                 visibility: b.visibility ? b.visibility : undefined,
             },
         }))
