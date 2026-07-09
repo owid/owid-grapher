@@ -40,9 +40,7 @@ function PropsContainerChrome(viewProps: {
                 </div>
             ) : null}
             <NodeViewContent
-                className={
-                    contentClassName ?? "rich-container-block__content"
-                }
+                className={contentClassName ?? "rich-container-block__content"}
             />
         </NodeViewWrapper>
     )
