@@ -416,7 +416,7 @@ export class FacetChart
         })
     }
 
-    @computed private get canShowThumbnails(): boolean {
+    @computed private get shouldUseThumbnailForSmallFacets(): boolean {
         return this.chartTypeName === GRAPHER_CHART_TYPES.LineChart
     }
 
@@ -456,7 +456,8 @@ export class FacetChart
         if (this.manager.variant === GrapherVariant.Thumbnail)
             return GrapherVariant.Thumbnail
 
-        if (!this.canShowThumbnails) return GrapherVariant.Default
+        if (!this.shouldUseThumbnailForSmallFacets)
+            return GrapherVariant.Default
 
         return this.hasSmallFacets
             ? GrapherVariant.Thumbnail
