@@ -207,7 +207,7 @@ async function iterateExplorerViews(
             // the important properties with the fallback defaults here
             config.title = config.title ?? explorer.grapherState.defaultTitle
             config.subtitle =
-                config.subtitle ?? explorer.grapherState.currentSubtitle
+                config.subtitle ?? explorer.grapherState.effectiveSubtitle
 
             if (!config) {
                 throw new Error(

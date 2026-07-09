@@ -112,8 +112,8 @@ export function SlideExplorer(props: {
                 (isReady) => {
                     if (!isReady) return
                     onChartReadyRef.current?.({
-                        title: explorer.grapherState.currentTitle,
-                        subtitle: explorer.grapherState.currentSubtitle,
+                        title: explorer.grapherState.fullTitle,
+                        subtitle: explorer.grapherState.effectiveSubtitle,
                     })
                     const config = getSlideshowGrapherConfig({
                         interactiveCharts:
