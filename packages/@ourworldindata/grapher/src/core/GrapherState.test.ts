@@ -13,6 +13,7 @@ import {
     GRAPHER_TAB_NAMES,
     OwidChartDimensionInterface,
     GRAPHER_TAB_QUERY_PARAMS,
+    StackMode,
 } from "@ourworldindata/types"
 import {
     TimeBoundValue,
@@ -383,7 +384,7 @@ it("can serialize scaleType if it changes", () => {
     expect(grapher.changedParams.xScale).toEqual(ScaleType.log)
 })
 
-describe("currentTitle", () => {
+describe("title", () => {
     it("shows the year of the selected data in the title", () => {
         const table = SynthesizeGDPTable(
             { entityCount: 2, timeRange: [2000, 2010] },
@@ -402,21 +403,21 @@ describe("currentTitle", () => {
         })
 
         grapher.timelineHandleTimeBounds = [2001, 2005]
-        expect(grapher.currentTitle).toContain("2001")
-        expect(grapher.currentTitle).toContain("2005")
-        expect(grapher.currentTitle).not.toContain("Infinity")
+        expect(grapher.fullTitle).toContain("2001")
+        expect(grapher.fullTitle).toContain("2005")
+        expect(grapher.fullTitle).not.toContain("Infinity")
 
         grapher.timelineHandleTimeBounds = [1900, 2020]
-        expect(grapher.currentTitle).toContain("2000")
-        expect(grapher.currentTitle).toContain("2009")
+        expect(grapher.fullTitle).toContain("2000")
+        expect(grapher.fullTitle).toContain("2009")
 
         grapher.timelineHandleTimeBounds = [-Infinity, Infinity]
-        expect(grapher.currentTitle).toContain("2000")
-        expect(grapher.currentTitle).toContain("2009")
+        expect(grapher.fullTitle).toContain("2000")
+        expect(grapher.fullTitle).toContain("2009")
 
         grapher.timelineHandleTimeBounds = [Infinity, Infinity]
-        expect(grapher.currentTitle).not.toContain("2000")
-        expect(grapher.currentTitle).toContain("2009")
+        expect(grapher.fullTitle).not.toContain("2000")
+        expect(grapher.fullTitle).toContain("2009")
     })
 
     it("can generate a title when all you have is a table and ySlug", () => {
@@ -429,7 +430,165 @@ describe("currentTitle", () => {
             ySlugs: "GDP",
         })
 
-        expect(grapher.currentTitle).toContain("GDP")
+        expect(grapher.fullTitle).toContain("GDP")
+    })
+
+    it("splits the title into a base and a time annotation", () => {
+        const table = SynthesizeGDPTable(
+            { entityCount: 2, timeRange: [2000, 2010] },
+            1
+        )
+        const grapher = new GrapherState({
+            table,
+            selectedEntityNames: [...table.availableEntityNames],
+            dimensions: [
+                {
+                    slug: SampleColumnSlugs.GDP,
+                    property: DimensionProperty.y,
+                    variableId: 1,
+                },
+            ],
+        })
+        grapher.timelineHandleTimeBounds = [2001, 2005]
+
+        expect(grapher.titleAnnotation).toContain("2001")
+        expect(grapher.titleAnnotation).toContain("2005")
+        expect(grapher.mainTitle).not.toContain("2001")
+        expect(grapher.fullTitle).toEqual(
+            `${grapher.mainTitle}, ${grapher.titleAnnotation}`
+        )
+    })
+
+    it("includes a single selected entity in the annotation", () => {
+        const table = SynthesizeGDPTable(
+            { entityCount: 2, timeRange: [2000, 2010] },
+            1
+        )
+        const entityName = table.availableEntityNames[0]
+        const grapher = new GrapherState({
+            table,
+            selectedEntityNames: [entityName],
+            // two y-columns, so that the entity name is not
+            // shown as a series label
+            ySlugs: `${SampleColumnSlugs.GDP} ${SampleColumnSlugs.Population}`,
+        })
+
+        expect(grapher.titleAnnotation).toContain(entityName)
+        expect(grapher.mainTitle).not.toContain(entityName)
+        expect(grapher.fullTitle).toEqual(
+            `${grapher.mainTitle}, ${grapher.titleAnnotation}`
+        )
+    })
+
+    it("combines entity and time in the annotation, entity first", () => {
+        const table = SynthesizeGDPTable(
+            { entityCount: 2, timeRange: [2000, 2010] },
+            1
+        )
+        const entityName = table.availableEntityNames[0]
+        const grapher = new GrapherState({
+            table,
+            selectedEntityNames: [entityName],
+            // two y-columns, so that the entity name is not
+            // shown as a series label
+            ySlugs: `${SampleColumnSlugs.GDP} ${SampleColumnSlugs.Population}`,
+        })
+        grapher.timelineHandleTimeBounds = [2001, 2005]
+
+        expect(grapher.titleAnnotation).toEqual(`${entityName}, 2001 to 2005`)
+        expect(grapher.fullTitle).toEqual(
+            `${grapher.mainTitle}, ${entityName}, 2001 to 2005`
+        )
+    })
+
+    it("can hide the entity annotation while keeping the time annotation", () => {
+        const table = SynthesizeGDPTable(
+            { entityCount: 2, timeRange: [2000, 2010] },
+            1
+        )
+        const entityName = table.availableEntityNames[0]
+        const grapher = new GrapherState({
+            table,
+            hideAnnotationFieldsInTitle: { entity: true },
+            // the entity hint is overridden when the user can switch
+            // entities, so disable entity selection
+            addCountryMode: EntitySelectionMode.Disabled,
+            selectedEntityNames: [entityName],
+            // two y-columns, so that the entity name is not
+            // shown as a series label
+            ySlugs: `${SampleColumnSlugs.GDP} ${SampleColumnSlugs.Population}`,
+        })
+        grapher.timelineHandleTimeBounds = [2001, 2005]
+
+        expect(grapher.titleAnnotation).not.toContain(entityName)
+        expect(grapher.titleAnnotation).toEqual("2001 to 2005")
+    })
+
+    it("appends the annotation without a comma if the title ends with a question mark", () => {
+        const table = SynthesizeGDPTable(
+            { entityCount: 2, timeRange: [2000, 2010] },
+            1
+        )
+        const grapher = new GrapherState({
+            table,
+            title: "How rich are people?",
+            selectedEntityNames: [...table.availableEntityNames],
+            dimensions: [
+                {
+                    slug: SampleColumnSlugs.GDP,
+                    property: DimensionProperty.y,
+                    variableId: 1,
+                },
+            ],
+        })
+
+        expect(grapher.titleAnnotation).toBeDefined()
+        expect(grapher.fullTitle).toEqual(
+            `How rich are people? ${grapher.titleAnnotation}`
+        )
+    })
+
+    it("keeps the 'Change in' prefix in the title base", () => {
+        const table = SynthesizeGDPTable(
+            { entityCount: 2, timeRange: [2000, 2010] },
+            1
+        )
+        const grapher = new GrapherState({
+            table,
+            stackMode: StackMode.relative,
+            selectedEntityNames: [...table.availableEntityNames],
+            dimensions: [
+                {
+                    slug: SampleColumnSlugs.GDP,
+                    property: DimensionProperty.y,
+                    variableId: 1,
+                },
+            ],
+        })
+
+        expect(grapher.mainTitle).toContain("Change in")
+    })
+
+    it("has no annotation when annotation fields are hidden", () => {
+        const table = SynthesizeGDPTable(
+            { entityCount: 2, timeRange: [2000, 2010] },
+            1
+        )
+        const grapher = new GrapherState({
+            table,
+            hideAnnotationFieldsInTitle: { entity: true, time: true },
+            selectedEntityNames: [...table.availableEntityNames],
+            dimensions: [
+                {
+                    slug: SampleColumnSlugs.GDP,
+                    property: DimensionProperty.y,
+                    variableId: 1,
+                },
+            ],
+        })
+
+        expect(grapher.titleAnnotation).toBeUndefined()
+        expect(grapher.fullTitle).toEqual(grapher.mainTitle)
     })
 })
 

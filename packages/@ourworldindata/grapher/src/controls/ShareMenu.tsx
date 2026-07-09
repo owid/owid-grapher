@@ -22,7 +22,7 @@ import { GrapherRasterizeFn } from "../captionedChart/StaticChartRasterizer.js"
 
 export interface ShareMenuManager {
     slug?: string
-    currentTitle?: string
+    fullTitle?: string
     canonicalUrl?: string
     editUrl?: string
     createNarrativeChartUrl?: string
@@ -42,13 +42,13 @@ interface ShareMenuState {
     copiedPng: boolean
 }
 
-type ShareApiManager = Pick<ShareMenuManager, "canonicalUrl" | "currentTitle">
+type ShareApiManager = Pick<ShareMenuManager, "canonicalUrl" | "fullTitle">
 
 const getShareData = (manager: ShareApiManager): ShareData | undefined => {
     if (!manager.canonicalUrl) return undefined
 
     return {
-        title: manager.currentTitle ?? "",
+        title: manager.fullTitle ?? "",
         url: manager.canonicalUrl,
     }
 }
@@ -116,7 +116,7 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
     }
 
     @computed get title(): string {
-        return this.manager.currentTitle ?? ""
+        return this.manager.fullTitle ?? ""
     }
 
     @computed get showShareMenu(): boolean {
