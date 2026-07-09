@@ -1,3 +1,8 @@
+---
+pinned:
+    - slug: us-crime-rates
+---
+
 A Grapher chart, explorer, or MDIM embed. The default component for showing
 an interactive Our World in Data chart inline.
 

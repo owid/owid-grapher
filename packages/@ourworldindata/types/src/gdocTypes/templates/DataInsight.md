@@ -1,3 +1,24 @@
+---
+exemplars:
+    - the-median-age-in-china-has-rapidly-caught-up-with-the-united-kingdom
+skeleton:
+    - name: The image
+      description:
+          One static chart image — the insight is the chart. The title above
+          it states the finding, not the topic.
+      components: [image]
+    - name: The point
+      description:
+          Two to four short paragraphs explaining the single pattern the
+          chart shows. Nearly every published data insight is exactly this —
+          image plus prose, nothing else.
+      components: [text]
+    - name: Call to action
+      description: Optional closing cta linking to the interactive chart or the
+          related topic page.
+      components: [cta]
+---
+
 A short, chart-led observation: a single static image or chart and a few
 paragraphs making one point. Published in the data-insights feed under
 `/data-insights/{slug}`.

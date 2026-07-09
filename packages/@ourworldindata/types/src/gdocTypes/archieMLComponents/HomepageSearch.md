@@ -1,3 +1,7 @@
+---
+system: true
+---
+
 A wide section with a site-wide search bar. No props.
 
 ## When to use

@@ -111,6 +111,11 @@
         "archie": "{.callout}\ntitle: Update\nicon: info\n[.+text]\nThis article uses data from 2020\n\nBut the conclusions are solid.\n\n[]\n{}"
       }
     ],
+    "pinned": [
+      {
+        "slug": "the-human-cost-of-unsafe-abortions"
+      }
+    ],
     "related": [
       "aside",
       "data-callout"
@@ -136,6 +141,11 @@
       {
         "name": "Explorer with controls hidden",
         "archie": "{.chart}\nurl: https://ourworldindata.org/explorers/food-footprints?hideControls=true\n{}"
+      }
+    ],
+    "pinned": [
+      {
+        "slug": "us-crime-rates"
       }
     ],
     "related": [
@@ -217,7 +227,8 @@
     "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/CookieNotice.ts",
     "sidecarFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/CookieNotice.md",
     "body": "Renders the site's cookie-consent notice. Internal block — not documented\nfor authors.",
-    "examples": []
+    "examples": [],
+    "system": true
   },
   {
     "id": "country-profile-selector",
@@ -470,7 +481,8 @@
         "name": "Four featured tiles",
         "archie": "{.homepage-intro}\n\n[.featured-work]\nurl: https://docs.google.com/document/d/1iH_m2GlsBuif80sDwfg0fNGZmpf9X0-TFM5oHQr9fPA/edit\nkicker: Article - 10 Min Read\nisNew: true\n\nurl: https://docs.google.com/document/d/1KCSkpWvSml9KZaqTO7TGWsUDpACZIxBoqs9Yw62Klx8/edit\nkicker: Article - 10 Min Read\n\nurl: https://docs.google.com/document/d/1PvKMIDp0Npp-t_5F-tNp-w9Y2Lq4ifjWDJHEVQQ6bNw/edit\nkicker: Article - 10 Min Read\n\nurl: https://docs.google.com/document/d/11t6XP9vKLDHeiDOcfaPOoc4TeQxHRixSjEikAlbGe0A/edit\ntitle: We updated our topic page on Artificial Intelligence\nkicker: Announcement\n[]\n\n{}"
       }
-    ]
+    ],
+    "system": true
   },
   {
     "id": "homepage-search",
@@ -485,7 +497,8 @@
         "name": "Basic",
         "archie": "{.homepage-search}\n{}"
       }
-    ]
+    ],
+    "system": true
   },
   {
     "id": "horizontal-rule",
@@ -542,6 +555,11 @@
       {
         "name": "Minimal",
         "archie": "{.image}\nfilename: default-featured-image.png\n{}"
+      }
+    ],
+    "pinned": [
+      {
+        "slug": "the-median-age-in-china-has-rapidly-caught-up-with-the-united-kingdom"
       }
     ],
     "related": [
