@@ -6,6 +6,7 @@ import { Time } from "@ourworldindata/types"
 
 import {
     DataRow,
+    EXTREME_POVERTY_LINE_CENTS,
     formatGroupLabel,
     GroupBy,
     POVERTY_LINES,
@@ -106,10 +107,17 @@ function WhereAreThePoorHeader({
 
     const isWorld = region === WORLD_SELECTION
     const regionLabel = formatGroupLabel(region)
-    const title = isWorld
-        ? "Where are the poor in the world?"
-        : `Where are the poor in ${regionLabel}?`
-    const location = isWorld ? "" : ` in ${regionLabel}`
+    const isExtremePoverty = povertyLine.cents === EXTREME_POVERTY_LINE_CENTS
+
+    // Mirrors the headcount_title of the world_bank_pip grapher configs:
+    // the International Poverty Line is phrased as extreme poverty
+    const title = isExtremePoverty
+        ? `Where are the people living in extreme poverty${isWorld ? "" : ` in ${regionLabel}`} in ${year}?`
+        : `Where are the poor in ${isWorld ? "the world" : regionLabel} in ${year}?`
+
+    const livingBelow = isExtremePoverty
+        ? "living in extreme poverty"
+        : `living below ${povertyLine.label}`
 
     return (
         <ChartHeader
@@ -117,9 +125,10 @@ function WhereAreThePoorHeader({
             title={title}
             subtitle={
                 <>
+                    {povertyLine.definition && `${povertyLine.definition} `}
                     The size of the entire visualization represents the number
-                    of people living below {povertyLine.label}
-                    {location} in {year}:{" "}
+                    of people {livingBelow}
+                    {isWorld ? "" : ` in ${regionLabel}`} in {year}:{" "}
                     <span
                         className={cx({
                             "where-are-the-poor-header__value--loading":

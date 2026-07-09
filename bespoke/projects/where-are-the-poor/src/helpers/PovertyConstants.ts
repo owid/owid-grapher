@@ -4,7 +4,9 @@ import { ContinentColors } from "@ourworldindata/grapher/src/color/CustomSchemes
 export interface PovertyLine {
     cents: number
     label: string
-    description?: string
+    /** Definition sentence shown in the subtitle, matching the wording of
+     * the poverty_pip MDim and the world_bank_pip grapher configs */
+    definition?: string
 }
 
 // The individual poverty lines from the poverty_pip MDim (2021 PPP prices)
@@ -13,26 +15,29 @@ export const POVERTY_LINES: PovertyLine[] = [
     {
         cents: 300,
         label: "$3 a day",
-        description:
-            "The International Poverty Line set by the World Bank to measure extreme poverty",
+        definition:
+            "Extreme poverty is defined as living below the International Poverty Line of $3 per day.",
     },
     {
         cents: 420,
         label: "$4.20 a day",
-        description:
-            "Set by the World Bank to reflect national definitions in lower-middle income countries",
+        definition:
+            "The poverty line of $4.20 per day is set by the World Bank to be representative of the definitions of poverty adopted in lower-middle-income countries.",
     },
     {
         cents: 830,
         label: "$8.30 a day",
-        description:
-            "Set by the World Bank to reflect national definitions in upper-middle income countries",
+        definition:
+            "The poverty line of $8.30 per day is set by the World Bank to be representative of the definitions of poverty adopted in upper-middle-income countries.",
     },
     { cents: 1000, label: "$10 a day" },
     { cents: 2000, label: "$20 a day" },
     { cents: 3000, label: "$30 a day" },
     { cents: 4000, label: "$40 a day" },
 ]
+
+// The International Poverty Line, used to measure extreme poverty
+export const EXTREME_POVERTY_LINE_CENTS = 300
 
 export const DEFAULT_POVERTY_LINE_CENTS = 300
 
