@@ -11,13 +11,14 @@ import { LineChartProps } from "./LineChart.js"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import {
     CATEGORICAL_LEGEND_STYLE,
+    LINE_STYLE,
     LineChartManager,
     LineChartSeries,
     LinePoint,
     NUMERIC_LEGEND_STYLE,
     PlacedLineChartSeries,
-    PlacedPoint,
     RenderLineChartSeries,
+    RenderPoint,
 } from "./LineChartConstants"
 import {
     BASE_FONT_SIZE,
@@ -25,6 +26,9 @@ import {
     FontSettings,
     GRAPHER_FONT_SCALE_12,
 } from "../core/GrapherConstants"
+import { Emphasis, resolveEmphasis } from "../interaction/Emphasis"
+import { InteractionState } from "../interaction/InteractionState"
+import { getHoverStateForSeries } from "../chart/ChartUtils"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import { Lines } from "./Lines"
 import {
@@ -122,10 +126,47 @@ export class LineChartThumbnail
         })
     }
 
+    // Series highlighted by hovering an item in the (external) categorical
+    // legend, which the FacetChart broadcasts to all facets via
+    // `externalLegendHoverBin`
+    @computed private get hoveredSeriesNames(): SeriesName[] {
+        const { externalLegendHoverBin } = this.manager
+        if (!externalLegendHoverBin) return []
+        return this.chartState.series
+            .map((series) => series.seriesName)
+            .filter((name) => externalLegendHoverBin.contains(name))
+    }
+
+    @computed private get isHoverModeActive(): boolean {
+        return (
+            this.hoveredSeriesNames.length > 0 ||
+            // If the external legend is hovered, we want to mute all
+            // non-hovered series even if this facet doesn't plot any of them
+            (!!this.manager.externalLegendHoverBin &&
+                !this.chartState.hasColorScale)
+        )
+    }
+
     @computed private get renderSeries(): RenderLineChartSeries[] {
         return toRenderLineChartSeries(this.placedSeries, {
             isFocusModeActive: this.chartState.isFocusModeActive,
+            isHoverModeActive: this.isHoverModeActive,
+            hoveredSeriesNames: this.hoveredSeriesNames,
             shouldElevateSingleSeries: false,
+        })
+    }
+
+    private hoverStateForSeries(series: LineChartSeries): InteractionState {
+        return getHoverStateForSeries(series, {
+            isHoverModeActive: this.isHoverModeActive,
+            hoveredSeriesNames: this.hoveredSeriesNames,
+        })
+    }
+
+    private emphasisForSeries(series: LineChartSeries): Emphasis {
+        return resolveEmphasis({
+            hover: this.hoverStateForSeries(series),
+            focus: series.focus,
         })
     }
 
@@ -145,7 +186,7 @@ export class LineChartThumbnail
     }
 
     /** Start points displayed as dots */
-    @computed private get visibleStartPoints(): PlacedPoint[] {
+    @computed private get visibleStartPoints(): RenderPoint[] {
         return this.renderSeries
             .filter(
                 (series) =>
@@ -153,14 +194,19 @@ export class LineChartThumbnail
                     // Only show start points for historical series, not projected ones
                     !series.isProjection
             )
-            .map((series) =>
-                _.minBy(series.placedPoints, (point) => point.time)
-            )
+            .map((series) => {
+                const point = _.minBy(
+                    series.placedPoints,
+                    (point) => point.time
+                )
+                if (!point) return undefined
+                return { ...point, emphasis: series.emphasis }
+            })
             .filter((point) => point !== undefined)
     }
 
     /** End points displayed as dots */
-    @computed private get visibleEndPoints(): PlacedPoint[] {
+    @computed private get visibleEndPoints(): RenderPoint[] {
         return this.renderSeries
             .filter(
                 (series) =>
@@ -169,9 +215,14 @@ export class LineChartThumbnail
                     // for the projected series. Otherwise, show end dots for all series
                     (!this.hasProjectedSeries || series.isProjection)
             )
-            .map((series) =>
-                _.maxBy(series.placedPoints, (point) => point.time)
-            )
+            .map((series) => {
+                const point = _.maxBy(
+                    series.placedPoints,
+                    (point) => point.time
+                )
+                if (!point) return undefined
+                return { ...point, emphasis: series.emphasis }
+            })
             .filter((point) => point !== undefined)
     }
 
@@ -262,7 +313,13 @@ export class LineChartThumbnail
                       )
                     : series.color
 
-                return { seriesName: series.seriesName, value, label, color }
+                return {
+                    seriesName: series.seriesName,
+                    value,
+                    label,
+                    color,
+                    emphasis: this.emphasisForSeries(series),
+                }
             })
             .filter((series) => series !== undefined)
     }
@@ -384,7 +441,13 @@ export class LineChartThumbnail
                       )
                     : series.color
 
-                return { seriesName: series.seriesName, value, label, color }
+                return {
+                    seriesName: series.seriesName,
+                    value,
+                    label,
+                    color,
+                    emphasis: this.emphasisForSeries(series),
+                }
             })
             .filter((series) => series !== undefined)
     }
@@ -638,8 +701,16 @@ function Dot({
     point,
     radius,
 }: {
-    point: PlacedPoint
+    point: RenderPoint
     radius: number
 }): React.ReactElement | null {
-    return <circle cx={point.x} cy={point.y} r={radius} fill={point.color} />
+    return (
+        <circle
+            cx={point.x}
+            cy={point.y}
+            r={radius}
+            fill={point.color}
+            opacity={LINE_STYLE[point.emphasis].opacity}
+        />
+    )
 }
