@@ -26,11 +26,15 @@
  *   2. Index every TypeAliasDeclaration in archieMLComponents/ so we can look
  *      up each union member.
  *   3. For each union member: read its sibling .md sidecar (named after the
- *      alias minus the EnrichedBlock prefix), parse front-matter + harvest
- *      every fenced archie block, and derive the id from the alias body's
- *      "type" property literal.
+ *      alias minus the EnrichedBlock prefix), parse front-matter (title,
+ *      system flag, pinned real-example refs) + harvest every fenced archie
+ *      block, and derive the id from the alias body's "type" property
+ *      literal.
  *   4. Validate every archie example through validateArchieMl — the same
  *      gate the write API applies (parse, block errors, fixed point).
+ *   5. Harvest the {.component-id} cross-references in each sidecar's
+ *      "## When (NOT) to use" prose into `related` — derived, so the
+ *      structured links can never drift from the prose.
  *
  * Templates pipeline:
  *   1. For each type in ARCHIE_WRITABLE_GDOC_TYPES, walk its content
@@ -42,7 +46,11 @@
  *      exist on the interface.
  *   3. Read prose + full-document examples from templates/<PascalType>.md
  *      and validate each example through validateArchieMl — the same gate
- *      the write API applies, front-matter check included.
+ *      the write API applies, front-matter check included. The sidecar
+ *      front matter can also carry the template's curated skeleton (its
+ *      canonical structure; component ids validated) and exemplar slugs
+ *      (editorially chosen published docs, resolved live by the admin
+ *      server).
  *
  * Completeness is structural: every union member / writable type becomes an
  * entry by iteration, and missing/malformed sidecars fail the build.
@@ -53,6 +61,7 @@
 
 import fs from "fs-extra"
 import path from "path"
+import * as yaml from "yaml"
 
 import { API } from "@typescript/native-preview/sync"
 import type {
@@ -91,8 +100,10 @@ import {
     type ComponentDoc,
     type ComponentExample,
     type GdocContentKeyFate,
+    type PinnedExampleRef,
     type TemplateDoc,
     type TemplateFieldDoc,
+    type TemplateSkeletonPart,
 } from "@ourworldindata/types"
 
 // Author-facing grouping used by the admin reference page. Every component id
@@ -292,17 +303,35 @@ function deriveTitle(aliasName: string): string {
         .replace(/([A-Z]+)([A-Z][a-z])/g, "$1 $2")
 }
 
-function parseSidecar(text: string): {
-    title?: string
+function parseSidecar(
+    text: string,
+    sidecarPathRel: string
+): {
+    frontMatter: Record<string, unknown>
     body: string
     examples: ComponentExample[]
 } {
     let rest = text
-    let title: string | undefined
+    let frontMatter: Record<string, unknown> = {}
     const fmMatch = /^---\r?\n([\s\S]+?)\r?\n---\r?\n/.exec(rest)
     if (fmMatch) {
-        const titleMatch = /^title:\s*(.+)$/m.exec(fmMatch[1])
-        if (titleMatch) title = titleMatch[1].trim()
+        let parsed: unknown
+        try {
+            parsed = yaml.parse(fmMatch[1])
+        } catch (err) {
+            throw new Error(
+                sidecarPathRel +
+                    " has invalid YAML front matter: " +
+                    (err instanceof Error ? err.message : String(err)),
+                { cause: err }
+            )
+        }
+        if (parsed === null || parsed === undefined) parsed = {}
+        if (typeof parsed !== "object" || Array.isArray(parsed))
+            throw new Error(
+                sidecarPathRel + " front matter is not a YAML mapping"
+            )
+        frontMatter = parsed as Record<string, unknown>
         rest = rest.slice(fmMatch[0].length)
     }
     rest = rest.trim()
@@ -327,7 +356,230 @@ function parseSidecar(text: string): {
         }
         examples.push({ name, archie: m[1] })
     }
-    return { title, body: rest, examples }
+    return { frontMatter, body: rest, examples }
+}
+
+// ---------------------------------------------------------------------------
+// Sidecar front-matter validation
+// ---------------------------------------------------------------------------
+
+// A gdoc slug as referenced from front matter: existence in the database is
+// checked live by the admin server (CI has no DB), so only well-formedness is
+// enforced here.
+function assertWellFormedSlug(
+    value: unknown,
+    what: string,
+    file: string
+): string {
+    if (typeof value !== "string" || value.length === 0 || /[\s#]/.test(value))
+        throw new Error(
+            file + ": " + what + " must be a gdoc slug, got " + inspect(value)
+        )
+    return value
+}
+
+function inspect(value: unknown): string {
+    return JSON.stringify(value) ?? String(value)
+}
+
+function assertAllowedKeys(
+    fm: Record<string, unknown>,
+    allowed: string[],
+    file: string
+): void {
+    for (const key of Object.keys(fm)) {
+        if (!allowed.includes(key))
+            throw new Error(
+                file +
+                    ' has unknown front-matter key "' +
+                    key +
+                    '" — allowed: ' +
+                    allowed.join(", ")
+            )
+    }
+}
+
+function parseOptionalTitle(
+    fm: Record<string, unknown>,
+    file: string
+): string | undefined {
+    if (fm.title === undefined) return undefined
+    if (typeof fm.title !== "string" || fm.title.trim().length === 0)
+        throw new Error(file + ": title must be a non-empty string")
+    return fm.title.trim()
+}
+
+interface ComponentFrontMatter {
+    title?: string
+    system?: boolean
+    pinned?: PinnedExampleRef[]
+}
+
+function parseComponentFrontMatter(
+    fm: Record<string, unknown>,
+    file: string
+): ComponentFrontMatter {
+    assertAllowedKeys(fm, ["title", "system", "pinned"], file)
+    const result: ComponentFrontMatter = { title: parseOptionalTitle(fm, file) }
+    if (fm.system !== undefined) {
+        if (fm.system !== true)
+            throw new Error(
+                file +
+                    ": system must be true (omit the key for regular components), got " +
+                    inspect(fm.system)
+            )
+        result.system = true
+    }
+    if (fm.pinned !== undefined) {
+        if (!Array.isArray(fm.pinned) || fm.pinned.length === 0)
+            throw new Error(file + ": pinned must be a non-empty list")
+        result.pinned = fm.pinned.map((entry, i): PinnedExampleRef => {
+            const what = "pinned[" + i + "]"
+            if (typeof entry !== "object" || entry === null)
+                throw new Error(
+                    file + ": " + what + " must be a { slug, nth? } mapping"
+                )
+            const { slug, nth, ...unknownKeys } = entry as Record<
+                string,
+                unknown
+            >
+            if (Object.keys(unknownKeys).length > 0)
+                throw new Error(
+                    file +
+                        ": " +
+                        what +
+                        " has unknown key(s): " +
+                        Object.keys(unknownKeys).join(", ")
+                )
+            const ref: PinnedExampleRef = {
+                slug: assertWellFormedSlug(slug, what + ".slug", file),
+            }
+            if (nth !== undefined) {
+                if (!Number.isInteger(nth) || (nth as number) < 1)
+                    throw new Error(
+                        file +
+                            ": " +
+                            what +
+                            ".nth must be a positive integer (1-based), got " +
+                            inspect(nth)
+                    )
+                ref.nth = nth as number
+            }
+            return ref
+        })
+    }
+    return result
+}
+
+interface TemplateFrontMatter {
+    title?: string
+    exemplars?: string[]
+    skeleton?: TemplateSkeletonPart[]
+}
+
+function parseTemplateFrontMatter(
+    fm: Record<string, unknown>,
+    file: string
+): TemplateFrontMatter {
+    assertAllowedKeys(fm, ["title", "exemplars", "skeleton"], file)
+    const result: TemplateFrontMatter = { title: parseOptionalTitle(fm, file) }
+    if (fm.exemplars !== undefined) {
+        if (
+            !Array.isArray(fm.exemplars) ||
+            fm.exemplars.length === 0 ||
+            fm.exemplars.length > 2
+        )
+            throw new Error(file + ": exemplars must list 1-2 gdoc slugs")
+        result.exemplars = fm.exemplars.map((slug, i) =>
+            assertWellFormedSlug(slug, "exemplars[" + i + "]", file)
+        )
+    }
+    if (fm.skeleton !== undefined) {
+        if (!Array.isArray(fm.skeleton) || fm.skeleton.length === 0)
+            throw new Error(file + ": skeleton must be a non-empty list")
+        result.skeleton = fm.skeleton.map((part, i): TemplateSkeletonPart => {
+            const what = "skeleton[" + i + "]"
+            if (typeof part !== "object" || part === null)
+                throw new Error(
+                    file +
+                        ": " +
+                        what +
+                        " must be a { name, description, components, repeats? } mapping"
+                )
+            const { name, description, components, repeats, ...unknownKeys } =
+                part as Record<string, unknown>
+            if (Object.keys(unknownKeys).length > 0)
+                throw new Error(
+                    file +
+                        ": " +
+                        what +
+                        " has unknown key(s): " +
+                        Object.keys(unknownKeys).join(", ")
+                )
+            if (typeof name !== "string" || name.trim().length === 0)
+                throw new Error(
+                    file + ": " + what + ".name must be a non-empty string"
+                )
+            if (
+                typeof description !== "string" ||
+                description.trim().length === 0
+            )
+                throw new Error(
+                    file +
+                        ": " +
+                        what +
+                        ".description must be a non-empty string"
+                )
+            if (
+                !Array.isArray(components) ||
+                components.length === 0 ||
+                components.some((id) => typeof id !== "string")
+            )
+                throw new Error(
+                    file +
+                        ": " +
+                        what +
+                        ".components must be a non-empty list of component ids"
+                )
+            const parsed: TemplateSkeletonPart = {
+                name: name.trim(),
+                description: description.trim(),
+                components: components as string[],
+            }
+            if (repeats !== undefined) {
+                if (repeats !== true)
+                    throw new Error(
+                        file +
+                            ": " +
+                            what +
+                            ".repeats must be true (omit the key otherwise)"
+                    )
+                parsed.repeats = true
+            }
+            return parsed
+        })
+    }
+    return result
+}
+
+// The decision prose in a sidecar ("## When to use" / "## When NOT to use")
+// cross-references alternatives as {.component-id}. Harvest those mentions
+// into ComponentDoc.related — derived, so it can never drift from the prose.
+function deriveRelatedComponents(
+    body: string,
+    selfId: string,
+    validIds: Set<string>
+): string[] {
+    const related: string[] = []
+    for (const section of body.split(/^(?=## )/m)) {
+        if (!/^## When (NOT )?to use/i.test(section)) continue
+        for (const match of section.matchAll(/\{\.([a-z0-9-]+)\}/g)) {
+            const id = match[1]
+            if (id === selfId || !validIds.has(id)) continue
+            if (!related.includes(id)) related.push(id)
+        }
+    }
+    return related
 }
 
 // Component examples are body fragments; wrap each as a minimal fragment
@@ -449,17 +701,14 @@ function extractComponentDocs(
                     path.relative(REPO_ROOT, sidecarPath)
             )
         const sidecarText = fs.readFileSync(sidecarPath, "utf-8")
-        const {
-            title: titleOverride,
-            body,
-            examples,
-        } = parseSidecar(sidecarText)
+        const sidecarPathRel = path.relative(REPO_ROOT, sidecarPath)
+        const { frontMatter, body, examples } = parseSidecar(
+            sidecarText,
+            sidecarPathRel
+        )
         if (!body)
-            throw new Error(
-                typeName +
-                    " sidecar is empty: " +
-                    path.relative(REPO_ROOT, sidecarPath)
-            )
+            throw new Error(typeName + " sidecar is empty: " + sidecarPathRel)
+        const fm = parseComponentFrontMatter(frontMatter, sidecarPathRel)
 
         const category = COMPONENT_CATEGORY_BY_ID[id]
         if (!category)
@@ -470,16 +719,18 @@ function extractComponentDocs(
                     "COMPONENT_CATEGORY_BY_ID in devTools/gdocs/generate-gdocs-references.ts"
             )
 
-        const title = titleOverride ?? deriveTitle(typeName)
+        const title = fm.title ?? deriveTitle(typeName)
         docs.push({
             id,
             title,
             typeName,
             category,
             sourceFile,
-            sidecarFile: path.relative(REPO_ROOT, sidecarPath),
+            sidecarFile: sidecarPathRel,
             body,
             examples,
+            ...(fm.system && { system: true }),
+            ...(fm.pinned && { pinned: fm.pinned }),
         })
     }
     const staleCategoryIds = Object.keys(COMPONENT_CATEGORY_BY_ID).filter(
@@ -490,6 +741,12 @@ function extractComponentDocs(
             "COMPONENT_CATEGORY_BY_ID has entries for unknown component id(s): " +
                 staleCategoryIds.join(", ")
         )
+    // Second pass, once every id is known: harvest the {.component-id}
+    // cross-references in each doc's decision prose into `related`.
+    for (const doc of docs) {
+        const related = deriveRelatedComponents(doc.body, doc.id, seenIds)
+        if (related.length > 0) doc.related = related
+    }
     return docs
 }
 
@@ -636,7 +893,10 @@ function extractInterfaceFields(
     return fields
 }
 
-function extractTemplateDocs(program: TsProgram): TemplateDoc[] {
+function extractTemplateDocs(
+    program: TsProgram,
+    componentIds: Set<string>
+): TemplateDoc[] {
     const sf = program.getSourceFile(GDOC_TS)
     if (!sf) throw new Error("Source file not loaded by tsgo: " + GDOC_TS)
 
@@ -667,17 +927,17 @@ function extractTemplateDocs(program: TsProgram): TemplateDoc[] {
                     '" has no sidecar at ' +
                     path.relative(REPO_ROOT, sidecarPath)
             )
-        const {
-            title: titleOverride,
-            body,
-            examples,
-        } = parseSidecar(fs.readFileSync(sidecarPath, "utf-8"))
+        const sidecarPathRel = path.relative(REPO_ROOT, sidecarPath)
+        const { frontMatter, body, examples } = parseSidecar(
+            fs.readFileSync(sidecarPath, "utf-8"),
+            sidecarPathRel
+        )
         if (!body)
             throw new Error(
                 'Template sidecar for "' +
                     type +
                     '" is empty: ' +
-                    path.relative(REPO_ROOT, sidecarPath)
+                    sidecarPathRel
             )
         if (examples.length === 0)
             throw new Error(
@@ -685,16 +945,32 @@ function extractTemplateDocs(program: TsProgram): TemplateDoc[] {
                     type +
                     '" has no full-document archie example'
             )
+        const fm = parseTemplateFrontMatter(frontMatter, sidecarPathRel)
+        for (const part of fm.skeleton ?? []) {
+            for (const componentId of part.components) {
+                if (!componentIds.has(componentId))
+                    throw new Error(
+                        sidecarPathRel +
+                            ': skeleton part "' +
+                            part.name +
+                            '" references unknown component id "' +
+                            componentId +
+                            '"'
+                    )
+            }
+        }
 
         docs.push({
             id: type,
             contentTypeName,
-            sidecarFile: path.relative(REPO_ROOT, sidecarPath),
-            title: titleOverride ?? deriveTitle(sidecarName),
+            sidecarFile: sidecarPathRel,
+            title: fm.title ?? deriveTitle(sidecarName),
             body,
             fields,
             adminManagedFields: [...OWID_GDOC_ADMIN_MANAGED_KEYS],
             examples,
+            ...(fm.exemplars && { exemplars: fm.exemplars }),
+            ...(fm.skeleton && { skeleton: fm.skeleton }),
         })
     }
     return docs
@@ -755,7 +1031,10 @@ async function main(): Promise<void> {
                 "."
         )
 
-        const templateDocs = extractTemplateDocs(program)
+        const templateDocs = extractTemplateDocs(
+            program,
+            new Set(allDocs.map((doc) => doc.id))
+        )
         console.log(
             "Extracted " +
                 templateDocs.length +

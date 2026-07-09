@@ -179,12 +179,29 @@ export {
     type ComponentCategory,
     type ComponentDoc,
     type ComponentExample,
+    type PinnedExampleRef,
 } from "./gdocTypes/ComponentReference.js"
 
 export type {
     TemplateDoc,
     TemplateFieldDoc,
+    TemplateSkeletonPart,
 } from "./gdocTypes/TemplateReference.js"
+
+export {
+    COMPONENT_USAGE_LABELS,
+    type ComponentUsageLabel,
+    type ComponentUsageByDocType,
+    type ComponentUsage,
+    type GdocsReferenceUsage,
+    type ComponentInstance,
+    type ComponentVariation,
+    type ComponentInstancesResponse,
+    type ExemplarBlock,
+    type ExemplarSection,
+    type ExemplarOutline,
+    type TemplateExemplarsResponse,
+} from "./gdocTypes/GdocsReferenceApi.js"
 
 export {
     ChartConfigType,

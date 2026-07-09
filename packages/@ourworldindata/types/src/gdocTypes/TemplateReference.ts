@@ -17,6 +17,20 @@ export interface TemplateFieldDoc {
     description?: string
 }
 
+/**
+ * One named part of a template's canonical structure, curated in the template
+ * sidecar front matter. Deliberately abstract — it describes the shape of the
+ * document type, not any specific document, so it survives content churn.
+ */
+export interface TemplateSkeletonPart {
+    name: string
+    description: string
+    /** Component ids typically used in this part (validated by the generator) */
+    components: string[]
+    /** The part occurs multiple times (e.g. an article's sections) */
+    repeats?: boolean
+}
+
 export interface TemplateDoc {
     /** The OwidGdocType value, e.g. "article" */
     id: string
@@ -29,4 +43,12 @@ export interface TemplateDoc {
     /** Gdoc properties managed in the admin, never authored in the document */
     adminManagedFields: string[]
     examples: ComponentExample[]
+    /**
+     * Slugs of editorially chosen published documents whose structure
+     * exemplifies the type; resolved live by the admin server into a
+     * section-level outline.
+     */
+    exemplars?: string[]
+    /** The canonical structure of the document type, curated */
+    skeleton?: TemplateSkeletonPart[]
 }

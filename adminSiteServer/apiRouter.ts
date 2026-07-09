@@ -69,6 +69,11 @@ import { getFiles, uploadFileToR2 } from "./apiRoutes/files.js"
 import { getComponentsReference } from "./apiRoutes/components.js"
 import { getTemplatesReference } from "./apiRoutes/templates.js"
 import {
+    getComponentInstances,
+    getGdocsReferenceUsage,
+    getTemplateExemplars,
+} from "./apiRoutes/gdocsReference.js"
+import {
     handlePutMultiDim,
     handleGetMultiDim,
     handleGetMultiDims,
@@ -701,6 +706,24 @@ postRouteWithRWTransaction(apiRouter, "/slack/sendMessage", sendMessageToSlack)
 // registry JSONs)
 apiRouter.get("/components.json", getComponentsReference)
 apiRouter.get("/templates.json", getTemplatesReference)
+
+// The live half of the writing reference: component usage across published
+// docs, real instances with provenance, and template exemplar outlines
+getRouteWithROTransaction(
+    apiRouter,
+    "/gdocs-reference/usage.json",
+    getGdocsReferenceUsage
+)
+getRouteWithROTransaction(
+    apiRouter,
+    "/gdocs-reference/components/:id/instances.json",
+    getComponentInstances
+)
+getRouteWithROTransaction(
+    apiRouter,
+    "/gdocs-reference/templates/:id/exemplars.json",
+    getTemplateExemplars
+)
 
 // Deploy helpers
 apiRouter.get("/deploys.json", async () => ({

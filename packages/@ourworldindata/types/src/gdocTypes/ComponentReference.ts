@@ -9,6 +9,17 @@ export interface ComponentExample {
 }
 
 /**
+ * A curated pointer to a real usage of the component in a published document,
+ * authored in the sidecar front matter and resolved live by the admin server.
+ */
+export interface PinnedExampleRef {
+    /** Slug of the published document the example lives in */
+    slug: string
+    /** 1-based occurrence of the component within that document (default 1) */
+    nth?: number
+}
+
+/**
  * Author-facing grouping of the ArchieML components, in the order the admin
  * reference page presents them. The generator enforces that every component
  * is assigned to exactly one of these.
@@ -35,4 +46,15 @@ export interface ComponentDoc {
     sidecarFile: string
     body: string
     examples: ComponentExample[]
+    /**
+     * Platform block rendered on system-managed pages (homepage, cookie
+     * notice, …) — never part of an author's vocabulary. The one editorial
+     * judgment usage data can't express: zero usage is ambiguous between
+     * "system block, don't touch" and "brand new, please use".
+     */
+    system?: boolean
+    /** Component ids an author might consider instead ("choose this vs …") */
+    related?: string[]
+    /** Curated real examples, resolved live by the admin server */
+    pinned?: PinnedExampleRef[]
 }
