@@ -8,10 +8,29 @@ export interface ComponentExample {
     archie: string
 }
 
+/**
+ * Author-facing grouping of the ArchieML components, in the order the admin
+ * reference page presents them. The generator enforces that every component
+ * is assigned to exactly one of these.
+ */
+export const COMPONENT_CATEGORIES = [
+    "Text & structure",
+    "Charts & data",
+    "Media",
+    "Layout & sections",
+    "Links & related content",
+    "Topic pages",
+    "People",
+    "Special pages",
+] as const
+
+export type ComponentCategory = (typeof COMPONENT_CATEGORIES)[number]
+
 export interface ComponentDoc {
     id: string
     title: string
     typeName: string
+    category: ComponentCategory
     sourceFile: string
     sidecarFile: string
     body: string

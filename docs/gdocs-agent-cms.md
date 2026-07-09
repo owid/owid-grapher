@@ -8,11 +8,11 @@ the only gate.
 
 | PR / branch                                             | What it does                                                                                                                                                                                                                                                   |
 | ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [#6543](https://github.com/owid/owid-grapher/pull/6543) | Generates a JSON registry of all components from the type definitions (JSDoc + `.md` sidecars). CI keeps it fresh.                                                                                                                                             |
-| [#6695](https://github.com/owid/owid-grapher/pull/6695) | Shows that registry in the admin at `/components` (and serves it at `/admin/api/components.json`).                                                                                                                                                             |
+| [#6543](https://github.com/owid/owid-grapher/pull/6543) | Generates a JSON registry of all components from the type definitions (JSDoc + `.md` sidecars), served at `/admin/api/components.json`. CI keeps it fresh.                                                                                                     |
 | [#6544](https://github.com/owid/owid-grapher/pull/6544) | Makes the enriched → ArchieML write-back lossless — inline formatting, refs, data-insight and post front matter — and tests it.                                                                                                                                |
 | [#6702](https://github.com/owid/owid-grapher/pull/6702) | Exposes the round trip over HTTP: read/replace/create gdocs as ArchieML via the admin API, gated by `validateArchieMl`. A `gdoc-editor` skill in [owid-claude-plugins](https://github.com/owid/owid-claude-plugins) gives authors a repo-less Claude workflow. |
 | this branch                                             | Generates a second registry — the per-doc-type **template reference** — from the content interfaces, served at `/admin/api/templates.json`: front-matter fields, admin-managed properties, and a validated example per writable gdoc type.                     |
+| writing reference                                       | Author-facing docs browser at `/admin/gdocs-reference`, built on both registries: templates and components grouped by `category`, searchable, every example paired with a live preview rendered through the real gdoc pipeline at desktop/mobile viewports.    |
 
 ## The big picture
 
@@ -35,8 +35,8 @@ flowchart LR
         Gen -->|emits| Tpl[("template registry JSON<br/>(this branch)")]
     end
 
-    subgraph GALLERY["#6695 · gallery"]
-        Page["/components admin page"]
+    subgraph GALLERY["writing reference"]
+        Page["/gdocs-reference admin page<br/>(live previews via gdoc SSR)"]
     end
 
     subgraph API["#6702 · admin API"]
@@ -75,14 +75,14 @@ flowchart LR
 
     classDef spine fill:#f3e8ff,stroke:#7c3aed,color:#4c1d95;
     classDef pr6543 fill:#dbeafe,stroke:#2563eb,color:#1e3a8a;
-    classDef pr6695 fill:#dcfce7,stroke:#16a34a,color:#14532d;
+    classDef prref fill:#dcfce7,stroke:#16a34a,color:#14532d;
     classDef pr6544 fill:#fef9c3,stroke:#ca8a04,color:#713f12;
     classDef prapi fill:#ffe4e6,stroke:#e11d48,color:#881337;
     classDef prtpl fill:#e0e7ff,stroke:#4f46e5,color:#312e81;
     class Types spine;
     class Gen,Reg pr6543;
     class Tpl prtpl;
-    class Page pr6695;
+    class Page prref;
     class GDoc,Archie,Raw,Enr pr6544;
     class Routes,Agent prapi;
 ```

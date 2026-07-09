@@ -1,0 +1,633 @@
+// The writing reference: a master-detail docs browser for gdoc templates and
+// ArchieML components. Layout: a fixed-width navigation column with its own
+// scrollbar, and a scrolling content column.
+
+.gdocs-ref {
+    display: flex;
+    height: 100%;
+    overflow: hidden;
+    background: #fff;
+}
+
+// ---------------------------------------------------------------------------
+// Navigation column
+// ---------------------------------------------------------------------------
+
+.gdocs-ref__nav {
+    flex: 0 0 280px;
+    overflow-y: auto;
+    border-right: 1px solid $gray-20;
+    padding: 16px 12px 32px;
+    background: $gray-5;
+}
+
+.gdocs-ref__search {
+    position: relative;
+    margin-bottom: 12px;
+}
+
+.gdocs-ref__search-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 12px;
+    color: $gray-60;
+    pointer-events: none;
+}
+
+.gdocs-ref__search-input {
+    width: 100%;
+    padding: 7px 10px 7px 30px;
+    font-size: 13px;
+    border: 1px solid $gray-30;
+    border-radius: 6px;
+    background: #fff;
+
+    &:focus {
+        outline: 2px solid $blue-40;
+        outline-offset: -1px;
+        border-color: $blue-40;
+    }
+}
+
+.gdocs-ref__nav-overview {
+    display: block;
+    padding: 5px 10px;
+    margin-bottom: 4px;
+    border-radius: 5px;
+    font-size: 13px;
+    font-weight: 600;
+    color: $blue-90;
+
+    &:hover {
+        background: $gray-10;
+        text-decoration: none;
+    }
+}
+
+.gdocs-ref__nav-group {
+    margin-top: 14px;
+
+    ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+}
+
+.gdocs-ref__nav-group-title {
+    padding: 0 10px;
+    margin-bottom: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: $gray-60;
+}
+
+.gdocs-ref__nav-item {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 4px 10px;
+    border-radius: 5px;
+    font-size: 13px;
+    color: $blue-90;
+
+    &:hover {
+        background: $gray-10;
+        text-decoration: none;
+        color: $blue-90;
+    }
+
+    &:focus-visible {
+        outline: 2px solid $blue-60;
+        outline-offset: -2px;
+    }
+}
+
+.gdocs-ref__nav-item--active {
+    background: $blue-10;
+    color: $blue-90;
+    font-weight: 600;
+
+    &:hover {
+        background: $blue-10;
+    }
+}
+
+.gdocs-ref__nav-item-title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.gdocs-ref__nav-item-id {
+    flex-shrink: 1;
+    font-family: var(--font-mono, monospace);
+    font-size: 11px;
+    color: $gray-60;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.gdocs-ref__nav-empty {
+    padding: 12px 10px;
+    font-size: 13px;
+    color: $gray-70;
+    font-style: italic;
+}
+
+// ---------------------------------------------------------------------------
+// Content column
+// ---------------------------------------------------------------------------
+
+.gdocs-ref__content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 32px 40px 80px;
+}
+
+.gdocs-ref__overview,
+.gdocs-ref__detail {
+    max-width: 860px;
+    margin: 0 auto;
+}
+
+.gdocs-ref__page-title {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0 0 8px;
+}
+
+.gdocs-ref__intro {
+    font-size: 14px;
+    line-height: 1.5;
+    color: $gray-80;
+    max-width: 640px;
+    margin-bottom: 32px;
+}
+
+.gdocs-ref__section {
+    margin-bottom: 36px;
+}
+
+.gdocs-ref__section-title {
+    font-size: 17px;
+    font-weight: 700;
+    margin: 0 0 10px;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.gdocs-ref__section-count {
+    font-size: 12px;
+    font-weight: 500;
+    color: $gray-60;
+}
+
+.gdocs-ref__section-desc {
+    font-size: 13px;
+    color: $gray-70;
+    max-width: 640px;
+    margin: -4px 0 14px;
+}
+
+.gdocs-ref__card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 12px;
+}
+
+.gdocs-ref__card {
+    display: block;
+    background: #fff;
+    border: 1px solid $gray-20;
+    border-radius: 6px;
+    padding: 14px;
+    color: inherit;
+    transition:
+        border-color 0.1s ease,
+        box-shadow 0.1s ease;
+
+    &:hover {
+        border-color: $blue-40;
+        text-decoration: none;
+        color: inherit;
+    }
+
+    &:focus-visible {
+        outline: 2px solid $blue-60;
+        outline-offset: 2px;
+    }
+}
+
+.gdocs-ref__card--template {
+    background: $blue-5;
+    border-color: $blue-20;
+
+    &:hover {
+        border-color: $blue-40;
+    }
+}
+
+.gdocs-ref__card-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: $blue-90;
+}
+
+.gdocs-ref__card-id {
+    display: inline-block;
+    margin: 3px 0;
+    font-family: var(--font-mono, monospace);
+    font-size: 12px;
+    color: $blue-60;
+}
+
+.gdocs-ref__card-desc {
+    margin: 6px 0 0;
+    font-size: 12.5px;
+    line-height: 1.45;
+    color: $gray-80;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.gdocs-ref__footnote {
+    margin-top: 8px;
+    font-size: 12px;
+    color: $gray-60;
+    max-width: 640px;
+}
+
+// ---------------------------------------------------------------------------
+// Detail views
+// ---------------------------------------------------------------------------
+
+.gdocs-ref__detail-header {
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid $gray-20;
+}
+
+.gdocs-ref__detail-title-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.gdocs-ref__detail-title {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0;
+}
+
+.gdocs-ref__category-pill {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: $gray-70;
+    background: $gray-10;
+    border-radius: 20px;
+    padding: 3px 10px;
+    white-space: nowrap;
+}
+
+.gdocs-ref__detail-id-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.gdocs-ref__detail-id {
+    font-family: var(--font-mono, monospace);
+    font-size: 14px;
+    color: $blue-60;
+    background: $blue-5;
+    border: 1px solid $blue-20;
+    border-radius: 5px;
+    padding: 2px 8px;
+}
+
+.gdocs-ref__chip-copy {
+    background: none;
+    border: none;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+    color: $gray-60;
+    cursor: pointer;
+
+    &:hover {
+        color: $blue-60;
+        background: $gray-10;
+    }
+}
+
+.gdocs-ref__detail-footer {
+    display: flex;
+    gap: 20px;
+    margin-top: 36px;
+    padding-top: 14px;
+    border-top: 1px solid $gray-20;
+    font-size: 12.5px;
+
+    a {
+        color: $gray-70;
+
+        &:hover {
+            color: $blue-60;
+        }
+    }
+}
+
+.gdocs-ref__note {
+    color: $gray-70;
+    font-style: italic;
+    font-size: 13px;
+}
+
+.gdocs-ref__empty {
+    color: $gray-70;
+    font-size: 14px;
+}
+
+.gdocs-ref__loading {
+    color: $gray-60;
+    font-size: 14px;
+    padding: 40px 0;
+    text-align: center;
+}
+
+// Markdown body typography
+
+.gdocs-ref__body {
+    font-size: 14px;
+    line-height: 1.55;
+
+    h2 {
+        font-size: 17px;
+        font-weight: 700;
+        margin: 26px 0 8px;
+    }
+
+    h3 {
+        font-size: 14px;
+        font-weight: 600;
+        margin: 22px 0 6px;
+        color: $gray-80;
+    }
+
+    ul,
+    ol {
+        padding-left: 22px;
+    }
+
+    li {
+        margin-bottom: 3px;
+    }
+
+    code {
+        font-family: var(--font-mono, monospace);
+        font-size: 0.9em;
+        background: $gray-10;
+        padding: 1px 4px;
+        border-radius: 3px;
+    }
+}
+
+.gdocs-ref__component-mention {
+    text-decoration: none;
+
+    code {
+        color: $blue-60;
+        background: $blue-5;
+        border: 1px solid $blue-10;
+    }
+
+    &:hover code {
+        border-color: $blue-40;
+        text-decoration: none;
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Example widget: [Preview | ArchieML] tabs + copy
+// ---------------------------------------------------------------------------
+
+.gdocs-ref-example {
+    margin: 12px 0 20px;
+    border: 1px solid $gray-20;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.gdocs-ref-example__toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 8px;
+    background: $gray-5;
+    border-bottom: 1px solid $gray-20;
+}
+
+.gdocs-ref-example__tabs {
+    display: flex;
+    gap: 4px;
+}
+
+.gdocs-ref-example__tab {
+    background: none;
+    border: none;
+    border-radius: 4px;
+    padding: 4px 10px;
+    font-size: 12.5px;
+    color: $gray-70;
+    cursor: pointer;
+
+    &:hover {
+        background: $gray-10;
+        color: $blue-90;
+    }
+}
+
+.gdocs-ref-example__tab--active {
+    background: #fff;
+    border: 1px solid $gray-20;
+    color: $blue-90;
+    font-weight: 600;
+
+    &:hover {
+        background: #fff;
+    }
+}
+
+.gdocs-ref-example__toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.gdocs-ref-example__viewports {
+    display: flex;
+    gap: 2px;
+}
+
+.gdocs-ref-example__viewport {
+    background: none;
+    border: none;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 12px;
+    color: $gray-60;
+    cursor: pointer;
+
+    &:hover {
+        background: $gray-10;
+        color: $blue-90;
+    }
+}
+
+.gdocs-ref-example__viewport--active {
+    background: #fff;
+    border: 1px solid $gray-20;
+    color: $blue-90;
+}
+
+.gdocs-ref-example__copy {
+    background: none;
+    border: none;
+    border-radius: 4px;
+    padding: 4px 10px;
+    font-size: 12.5px;
+    color: $gray-70;
+    cursor: pointer;
+
+    &:hover {
+        background: $gray-10;
+        color: $blue-90;
+    }
+}
+
+.gdocs-ref-example__frame-wrap {
+    background: #fff;
+    overflow: hidden;
+}
+
+// The mobile viewport is narrower than the pane; show it centered on a
+// contrasting backdrop.
+.gdocs-ref-example__frame-wrap--mobile {
+    display: flex;
+    justify-content: center;
+    background: $gray-10;
+
+    .gdocs-ref-example__iframe {
+        background: #fff;
+    }
+}
+
+// The preview renders at a real site viewport width (see
+// GdocsReferenceExample) and is scaled down to fit the pane.
+.gdocs-ref-example__iframe {
+    display: block;
+    border: none;
+    transform-origin: top left;
+}
+
+.gdocs-ref-example__code {
+    background: $gray-100;
+    color: $gray-5;
+    padding: 14px 16px;
+    overflow-x: auto;
+    margin: 0;
+
+    code {
+        background: none;
+        padding: 0;
+        border: none;
+        color: inherit;
+        font-size: 13px;
+        font-family: var(--font-mono, monospace);
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Template front-matter table
+// ---------------------------------------------------------------------------
+
+.gdocs-ref__fields-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+
+    th {
+        text-align: left;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: $gray-60;
+        border-bottom: 2px solid $gray-20;
+        padding: 6px 12px 6px 0;
+    }
+
+    td {
+        vertical-align: top;
+        border-bottom: 1px solid $gray-10;
+        padding: 7px 12px 7px 0;
+        line-height: 1.45;
+    }
+
+    code {
+        font-family: var(--font-mono, monospace);
+        font-size: 12px;
+        background: $gray-10;
+        padding: 1px 4px;
+        border-radius: 3px;
+        white-space: nowrap;
+    }
+}
+
+.gdocs-ref__field-type {
+    color: $gray-70;
+    white-space: normal !important;
+    word-break: break-word;
+}
+
+.gdocs-ref__required-badge {
+    margin-left: 6px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: $accent-vermillion;
+}
+
+.gdocs-ref__derived-fields {
+    margin-top: 12px;
+    font-size: 12.5px;
+    color: $gray-70;
+
+    summary {
+        cursor: pointer;
+    }
+
+    p {
+        margin: 8px 0 0;
+    }
+}
+
+.gdocs-ref__admin-managed {
+    margin-top: 12px;
+    font-size: 12.5px;
+    color: $gray-70;
+}

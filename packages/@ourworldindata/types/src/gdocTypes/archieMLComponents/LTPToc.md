@@ -20,10 +20,24 @@ the topic.
 
 - `title` defaults to "Sections" if omitted.
 
+The listed sections are derived from the document's level-1 headings —
+an `{.ltp-toc}` in a document without headings renders nothing, so the
+examples include two.
+
 ### Default title
 
 ```archie
 {.ltp-toc}
+{}
+
+{.heading}
+text: How has life expectancy changed?
+level: 1
+{}
+
+{.heading}
+text: Why do people live longer than in the past?
+level: 1
 {}
 ```
 
@@ -32,5 +46,15 @@ the topic.
 ```archie
 {.ltp-toc}
 title: On this page
+{}
+
+{.heading}
+text: How has life expectancy changed?
+level: 1
+{}
+
+{.heading}
+text: Why do people live longer than in the past?
+level: 1
 {}
 ```
