@@ -110,14 +110,13 @@ function WhereAreThePoorHeader({
     const isExtremePoverty = povertyLine.cents === EXTREME_POVERTY_LINE_CENTS
 
     // Mirrors the headcount_title of the world_bank_pip grapher configs:
-    // the International Poverty Line is phrased as extreme poverty
-    const title = isExtremePoverty
-        ? `Where are the people living in extreme poverty${isWorld ? "" : ` in ${regionLabel}`} in ${year}?`
-        : `Where are the poor in ${isWorld ? "the world" : regionLabel} in ${year}?`
-
+    // the International Poverty Line is phrased as extreme poverty, the
+    // other lines mention the poverty line itself
     const livingBelow = isExtremePoverty
         ? "living in extreme poverty"
         : `living below ${povertyLine.label}`
+
+    const title = `Where are the people ${livingBelow}${isWorld ? "" : ` in ${regionLabel}`} in ${year}?`
 
     return (
         <ChartHeader
