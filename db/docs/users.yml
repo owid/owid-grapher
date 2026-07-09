@@ -3,6 +3,10 @@ metadata:
   incoming_foreign_keys:
     - table: chart_revisions
       column: userId
+    - table: comments
+      column: userId
+    - table: comments
+      column: resolvedByUserId
     - table: charts
       column: lastEditedByUserId
     - table: charts

@@ -1,0 +1,36 @@
+metadata:
+  description: |
+    Internal comments that OWID staff attach to content in the admin, used to flag
+    and discuss data/metadata issues in context (e.g. a typo on a data page, a data
+    issue on an indicator, a broken multi-dim view). Comments target a chart, a
+    variable (data page) or a multi-dim data page, can optionally be anchored to a
+    specific metadata field and/or multi-dim view, support one level of threading
+    (replies), and have a resolve workflow similar to review comments on GitHub.
+  incoming_foreign_keys:
+    - table: comments
+      column: parentId
+fields:
+  id:
+    description: Unique identifier for the comment
+  targetType:
+    description: Type of entity the comment is attached to - 'chart', 'variable' or 'multiDim'
+  targetId:
+    description: ID of the target entity. References charts.id, variables.id or multi_dim_data_pages.id depending on targetType. No database foreign key is possible on a polymorphic column, so existence is validated by the admin API.
+  anchor:
+    description: Optional identifier of the part of the target the comment is anchored to, e.g. a data page metadata field like 'descriptionShort' or 'source'. NULL for comments on the target as a whole.
+  viewState:
+    description: 'For multi-dim targets, JSON object with the dimension choices identifying the view the comment was made on, e.g. {"metric": "cases"}. NULL otherwise.'
+  parentId:
+    description: For replies, the id of the root comment of the thread. NULL for root comments. Deleting a root comment cascades to its replies.
+  content:
+    description: The comment text
+  userId:
+    description: ID of the user who wrote the comment
+  resolvedAt:
+    description: Timestamp when the thread was resolved. Only set on root comments. NULL while unresolved.
+  resolvedByUserId:
+    description: ID of the user who resolved the thread. NULL while unresolved.
+  createdAt:
+    description: Timestamp when the comment was created
+  updatedAt:
+    description: Timestamp when the comment was last updated

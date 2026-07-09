@@ -1,0 +1,296 @@
+/* Styles for the internal commenting UI. Loaded via CommentsPanel.tsx, so
+   they ship with the admin bundle and the lazily loaded preview overlay chunk,
+   but never with the public site styles. */
+
+.comments-panel {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    height: 100%;
+    font-size: 13px;
+    color: #333;
+}
+
+.comments-panel__composer {
+    padding-bottom: 12px;
+    border-bottom: 1px solid #e7e7e7;
+}
+
+.comments-panel__active-anchor {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 8px;
+    padding: 4px 8px;
+    background: #eef3f7;
+    border-radius: 4px;
+}
+
+.comments-panel__clear-anchor {
+    margin-left: auto;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 15px;
+    line-height: 1;
+    color: #666;
+}
+
+.comments-panel__clear-anchor:hover {
+    color: #333;
+}
+
+.comments-panel__show-resolved {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 10px 0;
+    cursor: pointer;
+}
+
+.comments-panel__threads {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+}
+
+.comments-panel__message {
+    padding: 20px 0;
+    text-align: center;
+    color: #888;
+}
+
+.comments-panel__message--error {
+    color: #c0392b;
+}
+
+.comment-composer__input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 13px;
+    resize: vertical;
+    box-sizing: border-box;
+
+    &:focus {
+        outline: none;
+        border-color: #002147;
+    }
+}
+
+.comment-composer__actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 6px;
+}
+
+.comment-composer__submit {
+    padding: 5px 14px;
+    border: none;
+    border-radius: 4px;
+    background: #002147;
+    color: #fff;
+    font-size: 13px;
+    cursor: pointer;
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+}
+
+.comment-thread {
+    padding: 10px 12px;
+    border: 1px solid #e7e7e7;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    background: #fff;
+}
+
+.comment-thread--resolved {
+    opacity: 0.65;
+    background: #f7f7f7;
+}
+
+.comment-thread__anchor {
+    margin-bottom: 6px;
+    font-size: 11px;
+    font-style: italic;
+    color: #777;
+}
+
+.comment-thread__reply {
+    margin-top: 8px;
+    padding-left: 12px;
+    border-left: 2px solid #e7e7e7;
+}
+
+.comment-thread__resolved-by {
+    margin-top: 6px;
+    font-size: 11px;
+    color: #2e7d32;
+}
+
+.comment-thread__actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.comment-thread__action {
+    border: none;
+    background: none;
+    padding: 0;
+    font-size: 12px;
+    color: #0d68a8;
+    cursor: pointer;
+
+    &:hover {
+        text-decoration: underline;
+    }
+}
+
+.comment-item__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.comment-item__author {
+    font-weight: 600;
+}
+
+.comment-item__time {
+    font-size: 11px;
+    color: #999;
+}
+
+.comment-item__content {
+    margin-top: 3px;
+    line-height: 1.4;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.comment-item__delete {
+    border: none;
+    background: none;
+    padding: 0;
+    margin-top: 4px;
+    font-size: 11px;
+    color: #c0392b;
+    cursor: pointer;
+
+    &:hover {
+        text-decoration: underline;
+    }
+}
+
+/* Comments button in the chart editor */
+
+.chart-editor-comments-button {
+    align-self: flex-start;
+    margin-bottom: 12px;
+}
+
+/* Preview overlay (floating button + panel on data page previews) */
+
+.comments-overlay__toggle {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    border: none;
+    border-radius: 20px;
+    background: #002147;
+    color: #fff;
+    font-size: 14px;
+    cursor: pointer;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25);
+}
+
+.comments-overlay__toggle--open {
+    background: #1d3d63;
+}
+
+.comments-overlay__count {
+    padding: 1px 7px;
+    border-radius: 10px;
+    background: #d73c50;
+    font-size: 12px;
+}
+
+.comments-overlay__panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 99;
+    display: flex;
+    flex-direction: column;
+    width: 360px;
+    padding: 16px;
+    background: #fff;
+    border-left: 1px solid #ddd;
+    box-shadow: -3px 0 12px rgba(0, 0, 0, 0.12);
+}
+
+.comments-overlay__panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+
+    h3 {
+        margin: 0;
+        font-size: 16px;
+    }
+}
+
+.comments-overlay__close {
+    border: none;
+    background: none;
+    font-size: 20px;
+    line-height: 1;
+    color: #666;
+    cursor: pointer;
+
+    &:hover {
+        color: #333;
+    }
+}
+
+/* While the overlay panel is open, anchored fields become click targets */
+
+.comments-anchor-mode [data-comment-anchor] {
+    cursor: pointer;
+
+    &:hover {
+        outline: 2px solid rgba(0, 33, 71, 0.4);
+        outline-offset: 3px;
+        border-radius: 2px;
+    }
+}
+
+.comments-anchor-badge {
+    position: absolute;
+    z-index: 98;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    border: none;
+    border-radius: 10px;
+    background: #d73c50;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+}

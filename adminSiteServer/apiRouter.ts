@@ -186,6 +186,12 @@ import {
     updateStaticViz,
     deleteStaticViz,
 } from "./apiRoutes/staticViz.js"
+import {
+    getComments,
+    createComment,
+    setCommentResolvedState,
+    deleteCommentById,
+} from "./apiRoutes/comments.js"
 
 const apiRouter = new FunctionalRouter()
 
@@ -463,6 +469,20 @@ deleteRouteWithRWTransaction(
     apiRouter,
     "/multi-dims/:id/redirects/:redirectId",
     handleDeleteMultiDimRedirect
+)
+
+// Internal comments on charts, variables and multi-dims
+getRouteWithROTransaction(apiRouter, "/comments.json", getComments)
+postRouteWithRWTransaction(apiRouter, "/comments", createComment)
+putRouteWithRWTransaction(
+    apiRouter,
+    "/comments/:commentId/resolved",
+    setCommentResolvedState
+)
+deleteRouteWithRWTransaction(
+    apiRouter,
+    "/comments/:commentId",
+    deleteCommentById
 )
 
 // Explorer routes

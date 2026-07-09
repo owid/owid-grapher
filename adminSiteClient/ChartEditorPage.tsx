@@ -4,6 +4,7 @@ import { observable, computed, runInAction, action, makeObservable } from "mobx"
 import { getParentVariableIdFromChartConfig } from "@ourworldindata/utils"
 import {
     type AnalyticsGrapherViewWithRank,
+    CommentTargetType,
     GrapherInterface,
     ChartRedirect,
     MinimalTagWithIsTopic,
@@ -216,6 +217,19 @@ export class ChartEditorPage
     }
 
     override render(): React.ReactElement {
-        return <ChartEditorView manager={this} />
+        const { grapherId } = this.props
+        return (
+            <ChartEditorView
+                manager={this}
+                commentTarget={
+                    grapherId !== undefined
+                        ? {
+                              targetType: CommentTargetType.Chart,
+                              targetId: grapherId,
+                          }
+                        : undefined
+                }
+            />
+        )
     }
 }

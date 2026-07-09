@@ -9,6 +9,7 @@ import {
     makeLinks,
     SimpleMarkdownText,
 } from "@ourworldindata/components"
+import { commentAnchorAttrs } from "./comments/commentAnchors.js"
 
 export default function KeyDataTable({
     datapageData,
@@ -31,7 +32,10 @@ export default function KeyDataTable({
     return (
         <div className="key-data-block grid grid-cols-4 grid-sm-cols-12">
             {datapageData.descriptionShort && (
-                <div className="key-data span-cols-4 span-sm-cols-12">
+                <div
+                    className="key-data span-cols-4 span-sm-cols-12"
+                    {...commentAnchorAttrs("descriptionShort")}
+                >
                     <div className="key-data-description-short__title">
                         {datapageData.title.title}
                     </div>
@@ -53,37 +57,55 @@ export default function KeyDataTable({
                 </div>
             )}
             {source && (
-                <div className="key-data span-cols-4 span-sm-cols-12">
+                <div
+                    className="key-data span-cols-4 span-sm-cols-12"
+                    {...commentAnchorAttrs("source")}
+                >
                     <div className="key-data__title">Source</div>
                     <div>{source}</div>
                 </div>
             )}
             {lastUpdated && (
-                <div className="key-data span-cols-2 span-sm-cols-6">
+                <div
+                    className="key-data span-cols-2 span-sm-cols-6"
+                    {...commentAnchorAttrs("lastUpdated")}
+                >
                     <div className="key-data__title">Last updated</div>
                     <div>{lastUpdated}</div>
                 </div>
             )}
             {nextUpdate && (
-                <div className="key-data span-cols-2 span-sm-cols-6">
+                <div
+                    className="key-data span-cols-2 span-sm-cols-6"
+                    {...commentAnchorAttrs("nextUpdate")}
+                >
                     <div className="key-data__title">Next expected update</div>
                     <div>{nextUpdate}</div>
                 </div>
             )}
             {dateRange && (
-                <div className="key-data span-cols-2 span-sm-cols-6">
+                <div
+                    className="key-data span-cols-2 span-sm-cols-6"
+                    {...commentAnchorAttrs("dateRange")}
+                >
                     <div className="key-data__title">Date range</div>
                     <div>{dateRange}</div>
                 </div>
             )}
             {unit && (
-                <div className="key-data span-cols-2 span-sm-cols-6">
+                <div
+                    className="key-data span-cols-2 span-sm-cols-6"
+                    {...commentAnchorAttrs("unit")}
+                >
                     <div className="key-data__title">Unit</div>
                     <div>{unit}</div>
                 </div>
             )}
             {unitConversionFactor && (
-                <div className="key-data span-cols-2 span-sm-cols-6">
+                <div
+                    className="key-data span-cols-2 span-sm-cols-6"
+                    {...commentAnchorAttrs("unitConversionFactor")}
+                >
                     <div className="key-data__title">
                         Unit conversion factor
                     </div>
@@ -91,7 +113,10 @@ export default function KeyDataTable({
                 </div>
             )}
             {links && (
-                <div className="key-data span-cols-2 span-sm-cols-6">
+                <div
+                    className="key-data span-cols-2 span-sm-cols-6"
+                    {...commentAnchorAttrs("links")}
+                >
                     <div className="key-data__title">Links</div>
                     <div className="key-data__content--hide-overflow">
                         {links}

@@ -453,6 +453,20 @@ export {
     type DbPlainChartXEntity,
 } from "./dbTypes/ChartsXEntities.js"
 export {
+    CommentsTableName,
+    CommentTargetType,
+    type CommentTarget,
+    type CommentViewState,
+    type DbInsertComment,
+    type DbRawComment,
+    type DbEnrichedComment,
+    type CommentWithAuthor,
+    parseCommentViewState,
+    serializeCommentViewState,
+    parseCommentRow,
+    serializeCommentRow,
+} from "./dbTypes/Comments.js"
+export {
     type DbPlainDatapage,
     DatapagesTableName,
 } from "./dbTypes/Datapages.js"
