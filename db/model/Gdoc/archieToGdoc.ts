@@ -1,4 +1,14 @@
-import { OwidGdocPostContent } from "@ourworldindata/utils"
+import {
+    OwidGdocPostContent,
+    traverseEnrichedBlock,
+} from "@ourworldindata/utils"
+import {
+    OwidGdocType,
+    type EnrichedBlockText,
+    type OwidGdocDataInsightContent,
+    type OwidEnrichedGdocBlock,
+    type Span,
+} from "@ourworldindata/types"
 import {
     propertyToArchieMLString,
     OwidRawGdocBlockToArchieMLStringGenerator,
@@ -11,32 +21,138 @@ import { OwidGoogleAuth } from "../../OwidGoogleAuth.js"
 import * as cheerio from "cheerio"
 import type { AnyNode } from "domhandler"
 
-function* owidArticleToArchieMLStringGenerator(
+// Collect the set of ref IDs that appear as ID-based refs in the body.
+// These are the entries that need to live in the [.refs] frontmatter
+// block. Inline refs are NOT collected — their content is emitted inline
+// as `{ref}content{/ref}` by spanToArchieMLSourceString, with no
+// frontmatter definition required.
+function collectIdBasedRefIds(
+    body: OwidEnrichedGdocBlock[] | undefined
+): Set<string> {
+    const ids = new Set<string>()
+    if (!body) return ids
+    const visitSpan = (span: Span): void => {
+        if (span.spanType === "span-ref" && span.sourceForm.kind === "id") {
+            ids.add(span.sourceForm.id)
+        }
+    }
+    const noop = (_b: OwidEnrichedGdocBlock): void => undefined
+    for (const block of body) {
+        traverseEnrichedBlock(block, noop, visitSpan)
+    }
+    return ids
+}
+
+// Emit the authors line in its authoring form, reconstructing the
+// "Name (Role)" annotations that parseAuthors extracted into authorRoles —
+// otherwise roles authored in the document are lost on write-back.
+function* yieldAuthorsWithRoles(content: {
+    authors?: string[]
+    authorRoles?: Record<string, string>
+}): Generator<string, void, undefined> {
+    if (!content.authors?.length) return
+    const authors = content.authors.map((name) => {
+        const role = content.authorRoles?.[name]
+        return role ? `${name} (${role})` : name
+    })
+    yield `authors: ${authors.join(", ")}`
+}
+
+// Emit a [+key] freeform frontmatter block for a text-blocks field
+// (deprecation-notice, latest-feed-excerpt), mirroring the body emission.
+function* yieldTextBlocksIfDefined(
+    key: string,
+    blocks: EnrichedBlockText[] | undefined
+): Generator<string, void, undefined> {
+    if (!blocks?.length) return
+    yield `[+${key}]`
+    for (const block of blocks) {
+        const rawBlock = enrichedBlockToRawBlock(block)
+        yield* OwidRawGdocBlockToArchieMLStringGenerator(rawBlock)
+        yield ""
+    }
+    yield "[]"
+}
+
+// Emit a [.refs] frontmatter block listing each ID-based ref's id +
+// content. Order follows the order in which ID-based refs first appear
+// in the body, which is deterministic and matches what extractRefs sees
+// on the way back in. Skipped entirely when there are no ID-based refs.
+function* yieldRefsBlockIfDefined(
     article: OwidGdocPostContent
 ): Generator<string, void, undefined> {
-    yield* propertyToArchieMLString("title", article)
-    yield* propertyToArchieMLString("subtitle", article)
-    yield* propertyToArchieMLString("supertitle", article)
-    yield* propertyToArchieMLString("authors", article)
-    yield* propertyToArchieMLString("dateline", article)
-    yield* propertyToArchieMLString("excerpt", article)
-    yield* propertyToArchieMLString("type", article)
-    if (article["sticky-nav"]) {
-        yield "[.sticky-nav]"
-        for (const item of article["sticky-nav"]) {
-            yield* propertyToArchieMLString("target", item)
-            yield* propertyToArchieMLString("text", item)
+    const definitions = article.refs?.definitions
+    if (!definitions) return
+    const idBased = collectIdBasedRefIds(article.body)
+    if (idBased.size === 0) return
+    yield "[.refs]"
+    for (const id of idBased) {
+        const ref = definitions[id]
+        if (!ref) continue
+        yield `id: ${id}`
+        yield "[.+content]"
+        for (const block of ref.content) {
+            const rawBlock = enrichedBlockToRawBlock(block)
+            yield* OwidRawGdocBlockToArchieMLStringGenerator(rawBlock)
         }
         yield "[]"
     }
-    yield* propertyToArchieMLString("sidebar-toc", article)
-    yield* propertyToArchieMLString("heading-variant", article)
-    yield* propertyToArchieMLString("hide-subscribe-banner", article)
-    // TODO: inline refs
-    yield* propertyToArchieMLString("hide-citation", article)
-    yield* propertyToArchieMLString("cover-image", article)
-    yield* propertyToArchieMLString("cover-color", article)
-    yield* propertyToArchieMLString("featured-image", article)
+    yield "[]"
+}
+
+/** Content shapes the ArchieML write-back layer knows how to serialize. */
+export type ArchieMlWritableContent =
+    | OwidGdocPostContent
+    | OwidGdocDataInsightContent
+
+export function* owidArticleToArchieMLStringGenerator(
+    article: ArchieMlWritableContent
+): Generator<string, void, undefined> {
+    if (article.type === OwidGdocType.DataInsight) {
+        const dataInsight: OwidGdocDataInsightContent = article
+        yield* propertyToArchieMLString("title", dataInsight)
+        yield* yieldAuthorsWithRoles(dataInsight)
+        yield* propertyToArchieMLString("type", dataInsight)
+        yield* propertyToArchieMLString("grapher-url", dataInsight)
+        yield* propertyToArchieMLString("narrative-chart", dataInsight)
+        yield* propertyToArchieMLString("figma-url", dataInsight)
+    } else {
+        const post = article
+        yield* propertyToArchieMLString("title", post)
+        yield* propertyToArchieMLString("subtitle", post)
+        yield* propertyToArchieMLString("supertitle", post)
+        yield* yieldAuthorsWithRoles(post)
+        yield* propertyToArchieMLString("dateline", post)
+        yield* propertyToArchieMLString("excerpt", post)
+        yield* propertyToArchieMLString("type", post)
+        if (post["sticky-nav"]) {
+            yield "[.sticky-nav]"
+            for (const item of post["sticky-nav"]) {
+                yield* propertyToArchieMLString("target", item)
+                yield* propertyToArchieMLString("text", item)
+            }
+            yield "[]"
+        }
+        yield* propertyToArchieMLString("sidebar-toc", post)
+        yield* propertyToArchieMLString("heading-variant", post)
+        yield* propertyToArchieMLString("hide-subscribe-banner", post)
+        yield* propertyToArchieMLString("hide-citation", post)
+        yield* propertyToArchieMLString("cover-image", post)
+        yield* propertyToArchieMLString("cover-color", post)
+        yield* propertyToArchieMLString("featured-image", post)
+        yield* propertyToArchieMLString("atom-title", post)
+        yield* propertyToArchieMLString("atom-excerpt", post)
+        yield* propertyToArchieMLString("latest-feed-featured-image", post)
+        yield* yieldTextBlocksIfDefined(
+            "deprecation-notice",
+            post["deprecation-notice"]
+        )
+        yield* yieldTextBlocksIfDefined(
+            "latest-feed-excerpt",
+            post["latest-feed-excerpt"]
+        )
+        yield* yieldRefsBlockIfDefined(post)
+    }
     yield ""
     if (article.body) {
         yield "[+body]"
@@ -152,8 +268,8 @@ function* lineToBatchUpdates(line: Line): Generator<docs_v1.Schema$Request> {
     }
 }
 
-function articleToBatchUpdates(
-    content: OwidGdocPostContent
+export function articleToBatchUpdates(
+    content: ArchieMlWritableContent
 ): docs_v1.Schema$Request[] {
     const archieMlLines = [...owidArticleToArchieMLStringGenerator(content)]
 
@@ -192,7 +308,7 @@ function articleToBatchUpdates(
     return batchUpdates.toReversed()
 }
 
-async function deleteGdocContent(
+export async function deleteGdocContent(
     client: docs_v1.Docs,
     existingGdocId: string
 ): Promise<void> {
@@ -248,7 +364,7 @@ async function createGdoc(
 }
 
 export async function createGdocAndInsertOwidGdocPostContent(
-    content: OwidGdocPostContent,
+    content: ArchieMlWritableContent,
     existingGdocId: string | null
 ): Promise<string> {
     const batchUpdates = articleToBatchUpdates(content)

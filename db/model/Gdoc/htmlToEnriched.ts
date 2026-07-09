@@ -11,6 +11,7 @@ import {
     SpanSuperscript,
     SpanSubscript,
     SpanUnderline,
+    SpanStrikethrough,
     SpanRef,
     SpanDod,
     EnrichedBlockSimpleText,
@@ -153,7 +154,24 @@ function cheerioToSpan(element: AnyNode): Span | undefined {
                     const children =
                         _.compact(element.children?.map(cheerioToSpan)) ?? []
                     if (className === "ref") {
-                        return { spanType: "span-ref", children, url }
+                        // extractRefs annotates the post-extraction HTML with
+                        // data-ref-kind (and data-ref-id for ID-based refs) so
+                        // we can preserve the source form here. Inline content
+                        // is filled in by a post-pass once the RefDictionary
+                        // is built — see fillInlineRefSourceContent in
+                        // archieToEnriched.
+                        const kind = element.attribs["data-ref-kind"]
+                        const refId = element.attribs["data-ref-id"]
+                        const sourceForm: SpanRef["sourceForm"] =
+                            kind === "id" && refId
+                                ? { kind: "id", id: refId }
+                                : { kind: "inline", content: [] }
+                        return {
+                            spanType: "span-ref",
+                            children,
+                            url,
+                            sourceForm,
+                        }
                     }
                     const dod = url?.match(detailOnDemandRegex)
                     if (dod) {
@@ -220,6 +238,11 @@ function cheerioToSpan(element: AnyNode): Span | undefined {
                 const children =
                     _.compact(element.children?.map(cheerioToSpan)) ?? []
                 return { spanType: "span-underline", children }
+            })
+            .with("s", (): SpanStrikethrough => {
+                const children =
+                    _.compact(element.children?.map(cheerioToSpan)) ?? []
+                return { spanType: "span-strikethrough", children }
             })
             .with("wbr", () => spanFallback(element))
             .otherwise(() => {

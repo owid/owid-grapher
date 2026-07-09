@@ -4,11 +4,19 @@ import { load } from "archieml"
 
 import { extractRefs, stripIgnoredArchieml } from "./archieToEnriched.js"
 
+// extractRefs annotates the post-extraction <a class="ref"> tag with
+// data-ref-kind (and data-ref-id for ID-based refs) so that htmlToEnriched
+// can preserve the source-form distinction into SpanRef.sourceForm.
+const idRef = (note: number, id: string): string =>
+    `<a class="ref" href="#note-${note}" data-ref-kind="id" data-ref-id="${id}"><sup>${note}</sup></a>`
+const inlineRef = (note: number): string =>
+    `<a class="ref" href="#note-${note}" data-ref-kind="inline"><sup>${note}</sup></a>`
+
 it("Can extract a ref from some text", () => {
     expect(
         extractRefs(`I am a thing{ref}some_id{/ref} and some follow up`)
     ).toEqual({
-        extractedText: `I am a thing<a class="ref" href="#note-1"><sup>1</sup></a> and some follow up`,
+        extractedText: `I am a thing${idRef(1, "some_id")} and some follow up`,
         refsByFirstAppearance: new Set(["some_id"]),
         rawInlineRefs: [],
     })
@@ -20,7 +28,7 @@ it("Can extract multiple refs from some text", () => {
             `I am a thing{ref}some_id{/ref} and some follow up{ref}another_id{/ref}`
         )
     ).toEqual({
-        extractedText: `I am a thing<a class="ref" href="#note-1"><sup>1</sup></a> and some follow up<a class="ref" href="#note-2"><sup>2</sup></a>`,
+        extractedText: `I am a thing${idRef(1, "some_id")} and some follow up${idRef(2, "another_id")}`,
         refsByFirstAppearance: new Set(["some_id", "another_id"]),
         rawInlineRefs: [],
     })
@@ -32,7 +40,7 @@ it("Can extract multiple refs from some text and refer to an earlier footnote wh
             `I am a thing{ref}some_id{/ref} and some follow up{ref}another_id{/ref}. I refer to a ref that has already been referenced once{ref}some_id{/ref}`
         )
     ).toEqual({
-        extractedText: `I am a thing<a class="ref" href="#note-1"><sup>1</sup></a> and some follow up<a class="ref" href="#note-2"><sup>2</sup></a>. I refer to a ref that has already been referenced once<a class="ref" href="#note-1"><sup>1</sup></a>`,
+        extractedText: `I am a thing${idRef(1, "some_id")} and some follow up${idRef(2, "another_id")}. I refer to a ref that has already been referenced once${idRef(1, "some_id")}`,
         refsByFirstAppearance: new Set(["some_id", "another_id"]),
         rawInlineRefs: [],
     })
@@ -40,7 +48,7 @@ it("Can extract multiple refs from some text and refer to an earlier footnote wh
 
 it("Can extract an inline ref", () => {
     expect(extractRefs(`I am a thing{ref}I am an inline ref{/ref}`)).toEqual({
-        extractedText: `I am a thing<a class="ref" href="#note-1"><sup>1</sup></a>`,
+        extractedText: `I am a thing${inlineRef(1)}`,
         refsByFirstAppearance: new Set([
             "796885412908186a5e57f2e753ab697b85666afe",
         ]),
@@ -64,7 +72,7 @@ it("Can extract an inline ref and an ID ref", () => {
             `I am a thing{ref}I am an inline ref{/ref} and another thing{ref}some_id{/ref}`
         )
     ).toEqual({
-        extractedText: `I am a thing<a class="ref" href="#note-1"><sup>1</sup></a> and another thing<a class="ref" href="#note-2"><sup>2</sup></a>`,
+        extractedText: `I am a thing${inlineRef(1)} and another thing${idRef(2, "some_id")}`,
         refsByFirstAppearance: new Set([
             "796885412908186a5e57f2e753ab697b85666afe",
             "some_id",
@@ -89,7 +97,7 @@ it("Can extract an inline ref and an ID ref and then refer back to a previous in
             `I am a thing{ref}I am an inline ref{/ref} and another thing{ref}some_id{/ref} and me again{ref}I am an inline ref{/ref}`
         )
     ).toEqual({
-        extractedText: `I am a thing<a class="ref" href="#note-1"><sup>1</sup></a> and another thing<a class="ref" href="#note-2"><sup>2</sup></a> and me again<a class="ref" href="#note-1"><sup>1</sup></a>`,
+        extractedText: `I am a thing${inlineRef(1)} and another thing${idRef(2, "some_id")} and me again${inlineRef(1)}`,
         refsByFirstAppearance: new Set([
             "796885412908186a5e57f2e753ab697b85666afe",
             "some_id",
@@ -150,7 +158,7 @@ it("Preserves ArchieML buffer-flush semantics around a :skip block", () => {
 it("Ignores refs that appear after :ignore so footnote numbering is unaffected", () => {
     const text = `real{ref}some_id{/ref}\n:ignore\nfake{ref}another_id{/ref}`
     expect(extractRefs(stripIgnoredArchieml(text))).toEqual({
-        extractedText: `real<a class="ref" href="#note-1"><sup>1</sup></a>\n`,
+        extractedText: `real${idRef(1, "some_id")}\n`,
         refsByFirstAppearance: new Set(["some_id"]),
         rawInlineRefs: [],
     })
@@ -162,7 +170,7 @@ it("Can index intermingled inline and ID refs correctly", () => {
             `I am a thing{ref}some_id{/ref} and another thing{ref}An inline ref{/ref} with more {ref}another_id{/ref} and even more{ref}Another inline ref{/ref}`
         )
     ).toEqual({
-        extractedText: `I am a thing<a class="ref" href="#note-1"><sup>1</sup></a> and another thing<a class="ref" href="#note-2"><sup>2</sup></a> with more <a class="ref" href="#note-3"><sup>3</sup></a> and even more<a class="ref" href="#note-4"><sup>4</sup></a>`,
+        extractedText: `I am a thing${idRef(1, "some_id")} and another thing${inlineRef(2)} with more ${idRef(3, "another_id")} and even more${inlineRef(4)}`,
         refsByFirstAppearance: new Set([
             "some_id",
             "3d708842b0da8d18eabe4d2212ba27646ed20f49",
@@ -189,5 +197,17 @@ it("Can index intermingled inline and ID refs correctly", () => {
                 id: "f5c4fee26da4a46180cef44bc019ec072ec66f3f",
             },
         ],
+    })
+})
+
+it("Treats a ref without whitespace as an ID ref, not an inline ref", () => {
+    // The inline-vs-ID distinction rests on the content containing a space.
+    // Pinned so a future change is conscious: if write-back ever emitted an
+    // inline ref whose content has no spaces, re-parsing would silently flip
+    // it into an ID ref with no definition.
+    expect(extractRefs(`some text{ref}single_token.{/ref}`)).toEqual({
+        extractedText: `some text${idRef(1, "single_token.")}`,
+        refsByFirstAppearance: new Set(["single_token."]),
+        rawInlineRefs: [],
     })
 })

@@ -561,6 +561,112 @@ export interface OwidGdocPostContent {
 
 export type OwidGdocStickyNavItem = { target: string; text: string }
 
+/**
+ * What the ArchieML write-back layer (db/model/Gdoc/archieToGdoc.ts) does
+ * with a content key:
+ * - "emitted": serialized back into the ArchieML document
+ * - "derived": computed from other content during enrichment, never authored
+ * - "unsupported": authored content the write-back cannot serialize yet —
+ *   writing a document that uses it would silently lose it, so the gate
+ *   refuses such writes
+ */
+export type GdocContentKeyFate = "emitted" | "derived" | "unsupported"
+
+/** Write-back fate of every OwidGdocPostContent key. The `satisfies` clause
+ *  breaks the build when the interface gains a key whose fate has not been
+ *  declared here. */
+export const OWID_GDOC_POST_CONTENT_KEYS = {
+    body: "emitted",
+    type: "emitted",
+    title: "emitted",
+    supertitle: "emitted",
+    subtitle: "emitted",
+    authors: "emitted",
+    dateline: "emitted",
+    excerpt: "emitted",
+    refs: "emitted",
+    "deprecation-notice": "emitted",
+    "latest-feed-featured-image": "emitted",
+    "latest-feed-excerpt": "emitted",
+    "hide-citation": "emitted",
+    "cover-image": "emitted",
+    "featured-image": "emitted",
+    "atom-title": "emitted",
+    "atom-excerpt": "emitted",
+    "sidebar-toc": "emitted",
+    "heading-variant": "emitted",
+    "hide-subscribe-banner": "emitted",
+    "cover-color": "emitted",
+    "sticky-nav": "emitted",
+    authorRoles: "derived", // from authors
+    toc: "derived", // from body
+    parsedFaqs: "derived", // from faqs
+    details: "unsupported",
+    faqs: "unsupported",
+} as const satisfies Record<keyof OwidGdocPostContent, GdocContentKeyFate>
+
+/** Write-back fate of every OwidGdocDataInsightContent key. */
+export const OWID_GDOC_DATA_INSIGHT_CONTENT_KEYS = {
+    body: "emitted",
+    type: "emitted",
+    title: "emitted",
+    authors: "emitted",
+    "narrative-chart": "emitted",
+    "grapher-url": "emitted",
+    "figma-url": "emitted",
+    authorRoles: "derived", // from authors
+} as const satisfies Record<
+    keyof OwidGdocDataInsightContent,
+    GdocContentKeyFate
+>
+
+/** Gdoc properties that live on the posts_gdocs row (or its attachments)
+ *  rather than in the ArchieML content — managed in the admin, never
+ *  authored in the document. */
+export const OWID_GDOC_BASE_ROW_KEYS = Object.keys({
+    id: true,
+    slug: true,
+    contentMd5: true,
+    published: true,
+    createdAt: true,
+    publishedAt: true,
+    updatedAt: true,
+    revisionId: true,
+    publicationContext: true,
+    manualBreadcrumbs: true,
+    linkedAuthors: true,
+    linkedDocuments: true,
+    linkedCharts: true,
+    linkedNarrativeCharts: true,
+    linkedStaticViz: true,
+    linkedIndicators: true,
+    linkedCallouts: true,
+    imageMetadata: true,
+    relatedCharts: true,
+    tags: true,
+    errors: true,
+    breadcrumbs: true,
+    markdown: true,
+} satisfies Record<Exclude<keyof OwidGdocBaseInterface, "content">, true>)
+
+/** The content-key classification for a gdoc type, or undefined for types
+ *  the ArchieML write-back layer does not handle. */
+export function getContentKeysForGdocType(
+    type: OwidGdocType
+): Record<string, GdocContentKeyFate> | undefined {
+    switch (type) {
+        case OwidGdocType.Article:
+        case OwidGdocType.TopicPage:
+        case OwidGdocType.LinearTopicPage:
+        case OwidGdocType.Fragment:
+            return OWID_GDOC_POST_CONTENT_KEYS
+        case OwidGdocType.DataInsight:
+            return OWID_GDOC_DATA_INSIGHT_CONTENT_KEYS
+        default:
+            return undefined
+    }
+}
+
 export type GdocsPatch = Partial<OwidGdocPostInterface>
 
 export enum GdocsContentSource {
