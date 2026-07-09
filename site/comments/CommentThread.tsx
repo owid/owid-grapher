@@ -1,5 +1,5 @@
 import { useState } from "react"
-import cx from "classnames"
+import cx from "clsx"
 import { CommentWithAuthor } from "@ourworldindata/types"
 import { dayjs } from "@ourworldindata/utils"
 import { CommentComposer } from "./CommentComposer.js"

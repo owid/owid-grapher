@@ -1,26 +1,27 @@
 export const COMMENT_ANCHOR_ATTRIBUTE = "data-comment-anchor"
 
 /**
- * The parts of a data page staff can anchor comments to. Keys are stored in
+ * The parts of a data page staff can anchor comments to. Values are stored in
  * the comments table (comments.anchor), so treat renames as data migrations.
  * Site components declare where an anchor lives by spreading
  * commentAnchorAttrs() on the element that renders the field.
+ *
+ * This module is imported by public data page components, so it must stay
+ * tiny: human-readable labels live in anchorLabels.ts, which is only pulled
+ * into the lazily loaded comments UI.
  */
-export const DATA_PAGE_COMMENT_ANCHORS = {
-    descriptionShort: "Title and short description",
-    source: "Source",
-    lastUpdated: "Last updated",
-    nextUpdate: "Next expected update",
-    dateRange: "Date range",
-    unit: "Unit",
-    unitConversionFactor: "Unit conversion factor",
-    links: "Links",
-    descriptionKey: "What you should know about this data",
-    sourcesAndProcessing: "Sources and processing",
-    faqs: "FAQs",
-} as const
-
-export type DataPageCommentAnchor = keyof typeof DATA_PAGE_COMMENT_ANCHORS
+export type DataPageCommentAnchor =
+    | "descriptionShort"
+    | "source"
+    | "lastUpdated"
+    | "nextUpdate"
+    | "dateRange"
+    | "unit"
+    | "unitConversionFactor"
+    | "links"
+    | "descriptionKey"
+    | "sourcesAndProcessing"
+    | "faqs"
 
 export function commentAnchorAttrs(anchor: DataPageCommentAnchor): {
     [COMMENT_ANCHOR_ATTRIBUTE]: string

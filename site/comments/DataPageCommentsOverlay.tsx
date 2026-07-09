@@ -1,15 +1,11 @@
 import { useEffect, useMemo, useState } from "react"
-import { createRoot } from "react-dom/client"
 import { createPortal } from "react-dom"
-import cx from "classnames"
+import cx from "clsx"
 import { CommentTarget, CommentTargetType } from "@ourworldindata/types"
-import {
-    COMMENT_ANCHOR_ATTRIBUTE,
-    DATA_PAGE_COMMENT_ANCHORS,
-} from "./commentAnchors.js"
+import { COMMENT_ANCHOR_ATTRIBUTE } from "./commentAnchors.js"
+import { DATA_PAGE_COMMENT_ANCHORS } from "./anchorLabels.js"
 import { CommentsPanel } from "./CommentsPanel.js"
 import { CommentThreadData, useCommentThreads } from "./useComments.js"
-import { SiteQueryClientProvider } from "../SiteQueryClientProvider.js"
 
 const ANCHOR_MODE_BODY_CLASS = "comments-anchor-mode"
 
@@ -167,22 +163,5 @@ export function DataPageCommentsOverlay({
                 />
             )}
         </>
-    )
-}
-
-/**
- * Mounts the overlay on an admin data page preview. Loaded via dynamic import
- * from runSiteFooterScripts so none of this code (or react-query) ends up in
- * the public site chunk.
- */
-export function mountDataPageCommentsOverlay(): void {
-    const variableId = window._OWID_GRAPHER_CONFIG?.dimensions?.[0]?.variableId
-    if (!variableId) return
-    const container = document.createElement("div")
-    document.body.appendChild(container)
-    createRoot(container).render(
-        <SiteQueryClientProvider>
-            <DataPageCommentsOverlay variableId={variableId} />
-        </SiteQueryClientProvider>
     )
 }

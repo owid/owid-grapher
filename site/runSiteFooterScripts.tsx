@@ -99,7 +99,7 @@ function runLatestPage() {
 // Loaded lazily so the internal commenting UI (and its dependencies) never
 // ends up in the site chunks that public visitors download.
 function mountPreviewCommentsOverlay() {
-    void import("./comments/DataPageCommentsOverlay.js").then((module) =>
+    void import("./comments/mountDataPageCommentsOverlay.js").then((module) =>
         module.mountDataPageCommentsOverlay()
     )
 }
