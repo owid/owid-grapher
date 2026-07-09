@@ -41,6 +41,60 @@ WHERE ppp_version = 2021
 ORDER BY country, year
 """
 
+# The published headcount_ratio of the World and World Bank region
+# aggregates, used directly for the "share of the population in poverty"
+# stat when one of those regions is selected
+AGGREGATES = [
+    "World",
+    "East Asia and Pacific (WB)",
+    "Europe and Central Asia (WB)",
+    "Latin America and Caribbean (WB)",
+    "Middle East, North Africa, Afghanistan and Pakistan (WB)",
+    "North America (WB)",
+    "South Asia (WB)",
+    "Sub-Saharan Africa (WB)",
+]
+
+AGGREGATES_QUERY = f"""
+SELECT
+    country,
+    year,
+    CAST(poverty_line AS INTEGER) AS line_cents,
+    headcount_ratio
+FROM read_parquet('{PARQUET_URL}')
+WHERE ppp_version = 2021
+  AND "table" = 'Income or consumption intra/extrapolated'
+  AND welfare_type = 'income or consumption'
+  AND poverty_line IN ({", ".join(f"'{cents}'" for cents in POVERTY_LINES_CENTS)})
+  AND headcount_ratio IS NOT NULL
+  AND country IN ({", ".join(f"'{name}'" for name in AGGREGATES)})
+ORDER BY country, year
+"""
+
+# The poverty table doesn't publish the reporting population, but it is
+# implied by headcount = headcount_ratio * population. It is used to compute
+# the population-weighted share in poverty for scopes without a published
+# aggregate (continents, and years before 1990). The $40 line is used
+# because its headcount ratio is far from zero everywhere (min ~3%), making
+# the division numerically robust.
+POPULATION_QUERY = f"""
+SELECT
+    country,
+    year,
+    CAST(round(headcount / (headcount_ratio / 100.0)) AS BIGINT) AS population
+FROM read_parquet('{PARQUET_URL}')
+WHERE ppp_version = 2021
+  AND "table" = 'Income or consumption intra/extrapolated'
+  AND welfare_type = 'income or consumption'
+  AND poverty_line = '4000'
+  AND headcount IS NOT NULL
+  AND headcount_ratio IS NOT NULL
+  AND headcount_ratio > 0
+  AND country NOT IN ('World', 'World (excluding China)', 'World (excluding India)')
+  AND country NOT LIKE '%(WB)%'
+ORDER BY country, year
+"""
+
 
 def consolidate_urban_rural(countries: set[str]) -> dict[str, str]:
     """Map each entity to the country name it should be published under.
@@ -110,6 +164,16 @@ def main() -> None:
 
     countries = sorted(reference_countries)
 
+    # Published headcount_ratio of the World and WB region aggregates:
+    # {line_cents: {aggregate: {year: ratio}}}
+    aggregate_rows = duckdb.sql(AGGREGATES_QUERY).fetchall()
+    aggregate_ratios: dict[int, dict[str, dict[int, float]]] = {
+        cents: {} for cents in POVERTY_LINES_CENTS
+    }
+    for name, year, line_cents, ratio in aggregate_rows:
+        assert 0 <= ratio <= 100, f"Ratio out of range: {name} {year} {ratio}"
+        aggregate_ratios[line_cents].setdefault(name, {})[year] = ratio
+
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     for cents in POVERTY_LINES_CENTS:
         values = [
@@ -118,11 +182,24 @@ def main() -> None:
         ]
         num_missing = sum(value is None for row in values for value in row)
 
+        assert set(aggregate_ratios[cents].keys()) == set(AGGREGATES), (
+            f"Missing aggregates for {cents}: "
+            f"{set(AGGREGATES) - set(aggregate_ratios[cents].keys())}"
+        )
+        aggregates = {
+            name: [
+                round(ratio_by_year[year], 4) if year in ratio_by_year else None
+                for year in years
+            ]
+            for name, ratio_by_year in aggregate_ratios[cents].items()
+        }
+
         output = {
             "povertyLineCents": cents,
             "years": years,
             "countries": countries,
             "values": values,
+            "aggregateRatios": aggregates,
         }
         path = OUTPUT_DIR / f"headcounts-{cents}.json"
         path.write_text(json.dumps(output, separators=(",", ":")) + "\n")
@@ -131,6 +208,32 @@ def main() -> None:
             f"{len(years)} years ({years[0]}-{years[-1]}), "
             f"{num_missing} missing values, {path.stat().st_size // 1024} KB"
         )
+
+    # Population file, used to compute the share of the population in poverty
+    population_rows = duckdb.sql(POPULATION_QUERY).fetchall()
+    population: dict[str, dict[int, int]] = {}
+    for country, year, pop in population_rows:
+        assert pop > 0, f"Non-positive population: {country} {year}"
+        published_name = country_mapping.get(country)
+        if published_name is None:
+            continue
+        population.setdefault(published_name, {})[year] = pop
+
+    assert set(population.keys()) == set(countries), (
+        f"Population country set differs: {set(population.keys()) ^ set(countries)}"
+    )
+
+    values = [
+        [population[country].get(year) for year in years] for country in countries
+    ]
+    num_missing = sum(value is None for row in values for value in row)
+    output = {"years": years, "countries": countries, "values": values}
+    path = OUTPUT_DIR / "population.json"
+    path.write_text(json.dumps(output, separators=(",", ":")) + "\n")
+    print(
+        f"Wrote {path.name}: {len(countries)} countries, "
+        f"{num_missing} missing values, {path.stat().st_size // 1024} KB"
+    )
 
 
 if __name__ == "__main__":

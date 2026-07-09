@@ -1,6 +1,11 @@
 import { getContinentForCountry, getParentRegions } from "@ourworldindata/utils"
 
-import { DataRow, GroupBy, HeadcountFileJson } from "./PovertyConstants.js"
+import {
+    DataRow,
+    GroupBy,
+    HeadcountFileJson,
+    PopulationFileJson,
+} from "./PovertyConstants.js"
 
 // Entities in the PIP data that don't map to an OWID continent or World Bank
 // region via the regions dataset
@@ -52,4 +57,39 @@ export function parseHeadcountFile(json: HeadcountFileJson): DataRow[] {
 
 export function getGroupForRow(row: DataRow, groupBy: GroupBy): string {
     return groupBy === "continent" ? row.continent : row.wbRegion
+}
+
+/** Parse the published aggregate headcount ratios into an
+ * aggregate -> year -> ratio (in %) lookup */
+export function parseAggregateRatios(
+    json: HeadcountFileJson
+): Map<string, Map<number, number>> {
+    const ratiosByAggregate = new Map<string, Map<number, number>>()
+    for (const [name, ratios] of Object.entries(json.aggregateRatios ?? {})) {
+        const byYear = new Map<number, number>()
+        json.years.forEach((year, yearIndex) => {
+            const ratio = ratios[yearIndex]
+            if (ratio === null || ratio === undefined) return
+            byYear.set(year, ratio)
+        })
+        ratiosByAggregate.set(name, byYear)
+    }
+    return ratiosByAggregate
+}
+
+/** Parse the population file into a country -> year -> population lookup */
+export function parsePopulationFile(
+    json: PopulationFileJson
+): Map<string, Map<number, number>> {
+    const populationByCountry = new Map<string, Map<number, number>>()
+    json.countries.forEach((countryName, countryIndex) => {
+        const byYear = new Map<number, number>()
+        json.years.forEach((year, yearIndex) => {
+            const population = json.values[countryIndex][yearIndex]
+            if (population === null) return
+            byYear.set(year, population)
+        })
+        populationByCountry.set(countryName, byYear)
+    })
+    return populationByCountry
 }

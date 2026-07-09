@@ -19,7 +19,10 @@ import {
     WORLD_SELECTION,
 } from "../helpers/PovertyConstants.js"
 import { getGroupForRow } from "../helpers/PovertyData.js"
-import { useHeadcountData } from "../helpers/PovertyDataFetching.js"
+import {
+    useHeadcountData,
+    usePopulationData,
+} from "../helpers/PovertyDataFetching.js"
 import { WhereAreThePoorCaptionedChart } from "./WhereAreThePoorCaptionedChart.js"
 import { PovertyControls } from "./PovertyControls.js"
 import { PovertyTreemapSpinner } from "./PovertyTreemapSpinner.js"
@@ -71,8 +74,9 @@ function WhereAreThePoorChart(props: {
     }, [])
 
     // Load the data for the selected poverty line
-    const { data, years, status, isPlaceholderData } =
+    const { data, years, aggregateRatios, status, isPlaceholderData } =
         useHeadcountData(povertyLineCents)
+    const { populationByCountry } = usePopulationData()
 
     // Restrict the data to the selected region
     const scopedData = useMemo(
@@ -129,6 +133,8 @@ function WhereAreThePoorChart(props: {
                 groupBy={groupBy}
                 region={region}
                 year={activeYear}
+                aggregateRatios={aggregateRatios}
+                populationByCountry={populationByCountry}
                 isLoading={isLoadingData}
             />
         </div>

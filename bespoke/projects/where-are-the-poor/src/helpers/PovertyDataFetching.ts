@@ -1,13 +1,26 @@
 import { useMemo } from "react"
 import { QueryStatus, useQuery } from "@tanstack/react-query"
 
-import { DataRow, HeadcountFileJson } from "./PovertyConstants.js"
-import { parseHeadcountFile } from "./PovertyData.js"
+import {
+    DataRow,
+    HeadcountFileJson,
+    PopulationFileJson,
+} from "./PovertyConstants.js"
+import {
+    parseAggregateRatios,
+    parseHeadcountFile,
+    parsePopulationFile,
+} from "./PovertyData.js"
 
 // Vite turns these into lazily-imported chunks emitted next to the bundle,
 // so only the selected poverty line's data is loaded at runtime.
 const dataModules = import.meta.glob<HeadcountFileJson>(
     "../data/headcounts-*.json",
+    { import: "default" }
+)
+
+const populationModules = import.meta.glob<PopulationFileJson>(
+    "../data/population.json",
     { import: "default" }
 )
 
@@ -17,6 +30,7 @@ export const useHeadcountData = (
 ): {
     data?: DataRow[]
     years?: number[]
+    aggregateRatios?: Map<string, Map<number, number>>
     status: QueryStatus
     isPlaceholderData: boolean
 } => {
@@ -40,10 +54,34 @@ export const useHeadcountData = (
         [result.data]
     )
 
+    const aggregateRatios = useMemo(
+        () => (result.data ? parseAggregateRatios(result.data) : undefined),
+        [result.data]
+    )
+
     return {
         data,
         years: result.data?.years,
+        aggregateRatios,
         status: result.status,
         isPlaceholderData: result.isPlaceholderData,
     }
+}
+
+/** Load the population data, used to compute the share of the population
+ * in poverty */
+export const usePopulationData = (): {
+    populationByCountry?: Map<string, Map<number, number>>
+} => {
+    const result = useQuery({
+        queryKey: ["where-are-the-poor", "population"],
+        queryFn: () => populationModules["../data/population.json"](),
+    })
+
+    const populationByCountry = useMemo(
+        () => (result.data ? parsePopulationFile(result.data) : undefined),
+        [result.data]
+    )
+
+    return { populationByCountry }
 }

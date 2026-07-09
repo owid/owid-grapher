@@ -4,11 +4,17 @@ import { fileURLToPath } from "node:url"
 
 import { describe, expect, it } from "vitest"
 
-import { HeadcountFileJson, POVERTY_LINES } from "./PovertyConstants.js"
+import {
+    HeadcountFileJson,
+    PopulationFileJson,
+    POVERTY_LINES,
+    WORLD_SELECTION,
+} from "./PovertyConstants.js"
 import {
     getContinentForCountryName,
     getWbRegionForCountryName,
     parseHeadcountFile,
+    parsePopulationFile,
 } from "./PovertyData.js"
 
 const dataDir = fileURLToPath(new URL("../data", import.meta.url))
@@ -20,6 +26,10 @@ const dataFiles: HeadcountFileJson[] = POVERTY_LINES.map((line) =>
             "utf-8"
         )
     )
+)
+
+const populationFile: PopulationFileJson = JSON.parse(
+    fs.readFileSync(path.join(dataDir, "population.json"), "utf-8")
 )
 
 describe("committed headcount data files", () => {
@@ -79,9 +89,40 @@ describe("committed headcount data files", () => {
             }
         }
     })
+
+    it("has published aggregate ratios for the World and WB regions", () => {
+        for (const file of dataFiles) {
+            const aggregateNames = Object.keys(file.aggregateRatios)
+            expect(aggregateNames).toContain(WORLD_SELECTION)
+            expect(aggregateNames).toContain("Sub-Saharan Africa (WB)")
+            for (const ratios of Object.values(file.aggregateRatios)) {
+                expect(ratios).toHaveLength(file.years.length)
+                for (const ratio of ratios) {
+                    if (ratio !== null) {
+                        expect(ratio).toBeGreaterThanOrEqual(0)
+                        expect(ratio).toBeLessThanOrEqual(100)
+                    }
+                }
+            }
+        }
+    })
 })
 
-describe("parseHeadcountFile", () => {
+describe("committed population file", () => {
+    it("has the same countries and years as the headcount files", () => {
+        expect(populationFile.countries).toEqual(dataFiles[0].countries)
+        expect(populationFile.years).toEqual(dataFiles[0].years)
+    })
+
+    it("parses into a positive population lookup", () => {
+        const populationByCountry = parsePopulationFile(populationFile)
+        expect(populationByCountry.size).toBe(populationFile.countries.length)
+        const india = populationByCountry.get("India")?.get(2025)
+        expect(india).toBeGreaterThan(1_000_000_000)
+    })
+})
+
+describe(parseHeadcountFile, () => {
     it("parses all countries and skips missing values", () => {
         const file = dataFiles[0]
         const rows = parseHeadcountFile(file)

@@ -69,10 +69,44 @@
             font-size: 0.9375rem;
         }
     }
+}
 
-    .where-are-the-poor-header__value--loading {
+.where-are-the-poor-stats {
+    display: flex;
+    flex-wrap: wrap;
+    column-gap: 48px;
+    row-gap: 8px;
+    margin: 20px 0 16px;
+
+    @include sm-only {
+        column-gap: 32px;
+        margin: 16px 0 12px;
+    }
+
+    .where-are-the-poor-stats__value {
+        font-size: 2rem;
+        line-height: 1.1;
+        font-weight: 700;
+        color: $dark-text;
+
+        @include sm-only {
+            font-size: 1.5rem;
+        }
+    }
+
+    .where-are-the-poor-stats__value--loading {
         font-style: italic;
         opacity: 0.3;
+    }
+
+    .where-are-the-poor-stats__label {
+        margin-top: 2px;
+        font-size: 0.875rem;
+        color: $light-text;
+
+        @include sm-only {
+            font-size: 0.8125rem;
+        }
     }
 }
 

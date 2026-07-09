@@ -91,6 +91,16 @@ export interface HeadcountFileJson {
     years: number[]
     countries: string[]
     values: (number | null)[][]
+    /** Published headcount_ratio (in %) of the World and World Bank region
+     * aggregates, aligned to `years` */
+    aggregateRatios: Record<string, (number | null)[]>
+}
+
+/** Schema of the committed src/data/population.json file */
+export interface PopulationFileJson {
+    years: number[]
+    countries: string[]
+    values: (number | null)[][]
 }
 
 export interface DataRow {

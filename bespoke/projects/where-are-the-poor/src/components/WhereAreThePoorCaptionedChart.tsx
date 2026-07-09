@@ -14,7 +14,7 @@ import {
     WORLD_SELECTION,
 } from "../helpers/PovertyConstants.js"
 import { ResponsivePovertyTreemap } from "./PovertyTreemap.js"
-import { formatCount } from "../helpers/PovertyHelpers.js"
+import { formatCount, formatShare } from "../helpers/PovertyHelpers.js"
 import { PovertyTreemapSpinner } from "./PovertyTreemapSpinner.js"
 
 import { ChartHeader } from "../../../../components/ChartHeader/ChartHeader.js"
@@ -36,6 +36,8 @@ export function WhereAreThePoorCaptionedChart({
     groupBy,
     region,
     year,
+    aggregateRatios,
+    populationByCountry,
     isLoading = false,
 }: {
     data: DataRow[]
@@ -43,6 +45,8 @@ export function WhereAreThePoorCaptionedChart({
     groupBy: GroupBy
     region: string
     year: Time
+    aggregateRatios?: Map<string, Map<number, number>>
+    populationByCountry?: Map<string, Map<number, number>>
     isLoading?: boolean
 }) {
     const povertyLine =
@@ -59,6 +63,39 @@ export function WhereAreThePoorCaptionedChart({
         [yearData]
     )
 
+    // Share of the population in poverty for the selected region. The
+    // published headcount_ratio is used for the World and World Bank region
+    // aggregates; for scopes without a published aggregate (continents, and
+    // years before 1990), it is computed from the countries' headcounts and
+    // populations.
+    const shareOfPopulation = useMemo(() => {
+        const aggregateName =
+            region === WORLD_SELECTION
+                ? WORLD_SELECTION
+                : groupBy === "wbRegion"
+                  ? region
+                  : undefined
+        const publishedRatio = aggregateName
+            ? aggregateRatios?.get(aggregateName)?.get(year)
+            : undefined
+        if (publishedRatio !== undefined) return publishedRatio / 100
+
+        if (!populationByCountry) return undefined
+        const totalPopulation = R.sumBy(
+            yearData,
+            (d) => populationByCountry.get(d.countryName)?.get(year) ?? 0
+        )
+        return totalPopulation > 0 ? numTotalPoor / totalPopulation : undefined
+    }, [
+        region,
+        groupBy,
+        aggregateRatios,
+        populationByCountry,
+        yearData,
+        numTotalPoor,
+        year,
+    ])
+
     return (
         <Frame className="where-are-the-poor-captioned-chart">
             <WhereAreThePoorHeader
@@ -66,7 +103,13 @@ export function WhereAreThePoorCaptionedChart({
                 groupBy={groupBy}
                 region={region}
                 year={year}
+            />
+
+            <WhereAreThePoorStats
+                povertyLine={povertyLine}
+                region={region}
                 numTotalPoor={numTotalPoor}
+                shareOfPopulation={shareOfPopulation}
                 isLoading={isLoading}
             />
 
@@ -87,20 +130,68 @@ export function WhereAreThePoorCaptionedChart({
     )
 }
 
+function WhereAreThePoorStats({
+    povertyLine,
+    region,
+    numTotalPoor,
+    shareOfPopulation,
+    isLoading,
+}: {
+    povertyLine: PovertyLine
+    region: string
+    numTotalPoor: number
+    shareOfPopulation?: number
+    isLoading: boolean
+}) {
+    const isWorld = region === WORLD_SELECTION
+    const isExtremePoverty = povertyLine.cents === EXTREME_POVERTY_LINE_CENTS
+
+    const countLabel = isExtremePoverty
+        ? "people live in extreme poverty"
+        : `people live below ${povertyLine.label}`
+    const shareLabel = isWorld
+        ? "of the world's population"
+        : `of the population of ${formatGroupLabel(region)}`
+
+    const valueClassName = cx("where-are-the-poor-stats__value", {
+        "where-are-the-poor-stats__value--loading": isLoading,
+    })
+
+    return (
+        <div className="where-are-the-poor-stats">
+            <div className="where-are-the-poor-stats__stat">
+                <div className={valueClassName}>
+                    {formatCount(numTotalPoor)}
+                    {isLoading && <PovertyTreemapSpinner inline />}
+                </div>
+                <div className="where-are-the-poor-stats__label">
+                    {countLabel}
+                </div>
+            </div>
+            {shareOfPopulation !== undefined && (
+                <div className="where-are-the-poor-stats__stat">
+                    <div className={valueClassName}>
+                        {formatShare(shareOfPopulation)}
+                    </div>
+                    <div className="where-are-the-poor-stats__label">
+                        {shareLabel}
+                    </div>
+                </div>
+            )}
+        </div>
+    )
+}
+
 function WhereAreThePoorHeader({
     povertyLine,
     groupBy,
     region,
     year,
-    numTotalPoor,
-    isLoading,
 }: {
     povertyLine: PovertyLine
     groupBy: GroupBy
     region: string
     year: Time
-    numTotalPoor: number
-    isLoading: boolean
 }) {
     const groupingLabel =
         groupBy === "continent" ? "continent" : "World Bank region"
@@ -125,20 +216,8 @@ function WhereAreThePoorHeader({
             subtitle={
                 <>
                     {povertyLine.definition && `${povertyLine.definition} `}
-                    The size of the entire visualization represents the number
-                    of people {livingBelow}
-                    {isWorld ? "" : ` in ${regionLabel}`} in {year}:{" "}
-                    <span
-                        className={cx({
-                            "where-are-the-poor-header__value--loading":
-                                isLoading,
-                        })}
-                    >
-                        {formatCount(numTotalPoor)}
-                        {isLoading && <PovertyTreemapSpinner inline />}
-                    </span>
-                    . Each rectangle within is proportional to the number of
-                    people in poverty in that country, grouped and colored by{" "}
+                    Each rectangle is proportional to the number of people{" "}
+                    {livingBelow} in that country, grouped and colored by{" "}
                     {groupingLabel}.
                 </>
             }
