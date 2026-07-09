@@ -20,6 +20,7 @@ import {
     MultiDimViewDimensionsTableName,
     MultiDimXChartConfigsTableName,
     NarrativeChartsTableName,
+    PostsGdocsComponentsTableName,
     PostsGdocsTableName,
     TagGraphTableName,
     TagsTableName,
@@ -49,6 +50,7 @@ export const TABLES_IN_USE = [
     VariablesTableName,
     ChartConfigsTableName,
     DatasetsTableName,
+    PostsGdocsComponentsTableName, // Must come before PostsGdocsTableName due to foreign key
     PostsGdocsTableName,
     AdminApiKeysTableName,
     UsersTableName,
