@@ -934,40 +934,12 @@ export class FacetChart
         return new this.LegendClass({ manager: this })
     }
 
-    /**
-     * The font size at which a facet label would fit in the available width,
-     * clamped so it doesn't get too tiny. If the label doesn't fit even at
-     * the clamped minimum, it's truncated with an ellipsis elsewhere.
-     */
-    private getFacetLabelFontSizeToFit(
-        label: string,
-        availableWidth: number
-    ): number {
-        const baseFontSize = this.facetLabelFontSize
-
-        // How much width would we need if we were to render the text at font size 1?
-        // We calculate this to compute the ideal font size from the available width.
-        const textWidth = Bounds.forText(label, {
-            fontSize: 1,
-            fontWeight: FACET_LABEL_FONT_WEIGHT,
-        }).width
-        const idealFontSize = availableWidth / textWidth
-
-        // Clamp the ideal font size: 0.8 * baseFontSize <= fontSize <= baseFontSize
-        return Math.min(
-            baseFontSize,
-            Math.max(0.8 * baseFontSize, idealFontSize)
-        )
-    }
-
     @computed
-    private get facetLabelSettings(): Omit<
-        SeriesLabelStateOptions,
-        "text" | "fontSize"
-    > {
+    private get facetLabelSettings(): Omit<SeriesLabelStateOptions, "text"> {
         return {
             maxWidth: Infinity, // Facet labels never wrap
             fontWeight: FACET_LABEL_FONT_WEIGHT,
+            fontSize: this.facetLabelFontSize,
             showRegionTooltip: !this.manager.isStatic,
         }
     }
@@ -989,28 +961,22 @@ export class FacetChart
                     const availableLabelWidth =
                         contentBounds.width - contentLeftOffset
 
-                    const fontSize = this.getFacetLabelFontSizeToFit(
-                        seriesName,
-                        availableLabelWidth
-                    )
-                    const labelSettings = { ...facetLabelSettings, fontSize }
-
                     let seriesLabelState = new SeriesLabelState({
                         text: seriesName,
-                        ...labelSettings,
+                        ...facetLabelSettings,
                     })
 
-                    // If the label still overflows at the minimum size,
-                    // truncate it with an ellipsis
+                    // Truncate labels that don't fit with an ellipsis
                     if (seriesLabelState.width > availableLabelWidth) {
+                        const { fontSize, fontWeight } = facetLabelSettings
                         const shortenedLabel = shortenWithEllipsis(
                             seriesName,
                             availableLabelWidth,
-                            { fontSize, fontWeight: FACET_LABEL_FONT_WEIGHT }
+                            { fontSize, fontWeight }
                         )
                         seriesLabelState = new SeriesLabelState({
                             text: shortenedLabel,
-                            ...labelSettings,
+                            ...facetLabelSettings,
                         })
                     }
 
