@@ -389,8 +389,7 @@ export function KeyInsightSlideSection({
                     value={String(draft.narrativeChartName ?? "")}
                     onChange={(event) =>
                         apply({
-                            narrativeChartName:
-                                event.target.value || undefined,
+                            narrativeChartName: event.target.value || undefined,
                         })
                     }
                 />
@@ -457,16 +456,16 @@ export function CodeSection({
                 value={lines.map((line) => line.value.text).join("\n")}
                 onChange={(event) =>
                     apply({
-                        text: event.target.value
-                            .split("\n")
-                            .map((line): EnrichedBlockSimpleText => ({
+                        text: event.target.value.split("\n").map(
+                            (line): EnrichedBlockSimpleText => ({
                                 type: "simple-text",
                                 value: {
                                     spanType: "span-simple-text",
                                     text: line,
                                 },
                                 parseErrors: [],
-                            })),
+                            })
+                        ),
                     })
                 }
             />
@@ -760,9 +759,7 @@ export function CountryProfileSelectorSection({
             <Form.Item label="Default countries">
                 <StringListTextArea
                     value={(draft.defaultCountries ?? []) as string[]}
-                    onChange={(defaultCountries) =>
-                        apply({ defaultCountries })
-                    }
+                    onChange={(defaultCountries) => apply({ defaultCountries })}
                     placeholder="One country per line"
                 />
             </Form.Item>
@@ -800,9 +797,7 @@ export function BespokeComponentSection({
             <Form.Item label="Variant (optional)">
                 <Input
                     value={String(draft.variant ?? "")}
-                    onChange={(event) =>
-                        apply({ variant: event.target.value })
-                    }
+                    onChange={(event) => apply({ variant: event.target.value })}
                 />
             </Form.Item>
             <Form.Item label="Size">
@@ -989,9 +984,7 @@ export function ChartRowsSection({
 
 function PersonFields(props: {
     person: Omit<EnrichedBlockPerson, "type" | "parseErrors">
-    update: (
-        person: Omit<EnrichedBlockPerson, "type" | "parseErrors">
-    ) => void
+    update: (person: Omit<EnrichedBlockPerson, "type" | "parseErrors">) => void
 }): React.ReactElement {
     const { person, update } = props
     return (
@@ -1073,9 +1066,7 @@ export function PeopleSection({
                 renderItem={(person, update) => (
                     <PersonFields
                         person={person}
-                        update={(updated) =>
-                            update({ ...person, ...updated })
-                        }
+                        update={(updated) => update({ ...person, ...updated })}
                     />
                 )}
             />
@@ -1378,8 +1369,8 @@ export function ResearchAndWritingExtrasSection({
                             }
                         />
                         <Typography.Text type="secondary">
-                            Articles are filled in automatically with the
-                            latest work on this topic.
+                            Articles are filled in automatically with the latest
+                            work on this topic.
                         </Typography.Text>
                         <Button
                             size="small"

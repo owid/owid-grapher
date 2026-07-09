@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { NodeViewProps, NodeViewWrapper } from "@tiptap/react"
 import {
     EnrichedBlockChartStory,
@@ -233,11 +234,14 @@ export const HomepageIntroBlockView = createAtomCardView("homepage-intro", {
         <>
             <strong>Homepage intro</strong>
             <ul>
-                {((props.featuredWork ?? []) as { url: string; title?: string }[]).map(
-                    (work, index) => (
-                        <li key={index}>{work.title || work.url}</li>
-                    )
-                )}
+                {(
+                    (props.featuredWork ?? []) as {
+                        url: string
+                        title?: string
+                    }[]
+                ).map((work, index) => (
+                    <li key={index}>{work.title || work.url}</li>
+                ))}
             </ul>
         </>
     ),
@@ -249,25 +253,24 @@ export const CountryProfileSelectorBlockView = createAtomCardView(
         summarize: (props) => String(props.title ?? ""),
         body: (props) => (
             <>
-                <strong>{String(props.title ?? "") || "Country profiles"}</strong>
+                <strong>
+                    {String(props.title ?? "") || "Country profiles"}
+                </strong>
                 <p>{String(props.url ?? "")}</p>
             </>
         ),
     }
 )
 
-export const SubscribeBannerBlockView = createAtomCardView(
-    "subscribe-banner",
-    {
-        summarize: (props) => `align: ${String(props.align ?? "left")}`,
-        body: () => (
-            <>
-                <strong>Subscribe banner</strong>
-                <p>Newsletter subscription call-out</p>
-            </>
-        ),
-    }
-)
+export const SubscribeBannerBlockView = createAtomCardView("subscribe-banner", {
+    summarize: (props) => `align: ${String(props.align ?? "left")}`,
+    body: () => (
+        <>
+            <strong>Subscribe banner</strong>
+            <p>Newsletter subscription call-out</p>
+        </>
+    ),
+})
 
 export const BespokeComponentBlockView = createAtomCardView(
     "bespoke-component",
@@ -279,7 +282,9 @@ export const BespokeComponentBlockView = createAtomCardView(
                 <strong>Bespoke component</strong>
                 <p>
                     Bundle: {String(props.bundle ?? "") || "not set"}
-                    {props.variant ? ` — variant: ${String(props.variant)}` : ""}
+                    {props.variant
+                        ? ` — variant: ${String(props.variant)}`
+                        : ""}
                 </p>
             </>
         ),
@@ -371,8 +376,8 @@ export const PeopleRowsBlockView = createAtomCardView("people-rows", {
         <>
             <strong>People rows</strong>
             {peopleBody(
-                ((props as unknown as Omit<EnrichedBlockPeopleRows, "type">)
-                    .people ?? []) as EnrichedBlockPerson[]
+                (props as unknown as Omit<EnrichedBlockPeopleRows, "type">)
+                    .people ?? []
             )}
         </>
     ),
