@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect, Fragment } from "react"
-import { useQuery } from "@tanstack/react-query"
+import { useQuery, keepPreviousData } from "@tanstack/react-query"
 import cx from "clsx"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
@@ -421,10 +421,19 @@ export const AllChartsBlock = ({
         }
     }, [debouncedQuery, detectedCountries, producerFilters, topicName])
 
-    const { data, isLoading, isError } = useQuery({
+    // `placeholderData: keepPreviousData` (the same pattern already used for
+    // paginated results in site/latest/latestHooks.ts) keeps the previous
+    // result set — and the sidecar chart it drives — on screen while a new
+    // debounced query is in flight, rather than `isLoading` flipping true and
+    // unmounting the table/chart in favour of a skeleton/blank state on every
+    // keystroke. The list only actually changes once new data arrives, so
+    // typing produces one clean transition instead of a flash-to-empty on
+    // every debounce tick.
+    const { data, isLoading, isFetching, isError } = useQuery({
         queryKey: searchQueryKeys.charts(searchState),
         queryFn: () => queryAllCharts(liteSearchClient, searchState),
         enabled: Boolean(topicName),
+        placeholderData: keepPreviousData,
     })
 
     const hits = data ?? []
@@ -455,6 +464,7 @@ export const AllChartsBlock = ({
         // extra `tags` attribute).
         queryFn: () => queryAllCharts(liteSearchClient, baseSearchState),
         enabled: Boolean(topicName),
+        placeholderData: keepPreviousData,
     })
 
     const autoSuggestedChips = useMemo(
@@ -517,6 +527,7 @@ export const AllChartsBlock = ({
                     suggestedChips={suggestedChips}
                     hits={hits}
                     isLoading={isLoading}
+                    isFetching={isFetching}
                     detectedCountries={detectedCountries}
                     producerFilters={producerFilters}
                     onRemoveProducerFilter={removeProducerFilter}
@@ -534,6 +545,7 @@ type AllChartsLeftPaneProps = {
     suggestedChips: SuggestedChip[]
     hits: SearchChartHit[]
     isLoading: boolean
+    isFetching: boolean
     detectedCountries: string[]
     producerFilters: string[]
     onRemoveProducerFilter: (producer: string) => void
@@ -548,6 +560,7 @@ const AllChartsLeftPane = (props: AllChartsLeftPaneProps) => {
         suggestedChips,
         hits,
         isLoading,
+        isFetching,
         detectedCountries,
         producerFilters,
         onRemoveProducerFilter,
@@ -624,6 +637,12 @@ const AllChartsLeftPane = (props: AllChartsLeftPaneProps) => {
                         expandedIndex={expandedIndex}
                         onRowClick={handleRowClick}
                         detectedCountries={detectedCountries}
+                        // True while a new debounced query is fetching in the
+                        // background (see the keepPreviousData note above) —
+                        // a subtle dim on the still-visible previous results,
+                        // rather than the skeleton/blank state `isLoading`
+                        // triggers on a genuine first load.
+                        isRefreshing={isFetching && !isLoading}
                     />
                 )}
             </div>
@@ -711,12 +730,14 @@ const AllChartsTable = ({
     expandedIndex,
     onRowClick,
     detectedCountries,
+    isRefreshing,
 }: {
     hits: SearchChartHit[]
     selectedIndex: number
     expandedIndex: number | null
     onRowClick: (index: number) => void
     detectedCountries: string[]
+    isRefreshing: boolean
 }) => {
     return (
         <>
@@ -731,7 +752,12 @@ const AllChartsTable = ({
                     Source
                 </span>
             </div>
-            <ul className="all-charts-block__table" role="list">
+            <ul
+                className={cx("all-charts-block__table", {
+                    "all-charts-block__table--refreshing": isRefreshing,
+                })}
+                role="list"
+            >
                 {hits.map((hit, index) => (
                     <AllChartsTableRow
                         key={hit.objectID}
@@ -812,7 +838,9 @@ const AllChartsTableRow = ({
                     )}
                 </span>
                 <span className="all-charts-block__row-source">
-                    {producers.join(", ")}
+                    <span className="all-charts-block__row-source-text">
+                        {producers.join(", ")}
+                    </span>
                 </span>
                 {/* Its own navigation action ("view chart"), distinct from
                     selecting/expanding the row — stop the click from also
