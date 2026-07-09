@@ -42,6 +42,7 @@ import { getImageMetadataByFilenames } from "../db/db.js"
 import { getMinimalAuthorsByNames } from "../db/model/Gdoc/GdocBase.js"
 import {
     renderGdocsReferenceComponentPreview,
+    renderGdocsReferenceInstancePreview,
     renderGdocsReferenceTemplatePreview,
 } from "./gdocsReferencePreview.js"
 
@@ -257,6 +258,23 @@ getPlainRouteWithROTransaction(
             await renderGdocsReferenceTemplatePreview(
                 req.params.id,
                 req.query.example as string | undefined,
+                trx
+            )
+        )
+    }
+)
+
+// A real component instance — the block at ?path in the published gdoc
+// ?gdocId — rendered with that document's real context (query params because
+// JSON paths contain dots and brackets).
+getPlainRouteWithROTransaction(
+    adminRouter,
+    "/gdocs-reference/instance/preview",
+    async (req, res, trx) => {
+        res.send(
+            await renderGdocsReferenceInstancePreview(
+                req.query.gdocId as string | undefined,
+                req.query.path as string | undefined,
                 trx
             )
         )

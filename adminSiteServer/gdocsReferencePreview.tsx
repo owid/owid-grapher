@@ -3,6 +3,7 @@ import {
     ComponentDoc,
     DbPlainTag,
     JsonError,
+    OwidEnrichedGdocBlock,
     OwidGdocPostContent,
     OwidGdocType,
     SiteFooterContext,
@@ -197,7 +198,10 @@ const PREVIEW_TAG_SLUG = "life-expectancy"
 async function loadSyntheticGdoc(
     content: OwidGdocPostContent,
     publishedAt: Date | null,
-    knex: db.KnexReadonlyTransaction
+    knex: db.KnexReadonlyTransaction,
+    // When the preview extracts a block from a real document, tag-dependent
+    // blocks should use that document's real topic tags, not the fallback.
+    tagsFromGdocId?: string
 ): Promise<SyntheticGdoc> {
     const gdoc = gdocFromJSON({
         id: "gdocs-reference-preview",
@@ -216,17 +220,28 @@ async function loadSyntheticGdoc(
 
     // Before loadState: loadRelatedCharts (for all-charts) reads the tags.
     if (TAG_DEPENDENT_BLOCK_TYPES.some((type) => blockTypes.has(type))) {
-        gdoc.tags = await db.knexRaw<DbPlainTag>(
-            knex,
-            `SELECT * FROM tags WHERE slug = ? LIMIT 1`,
-            [PREVIEW_TAG_SLUG]
-        )
+        if (tagsFromGdocId) {
+            gdoc.tags = await db.knexRaw<DbPlainTag>(
+                knex,
+                `-- sql
+                SELECT t.* FROM tags t
+                JOIN posts_gdocs_x_tags pgt ON pgt.tagId = t.id
+                WHERE pgt.gdocId = ?`,
+                [tagsFromGdocId]
+            )
+        }
+        if (!gdoc.tags || gdoc.tags.length === 0) {
+            gdoc.tags = await db.knexRaw<DbPlainTag>(
+                knex,
+                `SELECT * FROM tags WHERE slug = ? LIMIT 1`,
+                [PREVIEW_TAG_SLUG]
+            )
+        }
     }
 
     await gdoc.loadState(knex)
 
-    if (blockTypes.has("donors"))
-        gdoc.donors = await getPublicDonorNames(knex)
+    if (blockTypes.has("donors")) gdoc.donors = await getPublicDonorNames(knex)
     if (blockTypes.has("latest-data-insights")) {
         const { dataInsights, imageMetadata } =
             await getLatestDataInsights(knex)
@@ -299,6 +314,87 @@ export async function renderGdocsReferenceTemplatePreview(
             styles={
                 isFragment ? COMPONENT_PREVIEW_STYLES : TEMPLATE_PREVIEW_STYLES
             }
+        />
+    )
+}
+
+// Resolve a posts_gdocs_components path like "$.body[3].items[0]" within a
+// document's enriched content. Returns undefined unless the target is a
+// renderable block (an object with a string "type").
+function resolveBlockAtPath(
+    content: unknown,
+    path: string
+): (OwidEnrichedGdocBlock & Record<string, unknown>) | undefined {
+    if (!/^\$[.[]/.test(path)) return undefined
+    let node: unknown = content
+    for (const match of path.slice(1).matchAll(/\[(\d+)\]|\.([^.[\]]+)/g)) {
+        if (node === null || typeof node !== "object") return undefined
+        const key = match[1] !== undefined ? parseInt(match[1], 10) : match[2]
+        node = (node as Record<string | number, unknown>)[key]
+    }
+    if (
+        node !== null &&
+        typeof node === "object" &&
+        typeof (node as { type?: unknown }).type === "string"
+    )
+        return node as OwidEnrichedGdocBlock & Record<string, unknown>
+    return undefined
+}
+
+/**
+ * Preview of a real component instance: the block at `path` in a published
+ * document, rendered with that document's real context — its linked charts,
+ * images and topic tags — so what the reference shows is exactly what the
+ * live site renders.
+ */
+export async function renderGdocsReferenceInstancePreview(
+    gdocId: string | undefined,
+    pathParam: string | undefined,
+    knex: db.KnexReadonlyTransaction
+): Promise<string> {
+    if (!gdocId || !pathParam)
+        throw new JsonError("gdocId and path are required", 400)
+    const [row] = await db.knexRaw<{
+        slug: string
+        publishedAt: Date | null
+        content: string
+    }>(
+        knex,
+        `-- sql
+        SELECT slug, publishedAt, content
+        FROM posts_gdocs
+        WHERE id = ? AND published = 1
+        LIMIT 1`,
+        [gdocId]
+    )
+    if (!row) throw new JsonError(`No published gdoc with id "${gdocId}"`, 404)
+
+    const sourceContent =
+        typeof row.content === "string" ? JSON.parse(row.content) : row.content
+    const block = resolveBlockAtPath(sourceContent, pathParam)
+    if (!block)
+        throw new JsonError(
+            `No renderable block at "${pathParam}" in gdoc "${gdocId}"`,
+            404
+        )
+
+    // An empty article shell for its enrichment defaults (same as the
+    // registry example previews), carrying just the extracted block.
+    const content = archieToEnriched(
+        `title: ${row.slug} — instance preview\ntype: ${OwidGdocType.Article}\n[+body]\n[]\n`
+    )
+    content.body = [block]
+    content["hide-citation"] = true
+    content["hide-subscribe-banner"] = true
+    if (collectBlockTypes(content).has("ltp-toc"))
+        content.type = OwidGdocType.LinearTopicPage
+
+    const gdoc = await loadSyntheticGdoc(content, row.publishedAt, knex, gdocId)
+    return renderToHtmlPage(
+        <GdocsReferencePreviewPage
+            gdoc={gdoc}
+            pageTitle={`${block.type} from ${row.slug} — instance preview`}
+            styles={COMPONENT_PREVIEW_STYLES}
         />
     )
 }
