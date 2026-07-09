@@ -1,3 +1,8 @@
+---
+pinned:
+    - slug: the-human-cost-of-unsafe-abortions
+---
+
 A small gray-background block used to draw attention to meta-textual
 information — e.g. "data was last updated", caveats about methodology,
 or short editorial notes.

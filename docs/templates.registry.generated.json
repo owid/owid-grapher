@@ -206,6 +206,42 @@
         "name": "Example",
         "archie": "title: The decline of global child mortality\nsubtitle: Child deaths have fallen from over 20 million per year in 1950 to under 5 million today.\nauthors: Jane Doe\ndateline: June 30, 2026\nexcerpt: Child mortality has fallen dramatically over the last two centuries.\ntype: article\nfeatured-image: child-mortality-featured.png\n[+body]\nOver the last two centuries, child mortality has declined in every world region.\n\n{.chart}\nurl: https://ourworldindata.org/grapher/child-mortality\n{}\n\n{.heading}\ntext: Why did child mortality decline?\nlevel: 1\n{}\n\nImprovements in nutrition, sanitation, vaccination and access to healthcare all played a role.\n[]"
       }
+    ],
+    "exemplars": [
+      "us-crime-rates",
+      "slavery"
+    ],
+    "skeleton": [
+      {
+        "name": "Opening",
+        "description": "One to three plain paragraphs stating the key message — no heading, no chart. The first paragraph doubles as what readers see in previews.",
+        "components": [
+          "text"
+        ]
+      },
+      {
+        "name": "Sections",
+        "description": "Each section opens with a level-1 heading and mixes prose with the evidence for it — usually a chart every few paragraphs. Callouts flag caveats or data notes; sticky-right pairs a discussion with a chart that stays on screen.",
+        "components": [
+          "heading",
+          "text",
+          "chart",
+          "callout",
+          "sticky-right",
+          "image",
+          "list"
+        ],
+        "repeats": true
+      },
+      {
+        "name": "Endnotes",
+        "description": "Optional closing matter — links to related work (prominent-link or recirc) and acknowledgements, often set off by a horizontal rule.",
+        "components": [
+          "horizontal-rule",
+          "prominent-link",
+          "recirc"
+        ]
+      }
     ]
   },
   {
@@ -415,6 +451,39 @@
         "name": "Example",
         "archie": "title: Child Mortality\nauthors: Jane Doe\nexcerpt: Explore data on child mortality around the world.\ntype: topic-page\n[+body]\n{.topic-page-intro}\n[+.content]\nA short introduction to the topic and why it matters.\n[]\n{}\n\n{.all-charts}\nheading: Interactive Charts on Child Mortality\n{}\n[]"
       }
+    ],
+    "exemplars": [
+      "fertility-rate"
+    ],
+    "skeleton": [
+      {
+        "name": "Intro",
+        "description": "A topic-page-intro block — a few paragraphs on why the topic matters, with related topics and download links alongside. Every published topic page opens with one.",
+        "components": [
+          "topic-page-intro"
+        ]
+      },
+      {
+        "name": "Key insights",
+        "description": "A key-insights slider — one slide per takeaway, each pairing a heading with a chart and a short discussion.",
+        "components": [
+          "key-insights"
+        ]
+      },
+      {
+        "name": "Research & writing",
+        "description": "The research-and-writing grid collecting our articles on the topic.",
+        "components": [
+          "research-and-writing"
+        ]
+      },
+      {
+        "name": "All charts",
+        "description": "The all-charts block — the complete gallery of the topic's interactive charts, generated from the page's topic tag. Nearly every published topic page ends with it.",
+        "components": [
+          "all-charts"
+        ]
+      }
     ]
   },
   {
@@ -623,6 +692,42 @@
       {
         "name": "Example",
         "archie": "title: Child Mortality\nsubtitle: Child deaths are one of the world's largest problems — and one where progress is possible.\nauthors: Jane Doe\nexcerpt: Explore data on child mortality around the world.\ntype: linear-topic-page\n[+body]\nChild mortality remains one of the world's largest problems.\n\n{.heading}\ntext: The global picture\nlevel: 1\n{}\n\nAround 5 million children under five die every year.\n[]"
+      }
+    ],
+    "exemplars": [
+      "religion"
+    ],
+    "skeleton": [
+      {
+        "name": "Opening",
+        "description": "A short untitled introduction, often followed by featured-metrics or an ltp-toc when the page is long.",
+        "components": [
+          "text",
+          "featured-metrics",
+          "ltp-toc"
+        ]
+      },
+      {
+        "name": "Sections",
+        "description": "Level-1 headings drive the page's sticky navigation; each section reads as essay prose with the topic's charts woven in.",
+        "components": [
+          "heading",
+          "text",
+          "chart",
+          "image",
+          "list",
+          "all-charts"
+        ],
+        "repeats": true
+      },
+      {
+        "name": "Closing",
+        "description": "Optional endmatter — an explore-data-section pointing at the topic's explorer, related reading via recirc or prominent links.",
+        "components": [
+          "explore-data-section",
+          "recirc",
+          "prominent-link"
+        ]
       }
     ]
   },
@@ -910,6 +1015,32 @@
       {
         "name": "Example",
         "archie": "title: Solar power keeps getting cheaper\nauthors: Jane Doe\ntype: data-insight\ngrapher-url: https://ourworldindata.org/grapher/solar-pv-prices\n[+body]\nThe price of solar photovoltaic modules has fallen by more than 99% since 1976.\n\nEvery doubling of installed capacity has brought prices down by around 20% — a learning rate that shows no sign of stopping.\n[]"
+      }
+    ],
+    "exemplars": [
+      "the-median-age-in-china-has-rapidly-caught-up-with-the-united-kingdom"
+    ],
+    "skeleton": [
+      {
+        "name": "The image",
+        "description": "One static chart image — the insight is the chart. The title above it states the finding, not the topic.",
+        "components": [
+          "image"
+        ]
+      },
+      {
+        "name": "The point",
+        "description": "Two to four short paragraphs explaining the single pattern the chart shows. Nearly every published data insight is exactly this — image plus prose, nothing else.",
+        "components": [
+          "text"
+        ]
+      },
+      {
+        "name": "Call to action",
+        "description": "Optional closing cta linking to the interactive chart or the related topic page.",
+        "components": [
+          "cta"
+        ]
       }
     ]
   }

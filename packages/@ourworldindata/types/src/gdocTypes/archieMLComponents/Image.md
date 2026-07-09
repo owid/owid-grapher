@@ -1,3 +1,8 @@
+---
+pinned:
+    - slug: the-median-age-in-china-has-rapidly-caught-up-with-the-united-kingdom
+---
+
 A static image uploaded to the OWID admin. The `filename` must match an
 image registered in the admin (where default alt text is also set).
 

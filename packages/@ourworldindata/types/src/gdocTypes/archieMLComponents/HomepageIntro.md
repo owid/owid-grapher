@@ -1,3 +1,7 @@
+---
+system: true
+---
+
 The large introduction block on the homepage: OWID mission copy
 paired with a grid of four featured tiles.
 
