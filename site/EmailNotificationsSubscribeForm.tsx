@@ -53,7 +53,7 @@ export const EmailNotificationsSubscribeForm = ({
 
     const wantsNotifications = contentTypes.length > 0
 
-    const onSubmit = async (event: React.FormEvent) => {
+    const onSubmit = async (event: React.SubmitEvent<HTMLFormElement>) => {
         event.preventDefault()
         setErrorMessage(null)
 
@@ -116,11 +116,11 @@ export const EmailNotificationsSubscribeForm = ({
     if (isSuccess) {
         return (
             <div className="email-notifications-subscribe-form__success">
-                <h3 className="h3-bold">You're subscribed!</h3>
+                <h3 className="h3-bold">Check your inbox</h3>
                 <p>
-                    Your email notification preferences have been saved. You'll
-                    receive an email when we publish new work matching your
-                    preferences.
+                    We've sent a confirmation email to {email}. Click the link
+                    in it to activate the preferences you chose — until then,
+                    nothing changes.
                 </p>
             </div>
         )

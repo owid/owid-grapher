@@ -7,10 +7,12 @@ export {
 } from "./DonationTypes.js"
 
 export {
+    EMAIL_NOTIFICATIONS_CONFIRM_TOKEN_TTL_MS,
     EMAIL_NOTIFICATIONS_CONTENT_TYPE_LABELS,
     EMAIL_NOTIFICATIONS_FREQUENCIES,
     EMAIL_NOTIFICATIONS_FREQUENCY_LABELS,
     EMAIL_NOTIFICATIONS_FROM_ADDRESS,
+    EMAIL_NOTIFICATIONS_MAGIC_LINK_TTL_MS,
     type EmailNotificationsFrequency,
     EmailNotificationsPreferencesTypeObject,
     type EmailNotificationsPreferences,
