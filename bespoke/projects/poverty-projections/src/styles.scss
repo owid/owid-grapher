@@ -1,0 +1,139 @@
+.poverty-projections-page {
+    margin: 24px;
+    font-family: $sans-serif-font-stack;
+}
+
+.poverty-projections-chart-root {
+    color: $dark-text;
+}
+
+.poverty-projections-controls {
+    .poverty-projections-controls__title {
+        font-size: 10px;
+        font-weight: 900;
+        letter-spacing: 0.15em;
+        color: $light-text;
+        text-transform: uppercase;
+        margin: 0;
+        margin-bottom: 12px;
+    }
+
+    .poverty-projections-controls__row {
+        display: flex;
+        column-gap: 16px;
+        row-gap: 8px;
+        align-items: center;
+
+        @include sm-only {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        > * {
+            flex: 1 1 0;
+
+            @include sm-only {
+                width: 100%;
+            }
+        }
+    }
+}
+
+.poverty-projections-captioned-chart {
+    .poverty-projections-captioned-chart__chart-area {
+        position: relative;
+        margin-top: 16px;
+    }
+}
+
+.poverty-projections-header {
+    &.chart-header .chart-header__title {
+        @include sm-only {
+            font-size: 1.25rem;
+        }
+    }
+
+    &.chart-header .chart-header__subtitle {
+        @include sm-only {
+            font-size: 0.9375rem;
+        }
+    }
+}
+
+.poverty-projections-footer {
+    font-size: 0.875rem;
+    margin-top: 8px;
+
+    @include sm-only {
+        font-size: 0.75rem;
+    }
+}
+
+.poverty-projections-chart-container {
+    width: 100%;
+}
+
+.poverty-projections-chart {
+    position: relative;
+}
+
+.poverty-projections-legend {
+    display: flex;
+    flex-wrap: wrap;
+    row-gap: 4px;
+    column-gap: 16px;
+    margin-bottom: 10px;
+
+    .poverty-projections-legend__item {
+        display: flex;
+        align-items: flex-start;
+        gap: 6px;
+        font-size: 0.8125rem;
+        line-height: 1;
+    }
+
+    .poverty-projections-legend__swatch {
+        width: 12px;
+        height: 12px;
+        flex-shrink: 0;
+    }
+}
+
+.poverty-projections-spinner {
+    &.poverty-projections-spinner--standalone {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 10;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(255, 255, 255, 0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: $gray-100;
+    }
+
+    &.poverty-projections-spinner--inline {
+        display: inline-flex;
+        margin-left: 4px;
+        font-size: 0.8em;
+        vertical-align: baseline;
+    }
+}
+
+.poverty-projections-skeleton {
+    position: relative;
+    width: 100%;
+    height: 500px;
+    border: 1px solid $frame-color;
+
+    .poverty-projections-spinner {
+        color: $gray-60;
+    }
+}
+
+.tooltip-container > .Tooltip .content .variable + .variable {
+    border: none;
+}

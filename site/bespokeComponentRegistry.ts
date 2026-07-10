@@ -23,4 +23,7 @@ export const BESPOKE_COMPONENT_REGISTRY: Record<
     demography: {
         scriptUrl: "/demography/index.js",
     },
+    "poverty-projections": {
+        scriptUrl: "/poverty-projections/index.js",
+    },
 }
