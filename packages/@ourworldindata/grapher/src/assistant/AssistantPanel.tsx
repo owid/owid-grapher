@@ -4,7 +4,7 @@ import cx from "clsx"
 import { observer } from "mobx-react"
 import { runInAction } from "mobx"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faCheck } from "@fortawesome/free-solid-svg-icons"
+import { faCheck, faWandMagicSparkles } from "@fortawesome/free-solid-svg-icons"
 import {
     ColumnSlug,
     EntityName,
@@ -39,6 +39,11 @@ export interface AssistantPanelManager {
 
 /** Trailing window for "fastest decline/increase" options */
 const TRAILING_WINDOW_YEARS = 20
+
+/** How many suggestion chips to show by default (before any query) */
+const MAX_DEFAULT_OPTIONS = 3
+/** How many follow-up chips to show after a view has been applied */
+const MAX_FOLLOW_UP_OPTIONS = 3
 
 /** How long the "Applied ..." confirmation is fully visible */
 const CONFIRMATION_HOLD_MS = 2500
@@ -232,7 +237,12 @@ export const AssistantPanel = observer(function AssistantPanel({
         setNote(undefined)
         showConfirmation(description)
         // Build the context after applying so follow-ups reflect the new view
-        setFollowUps(buildFollowUpOptions(view, buildAssistantContext(manager)))
+        setFollowUps(
+            buildFollowUpOptions(view, buildAssistantContext(manager)).slice(
+                0,
+                MAX_FOLLOW_UP_OPTIONS
+            )
+        )
     }
 
     const submitQuery = async (): Promise<void> => {
@@ -273,7 +283,10 @@ export const AssistantPanel = observer(function AssistantPanel({
     const showDefaultOptions =
         !isPending && !confirmation && !options && !followUps && !hasSubmitted
     const displayedOptions = showDefaultOptions
-        ? buildDefaultOptions(buildAssistantContext(manager))
+        ? buildDefaultOptions(buildAssistantContext(manager)).slice(
+              0,
+              MAX_DEFAULT_OPTIONS
+          )
         : options
 
     const renderOptionList = (
@@ -303,6 +316,10 @@ export const AssistantPanel = observer(function AssistantPanel({
     return (
         <div className="assistant-panel">
             <div className="assistant-panel__header">
+                <FontAwesomeIcon
+                    className="assistant-panel__title-icon"
+                    icon={faWandMagicSparkles}
+                />
                 <span className="assistant-panel__title">AI assistant</span>
                 <span className="assistant-panel__beta-tag">Beta</span>
             </div>
@@ -317,6 +334,7 @@ export const AssistantPanel = observer(function AssistantPanel({
                     className="assistant-panel__input"
                     value={inputValue}
                     placeholder="Describe a view of this chart"
+                    icon={faWandMagicSparkles}
                     trackNote="assistant_query_input"
                     onChange={setInputValue}
                     onClear={(): void => setInputValue("")}

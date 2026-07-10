@@ -552,14 +552,19 @@ export class Grapher extends React.Component<GrapherProps> {
                                     <AssistantPanel
                                         manager={this.grapherState}
                                     />
-                                    <ManualControlArea
-                                        manager={this.grapherState}
-                                    />
-                                    <div className="side-panel__entity-selector-slot">
-                                        <EntitySelector
+                                    <div className="side-panel__manual-zone">
+                                        <h2 className="side-panel__manual-zone-header">
+                                            Manual controls
+                                        </h2>
+                                        <ManualControlArea
                                             manager={this.grapherState}
-                                            selection={entitySelectorArray}
                                         />
+                                        <div className="side-panel__entity-selector-slot">
+                                            <EntitySelector
+                                                manager={this.grapherState}
+                                                selection={entitySelectorArray}
+                                            />
+                                        </div>
                                     </div>
                                 </div>
                             ) : (
