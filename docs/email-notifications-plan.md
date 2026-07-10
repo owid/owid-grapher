@@ -199,11 +199,13 @@ throws and aborts the run for every remaining subscriber. And a crash between
 
 Modern bulk-sender rules (Gmail/Yahoo) and spam scoring effectively require:
 
-- **`List-Unsubscribe` + `List-Unsubscribe-Post` headers** (one-click unsubscribe) on
-  the Postmark payload — currently absent in both send paths
-  (`sendEmailNotifications.ts` `sendViaPostmark`, `functions/_common/emailNotifications.ts`
-  `sendPostmarkEmail`). One-click is a background **POST with no page shown** — it
-  must hit the bare unsubscribe endpoint from P0.1, bypassing the confirm page.
+- ✅ **`List-Unsubscribe` + `List-Unsubscribe-Post` headers** — DONE 2026-07-10 on
+  the notification send path (`sendViaPostmark`): one-click is a background POST
+  (RFC 8058) to the unsubscribe endpoint, token in the query string, no page
+  shown. The functions' confirmation and magic-link emails deliberately do NOT
+  carry the headers: they're transactional (outbound stream, exempt from the
+  bulk-sender rules), and an unsubscribe header on a confirmation email to a
+  not-yet-subscribed address would be meaningless.
 - **Plaintext part (`TextBody`)** — currently HTML-only. Comes for free with the
   react-email migration — don't hand-roll it; sequence this after (or as part
   of) P1.2's template migration.
