@@ -79,7 +79,9 @@ export async function sendPostmarkEmail(
         return
     }
 
-    const response = await fetch("https://api.postmarkapp.com/email", {
+    const apiBaseUrl =
+        env.POSTMARK_API_BASE_URL || "https://api.postmarkapp.com"
+    const response = await fetch(`${apiBaseUrl}/email`, {
         method: "POST",
         headers: {
             Accept: "application/json",
