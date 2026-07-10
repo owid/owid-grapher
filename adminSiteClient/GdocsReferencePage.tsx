@@ -30,7 +30,6 @@ import {
     sidecarNotesMarkdown,
     splitSidecarBody,
 } from "./gdocsReferenceSidecar.js"
-import { CopyButton } from "./GdocsReferenceExample.js"
 import {
     ComponentForms,
     ExemplarXray,
@@ -38,7 +37,7 @@ import {
     PropTypeLinks,
     SkeletonScaffold,
     TemplateComponentShortlist,
-    UsageBar,
+    UsageSummary,
 } from "./GdocsReferenceLive.js"
 import {
     docTypeNoun,
@@ -402,14 +401,11 @@ export class GdocsReferencePage extends Component<
         )
     }
 
-    // The frequency a component card/header/nav row carries, on the shared
-    // four-dot vocabulary: its best adoption label across doc types, or "new"
-    // when it exists in the registry but no published doc uses it yet (and it
-    // is not a platform block).
-    private renderUsageBadge(
-        doc: ComponentDoc,
-        hideWord = false
-    ): React.ReactElement | null {
+    // The frequency an overview card carries, on the shared four-dot
+    // vocabulary: its best adoption label across doc types, or "new" when it
+    // exists in the registry but no published doc uses it yet (and it is not
+    // a platform block).
+    private renderUsageBadge(doc: ComponentDoc): React.ReactElement | null {
         if (!this.usage || doc.system) return null
         const usage = this.usageOf(doc)
         if (!usage)
@@ -422,7 +418,7 @@ export class GdocsReferencePage extends Component<
             <FrequencyBadge
                 label={overallUsageLabel(usage)}
                 title={usageTooltip(usage)}
-                hideWord={hideWord}
+                hideWord
             />
         )
     }
@@ -436,7 +432,7 @@ export class GdocsReferencePage extends Component<
             >
                 <div className="gdocs-ref__card-title">
                     {doc.title}
-                    {this.renderUsageBadge(doc, true)}
+                    {this.renderUsageBadge(doc)}
                 </div>
                 <code className="gdocs-ref__card-id">{`{.${doc.id}}`}</code>
                 <p className="gdocs-ref__card-desc">
@@ -656,17 +652,9 @@ export class GdocsReferencePage extends Component<
                 <header className="gdocs-ref__detail-header">
                     <div className="gdocs-ref__detail-title-row">
                         <h1 className="gdocs-ref__detail-title">{doc.title}</h1>
-                        {this.renderUsageBadge(doc)}
                         <span className="gdocs-ref__category-pill">
                             {doc.system ? "Platform block" : doc.category}
                         </span>
-                    </div>
-                    <div className="gdocs-ref__detail-id-row">
-                        <code className="gdocs-ref__detail-id">{`{.${doc.id}}`}</code>
-                        <CopyButton
-                            text={`{.${doc.id}}`}
-                            className="gdocs-ref__chip-copy"
-                        />
                     </div>
                 </header>
                 {intro && (
@@ -684,7 +672,7 @@ export class GdocsReferencePage extends Component<
                     doc.examples
                 )}
                 {this.usage && !doc.system && (
-                    <UsageBar
+                    <UsageSummary
                         usage={this.usageOf(doc)}
                         totalDocsByType={this.usage.totalDocsByType}
                         templateIds={
