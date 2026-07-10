@@ -103,8 +103,8 @@ describe("rounding to significant figures", () => {
     const cases: [string, number, string, TickFormattingOptions][] = [
         ["default", 1, "1.00", {}],
         ["default negative", -1, "-1.00", {}],
-        ["default small", 0.001, "0.00100", {}],
-        ["default very small", 0.0000000001, "0.000000000100", {}],
+        ["default small", 0.001, "<0.01", {}],
+        ["default very small", 0.0000000001, "<0.01", {}],
         ["default million specific", 1_179_766, "1.18 million", {}],
         ["default billion specific", 1_234_567_890, "1.23 billion", {}],
         ["default 10 billion specific", 12_345_678_901, "12.3 billion", {}],
@@ -149,8 +149,8 @@ describe("rounding to significant figures", () => {
         ["1 with 3 significant figures", 1, "1.00", { numSignificantFigures: 3 }],
         ["0.999 with 1 significant figure", 0.999, "1", { numSignificantFigures: 1 }],
         ["0.999 with 2 significant figures", 0.999, "1.0", { numSignificantFigures: 2 }],
-        ["0.999 with 3 significant figures", 0.999, "0.999", { numSignificantFigures: 3 }],
-        ["0.999 with 4 significant figures", 0.999, "0.9990", { numSignificantFigures: 4 }],
+        ["0.999 with 3 significant figures", 0.999, "1.00", { numSignificantFigures: 3 }], // capped at the default of 2 decimal places
+        ["0.999 with 4 significant figures", 0.999, "1.00", { numSignificantFigures: 4 }], // capped at the default of 2 decimal places
         // TODO: should round to '20.0' but returns '19.95'
         // ["19.95 with 4 significant figures", 19.95, "20.0", {numSignificantFigures: 3}],
         ["1234 with 1 significant figure", 1234, "1,000", { numSignificantFigures: 1 }],
@@ -159,9 +159,9 @@ describe("rounding to significant figures", () => {
         ["1234 with 4 significant figures", 1234, "1,234", { numSignificantFigures: 4 }],
         ["1234 with 5 significant figures", 1234, "1,234.0", { numSignificantFigures: 5 }],
         ["1234 with 6 significant figures", 1234, "1,234.00", { numSignificantFigures: 6 }],
-        ["0.0012 with 1 significant figure", 0.0012, '0.001', {numSignificantFigures: 1}],
-        ["0.0012 with 2 significant figures", 0.0012, '0.0012', {numSignificantFigures: 2}],
-        ["0.0012 with 3 significant figures", 0.0012, '0.00120', {numSignificantFigures: 3}],
+        ["0.0012 with 1 significant figure", 0.0012, "<0.01", { numSignificantFigures: 1 }], // capped at the default of 2 decimal places
+        ["0.0012 with 2 significant figures", 0.0012, "<0.01", { numSignificantFigures: 2 }], // capped at the default of 2 decimal places
+        ["0.0012 with 3 significant figures", 0.0012, "<0.01", { numSignificantFigures: 3 }], // capped at the default of 2 decimal places
         ["2 significant figures with abbreviation", 1_234_567, "1.2 million", { numSignificantFigures: 2, numberAbbreviation: "long" }],
         ["3 significant figures with abbreviation", 1_234_567, "1.23 million", { numSignificantFigures: 3, numberAbbreviation: "long" }],
         ["2 significant figures with short abbreviation", 1234, "1.2k", { numSignificantFigures: 2, numberAbbreviation: "short" }],
@@ -177,8 +177,8 @@ describe("rounding to significant figures", () => {
         ["$ spaceBeforeUnit true", 1.1, "$1.10", { spaceBeforeUnit: true, unit: "$" }],
         ["% spaceBeforeUnit true", 1.1, "1.10 %", { spaceBeforeUnit: true, unit: "%" }],
         ["% spaceBeforeUnit false", 1.1, "1.10%", { spaceBeforeUnit: false, unit: "%" }],
-        ["% small", 0.1, "0.100%", { unit: "%" }],
-        ["% very small", 0.001, "0.00100%", { unit: "%" }],
+        ["% small", 0.1, "0.10%", { unit: "%" }], // capped at the default of 2 decimal places
+        ["% very small", 0.001, "<0.01%", { unit: "%" }], // capped at the default of 2 decimal places
         ["%compound spaceBeforeUnit false", 1.1, "1.10%compound", { spaceBeforeUnit: false, unit: "%compound" }],
         ["numberAbbreviation long", 1_000_000_000, "1.00 billion", { numberAbbreviation: "long" }],
         ["numberAbbreviation million specific", 846_691_846.8, "847 million", { numberAbbreviation: "long" }],
@@ -187,12 +187,43 @@ describe("rounding to significant figures", () => {
         ["numberAbbreviation short", 1_000_000_000, "1.00B", { numberAbbreviation: "short" }],
         ["numberAbbreviation %", 20_000, "20,000%", { numberAbbreviation: "short", unit: "%" }],
         ["numberAbbreviation false", 1_000_000_000, "1,000,000,000", { numberAbbreviation: false }],
-        ["numberAbbreviation false very small", 0.000000001, "0.000000001", { numberAbbreviation: false, numSignificantFigures: 1 }],
+        ["numberAbbreviation false very small", 0.000000001, "<0.01", { numberAbbreviation: false, numSignificantFigures: 1 }], // capped at the default of 2 decimal places
         ["showPlus true", 1, "+1.00", { showPlus: true }],
         ["showPlus false", 1, "1.00", { showPlus: false }],
         ["showPlus false with negative number", -1, "-1.00", { showPlus: false }],
         ["showPlus true with unit", 1, "+$1.00", { showPlus: true, unit: "$" }],
         ["showPlus true with % and 4 significant numbers", 1.23456, "+1.235%", { showPlus: true, unit: "%", numSignificantFigures: 4 }],
+    ]
+    cases.forEach(([description, input, output, options]) => {
+        it(description, () => {
+            expect(
+                formatValue(input, {
+                    ...options,
+                    roundingMode: OwidVariableRoundingMode.significantFigures,
+                })
+            ).toBe(output)
+        })
+    })
+})
+
+describe("capping sig-fig rounding for values below 1", () => {
+    // oxfmt-ignore
+    const cases: [string, number, string, TickFormattingOptions][] = [
+        ["value below 1 is capped", 0.234, "0.2", { numDecimalPlaces: 1 }],
+        ["capped value keeps trailing zeroes", 0.997, "1.00", { numDecimalPlaces: 2 }],
+        ["capped value with a unit", 0.345, "0.3%", { numDecimalPlaces: 1, unit: "%" }],
+        ["positive value below the cap's resolution", 0.4, "<1", { numDecimalPlaces: 0 }],
+        ["0.999 is below the cap's resolution", 0.999, "<1", { numDecimalPlaces: 0 }],
+        ["negative value capped to a whole number", -0.7, "-1", { numDecimalPlaces: 0 }],
+        ["negative value that would round to zero keeps sig figs", -0.4, "-0.400", { numDecimalPlaces: 0 }],
+        ["zero renders as plain zero", 0, "0", { numDecimalPlaces: 0 }],
+        ["1 keeps sig figs", 1, "1.00", { numDecimalPlaces: 0 }],
+        ["value above 1 keeps sig figs", 2.34, "2.34", { numDecimalPlaces: 0 }],
+        ["large value keeps sig figs", 234.5, "235", { numDecimalPlaces: 0 }],
+        ["abbreviated value keeps sig figs", 1_234_567, "1.23 million", { numDecimalPlaces: 0, numberAbbreviation: "long" }],
+        ["sig figs kept when they show no more decimals than the cap", 0.0012, "0.00120", { numDecimalPlaces: 5 }],
+        ["sig figs capped when they'd show more decimals than the cap", 0.0012, "0.0012", { numDecimalPlaces: 4 }],
+        ["cap respects numSignificantFigures", 0.000000001, "0.000000001", { numSignificantFigures: 1, numDecimalPlaces: 9 }],
     ]
     cases.forEach(([description, input, output, options]) => {
         it(description, () => {

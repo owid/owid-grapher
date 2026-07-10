@@ -233,7 +233,7 @@ export class DimensionCard<
                             helpText={
                                 this.roundingMode ===
                                 OwidVariableRoundingMode.significantFigures
-                                    ? "Used in Grapher's table where values are always rounded to a fixed number of decimal places"
+                                    ? "Used in Grapher's table where values are always rounded to a fixed number of decimal places. Also caps the number of decimal places for values below 1 when rounding to significant figures"
                                     : undefined
                             }
                         />
