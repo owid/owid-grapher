@@ -7,17 +7,13 @@ A small gray-background block used to draw attention to meta-textual
 information — e.g. "data was last updated", caveats about methodology,
 or short editorial notes.
 
-### With title and info icon
-
 ```archie
 {.callout}
-title: Update
 icon: info
+title: Note on the earlier version of this article
 [.+text]
-This article uses data from 2020
-
-But the conclusions are solid.
-
+This is an update of an article that I published in May 2019 on Our World in Data, titled “<a href="https://web.archive.org/web/20190513154042/https://ourworldindata.org/extreme-poverty-projections">As the world’s poorest economies are stagnating, half a billion are expected to be in extreme poverty in 2030</a>”.
+Based on even earlier projections, I also made this a central point of my presentation to the UN back in 2018, for which you can find my slides <a href="https://ourworldindata.org/max-un-slides">here</a>.
 []
 {}
 ```

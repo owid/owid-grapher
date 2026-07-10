@@ -1,13 +1,11 @@
 A way to cite an excerpt from another source. Renders as an indented,
 quoted passage with an optional attribution line.
 
-### Plain-text citation
-
 ```archie
 {.blockquote}
-citation: Bastian Herre
+citation: Chris Whitty, Chief Medical Officer for England
 [.+text]
-Measuring the state of democracy across the world helps us understand the extent to which people have political rights and freedoms.
+“The key points about vaping (e-cigarettes) can be easily summarised. If you smoke, vaping is much safer; if you don’t smoke, don’t vape.”
 []
 {}
 ```

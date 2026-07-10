@@ -6,15 +6,11 @@ pinned:
 A Grapher chart, explorer, or MDIM embed. The default component for showing
 an interactive Our World in Data chart inline.
 
-### Basic
-
 ```archie
 {.chart}
-url: https://ourworldindata.org/grapher/military-expenditure-share-gdp
+url: https://ourworldindata.org/grapher/unemployment-rate
 {}
 ```
-
-### Narrow, desktop only
 
 ```archie
 {.chart}
@@ -24,8 +20,6 @@ visibility: desktop
 peerCountries: parentRegions
 {}
 ```
-
-### Explorer with controls hidden
 
 ```archie
 {.chart}

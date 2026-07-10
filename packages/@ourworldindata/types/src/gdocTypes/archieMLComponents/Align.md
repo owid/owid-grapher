@@ -1,15 +1,18 @@
 Aligns a block of text horizontally. Affects text only — images, charts,
 and other visual blocks are not re-aligned by this wrapper.
 
-### Centered text
-
 ```archie
 {.align}
 alignment: center
 [.+content]
-Centered text
-
-A centered heading
+{.heading}
+text: The 17 Sustainable Development Goals
+level: 2
+{}
+{.heading}
+text: Click on a Goal below to see interactive charts for available indicators
+level: 3
+{}
 []
 {}
 ```

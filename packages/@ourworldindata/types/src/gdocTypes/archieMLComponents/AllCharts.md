@@ -2,15 +2,12 @@ Shows all Grapher charts that share a tag with the current article. "Key
 charts" (those pinned via the admin) appear at the top; the `[.top]`
 section lets you override or extend that ordering for this article.
 
-### All charts on a topic with pinned top charts
-
 ```archie
 {.all-charts}
-heading: Interactive Charts on Poverty
+heading: Interactive charts on homelessness
 [.top]
-url: https://ourworldindata.org/grapher/size-poverty-gap-countries
-
-url: https://ourworldindata.org/grapher/gdp-per-capita-maddison-2020
+url: https://ourworldindata.org/grapher/homelessness-rate-point-in-time-count
+url: https://ourworldindata.org/grapher/homelessness-rate-flow-count
 []
 {}
 ```

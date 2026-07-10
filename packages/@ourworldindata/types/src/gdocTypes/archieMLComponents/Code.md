@@ -1,11 +1,9 @@
 A block of text rendered verbatim in a monospace font. Use to include
 code samples or markup that should not be interpreted.
 
-### Verbatim iframe markup
-
 ```archie
 [.+code]
-<iframe src="https://ourworldindata.org/grapher/children-per-woman-un" loading="lazy"></iframe>
+<iframe src="https://archive.ourworldindata.org/20250626-192628/grapher/universal-suffrage-lexical.html" loading="lazy" style="width: 100%; height: 600px; border: 0px none;" allow="web-share; clipboard-write"></iframe>
 []
 ```
 

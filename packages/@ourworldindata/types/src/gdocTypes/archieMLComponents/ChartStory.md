@@ -1,21 +1,19 @@
 A carousel of charts, each paired with a narrative caption and a block
 of technical text shown below the chart.
 
-### Two-slide chart story
-
 ```archie
 [.chart-story]
-narrative: Text for slide 1, an overview of the world
-chart: https://ourworldindata.org/grapher/military-expenditure-share-gdp
+narrative: Share of women who were married by age 15
+chart: https://ourworldindata.org/grapher/women-married-by-age-15
 {.technical}
-The poverty gap index is a measure that reflects both the depth and prevalence of poverty.
-Extreme poverty is defined as living below the international poverty line of $1.90 per day
+[.list]
+[]
 {}
-
-narrative: Slide two looks at Africa
-chart: https://ourworldindata.org/grapher/military-expenditure-share-gdp?region=Africa
+narrative: Share of women who were married by age 18
+chart: https://ourworldindata.org/grapher/women-married-by-age-18
 {.technical}
-Data is measured in international-$.
+[.list]
+[]
 {}
 []
 ```

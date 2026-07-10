@@ -1,8 +1,6 @@
 A rendered list of OWID's donors, pulled from the database — the empty
 block just marks where the list renders.
 
-### Basic
-
 ```archie
 {.donors}
 {}

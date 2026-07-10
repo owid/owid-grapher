@@ -3,8 +3,6 @@ A callout whose text interpolates live values from a Grapher chart at the
 data point. For multi-y charts, pass a column name, e.g.
 `$latestTime(emissions_total)`.
 
-### Country life expectancy
-
 ```archie
 {.data-callout}
 url: https://ourworldindata.org/grapher/life-expectancy?country=CAN

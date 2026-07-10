@@ -3,22 +3,18 @@ registered in the admin, all fields (title, description, thumbnail) are
 auto-fetched; you can override any of them, and for non-gdoc URLs you
 must supply them.
 
-### Gdoc URL (auto-fetched)
-
 ```archie
 {.prominent-link}
-url: https://docs.google.com/document/d/1Lo3CtGGESA3iQVrlhlQZbtG15ecUNt1Qfk2X3iBlwIk
+url: https://docs.google.com/document/d/1MSK510rncMZBqM4yaIkeq4D4N0L70NIO5dt8rzX_6YU/edit
 {}
 ```
 
-### External URL with explicit fields
-
 ```archie
 {.prominent-link}
-url: https://ourworldindata.org
-title: About Our World In Data
-description: A simple description
-thumbnail: default-featured-image.png
+url: https://docs.owid.io/projects/etl/analyses/deadliest_animals/
+title: Methodology
+description: If you’re interested in digging deeper, we provide a more detailed methodological document that lays out the uncertainties and sources behind these numbers.
+thumbnail: most-deadly-animal-featured.png
 {}
 ```
 

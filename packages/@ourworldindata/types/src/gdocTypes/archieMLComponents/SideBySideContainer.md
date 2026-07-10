@@ -6,15 +6,17 @@ A two-column layout with left and right columns of roughly equal weight.
 Collapses to a single column at the smartphone breakpoint (stays
 side-by-side on tablets, unlike `{.sticky-right}` / `{.sticky-left}`).
 
-### Two text blocks side-by-side
-
 ```archie
-{.side-by-side}
-[.+left]
-I am content on the left.
-[]
+{ .side-by-side }
 [.+right]
-I am content on the right.
+{.chart}
+url: https://ourworldindata.org/grapher/share-of-deaths-cause-is-registered
+{}
+[]
+[.+left]
+{.chart}
+url: https://ourworldindata.org/grapher/share-of-deaths-registered
+{}
 []
 {}
 ```

@@ -1,12 +1,10 @@
 A simple link rendered with an arrow. Colored blue in data insights, red
 in other contexts.
 
-### Basic
-
 ```archie
 {.cta}
-url: https://ourworldindata.org/grapher/life-expectancy
-text: Check this out!
+text: Explore our interactive chart of objects launched into space.
+url: https://ourworldindata.org/grapher/yearly-number-of-objects-launched-into-outer-space
 {}
 ```
 

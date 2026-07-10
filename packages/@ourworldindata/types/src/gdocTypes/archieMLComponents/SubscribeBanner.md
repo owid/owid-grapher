@@ -2,8 +2,6 @@ A small gray block inviting readers to subscribe. Added automatically to
 every article and linear topic page; only include this block manually if
 you want an additional copy inline.
 
-### Centered
-
 ```archie
 {.subscribe-banner}
 align: center

@@ -1,13 +1,16 @@
 A full-width section with a light-gray background. Wraps any other
 ArchieML content to visually set it apart from the surrounding prose.
 
-### A heading and some content on a gray background
-
 ```archie
 [.+gray-section]
-A heading within a gray section
-
-Some content
+{.heading}
+text: Explore Data on Energy
+level: 1
+{}
+{.chart}
+url: https://ourworldindata.org/explorers/energy?Total+or+Breakdown=Total&Energy+or+Electricity=Primary+energy&Metric=Per+capita+consumption&country=USA~GBR~CHN~OWID_WRL~IND~BRA~ZAF&tab=map&hideControls=false
+size: wide
+{}
 []
 ```
 
