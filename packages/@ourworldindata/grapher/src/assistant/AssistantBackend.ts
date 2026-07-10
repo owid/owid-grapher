@@ -31,6 +31,9 @@ import { isWorldEntityName } from "../core/GrapherConstants.js"
 
 /** Chart context handed to the backend alongside the user's query */
 export interface AssistantChartContext {
+    /** Chart title/subtitle, used by LLM backends to describe the chart */
+    chartTitle?: string
+    chartSubtitle?: string
     availableEntityNames: EntityName[]
     availableTabs: GrapherTabName[]
     activeTab: GrapherTabName
@@ -91,8 +94,22 @@ export type AssistantResponse =
           view: AssistantView
           params: GrapherQueryParams
           description: string
+          /**
+           * Optional backend-suggested follow-up views (already validated and
+           * templated). When absent, the panel builds deterministic follow-ups
+           * via `buildFollowUpOptions`.
+           */
+          followUps?: AssistantViewOption[]
+          /** Canned backend-status line (never model-authored text) */
+          notice?: string
       }
-    | { kind: "options"; options: AssistantViewOption[]; note?: string }
+    | {
+          kind: "options"
+          options: AssistantViewOption[]
+          note?: string
+          /** Canned backend-status line (never model-authored text) */
+          notice?: string
+      }
 
 export interface AssistantBackend {
     respond(

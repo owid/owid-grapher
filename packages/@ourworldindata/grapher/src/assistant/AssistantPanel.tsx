@@ -1,5 +1,5 @@
 import * as React from "react"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import cx from "clsx"
 import { observer } from "mobx-react"
 import { runInAction } from "mobx"
@@ -12,13 +12,17 @@ import {
     GrapherTabName,
     Time,
 } from "@ourworldindata/types"
+import { Bounds } from "@ourworldindata/utils"
 import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
 import { SelectionArray } from "../selection/SelectionArray"
 import { groupEntitiesByRegionType } from "../core/RegionGroups"
 import { SearchField } from "../controls/SearchField"
+import { Modal } from "../modal/Modal"
+import { DEFAULT_GRAPHER_BOUNDS } from "../core/GrapherConstants"
 import {
     AssistantBackend,
     AssistantChartContext,
+    AssistantResponse,
     AssistantTrailingChange,
     AssistantView,
     AssistantViewOption,
@@ -26,6 +30,16 @@ import {
     buildDefaultOptions,
     buildFollowUpOptions,
 } from "./AssistantBackend"
+import {
+    CLAUDE_INVALID_KEY_NOTICE,
+    ClaudeAssistantBackend,
+    ClaudeInvalidKeyError,
+    clearStoredClaudeApiKey,
+    readDemoModeChoice,
+    readStoredClaudeApiKey,
+    rememberDemoModeChoice,
+    storeClaudeApiKey,
+} from "./ClaudeAssistantBackend"
 
 export interface AssistantPanelManager {
     availableTabs: GrapherTabName[]
@@ -35,6 +49,9 @@ export interface AssistantPanelManager {
     yColumnSlugs: ColumnSlug[]
     inputTable: OwidTable
     populateFromQueryParams: (params: GrapherQueryParams) => void
+    displayTitle?: string
+    currentSubtitle?: string
+    frameBounds?: Bounds
 }
 
 /** Trailing window for "fastest decline/increase" options */
@@ -77,6 +94,8 @@ function buildAssistantContext(
     const column = columnSlug ? manager.inputTable.get(columnSlug) : undefined
 
     return {
+        chartTitle: manager.displayTitle,
+        chartSubtitle: manager.currentSubtitle,
         availableEntityNames: manager.inputTable.availableEntityNames,
         availableTabs: manager.availableTabs,
         activeTab: manager.activeTab,
@@ -173,6 +192,9 @@ function computeTrailingChange(
     return { startTime, endTime, changeByEntityName }
 }
 
+/** State of the internal-demo API key modal */
+type KeyModalState = "closed" | "connect" | "invalid-key"
+
 export const AssistantPanel = observer(function AssistantPanel({
     manager,
 }: {
@@ -187,11 +209,26 @@ export const AssistantPanel = observer(function AssistantPanel({
         AssistantViewOption[] | undefined
     >()
     const [note, setNote] = useState<string | undefined>()
+    /** Canned backend-status line (e.g. "using demo matcher"), never prose */
+    const [notice, setNotice] = useState<string | undefined>()
     const [hasSubmitted, setHasSubmitted] = useState(false)
+    // Claude connection state. The key lives in localStorage so it survives
+    // reloads; it is never rendered back into the DOM after saving.
+    const [claudeKey, setClaudeKey] = useState<string | undefined>(() =>
+        readStoredClaudeApiKey()
+    )
+    const [keyModalState, setKeyModalState] = useState<KeyModalState>("closed")
+    const [keyDraft, setKeyDraft] = useState("")
+    /** Query submitted while the key modal was open, run after a choice */
+    const [pendingQuery, setPendingQuery] = useState<string | undefined>()
     const requestIdRef = useRef(0)
     const confirmationTimersRef = useRef<number[]>([])
-    const backendRef = useRef<AssistantBackend>(undefined)
-    backendRef.current ??= new MockAssistantBackend()
+
+    const mockBackend = useMemo(() => new MockAssistantBackend(), [])
+    const backend = useMemo<AssistantBackend>(
+        () => (claudeKey ? new ClaudeAssistantBackend(claudeKey) : mockBackend),
+        [claudeKey, mockBackend]
+    )
 
     // Clear any pending confirmation timers on unmount
     useEffect(
@@ -229,25 +266,27 @@ export const AssistantPanel = observer(function AssistantPanel({
     const applyView = (
         view: AssistantView,
         params: GrapherQueryParams,
-        description: string
+        description: string,
+        backendFollowUps?: AssistantViewOption[]
     ): void => {
         runInAction(() => manager.populateFromQueryParams(params))
         setHasSubmitted(true)
         setOptions(undefined)
         setNote(undefined)
         showConfirmation(description)
-        // Build the context after applying so follow-ups reflect the new view
-        setFollowUps(
-            buildFollowUpOptions(view, buildAssistantContext(manager)).slice(
-                0,
-                MAX_FOLLOW_UP_OPTIONS
-            )
-        )
+        // Prefer validated backend-suggested follow-ups; otherwise build
+        // deterministic ones from the context after applying the view
+        const effectiveFollowUps =
+            backendFollowUps && backendFollowUps.length > 0
+                ? backendFollowUps
+                : buildFollowUpOptions(view, buildAssistantContext(manager))
+        setFollowUps(effectiveFollowUps.slice(0, MAX_FOLLOW_UP_OPTIONS))
     }
 
-    const submitQuery = async (): Promise<void> => {
-        const query = inputValue.trim()
-        if (!query) return
+    const runQuery = async (
+        query: string,
+        queryBackend: AssistantBackend
+    ): Promise<void> => {
         const requestId = ++requestIdRef.current
 
         setHasSubmitted(true)
@@ -258,24 +297,97 @@ export const AssistantPanel = observer(function AssistantPanel({
         setOptions(undefined)
         setFollowUps(undefined)
         setNote(undefined)
+        setNotice(undefined)
 
         const context = buildAssistantContext(manager)
-        const response = await backendRef.current!.respond(query, context)
+        let response: AssistantResponse
+        try {
+            response = await queryBackend.respond(query, context)
+        } catch (error) {
+            // Ignore responses that were superseded by a newer query
+            if (requestId !== requestIdRef.current) return
+            setIsPending(false)
+            if (error instanceof ClaudeInvalidKeyError) {
+                // The stored key is invalid: forget it and re-open the modal
+                // so the user can paste a fresh one (or use demo responses)
+                clearStoredClaudeApiKey()
+                setClaudeKey(undefined)
+                setPendingQuery(query)
+                setKeyModalState("invalid-key")
+            }
+            return
+        }
 
-        // Ignore responses that were superseded by a newer query
         if (requestId !== requestIdRef.current) return
         setIsPending(false)
 
         if (response.kind === "apply") {
-            applyView(response.view, response.params, response.description)
+            applyView(
+                response.view,
+                response.params,
+                response.description,
+                response.followUps
+            )
         } else {
             setOptions(response.options)
             setNote(response.note)
         }
+        setNotice(response.notice)
+    }
+
+    const submitQuery = async (): Promise<void> => {
+        const query = inputValue.trim()
+        if (!query) return
+        // Without a connected key (and no explicit "demo responses" choice
+        // this session), ask for one via the internal-demo modal first
+        if (!claudeKey && !readDemoModeChoice()) {
+            setPendingQuery(query)
+            setKeyDraft("")
+            setKeyModalState("connect")
+            return
+        }
+        await runQuery(query, backend)
     }
 
     const handleOptionClick = (option: AssistantViewOption): void => {
+        setNotice(undefined)
         applyView(option.view, option.params, option.description)
+    }
+
+    // --- internal-demo key modal actions ---------------------------------
+
+    const resumePendingQuery = (queryBackend: AssistantBackend): void => {
+        const query = pendingQuery
+        setPendingQuery(undefined)
+        if (query) void runQuery(query, queryBackend)
+    }
+
+    const connectClaude = (): void => {
+        const key = keyDraft.trim()
+        if (!key) return
+        storeClaudeApiKey(key)
+        setClaudeKey(key)
+        // The key is never rendered back into the DOM after saving
+        setKeyDraft("")
+        setKeyModalState("closed")
+        resumePendingQuery(new ClaudeAssistantBackend(key))
+    }
+
+    const useDemoResponses = (): void => {
+        // Remember the choice for this session so we don't re-prompt on
+        // every query; a fresh visit prompts again
+        rememberDemoModeChoice()
+        setKeyDraft("")
+        setKeyModalState("closed")
+        resumePendingQuery(mockBackend)
+    }
+
+    // Escape / outside click: answer the query with the demo matcher, but
+    // don't remember the choice — the next query prompts again
+    const dismissKeyModal = (): void => {
+        setKeyDraft("")
+        setKeyModalState("closed")
+        resumePendingQuery(mockBackend)
     }
 
     // Before the first query (and while idle), offer default views that are
@@ -288,6 +400,14 @@ export const AssistantPanel = observer(function AssistantPanel({
               MAX_DEFAULT_OPTIONS
           )
         : options
+
+    // The key modal is centered over the grapher frame, matching the
+    // entity selector modal's sizing approach
+    const frameBounds = manager.frameBounds ?? DEFAULT_GRAPHER_BOUNDS
+    const keyModalMaxWidth = 420
+    const keyModalBounds = frameBounds
+        .padHeight(24)
+        .padWidth(Math.max(16, (frameBounds.width - keyModalMaxWidth) / 2))
 
     const renderOptionList = (
         optionList: AssistantViewOption[]
@@ -366,6 +486,11 @@ export const AssistantPanel = observer(function AssistantPanel({
                         </span>
                     </div>
                 )}
+                {notice && (
+                    <div className="assistant-panel__notice" aria-live="polite">
+                        {notice}
+                    </div>
+                )}
                 {note && <div className="assistant-panel__note">{note}</div>}
                 {displayedOptions && displayedOptions.length > 0 && (
                     <>
@@ -388,6 +513,63 @@ export const AssistantPanel = observer(function AssistantPanel({
                     </>
                 )}
             </div>
+            {keyModalState !== "closed" && (
+                <Modal bounds={keyModalBounds} onDismiss={dismissKeyModal}>
+                    <div className="assistant-key-modal">
+                        <h3 className="assistant-key-modal__title">
+                            Internal demo setup
+                        </h3>
+                        <p className="assistant-key-modal__text">
+                            This dialog isn&rsquo;t part of the prototype. To
+                            power the assistant for this internal demo, paste an
+                            Anthropic API key &mdash; it&rsquo;s stored only in
+                            your browser.
+                        </p>
+                        {keyModalState === "invalid-key" && (
+                            <p className="assistant-key-modal__error">
+                                {CLAUDE_INVALID_KEY_NOTICE}
+                            </p>
+                        )}
+                        <form
+                            className="assistant-key-modal__form"
+                            onSubmit={(event): void => {
+                                event.preventDefault()
+                                connectClaude()
+                            }}
+                        >
+                            <input
+                                className="assistant-key-modal__input"
+                                type="password"
+                                autoComplete="off"
+                                autoFocus
+                                placeholder="Anthropic API key (sk-ant-…)"
+                                value={keyDraft}
+                                onChange={(event): void =>
+                                    setKeyDraft(event.target.value)
+                                }
+                            />
+                            <div className="assistant-key-modal__actions">
+                                <button
+                                    type="submit"
+                                    className="assistant-key-modal__connect"
+                                    disabled={!keyDraft.trim()}
+                                    data-track-note="assistant_connect_claude"
+                                >
+                                    Connect
+                                </button>
+                                <button
+                                    type="button"
+                                    className="assistant-key-modal__demo"
+                                    onClick={useDemoResponses}
+                                    data-track-note="assistant_demo_responses"
+                                >
+                                    Use demo responses
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </Modal>
+            )}
         </div>
     )
 })
