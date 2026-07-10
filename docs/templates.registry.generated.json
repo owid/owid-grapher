@@ -203,7 +203,6 @@
     ],
     "examples": [
       {
-        "name": "Example",
         "archie": "title: The decline of global child mortality\nsubtitle: Child deaths have fallen from over 20 million per year in 1950 to under 5 million today.\nauthors: Jane Doe\ndateline: June 30, 2026\nexcerpt: Child mortality has fallen dramatically over the last two centuries.\ntype: article\nfeatured-image: child-mortality-featured.png\n[+body]\nOver the last two centuries, child mortality has declined in every world region.\n\n{.chart}\nurl: https://ourworldindata.org/grapher/child-mortality\n{}\n\n{.heading}\ntext: Why did child mortality decline?\nlevel: 1\n{}\n\nImprovements in nutrition, sanitation, vaccination and access to healthcare all played a role.\n[]"
       }
     ],
@@ -448,7 +447,6 @@
     ],
     "examples": [
       {
-        "name": "Example",
         "archie": "title: Child Mortality\nauthors: Jane Doe\nexcerpt: Explore data on child mortality around the world.\ntype: topic-page\n[+body]\n{.topic-page-intro}\n[+.content]\nA short introduction to the topic and why it matters.\n[]\n{}\n\n{.all-charts}\nheading: Interactive Charts on Child Mortality\n{}\n[]"
       }
     ],
@@ -690,7 +688,6 @@
     ],
     "examples": [
       {
-        "name": "Example",
         "archie": "title: Child Mortality\nsubtitle: Child deaths are one of the world's largest problems — and one where progress is possible.\nauthors: Jane Doe\nexcerpt: Explore data on child mortality around the world.\ntype: linear-topic-page\n[+body]\nChild mortality remains one of the world's largest problems.\n\n{.heading}\ntext: The global picture\nlevel: 1\n{}\n\nAround 5 million children under five die every year.\n[]"
       }
     ],
@@ -935,7 +932,6 @@
     ],
     "examples": [
       {
-        "name": "Example",
         "archie": "title: Shared methodology notes\nauthors: Jane Doe\ntype: fragment\n[+body]\nOur estimates combine the sources described below.\n\n{.heading}\ntext: Sources\nlevel: 1\n{}\n\nVital registration data where available, complemented by survey estimates.\n[]"
       }
     ]
@@ -1013,7 +1009,6 @@
     ],
     "examples": [
       {
-        "name": "Example",
         "archie": "title: Solar power keeps getting cheaper\nauthors: Jane Doe\ntype: data-insight\ngrapher-url: https://ourworldindata.org/grapher/solar-pv-prices\n[+body]\nThe price of solar photovoltaic modules has fallen by more than 99% since 1976.\n\nEvery doubling of installed capacity has brought prices down by around 20% — a learning rate that shows no sign of stopping.\n[]"
       }
     ],
