@@ -164,20 +164,6 @@ interface ScannedInstance {
     signature: string
 }
 
-// Raw-block value keys whose (scalar) value distinguishes variations worth
-// browsing separately — e.g. a narrow chart is a different form than a wide
-// one, but two charts with different URLs are the same form.
-const SALIENT_VALUE_KEYS = new Set([
-    "size",
-    "position",
-    "align",
-    "alignment",
-    "icon",
-    "style",
-    "variant",
-    "level",
-])
-
 // A posts_gdocs_components config: the enriched block as stored by
 // extractGdocComponentInfo — child blocks omitted, spans flattened to plain
 // text strings.
@@ -237,8 +223,8 @@ function configToRaw(config: StoredConfig): OwidRawGdocBlock {
  */
 interface MinimalBlock {
     raw: OwidRawGdocBlock
-    /** Signature parts of the minimal raw, before universal-part folding */
-    parts: string[]
+    /** The surviving (authored, non-empty) value props of the minimal raw */
+    props: Record<string, unknown>
 }
 
 function tryParseRaw(raw: OwidRawGdocBlock): OwidEnrichedGdocBlock | undefined {
@@ -252,7 +238,7 @@ function tryParseRaw(raw: OwidRawGdocBlock): OwidEnrichedGdocBlock | undefined {
 function minimizeRaw(raw: OwidRawGdocBlock): MinimalBlock {
     const value = (raw as { value?: unknown }).value
     if (typeof value !== "object" || value === null || Array.isArray(value))
-        return { raw, parts: [] }
+        return { raw, props: {} }
     const props = value as Record<string, unknown>
     for (const key of Object.keys(props)) {
         if (props[key] === undefined) delete props[key]
@@ -277,19 +263,14 @@ function minimizeRaw(raw: OwidRawGdocBlock): MinimalBlock {
         }
     }
 
-    const parts: string[] = []
+    const authored: Record<string, unknown> = {}
     for (const [key, v] of Object.entries(props)) {
         if (v === null) continue
         if (typeof v === "string" && v.trim() === "") continue
         if (Array.isArray(v) && v.length === 0) continue
-        if (
-            SALIENT_VALUE_KEYS.has(key) &&
-            (typeof v === "string" || typeof v === "number")
-        )
-            parts.push(key + ":" + String(v))
-        else parts.push(key)
+        authored[key] = v
     }
-    return { raw, parts: parts.sort() }
+    return { raw, props: authored }
 }
 
 function minimizeConfig(
@@ -314,6 +295,30 @@ function minimalArchieFromEnriched(
     } catch {
         return undefined
     }
+}
+
+/**
+ * A surviving prop joins the signature by presence ("caption") or — for the
+ * component's valueProps, derived by the registry generator from the
+ * declared types (literal unions, enums, numbers, booleans) — by value
+ * ("size:narrow" is a different form than "size:wide", but two charts with
+ * different urls are the same form).
+ */
+function partsOf(
+    minimal: MinimalBlock | undefined,
+    valueProps: Set<string>
+): string[] {
+    if (!minimal) return []
+    const parts: string[] = []
+    for (const [key, v] of Object.entries(minimal.props)) {
+        if (
+            valueProps.has(key) &&
+            (typeof v === "string" || typeof v === "number")
+        )
+            parts.push(key + ":" + String(v))
+        else parts.push(key)
+    }
+    return parts.sort()
 }
 
 /**
@@ -474,14 +479,18 @@ export async function getComponentInstances(
         row,
         minimal: minimizeConfig(parseConfig(row.config)),
     }))
-    const universal = universalParts(
-        parsed.map((instance) => instance.minimal?.parts ?? [])
+    const valueProps = new Set(doc.valueProps ?? [])
+    const allParts = parsed.map((instance) =>
+        partsOf(instance.minimal, valueProps)
     )
-    const scanned: ScannedInstance[] = parsed.map(({ row, minimal }) => ({
-        row,
-        minimal,
-        signature: signatureFromParts(minimal?.parts ?? [], universal),
-    }))
+    const universal = universalParts(allParts)
+    const scanned: ScannedInstance[] = parsed.map(
+        ({ row, minimal }, index) => ({
+            row,
+            minimal,
+            signature: signatureFromParts(allParts[index], universal),
+        })
+    )
 
     // Variations rank over the full (unfiltered) scan.
     const bySignature = new Map<string, ScannedInstance[]>()
@@ -584,16 +593,19 @@ export async function getComponentInstances(
                     // Flatten the example block exactly like the extraction
                     // pipeline flattens stored configs (children omitted,
                     // spans to plain text), so signatures compare like for
-                    // like.
+                    // like — including the scan-derived enum props.
                     const [flattened] = enumerateGdocComponentsWithoutChildren(
                         block,
                         "$.body",
                         "$.body[0]"
                     )
                     signature = signatureFromParts(
-                        minimizeConfig(
-                            flattened?.content as StoredConfig | undefined
-                        )?.parts ?? [],
+                        partsOf(
+                            minimizeConfig(
+                                flattened?.content as StoredConfig | undefined
+                            ),
+                            valueProps
+                        ),
                         universal
                     )
                 }

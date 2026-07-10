@@ -115,18 +115,20 @@ describe("writing reference live API", { timeout: 20000 }, () => {
                 // without injected defaults depending on when its doc was
                 // last saved — a bare chart and an explicit size:wide chart
                 // MUST land in the same variation, or the analysis depends
-                // on parser vintage.
+                // on parser vintage. Two narrow charts, so the size value
+                // repeats and is detected as an enum-like choice.
                 chart("https://example.org/grapher/a"),
                 chart("https://example.org/grapher/b", "wide"),
                 chart("https://example.org/grapher/c", "narrow"),
+                chart("https://example.org/grapher/d", "narrow"),
             ],
         })
 
         const json = await env.fetchJson(
             "/gdocs-reference/components/chart/instances.json"
         )
-        expect(json.total).toBe(3)
-        expect(json.instances).toHaveLength(3)
+        expect(json.total).toBe(4)
+        expect(json.instances).toHaveLength(4)
         for (const instance of json.instances) {
             expect(instance.slug).toBe("us-crime-rates")
             expect(instance.archie).toContain("{.chart}")
@@ -134,8 +136,9 @@ describe("writing reference live API", { timeout: 20000 }, () => {
             expect(instance.anchor).toBe("a-section")
         }
         // bare and explicit-wide collapse into the standard form; narrow is
-        // the deviation. url never shows: it is on every instance, so it is
-        // what the component is, not a variation.
+        // the deviation, split by value because size values repeat across
+        // instances (an observed enum). url never shows: it is on every
+        // instance, so it is what the component is, not a variation.
         const bySignature = new Map<string, number>(
             json.variations.map(
                 (variation: { signature: string; count: number }) => [
@@ -145,7 +148,7 @@ describe("writing reference live API", { timeout: 20000 }, () => {
             )
         )
         expect(bySignature.get("")).toBe(2)
-        expect(bySignature.get("size:narrow")).toBe(1)
+        expect(bySignature.get("size:narrow")).toBe(2)
         expect([...bySignature.keys()].join("+")).not.toContain("url")
         // the displayed source is minimal: injected defaults never show as
         // typed characters, deviations always do

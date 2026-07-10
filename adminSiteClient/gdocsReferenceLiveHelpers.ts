@@ -164,7 +164,9 @@ export function humanizeVariation(signature: string): string {
         .split("+")
         .map((part) => {
             const [key, value] = part.split(":")
-            return value === undefined ? `with ${key}` : `${key}: ${value}`
+            // "hasOutline:true" reads as presence, not as a value choice
+            if (value === undefined || value === "true") return `with ${key}`
+            return `${key}: ${value}`
         })
         .join(", ")
 }
