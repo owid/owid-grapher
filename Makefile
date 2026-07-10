@@ -34,7 +34,7 @@ ifdef WRANGLER_PORT
 WRANGLER_PORT := $(strip $(WRANGLER_PORT))
 endif
 
-.PHONY: help up up.headless dockerdb.headless up.full down down.headless refresh refresh.wp refresh.private refresh.full migrate svgtest svgtest.reset svgtest.graphers svgtest.grapher-views svgtest.mdims svgtest.explorers svgtest.thumbnails bdd bdd.ui check-not-prod
+.PHONY: help up up.headless up.full down down.headless refresh refresh.wp refresh.private refresh.full migrate svgtest svgtest.reset svgtest.graphers svgtest.grapher-views svgtest.mdims svgtest.explorers svgtest.thumbnails bdd bdd.ui check-not-prod
 
 help:
 	@echo 'Available commands:'
@@ -121,104 +121,14 @@ up.devcontainer: create-if-missing.env.devcontainer tmp-downloads/owid_metadata.
 		bind X kill-pane \; \
 		bind Q kill-server
 
-up.headless: export COMPOSE_PROJECT_NAME ?= owid-grapher
-up.headless: export ADMIN_SERVER_PORT ?= 3030
-up.headless: export VITE_PORT ?= 8090
-# never wait on an interactive prompt when corepack fetches yarn
-up.headless: export COREPACK_ENABLE_DOWNLOAD_PROMPT ?= 0
-
 # Headless variant of `make up` for environments without a terminal to attach
-# tmux to (AI agents, cloud sandboxes, CI). Uses a MySQL that is already
-# reachable at GRAPHER_DB_HOST:GRAPHER_DB_PORT (e.g. a native mysqld, as in the
-# cloud sandbox snapshot) and otherwise starts one via docker compose. Runs the
-# admin server and vite as background processes logging into logs/.
+# tmux to (AI agents, cloud sandboxes, CI) — see the script for details.
 up.headless: require.headless create-if-missing.env node_modules
 	@make validate.env
-
-	@mkdir -p logs
-# the reachability probe sources .env itself because make's `include .env`
-# happened before create-if-missing.env could create the file on a first run
-	@if bash -c 'set -a; . ./.env 2>/dev/null; exec 3<>"/dev/tcp/$${GRAPHER_DB_HOST:-127.0.0.1}/$${GRAPHER_DB_PORT:-3307}"' 2>/dev/null; then \
-		echo '==> MySQL is already reachable, skipping docker'; \
-	elif service mysql start >/dev/null 2>&1 && sleep 3 && bash -c 'set -a; . ./.env 2>/dev/null; exec 3<>"/dev/tcp/$${GRAPHER_DB_HOST:-127.0.0.1}/$${GRAPHER_DB_PORT:-3307}"' 2>/dev/null; then \
-		echo '==> Started the local mysql service, skipping docker'; \
-	else \
-		$(MAKE) dockerdb.headless; \
-	fi
-
-	@echo '==> (Re)starting the admin server and vite in the background'
-# the [b]racket trick: make runs this line via `sh -c "pkill -f '...'"`, so the
-# pattern appears in that shell's own command line — a plain pattern makes
-# procps-ng pkill kill the recipe's shell (make reports "Terminated")
-	@pkill -f 'adminSiteServer/app[.]ts' 2>/dev/null || true
-	@pkill -f 'vite dev --config vite[.]config-site.mts' 2>/dev/null || true
-	@ADMIN_SERVER_PORT=$(ADMIN_SERVER_PORT) nohup yarn startAdminDevServer > logs/admin-server.log 2>&1 & echo $$! > logs/admin-server.pid
-	@VITE_PORT=$(VITE_PORT) nohup yarn startSiteFront > logs/vite.log 2>&1 & echo $$! > logs/vite.pid
-
-	@echo '==> Waiting for the admin server to come up (can take a few minutes)'
-	@for i in $$(seq 1 180); do \
-		if curl -sf -o /dev/null http://localhost:$(ADMIN_SERVER_PORT)/; then break; fi; \
-		if [ $$i -eq 180 ]; then echo 'ERROR: admin server did not come up, check logs/admin-server.log'; exit 1; fi; \
-		printf '.'; sleep 2; \
-	done
-	@echo
-	@echo 'Dev environment is up (logs in logs/, stop with `make down.headless`):'
-	@echo
-	@echo "    http://localhost:$(ADMIN_SERVER_PORT)/  <-- a basic version of Our World in Data"
-	@echo "    http://localhost:$(ADMIN_SERVER_PORT)/grapher/life-expectancy  <-- an example chart"
-	@echo "    http://localhost:$(ADMIN_SERVER_PORT)/admin/  <-- an admin interface"
-	@echo "    http://localhost:$(VITE_PORT)/  <-- the vite dev server"
-
-dockerdb.headless: export COMPOSE_PROJECT_NAME ?= owid-grapher
-
-# Docker leg of up.headless: start the docker daemon if needed, bring up MySQL
-# via docker compose and wait for the data import to finish.
-dockerdb.headless: tmp-downloads/owid_metadata.sql.gz
-	@docker info >/dev/null 2>&1 || { \
-		echo '==> Docker daemon not running, attempting to start it'; \
-		service docker start >/dev/null 2>&1 || sudo service docker start >/dev/null 2>&1 || true; \
-		docker info >/dev/null 2>&1 || { \
-			echo '==> service start failed, launching dockerd directly'; \
-			nohup dockerd > logs/dockerd.log 2>&1 & \
-		}; \
-		for i in $$(seq 1 15); do docker info >/dev/null 2>&1 && break; sleep 2; done; \
-		docker info >/dev/null 2>&1 || { echo 'ERROR: docker daemon is not running and could not be started (on macOS, start Docker Desktop; see logs/dockerd.log otherwise)'; exit 1; }; \
-	}
-
-	@echo '==> Starting MySQL via docker compose'
-	COMPOSE_PROJECT_NAME=$(COMPOSE_PROJECT_NAME) docker compose -f docker-compose.grapher.yml up -d
-
-	@make wait-for-mysql.headless
-
-wait-for-mysql.headless: export COMPOSE_PROJECT_NAME ?= owid-grapher
-
-# Like devTools/docker/wait-for-mysql.sh, but runs the mysql client inside the
-# db container so it works on hosts without a mysql client installed. Waits for
-# the db-load-data init container to exit first: the grapher db and user exist
-# before the dump import finishes, so a bare `select 1` passes too early.
-wait-for-mysql.headless:
-	@echo '==> Waiting for the db init container ($(COMPOSE_PROJECT_NAME)-db-load-data-1) to finish (the first run imports the db dump and can take 5-15 minutes)'
-	@for i in $$(seq 1 240); do \
-		if [ "$$(docker inspect -f '{{.State.Status}}' $(COMPOSE_PROJECT_NAME)-db-load-data-1 2>/dev/null)" = "exited" ]; then break; fi; \
-		if [ $$i -eq 240 ]; then echo; echo 'ERROR: db init container did not finish, current containers:'; docker ps -a; exit 1; fi; \
-		printf '.'; sleep 5; \
-	done
-	@test "$$(docker inspect -f '{{.State.ExitCode}}' $(COMPOSE_PROJECT_NAME)-db-load-data-1)" = "0" \
-		|| { echo "ERROR: db load failed, check: docker logs $(COMPOSE_PROJECT_NAME)-db-load-data-1"; exit 1; }
-	@until COMPOSE_PROJECT_NAME=$(COMPOSE_PROJECT_NAME) docker compose -f docker-compose.grapher.yml exec -T db \
-		mysql -u$(GRAPHER_DB_USER) -p$(GRAPHER_DB_PASS) -h 127.0.0.1 -e 'select 1' $(GRAPHER_DB_NAME) >/dev/null 2>&1; \
-		do printf '.'; sleep 2; done
-	@echo ' ok'
-
-down.headless: export COMPOSE_PROJECT_NAME ?= owid-grapher
+	@./devTools/docker/up-headless.sh
 
 down.headless:
-	@echo '==> Stopping background dev servers'
-# bracketed patterns so pkill doesn't match (and kill) the recipe's own shell,
-# see up.headless
-	@pkill -f 'adminSiteServer/app[.]ts' 2>/dev/null || true
-	@pkill -f 'vite dev --config vite[.]config-site.mts' 2>/dev/null || true
-	@make down
+	@./devTools/docker/down-headless.sh
 
 require.headless:
 	@echo '==> Checking your environment has the necessary commands...'
