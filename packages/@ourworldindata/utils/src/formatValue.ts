@@ -1,4 +1,4 @@
-import { FormatSpecifier } from "d3-format"
+import { format, FormatSpecifier } from "d3-format"
 import { createFormatter } from "./Util.js"
 import {
     OwidVariableRoundingMode,
@@ -77,6 +77,49 @@ function getType({
     return type
 }
 
+// For values below 1, rounding to significant figures is capped at
+// numDecimalPlaces decimal places: when sig-fig rounding would show more
+// decimals than that, the value is rounded to numDecimalPlaces instead.
+// This keeps small values from being spuriously precise, e.g. "0.902" deaths
+// when whole numbers are configured. Values of 1 or more always round to
+// significant figures
+function getEffectiveRoundingMode({
+    value,
+    roundingMode,
+    numDecimalPlaces,
+    numSignificantFigures,
+}: {
+    value: number
+    roundingMode: OwidVariableRoundingMode
+    numDecimalPlaces: number
+    numSignificantFigures: number
+}): OwidVariableRoundingMode {
+    if (roundingMode !== OwidVariableRoundingMode.significantFigures)
+        return roundingMode
+
+    // Only values below 1 are ever capped
+    if (Math.abs(value) >= 1) return roundingMode
+
+    // Keep sig figs when they show no more decimals than the cap allows
+    const roundedToSigFigs = format(`.${numSignificantFigures}r`)(
+        Math.abs(value)
+    )
+    const sigFigDecimals = roundedToSigFigs.split(".")[1]?.length ?? 0
+    if (sigFigDecimals <= numDecimalPlaces) return roundingMode
+
+    // Values whose capped rendering would show zero need special care, since
+    // displaying "0" for a nonzero value is misleading. Positive ones are
+    // rescued in postprocessing, where "0" is replaced by e.g. "<0.01".
+    // For negative values no such notation exists, so they keep their sig-fig
+    // rendering instead, e.g. "-0.400" rather than "-0" for -0.4 at zero
+    // decimal places.
+    const roundsToZero =
+        Number(Math.abs(value).toFixed(Math.max(0, numDecimalPlaces))) === 0
+    if (value < 0 && roundsToZero) return roundingMode
+
+    return OwidVariableRoundingMode.decimalPlaces
+}
+
 function getPrecision({
     value,
     roundingMode,
@@ -149,6 +192,7 @@ function replaceSIPrefixes({
 function postprocessString({
     string,
     roundingMode,
+    effectiveRoundingMode,
     numberAbbreviation,
     spaceBeforeUnit,
     useNoBreakSpace,
@@ -158,6 +202,7 @@ function postprocessString({
 }: {
     string: string
     roundingMode: OwidVariableRoundingMode
+    effectiveRoundingMode: OwidVariableRoundingMode
     numberAbbreviation: "long" | "short" | false
     spaceBeforeUnit: boolean
     useNoBreakSpace: boolean
@@ -168,9 +213,16 @@ function postprocessString({
     let output = string
 
     // handling infinitesimal values
-    if (roundingMode !== OwidVariableRoundingMode.significantFigures) {
+    if (effectiveRoundingMode !== OwidVariableRoundingMode.significantFigures) {
+        // true when a sig-fig value was rounded to decimal places instead
+        const sigFigCapApplied =
+            roundingMode === OwidVariableRoundingMode.significantFigures
         const tooSmallThreshold = Math.pow(10, -numDecimalPlaces).toPrecision(1)
-        if (numberAbbreviation && 0 < value && value < +tooSmallThreshold) {
+        if (
+            (numberAbbreviation || sigFigCapApplied) &&
+            0 < value &&
+            value < +tooSmallThreshold
+        ) {
             output = "<" + output.replace(/0\.?(\d+)?/, tooSmallThreshold)
         }
     }
@@ -207,22 +259,37 @@ export function formatValue(
 ): string {
     const formatter = createFormatter(unit)
 
+    const effectiveRoundingMode = getEffectiveRoundingMode({
+        value,
+        roundingMode,
+        numDecimalPlaces,
+        numSignificantFigures,
+    })
+    const type = getType({
+        roundingMode: effectiveRoundingMode,
+        numberAbbreviation,
+        value,
+        unit,
+    })
+
     // Explore how specifiers work here
     // https://observablehq.com/@ikesau/d3-format-interactive-demo
     const specifier = new FormatSpecifier({
         zero: "0",
+        // trim is based on the configured rounding mode so that all values of
+        // a sig-fig column share the same trailing-zero convention
         trim: getTrim({ roundingMode, trailingZeroes }),
         sign: getSign({ showPlus }),
         symbol: getSymbol({ unit }),
         comma: ",",
         precision: getPrecision({
-            roundingMode,
+            roundingMode: effectiveRoundingMode,
             value,
             numDecimalPlaces,
             numSignificantFigures,
-            type: getType({ roundingMode, numberAbbreviation, value, unit }),
+            type,
         }),
-        type: getType({ roundingMode, numberAbbreviation, value, unit }),
+        type,
     }).toString()
 
     const formattedString = formatter(specifier)(value)
@@ -230,6 +297,7 @@ export function formatValue(
     const postprocessedString = postprocessString({
         string: formattedString,
         roundingMode,
+        effectiveRoundingMode,
         numberAbbreviation,
         spaceBeforeUnit,
         useNoBreakSpace,
