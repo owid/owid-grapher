@@ -1,75 +1,113 @@
 import { useMemo } from "react"
 import { TextWrap } from "@ourworldindata/components"
+import { darkenColorForText } from "@ourworldindata/grapher/src/color/ColorUtils.js"
 
 import { placeLineLabels } from "../helpers/lineLabelPlacement.js"
 
-const LABEL_FONT_SIZE = 11
+// Grapher's line-legend metrics (see grapher's VerticalLabels)
+export const LABEL_FONT_SIZE = 12
+export const MARKER_MARGIN = 4
+export const CONNECTOR_LINE_WIDTH = 25
+const CONNECTOR_COLOR = "#999"
 
 export interface LineLabelSpec {
     id: string
     text: string
+    /** The series color; the text is darkened for contrast like grapher's
+     * line legend */
     color: string
     /** Preferred vertical center: the y position of the line's last point */
     idealY: number
     bold?: boolean
 }
 
-/** Wrapped, collision-resolved labels at the right edge of a chart */
+export interface WrappedLineLabel {
+    spec: LineLabelSpec
+    wrap: TextWrap
+}
+
+/** Measure the labels, so the chart can size its right margin:
+ * connector + widest label */
+export function wrapLineLabels(
+    specs: LineLabelSpec[],
+    maxWidth: number
+): { labels: WrappedLineLabel[]; width: number } {
+    const labels = specs.map((spec) => ({
+        spec,
+        wrap: new TextWrap({
+            text: spec.text,
+            maxWidth,
+            fontSize: LABEL_FONT_SIZE,
+            fontWeight: spec.bold ? 700 : 400,
+        }),
+    }))
+    const maxLabelWidth = Math.max(...labels.map(({ wrap }) => wrap.width), 0)
+    return {
+        labels,
+        width: CONNECTOR_LINE_WIDTH + Math.ceil(maxLabelWidth) + MARKER_MARGIN,
+    }
+}
+
+/** Grapher-style line labels at the right edge of a chart: wrapped,
+ * collision-resolved, connected to their series by thin stepped connector
+ * lines */
 export function LineLabels({
-    specs,
-    x,
-    maxWidth,
+    labels,
+    seriesEndX,
     top,
     bottom,
 }: {
-    specs: LineLabelSpec[]
-    x: number
-    maxWidth: number
+    labels: WrappedLineLabel[]
+    /** x position where the series end (the right edge of the plot) */
+    seriesEndX: number
     top: number
     bottom: number
 }) {
-    const labels = useMemo(() => {
-        const wrapped = specs.map((spec) => ({
-            spec,
-            wrap: new TextWrap({
-                text: spec.text,
-                maxWidth,
-                fontSize: LABEL_FONT_SIZE,
-                fontWeight: spec.bold ? 700 : 400,
-            }),
-        }))
-
+    const placed = useMemo(() => {
         const positions = placeLineLabels(
-            wrapped.map(({ spec, wrap }) => ({
+            labels.map(({ spec, wrap }) => ({
                 id: spec.id,
                 idealY: spec.idealY,
                 height: wrap.height,
             })),
             { top, bottom, gap: 4 }
         )
-
-        return wrapped.map(({ spec, wrap }) => ({
+        return labels.map(({ spec, wrap }) => ({
             spec,
             wrap,
             centerY: positions.get(spec.id) ?? spec.idealY,
         }))
-    }, [specs, maxWidth, top, bottom])
+    }, [labels, top, bottom])
+
+    const connectorStartX = seriesEndX + MARKER_MARGIN
+    const connectorEndX = seriesEndX + CONNECTOR_LINE_WIDTH - MARKER_MARGIN
+    const connectorMidX = (connectorStartX + connectorEndX) / 2
+    const labelsX = seriesEndX + CONNECTOR_LINE_WIDTH
 
     return (
         <g className="poverty-projections-line-labels">
-            {labels.map(({ spec, wrap, centerY }) => {
+            {placed.map(({ spec, centerY }) => (
+                <path
+                    key={spec.id}
+                    d={`M${connectorStartX},${spec.idealY} H${connectorMidX} V${centerY} H${connectorEndX}`}
+                    stroke={CONNECTOR_COLOR}
+                    strokeWidth={0.5}
+                    fill="none"
+                />
+            ))}
+            {placed.map(({ spec, wrap, centerY }) => {
                 const topY = centerY - wrap.height / 2
                 return (
                     <text
                         key={spec.id}
                         fontSize={LABEL_FONT_SIZE}
-                        fill={spec.color}
+                        fill={darkenColorForText(spec.color)}
                         fontWeight={spec.bold ? 700 : 400}
                     >
                         {wrap.lines.map((line, index) => (
                             <tspan
                                 key={index}
-                                x={x}
+                                x={labelsX}
                                 y={
                                     topY +
                                     index * wrap.singleLineHeight +

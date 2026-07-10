@@ -68,16 +68,48 @@ export const BASELINE_LABEL = "Current forecasts"
 export interface Scenario {
     id: ScenarioId
     label: string
+    /** The scenario's assumption, spelled out in the chart subtitle */
+    assumption: string
 }
 
 // Must match the scenario order written by dataPrep/prepareData.py
 export const SCENARIOS: Scenario[] = [
-    { id: "growth2pct", label: "2% growth" },
-    { id: "growth4pct", label: "4% growth" },
-    { id: "growth6pct", label: "6% growth" },
-    { id: "growth8pct", label: "8% growth" },
-    { id: "growth2pctGini1", label: "2% growth + 1% Gini reduction" },
-    { id: "growth2pctGini2", label: "2% growth + 2% Gini reduction" },
+    {
+        id: "growth2pct",
+        label: "2% growth",
+        assumption:
+            "incomes in every country grow at a constant rate of 2% per year, with no change in inequality",
+    },
+    {
+        id: "growth4pct",
+        label: "4% growth",
+        assumption:
+            "incomes in every country grow at a constant rate of 4% per year, with no change in inequality",
+    },
+    {
+        id: "growth6pct",
+        label: "6% growth",
+        assumption:
+            "incomes in every country grow at a constant rate of 6% per year, with no change in inequality",
+    },
+    {
+        id: "growth8pct",
+        label: "8% growth",
+        assumption:
+            "incomes in every country grow at a constant rate of 8% per year, with no change in inequality",
+    },
+    {
+        id: "growth2pctGini1",
+        label: "2% growth + 1% Gini reduction",
+        assumption:
+            "incomes in every country grow at a constant rate of 2% per year, while inequality — as measured by the Gini coefficient — falls by 1% each year",
+    },
+    {
+        id: "growth2pctGini2",
+        label: "2% growth + 2% Gini reduction",
+        assumption:
+            "incomes in every country grow at a constant rate of 2% per year, while inequality — as measured by the Gini coefficient — falls by 2% each year",
+    },
 ]
 
 export const getScenarioLabel = (scenario: ScenarioSelection): string =>
@@ -142,10 +174,6 @@ export const SCENARIO_COLORS: Record<ScenarioId, string> = {
 /** Dotted stroke used for projected segments, matching grapher's
  * projected-data line style */
 export const PROJECTION_DASHARRAY = "2,3"
-
-/** Muted style for the baseline reference lines shown when an alternative
- * scenario is selected */
-export const BASELINE_REFERENCE_COLOR = "#c6c6c6" // GRAY_50
 
 /** Style of the projection marker (vertical line + shading), mirroring
  * grapher's ComparisonLine style */

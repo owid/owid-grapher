@@ -6,41 +6,38 @@ import {
 
 const LABEL_FONT_SIZE = 11
 
-/** Marks the projection period: a vertical dashed line at the first
- * projected year — labeled like the comparison line of the published
- * grapher chart — and, optionally, a light shading over the projected
- * years. */
+/** Marks the projection period: a light shading over the projected years
+ * and a vertical dashed line at the year the projected (dotted) segments
+ * branch off, labeled like the comparison line of the published grapher
+ * chart. */
 export function ProjectionsMarker({
     xScale,
-    firstProjectionYear,
+    boundaryYear,
     lastYear,
     boundedHeight,
-    showShading = false,
     compact = false,
 }: {
     xScale: (year: number) => number
-    firstProjectionYear: number
+    /** The year the projected segments branch off (the last pre-projection
+     * year, so the shading and the dotted lines coincide) */
+    boundaryYear: number
     lastYear: number
     boundedHeight: number
-    /** Shade the projected years (used by the stacked-area variant) */
-    showShading?: boolean
     /** Shorten the label on narrow charts */
     compact?: boolean
 }) {
-    const x = xScale(firstProjectionYear)
+    const x = xScale(boundaryYear)
     const label = compact ? "Projections →" : "→ Projections by the World Bank"
 
     return (
         <g className="poverty-projections-marker">
-            {showShading && (
-                <rect
-                    x={x}
-                    y={0}
-                    width={Math.max(xScale(lastYear) - x, 0)}
-                    height={boundedHeight}
-                    fill={MARKER_SHADING_COLOR}
-                />
-            )}
+            <rect
+                x={x}
+                y={0}
+                width={Math.max(xScale(lastYear) - x, 0)}
+                height={boundedHeight}
+                fill={MARKER_SHADING_COLOR}
+            />
             <line
                 x1={x}
                 y1={-4}

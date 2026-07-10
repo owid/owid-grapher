@@ -1,7 +1,6 @@
 import { useCallback, useMemo, useState } from "react"
 import { line as d3Line, scaleLinear } from "d3"
 import { getRelativeMouse } from "@ourworldindata/utils"
-import { GRAPHER_LIGHT_TEXT } from "@ourworldindata/grapher/src/color/ColorConstants.js"
 
 import { useChartDimensions } from "../../../../hooks/useDimensions.js"
 import { usePinnedTooltip } from "../../../../hooks/usePinnedTooltip.js"
@@ -9,7 +8,6 @@ import { usePinnedTooltip } from "../../../../hooks/usePinnedTooltip.js"
 import {
     ALL_SCENARIOS,
     BASELINE_LABEL,
-    BASELINE_REFERENCE_COLOR,
     BASELINE_SCENARIO,
     ENTITIES,
     formatEntityLabel,
@@ -31,22 +29,30 @@ import {
     formatShare,
     formatShareAxisTick,
 } from "../helpers/PovertyProjectionsHelpers.js"
-import { getXAxisTickYears, XAxis, YAxisGrid } from "./ProjectionsAxes.js"
+import {
+    getXAxisTickYears,
+    getYAxisWidth,
+    XAxis,
+    YAxisGrid,
+} from "./ProjectionsAxes.js"
 import { ProjectionsMarker } from "./ProjectionsMarker.js"
-import { LineLabels, ProjectionsLegend } from "./ProjectionsLineLabels.js"
+import {
+    LineLabels,
+    ProjectionsLegend,
+    wrapLineLabels,
+} from "./ProjectionsLineLabels.js"
 import { ProjectionsTooltip } from "./ProjectionsTooltip.js"
+
+const LABEL_MAX_WIDTH = 140
 
 /** One drawn line: a solid historical segment and/or a dotted projected
  * segment */
 interface LineSeries {
     id: string
-    label?: string
+    label: string
     color: string
     historical?: ProjectionPoint[]
     projected: ProjectionPoint[]
-    /** Baseline reference lines drawn when an alternative scenario is
-     * selected: thin, gray, unlabeled */
-    muted?: boolean
     bold?: boolean
 }
 
@@ -110,26 +116,15 @@ function buildLineSeries(
     }
 
     // All entities, with the projected segments following the selected
-    // scenario. The baseline projection stays visible as muted reference
-    // lines when an alternative scenario is selected.
+    // scenario
     return ENTITIES.flatMap((entity): LineSeries[] => {
         const series = data.byEntity.get(entity)
         if (!series) return []
-        const { historical, projected } = splitAtProjection(
+        const { historical } = splitAtProjection(
             series.baseline,
             firstProjectionYear
         )
         return [
-            ...(scenario !== BASELINE_SCENARIO
-                ? [
-                      {
-                          id: `${entity}-baseline`,
-                          color: BASELINE_REFERENCE_COLOR,
-                          projected,
-                          muted: true,
-                      },
-                  ]
-                : []),
             {
                 id: entity,
                 label: formatEntityLabel(entity),
@@ -157,30 +152,20 @@ function ProjectionsLineChart({
     height: number
 }) {
     const isNarrow = width < SMALL_CHART_BREAKPOINT
-    const margin = {
-        top: 20,
-        right: isNarrow ? 12 : 170,
-        bottom: 26,
-        left: 4,
-    }
-    const boundedWidth = Math.max(width - margin.left - margin.right, 0)
-    const boundedHeight = Math.max(height - margin.top - margin.bottom, 0)
 
     const firstYear = data.years[0]
     const lastYear = data.years[data.years.length - 1]
+    // The year the dotted segments (and the shaded projection area) start
+    const boundaryYear = data.firstProjectionYear - 1
 
     const seriesList = useMemo(
         () => buildLineSeries(data, scenario),
         [data, scenario]
     )
 
-    const xScale = useMemo(
-        () =>
-            scaleLinear()
-                .domain([firstYear, lastYear])
-                .range([0, boundedWidth]),
-        [firstYear, lastYear, boundedWidth]
-    )
+    const marginTop = 20
+    const marginBottom = 26
+    const boundedHeight = Math.max(height - marginTop - marginBottom, 0)
 
     const yScale = useMemo(() => {
         const maxRatio = Math.max(
@@ -195,6 +180,41 @@ function ProjectionsLineChart({
             .range([boundedHeight, 0])
             .nice()
     }, [seriesList, boundedHeight])
+
+    const yTicks = useMemo(() => yScale.ticks(5), [yScale])
+
+    // The labels at the right edge of the chart, at the height of each
+    // line's endpoint
+    const { labels: wrappedLabels, width: labelsWidth } = useMemo(
+        () =>
+            wrapLineLabels(
+                seriesList.map((series) => {
+                    const lastPoint =
+                        series.projected[series.projected.length - 1]
+                    return {
+                        id: series.id,
+                        text: series.label,
+                        color: series.color,
+                        idealY: yScale(lastPoint?.ratio ?? 0),
+                        bold: series.bold,
+                    }
+                }),
+                LABEL_MAX_WIDTH
+            ),
+        [seriesList, yScale]
+    )
+
+    const marginLeft = getYAxisWidth(yTicks, formatShareAxisTick)
+    const marginRight = isNarrow ? 4 : labelsWidth
+    const boundedWidth = Math.max(width - marginLeft - marginRight, 0)
+
+    const xScale = useMemo(
+        () =>
+            scaleLinear()
+                .domain([firstYear, lastYear])
+                .range([0, boundedWidth]),
+        [firstYear, lastYear, boundedWidth]
+    )
 
     const linePath = useMemo(
         () =>
@@ -227,24 +247,23 @@ function ProjectionsLineChart({
                 firstYear,
                 Math.min(
                     lastYear,
-                    Math.round(xScale.invert(point.x - margin.left))
+                    Math.round(xScale.invert(point.x - marginLeft))
                 )
             )
             setTooltipState({ target: { year }, position: point })
         },
-        [chartRef, xScale, firstYear, lastYear, margin.left]
+        [chartRef, xScale, firstYear, lastYear, marginLeft]
     )
 
     const hoveredYear = tooltipState.target?.year ?? null
     const isProjected =
         hoveredYear !== null && hoveredYear >= data.firstProjectionYear
 
-    // The values shown in the tooltip: every labeled series that has a
-    // value at the hovered year, ordered top of chart first
+    // The values shown in the tooltip: every series that has a value at the
+    // hovered year, ordered top of chart first
     const tooltipRows = useMemo(() => {
         if (hoveredYear === null) return []
         return seriesList
-            .filter((series) => !series.muted && series.label)
             .flatMap((series) => {
                 const point = [
                     ...(series.historical ?? []),
@@ -254,7 +273,7 @@ function ProjectionsLineChart({
                 return [
                     {
                         key: series.id,
-                        label: series.label!,
+                        label: series.label,
                         value: formatShare(point.ratio),
                         color: series.color,
                         ratio: point.ratio,
@@ -264,42 +283,6 @@ function ProjectionsLineChart({
             .sort((a, b) => b.ratio - a.ratio)
     }, [seriesList, hoveredYear])
 
-    // One label for the muted baseline reference lines, anchored at the
-    // World's baseline endpoint
-    const baselineReferenceLabel = useMemo(() => {
-        const mutedWorld = seriesList.find(
-            (series) => series.muted && series.id === `${WORLD}-baseline`
-        )
-        const lastPoint = mutedWorld?.projected.at(-1)
-        if (!lastPoint) return undefined
-        return {
-            id: "baseline-reference",
-            text: BASELINE_LABEL,
-            color: GRAPHER_LIGHT_TEXT,
-            idealY: yScale(lastPoint.ratio),
-        }
-    }, [seriesList, yScale])
-
-    const labelSpecs = useMemo(
-        () => [
-            ...seriesList
-                .filter((series) => !series.muted && series.label)
-                .map((series) => {
-                    const lastPoint =
-                        series.projected[series.projected.length - 1]
-                    return {
-                        id: series.id,
-                        text: series.label!,
-                        color: series.color,
-                        idealY: yScale(lastPoint?.ratio ?? 0),
-                        bold: series.bold,
-                    }
-                }),
-            ...(baselineReferenceLabel ? [baselineReferenceLabel] : []),
-        ],
-        [seriesList, yScale, baselineReferenceLabel]
-    )
-
     return (
         <div
             ref={chartRef}
@@ -307,31 +290,18 @@ function ProjectionsLineChart({
         >
             {isNarrow && (
                 <ProjectionsLegend
-                    items={[
-                        ...seriesList
-                            .filter((series) => !series.muted && series.label)
-                            .map((series) => ({
-                                id: series.id,
-                                label: series.label!,
-                                color: series.color,
-                            })),
-                        ...(baselineReferenceLabel
-                            ? [
-                                  {
-                                      id: baselineReferenceLabel.id,
-                                      label: `${BASELINE_LABEL} (dotted gray)`,
-                                      color: BASELINE_REFERENCE_COLOR,
-                                  },
-                              ]
-                            : []),
-                    ]}
+                    items={seriesList.map((series) => ({
+                        id: series.id,
+                        label: series.label,
+                        color: series.color,
+                    }))}
                 />
             )}
             <svg width={width} height={height} overflow="visible">
-                <g transform={`translate(${margin.left}, ${margin.top})`}>
+                <g transform={`translate(${marginLeft}, ${marginTop})`}>
                     <YAxisGrid
                         yScale={yScale}
-                        ticks={yScale.ticks(5)}
+                        ticks={yTicks}
                         boundedWidth={boundedWidth}
                         formatTick={formatShareAxisTick}
                     />
@@ -347,56 +317,36 @@ function ProjectionsLineChart({
                     />
                     <ProjectionsMarker
                         xScale={xScale}
-                        firstProjectionYear={data.firstProjectionYear}
+                        boundaryYear={boundaryYear}
                         lastYear={lastYear}
                         boundedHeight={boundedHeight}
                         compact={isNarrow}
                     />
 
-                    {/* Muted baseline reference lines below the main lines */}
-                    {seriesList
-                        .filter((series) => series.muted)
-                        .map((series) => (
-                            <path
-                                key={series.id}
-                                d={linePath(series.projected) ?? undefined}
-                                fill="none"
-                                stroke={series.color}
-                                strokeWidth={1}
-                                strokeDasharray={PROJECTION_DASHARRAY}
-                            />
-                        ))}
-
-                    {seriesList
-                        .filter((series) => !series.muted)
-                        .map((series) => (
-                            <g key={series.id}>
-                                {series.historical && (
-                                    <path
-                                        d={
-                                            linePath(series.historical) ??
-                                            undefined
-                                        }
-                                        fill="none"
-                                        stroke={series.color}
-                                        strokeWidth={series.bold ? 2 : 1.5}
-                                    />
-                                )}
+                    {seriesList.map((series) => (
+                        <g key={series.id}>
+                            {series.historical && (
                                 <path
-                                    d={linePath(series.projected) ?? undefined}
+                                    d={linePath(series.historical) ?? undefined}
                                     fill="none"
                                     stroke={series.color}
                                     strokeWidth={series.bold ? 2 : 1.5}
-                                    strokeDasharray={PROJECTION_DASHARRAY}
                                 />
-                            </g>
-                        ))}
+                            )}
+                            <path
+                                d={linePath(series.projected) ?? undefined}
+                                fill="none"
+                                stroke={series.color}
+                                strokeWidth={series.bold ? 2 : 1.5}
+                                strokeDasharray={PROJECTION_DASHARRAY}
+                            />
+                        </g>
+                    ))}
 
                     {!isNarrow && (
                         <LineLabels
-                            specs={labelSpecs}
-                            x={boundedWidth + 8}
-                            maxWidth={margin.right - 20}
+                            labels={wrappedLabels}
+                            seriesEndX={boundedWidth}
                             top={0}
                             bottom={boundedHeight}
                         />
@@ -430,7 +380,7 @@ function ProjectionsLineChart({
                     {/* Invisible interaction rect — must be last to capture
                         pointer events */}
                     <rect
-                        x={-margin.left}
+                        x={-marginLeft}
                         y={0}
                         width={width}
                         height={boundedHeight}

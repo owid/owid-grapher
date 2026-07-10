@@ -27,7 +27,12 @@ export function PovertyProjectionsCaptionedChart({
     scenario: ScenarioSelection
     isLoading?: boolean
 }) {
-    const metadata = getChartMetadata({ variant, povertyLineCents })
+    const metadata = getChartMetadata({
+        variant,
+        povertyLineCents,
+        scenario,
+        firstProjectionYear: data.firstProjectionYear,
+    })
 
     return (
         <Frame className="poverty-projections-captioned-chart">

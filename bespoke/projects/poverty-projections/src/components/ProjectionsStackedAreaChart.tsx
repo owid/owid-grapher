@@ -2,12 +2,18 @@ import { useCallback, useMemo, useState } from "react"
 import {
     area as d3Area,
     line as d3Line,
+    rgb,
     scaleLinear,
     stack as d3Stack,
     Series,
 } from "d3"
 import { getRelativeMouse } from "@ourworldindata/utils"
+import { TextWrap } from "@ourworldindata/components"
 import { GRAY_90 } from "@ourworldindata/grapher/src/color/ColorConstants.js"
+import {
+    darkenColorForText,
+    isDarkColor,
+} from "@ourworldindata/grapher/src/color/ColorUtils.js"
 
 import { useChartDimensions } from "../../../../hooks/useDimensions.js"
 import { usePinnedTooltip } from "../../../../hooks/usePinnedTooltip.js"
@@ -34,12 +40,31 @@ import {
     formatCount,
     formatCountAxisTick,
 } from "../helpers/PovertyProjectionsHelpers.js"
-import { getXAxisTickYears, XAxis, YAxisGrid } from "./ProjectionsAxes.js"
+import {
+    getXAxisTickYears,
+    getYAxisWidth,
+    XAxis,
+    YAxisGrid,
+} from "./ProjectionsAxes.js"
 import { ProjectionsMarker } from "./ProjectionsMarker.js"
-import { LineLabels, ProjectionsLegend } from "./ProjectionsLineLabels.js"
+import {
+    LABEL_FONT_SIZE,
+    LineLabels,
+    ProjectionsLegend,
+    wrapLineLabels,
+} from "./ProjectionsLineLabels.js"
 import { ProjectionsTooltip } from "./ProjectionsTooltip.js"
 
 const BASELINE_TOTAL_ID = "baseline-total"
+
+// Grapher's stacked-area style (see grapher's StackedConstants.ts)
+const AREA_FILL_OPACITY = 0.8
+const AREA_BORDER_OPACITY = 0.7
+const AREA_BORDER_WIDTH = 0.5
+
+const INSIDE_LABEL_MAX_WIDTH = 160
+const INSIDE_LABEL_PADDING = 8
+const EXTERNAL_LABEL_MAX_WIDTH = 140
 
 interface TooltipState {
     target: { year: number } | null
@@ -67,6 +92,16 @@ export function ResponsiveProjectionsStackedAreaChart(props: {
     )
 }
 
+/** The color of the area fill as it appears on a white background */
+const blendWithWhite = (color: string, opacity: number): string => {
+    const { r, g, b } = rgb(color)
+    return rgb(
+        Math.round(r * opacity + 255 * (1 - opacity)),
+        Math.round(g * opacity + 255 * (1 - opacity)),
+        Math.round(b * opacity + 255 * (1 - opacity))
+    ).formatHex()
+}
+
 function ProjectionsStackedAreaChart({
     data,
     scenario,
@@ -79,17 +114,11 @@ function ProjectionsStackedAreaChart({
     height: number
 }) {
     const isNarrow = width < SMALL_CHART_BREAKPOINT
-    const margin = {
-        top: 20,
-        right: isNarrow ? 12 : 170,
-        bottom: 26,
-        left: 4,
-    }
-    const boundedWidth = Math.max(width - margin.left - margin.right, 0)
-    const boundedHeight = Math.max(height - margin.top - margin.bottom, 0)
 
     const firstYear = data.years[0]
     const lastYear = data.years[data.years.length - 1]
+    // The year the projected data (and the shaded projection area) starts
+    const boundaryYear = data.firstProjectionYear - 1
 
     const rows = useMemo(
         () => buildStackedRows(data, scenario),
@@ -111,13 +140,9 @@ function ProjectionsStackedAreaChart({
         [rows]
     )
 
-    const xScale = useMemo(
-        () =>
-            scaleLinear()
-                .domain([firstYear, lastYear])
-                .range([0, boundedWidth]),
-        [firstYear, lastYear, boundedWidth]
-    )
+    const marginTop = 20
+    const marginBottom = 26
+    const boundedHeight = Math.max(height - marginTop - marginBottom, 0)
 
     const yScale = useMemo(() => {
         const maxTotal = Math.max(
@@ -131,12 +156,111 @@ function ProjectionsStackedAreaChart({
             .nice()
     }, [rows, baselineTotals, boundedHeight])
 
+    const yTicks = useMemo(() => yScale.ticks(5), [yScale])
+
+    // Regions get their label inside the area where the band is thickest —
+    // like the static chart this replicates. Bands too thin for their label
+    // fall back to a connector-line label at the right edge.
+    const { insideLabels, externalSpecs } = useMemo(() => {
+        const inside: {
+            region: string
+            wrap: TextWrap
+            yearIndex: number
+            centerY: number
+            color: string
+        }[] = []
+        const external: {
+            id: string
+            text: string
+            color: string
+            idealY: number
+            bold?: boolean
+        }[] = []
+
+        for (const series of stackedSeries) {
+            let bestIndex = 0
+            let bestThickness = -Infinity
+            series.forEach((point, index) => {
+                const thickness = yScale(point[0]) - yScale(point[1])
+                if (thickness > bestThickness) {
+                    bestThickness = thickness
+                    bestIndex = index
+                }
+            })
+
+            const color = getEntityColor(series.key)
+            const wrap = new TextWrap({
+                text: formatEntityLabel(series.key),
+                maxWidth: INSIDE_LABEL_MAX_WIDTH,
+                fontSize: LABEL_FONT_SIZE,
+                fontWeight: 700,
+            })
+
+            if (wrap.height + INSIDE_LABEL_PADDING <= bestThickness) {
+                const point = series[bestIndex]
+                inside.push({
+                    region: series.key,
+                    wrap,
+                    yearIndex: bestIndex,
+                    centerY: (yScale(point[0]) + yScale(point[1])) / 2,
+                    color,
+                })
+            } else {
+                const lastPoint = series[series.length - 1]
+                external.push({
+                    id: series.key,
+                    text: formatEntityLabel(series.key),
+                    color,
+                    idealY: yScale((lastPoint[0] + lastPoint[1]) / 2),
+                })
+            }
+        }
+
+        const lastBaselineTotal = baselineTotals[baselineTotals.length - 1]
+        if (lastBaselineTotal) {
+            external.push({
+                id: BASELINE_TOTAL_ID,
+                text: BASELINE_LABEL,
+                color: GRAY_90,
+                idealY: yScale(lastBaselineTotal.total),
+                bold: true,
+            })
+        }
+
+        return { insideLabels: inside, externalSpecs: external }
+    }, [stackedSeries, baselineTotals, yScale])
+
+    const { labels: wrappedExternalLabels, width: labelsWidth } = useMemo(
+        () => wrapLineLabels(externalSpecs, EXTERNAL_LABEL_MAX_WIDTH),
+        [externalSpecs]
+    )
+
+    const marginLeft = getYAxisWidth(yTicks, formatCountAxisTick)
+    const marginRight = isNarrow || externalSpecs.length === 0 ? 4 : labelsWidth
+    const boundedWidth = Math.max(width - marginLeft - marginRight, 0)
+
+    const xScale = useMemo(
+        () =>
+            scaleLinear()
+                .domain([firstYear, lastYear])
+                .range([0, boundedWidth]),
+        [firstYear, lastYear, boundedWidth]
+    )
+
     const areaPath = useMemo(
         () =>
             d3Area<Series<StackedYearRow, string>[number]>()
                 .x((point) => xScale(point.data.year))
                 .y0((point) => yScale(point[0]))
                 .y1((point) => yScale(point[1])),
+        [xScale, yScale]
+    )
+
+    const borderPath = useMemo(
+        () =>
+            d3Line<Series<StackedYearRow, string>[number]>()
+                .x((point) => xScale(point.data.year))
+                .y((point) => yScale(point[1])),
         [xScale, yScale]
     )
 
@@ -171,12 +295,12 @@ function ProjectionsStackedAreaChart({
                 firstYear,
                 Math.min(
                     lastYear,
-                    Math.round(xScale.invert(point.x - margin.left))
+                    Math.round(xScale.invert(point.x - marginLeft))
                 )
             )
             setTooltipState({ target: { year }, position: point })
         },
-        [chartRef, xScale, firstYear, lastYear, margin.left]
+        [chartRef, xScale, firstYear, lastYear, marginLeft]
     )
 
     const hoveredYear = tooltipState.target?.year ?? null
@@ -205,37 +329,6 @@ function ProjectionsStackedAreaChart({
         ]
     }, [rows, hoveredYear])
 
-    // Region labels at the right edge, placed at the vertical middle of each
-    // band's last-year extent; the baseline reference label joins the same
-    // collision resolution
-    const labelSpecs = useMemo(() => {
-        const lastIndex = rows.length - 1
-        const regionLabels = stackedSeries.map((series) => {
-            const lastPoint = series[lastIndex]
-            return {
-                id: series.key,
-                text: formatEntityLabel(series.key),
-                color: getEntityColor(series.key),
-                idealY: yScale((lastPoint[0] + lastPoint[1]) / 2),
-            }
-        })
-        const lastBaselineTotal = baselineTotals[baselineTotals.length - 1]
-        return [
-            ...regionLabels,
-            ...(lastBaselineTotal
-                ? [
-                      {
-                          id: BASELINE_TOTAL_ID,
-                          text: BASELINE_LABEL,
-                          color: GRAY_90,
-                          idealY: yScale(lastBaselineTotal.total),
-                          bold: true,
-                      },
-                  ]
-                : []),
-        ]
-    }, [stackedSeries, rows.length, baselineTotals, yScale])
-
     return (
         <div
             ref={chartRef}
@@ -262,21 +355,29 @@ function ProjectionsStackedAreaChart({
                 />
             )}
             <svg width={width} height={height} overflow="visible">
-                <g transform={`translate(${margin.left}, ${margin.top})`}>
+                <g transform={`translate(${marginLeft}, ${marginTop})`}>
                     {stackedSeries.map((series) => (
-                        <path
-                            key={series.key}
-                            d={areaPath(series) ?? undefined}
-                            fill={getEntityColor(series.key)}
-                            fillOpacity={0.85}
-                            stroke="#fff"
-                            strokeWidth={0.5}
-                        />
+                        <g key={series.key}>
+                            <path
+                                d={areaPath(series) ?? undefined}
+                                fill={getEntityColor(series.key)}
+                                fillOpacity={AREA_FILL_OPACITY}
+                            />
+                            <path
+                                d={borderPath(series) ?? undefined}
+                                fill="none"
+                                stroke={rgb(getEntityColor(series.key))
+                                    .darker(0.5)
+                                    .toString()}
+                                strokeOpacity={AREA_BORDER_OPACITY}
+                                strokeWidth={AREA_BORDER_WIDTH}
+                            />
+                        </g>
                     ))}
 
                     <YAxisGrid
                         yScale={yScale}
-                        ticks={yScale.ticks(5)}
+                        ticks={yTicks}
                         boundedWidth={boundedWidth}
                         formatTick={formatCountAxisTick}
                     />
@@ -292,10 +393,9 @@ function ProjectionsStackedAreaChart({
                     />
                     <ProjectionsMarker
                         xScale={xScale}
-                        firstProjectionYear={data.firstProjectionYear}
+                        boundaryYear={boundaryYear}
                         lastYear={lastYear}
                         boundedHeight={boundedHeight}
-                        showShading
                         compact={isNarrow}
                     />
 
@@ -309,11 +409,55 @@ function ProjectionsStackedAreaChart({
                         />
                     )}
 
-                    {!isNarrow && (
+                    {/* Region labels inside the areas, where the band is
+                        thickest */}
+                    {insideLabels.map(
+                        ({ region, wrap, yearIndex, centerY, color }) => {
+                            const year = rows[yearIndex]?.year ?? firstYear
+                            const x = Math.max(
+                                wrap.width / 2 + 2,
+                                Math.min(
+                                    boundedWidth - wrap.width / 2 - 2,
+                                    xScale(year)
+                                )
+                            )
+                            const textColor = isDarkColor(
+                                blendWithWhite(color, AREA_FILL_OPACITY)
+                            )
+                                ? "#fff"
+                                : darkenColorForText(color)
+                            const topY = centerY - wrap.height / 2
+                            return (
+                                <text
+                                    key={region}
+                                    fontSize={LABEL_FONT_SIZE}
+                                    fontWeight={700}
+                                    fill={textColor}
+                                    textAnchor="middle"
+                                    pointerEvents="none"
+                                >
+                                    {wrap.lines.map((line, index) => (
+                                        <tspan
+                                            key={index}
+                                            x={x}
+                                            y={
+                                                topY +
+                                                index * wrap.singleLineHeight +
+                                                LABEL_FONT_SIZE * 0.85
+                                            }
+                                        >
+                                            {line.text}
+                                        </tspan>
+                                    ))}
+                                </text>
+                            )
+                        }
+                    )}
+
+                    {!isNarrow && externalSpecs.length > 0 && (
                         <LineLabels
-                            specs={labelSpecs}
-                            x={boundedWidth + 8}
-                            maxWidth={margin.right - 20}
+                            labels={wrappedExternalLabels}
+                            seriesEndX={boundedWidth}
                             top={0}
                             bottom={boundedHeight}
                         />
@@ -335,7 +479,7 @@ function ProjectionsStackedAreaChart({
                     {/* Invisible interaction rect — must be last to capture
                         pointer events */}
                     <rect
-                        x={-margin.left}
+                        x={-marginLeft}
                         y={0}
                         width={width}
                         height={boundedHeight}

@@ -1,13 +1,32 @@
-import {
-    GRAPHER_LIGHT_TEXT,
-    GRAY_30,
-    GRAY_60,
-} from "@ourworldindata/grapher/src/color/ColorConstants.js"
+import { Bounds } from "@ourworldindata/utils"
+import { GRAPHER_DARK_TEXT } from "@ourworldindata/grapher/src/color/ColorConstants.js"
 
-const TICK_FONT_SIZE = 11
+// Grapher's axis styling (see grapher's AxisViews.tsx)
+const TICK_FONT_SIZE = 12
+const GRID_LINE_COLOR = "#ddd"
+const GRID_LINE_DASH_PATTERN = "4,4"
+const SOLID_TICK_COLOR = "#999"
+const TICK_PADDING = 5
 
-/** Horizontal gridlines with their tick labels drawn above-left, in the
- * style of grapher's y-axis */
+/** The width needed left of the plot for the y-axis tick labels */
+export function getYAxisWidth(
+    ticks: number[],
+    formatTick: (tick: number) => string
+): number {
+    const maxLabelWidth = Math.max(
+        ...ticks.map(
+            (tick) =>
+                Bounds.forText(formatTick(tick), { fontSize: TICK_FONT_SIZE })
+                    .width
+        ),
+        0
+    )
+    return Math.ceil(maxLabelWidth) + TICK_PADDING
+}
+
+/** Horizontal gridlines with tick labels left of the plot, styled like
+ * grapher's y-axis: dashed light gridlines, a solid darker zero line, and
+ * right-aligned labels */
 export function YAxisGrid({
     yScale,
     ticks,
@@ -28,32 +47,30 @@ export function YAxisGrid({
                         y1={yScale(tick)}
                         x2={boundedWidth}
                         y2={yScale(tick)}
-                        stroke={tick === 0 ? GRAY_60 : GRAY_30}
+                        stroke={tick === 0 ? SOLID_TICK_COLOR : GRID_LINE_COLOR}
                         strokeWidth={1}
+                        strokeDasharray={
+                            tick === 0 ? undefined : GRID_LINE_DASH_PATTERN
+                        }
                     />
-                    {tick !== 0 && (
-                        <text
-                            x={0}
-                            y={yScale(tick) - 4}
-                            fontSize={TICK_FONT_SIZE}
-                            fill={GRAPHER_LIGHT_TEXT}
-                            // White halo so the labels stay readable on top
-                            // of area fills
-                            paintOrder="stroke"
-                            stroke="#fff"
-                            strokeWidth={3}
-                            strokeLinejoin="round"
-                        >
-                            {formatTick(tick)}
-                        </text>
-                    )}
+                    <text
+                        x={-TICK_PADDING}
+                        y={yScale(tick)}
+                        dominantBaseline="middle"
+                        textAnchor="end"
+                        fontSize={TICK_FONT_SIZE}
+                        fill={GRAPHER_DARK_TEXT}
+                    >
+                        {formatTick(tick)}
+                    </text>
                 </g>
             ))}
         </g>
     )
 }
 
-/** Horizontal time axis with tick marks and year labels */
+/** Horizontal time axis with tick marks and year labels, styled like
+ * grapher's x-axis */
 export function XAxis({
     xScale,
     years,
@@ -75,7 +92,7 @@ export function XAxis({
                 y1={0}
                 x2={boundedWidth}
                 y2={0}
-                stroke={GRAY_60}
+                stroke={SOLID_TICK_COLOR}
                 strokeLinecap="square"
             />
             {years.map((year) => (
@@ -85,14 +102,14 @@ export function XAxis({
                     y1={0}
                     x2={xScale(year)}
                     y2={4}
-                    stroke={GRAY_60}
+                    stroke={SOLID_TICK_COLOR}
                 />
             ))}
             {years.map((year, index) => (
                 <text
                     key={year}
                     x={xScale(year)}
-                    y={16}
+                    y={17}
                     textAnchor={
                         index === 0
                             ? "start"
@@ -101,7 +118,7 @@ export function XAxis({
                               : "middle"
                     }
                     fontSize={TICK_FONT_SIZE}
-                    fill={GRAPHER_LIGHT_TEXT}
+                    fill={GRAPHER_DARK_TEXT}
                 >
                     {year}
                 </text>
