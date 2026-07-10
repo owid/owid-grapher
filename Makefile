@@ -151,8 +151,11 @@ up.headless: require.headless create-if-missing.env tmp-downloads/owid_metadata.
 	@make wait-for-mysql.headless
 
 	@echo '==> (Re)starting the admin server and vite in the background'
-	@pkill -f 'adminSiteServer/app.ts' 2>/dev/null || true
-	@pkill -f 'vite dev --config vite.config-site.mts' 2>/dev/null || true
+# the [b]racket trick: make runs this line via `sh -c "pkill -f '...'"`, so the
+# pattern appears in that shell's own command line — a plain pattern makes
+# procps-ng pkill kill the recipe's shell (make reports "Terminated")
+	@pkill -f 'adminSiteServer/app[.]ts' 2>/dev/null || true
+	@pkill -f 'vite dev --config vite[.]config-site.mts' 2>/dev/null || true
 	@ADMIN_SERVER_PORT=$(ADMIN_SERVER_PORT) nohup yarn startAdminDevServer > logs/admin-server.log 2>&1 & echo $$! > logs/admin-server.pid
 	@VITE_PORT=$(VITE_PORT) nohup yarn startSiteFront > logs/vite.log 2>&1 & echo $$! > logs/vite.pid
 
@@ -194,8 +197,10 @@ down.headless: export COMPOSE_PROJECT_NAME ?= owid-grapher
 
 down.headless:
 	@echo '==> Stopping background dev servers'
-	@pkill -f 'adminSiteServer/app.ts' 2>/dev/null || true
-	@pkill -f 'vite dev --config vite.config-site.mts' 2>/dev/null || true
+# bracketed patterns so pkill doesn't match (and kill) the recipe's own shell,
+# see up.headless
+	@pkill -f 'adminSiteServer/app[.]ts' 2>/dev/null || true
+	@pkill -f 'vite dev --config vite[.]config-site.mts' 2>/dev/null || true
 	@make down
 
 require.headless:
