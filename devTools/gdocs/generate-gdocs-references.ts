@@ -75,6 +75,7 @@ import type {
 } from "@typescript/native-preview/ast"
 import {
     isComputedPropertyName,
+    isEnumDeclaration,
     isIdentifier,
     isInterfaceDeclaration,
     isIntersectionTypeNode,
@@ -254,24 +255,37 @@ function unionMemberIdentifiers(unionDecl: TypeAliasDeclaration): Identifier[] {
     return ids
 }
 
-function buildAliasIndex(
+interface TypeIndex {
+    aliases: Map<string, TypeAliasDeclaration>
+    enums: Set<string>
+}
+
+function buildTypeIndex(
     program: { getSourceFile(file: string): SourceFile | undefined },
     sourceFiles: readonly { fileName: string }[]
-): Map<string, TypeAliasDeclaration> {
-    const index = new Map<string, TypeAliasDeclaration>()
+): TypeIndex {
+    const aliases = new Map<string, TypeAliasDeclaration>()
+    const enums = new Set<string>()
+    // The whole gdocTypes dir, not just archieMLComponents/ — value-prop
+    // classification resolves referenced types (HorizontalAlign, …) that
+    // live next door.
+    const gdocTypesDir = path.dirname(COMPONENTS_DIR)
     for (const { fileName } of sourceFiles) {
-        if (!fileName.startsWith(COMPONENTS_DIR + path.sep)) continue
+        if (!fileName.startsWith(gdocTypesDir + path.sep)) continue
         if (!fileName.endsWith(".ts") || fileName.endsWith(".test.ts")) continue
         const sf = program.getSourceFile(fileName)
         if (!sf) continue
         sf.forEachChild((node: Node) => {
             if (isTypeAliasDeclaration(node)) {
-                index.set(node.name.text, node)
+                aliases.set(node.name.text, node)
+            }
+            if (isEnumDeclaration(node)) {
+                enums.add(node.name.text)
             }
             return undefined
         })
     }
-    return index
+    return { aliases, enums }
 }
 
 function findTypeDiscriminator(typeNode: TypeNode): string | undefined {
@@ -294,6 +308,88 @@ function findTypeDiscriminator(typeNode: TypeNode): string | undefined {
         return literal.text
     }
     return undefined
+}
+
+// Collect the (name, type) property signatures declared directly on a block
+// alias — recursing through intersections, which is how blocks compose with
+// EnrichedBlockWithParseErrors.
+function collectPropertySignatures(
+    typeNode: TypeNode,
+    into: { name: string; type: TypeNode }[]
+): void {
+    if (isIntersectionTypeNode(typeNode)) {
+        for (const member of typeNode.types)
+            collectPropertySignatures(member, into)
+        return
+    }
+    if (!isTypeLiteralNode(typeNode)) return
+    for (const member of typeNode.members) {
+        if (!isPropertySignatureDeclaration(member)) continue
+        const name = propertyNameText(member.name)
+        if (name === undefined || member.type === undefined) continue
+        into.push({ name, type: member.type })
+    }
+}
+
+// Is every branch of the type text a quoted string literal? Matches both a
+// lone literal ('"info"') and a union ('"wide" | "narrow"').
+function isLiteralUnionText(text: string): boolean {
+    const branches = text.split("|").map((branch) => branch.trim())
+    return (
+        branches.length > 0 &&
+        branches.every((branch) => /^(['"]).*\1$/.test(branch))
+    )
+}
+
+/**
+ * Whether a prop's VALUE (rather than its mere presence) distinguishes forms
+ * of a block, decided from the declared type: choices among a fixed set
+ * (literal unions, enums, const-array unions), numbers (a heading's level),
+ * and booleans (which only ever survive source-minimization with their
+ * non-default value, so the value is the information). Free-form strings and
+ * span/block content are presence-only.
+ */
+function isValuePropType(
+    typeText: string,
+    typeIndex: TypeIndex,
+    depth = 0
+): boolean {
+    const text = typeText.trim()
+    if (text === "number" || text === "boolean") return true
+    if (isLiteralUnionText(text)) return true
+    // e.g. (typeof blockVisibilitys)[number] — one of a fixed const array
+    if (/^\(typeof \w+\)\[number\]$/.test(text)) return true
+    if (/^\w+$/.test(text) && depth < 3) {
+        if (typeIndex.enums.has(text)) return true
+        const alias = typeIndex.aliases.get(text)
+        if (alias)
+            return isValuePropType(
+                declaredTypeText(alias.getSourceFile(), alias.type),
+                typeIndex,
+                depth + 1
+            )
+    }
+    return false
+}
+
+// Props that exist on every block and are never authoring choices.
+const NON_VALUE_PROPS = new Set(["type", "parseErrors"])
+
+function extractValueProps(
+    decl: TypeAliasDeclaration,
+    typeIndex: TypeIndex
+): string[] {
+    const signatures: { name: string; type: TypeNode }[] = []
+    collectPropertySignatures(decl.type, signatures)
+    const sf = decl.getSourceFile()
+    return signatures
+        .filter(
+            ({ name, type }) =>
+                !NON_VALUE_PROPS.has(name) &&
+                isValuePropType(declaredTypeText(sf, type), typeIndex)
+        )
+        .map(({ name }) => name)
+        .sort()
 }
 
 function deriveTitle(aliasName: string): string {
@@ -654,10 +750,11 @@ function extractComponentDocs(
             "Source file not loaded by tsgo: " + ARCHIE_ML_COMPONENTS_TS
         )
 
-    const aliasIndex = buildAliasIndex(
+    const typeIndex = buildTypeIndex(
         program,
         rootFiles.map((fileName) => ({ fileName }))
     )
+    const aliasIndex = typeIndex.aliases
 
     const unionDecl = findUnionDecl(sf)
     const memberIds = unionMemberIdentifiers(unionDecl)
@@ -729,6 +826,7 @@ function extractComponentDocs(
             sidecarFile: sidecarPathRel,
             body,
             examples,
+            valueProps: extractValueProps(decl, typeIndex),
             ...(fm.system && { system: true }),
             ...(fm.pinned && { pinned: fm.pinned }),
         })

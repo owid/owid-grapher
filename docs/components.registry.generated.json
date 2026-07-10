@@ -8,6 +8,7 @@
     "sidecarFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/AdditionalCharts.md",
     "body": "A subtle way of linking to multiple charts — each line of body becomes a\nseparate item, typically a link to a chart.\n\n## When to use\n\n- Offering readers a small set of related charts without giving them\n  visual prominence.\n\n## When NOT to use\n\n- You want thumbnails or descriptions per item — use `{.chart-rows}`.\n- You need a full-page listing of all charts on a topic — use\n  `{.all-charts}` on a topic page.\n\nThe content between the opening `{.additional-charts}` and closing `{}` must\nbe a bulleted list inside the Google Doc — the gdoc pipeline converts that\ninto the `list` items this block expects. Plain text lines aren't enough;\nthe archie parser needs a true list structure. Because that structure comes\nfrom Google Docs layout, not pure ArchieML text, this component has no\nstandalone `@example`.",
     "examples": [],
+    "valueProps": [],
     "related": [
       "chart-rows",
       "all-charts"
@@ -27,6 +28,7 @@
         "archie": "{.align}\nalignment: center\n[.+content]\nCentered text\n\nA centered heading\n[]\n{}"
       }
     ],
+    "valueProps": [],
     "related": [
       "gray-section"
     ]
@@ -45,6 +47,7 @@
         "archie": "{.all-charts}\nheading: Interactive Charts on Poverty\n[.top]\nurl: https://ourworldindata.org/grapher/size-poverty-gap-countries\n\nurl: https://ourworldindata.org/grapher/gdp-per-capita-maddison-2020\n[]\n{}"
       }
     ],
+    "valueProps": [],
     "related": [
       "chart-rows",
       "additional-charts"
@@ -64,6 +67,9 @@
         "archie": "{.aside}\ncaption: I will be to the left of the following paragraph.\nposition: left\n{}"
       }
     ],
+    "valueProps": [
+      "position"
+    ],
     "related": [
       "callout",
       "recirc"
@@ -77,7 +83,10 @@
     "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/BespokeComponent.ts",
     "sidecarFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/BespokeComponent.md",
     "body": "A self-contained custom data viz component bundled under\n`bespoke/projects/` and embedded via Shadow DOM. Each bundle can\nexpose multiple variants and accepts a free-form `config` map.\nUndocumented in the author reference (developer-facing).",
-    "examples": []
+    "examples": [],
+    "valueProps": [
+      "size"
+    ]
   },
   {
     "id": "blockquote",
@@ -93,6 +102,7 @@
         "archie": "{.blockquote}\ncitation: Bastian Herre\n[.+text]\nMeasuring the state of democracy across the world helps us understand the extent to which people have political rights and freedoms.\n[]\n{}"
       }
     ],
+    "valueProps": [],
     "related": [
       "pull-quote"
     ]
@@ -110,6 +120,9 @@
         "name": "With title and info icon",
         "archie": "{.callout}\ntitle: Update\nicon: info\n[.+text]\nThis article uses data from 2020\n\nBut the conclusions are solid.\n\n[]\n{}"
       }
+    ],
+    "valueProps": [
+      "icon"
     ],
     "pinned": [
       {
@@ -143,6 +156,10 @@
         "archie": "{.chart}\nurl: https://ourworldindata.org/explorers/food-footprints?hideControls=true\n{}"
       }
     ],
+    "valueProps": [
+      "size",
+      "visibility"
+    ],
     "pinned": [
       {
         "slug": "us-crime-rates"
@@ -167,6 +184,7 @@
         "archie": "{.chart-rows}\nkicker: More views of this data\ntitle: Daily incomes by decile\nsource: Global Carbon Budget (2025)\n\n[.rows]\nimage: chart-1-thumbnail.png\nurl: https://ourworldindata.org/grapher/daily-income-decile-1\n[.+content]\nThe poorest decile has seen modest gains since 1980.\n[]\n\nimage: chart-2-thumbnail.png\nurl: https://ourworldindata.org/grapher/daily-income-decile-10\n[.+content]\nThe richest decile has seen the largest absolute gains.\n[]\n[]\n{}"
       }
     ],
+    "valueProps": [],
     "related": [
       "pull-chart",
       "chart"
@@ -186,6 +204,7 @@
         "archie": "[.chart-story]\nnarrative: Text for slide 1, an overview of the world\nchart: https://ourworldindata.org/grapher/military-expenditure-share-gdp\n{.technical}\nThe poverty gap index is a measure that reflects both the depth and prevalence of poverty.\nExtreme poverty is defined as living below the international poverty line of $1.90 per day\n{}\n\nnarrative: Slide two looks at Africa\nchart: https://ourworldindata.org/grapher/military-expenditure-share-gdp?region=Africa\n{.technical}\nData is measured in international-$.\n{}\n[]"
       }
     ],
+    "valueProps": [],
     "related": [
       "chart-rows",
       "guided-chart"
@@ -205,6 +224,7 @@
         "archie": "[.+code]\n<iframe src=\"https://ourworldindata.org/grapher/children-per-woman-un\" loading=\"lazy\"></iframe>\n[]"
       }
     ],
+    "valueProps": [],
     "related": [
       "html"
     ]
@@ -217,7 +237,8 @@
     "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/ConditionalSection.ts",
     "sidecarFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/ConditionalSection.md",
     "body": "A wrapper that includes or excludes its inner content based on the\ncurrent rendering context (for example the current entity on a\ncountry profile page). Undocumented in the author reference.",
-    "examples": []
+    "examples": [],
+    "valueProps": []
   },
   {
     "id": "cookie-notice",
@@ -228,6 +249,7 @@
     "sidecarFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/CookieNotice.md",
     "body": "Renders the site's cookie-consent notice. Internal block — not documented\nfor authors.",
     "examples": [],
+    "valueProps": [],
     "system": true
   },
   {
@@ -238,7 +260,8 @@
     "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/CountryProfileSelector.ts",
     "sidecarFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/CountryProfileSelector.md",
     "body": "A country selector UI used on country-profile pages to let readers\njump to a specific country's profile. Undocumented in the author\nreference.",
-    "examples": []
+    "examples": [],
+    "valueProps": []
   },
   {
     "id": "cta",
@@ -254,6 +277,7 @@
         "archie": "{.cta}\nurl: https://ourworldindata.org/grapher/life-expectancy\ntext: Check this out!\n{}"
       }
     ],
+    "valueProps": [],
     "related": [
       "prominent-link",
       "recirc"
@@ -273,6 +297,7 @@
         "archie": "{.data-callout}\nurl: https://ourworldindata.org/grapher/life-expectancy?country=CAN\n[.+content]\nIn $latestTime(), Canada's life expectancy was $latestValue()\n[]\n{}"
       }
     ],
+    "valueProps": [],
     "related": [
       "callout"
     ]
@@ -291,6 +316,7 @@
         "archie": "{.data-callout-group}\n[.+content]\n{.heading}\ntext: Life expectancy and child mortality\nlevel: 2\n{}\n\n{.data-callout}\nurl: https://ourworldindata.org/grapher/life-expectancy?country=CAN\n[.+content]\nIn $latestTime(), Canada's life expectancy was $latestValue()\n[]\n{}\n\n{.data-callout}\nurl: https://ourworldindata.org/grapher/child-mortality?country=CAN\n[.+content]\nIn $latestTime(), child mortality in Canada was $latestValue()\n[]\n{}\n[]\n{}"
       }
     ],
+    "valueProps": [],
     "related": [
       "data-callout"
     ]
@@ -308,7 +334,8 @@
         "name": "Basic",
         "archie": "{.donors}\n{}"
       }
-    ]
+    ],
+    "valueProps": []
   },
   {
     "id": "entry-summary",
@@ -318,7 +345,8 @@
     "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/EntrySummary.ts",
     "sidecarFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/EntrySummary.md",
     "body": "A table-of-contents-style summary with explicit text/slug pairs. Because\nthe summary headings can differ from the actual headings in the document,\nthe text and slug are serialized explicitly rather than derived. Internal\nblock — not documented for authors.",
-    "examples": []
+    "examples": [],
+    "valueProps": []
   },
   {
     "id": "expandable-paragraph",
@@ -334,6 +362,7 @@
         "archie": "[.+expandable-paragraph]\nAny Archie block is supported here\n[]"
       }
     ],
+    "valueProps": [],
     "related": [
       "expander"
     ]
@@ -352,6 +381,7 @@
         "archie": "{.expander}\nheading: Additional information\ntitle: Which data sources and definitions do we rely on?\nsubtitle: Nunc tincidunt pharetra diam ut accumsan.\n[.+content]\nLorem ipsum dolor sit amet, consectetur adipiscing elit.\n[]\n{}"
       }
     ],
+    "valueProps": [],
     "related": [
       "expandable-paragraph"
     ]
@@ -369,6 +399,9 @@
         "name": "Basic",
         "archie": "{.explore-data-section}\ntitle: Will default to \"Explore the data\"\n[.+content]\nContent here.\n[]\n{}"
       }
+    ],
+    "valueProps": [
+      "align"
     ]
   },
   {
@@ -385,6 +418,7 @@
         "archie": "{.explorer-tiles}\ntitle: Data explorers\nsubtitle: Interactive visualization tools.\n[.explorers]\nurl: https://ourworldindata.org/explorers/poverty-explorer\nurl: https://ourworldindata.org/explorers/energy\nurl: https://ourworldindata.org/explorers/co2\nurl: https://ourworldindata.org/explorers/global-health\n[]\n{}"
       }
     ],
+    "valueProps": [],
     "related": [
       "chart"
     ]
@@ -402,7 +436,8 @@
         "name": "Basic",
         "archie": "{.featured-data-insights}\n{}"
       }
-    ]
+    ],
+    "valueProps": []
   },
   {
     "id": "featured-metrics",
@@ -417,7 +452,8 @@
         "name": "Basic",
         "archie": "{.featured-metrics}\n{}"
       }
-    ]
+    ],
+    "valueProps": []
   },
   {
     "id": "gray-section",
@@ -433,6 +469,7 @@
         "archie": "[.+gray-section]\nA heading within a gray section\n\nSome content\n[]"
       }
     ],
+    "valueProps": [],
     "related": [
       "callout",
       "recirc"
@@ -452,6 +489,7 @@
         "archie": "[.+guided-chart]\n{.sticky-left}\n[.+left]\n{.chart}\nurl: https://ourworldindata.org/grapher/life-expectancy\n{}\n[]\n[.+right]\nI am a link that will update the chart to show New Zealand when clicked\n[]\n{}\n[]"
       }
     ],
+    "valueProps": [],
     "related": [
       "chart",
       "sticky-left",
@@ -466,7 +504,10 @@
     "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/Heading.ts",
     "sidecarFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/Heading.md",
     "body": "A section heading. Authored via Google Docs text styles (Heading 1,\nHeading 2, Heading 3) — the level is derived from the docs style. Start\nsections with h1; nest with h2, then h3.",
-    "examples": []
+    "examples": [],
+    "valueProps": [
+      "level"
+    ]
   },
   {
     "id": "homepage-intro",
@@ -482,6 +523,7 @@
         "archie": "{.homepage-intro}\n\n[.featured-work]\nurl: https://docs.google.com/document/d/1iH_m2GlsBuif80sDwfg0fNGZmpf9X0-TFM5oHQr9fPA/edit\nkicker: Article - 10 Min Read\nisNew: true\n\nurl: https://docs.google.com/document/d/1KCSkpWvSml9KZaqTO7TGWsUDpACZIxBoqs9Yw62Klx8/edit\nkicker: Article - 10 Min Read\n\nurl: https://docs.google.com/document/d/1PvKMIDp0Npp-t_5F-tNp-w9Y2Lq4ifjWDJHEVQQ6bNw/edit\nkicker: Article - 10 Min Read\n\nurl: https://docs.google.com/document/d/11t6XP9vKLDHeiDOcfaPOoc4TeQxHRixSjEikAlbGe0A/edit\ntitle: We updated our topic page on Artificial Intelligence\nkicker: Announcement\n[]\n\n{}"
       }
     ],
+    "valueProps": [],
     "system": true
   },
   {
@@ -498,6 +540,7 @@
         "archie": "{.homepage-search}\n{}"
       }
     ],
+    "valueProps": [],
     "system": true
   },
   {
@@ -513,7 +556,8 @@
         "name": "Basic",
         "archie": "{.horizontal-rule}\n{}"
       }
-    ]
+    ],
+    "valueProps": []
   },
   {
     "id": "html",
@@ -533,6 +577,7 @@
         "archie": "html: <iframe src=\"https://www.youtube.com/watch?v=dQw4w9WgXcQ\" />"
       }
     ],
+    "valueProps": [],
     "related": [
       "code",
       "chart",
@@ -556,6 +601,13 @@
         "name": "Minimal",
         "archie": "{.image}\nfilename: default-featured-image.png\n{}"
       }
+    ],
+    "valueProps": [
+      "hasOutline",
+      "originalWidth",
+      "preferSmallFilename",
+      "size",
+      "visibility"
     ],
     "pinned": [
       {
@@ -583,6 +635,7 @@
         "archie": "{.key-indicator}\ndatapageUrl: https://ourworldindata.org/grapher/life-expectancy\ntitle: How did people's life expectancy change over time?\n[.+text]\nLife expectancy has more than doubled in the last two centuries.\n[]\nsource: Long-run data from UN World Population Prospects\n{}"
       }
     ],
+    "valueProps": [],
     "related": [
       "key-indicator-collection",
       "chart",
@@ -604,6 +657,7 @@
         "archie": "{.key-indicator-collection}\n\n[.+indicators]\n\n{.key-indicator}\ndatapageUrl: https://ourworldindata.org/grapher/child-mortality?time=earliest..latest\ntitle: What share of children died before their fifth birthday?\nsource: Long-run estimates combining data from UN & Gapminder\n[.+text]\nWhat could be more tragic than the death of a young child?\n[]\n{}\n\n{.key-indicator}\ndatapageUrl: https://ourworldindata.org/grapher/share-of-population-in-extreme-poverty\ntitle: What share of the population is living in extreme poverty?\n[.+text]\nThe UN sets the 'International Poverty Line' as a worldwide comparable definition.\n[]\n{}\n\n[]\n\n{}"
       }
     ],
+    "valueProps": [],
     "related": [
       "chart",
       "pull-chart"
@@ -622,7 +676,8 @@
         "name": "With mixed visuals",
         "archie": "{.key-insights}\nheading: Key Insights on Poverty\n[.insights]\n\ntitle: The age dependency ratio changes by country\nurl: https://ourworldindata.org/grapher/age-dependency-breakdown\n[.+content]\nAll sorts of content can go in here.\n[]\n\ntitle: This slide uses an image\nfilename: default-featured-image.png\n[.+content]\nBlah blah.\n[]\n\ntitle: This slide uses a narrative chart\nnarrativeChartName: global-life-expectancy-has-doubled\n[.+content]\nBlah blah blah.\n[]\n\n[]\n{}"
       }
-    ]
+    ],
+    "valueProps": []
   },
   {
     "id": "latest-data-insights",
@@ -637,7 +692,8 @@
         "name": "Basic",
         "archie": "{.latest-data-insights}\n{}"
       }
-    ]
+    ],
+    "valueProps": []
   },
   {
     "id": "ltp-toc",
@@ -656,7 +712,8 @@
         "name": "Custom title",
         "archie": "{.ltp-toc}\ntitle: On this page\n{}\n\n{.heading}\ntext: How has life expectancy changed?\nlevel: 1\n{}\n\n{.heading}\ntext: Why do people live longer than in the past?\nlevel: 1\n{}"
       }
-    ]
+    ],
+    "valueProps": []
   },
   {
     "id": "missing-data",
@@ -666,7 +723,8 @@
     "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/MissingData.ts",
     "sidecarFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/MissingData.md",
     "body": "Placeholder block indicating that data is missing for the current entity.\nInternal block — not documented for authors.",
-    "examples": []
+    "examples": [],
+    "valueProps": []
   },
   {
     "id": "narrative-chart",
@@ -681,6 +739,9 @@
         "name": "Basic",
         "archie": "{.narrative-chart}\nname: global-life-expectancy-has-doubled\n{}"
       }
+    ],
+    "valueProps": [
+      "size"
     ],
     "related": [
       "chart"
@@ -699,7 +760,8 @@
         "name": "Basic",
         "archie": "[.numbered-list]\n* Numbered\n* List\n[]"
       }
-    ]
+    ],
+    "valueProps": []
   },
   {
     "id": "people",
@@ -710,6 +772,7 @@
     "sidecarFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/People.md",
     "body": "A flat list of `{.person}` items — distinct from `{.people-rows}` which\narranges them in a configurable column grid. `{.people}` is a bare\ncontainer, leaving layout to the parent context.\n\n## When to use\n\n- When you need a sequence of person cards without the explicit row/column\n  grid layout of `{.people-rows}`.\n- As an intermediate structure when downstream rendering will handle\n  layout (e.g. embedded in a custom section).\n\n## When NOT to use\n\n- For a standard team or board grid with 2- or 4-column layout — use\n  `{.people-rows}` instead.\n\n## Variations\n\n- `items` is an array of `{.person}` blocks. See `{.person}` for the\n  fields available on each.\n\nNote: this block has no current usage in the content repo and no canonical\narchie example. Reach for `{.people-rows}` instead for new content.",
     "examples": [],
+    "valueProps": [],
     "related": [
       "people-rows"
     ]
@@ -727,6 +790,9 @@
         "name": "Two-column row",
         "archie": "{.people-rows}\ncolumns: 2\n\n[.+people]\n{.person}\nimage: Max Roser.jpeg\nname: Professor Max Roser\ntitle: Founder and Executive Co-Director\nurl: https://docs.google.com/document/d/1NfXOk8HVohVYjzJ1rtZYuw8h7kB9cWd5Kqxj4Dg1-WQ/edit\n[.+text]\nMax is the founder of Our World in Data.\n[]\n[.socials]\ntype: x\nurl: https://x.com/MaxCRoser\ntext: @MaxCRoser\n[]\n{}\n[]\n{}"
       }
+    ],
+    "valueProps": [
+      "columns"
     ]
   },
   {
@@ -743,6 +809,7 @@
         "archie": "{.person}\nimage: Max Roser.jpeg\nname: Max Roser\ntitle: Founder and Executive Co-Director\nurl: https://ourworldindata.org/team/max-roser\n[.+text]\nMax is the founder of Our World in Data and an Associate Professor at the\nUniversity of Oxford.\n[]\n[.socials]\ntype: x\nurl: https://x.com/MaxCRoser\ntext: @MaxCRoser\n[]\n{}"
       }
     ],
+    "valueProps": [],
     "related": [
       "people-rows",
       "people"
@@ -762,6 +829,7 @@
         "archie": "{.pill-row}\ntitle: Popular Articles\n[.pills]\ntext: Optimism & Pessimism\nurl: https://docs.google.com/document/d/1Lo3CtGGESA3iQVrlhlQZbtG15ecUNt1Qfk2X3iBlwIk/edit\n\ntext: Life Expectancy\nurl: https://ourworldindata.org/grapher/life-expectancy\n[]\n{}"
       }
     ],
+    "valueProps": [],
     "related": [
       "cta",
       "recirc"
@@ -785,6 +853,7 @@
         "archie": "{.prominent-link}\nurl: https://ourworldindata.org\ntitle: About Our World In Data\ndescription: A simple description\nthumbnail: default-featured-image.png\n{}"
       }
     ],
+    "valueProps": [],
     "related": [
       "recirc",
       "cta"
@@ -803,6 +872,9 @@
         "name": "Left-aligned pull chart",
         "archie": "{.pull-chart}\nalign: left-center\nimage: hpv-vaccines-thumbnail.png\nurl: https://ourworldindata.org/grapher/population\n[.+content]\nGlobal population has grown rapidly over the past two centuries. Click through to explore the data by country.\n[]\n{}"
       }
+    ],
+    "valueProps": [
+      "align"
     ],
     "related": [
       "chart",
@@ -824,6 +896,9 @@
         "archie": "{.pull-quote}\nquote: I am a left-center aligned quote that should span multiple lines.\nalign: left-center\n[.+content]\nSuspendisse commodo turpis nunc, sit amet cursus odio porttitor scelerisque.\n[]\n{}"
       }
     ],
+    "valueProps": [
+      "align"
+    ],
     "related": [
       "blockquote"
     ]
@@ -841,6 +916,9 @@
         "name": "Centered recirc with mixed links",
         "archie": "{.recirc}\ntitle: More Articles on Mammals\nalign: center\n\n[.links]\nurl: https://docs.google.com/document/d/1Lo3CtGGESA3iQVrlhlQZbtG15ecUNt1Qfk2X3iBlwIk\n\nurl: https://docs.google.com/document/d/1Lo3CtGGESA3iQVrlhlQZbtG15ecUNt1Qfk2X3iBlwIk\ntitle: Example of a custom title\nsubtitle: Suscipit provident ratione omnis earum.\n[]\n{}"
       }
+    ],
+    "valueProps": [
+      "align"
     ],
     "related": [
       "prominent-link",
@@ -865,6 +943,11 @@
         "archie": "{.research-and-writing}\nvariant: featured\n{}"
       }
     ],
+    "valueProps": [
+      "hide-authors",
+      "hide-date",
+      "variant"
+    ],
     "related": [
       "recirc",
       "prominent-link"
@@ -884,6 +967,9 @@
         "archie": "{.resource-panel}\nkicker: Resources\nicon: chart\ntitle: Data on this topic\nbuttonText: See all data on this topic\n[.links]\nurl: https://ourworldindata.org/grapher/access-to-clean-fuels-and-technologies-for-cooking\nsubtitle: World Health Organization - Global Health Observatory (2025)\n\nurl: https://ourworldindata.org/grapher/annual-co2-emissions-per-country\nsubtitle: Global Carbon Budget (2024)\n[]\n\n{}"
       }
     ],
+    "valueProps": [
+      "icon"
+    ],
     "related": [
       "recirc"
     ]
@@ -896,7 +982,8 @@
     "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/SDGGrid.ts",
     "sidecarFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/SDGGrid.md",
     "body": "A grid of tiles for the UN Sustainable Development Goals. Legacy\nblock used on the SDG tracker. Undocumented in the author reference.",
-    "examples": []
+    "examples": [],
+    "valueProps": []
   },
   {
     "id": "sdg-toc",
@@ -906,7 +993,8 @@
     "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/SDGToc.ts",
     "sidecarFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/SDGToc.md",
     "body": "Table of contents for the SDG tracker. Legacy block. Undocumented in\nthe author reference.",
-    "examples": []
+    "examples": [],
+    "valueProps": []
   },
   {
     "id": "side-by-side",
@@ -922,6 +1010,7 @@
         "archie": "{.side-by-side}\n[.+left]\nI am content on the left.\n[]\n[.+right]\nI am content on the right.\n[]\n{}"
       }
     ],
+    "valueProps": [],
     "related": [
       "sticky-right",
       "sticky-left"
@@ -935,7 +1024,8 @@
     "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/SimpleText.ts",
     "sidecarFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/SimpleText.md",
     "body": "A plain-text fragment without any inline formatting (no bold, italics,\nor links). Used as an internal primitive for blocks whose text must be\nflat — for example, inside `{.code}` — and is not authored directly in\nArchieML.",
-    "examples": []
+    "examples": [],
+    "valueProps": []
   },
   {
     "id": "socials",
@@ -951,6 +1041,7 @@
         "archie": "[.socials]\nurl: saloni@ourworldindata.org\ntext: saloni@ourworldindata.org\ntype: email\n\nurl: https://twitter.com/salonium\ntext: @salonium\ntype: x\n[]"
       }
     ],
+    "valueProps": [],
     "related": [
       "person"
     ]
@@ -968,6 +1059,10 @@
         "name": "Basic",
         "archie": "{.static-viz}\nname: grapher-static-viz-demo\n{}"
       }
+    ],
+    "valueProps": [
+      "hasOutline",
+      "size"
     ],
     "related": [
       "image",
@@ -989,6 +1084,7 @@
         "archie": "{.sticky-left}\n[.+left]\n{.chart}\nurl: https://ourworldindata.org/grapher/military-expenditure-share-gdp\n{}\nSticky left content.\n[]\n[.+right]\nRight content.\n[]\n{}"
       }
     ],
+    "valueProps": [],
     "related": [
       "sticky-right",
       "side-by-side",
@@ -1009,6 +1105,7 @@
         "archie": "{.sticky-right}\n[.+left]\nContent on the left. Lorem ipsum dolor sit amet.\n[]\n[.+right]\n{.chart}\nurl: https://ourworldindata.org/grapher/military-expenditure-share-gdp\n{}\nContent on the right that sticks as the user scrolls.\n[]\n{}"
       }
     ],
+    "valueProps": [],
     "related": [
       "side-by-side",
       "sticky-left",
@@ -1028,6 +1125,9 @@
         "name": "Centered",
         "archie": "{.subscribe-banner}\nalign: center\n{}"
       }
+    ],
+    "valueProps": [
+      "align"
     ]
   },
   {
@@ -1039,6 +1139,10 @@
     "sidecarFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/Table.md",
     "body": "A simple table, built from a native Google Docs table wrapped in an\narchie block. Three header templates are supported.\n\n## When to use\n\n- Small-to-medium tables that are best authored directly in Google Docs.\n\n## When NOT to use\n\n- For very large or complex tables, wrap a Google Docs table inside an\n  `{.expander}` so it can be hidden by default.\n\n## Variations\n\n- `template`: `header-column` | `header-row` | `header-column-row`\n- `size`: `narrow` | `wide` — defaults to spanning 6 columns; use `wide`\n  for full width.\n- `caption` is optional and supports rich text (including links).\n\nNote: the actual `<table>` markup is authored directly in Google Docs; the\nblock wrapper only configures the template, size, and caption.\n\nA `{.table}` block in archie only configures the wrapper (template, size,\ncaption); the actual rows come from a native Google Docs table placed\nbetween the opening `{.table}` and closing `{}` inside the Gdoc. Because the\nrows can't be expressed in pure ArchieML text, this component has no\nstandalone `@example`.",
     "examples": [],
+    "valueProps": [
+      "size",
+      "template"
+    ],
     "related": [
       "expander"
     ]
@@ -1051,7 +1155,8 @@
     "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/Text.ts",
     "sidecarFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/Text.md",
     "body": "A paragraph of prose. This is the default block generated from plain\ntext in a Google Doc — authors don't usually write it explicitly.\nText spans support Google Docs formatting (bold, italic, links,\nsuperscript, subscript), refs, and details-on-demand links.",
-    "examples": []
+    "examples": [],
+    "valueProps": []
   },
   {
     "id": "topic-page-intro",
@@ -1070,7 +1175,8 @@
         "name": "Minimal (content only)",
         "archie": "{.topic-page-intro}\n[+.content]\nA short introduction to the topic.\n[]\n{}"
       }
-    ]
+    ],
+    "valueProps": []
   },
   {
     "id": "list",
@@ -1080,7 +1186,8 @@
     "sourceFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/UnorderedList.ts",
     "sidecarFile": "packages/@ourworldindata/types/src/gdocTypes/archieMLComponents/List.md",
     "body": "An unordered (bulleted) list. Produced automatically from Google Docs\nbullet formatting — authors don't usually write this block explicitly\nin ArchieML. Nested lists are not supported.",
-    "examples": []
+    "examples": [],
+    "valueProps": []
   },
   {
     "id": "video",
@@ -1095,6 +1202,11 @@
         "name": "Looping autoplay with a poster image",
         "archie": "{.video}\nurl: https://assets.ourworldindata.org/videos/bunny.mp4\nfilename: bunny-poster.jpg\nshouldLoop: true\nshouldAutoplay: true\nvisibility: desktop\ncaption: I am a caption for this video. I can have links.\n{}"
       }
+    ],
+    "valueProps": [
+      "shouldAutoplay",
+      "shouldLoop",
+      "visibility"
     ],
     "related": [
       "html",

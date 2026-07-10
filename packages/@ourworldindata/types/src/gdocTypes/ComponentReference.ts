@@ -47,6 +47,14 @@ export interface ComponentDoc {
     body: string
     examples: ComponentExample[]
     /**
+     * Props whose VALUE (not just presence) distinguishes forms of the
+     * block, derived from the declared types: literal unions, enums,
+     * const-array unions, numbers and booleans. Consumed by the live
+     * variation analysis ("size:narrow" is a different form than
+     * "size:wide", but two charts with different urls are the same form).
+     */
+    valueProps: string[]
+    /**
      * Platform block rendered on system-managed pages (homepage, cookie
      * notice, …) — never part of an author's vocabulary. The one editorial
      * judgment usage data can't express: zero usage is ambiguous between
