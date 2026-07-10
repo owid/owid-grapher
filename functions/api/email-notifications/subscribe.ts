@@ -13,6 +13,7 @@ import {
     createEmailToken,
     sendConfirmationEmail,
 } from "../../_common/emailNotifications.js"
+import { upsertOwidBriefSubscription } from "../../_common/mailchimp.js"
 
 const CORS_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -97,7 +98,17 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
         }
 
         if (data.subscribeToOwidBrief) {
-            await subscribeToOwidBriefNewsletter(env, email)
+            // The OWID Brief newsletter stays in Mailchimp; Mailchimp runs
+            // its own double opt-in for new list members.
+            try {
+                await upsertOwidBriefSubscription(env, email, true)
+            } catch (error) {
+                Sentry.captureException(error)
+                throw new JsonError(
+                    "Failed to subscribe to the OWID Brief newsletter. Please try again later.",
+                    500
+                )
+            }
         }
 
         const response: EmailNotificationsSubscribeResponse = { ok: true }
@@ -161,71 +172,4 @@ async function upsertPendingUser(
         throw new JsonError("Failed to store subscription", 500)
     }
     return created
-}
-
-// The OWID Brief newsletter stays in Mailchimp, so subscribing to it means
-// upserting the Mailchimp list member with the OWID Brief interest (group)
-// checked.
-async function subscribeToOwidBriefNewsletter(
-    env: Env,
-    email: string
-): Promise<void> {
-    if (
-        !env.MAILCHIMP_API_KEY ||
-        !env.MAILCHIMP_API_SERVER ||
-        !env.MAILCHIMP_NEWSLETTER_LIST_ID
-    ) {
-        // Allows testing the rest of the flow locally without Mailchimp
-        // credentials.
-        console.warn(
-            "Mailchimp environment variables are not set, skipping OWID Brief subscription"
-        )
-        return
-    }
-
-    const subscriberDigest = await crypto.subtle.digest(
-        // MD5 is not part of the WebCrypto standard but is supported in
-        // Cloudflare Workers for interacting with legacy systems that require
-        // MD5.
-        // https://developers.cloudflare.com/workers/runtime-apis/web-crypto/
-        { name: "MD5" },
-        new TextEncoder().encode(email)
-    )
-    const subscriberHash = [...new Uint8Array(subscriberDigest)]
-        .map((b) => b.toString(16).padStart(2, "0"))
-        .join("")
-
-    const member: Record<string, unknown> = {
-        email_address: email,
-        // New list members go through Mailchimp's double opt-in confirmation.
-        // Existing members keep their current status.
-        status_if_new: "pending",
-    }
-    if (env.MAILCHIMP_OWID_BRIEF_INTEREST_ID) {
-        member.interests = { [env.MAILCHIMP_OWID_BRIEF_INTEREST_ID]: true }
-    }
-
-    const response = await fetch(
-        `https://${env.MAILCHIMP_API_SERVER}.api.mailchimp.com/3.0/lists/${env.MAILCHIMP_NEWSLETTER_LIST_ID}/members/${subscriberHash}`,
-        {
-            method: "PUT",
-            headers: {
-                Authorization: `Basic ${btoa(`anystring:${env.MAILCHIMP_API_KEY}`)}`,
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(member),
-        }
-    )
-    if (!response.ok) {
-        const data = await response.json()
-        console.error("Failed to subscribe user to the OWID Brief", data)
-        Sentry.captureMessage("Failed to subscribe user to the OWID Brief", {
-            level: "error",
-            extra: { response: data },
-        })
-        throw new JsonError(
-            "Failed to subscribe to the OWID Brief newsletter. Please try again later.",
-            500
-        )
-    }
 }
