@@ -2,22 +2,6 @@ The introduction section of a topic page. Renders the topic title,
 optional download button, optional related-topics chips, and an intro
 body of rich text.
 
-## When to use
-
-- Included on every topic page (`type: topic-page`) as the first block
-  of the body.
-
-## When NOT to use
-
-- On non-topic-page documents (articles, data insights, linear topic
-  pages, homepage, etc.).
-
-## Notes
-
-Omit the download button when there is no canonical dataset to offer.
-`related-topics` entries can be gdoc links (metadata resolves
-automatically) or external URLs (supply `text`).
-
 ### Basic
 
 ```archie
@@ -49,3 +33,19 @@ A short introduction to the topic.
 []
 {}
 ```
+
+## When to use
+
+- Included on every topic page (`type: topic-page`) as the first block
+  of the body.
+
+## When NOT to use
+
+- On non-topic-page documents (articles, data insights, linear topic
+  pages, homepage, etc.).
+
+## Notes
+
+Omit the download button when there is no canonical dataset to offer.
+`related-topics` entries can be gdoc links (metadata resolves
+automatically) or external URLs (supply `text`).

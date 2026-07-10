@@ -2,6 +2,23 @@ A small gray block, usually placed to the side of body text, that links
 readers to related content (articles, graphers, explorers, MDIMs, or
 external URLs).
 
+### Centered recirc with mixed links
+
+```archie
+{.recirc}
+title: More Articles on Mammals
+align: center
+
+[.links]
+url: https://docs.google.com/document/d/1Lo3CtGGESA3iQVrlhlQZbtG15ecUNt1Qfk2X3iBlwIk
+
+url: https://docs.google.com/document/d/1Lo3CtGGESA3iQVrlhlQZbtG15ecUNt1Qfk2X3iBlwIk
+title: Example of a custom title
+subtitle: Suscipit provident ratione omnis earum.
+[]
+{}
+```
+
 ## When to use
 
 - Surfacing related reading alongside an article.
@@ -21,20 +38,3 @@ Internal links auto-fetch title and thumbnail; override them via `title`
 and `subtitle` per link. Don't mix external links with internal ones in
 the same block — external sources get no thumbnail, and the mix looks
 broken.
-
-### Centered recirc with mixed links
-
-```archie
-{.recirc}
-title: More Articles on Mammals
-align: center
-
-[.links]
-url: https://docs.google.com/document/d/1Lo3CtGGESA3iQVrlhlQZbtG15ecUNt1Qfk2X3iBlwIk
-
-url: https://docs.google.com/document/d/1Lo3CtGGESA3iQVrlhlQZbtG15ecUNt1Qfk2X3iBlwIk
-title: Example of a custom title
-subtitle: Suscipit provident ratione omnis earum.
-[]
-{}
-```

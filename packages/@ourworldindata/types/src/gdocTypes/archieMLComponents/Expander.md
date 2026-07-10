@@ -2,6 +2,19 @@ A rectangular box that conceals content until the reader clicks to reveal
 it. Useful for large tables, technical detail, or optional methodology
 that would otherwise interrupt the main narrative.
 
+### Technical detail expander
+
+```archie
+{.expander}
+heading: Additional information
+title: Which data sources and definitions do we rely on?
+subtitle: Nunc tincidunt pharetra diam ut accumsan.
+[.+content]
+Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+[]
+{}
+```
+
 ## When to use
 
 - Hiding long technical descriptions behind a click.
@@ -16,16 +29,3 @@ that would otherwise interrupt the main narrative.
 
 `heading` renders as context above the box, `title` is the clickable
 headline, and `subtitle` is secondary text under it.
-
-### Technical detail expander
-
-```archie
-{.expander}
-heading: Additional information
-title: Which data sources and definitions do we rely on?
-subtitle: Nunc tincidunt pharetra diam ut accumsan.
-[.+content]
-Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-[]
-{}
-```

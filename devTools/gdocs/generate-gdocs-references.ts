@@ -449,7 +449,7 @@ function parseSidecar(
 ): {
     frontMatter: Record<string, unknown>
     body: string
-    examples: ComponentExample[]
+    examples: (ComponentExample & { inIntro: boolean })[]
 } {
     let rest = text
     let frontMatter: Record<string, unknown> = {}
@@ -476,25 +476,33 @@ function parseSidecar(
     }
     rest = rest.trim()
 
-    const examples: ComponentExample[] = []
+    // An example's name comes ONLY from a "### " heading immediately above
+    // its fence (blank lines allowed in between) — never from surrounding
+    // prose, which is just prose. An unnamed example gets "" and the UI
+    // labels its form automatically.
+    const examples: (ComponentExample & { inIntro: boolean })[] = []
+    const sectionsStart = rest.search(/^## /m)
     const fenceRe = new RegExp(
         FENCE + "archie\\r?\\n([\\s\\S]+?)\\r?\\n" + FENCE,
         "g"
     )
     let m: RegExpExecArray | null
-    let n = 0
     while ((m = fenceRe.exec(rest)) !== null) {
-        n++
         const before = rest.slice(0, m.index)
-        let name = "Example " + n
+        let name = ""
         const lines = before.split(/\r?\n/).reverse()
         for (const line of lines) {
             const trimmed = line.trim()
-            if (!trimmed || trimmed.startsWith(FENCE)) continue
-            name = trimmed.replace(/^#+\s*/, "").replace(/[:.\s]+$/, "")
+            if (!trimmed) continue
+            if (trimmed.startsWith("### "))
+                name = trimmed.replace(/^###\s*/, "").trim()
             break
         }
-        examples.push({ name, archie: m[1] })
+        examples.push({
+            name,
+            archie: m[1],
+            inIntro: sectionsStart === -1 || m.index < sectionsStart,
+        })
     }
     return { frontMatter, body: rest, examples }
 }
@@ -860,6 +868,17 @@ function extractComponentDocs(
                     "COMPONENT_CATEGORY_BY_ID in devTools/gdocs/generate-gdocs-references.ts"
             )
 
+        // Component examples live in the intro (before the first "## "
+        // section) — that is where the page renders them. A fence anywhere
+        // else is a mistake, caught here rather than silently ignored.
+        const stray = examples.filter((example) => !example.inIntro)
+        if (stray.length > 0)
+            throw new Error(
+                sidecarPathRel +
+                    ": archie example(s) found after the first '## ' heading — " +
+                    "examples belong in the intro, before the decision sections"
+            )
+
         const title = fm.title ?? deriveTitle(typeName)
         docs.push({
             id,
@@ -869,7 +888,7 @@ function extractComponentDocs(
             sourceFile,
             sidecarFile: sidecarPathRel,
             body,
-            examples,
+            examples: examples.map(({ name, archie }) => ({ name, archie })),
             props: extractProps(decl, typeIndex),
             valueProps: extractValueProps(decl, typeIndex),
             ...(fm.system && { system: true }),
@@ -1111,7 +1130,9 @@ function extractTemplateDocs(
             body,
             fields,
             adminManagedFields: [...OWID_GDOC_ADMIN_MANAGED_KEYS],
-            examples,
+            // Template examples are full documents presented in their own
+            // "### Example" sections — no placement constraint applies.
+            examples: examples.map(({ name, archie }) => ({ name, archie })),
             ...(fm.exemplars && { exemplars: fm.exemplars }),
             ...(fm.skeleton && { skeleton: fm.skeleton }),
         })

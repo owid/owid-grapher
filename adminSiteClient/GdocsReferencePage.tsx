@@ -29,7 +29,7 @@ import {
     sidecarNotesMarkdown,
     splitSidecarBody,
 } from "./gdocsReferenceSidecar.js"
-import { CopyButton, GdocsReferenceExample } from "./GdocsReferenceExample.js"
+import { CopyButton } from "./GdocsReferenceExample.js"
 import {
     ComponentForms,
     ExemplarXray,
@@ -636,11 +636,9 @@ export class GdocsReferencePage extends Component<
         )
         const previewPath = this.previewPathForComponent(doc)
         // The sidecar's remaining prose renders as authored notes under the
-        // derived properties table; its fenced examples are dropped there —
-        // the forms section presents them (as curated names on observed
-        // forms, or dashed "new" cards).
+        // derived properties table. Examples live in the intro by convention
+        // (generator-enforced) and render there, in place.
         const notesMarkdown = sidecarNotesMarkdown(rest)
-        const heroExample = doc.examples[0]
         return (
             <article className="gdocs-ref__detail">
                 <header className="gdocs-ref__detail-header">
@@ -666,17 +664,6 @@ export class GdocsReferencePage extends Component<
                         previewPathForExample={previewPath}
                         componentIds={this.componentIds}
                     />
-                )}
-                {heroExample && (
-                    <div className="gdocs-ref__hero">
-                        <GdocsReferenceExample
-                            archie={heroExample.archie}
-                            previewPath={previewPath(0)}
-                        />
-                        <p className="gdocs-ref__hero-caption">
-                            {heroExample.name || "Reference example"}
-                        </p>
-                    </div>
                 )}
                 {this.renderDecisionBox(
                     whenToUse,

@@ -3,21 +3,6 @@ registered in the admin, all fields (title, description, thumbnail) are
 auto-fetched; you can override any of them, and for non-gdoc URLs you
 must supply them.
 
-## When to use
-
-- Driving readers to a single, key related article or chart.
-
-## When NOT to use
-
-- Prefer `{.recirc}` for a small gray list of multiple related links.
-- Prefer `{.cta}` for a simple arrow link.
-
-## Notes
-
-For a gdoc URL, passing just `url` is enough — all fields are
-auto-fetched. For external URLs (or unmigrated articles), supply
-`title`, `description`, and `thumbnail` yourself.
-
 ### Gdoc URL (auto-fetched)
 
 ```archie
@@ -36,3 +21,18 @@ description: A simple description
 thumbnail: default-featured-image.png
 {}
 ```
+
+## When to use
+
+- Driving readers to a single, key related article or chart.
+
+## When NOT to use
+
+- Prefer `{.recirc}` for a small gray list of multiple related links.
+- Prefer `{.cta}` for a simple arrow link.
+
+## Notes
+
+For a gdoc URL, passing just `url` is enough — all fields are
+auto-fetched. For external URLs (or unmigrated articles), supply
+`title`, `description`, and `thumbnail` yourself.

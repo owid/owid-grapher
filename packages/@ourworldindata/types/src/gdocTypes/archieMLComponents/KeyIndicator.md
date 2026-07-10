@@ -3,6 +3,19 @@ title, a short narrative, and an embedded chart pulled from the linked
 datapage's indicator. Almost always used as a member of a
 `{.key-indicator-collection}` (the homepage accordion of indicators).
 
+### Standalone key indicator
+
+```archie
+{.key-indicator}
+datapageUrl: https://ourworldindata.org/grapher/life-expectancy
+title: How did people's life expectancy change over time?
+[.+text]
+Life expectancy has more than doubled in the last two centuries.
+[]
+source: Long-run data from UN World Population Prospects
+{}
+```
+
 ## When to use
 
 - As one entry inside `{.key-indicator-collection}`.
@@ -21,16 +34,3 @@ datapage's indicator. Almost always used as a member of a
 query parameters like `?time=earliest..latest` to control the default
 view. When `source` is omitted, the indicator's `attributionShort` is
 shown instead.
-
-### Standalone key indicator
-
-```archie
-{.key-indicator}
-datapageUrl: https://ourworldindata.org/grapher/life-expectancy
-title: How did people's life expectancy change over time?
-[.+text]
-Life expectancy has more than doubled in the last two centuries.
-[]
-source: Long-run data from UN World Population Prospects
-{}
-```

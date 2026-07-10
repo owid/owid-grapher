@@ -1,5 +1,6 @@
 import {
     ComponentDoc,
+    ComponentDraftResponse,
     ComponentInstance,
     ComponentInstancesResponse,
     ComponentUsage,
@@ -23,9 +24,14 @@ import { convertHeadingTextToId } from "@ourworldindata/components"
 import * as db from "../../db/db.js"
 import { archieToEnriched } from "../../db/model/Gdoc/archieToEnriched.js"
 import { enrichedBlockToRawBlock } from "../../db/model/Gdoc/enrichedToRaw.js"
-import { parseRawBlocksToEnrichedBlocks } from "../../db/model/Gdoc/rawToEnriched.js"
 import { enumerateGdocComponentsWithoutChildren } from "../../db/model/Gdoc/extractGdocComponentInfo.js"
 import { resolveBlockAtPath } from "../gdocsReferencePreview.js"
+import {
+    MinimalBlock,
+    applyDraftOverrides,
+    minimizeRaw,
+    parseDraftOverrides,
+} from "../gdocsReferenceMinimal.js"
 import { OwidRawGdocBlockToArchieMLString } from "../../db/model/Gdoc/rawToArchie.js"
 import { Request } from "../authentication.js"
 import { HandlerResponse } from "../FunctionalRouter.js"
@@ -205,73 +211,6 @@ function configToRaw(config: StoredConfig): OwidRawGdocBlock {
             typeof v === "number" || typeof v === "boolean" ? String(v) : v
     }
     return { type, value } as unknown as OwidRawGdocBlock
-}
-
-/**
- * A block reduced to its minimal source: the raw form with every prop the
- * parser re-injects on its own (a default) stripped away. Two invariants
- * follow, and both matter:
- *
- * - Stored configs are parser output of varying vintage — the same authoring
- *   is stored with or without injected defaults depending on when its doc
- *   was last saved. Minimization compares re-parses in TODAY's parser space,
- *   so vintage differences collapse and analysis can never depend on when a
- *   doc was saved.
- * - What survives is exactly what makes the block this block: required props
- *   (stripping them changes the parse) and deviations from defaults. The
- *   displayed ArchieML is generated from the same minimization, so the
- *   reference always shows the canonical, shortest way to type each form.
- */
-interface MinimalBlock {
-    raw: OwidRawGdocBlock
-    /** The surviving (authored, non-empty) value props of the minimal raw */
-    props: Record<string, unknown>
-}
-
-function tryParseRaw(raw: OwidRawGdocBlock): OwidEnrichedGdocBlock | undefined {
-    try {
-        return parseRawBlocksToEnrichedBlocks(raw) ?? undefined
-    } catch {
-        return undefined
-    }
-}
-
-function minimizeRaw(raw: OwidRawGdocBlock): MinimalBlock {
-    const value = (raw as { value?: unknown }).value
-    if (typeof value !== "object" || value === null || Array.isArray(value))
-        return { raw, props: {} }
-    const props = value as Record<string, unknown>
-    for (const key of Object.keys(props)) {
-        if (props[key] === undefined) delete props[key]
-    }
-
-    // Strip every prop whose removal is parse-invariant — the parser fills
-    // defaults back in, so removing one doesn't change the result, while
-    // removing a required prop or a non-default value does. Only applies
-    // when the block parses cleanly: container blocks are stored without
-    // their child blocks, so they parse to an error either way and stripping
-    // would erase real props. (JSON.stringify comparison is deterministic
-    // because the parsers build their result objects in a fixed order.)
-    const baseEnriched = tryParseRaw(raw)
-    if (baseEnriched && (baseEnriched.parseErrors ?? []).length === 0) {
-        const base = JSON.stringify(baseEnriched)
-        for (const key of Object.keys(props)) {
-            const kept = props[key]
-            delete props[key]
-            const reparsed = tryParseRaw(raw)
-            if (!reparsed || JSON.stringify(reparsed) !== base)
-                props[key] = kept
-        }
-    }
-
-    const authored: Record<string, unknown> = {}
-    for (const [key, v] of Object.entries(props)) {
-        if (v === null) continue
-        if (typeof v === "string" && v.trim() === "") continue
-        if (Array.isArray(v) && v.length === 0) continue
-        authored[key] = v
-    }
-    return { raw, props: authored }
 }
 
 function minimizeConfig(
@@ -646,7 +585,13 @@ export async function getComponentInstances(
     // matching example to the sidecar.
     const nameBySignature = new Map<string, string>()
     for (const example of syntheticExamples) {
-        if (example.observed && !nameBySignature.has(example.signature))
+        // Unnamed examples (no "### " heading in the sidecar) never enter
+        // the naming layer — their forms keep the automatic label.
+        if (
+            example.observed &&
+            example.name !== "" &&
+            !nameBySignature.has(example.signature)
+        )
             nameBySignature.set(example.signature, example.name)
     }
 
@@ -675,6 +620,46 @@ export async function getComponentInstances(
         scanned: analyzableCount,
         propAdoption,
     }
+}
+
+// -----------------------------------------------------------------------------
+// The form builder: a real instance reshaped by prop overrides
+// -----------------------------------------------------------------------------
+
+/**
+ * The form builder's draft: the block at ?path in the published gdoc ?gdocId
+ * with the author's cycled ?overrides applied, reduced to its minimal source.
+ * Returns the ArchieML the author would paste and the surviving props (the
+ * client derives the draft's form signature from those).
+ */
+export async function getComponentDraft(
+    req: Request,
+    _res: HandlerResponse,
+    trx: db.KnexReadonlyTransaction
+): Promise<ComponentDraftResponse> {
+    const gdocId = req.query.gdocId as string | undefined
+    const path = req.query.path as string | undefined
+    if (!gdocId || !path)
+        throw new JsonError("gdocId and path are required", 400)
+    const overrides = parseDraftOverrides(
+        req.query.overrides as string | undefined
+    )
+    if (!overrides) throw new JsonError("No valid overrides given", 400)
+
+    const bodies = await loadBodies(trx, [gdocId])
+    const body = bodies.get(gdocId)
+    const block = body ? resolveBlockAtPath({ body }, path) : undefined
+    if (!block)
+        throw new JsonError(
+            `No renderable block at "${path}" in gdoc "${gdocId}"`,
+            404
+        )
+
+    const draft = applyDraftOverrides(block, overrides)
+    const archie = draft ? blockToArchie(draft) : undefined
+    if (!draft || archie === undefined)
+        throw new JsonError("This block has no properties to shape", 400)
+    return { archie, props: draft.props }
 }
 
 // -----------------------------------------------------------------------------

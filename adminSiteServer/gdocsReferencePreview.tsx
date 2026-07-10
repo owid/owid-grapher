@@ -28,6 +28,11 @@ import {
     gdocFromJSON,
     getLatestDataInsights,
 } from "../db/model/Gdoc/GdocFactory.js"
+import {
+    applyDraftOverrides,
+    parseDraftOverrides,
+    tryParseRaw,
+} from "./gdocsReferenceMinimal.js"
 import { getPublicDonorNames } from "../db/model/Donor.js"
 
 // The committed generated registries — same source the /api/components.json
@@ -345,12 +350,15 @@ export function resolveBlockAtPath(
  * Preview of a real component instance: the block at `path` in a published
  * document, rendered with that document's real context — its linked charts,
  * images and topic tags — so what the reference shows is exactly what the
- * live site renders.
+ * live site renders. With `overrides` (the form builder's cycled props,
+ * JSON-encoded), the block is reshaped and re-parsed before rendering — the
+ * live half of the draft card.
  */
 export async function renderGdocsReferenceInstancePreview(
     gdocId: string | undefined,
     pathParam: string | undefined,
-    knex: db.KnexReadonlyTransaction
+    knex: db.KnexReadonlyTransaction,
+    overridesParam?: string
 ): Promise<string> {
     if (!gdocId || !pathParam)
         throw new JsonError("gdocId and path are required", 400)
@@ -371,12 +379,24 @@ export async function renderGdocsReferenceInstancePreview(
 
     const sourceContent =
         typeof row.content === "string" ? JSON.parse(row.content) : row.content
-    const block = resolveBlockAtPath(sourceContent, pathParam)
+    let block = resolveBlockAtPath(sourceContent, pathParam)
     if (!block)
         throw new JsonError(
             `No renderable block at "${pathParam}" in gdoc "${gdocId}"`,
             404
         )
+
+    const overrides = parseDraftOverrides(overridesParam)
+    if (overrides) {
+        const draft = applyDraftOverrides(block, overrides)
+        // Render the draft's re-parse even when it has parse errors — the
+        // debug preview shows those visibly, which is exactly the feedback a
+        // combination the parser rejects should give the author.
+        const reparsed = draft && tryParseRaw(draft.raw)
+        if (!reparsed)
+            throw new JsonError("This block has no properties to shape", 400)
+        block = reparsed as OwidEnrichedGdocBlock & Record<string, unknown>
+    }
 
     // An empty article shell for its enrichment defaults (same as the
     // registry example previews), carrying just the extracted block.

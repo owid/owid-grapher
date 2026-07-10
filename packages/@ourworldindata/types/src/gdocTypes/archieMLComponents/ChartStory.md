@@ -1,16 +1,6 @@
 A carousel of charts, each paired with a narrative caption and a block
 of technical text shown below the chart.
 
-## When to use
-
-- Telling a step-by-step story across several views of the same (or
-  related) charts, where each step needs its own prose and technical notes.
-
-## When NOT to use
-
-- A simple list of alternative chart views — use `{.chart-rows}`.
-- A single chart with inline narration — use `{.guided-chart}`.
-
 ### Two-slide chart story
 
 ```archie
@@ -29,3 +19,13 @@ Data is measured in international-$.
 {}
 []
 ```
+
+## When to use
+
+- Telling a step-by-step story across several views of the same (or
+  related) charts, where each step needs its own prose and technical notes.
+
+## When NOT to use
+
+- A simple list of alternative chart views — use `{.chart-rows}`.
+- A single chart with inline narration — use `{.guided-chart}`.

@@ -3,20 +3,6 @@ charts and, if tagged, the data catalog. On desktop it sticks to the
 top-right of the intro section; on mobile it appears inline where placed
 in the gdoc.
 
-## When to use
-
-- The intro of a linear topic page, to surface the topic's key charts.
-
-## When NOT to use
-
-- Prefer `{.recirc}` for a simple list of related links outside LTPs.
-
-## Notes
-
-Place it at least after the first paragraph of the intro section.
-`kicker` renders as a short label above the title; `buttonText` labels
-the bottom call-to-action button.
-
 ### LTP intro resource panel
 
 ```archie
@@ -35,3 +21,17 @@ subtitle: Global Carbon Budget (2024)
 
 {}
 ```
+
+## When to use
+
+- The intro of a linear topic page, to surface the topic's key charts.
+
+## When NOT to use
+
+- Prefer `{.recirc}` for a simple list of related links outside LTPs.
+
+## Notes
+
+Place it at least after the first paragraph of the intro section.
+`kicker` renders as a short label above the title; `buttonText` labels
+the bottom call-to-action button.

@@ -3,6 +3,14 @@ charts are the preferred way of embedding charts in articles — they let
 you pin the title, country selection, time range, and chart type so that
 future data updates don't change the point being made.
 
+### Basic
+
+```archie
+{.narrative-chart}
+name: global-life-expectancy-has-doubled
+{}
+```
+
 ## When to use
 
 - The chart is making a specific argument and the selection/title matters.
@@ -18,11 +26,3 @@ future data updates don't change the point being made.
 Narrative charts can be based on standalone charts or MDIM views. To
 create one from an MDIM, open the share menu on the datapage view and
 pick "Create narrative chart".
-
-### Basic
-
-```archie
-{.narrative-chart}
-name: global-life-expectancy-has-doubled
-{}
-```

@@ -1,20 +1,6 @@
 A grid of `{.person}` cards, used on about pages to present team
 members. Wraps an inner `[.+people]` list of people blocks.
 
-## When to use
-
-- On about pages (`type: about-page`) to list team, board, or
-  advisors.
-
-## When NOT to use
-
-- Elsewhere.
-
-## Notes
-
-Four columns suit compact cards; two suit cards with longer bios. Fewer
-columns render on smaller screens either way.
-
 ### Two-column row
 
 ```archie
@@ -39,3 +25,17 @@ text: @MaxCRoser
 []
 {}
 ```
+
+## When to use
+
+- On about pages (`type: about-page`) to list team, board, or
+  advisors.
+
+## When NOT to use
+
+- Elsewhere.
+
+## Notes
+
+Four columns suit compact cards; two suit cards with longer bios. Fewer
+columns render on smaller screens either way.

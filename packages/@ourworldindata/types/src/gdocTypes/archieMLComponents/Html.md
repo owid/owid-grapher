@@ -2,6 +2,18 @@ Raw HTML escape hatch. The inner value is rendered as HTML, so this block
 supports things that inline Google Docs formatting doesn't — such as
 iframes or inline styling.
 
+### Inline styled span
+
+```archie
+html: This is text that can use features like <span style="color:red">this will be red</span>.
+```
+
+### Iframe embed
+
+```archie
+html: <iframe src="https://www.youtube.com/watch?v=dQw4w9WgXcQ" />
+```
+
 ## When to use
 
 - To embed external iframes (YouTube, third-party tools).
@@ -19,15 +31,3 @@ iframes or inline styling.
 
 Inline HTML written directly in body text is not parsed — anything
 beyond Google Docs formatting has to go through this block.
-
-### Inline styled span
-
-```archie
-html: This is text that can use features like <span style="color:red">this will be red</span>.
-```
-
-### Iframe embed
-
-```archie
-html: <iframe src="https://www.youtube.com/watch?v=dQw4w9WgXcQ" />
-```

@@ -69,6 +69,7 @@ import { getFiles, uploadFileToR2 } from "./apiRoutes/files.js"
 import { getComponentsReference } from "./apiRoutes/components.js"
 import { getTemplatesReference } from "./apiRoutes/templates.js"
 import {
+    getComponentDraft,
     getComponentInstances,
     getGdocsReferenceUsage,
     getTemplateExemplars,
@@ -723,6 +724,11 @@ getRouteWithROTransaction(
     apiRouter,
     "/gdocs-reference/templates/:id/exemplars.json",
     getTemplateExemplars
+)
+getRouteWithROTransaction(
+    apiRouter,
+    "/gdocs-reference/draft.json",
+    getComponentDraft
 )
 
 // Deploy helpers
