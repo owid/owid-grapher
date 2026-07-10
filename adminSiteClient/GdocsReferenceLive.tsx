@@ -857,6 +857,14 @@ function ComponentProperties({
         return "required"
     }
 
+    // Required props first; the stable sort keeps declaration order within
+    // each group.
+    const orderedProps = [...doc.props].sort(
+        (a, b) =>
+            Number(requirement(b) === "required") -
+            Number(requirement(a) === "required")
+    )
+
     return (
         <div className="gdocs-ref-live__props">
             <div className="gdocs-ref-live__props-header">
@@ -878,7 +886,7 @@ function ComponentProperties({
                         </tr>
                     </thead>
                     <tbody>
-                        {doc.props.map((prop) => {
+                        {orderedProps.map((prop) => {
                             const adoption = live?.propAdoption[prop.name] ?? 0
                             const forms = formsSettingProp(prop.name)
                             const content = isContentProp(prop)
