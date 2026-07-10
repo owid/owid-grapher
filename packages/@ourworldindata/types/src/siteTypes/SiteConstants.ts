@@ -13,3 +13,5 @@ export const SENTRY_SAMPLED_RATE_KEY = "sentrySampledRate"
 
 export const SUBSCRIBE_PAGE_NOTIFICATIONS_FORM_CONTAINER_ID =
     "subscribe-page-notifications-form-container"
+export const OLD_SUBSCRIBE_PAGE_FORM_CONTAINER_ID =
+    "old-subscribe-page-form-container"
