@@ -7,6 +7,7 @@ import {
     faCode,
     faMagnifyingGlass,
     faPenToSquare,
+    faWandMagicSparkles,
 } from "@fortawesome/free-solid-svg-icons"
 import {
     COMPONENT_CATEGORIES,
@@ -50,6 +51,8 @@ import {
     overallUsageLabel,
     usageTooltip,
 } from "./gdocsReferenceLiveHelpers.js"
+import { CopyButton } from "./GdocsReferenceExample.js"
+import { buildNewDocPrompt } from "./gdocsReferencePrompt.js"
 
 const TEMPLATES_GROUP_TITLE = "Document templates"
 
@@ -925,6 +928,13 @@ export class GdocsReferencePage extends Component<
                     </div>
                     <div className="gdocs-ref__detail-id-row">
                         <code className="gdocs-ref__detail-id">{`type: ${doc.id}`}</code>
+                        <CopyButton
+                            text={buildNewDocPrompt(doc.id, doc.title)}
+                            label="Copy prompt"
+                            icon={faWandMagicSparkles}
+                            title={`Copy a prompt asking Claude to scaffold a new ${doc.title.toLowerCase()} from this template`}
+                            className="gdocs-ref__new-doc-prompt"
+                        />
                     </div>
                 </header>
                 {intro && (
