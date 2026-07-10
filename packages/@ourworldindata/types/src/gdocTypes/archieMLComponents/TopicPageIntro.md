@@ -12,12 +12,11 @@ body of rich text.
 - On non-topic-page documents (articles, data insights, linear topic
   pages, homepage, etc.).
 
-## Variations
+## Notes
 
-- `download-button` is optional — omit if there is no canonical
-  dataset to offer for download.
-- `related-topics` entries can be gdoc links (metadata resolves
-  automatically) or external URLs (must supply `text`).
+Omit the download button when there is no canonical dataset to offer.
+`related-topics` entries can be gdoc links (metadata resolves
+automatically) or external URLs (supply `text`).
 
 ### Basic
 

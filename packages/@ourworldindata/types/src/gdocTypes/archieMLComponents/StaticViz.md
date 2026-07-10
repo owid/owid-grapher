@@ -13,10 +13,11 @@ additional metadata.
 - Regular photos, screenshots, or illustrations — use `{.image}`.
 - Interactive charts — use `{.chart}` or `{.narrative-chart}`.
 
-## Variations
+## Notes
 
-- `size`: `narrow` | `wide` (default) | `widest`
-- `hasOutline`: `true` | `false`
+Create the static viz in the admin (/admin/static-viz/) first — `name`
+references it. The description and source-data link entered there are
+what the download modal surfaces.
 
 ### Basic
 

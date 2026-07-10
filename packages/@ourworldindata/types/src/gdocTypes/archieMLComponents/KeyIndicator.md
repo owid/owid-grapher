@@ -15,15 +15,12 @@ datapage's indicator. Almost always used as a member of a
 - For a non-data card with static text — use `{.callout}` or
   `{.data-callout}`.
 
-## Variations
+## Notes
 
-- `datapageUrl` (required): URL of the Grapher datapage; can include
-  query parameters like `?time=earliest..latest` to control the default
-  view.
-- `title` (required): the headline shown above the narrative.
-- `text` (required): the narrative paragraph(s).
-- `source` (optional): attribution string; defaults to the indicator's
-  `attributionShort` if omitted.
+`datapageUrl` must link to a grapher that is a datapage; it can include
+query parameters like `?time=earliest..latest` to control the default
+view. When `source` is omitted, the indicator's `attributionShort` is
+shown instead.
 
 ### Standalone key indicator
 

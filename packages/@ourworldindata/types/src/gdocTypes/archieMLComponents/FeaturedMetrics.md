@@ -1,5 +1,5 @@
-Displays featured metrics related to the current topic. The document
-must have a topic tag. No props.
+Displays featured metrics related to the current topic — the same
+results as a filtered search. The document must have a topic tag.
 
 ## When to use
 

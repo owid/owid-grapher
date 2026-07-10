@@ -16,9 +16,9 @@ the topic.
 - On regular topic pages (use the auto-generated sticky nav).
 - On articles (use Google Docs headings; TOC is auto-derived).
 
-## Variations
+## Notes
 
-- `title` defaults to "Sections" if omitted.
+When `title` is omitted, "Sections" is shown.
 
 The listed sections are derived from the document's level-1 headings —
 an `{.ltp-toc}` in a document without headings renders nothing, so the

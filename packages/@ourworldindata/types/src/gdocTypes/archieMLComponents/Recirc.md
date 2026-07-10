@@ -15,11 +15,12 @@ external URLs).
 - Prefer `{.resource-panel}` on linear topic pages when you want a sticky
   sidebar CTA.
 
-## Variations
+## Notes
 
-- `align`: `left` | `center` | `right`
-- Each link can use the linked document's own title/subtitle, or override
-  them via `title` and `subtitle`.
+Internal links auto-fetch title and thumbnail; override them via `title`
+and `subtitle` per link. Don't mix external links with internal ones in
+the same block — external sources get no thumbnail, and the mix looks
+broken.
 
 ### Centered recirc with mixed links
 

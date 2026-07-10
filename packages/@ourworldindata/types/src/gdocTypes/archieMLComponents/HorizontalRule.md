@@ -9,8 +9,10 @@ Typically precedes an h1 heading.
 
 - Between paragraphs within the same section — use whitespace / headings.
 
-Note: Google Docs' built-in "Horizontal line" (Insert menu) also renders
-as this block.
+## Notes
+
+Google Docs' built-in "Horizontal line" (Insert menu) also renders as
+this block.
 
 ### Basic
 

@@ -11,11 +11,13 @@ future data updates don't change the point being made.
 ## When NOT to use
 
 - The reader is meant to freely explore — use `{.chart}` instead.
-- For explorers or MDIMs — narrative charts don't wrap those; use `{.chart}`.
+- For explorers — narrative charts don't wrap those; use `{.chart}`.
 
-## Variations
+## Notes
 
-- `size`: `narrow` | `wide` (default) | `widest`.
+Narrative charts can be based on standalone charts or MDIM views. To
+create one from an MDIM, open the share menu on the datapage view and
+pick "Create narrative chart".
 
 ### Basic
 

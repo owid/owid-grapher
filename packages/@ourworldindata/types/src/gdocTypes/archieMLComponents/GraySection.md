@@ -5,6 +5,7 @@ ArchieML content to visually set it apart from the surrounding prose.
 
 - To group a small set of related blocks into a visually distinct section
   (e.g. a methods callout that includes a heading and a few paragraphs).
+- Featuring an explorer or chart with an explanation beneath it.
 
 ## When NOT to use
 

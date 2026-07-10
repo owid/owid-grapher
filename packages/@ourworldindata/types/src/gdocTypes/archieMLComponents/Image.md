@@ -20,14 +20,16 @@ image registered in the admin (where default alt text is also set).
 - Flagship data visualizations with metadata — use `{.static-viz}`.
 - Videos — use `{.video}`.
 
-## Variations
+## Notes
 
-- `size`: `narrow` | `wide` (default) | `widest`
-- `visibility`: `mobile` | `desktop` — pair two image blocks to swap
-  aspect ratio between layouts.
-- `smallFilename`: dedicated mobile image (should be ≥1600px wide).
-- `hasOutline`: `true` | `false` — adds a 1px light-gray outline, useful
-  for images with white backgrounds.
+Prefer setting alt text on the uploaded file in the admin; the `alt`
+prop overrides it for context-specific points.
+
+`size: narrow` suits images with especially tall aspect ratios.
+
+Pair two image blocks with opposite `visibility` to serve a different
+crop per layout. `smallFilename` is the mobile image — despite the name,
+keep it at least 1600px wide for high-density displays.
 
 ### Full featured
 

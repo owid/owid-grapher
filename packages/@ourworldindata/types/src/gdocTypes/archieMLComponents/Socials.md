@@ -11,13 +11,15 @@ A list of social / contact links. Used on author pages (as the
 
 - Inline in article body — use normal links.
 
-## Variations
+## Notes
 
-- `type` values: `link`, `email`, `x`, `facebook`, `instagram`,
-  `youtube`, `linkedin`, `threads`, `mastodon`, `bluesky`.
-- Written as `[socials]` in author-page front matter, but as
-  `[.socials]` (with the dot) when nested inside a `[+body]` or a
-  `{.person}` block — without the dot the block is silently dropped.
+Each link has a `type` (`link`, `email`, `x`, `facebook`, `instagram`,
+`youtube`, `linkedin`, `threads`, `mastodon`, `bluesky`), a `url`, and a
+`text` display label.
+
+Written as `[socials]` in author-page front matter, but as `[.socials]`
+(with the dot) when nested inside a `[+body]` or a `{.person}` block —
+without the dot the block is silently dropped.
 
 ### Socials list
 

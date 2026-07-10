@@ -12,11 +12,10 @@ that would otherwise interrupt the main narrative.
 - Prefer `{.expandable-paragraph}` for a short preview of inline text with
   a "Show more" link.
 
-## Variations
+## Notes
 
-- `heading` is optional context above the box.
-- `title` is the clickable headline.
-- `subtitle` is optional secondary text.
+`heading` renders as context above the box, `title` is the clickable
+headline, and `subtitle` is secondary text under it.
 
 ### Technical detail expander
 

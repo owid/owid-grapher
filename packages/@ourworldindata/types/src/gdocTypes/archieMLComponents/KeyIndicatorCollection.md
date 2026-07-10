@@ -11,10 +11,10 @@ with a title, text summary, and source. Shown on the homepage.
 - Elsewhere — use `{.chart}` or `{.pull-chart}` to highlight a single
   chart in an article.
 
-## Variations
+## Notes
 
-- Each `{.key-indicator}` inside `[.+indicators]` needs a
-  `datapageUrl` that links to a grapher backed by a datapage.
+Each `{.key-indicator}` inside `[.+indicators]` needs a `datapageUrl`
+that links to a grapher backed by a datapage.
 
 ### Two indicators
 

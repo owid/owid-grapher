@@ -10,10 +10,11 @@ quoted passage with an optional attribution line.
 - Prefer `{.pull-quote}` when you want to re-emphasize a phrase from the
   article itself (styled as a centered, italicized h1).
 
-## Variations
+## Notes
 
-- `citation` can be plain text (e.g. a person's name) or a URL starting
-  with `http`, in which case it renders as a link.
+A citation starting with `http` becomes the HTML `cite` attribute on the
+quote; any other citation (e.g. a person's name) is appended as a visible
+attribution footer.
 
 ### Plain-text citation
 
