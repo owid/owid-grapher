@@ -81,3 +81,62 @@ export interface EmailNotificationsSubscribeResponse {
     ok?: boolean
     error?: string
 }
+
+// Request a magic link for updating preferences. Either an email address
+// (from the enter-email UI; unknown addresses get the identical response and
+// no email — see the request-link function) or a token: the permanent
+// per-user token from an email footer link, or an expired magic-link token
+// (its resend button).
+export const EmailNotificationsRequestLinkRequestTypeObject = z
+    .object({
+        email: z.optional(z.email().check(z.maxLength(254))),
+        token: z.optional(z.string().check(z.minLength(1), z.maxLength(100))),
+    })
+    .check(
+        z.refine(
+            (request) => Boolean(request.email) !== Boolean(request.token),
+            "Provide either an email or a token"
+        )
+    )
+
+export type EmailNotificationsRequestLinkRequest = z.infer<
+    typeof EmailNotificationsRequestLinkRequestTypeObject
+>
+
+// Save from the magic-link preferences page. The magic link itself was the
+// proof of inbox control, so changes apply immediately (no second
+// confirmation email). `subscribeToOwidBrief` drives the fail-soft Mailchimp
+// Brief toggle: omitted when the toggle wasn't shown.
+export const EmailNotificationsUpdatePreferencesRequestTypeObject = z
+    .object({
+        token: z.string().check(z.minLength(1), z.maxLength(100)),
+        preferences: z.optional(EmailNotificationsPreferencesTypeObject),
+        unsubscribe: z.optional(z.boolean()),
+        subscribeToOwidBrief: z.optional(z.boolean()),
+    })
+    .check(
+        z.refine(
+            (request) =>
+                request.preferences !== undefined ||
+                request.unsubscribe === true,
+            "Provide preferences or unsubscribe"
+        )
+    )
+
+export type EmailNotificationsUpdatePreferencesRequest = z.infer<
+    typeof EmailNotificationsUpdatePreferencesRequestTypeObject
+>
+
+export interface EmailNotificationsPreferencesResponse {
+    email?: string
+    // null when the user exists but has no confirmed preferences yet.
+    preferences?: EmailNotificationsPreferences | null
+    // "expired" (HTTP 410) drives the expired-magic-link state of the
+    // preferences page, which offers to email a new link.
+    error?: "expired" | "invalid" | string
+}
+
+export interface EmailNotificationsBriefStatusResponse {
+    subscribedToOwidBrief?: boolean
+    error?: string
+}

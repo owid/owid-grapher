@@ -15,3 +15,5 @@ export const SUBSCRIBE_PAGE_NOTIFICATIONS_FORM_CONTAINER_ID =
     "subscribe-page-notifications-form-container"
 export const OLD_SUBSCRIBE_PAGE_FORM_CONTAINER_ID =
     "old-subscribe-page-form-container"
+export const PREFERENCES_PAGE_FORM_CONTAINER_ID =
+    "email-notifications-preferences-form-container"
