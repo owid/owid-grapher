@@ -6,37 +6,6 @@ A mosaic of article tiles linking to related work. Used to showcase
 further reading at the bottom of topic and linear topic pages, and on
 author pages as the "All work" section.
 
-## When to use
-
-- At the bottom of a topic page to link to the main articles and
-  secondary reads on that topic.
-- On linear topic pages (use `variant: featured` for a compact look).
-- On author pages to surface the author's work.
-
-## When NOT to use
-
-- Inside regular articles — use `{.recirc}` or `{.prominent-link}`
-  for inline recommendations.
-
-## Notes
-
-`hide-date: true` hides article dates across the whole block;
-`hide-authors: true` hides authors on all cards (common on author pages
-where the author is implicit). `variant: featured` applies the
-linear-topic-page design.
-
-Links can be gdoc URLs (metadata auto-resolved) or external links
-(supply `title`, `authors`, `filename`). Links in the `more` section
-need no thumbnail; all other sections do, unless the gdoc has a
-featured-image.
-
-On author pages, two shapes are used. "Featured work" is article-focused:
-at least one primary, up to two secondary, plus a `{.latest}` block that
-auto-pulls the author's latest articles excluding the featured ones.
-"All work" is topic-focused: secondary only, no primary, kept up to date
-by hand via /admin/api/all-work?author=…. Never list data insights or
-topic pages in it on author pages.
-
 ### Full mosaic
 
 ```archie
@@ -94,3 +63,34 @@ filename: default-featured-image.png
 variant: featured
 {}
 ```
+
+## When to use
+
+- At the bottom of a topic page to link to the main articles and
+  secondary reads on that topic.
+- On linear topic pages (use `variant: featured` for a compact look).
+- On author pages to surface the author's work.
+
+## When NOT to use
+
+- Inside regular articles — use `{.recirc}` or `{.prominent-link}`
+  for inline recommendations.
+
+## Notes
+
+`hide-date: true` hides article dates across the whole block;
+`hide-authors: true` hides authors on all cards (common on author pages
+where the author is implicit). `variant: featured` applies the
+linear-topic-page design.
+
+Links can be gdoc URLs (metadata auto-resolved) or external links
+(supply `title`, `authors`, `filename`). Links in the `more` section
+need no thumbnail; all other sections do, unless the gdoc has a
+featured-image.
+
+On author pages, two shapes are used. "Featured work" is article-focused:
+at least one primary, up to two secondary, plus a `{.latest}` block that
+auto-pulls the author's latest articles excluding the featured ones.
+"All work" is topic-focused: secondary only, no primary, kept up to date
+by hand via /admin/api/all-work?author=…. Never list data insights or
+topic pages in it on author pages.

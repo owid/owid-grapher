@@ -4,6 +4,13 @@ system: true
 
 A wide section with a site-wide search bar.
 
+### Basic
+
+```archie
+{.homepage-search}
+{}
+```
+
 ## When to use
 
 - Only on the homepage (`type: homepage`), near the top. The nav's own
@@ -13,10 +20,3 @@ A wide section with a site-wide search bar.
 ## When NOT to use
 
 - Elsewhere. The site header already exposes search.
-
-### Basic
-
-```archie
-{.homepage-search}
-{}
-```

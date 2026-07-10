@@ -2,22 +2,6 @@ A single person card — image, name, optional title, optional link,
 narrative bio text, and optional social links. Nested inside `{.people}`
 (flat list) or `{.people-rows}` (column grid).
 
-## When to use
-
-- Inside `{.people-rows}` to populate a team / advisor / board grid.
-- Inside `{.people}` for a flat list of cards.
-
-## When NOT to use
-
-- As a top-level block — `{.person}` is meant to be nested inside a
-  collection.
-
-## Notes
-
-`image` is a filename uploaded via the admin. Point `url` at the
-person's author-page gdoc when they have one. `socials` follows the same
-format as `{.socials}` on author pages.
-
 ```archie
 {.person}
 image: Max Roser.jpeg
@@ -35,3 +19,19 @@ text: @MaxCRoser
 []
 {}
 ```
+
+## When to use
+
+- Inside `{.people-rows}` to populate a team / advisor / board grid.
+- Inside `{.people}` for a flat list of cards.
+
+## When NOT to use
+
+- As a top-level block — `{.person}` is meant to be nested inside a
+  collection.
+
+## Notes
+
+`image` is a filename uploaded via the admin. Point `url` at the
+person's author-page gdoc when they have one. `socials` follows the same
+format as `{.socials}` on author pages.

@@ -3,6 +3,17 @@ A callout whose text interpolates live values from a Grapher chart at the
 data point. For multi-y charts, pass a column name, e.g.
 `$latestTime(emissions_total)`.
 
+### Country life expectancy
+
+```archie
+{.data-callout}
+url: https://ourworldindata.org/grapher/life-expectancy?country=CAN
+[.+content]
+In $latestTime(), Canada's life expectancy was $latestValue()
+[]
+{}
+```
+
 ## When to use
 
 - Surfacing a "latest value" summary for a specific entity.
@@ -24,14 +35,3 @@ section won't render — by design, useful for country profiles.
 
 Any content can go inside, including charts, though a nested chart has no
 programmatic relation to the callout.
-
-### Country life expectancy
-
-```archie
-{.data-callout}
-url: https://ourworldindata.org/grapher/life-expectancy?country=CAN
-[.+content]
-In $latestTime(), Canada's life expectancy was $latestValue()
-[]
-{}
-```

@@ -5,23 +5,6 @@ system: true
 The large introduction block on the homepage: OWID mission copy
 paired with a grid of four featured tiles.
 
-## When to use
-
-- Only on the homepage (`type: homepage`).
-
-## When NOT to use
-
-- Anywhere else. The mission text is hard-coded for the homepage
-  layout.
-
-## Notes
-
-Supply exactly four entries under `[.featured-work]`. `kicker` is free
-text (e.g. "Article - 10 Min Read", "Announcement") — no strong
-conventions yet. `isNew: true` shows a red "NEW" pill before that tile's
-kicker. gdoc URLs auto-resolve title/description; external URLs require
-those fields explicitly.
-
 ### Four featured tiles
 
 ```archie
@@ -45,3 +28,20 @@ kicker: Announcement
 
 {}
 ```
+
+## When to use
+
+- Only on the homepage (`type: homepage`).
+
+## When NOT to use
+
+- Anywhere else. The mission text is hard-coded for the homepage
+  layout.
+
+## Notes
+
+Supply exactly four entries under `[.featured-work]`. `kicker` is free
+text (e.g. "Article - 10 Min Read", "Announcement") — no strong
+conventions yet. `isNew: true` shows a red "NEW" pill before that tile's
+kicker. gdoc URLs auto-resolve title/description; external URLs require
+those fields explicitly.

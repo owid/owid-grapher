@@ -6,6 +6,28 @@ pinned:
 A static image uploaded to the OWID admin. The `filename` must match an
 image registered in the admin (where default alt text is also set).
 
+### Full featured
+
+```archie
+{.image}
+filename: default-featured-image.png
+smallFilename: default-featured-image.png
+alt: my alt text that is optional
+size: narrow
+caption: I am a caption that would appear below the image
+hasOutline: true
+visibility: desktop
+{}
+```
+
+### Minimal
+
+```archie
+{.image}
+filename: default-featured-image.png
+{}
+```
+
 ## When to use
 
 - Photographs, illustrations, diagrams, and static (non-interactive)
@@ -30,25 +52,3 @@ prop overrides it for context-specific points.
 Pair two image blocks with opposite `visibility` to serve a different
 crop per layout. `smallFilename` is the mobile image — despite the name,
 keep it at least 1600px wide for high-density displays.
-
-### Full featured
-
-```archie
-{.image}
-filename: default-featured-image.png
-smallFilename: default-featured-image.png
-alt: my alt text that is optional
-size: narrow
-caption: I am a caption that would appear below the image
-hasOutline: true
-visibility: desktop
-{}
-```
-
-### Minimal
-
-```archie
-{.image}
-filename: default-featured-image.png
-{}
-```

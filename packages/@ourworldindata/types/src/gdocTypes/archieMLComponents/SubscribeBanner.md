@@ -2,6 +2,14 @@ A small gray block inviting readers to subscribe. Added automatically to
 every article and linear topic page; only include this block manually if
 you want an additional copy inline.
 
+### Centered
+
+```archie
+{.subscribe-banner}
+align: center
+{}
+```
+
 ## When to use
 
 - Embedding a subscribe CTA inline within an article.
@@ -16,11 +24,3 @@ you want an additional copy inline.
 
 The automatic banner is inserted immediately before the last h1. Place
 one manually only when you want to control its position or alignment.
-
-### Centered
-
-```archie
-{.subscribe-banner}
-align: center
-{}
-```

@@ -5,6 +5,23 @@ is a grapher URL prefixed with `#guide:` — e.g.
 All `#guide:` links in the section must share the same slug; only query
 params (selection, time, tab, etc.) can change.
 
+### Sticky-left layout with a chart and guided links
+
+```archie
+[.+guided-chart]
+{.sticky-left}
+[.+left]
+{.chart}
+url: https://ourworldindata.org/grapher/life-expectancy
+{}
+[]
+[.+right]
+I am a link that will update the chart to show New Zealand when clicked
+[]
+{}
+[]
+```
+
 ## When to use
 
 - Walking readers through different views of the same chart inline.
@@ -26,20 +43,3 @@ fine.
 Can contain a `{.chart-rows}` block — clicking a row updates the main
 chart rather than navigating away. In guided-chart mode, `title` and
 `source` on the chart-rows are hidden.
-
-### Sticky-left layout with a chart and guided links
-
-```archie
-[.+guided-chart]
-{.sticky-left}
-[.+left]
-{.chart}
-url: https://ourworldindata.org/grapher/life-expectancy
-{}
-[]
-[.+right]
-I am a link that will update the chart to show New Zealand when clicked
-[]
-{}
-[]
-```

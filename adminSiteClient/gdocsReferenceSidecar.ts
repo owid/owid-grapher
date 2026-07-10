@@ -44,28 +44,14 @@ export function splitSidecarBody(body: string): SidecarBodyParts {
 }
 
 /**
- * Drop the fenced archie examples (and the "### …" heading naming each one)
- * from a sidecar markdown fragment. The component page presents examples
- * through the forms section — curated names on observed forms, dashed "new"
- * cards for unobserved ones — so the notes area renders only the surrounding
- * prose.
- */
-export function stripExampleBlocks(markdown: string): string {
-    return markdown
-        .replace(/(^### [^\n]*\n+)?^```archie\r?\n[\s\S]*?^```[ \t]*$/gm, "")
-        .replace(/\n{3,}/g, "\n\n")
-        .trim()
-}
-
-/**
  * The sidecar prose destined for the authored-notes area under the derived
- * properties table: examples stripped (the forms section presents them), and
- * the conventional "## Notes" / "## Variations" section headings dropped —
- * the notes area carries its own title.
+ * properties table: the conventional "## Notes" section heading is dropped —
+ * the notes area carries its own title. Examples live in the intro by
+ * convention (generator-enforced), so no stripping is needed here.
  */
 export function sidecarNotesMarkdown(rest: string): string {
-    return stripExampleBlocks(rest)
-        .replace(/^## +(Notes|Variations)[ \t]*$/gim, "")
+    return rest
+        .replace(/^## +Notes[ \t]*$/gim, "")
         .replace(/\n{3,}/g, "\n\n")
         .trim()
 }

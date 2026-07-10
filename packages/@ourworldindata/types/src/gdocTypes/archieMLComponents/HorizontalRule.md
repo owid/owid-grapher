@@ -1,6 +1,13 @@
 A thin, light-gray line that divides two large sections of an article.
 Typically precedes an h1 heading.
 
+### Basic
+
+```archie
+{.horizontal-rule}
+{}
+```
+
 ## When to use
 
 - To separate major sections of an article, especially before a new h1.
@@ -13,10 +20,3 @@ Typically precedes an h1 heading.
 
 Google Docs' built-in "Horizontal line" (Insert menu) also renders as
 this block.
-
-### Basic
-
-```archie
-{.horizontal-rule}
-{}
-```

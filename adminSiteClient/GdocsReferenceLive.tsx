@@ -16,6 +16,7 @@ import {
     ExemplarSection,
     GdocsReferenceUsage,
     OwidGdocType,
+    SyntheticExampleInfo,
     TemplateDoc,
     TemplateExemplarsResponse,
 } from "@ourworldindata/types"
@@ -497,18 +498,25 @@ function FormCard({
 /** A sidecar example whose form no published doc uses yet — dashed "new". */
 function SyntheticFormCard({
     doc,
-    exampleIndex,
+    info,
 }: {
     doc: ComponentDoc
-    exampleIndex: number
+    info: SyntheticExampleInfo
 }): React.ReactElement | null {
-    const example = doc.examples[exampleIndex]
+    const example = doc.examples[info.exampleIndex]
     if (!example) return null
+    // An unnamed example (no "### " heading in the sidecar) gets the same
+    // automatic label its form would have.
+    const label =
+        info.name ||
+        (info.signature
+            ? humanizeVariation(info.signature)
+            : "Reference example")
     return (
         <div className="gdocs-ref-live__form-card gdocs-ref-live__form-card--synthetic">
             <div className="gdocs-ref-live__form-card-header">
                 <span className="gdocs-ref-live__form-name gdocs-ref-live__form-name--synthetic">
-                    {example.name}
+                    {label}
                 </span>
                 <FrequencyBadge
                     label="unused"
@@ -523,7 +531,7 @@ function SyntheticFormCard({
                 </p>
                 <GdocsReferenceExample
                     archie={example.archie}
-                    previewPath={`/gdocs-reference/components/${doc.id}/preview?example=${exampleIndex}`}
+                    previewPath={`/gdocs-reference/components/${doc.id}/preview?example=${info.exampleIndex}`}
                 />
             </div>
         </div>
@@ -653,7 +661,7 @@ export function ComponentForms({
                 <SyntheticFormCard
                     key={`synthetic-${example.exampleIndex}`}
                     doc={doc}
-                    exampleIndex={example.exampleIndex}
+                    info={example}
                 />
             ))}
             {tail.length > 0 && (
