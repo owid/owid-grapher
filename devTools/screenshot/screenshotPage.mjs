@@ -10,7 +10,8 @@
 // requests connect directly.
 import { chromium, request } from "@playwright/test"
 
-const url = process.argv[2] ?? "http://localhost:3030/search?q=malaria&resultType=all"
+const url =
+    process.argv[2] ?? "http://localhost:3030/search?q=malaria&resultType=all"
 const out = process.argv[3] ?? "screenshot.png"
 
 const api = await request.newContext({
