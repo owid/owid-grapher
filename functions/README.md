@@ -161,14 +161,21 @@ which is shared with the client.
 It does two things, depending on the request:
 
 1. If the request contains `notifications` preferences (topic tags, content
-   types, frequency), it upserts the user and their preferences into the
-   `EMAIL_NOTIFICATIONS_DB` D1 database. Subscriptions are single opt-in:
-   users are subscribed immediately, and first-time users get a one-time
-   welcome email (sent via Postmark). When the `POSTMARK_SERVER_TOKEN`
-   environment variable is not set, sending is skipped with a console
-   warning, so the flow can be tested locally without Postmark credentials.
-   To inspect outgoing emails locally (and click the links they contain),
-   run `yarn postmarkCatcher` and set
+   types, frequency), it stores them as **pending** in the
+   `EMAIL_NOTIFICATIONS_DB` D1 database: the user is created in the `pending`
+   state if new (an existing user's status and preferences are never touched
+   here), the chosen preferences are held on a single-use, expiring confirm
+   token (`tokens` table), and a confirmation email is sent via Postmark.
+   Every submission takes this same path regardless of the email's current
+   state — nothing changes until the confirm link is acted on, so no
+   preference change or (re)subscription ever happens without proof of inbox
+   control, and the response is identical whether the email was already
+   known or not. Only the email copy differs (new subscription / preference
+   change / re-subscription). When the `POSTMARK_SERVER_TOKEN` environment
+   variable is not set, sending is skipped with a console warning that
+   includes the confirm URL, so the flow can be tested locally without
+   Postmark credentials. To inspect outgoing emails locally (and click the
+   links they contain), run `yarn postmarkCatcher` and set
    `POSTMARK_API_BASE_URL=http://localhost:8025` in `.dev.vars` along with
    any `POSTMARK_SERVER_TOKEN` value.
 2. If the request has `subscribeToOwidBrief: true`, it upserts the Mailchimp
@@ -180,12 +187,34 @@ It does two things, depending on the request:
    `MAILCHIMP_NEWSLETTER_LIST_ID` environment variables are not set, so the
    rest of the flow can be tested locally without Mailchimp credentials.
 
+## `/api/email-notifications/confirm`
+
+Confirm link target from the confirmation emails, with a `token` query
+parameter (a `confirm`-purpose row in the `tokens` table). GET only renders a
+page — mail security scanners prefetch links in emails, so state must never
+change on GET. The page's button POSTs the token back to the same route,
+which consumes it and applies the preferences it carries: a new user becomes
+`subscribed`, an existing user's preferences are replaced, an unsubscribed
+user is reactivated. Expired tokens render a page whose button POSTs to
+`resend-confirmation`; consumed tokens render an "already confirmed" page.
+
+## `/api/email-notifications/resend-confirmation`
+
+POST target of the expired-confirmation page's resend button. Takes the
+expired confirm token (form field `token`), issues a fresh token carrying the
+same pending preferences, and re-sends the confirmation email. Safe to expose
+for expired tokens: the only thing an expired token can do is cause an email
+to be sent to its own address.
+
 ## `/api/email-notifications/unsubscribe`
 
-Link target from the welcome email and the notification email footers. Takes
-a `token` query parameter — the per-user secret stored in the `users` table —
-sets the user's status to `unsubscribed`, and renders a simple human-readable
-HTML page.
+Link target from the notification email footers, with a `token` query
+parameter — the per-user permanent secret stored in the `users` table. GET
+renders a confirm page (no state change, same scanner rule as above) whose
+button POSTs back to the same route, which sets the user's status to
+`unsubscribed`. The POST route is also the target of the
+`List-Unsubscribe-Post` one-click unsubscribe header: email clients POST
+directly to it with the token in the query string and no page shown.
 
 ## Sending the notification emails
 
