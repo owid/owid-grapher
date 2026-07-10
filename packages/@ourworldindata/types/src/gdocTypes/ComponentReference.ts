@@ -37,6 +37,19 @@ export const COMPONENT_CATEGORIES = [
 
 export type ComponentCategory = (typeof COMPONENT_CATEGORIES)[number]
 
+/**
+ * One property of a block, as declared on its type alias — the derived,
+ * exhaustive replacement for hand-written "x is optional" prose. Rendered as
+ * the properties table on the component page, joined at request time with
+ * per-prop adoption computed from published content.
+ */
+export interface ComponentPropDoc {
+    name: string
+    /** Declared type text as written in the source, e.g. `"info"` or `string` */
+    type: string
+    optional: boolean
+}
+
 export interface ComponentDoc {
     id: string
     title: string
@@ -46,6 +59,8 @@ export interface ComponentDoc {
     sidecarFile: string
     body: string
     examples: ComponentExample[]
+    /** Every declared property of the block, derived from its type alias */
+    props: ComponentPropDoc[]
     /**
      * Props whose VALUE (not just presence) distinguishes forms of the
      * block, derived from the declared types: literal unions, enums,

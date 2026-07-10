@@ -179,6 +179,7 @@ export {
     type ComponentCategory,
     type ComponentDoc,
     type ComponentExample,
+    type ComponentPropDoc,
     type PinnedExampleRef,
 } from "./gdocTypes/ComponentReference.js"
 

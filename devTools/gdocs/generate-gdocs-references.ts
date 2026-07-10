@@ -65,6 +65,7 @@ import * as yaml from "yaml"
 
 import { API } from "@typescript/native-preview/sync"
 import type {
+    EnumDeclaration,
     Identifier,
     InterfaceDeclaration,
     Node,
@@ -100,6 +101,7 @@ import {
     type ComponentCategory,
     type ComponentDoc,
     type ComponentExample,
+    type ComponentPropDoc,
     type GdocContentKeyFate,
     type PinnedExampleRef,
     type TemplateDoc,
@@ -257,7 +259,7 @@ function unionMemberIdentifiers(unionDecl: TypeAliasDeclaration): Identifier[] {
 
 interface TypeIndex {
     aliases: Map<string, TypeAliasDeclaration>
-    enums: Set<string>
+    enums: Map<string, EnumDeclaration>
 }
 
 function buildTypeIndex(
@@ -265,7 +267,7 @@ function buildTypeIndex(
     sourceFiles: readonly { fileName: string }[]
 ): TypeIndex {
     const aliases = new Map<string, TypeAliasDeclaration>()
-    const enums = new Set<string>()
+    const enums = new Map<string, EnumDeclaration>()
     // The whole gdocTypes dir, not just archieMLComponents/ — value-prop
     // classification resolves referenced types (HorizontalAlign, …) that
     // live next door.
@@ -280,7 +282,7 @@ function buildTypeIndex(
                 aliases.set(node.name.text, node)
             }
             if (isEnumDeclaration(node)) {
-                enums.add(node.name.text)
+                enums.set(node.name.text, node)
             }
             return undefined
         })
@@ -310,12 +312,12 @@ function findTypeDiscriminator(typeNode: TypeNode): string | undefined {
     return undefined
 }
 
-// Collect the (name, type) property signatures declared directly on a block
-// alias — recursing through intersections, which is how blocks compose with
-// EnrichedBlockWithParseErrors.
+// Collect the (name, type, optionality) property signatures declared directly
+// on a block alias — recursing through intersections, which is how blocks
+// compose with EnrichedBlockWithParseErrors.
 function collectPropertySignatures(
     typeNode: TypeNode,
-    into: { name: string; type: TypeNode }[]
+    into: { name: string; type: TypeNode; optional: boolean }[]
 ): void {
     if (isIntersectionTypeNode(typeNode)) {
         for (const member of typeNode.types)
@@ -327,7 +329,11 @@ function collectPropertySignatures(
         if (!isPropertySignatureDeclaration(member)) continue
         const name = propertyNameText(member.name)
         if (name === undefined || member.type === undefined) continue
-        into.push({ name, type: member.type })
+        into.push({
+            name,
+            type: member.type,
+            optional: member.postfixToken !== undefined,
+        })
     }
 }
 
@@ -379,7 +385,7 @@ function extractValueProps(
     decl: TypeAliasDeclaration,
     typeIndex: TypeIndex
 ): string[] {
-    const signatures: { name: string; type: TypeNode }[] = []
+    const signatures: { name: string; type: TypeNode; optional: boolean }[] = []
     collectPropertySignatures(decl.type, signatures)
     const sf = decl.getSourceFile()
     return signatures
@@ -390,6 +396,44 @@ function extractValueProps(
         )
         .map(({ name }) => name)
         .sort()
+}
+
+// Every declared property of the block, in declaration order — the derived,
+// exhaustive source behind the component page's properties table ("title is
+// optional" is the type's fact to state, not a sidecar author's). A bare
+// type-alias reference standing for a fixed choice resolves to its literal
+// values ('BlockSize' → '"narrow" | "wide" | …'), so the table states the
+// choices, not a name to chase.
+function extractProps(
+    decl: TypeAliasDeclaration,
+    typeIndex: TypeIndex
+): ComponentPropDoc[] {
+    const signatures: { name: string; type: TypeNode; optional: boolean }[] = []
+    collectPropertySignatures(decl.type, signatures)
+    const sf = decl.getSourceFile()
+    const resolveTypeText = (text: string): string => {
+        if (!/^\w+$/.test(text)) return text
+        const enumDecl = typeIndex.enums.get(text)
+        if (enumDecl) {
+            const values: string[] = []
+            for (const member of enumDecl.members) {
+                if (member.initializer && isStringLiteral(member.initializer))
+                    values.push(`"${member.initializer.text}"`)
+            }
+            if (values.length > 0) return values.join(" | ")
+        }
+        const alias = typeIndex.aliases.get(text)
+        if (!alias) return text
+        const resolved = declaredTypeText(alias.getSourceFile(), alias.type)
+        return isLiteralUnionText(resolved) ? resolved : text
+    }
+    return signatures
+        .filter(({ name }) => !NON_VALUE_PROPS.has(name))
+        .map(({ name, type, optional }) => ({
+            name,
+            type: resolveTypeText(declaredTypeText(sf, type)),
+            optional,
+        }))
 }
 
 function deriveTitle(aliasName: string): string {
@@ -826,6 +870,7 @@ function extractComponentDocs(
             sidecarFile: sidecarPathRel,
             body,
             examples,
+            props: extractProps(decl, typeIndex),
             valueProps: extractValueProps(decl, typeIndex),
             ...(fm.system && { system: true }),
             ...(fm.pinned && { pinned: fm.pinned }),

@@ -29,6 +29,8 @@ export interface ComponentUsageByDocType {
     docType: OwidGdocType
     docsUsingIt: number
     totalDocs: number
+    /** Total occurrences within this doc type — the share-of-uses breakdown */
+    totalUses: number
     label: ComponentUsageLabel
 }
 
@@ -121,6 +123,15 @@ export interface ComponentInstancesResponse {
     stalePins: PinnedExampleRef[]
     /** The registry examples matched against the observed variations */
     syntheticExamples: SyntheticExampleInfo[]
+    /** Instances analyzed for forms/adoption (≤ the scan cap, unfiltered) */
+    scanned: number
+    /**
+     * Per-property adoption: how many scanned instances author each prop in
+     * their minimal source. Required props sit at `scanned`; a prop that only
+     * ever carries its default value sits at 0. Joined client-side with the
+     * registry's declared props to render the derived properties table.
+     */
+    propAdoption: Record<string, number>
 }
 
 /** A block inside an exemplar section, addressable for preview rendering */
