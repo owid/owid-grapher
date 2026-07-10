@@ -10,15 +10,19 @@ At <https://claude.ai/code>, open the environment selector → **Add environment
 
 - **Name**: `owid-grapher`
 - **Network access**: Full
-- **Environment variables** — these are the same public, search-only Algolia
-  credentials our site ships in its JS bundle; copy the values from your local
-  `.env`. They make local site search work in the sandbox. (Environment
+- **Environment variables** — all of these are public: the Algolia pair is the
+  search-only credential our site ships in its JS bundle (makes local site
+  search work), the thumbnail URLs point chart thumbnails at production (the
+  Cloudflare function that renders them doesn't run locally). Environment
   variables are visible to anyone who can edit the environment — never put
-  real secrets here.)
+  real secrets here.
 
     ```
-    ALGOLIA_ID=...
-    ALGOLIA_SEARCH_KEY=...
+    ALGOLIA_ID=74GKBOIDJQ
+    ALGOLIA_SEARCH_KEY=07281e41859cf258193143979e5a0208
+    GRAPHER_DYNAMIC_THUMBNAIL_URL=https://ourworldindata.org/grapher
+    EXPLORER_DYNAMIC_THUMBNAIL_URL=https://ourworldindata.org/explorers
+    COREPACK_ENABLE_DOWNLOAD_PROMPT=0
     ```
 
 - **Setup script**: paste the script below.
@@ -34,47 +38,33 @@ automatically after ~7 days, which also refreshes the database.
 ```bash
 #!/bin/bash
 set -euo pipefail
-trap 'rc=$?; echo "SETUP FAILED at line $LINENO: $BASH_COMMAND (exit $rc)"' ERR
 
-echo "== stage: clone repo =="
-# the setup script runs before the session's repo is cloned, in an empty
-# directory — shallow-clone the repo ourselves to drive the bootstrap
+# runs before the session's repo is cloned — clone it ourselves to drive the bootstrap
 git clone --depth 1 https://github.com/owid/owid-grapher /opt/owid-grapher-setup
 cd /opt/owid-grapher-setup
 
-echo "== stage: node =="
+# Node 24 (the sandbox ships Node 22)
 NODE_VERSION=$(cat .nvmrc)
 case "$(uname -m)" in aarch64|arm64) ARCH=arm64 ;; *) ARCH=x64 ;; esac
 curl -fsSL "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-${ARCH}.tar.xz" \
     | tar -xJ -C /usr/local --strip-components=1
 corepack enable
 COREPACK_ENABLE_DOWNLOAD_PROMPT=0 corepack prepare --activate || true
-echo "node: $(node -v)"
 
-echo "== stage: mysql install =="
-# native MySQL, no docker: the imported data in /var/lib/mysql survives the
-# snapshot (which stores files, not processes), so sessions only restart mysqld
+# native MySQL on 3307 (matches the default .env), tuned for a fast import;
+# the imported data in /var/lib/mysql persists into the snapshot
 printf '#!/bin/sh\nexit 101\n' > /usr/sbin/policy-rc.d && chmod +x /usr/sbin/policy-rc.d
 apt-get update -q --allow-releaseinfo-change
 DEBIAN_FRONTEND=noninteractive apt-get install -yq mysql-server
-# 3307 so the repo's default .env works unchanged; the rest speeds up the import
 printf '[mysqld]\nport=3307\nskip-log-bin\ninnodb_flush_log_at_trx_commit=0\n' > /etc/mysql/mysql.conf.d/zz-owid.cnf
 rm -f /usr/sbin/policy-rc.d
-
-echo "== stage: mysql start + user =="
 service mysql start
 mysql -uroot -e "CREATE USER IF NOT EXISTS 'grapher'@'%' IDENTIFIED BY 'grapher'; GRANT ALL PRIVILEGES ON *.* TO 'grapher'@'%';"
 
-echo "== stage: download dump =="
-./devTools/docker/download-grapher-metadata-mysql.sh
-
-echo "== stage: import dump (silent, takes a few minutes) =="
+# download and import the metadata dump (the import is silent and takes a few minutes)
 cp .env.example-grapher .env
+./devTools/docker/download-grapher-metadata-mysql.sh
 DATA_FOLDER=tmp-downloads ./devTools/docker/refresh-grapher-data.sh
-
-echo "== stage: verify =="
-mysql -ugrapher -pgrapher -h127.0.0.1 -P3307 grapher -e "SELECT count(*) AS charts FROM charts;"
-echo "SETUP OK"
 ```
 
 In sessions, `make up.headless` probes for the MySQL this script installed
