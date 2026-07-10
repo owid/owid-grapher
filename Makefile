@@ -17,6 +17,23 @@ ifneq (,$(wildcard ./.env))
 	include .env
 endif
 
+# .env lines with inline comments (`FOO=bar  # baz`) keep the spaces before the
+# `#` in the value when included by make — strip the variables we interpolate
+# into container names, session names and URLs. The ifdef guards keep absent
+# variables undefined so the `?=` defaults on the targets still apply.
+ifdef COMPOSE_PROJECT_NAME
+COMPOSE_PROJECT_NAME := $(strip $(COMPOSE_PROJECT_NAME))
+endif
+ifdef TMUX_SESSION_NAME
+TMUX_SESSION_NAME := $(strip $(TMUX_SESSION_NAME))
+endif
+ifdef VITE_PORT
+VITE_PORT := $(strip $(VITE_PORT))
+endif
+ifdef WRANGLER_PORT
+WRANGLER_PORT := $(strip $(WRANGLER_PORT))
+endif
+
 .PHONY: help up up.headless up.full down down.headless refresh refresh.wp refresh.private refresh.full migrate svgtest svgtest.reset svgtest.graphers svgtest.grapher-views svgtest.mdims svgtest.explorers svgtest.thumbnails bdd bdd.ui check-not-prod
 
 help:
@@ -160,9 +177,12 @@ wait-for-mysql.headless: export COMPOSE_PROJECT_NAME ?= owid-grapher
 # the db-load-data init container to exit first: the grapher db and user exist
 # before the dump import finishes, so a bare `select 1` passes too early.
 wait-for-mysql.headless:
-	@echo '==> Waiting for the db init container to finish (the first run imports the db dump and can take 5-15 minutes)'
-	@until [ "$$(docker inspect -f '{{.State.Status}}' $(COMPOSE_PROJECT_NAME)-db-load-data-1 2>/dev/null)" = "exited" ]; \
-		do printf '.'; sleep 5; done
+	@echo '==> Waiting for the db init container ($(COMPOSE_PROJECT_NAME)-db-load-data-1) to finish (the first run imports the db dump and can take 5-15 minutes)'
+	@for i in $$(seq 1 240); do \
+		if [ "$$(docker inspect -f '{{.State.Status}}' $(COMPOSE_PROJECT_NAME)-db-load-data-1 2>/dev/null)" = "exited" ]; then break; fi; \
+		if [ $$i -eq 240 ]; then echo; echo 'ERROR: db init container did not finish, current containers:'; docker ps -a; exit 1; fi; \
+		printf '.'; sleep 5; \
+	done
 	@test "$$(docker inspect -f '{{.State.ExitCode}}' $(COMPOSE_PROJECT_NAME)-db-load-data-1)" = "0" \
 		|| { echo "ERROR: db load failed, check: docker logs $(COMPOSE_PROJECT_NAME)-db-load-data-1"; exit 1; }
 	@until COMPOSE_PROJECT_NAME=$(COMPOSE_PROJECT_NAME) docker compose -f docker-compose.grapher.yml exec -T db \
