@@ -17,14 +17,16 @@ ifneq (,$(wildcard ./.env))
 	include .env
 endif
 
-.PHONY: help up up.full down refresh refresh.wp refresh.private refresh.full migrate svgtest svgtest.reset svgtest.graphers svgtest.grapher-views svgtest.mdims svgtest.explorers svgtest.thumbnails bdd bdd.ui check-not-prod
+.PHONY: help up up.headless up.full down down.headless refresh refresh.wp refresh.private refresh.full migrate svgtest svgtest.reset svgtest.graphers svgtest.grapher-views svgtest.mdims svgtest.explorers svgtest.thumbnails bdd bdd.ui check-not-prod
 
 help:
 	@echo 'Available commands:'
 	@echo
 	@echo '  GRAPHER ONLY'
 	@echo '  make up                     start dev environment via docker-compose and tmux'
+	@echo '  make up.headless            start dev environment without tmux (AI agents, cloud sandboxes, CI)'
 	@echo '  make down                   stop any services still running'
+	@echo '  make down.headless          stop services started by make up.headless'
 	@echo '  make refresh                (while up) download a new grapher snapshot and update MySQL'
 	@echo '  make refresh.private        (while up) download and load the private sidecar dump: admin keys + analytics (needs access)'
 	@echo '  make refresh.full           (while up) run refresh and refresh.private'
@@ -101,6 +103,75 @@ up.devcontainer: create-if-missing.env.devcontainer tmp-downloads/owid_metadata.
 		bind R respawn-pane -k \; \
 		bind X kill-pane \; \
 		bind Q kill-server
+
+up.headless: export COMPOSE_PROJECT_NAME ?= owid-grapher
+up.headless: export ADMIN_SERVER_PORT ?= 3030
+up.headless: export VITE_PORT ?= 8090
+# never wait on an interactive prompt when corepack fetches yarn
+up.headless: export COREPACK_ENABLE_DOWNLOAD_PROMPT ?= 0
+
+# Headless variant of `make up` for environments without a terminal to attach
+# tmux to (AI agents, cloud sandboxes, CI). Starts MySQL via docker compose and
+# runs the admin server and vite as background processes logging into logs/.
+up.headless: require.headless create-if-missing.env tmp-downloads/owid_metadata.sql.gz node_modules
+	@make validate.env
+
+	@mkdir -p logs
+	@docker info >/dev/null 2>&1 || { \
+		echo '==> Docker daemon not running, attempting to start it'; \
+		service docker start >/dev/null 2>&1 || sudo service docker start >/dev/null 2>&1 || true; \
+		for i in $$(seq 1 15); do docker info >/dev/null 2>&1 && break; sleep 2; done; \
+		docker info >/dev/null 2>&1 || { echo 'ERROR: docker daemon is not running and could not be started'; exit 1; }; \
+	}
+
+	@echo '==> Starting MySQL via docker compose'
+	COMPOSE_PROJECT_NAME=$(COMPOSE_PROJECT_NAME) docker compose -f docker-compose.grapher.yml up -d
+
+	@make wait-for-mysql.headless
+
+	@echo '==> (Re)starting the admin server and vite in the background'
+	@pkill -f 'adminSiteServer/app.ts' 2>/dev/null || true
+	@pkill -f 'vite dev --config vite.config-site.mts' 2>/dev/null || true
+	@ADMIN_SERVER_PORT=$(ADMIN_SERVER_PORT) nohup yarn startAdminDevServer > logs/admin-server.log 2>&1 & echo $$! > logs/admin-server.pid
+	@VITE_PORT=$(VITE_PORT) nohup yarn startSiteFront > logs/vite.log 2>&1 & echo $$! > logs/vite.pid
+
+	@echo '==> Waiting for the admin server to come up'
+	@for i in $$(seq 1 90); do \
+		if curl -sf -o /dev/null http://localhost:$(ADMIN_SERVER_PORT)/; then break; fi; \
+		if [ $$i -eq 90 ]; then echo 'ERROR: admin server did not come up, check logs/admin-server.log'; exit 1; fi; \
+		printf '.'; sleep 2; \
+	done
+	@echo
+	@echo 'Dev environment is up (logs in logs/, stop with `make down.headless`):'
+	@echo
+	@echo "    http://localhost:$(ADMIN_SERVER_PORT)/  <-- a basic version of Our World in Data"
+	@echo "    http://localhost:$(ADMIN_SERVER_PORT)/grapher/life-expectancy  <-- an example chart"
+	@echo "    http://localhost:$(ADMIN_SERVER_PORT)/admin/  <-- an admin interface"
+	@echo "    http://localhost:$(VITE_PORT)/  <-- the vite dev server"
+
+wait-for-mysql.headless: export COMPOSE_PROJECT_NAME ?= owid-grapher
+
+# Like devTools/docker/wait-for-mysql.sh, but runs the mysql client inside the
+# db container so it works on hosts without a mysql client installed
+wait-for-mysql.headless:
+	@echo '==> Waiting for MySQL to be ready (the first run loads the db dump and can take 5-15 minutes)'
+	@until COMPOSE_PROJECT_NAME=$(COMPOSE_PROJECT_NAME) docker compose -f docker-compose.grapher.yml exec -T db \
+		mysql -u$(GRAPHER_DB_USER) -p$(GRAPHER_DB_PASS) -h 127.0.0.1 -e 'select 1' $(GRAPHER_DB_NAME) >/dev/null 2>&1; \
+		do printf '.'; sleep 5; done
+	@echo ' ok'
+
+down.headless: export COMPOSE_PROJECT_NAME ?= owid-grapher
+
+down.headless:
+	@echo '==> Stopping background dev servers'
+	@pkill -f 'adminSiteServer/app.ts' 2>/dev/null || true
+	@pkill -f 'vite dev --config vite.config-site.mts' 2>/dev/null || true
+	@make down
+
+require.headless:
+	@echo '==> Checking your environment has the necessary commands...'
+	@which docker >/dev/null 2>&1 || (echo "ERROR: docker compose is required."; exit 1)
+	@which yarn >/dev/null 2>&1 || (echo "ERROR: yarn is required."; exit 1)
 
 up.full: export DEBUG = 'knex:query'
 up.full: export COMPOSE_PROJECT_NAME ?= owid-grapher
