@@ -350,23 +350,6 @@
     white-space: nowrap;
 }
 
-.gdocs-ref__detail-id-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-top: 8px;
-}
-
-.gdocs-ref__detail-id {
-    font-family: var(--font-mono, monospace);
-    font-size: 14px;
-    color: $blue-60;
-    background: $blue-5;
-    border: 1px solid $blue-20;
-    border-radius: 5px;
-    padding: 2px 8px;
-}
-
 // "Copy prompt" on the right edge of the template header: a ready-made
 // Claude ask that scaffolds a new doc of this type.
 .gdocs-ref__new-doc-prompt {
