@@ -55,7 +55,7 @@ const descriptions: Record<TooltipKey, string> = {
     ilo_2: "The **International Labour Organization (ILO)** divides the world into [eleven subregions](https://ourworldindata.org/world-region-map-definitions#international-labour-organization-ilo):",
     fao_1: "The **Food and Agriculture Organization of the United Nations (FAO)** groups countries into [five broad regions](https://ourworldindata.org/world-region-map-definitions#food-and-agriculture-organization-fao), following the UN M49 continental classification:",
     fao_2: "The **Food and Agriculture Organization of the United Nations (FAO)** divides the world into [17 subregions](https://ourworldindata.org/world-region-map-definitions#food-and-agriculture-organization-fao), following the UN M49 classification:",
-    fao_3: "At its most detailed level, the **Food and Agriculture Organization of the United Nations (FAO)** subdivides Sub-Saharan Africa and Latin America and the Caribbean into [seven regions](https://ourworldindata.org/world-region-map-definitions#food-and-agriculture-organization-fao):",
+    fao_3: "At its most detailed level, the **Food and Agriculture Organization of the United Nations (FAO)** divides the world into [22 regions](https://ourworldindata.org/world-region-map-definitions#food-and-agriculture-organization-fao), breaking Sub-Saharan Africa and Latin America and the Caribbean into finer regions:",
 }
 
 // Geographic display order: left-to-right on the map.
@@ -186,13 +186,28 @@ const customRegionDisplayOrder: Partial<Record<TooltipKey, string[]>> = {
         "Polynesia (FAO)",
     ],
     fao_3: [
-        "Central America (FAO)",
-        "Caribbean (FAO)",
-        "South America (FAO)",
-        "Western Africa (FAO)",
+        "Northern Africa (FAO)",
+        "Eastern Africa (FAO)",
         "Middle Africa (FAO)",
         "Southern Africa (FAO)",
-        "Eastern Africa (FAO)",
+        "Western Africa (FAO)",
+        "Northern America (FAO)",
+        "Caribbean (FAO)",
+        "Central America (FAO)",
+        "South America (FAO)",
+        "Western Asia (FAO)",
+        "Central Asia (FAO)",
+        "Southern Asia (FAO)",
+        "Eastern Asia (FAO)",
+        "South-eastern Asia (FAO)",
+        "Southern Europe (FAO)",
+        "Western Europe (FAO)",
+        "Northern Europe (FAO)",
+        "Eastern Europe (FAO)",
+        "Australia and New Zealand (FAO)",
+        "Melanesia (FAO)",
+        "Micronesia (FAO)",
+        "Polynesia (FAO)",
     ],
 }
 
