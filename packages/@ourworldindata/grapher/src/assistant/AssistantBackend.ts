@@ -42,6 +42,18 @@ export interface AssistantChartContext {
      * answer "top/bottom N" queries
      */
     latestValueByEntityName: Map<EntityName, number>
+    /**
+     * Per-country change (last value minus first value) over a trailing
+     * window of the data, used for "fastest decline/increase" options
+     */
+    trailingChange?: AssistantTrailingChange
+}
+
+export interface AssistantTrailingChange {
+    startTime: Time
+    endTime: Time
+    /** Last value minus first value within the window, per country entity */
+    changeByEntityName: Map<EntityName, number>
 }
 
 /** A structured description of a chart view, the assistant's only "language" */
@@ -61,12 +73,25 @@ export interface AssistantView {
 }
 
 export interface AssistantViewOption {
+    /** The structured view this option maps to */
+    view: AssistantView
     params: GrapherQueryParams
+    /**
+     * Short motivation shown as the chip's first line, produced by a
+     * deterministic template tied to a computable selection (never prose)
+     */
+    headline: string
+    /** The grapher mapping (describeView output), the chip's second line */
     description: string
 }
 
 export type AssistantResponse =
-    | { kind: "apply"; params: GrapherQueryParams; description: string }
+    | {
+          kind: "apply"
+          view: AssistantView
+          params: GrapherQueryParams
+          description: string
+      }
     | { kind: "options"; options: AssistantViewOption[]; note?: string }
 
 export interface AssistantBackend {
@@ -204,9 +229,24 @@ export function viewToQueryParams(
 
 export function makeViewOption(
     view: AssistantView,
+    headline: string,
     context: AssistantChartContext
 ): AssistantViewOption {
     return {
+        view,
+        params: viewToQueryParams(view, context),
+        headline,
+        description: describeView(view, context),
+    }
+}
+
+function makeApplyResponse(
+    view: AssistantView,
+    context: AssistantChartContext
+): AssistantResponse {
+    return {
+        kind: "apply",
+        view,
         params: viewToQueryParams(view, context),
         description: describeView(view, context),
     }
@@ -225,54 +265,283 @@ const CONTINENT_ENTITY_NAMES = [
     "Oceania",
 ]
 
+const TOP_N_COUNT = 10
+
+/** Country entities ranked by their latest data value */
+function rankCountriesByLatestValue(
+    context: AssistantChartContext,
+    order: "highest" | "lowest",
+    count: number
+): EntityName[] {
+    return _.orderBy(
+        [...context.latestValueByEntityName.entries()],
+        ([, value]) => value,
+        order === "highest" ? "desc" : "asc"
+    )
+        .slice(0, count)
+        .map(([entityName]) => entityName)
+}
+
+/**
+ * Country entities with the fastest decline/increase over the trailing
+ * window, computed from per-entity first/last values in the loaded data
+ */
+function buildTrailingChangeOption(
+    context: AssistantChartContext,
+    direction: "decline" | "increase"
+): AssistantViewOption | undefined {
+    const { trailingChange } = context
+    if (!trailingChange) return undefined
+    if (!new Set(context.availableTabs).has(GRAPHER_TAB_NAMES.LineChart))
+        return undefined
+
+    const entries = [...trailingChange.changeByEntityName.entries()].filter(
+        ([, change]) => (direction === "decline" ? change < 0 : change > 0)
+    )
+    if (entries.length < 3) return undefined
+
+    const ranked = _.orderBy(
+        entries,
+        ([, change]) => change,
+        direction === "decline" ? "asc" : "desc"
+    )
+    const entityNames = ranked
+        .slice(0, TOP_N_COUNT)
+        .map(([entityName]) => entityName)
+    const windowYears = trailingChange.endTime - trailingChange.startTime
+
+    return makeViewOption(
+        {
+            tab: GRAPHER_TAB_NAMES.LineChart,
+            entityNames,
+            startTime: trailingChange.startTime,
+            endTime: trailingChange.endTime,
+        },
+        `Fastest ${direction} over the last ${windowYears} years`,
+        context
+    )
+}
+
 export function buildDefaultOptions(
     context: AssistantChartContext
 ): AssistantViewOption[] {
     const availableTabs = new Set(context.availableTabs)
     const availableEntities = new Set(context.availableEntityNames)
     const latestTime = _.last(context.availableTimes)
-    const views: AssistantView[] = []
+    const hasLineChart = availableTabs.has(GRAPHER_TAB_NAMES.LineChart)
+    const options: AssistantViewOption[] = []
 
-    if (availableTabs.has(GRAPHER_TAB_NAMES.WorldMap))
-        views.push({
-            tab: GRAPHER_TAB_NAMES.WorldMap,
-            startTime: latestTime,
-            endTime: latestTime,
-        })
+    const topCountries = rankCountriesByLatestValue(
+        context,
+        "highest",
+        TOP_N_COUNT
+    )
+    if (topCountries.length >= 3 && hasLineChart)
+        options.push(
+            makeViewOption(
+                {
+                    tab: GRAPHER_TAB_NAMES.LineChart,
+                    entityNames: topCountries,
+                },
+                "Countries with the highest values",
+                context
+            )
+        )
+
+    const declineOption = buildTrailingChangeOption(context, "decline")
+    if (declineOption) options.push(declineOption)
 
     const worldEntity = context.availableEntityNames.find(isWorldEntityName)
-    if (worldEntity && availableTabs.has(GRAPHER_TAB_NAMES.LineChart))
-        views.push({
-            tab: GRAPHER_TAB_NAMES.LineChart,
-            entityNames: [worldEntity],
-        })
+    if (worldEntity && hasLineChart)
+        options.push(
+            makeViewOption(
+                {
+                    tab: GRAPHER_TAB_NAMES.LineChart,
+                    entityNames: [worldEntity],
+                },
+                "How the world average has changed over time",
+                context
+            )
+        )
+
+    if (availableTabs.has(GRAPHER_TAB_NAMES.WorldMap))
+        options.push(
+            makeViewOption(
+                {
+                    tab: GRAPHER_TAB_NAMES.WorldMap,
+                    startTime: latestTime,
+                    endTime: latestTime,
+                },
+                "The latest data on a world map",
+                context
+            )
+        )
 
     const availableContinents = CONTINENT_ENTITY_NAMES.filter((name) =>
         availableEntities.has(name)
     )
-    if (
-        availableContinents.length >= 2 &&
-        availableTabs.has(GRAPHER_TAB_NAMES.LineChart)
-    )
-        views.push({
-            tab: GRAPHER_TAB_NAMES.LineChart,
-            entityNames: availableContinents.slice(0, 4),
-        })
+    if (availableContinents.length >= 2 && hasLineChart)
+        options.push(
+            makeViewOption(
+                {
+                    tab: GRAPHER_TAB_NAMES.LineChart,
+                    entityNames: availableContinents.slice(0, 4),
+                },
+                "How world regions compare",
+                context
+            )
+        )
 
-    if (
-        context.selectedEntityNames.length >= 2 &&
-        availableTabs.has(GRAPHER_TAB_NAMES.LineChart)
-    )
-        views.push({
-            tab: GRAPHER_TAB_NAMES.LineChart,
-            entityNames: context.selectedEntityNames,
-        })
-
-    if (availableTabs.has(GRAPHER_TAB_NAMES.Table))
-        views.push({ tab: GRAPHER_TAB_NAMES.Table })
-
-    const options = views.map((view) => makeViewOption(view, context))
     return _.uniqBy(options, (option) => option.description).slice(0, 5)
+}
+
+// -----------------------------------------------------------------------------
+// Follow-up options, offered after a view has been applied
+// -----------------------------------------------------------------------------
+
+const MAX_FOLLOW_UP_OPTIONS = 4
+
+/**
+ * Deterministic follow-up suggestions that make sense as a next step from the
+ * just-applied view: switch tab, expand the time range, add the world average
+ * for comparison, or jump to a related top-N view.
+ */
+export function buildFollowUpOptions(
+    appliedView: AssistantView,
+    context: AssistantChartContext
+): AssistantViewOption[] {
+    const availableTabs = new Set(context.availableTabs)
+    const currentTab = appliedView.tab ?? context.activeTab
+    const isOnChartTab =
+        currentTab !== GRAPHER_TAB_NAMES.Table &&
+        currentTab !== GRAPHER_TAB_NAMES.WorldMap
+    const earliestTime = _.first(context.availableTimes)
+    const latestTime = _.last(context.availableTimes)
+
+    // Carry the applied entities over to follow-up views; fall back to the
+    // current chart selection
+    const entityNames =
+        appliedView.entityNames ??
+        (context.selectedEntityNames.length > 0
+            ? context.selectedEntityNames
+            : undefined)
+
+    const options: AssistantViewOption[] = []
+
+    // Switch tab
+    if (
+        currentTab !== GRAPHER_TAB_NAMES.Table &&
+        availableTabs.has(GRAPHER_TAB_NAMES.Table)
+    )
+        options.push(
+            makeViewOption(
+                { tab: GRAPHER_TAB_NAMES.Table, entityNames },
+                "Switch to the data table",
+                context
+            )
+        )
+    if (
+        currentTab !== GRAPHER_TAB_NAMES.WorldMap &&
+        availableTabs.has(GRAPHER_TAB_NAMES.WorldMap) &&
+        latestTime !== undefined
+    )
+        options.push(
+            makeViewOption(
+                {
+                    tab: GRAPHER_TAB_NAMES.WorldMap,
+                    startTime: latestTime,
+                    endTime: latestTime,
+                },
+                "See the latest data on a map",
+                context
+            )
+        )
+    if (
+        currentTab !== GRAPHER_TAB_NAMES.LineChart &&
+        availableTabs.has(GRAPHER_TAB_NAMES.LineChart)
+    )
+        options.push(
+            makeViewOption(
+                { tab: GRAPHER_TAB_NAMES.LineChart, entityNames },
+                "See the trend over time",
+                context
+            )
+        )
+
+    // Expand a restricted time range to the full range
+    const isTimeRestricted =
+        (appliedView.startTime !== undefined &&
+            appliedView.startTime !== earliestTime) ||
+        (appliedView.endTime !== undefined &&
+            appliedView.endTime !== latestTime)
+    if (
+        isTimeRestricted &&
+        isOnChartTab &&
+        earliestTime !== undefined &&
+        latestTime !== undefined
+    )
+        options.push(
+            makeViewOption(
+                {
+                    tab: currentTab,
+                    entityNames,
+                    startTime: earliestTime,
+                    endTime: latestTime,
+                },
+                "Expand to the full time range",
+                context
+            )
+        )
+
+    // Add the world average as a comparator
+    const worldEntity = context.availableEntityNames.find(isWorldEntityName)
+    if (
+        worldEntity &&
+        isOnChartTab &&
+        entityNames &&
+        entityNames.length > 0 &&
+        !entityNames.includes(worldEntity)
+    )
+        options.push(
+            makeViewOption(
+                {
+                    tab: currentTab,
+                    entityNames: [...entityNames, worldEntity],
+                    startTime: appliedView.startTime,
+                    endTime: appliedView.endTime,
+                },
+                "Add the world average for comparison",
+                context
+            )
+        )
+
+    // Related top-N view
+    const topCountries = rankCountriesByLatestValue(
+        context,
+        "highest",
+        TOP_N_COUNT
+    )
+    if (
+        topCountries.length >= 3 &&
+        availableTabs.has(GRAPHER_TAB_NAMES.LineChart)
+    )
+        options.push(
+            makeViewOption(
+                {
+                    tab: GRAPHER_TAB_NAMES.LineChart,
+                    entityNames: topCountries,
+                },
+                "Countries with the highest values",
+                context
+            )
+        )
+
+    // Don't suggest the view that was just applied
+    const currentDescription = describeView(appliedView, context)
+    return _.uniqBy(
+        options.filter((option) => option.description !== currentDescription),
+        (option) => option.description
+    ).slice(0, MAX_FOLLOW_UP_OPTIONS)
 }
 
 // -----------------------------------------------------------------------------
@@ -310,9 +579,10 @@ export function matchQueryToResponse(
     const entityNames = detectEntities(trimmedQuery, context)
     const topBottom = detectTopBottomN(lowerQuery)
 
-    // "top/bottom N" queries are inherently ambiguous -> always offer options
+    // "top/bottom N" queries map to one concrete set of entities; only the
+    // chart type is open, so auto-pick one and apply it directly
     if (topBottom) {
-        const response = buildTopBottomOptions(
+        const response = buildTopBottomResponse(
             topBottom,
             tab,
             timeRange,
@@ -363,11 +633,7 @@ export function matchQueryToResponse(
         entityNames: entityNames.length > 0 ? entityNames : undefined,
         ...timeRange,
     }
-    return {
-        kind: "apply",
-        params: viewToQueryParams(view, context),
-        description: describeView(view, context),
-    }
+    return makeApplyResponse(view, context)
 }
 
 // --- tab intent ---------------------------------------------------------------
@@ -586,12 +852,7 @@ function handleRegionMatch(
 
     // "Map of Africa" is unambiguous: zoom the map to the region
     if (tab === GRAPHER_TAB_NAMES.WorldMap && mapRegion) {
-        const view: AssistantView = { tab, mapRegion, ...timeRange }
-        return {
-            kind: "apply",
-            params: viewToQueryParams(view, context),
-            description: describeView(view, context),
-        }
+        return makeApplyResponse({ tab, mapRegion, ...timeRange }, context)
     }
 
     if (memberCountries.length < 3) return undefined
@@ -608,23 +869,36 @@ function handleRegionMatch(
         chartTab = GRAPHER_TAB_NAMES.LineChart
 
     // Ambiguous: the aggregate itself vs. the countries in the region
-    const views: AssistantView[] = [
-        { tab: chartTab, entityNames: [entityName], ...timeRange },
-        {
-            tab: chartTab,
-            entityNames: memberCountries,
-            entitySummary: `All countries in ${entityName} (${memberCountries.length})`,
-            ...timeRange,
-        },
+    const options: AssistantViewOption[] = [
+        makeViewOption(
+            { tab: chartTab, entityNames: [entityName], ...timeRange },
+            `The average for ${entityName}`,
+            context
+        ),
+        makeViewOption(
+            {
+                tab: chartTab,
+                entityNames: memberCountries,
+                entitySummary: `All countries in ${entityName} (${memberCountries.length})`,
+                ...timeRange,
+            },
+            `Every country in ${entityName}`,
+            context
+        ),
     ]
     if (mapRegion && availableTabs.has(GRAPHER_TAB_NAMES.WorldMap))
-        views.push({
-            tab: GRAPHER_TAB_NAMES.WorldMap,
-            mapRegion,
-            ...timeRange,
-        })
+        options.push(
+            makeViewOption(
+                {
+                    tab: GRAPHER_TAB_NAMES.WorldMap,
+                    mapRegion,
+                    ...timeRange,
+                },
+                `The map zoomed to ${entityName}`,
+                context
+            )
+        )
 
-    const options = views.map((view) => makeViewOption(view, context))
     return {
         kind: "options",
         options: _.uniqBy(options, (option) => option.description),
@@ -661,45 +935,41 @@ function detectTopBottomN(lowerQuery: string): TopBottomIntent | undefined {
     return { order: isLowest ? "lowest" : "highest", count }
 }
 
-function buildTopBottomOptions(
+/**
+ * "Top/bottom N" queries determine the entities exactly; only the chart type
+ * is left open. Instead of offering options, auto-pick a sensible chart type
+ * (a bar chart for a single year, otherwise a line chart) and apply it.
+ * Follow-up options let the user switch to another view afterwards.
+ */
+function buildTopBottomResponse(
     intent: TopBottomIntent,
     tab: GrapherTabName | undefined,
     timeRange: AssistantTimeRange | undefined,
     context: AssistantChartContext
 ): AssistantResponse | undefined {
-    const rankedEntries = _.orderBy(
-        [...context.latestValueByEntityName.entries()],
-        ([, value]) => value,
-        intent.order === "highest" ? "desc" : "asc"
+    const entityNames = rankCountriesByLatestValue(
+        context,
+        intent.order,
+        intent.count
     )
-    if (rankedEntries.length === 0) return undefined
-
-    const entityNames = rankedEntries
-        .slice(0, intent.count)
-        .map(([entityName]) => entityName)
-    const entitySummary = `${entityNames.length} countries with the ${intent.order} values (latest data)`
+    if (entityNames.length === 0) return undefined
 
     const availableTabs = new Set(context.availableTabs)
-    const views: AssistantView[] = []
+    const isSingleTime =
+        timeRange?.startTime !== undefined &&
+        timeRange.startTime === timeRange.endTime
 
-    const chartTabs: GrapherTabName[] = [
-        tab ?? GRAPHER_TAB_NAMES.LineChart,
+    const pickedTab = [
+        tab,
+        isSingleTime ? GRAPHER_TAB_NAMES.DiscreteBar : undefined,
+        GRAPHER_TAB_NAMES.LineChart,
         GRAPHER_TAB_NAMES.DiscreteBar,
         GRAPHER_TAB_NAMES.Table,
-    ]
-    for (const chartTab of _.uniq(chartTabs)) {
-        if (!availableTabs.has(chartTab)) continue
-        views.push({
-            tab: chartTab,
-            entityNames,
-            entitySummary,
-            ...timeRange,
-        })
-    }
-    if (views.length === 0) return undefined
+    ].find((candidate) => candidate && availableTabs.has(candidate))
+    if (!pickedTab) return undefined
 
-    return {
-        kind: "options",
-        options: views.slice(0, 3).map((view) => makeViewOption(view, context)),
-    }
+    return makeApplyResponse(
+        { tab: pickedTab, entityNames, ...timeRange },
+        context
+    )
 }

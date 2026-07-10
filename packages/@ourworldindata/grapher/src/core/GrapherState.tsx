@@ -145,6 +145,7 @@ import { GRAPHER_LIGHT_TEXT } from "../color/ColorConstants.js"
 import { ColorScaleConfig } from "../color/ColorScaleConfig.js"
 import {
     DataTableConfig,
+    DataTableFilter,
     DataTableManager,
 } from "../dataTable/DataTableConstants.js"
 import {
@@ -1092,10 +1093,36 @@ export class GrapherState
         return table
     }
 
+    /**
+     * Prototype: when the AI assistant is enabled and the sidebar control
+     * area is visible, the in-chart controls row (tab switcher, map and table
+     * controls) is hidden and its functions move into the sidebar.
+     */
+    @computed get isAssistantControlAreaActive(): boolean {
+        return !!this.enableAssistantPanel && this.sidePanelBounds !== undefined
+    }
+
+    /**
+     * Prototype: with the assistant control area active, the data table's own
+     * "filter by" dropdown and search field are hidden and the entity
+     * selector drives the table instead: the table shows the selected
+     * entities when there is a selection (all rows otherwise), narrowed by
+     * the entity selector's region-group filter when one is active.
+     */
+    @computed private get assistantDataTableFilter(): DataTableFilter {
+        if (this.selection.hasSelection) return "selection"
+        const { entityFilter } = this.entitySelectorState
+        if (entityFilter && isEntityRegionGroupKey(entityFilter))
+            return entityFilter
+        return "all"
+    }
+
     /** Table for display in the data table tab */
     @computed get tableForDisplay(): OwidTable {
         let table = this.tableForDisplayBeforeEntityFilter
-        const { filter } = this.dataTableConfig
+        const filter = this.isAssistantControlAreaActive
+            ? this.assistantDataTableFilter
+            : this.dataTableConfig.filter
 
         const availableEntities = table.availableEntityNames
 

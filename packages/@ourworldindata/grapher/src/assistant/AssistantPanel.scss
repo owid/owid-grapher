@@ -1,5 +1,7 @@
-// Layout for the side panel when the AI assistant is enabled: the entity
-// selector shrinks to the top half and the assistant panel sits below it.
+// Layout for the side panel when the AI assistant is enabled: the panel acts
+// as the chart's control area, with the AI assistant on top and the "manual"
+// control area (view-type switcher, contextual chart controls, entity
+// selector) below it.
 .side-panel__split {
     display: flex;
     flex-direction: column;
@@ -7,18 +9,25 @@
 }
 
 .side-panel__entity-selector-slot {
-    flex: 0 1 50%;
+    // zero flex-basis so the entity selector only takes the space left over
+    // by the assistant and manual control areas above it
+    flex: 1 1 0px;
     min-height: 0;
     overflow: hidden;
 }
 
+// -----------------------------------------------------------------------------
+// AI assistant (top of the sidebar)
+// -----------------------------------------------------------------------------
+
 .assistant-panel {
-    flex: 1 1 50%;
+    flex: 0 1 auto;
+    max-height: 60%;
     min-height: 0;
     display: flex;
     flex-direction: column;
-    border-top: 1px solid $frame-color;
-    padding: 12px 16px 0;
+    border-bottom: 1px solid $frame-color;
+    padding: 12px 16px;
     color: $dark-text;
 }
 
@@ -51,31 +60,11 @@
     flex-shrink: 0;
 }
 
-// The outputs area may extend below the bottom edge of the chart frame when
-// its content is long: the inner container is absolutely positioned and
-// allowed to grow beyond the panel's height.
 .assistant-panel__outputs {
-    position: relative;
-    flex: 1 1 auto;
+    flex: 0 1 auto;
     min-height: 0;
-    margin-top: 8px;
-}
-
-.assistant-panel__outputs-inner {
-    position: absolute;
-    top: 0;
-    left: -16px;
-    right: -16px;
-    max-height: 250%;
     overflow-y: auto;
-    padding: 0 16px 12px;
-    background: white;
-    z-index: 1;
-    // subtle shadow so the outputs read as a surface when they extend
-    // below the chart frame
-    box-shadow: 0 12px 16px -8px rgba(0, 0, 0, 0.15);
-    border-bottom-left-radius: 4px;
-    border-bottom-right-radius: 4px;
+    margin-top: 4px;
 }
 
 .assistant-panel__pending {
@@ -89,13 +78,20 @@
     display: flex;
     align-items: flex-start;
     gap: 6px;
+    margin-top: 4px;
     padding: 7px 8px;
     border-radius: 4px;
     background: $gray-10;
     color: $dark-text;
+    // fade-out duration; keep in sync with CONFIRMATION_FADE_MS
+    transition: opacity 1s ease;
 
     strong {
         font-weight: 700;
+    }
+
+    &--fading {
+        opacity: 0;
     }
 }
 
@@ -114,7 +110,7 @@
 .assistant-panel__options-label {
     @include grapher_label-2-regular;
     color: $gray-70;
-    padding: 4px 0 2px;
+    padding: 8px 0 2px;
 }
 
 .assistant-panel__options {
@@ -123,26 +119,113 @@
     padding: 0;
 }
 
+// Two-line option chip: a motivation headline on top, the grapher mapping
+// (tab, entities, time range) in smaller, lighter type below
 .assistant-panel__option {
-    @include grapher_label-2-regular;
     display: block;
     width: 100%;
     text-align: left;
     margin-top: 6px;
-    padding: 7px 10px;
-    color: $blue-90;
+    padding: 6px 10px;
     background: $blue-10;
     border: none;
     border-radius: 4px;
     cursor: pointer;
-    line-height: 1.3;
 
     &:hover {
         background: $blue-20;
     }
 
     &:active {
-        color: $blue-90;
         background: $blue-20;
+    }
+}
+
+.assistant-panel__option-headline {
+    @include grapher_label-2-regular;
+    display: block;
+    color: $blue-90;
+    line-height: 1.3;
+}
+
+.assistant-panel__option-mapping {
+    @include grapher_label-2-regular;
+    display: block;
+    font-size: 0.6875rem;
+    color: $blue-60;
+    line-height: 1.3;
+    margin-top: 1px;
+}
+
+// -----------------------------------------------------------------------------
+// Manual control area (view-type switcher + contextual chart controls)
+// -----------------------------------------------------------------------------
+
+.manual-control-area {
+    flex: 0 0 auto;
+    padding: 12px 16px;
+    border-bottom: 1px solid $frame-color;
+}
+
+.manual-control-area__view-switcher {
+    // Make the view-type switcher span the sidebar width
+    .ContentSwitchers__Container {
+        width: 100%;
+    }
+
+    .Tabs.ContentSwitchers {
+        flex: 1 1 auto;
+        min-width: 0;
+
+        .Tabs__Tab {
+            flex: 1 1 0;
+            --tab-padding: 8px;
+        }
+    }
+}
+
+.manual-control-area__contextual-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+
+    // Match the styling of the buttons in the in-chart controls row
+    // (see nav.controlsRow .controls in Controls.scss)
+    button.menu-toggle {
+        font: 400 13px/16px $sans-serif-font-stack;
+        letter-spacing: 0.01em;
+        display: flex;
+        align-items: center;
+        border: 1px solid $gray-20;
+        border-radius: 4px;
+        height: 32px;
+        padding: 7px;
+        color: $dark-text;
+        white-space: nowrap;
+        background: none;
+
+        &:hover {
+            background: $gray-10;
+            cursor: pointer;
+        }
+
+        &.active,
+        &:active {
+            color: $active-text;
+            background: $blue-20;
+            border: 1px solid $blue-20;
+        }
+
+        svg {
+            height: 12px;
+            margin-right: 5px;
+            vertical-align: bottom;
+        }
+
+        label:hover {
+            cursor: pointer;
+        }
     }
 }

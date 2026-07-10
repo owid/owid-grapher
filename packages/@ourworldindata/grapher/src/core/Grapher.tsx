@@ -59,6 +59,7 @@ import classnames from "clsx"
 import { SidePanel } from "../sidePanel/SidePanel"
 import { EntitySelector } from "../entitySelector/EntitySelector"
 import { AssistantPanel } from "../assistant/AssistantPanel"
+import { ManualControlArea } from "../assistant/ControlArea"
 import { SlideInDrawer } from "../slideInDrawer/SlideInDrawer"
 import { FocusArray } from "../focus/FocusArray"
 import { Chart } from "../chart/Chart.js"
@@ -548,15 +549,18 @@ export class Grapher extends React.Component<GrapherProps> {
                         <SidePanel bounds={this.grapherState.sidePanelBounds}>
                             {this.grapherState.enableAssistantPanel ? (
                                 <div className="side-panel__split">
+                                    <AssistantPanel
+                                        manager={this.grapherState}
+                                    />
+                                    <ManualControlArea
+                                        manager={this.grapherState}
+                                    />
                                     <div className="side-panel__entity-selector-slot">
                                         <EntitySelector
                                             manager={this.grapherState}
                                             selection={entitySelectorArray}
                                         />
                                     </div>
-                                    <AssistantPanel
-                                        manager={this.grapherState}
-                                    />
                                 </div>
                             ) : (
                                 <EntitySelector
