@@ -31,6 +31,7 @@ import {
     applyDraftOverrides,
     minimizeRaw,
     parseDraftOverrides,
+    sanitizeLegacySpans,
 } from "../gdocsReferenceMinimal.js"
 import { OwidRawGdocBlockToArchieMLString } from "../../db/model/Gdoc/rawToArchie.js"
 import { Request } from "../authentication.js"
@@ -230,7 +231,9 @@ function minimalArchieFromEnriched(
 ): string | undefined {
     if (!block) return undefined
     try {
-        const minimal = minimizeRaw(enrichedBlockToRawBlock(block))
+        const minimal = minimizeRaw(
+            enrichedBlockToRawBlock(sanitizeLegacySpans(block))
+        )
         return OwidRawGdocBlockToArchieMLString(minimal.raw)
     } catch {
         return undefined

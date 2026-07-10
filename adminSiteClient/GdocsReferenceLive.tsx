@@ -4,9 +4,11 @@ import {
     faArrowUpRightFromSquare,
     faChevronLeft,
     faChevronRight,
+    faRotateRight,
 } from "@fortawesome/free-solid-svg-icons"
 import {
     ComponentDoc,
+    ComponentDraftResponse,
     ComponentInstance,
     ComponentInstancesResponse,
     ComponentPropDoc,
@@ -22,7 +24,7 @@ import {
     TemplateExemplarsResponse,
 } from "@ourworldindata/types"
 import { Link } from "./Link.js"
-import { GdocsReferenceExample } from "./GdocsReferenceExample.js"
+import { CopyButton, GdocsReferenceExample } from "./GdocsReferenceExample.js"
 import {
     docTypeNoun,
     FREQUENCY_DOTS,
@@ -256,6 +258,16 @@ function InstanceProvenance({
     )
 }
 
+/** The label a form reads as: its curated name, or the technical fallback. */
+function formLabel(variation: ComponentVariation): string {
+    return (
+        variation.name ??
+        (variation.signature === ""
+            ? "The standard form"
+            : humanizeVariation(variation.signature))
+    )
+}
+
 /** The name chip of a form: curated names read differently from technical fallbacks. */
 function FormNameChip({
     variation,
@@ -265,11 +277,7 @@ function FormNameChip({
     // The empty signature is the standard form — derived, but clean enough to
     // read as a name rather than as a curation gap.
     const isNamed = variation.name !== undefined || variation.signature === ""
-    const label =
-        variation.name ??
-        (variation.signature === ""
-            ? "The standard form"
-            : humanizeVariation(variation.signature))
+    const label = formLabel(variation)
     return (
         <span
             className={
@@ -288,26 +296,381 @@ function FormNameChip({
     )
 }
 
-/** The properties a form sets, from its signature — "Nothing" is the base form. */
-function FormSets({ signature }: { signature: string }): React.ReactElement {
-    if (signature === "")
-        return (
-            <div className="gdocs-ref-live__form-sets-empty">
-                Nothing — the base form.
-            </div>
+// -----------------------------------------------------------------------------
+// Component page: the form builder — reading a form and building one are one
+// gesture apart. Every property in a card's Sets column is click-to-cycle;
+// the first cycle flips the card into a visibly distinct draft state whose
+// example re-renders live, and Copy exports whatever the author has shaped.
+// -----------------------------------------------------------------------------
+
+/** Overrides an author cycled in the builder: a value sets the prop, null removes it. */
+type DraftOverrides = Record<string, string | null>
+
+// Child blocks are omitted from the stored configs the usage index is built
+// on, so adoption of block-content props is unmeasurable — and the builder
+// cannot cycle a list of blocks. (Span props are flattened to plain text and
+// kept, so they stay measurable and cyclable.)
+function isContentProp(prop: ComponentPropDoc): boolean {
+    return /Enriched/.test(prop.type)
+}
+
+interface PropAdoptionInfo {
+    propAdoption: Record<string, number>
+    scanned: number
+}
+
+// Declared required on the enriched type, but the parser fills a default when
+// omitted — proven by uses whose minimal source drops it.
+function isEffectivelyRequired(
+    prop: ComponentPropDoc,
+    live: PropAdoptionInfo | undefined
+): boolean {
+    if (prop.optional) return false
+    if (
+        live &&
+        live.scanned > 0 &&
+        !isContentProp(prop) &&
+        (live.propAdoption[prop.name] ?? 0) < live.scanned
+    )
+        return false
+    return true
+}
+
+/**
+ * One stop on a property's cycle ring. The base stop stands for "whatever the
+ * example this draft started from authors" — reaching it removes the override
+ * instead of restating the value, so cycling all the way around a ring leaves
+ * no draft behind.
+ */
+interface CycleStop {
+    value: string | null
+    isBase?: boolean
+}
+
+/** The literal values a declared type text allows, e.g. `"narrow" | "wide"`. */
+function literalValues(type: string): string[] {
+    const values: string[] = []
+    for (const token of type.split("|").map((part) => part.trim())) {
+        const quoted = /^"([^"]*)"$/.exec(token)
+        if (quoted) values.push(quoted[1])
+        else if (/^-?\d+(\.\d+)?$/.test(token)) values.push(token)
+        else if (token === "boolean") values.push("true", "false")
+        else if (token === "true" || token === "false") values.push(token)
+    }
+    return values
+}
+
+/**
+ * Values of a value-salient prop observed across the component's forms —
+ * they fill the ring for enum-typed props whose declared type text carries
+ * no literals (e.g. `PullQuoteAlignment`).
+ */
+function observedValues(
+    variations: ComponentVariation[],
+    name: string
+): string[] {
+    const values: string[] = []
+    for (const variation of variations) {
+        for (const part of variation.signature.split("+")) {
+            const colon = part.indexOf(":")
+            if (colon > 0 && part.slice(0, colon) === name)
+                values.push(part.slice(colon + 1))
+        }
+    }
+    return values
+}
+
+/**
+ * Scalar prop values readable off the example's minimal ArchieML — display
+ * material for the value chips, and the "back to base" stop of each ring.
+ * Multiline and nested values simply stay unknown (the chip reads "set").
+ */
+function parseArchieScalars(
+    archie: string | undefined,
+    propNames: Set<string>
+): Map<string, string> {
+    const map = new Map<string, string>()
+    if (!archie) return map
+    for (const line of archie.split("\n")) {
+        const match = /^([A-Za-z][\w-]*):\s*(.+)$/.exec(line)
+        if (match && propNames.has(match[1]) && !map.has(match[1]))
+            map.set(match[1], match[2].trim())
+    }
+    return map
+}
+
+/** One property row of a form card's Sets column, with its cycle ring. */
+interface BuilderRow {
+    name: string
+    /** Chip text before any override: the authored value, "set", or "none" */
+    baseDisplay: string
+    baseSet: boolean
+    stops: CycleStop[]
+    required: boolean
+    content: boolean
+}
+
+function buildRows(
+    doc: ComponentDoc,
+    variation: ComponentVariation,
+    baseScalars: Map<string, string>,
+    variations: ComponentVariation[],
+    live: PropAdoptionInfo | undefined
+): BuilderRow[] {
+    const valueProps = new Set(doc.valueProps ?? [])
+    const signatureParts =
+        variation.signature === "" ? [] : variation.signature.split("+")
+    const signatureNames = new Set(
+        signatureParts.map((part) => part.split(":")[0])
+    )
+    const signatureValue = (name: string): string | undefined => {
+        for (const part of signatureParts) {
+            const colon = part.indexOf(":")
+            if (colon > 0 && part.slice(0, colon) === name)
+                return part.slice(colon + 1)
+        }
+        return undefined
+    }
+
+    const rows = doc.props.map((prop): BuilderRow => {
+        const required = isEffectivelyRequired(prop, live)
+        const content = isContentProp(prop)
+        const baseKnown =
+            signatureValue(prop.name) ?? baseScalars.get(prop.name)
+        // Required props are part of every instance even when the signature
+        // omits them as universal scaffolding.
+        const baseSet =
+            signatureNames.has(prop.name) ||
+            baseKnown !== undefined ||
+            (required && !content)
+        const stops: CycleStop[] = [
+            { value: baseSet ? (baseKnown ?? null) : null, isBase: true },
+        ]
+        if (!content) {
+            const literals = [
+                ...new Set([
+                    ...literalValues(prop.type),
+                    ...(valueProps.has(prop.name)
+                        ? observedValues(variations, prop.name)
+                        : []),
+                ]),
+            ]
+            for (const literal of literals) {
+                if (baseSet && baseKnown === literal) continue
+                stops.push({ value: literal })
+            }
+            // Free-form props (no literal values to offer) only toggle
+            // between the example's own value and none — the builder never
+            // invents a string.
+            if (!required && baseSet) stops.push({ value: null })
+        }
+        return {
+            name: prop.name,
+            baseDisplay: baseKnown ?? (baseSet ? "set" : "none"),
+            baseSet,
+            stops,
+            required,
+            content,
+        }
+    })
+
+    // Set props lead (they are what the form is), then the unset cyclable
+    // ones, then the fixed scaffolding — stable within each group.
+    const rank = (row: BuilderRow): number =>
+        row.baseSet && row.stops.length > 1 ? 0 : row.stops.length > 1 ? 1 : 2
+    return rows
+        .map((row, index) => ({ row, index }))
+        .sort((a, b) => rank(a.row) - rank(b.row) || a.index - b.index)
+        .map(({ row }) => row)
+}
+
+/**
+ * The signature the drafted combination would have, from the surviving props
+ * of its minimal source — the same parts model the server uses, so the draft
+ * can be recognized as an observed form when it lands on one.
+ */
+function draftSignature(
+    draftProps: Record<string, unknown>,
+    doc: ComponentDoc,
+    variations: ComponentVariation[],
+    live: PropAdoptionInfo
+): string {
+    const valueProps = new Set(doc.valueProps ?? [])
+    // A prop authored on every scanned instance and absent from every form
+    // signature is universal scaffolding — the server excludes it from
+    // signatures, so the draft's signature must too.
+    const signatureNames = new Set(
+        variations.flatMap((variation) =>
+            variation.signature === ""
+                ? []
+                : variation.signature
+                      .split("+")
+                      .map((part) => part.split(":")[0])
         )
+    )
+    const parts: string[] = []
+    for (const [name, value] of Object.entries(draftProps)) {
+        if (
+            live.scanned > 0 &&
+            (live.propAdoption[name] ?? 0) >= live.scanned &&
+            !signatureNames.has(name)
+        )
+            continue
+        parts.push(
+            valueProps.has(name) &&
+                (typeof value === "string" || typeof value === "number")
+                ? `${name}:${value}`
+                : name
+        )
+    }
+    return parts.sort().join("+")
+}
+
+/** One clickable property row: name on the left, its cycling value chip on the right. */
+function BuilderPropRow({
+    row,
+    override,
+    hasOverride,
+    onCycle,
+    disabled,
+}: {
+    row: BuilderRow
+    override: string | null | undefined
+    hasOverride: boolean
+    onCycle: (name: string, stop: CycleStop) => void
+    disabled: boolean
+}): React.ReactElement {
+    const cyclable = !disabled && row.stops.length > 1
+    const display = hasOverride
+        ? (override ?? "none")
+        : row.baseSet
+          ? row.baseDisplay
+          : "none"
+    const valueClassName = [
+        "gdocs-ref-live__form-prop-value",
+        display === "none" && "gdocs-ref-live__form-prop-value--none",
+        hasOverride && "gdocs-ref-live__form-prop-value--overridden",
+    ]
+        .filter(Boolean)
+        .join(" ")
+    const onClick = (): void => {
+        const currentIndex = hasOverride
+            ? row.stops.findIndex(
+                  (stop) => !stop.isBase && stop.value === override
+              )
+            : 0
+        const next =
+            row.stops[(currentIndex + 1) % row.stops.length] ?? row.stops[0]
+        onCycle(row.name, next)
+    }
     return (
-        <div className="gdocs-ref-live__form-sets-chips">
-            {signature.split("+").map((part) => {
-                const [key, value] = part.split(":")
-                return (
-                    <span key={part} className="gdocs-ref-live__form-set">
-                        {value === undefined || value === "true"
-                            ? key
-                            : `${key}: ${value}`}
+        <div className="gdocs-ref-live__form-prop">
+            <code className="gdocs-ref-live__form-prop-name">{row.name}</code>
+            {cyclable ? (
+                <button
+                    type="button"
+                    className={valueClassName}
+                    title="Click to cycle values"
+                    onClick={onClick}
+                >
+                    <span className="gdocs-ref-live__form-prop-value-text">
+                        {display}
                     </span>
-                )
-            })}
+                    <FontAwesomeIcon icon={faRotateRight} />
+                </button>
+            ) : row.content ? (
+                <span
+                    className="gdocs-ref-live__form-prop-fixed"
+                    title={
+                        row.required
+                            ? "Always authored — not a choice the builder can cycle"
+                            : "Block content — not a choice the builder can cycle"
+                    }
+                >
+                    {row.required ? "required" : "—"}
+                </span>
+            ) : (
+                <span
+                    className={valueClassName}
+                    title={
+                        row.required
+                            ? "Always authored — not a choice the builder can cycle"
+                            : "Free-form value — the builder can only cycle it when this example sets one"
+                    }
+                >
+                    <span className="gdocs-ref-live__form-prop-value-text">
+                        {display}
+                    </span>
+                </span>
+            )}
+        </div>
+    )
+}
+
+/**
+ * The Sets column of a form card: every declared property with its value on
+ * this form, click-to-cycle. Signature parts of props the registry does not
+ * declare (rare) still render as static chips so no form ever hides a part.
+ */
+function BuilderProps({
+    rows,
+    extraParts,
+    overrides,
+    onCycle,
+    disabled,
+    isDraft,
+}: {
+    rows: BuilderRow[]
+    extraParts: string[]
+    overrides: DraftOverrides
+    onCycle: (name: string, stop: CycleStop) => void
+    disabled: boolean
+    isDraft: boolean
+}): React.ReactElement {
+    const anyCyclable = !disabled && rows.some((row) => row.stops.length > 1)
+    return (
+        <div
+            className={
+                isDraft
+                    ? "gdocs-ref-live__form-sets gdocs-ref-live__form-sets--draft"
+                    : "gdocs-ref-live__form-sets"
+            }
+        >
+            <div className="gdocs-ref-live__form-sets-title">
+                {isDraft ? "Properties" : "Sets"}
+            </div>
+            {anyCyclable && (
+                <div className="gdocs-ref-live__form-sets-hint">
+                    click a value to cycle
+                </div>
+            )}
+            {rows.length === 0 && extraParts.length === 0 && (
+                <div className="gdocs-ref-live__form-sets-empty">
+                    Nothing — the base form.
+                </div>
+            )}
+            <div className="gdocs-ref-live__form-props">
+                {rows.map((row) => (
+                    <BuilderPropRow
+                        key={row.name}
+                        row={row}
+                        override={overrides[row.name]}
+                        hasOverride={row.name in overrides}
+                        onCycle={onCycle}
+                        disabled={disabled}
+                    />
+                ))}
+                {extraParts.map((part) => {
+                    const [key, value] = part.split(":")
+                    return (
+                        <span key={part} className="gdocs-ref-live__form-set">
+                            {value === undefined || value === "true"
+                                ? key
+                                : `${key}: ${value}`}
+                        </span>
+                    )
+                })}
+            </div>
         </div>
     )
 }
@@ -324,17 +687,25 @@ const formAnchorId = (signature: string): string =>
  * vocabulary, the properties it sets, and one real example at a time — the
  * pager walks every published use of this form, fetching further pages on
  * demand so only a single preview is ever mounted per card.
+ *
+ * Every value in the Sets column cycles on click: the first cycle flips the
+ * card into a draft state — visibly not an observed form — whose example
+ * re-renders live and whose ArchieML the author can copy into a doc.
  */
 function FormCard({
     doc,
     variation,
+    variations,
     scanned,
+    propAdoption,
     docTypeFilter,
     pinned,
 }: {
     doc: ComponentDoc
     variation: ComponentVariation
+    variations: ComponentVariation[]
     scanned: number
+    propAdoption: Record<string, number>
     docTypeFilter: string | undefined
     pinned: ComponentInstance[]
 }): React.ReactElement {
@@ -360,15 +731,19 @@ function FormCard({
     const [index, setIndex] = useState(0)
     const [pageToFetch, setPageToFetch] = useState<number | null>(null)
     const [advancePending, setAdvancePending] = useState(false)
+    // The builder's cycled props; any entry flips the card into draft mode.
+    const [overrides, setOverrides] = useState<DraftOverrides>({})
 
     // A doc-type filter invalidates the unfiltered seed: restart the pager
-    // against the filtered listing (total arrives with the first page).
+    // against the filtered listing (total arrives with the first page), and
+    // drop any draft — its base example no longer matches the scope.
     useEffect(() => {
         setItems(docTypeFilter === undefined ? initialItems : [])
         setTotal(docTypeFilter === undefined ? variation.count : undefined)
         setIndex(0)
         setPageToFetch(docTypeFilter === undefined ? null : 0)
         setAdvancePending(false)
+        setOverrides({})
         // initialItems only changes with the response that also recreates
         // this card; the filter is what resets the pager.
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -418,80 +793,223 @@ function FormCard({
         }
     }
 
+    // ---- the builder: cycled props reshape the current example into a draft
+    const isDraft = Object.keys(overrides).length > 0
+    const live = useMemo(
+        () => ({ propAdoption, scanned }),
+        [propAdoption, scanned]
+    )
+    const propNames = useMemo(
+        () => new Set(doc.props.map((prop) => prop.name)),
+        [doc]
+    )
+    const baseScalars = useMemo(
+        () => parseArchieScalars(current?.archie, propNames),
+        [current, propNames]
+    )
+    const rows = useMemo(
+        () => buildRows(doc, variation, baseScalars, variations, live),
+        [doc, variation, baseScalars, variations, live]
+    )
+    // Signature parts of props the registry does not declare still render
+    const extraParts = useMemo(
+        () =>
+            variation.signature === ""
+                ? []
+                : variation.signature
+                      .split("+")
+                      .filter((part) => !propNames.has(part.split(":")[0])),
+        [variation, propNames]
+    )
+
+    const draftQuery =
+        isDraft && current
+            ? `gdocId=${encodeURIComponent(current.gdocId)}&path=${encodeURIComponent(
+                  current.path
+              )}&overrides=${encodeURIComponent(JSON.stringify(overrides))}`
+            : undefined
+    const draftResponse = useAdminJson<ComponentDraftResponse>(
+        draftQuery ? `/api/gdocs-reference/draft.json?${draftQuery}` : undefined
+    )
+    // Held across cycle clicks so the card never blanks while re-fetching.
+    const [draft, setDraft] = useState<
+        ComponentDraftResponse | null | undefined
+    >(undefined)
+    useEffect(() => {
+        if (!isDraft) setDraft(undefined)
+        else if (draftResponse !== undefined) setDraft(draftResponse)
+    }, [isDraft, draftResponse])
+
+    const onCycle = (name: string, stop: CycleStop): void => {
+        setOverrides((previous) => {
+            const next = { ...previous }
+            if (stop.isBase) delete next[name]
+            else next[name] = stop.value
+            return next
+        })
+    }
+
+    // The drafted combination, recognized when it lands on an observed form.
+    const draftMatch = draft
+        ? variations.find(
+              (candidate) =>
+                  candidate.signature ===
+                  draftSignature(draft.props, doc, variations, live)
+          )
+        : undefined
+
     const label = fractionUsageLabel(variation.count, scanned)
     return (
         <div
-            className="gdocs-ref-live__form-card"
+            className={
+                isDraft
+                    ? "gdocs-ref-live__form-card gdocs-ref-live__form-card--draft"
+                    : "gdocs-ref-live__form-card"
+            }
             id={formAnchorId(variation.signature)}
         >
-            <div className="gdocs-ref-live__form-card-header">
-                <FormNameChip variation={variation} />
-                <FrequencyBadge
-                    label={label}
-                    title={`${variation.count} of ${scanned} published uses`}
-                />
-            </div>
-            <div className="gdocs-ref-live__form-card-body">
-                <div className="gdocs-ref-live__form-sets">
-                    <div className="gdocs-ref-live__form-sets-title">Sets</div>
-                    <FormSets signature={variation.signature} />
-                </div>
-                <div className="gdocs-ref-live__form-example">
-                    {current ? (
-                        <>
-                            <GdocsReferenceExample
-                                archie={current.archie ?? ""}
-                                previewPath={instancePreviewPath(current)}
+            {isDraft ? (
+                <div className="gdocs-ref-live__form-card-header gdocs-ref-live__form-card-header--draft">
+                    <span className="gdocs-ref-live__draft-badge">
+                        Draft — building a form
+                    </span>
+                    <span className="gdocs-ref-live__draft-origin">
+                        started from <em>{formLabel(variation)}</em>
+                    </span>
+                    <span className="gdocs-ref-live__draft-actions">
+                        <button
+                            type="button"
+                            className="gdocs-ref-live__draft-reset"
+                            title="Back to the observed form"
+                            onClick={() => setOverrides({})}
+                        >
+                            <FontAwesomeIcon icon={faRotateRight} /> Reset
+                        </button>
+                        {draft && (
+                            <CopyButton
+                                text={draft.archie}
+                                label="Copy draft"
+                                className="gdocs-ref-live__draft-copy"
                             />
-                            <div className="gdocs-ref-live__form-example-footer">
-                                <InstanceProvenance
-                                    instance={current}
-                                    curated={pinnedKeys.has(
-                                        instanceKey(current)
-                                    )}
-                                />
-                                {shownTotal > 1 && (
-                                    <span className="gdocs-ref-live__pager">
-                                        <button
-                                            type="button"
-                                            className="gdocs-ref-live__pager-button"
-                                            disabled={index === 0}
-                                            title="Previous example"
-                                            onClick={() =>
-                                                setIndex(Math.max(0, index - 1))
-                                            }
-                                        >
-                                            <FontAwesomeIcon
-                                                icon={faChevronLeft}
-                                            />
-                                        </button>
-                                        example {index + 1} of {shownTotal}
-                                        <button
-                                            type="button"
-                                            className="gdocs-ref-live__pager-button"
-                                            disabled={
-                                                index + 1 >= shownTotal ||
-                                                isLoading
-                                            }
-                                            title="Next example"
-                                            onClick={onNext}
-                                        >
-                                            <FontAwesomeIcon
-                                                icon={faChevronRight}
-                                            />
-                                        </button>
-                                    </span>
-                                )}
-                            </div>
-                        </>
-                    ) : (
-                        <p className="gdocs-ref-live__loading">
-                            {isLoading
-                                ? "Loading examples…"
-                                : "No published use matches this filter."}
-                        </p>
-                    )}
+                        )}
+                    </span>
                 </div>
+            ) : (
+                <div className="gdocs-ref-live__form-card-header">
+                    <FormNameChip variation={variation} />
+                    <FrequencyBadge
+                        label={label}
+                        title={`${variation.count} of ${scanned} published uses`}
+                    />
+                </div>
+            )}
+            <div className="gdocs-ref-live__form-card-body">
+                <BuilderProps
+                    rows={rows}
+                    extraParts={extraParts}
+                    overrides={overrides}
+                    onCycle={onCycle}
+                    disabled={!current}
+                    isDraft={isDraft}
+                />
+                {isDraft && current ? (
+                    <div className="gdocs-ref-live__form-example">
+                        {draft ? (
+                            <>
+                                <GdocsReferenceExample
+                                    archie={draft.archie}
+                                    previewPath={`${instancePreviewPath(current)}&overrides=${encodeURIComponent(
+                                        JSON.stringify(overrides)
+                                    )}`}
+                                />
+                                <p className="gdocs-ref-live__draft-note">
+                                    {draftMatch ? (
+                                        <>
+                                            This combination is the observed
+                                            form{" "}
+                                            <em>{formLabel(draftMatch)}</em>.
+                                        </>
+                                    ) : (
+                                        <>
+                                            This combination isn’t an observed
+                                            form yet —{" "}
+                                            <strong>Copy draft</strong> to paste
+                                            it into your doc.
+                                        </>
+                                    )}
+                                </p>
+                            </>
+                        ) : draft === null ? (
+                            <p className="gdocs-ref-live__loading">
+                                This combination can’t be built from this
+                                example — Reset to go back.
+                            </p>
+                        ) : (
+                            <p className="gdocs-ref-live__loading">
+                                Building the draft…
+                            </p>
+                        )}
+                    </div>
+                ) : (
+                    <div className="gdocs-ref-live__form-example">
+                        {current ? (
+                            <>
+                                <GdocsReferenceExample
+                                    archie={current.archie ?? ""}
+                                    previewPath={instancePreviewPath(current)}
+                                />
+                                <div className="gdocs-ref-live__form-example-footer">
+                                    <InstanceProvenance
+                                        instance={current}
+                                        curated={pinnedKeys.has(
+                                            instanceKey(current)
+                                        )}
+                                    />
+                                    {shownTotal > 1 && (
+                                        <span className="gdocs-ref-live__pager">
+                                            <button
+                                                type="button"
+                                                className="gdocs-ref-live__pager-button"
+                                                disabled={index === 0}
+                                                title="Previous example"
+                                                onClick={() =>
+                                                    setIndex(
+                                                        Math.max(0, index - 1)
+                                                    )
+                                                }
+                                            >
+                                                <FontAwesomeIcon
+                                                    icon={faChevronLeft}
+                                                />
+                                            </button>
+                                            example {index + 1} of {shownTotal}
+                                            <button
+                                                type="button"
+                                                className="gdocs-ref-live__pager-button"
+                                                disabled={
+                                                    index + 1 >= shownTotal ||
+                                                    isLoading
+                                                }
+                                                title="Next example"
+                                                onClick={onNext}
+                                            >
+                                                <FontAwesomeIcon
+                                                    icon={faChevronRight}
+                                                />
+                                            </button>
+                                        </span>
+                                    )}
+                                </div>
+                            </>
+                        ) : (
+                            <p className="gdocs-ref-live__loading">
+                                {isLoading
+                                    ? "Loading examples…"
+                                    : "No published use matches this filter."}
+                            </p>
+                        )}
+                    </div>
+                )}
             </div>
         </div>
     )
@@ -660,7 +1178,9 @@ export function ComponentForms({
                     key={variation.signature}
                     doc={doc}
                     variation={variation}
+                    variations={variations}
                     scanned={scanned}
+                    propAdoption={response.propAdoption}
                     docTypeFilter={docTypeFilter}
                     pinned={response.pinned}
                 />
@@ -837,25 +1357,10 @@ function ComponentProperties({
                 .some((part) => part.split(":")[0] === name)
         )
 
-    // Child blocks are omitted from the stored configs the usage index is
-    // built on, so adoption of block-content props is unmeasurable — never
-    // presentable as "unused". (Span props are flattened to plain text and
-    // kept, so they stay measurable.)
-    const isContentProp = (prop: ComponentDoc["props"][number]): boolean =>
-        /Enriched/.test(prop.type)
-
-    const requirement = (prop: ComponentDoc["props"][number]): string => {
-        if (prop.optional) return "optional"
-        // Declared required on the enriched type, but the parser fills a
-        // default when omitted — proven by uses whose minimal source drops it.
-        if (
-            hasLive &&
-            !isContentProp(prop) &&
-            (live.propAdoption[prop.name] ?? 0) < live.scanned
-        )
-            return "optional"
-        return "required"
-    }
+    const requirement = (prop: ComponentDoc["props"][number]): string =>
+        isEffectivelyRequired(prop, hasLive ? live : undefined)
+            ? "required"
+            : "optional"
 
     // Required props first; the stable sort keeps declaration order within
     // each group.
