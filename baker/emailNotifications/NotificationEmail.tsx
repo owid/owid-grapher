@@ -77,6 +77,7 @@ function NotificationEmail({
     apiBaseUrl: string
 }) {
     const unsubscribeUrl = `${apiBaseUrl}/unsubscribe?token=${subscriber.token}`
+    const updatePreferencesUrl = `${apiBaseUrl}/request-link?token=${subscriber.token}`
     return (
         <html lang="en">
             <head>
@@ -159,8 +160,8 @@ function NotificationEmail({
                     </div>
                     <Footer
                         email={subscriber.email}
-                        baseUrl={baseUrl}
                         unsubscribeUrl={unsubscribeUrl}
+                        updatePreferencesUrl={updatePreferencesUrl}
                     />
                 </div>
             </body>
@@ -458,12 +459,12 @@ function SpanElement({ span }: { span: Span }): ReactNode {
 
 function Footer({
     email,
-    baseUrl,
     unsubscribeUrl,
+    updatePreferencesUrl,
 }: {
     email: string
-    baseUrl: string
     unsubscribeUrl: string
+    updatePreferencesUrl: string
 }) {
     const footerTextStyle: CSSProperties = {
         margin: "0 0 8px",
@@ -484,14 +485,14 @@ function Footer({
             </p>
             <p style={footerTextStyle}>
                 You can{" "}
+                <a href={updatePreferencesUrl} style={{ color: COLORS.blue }}>
+                    update your preferences
+                </a>{" "}
+                or{" "}
                 <a href={unsubscribeUrl} style={{ color: COLORS.blue }}>
                     unsubscribe
                 </a>{" "}
-                at any time, or change what you receive by{" "}
-                <a href={`${baseUrl}/subscribe`} style={{ color: COLORS.blue }}>
-                    subscribing again
-                </a>{" "}
-                with different preferences.
+                at any time.
             </p>
             <p style={{ ...footerTextStyle, marginBottom: 0 }}>
                 Our World in Data · Global Change Data Lab · Oxford, United
