@@ -96,6 +96,7 @@ describe("writing reference live API", { timeout: 20000 }, () => {
                 docType: "article",
                 docsUsingIt: 1,
                 totalDocs: 1,
+                totalUses: 1,
                 label: "standard",
             },
         ])
@@ -162,6 +163,12 @@ describe("writing reference live API", { timeout: 20000 }, () => {
         expect(json.stalePins).toEqual([])
         expect(json.pinned).toHaveLength(1)
         expect(json.pinned[0].path).toBe("$.body[1]")
+        // per-prop adoption over the scan: url survives minimization on all
+        // four charts (required scaffolding), size only where it deviates
+        // from the parser default (the two narrow charts)
+        expect(json.scanned).toBe(4)
+        expect(json.propAdoption.url).toBe(4)
+        expect(json.propAdoption.size).toBe(2)
     })
 
     it("instances.json 404s for an unknown component", async () => {

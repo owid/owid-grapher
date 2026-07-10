@@ -1,6 +1,10 @@
 import { useEffect, useMemo, useState } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faArrowUpRightFromSquare } from "@fortawesome/free-solid-svg-icons"
+import {
+    faArrowUpRightFromSquare,
+    faChevronLeft,
+    faChevronRight,
+} from "@fortawesome/free-solid-svg-icons"
 import {
     ComponentDoc,
     ComponentInstance,
@@ -19,22 +23,202 @@ import { Link } from "./Link.js"
 import { GdocsReferenceExample } from "./GdocsReferenceExample.js"
 import {
     docTypeNoun,
+    FREQUENCY_DOTS,
+    fractionUsageLabel,
     humanizeVariation,
     indefinite,
     joinWithAnd,
     liveUrl,
-    usageSentence,
-    usageTooltip,
+    MAJOR_DOC_TYPES,
     useAdminJson,
-    variationFrequencyLabel,
 } from "./gdocsReferenceLiveHelpers.js"
 
 /**
- * The live (database-backed) half of the writing reference UI: usage strips,
- * real examples with provenance navigated by observed forms, and template
- * exemplar x-rays. Everything here presents computed facts qualitatively —
- * words first, raw numbers only in tooltips (see gdocsReferenceLiveHelpers).
+ * The live (database-backed) half of the writing reference UI: the frequency
+ * vocabulary, the where-it's-used bar, the forms section with real examples,
+ * the derived properties table, and the template exemplar x-rays. Everything
+ * here presents computed facts qualitatively — words and the four-dot glyph
+ * first, raw numbers only in tooltips (see gdocsReferenceLiveHelpers).
  */
+
+// -----------------------------------------------------------------------------
+// The frequency vocabulary: one glyph everywhere frequency is spoken
+// -----------------------------------------------------------------------------
+
+const GLYPH_DOT_POSITIONS = [5, 15, 25, 35]
+
+/**
+ * The four-dot frequency glyph — the single visual primitive for adoption,
+ * used on the page header, overview cards, sidebar rows, form cards, the
+ * properties table and template shortlists. Dashed marks a "new" form no
+ * published doc uses yet.
+ */
+export function FrequencyGlyph({
+    label,
+    dashed,
+}: {
+    label: ComponentUsageLabel
+    dashed?: boolean
+}): React.ReactElement {
+    const filled = dashed ? 0 : FREQUENCY_DOTS[label]
+    return (
+        <svg
+            className="gdocs-ref-live__glyph"
+            width="42"
+            height="10"
+            viewBox="0 0 42 10"
+            aria-hidden="true"
+        >
+            {GLYPH_DOT_POSITIONS.map((cx, index) => (
+                <circle
+                    key={cx}
+                    cx={cx}
+                    cy="5"
+                    r="3"
+                    className={
+                        dashed
+                            ? "gdocs-ref-live__glyph-dot gdocs-ref-live__glyph-dot--dashed"
+                            : index < filled
+                              ? "gdocs-ref-live__glyph-dot gdocs-ref-live__glyph-dot--filled"
+                              : "gdocs-ref-live__glyph-dot"
+                    }
+                />
+            ))}
+        </svg>
+    )
+}
+
+/** Glyph + word — the word is primary, the glyph reinforces. */
+export function FrequencyBadge({
+    label,
+    title,
+    dashed,
+    hideWord,
+}: {
+    label: ComponentUsageLabel
+    title?: string
+    dashed?: boolean
+    hideWord?: boolean
+}): React.ReactElement {
+    return (
+        <span className="gdocs-ref-live__freq" title={title}>
+            <FrequencyGlyph label={label} dashed={dashed} />
+            {!hideWord && (
+                <span className="gdocs-ref-live__freq-word">
+                    {dashed ? "new" : label}
+                </span>
+            )}
+        </span>
+    )
+}
+
+// -----------------------------------------------------------------------------
+// Component page: where it's used (the doc-type breakdown bar)
+// -----------------------------------------------------------------------------
+
+/**
+ * "Where it's used" — a subdued stacked bar of the component's uses by
+ * document type, replacing the prose usage sentence. Each doc type links to
+ * its template page (when one exists) with its adoption word alongside; the
+ * raw share and counts live in tooltips. A distribution reads as a bar, not
+ * as repeated glyphs — the glyph stays for single-value spots.
+ */
+export function UsageBar({
+    usage,
+    totalDocsByType,
+    templateIds,
+}: {
+    usage: ComponentUsage | undefined
+    totalDocsByType: GdocsReferenceUsage["totalDocsByType"]
+    templateIds: Set<string>
+}): React.ReactElement {
+    const entries = (usage?.byDocType ?? [])
+        .filter((entry) => entry.totalUses > 0)
+        .sort((a, b) => b.totalUses - a.totalUses)
+    const sumUses = entries.reduce((sum, entry) => sum + entry.totalUses, 0)
+    const unusedMajor = MAJOR_DOC_TYPES.filter(
+        (docType) =>
+            !entries.some((entry) => entry.docType === docType) &&
+            (totalDocsByType[docType] ?? 0) > 0
+    )
+    const docTypeName = (docType: OwidGdocType): React.ReactElement =>
+        templateIds.has(docType) ? (
+            <Link to={`/gdocs-reference/templates/${docType}`}>
+                {docTypeNoun(docType, true)}
+            </Link>
+        ) : (
+            <span>{docTypeNoun(docType, true)}</span>
+        )
+
+    return (
+        <div className="gdocs-ref-live__usage-bar">
+            <div className="gdocs-ref-live__usage-bar-title">
+                Where it’s used{" "}
+                <span className="gdocs-ref-live__usage-bar-subtitle">
+                    — share of uses by document type
+                </span>
+            </div>
+            {entries.length === 0 ? (
+                <p className="gdocs-ref-live__loading">
+                    Not used in any published document yet.
+                </p>
+            ) : (
+                <>
+                    <div className="gdocs-ref-live__usage-bar-track">
+                        {entries.map((entry, index) => (
+                            <div
+                                key={entry.docType}
+                                className={`gdocs-ref-live__usage-bar-segment gdocs-ref-live__usage-bar-segment--${Math.min(index, 5)}`}
+                                style={{
+                                    width: `${(entry.totalUses / sumUses) * 100}%`,
+                                }}
+                                title={`${docTypeNoun(entry.docType, true)} — ${Math.round(
+                                    (entry.totalUses / sumUses) * 100
+                                )}% of uses · in ${entry.docsUsingIt} of ${entry.totalDocs} (${entry.label})`}
+                            />
+                        ))}
+                    </div>
+                    <div className="gdocs-ref-live__usage-bar-legend">
+                        {entries.map((entry, index) => (
+                            <span
+                                key={entry.docType}
+                                className="gdocs-ref-live__usage-bar-key"
+                                title={`Used in ${entry.docsUsingIt} of ${entry.totalDocs} published ${docTypeNoun(
+                                    entry.docType,
+                                    entry.totalDocs !== 1
+                                )}`}
+                            >
+                                <span
+                                    className={`gdocs-ref-live__usage-bar-swatch gdocs-ref-live__usage-bar-segment--${Math.min(index, 5)}`}
+                                />
+                                {docTypeName(entry.docType)}
+                                <span className="gdocs-ref-live__usage-bar-label">
+                                    {entry.label}
+                                </span>
+                            </span>
+                        ))}
+                        {unusedMajor.map((docType) => (
+                            <span
+                                key={docType}
+                                className="gdocs-ref-live__usage-bar-key"
+                            >
+                                <span className="gdocs-ref-live__usage-bar-swatch gdocs-ref-live__usage-bar-swatch--unused" />
+                                {docTypeName(docType)}
+                                <span className="gdocs-ref-live__usage-bar-label gdocs-ref-live__usage-bar-label--unused">
+                                    unused
+                                </span>
+                            </span>
+                        ))}
+                    </div>
+                </>
+            )}
+        </div>
+    )
+}
+
+// -----------------------------------------------------------------------------
+// Component page: the forms section
+// -----------------------------------------------------------------------------
 
 function instancePreviewPath(instance: ComponentInstance): string {
     return `/gdocs-reference/instance/preview?gdocId=${encodeURIComponent(
@@ -45,11 +229,18 @@ function instancePreviewPath(instance: ComponentInstance): string {
 /** "Used in *Life expectancy* → view live" — the provenance line under a real example. */
 function InstanceProvenance({
     instance,
+    curated,
 }: {
     instance: ComponentInstance
+    curated?: boolean
 }): React.ReactElement {
     return (
         <p className="gdocs-ref-live__provenance">
+            {curated && (
+                <span className="gdocs-ref-live__curated-badge">
+                    curated pick
+                </span>
+            )}
             Used in <em>{instance.title}</em>{" "}
             <span className="gdocs-ref-live__provenance-type">
                 ({docTypeNoun(instance.docType, false)})
@@ -62,219 +253,378 @@ function InstanceProvenance({
     )
 }
 
-function InstanceExample({
-    instance,
+/** The name chip of a form: curated names read differently from technical fallbacks. */
+function FormNameChip({
+    variation,
 }: {
-    instance: ComponentInstance
+    variation: ComponentVariation
 }): React.ReactElement {
+    // The empty signature is the standard form — derived, but clean enough to
+    // read as a name rather than as a curation gap.
+    const isNamed = variation.name !== undefined || variation.signature === ""
+    const label =
+        variation.name ??
+        (variation.signature === ""
+            ? "The standard form"
+            : humanizeVariation(variation.signature))
     return (
-        <div className="gdocs-ref-live__instance">
-            <GdocsReferenceExample
-                archie={instance.archie ?? ""}
-                previewPath={instancePreviewPath(instance)}
-            />
-            <InstanceProvenance instance={instance} />
+        <span
+            className={
+                isNamed
+                    ? "gdocs-ref-live__form-name"
+                    : "gdocs-ref-live__form-name gdocs-ref-live__form-name--technical"
+            }
+            title={
+                isNamed
+                    ? undefined
+                    : "No sidecar example documents this form yet — the technical label marks a curation gap"
+            }
+        >
+            {label}
+        </span>
+    )
+}
+
+/** The properties a form sets, from its signature — "Nothing" is the base form. */
+function FormSets({ signature }: { signature: string }): React.ReactElement {
+    if (signature === "")
+        return (
+            <div className="gdocs-ref-live__form-sets-empty">
+                Nothing — the base form.
+            </div>
+        )
+    return (
+        <div className="gdocs-ref-live__form-sets-chips">
+            {signature.split("+").map((part) => {
+                const [key, value] = part.split(":")
+                return (
+                    <span key={part} className="gdocs-ref-live__form-set">
+                        {value === undefined || value === "true"
+                            ? key
+                            : `${key}: ${value}`}
+                    </span>
+                )
+            })}
         </div>
     )
 }
 
-// -----------------------------------------------------------------------------
-// Component page: usage strip
-// -----------------------------------------------------------------------------
+const instanceKey = (instance: ComponentInstance): string =>
+    `${instance.gdocId}-${instance.path}`
 
-export function UsageStrip({
-    usage,
-    totalDocsByType,
-}: {
-    usage: ComponentUsage | undefined
-    totalDocsByType: GdocsReferenceUsage["totalDocsByType"]
-}): React.ReactElement {
-    return (
-        <p className="gdocs-ref-live__usage-strip" title={usageTooltip(usage)}>
-            {usageSentence(usage, totalDocsByType)}
-        </p>
-    )
-}
-
-// -----------------------------------------------------------------------------
-// Component page: examples from the site
-// -----------------------------------------------------------------------------
-
-const GALLERY_PAGE_SIZE = 12
-// Rendered previews are expensive (each is a full page in an iframe), so the
-// gallery starts small and "Show more" reveals already-fetched instances
-// before fetching the next page.
-const GALLERY_INITIAL_VISIBLE = 4
-const GALLERY_VISIBLE_STEP = 8
-
-// What the gallery is currently showing: every published use, one observed
-// form, or one synthetic sidecar example (a form no published doc uses yet).
-type FormSelection =
-    | { kind: "all" }
-    | { kind: "form"; signature: string }
-    | { kind: "synthetic"; exampleIndex: number }
-
-function FormChip({
-    label,
-    title,
-    isActive,
-    isSynthetic,
-    onClick,
-}: {
-    label: string
-    title?: string
-    isActive: boolean
-    isSynthetic?: boolean
-    onClick: () => void
-}): React.ReactElement {
-    const classNames = ["gdocs-ref-live__form-chip"]
-    if (isActive) classNames.push("gdocs-ref-live__form-chip--active")
-    if (isSynthetic) classNames.push("gdocs-ref-live__form-chip--synthetic")
-    return (
-        <button
-            type="button"
-            role="tab"
-            aria-selected={isActive}
-            className={classNames.join(" ")}
-            title={title}
-            onClick={onClick}
-        >
-            {label}
-        </button>
-    )
-}
+// DOM id of a form's card, so the properties table can cross-link into it
+const formAnchorId = (signature: string): string =>
+    "form-" + (signature.replace(/[^a-z0-9]+/gi, "-") || "standard")
 
 /**
- * The live examples section of a component page: one gallery of real,
- * rendered uses with provenance, navigated by a single chip row of the
- * component's observed forms. Curated (pinned) examples lead the unfiltered
- * gallery; sidecar examples whose form no published doc uses appear as
- * dashed "not yet used" chips showing the reference example instead.
+ * One observed form of the component: its name, its frequency on the shared
+ * vocabulary, the properties it sets, and one real example at a time — the
+ * pager walks every published use of this form, fetching further pages on
+ * demand so only a single preview is ever mounted per card.
  */
-export function ComponentRealExamples({
+function FormCard({
     doc,
-    usage,
+    variation,
+    scanned,
+    docTypeFilter,
+    pinned,
 }: {
     doc: ComponentDoc
-    usage: ComponentUsage | undefined
-}): React.ReactElement | null {
-    const [selection, setSelection] = useState<FormSelection>({ kind: "all" })
-    const [docTypeFilter, setDocTypeFilter] = useState<string | undefined>()
-    const [page, setPage] = useState(0)
-    const [visible, setVisible] = useState(GALLERY_INITIAL_VISIBLE)
-    // Instances accumulate across "Show more" clicks
-    const [gallery, setGallery] = useState<ComponentInstance[]>([])
+    variation: ComponentVariation
+    scanned: number
+    docTypeFilter: string | undefined
+    pinned: ComponentInstance[]
+}): React.ReactElement {
+    // Curated picks of this form lead its pager; the representative follows.
+    const initialItems = useMemo(() => {
+        const items = pinned.filter(
+            (instance) => instance.variation === variation.signature
+        )
+        if (
+            !items.some(
+                (instance) =>
+                    instanceKey(instance) ===
+                    instanceKey(variation.representative)
+            )
+        )
+            items.push(variation.representative)
+        return items
+    }, [pinned, variation])
+    const pinnedKeys = useMemo(() => new Set(pinned.map(instanceKey)), [pinned])
 
-    const variationFilter =
-        selection.kind === "form" ? selection.signature : undefined
-    const query = new URLSearchParams()
+    const [items, setItems] = useState<ComponentInstance[]>(initialItems)
+    const [total, setTotal] = useState<number | undefined>(variation.count)
+    const [index, setIndex] = useState(0)
+    const [pageToFetch, setPageToFetch] = useState<number | null>(null)
+    const [advancePending, setAdvancePending] = useState(false)
+
+    // A doc-type filter invalidates the unfiltered seed: restart the pager
+    // against the filtered listing (total arrives with the first page).
+    useEffect(() => {
+        setItems(docTypeFilter === undefined ? initialItems : [])
+        setTotal(docTypeFilter === undefined ? variation.count : undefined)
+        setIndex(0)
+        setPageToFetch(docTypeFilter === undefined ? null : 0)
+        setAdvancePending(false)
+        // initialItems only changes with the response that also recreates
+        // this card; the filter is what resets the pager.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [docTypeFilter])
+
+    const query = new URLSearchParams({ variation: variation.signature })
     if (docTypeFilter !== undefined) query.set("docType", docTypeFilter)
-    if (variationFilter !== undefined) query.set("variation", variationFilter)
-    if (page > 0) query.set("page", String(page))
-    const queryString = query.toString()
+    if (pageToFetch !== null && pageToFetch > 0)
+        query.set("page", String(pageToFetch))
     const response = useAdminJson<ComponentInstancesResponse>(
-        `/api/gdocs-reference/components/${doc.id}/instances.json${
-            queryString ? `?${queryString}` : ""
-        }`
+        pageToFetch === null
+            ? undefined
+            : `/api/gdocs-reference/components/${doc.id}/instances.json?${query.toString()}`
     )
-
-    // Chip-row inputs arrive with every response (they are unfiltered);
-    // keep the last ones so the row doesn't vanish while a page loads.
-    const [variations, setVariations] = useState<ComponentVariation[]>([])
-    const [pinned, setPinned] = useState<ComponentInstance[]>([])
-    const [stalePins, setStalePins] = useState<
-        ComponentInstancesResponse["stalePins"]
-    >([])
-    const [synthetic, setSynthetic] = useState<
-        ComponentInstancesResponse["syntheticExamples"]
-    >([])
-    const [total, setTotal] = useState(0)
 
     useEffect(() => {
         if (!response) return
-        setVariations(response.variations)
-        setPinned(response.pinned)
-        setStalePins(response.stalePins)
-        setSynthetic(response.syntheticExamples)
         setTotal(response.total)
-        setGallery((previous) =>
-            page === 0
-                ? response.instances
-                : [...previous, ...response.instances]
-        )
-        // page is what varies between appends; the response carries the data
+        setItems((previous) => {
+            const seen = new Set(previous.map(instanceKey))
+            const fresh = response.instances.filter(
+                (instance) => !seen.has(instanceKey(instance))
+            )
+            return fresh.length > 0 ? [...previous, ...fresh] : previous
+        })
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [response])
 
-    const selectForm = (next: FormSelection): void => {
-        setSelection(next)
-        setPage(0)
-        setVisible(GALLERY_INITIAL_VISIBLE)
-        setGallery([])
-    }
-    const selectDocType = (docType: string | undefined): void => {
-        setDocTypeFilter(docType)
-        setPage(0)
-        setVisible(GALLERY_INITIAL_VISIBLE)
-        setGallery([])
-    }
-    // Reveal already-fetched instances first; fetch the next page once the
-    // fetched ones run out.
-    const showMore = (): void => {
-        const next = visible + GALLERY_VISIBLE_STEP
-        setVisible(next)
-        if (next > gallery.length && (page + 1) * GALLERY_PAGE_SIZE < total)
-            setPage(page + 1)
+    useEffect(() => {
+        if (!advancePending) return
+        if (index + 1 < items.length) {
+            setIndex(index + 1)
+            setAdvancePending(false)
+        } else if (total !== undefined && items.length >= total) {
+            setAdvancePending(false)
+        }
+    }, [advancePending, items, index, total])
+
+    const isLoading = pageToFetch !== null && response === undefined
+    const current = items[index]
+    const shownTotal = total ?? variation.count
+    const onNext = (): void => {
+        if (index + 1 < items.length) setIndex(index + 1)
+        else if (!isLoading && items.length < shownTotal) {
+            setAdvancePending(true)
+            setPageToFetch(pageToFetch === null ? 0 : pageToFetch + 1)
+        }
     }
 
-    if (response === null && variations.length === 0) return null
-    // Full-section loader only before anything has ever arrived — once the
-    // chip row exists it stays mounted while filtered pages load.
-    if (response === undefined && total === 0 && variations.length === 0)
+    const label = fractionUsageLabel(variation.count, scanned)
+    return (
+        <div
+            className="gdocs-ref-live__form-card"
+            id={formAnchorId(variation.signature)}
+        >
+            <div className="gdocs-ref-live__form-card-header">
+                <FormNameChip variation={variation} />
+                <FrequencyBadge
+                    label={label}
+                    title={`${variation.count} of ${scanned} published uses`}
+                />
+            </div>
+            <div className="gdocs-ref-live__form-card-body">
+                <div className="gdocs-ref-live__form-sets">
+                    <div className="gdocs-ref-live__form-sets-title">Sets</div>
+                    <FormSets signature={variation.signature} />
+                </div>
+                <div className="gdocs-ref-live__form-example">
+                    {current ? (
+                        <>
+                            <GdocsReferenceExample
+                                archie={current.archie ?? ""}
+                                previewPath={instancePreviewPath(current)}
+                            />
+                            <div className="gdocs-ref-live__form-example-footer">
+                                <InstanceProvenance
+                                    instance={current}
+                                    curated={pinnedKeys.has(
+                                        instanceKey(current)
+                                    )}
+                                />
+                                {shownTotal > 1 && (
+                                    <span className="gdocs-ref-live__pager">
+                                        <button
+                                            type="button"
+                                            className="gdocs-ref-live__pager-button"
+                                            disabled={index === 0}
+                                            title="Previous example"
+                                            onClick={() =>
+                                                setIndex(Math.max(0, index - 1))
+                                            }
+                                        >
+                                            <FontAwesomeIcon
+                                                icon={faChevronLeft}
+                                            />
+                                        </button>
+                                        example {index + 1} of {shownTotal}
+                                        <button
+                                            type="button"
+                                            className="gdocs-ref-live__pager-button"
+                                            disabled={
+                                                index + 1 >= shownTotal ||
+                                                isLoading
+                                            }
+                                            title="Next example"
+                                            onClick={onNext}
+                                        >
+                                            <FontAwesomeIcon
+                                                icon={faChevronRight}
+                                            />
+                                        </button>
+                                    </span>
+                                )}
+                            </div>
+                        </>
+                    ) : (
+                        <p className="gdocs-ref-live__loading">
+                            {isLoading
+                                ? "Loading examples…"
+                                : "No published use matches this filter."}
+                        </p>
+                    )}
+                </div>
+            </div>
+        </div>
+    )
+}
+
+/** A sidecar example whose form no published doc uses yet — dashed "new". */
+function SyntheticFormCard({
+    doc,
+    exampleIndex,
+}: {
+    doc: ComponentDoc
+    exampleIndex: number
+}): React.ReactElement | null {
+    const example = doc.examples[exampleIndex]
+    if (!example) return null
+    return (
+        <div className="gdocs-ref-live__form-card gdocs-ref-live__form-card--synthetic">
+            <div className="gdocs-ref-live__form-card-header">
+                <span className="gdocs-ref-live__form-name gdocs-ref-live__form-name--synthetic">
+                    {example.name}
+                </span>
+                <FrequencyBadge
+                    label="unused"
+                    dashed
+                    title="Not used in any published doc yet — reference example"
+                />
+            </div>
+            <div className="gdocs-ref-live__form-card-synthetic-body">
+                <p className="gdocs-ref-live__synthetic-note">
+                    No published document uses this form yet — this is the
+                    reference example from the docs.
+                </p>
+                <GdocsReferenceExample
+                    archie={example.archie}
+                    previewPath={`/gdocs-reference/components/${doc.id}/preview?example=${exampleIndex}`}
+                />
+            </div>
+        </div>
+    )
+}
+
+// Forms beyond this many stack as cards only when curated-named; the rest
+// wait in a compact long-tail list and expand into a card on demand. (The
+// design's per-property facet filter is a possible future refinement.)
+const FORM_CARD_LIMIT = 6
+
+/**
+ * "Its forms" — the unified section where observed forms, their frequency,
+ * one real example each, the dashed "new" reference forms, and the derived
+ * properties table live together.
+ */
+export function ComponentForms({
+    doc,
+    usage,
+    notes,
+}: {
+    doc: ComponentDoc
+    usage: ComponentUsage | undefined
+    notes?: React.ReactNode
+}): React.ReactElement {
+    const [docTypeFilter, setDocTypeFilter] = useState<string | undefined>()
+    const [expandedTail, setExpandedTail] = useState<Set<string>>(new Set())
+
+    // One unfiltered fetch drives the whole section: forms, synthetic
+    // matches, curated pins, per-prop adoption. Per-form example paging and
+    // doc-type scoping happen inside each card.
+    const response = useAdminJson<ComponentInstancesResponse>(
+        doc.system
+            ? undefined
+            : `/api/gdocs-reference/components/${doc.id}/instances.json`
+    )
+
+    if (!doc.system && response === undefined)
         return (
             <section className="gdocs-ref__section">
-                <h2 className="gdocs-ref__section-title">
-                    Examples from the site
-                </h2>
+                <h2 className="gdocs-ref__section-title">Its forms</h2>
                 <p className="gdocs-ref-live__loading">
                     Looking up published uses…
                 </p>
             </section>
         )
 
-    const scanned = variations.reduce((sum, v) => sum + v.count, 0)
-    const unobservedSynthetic = synthetic.filter((example) => !example.observed)
-    const docTypesInUse = usage?.byDocType.map((entry) => entry.docType) ?? []
-    const showChipRow = variations.length > 1 || unobservedSynthetic.length > 0
-    const isSynthetic = selection.kind === "synthetic"
-    const syntheticExample = isSynthetic
-        ? doc.examples[selection.exampleIndex]
-        : undefined
+    // Registry-only degradation: platform blocks and DB-less sessions still
+    // get the derived properties table.
+    if (doc.system || response === null || !response)
+        return (
+            <section className="gdocs-ref__section">
+                <ComponentProperties doc={doc} notes={notes} />
+            </section>
+        )
 
-    // Curated picks lead the unfiltered gallery, deduplicated from the page
-    // of instances that follows them.
-    const showPinned = selection.kind === "all" && docTypeFilter === undefined
-    const pinnedKeys = new Set(
-        pinned.map((instance) => `${instance.gdocId}-${instance.path}`)
+    const scanned = response.scanned
+    const variations = response.variations
+    const unobservedSynthetic = response.syntheticExamples.filter(
+        (example) => !example.observed
     )
-    const galleryInstances = (
-        showPinned
-            ? gallery.filter(
-                  (instance) =>
-                      !pinnedKeys.has(`${instance.gdocId}-${instance.path}`)
-              )
-            : gallery
-    ).slice(0, visible)
-    const remaining = total - (showPinned ? pinned.length : 0) - visible
+    const cards = variations.filter(
+        (variation, index) =>
+            index < FORM_CARD_LIMIT ||
+            variation.name !== undefined ||
+            expandedTail.has(variation.signature)
+    )
+    const tail = variations.filter((variation) => !cards.includes(variation))
+    const docTypesInUse = usage?.byDocType.map((entry) => entry.docType) ?? []
 
     return (
         <section className="gdocs-ref__section">
-            <h2 className="gdocs-ref__section-title">Examples from the site</h2>
-            {stalePins.length > 0 && (
+            <div className="gdocs-ref-live__forms-header">
+                <h2 className="gdocs-ref__section-title">Its forms</h2>
+                {docTypesInUse.length > 1 && (
+                    <label className="gdocs-ref-live__forms-scope">
+                        Examples from{" "}
+                        <select
+                            className="gdocs-ref-live__doc-type-select"
+                            value={docTypeFilter ?? ""}
+                            onChange={(event) =>
+                                setDocTypeFilter(
+                                    event.currentTarget.value || undefined
+                                )
+                            }
+                        >
+                            <option value="">All document types</option>
+                            {docTypesInUse.map((docType) => (
+                                <option key={docType} value={docType}>
+                                    {docTypeNoun(docType, true)}
+                                </option>
+                            ))}
+                        </select>
+                    </label>
+                )}
+            </div>
+            {response.stalePins.length > 0 && (
                 <p className="gdocs-ref-live__stale">
-                    Stale pinned example{stalePins.length > 1 && "s"} in the
-                    sidecar:{" "}
-                    {stalePins
+                    Stale pinned example
+                    {response.stalePins.length > 1 && "s"} in the sidecar:{" "}
+                    {response.stalePins
                         .map(
                             (pin) =>
                                 pin.slug + (pin.nth ? ` (#${pin.nth})` : "")
@@ -284,138 +634,236 @@ export function ComponentRealExamples({
                     component.
                 </p>
             )}
-            <div className="gdocs-ref-live__gallery-controls">
-                {showChipRow && (
-                    <div
-                        className="gdocs-ref-live__form-chips"
-                        role="tablist"
-                        aria-label="Forms of this component"
-                    >
-                        <FormChip
-                            label="All forms"
-                            title={`${total} published uses`}
-                            isActive={selection.kind === "all"}
-                            onClick={() => selectForm({ kind: "all" })}
-                        />
-                        {variations.map((variation) => (
-                            <FormChip
-                                key={variation.signature}
-                                // Curated name from the matching sidecar
-                                // example; the technical signature is the
-                                // fallback for still-unnamed forms.
-                                label={
-                                    variation.name ??
-                                    humanizeVariation(variation.signature)
-                                }
-                                title={`${variation.count} published uses — ${variationFrequencyLabel(
+            {variations.length === 0 && (
+                <p className="gdocs-ref-live__loading">
+                    No published document uses this component yet.
+                </p>
+            )}
+            {cards.map((variation) => (
+                <FormCard
+                    key={variation.signature}
+                    doc={doc}
+                    variation={variation}
+                    scanned={scanned}
+                    docTypeFilter={docTypeFilter}
+                    pinned={response.pinned}
+                />
+            ))}
+            {unobservedSynthetic.map((example) => (
+                <SyntheticFormCard
+                    key={`synthetic-${example.exampleIndex}`}
+                    doc={doc}
+                    exampleIndex={example.exampleIndex}
+                />
+            ))}
+            {tail.length > 0 && (
+                <div className="gdocs-ref-live__form-tail">
+                    <div className="gdocs-ref-live__form-tail-title">
+                        {tail.length} less frequent form
+                        {tail.length > 1 && "s"}
+                    </div>
+                    {tail.map((variation) => (
+                        <button
+                            key={variation.signature}
+                            type="button"
+                            className="gdocs-ref-live__form-tail-row"
+                            title={`${variation.count} of ${scanned} published uses — click to expand`}
+                            onClick={() =>
+                                setExpandedTail(
+                                    new Set([
+                                        ...expandedTail,
+                                        variation.signature,
+                                    ])
+                                )
+                            }
+                        >
+                            <FormNameChip variation={variation} />
+                            <FrequencyGlyph
+                                label={fractionUsageLabel(
                                     variation.count,
                                     scanned
-                                )}`}
-                                isActive={
-                                    selection.kind === "form" &&
-                                    selection.signature === variation.signature
-                                }
-                                onClick={() =>
-                                    selectForm({
-                                        kind: "form",
-                                        signature: variation.signature,
-                                    })
-                                }
+                                )}
                             />
-                        ))}
-                        {unobservedSynthetic.map((example) => (
-                            <FormChip
-                                key={`synthetic-${example.exampleIndex}`}
-                                label={example.name}
-                                title="Not used in any published doc yet — reference example"
-                                isActive={
-                                    selection.kind === "synthetic" &&
-                                    selection.exampleIndex ===
-                                        example.exampleIndex
-                                }
-                                isSynthetic
-                                onClick={() =>
-                                    selectForm({
-                                        kind: "synthetic",
-                                        exampleIndex: example.exampleIndex,
-                                    })
-                                }
-                            />
-                        ))}
-                    </div>
-                )}
-                {docTypesInUse.length > 1 && !isSynthetic && (
-                    <select
-                        className="gdocs-ref-live__doc-type-select"
-                        value={docTypeFilter ?? ""}
-                        onChange={(event) =>
-                            selectDocType(
-                                event.currentTarget.value || undefined
-                            )
-                        }
-                    >
-                        <option value="">All document types</option>
-                        {docTypesInUse.map((docType) => (
-                            <option key={docType} value={docType}>
-                                {docTypeNoun(docType, true)}
-                            </option>
-                        ))}
-                    </select>
-                )}
-            </div>
-            {isSynthetic && syntheticExample ? (
-                <div className="gdocs-ref-live__synthetic">
-                    <p className="gdocs-ref-live__synthetic-note">
-                        No published document uses this form yet — this is the
-                        reference example from the docs.
-                    </p>
-                    <GdocsReferenceExample
-                        archie={syntheticExample.archie}
-                        previewPath={`/gdocs-reference/components/${doc.id}/preview?example=${
-                            (selection as { exampleIndex: number }).exampleIndex
-                        }`}
-                    />
-                </div>
-            ) : (
-                <>
-                    {showPinned &&
-                        pinned.map((instance) => (
-                            <div
-                                key={`pinned-${instance.gdocId}-${instance.path}`}
-                                className="gdocs-ref-live__curated"
-                            >
-                                <span className="gdocs-ref-live__curated-badge">
-                                    curated pick
-                                </span>
-                                <InstanceExample instance={instance} />
-                            </div>
-                        ))}
-                    {galleryInstances.map((instance) => (
-                        <InstanceExample
-                            key={`${instance.gdocId}-${instance.path}`}
-                            instance={instance}
-                        />
-                    ))}
-                    {response !== undefined && total === 0 && (
-                        <p className="gdocs-ref-live__loading">
-                            No published document uses this component yet.
-                        </p>
-                    )}
-                    {response === undefined && (
-                        <p className="gdocs-ref-live__loading">Loading…</p>
-                    )}
-                    {response !== undefined && remaining > 0 && (
-                        <button
-                            type="button"
-                            className="gdocs-ref-live__show-more"
-                            onClick={showMore}
-                        >
-                            Show more ({remaining} more)
                         </button>
-                    )}
-                </>
+                    ))}
+                </div>
             )}
+            <ComponentProperties
+                doc={doc}
+                live={{ propAdoption: response.propAdoption, scanned }}
+                variations={variations}
+                notes={notes}
+            />
         </section>
+    )
+}
+
+// -----------------------------------------------------------------------------
+// Component page: the derived properties table
+// -----------------------------------------------------------------------------
+
+/**
+ * Every declared property of the block, from the type definitions — the
+ * derived, exhaustive replacement for hand-written "x is optional" prose —
+ * joined with live adoption and the observed forms that set each prop.
+ * Authored sidecar notes render underneath: reasons stay human, facts stay
+ * computed.
+ */
+function ComponentProperties({
+    doc,
+    live,
+    variations,
+    notes,
+}: {
+    doc: ComponentDoc
+    live?: { propAdoption: Record<string, number>; scanned: number }
+    variations?: ComponentVariation[]
+    notes?: React.ReactNode
+}): React.ReactElement | null {
+    if (doc.props.length === 0 && !notes) return null
+    const hasLive = live !== undefined && live.scanned > 0
+
+    const formsSettingProp = (name: string): ComponentVariation[] =>
+        (variations ?? []).filter((variation) =>
+            variation.signature
+                .split("+")
+                .some((part) => part.split(":")[0] === name)
+        )
+
+    // Child blocks are omitted from the stored configs the usage index is
+    // built on, so adoption of block-content props is unmeasurable — never
+    // presentable as "unused". (Span props are flattened to plain text and
+    // kept, so they stay measurable.)
+    const isContentProp = (prop: ComponentDoc["props"][number]): boolean =>
+        /Enriched/.test(prop.type)
+
+    const requirement = (prop: ComponentDoc["props"][number]): string => {
+        if (prop.optional) return "optional"
+        // Declared required on the enriched type, but the parser fills a
+        // default when omitted — proven by uses whose minimal source drops it.
+        if (
+            hasLive &&
+            !isContentProp(prop) &&
+            (live.propAdoption[prop.name] ?? 0) < live.scanned
+        )
+            return "optional"
+        return "required"
+    }
+
+    return (
+        <div className="gdocs-ref-live__props">
+            <div className="gdocs-ref-live__props-header">
+                <span className="gdocs-ref-live__props-title">Properties</span>
+                <span className="gdocs-ref-live__props-source">
+                    derived from <code>{doc.typeName}</code> · exhaustive,
+                    auto-updated
+                </span>
+            </div>
+            {doc.props.length > 0 && (
+                <table className="gdocs-ref-live__props-table">
+                    <thead>
+                        <tr>
+                            <th>Prop</th>
+                            <th>Type</th>
+                            <th>Req.</th>
+                            {hasLive && <th>Adoption</th>}
+                            {hasLive && <th>Used by</th>}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {doc.props.map((prop) => {
+                            const adoption = live?.propAdoption[prop.name] ?? 0
+                            const forms = formsSettingProp(prop.name)
+                            const content = isContentProp(prop)
+                            return (
+                                <tr key={prop.name}>
+                                    <td>
+                                        <code>{prop.name}</code>
+                                    </td>
+                                    <td>
+                                        <code className="gdocs-ref__field-type">
+                                            {prop.type}
+                                        </code>
+                                    </td>
+                                    <td
+                                        className={
+                                            requirement(prop) === "required"
+                                                ? "gdocs-ref-live__props-required"
+                                                : "gdocs-ref-live__props-optional"
+                                        }
+                                    >
+                                        {requirement(prop)}
+                                    </td>
+                                    {hasLive && (
+                                        <td>
+                                            {content ? (
+                                                <span
+                                                    className="gdocs-ref-live__props-optional"
+                                                    title="Content blocks aren't indexed for usage analysis"
+                                                >
+                                                    —
+                                                </span>
+                                            ) : (
+                                                <FrequencyBadge
+                                                    label={fractionUsageLabel(
+                                                        adoption,
+                                                        live.scanned
+                                                    )}
+                                                    title={`Authored in ${adoption} of ${live.scanned} published uses`}
+                                                />
+                                            )}
+                                        </td>
+                                    )}
+                                    {hasLive && (
+                                        <td className="gdocs-ref-live__props-used-by">
+                                            {content
+                                                ? "—"
+                                                : adoption >= live.scanned
+                                                  ? "every form"
+                                                  : forms.length > 0
+                                                    ? forms.map(
+                                                          (
+                                                              variation,
+                                                              index
+                                                          ) => (
+                                                              <span
+                                                                  key={
+                                                                      variation.signature
+                                                                  }
+                                                              >
+                                                                  {index > 0 &&
+                                                                      ", "}
+                                                                  <a
+                                                                      href={`#${formAnchorId(variation.signature)}`}
+                                                                  >
+                                                                      {variation.name ??
+                                                                          humanizeVariation(
+                                                                              variation.signature
+                                                                          )}
+                                                                  </a>
+                                                              </span>
+                                                          )
+                                                      )
+                                                    : adoption > 0
+                                                      ? "less frequent forms"
+                                                      : "no published use yet"}
+                                        </td>
+                                    )}
+                                </tr>
+                            )
+                        })}
+                    </tbody>
+                </table>
+            )}
+            {notes && (
+                <div className="gdocs-ref-live__props-notes">
+                    <div className="gdocs-ref-live__props-notes-title">
+                        Authored notes
+                    </div>
+                    {notes}
+                </div>
+            )}
+        </div>
     )
 }
 
@@ -639,7 +1087,8 @@ export function ExemplarXray({
 
 /**
  * The components that matter for one document type, ordered by adoption —
- * each with its usage label and the first line of its decision prose.
+ * each with its usage on the shared vocabulary and the first line of its
+ * decision prose.
  */
 export function TemplateComponentShortlist({
     template,
@@ -656,6 +1105,8 @@ export function TemplateComponentShortlist({
         const entries: {
             doc: ComponentDoc
             label: ComponentUsageLabel
+            docsUsingIt: number
+            totalDocs: number
             fraction: number
         }[] = []
         for (const componentUsage of usage.components) {
@@ -671,6 +1122,8 @@ export function TemplateComponentShortlist({
             entries.push({
                 doc,
                 label: byType.label,
+                docsUsingIt: byType.docsUsingIt,
+                totalDocs: byType.totalDocs,
                 fraction:
                     byType.totalDocs > 0
                         ? byType.docsUsingIt / byType.totalDocs
@@ -692,7 +1145,7 @@ export function TemplateComponentShortlist({
                 {docTypeNoun(template.id as OwidGdocType, true)} use them.
             </p>
             <ul className="gdocs-ref-live__shortlist">
-                {rows.map(({ doc, label }) => (
+                {rows.map(({ doc, label, docsUsingIt, totalDocs }) => (
                     <li key={doc.id} className="gdocs-ref-live__shortlist-row">
                         <Link
                             className="gdocs-ref-live__shortlist-title"
@@ -700,11 +1153,13 @@ export function TemplateComponentShortlist({
                         >
                             {doc.title}
                         </Link>
-                        <span
-                            className={`gdocs-ref-live__label gdocs-ref-live__label--${label}`}
-                        >
-                            {label}
-                        </span>
+                        <FrequencyBadge
+                            label={label}
+                            title={`Used in ${docsUsingIt} of ${totalDocs} published ${docTypeNoun(
+                                template.id as OwidGdocType,
+                                totalDocs !== 1
+                            )}`}
+                        />
                         <span className="gdocs-ref-live__shortlist-desc">
                             {firstSentence(doc.body)}
                         </span>

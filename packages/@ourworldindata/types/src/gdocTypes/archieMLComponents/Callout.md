@@ -18,14 +18,11 @@ or short editorial notes.
   paragraph.
 - Prefer `{.data-callout}` when interpolating live chart data.
 
-## Variations
+## Notes
 
-- `title` is optional.
-- `icon` is optional; only the `info` icon is supported.
-- The text block can contain paragraphs, headings, and lists.
-
-If placed inside a key insight, make the first line (e.g. "What you should
-know about this data") an h5 so the correct CSS applies.
+Use a `title` when the note stands alone. If placed inside a key insight,
+omit it and make the first line (e.g. "What you should know about this
+data") an h5 so the correct CSS applies.
 
 ### With title and info icon
 

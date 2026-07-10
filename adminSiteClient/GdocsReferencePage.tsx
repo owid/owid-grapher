@@ -25,18 +25,22 @@ import {
     GdocsReferenceMarkdown,
     InlineMarkdownText,
 } from "./GdocsReferenceMarkdown.js"
-import { splitSidecarBody } from "./gdocsReferenceSidecar.js"
-import { CopyButton } from "./GdocsReferenceExample.js"
 import {
-    ComponentRealExamples,
+    sidecarNotesMarkdown,
+    splitSidecarBody,
+} from "./gdocsReferenceSidecar.js"
+import { CopyButton, GdocsReferenceExample } from "./GdocsReferenceExample.js"
+import {
+    ComponentForms,
     ExemplarXray,
+    FrequencyBadge,
     SkeletonScaffold,
     TemplateComponentShortlist,
-    UsageStrip,
+    UsageBar,
 } from "./GdocsReferenceLive.js"
 import {
     docTypeNoun,
-    isPopular,
+    overallUsageLabel,
     usageTooltip,
 } from "./gdocsReferenceLiveHelpers.js"
 
@@ -266,10 +270,16 @@ export class GdocsReferencePage extends Component<
 
     private renderNavItem(
         kind: Selection["kind"],
-        doc: { id: string; title: string }
+        doc: { id: string; title: string; system?: boolean }
     ): React.ReactElement {
         const isActive =
             this.selection?.kind === kind && this.selection.id === doc.id
+        // The shared frequency glyph, wordless — so scanning the list already
+        // reads which blocks are the everyday ones.
+        const usage =
+            kind === "components" && !doc.system
+                ? this.usageByComponentId.get(doc.id)
+                : undefined
         return (
             <li key={`${kind}-${doc.id}`}>
                 <Link
@@ -283,6 +293,13 @@ export class GdocsReferencePage extends Component<
                     <span className="gdocs-ref__nav-item-title">
                         {doc.title}
                     </span>
+                    {usage && (
+                        <FrequencyBadge
+                            label={overallUsageLabel(usage)}
+                            title={usageTooltip(usage)}
+                            hideWord
+                        />
+                    )}
                     <code className="gdocs-ref__nav-item-id">
                         {kind === "components" ? `{.${doc.id}}` : doc.id}
                     </code>
@@ -373,29 +390,29 @@ export class GdocsReferencePage extends Component<
         )
     }
 
-    // The badge a component card/header carries, derived from live usage:
-    // "popular" when it is standard or common somewhere, "new" when it exists
-    // in the registry but no published doc uses it yet (and it is not a
-    // platform block).
-    private renderUsageBadge(doc: ComponentDoc): React.ReactElement | null {
+    // The frequency a component card/header/nav row carries, on the shared
+    // four-dot vocabulary: its best adoption label across doc types, or "new"
+    // when it exists in the registry but no published doc uses it yet (and it
+    // is not a platform block).
+    private renderUsageBadge(
+        doc: ComponentDoc,
+        hideWord = false
+    ): React.ReactElement | null {
         if (!this.usage || doc.system) return null
         const usage = this.usageOf(doc)
-        if (isPopular(usage))
-            return (
-                <span
-                    className="gdocs-ref__badge gdocs-ref__badge--popular"
-                    title={usageTooltip(usage)}
-                >
-                    popular
-                </span>
-            )
         if (!usage)
             return (
                 <span className="gdocs-ref__badge gdocs-ref__badge--new">
                     new — not yet used
                 </span>
             )
-        return null
+        return (
+            <FrequencyBadge
+                label={overallUsageLabel(usage)}
+                title={usageTooltip(usage)}
+                hideWord={hideWord}
+            />
+        )
     }
 
     private renderComponentCard(doc: ComponentDoc): React.ReactElement {
@@ -407,7 +424,7 @@ export class GdocsReferencePage extends Component<
             >
                 <div className="gdocs-ref__card-title">
                     {doc.title}
-                    {this.renderUsageBadge(doc)}
+                    {this.renderUsageBadge(doc, true)}
                 </div>
                 <code className="gdocs-ref__card-id">{`{.${doc.id}}`}</code>
                 <p className="gdocs-ref__card-desc">
@@ -618,6 +635,12 @@ export class GdocsReferencePage extends Component<
             doc.body
         )
         const previewPath = this.previewPathForComponent(doc)
+        // The sidecar's remaining prose renders as authored notes under the
+        // derived properties table; its fenced examples are dropped there —
+        // the forms section presents them (as curated names on observed
+        // forms, or dashed "new" cards).
+        const notesMarkdown = sidecarNotesMarkdown(rest)
+        const heroExample = doc.examples[0]
         return (
             <article className="gdocs-ref__detail">
                 <header className="gdocs-ref__detail-header">
@@ -644,11 +667,16 @@ export class GdocsReferencePage extends Component<
                         componentIds={this.componentIds}
                     />
                 )}
-                {this.usage && !doc.system && (
-                    <UsageStrip
-                        usage={this.usageOf(doc)}
-                        totalDocsByType={this.usage.totalDocsByType}
-                    />
+                {heroExample && (
+                    <div className="gdocs-ref__hero">
+                        <GdocsReferenceExample
+                            archie={heroExample.archie}
+                            previewPath={previewPath(0)}
+                        />
+                        <p className="gdocs-ref__hero-caption">
+                            {heroExample.name || "Reference example"}
+                        </p>
+                    </div>
                 )}
                 {this.renderDecisionBox(
                     whenToUse,
@@ -656,20 +684,31 @@ export class GdocsReferencePage extends Component<
                     previewPath,
                     doc.examples
                 )}
-                {!doc.system && (
-                    <ComponentRealExamples
-                        doc={doc}
+                {this.usage && !doc.system && (
+                    <UsageBar
                         usage={this.usageOf(doc)}
+                        totalDocsByType={this.usage.totalDocsByType}
+                        templateIds={
+                            new Set(
+                                this.templates.map((template) => template.id)
+                            )
+                        }
                     />
                 )}
-                {rest && (
-                    <GdocsReferenceMarkdown
-                        body={rest}
-                        examples={doc.examples}
-                        previewPathForExample={previewPath}
-                        componentIds={this.componentIds}
-                    />
-                )}
+                <ComponentForms
+                    doc={doc}
+                    usage={this.usageOf(doc)}
+                    notes={
+                        notesMarkdown ? (
+                            <GdocsReferenceMarkdown
+                                body={notesMarkdown}
+                                examples={doc.examples}
+                                previewPathForExample={previewPath}
+                                componentIds={this.componentIds}
+                            />
+                        ) : undefined
+                    }
+                />
                 {doc.examples.length === 0 && (
                     <p className="gdocs-ref__note">
                         This component has no standalone ArchieML example — it

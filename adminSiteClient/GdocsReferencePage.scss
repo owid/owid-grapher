@@ -664,11 +664,6 @@
     vertical-align: middle;
 }
 
-.gdocs-ref__badge--popular {
-    color: $blue-90;
-    background: $blue-10;
-}
-
 .gdocs-ref__badge--new {
     color: $accent-vermillion;
     background: rgba($accent-vermillion, 0.08);
@@ -750,20 +745,146 @@
 }
 
 // ---------------------------------------------------------------------------
-// Live layer: usage strip, real examples, variations
+// Live layer: the frequency vocabulary (four-dot glyph + word)
 // ---------------------------------------------------------------------------
 
-.gdocs-ref-live__usage-strip {
-    font-size: 13.5px;
-    color: $blue-90;
-    background: $gray-5;
-    border-left: 3px solid $blue-40;
-    border-radius: 0 6px 6px 0;
-    padding: 10px 14px;
-    margin: 16px 0 20px;
-    max-width: 680px;
+.gdocs-ref-live__glyph {
+    flex-shrink: 0;
+}
+
+.gdocs-ref-live__glyph-dot {
+    fill: $gray-20;
+}
+
+.gdocs-ref-live__glyph-dot--filled {
+    fill: $gray-90;
+}
+
+// "new" — a curated reference form no published doc uses yet
+.gdocs-ref-live__glyph-dot--dashed {
+    fill: none;
+    stroke: $gray-50;
+    stroke-width: 1.3;
+    stroke-dasharray: 2 1.6;
+}
+
+.gdocs-ref-live__freq {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
     cursor: default;
 }
+
+.gdocs-ref-live__freq-word {
+    font-size: 12px;
+    font-weight: 600;
+    color: $gray-70;
+    white-space: nowrap;
+}
+
+// Compact glyph on nav rows, sitting between title and id
+.gdocs-ref__nav-item .gdocs-ref-live__glyph {
+    width: 28px;
+    height: 7px;
+}
+
+.gdocs-ref__card-title .gdocs-ref-live__freq {
+    margin-left: 8px;
+    vertical-align: middle;
+}
+
+// ---------------------------------------------------------------------------
+// Live layer: where it's used (share-of-uses bar by document type)
+// ---------------------------------------------------------------------------
+
+.gdocs-ref-live__usage-bar {
+    margin: 4px 0 28px;
+    max-width: 680px;
+}
+
+.gdocs-ref-live__usage-bar-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: $gray-60;
+    margin-bottom: 9px;
+}
+
+.gdocs-ref-live__usage-bar-subtitle {
+    text-transform: none;
+    letter-spacing: 0;
+    font-weight: 400;
+    color: $gray-50;
+}
+
+.gdocs-ref-live__usage-bar-track {
+    display: flex;
+    height: 7px;
+    border-radius: 4px;
+    overflow: hidden;
+    background: $gray-10;
+    max-width: 480px;
+}
+
+// A distribution reads as one subdued ramp, darkest = largest share
+.gdocs-ref-live__usage-bar-segment--0 {
+    background: #8a93a6;
+}
+.gdocs-ref-live__usage-bar-segment--1 {
+    background: #a6adbc;
+}
+.gdocs-ref-live__usage-bar-segment--2 {
+    background: #c1c6d1;
+}
+.gdocs-ref-live__usage-bar-segment--3 {
+    background: #d5d9e1;
+}
+.gdocs-ref-live__usage-bar-segment--4 {
+    background: #e5e8ec;
+}
+.gdocs-ref-live__usage-bar-segment--5 {
+    background: #f0f1f3;
+}
+
+.gdocs-ref-live__usage-bar-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 18px;
+    margin-top: 10px;
+    font-size: 12px;
+    color: $gray-70;
+}
+
+.gdocs-ref-live__usage-bar-key {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.gdocs-ref-live__usage-bar-swatch {
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    flex-shrink: 0;
+}
+
+.gdocs-ref-live__usage-bar-swatch--unused {
+    background: #fff;
+    border: 1px solid $gray-30;
+}
+
+.gdocs-ref-live__usage-bar-label {
+    color: $gray-60;
+}
+
+.gdocs-ref-live__usage-bar-label--unused {
+    color: $gray-50;
+}
+
+// ---------------------------------------------------------------------------
+// Live layer: the forms section (form cards + long tail)
+// ---------------------------------------------------------------------------
 
 .gdocs-ref-live__loading {
     font-size: 13px;
@@ -777,16 +898,222 @@
     border-radius: 6px;
     padding: 8px 12px;
     max-width: 680px;
+    margin-bottom: 14px;
 }
 
-.gdocs-ref-live__subheading {
-    font-size: 14px;
+.gdocs-ref-live__forms-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 4px;
+}
+
+.gdocs-ref-live__forms-scope {
+    font-size: 12.5px;
+    color: $gray-60;
+    white-space: nowrap;
+}
+
+.gdocs-ref-live__doc-type-select {
+    font-size: 12.5px;
+    padding: 4px 8px;
+    border: 1px solid $gray-30;
+    border-radius: 5px;
+    background: #fff;
+    max-width: 220px;
+}
+
+.gdocs-ref-live__form-card {
+    border: 1px solid $gray-20;
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 12px 0 16px;
+}
+
+.gdocs-ref-live__form-card--synthetic {
+    border-style: dashed;
+}
+
+.gdocs-ref-live__form-card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 11px 16px;
+    background: $gray-5;
+    border-bottom: 1px solid $gray-10;
+}
+
+// A curated form name reads as a name; a technical fallback reads as the
+// curation gap it is (monospace, muted, outline).
+.gdocs-ref-live__form-name {
+    font-size: 13.5px;
     font-weight: 600;
-    margin: 20px 0 10px;
+    color: $blue-90;
+    background: $blue-10;
+    border: 1px solid $blue-20;
+    border-radius: 5px;
+    padding: 2px 10px;
 }
 
-.gdocs-ref-live__instance {
-    margin-bottom: 20px;
+.gdocs-ref-live__form-name--technical {
+    font-family: var(--font-mono, monospace);
+    font-size: 12px;
+    font-weight: 400;
+    color: $gray-70;
+    background: #fff;
+    border-color: $gray-30;
+}
+
+.gdocs-ref-live__form-name--synthetic {
+    background: #fff;
+    border-style: dashed;
+    border-color: $gray-30;
+    color: $gray-70;
+
+    &::before {
+        content: "⊘ ";
+        color: $accent-vermillion;
+    }
+}
+
+.gdocs-ref-live__form-card-body {
+    display: flex;
+    align-items: stretch;
+}
+
+.gdocs-ref-live__form-sets {
+    flex: 0 0 180px;
+    padding: 14px 16px;
+    border-right: 1px solid $gray-10;
+    background: $gray-5;
+}
+
+.gdocs-ref-live__form-sets-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: $gray-60;
+    margin-bottom: 9px;
+}
+
+.gdocs-ref-live__form-sets-empty {
+    font-size: 12.5px;
+    color: $gray-50;
+    line-height: 1.5;
+}
+
+.gdocs-ref-live__form-sets-chips {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+}
+
+.gdocs-ref-live__form-set {
+    font-family: var(--font-mono, monospace);
+    font-size: 12px;
+    color: $blue-90;
+    background: $blue-5;
+    border: 1px solid $blue-20;
+    border-radius: 5px;
+    padding: 2px 9px;
+}
+
+.gdocs-ref-live__form-example {
+    flex: 1;
+    min-width: 0;
+    padding: 4px 16px 12px;
+
+    .gdocs-ref-example {
+        margin: 12px 0 0;
+    }
+}
+
+.gdocs-ref-live__form-example-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+}
+
+.gdocs-ref-live__pager {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: $gray-60;
+    white-space: nowrap;
+}
+
+.gdocs-ref-live__pager-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border: 1px solid $gray-30;
+    border-radius: 5px;
+    background: #fff;
+    color: $blue-90;
+    font-size: 10px;
+    cursor: pointer;
+
+    &:hover:not(:disabled) {
+        border-color: $blue-40;
+    }
+
+    &:disabled {
+        color: $gray-30;
+        border-color: $gray-10;
+        cursor: default;
+    }
+}
+
+.gdocs-ref-live__form-card-synthetic-body {
+    padding: 12px 16px;
+
+    .gdocs-ref-example {
+        margin-bottom: 0;
+    }
+}
+
+.gdocs-ref-live__form-tail {
+    margin: 4px 0 16px;
+    border: 1px solid $gray-20;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.gdocs-ref-live__form-tail-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: $gray-60;
+    padding: 10px 16px;
+    background: $gray-5;
+}
+
+.gdocs-ref-live__form-tail-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 8px 16px;
+    border: none;
+    border-top: 1px solid $gray-10;
+    background: none;
+    text-align: left;
+    cursor: pointer;
+
+    &:hover {
+        background: $gray-5;
+    }
 }
 
 .gdocs-ref-live__provenance {
@@ -807,80 +1134,9 @@
     color: $gray-60;
 }
 
-// The gallery's single navigation idiom: a chip row of the component's
-// observed forms (plus dashed chips for reference-only forms), with an
-// optional document-type select alongside.
-.gdocs-ref-live__gallery-controls {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    margin-bottom: 16px;
-}
-
-.gdocs-ref-live__form-chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    flex: 1;
-}
-
-.gdocs-ref-live__form-chip {
-    border: 1px solid $gray-30;
-    background: #fff;
-    border-radius: 20px;
-    padding: 4px 12px;
-    font-size: 12.5px;
-    color: $blue-90;
-    cursor: pointer;
-
-    &:hover {
-        border-color: $blue-40;
-    }
-}
-
-.gdocs-ref-live__form-chip--active {
-    background: $blue-90;
-    border-color: $blue-90;
-    color: #fff;
-
-    &:hover {
-        border-color: $blue-90;
-    }
-}
-
-.gdocs-ref-live__form-chip--synthetic {
-    border-style: dashed;
-    color: $gray-70;
-
-    &::before {
-        content: "⊘ ";
-        color: $accent-vermillion;
-    }
-}
-
-.gdocs-ref-live__form-chip--synthetic.gdocs-ref-live__form-chip--active {
-    background: $gray-70;
-    border-color: $gray-70;
-    color: #fff;
-
-    &::before {
-        color: #fff;
-    }
-}
-
-.gdocs-ref-live__doc-type-select {
-    font-size: 12.5px;
-    padding: 4px 8px;
-    border: 1px solid $gray-30;
-    border-radius: 5px;
-    background: #fff;
-    max-width: 220px;
-    flex-shrink: 0;
-}
-
 .gdocs-ref-live__curated-badge {
     display: inline-block;
-    margin-bottom: 6px;
+    margin-right: 8px;
     font-size: 10px;
     font-weight: 700;
     letter-spacing: 0.03em;
@@ -895,25 +1151,114 @@
     font-size: 12.5px;
     color: $gray-70;
     margin: 0 0 10px;
+}
 
-    &::before {
-        content: "⊘ ";
-        color: $accent-vermillion;
+// ---------------------------------------------------------------------------
+// Live layer: the derived properties table
+// ---------------------------------------------------------------------------
+
+.gdocs-ref-live__props {
+    border: 1px solid $gray-20;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-top: 20px;
+}
+
+.gdocs-ref-live__props-header {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    padding: 11px 16px;
+    background: $gray-5;
+    border-bottom: 1px solid $gray-10;
+}
+
+.gdocs-ref-live__props-title {
+    font-size: 13.5px;
+    font-weight: 700;
+}
+
+.gdocs-ref-live__props-source {
+    font-size: 11.5px;
+    color: $gray-60;
+
+    code {
+        font-family: var(--font-mono, monospace);
+        font-size: 11px;
+        background: none;
+        padding: 0;
     }
 }
 
-.gdocs-ref-live__show-more {
-    border: 1px solid $gray-30;
-    background: #fff;
-    border-radius: 6px;
-    padding: 7px 14px;
-    font-size: 13px;
-    color: $blue-90;
-    cursor: pointer;
+.gdocs-ref-live__props-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12.5px;
 
-    &:hover {
-        border-color: $blue-40;
+    th {
+        text-align: left;
+        font-size: 11px;
+        font-weight: 600;
+        color: $gray-60;
+        padding: 8px 16px;
     }
+
+    td {
+        padding: 9px 16px;
+        border-top: 1px solid $gray-10;
+        vertical-align: top;
+
+        code {
+            font-family: var(--font-mono, monospace);
+            font-size: 12px;
+        }
+    }
+}
+
+.gdocs-ref-live__props-required {
+    color: $accent-vermillion;
+}
+
+.gdocs-ref-live__props-optional {
+    color: $gray-60;
+}
+
+.gdocs-ref-live__props-used-by {
+    color: $gray-70;
+}
+
+.gdocs-ref-live__props-notes {
+    padding: 11px 16px 4px;
+    border-top: 1px solid $gray-10;
+    background: $gray-5;
+    font-size: 12.5px;
+
+    .gdocs-ref__body {
+        font-size: 13px;
+    }
+}
+
+.gdocs-ref-live__props-notes-title {
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: #b08a3a;
+    margin-bottom: 5px;
+}
+
+// ---------------------------------------------------------------------------
+// Component page: hero reference example under the intro
+// ---------------------------------------------------------------------------
+
+.gdocs-ref__hero {
+    margin-bottom: 8px;
+}
+
+.gdocs-ref__hero-caption {
+    margin: -12px 0 0;
+    font-size: 11.5px;
+    color: $gray-60;
 }
 
 // ---------------------------------------------------------------------------
@@ -1095,28 +1440,6 @@
 .gdocs-ref-live__shortlist-title {
     flex: 0 0 170px;
     font-weight: 600;
-}
-
-.gdocs-ref-live__label {
-    flex: 0 0 auto;
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.03em;
-    text-transform: uppercase;
-    border-radius: 20px;
-    padding: 2px 8px;
-    color: $gray-70;
-    background: $gray-10;
-}
-
-.gdocs-ref-live__label--standard {
-    color: $blue-90;
-    background: $blue-10;
-}
-
-.gdocs-ref-live__label--common {
-    color: $blue-90;
-    background: $blue-5;
 }
 
 .gdocs-ref-live__shortlist-desc {

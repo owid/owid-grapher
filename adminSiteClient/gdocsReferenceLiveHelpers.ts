@@ -1,8 +1,8 @@
 import { useContext, useEffect, useState } from "react"
 import {
+    COMPONENT_USAGE_LABELS,
     ComponentUsage,
     ComponentUsageLabel,
-    GdocsReferenceUsage,
     OwidGdocType,
 } from "@ourworldindata/types"
 import { getCanonicalPath } from "@ourworldindata/components"
@@ -62,22 +62,15 @@ export function docTypeNoun(docType: OwidGdocType, plural: boolean): string {
     return plural ? nouns[1] : nouns[0]
 }
 
-// The doc types authors actually choose between — the usage sentence talks
-// about these; marginal types only appear when a component is used there.
-const MAJOR_DOC_TYPES: OwidGdocType[] = [
+// The doc types authors actually choose between — the where-it's-used bar
+// always accounts for these; marginal types only appear when a component is
+// used there.
+export const MAJOR_DOC_TYPES: OwidGdocType[] = [
     OwidGdocType.Article,
     OwidGdocType.DataInsight,
     OwidGdocType.TopicPage,
     OwidGdocType.LinearTopicPage,
 ]
-
-const LABEL_PHRASES: Record<ComponentUsageLabel, string> = {
-    standard: "standard in",
-    common: "common in",
-    occasional: "occasional in",
-    rare: "rare in",
-    unused: "not used in",
-}
 
 export function joinWithAnd(parts: string[]): string {
     if (parts.length <= 1) return parts[0] ?? ""
@@ -89,48 +82,49 @@ export function indefinite(noun: string): string {
 }
 
 /**
- * One plain sentence about where a component is used, built from the live
- * labels: "Standard in articles and topic pages; occasional in linear topic
- * pages; never used in data insights."
+ * The one visual frequency vocabulary: every adoption label maps to a number
+ * of filled dots on the four-dot glyph. Synthetic "new" forms render the
+ * glyph dashed instead.
  */
-export function usageSentence(
-    usage: ComponentUsage | undefined,
-    totalDocsByType: GdocsReferenceUsage["totalDocsByType"]
-): string {
-    if (!usage || usage.docsUsingIt === 0)
-        return "Not used in any published document yet."
-    const byLabel = new Map<ComponentUsageLabel, OwidGdocType[]>()
-    const usedTypes = new Set<OwidGdocType>()
-    for (const entry of usage.byDocType) {
-        usedTypes.add(entry.docType)
-        const group = byLabel.get(entry.label)
-        if (group) group.push(entry.docType)
-        else byLabel.set(entry.label, [entry.docType])
-    }
-    const clauses: string[] = []
-    for (const label of ["standard", "common", "occasional", "rare"] as const) {
-        const types = byLabel.get(label)
-        if (!types) continue
-        clauses.push(
-            LABEL_PHRASES[label] +
-                " " +
-                joinWithAnd(types.map((type) => docTypeNoun(type, true)))
-        )
-    }
-    const neverIn = MAJOR_DOC_TYPES.filter(
-        (type) => !usedTypes.has(type) && (totalDocsByType[type] ?? 0) > 0
-    )
-    if (neverIn.length > 0 && clauses.length > 0)
-        clauses.push(
-            "never used in " +
-                joinWithAnd(neverIn.map((type) => docTypeNoun(type, true)))
-        )
-    if (clauses.length === 0) return "Not used in any published document yet."
-    const sentence = clauses.join("; ")
-    return sentence.charAt(0).toUpperCase() + sentence.slice(1) + "."
+export const FREQUENCY_DOTS: Record<ComponentUsageLabel, number> = {
+    standard: 4,
+    common: 3,
+    occasional: 2,
+    rare: 1,
+    unused: 0,
 }
 
-/** Raw numbers behind the sentence — tooltip material, never the lead. */
+/**
+ * Fraction → qualitative label, the same thresholds the server applies for
+ * per-doc-type usage — reused client-side for form frequency (share of a
+ * component's uses) and per-prop adoption, so one vocabulary reads the same
+ * everywhere.
+ */
+export function fractionUsageLabel(
+    count: number,
+    total: number
+): ComponentUsageLabel {
+    const fraction = total > 0 ? count / total : 0
+    if (fraction >= 0.4) return "standard"
+    if (fraction >= 0.1) return "common"
+    if (fraction >= 0.02) return "occasional"
+    if (count > 0) return "rare"
+    return "unused"
+}
+
+/** The component's overall adoption: its best label across doc types. */
+export function overallUsageLabel(
+    usage: ComponentUsage | undefined
+): ComponentUsageLabel {
+    let best = COMPONENT_USAGE_LABELS.length - 1
+    for (const entry of usage?.byDocType ?? []) {
+        const index = COMPONENT_USAGE_LABELS.indexOf(entry.label)
+        if (index >= 0 && index < best) best = index
+    }
+    return COMPONENT_USAGE_LABELS[best]
+}
+
+/** Raw numbers behind a glyph — tooltip material, never the lead. */
 export function usageTooltip(usage: ComponentUsage | undefined): string {
     if (!usage) return "No published uses"
     return usage.byDocType
@@ -142,15 +136,6 @@ export function usageTooltip(usage: ComponentUsage | undefined): string {
                 )}`
         )
         .join(" · ")
-}
-
-/** A component is "popular" when it is standard or common somewhere. */
-export function isPopular(usage: ComponentUsage | undefined): boolean {
-    return (
-        usage?.byDocType.some(
-            (entry) => entry.label === "standard" || entry.label === "common"
-        ) ?? false
-    )
 }
 
 /**
@@ -169,17 +154,6 @@ export function humanizeVariation(signature: string): string {
             return `${key}: ${value}`
         })
         .join(", ")
-}
-
-export function variationFrequencyLabel(
-    count: number,
-    scanned: number
-): string {
-    const fraction = scanned > 0 ? count / scanned : 0
-    if (fraction >= 0.5) return "the common form"
-    if (fraction >= 0.15) return "frequent"
-    if (fraction >= 0.02) return "occasional"
-    return "rare"
 }
 
 export function liveUrl(instance: {

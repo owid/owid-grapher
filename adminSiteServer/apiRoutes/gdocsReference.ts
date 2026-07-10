@@ -113,6 +113,7 @@ export async function getGdocsReferenceUsage(
             docType,
             docsUsingIt,
             totalDocs,
+            totalUses: Number(row.totalUses),
             label: usageLabel(totalDocs > 0 ? docsUsingIt / totalDocs : 0),
         }
         usage.byDocType.push(entry)
@@ -326,17 +327,22 @@ function partsOf(
  * scaffolding (a chart always has a url) — not a variation-defining feature.
  * Exact by construction: after minimization a part only exists where an
  * author's source needs it, so "on every instance" means "part of what the
- * component is".
+ * component is". The denominator is every instance whose config parsed —
+ * including those with zero surviving parts (a bare callout), which prove a
+ * prop is optional — but not malformed configs, which prove nothing.
  */
-function universalParts(allParts: string[][]): Set<string> {
-    const withParts = allParts.filter((parts) => parts.length > 0)
+function universalParts(
+    allParts: string[][],
+    analyzableCount: number
+): Set<string> {
     const counts = new Map<string, number>()
-    for (const parts of withParts) {
+    for (const parts of allParts) {
         for (const part of parts) counts.set(part, (counts.get(part) ?? 0) + 1)
     }
     const universal = new Set<string>()
+    if (analyzableCount === 0) return universal
     for (const [part, count] of counts) {
-        if (count === withParts.length) universal.add(part)
+        if (count === analyzableCount) universal.add(part)
     }
     return universal
 }
@@ -483,7 +489,10 @@ export async function getComponentInstances(
     const allParts = parsed.map((instance) =>
         partsOf(instance.minimal, valueProps)
     )
-    const universal = universalParts(allParts)
+    const analyzableCount = parsed.filter(
+        (instance) => instance.minimal !== undefined
+    ).length
+    const universal = universalParts(allParts, analyzableCount)
     const scanned: ScannedInstance[] = parsed.map(
         ({ row, minimal }, index) => ({
             row,
@@ -491,6 +500,16 @@ export async function getComponentInstances(
             signature: signatureFromParts(allParts[index], universal),
         })
     )
+
+    // Per-prop adoption across the scan: a prop is "adopted" by an instance
+    // when it survives in its minimal source (required, or deviating from the
+    // parser default). A part names its prop before the value separator.
+    const propAdoption: Record<string, number> = {}
+    for (const parts of allParts) {
+        const names = new Set(parts.map((part) => part.split(":")[0]))
+        for (const name of names)
+            propAdoption[name] = (propAdoption[name] ?? 0) + 1
+    }
 
     // Variations rank over the full (unfiltered) scan.
     const bySignature = new Map<string, ScannedInstance[]>()
@@ -651,6 +670,10 @@ export async function getComponentInstances(
         pinned: pinned.map(present),
         stalePins,
         syntheticExamples,
+        // The analyzed population — the denominator behind propAdoption and
+        // form frequencies (malformed configs prove nothing about props).
+        scanned: analyzableCount,
+        propAdoption,
     }
 }
 
