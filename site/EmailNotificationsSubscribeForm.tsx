@@ -18,6 +18,96 @@ const analytics = new SiteAnalytics()
 
 type LatestFeedType = (typeof LATEST_FEED_TYPE_VALUES)[number]
 
+/**
+ * The topics / content types / frequency fieldsets, shared between the
+ * subscribe form and the magic-link preferences form.
+ */
+export const EmailNotificationsPreferenceFields = ({
+    topicTagGraph,
+    topicTags,
+    contentTypes,
+    frequency,
+    onToggleTopicTag,
+    onToggleContentType,
+    onSetFrequency,
+}: {
+    topicTagGraph: TagGraphRoot
+    topicTags: string[]
+    contentTypes: LatestFeedType[]
+    frequency: EmailNotificationsFrequency
+    onToggleTopicTag: (tagName: string) => void
+    onToggleContentType: (contentType: LatestFeedType) => void
+    onSetFrequency: (frequency: EmailNotificationsFrequency) => void
+}) => {
+    const wantsNotifications = contentTypes.length > 0
+    return (
+        <>
+            <fieldset className="email-notifications-subscribe-form__fieldset">
+                <legend className="h5-black-caps">Topics</legend>
+                <p className="email-notifications-subscribe-form__hint note-12-medium">
+                    Leave all unchecked to receive updates on all topics.
+                </p>
+                {topicTagGraph.children.map((area) => (
+                    <Checkbox
+                        key={area.name}
+                        id={`email-notifications-topic-${area.id}`}
+                        label={area.name}
+                        checked={topicTags.includes(area.name)}
+                        onChange={() => onToggleTopicTag(area.name)}
+                    />
+                ))}
+            </fieldset>
+            <fieldset className="email-notifications-subscribe-form__fieldset">
+                <legend className="h5-black-caps">Content types</legend>
+                {LATEST_FEED_TYPE_VALUES.map((contentType) => (
+                    <Checkbox
+                        key={contentType}
+                        id={`email-notifications-content-type-${contentType}`}
+                        label={
+                            EMAIL_NOTIFICATIONS_CONTENT_TYPE_LABELS[contentType]
+                        }
+                        checked={contentTypes.includes(contentType)}
+                        onChange={() => onToggleContentType(contentType)}
+                    />
+                ))}
+                {!wantsNotifications && (
+                    <p className="email-notifications-subscribe-form__hint note-12-medium">
+                        No content types selected: you won't receive email
+                        notifications.
+                    </p>
+                )}
+            </fieldset>
+            <fieldset className="email-notifications-subscribe-form__fieldset">
+                <legend className="h5-black-caps">Send me at most</legend>
+                {EMAIL_NOTIFICATIONS_FREQUENCIES.map((frequencyOption) => (
+                    <div
+                        key={frequencyOption}
+                        className="email-notifications-subscribe-form__radio"
+                    >
+                        <input
+                            type="radio"
+                            id={`email-notifications-frequency-${frequencyOption}`}
+                            name="email-notifications-frequency"
+                            value={frequencyOption}
+                            checked={frequency === frequencyOption}
+                            onChange={() => onSetFrequency(frequencyOption)}
+                        />
+                        <label
+                            htmlFor={`email-notifications-frequency-${frequencyOption}`}
+                        >
+                            {
+                                EMAIL_NOTIFICATIONS_FREQUENCY_LABELS[
+                                    frequencyOption
+                                ]
+                            }
+                        </label>
+                    </div>
+                ))}
+            </fieldset>
+        </>
+    )
+}
+
 export const EmailNotificationsSubscribeForm = ({
     topicTagGraph,
 }: {
@@ -147,70 +237,15 @@ export const EmailNotificationsSubscribeForm = ({
                     Get an email when we publish new work on the topics you care
                     about, at the frequency of your choosing.
                 </p>
-                <fieldset className="email-notifications-subscribe-form__fieldset">
-                    <legend className="h5-black-caps">Topics</legend>
-                    <p className="email-notifications-subscribe-form__hint note-12-medium">
-                        Leave all unchecked to receive updates on all topics.
-                    </p>
-                    {topicTagGraph.children.map((area) => (
-                        <Checkbox
-                            key={area.name}
-                            id={`email-notifications-topic-${area.id}`}
-                            label={area.name}
-                            checked={topicTags.includes(area.name)}
-                            onChange={() => toggleTopicTag(area.name)}
-                        />
-                    ))}
-                </fieldset>
-                <fieldset className="email-notifications-subscribe-form__fieldset">
-                    <legend className="h5-black-caps">Content types</legend>
-                    {LATEST_FEED_TYPE_VALUES.map((contentType) => (
-                        <Checkbox
-                            key={contentType}
-                            id={`email-notifications-content-type-${contentType}`}
-                            label={
-                                EMAIL_NOTIFICATIONS_CONTENT_TYPE_LABELS[
-                                    contentType
-                                ]
-                            }
-                            checked={contentTypes.includes(contentType)}
-                            onChange={() => toggleContentType(contentType)}
-                        />
-                    ))}
-                    {!wantsNotifications && (
-                        <p className="email-notifications-subscribe-form__hint note-12-medium">
-                            No content types selected: you won't receive email
-                            notifications.
-                        </p>
-                    )}
-                </fieldset>
-                <fieldset className="email-notifications-subscribe-form__fieldset">
-                    <legend className="h5-black-caps">Send me at most</legend>
-                    {EMAIL_NOTIFICATIONS_FREQUENCIES.map((frequencyOption) => (
-                        <div
-                            key={frequencyOption}
-                            className="email-notifications-subscribe-form__radio"
-                        >
-                            <input
-                                type="radio"
-                                id={`email-notifications-frequency-${frequencyOption}`}
-                                name="email-notifications-frequency"
-                                value={frequencyOption}
-                                checked={frequency === frequencyOption}
-                                onChange={() => setFrequency(frequencyOption)}
-                            />
-                            <label
-                                htmlFor={`email-notifications-frequency-${frequencyOption}`}
-                            >
-                                {
-                                    EMAIL_NOTIFICATIONS_FREQUENCY_LABELS[
-                                        frequencyOption
-                                    ]
-                                }
-                            </label>
-                        </div>
-                    ))}
-                </fieldset>
+                <EmailNotificationsPreferenceFields
+                    topicTagGraph={topicTagGraph}
+                    topicTags={topicTags}
+                    contentTypes={contentTypes}
+                    frequency={frequency}
+                    onToggleTopicTag={toggleTopicTag}
+                    onToggleContentType={toggleContentType}
+                    onSetFrequency={setFrequency}
+                />
             </div>
             {errorMessage && (
                 <div className="email-notifications-subscribe-form__alert">
