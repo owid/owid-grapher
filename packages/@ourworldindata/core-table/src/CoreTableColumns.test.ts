@@ -22,7 +22,6 @@ describe(ColumnTypeNames.Quarter, () => {
         // day 0 = EPOCH_DATE = 2020-01-21 (Q1 2020)
         expect(col.formatValue(0)).toEqual("Q1 2020")
         expect(col.formatForCsv(0)).toEqual("2020-Q1")
-        expect(col.formatValueForMobile(0)).toEqual("Q1 '20")
         // 200 days later = 2020-08-08 (Q3 2020)
         expect(col.formatValue(200)).toEqual("Q3 2020")
         expect(col.formatForCsv(200)).toEqual("2020-Q3")
@@ -51,7 +50,6 @@ describe(ColumnTypeNames.Month, () => {
         // day 0 = EPOCH_DATE = 2020-01-21
         expect(col.formatValue(0)).toEqual("Jan 2020")
         expect(col.formatForCsv(0)).toEqual("2020-01")
-        expect(col.formatValueForMobile(0)).toEqual("Jan '20")
         // 400 days later = 2021-02-24
         expect(col.formatValue(400)).toEqual("Feb 2021")
         expect(col.formatForCsv(400)).toEqual("2021-02")
@@ -65,7 +63,6 @@ describe(ColumnTypeNames.Week, () => {
         // day 0 = EPOCH_DATE = 2020-01-21 (ISO week 4 of 2020)
         expect(col.formatValue(0)).toEqual("W4 2020")
         expect(col.formatForCsv(0)).toEqual("2020-W04")
-        expect(col.formatValueForMobile(0)).toEqual("W4 '20")
     })
 })
 

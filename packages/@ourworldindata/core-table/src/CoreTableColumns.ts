@@ -117,13 +117,6 @@ export abstract class AbstractCoreColumn<
         options?: TickFormattingOptions
     ): string
 
-    formatValueForMobile(
-        value: unknown,
-        options?: TickFormattingOptions
-    ): string {
-        return this.formatValue(value, options)
-    }
-
     formatValueShortWithAbbreviations(
         value: unknown,
         options?: TickFormattingOptions
@@ -976,16 +969,6 @@ class DayColumn<
         return DayColumn.formatValueCache.get(value)!
     }
 
-    static formatValueForMobileCache = new Map<number, string>()
-    override formatValueForMobile(value: number): string {
-        if (!DayColumn.formatValueForMobileCache.has(value)) {
-            const formatted = formatDay(value, { format: "MMM D, 'YY" })
-            DayColumn.formatValueForMobileCache.set(value, formatted)
-            return formatted
-        }
-        return DayColumn.formatValueForMobileCache.get(value)!
-    }
-
     static formatForCsvCache = new Map<number, string>()
     override formatForCsv(value: number): string {
         if (!DayColumn.formatForCsvCache.has(value)) {
@@ -1033,10 +1016,6 @@ class MonthColumn<
         return formatDay(value, { format: "MMM YYYY" }) // "Jan 2023"
     }
 
-    override formatValueForMobile(value: number): string {
-        return formatDay(value, { format: "MMM 'YY" }) // "Jan '23"
-    }
-
     override formatForCsv(value: number): string {
         return formatDay(value, { format: "YYYY-MM" }) // "2023-01"
     }
@@ -1058,12 +1037,6 @@ class WeekColumn<
     override formatValue(value: number): string {
         const date = convertDaysSinceEpochToDate(value)
         return `W${date.isoWeek()} ${date.isoWeekYear()}` // "W3 2023"
-    }
-
-    override formatValueForMobile(value: number): string {
-        const date = convertDaysSinceEpochToDate(value)
-        const yy = String(date.isoWeekYear() % 100).padStart(2, "0")
-        return `W${date.isoWeek()} '${yy}` // "W3 '23"
     }
 
     override formatForCsv(value: number): string {
@@ -1089,12 +1062,6 @@ class QuarterColumn<
     override formatValue(value: number): string {
         const date = convertDaysSinceEpochToDate(value)
         return `Q${date.quarter()} ${date.year()}` // "Q1 2023"
-    }
-
-    override formatValueForMobile(value: number): string {
-        const date = convertDaysSinceEpochToDate(value)
-        const yy = String(date.year() % 100).padStart(2, "0")
-        return `Q${date.quarter()} '${yy}` // "Q1 '23"
     }
 
     override formatForCsv(value: number): string {
