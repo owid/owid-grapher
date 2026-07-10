@@ -112,18 +112,18 @@ flowchart TD
 
 What the diagram specifies, against what exists on the branch:
 
-| Diagram element                                     | Status                                             | Notes                                                                                        |
-| --------------------------------------------------- | -------------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| Subscribe page + form (`/subscribe`)                | ✅ built                                           | `site/EmailNotificationsSubscribeForm.tsx`, `functions/api/email-notifications/subscribe.ts` |
-| Confirmation email + confirm link (double opt-in)   | ✅ built (2026-07-10)                              | Uniform pending-confirmation flow; preferences held on the confirm token until confirmed     |
-| "Link valid?" checks / expiring links               | ✅ built (2026-07-10)                              | `tokens` table (migration `0002`): purpose-scoped, expiring, single-use                      |
-| Success / Expired-link pages                        | ✅ built for the confirm path                      | Expired page has the resend button; magic-link expired page pending                          |
-| Enter-email page → magic-link email                 | ❌ missing                                         |                                                                                              |
-| Update-preferences page (view + save + unsubscribe) | ❌ missing                                         |                                                                                              |
-| "Email me a link" page (from regular email)         | ❌ missing (kept by design — see Design decisions) |                                                                                              |
-| Confirm-unsubscribe page                            | ✅ built (2026-07-10)                              | GET renders page, button POSTs; POST also serves one-click (`List-Unsubscribe-Post`)         |
-| Regular notification email                          | ✅ built                                           | `baker/emailNotifications/NotificationEmail.tsx` + send job                                  |
-| Unsubscribed page                                   | ✅ built                                           | Rendered by the unsubscribe POST                                                             |
+| Diagram element                                     | Status                | Notes                                                                                                            |
+| --------------------------------------------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| Subscribe page + form (`/subscribe`)                | ✅ built              | `site/EmailNotificationsSubscribeForm.tsx`, `functions/api/email-notifications/subscribe.ts`                     |
+| Confirmation email + confirm link (double opt-in)   | ✅ built (2026-07-10) | Uniform pending-confirmation flow; preferences held on the confirm token until confirmed                         |
+| "Link valid?" checks / expiring links               | ✅ built (2026-07-10) | `tokens` table (migration `0002`): purpose-scoped, expiring, single-use                                          |
+| Success / Expired-link pages                        | ✅ built (2026-07-10) | Every expired page has its resend button                                                                         |
+| Enter-email page → magic-link email                 | ✅ built (2026-07-10) | Enter-email UI lives on `/subscribe/preferences` (tokenless state); unknown emails: identical response, no email |
+| Update-preferences page (view + save + unsubscribe) | ✅ built (2026-07-10) | `/subscribe/preferences`, token in URL fragment; saves apply immediately; fail-soft Brief toggle                 |
+| "Email me a link" page (from regular email)         | ✅ built (2026-07-10) | `request-link` GET page, powered by the permanent in-email token                                                 |
+| Confirm-unsubscribe page                            | ✅ built (2026-07-10) | GET renders page, button POSTs; POST also serves one-click (`List-Unsubscribe-Post`)                             |
+| Regular notification email                          | ✅ built              | `baker/emailNotifications/NotificationEmail.tsx` + send job                                                      |
+| Unsubscribed page                                   | ✅ built              | Rendered by the unsubscribe POST                                                                                 |
 
 Note one refinement over the diagram, applied to both the confirm and
 unsubscribe links: clicking the link in the email lands on a page whose
@@ -156,15 +156,20 @@ The big one. Sub-items, roughly in dependency order:
   the email copy differs by state. Expired confirm links render a page with
   a resend button (`resend-confirmation.ts`). See `functions/README.md` for
   the route reference.
-- **Magic-link preferences management** — enter-email page, request-link endpoint
-  (unknown emails get the identical "Check your inbox" response and **no
-  email**), magic-link email,
-  and an update-preferences page that loads current preferences by token and saves
-  changes. Needs a GET-preferences-by-token API; the form UI can reuse
-  `EmailNotificationsSubscribeForm`. Per the project brief's "unified interface"
-  requirement, the page also shows a **fail-soft OWID Brief toggle** — one
-  Mailchimp member lookup to display status, one update on save; hide the toggle
-  if Mailchimp errors (see Design decisions).
+- ✅ **Magic-link preferences management** — DONE 2026-07-10: `request-link`
+  endpoint (unknown emails get the identical response and **no email**; also
+  serves the "Email me a link" page for the permanent in-email token),
+  magic-link email (30-minute tokens; token travels in the URL fragment to
+  stay out of server logs), and the `/subscribe/preferences` page — baked
+  behind the feature flag, client-driven: enter-email UI when tokenless,
+  prefilled preferences form (shared fields with the subscribe form) for a
+  valid token, expired state with "Email me a new link", saves apply
+  immediately (the link was the proof of inbox control) via the
+  `preferences` GET/POST API. Includes the **fail-soft OWID Brief toggle**
+  (`brief-status` endpoint; hidden unless Mailchimp answers; save updates
+  the interest without ever blocking the D1 save). _Not yet verified against
+  real Mailchimp credentials — only the fail-soft (hidden toggle) path._ See
+  `functions/README.md` for the route reference.
 - ✅ **Confirm-unsubscribe page** — DONE 2026-07-10: GET renders the confirm
   page, its button POSTs (fixes scanner prefetch). The POST route doubles as
   the one-click unsubscribe target (`List-Unsubscribe-Post`, token in the
