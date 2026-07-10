@@ -925,9 +925,6 @@ export class GdocsReferencePage extends Component<
                         <span className="gdocs-ref__category-pill">
                             Document template
                         </span>
-                    </div>
-                    <div className="gdocs-ref__detail-id-row">
-                        <code className="gdocs-ref__detail-id">{`type: ${doc.id}`}</code>
                         <CopyButton
                             text={buildNewDocPrompt(doc.id, doc.title)}
                             label="Copy prompt"
