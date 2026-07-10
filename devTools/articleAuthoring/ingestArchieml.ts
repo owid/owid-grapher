@@ -5,9 +5,10 @@
 //   tsx --tsconfig tsconfig.tsx.json devTools/articleAuthoring/ingestArchieml.ts <archieml-file> <id> [slug]
 //
 // The id is an arbitrary unique string (stands in for the gdoc id). Re-running
-// with the same id updates the draft in place. Note that the admin preview
-// always re-fetches from Google and therefore doesn't work for these drafts —
-// use renderGdocPreview.tsx instead.
+// with the same id updates the draft in place. Preview in the admin with
+// ?contentSource=internal (plain admin preview re-fetches from Google and
+// doesn't work for these drafts), or render to a file with
+// renderGdocPreview.tsx.
 
 import fs from "node:fs"
 import * as db from "../../db/db.js"
@@ -46,7 +47,7 @@ async function main(): Promise<void> {
         console.warn("Parse errors:", JSON.stringify(parseErrors, null, 2))
     }
     console.log(
-        `Render it with: tsx --tsconfig tsconfig.tsx.json devTools/articleAuthoring/renderGdocPreview.tsx ${id} preview.html`
+        `Preview: http://localhost:3030/admin/gdocs/${id}/preview?contentSource=internal`
     )
 }
 

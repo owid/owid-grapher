@@ -1,14 +1,14 @@
 # Programmatic article authoring
 
-Scripts for writing OWID articles from the command line, without touching
-Google Docs during drafting. The gdoc is only the transport for ArchieML text —
-`archieToEnriched()` parses plain text directly, so drafts can be iterated on
-locally and a real Google Doc created once at the end for human review.
+Scripts for writing OWID articles from the command line, without Google Docs.
+The gdoc is only the transport for ArchieML text — `archieToEnriched()` parses
+plain text directly, so articles can be drafted, previewed, and iterated on as
+local text files backed by nothing but a `posts_gdocs` row.
 
 All scripts run from the repo root with `tsx --tsconfig tsconfig.tsx.json` and
-use the database and Google credentials from `.env`.
+use the database credentials from `.env`.
 
-## Drafting loop (no Google involved)
+## Workflow
 
 1. Write an article as plain-text ArchieML (see `exampleArticle.archieml`).
    Headings are literal `{.heading}` blocks, inline formatting is literal HTML
@@ -22,27 +22,17 @@ use the database and Google credentials from `.env`.
     tsx --tsconfig tsconfig.tsx.json devTools/articleAuthoring/ingestArchieml.ts draft.archieml my-draft-id
     ```
 
-3. Render it from the DB to a standalone HTML page:
+3. Preview it in the admin at
+   `/admin/gdocs/my-draft-id/preview?contentSource=internal`. The
+   `contentSource=internal` parameter makes the preview read the stored
+   version from the database; without it, the preview re-fetches the document
+   from Google and fails for ids that aren't real gdocs.
 
-    ```sh
-    tsx --tsconfig tsconfig.tsx.json devTools/articleAuthoring/renderGdocPreview.tsx my-draft-id preview.html
-    ```
-
-    Serve the file over http (e.g. `python3 -m http.server`) — in dev, styles
-    load through the vite dev server and are CORS-blocked for `file://` pages.
-    The admin preview pages can't be used here: they always re-fetch the
-    document from Google and 404 on ids that aren't real gdocs.
-
-## Handoff to authors
-
-When a draft is ready for review, create a real Google Doc from it. This
-creates the doc via the service account (in `GDOCS_BACKPORTING_TARGET_FOLDER`),
-inserts the ArchieML text, optionally shares it, and registers it through the
-same ingestion pipeline the admin's "Add document" button uses:
+Alternatively, render a draft to a standalone HTML page without the admin:
 
 ```sh
-tsx --tsconfig tsconfig.tsx.json devTools/articleAuthoring/createGdocArticle.ts draft.archieml "Article title" someone@ourworldindata.org
+tsx --tsconfig tsconfig.tsx.json devTools/articleAuthoring/renderGdocPreview.tsx my-draft-id preview.html
 ```
 
-From there the normal editorial workflow applies (editing in Google Docs,
-admin preview, publishing).
+Serve the file over http (e.g. `python3 -m http.server`) — in dev, styles load
+through the vite dev server and are CORS-blocked for `file://` pages.
