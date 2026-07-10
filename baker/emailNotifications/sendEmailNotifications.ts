@@ -205,6 +205,7 @@ async function sendViaPostmark(email: {
     subject: string
     htmlBody: string
     metadata: Record<string, string>
+    unsubscribeUrl: string
 }): Promise<string | null> {
     const response = await fetch(`${POSTMARK_API_BASE_URL}/email`, {
         method: "POST",
@@ -223,6 +224,19 @@ async function sendViaPostmark(email: {
             MessageStream: "broadcast",
             Tag: "email-notifications",
             Metadata: email.metadata,
+            // One-click unsubscribe (RFC 8058), required by Gmail's and
+            // Yahoo's bulk-sender rules: clients POST directly to the
+            // unsubscribe endpoint, token in the query string, no page shown.
+            Headers: [
+                {
+                    Name: "List-Unsubscribe",
+                    Value: `<${email.unsubscribeUrl}>`,
+                },
+                {
+                    Name: "List-Unsubscribe-Post",
+                    Value: "List-Unsubscribe=One-Click",
+                },
+            ],
         }),
     })
     const data = (await response.json()) as {
@@ -345,6 +359,7 @@ async function sendEmailNotifications(options: {
                 userId: String(subscriber.userId),
                 frequency,
             },
+            unsubscribeUrl: `${BAKED_BASE_URL}/api/email-notifications/unsubscribe?token=${subscriber.token}`,
         })
         await recordSentEmail(
             d1,
