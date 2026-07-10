@@ -115,28 +115,22 @@ What the diagram specifies, against what exists on the branch:
 | Diagram element                                     | Status                                             | Notes                                                                                        |
 | --------------------------------------------------- | -------------------------------------------------- | -------------------------------------------------------------------------------------------- |
 | Subscribe page + form (`/subscribe`)                | ✅ built                                           | `site/EmailNotificationsSubscribeForm.tsx`, `functions/api/email-notifications/subscribe.ts` |
-| Confirmation email + confirm link (double opt-in)   | ❌ missing                                         | Code subscribes immediately and sends a welcome email instead                                |
-| "Link valid?" checks / expiring links               | ❌ missing                                         | Only one **permanent** UUID token per user; nothing expires                                  |
-| Success / Expired-link pages                        | ❌ missing                                         |                                                                                              |
+| Confirmation email + confirm link (double opt-in)   | ✅ built (2026-07-10)                              | Uniform pending-confirmation flow; preferences held on the confirm token until confirmed     |
+| "Link valid?" checks / expiring links               | ✅ built (2026-07-10)                              | `tokens` table (migration `0002`): purpose-scoped, expiring, single-use                      |
+| Success / Expired-link pages                        | ✅ built for the confirm path                      | Expired page has the resend button; magic-link expired page pending                          |
 | Enter-email page → magic-link email                 | ❌ missing                                         |                                                                                              |
-| Update-preferences page (view + save + unsubscribe) | ❌ missing                                         | Interim: re-subscribing with the same email silently overwrites preferences                  |
+| Update-preferences page (view + save + unsubscribe) | ❌ missing                                         |                                                                                              |
 | "Email me a link" page (from regular email)         | ❌ missing (kept by design — see Design decisions) |                                                                                              |
-| Confirm-unsubscribe page                            | ❌ missing                                         | Current unsubscribe is a **one-shot GET** — see P0.2                                         |
+| Confirm-unsubscribe page                            | ✅ built (2026-07-10)                              | GET renders page, button POSTs; POST also serves one-click (`List-Unsubscribe-Post`)         |
 | Regular notification email                          | ✅ built                                           | `baker/emailNotifications/NotificationEmail.tsx` + send job                                  |
-| Unsubscribed page                                   | ⚠️ partial                                         | Rendered by the GET unsubscribe endpoint (`renderMessagePage`)                               |
+| Unsubscribed page                                   | ✅ built                                           | Rendered by the unsubscribe POST                                                             |
 
-Two consequences of the missing pieces worth naming:
-
-- **Silent reactivation/overwrite:** `upsertNotificationPreferences`
-  (`subscribe.ts:142-152`) reactivates unsubscribed users and overwrites preferences
-  with no verification and no notification (only _new_ users get an email). Anyone who
-  knows an address can re-subscribe someone who deliberately unsubscribed. The
-  uniform pending-confirmation flow (P0.1) fixes this: no change ever
-  applies without proof of inbox control.
-- **Scanner-prefetch unsubscribes:** the unsubscribe endpoint mutates state on GET
-  (`unsubscribe.ts:13`). Mail security scanners (Outlook SafeLinks, corporate
-  gateways) prefetch links in emails and will silently unsubscribe real users. The
-  diagram's confirm-unsubscribe page (button → POST) fixes this; it lands in P0.1/P0.2.
+Note one refinement over the diagram, applied to both the confirm and
+unsubscribe links: clicking the link in the email lands on a page whose
+button POSTs the action, rather than the GET itself changing state. Mail
+security scanners prefetch links in emails, so a state-changing GET would let
+a scanner silently apply a preference change or unsubscribe — the very thing
+the pending-confirmation flow exists to prevent.
 
 ---
 
@@ -148,19 +142,20 @@ Two consequences of the missing pieces worth naming:
 
 The big one. Sub-items, roughly in dependency order:
 
-- **Migration `0002`** — token model: purpose-scoped tokens (confirm / magic-link /
-  unsubscribe) with expiry, a `pending` user status, and storage for the preferences
-  chosen at signup until they're confirmed. The current schema has one permanent
-  UUID per user and only `subscribed`/`unsubscribed` statuses
-  (`d1/email-notifications/migrations/0001_...sql`).
-- **Double opt-in** — subscribe endpoint stores pending state and sends a
-  confirmation email (repurpose the current welcome email in
-  `functions/_common/emailNotifications.ts`); new confirm endpoint; success and
-  expired-link pages. Every submission takes this same pending-confirmation path
-  regardless of the email's current state (see Design decisions): confirm
-  applies the pending preferences — new user →
-  subscribed, confirmed user → preferences replaced, unsubscribed → reactivated.
-  Only the email copy differs by state.
+- ✅ **Migration `0002`** — DONE 2026-07-10
+  (`d1/email-notifications/migrations/0002_add_double_opt_in.sql`): `tokens`
+  table for purpose-scoped expiring tokens (confirm / magic-link) with the
+  pending preferences held as the confirm token's payload, and a `pending`
+  user status. The permanent `users.token` stays as the low-privilege
+  identifier in email footer links.
+- ✅ **Double opt-in** — DONE 2026-07-10: the subscribe endpoint takes the
+  uniform pending-confirmation path for every submission (see Design
+  decisions); `confirm.ts` (GET renders a page, its button POSTs — no state
+  change on GET) applies the pending preferences: new user → subscribed,
+  confirmed user → preferences replaced, unsubscribed → reactivated. Only
+  the email copy differs by state. Expired confirm links render a page with
+  a resend button (`resend-confirmation.ts`). See `functions/README.md` for
+  the route reference.
 - **Magic-link preferences management** — enter-email page, request-link endpoint
   (unknown emails get the identical "Check your inbox" response and **no
   email**), magic-link email,
@@ -170,12 +165,14 @@ The big one. Sub-items, roughly in dependency order:
   requirement, the page also shows a **fail-soft OWID Brief toggle** — one
   Mailchimp member lookup to display status, one update on save; hide the toggle
   if Mailchimp errors (see Design decisions).
-- **Confirm-unsubscribe page** — replace the one-shot GET with a page whose button
-  POSTs (fixes scanner prefetch). Also add a separate bare POST endpoint, no page,
-  for one-click unsubscribe — the target of the `List-Unsubscribe-Post` header
-  (P0.3). This edge is in the flow diagram.
+- ✅ **Confirm-unsubscribe page** — DONE 2026-07-10: GET renders the confirm
+  page, its button POSTs (fixes scanner prefetch). The POST route doubles as
+  the one-click unsubscribe target (`List-Unsubscribe-Post`, token in the
+  query string, no page) — the headers themselves still land in P0.3.
 - **Expired-link pages** fall out of token expiry. Each gets a resend button:
   POST the expired token → fresh token + new email (see Design decisions).
+  ✅ Done for the confirm path; the magic-link expired page comes with the
+  magic-link work above.
 
 ### P0.2 — Send-job robustness
 
