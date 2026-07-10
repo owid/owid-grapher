@@ -384,6 +384,43 @@ export class IRSuperscript implements IRToken {
     }
 }
 
+export interface IRTrailingElementProps {
+    /** Width reserved for the element in layout (including any leading gap) */
+    width: number
+    /** Rendered in HTML output only; static SVG omits the element */
+    render: () => React.ReactNode
+}
+
+/**
+ * A non-text leaf token that renders an arbitrary React element in HTML
+ * output while reserving a fixed width in layout, so that line wrapping and
+ * the computed text height account for it. It offers no break opportunity,
+ * so it always stays on the same line as the token preceding it.
+ */
+export class IRTrailingElement implements IRToken {
+    constructor(
+        public element: IRTrailingElementProps,
+        public fontParams?: IRFontParams
+    ) {}
+    get width(): number {
+        return this.element.width
+    }
+    getBreakpointBefore(): undefined {
+        return undefined
+    }
+    toHTML(key?: React.Key): React.ReactElement {
+        return (
+            <React.Fragment key={key}>{this.element.render()}</React.Fragment>
+        )
+    }
+    toSVG(): undefined {
+        return undefined
+    }
+    toPlaintext(): string {
+        return ""
+    }
+}
+
 export class IRItalic extends IRElement {
     getClone(children: IRToken[]): IRItalic {
         return new IRItalic(children, this.fontParams)

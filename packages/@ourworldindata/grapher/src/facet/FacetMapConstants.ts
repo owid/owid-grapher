@@ -20,4 +20,5 @@ export interface MapFacetSeries extends ChartSeries {
 export interface PlacedMapFacetSeries extends MapFacetSeries {
     manager: MapChartManager
     bounds: Bounds
+    toleranceNotice?: string
 }

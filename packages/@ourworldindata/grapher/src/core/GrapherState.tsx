@@ -159,6 +159,7 @@ import {
     MAP_REGION_NAMES,
     MapChartManager,
 } from "../mapCharts/MapChartConstants.js"
+import { MapChartState } from "../mapCharts/MapChartState.js"
 import { MapConfig } from "../mapCharts/MapConfig.js"
 import { DumbbellChartConfig } from "../dumbbellCharts/DumbbellChartConfig.js"
 import { getCountriesByRegion } from "../mapCharts/MapHelpers.js"
@@ -2558,6 +2559,19 @@ export class GrapherState
             parts.push(this.timeTitleSuffix)
 
         return parts.length > 0 ? parts.join(", ") : undefined
+    }
+
+    /**
+     * Tolerance explanation shown behind an info icon next to the title's time
+     * annotation (map tab only)
+     */
+    @computed get titleAnnotationTooltip(): string | undefined {
+        if (!this.isOnMapTab || this.isStatic || this.isFaceted)
+            return undefined
+        if (!this.shouldAddTimeSuffixToTitle || !this.timeTitleSuffix)
+            return undefined
+
+        return (this.chartState as MapChartState).toleranceNotice
     }
 
     /** The complete chart title: the main title plus the entity/time annotation */

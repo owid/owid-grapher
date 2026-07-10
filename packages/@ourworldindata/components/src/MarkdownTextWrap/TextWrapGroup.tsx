@@ -8,6 +8,8 @@ import {
     IRFragmentStyle,
     IRLineBreak,
     IRToken,
+    IRTrailingElement,
+    IRTrailingElementProps,
     IRWhitespace,
     splitIntoLines,
 } from "./IRTokens.js"
@@ -51,6 +53,12 @@ export interface TextWrapFragment extends IRFragmentStyle {
      * Only applies when the fragment is placed on a new line
      */
     newLineGap?: number
+
+    /**
+     * An element rendered after the fragment's text in HTML output only.
+     * It sticks to the fragment's last word.
+     */
+    trailingElement?: IRTrailingElementProps
 }
 
 type TextWrapGroupProps = {
@@ -113,6 +121,10 @@ export class TextWrapGroup extends AbstractTokenTextWrap<TextWrapGroupProps> {
                   fontParams
               )
             : convertPlaintextToIRTokens(fragment.text, fontParams)
+        if (fragment.trailingElement)
+            children.push(
+                new IRTrailingElement(fragment.trailingElement, fontParams)
+            )
         return new IRFragment(
             index,
             children,

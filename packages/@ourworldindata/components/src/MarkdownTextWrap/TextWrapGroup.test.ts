@@ -8,6 +8,7 @@ import {
     IRFragment,
     IRDetailOnDemand,
     IRSuperscript,
+    IRTrailingElement,
     type IRToken,
 } from "./IRTokens.js"
 import { TextWrapGroup } from "./TextWrapGroup.js"
@@ -623,6 +624,135 @@ describe(TextWrapGroup, () => {
             "Energy use",
             "(kilowatt-hours per person) annotation",
         ])
+    })
+
+    it("should reserve a trailing element's width in layout", () => {
+        const makeGroup = (trailingWidth?: number): TextWrapGroup =>
+            new TextWrapGroup({
+                fragments: [
+                    { text: "Some text" },
+                    {
+                        text: "annotation",
+                        trailingElement:
+                            trailingWidth !== undefined
+                                ? {
+                                      width: trailingWidth,
+                                      render: () => React.createElement("span"),
+                                  }
+                                : undefined,
+                    },
+                ],
+                fontSize,
+            })
+        expect(makeGroup(20).width - makeGroup().width).toEqual(20)
+        expect(makeGroup(20).lastLineWidth - makeGroup().lastLineWidth).toEqual(
+            20
+        )
+    })
+
+    it("should not change the plaintext for a trailing element", () => {
+        const textWrap = new TextWrapGroup({
+            fragments: [
+                { text: "Some text" },
+                {
+                    text: "annotation",
+                    trailingElement: {
+                        width: 20,
+                        render: () => React.createElement("span"),
+                    },
+                },
+            ],
+            fontSize,
+        })
+        expect(textWrap.plaintext).toEqual("Some text annotation")
+    })
+
+    it("should move a fragment to a new line if its trailing element doesn't fit", () => {
+        const makeGroup = (
+            maxWidth: number,
+            trailingWidth?: number
+        ): TextWrapGroup =>
+            new TextWrapGroup({
+                fragments: [
+                    { text: "Lower middle-income countries" },
+                    {
+                        text: "30 million",
+                        trailingElement:
+                            trailingWidth !== undefined
+                                ? {
+                                      width: trailingWidth,
+                                      render: () => React.createElement("span"),
+                                  }
+                                : undefined,
+                    },
+                ],
+                maxWidth,
+                fontSize,
+            })
+        // exactly wide enough for the fragments without a trailing element
+        const maxWidth = makeGroup(Infinity).width
+        expect(fragmentPlacements(makeGroup(maxWidth))).toEqual([
+            "first",
+            "inline",
+        ])
+        // the trailing element pushes the fragment to a new line, where it
+        // stays with the fragment
+        expect(fragmentPlacements(makeGroup(maxWidth, 20))).toEqual([
+            "first",
+            "new-line",
+        ])
+    })
+
+    it("should keep a trailing element on the fragment's last line", () => {
+        const textWrap = new TextWrapGroup({
+            fragments: [
+                { text: "Long-run estimates of interpersonal trust" },
+                {
+                    text: "an annotation that is long enough to wrap across several lines",
+                    trailingElement: {
+                        width: 20,
+                        render: () => React.createElement("span"),
+                    },
+                },
+            ],
+            maxWidth: 100,
+            fontSize,
+        })
+        expect(textWrap.fragmentLineCounts[1]).toBeGreaterThan(1)
+        const containsTrailingElement = (line: IRToken[]): boolean =>
+            line.some(
+                (token) =>
+                    token instanceof IRFragment &&
+                    token.children.some(
+                        (child) => child instanceof IRTrailingElement
+                    )
+            )
+        const linesWithElement = textWrap.htmlLines.filter(
+            containsTrailingElement
+        )
+        expect(linesWithElement).toEqual([textWrap.htmlLines.at(-1)])
+    })
+
+    it("should render a trailing element in HTML but not in SVG", () => {
+        const textWrap = new TextWrapGroup({
+            fragments: [
+                { text: "Some text" },
+                {
+                    text: "annotation",
+                    trailingElement: {
+                        width: 20,
+                        render: () => React.createElement("span"),
+                    },
+                },
+            ],
+            fontSize,
+        })
+        const fragment = textWrap.htmlLines[0].at(-1) as IRFragment
+        const element = fragment.children.at(-1) as IRTrailingElement
+        expect(element).toBeInstanceOf(IRTrailingElement)
+        expect(element.toHTML()).toBeDefined()
+        expect(element.toSVG()).toBeUndefined()
+        expect(element.toPlaintext()).toEqual("")
     })
 
     it("should lay out axis-style labels (bold main label plus unit)", () => {
