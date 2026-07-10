@@ -65,6 +65,23 @@ const heading = (value: string, level = 1): OwidEnrichedGdocBlock =>
         parseErrors: [],
     }) as unknown as OwidEnrichedGdocBlock
 
+const topicPageIntro = (downloadButton?: {
+    text: string
+    url: string
+}): OwidEnrichedGdocBlock =>
+    ({
+        type: "topic-page-intro",
+        ...(downloadButton && {
+            downloadButton: {
+                ...downloadButton,
+                type: "topic-page-intro-download-button",
+            },
+        }),
+        relatedTopics: [],
+        content: [text("Intro paragraph.")],
+        parseErrors: [],
+    }) as unknown as OwidEnrichedGdocBlock
+
 describe("writing reference live API", { timeout: 20000 }, () => {
     it("usage.json aggregates published docs only, with labels", async () => {
         await seedDoc({
@@ -169,6 +186,42 @@ describe("writing reference live API", { timeout: 20000 }, () => {
         expect(json.scanned).toBe(4)
         expect(json.propAdoption.url).toBe(4)
         expect(json.propAdoption.size).toBe(2)
+    })
+
+    it("instances.json distinguishes forms whose raw keys differ from enriched keys", async () => {
+        // The stored config carries enriched key names (downloadButton), but
+        // signatures are computed in raw space (download-button) — a rename
+        // the conversion must apply, or the prop is mistaken for a parser
+        // default and stripped, collapsing the form into the standard one.
+        await seedDoc({
+            id: "tpi-plain",
+            slug: "tpi-plain",
+            type: "topic-page",
+            published: true,
+            body: [topicPageIntro()],
+        })
+        await seedDoc({
+            id: "tpi-download",
+            slug: "tpi-download",
+            type: "topic-page",
+            published: true,
+            body: [
+                topicPageIntro({
+                    text: "Download the complete dataset",
+                    url: "https://example.org/data.csv",
+                }),
+            ],
+        })
+
+        const json = await env.fetchJson(
+            "/gdocs-reference/components/topic-page-intro/instances.json"
+        )
+        const signatures = json.variations.map(
+            (variation: { signature: string }) => variation.signature
+        )
+        expect(signatures).toContain("")
+        expect(signatures).toContain("download-button")
+        expect(json.propAdoption["download-button"]).toBe(1)
     })
 
     it("instances.json 404s for an unknown component", async () => {

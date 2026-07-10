@@ -193,11 +193,13 @@ function parseConfig(config: InstanceRow["config"]): StoredConfig | undefined {
 }
 
 /**
- * Reconstruct the raw (authoring-shaped) block from a stored config. The
- * stored form — children omitted, spans flattened to plain strings — is
- * already essentially the raw value shape, which holds strings everywhere;
- * only scalars need stringifying (level: 2 → "2", hasOutline: false →
- * "false").
+ * Fallback reconstruction of the raw (authoring-shaped) block from a stored
+ * config, copying keys verbatim. The stored form — children omitted, spans
+ * flattened to plain strings — is already essentially the raw value shape,
+ * which holds strings everywhere; only scalars need stringifying (level: 2 →
+ * "2", hasOutline: false → "false"). Wrong only about props whose raw key
+ * differs from their enriched name — which is why it is the fallback, not
+ * the main path.
  */
 function configToRaw(config: StoredConfig): OwidRawGdocBlock {
     const { type, parseErrors: _parseErrors, ...props } = config
@@ -214,11 +216,27 @@ function configToRaw(config: StoredConfig): OwidRawGdocBlock {
     return { type, value } as unknown as OwidRawGdocBlock
 }
 
+/**
+ * Reduce a stored config to its minimal source. A stored config IS an
+ * enriched block (children omitted, spans flattened), so the real enriched →
+ * raw converter applies and gets renamed raw keys right (downloadButton →
+ * "download-button") — a rename minimizeRaw depends on, since a prop the raw
+ * parser never reads looks like a stripabble default. Container blocks whose
+ * converter needs the omitted children throw; they fall back to the verbatim
+ * key copy (they don't parse cleanly either way, so no stripping happens
+ * there regardless).
+ */
 function minimizeConfig(
     config: StoredConfig | undefined
 ): MinimalBlock | undefined {
     if (!config) return undefined
-    return minimizeRaw(configToRaw(config))
+    try {
+        return minimizeRaw(
+            enrichedBlockToRawBlock(config as unknown as OwidEnrichedGdocBlock)
+        )
+    } catch {
+        return minimizeRaw(configToRaw(config))
+    }
 }
 
 /**
