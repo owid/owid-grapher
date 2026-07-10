@@ -22,20 +22,7 @@ heading: More Articles on Medicine and Biotechnology
 url: https://docs.google.com/document/d/1-6S3Nsjrb7wFbNizDTvohHGcOzvDvva0UyDoKQUyXnQ/edit
 url: https://docs.google.com/document/d/19ytyrpTe5fYQCwAyz25egACwwr9kjyHJkYySzWlYg2Q/edit
 url: https://docs.google.com/document/d/1P8pu_FGx6fnJWw-xQBREe49uqN62rZAuARRrR2cdOjc/edit
-url: https://docs.google.com/document/d/1VrCiTsQYC6IoUqFoWl7E6QVHVrpgTcenjRjC5Xd9VVs/edit
 []
-[]
-{}
-```
-
-```archie
-{.research-and-writing}
-variant: featured
-[.primary]
-url: https://docs.google.com/document/d/1eaWbY0Zgi6u1ya6ZatnxlKbL9S_lZl1MOdHGJNYbmmA/edit
-[]
-[.secondary]
-url: https://docs.google.com/document/d/1w4lp23uS4B8C_PsEsgKsvMgokp_fIKkLEG1K_zXoRv4/edit
 []
 {}
 ```

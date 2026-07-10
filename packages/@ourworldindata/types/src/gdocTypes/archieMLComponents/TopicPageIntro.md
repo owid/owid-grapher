@@ -5,35 +5,20 @@ body of rich text.
 ```archie
 {.topic-page-intro}
 [.+content]
-The world <a href="https://docs.google.com/document/d/14ZnX7uW1aOuJAM7CPFmxwdq8fniYwBqDfbp4mlS0ZZA/edit">lacks</a> a safe, low-carbon, and cheap large-scale energy infrastructure.
-Until we scale up such an energy infrastructure, the world will continue to face two energy problems: hundreds of millions of people lack access to sufficient energy, and the dominance of fossil fuels in our energy system drives <a href="https://ourworldindata.org/co2-and-greenhouse-gas-emissions">climate change</a> and other health impacts such as <a href="https://ourworldindata.org/air-pollution">air pollution</a>.
-To ensure everyone has access to clean and safe energy, we need to understand energy consumption and its impacts around the world today and how this has changed over time.
-On this page, you can find all our data, visualizations, and writing relating to energy.
+Population growth is one of the most important topics we cover on Our World in Data.
+For most of human history, the global population was a tiny fraction of what it is today. Over the last few centuries, the human population has gone through an extraordinary change. In 1800, there were one billion people. Today there are more than 8 billion of us.
+But after a period of very fast population growth, demographers expect the world population to peak by the end of this century.
+On this page, you will find all of our data, charts, and writing on changes in population growth. This includes how populations are distributed worldwide, how this has changed, and what demographers expect for the future.
 []
-{.download-button}
-text: Download all data on energy
-url: https://github.com/owid/energy-data
-{}
 [.related-topics]
-url: https://ourworldindata.org/co2-and-other-greenhouse-gas-emissions
-text: CO₂ and Greenhouse Gas Emissions
-url: https://ourworldindata.org/air-pollution
-text: Air Pollution
-url: https://ourworldindata.org/oil-spills
-text: Oil Spills
-[]
-{}
-```
-
-```archie
-{.topic-page-intro}
-[.+content]
-Disease outbreaks may be inevitable, but large-scale pandemics are not. The world can respond swiftly and effectively to pandemic risks in the future with better understanding, resources, and effort.
-To avoid suffering through another large pandemic, we have to take the risk of pandemics seriously. Despite warnings that another one was likely, the COVID-19 pandemic killed more than 27 million people.1
-We must build the capacity to test for pathogens and understand them: which pathogens put us at the greatest risk, how they spread, and how to tackle them.
-We know it is possible to greatly reduce the risk of infectious disease. We’ve learned over history how to reduce their impact with vaccines, public health efforts, and medicine.
-In addition to the old risks, we face new threats from factory farming, genetic modification, climate change, and antimicrobial resistance. With more attention and effort, we can reduce their risks too.
-On this page, we show data and research on pandemics in history and how we can reduce their risk in the future.
+text: Child Mortality
+url: https://ourworldindata.org/child-mortality
+text: Fertility Rate
+url: https://ourworldindata.org/fertility-rate
+text: Life Expectancy
+url: https://ourworldindata.org/life-expectancy
+text: Age Structure
+url: https://ourworldindata.org/age-structure
 []
 {}
 ```
