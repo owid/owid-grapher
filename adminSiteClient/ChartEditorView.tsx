@@ -20,7 +20,6 @@ import {
     getIndexableKeys,
 } from "@ourworldindata/utils"
 import {
-    CommentTarget,
     GrapherInterface,
     DimensionProperty,
     ORIGIN_URL_REGEX_PATTERNS,
@@ -58,7 +57,6 @@ import { EditorMarimekkoTab } from "./EditorMarimekkoTab.js"
 import { EditorExportTab } from "./EditorExportTab.js"
 import { runDetailsOnDemand } from "../site/detailsOnDemand.js"
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
-import { ChartEditorCommentsButton } from "./ChartEditorComments.js"
 import {
     ErrorMessages,
     ErrorMessagesForDimensions,
@@ -116,8 +114,6 @@ export interface ChartEditorViewManager<Editor> {
 
 interface ChartEditorViewProps<Editor> {
     manager: ChartEditorViewManager<Editor>
-    /** When set, an internal comments drawer is available in the editor */
-    commentTarget?: CommentTarget
 }
 
 @observer
@@ -519,11 +515,6 @@ export class ChartEditorView<
                     )}
                 </div>
                 <div className="chart-editor-view">
-                    {this.props.commentTarget && (
-                        <ChartEditorCommentsButton
-                            target={this.props.commentTarget}
-                        />
-                    )}
                     {grapherState.id && (
                         <a
                             className="preview"
