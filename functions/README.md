@@ -206,6 +206,41 @@ same pending preferences, and re-sends the confirmation email. Safe to expose
 for expired tokens: the only thing an expired token can do is cause an email
 to be sent to its own address.
 
+## `/api/email-notifications/request-link`
+
+Requests a magic link for viewing/updating preferences. GET with a `token`
+query parameter (the permanent per-user token, from the "update your
+preferences" link in email footers) renders an "Email me a link" page whose
+button POSTs back — the in-email token can only _request_ a link; editing
+preferences requires proving control of the inbox right now via the
+short-lived link (Mailchimp's pattern). POST accepts either a form `token`
+(responds with a "Check your inbox" page) or JSON `{ email }` / `{ token }`
+from the preferences page (responds with JSON). **Unknown emails get the
+identical response and no email is sent** — a courtesy "you're not
+subscribed" email would turn the endpoint into a tool for mailing arbitrary
+addresses. Expired magic-link tokens are accepted (their resend button):
+their only remaining power is causing an email to their own address.
+
+## `/api/email-notifications/preferences`
+
+Data source and save target of the magic-link preferences page
+(`/subscribe/preferences`, token in the URL fragment). GET with a `token`
+query parameter (a valid magic-link token) returns the user's email and
+current preferences as JSON; 410 for expired tokens drives the page's
+expired state. POST with JSON `{ token, preferences }` applies changes
+immediately — the magic link itself was the proof of inbox control, so
+there is no second confirmation (this also reactivates an unsubscribed
+user); `{ token, unsubscribe: true }` unsubscribes. An optional
+`subscribeToOwidBrief` updates the Mailchimp Brief interest **fail-soft**: a
+Mailchimp failure never blocks the D1 save.
+
+## `/api/email-notifications/brief-status`
+
+Whether the magic-link token's user is subscribed to the OWID Brief in
+Mailchimp. Powers the preferences page's fail-soft Brief toggle: any non-200
+(invalid/expired token, Mailchimp unavailable or unconfigured) makes the
+page hide the toggle.
+
 ## `/api/email-notifications/unsubscribe`
 
 Link target from the notification email footers, with a `token` query

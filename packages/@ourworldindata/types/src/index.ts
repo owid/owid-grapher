@@ -19,6 +19,12 @@ export {
     EmailNotificationsSubscribeRequestTypeObject,
     type EmailNotificationsSubscribeRequest,
     type EmailNotificationsSubscribeResponse,
+    EmailNotificationsRequestLinkRequestTypeObject,
+    type EmailNotificationsRequestLinkRequest,
+    EmailNotificationsUpdatePreferencesRequestTypeObject,
+    type EmailNotificationsUpdatePreferencesRequest,
+    type EmailNotificationsPreferencesResponse,
+    type EmailNotificationsBriefStatusResponse,
 } from "./EmailNotificationsTypes.js"
 
 export {
@@ -811,6 +817,7 @@ export {
     SENTRY_SAMPLED_RATE_KEY,
     SUBSCRIBE_PAGE_NOTIFICATIONS_FORM_CONTAINER_ID,
     OLD_SUBSCRIBE_PAGE_FORM_CONTAINER_ID,
+    PREFERENCES_PAGE_FORM_CONTAINER_ID,
 } from "./siteTypes/SiteConstants.js"
 export {
     ARCHIVE_DATE_TIME_FORMAT,

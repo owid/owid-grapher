@@ -9,6 +9,7 @@ import { DonatePage } from "../site/DonatePage.js"
 import { ExplorerIndexPage } from "../site/ExplorerIndexPage.js"
 import { SubscribePage } from "../site/SubscribePage.js"
 import { OldSubscribePage } from "../site/OldSubscribePage.js"
+import { EmailNotificationsPreferencesPage } from "../site/EmailNotificationsPreferencesPage.js"
 import { ThankYouPage } from "../site/ThankYouPage.js"
 import TombstonePage from "../site/TombstonePage.js"
 import OwidGdocPage from "../site/gdocs/OwidGdocPage.js"
@@ -550,6 +551,19 @@ export const renderSubscribePage = async (
     const flattenedTopicTagGraph = flattenNonTopicNodes(topicTagGraph)
     return renderToHtmlPage(
         <SubscribePage
+            baseUrl={BAKED_BASE_URL}
+            topicTagGraph={flattenedTopicTagGraph}
+        />
+    )
+}
+
+export const renderEmailNotificationsPreferencesPage = async (
+    knex: KnexReadonlyTransaction
+): Promise<string> => {
+    const topicTagGraph = await generateTopicTagGraph(knex)
+    const flattenedTopicTagGraph = flattenNonTopicNodes(topicTagGraph)
+    return renderToHtmlPage(
+        <EmailNotificationsPreferencesPage
             baseUrl={BAKED_BASE_URL}
             topicTagGraph={flattenedTopicTagGraph}
         />
