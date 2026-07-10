@@ -1215,6 +1215,37 @@
     }
 }
 
+// Fixed choices and booleans as value chips — what an author types, not TS
+// syntax. Every other type renders as linked type text via
+// .gdocs-ref-live__props-type-link.
+.gdocs-ref-live__props-choices {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.gdocs-ref-live__props-choice {
+    font-family: var(--font-mono, monospace);
+    font-size: 11.5px;
+    color: $blue-90;
+    background: $blue-5;
+    border: 1px solid $blue-20;
+    border-radius: 5px;
+    padding: 1px 7px;
+}
+
+.gdocs-ref-live__props-type-link {
+    color: inherit;
+    text-decoration: underline;
+    text-decoration-color: $gray-30;
+    text-underline-offset: 2px;
+
+    &:hover {
+        color: $blue-60;
+        text-decoration-color: $blue-40;
+    }
+}
+
 .gdocs-ref-live__props-required {
     color: $accent-vermillion;
 }

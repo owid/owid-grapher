@@ -73,8 +73,11 @@ import type {
     SourceFile,
     TypeAliasDeclaration,
     TypeNode,
+    VariableDeclaration,
 } from "@typescript/native-preview/ast"
 import {
+    isArrayLiteralExpression,
+    isAsExpression,
     isComputedPropertyName,
     isEnumDeclaration,
     isIdentifier,
@@ -87,6 +90,7 @@ import {
     isTypeLiteralNode,
     isTypeReferenceNode,
     isUnionTypeNode,
+    isVariableStatement,
 } from "@typescript/native-preview/ast/is"
 
 import {
@@ -102,6 +106,7 @@ import {
     type ComponentDoc,
     type ComponentExample,
     type ComponentPropDoc,
+    type ComponentRegistry,
     type GdocContentKeyFate,
     type PinnedExampleRef,
     type TemplateDoc,
@@ -260,6 +265,27 @@ function unionMemberIdentifiers(unionDecl: TypeAliasDeclaration): Identifier[] {
 interface TypeIndex {
     aliases: Map<string, TypeAliasDeclaration>
     enums: Map<string, EnumDeclaration>
+    /** Only consulted for typeSources — blocks themselves are always aliases */
+    interfaces: Map<string, InterfaceDeclaration>
+    /** 'const xs = ["a", "b"] as const' arrays backing (typeof xs)[number] aliases */
+    constArrays: Map<string, string[]>
+}
+
+// The values of a 'const xs = ["a", "b"] as const' declaration; undefined for
+// any other shape of variable declaration.
+function constStringArrayValues(
+    decl: VariableDeclaration
+): string[] | undefined {
+    const initializer = decl.initializer
+    if (!initializer || !isAsExpression(initializer)) return undefined
+    const expression = initializer.expression
+    if (!isArrayLiteralExpression(expression)) return undefined
+    const values: string[] = []
+    for (const element of expression.elements) {
+        if (!isStringLiteral(element)) return undefined
+        values.push(element.text)
+    }
+    return values
 }
 
 function buildTypeIndex(
@@ -268,6 +294,8 @@ function buildTypeIndex(
 ): TypeIndex {
     const aliases = new Map<string, TypeAliasDeclaration>()
     const enums = new Map<string, EnumDeclaration>()
+    const interfaces = new Map<string, InterfaceDeclaration>()
+    const constArrays = new Map<string, string[]>()
     // The whole gdocTypes dir, not just archieMLComponents/ — value-prop
     // classification resolves referenced types (HorizontalAlign, …) that
     // live next door.
@@ -284,10 +312,20 @@ function buildTypeIndex(
             if (isEnumDeclaration(node)) {
                 enums.set(node.name.text, node)
             }
+            if (isInterfaceDeclaration(node)) {
+                interfaces.set(node.name.text, node)
+            }
+            if (isVariableStatement(node)) {
+                for (const decl of node.declarationList.declarations) {
+                    const values = constStringArrayValues(decl)
+                    if (values && isIdentifier(decl.name))
+                        constArrays.set(decl.name.text, values)
+                }
+            }
             return undefined
         })
     }
-    return { aliases, enums }
+    return { aliases, enums, interfaces, constArrays }
 }
 
 function findTypeDiscriminator(typeNode: TypeNode): string | undefined {
@@ -411,7 +449,13 @@ function extractProps(
     const signatures: { name: string; type: TypeNode; optional: boolean }[] = []
     collectPropertySignatures(decl.type, signatures)
     const sf = decl.getSourceFile()
-    const resolveTypeText = (text: string): string => {
+    const resolveTypeText = (text: string, depth = 0): string => {
+        // e.g. (typeof blockVisibilitys)[number] — one of a fixed const array
+        const constArrayRef = /^\(typeof (\w+)\)\[number\]$/.exec(text)
+        if (constArrayRef) {
+            const values = typeIndex.constArrays.get(constArrayRef[1])
+            if (values) return values.map((value) => `"${value}"`).join(" | ")
+        }
         if (!/^\w+$/.test(text)) return text
         const enumDecl = typeIndex.enums.get(text)
         if (enumDecl) {
@@ -423,8 +467,11 @@ function extractProps(
             if (values.length > 0) return values.join(" | ")
         }
         const alias = typeIndex.aliases.get(text)
-        if (!alias) return text
-        const resolved = declaredTypeText(alias.getSourceFile(), alias.type)
+        if (!alias || depth >= 3) return text
+        const resolved = resolveTypeText(
+            declaredTypeText(alias.getSourceFile(), alias.type),
+            depth + 1
+        )
         return isLiteralUnionText(resolved) ? resolved : text
     }
     return signatures
@@ -792,10 +839,36 @@ function openProject(api: InstanceType<typeof API>): {
     return { program: project.program, rootFiles: project.rootFiles }
 }
 
+// Repo-relative source file of every named type the prop type texts mention,
+// so the reference UI can link a type name to its definition on GitHub.
+function extractTypeSources(
+    docs: ComponentDoc[],
+    typeIndex: TypeIndex
+): Record<string, string> {
+    const names = new Set<string>()
+    for (const doc of docs)
+        for (const prop of doc.props)
+            for (const match of prop.type.matchAll(/[A-Za-z_]\w*/g))
+                names.add(match[0])
+    const sources: Record<string, string> = {}
+    for (const name of [...names].sort()) {
+        const decl =
+            typeIndex.aliases.get(name) ??
+            typeIndex.enums.get(name) ??
+            typeIndex.interfaces.get(name)
+        if (decl)
+            sources[name] = path.relative(
+                REPO_ROOT,
+                decl.getSourceFile().fileName
+            )
+    }
+    return sources
+}
+
 function extractComponentDocs(
     program: TsProgram,
     rootFiles: readonly string[]
-): ComponentDoc[] {
+): { docs: ComponentDoc[]; typeSources: Record<string, string> } {
     const sf = program.getSourceFile(ARCHIE_ML_COMPONENTS_TS)
     if (!sf)
         throw new Error(
@@ -909,7 +982,7 @@ function extractComponentDocs(
         const related = deriveRelatedComponents(doc.body, doc.id, seenIds)
         if (related.length > 0) doc.related = related
     }
-    return docs
+    return { docs, typeSources: extractTypeSources(docs, typeIndex) }
 }
 
 // ---------------------------------------------------------------------------
@@ -1185,7 +1258,10 @@ async function main(): Promise<void> {
     try {
         const { program, rootFiles } = openProject(api)
 
-        const allDocs = extractComponentDocs(program, rootFiles)
+        const { docs: allDocs, typeSources } = extractComponentDocs(
+            program,
+            rootFiles
+        )
         allDocs.sort((a, b) => a.title.localeCompare(b.title))
         console.log(
             "Extracted " +
@@ -1225,7 +1301,11 @@ async function main(): Promise<void> {
         console.log("All examples parsed cleanly.")
 
         await fs.ensureDir(DOCS_DIR)
-        await fs.writeFile(JSON_OUT, JSON.stringify(allDocs, null, 2))
+        const registry: ComponentRegistry = {
+            components: allDocs,
+            typeSources,
+        }
+        await fs.writeFile(JSON_OUT, JSON.stringify(registry, null, 2))
         console.log("Wrote " + path.relative(process.cwd(), JSON_OUT))
         await fs.writeFile(
             TEMPLATES_JSON_OUT,
