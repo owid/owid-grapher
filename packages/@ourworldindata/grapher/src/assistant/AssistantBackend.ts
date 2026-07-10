@@ -452,6 +452,22 @@ function isWordChar(char: string | undefined): boolean {
 /** Phrases that look like entities but are chart-type keywords */
 const ENTITY_STOP_PHRASES = [/world map/gi, /world bank/gi]
 
+/**
+ * Removes a trailing parenthetical suffix, e.g. turns
+ * "Sub-Saharan Africa (WB)" into "Sub-Saharan Africa". Implemented without a
+ * regex since the equivalent pattern is prone to polynomial backtracking on
+ * adversarial input (CodeQL js/polynomial-redos).
+ */
+function stripParentheticalSuffix(name: string): string {
+    const trimmed = name.trimEnd()
+    if (!trimmed.endsWith(")")) return name
+    const openIndex = trimmed.lastIndexOf("(")
+    if (openIndex === -1) return name
+    // Only strip a well-formed suffix: no ")" inside the parentheses
+    if (trimmed.slice(openIndex + 1, -1).includes(")")) return name
+    return trimmed.slice(0, openIndex).trimEnd()
+}
+
 function detectEntities(
     query: string,
     context: AssistantChartContext
@@ -474,7 +490,7 @@ function detectEntities(
         // Entities like "Sub-Saharan Africa (WB)" should also match queries
         // without the parenthetical suffix, unless the plain name is itself
         // an available entity
-        const plainName = entityName.replace(/\s*\([^)]*\)\s*$/, "")
+        const plainName = stripParentheticalSuffix(entityName)
         if (plainName !== entityName && !availableEntities.has(plainName))
             patterns.add(plainName)
         for (const pattern of patterns) {
