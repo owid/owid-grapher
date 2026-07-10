@@ -12,6 +12,11 @@ export const EMAIL_NOTIFICATIONS_FROM_ADDRESS =
 export type EmailNotificationsFrequency =
     (typeof EMAIL_NOTIFICATIONS_FREQUENCIES)[number]
 
+// Lifetimes of the purpose-scoped tokens (tokens table). Short expiries are
+// cheap because every expired-link page has a resend button.
+export const EMAIL_NOTIFICATIONS_CONFIRM_TOKEN_TTL_MS = 48 * 60 * 60 * 1000
+export const EMAIL_NOTIFICATIONS_MAGIC_LINK_TTL_MS = 30 * 60 * 1000
+
 // User-facing labels for the subscribe/preferences form and the welcome
 // email.
 export const EMAIL_NOTIFICATIONS_FREQUENCY_LABELS: Record<
