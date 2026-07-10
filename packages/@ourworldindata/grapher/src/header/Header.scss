@@ -32,4 +32,17 @@
             width: auto !important;
         }
     }
+
+    .title-annotation-info-icon {
+        color: $gray-70; // matches the annotation text color
+        cursor: default;
+        display: inline-block;
+
+        svg {
+            // an inline-block without line boxes is baseline-anchored at
+            // its bottom edge, which the computed vertical-align relies
+            // on to center the icon on the text
+            display: block;
+        }
+    }
 }

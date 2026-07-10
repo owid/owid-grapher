@@ -322,6 +322,25 @@ export function makeTooltipToleranceNotice(
     return `Data not available for ${targetYear}. Showing closest available ${dataPoint} instead`
 }
 
+export function makeTitleToleranceNotice(
+    entries: {
+        formattedTargetTime: string
+        /** The range of times the displayed values are from, e.g. "2021–2023" */
+        formattedTimeRange: string
+        numCountries: number
+    }[]
+): string {
+    return entries
+        .map(({ formattedTargetTime, formattedTimeRange, numCountries }) => {
+            const [countries, lack, show] =
+                numCountries === 1
+                    ? ["country", "lacks", "shows"]
+                    : ["countries", "lack", "show"]
+            return `${numCountries} ${countries} ${lack} data for ${formattedTargetTime} and ${show} data from ${formattedTimeRange} instead.`
+        })
+        .join(" ")
+}
+
 export function makeTooltipRoundingNotice(
     numSignificantFigures: number[],
     { plural }: { plural: boolean } = { plural: true }
