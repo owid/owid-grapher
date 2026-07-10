@@ -64,9 +64,15 @@ export const ManualControlArea = observer(function ManualControlArea({
                 <div className="manual-control-area__contextual-controls">
                     {manager.isOnMapTab ? (
                         <>
-                            <MapResetButton manager={manager} action="resetZoom" />
+                            <MapResetButton
+                                manager={manager}
+                                action="resetZoom"
+                            />
                             <MapZoomToSelectionButton manager={manager} />
-                            <MapResetButton manager={manager} action="resetView" />
+                            <MapResetButton
+                                manager={manager}
+                                action="resetView"
+                            />
                             <MapRegionDropdown manager={manager} />
                         </>
                     ) : (
