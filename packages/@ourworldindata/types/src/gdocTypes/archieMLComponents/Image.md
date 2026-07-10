@@ -8,18 +8,6 @@ image registered in the admin (where default alt text is also set).
 
 ```archie
 {.image}
-filename: default-featured-image.png
-smallFilename: default-featured-image.png
-alt: my alt text that is optional
-size: narrow
-caption: I am a caption that would appear below the image
-hasOutline: true
-visibility: desktop
-{}
-```
-
-```archie
-{.image}
 filename: romania-maternal-mortality-abortions.png
 {}
 ```
