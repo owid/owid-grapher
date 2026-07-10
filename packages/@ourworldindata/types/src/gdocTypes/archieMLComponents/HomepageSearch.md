@@ -4,8 +4,6 @@ system: true
 
 A wide section with a site-wide search bar.
 
-### Basic
-
 ```archie
 {.homepage-search}
 {}

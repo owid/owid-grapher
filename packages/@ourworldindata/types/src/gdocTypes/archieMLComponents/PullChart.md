@@ -2,8 +2,6 @@ A chart pull — the chart equivalent of a pull quote. Shows a small chart
 thumbnail alongside descriptive text, letting you reference a chart inline
 without giving it full width.
 
-### Left-aligned pull chart
-
 ```archie
 {.pull-chart}
 align: left-center

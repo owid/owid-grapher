@@ -1,8 +1,6 @@
 A thin, light-gray line that divides two large sections of an article.
 Typically precedes an h1 heading.
 
-### Basic
-
 ```archie
 {.horizontal-rule}
 {}

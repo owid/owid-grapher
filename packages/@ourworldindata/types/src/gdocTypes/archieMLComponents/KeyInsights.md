@@ -2,8 +2,6 @@ A slide carousel of "key insights" — the core takeaways of a topic
 page. Each slide has a title, optional visual (chart, narrative chart,
 or image), and a body of rich content.
 
-### With mixed visuals
-
 ```archie
 {.key-insights}
 heading: Key Insights on Poverty

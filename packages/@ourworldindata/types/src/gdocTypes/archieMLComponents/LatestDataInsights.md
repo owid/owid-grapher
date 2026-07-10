@@ -1,8 +1,6 @@
 A grey section on the homepage listing the four most recent published
 data insights. Only include it when at least four are published.
 
-### Basic
-
 ```archie
 {.latest-data-insights}
 {}

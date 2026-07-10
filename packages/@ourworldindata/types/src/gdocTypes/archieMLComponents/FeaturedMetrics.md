@@ -1,8 +1,6 @@
 Displays featured metrics related to the current topic — the same
 results as a filtered search. The document must have a topic tag.
 
-### Basic
-
 ```archie
 {.featured-metrics}
 {}

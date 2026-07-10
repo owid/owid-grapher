@@ -6,61 +6,37 @@ A mosaic of article tiles linking to related work. Used to showcase
 further reading at the bottom of topic and linear topic pages, and on
 author pages as the "All work" section.
 
-### Full mosaic
-
 ```archie
 {.research-and-writing}
-
+heading: Research & Writing
 [.primary]
-url: https://wikipedia.org
-authors: Author 1, Author 2
-title: What are Bananas?
-subtitle: There is no single definition of bananas.
-filename: bananas.jpg
+url: https://docs.google.com/document/d/1qiCu4Yl-YxNgj8cV_0MGB9p6z6WoLF3gFGFspsjK1qU/edit
 []
-
 [.secondary]
-url: https://ourworldindata.org/optimism-and-pessimism
-title: Optimism and Pessimism
-authors: Max Roser
-filename: default-featured-image.png
+url: https://docs.google.com/document/d/1e0HDWjfdRTrbLlAdUMPGtkqmLJJFw9ookSmgBU6JMPI/edit
+url: https://docs.google.com/document/d/1-YJoOYf5-_gfSFkJ6sNbMPkAI75VnOOGLSt18_4euL0/edit
 []
-
-{.more}
-heading: More Key Articles on Poverty
-[.articles]
-url: https://ourworldindata.org/poverty
-title: The history of the end of poverty has just begun
-authors: Max Roser
-
-url: https://ourworldindata.org/poverty-growth-needed
-title: The economies that are home to the poorest billions of people need to grow
-authors: Max Roser
-[]
-{}
-
 [.rows]
-heading: A row of articles
+heading: More Articles on Medicine and Biotechnology
 [.articles]
-url: https://ourworldindata.org/optimism-and-pessimism
-title: Optimism and Pessimism
-authors: Max Roser
-filename: default-featured-image.png
-
-url: https://ourworldindata.org/wrong-about-the-world
-title: Most of us are wrong about how the world has changed
-authors: Max Roser
-filename: default-featured-image.png
+url: https://docs.google.com/document/d/1-6S3Nsjrb7wFbNizDTvohHGcOzvDvva0UyDoKQUyXnQ/edit
+url: https://docs.google.com/document/d/19ytyrpTe5fYQCwAyz25egACwwr9kjyHJkYySzWlYg2Q/edit
+url: https://docs.google.com/document/d/1P8pu_FGx6fnJWw-xQBREe49uqN62rZAuARRrR2cdOjc/edit
+url: https://docs.google.com/document/d/1VrCiTsQYC6IoUqFoWl7E6QVHVrpgTcenjRjC5Xd9VVs/edit
 []
 []
 {}
 ```
 
-### Featured variant (linear topic pages)
-
 ```archie
 {.research-and-writing}
 variant: featured
+[.primary]
+url: https://docs.google.com/document/d/1eaWbY0Zgi6u1ya6ZatnxlKbL9S_lZl1MOdHGJNYbmmA/edit
+[]
+[.secondary]
+url: https://docs.google.com/document/d/1w4lp23uS4B8C_PsEsgKsvMgokp_fIKkLEG1K_zXoRv4/edit
+[]
 {}
 ```
 

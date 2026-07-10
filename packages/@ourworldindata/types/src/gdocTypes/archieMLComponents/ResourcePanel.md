@@ -3,22 +3,20 @@ charts and, if tagged, the data catalog. On desktop it sticks to the
 top-right of the intro section; on mobile it appears inline where placed
 in the gdoc.
 
-### LTP intro resource panel
-
 ```archie
 {.resource-panel}
-kicker: Resources
 icon: chart
-title: Data on this topic
+kicker: Resources
+title: Data on corruption
 buttonText: See all data on this topic
 [.links]
-url: https://ourworldindata.org/grapher/access-to-clean-fuels-and-technologies-for-cooking
-subtitle: World Health Organization - Global Health Observatory (2025)
-
-url: https://ourworldindata.org/grapher/annual-co2-emissions-per-country
-subtitle: Global Carbon Budget (2024)
+url: https://ourworldindata.org/grapher/bribery-prevalence-un
+subtitle: United Nations Office on Drugs and Crime
+url: https://ourworldindata.org/grapher/bribery-incidence-for-firms
+subtitle: World Bank Enterprise Surveys
+url: https://ourworldindata.org/grapher/political-corruption-index
+subtitle: Varieties of Democracy Project
 []
-
 {}
 ```
 

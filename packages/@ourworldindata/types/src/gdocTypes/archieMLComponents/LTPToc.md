@@ -6,38 +6,14 @@ Specialised table of contents for linear topic pages. Primary section
 lists page sections; secondary shows cards to all data and writing on
 the topic.
 
-### Default title
-
 ```archie
 {.ltp-toc}
-{}
-
-{.heading}
-text: How has life expectancy changed?
-level: 1
-{}
-
-{.heading}
-text: Why do people live longer than in the past?
-level: 1
 {}
 ```
 
-### Custom title
-
 ```archie
 {.ltp-toc}
-title: On this page
-{}
-
-{.heading}
-text: How has life expectancy changed?
-level: 1
-{}
-
-{.heading}
-text: Why do people live longer than in the past?
-level: 1
+title: Contents
 {}
 ```
 

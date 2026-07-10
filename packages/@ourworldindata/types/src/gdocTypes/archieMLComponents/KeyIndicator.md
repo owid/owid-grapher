@@ -3,16 +3,16 @@ title, a short narrative, and an embedded chart pulled from the linked
 datapage's indicator. Almost always used as a member of a
 `{.key-indicator-collection}` (the homepage accordion of indicators).
 
-### Standalone key indicator
-
 ```archie
 {.key-indicator}
 datapageUrl: https://ourworldindata.org/grapher/life-expectancy
-title: How did people's life expectancy change over time?
+title: How has people’s life expectancy changed over time?
+source: Long-run estimates collated from multiple sources by Our World in Data
 [.+text]
-Life expectancy has more than doubled in the last two centuries.
+Across the world, people are living longer. In 1900, the global average life expectancy of a newborn was 32 years. By 2021, this had more than doubled to 71 years.
+Big improvements were achieved by countries <a href="https://ourworldindata.org/life-expectancy-globally">around the world</a>. The chart shows that life expectancy has more than doubled in every region of the world. This improvement is not only due to declining child mortality; life expectancy increased <a href="https://ourworldindata.org/its-not-just-about-child-mortality-life-expectancy-improved-at-all-ages">at all ages</a>.
+This visualization shows long-run estimates of life expectancy brought together by our team from several different data sources. It also shows that the <a href="https://ourworldindata.org/coronavirus">COVID-19 pandemic</a> led to reduced life expectancy worldwide.
 []
-source: Long-run data from UN World Population Prospects
 {}
 ```
 

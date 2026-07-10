@@ -2,8 +2,6 @@ Displays data insights related to the current topic — the same results
 as a filtered search. The document must have a topic tag so the block
 knows what to filter by.
 
-### Basic
-
 ```archie
 {.featured-data-insights}
 {}

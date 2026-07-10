@@ -1,8 +1,6 @@
 A plaintext caption placed to the right or left of a body paragraph. Useful
 for short side notes that shouldn't interrupt the main reading flow.
 
-### Left-positioned aside
-
 ```archie
 {.aside}
 caption: I will be to the left of the following paragraph.

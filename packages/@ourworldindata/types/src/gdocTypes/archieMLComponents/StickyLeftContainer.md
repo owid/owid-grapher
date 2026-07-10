@@ -6,18 +6,16 @@ A two-column layout where the left column sticks to the viewport as the
 reader scrolls through the (typically longer) right column. Mirror of
 `{.sticky-right}`. Collapses to a single column at the tablet breakpoint.
 
-### Chart on the left sticks, text on the right
-
 ```archie
-{.sticky-left}
+{ .sticky-left }
+[.+right]
+This chart shows the weekly number of new admissions to intensive care units (ICU) due to COVID-19.
+Note that this number is different from the total number of patients in ICU due to COVID-19 at any given time. You can find this data in the previous section.
+[]
 [.+left]
 {.chart}
-url: https://ourworldindata.org/grapher/military-expenditure-share-gdp
+url: https://ourworldindata.org/grapher/weekly-icu-admissions-covid
 {}
-Sticky left content.
-[]
-[.+right]
-Right content.
 []
 {}
 ```

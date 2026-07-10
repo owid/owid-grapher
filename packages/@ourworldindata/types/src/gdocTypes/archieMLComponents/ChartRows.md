@@ -3,8 +3,6 @@ linking to a chart. Used standalone, or inside a `{.guided-chart}` where
 clicking a row updates the guided-chart's main chart rather than
 navigating away.
 
-### Standalone chart rows
-
 ```archie
 {.chart-rows}
 kicker: More views of this data

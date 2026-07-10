@@ -2,8 +2,6 @@ A rectangular box that conceals content until the reader clicks to reveal
 it. Useful for large tables, technical detail, or optional methodology
 that would otherwise interrupt the main narrative.
 
-### Technical detail expander
-
 ```archie
 {.expander}
 heading: Additional information

@@ -6,8 +6,6 @@ pinned:
 A static image uploaded to the OWID admin. The `filename` must match an
 image registered in the admin (where default alt text is also set).
 
-### Full featured
-
 ```archie
 {.image}
 filename: default-featured-image.png
@@ -20,11 +18,9 @@ visibility: desktop
 {}
 ```
 
-### Minimal
-
 ```archie
 {.image}
-filename: default-featured-image.png
+filename: romania-maternal-mortality-abortions.png
 {}
 ```
 

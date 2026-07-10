@@ -1,8 +1,6 @@
 A list of social / contact links. Used on author pages (as the
 `[socials]` section) and inside `{.person}` blocks on about pages.
 
-### Socials list
-
 ```archie
 [.socials]
 url: saloni@ourworldindata.org

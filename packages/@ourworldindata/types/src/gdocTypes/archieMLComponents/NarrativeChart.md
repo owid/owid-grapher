@@ -3,11 +3,9 @@ charts are the preferred way of embedding charts in articles — they let
 you pin the title, country selection, time range, and chart type so that
 future data updates don't change the point being made.
 
-### Basic
-
 ```archie
 {.narrative-chart}
-name: global-life-expectancy-has-doubled
+name: romania-fertility-rate-abortion
 {}
 ```
 
