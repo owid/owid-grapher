@@ -194,16 +194,23 @@
 // Content column
 // ---------------------------------------------------------------------------
 
+// No top padding: the detail header is sticky, and any padding on the scroll
+// container would let scrolled content show above it. The header (and the
+// overview) carry the 32px top spacing themselves instead.
 .gdocs-ref__content {
     flex: 1;
     overflow-y: auto;
-    padding: 32px 40px 80px;
+    padding: 0 40px 80px;
 }
 
 .gdocs-ref__overview,
 .gdocs-ref__detail {
     max-width: 860px;
     margin: 0 auto;
+}
+
+.gdocs-ref__overview {
+    padding-top: 32px;
 }
 
 .gdocs-ref__page-title {
@@ -321,15 +328,13 @@
 // ---------------------------------------------------------------------------
 
 // Sticks to the top of the scrolling content column so the title (and, on
-// template pages, the Copy prompt button) stays at hand. The negative
-// margin/padding pair covers the column's 32px top padding, which scrolled
-// content would otherwise peek through above the stuck header.
+// template pages, the Copy prompt button) stays at hand. Carries the
+// column's 32px top spacing as its own padding so its background covers it.
 .gdocs-ref__detail-header {
     position: sticky;
     top: 0;
     z-index: 10;
     background: #fff;
-    margin-top: -32px;
     padding-top: 32px;
     margin-bottom: 20px;
     padding-bottom: 16px;
