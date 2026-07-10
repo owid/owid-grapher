@@ -1,7 +1,8 @@
-import { FilterType, SearchState } from "@ourworldindata/types"
+import { FilterType, SearchState, SearchTopicType } from "@ourworldindata/types"
 import {
     getFilterNamesOfType,
     getSelectedTopic,
+    getSelectedTopicType,
     getPaginationOffsetAndLength,
     getNbPaginatedItemsRequested,
     hasDatasetFilters,
@@ -39,10 +40,23 @@ export function useSelectedRegionNames() {
  * in that case.
  */
 export function useResultTypeCounts() {
-    const { state, liteSearchClient } = useSearchContext()
+    const { state, liteSearchClient, topicTagGraph } = useSearchContext()
+    const { allAreas } = useTagGraphTopics(topicTagGraph)
+
+    const hasCountry =
+        getFilterNamesOfType(state.filters, FilterType.COUNTRY).size > 0
+    const topicType = getSelectedTopicType(state.filters, allAreas)
+    // Mirrors SearchTemplatesWriting: profiles are only ever shown alongside
+    // a country filter, and never for Area-type topics.
+    const showProfiles = hasCountry && topicType !== SearchTopicType.Area
+
     return useQuery({
-        queryKey: searchQueryKeys.resultTypeCounts(state),
-        queryFn: () => queryResultTypeCounts(liteSearchClient, state),
+        queryKey: [
+            ...searchQueryKeys.resultTypeCounts(state),
+            showProfiles,
+        ] as const,
+        queryFn: () =>
+            queryResultTypeCounts(liteSearchClient, state, showProfiles),
         enabled: !hasDatasetFilters(state.filters),
         placeholderData: keepPreviousData,
     })

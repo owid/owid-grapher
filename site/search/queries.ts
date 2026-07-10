@@ -522,16 +522,24 @@ export async function queryWritingTopics(
     })
 }
 
-// The gdoc types shown under the "Writing" tab (see SearchTemplatesWriting).
-// Excludes types that are indexed on the Pages index but never surfaced in
-// search results (Announcement, Author, Fragment, Homepage).
-const WRITING_GDOC_TYPES_FILTER = [
+// Types that use the same query rules as queryArticles/queryDataInsights:
+// the selected country is appended to the query as a quoted term, and the
+// search is restricted to title/tags/authors whenever a country is
+// selected (to avoid matching country mentions buried in body content).
+const COUNTRY_TERM_WRITING_TYPES_FILTER = [
     OwidGdocType.Article,
     OwidGdocType.AboutPage,
+    OwidGdocType.DataInsight,
+]
+    .map((type) => `type:${type}`)
+    .join(" OR ")
+
+// Topic/linear-topic pages (queryTopicPages) aren't tied to a specific
+// country, so — unlike the types above — their query never includes the
+// country as a search term.
+const TOPIC_PAGE_TYPES_FILTER = [
     OwidGdocType.TopicPage,
     OwidGdocType.LinearTopicPage,
-    OwidGdocType.Profile,
-    OwidGdocType.DataInsight,
 ]
     .map((type) => `type:${type}`)
     .join(" OR ")
@@ -546,10 +554,20 @@ export interface ResultTypeCounts {
  * for the current query and filters, used to annotate
  * `SearchResultTypeToggle` with result counts. Issued as a single batched
  * request (one network round-trip).
+ *
+ * Mirrors the per-section query rules used by queryArticles,
+ * queryTopicPages, queryDataInsights and queryProfiles (which differ in
+ * how they use the selected country — see comments below) so the totals
+ * line up with what's actually displayed.
+ *
+ * @param showProfiles Whether country profiles would actually be shown for
+ * the current template config (see SearchTemplatesWriting) — they're only
+ * counted in that case.
  */
 export async function queryResultTypeCounts(
     liteSearchClient: LiteClient,
-    state: SearchState
+    state: SearchState,
+    showProfiles: boolean
 ): Promise<ResultTypeCounts> {
     const selectedCountryNames = getFilterNamesOfType(
         state.filters,
@@ -567,9 +585,9 @@ export async function queryResultTypeCounts(
     )
     const fmFacetFilter = formatFeaturedMetricFacetFilter(state.query)
 
-    // Mirrors the country-as-query-term trick used by queryArticles,
-    // queryDataInsights and queryProfiles.
-    const writingQuery = [
+    // Mirrors the country-as-query-term trick used by queryArticles and
+    // queryDataInsights.
+    const countryTermQuery = [
         state.query,
         ...selectedCountryNames.keys().map((c) => `"${c}"`),
     ]
@@ -589,20 +607,48 @@ export async function queryResultTypeCounts(
         },
         {
             indexName: PAGES_INDEX,
-            query: writingQuery,
-            filters: WRITING_GDOC_TYPES_FILTER,
+            query: countryTermQuery,
+            filters: COUNTRY_TERM_WRITING_TYPES_FILTER,
             facetFilters: topicFacetFilters,
             ...(hasCountry && {
                 restrictSearchableAttributes: ["title", "tags", "authors"],
             }),
             hitsPerPage: 0,
         },
+        {
+            indexName: PAGES_INDEX,
+            query: state.query,
+            filters: TOPIC_PAGE_TYPES_FILTER,
+            facetFilters: topicFacetFilters,
+            hitsPerPage: 0,
+        },
+        // Mirrors queryProfiles: the country is applied as a facet filter
+        // on `availableEntities` rather than as a query term, since
+        // profiles are structured per-country rather than free text.
+        ...(showProfiles
+            ? [
+                  {
+                      indexName: PAGES_INDEX,
+                      query: state.query,
+                      filters: `type:${OwidGdocType.Profile}`,
+                      facetFilters: [
+                          ...countryFacetFilters,
+                          ...topicFacetFilters,
+                      ],
+                      hitsPerPage: 0,
+                  },
+              ]
+            : []),
     ]
 
     const response = await liteSearchClient.searchForHits(searchParams)
-    const [dataResult, writingResult] = response.results
+    const [dataResult, countryTermResult, topicPageResult, profilesResult] =
+        response.results
     return {
         dataCount: dataResult.nbHits ?? 0,
-        writingCount: writingResult.nbHits ?? 0,
+        writingCount:
+            (countryTermResult.nbHits ?? 0) +
+            (topicPageResult.nbHits ?? 0) +
+            (profilesResult?.nbHits ?? 0),
     }
 }
