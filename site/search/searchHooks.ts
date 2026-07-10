@@ -1,10 +1,16 @@
-import { FilterType, SearchState } from "@ourworldindata/types"
+import { FilterType, SearchState, SearchTopicType } from "@ourworldindata/types"
 import {
     getFilterNamesOfType,
     getSelectedTopic,
     getPaginationOffsetAndLength,
     getNbPaginatedItemsRequested,
+    isBrowsing,
 } from "./searchUtils.js"
+import {
+    queryResultTypeCounts,
+    ResultTypeCountsOptions,
+    searchQueryKeys,
+} from "./queries.js"
 import { DEFAULT_SEARCH_STATE } from "./searchState.js"
 import { useSearchContext } from "./SearchContext.js"
 import { fetchJson, flattenNonTopicNodes } from "@ourworldindata/utils"
@@ -211,6 +217,39 @@ export function useInfiniteSearch<THit>({
         hits,
         totalResults,
     }
+}
+
+/**
+ * Fetches the total number of results behind the "Data" and "Writing" options
+ * of the result type toggle. Mirrors the template logic in
+ * SearchTemplatesWriting: topic pages and profiles only count towards the
+ * Writing total when the corresponding template would show them.
+ *
+ * Returns undefined while loading, on error, or when browsing (no query and
+ * no filters), where whole-catalog counts wouldn't be meaningful.
+ */
+export function useResultTypeCounts() {
+    const { state, liteSearchClient, templateConfig } = useSearchContext()
+    const { topicType, hasCountry, hasQuery } = templateConfig
+
+    const options: ResultTypeCountsOptions = {
+        // The Writing template hides topic pages when filtering by country
+        // without a topic or query (see SearchTemplatesWriting).
+        includeTopicPages: !(topicType === null && hasCountry && !hasQuery),
+        // Profiles are only shown when a country is selected and the selected
+        // topic is not an area (see SearchTemplatesWriting).
+        includeProfiles: hasCountry && topicType !== SearchTopicType.Area,
+    }
+
+    const { data } = useQuery({
+        queryKey: searchQueryKeys.resultTypeCounts(state, options),
+        queryFn: () => queryResultTypeCounts(liteSearchClient, state, options),
+        enabled:
+            !templateConfig.hasDatasetFilters &&
+            !isBrowsing(state.filters, state.query),
+    })
+
+    return data
 }
 
 export function useTopicTagGraph({ isPreviewing }: { isPreviewing: boolean }) {

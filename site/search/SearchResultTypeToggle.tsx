@@ -1,6 +1,8 @@
 import { RadioButton } from "@ourworldindata/components"
 import { SearchResultType } from "@ourworldindata/types"
+import { commafyNumber } from "@ourworldindata/utils"
 import { useSearchContext } from "./SearchContext.js"
+import { useResultTypeCounts } from "./searchHooks.js"
 import {
     getEffectiveResultType,
     hasDatasetFilters,
@@ -19,6 +21,7 @@ export const SearchResultTypeToggle = () => {
         actions: { setResultType },
     } = useSearchContext()
     const { resultType, filters, query } = state
+    const counts = useResultTypeCounts()
 
     if (hasDatasetFilters(filters)) return null
 
@@ -41,15 +44,25 @@ export const SearchResultTypeToggle = () => {
             <legend className="search-result-type-toggle__legend">
                 Filter by type of content:
             </legend>
-            {optionsToShow.map((option) => (
-                <RadioButton
-                    key={option.value}
-                    checked={effectiveResultType === option.value}
-                    onChange={() => setResultType(option.value)}
-                    label={option.label}
-                    group="search-result-type"
-                />
-            ))}
+            {optionsToShow.map((option) => {
+                const count =
+                    option.value !== SearchResultType.ALL
+                        ? counts?.[option.value]
+                        : undefined
+                return (
+                    <RadioButton
+                        key={option.value}
+                        checked={effectiveResultType === option.value}
+                        onChange={() => setResultType(option.value)}
+                        label={
+                            count !== undefined
+                                ? `${option.label} (${commafyNumber(count)})`
+                                : option.label
+                        }
+                        group="search-result-type"
+                    />
+                )
+            })}
         </fieldset>
     )
 }

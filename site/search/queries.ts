@@ -14,6 +14,7 @@ import {
     PageChronologicalRecord,
     DataInsightHit,
     FlatArticleHit,
+    SearchResultType,
 } from "@ourworldindata/types"
 import { type SearchResponse } from "algoliasearch"
 import { type LiteClient } from "algoliasearch/lite"
@@ -63,6 +64,8 @@ export const searchQueryKeys = {
         [PAGES_INDEX, "topics", makeStateForKey(state)] as const,
     profiles: (state: SearchState) =>
         [PAGES_INDEX, "profiles", makeStateForKey(state)] as const,
+    resultTypeCounts: (state: SearchState, options: ResultTypeCountsOptions) =>
+        ["result-type-counts", makeStateForKey(state), options] as const,
 } as const
 
 export const latestPagesQueryKey = {
@@ -131,11 +134,7 @@ export async function queryDataTopics(
     }))
 }
 
-export async function queryCharts(
-    liteSearchClient: LiteClient,
-    state: SearchState,
-    page: number = 0
-) {
+function buildChartsBaseParams(state: SearchState) {
     const countryFacetFilters = formatCountryFacetFilters(
         getFilterNamesOfType(state.filters, FilterType.COUNTRY),
         state.requireAllCountries
@@ -170,12 +169,22 @@ export async function queryCharts(
         ...fmFacetFilter,
     ]
 
+    return {
+        indexName: CHARTS_INDEX,
+        query: state.query,
+        facetFilters,
+    }
+}
+
+export async function queryCharts(
+    liteSearchClient: LiteClient,
+    state: SearchState,
+    page: number = 0
+) {
     const searchParams = [
         {
-            indexName: CHARTS_INDEX,
+            ...buildChartsBaseParams(state),
             attributesToRetrieve: DATA_CATALOG_ATTRIBUTES,
-            query: state.query,
-            facetFilters,
             highlightPreTag: "<mark>",
             highlightPostTag: "</mark>",
             hitsPerPage: 9,
@@ -186,12 +195,7 @@ export async function queryCharts(
     return searchSingleForHits<SearchChartHit>(liteSearchClient, searchParams)
 }
 
-export async function queryDataInsights(
-    liteSearchClient: LiteClient,
-    state: SearchState,
-    page: number = 0,
-    hitsPerPage: number = 4
-) {
+function buildDataInsightsBaseParams(state: SearchState) {
     const selectedCountryNames = getFilterNamesOfType(
         state.filters,
         FilterType.COUNTRY
@@ -208,20 +212,31 @@ export async function queryDataInsights(
         .filter(Boolean)
         .join(" ")
 
+    return {
+        indexName: PAGES_INDEX,
+        query,
+        filters: `type:${OwidGdocType.DataInsight}`,
+        facetFilters: formatTopicFacetFilters(selectedTopics),
+        // Do not search through the content of data insights in case there
+        // is a country filter present. This is to avoid returning data
+        // insights that might mention a country, but are not *about* that
+        // country (e.g. "Unlike Germany...").
+        ...(hasCountry && {
+            // a subset of searchableAttributes on the Pages index
+            restrictSearchableAttributes: ["title", "tags", "authors"],
+        }),
+    }
+}
+
+export async function queryDataInsights(
+    liteSearchClient: LiteClient,
+    state: SearchState,
+    page: number = 0,
+    hitsPerPage: number = 4
+) {
     const searchParams = [
         {
-            indexName: PAGES_INDEX,
-            query,
-            filters: `type:${OwidGdocType.DataInsight}`,
-            facetFilters: formatTopicFacetFilters(selectedTopics),
-            // Do not search through the content of data insights in case there
-            // is a country filter present. This is to avoid returning data
-            // insights that might mention a country, but are not *about* that
-            // country (e.g. "Unlike Germany...").
-            ...(hasCountry && {
-                // a subset of searchableAttributes on the Pages index
-                restrictSearchableAttributes: ["title", "tags", "authors"],
-            }),
+            ...buildDataInsightsBaseParams(state),
             attributesToRetrieve: [
                 "title",
                 "thumbnailUrl",
@@ -239,19 +254,13 @@ export async function queryDataInsights(
     return searchSingleForHits<DataInsightHit>(liteSearchClient, searchParams)
 }
 
-export async function queryArticles(
-    liteSearchClient: LiteClient,
-    state: SearchState,
-    offset: number = 0,
-    length: number
-) {
+function buildArticlesBaseParams(state: SearchState) {
     const selectedCountryNames = getFilterNamesOfType(
         state.filters,
         FilterType.COUNTRY
     )
     const hasCountry = selectedCountryNames.size > 0
     const selectedTopics = getFilterNamesOfType(state.filters, FilterType.TOPIC)
-    const isFilterOnly = state.query.trim() === ""
     // Using the selected countries as query search terms until articles
     // are tagged with countries.
     const query = [
@@ -262,20 +271,33 @@ export async function queryArticles(
         .filter(Boolean)
         .join(" ")
 
+    return {
+        indexName: PAGES_INDEX,
+        query,
+        filters: `type:${OwidGdocType.Article} OR type:${OwidGdocType.AboutPage}`,
+        facetFilters: formatTopicFacetFilters(selectedTopics),
+        // Do not search through the content of articles in case there is a
+        // country filter present. This is to avoid returning articles that
+        // might mention a country, but are not *about* that country (e.g.
+        // "Unlike Germany...").
+        ...(hasCountry && {
+            // a subset of searchableAttributes on the Pages index
+            restrictSearchableAttributes: ["title", "tags", "authors"],
+        }),
+    }
+}
+
+export async function queryArticles(
+    liteSearchClient: LiteClient,
+    state: SearchState,
+    offset: number = 0,
+    length: number
+) {
+    const isFilterOnly = state.query.trim() === ""
+
     const searchParams = [
         {
-            indexName: PAGES_INDEX,
-            query,
-            filters: `type:${OwidGdocType.Article} OR type:${OwidGdocType.AboutPage}`,
-            facetFilters: formatTopicFacetFilters(selectedTopics),
-            // Do not search through the content of articles in case there is a
-            // country filter present. This is to avoid returning articles that
-            // might mention a country, but are not *about* that country (e.g.
-            // "Unlike Germany...").
-            ...(hasCountry && {
-                // a subset of searchableAttributes on the Pages index
-                restrictSearchableAttributes: ["title", "tags", "authors"],
-            }),
+            ...buildArticlesBaseParams(state),
             attributesToRetrieve: [
                 "title",
                 "thumbnailUrl",
@@ -295,20 +317,26 @@ export async function queryArticles(
     return searchSingleForHits<FlatArticleHit>(liteSearchClient, searchParams)
 }
 
+function buildTopicPagesBaseParams(state: SearchState) {
+    const selectedTopics = getFilterNamesOfType(state.filters, FilterType.TOPIC)
+
+    return {
+        indexName: PAGES_INDEX,
+        query: state.query,
+        filters: `type:${OwidGdocType.TopicPage} OR type:${OwidGdocType.LinearTopicPage}`,
+        facetFilters: formatTopicFacetFilters(selectedTopics),
+    }
+}
+
 export async function queryTopicPages(
     liteSearchClient: LiteClient,
     state: SearchState,
     offset: number = 0,
     length: number
 ) {
-    const selectedTopics = getFilterNamesOfType(state.filters, FilterType.TOPIC)
-
     const searchParams = [
         {
-            indexName: PAGES_INDEX,
-            query: state.query,
-            filters: `type:${OwidGdocType.TopicPage} OR type:${OwidGdocType.LinearTopicPage}`,
-            facetFilters: formatTopicFacetFilters(selectedTopics),
+            ...buildTopicPagesBaseParams(state),
             attributesToRetrieve: [
                 "title",
                 "type",
@@ -326,12 +354,7 @@ export async function queryTopicPages(
     return searchSingleForHits<TopicPageHit>(liteSearchClient, searchParams)
 }
 
-export async function queryProfiles(
-    liteSearchClient: LiteClient,
-    state: SearchState,
-    offset: number = 0,
-    length: number
-) {
+function buildProfilesBaseParams(state: SearchState) {
     const selectedCountryNames = getFilterNamesOfType(
         state.filters,
         FilterType.COUNTRY
@@ -346,12 +369,23 @@ export async function queryProfiles(
         ...formatTopicFacetFilters(selectedTopics),
     ]
 
+    return {
+        indexName: PAGES_INDEX,
+        query: state.query,
+        filters: `type:${OwidGdocType.Profile}`,
+        facetFilters,
+    }
+}
+
+export async function queryProfiles(
+    liteSearchClient: LiteClient,
+    state: SearchState,
+    offset: number = 0,
+    length: number
+) {
     const searchParams = [
         {
-            indexName: PAGES_INDEX,
-            query: state.query,
-            filters: `type:${OwidGdocType.Profile}`,
-            facetFilters,
+            ...buildProfilesBaseParams(state),
             attributesToRetrieve: [
                 "title",
                 "thumbnailUrl",
@@ -368,6 +402,63 @@ export async function queryProfiles(
     ]
 
     return searchSingleForHits<ProfileHit>(liteSearchClient, searchParams)
+}
+
+export interface ResultTypeCountsOptions {
+    /** Whether the Writing tab would show topic pages for the current state */
+    includeTopicPages: boolean
+    /** Whether the Writing tab would show profiles for the current state */
+    includeProfiles: boolean
+}
+
+export type ResultTypeCounts = Record<
+    SearchResultType.DATA | SearchResultType.WRITING,
+    number
+>
+
+// Count-only queries: we only read `nbHits`, so no hits, highlighting or
+// Algolia analytics are needed.
+const COUNT_ONLY_PARAMS = {
+    hitsPerPage: 0,
+    attributesToRetrieve: [],
+    attributesToHighlight: [],
+    analytics: false,
+}
+
+/**
+ * Fetches the total number of results behind the "Data" and "Writing" options
+ * of the result type toggle, in a single batched Algolia request. Reuses the
+ * same search parameters as the individual result sections so the counts match
+ * what each tab actually shows.
+ */
+export async function queryResultTypeCounts(
+    liteSearchClient: LiteClient,
+    state: SearchState,
+    options: ResultTypeCountsOptions
+): Promise<ResultTypeCounts> {
+    const writingParams = [
+        buildArticlesBaseParams(state),
+        buildDataInsightsBaseParams(state),
+        ...(options.includeTopicPages
+            ? [buildTopicPagesBaseParams(state)]
+            : []),
+        ...(options.includeProfiles ? [buildProfilesBaseParams(state)] : []),
+    ]
+
+    const searchParams = [buildChartsBaseParams(state), ...writingParams].map(
+        (params) => ({ ...params, ...COUNT_ONLY_PARAMS })
+    )
+
+    const response = await liteSearchClient.searchForHits(searchParams)
+    const [chartsResult, ...writingResults] = response.results
+
+    return {
+        [SearchResultType.DATA]: chartsResult.nbHits ?? 0,
+        [SearchResultType.WRITING]: R.sumBy(
+            writingResults,
+            (result) => result.nbHits ?? 0
+        ),
+    }
 }
 
 export interface LatestPagesResult {
