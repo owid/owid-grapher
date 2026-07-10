@@ -160,9 +160,7 @@ export function describeView(
 function describeViewTime(view: AssistantView): string | undefined {
     const { startTime, endTime } = view
     if (startTime !== undefined && endTime !== undefined)
-        return startTime === endTime
-            ? `${endTime}`
-            : `${startTime}–${endTime}`
+        return startTime === endTime ? `${endTime}` : `${startTime}–${endTime}`
     if (startTime !== undefined) return `Since ${startTime}`
     if (endTime !== undefined) return `Until ${endTime}`
     return undefined
@@ -437,7 +435,9 @@ function detectTimeRange(
     if (/\b(latest|most recent|newest|current|today|now)\b/.test(lowerQuery))
         return { startTime: latest, endTime: latest }
 
-    if (/\ball years\b|\bfull (time )?range\b|\bwhole period\b/.test(lowerQuery))
+    if (
+        /\ball years\b|\bfull (time )?range\b|\bwhole period\b/.test(lowerQuery)
+    )
         return { startTime: earliest, endTime: latest }
 
     return undefined
@@ -492,9 +492,7 @@ function detectEntities(
 
     let masked = ` ${query} `
     for (const stopPhrase of ENTITY_STOP_PHRASES)
-        masked = masked.replace(stopPhrase, (match) =>
-            " ".repeat(match.length)
-        )
+        masked = masked.replace(stopPhrase, (match) => " ".repeat(match.length))
     let maskedLower = masked.toLowerCase()
 
     const matchedIndices: Array<{ index: number; entityName: EntityName }> = []
@@ -686,8 +684,6 @@ function buildTopBottomOptions(
 
     return {
         kind: "options",
-        options: views
-            .slice(0, 3)
-            .map((view) => makeViewOption(view, context)),
+        options: views.slice(0, 3).map((view) => makeViewOption(view, context)),
     }
 }

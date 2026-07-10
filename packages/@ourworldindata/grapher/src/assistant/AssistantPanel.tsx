@@ -76,7 +76,10 @@ function computeLatestValuesByCountry(
             ?.entityNames ?? []
     )
 
-    for (const [entityName, valueByTime] of column.valueByEntityNameAndOriginalTime) {
+    for (const [
+        entityName,
+        valueByTime,
+    ] of column.valueByEntityNameAndOriginalTime) {
         if (!countryEntities.has(entityName)) continue
         let latestTime = -Infinity
         let latestValue: number | undefined
