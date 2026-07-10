@@ -122,6 +122,8 @@ The flag is consumed entirely by the site layer ([site/gdocs/OwidGdocPage.tsx](.
 
 **One embeddable block per article**: iframe mode only kicks in when an article has _exactly one_ top-level block with `iframeEmbed: true`.
 
+Iframe mode can be suppressed with a `?disableIframeEmbed` query param — the admin's article preview (which frames articles too) uses this so editors still see the full article.
+
 ### URL state (`urlSync`)
 
 For a good embed, the project should also support `urlSync: true`, which syncs the viz state (selected country, year, …) to query parameters. That way an embed can pin a specific view via the iframe URL, e.g. `?migrationCountry=France`. Implement it with the shared [`useUrlState`](hooks/useUrlState.ts) hook and prefix the parameter keys with the project name (`causesOfDeathRegion`, `migrationCountry`, …) so multiple projects on the same page can't collide.
