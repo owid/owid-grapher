@@ -32,6 +32,7 @@ import {
     BASE_DIR,
     BAKED_BASE_URL,
     CLOUDFLARE_IMAGES_URL,
+    POSTMARK_API_BASE_URL,
     POSTMARK_SERVER_TOKEN,
 } from "../../settings/serverSettings.js"
 import {
@@ -205,7 +206,7 @@ async function sendViaPostmark(email: {
     htmlBody: string
     metadata: Record<string, string>
 }): Promise<string | null> {
-    const response = await fetch("https://api.postmarkapp.com/email", {
+    const response = await fetch(`${POSTMARK_API_BASE_URL}/email`, {
         method: "POST",
         headers: {
             Accept: "application/json",
