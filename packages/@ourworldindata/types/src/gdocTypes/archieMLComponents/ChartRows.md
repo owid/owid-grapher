@@ -13,12 +13,12 @@ navigating away.
 - You only have one chart to reference — use `{.pull-chart}`.
 - The charts are the main subject — use full-width `{.chart}` blocks.
 
-## Variations
+## Notes
 
-- `kicker`: short label above the rows (defaults to "More views of this
-  data" at render time).
-- `title` and `source`: only shown in standalone mode; hidden when nested
-  inside a `{.guided-chart}`.
+`kicker` is the short label above the rows; when omitted, "More views of
+this data" is shown. `title` and `source` only display in standalone
+mode — setting them inside a `{.guided-chart}` triggers a warning in the
+admin preview.
 
 ### Standalone chart rows
 

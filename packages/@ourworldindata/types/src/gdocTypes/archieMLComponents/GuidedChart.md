@@ -17,11 +17,15 @@ params (selection, time, tab, etc.) can change.
 - You need more than one chart slug — guided-chart sections must have
   exactly one chart.
 
-## Variations
+## Notes
 
-- Can contain a `{.chart-rows}` block — clicking a row updates the main
-  chart rather than navigating away. In guided-chart mode, `title` and
-  `source` on the chart-rows are hidden.
+Designed for `{.sticky-left}` / `{.sticky-right}` two-column layouts but
+works in a single column too. Multiple guided-chart sections per page are
+fine.
+
+Can contain a `{.chart-rows}` block — clicking a row updates the main
+chart rather than navigating away. In guided-chart mode, `title` and
+`source` on the chart-rows are hidden.
 
 ### Sticky-left layout with a chart and guided links
 

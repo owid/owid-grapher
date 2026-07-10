@@ -9,10 +9,10 @@ homepage. Each tile pulls its icon from the explorer's tag in admin.
 
 - For a single explorer embed — use `{.chart}` with the explorer URL.
 
-## Variations
+## Notes
 
-- Supply exactly 4 explorer URLs. Each explorer must be tagged in
-  admin and the tag must have an icon in the tag-icons folder.
+Supply exactly 4 explorer URLs. Each explorer must be tagged in the
+admin, and the tag needs an icon in the repo's tag-icons folder.
 
 ### Four explorers
 

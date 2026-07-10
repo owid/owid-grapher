@@ -10,9 +10,10 @@ body text. The quote is visually set alongside a paragraph of `content`.
 - Prefer `{.blockquote}` when citing an external source — pull quotes are
   meant to re-emphasize something from the article itself.
 
-## Variations
+## Notes
 
-- `align`: `left` | `left-center` | `right-center` | `right`
+Unlike `{.aside}`, the paragraph the quote sits alongside must be
+supplied as `content` inside the block — a CSS limitation.
 
 ### Left-center aligned
 

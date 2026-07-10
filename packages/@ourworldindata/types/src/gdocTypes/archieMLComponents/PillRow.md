@@ -13,10 +13,10 @@ topic chips.
 - As a general-purpose inline list — use `{.cta}`, `{.recirc}`, or
   normal links instead.
 
-## Variations
+## Notes
 
-- Pill `text` is optional when the URL is a gdoc link — the gdoc
-  title is used.
+Omit a pill's `text` for gdoc links — the gdoc title is used. On author
+pages, keep the pills to one desktop line (about 5–7 topics).
 
 ### Basic
 

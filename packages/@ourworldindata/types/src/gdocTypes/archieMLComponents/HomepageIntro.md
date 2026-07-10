@@ -14,14 +14,13 @@ paired with a grid of four featured tiles.
 - Anywhere else. The mission text is hard-coded for the homepage
   layout.
 
-## Variations
+## Notes
 
-- Exactly four entries must be supplied under `[.featured-work]`.
-- `kicker` is free text (e.g. "Article - 10 Min Read",
-  "Announcement").
-- `isNew: true` shows a red "NEW" pill on that tile.
-- gdoc URLs auto-resolve title/description; external URLs require
-  those fields explicitly.
+Supply exactly four entries under `[.featured-work]`. `kicker` is free
+text (e.g. "Article - 10 Min Read", "Announcement") — no strong
+conventions yet. `isNew: true` shows a red "NEW" pill before that tile's
+kicker. gdoc URLs auto-resolve title/description; external URLs require
+those fields explicitly.
 
 ### Four featured tiles
 

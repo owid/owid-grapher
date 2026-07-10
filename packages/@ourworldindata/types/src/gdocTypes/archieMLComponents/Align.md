@@ -11,9 +11,7 @@ and other visual blocks are not re-aligned by this wrapper.
   own size/visibility controls.
 - For full-width styled sections; prefer `{.gray-section}`.
 
-## Variations
-
-- `alignment`: `left` | `center` | `right`
+## Notes
 
 ### Centered text
 

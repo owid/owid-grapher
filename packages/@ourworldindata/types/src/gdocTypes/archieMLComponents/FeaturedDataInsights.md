@@ -1,5 +1,6 @@
-Displays data insights related to the current topic. The document
-must have a topic tag so the block knows what to filter by. No props.
+Displays data insights related to the current topic — the same results
+as a filtered search. The document must have a topic tag so the block
+knows what to filter by.
 
 ## When to use
 

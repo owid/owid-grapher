@@ -7,6 +7,8 @@ that reveals the rest inline. Any Archie block is supported inside.
 
 ## When NOT to use
 
+- A couple of paragraphs don't need it — only reach for it when there is
+  a lot to say.
 - Prefer `{.expander}` when you want a distinct boxed affordance for
   large tables or technical sections.
 

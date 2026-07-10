@@ -11,11 +11,11 @@ in the gdoc.
 
 - Prefer `{.recirc}` for a simple list of related links outside LTPs.
 
-## Variations
+## Notes
 
-- `icon`: currently only `chart` is supported.
-- `kicker` is a short label rendered above the title.
-- `buttonText` is the label of the bottom call-to-action button.
+Place it at least after the first paragraph of the intro section.
+`kicker` renders as a short label above the title; `buttonText` labels
+the bottom call-to-action button.
 
 ### LTP intro resource panel
 

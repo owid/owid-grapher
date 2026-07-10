@@ -11,6 +11,11 @@ section lets you override or extend that ordering for this article.
 - You want to hand-pick a small number of related charts — use
   `{.chart-rows}` or `{.additional-charts}`.
 
+## Notes
+
+The tag is set on the document in the gdocs admin index. URLs listed under
+`[.top]` must belong to charts that share that tag.
+
 ### All charts on a topic with pinned top charts
 
 ```archie

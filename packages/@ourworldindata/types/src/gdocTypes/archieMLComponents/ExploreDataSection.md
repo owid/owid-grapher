@@ -11,9 +11,9 @@ Gdoc content. Used on linear topic pages to group the
 
 - On regular topic pages or articles.
 
-## Variations
+## Notes
 
-- `title` defaults to "Explore the data" if omitted.
+When `title` is omitted, "Explore the data" is shown.
 
 ### Basic
 

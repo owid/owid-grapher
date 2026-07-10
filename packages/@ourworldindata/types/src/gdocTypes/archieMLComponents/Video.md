@@ -13,13 +13,11 @@ Google Drive — a developer must upload the compressed video first
   block.
 - Static imagery — use `{.image}`.
 
-## Variations
+## Notes
 
-- `shouldLoop`: `true` | `false`
-- `shouldAutoplay`: `true` | `false`
-- `visibility`: `mobile` | `desktop`
-- `filename` is the poster / preview image (same aspect ratio as the
-  video, usually the first frame) and must be registered in the admin.
+`filename` is the poster / preview image (same aspect ratio as the
+video, usually the first frame) and must be registered in the images
+admin.
 
 ### Looping autoplay with a poster image
 

@@ -10,12 +10,10 @@ for short side notes that shouldn't interrupt the main reading flow.
 - Prefer `{.callout}` when the note needs a title, icon, or rich text.
 - Prefer `{.recirc}` when linking to related content.
 
-## Variations
+## Notes
 
-- `position`: `right` (default) | `left`
-- Placement in the document matters: put the aside before a paragraph for
-  `left`, after the paragraph for `right`.
-- `caption` is plaintext only.
+Placement in the document matters: put the block before the paragraph for
+a left aside, after it for a right one. The caption is plaintext only.
 
 ### Left-positioned aside
 

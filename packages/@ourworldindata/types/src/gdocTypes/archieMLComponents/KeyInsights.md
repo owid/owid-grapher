@@ -11,10 +11,15 @@ or image), and a body of rich content.
 
 - On articles or data insights.
 
-## Variations
+## Notes
 
-- Each slide's visual is either a `url` (grapher/explorer), a
-  `narrativeChartName`, or a `filename` (image). Use at most one.
+Each insight's `title` doubles as the slide heading. A slide's visual is
+either a `url` (grapher/explorer), a `narrativeChartName`, or a
+`filename` (image) — use at most one.
+
+For a `{.callout}` inside an insight, omit its title and make the first
+line (e.g. "What you should know about this data") an h5 so the correct
+CSS applies.
 
 ### With mixed visuals
 

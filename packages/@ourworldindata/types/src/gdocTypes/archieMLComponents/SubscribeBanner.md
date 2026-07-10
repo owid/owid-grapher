@@ -12,9 +12,10 @@ you want an additional copy inline.
   on a specific article, set `hide-subscribe-banner: true` in the
   front-matter instead of using this block.
 
-## Variations
+## Notes
 
-- `align`: `left` | `center` | `right`
+The automatic banner is inserted immediately before the last h1. Place
+one manually only when you want to control its position or alignment.
 
 ### Centered
 

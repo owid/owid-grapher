@@ -13,12 +13,17 @@ data point. For multi-y charts, pass a column name, e.g.
 - Prefer `{.callout}` for static meta-textual notes not driven by chart
   data.
 
-## Variations
+## Notes
 
-- Include `time` in the grapher URL to pin to a specific year instead of
-  the latest point.
-- If the referenced chart has no data for the current entity, the entire
-  section won't render — useful for country profiles.
+Include `time` in the grapher URL to pin a specific period —
+`$latestTime()` means "latest for this particular view". Use
+/admin/callout-functions to find the indicator slugs a chart exposes.
+
+If the referenced chart has no data for the current entity, the entire
+section won't render — by design, useful for country profiles.
+
+Any content can go inside, including charts, though a nested chart has no
+programmatic relation to the callout.
 
 ### Country life expectancy
 

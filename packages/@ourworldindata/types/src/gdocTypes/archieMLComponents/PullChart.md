@@ -14,10 +14,11 @@ without giving it full width.
   `{.narrative-chart}` for a full-width interactive.
 - You want a list of several charts — use `{.chart-rows}`.
 
-## Variations
+## Notes
 
-- `align`: `left-center` (default) | `right-center` — which side the
-  thumbnail sits on.
+`image` is a chart thumbnail uploaded via the admin; it links to the
+interactive chart. `content` gives the chart context and doubles as its
+screen-reader text.
 
 ### Left-aligned pull chart
 

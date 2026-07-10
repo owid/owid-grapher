@@ -10,10 +10,10 @@ members. Wraps an inner `[.+people]` list of people blocks.
 
 - Elsewhere.
 
-## Variations
+## Notes
 
-- `columns`: `2` or `4` — 4 suits compact cards, 2 suits cards with
-  longer bios.
+Four columns suit compact cards; two suit cards with longer bios. Fewer
+columns render on smaller screens either way.
 
 ### Two-column row
 

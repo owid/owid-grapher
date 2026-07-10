@@ -12,10 +12,11 @@ must supply them.
 - Prefer `{.recirc}` for a small gray list of multiple related links.
 - Prefer `{.cta}` for a simple arrow link.
 
-## Variations
+## Notes
 
-- Gdoc URL: all fields auto-fetched; pass just `url`.
-- External URL or overrides: supply `title`, `description`, `thumbnail`.
+For a gdoc URL, passing just `url` is enough — all fields are
+auto-fetched. For external URLs (or unmigrated articles), supply
+`title`, `description`, and `thumbnail` yourself.
 
 ### Gdoc URL (auto-fetched)
 

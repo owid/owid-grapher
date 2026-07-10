@@ -17,11 +17,10 @@ included — disappears.
 - When each callout should hide independently — the whole group hides or
   shows as a unit.
 
-## Variations
+## Notes
 
-- `content` is an array of any enriched blocks, but it's only useful when
-  it contains at least one `{.data-callout}` (otherwise the visibility
-  filtering has nothing to act on).
+Only useful when the content contains at least one `{.data-callout}` —
+otherwise the visibility filtering has nothing to act on.
 
 ```archie
 {.data-callout-group}

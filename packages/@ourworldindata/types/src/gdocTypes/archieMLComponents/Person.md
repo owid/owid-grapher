@@ -12,15 +12,11 @@ narrative bio text, and optional social links. Nested inside `{.people}`
 - As a top-level block — `{.person}` is meant to be nested inside a
   collection.
 
-## Variations
+## Notes
 
-- `image` (optional): asset filename to display.
-- `name` (required): the person's name.
-- `title` (optional): role / job title shown under the name.
-- `url` (optional): link wrapping the card.
-- `text` (required): one or more paragraphs of bio / description.
-- `socials` (optional): array of social links. Each has `type` (e.g. `x`,
-  `mastodon`, `bluesky`, `threads`), `url`, and `text` (display label).
+`image` is a filename uploaded via the admin. Point `url` at the
+person's author-page gdoc when they have one. `socials` follows the same
+format as `{.socials}` on author pages.
 
 ```archie
 {.person}

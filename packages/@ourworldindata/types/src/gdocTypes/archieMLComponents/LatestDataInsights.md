@@ -1,6 +1,5 @@
-A grey section on the homepage listing the most recent published data
-insights. Automatically hidden if fewer than 4 published data
-insights exist. No props.
+A grey section on the homepage listing the four most recent published
+data insights. Only include it when at least four are published.
 
 ## When to use
 

@@ -15,6 +15,11 @@ iframes or inline styling.
 - Code samples to display verbatim — use `{.code}`.
 - OWID charts — use `{.chart}` or `{.narrative-chart}`.
 
+## Notes
+
+Inline HTML written directly in body text is not parsed — anything
+beyond Google Docs formatting has to go through this block.
+
 ### Inline styled span
 
 ```archie
