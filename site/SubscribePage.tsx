@@ -50,6 +50,12 @@ export const SubscribePage = ({
                                 topicTagGraph={topicTagGraph}
                             />
                         </div>
+                        <p className="subscribe-page__manage-link">
+                            Already subscribed?{" "}
+                            <a href="/subscribe/preferences">
+                                Update your preferences
+                            </a>
+                        </p>
                         <OwidSocials
                             includeRss
                             context={
