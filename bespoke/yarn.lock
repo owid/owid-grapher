@@ -303,6 +303,7 @@ __metadata:
     clsx: "npm:^2.1.1"
     d3: "npm:^7.9.0"
     normalize.css: "npm:^8.0.1"
+    nuqs: "npm:^2.8.9"
     react: "npm:^19.2.7"
     react-dom: "npm:^19.2.7"
     remeda: "npm:^2.39.0"
