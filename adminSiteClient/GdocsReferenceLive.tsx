@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+import { Fragment, useEffect, useMemo, useState } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     faArrowUpRightFromSquare,
@@ -7,6 +7,7 @@ import {
     faRotateRight,
 } from "@fortawesome/free-solid-svg-icons"
 import {
+    COMPONENT_USAGE_LABELS,
     ComponentDoc,
     ComponentDraftResponse,
     ComponentInstance,
@@ -40,7 +41,7 @@ import {
 
 /**
  * The live (database-backed) half of the writing reference UI: the frequency
- * vocabulary, the where-it's-used bar, the forms section with real examples,
+ * vocabulary, the where-it's-used sentence, the forms section with real examples,
  * the derived properties table, and the template exemplar x-rays. Everything
  * here presents computed facts qualitatively — words and the four-dot glyph
  * first, raw numbers only in tooltips (see gdocsReferenceLiveHelpers).
@@ -54,9 +55,8 @@ const GLYPH_DOT_POSITIONS = [5, 15, 25, 35]
 
 /**
  * The four-dot frequency glyph — the single visual primitive for adoption,
- * used on the page header, overview cards, sidebar rows, form cards, the
- * properties table and template shortlists. Dashed marks a "new" form no
- * published doc uses yet.
+ * used on overview cards, sidebar rows, form cards, the properties table and
+ * template shortlists. Dashed marks a "new" form no published doc uses yet.
  */
 export function FrequencyGlyph({
     label,
@@ -118,17 +118,30 @@ export function FrequencyBadge({
 }
 
 // -----------------------------------------------------------------------------
-// Component page: where it's used (the doc-type breakdown bar)
+// Component page: where it's used (adoption in words)
 // -----------------------------------------------------------------------------
 
+/** ", " between items, a custom separator (" and ", " or ") before the last. */
+function joinNodes(
+    nodes: React.ReactElement[],
+    lastSeparator: string
+): React.ReactElement[] {
+    return nodes.map((node, index) => (
+        <Fragment key={index}>
+            {index > 0 && (index === nodes.length - 1 ? lastSeparator : ", ")}
+            {node}
+        </Fragment>
+    ))
+}
+
 /**
- * "Where it's used" — a subdued stacked bar of the component's uses by
- * document type, replacing the prose usage sentence. Each doc type links to
- * its template page (when one exists) with its adoption word alongside; the
- * raw share and counts live in tooltips. A distribution reads as a bar, not
- * as repeated glyphs — the glyph stays for single-value spots.
+ * "Where it's used" — one sentence naming the document types by their
+ * adoption word, peaks first, with the notable zeros trailing ("never in
+ * data insights"). Enough for an author's decision without a per-type chart
+ * competing with the forms below; the raw counts live in tooltips. Each doc
+ * type links to its template page when one exists.
  */
-export function UsageBar({
+export function UsageSummary({
     usage,
     totalDocsByType,
     templateIds,
@@ -140,27 +153,34 @@ export function UsageBar({
     const entries = (usage?.byDocType ?? [])
         .filter((entry) => entry.totalUses > 0)
         .sort((a, b) => b.totalUses - a.totalUses)
-    const sumUses = entries.reduce((sum, entry) => sum + entry.totalUses, 0)
     const unusedMajor = MAJOR_DOC_TYPES.filter(
         (docType) =>
             !entries.some((entry) => entry.docType === docType) &&
             (totalDocsByType[docType] ?? 0) > 0
     )
-    const docTypeName = (docType: OwidGdocType): React.ReactElement =>
+    // One clause per adoption word, most-adopted first
+    const groups = COMPONENT_USAGE_LABELS.map((label) => ({
+        label,
+        entries: entries.filter((entry) => entry.label === label),
+    })).filter((group) => group.entries.length > 0)
+    const docTypeName = (
+        docType: OwidGdocType,
+        title?: string
+    ): React.ReactElement =>
         templateIds.has(docType) ? (
-            <Link to={`/gdocs-reference/templates/${docType}`}>
+            <Link to={`/gdocs-reference/templates/${docType}`} title={title}>
                 {docTypeNoun(docType, true)}
             </Link>
         ) : (
-            <span>{docTypeNoun(docType, true)}</span>
+            <span title={title}>{docTypeNoun(docType, true)}</span>
         )
 
     return (
-        <div className="gdocs-ref-live__usage-bar">
-            <div className="gdocs-ref-live__usage-bar-title">
+        <div className="gdocs-ref-live__usage">
+            <div className="gdocs-ref-live__usage-title">
                 Where it’s used{" "}
-                <span className="gdocs-ref-live__usage-bar-subtitle">
-                    — share of uses by document type
+                <span className="gdocs-ref-live__usage-subtitle">
+                    — adoption within each document type
                 </span>
             </div>
             {entries.length === 0 ? (
@@ -168,54 +188,44 @@ export function UsageBar({
                     Not used in any published document yet.
                 </p>
             ) : (
-                <>
-                    <div className="gdocs-ref-live__usage-bar-track">
-                        {entries.map((entry, index) => (
-                            <div
-                                key={entry.docType}
-                                className={`gdocs-ref-live__usage-bar-segment gdocs-ref-live__usage-bar-segment--${Math.min(index, 5)}`}
-                                style={{
-                                    width: `${(entry.totalUses / sumUses) * 100}%`,
-                                }}
-                                title={`${docTypeNoun(entry.docType, true)} — ${Math.round(
-                                    (entry.totalUses / sumUses) * 100
-                                )}% of uses · in ${entry.docsUsingIt} of ${entry.totalDocs} (${entry.label})`}
-                            />
-                        ))}
-                    </div>
-                    <div className="gdocs-ref-live__usage-bar-legend">
-                        {entries.map((entry, index) => (
-                            <span
-                                key={entry.docType}
-                                className="gdocs-ref-live__usage-bar-key"
-                                title={`Used in ${entry.docsUsingIt} of ${entry.totalDocs} published ${docTypeNoun(
-                                    entry.docType,
-                                    entry.totalDocs !== 1
-                                )}`}
-                            >
-                                <span
-                                    className={`gdocs-ref-live__usage-bar-swatch gdocs-ref-live__usage-bar-segment--${Math.min(index, 5)}`}
-                                />
-                                {docTypeName(entry.docType)}
-                                <span className="gdocs-ref-live__usage-bar-label">
-                                    {entry.label}
-                                </span>
+                <p className="gdocs-ref-live__usage-sentence">
+                    {groups.map((group, groupIndex) => (
+                        <Fragment key={group.label}>
+                            {groupIndex === 0
+                                ? group.label.charAt(0).toUpperCase() +
+                                  group.label.slice(1)
+                                : `, ${group.label}`}{" "}
+                            in{" "}
+                            {joinNodes(
+                                group.entries.map((entry) =>
+                                    docTypeName(
+                                        entry.docType,
+                                        `Used in ${entry.docsUsingIt} of ${entry.totalDocs} published ${docTypeNoun(
+                                            entry.docType,
+                                            entry.totalDocs !== 1
+                                        )}`
+                                    )
+                                ),
+                                " and "
+                            )}
+                        </Fragment>
+                    ))}
+                    {unusedMajor.length > 0 && (
+                        <>
+                            {" · "}
+                            <span className="gdocs-ref-live__usage-never">
+                                never in{" "}
+                                {joinNodes(
+                                    unusedMajor.map((docType) =>
+                                        docTypeName(docType)
+                                    ),
+                                    " or "
+                                )}
                             </span>
-                        ))}
-                        {unusedMajor.map((docType) => (
-                            <span
-                                key={docType}
-                                className="gdocs-ref-live__usage-bar-key"
-                            >
-                                <span className="gdocs-ref-live__usage-bar-swatch gdocs-ref-live__usage-bar-swatch--unused" />
-                                {docTypeName(docType)}
-                                <span className="gdocs-ref-live__usage-bar-label gdocs-ref-live__usage-bar-label--unused">
-                                    unused
-                                </span>
-                            </span>
-                        ))}
-                    </div>
-                </>
+                        </>
+                    )}
+                    .
+                </p>
             )}
         </div>
     )

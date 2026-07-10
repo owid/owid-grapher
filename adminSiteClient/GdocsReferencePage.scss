@@ -318,21 +318,6 @@
     padding: 2px 8px;
 }
 
-.gdocs-ref__chip-copy {
-    background: none;
-    border: none;
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-size: 12px;
-    color: $gray-60;
-    cursor: pointer;
-
-    &:hover {
-        color: $blue-60;
-        background: $gray-10;
-    }
-}
-
 .gdocs-ref__detail-footer {
     display: flex;
     gap: 20px;
@@ -794,91 +779,38 @@
 }
 
 // ---------------------------------------------------------------------------
-// Live layer: where it's used (share-of-uses bar by document type)
+// Live layer: where it's used (adoption in words)
 // ---------------------------------------------------------------------------
 
-.gdocs-ref-live__usage-bar {
+.gdocs-ref-live__usage {
     margin: 4px 0 28px;
     max-width: 680px;
 }
 
-.gdocs-ref-live__usage-bar-title {
+.gdocs-ref-live__usage-title {
     font-size: 11px;
     font-weight: 700;
     letter-spacing: 0.05em;
     text-transform: uppercase;
     color: $gray-60;
-    margin-bottom: 9px;
+    margin-bottom: 6px;
 }
 
-.gdocs-ref-live__usage-bar-subtitle {
+.gdocs-ref-live__usage-subtitle {
     text-transform: none;
     letter-spacing: 0;
     font-weight: 400;
     color: $gray-50;
 }
 
-.gdocs-ref-live__usage-bar-track {
-    display: flex;
-    height: 7px;
-    border-radius: 4px;
-    overflow: hidden;
-    background: $gray-10;
-    max-width: 480px;
-}
-
-// A distribution reads as one subdued ramp, darkest = largest share
-.gdocs-ref-live__usage-bar-segment--0 {
-    background: #8a93a6;
-}
-.gdocs-ref-live__usage-bar-segment--1 {
-    background: #a6adbc;
-}
-.gdocs-ref-live__usage-bar-segment--2 {
-    background: #c1c6d1;
-}
-.gdocs-ref-live__usage-bar-segment--3 {
-    background: #d5d9e1;
-}
-.gdocs-ref-live__usage-bar-segment--4 {
-    background: #e5e8ec;
-}
-.gdocs-ref-live__usage-bar-segment--5 {
-    background: #f0f1f3;
-}
-
-.gdocs-ref-live__usage-bar-legend {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px 18px;
-    margin-top: 10px;
-    font-size: 12px;
+.gdocs-ref-live__usage-sentence {
+    font-size: 13px;
+    line-height: 1.5;
     color: $gray-70;
+    margin: 0;
 }
 
-.gdocs-ref-live__usage-bar-key {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.gdocs-ref-live__usage-bar-swatch {
-    width: 8px;
-    height: 8px;
-    border-radius: 2px;
-    flex-shrink: 0;
-}
-
-.gdocs-ref-live__usage-bar-swatch--unused {
-    background: #fff;
-    border: 1px solid $gray-30;
-}
-
-.gdocs-ref-live__usage-bar-label {
-    color: $gray-60;
-}
-
-.gdocs-ref-live__usage-bar-label--unused {
+.gdocs-ref-live__usage-never {
     color: $gray-50;
 }
 
