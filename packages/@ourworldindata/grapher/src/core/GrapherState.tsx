@@ -515,6 +515,8 @@ export class GrapherState
     isEmbeddedInAnOwidPage?: boolean = false
     isEmbeddedInADataPage?: boolean = false
     useNewDatapageMetadataLayout?: boolean = false
+    /** Prototype: show the "AI assistant (BETA)" panel in the side panel */
+    enableAssistantPanel?: boolean = false
 
     archiveContext?: ArchiveContext
     narrativeChartInfo?: MinimalNarrativeChartInfo = undefined
@@ -764,6 +766,7 @@ export class GrapherState
         this.isEmbeddedInADataPage = options.isEmbeddedInADataPage ?? false
         this.useNewDatapageMetadataLayout =
             options.useNewDatapageMetadataLayout ?? false
+        this.enableAssistantPanel = options.enableAssistantPanel ?? false
 
         this._inputTable =
             options.table ?? BlankOwidTable(`initialGrapherTable`)
@@ -4151,6 +4154,12 @@ export class GrapherState
             this.shouldShowEntitySelectorAs === GrapherWindowType.panel
 
         if (this.isOnMapTab && this.isMapSelectionEnabled && shouldShowPanel)
+            return true
+
+        // Prototype: keep the side panel (with the AI assistant) visible on
+        // the table tab so the assistant doesn't disappear when it applies a
+        // data table view
+        if (this.enableAssistantPanel && this.isOnTableTab && shouldShowPanel)
             return true
 
         return (

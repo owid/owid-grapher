@@ -1,0 +1,148 @@
+// Layout for the side panel when the AI assistant is enabled: the entity
+// selector shrinks to the top half and the assistant panel sits below it.
+.side-panel__split {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.side-panel__entity-selector-slot {
+    flex: 0 1 50%;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.assistant-panel {
+    flex: 1 1 50%;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    border-top: 1px solid $frame-color;
+    padding: 12px 16px 0;
+    color: $dark-text;
+}
+
+.assistant-panel__header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 8px;
+    flex-shrink: 0;
+}
+
+.assistant-panel__title {
+    @include grapher_label-2-medium;
+    color: $dark-text;
+}
+
+.assistant-panel__beta-tag {
+    @include grapher_label-2-medium;
+    font-size: 0.625rem;
+    line-height: 1;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 2px 4px;
+    border-radius: 3px;
+    color: $blue-90;
+    background: $blue-20;
+}
+
+.assistant-panel__form {
+    flex-shrink: 0;
+}
+
+// The outputs area may extend below the bottom edge of the chart frame when
+// its content is long: the inner container is absolutely positioned and
+// allowed to grow beyond the panel's height.
+.assistant-panel__outputs {
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 0;
+    margin-top: 8px;
+}
+
+.assistant-panel__outputs-inner {
+    position: absolute;
+    top: 0;
+    left: -16px;
+    right: -16px;
+    max-height: 250%;
+    overflow-y: auto;
+    padding: 0 16px 12px;
+    background: white;
+    z-index: 1;
+    // subtle shadow so the outputs read as a surface when they extend
+    // below the chart frame
+    box-shadow: 0 12px 16px -8px rgba(0, 0, 0, 0.15);
+    border-bottom-left-radius: 4px;
+    border-bottom-right-radius: 4px;
+}
+
+.assistant-panel__pending {
+    @include grapher_label-2-regular;
+    color: $gray-60;
+    padding: 4px 0;
+}
+
+.assistant-panel__confirmation {
+    @include grapher_label-2-regular;
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    padding: 7px 8px;
+    border-radius: 4px;
+    background: $gray-10;
+    color: $dark-text;
+
+    strong {
+        font-weight: 700;
+    }
+}
+
+.assistant-panel__confirmation-icon {
+    flex-shrink: 0;
+    margin-top: 2px;
+    color: $blue-90;
+}
+
+.assistant-panel__note {
+    @include grapher_label-2-regular;
+    color: $gray-70;
+    padding: 4px 0 6px;
+}
+
+.assistant-panel__options-label {
+    @include grapher_label-2-regular;
+    color: $gray-70;
+    padding: 4px 0 2px;
+}
+
+.assistant-panel__options {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.assistant-panel__option {
+    @include grapher_label-2-regular;
+    display: block;
+    width: 100%;
+    text-align: left;
+    margin-top: 6px;
+    padding: 7px 10px;
+    color: $blue-90;
+    background: $blue-10;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    line-height: 1.3;
+
+    &:hover {
+        background: $blue-20;
+    }
+
+    &:active {
+        color: $blue-90;
+        background: $blue-20;
+    }
+}
