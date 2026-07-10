@@ -120,6 +120,28 @@ export async function sendConfirmationEmail(
 }
 
 /**
+ * Build the preferences-page URL for a magic-link token, log it (so the flow
+ * can be tested locally without Postmark credentials) and send the magic-link
+ * email. The token rides in the URL fragment so it stays out of server logs.
+ */
+export async function sendMagicLinkEmail(
+    env: Env,
+    origin: string,
+    props: { to: string; token: string }
+): Promise<void> {
+    const magicLinkUrl = `${origin}/subscribe/preferences#token=${props.token}`
+    console.log(`Magic-link email for ${props.to}, URL: ${magicLinkUrl}`)
+    await sendPostmarkEmail(env, {
+        to: props.to,
+        subject: "Update your Our World in Data notification preferences",
+        tag: "email-notifications-magic-link",
+        htmlBody: `<p>Click the link below to view and update your Our World in Data email notification preferences. The link is valid for 30 minutes.</p>
+<p><a href="${magicLinkUrl}">Update my preferences</a></p>
+<p>If you didn't request this, you can safely ignore this email — nothing will change.</p>`,
+    })
+}
+
+/**
  * Send a transactional email via Postmark. Skipped (with a console warning)
  * when POSTMARK_SERVER_TOKEN is not set, so the rest of the flow can be
  * tested locally without Postmark credentials.
