@@ -64,26 +64,119 @@ const MAX_OPTION_VIEWS = 4
 const MAX_FOLLOW_UP_VIEWS = 4
 
 // -----------------------------------------------------------------------------
-// API key storage (localStorage, so the connection survives a reload)
+// API key storage. The key must survive reloads for the demo, but is never
+// persisted in clear text: it's encrypted with AES-GCM under a random,
+// non-extractable WebCrypto key kept in IndexedDB, and only the ciphertext
+// goes to localStorage. If WebCrypto/IndexedDB are unavailable the key simply
+// isn't persisted (it stays in memory for the current page load).
 // -----------------------------------------------------------------------------
 
 export const CLAUDE_API_KEY_STORAGE_KEY = "owid-assistant-claude-key"
 
-export function readStoredClaudeApiKey(): string | undefined {
+const KEY_DB_NAME = "owid-assistant"
+const KEY_DB_STORE = "keys"
+const KEY_DB_ENTRY = "claude-key-encryption-key"
+
+function openKeyDatabase(): Promise<IDBDatabase> {
+    return new Promise((resolve, reject) => {
+        const request = window.indexedDB.open(KEY_DB_NAME, 1)
+        request.onupgradeneeded = (): void => {
+            request.result.createObjectStore(KEY_DB_STORE)
+        }
+        request.onsuccess = (): void => resolve(request.result)
+        request.onerror = (): void => reject(request.error ?? new Error())
+    })
+}
+
+function idbGet(db: IDBDatabase, entryKey: string): Promise<unknown> {
+    return new Promise((resolve, reject) => {
+        const request = db
+            .transaction(KEY_DB_STORE, "readonly")
+            .objectStore(KEY_DB_STORE)
+            .get(entryKey)
+        request.onsuccess = (): void => resolve(request.result)
+        request.onerror = (): void => reject(request.error ?? new Error())
+    })
+}
+
+function idbPut(
+    db: IDBDatabase,
+    entryKey: string,
+    value: unknown
+): Promise<void> {
+    return new Promise((resolve, reject) => {
+        const request = db
+            .transaction(KEY_DB_STORE, "readwrite")
+            .objectStore(KEY_DB_STORE)
+            .put(value, entryKey)
+        request.onsuccess = (): void => resolve()
+        request.onerror = (): void => reject(request.error ?? new Error())
+    })
+}
+
+async function getOrCreateEncryptionKey(): Promise<CryptoKey> {
+    const db = await openKeyDatabase()
     try {
-        return (
-            window.localStorage.getItem(CLAUDE_API_KEY_STORAGE_KEY) ?? undefined
+        const existing = await idbGet(db, KEY_DB_ENTRY)
+        if (existing instanceof CryptoKey) return existing
+        const cryptoKey = await window.crypto.subtle.generateKey(
+            { name: "AES-GCM", length: 256 },
+            false, // non-extractable: the raw key material can't be exported
+            ["encrypt", "decrypt"]
         )
+        await idbPut(db, KEY_DB_ENTRY, cryptoKey)
+        return cryptoKey
+    } finally {
+        db.close()
+    }
+}
+
+function bytesToBase64(bytes: Uint8Array): string {
+    return window.btoa(String.fromCharCode(...bytes))
+}
+
+function base64ToBytes(base64: string): Uint8Array<ArrayBuffer> {
+    const binary = window.atob(base64)
+    const bytes = new Uint8Array(binary.length)
+    for (let index = 0; index < binary.length; index++)
+        bytes[index] = binary.charCodeAt(index)
+    return bytes
+}
+
+export async function readStoredClaudeApiKey(): Promise<string | undefined> {
+    try {
+        const payload = window.localStorage.getItem(CLAUDE_API_KEY_STORAGE_KEY)
+        if (!payload) return undefined
+        const { iv, data } = JSON.parse(payload) as { iv: string; data: string }
+        const cryptoKey = await getOrCreateEncryptionKey()
+        const plaintext = await window.crypto.subtle.decrypt(
+            { name: "AES-GCM", iv: base64ToBytes(iv) },
+            cryptoKey,
+            base64ToBytes(data)
+        )
+        return new TextDecoder().decode(plaintext) || undefined
     } catch {
         return undefined
     }
 }
 
-export function storeClaudeApiKey(apiKey: string): void {
+export async function storeClaudeApiKey(apiKey: string): Promise<void> {
     try {
-        window.localStorage.setItem(CLAUDE_API_KEY_STORAGE_KEY, apiKey)
+        const cryptoKey = await getOrCreateEncryptionKey()
+        const iv = window.crypto.getRandomValues(new Uint8Array(12))
+        const ciphertext = await window.crypto.subtle.encrypt(
+            { name: "AES-GCM", iv },
+            cryptoKey,
+            new TextEncoder().encode(apiKey)
+        )
+        const payload = JSON.stringify({
+            iv: bytesToBase64(iv),
+            data: bytesToBase64(new Uint8Array(ciphertext)),
+        })
+        window.localStorage.setItem(CLAUDE_API_KEY_STORAGE_KEY, payload)
     } catch {
-        // Storage unavailable (e.g. privacy mode); the key just won't persist
+        // Persistence unavailable (e.g. privacy mode); the key stays in
+        // memory for this page load only
     }
 }
 
@@ -155,7 +248,7 @@ const VIEW_INPUT_SCHEMA = {
     },
 } as const
 
-function buildClaudeTool(context: AssistantChartContext): unknown {
+function buildClaudeTool(): unknown {
     return {
         name: CLAUDE_TOOL_NAME,
         description:
@@ -444,7 +537,7 @@ export function claudeToolInputToResponse(
 class ClaudeCallError extends Error {}
 
 export class ClaudeAssistantBackend implements AssistantBackend {
-    constructor(private apiKey: string) {}
+    constructor(private readonly apiKey: string) {}
 
     /**
      * Responds to a query via the Claude API. Throws `ClaudeInvalidKeyError`
@@ -501,7 +594,7 @@ export class ClaudeAssistantBackend implements AssistantBackend {
                     thinking: { type: "disabled" },
                     system: buildSystemPrompt(context),
                     messages: [{ role: "user", content: query }],
-                    tools: [buildClaudeTool(context)],
+                    tools: [buildClaudeTool()],
                     tool_choice: { type: "tool", name: CLAUDE_TOOL_NAME },
                 }),
             })

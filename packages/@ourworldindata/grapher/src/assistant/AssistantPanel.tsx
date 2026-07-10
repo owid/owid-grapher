@@ -212,11 +212,9 @@ export const AssistantPanel = observer(function AssistantPanel({
     /** Canned backend-status line (e.g. "using demo matcher"), never prose */
     const [notice, setNotice] = useState<string | undefined>()
     const [hasSubmitted, setHasSubmitted] = useState(false)
-    // Claude connection state. The key lives in localStorage so it survives
-    // reloads; it is never rendered back into the DOM after saving.
-    const [claudeKey, setClaudeKey] = useState<string | undefined>(() =>
-        readStoredClaudeApiKey()
-    )
+    // Claude connection state. The key survives reloads (stored encrypted,
+    // see ClaudeAssistantBackend); it is never rendered back into the DOM.
+    const [claudeKey, setClaudeKey] = useState<string | undefined>()
     const [keyModalState, setKeyModalState] = useState<KeyModalState>("closed")
     const [keyDraft, setKeyDraft] = useState("")
     /** Query submitted while the key modal was open, run after a choice */
@@ -229,6 +227,18 @@ export const AssistantPanel = observer(function AssistantPanel({
         () => (claudeKey ? new ClaudeAssistantBackend(claudeKey) : mockBackend),
         [claudeKey, mockBackend]
     )
+
+    // Load the stored (encrypted) API key on mount so the Claude connection
+    // survives a reload
+    useEffect(() => {
+        let isCancelled = false
+        void readStoredClaudeApiKey().then((storedKey) => {
+            if (!isCancelled && storedKey) setClaudeKey(storedKey)
+        })
+        return (): void => {
+            isCancelled = true
+        }
+    }, [])
 
     // Clear any pending confirmation timers on unmount
     useEffect(
@@ -362,14 +372,16 @@ export const AssistantPanel = observer(function AssistantPanel({
         if (query) void runQuery(query, queryBackend)
     }
 
-    const connectClaude = (): void => {
+    const connectClaude = async (): Promise<void> => {
         const key = keyDraft.trim()
         if (!key) return
-        storeClaudeApiKey(key)
         setClaudeKey(key)
         // The key is never rendered back into the DOM after saving
         setKeyDraft("")
         setKeyModalState("closed")
+        // Persist (encrypted) before running the query, so a failing query
+        // that clears the stored key can't race with this write
+        await storeClaudeApiKey(key)
         resumePendingQuery(new ClaudeAssistantBackend(key))
     }
 
@@ -534,7 +546,7 @@ export const AssistantPanel = observer(function AssistantPanel({
                             className="assistant-key-modal__form"
                             onSubmit={(event): void => {
                                 event.preventDefault()
-                                connectClaude()
+                                void connectClaude()
                             }}
                         >
                             <input
