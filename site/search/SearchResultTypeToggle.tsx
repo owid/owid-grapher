@@ -1,6 +1,7 @@
 import { RadioButton } from "@ourworldindata/components"
 import { SearchResultType } from "@ourworldindata/types"
 import { useSearchContext } from "./SearchContext.js"
+import { useResultTypeCounts } from "./searchHooks.js"
 import {
     getEffectiveResultType,
     hasDatasetFilters,
@@ -19,6 +20,7 @@ export const SearchResultTypeToggle = () => {
         actions: { setResultType },
     } = useSearchContext()
     const { resultType, filters, query } = state
+    const { data: counts } = useResultTypeCounts()
 
     if (hasDatasetFilters(filters)) return null
 
@@ -31,6 +33,17 @@ export const SearchResultTypeToggle = () => {
     const optionsToShow = isBrowsing(filters, query)
         ? OPTIONS.filter((option) => option.value !== SearchResultType.ALL)
         : OPTIONS
+
+    const getCount = (value: SearchResultType): number | undefined => {
+        if (value === SearchResultType.DATA) return counts?.dataCount
+        if (value === SearchResultType.WRITING) return counts?.writingCount
+        return undefined
+    }
+
+    const getLabel = (option: (typeof OPTIONS)[number]): string => {
+        const count = getCount(option.value)
+        return count === undefined ? option.label : `${option.label} (${count})`
+    }
 
     return (
         <fieldset
@@ -46,7 +59,7 @@ export const SearchResultTypeToggle = () => {
                     key={option.value}
                     checked={effectiveResultType === option.value}
                     onChange={() => setResultType(option.value)}
-                    label={option.label}
+                    label={getLabel(option)}
                     group="search-result-type"
                 />
             ))}

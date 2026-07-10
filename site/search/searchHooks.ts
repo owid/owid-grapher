@@ -4,11 +4,17 @@ import {
     getSelectedTopic,
     getPaginationOffsetAndLength,
     getNbPaginatedItemsRequested,
+    hasDatasetFilters,
 } from "./searchUtils.js"
 import { DEFAULT_SEARCH_STATE } from "./searchState.js"
 import { useSearchContext } from "./SearchContext.js"
+import { queryResultTypeCounts, searchQueryKeys } from "./queries.js"
 import { fetchJson, flattenNonTopicNodes } from "@ourworldindata/utils"
-import { useInfiniteQuery, useQuery } from "@tanstack/react-query"
+import {
+    keepPreviousData,
+    useInfiniteQuery,
+    useQuery,
+} from "@tanstack/react-query"
 import { LiteClient } from "algoliasearch/lite"
 import type { SearchResponse } from "algoliasearch"
 import { useEffect, useMemo, useRef } from "react"
@@ -24,6 +30,22 @@ export function useSelectedTopic() {
 export function useSelectedRegionNames() {
     const { state } = useSearchContext()
     return Array.from(getFilterNamesOfType(state.filters, FilterType.COUNTRY))
+}
+
+/**
+ * Fetches the number of results behind the "Data" and "Writing" tabs, so
+ * SearchResultTypeToggle can display them alongside the tab labels.
+ * Skipped whenever dataset filters are active, since the toggle is hidden
+ * in that case.
+ */
+export function useResultTypeCounts() {
+    const { state, liteSearchClient } = useSearchContext()
+    return useQuery({
+        queryKey: searchQueryKeys.resultTypeCounts(state),
+        queryFn: () => queryResultTypeCounts(liteSearchClient, state),
+        enabled: !hasDatasetFilters(state.filters),
+        placeholderData: keepPreviousData,
+    })
 }
 
 /**

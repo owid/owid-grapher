@@ -49,6 +49,8 @@ async function searchSingleForHits<T>(
  */
 export const searchQueryKeys = {
     topicTagGraph: ["topicTagGraph"] as const,
+    resultTypeCounts: (state: SearchState) =>
+        ["result-type-counts", makeStateForKey(state)] as const,
     charts: (state: SearchState) =>
         [CHARTS_INDEX, "charts", makeStateForKey(state)] as const,
     dataTopics: (state: SearchState) =>
@@ -518,4 +520,89 @@ export async function queryWritingTopics(
             totalCount: (articles.nbHits ?? 0) + (topicPages.nbHits ?? 0),
         }
     })
+}
+
+// The gdoc types shown under the "Writing" tab (see SearchTemplatesWriting).
+// Excludes types that are indexed on the Pages index but never surfaced in
+// search results (Announcement, Author, Fragment, Homepage).
+const WRITING_GDOC_TYPES_FILTER = [
+    OwidGdocType.Article,
+    OwidGdocType.AboutPage,
+    OwidGdocType.TopicPage,
+    OwidGdocType.LinearTopicPage,
+    OwidGdocType.Profile,
+    OwidGdocType.DataInsight,
+]
+    .map((type) => `type:${type}`)
+    .join(" OR ")
+
+export interface ResultTypeCounts {
+    dataCount: number
+    writingCount: number
+}
+
+/**
+ * Fetches the total number of results behind the "Data" and "Writing" tabs
+ * for the current query and filters, used to annotate
+ * `SearchResultTypeToggle` with result counts. Issued as a single batched
+ * request (one network round-trip).
+ */
+export async function queryResultTypeCounts(
+    liteSearchClient: LiteClient,
+    state: SearchState
+): Promise<ResultTypeCounts> {
+    const selectedCountryNames = getFilterNamesOfType(
+        state.filters,
+        FilterType.COUNTRY
+    )
+    const hasCountry = selectedCountryNames.size > 0
+    const selectedTopics = getFilterNamesOfType(state.filters, FilterType.TOPIC)
+    const topicFacetFilters = formatTopicFacetFilters(selectedTopics)
+
+    // Mirrors queryCharts's filters. Dataset filters are omitted since the
+    // toggle is hidden whenever they're active (see hasDatasetFilters).
+    const countryFacetFilters = formatCountryFacetFilters(
+        selectedCountryNames,
+        state.requireAllCountries
+    )
+    const fmFacetFilter = formatFeaturedMetricFacetFilter(state.query)
+
+    // Mirrors the country-as-query-term trick used by queryArticles,
+    // queryDataInsights and queryProfiles.
+    const writingQuery = [
+        state.query,
+        ...selectedCountryNames.keys().map((c) => `"${c}"`),
+    ]
+        .filter(Boolean)
+        .join(" ")
+
+    const searchParams = [
+        {
+            indexName: CHARTS_INDEX,
+            query: state.query,
+            facetFilters: [
+                ...countryFacetFilters,
+                ...topicFacetFilters,
+                ...fmFacetFilter,
+            ],
+            hitsPerPage: 0,
+        },
+        {
+            indexName: PAGES_INDEX,
+            query: writingQuery,
+            filters: WRITING_GDOC_TYPES_FILTER,
+            facetFilters: topicFacetFilters,
+            ...(hasCountry && {
+                restrictSearchableAttributes: ["title", "tags", "authors"],
+            }),
+            hitsPerPage: 0,
+        },
+    ]
+
+    const response = await liteSearchClient.searchForHits(searchParams)
+    const [dataResult, writingResult] = response.results
+    return {
+        dataCount: dataResult.nbHits ?? 0,
+        writingCount: writingResult.nbHits ?? 0,
+    }
 }
