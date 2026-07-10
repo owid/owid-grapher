@@ -536,8 +536,7 @@ export async function getComponentInstances(
     }
 
     // Match the sidecar's synthetic examples against production: an example
-    // whose form is observed lends the observed variation its curated name;
-    // one whose form is not observed is presented by the UI as a synthetic
+    // whose form is not observed is presented by the UI as a synthetic
     // variation ("not used in any published doc yet") — synthetic examples
     // cover exactly the gap reality leaves.
     const syntheticExamples: SyntheticExampleInfo[] = doc.examples.map(
@@ -575,39 +574,18 @@ export async function getComponentInstances(
             }
             return {
                 exampleIndex,
-                name: example.name,
                 signature,
                 observed: bySignature.has(signature),
             }
         }
     )
 
-    // The curated naming layer: an observed variation takes the name of the
-    // (first) sidecar example with the same form. Variations left with a
-    // technical label are a visible curation gap — name one by adding a
-    // matching example to the sidecar.
-    const nameBySignature = new Map<string, string>()
-    for (const example of syntheticExamples) {
-        // Unnamed examples (no "### " heading in the sidecar) never enter
-        // the naming layer — their forms keep the automatic label.
-        if (
-            example.observed &&
-            example.name !== "" &&
-            !nameBySignature.has(example.signature)
-        )
-            nameBySignature.set(example.signature, example.name)
-    }
-
     const variations: ComponentVariation[] = variationGroups.map(
-        ([signature, group]) => {
-            const name = nameBySignature.get(signature)
-            return {
-                signature,
-                count: group.length,
-                representative: present(group[0]),
-                ...(name !== undefined && { name }),
-            }
-        }
+        ([signature, group]) => ({
+            signature,
+            count: group.length,
+            representative: present(group[0]),
+        })
     )
 
     return {

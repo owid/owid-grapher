@@ -87,12 +87,6 @@ export interface ComponentVariation {
     count: number
     /** A real instance demonstrating the form */
     representative: ComponentInstance
-    /**
-     * Curated name, taken from the sidecar example with the same form.
-     * Absent when no sidecar example documents this observed form — a
-     * visible curation gap the UI labels with the technical signature.
-     */
-    name?: string
 }
 
 /**
@@ -104,7 +98,6 @@ export interface ComponentVariation {
 export interface SyntheticExampleInfo {
     /** Index into the registry doc's examples array */
     exampleIndex: number
-    name: string
     signature: string
     /** Whether this form occurs in published content */
     observed: boolean

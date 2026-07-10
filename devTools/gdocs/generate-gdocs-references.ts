@@ -522,10 +522,6 @@ function parseSidecar(
     }
     rest = rest.trim()
 
-    // An example's name comes ONLY from a "### " heading immediately above
-    // its fence (blank lines allowed in between) — never from surrounding
-    // prose, which is just prose. An unnamed example gets "" and the UI
-    // labels its form automatically.
     const examples: (ComponentExample & { inIntro: boolean })[] = []
     const sectionsStart = rest.search(/^## /m)
     const fenceRe = new RegExp(
@@ -534,18 +530,7 @@ function parseSidecar(
     )
     let m: RegExpExecArray | null
     while ((m = fenceRe.exec(rest)) !== null) {
-        const before = rest.slice(0, m.index)
-        let name = ""
-        const lines = before.split(/\r?\n/).reverse()
-        for (const line of lines) {
-            const trimmed = line.trim()
-            if (!trimmed) continue
-            if (trimmed.startsWith("### "))
-                name = trimmed.replace(/^###\s*/, "").trim()
-            break
-        }
         examples.push({
-            name,
             archie: m[1],
             inIntro: sectionsStart === -1 || m.index < sectionsStart,
         })
@@ -787,7 +772,7 @@ function validateExamples(docs: ComponentDoc[]): {
 } {
     const failures: string[] = []
     for (const doc of docs) {
-        for (const ex of doc.examples) {
+        for (const [index, ex] of doc.examples.entries()) {
             const wrapped =
                 "title: " +
                 doc.title +
@@ -798,9 +783,9 @@ function validateExamples(docs: ComponentDoc[]): {
             if (!result.valid) {
                 failures.push(
                     doc.id +
-                        ' / "' +
-                        ex.name +
-                        '":\n    ' +
+                        " example #" +
+                        (index + 1) +
+                        ":\n    " +
                         result.errors
                             .map((e) => e.property + ": " + e.message)
                             .join("\n    ")
@@ -813,9 +798,9 @@ function validateExamples(docs: ComponentDoc[]): {
             if ((result.content?.body ?? []).length === 0) {
                 failures.push(
                     doc.id +
-                        ' / "' +
-                        ex.name +
-                        '": parsed to zero body blocks — the example is silently dropped by the parser'
+                        " example #" +
+                        (index + 1) +
+                        ": parsed to zero body blocks — the example is silently dropped by the parser"
                 )
             }
         }
@@ -960,7 +945,7 @@ function extractComponentDocs(
             sourceFile,
             sidecarFile: sidecarPathRel,
             body,
-            examples: examples.map(({ name, archie }) => ({ name, archie })),
+            examples: examples.map(({ archie }) => ({ archie })),
             props: extractProps(decl, typeIndex),
             valueProps: extractValueProps(decl, typeIndex),
             ...(fm.system && { system: true }),
@@ -1204,7 +1189,7 @@ function extractTemplateDocs(
             adminManagedFields: [...OWID_GDOC_ADMIN_MANAGED_KEYS],
             // Template examples are full documents presented in their own
             // "### Example" sections — no placement constraint applies.
-            examples: examples.map(({ name, archie }) => ({ name, archie })),
+            examples: examples.map(({ archie }) => ({ archie })),
             ...(fm.exemplars && { exemplars: fm.exemplars }),
             ...(fm.skeleton && { skeleton: fm.skeleton }),
         })
@@ -1221,14 +1206,14 @@ function validateTemplateExamples(docs: TemplateDoc[]): {
 } {
     const failures: string[] = []
     for (const doc of docs) {
-        for (const ex of doc.examples) {
+        for (const [index, ex] of doc.examples.entries()) {
             const result = validateArchieMl(ex.archie)
             if (!result.valid) {
                 failures.push(
                     doc.id +
-                        ' / "' +
-                        ex.name +
-                        '":\n    ' +
+                        " example #" +
+                        (index + 1) +
+                        ":\n    " +
                         result.errors
                             .map((e) => e.property + ": " + e.message)
                             .join("\n    ")
@@ -1239,9 +1224,9 @@ function validateTemplateExamples(docs: TemplateDoc[]): {
             if (exampleType !== doc.id)
                 failures.push(
                     doc.id +
-                        ' / "' +
-                        ex.name +
-                        '": example has type "' +
+                        " example #" +
+                        (index + 1) +
+                        ': example has type "' +
                         exampleType +
                         '" but belongs to the "' +
                         doc.id +

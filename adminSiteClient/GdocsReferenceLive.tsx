@@ -268,40 +268,22 @@ function InstanceProvenance({
     )
 }
 
-/** The label a form reads as: its curated name, or the technical fallback. */
+/** The label a form reads as: the humanized form signature. */
 function formLabel(variation: ComponentVariation): string {
-    return (
-        variation.name ??
-        (variation.signature === ""
-            ? "The standard form"
-            : humanizeVariation(variation.signature))
-    )
+    return variation.signature === ""
+        ? "The standard form"
+        : humanizeVariation(variation.signature)
 }
 
-/** The name chip of a form: curated names read differently from technical fallbacks. */
+/** The name chip of a form. */
 function FormNameChip({
     variation,
 }: {
     variation: ComponentVariation
 }): React.ReactElement {
-    // The empty signature is the standard form — derived, but clean enough to
-    // read as a name rather than as a curation gap.
-    const isNamed = variation.name !== undefined || variation.signature === ""
-    const label = formLabel(variation)
     return (
-        <span
-            className={
-                isNamed
-                    ? "gdocs-ref-live__form-name"
-                    : "gdocs-ref-live__form-name gdocs-ref-live__form-name--technical"
-            }
-            title={
-                isNamed
-                    ? undefined
-                    : "No sidecar example documents this form yet — the technical label marks a curation gap"
-            }
-        >
-            {label}
+        <span className="gdocs-ref-live__form-name">
+            {formLabel(variation)}
         </span>
     )
 }
@@ -1035,13 +1017,9 @@ function SyntheticFormCard({
 }): React.ReactElement | null {
     const example = doc.examples[info.exampleIndex]
     if (!example) return null
-    // An unnamed example (no "### " heading in the sidecar) gets the same
-    // automatic label its form would have.
-    const label =
-        info.name ||
-        (info.signature
-            ? humanizeVariation(info.signature)
-            : "Reference example")
+    const label = info.signature
+        ? humanizeVariation(info.signature)
+        : "Reference example"
     return (
         <div className="gdocs-ref-live__form-card gdocs-ref-live__form-card--synthetic">
             <div className="gdocs-ref-live__form-card-header">
@@ -1131,9 +1109,7 @@ export function ComponentForms({
     )
     const cards = variations.filter(
         (variation, index) =>
-            index < FORM_CARD_LIMIT ||
-            variation.name !== undefined ||
-            expandedTail.has(variation.signature)
+            index < FORM_CARD_LIMIT || expandedTail.has(variation.signature)
     )
     const tail = variations.filter((variation) => !cards.includes(variation))
     const docTypesInUse = usage?.byDocType.map((entry) => entry.docType) ?? []
@@ -1467,10 +1443,9 @@ function ComponentProperties({
                                                                   <a
                                                                       href={`#${formAnchorId(variation.signature)}`}
                                                                   >
-                                                                      {variation.name ??
-                                                                          humanizeVariation(
-                                                                              variation.signature
-                                                                          )}
+                                                                      {humanizeVariation(
+                                                                          variation.signature
+                                                                      )}
                                                                   </a>
                                                               </span>
                                                           )

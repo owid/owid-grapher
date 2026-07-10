@@ -4,12 +4,6 @@
 // components reference page via the /api/components.json endpoint.
 
 export interface ComponentExample {
-    /**
-     * Curated name, taken from the "### " heading directly above the
-     * example's fence — it names the observed form with the same shape.
-     * "" when the example has no heading: the UI labels it automatically.
-     */
-    name: string
     archie: string
 }
 
