@@ -34,7 +34,7 @@ ifdef WRANGLER_PORT
 WRANGLER_PORT := $(strip $(WRANGLER_PORT))
 endif
 
-.PHONY: help up up.headless up.full down down.headless refresh refresh.wp refresh.private refresh.full migrate svgtest svgtest.reset svgtest.graphers svgtest.grapher-views svgtest.mdims svgtest.explorers svgtest.thumbnails bdd bdd.ui check-not-prod
+.PHONY: help up up.headless dockerdb.headless up.full down down.headless refresh refresh.wp refresh.private refresh.full migrate svgtest svgtest.reset svgtest.graphers svgtest.grapher-views svgtest.mdims svgtest.explorers svgtest.thumbnails bdd bdd.ui check-not-prod
 
 help:
 	@echo 'Available commands:'
@@ -128,27 +128,23 @@ up.headless: export VITE_PORT ?= 8090
 up.headless: export COREPACK_ENABLE_DOWNLOAD_PROMPT ?= 0
 
 # Headless variant of `make up` for environments without a terminal to attach
-# tmux to (AI agents, cloud sandboxes, CI). Starts MySQL via docker compose and
-# runs the admin server and vite as background processes logging into logs/.
-up.headless: require.headless create-if-missing.env tmp-downloads/owid_metadata.sql.gz node_modules
+# tmux to (AI agents, cloud sandboxes, CI). Uses a MySQL that is already
+# reachable at GRAPHER_DB_HOST:GRAPHER_DB_PORT (e.g. a native mysqld, as in the
+# cloud sandbox snapshot) and otherwise starts one via docker compose. Runs the
+# admin server and vite as background processes logging into logs/.
+up.headless: require.headless create-if-missing.env node_modules
 	@make validate.env
 
 	@mkdir -p logs
-	@docker info >/dev/null 2>&1 || { \
-		echo '==> Docker daemon not running, attempting to start it'; \
-		service docker start >/dev/null 2>&1 || sudo service docker start >/dev/null 2>&1 || true; \
-		docker info >/dev/null 2>&1 || { \
-			echo '==> service start failed, launching dockerd directly'; \
-			nohup dockerd > logs/dockerd.log 2>&1 & \
-		}; \
-		for i in $$(seq 1 15); do docker info >/dev/null 2>&1 && break; sleep 2; done; \
-		docker info >/dev/null 2>&1 || { echo 'ERROR: docker daemon is not running and could not be started (on macOS, start Docker Desktop; see logs/dockerd.log otherwise)'; exit 1; }; \
-	}
-
-	@echo '==> Starting MySQL via docker compose'
-	COMPOSE_PROJECT_NAME=$(COMPOSE_PROJECT_NAME) docker compose -f docker-compose.grapher.yml up -d
-
-	@make wait-for-mysql.headless
+# the reachability probe sources .env itself because make's `include .env`
+# happened before create-if-missing.env could create the file on a first run
+	@if bash -c 'set -a; . ./.env 2>/dev/null; exec 3<>"/dev/tcp/$${GRAPHER_DB_HOST:-127.0.0.1}/$${GRAPHER_DB_PORT:-3307}"' 2>/dev/null; then \
+		echo '==> MySQL is already reachable, skipping docker'; \
+	elif service mysql start >/dev/null 2>&1 && sleep 3 && bash -c 'set -a; . ./.env 2>/dev/null; exec 3<>"/dev/tcp/$${GRAPHER_DB_HOST:-127.0.0.1}/$${GRAPHER_DB_PORT:-3307}"' 2>/dev/null; then \
+		echo '==> Started the local mysql service, skipping docker'; \
+	else \
+		$(MAKE) dockerdb.headless; \
+	fi
 
 	@echo '==> (Re)starting the admin server and vite in the background'
 # the [b]racket trick: make runs this line via `sh -c "pkill -f '...'"`, so the
@@ -172,6 +168,27 @@ up.headless: require.headless create-if-missing.env tmp-downloads/owid_metadata.
 	@echo "    http://localhost:$(ADMIN_SERVER_PORT)/grapher/life-expectancy  <-- an example chart"
 	@echo "    http://localhost:$(ADMIN_SERVER_PORT)/admin/  <-- an admin interface"
 	@echo "    http://localhost:$(VITE_PORT)/  <-- the vite dev server"
+
+dockerdb.headless: export COMPOSE_PROJECT_NAME ?= owid-grapher
+
+# Docker leg of up.headless: start the docker daemon if needed, bring up MySQL
+# via docker compose and wait for the data import to finish.
+dockerdb.headless: tmp-downloads/owid_metadata.sql.gz
+	@docker info >/dev/null 2>&1 || { \
+		echo '==> Docker daemon not running, attempting to start it'; \
+		service docker start >/dev/null 2>&1 || sudo service docker start >/dev/null 2>&1 || true; \
+		docker info >/dev/null 2>&1 || { \
+			echo '==> service start failed, launching dockerd directly'; \
+			nohup dockerd > logs/dockerd.log 2>&1 & \
+		}; \
+		for i in $$(seq 1 15); do docker info >/dev/null 2>&1 && break; sleep 2; done; \
+		docker info >/dev/null 2>&1 || { echo 'ERROR: docker daemon is not running and could not be started (on macOS, start Docker Desktop; see logs/dockerd.log otherwise)'; exit 1; }; \
+	}
+
+	@echo '==> Starting MySQL via docker compose'
+	COMPOSE_PROJECT_NAME=$(COMPOSE_PROJECT_NAME) docker compose -f docker-compose.grapher.yml up -d
+
+	@make wait-for-mysql.headless
 
 wait-for-mysql.headless: export COMPOSE_PROJECT_NAME ?= owid-grapher
 
