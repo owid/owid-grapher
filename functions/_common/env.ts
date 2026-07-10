@@ -16,6 +16,10 @@ export interface Env {
     // welcome emails. If unset, sending is skipped (useful for local
     // development).
     POSTMARK_SERVER_TOKEN?: string
+    // Override for Postmark's API base URL. Point it at the local Postmark
+    // catcher (yarn postmarkCatcher) to inspect emails during development
+    // without sending anything.
+    POSTMARK_API_BASE_URL?: string
     EMAIL_NOTIFICATIONS_DB?: D1Database
     // Cloudflare rate limiting binding. Not configurable for Pages projects
     // (only Workers), so it's currently always undefined; until we migrate to
