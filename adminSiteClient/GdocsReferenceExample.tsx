@@ -12,8 +12,11 @@ import {
     faCopy,
     faDesktop,
     faMobileScreen,
+    faWandMagicSparkles,
 } from "@fortawesome/free-solid-svg-icons"
+import type { IconDefinition } from "@fortawesome/fontawesome-svg-core"
 import { AdminAppContext } from "./AdminAppContext.js"
+import { buildAddComponentPrompt } from "./gdocsReferencePrompt.js"
 
 /**
  * Message posted by the preview page (see
@@ -37,10 +40,14 @@ export function CopyButton({
     text,
     label = "Copy",
     className,
+    icon = faCopy,
+    title,
 }: {
     text: string
     label?: string
     className?: string
+    icon?: IconDefinition
+    title?: string
 }): React.ReactElement {
     const [copied, setCopied] = useState(false)
     const onCopy = (): void => {
@@ -50,10 +57,39 @@ export function CopyButton({
         })
     }
     return (
-        <button className={className} type="button" onClick={onCopy}>
-            <FontAwesomeIcon icon={copied ? faCheck : faCopy} />{" "}
+        <button
+            className={className}
+            type="button"
+            title={title}
+            onClick={onCopy}
+        >
+            <FontAwesomeIcon icon={copied ? faCheck : icon} />{" "}
             {copied ? "Copied" : label}
         </button>
+    )
+}
+
+/**
+ * Copies a ready-to-paste prompt for an ongoing Claude conversation asking it
+ * to add this component to the doc the author is working on.
+ */
+export function CopyPromptButton({
+    componentId,
+    archie,
+    className,
+}: {
+    componentId: string
+    archie: string
+    className?: string
+}): React.ReactElement {
+    return (
+        <CopyButton
+            text={buildAddComponentPrompt(componentId, archie)}
+            label="Copy prompt"
+            icon={faWandMagicSparkles}
+            title="Copy a prompt asking Claude to add this component to the doc you're working on"
+            className={className}
+        />
     )
 }
 
@@ -96,9 +132,12 @@ function TabButton({
 export function GdocsReferenceExample({
     archie,
     previewPath,
+    componentId,
 }: {
     archie: string
     previewPath?: string
+    /** When given, offers a "Copy prompt" button targeting this component */
+    componentId?: string
 }): React.ReactElement {
     const { admin } = useContext(AdminAppContext)
     const [tab, setTab] = useState<"preview" | "archie">(
@@ -210,6 +249,13 @@ export function GdocsReferenceExample({
                         text={archie}
                         className="gdocs-ref-example__copy"
                     />
+                    {componentId && (
+                        <CopyPromptButton
+                            componentId={componentId}
+                            archie={archie}
+                            className="gdocs-ref-example__copy"
+                        />
+                    )}
                 </div>
             </div>
             {previewUrl && (
