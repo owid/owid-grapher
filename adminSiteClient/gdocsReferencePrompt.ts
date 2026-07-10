@@ -5,6 +5,23 @@
  * of the `gdoc-editor` skill (owid-claude-plugins-staff), which handles
  * reading, editing and validating gdocs through the admin API.
  */
+/**
+ * The prompt behind the template page's "Copy prompt" button: pasted into a
+ * Claude conversation, it asks Claude to scaffold a new Google Doc of this
+ * type through the gdoc-editor skill. The skill's create flow already
+ * consults the admin's templates.json (front-matter fields, admin-managed
+ * properties, a validated example), so the prompt only names the type.
+ */
+export function buildNewDocPrompt(
+    templateId: string,
+    templateTitle: string
+): string {
+    return [
+        `Create a new OWID ${templateTitle.toLowerCase()} for me as a Google Doc draft, using the gdoc-editor skill and the admin API.`,
+        `Consult the admin's templates.json entry for \`type: ${templateId}\` for the front-matter fields and a validated example — don't invent fields. Ask me about the topic and working title before creating the doc.`,
+    ].join("\n\n")
+}
+
 export function buildAddComponentPrompt(
     componentId: string,
     archie: string

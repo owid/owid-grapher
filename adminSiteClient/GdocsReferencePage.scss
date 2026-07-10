@@ -367,6 +367,26 @@
     padding: 2px 8px;
 }
 
+// "Copy prompt" next to the template's type code: a ready-made Claude ask
+// that scaffolds a new doc of this type.
+.gdocs-ref__new-doc-prompt {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 10px;
+    border: 1px solid $gray-20;
+    border-radius: 5px;
+    background: #fff;
+    font-size: 12.5px;
+    color: $gray-70;
+    cursor: pointer;
+
+    &:hover {
+        background: $gray-10;
+        color: $blue-90;
+    }
+}
+
 .gdocs-ref__detail-footer {
     display: flex;
     gap: 20px;
