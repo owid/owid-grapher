@@ -8,7 +8,16 @@
 // handshake gets reset by the proxy, so external requests are routed
 // through Playwright's Node-side request API instead, while localhost
 // requests connect directly.
+import { existsSync } from "node:fs"
 import { chromium, request } from "@playwright/test"
+
+// the cloud sandbox pins a Chromium at /opt/pw-browsers that may not match the
+// revision our @playwright/test version expects, so prefer it when it exists;
+// elsewhere let Playwright resolve its own browser
+const SANDBOX_CHROMIUM = "/opt/pw-browsers/chromium"
+const chromiumPath =
+    process.env.CHROMIUM_PATH ??
+    (existsSync(SANDBOX_CHROMIUM) ? SANDBOX_CHROMIUM : undefined)
 
 const url =
     process.argv[2] ?? "http://localhost:3030/search?q=malaria&resultType=all"
@@ -21,7 +30,7 @@ const api = await request.newContext({
     ignoreHTTPSErrors: true,
 })
 const browser = await chromium.launch({
-    executablePath: process.env.CHROMIUM_PATH ?? "/opt/pw-browsers/chromium",
+    executablePath: chromiumPath,
     args: ["--no-sandbox"],
 })
 const context = await browser.newContext({
