@@ -199,6 +199,7 @@ export {
     type ComponentInstance,
     type ComponentVariation,
     type ComponentInstancesResponse,
+    type ComponentDraftResponse,
     type SyntheticExampleInfo,
     type ExemplarBlock,
     type ExemplarSection,

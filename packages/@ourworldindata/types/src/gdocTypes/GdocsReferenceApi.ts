@@ -134,6 +134,22 @@ export interface ComponentInstancesResponse {
     propAdoption: Record<string, number>
 }
 
+/**
+ * A draft block shaped in the form builder: a real published instance with
+ * author-cycled property overrides applied, re-minimized so the ArchieML is
+ * the canonical, shortest way to type the drafted form.
+ */
+export interface ComponentDraftResponse {
+    /** The ArchieML an author would paste to produce the drafted block */
+    archie: string
+    /**
+     * The surviving (authored, non-default) props of the draft's minimal
+     * source — the client derives the draft's form signature from these to
+     * tell whether the combination matches an observed form.
+     */
+    props: Record<string, unknown>
+}
+
 /** A block inside an exemplar section, addressable for preview rendering */
 export interface ExemplarBlock {
     componentId: string

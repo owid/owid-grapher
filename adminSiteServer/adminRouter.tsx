@@ -266,7 +266,8 @@ getPlainRouteWithROTransaction(
 
 // A real component instance — the block at ?path in the published gdoc
 // ?gdocId — rendered with that document's real context (query params because
-// JSON paths contain dots and brackets).
+// JSON paths contain dots and brackets). ?overrides reshapes the block's
+// props before rendering: the live half of the form-builder draft card.
 getPlainRouteWithROTransaction(
     adminRouter,
     "/gdocs-reference/instance/preview",
@@ -275,7 +276,8 @@ getPlainRouteWithROTransaction(
             await renderGdocsReferenceInstancePreview(
                 req.query.gdocId as string | undefined,
                 req.query.path as string | undefined,
-                trx
+                trx,
+                req.query.overrides as string | undefined
             )
         )
     }

@@ -984,7 +984,7 @@
 }
 
 .gdocs-ref-live__form-sets {
-    flex: 0 0 180px;
+    flex: 0 0 220px;
     padding: 14px 16px;
     border-right: 1px solid $gray-10;
     background: $gray-5;
@@ -999,17 +999,16 @@
     margin-bottom: 9px;
 }
 
+.gdocs-ref-live__form-sets-hint {
+    font-size: 11px;
+    color: $gray-50;
+    margin: -5px 0 9px;
+}
+
 .gdocs-ref-live__form-sets-empty {
     font-size: 12.5px;
     color: $gray-50;
     line-height: 1.5;
-}
-
-.gdocs-ref-live__form-sets-chips {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 6px;
 }
 
 .gdocs-ref-live__form-set {
@@ -1020,6 +1019,199 @@
     border: 1px solid $blue-20;
     border-radius: 5px;
     padding: 2px 9px;
+}
+
+// ---------------------------------------------------------------------------
+// Live layer: the form builder — click-to-cycle values and the draft state.
+// Warm ("draft amber") palette throughout: the same not-an-observed-form
+// language the dashed frequency glyph speaks.
+// ---------------------------------------------------------------------------
+
+$draft-accent: #d8952b;
+$draft-text: #8a5a1a;
+$draft-text-muted: #a98a52;
+$draft-border: #ecd3a8;
+$draft-border-strong: #d8b06a;
+$draft-bg: #fdf7ec;
+$draft-bg-panel: #fefaf3;
+$draft-bg-chip: #fff5e8;
+
+.gdocs-ref-live__form-props {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 7px;
+}
+
+.gdocs-ref-live__form-prop {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.gdocs-ref-live__form-prop-name {
+    font-family: var(--font-mono, monospace);
+    font-size: 12px;
+    color: $gray-60;
+}
+
+.gdocs-ref-live__form-prop-value {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    font-family: var(--font-mono, monospace);
+    font-size: 12px;
+    color: $blue-90;
+    background: $blue-5;
+    border: 1px solid $blue-20;
+    border-radius: 5px;
+    padding: 2px 9px;
+
+    svg {
+        font-size: 9px;
+        opacity: 0.55;
+        flex-shrink: 0;
+    }
+}
+
+// The cycle affordance: only buttons (cyclable values) invite the click
+button.gdocs-ref-live__form-prop-value {
+    cursor: pointer;
+
+    &:hover {
+        border-color: $draft-border-strong;
+        background: $draft-bg-chip;
+        color: $draft-text;
+    }
+}
+
+.gdocs-ref-live__form-prop-value--none {
+    color: $gray-50;
+    background: #fff;
+    border-color: $gray-20;
+}
+
+.gdocs-ref-live__form-prop-value--overridden {
+    color: $draft-text;
+    background: $draft-bg-chip;
+    border-color: $draft-border;
+}
+
+.gdocs-ref-live__form-prop-value-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 120px;
+}
+
+.gdocs-ref-live__form-prop-fixed {
+    font-size: 11px;
+    color: $gray-50;
+}
+
+.gdocs-ref-live__form-card--draft {
+    border-style: dashed;
+    border-color: $draft-border-strong;
+    box-shadow: 0 0 0 3px rgba($draft-accent, 0.1);
+}
+
+.gdocs-ref-live__form-card-header--draft {
+    background: $draft-bg;
+    border-bottom: 1px dashed $draft-border;
+}
+
+.gdocs-ref-live__draft-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: $draft-text;
+
+    &::before {
+        content: "";
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: $draft-accent;
+    }
+}
+
+.gdocs-ref-live__draft-origin {
+    font-size: 12px;
+    color: $draft-text-muted;
+}
+
+.gdocs-ref-live__draft-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+    margin-left: auto;
+}
+
+.gdocs-ref-live__draft-reset {
+    border: none;
+    background: none;
+    padding: 0;
+    font-size: 12.5px;
+    color: $gray-60;
+    cursor: pointer;
+
+    &:hover {
+        color: $draft-text;
+    }
+}
+
+.gdocs-ref-live__draft-copy {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 11px;
+    border: 1px solid $draft-border-strong;
+    border-radius: 6px;
+    background: #fff;
+    color: $draft-text;
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+
+    &:hover {
+        background: $draft-bg-chip;
+    }
+}
+
+.gdocs-ref-live__form-sets--draft {
+    background: $draft-bg-panel;
+    border-right-color: $draft-border;
+
+    .gdocs-ref-live__form-sets-title,
+    .gdocs-ref-live__form-sets-hint {
+        color: $draft-text-muted;
+    }
+}
+
+.gdocs-ref-live__form-card--draft .gdocs-ref-live__form-example {
+    background: #fffdf9;
+}
+
+.gdocs-ref-live__draft-note {
+    margin: 10px 0 0;
+    font-size: 12px;
+    color: $draft-text-muted;
+
+    strong {
+        color: $draft-text;
+    }
+
+    em {
+        font-style: normal;
+        font-weight: 600;
+        color: $draft-text;
+    }
 }
 
 .gdocs-ref-live__form-example {
