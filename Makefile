@@ -120,8 +120,12 @@ up.headless: require.headless create-if-missing.env tmp-downloads/owid_metadata.
 	@docker info >/dev/null 2>&1 || { \
 		echo '==> Docker daemon not running, attempting to start it'; \
 		service docker start >/dev/null 2>&1 || sudo service docker start >/dev/null 2>&1 || true; \
+		docker info >/dev/null 2>&1 || { \
+			echo '==> service start failed, launching dockerd directly'; \
+			nohup dockerd > logs/dockerd.log 2>&1 & \
+		}; \
 		for i in $$(seq 1 15); do docker info >/dev/null 2>&1 && break; sleep 2; done; \
-		docker info >/dev/null 2>&1 || { echo 'ERROR: docker daemon is not running and could not be started'; exit 1; }; \
+		docker info >/dev/null 2>&1 || { echo 'ERROR: docker daemon is not running and could not be started (on macOS, start Docker Desktop; see logs/dockerd.log otherwise)'; exit 1; }; \
 	}
 
 	@echo '==> Starting MySQL via docker compose'
@@ -135,10 +139,10 @@ up.headless: require.headless create-if-missing.env tmp-downloads/owid_metadata.
 	@ADMIN_SERVER_PORT=$(ADMIN_SERVER_PORT) nohup yarn startAdminDevServer > logs/admin-server.log 2>&1 & echo $$! > logs/admin-server.pid
 	@VITE_PORT=$(VITE_PORT) nohup yarn startSiteFront > logs/vite.log 2>&1 & echo $$! > logs/vite.pid
 
-	@echo '==> Waiting for the admin server to come up'
-	@for i in $$(seq 1 90); do \
+	@echo '==> Waiting for the admin server to come up (can take a few minutes)'
+	@for i in $$(seq 1 180); do \
 		if curl -sf -o /dev/null http://localhost:$(ADMIN_SERVER_PORT)/; then break; fi; \
-		if [ $$i -eq 90 ]; then echo 'ERROR: admin server did not come up, check logs/admin-server.log'; exit 1; fi; \
+		if [ $$i -eq 180 ]; then echo 'ERROR: admin server did not come up, check logs/admin-server.log'; exit 1; fi; \
 		printf '.'; sleep 2; \
 	done
 	@echo
@@ -152,12 +156,18 @@ up.headless: require.headless create-if-missing.env tmp-downloads/owid_metadata.
 wait-for-mysql.headless: export COMPOSE_PROJECT_NAME ?= owid-grapher
 
 # Like devTools/docker/wait-for-mysql.sh, but runs the mysql client inside the
-# db container so it works on hosts without a mysql client installed
+# db container so it works on hosts without a mysql client installed. Waits for
+# the db-load-data init container to exit first: the grapher db and user exist
+# before the dump import finishes, so a bare `select 1` passes too early.
 wait-for-mysql.headless:
-	@echo '==> Waiting for MySQL to be ready (the first run loads the db dump and can take 5-15 minutes)'
+	@echo '==> Waiting for the db init container to finish (the first run imports the db dump and can take 5-15 minutes)'
+	@until [ "$$(docker inspect -f '{{.State.Status}}' $(COMPOSE_PROJECT_NAME)-db-load-data-1 2>/dev/null)" = "exited" ]; \
+		do printf '.'; sleep 5; done
+	@test "$$(docker inspect -f '{{.State.ExitCode}}' $(COMPOSE_PROJECT_NAME)-db-load-data-1)" = "0" \
+		|| { echo "ERROR: db load failed, check: docker logs $(COMPOSE_PROJECT_NAME)-db-load-data-1"; exit 1; }
 	@until COMPOSE_PROJECT_NAME=$(COMPOSE_PROJECT_NAME) docker compose -f docker-compose.grapher.yml exec -T db \
 		mysql -u$(GRAPHER_DB_USER) -p$(GRAPHER_DB_PASS) -h 127.0.0.1 -e 'select 1' $(GRAPHER_DB_NAME) >/dev/null 2>&1; \
-		do printf '.'; sleep 5; done
+		do printf '.'; sleep 2; done
 	@echo ' ok'
 
 down.headless: export COMPOSE_PROJECT_NAME ?= owid-grapher
