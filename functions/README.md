@@ -167,6 +167,10 @@ It does two things, depending on the request:
    welcome email (sent via Postmark). When the `POSTMARK_SERVER_TOKEN`
    environment variable is not set, sending is skipped with a console
    warning, so the flow can be tested locally without Postmark credentials.
+   To inspect outgoing emails locally (and click the links they contain),
+   run `yarn postmarkCatcher` and set
+   `POSTMARK_API_BASE_URL=http://localhost:8025` in `.dev.vars` along with
+   any `POSTMARK_SERVER_TOKEN` value.
 2. If the request has `subscribeToOwidBrief: true`, it upserts the Mailchimp
    newsletter list member with the OWID Brief interest (group) checked. The
    OWID Brief newsletter stays in Mailchimp. New Mailchimp list members are

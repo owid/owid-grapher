@@ -143,6 +143,10 @@ export const EMAIL_NOTIFICATIONS_D1_DATABASE_ID: string =
 // If unset, sending via Postmark is skipped (useful for local development).
 export const POSTMARK_SERVER_TOKEN: string =
     serverSettings.POSTMARK_SERVER_TOKEN || ""
+// Point this at the local Postmark catcher (yarn postmarkCatcher) to inspect
+// emails during development without sending anything.
+export const POSTMARK_API_BASE_URL: string =
+    serverSettings.POSTMARK_API_BASE_URL || "https://api.postmarkapp.com"
 
 export const OWID_ASSETS_R2_ACCESS_KEY: string =
     serverSettings.OWID_ASSETS_R2_ACCESS_KEY || ""
