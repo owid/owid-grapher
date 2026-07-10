@@ -947,6 +947,42 @@ class YearColumn<
     }
 }
 
+// Formatting a day value goes through dayjs and is slow, and these formatters
+// run once per row in hot paths (CSV export, axis ticks, tooltips),
+// so we memoize per value
+const memoFormatDay = _.memoize(
+    (value: number): string => formatDay(value) // "Jan 21, 2020"
+)
+const memoFormatDayCsv = _.memoize(
+    (value: number): string => formatDay(value, { format: "YYYY-MM-DD" }) // "2020-01-21"
+)
+const memoFormatMonth = _.memoize(
+    (value: number): string => formatDay(value, { format: "MMM YYYY" }) // "Jan 2023"
+)
+const memoFormatMonthCsv = _.memoize(
+    (value: number): string => formatDay(value, { format: "YYYY-MM" }) // "2023-01"
+)
+const memoFormatWeek = _.memoize((value: number): string => {
+    const date = convertDaysSinceEpochToDate(value)
+    return `W${date.isoWeek()} ${date.isoWeekYear()}` // "W3 2023"
+})
+const memoFormatWeekCsv = _.memoize((value: number): string => {
+    const date = convertDaysSinceEpochToDate(value)
+    const ww = String(date.isoWeek()).padStart(2, "0")
+    return `${date.isoWeekYear()}-W${ww}` // "2023-W03"
+})
+const memoFormatQuarter = _.memoize((value: number): string => {
+    const date = convertDaysSinceEpochToDate(value)
+    return `Q${date.quarter()} ${date.year()}` // "Q1 2023"
+})
+const memoFormatQuarterCsv = _.memoize((value: number): string => {
+    const date = convertDaysSinceEpochToDate(value)
+    return `${date.year()}-Q${date.quarter()}` // "2023-Q1"
+})
+const memoParseDate = _.memoize(
+    (value: string): Time => convertDateToDaysSinceEpoch(dayjs.utc(value))
+)
+
 class DayColumn<
     TABLE_TYPE extends CoreTable = CoreTable,
     DEF_TYPE extends CoreColumnDef = CoreColumnDef,
@@ -958,29 +994,14 @@ class DayColumn<
         return TimeInterval.Day
     }
 
-    // We cache these values because running `formatDay` thousands of times takes some time.
-    static formatValueCache = new Map<number, string>()
     formatValue(value: number): string {
-        if (!DayColumn.formatValueCache.has(value)) {
-            const formatted = formatDay(value)
-            DayColumn.formatValueCache.set(value, formatted)
-            return formatted
-        }
-        return DayColumn.formatValueCache.get(value)!
+        return memoFormatDay(value)
     }
 
-    static formatForCsvCache = new Map<number, string>()
     override formatForCsv(value: number): string {
-        if (!DayColumn.formatForCsvCache.has(value)) {
-            const formatted = formatDay(value, { format: "YYYY-MM-DD" })
-            DayColumn.formatForCsvCache.set(value, formatted)
-            return formatted
-        }
-        return DayColumn.formatForCsvCache.get(value)!
+        return memoFormatDayCsv(value)
     }
 }
-
-const dateToTimeCache = new Map<string, Time>() // Cache for performance
 class DateColumn<
     TABLE_TYPE extends CoreTable = CoreTable,
     DEF_TYPE extends CoreColumnDef = CoreColumnDef,
@@ -988,13 +1009,7 @@ class DateColumn<
     override parse(val: unknown): number {
         // skip parsing if a date is a number, it's already been parsed
         if (typeof val === "number") return val
-        const valAsString = String(val)
-        if (!dateToTimeCache.has(valAsString))
-            dateToTimeCache.set(
-                valAsString,
-                convertDateToDaysSinceEpoch(dayjs.utc(valAsString))
-            )
-        return dateToTimeCache.get(valAsString)!
+        return memoParseDate(String(val))
     }
 }
 
@@ -1013,11 +1028,11 @@ class MonthColumn<
     }
 
     override formatValue(value: number): string {
-        return formatDay(value, { format: "MMM YYYY" }) // "Jan 2023"
+        return memoFormatMonth(value) // "Jan 2023"
     }
 
     override formatForCsv(value: number): string {
-        return formatDay(value, { format: "YYYY-MM" }) // "2023-01"
+        return memoFormatMonthCsv(value) // "2023-01"
     }
 }
 
@@ -1035,14 +1050,11 @@ class WeekColumn<
     }
 
     override formatValue(value: number): string {
-        const date = convertDaysSinceEpochToDate(value)
-        return `W${date.isoWeek()} ${date.isoWeekYear()}` // "W3 2023"
+        return memoFormatWeek(value) // "W3 2023"
     }
 
     override formatForCsv(value: number): string {
-        const date = convertDaysSinceEpochToDate(value)
-        const ww = String(date.isoWeek()).padStart(2, "0")
-        return `${date.isoWeekYear()}-W${ww}` // "2023-W03"
+        return memoFormatWeekCsv(value) // "2023-W03"
     }
 }
 
@@ -1060,13 +1072,11 @@ class QuarterColumn<
     }
 
     override formatValue(value: number): string {
-        const date = convertDaysSinceEpochToDate(value)
-        return `Q${date.quarter()} ${date.year()}` // "Q1 2023"
+        return memoFormatQuarter(value) // "Q1 2023"
     }
 
     override formatForCsv(value: number): string {
-        const date = convertDaysSinceEpochToDate(value)
-        return `${date.year()}-Q${date.quarter()}` // "2023-Q1"
+        return memoFormatQuarterCsv(value) // "2023-Q1"
     }
 }
 
