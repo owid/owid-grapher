@@ -8,6 +8,7 @@ import NotFoundPage from "../site/NotFoundPage.js"
 import { DonatePage } from "../site/DonatePage.js"
 import { ExplorerIndexPage } from "../site/ExplorerIndexPage.js"
 import { SubscribePage } from "../site/SubscribePage.js"
+import { OldSubscribePage } from "../site/OldSubscribePage.js"
 import { ThankYouPage } from "../site/ThankYouPage.js"
 import TombstonePage from "../site/TombstonePage.js"
 import OwidGdocPage from "../site/gdocs/OwidGdocPage.js"
@@ -23,6 +24,8 @@ import {
     BAKED_GRAPHER_URL,
     GRAPHER_DYNAMIC_THUMBNAIL_URL,
     CLOUDFLARE_IMAGES_URL,
+    FEATURE_FLAGS,
+    Features,
 } from "../settings/clientSettings.js"
 import { FeedbackPage } from "../site/FeedbackPage.js"
 import {
@@ -540,6 +543,9 @@ export const renderExplorerIndexPage = async (
 export const renderSubscribePage = async (
     knex: KnexReadonlyTransaction
 ): Promise<string> => {
+    if (!FEATURE_FLAGS.has(Features.EmailNotifications)) {
+        return renderToHtmlPage(<OldSubscribePage baseUrl={BAKED_BASE_URL} />)
+    }
     const topicTagGraph = await generateTopicTagGraph(knex)
     const flattenedTopicTagGraph = flattenNonTopicNodes(topicTagGraph)
     return renderToHtmlPage(

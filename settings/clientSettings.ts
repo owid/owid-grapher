@@ -110,6 +110,7 @@ export const PUBLISHED_AT_FORMAT = "ddd, MMM D, YYYY HH:mm"
 /** A map of possible features which can be enabled or disabled. */
 export const Features = {
     ExampleFeature: "ExampleFeature",
+    EmailNotifications: "EmailNotifications",
 } as const
 
 type Feature = (typeof Features)[keyof typeof Features]
