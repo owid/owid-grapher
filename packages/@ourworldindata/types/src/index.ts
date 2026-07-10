@@ -184,6 +184,7 @@ export {
     type ComponentDoc,
     type ComponentExample,
     type ComponentPropDoc,
+    type ComponentRegistry,
     type PinnedExampleRef,
 } from "./gdocTypes/ComponentReference.js"
 

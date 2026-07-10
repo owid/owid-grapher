@@ -1,8 +1,8 @@
 import {
-    ComponentDoc,
     ComponentDraftResponse,
     ComponentInstance,
     ComponentInstancesResponse,
+    ComponentRegistry,
     ComponentUsage,
     ComponentUsageByDocType,
     ComponentUsageLabel,
@@ -391,7 +391,7 @@ export async function getComponentInstances(
     trx: db.KnexReadonlyTransaction
 ): Promise<ComponentInstancesResponse> {
     const componentId = req.params.id
-    const doc = (componentsRegistry as ComponentDoc[]).find(
+    const doc = (componentsRegistry as ComponentRegistry).components.find(
         (component) => component.id === componentId
     )
     if (!doc) throw new JsonError(`No such component: "${componentId}"`, 404)

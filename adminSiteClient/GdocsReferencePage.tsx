@@ -12,6 +12,7 @@ import {
     COMPONENT_CATEGORIES,
     ComponentCategory,
     ComponentDoc,
+    ComponentRegistry,
     ComponentUsage,
     GdocsReferenceUsage,
     OwidGdocType,
@@ -34,23 +35,18 @@ import {
     ComponentForms,
     ExemplarXray,
     FrequencyBadge,
+    PropTypeLinks,
     SkeletonScaffold,
     TemplateComponentShortlist,
     UsageBar,
 } from "./GdocsReferenceLive.js"
 import {
     docTypeNoun,
+    githubBlobUrl,
+    githubEditUrl,
     overallUsageLabel,
     usageTooltip,
 } from "./gdocsReferenceLiveHelpers.js"
-
-// Component docs live as .md sidecars in the repo, gated by CI; the detail
-// view links technical editors to the GitHub web editor to propose changes.
-const GITHUB_REPO = "https://github.com/owid/owid-grapher"
-const githubEditUrl = (sidecarFile: string): string =>
-    `${GITHUB_REPO}/edit/master/${sidecarFile}`
-const githubBlobUrl = (sourceFile: string): string =>
-    `${GITHUB_REPO}/blob/master/${sourceFile}`
 
 const TEMPLATES_GROUP_TITLE = "Document templates"
 
@@ -93,6 +89,10 @@ export class GdocsReferencePage extends Component<
 
     components: ComponentDoc[] = []
     templates: TemplateDoc[] = []
+    // Source file of every named type the prop type texts mention, from the
+    // generated registry — lets the properties table link a type name to its
+    // definition.
+    typeSources: Record<string, string> = {}
     searchInput: string = ""
     // Live usage aggregate; null when the lookup failed (the page then falls
     // back to alphabetical ordering and shows no usage strips).
@@ -106,6 +106,7 @@ export class GdocsReferencePage extends Component<
         makeObservable(this, {
             components: observable,
             templates: observable,
+            typeSources: observable,
             searchInput: observable,
             usage: observable,
         })
@@ -132,6 +133,17 @@ export class GdocsReferencePage extends Component<
 
     @computed private get componentIds(): Set<string> {
         return new Set(this.components.map((doc) => doc.id))
+    }
+
+    // What the properties table links a type name to: the component's own
+    // reference page when the type is a block, its GitHub definition otherwise.
+    @computed private get propTypeLinks(): PropTypeLinks {
+        return {
+            componentIdByTypeName: new Map(
+                this.components.map((doc) => [doc.typeName, doc.id])
+            ),
+            typeSources: this.typeSources,
+        }
     }
 
     @computed private get query(): string {
@@ -685,6 +697,7 @@ export class GdocsReferencePage extends Component<
                 <ComponentForms
                     doc={doc}
                     usage={this.usageOf(doc)}
+                    typeLinks={this.propTypeLinks}
                     notes={
                         notesMarkdown ? (
                             <GdocsReferenceMarkdown
@@ -898,14 +911,13 @@ export class GdocsReferencePage extends Component<
 
     async getData(): Promise<void> {
         const { admin } = this.context
-        const [{ components }, { templates }] = await Promise.all([
-            admin.getJSON<{ components: ComponentDoc[] }>(
-                "/api/components.json"
-            ),
+        const [{ components, typeSources }, { templates }] = await Promise.all([
+            admin.getJSON<ComponentRegistry>("/api/components.json"),
             admin.getJSON<{ templates: TemplateDoc[] }>("/api/templates.json"),
         ])
         runInAction(() => {
             this.components = components
+            this.typeSources = typeSources
             this.templates = templates
         })
         // Loaded separately, and tolerated when it fails: the reference is

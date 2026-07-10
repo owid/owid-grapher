@@ -9,6 +9,7 @@ import {
     ComponentDoc,
     ComponentInstance,
     ComponentInstancesResponse,
+    ComponentPropDoc,
     ComponentUsage,
     ComponentUsageLabel,
     ComponentVariation,
@@ -26,6 +27,7 @@ import {
     docTypeNoun,
     FREQUENCY_DOTS,
     fractionUsageLabel,
+    githubBlobUrl,
     humanizeVariation,
     indefinite,
     joinWithAnd,
@@ -551,10 +553,12 @@ const FORM_CARD_LIMIT = 6
 export function ComponentForms({
     doc,
     usage,
+    typeLinks,
     notes,
 }: {
     doc: ComponentDoc
     usage: ComponentUsage | undefined
+    typeLinks: PropTypeLinks
     notes?: React.ReactNode
 }): React.ReactElement {
     const [docTypeFilter, setDocTypeFilter] = useState<string | undefined>()
@@ -584,7 +588,11 @@ export function ComponentForms({
     if (doc.system || response === null || !response)
         return (
             <section className="gdocs-ref__section">
-                <ComponentProperties doc={doc} notes={notes} />
+                <ComponentProperties
+                    doc={doc}
+                    typeLinks={typeLinks}
+                    notes={notes}
+                />
             </section>
         )
 
@@ -700,6 +708,7 @@ export function ComponentForms({
                 doc={doc}
                 live={{ propAdoption: response.propAdoption, scanned }}
                 variations={variations}
+                typeLinks={typeLinks}
                 notes={notes}
             />
         </section>
@@ -709,6 +718,94 @@ export function ComponentForms({
 // -----------------------------------------------------------------------------
 // Component page: the derived properties table
 // -----------------------------------------------------------------------------
+
+/**
+ * What the properties table links a type name to: the component's own
+ * reference page when the type is a block of the authoring vocabulary, its
+ * definition on GitHub (via the registry's typeSources) otherwise.
+ */
+export interface PropTypeLinks {
+    componentIdByTypeName: Map<string, string>
+    typeSources: Record<string, string>
+}
+
+// Is every branch of the type text a quoted string literal? Matches both a
+// lone literal ('"info"') and a union ('"wide" | "narrow"').
+function isLiteralUnionTypeText(text: string): boolean {
+    const branches = text.split("|").map((branch) => branch.trim())
+    return (
+        branches.length > 0 &&
+        branches.every((branch) => /^(['"]).*\1$/.test(branch))
+    )
+}
+
+/**
+ * The Type cell of the properties table. Fixed choices and booleans render as
+ * value chips — the words an author actually types, not TS syntax — and
+ * every other declared type renders as its type text with known type names
+ * linked to their component page or definition.
+ */
+function PropTypeCell({
+    prop,
+    typeLinks,
+}: {
+    prop: ComponentPropDoc
+    typeLinks: PropTypeLinks
+}): React.ReactElement {
+    const chipValues =
+        prop.type === "boolean"
+            ? ["true", "false"]
+            : isLiteralUnionTypeText(prop.type)
+              ? prop.type.split("|").map((branch) => branch.trim().slice(1, -1))
+              : undefined
+    if (chipValues)
+        return (
+            <span className="gdocs-ref-live__props-choices" title={prop.type}>
+                {chipValues.map((value) => (
+                    <code key={value} className="gdocs-ref-live__props-choice">
+                        {value}
+                    </code>
+                ))}
+            </span>
+        )
+
+    // The declared type text, with each known type name linked.
+    const parts: React.ReactNode[] = []
+    let last = 0
+    for (const match of prop.type.matchAll(/[A-Za-z_]\w*/g)) {
+        const name = match[0]
+        const componentId = typeLinks.componentIdByTypeName.get(name)
+        const sourceFile = typeLinks.typeSources[name]
+        if (componentId === undefined && sourceFile === undefined) continue
+        if (match.index > last) parts.push(prop.type.slice(last, match.index))
+        parts.push(
+            componentId !== undefined ? (
+                <Link
+                    key={match.index}
+                    className="gdocs-ref-live__props-type-link"
+                    to={`/gdocs-reference/components/${componentId}`}
+                    title={`Open the {.${componentId}} component page`}
+                >
+                    {name}
+                </Link>
+            ) : (
+                <a
+                    key={match.index}
+                    className="gdocs-ref-live__props-type-link"
+                    href={githubBlobUrl(sourceFile)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title="View the type definition on GitHub"
+                >
+                    {name}
+                </a>
+            )
+        )
+        last = match.index + name.length
+    }
+    parts.push(prop.type.slice(last))
+    return <code className="gdocs-ref__field-type">{parts}</code>
+}
 
 /**
  * Every declared property of the block, from the type definitions — the
@@ -721,11 +818,13 @@ function ComponentProperties({
     doc,
     live,
     variations,
+    typeLinks,
     notes,
 }: {
     doc: ComponentDoc
     live?: { propAdoption: Record<string, number>; scanned: number }
     variations?: ComponentVariation[]
+    typeLinks: PropTypeLinks
     notes?: React.ReactNode
 }): React.ReactElement | null {
     if (doc.props.length === 0 && !notes) return null
@@ -789,9 +888,10 @@ function ComponentProperties({
                                         <code>{prop.name}</code>
                                     </td>
                                     <td>
-                                        <code className="gdocs-ref__field-type">
-                                            {prop.type}
-                                        </code>
+                                        <PropTypeCell
+                                            prop={prop}
+                                            typeLinks={typeLinks}
+                                        />
                                     </td>
                                     <td
                                         className={

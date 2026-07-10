@@ -43,6 +43,14 @@ export function useAdminJson<T>(
     return path ? result : undefined
 }
 
+// Component docs live as .md sidecars in the repo, gated by CI; the reference
+// links technical editors to GitHub to propose changes or read definitions.
+const GITHUB_REPO = "https://github.com/owid/owid-grapher"
+export const githubEditUrl = (sidecarFile: string): string =>
+    `${GITHUB_REPO}/edit/master/${sidecarFile}`
+export const githubBlobUrl = (sourceFile: string): string =>
+    `${GITHUB_REPO}/blob/master/${sourceFile}`
+
 const DOC_TYPE_NOUNS: Partial<Record<OwidGdocType, [string, string]>> = {
     [OwidGdocType.Article]: ["article", "articles"],
     [OwidGdocType.DataInsight]: ["data insight", "data insights"],

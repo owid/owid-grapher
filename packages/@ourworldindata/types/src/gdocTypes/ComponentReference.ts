@@ -55,6 +55,19 @@ export interface ComponentPropDoc {
     optional: boolean
 }
 
+/**
+ * Shape of docs/components.registry.generated.json and of the
+ * /api/components.json response.
+ */
+export interface ComponentRegistry {
+    components: ComponentDoc[]
+    /**
+     * Repo-relative source file of every named type mentioned in the prop
+     * type texts, so the UI can link a type name to its definition.
+     */
+    typeSources: Record<string, string>
+}
+
 export interface ComponentDoc {
     id: string
     title: string
