@@ -320,7 +320,17 @@
 // Detail views
 // ---------------------------------------------------------------------------
 
+// Sticks to the top of the scrolling content column so the title (and, on
+// template pages, the Copy prompt button) stays at hand. The negative
+// margin/padding pair covers the column's 32px top padding, which scrolled
+// content would otherwise peek through above the stuck header.
 .gdocs-ref__detail-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: #fff;
+    margin-top: -32px;
+    padding-top: 32px;
     margin-bottom: 20px;
     padding-bottom: 16px;
     border-bottom: 1px solid $gray-20;
