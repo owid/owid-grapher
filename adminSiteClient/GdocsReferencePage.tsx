@@ -31,6 +31,10 @@ import {
     splitSidecarBody,
 } from "./gdocsReferenceSidecar.js"
 import {
+    componentsUsedInTemplate,
+    ScopedNavComponent,
+} from "./gdocsReferenceNav.js"
+import {
     ComponentForms,
     ExemplarXray,
     FrequencyBadge,
@@ -96,6 +100,10 @@ export class GdocsReferencePage extends Component<
     // Live usage aggregate; null when the lookup failed (the page then falls
     // back to alphabetical ordering and shows no usage strips).
     usage: GdocsReferenceUsage | undefined | null = undefined
+    // The template scoping the nav's component list. Visiting a template page
+    // engages it, and it sticks while the author hops between that template's
+    // blocks — "Show all" is the way out.
+    navTemplateId: string | undefined = undefined
 
     private readonly searchFieldRef = createRef<HTMLInputElement>()
     private readonly contentRef = createRef<HTMLDivElement>()
@@ -108,6 +116,7 @@ export class GdocsReferencePage extends Component<
             typeSources: observable,
             searchInput: observable,
             usage: observable,
+            navTemplateId: observable,
         })
     }
 
@@ -214,6 +223,32 @@ export class GdocsReferencePage extends Component<
         this.searchInput = value
     }
 
+    @action.bound private scopeNavToTemplate(id: string): void {
+        this.navTemplateId = id
+    }
+
+    @action.bound private clearNavScope(): void {
+        this.navTemplateId = undefined
+    }
+
+    // The template actually scoping the nav: engaged by visiting a template
+    // page, dependent on the usage layer (without it there is no "used in"),
+    // and inert when the id no longer resolves to a template.
+    @computed private get navScopeTemplate(): TemplateDoc | undefined {
+        if (!this.usage || !this.navTemplateId) return undefined
+        return this.templates.find((doc) => doc.id === this.navTemplateId)
+    }
+
+    @computed
+    private get scopedNavComponents(): ScopedNavComponent<ComponentDoc>[] {
+        if (!this.navScopeTemplate) return []
+        return componentsUsedInTemplate(
+            this.filteredComponents,
+            this.usage,
+            this.navScopeTemplate.id
+        )
+    }
+
     private readonly onSearchKeyDown = (
         event: React.KeyboardEvent<HTMLInputElement>
     ): void => {
@@ -279,18 +314,16 @@ export class GdocsReferencePage extends Component<
             `/gdocs-reference/templates/${doc.id}/preview?example=${exampleIndex}`
     }
 
+    // Rows are quiet: the name only — the block tag already lives on the
+    // component page and in Copy. Frequency dots appear only in the scoped
+    // list, where they have a document type to be relative to.
     private renderNavItem(
         kind: Selection["kind"],
-        doc: { id: string; title: string; system?: boolean }
+        doc: { id: string; title: string; system?: boolean },
+        badge?: React.ReactElement
     ): React.ReactElement {
         const isActive =
             this.selection?.kind === kind && this.selection.id === doc.id
-        // The shared frequency glyph, wordless — so scanning the list already
-        // reads which blocks are the everyday ones.
-        const usage =
-            kind === "components" && !doc.system
-                ? this.usageByComponentId.get(doc.id)
-                : undefined
         return (
             <li key={`${kind}-${doc.id}`}>
                 <Link
@@ -300,22 +333,108 @@ export class GdocsReferencePage extends Component<
                             : "gdocs-ref__nav-item"
                     }
                     to={`/gdocs-reference/${kind}/${doc.id}`}
+                    onClick={
+                        kind === "templates"
+                            ? (): void => this.scopeNavToTemplate(doc.id)
+                            : undefined
+                    }
                 >
                     <span className="gdocs-ref__nav-item-title">
                         {doc.title}
                     </span>
-                    {usage && (
-                        <FrequencyBadge
-                            label={overallUsageLabel(usage)}
-                            title={usageTooltip(usage)}
-                            hideWord
-                        />
-                    )}
-                    <code className="gdocs-ref__nav-item-id">
-                        {kind === "components" ? `{.${doc.id}}` : doc.id}
-                    </code>
+                    {badge}
                 </Link>
             </li>
+        )
+    }
+
+    // The scoped rail: a banner naming the template, the blocks used in it
+    // most-adopted first with dots scaled to that document type, and the way
+    // back to the full list.
+    private renderScopedNavList(template: TemplateDoc): React.ReactElement {
+        return (
+            <>
+                <div className="gdocs-ref__nav-filter">
+                    <span className="gdocs-ref__nav-filter-label">
+                        Blocks used in <strong>{template.title}</strong>
+                    </span>
+                    <button
+                        type="button"
+                        className="gdocs-ref__nav-filter-clear"
+                        onClick={this.clearNavScope}
+                    >
+                        Show all ×
+                    </button>
+                </div>
+                <div className="gdocs-ref__nav-group">
+                    <ul>
+                        {this.scopedNavComponents.map(({ doc, entry }) =>
+                            this.renderNavItem(
+                                "components",
+                                doc,
+                                <FrequencyBadge
+                                    label={entry.label}
+                                    title={`${entry.docsUsingIt} of ${
+                                        entry.totalDocs
+                                    } ${docTypeNoun(
+                                        entry.docType,
+                                        entry.totalDocs !== 1
+                                    )}`}
+                                    hideWord
+                                />
+                            )
+                        )}
+                    </ul>
+                </div>
+                <button
+                    type="button"
+                    className="gdocs-ref__nav-show-all"
+                    onClick={this.clearNavScope}
+                >
+                    Show all {this.components.length} components →
+                </button>
+            </>
+        )
+    }
+
+    private renderRestingNavGroups(): React.ReactElement {
+        const { componentsByCategory, systemComponents, query } = this
+        return (
+            <>
+                {componentsByCategory.map(({ category, components }, index) => (
+                    <div className="gdocs-ref__nav-group" key={category}>
+                        <div className="gdocs-ref__nav-group-title">
+                            {category}
+                        </div>
+                        {index === 0 && this.usage && !query && (
+                            <div className="gdocs-ref__nav-hint">
+                                Pick a template above to see how often each
+                                block is used in it.
+                            </div>
+                        )}
+                        <ul>
+                            {components.map((doc) =>
+                                this.renderNavItem("components", doc)
+                            )}
+                        </ul>
+                    </div>
+                ))}
+                {systemComponents.length > 0 && (
+                    <details
+                        className="gdocs-ref__nav-group gdocs-ref__nav-group--system"
+                        open={!!query}
+                    >
+                        <summary className="gdocs-ref__nav-group-title">
+                            Platform blocks
+                        </summary>
+                        <ul>
+                            {systemComponents.map((doc) =>
+                                this.renderNavItem("components", doc)
+                            )}
+                        </ul>
+                    </details>
+                )}
+            </>
         )
     }
 
@@ -324,13 +443,16 @@ export class GdocsReferencePage extends Component<
             filteredTemplates,
             componentsByCategory,
             systemComponents,
+            navScopeTemplate,
             query,
         } = this
         const nothingMatches =
             query &&
             filteredTemplates.length === 0 &&
-            componentsByCategory.length === 0 &&
-            systemComponents.length === 0
+            (navScopeTemplate
+                ? this.scopedNavComponents.length === 0
+                : componentsByCategory.length === 0 &&
+                  systemComponents.length === 0)
         return (
             <nav className="gdocs-ref__nav">
                 <div className="gdocs-ref__search">
@@ -365,33 +487,9 @@ export class GdocsReferencePage extends Component<
                         </ul>
                     </div>
                 )}
-                {componentsByCategory.map(({ category, components }) => (
-                    <div className="gdocs-ref__nav-group" key={category}>
-                        <div className="gdocs-ref__nav-group-title">
-                            {category}
-                        </div>
-                        <ul>
-                            {components.map((doc) =>
-                                this.renderNavItem("components", doc)
-                            )}
-                        </ul>
-                    </div>
-                ))}
-                {systemComponents.length > 0 && (
-                    <details
-                        className="gdocs-ref__nav-group gdocs-ref__nav-group--system"
-                        open={!!query}
-                    >
-                        <summary className="gdocs-ref__nav-group-title">
-                            Platform blocks
-                        </summary>
-                        <ul>
-                            {systemComponents.map((doc) =>
-                                this.renderNavItem("components", doc)
-                            )}
-                        </ul>
-                    </details>
-                )}
+                {navScopeTemplate
+                    ? this.renderScopedNavList(navScopeTemplate)
+                    : this.renderRestingNavGroups()}
                 {nothingMatches && (
                     <div className="gdocs-ref__nav-empty">
                         Nothing matches “{this.searchInput.trim()}”
@@ -920,9 +1018,17 @@ export class GdocsReferencePage extends Component<
         }
     }
 
+    // Landing on a template page (direct link, back/forward) engages the nav
+    // scope just as clicking the template does.
+    private syncNavScopeToRoute(): void {
+        if (this.selection?.kind === "templates")
+            this.scopeNavToTemplate(this.selection.id)
+    }
+
     override componentDidMount(): void {
         void this.getData()
         document.addEventListener("keydown", this.onGlobalKeyDown)
+        this.syncNavScopeToRoute()
     }
 
     override componentWillUnmount(): void {
@@ -934,7 +1040,9 @@ export class GdocsReferencePage extends Component<
     ): void {
         const prev = prevProps.match.params
         const current = this.props.match.params
-        if (prev.kind !== current.kind || prev.id !== current.id)
+        if (prev.kind !== current.kind || prev.id !== current.id) {
             this.contentRef.current?.scrollTo({ top: 0 })
+            this.syncNavScopeToRoute()
+        }
     }
 }

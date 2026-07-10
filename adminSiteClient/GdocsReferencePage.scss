@@ -124,14 +124,63 @@
     text-overflow: ellipsis;
 }
 
-.gdocs-ref__nav-item-id {
-    flex-shrink: 1;
-    font-family: var(--font-mono, monospace);
-    font-size: 11px;
+// Resting-state nudge under the first component group: frequency dots only
+// appear once a template gives them something to be relative to.
+.gdocs-ref__nav-hint {
+    padding: 0 10px;
+    margin-bottom: 6px;
+    font-size: 11.5px;
+    line-height: 1.45;
     color: $gray-60;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+}
+
+// The template-as-filter banner scoping the component list below it
+.gdocs-ref__nav-filter {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 14px;
+    padding: 7px 9px;
+    background: $blue-10;
+    border: 1px solid $blue-20;
+    border-radius: 6px;
+}
+
+.gdocs-ref__nav-filter-label {
+    font-size: 11.5px;
+    color: $blue-90;
+}
+
+.gdocs-ref__nav-filter-clear {
+    flex-shrink: 0;
+    border: none;
+    background: none;
+    padding: 0;
+    font-size: 11.5px;
+    color: $blue-60;
+    cursor: pointer;
+
+    &:hover {
+        color: $blue-90;
+        text-decoration: underline;
+    }
+}
+
+.gdocs-ref__nav-show-all {
+    display: block;
+    border: none;
+    background: none;
+    padding: 6px 10px;
+    margin-top: 4px;
+    font-size: 12px;
+    color: $gray-60;
+    cursor: pointer;
+
+    &:hover {
+        color: $blue-90;
+        text-decoration: underline;
+    }
 }
 
 .gdocs-ref__nav-empty {
@@ -767,7 +816,7 @@
     white-space: nowrap;
 }
 
-// Compact glyph on nav rows, sitting between title and id
+// Compact glyph on scoped nav rows, right of the title
 .gdocs-ref__nav-item .gdocs-ref-live__glyph {
     width: 28px;
     height: 7px;
