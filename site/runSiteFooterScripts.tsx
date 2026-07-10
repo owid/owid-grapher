@@ -42,9 +42,11 @@ import { REDUCED_TRACKING } from "../settings/clientSettings.js"
 import { SiteHeaderNavigation } from "./SiteHeader.js"
 import {
     OLD_SUBSCRIBE_PAGE_FORM_CONTAINER_ID,
+    PREFERENCES_PAGE_FORM_CONTAINER_ID,
     SUBSCRIBE_PAGE_NOTIFICATIONS_FORM_CONTAINER_ID,
 } from "@ourworldindata/types"
 import { EmailNotificationsSubscribeForm } from "./EmailNotificationsSubscribeForm.js"
+import { EmailNotificationsPreferencesForm } from "./EmailNotificationsPreferencesForm.js"
 import { NewsletterSubscriptionForm } from "./NewsletterSubscription.js"
 import { NewsletterSubscriptionContext } from "./newsletter.js"
 import UserSurvey from "./gdocs/components/UserSurvey.js"
@@ -75,6 +77,19 @@ function hydrateSubscribePage() {
         hydrateRoot(
             notificationsContainer,
             <EmailNotificationsSubscribeForm topicTagGraph={topicTagGraph} />
+        )
+    }
+
+    // The magic-link preferences page bakes an empty container: the form is
+    // entirely client-driven (its mode depends on the token in the URL
+    // fragment), so it is rendered rather than hydrated.
+    const preferencesContainer = document.getElementById(
+        PREFERENCES_PAGE_FORM_CONTAINER_ID
+    )
+
+    if (preferencesContainer && topicTagGraph) {
+        createRoot(preferencesContainer).render(
+            <EmailNotificationsPreferencesForm topicTagGraph={topicTagGraph} />
         )
     }
 
