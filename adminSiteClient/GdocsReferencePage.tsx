@@ -701,7 +701,8 @@ export class GdocsReferencePage extends Component<
         whenToUse: string | undefined,
         whenNotToUse: string | undefined,
         previewPathForExample: (index: number) => string | undefined,
-        examples: ComponentDoc["examples"]
+        examples: ComponentDoc["examples"],
+        componentId?: string
     ): React.ReactElement | null {
         if (!whenToUse && !whenNotToUse) return null
         return (
@@ -716,6 +717,7 @@ export class GdocsReferencePage extends Component<
                             examples={examples}
                             previewPathForExample={previewPathForExample}
                             componentIds={this.componentIds}
+                            componentId={componentId}
                         />
                     </div>
                 )}
@@ -729,6 +731,7 @@ export class GdocsReferencePage extends Component<
                             examples={examples}
                             previewPathForExample={previewPathForExample}
                             componentIds={this.componentIds}
+                            componentId={componentId}
                         />
                     </div>
                 )}
@@ -761,13 +764,15 @@ export class GdocsReferencePage extends Component<
                         examples={doc.examples}
                         previewPathForExample={previewPath}
                         componentIds={this.componentIds}
+                        componentId={doc.system ? undefined : doc.id}
                     />
                 )}
                 {this.renderDecisionBox(
                     whenToUse,
                     whenNotToUse,
                     previewPath,
-                    doc.examples
+                    doc.examples,
+                    doc.system ? undefined : doc.id
                 )}
                 {this.usage && !doc.system && (
                     <UsageSummary
@@ -791,6 +796,7 @@ export class GdocsReferencePage extends Component<
                                 examples={doc.examples}
                                 previewPathForExample={previewPath}
                                 componentIds={this.componentIds}
+                                componentId={doc.system ? undefined : doc.id}
                             />
                         ) : undefined
                     }

@@ -50,6 +50,7 @@ export function GdocsReferenceMarkdown({
     examples,
     previewPathForExample,
     componentIds,
+    componentId,
 }: {
     body: string
     examples: ComponentExample[]
@@ -57,6 +58,8 @@ export function GdocsReferenceMarkdown({
     previewPathForExample: (exampleIndex: number) => string | undefined
     /** Known component ids, used to link `{.id}` mentions */
     componentIds: Set<string>
+    /** The component this body documents; enables per-example Copy prompt */
+    componentId?: string
 }): React.ReactElement {
     const markdownComponents: MarkdownComponents = useMemo(
         () => ({
@@ -73,6 +76,7 @@ export function GdocsReferenceMarkdown({
                                 ? previewPathForExample(exampleIndex)
                                 : undefined
                         }
+                        componentId={componentId}
                     />
                 )
             },
@@ -92,7 +96,7 @@ export function GdocsReferenceMarkdown({
                 return <code {...props}>{children}</code>
             },
         }),
-        [examples, previewPathForExample, componentIds]
+        [examples, previewPathForExample, componentIds, componentId]
     )
 
     return (

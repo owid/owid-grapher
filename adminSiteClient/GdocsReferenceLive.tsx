@@ -25,7 +25,11 @@ import {
     TemplateExemplarsResponse,
 } from "@ourworldindata/types"
 import { Link } from "./Link.js"
-import { CopyButton, GdocsReferenceExample } from "./GdocsReferenceExample.js"
+import {
+    CopyButton,
+    CopyPromptButton,
+    GdocsReferenceExample,
+} from "./GdocsReferenceExample.js"
 import {
     docTypeNoun,
     FREQUENCY_DOTS,
@@ -878,11 +882,18 @@ function FormCard({
                             <FontAwesomeIcon icon={faRotateRight} /> Reset
                         </button>
                         {draft && (
-                            <CopyButton
-                                text={draft.archie}
-                                label="Copy draft"
-                                className="gdocs-ref-live__draft-copy"
-                            />
+                            <>
+                                <CopyButton
+                                    text={draft.archie}
+                                    label="Copy draft"
+                                    className="gdocs-ref-live__draft-copy"
+                                />
+                                <CopyPromptButton
+                                    componentId={doc.id}
+                                    archie={draft.archie}
+                                    className="gdocs-ref-live__draft-copy"
+                                />
+                            </>
                         )}
                     </span>
                 </div>
@@ -913,6 +924,7 @@ function FormCard({
                                     previewPath={`${instancePreviewPath(current)}&overrides=${encodeURIComponent(
                                         JSON.stringify(overrides)
                                     )}`}
+                                    componentId={doc.id}
                                 />
                                 <p className="gdocs-ref-live__draft-note">
                                     {draftMatch ? (
@@ -949,6 +961,7 @@ function FormCard({
                                 <GdocsReferenceExample
                                     archie={current.archie ?? ""}
                                     previewPath={instancePreviewPath(current)}
+                                    componentId={doc.id}
                                 />
                                 <div className="gdocs-ref-live__form-example-footer">
                                     <InstanceProvenance
@@ -1040,6 +1053,7 @@ function SyntheticFormCard({
                 <GdocsReferenceExample
                     archie={example.archie}
                     previewPath={`/gdocs-reference/components/${doc.id}/preview?example=${info.exampleIndex}`}
+                    componentId={doc.id}
                 />
             </div>
         </div>
