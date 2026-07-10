@@ -72,8 +72,7 @@ export const CLAUDE_API_KEY_STORAGE_KEY = "owid-assistant-claude-key"
 export function readStoredClaudeApiKey(): string | undefined {
     try {
         return (
-            window.localStorage.getItem(CLAUDE_API_KEY_STORAGE_KEY) ??
-            undefined
+            window.localStorage.getItem(CLAUDE_API_KEY_STORAGE_KEY) ?? undefined
         )
     } catch {
         return undefined
@@ -237,7 +236,7 @@ function buildSystemPrompt(context: AssistantChartContext): string {
             "asks about a different topic, or only about places without " +
             'data), use kind "options" with 2-4 sensible default views AND ' +
             'set `note` to "no_match".',
-        "- Headlines are plain text: no markdown, no URLs, max 60 characters.",
+        "- Headlines are plain text: no markdown, no URLs, max 60 characters."
     )
     // The user query goes into the user message, not the system prompt; the
     // forced tool schema plus client-side validation keep the output space
@@ -274,9 +273,7 @@ function validateTab(
 ): GrapherTabName | undefined {
     if (typeof raw !== "string") return undefined
     const normalized = raw.replace(/[\s_-]/g, "").toLowerCase()
-    return context.availableTabs.find(
-        (tab) => tab.toLowerCase() === normalized
-    )
+    return context.availableTabs.find((tab) => tab.toLowerCase() === normalized)
 }
 
 function validateYear(
