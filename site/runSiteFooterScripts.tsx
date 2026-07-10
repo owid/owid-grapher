@@ -40,8 +40,13 @@ import {
 import { BrowserRouter } from "react-router-dom-v5-compat"
 import { REDUCED_TRACKING } from "../settings/clientSettings.js"
 import { SiteHeaderNavigation } from "./SiteHeader.js"
-import { SUBSCRIBE_PAGE_NOTIFICATIONS_FORM_CONTAINER_ID } from "@ourworldindata/types"
+import {
+    OLD_SUBSCRIBE_PAGE_FORM_CONTAINER_ID,
+    SUBSCRIBE_PAGE_NOTIFICATIONS_FORM_CONTAINER_ID,
+} from "@ourworldindata/types"
 import { EmailNotificationsSubscribeForm } from "./EmailNotificationsSubscribeForm.js"
+import { NewsletterSubscriptionForm } from "./NewsletterSubscription.js"
+import { NewsletterSubscriptionContext } from "./newsletter.js"
 import UserSurvey from "./gdocs/components/UserSurvey.js"
 import {
     SlideshowPresentation,
@@ -70,6 +75,21 @@ function hydrateSubscribePage() {
         hydrateRoot(
             notificationsContainer,
             <EmailNotificationsSubscribeForm topicTagGraph={topicTagGraph} />
+        )
+    }
+
+    // Baked instead of the new form when the EmailNotifications feature flag
+    // is off.
+    const oldFormContainer = document.getElementById(
+        OLD_SUBSCRIBE_PAGE_FORM_CONTAINER_ID
+    )
+
+    if (oldFormContainer) {
+        hydrateRoot(
+            oldFormContainer,
+            <NewsletterSubscriptionForm
+                context={NewsletterSubscriptionContext.SubscribePage}
+            />
         )
     }
 }
