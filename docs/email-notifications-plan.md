@@ -605,19 +605,18 @@ development must never send real email. Three layers, cheapest first:
    staging vault (see "Two gaps to fix regardless"). Limitation: you can't see the
    email. _Verify once: that the test token also accepts
    `MessageStream: "broadcasts"` payloads, which the send job uses._
-2. **Local Postmark catcher for click-through flow testing.** The v1
-   flows (confirmation links, magic links, resend buttons) require reading the
-   email body, because that's where the tokens are. Both runtimes funnel through a
-   single raw `fetch` to a hardcoded `https://api.postmarkapp.com/email`
-   (`functions/_common/emailNotifications.ts` and
-   `baker/emailNotifications/sendEmailNotifications.ts`), so add a
-   `POSTMARK_API_BASE_URL` env override in those two spots, then run a tiny local
-   server (~60 lines of Node) that accepts `POST /email`, replies with Postmark's
-   response shape (`{ MessageID, ErrorCode: 0, Message: "OK" }` — the send job
-   reads those fields), stores payloads, and serves an index page with clickable
-   `HtmlBody` previews. Don't use an SMTP catcher (Mailpit/MailHog) — Postmark is
-   JSON-over-HTTP, so a fake endpoint is simpler. Visual template work doesn't
-   need this either: react-email ships its own preview server (`email dev`).
+2. **Local Postmark catcher for click-through flow testing — built:
+   `yarn postmarkCatcher`.** The v1 flows (confirmation links, magic links,
+   resend buttons) require reading the email body, because that's where the
+   tokens are. The catcher (`devTools/postmarkCatcher/`) is a fake Postmark
+   API on `http://localhost:8025`: it accepts `POST /email` (and
+   `/email/batch`), replies with Postmark's response shape, and serves an
+   index page listing caught emails with their `HtmlBody` viewable, so links
+   are clickable. Both senders honor a `POSTMARK_API_BASE_URL` env override
+   (`.env` for the send job, `.dev.vars` for the functions) — set it to
+   `http://localhost:8025` and any `POSTMARK_SERVER_TOKEN` value. Visual
+   template work doesn't need this: react-email ships its own preview server
+   (`email dev`).
 3. **Reserve the 100 real sends for the pre-launch smoke test** on staging with
    real inboxes — the things only real delivery verifies: DKIM/SPF alignment,
    Gmail surfacing the `List-Unsubscribe-Post` one-click header, spam placement.
@@ -646,10 +645,13 @@ npx wrangler d1 execute owid-email-notifications-staging --local \
 yarn sendEmailNotifications weekly --local --dry-run
 
 # 6. "send": set POSTMARK_SERVER_TOKEN=POSTMARK_API_TEST (validates, sends nothing),
-#    drop --dry-run. To read the emails / click links, use the local catcher —
-#    see "Email sending during development" above. Never use the real token in dev.
+#    drop --dry-run. To read the emails / click links, run `yarn postmarkCatcher`
+#    and set POSTMARK_API_BASE_URL=http://localhost:8025 (any token value works).
+#    Never use the real token in dev.
 #    NB: a send sets last_sent_at, so re-testing needs a reset:
-#    UPDATE notification_preferences SET last_sent_at = NULL
+#    yarn resetEmailNotificationsTestState [slug]
+#    clears last_sent_at for all local subscribers, and with a slug also bumps
+#    that post's publishedAt to now so the send job has content in the window.
 ```
 
 No Cloudflare or Postmark credentials are needed for steps 1–5. See
