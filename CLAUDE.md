@@ -7,8 +7,11 @@
 - yarn test run --reporter dot: run unit tests. Uses vitest, can take one or more test filenames to only run a subset.
 - make migrate: apply migrations
 - make dbtest: run database and api tests
+- make up.headless: start the dev environment (MySQL via docker, admin server on :3030, vite on :8090) without tmux, servers run in the background with logs in logs/. Use this when you need the running site or database and no dev environment is up yet — e.g. in cloud sandboxes. Stop it with make down.headless. Never run it on a developer machine where a dev environment may already be running (check with pgrep -f adminSiteServer first) — it kills existing dev servers.
 
 When you want to create a git commit, refer to docs/agent-guidelines/commit-messages.md for instructions.
+
+When creating a git branch, use a short descriptive name without any prefix (in particular, no `claude/` prefix and no random suffix). Every branch gets a staging server named `staging-site-<branch>` with slashes turned into hyphens and the name truncated to 28 characters, so long or prefixed branch names produce unusable staging names.
 
 When creating new skills in `.claude/skills/`, always include `metadata: { internal: true }` in the SKILL.md frontmatter unless explicitly asked for the skill to be public. This prevents external skill indexes from crawling and listing our internal skills.
 
@@ -21,6 +24,18 @@ When creating new skills in `.claude/skills/`, always include `metadata: { inter
 - For CSS, we mostly use named style classes following the BEM conventions in separate .scss files. We usually avoid inline styles - only use those if the component you are working on already makes use of them for a similar use case. Components usually have a companion scss file with the same name. The entry point for our site styles is /site/owid.scss, the entry point for grapher styles is /packages/@ourworldindata/grapher/src/core/grapher.scss
 - In SCSS files, do NOT use the parent selector to concatenate BEM class names (`&__element`, `&--modifier`). Write out full class names (`.block__element`) so it's easy to search/navigate between JSX and SCSS. Using `&` with pseudo-classes, pseudo-elements, or state attributes (e.g. `&:last-child`, `&:hover`, `&::before`, `&[data-selected]`) is fine — those don't form a class name you'd want to grep for.
 - Check [docs/browser-support.md](./docs/browser-support.md) before using modern JS or CSS features. It lists our supported browsers, the "most breaking" features we rely on, and features we can't yet use.
+
+# Cloud sandbox sessions (claude.ai/code)
+
+Notes for sessions running in a Claude Code cloud sandbox (`CLAUDE_CODE_REMOTE=true`):
+
+- Use `make up.headless` when you need the running site or database. If the sandbox snapshot has a pre-imported native MySQL (the usual case), it starts within a few minutes. Only the docker fallback is slow: a cold run downloads the DB dump and imports it (10-20 minutes) and can outlive a command timeout — run it in the background, and if it gets killed anyway, just re-run it: every step is idempotent and resumes where it left off.
+- The snapshot's database can be up to a week older than the code. After `make up.headless`, run `make migrate` to apply any migrations merged since — it's idempotent and takes seconds. If pages still 500 on missing tables/columns, `make refresh` re-imports a fresh dump (10-20 minutes).
+- `ALGOLIA_ID` and `ALGOLIA_SEARCH_KEY` are provided as environment variables (public, search-only credentials), so local site search works. Never scrape API keys out of deployed JS bundles.
+- Chart thumbnails on site pages are served by a Cloudflare function that doesn't run locally. `GRAPHER_DYNAMIC_THUMBNAIL_URL` and `EXPLORER_DYNAMIC_THUMBNAIL_URL` are usually provided as environment variables pointing at the production ones; if they're absent and thumbnails are missing, set them in `.env` to `https://ourworldindata.org/grapher` and `https://ourworldindata.org/explorers`.
+- To screenshot a locally served page, use `node devTools/screenshot/screenshotPage.mjs <url> <out.png>`. The sandbox routes outbound HTTPS through an egress proxy that resets Chromium's TLS handshake; the script works around this by routing external requests through Playwright's Node-side request context.
+- Staging servers are on Tailscale and unreachable from the sandbox, and local ports cannot be exposed to the user. Verify changes with typecheck, unit tests, and the local dev environment (plus screenshots).
+- After pushing a branch, tell the user where to review the change on the branch's staging server, deep-linked to the affected page — e.g. `http://staging-site-<branch>/search?q=malaria` (branch name with slashes turned into hyphens, truncated to 28 characters). Mention that the staging server takes a while to build after a push, especially the first one.
 
 # Codebase overview
 
