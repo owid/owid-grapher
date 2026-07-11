@@ -6,6 +6,7 @@ import {
     getNbPaginatedItemsRequested,
 } from "./searchUtils.js"
 import { DEFAULT_SEARCH_STATE } from "./searchState.js"
+import { searchQueryKeys, queryResultTypeCounts } from "./queries.js"
 import { useSearchContext } from "./SearchContext.js"
 import { fetchJson, flattenNonTopicNodes } from "@ourworldindata/utils"
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query"
@@ -211,6 +212,19 @@ export function useInfiniteSearch<THit>({
         hits,
         totalResults,
     }
+}
+
+/**
+ * Total result counts for the "Data" and "Writing" result-type options,
+ * used to annotate the SearchResultTypeToggle (e.g. "Data (123)").
+ */
+export function useResultTypeCounts({ enabled = true }: { enabled?: boolean }) {
+    const { state, liteSearchClient } = useSearchContext()
+    return useQuery({
+        queryKey: searchQueryKeys.resultTypeCounts(state),
+        queryFn: () => queryResultTypeCounts(liteSearchClient, state),
+        enabled,
+    })
 }
 
 export function useTopicTagGraph({ isPreviewing }: { isPreviewing: boolean }) {

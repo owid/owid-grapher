@@ -13,6 +13,10 @@
         }
     }
 
+    .search-result-type-toggle__count {
+        color: $blue-40;
+    }
+
     @include sm-only {
         margin-left: 0;
         margin-bottom: 24px;

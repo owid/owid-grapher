@@ -63,6 +63,8 @@ export const searchQueryKeys = {
         [PAGES_INDEX, "topics", makeStateForKey(state)] as const,
     profiles: (state: SearchState) =>
         [PAGES_INDEX, "profiles", makeStateForKey(state)] as const,
+    resultTypeCounts: (state: SearchState) =>
+        ["result-type-counts", makeStateForKey(state)] as const,
 } as const
 
 export const latestPagesQueryKey = {
@@ -368,6 +370,126 @@ export async function queryProfiles(
     ]
 
     return searchSingleForHits<ProfileHit>(liteSearchClient, searchParams)
+}
+
+export interface ResultTypeCounts {
+    dataCount: number
+    writingCount: number
+}
+
+// Issues one batched `searchForHits` call (single network round-trip) to get
+// the total number of matching results behind the "Data" and "Writing"
+// result-type options, so the toggle can show e.g. "Data (123)". Each
+// sub-query mirrors the facet filters of its corresponding content query
+// (queryCharts, queryDataInsights, queryArticles, queryTopicPages,
+// queryProfiles) but requests zero hits since only `nbHits` is needed.
+export async function queryResultTypeCounts(
+    liteSearchClient: LiteClient,
+    state: SearchState
+): Promise<ResultTypeCounts> {
+    const selectedCountryNames = getFilterNamesOfType(
+        state.filters,
+        FilterType.COUNTRY
+    )
+    const hasCountry = selectedCountryNames.size > 0
+    const selectedTopics = getFilterNamesOfType(state.filters, FilterType.TOPIC)
+    const countryFacetFilters = formatCountryFacetFilters(
+        selectedCountryNames,
+        state.requireAllCountries
+    )
+    const topicFacetFilters = formatTopicFacetFilters(selectedTopics)
+
+    const chartsFacetFilters = [
+        ...countryFacetFilters,
+        ...topicFacetFilters,
+        ...formatDisjunctiveFacetFilters(
+            getFilterNamesOfType(state.filters, FilterType.DATASET_PRODUCT),
+            "datasetProducts"
+        ),
+        ...formatDisjunctiveFacetFilters(
+            getFilterNamesOfType(state.filters, FilterType.DATASET_NAMESPACE),
+            "datasetNamespaces"
+        ),
+        ...formatDisjunctiveFacetFilters(
+            getFilterNamesOfType(state.filters, FilterType.DATASET_VERSION),
+            "datasetVersions"
+        ),
+        ...formatDisjunctiveFacetFilters(
+            getFilterNamesOfType(state.filters, FilterType.DATASET_PRODUCER),
+            "datasetProducers"
+        ),
+        ...formatFeaturedMetricFacetFilter(state.query),
+    ]
+
+    // Data insights and articles aren't tagged with countries directly, so
+    // selected countries are folded into the text query as exact phrases
+    // (mirrors queryDataInsights/queryArticles).
+    const textQueryWithCountries = [
+        state.query,
+        ...selectedCountryNames.keys().map((c) => `"${c}"`),
+    ]
+        .filter(Boolean)
+        .join(" ")
+    const restrictSearchableAttributes = hasCountry
+        ? { restrictSearchableAttributes: ["title", "tags", "authors"] }
+        : {}
+
+    const searchParams = [
+        // Data: charts
+        {
+            indexName: CHARTS_INDEX,
+            query: state.query,
+            facetFilters: chartsFacetFilters,
+            hitsPerPage: 0,
+        },
+        // Writing: data insights
+        {
+            indexName: PAGES_INDEX,
+            query: textQueryWithCountries,
+            filters: `type:${OwidGdocType.DataInsight}`,
+            facetFilters: topicFacetFilters,
+            ...restrictSearchableAttributes,
+            hitsPerPage: 0,
+        },
+        // Writing: articles
+        {
+            indexName: PAGES_INDEX,
+            query: textQueryWithCountries,
+            filters: `type:${OwidGdocType.Article} OR type:${OwidGdocType.AboutPage}`,
+            facetFilters: topicFacetFilters,
+            ...restrictSearchableAttributes,
+            hitsPerPage: 0,
+        },
+        // Writing: topic pages
+        {
+            indexName: PAGES_INDEX,
+            query: state.query,
+            filters: `type:${OwidGdocType.TopicPage} OR type:${OwidGdocType.LinearTopicPage}`,
+            facetFilters: topicFacetFilters,
+            hitsPerPage: 0,
+        },
+        // Writing: profiles
+        {
+            indexName: PAGES_INDEX,
+            query: state.query,
+            filters: `type:${OwidGdocType.Profile}`,
+            facetFilters: [...countryFacetFilters, ...topicFacetFilters],
+            hitsPerPage: 0,
+        },
+    ]
+
+    const response = await liteSearchClient.searchForHits<unknown>(searchParams)
+    const [charts, dataInsights, articles, topicPages, profiles] =
+        response.results
+
+    return {
+        dataCount: charts.nbHits ?? 0,
+        writingCount:
+            (dataInsights.nbHits ?? 0) +
+            (articles.nbHits ?? 0) +
+            (topicPages.nbHits ?? 0) +
+            (profiles.nbHits ?? 0),
+    }
 }
 
 export interface LatestPagesResult {
