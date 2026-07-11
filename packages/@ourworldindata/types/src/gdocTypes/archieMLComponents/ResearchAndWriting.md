@@ -6,6 +6,27 @@ A mosaic of article tiles linking to related work. Used to showcase
 further reading at the bottom of topic and linear topic pages, and on
 author pages as the "All work" section.
 
+```archie
+{.research-and-writing}
+heading: Research & Writing
+[.primary]
+url: https://docs.google.com/document/d/1qiCu4Yl-YxNgj8cV_0MGB9p6z6WoLF3gFGFspsjK1qU/edit
+[]
+[.secondary]
+url: https://docs.google.com/document/d/1e0HDWjfdRTrbLlAdUMPGtkqmLJJFw9ookSmgBU6JMPI/edit
+url: https://docs.google.com/document/d/1-YJoOYf5-_gfSFkJ6sNbMPkAI75VnOOGLSt18_4euL0/edit
+[]
+[.rows]
+heading: More Articles on Medicine and Biotechnology
+[.articles]
+url: https://docs.google.com/document/d/1-6S3Nsjrb7wFbNizDTvohHGcOzvDvva0UyDoKQUyXnQ/edit
+url: https://docs.google.com/document/d/19ytyrpTe5fYQCwAyz25egACwwr9kjyHJkYySzWlYg2Q/edit
+url: https://docs.google.com/document/d/1P8pu_FGx6fnJWw-xQBREe49uqN62rZAuARRrR2cdOjc/edit
+[]
+[]
+{}
+```
+
 ## When to use
 
 - At the bottom of a topic page to link to the main articles and
@@ -18,73 +39,21 @@ author pages as the "All work" section.
 - Inside regular articles — use `{.recirc}` or `{.prominent-link}`
   for inline recommendations.
 
-## Variations
+## Notes
 
-- `primary` is required (one or more tiles); `secondary`, `more`, and
-  `rows` sections are optional.
-- `hide-date: true` hides article dates across the block.
-- `hide-authors: true` hides authors (common on author pages where
-  the author is already implicit).
-- `variant: featured` — compact rendering used on linear topic pages.
-- Links can be gdoc URLs (metadata auto-resolved) or external links
-  (supply `title`, `authors`, `filename`).
-- A `{.latest}` block inside auto-pulls latest articles not already
-  featured (used on author pages).
+`hide-date: true` hides article dates across the whole block;
+`hide-authors: true` hides authors on all cards (common on author pages
+where the author is implicit). `variant: featured` applies the
+linear-topic-page design.
 
-### Full mosaic
+Links can be gdoc URLs (metadata auto-resolved) or external links
+(supply `title`, `authors`, `filename`). Links in the `more` section
+need no thumbnail; all other sections do, unless the gdoc has a
+featured-image.
 
-```archie
-{.research-and-writing}
-
-[.primary]
-url: https://wikipedia.org
-authors: Author 1, Author 2
-title: What are Bananas?
-subtitle: There is no single definition of bananas.
-filename: bananas.jpg
-[]
-
-[.secondary]
-url: https://ourworldindata.org/optimism-and-pessimism
-title: Optimism and Pessimism
-authors: Max Roser
-filename: default-featured-image.png
-[]
-
-{.more}
-heading: More Key Articles on Poverty
-[.articles]
-url: https://ourworldindata.org/poverty
-title: The history of the end of poverty has just begun
-authors: Max Roser
-
-url: https://ourworldindata.org/poverty-growth-needed
-title: The economies that are home to the poorest billions of people need to grow
-authors: Max Roser
-[]
-{}
-
-[.rows]
-heading: A row of articles
-[.articles]
-url: https://ourworldindata.org/optimism-and-pessimism
-title: Optimism and Pessimism
-authors: Max Roser
-filename: default-featured-image.png
-
-url: https://ourworldindata.org/wrong-about-the-world
-title: Most of us are wrong about how the world has changed
-authors: Max Roser
-filename: default-featured-image.png
-[]
-[]
-{}
-```
-
-### Featured variant (linear topic pages)
-
-```archie
-{.research-and-writing}
-variant: featured
-{}
-```
+On author pages, two shapes are used. "Featured work" is article-focused:
+at least one primary, up to two secondary, plus a `{.latest}` block that
+auto-pulls the author's latest articles excluding the featured ones.
+"All work" is topic-focused: secondary only, no primary, kept up to date
+by hand via /admin/api/all-work?author=…. Never list data insights or
+topic pages in it on author pages.

@@ -1,5 +1,10 @@
-A rendered list of OWID's donors, pulled from a curated source. No
-props.
+A rendered list of OWID's donors, pulled from the database — the empty
+block just marks where the list renders.
+
+```archie
+{.donors}
+{}
+```
 
 ## When to use
 
@@ -8,10 +13,3 @@ props.
 ## When NOT to use
 
 - Anywhere else.
-
-### Basic
-
-```archie
-{.donors}
-{}
-```

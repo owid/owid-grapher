@@ -1,5 +1,31 @@
+---
+pinned:
+    - slug: us-crime-rates
+---
+
 A Grapher chart, explorer, or MDIM embed. The default component for showing
 an interactive Our World in Data chart inline.
+
+```archie
+{.chart}
+url: https://ourworldindata.org/grapher/unemployment-rate
+{}
+```
+
+```archie
+{.chart}
+url: https://ourworldindata.org/grapher/military-expenditure-share-gdp
+size: narrow
+visibility: desktop
+peerCountries: parentRegions
+{}
+```
+
+```archie
+{.chart}
+url: https://ourworldindata.org/explorers/food-footprints?hideControls=true
+{}
+```
 
 ## When to use
 
@@ -14,38 +40,15 @@ an interactive Our World in Data chart inline.
   updates don't change the point being made.
 - Prefer `{.pull-chart}` to reference a chart without giving it full width.
 
-## Variations
+## Notes
 
-- `size`: `narrow` | `wide` (default) | `widest`
-- `visibility`: `mobile` | `desktop` — pair two chart blocks to swap
-  aspect ratio between layouts. Omit to show in both.
-- `peerCountries`: `parentRegions` | `gdpPerCapita` | `population` |
-  `dataRange` | `defaultSelection` | `neighbors` — controls which peer
-  countries are offered in the country selector.
+Pair two chart blocks with opposite `visibility` to serve a different
+aspect ratio per layout; omit it to show the chart in both.
 
-### Basic
+For explorers and MDIMs, append `?hideControls=true` to the URL to hide
+the control drop-downs; separate multiple query params with `&`. Without
+query params an MDIM renders its default view; dimension query params
+select a specific view.
 
-```archie
-{.chart}
-url: https://ourworldindata.org/grapher/military-expenditure-share-gdp
-{}
-```
-
-### Narrow, desktop only
-
-```archie
-{.chart}
-url: https://ourworldindata.org/grapher/military-expenditure-share-gdp
-size: narrow
-visibility: desktop
-peerCountries: parentRegions
-{}
-```
-
-### Explorer with controls hidden
-
-```archie
-{.chart}
-url: https://ourworldindata.org/explorers/food-footprints?hideControls=true
-{}
-```
+`peerCountries` controls which peer countries the country selector
+offers.

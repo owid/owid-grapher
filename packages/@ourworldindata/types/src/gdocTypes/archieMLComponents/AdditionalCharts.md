@@ -12,6 +12,8 @@ separate item, typically a link to a chart.
 - You need a full-page listing of all charts on a topic — use
   `{.all-charts}` on a topic page.
 
+## Notes
+
 The content between the opening `{.additional-charts}` and closing `{}` must
 be a bulleted list inside the Google Doc — the gdoc pipeline converts that
 into the `list` items this block expects. Plain text lines aren't enough;

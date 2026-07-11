@@ -620,6 +620,25 @@ export const OWID_GDOC_DATA_INSIGHT_CONTENT_KEYS = {
     GdocContentKeyFate
 >
 
+/** Write-back fate of every OwidGdocAnnouncementContent key. */
+export const OWID_GDOC_ANNOUNCEMENT_CONTENT_KEYS = {
+    body: "emitted",
+    type: "emitted",
+    title: "emitted",
+    excerpt: "emitted",
+    authors: "emitted",
+    "featured-image": "emitted",
+    kicker: "emitted",
+    authorRoles: "derived", // from authors
+    // The nested { text, url } front-matter form used by empty-body
+    // homepage-carousel announcements — the write-back cannot serialize it,
+    // so the gate refuses such documents rather than losing it.
+    cta: "unsupported",
+} as const satisfies Record<
+    keyof OwidGdocAnnouncementContent,
+    GdocContentKeyFate
+>
+
 /** Gdoc properties that live on the posts_gdocs row (or its attachments)
  *  rather than in the ArchieML content — managed in the admin, never
  *  authored in the document. */
@@ -674,6 +693,8 @@ export function getContentKeysForGdocType(
             return OWID_GDOC_POST_CONTENT_KEYS
         case OwidGdocType.DataInsight:
             return OWID_GDOC_DATA_INSIGHT_CONTENT_KEYS
+        case OwidGdocType.Announcement:
+            return OWID_GDOC_ANNOUNCEMENT_CONTENT_KEYS
         default:
             return undefined
     }

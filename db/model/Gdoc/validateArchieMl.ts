@@ -31,6 +31,7 @@ export const ARCHIE_WRITABLE_GDOC_TYPES: OwidGdocType[] = [
     OwidGdocType.LinearTopicPage,
     OwidGdocType.Fragment,
     OwidGdocType.DataInsight,
+    OwidGdocType.Announcement,
 ]
 
 /** Strip undefined object properties on both sides of a deep comparison. */

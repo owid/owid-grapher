@@ -174,15 +174,38 @@ export {
 
 export * from "./gdocTypes/ArchieMlComponents.js"
 
-export type {
-    ComponentDoc,
-    ComponentExample,
+export {
+    COMPONENT_CATEGORIES,
+    type ComponentCategory,
+    type ComponentDoc,
+    type ComponentExample,
+    type ComponentPropDoc,
+    type ComponentRegistry,
+    type PinnedExampleRef,
 } from "./gdocTypes/ComponentReference.js"
 
 export type {
     TemplateDoc,
     TemplateFieldDoc,
+    TemplateSkeletonPart,
 } from "./gdocTypes/TemplateReference.js"
+
+export {
+    COMPONENT_USAGE_LABELS,
+    type ComponentUsageLabel,
+    type ComponentUsageByDocType,
+    type ComponentUsage,
+    type GdocsReferenceUsage,
+    type ComponentInstance,
+    type ComponentVariation,
+    type ComponentInstancesResponse,
+    type ComponentDraftResponse,
+    type SyntheticExampleInfo,
+    type ExemplarBlock,
+    type ExemplarSection,
+    type ExemplarOutline,
+    type TemplateExemplarsResponse,
+} from "./gdocTypes/GdocsReferenceApi.js"
 
 export {
     ChartConfigType,
@@ -245,6 +268,7 @@ export {
     type GdocContentKeyFate,
     OWID_GDOC_POST_CONTENT_KEYS,
     OWID_GDOC_DATA_INSIGHT_CONTENT_KEYS,
+    OWID_GDOC_ANNOUNCEMENT_CONTENT_KEYS,
     OWID_GDOC_BASE_ROW_KEYS,
     OWID_GDOC_ADMIN_MANAGED_KEYS,
     getContentKeysForGdocType,

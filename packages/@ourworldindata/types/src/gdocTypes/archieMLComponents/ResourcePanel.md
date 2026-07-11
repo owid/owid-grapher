@@ -3,6 +3,23 @@ charts and, if tagged, the data catalog. On desktop it sticks to the
 top-right of the intro section; on mobile it appears inline where placed
 in the gdoc.
 
+```archie
+{.resource-panel}
+icon: chart
+kicker: Resources
+title: Data on corruption
+buttonText: See all data on this topic
+[.links]
+url: https://ourworldindata.org/grapher/bribery-prevalence-un
+subtitle: United Nations Office on Drugs and Crime
+url: https://ourworldindata.org/grapher/bribery-incidence-for-firms
+subtitle: World Bank Enterprise Surveys
+url: https://ourworldindata.org/grapher/political-corruption-index
+subtitle: Varieties of Democracy Project
+[]
+{}
+```
+
 ## When to use
 
 - The intro of a linear topic page, to surface the topic's key charts.
@@ -11,27 +28,8 @@ in the gdoc.
 
 - Prefer `{.recirc}` for a simple list of related links outside LTPs.
 
-## Variations
+## Notes
 
-- `icon`: currently only `chart` is supported.
-- `kicker` is a short label rendered above the title.
-- `buttonText` is the label of the bottom call-to-action button.
-
-### LTP intro resource panel
-
-```archie
-{.resource-panel}
-kicker: Resources
-icon: chart
-title: Data on this topic
-buttonText: See all data on this topic
-[.links]
-url: https://ourworldindata.org/grapher/access-to-clean-fuels-and-technologies-for-cooking
-subtitle: World Health Organization - Global Health Observatory (2025)
-
-url: https://ourworldindata.org/grapher/annual-co2-emissions-per-country
-subtitle: Global Carbon Budget (2024)
-[]
-
-{}
-```
+Place it at least after the first paragraph of the intro section.
+`kicker` renders as a short label above the title; `buttonText` labels
+the bottom call-to-action button.
