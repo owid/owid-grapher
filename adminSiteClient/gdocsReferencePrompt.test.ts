@@ -36,4 +36,9 @@ describe(buildNewDocPrompt, () => {
         expect(prompt).toContain("templates.json")
         expect(prompt).toContain("type: data-insight")
     })
+
+    it("structures by the skeleton and sources content from the conversation", () => {
+        expect(prompt).toContain("skeleton")
+        expect(prompt).toContain("conversation")
+    })
 })

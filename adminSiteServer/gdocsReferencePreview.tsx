@@ -7,7 +7,6 @@ import {
     OwidGdocPostContent,
     OwidGdocType,
     SiteFooterContext,
-    TemplateDoc,
 } from "@ourworldindata/types"
 import {
     extractGdocPageData,
@@ -35,10 +34,9 @@ import {
 } from "./gdocsReferenceMinimal.js"
 import { getPublicDonorNames } from "../db/model/Donor.js"
 
-// The committed generated registries — same source the /api/gdocs-reference/components.json
-// and /api/gdocs-reference/templates.json endpoints serve.
+// The committed generated registry — same source the
+// /api/gdocs-reference/components.json endpoint serves.
 import componentsRegistry from "../docs/components.registry.generated.json"
-import templatesRegistry from "../docs/templates.registry.generated.json"
 
 /**
  * Live previews for the admin writing reference page (GdocsReferencePage):
@@ -72,10 +70,6 @@ ${SHARED_PREVIEW_STYLES}
 #article-citation, #article-licence { display: none !important; }
 .centered-article-container { margin-top: 24px !important; padding-bottom: 24px !important; }
 `
-
-// Template previews show the whole document, chrome included — that is the
-// point.
-const TEMPLATE_PREVIEW_STYLES = SHARED_PREVIEW_STYLES
 
 // Reports the document height to the embedding admin page whenever it
 // changes, tagged with the preview id ("pid" query param) so the parent can
@@ -287,38 +281,6 @@ export async function renderGdocsReferenceComponentPreview(
             gdoc={gdoc}
             pageTitle={`${doc.title} — component preview`}
             styles={COMPONENT_PREVIEW_STYLES}
-        />
-    )
-}
-
-export async function renderGdocsReferenceTemplatePreview(
-    templateId: string,
-    exampleParam: string | undefined,
-    knex: db.KnexReadonlyTransaction
-): Promise<string> {
-    const doc = (templatesRegistry as TemplateDoc[]).find(
-        (template) => template.id === templateId
-    )
-    if (!doc) throw new JsonError(`No such template: "${templateId}"`, 404)
-    const archie = getExampleArchie(doc, exampleParam)
-
-    // Template examples are full documents; render them whole, chrome
-    // included — the preview should show what the published page looks like.
-    const content = archieToEnriched(archie)
-
-    // Fragments have no standalone page (the site shows them as raw JSON);
-    // preview their content the way it looks when included in an article.
-    const isFragment = content.type === OwidGdocType.Fragment
-    if (isFragment) content.type = OwidGdocType.Article
-
-    const gdoc = await loadSyntheticGdoc(content, new Date(), knex)
-    return renderToHtmlPage(
-        <GdocsReferencePreviewPage
-            gdoc={gdoc}
-            pageTitle={`${doc.title} — template preview`}
-            styles={
-                isFragment ? COMPONENT_PREVIEW_STYLES : TEMPLATE_PREVIEW_STYLES
-            }
         />
     )
 }

@@ -6,11 +6,12 @@
  * reading, editing and validating gdocs through the admin API.
  */
 /**
- * The prompt behind the template page's "Copy prompt" button: pasted into a
- * Claude conversation, it asks Claude to scaffold a new Google Doc of this
- * type through the gdoc-editor skill. The skill's create flow already
+ * The prompt behind the template page's "Copy prompt" button: pasted into an
+ * ongoing Claude conversation, it asks Claude to scaffold a new Google Doc of
+ * this type through the gdoc-editor skill. The skill's create flow already
  * consults the admin's templates.json (front-matter fields, admin-managed
- * properties, a validated example), so the prompt only names the type.
+ * properties, the curated skeleton), so the prompt only names the type and
+ * points Claude at the conversation for the doc's substance.
  */
 export function buildNewDocPrompt(
     templateId: string,
@@ -18,7 +19,7 @@ export function buildNewDocPrompt(
 ): string {
     return [
         `Create a new OWID ${templateTitle.toLowerCase()} for me as a Google Doc draft, using the gdoc-editor skill and the admin API.`,
-        `Consult the admin's templates.json entry for \`type: ${templateId}\` for the front-matter fields and a validated example — don't invent fields. Ask me about the topic and working title before creating the doc.`,
+        `Consult the admin's templates.json entry for \`type: ${templateId}\` and structure the document by its skeleton — don't invent fields. Draw the topic, title and content from our conversation so far; ask me only for what it doesn't answer.`,
     ].join("\n\n")
 }
 

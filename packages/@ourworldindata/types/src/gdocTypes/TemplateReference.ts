@@ -4,7 +4,6 @@
 // /api/gdocs-reference/templates.json endpoint: one entry per gdoc type the ArchieML
 // write-back layer can create or edit.
 
-import type { ComponentExample } from "./ComponentReference.js"
 import type { GdocContentKeyFate } from "./Gdoc.js"
 
 export interface TemplateFieldDoc {
@@ -42,13 +41,16 @@ export interface TemplateDoc {
     fields: TemplateFieldDoc[]
     /** Gdoc properties managed in the admin, never authored in the document */
     adminManagedFields: string[]
-    examples: ComponentExample[]
     /**
      * Slugs of editorially chosen published documents whose structure
      * exemplifies the type; resolved live by the admin server into a
      * section-level outline.
      */
     exemplars?: string[]
-    /** The canonical structure of the document type, curated */
-    skeleton?: TemplateSkeletonPart[]
+    /**
+     * The canonical structure of the document type, curated in the sidecar.
+     * The scaffold for new documents — templates carry no synthetic example
+     * documents.
+     */
+    skeleton: TemplateSkeletonPart[]
 }

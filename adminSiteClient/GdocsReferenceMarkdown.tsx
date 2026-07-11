@@ -39,6 +39,11 @@ export function InlineMarkdownText({
     )
 }
 
+// Stable defaults for bodies without examples (template sidecars), so the
+// useMemo below doesn't recompute on every render.
+const NO_EXAMPLES: ComponentExample[] = []
+const NO_PREVIEW = (): undefined => undefined
+
 /**
  * Renders a sidecar's markdown body. The fenced archie examples embedded in
  * the body are replaced in place with the interactive example widget
@@ -47,15 +52,15 @@ export function InlineMarkdownText({
  */
 export function GdocsReferenceMarkdown({
     body,
-    examples,
-    previewPathForExample,
+    examples = NO_EXAMPLES,
+    previewPathForExample = NO_PREVIEW,
     componentIds,
     componentId,
 }: {
     body: string
-    examples: ComponentExample[]
+    examples?: ComponentExample[]
     /** Returns the admin path rendering the example, or undefined for none */
-    previewPathForExample: (exampleIndex: number) => string | undefined
+    previewPathForExample?: (exampleIndex: number) => string | undefined
     /** Known component ids, used to link `{.id}` mentions */
     componentIds: Set<string>
     /** The component this body documents; enables per-example Copy prompt */
