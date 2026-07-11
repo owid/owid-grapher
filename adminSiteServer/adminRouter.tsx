@@ -43,7 +43,6 @@ import { getMinimalAuthorsByNames } from "../db/model/Gdoc/GdocBase.js"
 import {
     renderGdocsReferenceComponentPreview,
     renderGdocsReferenceInstancePreview,
-    renderGdocsReferenceTemplatePreview,
 } from "./gdocsReferencePreview.js"
 
 const adminRouter = Router()
@@ -242,20 +241,6 @@ getPlainRouteWithROTransaction(
     async (req, res, trx) => {
         res.send(
             await renderGdocsReferenceComponentPreview(
-                req.params.id,
-                req.query.example as string | undefined,
-                trx
-            )
-        )
-    }
-)
-
-getPlainRouteWithROTransaction(
-    adminRouter,
-    "/gdocs-reference/templates/:id/preview",
-    async (req, res, trx) => {
-        res.send(
-            await renderGdocsReferenceTemplatePreview(
                 req.params.id,
                 req.query.example as string | undefined,
                 trx

@@ -3,8 +3,8 @@
  * Generate the OWID gdoc references from .md sidecars + the type definitions:
  *   - the ArchieML components reference (one entry per OwidEnrichedGdocBlock)
  *   - the gdoc template reference (one entry per writable OwidGdocType:
- *     front-matter fields from the content interfaces, prose + a full
- *     validated example document from sidecars)
+ *     front-matter fields from the content interfaces, prose + the curated
+ *     skeleton from sidecars)
  *
  * Run:
  *     yarn generateGdocsReferences
@@ -44,13 +44,13 @@
  *   2. Join per-field descriptions from templates/<InterfaceName>.md; every
  *      non-derived field must be described, and every described field must
  *      exist on the interface.
- *   3. Read prose + full-document examples from templates/<PascalType>.md
- *      and validate each example through validateArchieMl — the same gate
- *      the write API applies, front-matter check included. The sidecar
- *      front matter can also carry the template's curated skeleton (its
- *      canonical structure; component ids validated) and exemplar slugs
- *      (editorially chosen published docs, resolved live by the admin
- *      server).
+ *   3. Read prose + front matter from templates/<PascalType>.md. The front
+ *      matter must carry the template's curated skeleton (its canonical
+ *      structure; component ids validated) — the scaffold for new documents —
+ *      and can carry exemplar slugs (editorially chosen published docs,
+ *      resolved live by the admin server). Templates hold no synthetic
+ *      example documents; a fenced archie block in a template sidecar fails
+ *      the build.
  *
  * Completeness is structural: every union member / writable type becomes an
  * entry by iteration, and missing/malformed sidecars fail the build.
@@ -101,7 +101,6 @@ import {
     getContentKeysForGdocType,
     OWID_GDOC_ADMIN_MANAGED_KEYS,
     OWID_GDOC_POST_CONTENT_KEYS,
-    type OwidGdocType,
     type ComponentCategory,
     type ComponentDoc,
     type ComponentExample,
@@ -1159,13 +1158,22 @@ function extractTemplateDocs(
                     '" is empty: ' +
                     sidecarPathRel
             )
-        if (examples.length === 0)
+        // Templates carry no synthetic example documents: the skeleton is the
+        // scaffold, and real structure comes live from the exemplars endpoint.
+        if (examples.length > 0)
             throw new Error(
                 'Template sidecar for "' +
                     type +
-                    '" has no full-document archie example'
+                    '" contains a fenced archie example — templates are ' +
+                    "described by their skeleton, not by example documents"
             )
         const fm = parseTemplateFrontMatter(frontMatter, sidecarPathRel)
+        if (!fm.skeleton)
+            throw new Error(
+                'Template sidecar for "' +
+                    type +
+                    '" has no skeleton in its front matter'
+            )
         for (const part of fm.skeleton ?? []) {
             for (const componentId of part.components) {
                 if (!componentIds.has(componentId))
@@ -1188,54 +1196,11 @@ function extractTemplateDocs(
             body,
             fields,
             adminManagedFields: [...OWID_GDOC_ADMIN_MANAGED_KEYS],
-            // Template examples are full documents presented in their own
-            // "### Example" sections — no placement constraint applies.
-            examples: examples.map(({ archie }) => ({ archie })),
+            skeleton: fm.skeleton,
             ...(fm.exemplars && { exemplars: fm.exemplars }),
-            ...(fm.skeleton && { skeleton: fm.skeleton }),
         })
     }
     return docs
-}
-
-// Template examples are full documents, so they go through validateArchieMl —
-// the same gate the write API applies (parse, block errors, fixed point,
-// front-matter check) — rather than the body-fragment wrapping above.
-function validateTemplateExamples(docs: TemplateDoc[]): {
-    ok: boolean
-    failures: string[]
-} {
-    const failures: string[] = []
-    for (const doc of docs) {
-        for (const [index, ex] of doc.examples.entries()) {
-            const result = validateArchieMl(ex.archie)
-            if (!result.valid) {
-                failures.push(
-                    doc.id +
-                        " example #" +
-                        (index + 1) +
-                        ":\n    " +
-                        result.errors
-                            .map((e) => e.property + ": " + e.message)
-                            .join("\n    ")
-                )
-                continue
-            }
-            const exampleType = result.content?.type as OwidGdocType | undefined
-            if (exampleType !== doc.id)
-                failures.push(
-                    doc.id +
-                        " example #" +
-                        (index + 1) +
-                        ': example has type "' +
-                        exampleType +
-                        '" but belongs to the "' +
-                        doc.id +
-                        '" template'
-                )
-        }
-    }
-    return { ok: failures.length === 0, failures }
 }
 
 async function main(): Promise<void> {
@@ -1267,12 +1232,7 @@ async function main(): Promise<void> {
                 "writable gdoc types."
         )
 
-        const componentResult = validateExamples(allDocs)
-        const templateResult = validateTemplateExamples(templateDocs)
-        const failures = [
-            ...componentResult.failures,
-            ...templateResult.failures,
-        ]
+        const { failures } = validateExamples(allDocs)
         if (failures.length > 0) {
             console.error(
                 "\n" +

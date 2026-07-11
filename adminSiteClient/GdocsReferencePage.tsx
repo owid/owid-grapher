@@ -312,11 +312,6 @@ export class GdocsReferencePage extends Component<
             `/gdocs-reference/components/${doc.id}/preview?example=${exampleIndex}`
     }
 
-    private previewPathForTemplate(doc: TemplateDoc) {
-        return (exampleIndex: number): string =>
-            `/gdocs-reference/templates/${doc.id}/preview?example=${exampleIndex}`
-    }
-
     // Rows are quiet: the name only — the block tag already lives on the
     // component page and in Copy. Frequency dots appear only in the scoped
     // list, where they have a document type to be relative to.
@@ -703,8 +698,8 @@ export class GdocsReferencePage extends Component<
     private renderDecisionBox(
         whenToUse: string | undefined,
         whenNotToUse: string | undefined,
-        previewPathForExample: (index: number) => string | undefined,
-        examples: ComponentDoc["examples"],
+        previewPathForExample?: (index: number) => string | undefined,
+        examples?: ComponentDoc["examples"],
         componentId?: string
     ): React.ReactElement | null {
         if (!whenToUse && !whenNotToUse) return null
@@ -916,7 +911,6 @@ export class GdocsReferencePage extends Component<
         const { intro, whenToUse, whenNotToUse, rest } = splitSidecarBody(
             doc.body
         )
-        const previewPath = this.previewPathForTemplate(doc)
         return (
             <article className="gdocs-ref__detail">
                 <header className="gdocs-ref__detail-header">
@@ -937,17 +931,10 @@ export class GdocsReferencePage extends Component<
                 {intro && (
                     <GdocsReferenceMarkdown
                         body={intro}
-                        examples={doc.examples}
-                        previewPathForExample={previewPath}
                         componentIds={this.componentIds}
                     />
                 )}
-                {this.renderDecisionBox(
-                    whenToUse,
-                    whenNotToUse,
-                    previewPath,
-                    doc.examples
-                )}
+                {this.renderDecisionBox(whenToUse, whenNotToUse)}
                 <SkeletonScaffold template={doc} />
                 <ExemplarXray template={doc} />
                 <TemplateComponentShortlist
@@ -958,8 +945,6 @@ export class GdocsReferencePage extends Component<
                 {rest && (
                     <GdocsReferenceMarkdown
                         body={rest}
-                        examples={doc.examples}
-                        previewPathForExample={previewPath}
                         componentIds={this.componentIds}
                     />
                 )}
