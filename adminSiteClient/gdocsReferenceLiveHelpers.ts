@@ -78,6 +78,7 @@ export const MAJOR_DOC_TYPES: OwidGdocType[] = [
     OwidGdocType.DataInsight,
     OwidGdocType.TopicPage,
     OwidGdocType.LinearTopicPage,
+    OwidGdocType.Announcement,
 ]
 
 export function joinWithAnd(parts: string[]): string {

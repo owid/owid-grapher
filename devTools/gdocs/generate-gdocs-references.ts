@@ -100,6 +100,7 @@ import {
 import {
     getContentKeysForGdocType,
     OWID_GDOC_ADMIN_MANAGED_KEYS,
+    OWID_GDOC_ANNOUNCEMENT_CONTENT_KEYS,
     OWID_GDOC_POST_CONTENT_KEYS,
     type ComponentCategory,
     type ComponentDoc,
@@ -1130,7 +1131,9 @@ function extractTemplateDocs(
         const contentTypeName =
             keyFates === OWID_GDOC_POST_CONTENT_KEYS
                 ? "OwidGdocPostContent"
-                : "OwidGdocDataInsightContent"
+                : keyFates === OWID_GDOC_ANNOUNCEMENT_CONTENT_KEYS
+                  ? "OwidGdocAnnouncementContent"
+                  : "OwidGdocDataInsightContent"
         let fields = fieldsByInterface.get(contentTypeName)
         if (!fields) {
             fields = extractInterfaceFields(sf, contentTypeName, keyFates)

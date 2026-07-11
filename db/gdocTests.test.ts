@@ -31,6 +31,7 @@ import {
 } from "./model/Gdoc/archieMlSkipBlocks.js"
 import {
     getContentKeysForGdocType,
+    OWID_GDOC_ANNOUNCEMENT_CONTENT_KEYS,
     OWID_GDOC_DATA_INSIGHT_CONTENT_KEYS,
     OWID_GDOC_POST_CONTENT_KEYS,
     OwidEnrichedGdocBlock,
@@ -880,6 +881,59 @@ A one-paragraph insight with <b>bold</b> text.
         expect(canonicalArchieML).not.toContain("sidebar-toc")
     })
 
+    it("round-trips an announcement, covering every emitted front-matter key", () => {
+        // Mirrors the structure of real published announcements: a few text
+        // paragraphs, a {.cta} body block, and an image.
+        const doc = `title: Explore updated data on prison populations
+authors: OWID Team
+type: announcement
+kicker: Data update
+excerpt: We updated our charts with the latest data.
+featured-image: featured.png
+[+body]
+We recently updated our charts with the February release.
+
+{.cta}
+text: Explore all of the updated data
+url: https://ourworldindata.org/search?q=prisons
+{}
+
+{.image}
+filename: prison-population-rate.png
+size: wide
+{}
+[]
+`
+        const { first, canonicalArchieML } = expectDocToRoundTrip(doc)
+        expect(first.type).toBe(OwidGdocType.Announcement)
+        expect(canonicalArchieML).toContain("type: announcement")
+        expect(canonicalArchieML).toContain("kicker: Data update")
+        expect(canonicalArchieML).toContain(
+            "excerpt: We updated our charts with the latest data."
+        )
+        expect(canonicalArchieML).toContain("featured-image: featured.png")
+        // post-only frontmatter is not emitted for announcements
+        expect(canonicalArchieML).not.toContain("sidebar-toc")
+
+        // Every key the spine classifies as emitted is authored above and
+        // must survive the round trip.
+        const second = archieToEnriched(canonicalArchieML)
+        const firstByKey = first as unknown as Record<string, unknown>
+        const secondByKey = second as unknown as Record<string, unknown>
+        for (const [key, fate] of Object.entries(
+            OWID_GDOC_ANNOUNCEMENT_CONTENT_KEYS
+        )) {
+            if (fate !== "emitted") continue
+            expect(
+                secondByKey[key],
+                `front-matter key "${key}" should survive the round trip`
+            ).toBeDefined()
+            expect(omitUndefinedValues(secondByKey[key])).toEqual(
+                omitUndefinedValues(firstByKey[key])
+            )
+        }
+    })
+
     it("round-trips ID-based refs and regenerates the [.refs] frontmatter block", () => {
         const doc = getArchieMLDocWithContent(
             `A claim{ref}first_ref{/ref} and another{ref}second_ref{/ref}.`,
@@ -1077,6 +1131,9 @@ Hello world.
         )
         expect(getContentKeysForGdocType(OwidGdocType.DataInsight)).toBe(
             OWID_GDOC_DATA_INSIGHT_CONTENT_KEYS
+        )
+        expect(getContentKeysForGdocType(OwidGdocType.Announcement)).toBe(
+            OWID_GDOC_ANNOUNCEMENT_CONTENT_KEYS
         )
         expect(getContentKeysForGdocType(OwidGdocType.Homepage)).toBeUndefined()
     })
@@ -1346,6 +1403,31 @@ ${body}
         expect(result.errors).toContainEqual(
             expect.objectContaining({
                 property: "faqs",
+                message: expect.stringContaining("not yet supported"),
+            })
+        )
+    })
+
+    it("refuses an announcement that authors the nested cta property", () => {
+        // The empty-body, homepage-carousel form of announcement carries a
+        // top-level {.cta} front-matter object the write-back cannot
+        // serialize — the gate must refuse the write instead of losing it.
+        const result = validateArchieMl(`title: A cta-only announcement
+authors: Author
+type: announcement
+kicker: Announcement
+excerpt: An excerpt
+{.cta}
+text: Read the full report
+url: https://example.org/report
+{}
+[+body]
+[]
+`)
+        expect(result.valid).toBe(false)
+        expect(result.errors).toContainEqual(
+            expect.objectContaining({
+                property: "cta",
                 message: expect.stringContaining("not yet supported"),
             })
         )

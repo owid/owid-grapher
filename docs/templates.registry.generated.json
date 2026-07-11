@@ -1023,5 +1023,111 @@
     "exemplars": [
       "the-median-age-in-china-has-rapidly-caught-up-with-the-united-kingdom"
     ]
+  },
+  {
+    "id": "announcement",
+    "contentTypeName": "OwidGdocAnnouncementContent",
+    "sidecarFile": "packages/@ourworldindata/types/src/gdocTypes/templates/Announcement.md",
+    "title": "Announcement",
+    "body": "A short site-news item: a data update, website upgrade, or organizational\nannouncement, published in the `/latest` feed under `/latest/{slug}` and\ncategorized there by its kicker.\n\n## When to use\n\n- Telling readers something changed on the site: refreshed data, a new\n  feature, or news about the team or organization.\n\n## When NOT to use\n\n- Prefer `data-insight` for a chart-led observation about the data itself —\n  an announcement points at what changed, it does not explain a pattern.\n- Prefer `article` for any standalone narrative piece.\n\n## Limitations\n\n- A small variant of announcement has an empty body and a top-level `cta`\n  front-matter property instead (used for the homepage announcement\n  carousel). That nested `cta` structure is not yet supported by the\n  ArchieML write-back — such documents must be edited in Google Docs\n  directly. The write API refuses those edits rather than losing the\n  content.",
+    "fields": [
+      {
+        "name": "title",
+        "type": "string",
+        "optional": false,
+        "writeBack": "emitted",
+        "description": "The announcement headline, stating the news directly — e.g. \"Explore updated data on prison populations worldwide\"."
+      },
+      {
+        "name": "excerpt",
+        "type": "string",
+        "optional": false,
+        "writeBack": "emitted",
+        "description": "One sentence summarizing the news, shown in the /latest feed and in link previews."
+      },
+      {
+        "name": "authors",
+        "type": "string[]",
+        "optional": false,
+        "writeBack": "emitted",
+        "description": "Comma-separated author names. Append a role in parentheses to credit a specific contribution — e.g. \"Jane Doe (Editor)\"."
+      },
+      {
+        "name": "authorRoles",
+        "type": "Record<string, string>",
+        "optional": true,
+        "writeBack": "derived"
+      },
+      {
+        "name": "featured-image",
+        "type": "string",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "Filename of the image used in link previews. Published announcements rarely set one — the image in the body serves that role."
+      },
+      {
+        "name": "kicker",
+        "type": "string",
+        "optional": true,
+        "writeBack": "emitted",
+        "description": "Short category label shown above the headline — \"Data update\", \"Topic update\", \"Website upgrade\", or \"Announcement\". Its slugified form buckets the announcement on /latest; unrecognized values are rejected at publish time."
+      },
+      {
+        "name": "body",
+        "type": "OwidEnrichedGdocBlock[]",
+        "optional": false,
+        "writeBack": "emitted",
+        "description": "The announcement body: a few short paragraphs, usually a closing cta, and often one image."
+      },
+      {
+        "name": "type",
+        "type": "OwidGdocType.Announcement",
+        "optional": false,
+        "writeBack": "emitted",
+        "description": "Always \"announcement\"."
+      },
+      {
+        "name": "cta",
+        "type": "{ text: string url: string }",
+        "optional": true,
+        "writeBack": "unsupported",
+        "description": "Nested { text, url } link for the empty-body, homepage-carousel variant of announcement."
+      }
+    ],
+    "adminManagedFields": [
+      "slug",
+      "published",
+      "publishedAt",
+      "publicationContext",
+      "manualBreadcrumbs",
+      "tags"
+    ],
+    "skeleton": [
+      {
+        "name": "The news",
+        "description": "Two to five short paragraphs stating what changed and why it matters — a data update, a new feature, or organizational news. Nearly every published announcement is just prose at this length.",
+        "components": [
+          "text"
+        ]
+      },
+      {
+        "name": "Call to action",
+        "description": "One cta linking to the thing being announced — the updated charts, the new page, the external coverage. Almost every published announcement closes with one.",
+        "components": [
+          "cta"
+        ]
+      },
+      {
+        "name": "The image",
+        "description": "Optional single supporting image, usually wide with an outline — most commonly a screenshot of the updated chart or feature.",
+        "components": [
+          "image"
+        ]
+      }
+    ],
+    "exemplars": [
+      "explore-updated-data-on-prison-populations-worldwide",
+      "hannah-ritchie-is-one-of-six-authors-shortlisted-for-the-2026-unwin-award"
+    ]
   }
 ]
