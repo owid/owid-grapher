@@ -14,9 +14,11 @@ import { changePhrase } from "./format.js"
 
 // time=earliest..latest is essential: without it, filtered CSV returns only the chart's default
 // (usually a single latest year), so a metric arrives with one point and gets dropped. The range
-// returns the full series the chart exposes (≥2 points where any history exists).
+// returns the full series the chart exposes (≥2 points where any history exists). tab=line is
+// equally essential for charts that default to the map tab (e.g. the democracy indices): their
+// filtered CSV otherwise ignores the country filter and returns only endpoint years.
 const csvUrl = (slug: string, code: string, compCode: string): string =>
-    `https://ourworldindata.org/grapher/${slug}.csv?csvType=filtered&useColumnShortNames=true&time=earliest..latest&country=~${code}~${compCode}`
+    `https://ourworldindata.org/grapher/${slug}.csv?csvType=filtered&useColumnShortNames=true&tab=line&time=earliest..latest&country=~${code}~${compCode}`
 
 /** Fetch a URL's text, cached in sessionStorage for the visit */
 async function fetchText(url: string): Promise<string> {
