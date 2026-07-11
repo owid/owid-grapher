@@ -280,9 +280,7 @@ export const EmailNotificationsPreferencesForm = ({
             return (
                 <form
                     className="email-notifications-preferences-form"
-                    onSubmit={(
-                        event: React.SubmitEvent<HTMLFormElement>
-                    ) => {
+                    onSubmit={(event: React.SubmitEvent<HTMLFormElement>) => {
                         event.preventDefault()
                         if (enteredEmail.trim())
                             void requestLink({ email: enteredEmail.trim() })
@@ -319,9 +317,7 @@ export const EmailNotificationsPreferencesForm = ({
             return (
                 <form
                     className="email-notifications-preferences-form"
-                    onSubmit={(
-                        event: React.SubmitEvent<HTMLFormElement>
-                    ) => {
+                    onSubmit={(event: React.SubmitEvent<HTMLFormElement>) => {
                         event.preventDefault()
                         void save(false)
                     }}
