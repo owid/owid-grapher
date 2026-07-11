@@ -2,7 +2,7 @@ import { expect, it, describe } from "vitest"
 import { EmailNotificationsSubscribeRequestTypeObject } from "./EmailNotificationsTypes.js"
 import { OwidGdocType } from "./gdocTypes/Gdoc.js"
 
-describe("EmailNotificationsSubscribeRequestTypeObject", () => {
+describe("EmailNotificationsSubscribeRequestTypeObject validation", () => {
     const validRequest = {
         email: "user@example.com",
         notifications: {

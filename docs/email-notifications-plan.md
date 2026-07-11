@@ -181,19 +181,23 @@ The big one. Sub-items, roughly in dependency order:
 
 ### P0.2 — Send-job robustness
 
-The per-subscriber loop (`baker/emailNotifications/sendEmailNotifications.ts:303-358`)
-has no error isolation: one Postmark failure (e.g. a 422 on an inactive address)
-throws and aborts the run for every remaining subscriber. And a crash between
-`sendViaPostmark` and `recordSentEmail` sends a duplicate email on the next run.
+✅ DONE 2026-07-10:
 
-- Wrap each subscriber in try/catch; collect failures; exit non-zero at the end if
-  any failed (so the Buildkite build fails and alerts, P0.7) without starving the
-  rest of the list.
-- Consider recording intent before sending (or tolerating rare duplicates —
-  document the choice).
-- Sends are sequential with two remote D1 round-trips per subscriber
-  (`recordSentEmail`). Fine at launch scale; **revisit before the Brief migration
-  (P3)** — Postmark has a batch API.
+- Each subscriber is wrapped in try/catch: one Postmark failure (e.g. a 422 on
+  an inactive address) no longer starves the rest of the list. Failures are
+  logged per subscriber, captured to Sentry, summarized at the end, and the
+  job exits non-zero on any failure — so the scheduled Buildkite run fails
+  and alerts (P0.7). Verified with a stub Postmark that 422s one of three
+  subscribers: the other two send, exit code 1.
+- **Decided: tolerate rare duplicates** (documented at the send/record call
+  sites). Send-then-record means a crash between the two re-sends that email
+  on the next run; the reverse order would silently drop it forever. A
+  record failure after a successful send is reported distinctly, naming the
+  duplicate consequence.
+
+Still deliberately deferred: sends are sequential with two remote D1
+round-trips per subscriber. Fine at launch scale; **revisit before the Brief
+migration (P3)** — Postmark has a batch API.
 
 ### P0.3 — Deliverability essentials
 
