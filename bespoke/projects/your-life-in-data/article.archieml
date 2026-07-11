@@ -1,0 +1,70 @@
+title: Your life in data: how much has your country changed since you were born?
+subtitle: Enter your birth year and country to see how life there changed over your lifetime — from health and income to democracy and the environment — and how that change compares with the world.
+excerpt: Enter your birth year and country to see how life there changed over your lifetime — and how that change compares with the world.
+type: article
+authors: Mojmir Vinkler
+
+[+body]
+Most statistics about progress describe the whole world over long stretches of history. That framing is powerful, but it is also easy to keep at arm’s length: nobody lives in “the world,” and nobody lives for two centuries.
+
+A single lifetime in a single country is a scale everyone knows from the inside — and within one lifetime, countries often change far more than we notice. Someone born in Ethiopia in 1975 has seen <a href="https://ourworldindata.org/grapher/life-expectancy?tab=line&time=1975..latest&country=ETH~OWID_WRL">life expectancy there rise from 39 to 67 years</a>. Someone born in Spain that same year arrived in the final months of a dictatorship; on the <a href="https://ourworldindata.org/grapher/electoral-democracy-index?tab=line&time=1975..latest&country=ESP">electoral democracy index</a>, Spain has moved from 0.12 to 0.82. And someone born in Czechia in 1993 has watched the internet go from <a href="https://ourworldindata.org/grapher/share-of-individuals-using-the-internet?tab=line&time=1993..latest&country=CZE~OWID_WRL">fewer than 1 in 100 people online to almost 9 in 10</a>.
+
+The tool below shows this change for your own life. Enter your birth year and the country you know best, and it assembles a “then and now” card for it: health, income, education, energy, rights, and more, each shown as the value around the year you were born, the value today, and the path in between. The world’s trajectory runs alongside as a fainter line, so you can see your country’s story against the global one.
+
+Everything on the card is computed directly from the data behind our charts, fetched live from our catalog — nothing is typed in by hand. Every metric links to the full interactive chart, where you can find the sources and methodology.
+
+{.horizontal-rule}
+{}
+
+Here’s how to use the tool below.
+
+<b>First</b>, enter the country you were born in and your birth year.
+
+<b>Second</b>, browse the topics: <b>Highlights</b> collects striking changes from across all areas, and the topic pills go deeper into health, the environment, the economy, and more. You can also switch the comparison line from the world to your continent or income group.
+
+<b>Finally</b>, hover over a metric’s name to see its definition, unit, and source — or select it to open the full chart. The address bar updates as you go, so you can share your card with a friend born in the same year and compare notes.
+
+{.bespoke-component}
+bundle: your-life-in-data
+variant: app
+size: wide
+{.config}
+urlSync: true
+{}
+{}
+
+{.heading}
+text: What to look for
+level: 2
+{}
+
+The most striking cards belong to countries that transformed within living memory. Look at <a href="?lifeCountry=ETH&amp;lifeYear=1975">Ethiopia for someone born in 1975</a>: life expectancy up by 28 years, child mortality down from 28% to under 5%, and literacy more than doubled — enormous change within one lifetime, and much of it faster than the world average. Or take <a href="?lifeCountry=ESP&amp;lifeYear=1975&amp;lifeTopic=Rights%20%26%20Democracy">Spain for the same birth year</a>, where the story is political: a country that became a democracy, and stayed one, within the lifetime of everyone middle-aged or older.
+
+Rich countries change too, just more quietly. For <a href="?lifeCountry=CZE&amp;lifeYear=1993&amp;lifeTopic=Technology">someone born in Czechia in 1993</a>, the internet went from a curiosity for less than 1% of the population to near-universal — a transformation of daily life that no single dramatic headline ever announced.
+
+Not everything moves in the right direction, and the card doesn’t hide it. Rows that changed against progress — rising emissions, worsening obesity — are marked in orange. Metrics where “more” is neither good nor bad, like population, stay grey. This is deliberate: the point of the card is an honest summary of what happened, not a highlight reel.
+
+{.heading}
+text: How the metrics are chosen
+level: 2
+{}
+
+The hardest question behind a card like this is which of our thousands of indicators deserve one of its few rows. We start from a curated spine of around a hundred key metrics spanning ten topic areas — the same metrics we feature across Our World in Data. The spine is the same for every country, and is then refined per country: metrics that are uninformative somewhere (tuberculosis incidence in Czechia, say, where it is vanishingly rare) are dropped, and metrics central to a country’s particular story are brought forward.
+
+The numbers themselves are never edited. The “then” value is the earliest measurement within your lifetime — shown with its year, since not every series reaches all the way back to every birth year — and the “now” value is the latest published data point. The sparkline covers only the years for which data exists. The world line is context, not a ranking: it’s there so you can tell whether your country’s change was part of a global shift or a story of its own.
+
+{.horizontal-rule}
+{}
+
+{.prominent-link}
+url: https://ourworldindata.org/population-simulation-tool
+title: Population tool: How will populations across the world change in the 21st century?
+description: Another interactive tool: test how changes in fertility, life expectancy, and migration would change future populations.
+{}
+
+{.prominent-link}
+url: https://ourworldindata.org/explorers/population-and-demography
+title: Population and Demography Data Explorer
+description: Explore historical population data and the UN’s projection scenarios for any country.
+{}
+[]
