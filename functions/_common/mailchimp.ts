@@ -12,8 +12,8 @@ import { Env } from "./env.js"
 function hasMailchimpCredentials(env: Env): boolean {
     return Boolean(
         env.MAILCHIMP_API_KEY &&
-            env.MAILCHIMP_API_SERVER &&
-            env.MAILCHIMP_NEWSLETTER_LIST_ID
+        env.MAILCHIMP_API_SERVER &&
+        env.MAILCHIMP_NEWSLETTER_LIST_ID
     )
 }
 
