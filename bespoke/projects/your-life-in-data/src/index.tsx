@@ -20,6 +20,13 @@ import {
     countryCodeAtom,
     topicAtom,
 } from "./atoms.js"
+import {
+    COMPARE_PARAM,
+    COUNTRY_PARAM,
+    TOPIC_PARAM,
+    YEAR_PARAM,
+    enableUrlSync,
+} from "./helpers/urlSync.js"
 
 import "./index.scss"
 
@@ -39,20 +46,20 @@ export const VARIANTS = [
 
 /**
  * Seed the shared atoms from the ArchieML config and the page URL. URL params
- * (?country=CZE&year=1993&topic=Health) win over config — that's the "comms
- * layer" trick: publicise a link that lands with the reader's settings applied.
+ * (?lifeCountry=CZE&lifeYear=1993) win over config — that's the "comms layer"
+ * trick: publicise a link that lands with the reader's settings applied.
  */
 function hydrateStateFromConfigAndUrl(config: Record<string, string>): void {
     const store = getDefaultStore()
     const params = new URLSearchParams(window.location.search)
-    const get = (key: string): string | undefined =>
-        params.get(key) ?? config[key]
+    const get = (param: string, configKey: string): string | undefined =>
+        params.get(param) ?? config[configKey]
 
-    const country = get("country")
+    const country = get(COUNTRY_PARAM, "country")
     if (country && COUNTRIES_BY_CODE.has(country))
         store.set(countryCodeAtom, country)
 
-    const year = parseInt(get("year") ?? "", 10)
+    const year = parseInt(get(YEAR_PARAM, "year") ?? "", 10)
     if (
         Number.isFinite(year) &&
         year >= 1900 &&
@@ -60,12 +67,14 @@ function hydrateStateFromConfigAndUrl(config: Record<string, string>): void {
     )
         store.set(birthYearAtom, year)
 
-    const topic = get("topic")
+    const topic = get(TOPIC_PARAM, "topic")
     if (topic && (topic === HIGHLIGHTS_LABEL || TOPICS.includes(topic)))
         store.set(topicAtom, topic)
 
-    const compare = get("compare")
+    const compare = get(COMPARE_PARAM, "compare")
     if (compare) store.set(compareCodeAtom, compare)
+
+    if (config.urlSync === "true") enableUrlSync()
 }
 
 export const mount: BespokeComponentMountFn = (

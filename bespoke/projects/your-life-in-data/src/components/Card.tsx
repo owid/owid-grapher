@@ -15,6 +15,7 @@ import {
     countryProfileSlug,
 } from "../helpers/catalog.js"
 import { buildCardRows } from "../helpers/data.js"
+import { writeStateToUrl } from "../helpers/urlSync.js"
 import {
     birthYearAtom,
     compareCodeAtom,
@@ -100,6 +101,16 @@ export function Card() {
         ? compareCode
         : WORLD_CODE
     const { status, rows } = useCardRows(code, birthYear, topic, compCode)
+
+    // keep the URL shareable (?lifeCountry=…&lifeYear=…) when urlSync is on
+    useEffect(() => {
+        writeStateToUrl({
+            countryCode: code,
+            birthYear,
+            topic,
+            compareCode: compCode,
+        })
+    }, [code, birthYear, topic, compCode])
 
     if (!country) {
         return (
