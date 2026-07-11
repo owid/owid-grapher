@@ -1,7 +1,7 @@
 // Types for the generated gdoc template reference registry.
 // Produced by devTools/gdocs/generate-gdocs-references.ts (committed to
 // docs/templates.registry.generated.json) and served to agents/tools via the
-// /api/templates.json endpoint: one entry per gdoc type the ArchieML
+// /api/gdocs-reference/templates.json endpoint: one entry per gdoc type the ArchieML
 // write-back layer can create or edit.
 
 import type { ComponentExample } from "./ComponentReference.js"

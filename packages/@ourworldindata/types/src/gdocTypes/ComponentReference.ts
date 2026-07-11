@@ -1,7 +1,7 @@
 // Types for the generated ArchieML component reference registry.
 // Produced by devTools/gdocs/generate-gdocs-references.ts (committed to
 // docs/components.registry.generated.json) and consumed by the admin
-// components reference page via the /api/components.json endpoint.
+// components reference page via the /api/gdocs-reference/components.json endpoint.
 
 export interface ComponentExample {
     archie: string
@@ -51,7 +51,7 @@ export interface ComponentPropDoc {
 
 /**
  * Shape of docs/components.registry.generated.json and of the
- * /api/components.json response.
+ * /api/gdocs-reference/components.json response.
  */
 export interface ComponentRegistry {
     components: ComponentDoc[]

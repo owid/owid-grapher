@@ -35,8 +35,8 @@ import {
 } from "./gdocsReferenceMinimal.js"
 import { getPublicDonorNames } from "../db/model/Donor.js"
 
-// The committed generated registries — same source the /api/components.json
-// and /api/templates.json endpoints serve.
+// The committed generated registries — same source the /api/gdocs-reference/components.json
+// and /api/gdocs-reference/templates.json endpoints serve.
 import componentsRegistry from "../docs/components.registry.generated.json"
 import templatesRegistry from "../docs/templates.registry.generated.json"
 

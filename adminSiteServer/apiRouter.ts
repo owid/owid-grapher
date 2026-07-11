@@ -705,6 +705,10 @@ postRouteWithRWTransaction(apiRouter, "/slack/sendMessage", sendMessageToSlack)
 
 // ArchieML component + gdoc template references (served from the committed
 // registry JSONs)
+apiRouter.get("/gdocs-reference/components.json", getComponentsReference)
+apiRouter.get("/gdocs-reference/templates.json", getTemplatesReference)
+// Deprecated aliases of the two routes above — external consumers (the
+// gdoc-editor skill) may still call the old top-level paths.
 apiRouter.get("/components.json", getComponentsReference)
 apiRouter.get("/templates.json", getTemplatesReference)
 

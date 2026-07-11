@@ -8,10 +8,10 @@ the only gate.
 
 | PR / branch                                             | What it does                                                                                                                                                                                                                                                   |
 | ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [#6543](https://github.com/owid/owid-grapher/pull/6543) | Generates a JSON registry of all components from the type definitions (JSDoc + `.md` sidecars), served at `/admin/api/components.json`. CI keeps it fresh.                                                                                                     |
+| [#6543](https://github.com/owid/owid-grapher/pull/6543) | Generates a JSON registry of all components from the type definitions (JSDoc + `.md` sidecars), served at `/admin/api/gdocs-reference/components.json`. CI keeps it fresh.                                                                                     |
 | [#6544](https://github.com/owid/owid-grapher/pull/6544) | Makes the enriched → ArchieML write-back lossless — inline formatting, refs, data-insight and post front matter — and tests it.                                                                                                                                |
 | [#6702](https://github.com/owid/owid-grapher/pull/6702) | Exposes the round trip over HTTP: read/replace/create gdocs as ArchieML via the admin API, gated by `validateArchieMl`. A `gdoc-editor` skill in [owid-claude-plugins](https://github.com/owid/owid-claude-plugins) gives authors a repo-less Claude workflow. |
-| this branch                                             | Generates a second registry — the per-doc-type **template reference** — from the content interfaces, served at `/admin/api/templates.json`: front-matter fields, admin-managed properties, and a validated example per writable gdoc type.                     |
+| this branch                                             | Generates a second registry — the per-doc-type **template reference** — from the content interfaces, served at `/admin/api/gdocs-reference/templates.json`: front-matter fields, admin-managed properties, and a validated example per writable gdoc type.     |
 | writing reference                                       | Author-facing docs browser at `/admin/gdocs-reference`, built on both registries: templates and components grouped by `category`, searchable, every example paired with a live preview rendered through the real gdoc pipeline at desktop/mobile viewports.    |
 
 ## The big picture
@@ -125,7 +125,7 @@ flowchart LR
 
     Author -->|"validate before writing"| DryRun
     Author -->|"or push a doc directly"| Parse
-    Reg -.->|"block reference (/admin/api/components.json)"| DryRun
+    Reg -.->|"block reference (/admin/api/gdocs-reference/components.json)"| DryRun
     Parse --> Enr
     Enr --> AdminVal
 
@@ -142,7 +142,7 @@ flowchart LR
 
 - **① Unknown block** (`{.small-chart}`): the parser throws and the _whole doc_
   fails. The dry-run endpoint returns the parser's error before anything is
-  written; the block reference at `/admin/api/components.json` lists every valid
+  written; the block reference at `/admin/api/gdocs-reference/components.json` lists every valid
   block with docs and examples.
 - **② Broken example** in a `.md` sidecar: the generator writes nothing and CI
   goes red. Not blocking — the committed registry just stays at its last good
@@ -219,7 +219,7 @@ report the saved doc's validation delta and the preview URL.
 The component registry documents what goes _inside_ a document body. Creating a
 document also needs to know its _front matter_: which fields each doc type
 takes, and which properties aren't authored in the document at all. That's the
-**template reference**, served at `GET /admin/api/templates.json` — one entry
+**template reference**, served at `GET /admin/api/gdocs-reference/templates.json` — one entry
 per writable gdoc type (`article`, `topic-page`, `linear-topic-page`,
 `fragment`, `data-insight`), each carrying:
 

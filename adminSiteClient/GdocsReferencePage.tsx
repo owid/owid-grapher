@@ -1011,8 +1011,12 @@ export class GdocsReferencePage extends Component<
     async getData(): Promise<void> {
         const { admin } = this.context
         const [{ components, typeSources }, { templates }] = await Promise.all([
-            admin.getJSON<ComponentRegistry>("/api/components.json"),
-            admin.getJSON<{ templates: TemplateDoc[] }>("/api/templates.json"),
+            admin.getJSON<ComponentRegistry>(
+                "/api/gdocs-reference/components.json"
+            ),
+            admin.getJSON<{ templates: TemplateDoc[] }>(
+                "/api/gdocs-reference/templates.json"
+            ),
         ])
         runInAction(() => {
             this.components = components
