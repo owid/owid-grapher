@@ -15,6 +15,7 @@ import {
     faWandMagicSparkles,
 } from "@fortawesome/free-solid-svg-icons"
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core"
+import { copyToClipboard } from "@ourworldindata/utils"
 import { AdminAppContext } from "./AdminAppContext.js"
 import { buildAddComponentPrompt } from "./gdocsReferencePrompt.js"
 
@@ -51,7 +52,8 @@ export function CopyButton({
 }): React.ReactElement {
     const [copied, setCopied] = useState(false)
     const onCopy = (): void => {
-        void navigator.clipboard.writeText(text).then(() => {
+        void copyToClipboard(text).then((success) => {
+            if (!success) return
             setCopied(true)
             setTimeout(() => setCopied(false), 1500)
         })
