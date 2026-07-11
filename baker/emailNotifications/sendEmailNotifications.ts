@@ -278,11 +278,12 @@ async function recordSentEmail(
     )
 }
 
+/** Returns the emails of subscribers whose send failed. */
 async function sendEmailNotifications(options: {
     frequency: EmailNotificationsFrequency
     dryRun: boolean
     local: boolean
-}): Promise<void> {
+}): Promise<string[]> {
     const { frequency, dryRun, local } = options
     const d1 = local
         ? createLocalD1Client(LOCAL_D1_DATABASE_NAME)
@@ -292,7 +293,7 @@ async function sendEmailNotifications(options: {
     console.log(
         `Found ${subscribers.length} subscribers with ${frequency} frequency`
     )
-    if (subscribers.length === 0) return
+    if (subscribers.length === 0) return []
 
     const now = new Date()
     // Fetch content back to the oldest window start of any subscriber (capped
@@ -315,63 +316,98 @@ async function sendEmailNotifications(options: {
         `Found ${items.length} items published since ${minWindowStart.toISOString()}`
     )
 
+    const failedEmails: string[] = []
     for (const subscriber of subscribers) {
-        const subscriberItems = filterItemsForSubscriber(items, subscriber, now)
-        if (subscriberItems.length === 0) {
-            console.log(`${subscriber.email}: no new items, skipping`)
-            continue
-        }
-
-        const html = renderNotificationEmail({
-            subscriber,
-            items: subscriberItems,
-            baseUrl: BAKED_BASE_URL,
-            // Links in emails must be absolute; the email notifications API
-            // is served on the same host as the baked site.
-            apiBaseUrl: `${BAKED_BASE_URL}/api/email-notifications`,
-        })
-        const slugs = subscriberItems.map((item) => item.slug).join(", ")
-
-        if (dryRun) {
-            const previewPath = path.join(
-                PREVIEW_DIR,
-                `${subscriber.email}-${frequency}.html`
+        // One bad subscriber (e.g. a Postmark 422 on an inactive address)
+        // must not starve the rest of the list, so failures are collected and
+        // reported at the end instead of aborting the run.
+        try {
+            const subscriberItems = filterItemsForSubscriber(
+                items,
+                subscriber,
+                now
             )
-            await fs.outputFile(previewPath, html)
+            if (subscriberItems.length === 0) {
+                console.log(`${subscriber.email}: no new items, skipping`)
+                continue
+            }
+
+            const html = renderNotificationEmail({
+                subscriber,
+                items: subscriberItems,
+                baseUrl: BAKED_BASE_URL,
+                // Links in emails must be absolute; the email notifications API
+                // is served on the same host as the baked site.
+                apiBaseUrl: `${BAKED_BASE_URL}/api/email-notifications`,
+            })
+            const slugs = subscriberItems.map((item) => item.slug).join(", ")
+
+            if (dryRun) {
+                const previewPath = path.join(
+                    PREVIEW_DIR,
+                    `${subscriber.email}-${frequency}.html`
+                )
+                await fs.outputFile(previewPath, html)
+                console.log(
+                    `${subscriber.email}: would send ${subscriberItems.length} items (${slugs}), preview written to ${previewPath}`
+                )
+                continue
+            }
+
+            if (!POSTMARK_SERVER_TOKEN) {
+                console.warn(
+                    `${subscriber.email}: POSTMARK_SERVER_TOKEN is not set, skipping send (use --dry-run to render previews)`
+                )
+                continue
+            }
+
+            // Deliberate ordering: send first, record after. A crash between
+            // the two means the next run re-sends this email — a rare
+            // duplicate is preferable to the reverse order, where a crash
+            // would silently drop the email forever.
+            const postmarkMessageId = await sendViaPostmark({
+                to: subscriber.email,
+                subject: makeNotificationEmailSubject(frequency),
+                htmlBody: html,
+                metadata: {
+                    userId: String(subscriber.userId),
+                    frequency,
+                },
+                unsubscribeUrl: `${BAKED_BASE_URL}/api/email-notifications/unsubscribe?token=${subscriber.token}`,
+            })
+            try {
+                await recordSentEmail(
+                    d1,
+                    subscriber,
+                    subscriberItems,
+                    postmarkMessageId,
+                    now
+                )
+            } catch (error) {
+                // The email DID go out; failing to record it means the next
+                // run will send a duplicate. Reported separately so the two
+                // failure modes are distinguishable in the logs.
+                throw new Error(
+                    `${subscriber.email}: email sent (Postmark id ${postmarkMessageId}) but recording it failed — the next run will send a duplicate`,
+                    { cause: error }
+                )
+            }
             console.log(
-                `${subscriber.email}: would send ${subscriberItems.length} items (${slugs}), preview written to ${previewPath}`
+                `${subscriber.email}: sent ${subscriberItems.length} items (${slugs})`
             )
-            continue
+        } catch (error) {
+            console.error(`${subscriber.email}: failed`, error)
+            Sentry.captureException(error)
+            failedEmails.push(subscriber.email)
         }
+    }
 
-        if (!POSTMARK_SERVER_TOKEN) {
-            console.warn(
-                `${subscriber.email}: POSTMARK_SERVER_TOKEN is not set, skipping send (use --dry-run to render previews)`
-            )
-            continue
-        }
-
-        const postmarkMessageId = await sendViaPostmark({
-            to: subscriber.email,
-            subject: makeNotificationEmailSubject(frequency),
-            htmlBody: html,
-            metadata: {
-                userId: String(subscriber.userId),
-                frequency,
-            },
-            unsubscribeUrl: `${BAKED_BASE_URL}/api/email-notifications/unsubscribe?token=${subscriber.token}`,
-        })
-        await recordSentEmail(
-            d1,
-            subscriber,
-            subscriberItems,
-            postmarkMessageId,
-            now
-        )
-        console.log(
-            `${subscriber.email}: sent ${subscriberItems.length} items (${slugs})`
+    if (failedEmails.length > 0) {
+        console.error(
+            `${failedEmails.length}/${subscribers.length} subscribers failed: ${failedEmails.join(", ")}`
         )
     }
+    return failedEmails
 }
 
 void yargs(hideBin(process.argv))
@@ -403,7 +439,17 @@ void yargs(hideBin(process.argv))
         },
         async ({ frequency, dryRun, local }) => {
             try {
-                await sendEmailNotifications({ frequency, dryRun, local })
+                const failedEmails = await sendEmailNotifications({
+                    frequency,
+                    dryRun,
+                    local,
+                })
+                // Exit non-zero on partial failure so the scheduled Buildkite
+                // run fails and alerts (P0.7).
+                if (failedEmails.length > 0) {
+                    await Sentry.close()
+                    process.exit(1)
+                }
                 process.exit(0)
             } catch (error) {
                 console.error("Error in sendEmailNotifications:", error)
