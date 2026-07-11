@@ -69,7 +69,8 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
         return makeHtmlResponse(
             renderMessagePage({
                 title: "Something went wrong",
-                message: "We couldn't process your request. Please try again later.",
+                message:
+                    "We couldn't process your request. Please try again later.",
             }),
             500
         )
@@ -174,8 +175,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
         return makeHtmlResponse(
             renderMessagePage({
                 title: "Something went wrong",
-                message:
-                    "We couldn't send the link. Please try again later.",
+                message: "We couldn't send the link. Please try again later.",
             }),
             500
         )
