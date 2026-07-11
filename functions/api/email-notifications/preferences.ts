@@ -197,9 +197,7 @@ function tokenErrorResponse(
     lookup: EmailTokenLookup | { state: "invalid" }
 ): Response {
     const response: EmailNotificationsPreferencesResponse =
-        lookup.state === "expired"
-            ? { error: "expired" }
-            : { error: "invalid" }
+        lookup.state === "expired" ? { error: "expired" } : { error: "invalid" }
     return new Response(JSON.stringify(response), {
         headers: JSON_HEADERS,
         status: lookup.state === "expired" ? 410 : 404,
