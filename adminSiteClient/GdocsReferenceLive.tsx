@@ -1028,8 +1028,6 @@ function SyntheticFormCard({
     doc: ComponentDoc
     info: SyntheticExampleInfo
 }): React.ReactElement | null {
-    const example = doc.examples[info.exampleIndex]
-    if (!example) return null
     const label = info.signature
         ? humanizeVariation(info.signature)
         : "Reference example"
@@ -1051,7 +1049,7 @@ function SyntheticFormCard({
                     reference example from the docs.
                 </p>
                 <GdocsReferenceExample
-                    archie={example.archie}
+                    archie={info.archie}
                     previewPath={`/gdocs-reference/components/${doc.id}/preview?example=${info.exampleIndex}`}
                     componentId={doc.id}
                 />

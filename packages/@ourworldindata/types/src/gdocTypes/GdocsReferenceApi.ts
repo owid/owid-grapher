@@ -96,8 +96,14 @@ export interface ComponentVariation {
  * synthetic examples cover exactly the gap reality leaves.
  */
 export interface SyntheticExampleInfo {
-    /** Index into the registry doc's examples array */
+    /**
+     * Index into the registry doc's examples array — only used to address
+     * the server-rendered preview (`…/preview?example=N`), where it is
+     * resolved against the same registry.
+     */
     exampleIndex: number
+    /** The example's ArchieML source, straight from the registry */
+    archie: string
     signature: string
     /** Whether this form occurs in published content */
     observed: boolean
