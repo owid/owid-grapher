@@ -5,6 +5,7 @@ import {
 import {
     OwidGdocType,
     type EnrichedBlockText,
+    type OwidGdocAnnouncementContent,
     type OwidGdocDataInsightContent,
     type OwidEnrichedGdocBlock,
     type Span,
@@ -104,6 +105,7 @@ function* yieldRefsBlockIfDefined(
 export type ArchieMlWritableContent =
     | OwidGdocPostContent
     | OwidGdocDataInsightContent
+    | OwidGdocAnnouncementContent
 
 export function* owidArticleToArchieMLStringGenerator(
     article: ArchieMlWritableContent
@@ -116,6 +118,18 @@ export function* owidArticleToArchieMLStringGenerator(
         yield* propertyToArchieMLString("grapher-url", dataInsight)
         yield* propertyToArchieMLString("narrative-chart", dataInsight)
         yield* propertyToArchieMLString("figma-url", dataInsight)
+    } else if (article.type === OwidGdocType.Announcement) {
+        // The nested `cta` front-matter property is deliberately not emitted
+        // here — it is classified "unsupported" in
+        // OWID_GDOC_ANNOUNCEMENT_CONTENT_KEYS, so the write gate refuses
+        // documents that author it instead of losing it silently.
+        const announcement: OwidGdocAnnouncementContent = article
+        yield* propertyToArchieMLString("title", announcement)
+        yield* yieldAuthorsWithRoles(announcement)
+        yield* propertyToArchieMLString("type", announcement)
+        yield* propertyToArchieMLString("kicker", announcement)
+        yield* propertyToArchieMLString("excerpt", announcement)
+        yield* propertyToArchieMLString("featured-image", announcement)
     } else {
         const post = article
         yield* propertyToArchieMLString("title", post)
