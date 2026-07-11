@@ -1,0 +1,494 @@
+.your-life-in-data {
+    color: var(--ylid-ink);
+    line-height: 1.5;
+    max-width: 660px;
+    margin: 0 auto;
+}
+
+.your-life-in-data,
+.your-life-in-data *,
+.your-life-in-data *::before,
+.your-life-in-data *::after {
+    box-sizing: border-box;
+}
+
+/* ---- controls ---- */
+
+.your-life-in-data__controls {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    background: #fff;
+    border-radius: 14px;
+    padding: 16px 18px;
+    box-shadow: 0 4px 18px rgba(20, 30, 50, 0.06);
+    margin-bottom: 14px;
+}
+
+.your-life-in-data__control--grow {
+    flex: 1;
+    min-width: 170px;
+}
+
+.your-life-in-data__control--year {
+    flex: 0 0 130px;
+}
+
+.your-life-in-data__control-label {
+    display: block;
+    font-size: 12px;
+    color: var(--ylid-ink);
+    font-weight: 700;
+    margin-bottom: 5px;
+}
+
+.your-life-in-data__controls input,
+.your-life-in-data__controls select {
+    font: inherit;
+    font-size: 16px;
+    padding: 9px 12px;
+    border: 1px solid var(--ylid-line);
+    border-radius: 9px;
+    background: #fff;
+    color: var(--ylid-ink);
+    width: 100%;
+}
+
+.your-life-in-data__controls input:focus,
+.your-life-in-data__controls select:focus {
+    outline: none;
+    border-color: var(--ylid-accent);
+    box-shadow: 0 0 0 3px rgba(47, 111, 237, 0.12);
+}
+
+/* custom combobox: typeable input + arrow that reveals the full list */
+
+.your-life-in-data__combo {
+    position: relative;
+}
+
+.your-life-in-data__combo-field {
+    position: relative;
+}
+
+.your-life-in-data__combo-field input {
+    padding-right: 36px;
+}
+
+.your-life-in-data__combo-arrow {
+    position: absolute;
+    top: 0;
+    right: 0;
+    height: 100%;
+    width: 34px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: var(--ylid-muted);
+    font-size: 12px;
+    line-height: 1;
+    padding: 0;
+    border-radius: 0 9px 9px 0;
+    transition:
+        color 0.12s,
+        transform 0.12s;
+}
+
+.your-life-in-data__combo-arrow:hover {
+    color: var(--ylid-ink);
+}
+
+.your-life-in-data__combo--open .your-life-in-data__combo-arrow {
+    transform: rotate(180deg);
+    color: var(--ylid-accent);
+}
+
+.your-life-in-data__combo-options {
+    position: absolute;
+    z-index: 60;
+    left: 0;
+    right: 0;
+    top: calc(100% + 4px);
+    margin: 0;
+    padding: 4px;
+    list-style: none;
+    max-height: 260px;
+    overflow-y: auto;
+    background: #fff;
+    border: 1px solid var(--ylid-line);
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(20, 30, 50, 0.14);
+}
+
+.your-life-in-data__combo-options li {
+    font-size: 14.5px;
+    padding: 8px 10px;
+    border-radius: 7px;
+    cursor: pointer;
+    color: var(--ylid-ink);
+}
+
+.your-life-in-data__combo-options li:hover,
+.your-life-in-data__combo-option--active {
+    background: rgba(47, 111, 237, 0.1);
+}
+
+.your-life-in-data__combo-options li[aria-selected="true"] {
+    font-weight: 700;
+}
+
+.your-life-in-data__combo-empty {
+    color: var(--ylid-muted);
+    cursor: default;
+}
+
+.your-life-in-data__combo-empty:hover {
+    background: none;
+}
+
+/* ---- card ---- */
+
+.your-life-in-data__card {
+    background: #fff;
+    border-radius: 18px;
+    padding: 24px 28px 18px;
+    box-shadow: 0 10px 40px rgba(20, 30, 50, 0.1);
+}
+
+.your-life-in-data__card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.your-life-in-data__flag {
+    font-size: 24px;
+    line-height: 1;
+}
+
+.your-life-in-data__kicker {
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ylid-muted);
+    font-weight: 700;
+}
+
+.your-life-in-data__card-title {
+    font-family: var(--ylid-serif);
+    font-size: 17px;
+    font-weight: 700;
+    line-height: 1.15;
+}
+
+.your-life-in-data__pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0 0 8px;
+}
+
+.your-life-in-data__pill {
+    font: inherit;
+    font-size: 12px;
+    cursor: pointer;
+    border: 1px solid var(--ylid-line);
+    background: #fff;
+    color: var(--ylid-muted);
+    border-radius: 999px;
+    padding: 4px 11px;
+    transition: all 0.12s;
+}
+
+.your-life-in-data__pill:hover {
+    border-color: #c4c9d0;
+    color: var(--ylid-ink);
+}
+
+.your-life-in-data__pill--selected,
+.your-life-in-data__pill--selected:hover {
+    background: var(--ylid-ink);
+    border-color: var(--ylid-ink);
+    color: #fff;
+}
+
+.your-life-in-data__legend {
+    font-size: 11px;
+    color: var(--ylid-muted);
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.your-life-in-data__swatch {
+    display: inline-block;
+    width: 14px;
+    height: 0;
+    border-top-width: 2px;
+    border-top-style: solid;
+}
+
+.your-life-in-data__swatch--country {
+    border-color: var(--ylid-good);
+}
+
+.your-life-in-data__swatch--comp {
+    border-color: var(--ylid-ghost);
+    margin-left: 8px;
+}
+
+/* fixed columns so every row lines up: label | then | sparkline | now */
+.your-life-in-data__row {
+    display: grid;
+    grid-template-columns: 1fr 96px 96px 96px;
+    align-items: center;
+    gap: 10px;
+    padding: 13px 0;
+    border-top: 1px solid var(--ylid-line);
+}
+
+.your-life-in-data__row-label {
+    font-weight: 650;
+    font-size: 14.5px;
+    line-height: 1.2;
+}
+
+.your-life-in-data__phrase {
+    font-size: 12px;
+    color: var(--ylid-muted);
+    margin-top: 2px;
+    font-weight: 600;
+}
+
+.your-life-in-data__phrase--good {
+    color: var(--ylid-good);
+}
+
+.your-life-in-data__phrase--warn {
+    color: var(--ylid-warn);
+}
+
+.your-life-in-data__phrase--neutral {
+    color: var(--ylid-muted);
+    font-weight: 400;
+}
+
+.your-life-in-data__spark {
+    display: block;
+    margin: 0 auto;
+    cursor: crosshair;
+}
+
+.your-life-in-data__sparktip {
+    position: fixed;
+    z-index: 50;
+    pointer-events: none;
+    background: #1b1f24;
+    color: #eef1f5;
+    font-size: 11.5px;
+    font-variant-numeric: tabular-nums;
+    padding: 7px 10px;
+    border-radius: 8px;
+    box-shadow: 0 6px 22px rgba(10, 15, 25, 0.3);
+    white-space: nowrap;
+}
+
+.your-life-in-data__sparktip b {
+    color: #fff;
+    display: block;
+    margin-bottom: 4px;
+}
+
+.your-life-in-data__sparktip-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    line-height: 1.5;
+}
+
+.your-life-in-data__sparktip-key {
+    color: #aeb6c2;
+}
+
+.your-life-in-data__sparktip-value {
+    color: #fff;
+    font-weight: 600;
+}
+
+.your-life-in-data__then {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+.your-life-in-data__now {
+    text-align: left;
+    font-variant-numeric: tabular-nums;
+}
+
+.your-life-in-data__then .your-life-in-data__value {
+    font-size: 14px;
+    color: var(--ylid-muted);
+    white-space: nowrap;
+}
+
+.your-life-in-data__now .your-life-in-data__value {
+    font-family: var(--ylid-serif);
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.your-life-in-data__comp-value {
+    font-size: 11px;
+    color: #aeb4bd;
+    margin-top: 3px;
+    white-space: nowrap;
+}
+
+.your-life-in-data__footer {
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid var(--ylid-line);
+    font-size: 12px;
+    color: var(--ylid-muted);
+}
+
+.your-life-in-data__footer b {
+    color: var(--ylid-ink);
+}
+
+.your-life-in-data__explore {
+    margin-top: 7px;
+}
+
+.your-life-in-data__explore a {
+    color: var(--ylid-accent);
+    text-decoration: none;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.your-life-in-data__explore a:hover {
+    text-decoration: underline;
+}
+
+.your-life-in-data__message {
+    text-align: center;
+    color: var(--ylid-muted);
+    padding: 36px 0;
+}
+
+/* metadata tooltip on the metric title — OWID's units/description/source */
+
+.your-life-in-data__metric {
+    position: relative;
+    cursor: pointer;
+    border-bottom: 1px dotted #c4c9d0;
+    color: inherit;
+    text-decoration: none;
+}
+
+.your-life-in-data__metric:hover {
+    border-bottom-color: var(--ylid-good);
+}
+
+.your-life-in-data__metric-tip {
+    visibility: hidden;
+    opacity: 0;
+    position: absolute;
+    left: 0;
+    top: calc(100% + 6px);
+    z-index: 20;
+    width: 280px;
+    background: #1b1f24;
+    color: #eef1f5;
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-weight: 400;
+    font-size: 12px;
+    line-height: 1.45;
+    letter-spacing: 0;
+    text-transform: none;
+    box-shadow: 0 8px 28px rgba(10, 15, 25, 0.3);
+    transition: opacity 0.12s;
+}
+
+.your-life-in-data__metric-tip-unit {
+    color: #9fb3c8;
+    display: block;
+    margin-top: 6px;
+    font-size: 11px;
+}
+
+.your-life-in-data__metric-tip-source {
+    color: #7f8a99;
+    display: block;
+    margin-top: 3px;
+    font-size: 10.5px;
+}
+
+.your-life-in-data__metric:hover .your-life-in-data__metric-tip,
+.your-life-in-data__metric:focus .your-life-in-data__metric-tip,
+.your-life-in-data__metric:focus-within .your-life-in-data__metric-tip {
+    visibility: visible;
+    opacity: 1;
+}
+
+/* Mobile: the 1fr+96+96+96 row can't fit a phone, so the label gets its own
+   full-width line and the then → sparkline → now triplet sits below it. */
+@media (max-width: 560px) {
+    .your-life-in-data__card {
+        padding: 20px 16px 14px;
+    }
+
+    .your-life-in-data__row {
+        grid-template-columns: auto 1fr auto;
+        grid-template-areas:
+            "lab lab lab"
+            "then spark now";
+        row-gap: 9px;
+        column-gap: 8px;
+    }
+
+    .your-life-in-data__row > div:first-child {
+        grid-area: lab;
+    }
+
+    .your-life-in-data__then {
+        grid-area: then;
+        text-align: left;
+    }
+
+    /* stretch the sparkline to fill the width (viewBox scales uniformly, so
+       the line/dots keep their shape and the hover math still works) */
+    .your-life-in-data__spark {
+        grid-area: spark;
+        width: 100%;
+        height: auto;
+        max-height: 42px;
+    }
+
+    .your-life-in-data__now {
+        grid-area: now;
+        text-align: right;
+    }
+
+    /* the metric name and current value are the headline — give them weight
+       so the sparkline reads as supporting context, not the main event */
+    .your-life-in-data__row-label {
+        font-size: 16px;
+    }
+
+    .your-life-in-data__now .your-life-in-data__value {
+        font-size: 25px;
+    }
+
+    /* keep the metadata tooltip on-screen near the right edge */
+    .your-life-in-data__metric-tip {
+        width: min(280px, 78vw);
+    }
+}

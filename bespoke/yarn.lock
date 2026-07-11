@@ -155,6 +155,12 @@ __metadata:
   languageName: node
   linkType: soft
 
+"@ourworldindata/components@link:../../../packages/@ourworldindata/components::locator=%40owid%2Fbespoke-your-life-in-data%40workspace%3Aprojects%2Fyour-life-in-data":
+  version: 0.0.0-use.local
+  resolution: "@ourworldindata/components@link:../../../packages/@ourworldindata/components::locator=%40owid%2Fbespoke-your-life-in-data%40workspace%3Aprojects%2Fyour-life-in-data"
+  languageName: node
+  linkType: soft
+
 "@ourworldindata/components@link:../../packages/@ourworldindata/components::locator=%40owid%2Fbespoke-components%40workspace%3Acomponents":
   version: 0.0.0-use.local
   resolution: "@ourworldindata/components@link:../../packages/@ourworldindata/components::locator=%40owid%2Fbespoke-components%40workspace%3Acomponents"
@@ -266,6 +272,12 @@ __metadata:
 "@ourworldindata/utils@link:../../../packages/@ourworldindata/utils::locator=%40owid%2Fbespoke-migration%40workspace%3Aprojects%2Fmigration":
   version: 0.0.0-use.local
   resolution: "@ourworldindata/utils@link:../../../packages/@ourworldindata/utils::locator=%40owid%2Fbespoke-migration%40workspace%3Aprojects%2Fmigration"
+  languageName: node
+  linkType: soft
+
+"@ourworldindata/utils@link:../../../packages/@ourworldindata/utils::locator=%40owid%2Fbespoke-your-life-in-data%40workspace%3Aprojects%2Fyour-life-in-data":
+  version: 0.0.0-use.local
+  resolution: "@ourworldindata/utils@link:../../../packages/@ourworldindata/utils::locator=%40owid%2Fbespoke-your-life-in-data%40workspace%3Aprojects%2Fyour-life-in-data"
   languageName: node
   linkType: soft
 
@@ -504,6 +516,27 @@ __metadata:
     remeda: "npm:^2.39.0"
     sass: "npm:^1.101.0"
     ts-pattern: "npm:^5.9.0"
+    vite: "npm:^8.0.16"
+    vite-plugin-css-position: "npm:^2.0.9"
+  languageName: unknown
+  linkType: soft
+
+"@owid/bespoke-your-life-in-data@workspace:projects/your-life-in-data":
+  version: 0.0.0-use.local
+  resolution: "@owid/bespoke-your-life-in-data@workspace:projects/your-life-in-data"
+  dependencies:
+    "@ourworldindata/components": "link:../../../packages/@ourworldindata/components"
+    "@ourworldindata/utils": "link:../../../packages/@ourworldindata/utils"
+    "@types/react": "npm:^19.2.17"
+    "@types/react-dom": "npm:^19.2.3"
+    "@typescript/native-preview": "npm:^7.0.0-dev.20260613.1"
+    "@vitejs/plugin-react": "npm:^6.0.2"
+    clsx: "npm:^2.1.1"
+    jotai: "npm:^2.20.1"
+    normalize.css: "npm:^8.0.1"
+    react: "npm:^19.2.7"
+    react-dom: "npm:^19.2.7"
+    sass: "npm:^1.101.0"
     vite: "npm:^8.0.16"
     vite-plugin-css-position: "npm:^2.0.9"
   languageName: unknown

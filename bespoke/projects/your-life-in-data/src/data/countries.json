@@ -1,0 +1,1490 @@
+[
+    {
+        "code": "AFG",
+        "name": "Afghanistan",
+        "continent": "OWID_ASI",
+        "income": "OWID_LIC"
+    },
+    {
+        "code": "ALA",
+        "name": "Aland Islands",
+        "continent": "OWID_EUR",
+        "income": null
+    },
+    {
+        "code": "ALB",
+        "name": "Albania",
+        "continent": "OWID_EUR",
+        "income": "OWID_UMC"
+    },
+    {
+        "code": "DZA",
+        "name": "Algeria",
+        "continent": "OWID_AFR",
+        "income": "OWID_UMC"
+    },
+    {
+        "code": "ASM",
+        "name": "American Samoa",
+        "continent": "OWID_OCE",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "AND",
+        "name": "Andorra",
+        "continent": "OWID_EUR",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "AGO",
+        "name": "Angola",
+        "continent": "OWID_AFR",
+        "income": "OWID_LMC"
+    },
+    {
+        "code": "AIA",
+        "name": "Anguilla",
+        "continent": "OWID_NAM",
+        "income": null
+    },
+    {
+        "code": "ATG",
+        "name": "Antigua and Barbuda",
+        "continent": "OWID_NAM",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "ARG",
+        "name": "Argentina",
+        "continent": "OWID_SAM",
+        "income": "OWID_UMC"
+    },
+    {
+        "code": "ARM",
+        "name": "Armenia",
+        "continent": "OWID_ASI",
+        "income": "OWID_UMC"
+    },
+    {
+        "code": "ABW",
+        "name": "Aruba",
+        "continent": "OWID_NAM",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "AUS",
+        "name": "Australia",
+        "continent": "OWID_OCE",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "AUT",
+        "name": "Austria",
+        "continent": "OWID_EUR",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "AZE",
+        "name": "Azerbaijan",
+        "continent": "OWID_ASI",
+        "income": "OWID_UMC"
+    },
+    {
+        "code": "BHS",
+        "name": "Bahamas",
+        "continent": "OWID_NAM",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "BHR",
+        "name": "Bahrain",
+        "continent": "OWID_ASI",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "BGD",
+        "name": "Bangladesh",
+        "continent": "OWID_ASI",
+        "income": "OWID_LMC"
+    },
+    {
+        "code": "BRB",
+        "name": "Barbados",
+        "continent": "OWID_NAM",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "BLR",
+        "name": "Belarus",
+        "continent": "OWID_EUR",
+        "income": "OWID_UMC"
+    },
+    {
+        "code": "BEL",
+        "name": "Belgium",
+        "continent": "OWID_EUR",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "BLZ",
+        "name": "Belize",
+        "continent": "OWID_NAM",
+        "income": "OWID_UMC"
+    },
+    {
+        "code": "BEN",
+        "name": "Benin",
+        "continent": "OWID_AFR",
+        "income": "OWID_LMC"
+    },
+    {
+        "code": "BMU",
+        "name": "Bermuda",
+        "continent": "OWID_NAM",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "BTN",
+        "name": "Bhutan",
+        "continent": "OWID_ASI",
+        "income": "OWID_LMC"
+    },
+    {
+        "code": "BOL",
+        "name": "Bolivia",
+        "continent": "OWID_SAM",
+        "income": "OWID_LMC"
+    },
+    {
+        "code": "BES",
+        "name": "Bonaire Sint Eustatius and Saba",
+        "continent": "OWID_NAM",
+        "income": null
+    },
+    {
+        "code": "BIH",
+        "name": "Bosnia and Herzegovina",
+        "continent": "OWID_EUR",
+        "income": "OWID_UMC"
+    },
+    {
+        "code": "BWA",
+        "name": "Botswana",
+        "continent": "OWID_AFR",
+        "income": "OWID_UMC"
+    },
+    {
+        "code": "BVT",
+        "name": "Bouvet Island",
+        "continent": null,
+        "income": null
+    },
+    {
+        "code": "BRA",
+        "name": "Brazil",
+        "continent": "OWID_SAM",
+        "income": "OWID_UMC"
+    },
+    {
+        "code": "IOT",
+        "name": "British Indian Ocean Territory",
+        "continent": "OWID_ASI",
+        "income": null
+    },
+    {
+        "code": "VGB",
+        "name": "British Virgin Islands",
+        "continent": "OWID_NAM",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "BRN",
+        "name": "Brunei",
+        "continent": "OWID_ASI",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "BGR",
+        "name": "Bulgaria",
+        "continent": "OWID_EUR",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "BFA",
+        "name": "Burkina Faso",
+        "continent": "OWID_AFR",
+        "income": "OWID_LIC"
+    },
+    {
+        "code": "BDI",
+        "name": "Burundi",
+        "continent": "OWID_AFR",
+        "income": "OWID_LIC"
+    },
+    {
+        "code": "KHM",
+        "name": "Cambodia",
+        "continent": "OWID_ASI",
+        "income": "OWID_LMC"
+    },
+    {
+        "code": "CMR",
+        "name": "Cameroon",
+        "continent": "OWID_AFR",
+        "income": "OWID_LMC"
+    },
+    {
+        "code": "CAN",
+        "name": "Canada",
+        "continent": "OWID_NAM",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "CPV",
+        "name": "Cape Verde",
+        "continent": "OWID_AFR",
+        "income": "OWID_UMC"
+    },
+    {
+        "code": "CYM",
+        "name": "Cayman Islands",
+        "continent": "OWID_NAM",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "CAF",
+        "name": "Central African Republic",
+        "continent": "OWID_AFR",
+        "income": "OWID_LIC"
+    },
+    {
+        "code": "TCD",
+        "name": "Chad",
+        "continent": "OWID_AFR",
+        "income": "OWID_LIC"
+    },
+    {
+        "code": "CHL",
+        "name": "Chile",
+        "continent": "OWID_SAM",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "CHN",
+        "name": "China",
+        "continent": "OWID_ASI",
+        "income": "OWID_UMC"
+    },
+    {
+        "code": "CXR",
+        "name": "Christmas Island",
+        "continent": "OWID_ASI",
+        "income": null
+    },
+    {
+        "code": "CCK",
+        "name": "Cocos Islands",
+        "continent": "OWID_ASI",
+        "income": null
+    },
+    {
+        "code": "COL",
+        "name": "Colombia",
+        "continent": "OWID_SAM",
+        "income": "OWID_UMC"
+    },
+    {
+        "code": "COM",
+        "name": "Comoros",
+        "continent": "OWID_AFR",
+        "income": "OWID_LMC"
+    },
+    {
+        "code": "COG",
+        "name": "Congo",
+        "continent": "OWID_AFR",
+        "income": "OWID_LMC"
+    },
+    {
+        "code": "COK",
+        "name": "Cook Islands",
+        "continent": "OWID_OCE",
+        "income": null
+    },
+    {
+        "code": "CRI",
+        "name": "Costa Rica",
+        "continent": "OWID_NAM",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "CIV",
+        "name": "Cote d'Ivoire",
+        "continent": "OWID_AFR",
+        "income": "OWID_LMC"
+    },
+    {
+        "code": "HRV",
+        "name": "Croatia",
+        "continent": "OWID_EUR",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "CUB",
+        "name": "Cuba",
+        "continent": "OWID_NAM",
+        "income": "OWID_UMC"
+    },
+    {
+        "code": "CUW",
+        "name": "Curacao",
+        "continent": "OWID_NAM",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "CYP",
+        "name": "Cyprus",
+        "continent": "OWID_EUR",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "CZE",
+        "name": "Czechia",
+        "continent": "OWID_EUR",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "COD",
+        "name": "Democratic Republic of Congo",
+        "continent": "OWID_AFR",
+        "income": "OWID_LIC"
+    },
+    {
+        "code": "DNK",
+        "name": "Denmark",
+        "continent": "OWID_EUR",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "DJI",
+        "name": "Djibouti",
+        "continent": "OWID_AFR",
+        "income": "OWID_LMC"
+    },
+    {
+        "code": "DMA",
+        "name": "Dominica",
+        "continent": "OWID_NAM",
+        "income": "OWID_UMC"
+    },
+    {
+        "code": "DOM",
+        "name": "Dominican Republic",
+        "continent": "OWID_NAM",
+        "income": "OWID_UMC"
+    },
+    {
+        "code": "TLS",
+        "name": "East Timor",
+        "continent": "OWID_ASI",
+        "income": "OWID_LMC"
+    },
+    {
+        "code": "ECU",
+        "name": "Ecuador",
+        "continent": "OWID_SAM",
+        "income": "OWID_UMC"
+    },
+    {
+        "code": "EGY",
+        "name": "Egypt",
+        "continent": "OWID_AFR",
+        "income": "OWID_LMC"
+    },
+    {
+        "code": "SLV",
+        "name": "El Salvador",
+        "continent": "OWID_NAM",
+        "income": "OWID_UMC"
+    },
+    {
+        "code": "GNQ",
+        "name": "Equatorial Guinea",
+        "continent": "OWID_AFR",
+        "income": "OWID_UMC"
+    },
+    {
+        "code": "ERI",
+        "name": "Eritrea",
+        "continent": "OWID_AFR",
+        "income": "OWID_LIC"
+    },
+    {
+        "code": "EST",
+        "name": "Estonia",
+        "continent": "OWID_EUR",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "SWZ",
+        "name": "Eswatini",
+        "continent": "OWID_AFR",
+        "income": "OWID_LMC"
+    },
+    {
+        "code": "ETH",
+        "name": "Ethiopia",
+        "continent": "OWID_AFR",
+        "income": "OWID_LIC"
+    },
+    {
+        "code": "FLK",
+        "name": "Falkland Islands",
+        "continent": "OWID_SAM",
+        "income": null
+    },
+    {
+        "code": "FRO",
+        "name": "Faroe Islands",
+        "continent": "OWID_EUR",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "FJI",
+        "name": "Fiji",
+        "continent": "OWID_OCE",
+        "income": "OWID_UMC"
+    },
+    {
+        "code": "FIN",
+        "name": "Finland",
+        "continent": "OWID_EUR",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "FRA",
+        "name": "France",
+        "continent": "OWID_EUR",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "GUF",
+        "name": "French Guiana",
+        "continent": "OWID_SAM",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "PYF",
+        "name": "French Polynesia",
+        "continent": "OWID_OCE",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "ATF",
+        "name": "French Southern Territories",
+        "continent": null,
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "GAB",
+        "name": "Gabon",
+        "continent": "OWID_AFR",
+        "income": "OWID_UMC"
+    },
+    {
+        "code": "GMB",
+        "name": "Gambia",
+        "continent": "OWID_AFR",
+        "income": "OWID_LIC"
+    },
+    {
+        "code": "GEO",
+        "name": "Georgia",
+        "continent": "OWID_ASI",
+        "income": "OWID_UMC"
+    },
+    {
+        "code": "DEU",
+        "name": "Germany",
+        "continent": "OWID_EUR",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "GHA",
+        "name": "Ghana",
+        "continent": "OWID_AFR",
+        "income": "OWID_LMC"
+    },
+    {
+        "code": "GIB",
+        "name": "Gibraltar",
+        "continent": "OWID_EUR",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "GRC",
+        "name": "Greece",
+        "continent": "OWID_EUR",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "GRL",
+        "name": "Greenland",
+        "continent": "OWID_NAM",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "GRD",
+        "name": "Grenada",
+        "continent": "OWID_NAM",
+        "income": "OWID_UMC"
+    },
+    {
+        "code": "GLP",
+        "name": "Guadeloupe",
+        "continent": "OWID_NAM",
+        "income": null
+    },
+    {
+        "code": "GUM",
+        "name": "Guam",
+        "continent": "OWID_OCE",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "GTM",
+        "name": "Guatemala",
+        "continent": "OWID_NAM",
+        "income": "OWID_UMC"
+    },
+    {
+        "code": "GGY",
+        "name": "Guernsey",
+        "continent": "OWID_EUR",
+        "income": null
+    },
+    {
+        "code": "GIN",
+        "name": "Guinea",
+        "continent": "OWID_AFR",
+        "income": "OWID_LMC"
+    },
+    {
+        "code": "GNB",
+        "name": "Guinea-Bissau",
+        "continent": "OWID_AFR",
+        "income": "OWID_LIC"
+    },
+    {
+        "code": "GUY",
+        "name": "Guyana",
+        "continent": "OWID_SAM",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "HTI",
+        "name": "Haiti",
+        "continent": "OWID_NAM",
+        "income": "OWID_LMC"
+    },
+    {
+        "code": "HMD",
+        "name": "Heard Island and McDonald Islands",
+        "continent": null,
+        "income": null
+    },
+    {
+        "code": "HND",
+        "name": "Honduras",
+        "continent": "OWID_NAM",
+        "income": "OWID_LMC"
+    },
+    {
+        "code": "HKG",
+        "name": "Hong Kong",
+        "continent": "OWID_ASI",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "HUN",
+        "name": "Hungary",
+        "continent": "OWID_EUR",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "ISL",
+        "name": "Iceland",
+        "continent": "OWID_EUR",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "IND",
+        "name": "India",
+        "continent": "OWID_ASI",
+        "income": "OWID_LMC"
+    },
+    {
+        "code": "IDN",
+        "name": "Indonesia",
+        "continent": "OWID_ASI",
+        "income": "OWID_UMC"
+    },
+    {
+        "code": "IRN",
+        "name": "Iran",
+        "continent": "OWID_ASI",
+        "income": "OWID_UMC"
+    },
+    {
+        "code": "IRQ",
+        "name": "Iraq",
+        "continent": "OWID_ASI",
+        "income": "OWID_UMC"
+    },
+    {
+        "code": "IRL",
+        "name": "Ireland",
+        "continent": "OWID_EUR",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "IMN",
+        "name": "Isle of Man",
+        "continent": "OWID_EUR",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "ISR",
+        "name": "Israel",
+        "continent": "OWID_ASI",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "ITA",
+        "name": "Italy",
+        "continent": "OWID_EUR",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "JAM",
+        "name": "Jamaica",
+        "continent": "OWID_NAM",
+        "income": "OWID_UMC"
+    },
+    {
+        "code": "JPN",
+        "name": "Japan",
+        "continent": "OWID_ASI",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "JEY",
+        "name": "Jersey",
+        "continent": "OWID_EUR",
+        "income": null
+    },
+    {
+        "code": "JOR",
+        "name": "Jordan",
+        "continent": "OWID_ASI",
+        "income": "OWID_LMC"
+    },
+    {
+        "code": "KAZ",
+        "name": "Kazakhstan",
+        "continent": "OWID_ASI",
+        "income": "OWID_UMC"
+    },
+    {
+        "code": "KEN",
+        "name": "Kenya",
+        "continent": "OWID_AFR",
+        "income": "OWID_LMC"
+    },
+    {
+        "code": "KIR",
+        "name": "Kiribati",
+        "continent": "OWID_OCE",
+        "income": "OWID_LMC"
+    },
+    {
+        "code": "KWT",
+        "name": "Kuwait",
+        "continent": "OWID_ASI",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "KGZ",
+        "name": "Kyrgyzstan",
+        "continent": "OWID_ASI",
+        "income": "OWID_LMC"
+    },
+    {
+        "code": "LAO",
+        "name": "Laos",
+        "continent": "OWID_ASI",
+        "income": "OWID_LMC"
+    },
+    {
+        "code": "LVA",
+        "name": "Latvia",
+        "continent": "OWID_EUR",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "LBN",
+        "name": "Lebanon",
+        "continent": "OWID_ASI",
+        "income": "OWID_LMC"
+    },
+    {
+        "code": "LSO",
+        "name": "Lesotho",
+        "continent": "OWID_AFR",
+        "income": "OWID_LMC"
+    },
+    {
+        "code": "LBR",
+        "name": "Liberia",
+        "continent": "OWID_AFR",
+        "income": "OWID_LIC"
+    },
+    {
+        "code": "LBY",
+        "name": "Libya",
+        "continent": "OWID_AFR",
+        "income": "OWID_UMC"
+    },
+    {
+        "code": "LIE",
+        "name": "Liechtenstein",
+        "continent": "OWID_EUR",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "LTU",
+        "name": "Lithuania",
+        "continent": "OWID_EUR",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "LUX",
+        "name": "Luxembourg",
+        "continent": "OWID_EUR",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "MAC",
+        "name": "Macao",
+        "continent": "OWID_ASI",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "MDG",
+        "name": "Madagascar",
+        "continent": "OWID_AFR",
+        "income": "OWID_LIC"
+    },
+    {
+        "code": "MWI",
+        "name": "Malawi",
+        "continent": "OWID_AFR",
+        "income": "OWID_LIC"
+    },
+    {
+        "code": "MYS",
+        "name": "Malaysia",
+        "continent": "OWID_ASI",
+        "income": "OWID_UMC"
+    },
+    {
+        "code": "MDV",
+        "name": "Maldives",
+        "continent": "OWID_ASI",
+        "income": "OWID_UMC"
+    },
+    {
+        "code": "MLI",
+        "name": "Mali",
+        "continent": "OWID_AFR",
+        "income": "OWID_LIC"
+    },
+    {
+        "code": "MLT",
+        "name": "Malta",
+        "continent": "OWID_EUR",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "MHL",
+        "name": "Marshall Islands",
+        "continent": "OWID_OCE",
+        "income": "OWID_UMC"
+    },
+    {
+        "code": "MTQ",
+        "name": "Martinique",
+        "continent": "OWID_NAM",
+        "income": null
+    },
+    {
+        "code": "MRT",
+        "name": "Mauritania",
+        "continent": "OWID_AFR",
+        "income": "OWID_LMC"
+    },
+    {
+        "code": "MUS",
+        "name": "Mauritius",
+        "continent": "OWID_AFR",
+        "income": "OWID_UMC"
+    },
+    {
+        "code": "MYT",
+        "name": "Mayotte",
+        "continent": "OWID_AFR",
+        "income": "OWID_UMC"
+    },
+    {
+        "code": "MEX",
+        "name": "Mexico",
+        "continent": "OWID_NAM",
+        "income": "OWID_UMC"
+    },
+    {
+        "code": "FSM",
+        "name": "Micronesia (country)",
+        "continent": "OWID_OCE",
+        "income": "OWID_LMC"
+    },
+    {
+        "code": "MDA",
+        "name": "Moldova",
+        "continent": "OWID_EUR",
+        "income": "OWID_UMC"
+    },
+    {
+        "code": "MCO",
+        "name": "Monaco",
+        "continent": "OWID_EUR",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "MNG",
+        "name": "Mongolia",
+        "continent": "OWID_ASI",
+        "income": "OWID_UMC"
+    },
+    {
+        "code": "MNE",
+        "name": "Montenegro",
+        "continent": "OWID_EUR",
+        "income": "OWID_UMC"
+    },
+    {
+        "code": "MSR",
+        "name": "Montserrat",
+        "continent": "OWID_NAM",
+        "income": null
+    },
+    {
+        "code": "MAR",
+        "name": "Morocco",
+        "continent": "OWID_AFR",
+        "income": "OWID_LMC"
+    },
+    {
+        "code": "MOZ",
+        "name": "Mozambique",
+        "continent": "OWID_AFR",
+        "income": "OWID_LIC"
+    },
+    {
+        "code": "MMR",
+        "name": "Myanmar",
+        "continent": "OWID_ASI",
+        "income": "OWID_LMC"
+    },
+    {
+        "code": "NAM",
+        "name": "Namibia",
+        "continent": "OWID_AFR",
+        "income": "OWID_LMC"
+    },
+    {
+        "code": "NRU",
+        "name": "Nauru",
+        "continent": "OWID_OCE",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "NPL",
+        "name": "Nepal",
+        "continent": "OWID_ASI",
+        "income": "OWID_LMC"
+    },
+    {
+        "code": "NLD",
+        "name": "Netherlands",
+        "continent": "OWID_EUR",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "NCL",
+        "name": "New Caledonia",
+        "continent": "OWID_OCE",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "NZL",
+        "name": "New Zealand",
+        "continent": "OWID_OCE",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "NIC",
+        "name": "Nicaragua",
+        "continent": "OWID_NAM",
+        "income": "OWID_LMC"
+    },
+    {
+        "code": "NER",
+        "name": "Niger",
+        "continent": "OWID_AFR",
+        "income": "OWID_LIC"
+    },
+    {
+        "code": "NGA",
+        "name": "Nigeria",
+        "continent": "OWID_AFR",
+        "income": "OWID_LMC"
+    },
+    {
+        "code": "NIU",
+        "name": "Niue",
+        "continent": "OWID_OCE",
+        "income": null
+    },
+    {
+        "code": "NFK",
+        "name": "Norfolk Island",
+        "continent": "OWID_OCE",
+        "income": null
+    },
+    {
+        "code": "PRK",
+        "name": "North Korea",
+        "continent": "OWID_ASI",
+        "income": "OWID_LIC"
+    },
+    {
+        "code": "MKD",
+        "name": "North Macedonia",
+        "continent": "OWID_EUR",
+        "income": "OWID_UMC"
+    },
+    {
+        "code": "MNP",
+        "name": "Northern Mariana Islands",
+        "continent": "OWID_OCE",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "NOR",
+        "name": "Norway",
+        "continent": "OWID_EUR",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "OMN",
+        "name": "Oman",
+        "continent": "OWID_ASI",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "PAK",
+        "name": "Pakistan",
+        "continent": "OWID_ASI",
+        "income": "OWID_LMC"
+    },
+    {
+        "code": "PLW",
+        "name": "Palau",
+        "continent": "OWID_OCE",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "PSE",
+        "name": "Palestine",
+        "continent": "OWID_ASI",
+        "income": "OWID_LMC"
+    },
+    {
+        "code": "PAN",
+        "name": "Panama",
+        "continent": "OWID_NAM",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "PNG",
+        "name": "Papua New Guinea",
+        "continent": "OWID_OCE",
+        "income": "OWID_LMC"
+    },
+    {
+        "code": "PRY",
+        "name": "Paraguay",
+        "continent": "OWID_SAM",
+        "income": "OWID_UMC"
+    },
+    {
+        "code": "PER",
+        "name": "Peru",
+        "continent": "OWID_SAM",
+        "income": "OWID_UMC"
+    },
+    {
+        "code": "PHL",
+        "name": "Philippines",
+        "continent": "OWID_ASI",
+        "income": "OWID_LMC"
+    },
+    {
+        "code": "PCN",
+        "name": "Pitcairn",
+        "continent": "OWID_OCE",
+        "income": null
+    },
+    {
+        "code": "POL",
+        "name": "Poland",
+        "continent": "OWID_EUR",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "PRT",
+        "name": "Portugal",
+        "continent": "OWID_EUR",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "PRI",
+        "name": "Puerto Rico",
+        "continent": "OWID_NAM",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "QAT",
+        "name": "Qatar",
+        "continent": "OWID_ASI",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "REU",
+        "name": "Reunion",
+        "continent": "OWID_AFR",
+        "income": null
+    },
+    {
+        "code": "ROU",
+        "name": "Romania",
+        "continent": "OWID_EUR",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "RUS",
+        "name": "Russia",
+        "continent": "OWID_EUR",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "RWA",
+        "name": "Rwanda",
+        "continent": "OWID_AFR",
+        "income": "OWID_LIC"
+    },
+    {
+        "code": "BLM",
+        "name": "Saint Barthelemy",
+        "continent": "OWID_NAM",
+        "income": null
+    },
+    {
+        "code": "SHN",
+        "name": "Saint Helena",
+        "continent": "OWID_AFR",
+        "income": null
+    },
+    {
+        "code": "KNA",
+        "name": "Saint Kitts and Nevis",
+        "continent": "OWID_NAM",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "LCA",
+        "name": "Saint Lucia",
+        "continent": "OWID_NAM",
+        "income": "OWID_UMC"
+    },
+    {
+        "code": "MAF",
+        "name": "Saint Martin (French part)",
+        "continent": "OWID_NAM",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "SPM",
+        "name": "Saint Pierre and Miquelon",
+        "continent": "OWID_NAM",
+        "income": null
+    },
+    {
+        "code": "VCT",
+        "name": "Saint Vincent and the Grenadines",
+        "continent": "OWID_NAM",
+        "income": "OWID_UMC"
+    },
+    {
+        "code": "WSM",
+        "name": "Samoa",
+        "continent": "OWID_OCE",
+        "income": "OWID_UMC"
+    },
+    {
+        "code": "SMR",
+        "name": "San Marino",
+        "continent": "OWID_EUR",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "STP",
+        "name": "Sao Tome and Principe",
+        "continent": "OWID_AFR",
+        "income": "OWID_LMC"
+    },
+    {
+        "code": "SAU",
+        "name": "Saudi Arabia",
+        "continent": "OWID_ASI",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "SEN",
+        "name": "Senegal",
+        "continent": "OWID_AFR",
+        "income": "OWID_LMC"
+    },
+    {
+        "code": "SRB",
+        "name": "Serbia",
+        "continent": "OWID_EUR",
+        "income": "OWID_UMC"
+    },
+    {
+        "code": "SYC",
+        "name": "Seychelles",
+        "continent": "OWID_AFR",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "SLE",
+        "name": "Sierra Leone",
+        "continent": "OWID_AFR",
+        "income": "OWID_LIC"
+    },
+    {
+        "code": "SGP",
+        "name": "Singapore",
+        "continent": "OWID_ASI",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "SXM",
+        "name": "Sint Maarten (Dutch part)",
+        "continent": "OWID_NAM",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "SVK",
+        "name": "Slovakia",
+        "continent": "OWID_EUR",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "SVN",
+        "name": "Slovenia",
+        "continent": "OWID_EUR",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "SLB",
+        "name": "Solomon Islands",
+        "continent": "OWID_OCE",
+        "income": "OWID_LMC"
+    },
+    {
+        "code": "SOM",
+        "name": "Somalia",
+        "continent": "OWID_AFR",
+        "income": "OWID_LIC"
+    },
+    {
+        "code": "ZAF",
+        "name": "South Africa",
+        "continent": "OWID_AFR",
+        "income": "OWID_UMC"
+    },
+    {
+        "code": "SGS",
+        "name": "South Georgia and the South Sandwich Islands",
+        "continent": "OWID_SAM",
+        "income": null
+    },
+    {
+        "code": "KOR",
+        "name": "South Korea",
+        "continent": "OWID_ASI",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "SSD",
+        "name": "South Sudan",
+        "continent": "OWID_AFR",
+        "income": "OWID_LIC"
+    },
+    {
+        "code": "ESP",
+        "name": "Spain",
+        "continent": "OWID_EUR",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "LKA",
+        "name": "Sri Lanka",
+        "continent": "OWID_ASI",
+        "income": "OWID_LMC"
+    },
+    {
+        "code": "SDN",
+        "name": "Sudan",
+        "continent": "OWID_AFR",
+        "income": "OWID_LIC"
+    },
+    {
+        "code": "SUR",
+        "name": "Suriname",
+        "continent": "OWID_SAM",
+        "income": "OWID_UMC"
+    },
+    {
+        "code": "SJM",
+        "name": "Svalbard and Jan Mayen",
+        "continent": null,
+        "income": null
+    },
+    {
+        "code": "SWE",
+        "name": "Sweden",
+        "continent": "OWID_EUR",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "CHE",
+        "name": "Switzerland",
+        "continent": "OWID_EUR",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "SYR",
+        "name": "Syria",
+        "continent": "OWID_ASI",
+        "income": "OWID_LIC"
+    },
+    {
+        "code": "TWN",
+        "name": "Taiwan",
+        "continent": "OWID_ASI",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "TJK",
+        "name": "Tajikistan",
+        "continent": "OWID_ASI",
+        "income": "OWID_LMC"
+    },
+    {
+        "code": "TZA",
+        "name": "Tanzania",
+        "continent": "OWID_AFR",
+        "income": "OWID_LMC"
+    },
+    {
+        "code": "THA",
+        "name": "Thailand",
+        "continent": "OWID_ASI",
+        "income": "OWID_UMC"
+    },
+    {
+        "code": "TGO",
+        "name": "Togo",
+        "continent": "OWID_AFR",
+        "income": "OWID_LIC"
+    },
+    {
+        "code": "TKL",
+        "name": "Tokelau",
+        "continent": "OWID_OCE",
+        "income": null
+    },
+    {
+        "code": "TON",
+        "name": "Tonga",
+        "continent": "OWID_OCE",
+        "income": "OWID_UMC"
+    },
+    {
+        "code": "TTO",
+        "name": "Trinidad and Tobago",
+        "continent": "OWID_NAM",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "TUN",
+        "name": "Tunisia",
+        "continent": "OWID_AFR",
+        "income": "OWID_LMC"
+    },
+    {
+        "code": "TUR",
+        "name": "Turkey",
+        "continent": "OWID_ASI",
+        "income": "OWID_UMC"
+    },
+    {
+        "code": "TKM",
+        "name": "Turkmenistan",
+        "continent": "OWID_ASI",
+        "income": "OWID_UMC"
+    },
+    {
+        "code": "TCA",
+        "name": "Turks and Caicos Islands",
+        "continent": "OWID_NAM",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "TUV",
+        "name": "Tuvalu",
+        "continent": "OWID_OCE",
+        "income": "OWID_UMC"
+    },
+    {
+        "code": "UGA",
+        "name": "Uganda",
+        "continent": "OWID_AFR",
+        "income": "OWID_LIC"
+    },
+    {
+        "code": "UKR",
+        "name": "Ukraine",
+        "continent": "OWID_EUR",
+        "income": "OWID_UMC"
+    },
+    {
+        "code": "ARE",
+        "name": "United Arab Emirates",
+        "continent": "OWID_ASI",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "GBR",
+        "name": "United Kingdom",
+        "continent": "OWID_EUR",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "USA",
+        "name": "United States",
+        "continent": "OWID_NAM",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "UMI",
+        "name": "United States Minor Outlying Islands",
+        "continent": null,
+        "income": null
+    },
+    {
+        "code": "VIR",
+        "name": "United States Virgin Islands",
+        "continent": "OWID_NAM",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "URY",
+        "name": "Uruguay",
+        "continent": "OWID_SAM",
+        "income": "OWID_HIC"
+    },
+    {
+        "code": "UZB",
+        "name": "Uzbekistan",
+        "continent": "OWID_ASI",
+        "income": "OWID_LMC"
+    },
+    {
+        "code": "VUT",
+        "name": "Vanuatu",
+        "continent": "OWID_OCE",
+        "income": "OWID_LMC"
+    },
+    {
+        "code": "VAT",
+        "name": "Vatican",
+        "continent": "OWID_EUR",
+        "income": null
+    },
+    {
+        "code": "VEN",
+        "name": "Venezuela",
+        "continent": "OWID_SAM",
+        "income": "OWID_UMC"
+    },
+    {
+        "code": "VNM",
+        "name": "Vietnam",
+        "continent": "OWID_ASI",
+        "income": "OWID_LMC"
+    },
+    {
+        "code": "WLF",
+        "name": "Wallis and Futuna",
+        "continent": "OWID_OCE",
+        "income": null
+    },
+    {
+        "code": "ESH",
+        "name": "Western Sahara",
+        "continent": "OWID_AFR",
+        "income": null
+    },
+    {
+        "code": "YEM",
+        "name": "Yemen",
+        "continent": "OWID_ASI",
+        "income": "OWID_LIC"
+    },
+    {
+        "code": "ZMB",
+        "name": "Zambia",
+        "continent": "OWID_AFR",
+        "income": "OWID_LMC"
+    },
+    {
+        "code": "ZWE",
+        "name": "Zimbabwe",
+        "continent": "OWID_AFR",
+        "income": "OWID_LMC"
+    }
+]

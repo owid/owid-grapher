@@ -1,0 +1,9 @@
+/*
+ * Styles injected into the demo page's <head> (outside the Shadow DOM) during
+ * development only. This component has no portaled overlays, so this is just a
+ * pleasant backdrop for the demo page.
+ */
+
+body {
+    background: #f4f5f7;
+}

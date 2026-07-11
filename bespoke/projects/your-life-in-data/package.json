@@ -1,0 +1,32 @@
+{
+    "name": "@owid/bespoke-your-life-in-data",
+    "private": true,
+    "type": "module",
+    "entrypoints": {
+        "js": "src/index.tsx",
+        "dev-only-global-css": "src/dev-only-global-css.css"
+    },
+    "scripts": {
+        "dev": "vite dev",
+        "build": "vite build",
+        "typecheck": "tsgo"
+    },
+    "dependencies": {
+        "@ourworldindata/components": "link:../../../packages/@ourworldindata/components",
+        "@ourworldindata/utils": "link:../../../packages/@ourworldindata/utils",
+        "clsx": "^2.1.1",
+        "jotai": "^2.20.1",
+        "normalize.css": "^8.0.1",
+        "react": "^19.2.7",
+        "react-dom": "^19.2.7",
+        "vite-plugin-css-position": "^2.0.9"
+    },
+    "devDependencies": {
+        "@types/react": "^19.2.17",
+        "@types/react-dom": "^19.2.3",
+        "@typescript/native-preview": "^7.0.0-dev.20260613.1",
+        "@vitejs/plugin-react": "^6.0.2",
+        "sass": "^1.101.0",
+        "vite": "^8.0.16"
+    }
+}

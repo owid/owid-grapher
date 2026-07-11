@@ -1,0 +1,657 @@
+{
+    "model": "google-gla:gemini-flash-latest",
+    "countries": {
+        "ESP": {
+            "Health": {
+                "exclude": [
+                    {
+                        "slug": "share-of-the-population-infected-with-hiv",
+                        "reason": "HIV prevalence has remained at a very low level (under 0.4%) throughout the period"
+                    },
+                    {
+                        "slug": "incidence-of-tuberculosis-sdgs",
+                        "reason": "Tuberculosis is a niche issue that has been reduced to a very low level"
+                    }
+                ],
+                "promote": [
+                    {
+                        "slug": "physicians-per-1000-people",
+                        "valueColumn": "sh_med_phys_zs",
+                        "label": "Medical doctors per 1,000 people",
+                        "subtopic": "Health",
+                        "format": "number",
+                        "comparable": true,
+                        "goodDirection": "up",
+                        "framing": "absolute",
+                        "unit": "per 1,000 people",
+                        "desc": "",
+                        "source": "Global Health Workforce Statistics, WHO, via World Bank (2026) \u2013 processed by Our World in Data",
+                        "reason": "Spain has significantly expanded its medical workforce to support its highly-rated health system"
+                    },
+                    {
+                        "slug": "total-healthcare-expenditure-gdp",
+                        "valueColumn": "current_health_expenditure__che__as_percentage_of_gross_domestic_product__gdp__pct",
+                        "label": "Healthcare spending as a share of GDP",
+                        "subtopic": "Health",
+                        "format": "pct",
+                        "comparable": true,
+                        "goodDirection": "up",
+                        "framing": "absolute",
+                        "unit": "%",
+                        "desc": "",
+                        "source": "World Health Organization - Global Health Observatory (2026) \u2013 with minor processing by Our World in Data",
+                        "reason": "Spain's resource commitment to health has risen steadily to over 9% of GDP"
+                    }
+                ]
+            },
+            "Environment": {
+                "exclude": [
+                    {
+                        "slug": "share-of-the-population-with-access-to-electricity",
+                        "reason": "Pinned at 100% throughout the period"
+                    },
+                    {
+                        "slug": "proportion-using-safely-managed-drinking-water",
+                        "reason": "Pinned near 100% throughout the period"
+                    },
+                    {
+                        "slug": "natural-disasters-deaths",
+                        "reason": "Registered as zero in both the start and end years of the dataset"
+                    },
+                    {
+                        "slug": "access-to-clean-fuels-and-technologies-for-cooking",
+                        "reason": "Basic cooking fuel access is a developmental metric that is not a primary environmental concern for modern Spain"
+                    }
+                ],
+                "promote": [
+                    {
+                        "slug": "freshwater-withdrawals-as-a-share-of-internal-resources",
+                        "valueColumn": "_6_4_2__er_h2o_stress__no_breakdown",
+                        "label": "Water stress",
+                        "subtopic": "Environment",
+                        "format": "pct",
+                        "comparable": true,
+                        "goodDirection": "down",
+                        "framing": "absolute",
+                        "unit": "%",
+                        "desc": "Level of water stress: freshwater withdrawal as a proportion of available freshwater resources (%)",
+                        "source": "Food and Agriculture Organization of the United Nations \u2013 processed by Our World in Data",
+                        "reason": "Spain faces severe, chronic water scarcity, making its exceptionally high water stress a central environmental challenge"
+                    }
+                ]
+            },
+            "Economy": {
+                "exclude": [
+                    {
+                        "slug": "share-of-population-in-extreme-poverty",
+                        "reason": "Extreme poverty at the $3/day threshold has been flat at under 1% for over forty years."
+                    },
+                    {
+                        "slug": "bribery-prevalence-un",
+                        "reason": "Bribery rates are extremely low and remained virtually unchanged at around 2%."
+                    }
+                ],
+                "promote": [
+                    {
+                        "slug": "migrant-stock-share",
+                        "valueColumn": "immigrant_share_of_dest_population_all",
+                        "label": "Share of population born abroad",
+                        "subtopic": "Economy",
+                        "format": "pct",
+                        "comparable": true,
+                        "goodDirection": "none",
+                        "framing": "absolute",
+                        "unit": "%",
+                        "desc": "Immigrants as a share of the total population.",
+                        "source": "United Nations Department of Economic and Social Affairs (2024) \u2013 with minor processing by Our World in Data",
+                        "reason": "Spain experienced one of the fastest demographic and labor market shifts in Europe, with its foreign-born population share jumping from 2% to 18.5% since 1990."
+                    },
+                    {
+                        "slug": "international-tourist-trips",
+                        "valueColumn": "in_tour_arrivals_trips_total_overnight_vis_tourists",
+                        "label": "Arrivals of tourists from abroad",
+                        "subtopic": "Economy",
+                        "format": "number",
+                        "comparable": false,
+                        "goodDirection": "up",
+                        "framing": "relative",
+                        "unit": "arrivals",
+                        "desc": "Number of trips by visitors who arrive from abroad and stay overnight.",
+                        "source": "UN Tourism (2025) \u2013 processed by Our World in Data",
+                        "reason": "Tourism is a core pillar of the Spanish economy, with annual international arrivals nearly tripling since 1995."
+                    }
+                ]
+            },
+            "Food & Agriculture": {
+                "exclude": [
+                    {
+                        "slug": "prevalence-of-anemia-in-women-of-reproductive-age-aged-15-29",
+                        "reason": "Anemia is not a primary public health or food security challenge in Spain"
+                    }
+                ],
+                "promote": [
+                    {
+                        "slug": "meat-production-tonnes",
+                        "valueColumn": "meat__total__00001765__production__005510__tonnes",
+                        "label": "Meat production",
+                        "subtopic": "Food & Agriculture",
+                        "format": "tonnes",
+                        "comparable": false,
+                        "goodDirection": "none",
+                        "framing": "relative",
+                        "unit": "t",
+                        "desc": "",
+                        "source": "Food and Agriculture Organization of the United Nations (2025) \u2013 with major processing by Our World in Data",
+                        "reason": "Spain has transformed into a major European livestock hub, with meat production increasing more than elevenfold since 1961."
+                    }
+                ]
+            },
+            "Living Conditions": {
+                "exclude": [
+                    {
+                        "slug": "share-of-the-population-with-access-to-electricity",
+                        "reason": "Access to electricity has been universal at 100% throughout this period"
+                    },
+                    {
+                        "slug": "proportion-using-safely-managed-drinking-water",
+                        "reason": "Access to safely managed drinking water has been near-universal at over 99% throughout this period"
+                    }
+                ],
+                "promote": [
+                    {
+                        "slug": "age-at-marriage-women",
+                        "valueColumn": "value__gender_female__indicator_mean_age_first_marriage",
+                        "label": "Average age of women at first marriage",
+                        "subtopic": "Living Conditions",
+                        "format": "years",
+                        "comparable": true,
+                        "goodDirection": "none",
+                        "framing": "absolute",
+                        "unit": "years",
+                        "desc": "Average age of women who got married for the first time that year.",
+                        "source": "OECD (2025) \u2013 with minor processing by Our World in Data",
+                        "reason": "Spain has seen a profound shift in family dynamics, now having one of the world's highest average ages of first marriage"
+                    }
+                ]
+            },
+            "Violence & War": {
+                "exclude": [
+                    {
+                        "slug": "percentage-of-territory-controlled-by-government",
+                        "reason": "Government control of territory has been virtually complete and stable near 100% since 1900."
+                    }
+                ]
+            },
+            "Population & Demography": {
+                "exclude": [
+                    {
+                        "slug": "sex-ratio-at-birth",
+                        "reason": "Remained stable around the natural biological baseline of 106 boys per 100 girls."
+                    }
+                ],
+                "promote": [
+                    {
+                        "slug": "migrant-stock-share",
+                        "valueColumn": "immigrant_share_of_dest_population_all",
+                        "label": "Share of population born abroad",
+                        "subtopic": "Population & Demography",
+                        "format": "pct",
+                        "comparable": true,
+                        "goodDirection": "none",
+                        "framing": "absolute",
+                        "unit": "%",
+                        "desc": "Immigrants as a share of the total population.",
+                        "source": "United Nations Department of Economic and Social Affairs (2024) \u2013 with minor processing by Our World in Data",
+                        "reason": "Spain experienced a rapid and massive transition from a country of emigration to a major immigration destination."
+                    }
+                ]
+            }
+        },
+        "CZE": {
+            "Health": {
+                "exclude": [
+                    {
+                        "slug": "incidence-of-tuberculosis-sdgs",
+                        "reason": "Tuberculosis is at an extremely low, niche level in the Czech Republic and is not a major public health concern."
+                    }
+                ],
+                "promote": [
+                    {
+                        "slug": "total-healthcare-expenditure-gdp",
+                        "valueColumn": "current_health_expenditure__che__as_percentage_of_gross_domestic_product__gdp__pct",
+                        "label": "Healthcare spending as a share of GDP",
+                        "subtopic": "Health",
+                        "format": "pct",
+                        "comparable": true,
+                        "goodDirection": "up",
+                        "framing": "absolute",
+                        "unit": "%",
+                        "desc": "",
+                        "source": "World Health Organization - Global Health Observatory (2026) \u2013 with minor processing by Our World in Data",
+                        "reason": "Highlights the significant expansion and funding of the country's universal healthcare system since 2000."
+                    }
+                ]
+            },
+            "Environment": {
+                "exclude": [
+                    {
+                        "slug": "share-of-the-population-with-access-to-electricity",
+                        "reason": "Universal electricity access has been maintained at 100% throughout the entire period."
+                    },
+                    {
+                        "slug": "access-to-clean-fuels-and-technologies-for-cooking",
+                        "reason": "Access to clean cooking fuels is nearly universal and has seen little change."
+                    }
+                ],
+                "promote": [
+                    {
+                        "slug": "nuclear-energy-generation",
+                        "valueColumn": "nuclear_generation__twh",
+                        "label": "Nuclear power generation",
+                        "subtopic": "Environment",
+                        "format": "number",
+                        "comparable": false,
+                        "goodDirection": "up",
+                        "framing": "absolute",
+                        "unit": "TWh",
+                        "desc": "Measured in terawatt-hours.",
+                        "source": "Ember (2026); Energy Institute - Statistical Review of World Energy (2025) \u2013 with major processing by Our World in Data",
+                        "reason": "Nuclear energy is a cornerstone of the Czech Republic's power sector and its strategy for reducing carbon emissions."
+                    }
+                ]
+            },
+            "Economy": {
+                "exclude": [
+                    {
+                        "slug": "share-of-population-in-extreme-poverty",
+                        "reason": "Extreme poverty has been at 0% throughout the entire period"
+                    }
+                ]
+            },
+            "Food & Agriculture": {
+                "promote": [
+                    {
+                        "slug": "share-of-adults-defined-as-obese",
+                        "valueColumn": "obesity_among_adults__bmi__gt__30_kg_m2__crude_estimate__pct__sex_both_sexes__age_group_18plus__years_of_age",
+                        "label": "Share of adults who are obese",
+                        "subtopic": "Food & Agriculture",
+                        "format": "pct",
+                        "comparable": true,
+                        "goodDirection": "down",
+                        "framing": "absolute",
+                        "unit": "%",
+                        "desc": "",
+                        "source": "World Health Organization - Global Health Observatory (2026) \u2013 with minor processing by Our World in Data",
+                        "reason": "Czechia has one of the highest obesity rates in Europe, with nearly a third of the adult population now obese."
+                    },
+                    {
+                        "slug": "meat-production-tonnes",
+                        "valueColumn": "meat__total__00001765__production__005510__tonnes",
+                        "label": "Meat production",
+                        "subtopic": "Food & Agriculture",
+                        "format": "tonnes",
+                        "comparable": false,
+                        "goodDirection": "none",
+                        "framing": "relative",
+                        "unit": "t",
+                        "desc": "",
+                        "source": "Food and Agriculture Organization of the United Nations (2025) \u2013 with major processing by Our World in Data",
+                        "reason": "Domestic meat production more than halved following the country's transition to a market economy and integration into the EU."
+                    }
+                ]
+            },
+            "Living Conditions": {
+                "exclude": [
+                    {
+                        "slug": "share-of-the-population-with-access-to-electricity",
+                        "reason": "Access has been universal at 100% throughout the entire period"
+                    }
+                ],
+                "promote": [
+                    {
+                        "slug": "labor-productivity-per-hour-pennworldtable",
+                        "valueColumn": "productivity",
+                        "label": "Productivity: output per hour worked",
+                        "subtopic": "Living Conditions",
+                        "format": "usd",
+                        "comparable": false,
+                        "goodDirection": "up",
+                        "framing": "relative",
+                        "unit": "$/h",
+                        "desc": "Productivity is calculated as GDP divided by the total number of hours worked in the economy. This data is adjusted for inflation and differences in living costs between countries.",
+                        "source": "Feenstra et al. - Penn World Table (2025) \u2013 with major processing by Our World in Data",
+                        "reason": "Captures the rapid post-communist economic catch-up, with hourly productivity nearly doubling since 1993"
+                    }
+                ]
+            },
+            "Violence & War": {
+                "exclude": [
+                    {
+                        "slug": "percentage-of-territory-controlled-by-government",
+                        "reason": "Territorial control has remained complete and stable at virtually 100% throughout Czechia's modern history."
+                    },
+                    {
+                        "slug": "terrorism-deaths",
+                        "reason": "There have been zero recorded deaths from terrorism in Czechia across the entire period."
+                    }
+                ]
+            },
+            "Population & Demography": {
+                "exclude": [
+                    {
+                        "slug": "sex-ratio-at-birth",
+                        "reason": "The sex ratio at birth has remained entirely stable around the natural biological baseline of 105."
+                    }
+                ],
+                "promote": [
+                    {
+                        "slug": "refugee-population-by-country-or-territory-of-asylum",
+                        "valueColumn": "refugees",
+                        "label": "Refugees hosted",
+                        "subtopic": "Population & Demography",
+                        "format": "number",
+                        "comparable": false,
+                        "goodDirection": "none",
+                        "framing": "absolute",
+                        "unit": "people",
+                        "desc": "People who fled their country of origin because of serious threats against which the authorities of their home country cannot or will not protect them. This includes all refugees who live in this country, not just those who arrived that year.",
+                        "source": "UNHCR (2025) \u2013 with major processing by Our World in Data",
+                        "reason": "Czechia has experienced a major influx of refugees in recent years, becoming one of the largest hosts per capita in Europe."
+                    }
+                ]
+            },
+            "Technology": {
+                "exclude": [
+                    {
+                        "slug": "yearly-number-of-objects-launched-into-outer-space",
+                        "reason": "Extremely low absolute number of space launches, representing a niche activity rather than a key national technology indicator"
+                    },
+                    {
+                        "slug": "ict-adoption-per-100-people",
+                        "reason": "Remained flat at ~11 subscriptions per 100 people, failing to capture the actual rise of mobile and broadband communications"
+                    }
+                ]
+            }
+        },
+        "ETH": {
+            "Health": {
+                "exclude": [
+                    {
+                        "slug": "share-of-men-who-are-smoking",
+                        "reason": "Smoking prevalence is exceptionally low in Ethiopia (under 10%) and is not a major public health driver."
+                    }
+                ],
+                "promote": [
+                    {
+                        "slug": "deaths-from-diarrheal-diseases-who",
+                        "valueColumn": "death_count__age_group_allages__sex_both_sexes__cause_diarrhoeal_diseases",
+                        "label": "Deaths from diarrheal diseases",
+                        "subtopic": "Health",
+                        "format": "number",
+                        "comparable": false,
+                        "goodDirection": "down",
+                        "framing": "relative",
+                        "unit": "deaths",
+                        "desc": "Estimated number of deaths from diarrhoeal diseases in both sexes.",
+                        "source": "World Health Organization (2024) \u2013 with major processing by Our World in Data",
+                        "reason": "Diarrheal diseases have historically been a leading cause of mortality in Ethiopia, but deaths have been cut by more than half since 2000."
+                    }
+                ]
+            },
+            "Environment": {
+                "exclude": [
+                    {
+                        "slug": "ozone-depleting-substance-consumption",
+                        "reason": "Consumption has been recorded as zero since the baseline year"
+                    }
+                ],
+                "promote": [
+                    {
+                        "slug": "share-of-the-population-with-access-to-electricity",
+                        "valueColumn": "eg_elc_accs_zs",
+                        "label": "Access to electricity",
+                        "subtopic": "Environment",
+                        "format": "pct",
+                        "comparable": true,
+                        "goodDirection": "up",
+                        "framing": "absolute",
+                        "unit": "%",
+                        "desc": "Access to electricity means having an electricity source that can provide very basic lighting, and charge a phone or power a radio for 4 hours per day.",
+                        "source": "Data compiled from multiple sources by the World Bank \u2013 with minor processing by Our World in Data",
+                        "reason": "Ethiopia has rapidly expanded its grid, more than quadrupling electricity access since 2000"
+                    },
+                    {
+                        "slug": "access-to-clean-fuels-and-technologies-for-cooking",
+                        "valueColumn": "proportion_of_population_with_primary_reliance_on_clean_fuels_and_technologies_for_cooking__pct__residence_area_type_total",
+                        "label": "Access to clean cooking fuels",
+                        "subtopic": "Environment",
+                        "format": "pct",
+                        "comparable": true,
+                        "goodDirection": "up",
+                        "framing": "absolute",
+                        "unit": "%",
+                        "desc": "",
+                        "source": "World Health Organization - Global Health Observatory (2026) \u2013 with minor processing by Our World in Data",
+                        "reason": "Clean cooking access remains extremely low, leaving the vast majority of the population reliant on polluting biomass"
+                    },
+                    {
+                        "slug": "annual-deforestation",
+                        "valueColumn": "_1d_deforestation",
+                        "label": "Annual deforestation rate",
+                        "subtopic": "Environment",
+                        "format": "years",
+                        "comparable": true,
+                        "goodDirection": "down",
+                        "framing": "relative",
+                        "unit": "ha/year",
+                        "desc": "",
+                        "source": "Food and Agriculture Organization of the United Nations (2025) \u2013 with major processing by Our World in Data",
+                        "reason": "Ethiopia has cut its annual rate of forest loss by more than half since 1990"
+                    }
+                ]
+            },
+            "Economy": {
+                "exclude": [
+                    {
+                        "slug": "unemployment-rate",
+                        "reason": "Low official unemployment rates mask widespread underemployment and informal labor in a agricultural economy."
+                    },
+                    {
+                        "slug": "annual-working-hours-per-worker",
+                        "reason": "Modelled working hours estimates are less reliable and informative for a largely informal labor force."
+                    }
+                ],
+                "promote": [
+                    {
+                        "slug": "share-employment-agriculture-industry-services",
+                        "valueColumn": "sl_agr_empl_zs",
+                        "label": "Share of employment in agriculture",
+                        "subtopic": "Economy",
+                        "format": "pct",
+                        "comparable": true,
+                        "goodDirection": "down",
+                        "framing": "absolute",
+                        "unit": "%",
+                        "desc": "Share of total employment working in the agriculture sector.",
+                        "source": "ILO Modelled Estimates, via World Bank (2026) \u2013 processed by Our World in Data",
+                        "reason": "Tracks the structural transformation of Ethiopia's workforce away from subsistence farming."
+                    },
+                    {
+                        "slug": "foreign-aid-received-by-income-group",
+                        "valueColumn": "oda_recipient__donor_official_donors",
+                        "label": "Foreign aid received",
+                        "subtopic": "Economy",
+                        "format": "usd",
+                        "comparable": false,
+                        "goodDirection": "none",
+                        "framing": "relative",
+                        "unit": "$",
+                        "desc": "Official development assistance (ODA) is defined as government aid designed to promote the economic development and welfare of developing countries. Monetary aid is estimated as net disbursements. This data is expressed in US dollars. It is adjusted for inflation.",
+                        "source": "OECD (2025) \u2013 with major processing by Our World in Data",
+                        "reason": "Highlights Ethiopia's prominent position as a major recipient of official development assistance over many decades."
+                    }
+                ]
+            },
+            "Food & Agriculture": {
+                "promote": [
+                    {
+                        "slug": "agriculture-share-gdp",
+                        "valueColumn": "nv_agr_totl_zs",
+                        "label": "Share of GDP from agriculture",
+                        "subtopic": "Food & Agriculture",
+                        "format": "pct",
+                        "comparable": true,
+                        "goodDirection": "none",
+                        "framing": "absolute",
+                        "unit": "%",
+                        "desc": "",
+                        "source": "National statistical organizations and central banks, OECD national accounts, and World Bank staff estimates (2026) \u2013 processed by Our World in Data",
+                        "reason": "Agriculture continues to play an exceptionally dominant role in Ethiopia's overall economy compared to the global average"
+                    },
+                    {
+                        "slug": "prevalence-of-anemia-in-children",
+                        "valueColumn": "sh_anm_chld_zs",
+                        "label": "Share of children with anemia",
+                        "subtopic": "Food & Agriculture",
+                        "format": "pct",
+                        "comparable": true,
+                        "goodDirection": "down",
+                        "framing": "absolute",
+                        "unit": "%",
+                        "desc": "",
+                        "source": "Global Health Observatory / World Health Statistics - World Health Organization (WHO), via World Bank (2026) \u2013 processed by Our World in Data",
+                        "reason": "Nutritional deficiencies and childhood anemia remain critical public health challenges in Ethiopia"
+                    }
+                ]
+            },
+            "Living Conditions": {
+                "exclude": [
+                    {
+                        "slug": "one-person-households",
+                        "reason": "Single-person households remain a very minor living arrangement and do not capture the key trends in Ethiopian living standards"
+                    },
+                    {
+                        "slug": "annual-working-hours-per-worker",
+                        "reason": "Formal working hours data is less representative of Ethiopia's predominantly informal and agricultural labor force"
+                    }
+                ],
+                "promote": [
+                    {
+                        "slug": "drinking-water-service-coverage",
+                        "valueColumn": "wat_ns_pop__residence_total",
+                        "label": "People using untreated surface water for drinking",
+                        "subtopic": "Living Conditions",
+                        "format": "number",
+                        "comparable": false,
+                        "goodDirection": "down",
+                        "framing": "relative",
+                        "unit": "people",
+                        "desc": "Number of people using drinking water directly collected from surface waters.",
+                        "source": "WHO/UNICEF Joint Monitoring Programme for Water Supply, Sanitation and Hygiene (2025) \u2013 processed by Our World in Data",
+                        "reason": "A major public health achievement, reducing the number of people relying directly on surface water by three-quarters since 2000."
+                    },
+                    {
+                        "slug": "sanitation-facilities-coverage",
+                        "valueColumn": "san_ns_pop__residence_total",
+                        "label": "People practicing open defecation",
+                        "subtopic": "Living Conditions",
+                        "format": "number",
+                        "comparable": false,
+                        "goodDirection": "down",
+                        "framing": "relative",
+                        "unit": "people",
+                        "desc": "Open defecation includes defecating in fields, forests, bushes, bodies of water or other open spaces, not using any sanitation facilities.",
+                        "source": "WHO/UNICEF Joint Monitoring Programme for Water Supply, Sanitation and Hygiene (2025) \u2013 processed by Our World in Data",
+                        "reason": "Ethiopia has achieved a massive reduction in open defecation, halving the absolute number of people affected despite rapid population growth."
+                    }
+                ]
+            },
+            "Rights & Democracy": {
+                "promote": [
+                    {
+                        "slug": "female-genital-mutilation-prevalence",
+                        "valueColumn": "sh_sta_fgms_zs",
+                        "label": "Prevalence of female genital mutilation",
+                        "subtopic": "Rights & Democracy",
+                        "format": "pct",
+                        "comparable": true,
+                        "goodDirection": "down",
+                        "framing": "absolute",
+                        "unit": "%",
+                        "desc": "",
+                        "source": "UNICEF, Demographic and Health Surveys (DHS), and Multiple Indicator Cluster Surveys (MICS), via World Bank (2026) \u2013 processed by Our World in Data",
+                        "reason": "FGM remains a deeply critical human rights and gender equality issue in Ethiopia, showing a gradual decline from historically very high levels."
+                    }
+                ]
+            },
+            "Population & Demography": {
+                "exclude": [
+                    {
+                        "slug": "sex-ratio-at-birth",
+                        "reason": "Remained stable within the normal natural biological range."
+                    },
+                    {
+                        "slug": "migrant-stock-share",
+                        "reason": "The general immigrant share has remained extremely low (under 2%) throughout the period."
+                    }
+                ],
+                "promote": [
+                    {
+                        "slug": "refugee-population-by-country-or-territory-of-asylum",
+                        "valueColumn": "refugees",
+                        "label": "Refugees by country of asylum",
+                        "subtopic": "Population & Demography",
+                        "format": "number",
+                        "comparable": false,
+                        "goodDirection": "none",
+                        "framing": "absolute",
+                        "unit": "people",
+                        "desc": "People who fled their country of origin because of serious threats against which the authorities of their home country cannot or will not protect them. This includes all refugees who live in this country, not just those who arrived that year.",
+                        "source": "UNHCR (2025) \u2013 with major processing by Our World in Data",
+                        "reason": "Ethiopia is one of the largest refugee-hosting nations in Africa, now sheltering over one million people."
+                    }
+                ]
+            },
+            "Technology": {
+                "exclude": [
+                    {
+                        "slug": "patent-applications-per-million",
+                        "reason": "Patent applications are extremely rare and flat at 0.05 per million people over the entire period"
+                    }
+                ],
+                "promote": [
+                    {
+                        "slug": "number-of-internet-users",
+                        "valueColumn": "num_internet_users",
+                        "label": "Internet users",
+                        "subtopic": "Technology",
+                        "format": "number",
+                        "comparable": false,
+                        "goodDirection": "up",
+                        "framing": "absolute",
+                        "unit": "users",
+                        "desc": "The number of individuals using the Internet.",
+                        "source": "World Telecommunication/ICT Indicators Database - International Telecommunication Union (ITU), via World Bank (2026); Population based on various sources (2024)",
+                        "reason": "Highlights the massive absolute growth of Ethiopia's connected population to over 20 million people"
+                    }
+                ]
+            },
+            "Education": {
+                "exclude": [
+                    {
+                        "slug": "patent-applications-per-million",
+                        "reason": "Patent applications have remained flat and virtually non-existent at 0.05 per million people."
+                    },
+                    {
+                        "slug": "research-spending-gdp",
+                        "reason": "R&D expenditure is extremely low and secondary to the country's primary education focus."
+                    },
+                    {
+                        "slug": "researchers-in-rd-per-million-people",
+                        "reason": "The R&D workforce is tiny and less relevant than basic literacy and primary school capacity."
+                    }
+                ]
+            }
+        }
+    }
+}
