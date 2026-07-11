@@ -592,6 +592,7 @@ export async function getComponentInstances(
             }
             return {
                 exampleIndex,
+                archie: example.archie,
                 signature,
                 observed: bySignature.has(signature),
             }
