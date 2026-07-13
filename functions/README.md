@@ -161,17 +161,20 @@ which is shared with the client.
 It does two things, depending on the request:
 
 1. If the request contains `notifications` preferences (topic tags, content
-   types, frequency), it stores them as **pending** in the
-   `EMAIL_NOTIFICATIONS_DB` D1 database: the user is created in the `pending`
-   state if new (an existing user's status and preferences are never touched
-   here), the chosen preferences are held on a single-use, expiring confirm
-   token (`tokens` table), and a confirmation email is sent via Postmark.
-   Every submission takes this same path regardless of the email's current
-   state — nothing changes until the confirm link is acted on, so no
-   preference change or (re)subscription ever happens without proof of inbox
-   control, and the response is identical whether the email was already
-   known or not. Only the email copy differs (new subscription / preference
-   change / re-subscription). When the `POSTMARK_SERVER_TOKEN` environment
+   types, frequency), what happens depends on whether the address exists in
+   the `EMAIL_NOTIFICATIONS_DB` D1 database. A **never-seen address** is
+   subscribed immediately (single opt-in): the user is created as
+   `subscribed` with the chosen preferences and receives a welcome email. An
+   **existing address** (whatever its status) takes the confirm-to-apply
+   path: nothing is changed, the chosen preferences are held on a
+   single-use, expiring confirm token (`tokens` table), and a confirmation
+   email is sent via Postmark — the form is public and tokenless, so this is
+   what stops anyone who merely knows an address from rewriting its
+   preferences or re-subscribing it after an unsubscribe. Only the email
+   copy differs by state (preference change / re-subscription). The HTTP
+   response is identical in both branches, and both send exactly one email,
+   so neither the response nor its timing reveals whether the address was
+   already known. When the `POSTMARK_SERVER_TOKEN` environment
    variable is not set, sending is skipped with a console warning that
    includes the confirm URL, so the flow can be tested locally without
    Postmark credentials. To inspect outgoing emails locally (and click the
@@ -193,10 +196,11 @@ Confirm link target from the confirmation emails, with a `token` query
 parameter (a `confirm`-purpose row in the `tokens` table). GET only renders a
 page — mail security scanners prefetch links in emails, so state must never
 change on GET. The page's button POSTs the token back to the same route,
-which consumes it and applies the preferences it carries: a new user becomes
-`subscribed`, an existing user's preferences are replaced, an unsubscribed
-user is reactivated. Expired tokens render a page whose button POSTs to
-`resend-confirmation`; consumed tokens render an "already confirmed" page.
+which consumes it and applies the preferences it carries: an existing user's
+preferences are replaced, an unsubscribed user is reactivated (new addresses
+are subscribed directly by `subscribe` and never come through here). Expired
+tokens render a page whose button POSTs to `resend-confirmation`; consumed
+tokens render an "already confirmed" page.
 
 ## `/api/email-notifications/resend-confirmation`
 
