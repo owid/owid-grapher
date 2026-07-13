@@ -208,9 +208,10 @@ export const EmailNotificationsSubscribeForm = ({
             <div className="email-notifications-subscribe-form__success">
                 <h3 className="h3-bold">Check your inbox</h3>
                 <p>
-                    We've sent a confirmation email to {email}. Click the link
-                    in it to activate the preferences you chose — until then,
-                    nothing changes.
+                    We've sent an email to {email}. If you're new, it's a
+                    welcome email — you're all set. If this address already had
+                    a subscription, it contains a link to apply the preferences
+                    you just chose; until you click it, nothing changes.
                 </p>
             </div>
         )
