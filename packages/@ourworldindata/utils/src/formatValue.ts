@@ -107,16 +107,6 @@ function getEffectiveRoundingMode({
     const sigFigDecimals = roundedToSigFigs.split(".")[1]?.length ?? 0
     if (sigFigDecimals <= numDecimalPlaces) return roundingMode
 
-    // Values whose capped rendering would show zero need special care, since
-    // displaying "0" for a nonzero value is misleading. Positive ones are
-    // rescued in postprocessing, where "0" is replaced by e.g. "<0.01".
-    // For negative values no such notation exists, so they keep their sig-fig
-    // rendering instead, e.g. "-0.400" rather than "-0" for -0.4 at zero
-    // decimal places.
-    const roundsToZero =
-        Number(Math.abs(value).toFixed(Math.max(0, numDecimalPlaces))) === 0
-    if (value < 0 && roundsToZero) return roundingMode
-
     return OwidVariableRoundingMode.decimalPlaces
 }
 
