@@ -65,8 +65,8 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
 
         const response: EmailNotificationsPreferencesResponse = {
             email: user.email,
-            // A pending user who never confirmed has no preferences yet; the
-            // page falls back to defaults.
+            // Fail-safe: a user should always have preferences, but if the
+            // row is missing the page falls back to defaults.
             preferences:
                 user.topic_tags && user.content_types && user.frequency
                     ? ({
