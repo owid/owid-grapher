@@ -72,10 +72,24 @@ describe(ColumnTypeNames.Day, () => {
 describe(ColumnTypeNames.Week, () => {
     const col = new ColumnTypeMap.Week(new OwidTable(), { slug: "test" })
 
-    it("formats days-since-epoch as ISO weeks", () => {
-        // day 0 = EPOCH_DATE = 2020-01-21 (ISO week 4 of 2020)
-        expect(col.formatValue(0)).toEqual("W4 2020")
+    it("formats days-since-epoch as weeks", () => {
+        // day 0 = EPOCH_DATE = 2020-01-21, a Tuesday in ISO week 4 of 2020,
+        // which starts on Monday 2020-01-20
+        expect(col.formatValue(0)).toEqual("Jan 20–26, 2020")
+        expect(col.formatTimeShort(0)).toEqual("W4 2020")
         expect(col.formatForCsv(0)).toEqual("2020-W04")
+    })
+
+    it("formats weeks across month and year boundaries", () => {
+        // day 6 = 2020-01-27, a Monday; the week ends in February
+        expect(col.formatValue(6)).toEqual("Jan 27 – Feb 2, 2020")
+        // day -22 = Monday 2019-12-30, ISO week 1 of 2020: the range shows
+        // both years, the compact format the ISO week year
+        expect(col.formatValue(-22)).toEqual("Dec 30, 2019 – Jan 5, 2020")
+        expect(col.formatTimeShort(-22)).toEqual("W1 2020")
+        // day -20 = 2020-01-01 falls into the same week starting in 2019
+        expect(col.formatValue(-20)).toEqual("Dec 30, 2019 – Jan 5, 2020")
+        expect(col.formatTimeShort(-20)).toEqual("W1 2020")
     })
 })
 

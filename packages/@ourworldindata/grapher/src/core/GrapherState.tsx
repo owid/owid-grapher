@@ -2709,12 +2709,18 @@ export class GrapherState
         const timeColumn = this.table.timeColumn
         if (timeColumn.isMissing) return undefined // Do not show year until data is loaded
 
+        // Use the compact time format in the title
+        const formatTime = (time: Time): string =>
+            timeColumn.formatTimeShort(time)
+
         // Add 'Time vs. Time' suffix for scatter plots with time override
-        if (this.isOnScatterWithTimeOverride) {
+        if (
+            this.isOnScatterWithTimeOverride &&
+            endTime !== undefined &&
+            xOverrideTime !== undefined
+        ) {
             const times = _.sortBy([endTime, xOverrideTime])
-            return times
-                .map((time) => timeColumn.formatValue(time))
-                .join(" vs. ")
+            return times.map((time) => formatTime(time)).join(" vs. ")
         }
 
         if (startTime === undefined || endTime === undefined) return undefined
@@ -2724,10 +2730,8 @@ export class GrapherState
 
         const time =
             startTime === endTime
-                ? timeColumn.formatValue(startTime)
-                : timeColumn.formatValue(startTime) +
-                  separator +
-                  timeColumn.formatValue(endTime)
+                ? formatTime(startTime)
+                : formatTime(startTime) + separator + formatTime(endTime)
 
         return time
     }
@@ -3335,10 +3339,6 @@ export class GrapherState
             ...this.analyticsContext,
             target,
         })
-    }
-
-    formatTimeFn(time: Time): string {
-        return this.inputTable.timeColumn.formatTime(time)
     }
 
     @computed get timeColumn(): TimeColumn | undefined {
