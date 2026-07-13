@@ -68,7 +68,9 @@ export function SlideRenderer(props: {
             <div
                 className={cx(className, "slideshow-slide--image", {
                     "slideshow-slide--image-text-dominant":
-                        slide.variant === "textImage",
+                        slide.variant === "textImage" && !!slide.text,
+                    "slideshow-slide--image-small":
+                        !!slide.smallImage && !!slide.text,
                 })}
             >
                 {!slide.hideLogo && <SlideLogo />}

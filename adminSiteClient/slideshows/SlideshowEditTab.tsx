@@ -277,6 +277,19 @@ function TemplateOptionsEditor(props: {
                     />{" "}
                     Large text
                 </label>
+                <label>
+                    <input
+                        type="checkbox"
+                        checked={!!slide.smallImage}
+                        onChange={(e) =>
+                            onUpdate({
+                                ...slide,
+                                smallImage: e.target.checked || undefined,
+                            })
+                        }
+                    />{" "}
+                    Small image
+                </label>
                 <HideLogoCheckbox slide={slide} onUpdate={onUpdate} />
                 <BlueBackgroundCheckbox slide={slide} onUpdate={onUpdate} />
             </>

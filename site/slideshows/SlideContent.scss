@@ -88,30 +88,24 @@ $s-lato-font-size: px-to-cqh(24);
     }
 }
 
-// "textImage" variant: the text becomes the dominant column and the image is
-// rendered as a smaller accent on the right.
 .slideshow-slide--image-text-dominant {
-    .slideshow-slide-chart-content {
-        align-items: center;
-    }
-    // Text leads (left) and takes most of the available width.
     .slideshow-slide__text {
         order: 0;
-        width: auto;
-        flex: 1 1 auto;
-        min-width: 0;
-        font-size: $l-lato-font-size;
-        &--large {
-            font-size: calc($l-lato-font-size * 1.4);
-        }
     }
-    // Image is a smaller accent on the right.
     .slideshow-slide__image {
         order: 1;
-        height: auto;
+    }
+}
+
+// "smallImage": shrink the image (proportionally, by reducing its height) so
+// the text column can flex to fill the width the image gives up.
+.slideshow-slide--image-small {
+    .slideshow-slide__image {
+        height: 70%;
+    }
+    .slideshow-slide__text {
         width: auto;
-        max-width: 33%;
-        max-height: 100%;
+        flex: 1;
     }
 }
 
