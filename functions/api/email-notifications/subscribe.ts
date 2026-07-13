@@ -2,6 +2,7 @@ import * as Sentry from "@sentry/cloudflare"
 import * as z from "zod/mini"
 import {
     EMAIL_NOTIFICATIONS_CONFIRM_TOKEN_TTL_MS,
+    EmailNotificationsPreferences,
     EmailNotificationsSubscribeRequestTypeObject,
     EmailNotificationsSubscribeResponse,
     JsonError,
@@ -12,6 +13,7 @@ import {
     confirmationVariantForStatus,
     createEmailToken,
     sendConfirmationEmail,
+    sendWelcomeEmail,
 } from "../../_common/emailNotifications.js"
 import { upsertOwidBriefSubscription } from "../../_common/mailchimp.js"
 
@@ -73,28 +75,47 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
                     500
                 )
             }
-            // Every submission takes the same pending-confirmation path,
-            // regardless of the email's current state: the chosen preferences
-            // are held on a confirm token and nothing changes until the
-            // confirmation email is acted on. This means no preference change
-            // or (re)subscription ever happens without proof of inbox
-            // control, and the response is identical whether the email was
-            // already known or not.
+            // Signup is single opt-in, but only for addresses we've never
+            // seen: those are subscribed immediately and get a welcome
+            // email. A submission for an address that already exists takes
+            // the confirm-to-apply path instead — the chosen preferences are
+            // held on a confirm token and nothing changes until the
+            // confirmation email is acted on. The form is public and
+            // tokenless, so this is what stops anyone who merely knows an
+            // address from rewriting its preferences or re-subscribing it
+            // after an unsubscribe. The response is identical whether the
+            // email was already known or not, and both branches send exactly
+            // one email, so response timing doesn't give the branch away
+            // either.
             const db = env.EMAIL_NOTIFICATIONS_DB
-            const user = await upsertPendingUser(db, email)
-            const confirmToken = await createEmailToken(
-                db,
-                user.id,
-                "confirm",
-                EMAIL_NOTIFICATIONS_CONFIRM_TOKEN_TTL_MS,
-                JSON.stringify(data.notifications)
-            )
-            await sendConfirmationEmail(env, new URL(request.url).origin, {
-                to: email,
-                token: confirmToken,
-                preferences: data.notifications,
-                variant: confirmationVariantForStatus(user.status),
-            })
+            const origin = new URL(request.url).origin
+            const user = await findUserByEmail(db, email)
+            if (!user) {
+                const userToken = await createSubscribedUser(
+                    db,
+                    email,
+                    data.notifications
+                )
+                await sendWelcomeEmail(env, origin, {
+                    to: email,
+                    preferences: data.notifications,
+                    userToken,
+                })
+            } else {
+                const confirmToken = await createEmailToken(
+                    db,
+                    user.id,
+                    "confirm",
+                    EMAIL_NOTIFICATIONS_CONFIRM_TOKEN_TTL_MS,
+                    JSON.stringify(data.notifications)
+                )
+                await sendConfirmationEmail(env, origin, {
+                    to: email,
+                    token: confirmToken,
+                    preferences: data.notifications,
+                    variant: confirmationVariantForStatus(user.status),
+                })
+            }
         }
 
         if (data.subscribeToOwidBrief) {
@@ -146,30 +167,50 @@ interface EmailNotificationsUser {
     status: string
 }
 
-/**
- * Find the user for this email, or create one in the 'pending' state. Never
- * touches an existing user's status or preferences — those only change when a
- * confirm token is consumed.
- */
-async function upsertPendingUser(
+async function findUserByEmail(
     db: D1Database,
     email: string
-): Promise<EmailNotificationsUser> {
-    const existing = await db
+): Promise<EmailNotificationsUser | null> {
+    return await db
         .prepare(`SELECT id, status FROM users WHERE email = ?1`)
         .bind(email)
         .first<EmailNotificationsUser>()
-    if (existing) return existing
-    const created = await db
+}
+
+/**
+ * Single opt-in for a never-seen address: create the user as 'subscribed'
+ * with the chosen preferences, active immediately. Returns the permanent
+ * per-user token for the welcome email's footer links.
+ */
+async function createSubscribedUser(
+    db: D1Database,
+    email: string,
+    preferences: EmailNotificationsPreferences
+): Promise<string> {
+    const token = crypto.randomUUID()
+    const user = await db
         .prepare(
             `INSERT INTO users (email, token, status)
-             VALUES (?1, ?2, 'pending')
-             RETURNING id, status`
+             VALUES (?1, ?2, 'subscribed')
+             RETURNING id`
         )
-        .bind(email, crypto.randomUUID())
-        .first<EmailNotificationsUser>()
-    if (!created) {
+        .bind(email, token)
+        .first<{ id: number }>()
+    if (!user) {
         throw new JsonError("Failed to store subscription", 500)
     }
-    return created
+    await db
+        .prepare(
+            `INSERT INTO notification_preferences
+                 (user_id, topic_tags, content_types, frequency)
+             VALUES (?1, ?2, ?3, ?4)`
+        )
+        .bind(
+            user.id,
+            JSON.stringify(preferences.topicTags),
+            JSON.stringify(preferences.contentTypes),
+            preferences.frequency
+        )
+        .run()
+    return token
 }
