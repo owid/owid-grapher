@@ -34,6 +34,11 @@ const SlideImageOnlySchema = z.object({
      * a smaller image as an accent on the right.
      */
     variant: z.optional(z.enum(["imageText", "textImage"])),
+    /**
+     * Shrink the image so the text column can take up more of the slide's
+     * width. Only has an effect when the slide also has text.
+     */
+    smallImage: z.optional(z.boolean()),
 })
 
 const SlideChartOnlySchema = z.object({
