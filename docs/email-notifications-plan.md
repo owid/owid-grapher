@@ -34,8 +34,9 @@ However, this is only a subset of the flow diagram specified later in this docum
 
 The remaining work falls into four buckets:
 
-1. **Complete the v1 flows** — double opt-in confirmation, magic-link
-   preferences management, confirm-unsubscribe.
+1. **Complete the v1 flows** — signup confirmation (single opt-in as of
+   2026-07-13 — see the design decision), magic-link preferences management,
+   confirm-unsubscribe.
 2. **Launch blockers** — infra that doesn't exist yet (real D1 DB, scheduled send
    job, secrets, WAF rule), bot protection, deliverability, and send-job robustness.
 3. **Product/design work** — implementing signup/preference forms, signup prompts, and react-email template integration
@@ -50,10 +51,10 @@ The remaining work falls into four buckets:
 
 One subscribe form drives **two independent subscriptions**:
 
-| System            | Owns                                                                           | Opt-in                                  | Unsubscribe                       | Gating env vars                                                                      |
-| ----------------- | ------------------------------------------------------------------------------ | --------------------------------------- | --------------------------------- | ------------------------------------------------------------------------------------ |
-| **Mailchimp**     | "The OWID Brief" (+ legacy Data Insights / Immediate Update groups until P2.2) | Double                                  | Mailchimp's own footer            | `MAILCHIMP_*` (skipped if unset)                                                     |
-| **D1 + Postmark** | New per-topic/content-type notifications                                       | Single as of dda8f0f8; **double in v1** | Token link → flips D1 status only | `EMAIL_NOTIFICATIONS_DB` (hard-required), `POSTMARK_SERVER_TOKEN` (skipped if unset) |
+| System            | Owns                                                                           | Opt-in                                                                       | Unsubscribe                       | Gating env vars                                                                      |
+| ----------------- | ------------------------------------------------------------------------------ | ---------------------------------------------------------------------------- | --------------------------------- | ------------------------------------------------------------------------------------ |
+| **Mailchimp**     | "The OWID Brief" (+ legacy Data Insights / Immediate Update groups until P2.2) | Double                                                                       | Mailchimp's own footer            | `MAILCHIMP_*` (skipped if unset)                                                     |
+| **D1 + Postmark** | New per-topic/content-type notifications                                       | Single for new addresses (welcome email); confirm-to-apply for existing ones | Token link → flips D1 status only | `EMAIL_NOTIFICATIONS_DB` (hard-required), `POSTMARK_SERVER_TOKEN` (skipped if unset) |
 
 The notification unsubscribe link does not touch Mailchimp. The send job
 (`baker/emailNotifications/`) runs on our own infra, reads D1 remotely via the Cloudflare
@@ -70,7 +71,9 @@ This diagram is the canonical v1 scope (it supersedes the earlier Notion diagram
 ```mermaid
 flowchart TD
     A["Subscribe page"] -->|"Submit form"| C["Check your inbox"]
-    C -.->|"System sends email"| D["Confirmation email"]
+    C -.->|"New address: system subscribes immediately"| W["Welcome email"]
+    W -.->|"Footer links, same as regular email"| O
+    C -.->|"Existing address: system sends email"| D["Confirm-changes email"]
     D -->|"Click confirm link"| E{"Link valid?"}
     E -->|"Yes"| F["Success page"]
     E -->|"No"| T1["Expired confirmation page"]
@@ -101,7 +104,7 @@ flowchart TD
     classDef decision fill:#f3e8ff,stroke:#9b51e0,color:#111
 
     class A,F,H,K,R,S,T1,T2 page
-    class D,I,O email
+    class D,I,O,W email
     class C,M,P,Q state
     class E,J decision
 ```
@@ -112,18 +115,18 @@ flowchart TD
 
 What the diagram specifies, against what exists on the branch:
 
-| Diagram element                                     | Status                | Notes                                                                                                            |
-| --------------------------------------------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| Subscribe page + form (`/subscribe`)                | ✅ built              | `site/EmailNotificationsSubscribeForm.tsx`, `functions/api/email-notifications/subscribe.ts`                     |
-| Confirmation email + confirm link (double opt-in)   | ✅ built (2026-07-10) | Uniform pending-confirmation flow; preferences held on the confirm token until confirmed                         |
-| "Link valid?" checks / expiring links               | ✅ built (2026-07-10) | `tokens` table (migration `0002`): purpose-scoped, expiring, single-use                                          |
-| Success / Expired-link pages                        | ✅ built (2026-07-10) | Every expired page has its resend button                                                                         |
-| Enter-email page → magic-link email                 | ✅ built (2026-07-10) | Enter-email UI lives on `/subscribe/preferences` (tokenless state); unknown emails: identical response, no email |
-| Update-preferences page (view + save + unsubscribe) | ✅ built (2026-07-10) | `/subscribe/preferences`, token in URL fragment; saves apply immediately; fail-soft Brief toggle                 |
-| "Email me a link" page (from regular email)         | ✅ built (2026-07-10) | `request-link` GET page, powered by the permanent in-email token                                                 |
-| Confirm-unsubscribe page                            | ✅ built (2026-07-10) | GET renders page, button POSTs; POST also serves one-click (`List-Unsubscribe-Post`)                             |
-| Regular notification email                          | ✅ built              | `baker/emailNotifications/NotificationEmail.tsx` + send job                                                      |
-| Unsubscribed page                                   | ✅ built              | Rendered by the unsubscribe POST                                                                                 |
+| Diagram element                                                        | Status                | Notes                                                                                                              |
+| ---------------------------------------------------------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Subscribe page + form (`/subscribe`)                                   | ✅ built              | `site/EmailNotificationsSubscribeForm.tsx`, `functions/api/email-notifications/subscribe.ts`                       |
+| Welcome email (new address) / confirm-changes email (existing address) | ✅ built (2026-07-13) | Single opt-in for never-seen addresses; existing ones keep confirm-to-apply, preferences held on the confirm token |
+| "Link valid?" checks / expiring links                                  | ✅ built (2026-07-10) | `tokens` table (migration `0002`): purpose-scoped, expiring, single-use                                            |
+| Success / Expired-link pages                                           | ✅ built (2026-07-10) | Every expired page has its resend button                                                                           |
+| Enter-email page → magic-link email                                    | ✅ built (2026-07-10) | Enter-email UI lives on `/subscribe/preferences` (tokenless state); unknown emails: identical response, no email   |
+| Update-preferences page (view + save + unsubscribe)                    | ✅ built (2026-07-10) | `/subscribe/preferences`, token in URL fragment; saves apply immediately; fail-soft Brief toggle                   |
+| "Email me a link" page (from regular email)                            | ✅ built (2026-07-10) | `request-link` GET page, powered by the permanent in-email token                                                   |
+| Confirm-unsubscribe page                                               | ✅ built (2026-07-10) | GET renders page, button POSTs; POST also serves one-click (`List-Unsubscribe-Post`)                               |
+| Regular notification email                                             | ✅ built              | `baker/emailNotifications/NotificationEmail.tsx` + send job                                                        |
+| Unsubscribed page                                                      | ✅ built              | Rendered by the unsubscribe POST                                                                                   |
 
 Note one refinement over the diagram, applied to both the confirm and
 unsubscribe links: clicking the link in the email lands on a page whose
@@ -143,19 +146,23 @@ the pending-confirmation flow exists to prevent.
 The big one. Sub-items, roughly in dependency order:
 
 - ✅ **Migration `0002`** — DONE 2026-07-10
-  (`d1/email-notifications/migrations/0002_add_double_opt_in.sql`): `tokens`
+  (`d1/email-notifications/migrations/0002_add_tokens.sql`): `tokens`
   table for purpose-scoped expiring tokens (confirm / magic-link) with the
-  pending preferences held as the confirm token's payload, and a `pending`
-  user status. The permanent `users.token` stays as the low-privilege
-  identifier in email footer links.
-- ✅ **Double opt-in** — DONE 2026-07-10: the subscribe endpoint takes the
-  uniform pending-confirmation path for every submission (see Design
-  decisions); `confirm.ts` (GET renders a page, its button POSTs — no state
-  change on GET) applies the pending preferences: new user → subscribed,
-  confirmed user → preferences replaced, unsubscribed → reactivated. Only
-  the email copy differs by state. Expired confirm links render a page with
-  a resend button (`resend-confirmation.ts`). See `functions/README.md` for
-  the route reference.
+  submitted preferences held as the confirm token's payload. The permanent
+  `users.token` stays as the low-privilege identifier in email footer links.
+  (Originally also added a `pending` user status for double opt-in; rewritten
+  in place on 2026-07-13 when signup went single opt-in — no real D1 existed
+  yet, so no `0003` was needed. Recreate local dev DBs after pulling.)
+- ✅ **Signup flow** — built 2026-07-10 as uniform double opt-in, switched
+  2026-07-13 to **single opt-in for new addresses** (stakeholder decision —
+  see Design decisions): a never-seen address is subscribed immediately and
+  gets a welcome email; an existing address (subscribed or unsubscribed)
+  keeps the confirm-to-apply path — preferences held on a confirm token,
+  `confirm.ts` (GET renders a page, its button POSTs — no state change on
+  GET) applies them: preferences replaced, or unsubscribed → reactivated.
+  Only the email copy differs by state. Expired confirm links render a page
+  with a resend button (`resend-confirmation.ts`). See `functions/README.md`
+  for the route reference.
 - ✅ **Magic-link preferences management** — DONE 2026-07-10: `request-link`
   endpoint (unknown emails get the identical response and **no email**; also
   serves the "Email me a link" page for the permanent in-email token),
@@ -234,8 +241,10 @@ owid-email-notifications-staging`, paste the id into both staging blocks, apply
 The endpoint has no CAPTCHA; its only mitigation is IP rate-limiting that is a
 **no-op on Cloudflare Pages** (the binding only works on Workers — the code says so
 itself, `subscribe.ts:42-46`). An unprotected endpoint that triggers Postmark and
-Mailchimp emails to arbitrary addresses is a real abuse vector — and double opt-in
-makes confirmation-email spam _more_ attractive, so this stays P0.
+Mailchimp emails to arbitrary addresses is a real abuse vector — and single
+opt-in raises the stakes: a bot signup doesn't just trigger one confirmation
+email, it subscribes the address to recurring emails until it unsubscribes
+(a spam-complaint / reputation risk), so this stays P0.
 
 - Mirror the donation flow: `<Turnstile>` client-side + `siteverify` server-side.
   Reference: `functions/donation/donate.ts` (`isCaptchaValid`) and
@@ -375,7 +384,7 @@ live and stable before importing an existing subscriber base. Sub-items:
   Update" is a legacy group no longer offered in the form — its only code
   footprint is the feed it consumes) and insert into D1 as **confirmed** users —
   they already opted in via Mailchimp, so no re-confirmation email (standard
-  practice, but note it deliberately bypasses the double opt-in flow).
+  practice, and consistent with the single opt-in signup flow).
 - **Retire the Mailchimp side.** Remove the Data Insights checkbox from the old
   form (or complete P1.1 first and never rebuild it), archive the groups in
   Mailchimp, and notify subscribers of the change if comms wants to.
@@ -414,7 +423,7 @@ Recommend a dedicated design doc before committing.
 
 | #    | Item                                                       |
 | ---- | ---------------------------------------------------------- |
-| P0.1 | Complete v1 flows (double opt-in, magic links, prefs page) |
+| P0.1 | Complete v1 flows (signup emails, magic links, prefs page) |
 | P0.2 | Send-job robustness                                        |
 | P0.3 | Deliverability (one-click, plaintext, DNS)                 |
 | P0.4 | Create real D1 database(s)                                 |
@@ -457,29 +466,40 @@ to Mailchimp availability. Expectation to keep in mind: unification is only
 achievable on our surfaces; Brief emails still carry Mailchimp's own footer and
 land users in Mailchimp's interface until P3.
 
-**Decision: every subscribe-form submission takes the same
-pending-confirmation flow, regardless of the email's current state.** Submit
-always lands on "Check your inbox" and always sends an email — a confirmation
-email for a new address; for an existing subscriber (confirmed or unsubscribed)
-the same email in spirit, "click to apply these preferences", with the newly
-chosen preferences stored as pending until clicked. Clicking confirm applies
-them: new user → subscribed; confirmed user → preferences replaced;
-unsubscribed user → reactivated. One code path covers all three states. This
-kills the silent-overwrite vector completely — the subscribe form is public and
-tokenless, so without this, anyone who merely knows an address could rewrite
-its preferences or re-subscribe it — and gives no-enumeration for free, since
-the page response is identical whether the email was known or not. For the
-**magic-link request with an unknown email**: identical "Check your inbox"
-page, and send nothing (a courtesy "you're not subscribed" email isn't an
-enumeration risk, but it turns the endpoint into a tool for sending unsolicited
-mail to arbitrary addresses — the very thing Turnstile and the WAF rule
-contain; silence is Mailchimp's pattern too). The resulting invariant across
-all surfaces: **no preference change or reactivation ever happens without
-exactly one proof of inbox control** — the form path proves it after choosing
-preferences, the magic-link path before (a save from a magic-link session
-applies immediately; the link itself was the proof). The diagram's shape is
-unchanged — for existing subscribers only the email copy and the effect of
-confirm differ, which lives in P0.1's copy specs, not new boxes.
+**Decision (2026-07-13, supersedes the uniform double opt-in flow): signup is
+single opt-in for new addresses; existing addresses keep confirm-to-apply.**
+Stakeholders agreed on single opt-in — it's what Mailchimp does for us today
+and our email reputation has been fine. Shape: a **never-seen address** is
+subscribed immediately (user created as `subscribed`, preferences written) and
+gets a **welcome email** carrying the usual footer links; a submission for an
+**existing address** (subscribed or unsubscribed) changes nothing — the chosen
+preferences are held on a confirm token and a "click to apply these
+preferences" email is sent, exactly as under double opt-in. The split
+preserves the security property the pending-confirmation flow existed for: the
+subscribe form is public and tokenless, so without the confirm step anyone who
+merely knows an address could rewrite its preferences or re-subscribe it after
+an unsubscribe. (This also mirrors Mailchimp's actual single opt-in behavior:
+new members are added instantly, but a stranger resubmitting an existing
+member's email can't silently alter their subscription.) **No-enumeration is
+preserved:** the HTTP response is identical in both branches, and both send
+exactly one email (welcome vs. confirm), so neither the response nor its
+timing reveals whether the address was already known — only the inbox owner
+sees which email arrived. The amended invariant: **no change to an _existing_
+subscription ever happens without exactly one proof of inbox control** — the
+form path proves it via the confirm email, the magic-link path before (a save
+from a magic-link session applies immediately; the link itself was the proof).
+The `pending` user status double opt-in introduced is gone again: migration
+`0002` was rewritten in place (no real D1 existed yet), so `users.status` is
+back to `subscribed` / `unsubscribed` only. For the **magic-link request
+with an unknown email**: identical "Check your inbox" page, and send nothing
+(a courtesy "you're not subscribed" email isn't an enumeration risk, but it
+turns the endpoint into a tool for sending unsolicited mail to arbitrary
+addresses — the very thing Turnstile and the WAF rule contain; silence is
+Mailchimp's pattern too). **Deliberately deferred:** per-address throttling of
+the confirmation/magic-link sends (repeat form submissions can each email a
+chosen address; the `tokens` table's `created_at` is a ready-made send log if
+this ever needs a cooldown/daily cap) — Turnstile (P0.5) and the WAF rule
+(P0.6) are the mitigations for now; add the throttle only if abuse shows up.
 
 **Decision: expired-link pages get a resend button.** Each expired
 page offers one action powered by the expired token itself: the

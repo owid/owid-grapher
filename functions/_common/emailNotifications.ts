@@ -23,25 +23,21 @@ export function escapeHtml(text: string): string {
 }
 
 /** Which state the subscriber's email address was in when they submitted the
- * subscribe form. Only the email copy differs; the flow is the same. */
-export type ConfirmationEmailVariant = "new" | "update" | "reactivate"
+ * subscribe form. Only the email copy differs; the flow is the same. (New
+ * addresses don't get a confirmation email at all — signup is single opt-in,
+ * they get the welcome email.) */
+export type ConfirmationEmailVariant = "update" | "reactivate"
 
 export function confirmationVariantForStatus(
     status: string
 ): ConfirmationEmailVariant {
-    if (status === "subscribed") return "update"
-    if (status === "unsubscribed") return "reactivate"
-    return "new"
+    return status === "unsubscribed" ? "reactivate" : "update"
 }
 
 const CONFIRMATION_EMAIL_COPY: Record<
     ConfirmationEmailVariant,
     { subject: string; intro: string }
 > = {
-    new: {
-        subject: "Confirm your subscription to Our World in Data updates",
-        intro: "Thanks for subscribing to email updates from Our World in Data! Please confirm your subscription to start receiving them.",
-    },
     update: {
         subject: "Confirm your new notification preferences",
         intro: "You (or someone entering your address) asked to change your Our World in Data notification preferences. Your current preferences stay unchanged until you confirm.",
@@ -52,14 +48,9 @@ const CONFIRMATION_EMAIL_COPY: Record<
     },
 }
 
-function makeConfirmationEmail(props: {
-    to: string
+function renderPreferencesListHtml(
     preferences: EmailNotificationsPreferences
-    confirmUrl: string
-    variant: ConfirmationEmailVariant
-}): PostmarkEmail {
-    const { preferences, confirmUrl, variant } = props
-    const copy = CONFIRMATION_EMAIL_COPY[variant]
+): string {
     // Topic tags are user-submitted strings, so escape them.
     const topics =
         preferences.topicTags.length > 0
@@ -75,20 +66,62 @@ function makeConfirmationEmail(props: {
         EMAIL_NOTIFICATIONS_FREQUENCY_LABELS[
             preferences.frequency
         ].toLowerCase()
+    return `<ul>
+<li><b>Topics:</b> ${topics}</li>
+<li><b>Content types:</b> ${contentTypes}</li>
+<li><b>Frequency:</b> at most ${frequency}</li>
+</ul>`
+}
+
+function makeConfirmationEmail(props: {
+    to: string
+    preferences: EmailNotificationsPreferences
+    confirmUrl: string
+    variant: ConfirmationEmailVariant
+}): PostmarkEmail {
+    const { preferences, confirmUrl, variant } = props
+    const copy = CONFIRMATION_EMAIL_COPY[variant]
     return {
         to: props.to,
         subject: copy.subject,
         tag: "email-notifications-confirmation",
         htmlBody: `<p>${copy.intro}</p>
 <p>These are the preferences you chose:</p>
-<ul>
-<li><b>Topics:</b> ${topics}</li>
-<li><b>Content types:</b> ${contentTypes}</li>
-<li><b>Frequency:</b> at most ${frequency}</li>
-</ul>
+${renderPreferencesListHtml(preferences)}
 <p><a href="${confirmUrl}">Confirm</a></p>
 <p>If you didn't request this, you can safely ignore this email — nothing will change.</p>`,
     }
+}
+
+/**
+ * Welcome email for a brand-new address: signup is single opt-in, so the
+ * subscription is already active when this is sent. Carries the permanent
+ * per-user token's footer links (update preferences / unsubscribe), and its
+ * send closes the timing side-channel: both subscribe branches make exactly
+ * one Postmark call, so response timing doesn't reveal whether the address
+ * was already known.
+ */
+export async function sendWelcomeEmail(
+    env: Env,
+    origin: string,
+    props: {
+        to: string
+        preferences: EmailNotificationsPreferences
+        userToken: string
+    }
+): Promise<void> {
+    const updatePreferencesUrl = `${origin}/api/email-notifications/request-link?token=${props.userToken}`
+    const unsubscribeUrl = `${origin}/api/email-notifications/unsubscribe?token=${props.userToken}`
+    console.log(`Welcome email for ${props.to}`)
+    await sendPostmarkEmail(env, {
+        to: props.to,
+        subject: "You're subscribed to Our World in Data updates",
+        tag: "email-notifications-welcome",
+        htmlBody: `<p>Thanks for subscribing to email updates from Our World in Data! You're all set — you'll receive an email when we publish new work matching your preferences.</p>
+<p>These are the preferences you chose:</p>
+${renderPreferencesListHtml(props.preferences)}
+<p>You can <a href="${updatePreferencesUrl}">update your preferences</a> or <a href="${unsubscribeUrl}">unsubscribe</a> at any time — these links are also in the footer of every email we send.</p>`,
+    })
 }
 
 /**
