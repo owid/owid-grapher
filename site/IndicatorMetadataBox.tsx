@@ -158,14 +158,22 @@ function ExpandableSection({
 
     return (
         <div className={cx("meta-expander", className)}>
-            {preview.length > 0 && (
-                <ul className="meta-expander__list meta-expander__preview">
-                    {preview.map((p) => (
-                        <li className="meta-expander__list-item" key={p}>
-                            <SimpleMarkdownText text={p} />
-                        </li>
-                    ))}
-                </ul>
+            {preview.length === 1 ? (
+                // a single entry is free-form markdown, not a bullet list
+                // (mirrors AboutThisData and SourcesDescriptions)
+                <div className="meta-expander__preview meta-expander__prose">
+                    <SimpleMarkdownText text={preview[0]} />
+                </div>
+            ) : (
+                preview.length > 0 && (
+                    <ul className="meta-expander__list meta-expander__preview">
+                        {preview.map((p) => (
+                            <li className="meta-expander__list-item" key={p}>
+                                <SimpleMarkdownText text={p} />
+                            </li>
+                        ))}
+                    </ul>
+                )
             )}
             <details
                 className="meta-expander__details"

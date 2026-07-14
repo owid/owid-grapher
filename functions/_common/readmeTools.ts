@@ -75,10 +75,16 @@ export function* getDescriptionLines(
     attribution: string
 ): Generator<string, void, unknown> {
     const descriptionKey = def.descriptionKey
-    if (descriptionKey) {
+    if (descriptionKey && descriptionKey.length > 0) {
         yield ""
         yield `### What you should know about this data`
-        for (const desc of descriptionKey) yield `* ${desc.trim()}`
+        if (descriptionKey.length === 1) {
+            // a single entry is free-form markdown, not a bullet list
+            // (mirrors AboutThisData and SourcesDescriptions)
+            yield descriptionKey[0].trim()
+        } else {
+            for (const desc of descriptionKey) yield `* ${desc.trim()}`
+        }
     }
 
     if (def.descriptionFromProducer) {

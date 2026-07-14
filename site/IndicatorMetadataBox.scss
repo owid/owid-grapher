@@ -181,6 +181,28 @@
     }
 }
 
+// free-form markdown rendering of a single-entry descriptionKey
+.meta-expander__prose {
+    p,
+    ul,
+    ol {
+        @include body-2-regular;
+        margin: 0 0 8px;
+    }
+    p:last-child,
+    ul:last-child,
+    ol:last-child {
+        margin-bottom: 0;
+    }
+    ul,
+    ol {
+        padding-left: 1.5em;
+    }
+    a {
+        @include owid-link-90;
+    }
+}
+
 .meta-expander__list-item {
     margin-bottom: 8px;
 
