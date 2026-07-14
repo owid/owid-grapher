@@ -2,6 +2,24 @@ import { OwidOrigin } from "./OwidOrigin.js"
 import { OwidSource } from "./OwidSource.js"
 import { OwidVariableDisplayConfigInterface } from "./OwidVariableDisplayConfigInterface.js"
 
+const MARKDOWN_LIST_MARKER = /^([-*+]|\d+[.)])\s/
+
+// Collapse a multi-line bullet item into a single line, the way the old
+// renderer effectively did (it unwrapped paragraphs inside list items, so line
+// and paragraph breaks displayed as plain spaces). Lines starting a markdown
+// list are kept and indented, as those rendered as nested lists.
+function collapseDescriptionKeyItem(item: string): string {
+    const parts: string[] = []
+    for (const rawLine of item.split("\n")) {
+        const line = rawLine.trim()
+        if (!line) continue
+        if (parts.length === 0) parts.push(line)
+        else if (MARKDOWN_LIST_MARKER.test(line)) parts.push("\n  " + line)
+        else parts.push(" " + line)
+    }
+    return parts.join("")
+}
+
 /**
  * Convert a legacy descriptionKey array into a single markdown string.
  *
@@ -11,7 +29,8 @@ import { OwidVariableDisplayConfigInterface } from "./OwidVariableDisplayConfigI
  * arrays, so every ingress point normalizes through this function.
  *
  * The conversion preserves the legacy rendering exactly: a single entry was
- * rendered as prose, multiple entries as a bulleted list.
+ * rendered as prose (full markdown, paragraphs included), multiple entries as
+ * a bulleted list with line breaks inside items flattened.
  */
 export function normalizeDescriptionKey(
     value: string | string[] | undefined | null
@@ -21,8 +40,9 @@ export function normalizeDescriptionKey(
     const items = value.map((item) => item.trim()).filter((item) => item)
     if (items.length === 0) return undefined
     if (items.length === 1) return items[0]
-    // Indent continuation lines so multi-line items stay inside their bullet.
-    return items.map((item) => `- ${item.replaceAll("\n", "\n  ")}`).join("\n")
+    return items
+        .map((item) => `- ${collapseDescriptionKeyItem(item)}`)
+        .join("\n")
 }
 
 export interface OwidVariableWithSource {

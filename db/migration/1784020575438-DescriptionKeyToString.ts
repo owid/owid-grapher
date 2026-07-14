@@ -5,19 +5,34 @@ import { MigrationInterface, QueryRunner } from "typeorm"
  * markdown string. Convert existing rows in `variables` and multi-dim configs.
  *
  * The conversion preserves the legacy rendering exactly: a single entry was
- * rendered as prose, multiple entries as a bulleted list (now expressed as a
- * markdown list).
+ * rendered as prose (full markdown, paragraphs included), multiple entries as
+ * a bulleted list with line breaks inside items flattened (the old renderer
+ * unwrapped paragraphs inside list items, so breaks displayed as spaces);
+ * markdown lists inside an item rendered as nested lists and stay nested.
  *
  * Inlined copy of normalizeDescriptionKey from @ourworldindata/types —
  * migrations must stay frozen in time, so we don't import live code.
  */
+const MARKDOWN_LIST_MARKER = /^([-*+]|\d+[.)])\s/
+
+function collapseDescriptionKeyItem(item: string): string {
+    const parts: string[] = []
+    for (const rawLine of item.split("\n")) {
+        const line = rawLine.trim()
+        if (!line) continue
+        if (parts.length === 0) parts.push(line)
+        else if (MARKDOWN_LIST_MARKER.test(line)) parts.push("\n  " + line)
+        else parts.push(" " + line)
+    }
+    return parts.join("")
+}
+
 function descriptionKeyArrayToString(items: string[]): string | null {
     const cleaned = items.map((item) => item.trim()).filter((item) => item)
     if (cleaned.length === 0) return null
     if (cleaned.length === 1) return cleaned[0]
-    // Indent continuation lines so multi-line items stay inside their bullet.
     return cleaned
-        .map((item) => `- ${item.replaceAll("\n", "\n  ")}`)
+        .map((item) => `- ${collapseDescriptionKeyItem(item)}`)
         .join("\n")
 }
 
