@@ -6,9 +6,11 @@ import {
     FontFamily,
     VerticalAlign,
 } from "@ourworldindata/utils"
-import { match } from "ts-pattern"
 import * as R from "remeda"
-import { type ITextWrap } from "../TextWrap/TextWrap.js"
+import {
+    getTextPositionForSvgRendering,
+    type ITextWrap,
+} from "../TextWrap/TextWrap.js"
 import {
     appendReferenceNumbers,
     getLineFontSize,
@@ -157,25 +159,6 @@ export abstract class AbstractTokenTextWrap implements ITextWrap {
     }
 
     getPositionForSvgRendering(x: number, y: number): [number, number] {
-        const { fontSize, lineHeight, height, verticalAlign } = this
-
-        // Magic number set through experimentation.
-        // The HTML and SVG renderers need to position lines identically.
-        // This number was tweaked until the overlaid HTML and SVG outputs
-        // overlap.
-        const HEIGHT_CORRECTION_FACTOR = 0.74
-
-        const textHeight = fontSize * HEIGHT_CORRECTION_FACTOR
-        const containerHeight = lineHeight * fontSize
-        const correctedY =
-            y + (containerHeight - (containerHeight - textHeight) / 2)
-
-        const renderY = match(verticalAlign)
-            .with(VerticalAlign.top, () => correctedY - height)
-            .with(VerticalAlign.middle, () => correctedY - height / 2)
-            .with(VerticalAlign.bottom, () => correctedY)
-            .exhaustive()
-
-        return [x, renderY]
+        return getTextPositionForSvgRendering(this, x, y)
     }
 }
