@@ -34,6 +34,7 @@ import {
     AxisConfigInterface,
     ChartErrorInfo,
     GrapherVariant,
+    TickFormattingOptions,
 } from "@ourworldindata/types"
 import { ChartComponent, makeChartInstance } from "../chart/ChartTypeMap"
 import { ChartManager } from "../chart/ChartManager"
@@ -306,13 +307,16 @@ export class FacetChart
             shouldPinTooltipToBottom,
         } = manager
 
-        // Use compact labels, e.g. 50k instead of 50,000.
-        const numberAbbreviation = facetCount > 2 ? "short" : "long"
+        // Use compact labels, e.g. 50k instead of 50,000
+        const tickFormattingOptions: TickFormattingOptions =
+            facetCount > 2
+                ? { numberAbbreviation: "short", abbreviationThreshold: 1e3 }
+                : { numberAbbreviation: "long" }
         const globalXAxisConfig: AxisConfigInterface = {
-            tickFormattingOptions: { numberAbbreviation },
+            tickFormattingOptions,
         }
         const globalYAxisConfig: AxisConfigInterface = {
-            tickFormattingOptions: { numberAbbreviation },
+            tickFormattingOptions,
         }
 
         // We infer that the user cares about the trend if the axis is not uniform

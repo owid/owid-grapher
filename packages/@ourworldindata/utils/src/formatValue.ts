@@ -41,14 +41,30 @@ function getSymbol({ unit }: { unit: string }): "$" | "" {
     return checkIsUnitCurrency(unit) ? "$" : ""
 }
 
+function getAbbreviationThreshold({
+    numberAbbreviation,
+    abbreviationThreshold,
+}: {
+    numberAbbreviation: "long" | "short" | false
+    abbreviationThreshold?: number
+}): number {
+    if (abbreviationThreshold !== undefined) return abbreviationThreshold
+    // "short" doesn't abbreviate thousands since e.g. 25.24k is no shorter
+    // than 25,240; it only makes sense for round numbers like axis ticks,
+    // which pass an explicit threshold of 1,000
+    return numberAbbreviation === "short" ? 1e5 : 1e6
+}
+
 function getType({
     roundingMode,
     numberAbbreviation,
+    abbreviationThreshold,
     value,
     unit,
 }: {
     roundingMode: OwidVariableRoundingMode
     numberAbbreviation: "long" | "short" | false
+    abbreviationThreshold?: number
     value: number
     unit: string
 }): "f" | "s" | "r" {
@@ -65,13 +81,12 @@ function getType({
     if (checkIsUnitPercent(unit)) {
         return type
     }
-    if (numberAbbreviation === "long") {
-        // do not abbreviate until 1 million
-        return Math.abs(value) < 1e6 ? type : "s"
-    }
-    if (numberAbbreviation === "short") {
-        // do not abbreviate until 1 thousand
-        return Math.abs(value) < 1e3 ? type : "s"
+    if (numberAbbreviation) {
+        const threshold = getAbbreviationThreshold({
+            numberAbbreviation,
+            abbreviationThreshold,
+        })
+        return Math.abs(value) < threshold ? type : "s"
     }
 
     return type
@@ -111,34 +126,30 @@ function getEffectiveRoundingMode({
 }
 
 function getPrecision({
-    value,
     roundingMode,
     numDecimalPlaces,
     numSignificantFigures,
     type,
 }: {
-    value: number
     roundingMode: OwidVariableRoundingMode
     numDecimalPlaces: number
     numSignificantFigures: number
     type: "f" | "s" | "r"
 }): string {
-    if (roundingMode === OwidVariableRoundingMode.significantFigures) {
-        return `${numSignificantFigures}`
-    }
-
     if (type === "f") {
         return `${numDecimalPlaces}`
     }
 
-    // when dealing with abbreviated numbers, adjust precision so we get 12.84 million instead of 13 million
-    // the modulo one-liner counts the "place columns" of the number, resetting every 3
-    // 1 -> 1, 48 -> 2, 981 -> 3, 7222 -> 1
-    const numberOfDigits = String(Math.floor(Math.abs(value))).length
-    const precisionPadding = ((numberOfDigits - 1) % 3) + 1
+    // "r" and "s" count significant digits
+    if (roundingMode === OwidVariableRoundingMode.significantFigures) {
+        return `${numSignificantFigures}`
+    }
 
-    // hard-coded 2 decimal places for abbreviated numbers
-    return `${precisionPadding + 2}`
+    // abbreviated numbers ("s") in decimal-places mode: fixed decimal places
+    // aren't meaningful for an abbreviated mantissa, so round to a hard-coded
+    // 3 significant figures — numSignificantFigures deliberately has no
+    // effect outside sig-fig mode
+    return "3"
 }
 
 function replaceSIPrefixes({
@@ -245,19 +256,36 @@ export function formatValue(
         numDecimalPlaces = 2, // only applies to fixed-point notation
         numSignificantFigures = 3, // only applies to sig fig rounding
         numberAbbreviation = "long",
+        abbreviationThreshold,
     }: TickFormattingOptions
 ): string {
     const formatter = createFormatter(unit)
 
+    // in "short" contexts, written-out values of 1,000 or more drop their
+    // decimals: the fraction is noise at that magnitude, and full-precision
+    // surfaces (tooltips, the data table) don't use "short". The cutoff is
+    // 10^3 — where fractional digits fall below the same 3-significant-digit
+    // budget that abbreviated values use (see getPrecision). Percent values
+    // are exempt: they were never abbreviated, so their configured decimals
+    // are honored at any magnitude — the drop only replaces abbreviation,
+    // it never overrides numDecimalPlaces where it used to be respected
+    const effectiveNumDecimalPlaces =
+        numberAbbreviation === "short" &&
+        !checkIsUnitPercent(unit) &&
+        Math.abs(value) >= 1e3
+            ? 0
+            : numDecimalPlaces
+
     const effectiveRoundingMode = getEffectiveRoundingMode({
         value,
         roundingMode,
-        numDecimalPlaces,
+        numDecimalPlaces: effectiveNumDecimalPlaces,
         numSignificantFigures,
     })
     const type = getType({
         roundingMode: effectiveRoundingMode,
         numberAbbreviation,
+        abbreviationThreshold,
         value,
         unit,
     })
@@ -273,9 +301,8 @@ export function formatValue(
         symbol: getSymbol({ unit }),
         comma: ",",
         precision: getPrecision({
-            roundingMode: effectiveRoundingMode,
-            value,
-            numDecimalPlaces,
+            roundingMode,
+            numDecimalPlaces: effectiveNumDecimalPlaces,
             numSignificantFigures,
             type,
         }),
@@ -293,7 +320,7 @@ export function formatValue(
         useNoBreakSpace,
         unit,
         value,
-        numDecimalPlaces,
+        numDecimalPlaces: effectiveNumDecimalPlaces,
     })
 
     return postprocessedString

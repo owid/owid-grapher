@@ -274,6 +274,12 @@ export interface TickFormattingOptions {
     useNoBreakSpace?: boolean
     showPlus?: boolean
     numberAbbreviation?: "short" | "long" | false
+    /**
+     * The magnitude at which abbreviation starts. Defaults to 100,000 for
+     * "short" and 1 million for "long"; axis ticks pass 1,000 since ticks
+     * are round numbers where abbreviation genuinely saves space
+     */
+    abbreviationThreshold?: number
 }
 // Represents the actual entered configuration state in the editor
 export interface AxisConfigInterface {
