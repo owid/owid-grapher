@@ -69,13 +69,12 @@ export const regionGroupLabels: Record<RegionGroupKey, string> = {
     ilo_2: "International Labour Organization regions",
     fao_1: "Food and Agriculture Organization regions",
     fao_2: "Food and Agriculture Organization regions",
-    fao_3: "Food and Agriculture Organization regions",
 
     // Regions defined by an institution, but we don't have region definitions in regions.ts for these (we recognize them by their suffix)
     unsdg: "UN Sustainable Development Goals regions",
     unm49: "United Nations M49 regions",
     unsd: "UN Statistics Division regions",
-    fao: "Food and Agriculture Organization regions", // suffix handle; per-level defs under fao_1/fao_2/fao_3
+    fao: "Food and Agriculture Organization regions", // suffix handle; per-level defs under fao_1/fao_2
     ei: "Education International regions",
     pip: "PIP regions", // World Bank’s Poverty and Inequality Platform
     ember: "Ember regions",

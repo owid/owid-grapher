@@ -94,26 +94,6 @@ export const getRegionDataProviders = lazy(() =>
 const PROVIDER_REGION_BACKFILLS: Partial<Record<RegionDataProvider, string[]>> =
     {
         ilo_2: ["Arab States (ILO)"],
-        // FAO only subdivides Sub-Saharan Africa and Latin America and the Caribbean at level 3;
-        // back-fill the other subregions so the level-3 map is FAO's complete 22-region partition
-        // (the split most FAOSTAT domains report data for), matching the ETL's fao_3_region indicator.
-        fao_3: [
-            "Northern Africa (FAO)",
-            "Northern America (FAO)",
-            "Western Asia (FAO)",
-            "Central Asia (FAO)",
-            "Southern Asia (FAO)",
-            "Eastern Asia (FAO)",
-            "South-eastern Asia (FAO)",
-            "Southern Europe (FAO)",
-            "Western Europe (FAO)",
-            "Northern Europe (FAO)",
-            "Eastern Europe (FAO)",
-            "Australia and New Zealand (FAO)",
-            "Melanesia (FAO)",
-            "Micronesia (FAO)",
-            "Polynesia (FAO)",
-        ],
     }
 
 export const getAggregatesByProvider = (

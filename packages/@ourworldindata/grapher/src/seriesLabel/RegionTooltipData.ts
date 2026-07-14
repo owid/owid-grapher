@@ -54,8 +54,7 @@ const descriptions: Record<TooltipKey, string> = {
     ilo_1: "The **International Labour Organization (ILO)** defines [five broad world regions](https://ourworldindata.org/world-region-map-definitions#international-labour-organization-ilo):",
     ilo_2: "The **International Labour Organization (ILO)** divides the world into [eleven subregions](https://ourworldindata.org/world-region-map-definitions#international-labour-organization-ilo):",
     fao_1: "The **Food and Agriculture Organization of the United Nations (FAO)** reports data for [world regions](https://ourworldindata.org/world-region-map-definitions#food-and-agriculture-organization-fao) at several levels of detail, following the UN M49 classification. This map shows its broadest level, the continents:",
-    fao_2: "The **Food and Agriculture Organization of the United Nations (FAO)** reports data for [world regions](https://ourworldindata.org/world-region-map-definitions#food-and-agriculture-organization-fao) at several levels of detail, following the UN M49 classification. This map shows its subregions, with Sub-Saharan Africa and Latin America and the Caribbean as single regions:",
-    fao_3: "The **Food and Agriculture Organization of the United Nations (FAO)** reports data for [world regions](https://ourworldindata.org/world-region-map-definitions#food-and-agriculture-organization-fao) at several levels of detail, following the UN M49 classification. This map shows its most detailed level, where Sub-Saharan Africa and Latin America and the Caribbean are split into finer regions:",
+    fao_2: "The **Food and Agriculture Organization of the United Nations (FAO)** reports data for [world regions](https://ourworldindata.org/world-region-map-definitions#food-and-agriculture-organization-fao) at several levels of detail, following the UN M49 classification. This map shows its subregions:",
 }
 
 // Geographic display order: left-to-right on the map.
@@ -167,25 +166,6 @@ const customRegionDisplayOrder: Partial<Record<TooltipKey, string[]>> = {
         "Oceania (FAO)",
     ],
     fao_2: [
-        "Northern Africa (FAO)",
-        "Sub-Saharan Africa (FAO)",
-        "Northern America (FAO)",
-        "Latin America and the Caribbean (FAO)",
-        "Western Asia (FAO)",
-        "Central Asia (FAO)",
-        "Southern Asia (FAO)",
-        "Eastern Asia (FAO)",
-        "South-eastern Asia (FAO)",
-        "Southern Europe (FAO)",
-        "Western Europe (FAO)",
-        "Northern Europe (FAO)",
-        "Eastern Europe (FAO)",
-        "Australia and New Zealand (FAO)",
-        "Melanesia (FAO)",
-        "Micronesia (FAO)",
-        "Polynesia (FAO)",
-    ],
-    fao_3: [
         "Northern Africa (FAO)",
         "Eastern Africa (FAO)",
         "Middle Africa (FAO)",
