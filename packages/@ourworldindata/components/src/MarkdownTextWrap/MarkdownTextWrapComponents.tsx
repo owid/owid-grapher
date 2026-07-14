@@ -2,9 +2,9 @@ import * as _ from "lodash-es"
 import * as React from "react"
 import { DetailsMarker } from "@ourworldindata/types"
 import {
+    getDodUnderlineSegments,
     getLineFontSize,
     getLineGap,
-    IRDetailOnDemand,
     IRToken,
 } from "./IRTokens.js"
 import { AbstractTokenTextWrap } from "./AbstractTokenTextWrap.js"
@@ -118,26 +118,23 @@ export function MarkdownTextWrapSvg({
             {detailsMarker === "underline" &&
                 lines.map((line, lineIndex) => {
                     const lineY = (getLineY(lineIndex) + 2).toFixed(1)
-                    let currWidth = 0
-                    return line.map((token) => {
-                        const underline =
-                            token instanceof IRDetailOnDemand ? (
-                                <line
-                                    className="dod-underline"
-                                    x1={x + currWidth}
-                                    y1={lineY}
-                                    x2={x + currWidth + token.width}
-                                    y2={lineY}
-                                    stroke="currentColor"
-                                    strokeWidth={1}
-                                    strokeDasharray={1}
-                                    // important for rotated text
-                                    transform={svgTextProps?.transform}
-                                />
-                            ) : null
-                        currWidth += token.width
-                        return underline
-                    })
+                    return getDodUnderlineSegments(line).map(
+                        (segment, segmentIndex) => (
+                            <line
+                                key={`${lineIndex}-${segmentIndex}`}
+                                className="dod-underline"
+                                x1={x + segment.x}
+                                y1={lineY}
+                                x2={x + segment.x + segment.width}
+                                y2={lineY}
+                                stroke="currentColor"
+                                strokeWidth={1}
+                                strokeDasharray={1}
+                                // important for rotated text
+                                transform={svgTextProps?.transform}
+                            />
+                        )
+                    )
                 })}
         </g>
     )

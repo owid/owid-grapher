@@ -590,6 +590,32 @@ export function getLineGap(tokens: IRToken[]): number {
     )
 }
 
+/**
+ * Horizontal extents of all details-on-demand tokens on a line, relative to
+ * the line's start. Recurses into container elements (fragments, bold, ...)
+ * since DoDs may be arbitrarily nested, but not into the DoDs themselves.
+ */
+export function getDodUnderlineSegments(
+    tokens: IRToken[],
+    startOffset: number = 0
+): { x: number; width: number }[] {
+    const segments: { x: number; width: number }[] = []
+    let offset = startOffset
+    for (const token of tokens) {
+        if (token instanceof IRDetailOnDemand) {
+            segments.push({ x: offset, width: token.width })
+        } else if (token instanceof IRElement) {
+            // a fragment's children start after its inline gap
+            const inlineGap = token instanceof IRFragment ? token.inlineGap : 0
+            segments.push(
+                ...getDodUnderlineSegments(token.children, offset + inlineGap)
+            )
+        }
+        offset += token.width
+    }
+    return segments
+}
+
 // useful for debugging
 export function lineToPlaintext(tokens: IRToken[]): string {
     return tokens.map((t) => t.toPlaintext()).join("")

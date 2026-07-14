@@ -2,6 +2,8 @@ import { expect, it, describe } from "vitest"
 
 import * as React from "react"
 import {
+    getDodUnderlineSegments,
+    getLineWidth,
     lineToPlaintext,
     IRFragment,
     IRDetailOnDemand,
@@ -546,6 +548,60 @@ describe(TextWrapGroup, () => {
         ) as IRDetailOnDemand
         expect(dod).toBeInstanceOf(IRDetailOnDemand)
         expect(dod.children.at(-1)).toBeInstanceOf(IRSuperscript)
+    })
+
+    it("should find underline segments for DoDs nested inside fragments", () => {
+        const textWrap = new TextWrapGroup({
+            fragments: [
+                {
+                    text: "Deaths from [malaria](#dod:malaria)",
+                    fontWeight: 700,
+                    markdown: true,
+                },
+                { text: "(per 100,000 people)" },
+            ],
+            maxWidth: 1000,
+            fontSize,
+        })
+        const line = textWrap.svgLines[0]
+        const fragment = line[0] as IRFragment
+        const dodIndex = fragment.children.findIndex(
+            (token) => token instanceof IRDetailOnDemand
+        )
+
+        expect(getDodUnderlineSegments(line)).toEqual([
+            {
+                x: getLineWidth(fragment.children.slice(0, dodIndex)),
+                width: fragment.children[dodIndex].width,
+            },
+        ])
+    })
+
+    it("should offset underline segments by a fragment's inline gap", () => {
+        const inlineGap = 10
+        const textWrap = new TextWrapGroup({
+            fragments: [
+                { text: "Deaths" },
+                {
+                    text: "[malaria](#dod:malaria)",
+                    markdown: true,
+                    newLine: "continue-line",
+                    inlineGap,
+                },
+            ],
+            maxWidth: 1000,
+            fontSize,
+        })
+        const line = textWrap.svgLines[0]
+        const dodFragment = line.at(-1) as IRFragment
+
+        expect(dodFragment.inlineGap).toEqual(inlineGap)
+        expect(getDodUnderlineSegments(line)).toEqual([
+            {
+                x: getLineWidth(line.slice(0, -1)) + inlineGap,
+                width: dodFragment.width - inlineGap,
+            },
+        ])
     })
 
     it("should place a longer sequence of fragments with mixed modes", () => {
