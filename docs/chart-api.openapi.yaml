@@ -264,9 +264,8 @@ paths:
                         titleShort: Life expectancy at birth
                         titleLong: Life expectancy at birth - Various sources – period tables
                         descriptionShort: The period life expectancy at birth, in a given year.
-                        descriptionKey:
-                          - Period life expectancy is a metric that summarizes death rates across all age groups in one particular year.
-                          - "..."
+                        descriptionKey: |-
+                          Period life expectancy is a metric that summarizes death rates across all age groups in one particular year. ...
                         shortUnit: years
                         unit: years
                         timespan: 1543-2021
@@ -931,10 +930,8 @@ components:
           type: string
           description: Brief description of the data.
         descriptionKey:
-          type: array
-          description: Key points about the data methodology.
-          items:
-            type: string
+          type: string
+          description: Key information about the data as markdown text.
         descriptionProcessing:
           type: string
           description: Description of any processing applied to the data.
