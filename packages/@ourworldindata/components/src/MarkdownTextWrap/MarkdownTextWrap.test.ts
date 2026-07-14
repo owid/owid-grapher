@@ -3,13 +3,16 @@ import { expect, it, describe } from "vitest"
 import { cssFontFamily, FontFamily, VerticalAlign } from "@ourworldindata/utils"
 import {
     IRText,
+    getDodUnderlineSegments,
     getLineWidth,
     lineToPlaintext,
     recursiveMergeTextTokens,
-    IRWhitespace,
     IRBold,
-    IRLink,
+    IRDetailOnDemand,
     IRLineBreak,
+    IRLink,
+    IRWhitespace,
+    type IRToken,
 } from "./IRTokens.js"
 import { MarkdownTextWrap } from "./MarkdownTextWrap.js"
 
@@ -209,6 +212,47 @@ describe(MarkdownTextWrap, () => {
                 ]),
                 new IRText("fourfive"),
             ])
+        })
+    })
+
+    describe(getDodUnderlineSegments, () => {
+        const makeLine = (text: string): IRToken[] =>
+            new MarkdownTextWrap({ text, fontSize: 14 }).svgLines[0]
+
+        it("should find a top-level DoD", () => {
+            const line = makeLine("before [term](#dod:term) after")
+            const dodIndex = line.findIndex(
+                (token) => token instanceof IRDetailOnDemand
+            )
+
+            expect(getDodUnderlineSegments(line)).toEqual([
+                {
+                    x: getLineWidth(line.slice(0, dodIndex)),
+                    width: line[dodIndex].width,
+                },
+            ])
+        })
+
+        it("should find a DoD nested inside bold", () => {
+            const line = makeLine("**an [important](#dod:important) term**")
+            const bold = line[0] as IRBold
+            const dodIndex = bold.children.findIndex(
+                (token) => token instanceof IRDetailOnDemand
+            )
+
+            expect(line).toEqual([expect.any(IRBold)])
+            expect(getDodUnderlineSegments(line)).toEqual([
+                {
+                    x: getLineWidth(bold.children.slice(0, dodIndex)),
+                    width: bold.children[dodIndex].width,
+                },
+            ])
+        })
+
+        it("should find no segments in a line without DoDs", () => {
+            const line = makeLine("just **plain** text")
+
+            expect(getDodUnderlineSegments(line)).toEqual([])
         })
     })
 })
