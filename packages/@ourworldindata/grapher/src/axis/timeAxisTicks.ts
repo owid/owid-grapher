@@ -315,7 +315,9 @@ type GridPosition = (value: CalendarValue) => number
  * One label set per grid, starting with a set that labels every value. A grid's
  * set is only offered when its values sit on consecutive grid points, so
  * every offered set is evenly spaced. Skips sets that don't thin the previous
- * one and stops once a set holds a single value (nothing coarser can add).
+ * one. Single-value sets aren't offered: when no multi-label set fits, the
+ * axis falls back to greedy labeling, which labels as many bands as fit
+ * instead of a lone calendar-anchored one (often the first or last band).
  * The grids are expected to be ordered from finest to coarsest.
  */
 function buildTickOptionsFromGrids(
@@ -334,7 +336,7 @@ function buildTickOptionsFromGrids(
         const valuesOnGrid = calendarValues
             .map((value) => ({ value, position: gridPosition(value) }))
             .filter(({ position }) => Number.isInteger(position))
-        if (!valuesOnGrid.length) continue
+        if (valuesOnGrid.length < 2) continue
 
         // Only offer evenly-spaced sets: the values must sit on consecutive
         // grid points, otherwise the labels would have ragged gaps
@@ -351,7 +353,7 @@ function buildTickOptionsFromGrids(
 
         tiers.push(makeTier(valuesOnGrid.map(({ value }) => value)))
 
-        if (valuesOnGrid.length === 1) break
+        if (valuesOnGrid.length === 2) break
     }
 
     return tiers
