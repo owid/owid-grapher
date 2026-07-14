@@ -199,7 +199,7 @@ const getPostsToArchive = async (
 
     if ((postSlugs && postSlugs.length > 0) || force) {
         const { postChecksums: allChecksums, imagesByPostId: allImages } =
-            await getPostChecksumsFromDb(trx)
+            await getPostChecksumsFromDb(trx, postSlugs)
 
         let postsToArchive = allChecksums
         if (postSlugs && postSlugs.length > 0) {
