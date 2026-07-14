@@ -13,7 +13,7 @@ describe("rounding to a fixed number of decimals", () => {
         ["default small", 0.001, "<0.01", {}],
         ["default million specific", 1_179_766, "1.18 million", {}],
         ["default billion specific", 1_234_567_890, "1.23 billion", {}],
-        ["default 10 billion specific", 12_345_678_901, "12.35 billion", {}],
+        ["default 10 billion specific", 12_345_678_901, "12.3 billion", {}],
         ["default billion with rounding", 1_239_999_999, "1.24 billion", {}],
         ["default small", 0.0000000001, "<0.01", {}],
         ["thousand", 1000, "1,000", {}],
@@ -34,13 +34,13 @@ describe("rounding to a fixed number of decimals", () => {
         ["negative billion", -1_000_000_000, "-1 billion", {}],
         ["negative trillion", -1_000_000_000_000, "-1 trillion", {}],
         ["negative quadrillion", -1_000_000_000_000_000, "-1 quadrillion", {}],
-        ["1000 short prefix", 1000, "1k", { numberAbbreviation: "short" }],
-        ["1499 short prefix", 1499, "1.5k", { numberAbbreviation: "short" }],
-        ["1001 short prefix", 1001, "1k", { numberAbbreviation: "short" }],
-        ["1009 short prefix", 1009, "1.01k", { numberAbbreviation: "short" }],
-        ["12345 short prefix", 12_345, "12.35k", { numberAbbreviation: "short" }],
-        ["123456 short prefix", 123_456, "123.46k", { numberAbbreviation: "short" }],
-        ["123456 decimal short prefix", 98_712.78901, "98.71k", { numberAbbreviation: "short", numDecimalPlaces: 10 }],
+        ["1000 short written out", 1000, "1,000", { numberAbbreviation: "short" }],
+        ["1499 short written out", 1499, "1,499", { numberAbbreviation: "short" }],
+        ["1001 short written out", 1001, "1,001", { numberAbbreviation: "short" }],
+        ["1009 short written out", 1009, "1,009", { numberAbbreviation: "short" }],
+        ["12345 short written out", 12_345, "12,345", { numberAbbreviation: "short" }],
+        ["123456 short prefix", 123_456, "123k", { numberAbbreviation: "short" }],
+        ["98712 decimal short drops decimals", 98_712.78901, "98,713", { numberAbbreviation: "short", numDecimalPlaces: 10 }],
         ["hundred thousand short prefix decimal", 100_000.44, "100k", { numberAbbreviation: "short" }],
         ["1000 long prefix", 1000, "1,000", { numberAbbreviation: "long" }],
         ["1499 long prefix", 1499, "1,499", { numberAbbreviation: "long" }],
@@ -56,9 +56,11 @@ describe("rounding to a fixed number of decimals", () => {
         ["2 decimals with integer", 1, "1", { numDecimalPlaces: 2 }],
         ["2 decimals with float", 1.123, "1.12", { numDecimalPlaces: 2 }],
         ["4 decimals with float", 1.123, "1.123", { numDecimalPlaces: 4 }],
+        ["numSignificantFigures has no effect on long abbreviations", 12_840_000, "12.8 million", { numSignificantFigures: 5, numberAbbreviation: "long" }],
+        ["numSignificantFigures has no effect on short abbreviations", 123_456, "123k", { numSignificantFigures: 5, numberAbbreviation: "short" }],
         ["0 decimals with abbreviation", 1_234_567, "1.23 million", { numDecimalPlaces: 0, numberAbbreviation: "long" }],
         ["1 decimal with abbreviation", 1_234_567, "1.23 million", { numDecimalPlaces: 1, numberAbbreviation: "long" }],
-        ["1 decimal with short abbreviation", 1234, "1.23k", { numDecimalPlaces: 1, numberAbbreviation: "short" }],
+        ["1 decimal with short abbreviation", 1234, "1,234", { numDecimalPlaces: 1, numberAbbreviation: "short" }],
         ["2 decimal with percentage", 19.985, "19.98%", { numDecimalPlaces: 2, unit: "%" }],
         ["with unit", 1, "$1", { unit: "$" }],
         ["with custom unit", 1, "1pp", { unit: "pp", spaceBeforeUnit: false }],
@@ -75,8 +77,8 @@ describe("rounding to a fixed number of decimals", () => {
         ["$ very small", 0.001, "<$0.01", { unit: "$" }],
         ["%compound spaceBeforeUnit false", 1.1, "1.1%compound", { spaceBeforeUnit: false, unit: "%compound" }],
         ["numberAbbreviation long", 1_000_000_000, "1 billion", { numberAbbreviation: "long" }],
-        ["numberAbbreviation million specific", 846_691_846.8, "846.69 million", { numberAbbreviation: "long" }],
-        ["numberAbbreviation billion specific", 123_456_789_012, "123.46 billion", { numberAbbreviation: "long" }],
+        ["numberAbbreviation million specific", 846_691_846.8, "847 million", { numberAbbreviation: "long" }],
+        ["numberAbbreviation billion specific", 123_456_789_012, "123 billion", { numberAbbreviation: "long" }],
         ["numberAbbreviation long with unit", 1_000_000_000, "$1 billion", { numberAbbreviation: "long", unit: "$" }],
         ["numberAbbreviation short", 1_000_000_000, "1B", { numberAbbreviation: "short" }],
         ["numberAbbreviation %", 20_000, "20,000%", { numberAbbreviation: "short", unit: "%" }],
@@ -126,11 +128,11 @@ describe("rounding to significant figures", () => {
         ["negative billion", -1_000_000_000, "-1.00 billion", {}],
         ["negative trillion", -1_000_000_000_000, "-1.00 trillion", {}],
         ["negative quadrillion", -1_000_000_000_000_000, "-1.00 quadrillion", {}],
-        ["1000 short prefix", 1000, "1.00k", { numberAbbreviation: "short" }],
-        ["1499 short prefix", 1499, "1.50k", { numberAbbreviation: "short" }],
-        ["1001 short prefix", 1001, "1.00k", { numberAbbreviation: "short" }],
-        ["1009 short prefix", 1009, "1.01k", { numberAbbreviation: "short" }],
-        ["12345 short prefix", 12_345, "12.3k", { numberAbbreviation: "short" }],
+        ["1000 short written out", 1000, "1,000", { numberAbbreviation: "short" }],
+        ["1499 short written out", 1499, "1,500", { numberAbbreviation: "short" }],
+        ["1001 short written out", 1001, "1,000", { numberAbbreviation: "short" }],
+        ["1009 short written out", 1009, "1,010", { numberAbbreviation: "short" }],
+        ["12345 short written out", 12_345, "12,300", { numberAbbreviation: "short" }],
         ["123456 short prefix", 123_456, "123k", { numberAbbreviation: "short" }],
         ["hundred thousand short prefix decimal", 100_000.44, "100k", { numberAbbreviation: "short" }],
         ["1000 long prefix", 1000, "1,000", { numberAbbreviation: "long" }],
@@ -164,7 +166,7 @@ describe("rounding to significant figures", () => {
         ["0.0012 with 3 significant figures", 0.0012, "<0.01", { numSignificantFigures: 3 }], // capped at the default of 2 decimal places
         ["2 significant figures with abbreviation", 1_234_567, "1.2 million", { numSignificantFigures: 2, numberAbbreviation: "long" }],
         ["3 significant figures with abbreviation", 1_234_567, "1.23 million", { numSignificantFigures: 3, numberAbbreviation: "long" }],
-        ["2 significant figures with short abbreviation", 1234, "1.2k", { numSignificantFigures: 2, numberAbbreviation: "short" }],
+        ["2 significant figures with short abbreviation", 1234, "1,200", { numSignificantFigures: 2, numberAbbreviation: "short" }],
         ["3 significant figures with percentage", 19.986, "20.0%", { numSignificantFigures: 3, unit: "%" }],
         ["4 significant figures with percentage", 19.986, "19.99%", { numSignificantFigures: 4, unit: "%" }],
         ["with unit", 1, "$1.00", { unit: "$" }],
@@ -200,6 +202,45 @@ describe("rounding to significant figures", () => {
                 formatValue(input, {
                     ...options,
                     roundingMode: OwidVariableRoundingMode.significantFigures,
+                })
+            ).toBe(output)
+        })
+    })
+})
+
+describe("the 'short' abbreviation bands", () => {
+    // "short" is used for space-constrained value labels (slope charts, map
+    // annotations, thumbnails). Values below 1k keep the configured decimals,
+    // values between 1k and 100k are written out as whole numbers, and values
+    // of 100k or more are abbreviated to significant figures (see #5172).
+    // Axis ticks opt back into abbreviating from 1k via abbreviationThreshold
+    // oxfmt-ignore
+    const cases: [string, number, string, TickFormattingOptions][] = [
+        ["author decimals below 1k", 999.99, "999.99", {}],
+        ["decimals dropped from 1k", 1234.56, "1,235", {}],
+        ["decimals dropped in the ten thousands", 25_240.99, "25,241", {}],
+        ["negative value with decimals dropped", -25_240.99, "-25,241", {}],
+        ["written out just below 100k", 99_999, "99,999", {}],
+        ["rounds across the threshold but stays written out", 99_999.99, "100,000", {}],
+        ["abbreviated from 100k", 100_000, "100k", {}],
+        ["abbreviations rounded to 3 significant figures", 123_456.78, "123k", {}],
+        ["round abbreviation", 950_000, "950k", {}],
+        ["abbreviates up just below 1M", 999_999, "1M", {}],
+        ["millions", 1_500_000, "1.5M", {}],
+        ["two-digit millions", 12_840_000, "12.8M", {}],
+        ["currency drops decimals", 25_240.99, "$25,241", { unit: "$" }],
+        ["percent never abbreviates and keeps author decimals", 1_234.56, "1,234.56%", { unit: "%" }],
+        ["tick-like threshold of 1k keeps abbreviating", 25_000, "25k", { abbreviationThreshold: 1e3 }],
+        ["1k threshold abbreviates messy values too", 25_240, "25.2k", { abbreviationThreshold: 1e3 }],
+        ["sig-fig column below the threshold", 25_240, "25,200", { roundingMode: OwidVariableRoundingMode.significantFigures }],
+        ["sig-fig column above the threshold keeps trailing zeroes", 999_999, "1.00M", { roundingMode: OwidVariableRoundingMode.significantFigures }],
+    ]
+    cases.forEach(([description, input, output, options]) => {
+        it(description, () => {
+            expect(
+                formatValue(input, {
+                    numberAbbreviation: "short",
+                    ...options,
                 })
             ).toBe(output)
         })

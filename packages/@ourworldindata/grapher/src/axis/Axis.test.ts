@@ -111,7 +111,10 @@ it("creates compact labels", () => {
         min: 1000,
         max: 4000,
         maxTicks: 3,
-        tickFormattingOptions: { numberAbbreviation: "short" },
+        tickFormattingOptions: {
+            numberAbbreviation: "short",
+            abbreviationThreshold: 1e3,
+        },
     }
     const axis = new AxisConfig(config).toVerticalAxis()
     axis.range = [0, 500]
