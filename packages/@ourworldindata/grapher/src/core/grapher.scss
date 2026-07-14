@@ -255,6 +255,12 @@
     .dod-span {
         @include dod-span;
     }
+
+    // in SVG, a dotted underline is drawn manually (see MarkdownTextWrapSvg),
+    // so suppress the css one to avoid two overlapping dotted lines
+    tspan.dod-span {
+        text-decoration: none;
+    }
 }
 
 .dod-container {
