@@ -2,13 +2,36 @@ import { OwidOrigin } from "./OwidOrigin.js"
 import { OwidSource } from "./OwidSource.js"
 import { OwidVariableDisplayConfigInterface } from "./OwidVariableDisplayConfigInterface.js"
 
+/**
+ * Convert a legacy descriptionKey array into a single markdown string.
+ *
+ * descriptionKey used to be an array of bullet points and is now free-form
+ * markdown. Persisted metadata (indicator metadata JSON files on R2, database
+ * rows and multi-dim configs written before the migration) may still carry
+ * arrays, so every ingress point normalizes through this function.
+ *
+ * The conversion preserves the legacy rendering exactly: a single entry was
+ * rendered as prose, multiple entries as a bulleted list.
+ */
+export function normalizeDescriptionKey(
+    value: string | string[] | undefined | null
+): string | undefined {
+    if (value === undefined || value === null) return undefined
+    if (typeof value === "string") return value.trim() || undefined
+    const items = value.map((item) => item.trim()).filter((item) => item)
+    if (items.length === 0) return undefined
+    if (items.length === 1) return items[0]
+    // Indent continuation lines so multi-line items stay inside their bullet.
+    return items.map((item) => `- ${item.replaceAll("\n", "\n  ")}`).join("\n")
+}
+
 export interface OwidVariableWithSource {
     id: number
     name?: string
     description?: string
     descriptionShort?: string
     descriptionFromProducer?: string
-    descriptionKey?: string[]
+    descriptionKey?: string
     descriptionProcessing?: string
     unit?: string
     display?: OwidVariableDisplayConfigInterface

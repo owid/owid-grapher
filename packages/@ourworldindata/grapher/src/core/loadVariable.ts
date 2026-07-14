@@ -2,7 +2,9 @@ import {
     ArchiveContext,
     AssetMap,
     MultipleOwidVariableDataDimensionsMap,
+    normalizeDescriptionKey,
     OwidVariableDataMetadataDimensions,
+    OwidVariableWithSourceAndDimension,
 } from "@ourworldindata/types"
 import {
     fetchWithRetry,
@@ -73,7 +75,9 @@ export async function loadVariableDataAndMetadata(
     if (options?.loadMetadataOnly) {
         const metadataResponse = await metadataPromise
         if (!metadataResponse.ok) throw new Error(metadataResponse.statusText)
-        const metadata = await metadataResponse.json()
+        const metadata = normalizeVariableMetadata(
+            await metadataResponse.json()
+        )
         // Return empty data when only metadata is requested
         return { data: { values: [], entities: [], years: [] }, metadata }
     }
@@ -89,8 +93,17 @@ export async function loadVariableDataAndMetadata(
     if (!dataResponse.ok) throw new Error(dataResponse.statusText)
     if (!metadataResponse.ok) throw new Error(metadataResponse.statusText)
     const data = await dataResponse.json()
-    const metadata = await metadataResponse.json()
+    const metadata = normalizeVariableMetadata(await metadataResponse.json())
     return { data, metadata }
+}
+
+// Metadata files written before the descriptionKey string migration hold
+// arrays — normalize at the fetch boundary.
+function normalizeVariableMetadata(
+    metadata: OwidVariableWithSourceAndDimension
+): OwidVariableWithSourceAndDimension {
+    metadata.descriptionKey = normalizeDescriptionKey(metadata.descriptionKey)
+    return metadata
 }
 
 export async function loadVariablesDataSite(

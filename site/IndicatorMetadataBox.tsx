@@ -59,8 +59,6 @@ interface ExpandableSectionProps {
     license?: LicenseOption
 }
 
-const KEY_DESCRIPTION_PREVIEW_COUNT = 3
-
 // FAQs arrive as a flat block list — each question is a heading followed by its
 // answer blocks. Split on headings so each question can render as its own toggle.
 function groupFaqsByQuestion(
@@ -102,13 +100,6 @@ function ExpandableSection({
     license,
 }: ExpandableSectionProps) {
     const { origins, source } = datapageData
-    const preview = datapageData.descriptionKey.slice(
-        0,
-        KEY_DESCRIPTION_PREVIEW_COUNT
-    )
-    const remainder = datapageData.descriptionKey.slice(
-        KEY_DESCRIPTION_PREVIEW_COUNT
-    )
     const sourcesForDisplay = prepareSourcesForDisplay({
         origins,
         source,
@@ -158,22 +149,10 @@ function ExpandableSection({
 
     return (
         <div className={cx("meta-expander", className)}>
-            {preview.length === 1 ? (
-                // a single entry is free-form markdown, not a bullet list
-                // (mirrors AboutThisData and SourcesDescriptions)
+            {datapageData.descriptionKey && (
                 <div className="meta-expander__preview meta-expander__prose">
-                    <SimpleMarkdownText text={preview[0]} />
+                    <SimpleMarkdownText text={datapageData.descriptionKey} />
                 </div>
-            ) : (
-                preview.length > 0 && (
-                    <ul className="meta-expander__list meta-expander__preview">
-                        {preview.map((p) => (
-                            <li className="meta-expander__list-item" key={p}>
-                                <SimpleMarkdownText text={p} />
-                            </li>
-                        ))}
-                    </ul>
-                )
             )}
             <details
                 className="meta-expander__details"
@@ -210,15 +189,6 @@ function ExpandableSection({
                         />
                     </span>
                 </summary>
-                {remainder.length > 0 && (
-                    <ul className="meta-expander__list">
-                        {remainder.map((p) => (
-                            <li className="meta-expander__list-item" key={p}>
-                                <SimpleMarkdownText text={p} />
-                            </li>
-                        ))}
-                    </ul>
-                )}
                 {
                     <section className="meta-expander__section meta-expander__section--faqs">
                         <h2 className="meta-expander__section-title" id="faqs">

@@ -15,7 +15,7 @@ type MetadataColumn = {
     titleShort: string
     titleLong: string
     descriptionShort?: string
-    descriptionKey?: string[]
+    descriptionKey?: string
     descriptionProcessing?: string
     shortUnit?: string
     unit?: string

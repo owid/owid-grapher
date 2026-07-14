@@ -171,17 +171,7 @@
     top: -1px;
 }
 
-.meta-expander__list {
-    margin-left: 24px;
-    a {
-        @include owid-link-90;
-    }
-    ul {
-        margin-left: 24px;
-    }
-}
-
-// free-form markdown rendering of a single-entry descriptionKey
+// free-form markdown rendering of descriptionKey
 .meta-expander__prose {
     p,
     ul,
@@ -200,15 +190,6 @@
     }
     a {
         @include owid-link-90;
-    }
-}
-
-.meta-expander__list-item {
-    margin-bottom: 8px;
-
-    p {
-        @include body-2-regular;
-        margin: 0;
     }
 }
 

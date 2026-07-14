@@ -1,4 +1,4 @@
-import { OwidVariableType } from "../OwidVariable.js"
+import { normalizeDescriptionKey, OwidVariableType } from "../OwidVariable.js"
 import { OwidVariableDisplayConfigInterface } from "../OwidVariableDisplayConfigInterface.js"
 import { JsonString } from "../domainTypes/Various.js"
 
@@ -74,7 +74,7 @@ export type DbEnrichedVariable = Omit<
     license: License | null
     licenses: License[] | null
     dimensions: VariableDisplayDimension | null
-    descriptionKey: string[] | null
+    descriptionKey: string | null
     originalMetadata: unknown | null
     processingLog: unknown | null
     sort: string[] | null
@@ -126,12 +126,14 @@ export function serializeLicense(license: License | null): JsonString | null {
 
 export function parseVariableDescriptionKey(
     descriptionKey: JsonString | null
-): string[] | null {
-    return descriptionKey ? JSON.parse(descriptionKey) : null
+): string | null {
+    if (!descriptionKey) return null
+    // Rows written before the string migration hold JSON arrays.
+    return normalizeDescriptionKey(JSON.parse(descriptionKey)) ?? null
 }
 
 export function serializeVariableDescriptionKey(
-    descriptionKey: string[] | null
+    descriptionKey: string | null
 ): JsonString | null {
     return descriptionKey ? JSON.stringify(descriptionKey) : null
 }
