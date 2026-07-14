@@ -370,6 +370,17 @@ describe(getDiscreteDailyTickOptions, () => {
         ])
     })
 
+    it("never offers a single-label option", () => {
+        // Jul 1 is the range's only first-of-month and used to be offered as
+        // a lone calendar-anchored tick on the last band; instead, the axis
+        // should fall back to greedy labeling when no multi-label option fits
+        const options = getDiscreteDailyTickOptions({
+            bandValues: dailyBars("2025-06-07", "2025-07-01"),
+        })
+        for (const option of options)
+            expect(option.length).toBeGreaterThanOrEqual(2)
+    })
+
     it("never offers a ragged subset of irregular values", () => {
         // Band values on irregular dates. The every-2nd-day grid *contains* four of
         // them — Mar 7, 11, 17 and 21 — but with ragged gaps (4, 6 and 4
