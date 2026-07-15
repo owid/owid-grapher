@@ -2,12 +2,12 @@ import { Component } from "react"
 import { observer } from "mobx-react"
 import { observable, computed, runInAction, makeObservable } from "mobx"
 import { Prompt, Redirect } from "react-router-dom"
-import { DbChartTagJoin } from "@ourworldindata/utils"
 import { AdminLayout } from "./AdminLayout.js"
 import { BindString, Timeago, Toggle } from "./Forms.js"
 import { DatasetList, DatasetListItem } from "./DatasetList.js"
 import { ChartList, ChartListItem } from "./ChartList.js"
 import { TagBadge } from "./TagBadge.js"
+import { MinimalTagWithMetadata } from "./TagGraphMetadata.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { AutoComplete } from "antd"
 
@@ -18,7 +18,7 @@ interface TagPageData {
     updatedAt: string
     datasets: DatasetListItem[]
     charts: ChartListItem[]
-    children: DbChartTagJoin[]
+    children: MinimalTagWithMetadata[]
     slug: string | null
     searchableInAlgolia: boolean
 }
@@ -232,7 +232,11 @@ class TagEditor extends Component<{
                     <section>
                         <h3>Subcategories</h3>
                         {tag.children.map((c) => (
-                            <TagBadge tag={c} key={c.id} />
+                            <TagBadge
+                                tag={c}
+                                key={c.id}
+                                tagGraphRole={c.tagGraphRole}
+                            />
                         ))}
                     </section>
                 )}

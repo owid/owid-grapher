@@ -679,8 +679,9 @@ export {
 export {
     type DbInsertTag,
     type DbPlainTag,
-    type MinimalTagWithIsTopic,
+    type MinimalTagWithMetadata,
     type MinimalTag,
+    type TagGraphRole,
     TagsTableName,
 } from "./dbTypes/Tags.js"
 export {

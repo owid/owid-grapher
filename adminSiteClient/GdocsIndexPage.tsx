@@ -15,13 +15,14 @@ import {
     faUserPen,
     faBullhorn,
     faFileLines,
+    faTriangleExclamation,
 } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
-    DbChartTagJoin,
     OwidGdocType,
     checkIsGdocPost,
     OwidGdocIndexItem,
+    MinimalTagWithMetadata,
 } from "@ourworldindata/utils"
 import {
     buildSearchWordsFromSearchString,
@@ -36,6 +37,7 @@ import { GdocsStoreContext } from "./GdocsStoreContext.js"
 import { computed, observable, makeObservable } from "mobx"
 import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 import { GdocsEditLink } from "./GdocsEditLink.js"
+import { getTagGraphRolesById } from "./TagGraphMetadata.js"
 
 const iconGdocTypeMap = {
     [OwidGdocType.Fragment]: <FontAwesomeIcon icon={faPuzzlePiece} />,
@@ -146,6 +148,49 @@ type GdocsSearchFilters = Record<OwidGdocType, boolean> & {
     publishStatus: GdocPublishStatus
 }
 
+function canTagGdoc(gdoc: OwidGdocIndexItem): boolean {
+    return (
+        !!gdoc.type &&
+        ![
+            OwidGdocType.AboutPage,
+            OwidGdocType.Author,
+            OwidGdocType.Fragment,
+            OwidGdocType.Homepage,
+        ].includes(gdoc.type)
+    )
+}
+
+function TagWarning({
+    gdoc,
+    orphanTagIds,
+}: {
+    gdoc: OwidGdocIndexItem
+    orphanTagIds?: ReadonlySet<number>
+}): React.ReactElement | null {
+    let warning
+    if (!gdoc.tags?.length) {
+        warning =
+            "This document has no tags. " +
+            "Without any topic tags, this document will not be filterable in the search or latest page."
+    } else if (
+        orphanTagIds &&
+        gdoc.tags.every((tag) => orphanTagIds.has(tag.id))
+    ) {
+        warning =
+            "This document has only orphan tags. " +
+            "Without any topic tags, this document will not be filterable in the search or latest page."
+    }
+
+    if (!warning) return null
+
+    return (
+        <span className="gdoc-index-item__tagging-warning">
+            <FontAwesomeIcon icon={faTriangleExclamation} />{" "}
+            <span>{warning}</span>
+        </span>
+    )
+}
+
 @observer
 export class GdocsIndexPage extends React.Component<RouteComponentProps> {
     static override contextType = GdocsStoreContext
@@ -187,8 +232,13 @@ export class GdocsIndexPage extends React.Component<RouteComponentProps> {
     }
 
     @computed
-    get tags(): DbChartTagJoin[] {
+    get tags(): MinimalTagWithMetadata[] {
         return this.context?.availableTags || []
+    }
+
+    @computed
+    get tagGraphRolesById(): ReturnType<typeof getTagGraphRolesById> {
+        return getTagGraphRolesById(this.tags)
     }
 
     @computed get allGdocsToShow(): OwidGdocIndexItem[] {
@@ -346,25 +396,31 @@ export class GdocsIndexPage extends React.Component<RouteComponentProps> {
                                 <p className="gdoc-index-item__byline">
                                     {gdoc.authors?.join(", ")}
                                 </p>
-                                <span className="gdoc-index-item__tags">
-                                    {gdoc.type &&
-                                    ![
-                                        OwidGdocType.Fragment,
-                                        OwidGdocType.AboutPage,
-                                    ].includes(gdoc.type) &&
-                                    gdoc.tags ? (
-                                        <EditableTags
-                                            tags={gdoc.tags}
-                                            onSave={(tags) =>
-                                                this.context?.updateTags(
-                                                    gdoc,
-                                                    tags as any
-                                                )
-                                            }
-                                            suggestions={this.tags}
-                                        />
+                                <div className="gdoc-index-item__tags">
+                                    {canTagGdoc(gdoc) ? (
+                                        <>
+                                            <TagWarning
+                                                gdoc={gdoc}
+                                                orphanTagIds={
+                                                    this.context?.orphanTagIds
+                                                }
+                                            />
+                                            <EditableTags
+                                                tags={gdoc.tags ?? []}
+                                                onSave={(tags) =>
+                                                    this.context?.updateTags(
+                                                        gdoc,
+                                                        tags as any
+                                                    )
+                                                }
+                                                suggestions={this.tags}
+                                                tagGraphRolesById={
+                                                    this.tagGraphRolesById
+                                                }
+                                            />
+                                        </>
                                     ) : null}
-                                </span>
+                                </div>
                             </div>
                             <div className="gdoc-index-item__publish-status">
                                 {gdoc.published

@@ -6,7 +6,7 @@ import {
     type AnalyticsGrapherViewWithRank,
     GrapherInterface,
     ChartRedirect,
-    MinimalTagWithIsTopic,
+    MinimalTagWithMetadata,
     DbChartTagJoin,
 } from "@ourworldindata/types"
 import { Admin } from "./Admin.js"
@@ -57,7 +57,7 @@ export class ChartEditorPage
     redirects: ChartRedirect[] = []
     views: AnalyticsGrapherViewWithRank | undefined = undefined
     tags: DbChartTagJoin[] | undefined = undefined
-    availableTags: MinimalTagWithIsTopic[] | undefined = undefined
+    availableTags: MinimalTagWithMetadata[] | undefined = undefined
     forceDatapage: boolean | undefined = undefined
     variableIdsByCatalogPath: Record<string, number | null> | undefined =
         undefined
