@@ -55,12 +55,15 @@ _mysql() {
 # and retried on failure, never the live, already-swapped-in database.
 import_db() {
     _mysql -e "ALTER INSTANCE DISABLE INNODB REDO_LOG;"
-    # Run with errexit off so a failing import doesn't abort the script here and
-    # skip the re-enable below, leaving the instance without crash-recoverable logging.
+    # Covers both a failing import (errexit off below so we reach the re-enable)
+    # and the import being killed outright (CI timeout, operator abort): the trap
+    # fires on that exit/signal too, so redo logging never stays off instance-wide.
+    trap '_mysql -e "ALTER INSTANCE ENABLE INNODB REDO_LOG;" 2>/dev/null || true' EXIT INT TERM
     set +o errexit
     cat $1 | gunzip | sed s/.\*DEFINER\=\`.\*// | grep -vF GLOBAL.GTID_PURGED | _mysql $2
     local status=$?
     set -o errexit
+    trap - EXIT INT TERM
     _mysql -e "ALTER INSTANCE ENABLE INNODB REDO_LOG;"
     return $status
 }
