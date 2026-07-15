@@ -4,7 +4,7 @@
     "engines": {
         "node": ">=24.0"
     },
-    "packageManager": "yarn@4.14.1",
+    "packageManager": "yarn@4.17.1",
     "scripts": {
         "batchTagWithGpt": "tsx --tsconfig tsconfig.tsx.json baker/batchTagWithGpt.ts",
         "buildArchive": "tsx --tsconfig tsconfig.tsx.json baker/archival/archiveChangedPages.ts",
@@ -14,7 +14,7 @@
         "buildViteSite": "NODE_OPTIONS=--max-old-space-size=8192 vite build --config vite.config-site.mts",
         "buildVite": "yarn buildViteSite && yarn buildViteAdmin",
         "bakeGdocPosts": "tsx --tsconfig tsconfig.tsx.json baker/bakeGdocPosts.ts",
-        "cleanTsc": "rm -rf itsJustJavascript && tsgo -b -clean",
+        "cleanTsc": "rm -rf itsJustJavascript && tsc -b -clean",
         "createDbMigration": "tsx --tsconfig tsconfig.tsx.json node_modules/typeorm/cli.js migration:create",
         "createMultiDimRedirectsFromCsv": "tsx --tsconfig tsconfig.tsx.json devTools/createMultiDimRedirectsFromCsv.ts",
         "createAdminApiKey": "tsx --tsconfig tsconfig.tsx.json devTools/createAdminApiKey.ts",
@@ -47,8 +47,7 @@
         "test:functions:e2e-r2": "vitest functions/test/grapher-config-r2.e2e.test.ts",
         "testBdd": "yarn bddgen && yarn playwright test",
         "checkRaycastSnippets": "tsx --tsconfig tsconfig.tsx.json devTools/gdocs/raycastSnippets/generateRaycastSnippets.ts --check",
-        "tsc": "tsgo",
-        "typecheck": "yarn tsgo -b -f",
+        "typecheck": "tsc -b -f",
         "generateDbTypes": "npx @rmp135/sql-ts -c db/sql-ts/sql-ts-config.json",
         "generateRaycastSnippets": "tsx --tsconfig tsconfig.tsx.json devTools/gdocs/raycastSnippets/generateRaycastSnippets.ts",
         "syncGraphersToR2": "tsx --tsconfig tsconfig.tsx.json devTools/syncGraphersToR2/syncGraphersToR2.ts",
@@ -199,7 +198,6 @@
         "@types/react-router-dom": "^5.3.3",
         "@types/topojson-server": "^3.0.4",
         "@types/yargs": "^17.0.35",
-        "@typescript/native-preview": "^7.0.0-dev.20260504.1",
         "@vitejs/plugin-react": "^6.0.3",
         "@vitest/coverage-v8": "^4.1.9",
         "@yarnpkg/types": "^4.0.1",
@@ -222,6 +220,7 @@
         "schema-dts": "^2.0.0",
         "topojson-server": "^3.0.1",
         "tsx": "^4.23.0",
+        "typescript": "^7.0.2",
         "vite": "^8.1.0",
         "vitest": "^4.1.9",
         "wrangler": "^4.105.0"
