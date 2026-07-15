@@ -1,0 +1,21 @@
+{
+    // Used only by tsdown (see tsdown.config.ts) to generate the bundled
+    // type declarations. Includes the sources of our workspace dependencies
+    // so their types can be inlined into the bundle. Note that "references"
+    // are deliberately not inherited via "extends", so the sibling sources
+    // are compiled as part of this program rather than resolved to their
+    // project outputs.
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+        // Spans the sibling packages included below
+        "rootDir": "../.."
+    },
+    "include": [
+        "src/**/*",
+        "../types/src/index.ts",
+        "../utils/src/index.ts",
+        "../core-table/src/index.ts",
+        "../components/src/index.ts"
+    ],
+    "exclude": ["**/*.test.*"]
+}
