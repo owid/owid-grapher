@@ -150,6 +150,7 @@ function ExpandableSection({
         const summary = summaryRef.current
         if (!details?.open || !summary) return // expanding — let the native toggle run
         event.preventDefault()
+        analytics.logSiteClick("collapse_metadata_box", "summary")
         const before = summary.getBoundingClientRect().top
         details.open = false
         const after = summary.getBoundingClientRect().top
@@ -175,11 +176,12 @@ function ExpandableSection({
                 // Guard to only react to this element's own toggle.
                 onToggle={(e) => {
                     if (e.target !== e.currentTarget) return
-                    analytics.logSiteClick(
-                        e.currentTarget.open
-                            ? "expand_metadata_box"
-                            : "collapse_metadata_box"
-                    )
+                    // Closes are tracked at their source (summary click or
+                    // close button) so we can tell them apart; only expand
+                    // is tracked here since opening only happens one way.
+                    if (e.currentTarget.open) {
+                        analytics.logSiteClick("expand_metadata_box")
+                    }
                 }}
             >
                 <summary
@@ -449,7 +451,13 @@ export default function IndicatorMetadataBox({
                 type="button"
                 className="indicator-metadata-box__show-less"
                 onClick={() => {
-                    if (detailsRef.current) detailsRef.current.open = false
+                    if (detailsRef.current) {
+                        analytics.logSiteClick(
+                            "collapse_metadata_box",
+                            "close_button"
+                        )
+                        detailsRef.current.open = false
+                    }
                 }}
             >
                 Show less
