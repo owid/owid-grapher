@@ -6,6 +6,8 @@ import {
     formatAuthors,
     formatDate,
     getResearchAndWritingId,
+    getTopicPageHeading,
+    sentenceCaseIfNotTopicPage,
 } from "@ourworldindata/utils"
 import { useLinkedDocument } from "../utils.js"
 import Image, { ImageParentContainer } from "./Image.js"
@@ -17,7 +19,6 @@ import {
     DEFAULT_GDOC_FEATURED_IMAGE,
     DEFAULT_THUMBNAIL_FILENAME,
     DbEnrichedLatestWork,
-    RESEARCH_AND_WRITING_DEFAULT_HEADING,
     SearchResultType,
     SearchState,
 } from "@ourworldindata/types"
@@ -198,6 +199,12 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
         (link) => link.value.url
     )
     const { latestWorkLinks, tags } = useContext(AttachmentsContext)
+    const { gdocType } = useDocumentContext()
+    const defaultHeading = getTopicPageHeading("researchAndWriting", gdocType)
+    const customHeadingCaseCorrected = sentenceCaseIfNotTopicPage(
+        heading,
+        gdocType
+    )
     const topicName = tags?.[0]?.name
     let seeAllResearchHref: string | undefined
     if (topicName) {
@@ -258,7 +265,7 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
                 })}
                 id={slug}
             >
-                <span>{heading || RESEARCH_AND_WRITING_DEFAULT_HEADING}</span>
+                <span>{customHeadingCaseCorrected || defaultHeading}</span>
                 <a
                     className="deep-link"
                     aria-labelledby={slug}

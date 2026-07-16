@@ -80,7 +80,8 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
         const isLinearTopicPage = content.type === OwidGdocType.LinearTopicPage
         content.toc = generateToc(
             content.body,
-            isTocForSidebar || isLinearTopicPage
+            isTocForSidebar || isLinearTopicPage,
+            content.type as OwidGdocType
         )
 
         if (content["latest-feed-excerpt"]) {
