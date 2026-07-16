@@ -11,6 +11,7 @@ export {
     type DbInsertDodLink,
     type DbPlainDodLink,
 } from "./dbTypes/DodLinks.js"
+console.log("HI")
 
 export {
     DodsTableName,
