@@ -183,6 +183,19 @@
         @include body-2-regular;
         margin: 0 0 8px;
     }
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        @include body-2-bold-tight;
+        color: $blue-90;
+        margin: 0 0 8px;
+        &:not(:first-child) {
+            margin-top: 16px;
+        }
+    }
     p:last-child,
     ul:last-child,
     ol:last-child {
