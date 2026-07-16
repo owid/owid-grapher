@@ -183,12 +183,12 @@ export const configureAlgolia = async () => {
         },
     })
 
-    const algoliaSynonyms = synonyms.map((s) => {
+    const algoliaSynonyms: SynonymHit[] = synonyms.map((s) => {
         return {
             objectID: s.join("-"),
             type: "synonym",
             synonyms: s,
-        } as SynonymHit
+        }
     })
 
     // Send all our country variant names to algolia as one-way synonyms

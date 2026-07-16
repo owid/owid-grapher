@@ -337,7 +337,7 @@ function transformCalloutTokensInSpan(span: Span): Span[] {
         const transformedChildren = span.children.flatMap(
             transformCalloutTokensInSpan
         )
-        return [{ ...span, children: transformedChildren } as Span]
+        return [{ ...span, children: transformedChildren }]
     }
 
     // Only process simple text spans

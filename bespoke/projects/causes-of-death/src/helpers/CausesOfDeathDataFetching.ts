@@ -57,7 +57,7 @@ export const useCausesOfDeathEntityData = (
         console.error(`Unknown entity: "${entityName}"`)
         return {
             data: undefined,
-            status: "error" as QueryStatus,
+            status: "error",
             isPlaceholderData: false,
             isFetching: false,
         }

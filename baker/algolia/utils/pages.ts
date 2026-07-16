@@ -582,7 +582,7 @@ export async function indexIndividualGdoc(
         // so this will safely overwrite them or create new ones
         await client.saveObjects({
             indexName,
-            objects: records as Array<Record<string, any>>,
+            objects: records,
         })
         console.log("Updated Algolia index for Gdoc post", gdoc.slug)
     } catch (e) {
@@ -756,7 +756,7 @@ export async function indexIndividualProfile(
         )
         await client.saveObjects({
             indexName,
-            objects: records as Array<Record<string, any>>,
+            objects: records,
         })
         console.log(
             `Updated Algolia index for profile template ${profileTemplate.slug}`
