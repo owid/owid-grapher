@@ -208,11 +208,7 @@
         left: 0;
         right: 0;
         height: 48px;
-        background: linear-gradient(
-            to bottom,
-            rgba($white, 0),
-            rgba($white, 1)
-        );
+        background: linear-gradient(to bottom, rgba($blue-5, 0), $blue-5);
     }
 }
 
