@@ -122,9 +122,7 @@ export enum OwidGdocType {
     Profile = "profile",
 }
 
-export const ALL_GDOC_TYPES: OwidGdocType[] = Object.values(
-    OwidGdocType
-) as OwidGdocType[]
+export const ALL_GDOC_TYPES: OwidGdocType[] = Object.values(OwidGdocType)
 
 export interface OwidGdocBaseInterface {
     id: string

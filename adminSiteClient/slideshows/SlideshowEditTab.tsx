@@ -10,7 +10,6 @@ import {
     SlideTemplate,
     SLIDE_TEMPLATE_LABELS,
 } from "@ourworldindata/types"
-import { RcFile } from "antd/es/upload/interface.js"
 import { AdminAppContext } from "../AdminAppContext.js"
 import {
     ACCEPTED_IMG_TYPES,
@@ -72,7 +71,7 @@ function ImageEditor(props: {
                     accept={ACCEPTED_IMG_TYPES.join(",")}
                     showUploadList={false}
                     customRequest={async ({ file }) => {
-                        const payload = await fileToBase64(file as RcFile)
+                        const payload = await fileToBase64(file)
                         if (!payload) return
                         setIsUploading(true)
                         try {

@@ -424,7 +424,7 @@ export function DataInsightIndexPage() {
             // Show a notification if any items failed to sync
             if (result.errored > 0) {
                 notificationApi.error({
-                    message: "Failed to refresh some data insights",
+                    title: "Failed to refresh some data insights",
                     description: `${result.errored} of ${gdocIds.length} data insights could not be refreshed from Google Docs.`,
                     placement: "bottomRight",
                 })
@@ -432,7 +432,7 @@ export function DataInsightIndexPage() {
         } catch (error) {
             // Show a notification if the entire sync operation failed
             notificationApi.error({
-                message: "Failed to refresh data insights",
+                title: "Failed to refresh data insights",
                 description:
                     error instanceof Error ? error.message : "Unknown error",
                 placement: "bottomRight",
@@ -506,14 +506,14 @@ export function DataInsightIndexPage() {
             updateDataInsightPreview(dataInsight.id, response.image)
 
             notificationApi.info({
-                message: "Image replaced!",
+                title: "Image replaced!",
                 description:
                     "Make sure you update the alt text if your revision has substantive changes",
                 placement: "bottomRight",
             })
         } else {
             notificationApi.warning({
-                message: "Image upload failed",
+                title: "Image upload failed",
                 description: response?.errorMessage,
                 placement: "bottomRight",
             })

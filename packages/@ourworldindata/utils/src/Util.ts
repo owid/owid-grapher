@@ -269,13 +269,13 @@ export const roundSigFig = (num: number, sigfigs: number = 1): number => {
 }
 
 export const excludeUndefined = <T>(arr: (T | undefined)[]): T[] =>
-    arr.filter((x) => x !== undefined) as T[]
+    arr.filter((x) => x !== undefined)
 
 export const excludeNull = <T>(arr: (T | null)[]): T[] =>
-    arr.filter((x) => x !== null) as T[]
+    arr.filter((x) => x !== null)
 
 export const excludeNullish = <T>(arr: (T | null | undefined | void)[]): T[] =>
-    arr.filter((x) => x !== null && x !== undefined) as T[]
+    arr.filter((x) => x !== null && x !== undefined)
 
 export const firstOfNonEmptyArray = <T>(arr: T[]): T => {
     if (arr.length < 1) throw new Error("array is empty")

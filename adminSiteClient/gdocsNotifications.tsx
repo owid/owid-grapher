@@ -10,7 +10,7 @@ const openNotification = (
     description: React.ReactNode
 ) => {
     notification[type]({
-        message: title,
+        title: title,
         description,
         placement: "bottomLeft",
         closeIcon: <></>,

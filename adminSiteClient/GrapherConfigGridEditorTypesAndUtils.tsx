@@ -58,7 +58,7 @@ import * as R from "remeda"
 export function parseVariableAnnotationsRow(
     row: VariableAnnotationsResponseRow
 ): VariableAnnotationsRow {
-    return row as VariableAnnotationsRow // The type defintiion of VariableAnnotationsResponseRow in clientUtils can't use GrapherInterface so we type cast here for now
+    return row // The type defintiion of VariableAnnotationsResponseRow in clientUtils can't use GrapherInterface so we type cast here for now
 }
 
 export enum GrapherConfigGridEditorSource {

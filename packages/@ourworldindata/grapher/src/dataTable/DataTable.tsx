@@ -1190,9 +1190,9 @@ function getValueForEntityByKey(
     columnKey: DataTableColumnKey
 ): MinimalOwidRow | undefined {
     if (isSingleValue(dimensionValue)) {
-        return dimensionValue[columnKey as PointColumnKey] as MinimalOwidRow
+        return dimensionValue[columnKey as PointColumnKey]
     } else if (isRangeValue(dimensionValue)) {
-        return dimensionValue[columnKey as RangeColumnKey] as MinimalOwidRow
+        return dimensionValue[columnKey as RangeColumnKey]
     }
     return undefined
 }

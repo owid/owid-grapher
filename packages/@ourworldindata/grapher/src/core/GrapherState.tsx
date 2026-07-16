@@ -837,13 +837,13 @@ export class GrapherState
         obj.$schema = this.$schema || latestGrapherConfigSchema
 
         // JSON doesn't support Infinity, so we use strings instead
-        if (obj.minTime) obj.minTime = minTimeToJSON(this.minTime) as any
-        if (obj.maxTime) obj.maxTime = maxTimeToJSON(this.maxTime) as any
+        if (obj.minTime) obj.minTime = minTimeToJSON(this.minTime)
+        if (obj.maxTime) obj.maxTime = maxTimeToJSON(this.maxTime)
 
         if (obj.timelineMinTime)
-            obj.timelineMinTime = minTimeToJSON(this.timelineMinTime) as any
+            obj.timelineMinTime = minTimeToJSON(this.timelineMinTime)
         if (obj.timelineMaxTime)
-            obj.timelineMaxTime = maxTimeToJSON(this.timelineMaxTime) as any
+            obj.timelineMaxTime = maxTimeToJSON(this.timelineMaxTime)
 
         // Don't serialize the tab if the default chart is currently shown
         if (

@@ -631,7 +631,7 @@ export function enrichedBlockToRawBlock(
             return {
                 type: b.type,
                 value: {
-                    alignment: b.alignment as string,
+                    alignment: b.alignment,
                     content: b.content.map(enrichedBlockToRawBlock),
                 },
             }
