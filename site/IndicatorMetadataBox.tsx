@@ -18,7 +18,8 @@ import {
     OwidEnrichedGdocBlock,
     PrimaryTopic,
 } from "@ourworldindata/types"
-import { useRef } from "react"
+import { RefObject, useRef, useState } from "react"
+import { useResizeObserver } from "usehooks-ts"
 import {
     prepareSourcesForDisplay,
     getCitationShort,
@@ -44,6 +45,24 @@ function logExpandableToggle(target: string, isOpen: boolean): void {
         isOpen ? "expand_expandable_toggle" : "collapse_expandable_toggle",
         target
     )
+}
+
+// Whether the element's content is currently clipped by its box (e.g. by a
+// CSS max-height). Used to only show a "fade out" hint when there's actually
+// more content hidden below the fold.
+function useIsOverflowing(ref: RefObject<HTMLElement | null>): boolean {
+    const [isOverflowing, setIsOverflowing] = useState(false)
+
+    useResizeObserver({
+        ref: ref as RefObject<HTMLElement>,
+        onResize: () => {
+            const element = ref.current
+            if (!element) return
+            setIsOverflowing(element.scrollHeight > element.clientHeight)
+        },
+    })
+
+    return isOverflowing
 }
 
 interface ExpandableSectionProps {
@@ -147,10 +166,28 @@ function ExpandableSection({
         window.scrollBy(0, after - before)
     }
 
+    // The descriptionKey preview is clamped to a fixed height so a long
+    // free-form description doesn't blow up the box; it's released once the
+    // box is expanded, since the full text isn't shown anywhere else.
+    const [isBoxOpen, setIsBoxOpen] = useState(false)
+    const proseRef = useRef<HTMLDivElement>(null)
+    const isProseOverflowing = useIsOverflowing(proseRef)
+
     return (
         <div className={cx("meta-expander", className)}>
             {datapageData.descriptionKey && (
-                <div className="meta-expander__preview meta-expander__prose">
+                <div
+                    className={cx(
+                        "meta-expander__preview",
+                        "meta-expander__prose",
+                        {
+                            "meta-expander__prose--expanded": isBoxOpen,
+                            "meta-expander__prose--clamped":
+                                !isBoxOpen && isProseOverflowing,
+                        }
+                    )}
+                    ref={proseRef}
+                >
                     <SimpleMarkdownText text={datapageData.descriptionKey} />
                 </div>
             )}
@@ -162,6 +199,7 @@ function ExpandableSection({
                 // Guard to only react to this element's own toggle.
                 onToggle={(e) => {
                     if (e.target !== e.currentTarget) return
+                    setIsBoxOpen(e.currentTarget.open)
                     analytics.logSiteClick(
                         e.currentTarget.open
                             ? "expand_metadata_box"
