@@ -36,6 +36,7 @@ const REGION_DATA_PROVIDER_LABELS: Record<RegionDataProvider, string> = {
     ilo_2: "ILO (sub)",
     fao_1: "FAO (continents)",
     fao_2: "FAO (subregions)",
+    fao_sdg: "FAO (SDG regions)",
 }
 
 const ADDITIONAL_REGION_DATA_PROVIDER_LABELS: Record<

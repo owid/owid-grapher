@@ -69,6 +69,7 @@ export const regionGroupLabels: Record<RegionGroupKey, string> = {
     ilo_2: "International Labour Organization regions",
     fao_1: "Food and Agriculture Organization regions",
     fao_2: "Food and Agriculture Organization regions",
+    fao_sdg: "Food and Agriculture Organization regions",
 
     // Regions defined by an institution, but we don't have region definitions in regions.ts for these (we recognize them by their suffix)
     unsdg: "UN Sustainable Development Goals regions",

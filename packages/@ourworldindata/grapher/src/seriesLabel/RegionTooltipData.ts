@@ -55,6 +55,8 @@ const descriptions: Record<TooltipKey, string> = {
     ilo_2: "The **International Labour Organization (ILO)** divides the world into [eleven subregions](https://ourworldindata.org/world-region-map-definitions#international-labour-organization-ilo):",
     fao_1: "The **Food and Agriculture Organization of the United Nations (FAO)** reports data for [world regions](https://ourworldindata.org/world-region-map-definitions#food-and-agriculture-organization-fao) at several levels of detail. This map shows its broadest level, the continents:",
     fao_2: "The **Food and Agriculture Organization of the United Nations (FAO)** reports data for [world regions](https://ourworldindata.org/world-region-map-definitions#food-and-agriculture-organization-fao) at several levels of detail. This map shows its subregions:",
+    fao_sdg:
+        "The **Food and Agriculture Organization of the United Nations (FAO)** groups countries into [world regions](https://ourworldindata.org/world-region-map-definitions#food-and-agriculture-organization-fao) for its Sustainable Development Goals reporting:",
 }
 
 // Geographic display order: left-to-right on the map.
@@ -188,6 +190,16 @@ const customRegionDisplayOrder: Partial<Record<TooltipKey, string[]>> = {
         "Melanesia (FAO)",
         "Micronesia (FAO)",
         "Polynesia (FAO)",
+    ],
+    fao_sdg: [
+        "Sub-Saharan Africa (FAO)",
+        "Northern America and Europe (FAO)",
+        "Latin America and the Caribbean (FAO)",
+        "Western Asia and Northern Africa (FAO)",
+        "Central Asia and Southern Asia (FAO)",
+        "Eastern Asia and South-eastern Asia (FAO)",
+        "Australia and New Zealand (FAO)",
+        "Oceania excluding Australia and New Zealand (FAO)",
     ],
 }
 
