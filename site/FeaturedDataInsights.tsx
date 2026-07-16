@@ -13,6 +13,11 @@ import { SearchDataInsightHit } from "./search/SearchDataInsightHit.js"
 import { Button } from "@ourworldindata/components"
 import cx from "clsx"
 import { buildLatestPagePath } from "./latest/latestUtils.js"
+import { useDocumentContext } from "./gdocs/DocumentContext.js"
+import {
+    sentenceCaseIfNotTopicPage,
+    getTopicPageHeading,
+} from "@ourworldindata/utils"
 
 const MAX_DATA_INSIGHTS_RESULTS = 1000 // setting to maximum allowed to get all results
 
@@ -26,6 +31,9 @@ export const FeaturedDataInsights = ({
     className,
 }: FeaturedDataInsightsProps) => {
     const liteSearchClient = getLiteSearchClient()
+    const { gdocType } = useDocumentContext()
+    const headingFragment = getTopicPageHeading("dataInsights", gdocType)
+    const headingCaseCorrected = `${headingFragment} on ${sentenceCaseIfNotTopicPage(topicName, gdocType, false)}`
 
     const searchState = useMemo<SearchState>(
         () => ({
@@ -63,7 +71,7 @@ export const FeaturedDataInsights = ({
             id={FEATURED_DATA_INSIGHTS_ID}
         >
             <h1 className="h1-semibold">
-                <span>Data Insights on {topicName}</span>
+                <span>{headingCaseCorrected}</span>
                 <a
                     className="deep-link"
                     aria-labelledby={FEATURED_DATA_INSIGHTS_ID}
