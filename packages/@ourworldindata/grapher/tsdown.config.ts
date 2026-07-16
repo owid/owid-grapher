@@ -10,7 +10,7 @@ export default defineConfig({
     outDir: "./dist",
     // Don't wipe dist — it already contains the vite JS build output
     clean: false,
-    tsconfig: "./tsconfig.tsdown.json",
+    tsconfig: "../tsconfig.tsdown.json",
     deps: {
         alwaysBundle: [/^@ourworldindata\//],
         // The workspace packages we inline have their own dependencies
