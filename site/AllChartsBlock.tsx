@@ -323,9 +323,10 @@ function computeAutoSuggestedChips(
     // threshold applied above), then prefer specific title/subtitle keywords
     // for the remaining slots, falling back to producers only if there isn't
     // enough keyword variety to fill out the list.
-    const chips: SuggestedChipCandidate[] = [
-        ...topCountries.slice(0, MAX_SUGGESTED_COUNTRY_CHIPS),
-    ]
+    const chips: SuggestedChipCandidate[] = topCountries.slice(
+        0,
+        MAX_SUGGESTED_COUNTRY_CHIPS
+    )
 
     for (const keyword of topKeywords) {
         if (chips.length >= MAX_SUGGESTED_CHIPS) break
@@ -932,7 +933,7 @@ const AllChartsEmptyState = ({
                 No indicators on {topicName} match “{query}”.
             </p>
             <Button
-                theme="solid-vermillion"
+                theme="solid-dark-blue"
                 text="Search all charts"
                 href={searchHref}
                 dataTrackNote="all-charts-search-all"

@@ -8,7 +8,7 @@
 .all-charts-block__panes {
     display: grid;
     grid-template-columns: 5fr 7fr;
-    gap: 24px;
+    gap: 20px;
     align-items: start;
 
     @include md-down {
@@ -34,8 +34,14 @@ $all-charts-block-sticky-top: 72px;
 
 .all-charts-block__right {
     min-width: 0;
+    align-self: start;
     position: sticky;
     top: $all-charts-block-sticky-top;
+    background-color: #fff;
+    border: 1px solid $gray-20;
+    border-radius: 8px;
+    overflow: hidden;
+    animation: all-charts-block-slide-in 260ms cubic-bezier(0.2, 0.8, 0.2, 1);
 
     figure[data-grapher-src]:not(.grapherPreview),
     figure.grapher-component:not(.grapherPreview) {
@@ -49,6 +55,17 @@ $all-charts-block-sticky-top: 72px;
     // the intent clear.
     @include md-down {
         display: none;
+    }
+}
+
+@keyframes all-charts-block-slide-in {
+    from {
+        opacity: 0;
+        transform: translateX(16px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
     }
 }
 
@@ -82,22 +99,30 @@ $all-charts-block-sticky-top: 72px;
 
 .all-charts-block__search-icon {
     position: absolute;
-    left: 12px;
+    left: 18px;
+    font-size: 16px;
     color: $gray-70;
     pointer-events: none;
 }
 
 .all-charts-block__search-input {
     width: 100%;
-    padding: 12px 36px 12px 36px;
-    border: 1px solid $gray-30;
-    border-radius: 4px;
+    // Prominent input: PR's thicker border, larger radius and taller vertical
+    // padding. Left padding clears the search icon (left: 18px); right padding
+    // keeps text clear of the clear button (right: 12px, from the base branch).
+    padding: 14px 36px 14px 42px;
+    border: 1.5px solid $gray-30;
+    border-radius: 8px;
     font-size: 16px;
     color: $text-color;
+    transition:
+        border-color 140ms ease-out,
+        box-shadow 140ms ease-out;
 
     &:focus {
         outline: none;
-        border-color: $blue-60;
+        border-color: $oxford-blue;
+        box-shadow: 0 0 0 3px $blue-10;
     }
 
     &::placeholder {
@@ -165,6 +190,7 @@ $all-charts-block-sticky-top: 72px;
     text-decoration: underline;
     text-underline-offset: 2px;
     cursor: pointer;
+    transition: color 120ms ease-out;
 
     &:hover {
         color: $vermillion;
@@ -205,8 +231,20 @@ $all-charts-block-row-column-gap: 16px;
     list-style: none;
     margin: 0;
     padding: 0;
-    border-top: 1px solid $gray-20;
+    background-color: #fff;
+    border: 1px solid $gray-20;
+    border-radius: 8px;
+    // Clip the rows' hover/selected background tints to the card's rounded
+    // corners. Not a scroll region — the list grows with the page while the
+    // sidecar stays sticky (see the note above and .all-charts-block__right).
+    overflow: hidden;
     transition: opacity 100ms ease-out;
+
+    // The card border already provides the closing edge, so drop the last
+    // row's divider.
+    .all-charts-block__row:last-child {
+        border-bottom: none;
+    }
 }
 
 // While a new debounced search query is fetching in the background, the
@@ -224,8 +262,17 @@ $all-charts-block-row-column-gap: 16px;
 }
 
 .all-charts-block__row--selected .all-charts-block__row-main {
+    // Vermillion accent bar down the row's left edge. The row-main already
+    // reserves 3px with a transparent left border, so colouring it in causes
+    // no layout shift between selected and unselected rows.
     border-left-color: $vermillion;
     background-color: $blue-5;
+
+    // Keep the selected row's blue tint on hover rather than letting the
+    // row-main hover (gray-5) win.
+    &:hover {
+        background-color: $blue-5;
+    }
 }
 
 // The clickable row content: a real two-column grid (indicator info, then
@@ -241,6 +288,7 @@ $all-charts-block-row-column-gap: 16px;
     align-items: stretch;
     border-left: 3px solid transparent;
     cursor: pointer;
+    transition: background-color 120ms ease-out;
 
     &:hover {
         background-color: $gray-5;
@@ -267,34 +315,28 @@ $all-charts-block-row-column-gap: 16px;
 .all-charts-block__row-title {
     // Playfair Semibold, matching the weight/family convention used by the
     // site's serif headings (see h1-semibold/h2-semibold/etc. in
-    // typography.scss), just at a fixed 16px rather than a heading scale.
+    // typography.scss). Explicit line-height rather than the loose inherited
+    // html value (1.6) so the title sits snugly above the subtitle within
+    // the row's 2px indicator gap.
     font-family: $serif-font-stack;
     font-weight: 600;
-    font-size: 16px;
-    // Explicit rather than relying on the inherited html line-height
-    // (1.6), which is too loose for a compact table row heading. Tighter
-    // than the 1.5 used for 16px serif headings elsewhere (h4-semibold in
-    // typography.scss) so the title sits snugly above the subtitle within
-    // the row's 2px indicator gap.
-    line-height: 1.25;
+    font-size: 15px;
+    line-height: 1.35;
     color: $text-color;
 }
 
 .all-charts-block__row-subtitle {
-    color: $blue-50;
-    font-size: 12px;
+    color: $gray-70;
+    font-size: 13px;
+    line-height: 1.4;
     font-weight: 400;
-    // Matches .all-charts-block__row-source below.
-    line-height: 1.5;
-    // Wrap rather than truncate — a cut-off subtitle reads as a rendering
-    // bug, and there's ample vertical room in the row for a couple of
-    // lines. Long subtitles are still clamped to 3 lines with an ellipsis
-    // below so a single row can't grow unboundedly tall.
+    // Wrap rather than truncate mid-word, and clamp to 2 lines with an
+    // ellipsis so a single row can't grow unboundedly tall.
     overflow-wrap: break-word;
     display: -webkit-box;
     -webkit-box-orient: vertical;
-    -webkit-line-clamp: 3;
-    line-clamp: 3;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
     overflow: hidden;
     text-overflow: ellipsis;
 }
@@ -356,16 +398,32 @@ $all-charts-block-row-column-gap: 16px;
 }
 
 .all-charts-block__row-link {
-    display: flex;
+    align-self: center;
+    flex-shrink: 0;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 0;
-    color: $blue-60;
-    border-left: 1px solid $gray-20;
+    // Center the 32px square button within the row grid's 44px trailing column.
+    justify-self: center;
+    width: 32px;
+    height: 32px;
+    border: 1px solid $gray-30;
+    border-radius: 4px;
+    background-color: #fff;
+    color: $gray-70;
+    transition:
+        background-color 120ms ease-out,
+        border-color 120ms ease-out,
+        color 120ms ease-out;
+}
 
-    &:hover {
-        color: $vermillion;
-    }
+// Fill the action button when its row is hovered or selected, matching the
+// design's oxford-blue treatment.
+.all-charts-block__row:hover .all-charts-block__row-link,
+.all-charts-block__row--selected .all-charts-block__row-link {
+    background-color: $oxford-blue;
+    border-color: $oxford-blue;
+    color: #fff;
 }
 
 // Mobile/tablet accordion panel holding the inline chart for the currently
