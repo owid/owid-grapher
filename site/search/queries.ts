@@ -135,7 +135,13 @@ export async function queryCharts(
     liteSearchClient: LiteClient,
     state: SearchState,
     page: number = 0,
-    hitsPerPage: number = 9
+    hitsPerPage: number = 9,
+    // Attributes on top of DATA_CATALOG_ATTRIBUTES, for callers that need a
+    // field the shared data-catalog query doesn't normally retrieve (e.g.
+    // AllChartsBlock asking for `tags` to build its suggested-search chips).
+    // Kept opt-in rather than added to DATA_CATALOG_ATTRIBUTES directly so
+    // the extra payload doesn't ship on every data-catalog/search request.
+    extraAttributes: string[] = []
 ) {
     const countryFacetFilters = formatCountryFacetFilters(
         getFilterNamesOfType(state.filters, FilterType.COUNTRY),
@@ -174,7 +180,10 @@ export async function queryCharts(
     const searchParams = [
         {
             indexName: CHARTS_INDEX,
-            attributesToRetrieve: DATA_CATALOG_ATTRIBUTES,
+            attributesToRetrieve: [
+                ...DATA_CATALOG_ATTRIBUTES,
+                ...extraAttributes,
+            ],
             query: state.query,
             facetFilters,
             highlightPreTag: "<mark>",
@@ -195,14 +204,27 @@ export async function queryCharts(
 export async function queryAllCharts(
     liteSearchClient: LiteClient,
     state: SearchState,
-    hitsPerPage: number = 100
+    hitsPerPage: number = 100,
+    extraAttributes: string[] = []
 ) {
-    const firstPage = await queryCharts(liteSearchClient, state, 0, hitsPerPage)
+    const firstPage = await queryCharts(
+        liteSearchClient,
+        state,
+        0,
+        hitsPerPage,
+        extraAttributes
+    )
     const nbPages = firstPage.nbPages ?? 1
 
     const remainingPages = await Promise.all(
         Array.from({ length: nbPages - 1 }, (_, i) =>
-            queryCharts(liteSearchClient, state, i + 1, hitsPerPage)
+            queryCharts(
+                liteSearchClient,
+                state,
+                i + 1,
+                hitsPerPage,
+                extraAttributes
+            )
         )
     )
     return [firstPage, ...remainingPages].flatMap((page) => page.hits)

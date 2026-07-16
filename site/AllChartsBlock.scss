@@ -1,6 +1,7 @@
 .all-charts-block {
     .all-charts-block__heading {
         margin-bottom: $margin-bottom-section-heading-ltp;
+        text-align: left;
     }
 }
 
@@ -21,11 +22,21 @@
     min-width: 0;
 }
 
+// How far from the top of the viewport the chart sidecar sticks. The table
+// has no scroll region of its own (it just grows with the page — see
+// .all-charts-block__table below), so as the visitor scrolls down through a
+// long list of indicators, the sidecar stays in view instead of scrolling
+// away with the row that was selected. The offset clears the topic page's
+// own sticky sub-nav (.sticky-nav, ~56px tall) when one is present, plus a
+// small gap; on pages without that sub-nav it's just a comfortable margin
+// from the top of the viewport.
+$all-charts-block-sticky-top: 72px;
+
 .all-charts-block__right {
     min-width: 0;
     align-self: start;
     position: sticky;
-    top: 96px;
+    top: $all-charts-block-sticky-top;
     background-color: #fff;
     border: 1px solid $gray-20;
     border-radius: 8px;
@@ -37,8 +48,13 @@
         height: $grapher-height;
     }
 
+    // Below this breakpoint the persistent sidecar is replaced by an
+    // accordion: each row expands its own chart inline (see
+    // .all-charts-block__row-accordion). Sticky positioning is irrelevant
+    // once the element is hidden, but scoping it above this breakpoint keeps
+    // the intent clear.
     @include md-down {
-        position: static;
+        display: none;
     }
 }
 
@@ -54,10 +70,31 @@
 }
 
 .all-charts-block__search {
-    position: relative;
+    position: sticky;
+    // Sticks to the same offset as the chart sidecar (.all-charts-block__right
+    // above) for consistency — both clear the topic page's sticky sub-nav by
+    // the same amount. Only the search input itself sticks; the suggested-
+    // searches row below it scrolls away normally with the rest of the list.
+    top: $all-charts-block-sticky-top;
+    z-index: 1;
     display: flex;
     align-items: center;
-    margin-bottom: 16px;
+    // 12px of padding below the input gives the fade below somewhere to
+    // fade *into*, then a smaller margin makes up the rest of the original
+    // 16px gap to the suggested-searches row beneath.
+    padding-bottom: 12px;
+    margin-bottom: 4px;
+    // Table rows scrolling up underneath the sticky bar need to be hidden,
+    // but a flat, opaque background-color clips them with a hard edge right
+    // at the bar's bottom. Fading it out instead — opaque near the input,
+    // transparent by the bottom of the padding above — lets rows dissolve
+    // out from underneath rather than being abruptly cut off.
+    background: linear-gradient(
+        to bottom,
+        $white,
+        $white 70%,
+        rgba($white, 0) 100%
+    );
 }
 
 .all-charts-block__search-icon {
@@ -70,7 +107,10 @@
 
 .all-charts-block__search-input {
     width: 100%;
-    padding: 14px 18px 14px 42px;
+    // Prominent input: PR's thicker border, larger radius and taller vertical
+    // padding. Left padding clears the search icon (left: 18px); right padding
+    // keeps text clear of the clear button (right: 12px, from the base branch).
+    padding: 14px 36px 14px 42px;
     border: 1.5px solid $gray-30;
     border-radius: 8px;
     font-size: 16px;
@@ -87,6 +127,28 @@
 
     &::placeholder {
         color: $gray-70;
+    }
+
+    // Hide the native search input clear button so it doesn't clash with
+    // .all-charts-block__search-clear-button.
+    &::-webkit-search-cancel-button {
+        display: none;
+    }
+}
+
+.all-charts-block__search-clear-button {
+    position: absolute;
+    right: 12px;
+    padding: 0;
+    border: none;
+    background: none;
+    color: $gray-70;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+
+    &:hover {
+        color: $text-color;
     }
 }
 
@@ -105,11 +167,9 @@
 }
 
 .all-charts-block__suggested {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 8px;
     margin-bottom: 16px;
+    font-size: 13px;
+    line-height: 1.5;
 }
 
 .all-charts-block__suggested-label {
@@ -120,41 +180,65 @@
     color: $gray-70;
 }
 
-.all-charts-block__chip {
-    padding: 6px 12px;
-    border: 1px solid $gray-30;
-    border-radius: 9999px;
-    background-color: #fff;
-    color: $gray-70;
+.all-charts-block__suggested-link {
+    padding: 0;
+    border: none;
+    background: none;
+    color: $blue-60;
     font-size: 13px;
-    font-weight: 500;
-    line-height: 1;
+    font-weight: 400;
+    text-decoration: underline;
+    text-underline-offset: 2px;
     cursor: pointer;
-    transition:
-        background-color 120ms ease-out,
-        border-color 120ms ease-out,
-        color 120ms ease-out;
+    transition: color 120ms ease-out;
 
     &:hover {
-        background-color: $oxford-blue;
-        border-color: $oxford-blue;
-        color: #fff;
+        color: $vermillion;
     }
 }
 
+// Shared by the header labels row and every table row so the "Source" label
+// and every row's source text land in the same visual column. The trailing
+// 44px column reserves space for the row's arrow-link (empty in the header).
+$all-charts-block-row-columns: minmax(0, 1fr) 140px 44px;
+$all-charts-block-row-column-gap: 16px;
+
+.all-charts-block__table-header {
+    display: grid;
+    grid-template-columns: $all-charts-block-row-columns;
+    column-gap: $all-charts-block-row-column-gap;
+    padding-left: 16px; // matches the row-left inset: 3px accent border + 13px button padding
+    padding-bottom: 8px;
+
+    @include md-down {
+        display: none;
+    }
+}
+
+.all-charts-block__table-header-label {
+    text-transform: uppercase;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: $gray-60;
+}
+
 .all-charts-block__table {
+    // No inner scroll region here by design — the list grows to its full
+    // height and scrolls with the rest of the page (see
+    // .all-charts-block__right above for how the chart sidecar stays in
+    // view as the visitor scrolls past it).
     list-style: none;
     margin: 0;
     padding: 0;
     background-color: #fff;
     border: 1px solid $gray-20;
     border-radius: 8px;
-    overflow-y: auto;
-    max-height: $grapher-height;
-
-    @include md-down {
-        max-height: none;
-    }
+    // Clip the rows' hover/selected background tints to the card's rounded
+    // corners. Not a scroll region — the list grows with the page while the
+    // sidecar stays sticky (see the note above and .all-charts-block__right).
+    overflow: hidden;
+    transition: opacity 100ms ease-out;
 
     // The card border already provides the closing edge, so drop the last
     // row's divider.
@@ -163,38 +247,59 @@
     }
 }
 
-.all-charts-block__row {
-    display: flex;
-    align-items: stretch;
-    border-bottom: 1px solid $gray-20;
-    transition: background-color 120ms ease-out;
-
-    &:hover {
-        background-color: $gray-5;
-    }
+// While a new debounced search query is fetching in the background, the
+// previous results (and sidecar chart) stay fully rendered — see the
+// `placeholderData: keepPreviousData` query option in AllChartsBlock.tsx —
+// rather than being replaced by a skeleton/blank state. This is the only
+// visible feedback that a fresher result set is on its way; it's
+// deliberately subtle since it fires on every keystroke's debounced query.
+.all-charts-block__table--refreshing {
+    opacity: 0.6;
 }
 
-.all-charts-block__row--selected {
-    background-color: $blue-5;
-    // Inset accent bar instead of a left border so there's no layout shift
-    // between selected and unselected rows.
-    box-shadow: inset 3px 0 0 $vermillion;
+.all-charts-block__row {
+    border-bottom: 1px solid $gray-20;
+}
 
+.all-charts-block__row--selected .all-charts-block__row-main {
+    // Vermillion accent bar down the row's left edge. The row-main already
+    // reserves 3px with a transparent left border, so colouring it in causes
+    // no layout shift between selected and unselected rows.
+    border-left-color: $vermillion;
+    background-color: $blue-5;
+
+    // Keep the selected row's blue tint on hover rather than letting the
+    // row-main hover (gray-5) win.
     &:hover {
         background-color: $blue-5;
     }
 }
 
-.all-charts-block__row-button {
-    flex: 1 1 auto;
-    display: flex;
-    gap: 16px;
-    padding: 14px 16px;
-    background: none;
-    border: none;
-    text-align: left;
+// The clickable row content: a real two-column grid (indicator info, then
+// source) plus the trailing arrow-link column, so source text lines up into
+// a proper column across every row instead of floating at its own width.
+// The whole grid is the row's single click/keyboard target (role="button" in
+// the markup) — selecting/expanding the row works from anywhere in it,
+// including the source column and the arrow-link area.
+.all-charts-block__row-main {
+    display: grid;
+    grid-template-columns: $all-charts-block-row-columns;
+    column-gap: $all-charts-block-row-column-gap;
+    align-items: stretch;
+    border-left: 3px solid transparent;
     cursor: pointer;
-    min-width: 0;
+    transition: background-color 120ms ease-out;
+
+    &:hover {
+        background-color: $gray-5;
+    }
+
+    // The source column is hidden on phones (see .all-charts-block__row-source
+    // below) — drop its track too, otherwise it'd leave a blank gap between
+    // the title and the arrow-link.
+    @include sm-only {
+        grid-template-columns: minmax(0, 1fr) 44px;
+    }
 }
 
 .all-charts-block__row-indicator {
@@ -202,9 +307,17 @@
     flex-direction: column;
     gap: 2px;
     min-width: 0;
+    // Matches the old row-button's inset (3px accent border + 13px padding =
+    // 16px, matching .all-charts-block__table-header's padding-left).
+    padding: 12px 13px;
 }
 
 .all-charts-block__row-title {
+    // Playfair Semibold, matching the weight/family convention used by the
+    // site's serif headings (see h1-semibold/h2-semibold/etc. in
+    // typography.scss). Explicit line-height rather than the loose inherited
+    // html value (1.6) so the title sits snugly above the subtitle within
+    // the row's 2px indicator gap.
     font-family: $serif-font-stack;
     font-weight: 600;
     font-size: 15px;
@@ -217,10 +330,15 @@
     font-size: 13px;
     line-height: 1.4;
     font-weight: 400;
+    // Wrap rather than truncate mid-word, and clamp to 2 lines with an
+    // ellipsis so a single row can't grow unboundedly tall.
+    overflow-wrap: break-word;
     display: -webkit-box;
-    -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
     overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .all-charts-block__row-tag {
@@ -236,42 +354,47 @@
     align-self: flex-start;
 }
 
+// A plain (unclamped) grid item. Unlike .all-charts-block__row-indicator,
+// which wraps its own clamped .all-charts-block__row-subtitle in a flex
+// column, this used to put the -webkit-line-clamp rules directly on the
+// grid item itself — but a grid item stretches to the row's full height
+// (align-items: stretch on .all-charts-block__row-main, default and needed
+// so the row-link's border-left spans the whole row), and Chromium's
+// -webkit-line-clamp implementation doesn't reliably clamp to N lines once
+// its own box has been stretched taller than that content: extra lines
+// beyond 3 render and only get hard-clipped at the taller stretched edge,
+// so rows with a long source list ended up 5-6 lines tall instead of 3
+// (compounded by the padding living on the same clamped box, another
+// Chromium quirk). Splitting the clamp onto an inner, non-stretched
+// .all-charts-block__row-source-text span — the same pattern
+// .all-charts-block__row-subtitle already relies on via its
+// .all-charts-block__row-indicator wrapper — fixes both.
 .all-charts-block__row-source {
-    flex-shrink: 0;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: flex-start;
-    justify-content: flex-end;
-    gap: 4px;
-    max-width: 30%;
-    padding: 14px 0;
-    text-align: right;
+    min-width: 0;
+    padding: 12px 0;
+    text-align: left;
+    color: $blue-50;
+    font-size: 12px;
+    font-weight: 400;
 
     @include sm-only {
         display: none;
     }
 }
 
-.all-charts-block__producer {
-    padding: 2px 8px;
-    border: 1px solid $blue-20;
-    border-radius: 12px;
-    background-color: $blue-5;
-    color: $blue-90;
-    font-size: 13px;
-    line-height: 1.3;
-    cursor: pointer;
-
-    &:hover {
-        background-color: $blue-10;
-    }
-
-    &--active,
-    &:disabled {
-        cursor: default;
-        background-color: $blue-10;
-        border-color: $blue-60;
-    }
+.all-charts-block__row-source-text {
+    // Matches .all-charts-block__row-subtitle above.
+    line-height: 1.5;
+    // Long source lists are clamped to 3 lines with an ellipsis, same as
+    // .all-charts-block__row-subtitle above, so a single row can't grow
+    // unboundedly tall.
+    overflow-wrap: break-word;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .all-charts-block__row-link {
@@ -280,9 +403,10 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    // Center the 32px square button within the row grid's 44px trailing column.
+    justify-self: center;
     width: 32px;
     height: 32px;
-    margin: 0 16px;
     border: 1px solid $gray-30;
     border-radius: 4px;
     background-color: #fff;
@@ -300,6 +424,25 @@
     background-color: $oxford-blue;
     border-color: $oxford-blue;
     color: #fff;
+}
+
+// Mobile/tablet accordion panel holding the inline chart for the currently
+// expanded row. Hidden on wider viewports, where the persistent sidecar
+// (.all-charts-block__right) is used instead.
+.all-charts-block__row-accordion {
+    display: none;
+    padding: 16px;
+    background-color: $blue-5;
+    border-top: 1px solid $gray-20;
+
+    @include md-down {
+        display: block;
+    }
+
+    figure[data-grapher-src]:not(.grapherPreview),
+    figure.grapher-component:not(.grapherPreview) {
+        height: $grapher-height;
+    }
 }
 
 .all-charts-block__empty {
