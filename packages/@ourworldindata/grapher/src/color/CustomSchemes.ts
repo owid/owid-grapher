@@ -429,59 +429,6 @@ export const ContinentColors = {
     "Oceania (UN SDG)": OwidDistinctColors.Turquoise,
     "Sub-Saharan Africa (UN SDG)": OwidDistinctColors.DarkMauve,
 
-    // FAO regions — https://ourworldindata.org/world-region-map-definitions#food-and-agriculture-organization-fao
-    // FAO reports at three levels: continents (fao_1), subregions (fao_2), and its SDG grouping (fao_sdg).
-    // fao_1 continents reuse OWID's continent colors; fao_2 subregions use a light-to-dark gradient of their
-    // continent's hue so each reads as part of its continent while staying distinguishable; fao_sdg reuses
-    // the UN SDG palette (FAO's SDG grouping is the UN's). Asia's subregions use a green ramp rather than
-    // teal so they don't blur into Europe (blue) or Oceania (cyan), which sit next to Asia both on the map
-    // and in OWID's continent palette. These pins flow into MapContinentColors via its spread, so the
-    // region-hover map and any chart series colored by the "Continents" scheme match.
-    // fao_1 — continents
-    "Africa (FAO)": OwidDistinctColors.Mauve,
-    "Americas (FAO)": OwidDistinctColors.Peach,
-    "Asia (FAO)": OwidDistinctColors.Teal,
-    "Europe (FAO)": OwidDistinctColors.Denim,
-    "Oceania (FAO)": OwidDistinctColors.Turquoise,
-    // fao_2 — subregions, light-to-dark gradient within each continent's hue
-    // Africa: purple/magenta
-    "Northern Africa (FAO)": "#d9a3d1",
-    "Eastern Africa (FAO)": "#c07fb8",
-    "Middle Africa (FAO)": "#a2559c",
-    "Southern Africa (FAO)": "#7d3f78",
-    "Western Africa (FAO)": "#592d55",
-    // Americas: warm coral to dark red
-    "Northern America (FAO)": "#f2a68f",
-    "Central America (FAO)": "#e8735a",
-    "Caribbean (FAO)": "#cf4b39",
-    "South America (FAO)": "#963129",
-    // Asia: green
-    "Central Asia (FAO)": "#bcdd97",
-    "Southern Asia (FAO)": "#8fc266",
-    "South-eastern Asia (FAO)": "#5fa53f",
-    "Eastern Asia (FAO)": "#3d7e2a",
-    "Western Asia (FAO)": "#285719",
-    // Europe: blue
-    "Northern Europe (FAO)": "#a3c0e6",
-    "Western Europe (FAO)": "#6488c6",
-    "Eastern Europe (FAO)": "#3a68ad",
-    "Southern Europe (FAO)": "#244a7a",
-    // Oceania: cyan/teal
-    "Australia and New Zealand (FAO)": "#38aaba",
-    "Melanesia (FAO)": "#7fccd6",
-    "Micronesia (FAO)": "#a9e0e6",
-    "Polynesia (FAO)": "#1f7c8a",
-    // fao_sdg — FAO's SDG grouping (same regions as UN SDG above; reuse those colors)
-    "Sub-Saharan Africa (FAO)": OwidDistinctColors.DarkMauve,
-    "Latin America and the Caribbean (FAO)": OwidDistinctColors.Maroon,
-    "Northern America and Europe (FAO)": OwidDistinctColors.Denim,
-    "Western Asia and Northern Africa (FAO)": OwidDistinctColors.Camel,
-    "Central Asia and Southern Asia (FAO)": OwidDistinctColors.OliveGreen,
-    "Eastern Asia and South-eastern Asia (FAO)": OwidDistinctColors.Copper,
-    // Teal (not turquoise) so it stays distinct from "Australia and New Zealand (FAO)", which is cyan above.
-    "Oceania excluding Australia and New Zealand (FAO)":
-        OwidDistinctColors.Teal,
-
     // Maddison Project Database regions — pinned to the exact colors their map chart renders
     // (the default categorical palette CategoricalMapPalette10, in legend/display order).
     // Defined here (not only in MapContinentColors) so the admin "Continents" picker offers
