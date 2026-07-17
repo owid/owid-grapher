@@ -472,7 +472,8 @@ export const ContinentColors = {
     "Western Asia and Northern Africa (FAO)": OwidDistinctColors.Camel,
     "Central Asia and Southern Asia (FAO)": OwidDistinctColors.OliveGreen,
     "Eastern Asia and South-eastern Asia (FAO)": OwidDistinctColors.Copper,
-    "Oceania excluding Australia and New Zealand (FAO)": OwidDistinctColors.Turquoise,
+    "Oceania excluding Australia and New Zealand (FAO)":
+        OwidDistinctColors.Turquoise,
 
     // Maddison Project Database regions — pinned to the exact colors their map chart renders
     // (the default categorical palette CategoricalMapPalette10, in legend/display order).
