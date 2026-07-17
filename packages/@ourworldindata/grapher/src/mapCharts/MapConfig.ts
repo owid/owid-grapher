@@ -46,6 +46,10 @@ class MapConfigDefaults {
     colorScale = new ColorScaleConfig()
     // Show the label from colorSchemeLabels in the tooltip instead of the numeric value
     tooltipUseCustomLabels: boolean | undefined = undefined
+    // Suppress the tooltip notice shown when a value comes from a nearby year
+    // (via tolerance) rather than the selected year. Useful on maps where the
+    // selected time is really a per-entity attribute rather than a time series.
+    hideToleranceNotice: boolean | undefined = undefined
 
     constructor() {
         makeObservable(this, {
@@ -59,6 +63,7 @@ class MapConfigDefaults {
             globe: observable,
             colorScale: observable,
             tooltipUseCustomLabels: observable,
+            hideToleranceNotice: observable,
         })
     }
 }

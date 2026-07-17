@@ -212,7 +212,16 @@ export class MapTooltip
         return this.formatTime(originalEndTime)
     }
 
+    @computed private get hideToleranceNotice(): boolean {
+        return !!this.props.manager.mapConfig?.hideToleranceNotice
+    }
+
     @computed private get toleranceNotice(): FooterItem | undefined {
+        // On some maps the selected time is really a per-entity attribute rather
+        // than a time series, so the tolerance notice is misleading and can be
+        // suppressed via the map config.
+        if (this.hideToleranceNotice) return undefined
+
         const { startDatum, startTime, endDatum, endTime } = this
 
         const startValueIsInterpolated =

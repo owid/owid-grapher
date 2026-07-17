@@ -182,6 +182,12 @@ class TooltipSection extends Component<{ mapConfig: MapConfig }> {
             : undefined
     }
 
+    @action.bound onHideToleranceNotice(hideToleranceNotice: boolean) {
+        this.props.mapConfig.hideToleranceNotice = hideToleranceNotice
+            ? true
+            : undefined
+    }
+
     override render() {
         const { mapConfig } = this.props
         return (
@@ -192,6 +198,13 @@ class TooltipSection extends Component<{ mapConfig: MapConfig }> {
                     }
                     value={!!mapConfig.tooltipUseCustomLabels}
                     onValue={this.onTooltipUseCustomLabels}
+                />
+                <Toggle
+                    label={
+                        "Hide the notice shown when a value comes from a nearby year (tolerance)"
+                    }
+                    value={!!mapConfig.hideToleranceNotice}
+                    onValue={this.onHideToleranceNotice}
                 />
             </Section>
         )

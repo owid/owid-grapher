@@ -348,6 +348,14 @@ properties:
         type: boolean
         default: false
         description: Show the label from colorSchemeLabels in the tooltip instead of the numeric value
+      hideToleranceNotice:
+        type: boolean
+        default: false
+        description: |
+          Hide the tooltip notice that is shown when a value comes from a nearby year (via tolerance) rather than
+          the selected year. Useful on maps where the selected time is really a per-entity attribute (e.g. each country
+          plotted at its own target year) rather than a time series, where the notice would otherwise appear for most
+          countries even though their values are valid.
       time:
         description: Select a specific time to be displayed. If startTime is given, this acts as the end time.
         default: "latest"

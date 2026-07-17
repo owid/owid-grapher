@@ -64,6 +64,7 @@ export const defaultGrapherConfig = {
         },
         toleranceStrategy: "closest",
         tooltipUseCustomLabels: false,
+        hideToleranceNotice: false,
         time: "latest",
         selectedEntityNames: [],
     },
