@@ -1,17 +1,13 @@
 import { RadioButton } from "@ourworldindata/components"
 import { SearchResultType } from "@ourworldindata/types"
+import { commafyNumber } from "@ourworldindata/utils"
 import { useSearchContext } from "./SearchContext.js"
+import { useResultTypeCounts } from "./searchHooks.js"
 import {
     getEffectiveResultType,
     hasDatasetFilters,
     isBrowsing,
 } from "./searchUtils.js"
-
-const OPTIONS = [
-    { value: SearchResultType.ALL, label: "All" },
-    { value: SearchResultType.DATA, label: "Data" },
-    { value: SearchResultType.WRITING, label: "Writing" },
-]
 
 export const SearchResultTypeToggle = () => {
     const {
@@ -19,6 +15,7 @@ export const SearchResultTypeToggle = () => {
         actions: { setResultType },
     } = useSearchContext()
     const { resultType, filters, query } = state
+    const { allCount, dataCount, writingCount } = useResultTypeCounts()
 
     if (hasDatasetFilters(filters)) return null
 
@@ -28,9 +25,19 @@ export const SearchResultTypeToggle = () => {
         resultType
     )
 
+    const options = [
+        { value: SearchResultType.ALL, label: "All", count: allCount },
+        { value: SearchResultType.DATA, label: "Data", count: dataCount },
+        {
+            value: SearchResultType.WRITING,
+            label: "Writing",
+            count: writingCount,
+        },
+    ]
+
     const optionsToShow = isBrowsing(filters, query)
-        ? OPTIONS.filter((option) => option.value !== SearchResultType.ALL)
-        : OPTIONS
+        ? options.filter((option) => option.value !== SearchResultType.ALL)
+        : options
 
     return (
         <fieldset
@@ -46,7 +53,17 @@ export const SearchResultTypeToggle = () => {
                     key={option.value}
                     checked={effectiveResultType === option.value}
                     onChange={() => setResultType(option.value)}
-                    label={option.label}
+                    label={
+                        <>
+                            {option.label}
+                            {option.count !== undefined && (
+                                <span className="search-result-type-toggle__count">
+                                    {" "}
+                                    ({commafyNumber(option.count)})
+                                </span>
+                            )}
+                        </>
+                    }
                     group="search-result-type"
                 />
             ))}

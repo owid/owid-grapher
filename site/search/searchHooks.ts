@@ -15,6 +15,7 @@ import { useEffect, useMemo, useRef } from "react"
 import type { TagGraphNode, TagGraphRoot } from "@ourworldindata/types"
 import { SiteAnalytics } from "../SiteAnalytics.js"
 import * as R from "remeda"
+import { queryResultTypeCounts, searchQueryKeys } from "./queries.js"
 
 export function useSelectedTopic() {
     const { state } = useSearchContext()
@@ -210,6 +211,28 @@ export function useInfiniteSearch<THit>({
         ...query,
         hits,
         totalResults,
+    }
+}
+
+/**
+ * Counts of results per result type, for the "All / Data / Writing"
+ * result-type toggle. Independent of which result type is currently active,
+ * since the toggle needs to show counts for all of them at once.
+ */
+export function useResultTypeCounts() {
+    const { state, liteSearchClient } = useSearchContext()
+
+    const { data, isLoading } = useQuery({
+        queryKey: searchQueryKeys.resultTypeCounts(state),
+        queryFn: () => queryResultTypeCounts(liteSearchClient, state),
+    })
+
+    return {
+        dataCount: data?.dataCount,
+        writingCount: data?.writingCount,
+        allCount:
+            data === undefined ? undefined : data.dataCount + data.writingCount,
+        isLoading,
     }
 }
 

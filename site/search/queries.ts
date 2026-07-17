@@ -63,6 +63,8 @@ export const searchQueryKeys = {
         [PAGES_INDEX, "topics", makeStateForKey(state)] as const,
     profiles: (state: SearchState) =>
         [PAGES_INDEX, "profiles", makeStateForKey(state)] as const,
+    resultTypeCounts: (state: SearchState) =>
+        ["result-type-counts", makeStateForKey(state)] as const,
 } as const
 
 export const latestPagesQueryKey = {
@@ -134,7 +136,8 @@ export async function queryDataTopics(
 export async function queryCharts(
     liteSearchClient: LiteClient,
     state: SearchState,
-    page: number = 0
+    page: number = 0,
+    hitsPerPage: number = 9
 ) {
     const countryFacetFilters = formatCountryFacetFilters(
         getFilterNamesOfType(state.filters, FilterType.COUNTRY),
@@ -178,7 +181,7 @@ export async function queryCharts(
             facetFilters,
             highlightPreTag: "<mark>",
             highlightPostTag: "</mark>",
-            hitsPerPage: 9,
+            hitsPerPage,
             page,
         },
     ]
@@ -368,6 +371,33 @@ export async function queryProfiles(
     ]
 
     return searchSingleForHits<ProfileHit>(liteSearchClient, searchParams)
+}
+
+/**
+ * Counts for the "Data" and "Research & Writing" result types, used to
+ * annotate the result-type toggle. Reuses the same query functions as the
+ * result lists themselves (with zero hits requested) so the counts always
+ * reflect the exact same filters, including e.g. `restrictSearchableAttributes`.
+ */
+export async function queryResultTypeCounts(
+    liteSearchClient: LiteClient,
+    state: SearchState
+) {
+    const [chartsResult, articlesResult, topicPagesResult, profilesResult] =
+        await Promise.all([
+            queryCharts(liteSearchClient, state, 0, 0),
+            queryArticles(liteSearchClient, state, 0, 0),
+            queryTopicPages(liteSearchClient, state, 0, 0),
+            queryProfiles(liteSearchClient, state, 0, 0),
+        ])
+
+    const dataCount = chartsResult.nbHits ?? 0
+    const writingCount =
+        (articlesResult.nbHits ?? 0) +
+        (topicPagesResult.nbHits ?? 0) +
+        (profilesResult.nbHits ?? 0)
+
+    return { dataCount, writingCount }
 }
 
 export interface LatestPagesResult {
