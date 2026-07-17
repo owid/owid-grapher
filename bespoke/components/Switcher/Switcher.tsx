@@ -1,5 +1,9 @@
 import cx from "clsx"
-import { RadioButton, RadioField, RadioGroup } from "react-aria-components"
+import {
+    RadioButton,
+    RadioField,
+    RadioGroup,
+} from "react-aria-components/RadioGroup"
 
 export interface SwitcherItem<Key extends string = string> {
     key: Key

@@ -4,8 +4,8 @@ import {
     Group as AriaGroup,
     Button as AriaButton,
     Input as AriaInput,
-    Popover as AriaPopover,
-} from "react-aria-components"
+} from "react-aria-components/NumberField"
+import { Popover as AriaPopover } from "react-aria-components/Popover"
 import { UNSAFE_PortalProvider, useInteractOutside } from "react-aria"
 import { useParentSize } from "@visx/responsive"
 import { scaleLinear } from "@visx/scale"

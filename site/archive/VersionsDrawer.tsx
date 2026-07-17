@@ -1,5 +1,5 @@
 import cx from "clsx"
-import { ModalOverlay, Modal, Dialog } from "react-aria-components"
+import { ModalOverlay, Modal, Dialog } from "react-aria-components/Modal"
 import type { QueryStatus } from "@tanstack/react-query"
 import { CloseButton, LoadingIndicator } from "@ourworldindata/components"
 import { ArchivalDateString, ArchiveVersions } from "@ourworldindata/types"

@@ -8,11 +8,11 @@ import {
     Popover,
     ListBox,
     ListBoxSection,
-    Header,
     Collection,
     ListBoxItem,
     Text,
-} from "react-aria-components"
+} from "react-aria-components/Select"
+import { Header } from "react-aria-components/Header"
 import * as _ from "lodash-es"
 
 import { CloseButton, RadioButton } from "@ourworldindata/components"

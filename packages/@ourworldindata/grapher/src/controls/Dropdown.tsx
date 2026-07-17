@@ -1,21 +1,19 @@
 import cx from "clsx"
 import * as React from "react"
 import { useMemo } from "react"
+import { Autocomplete, useFilter } from "react-aria-components/Autocomplete"
+import { Header } from "react-aria-components/Header"
+import { Input, SearchField } from "react-aria-components/SearchField"
 import {
-    Autocomplete,
     Button,
-    Header,
-    Input,
-    Key,
+    type Key,
     ListBox,
     ListBoxItem,
     ListBoxSection,
     Popover,
-    SearchField,
     Select,
     SelectValue,
-    useFilter,
-} from "react-aria-components"
+} from "react-aria-components/Select"
 import { faTimesCircle } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { isTouchDevice } from "@ourworldindata/utils"

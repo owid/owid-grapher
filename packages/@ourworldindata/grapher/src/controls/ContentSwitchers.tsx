@@ -7,13 +7,13 @@ import { GrapherTabName } from "@ourworldindata/types"
 import { TabItem, Tabs } from "../tabs/Tabs.js"
 import { makeLabelForGrapherTab } from "../chart/ChartTabs"
 import {
-    Key,
-    Button,
+    type Key,
     Menu,
     MenuItem,
     MenuTrigger,
     Popover,
-} from "react-aria-components"
+} from "react-aria-components/Menu"
+import { Button } from "react-aria-components/Button"
 import { GrapherTabIcon } from "@ourworldindata/components"
 
 export interface ContentSwitchersManager {

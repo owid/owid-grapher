@@ -4,7 +4,7 @@ import { useBreakpoint } from "../helpers/useBreakpoint.js"
 import { Tippy } from "@ourworldindata/utils"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCircleInfo } from "@fortawesome/free-solid-svg-icons"
-import { Tabs, TabList, Tab, TabPanel } from "react-aria-components"
+import { Tabs, TabList, Tab, TabPanel } from "react-aria-components/Tabs"
 import { GrapherTrendArrow } from "@ourworldindata/components"
 import { CountryData, PARAMETER_KEYS, ParameterKey } from "../helpers/types"
 import {

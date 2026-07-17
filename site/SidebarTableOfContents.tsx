@@ -6,7 +6,7 @@ import {
     useRef,
     useState,
 } from "react"
-import { ModalOverlay, Modal, Dialog } from "react-aria-components"
+import { ModalOverlay, Modal, Dialog } from "react-aria-components/Modal"
 import { useMediaQuery } from "usehooks-ts"
 import cx from "clsx"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"

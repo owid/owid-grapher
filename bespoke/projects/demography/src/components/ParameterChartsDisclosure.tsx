@@ -1,4 +1,8 @@
-import { Disclosure, DisclosurePanel, Button } from "react-aria-components"
+import {
+    Disclosure,
+    DisclosurePanel,
+    Button,
+} from "react-aria-components/Disclosure"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faAngleRight } from "@fortawesome/free-solid-svg-icons"
 import type { Simulation } from "../helpers/useSimulation.js"

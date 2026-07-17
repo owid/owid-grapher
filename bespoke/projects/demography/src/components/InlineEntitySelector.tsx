@@ -1,18 +1,16 @@
 import { useCallback, useMemo, useState } from "react"
+import { Autocomplete, useFilter } from "react-aria-components/Autocomplete"
+import { Button } from "react-aria-components/Button"
+import { DialogTrigger } from "react-aria-components/Dialog"
+import { Header } from "react-aria-components/Header"
 import {
-    Autocomplete,
-    Button,
-    DialogTrigger,
-    Header,
-    Input,
-    Key,
+    type Key,
     ListBox,
     ListBoxItem,
     ListBoxSection,
-    Popover,
-    SearchField,
-    useFilter,
-} from "react-aria-components"
+} from "react-aria-components/ListBox"
+import { Popover } from "react-aria-components/Popover"
+import { Input, SearchField } from "react-aria-components/SearchField"
 import { faTimesCircle } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { EntityName } from "@ourworldindata/types"

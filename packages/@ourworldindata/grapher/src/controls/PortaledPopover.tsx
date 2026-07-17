@@ -1,5 +1,5 @@
 import type { ReactElement } from "react"
-import { Popover, type PopoverProps } from "react-aria-components"
+import { Popover, type PopoverProps } from "react-aria-components/Popover"
 import { UNSAFE_PortalProvider } from "react-aria"
 
 export interface PortaledPopoverProps extends PopoverProps {

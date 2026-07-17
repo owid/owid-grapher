@@ -2,12 +2,12 @@ import * as React from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons"
 import cx from "clsx"
+import { Button } from "react-aria-components/Button"
 import {
     TooltipTrigger,
     Tooltip,
-    Button,
     OverlayArrow,
-} from "react-aria-components"
+} from "react-aria-components/Tooltip"
 
 export const LabeledSwitch = ({
     className,

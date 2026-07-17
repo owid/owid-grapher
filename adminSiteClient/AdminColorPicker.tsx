@@ -3,24 +3,26 @@ import cx from "clsx"
 import { useDebounceCallback } from "usehooks-ts"
 import {
     type Color,
-    type Key,
     parseColor,
     ColorArea,
     ColorThumb,
-    ColorSlider,
-    SliderTrack,
-    ColorField,
-    Input,
+} from "react-aria-components/ColorArea"
+import { ColorSlider, SliderTrack } from "react-aria-components/ColorSlider"
+import { ColorField, Input } from "react-aria-components/ColorField"
+import {
+    type Key,
     Tabs,
     TabList,
     Tab,
     TabPanel,
-    SearchField,
-    Button,
+} from "react-aria-components/Tabs"
+import { SearchField } from "react-aria-components/SearchField"
+import { Button } from "react-aria-components/Button"
+import {
     TooltipTrigger,
     Tooltip,
     OverlayArrow,
-} from "react-aria-components"
+} from "react-aria-components/Tooltip"
 import { ColorSchemeName, lastOfNonEmptyArray } from "@ourworldindata/utils"
 import {
     ColorSchemes,

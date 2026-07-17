@@ -5,7 +5,7 @@ import {
     SliderTrack,
     SliderThumb,
     SliderOutput,
-} from "react-aria-components"
+} from "react-aria-components/Slider"
 
 import { Time } from "@ourworldindata/types"
 

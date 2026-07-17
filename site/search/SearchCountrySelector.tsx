@@ -8,13 +8,10 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { LabeledSwitch } from "@ourworldindata/components"
 import { countriesByName } from "@ourworldindata/utils"
 import { useState, useRef, useMemo } from "react"
-import {
-    Button,
-    Popover,
-    ListBox,
-    ListBoxItem,
-    DialogTrigger,
-} from "react-aria-components"
+import { Button } from "react-aria-components/Button"
+import { DialogTrigger } from "react-aria-components/Dialog"
+import { ListBox, ListBoxItem } from "react-aria-components/ListBox"
+import { Popover } from "react-aria-components/Popover"
 import { useMediaQuery } from "usehooks-ts"
 import { SMALL_BREAKPOINT_MEDIA_QUERY } from "../SiteConstants.js"
 import cx from "clsx"

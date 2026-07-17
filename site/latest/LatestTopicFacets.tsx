@@ -14,10 +14,10 @@ import {
     ListBoxItem,
     Popover,
     Select,
-    ToggleButton,
-    ToggleButtonGroup,
     type Key,
-} from "react-aria-components"
+} from "react-aria-components/Select"
+import { ToggleButton } from "react-aria-components/ToggleButton"
+import { ToggleButtonGroup } from "react-aria-components/ToggleButtonGroup"
 import { LATEST_TYPE_VALUES, LatestType } from "@ourworldindata/types"
 import { latestTypeLabelPlural } from "./latestUtils.js"
 

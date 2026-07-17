@@ -28,7 +28,11 @@ import {
     GRAPHER_FRAME_PADDING_HORIZONTAL,
     GRAPHER_TIMELINE_CLASS,
 } from "../core/GrapherConstants.js"
-import { DateField, DateInput, DateSegment } from "react-aria-components"
+import {
+    DateField,
+    DateInput,
+    DateSegment,
+} from "react-aria-components/DateField"
 import { CalendarDate } from "@internationalized/date"
 
 export const TIMELINE_HEIGHT = 32 // Keep in sync with $timelineHeight in TimelineComponent.scss

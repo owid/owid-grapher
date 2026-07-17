@@ -4,13 +4,9 @@ import { observer } from "mobx-react"
 import classnames from "clsx"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faGear } from "@fortawesome/free-solid-svg-icons"
-import {
-    DialogTrigger,
-    Popover,
-    Dialog,
-    Heading,
-    Button,
-} from "react-aria-components"
+import { DialogTrigger, Dialog, Heading } from "react-aria-components/Dialog"
+import { Button } from "react-aria-components/Button"
+import { Popover } from "react-aria-components/Popover"
 import {
     EntityName,
     GRAPHER_CHART_TYPES,
