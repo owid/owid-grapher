@@ -84,6 +84,11 @@ The analytics system requires these environment variables:
 - `CLOUDFLARE_GOOGLE_ANALYTICS_SAMPLING_RATE`
     - Sampling rate as decimal
     - e.g. "0.01" for 1%
+- `CLOUDFLARE_GOOGLE_ANALYTICS_ASN_SAMPLING_RATES` (optional)
+    - Comma-separated ASN-specific sampling overrides.
+    - The highest of this override and the default sampling rate is used.
+    - e.g. "15169:1,16509:0.5" to sample all requests from ASN 15169 and half
+      of requests from ASN 16509 that already pass through Cloudflare Functions.
 
 ## Performance considerations
 

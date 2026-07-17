@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest"
-import { getCommonEventParams } from "./analytics.js"
+import {
+    getCommonEventParams,
+    getSamplingRate,
+    parseAsnSamplingRates,
+} from "./analytics.js"
 
 describe(getCommonEventParams, () => {
     it("returns common event params and URL query params", () => {
@@ -48,5 +52,31 @@ describe(getCommonEventParams, () => {
         expect(params.bar).toBeUndefined()
         expect(params.host).not.toBe("evil")
         expect(params.status_code).toBeUndefined()
+    })
+
+    it("uses ASN-specific sampling rates when configured", () => {
+        const request = new Request<unknown, IncomingRequestCfProperties>(
+            "https://ourworldindata.org/"
+        )
+        Object.assign(request, { cf: { asn: 15169 } })
+
+        expect(
+            getSamplingRate(request, {
+                CLOUDFLARE_GOOGLE_ANALYTICS_SAMPLING_RATE: "0.01",
+                CLOUDFLARE_GOOGLE_ANALYTICS_ASN_SAMPLING_RATES:
+                    "16509:0.5,15169:1",
+            })
+        ).toBe(1)
+    })
+
+    it("parses valid ASN sampling overrides", () => {
+        expect(
+            Array.from(
+                parseAsnSamplingRates("16509:0.5,invalid:1,15169:2,8075:1")
+            )
+        ).toEqual([
+            [16509, 0.5],
+            [8075, 1],
+        ])
     })
 })
