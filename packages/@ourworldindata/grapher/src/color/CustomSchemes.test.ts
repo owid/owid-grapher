@@ -7,7 +7,7 @@ import {
     MapContinentColors,
 } from "./CustomSchemes"
 
-describe("RegionMapColorMap", () => {
+describe("region concept colors", () => {
     it("colors the same region concept identically across sources", () => {
         const subSaharanAfricas = [
             RegionMapColorMap["Sub-Saharan Africa (WB)"],
