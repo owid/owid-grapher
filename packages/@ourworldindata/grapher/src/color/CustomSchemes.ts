@@ -1,5 +1,5 @@
 import * as _ from "lodash-es"
-import { lazy } from "@ourworldindata/utils"
+import { lazy, regions } from "@ourworldindata/utils"
 import {
     Color,
     ColorSchemeInterface,
@@ -358,6 +358,140 @@ export const OwidMapColors: Record<string, Color> = {
     Tomato: "#D94C3F",
 } as const
 
+// One canonical map color per world-region *concept*. Region definitions differ
+// between sources (WB, UN, WHO, Pew, Maddison, WID, ILO, ...), but most of their
+// regions correspond to a shared set of concepts — coloring by concept makes the
+// same part of the world look the same across charts, no matter whose definition
+// a chart uses. The hues are draft picks from the categorical map palette; the
+// invariant to preserve when revising them is that sibling regions within one
+// source stay distinguishable (see CustomSchemes.test.ts).
+export const RegionConceptMapColors = {
+    africa: OwidMapColors.LightPurple,
+    northernAfrica: OwidMapColors.LightSand,
+    middleEastNorthAfrica: OwidMapColors.Sand,
+    europe: OwidMapColors.MutedDenim,
+    easternEurope: OwidMapColors.Lavendar,
+    westernEurope: OwidMapColors.LightDenim,
+    asia: OwidMapColors.MutedTeal,
+    centralAsia: OwidMapColors.LightTeal,
+    eastAsia: OwidMapColors.LightGreen,
+    southeastAsia: OwidMapColors.LeafGreen,
+    southAsia: OwidMapColors.Olive,
+    latinAmerica: OwidMapColors.MutedCherry,
+    northernAmerica: OwidMapColors.LightOrange,
+    americas: OwidMapColors.SoftOrange,
+    southAmerica: OwidMapColors.Tomato,
+    oceania: OwidMapColors.SkyTurquoise,
+    australiaNewZealand: OwidMapColors.Mustard,
+    // Same as americas — they never appear on the same map, and this keeps
+    // Antarctica's long-standing map color
+    antarctica: OwidMapColors.SoftOrange,
+} as const
+
+// Which concept each region name corresponds to, keyed by the name with any
+// " (PROVIDER)" suffix stripped, so that "Sub-Saharan Africa (WB)" and
+// "Sub-Saharan Africa (UN SDG)" both resolve via "Sub-Saharan Africa".
+// Names not listed here (e.g. Melanesia, or the UN M49 subdivisions of Africa)
+// keep the positional palette fallback.
+const regionNameToConcept: Record<string, keyof typeof RegionConceptMapColors> =
+    {
+        // Continents
+        Africa: "africa",
+        Antarctica: "antarctica",
+        Asia: "asia",
+        Europe: "europe",
+        "North America": "northernAmerica",
+        Oceania: "oceania",
+        "South America": "southAmerica",
+
+        // Africa
+        "Northern Africa": "northernAfrica",
+        "Sub-Saharan Africa": "africa",
+        "Sub Saharan Africa": "africa", // Maddison spelling
+
+        // Middle East & North Africa
+        "Arab States": "middleEastNorthAfrica",
+        "Eastern Mediterranean": "middleEastNorthAfrica",
+        "Middle East": "middleEastNorthAfrica",
+        "Middle East and North Africa": "middleEastNorthAfrica",
+        "Middle East-North Africa": "middleEastNorthAfrica",
+        "Middle East, North Africa, Afghanistan and Pakistan":
+            "middleEastNorthAfrica",
+        "Northern Africa and Western Asia": "middleEastNorthAfrica",
+        "Western Asia": "middleEastNorthAfrica",
+
+        // Europe
+        "Eastern Europe": "easternEurope",
+        "Europe and Central Asia": "europe",
+        "Europe and Northern America": "europe",
+        "Northern, Southern and Western Europe": "europe",
+        "Western Europe": "westernEurope",
+
+        // Asia & Pacific
+        "Asia and the Pacific": "asia",
+        "Asia Pacific": "asia",
+        "Asia-Pacific": "asia",
+        "Central and Southern Asia": "southAsia",
+        "Central and Western Asia": "centralAsia",
+        "Central Asia": "centralAsia",
+        "East Asia": "eastAsia",
+        "East Asia and Pacific": "asia",
+        "Eastern and South-Eastern Asia": "eastAsia",
+        "Eastern Asia": "eastAsia",
+        Eurasia: "centralAsia",
+        "Russia and Central Asia": "centralAsia",
+        "South and South East Asia": "southAsia",
+        "South and South-East Asia": "southAsia",
+        "South Asia": "southAsia",
+        "South-East Asia": "southeastAsia",
+        "South-eastern Asia": "southeastAsia",
+        "South-Eastern Asia and the Pacific": "southeastAsia",
+        "Southern Asia": "southAsia",
+
+        // Americas
+        Americas: "americas",
+        "Central and South America": "latinAmerica",
+        "Latin America": "latinAmerica",
+        "Latin America and Caribbean": "latinAmerica",
+        "Latin America and the Caribbean": "latinAmerica",
+        "Latin America-Caribbean": "latinAmerica",
+        "Northern America": "northernAmerica",
+        "Western offshoots": "northernAmerica", // Maddison: US, Canada, Australia, NZ
+
+        // Oceania
+        "Australia and New Zealand": "australiaNewZealand",
+        "Western Pacific": "oceania",
+    }
+
+const REGION_PROVIDER_SUFFIX = /\s*\([^)]*\)$/
+
+function buildRegionMapColorMap(): Record<string, Color> {
+    const colorMap: Record<string, Color> = {}
+    for (const region of regions) {
+        if (
+            region.regionType !== "continent" &&
+            region.regionType !== "aggregate"
+        )
+            continue
+        const baseName = region.name.replace(REGION_PROVIDER_SUFFIX, "")
+        const concept = regionNameToConcept[baseName]
+        if (concept) colorMap[region.name] = RegionConceptMapColors[concept]
+    }
+    // Income groups keep their dedicated colors
+    colorMap["High-income countries"] = IncomeGroupColors.HighIncome
+    colorMap["Upper-middle-income countries"] =
+        IncomeGroupColors.UpperMiddleIncome
+    colorMap["Lower-middle-income countries"] =
+        IncomeGroupColors.LowerMiddleIncome
+    colorMap["Low-income countries"] = IncomeGroupColors.LowIncome
+    return colorMap
+}
+
+// name → map color for every continent and provider-defined region whose concept
+// is known, generated from the regions catalog — a region added there picks up
+// its concept color without any change in this file.
+export const RegionMapColorMap: Record<string, Color> = buildRegionMapColorMap()
+
 export const ContinentColors = {
     // World
     World: OwidDistinctColors.DarkOliveGreen,
@@ -429,34 +563,33 @@ export const ContinentColors = {
     "Oceania (UN SDG)": OwidDistinctColors.Turquoise,
     "Sub-Saharan Africa (UN SDG)": OwidDistinctColors.DarkMauve,
 
-    // Maddison Project Database regions — pinned to the exact colors their map chart renders
-    // (the default categorical palette CategoricalMapPalette10, in legend/display order).
-    // Defined here (not only in MapContinentColors) so the admin "Continents" picker offers
-    // the same colors, letting a Maddison-region chart be colored to match the map. They flow
-    // into MapContinentColors via its spread, so the region hover matches too.
-    "Western offshoots (Maddison)": OwidMapColors.MutedDenim,
-    "Western Europe (Maddison)": OwidMapColors.SoftOrange,
-    "Eastern Europe (Maddison)": OwidMapColors.MutedTeal,
-    "Latin America (Maddison)": OwidMapColors.SoftPurple,
-    "East Asia (Maddison)": OwidMapColors.Sand,
-    "South and South East Asia (Maddison)": OwidMapColors.MutedCherry,
-    "Middle East and North Africa (Maddison)": OwidMapColors.LeafGreen,
-    "Sub Saharan Africa (Maddison)": OwidMapColors.SkyTurquoise,
+    // Maddison Project Database regions — pinned to the same concept colors their maps
+    // render (see RegionMapColorMap above), so the admin "Continents" picker offers
+    // matching colors, letting a Maddison-region chart be colored to match the map.
+    "Western offshoots (Maddison)": RegionConceptMapColors.northernAmerica,
+    "Western Europe (Maddison)": RegionConceptMapColors.westernEurope,
+    "Eastern Europe (Maddison)": RegionConceptMapColors.easternEurope,
+    "Latin America (Maddison)": RegionConceptMapColors.latinAmerica,
+    "East Asia (Maddison)": RegionConceptMapColors.eastAsia,
+    "South and South East Asia (Maddison)": RegionConceptMapColors.southAsia,
+    "Middle East and North Africa (Maddison)":
+        RegionConceptMapColors.middleEastNorthAfrica,
+    "Sub Saharan Africa (Maddison)": RegionConceptMapColors.africa,
 
     // WID regions — same idea (see Maddison note above).
-    "North America (WID)": OwidMapColors.MutedDenim,
-    "Latin America (WID)": OwidMapColors.SoftOrange,
-    "Europe (WID)": OwidMapColors.MutedTeal,
-    "Russia and Central Asia (WID)": OwidMapColors.SoftPurple,
-    "Middle East and North Africa (WID)": OwidMapColors.Sand,
-    "Sub-Saharan Africa (WID)": OwidMapColors.MutedCherry,
-    "East Asia (WID)": OwidMapColors.LeafGreen,
-    "South and South-East Asia (WID)": OwidMapColors.SkyTurquoise,
-    "Oceania (WID)": OwidMapColors.Lavendar,
+    "North America (WID)": RegionConceptMapColors.northernAmerica,
+    "Latin America (WID)": RegionConceptMapColors.latinAmerica,
+    "Europe (WID)": RegionConceptMapColors.europe,
+    "Russia and Central Asia (WID)": RegionConceptMapColors.centralAsia,
+    "Middle East and North Africa (WID)":
+        RegionConceptMapColors.middleEastNorthAfrica,
+    "Sub-Saharan Africa (WID)": RegionConceptMapColors.africa,
+    "East Asia (WID)": RegionConceptMapColors.eastAsia,
+    "South and South-East Asia (WID)": RegionConceptMapColors.southAsia,
+    "Oceania (WID)": RegionConceptMapColors.oceania,
 
-    // ILO regions are intentionally NOT pinned: "Arab States (ILO)" is shared by both ILO
-    // tiers and sits at a different palette position in each, so one name-keyed color can't
-    // match both charts without a clash. ILO stays on the position-based palette fallback.
+    // ILO, IEA and UN M49 regions are not pinned here; on maps they are covered by
+    // RegionMapColorMap via the "OWID Categorical Map" scheme and MapContinentColors.
 
     // Income groups
     "High-income countries": IncomeGroupColors.HighIncome,
@@ -781,6 +914,9 @@ export const OwidCategoricalMapScheme = {
     singleColorScale: false,
     isDistinct: true,
     colorSets: [CategoricalMapPalette10, CategoricalMapPalette17],
+    // Known region names get their stable concept color; all other values fall
+    // back to the positional palettes above
+    colorMap: RegionMapColorMap,
 }
 CustomColorSchemes.push(OwidCategoricalMapScheme)
 
@@ -811,53 +947,9 @@ export const MapContinentColors = {
     WesternEurope: OwidMapColors.LightDenim,
     AustralasiaAndOceania: OwidMapColors.Mustard,
 
-    // World Bank regions
-    "East Asia and Pacific (WB)": OwidMapColors.SkyTurquoise,
-    "Europe and Central Asia (WB)": OwidMapColors.MutedDenim,
-    "Middle East, North Africa, Afghanistan and Pakistan (WB)":
-        OwidMapColors.Sand,
-    "North America (WB)": OwidMapColors.SoftOrange,
-    "South Asia (WB)": OwidMapColors.Olive,
-    "Sub-Saharan Africa (WB)": OwidMapColors.LightPurple,
-    "Latin America and Caribbean (WB)": OwidMapColors.MutedCherry,
-
-    // UN regions
-    "Asia (UN)": OwidMapColors.MutedTeal,
-    "Africa (UN)": OwidMapColors.LightPurple,
-    "Europe (UN)": OwidMapColors.MutedDenim,
-    "Oceania (UN)": OwidMapColors.SkyTurquoise,
-    "Northern America (UN)": OwidMapColors.LightOrange,
-    "Latin America and the Caribbean (UN)": OwidMapColors.MutedCherry,
-
-    // WHO regions
-    "Africa (WHO)": OwidMapColors.LightPurple,
-    "Europe (WHO)": OwidMapColors.MutedDenim,
-    "Americas (WHO)": OwidMapColors.SoftOrange,
-    "South-East Asia (WHO)": OwidMapColors.LeafGreen,
-    "Western Pacific (WHO)": OwidMapColors.SkyTurquoise,
-    "Eastern Mediterranean (WHO)": OwidMapColors.Sand,
-
-    // Pew Research Center regions
-    "Europe (Pew)": OwidMapColors.MutedDenim,
-    "Asia-Pacific (Pew)": OwidMapColors.MutedTeal,
-    "North America (Pew)": OwidMapColors.SoftOrange,
-    "Sub-Saharan Africa (Pew)": OwidMapColors.LightPurple,
-    "Latin America-Caribbean (Pew)": OwidMapColors.MutedCherry,
-    "Middle East-North Africa (Pew)": OwidMapColors.Sand,
-
-    // UN SDG regions
-    "Australia and New Zealand (UN SDG)": OwidMapColors.MutedTeal,
-    "Central and Southern Asia (UN SDG)": OwidMapColors.Olive,
-    "Eastern and South-Eastern Asia (UN SDG)": OwidMapColors.SoftOrange,
-    "Europe and Northern America (UN SDG)": OwidMapColors.MutedDenim,
-    "Latin America and the Caribbean (UN SDG)": OwidMapColors.MutedCherry,
-    "Northern Africa and Western Asia (UN SDG)": OwidMapColors.Sand,
-    "Oceania (UN SDG)": OwidMapColors.SkyTurquoise,
-    "Sub-Saharan Africa (UN SDG)": OwidMapColors.LightPurple,
-
-    // Maddison/WID provider regions are inherited from the ContinentColors spread above
-    // (pinned to their map-chart colors there); ILO is intentionally left unpinned. See the
-    // ContinentColors block for the full explanation.
+    // Provider-defined regions (WB, UN, WHO, Pew, UN SDG, Maddison, WID, ILO, ...)
+    // get their concept color, consistent across sources
+    ...RegionMapColorMap,
 } as const
 
 export const DefaultColorScheme = OwidDistinctColorScheme
