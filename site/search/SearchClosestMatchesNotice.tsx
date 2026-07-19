@@ -9,17 +9,7 @@ import { useSearchContext } from "./SearchContext.js"
 export function SearchClosestMatchesNotice() {
     const { state } = useSearchContext()
     return (
-        <p
-            className="search-closest-matches-notice body-3-medium"
-            style={{
-                margin: "0 0 16px",
-                padding: "8px 12px",
-                background: "#f7f8fa",
-                border: "1px solid #e4e8ec",
-                borderRadius: 6,
-                color: "#5b5e63",
-            }}
-        >
+        <p className="search-closest-matches-notice">
             No exact matches for <strong>“{state.query}”</strong> — showing the
             closest matches instead.
         </p>
