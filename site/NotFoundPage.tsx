@@ -13,6 +13,7 @@ export default function NotFoundPage({ baseUrl }: { baseUrl: string }) {
                 pageTitle="404 Not Found"
                 pageDesc="Search articles and charts on Our World in Data."
                 baseUrl={baseUrl}
+                noindex
             />
             <body className="NotFoundPage">
                 <SiteHeader />
