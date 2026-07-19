@@ -222,6 +222,8 @@ export default function OwidGdocPage({
                         gdoc={gdoc}
                         baseUrl={baseUrl}
                         imageUrl={imageUrl}
+                        description={pageDesc}
+                        canonicalUrl={canonicalUrl}
                     />
                 )}
                 {isAuthor && (
