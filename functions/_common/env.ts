@@ -30,6 +30,8 @@ export interface Env {
     ALGOLIA_ID: string
     ALGOLIA_SEARCH_KEY: string
     ALGOLIA_INDEX_PREFIX?: string
+    OPENAI_API_KEY?: string
+    ASK_CHART_OPENAI_MODEL?: string
     CATALOG_URL: string
     USER_SURVEYS_R2?: R2Bucket
 }
