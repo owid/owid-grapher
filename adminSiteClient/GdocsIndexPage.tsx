@@ -19,10 +19,11 @@ import {
 } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
+    DbChartTagJoin,
     OwidGdocType,
-    checkIsGdocPost,
     OwidGdocIndexItem,
     MinimalTagWithMetadata,
+    TagGraphRole,
 } from "@ourworldindata/utils"
 import {
     buildSearchWordsFromSearchString,
@@ -34,7 +35,7 @@ import { Link } from "./Link.js"
 import { GdocsAdd } from "./GdocsAdd.js"
 import { observer } from "mobx-react"
 import { GdocsStoreContext } from "./GdocsStoreContext.js"
-import { computed, observable, makeObservable } from "mobx"
+import { action, computed, observable, makeObservable } from "mobx"
 import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 import { GdocsEditLink } from "./GdocsEditLink.js"
 import { getTagGraphRolesById } from "./TagGraphMetadata.js"
@@ -61,92 +62,92 @@ enum GdocPublishStatus {
 
 interface GdocsIndexPageSearchProps {
     filters: GdocsSearchFilters
-    search: {
-        value: string
-    }
+    searchValue: string
+    onSearchValueChange: (value: string) => void
+    onToggleGdocTypeFilter: (type: OwidGdocType) => void
+    onPublishStatusChange: (status: GdocPublishStatus) => void
 }
 
-@observer
-class GdocsIndexPageSearch extends React.Component<GdocsIndexPageSearchProps> {
-    toggleGdocTypeFilter = (type: OwidGdocType) => {
-        this.props.filters[type] = !this.props.filters[type]
-    }
-
-    override render() {
-        const owidGdocTypes: OwidGdocType[] = [
-            OwidGdocType.Fragment,
-            OwidGdocType.Article,
-            OwidGdocType.TopicPage,
-            OwidGdocType.LinearTopicPage,
-            OwidGdocType.DataInsight,
-            OwidGdocType.AboutPage,
-            OwidGdocType.Author,
-            OwidGdocType.Announcement,
-            OwidGdocType.Profile,
-        ]
-        return (
-            <div className="d-flex flex-grow-1 flex-wrap">
-                <SearchField
-                    placeholder="Search by author, category, or title"
-                    className="gdoc-index__search-bar"
-                    value={this.props.search.value}
-                    onValue={(value: string) =>
-                        (this.props.search.value = value)
-                    }
-                    autofocus
-                />
-                <div className="gdoc-index-filters">
-                    <p>
-                        <strong>Filter results by type</strong>
-                    </p>
-                    {owidGdocTypes.map((type) => {
-                        const isChecked = this.props.filters[type]
-                        return (
-                            <label
-                                key={type}
-                                className="gdoc-index-filter-checkbox"
-                            >
-                                <input
-                                    type="checkbox"
-                                    id={`shouldShow${type}`}
-                                    checked={isChecked}
-                                    onChange={() =>
-                                        this.toggleGdocTypeFilter(type)
-                                    }
-                                />
-                                {type}
-                            </label>
-                        )
-                    })}
-                    <label className="gdoc-index-filter-checkbox">
-                        <select
-                            id="publishStatusFilter"
-                            onChange={({ target }) => {
-                                const value = target.value as GdocPublishStatus
-                                this.props.filters.publishStatus = value
-                            }}
+const GdocsIndexPageSearch = observer(function GdocsIndexPageSearch({
+    filters,
+    searchValue,
+    onSearchValueChange,
+    onToggleGdocTypeFilter,
+    onPublishStatusChange,
+}: GdocsIndexPageSearchProps): React.ReactElement {
+    const owidGdocTypes: OwidGdocType[] = [
+        OwidGdocType.Fragment,
+        OwidGdocType.Article,
+        OwidGdocType.TopicPage,
+        OwidGdocType.LinearTopicPage,
+        OwidGdocType.DataInsight,
+        OwidGdocType.AboutPage,
+        OwidGdocType.Author,
+        OwidGdocType.Announcement,
+        OwidGdocType.Profile,
+    ]
+    return (
+        <div className="d-flex flex-grow-1 flex-wrap">
+            <SearchField
+                placeholder="Search by author, category, or title"
+                className="gdoc-index__search-bar"
+                value={searchValue}
+                onValue={onSearchValueChange}
+                autofocus
+            />
+            <div className="gdoc-index-filters">
+                <p>
+                    <strong>Filter results by type</strong>
+                </p>
+                {owidGdocTypes.map((type) => {
+                    const isChecked = filters[type]
+                    return (
+                        <label
+                            key={type}
+                            className="gdoc-index-filter-checkbox"
                         >
-                            <option value={GdocPublishStatus.All}>All</option>
-                            <option value={GdocPublishStatus.Published}>
-                                Published
-                            </option>
-                            <option value={GdocPublishStatus.Unpublished}>
-                                Unpublished
-                            </option>
-                            <option value={GdocPublishStatus.Scheduled}>
-                                Scheduled
-                            </option>
-                        </select>
-                    </label>
-                </div>
+                            <input
+                                type="checkbox"
+                                id={`shouldShow${type}`}
+                                checked={isChecked}
+                                onChange={() => onToggleGdocTypeFilter(type)}
+                            />
+                            {type}
+                        </label>
+                    )
+                })}
+                <label className="gdoc-index-filter-checkbox">
+                    <select
+                        id="publishStatusFilter"
+                        value={filters.publishStatus}
+                        onChange={({ target }) =>
+                            onPublishStatusChange(
+                                target.value as GdocPublishStatus
+                            )
+                        }
+                    >
+                        <option value={GdocPublishStatus.All}>All</option>
+                        <option value={GdocPublishStatus.Published}>
+                            Published
+                        </option>
+                        <option value={GdocPublishStatus.Unpublished}>
+                            Unpublished
+                        </option>
+                        <option value={GdocPublishStatus.Scheduled}>
+                            Scheduled
+                        </option>
+                    </select>
+                </label>
             </div>
-        )
-    }
-}
+        </div>
+    )
+})
 
 type GdocsSearchFilters = Record<OwidGdocType, boolean> & {
     publishStatus: GdocPublishStatus
 }
+
+const VISIBLE_RESULT_COUNT_INCREMENT = 100
 
 function canTagGdoc(gdoc: OwidGdocIndexItem): boolean {
     return (
@@ -157,6 +158,20 @@ function canTagGdoc(gdoc: OwidGdocIndexItem): boolean {
             OwidGdocType.Fragment,
             OwidGdocType.Homepage,
         ].includes(gdoc.type)
+    )
+}
+
+function getPublishedAtTimestamp(gdoc: OwidGdocIndexItem): number {
+    if (!gdoc.publishedAt) return Infinity
+    const timestamp = new Date(gdoc.publishedAt).getTime()
+    return Number.isNaN(timestamp) ? Infinity : timestamp
+}
+
+function isGdocScheduled(gdoc: OwidGdocIndexItem, now: number): boolean {
+    return (
+        gdoc.published &&
+        !!gdoc.publishedAt &&
+        new Date(gdoc.publishedAt).getTime() > now
     )
 }
 
@@ -191,8 +206,118 @@ function TagWarning({
     )
 }
 
+interface GdocsIndexRowProps {
+    gdoc: OwidGdocIndexItem
+    basePath: string
+    orphanTagIds?: ReadonlySet<number>
+    availableTags: MinimalTagWithMetadata[]
+    tagGraphRolesById: ReadonlyMap<number, TagGraphRole>
+    onUpdateTags: (gdoc: OwidGdocIndexItem, tags: DbChartTagJoin[]) => void
+}
+
+const GdocsIndexRow = observer(function GdocsIndexRow({
+    gdoc,
+    basePath,
+    orphanTagIds,
+    availableTags,
+    tagGraphRolesById,
+    onUpdateTags,
+}: GdocsIndexRowProps): React.ReactElement {
+    const isScheduled = isGdocScheduled(gdoc, Date.now())
+
+    return (
+        <div
+            className={cx("gdoc-index-item", {
+                [`gdoc-index-item__${gdoc.type}`]: gdoc.type,
+            })}
+        >
+            <div className="gdoc-index-item__content">
+                {gdoc.type ? (
+                    <span
+                        className="gdoc-index-item__type-icon"
+                        title={gdoc.type}
+                    >
+                        {iconGdocTypeMap[gdoc.type]}
+                    </span>
+                ) : null}
+                <Link to={`${basePath}/${gdoc.id}/preview`}>
+                    <h5
+                        className="gdoc-index-item__title"
+                        title="Preview article"
+                    >
+                        {gdoc.title || "Untitled"}
+                    </h5>
+                </Link>
+                <GdocsEditLink gdocId={gdoc.id} />
+                <p className="gdoc-index-item__byline">
+                    {gdoc.authors?.join(", ")}
+                </p>
+                <div className="gdoc-index-item__tags">
+                    {canTagGdoc(gdoc) ? (
+                        <>
+                            <TagWarning
+                                gdoc={gdoc}
+                                orphanTagIds={orphanTagIds}
+                            />
+                            <EditableTags
+                                tags={gdoc.tags}
+                                onSave={(tags) => onUpdateTags(gdoc, tags)}
+                                suggestions={availableTags}
+                                tagGraphRolesById={tagGraphRolesById}
+                            />
+                        </>
+                    ) : null}
+                </div>
+            </div>
+            <div className="gdoc-index-item__publish-status">
+                {gdoc.published ? (
+                    isScheduled ? (
+                        <span className="gdoc-index-item__scheduled-label">
+                            Scheduled for{" "}
+                            {new Date(gdoc.publishedAt!).toLocaleDateString(
+                                "en-GB",
+                                {
+                                    weekday: "long",
+                                    day: "numeric",
+                                    month: "long",
+                                    year: "numeric",
+                                }
+                            )}
+                        </span>
+                    ) : gdoc.type === OwidGdocType.Fragment ? (
+                        <span className="gdoc-index-item__publish-link">
+                            Published
+                        </span>
+                    ) : (
+                        <a
+                            title={
+                                gdoc.publishedAt
+                                    ? new Date(gdoc.publishedAt).toDateString()
+                                    : undefined
+                            }
+                            href={`${BAKED_BASE_URL}/${gdoc.slug}`}
+                            className="gdoc-index-item__publish-link"
+                        >
+                            Published
+                        </a>
+                    )
+                ) : null}
+            </div>
+        </div>
+    )
+})
+
+interface GdocsIndexPageContentProps extends RouteComponentProps {
+    searchValue: string
+    deferredSearchValue: string
+    visibleResultCount: number
+    onSearchValueChange: (value: string) => void
+    onResetVisibleResults: () => void
+    onLoadMore: () => void
+}
+
 @observer
-export class GdocsIndexPage extends React.Component<RouteComponentProps> {
+class GdocsIndexPageContent extends React.Component<GdocsIndexPageContentProps> {
     static override contextType = GdocsStoreContext
     declare context: React.ContextType<typeof GdocsStoreContext>
 
@@ -210,25 +335,40 @@ export class GdocsIndexPage extends React.Component<RouteComponentProps> {
         publishStatus: GdocPublishStatus.All,
     }
 
-    search = { value: "" }
-
-    constructor(props: RouteComponentProps) {
+    constructor(props: GdocsIndexPageContentProps) {
         super(props)
 
         makeObservable(this, {
             filters: observable,
-            search: observable,
         })
     }
 
     @computed get searchWords(): SearchWord[] {
-        const { search } = this
-        return buildSearchWordsFromSearchString(search.value)
+        return buildSearchWordsFromSearchString(this.props.deferredSearchValue)
     }
 
     override async componentDidMount(): Promise<void> {
         await this.context?.fetchTags()
         await this.context?.fetchGdocs()
+    }
+
+    @action.bound
+    private onToggleGdocTypeFilter(type: OwidGdocType): void {
+        this.filters[type] = !this.filters[type]
+        this.props.onResetVisibleResults()
+    }
+
+    @action.bound
+    private onPublishStatusChange(status: GdocPublishStatus): void {
+        this.filters.publishStatus = status
+        this.props.onResetVisibleResults()
+    }
+
+    private readonly onUpdateTags = (
+        gdoc: OwidGdocIndexItem,
+        tags: DbChartTagJoin[]
+    ): void => {
+        void this.context?.updateTags(gdoc, tags)
     }
 
     @computed
@@ -266,7 +406,7 @@ export class GdocsIndexPage extends React.Component<RouteComponentProps> {
                       // show this document if its type is active
                       this.filters[gdoc.type]
 
-                  const isScheduled = this.isGdocScheduled(gdoc, now)
+                  const isScheduled = isGdocScheduled(gdoc, now)
 
                   switch (publishStatus) {
                       case GdocPublishStatus.All:
@@ -287,18 +427,14 @@ export class GdocsIndexPage extends React.Component<RouteComponentProps> {
             const filterFn = filterFunctionForSearchWords(
                 searchWords,
                 (gdoc: OwidGdocIndexItem) => {
-                    const properties = [
+                    return [
                         gdoc.title,
+                        gdoc.subtitle,
                         gdoc.slug,
                         gdoc.authors?.join(" "),
                         gdoc.tags?.map(({ name }) => name).join(" "),
                         gdoc.id,
                     ]
-
-                    if (checkIsGdocPost(gdoc)) {
-                        properties.push(gdoc.content.subtitle)
-                    }
-                    return properties
                 }
             )
             const result = filteredByType.filter(filterFn)
@@ -308,26 +444,11 @@ export class GdocsIndexPage extends React.Component<RouteComponentProps> {
         }
     }
 
-    private getPublishedAtTimestamp(gdoc: OwidGdocIndexItem): number {
-        if (!gdoc.publishedAt) return Infinity
-        const timestamp = new Date(gdoc.publishedAt).getTime()
-        return Number.isNaN(timestamp) ? Infinity : timestamp
-    }
-
-    private isGdocScheduled(gdoc: OwidGdocIndexItem, now: number): boolean {
-        return (
-            gdoc.published &&
-            !!gdoc.publishedAt &&
-            new Date(gdoc.publishedAt).getTime() > now
-        )
-    }
-
     private sortIfScheduled(gdocs: OwidGdocIndexItem[]): OwidGdocIndexItem[] {
         if (this.filters.publishStatus === GdocPublishStatus.Scheduled) {
             return [...gdocs].sort(
                 (a, b) =>
-                    this.getPublishedAtTimestamp(a) -
-                    this.getPublishedAtTimestamp(b)
+                    getPublishedAtTimestamp(a) - getPublishedAtTimestamp(b)
             )
         }
         return gdocs
@@ -340,7 +461,10 @@ export class GdocsIndexPage extends React.Component<RouteComponentProps> {
                     <div className="d-flex justify-content-between mb-3">
                         <GdocsIndexPageSearch
                             filters={this.filters}
-                            search={this.search}
+                            searchValue={this.props.searchValue}
+                            onSearchValueChange={this.props.onSearchValueChange}
+                            onToggleGdocTypeFilter={this.onToggleGdocTypeFilter}
+                            onPublishStatusChange={this.onPublishStatusChange}
                         />
                         <div>
                             <a
@@ -366,113 +490,40 @@ export class GdocsIndexPage extends React.Component<RouteComponentProps> {
                         </div>
                     </div>
 
-                    {this.allGdocsToShow.map((gdoc) => (
-                        <div
-                            key={gdoc.id}
-                            className={cx(`gdoc-index-item`, {
-                                [`gdoc-index-item__${gdoc.type}`]: gdoc.type,
-                            })}
-                        >
-                            <div className="gdoc-index-item__content">
-                                {gdoc.type ? (
-                                    <span
-                                        className="gdoc-index-item__type-icon"
-                                        title={gdoc.type}
-                                    >
-                                        {iconGdocTypeMap[gdoc.type]}
-                                    </span>
-                                ) : null}
-                                <Link
-                                    to={`${this.props.match.path}/${gdoc.id}/preview`}
-                                >
-                                    <h5
-                                        className="gdoc-index-item__title"
-                                        title="Preview article"
-                                    >
-                                        {gdoc.title || "Untitled"}
-                                    </h5>
-                                </Link>
-                                <GdocsEditLink gdocId={gdoc.id} />
-                                <p className="gdoc-index-item__byline">
-                                    {gdoc.authors?.join(", ")}
-                                </p>
-                                <div className="gdoc-index-item__tags">
-                                    {canTagGdoc(gdoc) ? (
-                                        <>
-                                            <TagWarning
-                                                gdoc={gdoc}
-                                                orphanTagIds={
-                                                    this.context?.orphanTagIds
-                                                }
-                                            />
-                                            <EditableTags
-                                                tags={gdoc.tags ?? []}
-                                                onSave={(tags) =>
-                                                    this.context?.updateTags(
-                                                        gdoc,
-                                                        tags as any
-                                                    )
-                                                }
-                                                suggestions={this.tags}
-                                                tagGraphRolesById={
-                                                    this.tagGraphRolesById
-                                                }
-                                            />
-                                        </>
-                                    ) : null}
-                                </div>
-                            </div>
-                            <div className="gdoc-index-item__publish-status">
-                                {gdoc.published
-                                    ? (() => {
-                                          if (
-                                              this.isGdocScheduled(
-                                                  gdoc,
-                                                  Date.now()
-                                              )
-                                          ) {
-                                              return (
-                                                  <span className="gdoc-index-item__scheduled-label">
-                                                      Scheduled for{" "}
-                                                      {new Date(
-                                                          gdoc.publishedAt!
-                                                      ).toLocaleDateString(
-                                                          "en-GB",
-                                                          {
-                                                              weekday: "long",
-                                                              day: "numeric",
-                                                              month: "long",
-                                                              year: "numeric",
-                                                          }
-                                                      )}
-                                                  </span>
-                                              )
-                                          }
-                                          return (
-                                              <a
-                                                  title={
-                                                      gdoc.publishedAt
-                                                          ? new Date(
-                                                                gdoc.publishedAt
-                                                            ).toDateString()
-                                                          : undefined
-                                                  }
-                                                  href={
-                                                      gdoc.type !==
-                                                      OwidGdocType.Fragment
-                                                          ? `${BAKED_BASE_URL}/${gdoc.slug}`
-                                                          : undefined
-                                                  }
-                                                  className="gdoc-index-item__publish-link"
-                                              >
-                                                  Published
-                                              </a>
-                                          )
-                                      })()
-                                    : null}
-                            </div>
-                        </div>
-                    ))}
+                    {this.allGdocsToShow
+                        .slice(0, this.props.visibleResultCount)
+                        .map((gdoc) => (
+                            <GdocsIndexRow
+                                key={gdoc.id}
+                                gdoc={gdoc}
+                                basePath={this.props.match.path}
+                                orphanTagIds={this.context?.orphanTagIds}
+                                availableTags={this.tags}
+                                tagGraphRolesById={this.tagGraphRolesById}
+                                onUpdateTags={this.onUpdateTags}
+                            />
+                        ))}
+
+                    <div className="gdoc-index__load-more">
+                        <p>
+                            Showing{" "}
+                            {Math.min(
+                                this.props.visibleResultCount,
+                                this.allGdocsToShow.length
+                            )}{" "}
+                            of {this.allGdocsToShow.length} documents
+                        </p>
+                        {this.props.visibleResultCount <
+                            this.allGdocsToShow.length && (
+                            <button
+                                type="button"
+                                className="btn btn-secondary"
+                                onClick={this.props.onLoadMore}
+                            >
+                                Load more
+                            </button>
+                        )}
+                    </div>
 
                     <Route
                         path={`${this.props.match.path}/add`}
@@ -497,4 +548,37 @@ export class GdocsIndexPage extends React.Component<RouteComponentProps> {
             </AdminLayout>
         )
     }
+}
+
+export function GdocsIndexPage(props: RouteComponentProps): React.ReactElement {
+    const [searchValue, setSearchValue] = React.useState("")
+    const [visibleResultCount, setVisibleResultCount] = React.useState(
+        VISIBLE_RESULT_COUNT_INCREMENT
+    )
+    const deferredSearchValue = React.useDeferredValue(searchValue)
+
+    const resetVisibleResults = React.useCallback(() => {
+        setVisibleResultCount(VISIBLE_RESULT_COUNT_INCREMENT)
+    }, [])
+
+    const handleSearchValueChange = React.useCallback((value: string) => {
+        setSearchValue(value)
+        setVisibleResultCount(VISIBLE_RESULT_COUNT_INCREMENT)
+    }, [])
+
+    const loadMore = React.useCallback(() => {
+        setVisibleResultCount((count) => count + VISIBLE_RESULT_COUNT_INCREMENT)
+    }, [])
+
+    return (
+        <GdocsIndexPageContent
+            {...props}
+            searchValue={searchValue}
+            deferredSearchValue={deferredSearchValue}
+            visibleResultCount={visibleResultCount}
+            onSearchValueChange={handleSearchValueChange}
+            onResetVisibleResults={resetVisibleResults}
+            onLoadMore={loadMore}
+        />
+    )
 }

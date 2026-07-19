@@ -3,7 +3,6 @@ import {
     getOwidGdocFromJSON,
     OwidGdocJSON,
     OwidGdoc,
-    DbPlainTag,
     OwidGdocIndexItem,
     MinimalTagWithMetadata,
 } from "@ourworldindata/utils"
@@ -96,7 +95,7 @@ export class GdocsStore {
     }
 
     @action
-    async updateTags(gdoc: OwidGdocIndexItem, tags: DbPlainTag[]) {
+    async updateTags(gdoc: OwidGdocIndexItem, tags: OwidGdocIndexItem["tags"]) {
         const json = await this.admin.requestJSON<{ success: boolean }>(
             `/api/gdocs/${gdoc.id}/setTags`,
             { tagIds: tags.map((t) => t.id) },
