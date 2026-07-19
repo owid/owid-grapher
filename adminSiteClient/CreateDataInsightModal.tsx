@@ -40,7 +40,7 @@ import { ApiNarrativeChartOverview } from "../adminShared/AdminTypes"
 import {
     downloadImage,
     MinimalTag,
-    MinimalTagWithIsTopic,
+    MinimalTagWithMetadata,
     RequiredBy,
 } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
@@ -442,7 +442,7 @@ export function CreateDataInsightModal(props: {
         if (!hasTopicTagsField) return
 
         const fetchTags = () =>
-            admin.getJSON<{ tags: MinimalTagWithIsTopic[] }>("/api/tags.json")
+            admin.getJSON<{ tags: MinimalTagWithMetadata[] }>("/api/tags.json")
 
         void fetchTags().then((result) =>
             setAllTopicTags(result.tags.filter((tag) => tag.isTopic))

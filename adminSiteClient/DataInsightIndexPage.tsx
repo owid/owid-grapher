@@ -47,7 +47,7 @@ import {
     GrapherChartOrMapType,
     OwidGdocDataInsightIndexItem,
     MinimalTag,
-    MinimalTagWithIsTopic,
+    MinimalTagWithMetadata,
 } from "@ourworldindata/types"
 import { copyToClipboard, dayjs, RequiredBy } from "@ourworldindata/utils"
 import {
@@ -63,6 +63,7 @@ import {
 import { ReuploadImageForDataInsightModal } from "./ReuploadImageForDataInsightModal.js"
 import { CreateDataInsightModal } from "./CreateDataInsightModal.js"
 import { EditableTags } from "./EditableTags.js"
+import { getTagGraphRolesById } from "./TagGraphMetadata.js"
 
 type NarrativeDataInsightIndexItem = RequiredBy<
     OwidGdocDataInsightIndexItem,
@@ -95,7 +96,8 @@ const plusIcon = <FontAwesomeIcon icon={faPlus} size="sm" />
 const NotificationContext = createContext(null)
 
 function createColumns(ctx: {
-    availableTopicTags: MinimalTag[]
+    availableTopicTags: MinimalTagWithMetadata[]
+    tagGraphRolesById: ReturnType<typeof getTagGraphRolesById>
     updateTags: (gdocId: string, tags: MinimalTag[]) => Promise<void>
     highlightFn: (
         text: string | null | undefined
@@ -180,6 +182,7 @@ function createColumns(ctx: {
                         ctx.updateTags(dataInsight.id, tags as MinimalTag[])
                     }
                     suggestions={ctx.availableTopicTags}
+                    tagGraphRolesById={ctx.tagGraphRolesById}
                 />
             ),
         },
@@ -293,8 +296,16 @@ export function DataInsightIndexPage() {
     const [dataInsights, setDataInsights, refreshDataInsights] =
         useDataInsights(admin)
 
-    const [availableTopicTags, setAvailableTopicTags] = useState<MinimalTag[]>(
-        []
+    const [availableTags, setAvailableTags] = useState<
+        MinimalTagWithMetadata[] | undefined
+    >(undefined)
+    const availableTopicTags = useMemo(
+        () => availableTags?.filter((tag) => tag.isTopic),
+        [availableTags]
+    )
+    const tagGraphRolesById = useMemo(
+        () => getTagGraphRolesById(availableTags ?? []),
+        [availableTags]
     )
 
     const [searchValue, setSearchValue] = useState("")
@@ -466,13 +477,22 @@ export function DataInsightIndexPage() {
             dataInsight: DataInsightIndexItemThatCanBeUploaded
         ) => setDataInsightForImageUpload(dataInsight)
 
+        if (!availableTags || !availableTopicTags) return []
+
         return createColumns({
             availableTopicTags,
+            tagGraphRolesById,
             updateTags,
             highlightFn,
             triggerImageUploadFlow,
         })
-    }, [searchWords, availableTopicTags, updateTags])
+    }, [
+        searchWords,
+        availableTags,
+        availableTopicTags,
+        tagGraphRolesById,
+        updateTags,
+    ])
 
     const updateDataInsightPreview = (
         dataInsightId: string,
@@ -522,11 +542,9 @@ export function DataInsightIndexPage() {
 
     useEffect(() => {
         const fetchTags = () =>
-            admin.getJSON<{ tags: MinimalTagWithIsTopic[] }>("/api/tags.json")
+            admin.getJSON<{ tags: MinimalTagWithMetadata[] }>("/api/tags.json")
 
-        void fetchTags().then((result) =>
-            setAvailableTopicTags(result.tags.filter((tag) => tag.isTopic))
-        )
+        void fetchTags().then((result) => setAvailableTags(result.tags))
     }, [admin])
 
     return (
@@ -552,10 +570,12 @@ export function DataInsightIndexPage() {
                             <Select
                                 value={topicTagFilter}
                                 placeholder="Select a topic tag..."
-                                options={availableTopicTags.map((tag) => ({
-                                    value: tag.name,
-                                    label: tag.name,
-                                }))}
+                                options={(availableTopicTags ?? []).map(
+                                    (tag) => ({
+                                        value: tag.name,
+                                        label: tag.name,
+                                    })
+                                )}
                                 onChange={(tag: string) =>
                                     setTopicTagFilter(tag)
                                 }

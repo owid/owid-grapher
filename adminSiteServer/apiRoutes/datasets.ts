@@ -351,16 +351,7 @@ export async function getDataset(
     )
     dataset.tags = tags
 
-    const availableTags = await db.knexRaw<{
-        id: number
-        name: string
-    }>(
-        trx,
-        `-- sql
-        SELECT t.id, t.name
-        FROM tags t
-        `
-    )
+    const availableTags = await db.getMinimalTagsWithMetadata(trx)
     dataset.availableTags = availableTags
 
     // Fetch explorers that use variables or charts from this dataset
