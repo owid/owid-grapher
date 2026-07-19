@@ -1,0 +1,146 @@
+.ask-this-chart-wrapper {
+    margin-bottom: 16px;
+    background-color: $blue-5;
+    padding: 24px 0 36px;
+
+    h2 {
+        margin: 0;
+        margin-bottom: 8px;
+    }
+}
+
+.ask-this-chart__intro {
+    @include body-3-medium;
+    color: $blue-60;
+    margin: 0 0 16px;
+}
+
+.ask-this-chart__suggestions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.ask-this-chart__suggestion {
+    @include body-3-medium;
+    padding: 8px 16px;
+    background-color: $white;
+    color: $blue-90;
+    border: 1px solid $blue-20;
+    border-radius: 24px;
+    cursor: pointer;
+
+    &:hover:not(:disabled) {
+        background-color: $blue-10;
+    }
+
+    &:disabled {
+        color: $blue-40;
+        cursor: default;
+    }
+}
+
+.ask-this-chart__conversation {
+    margin-bottom: 16px;
+}
+
+.ask-this-chart__question {
+    @include body-3-medium;
+    display: inline-block;
+    background-color: $blue-10;
+    color: $blue-90;
+    border-radius: 16px 16px 16px 0;
+    padding: 8px 16px;
+    margin: 16px 0 8px;
+}
+
+.ask-this-chart__answer {
+    @include body-3-medium;
+    background-color: $white;
+    border: 1px solid $blue-20;
+    color: $blue-90;
+    padding: 16px;
+
+    p {
+        margin: 0 0 8px;
+    }
+
+    p:last-child,
+    ul:last-child,
+    ol:last-child {
+        margin-bottom: 0;
+    }
+
+    ul,
+    ol {
+        margin: 0 0 8px;
+        padding-left: 24px;
+    }
+}
+
+.ask-this-chart__thinking {
+    color: $blue-50;
+    animation: ask-this-chart-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes ask-this-chart-pulse {
+    50% {
+        opacity: 0.4;
+    }
+}
+
+.ask-this-chart__error {
+    @include body-3-medium;
+    color: $vermillion;
+    margin: 0 0 16px;
+}
+
+.ask-this-chart__form {
+    display: flex;
+    gap: 8px;
+}
+
+.ask-this-chart__input {
+    @include body-3-medium;
+    flex: 1;
+    height: 56px;
+    padding: 0 16px;
+    background-color: $white;
+    border: 1px solid $blue-20;
+    border-radius: 0;
+    color: $blue-90;
+
+    &:focus {
+        outline: 2px solid $blue-40;
+        outline-offset: -2px;
+    }
+
+    &::placeholder {
+        color: $blue-50;
+    }
+}
+
+.ask-this-chart__submit {
+    @include body-3-medium;
+    padding: 0 24px;
+    background-color: $blue-90;
+    color: $white;
+    border: none;
+    cursor: pointer;
+
+    &:hover:not(:disabled) {
+        background-color: $blue-60;
+    }
+
+    &:disabled {
+        background-color: $blue-20;
+        cursor: default;
+    }
+}
+
+.ask-this-chart__disclaimer {
+    @include note-13-medium;
+    color: $blue-50;
+    margin: 8px 0 0;
+}
