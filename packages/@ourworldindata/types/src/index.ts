@@ -718,7 +718,6 @@ export {
 
 export {
     RedirectsTableName,
-    RedirectCode,
     type DbPlainRedirect,
 } from "./dbTypes/Redirects.js"
 

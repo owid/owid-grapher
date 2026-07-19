@@ -11,8 +11,15 @@ export function createRedirectResponse(
     }
     const url = `${targetPath}${mergedParams.toString() ? `?${mergedParams.toString()}` : ""}`
     return new Response(null, {
-        status: 302,
-        headers: { Location: url },
+        status: 301,
+        headers: {
+            Location: url,
+            // Without an explicit lifetime, browsers may cache a 301 forever,
+            // which would keep clients on the old target if a slug is ever
+            // reused. One day bounds that while search engines still get the
+            // full permanent-redirect signal.
+            "Cache-Control": "public, max-age=86400",
+        },
     })
 }
 
