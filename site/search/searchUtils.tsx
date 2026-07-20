@@ -216,6 +216,11 @@ export const constructChartUrl = ({
     grapherParams?: GrapherQueryParams
     overlay?: "sources" | "download-data"
 }): string => {
+    // Special viz hits link to their article, which doesn't support any
+    // grapher query params or overlays
+    if (hit.type === ChartRecordType.SpecialViz)
+        return `${BAKED_BASE_URL}/${hit.slug}`
+
     const viewQueryStr = generateQueryStrForChartHit({ hit, grapherParams })
     const overlayQueryStr = overlay ? `overlay=${overlay}` : ""
     const queryParts = [
@@ -337,21 +342,25 @@ export const constructConfigUrl = ({
 }: {
     hit: SearchChartHit
 }): string | undefined => {
-    return match(hit)
-        .with(
-            { type: ChartRecordType.Chart },
-            (hit) => `${GRAPHER_DYNAMIC_CONFIG_URL}/${hit.slug}.config.json`
-        )
-        .with(
-            { type: ChartRecordType.MultiDimView },
-            (hit) =>
-                `${GRAPHER_DYNAMIC_CONFIG_URL}/by-uuid/${hit.chartConfigId}.config.json`
-        )
-        .with({ type: ChartRecordType.ExplorerView }, () => {
-            const queryStr = generateQueryStrForChartHit({ hit })
-            return `${EXPLORER_DYNAMIC_CONFIG_URL}/${hit.slug}.config.json${queryStr}`
-        })
-        .exhaustive()
+    return (
+        match(hit)
+            .with(
+                { type: ChartRecordType.Chart },
+                (hit) => `${GRAPHER_DYNAMIC_CONFIG_URL}/${hit.slug}.config.json`
+            )
+            .with(
+                { type: ChartRecordType.MultiDimView },
+                (hit) =>
+                    `${GRAPHER_DYNAMIC_CONFIG_URL}/by-uuid/${hit.chartConfigId}.config.json`
+            )
+            .with({ type: ChartRecordType.ExplorerView }, () => {
+                const queryStr = generateQueryStrForChartHit({ hit })
+                return `${EXPLORER_DYNAMIC_CONFIG_URL}/${hit.slug}.config.json${queryStr}`
+            })
+            // Special viz articles don't have a grapher config
+            .with({ type: ChartRecordType.SpecialViz }, () => undefined)
+            .exhaustive()
+    )
 }
 
 export const CHARTS_INDEX = getIndexName(
@@ -375,6 +384,7 @@ export const DATA_CATALOG_ATTRIBUTES = [
     "subtitle",
     "chartConfigId",
     "explorerType",
+    "thumbnailUrl",
 ]
 
 type SearchFacetAttribute =

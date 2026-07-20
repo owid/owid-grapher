@@ -146,6 +146,10 @@ const prependSubdirectoryToAlgoliaItemUrl = (item: BaseItem): string => {
                     }
                     return url.toString()
                 })
+                .with(ChartRecordType.SpecialViz, () => {
+                    // Special viz hits link to their article
+                    return urljoin(BAKED_BASE_URL, item.slug as string)
+                })
                 .exhaustive()
         })
         .otherwise(() => {
@@ -194,7 +198,9 @@ const algoliaItemTemplate: AutocompleteSource<BaseItem>["templates"] = {
                 label:
                     item.type === ChartRecordType.ExplorerView
                         ? "Explorer"
-                        : "Chart",
+                        : item.type === ChartRecordType.SpecialViz
+                          ? "Interactive"
+                          : "Chart",
                 icon: faLineChart,
             }))
             .with(PAGES_INDEX, () => {

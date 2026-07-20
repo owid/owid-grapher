@@ -1,0 +1,87 @@
+.search-chart-hit-special-viz {
+    // A subtle gold to set special viz hits apart from the light blue of
+    // regular data results
+    background-color: $amber-10;
+    padding: 16px;
+
+    @include sm-only {
+        padding: 12px;
+    }
+
+    .search-chart-hit-special-viz__header {
+        display: flex;
+        justify-content: space-between;
+        gap: 24px;
+
+        @include sm-only {
+            gap: 0px;
+        }
+    }
+
+    .search-chart-hit-special-viz__header-content {
+        // Allow the title to be truncated with an ellipsis
+        overflow: hidden;
+    }
+
+    .search-chart-hit-special-viz__kicker {
+        @include overline-black-caps;
+        color: #937721; // darkened $amber for legibility on $amber-10
+        margin-bottom: 4px;
+
+        svg {
+            margin-right: 6px;
+        }
+    }
+
+    .search-chart-hit-special-viz__header-actions {
+        display: flex;
+        gap: 16px;
+        align-self: flex-start;
+        flex-shrink: 0;
+
+        .search-chart-hit-special-viz__button {
+            padding: 5px 8px;
+            font-size: 13px;
+            white-space: nowrap;
+            border-radius: 4px;
+
+            @include sm-only {
+                display: none;
+            }
+        }
+    }
+
+    .search-chart-hit-special-viz__thumbnail {
+        display: block;
+        margin-top: 16px;
+
+        img {
+            display: block;
+            width: 100%;
+            object-fit: cover;
+            object-position: center;
+        }
+
+        @include sm-only {
+            margin-top: 12px;
+        }
+    }
+
+    // Match the content height of the large chart hit variant
+    &.search-chart-hit-special-viz--large
+        .search-chart-hit-special-viz__thumbnail
+        img {
+        height: 330px;
+    }
+
+    // Match the content height of the medium chart hit variant
+    &.search-chart-hit-special-viz--medium
+        .search-chart-hit-special-viz__thumbnail
+        img {
+        height: 190px;
+
+        @include md-down {
+            height: 160px;
+        }
+    }
+}

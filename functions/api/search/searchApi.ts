@@ -301,6 +301,9 @@ export async function searchCharts(
             // Multi-dimensional views: /grapher/{slug}{queryParams}
             const queryParams = cleanHit.queryParams || ""
             url = `${baseUrl}/grapher/${cleanHit.slug}${queryParams}`
+        } else if (cleanHit.type === ChartRecordType.SpecialViz) {
+            // Special viz articles: /{slug}
+            url = `${baseUrl}/${cleanHit.slug}`
         } else {
             // Regular charts: /grapher/{slug}
             url = `${baseUrl}/grapher/${cleanHit.slug}`

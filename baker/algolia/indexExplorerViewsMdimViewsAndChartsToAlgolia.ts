@@ -23,6 +23,7 @@ import { getChartsRecords } from "./utils/charts.js"
 import { createBaseIndexingContext } from "./utils/context.js"
 import { CHARTS_INDEX } from "../../site/search/searchUtils.js"
 import { getMultiDimViewRecords } from "./utils/mdimViews.js"
+import { getSpecialVizRecords } from "./utils/specialVizViews.js"
 import { reportFeaturedMetricFailuresToSlack } from "./utils/slackReport.js"
 
 const indexExplorerViewsMdimViewsAndChartsToAlgolia = async () => {
@@ -85,8 +86,18 @@ const indexExplorerViewsMdimViewsAndChartsToAlgolia = async () => {
             const { records: featuredMetricRecords, failures } =
                 await createFeaturedMetricRecords(trx, shrunkRecords)
 
+            // Special viz records carry a fixed editorial score, so they're
+            // added after the pageview-based score scaling
+            const specialVizRecords = await getSpecialVizRecords(trx, {
+                baseContext,
+            })
+
             return {
-                records: [...shrunkRecords, ...featuredMetricRecords],
+                records: [
+                    ...shrunkRecords,
+                    ...specialVizRecords,
+                    ...featuredMetricRecords,
+                ],
                 failures,
             }
         },

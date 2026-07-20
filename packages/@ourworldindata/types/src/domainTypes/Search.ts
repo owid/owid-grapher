@@ -43,6 +43,12 @@ export enum ChartRecordType {
     Chart = "chart",
     ExplorerView = "explorerView",
     MultiDimView = "multiDimView",
+    /**
+     * A hand-picked article featuring a bespoke interactive visualization
+     * (see bespoke/), indexed into the charts index so it surfaces in data
+     * search results.
+     */
+    SpecialViz = "specialViz",
 }
 
 export enum ExplorerType {
@@ -87,6 +93,8 @@ export interface ChartRecord {
      */
     isIncomeGroupSpecificFM: boolean
     isFM: boolean
+    /** Only set for SpecialViz records: the article's featured image */
+    thumbnailUrl?: string
     publishedAt: string
     updatedAt: string
     numDimensions: number
@@ -146,6 +154,12 @@ type SearchMultiDimViewHit = BaseSearchChartHit & {
     chartConfigId: string
 }
 
+export type SearchSpecialVizHit = BaseSearchChartHit & {
+    type: ChartRecordType.SpecialViz
+    queryParams: string
+    thumbnailUrl?: string
+}
+
 /**
  * This is the type for the hits that we get back from algolia when we search
  * response.results[0].hits is an array of these
@@ -154,6 +168,7 @@ export type SearchChartHit =
     | SearchChartViewHit
     | SearchExplorerViewHit
     | SearchMultiDimViewHit
+    | SearchSpecialVizHit
 
 export interface SearchChartHitComponentProps {
     hit: SearchChartHit

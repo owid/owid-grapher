@@ -2,10 +2,12 @@ import { match } from "ts-pattern"
 import { useMediaQuery } from "usehooks-ts"
 import { SearchChartHitSmall } from "./SearchChartHitSmall.js"
 import {
+    ChartRecordType,
     SearchChartHitComponentProps,
     SearchChartHitComponentVariant,
 } from "@ourworldindata/types"
 import { SearchChartHitRichData } from "./SearchChartHitRichData.js"
+import { SearchChartHitSpecialViz } from "./SearchChartHitSpecialViz.js"
 import { MEDIUM_BREAKPOINT_MEDIA_QUERY } from "../SiteConstants.js"
 
 export const SearchChartHitComponent = (
@@ -14,6 +16,17 @@ export const SearchChartHitComponent = (
     }
 ) => {
     const { variant, ...componentProps } = props
+
+    // Special viz hits get their own rendering across all variants
+    if (props.hit.type === ChartRecordType.SpecialViz)
+        return (
+            <SearchChartHitSpecialViz
+                hit={props.hit}
+                onClick={props.onClick}
+                variant={variant}
+            />
+        )
+
     return match(variant)
         .with("large", () => <SearchChartHitLarge {...componentProps} />)
         .with("medium", () => <SearchChartHitMedium {...componentProps} />)
