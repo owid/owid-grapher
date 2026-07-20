@@ -1,0 +1,19 @@
+.related-data-charts__list {
+    list-style: none;
+    margin: 0;
+    margin-bottom: 48px;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+
+    @include sm-only {
+        gap: 12px;
+    }
+}
+
+// Each hit renders a `.search-chart-hit-rich-data` card, which brings its own
+// background and padding.
+.related-data-charts__hit {
+    margin: 0;
+}

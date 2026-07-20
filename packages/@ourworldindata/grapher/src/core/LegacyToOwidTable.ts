@@ -563,7 +563,7 @@ const fullJoinTables = (
                     // If none of the fallback values worked either we write ErrorValueTypes.NoMatchingValueAfterJoin into the cell
                     else
                         def.values?.push(
-                            ErrorValueTypes.NoMatchingValueAfterJoin as any
+                            ErrorValueTypes.NoMatchingValueAfterJoin
                         )
                 }
             }

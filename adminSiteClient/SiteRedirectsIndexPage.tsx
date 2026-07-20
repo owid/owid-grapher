@@ -151,7 +151,7 @@ export default function SiteRedirectsIndexPage() {
         mutationFn: (data: FormData) => createRedirect(admin, data),
         onSuccess: async () => {
             notificationApi.success({
-                message: "Redirect created",
+                title: "Redirect created",
                 placement: "bottomRight",
             })
             form.resetFields()
@@ -161,7 +161,7 @@ export default function SiteRedirectsIndexPage() {
         },
         onError: () => {
             notificationApi.error({
-                message: "Error creating redirect",
+                title: "Error creating redirect",
                 placement: "bottomRight",
             })
         },
@@ -171,7 +171,7 @@ export default function SiteRedirectsIndexPage() {
         mutationFn: (id: number) => deleteRedirect(admin, id),
         onSuccess: async () => {
             notificationApi.success({
-                message: "Redirect deleted",
+                title: "Redirect deleted",
                 placement: "bottomRight",
             })
             return queryClient.invalidateQueries({
@@ -180,7 +180,7 @@ export default function SiteRedirectsIndexPage() {
         },
         onError: () => {
             notificationApi.error({
-                message: "Error deleting redirect",
+                title: "Error deleting redirect",
                 placement: "bottomRight",
             })
         },

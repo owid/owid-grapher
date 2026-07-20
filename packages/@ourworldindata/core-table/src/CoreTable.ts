@@ -377,7 +377,7 @@ export class CoreTable<
             tableDescription,
             transformCategory,
             filterMask,
-        } as AdvancedOptions)
+        })
     }
 
     protected noopTransform(tableDescription: string): this {
@@ -386,7 +386,7 @@ export class CoreTable<
             tableDescription,
             transformCategory: TransformType.Noop,
             forceReuseColumnStore: true,
-        } as AdvancedOptions)
+        })
     }
 
     // Time between when the parent table finished loading and this table started constructing.

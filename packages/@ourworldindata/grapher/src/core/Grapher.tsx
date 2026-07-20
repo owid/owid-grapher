@@ -106,6 +106,7 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     bindUrlToWindow?: boolean
     isEmbeddedInAnOwidPage?: boolean
     isEmbeddedInADataPage?: boolean
+    useNewDatapageMetadataLayout?: boolean
     isConfigReady?: boolean
     isDataReady?: boolean
     canHideExternalControlsInEmbed?: boolean
@@ -221,9 +222,15 @@ export class Grapher extends React.Component<GrapherProps> {
     }
 
     private get commandPalette(): React.ReactElement | null {
-        return this.props.grapherState.enableKeyboardShortcuts ? (
-            <CommandPalette commands={this.keyboardShortcuts} display="none" />
+        if (!this.props.grapherState.enableKeyboardShortcuts) return null
+        return this.grapherState.isCommandPaletteOpen ? (
+            <CommandPalette commands={this.keyboardShortcuts} />
         ) : null
+    }
+
+    @action.bound private toggleCommandPalette(): void {
+        this.grapherState.isCommandPaletteOpen =
+            !this.grapherState.isCommandPaletteOpen
     }
 
     @action.bound private toggleTabCommand(): void {
@@ -234,6 +241,37 @@ export class Grapher extends React.Component<GrapherProps> {
 
     @action.bound private togglePlayingCommand(): void {
         void this.grapherState.timelineController.togglePlay()
+    }
+
+    @action.bound private toggleSelectAllCommand(): void {
+        if (this.grapherState.selection.hasSelection) {
+            this.grapherState.selection.clearSelection()
+            this.grapherState.focusArray.clear()
+        } else {
+            this.grapherState.selection.setSelectedEntities(
+                this.grapherState.availableEntityNames
+            )
+        }
+    }
+
+    @action.bound private toggleFacetingCommand(): void {
+        this.grapherState.hideFacetControl = !this.grapherState.hideFacetControl
+    }
+
+    @action.bound private toggleSourcesModalCommand(): void {
+        const isSourcesModalOpen =
+            this.grapherState.activeModal === GrapherModal.Sources
+        this.grapherState.activeModal = isSourcesModalOpen
+            ? undefined
+            : GrapherModal.Sources
+    }
+
+    @action.bound private toggleDownloadModalCommand(): void {
+        const isDownloadModalOpen =
+            this.grapherState.activeModal === GrapherModal.Download
+        this.grapherState.activeModal = isDownloadModalOpen
+            ? undefined
+            : GrapherModal.Download
     }
 
     private get keyboardShortcuts(): Command[] {
@@ -247,28 +285,19 @@ export class Grapher extends React.Component<GrapherProps> {
             ...temporaryFacetTestCommands,
             {
                 combo: "t",
-                fn: (): void => this.toggleTabCommand(),
+                fn: this.toggleTabCommand,
                 title: "Toggle tab",
                 category: "Navigation",
             },
             {
                 combo: "?",
-                fn: (): void => CommandPalette.togglePalette(),
+                fn: this.toggleCommandPalette,
                 title: `Toggle Help`,
                 category: "Navigation",
             },
             {
                 combo: "a",
-                fn: (): void => {
-                    if (this.grapherState.selection.hasSelection) {
-                        this.grapherState.selection.clearSelection()
-                        this.grapherState.focusArray.clear()
-                    } else {
-                        this.grapherState.selection.setSelectedEntities(
-                            this.grapherState.availableEntityNames
-                        )
-                    }
-                },
+                fn: this.toggleSelectAllCommand,
                 title: this.grapherState.selection.hasSelection
                     ? `Select None`
                     : `Select All`,
@@ -276,16 +305,13 @@ export class Grapher extends React.Component<GrapherProps> {
             },
             {
                 combo: "f",
-                fn: (): void => {
-                    this.grapherState.hideFacetControl =
-                        !this.grapherState.hideFacetControl
-                },
+                fn: this.toggleFacetingCommand,
                 title: `Toggle Faceting`,
                 category: "Chart",
             },
             {
                 combo: "p",
-                fn: (): void => this.togglePlayingCommand(),
+                fn: this.togglePlayingCommand,
                 title: this.grapherState.isTimelineAnimationPlaying
                     ? `Pause`
                     : `Play`,
@@ -293,56 +319,44 @@ export class Grapher extends React.Component<GrapherProps> {
             },
             {
                 combo: "l",
-                fn: (): void => this.toggleYScaleTypeCommand(),
+                fn: this.toggleYScaleTypeCommand,
                 title: "Toggle Y log/linear",
                 category: "Chart",
             },
             {
                 combo: "w",
-                fn: (): void => this.toggleFullScreenMode(),
+                fn: this.toggleFullScreenMode,
                 title: `Toggle full-screen mode`,
                 category: "Chart",
             },
             {
                 combo: "s",
-                fn: (): void => {
-                    const isSourcesModalOpen =
-                        this.grapherState.activeModal === GrapherModal.Sources
-                    this.grapherState.activeModal = isSourcesModalOpen
-                        ? undefined
-                        : GrapherModal.Sources
-                },
+                fn: this.toggleSourcesModalCommand,
                 title: `Toggle sources modal`,
                 category: "Chart",
             },
             {
                 combo: "d",
-                fn: (): void => {
-                    const isDownloadModalOpen =
-                        this.grapherState.activeModal === GrapherModal.Download
-                    this.grapherState.activeModal = isDownloadModalOpen
-                        ? undefined
-                        : GrapherModal.Download
-                },
+                fn: this.toggleDownloadModalCommand,
                 title: "Toggle download modal",
                 category: "Chart",
             },
-            { combo: "esc", fn: (): void => this.clearErrors() },
+            { combo: "esc", fn: this.clearErrors },
             {
                 combo: "z",
-                fn: (): void => this.toggleTimelineCommand(),
+                fn: this.toggleTimelineCommand,
                 title: "Latest/Earliest/All period",
                 category: "Timeline",
             },
             {
                 combo: "shift+o",
-                fn: (): void => this.grapherState.clearQueryParams(),
+                fn: this.grapherState.clearQueryParams,
                 title: "Reset to original",
                 category: "Navigation",
             },
             {
                 combo: "g",
-                fn: (): void => this.grapherState.globeController.toggleGlobe(),
+                fn: this.grapherState.globeController.toggleGlobe,
                 title: "Toggle globe view",
                 category: "Map",
             },
@@ -352,13 +366,13 @@ export class Grapher extends React.Component<GrapherProps> {
             const slideShow = this.grapherState.slideShow
             shortcuts.push({
                 combo: "right",
-                fn: () => slideShow.playNext(),
+                fn: slideShow.playNext,
                 title: "Next chart",
                 category: "Browse",
             })
             shortcuts.push({
                 combo: "left",
-                fn: () => slideShow.playPrevious(),
+                fn: slideShow.playPrevious,
                 title: "Previous chart",
                 category: "Browse",
             })

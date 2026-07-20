@@ -70,3 +70,31 @@
     font-size: 12px;
     padding: 4px 0 0;
 }
+
+.migration-sankey__count {
+    cursor: help;
+    text-decoration: underline dotted;
+    text-underline-offset: 3px;
+    text-decoration-thickness: 1px;
+
+    &:focus-visible {
+        outline: 1px solid $blue-50;
+        outline-offset: 2px;
+        border-radius: 2px;
+    }
+}
+
+.migration-sankey__count-tooltip {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    text-align: left;
+}
+
+.migration-sankey__count-tooltip-value {
+    font-weight: 700;
+}
+
+.migration-sankey__count-tooltip-share {
+    color: $light-text;
+}

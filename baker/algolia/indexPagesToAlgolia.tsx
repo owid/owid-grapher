@@ -44,7 +44,7 @@ ObjectIDs: ${unfittedRecords.map((r) => r.objectID).join(", ")}`
 
     await client.replaceAllObjects({
         indexName,
-        objects: fittedRecords as Array<Record<string, any>>,
+        objects: fittedRecords,
     })
 
     process.exit(0)

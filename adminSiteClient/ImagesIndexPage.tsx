@@ -658,7 +658,7 @@ function PutImageButton({
             if (result) {
                 await putImage(image.id, result)
                 notificationApi.info({
-                    message: "Image replaced!",
+                    title: "Image replaced!",
                     description:
                         "Make sure you update the alt text if your revision has substantive changes",
                     placement: "bottomRight",
@@ -759,7 +759,7 @@ export function ImageIndexPage() {
                     }))
                 } else {
                     notificationApi.error({
-                        message: "Failed to update image",
+                        title: "Failed to update image",
                         description: response.errorMessage,
                         placement: "bottomRight",
                     })
@@ -778,7 +778,7 @@ export function ImageIndexPage() {
                     }))
                 } else {
                     notificationApi.error({
-                        message: "Image upload failed",
+                        title: "Image upload failed",
                         description: response.errorMessage,
                         placement: "bottomRight",
                     })
@@ -801,7 +801,7 @@ export function ImageIndexPage() {
                     })
                 } else {
                     notificationApi.error({
-                        message: "Image update failed",
+                        title: "Image update failed",
                         description: response.errorMessage,
                         placement: "bottomRight",
                     })

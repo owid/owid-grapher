@@ -7,10 +7,10 @@ import { SEARCH_BASE_PATH } from "../../search/searchUtils.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     faArrowRight,
+    faBook,
     faBookmark,
     faChartLine,
     faMagnifyingGlassChart,
-    faNewspaper,
 } from "@fortawesome/free-solid-svg-icons"
 import { BAKED_BASE_URL } from "../../../settings/clientSettings.js"
 import { buildLatestPagePath } from "../../latest/latestUtils.js"
@@ -58,7 +58,7 @@ export function HomepageSearch(props: { className?: string }) {
                             className="homepage-search__link body-3-medium"
                             href={buildLatestPagePath("article")}
                         >
-                            <FontAwesomeIcon icon={faNewspaper} />
+                            <FontAwesomeIcon icon={faBook} />
                             {commafyNumber(articleCount)} articles
                         </a>
                     </li>
@@ -95,6 +95,7 @@ export function HomepageSearch(props: { className?: string }) {
                 className="span-cols-6 col-start-5 span-md-cols-10 col-md-start-3 span-sm-cols-12 col-sm-start-2"
                 panelClassName="homepage-search__panel"
                 isPreviewing={isPreviewing}
+                searchSource="homepage"
             />
             <div className="span-cols-14 homepage-search__links-and-tagline">
                 {message}

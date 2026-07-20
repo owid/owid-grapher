@@ -11,6 +11,10 @@ import {
     ExplorerProgram,
 } from "@ourworldindata/explorer"
 import { EditableTags } from "./EditableTags.js"
+import {
+    getTagGraphRolesById,
+    MinimalTagWithMetadata,
+} from "./TagGraphMetadata.js"
 import cx from "clsx"
 
 type ExplorerWithTags = {
@@ -24,7 +28,7 @@ export class ExplorerTagsPage extends Component {
     declare context: AdminAppContextType
     explorersWithTags: ExplorerWithTags[] = []
     explorers: ExplorerProgram[] = []
-    tags: DbChartTagJoin[] = []
+    tags: MinimalTagWithMetadata[] = []
     newExplorerSlug = ""
     newExplorerTags: DbChartTagJoin[] = []
 
@@ -45,6 +49,10 @@ export class ExplorerTagsPage extends Component {
     }
 
     // Don't show explorers that already have tags
+    @computed get tagGraphRolesById(): ReturnType<typeof getTagGraphRolesById> {
+        return getTagGraphRolesById(this.tags)
+    }
+
     @computed get filteredExplorers() {
         return this.explorers.filter((explorer) => {
             return !this.explorersWithTags.some((e) => e.slug === explorer.slug)
@@ -103,6 +111,9 @@ export class ExplorerTagsPage extends Component {
                                             <EditableTags
                                                 tags={explorer.tags}
                                                 suggestions={this.tags}
+                                                tagGraphRolesById={
+                                                    this.tagGraphRolesById
+                                                }
                                                 onSave={(tags) => {
                                                     void this.saveTags(
                                                         explorer.slug,
@@ -161,6 +172,9 @@ export class ExplorerTagsPage extends Component {
                                         key={this.explorersWithTags.length}
                                         tags={[]}
                                         suggestions={this.tags}
+                                        tagGraphRolesById={
+                                            this.tagGraphRolesById
+                                        }
                                         onSave={(tags) => {
                                             this.newExplorerTags = tags
                                         }}
@@ -189,7 +203,7 @@ export class ExplorerTagsPage extends Component {
 
     async getData() {
         const [{ tags }, explorersWithTags, explorers] = await Promise.all([
-            this.context.admin.getJSON<{ tags: DbChartTagJoin[] }>(
+            this.context.admin.getJSON<{ tags: MinimalTagWithMetadata[] }>(
                 "/api/tags.json"
             ),
             this.context.admin.getJSON<{ explorers: ExplorerWithTags[] }>(

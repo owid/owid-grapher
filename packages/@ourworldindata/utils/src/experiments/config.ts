@@ -1,3 +1,7 @@
+import {
+    DATA_PAGE_METADATA_EXPERIMENT_ID,
+    EXPERIMENT_PREFIX,
+} from "./constants.js"
 import { Experiment } from "./Experiment.js"
 
 /*
@@ -81,4 +85,50 @@ export const experiments: Experiment[] = [
         ],
         paths: ["/"],
     }),
+    /*
+     * Experiment: data-page-metadata-v1
+     *
+     * Trials a redesigned "metadata box" beneath the chart on data pages. The
+     * box consolidates "What you should know about this indicator", FAQs, data
+     * sources, and citation guidance into a single collapsible block, with an
+     * indicator switcher for charts that plot multiple Y-indicators.
+     *
+     * Conditions:
+     * - (a) control: the current data page (AboutThisData + Sources/Reuse sections)
+     * - (b) treatment: the new metadata box in place of those sections
+     */
+    new Experiment({
+        id: DATA_PAGE_METADATA_EXPERIMENT_ID,
+        expires: "2026-12-31T00:00:00.000Z",
+        arms: [
+            { id: "control", fraction: 0.0 },
+            { id: "treatment", fraction: 1.0, replaysSessionSampleRate: 0.33 },
+        ],
+        paths: [
+            // single indicator data pages (multi-indicator data pages aren't supported yet)
+            "/grapher/gdp-per-capita-maddison-project-database",
+            "/grapher/co-emissions-per-capita",
+            "/grapher/democracy-index-eiu",
+            "/grapher/life-expectancy",
+            "/grapher/cross-country-literacy-rates",
+            "/grapher/human-development-index",
+            "/grapher/share-of-population-in-extreme-poverty",
+            "/grapher/human-rights-index-vdem",
+            "/grapher/daily-per-capita-caloric-supply",
+            "/grapher/per-capita-energy-use",
+        ],
+    }),
 ]
+
+/**
+ * True if an experiment with the given raw id (i.e. without the `exp-`
+ * prefix the `Experiment` constructor adds) is registered, not expired, and
+ * the given url is in its `paths` list. Centralises the lookup so callers
+ * don't need to know about the prefix convention or the expiry semantics.
+ * The actual path-matching is delegated to `Experiment.isUrlInPaths`.
+ */
+export function isUrlInActiveExperiment(rawId: string, url: string): boolean {
+    const id = `${EXPERIMENT_PREFIX}-${rawId}`
+    const exp = experiments.find((e) => e.id === id)
+    return !!exp && !exp.isExpired() && exp.isUrlInPaths(url)
+}

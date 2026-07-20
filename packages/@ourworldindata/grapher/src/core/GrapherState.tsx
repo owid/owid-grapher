@@ -24,6 +24,7 @@ import {
     EntitySelectionMode,
     StackMode,
     LogoOption,
+    LicenseOption,
     GrapherTabConfigOption,
     GRAPHER_TAB_CONFIG_OPTIONS,
     ColorSchemeName,
@@ -283,6 +284,9 @@ export class GrapherState
     /** The page containing this chart where more context can be found */
     originUrl: string | undefined = undefined
 
+    /** The license the chart is published under, linked in the chart footer */
+    license: LicenseOption | undefined = undefined
+
     /** Short comma-separated list of source names */
     sourceDesc: string | undefined = undefined
 
@@ -510,6 +514,7 @@ export class GrapherState
 
     isEmbeddedInAnOwidPage?: boolean = false
     isEmbeddedInADataPage?: boolean = false
+    useNewDatapageMetadataLayout?: boolean = false
 
     archiveContext?: ArchiveContext
     narrativeChartInfo?: MinimalNarrativeChartInfo = undefined
@@ -560,6 +565,7 @@ export class GrapherState
     activeModal?: GrapherModal
     activeDownloadModalTab: DownloadModalTabName = DownloadModalTabName.Vis
     isShareMenuActive = false
+    isCommandPaletteOpen = false
 
     isTimelineAnimationPlaying = false
     /** True if the timeline animation is either playing or paused but not finished */
@@ -645,6 +651,7 @@ export class GrapherState
             internalNotes: observable.ref,
             variantName: observable.ref,
             originUrl: observable.ref,
+            license: observable.ref,
             hideAnnotationFieldsInTitle: observable,
             minTime: observable.ref,
             maxTime: observable.ref,
@@ -733,6 +740,7 @@ export class GrapherState
             slideShow: observable,
             _baseFontSize: observable,
             isShareMenuActive: observable,
+            isCommandPaletteOpen: observable,
             hideTitle: observable,
             hideSubtitle: observable,
             hideNote: observable,
@@ -754,6 +762,8 @@ export class GrapherState
         this.additionalDataLoaderFn = options.additionalDataLoaderFn
         this.isEmbeddedInAnOwidPage = options.isEmbeddedInAnOwidPage ?? false
         this.isEmbeddedInADataPage = options.isEmbeddedInADataPage ?? false
+        this.useNewDatapageMetadataLayout =
+            options.useNewDatapageMetadataLayout ?? false
 
         this._inputTable =
             options.table ?? BlankOwidTable(`initialGrapherTable`)
@@ -827,13 +837,13 @@ export class GrapherState
         obj.$schema = this.$schema || latestGrapherConfigSchema
 
         // JSON doesn't support Infinity, so we use strings instead
-        if (obj.minTime) obj.minTime = minTimeToJSON(this.minTime) as any
-        if (obj.maxTime) obj.maxTime = maxTimeToJSON(this.maxTime) as any
+        if (obj.minTime) obj.minTime = minTimeToJSON(this.minTime)
+        if (obj.maxTime) obj.maxTime = maxTimeToJSON(this.maxTime)
 
         if (obj.timelineMinTime)
-            obj.timelineMinTime = minTimeToJSON(this.timelineMinTime) as any
+            obj.timelineMinTime = minTimeToJSON(this.timelineMinTime)
         if (obj.timelineMaxTime)
-            obj.timelineMaxTime = maxTimeToJSON(this.timelineMaxTime) as any
+            obj.timelineMaxTime = maxTimeToJSON(this.timelineMaxTime)
 
         // Don't serialize the tab if the default chart is currently shown
         if (
@@ -1119,11 +1129,20 @@ export class GrapherState
      * of the currently displayed data.
      */
     @computed get filteredTableForDownload(): OwidTable {
-        const table = this.isOnTableTab
-            ? this.tableForDisplay
-            : this.transformedTable
+        if (this.isOnTableTab) {
+            let table = this.tableForDisplay
 
-        return this.prepareTableForDownload(table)
+            // The data table only shows data within the selected time range,
+            // so restrict the download to that range as well
+            const { startTime, endTime } = this
+            if (startTime !== undefined && endTime !== undefined) {
+                table = table.filterByTimeRange(startTime, endTime)
+            }
+
+            return this.prepareTableForDownload(table)
+        }
+
+        return this.prepareTableForDownload(this.transformedTable)
     }
 
     private prepareTableForDownload(table: OwidTable): OwidTable {
@@ -2961,12 +2980,12 @@ export class GrapherState
 
         // Temporarily set isExportingToSvgOrPng to true
         const _isExportingToSvgOrPng = this.isExportingToSvgOrPng
-        this.isExportingToSvgOrPng = true
+        runInAction(() => (this.isExportingToSvgOrPng = true))
 
         const innerHTML = renderToHtmlString(<Chart manager={this} />)
 
         // Restore isExportingToSvgOrPng
-        this.isExportingToSvgOrPng = _isExportingToSvgOrPng
+        runInAction(() => (this.isExportingToSvgOrPng = _isExportingToSvgOrPng))
 
         return innerHTML
     }

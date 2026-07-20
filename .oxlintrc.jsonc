@@ -231,6 +231,14 @@
             }
         },
         {
+            // node scripts that may also contain browser-side callbacks (e.g. page.evaluate)
+            "files": ["devTools/**/*.mjs"],
+            "env": {
+                "node": true,
+                "browser": true
+            }
+        },
+        {
             "files": [
                 "adminSiteClient/**/*",
                 "adminSiteServer/**/*",

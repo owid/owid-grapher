@@ -1,6 +1,4 @@
-/* oxlint-disable */
-
-module.exports = {
+export default {
     js2svg: { indent: 2, pretty: true },
     plugins: [
         {
@@ -8,12 +6,13 @@ module.exports = {
             params: {
                 overrides: {
                     cleanupIds: false,
+                    convertTransform: false,
                 },
             },
         },
         "convertStyleToAttrs",
         "removeDimensions",
-        "removeScriptElement",
+        "removeScripts",
         "removeStyleElement",
         "sortAttrs",
     ],

@@ -4,7 +4,7 @@ import cx from "clsx"
 import * as R from "remeda"
 import { match } from "ts-pattern"
 
-import { articulateEntity } from "@ourworldindata/utils"
+import { articulateEntity, Tippy } from "@ourworldindata/utils"
 import {
     TooltipTable,
     TooltipValue,
@@ -17,6 +17,7 @@ import {
     STACKED_MAX_NODES_TO_SHRINK_OTHER,
 } from "../../../../components/Sankey/SankeyHelpers.js"
 import { SankeyTooltip } from "../../../../components/Sankey/Sankey.js"
+import { useTippyContainer } from "../../../../hooks/useTippyContainer.js"
 import {
     DEFAULT_FONT_SETTINGS,
     MOBILE_BREAKPOINT,
@@ -33,7 +34,13 @@ import {
     formatShare,
     getSexAdjective,
     getSexNoun,
+    OTHERS_ENTITY_NAME,
 } from "../helpers.js"
+
+// "Other countries" is a real aggregate row in the migration data, not a
+// navigable country (the country dropdown filters it out), so it must never
+// be selectable by clicking its Sankey node.
+const NON_SELECTABLE_PARTNERS = new Set([OTHERS_ENTITY_NAME])
 
 export function MigrationSankey({
     immigrants,
@@ -43,8 +50,10 @@ export function MigrationSankey({
     sex,
     immigrantsTotal,
     emigrantsTotal,
+    population,
     view = "both",
     setView,
+    setCountry,
     colorMap,
     entitiesToSortLast,
 }: {
@@ -55,8 +64,10 @@ export function MigrationSankey({
     sex: Sex
     immigrantsTotal: number
     emigrantsTotal: number
+    population?: number
     view?: MigrationView
     setView: (view: MigrationView) => void
+    setCountry: (name: string) => void
     colorMap?: Map<string, string>
     entitiesToSortLast?: string[]
 }) {
@@ -93,6 +104,7 @@ export function MigrationSankey({
         view,
         isPairedSentence,
         sex,
+        population,
         setView,
     }
 
@@ -133,6 +145,8 @@ export function MigrationSankey({
                 formatValue={formatPeople}
                 view={splitView}
                 colorMap={colorMap}
+                onSelectPartner={setCountry}
+                nonSelectablePartners={NON_SELECTABLE_PARTNERS}
                 isStacked={isStacked}
                 fontSettings={
                     isStacked ? MOBILE_FONT_SETTINGS : DEFAULT_FONT_SETTINGS
@@ -155,6 +169,7 @@ function buildSankeyHalf({
     view,
     isPairedSentence,
     sex,
+    population,
     otherHasData,
     setView,
 }: {
@@ -166,6 +181,7 @@ function buildSankeyHalf({
     view: MigrationView
     isPairedSentence: boolean
     sex: Sex
+    population?: number
     otherHasData: boolean
     setView: (view: MigrationView) => void
 }) {
@@ -192,6 +208,7 @@ function buildSankeyHalf({
               label: makeHeadingLabel({
                   direction,
                   total,
+                  population,
                   shortEntityNameWithArticle,
                   isPairedSentence,
                   sexAdjective: adjective,
@@ -244,18 +261,27 @@ function buildSankeyHalf({
 function makeHeadingLabel({
     direction,
     total,
+    population,
     shortEntityNameWithArticle,
     isPairedSentence,
     sexAdjective,
 }: {
     direction: "incoming" | "outgoing"
     total: number
+    population?: number
     shortEntityNameWithArticle: string
     isPairedSentence: boolean
     sexAdjective?: string
 }): ReactNode {
-    const count = formatPeople(total, { unit: false })
     const peopleNoun = getSexNoun(sexAdjective)
+    const count = (
+        <PeopleCount
+            direction={direction}
+            total={total}
+            population={population}
+            shortEntityNameWithArticle={shortEntityNameWithArticle}
+        />
+    )
     if (direction === "incoming") {
         return (
             <>
@@ -275,6 +301,62 @@ function makeHeadingLabel({
                 live abroad
             </strong>
         </>
+    )
+}
+
+/**
+ * The migrant count in a heading, with a tooltip that states the full number
+ * and — when population is known — its share of the country's total population.
+ *
+ * Emigrants have left the country, so they aren't part of the resident
+ * `population`. To express their share of the origin cohort (everyone born in
+ * the country, whether they stayed or left) we add them back into the
+ * denominator: emigrants / (population + emigrants). Immigrants are already
+ * counted in the resident population, so they use it directly.
+ */
+function PeopleCount({
+    direction,
+    total,
+    population,
+    shortEntityNameWithArticle,
+}: {
+    direction: "incoming" | "outgoing"
+    total: number
+    population?: number
+    shortEntityNameWithArticle: string
+}): React.ReactElement {
+    const { ref, getTippyContainer } = useTippyContainer<HTMLSpanElement>()
+
+    const denominator =
+        population === undefined
+            ? undefined
+            : direction === "outgoing"
+              ? population + total
+              : population
+    const share =
+        denominator && denominator > 0 ? total / denominator : undefined
+    const formattedShare = share !== undefined ? formatShare(share) : ""
+
+    const content = (
+        <span className="migration-sankey__count-tooltip">
+            <span className="migration-sankey__count-tooltip-value">
+                {formatPeople(total)}
+            </span>
+            {formattedShare && (
+                <span className="migration-sankey__count-tooltip-share">
+                    {formattedShare} of the population of{" "}
+                    {shortEntityNameWithArticle}
+                </span>
+            )}
+        </span>
+    )
+
+    return (
+        <Tippy content={content} appendTo={getTippyContainer} placement="top">
+            <span ref={ref} className="migration-sankey__count" tabIndex={0}>
+                {formatPeople(total, { unit: false })}
+            </span>
+        </Tippy>
     )
 }
 

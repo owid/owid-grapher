@@ -19,7 +19,7 @@ import { VerticalLabels } from "../verticalLabels/VerticalLabels"
 import { VerticalLabelsState } from "../verticalLabels/VerticalLabelsState"
 import { TooltipState } from "../tooltip/Tooltip"
 import { LineChartTooltip } from "./LineChartTooltip"
-import { NoDataModal } from "../noDataModal/NoDataModal"
+import { NoDataMessage } from "../noDataMessage/NoDataMessage"
 import { SeriesName, VerticalAlign, Time } from "@ourworldindata/types"
 import {
     BASE_FONT_SIZE,
@@ -506,15 +506,15 @@ export class LineChart
     }
 
     override render(): React.ReactElement {
-        const { manager, dualAxis } = this
+        const { manager } = this
 
         if (this.chartState.errorInfo.reason)
             return (
                 <g>
                     {this.renderDualAxis()}
-                    <NoDataModal
+                    <NoDataMessage
                         manager={manager}
-                        bounds={dualAxis.innerBounds}
+                        bounds={this.bounds}
                         message={this.chartState.errorInfo.reason}
                     />
                 </g>

@@ -30,6 +30,7 @@ function* owidArticleToArchieMLStringGenerator(
         yield "[]"
     }
     yield* propertyToArchieMLString("sidebar-toc", article)
+    yield* propertyToArchieMLString("sidebar-toc-h1-only", article)
     yield* propertyToArchieMLString("heading-variant", article)
     yield* propertyToArchieMLString("layout", article)
     yield* propertyToArchieMLString("hide-subscribe-banner", article)

@@ -366,7 +366,7 @@ const updateExistingChart = async (
 
     const { chartConfigId } = await updateChartConfigInDbAndR2(
         knex,
-        chartConfigIdRow.configId as Base64String,
+        chartConfigIdRow.configId,
         patchConfig,
         fullConfig,
         now

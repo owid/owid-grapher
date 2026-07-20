@@ -19,7 +19,7 @@ import { BAKED_BASE_URL, IS_ARCHIVE } from "../../../settings/clientSettings.js"
 import { OwidGdocHeader } from "../components/OwidGdocHeader.js"
 import StickyNav from "../../blocks/StickyNav.js"
 import { getShortPageCitation } from "../utils.js"
-import { TableOfContents } from "../../TableOfContents.js"
+import { SidebarTableOfContents } from "../../SidebarTableOfContents.js"
 import { useDocumentContext } from "../DocumentContext.js"
 import { PROD_URL } from "../../SiteConstants.js"
 
@@ -60,6 +60,7 @@ export function GdocPost({
     slug,
     breadcrumbs,
     manualBreadcrumbs,
+    tags,
 }: GdocPostProps) {
     const { archiveContext } = useDocumentContext()
     const postType = content.type ?? OwidGdocType.Article
@@ -76,6 +77,10 @@ export function GdocPost({
     )
     const citationText = `${shortPageCitation} Published online at OurWorldinData.org. Retrieved from: '${citationUrl}' [Online Resource]${archivalPhrase ? ` ${archivalPhrase}` : ""}`
     const hasSidebarToc = content["sidebar-toc"]
+    const sidebarHeadings =
+        content.toc && content["sidebar-toc-h1-only"]
+            ? content.toc.filter((heading) => !heading.isSubheading)
+            : content.toc
     const headingVariant = content["heading-variant"] ?? "light"
     // Opt-in viz-forward chrome. When the article front-matter sets
     // `layout: bespoke-viz`, we add a modifier class that drives the banded
@@ -123,11 +128,10 @@ export function GdocPost({
             {isDeprecated && content["deprecation-notice"] && (
                 <DeprecationNotice blocks={content["deprecation-notice"]} />
             )}
-            {hasSidebarToc && content.toc ? (
-                <TableOfContents
-                    headings={content.toc}
-                    headingLevels={{ primary: 1, secondary: 2 }}
-                    pageTitle={content.title || ""}
+            {hasSidebarToc && sidebarHeadings ? (
+                <SidebarTableOfContents
+                    headings={sidebarHeadings}
+                    tagName={tags?.[0]?.name}
                 />
             ) : null}
             {postType === OwidGdocType.TopicPage && stickyNavLinks?.length ? (

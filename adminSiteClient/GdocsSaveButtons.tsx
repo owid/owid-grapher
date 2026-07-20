@@ -73,7 +73,7 @@ export const GdocsSaveButtons = ({
             okText: "Publish now",
             cancelText: "Cancel",
             onOk: doPublish,
-            maskClosable: true,
+            mask: { closable: true },
             ...centeredModal,
             ...widthModal,
         })

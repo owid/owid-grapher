@@ -1,6 +1,4 @@
-import * as _ from "lodash-es"
 import * as db from "../db/db.js"
-import { getSiteRedirects } from "../db/model/Redirect.js"
 import { getMultiDimRedirectTargets } from "../db/model/MultiDimRedirects.js"
 
 // Prevent Cloudflare from serving outdated pages, which can remain in the
@@ -19,7 +17,16 @@ export async function getRecentChartSlugRedirects(
         `-- sql
         SELECT
             CONCAT('/grapher/', chart_slug_redirects.slug) as source,
-            CONCAT('/grapher/', chart_configs.slug) as target
+            CONCAT(
+                '/grapher/',
+                chart_configs.slug,
+                IF(
+                    chart_slug_redirects.target_query_param IS NULL
+                    OR chart_slug_redirects.target_query_param = '',
+                    '',
+                    CONCAT(CHAR(63), chart_slug_redirects.target_query_param) -- CHAR(63) is the question mark character, which we can't write in the SQL query because it would be interpreted as a binding
+                )
+            ) as target
         FROM chart_slug_redirects
         INNER JOIN charts ON charts.id=chart_id
         INNER JOIN chart_configs ON chart_configs.id=charts.configId
@@ -53,10 +60,14 @@ export const getGrapherToChartRedirects = async (
     const chartRedirectRows = await db.knexRaw<{
         oldSlug: string
         newSlug: string
+        targetQueryParam: string | null
     }>(
         knex,
         `-- sql
-            SELECT chart_slug_redirects.slug as oldSlug, chart_configs.slug as newSlug
+            SELECT
+                chart_slug_redirects.slug as oldSlug,
+                chart_configs.slug as newSlug,
+                chart_slug_redirects.target_query_param as targetQueryParam
             FROM chart_slug_redirects
             INNER JOIN charts ON charts.id=chart_id
             INNER JOIN chart_configs ON chart_configs.id=charts.configId
@@ -68,7 +79,9 @@ export const getGrapherToChartRedirects = async (
             .filter((row) => row.oldSlug !== row.newSlug)
             .map((row) => [
                 `${urlPrefix}${row.oldSlug}`,
-                `${urlPrefix}${row.newSlug}`,
+                `${urlPrefix}${row.newSlug}${
+                    row.targetQueryParam ? `?${row.targetQueryParam}` : ""
+                }`,
             ])
     )
 }
@@ -112,31 +125,3 @@ export async function getExplorerToMultiDimRedirects(
     }
     return redirects
 }
-
-export const DEPRECATED_getSiteRedirectsMap = async (
-    knex: db.KnexReadonlyTransaction
-) => {
-    const siteRedirects = await getSiteRedirects(knex)
-
-    return new Map(siteRedirects.map((row) => [row.source, row.target]))
-}
-
-export const DEPRECATED_getAllRedirectsMap = _.memoize(
-    async (knex: db.KnexReadonlyTransaction): Promise<Map<string, string>> => {
-        // source: pathnames only (e.g. /transport)
-        // target: pathnames with or without origins (e.g. /transport-new or https://ourworldindata.org/transport-new)
-
-        const grapherRedirects =
-            await getGrapherToChartAndMultiDimRedirects(knex)
-        const explorerRedirects = await getExplorerToMultiDimRedirects(knex)
-        const siteRedirects = await DEPRECATED_getSiteRedirectsMap(knex)
-
-        // The order matters: site redirects can override both grapher and
-        // explorer redirects.
-        return new Map([
-            ...grapherRedirects,
-            ...explorerRedirects,
-            ...siteRedirects,
-        ])
-    }
-)

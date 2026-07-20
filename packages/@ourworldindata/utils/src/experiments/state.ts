@@ -61,5 +61,5 @@ function getAssignedExperiments(): Record<string, string> | undefined {
         )
     )
 
-    return filteredCookies as Record<string, string>
+    return filteredCookies
 }

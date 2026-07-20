@@ -4,10 +4,11 @@ import {
     IndicatorTitleWithFragments,
     OwidProcessingLevel,
 } from "../OwidVariable.js"
-import { RelatedChart } from "../grapherTypes/GrapherTypes.js"
+import { LicenseOption, RelatedChart } from "../grapherTypes/GrapherTypes.js"
 import { OwidEnrichedGdocBlock } from "./ArchieMlComponents.js"
 import { ImageMetadata } from "./Image.js"
 import { ArchiveContext } from "../domainTypes/Archive.js"
+import { LinkedAuthor } from "./Gdoc.js"
 
 export interface FaqLink {
     gdocId: string
@@ -17,6 +18,13 @@ export interface FaqLink {
 export interface PrimaryTopic {
     topicTag: string
     citation: string
+}
+
+export interface DatasetOwners {
+    datasetId: number
+    datasetName: string
+    /** First entry is the accountable owner / point of contact. */
+    owners: string[]
 }
 
 export interface DataPageDataV2 {
@@ -41,8 +49,12 @@ export interface DataPageDataV2 {
     source: OwidSource | undefined
     origins: OwidOrigin[]
     chartConfig: Record<string, unknown>
+    license?: LicenseOption
     unit?: string
     unitConversionFactor?: number
+    relatedChartsByCoview: RelatedChart[] // only needed for the new datapage design
+    owners?: DatasetOwners[] // only needed for the new datapage design
+    linkedAuthors?: LinkedAuthor[] // only needed for the new datapage design
 }
 
 export interface DataPageRelatedResearch {

@@ -219,7 +219,7 @@ export default function MultiDimRedirectsIndexPage() {
         }) => deleteMultiDimRedirect(admin, multiDimId, redirectId),
         onSuccess: async () => {
             notificationApi.success({
-                message: "Redirect deleted",
+                title: "Redirect deleted",
                 placement: "bottomRight",
             })
             return queryClient.invalidateQueries({

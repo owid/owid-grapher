@@ -2,7 +2,7 @@
   <path fill="#c81010" d="M-159.731.269h959.46v259.054h-959.46z"/>
   <g id="bird" fill-rule="nonzero" transform="translate(-159.732 .268) scale(1.5991)">
     <path id="bird_outline" fill="#f8d000" stroke="#000" stroke-width=".46" d="M305.75 27.34c-19.08-7.89-30.76-9.34-43.81-9.47-18.9.13-27.92 8.25-45.94 9 7.14 7.69 33.02 9.57 43.93-.53 16.22 1.69 19.9 6.07 24.25 11.52-6.77-1.07-14.57-3.02-21.04 4.14-5.46 1.1-7.99 0-17.33 0-4.36 0-5.87 2.14-5.81 6 2.82-3.9 22.31-1.6 27.09 0 3.67 1.23 7.57 6.32 12.22 7.15 12.19 2.17 29.68-4.2 45.81-8.54L360 42h-23.93L366 36h-32.54c-.69-.79-2.34-1.81-3.66-2.68 8.37-5.39 15.77-15.19 17.66-19.92 15.09-.15 24.83-1.55 36.54-4.29-77.18-8.54-59.61.67-78.25 18.23Z"/>
-    <path id="eye" d="M270.06 39.89c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5c-.82 0-1.5-.67-1.5-1.5s.68-1.5 1.5-1.5Z"/>
+    <path id="eye" d="M270.06 39.89c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5c-.82 0-1.5-.67-1.5-1.5s.68-1.5 1.5-1.5"/>
     <path id="eye_outline" fill="none" stroke="#000" stroke-width=".15" d="M270.06 39.89c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5c-.82 0-1.5-.67-1.5-1.5s.68-1.5 1.5-1.5Z"/>
     <path fill="none" stroke="#000" stroke-width=".46" d="M290.13 38.29S283.86 42 279.7 42m45.42 4.61S330.85 42 336.07 42M233.82 24.6s4.66-2.44 6.86-3.09m12.45-.39s7.39-3.19 15.62-3.03m4.36 3.81s9.69-1.63 18.64.36m-7.5 1.98s8.04-1.35 15.75.83m-7.48 1.62s8.19.11 12.26 1.69M216 26.87s11.49 3.14 20.83-1.35"/>
     <path fill="none" stroke="#000" stroke-width=".46" d="M217.46 28.23s14.92 3.68 21.74-3.15"/>
@@ -15,43 +15,43 @@
   <g fill="#f8d000" stroke="#000" stroke-width=".46" transform="translate(18.971 145.959) scale(1.00343)">
     <g id="rays_6" fill-rule="nonzero" transform="translate(-178.092 -145.193) scale(1.59364)">
       <g id="rays_2" transform="rotate(-84.706 300 156)">
-        <path id="wavy" d="M290.63 105.87A50.026 50.026 0 0 1 300 66a50.026 50.026 0 0 0 9.37 39.87" transform="rotate(13.4 300 156)"/>
+        <path id="wavy" d="M290.63 105.87A50.03 50.03 0 0 1 300 66a50.03 50.03 0 0 0 9.37 39.87" transform="rotate(13.4 300 156)"/>
         <path id="straight" d="M290.63 105.87 300 63l9.37 42.87"/>
       </g>
       <g id="rays_21" transform="rotate(-63.526 300 156)">
-        <path id="wavy1" d="M290.63 105.87A50.026 50.026 0 0 1 300 66a50.026 50.026 0 0 0 9.37 39.87" transform="rotate(13.4 300 156)"/>
+        <path id="wavy1" d="M290.63 105.87A50.03 50.03 0 0 1 300 66a50.03 50.03 0 0 0 9.37 39.87" transform="rotate(13.4 300 156)"/>
         <path id="straight1" d="M290.63 105.87 300 63l9.37 42.87"/>
       </g>
       <g id="rays_22" transform="rotate(-42.356 300 156)">
-        <path id="wavy2" d="M290.63 105.87A50.026 50.026 0 0 1 300 66a50.026 50.026 0 0 0 9.37 39.87" transform="rotate(13.4 300 156)"/>
+        <path id="wavy2" d="M290.63 105.87A50.03 50.03 0 0 1 300 66a50.03 50.03 0 0 0 9.37 39.87" transform="rotate(13.4 300 156)"/>
         <path id="straight2" d="M290.63 105.87 300 63l9.37 42.87"/>
       </g>
     </g>
     <g id="rays_61" fill-rule="nonzero" transform="rotate(63.53 506.29 32.2) scale(1.59363)">
       <g id="rays_23" transform="rotate(-84.706 300 156)">
-        <path id="wavy3" d="M290.63 105.87A50.026 50.026 0 0 1 300 66a50.026 50.026 0 0 0 9.37 39.87" transform="rotate(13.4 300 156)"/>
+        <path id="wavy3" d="M290.63 105.87A50.03 50.03 0 0 1 300 66a50.03 50.03 0 0 0 9.37 39.87" transform="rotate(13.4 300 156)"/>
         <path id="straight3" d="M290.63 105.87 300 63l9.37 42.87"/>
       </g>
       <g id="rays_24" transform="rotate(-63.526 300 156)">
-        <path id="wavy4" d="M290.63 105.87A50.026 50.026 0 0 1 300 66a50.026 50.026 0 0 0 9.37 39.87" transform="rotate(13.4 300 156)"/>
+        <path id="wavy4" d="M290.63 105.87A50.03 50.03 0 0 1 300 66a50.03 50.03 0 0 0 9.37 39.87" transform="rotate(13.4 300 156)"/>
         <path id="straight4" d="M290.63 105.87 300 63l9.37 42.87"/>
       </g>
       <g id="rays_25" transform="rotate(-42.356 300 156)">
-        <path id="wavy5" d="M290.63 105.87A50.026 50.026 0 0 1 300 66a50.026 50.026 0 0 0 9.37 39.87" transform="rotate(13.4 300 156)"/>
+        <path id="wavy5" d="M290.63 105.87A50.03 50.03 0 0 1 300 66a50.03 50.03 0 0 0 9.37 39.87" transform="rotate(13.4 300 156)"/>
         <path id="straight5" d="M290.63 105.87 300 63l9.37 42.87"/>
       </g>
     </g>
     <g id="rays_62" fill-rule="nonzero" transform="rotate(127.06 425.194 131.673) scale(1.59364)">
       <g id="rays_26" transform="rotate(-84.706 300 156)">
-        <path id="wavy6" d="M290.63 105.87A50.026 50.026 0 0 1 300 66a50.026 50.026 0 0 0 9.37 39.87" transform="rotate(13.4 300 156)"/>
+        <path id="wavy6" d="M290.63 105.87A50.03 50.03 0 0 1 300 66a50.03 50.03 0 0 0 9.37 39.87" transform="rotate(13.4 300 156)"/>
         <path id="straight6" d="M290.63 105.87 300 63l9.37 42.87"/>
       </g>
       <g id="rays_27" transform="rotate(-63.526 300 156)">
-        <path id="wavy7" d="M290.63 105.87A50.026 50.026 0 0 1 300 66a50.026 50.026 0 0 0 9.37 39.87" transform="rotate(13.4 300 156)"/>
+        <path id="wavy7" d="M290.63 105.87A50.03 50.03 0 0 1 300 66a50.03 50.03 0 0 0 9.37 39.87" transform="rotate(13.4 300 156)"/>
         <path id="straight7" d="M290.63 105.87 300 63l9.37 42.87"/>
       </g>
       <g id="rays_28" transform="rotate(-42.356 300 156)">
-        <path id="wavy8" d="M290.63 105.87A50.026 50.026 0 0 1 300 66a50.026 50.026 0 0 0 9.37 39.87" transform="rotate(13.4 300 156)"/>
+        <path id="wavy8" d="M290.63 105.87A50.03 50.03 0 0 1 300 66a50.03 50.03 0 0 0 9.37 39.87" transform="rotate(13.4 300 156)"/>
         <path id="straight8" d="M290.63 105.87 300 63l9.37 42.87"/>
       </g>
     </g>
@@ -59,12 +59,12 @@
   </g>
   <path fill="#183070" d="M-159.731 259.323h959.46V480h-959.46z"/>
   <g transform="translate(-159.731 .269) scale(1.5991)">
-    <path id="wave" fill="none" fill-rule="nonzero" stroke="#fff" stroke-miterlimit="4" stroke-width="24" d="M-36 168c20-8 40-8 60 0s40 8 60 0 40-8 60 0 40 8 60 0 41-8 63 0 44 8 66 0 43-8 63 0 40 8 60 0 40-8 60 0 40 8 60 0 40-8 60 0"/>
+    <path id="wave" fill="none" fill-rule="nonzero" stroke="#fff" stroke-miterlimit="4" stroke-width="24" d="M-36 168q30-12 60 0c30 12 40 8 60 0s40-8 60 0 40 8 60 0 41-8 63 0 44 8 66 0 43-8 63 0 40 8 60 0 40-8 60 0 40 8 60 0 40-8 60 0"/>
   </g>
   <g transform="translate(-159.731 77.025) scale(1.5991)">
-    <path id="wave1" fill="none" fill-rule="nonzero" stroke="#fff" stroke-miterlimit="4" stroke-width="24" d="M-36 168c20-8 40-8 60 0s40 8 60 0 40-8 60 0 40 8 60 0 41-8 63 0 44 8 66 0 43-8 63 0 40 8 60 0 40-8 60 0 40 8 60 0 40-8 60 0"/>
+    <path id="wave1" fill="none" fill-rule="nonzero" stroke="#fff" stroke-miterlimit="4" stroke-width="24" d="M-36 168q30-12 60 0c30 12 40 8 60 0s40-8 60 0 40 8 60 0 41-8 63 0 44 8 66 0 43-8 63 0 40 8 60 0 40-8 60 0 40 8 60 0 40-8 60 0"/>
   </g>
   <g transform="translate(-159.731 153.783) scale(1.5991)">
-    <path id="wave2" fill="none" fill-rule="nonzero" stroke="#fff" stroke-miterlimit="4" stroke-width="24" d="M-36 168c20-8 40-8 60 0s40 8 60 0 40-8 60 0 40 8 60 0 41-8 63 0 44 8 66 0 43-8 63 0 40 8 60 0 40-8 60 0 40 8 60 0 40-8 60 0"/>
+    <path id="wave2" fill="none" fill-rule="nonzero" stroke="#fff" stroke-miterlimit="4" stroke-width="24" d="M-36 168q30-12 60 0c30 12 40 8 60 0s40-8 60 0 40 8 60 0 41-8 63 0 44 8 66 0 43-8 63 0 40 8 60 0 40-8 60 0 40 8 60 0 40-8 60 0"/>
   </g>
 </svg>

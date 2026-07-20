@@ -401,7 +401,7 @@ async function indexAndBakeGdocIfNeccesary(
         })
         .with(GdocPublishingAction.Unpublishing, async () => {
             if (wasIndexedInPages) {
-                await removeIndividualGdocFromIndex(prevJson.slug)
+                await removeIndividualGdocFromIndex(prevJson)
             }
             if (wasProfile) {
                 await removeIndividualProfileFromIndex(prevGdoc as GdocProfile)
@@ -607,7 +607,7 @@ export async function deleteGdoc(
             checkIsGdocPostExcludingFragments(gdoc) ||
             gdoc.content.type === OwidGdocType.DataInsight
         ) {
-            await removeIndividualGdocFromIndex(gdoc.slug)
+            await removeIndividualGdocFromIndex(gdoc)
         }
         if (checkIsProfile(gdoc)) {
             await removeIndividualProfileFromIndex(

@@ -33,12 +33,14 @@ import {
     normaliseToSingleDigitNumber,
     getUniqueNamesFromTagHierarchies,
     stripOuterParentheses,
+    groupTocIntoSections,
 } from "./Util.js"
 import {
     BlockSize,
     OwidEnrichedGdocBlock,
     SortOrder,
     TagGraphRoot,
+    TocHeadingWithSupertitle,
 } from "@ourworldindata/types"
 
 describe(findClosestTime, () => {
@@ -1083,5 +1085,52 @@ describe(stripOuterParentheses, () => {
 
     it("trims whitespace before checking for parentheses", () => {
         expect(stripOuterParentheses("   (trimmed)   ")).toBe("trimmed")
+    })
+})
+
+describe(groupTocIntoSections, () => {
+    const h1 = (slug: string): TocHeadingWithSupertitle => ({
+        title: slug,
+        slug,
+        isSubheading: false,
+    })
+
+    const h2 = (slug: string): TocHeadingWithSupertitle => ({
+        title: slug,
+        slug,
+        isSubheading: true,
+    })
+
+    it("returns no sections for an empty TOC", () => {
+        expect(groupTocIntoSections([])).toEqual([])
+    })
+
+    it("groups each h1 with the h2s that follow it", () => {
+        const [energy, poverty] = [h1("energy"), h1("poverty")]
+        const [solar, wind, trends] = [h2("solar"), h2("wind"), h2("trends")]
+        expect(
+            groupTocIntoSections([energy, solar, wind, poverty, trends])
+        ).toEqual([
+            { heading: energy, subheadings: [solar, wind] },
+            { heading: poverty, subheadings: [trends] },
+        ])
+    })
+
+    it("keeps an h1 without subheadings as a section of its own", () => {
+        expect(groupTocIntoSections([h1("energy"), h1("poverty")])).toEqual([
+            { heading: h1("energy"), subheadings: [] },
+            { heading: h1("poverty"), subheadings: [] },
+        ])
+    })
+
+    it("promotes each leading h2 without a preceding h1 to its own section", () => {
+        const [solar, wind] = [h2("solar"), h2("wind")]
+        const energy = h1("energy")
+        const trends = h2("trends")
+        expect(groupTocIntoSections([solar, wind, energy, trends])).toEqual([
+            { heading: solar, subheadings: [] },
+            { heading: wind, subheadings: [] },
+            { heading: energy, subheadings: [trends] },
+        ])
     })
 })

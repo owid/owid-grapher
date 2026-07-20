@@ -108,4 +108,5 @@ export interface CausesOfDeathConfig {
     ageGroup?: string
     year?: number
     hideControls?: boolean
+    urlSync?: boolean
 }
