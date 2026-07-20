@@ -327,11 +327,20 @@ function parseAllCharts(raw: RawBlockAllCharts): EnrichedBlockAllCharts {
         type: "all-charts",
         heading: "",
         top: [],
+        suggested: [],
         parseErrors: [error],
     })
 
     if (!raw.value.heading)
         return createError({ message: "all-charts block missing heading" })
+
+    const suggested = raw.value.suggested
+    if (suggested && !_.isArray(suggested)) {
+        return createError({
+            message: `all-charts malformed "suggested" property: ${typeof raw
+                .value.suggested}`,
+        })
+    }
 
     const top = raw.value.top
     if (top) {
@@ -361,6 +370,11 @@ function parseAllCharts(raw: RawBlockAllCharts): EnrichedBlockAllCharts {
         type: "all-charts",
         heading: raw.value.heading,
         top: top?.map((item) => ({ url: extractUrl(item.url) })) || [],
+        suggested:
+            suggested
+                ?.filter((item): item is string => _.isString(item))
+                .map((item) => item.trim())
+                .filter(Boolean) ?? [],
         parseErrors: [],
     }
 }

@@ -115,6 +115,15 @@ interface BaseSearchChartHit {
     variantName?: string
     titleVariant?: string
     subtitle?: string
+    /** Data producers of the variables used in this chart (e.g., "World Bank") */
+    datasetProducers?: string[]
+    /**
+     * Topic tags the chart carries (e.g. "Fertility", "Mortality"). Only
+     * populated when explicitly requested via `attributesToRetrieve` — most
+     * query paths don't ask for this field, so it's typically absent even
+     * though the underlying Algolia record always has it (see `ChartRecord`).
+     */
+    tags?: string[]
     availableTabs: GrapherTabName[]
     /**
      * Required by react-instantsearch's `<Highlight>`/`<Snippet>` components:
