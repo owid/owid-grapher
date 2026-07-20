@@ -33,6 +33,18 @@ export type IndicatorEntryAfterPreProcessing = IndicatorConfig
 
 type Metadata = Omit<OwidVariableWithSource, "id">
 
+// Prototype for the mdim-downloads project: describes a pre-built "download
+// the complete dataset" package (all views/dimension combinations), as
+// opposed to the existing per-view download which only covers whichever
+// view is currently loaded.
+export interface DownloadPackage {
+    url: string
+    fileCount?: number
+    rowCount?: number
+    sizeBytes?: number
+    lastUpdated?: string
+}
+
 interface MultiDimDataPageConfigType<
     IndicatorType extends Record<string, any>,
 > {
@@ -44,6 +56,7 @@ interface MultiDimDataPageConfigType<
     dimensions: Dimension[]
     views: View<IndicatorType>[]
     metadata?: Metadata
+    downloadPackage?: DownloadPackage
 }
 
 export type MultiDimDataPageConfigRaw =
