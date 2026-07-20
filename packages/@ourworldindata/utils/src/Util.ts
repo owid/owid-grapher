@@ -925,10 +925,12 @@ export const mapNullToUndefined = <T>(
     array: (T | undefined | null)[]
 ): (T | undefined)[] => array.map((v) => (v === null ? undefined : v))
 
+// A word is treated as an abbreviation, and keeps its casing, if its second
+// character is uppercase (e.g. "CO2", "HIV/AIDS", "SDG").
+const isAbbreviation = (word: string): boolean => /[A-Z]/.test(word.charAt(1))
+
 export const lowerCaseFirstLetterUnlessAbbreviation = (str: string): string =>
-    str.charAt(1).match(/[A-Z]/)
-        ? str
-        : str.charAt(0).toLowerCase() + str.slice(1)
+    isAbbreviation(str) ? str : str.charAt(0).toLowerCase() + str.slice(1)
 
 /**
  * Use with caution - please note that this sort function only sorts on numeric data, and that sorts
@@ -1861,9 +1863,71 @@ export function getResearchAndWritingId(heading?: string): string {
     return heading ? slugify(heading) : RESEARCH_AND_WRITING_ID
 }
 
+// Proper nouns that should keep their Title Case even in sentence-case (LTP)
+// headings. Compared case-insensitively against the whole string.
+const CASE_PRESERVED_PHRASES = new Set(
+    ["Human Development Index (HDI)", "SDG Tracker"].map((phrase) =>
+        phrase.toLowerCase()
+    )
+)
+
+// Sentence-cases a heading while preserving abbreviations and known proper
+// nouns. `capitalizeFirstWord` is false for text interpolated mid-heading,
+// e.g. the topic name in "Featured data on economic inequality".
+export function toSentenceCase(
+    str: string,
+    capitalizeFirstWord = true
+): string {
+    if (CASE_PRESERVED_PHRASES.has(str.trim().toLowerCase())) return str
+    return str
+        .split(" ")
+        .map((word, i) => {
+            if (isAbbreviation(word)) return word
+            const lower = word.toLowerCase()
+            return capitalizeFirstWord && i === 0
+                ? lower.charAt(0).toUpperCase() + lower.slice(1)
+                : lower
+        })
+        .join(" ")
+}
+
+// Topic page components have headings written in Title Case (both authored
+// custom titles and our defaults). Only modular topic pages keep Title Case;
+// every other context (linear topic pages, and the fallback when the gdoc type
+// is unknown) renders them in sentence case. Mirrors getTopicPageHeading.
+export function sentenceCaseIfNotTopicPage(
+    title: string | undefined,
+    gdocType?: OwidGdocType,
+    capitalizeFirstWord = true
+): string {
+    if (!title) return ""
+    return gdocType === OwidGdocType.TopicPage
+        ? title
+        : toSentenceCase(title, capitalizeFirstWord)
+}
+
+const topicPageTitleHeadings = {
+    keyCharts: "Key Charts",
+    featuredData: "Featured Data",
+    dataInsights: "Data Insights",
+    researchAndWriting: RESEARCH_AND_WRITING_DEFAULT_HEADING,
+    countryProfiles: "Country Profiles",
+    relatedTopics: "Related Topics",
+}
+
+// Returns the default heading for a topic page component, in Title Case on
+// modular topic pages and sentence case everywhere else.
+export function getTopicPageHeading(
+    key: keyof typeof topicPageTitleHeadings,
+    gdocType: OwidGdocType | undefined
+): string {
+    return sentenceCaseIfNotTopicPage(topicPageTitleHeadings[key], gdocType)
+}
+
 export function generateToc(
     body: OwidEnrichedGdocBlock[] | undefined,
-    isTocForSidebar: boolean = false
+    isTocForSidebar: boolean = false,
+    gdocType?: OwidGdocType
 ): TocHeadingWithSupertitle[] {
     if (!body) return []
 
@@ -1894,7 +1958,7 @@ export function generateToc(
 
             if (child.type === "all-charts") {
                 toc.push({
-                    title: "Key charts",
+                    title: getTopicPageHeading("keyCharts", gdocType),
                     slug: ALL_CHARTS_ID,
                     isSubheading: false,
                 })
@@ -1903,7 +1967,7 @@ export function generateToc(
 
             if (child.type === "featured-metrics") {
                 toc.push({
-                    title: "Featured data",
+                    title: getTopicPageHeading("featuredData", gdocType),
                     slug: FEATURED_METRICS_ID,
                     isSubheading: false,
                 })
@@ -1912,8 +1976,14 @@ export function generateToc(
 
             if (child.type === "research-and-writing") {
                 const { heading } = child
+                const customHeadingCaseCorrected = sentenceCaseIfNotTopicPage(
+                    heading,
+                    gdocType
+                )
                 toc.push({
-                    title: heading || RESEARCH_AND_WRITING_DEFAULT_HEADING,
+                    title:
+                        customHeadingCaseCorrected ||
+                        getTopicPageHeading("researchAndWriting", gdocType),
                     slug: getResearchAndWritingId(heading),
                     isSubheading: false,
                 })
@@ -1921,9 +1991,8 @@ export function generateToc(
             }
 
             if (child.type === "featured-data-insights") {
-                const title = "Data insights"
                 toc.push({
-                    title,
+                    title: getTopicPageHeading("dataInsights", gdocType),
                     slug: FEATURED_DATA_INSIGHTS_ID,
                     isSubheading: false,
                 })
@@ -1933,7 +2002,7 @@ export function generateToc(
             if (child.type === "explore-data-section") {
                 const title = child.title || EXPLORE_DATA_SECTION_DEFAULT_TITLE
                 toc.push({
-                    title,
+                    title: sentenceCaseIfNotTopicPage(title, gdocType),
                     slug: EXPLORE_DATA_SECTION_ID,
                     isSubheading: false,
                 })
