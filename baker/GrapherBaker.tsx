@@ -411,11 +411,21 @@ export const renderPreviewDataPageOrGrapherPage = async (
     knex: db.KnexReadonlyTransaction,
     options?: { forceDatapage?: boolean }
 ) => {
+    // Match renderDataPageOrGrapherPage: charts enrolled in the data-page
+    // metadata experiment preview as data pages too.
+    const forceDatapage =
+        options?.forceDatapage ||
+        (!!grapher.slug &&
+            isUrlInActiveExperiment(
+                DATA_PAGE_METADATA_EXPERIMENT_ID,
+                `/grapher/${grapher.slug}`
+            ))
+
     const archiveContextDictionary =
         await getLatestArchivedChartPageVersionsIfEnabled(knex)
     const datapage = await renderDatapageIfApplicable(grapher, true, knex, {
         archiveContextDictionary,
-        forceDatapage: options?.forceDatapage,
+        forceDatapage,
     })
     if (datapage) return datapage
 
