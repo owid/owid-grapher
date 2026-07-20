@@ -172,3 +172,35 @@
     background-color: transparent;
     font-weight: bold;
 }
+
+.react-tags__tag--area {
+    color: #174f83;
+    background-color: #dceaff;
+}
+
+.react-tags__listbox-option--area {
+    color: #174f83;
+    background-color: #eef5ff;
+}
+
+.react-tags__listbox-option--area.is-active {
+    background-color: #dceaff;
+}
+
+.react-tags__tag--orphan {
+    color: #754500;
+    background-color: #ffedc7;
+}
+
+.react-tags__listbox-option--orphan {
+    color: #754500;
+    background-color: #fff7e8;
+}
+
+.react-tags__listbox-option--orphan.is-active {
+    background-color: #ffedc7;
+}
+
+.react-tags__graph-marker {
+    margin-right: 4px;
+}

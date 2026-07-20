@@ -16,7 +16,7 @@ export const DonatePage = (props: {
             canonicalUrl={`${props.baseUrl}/donate`}
             pageTitle="Donate"
             baseUrl={props.baseUrl}
-            pageDesc="Support open data and research to make progress against the world's largest problems"
+            pageDesc="Support open data and research to make progress against the world's largest problems."
             imageUrl={`${props.baseUrl}/donate-thumbnail.png`}
         >
             <script src="https://js.stripe.com/v3/" />

@@ -106,9 +106,6 @@ import {
     RawBlockLatestDataInsights,
     EnrichedBlockLatestDataInsights,
     EnrichedFaq,
-    RawBlockEntrySummary,
-    EnrichedBlockEntrySummary,
-    EnrichedBlockEntrySummaryItem,
     RawBlockTable,
     EnrichedBlockTable,
     EnrichedBlockTableRow,
@@ -288,7 +285,6 @@ export function parseRawBlocksToEnrichedBlocks(
         )
         .with({ type: "expandable-paragraph" }, parseExpandableParagraph)
         .with({ type: "align" }, parseAlign)
-        .with({ type: "entry-summary" }, parseEntrySummary)
         .with({ type: "explorer-tiles" }, parseExplorerTiles)
         .with({ type: "table" }, parseTable)
         .with({ type: "key-indicator" }, parseKeyIndicator)
@@ -2779,34 +2775,6 @@ function parseAlign(b: RawBlockAlign): EnrichedBlockAlign {
         alignment: b.value.alignment as HorizontalAlign,
         content: _.compact(b.value.content.map(parseRawBlocksToEnrichedBlocks)),
         parseErrors: [],
-    }
-}
-
-function parseEntrySummary(
-    raw: RawBlockEntrySummary
-): EnrichedBlockEntrySummary {
-    const parseErrors: ParseError[] = []
-    const items: EnrichedBlockEntrySummaryItem[] = []
-
-    if (raw.value.items) {
-        raw.value.items.forEach((item, i) => {
-            if (!item.text || !item.slug) {
-                parseErrors.push({
-                    message: `entry-summary item ${i} is not valid. It must have a text and a slug property`,
-                })
-            } else {
-                items.push({
-                    text: item.text,
-                    slug: item.slug,
-                })
-            }
-        })
-    }
-
-    return {
-        type: "entry-summary",
-        items,
-        parseErrors,
     }
 }
 

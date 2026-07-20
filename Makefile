@@ -17,14 +17,33 @@ ifneq (,$(wildcard ./.env))
 	include .env
 endif
 
-.PHONY: help up up.full down refresh refresh.wp refresh.private refresh.full migrate svgtest svgtest.reset svgtest.graphers svgtest.grapher-views svgtest.mdims svgtest.explorers svgtest.thumbnails bdd bdd.ui check-not-prod
+# .env lines with inline comments (`FOO=bar  # baz`) keep the spaces before the
+# `#` in the value when included by make — strip the variables we interpolate
+# into container names, session names and URLs. The ifdef guards keep absent
+# variables undefined so the `?=` defaults on the targets still apply.
+ifdef COMPOSE_PROJECT_NAME
+COMPOSE_PROJECT_NAME := $(strip $(COMPOSE_PROJECT_NAME))
+endif
+ifdef TMUX_SESSION_NAME
+TMUX_SESSION_NAME := $(strip $(TMUX_SESSION_NAME))
+endif
+ifdef VITE_PORT
+VITE_PORT := $(strip $(VITE_PORT))
+endif
+ifdef WRANGLER_PORT
+WRANGLER_PORT := $(strip $(WRANGLER_PORT))
+endif
+
+.PHONY: help up up.headless up.full down down.headless refresh refresh.wp refresh.private refresh.full migrate svgtest svgtest.reset svgtest.graphers svgtest.grapher-views svgtest.mdims svgtest.explorers svgtest.thumbnails bdd bdd.ui check-not-prod
 
 help:
 	@echo 'Available commands:'
 	@echo
 	@echo '  GRAPHER ONLY'
 	@echo '  make up                     start dev environment via docker-compose and tmux'
+	@echo '  make up.headless            start dev environment without tmux (AI agents, cloud sandboxes, CI)'
 	@echo '  make down                   stop any services still running'
+	@echo '  make down.headless          stop services started by make up.headless'
 	@echo '  make refresh                (while up) download a new grapher snapshot and update MySQL'
 	@echo '  make refresh.private        (while up) download and load the private sidecar dump: admin keys + analytics (needs access)'
 	@echo '  make refresh.full           (while up) run refresh and refresh.private'
@@ -101,6 +120,20 @@ up.devcontainer: create-if-missing.env.devcontainer tmp-downloads/owid_metadata.
 		bind R respawn-pane -k \; \
 		bind X kill-pane \; \
 		bind Q kill-server
+
+# Headless variant of `make up` for environments without a terminal to attach
+# tmux to (AI agents, cloud sandboxes, CI) — see the script for details.
+up.headless: require.headless create-if-missing.env node_modules
+	@make validate.env
+	@./devTools/docker/up-headless.sh
+
+down.headless:
+	@./devTools/docker/down-headless.sh
+
+require.headless:
+	@echo '==> Checking your environment has the necessary commands...'
+	@which docker >/dev/null 2>&1 || (echo "ERROR: docker compose is required."; exit 1)
+	@which yarn >/dev/null 2>&1 || (echo "ERROR: yarn is required."; exit 1)
 
 up.full: export DEBUG = 'knex:query'
 up.full: export COMPOSE_PROJECT_NAME ?= owid-grapher

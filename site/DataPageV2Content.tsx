@@ -255,6 +255,12 @@ export const DataPageV2Content = ({
                     {!useNewDatapageDesign && (
                         <>
                             <div className="col-start-2 span-cols-12">
+                                {relatedResearch &&
+                                    relatedResearch.length > 0 && (
+                                        <DataPageResearchAndWriting
+                                            relatedResearch={relatedResearch}
+                                        />
+                                    )}
                                 {datapageData.allCharts &&
                                 datapageData.allCharts.length > 0 ? (
                                     <div

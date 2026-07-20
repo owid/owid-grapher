@@ -102,7 +102,7 @@ export const experiments: Experiment[] = [
         expires: "2026-12-31T00:00:00.000Z",
         arms: [
             { id: "control", fraction: 0.0 },
-            { id: "treatment", fraction: 1.0 },
+            { id: "treatment", fraction: 1.0, replaysSessionSampleRate: 0.33 },
         ],
         paths: [
             // single indicator data pages (multi-indicator data pages aren't supported yet)

@@ -606,14 +606,14 @@ const ReferencesDataInsights = (props: {
     const onImageUploadComplete = async (response: ImageUploadResponse) => {
         if (response.success) {
             notificationApi.info({
-                message: "Image replaced!",
+                title: "Image replaced!",
                 description:
                     "Make sure you update the alt text if your revision has substantive changes",
                 placement: "bottomRight",
             })
         } else {
             notificationApi.warning({
-                message: "Image upload failed",
+                title: "Image upload failed",
                 description: response?.errorMessage,
                 placement: "bottomRight",
             })

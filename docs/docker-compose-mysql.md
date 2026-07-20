@@ -57,11 +57,12 @@ For all operating systems, we recommend using [DBeaver](https://dbeaver.io/).
 The MySQL server is exposed on port **3307** as opposed to port 3306 to avoid port conflicts with any local SQL clients you may have running.
 
 Use this connection configuration:
-| key | value |
-|---|---|
-| host | `localhost` |
-| port | `3307` |
-| username | `root` |
+
+| key      | value                                |
+| -------- | ------------------------------------ |
+| host     | `localhost`                          |
+| port     | `3307`                               |
+| username | `root`                               |
 | password | `weeniest-stretch-contaminate-gnarl` |
 
 (The root development password is set in this [docker-compose file](https://github.com/owid/owid-grapher/blob/master/docker-compose.grapher.yml#L40))

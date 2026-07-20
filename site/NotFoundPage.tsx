@@ -11,7 +11,7 @@ export default function NotFoundPage({ baseUrl }: { baseUrl: string }) {
             <Head
                 canonicalUrl={`${baseUrl}/search`}
                 pageTitle="404 Not Found"
-                pageDesc="Search articles and charts on Our World in Data."
+                pageDesc="Sorry, this page doesn’t exist!"
                 baseUrl={baseUrl}
             />
             <body className="NotFoundPage">
@@ -20,7 +20,7 @@ export default function NotFoundPage({ baseUrl }: { baseUrl: string }) {
                     <NotFoundPageIcon />
                     <div className="NotFoundPage__copy">
                         <h1 className="NotFoundPage__heading subtitle-1">
-                            Sorry, that page doesn’t exist!
+                            Sorry, this page doesn’t exist!
                         </h1>
                         <p className="body-2-semibold">
                             You may have followed an outdated link or have

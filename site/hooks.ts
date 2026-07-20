@@ -1,29 +1,8 @@
 import * as _ from "lodash-es"
 import { useEffect, useState, useSyncExternalStore } from "react"
-import type { RefObject } from "react"
 import { MultiEmbedderSingleton } from "./multiembedder/MultiEmbedder.js"
 import { getWindowQueryStr } from "@ourworldindata/utils"
 import { reaction } from "mobx"
-
-export const useTriggerWhenClickOutside = (
-    container: RefObject<HTMLElement | null>,
-    active: boolean,
-    trigger: () => void
-) => {
-    useEffect(() => {
-        if (!active) return
-        const handleClick = (e: MouseEvent) => {
-            if (container && !container.current?.contains(e.target as Node)) {
-                trigger()
-            }
-        }
-        document.addEventListener("mousedown", handleClick)
-
-        return () => {
-            document.removeEventListener("mousedown", handleClick)
-        }
-    }, [active, container, trigger])
-}
 
 export enum ScrollDirection {
     Up = "up",
@@ -56,6 +35,28 @@ export const useScrollDirection = () => {
     })
 
     return direction
+}
+
+// True while the user is actively scrolling; flips back to false once
+// scrolling has paused for `idleMs`. Lets consumers react to "scrolling
+// settled" by watching for the transition back to false.
+export const useIsScrolling = (idleMs: number): boolean => {
+    const [isScrolling, setIsScrolling] = useState(false)
+
+    useEffect(() => {
+        const settle = _.debounce(() => setIsScrolling(false), idleMs)
+        const onScroll = () => {
+            setIsScrolling(true)
+            settle()
+        }
+        document.addEventListener("scroll", onScroll, { passive: true })
+        return () => {
+            document.removeEventListener("scroll", onScroll)
+            settle.cancel()
+        }
+    }, [idleMs])
+
+    return isScrolling
 }
 
 export const useEmbedChart = (

@@ -593,3 +593,24 @@
         @include heading-variant-pseudo-widths;
     }
 }
+
+// Thin scrollbar across our supported browsers:
+// - Firefox + Chrome 121+/Safari 18.2+: `scrollbar-width: thin` (no
+//   `scrollbar-color`, so native colors are kept).
+// - Older Chrome/Safari (< 121 / < 18.2): the webkit pseudo-elements, since
+//   they lack `scrollbar-width`. An unstyled thumb renders invisible, so it
+//   needs a background; `$gray-60` mimics a default thumb.
+@mixin thin-scrollbar {
+    scrollbar-width: thin;
+
+    &::-webkit-scrollbar {
+        width: 8px;
+    }
+    &::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    &::-webkit-scrollbar-thumb {
+        background: $gray-60;
+        border-radius: 4px;
+    }
+}

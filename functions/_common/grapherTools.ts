@@ -321,10 +321,10 @@ export async function initGrapher(
         throw new StatusError(grapherConfigResponse.status)
     }
 
-    const additionalDataLoaderFn = ((catalogKey) =>
+    const additionalDataLoaderFn: AdditionalGrapherDataFetchFn = (catalogKey) =>
         loadCatalogData(catalogKey, {
             baseUrl: env.CATALOG_URL,
-        })) as AdditionalGrapherDataFetchFn
+        })
 
     const bounds = new Bounds(0, 0, options.svgWidth, options.svgHeight)
     const grapherState = new GrapherState({

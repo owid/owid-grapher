@@ -88,6 +88,27 @@ $s-lato-font-size: px-to-cqh(24);
     }
 }
 
+.slideshow-slide--image-text-dominant {
+    .slideshow-slide__text {
+        order: 0;
+    }
+    .slideshow-slide__image {
+        order: 1;
+    }
+}
+
+// "smallImage": shrink the image (proportionally, by reducing its height) so
+// the text column can flex to fill the width the image gives up.
+.slideshow-slide--image-small {
+    .slideshow-slide__image {
+        height: 70%;
+    }
+    .slideshow-slide__text {
+        width: auto;
+        flex: 1;
+    }
+}
+
 .slideshow-slide-chart-content {
     flex: 1;
     display: flex;
@@ -256,6 +277,18 @@ $s-lato-font-size: px-to-cqh(24);
         color: $gray-80;
         margin-top: px-to-cqh(16);
         font-size: $xl-lato-font-size;
+    }
+}
+
+// "sectionDivider" variant: center the text vertically and horizontally so the
+// slide reads as a section break.
+.slideshow-slide--statement-section-divider {
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+
+    .slideshow-slide-statement__text {
+        max-width: 90%;
     }
 }
 

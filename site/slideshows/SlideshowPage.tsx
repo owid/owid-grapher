@@ -58,7 +58,7 @@ export function SlideshowPage(props: SlideshowPageProps): React.ReactElement {
             <Head
                 canonicalUrl={canonicalUrl}
                 pageTitle={title}
-                pageDesc={`${title} — Our World in Data slideshow`}
+                pageDesc={`${title} — Our World in Data slideshow.`}
                 baseUrl={baseUrl}
             />
             <body id="slideshow-page-body">

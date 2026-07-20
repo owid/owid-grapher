@@ -7,7 +7,7 @@ import {
     BAKED_BASE_URL,
     VITE_PREVIEW,
 } from "../settings/serverSettings.js"
-import type { Manifest, ManifestChunk } from "vite"
+import type { Manifest } from "vite"
 import { readFromAssetMap } from "@ourworldindata/utils"
 import urljoin from "url-join"
 import { AssetMap } from "@ourworldindata/types"
@@ -65,7 +65,7 @@ export const createTagsForManifestEntry = (
     ): React.ReactElement<React.HTMLProps<HTMLElement>>[] => {
         const manifestEntry =
             Object.values(manifest).find((e) => e.file === entry) ??
-            (manifest[entry] as ManifestChunk | undefined)
+            manifest[entry]
         let assets: React.ReactElement<React.HTMLProps<HTMLElement>>[] = []
 
         if (!manifestEntry && !entry.endsWith(".css"))
