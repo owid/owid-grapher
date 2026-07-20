@@ -22,6 +22,10 @@ interface CategoricalBinProps extends BinProps {
     value: string
     label: string
     isHidden?: boolean
+    // Additional values that this bin matches, on top of `value`. Set only for
+    // merged legend bins (see `mergeCategoricalBinsByLabelAndColor`); when
+    // omitted the bin matches its single `value`, as before.
+    values?: string[]
 }
 
 abstract class AbstractColorScaleBin<T extends BinProps> {
@@ -107,6 +111,12 @@ export class CategoricalBin extends AbstractColorScaleBin<CategoricalBinProps> {
         return this.props.label || this.props.value
     }
 
+    /** All values this bin matches. A single-value bin matches just `value`;
+     * a merged bin also matches the values it absorbed. */
+    get values(): string[] {
+        return this.props.values ?? [this.props.value]
+    }
+
     contains(
         value: CoreValueType | undefined,
         { isProjection = false } = {}
@@ -116,7 +126,7 @@ export class CategoricalBin extends AbstractColorScaleBin<CategoricalBinProps> {
             (value !== undefined &&
                 isProjection &&
                 this.props.value === PROJECTED_DATA_LABEL) ||
-            (value !== undefined && value === this.props.value)
+            (value !== undefined && this.values.some((v) => v === value))
         )
     }
 
@@ -126,6 +136,45 @@ export class CategoricalBin extends AbstractColorScaleBin<CategoricalBinProps> {
             this.props.index === other.props.index
         )
     }
+}
+
+/**
+ * Merge categorical bins that share the same displayed label *and* color into a
+ * single bin, preserving the order of first appearance. This avoids showing
+ * multiple visually indistinguishable swatches in a legend when several
+ * categories are given the same custom label and color.
+ *
+ * The merged bin keeps the first bin's props (index, color, label, pattern) and
+ * additionally matches all the values of the bins it absorbs, so hovering it
+ * still highlights every entity in any of the merged categories, and hovering
+ * such an entity still resolves back to this one bin. Bins that differ in label
+ * or color are left untouched (and single-member groups keep their original
+ * object, so the default case is unchanged).
+ */
+export function mergeCategoricalBinsByLabelAndColor(
+    bins: CategoricalBin[]
+): CategoricalBin[] {
+    const binsByKey = new Map<string, CategoricalBin>()
+    const orderedKeys: string[] = []
+    for (const bin of bins) {
+        // Key on the displayed label and color together; JSON.stringify
+        // keeps the two fields unambiguously separated.
+        const key = JSON.stringify([bin.text, bin.color])
+        const existing = binsByKey.get(key)
+        if (existing) {
+            binsByKey.set(
+                key,
+                new CategoricalBin({
+                    ...existing.props,
+                    values: [...existing.values, ...bin.values],
+                })
+            )
+        } else {
+            binsByKey.set(key, bin)
+            orderedKeys.push(key)
+        }
+    }
+    return orderedKeys.map((key) => binsByKey.get(key)!)
 }
 
 export function isCategoricalBin(bin: ColorScaleBin): bin is CategoricalBin {

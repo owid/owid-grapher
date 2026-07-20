@@ -47,6 +47,7 @@ import {
     isNoDataBin,
     isNumericBin,
     isProjectedDataBin,
+    mergeCategoricalBinsByLabelAndColor,
     NumericBin,
 } from "../color/ColorScaleBin"
 import { LegendStyleConfig } from "../legend/LegendStyleConfig"
@@ -417,7 +418,12 @@ export class MapChart
             })
         }
 
-        return categoricalLegendData
+        // Collapse bins that would render identical swatches (same label and
+        // color) into one, so the legend doesn't show visual duplicates. The
+        // merged bin still matches all its underlying values, so hovering it
+        // highlights every country in any of the merged categories. Countries
+        // are still colored from the original, un-merged `colorScale.legendBins`.
+        return mergeCategoricalBinsByLabelAndColor(categoricalLegendData)
     }
 
     @computed private get hasCategoricalLegendData(): boolean {
