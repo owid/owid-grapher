@@ -105,7 +105,7 @@ export const experiments: Experiment[] = [
             { id: "treatment", fraction: 1.0, replaysSessionSampleRate: 0.33 },
         ],
         paths: [
-            // single indicator data pages (multi-indicator data pages aren't supported yet)
+            // single indicator data pages
             "/grapher/gdp-per-capita-maddison-project-database",
             "/grapher/co-emissions-per-capita",
             "/grapher/democracy-index-eiu",
@@ -116,6 +116,18 @@ export const experiments: Experiment[] = [
             "/grapher/human-rights-index-vdem",
             "/grapher/daily-per-capita-caloric-supply",
             "/grapher/per-capita-energy-use",
+            // multi-indicator data pages (rendered as data pages via
+            // forceDatapage; the metadata box shows an indicator switcher)
+            "/grapher/annual-number-of-deaths-by-cause",
+            "/grapher/electricity-prod-source-stacked",
+            "/grapher/population-with-un-projections",
+            "/grapher/global-energy-substitution",
+            "/grapher/population-growth-rates",
+            "/grapher/temperature-anomaly",
+            "/grapher/annual-deaths-by-age",
+            "/grapher/measles-cases-and-death-rate",
+            "/grapher/urban-vs-rural-majority",
+            "/grapher/population-by-age-group-with-projections",
         ],
     }),
 ]
