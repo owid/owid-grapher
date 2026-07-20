@@ -488,16 +488,6 @@ export function DataPageContent({
                             <div className="header__source">
                                 {titleFragments}
                             </div>
-                            {downloadPackage && (
-                                <a
-                                    className="header__download-link"
-                                    href="#download"
-                                    data-track-note="datapage_header_download_link"
-                                >
-                                    <FontAwesomeIcon icon={faDownload} />
-                                    Download complete dataset
-                                </a>
-                            )}
                         </div>
                         {hasTopicTags && tagToSlugMap && (
                             <TopicTags
@@ -508,11 +498,22 @@ export function DataPageContent({
                         )}
                         <div className="settings-row__wrapper col-start-2 span-cols-12 col-sm-start-2 span-sm-cols-12">
                             <MultiDimSettingsPanel
+                                className="settings-row__panel"
                                 config={config}
                                 settings={displayedSettings}
                                 onChange={handleSettingsChange}
                                 disabled={isLoadingView}
                             />
+                            {downloadPackage && (
+                                <a
+                                    className="header__download-link"
+                                    href="#download"
+                                    data-track-note="datapage_header_download_link"
+                                >
+                                    <FontAwesomeIcon icon={faDownload} />
+                                    Download complete dataset
+                                </a>
+                            )}
                         </div>
                     </div>
                 </div>
