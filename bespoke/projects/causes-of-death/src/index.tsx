@@ -41,6 +41,7 @@ export const mount: BespokeComponentMountFn = (
         ageGroup: rawConfig.ageGroup,
         year: rawConfig.year ? parseInt(rawConfig.year, 10) : undefined,
         hideControls: rawConfig.hideControls === "true",
+        urlSync: rawConfig.urlSync === "true",
     }
 
     const root = createRoot(container)

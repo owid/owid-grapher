@@ -56,6 +56,7 @@ import {
     isIndicatorChartEditorInstance,
 } from "./IndicatorChartEditor.js"
 import { EditableTags } from "./EditableTags.js"
+import { MinimalTagWithMetadata } from "./TagGraphMetadata.js"
 import {
     GDP_PER_CAPITA_CATALOG_PATH,
     POPULATION_CATALOG_PATH,
@@ -534,7 +535,7 @@ class VariablesSection<
 const TagsSection = (props: {
     chartId: number | undefined
     tags: DbChartTagJoin[] | undefined
-    availableTags: DbChartTagJoin[] | undefined
+    availableTags: MinimalTagWithMetadata[] | undefined
     onSaveTags: (tags: DbChartTagJoin[]) => void
 }) => {
     const { chartId, tags, availableTags } = props

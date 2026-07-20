@@ -18,7 +18,7 @@ import {
     guid,
 } from "@ourworldindata/utils"
 import { observer } from "mobx-react"
-import { NoDataModal } from "../noDataModal/NoDataModal"
+import { NoDataMessage } from "../noDataMessage/NoDataMessage"
 import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
@@ -489,7 +489,7 @@ export class ScatterPlotChart
     @computed private get points(): React.ReactElement {
         return (
             <ScatterPointsWithLabels
-                noDataModalManager={this.manager}
+                noDataMessageManager={this.manager}
                 isConnected={this.chartState.isConnected}
                 hideConnectedScatterLines={this.hideConnectedScatterLines}
                 seriesArray={this.series}
@@ -725,7 +725,7 @@ export class ScatterPlotChart
     override render(): React.ReactElement {
         if (this.chartState.errorInfo.reason)
             return (
-                <NoDataModal
+                <NoDataMessage
                     manager={this.manager}
                     bounds={this.bounds}
                     message={this.chartState.errorInfo.reason}

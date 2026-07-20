@@ -857,7 +857,7 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
         </p>
     )
 
-    const firstYColDef = yColumns?.[0]?.def as OwidColumnDef | undefined
+    const firstYColDef = yColumns?.[0]?.def
     const activeView = props.manager.isOnTableTab
         ? "table"
         : props.manager.isOnMapTab

@@ -150,7 +150,19 @@ export async function getTagById(
     `,
         [tag.id]
     )
-    tag.children = children
+    const tagGraphRolesById = new Map(
+        (await db.getMinimalTagsWithMetadata(trx)).map((tag) => [
+            tag.id,
+            tag.tagGraphRole,
+        ])
+    )
+    tag.children = children.map((child) => {
+        const tagGraphRole = tagGraphRolesById.get(child.id)
+        if (!tagGraphRole) {
+            throw new Error(`Tag graph role not found for tag ${child.id}`)
+        }
+        return { ...child, tagGraphRole }
+    })
 
     return { tag }
 }
@@ -249,7 +261,7 @@ export async function getAllTags(
     _res: HandlerResponse,
     trx: db.KnexReadonlyTransaction
 ) {
-    return { tags: await db.getMinimalTagsWithIsTopic(trx) }
+    return { tags: await db.getMinimalTagsWithMetadata(trx) }
 }
 
 export async function deleteTag(

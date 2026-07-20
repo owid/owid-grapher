@@ -448,10 +448,10 @@ export const ContinentColors = {
     "Latin America (WID)": OwidMapColors.SoftOrange,
     "Europe (WID)": OwidMapColors.MutedTeal,
     "Russia and Central Asia (WID)": OwidMapColors.SoftPurple,
-    "MENA (WID)": OwidMapColors.Sand,
+    "Middle East and North Africa (WID)": OwidMapColors.Sand,
     "Sub-Saharan Africa (WID)": OwidMapColors.MutedCherry,
     "East Asia (WID)": OwidMapColors.LeafGreen,
-    "South & South-East Asia (WID)": OwidMapColors.SkyTurquoise,
+    "South and South-East Asia (WID)": OwidMapColors.SkyTurquoise,
     "Oceania (WID)": OwidMapColors.Lavendar,
 
     // ILO regions are intentionally NOT pinned: "Arab States (ILO)" is shared by both ILO

@@ -29,7 +29,7 @@ import {
     enrichSeriesWithLabels,
     computeCenteredLabelYPositions,
 } from "../rowSeriesLabels/RowSeriesLabelHelpers.js"
-import { NoDataModal } from "../noDataModal/NoDataModal"
+import { NoDataMessage } from "../noDataMessage/NoDataMessage"
 import {
     HorizontalAxisComponent,
     HorizontalAxisGridLines,
@@ -756,7 +756,7 @@ export class DumbbellChart
     override render(): React.ReactElement {
         if (this.chartState.errorInfo.reason)
             return (
-                <NoDataModal
+                <NoDataMessage
                     manager={this.manager}
                     bounds={this.bounds}
                     message={this.chartState.errorInfo.reason}

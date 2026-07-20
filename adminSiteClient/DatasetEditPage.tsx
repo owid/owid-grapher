@@ -10,6 +10,7 @@ import { AdminLayout } from "./AdminLayout.js"
 import { Link } from "./Link.js"
 import { BindString, Toggle, FieldsRow, Timeago, TextField } from "./Forms.js"
 import { EditableTags } from "./EditableTags.js"
+import { MinimalTagWithMetadata } from "./TagGraphMetadata.js"
 import { ChartList, ChartListItem } from "./ChartList.js"
 import { OriginList } from "./OriginList.js"
 import { SourceList } from "./SourceList.js"
@@ -82,7 +83,7 @@ interface DatasetPageData {
     metadataEditedByUserId: number
     metadataEditedByUserName: string
 
-    availableTags: { id: number; name: string }[]
+    availableTags: MinimalTagWithMetadata[]
     tags: { id: number; name: string }[]
     variables: VariableListItem[]
     charts: ChartListItem[]
@@ -363,10 +364,7 @@ class MultiDimList extends Component<MultiDimListProps> {
 
 interface DatasetTagEditorProps {
     newDataset: DatasetEditable
-    availableTags: {
-        id: number
-        name: string
-    }[]
+    availableTags: MinimalTagWithMetadata[]
 }
 
 @observer

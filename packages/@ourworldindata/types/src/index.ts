@@ -42,7 +42,8 @@ export { type IndexPost, type FullPost } from "./domainTypes/Posts.js"
 
 export {
     type TocHeading,
-    type TocHeadingWithTitleSupertitle,
+    type TocHeadingWithSupertitle,
+    type TocSidebarSection,
 } from "./domainTypes/Toc.js"
 
 export {
@@ -230,6 +231,7 @@ export {
     DYNAMIC_COLLECTION_PAGE_CONTAINER_ID,
     type OwidGdocContent,
     type OwidGdocIndexItem,
+    type OwidGdocIndexTag,
     extractGdocIndexItem,
     type OrphanedTopicArticle,
     type TopicPageOrphanReport,
@@ -585,6 +587,7 @@ export {
     type DBEnrichedPostGdocWithTags,
     PostsGdocsTableName,
     parsePostGdocContent,
+    parsePostGdocsAuthors,
     serializePostGdocContent,
     parsePostsGdocsBreadcrumbs,
     serializePostsGdocsBreadcrumbs,
@@ -678,8 +681,9 @@ export {
 export {
     type DbInsertTag,
     type DbPlainTag,
-    type MinimalTagWithIsTopic,
+    type MinimalTagWithMetadata,
     type MinimalTag,
+    type TagGraphRole,
     TagsTableName,
 } from "./dbTypes/Tags.js"
 export {

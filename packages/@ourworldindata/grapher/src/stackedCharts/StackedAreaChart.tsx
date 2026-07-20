@@ -20,7 +20,7 @@ import { DualAxisComponent } from "../axis/AxisViews"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import { VerticalLabels } from "../verticalLabels/VerticalLabels"
 import { VerticalLabelsState } from "../verticalLabels/VerticalLabelsState"
-import { NoDataModal } from "../noDataModal/NoDataModal"
+import { NoDataMessage } from "../noDataMessage/NoDataMessage"
 import { TooltipFooterIcon } from "../tooltip/TooltipProps.js"
 import {
     Tooltip,
@@ -628,9 +628,9 @@ export class StackedAreaChart
             return (
                 <g>
                     {this.renderAxis()}
-                    <NoDataModal
+                    <NoDataMessage
                         manager={this.manager}
-                        bounds={this.dualAxis.bounds}
+                        bounds={this.bounds}
                         message={this.chartState.errorInfo.reason}
                     />
                 </g>

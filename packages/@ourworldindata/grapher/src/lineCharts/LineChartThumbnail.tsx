@@ -36,7 +36,7 @@ import { InitialAnchoredLabelSeries } from "../anchoredLabels/AnchoredLabelsType
 import { AnchoredLabelsState } from "../anchoredLabels/AnchoredLabelsState"
 import { AnchoredLabels } from "../anchoredLabels/AnchoredLabels"
 import { darkenColorForLine } from "../color/ColorUtils.js"
-import { NoDataModal } from "../noDataModal/NoDataModal"
+import { NoDataMessage } from "../noDataMessage/NoDataMessage"
 
 const DOT_RADIUS = 4
 const SPACE_BETWEEN_DOT_AND_LABEL = 4
@@ -494,9 +494,9 @@ export class LineChartThumbnail
     override render(): React.ReactElement {
         if (this.chartState.errorInfo.reason)
             return (
-                <NoDataModal
+                <NoDataMessage
                     manager={this.manager}
-                    bounds={this.props.bounds}
+                    bounds={this.bounds}
                     message={this.chartState.errorInfo.reason}
                 />
             )

@@ -22,7 +22,7 @@ import {
     GRAPHER_FONT_SCALE_12,
 } from "../core/GrapherConstants"
 import { DualAxisComponent } from "../axis/AxisViews"
-import { NoDataModal } from "../noDataModal/NoDataModal"
+import { NoDataMessage } from "../noDataMessage/NoDataMessage"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import { ChartInterface } from "../chart/ChartInterface"
 import {
@@ -428,7 +428,7 @@ export class MarimekkoChart
     override render(): React.ReactElement {
         if (this.chartState.errorInfo.reason)
             return (
-                <NoDataModal
+                <NoDataMessage
                     manager={this.manager}
                     bounds={this.bounds}
                     message={this.chartState.errorInfo.reason}

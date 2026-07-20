@@ -12,7 +12,7 @@ import {
     exposeInstanceOnWindow,
 } from "@ourworldindata/utils"
 import { DualAxisComponent } from "../axis/AxisViews"
-import { NoDataModal } from "../noDataModal/NoDataModal"
+import { NoDataMessage } from "../noDataMessage/NoDataMessage"
 import {
     VerticalColorLegend,
     VerticalColorLegendManager,
@@ -543,15 +543,15 @@ export class StackedBarChart
     }
 
     override render(): React.ReactElement {
-        const { dualAxis, bounds } = this
+        const { bounds } = this
 
         if (this.chartState.errorInfo.reason)
             return (
                 <g width={bounds.width} height={bounds.height}>
                     {this.renderAxis()}
-                    <NoDataModal
+                    <NoDataMessage
                         manager={this.manager}
-                        bounds={dualAxis.innerBounds}
+                        bounds={bounds}
                         message={this.chartState.errorInfo.reason}
                     />
                 </g>

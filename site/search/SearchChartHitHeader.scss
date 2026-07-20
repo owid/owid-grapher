@@ -72,6 +72,10 @@
                 line-clamp: 2;
             }
         }
+
+        .search-chart-hit-header__title-variant {
+            font-style: italic;
+        }
     }
 
     &:hover .search-chart-hit-header__title {

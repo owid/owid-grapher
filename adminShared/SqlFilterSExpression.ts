@@ -479,7 +479,7 @@ const arithmeticOperatorInfos = allArithmeticOperators.map(
                 arity: Arity.nary,
                 operandsType: ExpressionType.numeric,
                 ctor: (args: Operation[]): Operation =>
-                    new ArithmeticOperation(op, args as NumericOperation[]),
+                    new ArithmeticOperation(op, args),
             },
         ] as const
 )
@@ -515,7 +515,7 @@ const binaryLogicOperatorInfos = allBinaryLogicOperators.map(
                 arity: Arity.nary,
                 operandsType: ExpressionType.boolean,
                 ctor: (args: Operation[]): Operation =>
-                    new BinaryLogicOperation(op, args as BooleanOperation[]),
+                    new BinaryLogicOperation(op, args),
             },
         ] as const
 )
