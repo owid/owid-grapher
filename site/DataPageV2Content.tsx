@@ -83,6 +83,10 @@ export const DataPageV2Content = ({
     imageMetadata: Record<string, ImageMetadata>
 }) => {
     const slug = grapherConfig.slug
+    // Client-side counterpart of the baker's `shouldBakeAsDatapage`
+    // (baker/GrapherBaker.tsx). We plan to move ALL grapher pages to the
+    // data page design soon; when that happens, this becomes `true` and the
+    // control-arm branches below can be deleted along with the experiment.
     const useNewDatapageDesign = isUrlInActiveExperiment(
         DATA_PAGE_METADATA_EXPERIMENT_ID,
         `/grapher/${slug}`

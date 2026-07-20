@@ -110,13 +110,34 @@ const renderDatapageIfApplicable = async (
 }
 
 /**
+ * Whether this grapher should bake with the redesigned data-page treatment:
+ * forced data-page rendering (even for charts that don't qualify for a
+ * datapage by the usual rules, e.g. multi-indicator charts) plus the
+ * metadata box with an indicator switcher.
+ *
+ * Currently this is gated on enrolment in the data-page metadata experiment.
+ * The plan is to soon move ALL grapher pages over to the data page design —
+ * when that happens, this function should simply return true (and the
+ * matching client-side gate, `useNewDatapageDesign` in
+ * site/DataPageV2Content.tsx, goes away with the experiment). Everything
+ * downstream — forceDatapage, per-indicator metadata loading, the indicator
+ * switcher — is keyed off this one predicate, so flipping it is the whole
+ * migration on the baker side.
+ */
+export const shouldBakeAsDatapage = (grapher: GrapherInterface): boolean =>
+    !!grapher.slug &&
+    isUrlInActiveExperiment(
+        DATA_PAGE_METADATA_EXPERIMENT_ID,
+        `/grapher/${grapher.slug}`
+    )
+
+/**
  * Render a datapage if available, otherwise render a grapher page.
  *
- * Charts enrolled in the data-page metadata experiment are forced to bake
- * as data pages — otherwise an enrolled grapher that wouldn't normally
- * qualify (e.g. a multi-indicator chart without a primary datapage
- * indicator) would fall through to `renderGrapherPage` and never see the
- * metadata-box treatment the experiment is supposed to test.
+ * Charts for which `shouldBakeAsDatapage` is true are forced to bake as
+ * data pages — otherwise a grapher that wouldn't normally qualify (e.g. a
+ * multi-indicator chart without a primary datapage indicator) would fall
+ * through to `renderGrapherPage` and never see the metadata-box treatment.
  */
 export const renderDataPageOrGrapherPage = async (
     grapher: GrapherInterface,
@@ -129,12 +150,7 @@ export const renderDataPageOrGrapherPage = async (
         archiveContextDictionary?: Record<number, ArchiveContext | undefined>
     } = {}
 ): Promise<string> => {
-    const forceDatapage =
-        !!grapher.slug &&
-        isUrlInActiveExperiment(
-            DATA_PAGE_METADATA_EXPERIMENT_ID,
-            `/grapher/${grapher.slug}`
-        )
+    const forceDatapage = shouldBakeAsDatapage(grapher)
 
     const datapage = await renderDatapageIfApplicable(grapher, false, knex, {
         imageMetadataDictionary,
@@ -234,12 +250,7 @@ export async function renderDataPageV2(
     )
     const distribution = await getVariableDistribution(knex, variableIds)
 
-    const datapageMetadataExperimentActive = grapher.slug
-        ? isUrlInActiveExperiment(
-              DATA_PAGE_METADATA_EXPERIMENT_ID,
-              `/grapher/${grapher.slug}`
-          )
-        : false
+    const datapageMetadataExperimentActive = shouldBakeAsDatapage(grapher)
 
     // For multi-indicator charts the per-dimension `display.name` (set by the
     // chart author) is the right per-indicator label — the chart-level `title`
@@ -411,15 +422,10 @@ export const renderPreviewDataPageOrGrapherPage = async (
     knex: db.KnexReadonlyTransaction,
     options?: { forceDatapage?: boolean }
 ) => {
-    // Match renderDataPageOrGrapherPage: charts enrolled in the data-page
-    // metadata experiment preview as data pages too.
+    // Match renderDataPageOrGrapherPage: charts for which
+    // shouldBakeAsDatapage is true preview as data pages too.
     const forceDatapage =
-        options?.forceDatapage ||
-        (!!grapher.slug &&
-            isUrlInActiveExperiment(
-                DATA_PAGE_METADATA_EXPERIMENT_ID,
-                `/grapher/${grapher.slug}`
-            ))
+        options?.forceDatapage || shouldBakeAsDatapage(grapher)
 
     const archiveContextDictionary =
         await getLatestArchivedChartPageVersionsIfEnabled(knex)

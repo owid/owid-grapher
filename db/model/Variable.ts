@@ -625,8 +625,11 @@ export async function getDatapageIndicatorId(
     }
 
     if (options?.forceDatapage) {
-        const yVariableIds = grapher
-            .dimensions!.filter((d) => d.property === DimensionProperty.y)
+        // Charts without any Y-dimension (e.g. incomplete configs) return
+        // undefined here and fall back to a plain grapher page, so forcing
+        // is safe to apply to arbitrary charts.
+        const yVariableIds = (grapher.dimensions ?? [])
+            .filter((d) => d.property === DimensionProperty.y)
             .map((d) => d.variableId)
         return yVariableIds[0]
     }
