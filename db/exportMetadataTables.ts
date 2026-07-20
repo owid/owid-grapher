@@ -96,6 +96,10 @@ export const PRIVATE_DATA_TABLES = [
     "analytics_chart_views",
     "analytics_grapher_views",
     "analytics_pageviews",
+    // Internal staff comments on charts/indicators/multi-dims. The discussion
+    // is not for public dumps, but staging servers and devs-with-access should
+    // see it — the commenting tool is aimed at exactly those environments.
+    "comments",
 ]
 
 // Tables that are intentionally schema-only: their structure ships publicly

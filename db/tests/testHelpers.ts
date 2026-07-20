@@ -4,6 +4,7 @@ import {
     ChartRevisionsTableName,
     ChartSlugRedirectsTableName,
     ChartsTableName,
+    CommentsTableName,
     DatasetsTableName,
     AdminApiKeysTableName,
     ExplorerChartsTableName,
@@ -23,6 +24,7 @@ import type { Knex } from "knex"
 
 // the order is important here since we drop rows from the tables in this order
 export const TABLES_IN_USE = [
+    CommentsTableName, // Must come before ChartsTableName and UsersTableName due to foreign keys
     ChartDimensionsTableName,
     ChartRevisionsTableName,
     ChartSlugRedirectsTableName, // Must come before ChartsTableName due to foreign key

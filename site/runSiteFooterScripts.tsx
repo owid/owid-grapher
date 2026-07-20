@@ -96,6 +96,14 @@ function runLatestPage() {
     }
 }
 
+// Loaded lazily so the internal commenting UI (and its dependencies) never
+// ends up in the site chunks that public visitors download.
+function mountPreviewCommentsOverlay() {
+    void import("./comments/mountDataPageCommentsOverlay.js").then((module) =>
+        module.mountDataPageCommentsOverlay()
+    )
+}
+
 function hydrateDataPageV2Content({
     isPreviewing,
 }: { isPreviewing?: boolean } = {}) {
@@ -335,6 +343,7 @@ export const runSiteFooterScripts = async (
     switch (context) {
         case SiteFooterContext.dataPageV2:
             hydrateDataPageV2Content({ isPreviewing })
+            if (isPreviewing) mountPreviewCommentsOverlay()
             runAllGraphersLoadedListener()
             runSiteNavigation({ hideDonationFlag, isPreviewing })
             runSiteTools()

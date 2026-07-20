@@ -25,6 +25,7 @@ import {
 } from "@ourworldindata/utils"
 import { ArticleBlocks } from "./gdocs/components/ArticleBlocks.js"
 import { ChartLicenseNotice } from "./ChartLicenseNotice.js"
+import { commentAnchorAttrs } from "./comments/commentAnchors.js"
 
 export default function MetadataSection({
     attributionShort,
@@ -87,7 +88,10 @@ export default function MetadataSection({
         <div className="MetadataSection span-cols-14 grid grid-cols-12-full-width">
             <div className="col-start-2 span-cols-12">
                 {!!faqEntries?.faqs.length && (
-                    <div className="section-wrapper section-wrapper__faqs grid">
+                    <div
+                        className="section-wrapper section-wrapper__faqs grid"
+                        {...commentAnchorAttrs("faqs")}
+                    >
                         <h2
                             className="metadata-section__title span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12"
                             id="faqs"
@@ -102,7 +106,10 @@ export default function MetadataSection({
                         </div>
                     </div>
                 )}
-                <div className="section-wrapper grid">
+                <div
+                    className="section-wrapper grid"
+                    {...commentAnchorAttrs("sourcesAndProcessing")}
+                >
                     <h2
                         className="data-sources-processing__title span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12"
                         id={DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID}

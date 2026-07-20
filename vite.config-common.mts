@@ -16,6 +16,11 @@ export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
     const vitePort = parseInt(process.env.VITE_PORT || "8090", 10)
 
     return defineConfig({
+        // Our bundles are served from a path prefix (/assets, /assets-admin, ...)
+        // that differs from the build output root, so runtime-resolved URLs
+        // (dynamically imported chunks and their CSS) must be relative to the
+        // importing module rather than to the default base "/".
+        base: "./",
         publicDir: false, // don't copy public folder to dist
         css: {
             devSourcemap: true,
