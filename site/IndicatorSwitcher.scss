@@ -1,0 +1,460 @@
+// Indicator switcher for multi-indicator data pages (data-page-metadata-v1
+// experiment). Four design variants, selectable via `?switcher=`:
+// dropdown | h-tabs | v-tabs | h-pills (default h-pills). Companion to
+// site/IndicatorSwitcher.tsx and the multi-indicator wrapper rendered by
+// site/IndicatorMetadataBox.tsx.
+
+// --- Multi-indicator wrapper -----------------------------------------------
+// When a chart has multiple Y-indicators the metadata box is wrapped so a
+// switcher (header row or v-tabs aside) can sit outside the box itself. The
+// wrapper takes over the box's grid placement + margins; the box inside is
+// reset to a plain block.
+
+.indicator-metadata-box-wrap {
+    position: relative;
+    grid-column-start: 2;
+    grid-column-end: span 12;
+    // Compensate for neighbour element padding from V1 datapage (same
+    // treatment as the plain .indicator-metadata-box).
+    margin-top: -104px;
+    margin-right: -6px;
+    margin-bottom: 48px;
+    @include sm-only {
+        margin-top: -56px;
+        margin-right: -8px;
+        margin-left: -8px;
+        margin-bottom: 32px;
+    }
+}
+
+@include md-up {
+    .indicator-metadata-box-wrap {
+        grid-column-start: 2;
+        grid-column-end: span 9;
+    }
+}
+
+.indicator-metadata-box-wrap .indicator-metadata-box {
+    margin: 0;
+    grid-column: auto;
+}
+
+.indicator-metadata-box-wrap__header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 12px;
+    margin-bottom: 8px;
+}
+
+// h-tabs: the tab row sits flush with the box top so the active tab can
+// visually fuse into the box below.
+.indicator-metadata-box-wrap--h-tabs .indicator-metadata-box-wrap__header {
+    margin-bottom: 0;
+    align-items: flex-end;
+}
+
+// Single column by default; flex row for the v-tabs variant.
+.indicator-metadata-box-wrap--v-tabs .indicator-metadata-box-wrap__main {
+    display: flex;
+    align-items: stretch;
+}
+
+// --- Per-indicator panes ----------------------------------------------------
+// All indicators' metadata sit in the rendered HTML at the same time — only
+// the active one is visible to the user, while the others are available to
+// AI agents / unmodified-HTML consumers on a plain GET.
+
+.indicator-metadata-box__pane {
+    display: none;
+}
+
+.indicator-metadata-box__pane--active {
+    display: contents;
+}
+
+// Dropdown variant: the active indicator's title already renders inside the
+// dropdown trigger, so hide the in-box title line (it stays in the DOM for
+// raw-HTML consumers).
+.indicator-metadata-box-wrap--dropdown
+    .indicator-metadata-box__indicator-title {
+    display: none;
+}
+
+// --- "About this data (N indicators)" label ---------------------------------
+
+.indicator-switcher__label-group {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 4px;
+}
+
+.indicator-switcher__label {
+    color: $blue-50;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-size: 0.75rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.indicator-switcher__count {
+    color: $blue-50;
+    font-size: 0.75rem;
+    font-style: italic;
+    white-space: nowrap;
+}
+
+// --- Dropdown variant --------------------------------------------------------
+// The indicator title renders as an MDIM-style pill button (mirrors
+// .md-settings__dropdown-toggle in site/multiDim/DimensionDropdown.scss).
+
+.indicator-switcher__dropdown-trigger {
+    @include body-3-medium;
+    appearance: none;
+    background: $white;
+    border: 1px solid $gray-20;
+    color: $blue-90;
+    cursor: pointer;
+    padding: 4px 10px 4px 12px;
+    height: 32px;
+    border-radius: 4px;
+    text-align: left;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    max-width: 100%;
+    min-width: 0;
+    line-height: 1;
+    letter-spacing: 0.01em;
+    transition:
+        background-color 120ms ease,
+        border-color 120ms ease;
+
+    &:hover {
+        background: $gray-5;
+        border-color: $blue-30;
+    }
+
+    &:focus-visible {
+        outline: none;
+        border-color: $blue-50;
+    }
+
+    // Open state — matches MDIM's pressed look so the pill reads as
+    // "active control" while the popover is showing.
+    &[aria-expanded="true"] {
+        background: #dbe5f0;
+        border-color: #dbe5f0;
+        color: $blue-90;
+        cursor: default;
+    }
+}
+
+.indicator-switcher__dropdown-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+}
+
+.indicator-switcher__title-variant {
+    @include note-13-medium;
+    color: $blue-50;
+}
+
+.indicator-switcher__caret {
+    color: $blue-50;
+    font-size: 0.75rem;
+    margin-left: auto;
+    transition: transform 160ms ease;
+}
+
+.indicator-switcher__dropdown-trigger[aria-expanded="true"]
+    .indicator-switcher__caret {
+    transform: rotate(180deg);
+    color: $blue-70;
+}
+
+// Rendered via React Portal to document.body so it can extend past the
+// metadata box without being clipped. Styling mirrors .md-menu for visual
+// consistency with the multi-dim dimension dropdown.
+.indicator-switcher__popover {
+    background: $white;
+    border-radius: 4px;
+    box-shadow: 0 4px 23px 4px rgba($oxford-blue, 0.06);
+    padding: 8px 16px;
+    max-width: min(480px, calc(100vw - 24px));
+    max-height: 360px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    z-index: $zindex-popover;
+    display: flex;
+    flex-direction: column;
+}
+
+.indicator-switcher__option {
+    @include body-3-medium;
+    appearance: none;
+    background: transparent;
+    border: 0;
+    color: $blue-90;
+    cursor: pointer;
+    text-align: left;
+    padding: 12px 0;
+    line-height: 1.4;
+    border-radius: 0;
+    transition: color 120ms ease;
+
+    & + & {
+        border-top: 1px solid $gray-20;
+    }
+
+    &:hover {
+        color: $blue-50;
+    }
+
+    &:focus-visible {
+        outline: none;
+        color: $blue-50;
+    }
+}
+
+.indicator-switcher__option--active {
+    color: $blue-90;
+    font-weight: 700;
+    cursor: default;
+}
+
+// --- Horizontal tabs (h-tabs) -------------------------------------------------
+// Tabs sitting directly on top of the box, with the active tab taking on
+// the box's own $blue-5 background so it visually fuses into the box below.
+
+.indicator-switcher__h-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    width: 100%;
+    gap: 2px;
+}
+
+.indicator-switcher__h-tab {
+    appearance: none;
+    background: transparent;
+    // Idle tabs get a 1px $blue-20 ring on top/left/right — the open
+    // bottom edge lets the tab visually "open" downward into the box
+    // below, the classic browser-tab look.
+    border: 1px solid $blue-20;
+    border-bottom: 0;
+    color: $blue-50;
+    cursor: pointer;
+    padding: 8px 14px;
+    font-family: $sans-serif-font-stack;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    line-height: 1.4;
+    border-radius: 6px 6px 0 0;
+    transition:
+        background-color 120ms ease,
+        border-color 120ms ease,
+        color 120ms ease;
+
+    &:hover {
+        color: $blue-90;
+        background: #e3ebf5;
+        border-color: $blue-30;
+    }
+
+    &:focus-visible {
+        outline: none;
+        background: #e3ebf5;
+        border-color: $blue-30;
+    }
+}
+
+// Active tab: same bg as the box below so the two appear as one continuous
+// shape.
+.indicator-switcher__h-tab--active {
+    background: $blue-5;
+    border-color: $blue-20;
+    color: $blue-90;
+    font-weight: 600;
+    cursor: default;
+
+    &:hover {
+        background: $blue-5;
+        border-color: $blue-20;
+        color: $blue-90;
+    }
+}
+
+// --- Horizontal pills (h-pills) -----------------------------------------------
+// Rounded pill switcher with middle-ground saturation. The active pill uses
+// $blue-70 so it reads as the active button without competing with chart
+// entity colors or the box title.
+
+.indicator-switcher__h-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.indicator-switcher__h-pill {
+    appearance: none;
+    background: $blue-5;
+    border: 1px solid $blue-20;
+    color: $blue-70;
+    cursor: pointer;
+    // min-height (not height) + inline-flex centring lets the pill grow
+    // when its label wraps to a second line on narrow viewports. The
+    // border-radius is intentionally larger than the tallest expected pill
+    // height so wrapped pills still read as stadium-shaped.
+    padding: 4px 14px;
+    min-height: 30px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    border-radius: 999px;
+    font-family: $sans-serif-font-stack;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    line-height: 1.2;
+    transition:
+        background-color 120ms ease,
+        border-color 120ms ease,
+        color 120ms ease;
+
+    &:hover {
+        background: #e3ebf5;
+        border-color: $blue-30;
+        color: $blue-90;
+    }
+
+    &:focus-visible {
+        outline: none;
+        border-color: $blue-50;
+    }
+}
+
+.indicator-switcher__h-pill--active {
+    background: $blue-70;
+    border-color: $blue-70;
+    color: $white;
+    cursor: default;
+
+    &:hover {
+        background: $blue-70;
+        border-color: $blue-70;
+        color: $white;
+    }
+}
+
+// "More ▾" overflow trigger inside the h-tabs / h-pills row — same chrome
+// as the other tabs/pills, plus a small gap between the label and the
+// caret icon.
+.indicator-switcher__h-tab--more,
+.indicator-switcher__h-pill--more {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+
+    .indicator-switcher__caret {
+        margin-left: 0;
+    }
+}
+
+// --- Vertical tabs (v-tabs) ----------------------------------------------------
+// An aside sitting to the left of the metadata box. Tabs read as a list of
+// indicators; the active one is highlighted with a filled row + bold text.
+// Shares the box's $blue-5 surface so aside + box read as one component.
+
+.indicator-switcher__v-tabs {
+    flex: 0 0 200px;
+    display: flex;
+    flex-direction: column;
+    align-self: stretch;
+    background-color: $blue-5;
+    border-right: 1px solid $blue-20;
+    padding: 24px 12px;
+
+    @include sm-up {
+        flex-basis: 220px;
+        padding: 24px 16px;
+    }
+}
+
+.indicator-switcher__v-tabs-label {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+    margin-bottom: 8px;
+
+    .indicator-switcher__count {
+        font-style: normal;
+        margin-bottom: 8px;
+    }
+}
+
+.indicator-switcher__v-tab {
+    @include body-3-medium;
+    appearance: none;
+    background: transparent;
+    border: 0;
+    color: $blue-70;
+    cursor: pointer;
+    text-align: left;
+    padding: 8px 10px;
+    border-radius: 4px;
+    line-height: 1.3;
+    transition:
+        background-color 120ms ease,
+        color 120ms ease;
+
+    &:hover {
+        background: $blue-10;
+        color: $blue-90;
+    }
+
+    &:focus-visible {
+        outline: none;
+        background: $blue-10;
+        color: $blue-90;
+    }
+}
+
+.indicator-switcher__v-tab--active {
+    background: $blue-10;
+    color: $blue-90;
+    font-weight: 700;
+    cursor: default;
+
+    &:hover {
+        background: $blue-10;
+    }
+}
+
+// "More ▾" overflow trigger inside the v-tabs aside — same row chrome as
+// other v-tabs, plus the caret aligned to the right.
+.indicator-switcher__v-tab--more {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    cursor: pointer;
+}
+
+// On narrow viewports collapse the v-tabs aside above the box instead of
+// next to it, so it doesn't squeeze the content.
+@media (max-width: 767px) {
+    .indicator-metadata-box-wrap--v-tabs .indicator-metadata-box-wrap__main {
+        flex-direction: column;
+    }
+
+    .indicator-switcher__v-tabs {
+        flex: 1 1 auto;
+        border-right: 0;
+        border-bottom: 1px solid $blue-20;
+        padding: 16px;
+    }
+}

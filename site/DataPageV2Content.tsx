@@ -70,6 +70,7 @@ function DataPageDownloadSection({
 
 export const DataPageV2Content = ({
     datapageData,
+    additionalIndicators,
     grapherConfig,
     isPreviewing = false,
     faqEntries,
@@ -185,6 +186,7 @@ export const DataPageV2Content = ({
                         {useNewDatapageDesign && (
                             <IndicatorMetadataBox
                                 datapageData={datapageData}
+                                additionalIndicators={additionalIndicators}
                                 faqEntries={faqEntries}
                                 canonicalUrl={canonicalUrl}
                                 archiveContext={archiveContext}

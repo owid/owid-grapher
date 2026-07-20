@@ -10,6 +10,7 @@ import {
     INDICATOR_PROCESSING_SECTION_ID,
 } from "@ourworldindata/components"
 import {
+    AdditionalIndicator,
     ArchiveContext,
     DataPageDataV2,
     FaqEntryData,
@@ -18,7 +19,7 @@ import {
     OwidEnrichedGdocBlock,
     PrimaryTopic,
 } from "@ourworldindata/types"
-import { useRef } from "react"
+import { createRef, useEffect, useMemo, useRef, useState } from "react"
 import {
     prepareSourcesForDisplay,
     getCitationShort,
@@ -33,6 +34,13 @@ import { faChevronDown, faChevronUp } from "@fortawesome/free-solid-svg-icons"
 import { getAttributionUnshortened } from "./datapageUtils.js"
 import { SiteAnalytics } from "./SiteAnalytics.js"
 import { ChartLicenseNotice } from "./ChartLicenseNotice.js"
+import {
+    IndicatorDropdown,
+    IndicatorTabsHorizontal,
+    IndicatorTabsVertical,
+    IndicatorAboutLabel,
+    useSwitcherVariant,
+} from "./IndicatorSwitcher.js"
 
 const analytics = new SiteAnalytics()
 
@@ -412,26 +420,28 @@ function ExpandableSection({
     )
 }
 
-export default function IndicatorMetadataBox({
+// The full per-indicator body of the metadata box: title, description
+// table, and the collapsible details section. On multi-indicator charts one
+// pane renders per Y-indicator (all present in the HTML; only the active
+// one visible) so the switcher can flip between them without re-fetching.
+function IndicatorPaneContent({
     datapageData,
     faqEntries,
-    className,
-    id,
+    detailsRef,
     canonicalUrl,
     archiveContext,
     license,
 }: {
     datapageData: DataPageDataV2
-    className?: string
-    id?: string
     faqEntries: FaqEntryData | undefined
+    detailsRef: React.RefObject<HTMLDetailsElement | null>
     canonicalUrl: string
     archiveContext: ArchiveContext | undefined
     license?: LicenseOption
 }) {
     // Owners of the dataset backing this indicator. For now we show a single
-    // indicator's owners; multi-indicator charts will get a separate metadata
-    // expander per indicator, so we don't merge owners across datasets here.
+    // indicator's owners (only loaded on the chart's primary indicator);
+    // we don't merge owners across datasets here.
     const owners = datapageData.owners?.[0]?.owners ?? []
 
     const attributionUnshortened = getAttributionUnshortened(datapageData)
@@ -441,23 +451,8 @@ export default function IndicatorMetadataBox({
         processingId: INDICATOR_PROCESSING_SECTION_ID,
     })
 
-    const detailsRef = useRef<HTMLDetailsElement | null>(null)
-
     return (
-        <div className={cx("indicator-metadata-box", className)} id={id}>
-            <button
-                type="button"
-                className="indicator-metadata-box__show-less"
-                onClick={() => {
-                    if (detailsRef.current) detailsRef.current.open = false
-                }}
-            >
-                Show less
-                <FontAwesomeIcon
-                    icon={faChevronUp}
-                    className="indicator-metadata-box__chevron"
-                />
-            </button>
+        <>
             <h2 className="indicator-metadata-box__indicator-title body-2-bold-tight">
                 {datapageData.title.title}
                 <span className="indicator-metadata-box__title-variant">
@@ -545,6 +540,167 @@ export default function IndicatorMetadataBox({
                 descriptionProcessing={datapageData.descriptionProcessing}
                 license={license}
             />
+        </>
+    )
+}
+
+export default function IndicatorMetadataBox({
+    datapageData,
+    additionalIndicators,
+    faqEntries,
+    className,
+    id,
+    canonicalUrl,
+    archiveContext,
+    license,
+}: {
+    datapageData: DataPageDataV2
+    additionalIndicators?: AdditionalIndicator[]
+    className?: string
+    id?: string
+    faqEntries: FaqEntryData | undefined
+    canonicalUrl: string
+    archiveContext: ArchiveContext | undefined
+    license?: LicenseOption
+}) {
+    const indicators: {
+        datapageData: DataPageDataV2
+        faqEntries?: FaqEntryData
+    }[] = [{ datapageData, faqEntries }, ...(additionalIndicators ?? [])]
+    const isMulti = indicators.length > 1
+
+    const [activeIndex, setActiveIndex] = useState(0)
+    // Guard against the active indicator being unmounted between renders
+    // (e.g. if the upstream data shrinks). Falls back to the primary.
+    const safeIndex = Math.min(Math.max(activeIndex, 0), indicators.length - 1)
+
+    const switcherVariant = useSwitcherVariant()
+
+    // One <details> ref per indicator pane so the "Show less" button and the
+    // open-on-switch behavior can target the active pane's collapsible.
+    const detailsRefs = useMemo(
+        () =>
+            Array.from({ length: indicators.length }, () =>
+                createRef<HTMLDetailsElement>()
+            ),
+        [indicators.length]
+    )
+    const activeDetailsRef = detailsRefs[safeIndex]
+
+    // Open the collapsible whenever the user switches indicator — the click
+    // was a request to *see* that indicator's metadata, so keeping the box
+    // collapsed afterwards would hide the very thing they asked for. Skip
+    // the initial render so the section doesn't auto-open on page load.
+    const isFirstActiveIndexRef = useRef(true)
+    useEffect(() => {
+        if (isFirstActiveIndexRef.current) {
+            isFirstActiveIndexRef.current = false
+            return
+        }
+        const details = detailsRefs[safeIndex]?.current
+        if (details) details.open = true
+    }, [safeIndex, detailsRefs])
+
+    // ALL indicators' panes sit in the rendered HTML at the same time — only
+    // the active one is visible (display: contents vs display: none), while
+    // the others stay available to AI agents / unmodified-HTML consumers on
+    // a plain GET.
+    const panes = indicators.map((ind, i) => (
+        <div
+            key={i}
+            className={cx("indicator-metadata-box__pane", {
+                "indicator-metadata-box__pane--active": i === safeIndex,
+            })}
+            data-indicator-index={i}
+            aria-hidden={i !== safeIndex}
+        >
+            <IndicatorPaneContent
+                datapageData={ind.datapageData}
+                faqEntries={ind.faqEntries}
+                detailsRef={detailsRefs[i]}
+                canonicalUrl={canonicalUrl}
+                archiveContext={archiveContext}
+                license={license}
+            />
+        </div>
+    ))
+
+    const showLessButton = (
+        <button
+            type="button"
+            className="indicator-metadata-box__show-less"
+            onClick={() => {
+                if (activeDetailsRef.current)
+                    activeDetailsRef.current.open = false
+            }}
+        >
+            Show less
+            <FontAwesomeIcon
+                icon={faChevronUp}
+                className="indicator-metadata-box__chevron"
+            />
+        </button>
+    )
+
+    if (!isMulti) {
+        return (
+            <div className={cx("indicator-metadata-box", className)} id={id}>
+                {showLessButton}
+                {panes}
+            </div>
+        )
+    }
+
+    // Header row above the box: "About this data (N indicators)" plus the
+    // switcher control. The v-tabs variant renders its switcher as an aside
+    // beside the box instead.
+    const headerSwitcher =
+        switcherVariant === "dropdown" ? (
+            <IndicatorDropdown
+                activeDatapageData={indicators[safeIndex].datapageData}
+                indicators={indicators}
+                activeIndex={safeIndex}
+                onIndicatorChange={setActiveIndex}
+            />
+        ) : switcherVariant === "h-tabs" || switcherVariant === "h-pills" ? (
+            <>
+                <IndicatorAboutLabel indicatorCount={indicators.length} />
+                <IndicatorTabsHorizontal
+                    indicators={indicators}
+                    activeIndex={safeIndex}
+                    onIndicatorChange={setActiveIndex}
+                    variant={switcherVariant === "h-pills" ? "pills" : "tabs"}
+                />
+            </>
+        ) : null
+
+    return (
+        <div
+            className={cx(
+                "indicator-metadata-box-wrap",
+                `indicator-metadata-box-wrap--${switcherVariant}`,
+                className
+            )}
+            id={id}
+        >
+            {headerSwitcher && (
+                <div className="indicator-metadata-box-wrap__header">
+                    {headerSwitcher}
+                </div>
+            )}
+            <div className="indicator-metadata-box-wrap__main">
+                {switcherVariant === "v-tabs" && (
+                    <IndicatorTabsVertical
+                        indicators={indicators}
+                        activeIndex={safeIndex}
+                        onIndicatorChange={setActiveIndex}
+                    />
+                )}
+                <div className="indicator-metadata-box">
+                    {showLessButton}
+                    {panes}
+                </div>
+            </div>
         </div>
     )
 }
