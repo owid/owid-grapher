@@ -21,6 +21,8 @@ export const LatestPage = (props: {
             <Head
                 canonicalUrl={`${baseUrl}/latest`}
                 pageTitle="Latest"
+                pageDesc="The latest articles, insights, updates, and announcements from Our World in Data."
+                imageUrl={`${baseUrl}/latest-thumbnail.png`}
                 baseUrl={baseUrl}
             >
                 <script
