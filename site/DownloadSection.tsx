@@ -19,10 +19,13 @@ import {
 import {
     Distribution,
     ArchiveContext,
+    DownloadPackage,
     OwidColumnDef,
     type DownloadRewriteTarget,
 } from "@ourworldindata/types"
 import {
+    formatValue,
+    makeCompleteDatasetDescription,
     makeDownloadCodeExamples,
     SERVER_SIDE_DOWNLOAD_HELP_TEXT,
 } from "@ourworldindata/utils"
@@ -151,6 +154,81 @@ function ApiAndCodeExamplesSection({
     )
 }
 
+function formatBytes(bytes: number): string {
+    if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`
+    return `${formatValue(bytes / (1024 * 1024), { numDecimalPlaces: 1 })} MB`
+}
+
+function CompleteDatasetSection({
+    downloadPackage,
+}: {
+    downloadPackage: DownloadPackage
+}) {
+    const description = makeCompleteDatasetDescription({
+        rowCount: downloadPackage.rowCount,
+        fileCount: downloadPackage.fileCount,
+    })
+    return (
+        <div className="downloads-section" id="download-complete-dataset">
+            <h4 className="citation__how-to-header">Complete dataset</h4>
+            <p className="citation__paragraph">
+                The quick downloads below only cover the view you're currently
+                looking at. This package bundles every dimension combination of
+                this dataset into one download.
+            </p>
+            <div className="downloads__download-buttons">
+                <DownloadButtonLink
+                    title="Download complete dataset (ZIP)"
+                    description={description}
+                    icon="full"
+                    trackingNote="datapage_download_complete_dataset"
+                    href={downloadPackage.url}
+                />
+            </div>
+            <ExpandableToggle
+                label="What's inside this package?"
+                content={
+                    <div className="citation__paragraph">
+                        <p>
+                            A wide-format CSV with one column per indicator and
+                            dimension combination, a metadata file describing
+                            sources and licenses, and a README explaining the
+                            file structure.
+                        </p>
+                        <ul className="metadata-list">
+                            {downloadPackage.fileCount !== undefined && (
+                                <li>
+                                    {downloadPackage.fileCount} indicator
+                                    {downloadPackage.fileCount === 1 ? "" : "s"}
+                                </li>
+                            )}
+                            {downloadPackage.rowCount !== undefined && (
+                                <li>
+                                    {formatValue(downloadPackage.rowCount, {
+                                        numDecimalPlaces: 0,
+                                    })}{" "}
+                                    rows
+                                </li>
+                            )}
+                            {downloadPackage.sizeBytes !== undefined && (
+                                <li>
+                                    {formatBytes(downloadPackage.sizeBytes)}{" "}
+                                    zipped
+                                </li>
+                            )}
+                            {downloadPackage.lastUpdated && (
+                                <li>
+                                    Last updated {downloadPackage.lastUpdated}
+                                </li>
+                            )}
+                        </ul>
+                    </div>
+                }
+            />
+        </div>
+    )
+}
+
 export type DownloadSectionProps = {
     slug: string
     baseUrl?: string
@@ -162,6 +240,7 @@ export type DownloadSectionProps = {
     archivedChartInfo?: ArchiveContext
     distribution?: Distribution
     hideRowCounts?: boolean
+    downloadPackage?: DownloadPackage
 }
 
 export default function DownloadSection({
@@ -175,6 +254,7 @@ export default function DownloadSection({
     archivedChartInfo,
     distribution,
     hideRowCounts,
+    downloadPackage,
 }: DownloadSectionProps) {
     const isOnArchivalPage = archivedChartInfo?.type === "archive-page"
 
@@ -318,6 +398,11 @@ export default function DownloadSection({
                     </div>
                 ) : (
                     <>
+                        {downloadPackage && (
+                            <CompleteDatasetSection
+                                downloadPackage={downloadPackage}
+                            />
+                        )}
                         <div className="downloads-section">
                             <h4 className="citation__how-to-header">
                                 Quick download

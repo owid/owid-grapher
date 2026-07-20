@@ -67,6 +67,21 @@ export function makeFullDownloadDescription(
     )}`
 }
 
+export function makeCompleteDatasetDescription({
+    rowCount,
+    fileCount,
+}: {
+    rowCount: number | undefined
+    fileCount: number | undefined
+}): string {
+    const rowsSnippet = makeNumberOfRowsSnippet(rowCount)
+    const filesSnippet =
+        fileCount !== undefined
+            ? ` across ${fileCount} indicator${fileCount === 1 ? "" : "s"}`
+            : ""
+    return `Includes all dimension combinations of this dataset, not just the current view${filesSnippet}${rowsSnippet}`
+}
+
 export function makeFilteredDownloadDescription({
     visibleIn = "chart",
     numRows,

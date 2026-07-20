@@ -172,6 +172,7 @@ export { isPresent } from "./isPresent.js"
 
 export {
     downloadImage,
+    makeCompleteDatasetDescription,
     makeDownloadCodeExamples,
     makeFilteredDownloadDescription,
     makeFullDownloadDescription,

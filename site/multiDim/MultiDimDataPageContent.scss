@@ -38,6 +38,16 @@ $zindex-controls-popup: 140;
         }
     }
 
+    .header__download-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 8px;
+        color: $secondary-text;
+        font-size: 0.875rem;
+        font-weight: $bold;
+    }
+
     .settings-row__wrapper {
         margin-bottom: 16px;
         padding-top: 16px;

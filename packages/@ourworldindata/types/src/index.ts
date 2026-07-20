@@ -768,6 +768,7 @@ export {
 } from "./domainTypes/StaticViz.js"
 
 export type {
+    DownloadPackage,
     IndicatorConfig,
     IndicatorEntryBeforePreProcessing,
     IndicatorsAfterPreProcessing,
