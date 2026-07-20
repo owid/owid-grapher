@@ -7,13 +7,22 @@ import {
     SearchState,
     SearchValidationError,
 } from "./searchApi.js"
-import { FilterType, Filter, SearchUrlParam } from "@ourworldindata/types"
+import {
+    FilterType,
+    Filter,
+    SearchUrlParam,
+    ALL_GDOC_TYPES,
+} from "@ourworldindata/types"
 
 const DEFAULT_HITS_PER_PAGE = 20
 const MAX_HITS_PER_PAGE = 100
 const MAX_PAGE = 1000
 
 type SearchType = "charts" | "pages"
+
+// gdoc content types the `pageTypes` param (type=pages only) may request, as
+// a Set for O(1) membership checks.
+const VALID_PAGE_TYPES = new Set<string>(ALL_GDOC_TYPES)
 
 const hasSearchEnvVars = (env: Env): boolean => {
     return !!env.ALGOLIA_ID && !!env.ALGOLIA_SEARCH_KEY
@@ -59,6 +68,29 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         const requireAllCountries =
             url.searchParams.get(SearchUrlParam.REQUIRE_ALL_COUNTRIES) ===
             "true"
+
+        // Which gdoc content types to include (only applies when
+        // type=pages, e.g. "data-insight" or "article,about-page"). Omitted
+        // -> searchPages()'s own default (article + about-page), so existing
+        // callers see no change. Validated upfront against the full gdoc
+        // type enum (a static, compile-time list — unlike topics, which are
+        // dynamic data and so are validated lazily against a live lookup).
+        const pageTypesParam = url.searchParams.get("pageTypes")
+        let pageTypes: string[] | undefined
+        if (pageTypesParam) {
+            pageTypes = pageTypesParam
+                .split(",")
+                .map((t) => t.trim())
+                .filter(Boolean)
+            const invalidTypes = pageTypes.filter(
+                (t) => !VALID_PAGE_TYPES.has(t)
+            )
+            if (invalidTypes.length > 0) {
+                throw new SearchValidationError(
+                    `Invalid pageTypes value(s): "${invalidTypes.join('", "')}". Valid types: ${Array.from(VALID_PAGE_TYPES).join(", ")}`
+                )
+            }
+        }
 
         // Parse pagination parameters
         const page = parseInt(url.searchParams.get("page") || "0")
@@ -150,7 +182,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
                       query,
                       page * hitsPerPage, // Convert page to offset
                       hitsPerPage,
-                      undefined, // Use default page types
+                      pageTypes, // undefined -> searchPages()'s own default
                       baseUrl
                   )
                 : await searchCharts(
