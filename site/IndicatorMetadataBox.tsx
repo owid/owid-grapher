@@ -39,8 +39,8 @@ import {
     IndicatorTabsHorizontal,
     IndicatorTabsVertical,
     IndicatorAboutLabel,
-    useSwitcherVariant,
 } from "./IndicatorSwitcher.js"
+import { useSwitcherVariant } from "./useSwitcherVariant.js"
 
 const analytics = new SiteAnalytics()
 
@@ -68,6 +68,9 @@ interface ExpandableSectionProps {
     faqsSectionId: string
     sourcesSectionId: string
     processingContentId: string
+    // See IndicatorMetadataBox: toggles caused by programmatically switching
+    // indicators shouldn't be logged as user expands/collapses.
+    suppressToggleLogUntilRef?: React.RefObject<number>
 }
 
 const FAQS_SECTION_ID = "faqs"
@@ -116,6 +119,7 @@ function ExpandableSection({
     faqsSectionId,
     sourcesSectionId,
     processingContentId,
+    suppressToggleLogUntilRef,
 }: ExpandableSectionProps) {
     const { origins, source } = datapageData
     const preview = datapageData.descriptionKey.slice(
@@ -191,10 +195,16 @@ function ExpandableSection({
                 // Guard to only react to this element's own toggle.
                 onToggle={(e) => {
                     if (e.target !== e.currentTarget) return
-                    // Skip hidden panes (display: none → offsetParent is
-                    // null): switching indicators programmatically closes
-                    // the previous pane's details, which shouldn't count
-                    // as a user collapse.
+                    // Skip toggles caused by switching indicators: those
+                    // programmatically close the previous pane's details and
+                    // open the new one, and neither is a user
+                    // expand/collapse (the switch itself is logged via
+                    // data-track-note="metadata_box_indicator_switch").
+                    if (Date.now() < (suppressToggleLogUntilRef?.current ?? 0))
+                        return
+                    // Also skip hidden panes (display: none → offsetParent
+                    // is null) in case they're toggled programmatically
+                    // outside a switch.
                     if (!e.currentTarget.offsetParent) return
                     analytics.logSiteClick(
                         e.currentTarget.open
@@ -448,6 +458,7 @@ function IndicatorPaneContent({
     archiveContext,
     license,
     idSuffix,
+    suppressToggleLogUntilRef,
 }: {
     datapageData: DataPageDataV2
     faqEntries: FaqEntryData | undefined
@@ -455,6 +466,7 @@ function IndicatorPaneContent({
     canonicalUrl: string
     archiveContext: ArchiveContext | undefined
     license?: LicenseOption
+    suppressToggleLogUntilRef?: React.RefObject<number>
     // Disambiguates the section anchor ids (#faqs, #sources-and-processing,
     // #indicator-processing) when several panes are in the DOM at once. The
     // active pane always gets the canonical (un-suffixed) ids so in-page
@@ -566,6 +578,7 @@ function IndicatorPaneContent({
                 faqsSectionId={`${FAQS_SECTION_ID}${idSuffix}`}
                 sourcesSectionId={`${DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID}${idSuffix}`}
                 processingContentId={processingContentId}
+                suppressToggleLogUntilRef={suppressToggleLogUntilRef}
             />
         </>
     )
@@ -618,12 +631,19 @@ export default function IndicatorMetadataBox({
     // was a request to *see* that indicator's metadata, so keeping the box
     // collapsed afterwards would hide the very thing they asked for. Skip
     // the initial render so the section doesn't auto-open on page load.
+    // Toggles caused by the programmatic open/close below shouldn't be
+    // logged as user expands/collapses. <details> fires its toggle event
+    // asynchronously, so suppress logging for a short window rather than
+    // trying to flag the individual events.
+    const suppressToggleLogUntilRef = useRef(0)
+
     const isFirstActiveIndexRef = useRef(true)
     useEffect(() => {
         if (isFirstActiveIndexRef.current) {
             isFirstActiveIndexRef.current = false
             return
         }
+        suppressToggleLogUntilRef.current = Date.now() + 500
         // Close the now-hidden panes' collapsibles — a hidden-but-open
         // <details> would keep the box's "Show less" affordance visible
         // (via the `:has([open])` rule) even when the active pane is
@@ -656,6 +676,7 @@ export default function IndicatorMetadataBox({
                 archiveContext={archiveContext}
                 license={license}
                 idSuffix={i === safeIndex ? "" : `--${i}`}
+                suppressToggleLogUntilRef={suppressToggleLogUntilRef}
             />
         </div>
     ))

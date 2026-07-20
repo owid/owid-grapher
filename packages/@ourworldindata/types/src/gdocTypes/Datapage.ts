@@ -90,6 +90,15 @@ export interface DataPageV2ContentFields {
      * non-empty.
      */
     additionalIndicators?: AdditionalIndicator[]
+    /**
+     * Whether the page was baked with the redesigned data-page treatment
+     * (metadata box etc.). Serialized so the client renders the same arm the
+     * baker chose — recomputing the experiment gate client-side can disagree
+     * with the baked HTML (e.g. after the experiment expires but before a
+     * rebake) and cause a hydration mismatch. Optional only for pages baked
+     * before this field existed; those fall back to recomputing.
+     */
+    useNewDatapageDesign?: boolean
     faqEntries: FaqEntryData | undefined
     // TODO: add gdocs for FAQs
     isPreviewing?: boolean

@@ -198,6 +198,31 @@ export async function renderDataPageV2(
         ? mergeGrapherConfigs(grapherConfigForVariable ?? {}, pageGrapher ?? {})
         : (pageGrapher ?? {})
 
+    // Cache parsed FAQ gdocs across the primary + additional indicators —
+    // the Y-indicators of a multi-indicator chart usually come from the same
+    // dataset and share their FAQ documents, so without this each pane
+    // re-fetches and re-parses the same gdoc.
+    type FaqGdocMap = Awaited<ReturnType<typeof fetchAndParseFaqs>>
+    const faqGdocCache = new Map<string, FaqGdocMap[string] | undefined>()
+    const fetchAndParseFaqsCached = async (
+        faqDocIds: string[]
+    ): Promise<FaqGdocMap> => {
+        const missingIds = faqDocIds.filter((id) => !faqGdocCache.has(id))
+        if (missingIds.length > 0) {
+            const fetched = await fetchAndParseFaqs(knex, missingIds, {
+                isPreviewing,
+            })
+            // Also cache ids that came back empty so they aren't re-fetched.
+            for (const id of missingIds) faqGdocCache.set(id, fetched[id])
+        }
+        const result: FaqGdocMap = {}
+        for (const id of faqDocIds) {
+            const gdoc = faqGdocCache.get(id)
+            if (gdoc !== undefined) result[id] = gdoc
+        }
+        return result
+    }
+
     // Resolve the FAQ blocks for a single variable. Factored out so we can
     // resolve FAQs both for the primary indicator and, on charts enrolled in
     // the metadata box experiment, for each additional Y-indicator.
@@ -208,9 +233,7 @@ export async function renderDataPageV2(
         const faqDocIds = _.compact(
             _.uniq(metadata.presentation?.faqs?.map((faq) => faq.gdocId))
         )
-        const faqGdocs = await fetchAndParseFaqs(knex, faqDocIds, {
-            isPreviewing,
-        })
+        const faqGdocs = await fetchAndParseFaqsCached(faqDocIds)
         const { resolvedFaqs, errors: faqResolveErrors } =
             resolveFaqsForVariable(faqGdocs, metadata)
         if (faqResolveErrors.length > 0) {
@@ -254,19 +277,32 @@ export async function renderDataPageV2(
 
     // For multi-indicator charts the per-dimension `display.name` (set by the
     // chart author) is the right per-indicator label — the chart-level `title`
-    // describes the whole chart, not any one indicator. Only used on enrolled
-    // charts so non-enrolled data pages keep their existing title resolution
-    // (which falls back to `grapherConfig.title`).
-    const indicatorTitleOverrideFor = (varId: number): string | undefined =>
+    // describes the whole chart, not any one indicator. Fall back to the
+    // variable's own display/database name so two indicators without a
+    // dimension name don't both end up labelled with the chart title in the
+    // switcher. Only used on enrolled charts so non-enrolled data pages keep
+    // their existing title resolution (which falls back to
+    // `grapherConfig.title`).
+    const indicatorTitleOverrideFor = (
+        varId: number,
+        metadata: OwidVariableWithSource
+    ): string | undefined =>
         grapher.dimensions?.find(
             (d) => d.property === DimensionProperty.y && d.variableId === varId
-        )?.display?.name
+        )?.display?.name ??
+        metadata.display?.name ??
+        metadata.name
 
     const datapageData = getDatapageDataV2(
         variableMetadata,
         grapher,
         datapageMetadataExperimentActive
-            ? { indicatorTitleOverride: indicatorTitleOverrideFor(variableId) }
+            ? {
+                  indicatorTitleOverride: indicatorTitleOverrideFor(
+                      variableId,
+                      variableMetadata
+                  ),
+              }
             : undefined
     )
 
@@ -284,24 +320,44 @@ export async function renderDataPageV2(
             )
         ).filter((id) => id !== variableId)
 
-        additionalIndicators = await pMap(
+        const maybeAdditionalIndicators = await pMap(
             additionalYVariableIds,
-            async (id) => {
-                // noCache to match how the primary indicator's metadata is
-                // fetched (getVariableOfDatapageIfApplicable), so a bake always
-                // reflects the latest variable metadata.
-                const metadata = await getVariableMetadata(id, {
-                    noCache: true,
-                })
-                return {
-                    datapageData: getDatapageDataV2(metadata, grapher, {
-                        indicatorTitleOverride: indicatorTitleOverrideFor(id),
-                    }),
-                    faqEntries: await resolveFaqsForOneVariable(metadata, id),
+            async (id): Promise<AdditionalIndicator | undefined> => {
+                try {
+                    // noCache to match how the primary indicator's metadata is
+                    // fetched (getVariableOfDatapageIfApplicable), so a bake
+                    // always reflects the latest variable metadata.
+                    const metadata = await getVariableMetadata(id, {
+                        noCache: true,
+                    })
+                    return {
+                        datapageData: getDatapageDataV2(metadata, grapher, {
+                            indicatorTitleOverride: indicatorTitleOverrideFor(
+                                id,
+                                metadata
+                            ),
+                        }),
+                        faqEntries: await resolveFaqsForOneVariable(
+                            metadata,
+                            id
+                        ),
+                    }
+                } catch (error) {
+                    // Don't let one broken additional indicator (e.g. a
+                    // deleted variable or a transient S3 failure) take down
+                    // the whole page bake — the chart baked fine without it
+                    // before this experiment.
+                    await logErrorAndMaybeCaptureInSentry(
+                        new Error(
+                            `Data page error loading additional indicator ${id} for chart ${grapher.slug}: ${error}`
+                        )
+                    )
+                    return undefined
                 }
             },
             { concurrency: 5 }
         )
+        additionalIndicators = _.compact(maybeAdditionalIndicators)
     }
 
     datapageData.primaryTopic = await getPrimaryTopic(
@@ -401,6 +457,7 @@ export async function renderDataPageV2(
             grapher={grapher}
             datapageData={datapageData}
             additionalIndicators={additionalIndicators}
+            useNewDatapageDesign={datapageMetadataExperimentActive}
             canonicalUrl={canonicalUrl}
             baseUrl={BAKED_BASE_URL}
             isPreviewing={isPreviewing}

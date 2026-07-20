@@ -71,6 +71,7 @@ function DataPageDownloadSection({
 export const DataPageV2Content = ({
     datapageData,
     additionalIndicators,
+    useNewDatapageDesign: useNewDatapageDesignFromBaker,
     grapherConfig,
     isPreviewing = false,
     faqEntries,
@@ -83,14 +84,20 @@ export const DataPageV2Content = ({
     imageMetadata: Record<string, ImageMetadata>
 }) => {
     const slug = grapherConfig.slug
-    // Client-side counterpart of the baker's `shouldBakeAsDatapage`
-    // (baker/GrapherBaker.tsx). We plan to move ALL grapher pages to the
-    // data page design soon; when that happens, this becomes `true` and the
-    // control-arm branches below can be deleted along with the experiment.
-    const useNewDatapageDesign = isUrlInActiveExperiment(
-        DATA_PAGE_METADATA_EXPERIMENT_ID,
-        `/grapher/${slug}`
-    )
+    // The baker decides which design a page gets (`shouldBakeAsDatapage` in
+    // baker/GrapherBaker.tsx) and serializes the decision into the page
+    // props, so hydration always matches the baked HTML — even if the
+    // experiment config changes (e.g. expires) between bake and view. The
+    // recomputed fallback only covers pages baked before the field existed.
+    // We plan to move ALL grapher pages to the data page design soon; when
+    // that happens, this becomes `true` and the control-arm branches below
+    // can be deleted along with the experiment.
+    const useNewDatapageDesign =
+        useNewDatapageDesignFromBaker ??
+        isUrlInActiveExperiment(
+            DATA_PAGE_METADATA_EXPERIMENT_ID,
+            `/grapher/${slug}`
+        )
     const queryStr =
         typeof window !== "undefined" ? window?.location?.search : undefined
 

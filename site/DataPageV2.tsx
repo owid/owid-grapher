@@ -44,6 +44,7 @@ export const DataPageV2 = (props: {
     grapher: GrapherInterface | undefined
     datapageData: DataPageDataV2
     additionalIndicators?: AdditionalIndicator[]
+    useNewDatapageDesign?: boolean
     baseUrl: string
     canonicalUrl: string
     isPreviewing: boolean
@@ -57,6 +58,7 @@ export const DataPageV2 = (props: {
         grapher,
         datapageData,
         additionalIndicators,
+        useNewDatapageDesign,
         baseUrl,
         canonicalUrl,
         isPreviewing,
@@ -173,6 +175,7 @@ export const DataPageV2 = (props: {
                                 {
                                     datapageData,
                                     additionalIndicators,
+                                    useNewDatapageDesign,
                                     faqEntries,
                                     canonicalUrl,
                                     imageMetadata,
@@ -186,6 +189,7 @@ export const DataPageV2 = (props: {
                             <DataPageV2Content
                                 datapageData={datapageData}
                                 additionalIndicators={additionalIndicators}
+                                useNewDatapageDesign={useNewDatapageDesign}
                                 grapherConfig={grapherConfig}
                                 imageMetadata={imageMetadata}
                                 isPreviewing={isPreviewing}

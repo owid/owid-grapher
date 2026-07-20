@@ -5,36 +5,9 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCaretDown } from "@fortawesome/free-solid-svg-icons"
 import { DataPageDataV2 } from "@ourworldindata/types"
 
-// Feature flag for which indicator-switcher UI to render on multi-indicator
-// data pages. Override per-request via the URL query string,
-// e.g. `?switcher=h-tabs` or `?switcher=v-tabs`.
-export type SwitcherVariant = "dropdown" | "h-tabs" | "v-tabs" | "h-pills"
-export const DEFAULT_SWITCHER_VARIANT: SwitcherVariant = "h-pills"
-const ALL_SWITCHER_VARIANTS: readonly SwitcherVariant[] = [
-    "dropdown",
-    "h-tabs",
-    "v-tabs",
-    "h-pills",
-]
-
-export const useSwitcherVariant = (): SwitcherVariant => {
-    const [variant, setVariant] = useState<SwitcherVariant>(
-        DEFAULT_SWITCHER_VARIANT
-    )
-    useEffect(() => {
-        if (typeof window === "undefined") return
-        const sp = new URLSearchParams(window.location.search)
-        const v = sp.get("switcher")
-        if (v && ALL_SWITCHER_VARIANTS.includes(v as SwitcherVariant)) {
-            setVariant(v as SwitcherVariant)
-        }
-    }, [])
-    return variant
-}
-
 type IndicatorEntry = { datapageData: DataPageDataV2 }
 
-export const labelForIndicator = (datapageData: DataPageDataV2): string => {
+const labelForIndicator = (datapageData: DataPageDataV2): string => {
     const title = datapageData.title.title
     const variant = datapageData.titleVariant
     return variant && !title.includes(variant) ? `${title} – ${variant}` : title
@@ -124,10 +97,29 @@ const usePopoverAnchor = (
         const updatePos = () => {
             if (!triggerRef.current) return
             const r = triggerRef.current.getBoundingClientRect()
+            // Keep the popover inside the viewport: flip above the trigger
+            // when there isn't enough room below (common when the "More"
+            // trigger sits low on the page), and clamp as a last resort.
+            const popoverHeight = popoverRef.current?.offsetHeight ?? 0
+            const popoverWidth = popoverRef.current?.offsetWidth ?? 0
+            let top = r.bottom + 4
+            if (popoverHeight && top + popoverHeight > window.innerHeight - 8) {
+                const above = r.top - 4 - popoverHeight
+                top =
+                    above >= 8
+                        ? above
+                        : Math.max(8, window.innerHeight - 8 - popoverHeight)
+            }
+            const left = popoverWidth
+                ? Math.max(
+                      8,
+                      Math.min(r.left, window.innerWidth - 8 - popoverWidth)
+                  )
+                : r.left
             setPopoverStyle({
                 position: "fixed",
-                top: r.bottom + 4,
-                left: r.left,
+                top,
+                left,
                 ...(matchTriggerWidth ? { minWidth: r.width } : {}),
             })
         }
@@ -142,7 +134,12 @@ const usePopoverAnchor = (
             setOpen(false)
         }
         const onKey = (e: KeyboardEvent) => {
-            if (e.key === "Escape") setOpen(false)
+            if (e.key === "Escape") {
+                setOpen(false)
+                // Return focus to the trigger so keyboard users don't lose
+                // their place when the (portaled) popover unmounts.
+                triggerRef.current?.focus()
+            }
         }
         document.addEventListener("mousedown", onDocMouseDown)
         document.addEventListener("keydown", onKey)
@@ -173,6 +170,37 @@ const IndicatorOptionsPopover = ({
     activeIndex: number
     onSelect: (i: number) => void
 }) => {
+    // Move focus into the popover when it opens (it's portaled to
+    // document.body, so it isn't next in tab order after the trigger), and
+    // let ArrowUp/ArrowDown walk the options. preventScroll matters: this
+    // effect runs before the anchor-positioning effect in the parent, so a
+    // scrolling focus would jump the page to the popover's unpositioned
+    // location at the end of <body>.
+    useEffect(() => {
+        const popover = popoverRef.current
+        if (!popover) return
+        const target =
+            popover.querySelector<HTMLButtonElement>(
+                '[aria-selected="true"]'
+            ) ?? popover.querySelector<HTMLButtonElement>("button")
+        target?.focus({ preventScroll: true })
+    }, [popoverRef])
+    const onKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return
+        e.preventDefault()
+        const options = Array.from(
+            popoverRef.current?.querySelectorAll<HTMLButtonElement>("button") ??
+                []
+        )
+        const current = options.indexOf(
+            document.activeElement as HTMLButtonElement
+        )
+        const next =
+            e.key === "ArrowDown"
+                ? Math.min(current + 1, options.length - 1)
+                : Math.max(current - 1, 0)
+        options[next]?.focus()
+    }
     if (typeof document === "undefined") return null
     return createPortal(
         <div
@@ -180,6 +208,7 @@ const IndicatorOptionsPopover = ({
             className="indicator-switcher__popover"
             style={popoverStyle}
             role="listbox"
+            onKeyDown={onKeyDown}
         >
             {indicators.map((ind, i) => {
                 const idx = startIndex + i
@@ -371,18 +400,17 @@ export const IndicatorTabsHorizontal = ({
         variant === "pills"
             ? "indicator-switcher__h-pill--active"
             : "indicator-switcher__h-tab--active"
+    // Deliberately plain buttons with aria-pressed rather than a
+    // role="tablist" — proper tab semantics require arrow-key navigation and
+    // aria-controls/tabpanel wiring; without those, announcing tabs would
+    // promise interactions that don't exist.
     return (
-        <div
-            className={containerClass}
-            role="tablist"
-            aria-label="About this data"
-        >
+        <div className={containerClass} role="group" aria-label="Indicator">
             {visible.map((ind, i) => (
                 <button
                     key={i}
                     type="button"
-                    role="tab"
-                    aria-selected={i === activeIndex}
+                    aria-pressed={i === activeIndex}
                     className={cx(itemClass, {
                         [itemActiveClass]: i === activeIndex,
                     })}
@@ -420,11 +448,12 @@ export const IndicatorTabsVertical = ({
         indicators,
         MAX_VISIBLE_TABS_DESKTOP
     )
+    // Plain buttons with aria-pressed, not role="tablist" — see
+    // IndicatorTabsHorizontal.
     return (
         <aside
             className="indicator-switcher__v-tabs"
-            role="tablist"
-            aria-orientation="vertical"
+            role="group"
             aria-label="Indicator"
         >
             <IndicatorAboutLabel
@@ -435,8 +464,7 @@ export const IndicatorTabsVertical = ({
                 <button
                     key={i}
                     type="button"
-                    role="tab"
-                    aria-selected={i === activeIndex}
+                    aria-pressed={i === activeIndex}
                     className={cx("indicator-switcher__v-tab", {
                         "indicator-switcher__v-tab--active": i === activeIndex,
                     })}
