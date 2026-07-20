@@ -1,56 +1,302 @@
 {
-  "_comment": "Editorial curation for the 'Curated' card mode. ~3-5 vetted, NORMALIZED indicators per OWID subtopic (rate / share / per-capita / index) so country values are comparable to the World average — no absolute counts. Direction/format/label hand-set. slug = OWID grapher slug; format = pct|usd|years|tonnes|index|number; goodDirection = up|down|none. Edit, then re-run assets/build.py.",
-  "prebakeCountries": ["CZE", "ESP", "USA"],
-  "metrics": [
-    { "slug": "life-expectancy", "label": "Life expectancy", "subtopic": "Health", "format": "years", "goodDirection": "up" },
-    { "slug": "child-mortality", "label": "Child mortality", "subtopic": "Health", "format": "pct", "goodDirection": "down" },
-    { "slug": "death-rate-from-cardiovascular-disease-age-standardized-ghe", "label": "Heart-disease death rate", "subtopic": "Health", "format": "number", "goodDirection": "down" },
-    { "slug": "share-of-adults-who-are-overweight", "label": "Adults overweight", "subtopic": "Health", "format": "pct", "goodDirection": "down" },
-    { "slug": "outdoor-air-pollution-exposure", "label": "Air pollution exposure", "subtopic": "Health", "format": "number", "goodDirection": "down" },
+    "_comment": "Editorial curation for the 'Curated' card mode. ~3-5 vetted, NORMALIZED indicators per OWID subtopic (rate / share / per-capita / index) so country values are comparable to the World average — no absolute counts. Direction/format/label hand-set. slug = OWID grapher slug; format = pct|usd|years|tonnes|index|number; goodDirection = up|down|none. Edit, then re-run assets/build.py.",
+    "prebakeCountries": ["CZE", "ESP", "USA"],
+    "metrics": [
+        {
+            "slug": "life-expectancy",
+            "label": "Life expectancy",
+            "subtopic": "Health",
+            "format": "years",
+            "goodDirection": "up"
+        },
+        {
+            "slug": "child-mortality",
+            "label": "Child mortality",
+            "subtopic": "Health",
+            "format": "pct",
+            "goodDirection": "down"
+        },
+        {
+            "slug": "death-rate-from-cardiovascular-disease-age-standardized-ghe",
+            "label": "Heart-disease death rate",
+            "subtopic": "Health",
+            "format": "number",
+            "goodDirection": "down"
+        },
+        {
+            "slug": "share-of-adults-who-are-overweight",
+            "label": "Adults overweight",
+            "subtopic": "Health",
+            "format": "pct",
+            "goodDirection": "down"
+        },
+        {
+            "slug": "outdoor-air-pollution-exposure",
+            "label": "Air pollution exposure",
+            "subtopic": "Health",
+            "format": "number",
+            "goodDirection": "down"
+        },
 
-    { "slug": "co-emissions-per-capita", "label": "CO₂ per person", "subtopic": "Environment", "format": "tonnes", "goodDirection": "down" },
-    { "slug": "share-electricity-renewables", "label": "Renewable electricity", "subtopic": "Environment", "format": "pct", "goodDirection": "up" },
-    { "slug": "share-of-the-population-with-access-to-electricity", "label": "Access to electricity", "subtopic": "Environment", "format": "pct", "goodDirection": "up" },
-    { "slug": "forest-area-as-share-of-land-area", "label": "Forest area", "subtopic": "Environment", "format": "pct", "goodDirection": "up" },
-    { "slug": "per-capita-energy-use", "label": "Energy use per person", "subtopic": "Environment", "format": "number", "goodDirection": "none" },
+        {
+            "slug": "co-emissions-per-capita",
+            "label": "CO₂ per person",
+            "subtopic": "Environment",
+            "format": "tonnes",
+            "goodDirection": "down"
+        },
+        {
+            "slug": "share-electricity-renewables",
+            "label": "Renewable electricity",
+            "subtopic": "Environment",
+            "format": "pct",
+            "goodDirection": "up"
+        },
+        {
+            "slug": "share-of-the-population-with-access-to-electricity",
+            "label": "Access to electricity",
+            "subtopic": "Environment",
+            "format": "pct",
+            "goodDirection": "up"
+        },
+        {
+            "slug": "forest-area-as-share-of-land-area",
+            "label": "Forest area",
+            "subtopic": "Environment",
+            "format": "pct",
+            "goodDirection": "up"
+        },
+        {
+            "slug": "per-capita-energy-use",
+            "label": "Energy use per person",
+            "subtopic": "Environment",
+            "format": "number",
+            "goodDirection": "none"
+        },
 
-    { "slug": "gdp-per-capita-worldbank", "label": "GDP per capita", "subtopic": "Economy", "format": "usd", "goodDirection": "up" },
-    { "slug": "share-of-population-in-extreme-poverty", "label": "Extreme poverty", "subtopic": "Economy", "format": "pct", "goodDirection": "down" },
-    { "slug": "female-labor-force-participation-rates", "label": "Women in the workforce", "subtopic": "Economy", "format": "pct", "goodDirection": "up" },
-    { "slug": "trade-as-share-of-gdp", "label": "Trade as share of GDP", "subtopic": "Economy", "format": "pct", "goodDirection": "none" },
-    { "slug": "tax-revenues-as-a-share-of-gdp-unu-wider", "label": "Tax revenue", "subtopic": "Economy", "format": "pct", "goodDirection": "none" },
+        {
+            "slug": "gdp-per-capita-worldbank",
+            "label": "GDP per capita",
+            "subtopic": "Economy",
+            "format": "usd",
+            "goodDirection": "up"
+        },
+        {
+            "slug": "share-of-population-in-extreme-poverty",
+            "label": "Extreme poverty",
+            "subtopic": "Economy",
+            "format": "pct",
+            "goodDirection": "down"
+        },
+        {
+            "slug": "female-labor-force-participation-rates",
+            "label": "Women in the workforce",
+            "subtopic": "Economy",
+            "format": "pct",
+            "goodDirection": "up"
+        },
+        {
+            "slug": "trade-as-share-of-gdp",
+            "label": "Trade as share of GDP",
+            "subtopic": "Economy",
+            "format": "pct",
+            "goodDirection": "none"
+        },
+        {
+            "slug": "tax-revenues-as-a-share-of-gdp-unu-wider",
+            "label": "Tax revenue",
+            "subtopic": "Economy",
+            "format": "pct",
+            "goodDirection": "none"
+        },
 
-    { "slug": "daily-per-capita-caloric-supply", "label": "Food supply per person", "subtopic": "Food & Agriculture", "format": "number", "goodDirection": "up" },
-    { "slug": "share-of-the-labor-force-employed-in-agriculture", "label": "Work in agriculture", "subtopic": "Food & Agriculture", "format": "pct", "goodDirection": "none" },
-    { "slug": "agricultural-area-per-capita", "label": "Farmland per person", "subtopic": "Food & Agriculture", "format": "number", "goodDirection": "none" },
+        {
+            "slug": "daily-per-capita-caloric-supply",
+            "label": "Food supply per person",
+            "subtopic": "Food & Agriculture",
+            "format": "number",
+            "goodDirection": "up"
+        },
+        {
+            "slug": "share-of-the-labor-force-employed-in-agriculture",
+            "label": "Work in agriculture",
+            "subtopic": "Food & Agriculture",
+            "format": "pct",
+            "goodDirection": "none"
+        },
+        {
+            "slug": "agricultural-area-per-capita",
+            "label": "Farmland per person",
+            "subtopic": "Food & Agriculture",
+            "format": "number",
+            "goodDirection": "none"
+        },
 
-    { "slug": "human-development-index", "label": "Human Development Index", "subtopic": "Living Conditions", "format": "index", "goodDirection": "up" },
-    { "slug": "annual-working-hours-per-worker", "label": "Working hours", "subtopic": "Living Conditions", "format": "number", "goodDirection": "down" },
-    { "slug": "share-of-the-population-with-access-to-sanitation-facilities", "label": "Access to sanitation", "subtopic": "Living Conditions", "format": "pct", "goodDirection": "up" },
-    { "slug": "self-reported-trust-attitudes", "label": "Trust in others", "subtopic": "Living Conditions", "format": "pct", "goodDirection": "up" },
+        {
+            "slug": "human-development-index",
+            "label": "Human Development Index",
+            "subtopic": "Living Conditions",
+            "format": "index",
+            "goodDirection": "up"
+        },
+        {
+            "slug": "annual-working-hours-per-worker",
+            "label": "Working hours",
+            "subtopic": "Living Conditions",
+            "format": "number",
+            "goodDirection": "down"
+        },
+        {
+            "slug": "share-of-the-population-with-access-to-sanitation-facilities",
+            "label": "Access to sanitation",
+            "subtopic": "Living Conditions",
+            "format": "pct",
+            "goodDirection": "up"
+        },
+        {
+            "slug": "self-reported-trust-attitudes",
+            "label": "Trust in others",
+            "subtopic": "Living Conditions",
+            "format": "pct",
+            "goodDirection": "up"
+        },
 
-    { "slug": "electoral-democracy-index", "label": "Democracy index", "subtopic": "Rights & Democracy", "format": "index", "goodDirection": "up" },
-    { "slug": "human-rights-index-vdem", "label": "Human rights", "subtopic": "Rights & Democracy", "format": "index", "goodDirection": "up" },
-    { "slug": "share-of-women-in-parliament", "label": "Women in parliament", "subtopic": "Rights & Democracy", "format": "pct", "goodDirection": "up" },
-    { "slug": "political-corruption-index", "label": "Political corruption", "subtopic": "Rights & Democracy", "format": "index", "goodDirection": "down" },
-    { "slug": "proportion-of-women-in-senior-and-middle-management-positions", "label": "Women in management", "subtopic": "Rights & Democracy", "format": "pct", "goodDirection": "up" },
+        {
+            "slug": "electoral-democracy-index",
+            "label": "Democracy index",
+            "subtopic": "Rights & Democracy",
+            "format": "index",
+            "goodDirection": "up"
+        },
+        {
+            "slug": "human-rights-index-vdem",
+            "label": "Human rights",
+            "subtopic": "Rights & Democracy",
+            "format": "index",
+            "goodDirection": "up"
+        },
+        {
+            "slug": "share-of-women-in-parliament",
+            "label": "Women in parliament",
+            "subtopic": "Rights & Democracy",
+            "format": "pct",
+            "goodDirection": "up"
+        },
+        {
+            "slug": "political-corruption-index",
+            "label": "Political corruption",
+            "subtopic": "Rights & Democracy",
+            "format": "index",
+            "goodDirection": "down"
+        },
+        {
+            "slug": "proportion-of-women-in-senior-and-middle-management-positions",
+            "label": "Women in management",
+            "subtopic": "Rights & Democracy",
+            "format": "pct",
+            "goodDirection": "up"
+        },
 
-    { "slug": "homicide-rate-unodc", "label": "Homicide rate", "subtopic": "Violence & War", "format": "number", "goodDirection": "down" },
-    { "slug": "military-spending-as-a-share-of-gdp-sipri", "label": "Military spending", "subtopic": "Violence & War", "format": "pct", "goodDirection": "none" },
+        {
+            "slug": "homicide-rate-unodc",
+            "label": "Homicide rate",
+            "subtopic": "Violence & War",
+            "format": "number",
+            "goodDirection": "down"
+        },
+        {
+            "slug": "military-spending-as-a-share-of-gdp-sipri",
+            "label": "Military spending",
+            "subtopic": "Violence & War",
+            "format": "pct",
+            "goodDirection": "none"
+        },
 
-    { "slug": "children-per-woman-un", "label": "Children per woman", "subtopic": "Population", "format": "number", "goodDirection": "none" },
-    { "slug": "share-of-population-urban", "label": "Urban population", "subtopic": "Population", "format": "pct", "goodDirection": "none" },
-    { "slug": "life-expectancy-hmd-unwpp", "label": "Life expectancy (long-run)", "subtopic": "Population", "format": "years", "goodDirection": "up" },
+        {
+            "slug": "children-per-woman-un",
+            "label": "Children per woman",
+            "subtopic": "Population",
+            "format": "number",
+            "goodDirection": "none"
+        },
+        {
+            "slug": "share-of-population-urban",
+            "label": "Urban population",
+            "subtopic": "Population",
+            "format": "pct",
+            "goodDirection": "none"
+        },
+        {
+            "slug": "life-expectancy-hmd-unwpp",
+            "label": "Life expectancy (long-run)",
+            "subtopic": "Population",
+            "format": "years",
+            "goodDirection": "up"
+        },
 
-    { "slug": "share-of-individuals-using-the-internet", "label": "Internet users", "subtopic": "Technology", "format": "pct", "goodDirection": "up" },
-    { "slug": "researchers-in-rd-per-million-people", "label": "Researchers (per million)", "subtopic": "Technology", "format": "number", "goodDirection": "up" },
-    { "slug": "research-spending-gdp", "label": "R&D spending", "subtopic": "Technology", "format": "pct", "goodDirection": "up" },
-    { "slug": "patent-applications-per-million", "label": "Patent applications", "subtopic": "Technology", "format": "number", "goodDirection": "up" },
-    { "slug": "scientific-publications-per-million", "label": "Scientific publications", "subtopic": "Technology", "format": "number", "goodDirection": "up" },
+        {
+            "slug": "share-of-individuals-using-the-internet",
+            "label": "Internet users",
+            "subtopic": "Technology",
+            "format": "pct",
+            "goodDirection": "up"
+        },
+        {
+            "slug": "researchers-in-rd-per-million-people",
+            "label": "Researchers (per million)",
+            "subtopic": "Technology",
+            "format": "number",
+            "goodDirection": "up"
+        },
+        {
+            "slug": "research-spending-gdp",
+            "label": "R&D spending",
+            "subtopic": "Technology",
+            "format": "pct",
+            "goodDirection": "up"
+        },
+        {
+            "slug": "patent-applications-per-million",
+            "label": "Patent applications",
+            "subtopic": "Technology",
+            "format": "number",
+            "goodDirection": "up"
+        },
+        {
+            "slug": "scientific-publications-per-million",
+            "label": "Scientific publications",
+            "subtopic": "Technology",
+            "format": "number",
+            "goodDirection": "up"
+        },
 
-    { "slug": "years-of-schooling", "label": "Years of schooling", "subtopic": "Education", "format": "years", "goodDirection": "up" },
-    { "slug": "literacy", "label": "Literacy rate", "subtopic": "Education", "format": "pct", "goodDirection": "up" },
-    { "slug": "primary-secondary-enrollment-completion-rates", "label": "School enrollment", "subtopic": "Education", "format": "pct", "goodDirection": "up" },
-    { "slug": "gender-gap-education-levels", "label": "Education gender gap", "subtopic": "Education", "format": "pct", "goodDirection": "none" }
-  ]
+        {
+            "slug": "years-of-schooling",
+            "label": "Years of schooling",
+            "subtopic": "Education",
+            "format": "years",
+            "goodDirection": "up"
+        },
+        {
+            "slug": "literacy",
+            "label": "Literacy rate",
+            "subtopic": "Education",
+            "format": "pct",
+            "goodDirection": "up"
+        },
+        {
+            "slug": "primary-secondary-enrollment-completion-rates",
+            "label": "School enrollment",
+            "subtopic": "Education",
+            "format": "pct",
+            "goodDirection": "up"
+        },
+        {
+            "slug": "gender-gap-education-levels",
+            "label": "Education gender gap",
+            "subtopic": "Education",
+            "format": "pct",
+            "goodDirection": "none"
+        }
+    ]
 }
