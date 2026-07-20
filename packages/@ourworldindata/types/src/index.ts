@@ -240,6 +240,7 @@ export {
 } from "./gdocTypes/Gdoc.js"
 
 export {
+    type AdditionalIndicator,
     type Distribution,
     type DataPageV2ContentFields,
     type DataPageDataV2,

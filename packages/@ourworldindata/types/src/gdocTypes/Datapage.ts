@@ -74,8 +74,22 @@ export type Distribution =
     | { allowed: true }
     | { allowed: false; sourceLinks: string[] }
 
+export interface AdditionalIndicator {
+    datapageData: DataPageDataV2
+    faqEntries?: FaqEntryData
+}
+
 export interface DataPageV2ContentFields {
     datapageData: DataPageDataV2
+    /**
+     * Per-indicator metadata for the non-primary Y-indicators of a chart.
+     * Populated at bake time only for charts enrolled in the data page metadata
+     * experiment (see DATA_PAGE_METADATA_EXPERIMENT_ID); left undefined for
+     * ordinary single-indicator data pages. The metadata box renders an
+     * indicator switcher over `[primary, ...additionalIndicators]` when this is
+     * non-empty.
+     */
+    additionalIndicators?: AdditionalIndicator[]
     faqEntries: FaqEntryData | undefined
     // TODO: add gdocs for FAQs
     isPreviewing?: boolean
