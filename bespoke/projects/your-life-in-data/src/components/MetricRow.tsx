@@ -26,7 +26,7 @@ export function MetricRow({
     birthYear: number
 }) {
     const meta = row.meta
-    const showComp = row.compNow != null && countryCode !== compCode
+    const showComp = row.compNow !== null && countryCode !== compCode
     // open the chart on the line tab, with the country + comparison entity selected
     const selected = [...new Set([countryCode, compCode])].join("~")
     const chartUrl =

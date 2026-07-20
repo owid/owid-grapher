@@ -9,7 +9,7 @@ export function formatValue(
     v: number | null | undefined,
     format?: MetricFormat
 ): string {
-    if (v == null || !Number.isFinite(v)) return "–"
+    if (v === null || v === undefined || !Number.isFinite(v)) return "–"
     if (format === "pct") return round(v, 1) + "%"
     if (format === "usd") return "$" + Math.round(v).toLocaleString("en-US")
     if (format === "years") return round(v, 1)
@@ -63,7 +63,7 @@ export function changePhrase(
         if (r < 0.45) return "down by " + round((1 - r) * 100, 0) + "%"
     }
     const pc = then !== 0 ? (d / Math.abs(then)) * 100 : null
-    if (pc == null) return now > then ? "rose" : "fell"
+    if (pc === null) return now > then ? "rose" : "fell"
     return (
         (pc >= 0 ? "+" : "−") +
         round(Math.abs(pc), Math.abs(pc) < 10 ? 1 : 0) +
