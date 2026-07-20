@@ -31,6 +31,10 @@ import {
 } from "./searchUtils.js"
 import { RichDataComponentVariant } from "./SearchChartHitRichDataTypes.js"
 
+// Above this many index-wide hits, a single shared word is treated as too
+// common to be a distinctive match (see rationale below).
+const DISTINCTIVE_SINGLE_WORD_MAX_HITS = 100
+
 function makeStateForKey(state: SearchState) {
     return R.pick(state, ["query", "filters", "requireAllCountries"])
 }
@@ -100,7 +104,11 @@ async function searchSingleForHitsWithClosestMatches<T>(
     // charts are exactly what the user wants). Distinctiveness proxy: how many
     // documents that one word matches — common words match hundreds.
     if (topWords === 0) return primary
-    if (topWords === 1 && (relaxed.nbHits ?? 0) > 100) return primary
+    if (
+        topWords === 1 &&
+        (relaxed.nbHits ?? 0) > DISTINCTIVE_SINGLE_WORD_MAX_HITS
+    )
+        return primary
 
     // Algolia ranks relaxed hits by matched words, so the best tier is a
     // prefix. For a one-word tier, EVERY match shares that word, so the full
